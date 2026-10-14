@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{pathToFileURL}=require('node:url');
-const {chromium}=require('C:/Users/Cloudname_3455071506/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require(process.env.HG_PLAYWRIGHT_MODULE || 'playwright');
 (async()=>{
  const browser=await chromium.launch({headless:true,channel:'chrome'}),results=[];
  try{

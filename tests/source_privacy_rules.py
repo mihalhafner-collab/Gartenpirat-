@@ -4,6 +4,64 @@ import hashlib
 import re
 
 
+DEVICE_JS_TESTS = {'tests/pixel-start-tunnel.cjs',
+                   'tests/pixel-usb-enable-worklog-write.cjs',
+                   'tests/pixel-usb-readonly.test.cjs',
+                   'tests/pixel-work-session-ui.cjs'}
+
+
+def sanitize_device_tools(data, relative):
+    """Export manual device tools without implicit live devices or home paths."""
+    source = data.decode('utf-8')
+    module = r"require\((['\"])[A-Za-z]:[\\/]+Users[\\/]+[^'\"\r\n]*playwright[^'\"\r\n]*\1\)"
+    modules = 0
+    if relative.endswith(('.cjs', '.js')):
+        source, modules = re.subn(module,
+            "require(process.env.HG_PLAYWRIGHT_MODULE || 'playwright')", source)
+    guard = ("\n// Export copy: no implicit device or live operation.\n"
+             "if (!(process.argv[2] || process.env.HG_TEST_DEVICE_SERIAL) || "
+             "process.env.HG_TEST_DEVICE_CONFIRMED !== '1') {\n"
+             "  throw Error('Manual device test requires an explicitly selected "
+             "device and HG_TEST_DEVICE_CONFIRMED=1 after user consent.');\n}\n")
+    if relative in DEVICE_JS_TESTS:
+        if guard in source and "process.argv[2] || process.env.HG_TEST_DEVICE_SERIAL" in source:
+            return source.encode('utf-8')
+        assignment = r"(\bserial\s*=\s*)(?:process\.argv\[2\]\s*\|\|\s*)?(['\"])[A-Za-z0-9_-]+\2"
+        source, serials = re.subn(assignment,
+            r'\1process.argv[2] || process.env.HG_TEST_DEVICE_SERIAL', source)
+        strict = "'use strict';"
+        if modules != 1 or serials != 1 or source.count(strict) != 1:
+            raise ValueError('Device test requires manual export review: ' + relative)
+        source = source.replace(strict, strict + guard, 1)
+    elif relative == 'tests/pixel_update_release.py':
+        before = 'def main(serial):\n'
+        if source.count(before) != 1:
+            raise ValueError('Device update tool requires manual export review.')
+        after = (before + "    if not serial or os.environ.get('HG_TEST_DEVICE_CONFIRMED') != '1':\n"
+                 "        raise RuntimeError('Manual device update requires explicit user consent "
+                 "and HG_TEST_DEVICE_CONFIRMED=1; no device operation performed.')\n")
+        if after not in source:
+            source = source.replace(before, after, 1)
+    return source.encode('utf-8')
+
+
+def scan_cloud_metadata(files):
+    """Fail closed on personal runtime paths or physical serial defaults."""
+    findings = []
+    home = re.compile(rb'[A-Za-z]:[\\/]+Users[\\/]+[^\\/\s\'\"]+')
+    serial = re.compile(rb"\bserial\s*=\s*(['\"])([A-Za-z0-9_-]+)\1", re.I)
+    for relative, data in files.items():
+        if relative.endswith(('.png', '.ttf')):
+            continue
+        if home.search(data):
+            findings.append(relative + ': personal runtime path')
+        if relative.endswith(('.cjs', '.js', '.py')):
+            if any(not m.group(2).startswith(b'emulator-') for m in serial.finditer(data)):
+                findings.append(relative + ': implicit physical device')
+    if findings:
+        raise ValueError('Cloud metadata review required: ' + ', '.join(findings))
+
+
 def sanitize_snapshot_verifier(data):
     """Remove private import totals only in the exported verifier.
 

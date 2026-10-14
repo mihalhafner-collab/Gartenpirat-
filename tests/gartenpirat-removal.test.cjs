@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {pathToFileURL}=require('node:url');
-const {chromium}=require('C:/Users/Cloudname_3455071506/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require(process.env.HG_PLAYWRIGHT_MODULE || 'playwright');
 (async()=>{
  const results=[],browser=await chromium.launch({headless:true,channel:'chrome'});
  const check=async(name,test)=>{try{await test();results.push({name,result:'PASS'});}catch(error){results.push({name,result:'FAIL',error:error.message});}console.log(results.at(-1));};

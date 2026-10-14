@@ -2,7 +2,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {pathToFileURL}=require('node:url');
-const {chromium}=require('C:/Users/Cloudname_3455071506/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require(process.env.HG_PLAYWRIGHT_MODULE || 'playwright');
 (async()=>{
  const master=JSON.parse(fs.readFileSync('android/app/src/main/assets/initial-data.json','utf8'));
  const browser=await chromium.launch({headless:true,channel:'chrome'});

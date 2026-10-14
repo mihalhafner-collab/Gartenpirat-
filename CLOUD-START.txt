@@ -45,3 +45,9 @@ IDs, Relationen, Offline-/Drive-Formate, MCP-Werkzeugnamen und Pixel-Plugin erha
 Keine produktiven Daten für Tests; keine neue App oder konkurrierende Datenbank.
 Kein Live-Drive-/Pixel-Zugriff ohne konkrete Freigabe. Nur synthetische Testdaten.
 Statisch geprüft / tatsächlich ausgeführt / E2E / nicht testbar klar unterscheiden.
+
+Cloud-Gerätetests: Keine feste physische Pixel-Kennung oder private Playwright-Pfade.
+Manuelle Tests benötigen HG_TEST_DEVICE_SERIAL oder ein Geräteargument sowie
+HG_TEST_DEVICE_CONFIRMED=1 nach ausdrücklicher Freigabe. Ohne diese Angaben
+werden keine Geräteoperationen ausgeführt. Playwright nutzt das installierte Paket
+oder HG_PLAYWRIGHT_MODULE. Lokale Original-USB-Skripte bleiben unverändert.

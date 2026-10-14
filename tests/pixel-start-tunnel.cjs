@@ -1,9 +1,14 @@
 'use strict';
+// Export copy: no implicit device or live operation.
+if (!(process.argv[2] || process.env.HG_TEST_DEVICE_SERIAL) || process.env.HG_TEST_DEVICE_CONFIRMED !== '1') {
+  throw Error('Manual device test requires an explicitly selected device and HG_TEST_DEVICE_CONFIRMED=1 after user consent.');
+}
+
 const {execFileSync}=require('node:child_process');
 const path=require('node:path');
-const {chromium}=require('C:/Users/Cloudname_3455071506/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require(process.env.HG_PLAYWRIGHT_MODULE || 'playwright');
 const adbPath=path.resolve(__dirname,'../android-toolchain/sdk/platform-tools/adb.exe');
-const serial='58151FDCH005U8';
+const serial=process.argv[2] || process.env.HG_TEST_DEVICE_SERIAL;
 const adb=(args)=>execFileSync(adbPath,['-s',serial,...args],{encoding:'utf8',windowsHide:true,timeout:30000});
 function nodes(){adb(['shell','uiautomator','dump','/data/local/tmp/tunnel.xml']);const xml=adb(['shell','cat','/data/local/tmp/tunnel.xml']);return [...xml.matchAll(/<node\b([^>]+)>/g)].map(m=>Object.fromEntries([...m[1].matchAll(/([\w-]+)="([^"]*)"/g)].map(a=>[a[1],a[2]])));}
 function tap(node){const b=node.bounds.match(/^\[(\d+),(\d+)\]\[(\d+),(\d+)\]$/).slice(1).map(Number);adb(['shell','input','tap',String((b[0]+b[2])>>1),String((b[1]+b[3])>>1)]);}

@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
-const {chromium}=require('C:/Users/Cloudname_3455071506/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require(process.env.HG_PLAYWRIGHT_MODULE || 'playwright');
 const results=[];
 async function main(){
   const browser=await chromium.launch({headless:true,channel:'chrome'});

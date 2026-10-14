@@ -1,10 +1,15 @@
 /* Only run following explicit user consent to enable the narrow native write opt-in. */
 'use strict';
+// Export copy: no implicit device or live operation.
+if (!(process.argv[2] || process.env.HG_TEST_DEVICE_SERIAL) || process.env.HG_TEST_DEVICE_CONFIRMED !== '1') {
+  throw Error('Manual device test requires an explicitly selected device and HG_TEST_DEVICE_CONFIRMED=1 after user consent.');
+}
+
 const {execFileSync}=require('node:child_process');
-const {chromium}=require('C:/Users/Cloudname_3455071506/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require(process.env.HG_PLAYWRIGHT_MODULE || 'playwright');
 const path=require('node:path');const assert=require('node:assert/strict');
 const adbPath=path.join(__dirname,'../android-toolchain/sdk/platform-tools/adb.exe');
-const serial='58151FDCH005U8',app='at.hausgarten.service';
+const serial=process.argv[2] || process.env.HG_TEST_DEVICE_SERIAL,app='at.hausgarten.service';
 function adb(args){return execFileSync(adbPath,['-s',serial,...args],{encoding:'utf8',windowsHide:true,timeout:30000,maxBuffer:8*1024*1024});}
 function nodes(){adb(['shell','uiautomator','dump','/data/local/tmp/hausgarten-usb-window.xml']);const xml=adb(['shell','cat','/data/local/tmp/hausgarten-usb-window.xml']);return [...xml.matchAll(/<node\b([^>]+)>/g)].map(m=>{const a=Object.fromEntries([...m[1].matchAll(/([\w-]+)="([^"]*)"/g)].map(x=>[x[1],x[2]]));if(a.password==='true')a.text='';return a;});}
 function bounds(n){const m=n?.bounds?.match(/^\[(\d+),(\d+)\]\[(\d+),(\d+)\]$/);assert(m,'Observed bounds required');return m.slice(1).map(Number);}

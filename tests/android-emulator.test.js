@@ -63,7 +63,7 @@ async function connect() {
   assert(/^\d+$/.test(forwardPort));
   let playwright;
   try { playwright=require('playwright'); }
-  catch (_) { playwright=require('C:/Users/Cloudname_3455071506/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'); }
+  catch (_) { playwright=require(process.env.HG_PLAYWRIGHT_MODULE || 'playwright'); }
   browser=await playwright.chromium.connectOverCDP('http://127.0.0.1:'+forwardPort,{timeout:45000});
   page=browser.contexts().flatMap(context=>context.pages()).find(p=>p.url().includes('/android_asset/mobile.html'));
   assert(page,'Installed APK WebView not found; no browser replacement is allowed');

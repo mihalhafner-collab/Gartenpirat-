@@ -1,8 +1,50 @@
 import unittest
-from source_privacy_rules import anonymize, sanitize_snapshot_verifier
+from source_privacy_rules import (anonymize, sanitize_snapshot_verifier,
+                                  sanitize_device_tools, scan_cloud_metadata)
 
 
 class SourcePrivacyRulesTest(unittest.TestCase):
+
+    def test_device_export_removes_path_and_serial_and_keeps_adb_selection(self):
+        prefix = 'C:/' + 'Users/' + 'SyntheticUser/'
+        for assignment in ("const serial=" + "'fixture_device';",
+                           "const serial=process.argv[2]||'fixture_device';"):
+            source = ("'use strict';\nconst {chromium}=require('" + prefix
+                      + "runtime/node_modules/playwright');\n" + assignment
+                      + "\nconst args=['-s',serial];\n").encode()
+            out = sanitize_device_tools(source, 'tests/pixel-start-tunnel.cjs')
+            self.assertNotIn(prefix.encode(), out)
+            self.assertNotIn(b'fixture_device', out)
+            self.assertIn(b"require(process.env.HG_PLAYWRIGHT_MODULE || 'playwright')", out)
+            self.assertIn(b"HG_TEST_DEVICE_CONFIRMED !== '1'", out)
+            self.assertIn(b"const args=['-s',serial]", out)
+            scan_cloud_metadata({'tests/pixel-start-tunnel.cjs': out})
+            self.assertEqual(out, sanitize_device_tools(out, 'tests/pixel-start-tunnel.cjs'))
+
+    def test_device_export_unknown_structure_fails_closed(self):
+        with self.assertRaises(ValueError):
+            sanitize_device_tools(b'unknown()', 'tests/pixel-start-tunnel.cjs')
+
+    def test_metadata_scan_rejects_personal_paths_and_physical_defaults(self):
+        home = ('C:/' + 'Users/' + 'SyntheticUser/runtime').encode()
+        with self.assertRaises(ValueError):
+            scan_cloud_metadata({'test.cjs': home})
+        default = b"const serial=" + b"'fixture_device';"
+        with self.assertRaises(ValueError):
+            scan_cloud_metadata({'test.cjs': default})
+        scan_cloud_metadata({'test.py': b"SERIAL='emulator-5554'"})
+
+    def test_device_update_guard_precedes_any_device_work(self):
+        source = b"import os\ndef main(serial):\n    raise AssertionError('device touched')\n"
+        out = sanitize_device_tools(source, 'tests/pixel_update_release.py')
+        namespace = {}
+        exec(out, namespace)  # hardcoded synthetic program; no adb or device
+        import os
+        from unittest.mock import patch
+        with patch.dict(os.environ, {}, clear=True):
+            with self.assertRaisesRegex(RuntimeError, 'explicit user consent'):
+                namespace['main']('fixture-device')
+
     def test_snapshot_totals_removed_but_integrity_checks_preserved(self):
         # Deliberately fabricated counters, not a production import snapshot.
         source = b'''expected = {

@@ -1,5 +1,5 @@
 {
-  "created_at_utc": "2026-10-14T09:34:20.595998+00:00",
+  "created_at_utc": "2026-10-14T10:26:21.216736+00:00",
   "target": "codex-cloud",
   "version": "1.42.0",
   "version_code": 61,
@@ -16,9 +16,8 @@
     "verify_invoice_pdf.py"
   ],
   "sanitized_files": [
-    "db.py",
-    "import_2026_archive.py",
-    "verify.py",
+    "CLOUD-START.txt",
+    "android/app/build.gradle",
     "android/app/src/androidTest/java/at/hausgarten/service/ReleaseLifecycleProbe.java",
     "android/app/src/main/assets/invoice-editor.js",
     "android/app/src/main/assets/mobile.html",
@@ -27,6 +26,8 @@
     "android/app/src/main/java/at/hausgarten/service/MainActivity.java",
     "android/app/src/main/java/at/hausgarten/service/PixelMcpReadTools.java",
     "android/app/src/main/java/at/hausgarten/service/PixelTunnelActivity.java",
+    "db.py",
+    "import_2026_archive.py",
     "mcp_integration/server_app.py",
     "static/app.js",
     "static/index.html",
@@ -42,13 +43,18 @@
     "tests/design-v139.test.cjs",
     "tests/gartenpirat-removal.test.cjs",
     "tests/invoice-editor.test.js",
+    "tests/java/at/hausgarten/service/EntityProtectionTests.java",
+    "tests/java/at/hausgarten/service/PixelTunnelContractTests.java",
+    "tests/package_source_copy.py",
     "tests/pixel-start-tunnel.cjs",
     "tests/pixel-tunnel-ui.test.js",
     "tests/pixel-usb-enable-worklog-write.cjs",
     "tests/pixel-usb-readonly.test.cjs",
     "tests/pixel-work-session-ui.cjs",
+    "tests/pixel_update_release.py",
     "tests/release-browser.test.js",
     "tests/simple-design.test.cjs",
+    "tests/source_privacy_rules.py",
     "tests/test_app.py",
     "tests/test_architecture_acceptance.py",
     "tests/test_integrity.py",
@@ -57,9 +63,7 @@
     "tests/timer-completion.test.cjs",
     "tests/work-location.test.cjs",
     "tests/worklog-window.test.cjs",
-    "tests/java/at/hausgarten/service/EntityProtectionTests.java",
-    "tests/java/at/hausgarten/service/PixelTunnelContractTests.java",
-    "android/app/build.gradle"
+    "verify.py"
   ],
   "files": [
     {
@@ -74,8 +78,8 @@
     },
     {
       "path": "CLOUD-START.txt",
-      "bytes": 3222,
-      "sha256": "c2fd6748f6436945ab2fa73b5e7ea2f2223e94d3fcf05bc3349fc120dc61d871"
+      "bytes": 3628,
+      "sha256": "ac88edd91bb69db4e4ee04861669dc09b4e6dabfaa15d3c1fd34ee00e0fc8044"
     },
     {
       "path": "android/app/build.gradle",
@@ -479,8 +483,8 @@
     },
     {
       "path": "tests/android-emulator.test.js",
-      "bytes": 17596,
-      "sha256": "ac318b9c757b6e4e9018c1bc9a0dcf6d065e19d68a7572522ed5a12cf93f8924"
+      "bytes": 17527,
+      "sha256": "1ca8394aa8fefb16e812140b80441b4485a3d8f67f9332979b91b6ce629f01cc"
     },
     {
       "path": "tests/apk_privacy_guard.py",
@@ -489,8 +493,8 @@
     },
     {
       "path": "tests/architecture-workflow.test.cjs",
-      "bytes": 7664,
-      "sha256": "27ead10f05c730b9cf60054b04d84762c27a4ba8f014245544fbea6c4809aa9e"
+      "bytes": 7595,
+      "sha256": "943c8e709edb40ea7ec73e5c6a60025db50aa47ac348513c9a3a67842922536a"
     },
     {
       "path": "tests/audit_readonly.py",
@@ -499,13 +503,13 @@
     },
     {
       "path": "tests/billing-ui.test.cjs",
-      "bytes": 8139,
-      "sha256": "a4dea629cbbd2a8827afff532879b376130dc05d996a741fa9836c19cf2dacb3"
+      "bytes": 8070,
+      "sha256": "e454ffcbb215a04124b006a4e983baa957229a40e5ea5e85bae490f1daa6503f"
     },
     {
       "path": "tests/capture-v129-layout.cjs",
-      "bytes": 1268,
-      "sha256": "fa090d26be89d5f481fd1b6a2e9465a21ebc4dcf6141fd7c94c5da5f20cba4a1"
+      "bytes": 1199,
+      "sha256": "84839240216d6a32113d585b9edfe81c50a748165fff2ef14b9ec48244fff900"
     },
     {
       "path": "tests/compare-pixel-laptop-backups.py",
@@ -514,28 +518,28 @@
     },
     {
       "path": "tests/current-data-ui-smoke.cjs",
-      "bytes": 1963,
-      "sha256": "6d4ce86470d7683a784d654187a8b206ff41aacb3fed022fb34da0bb88ac3b8e"
+      "bytes": 1894,
+      "sha256": "02f05c06bb5534169123661ea10bf1e0d05c4d31f3823fdb19058bcc665f861b"
     },
     {
       "path": "tests/customer-duplicate-ui.test.cjs",
-      "bytes": 3142,
-      "sha256": "8ec3fb4391136dafbac43721e14a9b3672d9ade7ba27d94d23934dbf9f91ee3c"
+      "bytes": 3073,
+      "sha256": "0853d9b59aa1c5267041b3cc4322ce36b089948839aa855e9b695e1e59663c0c"
     },
     {
       "path": "tests/daily-usability.test.cjs",
-      "bytes": 13058,
-      "sha256": "2d3d71956130b2885d26a7e602e36e0ef3d1b67b4c0c0925dd64669aefa4aa4b"
+      "bytes": 12989,
+      "sha256": "b37e8a6b293f8799c5e21bece8829e7ee2de691b8ccb2da574ed1fb836200582"
     },
     {
       "path": "tests/design-concept.test.cjs",
-      "bytes": 8256,
-      "sha256": "e96d47fd85059bd556797297ed71b3a8407618529dab9040d94ec439ee9b726b"
+      "bytes": 8187,
+      "sha256": "e26aa36b369ef0f0ad24b1b7a2b03f7526969947a5999860b6a8bcfbfed0f48d"
     },
     {
       "path": "tests/design-v139.test.cjs",
-      "bytes": 12867,
-      "sha256": "9c51fc1bdae5f28f4219dc121eaa0b46c331eee8f83bb18088904ce3217d2fb4"
+      "bytes": 12798,
+      "sha256": "913eb437ab97bfbea890087b04a3bf0cf09c7d25205a8e2b6b63fb90880611d9"
     },
     {
       "path": "tests/download-emulator-image.ps1",
@@ -564,8 +568,8 @@
     },
     {
       "path": "tests/gartenpirat-removal.test.cjs",
-      "bytes": 5023,
-      "sha256": "8c1bd3fe06b90c51c951cf966a54cd22fc915887ab49146f90bea2a51af01ec0"
+      "bytes": 4954,
+      "sha256": "0a7e6f144011e5de8addfc62e38499996e1ba51dd9d94241ce7571dc3190ae25"
     },
     {
       "path": "tests/install-android-emulator-app.ps1",
@@ -654,18 +658,18 @@
     },
     {
       "path": "tests/package_source_copy.py",
-      "bytes": 14961,
-      "sha256": "1acc63f7ff07d0f56786bc011835a81b4972755a6ecafe8445265057127bb16e"
+      "bytes": 15218,
+      "sha256": "cb38e30b62c3c5744f7d96f3b4d0e4163905e6b0cedffaae3295ce68af330f0e"
     },
     {
       "path": "tests/pixel-start-tunnel.cjs",
-      "bytes": 2809,
-      "sha256": "32990eb6c5cdc09804c4e25f7bccfa814543877612d328943de12c660ae7e541"
+      "bytes": 3071,
+      "sha256": "ab167f709c4729d14f8b85175744ba38b1340466e59252a356c5d63f013f3423"
     },
     {
       "path": "tests/pixel-tunnel-ui.test.js",
-      "bytes": 3710,
-      "sha256": "7bdc204ff6ab60db170ae20c63f3675dafd922d117559b786890bbd100fab9e5"
+      "bytes": 3641,
+      "sha256": "4c48b3b4c92e752514d522ca565230dc09268d9ce0808b710ae495a53ca16bc4"
     },
     {
       "path": "tests/pixel-usb-backup-inspect.py",
@@ -679,23 +683,23 @@
     },
     {
       "path": "tests/pixel-usb-enable-worklog-write.cjs",
-      "bytes": 3675,
-      "sha256": "a394f96e52cff6cf49c79087567f70f582628d83b14ff04543adcc49fe76fed9"
+      "bytes": 3937,
+      "sha256": "a1912a8e8be3f77b0a281730c46eb06ebc845afd6e01e56f7d0e83163e3c80c1"
     },
     {
       "path": "tests/pixel-usb-readonly.test.cjs",
-      "bytes": 14362,
-      "sha256": "d64fe21d03fedce6492a45897e89cf2f8a7a40905c53aa77893aefbdc3bd6f69"
+      "bytes": 14624,
+      "sha256": "cdfdc5f47ceb635890d6b95a2a418c313b4050ecf849debb9e0ca9a105e28f22"
     },
     {
       "path": "tests/pixel-work-session-ui.cjs",
-      "bytes": 2918,
-      "sha256": "de06ae764bd43a00e6042d8b5630527c901b42c2f66393e83cae8d8ec4ee2a22"
+      "bytes": 3163,
+      "sha256": "9a02e062a8c03e33f8016061f38f2b199085055d43a554ca3d9f0d6af13a2851"
     },
     {
       "path": "tests/pixel_update_release.py",
-      "bytes": 4533,
-      "sha256": "4c055d70797b1401c035a64267769bbb59279e315244885dd4e4f3aa6897a045"
+      "bytes": 4750,
+      "sha256": "dd2aa95d543a0e70b2298c39245b15b5ee0a108806198cfd30b8ea0bec1854eb"
     },
     {
       "path": "tests/register-emulator-packages.ps1",
@@ -704,8 +708,8 @@
     },
     {
       "path": "tests/release-browser.test.js",
-      "bytes": 20016,
-      "sha256": "aa771a150c2b32cfa02fd6a9b2bd7991215137adb8b66c1ca9b37f54fee8af4f"
+      "bytes": 19947,
+      "sha256": "4187227af6c0b2bf24c85a578fa1ad82ee9bd6a1952db52814650a538b16cf1b"
     },
     {
       "path": "tests/release_lifecycle.py",
@@ -734,13 +738,13 @@
     },
     {
       "path": "tests/simple-design.test.cjs",
-      "bytes": 7255,
-      "sha256": "e19fda0cfd218b30dac2d96ae88ea41edb1f1e0c246c7609324f9d4011ce9fd6"
+      "bytes": 7186,
+      "sha256": "325b0a51c364ea925f9bdb21ee3c4d945305898d21469a62b1e91d125f745ed6"
     },
     {
       "path": "tests/source_privacy_rules.py",
-      "bytes": 4838,
-      "sha256": "4486cdf4a2c4b773ee63c6862927ec8664958f913d43518351d8ca5bb8f39d98"
+      "bytes": 7949,
+      "sha256": "a7ff90f529737912260bc15c815a5ebb7a2c671c6b9d7fe0db7f4386cba6d048"
     },
     {
       "path": "tests/start-android-emulator.ps1",
@@ -804,28 +808,30 @@
     },
     {
       "path": "tests/test_source_privacy_rules.py",
-      "bytes": 3534,
-      "sha256": "40abf3113691bd5fee8e93a87097c63b3ef36d6e5e030430a6fec65551ddf64f"
+      "bytes": 5925,
+      "sha256": "6a0bc015656a014a472ba7d4413e9532f55e861af1543c332e5b80ce2f8d294e"
     },
     {
       "path": "tests/timer-completion.test.cjs",
-      "bytes": 8461,
-      "sha256": "7b58303d0ca1b7c547535af1ac0cc99eb30ba4b8e3a5c59fd76f30577a29ba1e"
+      "bytes": 8392,
+      "sha256": "38e4e3154650e8fdd012a99e2a319acc4bd5c4a95f3370458240ff957f78ff14"
     },
     {
       "path": "tests/work-location.test.cjs",
-      "bytes": 11653,
-      "sha256": "da766c0925c161f85de219ef387ac62528c3431cfa2ab5b241a8c66d8af75471"
+      "bytes": 11584,
+      "sha256": "8dd31abe9d4a899e7401f9072395a997a12f54ec6e3a093226bf4225e62af9f5"
     },
     {
       "path": "tests/worklog-window.test.cjs",
-      "bytes": 7216,
-      "sha256": "4db93e5635a0303fd0f4f922bff111a5b16cb3ea3a894a4957a69bc54c2e9f2b"
+      "bytes": 7147,
+      "sha256": "b96eb89d00fe28d553a67a4d433fcb3619badef04a53909c8267792441d5c3a1"
     },
     {
       "path": "verify.py",
       "bytes": 1870,
       "sha256": "1c1f32cf16d6f1399c1d8254d37dc2e6901df26cef86b3845cdff301c3d0c7b7"
     }
-  ]
+  ],
+  "metadata_cleaned": true,
+  "manual_device_tests_require_confirmation": true
 }
