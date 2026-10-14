@@ -1,0 +1,49 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Mandatory for ALL future builds. Prevent accidental productive seed/config packaging.
+def privacyGate = tasks.register('verifyDistributablePrivacy', Exec) {
+    workingDir rootProject.projectDir.parentFile
+    commandLine (System.getProperty('os.name').toLowerCase().contains('windows') ? ['py', '-3.11', 'tests/apk_privacy_guard.py'] : ['python3', 'tests/apk_privacy_guard.py'])
+}
+tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn privacyGate }
+
+android {
+    namespace 'at.hausgarten.service'
+    compileSdk { version = release(37) }
+    buildToolsVersion '37.0.0'
+    // Opt-in device instrumentation targets the original signed release, not a second app.
+    testBuildType providers.gradleProperty('qaTargetRelease').isPresent() ? 'release' : 'debug'
+
+    defaultConfig {
+        applicationId 'at.hausgarten.service'
+        minSdk 26
+        targetSdk 37
+        versionCode 61
+        versionName '1.42.0'
+        testInstrumentationRunner 'at.hausgarten.service.PixelMcpInstrumentation'
+    }
+
+    // Keep the signing identity of the installed app, independent of cache/runtime paths.
+    // Do not generate a replacement key when changing ANDROID_USER_HOME for a build.
+    signingConfigs {
+        debug {
+            storeFile file(System.getProperty('user.home') + '/.android/debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+
+    buildTypes {
+        debug {
+            // The QA build can be installed beside the productive Pixel app.
+            // It therefore cannot migrate or open the productive database.
+            applicationIdSuffix '.qa'
+        }
+        release {
+            minifyEnabled false
+        }
+    }
+}

@@ -1,0 +1,17 @@
+const assert = require('node:assert/strict');
+require('../static/invoice-flow.js');
+const a={id:'a',customer_id:'customer',work_date:'2026-10-02',hours:5.5,activity:'Heckenpflege',material:'Mulch',kilometers:20,billed:0,order_id:'order'};
+const b={...a,id:'b',work_date:'2026-10-01',material:'',kilometers:0};
+const draft=InvoiceFlow.fromWorklogs([a,b,a]);
+assert.equal(draft.positions.length,4);
+assert.equal(draft.service_start,'2026-10-01');assert.equal(draft.service_end,'2026-10-02');
+assert.deepEqual(draft.worklog_ids,['b','a']);
+assert.equal(draft.positions[0].quantity,5.5);assert.equal(draft.positions[0].price,0);
+assert.equal(InvoiceFlow.fromWorklogs([a],draft.positions).positions.length,0);
+assert.equal(InvoiceFlow.fromWorklogs([a],[]).positions.length,3);
+assert.throws(()=>InvoiceFlow.fromWorklogs([a,{...b,customer_id:'other'}]));
+assert.throws(()=>InvoiceFlow.fromWorklogs([{...a,billed:1}]));
+assert.throws(()=>InvoiceFlow.fromWorklogs([{...a,hours:-1}]));
+assert.throws(()=>InvoiceFlow.fromWorklogs([]));
+assert.equal(InvoiceFlow.total([{quantity:5.5,price:45,discount:0},{quantity:77.7,price:.5,discount:0}]),286.35);
+console.log('Gemeinsamer Android-/Laptop-Rechnungsablauf: 12 Prüfungen bestanden.');

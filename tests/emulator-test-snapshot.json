@@ -1,0 +1,13 @@
+{
+  "customers": [
+    {"id": "cus_emulator_qa", "name": "Testkunde Emulator", "active": 1, "street": "Testweg 1", "postal_code": "9560", "city": "Feldkirchen", "country": "Österreich", "email": "test@example.invalid", "phone": ""}
+  ],
+  "orders": [
+    {"id": "ord_emulator_qa", "customer_id": "cus_emulator_qa", "title": "Testauftrag Gartenpflege", "description": "Ausschließlich Emulator-Testdaten", "location": "Testweg 1", "status": "Geplant"}
+  ],
+  "worklogs": [],
+  "photos": [],
+  "invoices": [],
+  "accepted_ids": [],
+  "invoice_issuer": {"owner_name": "Testbetrieb Emulator", "business_street": "Testweg 2", "business_postal_code": "9560", "business_city": "Feldkirchen"}
+}

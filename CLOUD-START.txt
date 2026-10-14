@@ -9,7 +9,11 @@ Betriebsfotos, Sicherungen, Konto-/Signaturschlüssel, Caches, SDK/JDK und APKs.
 Historische produktionsbezogene Import-/Reparaturskripte und alte Berichte ausgelassen.
 Bekannte private Referenzen in Programm-/Testbeispielen wurden NUR IN DIESER KOPIE
 konsistent durch Cloudfixture-Werte ersetzt. Ursprüngliche Betriebsdaten unverändert.
+verify.py prüft in der Kopie weiterhin Dubletten und Kundenverweise, aber keine
+privaten historischen Importzahlen oder Rechnungsumsätze als feste Sollwerte.
 SOURCE-MANIFEST.json enthält Dateihashes, Auslassungen und Kopie-Anpassungen.
+AGENTS.md enthält die dauerhaften Projektregeln für selbstständige, getestete
+Verbesserungen innerhalb des Auftrags und die unveränderten Sicherheitsgrenzen.
 
 Nächste Schritte:
 1. Archiv in ein PRIVATES GitHub-Repository importieren; nicht öffentlich freigeben.

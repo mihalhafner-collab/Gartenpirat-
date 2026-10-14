@@ -1,0 +1,6 @@
+// Instrument the original package on the isolated emulator, never build a second app.
+allprojects {
+    plugins.withId('com.android.application') {
+        android.testBuildType = 'release'
+    }
+}
