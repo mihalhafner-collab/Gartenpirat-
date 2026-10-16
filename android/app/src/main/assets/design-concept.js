@@ -53,7 +53,8 @@
     const documentationRows=logs.map(log=>{
       const attached=pictures.filter(photo=>photo.worklog_id===log.id&&photo.role!=='profile');
       const labels=attached.map(photo=>String(photo.caption||'Dokumentationsfoto').trim()).filter(Boolean);
-      return `<button type="button" class="design-profile-row" data-design-action="worklog" data-id="${esc(log.id)}"><span><strong>${esc(worklogDateLabel(log.work_date))} · ${esc(log.activity||'Arbeitseinsatz')}</strong><small>${esc(hours(log.hours))} · ${attached.length} Foto(s)${labels.length?' · '+esc(labels.slice(0,2).join(', ')):''}</small></span><b>›</b></button>`;
+      const details=`<button type="button" class="design-profile-row" data-design-action="worklog" data-id="${esc(log.id)}"><span><strong>${esc(worklogDateLabel(log.work_date))} · ${esc(log.activity||'Arbeitseinsatz')}</strong><small>${esc(hours(log.hours))} · ${attached.length} Foto(s)${labels.length?' · '+esc(labels.slice(0,2).join(', ')):''}</small></span><b>›</b></button>`;
+      return `<div class="design-documentation-entry">${details}${attached.length?photoRows(attached):''}</div>`;
     }).join('');
     const unassignedDocumentation=pictures.filter(photo=>photo.role!=='profile'&&!photo.worklog_id);
     const documentationSection=`<section class="card"><div class="design-section-head"><h3>Dokumentation · ${logs.length} Einsätze</h3></div><p class="sub">Chronologischer Verlauf mit Arbeitszeiten und zugeordneten Fotos.</p>${documentationRows||'<p class="sub">Noch keine Arbeitseinsätze dokumentiert.</p>'}${unassignedDocumentation.length?'<p class="sub">'+unassignedDocumentation.length+' Kundenfoto(s) ohne Arbeitszuordnung – siehe Fotos.</p>':''}</section>`;
@@ -64,7 +65,7 @@
   function ensurePhotoAddDialog(){
     if(photoAddDialog)return photoAddDialog;
     photoAddDialog=document.createElement('dialog');photoAddDialog.id='design-customer-photo-add';photoAddDialog.className='design-photo-add';photoAddDialog.setAttribute('aria-labelledby','design-customer-photo-add-title');
-    photoAddDialog.innerHTML='<form method="dialog"><header><div><small>KUNDENKONTO</small><h2 id="design-customer-photo-add-title">Fotos hinzufügen</h2></div><button type="button" class="secondary" data-photo-add-close aria-label="Schließen">×</button></header><label>Bildbeschreibung · optional<input id="design-customer-photo-caption" maxlength="160" placeholder="z. B. Garten vor dem Rückschnitt"></label><label class="check"><input id="design-customer-photo-profile" type="checkbox">Erstes Foto als Profilbild verwenden</label><p class="sub">Die Bilder werden verkleinert und zuerst offline auf diesem Gerät gespeichert. Die Zuordnung zum geöffneten Kunden bleibt erhalten.</p><div class="design-photo-add-actions"><button type="button" class="primary" data-photo-source="gallery">Aus Galerie auswählen</button><button type="button" class="secondary" data-photo-source="camera">Foto aufnehmen</button></div><input id="design-customer-photo-files" type="file" accept="image/*" multiple hidden><input id="design-customer-photo-camera" type="file" accept="image/*" capture="environment" hidden><p id="design-customer-photo-status" role="status" aria-live="polite"></p></form>';
+    photoAddDialog.innerHTML='<form method="dialog"><header><div><small>KUNDENKONTO</small><h2 id="design-customer-photo-add-title">Fotos hinzufügen</h2></div><button type="button" class="secondary" data-photo-add-close aria-label="Schließen">×</button></header><label>Bildbeschreibung · optional<input id="design-customer-photo-caption" maxlength="160" placeholder="z. B. Garten vor dem Rückschnitt"></label><label class="check"><input id="design-customer-photo-profile" type="checkbox">Erstes Foto als Profilbild verwenden</label><label>Arbeitseinsatz · optional<select id="design-customer-photo-worklog"><option value="">Ohne Arbeitseinsatz</option></select></label><label>Aufnahmephase<select id="design-customer-photo-phase"><option value="">Allgemein</option><option value="Vorher">Vorher</option><option value="Während">Während</option><option value="Nachher">Nachher</option></select></label><p class="sub">Die Bilder werden verkleinert und zuerst offline auf diesem Gerät gespeichert. Die Zuordnung zum geöffneten Kunden bleibt erhalten.</p><div class="design-photo-add-actions"><button type="button" class="primary" data-photo-source="gallery">Aus Galerie auswählen</button><button type="button" class="secondary" data-photo-source="camera">Foto aufnehmen</button></div><input id="design-customer-photo-files" type="file" accept="image/*" multiple hidden><input id="design-customer-photo-camera" type="file" accept="image/*" capture="environment" hidden><p id="design-customer-photo-status" role="status" aria-live="polite"></p></form>';
     document.body.append(photoAddDialog);
     const gallery=get('design-customer-photo-files'),camera=get('design-customer-photo-camera'),status=get('design-customer-photo-status');
     photoAddDialog.querySelector('[data-photo-add-close]').onclick=()=>photoAddDialog.close();
@@ -75,7 +76,7 @@
       const files=[...(input.files||[])];input.value='';if(!files.length)return;
       if(files.length>10){status.textContent='Bitte höchstens 10 Fotos gleichzeitig auswählen.';return;}
       const customer=customers().find(row=>row.id===profileId);if(!customer){status.textContent='Das Kundenkonto ist nicht mehr verfügbar.';return;}
-      const caption=get('design-customer-photo-caption').value.trim(),asProfile=get('design-customer-photo-profile').checked;
+      const caption=get('design-customer-photo-caption').value.trim(),asProfile=get('design-customer-photo-profile').checked,worklogId=get('design-customer-photo-worklog').value,phase=get('design-customer-photo-phase').value,worklog=worklogs().find(row=>row.id===worklogId&&row.customer_id===customer.id);
       photoAddDialog.querySelectorAll('button').forEach(button=>button.disabled=true);status.textContent='Fotos werden auf diesem Gerät vorbereitet …';
       let saved=0;const failures=[];
       for(let index=0;index<files.length;index++){
@@ -83,7 +84,7 @@
         try{
           if(file.type&&!file.type.startsWith('image/'))throw new Error('keine unterstützte Bilddatei');
           const data=await compressedPhoto(file),name=(file.name||'kundenfoto').replace(/\.[^.]+$/,'')+'.jpg';
-          const result=AndroidData.savePhoto(JSON.stringify({customer_id:customer.id,original_name:name,caption:(asProfile&&index===0)?'Profilbild':caption||name.replace(/\.jpg$/i,''),role:(asProfile&&index===0)?'profile':'documentation',customer_visible:0,mime_type:'image/jpeg',data}));
+          const result=AndroidData.savePhoto(JSON.stringify({customer_id:customer.id,order_id:worklog?.order_id||'',worklog_id:worklog?.id||'',original_name:name,caption:(asProfile&&index===0)?'Profilbild':[phase,caption||name.replace(/\.jpg$/i,'')].filter(Boolean).join(' · '),role:(asProfile&&index===0)?'profile':'documentation',customer_visible:0,mime_type:'image/jpeg',data}));
           if(String(result).startsWith('ERROR:'))throw new Error(String(result).replace(/^ERROR:\s*/,''));saved++;
         }catch(error){failures.push((file.name||'Foto')+': '+(error.message||error));}
       }
@@ -96,7 +97,7 @@
     return photoAddDialog;
   }
   function openPhotoAdd(){
-    const dialog=ensurePhotoAddDialog();get('design-customer-photo-caption').value='';get('design-customer-photo-profile').checked=false;get('design-customer-photo-status').textContent='';dialog.showModal();dialog.querySelector('[data-photo-source="gallery"]').focus({preventScroll:true});
+    const dialog=ensurePhotoAddDialog();get('design-customer-photo-caption').value='';get('design-customer-photo-profile').checked=false;get('design-customer-photo-status').textContent='';const choices=get('design-customer-photo-worklog');choices.innerHTML='<option value="">Ohne Arbeitseinsatz</option>'+worklogs().filter(row=>row.customer_id===profileId).sort((a,b)=>String(b.work_date||'').localeCompare(String(a.work_date||''))).map(row=>'<option value="'+esc(row.id)+'">'+esc(worklogDateLabel(row.work_date)+' · '+(row.activity||'Arbeitseinsatz'))+'</option>').join('');get('design-customer-photo-phase').value='';dialog.showModal();dialog.querySelector('[data-photo-source="gallery"]').focus({preventScroll:true});
   }
   function applyViewerTransform(){if(!photoViewer)return;photoViewer.querySelector('img').style.transform=`translate3d(${viewerX}px,${viewerY}px,0) scale(${viewerScale})`;photoViewer.querySelector('[data-photo-zoom]').textContent=Math.round(viewerScale*100)+' %';}
   function ensurePhotoViewer(){
