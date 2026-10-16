@@ -41,6 +41,10 @@ jobs:
           gradle-version: '9.3.1'
       - name: Check source privacy
         run: python3 tests/apk_privacy_guard.py
+      - name: Create isolated CI debug signing key
+        run: |
+          mkdir -p "$HOME/.android"
+          keytool -genkeypair -noprompt -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
       - name: Build isolated QA APK
         working-directory: android
         run: gradle --no-daemon --stacktrace :app:assembleDebug
