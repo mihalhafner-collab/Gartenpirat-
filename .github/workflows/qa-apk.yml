@@ -18,12 +18,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-      - name: Install Android 17 build packages
+      - name: Accept Android SDK licenses and install Android 17
         run: |
+          yes | sdkmanager --licenses || test "${PIPESTATUS[1]}" -eq 0
           sdkmanager --install "platforms;android-37.0" "build-tools;37.0.0" "platform-tools"
-          sdkmanager --licenses < /dev/null || true
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
