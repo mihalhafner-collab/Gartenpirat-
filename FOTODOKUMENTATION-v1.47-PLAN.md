@@ -74,3 +74,10 @@ Noch offen und ausdrücklich **nicht** als implementiert auszugeben:
 - Automatisierte End-to-End-/Gerätetests für Kamera, Timer, Offline-Retry und Drive; neue QA-APK nach diesen Änderungen noch nicht gebaut.
 - Der Timer-Kameraeinstieg speichert vor Abschluss der Arbeitsaufzeichnung derzeit Kundenfotos; er stellt **keine** automatische Verknüpfung mit einer erst später entstehenden Arbeits-ID her.
 Kein Merge oder produktives Update vor vollständiger Abnahme.
+
+## Ergänzende Gegenprüfung – Entwicklungsstand nach Freigabe
+- Dokumentationsbereich um Filter „Alle Einsätze“, „Nur mit Fotos“ und nach Auftrag erweitert; nur bestehende Datensätze lesend gefiltert.
+- 18 statische Prüfungen auf dem zuletzt abgerufenen GitHub-Code erfolgreich ausgeführt; die geänderten JavaScript-Dateien ließen sich syntaktisch parsen.
+- Vorhandene Kamera-/Kundenfoto-Mehrfachauswahl ist weiterhin vorhanden, jedoch **nicht** gleichbedeutend mit einer absturzsicheren Mehrfachfoto-Warteschlange beim laufenden Timer.
+- **Release gesperrt:** Kein neuer GitHub-Actions-Build ausgelöst; über die verbundene GitHub-Schnittstelle ist kein Workflow-Dispatch verfügbar. Android-Geräteprüfung, Offline-/Sync-E2E und vollständige crashsichere Timer-Fotozuordnung bleiben offen.
+- Das Ziel „ein finaler Build statt vieler Zwischenbuilds“ bleibt bestehen. Keine Änderung an main, Signatur oder produktiven Daten.
