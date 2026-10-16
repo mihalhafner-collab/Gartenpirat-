@@ -39,6 +39,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.3.1'
+      - name: Check camera and timer regression guards
+        run: |
+          node --check android/app/src/main/assets/workday-ui.js
+          node tests/camera-timer-static.test.cjs
       - name: Check source privacy
         run: python3 tests/apk_privacy_guard.py
       - name: Create isolated CI debug signing key
