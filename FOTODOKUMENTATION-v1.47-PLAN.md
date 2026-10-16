@@ -55,3 +55,22 @@ Kein Merge nach main ohne gesonderte Freigabe.
 - Für mehrere Bilder stabile Foto-IDs und eine idempotente Wiederholwarteschlange verwenden; bestehende Einzelfoto-Recovery nicht ersatzlos entfernen.
 - Profilbild-Funktion strikt von der Arbeitsdokumentation trennen; standardmäßig private Sichtbarkeit.
 - QA: Kamera-Intent vorhanden/abgebrochen, mehrere Aufnahmen, Timer-Wechsel, Neustart, offline, Kundenwechsel und Foto-Retry testen; echte Pixel-Geräteabnahme erforderlich.
+
+## Zwischenprüfung 16.10.2026 – nicht freigegeben
+Implementiert im Entwicklungsbranch:
+- Kundenhistorie mit Arbeitsdaten und Fotovorschauen, ohne neue Datentabelle.
+- Fotoaufnahme im Kundenkonto mit optionaler Zuordnung zu einer bereits vorhandenen Arbeitsaufzeichnung und deren Auftrag.
+- Vorher/Während/Nachher als Beschriftungsphase; Profilfotos bleiben von Arbeitszuordnungen getrennt.
+- Direkter Kameraeinstieg beim laufenden Timer, wenn die Sitzung eine gültige Kunden-ID besitzt. Ohne Kunden-ID wird bewusst zur Auswahl in die Arbeitsmaske gewechselt; die Aufnahme muss danach explizit per Kameraknopf ausgelöst werden (Android-Gestenrestriktion).
+- Statische Regressionstests und JavaScript-Syntaxprüfung im QA-Workflow.
+
+Gegenprüfung: Die geänderten JavaScript-Dateien wurden auf Syntax geprüft; 15 statische Quellcode-Prüfungen wurden erfolgreich gegen den Branch ausgeführt. Das beweist keine Android-Funktion.
+
+Noch offen und ausdrücklich **nicht** als implementiert auszugeben:
+- Mehrfachfoto-Warteschlange für die noch nicht abgeschlossene Timer-Arbeit mit crashsicherer Zuordnung zur späteren Arbeits-ID.
+- Sichere Wiederholung jedes einzelnen Fotos bei Prozessabbruch, ohne Verlust der übrigen Bilder.
+- Aufnahmephase als eigenes strukturiertes Metadatenfeld (derzeit nur in Bildbeschreibung kodiert).
+- Sprachkommentar-Integration, Filter nach Datum/Auftrag/Phase und PDF-Export.
+- Automatisierte End-to-End-/Gerätetests für Kamera, Timer, Offline-Retry und Drive; neue QA-APK nach diesen Änderungen noch nicht gebaut.
+- Der Timer-Kameraeinstieg speichert vor Abschluss der Arbeitsaufzeichnung derzeit Kundenfotos; er stellt **keine** automatische Verknüpfung mit einer erst später entstehenden Arbeits-ID her.
+Kein Merge oder produktives Update vor vollständiger Abnahme.
