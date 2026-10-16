@@ -84,7 +84,7 @@
         try{
           if(file.type&&!file.type.startsWith('image/'))throw new Error('keine unterstützte Bilddatei');
           const data=await compressedPhoto(file),name=(file.name||'kundenfoto').replace(/\.[^.]+$/,'')+'.jpg';
-          const result=AndroidData.savePhoto(JSON.stringify({customer_id:customer.id,order_id:worklog?.order_id||'',worklog_id:worklog?.id||'',original_name:name,caption:(asProfile&&index===0)?'Profilbild':[phase,caption||name.replace(/\.jpg$/i,'')].filter(Boolean).join(' · '),role:(asProfile&&index===0)?'profile':'documentation',customer_visible:0,mime_type:'image/jpeg',data}));
+          const result=AndroidData.savePhoto(JSON.stringify({customer_id:customer.id,order_id:(asProfile&&index===0)?'':worklog?.order_id||'',worklog_id:(asProfile&&index===0)?'':worklog?.id||'',original_name:name,caption:(asProfile&&index===0)?'Profilbild':[phase,caption||name.replace(/\.jpg$/i,'')].filter(Boolean).join(' · '),role:(asProfile&&index===0)?'profile':'documentation',customer_visible:0,mime_type:'image/jpeg',data}));
           if(String(result).startsWith('ERROR:'))throw new Error(String(result).replace(/^ERROR:\s*/,''));saved++;
         }catch(error){failures.push((file.name||'Foto')+': '+(error.message||error));}
       }
@@ -168,6 +168,7 @@
     const css=document.createElement('link');css.rel='stylesheet';css.href='design-concept.css';document.head.append(css);
     const page=document.createElement('section');page.id='customer-profile-page';page.className='page';page.innerHTML='<div class="page-head"><button type="button" class="back" aria-label="Zurück zur Kundenliste">‹</button><h2>Kundenprofil</h2></div><div id="design-profile-content"></div><footer class="design-profile-footer"><button type="button" class="primary" data-design-action="edit">Kundendaten bearbeiten</button></footer>';document.querySelector('main.app').append(page);
     window.editCustomer=window.openCustomer;window.openCustomer=function(id){if(!customers().some(x=>x.id===id))return;profileId=id;profileContent();openPage('customer-profile-page');};
+    window.openCustomerDocumentationCamera=function(id){if(!customers().some(x=>x.id===id))return false;window.openCustomer(id);openPhotoAdd();get('design-customer-photo-camera')?.click();return true;};
     const filter=document.createElement('select');filter.id='design-order-status';filter.className='design-order-filter';filter.setAttribute('aria-label','Auftragsstatus filtern');filter.innerHTML='<option value="all">Alle Aufträge</option><option value="open">Offen und geplant</option><option value="closed">Abgeschlossen</option>';get('order-list').before(filter);filter.addEventListener('change',compactLists);
     document.addEventListener('click',profileActions,true);
     document.addEventListener('click',metricActions,true);
