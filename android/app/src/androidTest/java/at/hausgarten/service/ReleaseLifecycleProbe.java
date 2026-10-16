@@ -29,9 +29,9 @@ final class ReleaseLifecycleProbe {
                 require(prefs.getString("drive_snapshot","").isEmpty());
                 JSONObject master=new JSONObject("{\"customers\":[{\"id\":\"qa_direct\",\"name\":\"QA Direkt\"},{\"id\":\"qa_payer\",\"name\":\"QA Auftraggeber\"},{\"id\":\"qa_site\",\"name\":\"QA Einsatzort\",\"billing_mode\":\"via_customer\",\"default_billing_customer_id\":\"qa_payer\"}],\"orders\":[{\"id\":\"qa_order\",\"customer_id\":\"qa_site\",\"title\":\"QA Pflege\"}],\"worklogs\":[{\"id\":\"qa_legacy\",\"customer_id\":\"qa_direct\",\"work_date\":\"2026-10-13\",\"activity\":\"QA Bestand\",\"hours\":2},{\"id\":\"qa_billed_site\",\"customer_id\":\"qa_site\",\"billing_customer_id\":\"qa_payer\",\"work_date\":\"2026-10-13\",\"activity\":\"QA Einsatz\",\"hours\":3}],\"photos\":[],\"invoices\":[],\"accepted_ids\":[],\"sync_errors\":[],\"capabilities\":{\"worklog_compare_and_save\":true,\"entity_compare_and_save\":true}}");
                 require(prefs.edit().putString("drive_snapshot",master.toString()).putString("qa_setting","keep-this").commit());
-                require(context.getSharedPreferences("pixel_tunnel_private",0).edit().putString("id",("tunnel_" + "83e7b55b15c4dd485d4d9dca44a30399")).putString("organization","org-QAOnly1234").commit());
+                require(context.getSharedPreferences("pixel_tunnel_private",0).edit().putString("id","tunnel_00000000000000000000000000000001").putString("organization","org-QAOnly1234").commit());
                 PixelTunnelConfig configured=new PixelTunnelConfig(context);
-                configured.save(("tunnel_" + "83e7b55b15c4dd485d4d9dca44a30399"),"org-QAOnly1234","qa-runtime-not-a-valid-api-key-00000000");
+                configured.save("tunnel_00000000000000000000000000000001","org-QAOnly1234","qa-runtime-not-a-valid-api-key-00000000");
                 configured.writeEnabled(true);configured.enabled(false); // No external connection.
                 store.saveWorklog(new JSONObject().put("id","qa_offline").put("customer_id","qa_site").put("billing_customer_id","qa_payer").put("work_date","2026-10-13").put("activity","QA offline").put("hours",1));
                 WorkSessionStore timer=new WorkSessionStore(store.getWritableDatabase(),context);
@@ -42,7 +42,7 @@ final class ReleaseLifecycleProbe {
                 require(fingerprint(store).equals(prefs.getString("qa_release_baseline_hash","")));
                 require(prefs.getString("qa_setting","").equals("keep-this"));
                 PixelTunnelConfig c=new PixelTunnelConfig(context);
-                require(c.id().equals(("tunnel_" + "83e7b55b15c4dd485d4d9dca44a30399"))&&c.organization().equals("org-QAOnly1234")&&c.configured()&&!c.enabled()&&c.writeEnabled());
+                require(c.id().equals("tunnel_00000000000000000000000000000001")&&c.organization().equals("org-QAOnly1234")&&c.configured()&&!c.enabled()&&c.writeEnabled());
                 require(c.secret().equals("qa-runtime-not-a-valid-api-key-00000000"));
                 JSONObject session=new WorkSessionStore(store.getWritableDatabase(),context).current();
                 require(session.getString("customer_id").equals("qa_site")&&session.getString("billing_customer_id").equals("qa_payer"));

@@ -8,7 +8,7 @@
     card.className = 'card';
     card.innerHTML = '<h3>ChatGPT-Verbindung auf dem Pixel</h3>' +
       '<p id="pixel-tunnel-state" class="sub" role="status" aria-live="polite">Verbindung noch nicht eingerichtet.</p>' +
-      '<p class="sub">Kunden, Aufträge und Arbeitsberichte lesen. Mit Freigabe auch Cloudname_189a14e78c anlegen und korrigieren. Verwendet deinen zuletzt gespeicherten Drive-Stand.</p>' +
+      '<p class="sub">Kunden, Aufträge und Arbeitsberichte lesen. Mit Freigabe auch Arbeitsaufzeichnungen anlegen und korrigieren. Verwendet deinen zuletzt gespeicherten Drive-Stand.</p>' +
       '<button type="button" id="pixel-tunnel-setup" class="secondary" style="min-height:52px;width:100%">Verbindung und Akku-Einstellungen</button>';
     page.appendChild(card);
     const button = card.querySelector('button');

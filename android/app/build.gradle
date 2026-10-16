@@ -5,7 +5,7 @@ plugins {
 // Mandatory for ALL future builds. Prevent accidental productive seed/config packaging.
 def privacyGate = tasks.register('verifyDistributablePrivacy', Exec) {
     workingDir rootProject.projectDir.parentFile
-    commandLine (System.getProperty('os.name').toLowerCase().contains('windows') ? ['py', '-3.11', 'tests/apk_privacy_guard.py'] : ['python3', 'tests/apk_privacy_guard.py'])
+    commandLine 'py', '-3.11', 'tests/apk_privacy_guard.py'
 }
 tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn privacyGate }
 
@@ -20,8 +20,8 @@ android {
         applicationId 'at.hausgarten.service'
         minSdk 26
         targetSdk 37
-        versionCode 61
-        versionName '1.42.0'
+        versionCode 65
+        versionName '1.46.0'
         testInstrumentationRunner 'at.hausgarten.service.PixelMcpInstrumentation'
     }
 

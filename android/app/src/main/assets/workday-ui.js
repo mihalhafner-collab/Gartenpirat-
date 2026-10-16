@@ -75,7 +75,7 @@
       if(action==='resume')next=sessionCall('resumeWorkSession',session.id,sessionRequest('resume'));
       if(action==='stop')next=sessionCall('stopWorkSession',session.id,sessionRequest('stop'));
       if(action==='complete'){
-        openPage('work-entry');let hidden=get('work-session-id');if(!hidden){hidden=document.createElement('input');hidden.type='hidden';hidden.name='_session_id';hidden.id='work-session-id';get('entry').append(hidden);}hidden.value=session.id;get('date').value=session.work_date||localDate();get('entry').elements.hours.value=Number(session.hours||0).toFixed(2);get('activity').value=session.activity||'';get('hours-result').textContent=`Erfasste Arbeitszeit: ${Number(session.hours||0).toLocaleString('de-AT')} Stunden`;get('customer').focus();return;
+        openPage('work-entry');let hidden=get('work-session-id');if(!hidden){hidden=document.createElement('input');hidden.type='hidden';hidden.name='_session_id';hidden.id='work-session-id';get('entry').append(hidden);}hidden.value=session.id;get('date').value=session.work_date||localDate();get('entry').elements.hours.value=Number(session.hours||0).toFixed(2);get('activity').value=session.activity||'';get('hours-result').textContent=`Erfasste Arbeitszeit: ${Number(session.hours||0).toLocaleString('de-AT')} Stunden`;const heading=get('work-entry').querySelector('.page-head h2');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});}return;
       }
       if(next)renderTimer(next);
     });}

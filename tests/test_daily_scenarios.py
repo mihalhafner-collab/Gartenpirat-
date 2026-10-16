@@ -10,6 +10,7 @@ from unittest.mock import patch
 import db
 import invoicing
 import server
+from photo_fixture import VALID_GIF_BASE64
 
 
 class DailyScenarioTests(unittest.TestCase):
@@ -141,8 +142,8 @@ class DailyScenarioTests(unittest.TestCase):
         visible = self.work(notes='PRIVATE WORK',customer_visible=1)
         self.work(activity='PRIVATE ACTIVITY',customer_visible=0)
         db.save_order({'customer_id':self.customer['id'],'title':'PRIVATE ORDER','customer_visible':0})
-        server.save_photo({'customer_id':self.customer['id'],'original_name':'test.png','caption':'PRIVATE PHOTO',
-            'customer_visible':0,'data':base64.b64encode(b'QA image').decode()})
+        server.save_photo({'customer_id':self.customer['id'],'original_name':'test.gif','caption':'PRIVATE PHOTO',
+            'customer_visible':0,'data':VALID_GIF_BASE64})
         public = db.customer_view(self.customer['id'])
         self.assertEqual([row['id'] for row in public['worklogs']],[visible['id']]); self.assertNotIn('PRIVATE',json.dumps(public))
         self.assertNotIn('notes',public['customer'])

@@ -14,6 +14,7 @@ import db
 import server
 import invoicing
 import import_2026_archive as archive_import
+from photo_fixture import VALID_GIF_BASE64
 
 
 class ReleaseQualityTests(unittest.TestCase):
@@ -32,8 +33,8 @@ class ReleaseQualityTests(unittest.TestCase):
         self.temp.cleanup()
 
     def photo(self, **values):
-        return server.save_photo({'customer_id':self.customer['id'], 'original_name':'test.png',
-            'data':base64.b64encode(b'test-image').decode(), **values})
+        return server.save_photo({'customer_id':self.customer['id'], 'original_name':'test.gif',
+            'data':VALID_GIF_BASE64, **values})
 
     def test_crud_all_entities_stable_ids_and_relations(self):
         work=db.save_worklog(self.work)
@@ -99,9 +100,9 @@ class ReleaseQualityTests(unittest.TestCase):
         self.assertEqual(archive_import.parse_date('06.10.26').isoformat(),'2026-10-06')
         self.assertEqual(archive_import.parse_date('06.10.').isoformat(),'2026-10-06')
         fallback={'id':'unassigned','name':'Ungeklärt'}
-        rows=[{'id':'a','name':'Cloudname_d6e075ad15 Cloudname_9c4bba3853'},{'id':'b','name':'Andreas Cloudname_9c4bba3853'}]
-        self.assertEqual(archive_import.find_customer('Cloudname_9c4bba3853',rows,fallback)['id'],'unassigned')
-        self.assertEqual(archive_import.find_customer('Cloudname_d6e075ad15 Cloudname_9c4bba3853',rows,fallback)['id'],'a')
+        rows=[{'id':'a','name':'Georg Seidl'},{'id':'b','name':'Andreas Seidl'}]
+        self.assertEqual(archive_import.find_customer('Seidl',rows,fallback)['id'],'unassigned')
+        self.assertEqual(archive_import.find_customer('Georg Seidl',rows,fallback)['id'],'a')
 
     def test_malformed_drive_action_does_not_block_next_valid_action(self):
         folder=db.DATA_DIR/'drive';folder.mkdir()
@@ -162,7 +163,7 @@ class ReleaseQualityTests(unittest.TestCase):
     def test_photo_update_preserves_id_created_at_and_relations(self):
         work=db.save_worklog(self.work)
         photo=self.photo(order_id=self.order['id'],worklog_id=work['id'],caption='Vorher')
-        updated=server.save_photo({'id':photo['id'],'data':base64.b64encode(b'test-image').decode(),'caption':'Nachher'})
+        updated=server.save_photo({'id':photo['id'],'data':VALID_GIF_BASE64,'caption':'Nachher'})
         self.assertEqual(updated['id'],photo['id']);self.assertEqual(updated['created_at'],photo['created_at'])
         self.assertEqual(updated['worklog_id'],work['id']);self.assertEqual(updated['caption'],'Nachher')
         self.assertEqual(len(db.list_photos()),1)

@@ -22,6 +22,7 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
         <provider android:name=".InvoiceFileProvider" android:authorities="${applicationId}.invoicefiles" android:exported="false" android:grantUriPermissions="true" />
+        <provider android:name=".PhotoCaptureProvider" android:authorities="${applicationId}.photocapture" android:exported="false" android:grantUriPermissions="true" />
         <activity android:name=".PixelTunnelActivity" android:exported="false" />
         <service android:name=".PixelTunnelService" android:exported="false" android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-enabled private MCP responder for ChatGPT, outbound HTTPS polling with persistent notification and stop control" />
@@ -34,6 +35,7 @@
         </receiver>
         <activity
             android:name=".MainActivity"
+            android:configChanges="orientation|screenSize"
             android:exported="true"
             android:screenOrientation="unspecified">
             <intent-filter>

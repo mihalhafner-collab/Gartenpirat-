@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {pathToFileURL}=require('node:url');
-const {chromium}=require(process.env.HG_PLAYWRIGHT_MODULE || 'playwright');
+const {chromium}=require('C:/Users/Michael/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 (async()=>{
  const results=[],browser=await chromium.launch({headless:true,channel:'chrome'});
  const check=async(name,test)=>{try{await test();results.push({name,result:'PASS'});}catch(error){results.push({name,result:'FAIL',error:error.message});}console.log(results.at(-1));};
@@ -14,9 +14,10 @@ const {chromium}=require(process.env.HG_PLAYWRIGHT_MODULE || 'playwright');
    window.AndroidData={getState:()=>JSON.stringify(removalFixture),getSyncStatus:()=>JSON.stringify({configured:true,pending:0}),getAppInfo:()=>JSON.stringify({versionName:'1.38.1'}),getWorkSession:()=>JSON.stringify({state:'IDLE'}),synchronize:()=>{syncCalls++;},saveWorklog:()=>{writeCalls++;throw new Error('No write permitted in removal smoke test');}};
    window.AndroidSpeech={start:()=>{speechCalls++;}};
   });
-  await check('Retired shortcut, styles and packaged mascot asset removed; logo retained',async()=>{
-   for(const name of ['mobile.html','workday-ui.css','design-concept.css'])assert(!/gartenpirat|pirate/i.test(fs.readFileSync(path.join('android/app/src/main/assets',name),'utf8')),name);
-   assert(!fs.existsSync('android/app/src/main/assets/gartenpirat.png'));
+  await check('Legacy voice shortcut stays retired; the requested botanical mascot is packaged',async()=>{
+   assert(!/id=["']pirate-speak["']/.test(fs.readFileSync('android/app/src/main/assets/mobile.html','utf8')));
+   assert(fs.existsSync('android/app/src/main/assets/gartenpirat.png'));
+   assert(fs.existsSync('android/app/src/main/assets/gartenpirat.js'));
    assert(fs.existsSync('android/app/src/main/assets/hafner-logo.png'));
   });
   await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href);

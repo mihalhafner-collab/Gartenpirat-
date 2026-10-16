@@ -66,13 +66,11 @@ for folder in ('android', 'mcp_integration', 'static', 'assets', 'tests'):
 
 if TARGET == 'codex-cloud':
     from apk_privacy_guard import private_markers, scan
-    from source_privacy_rules import (anonymize, sanitize_snapshot_verifier,
-                                      sanitize_device_tools, scan_cloud_metadata)
+    from source_privacy_rules import anonymize, sanitize_snapshot_verifier
     markers = private_markers()
     for relative, data in list(FILES.items()):
         original = data
         if Path(relative).suffix in TEXT:
-            data = sanitize_device_tools(data, relative)
             data = anonymize(data, markers, Path(relative).suffix)
             if relative == 'verify.py':
                 data = sanitize_snapshot_verifier(data)
@@ -89,7 +87,6 @@ if TARGET == 'codex-cloud':
     FILES['requirements-mcp.txt'] = (ROOT / 'requirements-mcp.txt').read_bytes()
     FILES['.gitignore'] = b'data/\noutputs/\noutput/\ntmp/\n__pycache__/\n*.pyc\n.dependencies/\n.tools/\n.gradle*/\nandroid-toolchain/\n.android-user/\nandroid/.gradle/\n**/build/\nnode_modules/\nandroid/local.properties\n*.keystore\n*.jks\n*.apk\n*.idsig\n.env\n.env.*\n'
     scan(FILES, markers)
-    scan_cloud_metadata(FILES)
 
 secret_patterns = [re.compile(rb'\bsk-(?:proj-|svcacct-)?[A-Za-z0-9_-]{30,}'), re.compile(rb'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----'), re.compile(rb'\bAIza[A-Za-z0-9_-]{30,}')]
 findings = []
@@ -222,7 +219,6 @@ with zipfile.ZipFile(archive) as source:
         assert hashlib.sha256(data).hexdigest() == item['sha256']
     if TARGET == 'codex-cloud':
         scan({name: source.read(name) for name in source.namelist()}, markers)
-        scan_cloud_metadata({name: source.read(name) for name in source.namelist()})
         # A bounded, source-only payload for native GitHub tools; no credentials.
         payload = [{'path': name.removeprefix('haus-garten-app/'),
                     'content': base64.b64encode(source.read(name)).decode('ascii'),

@@ -9,6 +9,10 @@
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css?v=1.25">
   <link rel="stylesheet" href="/invoice-editor.css?v=1.25">
+<link rel="stylesheet" href="gartenpirat.css">
+<script src="plant-catalog.js" defer></script>
+<script src="gartenpirat-photo-store.js" defer></script>
+<script src="gartenpirat.js" defer></script>
 </head>
 <body>
   <div class="shell">
@@ -70,7 +74,7 @@
 
       <section id="view-worklogs" class="view">
         <div class="view-heading"><div><p class="eyebrow">LEISTUNGEN</p><h2>Arbeitsaufzeichnungen</h2></div><div class="button-row"><button class="voice-button compact" data-voice>● Sprache</button><button class="primary" data-new="worklog">+ Arbeitszeit</button></div></div>
-        <div class="worklog-tools"><label class="worklog-search">⌕ <input id="worklog-search" type="search" placeholder="Kunde, Tätigkeit, Auftrag oder Material suchen" aria-label="Cloudname_189a14e78c durchsuchen"></label><div class="filter-bar"><select id="worklog-period" aria-label="Zeitraum filtern"><option value="all">Alle Zeiträume</option><option value="today">Heute</option><option value="week">Diese Woche</option><option value="month">Dieser Monat</option></select><select id="worklog-customer-filter" aria-label="Kunden filtern"><option value="all">Alle Kunden</option></select><select id="worklog-billed" aria-label="Abrechnungsstand filtern"><option value="all">Alle Abrechnungsstände</option><option value="no">Nicht abgerechnet</option><option value="yes">Abgerechnet</option></select><button class="secondary" id="clear-filters">Filter zurücksetzen</button></div><p class="worklog-summary" id="worklog-summary" role="status" aria-live="polite"></p></div>
+        <div class="worklog-tools"><label class="worklog-search">⌕ <input id="worklog-search" type="search" placeholder="Kunde, Tätigkeit, Auftrag oder Material suchen" aria-label="Arbeitsaufzeichnungen durchsuchen"></label><div class="filter-bar"><select id="worklog-period" aria-label="Zeitraum filtern"><option value="all">Alle Zeiträume</option><option value="today">Heute</option><option value="week">Diese Woche</option><option value="month">Dieser Monat</option></select><select id="worklog-customer-filter" aria-label="Kunden filtern"><option value="all">Alle Kunden</option></select><select id="worklog-billed" aria-label="Abrechnungsstand filtern"><option value="all">Alle Abrechnungsstände</option><option value="no">Nicht abgerechnet</option><option value="yes">Abgerechnet</option></select><button class="secondary" id="clear-filters">Filter zurücksetzen</button></div><p class="worklog-summary" id="worklog-summary" role="status" aria-live="polite"></p></div>
         <div class="panel"><div id="worklogs-table" class="table-wrap"></div></div>
       </section>
 

@@ -23,6 +23,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 import db
 import invoicing
+import photo_storage
 
 
 STATIC = Path(__file__).resolve().parent / "static"
@@ -85,52 +86,70 @@ def parse_voice(text: str) -> dict:
 
 
 def save_photo(data: dict) -> dict:
+    incoming = dict(data)
     data = db.existing_payload('photos', data)
-    if not data.get("customer_id") or not data.get("data"):
+    raw = data.pop("_attachment_bytes", None)
+    declared_mime = incoming.get("mime_type")
+    if raw is None and data.get("data"):
+        raw, declared_from_uri = photo_storage.decode_data(data["data"])
+        declared_mime = declared_from_uri or declared_mime
+    if not data.get("customer_id") or raw is None:
         raise ValueError("Kunde und Foto sind erforderlich.")
-    with db.connect() as database:
-        if data.get("order_id"):
-            order = database.execute("SELECT customer_id FROM orders WHERE id=?", (data["order_id"],)).fetchone()
-            if not order: raise ValueError("Der ausgewählte Auftrag existiert nicht.")
-            if order["customer_id"] != data["customer_id"]: raise ValueError("Kunde und Auftrag des Fotos passen nicht zusammen.")
-        if data.get("worklog_id"):
-            worklog = database.execute("SELECT customer_id,order_id FROM worklogs WHERE id=?", (data["worklog_id"],)).fetchone()
-            if not worklog: raise ValueError("Die ausgewählte Arbeitsaufzeichnung existiert nicht.")
-            if worklog["customer_id"] != data["customer_id"]: raise ValueError("Kunde und Arbeitsaufzeichnung des Fotos passen nicht zusammen.")
-            if data.get("order_id") and worklog["order_id"] and worklog["order_id"] != data["order_id"]: raise ValueError("Auftrag und Arbeitsaufzeichnung des Fotos passen nicht zusammen.")
-        for key,table,label in [('customer_id','customers','Kunde'),('order_id','orders','Auftrag'),('worklog_id','worklogs','Arbeitsaufzeichnung')]:
-            if data.get(key) and not database.execute(f'SELECT 1 FROM {table} WHERE id=?',(data[key],)).fetchone():
-                raise ValueError(f'Foto noch nicht übernommen: Zugeordnete {label} fehlt. Bitte die Zuordnung prüfen; das Original bleibt in der mobilen Datei erhalten.')
-    encoded = str(data["data"])
-    encoded = encoded.split(",", 1)[1] if "," in encoded else encoded
-    raw = base64.b64decode(encoded, validate=True)
-    if len(raw) > 20 * 1024 * 1024:
-        raise ValueError("Das Foto darf maximal 20 MB groß sein.")
-    original = Path(str(data.get("original_name") or "foto.jpg")).name
-    extension = Path(original).suffix.lower()
-    if extension not in {".jpg", ".jpeg", ".png", ".webp", ".gif", ".heic"}:
-        extension = ".jpg"
-    filename = hashlib.sha256(raw).hexdigest()[:24] + extension
-    target = db.PHOTO_DIR / filename
-    if not target.exists():
-        target.write_bytes(raw)
+    metadata = photo_storage.inspect(raw, declared_mime)
+    for key in ("content_sha256", "storage_name", "mime_type"):
+        if incoming.get(key) and str(incoming[key]).lower() != str(metadata[key]).lower():
+            raise ValueError("Die Foto-Metadaten stimmen nicht mit dem Original überein.")
+    if incoming.get("byte_size") not in (None, "") and int(incoming["byte_size"]) != metadata["byte_size"]:
+        raise ValueError("Die Dateigröße des Foto-Originals stimmt nicht überein.")
+    metadata["role"] = photo_storage.normalized_role(data.get("role"), data.get("caption"))
+    original = photo_storage.original_name(data.get("original_name"), metadata["mime_type"])
+    target, created = photo_storage.store_atomic(db.PHOTO_DIR, raw, metadata)
     identifier = data.get("id") or db.uid("pho")
-    with db.connect() as database:
-        database.execute(
-            """INSERT INTO photos
-            (id,customer_id,order_id,worklog_id,filename,original_name,caption,customer_visible,created_at)
-            VALUES(?,?,?,?,?,?,?,?,?)
-            ON CONFLICT(id) DO UPDATE SET customer_id=excluded.customer_id,order_id=excluded.order_id,
-            worklog_id=excluded.worklog_id,filename=excluded.filename,original_name=excluded.original_name,
-            caption=excluded.caption,customer_visible=excluded.customer_visible""",
-            (
-                identifier, data["customer_id"], data.get("order_id") or None,
-                data.get("worklog_id") or None, filename, original, data.get("caption", ""),
-                db.truth(data.get("customer_visible")), data.get('created_at') or db.now(),
-            ),
-        )
-        saved = db.one(database.execute("SELECT * FROM photos WHERE id=?", (identifier,)))
-    saved["url"] = "/photos/" + filename
+    try:
+        with db.connect() as database:
+            database.execute("BEGIN IMMEDIATE")
+            if data.get("order_id"):
+                order = database.execute("SELECT customer_id FROM orders WHERE id=?", (data["order_id"],)).fetchone()
+                if not order: raise ValueError("Der ausgewählte Auftrag existiert nicht.")
+                if order["customer_id"] != data["customer_id"]: raise ValueError("Kunde und Auftrag des Fotos passen nicht zusammen.")
+            if data.get("worklog_id"):
+                worklog = database.execute("SELECT customer_id,order_id FROM worklogs WHERE id=?", (data["worklog_id"],)).fetchone()
+                if not worklog: raise ValueError("Die ausgewählte Arbeitsaufzeichnung existiert nicht.")
+                if worklog["customer_id"] != data["customer_id"]: raise ValueError("Kunde und Arbeitsaufzeichnung des Fotos passen nicht zusammen.")
+                if data.get("order_id") and worklog["order_id"] and worklog["order_id"] != data["order_id"]: raise ValueError("Auftrag und Arbeitsaufzeichnung des Fotos passen nicht zusammen.")
+            for key,table,label in [('customer_id','customers','Kunde'),('order_id','orders','Auftrag'),('worklog_id','worklogs','Arbeitsaufzeichnung')]:
+                if data.get(key) and not database.execute(f'SELECT 1 FROM {table} WHERE id=?',(data[key],)).fetchone():
+                    raise ValueError(f'Foto noch nicht übernommen: Zugeordnete {label} fehlt. Bitte die Zuordnung prüfen; das Original bleibt in der mobilen Datei erhalten.')
+            database.execute(
+                """INSERT INTO photos
+                (id,customer_id,order_id,worklog_id,filename,original_name,caption,customer_visible,created_at,
+                 content_sha256,byte_size,mime_type,storage_name,role)
+                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                ON CONFLICT(id) DO UPDATE SET customer_id=excluded.customer_id,order_id=excluded.order_id,
+                worklog_id=excluded.worklog_id,filename=excluded.filename,original_name=excluded.original_name,
+                caption=excluded.caption,customer_visible=excluded.customer_visible,
+                content_sha256=excluded.content_sha256,byte_size=excluded.byte_size,mime_type=excluded.mime_type,
+                storage_name=excluded.storage_name,role=excluded.role""",
+                (
+                    identifier, data["customer_id"], data.get("order_id") or None,
+                    data.get("worklog_id") or None, metadata["storage_name"], original, data.get("caption", ""),
+                    db.truth(data.get("customer_visible")), data.get('created_at') or db.now(),
+                    metadata["content_sha256"], metadata["byte_size"], metadata["mime_type"],
+                    metadata["storage_name"], metadata["role"],
+                ),
+            )
+            saved = db.one(database.execute("SELECT * FROM photos WHERE id=?", (identifier,)))
+    except Exception:
+        if created:
+            with db.connect() as database:
+                referenced = database.execute(
+                    "SELECT 1 FROM photos WHERE storage_name=? OR filename=? LIMIT 1",
+                    (metadata["storage_name"], metadata["storage_name"]),
+                ).fetchone()
+            if not referenced:
+                target.unlink(missing_ok=True)
+        raise
+    saved["url"] = "/photos/" + metadata["storage_name"]
     return saved
 
 
@@ -187,7 +206,8 @@ def _create_backup(folder="") -> dict:
 
 DRIVE_SYNC_LOCK = threading.RLock()
 SYNC_CAPABILITIES = {"worklog_compare_and_save": True, "entity_compare_and_save": True,
-                     "customer_custom_fields_compare_and_save": True, "billing_relations": True}
+                     "customer_custom_fields_compare_and_save": True, "billing_relations": True,
+                     "photo_attachments_v1": True}
 
 
 def refresh_drive_capabilities(expected_snapshot_hash):
@@ -251,12 +271,29 @@ def read_receipts(path, label='Abgleichbestätigungen'):
         raise ValueError(f'Die {label} sind beschädigt. Abgleich angehalten; bitte Sicherung prüfen. Keine Schutzkennungen wurden zurückgesetzt.')
 
 
-def apply_sync_action(action):
+def apply_sync_action(action, attachment_root: Path | None = None):
     if not isinstance(action, dict) or not isinstance(action.get('payload', {}), dict):
         raise ValueError('Ungültiger Eintrag im Abgleichpaket.')
     kind = action.get('kind')
     if kind not in SAVERS: raise ValueError('Unbekannte Datenart im Abgleichpaket.')
     payload = dict(action.get('payload', {}))
+    if kind == 'photo' and not payload.get('data'):
+        name = str(payload.get('storage_name') or '')
+        digest = str(payload.get('content_sha256') or '').lower()
+        mime_type = str(payload.get('mime_type') or '').lower()
+        try: byte_size = int(payload.get('byte_size'))
+        except (TypeError, ValueError): byte_size = 0
+        if (not re.fullmatch(r'[0-9a-f]{64}', digest) or Path(name).name != name
+                or mime_type not in photo_storage.MIME_EXTENSIONS or byte_size < 1
+                or byte_size > photo_storage.MAX_PHOTO_BYTES):
+            raise ValueError('Foto-Anhang besitzt keine gültige Prüfsumme, Größe, MIME-Angabe oder Dateireferenz.')
+        if attachment_root is None:
+            raise ValueError('Das Foto-Original wurde noch nicht übertragen. Die Aktion bleibt erhalten.')
+        raw, verified = photo_storage.read_verified(
+            attachment_root / name, digest, byte_size, mime_type)
+        if verified['storage_name'] != name:
+            raise ValueError('Der Dateiname des Foto-Originals stimmt nicht mit seiner Prüfsumme überein.')
+        payload['_attachment_bytes'] = raw
     tables={'customer':'customers','order':'orders','worklog':'worklogs'}
     if kind in tables and payload.get('id') and not payload.get('_mcp_create') and not payload.get('_mcp_base') and not payload.get('_sync_base'):
         with db.connect() as connection:
@@ -322,7 +359,7 @@ def guard_drive_export(previous, candidate, imported_records):
                     return json.dumps(json.loads(value or '{}') if isinstance(value, str) else value or {},sort_keys=True)
                 return '' if value is None else value
             # Joined display fields and generated previews are not stored business columns.
-            ignored = {'customer_name', 'order_title', 'total_hours', 'thumbnail_base64', 'thumbnail_mime', 'pdf_base64', 'updated_at', 'created_at'}
+            ignored = {'customer_name', 'order_title', 'total_hours', 'thumbnail_data', 'thumbnail_base64', 'thumbnail_mime', 'pdf_base64', 'updated_at', 'created_at'}
             changed = any(comparable(key, value) != comparable(key, current.get(key))
                           for key, value in row.items() if key in current and key not in ignored)
             if not changed:
@@ -346,6 +383,7 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
         raise ValueError("Bitte zuerst den lokalen Google-Drive-Ordner auswählen.")
     destination = Path(configured).expanduser()
     destination.mkdir(parents=True, exist_ok=True)
+    drive_photos = destination / "HausGarten-Fotos"
     target = destination / 'HausGarten-Laptop.json'
     before = target.read_bytes() if target.exists() else None
     previous = json.loads(before.decode('utf-8-sig')) if before else {}
@@ -361,49 +399,71 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
     # A damaged hold list must never turn protected old deletes into live actions.
     held=read_receipts(db.DATA_DIR/'drive-held-deletions.json', 'gesicherten Löschsperren')
 
+    import sync_review
+    ledger_path=db.DATA_DIR/'drive-order-review-receipts.json'
+    try:
+        ledger=json.loads(ledger_path.read_text(encoding='utf-8'))
+        if not isinstance(ledger,dict) or not isinstance(ledger.get('resolved'),dict) or not isinstance(ledger.get('applied'),dict):
+            raise ValueError()
+        if any(not isinstance(v,str) or not re.fullmatch('[0-9a-f]{64}',v) for group in ledger.values() for v in group.values()):
+            raise ValueError()
+    except FileNotFoundError:ledger={'resolved':{},'applied':{}}
+    except (ValueError,TypeError):raise ValueError('Die Auftrags-Prüfbestätigungen sind beschädigt. Keine Änderung übernommen.')
+    resolved=ledger['resolved'];accepted.update(ledger['applied'])
     imported, failed = 0, []
     sources = list(destination.glob("HausGarten-Mobile-*.json"))
     chatgpt_source = destination / "HausGarten-ChatGPT.json"
-    if chatgpt_source.exists():
-        sources.append(chatgpt_source)
+    if chatgpt_source.exists():sources.append(chatgpt_source)
+    actions={};action_files={}
     for source in sources:
         try:
-            package = json.loads(source.read_text(encoding="utf-8"))
-            if not isinstance(package, dict) or not isinstance(package.get('actions', []), list):
-                raise ValueError('Ungültiges Abgleichpaket. Eine Liste von Änderungen wird erwartet.')
-            for action in package.get("actions", []):
-                if not isinstance(action, dict) or not isinstance(action.get('payload', {}), dict):
-                    failed.append({'file':source.name,'error':'Ungültiger Eintrag im Abgleichpaket.'})
-                    continue
-                action_id = str(action.get("client_id", ""))
-                if not action_id or action_id in accepted:
-                    continue
-                kind = action.get("kind")
-                if kind == 'delete' and action_id in held:
-                    continue
-                if kind == 'delete':
-                    failed.append({'file':source.name,'client_id':action_id,'kind':kind,
-                                   'code':'DELETE_REVIEW_REQUIRED','error':'Löschänderung bleibt zur gesonderten Prüfung erhalten. Keine Drive-Daten automatisch gelöscht.'})
-                    continue
-                if kind == 'invoice_issue' and action_id in rejected:
-                    failed.append(rejected[action_id])
-                    continue
-                if invoice_only and kind not in ('invoice', 'invoice_issue'):
-                    continue
-                try:
-                    apply_sync_action(action)
-                    collection = {'customer':'customers','order':'orders','worklog':'worklogs','invoice':'invoices','photo':'photos'}.get(kind)
-                    if collection and action.get('payload', {}).get('id'):
-                        imported_records.add((collection, action['payload']['id']))
-                    accepted.add(action_id)
-                    write_json_atomic(receipts_path, sorted(accepted))
-                    imported += 1
-                except Exception as error:
-                    failure={'file':source.name,'client_id':action_id,'kind':kind,'invoice_id':action.get('payload',{}).get('id',''),'error':str(error)}
-                    failed.append(failure)
-                    if kind == 'invoice_issue': rejected[action_id]=failure
+            package=json.loads(source.read_text(encoding='utf-8'))
+            if not isinstance(package,dict) or not isinstance(package.get('actions',[]),list):raise ValueError('Ungültiges Abgleichpaket.')
+            for action in package.get('actions',[]):
+                if not isinstance(action,dict) or not isinstance(action.get('payload'),dict) or not action.get('client_id') or not action.get('kind'):
+                    failed.append({'file':source.name,'error':'Ungültiger Eintrag im Abgleichpaket.'});continue
+                identifier=str(action['client_id'])
+                if identifier in actions and sync_review.digest(actions[identifier])!=sync_review.digest(action):
+                    raise RuntimeError('Eine Änderungskennung enthält verschiedene Angaben. Abgleich angehalten; keine Daten überschrieben.')
+                actions.setdefault(identifier,action);action_files.setdefault(identifier,source.name)
+        except RuntimeError:raise
+        except Exception as error:failed.append({'file':source.name,'error':str(error)})
+    # Check immutable reviewed actions before any business saver is called.
+    for identifier,action in actions.items():
+        known=resolved.get(identifier) or ledger['applied'].get(identifier)
+        if known and known!=sync_review.digest(action):raise ValueError('Eine geprüfte Änderung wurde verändert. Abgleich angehalten.')
+    def created(action):
+        try:
+            stamp=datetime.fromisoformat(str(action.get('created_at','')).replace('Z','+00:00'))
+            if stamp.tzinfo is None:return 0
+            return int(stamp.timestamp())*1000+stamp.microsecond//1000
+        except (ValueError,TypeError):return 0
+    failures=set()
+    for action in sorted(actions.values(),key=created):
+        action_id=str(action['client_id']);kind=action['kind'];filename=action_files[action_id]
+        if action_id in accepted or action_id in resolved:continue
+        if kind=='delete' and action_id in held:continue
+        if kind=='delete':
+            failed.append({'file':filename,'client_id':action_id,'kind':kind,'code':'DELETE_REVIEW_REQUIRED','error':'Löschänderung bleibt zur gesonderten Prüfung erhalten. Keine Drive-Daten automatisch gelöscht.'});continue
+        if kind=='invoice_issue' and action_id in rejected:
+            failed.append(rejected[action_id]);continue
+        if invoice_only and kind not in ('invoice','invoice_issue'):continue
+        try:
+            refs=sync_review.validate_resolution(action,actions,failures,accepted,resolved)
+            apply_sync_action(action, drive_photos)
+            collection={'customer':'customers','order':'orders','worklog':'worklogs','invoice':'invoices','photo':'photos'}.get(kind)
+            if collection and action['payload'].get('id'):imported_records.add((collection,action['payload']['id']))
+            if refs:
+                for identifier in refs:resolved[identifier]=sync_review.digest(actions[identifier])
+                ledger['applied'][action_id]=sync_review.digest(action)
+                write_json_atomic(ledger_path,ledger)
+            accepted.add(action_id);write_json_atomic(receipts_path,sorted(accepted));imported+=1
         except Exception as error:
-            failed.append({"file": source.name, "error": str(error)})
+            failures.add(action_id)
+            failure={'file':filename,'client_id':action_id,'kind':kind,'invoice_id':action['payload'].get('id',''),'error':str(error)}
+            failed.append(failure)
+            if kind=='invoice_issue':rejected[action_id]=failure
+    failed=[failure for failure in failed if failure.get('client_id') not in resolved]
 
     write_json_atomic(receipts_path, sorted(accepted))
     write_json_atomic(rejected_path, rejected)
@@ -418,6 +478,7 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
         "photos": db.mobile_photo_thumbnails(db.list_photos()),
         "dashboard": db.dashboard(),
         "accepted_ids": sorted(accepted),
+        "drive_resolved_actions": dict(resolved),
         "sync_errors": list({item.get('client_id',item['file']):item for item in [*rejected.values(),*failed]}.values()),
         "rejected_invoice_ids": list(rejected),
         "held_delete_ids": sorted(held),
@@ -437,13 +498,37 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
                 archive_file.write_bytes(invoicing.issued_pdf(invoice['id']))
             elif hashlib.sha256(archive_file.read_bytes()).hexdigest() != hashlib.sha256(invoicing.issued_pdf(invoice['id'])).hexdigest():
                 failed.append({'file':archive_file.name,'error':'Archiv-PDF weicht ab; keine Datei überschrieben. Sicherung prüfen.'})
-    drive_photos = destination / "HausGarten-Fotos"
     drive_photos.mkdir(exist_ok=True)
-    for photo in db.PHOTO_DIR.iterdir():
-        if photo.is_file():
-            target_photo = drive_photos / photo.name
-            if not target_photo.exists() or target_photo.stat().st_mtime < photo.stat().st_mtime:
-                shutil.copy2(photo, target_photo)
+    for photo in db.list_photos():
+        name = str(photo.get('storage_name') or photo.get('filename') or '')
+        if not name or Path(name).name != name:
+            failed.append({'file':name or '<leer>','photo_id':photo.get('id'),'error':'Unsichere Foto-Dateireferenz; nicht exportiert.'})
+            continue
+        source, target_photo = db.PHOTO_DIR / name, drive_photos / name
+        try:
+            raw, metadata = photo_storage.read_verified(
+                source, photo.get('content_sha256'), photo.get('byte_size'), photo.get('mime_type'))
+            if target_photo.exists():
+                photo_storage.read_verified(target_photo, metadata['content_sha256'], metadata['byte_size'], metadata['mime_type'])
+                continue
+            created_target = False
+            try:
+                with target_photo.open('xb') as handle:
+                    handle.write(raw); handle.flush()
+                    try: import os; os.fsync(handle.fileno())
+                    except OSError: pass
+                created_target = True
+            except FileExistsError:
+                pass
+            try:
+                photo_storage.read_verified(target_photo, metadata['content_sha256'], metadata['byte_size'], metadata['mime_type'])
+            except Exception:
+                # Remove only a file created by this failed export attempt; never replace an existing Drive file.
+                if created_target:
+                    target_photo.unlink(missing_ok=True)
+                raise
+        except Exception as error:
+            failed.append({'file':name,'photo_id':photo.get('id'),'error':str(error)})
     temporary = destination / "HausGarten-Laptop.tmp"
     target = destination / "HausGarten-Laptop.json"
     # Include failures discovered during archive/photo export, not only import.

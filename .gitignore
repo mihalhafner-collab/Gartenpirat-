@@ -16,6 +16,10 @@ android/local.properties
 *.keystore
 *.jks
 *.apk
+*.aab
 *.idsig
+*.db
+*.sqlite
+*.sqlite3
 .env
 .env.*

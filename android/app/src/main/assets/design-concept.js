@@ -2,14 +2,14 @@
 (() => {
   'use strict';
   const get=id=>document.getElementById(id);
-  let profileId='';
+  let profileId='',photoAddDialog=null,photoViewer=null,viewerRows=[],viewerIndex=0,viewerScale=1,viewerX=0,viewerY=0,viewerLoadToken=0;
   const hours=value=>Number(value||0).toLocaleString('de-AT',{maximumFractionDigits:2})+' h';
   const openStatuses=new Set(['','Geplant','Aktiv','In Arbeit','Wartet auf Material','Offen']);
   function previewRows(rows,limit,label,renderRow){
     return rows.slice(0,limit).map(renderRow).join('')+(rows.length>limit?`<details class="design-more-rows"><summary>${esc(label)} · ${rows.length}</summary>${rows.slice(limit).map(renderRow).join('')}</details>`:'');
   }
   function photoRows(rows){
-    const grid=items=>'<div class="design-photo-grid">'+items.map(p=>{const src=p.thumbnail_data||p.data;return '<button type="button" data-design-action="photo" data-id="'+esc(p.id)+'" aria-label="'+esc(p.caption||'Kundenfoto öffnen')+'">'+(src&&String(src).startsWith('data:image/')?'<img src="'+esc(src)+'" alt="'+esc(p.caption||'Kundenfoto')+'" loading="lazy">':'<small>Bild noch nicht geladen</small>')+'</button>';}).join('')+'</div>';
+    const grid=items=>'<div class="design-photo-grid">'+items.map(p=>{const src=p.thumbnail_data||p.data||p.full_data,profile=p.role==='profile'||/^(profilbild|profil|profile)$/i.test(String(p.caption||'').trim());return '<button type="button" data-design-action="photo" data-id="'+esc(p.id)+'" aria-label="'+esc((p.caption||'Kundenfoto')+' öffnen')+'">'+(src&&String(src).startsWith('data:image/')?'<img src="'+esc(src)+'" alt="'+esc(p.caption||'Kundenfoto')+'" loading="lazy">':'<small>Original nach Drive-Abgleich laden</small>')+(profile?'<span class="design-photo-role">Profil</span>':'')+'</button>';}).join('')+'</div>';
     return rows.length?grid(rows.slice(0,6))+(rows.length>6?'<details class="design-more-rows"><summary>Weitere Fotos · '+(rows.length-6)+'</summary>'+grid(rows.slice(6))+'</details>':''):'<p class="sub">Noch keine Fotos zugeordnet.</p>';
   }
   function homeOverview(){
@@ -43,14 +43,102 @@
     if(button.dataset.designMetric==='week'){openPage('weeks');get('week-period').value='current';get('week-customer').value='all';renderWeeks(worklogs());}
     if(button.dataset.designMetric==='orders'){openPage('orders');get('order-search').value='';get('design-order-status').value='open';render();}
   }
-  function avatar(customer){const picture=photos().find(p=>p.customer_id===customer.id&&/^(profilbild|profil|profile)$/i.test(String(p.caption||''))),src=picture?.thumbnail_data||picture?.data;return src&&String(src).startsWith('data:image/')?`<img class="customer-avatar" src="${esc(src)}" alt="Profilbild">`:`<span class="customer-avatar">${esc(String(customer.name||'K').split(/\s+/).slice(0,2).map(x=>x[0]||'').join(''))}</span>`;}
+  function avatar(customer){const picture=photos().filter(p=>p.customer_id===customer.id&&(p.role==='profile'||/^(profilbild|profil|profile)$/i.test(String(p.caption||'')))).sort((a,b)=>String(b.updated_at||b.created_at||'').localeCompare(String(a.updated_at||a.created_at||'')))[0],src=picture?.thumbnail_data||picture?.data||picture?.full_data;return src&&String(src).startsWith('data:image/')?`<img class="customer-avatar" src="${esc(src)}" alt="Profilbild">`:`<span class="customer-avatar">${esc(String(customer.name||'K').split(/\s+/).slice(0,2).map(x=>x[0]||'').join(''))}</span>`;}
   function profileContent(){
     const page=get('customer-profile-page'),customer=customers().find(x=>x.id===profileId);if(!page||!customer)return;
     page.dataset.customerId=customer.id;
     const address=[customer.street,[customer.postal_code,customer.city].filter(Boolean).join(' '),customer.country].filter(Boolean).join('\n'),logs=worklogs().filter(x=>x.customer_id===profileId).sort((a,b)=>String(b.work_date||'').localeCompare(String(a.work_date||''))),jobs=orders().filter(x=>x.customer_id===profileId),invoices=merged('invoices','invoice').filter(x=>x.customer_id===profileId),pictures=photos().filter(x=>x.customer_id===profileId);
     const jobRows=previewRows(jobs,4,'Weitere Aufträge anzeigen',x=>`<button type="button" class="design-profile-row" data-design-action="order" data-id="${esc(x.id)}"><span><strong>${esc(x.title)}</strong><small>${esc(x.status||'Geplant')}</small></span><b>›</b></button>`);
     const workRows=logs.slice(0,5).map(x=>`<button type="button" class="design-profile-row" data-design-action="worklog" data-id="${esc(x.id)}"><span><strong>${esc(worklogDateLabel(x.work_date))}</strong><small>${esc(x.activity)}</small></span><b>${esc(hours(x.hours))}</b></button>`).join('');
-    get('design-profile-content').innerHTML=`<section class="card"><div class="design-profile-header">${avatar(customer)}<div><h3>${esc(customer.name)}</h3><p>${esc(customer.company||customer.city||'Kunde')}${customer.active===0?' · Archiviert':''}</p></div></div><p class="design-address">${esc(address||'Adresse ergänzen')}</p><div class="design-contact-actions">${customer.phone?'<button type="button" class="secondary" data-design-action="call">Anrufen</button>':''}${address?'<button type="button" class="secondary" data-design-action="maps">Route</button>':''}${customer.email?'<button type="button" class="secondary" data-design-action="email">E-Mail</button>':''}</div></section><section class="card"><div class="design-section-head"><h3>Aufträge · ${jobs.length}</h3><button type="button" class="secondary" data-design-action="new-order">+ Auftrag</button></div>${jobRows||'<p class="sub">Noch kein Auftrag vorhanden.</p>'}</section><section class="card"><div class="design-section-head"><h3>Arbeiten · ${logs.length}</h3><button type="button" class="secondary" data-design-action="new-work">+ Arbeit</button></div>${workRows||'<p class="sub">Noch keine Arbeit erfasst.</p>'}${logs.length>5?'<button type="button" class="secondary" data-design-action="all-work">Alle Arbeiten anzeigen</button>':''}</section><section class="card"><div class="design-section-head"><h3>Rechnungen · ${invoices.length}</h3></div>${previewRows(invoices,3,'Weitere Rechnungen anzeigen',x=>`<button type="button" class="design-profile-row" data-design-action="invoice" data-id="${esc(x.id)}"><span><strong>${esc(x.invoice_number||'Entwurf')}</strong><small>${esc(x.status||'Entwurf')}</small></span><b>${Number(x.amount||0).toLocaleString('de-AT',{style:'currency',currency:'EUR'})}</b></button>`)||'<p class="sub">Keine Rechnung vorhanden.</p>'}</section><section class="card"><h3>Fotos · ${pictures.length}</h3>${photoRows(pictures)}</section>${customer.notes?'<section class="card"><h3>Interne Notizen</h3><p class="design-note">'+esc(customer.notes)+'</p></section>':''}`;
+    get('design-profile-content').innerHTML=`<section class="card"><div class="design-profile-header">${avatar(customer)}<div><h3>${esc(customer.name)}</h3><p>${esc(customer.company||customer.city||'Kunde')}${customer.active===0?' · Archiviert':''}</p></div></div><p class="design-address">${esc(address||'Adresse ergänzen')}</p><div class="design-contact-actions">${customer.phone?'<button type="button" class="secondary" data-design-action="call">Anrufen</button>':''}${address?'<button type="button" class="secondary" data-design-action="maps">Route</button>':''}${customer.email?'<button type="button" class="secondary" data-design-action="email">E-Mail</button>':''}</div></section><section class="card"><div class="design-section-head"><h3>Aufträge · ${jobs.length}</h3><button type="button" class="secondary" data-design-action="new-order">+ Auftrag</button></div>${jobRows||'<p class="sub">Noch kein Auftrag vorhanden.</p>'}</section><section class="card"><div class="design-section-head"><h3>Arbeiten · ${logs.length}</h3><button type="button" class="secondary" data-design-action="new-work">+ Arbeit</button></div>${workRows||'<p class="sub">Noch keine Arbeit erfasst.</p>'}${logs.length>5?'<button type="button" class="secondary" data-design-action="all-work">Alle Arbeiten anzeigen</button>':''}</section><section class="card"><div class="design-section-head"><h3>Rechnungen · ${invoices.length}</h3></div>${previewRows(invoices,3,'Weitere Rechnungen anzeigen',x=>`<button type="button" class="design-profile-row" data-design-action="invoice" data-id="${esc(x.id)}"><span><strong>${esc(x.invoice_number||'Entwurf')}</strong><small>${esc(x.status||'Entwurf')}</small></span><b>${Number(x.amount||0).toLocaleString('de-AT',{style:'currency',currency:'EUR'})}</b></button>`)||'<p class="sub">Keine Rechnung vorhanden.</p>'}</section><section class="card"><div class="design-section-head"><h3>Fotos · ${pictures.length}</h3><button type="button" class="secondary" data-design-action="add-photos">+ Fotos</button></div>${photoRows(pictures)}</section>${customer.notes?'<section class="card"><h3>Interne Notizen</h3><p class="design-note">'+esc(customer.notes)+'</p></section>':''}`;
+  }
+  function setPhotoFullscreen(enabled){try{window.AndroidGardenPhotos?.setFullscreen?.(enabled);}catch(_){}}
+  function ensurePhotoAddDialog(){
+    if(photoAddDialog)return photoAddDialog;
+    photoAddDialog=document.createElement('dialog');photoAddDialog.id='design-customer-photo-add';photoAddDialog.className='design-photo-add';photoAddDialog.setAttribute('aria-labelledby','design-customer-photo-add-title');
+    photoAddDialog.innerHTML='<form method="dialog"><header><div><small>KUNDENKONTO</small><h2 id="design-customer-photo-add-title">Fotos hinzufügen</h2></div><button type="button" class="secondary" data-photo-add-close aria-label="Schließen">×</button></header><label>Bildbeschreibung · optional<input id="design-customer-photo-caption" maxlength="160" placeholder="z. B. Garten vor dem Rückschnitt"></label><label class="check"><input id="design-customer-photo-profile" type="checkbox">Erstes Foto als Profilbild verwenden</label><p class="sub">Die Bilder werden verkleinert und zuerst offline auf diesem Gerät gespeichert. Die Zuordnung zum geöffneten Kunden bleibt erhalten.</p><div class="design-photo-add-actions"><button type="button" class="primary" data-photo-source="gallery">Aus Galerie auswählen</button><button type="button" class="secondary" data-photo-source="camera">Foto aufnehmen</button></div><input id="design-customer-photo-files" type="file" accept="image/*" multiple hidden><input id="design-customer-photo-camera" type="file" accept="image/*" capture="environment" hidden><p id="design-customer-photo-status" role="status" aria-live="polite"></p></form>';
+    document.body.append(photoAddDialog);
+    const gallery=get('design-customer-photo-files'),camera=get('design-customer-photo-camera'),status=get('design-customer-photo-status');
+    photoAddDialog.querySelector('[data-photo-add-close]').onclick=()=>photoAddDialog.close();
+    photoAddDialog.addEventListener('cancel',event=>{event.preventDefault();photoAddDialog.close();});
+    photoAddDialog.querySelector('[data-photo-source="gallery"]').onclick=()=>{gallery.value='';gallery.click();};
+    photoAddDialog.querySelector('[data-photo-source="camera"]').onclick=()=>{camera.value='';camera.click();};
+    async function selected(input){
+      const files=[...(input.files||[])];input.value='';if(!files.length)return;
+      if(files.length>10){status.textContent='Bitte höchstens 10 Fotos gleichzeitig auswählen.';return;}
+      const customer=customers().find(row=>row.id===profileId);if(!customer){status.textContent='Das Kundenkonto ist nicht mehr verfügbar.';return;}
+      const caption=get('design-customer-photo-caption').value.trim(),asProfile=get('design-customer-photo-profile').checked;
+      photoAddDialog.querySelectorAll('button').forEach(button=>button.disabled=true);status.textContent='Fotos werden auf diesem Gerät vorbereitet …';
+      let saved=0;const failures=[];
+      for(let index=0;index<files.length;index++){
+        const file=files[index];
+        try{
+          if(file.type&&!file.type.startsWith('image/'))throw new Error('keine unterstützte Bilddatei');
+          const data=await compressedPhoto(file),name=(file.name||'kundenfoto').replace(/\.[^.]+$/,'')+'.jpg';
+          const result=AndroidData.savePhoto(JSON.stringify({customer_id:customer.id,original_name:name,caption:(asProfile&&index===0)?'Profilbild':caption||name.replace(/\.jpg$/i,''),role:(asProfile&&index===0)?'profile':'documentation',customer_visible:0,mime_type:'image/jpeg',data}));
+          if(String(result).startsWith('ERROR:'))throw new Error(String(result).replace(/^ERROR:\s*/,''));saved++;
+        }catch(error){failures.push((file.name||'Foto')+': '+(error.message||error));}
+      }
+      photoAddDialog.querySelectorAll('button').forEach(button=>button.disabled=false);
+      if(saved){load();if(currentPage==='customer-profile-page')profileContent();}
+      status.textContent=saved+' Foto(s) gespeichert.'+(failures.length?' '+failures.length+' fehlgeschlagen: '+failures.slice(0,2).join(' · '):'');
+      if(saved&&!failures.length)setTimeout(()=>{if(photoAddDialog.open)photoAddDialog.close();},500);
+    }
+    gallery.addEventListener('change',()=>selected(gallery));camera.addEventListener('change',()=>selected(camera));
+    return photoAddDialog;
+  }
+  function openPhotoAdd(){
+    const dialog=ensurePhotoAddDialog();get('design-customer-photo-caption').value='';get('design-customer-photo-profile').checked=false;get('design-customer-photo-status').textContent='';dialog.showModal();dialog.querySelector('[data-photo-source="gallery"]').focus({preventScroll:true});
+  }
+  function applyViewerTransform(){if(!photoViewer)return;photoViewer.querySelector('img').style.transform=`translate3d(${viewerX}px,${viewerY}px,0) scale(${viewerScale})`;photoViewer.querySelector('[data-photo-zoom]').textContent=Math.round(viewerScale*100)+' %';}
+  function ensurePhotoViewer(){
+    if(photoViewer)return photoViewer;
+    photoViewer=document.createElement('dialog');photoViewer.id='design-photo-view';photoViewer.className='design-photo-view';photoViewer.setAttribute('aria-labelledby','design-photo-caption');photoViewer.setAttribute('aria-describedby','design-photo-load-state');
+    photoViewer.innerHTML='<header><button type="button" class="design-photo-close" aria-label="Foto schließen">×</button><p data-photo-counter></p><button type="button" class="design-photo-delete">Löschen</button></header><div class="design-photo-stage"><img alt="Kundenfoto" draggable="false"></div><footer><button type="button" class="secondary" data-photo-previous aria-label="Vorheriges Foto">‹</button><div><strong id="design-photo-caption" data-photo-caption></strong><small data-photo-zoom>100 %</small><small id="design-photo-load-state" data-photo-status role="status" aria-live="polite"></small></div><button type="button" class="secondary" data-photo-next aria-label="Nächstes Foto">›</button></footer>';
+    document.body.append(photoViewer);const image=photoViewer.querySelector('img'),pointers=new Map();let startDistance=0,startScale=1,startX=0,startY=0;
+    const reset=()=>{viewerScale=1;viewerX=0;viewerY=0;applyViewerTransform();};
+    const show=()=>{
+      const picture=viewerRows[viewerIndex];if(!picture)return;
+      const token=++viewerLoadToken,status=photoViewer.querySelector('[data-photo-status]'),preview=picture.thumbnail_data,embedded=picture.full_data||picture.data,linked=!!(picture.worklog_id||picture.order_id),linkedNote=linked?' Dieses Belegfoto gehört zu '+(picture.worklog_id?'einer Arbeitsaufzeichnung':'einem Auftrag')+' und kann hier nicht gelöscht werden.':'';
+      const source=embedded||preview||'';
+      status.textContent=(embedded?'Original ist offline verfügbar.':preview?'Vorschau wird angezeigt. Original wird geladen …':'Original wird geladen …')+linkedNote;
+      if(source&&String(source).startsWith('data:image/'))image.src=source;else image.removeAttribute('src');
+      image.alt=picture.caption||'Kundenfoto';photoViewer.querySelector('[data-photo-caption]').textContent=picture.caption||picture.original_name||'Kundenfoto';photoViewer.querySelector('[data-photo-counter]').textContent=(viewerIndex+1)+' / '+viewerRows.length;photoViewer.querySelector('[data-photo-previous]').disabled=viewerRows.length<2;photoViewer.querySelector('[data-photo-next]').disabled=viewerRows.length<2;const remove=photoViewer.querySelector('.design-photo-delete');remove.disabled=linked;remove.title=linked?'Belegfotos bleiben mit ihrer Arbeitsaufzeichnung oder ihrem Auftrag erhalten.':'Dieses Kundenfoto entfernen';reset();
+      if(embedded)return;
+      if(typeof window.AndroidData?.getPhotoData!=='function'){status.textContent=(preview?'Vorschau wird angezeigt; Original ist auf diesem Gerät noch nicht verfügbar.':'Kein Bildinhalt auf diesem Gerät verfügbar.')+linkedNote;return;}
+      requestAnimationFrame(()=>setTimeout(()=>{
+        if(token!==viewerLoadToken||!photoViewer.open)return;
+        try{
+          const loaded=window.AndroidData.getPhotoData(picture.id);
+          if(token!==viewerLoadToken||!photoViewer.open)return;
+          if(String(loaded).startsWith('data:image/')){picture.full_data=loaded;image.src=loaded;status.textContent='Original ist offline verfügbar.'+linkedNote;}
+          else status.textContent='Original derzeit nicht verfügbar: '+String(loaded||'kein lokaler oder verbundener Drive-Inhalt').replace(/^ERROR:\s*/,'')+linkedNote;
+        }catch(error){if(token===viewerLoadToken&&photoViewer.open)status.textContent='Original derzeit nicht verfügbar: '+String(error.message||error)+linkedNote;}
+      },0));
+    };
+    photoViewer._show=show;
+    photoViewer.querySelector('.design-photo-close').onclick=()=>photoViewer.close();
+    photoViewer.querySelector('[data-photo-previous]').onclick=()=>{viewerIndex=(viewerIndex-1+viewerRows.length)%viewerRows.length;show();};
+    photoViewer.querySelector('[data-photo-next]').onclick=()=>{viewerIndex=(viewerIndex+1)%viewerRows.length;show();};
+    photoViewer.querySelector('.design-photo-delete').onclick=()=>{
+      const picture=viewerRows[viewerIndex];if(!picture)return;if(picture.worklog_id||picture.order_id){window.showUndoToast('Dieses Belegfoto bleibt mit der Arbeitsaufzeichnung oder dem Auftrag erhalten.');return;}if(!confirm('Dieses Kundenfoto dauerhaft entfernen? Die Löschung wird über den bestehenden Drive-Abgleich an andere Geräte weitergegeben.'))return;
+      const result=AndroidData.removeEntity?.('photo',picture.id);if(!result||String(result).startsWith('ERROR:')){window.showUndoToast('Foto konnte nicht entfernt werden: '+String(result||'Funktion nicht verfügbar').replace(/^ERROR:\s*/,''));return;}
+      photoViewer.close();load();if(currentPage==='customer-profile-page')profileContent();window.showUndoToast('Foto zum Entfernen vorgemerkt.',()=>{try{const restored=AndroidData.undoRemoveEntity?.('photo',picture.id);if(!restored||String(restored).startsWith('ERROR:'))throw new Error(String(restored||'Funktion nicht verfügbar').replace(/^ERROR:\s*/,''));load();if(currentPage==='customer-profile-page')profileContent();window.showUndoToast('Fotolöschung zurückgenommen.');}catch(error){window.showUndoToast('Rückgängig ist nicht mehr möglich: '+String(error.message||error));}});
+    };
+    image.addEventListener('dblclick',()=>{viewerScale=viewerScale>1?1:2.5;viewerX=viewerY=0;applyViewerTransform();});
+    image.addEventListener('wheel',event=>{event.preventDefault();viewerScale=Math.min(5,Math.max(1,viewerScale*(event.deltaY<0?1.2:0.84)));if(viewerScale===1)viewerX=viewerY=0;applyViewerTransform();},{passive:false});
+    image.addEventListener('pointerdown',event=>{image.setPointerCapture?.(event.pointerId);pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});if(pointers.size===1){startX=event.clientX-viewerX;startY=event.clientY-viewerY;}if(pointers.size===2){const values=[...pointers.values()];startDistance=Math.hypot(values[0].x-values[1].x,values[0].y-values[1].y);startScale=viewerScale;}});
+    image.addEventListener('pointermove',event=>{if(!pointers.has(event.pointerId))return;pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});if(pointers.size===2){const values=[...pointers.values()],distance=Math.hypot(values[0].x-values[1].x,values[0].y-values[1].y);if(startDistance)viewerScale=Math.min(5,Math.max(1,startScale*distance/startDistance));}else if(viewerScale>1){viewerX=event.clientX-startX;viewerY=event.clientY-startY;}applyViewerTransform();});
+    const release=event=>{pointers.delete(event.pointerId);if(pointers.size<2)startDistance=0;};image.addEventListener('pointerup',release);image.addEventListener('pointercancel',release);
+    photoViewer.addEventListener('cancel',event=>{event.preventDefault();photoViewer.close();});photoViewer.addEventListener('close',()=>{viewerLoadToken++;pointers.clear();image.removeAttribute('src');setPhotoFullscreen(false);});
+    photoViewer.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'){event.preventDefault();photoViewer.querySelector('[data-photo-previous]').click();}if(event.key==='ArrowRight'){event.preventDefault();photoViewer.querySelector('[data-photo-next]').click();}if(event.key==='+'||event.key==='='){viewerScale=Math.min(5,viewerScale*1.25);applyViewerTransform();}if(event.key==='-'){viewerScale=Math.max(1,viewerScale/1.25);applyViewerTransform();}});
+    return photoViewer;
+  }
+  function openPhotoViewer(id){
+    viewerRows=photos().filter(row=>row.customer_id===profileId);viewerIndex=Math.max(0,viewerRows.findIndex(row=>row.id===id));const picture=viewerRows[viewerIndex],source=picture?.full_data||picture?.data||picture?.thumbnail_data;
+    const canLoadOriginal=typeof window.AndroidData?.getPhotoData==='function'&&Boolean(picture?.id&&picture?.storage_name);
+    if((!source||!String(source).startsWith('data:image/'))&&!canLoadOriginal){window.showUndoToast('Das Original ist noch nicht lokal verfügbar. Bitte Drive abgleichen.');return;}
+    const dialog=ensurePhotoViewer();dialog.showModal();dialog._show();setPhotoFullscreen(true);dialog.querySelector('.design-photo-close').focus({preventScroll:true});
   }
   function profileActions(event){
     const button=event.target.closest('[data-design-action]');if(!button)return;event.preventDefault();event.stopImmediatePropagation();const action=button.dataset.designAction,id=button.dataset.id,customer=customers().find(x=>x.id===profileId);if(!customer)return;
@@ -64,7 +152,8 @@
     if(action==='new-order'){openPage('orders');get('add-order').click();get('order-edit-customer').value=profileId;return;}
     if(action==='order'){openPage('orders');get('order-edit-select').value=id;get('order-edit-select').dispatchEvent(new Event('change',{bubbles:true}));window.openDirectEditWindow('order-management-card','Auftrag im Überblick');return;}
     if(action==='invoice'){window.openInvoiceRecord(id);return;}
-    if(action==='photo'){const picture=photos().find(x=>x.id===id),src=picture?.data||picture?.thumbnail_data;if(!src||!String(src).startsWith('data:image/')){window.showUndoToast('Dieses Bild ist noch nicht lokal verfügbar. Bitte Drive abgleichen.');return;}let dialog=get('design-photo-view');if(!dialog){dialog=document.createElement('dialog');dialog.id='design-photo-view';dialog.className='design-photo-view';dialog.innerHTML='<img alt="Kundenfoto"><p></p><button type="button" class="secondary">Schließen</button>';dialog.querySelector('button').onclick=()=>dialog.close();document.body.append(dialog);}dialog.querySelector('img').src=src;dialog.querySelector('p').textContent=picture.caption||'Kundenfoto';dialog.showModal();}
+    if(action==='add-photos'){openPhotoAdd();return;}
+    if(action==='photo'){openPhotoViewer(id);return;}
   }
   function init(){
     const css=document.createElement('link');css.rel='stylesheet';css.href='design-concept.css';document.head.append(css);
@@ -85,7 +174,7 @@
     try{const draft=JSON.parse(localStorage.getItem(draftKey)||'null');if(draft&&Object.values(draft).some(value=>String(value).trim())){for(const key of ['customer_id','work_date','activity','hours','start_time','end_time','break_minutes','kilometers','location','material','notes','photo_caption'])if(field.elements[key]&&draft[key]!=null)field.elements[key].value=draft[key];ordersForCustomer();if(draft.order_id&&[...order.options].some(x=>x.value===draft.order_id))order.value=draft.order_id;if(draft._session_id&&JSON.parse(AndroidData.getWorkSession()).id===draft._session_id){let hidden=get('work-session-id');if(!hidden){hidden=document.createElement('input');hidden.type='hidden';hidden.id='work-session-id';hidden.name='_session_id';field.append(hidden);}hidden.value=draft._session_id;}window.showUndoToast('Begonnene Arbeitsaufzeichnung wiederhergestellt.'+(draft.had_photo?' Fotos bitte erneut auswählen.':''));}}catch(error){/* Keep malformed draft untouched; never import it into business records. */}
     const renderBase=window.render;window.render=function(){renderBase();homeOverview();compactLists();if(currentPage==='customer-profile-page')profileContent();};
     const openBase=window.openPage;window.openPage=function(...args){openBase(...args);if(currentPage==='customer-profile-page')document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.open==='customers'));};
-    const backBase=window.handleAndroidBack;window.handleAndroidBack=function(){const dialog=get('design-photo-view');if(dialog?.open){dialog.close();return true;}return backBase();};
+    const backBase=window.handleAndroidBack;window.handleAndroidBack=function(){for(const dialog of [photoViewer,photoAddDialog])if(dialog?.open){dialog.close();return true;}return backBase();};
     render();
   }
   function simplifyWorkForms(){

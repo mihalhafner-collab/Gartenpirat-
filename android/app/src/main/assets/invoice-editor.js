@@ -116,7 +116,7 @@
     q('[name="customer_id"]').onchange=()=>{
       const next=q('[name="customer_id"]').value;
       if(next===previousCustomer)return;
-      if(positions().some(p=>p.worklog_id)&&!confirm('Kunde wechseln? Verknüpfte Arbeitspositionen werden aus diesem Entwurf entfernt. Die Cloudname_189a14e78c bleiben erhalten.')){q('[name="customer_id"]').value=previousCustomer;return;}
+      if(positions().some(p=>p.worklog_id)&&!confirm('Kunde wechseln? Verknüpfte Arbeitspositionen werden aus diesem Entwurf entfernt. Die Arbeitsaufzeichnungen bleiben erhalten.')){q('[name="customer_id"]').value=previousCustomer;return;}
       qa('.invoice-line').filter(x=>x.dataset.worklogId).forEach(x=>x.remove());removed=null;q('[data-undo]').hidden=true;
       previousCustomer=next;renderOrders();showWorklogs();update();
     };
