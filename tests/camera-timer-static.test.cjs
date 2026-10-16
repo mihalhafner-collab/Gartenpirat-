@@ -20,4 +20,7 @@ check('customer documentation timeline',profile,/design-documentation-entry/);
 check('photo worklog selection',profile,/id="design-customer-photo-worklog"/);
 check('photo phase selection',profile,/id="design-customer-photo-phase"/);
 check('worklog relationship',profile,/worklog_id:\(asProfile&&index===0\)/);
+check('documentation order filter',profile,/id="design-documentation-filter"/);
+check('documentation photo filter',profile,/documentationFilter==='photos'/);
+check('documentation filter event',profile,/event.target.id==='design-documentation-filter'/);
 console.log('Static camera/documentation guards PASS; device behavior remains unverified');
