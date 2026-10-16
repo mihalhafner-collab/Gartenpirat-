@@ -18,11 +18,23 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Locate preinstalled Android SDK tools
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$SDKMANAGER"
+          echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
+      - name: Accept Android SDK licenses
+        run: |
+          python3 - <<'PY'
+          import os, subprocess
+          result = subprocess.run([os.environ['SDKMANAGER'], '--licenses'], input='y\n' * 100, text=True)
+          raise SystemExit(result.returncode)
+          PY
       - name: Install Android 17 build packages
         run: |
-          sdkmanager --install "platforms;android-37.0" "build-tools;37.0.0" "platform-tools"
+          "$SDKMANAGER" --install "platforms;android-37.0" "build-tools;37.0.0" "platform-tools"
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
