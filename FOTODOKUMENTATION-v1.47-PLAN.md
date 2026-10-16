@@ -45,3 +45,13 @@ D. Zuordnung, Filter, Bedienbarkeit und Tests abschließen.
 E. QA-Build, reale Pixel-Tests und erst danach Release-Entscheidung.
 
 Kein Merge nach main ohne gesonderte Freigabe.
+
+## Verbindliche Erweiterung: direkte Kamera im Arbeitsablauf
+- Im laufenden Timer und in der Arbeitsmaske eine gut erreichbare Aktion „Foto aufnehmen“ anzeigen; in der Kunden-Dokumentation ebenfalls Kamera und Galerie anbieten.
+- Bestehenden nativen Android-Kamera-Intent und temporären Datei-Provider wiederverwenden; keine zweite Kameraimplementierung und keine neue Laufzeitberechtigung, sofern nicht technisch erforderlich.
+- Aktive Kunden-/Auftrags-/Arbeitszuordnung aus der Sitzung übernehmen. Wenn noch keine Arbeits-ID existiert, Aufnahmen unter einer stabilen Sitzungs-ID crashsicher zwischenlagern und nach erfolgreichem Speichern der Arbeit zuordnen.
+- Nach jeder Aufnahme eine kompakte Vorschau mit „Weiteres Foto“, „Vorher/Während/Nachher“ und optionaler Sprachnotiz anbieten. Kein verpflichtendes Formular.
+- Bei Kameraabbruch oder App-Neustart keine leeren Fotos oder doppelten Arbeitsaufzeichnungen erzeugen. Temporäre Bilder erst nach bestätigter lokaler Speicherung bereinigen.
+- Für mehrere Bilder stabile Foto-IDs und eine idempotente Wiederholwarteschlange verwenden; bestehende Einzelfoto-Recovery nicht ersatzlos entfernen.
+- Profilbild-Funktion strikt von der Arbeitsdokumentation trennen; standardmäßig private Sichtbarkeit.
+- QA: Kamera-Intent vorhanden/abgebrochen, mehrere Aufnahmen, Timer-Wechsel, Neustart, offline, Kundenwechsel und Foto-Retry testen; echte Pixel-Geräteabnahme erforderlich.
