@@ -91,22 +91,18 @@
     if(!panel){panel=document.createElement('section');panel.id='workday-timer';panel.className='card workday-timer';document.querySelector('#home .hero h2').after(panel);panel.addEventListener('click',event=>{
       const action=event.target.closest('[data-session-action]')?.dataset.sessionAction;if(!action)return;const session=readSession();let next=null;
       if(action==='photo'){
+        const customerId=session.customer_id||get('customer')?.value;
+        if(customerId&&typeof window.openCustomerDocumentationCamera==='function'){
+          if(window.openCustomerDocumentationCamera(customerId))return;
+        }
         openPage('work-entry');
         const customer=get('customer');
-        if(session.customer_id&&customer&&[...customer.options].some(option=>option.value===session.customer_id))customer.value=session.customer_id;
-        if(!customer?.value){
-          window.showUndoToast?.('Bitte Kunden auswählen. Danach öffnet sich die Kamera.');
-          if(customer){
-            const openAfterSelection=()=>{
-              customer.removeEventListener('change',openAfterSelection);
-              if(customer.value)get('work-photo-camera-shortcut')?.click();
-            };
-            customer.addEventListener('change',openAfterSelection,{once:true});
-            customer.focus();
-          }
-          return;
+        if(session.customer_id&&customer&&[...customer.options].some(option=>option.value===session.customer_id)){
+          customer.value=session.customer_id;
+          customer.dispatchEvent(new Event('change',{bubbles:true}));
         }
-        get('work-photo-camera-shortcut')?.click();
+        window.showUndoToast?.('Kunden auswählen und dann „Kamera öffnen“ antippen. Der Timer läuft weiter.');
+        customer?.focus();
         return;
       }
       if(action==='start')next=sessionCall('startWorkSession',JSON.stringify({request_id:sessionRequest('start'),work_date:localDate()}));
