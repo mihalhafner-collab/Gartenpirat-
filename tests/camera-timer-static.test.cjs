@@ -1,18 +1,23 @@
-// Static regression guards for camera/timer integration; no customer data or device needed.
+// Source-level regression guards. A successful run is not an Android device acceptance test.
 const fs=require('node:fs');
 const assert=require('node:assert/strict');
-const source=fs.readFileSync('android/app/src/main/assets/workday-ui.js','utf8');
+const timer=fs.readFileSync('android/app/src/main/assets/workday-ui.js','utf8');
+const profile=fs.readFileSync('android/app/src/main/assets/design-concept.js','utf8');
 const html=fs.readFileSync('android/app/src/main/assets/mobile.html','utf8');
-assert.match(html,/id="photo"[^>]*type="file"[^>]*accept="image\/\*"[^>]*capture="environment"/);
-assert.match(source,/function configureWorkPhotoCamera\(\)/);
-assert.match(source,/id='work-photo-camera-shortcut'/);
-assert.match(source,/if\(!get\('customer'\)\?\.value\)/);
-assert.match(source,/input\.click\(\)/);
-assert.match(source,/if\(action==='photo'\)/);
-assert.match(source,/if\(session\.customer_id&&customer/);
-assert.match(source,/if\(!customer\?\.value\)/);
-assert.match(source,/get\('work-photo-camera-shortcut'\)\?\.click\(\)/);
-assert.match(source,/active\|\|paused\?'<button type="button" class="timer-secondary" data-session-action="photo"/);
-assert.match(source,/if\(action==='pause'\)next=sessionCall\('pauseWorkSession'/);
-assert.match(source,/if\(action==='stop'\)next=sessionCall\('stopWorkSession'/);
-console.log('Camera/timer static regression guards: PASS (not a device/UI test)');
+const check=(name,source,pattern)=>{assert.match(source,pattern,name);console.log('PASS '+name);};
+check('native camera input',html,/id="photo"[^>]*type="file"[^>]*accept="image\/\*"[^>]*capture="environment"/);
+check('camera shortcut',timer,/function configureWorkPhotoCamera\(\)/);
+check('customer guard',timer,/Bitte zuerst einen Kunden auswählen/);
+check('camera input click',timer,/input\.click\(\)/);
+check('timer photo action',timer,/if\(action==='photo'\)/);
+check('customer documentation routing',timer,/window\.openCustomerDocumentationCamera\(customerId\)/);
+check('manual fallback',timer,/Kunden auswählen und dann/);
+check('timer photo visible',timer,/data-session-action="photo"/);
+check('timer pause preserved',timer,/if\(action==='pause'\)next=sessionCall\('pauseWorkSession'/);
+check('timer stop preserved',timer,/if\(action==='stop'\)next=sessionCall\('stopWorkSession'/);
+check('customer camera route',profile,/window\.openCustomerDocumentationCamera=function\(id\)/);
+check('customer documentation timeline',profile,/design-documentation-entry/);
+check('photo worklog selection',profile,/id="design-customer-photo-worklog"/);
+check('photo phase selection',profile,/id="design-customer-photo-phase"/);
+check('worklog relationship',profile,/worklog_id:\(asProfile&&index===0\)/);
+console.log('Static camera/documentation guards PASS; device behavior remains unverified');
