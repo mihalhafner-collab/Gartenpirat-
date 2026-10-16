@@ -32,7 +32,27 @@
     grid.remove();
     form.querySelectorAll('input,textarea').forEach(field=>{const label=field.previousElementSibling;if(label?.tagName==='LABEL'){field.id||='customer-field-'+field.name;label.htmlFor=field.id;}});
   }
+  function configureWorkPhotoCamera(){
+    const input=get('photo');
+    if(!input||get('work-photo-camera-shortcut'))return;
+    const button=document.createElement('button');
+    button.type='button';
+    button.id='work-photo-camera-shortcut';
+    button.className='secondary inline-add';
+    button.textContent='Kamera öffnen';
+    button.setAttribute('aria-label','Foto für diesen Arbeitseinsatz aufnehmen');
+    input.before(button);
+    button.addEventListener('click',()=>{
+      if(!get('customer')?.value){
+        get('customer')?.focus();
+        window.showUndoToast?.('Bitte zuerst einen Kunden auswählen.');
+        return;
+      }
+      input.click();
+    });
+  }
   function entryForm(){
+    configureWorkPhotoCamera();
     const form=get('entry'),hours=form.elements.hours,block=form.querySelectorAll('.entry-block')[1];
     const location=document.createElement('input'),locationLabel=document.createElement('label');location.id='entry-location';location.name='location';locationLabel.htmlFor=location.id;locationLabel.textContent='Arbeitsort';get('date').after(locationLabel,location);
     const hoursLabel=hours.previousElementSibling;hours.id='entry-hours';hours.step='0.01';hoursLabel.htmlFor=hours.id;hoursLabel.textContent='Arbeitsdauer (Stunden)';hours.placeholder='z. B. 5,5 – oder Uhrzeiten unten';block.querySelector('h3').after(hoursLabel,hours);
