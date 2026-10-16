@@ -95,8 +95,15 @@
         const customer=get('customer');
         if(session.customer_id&&customer&&[...customer.options].some(option=>option.value===session.customer_id))customer.value=session.customer_id;
         if(!customer?.value){
-          window.showUndoToast?.('Bitte zuerst den Kunden auswählen, dann Kamera öffnen.');
-          customer?.focus();
+          window.showUndoToast?.('Bitte Kunden auswählen. Danach öffnet sich die Kamera.');
+          if(customer){
+            const openAfterSelection=()=>{
+              customer.removeEventListener('change',openAfterSelection);
+              if(customer.value)get('work-photo-camera-shortcut')?.click();
+            };
+            customer.addEventListener('change',openAfterSelection,{once:true});
+            customer.focus();
+          }
           return;
         }
         get('work-photo-camera-shortcut')?.click();
