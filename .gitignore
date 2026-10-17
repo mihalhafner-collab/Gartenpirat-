@@ -23,3 +23,9 @@ android/local.properties
 *.sqlite3
 .env
 .env.*
+# Private signing material must never enter Git.
+*.p12
+*.pfx
+*.key
+qa-signing-password.txt
+.qa-signing/

@@ -13,11 +13,19 @@ jobs:
     steps:
       - name: Checkout selected branch
         uses: actions/checkout@v4
+      - name: Require persistent QA signing secrets
+        env:
+          QA_KEYSTORE_BASE64: ${{ secrets.QA_KEYSTORE_BASE64 }}
+          QA_KEYSTORE_PASSWORD: ${{ secrets.QA_KEYSTORE_PASSWORD }}
+          QA_CERT_SHA256: ${{ secrets.QA_CERT_SHA256 }}
+        run: python3 qa_signing.py check-env
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+      - name: Run QA signing regressions (synthetic keys only)
+        run: python3 -m unittest discover -s tests -p 'test_qa_signing.py' -v
       - name: Run camera filesystem and launch-logic regressions (host)
         run: python3 tests/run_photo_capture_tests.py
       - name: Locate preinstalled Android SDK tools
@@ -26,6 +34,7 @@ jobs:
           SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
           SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
           test -x "$SDKMANAGER"
+          echo "SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
           echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
       - name: Accept Android SDK licenses
         run: |
@@ -41,21 +50,38 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.3.1'
+          cache-disabled: true
       - name: Check camera and timer regression guards
         run: |
           node --check android/app/src/main/assets/workday-ui.js
           node tests/camera-timer-static.test.cjs
       - name: Check source privacy
         run: python3 tests/apk_privacy_guard.py
-      - name: Create isolated CI debug signing key
-        run: |
-          mkdir -p "$HOME/.android"
-          keytool -genkeypair -noprompt -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
-      - name: Build isolated QA APK
+      - name: Restore and validate persistent QA signing key
+        env:
+          QA_KEYSTORE_BASE64: ${{ secrets.QA_KEYSTORE_BASE64 }}
+          QA_KEYSTORE_PASSWORD: ${{ secrets.QA_KEYSTORE_PASSWORD }}
+          QA_CERT_SHA256: ${{ secrets.QA_CERT_SHA256 }}
+        run: python3 qa_signing.py restore
+      - name: Build isolated QA APK with persistent key
         working-directory: android
-        run: gradle --no-daemon --stacktrace :app:assembleDebug
+        env:
+          QA_KEYSTORE_FILE: ${{ runner.temp }}/gartenpirat-qa-signing/qa-signing.p12
+          QA_KEYSTORE_PASSWORD: ${{ secrets.QA_KEYSTORE_PASSWORD }}
+        run: gradle --no-daemon --no-configuration-cache --no-build-cache -PqaPersistentSigning :app:assembleDebug
+      - name: Verify APK certificate and QA application ID
+        env:
+          QA_CERT_SHA256: ${{ secrets.QA_CERT_SHA256 }}
+        run: |
+          python3 qa_signing.py verify-apk \
+            --apk android/app/build/outputs/apk/debug/app-debug.apk \
+            --apksigner "$SDK_ROOT/build-tools/37.0.0/apksigner" \
+            --aapt "$SDK_ROOT/build-tools/37.0.0/aapt"
       - name: Check APK privacy
         run: python3 tests/apk_privacy_guard.py --apk android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Remove temporary QA signing material
+        if: always()
+        run: python3 qa_signing.py cleanup
       - name: Upload QA APK
         uses: actions/upload-artifact@v4
         with:

@@ -9,6 +9,17 @@ def privacyGate = tasks.register('verifyDistributablePrivacy', Exec) {
 }
 tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn privacyGate }
 
+// CI QA builds explicitly opt in. Never fall back to an automatically generated key.
+// The existing local debug identity and productive release signing stay unchanged.
+def persistentQaSigning = providers.gradleProperty('qaPersistentSigning').isPresent()
+def qaStorePath = providers.environmentVariable('QA_KEYSTORE_FILE').orNull
+def qaStorePassword = providers.environmentVariable('QA_KEYSTORE_PASSWORD').orNull
+if (persistentQaSigning) {
+    if (!qaStorePath || !qaStorePassword || !file(qaStorePath).isFile()) {
+        throw new GradleException('Fester QA-Signierschluessel fehlt. QA-SIGNIERUNG.md beachten; kein Ersatzschluessel wird erzeugt.')
+    }
+}
+
 android {
     namespace 'at.hausgarten.service'
     compileSdk { version = release(37) }
@@ -34,6 +45,15 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        if (persistentQaSigning) {
+            qaPersistent {
+                storeFile file(qaStorePath)
+                storeType 'PKCS12'
+                storePassword qaStorePassword
+                keyAlias 'gartenpirat-qa'
+                keyPassword qaStorePassword
+            }
+        }
     }
 
     buildTypes {
@@ -41,6 +61,7 @@ android {
             // The QA build can be installed beside the productive Pixel app.
             // It therefore cannot migrate or open the productive database.
             applicationIdSuffix '.qa'
+            if (persistentQaSigning) signingConfig signingConfigs.qaPersistent
         }
         release {
             minifyEnabled false

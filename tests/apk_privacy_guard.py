@@ -37,7 +37,7 @@ def scan(files,markers):
         if re.search(rb'\bAIza[A-Za-z0-9_-]{30,}|\bya29\.[A-Za-z0-9_-]{20,}',content):failures.append((name,'Google-Zugangsschlüssel'))
         if re.search(rb'tunnel_[a-z0-9]{32}|org-[a-zA-Z0-9]{18,64}',content):failures.append((name,'Private Verbindungskennung'))
         if any(v.encode('utf-8') in content or v.encode('utf-16le') in content for v in markers):failures.append((name,'Betriebsdaten-Marker'))
-        if name.endswith(('.db','.sqlite','.sqlite3','.keystore','.jks','.env')):failures.append((name,'Private Speicherdatei'))
+        if name.lower().endswith(('.db','.sqlite','.sqlite3','.keystore','.jks','.p12','.pfx','.key','.env','qa-signing-password.txt')):failures.append((name,'Private Speicherdatei'))
     if failures:raise ValueError(json.dumps(failures,ensure_ascii=False))
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--apk');args=parser.parse_args()
