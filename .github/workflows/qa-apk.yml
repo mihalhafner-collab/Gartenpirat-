@@ -18,6 +18,8 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - name: Run camera filesystem and launch-logic regressions (host)
+        run: python3 tests/run_photo_capture_tests.py
       - name: Locate preinstalled Android SDK tools
         run: |
           set -euo pipefail

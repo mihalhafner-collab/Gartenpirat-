@@ -197,8 +197,8 @@ public class MainActivity extends Activity {
                 }
                 if (params.isCaptureEnabled() && params.getMode() != FileChooserParams.MODE_OPEN_MULTIPLE) {
                     if (!startPhotoCapture()) {
-                        callback.onReceiveValue(null); fileCallback = null;
-                        Toast.makeText(MainActivity.this, "Keine Kamera-App verfügbar.", Toast.LENGTH_LONG).show();
+                        // startPhotoCapture already reports the specific failure.
+                        fileCallback = null; callback.onReceiveValue(null);
                     }
                     return true;
                 }
@@ -221,24 +221,54 @@ public class MainActivity extends Activity {
     private boolean startPhotoCapture() {
         clearPendingCapture(true);
         try {
-            File target=PhotoCaptureProvider.createTarget(this);Uri uri=PhotoCaptureProvider.uri(this,target);
+            // Track the file before URI preparation so a failed hand-off cannot leak it.
+            pendingCaptureFile=PhotoCaptureProvider.createTarget(this);
+            pendingCaptureUri=PhotoCaptureProvider.uri(this,pendingCaptureFile);
+        } catch (java.io.IOException error) {
+            return failPhotoCapture("PREPARE_IO", "Die Fotodatei konnte nicht vorbereitet werden. Bitte freien Speicher prüfen und erneut versuchen.", error);
+        } catch (SecurityException error) {
+            return failPhotoCapture("PREPARE_DENIED", "Android hat den Zugriff auf den Foto-Zwischenspeicher blockiert.", error);
+        } catch (RuntimeException error) {
+            return failPhotoCapture("PREPARE_FAILED", "Die Fotoaufnahme konnte nicht vorbereitet werden. Bitte erneut versuchen.", error);
+        }
+        try {
             Intent camera=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            camera.putExtra(MediaStore.EXTRA_OUTPUT,uri);
-            camera.setClipData(ClipData.newRawUri("Kamerafoto",uri));
+            camera.putExtra(MediaStore.EXTRA_OUTPUT,pendingCaptureUri);
+            camera.setClipData(ClipData.newRawUri("Kamerafoto",pendingCaptureUri));
             camera.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-            pendingCaptureFile=target;pendingCaptureUri=uri;
+            // Do not gate the launch on package visibility / resolveActivity().
             startActivityForResult(camera,FILE_REQUEST);
             return true;
-        } catch (Exception unavailable) {
-            clearPendingCapture(true);
-            return false;
+        } catch (ActivityNotFoundException error) {
+            return failPhotoCapture("CAMERA_MISSING", "Keine Kamera-App für Fotoaufnahmen verfügbar.", error);
+        } catch (SecurityException error) {
+            return failPhotoCapture("LAUNCH_DENIED", "Android hat die Übergabe an die Kamera blockiert. Bitte Geräteeinschränkungen prüfen.", error);
+        } catch (RuntimeException error) {
+            return failPhotoCapture("LAUNCH_FAILED", "Die Kamera konnte nicht gestartet werden. Bitte erneut versuchen.", error);
         }
+    }
+
+    private boolean failPhotoCapture(String code,String message,Exception error) {
+        logPhotoCaptureFailure(code,error);
+        clearPendingCapture(true);
+        Toast.makeText(this,message,Toast.LENGTH_LONG).show();
+        return false;
+    }
+
+    private static void logPhotoCaptureFailure(String code,Exception error) {
+        // No file paths, URI contents, customer details or exception messages in logs.
+        String cause=error.getCause()==null?"":"; cause="+error.getCause().getClass().getSimpleName();
+        android.util.Log.e("HausGartenCamera",code+"; type="+error.getClass().getSimpleName()+cause);
     }
 
     private void clearPendingCapture(boolean delete) {
         Uri uri=pendingCaptureUri;File file=pendingCaptureFile;pendingCaptureUri=null;pendingCaptureFile=null;
-        if(uri!=null)try{revokeUriPermission(uri,Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION);}catch(Exception ignored){}
-        if(delete&&file!=null&&file.exists())file.delete();
+        if(uri!=null)try{
+            revokeUriPermission(uri,Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        }catch(RuntimeException error){logPhotoCaptureFailure("REVOKE_FAILED",error);}
+        if(delete&&file!=null)try{
+            if(file.exists()&&!file.delete())android.util.Log.w("HausGartenCamera","TEMP_DELETE_FAILED");
+        }catch(SecurityException error){logPhotoCaptureFailure("TEMP_DELETE_DENIED",error);}
     }
 
     // Only Gartenpirat opts into the cloud-aware single-image picker.
@@ -1118,7 +1148,8 @@ public class MainActivity extends Activity {
                     if (!uris.isEmpty()) result = uris.toArray(new Uri[0]);
                 } else if (data.getData() != null) result = new Uri[]{data.getData()};
             }
-            if (fileCallback != null) fileCallback.onReceiveValue(result); fileCallback = null;
+            ValueCallback<Uri[]> completed=fileCallback;fileCallback=null;
+            if(completed!=null)completed.onReceiveValue(result);
         }
         if (requestCode == SPEECH_REQUEST && resultCode == RESULT_OK && data != null) { ArrayList<String> matches = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS); if (matches != null && !matches.isEmpty()) webView.evaluateJavascript("window.acceptNativeSpeech(" + JSONObject.quote(matches.get(0)) + ")", null); }
     }

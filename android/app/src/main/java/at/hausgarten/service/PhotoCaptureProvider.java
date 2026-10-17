@@ -41,8 +41,17 @@ public final class PhotoCaptureProvider extends ContentProvider {
     }
 
     static Uri uri(Context context,File file) throws FileNotFoundException {
+        if(file==null)throw new FileNotFoundException("Die vorbereitete Kameradatei fehlt.");
         File checked=checked(context,file.getName());
-        if(!checked.equals(file)||!checked.isFile())throw new FileNotFoundException();
+        try{
+            // Android may expose the same private cache through a directory alias.
+            // Compare both canonical paths, while retaining checked()'s root/name guard.
+            if(!checked.equals(file.getCanonicalFile())||!checked.isFile())
+                throw new FileNotFoundException("Die Kameradatei liegt nicht im erlaubten Zwischenspeicher oder fehlt.");
+        }catch(IOException error){
+            FileNotFoundException failure=new FileNotFoundException("Die Kameradatei konnte nicht freigegeben werden.");
+            failure.initCause(error);throw failure;
+        }
         return new Uri.Builder().scheme("content").authority(context.getPackageName()+".photocapture").appendPath(file.getName()).build();
     }
 
@@ -60,7 +69,10 @@ public final class PhotoCaptureProvider extends ContentProvider {
             File directory=directory(context).getCanonicalFile(),file=new File(directory,name).getCanonicalFile();
             if(!directory.equals(file.getParentFile()))throw new FileNotFoundException();
             return file;
-        }catch(IOException error){throw new FileNotFoundException();}
+        }catch(IOException error){
+            FileNotFoundException failure=new FileNotFoundException("Der Kamera-Dateipfad konnte nicht geprüft werden.");
+            failure.initCause(error);throw failure;
+        }
     }
     private File file(Uri uri)throws FileNotFoundException{
         Context context=getContext();if(context==null||uri==null||!"content".equals(uri.getScheme())||!(context.getPackageName()+".photocapture").equals(uri.getAuthority())||uri.getPathSegments().size()!=1)throw new FileNotFoundException();
