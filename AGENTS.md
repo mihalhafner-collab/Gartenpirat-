@@ -1,5 +1,15 @@
 # Haus & Garten App – dauerhafte Projektregeln
 
+## Codex-Cloud-Einstieg
+
+Für den aktuellen P0-Auftrag gilt diese Lesereihenfolge verbindlich:
+
+1. `AGENTS.md` – übergeordnete Regeln und Sicherheitsgrenzen
+2. `CODEX-AUFTRAG-GARTENPIRAT.md` – vollständiger ausführbarer Arbeitsauftrag
+3. `CODEX-STATUS.md` – fortlaufender technischer Arbeitsnachweis
+
+Codex Cloud soll den Auftrag aus `CODEX-AUFTRAG-GARTENPIRAT.md` selbstständig phasenweise abarbeiten und `CODEX-STATUS.md` nach jeder abgeschlossenen Phase aktualisieren. Historische Dokumentation dient nur als Referenz und darf den dort festgelegten Cloud-only-/Pixel-Drive-Zielpfad nicht wieder durch eine Laptop-/Desktop-Abhängigkeit ersetzen.
+
 ## Verbindlicher Cloud-only-Arbeitsweg (Auftrag vom 18. Oktober 2026)
 
 - **Entwicklung, Codeänderungen, Builds, Tests, Originalsignierung und Releasevorbereitung ausschließlich in Codex Cloud.**
