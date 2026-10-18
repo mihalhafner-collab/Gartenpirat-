@@ -174,11 +174,23 @@ def apk_metadata(path, aapt, env, expected):
     return {'package': package, 'version_name': version, 'version_code': int(code)}
 
 
+def single_signer_certificate(output):
+    counts = re.findall(r'^Number of signers: ([0-9]+)[ \t]*$', output, re.MULTILINE)
+    certificate_lines = [line for line in output.splitlines() if 'certificate SHA-256 digest:' in line]
+    if counts != ['1'] or len(certificate_lines) != 1:
+        raise SigningError('Signed APK does not have exactly the expected single original signer.')
+    # Build Tools 37 names a single v3 signer "V3.0 Signer:" instead of
+    # "Signer #1". Reject unrecognized labels and every extra certificate.
+    match = re.fullmatch(r'(?:Signer #1|V3\.0 Signer:) certificate SHA-256 digest: ([a-fA-F0-9:]+)[ \t]*',
+                         certificate_lines[0])
+    if match is None:
+        raise SigningError('Signed APK does not have exactly the expected single original signer.')
+    return fingerprint(match[1])
+
+
 def verify_signed(path, apksigner, env, expected):
     output = tool([apksigner, 'verify', '--verbose', '--print-certs', str(path)], env).decode('utf-8', 'replace')
-    counts = re.findall(r'^Number of signers: ([0-9]+)\s*$', output, re.MULTILINE)
-    certs = re.findall(r'^Signer #([0-9]+) certificate SHA-256 digest: ([a-fA-F0-9:]+)\s*$', output, re.MULTILINE)
-    if counts != ['1'] or len(certs) != 1 or certs[0][0] != '1' or fingerprint(certs[0][1]) != expected:
+    if single_signer_certificate(output) != expected:
         raise SigningError('Signed APK does not have exactly the expected single original signer.')
 
 

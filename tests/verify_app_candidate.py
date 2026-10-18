@@ -10,11 +10,16 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import sys
 import zipfile
 
 from compare_local_update import compare_assets_to_source, dex_classes, empty_seed
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from tools.sign_original_apk import SigningError, single_signer_certificate
+
 PACKAGE = 'at.hausgarten.service'
 
 
@@ -23,8 +28,13 @@ def metadata(apk, aapt, apksigner):
     match = re.search(r"package: name='([^']+)' versionCode='(\d+)' versionName='([^']+)'", result.stdout)
     if not match:
         raise ValueError('APK metadata unavailable')
-    signed = subprocess.run([apksigner, 'verify', '--print-certs', str(apk)], capture_output=True, text=True)
-    certs = re.findall(r'Signer #\d+ certificate SHA-256 digest: ([a-fA-F0-9]{64})', signed.stdout)
+    signed = subprocess.run([apksigner, 'verify', '--verbose', '--print-certs', str(apk)], capture_output=True, text=True)
+    certs = []
+    if signed.returncode == 0:
+        try:
+            certs = [single_signer_certificate(signed.stdout)]
+        except SigningError:
+            pass
     return {'package': match[1], 'version_code': int(match[2]), 'version_name': match[3],
             'signature_valid': signed.returncode == 0 and bool(certs), 'certificates': sorted(c.lower() for c in certs)}
 

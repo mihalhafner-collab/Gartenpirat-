@@ -264,6 +264,41 @@ class OriginalSigningTests(unittest.TestCase):
             return result
         self.rejected(tool=invalid)
 
+    def test_build_tools_37_single_v3_signer_is_verified_and_cleaned(self):
+        report = (b'Verifies\nVerified using v2 scheme (APK Signature Scheme v2): true\n'
+                  b'Verified using v3 scheme (APK Signature Scheme v3): true\n'
+                  b'Number of signers: 1\nV3.0 Signer: certificate SHA-256 digest: '
+                  + self.expected.encode() + b'\n')
+        def changed(command, **kwargs):
+            result = self.fake_tool(command, **kwargs)
+            if command[:2] == ['mock-apksigner', 'verify']:
+                result.stdout = report
+            return result
+        result = self.invoke(tool=changed)
+        self.assertEqual(result['certificate_sha256'], self.expected)
+        self.assertTrue(self.output.exists())
+        self.assertTrue(all(not p.exists() for p in self.directories))
+
+    def test_build_tools_37_foreign_extra_and_unknown_certificates_are_rejected(self):
+        prefix = b'Verifies\nNumber of signers: 1\n'
+        certificate = ('V3.0 Signer: certificate SHA-256 digest: ' + self.expected + '\n').encode()
+        reports = [
+            prefix + certificate.replace(self.expected.encode(), b'0' * 64),
+            prefix + certificate + certificate,
+            prefix + certificate + ('Signer #2 certificate SHA-256 digest: ' + self.expected + '\n').encode(),
+            prefix + certificate + ('V3.1 Signer: certificate SHA-256 digest: ' + self.expected + '\n').encode(),
+            prefix + certificate.replace(b'V3.0 Signer:', b'Unknown Signer:'),
+            prefix.replace(b'signers: 1', b'signers: 2') + certificate,
+        ]
+        for report in reports:
+            with self.subTest(kind='invalid modern signer set'):
+                def changed(command, **kwargs):
+                    result = self.fake_tool(command, **kwargs)
+                    if command[:2] == ['mock-apksigner', 'verify']:
+                        result.stdout = report
+                    return result
+                self.rejected(tool=changed)
+
     def test_different_missing_duplicate_or_multiple_final_signers_are_rejected(self):
         reports=[self.verified(certificate='0'*64),b'Verifies\n',self.verified(count=2),
                  self.verified()+f'Signer #2 certificate SHA-256 digest: {self.expected}\n'.encode(),

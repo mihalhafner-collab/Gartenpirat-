@@ -148,3 +148,92 @@ der Build bleibt ohne Originalwerte unsigniert.
   stdout, stderr, Exceptions und Reports.
 - Keine Installation, kein Pixel-Zugriff, kein Update-/Datenerhalt-Test,
   keine Entfernung älterer Tests oder Parallelcode-Dateien und kein Merge in main.
+
+### Fortsetzung mit bereitgestellter Originalsignierung am 18.10.2026
+
+Öffentlicher, maschinenlesbarer Nachweis:
+[`docs/verification/original-signing-2026-10-18.json`](docs/verification/original-signing-2026-10-18.json).
+
+- Vor Beginn: sauberer Arbeitsbaum auf
+  `codex/original-signing-cloud-setup-20261018`, HEAD exakt
+  `05fdcbec77e7c26a039945cbdfcd09c955859b54`. Alle fünf Variablen vorhanden;
+  keine Werte zur Konfigurationsprüfung ausgegeben oder gespeichert.
+- Die zunächst vorhandene APK war Version `1.42.0` / Code `61` und wurde wegen
+  Unterschreitung der Baseline nicht signiert. Nach Erhalt einer Kopie dieser
+  unsignierten APK außerhalb des Repositorys wurde ausschließlich aus dem
+  aktuellen Cloud-Stand neu gebaut. Der unsignierte Release-Build und
+  Release-Lint liefen offline erfolgreich; null Lint-Fehler, neun Warnungen.
+- Der erste Originalsignierungsaufruf verweigerte die Veröffentlichung bei der
+  finalen Zertifikatsauswertung. Build-Tools 37 bezeichnen den einzelnen
+  v3-Signer als `V3.0 Signer:`; der vorbereitete Parser erkannte nur `Signer #1`.
+  Der gemeinsame Parser für Signierung und Kandidatenprüfung unterstützt jetzt
+  genau diese beiden Formate und verlangt genau einen Signer und genau eine
+  Zertifikatszeile. Zusätzliche, doppelte, unbekannte oder fremde Zertifikate
+  führen weiterhin zum Abbruch. Dieser Fehler wurde synthetisch reproduziert;
+  der erste Versuch hinterließ weder eine Ausgabe-APK noch einen privaten
+  Signierungsordner.
+- Anschließend tatsächliche Signierung ausschließlich durch
+  `tools/sign_original_apk.py`: Paket `at.hausgarten.service`, versionName
+  `1.46.1`, versionCode `66` (größer als operative Baseline `64`), minSdk `26`,
+  targetSdk und compileSdk `37`, nicht debuggable. SHA-256 der unsignierten APK:
+  `6ffc9cbf2a3a2963c6bc254a07197fbeb7fb8bfa57a5746c01194b23bfce14d1`.
+- `keytool -exportcert` bestätigte die Übereinstimmung des vorhandenen
+  Keystore-Zertifikats mit dem konfigurierten Original-Fingerprint;
+  `keytool -certreq` bestätigte die Entsperrbarkeit des vorhandenen Schlüssels.
+  Der tatsächlich verifizierte öffentliche Zertifikat-SHA256 ist
+  `a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`.
+  Der Nachweis beruht auf der tatsächlichen Prüfung, nicht auf früheren Berichten.
+- `apksigner verify --verbose --print-certs` sowohl vor Veröffentlichung als
+  auch erneut an der ausgegebenen APK erfolgreich: genau ein Signer mit diesem
+  Zertifikat, v2 und v3 gültig. Für v1, v3.1, v3.2 und v4 meldet die Prüfung
+  jeweils `false`.
+  Die abschließende `zipalign`-Prüfung mit 16-KiB-Seitenausrichtung bestand.
+  SHA-256 der signierten APK:
+  `353a9a0c44567e09f2436dcdacecd9b3c20ef6f0da86b96a87b32ce541655249`.
+- Finale Artefaktprüfung: alle 393 App-Assets bytegleich zur Quelle, 181 Profile
+  und 362 Pflanzenbilder vorhanden, erforderliche operative Klassen vorhanden.
+  Source- und APK-Datenschutzprüfung bestanden, null operative Seedzeilen.
+  Kein produktiver Datenbestand zum Markerabgleich vorhanden
+  (`private_markers_checked=0`).
+- Cleanup beider tatsächlichen Versuche erfolgreich. Die erfolgreiche Ausgabe
+  erfolgte erst nach dem `finally`-Cleanup; die Ausgabe hat Modus `0600`.
+  Unabhängige Nachprüfung: null verbliebene private Signierungsordner im
+  OS-Temp und null Keystore-/Privatschlüsseldateien nach den geprüften
+  Dateiendungen im Repository. Keine Geheimwerte im Nachweis.
+- Nach der Parserkorrektur 229 Python-Tests erfolgreich, keine Skips; darin
+  40 synthetische Originalsignierungs- und fünf Kandidatenidentitätstests.
+  Die alte QA-Signierungssuite wurde nicht ausgeführt, da sie reale temporäre
+  Testschlüssel erzeugt. Zusätzlich zehn Java-Suiten mit 284 Fällen erfolgreich;
+  isolierte Host-Prüfungen einschließlich Sync-/Beziehungsregeln, keine
+  Android-Speicher- oder Geräteabnahme.
+- Keine Änderung am App-Code, kein Desktopimport, kein neuer Commit, kein
+  Umschreiben der Historie und keine Änderung an `main`. HEAD bleibt der oben
+  geprüfte Commit; die Parser-, Test- und Nachweisänderungen waren zum Abschluss
+  dieser Signierungsprüfung uncommitted.
+- Keine Installation, kein Pixel-Zugriff und keine Änderung operativer App-Daten.
+  Eine Original-APK oder die installierte Pixel-Signatur wurde nicht verglichen.
+  Fresh-Install, In-place-Update und Datenerhalt bleiben **nicht getestet**.
+  Der Kandidat ist **nicht als Release freigegeben**; Installation bleibt bis
+  Sicherung und ausdrücklicher Freigabe gesperrt.
+
+### Beauftragte GitHub-Bereitstellung
+
+Die anschließende Nutzeranweisung zur Bereitstellung einer updatefähigen APK auf
+GitHub wird auf derselben Branch umgesetzt. Unter
+[`downloads/`](downloads/README.md) liegen die bereits geprüfte, originalsignierte
+APK `1.46.1` / Code `66`, ihre SHA256-Prüfsumme und der Verweis auf den öffentlichen
+Signierungsnachweis. Die APK-Bytes werden bei der Bereitstellung nicht verändert.
+Die zuvor geprüften Parser-, Test- und Dokumentationsänderungen werden zusammen
+mit der Download-Datei auf dieser Branch gesichert; `main` bleibt unberührt.
+
+Der direkte Release-API-Zugriff aus dieser Cloud ist gesperrt. Daher erfolgt die
+Bereitstellung als Download-Datei auf der bestehenden Branch im vorhandenen
+privaten Repository. Es werden keine Originalwerte nach GitHub übertragen und
+keine Signierung oder Schlüsselbereitstellung in GitHub Actions eingerichtet.
+Der vorhandene manuelle Workflow erzeugt weiterhin nur unsignierte Kandidaten.
+
+Vor dem Upload wurden Datenschutz, Paket, Version, Originalzertifikat, gültige
+Signatur und Quellasset-Übereinstimmung erneut an der endgültigen signierten APK
+geprüft. Die Installationssperre und die offenen Geräte-/Datenerhalt-Tests bleiben
+bestehen. Der ursprüngliche JSON-Nachweis beschreibt den abgeschlossenen
+Signierungszeitpunkt vor diesem späteren Bereitstellungs-Commit.
