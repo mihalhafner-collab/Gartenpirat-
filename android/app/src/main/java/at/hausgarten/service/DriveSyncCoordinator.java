@@ -28,7 +28,8 @@ final class DriveSyncCoordinator {
             .put("last_sync_attempt",p.getString("last_sync_attempt","")).put("last_full_sync",p.getString("last_full_sync",""))
             .put("confirmation_scope",p.getString("drive_confirmation_scope","local_only")).put("cloud_confirmed",p.getBoolean("drive_cloud_confirmed",false));
         boolean rest=DriveAccount.configured(c),permission=rest||DriveAccount.providerPermission(c);
-        s.put("persisted_tree_permission",!rest&&permission);
+        s.put("persisted_tree_permission",!rest&&permission).put("trash_cleanup_pending",p.getInt("trash_cleanup_pending",0)).put("trash_cleanup_error",p.getString("trash_cleanup_error",""));
+        if(s.optString("last_error_code").isEmpty()&&s.optString("last_error").contains("ursprüngliche Drive-Gesamtstand"))s.put("last_error_code","LEGACY_SOURCE_CHANGED");
         if(s.optBoolean("configured")&&!permission)s.put("drive_sync_failed",true).put("user_action_required",true).put("last_error_code","PERMISSION_REQUIRED").put("last_error",SyncPolicy.message("PERMISSION_REQUIRED"));
         return SyncPolicy.describe(s,queue,running,System.currentTimeMillis());
     }
@@ -156,6 +157,9 @@ final class DriveSyncCoordinator {
                 JSONObject reviewed=snapshot.optJSONObject("drive_resolved_actions");if(reviewed!=null)reviewed.keys().forEachRemaining(confirmed::add);
                 store.cleanupConfirmedPhotoDeletes(pending,confirmed,snapshot);
                 store.acknowledge(confirmed);
+                JSONObject cleanup=TrashMediaCleanup.run(store,files,snapshot);
+                prefs.edit().putInt("trash_cleanup_pending",cleanup.getInt("pending")).putString("trash_cleanup_error",cleanup.getString("error_code")).commit();
+                if(cleanup.getInt("pending")>0){fully=false;prefs.edit().putBoolean("drive_cloud_confirmed",false).commit();if(cleanup.getInt("completed")>0)request(context,1500);}
                 if(mediaProgress>0&&deferredMedia>0)request(context,1500);
                 return new JSONObject().put("ok",true).put("transport_ok",true).put("needs_review",errors.length()>0).put("state",store.getState()).put("accepted",confirmed.size()).put("chatgpt_imported",chatActions.length())
                     .put("journal_errors",errors).put("error","")
@@ -284,6 +288,14 @@ final class DriveSyncCoordinator {
         }
         byte[] readPhotoVerified(JSONObject metadata)throws Exception{
             String name=metadata.optString("storage_name");if(!PhotoAttachmentStore.canonicalName(name))throw new IllegalArgumentException("Ungültige Foto-Dateireferenz.");Uri folder=photoDirectory(false);if(folder==null)throw new IOException("Der Ordner HausGarten-Fotos fehlt. Das lokale Original bleibt erhalten.");ArrayList<Doc> found=photoMatches(folder,name);if(found.size()!=1)throw new IOException("Das Foto-Original fehlt oder ist nicht eindeutig in HausGarten-Fotos.");byte[] bytes=readBytes(found.get(0).uri);verifyBytes(bytes,metadata);return bytes;
+        }
+        void deletePhotoFileVerified(String name,String hash)throws Exception{
+            if(!hash.matches("[0-9a-f]{64}")||!name.startsWith(hash+".")||!PhotoAttachmentStore.canonicalName(name))throw new IOException("Ungültige Löschreferenz.");
+            Uri folder=photoDirectory(false);if(folder==null)return;ArrayList<Doc> found=photoMatches(folder,name);
+            if(found.size()>1)throw new IOException("Fotodatei nicht eindeutig; nichts entfernt.");if(found.isEmpty())return;
+            if(!hash.equals(PhotoAttachmentStore.sha256(readBytes(found.get(0).uri))))throw new IOException("Foto verändert; nichts entfernt.");
+            if(!DocumentsContract.deleteDocument(resolver,found.get(0).uri))throw new IOException("Dateilöschung nicht bestätigt.");
+            if(!photoMatches(folder,name).isEmpty())throw new IOException("Dateilöschung noch nicht zurückgelesen.");
         }
         void writePhotoVerified(JSONObject metadata,PhotoAttachmentStore local)throws Exception{
             String name=metadata.optString("storage_name");if(!PhotoAttachmentStore.canonicalName(name))throw new IllegalArgumentException("Ungültige Foto-Dateireferenz.");byte[] bytes=local.read(metadata);verifyBytes(bytes,metadata);Uri folder=photoDirectory(true);ArrayList<Doc> found=photoMatches(folder,name);if(!found.isEmpty()){if(found.size()!=1)throw new IOException("Foto-Original ist nicht eindeutig. Keine Datei verändert.");verifyBytes(readBytes(found.get(0).uri),metadata);return;}

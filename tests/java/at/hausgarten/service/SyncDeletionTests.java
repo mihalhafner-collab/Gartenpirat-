@@ -56,7 +56,7 @@ public final class SyncDeletionTests {
         catalog.getJSONArray("offers").getJSONObject(0).put("status","finalized");yes(!DeletionRules.preview(catalog,"offer","off").getBoolean("allowed"));
         JSONObject invoiced=state(),issued=new JSONObject("{id:'i',customer_id:'c',status:'Gestellt',issued_at:'2026-10-18',positions:[]}");invoiced.getJSONArray("invoices").put(issued);yes(!DeletionRules.preview(invoiced,"invoice","i").getBoolean("allowed"));
         JSONObject linked=state(),job=new JSONObject("{id:'o',customer_id:'c',title:'QA',updated_at:'t1'}");linked.getJSONArray("orders").put(job);JSONObject preview=DeletionRules.preview(linked,"order","o");linked.getJSONArray("photos").put(new JSONObject().put("id","p").put("customer_id","c").put("order_id","o"));
-        bad(()->DeletionRules.payload(linked,"order","o",preview.getString("expected_record_hash"),"t2"));yes(linked.getJSONArray("orders").length()==1);yes(!DeletionRules.preview(linked,"order","o").getBoolean("allowed"));
+        yes(DeletionRules.payload(linked,"order","o",preview.getString("expected_record_hash"),"t2").getString("deletion_policy").equals("recoverable_v2"));yes(linked.getJSONArray("orders").length()==1);yes(DeletionRules.preview(linked,"order","o").getBoolean("allowed"));
         bad(()->DeletionRules.payload(linked,"customer","c","0".repeat(64),"t2"));
         JSONObject independent=state();independent.getJSONArray("orders").put(new JSONObject(job.toString()));JSONObject archiveJob=archive(independent,"order","o","valid-delete");
         JSONObject oldDelete=event("historical-delete","delete",new JSONObject().put("id","c").put("entity","customer"));JSONArray both=new JSONArray().put(oldDelete).put(archiveJob);

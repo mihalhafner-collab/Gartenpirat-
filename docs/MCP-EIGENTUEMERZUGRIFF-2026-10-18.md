@@ -81,7 +81,7 @@ Geräte- oder Drive-End-to-End-Abnahme.
 | Versand | `prepare_invoice_share` | H Schema, N | Bereitet Geräteübergabe vor; Versand-App und Benutzerhandlung erforderlich; weder Versand noch Zustellung behaupten |
 | Synchronisation | `get_sync_overview`, `get_sync_status`, `request_sync` | H Python/JVM/Browser, N, L Status | Provider-Rücklesen ist keine unabhängige Cloud-Bestätigung |
 | Konflikte | `get_sync_conflicts`, `resolve_sync_conflict` | H Python/JVM, N | Originalaktion und aktueller Stand mit Hashes; beide Varianten behalten; Entscheidung erneut prüfen |
-| Archiv | `archive_entity`, `list_archive`, `restore_entity` | H Python/JVM inklusive Drive-Export/Wiederholung, N | Keine physische Originaldateilöschung; keine belegte ID überschreiben; Beziehungen und Originale erhalten |
+| Papierkorb | `preview_delete`, `delete_entity`, `archive_entity`, `list_archive`, `restore_entity`, `preview_purge`, `purge_entity` | H JVM/Browser, native Pfade nur kompiliert | Archiv bewahrt Originale; Purge benötigt explizite Bestätigung/Hash und geschützte Referenzen. Foto-Dateibereinigung nach überprüfter Veröffentlichung; Live weiterhin Build72 ohne neue Purge-Werkzeuge |
 | Gerätestandards | `get_settings`, `update_settings` | H Schema, N | Nur erlaubte fachliche Defaults; kein Konto-/Berechtigungsersatz |
 | Rechnungseinstellungen | `get_business_settings`, `update_business_settings` | H Python/JVM, N | Nur nicht geheime Aussteller-/Nummernkonfiguration; tatsächliche Prüfung externer Nummernstände bleibt nötig |
 | Sicherung | `create_backup`, `list_backups`, `inspect_backup` | H Schema, N | Privates Geschäftsartefakt bis 64 MiB mit lokal verfügbaren Originalen; fehlende Originale führen zum Fehler, kein Teil-Erfolg |
@@ -198,3 +198,12 @@ Reproduktionen in `tests/access-integrity.test.cjs`, ausschließlich synthetisch
 Daten. Build, Lint und Android-Testquellen-Kompilierung wurden ausgeführt.
 `OwnerNativeAcceptance` ist vorbereitet und kompiliert, nicht auf einem Gerät
 ausgeführt. Keine produktiven Schreibtests und keine Installation.
+
+
+### Papierkorb-Protokoll 5 / Cloud-Kandidat 1.49.4/73
+
+Bestehende Funktionen erhalten; Quellkatalog 87 Werkzeuge, Hash `0cd1b37e492eb9370c481a636f45f81c129694d60cd2d6bd25e0517a110eaab0`. Neu: `preview_purge` (lesen) und `purge_entity` (Owner schreiben, `confirmed=true`, aktueller Archivhash, dauerhafte request_id). `delete_entity`/`archive_entity` benötigen bei betroffenen Fotozuordnungen zusätzlich `expected_photo_links_hash` aus `preview_delete`. Aktive und bereits archivierte Fotos werden beim Entfernen des zugehörigen Kunden/Auftrags/Arbeitseintrags kontrolliert entkoppelt. Originale bleiben erhalten. Keine separate manuelle Entkopplungsfunktion.
+
+Purge entfernt den ausgewählten Archivdatensatz, hält einen minimalen Löschbeleg in `owner_archive`, blockiert Wiederbelebung derselben ID und bereinigt nicht mehr verwendete Fotodateien erst nach überprüfter Veröffentlichung und lokaler Snapshot-Übernahme. Historische Sicherungen/Journale bleiben getrennt erhalten; keine forensische Löschzusage. Finanzielle Belege und andere Geschäftsabhängigkeiten bleiben geschützt. Fehlgeschlagener Purge kann ausschließlich mit `keep_current` und erneut geprüften Aktions-/Archivhashes zurückgenommen werden.
+
+Live weiterhin Build 72 / Protokoll 4 / 85 Werkzeuge: die neuen Werkzeuge sind dort noch nicht angeboten oder getestet. Nach gesichertem und ausdrücklich freigegebenem Update auf 73 dieselbe private Pixel-Verbindung neu verbinden, initialize und tools/list aktualisieren, danach get_capabilities auf Version, Hash, Schreibgate und 87 tatsächliche Werkzeuge prüfen. Der Tunnel erzeugt die Liste dynamisch aus derselben Implementierung; ein alter Connector-/ChatGPT-Katalog benötigt ebenfalls Refresh/Neuverbindung. Code erteilt keine externen Freigaben. Abnahmen/Testergebnisse ausschließlich zentral in CODEX-STATUS.md.

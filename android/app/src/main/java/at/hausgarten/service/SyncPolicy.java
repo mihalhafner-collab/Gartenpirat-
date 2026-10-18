@@ -32,9 +32,10 @@ final class SyncPolicy {
             boolean paused=s.optBoolean("user_action_required")||s.optInt("retry_count")>=MAX_ATTEMPTS;
             state=paused?"action_required":s.optLong("next_retry")>now?"retry_wait":"error";
             title=paused?"Abgleich braucht deine Hilfe":state.equals("retry_wait")?"Erneuter Versuch folgt":"Abgleich erneut versuchen";
-            detail=message(code.isEmpty()?"TRANSFER_FAILED":code);action=java.util.Arrays.asList("AUTH_REQUIRED","PERMISSION_REQUIRED","HTTP_401","HTTP_403").contains(code)?"connect_drive":"retry_sync";
+            detail=message(code.isEmpty()?"TRANSFER_FAILED":code);action=java.util.Arrays.asList("LEGACY_SOURCE_CHANGED","PUBLICATION_CONFLICT","PUBLICATION_INVALID","ACTION_ID_CONFLICT").contains(code)?"compare_versions":java.util.Arrays.asList("AUTH_REQUIRED","PERMISSION_REQUIRED","HTTP_401","HTTP_403").contains(code)?"connect_drive":"retry_sync";
         }else if(pending>0){state="pending";title=pending+" Änderung(en) warten auf Drive";detail="Auf diesem Gerät gespeichert. Der Abgleich erfolgt automatisch bei verfügbarer Verbindung.";}
         else if(review>0){state="review_required";title=review+" Änderung(en) prüfen";detail="Die Übertragung ist getrennt von diesen Prüfungen. Unabhängige Änderungen werden weiter abgeglichen.";action="review_changes";}
+        else if(s.optInt("trash_cleanup_pending")>0){state="cleanup_pending";title="Dateibereinigung ausstehend";detail="Papierkorbeinträge entfernt. Nicht mehr verwendete Dateien werden nach bestätigtem Abgleich bereinigt; andere Arbeiten bleiben möglich.";action="retry_sync";}
         else if(s.optBoolean("cloud_confirmed")&&"drive_server_manifest".equals(s.optString("confirmation_scope"))){state="synced";title="Vollständig mit Drive abgeglichen";detail="Änderungen und Originale mit Drive-Serverbelegen bestätigt.";}
         else if(!s.optString("last_sync").isEmpty()){state="provider_readback";title="An Drive übergeben";detail="Vom Speicheranbieter zurückgelesen. Ein vollständiger Cloud-Abschluss ist damit nicht bestätigt.";}
         else{state="ready";title="Erster Abgleich ausstehend";detail="Die lokale Erfassung funktioniert auch ohne Verbindung.";}

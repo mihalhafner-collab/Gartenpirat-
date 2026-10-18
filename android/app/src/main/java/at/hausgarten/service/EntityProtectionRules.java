@@ -34,6 +34,7 @@ final class EntityProtectionRules {
     }
     static void validatePhoto(JSONObject payload,JSONArray customers,JSONArray orders,JSONArray worklogs){
         String customer=text(payload,"customer_id"),orderId=text(payload,"order_id"),workId=text(payload,"worklog_id");
+        if(customer.isEmpty()&&orderId.isEmpty()&&workId.isEmpty()&&text(payload,"session_id").isEmpty()&&!text(payload,"role").equals("profile"))return;
         if(find(customers,customer)==null)throw new IllegalArgumentException("Der ausgewählte Kunde existiert nicht.");
         if(!orderId.isEmpty()){
             JSONObject order=find(orders,orderId);

@@ -15,7 +15,7 @@
  }
  function businessSettings(){
   const host=get('more-page');if(!host||!AndroidData.ownerCall)return;
-  const card=document.createElement('section');card.className='card';card.innerHTML='<h3>Unternehmen und Rechnungen</h3><button class="secondary" type="button">Aussteller und Zahlungsbedingungen bearbeiten</button><div data-business-editor></div>';host.append(card);
+  const card=document.createElement('section');card.className='card';card.id='business-settings-card';card.innerHTML='<h3>Unternehmen und Rechnungen</h3><button class="secondary" type="button">Aussteller und Zahlungsbedingungen bearbeiten</button><div data-business-editor></div>';host.append(card);
   const call=(n,a={})=>{const r=JSON.parse(AndroidData.ownerCall(n,JSON.stringify(a)));if(!r.ok)throw new Error(r.error?.message||'Einstellungen nicht verfügbar');return r.data;};
   card.querySelector('button').onclick=()=>{const body=card.querySelector('[data-business-editor]');try{
    const key='hausgarten.business.settings.draft',saved=JSON.parse(localStorage.getItem(key)||'null'),source=saved?.source||call('get_business_settings'),values=saved?.values||source.settings;

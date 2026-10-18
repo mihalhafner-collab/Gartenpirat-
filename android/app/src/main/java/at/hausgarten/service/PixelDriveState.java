@@ -8,7 +8,7 @@ final class PixelDriveState {
     static final String[] CAPABILITIES={"offers_v1","service_catalog_v1","owner_journal_v2",
         "invoice_compare_and_save","photo_compare_and_save","durable_action_receipts",
         "worklog_compare_and_save","entity_compare_and_save","customer_custom_fields_compare_and_save",
-        "billing_relations","photo_attachments_v1","recoverable_delete_v1"};
+        "billing_relations","photo_attachments_v1","recoverable_delete_v1","trash_purge_v1"};
 
     static void prepare(JSONObject snapshot)throws Exception {
         DriveJournalRules.validateSnapshot(snapshot);

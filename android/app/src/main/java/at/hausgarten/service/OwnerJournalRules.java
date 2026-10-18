@@ -5,7 +5,7 @@ import java.util.*;
 
 /** Additive owner journal protocol. Old journals and immutable receipts survive. */
 final class OwnerJournalRules {
-    static final String[] KINDS={"archive","restore","conflict_resolution","invoice_payment","business_settings","invoice_correction"};
+    static final String[] KINDS={"purge_v1","archive","restore","conflict_resolution","invoice_payment","business_settings","invoice_correction"};
     static boolean handles(String kind){return Arrays.asList(KINDS).contains(kind)||OfferJournalRules.handles(kind);}
     static JSONObject archives(JSONObject snapshot)throws Exception{JSONObject a=snapshot.optJSONObject("owner_archive");if(a==null){a=new JSONObject();snapshot.put("owner_archive",a);}return a;}
     static String group(String entity){return entity.equals("invoice")?"invoices":DriveJournalRules.collection(entity);}
@@ -18,6 +18,7 @@ final class OwnerJournalRules {
     static void checkHash(JSONObject row,String expected)throws Exception{if(!version(row).equals(expected))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Der geprüfte Stand hat sich verändert. Beide Varianten bleiben erhalten.");}
     static void apply(JSONObject snapshot,JSONObject action,Map<String,JSONObject> all,JSONObject resolved)throws Exception{
         String kind=action.getString("kind");JSONObject p=action.getJSONObject("payload");
+        if(kind.equals("purge_v1")){TrashRules.purge(snapshot,action);return;}
         if(kind.equals("invoice_correction")){InvoiceIssueRules.correction(snapshot,action);return;}
         if(OfferJournalRules.handles(kind)){OfferJournalRules.apply(snapshot,action);return;}
         if(kind.equals("business_settings")){
@@ -37,8 +38,8 @@ final class OwnerJournalRules {
             if(prior==null||!target.equals(prior.optString("client_id"))||!OrderReviewRules.actionHash(prior).equals(p.getString("expected_action_hash"))||resolved.has(target))throw new PixelMcpWriteTools.Rejected("ACTION_ID_CONFLICT","Die ursprüngliche Konfliktaktion wurde verändert, ist nicht mehr nachweisbar oder bereits geprüft.");
             if(embedded!=null&&!OrderReviewRules.actionHash(embedded).equals(p.getString("expected_action_hash")))throw new PixelMcpWriteTools.Rejected("ACTION_ID_CONFLICT","Der eingebettete Konfliktbeleg stimmt nicht mit dem geprüften Hash überein.");
             for(String errorKey:new String[]{"sync_errors","drive_journal_errors"}){JSONArray failures=snapshot.optJSONArray(errorKey);for(int i=0;failures!=null&&i<failures.length();i++){JSONObject failure=failures.getJSONObject(i);if(target.equals(failure.optString("client_id"))&&!Arrays.asList("WRITE_CONFLICT","DELETE_REVIEW_REQUIRED").contains(failure.optString("code"))&&!("keep_current".equals(p.optString("resolution"))&&DeletionRules.cancelable(prior,failure.optString("code"))))throw new PixelMcpWriteTools.Rejected("CONFLICT_RESOLUTION_NOT_AVAILABLE","Infrastrukturfehler darf nicht als Geschäftsentscheidung quittiert werden.");}}
-            boolean legacyDelete="delete".equals(prior.getString("kind")),archiveCancel="archive".equals(prior.getString("kind"));if(archiveCancel&&!"keep_current".equals(p.optString("resolution")))throw new PixelMcpWriteTools.Rejected("CONFLICT_RESOLUTION_NOT_AVAILABLE","Löschauftrag nur zurücknehmen oder anhand des aktuellen Stands neu prüfen.");String entity=(legacyDelete||archiveCancel)?prior.getJSONObject("payload").getString("entity"):prior.getString("kind"),collection=DriveJournalRules.collection(entity);if(collection.isEmpty())throw new IllegalArgumentException("Diesen Vorgang fachlich separat prüfen.");
-            JSONObject patch=prior.getJSONObject("payload"),current=findOrNull(snapshot.getJSONArray(collection),patch.optString("id"));checkHash(current,p.getString("expected_current_hash"));
+            boolean legacyDelete="delete".equals(prior.getString("kind")),purgeCancel="purge_v1".equals(prior.getString("kind")),archiveCancel="archive".equals(prior.getString("kind"))||purgeCancel;if(archiveCancel&&!"keep_current".equals(p.optString("resolution")))throw new PixelMcpWriteTools.Rejected("CONFLICT_RESOLUTION_NOT_AVAILABLE","Löschauftrag nur zurücknehmen oder anhand des aktuellen Stands neu prüfen.");String entity=(legacyDelete||archiveCancel)?prior.getJSONObject("payload").getString("entity"):prior.getString("kind"),collection=DriveJournalRules.collection(entity);if(collection.isEmpty())throw new IllegalArgumentException("Diesen Vorgang fachlich separat prüfen.");
+            JSONObject patch=prior.getJSONObject("payload"),current=purgeCancel?archives(snapshot).optJSONObject(entity+":"+patch.optString("id")):findOrNull(snapshot.getJSONArray(collection),patch.optString("id"));checkHash(current,p.getString("expected_current_hash"));
             JSONObject history=snapshot.optJSONObject("owner_conflict_history");if(history==null)history=new JSONObject();
             if(!p.optString("resolution").equals("keep_current")){
                 if(!p.optString("resolution").equals("apply_proposed"))throw new IllegalArgumentException("Ungültige Konfliktentscheidung.");
@@ -60,17 +61,25 @@ final class OwnerJournalRules {
         JSONObject archive=archives(snapshot);String key=entity+":"+id;
         if(kind.equals("restore")){
             JSONObject saved=archive.optJSONObject(key);if(saved==null)throw new IllegalArgumentException("Archiveintrag fehlt.");checkHash(saved,p.getString("expected_record_hash"));
+            if(saved.optBoolean("purged"))throw new IllegalArgumentException("Endgültig gelöschte Einträge sind nicht wiederherstellbar.");
             JSONObject original=saved.getJSONObject("record");
             if(entity.equals("customer")||entity.equals("service_template")){if(current==null||(current.optBoolean("active",true)&&current.optInt("active",1)!=0))throw new IllegalArgumentException("Der archivierte Kunde wurde inzwischen geändert.");checkHash(current,saved.getString("archived_record_hash"));}
             else if(current!=null)throw new IllegalArgumentException("Die Original-ID ist bereits belegt.");
             if(!entity.equals("invoice"))DriveJournalRules.validateChange(entity,original,null,snapshot);
-            replace(snapshot,collection,id,original);archive.remove(key);return;
+            replace(snapshot,collection,id,original);TrashRules.restoreLinks(snapshot,saved);archive.remove(key);return;
         }
         checkHash(current,p.getString("expected_record_hash"));if(current==null)throw new IllegalArgumentException("Der Eintrag fehlt.");
         validateArchive(entity,current,snapshot);
         if(archive.has(key))throw new IllegalArgumentException("Für diese ID besteht bereits ein Archivstand.");
         JSONObject saved=new JSONObject().put("record",current).put("archived_at",action.optString("created_at")).put("archive_action",action.getString("client_id"));
         if(p.has("deletion_policy"))saved.put("deletion_policy",p.getString("deletion_policy"));
+        JSONArray related=TrashRules.related(snapshot,entity,id);
+        if("recoverable_v2".equals(p.optString("deletion_policy"))&&!PixelMcpWriteTools.hash(related).equals(p.getString("expected_photo_links_hash")))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Fotozuordnungen inzwischen geändert.");
+        if(related.length()>0&&(entity.equals("order")||entity.equals("worklog")||"recoverable_v2".equals(p.optString("deletion_policy")))){
+            if(!"recoverable_v2".equals(p.optString("deletion_policy")))throw new IllegalArgumentException("Fotozuordnungen mit aktuellem Löschdialog erneut prüfen; alte Aktion bleibt erhalten.");
+            if(!PixelMcpWriteTools.hash(related).equals(p.getString("expected_photo_links_hash")))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Fotozuordnungen inzwischen geändert. Nichts entfernt.");
+            saved.put("photo_links",TrashRules.detachRelated(snapshot,entity,id,p.getString("updated_at")));
+        }
         if(entity.equals("customer")||entity.equals("service_template")){JSONObject inactive=new JSONObject(current.toString()).put("active",entity.equals("customer")?0:false).put("updated_at",p.getString("updated_at"));replace(snapshot,collection,id,inactive);saved.put("archived_record_hash",version(inactive));}
         else replace(snapshot,collection,id,null);
         archive.put(key,saved);
@@ -87,7 +96,7 @@ final class OwnerJournalRules {
         for(String collection:new String[]{"orders","worklogs","photos","invoices","offers"}){
             JSONArray rows=snapshot.getJSONArray(collection);
             for(int i=0;i<rows.length();i++){JSONObject other=rows.getJSONObject(i);
-                if(entity.equals("order")&&id.equals(other.optString("order_id"))||entity.equals("worklog")&&id.equals(other.optString("worklog_id")))throw new IllegalArgumentException("Verknüpfte Daten zuerst prüfen; nichts entfernt.");
+                if(!collection.equals("photos")&&(entity.equals("order")&&id.equals(other.optString("order_id"))||entity.equals("worklog")&&id.equals(other.optString("worklog_id"))))throw new IllegalArgumentException("Verknüpfte Daten zuerst prüfen; nichts entfernt.");
                 if(entity.equals("worklog")&&collection.equals("invoices")){JSONArray refs=other.optJSONArray("worklog_ids"),positions=other.optJSONArray("positions");for(int j=0;refs!=null&&j<refs.length();j++)if(id.equals(refs.optString(j)))throw new IllegalArgumentException("Die Arbeit ist mit einer Rechnung verknüpft.");for(int j=0;positions!=null&&j<positions.length();j++)if(id.equals(positions.getJSONObject(j).optString("worklog_id")))throw new IllegalArgumentException("Die Arbeit ist mit einer Rechnung verknüpft.");}
             }
         }

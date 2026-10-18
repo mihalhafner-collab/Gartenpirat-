@@ -21,6 +21,27 @@ final class OwnerNativeAcceptance {
     }
     static JSONObject request(String id)throws Exception{return new JSONObject().put("request_id",id);}
     static void run(PixelMcpInstrumentation test)throws Exception{
+        test.probe("permanent trash replay and restart keep bytes until a committed publication",()->{try(Fixture f=new Fixture(test.getTargetContext())){
+            String id=f.store.savePhoto(new JSONObject().put("customer_id","c").put("worklog_id","w").put("caption","Synthetic linked original").put("data",PixelMcpInstrumentation.VALID_GIF));
+            f.store.removeEntity("worklog","w");test.yes(f.call("get_photo",new JSONObject().put("photo_id",id)).getJSONObject("photo").optString("worklog_id").isEmpty());f.store.undoRemoveEntity("worklog","w");
+            JSONObject preview=f.call("preview_delete",new JSONObject().put("entity","photo").put("entity_id",id));
+            f.call("delete_entity",request("native-trash-photo").put("entity","photo").put("entity_id",id).put("expected_record_hash",preview.getString("expected_record_hash")).put("expected_photo_links_hash",preview.getString("expected_photo_links_hash")));
+            JSONObject entry=f.call("list_archive",new JSONObject().put("entity","photo")).getJSONArray("archive").getJSONObject(0);
+            JSONObject purge=request("native-purge-photo").put("entity","photo").put("entity_id",id).put("expected_record_hash",entry.getString("record_hash")).put("confirmed",true);
+            JSONObject missing=new JSONObject(purge.toString());missing.remove("confirmed");test.rejected(()->f.call("purge_entity",missing));
+            f.call("purge_entity",purge);test.yes(f.call("purge_entity",purge).getBoolean("replayed"));test.yes(f.call("list_archive",new JSONObject().put("entity","photo")).getInt("total")==0);
+            test.yes(f.store.photoAttachmentStore().read(f.store.photoAttachment(id)).length>0);
+            // Synthetic verified publication/commit, followed by restart before independent cleanup.
+            JSONObject committed=f.store.getState().getJSONObject("master");PixelDriveState.prepare(committed);test.yes(DriveJournalRules.apply(committed,f.store.pendingActions()).length()==0);
+            f.store.commitSnapshot(committed,DriveJournalRules.ids(committed.getJSONArray("drive_applied_ids")));f.store.close();
+            try(MainActivity.LocalStore reopened=new MainActivity.LocalStore(f.context)){
+                final int[] deletes={0};DriveSyncCoordinator.Files files=new DriveSyncCoordinator.Files(f.context,android.net.Uri.EMPTY,f.context.getSharedPreferences("haus_garten",0)){
+                    @Override void deletePhotoFileVerified(String name,String hash)throws Exception{test.yes(name.startsWith(hash+"."));deletes[0]++;}
+                };
+                JSONObject cleanup=TrashMediaCleanup.run(reopened,files,committed);test.yes(cleanup.getInt("pending")==0);test.yes(reopened.photoAttachment(id)==null);test.yes(deletes[0]>0);
+                int count=deletes[0];TrashMediaCleanup.run(reopened,files,committed);test.yes(deletes[0]==count);
+            }
+        }});
         test.probe("customer original UI retry persists exactly one action and original",()->{try(Fixture f=new Fixture(test.getTargetContext())){
             JSONObject payload=new JSONObject().put("customer_id","c").put("original_name","qa.gif").put("caption","QA Original").put("_photo_request_id","photo_ui_isolated_request").put("data",PixelMcpInstrumentation.VALID_GIF);String id=f.store.savePhoto(new JSONObject(payload.toString()));test.yes(f.store.savePhoto(new JSONObject(payload.toString())).equals(id));test.yes(f.store.pendingActions().length()==1);test.yes(f.store.photoAttachmentStore().read(f.store.photoAttachment(id)).length>0);payload.put("caption","Different request");test.rejected(()->f.store.savePhoto(payload));
         }});

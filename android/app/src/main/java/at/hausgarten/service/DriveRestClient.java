@@ -102,6 +102,16 @@ final class DriveRestClient {
         if(!file.optString("version").isEmpty()&&!file.optString("md5Checksum").isEmpty()&&proof.equals(checkpoints.get(key)))return;
         if(!sha256(read(file.getString("id"),maximum)).equals(expected))throw new Failure("MEDIA_HASH_CONFLICT","Drive-Original hat eine abweichende Prüfsumme. Originale bleiben erhalten.",0,true);checkpoints.put(key,proof);
     }
+    void deleteVerified(String parent,String name,String hash)throws Exception{
+        refresh();JSONObject file=unique(parent,name);if(file==null)return;
+        Reply observed=send("GET",API+"files/"+file.getString("id")+"?alt=media&supportsAllDrives=true",null,Collections.emptyMap(),20*1024*1024);
+        if(observed.status==404){refresh();return;}
+        if(observed.status!=200||!hash.equals(sha256(observed.body)))throw new Failure("MEDIA_HASH_CONFLICT","Foto wurde verändert. Keine Datei entfernt.",0,true);
+        if(observed.header("ETag").isEmpty())throw new Failure("CAS_REQUIRED","Drive bietet keinen atomaren Löschvergleich. Original bleibt erhalten.",0,true);
+        Reply reply=send("DELETE",API+"files/"+file.getString("id")+"?supportsAllDrives=true",null,Collections.singletonMap("If-Match",observed.header("ETag")),8192);
+        if(reply.status!=204&&reply.status!=404)throw new IOException("Drive-Dateilöschung nicht bestätigt.");
+        refresh();if(unique(parent,name)!=null)throw new IOException("Drive-Dateilöschung noch nicht zurückgelesen.");
+    }
     String ensureDirectory(String name)throws Exception{
         JSONObject old=unique(folder,name);if(old!=null){if(!"application/vnd.google-apps.folder".equals(old.optString("mimeType")))throw new IOException("Erwarteter Drive-Fotoordner ist keine Mappe.");return old.getString("id");}
         JSONObject m=new JSONObject().put("name",name).put("mimeType","application/vnd.google-apps.folder").put("parents",new JSONArray().put(folder));Reply r=send("POST",API+"files?fields=id&supportsAllDrives=true",m.toString().getBytes(StandardCharsets.UTF_8),Collections.singletonMap("Content-Type","application/json"),8192);

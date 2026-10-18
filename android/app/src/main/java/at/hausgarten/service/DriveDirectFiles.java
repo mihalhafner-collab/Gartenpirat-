@@ -46,6 +46,10 @@ final class DriveDirectFiles extends DriveSyncCoordinator.Files {
     @Override byte[] readPhotoVerified(JSONObject metadata)throws Exception{
         JSONObject directory=client.unique(client.folder,"HausGarten-Fotos");if(directory==null)throw new IOException("Foto-Original ist in Drive noch nicht verfügbar.");JSONObject file=client.unique(directory.getString("id"),metadata.getString("storage_name"));if(file==null)throw new IOException("Foto-Original ist in Drive noch nicht verfügbar.");byte[] bytes=client.read(file.getString("id"),PhotoAttachmentStore.MAX_BYTES);verifyBytes(bytes,metadata);return bytes;
     }
+    @Override void deletePhotoFileVerified(String name,String hash)throws Exception{
+        if(!PhotoAttachmentStore.canonicalName(name)||!hash.matches("[0-9a-f]{64}")||!name.startsWith(hash+"."))throw new IOException("Ungültige Löschreferenz.");
+        JSONObject folder=client.unique(client.folder,"HausGarten-Fotos");if(folder!=null)client.deleteVerified(folder.getString("id"),name,hash);
+    }
     @Override void writePhotoVerified(JSONObject metadata,PhotoAttachmentStore local)throws Exception{
         byte[] bytes=local.read(metadata);verifyBytes(bytes,metadata);client.put(client.ensureDirectory("HausGarten-Fotos"),metadata.getString("storage_name"),metadata.getString("mime_type"),bytes);
     }

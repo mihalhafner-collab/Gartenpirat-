@@ -189,6 +189,7 @@ final class DriveJournalRules {
     private static String errorCode(Exception error){return error instanceof PixelMcpWriteTools.Rejected?((PixelMcpWriteTools.Rejected)error).code:error instanceof DriveRestClient.Failure?((DriveRestClient.Failure)error).code:error instanceof java.io.IOException?"IO_RETRY_REQUIRED":"INVALID_ACTION";}
     static boolean componentReady(JSONObject snapshot,String kind){
         JSONObject capabilities=snapshot.optJSONObject("capabilities");
+        if(kind.equals("purge_v1"))return capabilities!=null&&capabilities.optBoolean("trash_purge_v1");
         if(Arrays.asList("offer","offer_finalize","offer_convert").contains(kind))return capabilities!=null&&capabilities.optBoolean("offers_v1");
         if(kind.equals("service_template"))return capabilities!=null&&capabilities.optBoolean("service_catalog_v1");
         return true;
@@ -199,6 +200,7 @@ final class DriveJournalRules {
         if(!row.has("default_price"))row.put("default_price",JSONObject.NULL);if(!row.has("active"))row.put("active",true);if(!row.has("price_confirmed"))row.put("price_confirmed",false);
     }
     static void validateChange(String kind,JSONObject row,JSONObject old,JSONObject snapshot)throws Exception{
+        if(TrashRules.purged(snapshot,kind,row.getString("id")))throw new PixelMcpWriteTools.Rejected("RECORD_PURGED","Diese ID wurde endgültig gelöscht und darf nicht durch ein altes Formular, Journal oder Backup wieder angelegt werden.");
         JSONArray customers=snapshot.getJSONArray("customers"),orders=snapshot.getJSONArray("orders"),logs=snapshot.getJSONArray("worklogs"),photos=snapshot.getJSONArray("photos"),invoices=snapshot.getJSONArray("invoices");
         if(kind.equals("customer")){
             GardenRules.normalize(row);
@@ -206,6 +208,7 @@ final class DriveJournalRules {
         if(kind.equals("offer")){OfferRules.normalize(row,old,snapshot);return;}
         if(kind.equals("service_template")){validateTemplate(row);return;}
         if(kind.equals("invoice")){InvoiceDraftRules.normalize(row,old,snapshot);return;}
+        if(kind.equals("photo")){EntityProtectionRules.validatePhoto(row,customers,orders,logs);return;}
         PixelMcpWriteTools.find(customers,row.optString("customer_id"));String orderId=row.isNull("order_id")?"":row.optString("order_id");
         if(!orderId.isEmpty()&&!row.optString("customer_id").equals(PixelMcpWriteTools.find(orders,orderId).optString("customer_id")))throw new IllegalArgumentException("Kunde und Auftrag passen nicht zusammen.");
         if(kind.equals("order")){

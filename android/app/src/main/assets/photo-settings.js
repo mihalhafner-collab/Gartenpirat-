@@ -2,7 +2,7 @@
 (()=>{'use strict';
  function init(){
   const page=document.getElementById('more-page');if(!page)return;
-  const section=document.createElement('section');section.className='card';
+  const section=document.createElement('section');section.className='card';section.id='photo-storage-settings';
   section.innerHTML='<h3>Fotospeicher</h3><label>Fotoqualität<select id="photo-quality"><option value="optimized">Speicheroptimierte Dokumentation</option><option value="high">Hoch</option><option value="original">Original behalten · mehr Speicher, Originalmetadaten bleiben erhalten</option></select></label><p>Gilt für neue Fotos. Bereits gespeicherte Bilder bleiben erhalten.</p><p data-photo-storage role="status"></p>';
   page.append(section);const choice=section.querySelector('select'),status=section.querySelector('[data-photo-storage]');
   const read=()=>{try{const settings=JSON.parse(AndroidData.getOwnerSettings()||'{}');choice.value=settings.photo_quality||'optimized';const s=JSON.parse(AndroidData.getPhotoStorageSummary()),sync=JSON.parse(AndroidData.getSyncStatus?.()||'{}');status.textContent=s.local_files+' lokale Bilddateien · '+(s.local_bytes/1048576).toFixed(1)+' MB · '+(s.available_bytes/1073741824).toFixed(1)+' GB frei · '+(sync.cloud_confirmed?'Drive bestätigt':sync.configured?'Drive-Abgleich noch nicht vollständig bestätigt':'Drive nicht verbunden')+(s.available_bytes<200*1048576?' · Speicher knapp. Vor weiteren Aufnahmen Speicher prüfen.':'');}catch(_){status.textContent='Speicherübersicht nach Aktualisierung der App verfügbar.';}};

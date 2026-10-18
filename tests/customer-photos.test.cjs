@@ -82,17 +82,17 @@ async function check(name,task){try{await task();results.push({name,result:'PASS
    await page.reload({waitUntil:'domcontentloaded',timeout:30000});await page.waitForSelector('#design-metrics');await page.evaluate(()=>openCustomer('c1'));await page.locator('[data-customer-tab="photos"]').click();
    assert.equal(await page.locator('[data-design-action="photo"]').count(),6);
   });
-  await check('A synced metadata-only original is loaded on demand and linked work evidence is protected',async()=>{
+  await check('A synced metadata-only original loads on demand and linked photos can enter recoverable trash',async()=>{
    await page.locator('[data-design-action="photo"][data-id="p3"]').click();
    await page.waitForFunction(()=>photoLoads.includes('p3'));
    assert.deepEqual(await page.evaluate(()=>photoLoads),['p3']);
-   assert((await page.locator('#design-photo-view [data-photo-status]').innerText()).includes('Belegfoto'));
-   assert.equal(await page.locator('#design-photo-view .design-photo-delete').isDisabled(),true);
+   assert((await page.locator('#design-photo-view [data-photo-status]').innerText()).includes('zugeordnet'));
+   assert.equal(await page.locator('#design-photo-view .design-photo-delete').isDisabled(),false);
    await page.keyboard.press('Escape');
   });
   await check('Deleting one photo is confirmed, targeted and reversible',async()=>{
    await page.locator('[data-design-action="photo"][data-id="p2"]').click();page.once('dialog',dialog=>dialog.accept());
-   await page.locator('#design-photo-view .design-photo-delete').click();
+   await page.locator('#design-photo-view .photo-more summary').click();await page.locator('#design-photo-view .design-photo-delete').click();
    assert.deepEqual(await page.evaluate(()=>photoDeletes),['p2']);
    assert.equal(await page.locator('[data-design-action="photo"][data-id="p2"]').count(),0);
    await page.locator('.undo-toast-button').click();
@@ -102,7 +102,7 @@ async function check(name,task){try{await task();results.push({name,result:'PASS
   await check('A failed native undo is reported and never presented as restored',async()=>{
    await page.evaluate(()=>{AndroidData.undoRemoveEntity=()=> 'ERROR: Abgleich bereits bestätigt';});
    await page.locator('[data-design-action="photo"][data-id="p1"]').click();page.once('dialog',dialog=>dialog.accept());
-   await page.locator('#design-photo-view .design-photo-delete').click();await page.locator('.undo-toast-button').click();
+   await page.locator('#design-photo-view .photo-more summary').click();await page.locator('#design-photo-view .design-photo-delete').click();await page.locator('.undo-toast-button').click();
    assert((await page.locator('#mobile-toast').innerText()).includes('Abgleich bereits bestätigt'));
    assert.equal(await page.locator('[data-design-action="photo"][data-id="p1"]').count(),0);
   });

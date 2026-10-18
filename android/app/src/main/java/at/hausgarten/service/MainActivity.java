@@ -1003,6 +1003,16 @@ public class MainActivity extends Activity {
                 database.setTransactionSuccessful();
             }finally{database.endTransaction();}
         }
+        boolean hasOtherPhotoAttachment(String id,String hash){try(Cursor rows=getReadableDatabase().rawQuery("SELECT 1 FROM photo_attachments WHERE content_sha256=? AND photo_id<>? LIMIT 1",new String[]{hash,id})){return rows.moveToFirst();}}
+        void cleanupPurgedPhoto(String id,JSONObject media,String marker)throws Exception{
+            SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{
+                JSONObject effective=PixelMcpReadTools.effective(getState());JSONArray queued=pendingActions();
+                if(!TrashRules.purged(effective,"photo",id))throw new IllegalArgumentException("Löschbeleg fehlt.");
+                if(!hasOtherPhotoAttachment(id,media.optString("content_sha256"))&&!TrashRules.referenced(effective,queued,media.optString("storage_name")))photoAttachments.discardCreated(media);
+                String thumb=media.optString("thumbnail_storage_name");if(!thumb.isEmpty()&&!TrashRules.referenced(effective,queued,thumb))photoAttachments.deleteThumbnailVerified(thumb);
+                db.delete("photo_attachments","photo_id=?",new String[]{id});putOwnerValue(marker,"done");db.setTransactionSuccessful();
+            }finally{db.endTransaction();}
+        }
         String loadPhotoData(String photoId)throws Exception{
             JSONObject metadata=photoAttachment(photoId);if(metadata==null)throw new IllegalArgumentException("Für dieses Foto ist noch kein dauerhaftes Original hinterlegt.");
             try{return photoAttachments.dataUri(metadata);}catch(Exception missing){if(!DriveSyncCoordinator.fetchPhoto(context,metadata,photoAttachments))throw missing;return photoAttachments.dataUri(metadata);}
@@ -1020,7 +1030,7 @@ public class MainActivity extends Activity {
                 if(current==null)throw new IllegalArgumentException("Der Eintrag fehlt.");
                 JSONObject payload=DeletionRules.payload(all,entity,entityId,OwnerJournalRules.version(current),isoNow());
                 OwnerJournalRules.apply(new JSONObject(all.toString()),new JSONObject().put("kind","archive").put("payload",payload).put("client_id","preview-delete").put("created_at",isoNow()),new java.util.HashMap<>(),new JSONObject());
-                JSONArray dependencies=new JSONArray(),prior=pendingActions();for(int i=0;i<prior.length();i++){JSONObject a=prior.getJSONObject(i);if(entityId.equals(a.getJSONObject("payload").optString("id")))dependencies.put(a.getString("client_id"));}if(dependencies.length()>0)payload.put("_sync_predecessors",dependencies);
+                JSONArray dependencies=new JSONArray(),prior=pendingActions();for(int i=0;i<prior.length();i++){JSONObject a=prior.getJSONObject(i);if(entityId.equals(a.getJSONObject("payload").optString("id")))dependencies.put(a.getString("client_id"));JSONArray linked=payload.optJSONArray("photo_link_ids");for(int j=0;linked!=null&&j<linked.length();j++)if(linked.getJSONObject(j).getString("id").equals(a.getJSONObject("payload").optString("id")))dependencies.put(a.getString("client_id"));}if(dependencies.length()>0)payload.put("_sync_predecessors",dependencies);
                 String saved=saveAction("archive","archive_mobile_",payload);db.setTransactionSuccessful();return saved;
             }finally{db.endTransaction();}
         }
