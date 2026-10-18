@@ -148,9 +148,9 @@
     photoViewer.querySelector('[data-photo-previous]').onclick=()=>{viewerIndex=(viewerIndex-1+viewerRows.length)%viewerRows.length;show();};
     photoViewer.querySelector('[data-photo-next]').onclick=()=>{viewerIndex=(viewerIndex+1)%viewerRows.length;show();};
     photoViewer.querySelector('.design-photo-delete').onclick=()=>{
-      const picture=viewerRows[viewerIndex];if(!picture)return;if(picture.worklog_id||picture.order_id){window.showUndoToast('Dieses Belegfoto bleibt mit der Arbeitsaufzeichnung oder dem Auftrag erhalten.');return;}if(!confirm('Dieses Kundenfoto dauerhaft entfernen? Die Löschung wird über den bestehenden Drive-Abgleich an andere Geräte weitergegeben.'))return;
-      const result=AndroidData.removeEntity?.('photo',picture.id);if(!result||String(result).startsWith('ERROR:')){window.showUndoToast('Foto konnte nicht entfernt werden: '+String(result||'Funktion nicht verfügbar').replace(/^ERROR:\s*/,''));return;}
-      photoViewer.close();load();if(currentPage==='customer-profile-page')profileContent();window.showUndoToast('Foto zum Entfernen vorgemerkt.',()=>{try{const restored=AndroidData.undoRemoveEntity?.('photo',picture.id);if(!restored||String(restored).startsWith('ERROR:'))throw new Error(String(restored||'Funktion nicht verfügbar').replace(/^ERROR:\s*/,''));load();if(currentPage==='customer-profile-page')profileContent();window.showUndoToast('Fotolöschung zurückgenommen.');}catch(error){window.showUndoToast('Rückgängig ist nicht mehr möglich: '+String(error.message||error));}});
+      const picture=viewerRows[viewerIndex];if(!picture)return;if(!confirm('Dieses Foto in den Papierkorb verschieben? Original und Zuordnung bleiben wiederherstellbar.'))return;
+      const removed=window.TrashUI?window.TrashUI.remove('photo',picture.id,picture):window.removeRecordWithUndo?.('photo',picture.id);if(!removed)return;
+      photoViewer.close();if(currentPage==='customer-profile-page')profileContent();
     };
     image.addEventListener('dblclick',()=>{viewerScale=viewerScale>1?1:2.5;viewerX=viewerY=0;applyViewerTransform();});
     image.addEventListener('wheel',event=>{event.preventDefault();viewerScale=Math.min(5,Math.max(1,viewerScale*(event.deltaY<0?1.2:0.84)));if(viewerScale===1)viewerX=viewerY=0;applyViewerTransform();},{passive:false});

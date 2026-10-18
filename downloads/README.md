@@ -1,3 +1,21 @@
+# Original-Prüfkandidat 1.49.3 / 72
+
+[APK über Drive herunterladen](https://drive.google.com/file/d/1zS-mRZZV5V20mq0404CbqMvfcovXbO6B/view) (verbundenes Google-Konto erforderlich) · [APK im privaten Repository](Haus-Garten-1.49.3-72-original-update-kandidat.apk?raw=true)
+
+Vereinfachter Sync mit einem Abgleichknopf, klaren Übertragungs-/Prüfzuständen, konkreter Fehlerdiagnose und begrenzten Wiederholungen. Fotos in kleinen Abschnitten. Gemeinsamer Papierkorb mit Rückgängig/Wiederherstellen, auch für Angebotsentwürfe und Leistungsbausteine. Verknüpfte Daten und festgeschriebene Belege bleiben geschützt; Originaldateien werden erhalten. Foto-Rollen- und MCP-Schemafehler korrigiert.
+
+Paket `at.hausgarten.service`, 1.49.3 / 72, **34.410.051 Bytes**. Originalzertifikat, v2/v3, ein Signer, 16-KiB-Ausrichtung und Cleanup PASS. 403 Assets/Privacy PASS; 266 Python-Tests, 731 JVM-Vergleiche, 25 Browser-Suiten final bestanden. Native Testquellen nur kompiliert.
+
+**Geräte-/Drive-Abnahme offen.** Live weiterhin 71 und unverändert 38 offene Aktionen; die neue Implementierung ist noch nicht installiert. Installation erst nach vollständiger Sicherung und ausdrücklicher Freigabe. Keine Deinstallation oder App-Datenlöschung. Eine gültige Originalsignatur allein beweist weder Updatefähigkeit noch Datenerhalt.
+
+SHA256: `158fc4cf676ae0e42ef45d661d5575fec2ababd1911177db5a4dc259457d18a8`.
+
+[Zentraler Status, Löschregeln und offene Abnahmen](../CODEX-STATUS.md) · [Prüfsummen](SHA256SUMS)
+
+## Erhaltener vorheriger Cloud-Kandidat 1.49.2 / 71
+
+Die nachfolgenden Zustandsangaben sind historische Nachweise.
+
 # Original-Prüfkandidat 1.49.2 / 71
 
 [APK über Drive herunterladen](https://drive.google.com/file/d/1sSRrb97nKbYlh_SEKetxAUkGMLIeiCqF/view) (verbundenes Google-Konto erforderlich) · [APK im privaten Repository](Haus-Garten-1.49.2-71-original-update-kandidat.apk?raw=true)

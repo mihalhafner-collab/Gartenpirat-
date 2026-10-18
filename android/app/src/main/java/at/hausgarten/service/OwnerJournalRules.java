@@ -12,7 +12,7 @@ final class OwnerJournalRules {
     static JSONObject findOrNull(JSONArray rows,String id)throws Exception{for(int i=0;rows!=null&&i<rows.length();i++)if(id.equals(rows.getJSONObject(i).optString("id")))return rows.getJSONObject(i);return null;}
     static String version(JSONObject row)throws Exception{
         if(row==null)return PixelMcpWriteTools.hash(JSONObject.NULL);
-        if(row.has("id")){if(row.has("offer_number")||row.has("pricing_mode"))return PixelMcpWriteTools.hash(DriveJournalRules.clean(row));String kind=row.has("name")?"customer":row.has("activity")?"worklog":row.has("title")?"order":row.has("invoice_number")||row.has("positions")||row.has("issued_at")?"invoice":"photo";return PixelMcpWriteTools.hash(DriveJournalRules.guard(row,kind));}
+        if(row.has("id")){if(row.has("offer_number")||row.has("pricing_mode")||(row.has("unit")&&row.has("default_price")))return PixelMcpWriteTools.hash(DriveJournalRules.clean(row));String kind=row.has("name")?"customer":row.has("activity")?"worklog":row.has("title")?"order":row.has("invoice_number")||row.has("positions")||row.has("issued_at")?"invoice":"photo";return PixelMcpWriteTools.hash(DriveJournalRules.guard(row,kind));}
         return PixelMcpWriteTools.hash(DriveJournalRules.clean(row));
     }
     static void checkHash(JSONObject row,String expected)throws Exception{if(!version(row).equals(expected))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Der geprüfte Stand hat sich verändert. Beide Varianten bleiben erhalten.");}
@@ -36,8 +36,8 @@ final class OwnerJournalRules {
             }
             if(prior==null||!target.equals(prior.optString("client_id"))||!OrderReviewRules.actionHash(prior).equals(p.getString("expected_action_hash"))||resolved.has(target))throw new PixelMcpWriteTools.Rejected("ACTION_ID_CONFLICT","Die ursprüngliche Konfliktaktion wurde verändert, ist nicht mehr nachweisbar oder bereits geprüft.");
             if(embedded!=null&&!OrderReviewRules.actionHash(embedded).equals(p.getString("expected_action_hash")))throw new PixelMcpWriteTools.Rejected("ACTION_ID_CONFLICT","Der eingebettete Konfliktbeleg stimmt nicht mit dem geprüften Hash überein.");
-            for(String errorKey:new String[]{"sync_errors","drive_journal_errors"}){JSONArray failures=snapshot.optJSONArray(errorKey);for(int i=0;failures!=null&&i<failures.length();i++){JSONObject failure=failures.getJSONObject(i);if(target.equals(failure.optString("client_id"))&&!Arrays.asList("WRITE_CONFLICT","DELETE_REVIEW_REQUIRED").contains(failure.optString("code")))throw new PixelMcpWriteTools.Rejected("CONFLICT_RESOLUTION_NOT_AVAILABLE","Infrastrukturfehler darf nicht als Geschäftsentscheidung quittiert werden.");}}
-            boolean legacyDelete="delete".equals(prior.getString("kind"));String entity=legacyDelete?prior.getJSONObject("payload").getString("entity"):prior.getString("kind"),collection=DriveJournalRules.collection(entity);if(collection.isEmpty())throw new IllegalArgumentException("Diesen Vorgang fachlich separat prüfen.");
+            for(String errorKey:new String[]{"sync_errors","drive_journal_errors"}){JSONArray failures=snapshot.optJSONArray(errorKey);for(int i=0;failures!=null&&i<failures.length();i++){JSONObject failure=failures.getJSONObject(i);if(target.equals(failure.optString("client_id"))&&!Arrays.asList("WRITE_CONFLICT","DELETE_REVIEW_REQUIRED").contains(failure.optString("code"))&&!("keep_current".equals(p.optString("resolution"))&&DeletionRules.cancelable(prior,failure.optString("code"))))throw new PixelMcpWriteTools.Rejected("CONFLICT_RESOLUTION_NOT_AVAILABLE","Infrastrukturfehler darf nicht als Geschäftsentscheidung quittiert werden.");}}
+            boolean legacyDelete="delete".equals(prior.getString("kind")),archiveCancel="archive".equals(prior.getString("kind"));if(archiveCancel&&!"keep_current".equals(p.optString("resolution")))throw new PixelMcpWriteTools.Rejected("CONFLICT_RESOLUTION_NOT_AVAILABLE","Löschauftrag nur zurücknehmen oder anhand des aktuellen Stands neu prüfen.");String entity=(legacyDelete||archiveCancel)?prior.getJSONObject("payload").getString("entity"):prior.getString("kind"),collection=DriveJournalRules.collection(entity);if(collection.isEmpty())throw new IllegalArgumentException("Diesen Vorgang fachlich separat prüfen.");
             JSONObject patch=prior.getJSONObject("payload"),current=findOrNull(snapshot.getJSONArray(collection),patch.optString("id"));checkHash(current,p.getString("expected_current_hash"));
             JSONObject history=snapshot.optJSONObject("owner_conflict_history");if(history==null)history=new JSONObject();
             if(!p.optString("resolution").equals("keep_current")){
@@ -61,7 +61,7 @@ final class OwnerJournalRules {
         if(kind.equals("restore")){
             JSONObject saved=archive.optJSONObject(key);if(saved==null)throw new IllegalArgumentException("Archiveintrag fehlt.");checkHash(saved,p.getString("expected_record_hash"));
             JSONObject original=saved.getJSONObject("record");
-            if(entity.equals("customer")){if(current==null||current.optInt("active",1)!=0)throw new IllegalArgumentException("Der archivierte Kunde wurde inzwischen geändert.");checkHash(current,saved.getString("archived_record_hash"));}
+            if(entity.equals("customer")||entity.equals("service_template")){if(current==null||(current.optBoolean("active",true)&&current.optInt("active",1)!=0))throw new IllegalArgumentException("Der archivierte Kunde wurde inzwischen geändert.");checkHash(current,saved.getString("archived_record_hash"));}
             else if(current!=null)throw new IllegalArgumentException("Die Original-ID ist bereits belegt.");
             if(!entity.equals("invoice"))DriveJournalRules.validateChange(entity,original,null,snapshot);
             replace(snapshot,collection,id,original);archive.remove(key);return;
@@ -70,12 +70,18 @@ final class OwnerJournalRules {
         validateArchive(entity,current,snapshot);
         if(archive.has(key))throw new IllegalArgumentException("Für diese ID besteht bereits ein Archivstand.");
         JSONObject saved=new JSONObject().put("record",current).put("archived_at",action.optString("created_at")).put("archive_action",action.getString("client_id"));
-        if(entity.equals("customer")){JSONObject inactive=new JSONObject(current.toString()).put("active",0).put("updated_at",p.getString("updated_at"));replace(snapshot,collection,id,inactive);saved.put("archived_record_hash",version(inactive));}
+        if(p.has("deletion_policy"))saved.put("deletion_policy",p.getString("deletion_policy"));
+        if(entity.equals("customer")||entity.equals("service_template")){JSONObject inactive=new JSONObject(current.toString()).put("active",entity.equals("customer")?0:false).put("updated_at",p.getString("updated_at"));replace(snapshot,collection,id,inactive);saved.put("archived_record_hash",version(inactive));}
         else replace(snapshot,collection,id,null);
         archive.put(key,saved);
     }
     static void validateArchive(String entity,JSONObject row,JSONObject snapshot)throws Exception{
-        if(entity.equals("customer"))return; // Keep the row and all historic references.
+        if(entity.equals("customer")){
+            for(String group:new String[]{"customers","orders","worklogs"}){JSONArray records=snapshot.optJSONArray(group);for(int i=0;records!=null&&i<records.length();i++){JSONObject r=records.getJSONObject(i);String key=group.equals("customers")?"default_billing_customer_id":"billing_customer_id";if(row.getString("id").equals(r.optString(key))&&!row.getString("id").equals(r.optString(group.equals("customers")?"id":"customer_id")))throw new IllegalArgumentException("Dieser Kunde wird als Rechnungsempfänger verwendet. Zuerst die Abrechnungszuordnungen prüfen.");}}
+            return; // Keep the row and all historic references.
+        }
+        if(entity.equals("offer")&&!"draft".equals(row.optString("status")))throw new IllegalArgumentException("Finalisierte oder angenommene Angebote bleiben als Beleg erhalten.");
+        if(entity.equals("service_template"))return; // Inactive, never remove historical price references.
         String id=row.getString("id");
         if(entity.equals("invoice"))EntityProtectionRules.validateInvoiceDelete(row);
         for(String collection:new String[]{"orders","worklogs","photos","invoices","offers"}){

@@ -92,7 +92,7 @@ final class DriveProviderAcceptance {
         }});
         qa.probe("Android provider six deletes and one customer conflict stay protected across seven retries",()->{try(Setup s=new Setup(qa)){
             for(int i=0;i<7;i++){android.content.ContentValues row=new android.content.ContentValues();row.put("id","qa-review-"+i);row.put("kind",i<6?"delete":"customer");row.put("payload",(i<6?new JSONObject().put("entity","worklog").put("id","qa-missing-"+i):new JSONObject().put("id","qa_c1").put("name","QA altered").put("_mcp_create",true)).toString());row.put("created_at","2026-10-13T01:00:0"+i+"Z");s.store.getWritableDatabase().insertOrThrow("pending",null,row);}
-            for(int i=0;i<7;i++)qa.yes(!s.sync().getBoolean("ok"));
+            for(int i=0;i<7;i++){JSONObject reviewed=s.sync();qa.yes(reviewed.getBoolean("ok")&&reviewed.getBoolean("needs_review"));}
             JSONObject state=s.store.getState(),q=state.getJSONObject("sync_queue");qa.yes(q.getInt("total")==7&&q.getInt("review")==7&&q.getInt("pending_upload")==0);
             qa.yes(state.getJSONObject("master").getJSONArray("customers").getJSONObject(0).getString("name").equals("QA Kunde"));qa.yes(s.files.readActions(MOBILE).length()==7);
         }});

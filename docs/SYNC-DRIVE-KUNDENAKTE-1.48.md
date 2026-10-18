@@ -1,4 +1,4 @@
-> Aktueller Auftrag: [CODEX-STATUS.md](../CODEX-STATUS.md). Der folgende frühere Rollout mit Web-/Laptop-Prozessor ist historisch und aufgehoben. Aktuelle native Fortsetzung: Abschnitt „Cloud-only 1.49.2 / 71“ am Ende. Keine Installation ohne Sicherung und ausdrückliche Freigabe.
+> Aktueller Auftrag: [CODEX-STATUS.md](../CODEX-STATUS.md). Der folgende frühere Rollout mit Web-/Laptop-Prozessor ist historisch und aufgehoben. Aktuelle Fortsetzung: [Sync und Papierkorb 1.49.3/72](../CODEX-STATUS.md), Einträge 9–12; installierter Pixel weiterhin 71. Keine Installation ohne Sicherung und ausdrückliche Freigabe.
 
 # Drive-Abgleich und Kundenakte – 1.48.0 / 68
 
