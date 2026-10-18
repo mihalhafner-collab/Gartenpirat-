@@ -487,6 +487,15 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
     for action in sync_protocol.ordered(sorted(actions.values(),key=created)):
         action_id=str(action['client_id']);kind=action['kind'];filename=action_files[action_id]
         if action_id in accepted or action_id in resolved:continue
+        if kind=='conflict_resolution':
+            target=str(action.get('payload',{}).get('client_id') or '')
+            if target and (target in accepted or target in resolved):
+                # The target was already applied or resolved. This later control-plane
+                # decision is obsolete and must not create a second business conflict.
+                ledger['applied'][action_id]=sync_review.digest(action)
+                write_json_atomic(ledger_path,ledger)
+                accepted.add(action_id);write_json_atomic(receipts_path,sorted(accepted));imported+=1
+                continue
         if kind=='delete' and action_id in held:continue
         if kind=='delete':
             failed.append({'file':filename,'client_id':action_id,'kind':kind,'code':'DELETE_REVIEW_REQUIRED','error':'Löschänderung bleibt zur gesonderten Prüfung erhalten. Keine Drive-Daten automatisch gelöscht.'});continue
