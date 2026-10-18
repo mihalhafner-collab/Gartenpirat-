@@ -89,6 +89,12 @@ final class PixelMcpOwnerTools {
     static void validate(String name,JSONObject args)throws Exception{McpSchema.validate(args,schema(name));}
     static JSONObject photoHash(JSONObject row)throws Exception{return DriveJournalRules.guard(row,"photo");}
     private static boolean aHasClient(JSONObject args,JSONObject row){return args.has("client_id")&&!args.optString("client_id").equals(row.optString("client_id"));}
+    private static boolean manualResolutionAvailable(JSONObject error,JSONObject action,boolean legacy){
+        if(action==null||legacy)return false;
+        String code=error.optString("code"),kind=action.optString("kind");
+        if(!Arrays.asList("WRITE_CONFLICT","DELETE_REVIEW_REQUIRED").contains(code))return false;
+        return "delete".equals(kind)||!DriveJournalRules.collection(kind).isEmpty();
+    }
     static JSONObject conflicts(JSONObject state,JSONObject args)throws Exception{
         JSONObject master=state.getJSONObject("master"),resolved=master.optJSONObject("drive_resolved_actions");Map<String,JSONObject> failures=new LinkedHashMap<>();
         for(String key:new String[]{"sync_errors","drive_journal_errors"}){JSONArray a=master.optJSONArray(key);for(int i=0;a!=null&&i<a.length();i++){JSONObject e=a.getJSONObject(i);if(resolved==null||!resolved.has(e.optString("client_id")))failures.put(e.optString("client_id"),e);}}
@@ -99,7 +105,12 @@ final class PixelMcpOwnerTools {
             if(aHasClient(args,e))continue;
             if(at++<offset||out.length()>=limit)continue;JSONObject action=null;JSONArray pending=state.optJSONArray("pending");for(int i=0;pending!=null&&i<pending.length();i++)if(e.optString("client_id").equals(pending.getJSONObject(i).optString("client_id")))action=pending.getJSONObject(i);
             boolean legacy=DriveJournalRules.ids(master.optJSONArray("drive_legacy_photo_review_ids")).contains(e.optString("client_id"));
-            JSONObject row=new JSONObject(e.toString()).put("resolution_available",action!=null&&!legacy&&!"ACTION_ID_CONFLICT".equals(e.optString("code")));if(legacy){row.put("review_reason","legacy_inline_photo_requires_original_review");out.put(row);continue;}if(action!=null){String kind=action.optString("kind");if(kind.equals("delete"))kind=action.getJSONObject("payload").optString("entity");String group=DriveJournalRules.collection(kind);JSONObject current=null;JSONArray data=master.optJSONArray(group);for(int i=0;data!=null&&i<data.length();i++)if(action.getJSONObject("payload").optString("id").equals(data.getJSONObject(i).optString("id")))current=data.getJSONObject(i);
+            boolean resolutionAvailable=manualResolutionAvailable(e,action,legacy);
+            JSONObject row=new JSONObject(e.toString()).put("resolution_available",resolutionAvailable);
+            if(legacy){row.put("review_reason","legacy_inline_photo_requires_original_review");out.put(row);continue;}
+            if("SYNC_COMPONENT_UPDATE_REQUIRED".equals(e.optString("code")))row.put("review_reason","sync_component_update_required").put("recommended_action","update_sync_component");
+            else if(action!=null&&!resolutionAvailable)row.put("review_reason","control_or_infrastructure_action_not_manually_resolvable");
+            if(action!=null){String kind=action.optString("kind");if(kind.equals("delete"))kind=action.getJSONObject("payload").optString("entity");String group=DriveJournalRules.collection(kind);JSONObject current=null;JSONArray data=master.optJSONArray(group);for(int i=0;data!=null&&i<data.length();i++)if(action.getJSONObject("payload").optString("id").equals(data.getJSONObject(i).optString("id")))current=data.getJSONObject(i);
                 row.put("action",action).put("action_hash",OrderReviewRules.actionHash(action)).put("current",current==null?JSONObject.NULL:current).put("current_hash",OwnerJournalRules.version(current));}
             out.put(row);
         }
