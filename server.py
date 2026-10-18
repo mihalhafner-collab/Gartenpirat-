@@ -144,6 +144,8 @@ def save_photo(data: dict) -> dict:
                     metadata["storage_name"], metadata["role"],
                 ),
             )
+            for key in ('session_id','capture_time','width','height','original_width','original_height','original_byte_size','optimization','thumbnail_storage_name','thumbnail_sha256'):
+                if key in data:database.execute('UPDATE photos SET '+key+'=? WHERE id=?',(data[key],identifier))
             database.execute("UPDATE photos SET updated_at=? WHERE id=?",(data.get('updated_at') or db.now(),identifier))
             saved = db.one(database.execute("SELECT * FROM photos WHERE id=?", (identifier,)))
     except Exception:
@@ -205,14 +207,18 @@ def _create_backup(folder="") -> dict:
             for name in ('drive-receipts.json','api-receipts.json','drive-held-deletions.json','drive-invoice-rejections.json'):
                 control = db.DATA_DIR / name
                 if control.is_file(): archive.write(control, name)
-            for photo in db.PHOTO_DIR.iterdir():
-                if photo.is_file():
-                    archive.write(photo, f"photos/{photo.name}")
+            for base, prefix in ((db.PHOTO_DIR, 'photos'), (db.DATA_DIR / 'documents', 'documents')):
+                if base.is_dir():
+                    for media in sorted(base.rglob('*')):
+                        if media.is_symlink():
+                            raise ValueError('Sicherung enthält einen ungeprüften Dateiverweis.')
+                        if media.is_file():
+                            archive.write(media, str(Path(prefix) / media.relative_to(base)))
     return {"ok": True, "path": str(target), "size": target.stat().st_size}
 
 
 DRIVE_SYNC_LOCK = threading.RLock()
-SYNC_CAPABILITIES = {"owner_journal_v2":True,"invoice_compare_and_save":True,"photo_compare_and_save":True,"durable_action_receipts":True,"worklog_compare_and_save": True, "entity_compare_and_save": True,
+SYNC_CAPABILITIES = {"offers_v1":True,"service_catalog_v1":True,"owner_journal_v2":True,"invoice_compare_and_save":True,"photo_compare_and_save":True,"durable_action_receipts":True,"worklog_compare_and_save": True, "entity_compare_and_save": True,
                      "customer_custom_fields_compare_and_save": True, "billing_relations": True,
                      "photo_attachments_v1": True}
 
@@ -282,6 +288,9 @@ def apply_sync_action(action, attachment_root: Path | None = None):
     if not isinstance(action, dict) or not isinstance(action.get('payload', {}), dict):
         raise ValueError('Ungültiger Eintrag im Abgleichpaket.')
     kind = action.get('kind')
+    if kind in ('offer','service_template','offer_finalize','offer_convert'):
+        import offers
+        return offers.apply(action,attachment_root)
     if kind=='owner_invoice_issue':
         if not isinstance(action.get('payload',{}).get('_expected_invoice'),dict):raise ValueError('Vergleichsstand des Rechnungsabschlusses fehlt.')
         return invoicing.issue(str(action['payload'].get('id','')), action['payload'].get('confirmed') is True,action['payload']['_expected_invoice'],action['payload'].get('_expected_worklogs'))
@@ -365,8 +374,8 @@ def guard_drive_export(previous, candidate, imported_records):
     if not previous:
         return
     numeric = {'hours', 'break_minutes', 'kilometers', 'billed', 'customer_visible', 'active', 'garden_area', 'total', 'tax_rate'}
-    for collection in ('customers', 'orders', 'worklogs', 'invoices', 'photos'):
-        rows = previous.get(collection)
+    for collection in ('customers', 'orders', 'worklogs', 'invoices', 'photos', 'offers', 'service_catalog'):
+        rows = previous.get(collection, [] if collection in ("offers","service_catalog") else None)
         if not isinstance(rows, list) or any(not isinstance(row, dict) or not row.get('id') for row in rows):
             raise ValueError('Drive-Gesamtstand ist unvollständig. Kein Export eines Ersatzbestandes.')
         if len({row['id'] for row in rows}) != len(rows):
@@ -491,7 +500,7 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
             owner_journal.run_action(action, drive_photos)
             imported_records.update(owner_journal.verified_effects(action))
             if kind=='conflict_resolution':resolved.update(owner_journal.snapshot_metadata().get('drive_resolved_actions',{}))
-            collection={'customer':'customers','order':'orders','worklog':'worklogs','invoice':'invoices','photo':'photos'}.get(kind)
+            collection={'customer':'customers','order':'orders','worklog':'worklogs','invoice':'invoices','photo':'photos','offer':'offers','service_template':'service_catalog'}.get(kind)
             if collection and action['payload'].get('id'):imported_records.add((collection,action['payload']['id']))
             if refs:
                 for identifier in refs:resolved[identifier]=sync_review.digest(actions[identifier])
@@ -518,6 +527,9 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
         "worklogs": db.list_worklogs(),
         "invoices": db.list_invoices(),
         "photos": db.mobile_photo_thumbnails(db.list_photos()),
+        "offers": __import__("offers").list_records(),
+        "service_catalog": __import__("offers").list_records("service_template"),
+        "schema_version": 2,
         "dashboard": db.dashboard(),
         "accepted_ids": sorted(accepted),
         "drive_resolved_actions": dict(resolved),
@@ -533,7 +545,12 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
     for invoice in snapshot['invoices']:
         if invoice.get('issued_at'):
             invoice['pdf_sha256']=hashlib.sha256(invoicing.issued_pdf(invoice['id'])).hexdigest()
-            invoice['pdf_base64'] = base64.b64encode(invoicing.issued_pdf(invoice['id'])).decode('ascii')
+            pdf=invoicing.issued_pdf(invoice['id']);invoice.pop('pdf_base64',None)
+            invoice['pdf_storage_name']=invoice['pdf_sha256']+'.pdf';invoice['pdf_byte_size']=len(pdf);invoice['document_id']='invoice:'+invoice['id']
+            documents=destination/'HausGarten-Dokumente';documents.mkdir(exist_ok=True);document=documents/invoice['pdf_storage_name']
+            if document.exists() and hashlib.sha256(document.read_bytes()).hexdigest()!=invoice['pdf_sha256']:raise ValueError('Original-PDF im Dokumentordner weicht ab. Keine Überschreibung.')
+            if not document.exists():
+                with document.open('xb') as output:output.write(pdf)
             archive_folder = destination / 'Rechnungen' / str(invoice['invoice_date'][:4])
             archive_folder.mkdir(parents=True, exist_ok=True)
             archive_name = re.sub(r'[^A-Za-z0-9_-]', '-', invoice['invoice_number']) + '.pdf'
@@ -573,6 +590,18 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
                 raise
         except Exception as error:
             failed.append({'file':name,'photo_id':photo.get('id'),'error':str(error)})
+    for photo in snapshot['photos']:
+        name=photo.get('thumbnail_storage_name','')
+        if not name:continue
+        source=db.PHOTO_DIR/'thumbnails'/name;target=drive_photos/name
+        try:
+            if not re.fullmatch(r'[0-9a-f]{64}\.jpg',name):raise ValueError('Ungültige Vorschaureferenz.')
+            raw=source.read_bytes()
+            if len(raw)>65536 or hashlib.sha256(raw).hexdigest()+'.jpg'!=name:raise ValueError('Vorschau-Prüfsumme weicht ab.')
+            if target.exists() and hashlib.sha256(target.read_bytes()).hexdigest()+'.jpg'!=name:raise ValueError('Drive-Vorschau wurde verändert.')
+            if not target.exists():
+                with target.open('xb') as output:output.write(raw)
+        except (OSError,ValueError) as error:failed.append({'file':name,'photo_id':photo['id'],'error':str(error)})
     temporary = destination / "HausGarten-Laptop.tmp"
     target = destination / "HausGarten-Laptop.json"
     # Include failures discovered during archive/photo export, not only import.
@@ -717,6 +746,10 @@ class Handler(SimpleHTTPRequestHandler):
                 filters = {key: query.get(key, [None])[0] for key in ("customer_id", "order_id", "work_date")}
                 filters["unbilled"] = query.get("unbilled", [""])[0] == "1"
                 return self.send_json(db.list_worklogs(filters))
+            if path == "/api/offers":
+                return self.send_json(__import__("offers").list_records())
+            if path == "/api/service-catalog":
+                return self.send_json(__import__("offers").list_records("service_template"))
             if path == "/api/invoices":
                 return self.send_json(db.list_invoices(query.get("customer_id", [None])[0]))
             if path.startswith('/api/invoice-pdf/') or path.startswith('/api/invoice-preview/'):
@@ -776,6 +809,7 @@ class Handler(SimpleHTTPRequestHandler):
                 "/api/orders": db.save_order,
                 "/api/worklogs": db.save_worklog,
                 "/api/invoices": db.save_invoice,
+                "/api/offers": __import__("offers").save,
                 "/api/photos": save_photo,
             }
             if path in direct:

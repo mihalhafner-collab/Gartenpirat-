@@ -5,7 +5,7 @@
   let studio=null,original={},customerReturn=null,saving=false;
   const invoices=()=>merged('invoices','invoice');
   const money=n=>Number(n).toLocaleString('de-AT',{style:'currency',currency:'EUR'});
-  const issuer=()=>state.master?.invoice_issuer||{};
+  const issuer=()=>({...state.master?.invoice_issuer,...state.master?.business_settings});
   const toast=message=>{let box=document.getElementById('invoice-toast');if(!box){box=document.createElement('p');box.id='invoice-toast';box.style.cssText='position:fixed;bottom:95px;left:14px;right:14px;z-index:100;background:#183c2c;color:white;padding:15px;border-radius:12px;pointer-events:none';box.setAttribute('role','status');document.body.append(box);}box.textContent=message;box.hidden=false;clearTimeout(toast.timer);toast.timer=setTimeout(()=>box.hidden=true,6500);};
   function close() {
     if(saving)return false;
@@ -39,7 +39,7 @@
       try {
         const payload=studio.validate();
         if(!event.currentTarget.checkValidity()){studio.revealInvalid();return;}
-        if(original.id){payload._edit_base=original;payload._edit_changes=Object.fromEntries(Object.entries(payload).filter(([key,value])=>['customer_id','order_id','invoice_date','service_start','service_end','payment_days','notes','positions','domestic_service_confirmed','header_text','footer_text'].includes(key)&&JSON.stringify(value)!==JSON.stringify(original[key])));}
+        if(original.id){payload._edit_base=original;payload._edit_changes=Object.fromEntries(Object.entries(payload).filter(([key,value])=>['customer_id','order_id','invoice_date','service_start','service_end','payment_days','notes','positions','domestic_service_confirmed','header_text','footer_text','tax_mode','recipient_type','recipient_vat_id'].includes(key)&&JSON.stringify(value)!==JSON.stringify(original[key])));}
         payload.invoice_number ||= 'Entwurf-Pixel-'+Date.now();
         saving=true;studio.setBusy(true);dialog.querySelector('[type="submit"]').disabled=true;
         const result=AndroidData.saveInvoice(JSON.stringify(payload));
@@ -60,7 +60,7 @@
   window.openInvoiceRecord=function(id){
     const invoice=invoices().find(x=>x.id===id);if(!invoice){toast('Diese Rechnung ist im lokalen Datenstand nicht vorhanden. Bitte abgleichen.');return;}
     if(invoice.status==='Entwurf'&&!invoice.sevdesk_id&&!invoice.issued_at){open(id);return;}
-    layout.innerHTML='<div class="invoice-preview-close"><strong>Rechnungsdetails</strong><button type="button" class="secondary">Schließen</button></div><section class="card"><h2>'+esc(invoice.invoice_number||'Rechnung')+'</h2><p>'+esc(customerName(invoice.customer_id))+'</p><dl><dt>Status</dt><dd>'+esc(invoice.status||'Nicht angegeben')+'</dd><dt>Rechnungsdatum</dt><dd>'+esc(worklogDateLabel(invoice.invoice_date))+'</dd><dt>Betrag</dt><dd>'+money(invoice.amount)+'</dd></dl>'+(invoice.notes?'<p>'+esc(invoice.notes)+'</p>':'')+(invoice.pdf_base64?'<button type="button" class="primary" data-share-mobile-invoice="'+esc(invoice.id)+'" data-channel="share">PDF teilen</button>':'<p class="sub">Kein Rechnungs-PDF im lokalen Datenstand. Eine neu erzeugte Vorschau wäre nicht das Original und wird deshalb nicht angezeigt.</p>')+'</section>';
+    layout.innerHTML='<div class="invoice-preview-close"><strong>Rechnungsdetails</strong><button type="button" class="secondary">Schließen</button></div><section class="card"><h2>'+esc(invoice.invoice_number||'Rechnung')+'</h2><p>'+esc(customerName(invoice.customer_id))+'</p><dl><dt>Status</dt><dd>'+esc(invoice.status||'Nicht angegeben')+'</dd><dt>Rechnungsdatum</dt><dd>'+esc(worklogDateLabel(invoice.invoice_date))+'</dd><dt>Betrag</dt><dd>'+money(invoice.amount)+'</dd></dl>'+(invoice.notes?'<p>'+esc(invoice.notes)+'</p>':'')+((invoice.pdf_base64||invoice.pdf_storage_name)?'<button type="button" class="primary" data-share-mobile-invoice="'+esc(invoice.id)+'" data-channel="share">PDF teilen</button>':'<p class="sub">Kein Rechnungs-PDF im lokalen Datenstand. Eine neu erzeugte Vorschau wäre nicht das Original und wird deshalb nicht angezeigt.</p>')+'</section>';
     layout.querySelector('.invoice-preview-close button').onclick=()=>layout.close();layout.showModal();
   };
   const button=document.createElement('button');button.className='primary';button.textContent='+ Rechnung erstellen';button.onclick=()=>open();
@@ -95,7 +95,7 @@
     if(preview){event.preventDefault();event.stopImmediatePropagation();showPreview(invoices().find(x=>x.id===preview.dataset.previewMobileInvoice));return;}
     const action=event.target.closest('[data-issue-mobile-invoice],[data-share-mobile-invoice]');
     if(action){event.preventDefault();event.stopImmediatePropagation();const id=action.dataset.issueMobileInvoice||action.dataset.shareMobileInvoice;const invoice=invoices().find(x=>x.id===id);if(!invoice)return;
-      if(action.dataset.shareMobileInvoice){if(!invoice.pdf_base64){alert('PDF fehlt noch. Bitte Drive abgleichen, nachdem der Nummernservice die Rechnung abgeschlossen hat.');return;}if(!confirm('Die Zustimmung des Kunden zur elektronischen Rechnung muss vorliegen. PDF jetzt übergeben? Empfänger und tatsächlichen Versand bestätigst du in der Versand-App.'))return;const result=AndroidData.shareInvoiceVia(JSON.stringify(invoice),action.dataset.channel||'share');if(String(result).startsWith('ERROR:'))alert(result);return;}
+      if(action.dataset.shareMobileInvoice){if(!invoice.pdf_base64&&!invoice.pdf_storage_name){alert('PDF fehlt noch. Bitte Drive abgleichen, nachdem der Nummernservice die Rechnung abgeschlossen hat.');return;}if(!confirm('Die Zustimmung des Kunden zur elektronischen Rechnung muss vorliegen. PDF jetzt übergeben? Empfänger und tatsächlichen Versand bestätigst du in der Versand-App.'))return;const result=AndroidData.shareInvoiceById?AndroidData.shareInvoiceById(invoice.id,action.dataset.channel||'share'):AndroidData.shareInvoiceVia(JSON.stringify(invoice),action.dataset.channel||'share');if(String(result).startsWith('ERROR:'))alert(result);return;}
       if(!invoice.domestic_service_confirmed||!invoice.service_start||!invoice.service_end){alert('Bitte Leistungszeitraum und Inlandsbestätigung im Entwurf ergänzen.');return;}
       if(confirm('Rechnung mit '+money(invoice.amount)+' verbindlich abschließen? Der Nummernservice prüft Pflichtangaben und schreibt Nummer sowie PDF fest. Danach nicht mehr direkt bearbeitbar. Nicht parallel in sevDesk nummerieren. Nummernservice und Drive-Abgleich müssen verfügbar sein.')){const result=AndroidData.requestInvoiceIssue(id);if(String(result).startsWith('ERROR:'))alert(result);else{action.disabled=true;action.textContent='Abschluss vorgemerkt';toast('Abschluss für den Nummernservice vorgemerkt. Nach dessen Abgleich erneut synchronisieren.');}}
       return;

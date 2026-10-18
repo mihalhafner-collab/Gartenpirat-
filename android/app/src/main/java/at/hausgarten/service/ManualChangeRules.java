@@ -13,7 +13,7 @@ final class ManualChangeRules {
         DriveJournalRules.compare(DriveJournalRules.guard(base, kind), current);
         JSONObject result = DriveJournalRules.clean(current);
         JSONObject changes = incoming.getJSONObject("_edit_changes");
-        Set<String> allowed = new HashSet<>(Arrays.asList(kind.equals("customer")?PixelMcpEntityWriteTools.CUSTOMER_FIELDS:kind.equals("order")?PixelMcpEntityWriteTools.ORDER_FIELDS:kind.equals("invoice")?new String[]{"customer_id","order_id","invoice_date","service_start","service_end","payment_days","notes","positions","domestic_service_confirmed","header_text","footer_text"}:PixelMcpWriteTools.BASE_FIELDS));
+        Set<String> allowed = new HashSet<>(Arrays.asList(kind.equals("customer")?PixelMcpEntityWriteTools.CUSTOMER_FIELDS:kind.equals("order")?PixelMcpEntityWriteTools.ORDER_FIELDS:kind.equals("invoice")?new String[]{"customer_id","order_id","invoice_date","service_start","service_end","payment_days","notes","positions","domestic_service_confirmed","header_text","footer_text","tax_mode","recipient_type","recipient_vat_id"}:PixelMcpWriteTools.BASE_FIELDS));
         allowed.remove("id"); allowed.remove("updated_at");
         for (Iterator<String> keys = changes.keys(); keys.hasNext();) {
             String key = keys.next();

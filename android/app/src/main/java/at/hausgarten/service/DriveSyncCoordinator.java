@@ -49,12 +49,16 @@ final class DriveSyncCoordinator {
                     String text=files.read(doc.uri);JSONObject pkg=new JSONObject(text);JSONArray actions=pkg.getJSONArray("actions");
                     if(doc.name.equals(name)){originals.put(doc.id,text);own=DriveJournalRules.union(own,actions);}else others=DriveJournalRules.union(others,actions);
                 }
-                JSONArray pending=store.pendingActionsForDrive();
+                JSONArray allPending=store.pendingActionsForDrive(),pending=new JSONArray(),deferred=new JSONArray();
+                for(int i=0;i<allPending.length();i++){JSONObject a=allPending.getJSONObject(i);if(componentReady(snapshot,a))pending.put(a);else deferred.put(a);}
                 JSONArray attachments=store.pendingPhotoAttachments(pending);
                 Map<String,Exception> blockedPhotos=new HashMap<>();
+                Map<String,Exception> blockedDocuments=new HashMap<>();
+                for(int i=0;i<pending.length();i++){JSONObject a=pending.getJSONObject(i),p=a.getJSONObject("payload");if(!"offer_finalize".equals(a.optString("kind")))continue;
+                    try{files.writeDocumentVerified(p,new BusinessDocumentStore(context).read(p));}catch(Exception error){blockedDocuments.put(a.getString("client_id"),error);}}
                 for(int i=0;i<attachments.length();i++){
                     JSONObject metadata=attachments.getJSONObject(i);
-                    try{files.writePhotoVerified(metadata,store.photoAttachmentStore());store.markPhotoAttachmentTransferred(metadata.getString("photo_id"));}
+                    try{files.writePhotoVerified(metadata,store.photoAttachmentStore());files.writeThumbnailVerified(metadata,store.photoAttachmentStore());store.markPhotoAttachmentTransferred(metadata.getString("photo_id"));}
                     catch(Exception failure){blockedPhotos.put(metadata.getString("photo_id"),failure);}
                 }
                 JSONArray combined=DriveJournalRules.union(own,pending);
@@ -68,17 +72,19 @@ final class DriveSyncCoordinator {
                 Set<String> deliveredIds=DriveJournalRules.ids(new JSONArray());for(int i=0;i<delivered.length();i++)deliveredIds.add(delivered.getJSONObject(i).getString("client_id"));
                 for(int i=0;i<combined.length();i++)if(!deliveredIds.contains(combined.getJSONObject(i).getString("client_id")))throw new IOException("Drive hat nicht alle Änderungen zurückgegeben. Die lokale Warteschlange bleibt erhalten.");
                 String chat=files.read("HausGarten-ChatGPT.json");JSONArray chatActions=chat==null?new JSONArray():new JSONObject(chat).getJSONArray("actions");
-                JSONArray all=DriveJournalRules.union(others,chatActions,combined);
+                JSONArray deliveredActions=DriveJournalRules.union(others,chatActions,combined),all=DriveJournalRules.union(deliveredActions,deferred);
                 JSONArray ready=new JSONArray(),mediaErrors=new JSONArray();
                 for(int i=0;i<all.length();i++){JSONObject a=all.getJSONObject(i);Exception failure="photo".equals(a.optString("kind"))?blockedPhotos.get(a.getJSONObject("payload").optString("id")):null;
-                    if(failure==null)ready.put(a);else mediaErrors.put(new JSONObject().put("client_id",a.getString("client_id")).put("kind","photo").put("code",failure instanceof DriveRestClient.Failure?((DriveRestClient.Failure)failure).code:"MEDIA_TRANSFER_PENDING").put("error",friendly(failure)));}
+                    if(failure==null)failure=blockedDocuments.get(a.getString("client_id"));
+                    if(!componentReady(snapshot,a)){mediaErrors.put(new JSONObject().put("client_id",a.getString("client_id")).put("kind",a.getString("kind")).put("code","SYNC_COMPONENT_UPDATE_REQUIRED").put("error","Gemeinsame Web-/Drive-Verarbeitung für Angebote und Leistungskatalog zuerst aktualisieren. Lokale Aktion bleibt erhalten; andere Bereiche werden weiter abgeglichen."));continue;}
+                    if(failure==null)ready.put(a);else mediaErrors.put(new JSONObject().put("client_id",a.getString("client_id")).put("kind",a.getString("kind")).put("code",failure instanceof DriveRestClient.Failure?((DriveRestClient.Failure)failure).code:"MEDIA_TRANSFER_PENDING").put("error",friendly(failure)));}
                 JSONArray errors=DriveJournalRules.apply(snapshot,ready);
                 for(int i=0;i<mediaErrors.length();i++)errors.put(mediaErrors.getJSONObject(i));snapshot.put("drive_journal_errors",errors);
                 snapshot.put("drive_review_actions",DriveJournalRules.reviewActions(snapshot,all));
                 store.recordSnapshotPhotoAttachments(snapshot);
                 // Commit data before dropping acknowledged local queue rows. Crash retries are idempotent.
                 snapshot.put("sync_primary","pixel").put("drive_storage","snapshot_and_journals").put("drive_delivered_ids",new JSONArray(deliveredIds)).put("drive_publisher_id",device);
-                JSONObject publication=files.publish(snapshot,all);
+                JSONObject publication=files.publish(snapshot,deliveredActions);
                 if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("Abgleich unterbrochen; Warteschlange bleibt erhalten.");
                 if(files.cloudVerified())snapshot.put("drive_cloud_receipts",publication.getJSONObject("receipts")).put("drive_last_publication",publication.getString("publication_id"));
                 boolean mediaComplete=snapshot.optJSONArray("drive_media_errors")==null||snapshot.getJSONArray("drive_media_errors").length()==0;
@@ -99,7 +105,7 @@ final class DriveSyncCoordinator {
                 store.acknowledge(confirmed);
                 return new JSONObject().put("ok",errors.length()==0).put("state",store.getState()).put("accepted",confirmed.size()).put("chatgpt_imported",chatActions.length())
                     .put("journal_errors",errors).put("error",errors.length()==0?"":"Einige Änderungen benötigen Prüfung. Gültige Daten bleiben erhalten.")
-                    .put("confirmation_scope",files.cloudVerified()?"drive_server_manifest":"provider_readback").put("cloud_confirmed",files.cloudVerified()).put("duplicate_files",files.duplicates);
+                    .put("confirmation_scope",files.cloudVerified()?"drive_server_manifest":"provider_readback").put("cloud_confirmed",fully).put("duplicate_files",files.duplicates);
             }catch(Exception failure){int attempts=Math.min(8,prefs.getInt("drive_retry_count",0)+1);boolean needs=failure instanceof JSONException||failure instanceof IllegalArgumentException||failure instanceof SecurityException||(failure instanceof DriveRestClient.Failure&&((DriveRestClient.Failure)failure).userAction);
                 long delay=Math.max(failure instanceof DriveRestClient.Failure?((DriveRestClient.Failure)failure).retryAfter:0,Math.min(15*60*1000,15000L<<Math.min(attempts,6)));
                 prefs.edit().putBoolean("drive_sync_failed",true).putBoolean("drive_cloud_confirmed",false).putBoolean("drive_user_action_required",needs||attempts>=8).putLong("drive_next_retry",needs||attempts>=8?0:System.currentTimeMillis()+delay).putString("last_sync_attempt",java.time.Instant.now().toString()).putString("drive_last_error",friendly(failure)).putInt("drive_retry_count",attempts).commit();
@@ -108,6 +114,7 @@ final class DriveSyncCoordinator {
             finally{running=false;}
         }
     }
+    private static boolean componentReady(JSONObject snapshot,JSONObject action){return DriveJournalRules.componentReady(snapshot,action.optString("kind"));}
     static String friendly(Exception error){
         if(error instanceof DriveRestClient.Failure)return error.getMessage();
         if(error instanceof SecurityException)return "Drive-Zugriff fehlt oder ist abgelaufen. Bestehenden Ordner erneut auswählen; lokale Daten bleiben erhalten.";
@@ -119,6 +126,15 @@ final class DriveSyncCoordinator {
         SharedPreferences prefs=context.getSharedPreferences("haus_garten",0);String tree=prefs.getString("drive_tree_uri","");if(tree.isEmpty())return false;
         synchronized(LOCK){Files files=new Files(context,Uri.parse(tree),prefs);byte[] bytes=files.readPhotoVerified(metadata);local.storeExpected(bytes,metadata);return true;}
     }
+    static byte[] fetchDocument(Context context,JSONObject metadata)throws Exception{
+        synchronized(LOCK){if(DriveAccount.configured(context))try(MainActivity.LocalStore store=new MainActivity.LocalStore(context)){return new DriveDirectFiles(context,DriveAccount.client(context,store)).readDocumentVerified(metadata);}
+            SharedPreferences p=context.getSharedPreferences("haus_garten",0);String tree=p.getString("drive_tree_uri","");if(tree.isEmpty())throw new IOException("Dokument fehlt lokal und Drive ist nicht verbunden.");return new Files(context,Uri.parse(tree),p).readDocumentVerified(metadata);}
+    }
+    static byte[] fetchThumbnail(Context c,String name)throws Exception{
+        if(!name.matches("[0-9a-f]{64}\\.jpg"))throw new IOException("Ungültige Vorschaureferenz.");
+        synchronized(LOCK){if(DriveAccount.configured(c))try(MainActivity.LocalStore s=new MainActivity.LocalStore(c)){return new DriveDirectFiles(c,DriveAccount.client(c,s)).readThumbnailVerified(name);}
+            SharedPreferences p=c.getSharedPreferences("haus_garten",0);String tree=p.getString("drive_tree_uri","");if(tree.isEmpty())throw new IOException("Drive nicht verbunden.");return new Files(c,Uri.parse(tree),p).readThumbnailVerified(name);}
+    }
     static final class Doc{
         final String id,name;final Uri uri;final long modified;
         Doc(String id,String name,Uri uri,long modified){this.id=id;this.name=name;this.uri=uri;this.modified=modified;}
@@ -127,6 +143,22 @@ final class DriveSyncCoordinator {
         final Context context;final ContentResolver resolver;final Uri tree;final SharedPreferences prefs;int duplicates;
         Files(Context c,Uri t,SharedPreferences p){context=c;resolver=c.getContentResolver();tree=t;prefs=p;}
         boolean cloudVerified(){return false;}
+        private Uri documentDirectory(boolean create)throws Exception{
+            ArrayList<Doc> found=matches("HausGarten-Dokumente");if(found.size()>1)throw new IOException("Mehrere Dokumentordner; nichts überschrieben.");if(!found.isEmpty())return found.get(0).uri;if(!create)throw new IOException("Dokumentordner fehlt.");
+            Uri root=DocumentsContract.buildDocumentUriUsingTree(tree,DocumentsContract.getTreeDocumentId(tree));Uri d=DocumentsContract.createDocument(resolver,root,DocumentsContract.Document.MIME_TYPE_DIR,"HausGarten-Dokumente");if(d==null)throw new IOException("Dokumentordner nicht beschreibbar.");return d;
+        }
+        private void checkDocument(byte[] bytes,JSONObject m)throws Exception{
+            if(!m.optString("pdf_sha256").matches("[0-9a-f]{64}")||!m.optString("pdf_storage_name").equals(m.getString("pdf_sha256")+".pdf")||bytes.length!=m.optLong("pdf_byte_size")||!PhotoAttachmentStore.sha256(bytes).equals(m.getString("pdf_sha256"))||bytes.length<5||!new String(bytes,0,5,StandardCharsets.US_ASCII).equals("%PDF-"))throw new IOException("Dokument-Prüfsumme stimmt nicht überein.");
+        }
+        byte[] readDocumentVerified(JSONObject metadata)throws Exception{
+            String name=metadata.optString("pdf_storage_name");if(!name.matches("[0-9a-f]{64}\\.pdf"))throw new IOException("Ungültige Dokumentreferenz.");ArrayList<Doc> found=photoMatches(documentDirectory(false),name);if(found.size()!=1)throw new IOException("Original-PDF ist nicht eindeutig verfügbar.");byte[] bytes=readBytes(found.get(0).uri);checkDocument(bytes,metadata);return bytes;
+        }
+        void writeDocumentVerified(JSONObject metadata,byte[] bytes)throws Exception{
+            checkDocument(bytes,metadata);String name=metadata.getString("pdf_storage_name");Uri folder=documentDirectory(true);ArrayList<Doc> found=photoMatches(folder,name);if(!found.isEmpty()){if(found.size()!=1)throw new IOException("PDF-Original ist nicht eindeutig. Keine Datei verändert.");checkDocument(readBytes(found.get(0).uri),metadata);return;}
+            Uri temporary=DocumentsContract.createDocument(resolver,folder,"application/pdf",".uploading-"+UUID.randomUUID());if(temporary==null)throw new IOException("Dokument ist nicht beschreibbar.");boolean complete=false,publicationAttempted=false;Uri own=temporary;
+            try{try(OutputStream out=resolver.openOutputStream(temporary,"wt")){if(out==null)throw new IOException("Dokument ist nicht beschreibbar.");out.write(bytes);}checkDocument(readBytes(temporary),metadata);publicationAttempted=true;Uri finalUri=DocumentsContract.renameDocument(resolver,temporary,name);if(finalUri==null)throw new IOException("Dokument konnte nicht benannt werden.");own=finalUri;checkDocument(readDocumentVerified(metadata),metadata);complete=true;}
+            finally{if(!complete&&!publicationAttempted)try{DocumentsContract.deleteDocument(resolver,own);}catch(Exception ignored){}}
+        }
         JSONObject publish(JSONObject snapshot,JSONArray actions)throws Exception{return new JSONObject();}
         ArrayList<Doc> documents()throws Exception{
             ArrayList<Doc> out=new ArrayList<>();Uri children=DocumentsContract.buildChildDocumentsUriUsingTree(tree,DocumentsContract.getTreeDocumentId(tree));
@@ -162,17 +194,24 @@ final class DriveSyncCoordinator {
             if(bytes.length!=metadata.getLong("byte_size")||!PhotoAttachmentStore.sha256(bytes).equals(metadata.getString("content_sha256"))||!PhotoAttachmentStore.sniff(bytes).equals(PhotoAttachmentStore.canonicalMime(metadata.getString("mime_type"))))throw new IOException("Drive-Foto stimmt nicht mit Prüfsumme, Größe oder Dateityp überein.");
         }
         byte[] readPhotoVerified(JSONObject metadata)throws Exception{
-            String name=metadata.optString("storage_name");if(!PhotoAttachmentStore.canonicalName(name))throw new IllegalArgumentException("Ungültige Foto-Dateireferenz.");Uri folder=photoDirectory(false);if(folder==null)throw new IOException("Der Ordner HausGarten-Fotos fehlt. Das lokale Original bleibt erhalten.");ArrayList<Doc> found=photoMatches(folder,name);if(found.isEmpty())throw new IOException("Das Foto-Original fehlt in HausGarten-Fotos.");byte[] bytes=readBytes(found.get(0).uri);verifyBytes(bytes,metadata);return bytes;
+            String name=metadata.optString("storage_name");if(!PhotoAttachmentStore.canonicalName(name))throw new IllegalArgumentException("Ungültige Foto-Dateireferenz.");Uri folder=photoDirectory(false);if(folder==null)throw new IOException("Der Ordner HausGarten-Fotos fehlt. Das lokale Original bleibt erhalten.");ArrayList<Doc> found=photoMatches(folder,name);if(found.size()!=1)throw new IOException("Das Foto-Original fehlt oder ist nicht eindeutig in HausGarten-Fotos.");byte[] bytes=readBytes(found.get(0).uri);verifyBytes(bytes,metadata);return bytes;
         }
         void writePhotoVerified(JSONObject metadata,PhotoAttachmentStore local)throws Exception{
-            String name=metadata.optString("storage_name");if(!PhotoAttachmentStore.canonicalName(name))throw new IllegalArgumentException("Ungültige Foto-Dateireferenz.");byte[] bytes=local.read(metadata);verifyBytes(bytes,metadata);Uri folder=photoDirectory(true);ArrayList<Doc> found=photoMatches(folder,name);if(!found.isEmpty()){verifyBytes(readBytes(found.get(0).uri),metadata);return;}
+            String name=metadata.optString("storage_name");if(!PhotoAttachmentStore.canonicalName(name))throw new IllegalArgumentException("Ungültige Foto-Dateireferenz.");byte[] bytes=local.read(metadata);verifyBytes(bytes,metadata);Uri folder=photoDirectory(true);ArrayList<Doc> found=photoMatches(folder,name);if(!found.isEmpty()){if(found.size()!=1)throw new IOException("Foto-Original ist nicht eindeutig. Keine Datei verändert.");verifyBytes(readBytes(found.get(0).uri),metadata);return;}
             String temporaryName=".uploading-"+metadata.getString("content_sha256")+"-"+UUID.randomUUID();Uri temporary=DocumentsContract.createDocument(resolver,folder,metadata.getString("mime_type"),temporaryName);if(temporary==null)throw new IOException("Temporäre Drive-Fotodatei konnte nicht angelegt werden.");
-            Uri owned=temporary;boolean complete=false;try{
+            // Preserve a verified upload after any publish attempt, even if readback fails.
+            Uri owned=temporary;boolean complete=false,publicationAttempted=false;try{
                 try(OutputStream out=resolver.openOutputStream(temporary,"wt")){if(out==null)throw new IOException("Drive-Fotodatei ist nicht beschreibbar.");out.write(bytes);}
-                verifyBytes(readBytes(temporary),metadata);Uri finalUri=DocumentsContract.renameDocument(resolver,temporary,name);if(finalUri==null)throw new IOException("Drive-Fotodatei konnte nicht sicher benannt werden.");owned=finalUri;verifyBytes(readBytes(finalUri),metadata);
+                verifyBytes(readBytes(temporary),metadata);publicationAttempted=true;Uri finalUri=DocumentsContract.renameDocument(resolver,temporary,name);if(finalUri==null)throw new IOException("Drive-Fotodatei konnte nicht sicher benannt werden.");owned=finalUri;verifyBytes(readBytes(finalUri),metadata);
                 ArrayList<Doc> finalMatches=photoMatches(folder,name);if(finalMatches.size()!=1)throw new IOException("Drive hat das Foto-Original nicht eindeutig zurückgegeben.");verifyBytes(readBytes(finalMatches.get(0).uri),metadata);
                 complete=true;
-            }finally{if(!complete)try{DocumentsContract.deleteDocument(resolver,owned);}catch(Exception ignored){/* Only this newly-created document URI is eligible for cleanup. */}}
+            }finally{if(!complete&&!publicationAttempted)try{DocumentsContract.deleteDocument(resolver,owned);}catch(Exception ignored){/* Only this newly-created document URI is eligible for cleanup. */}}
+        }
+        byte[] readThumbnailVerified(String name)throws Exception{
+            if(!name.matches("[0-9a-f]{64}\\.jpg"))throw new IOException("Ungültige Vorschaureferenz.");Uri folder=photoDirectory(false);if(folder==null)throw new IOException("Fotoordner fehlt.");ArrayList<Doc> found=photoMatches(folder,name);if(found.size()!=1)throw new IOException("Vorschau fehlt.");byte[] raw=readBytes(found.get(0).uri);if(raw.length>65536||!name.equals(PhotoAttachmentStore.sha256(raw)+".jpg"))throw new IOException("Vorschau-Prüfsumme stimmt nicht überein.");return raw;
+        }
+        void writeThumbnailVerified(JSONObject metadata,PhotoAttachmentStore local)throws Exception{
+            String name=metadata.optString("thumbnail_storage_name");if(name.isEmpty())return;byte[] raw=local.readThumbnail(name);Uri folder=photoDirectory(true);ArrayList<Doc> found=photoMatches(folder,name);if(!found.isEmpty()){readThumbnailVerified(name);return;}Uri file=DocumentsContract.createDocument(resolver,folder,"image/jpeg",".uploading-thumb-"+UUID.randomUUID());if(file==null)throw new IOException("Vorschau kann nicht geschrieben werden.");boolean publicationAttempted=false,complete=false;try{try(OutputStream out=resolver.openOutputStream(file,"wt")){if(out==null)throw new IOException("Vorschau kann nicht geschrieben werden.");out.write(raw);}byte[] back=readBytes(file);if(!name.equals(PhotoAttachmentStore.sha256(back)+".jpg"))throw new IOException("Vorschau-Prüfsumme stimmt nicht überein.");publicationAttempted=true;if(DocumentsContract.renameDocument(resolver,file,name)==null)throw new IOException("Vorschau konnte nicht benannt werden.");readThumbnailVerified(name);complete=true;}finally{if(!complete&&!publicationAttempted)try{DocumentsContract.deleteDocument(resolver,file);}catch(Exception ignored){}}
         }
         ArrayList<Doc> matches(String name)throws Exception{ArrayList<Doc> out=new ArrayList<>();for(Doc d:documents())if(name.equals(d.name))out.add(d);duplicates=Math.max(duplicates,Math.max(0,out.size()-1));return out;}
         String read(Uri uri)throws Exception{

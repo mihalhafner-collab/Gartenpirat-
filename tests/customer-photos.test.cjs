@@ -37,7 +37,7 @@ async function check(name,task){try{await task();results.push({name,result:'PASS
   await check('Existing customer photos and the profile role render in the customer account',async()=>{
    assert.equal(await page.locator('[data-design-action="photo"]').count(),3);
    assert.equal(await page.locator('.design-photo-role').count(),1);
-   assert((await page.locator('#design-profile-content').innerText()).includes('Fotos · 3'));
+   assert((await page.locator('#design-profile-content').innerText()).includes('3 Fotos'));
   });
   await check('Photo viewer provides full screen, navigation and deliberate zoom',async()=>{
    await page.locator('[data-design-action="photo"][data-id="p1"]').click();
@@ -68,7 +68,7 @@ async function check(name,task){try{await task();results.push({name,result:'PASS
    assert.deepEqual(writes.map(row=>row.role),['profile','documentation']);
    assert(writes.every(row=>row.mime_type==='image/png'&&String(row.data).split(',')[1]===png.toString('base64')));
    await page.waitForFunction(()=>document.querySelectorAll('[data-design-action="photo"]').length===5);
-   assert((await page.locator('#design-profile-content').innerText()).includes('Fotos · 5'));
+   assert((await page.locator('#design-profile-content').innerText()).includes('5 Fotos'));
   });
   await check('A valid provider image without a MIME declaration is decoded instead of rejected',async()=>{
    await page.waitForFunction(()=>!document.getElementById('design-customer-photo-add').open);

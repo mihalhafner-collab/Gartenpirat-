@@ -74,7 +74,7 @@ class ReleaseQualityTests(unittest.TestCase):
     def test_issued_performance_locked_but_numeric_equivalent_notes_allowed(self):
         db.save_customer({**self.customer,'street':'Testweg 1','postal_code':'9560','city':'Feldkirchen','country':'Österreich'})
         db.save_settings({'owner_name':'QA Aussteller','business_street':'Testweg 2','business_postal_code':'9560',
-            'business_city':'Feldkirchen','invoice_issuer_confirmed':'1','invoice_prefix':'QA','invoice_numbering_confirmed':'1',
+            'business_city':'Feldkirchen','tax_mode':'small_business','tax_exemption_text':'Umsatzsteuerfrei gemäß § 6 Abs. 1 Z 27 UStG.','invoice_issuer_confirmed':'1','invoice_prefix':'QA','invoice_numbering_confirmed':'1',
             'invoice_number_format':'sevdesk','invoice_sevdesk_last_number':'100','invoice_sevdesk_checked_at':db.now()})
         work=db.save_worklog(self.work)
         draft=db.save_invoice({'customer_id':self.customer['id'],'invoice_number':'Entwurf-QA',
@@ -286,7 +286,7 @@ class HttpQualityTests(ReleaseQualityTests):
     def test_invoice_http_confirmation_issue_and_pdf(self):
         db.save_customer({**self.customer,'street':'QA Straße 1','postal_code':'9560','city':'Feldkirchen','country':'Österreich'})
         db.save_settings({'owner_name':'QA Aussteller','business_street':'Testweg 2','business_postal_code':'9560',
-            'business_city':'Feldkirchen','invoice_issuer_confirmed':'1','invoice_prefix':'QA','invoice_numbering_confirmed':'1',
+            'business_city':'Feldkirchen','tax_mode':'small_business','tax_exemption_text':'Umsatzsteuerfrei gemäß § 6 Abs. 1 Z 27 UStG.','invoice_issuer_confirmed':'1','invoice_prefix':'QA','invoice_numbering_confirmed':'1',
             'invoice_number_format':'own'})
         draft=db.save_invoice({'customer_id':self.customer['id'],'invoice_number':'Entwurf-HTTP',
             'invoice_date':invoicing.date.today().isoformat(),'service_start':'2026-10-01','service_end':'2026-10-01',

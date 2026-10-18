@@ -8,7 +8,7 @@ import zipfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-COLLECTIONS = ('customers', 'orders', 'worklogs', 'invoices', 'photos')
+COLLECTIONS = ('customers', 'orders', 'worklogs', 'invoices', 'photos', 'offers')
 # Individually reviewed export-only label corruption, NOT a business-data value.
 # Keep the original readable UI; do not import the export's anonymized label.
 REVIEWED_LABEL = (b'Cloudname_189a14e78c', b'Arbeitsaufzeichnungen')
@@ -47,7 +47,7 @@ def empty_seed(apk):
     with zipfile.ZipFile(apk) as archive:
         seed = json.loads(archive.read('assets/initial-data.json'))
     # Only return counts, never old seed rows, names, addresses or connection values.
-    return {'all_business_collections_empty': all(seed.get(key) == [] for key in COLLECTIONS),
+    return {'all_business_collections_empty': all(seed.get(key, []) == [] for key in COLLECTIONS),
             'operational_seed_rows': sum(len(seed.get(key, [])) for key in COLLECTIONS)}
 
 

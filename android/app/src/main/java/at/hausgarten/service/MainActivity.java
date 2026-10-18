@@ -42,6 +42,7 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -348,7 +349,11 @@ public class MainActivity extends Activity {
     }
 
     public class DataBridge {
-        @JavascriptInterface public String getState() { try{JSONObject state=store.getState();state.put("master",PixelMcpReadTools.effective(state)).put("ui_effective",true);return state.toString();}catch(Exception e){return store.getState().toString();} }
+        @JavascriptInterface public String getState() { try{JSONObject state=store.getState();state.put("master",PixelMcpReadTools.effective(state)).put("ui_effective",true);JSONArray photos=state.getJSONObject("master").getJSONArray("photos");for(int i=0;i<photos.length();i++){JSONObject photo=photos.getJSONObject(i);String thumbnail=photo.optString("thumbnail_storage_name");if(thumbnail.matches("[0-9a-f]{64}\\.jpg"))photo.put("thumbnail_data","content://"+getPackageName()+".photothumbnails/"+thumbnail);}return state.toString();}catch(Exception e){return store.getState().toString();} }
+        @JavascriptInterface public String ownerCall(String name,String arguments){
+            try{if(!PixelMcpOwnerTools.read(name)&&!PixelMcpOwnerTools.write(name)&&!OfferTools.read(name)&&!OfferTools.write(name))throw new IllegalArgumentException("Unbekannte Eigentümerfunktion.");PixelMcpReadTools tools=new PixelMcpReadTools(()->store.getState(),store,new PixelOwnerAccess(MainActivity.this,store));return tools.call(name,new JSONObject(arguments)).toString();}
+            catch(Exception e){try{return new JSONObject().put("ok",false).put("error",new JSONObject().put("code",e instanceof PixelMcpWriteTools.Rejected?((PixelMcpWriteTools.Rejected)e).code:"VALIDATION_ERROR").put("message",e instanceof IllegalArgumentException?e.getMessage():"Vorgang nicht abgeschlossen. Sicherung, Versionen und Berechtigungen prüfen.")).toString();}catch(Exception ignored){return "{}";}}
+        }
         @JavascriptInterface public String getSyncStatus() { return syncStatus().toString(); }
         @JavascriptInterface public String getSyncDetails(){try{JSONObject s=store.getState();return DriveJournalRules.queueStatus(s.getJSONObject("master"),s.getJSONArray("pending")).toString();}catch(Exception e){return "{}";}}
         @JavascriptInterface public String getSyncConflict(String id){try{return PixelMcpOwnerTools.conflicts(store.getState(),new JSONObject().put("limit",1).put("client_id",id)).toString();}catch(Exception e){return "ERROR: Konflikt konnte nicht vollständig gelesen werden.";}}
@@ -426,6 +431,7 @@ public class MainActivity extends Activity {
             try { String id = store.saveOrder(new JSONObject(value)); requestAutomaticSync(AUTO_SYNC_DELAY_MS); return id; }
             catch (Exception error) { return "ERROR: " + error.getMessage(); }
         }
+        @JavascriptInterface public String getPhotoStorageSummary(){try{return store.photoAttachmentStore().storageSummary().toString();}catch(Exception e){return "ERROR: Speicherstatus nicht verfügbar.";}}
         @JavascriptInterface public String getOwnerSettings(){return store.ownerValue("settings","{}");}
         @JavascriptInterface public String getPersonalPaid(){return "1".equals(store.ownerValue("personal_paid_migrated",""))?store.ownerValue("personal_paid","[]"):"";}
         @JavascriptInterface public String migratePersonalPaid(String value){
@@ -436,7 +442,7 @@ public class MainActivity extends Activity {
         }
         @JavascriptInterface public String getInvoiceShareHandoff(){return store.ownerValue("invoice_share_handoff", "{}");}
         @JavascriptInterface public String sharePreparedInvoice(){
-            try{JSONObject handoff=new JSONObject(store.ownerValue("invoice_share_handoff","{}")),all=PixelMcpReadTools.effective(store.getState()),invoice=PixelMcpWriteTools.find(all.getJSONArray("invoices"),handoff.getString("invoice_id"));return shareInvoiceVia(invoice.toString(),handoff.getString("channel"));}catch(Exception e){return "ERROR: Originalbeleg oder Versandvorbereitung fehlt.";}
+            try{JSONObject handoff=new JSONObject(store.ownerValue("invoice_share_handoff","{}")),all=PixelMcpReadTools.effective(store.getState()),invoice=PixelMcpWriteTools.find(all.getJSONArray("invoices"),handoff.getString("invoice_id"));return shareInvoiceById(invoice.getString("id"),handoff.getString("channel"));}catch(Exception e){return "ERROR: Originalbeleg oder Versandvorbereitung fehlt.";}
         }
         @JavascriptInterface public String saveInvoice(String value) {
             try{String id=store.saveInvoiceDraft(new JSONObject(value));requestAutomaticSync(AUTO_SYNC_DELAY_MS);return id;}
@@ -453,6 +459,10 @@ public class MainActivity extends Activity {
                 while(cursor.moveToNext())if(identifier.equals(new JSONObject(cursor.getString(0)).optString("id")))throw new Exception("Abschluss bereits vorgemerkt. Bitte Drive-Abgleich abwarten.");
             }
         }
+        @JavascriptInterface public void shareOffer(String id){
+            new Thread(()->{try{JSONObject offer=PixelMcpWriteTools.find(PixelMcpReadTools.effective(store.getState()).getJSONArray("offers"),id);byte[] bytes;try{bytes=new BusinessDocumentStore(MainActivity.this).read(offer);}catch(Exception missing){bytes=DriveSyncCoordinator.fetchDocument(MainActivity.this,offer);new BusinessDocumentStore(MainActivity.this).store(bytes,offer);}File dir=new File(getCacheDir(),"invoice-share");if(!dir.isDirectory()&&!dir.mkdirs())throw new IOException("Freigabeordner fehlt.");File target=new File(dir,"Angebot-"+UUID.randomUUID()+".pdf");try(java.io.FileOutputStream out=new java.io.FileOutputStream(target)){out.write(bytes);}Uri uri=Uri.parse("content://"+getPackageName()+".invoicefiles/"+target.getName());Intent send=new Intent(Intent.ACTION_SEND).setType("application/pdf").putExtra(Intent.EXTRA_STREAM,uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);send.setClipData(android.content.ClipData.newRawUri("Angebot",uri));runOnUiThread(()->startActivity(Intent.createChooser(send,"Angebots-PDF teilen")));}catch(Exception error){runOnUiThread(()->Toast.makeText(MainActivity.this,"PDF noch nicht verfügbar. Dokument und Drive-Abgleich prüfen.",Toast.LENGTH_LONG).show());}}).start();
+        }
+        @JavascriptInterface public String shareInvoiceById(String id,String channel){try{JSONObject invoice=PixelMcpWriteTools.find(PixelMcpReadTools.effective(store.getState()).getJSONArray("invoices"),id);if(invoice.optString("issued_at").isEmpty())throw new IllegalArgumentException("Nur ausgestellte Originalbelege teilen.");byte[] bytes;try{bytes=new BusinessDocumentStore(MainActivity.this).read(invoice);}catch(IOException absent){bytes=DriveSyncCoordinator.fetchDocument(MainActivity.this,invoice);new BusinessDocumentStore(MainActivity.this).store(bytes,invoice);}invoice.put("pdf_base64",android.util.Base64.encodeToString(bytes,android.util.Base64.NO_WRAP));return shareInvoiceVia(invoice.toString(),channel);}catch(Exception e){return "ERROR: Original-PDF ist noch nicht vollständig verfügbar. Drive abgleichen.";}}
         @JavascriptInterface public String shareInvoice(String value) {
             return shareInvoiceVia(value,"share");
         }
@@ -545,6 +555,9 @@ public class MainActivity extends Activity {
                 if(!inline)return;recordSnapshotPhotoAttachments(snapshot);preferences.edit().putString("drive_snapshot",snapshot.toString()).commit();
             }catch(Exception ignored){/* Preserve the original snapshot; getState still withholds inline binary. */}
         }
+        private void documentReferences(JSONObject snapshot)throws Exception{
+            JSONArray invoices=snapshot.optJSONArray("invoices");for(int i=0;invoices!=null&&i<invoices.length();i++){JSONObject invoice=invoices.getJSONObject(i);String inline=invoice.optString("pdf_base64");if(inline.isEmpty())continue;if(inline.length()>28*1024*1024)throw new IOException("Original-PDF ist zu groß.");byte[] raw=android.util.Base64.decode(inline,android.util.Base64.DEFAULT);String hash=PhotoAttachmentStore.sha256(raw);if(!invoice.optString("pdf_sha256").isEmpty()&&!hash.equals(invoice.getString("pdf_sha256")))throw new IOException("Original-PDF hat eine abweichende Prüfsumme.");invoice.put("pdf_sha256",hash).put("pdf_storage_name",hash+".pdf").put("pdf_byte_size",raw.length).put("document_id","invoice:"+invoice.getString("id"));new BusinessDocumentStore(context).store(raw,invoice);invoice.remove("pdf_base64");}
+        }
         private void removeSnapshotPhotoBinaries(JSONObject snapshot){
             JSONArray photos=snapshot.optJSONArray("photos");for(int i=0;photos!=null&&i<photos.length();i++){JSONObject photo=photos.optJSONObject(i);if(photo!=null){photo.remove("data");photo.remove("full_data");}}
         }
@@ -573,7 +586,7 @@ public class MainActivity extends Activity {
             try(Cursor rows=database.rawQuery("SELECT payload FROM pending WHERE kind='photo' ORDER BY rowid",null)){
                 while(rows.moveToNext())try{
                     JSONObject payload=new JSONObject(rows.getString(0));if(payload.optString("data").isEmpty()||payload.optString("id").isEmpty())continue;
-                    PhotoAttachmentStore.Prepared prepared=photoAttachments.prepare(payload);saveAttachmentMetadata(database,payload.getString("id"),prepared.metadata,"legacy_inline");
+                    PhotoAttachmentStore.Prepared prepared=photoAttachments.prepareLegacy(payload);saveAttachmentMetadata(database,payload.getString("id"),prepared.metadata,"legacy_inline");
                 }catch(Exception ignored){/* Keep the immutable legacy action unchanged; the laptop can still validate it. */}
             }
         }
@@ -582,7 +595,7 @@ public class MainActivity extends Activity {
         }
         private JSONObject getStateLocked() {
             JSONObject output = new JSONObject();
-            try { JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));removeSnapshotPhotoBinaries(master);output.put("master",master); output.put("pending", DriveJournalRules.union(pendingActions(),output.getJSONObject("master").optJSONArray("drive_review_actions"))); output.put("last_drive_sync", preferences.getString("last_drive_sync", ""));output.put("work_session",new WorkSessionStore(getWritableDatabase(),context).current());output.put("sync_queue",DriveJournalRules.queueStatus(output.getJSONObject("master"),output.getJSONArray("pending"))); }
+            try { JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));removeSnapshotPhotoBinaries(master);documentReferences(master);DriveJournalRules.validateSnapshot(master);if(master.getJSONArray("service_catalog").length()==0)master.put("service_catalog",new JSONArray(readAsset("service-catalog.json")));output.put("master",master); output.put("pending", DriveJournalRules.union(pendingActions(),output.getJSONObject("master").optJSONArray("drive_review_actions"))); output.put("last_drive_sync", preferences.getString("last_drive_sync", ""));output.put("work_session",new WorkSessionStore(getWritableDatabase(),context).current());output.put("sync_queue",DriveJournalRules.queueStatus(output.getJSONObject("master"),output.getJSONArray("pending"))); }
             catch (Exception error) { try { output.put("error", error.getMessage()); } catch (Exception ignored) {} }
             try{output.put("drive_sync_failed",preferences.getBoolean("drive_sync_failed",false)).put("last_sync_attempt",preferences.getString("last_sync_attempt","")).put("cloud_confirmed",preferences.getBoolean("drive_cloud_confirmed",false)&&output.getJSONObject("sync_queue").getInt("total")==0).put("confirmation_scope",preferences.getString("drive_confirmation_scope","local_only")).put("last_full_sync",preferences.getString("last_full_sync",""));}catch(Exception ignored){}
             return output;
@@ -657,13 +670,17 @@ public class MainActivity extends Activity {
             if(!session.optString("customer_id").isEmpty()&&!session.optString("customer_id").equals(payload.optString("customer_id")))throw new IllegalArgumentException("Die Sitzung gehört zu einem anderen Einsatzkunden.");
             if(!payload.has("billing_customer_id")&&!session.optString("billing_customer_id").isEmpty())payload.put("billing_customer_id",session.getString("billing_customer_id"));
             if(payload.optString("location").trim().isEmpty()&&payload.optString("customer_id").equals(session.optString("customer_id")))payload.put("location",session.optString("location"));
-            String saved=saveWorklog(payload);sessions.finalizeSession(sessionId,saved,requestId);database.setTransactionSuccessful();return saved;
+            String saved=saveWorklog(payload);
+            JSONObject photos=PixelMcpReadTools.effective(getState());JSONArray sessionPhotos=photos.getJSONArray("photos");
+            for(int i=0;i<sessionPhotos.length();i++){JSONObject old=sessionPhotos.getJSONObject(i);if(!sessionId.equals(old.optString("session_id"))||!old.optString("worklog_id").isEmpty())continue;
+                JSONObject linked=DriveJournalRules.clean(old);linked.put("worklog_id",saved);prepareManualChange("photo",linked,old);saveAction("photo","pho_mobile_",linked);}
+            sessions.finalizeSession(sessionId,saved,requestId);database.setTransactionSuccessful();return saved;
             }finally{database.endTransaction();}
         }
         // Business action and replay receipt commit together in the existing database.
         // Receipts are internal metadata, never exported as Drive actions.
         @Override public JSONObject execute(String tool, JSONObject args) throws Exception {
-            if(PixelMcpOwnerTools.write(tool))return new PixelOwnerAccess(context,this).execute(tool,args);
+            if(OfferTools.write(tool)||PixelMcpOwnerTools.write(tool))return new PixelOwnerAccess(context,this).execute(tool,args);
             if(PixelMcpSessionTools.handles(tool))return executeSession(tool,args);
             if(PixelMcpWriteTools.handles(tool))PixelMcpWriteTools.validate(args, PixelMcpWriteTools.schema(tool));
             else if(PixelMcpEntityWriteTools.handles(tool))PixelMcpEntityWriteTools.validate(tool,args);
@@ -858,6 +875,7 @@ public class MainActivity extends Activity {
         }
         synchronized String savePhoto(JSONObject payload) throws Exception {
             if (payload.optString("customer_id").isEmpty() || payload.optString("data").isEmpty()) throw new IllegalArgumentException("Kunde und Foto sind erforderlich.");
+            if(!payload.optString("capture_time").isEmpty())java.time.Instant.parse(payload.getString("capture_time"));
             JSONObject immutableRequest=new JSONObject(payload.toString());immutableRequest.remove("thumbnail_data");String request=payload.optString("_photo_request_id"),fingerprint=PixelMcpWriteTools.hash(immutableRequest);
             if(!request.isEmpty()&&!request.matches("[A-Za-z0-9_-]{8,128}"))throw new IllegalArgumentException("Ungültige Foto-Anfragekennung.");
             if(!request.isEmpty()){String saved=ownerValue("photo-ui:"+request,"");if(!saved.isEmpty()){JSONObject receipt=new JSONObject(saved);if(!fingerprint.equals(receipt.getString("hash")))throw new IllegalArgumentException("Die Foto-Anfragekennung enthält andere Angaben.");return receipt.getString("id");}}
@@ -867,13 +885,19 @@ public class MainActivity extends Activity {
             try {
                 if(!request.isEmpty()){String saved=ownerValue("photo-ui:"+request,"");if(!saved.isEmpty()){JSONObject receipt=new JSONObject(saved);if(!fingerprint.equals(receipt.getString("hash")))throw new IllegalArgumentException("Die Foto-Anfragekennung enthält andere Angaben.");database.setTransactionSuccessful();committed=true;return receipt.getString("id");}}
                 JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));
+                if(!payload.optString("session_id").isEmpty()){
+                    JSONObject session=new WorkSessionStore(database,context).current(payload.getString("session_id"));
+                    if(!payload.getString("customer_id").equals(session.optString("customer_id"))||!payload.optString("order_id").equals(session.optString("order_id")))throw new IllegalArgumentException("Foto und gestartete Sitzung gehören nicht zum selben Kunden/Auftrag.");
+                    if(!session.optString("finalized_worklog_id").isEmpty())payload.put("worklog_id",session.getString("finalized_worklog_id"));
+                }
                 EntityProtectionRules.validatePhoto(payload,effectiveRows(master,"customers","customer"),effectiveRows(master,"orders","order"),effectiveRows(master,"worklogs","worklog"));
+                payload.put("_photo_quality",new JSONObject(ownerValue("settings","{}")).optString("photo_quality","optimized"));
                 prepared=photoAttachments.prepare(payload);
                 prepareManualChange("photo",payload,findById(effectiveRows(master,"photos","photo"),payload.optString("id")));
                 for(java.util.Iterator<String> keys=prepared.metadata.keys();keys.hasNext();){String key=keys.next();payload.put(key,prepared.metadata.get(key));}
                 String original=payload.optString("original_name","foto.jpg").replace('\\','/');int slash=original.lastIndexOf('/');if(slash>=0)original=original.substring(slash+1);if(original.length()>240)original=original.substring(0,240);payload.put("original_name",original);
-                payload.remove("data");payload.put("filename",prepared.metadata.getString("storage_name"));
-                String thumbnail=payload.optString("thumbnail_data");if(thumbnail.length()>65536||!thumbnail.startsWith("data:image/jpeg;base64,"))payload.remove("thumbnail_data");
+                payload.remove("data");payload.remove("_photo_quality");payload.put("sync_state","local_saved");payload.put("filename",prepared.metadata.getString("storage_name"));
+                payload.remove("thumbnail_data");
                 saveAttachmentMetadata(database,entityId,prepared.metadata,"local");
                 String saved=saveAction("photo", "pho_mobile_", payload);if(!request.isEmpty())putOwnerValue("photo-ui:"+request,new JSONObject().put("hash",fingerprint).put("id",saved).toString());database.setTransactionSuccessful();committed=true;return saved;
             } finally {
@@ -888,7 +912,7 @@ public class MainActivity extends Activity {
         private void saveAttachmentMetadata(SQLiteDatabase database,String photoId,JSONObject metadata,String state)throws Exception{
             String hash=metadata.optString("content_sha256"),mime=PhotoAttachmentStore.canonicalMime(metadata.optString("mime_type")),name=metadata.optString("storage_name"),role=metadata.optString("role","documentation").trim().toLowerCase(Locale.ROOT);
             String extension=mime.equals("image/jpeg")?".jpg":mime.equals("image/png")?".png":mime.equals("image/webp")?".webp":mime.equals("image/gif")?".gif":mime.equals("image/heic")?".heic":"";
-            if(photoId==null||photoId.trim().isEmpty()||photoId.length()>180||!PhotoAttachmentStore.canonicalName(name)||!hash.matches("[0-9a-f]{64}")||!name.equals(hash+extension)||metadata.optLong("byte_size")<1||metadata.optLong("byte_size")>PhotoAttachmentStore.MAX_BYTES||!new HashSet<>(java.util.Arrays.asList("profile","documentation","before","after","damage","other")).contains(role))throw new IllegalArgumentException("Ungültige lokale Foto-Metadaten.");
+            if(photoId==null||photoId.trim().isEmpty()||photoId.length()>180||!PhotoAttachmentStore.canonicalName(name)||!hash.matches("[0-9a-f]{64}")||!name.equals(hash+extension)||metadata.optLong("byte_size")<1||metadata.optLong("byte_size")>PhotoAttachmentStore.MAX_BYTES||!new HashSet<>(java.util.Arrays.asList("profile","documentation","before","during","after","damage","other")).contains(role))throw new IllegalArgumentException("Ungültige lokale Foto-Metadaten.");
             ContentValues values=new ContentValues();values.put("photo_id",photoId);values.put("content_sha256",hash);values.put("mime_type",mime);values.put("byte_size",metadata.getLong("byte_size"));values.put("storage_name",name);values.put("role",role);values.put("transfer_state",state);values.put("created_at",isoNow());
             database.insertWithOnConflict("photo_attachments",null,values,SQLiteDatabase.CONFLICT_REPLACE);
         }
@@ -917,8 +941,8 @@ public class MainActivity extends Activity {
                     // If the process died before acknowledge(), a stale confirmed create
                     // may remain in pending without its now-deleted private attachment.
                     if(confirmed.contains(action.optString("client_id")))continue;
-                    throw new IllegalStateException("Das lokale Foto-Original fehlt in der Übertragungswarteschlange.");
-                }result.put(metadata);}
+                    result.put(new JSONObject().put("photo_id",payload.optString("id")).put("missing",true));continue;
+                }for(String key:new String[]{"thumbnail_storage_name","thumbnail_sha256"})if(payload.has(key))metadata.put(key,payload.get(key));result.put(metadata);}
             return result;
         }
         void markPhotoAttachmentTransferred(String photoId){ContentValues values=new ContentValues();values.put("transfer_state","provider_readback");getWritableDatabase().update("photo_attachments",values,"photo_id=?",new String[]{photoId});}
@@ -930,7 +954,7 @@ public class MainActivity extends Activity {
                     JSONObject local=photoAttachment(photo.optString("id"));
                     String inline=photo.optString("data");if(inline.isEmpty())inline=photo.optString("full_data");
                     if(!inline.isEmpty()){
-                        PhotoAttachmentStore.Prepared prepared=photoAttachments.prepare(new JSONObject(photo.toString()).put("data",inline));
+                        PhotoAttachmentStore.Prepared prepared=photoAttachments.prepareLegacy(new JSONObject(photo.toString()).put("data",inline));
                         if(local!=null&&!local.getString("content_sha256").equals(prepared.metadata.getString("content_sha256"))){
                             if(prepared.created)photoAttachments.discardCreated(prepared.metadata);
                             throw new IllegalArgumentException("Die Foto-ID verweist auf verschiedene Originale. Abgleich angehalten.");

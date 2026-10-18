@@ -15,7 +15,7 @@ final class DriveProviderAcceptance {
     static final String AUTHORITY="at.hausgarten.isolated.documents";
     static final String MOBILE="HausGarten-Mobile-qadevice.json";
     static final class MockDrive extends DocumentsProvider{
-        final File directory;final LinkedHashMap<String,String> names=new LinkedHashMap<>(),mimes=new LinkedHashMap<>(),parents=new LinkedHashMap<>();int serial;boolean offlineWrite,badReadback,written;
+        final File directory;final LinkedHashMap<String,String> names=new LinkedHashMap<>(),mimes=new LinkedHashMap<>(),parents=new LinkedHashMap<>();int serial;boolean offlineWrite,badReadback,written,failAfterRename;String renamed="";
         MockDrive(File directory){this.directory=directory;directory.mkdirs();}
         String add(String name,String data)throws Exception{return add("root","application/json",name,data.getBytes(StandardCharsets.UTF_8));}
         String add(String parent,String mime,String name,byte[] data)throws Exception{String id="doc"+(++serial);names.put(id,name);mimes.put(id,mime);parents.put(id,parent);try(FileOutputStream out=new FileOutputStream(file(id))){out.write(data);}return id;}
@@ -30,9 +30,10 @@ final class DriveProviderAcceptance {
         @Override public Cursor queryChildDocuments(String id,String[] projection,String sort){MatrixCursor cursor=new MatrixCursor(columns(projection));for(String child:names.keySet())if(id.equals(parents.get(child)))row(cursor,child);return cursor;}
         @Override public boolean isChildDocument(String parent,String child){String current=child;while(parents.containsKey(current)){current=parents.get(current);if(parent.equals(current))return true;}return false;}
         @Override public String createDocument(String parent,String mime,String name)throws FileNotFoundException{try{return add(parent,mime,name,new byte[0]);}catch(Exception error){throw new FileNotFoundException("Isolated creation failed");}}
-        @Override public String renameDocument(String id,String name)throws FileNotFoundException{if(!names.containsKey(id))throw new FileNotFoundException();names.put(id,name);return id;}
+        @Override public String renameDocument(String id,String name)throws FileNotFoundException{if(!names.containsKey(id))throw new FileNotFoundException();names.put(id,name);renamed=id;return id;}
         @Override public void deleteDocument(String id)throws FileNotFoundException{names.remove(id);mimes.remove(id);parents.remove(id);if(file(id).exists()&&!file(id).delete())throw new FileNotFoundException("Isolated deletion failed");}
         @Override public ParcelFileDescriptor openDocument(String id,String mode,CancellationSignal cancellation)throws FileNotFoundException{
+            if(failAfterRename&&id.equals(renamed)&&!mode.contains("w"))throw new FileNotFoundException("Simulated response lost after publish");
             if(mode.contains("w")){if(offlineWrite)throw new FileNotFoundException("Simulated network failure");written=true;}
             if(badReadback&&written&&!mode.contains("w")){File fake=new File(directory,"bad.json");try(FileOutputStream out=new FileOutputStream(fake)){out.write("{}".getBytes(StandardCharsets.UTF_8));}catch(IOException error){throw new FileNotFoundException();}return ParcelFileDescriptor.open(fake,ParcelFileDescriptor.MODE_READ_ONLY);}
             return ParcelFileDescriptor.open(file(id),ParcelFileDescriptor.parseMode(mode));
@@ -96,6 +97,9 @@ final class DriveProviderAcceptance {
             String id=s.store.savePhoto(new JSONObject().put("customer_id","qa_c1").put("original_name","QA.gif").put("data",PixelMcpInstrumentation.VALID_GIF));JSONObject result=s.sync();qa.yes(result.getBoolean("ok")&&s.store.pendingActions().length()==0);
             JSONObject metadata=s.store.photoAttachment(id);qa.yes(metadata!=null&&s.files.readPhotoVerified(metadata).length==42);
             JSONArray actions=s.files.readActions(MOBILE);JSONObject payload=actions.getJSONObject(0).getJSONObject("payload");qa.yes(!payload.has("data")&&payload.getString("storage_name").equals(metadata.getString("storage_name")));
+        }});
+        qa.probe("Android provider keeps a verified photo after rename/readback failure and retry does not duplicate",()->{try(Setup s=new Setup(qa)){
+            String id=s.store.savePhoto(new JSONObject().put("customer_id","qa_c1").put("data",PixelMcpInstrumentation.VALID_GIF));JSONObject metadata=s.store.photoAttachment(id);s.provider.failAfterRename=true;try{s.files.writePhotoVerified(metadata,s.store.photoAttachmentStore());throw new AssertionError("Expected lost readback");}catch(IOException expected){}String name=metadata.getString("storage_name");qa.yes(Collections.frequency(new ArrayList<>(s.provider.names.values()),name)==1);s.provider.failAfterRename=false;s.files.writePhotoVerified(metadata,s.store.photoAttachmentStore());qa.yes(Collections.frequency(new ArrayList<>(s.provider.names.values()),name)==1);qa.yes(s.store.pendingActions().length()==1);qa.yes(s.files.readPhotoVerified(metadata).length>0);
         }});
         qa.probe("Android provider lazily restores synced metadata-only photo from isolated Drive",()->{try(Setup s=new Setup(qa)){
             byte[] bytes=android.util.Base64.decode(PixelMcpInstrumentation.VALID_GIF.substring(PixelMcpInstrumentation.VALID_GIF.indexOf(',')+1),android.util.Base64.DEFAULT);String hash=PhotoAttachmentStore.sha256(bytes),name=hash+".gif";

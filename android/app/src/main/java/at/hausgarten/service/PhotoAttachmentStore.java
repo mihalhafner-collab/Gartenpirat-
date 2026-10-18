@@ -3,6 +3,7 @@ package at.hausgarten.service;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.util.AtomicFile;
 import android.util.Base64;
 
@@ -22,10 +23,10 @@ import java.util.Set;
 /** Private, content-addressed originals. Business metadata remains in the existing photo entity. */
 final class PhotoAttachmentStore {
     static final int MAX_BYTES = 20 * 1024 * 1024;
-    static final long MAX_PIXELS = 40_000_000L;
+    static final long MAX_PIXELS = 120_000_000L;
     static final int MAX_EDGE = 16_384;
     private static final Object FILE_LOCK = new Object();
-    private static final Set<String> ROLES = new HashSet<>(Arrays.asList("profile","documentation","before","after","damage","other"));
+    private static final Set<String> ROLES = new HashSet<>(Arrays.asList("profile","documentation","before","during","after","damage","other"));
     private final File directory;
 
     static final class Prepared {
@@ -39,7 +40,9 @@ final class PhotoAttachmentStore {
         directory = new File(context.getFilesDir(), "customer-photo-originals");
     }
 
-    Prepared prepare(JSONObject payload) throws Exception {
+    Prepared prepare(JSONObject payload) throws Exception { return prepare(payload,false); }
+    Prepared prepareLegacy(JSONObject payload) throws Exception { return prepare(payload,true); }
+    private Prepared prepare(JSONObject payload,boolean legacy) throws Exception {
         String value=payload.optString("data","").trim();
         if(value.isEmpty())throw new IllegalArgumentException("Kunde und Foto sind erforderlich.");
         String declared="";int comma=value.indexOf(',');
@@ -50,12 +53,65 @@ final class PhotoAttachmentStore {
         if(value.length()>((MAX_BYTES+2L)/3L)*4L+8L||value.length()%4!=0||!value.matches("[A-Za-z0-9+/]*={0,2}"))throw new IllegalArgumentException("Das Foto besitzt keine gültigen Base64-Daten.");
         byte[] bytes;
         try{bytes=Base64.decode(value,Base64.DEFAULT);}catch(IllegalArgumentException bad){throw new IllegalArgumentException("Das Foto besitzt keine gültigen Base64-Daten.");}
-        JSONObject metadata=inspect(bytes,declared);
+        JSONObject before=inspect(bytes,declared);
         String role=payload.optString("role","").trim().toLowerCase(Locale.ROOT),caption=payload.optString("caption","").trim().toLowerCase(Locale.ROOT);
         if(role.isEmpty()&&(caption.equals("profilbild")||caption.equals("profile")||caption.equals("profilfoto")))role="profile";
-        if(!ROLES.contains(role))role="documentation";metadata.put("role",role);
+        if(!ROLES.contains(role))role="documentation";
+        if(!legacy)bytes=optimize(bytes,before,payload.optString("_photo_quality","optimized"),role.equals("profile"));
+        JSONObject metadata=inspect(bytes,"");metadata.put("role",role);
+        metadata.put("original_width",before.getInt("width")).put("original_height",before.getInt("height")).put("original_byte_size",before.getLong("byte_size")).put("optimization",legacy?"preserved_legacy":payload.optString("_photo_quality","optimized"));
         boolean created=store(bytes,metadata);
+        if(!legacy)try{makeThumbnail(bytes,metadata);}catch(Exception ignored){/* Original remains verified; preview can be regenerated. */}
         return new Prepared(bytes,metadata,created);
+    }
+
+    private void makeThumbnail(byte[] bytes,JSONObject metadata)throws Exception{
+        BitmapFactory.Options o=new BitmapFactory.Options();o.inSampleSize=1;while(Math.max(metadata.getInt("width"),metadata.getInt("height"))/(o.inSampleSize*2)>480)o.inSampleSize*=2;
+        Bitmap b=null,oriented=null,small=null;try{b=BitmapFactory.decodeByteArray(bytes,0,bytes.length,o);if(b==null)throw new IOException("Vorschau nicht lesbar.");oriented=orient(b,PhotoPolicy.orientation(bytes));double scale=Math.min(1,240.0/Math.max(oriented.getWidth(),oriented.getHeight()));small=Bitmap.createScaledBitmap(oriented,Math.max(1,(int)(oriented.getWidth()*scale)),Math.max(1,(int)(oriented.getHeight()*scale)),true);ByteArrayOutputStream out=new ByteArrayOutputStream();small.compress(Bitmap.CompressFormat.JPEG,65,out);byte[] raw=out.toByteArray();String hash=sha256(raw);storeThumbnail(raw,hash+".jpg");metadata.put("thumbnail_storage_name",hash+".jpg").put("thumbnail_sha256",hash);}
+        finally{if(small!=null&&small!=oriented)small.recycle();if(oriented!=null&&oriented!=b)oriented.recycle();if(b!=null)b.recycle();}
+    }
+    File thumbnailFile(String name)throws Exception{if(!name.matches("[0-9a-f]{64}\\.jpg"))throw new IllegalArgumentException("Ungültige Vorschaureferenz.");return new File(new File(directory,"thumbnails"),name);}
+    void storeThumbnail(byte[] bytes,String name)throws Exception{
+        if(bytes.length==0||bytes.length>65536||!"image/jpeg".equals(sniff(bytes))||!name.equals(sha256(bytes)+".jpg"))throw new IOException("Vorschau-Prüfsumme ist ungültig.");File f=thumbnailFile(name);File dir=f.getParentFile();if(!dir.isDirectory()&&!dir.mkdirs())throw new IOException("Vorschauspeicher fehlt.");if(f.isFile())return;AtomicFile a=new AtomicFile(f);FileOutputStream out=null;try{out=a.startWrite();out.write(bytes);a.finishWrite(out);}catch(Exception e){if(out!=null)a.failWrite(out);throw e;}
+    }
+    byte[] readThumbnail(String name)throws Exception{File f=thumbnailFile(name);if(f.length()>65536)throw new IOException("Vorschau ist zu groß.");byte[] b=java.nio.file.Files.readAllBytes(f.toPath());if(b.length>65536||!name.equals(sha256(b)+".jpg"))throw new IOException("Vorschau-Prüfsumme ist ungültig.");return b;}
+
+    private static Bitmap orient(Bitmap decoded,int orientation){
+        Matrix m=new Matrix();
+        switch(orientation){case 2:m.setScale(-1,1);break;case 3:m.setRotate(180);break;case 4:m.setScale(1,-1);break;case 5:m.setRotate(90);m.postScale(-1,1);break;case 6:m.setRotate(90);break;case 7:m.setRotate(-90);m.postScale(-1,1);break;case 8:m.setRotate(-90);break;default:break;}
+        return orientation==1?decoded:Bitmap.createBitmap(decoded,0,0,decoded.getWidth(),decoded.getHeight(),m,true);
+    }
+
+    private byte[] optimize(byte[] bytes,JSONObject before,String quality,boolean profile)throws Exception {
+        if("original".equals(quality))return bytes; // Explicit choice; existing files are never reprocessed.
+        int orientation=PhotoPolicy.orientation(bytes),edge=PhotoPolicy.edge(quality,profile);
+        if(Math.max(before.getInt("width"),before.getInt("height"))<=edge&&bytes.length<=3*1024*1024&&orientation==1)
+            return PhotoPolicy.withoutMetadata(bytes,before.getString("mime_type")); // Small images keep their encoded pixels.
+        Bitmap decoded=null,oriented=null,scaled=null;
+        try {
+            BitmapFactory.Options options=new BitmapFactory.Options();options.inSampleSize=1;
+            while(Math.max(before.getInt("width"),before.getInt("height"))/(options.inSampleSize*2)>edge)options.inSampleSize*=2;
+            decoded=BitmapFactory.decodeByteArray(bytes,0,bytes.length,options);
+            if(decoded==null)throw new IOException("Foto kann nicht optimiert werden.");
+            oriented=orient(decoded,orientation);
+            double scale=Math.min(1,edge/(double)Math.max(oriented.getWidth(),oriented.getHeight()));
+            scaled=Bitmap.createScaledBitmap(oriented,Math.max(1,(int)Math.round(oriented.getWidth()*scale)),Math.max(1,(int)Math.round(oriented.getHeight()*scale)),true);
+            byte[] result=null;
+            for(int q:new int[]{"high".equals(quality)?92:84,80,76}){
+                ByteArrayOutputStream out=new ByteArrayOutputStream();
+                if(!scaled.compress(Bitmap.CompressFormat.JPEG,q,out)||out.size()==0)throw new IOException("Optimiertes Foto ist leer.");
+                result=out.toByteArray();if(result.length<=3*1024*1024)break;
+            }
+            inspect(result,"image/jpeg");return result;
+        }catch(OutOfMemoryError exhausted){throw new IOException("Für dieses Foto ist zu wenig Arbeitsspeicher verfügbar. Entwurf bleibt erhalten.");}
+        finally{if(scaled!=null&&scaled!=oriented)scaled.recycle();if(oriented!=null&&oriented!=decoded)oriented.recycle();if(decoded!=null)decoded.recycle();}
+    }
+
+    JSONObject storageSummary() throws Exception {
+        long bytes=0;int count=0;File[] files=directory.listFiles();
+        if(files!=null)for(File f:files)if(f.isFile()&&canonicalName(f.getName())){bytes+=f.length();count++;}
+        long thumbnailBytes=0;File[] thumbnails=new File(directory,"thumbnails").listFiles();if(thumbnails!=null)for(File f:thumbnails)if(f.isFile()&&f.getName().matches("[0-9a-f]{64}\\.jpg"))thumbnailBytes+=f.length();
+        return new JSONObject().put("local_files",count).put("original_bytes",bytes).put("thumbnail_bytes",thumbnailBytes).put("local_bytes",bytes+thumbnailBytes).put("available_bytes",directory.getParentFile().getUsableSpace()).put("automatic_deletion",false);
     }
 
     JSONObject inspect(byte[] bytes,String declaredMime)throws Exception{

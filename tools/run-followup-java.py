@@ -20,7 +20,7 @@ android = sdk/'platforms/android-37.0/android.jar'
 classes = ROOT/'outputs/integration-java/classes'
 classes.mkdir(parents=True, exist_ok=True)
 src = ROOT/'android/app/src/main/java/at/hausgarten/service'
-names = ['BillingRules', 'WorklogRules', 'PixelMcpWriteTools', 'EntityProtectionRules',
+names = ['OfferRules', 'OfferTools', 'OfferJournalRules', 'LegacyConflictRules', 'PhotoPolicy', 'BillingRules', 'WorklogRules', 'PixelMcpWriteTools', 'EntityProtectionRules',
          'PixelMcpEntityWriteTools', 'PixelMcpReadTools', 'PixelMcpSessionTools', 'PixelMcpBusinessTools',
          'WorklogRelationRules', 'ManualChangeRules', 'GardenRules', 'SyncActionOrder', 'DriveRestClient', 'DrivePublication', 'McpSchema', 'McpFileTransfer', 'InvoiceDraftRules', 'PixelMcpOwnerTools', 'OwnerJournalRules', 'DriveJournalRules', 'OrderReviewRules', 'PixelTunnelConfig',
          'PixelTunnelWire', 'WorkSessionPauseRules']
@@ -47,6 +47,18 @@ for test in tests:
                  'hours': 1.00, 'customer_visible': True}, 'created_at': '2026-10-15T08:00:00Z'}
         if 'CROSS_HASH '+sync_review.digest(cross) not in output:
             raise RuntimeError('Android/Python review hash differs')
+    if test.stem == 'OffersAndPhotosTests':
+        sys.path.insert(0, str(ROOT))
+        import offers, sync_review
+        def record(prefix):return next(line[len(prefix):] for line in output.splitlines() if line.startswith(prefix))
+        fixture=json.loads(record('CROSS_OFFER_STATE '));row=json.loads(record('CROSS_OFFER_ROW '))
+        if record('CROSS_OFFER_CONTEXT_HASH ')!=sync_review.digest(offers.context(row,fixture)):
+            raise RuntimeError('Android/Python offer customer/context hash differs')
+        original=sync_review.digest(row)
+        if original!=sync_review.digest(offers.normalize(row,None,fixture)):
+            raise RuntimeError('Android/Python offer normalization differs')
+        if json.loads(record('CROSS_OFFER_POSITIONS '))!=offers.position_text(row['positions']):
+            raise RuntimeError('Android/Python order description differs')
     if test.stem == 'OwnerToolsTests':
         sys.path.insert(0, str(ROOT))
         import owner_journal, sync_review

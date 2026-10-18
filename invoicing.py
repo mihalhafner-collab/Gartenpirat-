@@ -1,4 +1,4 @@
-"""Ordinary Austrian domestic small-business invoices; no cross-border tax automation."""
+"""Configured Austrian domestic invoices; no cross-border tax automation."""
 import hashlib
 import json
 import re
@@ -52,7 +52,13 @@ def prepare(database, identifier):
         errors.append('Leistungsende darf nicht vor Leistungsbeginn liegen')
     if dates.get('invoice_date') and dates['invoice_date'] != date.today(): errors.append('Rechnungsdatum muss beim Abschluss heute sein')
     if dates.get('service_end') and dates['service_end'] > date.today(): errors.append('Leistung liegt noch in der Zukunft; Anzahlungen sind nicht unterstützt')
-    calculated = db.calculate_invoice(details)
+    calculated = db.calculate_invoice(details,settings)
+    if settings.get("tax_mode") not in ("small_business","standard") or calculated["tax_mode"]!=settings.get("tax_mode"):errors.append("zentral bestätigter Steuermodus")
+    if settings.get("tax_mode")=="small_business" and not settings.get("tax_exemption_text"):errors.append("Steuerbefreiungshinweis")
+    if settings.get("tax_mode")=="standard" and not settings.get("business_vat_id"):errors.append("UID des Ausstellers")
+    if settings.get('tax_mode')=='standard' and abs(calculated['gross_total'])>10000:
+        if calculated.get('recipient_type') not in ('b2b','consumer'):errors.append('Unternehmer oder Verbraucher bei Rechnungen über 10.000 EUR bestätigen')
+        elif calculated['recipient_type']=='b2b' and not calculated.get('recipient_vat_id'):errors.append('UID des unternehmerischen Empfängers bei Rechnungen über 10.000 EUR')
     if abs(calculated['gross_total']) <= 0: errors.append('positiver Rechnungsbetrag')
     for worklog_id in calculated['worklog_ids']:
         worklog = database.execute('SELECT customer_id,billing_customer_id,billed FROM worklogs WHERE id=?',(worklog_id,)).fetchone()
@@ -74,8 +80,9 @@ def prepare(database, identifier):
         if previous.get('issued_at'): allocated.update(previous.get('worklog_ids', []))
     if allocated.intersection(calculated['worklog_ids']): errors.append('Arbeitsaufzeichnung wurde bereits in einer abgeschlossenen Rechnung verwendet')
     if errors: raise ValueError('Vor dem Abschluss bitte prüfen: ' + '; '.join(errors) + '.')
-    issuer = {key:settings.get(key,'') for key in ['business_name','owner_name','business_street','business_postal_code','business_city','business_legal_info','business_iban','business_phone','business_email','business_bank','business_bic']}
+    issuer = {key:settings.get(key,'') for key in ['business_name','owner_name','business_street','business_postal_code','business_city','business_legal_info','business_iban','business_phone','business_email','business_bank','business_bic','business_vat_id']}
     receiver = {key:customer[key] for key in ['name','company','street','postal_code','city','country','email','phone','sevdesk_customer_number']}
+    if calculated.get('recipient_vat_id'):receiver['vat_id']=calculated['recipient_vat_id']
     return {**invoice, **calculated, 'issuer':issuer, 'recipient':receiver, 'prefix':prefix,
             'number_format':number_format,'sevdesk_last_number':int(settings.get('invoice_sevdesk_last_number','0')),
             'due_date':(dates['invoice_date'] + timedelta(days=calculated['payment_days'])).isoformat()}
@@ -106,7 +113,7 @@ def render_pdf(invoice, draft=False):
         'Sehr geehrte Damen und Herren,\n\nvielen Dank für Ihren Auftrag und das damit verbundene Vertrauen!\nHiermit stelle ich Ihnen die folgenden Leistungen in Rechnung:'),Spacer(1,4*mm)]
     rows = [[p('Pos.','Bold'),p('Beschreibung','Bold'),p('Menge','RightBold'),p('Einzelpreis','RightBold'),p('Gesamtpreis','RightBold')]]
     for index,line in enumerate(invoice['positions'],1):
-        description = line.get('description','') + (f"\nRabatt: {line['discount']:g} %" if line['discount'] else '')
+        description = (line.get('description','')+('\nUSt: '+str(line.get('tax_rate',0))+' %' if invoice.get('tax_mode')=='standard' else '')) + (f"\nRabatt: {line['discount']:g} %" if line['discount'] else '')
         rows.append([p(f'{index}.'),[p(line['title'],'Bold'),p(description)] if description else p(line['title'],'Bold'),
             p(f"{line['quantity']:.2f}".replace('.',',')+' '+line['unit'],'Right'),p(currency(line['price']),'Right'),p(currency(line['net']),'Right')])
     table = Table(rows,colWidths=[11*mm,89*mm,23*mm,23*mm,24*mm],repeatRows=1,hAlign='LEFT')
@@ -114,7 +121,7 @@ def render_pdf(invoice, draft=False):
     table.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),grey),('VALIGN',(0,0),(-1,-1),'TOP'),
         ('LEFTPADDING',(0,0),(-1,-1),3),('RIGHTPADDING',(0,0),(-1,-1),3),('TOPPADDING',(0,0),(-1,-1),5),('BOTTOMPADDING',(0,0),(-1,-1),7)]))
     summary=Table([[p('Gesamtbetrag netto'),p(currency(invoice['net_total']),'Right')],
-        [p(invoice['tax_exemption']), ''],[p('Gesamtbetrag brutto','Bold'),p(currency(invoice['gross_total']),'RightBold')]],colWidths=[141*mm,29*mm])
+        [p(invoice['tax_exemption'] or ('Umsatzsteuer: '+currency(invoice['tax_total'])+' | UID: '+issuer.get('business_vat_id',''))), ''],[p('Gesamtbetrag brutto','Bold'),p(currency(invoice['gross_total']),'RightBold')]],colWidths=[141*mm,29*mm])
     summary.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),grey),('BACKGROUND',(0,2),(-1,2),grey),('SPAN',(0,1),(-1,1)),
         ('TOPPADDING',(0,0),(-1,-1),4),('BOTTOMPADDING',(0,0),(-1,-1),4)]))
     story += [table,Spacer(1,2*mm),KeepTogether([summary]),Spacer(1,7*mm),
@@ -126,7 +133,7 @@ def render_pdf(invoice, draft=False):
         if logo.exists(): canvas.drawImage(str(logo),155*mm,248*mm,width=38*mm,height=38*mm,preserveAspectRatio=True,mask='auto')
         if doc.page == 1:
             canvas.setFont('OpenSans-Regular',6.5);canvas.drawString(20*mm,247*mm,f"{issuer['owner_name']} - {issuer['business_street']} - {issuer['business_postal_code']} {issuer['business_city']}")
-            receiver = '\n'.join(dict.fromkeys(filter(None,[recipient.get('company'),recipient['name'],recipient['street'],f"{recipient['postal_code']} {recipient['city']}",'Österreich'])))
+            receiver = '\n'.join(dict.fromkeys(filter(None,[recipient.get('company'),recipient['name'],recipient['street'],f"{recipient['postal_code']} {recipient['city']}",'Österreich',('UID: '+recipient['vat_id']) if recipient.get('vat_id') else ''])))
             block=p(receiver);block.wrap(95*mm,45*mm);block.drawOn(canvas,20*mm,236*mm-block.height)
             meta=[['Rechnungs-Nr.','ENTWURF' if draft else invoice['invoice_number']],['Rechnungsdatum',display_date(invoice['invoice_date'])],
                 ['Leistungszeitraum',f"{display_date(invoice['service_start'])} - {display_date(invoice['service_end'])}"],

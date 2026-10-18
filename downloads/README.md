@@ -1,3 +1,36 @@
+# Original-Kandidat 1.49.0 / 69
+
+[APK über Drive herunterladen](https://drive.google.com/file/d/1PulK2-5KxzVa-o94e_bQ9yKZG_vjXTMy/view)
+(Anmeldung mit dem verbundenen Google-Konto erforderlich) ·
+[APK im bestehenden GitHub-Repository](Haus-Garten-1.49.0-69-original-update-kandidat.apk?raw=true)
+
+Angebote mit vier Dokumentarten, editierbare Leistungs-/Textbausteine, getrennte
+PDF-Dateien, umfangreiche Kundenfotobibliothek, automatische Fotooptimierung,
+versionierte Eigentümer-MCP-Funktionen und gesicherte historische Konfliktprüfung.
+
+**Nicht als Geräte-Release freigegeben.** Zuerst den gemeinsamen Web-/Drive-Importer
+bereitstellen. Installation erst nach vollständiger Sicherung und ausdrücklicher
+Freigabe. Keine Deinstallation oder App-Datenlöschung. Die sieben produktiven
+Alt-Konflikte wurden nicht aufgelöst. Im tatsächlich verbundenen ChatGPT-Katalog
+fehlen die neuen Werkzeuge weiterhin; nach zulässigem Update ist der Refresh und
+reale MCP-Nachweis erforderlich.
+
+Paket `at.hausgarten.service`, Version `1.49.0`, versionCode `69`.
+Installierte Anzeige laut Nutzer `1.48.0 / Build 68`; kein nativer Signaturvergleich
+mit dem Pixel. Originalzertifikat, gültige v2/v3-Signaturen und höherer Code wurden
+gegen den erhaltenen Cloud-Kandidaten 68 geprüft. 402 Assets stimmen mit der Quelle
+überein; Privacy-Gate und Signierungs-Cleanup bestanden. 265 Python-Tests,
+554 JVM-Fälle, 24 Browser-Suiten sowie Build/Lint/Testquellen-Kompilierung bestanden.
+Native Bitmap-/PDF-/Drive-/Update-Abnahmen bleiben offen.
+
+Dateigröße: 34.389.507 Bytes. APK-SHA256:
+`c14289a0bacae815fca0d23f798c5f24a991dffe62fdeace84c97e9e464edc67`.
+
+[Gemeinsamer Änderungs-, Berechtigungs- und Prüfnachweis](../docs/SYNC-DRIVE-KUNDENAKTE-1.48.md) ·
+[Prüfsummen](SHA256SUMS)
+
+## Erhaltener vorheriger Stand 1.48.0 / 68
+
 # Aktueller Original-Kandidat 1.48.0 / 68
 
 [APK 1.48.0 herunterladen](Haus-Garten-1.48.0-68-original-update-kandidat.apk?raw=true)

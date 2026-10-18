@@ -20,8 +20,8 @@ android {
         applicationId 'at.hausgarten.service'
         minSdk 26
         targetSdk 37
-        versionCode 68
-        versionName '1.48.0'
+        versionCode 69
+        versionName '1.49.0'
         testInstrumentationRunner 'at.hausgarten.service.PixelMcpInstrumentation'
     }
 

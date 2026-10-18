@@ -163,3 +163,228 @@ bleiben auf 48 KiB begrenzt. Überschreitungen, fehlende Originale und beschädi
 Historien werden sichtbar angehalten. Historienbereinigung und Anbieterrechte
 werden nicht durch ungeprüfte Löschung ersetzt. Keine ununterbrochene
 Verfügbarkeit oder erfolgreiche Geräteaktualisierung zugesichert.
+
+
+## Fortsetzung 1.49.0 / 69: Angebote, Fotos und MCP
+
+Ausgang: sauberer Cloud-Checkout und GitHub-Connector `1382813`, Paket
+`at.hausgarten.service`, 1.48.0/68. Git-Transport lieferte einen älteren Ref
+`36e5567`; kein Reset. Live nur lesend: ready/pixel_business_write/write_enabled,
+sieben Prüfungen (sechs DELETE_REVIEW_REQUIRED, ein WRITE_CONFLICT),
+provider_readback, cloud_confirmed=false. Sichtbarer Connector enthält die alten
+Entwurfssperren und keine Owner-Werkzeuge. Installierter Stand laut Nutzeranzeige: **1.48.0 / Build 68**. Der Connector
+attestiert weder native Versionsnummer noch installierte Signatur. Keine neue APK als Update freigeben,
+bevor installierte Version, Sicherung und Originalsignatur abgeglichen sind.
+
+Abnahmekriterien: gemeinsame Fotoverarbeitung, keine Änderung vorhandener
+Originale; 30 Dateien pro Auswahl, sequenziell und fehlertolerant, kein Kundenlimit;
+30er Fotoansicht mit mehr als 100 synthetischen Metadaten und späterem Originalabruf.
+Alt-Konflikte nur mit Backup, unveränderter Hash-Vorschau und Bestätigung als
+keep_current; keine Geschäftsänderung, Originalaktionen und Historie erhalten.
+Angebote im bestehenden SQLite-/Snapshot-/Journalweg, Dezimalbeträge, bewusste
+Dokumentart, bestätigte Preise, B2B/B2C-Prüfung, PDF und explizite Auftragsübernahme
+ohne Rechnung. Rechnungsentwürfe unter Owner-Schreibrecht; Abschluss separat
+bestätigt und weiterhin ausschließlich zentral nummeriert. Alle Tests isoliert.
+
+Rechtsquellen am 18.10.2026 tatsächlich abgerufen: [ABGB §1170a](https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=10001622&Paragraf=1170a),
+[KSchG §5](https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=10002462&Paragraf=5),
+[USP/BMF Rechnungsmerkmale](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/vorsteuerabzug-und-rechnung/formerfordernisse.html).
+Verbindliche Voranschläge gewährleisten ihre Richtigkeit; bei unverbindlichen
+Voranschlägen bleiben Anzeige- und gesetzliche Rücktrittsrechte bestehen. Im
+Verbraucherfall ist die fehlende Gewähr ausdrücklich zu erklären; ein Entgelt
+für die Erstellung eines Voranschlags setzt vorherigen Hinweis voraus. Keine
+pauschale Zusatzkosten- oder Haftungsfreizeichnung wird erzeugt. Der Validator
+prüft technische Vollständigkeit und fordert bei Fern-/Auswärtsgeschäften
+geprüfte Verbraucherinformationen; er kann weder alle FAGG-Ausnahmen noch die
+rechtliche Wirksamkeit freier Texte automatisch bestätigen. UID und Steuermodus
+sind zentrale Einstellungen, keine Annahmen über den Betrieb.
+
+
+### Implementierter Stand und Berechtigungsmatrix
+
+Die Erweiterung bleibt im operativen Paket `at.hausgarten.service`. Native lokale
+SQLite-Version weiterhin 4; Angebote und Katalog liegen im bestehenden JSON-Gesamtstand
+und Journal. Der gemeinsame Python-Importer erhält additive Tabellen in seiner
+vorhandenen Datenbank. Snapshot-Schema 2 ergänzt `offers: []`; alte Snapshots ohne
+Angebote bleiben lesbar. Interne MCP-Version 3; die MCP-Protokollverhandlung bleibt
+für vorhandene Clients kompatibel. Der neue native Schreibkatalog umfasst **83**
+Werkzeuge. `integration_health` liefert auch für einen älteren Client native
+Version, effektive Schreibfreigabe, Kataloganzahl/-hash und Snapshot-Version.
+Widerrufene Schreibfreigabe wirkt bei der Ausführung und im neu gelesenen Katalog.
+
+| Bereich | MCP-Werkzeuge / erlaubte Operationen | Rechte und Schutz | Tatsächlicher Nachweis / Barriere |
+| --- | --- | --- | --- |
+| Kunden / Garteninformationen | search/get/create/update_customer; archive/restore_entity | Owner-Schreibschalter, aktuelle Hashes; Beziehungen erhalten | Lesen live; Änderungen mit synthetischen Regeln/UI geprüft; native Speicherung nur vorbereitet/kompiliert |
+| Aufträge | search/get/create/update_order, archive/restore_entity | Kunde/Empfänger, Hash, Beziehungen | Isolierte Regression; kein produktiver Schreibtest |
+| Arbeit / b.b. | list/get/create/update_work_record, set_work_record_billed, reassign_work_record, set_personal_paid | Atomare Rechnungs-/Beziehungsprüfung; b.b. bleibt persönlich | Python/JVM/Browser; native Ausführung offen |
+| Zeit / Pause | get_active_work_session, start_work, start_break, end_break, stop_work, complete_work_session | Stabile Sitzung und Request-ID, atomarer Abschluss | Bestehende isolierte Regression; keine Geräte-/Uhrabnahme |
+| Fotos / Dateien | list/get_photo, begin_file_upload, write_file_chunk, create/update_photo, read_file_chunk, get_file_metadata, archive/restore_entity | Gleicher privater Fotospeicher; Hash, 48-KiB-Blöcke, 20-MiB-Speichergrenze | 105 Metadaten / 21 sequenzielle Browserimporte mit synthetischer Brücke; Bitmap-/SAF-Gerätetest offen |
+| Rechnungen | list/get_invoice, create/update_invoice_draft, request_invoice_issue, prepare_invoice_share, correction/payment | Entwurf unter Owner-Recht; finale Nummer nur zentral nach Bestätigung/Hash; Versand und Zahlung getrennt | Entwurfs-/Steuer-/Nummernregeln isoliert geprüft. Live-Katalog enthält zwei alte gesperrte Entwurfsbeschreibungen; request_invoice_issue fehlt dort |
+| Angebote | list/get/create/update/validate/finalize/duplicate_offer, prepare_offer_share, convert_offer_to_order, get_offer_context | Request-Belege, Record-/Kontexthash, bewusste Dokumentart/Preise/Bestätigung; keine Rechnung | Python/JVM/Browser bestanden; native PDF/SQLite-Abnahme kompiliert; **kein** Angebotswerkzeug im verbundenen Katalog sichtbar |
+| Leistungs- / Textkatalog | search_offer_templates/get_offer_template, search_catalog(service), get_catalog_entry, create/update_catalog_entry | Editierbar, Hash, Preise zunächst unbekannt und unbestätigt | Isoliert geprüft; Veröffentlichung/Connector-Einführung offen |
+| Pflanzen / Neophyten / Suche | search_catalog/get_catalog_entry, Dateiblöcke, search_business_data | Bestehende öffentliche Katalogdaten; private Betriebsdaten bleiben untrusted | 181 Profile / 362 Bilder erhalten, Browserregression einschließlich Wischen |
+| Sync / Konflikte | get_sync_overview, request_sync, get_sync_conflicts, resolve_sync_conflict, preview/prepare_backup/close_legacy_conflicts | Exakte Aktions-/Datensatz-/Vorschauhashes, Backup vor Sammelentscheidung; keine Queue-Löschung | Sieben synthetische Fälle geprüft; live sieben unverändert aktiv, keine Auflösung ausgeführt |
+| Sicherung / Wiederherstellung | create/list/inspect/restore_backup | Kleine private Geschäftssicherung bis 64 MiB; nur fehlende Datensätze, kein Überschreiben; finale Dokumente gesondert | SQLite-/Archivregeln geprüft, native Wiederherstellung nicht ausgeführt; kein Ersatz für Gerätesicherung |
+| Einstellungen | get/update_settings, get/update_business_settings | Nicht geheime Felder, Hash; Konten-/Tokenrechte separat | UI für Fotoqualität und Aussteller/Steuer/Zahlungsziel; stale-Hash-/Retry-Prüfung im Browser |
+
+Die neuen Werkzeuge sind im **Quell-/APK-Katalog**, nicht im laufenden ChatGPT-
+Connector nachgewiesen. Letzte tatsächliche Lesung: `ready`,
+`pixel_business_write`, `write_enabled=true`, **32 sichtbare Pixel-Werkzeuge**,
+**0 Angebotswerkzeuge**, kein `get_capabilities` und kein `request_invoice_issue`.
+Die ChatGPT-App-Aktionsfreigabe meldet bereits „Allow all actions“. Eine fehlende
+pauschale Aktionsfreigabe ist damit nicht als Ursache belegt. Versionsanzeige 68
+allein identifiziert den installierten Binärstand nicht. Ein veralteter Runtime-
+oder registrierter Werkzeugstand bleibt bis zur Einführung und Neuabfrage zu unterscheiden.
+
+Refresh-Weg nach zulässigem Update: bestehende Pixel-Tunnelverbindung neu starten,
+MCP `initialize` und `tools/list` erneut abrufen, in derselben ChatGPT-Verbindung
+Werkzeuge aktualisieren beziehungsweise dieselbe App neu verbinden. Kataloghash
+mit `get_capabilities` und dem rückwärts erreichbaren `integration_health`
+vergleichen. Wenn weiterhin nur 32 Werkzeuge erscheinen, muss die verwaltete
+Connector-Registrierung durch deren Kontoinhaber aktualisiert werden. In dieser
+Umgebung ist kein editierbares Manifest oder autorisierter Veröffentlichungs-
+Endpunkt dieses verwalteten Connectors vorhanden. Keine Registrierung wurde als
+aktualisiert ausgegeben.
+
+### Angebote und Rechnungen
+
+Vier bewusste Dokumentarten: Fixpreis, Regie, verbindlicher und unverbindlicher
+Kostenvoranschlag. Gemeinsamer editierbarer Katalog: 19 Leistungskategorien und
+13 Textbausteine, ohne erfundene Standardpreise. Eindeutiger Auftrag und Einsatzort
+werden übernommen; Empfänger bleibt getrennt. Mengen, Preise, Steuer und Summen
+werden mit Dezimalrundung geprüft. Unvollständige Preise/Steuersätze bleiben im
+Entwurf unvollständig. Finalisierung bindet Kunde, Empfänger, Auftrag, Aussteller
+und Katalog an den geprüften Kontext. Ein Angebot erhält seine eigene eindeutige
+Angebotsnummer; es verwendet keinen Rechnungsnummernkreis. PDF separat und
+unveränderlich; Annahme/Übernahme in neuen oder versionierten bestehenden Auftrag
+ist ausdrücklich und erzeugt keine Rechnung. „Mit ChatGPT“ stellt einen kopierbaren
+Auftragstext bereit und sendet keine Nachricht automatisch.
+
+Steuermodus, UID, Befreiungstext, Zahlungsziel und Aussteller sind zentrale
+Einstellungen und in der App editierbar. Für gewöhnliche Inlandsrechnungen über
+10.000 EUR im Standard-Steuermodus wird der bestätigte Empfängertyp verlangt,
+bei Unternehmen zusätzlich dessen UID. Rechnungsabschluss bleibt im zentralen
+Nummernservice; keine Offline-Nummer, kein automatischer Versand oder Bezahltstatus.
+Vorhandene festgeschriebene/sevDesk-Belege werden durch Entwurfwerkzeuge nicht geändert.
+
+Zusätzlich geprüft: [FAGG, geltende Gesamtfassung](https://ris.bka.gv.at/GeltendeFassung.wxe?Abfrage=Bundesnormen&Gesetzesnummer=20008847),
+insbesondere §§4 und 11. Bei Verbraucher-Fern-/Auswärtsgeschäften verlangt der
+Validator geprüfte Informationen, Aussteller-Kontaktangaben und eine bewusste
+Bestätigung. Ausnahmen, frühzeitiger Leistungsbeginn und freie Vertragstexte
+bleiben fachlich zu prüfen; keine automatische rechtliche Freigabe.
+
+### Foto- und Medienstrategie
+
+Neue Fotos durchlaufen denselben nativen Speicherpfad aus UI und MCP. Standard:
+lange Kante bis 3072 px, JPEG zunächst Qualität 84, bei Bedarf 80/76; Ziel meist
+höchstens 3 MiB, kein garantiertes Dateigrößenversprechen. „Hoch“ bis 4096 px;
+Profilbilder bis 1024 px. Kleine Bilder behalten ihre codierten Pixel; unterstützte
+EXIF-/Textmetadaten werden entfernt, Orientierung wird berücksichtigt. Explizit
+„Original behalten“ bewahrt Originalbytes und Originalmetadaten. Vorhandene
+Originaldateien werden nicht nachträglich verändert. Hash immer über gespeicherte
+Bytes; Ursprungsname, Größenangaben und Aufnahmezeit bleiben separate Metadaten.
+
+Kein Foto-Gesamtlimit pro Kunde. 30 Dateien **pro Auswahl**, danach weitere Auswahl;
+sequenziell, einzelne Fehler als wiederholbare Entwürfe. Nur der Nutzer kann einen
+ungespeicherten Entwurf gezielt entfernen. Browser-Vorverkleinerung für Dateien
+über 20 MiB bis 50 MiB; abschließende native Prüfung weiter bis 20 MiB je Datei.
+MCP erhöht sein Dateilimit nicht. Bibliothek lädt 30 kleine Vorschaureferenzen je
+Seite, Originale erst beim Öffnen; Rollen-, Zeitraum-, Auftrag-/Einsatzfilter.
+Fotozahl und anhand eindeutiger Dateien gezählter Speicher im Kundenkonto,
+lokale Original-/Vorschaubelegung und verfügbarer Speicher in Einstellungen.
+Keine automatische Löschung. Timerfotos tragen eigene customer/order/session_id;
+der atomare Sitzungsabschluss verbindet die endgültige worklog_id.
+
+Originale, Vorschaubilder und PDF-Dateien getrennt von JSON-Journalen. Ein Retry
+prüft SHA/Größe und vorhandene Dateien. Nach versuchter Veröffentlichung wird
+ein bereits geprüfter SAF-Upload bei verlorenem Rücklesen **nicht gelöscht**.
+Mehrdeutige Originaldateien werden sichtbar zurückgehalten. Medienfehler lassen
+andere gültige Geschäftsaktionen weiterlaufen. Fehlende PDFs/Originale erhalten
+keine vollständige Sync-Bestätigung. Neue Angebot-/Katalogaktionen bleiben mit
+`SYNC_COMPONENT_UPDATE_REQUIRED` lokal erhalten, bis der gemeinsame Importer
+`offers_v1`/`service_catalog_v1` tatsächlich meldet. Bestehenden Importer zuerst
+bereitstellen; diese Aufgabe hat keinen produktiven Dienst ausgerollt.
+
+### Historische Prüfungen und reale Grenzen
+
+Letzte Live-Lesung: **aktiv 7**, davon sechs `DELETE_REVIEW_REQUIRED`, ein
+`WRITE_CONFLICT`; **Upload ausstehend 0**, `cloud_confirmed=false`,
+`confirmation_scope=provider_readback`. Keine der sieben Aktionen angewendet,
+gelöscht oder als erledigt ausgegeben. Ihre Ursache wurde nicht aus Timerfehlern
+abgeleitet. Vorschau/Schreibschutz sind implementiert: private konsistente
+SQLite-Geschäftssicherung, lokale Medien/Dokumente, aktueller Drive-Snapshot,
+gebundene Hashliste, einmalige Bestätigung, bestehendes `keep_current` und
+Konflikthistorie. Originalaktionen bleiben bis zum bestätigten Abgleich erhalten.
+Die spezielle Geschäftssicherung umfasst keine WebView-Browserentwürfe und keine
+vollständige Android-Gerätesicherung; diese sind separat zu sichern. Ohne lesbare
+Originale/Drive-Snapshot, bei laufendem Timer oder veränderten Hashes wird blockiert.
+Ein später geänderter Aktionshash macht die alte Entscheidung unbrauchbar und wird
+sichtbar erneut blockiert. Keine produktive Sicherung oder Sammelentscheidung ausgeführt.
+
+Tunnel-/Organisationsverwaltung ist nicht durch einen erfolgreichen Lesezugriff
+attestiert. Android-/Google-Kontofreigabe, persistente Dokumentbaumrechte,
+OAuth-Projektregistrierung, Netz und Akku-/Hintergrundbetrieb bleiben separat
+zu prüfen. Direkter Cloud-API-Egress ist eingeschränkt; ein funktionierender
+GitHub-/Drive-Connector ersetzt ihn nicht. Kein neuer Parallel-Tunnel, kein
+401-Umgehen und keine unbegrenzten Wiederholungen. Google-/Pixel-End-to-End,
+Installation, Fresh-Install und In-place-Update/Datenerhalt bleiben offen.
+
+### Tatsächlich ausgeführte Prüfungen 1.49
+
+265 Python-Tests bestanden, keine Skips; die 37 alten schlüsselerzeugenden
+QA-Signierungstests ausdrücklich ausgeschlossen. 14 JVM-Suiten / 554 Fälle
+bestanden, darunter 75 neue Angebots-/Rechte-/Konflikt-/Foto-Regelprüfungen und
+Android/Python-Vergleiche von Angebotsnormalisierung, Kontexthash und Auftragstext.
+21 vorhandene Browser-Suiten bestanden, zusätzlich acht Integritätsprüfungen,
+14 Sync-/Kundenakten-/Wischprüfungen und zwölf neue Angebots-/Foto-/Einstellungs-
+prüfungen. Alle verwenden isolierte synthetische Daten beziehungsweise native
+Brückenattrappen. 105 Foto-Metadaten sowie 21 gültige und eine fehlerhafte Datei
+in einer Auswahl geprüft; das ist kein nativer Test mit 100 Originalfotos.
+
+Neuer Vergleich im Cloud-Chromium, 3.000 Arbeiten: 50 ms Median für fünf Render-
+Wiederholungen, 50 sichtbare Arbeitszeilen, null versteckte Abrechnungszeilen,
+4.952 DOM-Knoten. Ausgangsmessung 454 ms / 47.729 Knoten; keine Pixel-Messung
+und kein streng lastisolierter Gerätebenchmark. 320/360/426 px und 150 % Schrift
+geprüft; zusätzliche Screenshots visuell kontrolliert und schmale Filter/Tabs/
+Aktionen nachgebessert.
+
+Release-Build, Release-Lint und Android-Testquellen-Kompilierung bestanden;
+null Lint-Fehler, zwölf Warnungen. Native Bitmap-/Rotations-/Thumbnail-, 21-Foto-
+Wiederanlauf-, Sitzungszuordnungs-, PDF- und SAF-Fehlerabnahmen sind vorbereitet
+und kompiliert, **nicht auf Android ausgeführt**. Kein produktiver Schreibtest.
+Bestehende Tests und ursprüngliche App-Funktionen bleiben erhalten; kein
+Parallelcode wurde ohne Abhängigkeitsnachweis entfernt.
+
+
+### Tatsächliche Originalsignierung und Bereitstellung 1.49
+
+Vor dem echten Signieraufruf ausschließlich das Vorhandensein aller fünf
+`HG_ORIGINAL_*`-Variablen geprüft: vollständig. Keine Geheimwerte ausgegeben,
+geloggte Konfigurationskopie oder dauerhafte Keystore-Datei. Ausschließlich
+`tools/sign_original_apk.py`, vorhandener Schlüssel, keine Ersatz-/QA-/Debug-
+Signierung. Ein tatsächlicher Signierlauf; Ausgabe erst nach erfolgreichem Cleanup.
+
+Geprüft: Paket `at.hausgarten.service`, Version **1.49.0 / 69**, minSdk 26,
+targetSdk/compileSdk 37, nicht debuggable; 69 > angezeigter installierter 68.
+Keystore-Zertifikat und ausgegebener einzelner APK-Signer stimmen mit dem
+konfigurierten Original überein. Öffentlicher Zertifikats-SHA256:
+`a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`.
+Signatur erneut an der endgültigen Ausgabedatei geprüft: v2/v3 true;
+v1/v3.1/v3.2/v4 false. 16-KiB-Ausrichtung bestanden. Paket/Zertifikat und höherer
+Code zusätzlich gegen den erhaltenen Original-Kandidaten 1.48.0/68 geprüft.
+Dieser Vergleich ist kein Zugriff auf die installierte Pixel-Signatur.
+
+402 Quellassets bytegleich, benötigte operative Klassen vorhanden, null operative
+Seedzeilen einschließlich Angeboten. Source-/APK-Privacy-Gate bestanden;
+`private_markers_checked=0`, da keine Betriebsdaten als Prüfreferenz vorliegen.
+Cleanup unabhängig nachgeprüft: null verbliebene private Signierungsordner im
+OS-Temp und null Schlüsseldateien nach geprüften Dateiendungen im Repository.
+
+Finale Datei `downloads/Haus-Garten-1.49.0-69-original-update-kandidat.apk`:
+34.389.507 Bytes; SHA256
+`c14289a0bacae815fca0d23f798c5f24a991dffe62fdeace84c97e9e464edc67`.
+Zusätzlicher [Drive-Download](https://drive.google.com/file/d/1PulK2-5KxzVa-o94e_bQ9yKZG_vjXTMy/view)
+im verbundenen privaten Google-Konto: als neue Datei hochgeladen und über den
+Connector vollständig als Dateireferenz zurückgeladen (34.389.507 Bytes).
+Keine öffentliche Freigabe hinzugefügt. Eine erfolgreiche Übertragung oder
+Originalsignierung beweist weder Installation noch Updatefähigkeit/Datenerhalt.

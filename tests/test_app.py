@@ -84,7 +84,7 @@ class AppTest(unittest.TestCase):
             'positions':[{'title':'Heckenpflege - Thuja occidentalis','quantity':2,'price':50,'worklog_id':worklog['id']}]})
         with self.assertRaises(ValueError): invoicing.issue(draft['id'],True)
         db.save_settings({'owner_name':'Hafner Michael','business_street':'Goethestraße 2','business_postal_code':'9560',
-            'business_city':'Feldkirchen','invoice_issuer_confirmed':'1','invoice_prefix':'RE','invoice_numbering_confirmed':'1',
+            'business_city':'Feldkirchen','tax_mode':'small_business','tax_exemption_text':'Umsatzsteuerfrei gemäß § 6 Abs. 1 Z 27 UStG.','invoice_issuer_confirmed':'1','invoice_prefix':'RE','invoice_numbering_confirmed':'1',
             'invoice_number_format':'sevdesk','invoice_sevdesk_last_number':'94','invoice_sevdesk_checked_at':db.now()})
         self.assertTrue(invoicing.preview(draft['id']).startswith(b'%PDF-'))
         with db.connect() as database: layout=invoicing.prepare(database,draft['id'])
@@ -102,7 +102,8 @@ class AppTest(unittest.TestCase):
         folder=db.DATA_DIR/'drive';folder.mkdir()
         server.drive_sync(str(folder))
         snapshot=json.loads((folder/'HausGarten-Laptop.json').read_text(encoding='utf-8'))
-        self.assertIn('pdf_base64',snapshot['invoices'][0])
+        self.assertNotIn('pdf_base64',snapshot['invoices'][0])
+        self.assertEqual((folder/'HausGarten-Dokumente'/snapshot['invoices'][0]['pdf_storage_name']).read_bytes(),invoicing.issued_pdf(draft['id']))
         self.assertTrue(list((folder/'Rechnungen').rglob('*.pdf')))
         next_draft=db.save_invoice({**draft,'id':db.uid('inv'),'invoice_number':'Entwurf-2','worklog_ids':[], 'positions':[{**p,'worklog_id':''} for p in draft['positions']]})
         self.assertEqual(invoicing.issue(next_draft['id'],True)['invoice_number'],f'RE-96/{invoicing.date.today().year}')
@@ -116,8 +117,14 @@ class AppTest(unittest.TestCase):
             "customer_visible": True,
         })
         self.assertTrue((db.PHOTO_DIR / photo["filename"]).exists())
+        documents=db.DATA_DIR/'documents';documents.mkdir();(documents/'qa.pdf').write_bytes(b'%PDF-synthetic')
+        thumbnails=db.PHOTO_DIR/'thumbnails';thumbnails.mkdir();(thumbnails/'qa.jpg').write_bytes(b'synthetic-preview')
         result = server.create_backup()
         self.assertTrue(Path(result["path"]).exists())
+        import zipfile
+        with zipfile.ZipFile(result['path']) as archive:
+            self.assertEqual(archive.read('documents/qa.pdf'),b'%PDF-synthetic')
+            self.assertEqual(archive.read('photos/thumbnails/qa.jpg'),b'synthetic-preview')
 
     def test_invoice_links_come_from_positions_and_cannot_cross_customers(self):
         c=db.save_customer({'name':'Erster Kunde'})
@@ -174,7 +181,8 @@ class AppTest(unittest.TestCase):
             "data": "data:image/jpeg;base64," + base64.b64encode(source.getvalue()).decode(),
         })
         snapshot_photo = db.mobile_photo_thumbnails(db.list_photos())[0]
-        self.assertTrue(snapshot_photo["thumbnail_data"].startswith("data:image/jpeg;base64,"))
+        self.assertNotIn("thumbnail_data",snapshot_photo)
+        self.assertTrue((db.PHOTO_DIR/"thumbnails"/snapshot_photo["thumbnail_storage_name"]).read_bytes().startswith(b"\xff\xd8"))
         self.assertEqual(snapshot_photo["filename"], photo["filename"])
 
     def test_upsert_does_not_duplicate(self):

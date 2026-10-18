@@ -8,7 +8,7 @@ final class PixelMcpEntityWriteTools {
     static final String[] NAMES={"create_customer","update_customer","create_order","update_order","create_invoice_draft","update_invoice_draft"};
     static final String[] CUSTOMER_FIELDS={"name","company","first_name","last_name","street","postal_code","city","country","phone","email","notes","active","garden_area","sevdesk_customer_number","custom_fields","billing_mode","default_billing_customer_id"};
     static final String[] ORDER_FIELDS={"customer_id","billing_customer_id","title","description","location","scheduled_date","status","customer_visible"};
-    static final String[] INVOICE_FIELDS={"customer_id","invoice_date","service_start","service_end","payment_days","notes","positions","domestic_service_confirmed","order_id","header_text","footer_text"};
+    static final String[] INVOICE_FIELDS={"customer_id","invoice_date","service_start","service_end","payment_days","notes","positions","domestic_service_confirmed","order_id","header_text","footer_text","tax_mode","recipient_type","recipient_vat_id"};
     static boolean handles(String name){return Arrays.asList(NAMES).contains(name);}
     private static JSONObject string(int max)throws Exception{return new JSONObject().put("type","string").put("maxLength",max);}
     private static JSONObject number()throws Exception{return new JSONObject().put("type","number").put("minimum",0);}
@@ -22,7 +22,10 @@ final class PixelMcpEntityWriteTools {
             .put("description","Vorhandene frei benannte Kunden-Zusatzfelder. Änderungen werden mit bestehenden Feldern zusammengeführt; nicht genannte Felder bleiben erhalten. Werte sind Text, Zahl, Ja/Nein oder null.");
         if("billing_mode".equals(key))return string(30).put("enum",new JSONArray().put("direct").put("via_customer"));
         if("payment_days".equals(key))return integer();
-        if("positions".equals(key))return new JSONObject().put("type","array").put("minItems",1).put("maxItems",200);
+        if("positions".equals(key)){
+            JSONObject p=new JSONObject();for(String k:new String[]{"title","description","unit","worklog_id"})p.put(k,string(10000));for(String k:new String[]{"quantity","price","tax_rate","discount","net","tax","net_total","tax_total","gross_total"})p.put(k,new JSONObject().put("type","number"));return new JSONObject().put("type","array").put("minItems",1).put("maxItems",200).put("items",PixelMcpOwnerTools.object(p,"title","quantity","price"));}
+        if("recipient_type".equals(key))return string(30).put("enum",new JSONArray().put("b2b").put("consumer").put(""));
+        if("tax_mode".equals(key))return string(30).put("enum",new JSONArray().put("small_business").put("standard"));
         return string(Arrays.asList("notes","description").contains(key)?10000:500);
     }
     static JSONObject schema(String name)throws Exception{
@@ -45,7 +48,7 @@ final class PixelMcpEntityWriteTools {
     static JSONArray tools()throws Exception{
         JSONArray out=new JSONArray();
         for(String name:NAMES){
-            String description=name.contains("invoice")?"Erstellt oder ändert ausschließlich einen lokalen Rechnungsentwurf. Ausstellen, versenden, bezahlen und vorhandene sevDesk-Rechnungen bleiben gesperrt.":name.equals("create_customer")?"Legt einen neuen Kunden mit Stammdaten und Zusatzfeldern an. Vorher Kunden einschließlich inaktiver Kunden suchen; mögliche Dubletten werden abgewiesen. Kunden-ID wird sicher auf dem Pixel erzeugt.":"Erstellt oder ändert einen Auftrag mit einer tatsächlich vorhandenen Kunden-ID. Vor Änderungen Datensatz abrufen und record_hash übernehmen.";
+            String description=name.contains("invoice")?"Erstellt oder ändert ausschließlich einen lokalen Rechnungsentwurf. Dieses Werkzeug stellt keine Rechnung aus, versendet nichts und markiert nichts als bezahlt. Vorhandene sevDesk-Rechnungen bleiben unverändert.":name.equals("create_customer")?"Legt einen neuen Kunden mit Stammdaten und Zusatzfeldern an. Vorher Kunden einschließlich inaktiver Kunden suchen; mögliche Dubletten werden abgewiesen. Kunden-ID wird sicher auf dem Pixel erzeugt.":"Erstellt oder ändert einen Auftrag mit einer tatsächlich vorhandenen Kunden-ID. Vor Änderungen Datensatz abrufen und record_hash übernehmen.";
             if(name.equals("update_customer"))description="Korrigiert ausdrücklich genannte Stammdaten eines vorhandenen Kunden anhand customer_id. Zuerst get_customer aufrufen und dessen record_hash als expected_record_hash übernehmen. Nicht genannte Felder, IDs, Zeitstempel und Verknüpfungen bleiben erhalten. Zusatzfelder werden ergänzt, nicht blind ersetzt.";
             out.put(new JSONObject().put("name",name).put("description",description+" request_id bei Wiederholungen unverändert lassen.")
                 .put("inputSchema",schema(name)).put("annotations",new JSONObject().put("readOnlyHint",false).put("destructiveHint",name.startsWith("update_")).put("idempotentHint",true).put("openWorldHint",false)));
@@ -155,7 +158,7 @@ final class PixelMcpEntityWriteTools {
             for(Iterator<String> keys=p.keys();keys.hasNext();)if(!Arrays.asList("title","description","quantity","price","unit","tax_rate","discount","worklog_id","net","tax","net_total","tax_total","gross_total").contains(keys.next()))throw new PixelMcpWriteTools.Rejected("INVALID_INPUT","Unbekannte Angabe in Rechnungsposition.");
             for(String key:new String[]{"quantity","price","discount","tax_rate"})if(p.has(key)&&!(p.opt(key) instanceof Number))throw new PixelMcpWriteTools.Rejected("INVALID_INPUT","Menge, Preis, Rabatt und Steuer müssen Zahlen sein.");
             double quantity=p.optDouble("quantity",Double.NaN),price=p.optDouble("price",Double.NaN),discount=p.optDouble("discount",0);
-            if(!Double.isFinite(quantity)||quantity<=0||!Double.isFinite(price)||price<0||!Double.isFinite(discount)||discount<0||discount>100||p.optDouble("tax_rate",0)!=0)throw new PixelMcpWriteTools.Rejected("INVALID_INPUT","Bitte Menge, Preis und Rabatt prüfen. Kleinunternehmerrechnungen haben 0 Prozent Umsatzsteuer.");
+            if(!Double.isFinite(quantity)||quantity<=0||!Double.isFinite(price)||price<0||!Double.isFinite(discount)||discount<0||discount>100||!Double.isFinite(p.optDouble("tax_rate",0))||p.optDouble("tax_rate",0)<0||p.optDouble("tax_rate",0)>100)throw new PixelMcpWriteTools.Rejected("INVALID_INPUT","Bitte Menge, Preis, Rabatt und Steuersatz prüfen.");
         }
     }
     static JSONObject recordForHash(String entity,JSONObject row)throws Exception{return editable(row,entity.equals("customer")?CUSTOMER_FIELDS:entity.equals("order")?ORDER_FIELDS:INVOICE_FIELDS);}

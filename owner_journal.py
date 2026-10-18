@@ -3,8 +3,8 @@ import json
 import db
 import sync_review
 
-TABLES={'customer':'customers','order':'orders','worklog':'worklogs','invoice':'invoices','photo':'photos'}
-BUSINESS_KEYS=('business_name','owner_name','business_street','business_postal_code','business_city','business_legal_info','business_iban','business_bank','business_bic','business_phone','business_email','invoice_issuer_confirmed','invoice_numbering_confirmed','invoice_number_format','invoice_prefix','invoice_sevdesk_last_number','invoice_sevdesk_checked_at')
+TABLES={'customer':'customers','order':'orders','worklog':'worklogs','invoice':'invoices','photo':'photos','offer':'offers','service_template':'service_catalog'}
+BUSINESS_KEYS=('business_name','owner_name','business_street','business_postal_code','business_city','business_legal_info','business_iban','business_bank','business_bic','business_phone','business_email','invoice_issuer_confirmed','invoice_numbering_confirmed','invoice_number_format','invoice_prefix','invoice_sevdesk_last_number','invoice_sevdesk_checked_at','tax_mode','tax_exemption_text','business_vat_id','default_payment_days','default_payment_terms')
 
 def business_settings(database=None):
     if database is None:
@@ -38,6 +38,9 @@ def compare_base(base,current):
 
 def record(database,entity,identifier):
     if entity not in TABLES:raise ValueError('Unbekannter Fachbereich.')
+    if entity in ('offer','service_template'):
+        import offers
+        return offers.get(identifier,entity,database)
     row=db.one(database.execute('SELECT * FROM '+TABLES[entity]+' WHERE id=?',(identifier,)))
     if row and entity=='invoice':
         details=database.execute('SELECT payload FROM invoice_details WHERE invoice_id=?',(identifier,)).fetchone()
@@ -70,9 +73,11 @@ def apply(action,attachment_root=None):
             for key,value in changes.items():
                 if key.endswith('_confirmed') and not isinstance(value,bool):raise ValueError('Bestätigung muss Ja/Nein sein.')
                 if key=='invoice_number_format' and value not in ('own','sevdesk'):raise ValueError('Ungültiger Nummernkreis.')
+                if key=='tax_mode' and value not in ('small_business','standard'):raise ValueError('Steuermodus ist ungültig.')
+                if key=='default_payment_days' and (isinstance(value,bool) or not isinstance(value,int) or not 0<=value<=365):raise ValueError('Zahlungsziel ist ungültig.')
                 if key=='invoice_sevdesk_last_number' and (isinstance(value,bool) or not isinstance(value,int) or not 0<=value<=1000000000):raise ValueError('Ungültiger Nummernstand.')
                 if key=='invoice_prefix' and not __import__('re').fullmatch('[A-Za-z][A-Za-z0-9-]{0,19}',str(value)):raise ValueError('Ungültiges Präfix.')
-                if key not in ('invoice_issuer_confirmed','invoice_numbering_confirmed','invoice_sevdesk_last_number') and not isinstance(value,str):raise ValueError('Einstellung muss Text sein.')
+                if key not in ('invoice_issuer_confirmed','invoice_numbering_confirmed','invoice_sevdesk_last_number','default_payment_days') and not isinstance(value,str):raise ValueError('Einstellung muss Text sein.')
                 if len(str(value))>2000:raise ValueError('Einstellung zu lang.')
                 if key=='invoice_sevdesk_checked_at' and value:
                     stamp=__import__('datetime').datetime.fromisoformat(str(value).replace('Z','+00:00'))
@@ -83,6 +88,7 @@ def apply(action,attachment_root=None):
             prior=p.get('_original_action');target=p.get('client_id')
             if not isinstance(prior,dict) or prior.get('client_id')!=target or sync_review.digest(prior)!=p.get('expected_action_hash') or target in state['drive_resolved_actions']:
                 raise ValueError('ACTION_ID_CONFLICT: Die ursprüngliche Konfliktaktion fehlt oder wurde verändert.')
+            if 'expected_current_hash' in p and sync_review.digest(p.get('_current_base'))!=p['expected_current_hash']:raise ValueError('WRITE_CONFLICT: Hash und Vergleichsstand widersprechen sich.')
             legacy_delete=prior['kind']=='delete';proposed=prior['payload'];entity=proposed['entity'] if legacy_delete else prior['kind'];current=record(database,entity,proposed['id'])
             if p.get('_current_base') is None:
                 if current is not None:raise ValueError('WRITE_CONFLICT: Die neue ID ist inzwischen belegt.')
@@ -99,7 +105,7 @@ def apply(action,attachment_root=None):
                     import server
                     server.apply_sync_action({'kind':entity,'client_id':identifier+'-resolved','payload':payload},attachment_root)
             elif p['resolution']!='keep_current':raise ValueError('Ungültige Konfliktentscheidung.')
-            state['owner_conflict_history'][target]={'original_action':prior,'previous':current,'resolution':p['resolution'],'resolution_action':identifier}
+            state['owner_conflict_history'][target]={'original_action':prior,'previous':current,'resolution':p['resolution'],'resolution_action':identifier,'action_hash':p['expected_action_hash'],'reason':p.get('reason','explicit_owner_decision'),'resolved_at':action.get('created_at','')}
             state['drive_resolved_actions'][target]=sync_review.digest(prior)
         else:
             entity='invoice' if kind=='invoice_payment' else p['entity'];item=p['id'];current=record(database,entity,item);key=entity+':'+item
@@ -150,7 +156,7 @@ def validate_archive(database,entity,row):
     item=row['id']
     if entity=='invoice' and (row.get('issued_at') or row.get('sevdesk_id') or row['status'] not in ('Entwurf','Storniert')):raise ValueError('Ausgestellte Belege bleiben geschützt.')
     if entity=='order':
-        if any(database.execute('SELECT 1 FROM '+table+' WHERE order_id=? LIMIT 1',(item,)).fetchone() for table in ('worklogs','invoices','photos')):raise ValueError('Verknüpfte Auftragsdaten zuerst prüfen.')
+        if any(database.execute('SELECT 1 FROM '+table+' WHERE order_id=? LIMIT 1',(item,)).fetchone() for table in ('worklogs','invoices','photos','offers')):raise ValueError('Verknüpfte Auftragsdaten zuerst prüfen.')
     if entity=='worklog':
         if database.execute('SELECT 1 FROM photos WHERE worklog_id=?',(item,)).fetchone():raise ValueError('Verknüpfte Fotos zuerst prüfen.')
         for detail in database.execute('SELECT payload FROM invoice_details'):
@@ -160,7 +166,11 @@ def validate_archive(database,entity,row):
 def effects(database,action):
     """Evidence of the exact committed versions, never a blanket export exception."""
     kind=action['kind'];p=action['payload'];targets=[]
-    if kind in TABLES:targets.append((kind,p.get('id')))
+    if kind in ('offer_finalize','offer_convert'):
+        targets.append(('offer',p.get('id')))
+        item=record(database,'offer',p.get('id'))
+        if item and item.get('converted_order_id'):targets.append(('order',item['converted_order_id']))
+    elif kind in TABLES:targets.append((kind,p.get('id')))
     elif kind in ('archive','restore'):targets.append((p.get('entity'),p.get('id')))
     elif kind=='conflict_resolution':
         prior=p.get('_original_action',{});original=prior.get('payload',{});targets.append((original.get('entity') if prior.get('kind')=='delete' else prior.get('kind'),original.get('id')))

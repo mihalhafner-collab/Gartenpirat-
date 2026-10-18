@@ -52,6 +52,7 @@ public final class PixelTunnelService extends Service {
                 readState(); // Don't expose bundled/stale seed data when Drive has never been configured.
                 http=new PixelTunnelWire.HttpTransport(config.secret(),config.organization());
                 PixelMcpWriteTools.Sink allowed=config.writeEnabled()?new PixelMcpWriteTools.Sink(){
+                    public boolean writable(){return new PixelTunnelConfig(PixelTunnelService.this).writeEnabled();}
                     public JSONObject execute(String tool,JSONObject args)throws Exception{
                         if(!new PixelTunnelConfig(PixelTunnelService.this).writeEnabled())throw new PixelMcpWriteTools.Rejected("WRITE_DISABLED","Schreibzugriff wurde beendet.");
                         return store.execute(tool,args);
@@ -62,6 +63,7 @@ public final class PixelTunnelService extends Service {
                 status("connecting","OpenAI-Tunnel wird geprüft.");tunnel.verify();failures=0;
                 while(!closing.get()&&config.enabled()){
                     if(System.currentTimeMillis()>=nextDriveSync){nextDriveSync=System.currentTimeMillis()+15*60*1000;DriveSyncCoordinator.request(this,1000);}
+                    if(config.writeEnabled()!=(allowed!=null))break; // Rebuild the advertised catalogue after a permission change.
                     tunnel.cycle();status("ready",config.writeEnabled()?"Tunnel erreichbar · Betriebsdaten lesen und bearbeiten":"Tunnel erreichbar · Betriebsdaten lesen");
                 }
             }catch(PixelTunnelWire.RateLimit limited){

@@ -6,18 +6,19 @@ import java.util.*;
 /** Additive owner journal protocol. Old journals and immutable receipts survive. */
 final class OwnerJournalRules {
     static final String[] KINDS={"archive","restore","conflict_resolution","invoice_payment","business_settings"};
-    static boolean handles(String kind){return Arrays.asList(KINDS).contains(kind);}
+    static boolean handles(String kind){return Arrays.asList(KINDS).contains(kind)||OfferJournalRules.handles(kind);}
     static JSONObject archives(JSONObject snapshot)throws Exception{JSONObject a=snapshot.optJSONObject("owner_archive");if(a==null){a=new JSONObject();snapshot.put("owner_archive",a);}return a;}
     static String group(String entity){return entity.equals("invoice")?"invoices":DriveJournalRules.collection(entity);}
     static JSONObject findOrNull(JSONArray rows,String id)throws Exception{for(int i=0;rows!=null&&i<rows.length();i++)if(id.equals(rows.getJSONObject(i).optString("id")))return rows.getJSONObject(i);return null;}
     static String version(JSONObject row)throws Exception{
         if(row==null)return PixelMcpWriteTools.hash(JSONObject.NULL);
-        if(row.has("id")){String kind=row.has("name")?"customer":row.has("activity")?"worklog":row.has("title")?"order":row.has("invoice_number")||row.has("positions")||row.has("issued_at")?"invoice":"photo";return PixelMcpWriteTools.hash(DriveJournalRules.guard(row,kind));}
+        if(row.has("id")){if(row.has("offer_number")||row.has("pricing_mode"))return PixelMcpWriteTools.hash(DriveJournalRules.clean(row));String kind=row.has("name")?"customer":row.has("activity")?"worklog":row.has("title")?"order":row.has("invoice_number")||row.has("positions")||row.has("issued_at")?"invoice":"photo";return PixelMcpWriteTools.hash(DriveJournalRules.guard(row,kind));}
         return PixelMcpWriteTools.hash(DriveJournalRules.clean(row));
     }
     static void checkHash(JSONObject row,String expected)throws Exception{if(!version(row).equals(expected))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Der geprüfte Stand hat sich verändert. Beide Varianten bleiben erhalten.");}
     static void apply(JSONObject snapshot,JSONObject action,Map<String,JSONObject> all,JSONObject resolved)throws Exception{
         String kind=action.getString("kind");JSONObject p=action.getJSONObject("payload");
+        if(OfferJournalRules.handles(kind)){OfferJournalRules.apply(snapshot,action);return;}
         if(kind.equals("business_settings")){
             JSONObject current=snapshot.optJSONObject("business_settings");if(current==null)throw new IllegalArgumentException("Fachliche Einstellungen fehlen im Gesamtstand. Aktualisierten Web-Nummernservice abgleichen.");
             if(!PixelMcpWriteTools.hash(current).equals(p.getString("expected_record_hash")))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Fachliche Einstellungen wurden geändert.");
@@ -38,7 +39,7 @@ final class OwnerJournalRules {
                     for(Iterator<String> keys=clean.keys();keys.hasNext();){String key=keys.next();merged.put(key,clean.get(key));}
                     DriveJournalRules.validateChange(entity,merged,current,snapshot);replace(snapshot,collection,merged.getString("id"),merged);}
             }
-            history.put(target,new JSONObject().put("original_action",prior).put("previous",current==null?JSONObject.NULL:current).put("resolution",p.getString("resolution")).put("resolution_action",action.getString("client_id")));
+            history.put(target,new JSONObject().put("original_action",prior).put("previous",current==null?JSONObject.NULL:current).put("resolution",p.getString("resolution")).put("action_hash",p.getString("expected_action_hash")).put("reason",p.optString("reason","explicit_owner_decision")).put("resolved_at",action.optString("created_at")).put("resolution_action",action.getString("client_id")));
             snapshot.put("owner_conflict_history",history);resolved.put(target,OrderReviewRules.actionHash(prior));return;
         }
         String entity=kind.equals("invoice_payment")?"invoice":p.getString("entity"),id=p.getString("id"),collection=group(entity);
@@ -69,7 +70,7 @@ final class OwnerJournalRules {
         if(entity.equals("customer"))return; // Keep the row and all historic references.
         String id=row.getString("id");
         if(entity.equals("invoice"))EntityProtectionRules.validateInvoiceDelete(row);
-        for(String collection:new String[]{"orders","worklogs","photos","invoices"}){
+        for(String collection:new String[]{"orders","worklogs","photos","invoices","offers"}){
             JSONArray rows=snapshot.getJSONArray(collection);
             for(int i=0;i<rows.length();i++){JSONObject other=rows.getJSONObject(i);
                 if(entity.equals("order")&&id.equals(other.optString("order_id"))||entity.equals("worklog")&&id.equals(other.optString("worklog_id")))throw new IllegalArgumentException("Verknüpfte Daten zuerst prüfen; nichts entfernt.");

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import base64
 import io
 import sqlite3
@@ -292,6 +293,9 @@ def init() -> None:
               content_sha256 TEXT, byte_size INTEGER, mime_type TEXT, storage_name TEXT,
               role TEXT NOT NULL DEFAULT 'documentation'
             );
+            CREATE TABLE IF NOT EXISTS offers (id TEXT PRIMARY KEY,customer_id TEXT NOT NULL REFERENCES customers(id),billing_customer_id TEXT REFERENCES customers(id),order_id TEXT REFERENCES orders(id),payload TEXT NOT NULL);
+            CREATE INDEX IF NOT EXISTS ix_offers_customer ON offers(customer_id);
+            CREATE TABLE IF NOT EXISTS service_catalog(id TEXT PRIMARY KEY,payload TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS owner_journal_receipts (action_id TEXT PRIMARY KEY, sha256 TEXT NOT NULL, result TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS owner_journal_metadata (key TEXT PRIMARY KEY, payload TEXT NOT NULL);
@@ -310,16 +314,20 @@ def init() -> None:
             CREATE INDEX IF NOT EXISTS ix_photos_customer ON photos(customer_id);
             """
         )
+        if not database.execute("SELECT 1 FROM owner_journal_metadata WHERE key='service_catalog_seeded'").fetchone():
+            for entry in json.loads((ROOT/'android/app/src/main/assets/service-catalog.json').read_text(encoding='utf-8')):
+                database.execute('INSERT OR IGNORE INTO service_catalog(id,payload) VALUES(?,?)',(entry['id'],json.dumps(entry,ensure_ascii=False)))
+            database.execute("INSERT INTO owner_journal_metadata(key,payload) VALUES('service_catalog_seeded','true')")
         customer_columns = {row[1] for row in database.execute("PRAGMA table_info(customers)")}
         if "custom_fields" not in customer_columns:
             database.execute("ALTER TABLE customers ADD COLUMN custom_fields TEXT DEFAULT '{}'")
         # Additive only: legacy worklogs retain NULL (= their actual customer).
         additions = {"customers": {"billing_mode": "TEXT NOT NULL DEFAULT 'direct'",
                     "default_billing_customer_id": "TEXT REFERENCES customers(id)"},
-                    "orders": {"billing_customer_id": "TEXT REFERENCES customers(id)"},
+                    "orders": {"billing_customer_id": "TEXT REFERENCES customers(id)","offer_id":"TEXT"},
                     "worklogs": {"billing_customer_id": "TEXT REFERENCES customers(id)"},
                     "photos": {"content_sha256": "TEXT", "byte_size": "INTEGER", "mime_type": "TEXT",
-                               "storage_name": "TEXT", "role": "TEXT NOT NULL DEFAULT 'documentation'", "updated_at": "TEXT"}}
+                               "storage_name": "TEXT", "role": "TEXT NOT NULL DEFAULT 'documentation'", "updated_at": "TEXT", "session_id":"TEXT", "capture_time":"TEXT", "width":"INTEGER", "height":"INTEGER", "original_width":"INTEGER", "original_height":"INTEGER", "original_byte_size":"INTEGER", "optimization":"TEXT", "thumbnail_storage_name":"TEXT", "thumbnail_sha256":"TEXT"}}
         for table, fields in additions.items():
             present = {r[1] for r in database.execute(f"PRAGMA table_info({table})")}
             for name, definition in fields.items():
@@ -551,7 +559,7 @@ def list_photos(filters: dict | None = None) -> list[dict]:
 
 
 def mobile_photo_thumbnails(photos: list[dict], size: int = 144) -> list[dict]:
-    """Add small embedded previews for mobile snapshots without changing photo records."""
+    """Create bounded separate preview files; snapshots contain references only."""
     try:
         from PIL import Image, ImageOps
     except ImportError:
@@ -564,7 +572,13 @@ def mobile_photo_thumbnails(photos: list[dict], size: int = 144) -> list[dict]:
                 image.thumbnail((size, size))
                 output = io.BytesIO()
                 image.save(output, format="JPEG", quality=48, optimize=True)
-            item["thumbnail_data"] = "data:image/jpeg;base64," + base64.b64encode(output.getvalue()).decode("ascii")
+            raw=output.getvalue()
+            if not raw or len(raw)>65536:continue
+            digest=hashlib.sha256(raw).hexdigest();directory=PHOTO_DIR/'thumbnails';directory.mkdir(exist_ok=True);target=directory/(digest+'.jpg')
+            if target.exists() and hashlib.sha256(target.read_bytes()).hexdigest()!=digest:raise ValueError('Vorschaudatei wurde verändert.')
+            if not target.exists():
+                with target.open('xb') as file:file.write(raw)
+            item.pop('thumbnail_data',None);item['thumbnail_storage_name']=digest+'.jpg';item['thumbnail_sha256']=digest
         except (OSError, ValueError):
             continue
     return photos
@@ -606,6 +620,7 @@ def save_order(data: dict) -> dict:
         if matches: raise DuplicateWarning("Ein ähnlicher Auftrag existiert bereits.", matches)
     columns = {"customer_id":customer_id,"title":title,"description":data.get("description",""),"location":data.get("location",""),"scheduled_date":data.get("scheduled_date") or None,"status":data.get("status") or "Geplant","customer_visible":truth(data.get("customer_visible"),True),"updated_at":stamp}
     columns["billing_customer_id"] = data.get("billing_customer_id") or None
+    columns["offer_id"] = data.get("offer_id") or None
     return _upsert("orders", identifier, columns, stamp, expected=_entity_mcp_expected(data))
 
 def save_worklog(data: dict) -> dict:
@@ -740,7 +755,7 @@ def save_invoice(data: dict) -> dict:
     return saved
 
 
-def calculate_invoice(data: dict) -> dict:
+def calculate_invoice(data: dict, tax_settings=None) -> dict:
     """Calculate drafts with decimal, per-line currency rounding; never mark work billed."""
     def decimal(value):
         try:
@@ -752,6 +767,9 @@ def calculate_invoice(data: dict) -> dict:
         return result
     def rounded(value):
         return value.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    tax_settings = settings() if tax_settings is None else tax_settings
+    tax_mode=(data.get('tax_mode') if data.get('tax_mode') not in (None,'','unconfigured') else tax_settings.get('tax_mode')) or 'unconfigured'
+    if tax_mode not in ('small_business','standard','unconfigured'):raise ValueError('Steuermodus ist ungültig.')
     positions, net, tax = [], Decimal(0), Decimal(0)
     if not isinstance(data['positions'], list) or not 1 <= len(data['positions']) <= 200:
         raise ValueError('Bitte mindestens eine Rechnungsposition hinzufügen (höchstens 200).')
@@ -761,8 +779,8 @@ def calculate_invoice(data: dict) -> dict:
         title = str(item.get('title', '')).strip()
         quantity, price = decimal(item.get('quantity')), decimal(item.get('price'))
         rate, discount = decimal(item.get('tax_rate')), decimal(item.get('discount'))
-        if rate != 0:
-            raise ValueError('Kleinunternehmerrechnung: Umsatzsteuer darf nicht ausgewiesen werden. Bitte Steuer auf 0 setzen.')
+        if rate != 0 and tax_mode != 'standard':
+            raise ValueError('Steuermodus zentral bestätigen; Kleinunternehmer dürfen keine Steuer ausweisen.')
         if not title or quantity <= 0 or price < 0 or not 0 <= rate <= 100 or not 0 <= discount <= 100:
             raise ValueError('Jede Position benötigt eine Bezeichnung, positive Menge und gültige Preise/Prozente.')
         subtotal = rounded(quantity * price * (1 - discount / 100))
@@ -783,11 +801,15 @@ def calculate_invoice(data: dict) -> dict:
     if document_type=='cancellation':
         net,tax=-net,-tax
         for position in positions:position['net']=-position['net'];position['tax']=-position['tax']
-    return {'document_type':document_type,'correction_of':str(data.get('correction_of') or ''),'correction_reason':str(data.get('correction_reason') or ''),'positions': positions, 'net_total': float(net), 'tax_total': float(tax),
+    recipient_type,recipient_vat=str(data.get('recipient_type') or ''),str(data.get('recipient_vat_id') or '').strip()
+    if recipient_type not in ('','b2b','consumer') or len(recipient_vat)>40 or (recipient_vat and not re.fullmatch(r'[A-Za-z]{2}[A-Za-z0-9]{2,38}',recipient_vat)):
+        raise ValueError('Empfängertyp oder UID ist ungültig.')
+    recipient_fields={k:v for k,v in (('recipient_type',recipient_type),('recipient_vat_id',recipient_vat)) if k in data}
+    return {**recipient_fields,'document_type':document_type,'correction_of':str(data.get('correction_of') or ''),'correction_reason':str(data.get('correction_reason') or ''),'positions': positions, 'net_total': float(net), 'tax_total': float(tax),
             'gross_total': float(net + tax), 'payment_days': days,
             'header_text': str(data.get('header_text', '')), 'footer_text': str(data.get('footer_text', '')),
             'worklog_ids': list(dict.fromkeys([p['worklog_id'] for p in positions if p['worklog_id']])),
-            'tax_exemption': 'Umsatzsteuerfrei aufgrund der Kleinunternehmerregelung gemäß § 6 Abs. 1 Z 27 UStG.',
+            'tax_mode':tax_mode,'tax_exemption':tax_settings.get('tax_exemption_text','') if tax_mode=='small_business' else '',
             'domestic_service_confirmed': bool(truth(data.get('domestic_service_confirmed')))}
 
 
@@ -852,7 +874,7 @@ def _entity_mcp_expected(data):
                    'company', 'first_name', 'last_name', 'street', 'postal_code', 'city',
                    'country', 'phone', 'email', 'notes', 'active', 'garden_area',
                    'sevdesk_customer_number', 'custom_fields', 'description', 'location', 'scheduled_date',
-                   'customer_visible', 'invoice_date', 'service_start', 'service_end'}
+                   'customer_visible', 'invoice_date', 'service_start', 'service_end', 'tax_mode', 'recipient_type', 'recipient_vat_id'}
         if not isinstance(expected, dict) or set(expected) - allowed or not expected.get('id') or not expected.get('updated_at'):
             raise ValueError('Ungültige Vergleichsdaten der ChatGPT-Änderung.')
     return expected
@@ -993,7 +1015,7 @@ def save_settings(values: dict) -> dict:
                "business_street", "business_postal_code", "business_city", "business_legal_info", "business_iban",
                "invoice_prefix", "invoice_numbering_confirmed", "invoice_issuer_confirmed",
                "invoice_number_format", "invoice_sevdesk_last_number", "invoice_sevdesk_checked_at", "drive_invoice_only",
-               "business_phone", "business_email", "business_bank", "business_bic"}
+               "business_phone", "business_email", "business_bank", "business_bic", "tax_mode", "tax_exemption_text", "business_vat_id", "default_payment_days", "default_payment_terms"}
     with connect() as database:
         for key, value in values.items():
             if key in allowed:

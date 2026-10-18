@@ -22,7 +22,7 @@
     const brand=document.querySelector('#home .brand');
     if(brand&&!get('home-dayline')){const line=document.createElement('p');line.id='home-dayline';line.className='home-dayline';line.textContent=new Date().toLocaleDateString('de-AT',{weekday:'long',day:'numeric',month:'long'});brand.after(line);}
   }
-  function navigationState(){const section=currentPage==='customer-edit'||currentPage==='customer-profile-page'?'customers':currentPage==='worklog-detail'||currentPage==='work-entry'?'worklogs':['orders','weeks','invoices','sync-page'].includes(currentPage)?'more-page':currentPage;document.querySelectorAll('.nav').forEach(button=>{const active=button.dataset.open===section;button.classList.toggle('active',active);active?button.setAttribute('aria-current','page'):button.removeAttribute('aria-current');});}
+  function navigationState(){const section=currentPage==='customer-edit'||currentPage==='customer-profile-page'?'customers':currentPage==='worklog-detail'||currentPage==='work-entry'?'worklogs':['orders','weeks','invoices','offers-page','sync-page'].includes(currentPage)?'more-page':currentPage;document.querySelectorAll('.nav').forEach(button=>{const active=button.dataset.open===section;button.classList.toggle('active',active);active?button.setAttribute('aria-current','page'):button.removeAttribute('aria-current');});}
   function compactFilters(){const panel=get('worklog-filter-panel');if(!panel||panel.querySelector('.workday-filters'))return;const details=document.createElement('details');details.className='more workday-filters';const summary=document.createElement('summary');summary.textContent='Filter · Zeitraum, Kunde, Abrechnung';details.append(summary);const grid=panel.querySelector('.form-grid'),reset=get('worklog-filter-reset');panel.append(details);if(grid)details.append(grid);if(reset)details.append(reset);}
   function compactCustomers(){document.querySelectorAll('.customer-work-section').forEach(section=>{if(section.closest('details'))return;const details=document.createElement('details');details.className='customer-history';const summary=document.createElement('summary');const count=section.querySelector('.customer-work-heading span')?.textContent||'0';summary.textContent=`Arbeitsverlauf · ${count} Einträge`;details.append(summary);section.before(details);details.append(section);});}
   function groupCustomerForm(){
@@ -93,7 +93,7 @@
       if(action==='photo'){
         const customerId=session.customer_id||get('customer')?.value;
         if(customerId&&typeof window.openCustomerDocumentationCamera==='function'){
-          if(window.openCustomerDocumentationCamera(customerId))return;
+          if(window.openCustomerDocumentationCamera(customerId,{session_id:session.id,order_id:session.order_id||''}))return;
         }
         openPage('work-entry');
         const customer=get('customer');

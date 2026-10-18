@@ -5,12 +5,13 @@ import java.util.*;
 
 /** Existing Drive snapshot + action journals. No new database or replacement IDs. */
 final class DriveJournalRules {
-    static final String[] KINDS={"customer","order","worklog","photo","invoice"};
+    static final String[] KINDS={"customer","order","worklog","photo","invoice","offer","service_template"};
     static String collection(String kind) {
-        switch(kind){case "customer":return "customers";case "order":return "orders";case "worklog":return "worklogs";case "photo":return "photos";case "invoice":return "invoices";default:return "";}
+        switch(kind){case "customer":return "customers";case "order":return "orders";case "worklog":return "worklogs";case "photo":return "photos";case "invoice":return "invoices";case "offer":return "offers";case "service_template":return "service_catalog";default:return "";}
     }
     static void validateSnapshot(JSONObject snapshot)throws Exception{
-        for(String key:new String[]{"customers","orders","worklogs","invoices","photos"}){
+        for(String key:new String[]{"offers","service_catalog"})if(!snapshot.has(key))snapshot.put(key,new JSONArray());
+        for(String key:new String[]{"customers","orders","worklogs","invoices","photos","offers","service_catalog"}){
             JSONArray rows=snapshot.optJSONArray(key);if(rows==null)throw new IllegalArgumentException("Der Drive-Gesamtstand ist unvollständig. Lokale Daten bleiben erhalten.");
             Set<String> ids=new HashSet<>();for(int i=0;i<rows.length();i++){JSONObject row=rows.optJSONObject(i);if(row==null||row.optString("id").isEmpty()||!ids.add(row.getString("id")))throw new IllegalArgumentException("Ungültige oder doppelte IDs im Drive-Gesamtstand. Abgleich angehalten.");}
         }
@@ -29,12 +30,12 @@ final class DriveJournalRules {
     }
     private static long created(JSONObject action){try{return java.time.Instant.parse(action.optString("created_at")).toEpochMilli();}catch(Exception ignored){try{return java.time.OffsetDateTime.parse(action.optString("created_at")).toInstant().toEpochMilli();}catch(Exception missing){return 0;}}}
     static JSONObject guard(JSONObject row,String kind)throws Exception{
-        JSONObject base=new JSONObject();if(row==null)return base;
+        JSONObject base=new JSONObject();if(row==null)return base;if(kind.equals("offer")||kind.equals("service_template"))return clean(row);
         String[] keys=kind.equals("worklog")?PixelMcpWriteTools.BASE_FIELDS:kind.equals("customer")?
             new String[]{"id","updated_at","name","first_name","last_name","company","street","postal_code","city","country","email","phone","notes","active","garden_area","sevdesk_customer_number","custom_fields","billing_mode","default_billing_customer_id"}:
-            kind.equals("order")?new String[]{"id","updated_at","customer_id","title","description","location","scheduled_date","status","notes","customer_visible","billing_customer_id"}:
-            kind.equals("invoice")?new String[]{"id","updated_at","customer_id","order_id","invoice_number","invoice_date","service_start","service_end","status","sevdesk_id","issued_at","positions","payment_days","notes","domestic_service_confirmed","document_type","correction_of","correction_reason","header_text","footer_text"}:
-            new String[]{"id","customer_id","order_id","worklog_id","filename","caption","customer_visible","content_sha256","byte_size","mime_type","storage_name","role","updated_at"};
+            kind.equals("order")?new String[]{"id","updated_at","customer_id","title","description","location","scheduled_date","status","notes","customer_visible","billing_customer_id","offer_id"}:
+            kind.equals("invoice")?new String[]{"id","updated_at","customer_id","order_id","invoice_number","invoice_date","service_start","service_end","status","sevdesk_id","issued_at","positions","payment_days","notes","domestic_service_confirmed","document_type","correction_of","correction_reason","header_text","footer_text","tax_mode","recipient_type","recipient_vat_id"}:
+            new String[]{"id","customer_id","order_id","worklog_id","filename","caption","customer_visible","content_sha256","byte_size","mime_type","storage_name","role","session_id","capture_time","updated_at"};
         for(String key:keys)base.put(key,key.equals("custom_fields")?comparable(key,row.opt(key)):row.has(key)?row.get(key):JSONObject.NULL);return base;
     }
     static JSONObject clean(JSONObject value)throws Exception{
@@ -64,6 +65,7 @@ final class DriveJournalRules {
         int upload=0,review=0;JSONArray items=new JSONArray();
         for(int i=0;pending!=null&&i<pending.length();i++){
             JSONObject action=pending.getJSONObject(i);String id=action.optString("client_id"),kind=action.optString("kind");JSONObject error=errors.get(id);
+            JSONObject resolved=snapshot.optJSONObject("drive_resolved_actions");if(resolved!=null&&resolved.has(id)&&!OrderReviewRules.actionHash(action).equals(resolved.optString(id)))error=new JSONObject().put("code","ACTION_ID_CONFLICT").put("error","Die geprüfte Aktionskennung enthält einen anderen Hash. Manuell prüfen; keine alte Entscheidung anwenden.");
             boolean transferred=delivered.contains(id),held=collection(kind).isEmpty();
             String phase,message;
             if(error!=null){review++;phase=error.optString("code").contains("CONFLICT")?"sync_conflict":"sync_failed";message="Prüfung erforderlich: "+(error.optString("code").contains("CONFLICT")?"Widersprüchliche Änderungen; vorhandene Daten wurden nicht überschrieben.":"Die Änderung konnte nicht übernommen werden.");}
@@ -73,7 +75,7 @@ final class DriveJournalRules {
             JSONObject item=new JSONObject().put("client_id",id).put("state",phase).put("provider_readback",transferred).put("cloud_confirmed",false).put("kind",kind).put("entity_id",action.getJSONObject("payload").optString("id")).put("created_at",action.optString("created_at")).put("error",error==null?"":error.optString("error")).put("code",code).put("next_action",next).put("message",message);
             DrivePublication.evidence(item,new JSONObject().put("master",snapshot).put("pending",new JSONArray().put(action)));items.put(item);
         }
-        JSONArray missing=snapshot.optJSONArray("drive_media_errors");for(int i=0;missing!=null&&i<missing.length();i++){JSONObject e=missing.getJSONObject(i);String id=e.optString("entity_id",e.optString("photo_id")),kind="invoice".equals(e.optString("entity_type"))?"document":"media";items.put(new JSONObject().put("client_id",kind+":"+id).put("kind",kind).put("entity_id",id).put("state","review_required").put("code",e.optString("code")).put("next_action",kind.equals("document")?"open_document":"open_photo").put("message",e.optString("message")));review++;}
+        JSONArray missing=snapshot.optJSONArray("drive_media_errors");for(int i=0;missing!=null&&i<missing.length();i++){JSONObject e=missing.getJSONObject(i);String id=e.optString("entity_id",e.optString("photo_id")),kind=Arrays.asList("invoice","offer").contains(e.optString("entity_type"))?"document":"media";items.put(new JSONObject().put("client_id",kind+":"+id).put("kind",kind).put("entity_id",id).put("state","review_required").put("code",e.optString("code")).put("next_action",kind.equals("document")?"open_document":"open_photo").put("message",e.optString("message")));review++;}
         return new JSONObject().put("total",items.length()).put("pending_upload",upload).put("review",review).put("items",items);
     }
     static JSONArray apply(JSONObject snapshot,JSONArray actions)throws Exception{
@@ -161,11 +163,24 @@ final class DriveJournalRules {
     private static String hashString(String value)throws Exception{
         byte[] bytes=java.security.MessageDigest.getInstance("SHA-256").digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));StringBuilder out=new StringBuilder();for(byte b:bytes)out.append(String.format(Locale.ROOT,"%02x",b&255));return out.toString();
     }
+    static boolean componentReady(JSONObject snapshot,String kind){
+        JSONObject capabilities=snapshot.optJSONObject("capabilities");
+        if(Arrays.asList("offer","offer_finalize","offer_convert").contains(kind))return capabilities!=null&&capabilities.optBoolean("offers_v1");
+        if(kind.equals("service_template"))return capabilities!=null&&capabilities.optBoolean("service_catalog_v1");
+        return true;
+    }
+    static void validateTemplate(JSONObject row)throws Exception{
+        for(String key:new String[]{"title","category","unit"})if(row.optString(key).trim().isEmpty())throw new IllegalArgumentException("Leistungsbaustein benötigt Titel, Kategorie und Einheit.");
+        for(String key:new String[]{"default_price","default_quantity"})if(row.has(key)&&!row.isNull(key)&&OfferRules.decimal(row.get(key)).signum()<0)throw new IllegalArgumentException("Negative Bausteinwerte sind ungültig.");
+        if(!row.has("default_price"))row.put("default_price",JSONObject.NULL);if(!row.has("active"))row.put("active",true);if(!row.has("price_confirmed"))row.put("price_confirmed",false);
+    }
     static void validateChange(String kind,JSONObject row,JSONObject old,JSONObject snapshot)throws Exception{
         JSONArray customers=snapshot.getJSONArray("customers"),orders=snapshot.getJSONArray("orders"),logs=snapshot.getJSONArray("worklogs"),photos=snapshot.getJSONArray("photos"),invoices=snapshot.getJSONArray("invoices");
         if(kind.equals("customer")){
             GardenRules.normalize(row);
             BillingRules.customerConfig(row,customers);if(row.optString("name").trim().isEmpty())throw new IllegalArgumentException("Der Kundenname fehlt.");if(old==null){EntityProtectionRules.validateNewCustomer(row,customers);if(!row.has("active"))row.put("active",1);if(!row.has("custom_fields"))row.put("custom_fields",new JSONObject());}return;}
+        if(kind.equals("offer")){OfferRules.normalize(row,old,snapshot);return;}
+        if(kind.equals("service_template")){validateTemplate(row);return;}
         if(kind.equals("invoice")){InvoiceDraftRules.normalize(row,old,snapshot);return;}
         PixelMcpWriteTools.find(customers,row.optString("customer_id"));String orderId=row.isNull("order_id")?"":row.optString("order_id");
         if(!orderId.isEmpty()&&!row.optString("customer_id").equals(PixelMcpWriteTools.find(orders,orderId).optString("customer_id")))throw new IllegalArgumentException("Kunde und Auftrag passen nicht zusammen.");

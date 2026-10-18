@@ -5,7 +5,7 @@ import argparse,json,re,sqlite3,zipfile,sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 ASSETS=ROOT/'android/app/src/main/assets'
-COLLECTIONS=('customers','orders','worklogs','invoices','photos')
+COLLECTIONS=('customers','orders','worklogs','invoices','photos','offers')
 def private_markers():
     values=set()
     # Read-only reference, no migrations or connection to Drive.
@@ -27,7 +27,7 @@ def private_markers():
 def inspect():
     seed=json.loads((ASSETS/'initial-data.json').read_text(encoding='utf-8'))
     if any(seed.get(k)!=[] for k in COLLECTIONS):raise ValueError('Startdaten sind nicht leer.')
-    if set(seed)-set(COLLECTIONS)-{'format','accepted_ids','sync_errors','capabilities'}:raise ValueError('Private Konfiguration in Startdaten.')
+    if set(seed)-set(COLLECTIONS)-{'format','schema_version','accepted_ids','sync_errors','capabilities'}:raise ValueError('Private Konfiguration in Startdaten.')
     files=list(ASSETS.rglob('*'))+list((ROOT/'android/app/src/main/java').rglob('*'))+list((ROOT/'android/app/src/main/res').rglob('*'))
     return {str(p.relative_to(ROOT)):p.read_bytes() for p in files if p.is_file()}
 def scan(files,markers):

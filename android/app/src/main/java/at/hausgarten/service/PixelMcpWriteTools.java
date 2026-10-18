@@ -7,7 +7,7 @@ import java.util.*;
 
 /** Narrow write adapter. Storage, transactions and Drive remain owned by the existing app. */
 final class PixelMcpWriteTools {
-    interface Sink { JSONObject execute(String tool, JSONObject args) throws Exception; JSONObject status(String id, JSONObject state) throws Exception; }
+    interface Sink { default boolean writable(){return true;} JSONObject execute(String tool, JSONObject args) throws Exception; JSONObject status(String id, JSONObject state) throws Exception; }
     static final String[] NAMES = {"create_work_record", "create_customer_work_record", "update_work_record"};
     static final String[] EDITABLE = {"billing_customer_id","order_id","work_date","activity","hours","start_time","end_time","break_minutes","material","material_cost","kilometers","notes","location","customer_visible","allow_overnight"};
     static final String[] BASE_FIELDS = {"id","customer_id","billing_customer_id","order_id","work_date","activity","hours","start_time","end_time","break_minutes","material","kilometers","notes","location","customer_visible","billed","updated_at"};

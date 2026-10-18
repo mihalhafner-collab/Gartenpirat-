@@ -10,8 +10,8 @@ final class DrivePublication {
         Set<String> applied=DriveJournalRules.ids(snapshot.optJSONArray("drive_applied_ids"));applied.addAll(DriveJournalRules.ids(snapshot.optJSONArray("accepted_ids")));
         JSONObject resolved=snapshot.optJSONObject("drive_resolved_actions");JSONObject receipts=new JSONObject();
         Map<String,JSONObject> errors=new HashMap<>();for(String field:new String[]{"sync_errors","drive_journal_errors"}){JSONArray list=snapshot.optJSONArray(field);for(int i=0;list!=null&&i<list.length();i++){JSONObject e=list.getJSONObject(i);errors.put(e.optString("client_id"),e);}}
-        Set<String> missing=new HashSet<>();JSONArray media=snapshot.optJSONArray("drive_media_errors");for(int i=0;media!=null&&i<media.length();i++)missing.add(media.getJSONObject(i).optString("photo_id"));
-        for(int i=0;i<actions.length();i++){JSONObject a=actions.getJSONObject(i);String id=a.getString("client_id");boolean done=applied.contains(id)||(resolved!=null&&resolved.has(id));if("photo".equals(a.optString("kind"))&&missing.contains(a.getJSONObject("payload").optString("id")))done=false;JSONObject e=errors.get(id);
+        Set<String> missing=new HashSet<>();JSONArray media=snapshot.optJSONArray("drive_media_errors");for(int i=0;media!=null&&i<media.length();i++){JSONObject m=media.getJSONObject(i);missing.add(m.optString("entity_type","photo")+":"+m.optString("entity_id",m.optString("photo_id")));}
+        for(int i=0;i<actions.length();i++){JSONObject a=actions.getJSONObject(i);String id=a.getString("client_id");boolean done=applied.contains(id)||(resolved!=null&&resolved.has(id));String kind=a.optString("kind"),entity=kind.startsWith("offer")?"offer":kind.contains("invoice")?"invoice":kind;if(missing.contains(entity+":"+a.getJSONObject("payload").optString("id")))done=false;JSONObject e=errors.get(id);
             receipts.put(id,new JSONObject().put("action_sha256",PixelMcpWriteTools.hash(a)).put("applied",done&&e==null).put("code",e==null?(done?"":"PROCESSOR_REQUIRED"):e.optString("code","REVIEW_REQUIRED")));
         }
         return new JSONObject().put("format","hausgarten.drive.commit.v1").put("state_file_id",stateId).put("state_sha256",sha).put("receipts",receipts);
@@ -21,7 +21,7 @@ final class DrivePublication {
         JSONObject receipts=manifest.getJSONObject("receipts");for(int i=0;i<actions.length();i++){JSONObject action=actions.getJSONObject(i),r=receipts.optJSONObject(action.getString("client_id"));if(r==null||!PixelMcpWriteTools.hash(action).equals(r.optString("action_sha256")))throw new IllegalArgumentException("Drive-Aktionsbeleg stimmt nicht mit der Änderung überein.");}
     }
     static JSONObject progress(JSONObject manifest,String publicationId)throws Exception{
-        JSONObject out=new JSONObject(),rs=manifest.getJSONObject("receipts");for(Iterator<String> keys=rs.keys();keys.hasNext();){String id=keys.next();JSONObject r=new JSONObject(rs.getJSONObject(id).toString());r.put("cloud_confirmed",true).put("publication_id",publicationId).put("state_sha256",manifest.getString("state_sha256"));out.put(id,r);}return out;
+        JSONObject out=new JSONObject(),rs=manifest.getJSONObject("receipts");for(Iterator<String> keys=rs.keys();keys.hasNext();){String id=keys.next();JSONObject r=new JSONObject(rs.getJSONObject(id).toString());r.put("cloud_confirmed",r.optBoolean("applied")).put("provider_readback",true).put("drive_manifest_readback",true).put("publication_id",publicationId).put("state_sha256",manifest.getString("state_sha256"));out.put(id,r);}return out;
     }
     static byte[] stateBytes(JSONObject snapshot)throws Exception{
         JSONObject clean=new JSONObject(snapshot.toString());for(String key:new String[]{"drive_cloud_receipts","drive_last_publication"})clean.remove(key);return PixelMcpWriteTools.canonical(clean).getBytes(StandardCharsets.UTF_8);

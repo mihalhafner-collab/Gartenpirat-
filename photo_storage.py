@@ -28,7 +28,7 @@ MIME_EXTENSIONS = {
     "image/heic": ".heic",
 }
 MIME_ALIASES = {"image/jpg": "image/jpeg", "image/pjpeg": "image/jpeg", "image/heif": "image/heic"}
-ROLES = {"profile", "documentation", "before", "after", "damage", "other"}
+ROLES = {"profile", "documentation", "before", "during", "after", "damage", "other"}
 CANONICAL_STORAGE_NAME = re.compile(r"[0-9a-f]{64}\.(?:jpg|png|webp|gif|heic)")
 
 
