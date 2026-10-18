@@ -27,8 +27,14 @@ final class OwnerJournalRules {
             snapshot.put("business_settings",updated);JSONObject issuer=snapshot.optJSONObject("invoice_issuer");if(issuer==null)issuer=new JSONObject();for(String key:PixelMcpOwnerTools.BUSINESS_KEYS)if(!key.startsWith("invoice_"))issuer.put(key,updated.optString(key));snapshot.put("invoice_issuer",issuer);return;
         }
         if(kind.equals("conflict_resolution")){
-            String target=p.getString("client_id");JSONObject prior=all.get(target);
-            if(prior==null||!OrderReviewRules.actionHash(prior).equals(p.getString("expected_action_hash"))||resolved.has(target))throw new PixelMcpWriteTools.Rejected("ACTION_ID_CONFLICT","Die ursprüngliche Konfliktaktion wurde verändert oder bereits geprüft.");
+            String target=p.getString("client_id");JSONObject prior=all.get(target),embedded=p.optJSONObject("_original_action");
+            if(prior==null){
+                boolean knownFailure=false;
+                for(String key:new String[]{"sync_errors","drive_journal_errors"}){JSONArray failures=snapshot.optJSONArray(key);for(int i=0;failures!=null&&i<failures.length();i++)if(target.equals(failures.getJSONObject(i).optString("client_id"))){knownFailure=true;break;}}
+                if(knownFailure)prior=embedded;
+            }
+            if(prior==null||!target.equals(prior.optString("client_id"))||!OrderReviewRules.actionHash(prior).equals(p.getString("expected_action_hash"))||resolved.has(target))throw new PixelMcpWriteTools.Rejected("ACTION_ID_CONFLICT","Die ursprüngliche Konfliktaktion wurde verändert, ist nicht mehr nachweisbar oder bereits geprüft.");
+            if(embedded!=null&&!OrderReviewRules.actionHash(embedded).equals(p.getString("expected_action_hash")))throw new PixelMcpWriteTools.Rejected("ACTION_ID_CONFLICT","Der eingebettete Konfliktbeleg stimmt nicht mit dem geprüften Hash überein.");
             boolean legacyDelete="delete".equals(prior.getString("kind"));String entity=legacyDelete?prior.getJSONObject("payload").getString("entity"):prior.getString("kind"),collection=DriveJournalRules.collection(entity);if(collection.isEmpty())throw new IllegalArgumentException("Diesen Vorgang fachlich separat prüfen.");
             JSONObject patch=prior.getJSONObject("payload"),current=findOrNull(snapshot.getJSONArray(collection),patch.optString("id"));checkHash(current,p.getString("expected_current_hash"));
             JSONObject history=snapshot.optJSONObject("owner_conflict_history");if(history==null)history=new JSONObject();
