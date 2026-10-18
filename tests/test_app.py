@@ -7,6 +7,7 @@ from pathlib import Path
 import db
 import server
 import invoicing
+from photo_fixture import VALID_GIF_DATA_URI
 
 
 class AppTest(unittest.TestCase):
@@ -82,7 +83,7 @@ class AppTest(unittest.TestCase):
             'domestic_service_confirmed':True,'worklog_ids':[worklog['id']],
             'positions':[{'title':'Heckenpflege - Thuja occidentalis','quantity':2,'price':50,'worklog_id':worklog['id']}]})
         with self.assertRaises(ValueError): invoicing.issue(draft['id'],True)
-        db.save_settings({'owner_name':'Hafner Cloudname_3455071506','business_street':'Cloudfixture b1b227f5b0ca','business_postal_code':'9560',
+        db.save_settings({'owner_name':'Hafner Michael','business_street':'Goethestraße 2','business_postal_code':'9560',
             'business_city':'Feldkirchen','invoice_issuer_confirmed':'1','invoice_prefix':'RE','invoice_numbering_confirmed':'1',
             'invoice_number_format':'sevdesk','invoice_sevdesk_last_number':'94','invoice_sevdesk_checked_at':db.now()})
         self.assertTrue(invoicing.preview(draft['id']).startswith(b'%PDF-'))
@@ -110,8 +111,8 @@ class AppTest(unittest.TestCase):
     def test_photo_and_backup(self):
         customer = db.save_customer({"name": "Fotokunde"})
         photo = server.save_photo({
-            "customer_id": customer["id"], "original_name": "test.png",
-            "data": "data:image/png;base64," + base64.b64encode(b"fake-png-content").decode(),
+            "customer_id": customer["id"], "original_name": "test.gif",
+            "data": VALID_GIF_DATA_URI,
             "customer_visible": True,
         })
         self.assertTrue((db.PHOTO_DIR / photo["filename"]).exists())

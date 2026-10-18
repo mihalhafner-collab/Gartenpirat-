@@ -35,8 +35,8 @@
   function closeDialog(){request='';AndroidData.cancelWorkLocation?.();if(dialog?.open)dialog.close();}
   function ensureDialog(){
     if(dialog)return;
-    dialog=document.createElement('dialog');dialog.id='work-location-dialog';dialog.className='work-location-dialog';
-    dialog.innerHTML='<h2>Einsatz auswählen</h2><p id="work-location-message" role="status"></p><div id="work-location-candidates"></div><label for="work-location-search">Kunden suchen</label><input id="work-location-search" type="search" placeholder="Name oder Ort"><label for="work-location-customer">Kunde</label><select id="work-location-customer"><option value="">Bitte auswählen</option></select><label for="work-location-place">Arbeitsort · bitte prüfen</label><input id="work-location-place"><p class="sub">Ein Vorschlag ist keine Zuordnung. Du entscheidest, bei wem du arbeitest.</p><button type="button" class="primary" id="work-location-start">Für diesen Kunden starten</button><button type="button" class="secondary" id="work-location-new">+ Neuen Kunden anlegen</button><button type="button" class="secondary" id="work-location-later">Ohne Kunde starten · später zuordnen</button><button type="button" class="secondary" id="work-location-cancel">Abbrechen</button>';
+    dialog=document.createElement('dialog');dialog.id='work-location-dialog';dialog.className='work-location-dialog';dialog.setAttribute('aria-labelledby','work-location-title');
+    dialog.innerHTML='<h2 id="work-location-title" tabindex="-1">Einsatz auswählen</h2><p id="work-location-message" role="status"></p><div id="work-location-candidates"></div><label for="work-location-search">Kunden suchen</label><input id="work-location-search" type="search" placeholder="Name oder Ort"><label for="work-location-customer">Kunde</label><select id="work-location-customer"><option value="">Bitte auswählen</option></select><label for="work-location-place">Arbeitsort · bitte prüfen</label><input id="work-location-place"><p class="sub">Ein Vorschlag ist keine Zuordnung. Du entscheidest, bei wem du arbeitest.</p><button type="button" class="primary" id="work-location-start">Für diesen Kunden starten</button><button type="button" class="secondary" id="work-location-new">+ Neuen Kunden anlegen</button><button type="button" class="secondary" id="work-location-later">Ohne Kunde starten · später zuordnen</button><button type="button" class="secondary" id="work-location-cancel">Abbrechen</button>';
     document.body.append(dialog);
     get('work-location-cancel').onclick=closeDialog;
     dialog.addEventListener('cancel',event=>{event.preventDefault();closeDialog();});
@@ -73,13 +73,18 @@
   };
   function begin(){
     ensureDialog();fix=null;get('work-location-search').value='';get('work-location-place').value='';get('work-location-customer').value='';get('work-location-message').textContent='Aktuellen Pixel-Standort prüfen …';fillCustomers();dialog.showModal();
+    // A modal normally focuses its first editable control, which opens Android's
+    // software keyboard. Keep the initial focus on the heading; the keyboard is
+    // then shown only after the user deliberately taps Search or another field.
+    get('work-location-title').focus({preventScroll:true});
     request=requestId();
     if(AndroidData.requestWorkLocation)AndroidData.requestWorkLocation(request);
     else window.onWorkLocationResult(request,{status:'UNAVAILABLE',message:'Standortprüfung benötigt die aktualisierte Android-App. Bitte Kunden manuell auswählen.'});
   }
   function complete(session){
     const form=get('entry'),hidden=get('work-session-id');
-    if(hidden?.value===session.id){openPage('work-entry');showCompletion(session);return;}
+    const focusHeading=()=>{const heading=get('work-entry')?.querySelector('.page-head h2');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});}};
+    if(hidden?.value===session.id){openPage('work-entry');showCompletion(session);focusHeading();return;}
     const hasDraft=window.hasWorkEntryDraft();
     if(hasDraft&&!confirm('Eine andere Eingabe ist begonnen. Diese durch die gestoppte Zeiterfassung ersetzen?'))return;
     form.reset();openPage('work-entry');
@@ -87,7 +92,7 @@
     get('date').value=session.work_date||localDate();get('customer').value=session.customer_id||'';ordersForCustomer();
     if(session.order_id&&[...get('order').options].some(o=>o.value===session.order_id))get('order').value=session.order_id;
     get('entry-hours').value=Number(session.hours||0).toFixed(2);get('pause').value=Number(session.break_minutes||0);get('activity').value=session.activity||'';get('entry-location').value=session.location||'';showCompletion(session);
-    get('activity').dispatchEvent(new Event('change',{bubbles:true}));window.scrollTo({top:0,behavior:'auto'});
+    get('activity').dispatchEvent(new Event('change',{bubbles:true}));window.scrollTo({top:0,behavior:'auto'});focusHeading();
   }
   function showCompletion(session){
     if(session.state!=='STOPPED_PENDING_REVIEW')return;
@@ -131,7 +136,7 @@
       if(action==='stop'){const stopped=session.state==='STOPPED_PENDING_REVIEW'?session:native('stopWorkSession',session.id,requestId());if(stopped){render();complete(stopped);}return;}
       if(action==='later'){finishPage('home');window.showUndoToast('Zeiterfassung und begonnene Angaben bleiben erhalten. Später über „Angaben ergänzen“ fortfahren.');return;}
       if(action==='continue'){if(!confirm('Diese Zeiterfassung fortsetzen? Die Zeit seit Stop wird nicht als Arbeitszeit gezählt.'))return;const resumed=native('continueWorkSession',session.id,requestId());if(resumed){clearCompletion();render();finishPage('home');window.showUndoToast('Zeitnahme fortgesetzt. Deine Angaben bleiben für den nächsten Abschluss erhalten.');}return;}
-      if(!confirm('Diese noch nicht gespeicherte Zeiterfassung löschen? Gespeicherte Cloudname_189a14e78c bleiben erhalten.'))return;
+      if(!confirm('Diese noch nicht gespeicherte Zeiterfassung löschen? Gespeicherte Arbeitsaufzeichnungen bleiben erhalten.'))return;
       const wasLinked=get('work-session-id')?.value===session.id;
       const removed=native('discardWorkSession',session.id,requestId());if(!removed)return;discarded=session.id;
       if(get('work-session-id')?.value===session.id){get('work-session-id').remove();form.elements.hours.value='';form.elements.hours.readOnly=false;get('hours-result').textContent='Zeiterfassung verworfen. Deine übrigen Angaben bleiben erhalten.';get('activity').dispatchEvent(new Event('change',{bubbles:true}));}

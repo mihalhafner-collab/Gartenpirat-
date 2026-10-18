@@ -27,8 +27,12 @@ with db.connect() as database:
         "photos": scalar(database, "SELECT COUNT(*) FROM photos"),
     }
 
-# Cloud copy: structural integrity, not private import totals.
-expected = {'duplicate_customer_source_ids': 0, 'duplicate_invoice_source_ids': 0, 'invoices_without_customer': 0}
+expected = {
+    "customers": 38, "invoices": 95, "paid_invoices": 93,
+    "open_invoices": 2, "invoice_amount_sum": 77200.0,
+    "duplicate_customer_source_ids": 0, "duplicate_invoice_source_ids": 0,
+    "invoices_without_customer": 0,
+}
 result["checks"] = {key: result[key] == value for key, value in expected.items()}
 result["all_checks_passed"] = all(result["checks"].values())
 print(json.dumps(result, ensure_ascii=False, indent=2))

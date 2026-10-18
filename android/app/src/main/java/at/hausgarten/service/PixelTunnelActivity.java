@@ -37,7 +37,7 @@ public final class PixelTunnelActivity extends Activity {
         });
         scroll.requestApplyInsets();
         heading(view,"ChatGPT auf dem Pixel");
-        text(view,"Kunden, Aufträge und Arbeitsberichte lesen. Optional Cloudname_189a14e78c anlegen und korrigieren – auch ohne Auftrag. Die Verbindung nutzt den zuletzt auf diesem Gerät gespeicherten Drive-Stand.");
+        text(view,"Kunden, Aufträge und Arbeitsberichte lesen. Optional Arbeitsaufzeichnungen anlegen und korrigieren – auch ohne Auftrag. Die Verbindung nutzt den zuletzt auf diesem Gerät gespeicherten Drive-Stand.");
         status=text(view,"Status wird geprüft …");battery=text(view,"");
         heading(view,"Einmalig einrichten");
         text(view,"Einen zweiten OpenAI-Tunnel verwenden. Der Laptop-Tunnel bleibt separat. Ein eigener Runtime-Schlüssel wird verschlüsselt auf diesem Gerät gespeichert.");
@@ -47,8 +47,8 @@ public final class PixelTunnelActivity extends Activity {
         organization.setHint("org-…");view.addView(organization);
         text(view,"Tunnel und Schlüssel müssen zur selben OpenAI-Organisation gehören. Die vorbelegte Angabe wird erst mit Verbindung starten gespeichert. Ein gültiger Schlüssel aus einem anderen Konto funktioniert hier nicht.");
         text(view,"Runtime-Schlüssel");key=new EditText(this);key.setSingleLine(true);key.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);key.setSaveEnabled(false);key.setImportantForAutofill(android.view.View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);key.setHint(config.configured()?"Bereits gespeichert · leer lassen":"Schlüssel hier einfügen");view.addView(key);
-        write=new CheckBox(this);write.setText("ChatGPT darf Kunden, Aufträge, Cloudname_189a14e78c und Rechnungsentwürfe anlegen und bearbeiten");write.setChecked(config.writeEnabled());view.addView(write);
-        text(view,"Kunden, Aufträge, Cloudname_189a14e78c und lokale Rechnungsentwürfe können bearbeitet werden. Ausgestellte Rechnungen und endgültiges Löschen bleiben geschützt. Änderungen werden lokal gespeichert und mit Drive abgeglichen. Die Freigabe gilt nach Verbindung starten.");
+        write=new CheckBox(this);write.setText("ChatGPT darf Kunden, Aufträge, Arbeitsaufzeichnungen und Rechnungsentwürfe anlegen und bearbeiten");write.setChecked(config.writeEnabled());view.addView(write);
+        text(view,"Kunden, Aufträge, Arbeitsaufzeichnungen und lokale Rechnungsentwürfe können bearbeitet werden. Ausgestellte Rechnungen und endgültiges Löschen bleiben geschützt. Änderungen werden lokal gespeichert und mit Drive abgeglichen. Die Freigabe gilt nach Verbindung starten.");
         button(view,"Verbindung starten",()->startConnection());
         button(view,"Verbindung beenden",()->{config.enabled(false);stopService(new Intent(this,PixelTunnelService.class));refreshStatus();});
         heading(view,"Hintergrundbetrieb");

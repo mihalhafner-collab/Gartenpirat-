@@ -3,6 +3,7 @@ package at.hausgarten.service;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -17,6 +18,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
 import android.view.View;
@@ -38,6 +40,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -63,8 +66,13 @@ public class MainActivity extends Activity {
     private WebView webView;
     private android.window.OnBackInvokedCallback backCallback;
     private ValueCallback<Uri[]> fileCallback;
+    private Uri pendingCaptureUri;
+    private File pendingCaptureFile;
+    private volatile long gardenPickerPreparedUntil;
+    private volatile boolean driveFolderPicking;
     private SharedPreferences preferences;
     private LocalStore store;
+    private PendingWorkPhotoStore pendingWorkPhotos;
     private WorkLocationController workLocation;
     private static java.lang.ref.WeakReference<MainActivity> foreground = new java.lang.ref.WeakReference<>(null);
     private static void requestMcpSync(Context context) {
@@ -87,6 +95,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         preferences = getSharedPreferences("haus_garten", MODE_PRIVATE);
         store = new LocalStore(this);
+        pendingWorkPhotos = new PendingWorkPhotoStore(this);
         setContentView(buildLayout());
         if (Build.VERSION.SDK_INT >= 30) {
             getWindow().setDecorFitsSystemWindows(false);
@@ -159,6 +168,7 @@ public class MainActivity extends Activity {
         webView.addJavascriptInterface(new SpeechBridge(), "AndroidSpeech");
         webView.addJavascriptInterface(new DataBridge(), "AndroidData");
         webView.addJavascriptInterface(new PhoneBridge(), "AndroidPhone");
+        webView.addJavascriptInterface(new GardenPhotosBridge(), "AndroidGardenPhotos");
         webView.setWebViewClient(new WebViewClient() {
             private boolean external(String url) {
                 if (url != null && url.startsWith("file:///android_asset/")) return false;
@@ -176,6 +186,22 @@ public class MainActivity extends Activity {
         webView.setWebChromeClient(new WebChromeClient() {
             @Override public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
                 if (fileCallback != null) fileCallback.onReceiveValue(null); fileCallback = callback;
+                boolean gardenPhoto = gardenPickerPreparedUntil > android.os.SystemClock.elapsedRealtime();
+                gardenPickerPreparedUntil = 0;
+                if (gardenPhoto) {
+                    if (!startGardenPhotoPicker()) {
+                        callback.onReceiveValue(null); fileCallback = null;
+                        Toast.makeText(MainActivity.this, "Keine Fotoauswahl verfügbar.", Toast.LENGTH_LONG).show();
+                    }
+                    return true;
+                }
+                if (params.isCaptureEnabled() && params.getMode() != FileChooserParams.MODE_OPEN_MULTIPLE) {
+                    if (!startPhotoCapture()) {
+                        // startPhotoCapture already reports the specific failure.
+                        fileCallback = null; callback.onReceiveValue(null);
+                    }
+                    return true;
+                }
                 Intent intent = params.createIntent(); intent.setType("image/*");
                 if (params.getMode() == FileChooserParams.MODE_OPEN_MULTIPLE) intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
                 try { startActivityForResult(intent, FILE_REQUEST); }
@@ -190,6 +216,109 @@ public class MainActivity extends Activity {
                     .setOnCancelListener(dialog -> result.cancel()).show(); return true;
             }
         });
+    }
+
+    private boolean startPhotoCapture() {
+        clearPendingCapture(true);
+        try {
+            // Track the file before URI preparation so a failed hand-off cannot leak it.
+            pendingCaptureFile=PhotoCaptureProvider.createTarget(this);
+            pendingCaptureUri=PhotoCaptureProvider.uri(this,pendingCaptureFile);
+        } catch (java.io.IOException error) {
+            return failPhotoCapture("PREPARE_IO", "Die Fotodatei konnte nicht vorbereitet werden. Bitte freien Speicher prüfen und erneut versuchen.", error);
+        } catch (SecurityException error) {
+            return failPhotoCapture("PREPARE_DENIED", "Android hat den Zugriff auf den Foto-Zwischenspeicher blockiert.", error);
+        } catch (RuntimeException error) {
+            return failPhotoCapture("PREPARE_FAILED", "Die Fotoaufnahme konnte nicht vorbereitet werden. Bitte erneut versuchen.", error);
+        }
+        try {
+            Intent camera=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            camera.putExtra(MediaStore.EXTRA_OUTPUT,pendingCaptureUri);
+            camera.setClipData(ClipData.newRawUri("Kamerafoto",pendingCaptureUri));
+            camera.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            // Do not gate the launch on package visibility / resolveActivity().
+            startActivityForResult(camera,FILE_REQUEST);
+            return true;
+        } catch (ActivityNotFoundException error) {
+            return failPhotoCapture("CAMERA_MISSING", "Keine Kamera-App für Fotoaufnahmen verfügbar.", error);
+        } catch (SecurityException error) {
+            return failPhotoCapture("LAUNCH_DENIED", "Android hat die Übergabe an die Kamera blockiert. Bitte Geräteeinschränkungen prüfen.", error);
+        } catch (RuntimeException error) {
+            return failPhotoCapture("LAUNCH_FAILED", "Die Kamera konnte nicht gestartet werden. Bitte erneut versuchen.", error);
+        }
+    }
+
+    private boolean failPhotoCapture(String code,String message,Exception error) {
+        logPhotoCaptureFailure(code,error);
+        clearPendingCapture(true);
+        Toast.makeText(this,message,Toast.LENGTH_LONG).show();
+        return false;
+    }
+
+    private static void logPhotoCaptureFailure(String code,Exception error) {
+        // No file paths, URI contents, customer details or exception messages in logs.
+        String cause=error.getCause()==null?"":"; cause="+error.getCause().getClass().getSimpleName();
+        android.util.Log.e("HausGartenCamera",code+"; type="+error.getClass().getSimpleName()+cause);
+    }
+
+    private void clearPendingCapture(boolean delete) {
+        Uri uri=pendingCaptureUri;File file=pendingCaptureFile;pendingCaptureUri=null;pendingCaptureFile=null;
+        if(uri!=null)try{
+            revokeUriPermission(uri,Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        }catch(RuntimeException error){logPhotoCaptureFailure("REVOKE_FAILED",error);}
+        if(delete&&file!=null)try{
+            if(file.exists()&&!file.delete())android.util.Log.w("HausGartenCamera","TEMP_DELETE_FAILED");
+        }catch(SecurityException error){logPhotoCaptureFailure("TEMP_DELETE_DENIED",error);}
+    }
+
+    // Only Gartenpirat opts into the cloud-aware single-image picker.
+    // The established business-photo chooser and its callback remain unchanged.
+    private boolean startGardenPhotoPicker() {
+        if (Build.VERSION.SDK_INT >= 33) {
+            try {
+                Intent picker = new Intent(android.provider.MediaStore.ACTION_PICK_IMAGES);
+                picker.setType("image/*");
+                startActivityForResult(picker, FILE_REQUEST);
+                return true;
+            } catch (ActivityNotFoundException | SecurityException unavailable) {
+                // Fall back to the user's installed photo/document provider.
+            }
+        }
+        try {
+            Intent picker = new Intent(Intent.ACTION_GET_CONTENT);
+            picker.setType("image/*"); picker.addCategory(Intent.CATEGORY_OPENABLE);
+            picker.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivityForResult(picker, FILE_REQUEST);
+            return true;
+        } catch (ActivityNotFoundException | SecurityException unavailable) {
+            return false;
+        }
+    }
+
+    public class GardenPhotosBridge {
+        @JavascriptInterface public void preparePicker() {
+            // A short-lived marker scopes the next WebView file request to this feature.
+            gardenPickerPreparedUntil = android.os.SystemClock.elapsedRealtime() + 3000;
+        }
+        @JavascriptInterface public void setFullscreen(boolean enabled) {
+            runOnUiThread(() -> {
+                View decor = getWindow().getDecorView();
+                if (Build.VERSION.SDK_INT >= 30) {
+                    android.view.WindowInsetsController controller = getWindow().getInsetsController();
+                    if (controller != null) {
+                        if (enabled) {
+                            controller.setSystemBarsBehavior(android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+                            controller.hide(WindowInsets.Type.systemBars());
+                        } else controller.show(WindowInsets.Type.systemBars());
+                    }
+                } else {
+                    int flags = decor.getSystemUiVisibility();
+                    int immersive = View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+                    decor.setSystemUiVisibility(enabled ? flags | immersive : flags & ~immersive);
+                }
+                decor.requestApplyInsets();
+            });
+        }
     }
 
     private void openMobile() { webView.loadUrl("file:///android_asset/mobile.html"); }
@@ -279,6 +408,14 @@ public class MainActivity extends Activity {
             try { String id = store.saveCustomer(new JSONObject(value)); requestAutomaticSync(AUTO_SYNC_DELAY_MS); return id; }
             catch (Exception error) { return "ERROR: " + error.getMessage(); }
         }
+        @JavascriptInterface public String inspectOrder(String id) {
+            try{return OrderReviewRules.inspect(store.getState(),id).toString();}
+            catch(Exception error){return "ERROR: "+error.getMessage();}
+        }
+        @JavascriptInterface public String saveReviewedOrder(String value) {
+            try{String id=store.saveReviewedOrder(new JSONObject(value));requestAutomaticSync(AUTO_SYNC_DELAY_MS);return new JSONObject().put("id",id).put("saved",true).toString();}
+            catch(Exception error){return "ERROR: "+error.getMessage();}
+        }
         @JavascriptInterface public String saveOrder(String value) {
             try { String id = store.saveOrder(new JSONObject(value)); requestAutomaticSync(AUTO_SYNC_DELAY_MS); return id; }
             catch (Exception error) { return "ERROR: " + error.getMessage(); }
@@ -358,6 +495,22 @@ public class MainActivity extends Activity {
             try { String id = store.savePhoto(new JSONObject(value)); requestAutomaticSync(AUTO_SYNC_DELAY_MS); return id; }
             catch (Exception error) { return "ERROR: " + error.getMessage(); }
         }
+        @JavascriptInterface public String stagePendingWorkPhoto(String value) {
+            try { return pendingWorkPhotos.stage(value); }
+            catch (Exception error) { return "ERROR: " + error.getMessage(); }
+        }
+        @JavascriptInterface public String getPendingWorkPhoto() {
+            try { return pendingWorkPhotos.read(); }
+            catch (Exception error) { return "ERROR: " + error.getMessage(); }
+        }
+        @JavascriptInterface public String clearPendingWorkPhoto() {
+            try { pendingWorkPhotos.clear(); return "OK"; }
+            catch (Exception error) { return "ERROR: " + error.getMessage(); }
+        }
+        @JavascriptInterface public String getPhotoData(String photoId) {
+            try { return store.loadPhotoData(photoId); }
+            catch (Exception error) { return "ERROR: " + error.getMessage(); }
+        }
         @JavascriptInterface public String removeEntity(String entity, String id) {
             try { String actionId = store.removeEntity(entity, id); requestAutomaticSync(AUTO_SYNC_DELAY_MS); return actionId; }
             catch (Exception error) { return "ERROR: " + error.getMessage(); }
@@ -372,10 +525,13 @@ public class MainActivity extends Activity {
     static class LocalStore extends SQLiteOpenHelper implements PixelMcpWriteTools.Sink {
         private final Context context;
         private final SharedPreferences preferences;
+        private final PhotoAttachmentStore photoAttachments;
         LocalStore(Context context) {
-            super(context, "haus-garten-mobile.db", null, 2);
+            super(context, "haus-garten-mobile.db", null, 3);
             this.context = context;
             preferences = context.getSharedPreferences("haus_garten", Context.MODE_PRIVATE);
+            photoAttachments = new PhotoAttachmentStore(context);
+            migrateLegacySnapshotPhotoAttachments();
         }
         private String readAsset(String name) throws Exception {
             try (InputStream input = context.getAssets().open(name); BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
@@ -383,11 +539,33 @@ public class MainActivity extends Activity {
             }
         }
         private String isoNow() { return java.time.Instant.now().toString(); }
-        @Override public void onCreate(SQLiteDatabase database) { database.execSQL("CREATE TABLE pending(id TEXT PRIMARY KEY,kind TEXT NOT NULL,payload TEXT NOT NULL,created_at TEXT NOT NULL)"); WorkSessionStore.createSchema(database); }
-        @Override public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) { if(oldVersion<2) WorkSessionStore.createSchema(database); }
+        private void migrateLegacySnapshotPhotoAttachments(){
+            try{
+                String saved=preferences.getString("drive_snapshot","");if(saved.isEmpty())return;JSONObject snapshot=new JSONObject(saved);JSONArray photos=snapshot.optJSONArray("photos");boolean inline=false;
+                for(int i=0;photos!=null&&i<photos.length();i++){JSONObject photo=photos.optJSONObject(i);if(photo!=null&&(photo.has("data")||photo.has("full_data"))){inline=true;break;}}
+                if(!inline)return;recordSnapshotPhotoAttachments(snapshot);preferences.edit().putString("drive_snapshot",snapshot.toString()).commit();
+            }catch(Exception ignored){/* Preserve the original snapshot; getState still withholds inline binary. */}
+        }
+        private void removeSnapshotPhotoBinaries(JSONObject snapshot){
+            JSONArray photos=snapshot.optJSONArray("photos");for(int i=0;photos!=null&&i<photos.length();i++){JSONObject photo=photos.optJSONObject(i);if(photo!=null){photo.remove("data");photo.remove("full_data");}}
+        }
+        @Override public void onCreate(SQLiteDatabase database) { database.execSQL("CREATE TABLE pending(id TEXT PRIMARY KEY,kind TEXT NOT NULL,payload TEXT NOT NULL,created_at TEXT NOT NULL)"); WorkSessionStore.createSchema(database); createPhotoAttachmentSchema(database); }
+        @Override public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) { if(oldVersion<2) WorkSessionStore.createSchema(database);if(oldVersion<3){createPhotoAttachmentSchema(database);migrateLegacyPendingPhotoAttachments(database);} }
+        private void createPhotoAttachmentSchema(SQLiteDatabase database){
+            database.execSQL("CREATE TABLE IF NOT EXISTS photo_attachments(photo_id TEXT PRIMARY KEY,content_sha256 TEXT NOT NULL,mime_type TEXT NOT NULL,byte_size INTEGER NOT NULL,storage_name TEXT NOT NULL,role TEXT NOT NULL DEFAULT 'documentation',transfer_state TEXT NOT NULL DEFAULT 'local',created_at TEXT NOT NULL)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS ix_photo_attachments_hash ON photo_attachments(content_sha256)");
+        }
+        private void migrateLegacyPendingPhotoAttachments(SQLiteDatabase database){
+            try(Cursor rows=database.rawQuery("SELECT payload FROM pending WHERE kind='photo' ORDER BY rowid",null)){
+                while(rows.moveToNext())try{
+                    JSONObject payload=new JSONObject(rows.getString(0));if(payload.optString("data").isEmpty()||payload.optString("id").isEmpty())continue;
+                    PhotoAttachmentStore.Prepared prepared=photoAttachments.prepare(payload);saveAttachmentMetadata(database,payload.getString("id"),prepared.metadata,"legacy_inline");
+                }catch(Exception ignored){/* Keep the immutable legacy action unchanged; the laptop can still validate it. */}
+            }
+        }
         JSONObject getState() {
             JSONObject output = new JSONObject();
-            try { output.put("master", new JSONObject(preferences.getString("drive_snapshot", readAsset("initial-data.json")))); output.put("pending", pendingActions()); output.put("last_drive_sync", preferences.getString("last_drive_sync", ""));output.put("work_session",new WorkSessionStore(getWritableDatabase(),context).current());output.put("sync_queue",DriveJournalRules.queueStatus(output.getJSONObject("master"),output.getJSONArray("pending"))); }
+            try { JSONObject master=new JSONObject(preferences.getString("drive_snapshot", readAsset("initial-data.json")));removeSnapshotPhotoBinaries(master);output.put("master",master); output.put("pending", DriveJournalRules.union(pendingActions(),output.getJSONObject("master").optJSONArray("drive_review_actions"))); output.put("last_drive_sync", preferences.getString("last_drive_sync", ""));output.put("work_session",new WorkSessionStore(getWritableDatabase(),context).current());output.put("sync_queue",DriveJournalRules.queueStatus(output.getJSONObject("master"),output.getJSONArray("pending"))); }
             catch (Exception error) { try { output.put("error", error.getMessage()); } catch (Exception ignored) {} }
             try{output.put("drive_sync_failed",preferences.getBoolean("drive_sync_failed",false)).put("last_sync_attempt",preferences.getString("last_sync_attempt",""));}catch(Exception ignored){}
             return output;
@@ -528,7 +706,7 @@ public class MainActivity extends Activity {
                 database.setTransactionSuccessful();
             }finally{database.endTransaction();}
             if(tool.equals("complete_work_session")){if(context instanceof MainActivity || context instanceof PixelTunnelService)requestMcpSync(context);result.put("sync",status(clientId,getState()));}
-            return new JSONObject().put("ok",true).put("data",result).put("message",tool.equals("stop_work")?"Zeiterfassung lokal gestoppt. Tätigkeit prüfen und mit complete_work_session als Arbeitsaufzeichnung abschließen.":"Aktion dauerhaft auf dem Pixel gesichert. Nur Cloudname_189a14e78c werden über Drive übertragen; Timerstatus ist lokal.");
+            return new JSONObject().put("ok",true).put("data",result).put("message",tool.equals("stop_work")?"Zeiterfassung lokal gestoppt. Tätigkeit prüfen und mit complete_work_session als Arbeitsaufzeichnung abschließen.":"Aktion dauerhaft auf dem Pixel gesichert. Nur Arbeitsaufzeichnungen werden über Drive übertragen; Timerstatus ist lokal.");
         }
         @Override public JSONObject status(String clientId,JSONObject state) throws Exception {
             JSONObject master=state.getJSONObject("master"),metadata=receipt(clientId);
@@ -614,6 +792,11 @@ public class MainActivity extends Activity {
             return entityId;
             } finally { database.endTransaction(); }
         }
+        String saveReviewedOrder(JSONObject request)throws Exception {
+            SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
+            try{JSONObject payload=OrderReviewRules.prepare(getState(),request);String id=saveAction("order","ord_mobile_",payload);database.setTransactionSuccessful();return id;}
+            finally{database.endTransaction();}
+        }
         String saveOrder(JSONObject payload) throws Exception {
             BillingRules.order(payload,PixelMcpReadTools.effective(getState()));
             if (payload.optString("customer_id").isEmpty() || payload.optString("title").trim().isEmpty()) throw new IllegalArgumentException("Kunde und Auftragsbezeichnung sind erforderlich.");
@@ -647,17 +830,131 @@ public class MainActivity extends Activity {
             payload.put("status","Entwurf").put("sevdesk_id","").put("source","ChatGPT Sprache");
             return saveAction("invoice", "inv_mobile_", payload);
         }
-        String savePhoto(JSONObject payload) throws Exception {
+        synchronized String savePhoto(JSONObject payload) throws Exception {
             if (payload.optString("customer_id").isEmpty() || payload.optString("data").isEmpty()) throw new IllegalArgumentException("Kunde und Foto sind erforderlich.");
+            String entityId=payload.optString("id");if(entityId.isEmpty())entityId="pho_mobile_"+UUID.randomUUID().toString().replace("-","");payload.put("id",entityId);
+            PhotoAttachmentStore.Prepared prepared=null;boolean committed=false;
             SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
             try {
                 JSONObject master=new JSONObject(preferences.getString("drive_snapshot",readAsset("initial-data.json")));
                 EntityProtectionRules.validatePhoto(payload,effectiveRows(master,"customers","customer"),effectiveRows(master,"orders","order"),effectiveRows(master,"worklogs","worklog"));
+                prepared=photoAttachments.prepare(payload);
                 prepareManualChange("photo",payload,findById(effectiveRows(master,"photos","photo"),payload.optString("id")));
-                String saved=saveAction("photo", "pho_mobile_", payload);database.setTransactionSuccessful();return saved;
-            } finally { database.endTransaction(); }
+                for(java.util.Iterator<String> keys=prepared.metadata.keys();keys.hasNext();){String key=keys.next();payload.put(key,prepared.metadata.get(key));}
+                String original=payload.optString("original_name","foto.jpg").replace('\\','/');int slash=original.lastIndexOf('/');if(slash>=0)original=original.substring(slash+1);if(original.length()>240)original=original.substring(0,240);payload.put("original_name",original);
+                payload.remove("data");
+                saveAttachmentMetadata(database,entityId,prepared.metadata,"local");
+                String saved=saveAction("photo", "pho_mobile_", payload);database.setTransactionSuccessful();committed=true;return saved;
+            } finally {
+                database.endTransaction();
+                if(!committed&&prepared!=null&&prepared.created){
+                    try(Cursor referenced=getReadableDatabase().rawQuery("SELECT 1 FROM photo_attachments WHERE content_sha256=? LIMIT 1",new String[]{prepared.metadata.getString("content_sha256")})){
+                        if(!referenced.moveToFirst())photoAttachments.discardCreated(prepared.metadata);
+                    }catch(Exception ignored){/* A verified orphan is safer than masking the original failed save. */}
+                }
+            }
+        }
+        private void saveAttachmentMetadata(SQLiteDatabase database,String photoId,JSONObject metadata,String state)throws Exception{
+            String hash=metadata.optString("content_sha256"),mime=PhotoAttachmentStore.canonicalMime(metadata.optString("mime_type")),name=metadata.optString("storage_name"),role=metadata.optString("role","documentation").trim().toLowerCase(Locale.ROOT);
+            String extension=mime.equals("image/jpeg")?".jpg":mime.equals("image/png")?".png":mime.equals("image/webp")?".webp":mime.equals("image/gif")?".gif":mime.equals("image/heic")?".heic":"";
+            if(photoId==null||photoId.trim().isEmpty()||photoId.length()>180||!PhotoAttachmentStore.canonicalName(name)||!hash.matches("[0-9a-f]{64}")||!name.equals(hash+extension)||metadata.optLong("byte_size")<1||metadata.optLong("byte_size")>PhotoAttachmentStore.MAX_BYTES||!new HashSet<>(java.util.Arrays.asList("profile","documentation","before","after","damage","other")).contains(role))throw new IllegalArgumentException("Ungültige lokale Foto-Metadaten.");
+            ContentValues values=new ContentValues();values.put("photo_id",photoId);values.put("content_sha256",hash);values.put("mime_type",mime);values.put("byte_size",metadata.getLong("byte_size"));values.put("storage_name",name);values.put("role",role);values.put("transfer_state",state);values.put("created_at",isoNow());
+            database.insertWithOnConflict("photo_attachments",null,values,SQLiteDatabase.CONFLICT_REPLACE);
+        }
+        JSONObject photoAttachment(String photoId)throws Exception{
+            try(Cursor row=getReadableDatabase().rawQuery("SELECT photo_id,content_sha256,mime_type,byte_size,storage_name,role,transfer_state,created_at FROM photo_attachments WHERE photo_id=?",new String[]{photoId})){
+                if(!row.moveToFirst())return null;return new JSONObject().put("photo_id",row.getString(0)).put("content_sha256",row.getString(1)).put("mime_type",row.getString(2)).put("byte_size",row.getLong(3)).put("storage_name",row.getString(4)).put("role",row.getString(5)).put("transfer_state",row.getString(6)).put("created_at",row.getString(7));
+            }
+        }
+        PhotoAttachmentStore photoAttachmentStore(){return photoAttachments;}
+        private Set<String> persistedConfirmedActionIds(){
+            Set<String> confirmed=new HashSet<>();
+            try{
+                JSONObject snapshot=new JSONObject(preferences.getString("drive_snapshot","{}"));
+                confirmed.addAll(DriveJournalRules.ids(snapshot.optJSONArray("accepted_ids")));
+                confirmed.addAll(DriveJournalRules.ids(snapshot.optJSONArray("rejected_invoice_ids")));
+                confirmed.addAll(DriveJournalRules.ids(snapshot.optJSONArray("drive_applied_ids")));
+                JSONObject resolved=snapshot.optJSONObject("drive_resolved_actions");
+                if(resolved!=null){Iterator<String> keys=resolved.keys();while(keys.hasNext())confirmed.add(keys.next());}
+            }catch(Exception ignored){/* Missing/corrupt receipts must never make an unconfirmed attachment skippable. */}
+            return confirmed;
+        }
+        JSONArray pendingPhotoAttachments(JSONArray actions)throws Exception{
+            JSONArray result=new JSONArray();Set<String> confirmed=persistedConfirmedActionIds();for(int i=0;i<actions.length();i++){JSONObject action=actions.getJSONObject(i),payload=action.optJSONObject("payload");if(!"photo".equals(action.optString("kind"))||payload==null||!payload.optString("data").isEmpty())continue;JSONObject metadata=photoAttachment(payload.optString("id"));if(metadata==null){
+                    // The committed Drive snapshot is durable before confirmed-delete GC.
+                    // If the process died before acknowledge(), a stale confirmed create
+                    // may remain in pending without its now-deleted private attachment.
+                    if(confirmed.contains(action.optString("client_id")))continue;
+                    throw new IllegalStateException("Das lokale Foto-Original fehlt in der Übertragungswarteschlange.");
+                }result.put(metadata);}
+            return result;
+        }
+        void markPhotoAttachmentTransferred(String photoId){ContentValues values=new ContentValues();values.put("transfer_state","provider_readback");getWritableDatabase().update("photo_attachments",values,"photo_id=?",new String[]{photoId});}
+        void recordSnapshotPhotoAttachments(JSONObject snapshot)throws Exception{
+            JSONArray photos=snapshot.optJSONArray("photos");if(photos==null)return;SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
+            try{
+                for(int i=0;i<photos.length();i++){
+                    JSONObject photo=photos.optJSONObject(i);if(photo==null||photo.optString("id").isEmpty())continue;
+                    JSONObject local=photoAttachment(photo.optString("id"));
+                    String inline=photo.optString("data");if(inline.isEmpty())inline=photo.optString("full_data");
+                    if(!inline.isEmpty()){
+                        PhotoAttachmentStore.Prepared prepared=photoAttachments.prepare(new JSONObject(photo.toString()).put("data",inline));
+                        if(local!=null&&!local.getString("content_sha256").equals(prepared.metadata.getString("content_sha256"))){
+                            if(prepared.created)photoAttachments.discardCreated(prepared.metadata);
+                            throw new IllegalArgumentException("Die Foto-ID verweist auf verschiedene Originale. Abgleich angehalten.");
+                        }
+                        if(local==null){saveAttachmentMetadata(database,photo.getString("id"),prepared.metadata,"legacy_inline_snapshot");local=new JSONObject(prepared.metadata.toString()).put("photo_id",photo.getString("id"));}
+                    }
+                    photo.remove("data");photo.remove("full_data");
+                    if(local!=null&&(!photo.optString("content_sha256").matches("[0-9a-f]{64}")||!PhotoAttachmentStore.canonicalName(photo.optString("storage_name")))){
+                        for(String key:new String[]{"content_sha256","mime_type","byte_size","storage_name","role"})photo.put(key,local.get(key));
+                    }
+                    if(!photo.optString("content_sha256").matches("[0-9a-f]{64}")||!PhotoAttachmentStore.canonicalName(photo.optString("storage_name")))continue;
+                    boolean keepExisting=false;
+                    try(Cursor existing=database.rawQuery("SELECT content_sha256,transfer_state FROM photo_attachments WHERE photo_id=?",new String[]{photo.getString("id")})){
+                        if(existing.moveToFirst()){
+                            boolean sameHash=existing.getString(0).equals(photo.getString("content_sha256"));
+                            boolean authoritativeLocal=!"remote_available".equals(existing.getString(1));
+                            keepExisting=sameHash||authoritativeLocal;
+                        }
+                    }
+                    if(keepExisting)continue;
+                    JSONObject metadata=new JSONObject().put("content_sha256",photo.getString("content_sha256")).put("mime_type",photo.getString("mime_type")).put("byte_size",photo.getLong("byte_size")).put("storage_name",photo.getString("storage_name")).put("role",photo.optString("role","documentation"));
+                    saveAttachmentMetadata(database,photo.getString("id"),metadata,"remote_available");
+                }
+                database.setTransactionSuccessful();
+            }finally{database.endTransaction();}
+        }
+        void cleanupConfirmedPhotoDeletes(JSONArray submitted,Set<String> confirmed,JSONObject snapshot)throws Exception{
+            Set<String> active=new HashSet<>(),protectedPending=new HashSet<>(),candidates=new HashSet<>();
+            JSONArray photos=snapshot.optJSONArray("photos");for(int i=0;photos!=null&&i<photos.length();i++){JSONObject photo=photos.optJSONObject(i);if(photo!=null&&!photo.optString("id").isEmpty())active.add(photo.optString("id"));}
+            for(int i=0;i<submitted.length();i++){
+                JSONObject action=submitted.optJSONObject(i),payload=action==null?null:action.optJSONObject("payload");if(payload==null)continue;
+                String client=action.optString("client_id"),kind=action.optString("kind"),id=payload.optString("id");
+                if("photo".equals(kind)&&!confirmed.contains(client)&&!id.isEmpty())protectedPending.add(id);
+                if("delete".equals(kind)&&"photo".equals(payload.optString("entity"))&&confirmed.contains(client)&&!id.isEmpty())candidates.add(id);
+            }
+            candidates.removeAll(active);candidates.removeAll(protectedPending);
+            if(candidates.isEmpty())return;
+            SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
+            try{
+                for(String photoId:candidates){
+                    JSONObject metadata=photoAttachment(photoId);if(metadata==null)continue;String hash=metadata.getString("content_sha256");boolean shared;
+                    try(Cursor references=database.rawQuery("SELECT 1 FROM photo_attachments WHERE content_sha256=? AND photo_id<>? LIMIT 1",new String[]{hash,photoId})){shared=references.moveToFirst();}
+                    // Physical originals are removed only after the delete receipt is confirmed,
+                    // the committed snapshot no longer contains the photo, and no other row shares it.
+                    if(!shared)photoAttachments.discardCreated(metadata);
+                    database.delete("photo_attachments","photo_id=?",new String[]{photoId});
+                }
+                database.setTransactionSuccessful();
+            }finally{database.endTransaction();}
+        }
+        String loadPhotoData(String photoId)throws Exception{
+            JSONObject metadata=photoAttachment(photoId);if(metadata==null)throw new IllegalArgumentException("Für dieses Foto ist noch kein dauerhaftes Original hinterlegt.");
+            try{return photoAttachments.dataUri(metadata);}catch(Exception missing){if(!DriveSyncCoordinator.fetchPhoto(context,metadata,photoAttachments))throw missing;return photoAttachments.dataUri(metadata);}
         }
         private void prepareManualChange(String kind,JSONObject payload,JSONObject previous)throws Exception{
+            payload.remove("_sync_resolves"); // Only explicit review creates a resolution; later edits form the normal guarded chain.
             if(!kind.equals("photo"))payload.put("_mcp_create",previous==null);
             if(previous==null&&kind.equals("customer")){if(!payload.has("active"))payload.put("active",1);if(!payload.has("custom_fields"))payload.put("custom_fields",new JSONObject());}
             if(previous==null&&(kind.equals("order")||kind.equals("photo"))&&!payload.has("customer_visible"))payload.put("customer_visible",1);
@@ -723,7 +1020,19 @@ public class MainActivity extends Activity {
         private JSONArray pendingActions(boolean forDrive) throws Exception {
             JSONArray result = new JSONArray();
             try (Cursor cursor = getReadableDatabase().rawQuery("SELECT id,kind,payload,created_at FROM pending WHERE kind!='mcp_receipt' ORDER BY created_at ASC,rowid ASC", null)) {
-                while (cursor.moveToNext()) { JSONObject payload = new JSONObject(cursor.getString(2)); if (forDrive && "delete".equals(cursor.getString(1)) && payload.optLong("_undo_until", 0) > System.currentTimeMillis()) continue; payload.remove("_undo_until"); JSONObject item = new JSONObject(); item.put("client_id", cursor.getString(0)); item.put("kind", cursor.getString(1)); item.put("payload", payload); item.put("created_at", cursor.getString(3)); result.put(item); }
+                while (cursor.moveToNext()) {
+                    String kind=cursor.getString(1);JSONObject payload=new JSONObject(cursor.getString(2));
+                    if(forDrive&&"delete".equals(kind)&&payload.optLong("_undo_until",0)>System.currentTimeMillis())continue;
+                    payload.remove("_undo_until");
+                    if(!forDrive&&"photo".equals(kind)){
+                        // WebView/MCP state stays lightweight. Legacy inline data remains only in the
+                        // immutable Drive journal until acknowledged; originals are read on demand.
+                        JSONObject metadata=photoAttachment(payload.optString("id"));
+                        if(metadata!=null)for(Iterator<String> keys=metadata.keys();keys.hasNext();){String key=keys.next();if(!key.equals("photo_id")&&!key.equals("transfer_state")&&!key.equals("created_at"))payload.put(key,metadata.get(key));}
+                        payload.remove("data");
+                    }
+                    JSONObject item=new JSONObject();item.put("client_id",cursor.getString(0));item.put("kind",kind);item.put("payload",payload);item.put("created_at",cursor.getString(3));result.put(item);
+                }
             }
             return result;
         }
@@ -735,7 +1044,9 @@ public class MainActivity extends Activity {
         if (saved.isEmpty()) {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
-            startActivityForResult(intent, DRIVE_FOLDER_REQUEST);
+            if(driveFolderPicking)return;driveFolderPicking=true;
+            try{startActivityForResult(intent, DRIVE_FOLDER_REQUEST);}
+            catch(ActivityNotFoundException|SecurityException error){driveFolderPicking=false;finishDriveSelection(false,"Ordnerauswahl nicht verfügbar. Lokale Daten bleiben erhalten.");}
         } else performDriveSync(Uri.parse(saved), true);
     }
 
@@ -755,19 +1066,29 @@ public class MainActivity extends Activity {
         if (showToast) Toast.makeText(this, "Drive-Abgleich läuft …", Toast.LENGTH_SHORT).show();
         callback("window.onDriveSyncStarted", syncStatus());
         new Thread(() -> {
-            try {
-                JSONObject result=DriveSyncCoordinator.run(this,store);
-                result.put("automatic",!showToast).put("sync",syncStatus());callback("window.onDriveSync",result);
-            } catch(Exception error){JSONObject result=new JSONObject();try{result.put("ok",false).put("automatic",!showToast).put("error",DriveSyncCoordinator.friendly(error));}catch(Exception ignored){}callback("window.onDriveSync",result);}
-            finally { syncInProgress.set(false); if (syncAgain.getAndSet(false)) requestAutomaticSync(500); else if (store.remainingDeleteUndoMs() > 0) requestAutomaticSync(store.remainingDeleteUndoMs() + 200); }
+            JSONObject result;
+            try {result=DriveSyncCoordinator.run(this,store);}
+            catch(Exception error){result=new JSONObject();try{result.put("ok",false).put("error",DriveSyncCoordinator.friendly(error));}catch(Exception ignored){}}
+            finally{syncInProgress.set(false);}
+            final JSONObject completed=result;
+            runOnUiThread(()->{
+                try{completed.put("automatic",!showToast).put("sync",syncStatus());}catch(Exception ignored){}
+                callback("window.onDriveSync",completed);
+                if(syncAgain.getAndSet(false))requestAutomaticSync(500);
+                else if(store.remainingDeleteUndoMs()>0)requestAutomaticSync(store.remainingDeleteUndoMs()+200);
+            });
         }).start();
+    }
+    private void finishDriveSelection(boolean cancelled,String message){
+        JSONObject result=new JSONObject();try{result.put("ok",false).put("cancelled",cancelled).put("error",message).put("state",store.getState()).put("sync",syncStatus());}catch(Exception ignored){}
+        callback("window.onDriveSync",result);
     }
 
     private JSONObject syncStatus() {
         JSONObject status = new JSONObject();
         try {
             status.put("configured", !preferences.getString("drive_tree_uri", "").isEmpty());
-            status.put("syncing", syncInProgress.get()||DriveSyncCoordinator.running());
+            status.put("syncing", syncInProgress.get()||DriveSyncCoordinator.running()||driveFolderPicking);
             status.put("last_sync", preferences.getString("last_drive_sync", ""));
             JSONObject current=store.getState(),queue=current.getJSONObject("sync_queue");
             status.put("pending",queue.getInt("pending_upload")).put("pending_total",queue.getInt("total")).put("review",queue.getInt("review"));
@@ -794,6 +1115,10 @@ public class MainActivity extends Activity {
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==DRIVE_FOLDER_REQUEST){
+            driveFolderPicking=false;
+            if(resultCode!=RESULT_OK||data==null||data.getData()==null){finishDriveSelection(true,"Ordnerauswahl abgebrochen. Deine Daten bleiben lokal gespeichert.");return;}
+        }
         if (requestCode == DRIVE_FOLDER_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             Uri treeUri = data.getData();
             try {
@@ -803,11 +1128,19 @@ public class MainActivity extends Activity {
                 preferences.edit().putString("drive_tree_uri", treeUri.toString()).apply(); performDriveSync(treeUri, true);
             } catch (SecurityException error) {
                 Toast.makeText(this,"Bitte einen Ordner mit Lese- und Schreibzugriff freigeben. Deine Daten bleiben auf dem Gerät.",Toast.LENGTH_LONG).show();
+                finishDriveSelection(false,"Drive-Zugriff fehlt. Bitte einen Ordner mit Lese- und Schreibzugriff auswählen.");
             }
         }
         if (requestCode == FILE_REQUEST) {
             Uri[] result = null;
-            if (resultCode == RESULT_OK && data != null) {
+            if (pendingCaptureUri != null) {
+                Uri captured=pendingCaptureUri;File capturedFile=pendingCaptureFile;
+                boolean valid=resultCode==RESULT_OK&&capturedFile!=null&&capturedFile.isFile()&&capturedFile.length()>0&&capturedFile.length()<=PhotoAttachmentStore.MAX_BYTES;
+                // File inputs may be submitted much later (for example after completing a work form).
+                // Keep a successful capture for the bounded 24-hour cache window; cancellation is immediate.
+                if(valid){result=new Uri[]{captured};clearPendingCapture(false);syncHandler.postDelayed(()->{if(capturedFile.isFile())capturedFile.delete();},24L*60L*60L*1000L);}
+                else {clearPendingCapture(true);if(resultCode==RESULT_OK)Toast.makeText(this,"Das Kamerafoto ist leer oder größer als 20 MB.",Toast.LENGTH_LONG).show();}
+            } else if (resultCode == RESULT_OK && data != null) {
                 if (data.getClipData() != null) {
                     android.content.ClipData selected = data.getClipData();
                     ArrayList<Uri> uris = new ArrayList<>();
@@ -815,7 +1148,8 @@ public class MainActivity extends Activity {
                     if (!uris.isEmpty()) result = uris.toArray(new Uri[0]);
                 } else if (data.getData() != null) result = new Uri[]{data.getData()};
             }
-            if (fileCallback != null) fileCallback.onReceiveValue(result); fileCallback = null;
+            ValueCallback<Uri[]> completed=fileCallback;fileCallback=null;
+            if(completed!=null)completed.onReceiveValue(result);
         }
         if (requestCode == SPEECH_REQUEST && resultCode == RESULT_OK && data != null) { ArrayList<String> matches = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS); if (matches != null && !matches.isEmpty()) webView.evaluateJavascript("window.acceptNativeSpeech(" + JSONObject.quote(matches.get(0)) + ")", null); }
     }

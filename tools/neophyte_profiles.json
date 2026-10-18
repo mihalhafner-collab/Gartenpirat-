@@ -1,0 +1,233 @@
+{
+  "checked": "2026-10-16",
+  "officialListUrl": "https://www.neobiota-austria.at/ias-unionsliste/neophyten",
+  "euPolicyUrl": "https://environment.ec.europa.eu/topics/nature-and-biodiversity/invasive-alien-species_en",
+  "euUpdateUrl": "https://eur-lex.europa.eu/eli/reg_impl/2025/1422/oj",
+  "managementUrl": "https://www.neobiota-austria.at/biologische-invasionen/ias-massnahmen",
+  "existingProfiles": [
+    {
+      "id": "buddleja-davidii",
+      "austriaStatus": "Etabliert",
+      "establishmentStatus": "established",
+      "invasive": true,
+      "statusLabel": "Etablierter invasiver Neophyt; nicht auf der EU-Unionsliste",
+      "recognition": ["Bis etwa 4 m hoher sommergrüner Strauch mit gegenständigen, schmal zugespitzten Blättern und langen, meist violetten bis purpurfarbenen Blütenrispen."],
+      "spread": ["Bildet zahlreiche leichte Samen, die mit dem Wind verbreitet werden, und besiedelt rasch offene Flächen wie Schotterplätze und Bahndämme."],
+      "impacts": ["Kann auf offenen Pionierstandorten heimische Pflanzen verdrängen; als Raupenfutterpflanze bietet er Schmetterlingen keinen Ersatz für verdrängte heimische Arten."],
+      "control": ["Verblühte Rispen vor der Samenreife entfernen und die weitere Ausbreitung beobachten; bei etablierten Wildbeständen standortbezogene Fachberatung einholen."],
+      "sourceUrl": "https://www.neobiota-austria.at/neobiota-national/neobiota-auswahl/sommerflieder"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "ailanthus-altissima", "name": "Götterbaum", "scientificName": "Ailanthus altissima", "category": "Gehölze und Hecken", "family": "Simaroubaceae",
+      "alternativeNames": ["Hoch-Götterbaum", "Drüsiger Götterbaum", "Bitteresche"], "origin": ["Ostasien: östliches China und Nordvietnam"], "austriaStatus": "Etabliert",
+      "recognition": ["Rasch wachsender sommergrüner Baum mit großen Fiederblättern, Drüsen am Grund der Fiederblättchen und geflügelten Früchten."],
+      "spread": ["Verbreitung über zahlreiche windverfrachtete Samen sowie vegetativ über Wurzelausläufer."],
+      "impacts": ["Konkurrenz und allelopathische Effekte können naturnahe Trockenrasen, lichte Wälder und Bodenlebensgemeinschaften beeinträchtigen."],
+      "control": ["Etablierte Bestände sind schwer zu beseitigen; Maßnahmen müssen fachkundig geplant, wiederholt und auf Wiederaustrieb kontrolliert werden."],
+      "health": ["Pflanzensaft kann Hautreaktionen verursachen; längerer direkter Kontakt ist zu vermeiden."],
+      "sourceUrl": "https://www.neobiota-austria.at/ailanthus-altissima", "imageCandidateIndexes": [13, 10]
+    },
+    {
+      "id": "asclepias-syriaca", "name": "Gewöhnliche Seidenpflanze", "scientificName": "Asclepias syriaca", "category": "Stauden", "family": "Apocynaceae",
+      "alternativeNames": ["Syrische Seidenpflanze", "Echte Seidenpflanze", "Milchwurz"], "origin": ["Zentrales und nordöstliches Nordamerika"], "austriaStatus": "Etabliert",
+      "recognition": ["Ausdauernde, bis etwa 1,5 m hohe Staude mit gegenständigen Blättern, Milchsaft, rosa Blütendolden und länglichen Balgfrüchten."],
+      "spread": ["Bildet ausdauernde Bestände; Samen werden entlang von Verkehrswegen verbreitet, zusätzlich treiben unterirdische Pflanzenteile wieder aus."],
+      "impacts": ["Große Bestände können heimische Arten auf Sand- und Trockenrasen verdrängen."],
+      "control": ["Kleine Vorkommen samt Wurzelstöcken entfernen und den Standort über mehrere Vegetationsperioden kontrollieren."],
+      "health": ["Milchsaft kann Kontaktdermatitis und allergische Reaktionen auslösen; die Pflanze ist für Menschen giftig."],
+      "sourceUrl": "https://www.neobiota-austria.at/asclepias-syriaca", "imageCandidateIndexes": [6, 12]
+    },
+    {
+      "id": "broussonetia-papyrifera", "name": "Papiermaulbeerbaum", "scientificName": "Broussonetia papyrifera", "category": "Gehölze und Hecken", "family": "Moraceae",
+      "alternativeNames": ["Japanischer Papierbaum"], "origin": ["Ost- und Südostasien; das genaue natürliche Areal ist wegen früher Kulturgeschichte unsicher"], "austriaStatus": "Unbeständig",
+      "recognition": ["Sommergrüner Baum mit variabel ungelappten bis tief gelappten, dicht behaarten Blättern, Milchsaft und orange-roten Sammelfrüchten."],
+      "spread": ["Ausbreitung durch Samen und Wurzelschösslinge; auch verbliebene Wurzelfragmente können erneut austreiben."],
+      "impacts": ["Vegetative Ausbreitung ermöglicht dichte Bestände, die heimische Vegetation durch Konkurrenz beeinträchtigen können."],
+      "control": ["Frühes Eingreifen ist wichtig; kleine Pflanzen mit Wurzeln entfernen und Wiederaustrieb wiederholt nachkontrollieren."],
+      "health": ["Große Pollenmengen können bei empfindlichen Personen Atemwegs- und Hautreaktionen auslösen."],
+      "sourceUrl": "https://www.neobiota-austria.at/ias-unionsliste/neophyten/eu-pflanzen/broussonetia-papyrifera-papiermaulbeerbaum", "imageCandidateIndexes": [11, 0]
+    },
+    {
+      "id": "celastrus-orbiculatus", "name": "Rundblättriger Baumwürger", "scientificName": "Celastrus orbiculatus", "category": "Kletterpflanzen", "family": "Celastraceae",
+      "alternativeNames": ["Baumwürger", "Rundblatt-Baumwürger"], "origin": ["China, Korea, Japan und der Ferne Osten Russlands"], "austriaStatus": "Etabliert",
+      "recognition": ["Kräftige sommergrüne Liane mit rundlichen Blättern und gelb-orangen Früchten, deren Kapseln rote Samenmäntel zeigen."],
+      "spread": ["Vögel verbreiten die Samen; die langlebige Liane überwächst Gehölze und kann dichte Sprossgeflechte bilden."],
+      "impacts": ["Überwuchs beschattet Trägerbäume und erhöht durch Gewicht und Einschnürung die Gefahr von Kronenbruch und Absterben."],
+      "control": ["Mechanische Entfernung ist vor allem bei kleinen Beständen sinnvoll und erfordert wegen Wiederaustriebs engmaschige Wiederholung."],
+      "health": ["Die Früchte sind für Menschen giftig."],
+      "sourceUrl": "https://www.neobiota-austria.at/ias-unionsliste/neophyten/eu-pflanzen/celastrus-orbiculatus-baumwuerger", "imageCandidateIndexes": [4, 17]
+    },
+    {
+      "id": "crassula-helmsii", "name": "Nadelkraut", "scientificName": "Crassula helmsii", "category": "Teichpflanzen", "family": "Crassulaceae",
+      "alternativeNames": [], "origin": ["Australien und Neuseeland"], "austriaStatus": "Vorkommend",
+      "recognition": ["Immergrüne sukkulente Sumpf- und Wasserpflanze mit gegenständigen schmalen Blättern und kleinen weißen bis rosafarbenen Blüten."],
+      "spread": ["Außerhalb des natürlichen Areals vor allem vegetativ; kleine Pflanzenteile können über Wasser, Tiere und Arbeitsgeräte verschleppt werden."],
+      "impacts": ["Dichte Matten verändern Licht, Sauerstoffhaushalt, Strömung und Lebensraumstruktur von Gewässern."],
+      "control": ["Frühe kleine Bestände können nach standörtlicher Prüfung vollständig manuell oder mechanisch entfernt werden; Geräte anschließend sorgfältig reinigen."],
+      "health": [],
+      "sourceUrl": "https://www.neobiota-austria.at/ias-unionsliste/neophyten/eu-pflanzen/crassula-helmsii-nadelkraut", "imageCandidateIndexes": [0, 12]
+    },
+    {
+      "id": "delairea-odorata", "name": "Kap-Efeu", "scientificName": "Delairea odorata", "category": "Kletterpflanzen", "family": "Asteraceae",
+      "alternativeNames": ["Efeugreiskraut", "Salonefeu"], "origin": ["Südliches Südafrika"], "austriaStatus": "Unbeständig",
+      "recognition": ["Immergrüne raschwüchsige Kletterpflanze mit efeuartig gelappten Blättern und kleinen gelben Röhrenblüten in Büscheln."],
+      "spread": ["Stängel-, Ausläufer- und Blattstielstücke bewurzeln leicht; Samen können durch Wind, Wasser und Bodenbewegung verbreitet werden."],
+      "impacts": ["Dichte Decken konkurrieren um Wasser und Nährstoffe, behindern die Verjüngung heimischer Pflanzen und belasten Trägergehölze."],
+      "control": ["Pflanzen ausgraben, den Bestand räumlich sichern und alle regenerationsfähigen Pflanzenreste entfernen; Nachkontrollen einplanen."],
+      "health": ["Enthält Pyrrolizidinalkaloide; Aufnahme durch Menschen oder Tiere vermeiden."],
+      "sourceUrl": "https://www.neobiota-austria.at/ias-unionsliste/neophyten/eu-pflanzen/delairea-odorata-kap-efeu"
+    },
+    {
+      "id": "elodea-nuttallii", "name": "Schmalblättrige Wasserpest", "scientificName": "Elodea nuttallii", "category": "Teichpflanzen", "family": "Hydrocharitaceae",
+      "alternativeNames": ["Nuttalls Wasserpest"], "origin": ["Gemäßigte Zone Nordamerikas"], "austriaStatus": "Etabliert",
+      "recognition": ["Ausdauernde vollständig untergetauchte Wasserpflanze mit schmalen, meist zu dritt quirlig stehenden und oft zurückgebogenen Blättern."],
+      "spread": ["Vegetative Sprossteile werden mit Wasserströmung, Booten und Arbeitsgeräten verschleppt und können neue Bestände bilden."],
+      "impacts": ["Dominanzbestände konkurrieren mit anderen Wasserpflanzen und können heimische Arten nach Störungen verdrängen."],
+      "control": ["Entnahme nur mit vollständiger Sicherung der Bruchstücke und anschließender Kontrolle; weitere Verschleppung über Geräte verhindern."],
+      "health": [],
+      "sourceUrl": "https://www.neobiota-austria.at/elodea-nuttallii", "imageCandidateIndexes": [1, 6]
+    },
+    {
+      "id": "heracleum-mantegazzianum", "name": "Riesen-Bärenklau", "scientificName": "Heracleum mantegazzianum", "category": "Stauden", "family": "Apiaceae",
+      "alternativeNames": ["Herkulesstaude"], "origin": ["Westkaukasus"], "austriaStatus": "Etabliert",
+      "recognition": ["Sehr große Doldenpflanze bis etwa 3–5 m mit hohlem, häufig purpur geflecktem Stängel, riesigen tief geteilten Blättern und weißen Dolden."],
+      "spread": ["Vermehrt und verbreitet sich über zahlreiche Samen, besonders entlang von Gewässern und Verkehrswegen."],
+      "impacts": ["Dichte dominante Bestände verändern Pflanzenartenzusammensetzung und Samenbank."],
+      "control": ["Nur mit geeigneter Schutzkleidung arbeiten; mechanische Entfernung und jede weitere Maßnahme fachkundig planen und wiederholt kontrollieren."],
+      "health": ["Pflanzensaft kann zusammen mit Sonnenlicht schwere Hautentzündungen verursachen."],
+      "sourceUrl": "https://www.neobiota-austria.at/heracleum-mantegazzianum", "imageCandidateIndexes": [1, 15]
+    },
+    {
+      "id": "humulus-scandens", "name": "Japanischer Hopfen", "scientificName": "Humulus scandens", "category": "Kletterpflanzen", "family": "Cannabaceae",
+      "alternativeNames": ["Japan-Hopf"], "origin": ["Ostasien einschließlich China, Taiwan, Japan, Korea, Vietnam und östlichem Russland"], "austriaStatus": "Unbeständig",
+      "recognition": ["Einjährige raue Kletterpflanze mit gegenständigen, tief gelappten Blättern und getrennten männlichen und weiblichen Blütenständen."],
+      "spread": ["Samen sichern die jährliche Neubesiedlung; lange Triebe überziehen Ufer- und Ruderalvegetation."],
+      "impacts": ["Dichte Kletterdecken beschatten und verdrängen die vorhandene Ufervegetation."],
+      "control": ["Kleine Bestände vor der Fruchtreife vollständig mechanisch entfernen und auf nachkeimende Pflanzen kontrollieren."],
+      "health": ["Pollen können allergische Reaktionen auslösen."],
+      "sourceUrl": "https://www.neobiota-austria.at/humulus-scandens"
+    },
+    {
+      "id": "impatiens-glandulifera", "name": "Drüsiges Springkraut", "scientificName": "Impatiens glandulifera", "category": "Sommerblumen", "family": "Balsaminaceae",
+      "alternativeNames": ["Indisches Springkraut"], "origin": ["Westlicher Himalaya von Nordwestpakistan bis Nordindien"], "austriaStatus": "Etabliert",
+      "recognition": ["Einjährige, bis etwa 3 m hohe Pflanze mit saftig-hohlem Stängel, lanzettlichen Blättern, rosa Blüten und explosiv aufspringenden Kapseln."],
+      "spread": ["Samen werden aus den Kapseln geschleudert und zusätzlich durch Gewässer und Bodenbewegung verbreitet."],
+      "impacts": ["Kann dominante Uferbestände bilden; nach dem winterlichen Absterben bleibt Boden zeitweise unbedeckt."],
+      "control": ["Vor der Samenreife mitsamt Wurzel entfernen oder mähen und wegen später Keimlinge wiederholt kontrollieren."],
+      "health": [],
+      "sourceUrl": "https://www.neobiota-austria.at/impatiens-glandulifera"
+    },
+    {
+      "id": "koenigia-polystachya", "name": "Vielähriger Knöterich", "scientificName": "Koenigia polystachya", "category": "Stauden", "family": "Polygonaceae",
+      "alternativeNames": ["Himalaya-Knöterich"], "origin": ["Zentral- und Ostasien"], "austriaStatus": "Etabliert",
+      "recognition": ["Ausdauernde Staude mit rötlich-braunen Stängeln, lanzettlichen Blättern und reich verzweigten weiß- bis rosafarbenen Blütenrispen."],
+      "spread": ["Vermehrung über Samen, Stecklinge und Rhizome; bereits kurze Rhizomstücke können neue Kolonien bilden."],
+      "impacts": ["Dichte Bestände reduzieren den Lichteinfall und beeinträchtigen das Wachstum heimischer Arten."],
+      "control": ["Standortspezifisch wiederholt entfernen oder abdecken; Rhizomstücke vollständig erfassen und Folgebestände kontrollieren."],
+      "health": [],
+      "sourceUrl": "https://www.neobiota-austria.at/ias-unionsliste/neophyten/eu-pflanzen/koenigia-polystachya-vielaehriger-knoeterich"
+    },
+    {
+      "id": "lagarosiphon-major", "name": "Wechselblatt-Wasserpest", "scientificName": "Lagarosiphon major", "category": "Teichpflanzen", "family": "Hydrocharitaceae",
+      "alternativeNames": [], "origin": ["Tropisches südliches Afrika und Südafrika"], "austriaStatus": "Unbeständig",
+      "recognition": ["Immergrüne ausschließlich untergetauchte Wasserpflanze mit meterlangen Sprossen und spiralig wechselständigen, nach unten gebogenen Blättern."],
+      "spread": ["In Europa überwiegend vegetativ über abgetrennte Sprossstücke; Verschleppung durch Wasser, Boote und Pflegematerial."],
+      "impacts": ["Dominante Massenbestände erzeugen starken Konkurrenzdruck auf heimische Wasserpflanzen."],
+      "control": ["Früherkennung und fachgerechte Entnahme sind entscheidend; abgetrennte Pflanzenteile vollständig auffangen und Geräte reinigen."],
+      "health": [],
+      "sourceUrl": "https://www.neobiota-austria.at/lagarosiphon-major", "imageCandidateIndexes": [3, 1]
+    },
+    {
+      "id": "ludwigia-grandiflora", "name": "Großblütiges Heusenkraut", "scientificName": "Ludwigia grandiflora", "category": "Teichpflanzen", "family": "Onagraceae",
+      "alternativeNames": [], "origin": ["Südamerika"], "austriaStatus": "Etabliert",
+      "recognition": ["Ausdauernde kriechende oder flutende Wasserpflanze mit bis zu mehreren Metern langen Stängeln und auffälligen gelben Blüten."],
+      "spread": ["Bewurzelte Stängel und kleine Bruchstücke können neue Bestände bilden und über Gewässer oder Geräte verschleppt werden."],
+      "impacts": ["Dichte Massenbestände verdrängen heimische Wasserpflanzen und verändern Gewässerstruktur und Wasserführung."],
+      "control": ["Bekämpfung fachkundig planen; Pflanzenmaterial vollständig bergen, Bruchstücke sichern und über Jahre nachkontrollieren."],
+      "health": [],
+      "sourceUrl": "https://www.neobiota-austria.at/ludwigia-grandiflora", "imageCandidateIndexes": [0, 11]
+    },
+    {
+      "id": "lysichiton-americanus", "name": "Gelbe Scheinkalla", "scientificName": "Lysichiton americanus", "category": "Teichpflanzen", "family": "Araceae",
+      "alternativeNames": ["Amerikanischer Stinktierkohl"], "origin": ["Westliches Nordamerika von Alaska bis Kalifornien"], "austriaStatus": "Unbeständig",
+      "recognition": ["Große ausdauernde Sumpfpflanze mit gelbem Hochblatt um einen Kolben und später sehr großen, ganzrandigen Blättern."],
+      "spread": ["Samen werden besonders entlang von Gewässern verbreitet; kräftige Rhizome sichern lange Lebensdauer."],
+      "impacts": ["Wuchskräftige Bestände können sich rasch ausdehnen und heimische Arten in Feuchtlebensräumen verdrängen."],
+      "control": ["Kleine Pflanzen vollständig mit Rhizom ausgraben; Samenbildung verhindern und den Standort langfristig kontrollieren."],
+      "health": [],
+      "sourceUrl": "https://www.neobiota-austria.at/lysichiton-americanus"
+    },
+    {
+      "id": "myriophyllum-aquaticum", "name": "Brasilianisches Tausendblatt", "scientificName": "Myriophyllum aquaticum", "category": "Teichpflanzen", "family": "Haloragaceae",
+      "alternativeNames": ["Papageienfeder"], "origin": ["Südamerika"], "austriaStatus": "Lokal etabliert",
+      "recognition": ["Immergrüne Wasserpflanze mit quirlständigen, fein gefiederten Blättern; Triebspitzen wachsen deutlich über die Wasseroberfläche."],
+      "spread": ["Außerhalb des natürlichen Areals hauptsächlich vegetativ über Sprossfragmente."],
+      "impacts": ["Massenbestände verändern Struktur und Nährstoffdynamik von Gewässern und verdrängen heimische Wasserpflanzen."],
+      "control": ["Nur unter Sicherung sämtlicher Fragmente entfernen; Verschleppung durch Boote und Pflegegeräte verhindern und Folgeaufwuchs kontrollieren."],
+      "health": [],
+      "sourceUrl": "https://www.neobiota-austria.at/myriophyllum-aquaticum", "imageCandidateIndexes": [3, 4]
+    },
+    {
+      "id": "myriophyllum-heterophyllum", "name": "Verschiedenblättriges Tausendblatt", "scientificName": "Myriophyllum heterophyllum", "category": "Teichpflanzen", "family": "Haloragaceae",
+      "alternativeNames": [], "origin": ["Östliches Nordamerika"], "austriaStatus": "Status unbekannt; Vorkommen nachgewiesen",
+      "recognition": ["Immergrüne Wasserpflanze mit fein gefiederten Unterwasserblättern und anders geformten, ungeteilten Blättern an herausragenden Blütenständen."],
+      "spread": ["Sprossfragmente bewurzeln und werden durch Wasser, Boote, Angel- und Pflegegeräte verbreitet."],
+      "impacts": ["Dichte monodominante Bestände können heimische Pflanzen- und Fischarten beeinträchtigen."],
+      "control": ["Bestände fachgerecht und fragmentarm bergen; Arbeitsgeräte reinigen und den Gewässerabschnitt wiederholt kontrollieren."],
+      "health": [],
+      "sourceUrl": "https://www.neobiota-austria.at/myriophyllum-heterophyllum"
+    },
+    {
+      "id": "pistia-stratiotes", "name": "Wassersalat", "scientificName": "Pistia stratiotes", "category": "Teichpflanzen", "family": "Araceae",
+      "alternativeNames": ["Muschelblume"], "origin": ["Natürliches Areal nicht sicher geklärt; Südamerika oder pantropischer Ursprung werden angenommen"], "austriaStatus": "Status unbekannt; Vorkommen nachgewiesen",
+      "recognition": ["Frei schwimmende Wasserpflanze mit hellgrünen, samtig behaarten Blättern in Rosetten und zahlreichen langen Wurzeln."],
+      "spread": ["Bildet vegetativ Tochterrosetten; langlebige Samen und Verschleppung aus Aquarien oder Gartenteichen unterstützen die Ausbreitung."],
+      "impacts": ["Geschlossene Schwimmdecken reduzieren Licht und Sauerstoff und verändern Wasserqualität und Lebensraumstruktur."],
+      "control": ["Frühe Bestände vollständig manuell oder maschinell entnehmen und eine erneute Ausbringung aus Aquarien oder Teichen verhindern."],
+      "health": [],
+      "sourceUrl": "https://www.neobiota-austria.at/ias-unionsliste/neophyten/eu-pflanzen/pistia-stratiotes-wassersalat", "imageCandidateIndexes": [2, 19]
+    },
+    {
+      "id": "reynoutria-japonica", "name": "Japanischer Staudenknöterich", "scientificName": "Reynoutria japonica", "category": "Stauden", "family": "Polygonaceae",
+      "alternativeNames": ["Japan-Knöterich", "Japan-Flügelknöterich"], "origin": ["Japan, Korea, China und Taiwan"], "austriaStatus": "Etabliert",
+      "recognition": ["Schnellwüchsige Hochstaude mit hohlen rötlich gefleckten Stängeln, kräftigen Rhizomen und breit eiförmigen Blättern mit gestutztem Grund."],
+      "spread": ["In Europa vor allem vegetativ; kleinste Rhizom- und Stängelfragmente können über Wasser, Boden und Geräte verschleppt werden."],
+      "impacts": ["Dichte Bestände und allelopathische Effekte verdrängen heimische Vegetation, besonders an Ufern und in Auwäldern."],
+      "control": ["Kein allgemeingültiges Verfahren: standortspezifischer mehrjähriger Maßnahmenplan und konsequente Nachkontrolle durch Fachkundige sind erforderlich."],
+      "health": [],
+      "sourceUrl": "https://www.neobiota-austria.at/ias-unionsliste/neophyten/eu-pflanzen/reynoutria-japonica-japan-staudenknoeterich", "imageCandidateIndexes": [3, 2]
+    },
+    {
+      "id": "reynoutria-x-bohemica", "name": "Böhmischer Staudenknöterich", "scientificName": "Reynoutria × bohemica", "imageSearchName": "Reynoutria x bohemica", "category": "Stauden", "family": "Polygonaceae",
+      "alternativeNames": ["Bastard-Staudenknöterich", "Bastard-Flügelknöterich"], "origin": ["In Europa entstandene Hybride aus R. japonica und R. sachalinensis"], "austriaStatus": "Etabliert",
+      "recognition": ["Zwei bis vier Meter hohe rhizombildende Hochstaude mit zwischen den Elternarten liegenden Blattmerkmalen und schwach herzförmigem Blattgrund."],
+      "spread": ["Ausbreitung durch Samen sowie vegetativ über Stängel- und Rhizomfragmente, die Wasser und Bodenbewegung verschleppen."],
+      "impacts": ["Sehr konkurrenzfähige Dominanzbestände reduzieren die Vielfalt von Pflanzen und Bodenwirbellosen und gefährden Auwälder."],
+      "control": ["Kein allgemeingültiges Verfahren: standortspezifischer mehrjähriger Maßnahmenplan und konsequente Nachkontrolle durch Fachkundige sind erforderlich."],
+      "health": [],
+      "sourceUrl": "https://www.neobiota-austria.at/ias-unionsliste/neophyten/eu-pflanzen/reynoutria-x-bohemica-boehmischer-knoeterich", "imageCandidateIndexes": [2, 9]
+    },
+    {
+      "id": "reynoutria-sachalinensis", "name": "Sachalin-Staudenknöterich", "scientificName": "Reynoutria sachalinensis", "category": "Stauden", "family": "Polygonaceae",
+      "alternativeNames": ["Sachalin-Flügelknöterich", "Sachalin-Knöterich"], "origin": ["Sachalin, südliche Kurilen, Japan und Korea"], "austriaStatus": "Etabliert",
+      "recognition": ["Robuste drei bis vier Meter hohe Staude mit hohlen Stängeln und sehr großen, weich behaarten Blättern mit deutlich herzförmigem Grund."],
+      "spread": ["In Europa hauptsächlich vegetativ über Stängel- und Rhizomfragmente, die an Ufern, mit Boden und durch Geräte verbreitet werden."],
+      "impacts": ["Dichte Bestände und langsam zersetzende Streu reduzieren heimische Vegetation und beeinträchtigen Ufer- und Auenlebensräume."],
+      "control": ["Kein allgemeingültiges Verfahren: standortspezifischer mehrjähriger Maßnahmenplan und konsequente Nachkontrolle durch Fachkundige sind erforderlich."],
+      "health": [],
+      "sourceUrl": "https://www.neobiota-austria.at/ias-unionsliste/neophyten/eu-pflanzen/reynoutria-sachalinensis-sachalin-staudenknoeterich", "imageCandidateIndexes": [2, 3]
+    },
+    {
+      "id": "salvinia-molesta", "name": "Büschelfarn", "scientificName": "Salvinia molesta", "category": "Teichpflanzen", "family": "Salviniaceae",
+      "alternativeNames": ["Lästiger Schwimmfarn"], "origin": ["Südöstliches Brasilien"], "austriaStatus": "Unbeständig",
+      "recognition": ["Frei schwimmender Wasserfarn mit je zwei schwimmenden und einem untergetauchten Wedel; die Blattoberfläche trägt auffällige verbundene Haarspitzen."],
+      "spread": ["Steriler Hybrid, der sich ausschließlich vegetativ über Pflanzenteile vermehrt und bei günstigen Bedingungen sehr rasch dichte Matten bildet."],
+      "impacts": ["Dicke Schwimmdecken verdrängen heimische Wasserpflanzen und verändern Licht- und Stoffhaushalt von Gewässern."],
+      "control": ["Frühe kleine Bestände können vollständig manuell geborgen werden; jedes Fragment sichern und anschließend wiederholt kontrollieren."],
+      "health": [],
+      "sourceUrl": "https://www.neobiota-austria.at/salvinia-molesta", "imageCandidateIndexes": [2, 4]
+    }
+  ]
+}

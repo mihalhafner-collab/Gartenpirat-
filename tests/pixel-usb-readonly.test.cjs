@@ -1,19 +1,14 @@
 /* Real Pixel/WebView/native bridge. Read-only business-data checks, no CRUD. */
 'use strict';
-// Export copy: no implicit device or live operation.
-if (!(process.argv[2] || process.env.HG_TEST_DEVICE_SERIAL) || process.env.HG_TEST_DEVICE_CONFIRMED !== '1') {
-  throw Error('Manual device test requires an explicitly selected device and HG_TEST_DEVICE_CONFIRMED=1 after user consent.');
-}
-
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const {execFileSync} = require('node:child_process');
-const {chromium} = require(process.env.HG_PLAYWRIGHT_MODULE || 'playwright');
+const {chromium} = require('C:/Users/Michael/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const root = path.resolve(__dirname, '..');
 const adbPath = path.join(root, 'android-toolchain/sdk/platform-tools/adb.exe');
-const serial = process.argv[2] || process.env.HG_TEST_DEVICE_SERIAL;
+const serial = '58151FDCH005U8';
 const app = 'at.hausgarten.service';
 const expectedVersion = process.env.PIXEL_TEST_VERSION || '1.28.1';
 const expectedCode = Number(process.env.PIXEL_TEST_VERSION_CODE || 43);

@@ -88,7 +88,7 @@ def get_order(order_id: str) -> dict[str, Any]:
     return service.call_safely(service.get_order, order_id=order_id)
 
 
-@server.tool(description="Listet Cloudname_189a14e78c mit sicheren Kunden-, Auftrags-, Datums- und Abrechnungsfiltern.",
+@server.tool(description="Listet Arbeitsaufzeichnungen mit sicheren Kunden-, Auftrags-, Datums- und Abrechnungsfiltern.",
              annotations=READ_ONLY, structured_output=True)
 def list_work_records(customer_id: str | None = None, order_id: str | None = None,
                       date_from: str | None = None, date_to: str | None = None,
@@ -117,7 +117,7 @@ def get_business_summary() -> dict[str, Any]:
     return service.call_safely(service.get_business_summary)
 
 
-@server.tool(description="Durchsucht Kunden, Aufträge und Cloudname_189a14e78c gemeinsam; verändert nichts.",
+@server.tool(description="Durchsucht Kunden, Aufträge und Arbeitsaufzeichnungen gemeinsam; verändert nichts.",
              annotations=READ_ONLY, structured_output=True)
 def search_business_data(query: str, limit_per_type: int = 10) -> dict[str, Any]:
     return service.call_safely(service.search_business_data, query=query, limit_per_type=limit_per_type)

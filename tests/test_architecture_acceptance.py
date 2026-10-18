@@ -64,7 +64,7 @@ class ArchitectureAcceptanceTests(unittest.TestCase):
         self.assertEqual(db.list_worklogs(), [])
 
     def test_historical_zero_hours_can_still_receive_notes_without_id_changes(self):
-        work = db.save_worklog({'customer_id':self.customer['id'],'activity':'QA Cloudname_2e8a3ddbff Arbeit','hours':1})
+        work = db.save_worklog({'customer_id':self.customer['id'],'activity':'QA historische Arbeit','hours':1})
         with db.connect() as database:
             database.execute('UPDATE worklogs SET hours=0 WHERE id=?',(work['id'],))
         updated = db.save_worklog({'id':work['id'],'notes':'Historischer Nachtrag'})

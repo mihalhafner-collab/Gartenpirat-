@@ -16,6 +16,16 @@ android/local.properties
 *.keystore
 *.jks
 *.apk
+*.aab
 *.idsig
+*.db
+*.sqlite
+*.sqlite3
 .env
 .env.*
+# Private signing material must never enter Git.
+*.p12
+*.pfx
+*.key
+qa-signing-password.txt
+.qa-signing/

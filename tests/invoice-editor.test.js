@@ -17,7 +17,7 @@ assert.equal(ui.dueDate('2026-02-30',14),'');
 assert.equal(ui.dueDate('2026-10-08',-1),'');
 const draft={invoice_number:'Entwurf-123',invoice_date:'2026-10-08',service_start:'2026-10-01',service_end:'2026-10-01',payment_days:14,positions:[{...p('3','50'),description:'Pflege <script>alert(1)</script>',title:'Hecke & Garten'}],notes:'INTERNE-NOTIZ-NICHT-ZEIGEN'};
 const before=JSON.stringify(draft);
-const html=ui.preview(draft,{owner_name:'Hafner Cloudname_3455071506'}, {name:'Testkunde',street:'Gartenweg 1',city:'Glanegg',postal_code:'9555'},'hafner-logo.png');
+const html=ui.preview(draft,{owner_name:'Hafner Michael'}, {name:'Testkunde',street:'Gartenweg 1',city:'Glanegg',postal_code:'9555'},'hafner-logo.png');
 assert.match(html,/ENTWURF/);
 assert.match(html,/Hecke &amp; Garten/);
 assert.match(html,/&lt;script&gt;/);

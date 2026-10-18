@@ -12,6 +12,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from datetime import date, datetime, timezone
 from pathlib import Path
 import billing
+import photo_storage
 
 
 ROOT = Path(__file__).resolve().parent
@@ -113,6 +114,42 @@ def integrity_report():
             checks[table+"_missing_billing_customer"] = [r[0] for r in database.execute(f"SELECT id FROM {table} WHERE billing_customer_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM customers c WHERE c.id={table}.billing_customer_id)")]
         checks["invoices_customer_order_mismatch"] = [r[0] for r in database.execute("SELECT i.id FROM invoices i JOIN orders o ON o.id=i.order_id WHERE i.customer_id<>o.customer_id")]
         checks["photos_invalid_relation"] = [r[0] for r in database.execute("SELECT p.id FROM photos p LEFT JOIN customers c ON c.id=p.customer_id LEFT JOIN orders o ON o.id=p.order_id LEFT JOIN worklogs w ON w.id=p.worklog_id WHERE c.id IS NULL OR (p.order_id IS NOT NULL AND o.id IS NULL) OR (p.worklog_id IS NOT NULL AND w.id IS NULL) OR (p.order_id IS NOT NULL AND o.customer_id<>p.customer_id) OR (p.worklog_id IS NOT NULL AND w.customer_id<>p.customer_id)")]
+        photo_rows = dicts(database.execute("SELECT id,filename,storage_name,content_sha256,byte_size,mime_type FROM photos"))
+    referenced, missing, unsafe, hash_mismatch, size_mismatch, invalid_content = set(), [], [], [], [], []
+    for row in photo_rows:
+        name = str(row.get("storage_name") or row.get("filename") or "")
+        if not name or Path(name).name != name:
+            unsafe.append(row["id"])
+            continue
+        referenced.add(name)
+        legacy_name = str(row.get("filename") or "")
+        if legacy_name and Path(legacy_name).name == legacy_name:
+            # Canonical migration deliberately retains the old file as a
+            # recoverable copy; it is still owned by this photo, not an orphan.
+            referenced.add(legacy_name)
+        source = PHOTO_DIR / name
+        if not source.is_file():
+            missing.append(row["id"])
+            continue
+        try:
+            metadata = photo_storage.inspect(source.read_bytes())
+            if row.get("content_sha256") and metadata["content_sha256"] != str(row["content_sha256"]).lower():
+                hash_mismatch.append(row["id"])
+            if row.get("byte_size") is not None and metadata["byte_size"] != int(row["byte_size"]):
+                size_mismatch.append(row["id"])
+            if not metadata.get("mime_type") or (row.get("mime_type") and metadata["mime_type"] != row["mime_type"]):
+                invalid_content.append(row["id"])
+        except (OSError, ValueError):
+            invalid_content.append(row["id"])
+    checks["photos_unsafe_filename"] = unsafe
+    checks["photos_missing_file"] = missing
+    checks["photos_hash_mismatch"] = hash_mismatch
+    checks["photos_size_mismatch"] = size_mismatch
+    checks["photos_invalid_content"] = invalid_content
+    checks["photo_files_orphaned"] = sorted(
+        item.name for item in PHOTO_DIR.iterdir()
+        if item.is_file() and not item.name.startswith(".photo-upload-") and item.name not in referenced
+    ) if PHOTO_DIR.is_dir() else []
     checks["ok"] = not any(checks.values())
     checks["counts"] = {key: len(value) for key, value in checks.items() if isinstance(value, list)}
     return checks
@@ -152,6 +189,26 @@ def init() -> None:
                 target = sqlite3.connect(BACKUP_DIR / ("before-billing-" + datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-%f") + ".db"))
                 try: probe.backup(target)
                 finally: target.close()
+            photo_columns = {r[1] for r in probe.execute("PRAGMA table_info(photos)")}
+            required_photo_columns = {"content_sha256", "byte_size", "mime_type", "storage_name", "role"}
+            photo_schema_upgrade = bool(photo_columns and not required_photo_columns.issubset(photo_columns))
+            if photo_schema_upgrade:
+                target = sqlite3.connect(BACKUP_DIR / ("before-photo-attachments-" + datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-%f") + ".db"))
+                try: probe.backup(target)
+                finally: target.close()
+            elif photo_columns and required_photo_columns.issubset(photo_columns):
+                # Some installations may already have the additive columns from an
+                # earlier build while still pointing at legacy, non-addressed names.
+                # Back up that exact database once before changing only the pointer;
+                # the original legacy file itself is never renamed or removed.
+                legacy_reference = any(
+                    not photo_storage.is_canonical_storage_name(row[0] or row[1])
+                    for row in probe.execute("SELECT storage_name,filename FROM photos")
+                )
+                if legacy_reference and not any(BACKUP_DIR.glob("before-photo-canonical-*.db")):
+                    target = sqlite3.connect(BACKUP_DIR / ("before-photo-canonical-" + datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-%f") + ".db"))
+                    try: probe.backup(target)
+                    finally: target.close()
         finally: probe.close()
     with connect() as database:
         database.executescript(
@@ -193,7 +250,9 @@ def init() -> None:
               id TEXT PRIMARY KEY, customer_id TEXT NOT NULL REFERENCES customers(id),
               order_id TEXT REFERENCES orders(id), worklog_id TEXT REFERENCES worklogs(id),
               filename TEXT NOT NULL, original_name TEXT NOT NULL, caption TEXT DEFAULT '',
-              customer_visible INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL
+              customer_visible INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL,
+              content_sha256 TEXT, byte_size INTEGER, mime_type TEXT, storage_name TEXT,
+              role TEXT NOT NULL DEFAULT 'documentation'
             );
             CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS invoice_details (
@@ -218,13 +277,70 @@ def init() -> None:
         additions = {"customers": {"billing_mode": "TEXT NOT NULL DEFAULT 'direct'",
                     "default_billing_customer_id": "TEXT REFERENCES customers(id)"},
                     "orders": {"billing_customer_id": "TEXT REFERENCES customers(id)"},
-                    "worklogs": {"billing_customer_id": "TEXT REFERENCES customers(id)"}}
+                    "worklogs": {"billing_customer_id": "TEXT REFERENCES customers(id)"},
+                    "photos": {"content_sha256": "TEXT", "byte_size": "INTEGER", "mime_type": "TEXT",
+                               "storage_name": "TEXT", "role": "TEXT NOT NULL DEFAULT 'documentation'"}}
         for table, fields in additions.items():
             present = {r[1] for r in database.execute(f"PRAGMA table_info({table})")}
             for name, definition in fields.items():
                 if name not in present:
                     database.execute(f"ALTER TABLE {table} ADD COLUMN {name} {definition}")
         database.execute("CREATE INDEX IF NOT EXISTS ix_worklogs_billing ON worklogs(billing_customer_id)")
+        database.execute("CREATE INDEX IF NOT EXISTS ix_photos_content_sha256 ON photos(content_sha256)")
+        # Preserve legacy names, IDs and bytes. A valid legacy original is copied
+        # atomically to its content-addressed name; only storage_name and additive
+        # metadata point at the verified copy. Invalid/tampered history remains
+        # untouched so integrity_report() keeps the problem visible.
+        for row in database.execute("SELECT id,filename,caption,content_sha256,byte_size,mime_type,storage_name,role FROM photos").fetchall():
+            role = str(row["role"] or "").strip().lower()
+            if str(row["caption"] or "").strip().casefold() in {"profilbild", "profile", "profilfoto"} and role in {"", "documentation"}:
+                role = "profile"
+            role = photo_storage.normalized_role(role, row["caption"])
+            database.execute("UPDATE photos SET role=? WHERE id=?", (role, row["id"]))
+
+            configured = str(row["storage_name"] or row["filename"] or "")
+            if not configured or Path(configured).name != configured:
+                continue
+            source = PHOTO_DIR / configured
+            if not source.is_file() and configured != str(row["filename"] or ""):
+                legacy_name = str(row["filename"] or "")
+                if legacy_name and Path(legacy_name).name == legacy_name:
+                    legacy_source = PHOTO_DIR / legacy_name
+                    if legacy_source.is_file():
+                        source = legacy_source
+            if not source.is_file():
+                continue
+            try:
+                raw = source.read_bytes()
+                metadata = photo_storage.inspect(raw)
+            except (OSError, ValueError):
+                continue
+
+            # A canonical name is itself an integrity assertion. Never silently
+            # bless different bytes or replace explicit, conflicting metadata.
+            if photo_storage.is_canonical_storage_name(configured):
+                if metadata["storage_name"] != configured:
+                    continue
+                database.execute(
+                    """UPDATE photos SET content_sha256=COALESCE(content_sha256,?),
+                       byte_size=COALESCE(byte_size,?),mime_type=COALESCE(mime_type,?) WHERE id=?""",
+                    (metadata["content_sha256"], metadata["byte_size"], metadata["mime_type"], row["id"]),
+                )
+                continue
+
+            if ((row["content_sha256"] and str(row["content_sha256"]).lower() != metadata["content_sha256"])
+                    or (row["byte_size"] is not None and int(row["byte_size"]) != metadata["byte_size"])
+                    or (row["mime_type"] and row["mime_type"] != metadata["mime_type"])):
+                continue
+            try:
+                photo_storage.store_atomic(PHOTO_DIR, raw, metadata)
+            except (OSError, ValueError):
+                continue
+            database.execute(
+                """UPDATE photos SET content_sha256=?,byte_size=?,mime_type=?,storage_name=? WHERE id=?""",
+                (metadata["content_sha256"], metadata["byte_size"], metadata["mime_type"],
+                 metadata["storage_name"], row["id"]),
+            )
 
 
 def dicts(cursor) -> list[dict]:
@@ -401,7 +517,7 @@ def mobile_photo_thumbnails(photos: list[dict], size: int = 144) -> list[dict]:
     except ImportError:
         return photos
     for item in photos:
-        source = PHOTO_DIR / Path(str(item.get("filename", ""))).name
+        source = PHOTO_DIR / Path(str(item.get("storage_name") or item.get("filename", ""))).name
         try:
             with Image.open(source) as image:
                 image = ImageOps.exif_transpose(image).convert("RGB")
@@ -558,7 +674,7 @@ def save_invoice(data: dict) -> dict:
             for worklog_id in details['worklog_ids']:
                 worklog = one(database.execute('SELECT customer_id,billing_customer_id,billed FROM worklogs WHERE id=?', (worklog_id,)))
                 if not worklog or billing.recipient(worklog) != columns['customer_id'] or worklog['billed']:
-                    raise ValueError('Ausgewählte Cloudname_189a14e78c müssen offen sein und zum Kunden gehören.')
+                    raise ValueError('Ausgewählte Arbeitsaufzeichnungen müssen offen sein und zum Kunden gehören.')
         columns['amount'] = details['gross_total']
     with connect() as database:
         database.execute('BEGIN IMMEDIATE')
@@ -647,7 +763,7 @@ def remove_entity(entity: str, identifier: str) -> dict:
                          for child in ("worklogs", "invoices", "photos"))
             if linked:
                 database.execute("UPDATE orders SET status='Storniert',updated_at=? WHERE id=?", (now(), identifier))
-                return {"id": identifier, "archived": True, "message": "Auftrag storniert; verknüpfte Cloudname_189a14e78c und Rechnungen bleiben erhalten."}
+                return {"id": identifier, "archived": True, "message": "Auftrag storniert; verknüpfte Arbeitsaufzeichnungen und Rechnungen bleiben erhalten."}
         elif entity == "invoice" and row["sevdesk_id"]:
             raise ValueError("Diese Rechnung ist mit sevDesk verknüpft. Entferne sie bitte in sevDesk.")
         elif entity == "invoice" and row["status"] not in ("Entwurf", "Storniert"):
@@ -662,10 +778,17 @@ def remove_entity(entity: str, identifier: str) -> dict:
             database.execute("UPDATE photos SET worklog_id=NULL WHERE worklog_id=?", (identifier,))
         database.execute(f"DELETE FROM {table} WHERE id=?", (identifier,))
     if entity == "photo":
+        storage_name = row["storage_name"] if "storage_name" in row.keys() else None
+        candidates = {str(row["filename"] or ""), str(storage_name or "")}
         with connect() as database:
-            shared = database.execute('SELECT 1 FROM photos WHERE filename=? LIMIT 1', (row['filename'],)).fetchone()
-        if not shared:
-            (PHOTO_DIR / Path(row["filename"]).name).unlink(missing_ok=True)
+            for name in candidates:
+                if not name or Path(name).name != name:
+                    continue
+                shared = database.execute(
+                    'SELECT 1 FROM photos WHERE filename=? OR storage_name=? LIMIT 1', (name, name)
+                ).fetchone()
+                if not shared:
+                    (PHOTO_DIR / name).unlink(missing_ok=True)
     return {"id": identifier, "archived": False, "message": "Eintrag entfernt."}
 
 
@@ -777,7 +900,8 @@ def customer_view(customer_id: str) -> dict | None:
                WHERE customer_id=? AND customer_visible=1 ORDER BY work_date DESC""", (customer_id,)
         ))
         photos = dicts(database.execute(
-            """SELECT id,order_id,worklog_id,filename,caption,created_at FROM photos
+            """SELECT id,order_id,worklog_id,filename,caption,created_at,content_sha256,
+                      byte_size,mime_type,storage_name,role FROM photos
                WHERE customer_id=? AND customer_visible=1 ORDER BY created_at DESC""", (customer_id,)
         ))
     for photo in photos:

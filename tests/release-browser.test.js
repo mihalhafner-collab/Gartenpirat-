@@ -4,7 +4,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
-const {chromium}=require(process.env.HG_PLAYWRIGHT_MODULE || 'playwright');
+const {chromium}=require('C:/Users/Michael/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const results=[];
 const laptopUrl=process.env.QA_LAPTOP_URL||'http://127.0.0.1:18765';
 let diagnosticPage;

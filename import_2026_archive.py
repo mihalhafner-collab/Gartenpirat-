@@ -35,9 +35,9 @@ def find_customer(name, customers, generic):
 
 def main():
     db.init(); customers = db.list_customers()
-    generic = next((c for c in customers if c["name"] == "Cloudfixture 5f08f3f5c306"), None)
+    generic = next((c for c in customers if c["name"] == "Notizenarchiv – ungeklärte Zuordnung"), None)
     if not generic:
-        generic = db.save_customer({"name":"Cloudfixture 5f08f3f5c306", "notes":"Automatisch angelegt für Archivzeilen ohne eindeutige Kundenzuordnung."}); customers.append(generic)
+        generic = db.save_customer({"name":"Notizenarchiv – ungeklärte Zuordnung", "notes":"Automatisch angelegt für Archivzeilen ohne eindeutige Kundenzuordnung."}); customers.append(generic)
     counts={}; imported=0
     for line in SOURCE.read_text(encoding="utf-8").splitlines():
         if not line.lstrip().startswith("|") or line.count("|") < 5: continue
@@ -54,6 +54,6 @@ def main():
         activity=cells[4] if len(cells)>4 else "Arbeitsaufzeichnung aus Notizenarchiv"
         db.save_worklog({"id":identifier,"customer_id":customer["id"],"work_date":day.isoformat(),"hours":hours,"activity":activity,"notes":"Import aus Arbeitsaufzeichnungen_2026_Notizenarchiv; Zuordnung und Abrechnungsstatus bitte prüfen.","source":"Google Notizen Archiv 2026","customer_visible":1})
         imported += 1
-    print(f"Archiv importiert/aktualisiert: {imported} Cloudname_189a14e78c")
+    print(f"Archiv importiert/aktualisiert: {imported} Arbeitsaufzeichnungen")
 
 if __name__ == "__main__": main()

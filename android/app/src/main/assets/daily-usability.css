@@ -11,6 +11,22 @@
 #settings-page .secondary{width:100%;min-height:52px;text-align:left}
 #settings-page h3{font-size:1.05rem}
 #settings-page .sub{line-height:1.5}
+#settings-page .settings-section{display:grid;gap:10px}
+#settings-page .settings-section>h3,#settings-page .settings-section>p{margin:0}
+#settings-page .settings-note{margin:0;color:var(--muted);font-size:.8rem;line-height:1.45}
+#settings-page .settings-note.is-error{color:#8a2e25;font-weight:700}
+#settings-page .settings-state{display:grid;gap:4px;padding:12px 13px;border-radius:13px;background:#eef1ee;color:#34483e}
+#settings-page .settings-state strong{color:var(--green);font-size:.95rem}
+#settings-page .settings-state span{font-size:.82rem;line-height:1.45}
+#settings-page .settings-state.is-ok{background:#e4f2e8;color:#275f40}
+#settings-page .settings-state.is-pending{background:#fff0cf;color:#765311}
+#settings-page .settings-state.is-error{background:#fde6e3;color:#8a2e25}
+#settings-page .settings-state.is-error strong,#settings-page .settings-state.is-pending strong{color:inherit}
+#settings-page .settings-diagnostics{display:grid;gap:1px;margin:0;border:1px solid var(--line);border-radius:13px;overflow:hidden;background:var(--line)}
+#settings-page .settings-diagnostics>div{display:grid;grid-template-columns:minmax(105px,.8fr) minmax(0,1.4fr);gap:10px;padding:11px 12px;background:#fff}
+#settings-page .settings-diagnostics dt{color:var(--muted);font-size:.75rem}
+#settings-page .settings-diagnostics dd{margin:0;color:#263d2b;font-size:.8rem;font-weight:650;overflow-wrap:anywhere}
+#settings-page .settings-about{margin-bottom:20px}
 #customer-form label[hidden]{display:none!important}
-@media(max-width:380px){.daily-list-tools{width:calc(100% - 16px);gap:6px;padding:8px}.daily-list-tools .daily-add{font-size:.82rem;padding:10px}.daily-settings{width:44px;height:44px}.daily-list-tools input{font-size:16px}}
+@media(max-width:380px){.daily-list-tools{width:calc(100% - 16px);gap:6px;padding:8px}.daily-list-tools .daily-add{font-size:.82rem;padding:10px}.daily-settings{width:44px;height:44px}.daily-list-tools input{font-size:16px}#settings-page .settings-diagnostics>div{grid-template-columns:1fr;gap:3px}}
 @media(min-width:800px){.daily-list-tools{width:650px}}

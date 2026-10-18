@@ -1,15 +1,10 @@
 'use strict';
-// Export copy: no implicit device or live operation.
-if (!(process.argv[2] || process.env.HG_TEST_DEVICE_SERIAL) || process.env.HG_TEST_DEVICE_CONFIRMED !== '1') {
-  throw Error('Manual device test requires an explicitly selected device and HG_TEST_DEVICE_CONFIRMED=1 after user consent.');
-}
-
 const assert=require('node:assert/strict');
 const path=require('node:path');
 const {execFileSync}=require('node:child_process');
-const {chromium}=require(process.env.HG_PLAYWRIGHT_MODULE || 'playwright');
+const {chromium}=require('C:/Users/Michael/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const adbPath=path.resolve(__dirname,'../android-toolchain/sdk/platform-tools/adb.exe');
-const serial=process.argv[2] || process.env.HG_TEST_DEVICE_SERIAL,pkg='at.hausgarten.service.qa';
+const serial=process.argv[2]||'58151FDCH005U8',pkg='at.hausgarten.service.qa';
 const adb=args=>execFileSync(adbPath,['-s',serial,...args],{encoding:'utf8',windowsHide:true,timeout:30000});
 (async()=>{let browser,port;try{
   const packages=adb(['shell','pm','list','packages',pkg]);assert(packages.includes('package:'+pkg),'Getrennte QA-App fehlt.');

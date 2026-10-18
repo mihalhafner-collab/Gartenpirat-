@@ -8,8 +8,8 @@ class IntegrityTests(unittest.TestCase):
         root=Path(self.temp.name); db.DATA_DIR=root; db.DB_PATH=root/'test.db'; db.PHOTO_DIR=root/'photos'; db.BACKUP_DIR=root/'backups'; db.init()
     def tearDown(self): self.temp.cleanup()
     def test_duplicate_customer_including_inactive_warns(self):
-        first=db.save_customer({'name':'Cloudname_d6e075ad15 Cloudname_9c4bba3853','city':'Klagenfurt','active':0})
-        with self.assertRaises(db.DuplicateWarning) as ctx: db.save_customer({'name':'Cloudname_d6e075ad15 Cloudname_9c4bba3853','city':'Klagenfurt'})
+        first=db.save_customer({'name':'Georg Seidl','city':'Klagenfurt','active':0})
+        with self.assertRaises(db.DuplicateWarning) as ctx: db.save_customer({'name':'Georg Seidl','city':'Klagenfurt'})
         self.assertEqual(ctx.exception.code,'DUPLICATE'); self.assertEqual(ctx.exception.matches[0]['id'],first['id'])
     def test_duplicate_order_warns_but_allow_duplicate_keeps_new_id(self):
         c=db.save_customer({'name':'Werner'})

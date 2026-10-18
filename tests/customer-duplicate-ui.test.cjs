@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {pathToFileURL}=require('node:url');
-const {chromium}=require(process.env.HG_PLAYWRIGHT_MODULE || 'playwright');
+const {chromium}=require('C:/Users/Michael/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 (async()=>{const browser=await chromium.launch({headless:true,channel:'chrome'}),results=[];
  try{const page=await browser.newPage({viewport:{width:412,height:915}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(()=>{const master={customers:[{id:'existing',name:'QA Kunde',active:0}],orders:[],worklogs:[],photos:[],invoices:[]},pending=[];window.customerCalls=[];window.AndroidSpeech={start:()=>{}};window.AndroidData={getState:()=>JSON.stringify({master,pending}),getSyncStatus:()=>JSON.stringify({configured:false}),getAppInfo:()=>JSON.stringify({versionName:'1.38.0'}),getWorkSession:()=>JSON.stringify({state:'IDLE'}),saveCustomer:raw=>{const row=JSON.parse(raw);customerCalls.push(row);if(!row.allow_duplicate)return 'ERROR: DUPLICATE_CUSTOMER: Ein ähnlicher Kunde existiert bereits: QA Kunde.';row.id='new-distinct-id';pending.push({kind:'customer',payload:row});return row.id;}};});

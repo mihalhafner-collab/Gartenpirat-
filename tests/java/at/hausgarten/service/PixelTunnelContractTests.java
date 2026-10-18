@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class PixelTunnelContractTests {
     interface Check { void run() throws Exception; }
     static int passed;
-    static final String ID=("tunnel_" + "a5bf9a3347f9414c601003f7fc7d23a7");
+    static final String ID="tunnel_0123456789abcdef0123456789abcdef";
     static void check(String name,Check task) throws Exception {task.run();passed++;System.out.println("PASS "+name);}
     static void equal(Object expected,Object actual){if(!Objects.equals(expected,actual))throw new AssertionError("Expected "+expected+", got "+actual);}
     static void yes(boolean condition){if(!condition)throw new AssertionError("Condition false");}

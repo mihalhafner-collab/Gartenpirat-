@@ -32,7 +32,27 @@
     grid.remove();
     form.querySelectorAll('input,textarea').forEach(field=>{const label=field.previousElementSibling;if(label?.tagName==='LABEL'){field.id||='customer-field-'+field.name;label.htmlFor=field.id;}});
   }
+  function configureWorkPhotoCamera(){
+    const input=get('photo');
+    if(!input||get('work-photo-camera-shortcut'))return;
+    const button=document.createElement('button');
+    button.type='button';
+    button.id='work-photo-camera-shortcut';
+    button.className='secondary inline-add';
+    button.textContent='Kamera öffnen';
+    button.setAttribute('aria-label','Foto für diesen Arbeitseinsatz aufnehmen');
+    input.before(button);
+    button.addEventListener('click',()=>{
+      if(!get('customer')?.value){
+        get('customer')?.focus();
+        window.showUndoToast?.('Bitte zuerst einen Kunden auswählen.');
+        return;
+      }
+      input.click();
+    });
+  }
   function entryForm(){
+    configureWorkPhotoCamera();
     const form=get('entry'),hours=form.elements.hours,block=form.querySelectorAll('.entry-block')[1];
     const location=document.createElement('input'),locationLabel=document.createElement('label');location.id='entry-location';location.name='location';locationLabel.htmlFor=location.id;locationLabel.textContent='Arbeitsort';get('date').after(locationLabel,location);
     const hoursLabel=hours.previousElementSibling;hours.id='entry-hours';hours.step='0.01';hoursLabel.htmlFor=hours.id;hoursLabel.textContent='Arbeitsdauer (Stunden)';hours.placeholder='z. B. 5,5 – oder Uhrzeiten unten';block.querySelector('h3').after(hoursLabel,hours);
@@ -70,12 +90,27 @@
     let panel=get('workday-timer');
     if(!panel){panel=document.createElement('section');panel.id='workday-timer';panel.className='card workday-timer';document.querySelector('#home .hero h2').after(panel);panel.addEventListener('click',event=>{
       const action=event.target.closest('[data-session-action]')?.dataset.sessionAction;if(!action)return;const session=readSession();let next=null;
+      if(action==='photo'){
+        const customerId=session.customer_id||get('customer')?.value;
+        if(customerId&&typeof window.openCustomerDocumentationCamera==='function'){
+          if(window.openCustomerDocumentationCamera(customerId))return;
+        }
+        openPage('work-entry');
+        const customer=get('customer');
+        if(session.customer_id&&customer&&[...customer.options].some(option=>option.value===session.customer_id)){
+          customer.value=session.customer_id;
+          customer.dispatchEvent(new Event('change',{bubbles:true}));
+        }
+        window.showUndoToast?.('Kunden auswählen und dann „Kamera öffnen“ antippen. Der Timer läuft weiter.');
+        customer?.focus();
+        return;
+      }
       if(action==='start')next=sessionCall('startWorkSession',JSON.stringify({request_id:sessionRequest('start'),work_date:localDate()}));
       if(action==='pause')next=sessionCall('pauseWorkSession',session.id,sessionRequest('pause'));
       if(action==='resume')next=sessionCall('resumeWorkSession',session.id,sessionRequest('resume'));
       if(action==='stop')next=sessionCall('stopWorkSession',session.id,sessionRequest('stop'));
       if(action==='complete'){
-        openPage('work-entry');let hidden=get('work-session-id');if(!hidden){hidden=document.createElement('input');hidden.type='hidden';hidden.name='_session_id';hidden.id='work-session-id';get('entry').append(hidden);}hidden.value=session.id;get('date').value=session.work_date||localDate();get('entry').elements.hours.value=Number(session.hours||0).toFixed(2);get('activity').value=session.activity||'';get('hours-result').textContent=`Erfasste Arbeitszeit: ${Number(session.hours||0).toLocaleString('de-AT')} Stunden`;get('customer').focus();return;
+        openPage('work-entry');let hidden=get('work-session-id');if(!hidden){hidden=document.createElement('input');hidden.type='hidden';hidden.name='_session_id';hidden.id='work-session-id';get('entry').append(hidden);}hidden.value=session.id;get('date').value=session.work_date||localDate();get('entry').elements.hours.value=Number(session.hours||0).toFixed(2);get('activity').value=session.activity||'';get('hours-result').textContent=`Erfasste Arbeitszeit: ${Number(session.hours||0).toLocaleString('de-AT')} Stunden`;const heading=get('work-entry').querySelector('.page-head h2');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});}return;
       }
       if(next)renderTimer(next);
     });}
@@ -83,7 +118,7 @@
   }
   function renderTimer(session){
     const panel=get('workday-timer');if(!panel)return;const state=session.state||'IDLE',active=state==='RUNNING',paused=state==='PAUSED',stopped=state==='STOPPED_PENDING_REVIEW';
-    panel.innerHTML=state==='UNAVAILABLE'?'<h3>Arbeitszeit</h3><p>Zeiterfassung ist in dieser Vorschau nicht verfügbar.</p>':state==='IDLE'||state==='FINALIZED'?'<div class="timer-title"><small>Schnelle Zeiterfassung</small><h3>Bereit für den Einsatz?</h3><p>Die Zeit läuft auch offline zuverlässig auf diesem Pixel.</p></div><button type="button" class="timer-main timer-start" data-session-action="start"><span>▶</span><b>Start</b><small>Arbeitszeit starten</small></button>':`<div class="timer-state"><small>${active?'Arbeit läuft':paused?'Pausiert':'Einsatz beendet'}</small><strong>${sessionDuration(session.worked_ms)}</strong><span>${active?'Die Zeit läuft auf diesem Pixel weiter.':paused?'Pausenzeit wird nicht mitgerechnet.':'Ergänze jetzt Kunde, Tätigkeit und weitere Angaben.'}</span></div><div class="timer-actions">${active?'<button type="button" class="timer-secondary" data-session-action="pause"><span>Ⅱ</span><b>Pause</b><small>Arbeitszeit pausieren</small></button>':''}${paused?'<button type="button" class="timer-main" data-session-action="resume"><span>▶</span><b>Fortsetzen</b><small>Arbeitszeit fortsetzen</small></button>':''}${active||paused?'<button type="button" class="timer-stop" data-session-action="stop"><span>■</span><b>Stop</b><small>Arbeitszeit beenden</small></button>':''}${stopped?'<button type="button" class="timer-main" data-session-action="complete"><span>›</span><b>Angaben ergänzen</b><small>Prüfen und speichern</small></button>':''}</div>`;
+    panel.innerHTML=state==='UNAVAILABLE'?'<h3>Arbeitszeit</h3><p>Zeiterfassung ist in dieser Vorschau nicht verfügbar.</p>':state==='IDLE'||state==='FINALIZED'?'<div class="timer-title"><small>Schnelle Zeiterfassung</small><h3>Bereit für den Einsatz?</h3><p>Die Zeit läuft auch offline zuverlässig auf diesem Pixel.</p></div><button type="button" class="timer-main timer-start" data-session-action="start"><span>▶</span><b>Start</b><small>Arbeitszeit starten</small></button>':`<div class="timer-state"><small>${active?'Arbeit läuft':paused?'Pausiert':'Einsatz beendet'}</small><strong>${sessionDuration(session.worked_ms)}</strong><span>${active?'Die Zeit läuft auf diesem Pixel weiter.':paused?'Pausenzeit wird nicht mitgerechnet.':'Ergänze jetzt Kunde, Tätigkeit und weitere Angaben.'}</span></div><div class="timer-actions">${active?'<button type="button" class="timer-secondary" data-session-action="pause"><span>Ⅱ</span><b>Pause</b><small>Arbeitszeit pausieren</small></button>':''}${paused?'<button type="button" class="timer-main" data-session-action="resume"><span>▶</span><b>Fortsetzen</b><small>Arbeitszeit fortsetzen</small></button>':''}${active||paused?'<button type="button" class="timer-stop" data-session-action="stop"><span>■</span><b>Stop</b><small>Arbeitszeit beenden</small></button>':''}${active||paused?'<button type="button" class="timer-secondary" data-session-action="photo"><span>▣</span><b>Foto</b><small>Kamera öffnen</small></button>':''}${stopped?'<button type="button" class="timer-main" data-session-action="complete"><span>›</span><b>Angaben ergänzen</b><small>Prüfen und speichern</small></button>':''}</div>`;
   }
   function refresh(){navigationState();compactFilters();compactCustomers();recentWork();photoTools();versionLabel();workTimer();}
   function init(){const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href='workday-ui.css';document.head.append(stylesheet);configureNavigation();groupCustomerForm();entryForm();const prior=window.render;window.render=function(){prior();refresh();};const priorCustomer=window.renderCustomers;window.renderCustomers=function(rows){priorCustomer(rows);compactCustomers();};const priorPage=window.openPage;window.openPage=function(...args){priorPage(...args);navigationState();if(currentPage==='customer-edit')get('customer-edit').querySelector('h2').textContent=editingCustomer?'Kunde bearbeiten':'Neuer Kunde';};const priorBack=window.handleAndroidBack;window.handleAndroidBack=function(){const wasCustomer=currentPage==='customer-edit',result=priorBack();if(wasCustomer&&currentPage!=='customer-edit'&&!window.orderDraftForCustomer)window.worklogReturnFromCustomer=false;return result;};setInterval(()=>{if(currentPage==='home'&&readSession().state==='RUNNING')renderTimer(readSession());},1000);refresh();}

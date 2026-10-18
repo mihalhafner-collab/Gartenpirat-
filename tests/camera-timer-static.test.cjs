@@ -1,0 +1,26 @@
+// Source-level regression guards. A successful run is not an Android device acceptance test.
+const fs=require('node:fs');
+const assert=require('node:assert/strict');
+const timer=fs.readFileSync('android/app/src/main/assets/workday-ui.js','utf8');
+const profile=fs.readFileSync('android/app/src/main/assets/design-concept.js','utf8');
+const html=fs.readFileSync('android/app/src/main/assets/mobile.html','utf8');
+const check=(name,source,pattern)=>{assert.match(source,pattern,name);console.log('PASS '+name);};
+check('native camera input',html,/id="photo"[^>]*type="file"[^>]*accept="image\/\*"[^>]*capture="environment"/);
+check('camera shortcut',timer,/function configureWorkPhotoCamera\(\)/);
+check('customer guard',timer,/Bitte zuerst einen Kunden auswählen/);
+check('camera input click',timer,/input\.click\(\)/);
+check('timer photo action',timer,/if\(action==='photo'\)/);
+check('customer documentation routing',timer,/window\.openCustomerDocumentationCamera\(customerId\)/);
+check('manual fallback',timer,/Kunden auswählen und dann/);
+check('timer photo visible',timer,/data-session-action="photo"/);
+check('timer pause preserved',timer,/if\(action==='pause'\)next=sessionCall\('pauseWorkSession'/);
+check('timer stop preserved',timer,/if\(action==='stop'\)next=sessionCall\('stopWorkSession'/);
+check('customer camera route',profile,/window\.openCustomerDocumentationCamera=function\(id\)/);
+check('customer documentation timeline',profile,/design-documentation-entry/);
+check('photo worklog selection',profile,/id="design-customer-photo-worklog"/);
+check('photo phase selection',profile,/id="design-customer-photo-phase"/);
+check('worklog relationship',profile,/worklog_id:\(asProfile&&index===0\)/);
+check('documentation order filter',profile,/id="design-documentation-filter"/);
+check('documentation photo filter',profile,/documentationFilter==='photos'/);
+check('documentation filter event',profile,/event.target.id==='design-documentation-filter'/);
+console.log('Static camera/documentation guards PASS; device behavior remains unverified');
