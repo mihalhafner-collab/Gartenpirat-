@@ -39,6 +39,11 @@ und erweitert nicht den Umfang des jeweiligen Auftrags.
   Testdaten verwenden. Keine automatische Massenmigration oder ID-Neuvergabe.
 - Keine Secrets, Signaturschlüssel, Betriebsdaten oder private Drive-Inhalte in
   Quellcode, Testfixtures, Logs, APKs oder Repository-Uploads einbetten.
+- Originalsignierung: ausschließlich temporäre Nutzung der fünf `HG_ORIGINAL_*`-
+  Variablen in der ausgewählten persönlichen Gartenpirat-Codex-Cloud-Umgebung
+  gemäß `ORIGINAL-SIGNIERUNG-CLOUD.md`. Keystore nur im privaten OS-Temp außerhalb
+  des Repositorys; keine Werte in Git, Logs, Artefakten, CI oder anderen Umgebungen.
+  Kein Ersatzschlüssel, keine automatische Installation oder Update-Freigabe.
 
 ## Alltagstauglichkeit
 
