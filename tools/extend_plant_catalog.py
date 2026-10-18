@@ -110,4 +110,7 @@ def main():
  (assets/"plant-catalog.json").write_text(json.dumps(catalog,ensure_ascii=False,indent=2),encoding="utf-8")
  (TASK/"catalog-extensions.json").write_text(json.dumps({"added":added,"unresolved":unresolved},ensure_ascii=False,indent=2),encoding="utf-8")
  print(json.dumps({"total":len(by_id),"added":added,"unresolved":unresolved}),flush=True)
-if __name__=="__main__":main()
+if __name__=="__main__":
+ main()
+ from sync_plant_assets import synchronize
+ synchronize(write=True)

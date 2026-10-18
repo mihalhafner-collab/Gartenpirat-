@@ -1,0 +1,6 @@
+.personal-payment-record{display:flex;align-items:center;gap:8px;border-bottom:1px solid #e8ede9}
+#worklog-list .personal-payment-record{margin-right:52px}
+.personal-payment-record>.worklog-entry,.personal-payment-record>.workday-recent-row{flex:1;min-width:0;border-bottom:0}
+.personal-payment-toggle{flex:0 0 auto;min-height:44px;min-width:44px;margin-right:6px;padding:8px;border:1px solid #b8c7bc;border-radius:10px;background:#fff;color:#174b32;font:inherit;font-size:13px}
+.personal-payment-toggle[aria-pressed=true]{background:#e7f2e9;border-color:#347c4d}
+.personal-payment-label{display:block;color:#24633b;font-weight:600;grid-column:1/-1}

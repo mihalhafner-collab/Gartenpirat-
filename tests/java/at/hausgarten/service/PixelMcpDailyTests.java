@@ -4,7 +4,7 @@ import java.util.*;
 
 /** Real tool schemas/dispatch/quality logic. Timer persistence requires Android tests. */
 public final class PixelMcpDailyTests {
-    static JSONObject state()throws Exception{return PixelMcpWriteTests.state().put("work_session",new JSONObject().put("state","IDLE"));}
+    static JSONObject state()throws Exception{JSONObject value=PixelMcpWriteTests.state().put("work_session",new JSONObject().put("state","IDLE"));value.getJSONObject("master").put("photos",new JSONArray());return value;}
     static JSONObject start()throws Exception{return new JSONObject().put("request_id","timer-request-1").put("customer_id","c1");}
     static JSONObject session(String status)throws Exception{return new JSONObject().put("id","ses-fixture").put("state",status).put("customer_id","c1").put("order_id","").put("work_date","2026-10-12").put("hours",5.5);}
     static JSONObject transition()throws Exception{return new JSONObject().put("request_id","timer-request-2").put("session_id","ses-fixture");}

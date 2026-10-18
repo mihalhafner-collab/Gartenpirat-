@@ -1,3 +1,13 @@
+# Historischer QA-Signierungsweg – seit 18. Oktober 2026 deaktiviert
+
+Der aktive Workflow baut den unsignierten Kandidaten der bestehenden operativen
+App. Die `.qa`-Variante und die Übernahme von QA-Schlüsseln in Gradle sind entfernt;
+Debug-Varianten sind deaktiviert. `qa_signing.py` und seine synthetischen
+Sicherheitsregressionen bleiben als historische Diagnosewerkzeuge erhalten und
+sind kein produktiver Signierungs- oder Updateweg. Die nachstehende Anleitung
+beschreibt den früheren Stand und darf nicht für das operative Update verwendet
+werden. [Aktueller Nachweis](INTEGRATIONSNACHWEIS-2026-10-18.md).
+
 # Dauerhafte Signierung der QA-App
 
 ## Umfang und Aktivierungsstand

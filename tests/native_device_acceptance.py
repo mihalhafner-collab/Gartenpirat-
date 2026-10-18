@@ -18,6 +18,8 @@ DIAGNOSTIC=TARGET+'.test'
 FLAGS=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0
 
 def main(serial):
+    if not serial or os.environ.get('HG_TEST_DEVICE_CONFIRMED') != '1':
+        raise RuntimeError('Device acceptance requires an explicitly selected device and user confirmation; no device operation performed.')
     def run(args, timeout=60):
         return subprocess.run([str(ADB),'-s',serial,*args],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
             timeout=timeout,creationflags=FLAGS,check=True).stdout.decode('utf-8',errors='replace')

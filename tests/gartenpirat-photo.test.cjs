@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {pathToFileURL}=require('node:url');
-const {chromium}=require('C:/Users/Michael/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require('./browser.cjs');
 const root=path.resolve(__dirname,'..'),assets=path.join(root,'android/app/src/main/assets');
 (async()=>{
  const results=[];let browser;
@@ -10,7 +10,7 @@ const root=path.resolve(__dirname,'..'),assets=path.join(root,'android/app/src/m
  try{
   const context=await browser.newContext({viewport:{width:412,height:915},isMobile:true,hasTouch:true});
   const page=await context.newPage(),errors=[],external=[];
-  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(/^https?:/.test(r.url()))external.push(r.url());});
+  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(/^https?:/.test(r.url())&&!r.url().startsWith('http://127.0.0.1:18766/'))external.push(r.url());});
   await page.addInitScript(()=>{
    const master={customers:[{id:'qa_photo_customer',name:'QA Foto',city:'Testort',active:1}],orders:[],worklogs:[],invoices:[],photos:[]};
    window.photoBridgeCalls=[];window.photoWrites=[];window.photoBlobURLs=[];
@@ -32,12 +32,12 @@ const root=path.resolve(__dirname,'..'),assets=path.join(root,'android/app/src/m
    return [...Uint8Array.from(atob(c.toDataURL('image/png').split(',')[1]),x=>x.charCodeAt(0))];
   }));
   const fixture={name:'garten-test.png',mimeType:'image/png',buffer:png};
-  const launch=async()=>{await page.evaluate(()=>Gartenpirat.close());await page.locator('#gp-launcher').click();};
+  const launch=async()=>{await page.evaluate(()=>{Gartenpirat.close();openPage('home');});await page.locator('#gp-launcher').click();};
   const choose=async(file=fixture)=>{if(await page.locator('.gp-photo-options').count()&&!await page.locator('.gp-photo-options').isVisible())await page.locator('[data-gp-action=photo-options]').first().click();const [picker]=await Promise.all([page.waitForEvent('filechooser'),page.locator('[data-gp-action=choose-photo]').first().click()]);await picker.setFiles(file);};
   const ready=()=>page.waitForFunction(()=>document.querySelector('#gp-own-photo')?.naturalWidth===800);
 
-  await check('Third menu option opens the real browser file chooser and prepares the scoped native picker',async()=>{
-   await launch();assert.deepEqual(await page.locator('.gp-options strong').allTextContents(),['Zufällige Pflanze','Pflanzenlexikon','Eigenes Foto öffnen']);
+  await check('Photo menu option opens the real browser file chooser and prepares the scoped native picker',async()=>{
+   await launch();assert.deepEqual(await page.locator('.gp-options strong').allTextContents(),['Zufällige Pflanze','Pflanzenlexikon','Neophyten in Österreich','Eigenes Foto öffnen']);
    await page.screenshot({path:path.join(root,'outputs/Gartenpirat-Foto-Menue.png')});
    await choose();await ready();assert((await page.evaluate(()=>photoBridgeCalls)).includes('picker'));
   });
@@ -50,7 +50,7 @@ const root=path.resolve(__dirname,'..'),assets=path.join(root,'android/app/src/m
    await page.screenshot({path:path.join(root,'outputs/Gartenpirat-Foto-Vollbild.png')});
   });
   await check('Android Back restores the menu and system bars; both botanical features still work',async()=>{
-   await page.evaluate(()=>handleAndroidBack());assert.equal(await page.locator('.gp-options button').count(),3);
+   await page.evaluate(()=>handleAndroidBack());assert.equal(await page.locator('.gp-options button').count(),4);
    assert.equal((await page.evaluate(()=>photoBridgeCalls)).at(-1),'fullscreen:off');
    assert.deepEqual(await page.evaluate(()=>photoBlobURLs),[]);
    await page.locator('[data-gp-action=random]').click();assert.equal(await page.locator('.gp-gallery img').count(),2);await page.evaluate(()=>handleAndroidBack());
@@ -58,11 +58,11 @@ const root=path.resolve(__dirname,'..'),assets=path.join(root,'android/app/src/m
   });
   await check('Opening and closing a photo preserves the existing unsaved work record',async()=>{
    await page.evaluate(()=>{Gartenpirat.close();openPage('work-entry');});await page.locator('#activity').fill('QA Foto-Entwurf erhalten');
-   await page.locator('#gp-launcher').click();await choose();await ready();await page.locator('.gp-photo-close').click();
-   await page.locator('.gp-close').click();assert.equal(await page.locator('#activity').inputValue(),'QA Foto-Entwurf erhalten');
+   await page.evaluate(()=>openPage('home'));await page.locator('#gp-launcher').click();await choose();await ready();await page.locator('.gp-photo-close').click();
+   await page.locator('.gp-close').click();await page.evaluate(()=>openPage('work-entry'));assert.equal(await page.locator('#activity').inputValue(),'QA Foto-Entwurf erhalten');
   });
   await check('Cancellation leaves the menu or previous photo intact; selecting the same file again works',async()=>{
-   await launch();await choose([]);assert.equal(await page.locator('.gp-options button').count(),3);assert.equal(await page.locator('#gp-own-photo').count(),0);
+   await launch();await choose([]);assert.equal(await page.locator('.gp-options button').count(),4);assert.equal(await page.locator('#gp-own-photo').count(),0);
    await choose();await ready();const previous=await page.locator('#gp-own-photo').getAttribute('src');await choose([]);
    assert.equal(await page.locator('#gp-own-photo').getAttribute('src'),previous);
    await choose();await ready();assert.notEqual(await page.locator('#gp-own-photo').getAttribute('src'),previous);
@@ -78,7 +78,7 @@ const root=path.resolve(__dirname,'..'),assets=path.join(root,'android/app/src/m
     [oversize,'40 MB']
    ]){
     await choose(file);await page.waitForFunction(text=>document.querySelector('.gp-photo-message')?.textContent.includes(text),expected);
-    assert.equal(await page.locator('.gp-options button').count(),3);assert.deepEqual(await page.evaluate(()=>photoBlobURLs),[]);
+    assert.equal(await page.locator('.gp-options button').count(),4);assert.deepEqual(await page.evaluate(()=>photoBlobURLs),[]);
    }
    }finally{fs.unlinkSync(oversize);}
    await choose();await ready();
@@ -88,7 +88,7 @@ const root=path.resolve(__dirname,'..'),assets=path.join(root,'android/app/src/m
    for(const [width,height] of [[915,412],[320,568],[412,915]]){
     await page.setViewportSize({width,height});const image=await page.locator('#gp-own-photo').boundingBox();assert.equal(Math.round(image.width),width);assert.equal(Math.round(image.height),height);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
    }
-   await page.keyboard.press('Escape');assert.equal(await page.locator('.gp-options button').count(),3);
+   await page.keyboard.press('Escape');assert.equal(await page.locator('.gp-options button').count(),4);
    assert.deepEqual(await page.evaluate(()=>photoBlobURLs),[]);assert.equal((await page.evaluate(()=>photoBridgeCalls)).at(-1),'fullscreen:off');
   });
   await check('Closing during decoding cannot reopen the dialog or leak temporary image URLs',async()=>{

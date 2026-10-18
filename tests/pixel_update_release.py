@@ -7,6 +7,8 @@ ADB=ROOT/'android-toolchain/sdk/platform-tools/adb.exe'
 APP='at.hausgarten.service'
 DIAG=APP+'.test'
 def main(serial):
+    if not serial or os.environ.get('HG_TEST_DEVICE_CONFIRMED') != '1':
+        raise RuntimeError('Manual device update requires explicit user consent and HG_TEST_DEVICE_CONFIRMED=1; no device operation performed.')
     def run(args,timeout=90):
         return subprocess.run([str(ADB),'-s',serial,*args],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,check=True,timeout=timeout,creationflags=subprocess.CREATE_NO_WINDOW).stdout.decode('utf-8',errors='replace')
     if run(['get-state']).strip()!='device' or run(['shell','getprop','ro.product.model']).strip()!='Pixel 10 Pro':raise RuntimeError('Wrong or unauthorized device')

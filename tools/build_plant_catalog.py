@@ -143,4 +143,7 @@ def main():
  (ASSETS/"plant-catalog.js").write_text("/* Offline botanical database. Generated from plant-catalog.json. */\nwindow.GartenpiratCatalog="+json.dumps(catalog,ensure_ascii=False,separators=(",",":"))+";\n",encoding="utf-8")
  (TASK/"catalog-build-results.json").write_text(json.dumps({"requested":len(all_rows),"verified":len(records),"failures":failures},ensure_ascii=False,indent=2),encoding="utf-8")
  print(json.dumps({"catalogue":len(records),"failures":[{"plant":x["failure"],"reason":x["reason"]} for x in failures],"offline_images":sum(len(p["images"]) for p in records)}),flush=True)
-if __name__=="__main__":main()
+if __name__=="__main__":
+ main()
+ from sync_plant_assets import synchronize
+ synchronize(write=True)

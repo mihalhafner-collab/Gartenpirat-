@@ -1,27 +1,52 @@
+"""Compile and execute original Java contract tests against synthetic JSON data.
+
+Requires a JDK, HG_JSON_JAR and ANDROID_HOME (or ANDROID_SDK_ROOT). No ADB,
+installation, credentials or productive records are accessed.
+"""
 from pathlib import Path
-import os,subprocess,hashlib,json
-ROOT=Path(__file__).resolve().parents[1]
-SOURCE=Path(r"C:\Users\Michael\Documents\Codex\2026-09-21\files-pasted-by-the-user-aufgabe\haus-garten-app")
-jdk=SOURCE/"android-toolchain/jdk/jdk-17.0.20.1+1/bin"
-jar=SOURCE/".dependencies/pixel-tunnel-tests/json-20240303.jar"
-if hashlib.sha256(jar.read_bytes()).hexdigest()!="3cf6cd6892e32e2b4c1c39e0f52f5248a2f5b37646fdfbb79a66b46b618414ed":raise RuntimeError("JSON test dependency mismatch")
-android=SOURCE/"android-toolchain/sdk/platforms/android-35/android.jar"
-classes=ROOT/"outputs/followup-java";classes.mkdir(exist_ok=True)
-src=ROOT/"android/app/src/main/java/at/hausgarten/service"
-names=["BillingRules","WorklogRules","PixelMcpWriteTools","EntityProtectionRules","PixelMcpEntityWriteTools","PixelMcpReadTools","PixelMcpSessionTools","PixelMcpBusinessTools","WorklogRelationRules","DriveJournalRules","OrderReviewRules","PixelTunnelConfig","PixelTunnelWire","WorkSessionPauseRules"]
-tests=["BillingTests","PixelTunnelContractTests","PixelMcpWriteTests","PixelMcpEntityWriteTests","WorklogRelationTests","PixelMcpDailyTests","WorkSessionPauseTests","EntityProtectionTests","DriveJournalTests","OrderReviewTests"]
-cp=os.pathsep.join(map(str,[classes,jar,android]))
-def run(args):
- p=subprocess.run(args,cwd=ROOT,capture_output=True,text=True,encoding="utf-8",errors="replace",timeout=180)
- print(p.stdout,flush=True)
- if p.returncode:print(p.stderr);raise RuntimeError("Native contract tests failed")
- return p.stdout
-run([str(jdk/"javac.exe"),"-encoding","UTF-8","-cp",cp,"-d",str(classes),*[str(src/(n+".java")) for n in names],*[str(ROOT/"tests/java/at/hausgarten/service"/(n+".java")) for n in tests]])
-for name in tests:
- out=run([str(jdk/"java.exe"),"-Dfile.encoding=UTF-8","-cp",cp,"at.hausgarten.service."+name])
- if name=="OrderReviewTests":
-  import sys
-  sys.path.insert(0,str(ROOT));import sync_review
-  cross={"client_id":"hash","kind":"order","payload":{"id":"o","title":"ÄÖÜ </script> \u2028 ☘","hours":1.00,"customer_visible":True},"created_at":"2026-10-15T08:00:00Z"}
-  if "CROSS_HASH "+sync_review.digest(cross) not in out:raise RuntimeError("Android/Python review hash differs")
-print(json.dumps({"native_suites":len(tests),"cross_language_hash":"PASS"}))
+import hashlib
+import json
+import os
+import shutil
+import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+jar = Path(os.environ.get('HG_JSON_JAR', ROOT/'.dependencies/pixel-tunnel-tests/json-20240303.jar'))
+if hashlib.sha256(jar.read_bytes()).hexdigest() != '3cf6cd6892e32e2b4c1c39e0f52f5248a2f5b37646fdfbb79a66b46b618414ed':
+    raise RuntimeError('JSON test dependency mismatch')
+sdk = Path(os.environ.get('ANDROID_HOME') or os.environ['ANDROID_SDK_ROOT'])
+android = sdk/'platforms/android-37.0/android.jar'
+classes = ROOT/'outputs/integration-java/classes'
+classes.mkdir(parents=True, exist_ok=True)
+src = ROOT/'android/app/src/main/java/at/hausgarten/service'
+names = ['BillingRules', 'WorklogRules', 'PixelMcpWriteTools', 'EntityProtectionRules',
+         'PixelMcpEntityWriteTools', 'PixelMcpReadTools', 'PixelMcpSessionTools', 'PixelMcpBusinessTools',
+         'WorklogRelationRules', 'DriveJournalRules', 'OrderReviewRules', 'PixelTunnelConfig',
+         'PixelTunnelWire', 'WorkSessionPauseRules']
+tests = sorted((ROOT/'tests/java/at/hausgarten/service').glob('*Tests.java'))
+cp = os.pathsep.join(map(str, [classes, jar, android]))
+
+def run(command):
+    result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, encoding='utf-8', timeout=180)
+    if result.returncode:
+        print(result.stdout, result.stderr)
+        raise RuntimeError('Native contract suite failed')
+    return result.stdout
+
+run([shutil.which('javac'), '-encoding', 'UTF-8', '-cp', cp, '-d', str(classes),
+     *[str(src/(name+'.java')) for name in names], *map(str, tests)])
+results = []
+for test in tests:
+    output = run([shutil.which('java'), '-Dfile.encoding=UTF-8', '-cp', cp, 'at.hausgarten.service.'+test.stem])
+    (classes.parent/(test.stem+'.log')).write_text(output)
+    if test.stem == 'OrderReviewTests':
+        sys.path.insert(0, str(ROOT))
+        import sync_review
+        cross = {'client_id': 'hash', 'kind': 'order', 'payload': {'id': 'o', 'title': 'ÄÖÜ </script> \u2028 ☘',
+                 'hours': 1.00, 'customer_visible': True}, 'created_at': '2026-10-15T08:00:00Z'}
+        if 'CROSS_HASH '+sync_review.digest(cross) not in output:
+            raise RuntimeError('Android/Python review hash differs')
+    results.append({'suite': test.stem, 'result': 'PASS', 'summary': output.strip().splitlines()[-1]})
+    print(results[-1], flush=True)
+(classes.parent/'results.json').write_text(json.dumps({'suites': results, 'cross_language_hash': 'PASS'}, indent=2))

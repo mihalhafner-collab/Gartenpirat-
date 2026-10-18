@@ -1,8 +1,8 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const {pathToFileURL}=require('node:url');
-const {chromium}=require('C:/Users/Michael/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
-const root=path.resolve(__dirname,'..'),assets=path.join(root,'android/app/src/main/assets');
+const {chromium}=require('./browser.cjs');
+const root=path.resolve(__dirname,'..'),assets=path.resolve(process.env.HG_TEST_APP_ASSETS||path.join(root,'android/app/src/main/assets'));
 const catalog=JSON.parse(fs.readFileSync(path.join(assets,'plant-catalog.json'),'utf8'));
 (async()=>{
  const results=[];let browser;const closeWithin=promise=>Promise.race([promise,new Promise(resolve=>setTimeout(resolve,5000))]);
@@ -38,7 +38,7 @@ const catalog=JSON.parse(fs.readFileSync(path.join(assets,'plant-catalog.json'),
  try{
   const context=await browser.newContext({viewport:{width:412,height:915},isMobile:true,hasTouch:true});
   const page=await context.newPage(),errors=[],external=[];
-  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(/^https?:/.test(r.url()))external.push(r.url());});
+  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(/^https?:/.test(r.url())&&!r.url().startsWith('http://127.0.0.1:18766/'))external.push(r.url());});
   await page.addInitScript(()=>{
    const master={customers:[{id:'qa_gp_customer',name:'QA Pflanzenkunde',city:'Testort',active:1}],orders:[],worklogs:[],invoices:[],photos:[]};
    window.gpWrites=[];window.gpSync=0;window.gpSpeech=0;
@@ -126,8 +126,14 @@ const catalog=JSON.parse(fs.readFileSync(path.join(assets,'plant-catalog.json'),
    for(const width of [320,360,412,1280]){await page.setViewportSize({width,height:915});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
    assert.deepEqual(external,[]);assert.deepEqual(await page.evaluate(()=>gpWrites),[]);assert.deepEqual(errors,[]);
   });
+  await test('All 362 packaged botanical images decode while offline',async()=>{
+   await context.setOffline(true);
+   const paths=catalog.plants.flatMap(p=>p.images.map(image=>image.path));
+   const failed=await page.evaluate(async paths=>{const failed=[];for(const src of paths){const image=new Image();image.src=src;try{await image.decode();if(!image.naturalWidth||!image.naturalHeight)failed.push(src);}catch(_){failed.push(src);}}return failed;},paths);
+   assert.deepEqual(failed,[]);
+  });
   await closeWithin(context.close());
  }finally{if(browser)await closeWithin(browser.close());}
- fs.writeFileSync(path.join(root,'outputs/Gartenpirat-tests.json'),JSON.stringify({method:'actual_browser_with_isolated_business_bridge_and_offline_assets',plant_count:catalog.plants.length,catalog_sha256:require('node:crypto').createHash('sha256').update(fs.readFileSync(path.join(assets,'plant-catalog.json'))).digest('hex'),results},null,2));
+ fs.writeFileSync(path.join(root,'outputs/Gartenpirat-tests.json'),JSON.stringify({method:'actual_browser_with_isolated_business_bridge_and_offline_assets',asset_origin:process.env.HG_TEST_APP_ASSETS?'extracted_operative_candidate_APK':'source_assets',plant_count:catalog.plants.length,catalog_sha256:require('node:crypto').createHash('sha256').update(fs.readFileSync(path.join(assets,'plant-catalog.json'))).digest('hex'),results},null,2));
  process.exit(results.some(r=>r.result==='FAIL')?1:0);
 })().catch(error=>{console.error(error);process.exitCode=1;});

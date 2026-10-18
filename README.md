@@ -1,3 +1,17 @@
+# Aktueller gemeinsamer Entwicklungsstand: 18. Oktober 2026
+
+Die bestehenden Entwicklungsstände wurden im selben Repository zusammengeführt.
+Der Update-Kandidat 1.46.1 (`versionCode 66`) verwendet `at.hausgarten.service`.
+Pflanzenlexikon und Fotodokumentation sind Bestandteile dieser App.
+Der aktive manuelle Workflow baut ausschließlich einen **unsignierten, nicht zur
+Installation freigegebenen Kandidaten**. Originalsignatur, tatsächlicher
+Pixel-Paket-/Versionsstand und Datenerhalt beim Update sind noch nachzuweisen.
+Keine neue QA-App installieren und keine Originaldaten löschen.
+
+[Integrations- und Prüfnachweis](INTEGRATIONSNACHWEIS-2026-10-18.md).
+Die nachfolgenden älteren Versions- und Bereitstellungshinweise sind historischer
+Projektkontext und keine Freigabe des aktuellen Kandidaten.
+
 # Haus- & Gartenservice
 
 ## Alltag und Bedienung 1.41

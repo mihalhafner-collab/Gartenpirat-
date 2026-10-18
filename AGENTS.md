@@ -1,5 +1,16 @@
 # Haus & Garten App – dauerhafte Projektregeln
 
+## Verbindliche gemeinsame Codebasis (Auftrag vom 18. Oktober 2026)
+
+- Ausschließlich `mihalhafner-collab/Gartenpirat-` weiterentwickeln. Keine zweite operative App, unabhängig gepflegte Test-App-Codebasis oder zusätzliche Versionsrepositories anlegen.
+- Vor Änderungen Entwicklungsbranches, Historie und ungesicherte lokale Arbeiten vergleichen. `main` ist nicht automatisch der neueste Originalstand. Neuere Funktionen und Schutzkorrekturen erhalten.
+- Pflanzenlexikon und Neophytenbereich nutzen den vorhandenen Katalog unter `android/app/src/main/assets/plant-catalog.json`. Adapter, Webspiegel und Bildauslieferung mit `python3 tools/sync_plant_assets.py --write` erzeugen; `python3 tools/sync_plant_assets.py` muss vor Builds bestehen. Generierte Spiegel niemals unabhängig redigieren.
+- Integration im tatsächlichen operativen APK und in der bestehenden Navigation nachweisen, einschließlich Bilder, Suche, Vollbild und Offline-Verhalten. Technische Struktur-/Lizenzmetadatenprüfungen sind keine vollständige botanische Verifikation.
+- Persönliches `b.b.` ist ausschließlich eine Geräteübersicht bei gespeicherten Arbeitsaufzeichnungen; unter Heute erscheint `bezahlt`. Keine Verbindung zu `billed`, Rechnungen oder Rechnungserstellung herstellen.
+- Parallelcode erst nach vollständiger Übernahme, Abhängigkeitsprüfung, geprüftem gemeinsamen Build und gesicherter Git-Historie entfernen. Tests, Datenschutzprüfungen und synthetische Fixtures erhalten; keine pauschale Löschung nach Dateinamen.
+- Operative Paketkennung und verifizierten Originalschlüssel erhalten; versionCode erhöhen. Kein Ersatzschlüssel und kein QA-Build als Update-Nachweis. Pixel-Installation erst nach Sicherung und ausdrücklicher Freigabe; keine Deinstallation oder App-Datenlöschung.
+- Übernahmen, Erreichbarkeit, tatsächliche Prüfungen, entfernten Code und ausstehende Geräte-/Update-Nachweise dokumentieren. Aktueller Nachweis: `INTEGRATIONSNACHWEIS-2026-10-18.md`.
+
 ## Selbstständige Verbesserung
 
 Setze bessere, einfachere und funktionellere Lösungen innerhalb des beauftragten

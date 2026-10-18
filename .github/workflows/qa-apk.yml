@@ -1,4 +1,4 @@
-name: Gartenpirat QA APK (manual)
+name: Haus & Garten unsigned update candidate (manual)
 
 on:
   workflow_dispatch:
@@ -7,27 +7,32 @@ permissions:
   contents: read
 
 jobs:
-  qa-apk:
+  existing-app-candidate:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - name: Checkout selected branch
+      - name: Checkout selected combined source
         uses: actions/checkout@v4
-      - name: Require persistent QA signing secrets
-        env:
-          QA_KEYSTORE_BASE64: ${{ secrets.QA_KEYSTORE_BASE64 }}
-          QA_KEYSTORE_PASSWORD: ${{ secrets.QA_KEYSTORE_PASSWORD }}
-          QA_CERT_SHA256: ${{ secrets.QA_CERT_SHA256 }}
-        run: python3 qa_signing.py check-env
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-      - name: Run QA signing regressions (synthetic keys only)
-        run: python3 -m unittest discover -s tests -p 'test_qa_signing.py' -v
-      - name: Run camera filesystem and launch-logic regressions (host)
-        run: python3 tests/run_photo_capture_tests.py
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test dependencies
+        run: python3 -m pip install -r requirements-mcp.txt reportlab Pillow
+      - name: Verify single plant source and generated Web assets
+        run: python3 tools/sync_plant_assets.py
+      - name: Run synthetic data and camera host regressions
+        run: |
+          mkdir -p outputs
+          python3 tests/run_quality_suite.py
+          python3 tests/run_photo_capture_tests.py
+          node --check android/app/src/main/assets/workday-ui.js
+          node tests/camera-timer-static.test.cjs
       - name: Locate preinstalled Android SDK tools
         run: |
           set -euo pipefail
@@ -44,48 +49,29 @@ jobs:
           raise SystemExit(result.returncode)
           PY
       - name: Install Android 17 build packages
-        run: |
-          "$SDKMANAGER" --install "platforms;android-37.0" "build-tools;37.0.0" "platform-tools"
+        run: '"$SDKMANAGER" --install "platforms;android-37.0" "build-tools;37.0.0" "platform-tools"'
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.3.1'
           cache-disabled: true
-      - name: Check camera and timer regression guards
-        run: |
-          node --check android/app/src/main/assets/workday-ui.js
-          node tests/camera-timer-static.test.cjs
-      - name: Check source privacy
-        run: python3 tests/apk_privacy_guard.py
-      - name: Restore and validate persistent QA signing key
-        env:
-          QA_KEYSTORE_BASE64: ${{ secrets.QA_KEYSTORE_BASE64 }}
-          QA_KEYSTORE_PASSWORD: ${{ secrets.QA_KEYSTORE_PASSWORD }}
-          QA_CERT_SHA256: ${{ secrets.QA_CERT_SHA256 }}
-        run: python3 qa_signing.py restore
-      - name: Build isolated QA APK with persistent key
+      - name: Build original package without a replacement signing key
         working-directory: android
-        env:
-          QA_KEYSTORE_FILE: ${{ runner.temp }}/gartenpirat-qa-signing/qa-signing.p12
-          QA_KEYSTORE_PASSWORD: ${{ secrets.QA_KEYSTORE_PASSWORD }}
-        run: gradle --no-daemon --no-configuration-cache --no-build-cache -PqaPersistentSigning :app:assembleDebug
-      - name: Verify APK certificate and QA application ID
-        env:
-          QA_CERT_SHA256: ${{ secrets.QA_CERT_SHA256 }}
+        run: gradle --no-daemon --no-configuration-cache --no-build-cache :app:assembleRelease
+      - name: Check final APK privacy and packaged operative assets
         run: |
-          python3 qa_signing.py verify-apk \
-            --apk android/app/build/outputs/apk/debug/app-debug.apk \
+          python3 tests/apk_privacy_guard.py --apk android/app/build/outputs/apk/release/app-release-unsigned.apk
+          python3 tests/verify_app_candidate.py \
+            --apk android/app/build/outputs/apk/release/app-release-unsigned.apk \
+            --aapt "$SDK_ROOT/build-tools/37.0.0/aapt" \
             --apksigner "$SDK_ROOT/build-tools/37.0.0/apksigner" \
-            --aapt "$SDK_ROOT/build-tools/37.0.0/aapt"
-      - name: Check APK privacy
-        run: python3 tests/apk_privacy_guard.py --apk android/app/build/outputs/apk/debug/app-debug.apk
-      - name: Remove temporary QA signing material
-        if: always()
-        run: python3 qa_signing.py cleanup
-      - name: Upload QA APK
+            --report outputs/operative-candidate.json
+      - name: Upload unsigned review candidate (not approved for installation)
         uses: actions/upload-artifact@v4
         with:
-          name: Gartenpirat-QA-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: Haus-Garten-UNSIGNED-NOT-RELEASED
+          path: |
+            android/app/build/outputs/apk/release/app-release-unsigned.apk
+            outputs/operative-candidate.json
           if-no-files-found: error
           retention-days: 7

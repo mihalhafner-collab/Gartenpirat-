@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {pathToFileURL}=require('node:url');
 const rules=require('../android/app/src/main/assets/work-location.js');
-const {chromium}=require('C:/Users/Michael/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require('./browser.cjs');
 const results=[];
 let diagnosticPage;
 async function check(name,task){try{await task();results.push({name,result:'PASS'});}catch(error){const diagnostic=diagnosticPage?await diagnosticPage.evaluate(()=>({page:currentPage,session:JSON.parse(AndroidData.getWorkSession()),calls:timerCalls,customerValid:document.getElementById('customer-form').checkValidity(),customerId:document.getElementById('customer-form').elements.id.value,toast:document.getElementById('mobile-toast')?.textContent})):null;results.push({name,result:'FAIL',error:error.stack,diagnostic});}console.log(results.at(-1));}

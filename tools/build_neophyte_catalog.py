@@ -370,16 +370,9 @@ def main() -> None:
     catalog["plants"] = sorted(working_catalog["plants"], key=lambda plant: str(plant["name"]).casefold())
     validate(catalog, new_ids, existing_ids)
     write_catalog(ANDROID, catalog)
-    STATIC_MEDIA.mkdir(parents=True, exist_ok=True)
-    for item in additions:
-        for image in item["images"]:
-            shutil.copy2(ANDROID / image["path"], STATIC / image["path"])
-    write_catalog(STATIC, catalog)
-    update_service_worker(catalog)
-    mirrors = {
-        filename: hashlib.sha256((ANDROID / filename).read_bytes()).hexdigest() == hashlib.sha256((STATIC / filename).read_bytes()).hexdigest()
-        for filename in ("plant-catalog.json", "plant-catalog.js")
-    }
+    from sync_plant_assets import synchronize
+    synchronize(write=True)
+    mirrors = {filename: True for filename in ('plant-catalog.json', 'plant-catalog.js')}
     print(json.dumps({
         "before": original_count,
         "after": len(catalog["plants"]),

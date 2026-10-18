@@ -36,10 +36,11 @@
     window.customerFormSaved=()=>{initialCustomer=formState();customerTouched=false;};
     const previousOpen=window.openPage;
     window.openPage=function(id,...rest){
-      const before=currentPage;
+      const before=currentPage,previousFocus=document.activeElement;
       if(id!==before&&before==='customer-edit'&&customerTouched&&initialCustomer!==formState()&&!confirm('Ungespeicherte Kundendaten verwerfen? Mit Abbrechen bleibst du bei deiner Eingabe.'))return;
       previousOpen(id,...rest);
       if(currentPage===before)return;
+      if(previousFocus===document.activeElement&&previousFocus?.matches('input,textarea,select'))previousFocus.blur();
       if(currentPage==='customer-edit'){initialCustomer=formState();customerTouched=false;setTimeout(()=>{if(currentPage==='customer-edit'&&!customerTouched)initialCustomer=formState();},0);}
       if(before==='customers'||currentPage==='customers'){get('customer-search').value='';get('customer-search').dispatchEvent(new Event('input',{bubbles:true}));}
       if(currentPage==='settings-page'){document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.open==='more-page'));updateSettings();}

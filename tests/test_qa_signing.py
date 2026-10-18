@@ -277,29 +277,26 @@ class QaSigningTests(unittest.TestCase):
                 privacy.scan({name: b"synthetic-only"}, set())
         privacy.scan({"assets/safe.txt": b"public content"}, set())
 
-    def test_workflow_requires_stable_key_and_cleanup_before_artifact(self):
+    def test_active_workflow_builds_only_unsigned_original_candidate(self):
         workflow = (ROOT / ".github/workflows/qa-apk.yml").read_text()
-        self.assertNotIn("-genkeypair", workflow)
-        self.assertNotIn("debug.keystore", workflow)
-        for command in ("qa_signing.py check-env", "qa_signing.py restore", "qa_signing.py verify-apk", "qa_signing.py cleanup"):
-            self.assertIn(command, workflow)
-        self.assertIn("-PqaPersistentSigning", workflow)
-        self.assertIn("--no-configuration-cache", workflow)
-        self.assertIn("cache-disabled: true", workflow)
-        self.assertIn("if: always()", workflow)
-        self.assertLess(workflow.index("qa_signing.py cleanup"), workflow.index("uses: actions/upload-artifact"))
-        self.assertIn("path: android/app/build/outputs/apk/debug/app-debug.apk", workflow)
+        for forbidden in ("-genkeypair", "debug.keystore", "qa_signing.py restore", "assembleDebug", "secrets.QA_"):
+            self.assertNotIn(forbidden, workflow)
+        self.assertIn(":app:assembleRelease", workflow)
+        self.assertIn("tests/verify_app_candidate.py", workflow)
+        self.assertIn("tests/apk_privacy_guard.py --apk", workflow)
+        self.assertIn("outputs/apk/release/app-release-unsigned.apk", workflow)
+        self.assertIn("UNSIGNED-NOT-RELEASED", workflow)
         self.assertIn("contents: read", workflow)
 
-    def test_gradle_keeps_production_identity_and_legacy_local_key(self):
+    def test_gradle_keeps_original_package_and_never_generates_parallel_debug_app(self):
         gradle = (ROOT / "android/app/build.gradle").read_text()
         self.assertIn("applicationId 'at.hausgarten.service'", gradle)
-        self.assertIn("applicationIdSuffix '.qa'", gradle)
-        self.assertIn("keyAlias 'androiddebugkey'", gradle)
-        self.assertIn("keyAlias 'gartenpirat-qa'", gradle)
-        self.assertIn("if (persistentQaSigning) signingConfig signingConfigs.qaPersistent", gradle)
-        self.assertIn("release {\n            minifyEnabled false\n        }", gradle)
-        self.assertIn("throw new GradleException", gradle)
+        self.assertNotIn("applicationIdSuffix", gradle)
+        self.assertNotIn("signingConfig ", gradle)
+        self.assertIn("withBuildType('debug')", gradle)
+        self.assertIn("variant.enable = false", gradle)
+        self.assertIn("testBuildType 'release'", gradle)
+        self.assertIn("tools/sync_plant_assets.py", gradle)
 
 
 if __name__ == "__main__":

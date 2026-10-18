@@ -9,35 +9,25 @@ def privacyGate = tasks.register('verifyDistributablePrivacy', Exec) {
 }
 tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn privacyGate }
 
-// CI QA builds explicitly opt in. Never fall back to an automatically generated key.
-// The existing local debug identity and productive release signing stay unchanged.
-def persistentQaSigning = providers.gradleProperty('qaPersistentSigning').isPresent()
-def qaStorePath = providers.environmentVariable('QA_KEYSTORE_FILE').orNull
-def qaStorePassword = providers.environmentVariable('QA_KEYSTORE_PASSWORD').orNull
-if (persistentQaSigning) {
-    if (!qaStorePath || !qaStorePassword || !file(qaStorePath).isFile()) {
-        throw new GradleException('Fester QA-Signierschluessel fehlt. QA-SIGNIERUNG.md beachten; kein Ersatzschluessel wird erzeugt.')
-    }
-}
-
 android {
     namespace 'at.hausgarten.service'
     compileSdk { version = release(37) }
     buildToolsVersion '37.0.0'
     // Opt-in device instrumentation targets the original signed release, not a second app.
-    testBuildType providers.gradleProperty('qaTargetRelease').isPresent() ? 'release' : 'debug'
+    testBuildType 'release'
 
     defaultConfig {
         applicationId 'at.hausgarten.service'
         minSdk 26
         targetSdk 37
-        versionCode 65
-        versionName '1.46.0'
+        versionCode 66
+        versionName '1.46.1'
         testInstrumentationRunner 'at.hausgarten.service.PixelMcpInstrumentation'
     }
 
-    // Keep the signing identity of the installed app, independent of cache/runtime paths.
-    // Do not generate a replacement key when changing ANDROID_USER_HOME for a build.
+    // Preserve the existing Desktop signing selector for sign-local-update.ps1.
+    // Debug variants are disabled below; release stays unsigned. Never create a
+    // replacement store: the Desktop signer must compare it to the original APK.
     signingConfigs {
         debug {
             storeFile file(System.getProperty('user.home') + '/.android/debug.keystore')
@@ -45,26 +35,22 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
-        if (persistentQaSigning) {
-            qaPersistent {
-                storeFile file(qaStorePath)
-                storeType 'PKCS12'
-                storePassword qaStorePassword
-                keyAlias 'gartenpirat-qa'
-                keyPassword qaStorePassword
-            }
-        }
     }
 
     buildTypes {
-        debug {
-            // The QA build can be installed beside the productive Pixel app.
-            // It therefore cannot migrate or open the productive database.
-            applicationIdSuffix '.qa'
-            if (persistentQaSigning) signingConfig signingConfigs.qaPersistent
-        }
         release {
             minifyEnabled false
         }
     }
 }
+
+// Only the existing operative package is built. No automatically signed parallel APK.
+androidComponents {
+    beforeVariants(selector().withBuildType('debug')) { variant -> variant.enable = false }
+}
+
+def plantGate = tasks.register('verifySharedPlantAssets', Exec) {
+    workingDir rootProject.projectDir.parentFile
+    commandLine(System.getProperty('os.name').toLowerCase().contains('windows') ? ['py', '-3.11', 'tools/sync_plant_assets.py'] : ['python3', 'tools/sync_plant_assets.py'])
+}
+tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn plantGate }
