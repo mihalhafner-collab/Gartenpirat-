@@ -1,3 +1,5 @@
+> Aktueller Auftrag: [CODEX-STATUS.md](../CODEX-STATUS.md). Der folgende frühere Rollout mit Web-/Laptop-Prozessor ist historisch und aufgehoben. Aktuelle native Fortsetzung: Abschnitt „Cloud-only 1.49.2 / 71“ am Ende. Keine Installation ohne Sicherung und ausdrückliche Freigabe.
+
 # Drive-Abgleich und Kundenakte – 1.48.0 / 68
 
 Umsetzung des freigegebenen Konzepts im vorhandenen Cloud-Repository und auf
@@ -388,3 +390,29 @@ im verbundenen privaten Google-Konto: als neue Datei hochgeladen und über den
 Connector vollständig als Dateireferenz zurückgeladen (34.389.507 Bytes).
 Keine öffentliche Freigabe hinzugefügt. Eine erfolgreiche Übertragung oder
 Originalsignierung beweist weder Installation noch Updatefähigkeit/Datenerhalt.
+
+## Cloud-only 1.49.2 / 71 (18.10.2026)
+
+Basis a38765d (main enthält sämtliche bisherigen Cloud-Funktionen und 1.49.1-Reparaturen); bestehende Cloud-Branch per Fast-forward vorgezogen. Keine Desktopübernahme. Pixel verarbeitet die bestehenden Sammlungen, Angebote, Katalog, Rechnungseinstellungen, Archiv, Korrekturentwürfe und Eigentümerjournale selbst. Python/Web bleibt als historische Kompatibilitäts-/Testreferenz erhalten, ist kein produktiver Dienst. IDs, Datenbank 4, ursprüngliche Drive-Datei, Journalaktionen, Medien und Regressionstests bleiben erhalten.
+
+Unveränderliche HausGarten-State-/Commit-Dateien im bestehenden Drive-Ordner bilden eine geprüfte Kette. Beim Neustart wird deren letzter Stand eingelesen; Provider und REST nutzen denselben nativen Geschäftsprozessor. Fremder Primär-Pixel, Fork, fehlender Beleg oder eine parallel veränderte Altquelle stoppen. Auf dem Gerät gespeicherter Stand, Provider-Rücklesen und Google-Servermanifest bleiben getrennt. Originalfotos und PDFs liegen außerhalb des JSON, mit SHA256 und separater Vorschau. Server-Dateiversionen vermeiden wiederholtes Herunterladen unveränderter PDF-Originale.
+
+Fehlende business_settings werden ausschließlich aus nachweisbaren invoice_issuer-Feldern ergänzt; Unbekanntes bleibt unbekannt. Keine erfundenen Aussteller-, Steuer- oder Nummernwerte. Explizite Updates prüfen den aktuellen Settings-Hash und erhalten zusätzliche Felder. Der native Vergleichsschutz ist an implementierte Handler gebunden; entfernte Capability-Flags werden nicht mehr als externer Freigabedienst verwendet.
+
+Rechnungsabschluss: neuer Journaltyp pixel_invoice_issue_v1, interne Protokollversion 4; ältere Prozessoren können diesen Auftrag nicht ungeschützt finalisieren. Werkzeuge bleiben namentlich kompatibel (83), Standard-MCP-Protokollverhandlung bleibt erhalten. Vor Nummernvergabe: ausdrückliche Anweisung, unveränderter Entwurf, Arbeitsstände, Aussteller/Empfänger, bestätigte alleinige Pixel-Nummernhoheit und geprüfter Ausgangszähler. Online-CAS reserviert pro Aktionshash dauerhaft genau eine Nummer; Antwortverlust verwendet dieselbe Reservierung. Eine vorgeschaltete negative Vergleichsprobe schreibt nur synthetische Technikdaten in eine eigene Probe-Datei. Fehlt ETag/HTTP-412-Nachweis, bleibt Abschluss blockiert. PDF wird auf dem Pixel separat erzeugt, gespeichert und übertragen, bevor Rechnung und Arbeitsmarkierungen gemeinsam übernommen werden. Versand und Zahlung bleiben eigene Schritte; b.b. bleibt privat.
+
+Offizielle Grundlagen erneut am 18.10.2026 abgerufen: [USP/BMF Rechnungsmerkmale](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/vorsteuerabzug-und-rechnung/formerfordernisse.html), [ABGB §1170a](https://www.ris.bka.gv.at/eli/jgs/1811/946/P1170a/NOR12018912), [KSchG §5](https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=10002462&Paragraf=5). Die bisherigen Vollständigkeitsregeln sind nativ übernommen; technische Validierung ist keine vollständige Rechtsprüfung. Für Drive: [files.update](https://developers.google.com/workspace/drive/api/reference/rest/v3/files/update), [PATCH/ETag-Hinweise](https://developers.google.com/workspace/drive/api/guides/performance). Diese Dokumentation ersetzt keinen tatsächlichen Google-CAS-Nachweis; deshalb prüft der neue Code ihn am technischen Probeobjekt und verweigert andernfalls den Abschluss.
+
+| Bereich | Quelle / autorisierte Operationen | Isolierte Prüfung | Reale Grenze |
+| --- | --- | --- | --- |
+| Kunden/Aufträge/Arbeiten | Bestehende create/update/get/list, Archiv/Restore; native Vorgängerketten | JVM/Python/Browser PASS | Geräte-SQLite-/Parallelabnahme offen |
+| Zeit und b.b. | Bestehende Sitzungsfunktionen und persönliche Markierung | Bestehende synthetische Regression PASS | Kein Live-Timer verändert |
+| Fotos/Dateien | Bestehende Uploadblöcke/create/update/photo/file; private Originale, Optimierung, Pagination | 105 Metadaten/21 Importe im Browser PASS; native Tests kompiliert | Kamera/Bitmap/echter Drive-Upload offen |
+| Angebote/Katalog | Alle vorhandenen Angebots- und Bausteinwerkzeuge, native Journale | JVM/Python/Browser PASS, 4 Dokumentarten | Live 69 blockiert noch den Angebotsabgleich |
+| Rechnungen/Settings | Entwurf/CAS, Konfiguration, Korrektur, Zahlung; geschützter nativer Onlineabschluss | CAS/Crash/Replays/Rechnungsrennen synthetisch PASS; native PDF-Abnahme kompiliert | Nummernhoheit und reale Google-CAS-Probe nicht bestätigt |
+| Sync/Konflikte/Backup | request_sync, get_sync_overview mit Sammlungshashes; keep_current mit Backup und Originalhash | Synthetische sieben Fälle und technische Supersession PASS | Live 9 unverändert; Backup/Update-/Drive-Abnahme fehlen |
+| Pflanzen/Suche/Einstellungen | Bestehende Navigation, Such-/Katalog-/Dateifunktionen erhalten | Kanonischer Katalog und Browserregression PASS | Native Kamera-/Offline-Geräteabnahme offen |
+
+Live bestätigt: 1.49.0/69, Protokoll 3, ready, write_enabled, 83 registrierte Werkzeuge. Die Angebots-/Rechnungswerkzeuge sind inzwischen sichtbar, die installierten Handler weiterhin alt. Angebote/Katalog melden false, Settings fehlen, Android-Provider statt direktem REST. Kein Connector-Manifest im Repository und kein verwalteter Veröffentlichungsendpunkt verfügbar. Nach freigegebenem Update private Verbindung neu starten, initialize/tools/list aktualisieren und Quell-Kataloghash/Protokoll 4 vergleichen; notwendige Konto-/Connector-Freigaben kann Quellcode nicht erteilen.
+
+Die sieben historischen Aktionen und zwei technischen Fehler wurden nur gelesen. Vorschau genau sieben, keine Löschung und keine Konfliktentscheidung ausgeführt. Neue Bulk-Sicherung erfordert zuerst direkten Drive-Serverbeleg und ausschließlich sieben historische Restfälle; sie umfasst aktuelle Pixel-Veröffentlichung und Original-Altdatei. Keine Geschäfts-MCP-Sicherung ersetzt die vollständige Gerätesicherung. Gesamtauftrag wegen fehlender nativer End-to-End-Abnahme ausdrücklich nicht abgeschlossen. Fortlaufende Testergebnisse, Queue-Hashes, Kandidatenprüfung und verbleibende P0/P1 stehen ausschließlich im zentralen CODEX-STATUS.

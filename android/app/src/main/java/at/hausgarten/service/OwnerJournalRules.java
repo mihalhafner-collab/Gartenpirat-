@@ -5,7 +5,7 @@ import java.util.*;
 
 /** Additive owner journal protocol. Old journals and immutable receipts survive. */
 final class OwnerJournalRules {
-    static final String[] KINDS={"archive","restore","conflict_resolution","invoice_payment","business_settings"};
+    static final String[] KINDS={"archive","restore","conflict_resolution","invoice_payment","business_settings","invoice_correction"};
     static boolean handles(String kind){return Arrays.asList(KINDS).contains(kind)||OfferJournalRules.handles(kind);}
     static JSONObject archives(JSONObject snapshot)throws Exception{JSONObject a=snapshot.optJSONObject("owner_archive");if(a==null){a=new JSONObject();snapshot.put("owner_archive",a);}return a;}
     static String group(String entity){return entity.equals("invoice")?"invoices":DriveJournalRules.collection(entity);}
@@ -18,12 +18,13 @@ final class OwnerJournalRules {
     static void checkHash(JSONObject row,String expected)throws Exception{if(!version(row).equals(expected))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Der geprüfte Stand hat sich verändert. Beide Varianten bleiben erhalten.");}
     static void apply(JSONObject snapshot,JSONObject action,Map<String,JSONObject> all,JSONObject resolved)throws Exception{
         String kind=action.getString("kind");JSONObject p=action.getJSONObject("payload");
+        if(kind.equals("invoice_correction")){InvoiceIssueRules.correction(snapshot,action);return;}
         if(OfferJournalRules.handles(kind)){OfferJournalRules.apply(snapshot,action);return;}
         if(kind.equals("business_settings")){
-            JSONObject current=snapshot.optJSONObject("business_settings");if(current==null)throw new IllegalArgumentException("Fachliche Einstellungen fehlen im Gesamtstand. Aktualisierten Web-Nummernservice abgleichen.");
+            JSONObject current=snapshot.optJSONObject("business_settings");if(current==null)throw new IllegalArgumentException("Fachliche Einstellungen fehlen; Pixel-Datenstand erneut prüfen.");
             if(!PixelMcpWriteTools.hash(current).equals(p.getString("expected_record_hash")))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Fachliche Einstellungen wurden geändert.");
             PixelMcpOwnerTools.validate("update_business_settings",new JSONObject().put("request_id","journal-settings").put("expected_record_hash",p.getString("expected_record_hash")).put("updates",p.getJSONObject("updates")));
-            JSONObject updated=new JSONObject(current.toString()),changes=p.getJSONObject("updates");for(Iterator<String> keys=changes.keys();keys.hasNext();){String key=keys.next();Object value=changes.get(key);if(key.equals("invoice_sevdesk_checked_at")&&!value.toString().isEmpty())java.time.Instant.parse(value.toString());updated.put(key,value instanceof Boolean?((Boolean)value?"1":"0"):value.toString());}
+            JSONObject updated=new JSONObject(current.toString()),changes=p.getJSONObject("updates");for(Iterator<String> keys=changes.keys();keys.hasNext();){String key=keys.next();Object value=changes.get(key);if((key.equals("invoice_sevdesk_checked_at")||key.equals("invoice_numbering_checked_at"))&&!value.toString().isEmpty())java.time.Instant.parse(value.toString());updated.put(key,value instanceof Boolean?((Boolean)value?"1":"0"):value.toString());}
             snapshot.put("business_settings",updated);JSONObject issuer=snapshot.optJSONObject("invoice_issuer");if(issuer==null)issuer=new JSONObject();for(String key:PixelMcpOwnerTools.BUSINESS_KEYS)if(!key.startsWith("invoice_"))issuer.put(key,updated.optString(key));snapshot.put("invoice_issuer",issuer);return;
         }
         if(kind.equals("conflict_resolution")){
@@ -35,6 +36,7 @@ final class OwnerJournalRules {
             }
             if(prior==null||!target.equals(prior.optString("client_id"))||!OrderReviewRules.actionHash(prior).equals(p.getString("expected_action_hash"))||resolved.has(target))throw new PixelMcpWriteTools.Rejected("ACTION_ID_CONFLICT","Die ursprüngliche Konfliktaktion wurde verändert, ist nicht mehr nachweisbar oder bereits geprüft.");
             if(embedded!=null&&!OrderReviewRules.actionHash(embedded).equals(p.getString("expected_action_hash")))throw new PixelMcpWriteTools.Rejected("ACTION_ID_CONFLICT","Der eingebettete Konfliktbeleg stimmt nicht mit dem geprüften Hash überein.");
+            for(String errorKey:new String[]{"sync_errors","drive_journal_errors"}){JSONArray failures=snapshot.optJSONArray(errorKey);for(int i=0;failures!=null&&i<failures.length();i++){JSONObject failure=failures.getJSONObject(i);if(target.equals(failure.optString("client_id"))&&!Arrays.asList("WRITE_CONFLICT","DELETE_REVIEW_REQUIRED").contains(failure.optString("code")))throw new PixelMcpWriteTools.Rejected("CONFLICT_RESOLUTION_NOT_AVAILABLE","Infrastrukturfehler darf nicht als Geschäftsentscheidung quittiert werden.");}}
             boolean legacyDelete="delete".equals(prior.getString("kind"));String entity=legacyDelete?prior.getJSONObject("payload").getString("entity"):prior.getString("kind"),collection=DriveJournalRules.collection(entity);if(collection.isEmpty())throw new IllegalArgumentException("Diesen Vorgang fachlich separat prüfen.");
             JSONObject patch=prior.getJSONObject("payload"),current=findOrNull(snapshot.getJSONArray(collection),patch.optString("id"));checkHash(current,p.getString("expected_current_hash"));
             JSONObject history=snapshot.optJSONObject("owner_conflict_history");if(history==null)history=new JSONObject();

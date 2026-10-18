@@ -66,10 +66,36 @@ final class DriveRestClient {
             JSONArray rows=data.getJSONArray("files");for(int i=0;i<rows.length();i++){if(all.length()>=20000)throw new Failure("FOLDER_LIMIT","Drive-Ordner enthält zu viele Dateien. Prüfung erforderlich.",0,true);all.put(rows.getJSONObject(i));}page=data.optString("nextPageToken");if(!page.isEmpty()&&!pages.add(page))throw new IOException("Drive-Seitennavigation wiederholt sich.");
         }while(!page.isEmpty());listings.put(parent,all);return all;
     }
+    void refresh(){listings.clear();indexes.clear();}
     JSONObject unique(String parent,String name)throws Exception{
         if(!indexes.containsKey(parent)){Map<String,JSONObject> index=new HashMap<>();JSONArray rows=list(parent);for(int i=0;i<rows.length();i++){JSONObject row=rows.getJSONObject(i);String key=row.getString("name");if(index.containsKey(key))index.put(key,null);else index.put(key,row);}indexes.put(parent,index);}Map<String,JSONObject> index=indexes.get(parent);if(index.containsKey(name)&&index.get(name)==null)throw new Failure("DUPLICATE_FILES","Gleichnamige Drive-Dateien benötigen Prüfung. Keine Variante überschrieben.",0,true);return index.get(name);
     }
     byte[] read(String id,int max)throws Exception{if(!validId(id))throw new IllegalArgumentException("Ungültige Drive-Datei.");Reply r=send("GET",API+"files/"+id+"?alt=media&supportsAllDrives=true",null,Collections.emptyMap(),max);if(r.status!=200)throw new Failure("DRIVE_READ_FAILED","Drive-Original ist nicht verfügbar.",0,true);return r.body;}
+    Reply readConditional(String id)throws Exception {
+        if(!validId(id))throw new IllegalArgumentException("Ungültige Nummernkreis-Datei.");
+        Reply r=send("GET",API+"files/"+id+"?alt=media&supportsAllDrives=true",null,Collections.emptyMap(),4*1024*1024);
+        if(r.status!=200)throw new Failure("NUMBERING_UNAVAILABLE","Nummernkreis ist nicht lesbar.",0,true);
+        return r;
+    }
+    static byte[] compareProbeBytes(){return "{\"format\":\"hausgarten.compare.probe.v1\"}".getBytes(StandardCharsets.UTF_8);}
+    String compareProbeName()throws Exception{return "HausGarten-CAS-Probe-"+sha256(folder.getBytes(StandardCharsets.UTF_8))+".json";}
+    void verifyConditionalWrites()throws Exception {
+        // Probe ONLY a dedicated technical fixture. Never test a stale write on a real counter.
+        String proof=checkpoint("conditional-write-proof-v1");try{if(java.time.Instant.parse(proof).isAfter(java.time.Instant.now().minusSeconds(3600)))return;}catch(Exception ignored){}
+        byte[] bytes=compareProbeBytes();JSONObject file=put(folder,compareProbeName(),"application/json",bytes);Reply read=readConditional(file.getString("id"));
+        if(read.header("ETag").isEmpty()||!Arrays.equals(read.body,bytes))throw new Failure("NUMBERING_COMPARE_UNAVAILABLE","Drive-Versionsschutz noch nicht bestätigt. Keine Nummer vergeben.",0,true);
+        Map<String,String> headers=new HashMap<>();headers.put("Content-Type","application/json");headers.put("If-Match","\"hg-unmatch-"+UUID.randomUUID()+"\"");
+        Reply rejected=send("PATCH",UPLOAD+"/"+file.getString("id")+"?uploadType=media&supportsAllDrives=true",bytes,headers,8192);
+        if(rejected.status!=412)throw new Failure("NUMBERING_COMPARE_UNAVAILABLE","Drive weist veraltete Schreibstände nicht nachweisbar ab. Keine Nummer vergeben.",0,true);
+        checkpoint("conditional-write-proof-v1",java.time.Instant.now().toString());
+    }
+    void compareAndWrite(String id,String etag,byte[] bytes)throws Exception {
+        if(!validId(id)||etag==null||etag.isEmpty()||etag.equals("*")||etag.contains("\r")||etag.contains("\n"))throw new Failure("NUMBERING_COMPARE_UNAVAILABLE","Drive liefert keinen sicheren Vergleichsstand für die Nummernvergabe. Keine Finalisierung.",0,true);
+        Map<String,String> headers=new HashMap<>();headers.put("If-Match",etag);headers.put("Content-Type","application/json; charset=UTF-8");
+        Reply r=send("PATCH",UPLOAD+"/"+id+"?uploadType=media&supportsAllDrives=true",bytes,headers,8192);
+        if(r.status==412)throw new Failure("NUMBERING_WRITE_CONFLICT","Nummernstand parallel verändert. Dieselbe Anfrage erneut prüfen.",1000,false);
+        if(r.status!=200)throw new Failure("NUMBERING_WRITE_UNCONFIRMED","Nummernreservierung unbestätigt. Kein neuer Request und keine Offline-Nummer.",1000,false);
+    }
     void confirm(String parent,String name,String expected,int maximum)throws Exception{
         JSONObject file=unique(parent,name);if(file==null)throw new IOException("Original ist in Drive noch nicht verfügbar.");String key="drive-proof:"+file.getString("id");
         String proof=expected+":"+file.optString("version")+":"+file.optString("md5Checksum")+":"+file.optString("size");

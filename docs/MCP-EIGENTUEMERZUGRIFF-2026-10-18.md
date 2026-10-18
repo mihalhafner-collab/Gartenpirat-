@@ -1,3 +1,5 @@
+> Historischer Nachweis 1.47. Aktueller Cloud-only-/Pixel-Drive-Auftrag und Abnahme: [CODEX-STATUS.md](../CODEX-STATUS.md), Umsetzung [Cloud-only 1.49.2 / 71](SYNC-DRIVE-KUNDENAKTE-1.48.md#cloud-only-1492--71-18102026). Frühere Laptop-/Web-Rolloutvoraussetzungen sind aufgehoben.
+
 # Eigentümerzugriff und Datenintegrität – Cloud-Stand 1.47.0 / 67
 
 Fortsetzung mit denselben 66 Werkzeugnamen: [Drive-Abgleich und Kundenakte

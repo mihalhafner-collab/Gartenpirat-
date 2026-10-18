@@ -71,16 +71,18 @@ final class DriveJournalRules {
             if(error!=null){review++;phase=error.optString("code").contains("CONFLICT")?"sync_conflict":"sync_failed";message="Prüfung erforderlich: "+(error.optString("code").contains("CONFLICT")?"Widersprüchliche Änderungen; vorhandene Daten wurden nicht überschrieben.":"Die Änderung konnte nicht übernommen werden.");}
             else if(held&&transferred){review++;phase="review_required";message=kind.equals("delete")?"An die Drive-App übergeben · Löschauftrag bleibt bis zur gesonderten Prüfung zurückgehalten.":"An die Drive-App übergeben · geschützter Vorgang benötigt Prüfung.";}
             else{upload++;phase="sync_pending";message="Lokal gespeichert · Übertragung ausstehend.";}
-            String code=error==null?"":error.optString("code"),next=code.equals("SYNC_COMPONENT_UPDATE_REQUIRED")?"update_sync_component":(code.contains("CONFLICT")||code.equals("DELETE_REVIEW_REQUIRED"))?"compare_versions":code.equals("AUTH_REQUIRED")||code.equals("PERMISSION_REQUIRED")?"connect_drive":code.equals("MEDIA_TRANSFER_PENDING")?"retry_media":held?"open_processor":"retry_sync";
+            String code=error==null?"":error.optString("code"),next=code.equals("SYNC_COMPONENT_UPDATE_REQUIRED")?"update_sync_component":(code.contains("CONFLICT")||code.equals("DELETE_REVIEW_REQUIRED"))?"compare_versions":code.equals("AUTH_REQUIRED")||code.equals("PERMISSION_REQUIRED")?"connect_drive":code.equals("MEDIA_TRANSFER_PENDING")?"retry_media":held?"review_action":"retry_sync";
             JSONObject item=new JSONObject().put("client_id",id).put("state",phase).put("provider_readback",transferred).put("cloud_confirmed",false).put("kind",kind).put("entity_id",action.getJSONObject("payload").optString("id")).put("created_at",action.optString("created_at")).put("error",error==null?"":error.optString("error")).put("code",code).put("next_action",next).put("message",message);
             DrivePublication.evidence(item,new JSONObject().put("master",snapshot).put("pending",new JSONArray().put(action)));items.put(item);
         }
         JSONArray missing=snapshot.optJSONArray("drive_media_errors");for(int i=0;missing!=null&&i<missing.length();i++){JSONObject e=missing.getJSONObject(i);String id=e.optString("entity_id",e.optString("photo_id")),kind=Arrays.asList("invoice","offer").contains(e.optString("entity_type"))?"document":"media";items.put(new JSONObject().put("client_id",kind+":"+id).put("kind",kind).put("entity_id",id).put("state","review_required").put("code",e.optString("code")).put("next_action",kind.equals("document")?"open_document":"open_photo").put("message",e.optString("message")));review++;}
         return new JSONObject().put("total",items.length()).put("pending_upload",upload).put("review",review).put("items",items);
     }
-    static JSONArray apply(JSONObject snapshot,JSONArray actions)throws Exception{
+    interface Financial { void apply(JSONObject snapshot,JSONObject action)throws Exception; }
+    static JSONArray apply(JSONObject snapshot,JSONArray actions)throws Exception{return apply(snapshot,actions,null);}
+    static JSONArray apply(JSONObject snapshot,JSONArray actions,Financial financial)throws Exception{
         actions=SyncActionOrder.order(actions);
-        validateSnapshot(snapshot);Set<String> accepted=ids(snapshot.optJSONArray("accepted_ids")),seen=ids(snapshot.optJSONArray("drive_applied_ids"));
+        PixelDriveState.prepare(snapshot);Set<String> accepted=ids(snapshot.optJSONArray("accepted_ids")),seen=ids(snapshot.optJSONArray("drive_applied_ids"));
         JSONArray errors=new JSONArray();Map<String,JSONObject> all=new HashMap<>();Set<String> failed=new HashSet<>();
         for(int i=0;i<actions.length();i++){JSONObject a=actions.getJSONObject(i);all.put(a.getString("client_id"),a);}
         JSONObject resolved=snapshot.optJSONObject("drive_resolved_actions");if(resolved==null)resolved=new JSONObject();
@@ -96,21 +98,31 @@ final class DriveJournalRules {
             if(kind.equals("conflict_resolution")){
                 String target=action.getJSONObject("payload").optString("client_id");
                 if(!target.isEmpty()&&(accepted.contains(target)||seen.contains(target)||resolved.has(target))){
+                    JSONObject original=all.get(target);if(original==null)original=action.getJSONObject("payload").optJSONObject("_original_action");
+                    if(original==null||!target.equals(original.optString("client_id"))||!OrderReviewRules.actionHash(original).equals(action.getJSONObject("payload").optString("expected_action_hash")))throw new PixelMcpWriteTools.Rejected("ACTION_ID_CONFLICT","Überholte Entscheidung hat keinen passenden Originalbeleg.");
+                    JSONObject history=snapshot.optJSONObject("owner_conflict_history");if(history==null)history=new JSONObject();history.put(client,new JSONObject().put("resolution","superseded").put("effect","no_business_data_changed").put("target_client_id",target).put("original_action",action).put("action_hash",OrderReviewRules.actionHash(action)));snapshot.put("owner_conflict_history",history);
                     // The business action already won the race. The later decision is now
                     // control-plane history only and must not manufacture a new conflict.
                     seen.add(client);hashes.put(client,digest);continue;
                 }
             }
             // A later desktop rejection must remain reviewable even if a previous Pixel pass accepted it locally.
-            if(remoteErrors.containsKey(client)){seen.remove(client);failed.add(client);errors.put(new JSONObject(remoteErrors.get(client).toString()).put("kind",kind));continue;}
+            if(remoteErrors.containsKey(client)&&!PixelDriveState.retryableInfrastructure(remoteErrors.get(client),kind)){seen.remove(client);failed.add(client);errors.put(new JSONObject(remoteErrors.get(client).toString()).put("kind",kind));continue;}
             if(seen.contains(client))continue;
-            if(OwnerJournalRules.handles(kind)){
-                try{OwnerJournalRules.apply(snapshot,action,all,resolved);seen.add(client);hashes.put(client,digest);}
-                catch(Exception error){failed.add(client);errors.put(new JSONObject().put("client_id",client).put("kind",kind).put("code",error instanceof PixelMcpWriteTools.Rejected?((PixelMcpWriteTools.Rejected)error).code:"INVALID_ACTION").put("error",error.getMessage()));}
+            JSONArray required=action.getJSONObject("payload").optJSONArray("_sync_predecessors");boolean dependencyFailed=false;
+            for(int j=0;required!=null&&j<required.length();j++)if(failed.contains(required.getString(j)))dependencyFailed=true;
+            if(dependencyFailed){failed.add(client);errors.put(new JSONObject().put("client_id",client).put("kind",kind).put("code","DEPENDENCY_BLOCKED").put("error","Vorgängeraktion benötigt Prüfung; keine Folgeänderung angewendet."));continue;}
+            if(OwnerJournalRules.handles(kind)||kind.equals("pixel_invoice_issue_v1")){
+                try{JSONObject trial=new JSONObject(snapshot.toString()),trialResolved=new JSONObject(resolved.toString());
+                    if(kind.equals("pixel_invoice_issue_v1")){if(financial==null)throw new PixelMcpWriteTools.Rejected("NUMBERING_ONLINE_REQUIRED","Online-Abschluss durch Pixel/Drive ausstehend.");financial.apply(trial,action);}
+                    else OwnerJournalRules.apply(trial,action,all,trialResolved);
+                    for(Iterator<String> keys=trial.keys();keys.hasNext();){String key=keys.next();snapshot.put(key,trial.get(key));}
+                    resolved=trialResolved;seen.add(client);hashes.put(client,digest);}
+                catch(Exception error){failed.add(client);errors.put(new JSONObject().put("client_id",client).put("kind",kind).put("code",errorCode(error)).put("error",error.getMessage()));}
                 continue;
             }
-            // Protected financial finalization uses the existing central numbering service.
-            if(group.isEmpty()){if(kind.equals("delete")){failed.add(client);errors.put(new JSONObject().put("client_id",client).put("kind",kind).put("code","DELETE_REVIEW_REQUIRED").put("error","Älterer Löschauftrag benötigt eine ausdrückliche Entscheidung. Originale bleiben erhalten."));}continue;}
+            // Unknown journal types remain visible and cannot be silently acknowledged.
+            if(group.isEmpty()){failed.add(client);errors.put(new JSONObject().put("client_id",client).put("kind",kind).put("code",kind.equals("delete")?"DELETE_REVIEW_REQUIRED":"UNSUPPORTED_ACTION").put("error",kind.equals("delete")?"Älterer Löschauftrag benötigt eine ausdrückliche Entscheidung. Originale bleiben erhalten.":"Unbekannter Journaltyp benötigt eine sichere App-Migration; Aktion bleibt erhalten."));continue;}
             try{
                 JSONObject patch=action.getJSONObject("payload");
                 JSONArray predecessors=patch.optJSONArray("_sync_predecessors");for(int j=0;predecessors!=null&&j<predecessors.length();j++)if(failed.contains(predecessors.getString(j)))throw new PixelMcpWriteTools.Rejected("DEPENDENCY_BLOCKED","Eine Vorgängeränderung benötigt zuerst Prüfung. Diese Aktion bleibt erhalten.");
@@ -143,20 +155,22 @@ final class DriveJournalRules {
                 if(at<0)rows.put(merged);else rows.put(at,merged);snapshot.put(group,rows);
                 seen.add(client);hashes.put(client,digest);
                 for(String target:resolving){String priorHash=OrderReviewRules.actionHash(all.get(target));resolved.put(target,priorHash);hashes.put(target,PixelMcpWriteTools.hash(all.get(target)));}
-            }catch(Exception error){failed.add(client);errors.put(new JSONObject().put("client_id",client).put("kind",kind).put("code",error instanceof PixelMcpWriteTools.Rejected?((PixelMcpWriteTools.Rejected)error).code:"INVALID_ACTION").put("error",error.getMessage()));}
+            }catch(Exception error){failed.add(client);errors.put(new JSONObject().put("client_id",client).put("kind",kind).put("code",errorCode(error)).put("error",error.getMessage()));}
         }
         JSONArray active=new JSONArray();for(int i=0;i<errors.length();i++)if(!resolved.has(errors.getJSONObject(i).optString("client_id")))active.put(errors.getJSONObject(i));errors=active;
-        JSONArray remote=snapshot.optJSONArray("sync_errors"),remaining=new JSONArray();for(int i=0;remote!=null&&i<remote.length();i++)if(!resolved.has(remote.getJSONObject(i).optString("client_id")))remaining.put(remote.getJSONObject(i));
+        JSONArray remote=snapshot.optJSONArray("sync_errors"),remaining=new JSONArray();for(int i=0;remote!=null&&i<remote.length();i++)if(!resolved.has(remote.getJSONObject(i).optString("client_id"))&&!seen.contains(remote.getJSONObject(i).optString("client_id")))remaining.put(remote.getJSONObject(i));
         snapshot.put("drive_resolved_actions",resolved).put("sync_errors",remaining);
         refreshDisplayFields(snapshot);
-        snapshot.put("drive_applied_ids",new JSONArray(seen)).put("drive_action_hashes",hashes).put("drive_journal_errors",errors);return errors;
+        JSONObject receipts=snapshot.optJSONObject("drive_action_receipts");if(receipts==null)receipts=new JSONObject();
+        for(int i=0;i<actions.length();i++){JSONObject action=actions.getJSONObject(i);String id=action.getString("client_id");if(seen.contains(id)||resolved.has(id))receipts.put(id,new JSONObject().put("action_sha256",PixelMcpWriteTools.hash(action)).put("review_sha256",OrderReviewRules.actionHash(action)).put("kind",action.getString("kind")).put("state",resolved.has(id)?"resolved":"applied"));}
+        snapshot.put("drive_action_receipts",receipts).put("drive_applied_ids",new JSONArray(seen)).put("drive_action_hashes",hashes).put("drive_journal_errors",errors);return errors;
     }
     static JSONArray reviewActions(JSONObject snapshot,JSONArray actions)throws Exception{
         Set<String> failed=new HashSet<>(),accepted=ids(snapshot.optJSONArray("accepted_ids"));
         JSONObject resolved=snapshot.optJSONObject("drive_resolved_actions");
         for(String key:new String[]{"sync_errors","drive_journal_errors"}){JSONArray rows=snapshot.optJSONArray(key);for(int i=0;rows!=null&&i<rows.length();i++)failed.add(rows.getJSONObject(i).optString("client_id"));}
         JSONArray result=new JSONArray(),legacyPhotoReview=new JSONArray();
-        for(int i=0;i<actions.length();i++){JSONObject action=actions.getJSONObject(i);String client=action.getString("client_id");if("photo".equals(action.optString("kind"))&&(action.getJSONObject("payload").has("data")||action.getJSONObject("payload").has("full_data"))&&failed.contains(client)){legacyPhotoReview.put(client);continue;}if((!collection(action.optString("kind")).isEmpty()||OwnerJournalRules.handles(action.optString("kind")))&&failed.contains(client)&&!accepted.contains(client)&&(resolved==null||!resolved.has(client)))result.put(new JSONObject(action.toString()));}
+        for(int i=0;i<actions.length();i++){JSONObject action=actions.getJSONObject(i);String client=action.getString("client_id");if("photo".equals(action.optString("kind"))&&(action.getJSONObject("payload").has("data")||action.getJSONObject("payload").has("full_data"))&&failed.contains(client)){legacyPhotoReview.put(client);continue;}if(!"delete".equals(action.optString("kind"))&&failed.contains(client)&&!accepted.contains(client)&&(resolved==null||!resolved.has(client)))result.put(new JSONObject(action.toString()));}
         for(int i=0;i<actions.length();i++){JSONObject a=actions.getJSONObject(i);String id=a.getString("client_id");if("delete".equals(a.optString("kind"))&&failed.contains(id)&&!accepted.contains(id)&&(resolved==null||!resolved.has(id)))result.put(new JSONObject(a.toString()));}
         snapshot.put("drive_legacy_photo_review_ids",legacyPhotoReview);return result;
     }
@@ -171,6 +185,7 @@ final class DriveJournalRules {
     private static String hashString(String value)throws Exception{
         byte[] bytes=java.security.MessageDigest.getInstance("SHA-256").digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));StringBuilder out=new StringBuilder();for(byte b:bytes)out.append(String.format(Locale.ROOT,"%02x",b&255));return out.toString();
     }
+    private static String errorCode(Exception error){return error instanceof PixelMcpWriteTools.Rejected?((PixelMcpWriteTools.Rejected)error).code:error instanceof DriveRestClient.Failure?((DriveRestClient.Failure)error).code:error instanceof java.io.IOException?"IO_RETRY_REQUIRED":"INVALID_ACTION";}
     static boolean componentReady(JSONObject snapshot,String kind){
         JSONObject capabilities=snapshot.optJSONObject("capabilities");
         if(Arrays.asList("offer","offer_finalize","offer_convert").contains(kind))return capabilities!=null&&capabilities.optBoolean("offers_v1");

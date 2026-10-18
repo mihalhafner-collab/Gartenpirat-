@@ -40,7 +40,7 @@ public final class PixelTunnelActivity extends Activity {
         text(view,"Kunden, Aufträge und Arbeitsberichte lesen. Optional Arbeitsaufzeichnungen anlegen und korrigieren – auch ohne Auftrag. Die Verbindung nutzt den zuletzt auf diesem Gerät gespeicherten Drive-Stand.");
         status=text(view,"Status wird geprüft …");battery=text(view,"");
         heading(view,"Einmalig einrichten");
-        text(view,"Einen zweiten OpenAI-Tunnel verwenden. Der Laptop-Tunnel bleibt separat. Ein eigener Runtime-Schlüssel wird verschlüsselt auf diesem Gerät gespeichert.");
+        text(view,"Die bestehende private Pixel-Verbindung verwenden. Ein eigener Runtime-Schlüssel wird verschlüsselt auf diesem Gerät gespeichert.");
         text(view,"Pixel-Tunnel-ID");id=new EditText(this);id.setSingleLine(true);id.setText(config.id());id.setHint("tunnel_…");view.addView(id);
         text(view,"OpenAI-Organisation des Tunnels");organization=new EditText(this);organization.setSingleLine(true);
         organization.setText(config.organization());
@@ -48,7 +48,7 @@ public final class PixelTunnelActivity extends Activity {
         text(view,"Tunnel und Schlüssel müssen zur selben OpenAI-Organisation gehören. Die vorbelegte Angabe wird erst mit Verbindung starten gespeichert. Ein gültiger Schlüssel aus einem anderen Konto funktioniert hier nicht.");
         text(view,"Runtime-Schlüssel");key=new EditText(this);key.setSingleLine(true);key.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);key.setSaveEnabled(false);key.setImportantForAutofill(android.view.View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);key.setHint(config.configured()?"Bereits gespeichert · leer lassen":"Schlüssel hier einfügen");view.addView(key);
         write=new CheckBox(this);write.setText("ChatGPT darf fachliche Eigentümerfunktionen lesen und schreiben");write.setChecked(config.writeEnabled());view.addView(write);
-        text(view,"Freigabe für Kunden, Aufträge, Arbeitszeiten, Fotos, Entwürfe, Konfliktprüfung, Archiv und Sicherungen. Originalbelege bleiben unveränderlich; Abschluss und Korrekturen benötigen den Nummernservice. Kontozugänge und Android-Rechte werden hier nicht erweitert. Änderungen werden lokal gespeichert und mit Drive abgeglichen. Die Freigabe gilt nach Verbindung starten.");
+        text(view,"Freigabe für Kunden, Aufträge, Arbeitszeiten, Fotos, Entwürfe, Konfliktprüfung, Archiv und Sicherungen. Originalbelege bleiben unveränderlich; Abschluss und Korrekturen benötigen den geschützten Pixel-/Drive-Nummernkreis. Kontozugänge und Android-Rechte werden hier nicht erweitert. Änderungen werden lokal gespeichert und mit Drive abgeglichen. Die Freigabe gilt nach Verbindung starten.");
         button(view,"Verbindung starten",()->startConnection());
         button(view,"Verbindung beenden",()->{config.enabled(false);stopService(new Intent(this,PixelTunnelService.class));refreshStatus();});
         heading(view,"Hintergrundbetrieb");

@@ -64,10 +64,18 @@ final class DriveProviderAcceptance {
             JSONObject result=s.sync();qa.yes(result.getBoolean("ok")&&!result.getBoolean("cloud_confirmed"));qa.yes(s.store.pendingActions().length()==0);qa.yes(s.store.getState().getJSONObject("master").getJSONArray("worklogs").length()==1);
             qa.yes(s.files.readActions(MOBILE).length()==1);qa.yes(new JSONObject(s.provider.text("doc1")).getJSONArray("worklogs").length()==0);qa.yes(s.store.status(client,s.store.getState()).getString("status").equals("transferred"));
         }});
+        qa.probe("Android provider reopens committed primary state with no local database or processor",()->{try(Setup s=new Setup(qa)){
+            s.store.execute("create_customer_work_record",qa.args("qa-primary-restart"));qa.yes(s.sync().getBoolean("ok"));
+            JSONObject original=new JSONObject(s.files.read("HausGarten-Laptop.json"));JSONObject reopened=s.files.readPrimary(original,"qadevice");
+            qa.yes(reopened.getJSONArray("worklogs").length()==1&&reopened.getJSONObject("drive_action_receipts").length()==1);
+            String first=reopened.getString("drive_parent_publication_id");qa.yes(s.sync().getBoolean("ok"));
+            JSONObject replay=s.files.readPrimary(original,"qadevice");qa.yes(replay.getJSONArray("worklogs").length()==1);qa.yes(replay.getJSONObject("capabilities").getBoolean("offers_v1"));
+            qa.yes(s.files.read("HausGarten-Laptop.json").equals(s.provider.text("doc1")));qa.yes(!s.prefs.getBoolean("drive_cloud_confirmed",false));
+        }});
         qa.probe("Android provider duplicate names merge all actions without extra file",()->{try(Setup s=new Setup(qa)){
             String older=s.provider.add(MOBILE,pkg(action("qa-a","qa_w_a")));String before=s.provider.text(older);s.provider.add(MOBILE,pkg(action("qa-b","qa_w_b")));
             s.store.saveWorklog(new JSONObject().put("customer_id","qa_c1").put("work_date","2026-10-12").put("activity","QA c").put("hours",2));
-            JSONObject result=s.sync();qa.yes(result.getBoolean("ok")&&result.getInt("duplicate_files")==1);qa.yes(s.provider.names.size()==3);qa.yes(s.provider.text(older).equals(before));qa.yes(s.files.readActions(MOBILE).length()==3&&s.store.getState().getJSONObject("master").getJSONArray("worklogs").length()==3);
+            JSONObject result=s.sync();qa.yes(result.getBoolean("ok")&&result.getInt("duplicate_files")==1);qa.yes(s.provider.names.values().stream().filter(n->n.startsWith("HausGarten-Commit-")).count()==1);qa.yes(s.provider.text(older).equals(before));qa.yes(s.files.readActions(MOBILE).length()==3&&s.store.getState().getJSONObject("master").getJSONArray("worklogs").length()==3);
         }});
         qa.probe("Android provider write failure retains offline queue and previous file",()->{try(Setup s=new Setup(qa)){
             String own=s.provider.add(MOBILE,new JSONObject().put("actions",new JSONArray()).toString());String before=s.provider.text(own);

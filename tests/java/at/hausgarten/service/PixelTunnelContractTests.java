@@ -85,9 +85,9 @@ public final class PixelTunnelContractTests {
             PixelMcpReadTools overlay=new PixelMcpReadTools(()->local);equal(3.0,data(overlay,"get_work_record","{\"work_record_id\":\"w1\"}").getDouble("hours"));equal(original,local.getJSONObject("master").toString());
             equal("queued",data(overlay,"get_sync_status","{\"client_id\":\"q1\"}").getString("status"));
         });
-        check("pending delete only affects read overlay",()->{
+        check("historical delete keeps the current read overlay intact",()->{
             JSONObject local=fixture();local.getJSONArray("pending").put(json("{\"kind\":\"delete\",\"payload\":{\"entity\":\"worklog\",\"id\":\"w1\"}}"));
-            equal(1,data(new PixelMcpReadTools(()->local),"list_work_records","{}").getJSONArray("work_records").length());equal(2,local.getJSONObject("master").getJSONArray("worklogs").length());
+            equal(2,data(new PixelMcpReadTools(()->local),"list_work_records","{}").getJSONArray("work_records").length());equal(2,local.getJSONObject("master").getJSONArray("worklogs").length());
         });
         check("duplicate IDs fail closed even with no pending field",()->{
             JSONObject corrupt=fixture();corrupt.remove("pending");JSONArray rows=corrupt.getJSONObject("master").getJSONArray("customers");rows.put(rows.getJSONObject(0));

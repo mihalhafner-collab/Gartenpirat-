@@ -42,7 +42,7 @@ final class PixelMcpWriteTools {
         JSONArray result = new JSONArray();
         for (String name : NAMES) result.put(new JSONObject().put("name",name).put("inputSchema",schema(name))
             .put("description",name.equals("update_work_record") ? "Korrigiert eine Arbeitsaufzeichnung. Zuerst get_work_record aufrufen und record_hash als expected_record_hash übernehmen. Keine Änderung von Kunden-ID, Abrechnung oder Rechnungen."
-                : "Legt eine Arbeitsaufzeichnung mit tatsächlichen Kunden-/Auftrags-IDs an. request_id bei Wiederholung unverändert lassen. Erst lokal gesichert und im mobilen Drive-Abgleich vorgemerkt; get_sync_status prüft die spätere Laptop-Bestätigung.")
+                : "Legt eine Arbeitsaufzeichnung mit tatsächlichen Kunden-/Auftrags-IDs an. request_id bei Wiederholung unverändert lassen. Erst lokal gesichert und im mobilen Drive-Abgleich vorgemerkt; get_sync_status prüft den Pixel-/Drive-Beleg.")
             .put("annotations",new JSONObject().put("readOnlyHint",false).put("destructiveHint",false).put("idempotentHint",true).put("openWorldHint",false)));
         return result;
     }
@@ -88,10 +88,10 @@ final class PixelMcpWriteTools {
         if(update) {
             JSONObject capabilities=master.optJSONObject("capabilities");
             if(capabilities==null || !Boolean.TRUE.equals(capabilities.opt("worklog_compare_and_save")))
-                throw new Rejected("REMOTE_GUARD_REQUIRED","Der gemeinsame Änderungsschutz fehlt im Gesamtstand. Bitte die aktuelle Web-/Drive-Verarbeitung bereitstellen und anschließend abgleichen.");
+                throw new Rejected("REMOTE_GUARD_REQUIRED","Der gemeinsame Änderungsschutz fehlt im Gesamtstand. Bitte Pixel-Datenstand und App-Version prüfen.");
             JSONObject old=find(master.optJSONArray("worklogs"),args.getString("work_record_id"));
             if(!hash(base(old)).equals(args.getString("expected_record_hash")))throw new Rejected("WRITE_CONFLICT","Der Eintrag wurde inzwischen geändert. Bitte erneut öffnen und die Änderung prüfen.");
-            JSONArray pending=state.optJSONArray("pending");for(int i=0;pending!=null&&i<pending.length();i++){JSONObject a=pending.getJSONObject(i),p=a.optJSONObject("payload");if(p!=null&&old.getString("id").equals(p.optString("id")))throw new Rejected("WRITE_CONFLICT","Für diesen Eintrag ist bereits eine Änderung vorgemerkt. Bitte zuerst abgleichen.");}
+            JSONArray pending=PixelDriveState.ENGINE.equals(master.optString("processing_engine"))?null:state.optJSONArray("pending");for(int i=0;pending!=null&&i<pending.length();i++){JSONObject a=pending.getJSONObject(i),p=a.optJSONObject("payload");if(p!=null&&old.getString("id").equals(p.optString("id")))throw new Rejected("WRITE_CONFLICT","Für diesen Eintrag ist bereits eine Änderung vorgemerkt. Bitte zuerst abgleichen.");}
             JSONObject patch=args.getJSONObject("updates");
             // Issued/billed service data is immutable; private notes may still be supplemented.
             boolean invoiced=old.optInt("billed",0)!=0; JSONArray invoices=master.optJSONArray("invoices");

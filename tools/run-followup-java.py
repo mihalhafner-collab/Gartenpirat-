@@ -20,7 +20,7 @@ android = sdk/'platforms/android-37.0/android.jar'
 classes = ROOT/'outputs/integration-java/classes'
 classes.mkdir(parents=True, exist_ok=True)
 src = ROOT/'android/app/src/main/java/at/hausgarten/service'
-names = ['OfferRules', 'OfferTools', 'OfferJournalRules', 'LegacyConflictRules', 'PhotoPolicy', 'BillingRules', 'WorklogRules', 'PixelMcpWriteTools', 'EntityProtectionRules',
+names = ['InvoiceIssueRules', 'DriveNumbering', 'DrivePrimaryState', 'PixelDriveState', 'OfferRules', 'OfferTools', 'OfferJournalRules', 'LegacyConflictRules', 'PhotoPolicy', 'BillingRules', 'WorklogRules', 'PixelMcpWriteTools', 'EntityProtectionRules',
          'PixelMcpEntityWriteTools', 'PixelMcpReadTools', 'PixelMcpSessionTools', 'PixelMcpBusinessTools',
          'WorklogRelationRules', 'ManualChangeRules', 'GardenRules', 'SyncActionOrder', 'DriveRestClient', 'DrivePublication', 'McpSchema', 'McpFileTransfer', 'InvoiceDraftRules', 'PixelMcpOwnerTools', 'OwnerJournalRules', 'DriveJournalRules', 'OrderReviewRules', 'PixelTunnelConfig',
          'PixelTunnelWire', 'WorkSessionPauseRules']

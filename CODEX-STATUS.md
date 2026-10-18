@@ -12,26 +12,26 @@ Repository: `mihalhafner-collab/Gartenpirat-`
 - Auftrag: **P0 Pixel/Drive Cloud-only Sync abschließen**
 - Operativer Zielpfad: Pixel ↔ Google Drive direkt
 - Entwicklungsweg: ausschließlich Codex Cloud
-- Repository-Version: 1.49.1 / 70
+- Repository-Version: 1.49.2 / 71 (Cloud-Kandidat, nicht produktiv abgenommen)
 - Live-Pixel bei letzter Prüfung: 1.49.0 / 69
 - Live `offers_sync_ready`: false
 - Live `service_catalog_sync_ready`: false
 - Live `cloud_confirmed`: false
 - Live Queue: 9 Review-Aktionen
 - `get_business_settings`: SETTINGS_UNAVAILABLE
-- Produktive Laptop-/Web-Abhängigkeit: noch nicht vollständig entfernt
+- Quelle: native Pixel-/Drive-Verarbeitung implementiert; live noch Build 69 mit alter Abhängigkeit. **Gesamtauftrag NICHT abgeschlossen; P0/P1-Abnahme offen.**
 
 ## Arbeitsstatus
 
 | Phase | Status | Ergebnis |
 |---|---|---|
-| A – Bestand verifizieren | OFFEN | Noch von Codex Cloud auszuführen |
-| B – produktive Laptop-Abhängigkeit entfernen | OFFEN | |
-| C – Pixel/Drive-Sync vervollständigen | OFFEN | |
-| D – 2 technische Testfehler bereinigen | OFFEN | |
-| E – 7 Legacy-Konflikte kontrolliert schließen | OFFEN | |
-| F – End-to-End-Abnahme | OFFEN | |
-| G – neuer Release-Build + Originalsignierung | OFFEN | |
+| A – Bestand verifizieren | PASS | Regeln, Issue #1, Historien und Live-MCP geprüft; keine Betriebsdatenänderung |
+| B – produktive Laptop-Abhängigkeit entfernen | PASS (Analyse/Zielpfad) | Abhängigkeiten ermittelt; native Ablösung in C in Arbeit, noch keine operative Abnahme |
+| C – Pixel/Drive-Sync vervollständigen | PASS Host / NOT TESTABLE Gerät | Native Migration, Gesamtstände, Handler, Belege, Finanzabschluss; Geräte-/Google-Abnahme offen |
+| D – 2 technische Testfehler bereinigen | NOT TESTABLE live | Synthetischer Replay/Supersession PASS; beide Live-Aktionen unverändert |
+| E – 7 Legacy-Konflikte kontrolliert schließen | Vorschau PASS / Ausführung gesperrt | Genau 7 bestätigt; direkte Drive-Abnahme und neue vollständige Sicherung fehlen |
+| F – End-to-End-Abnahme | Host PASS / Gerät NOT TESTABLE | 266 Python, 637 JVM-Prüffälle, 24 Browser-Suiten; echte Pixel-Schreibabnahme fehlt |
+| G – neuer Release-Build + Originalsignierung | IN ARBEIT | Cloud-Build/Signatur als Prüf-Kandidat, keine Installations-/Releasefreigabe |
 
 ## Bekannte technische Queue-Einträge
 
@@ -87,3 +87,62 @@ Nächster Schritt:
 - Ergebnis:
 - Offene Probleme:
 - Nächster Schritt:
+
+### Eintrag 1 – Phase A / verifizierter Cloud-Ausgangspunkt
+
+- Datum: 2026-10-18 (UTC)
+- Commit vorher: `354cb496264d09ed92957aeea09b1b71ad932389` (sauber).
+- Commit nachher / Implementierungsbasis: `a38765d586c3ea02b999e770e5ecb22b34642962`. Bestehende Cloud-Branch ausschließlich per Fast-forward vorgezogen; main unverändert. GitHub bestätigt main sowie Reparatur-Branch `90bfc1660e0345d19a461f12f74b7e163492532a`; beide enthalten die bisherige Cloud-Implementierung und den Pflichtvorfahren `05fdcbe`. Veralteter origin/Cloud-Trackingref `36e5567` nicht verwendet.
+- Geänderte Dateien: CODEX-STATUS.md (Arbeitsnachweis); alle neuen Vorgaben gelesen, einschließlich Originalsignierung, Reparaturhinweis und Issue #1.
+- Ausgeführte Prüfungen: Git-Status/Ancestry, Repository-/Remotevergleich; live ausschließlich get_capabilities, integration_health, get_sync_overview.
+- Ergebnis PASS: Repo 1.49.1/70; installierter Pixel 1.49.0/69, Paket at.hausgarten.service, Datenbank 4, Protokoll 3, 83 Werkzeuge, Kataloghash `0741dc4553e5e43baf537d996cd4efbb79eaa6f4fb0bcf6c543f3ea412e11a55`; ready/write_enabled. Snapshot meldet Schema 1. Drive transport android_provider, offers/service_catalog false, cloud_confirmed=false, provider_readback. Queue unverändert 9 (6 Löschprüfungen, 1 Kundenkonflikt, 2 technische Aktionen); archiviert 0. Keine Queue-Aktion geändert.
+- Offene Probleme: Produktiver Import/Nummernpfad setzt noch externen Prozessor voraus; Originalsignatur der installierten APK und native Kamera-/Updateabnahme nicht aus MCP prüfbar. Installation ohne neue Sicherung und ausdrückliche Freigabe gesperrt.
+- Abnahmekriterien B/C: validierte native Handler und dauerhafte Aktionshash-Belege; versionierter Pixel-Gesamtstand nach Neustart wieder einlesen; alte Originaldatei erhalten; unbekannte Settings/Nummernstände fail-closed; echte Geschäftsdatensätze bleiben unverändert.
+- Nächster Schritt: B/C – Pixel/Drive-native Verarbeitung und isolierte Regressionen.
+
+### Eintrag 2 – Phase B / Abhängigkeiten und nativer Zielpfad
+
+- Datum: 2026-10-18 (UTC); Basis weiterhin a38765d.
+- Status: PASS für Abhängigkeitsanalyse; Umsetzung/Abnahme in C offen.
+- Befunde: DriveSyncCoordinator las immer die alte HausGarten-Laptop.json. SAF publish war leer, direkte REST-Veröffentlichungen wurden beim nächsten Lauf nicht als Ausgangsstand eingelesen. Settings und Compare-Freigaben erwarteten Python-exportierte Capabilities; Abschluss/Korrektur warteten auf invoicing.py.
+- Entscheidung: unveränderliche Gesamtstände und verknüpfte Commit-Belege im vorhandenen Drive-Ordner lesen/schreiben; Altdatei unverändert erhalten. Native Handler migrieren das additive Schema und ihre eigenen Capabilities. Settings übernehmen nur nachgewiesene Felder, fehlende Werte bleiben unbekannt. Finanzabschluss benötigt online geschützte, explizit bestätigte Pixel-Nummernhoheit; SAF allein bietet keinen atomaren Nummernvergleich.
+- Geänderte Dateien bisher: PixelDriveState.java, DrivePrimaryState.java, DriveSyncCoordinator.java, DriveDirectFiles.java, DriveRestClient.java, DrivePublication.java, DriveJournalRules.java, OwnerJournalRules.java, PixelOwnerAccess.java, MainActivity.java, tools/run-followup-java.py; noch in Arbeit, keine Freigabe.
+- Tests: statische Abhängigkeitsprüfung; automatisierte Qualifikation folgt nach vollständiger Integration in C. Keine produktive Aktion. Legacy-Python-/Web-Code und Tests bleiben als Kompatibilitäts-/Testreferenz erhalten.
+- Nächster Schritt: C, atomare native Regeln, Wiederanlauf und synthetische Tests.
+
+### Eintrag 3 – Phase C / native Implementierung und isolierte Qualifikation
+
+- Datum: 2026-10-18 18:30 UTC; Ausgangscommit a38765d; Änderungen noch auf derselben Cloud-Branch.
+- Status: PASS (statisch/automatisiert), NOT TESTABLE (Gerät/echtes Google).
+- Dateien: neue Produktionsklassen PixelDriveState, DrivePrimaryState, DriveNumbering, InvoiceIssueRules; bestehende DriveSyncCoordinator/DirectFiles/RestClient/Publication/JournalRules, OwnerJournalRules, MainActivity, PixelOwnerAccess und MCP-Adapter aktualisiert. Bestehende UI owner-ui, invoice-draft, mobile, sync-dashboard; bestehende native Abnahmen und JVM-/Browser-Tests erweitert. Neue PixelDriveStateTests; Java-Runner ergänzt. Version auf 1.49.2/71 erhöht.
+- Ergebnis: Pixel verarbeitet die vorhandenen Entitäten, Settings, Archiv-/Konfliktaktionen und Korrekturentwürfe nativ. Neue Gesamtstände/Commitketten werden im selben Drive-Ordner unveränderlich veröffentlicht und beim nächsten Lauf wieder gelesen; alte HausGarten-Laptop.json wird nicht überschrieben. Parallel geänderte Altquelle, fremder primärer Pixel, Lücken/Forks und andere Aktionshashes stoppen. JSON bleibt frei von Originalmedien. Fehlende Settings bleiben unbekannt, bekannte/zusätzliche Felder bleiben erhalten. CAS auch für Settings/Fotos/Entwürfe und lokale Offline-Vorgängerketten. Native Leseansichten projizieren nur validierte Änderungen; eine verspätete 3-Stunden-Variante kann eine ausgestellte 2-Stunden-Leistung auch in der Ansicht nicht überschreiben. Vorschauen erzeugen keine Belege.
+- Neuer Finanzjournaltyp pixel_invoice_issue_v1 wird von alten Prozessoren nicht finalisiert. Internes MCP-Protokoll 4, weiterhin 83 Werkzeugnamen und kompatible MCP-RPC-Verhandlung. Expliziter Abschluss bindet Entwurf, Arbeitsstände, Aussteller und Empfänger; bestätigte alleinige Pixel-Nummernhoheit, aktueller Ausgangszähler und Online-CAS erforderlich. Negative CAS-Probe ausschließlich auf technischer Probe-Datei, nie auf dem echten Zähler. Fehlender ETag oder nicht abgewiesener Vergleich blockiert. Persistente Reservierung bei verlorener Antwort wiederverwenden; PDF separat hashgebunden, Geschäftsmutation/Beleg im gemeinsamen Gesamtstand. Kein automatischer Versand/Bezahltstatus; b.b. bleibt getrennt.
+- get_sync_overview ergänzt technische Bestandszahlen und Sammlungshashes ohne Betriebsinhalte; native Kamera-/Bitmap-/PDF-/SAF-Tests nur vorbereitet/kompiliert.
+- Tests PASS: 15 JVM-Suiten / 637 Fälle (davon 73 neue Pixel-/Drive-Fälle); 266 Python-Tests ohne schlüsselerzeugende QA-Suite; 21 bestehende Browser-Suiten plus access-integrity (8), sync-customer-gallery (14), offers-photo-library (14). Synthetische Daten/Brücken, keine Betriebsdaten. Pflanzenquelle 181 Profile/362 Bilder unverändert, Spiegel geschrieben/geprüft.
+- Offene Probleme: reale Google-CAS-Unterstützung, Android-Speicher-/Providerablauf und Update/Datenerhalt nicht bestätigt. Native Testquellen sind kein Ausführungsnachweis.
+
+### Eintrag 4 – Phase D / technische Aktionen geprüft, Live-Ausführung blockiert
+
+- Datum: 2026-10-18; Basis a38765d plus qualifizierte Cloud-Änderungen.
+- Status: PASS synthetisch / NOT TESTABLE live.
+- Die Angebotsaktion b6f1…539da bleibt live SYNC_COMPONENT_UPDATE_REQUIRED; der ursprüngliche Aktionshash lautet e1df44d3146a8d0e4ce1dd901f45332093aab65e3e0b0ae4e4f0986ffb6c40c0. Die spätere Kontrollaktion 43e8…e54c bleibt ACTION_ID_CONFLICT (51562d617c3418e3538a009a5b3b0ac149122c2920e8064b2666056be8046208). Vollständige IDs oben erhalten.
+- Native Tests übernehmen ein synthetisches Angebot genau einmal und archivieren die überholte Kontrollaktion nur nach geprüftem Originalhash als superseded/no_business_data_changed. Manipulation blockiert; keine blinde Kontrollentscheidung.
+- Live läuft weiterhin 69. Keine alte Aktion umgeschrieben, erneut erzeugt, gelöscht oder manuell aufgelöst. Neuer Handler benötigt freigegebenes Update und direkten Drive-Abgleich.
+
+### Eintrag 5 – Phase E / Legacy-Vorschau geprüft, keine Auflösung
+
+- Datum: 2026-10-18; Status Vorschau PASS / Ausführung NOT TESTABLE.
+- Live preview_legacy_conflict_resolution bestätigt genau die sieben oben dokumentierten IDs, keep_current, no_business_data_changed. Preview-Hash 68c60929c2477b987524f578cade273d041a74380863b5dc6b2af146bab9f5c7. Sechs DELETE_REVIEW_REQUIRED, ein WRITE_CONFLICT; keine Löschung ausgeführt.
+- Vorhandenes Geschäftsbackup nur inspiziert: SHA256 unverändert 4683945a1d959e34aeea818768eb8fc618ef2a9cc424e76054c05072e278cb6b; historische Sicherungszahlen 51 Kunden/1 Auftrag/173 Arbeiten/95 Rechnungen/12 Fotos/32 Bausteine/0 Angebote. Das sind Backup-Zahlen, kein neuer vollständiger Geräte-Bestandstest. Alte Live-Leseübersicht: 50 Kunden/1 Auftrag/171 Arbeiten; alte Löschvorschläge verstecken Einträge in der Leseüberlagerung. Neuer Code erhält deren Sichtbarkeit und ändert dadurch keine Datensätze.
+- Geprüfter aktueller State-Hash bei inspect_backup: eb8b38a8f16ae473086a2667875081db6c8c0b64205a17cae283ae127dfdb6ea (einschließlich flüchtiger Sync-Metadaten, kein reiner Geschäftshash). Kein vollständiger Vorher/Nachher-Geschäftshash über Build 69 verfügbar.
+- Neue Backup-Funktion erfordert erst direkte Drive-Verbindung mit Serverbeleg und ausschließlich sieben historische Restfälle. Sichert SQLite, lokale Medien, aktuelle Pixel-Veröffentlichung samt Commit und erhaltene Altdatei. Backup-/Vorschau-/Aktions-/Datensatzhash werden erneut geprüft. keep_current darf keine Foto-Originale nachträglich bereinigen.
+- Es wurde kein neues Backup als vollständige Gerätesicherung ausgegeben und keine Sammelentscheidung gesendet. Queue bleibt 9, historische Archivierungen 0.
+
+### Eintrag 6 – Phase F / Testgrenzen und verbleibende Abnahme
+
+- Datum: 2026-10-18; Status Host PASS / Pixel-End-to-End NOT TESTABLE.
+- Isoliert geprüft: Migration ohne Settings-Defaults, unbekannte Felder, Angebot/Katalog/Settings und Offline-Entwurfsänderungen, Hash-Konflikte, Requests/Replays, Infrastruktur-Replay und Supersession, 7 keep_current-Fälle ohne Geschäftsänderung, Crash vor Commit/Antwortverlust, Zähler-Rennen/fehlender Versionsschutz, Rechnungsrennen, Archiv/Beziehungen, Rendering und Medien-Metadaten. PDF-Validierung Python tatsächlich ausgeführt; neue native PDF-Erzeugung nur kompiliert.
+- Foto-Browser: 105 synthetische Metadaten, 30/60 Vorschauen, 21 sequenzielle Importe plus fehlerhafte Datei; keine native Abnahme von 100 Originalfotos. Bestehende Komprimierung 3072 px/JPEG 84, kleine Bilder erhalten, getrennte Originale/Vorschaudateien unverändert. Kamera am Pixel NOT TESTABLE.
+- Live lesend: 83 Werkzeuge einschließlich aller 11 Angebots-/Kontextwerkzeuge und create_invoice_draft/update_invoice_draft/request_invoice_issue/prepare_invoice_share. Sichtbarkeit beweist keine Schreibfunktion. get_business_settings auf 69 bestätigt SETTINGS_UNAVAILABLE; offers/service_catalog bleiben false. Keine Live-Schreibtests, Timeraktion oder Geschäftsdatenmutation durchgeführt.
+- P0 offen: neue App am Pixel abnehmen und direkte Drive-Veröffentlichung nachweisen; technische 2 plus historische 7 sicher abschließen; gesamter MCP-Testplan mit isoliertem Testkunden nach Update. P1 offen: Google-Konto/OAuth-/Ordnerrechte, echte CAS-Negativprobe, vollständige Gerätesicherung und ausdrückliche Installationsfreigabe, nativer Kamera-/In-place-Update-/Datenerhalt-Test. Keine ununterbrochene Verfügbarkeit zugesichert.
+- Nächster sicherer Schritt: Originalsignierten Cloud-Prüfkandidaten konkret bereitstellen. Danach vollständige Gerätesicherung und ausdrückliche Updatefreigabe; kein automatisches Installieren.

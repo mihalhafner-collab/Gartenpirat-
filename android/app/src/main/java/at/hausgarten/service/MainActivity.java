@@ -455,7 +455,7 @@ public class MainActivity extends Activity {
             JSONObject snapshot=new JSONObject(store.snapshotText(readAsset("initial-data.json")));
             JSONArray invoices=snapshot.optJSONArray("invoices");
             if(invoices!=null)for(int i=0;i<invoices.length();i++){JSONObject row=invoices.getJSONObject(i);if(identifier.equals(row.optString("id"))&&(!row.optString("issued_at").isEmpty()||!"Entwurf".equals(row.optString("status"))))throw new Exception("Abgeschlossene Rechnungen bleiben unverändert.");}
-            try(Cursor cursor=store.getReadableDatabase().rawQuery("SELECT payload FROM pending WHERE kind='invoice_issue'",null)){
+            try(Cursor cursor=store.getReadableDatabase().rawQuery("SELECT payload FROM pending WHERE kind IN ('invoice_issue','owner_invoice_issue','pixel_invoice_issue_v1')",null)){
                 while(cursor.moveToNext())if(identifier.equals(new JSONObject(cursor.getString(0)).optString("id")))throw new Exception("Abschluss bereits vorgemerkt. Bitte Drive-Abgleich abwarten.");
             }
         }
@@ -555,7 +555,7 @@ public class MainActivity extends Activity {
                 if(!inline)return;recordSnapshotPhotoAttachments(snapshot);preferences.edit().putString("drive_snapshot",snapshot.toString()).commit();
             }catch(Exception ignored){/* Preserve the original snapshot; getState still withholds inline binary. */}
         }
-        private void documentReferences(JSONObject snapshot)throws Exception{
+        void documentReferences(JSONObject snapshot)throws Exception{
             JSONArray invoices=snapshot.optJSONArray("invoices");for(int i=0;invoices!=null&&i<invoices.length();i++){JSONObject invoice=invoices.getJSONObject(i);String inline=invoice.optString("pdf_base64");if(inline.isEmpty())continue;if(inline.length()>28*1024*1024)throw new IOException("Original-PDF ist zu groß.");byte[] raw=android.util.Base64.decode(inline,android.util.Base64.DEFAULT);String hash=PhotoAttachmentStore.sha256(raw);if(!invoice.optString("pdf_sha256").isEmpty()&&!hash.equals(invoice.getString("pdf_sha256")))throw new IOException("Original-PDF hat eine abweichende Prüfsumme.");invoice.put("pdf_sha256",hash).put("pdf_storage_name",hash+".pdf").put("pdf_byte_size",raw.length).put("document_id","invoice:"+invoice.getString("id"));new BusinessDocumentStore(context).store(raw,invoice);invoice.remove("pdf_base64");}
         }
         private void removeSnapshotPhotoBinaries(JSONObject snapshot){
@@ -575,6 +575,7 @@ public class MainActivity extends Activity {
             int count;try(Cursor row=getReadableDatabase().rawQuery("SELECT length(value) FROM owner_state WHERE key=?",new String[]{key})){if(!row.moveToFirst())return fallback;count=row.getInt(0);}
             StringBuilder out=new StringBuilder();for(int offset=0;offset<count;offset+=32768)try(Cursor row=getReadableDatabase().rawQuery("SELECT substr(value,?,32768) FROM owner_state WHERE key=?",new String[]{Integer.toString(offset+1),key})){if(!row.moveToFirst())return fallback;out.append(row.getString(0));}return out.toString();
         }
+        void seedServiceCatalog(JSONObject snapshot)throws Exception{if(!snapshot.optBoolean("service_catalog_initialized")&&snapshot.getJSONArray("service_catalog").length()==0)snapshot.put("service_catalog",new JSONArray(readAsset("service-catalog.json")));snapshot.put("service_catalog_initialized",true);}
         void commitSnapshot(JSONObject snapshot,Set<String> confirmed)throws Exception{
             SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{putOwnerValue("snapshot",snapshot.toString());acknowledge(confirmed);db.setTransactionSuccessful();}finally{db.endTransaction();}
         }
@@ -595,7 +596,7 @@ public class MainActivity extends Activity {
         }
         private JSONObject getStateLocked() {
             JSONObject output = new JSONObject();
-            try { JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));removeSnapshotPhotoBinaries(master);documentReferences(master);DriveJournalRules.validateSnapshot(master);if(master.getJSONArray("service_catalog").length()==0)master.put("service_catalog",new JSONArray(readAsset("service-catalog.json")));output.put("master",master); output.put("pending", DriveJournalRules.union(pendingActions(),output.getJSONObject("master").optJSONArray("drive_review_actions"))); output.put("last_drive_sync", preferences.getString("last_drive_sync", ""));output.put("work_session",new WorkSessionStore(getWritableDatabase(),context).current());output.put("sync_queue",DriveJournalRules.queueStatus(output.getJSONObject("master"),output.getJSONArray("pending"))); }
+            try { JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));removeSnapshotPhotoBinaries(master);documentReferences(master);PixelDriveState.prepare(master);seedServiceCatalog(master);output.put("master",master); output.put("pending", DriveJournalRules.union(pendingActions(),output.getJSONObject("master").optJSONArray("drive_review_actions"))); output.put("last_drive_sync", preferences.getString("last_drive_sync", ""));output.put("work_session",new WorkSessionStore(getWritableDatabase(),context).current());output.put("sync_queue",DriveJournalRules.queueStatus(output.getJSONObject("master"),output.getJSONArray("pending"))); }
             catch (Exception error) { try { output.put("error", error.getMessage()); } catch (Exception ignored) {} }
             try{output.put("drive_sync_failed",preferences.getBoolean("drive_sync_failed",false)).put("last_sync_attempt",preferences.getString("last_sync_attempt","")).put("cloud_confirmed",preferences.getBoolean("drive_cloud_confirmed",false)&&output.getJSONObject("sync_queue").getInt("total")==0).put("confirmation_scope",preferences.getString("drive_confirmation_scope","local_only")).put("last_full_sync",preferences.getString("last_full_sync",""));}catch(Exception ignored){}
             return output;
@@ -807,11 +808,7 @@ public class MainActivity extends Activity {
                     rows.put(id, row);
                 }
             }
-            // Keep deletion precedence identical to the existing merged() JavaScript view.
-            for (int i = 0; i < actions.length(); i++) {
-                JSONObject action = actions.getJSONObject(i), payload = action.optJSONObject("payload");
-                if (payload != null && "delete".equals(action.optString("kind")) && kind.equals(payload.optString("entity"))) rows.remove(payload.optString("id"));
-            }
+            // Historical delete proposals cannot hide originals from editors.
             JSONArray result = new JSONArray();
             for (JSONObject row : rows.values()) result.put(row);
             return result;
@@ -867,8 +864,8 @@ public class MainActivity extends Activity {
         String saveInvoiceDraft(JSONObject payload) throws Exception {
             SQLiteDatabase db=getWritableDatabase();db.beginTransaction();
             try{JSONObject all=PixelMcpReadTools.effective(getState());String id=payload.optString("id");if(id.isEmpty())id="inv_mobile_"+UUID.randomUUID().toString().replace("-","");payload.put("id",id);
-                JSONObject old=findById(all.getJSONArray("invoices"),id);if(old!=null&&(all.optJSONObject("capabilities")==null||!all.getJSONObject("capabilities").optBoolean("invoice_compare_and_save")))throw new PixelMcpWriteTools.Rejected("REMOTE_GUARD_REQUIRED","Zuerst gemeinsame Web-/Drive-Verarbeitung aktualisieren und abgleichen. Rechnungsvergleichsschutz fehlt.");payload=ManualChangeRules.editor(payload,old,"invoice");
-                for(int i=0;i<getState().getJSONArray("pending").length();i++){JSONObject a=getState().getJSONArray("pending").getJSONObject(i);if(java.util.Arrays.asList("invoice_issue","owner_invoice_issue").contains(a.optString("kind"))&&id.equals(a.getJSONObject("payload").optString("id")))throw new IllegalArgumentException("Rechnungsabschluss ist bereits vorgemerkt.");}
+                JSONObject old=findById(all.getJSONArray("invoices"),id);payload=ManualChangeRules.editor(payload,old,"invoice");
+                for(int i=0;i<getState().getJSONArray("pending").length();i++){JSONObject a=getState().getJSONArray("pending").getJSONObject(i);if(java.util.Arrays.asList("invoice_issue","owner_invoice_issue","pixel_invoice_issue_v1").contains(a.optString("kind"))&&id.equals(a.getJSONObject("payload").optString("id")))throw new IllegalArgumentException("Rechnungsabschluss ist bereits vorgemerkt.");}
                 InvoiceDraftRules.normalize(payload,old,all);if(payload.optString("invoice_number").isEmpty())payload.put("invoice_number","Entwurf-"+id);
                 prepareManualChange("invoice",payload,old);String result=saveAction("invoice","inv_mobile_",payload);db.setTransactionSuccessful();return result;
             }finally{db.endTransaction();}
@@ -988,7 +985,7 @@ public class MainActivity extends Activity {
                 JSONObject action=submitted.optJSONObject(i),payload=action==null?null:action.optJSONObject("payload");if(payload==null)continue;
                 String client=action.optString("client_id"),kind=action.optString("kind"),id=payload.optString("id");
                 if("photo".equals(kind)&&!confirmed.contains(client)&&!id.isEmpty())protectedPending.add(id);
-                if("delete".equals(kind)&&"photo".equals(payload.optString("entity"))&&confirmed.contains(client)&&!id.isEmpty())candidates.add(id);
+                if("delete".equals(kind)&&"photo".equals(payload.optString("entity"))&&confirmed.contains(client)&&!id.isEmpty()&&(snapshot.optJSONObject("drive_resolved_actions")==null||!snapshot.getJSONObject("drive_resolved_actions").has(client)))candidates.add(id);
             }
             candidates.removeAll(active);candidates.removeAll(protectedPending);
             if(candidates.isEmpty())return;

@@ -39,8 +39,9 @@ final class DriveSyncCoordinator {
                 String tree=prefs.getString("drive_tree_uri","");if(tree.isEmpty()&&!files.cloudVerified())throw new IOException("Bitte zuerst den bestehenden Drive-Ordner auswählen.");
                 String incoming=files.read("HausGarten-Laptop.json");
                 if(incoming==null)throw new IOException("Der Gesamtstand HausGarten-Laptop.json fehlt im ausgewählten Ordner. Es wird kein leerer Ersatz angelegt.");
-                JSONObject snapshot=new JSONObject(incoming);DriveJournalRules.validateSnapshot(snapshot);
+                JSONObject legacy=new JSONObject(incoming);DriveJournalRules.validateSnapshot(legacy);
                 if(device==null||!device.matches("[a-zA-Z0-9_-]+"))throw new IOException("Die Gerätekennung fehlt. Keine neue Änderungsdatei angelegt.");
+                JSONObject snapshot=files.readPrimary(legacy,device);store.seedServiceCatalog(snapshot);snapshot.put("drive_publisher_id",device);
                 String name="HausGarten-Mobile-"+device+".json";
                 LinkedHashMap<String,String> originals=new LinkedHashMap<>();
                 JSONArray own=new JSONArray(),others=new JSONArray();
@@ -76,12 +77,26 @@ final class DriveSyncCoordinator {
                 JSONArray ready=new JSONArray(),mediaErrors=new JSONArray();
                 for(int i=0;i<all.length();i++){JSONObject a=all.getJSONObject(i);Exception failure="photo".equals(a.optString("kind"))?blockedPhotos.get(a.getJSONObject("payload").optString("id")):null;
                     if(failure==null)failure=blockedDocuments.get(a.getString("client_id"));
-                    if(!componentReady(snapshot,a)){mediaErrors.put(new JSONObject().put("client_id",a.getString("client_id")).put("kind",a.getString("kind")).put("code","SYNC_COMPONENT_UPDATE_REQUIRED").put("error","Gemeinsame Web-/Drive-Verarbeitung für Angebote und Leistungskatalog zuerst aktualisieren. Lokale Aktion bleibt erhalten; andere Bereiche werden weiter abgeglichen."));continue;}
+                    if(!componentReady(snapshot,a)){mediaErrors.put(new JSONObject().put("client_id",a.getString("client_id")).put("kind",a.getString("kind")).put("code","SYNC_COMPONENT_UPDATE_REQUIRED").put("error","Unbekannte Pixel-Verarbeitung; App-Aktualisierung prüfen. Lokale Aktion bleibt erhalten; andere Bereiche werden weiter abgeglichen."));continue;}
                     if(failure==null)ready.put(a);else mediaErrors.put(new JSONObject().put("client_id",a.getString("client_id")).put("kind",a.getString("kind")).put("code",failure instanceof DriveRestClient.Failure?((DriveRestClient.Failure)failure).code:"MEDIA_TRANSFER_PENDING").put("error",friendly(failure)));}
-                JSONArray errors=DriveJournalRules.apply(snapshot,ready);
+                JSONArray errors=DriveJournalRules.apply(snapshot,ready,(trial,event)->{
+                    JSONObject prepared=InvoiceIssueRules.prepare(trial,event,java.time.LocalDate.now(java.time.ZoneId.of("Europe/Vienna")));
+                    JSONObject reservation=files.reserveInvoice(trial,event);String key="issued-preparation:"+event.getString("client_id");
+                    String saved=store.ownerValue(key,"");JSONObject document;
+                    if(!saved.isEmpty()){JSONObject cached=new JSONObject(saved);if(!PixelMcpWriteTools.hash(event).equals(cached.getString("action_sha256"))||!PixelMcpWriteTools.hash(reservation).equals(cached.getString("reservation_sha256")))throw new IOException("Unveränderliche Abschlussvorbereitung weicht ab.");document=cached.getJSONObject("document");}
+                    else{prepared.put("invoice_number",reservation.getString("invoice_number"));if(!prepared.optString("correction_of").isEmpty())prepared.put("correction_original_number",PixelMcpWriteTools.find(trial.getJSONArray("invoices"),prepared.getString("correction_of")).optString("invoice_number"));
+                        document=new BusinessDocumentStore(context).createInvoice(prepared);store.putOwnerValue(key,new JSONObject().put("action_sha256",PixelMcpWriteTools.hash(event)).put("reservation_sha256",PixelMcpWriteTools.hash(reservation)).put("document",document).toString());}
+                    files.writeDocumentVerified(document,new BusinessDocumentStore(context).read(document));for(Iterator<String> keys=document.keys();keys.hasNext();){String k=keys.next();prepared.put(k,document.get(k));}
+                    InvoiceIssueRules.commit(trial,prepared,reservation,event.getString("created_at"));
+                });
                 for(int i=0;i<mediaErrors.length();i++)errors.put(mediaErrors.getJSONObject(i));snapshot.put("drive_journal_errors",errors);
                 snapshot.put("drive_review_actions",DriveJournalRules.reviewActions(snapshot,all));
-                store.recordSnapshotPhotoAttachments(snapshot);
+                store.recordSnapshotPhotoAttachments(snapshot);store.documentReferences(snapshot);
+                JSONArray missingDocuments=new JSONArray();
+                for(String collection:new String[]{"invoices","offers"})for(int i=0;i<snapshot.getJSONArray(collection).length();i++){JSONObject doc=snapshot.getJSONArray(collection).getJSONObject(i);if(doc.optString("pdf_storage_name").isEmpty())continue;
+                    try{files.ensureDocument(doc,new BusinessDocumentStore(context));}
+                    catch(Exception unavailable){missingDocuments.put(new JSONObject().put("entity_type",collection.equals("invoices")?"invoice":"offer").put("entity_id",doc.getString("id")).put("code","DOCUMENT_ORIGINAL_REQUIRED").put("message","Original-PDF fehlt oder ist noch nicht bestätigt; andere Änderungen bleiben nutzbar."));}}
+                snapshot.put("drive_media_errors",missingDocuments);
                 // Commit data before dropping acknowledged local queue rows. Crash retries are idempotent.
                 snapshot.put("sync_primary","pixel").put("drive_storage","snapshot_and_journals").put("drive_delivered_ids",new JSONArray(deliveredIds)).put("drive_publisher_id",device);
                 JSONObject publication=files.publish(snapshot,deliveredActions);
@@ -143,6 +158,9 @@ final class DriveSyncCoordinator {
         final Context context;final ContentResolver resolver;final Uri tree;final SharedPreferences prefs;int duplicates;
         Files(Context c,Uri t,SharedPreferences p){context=c;resolver=c.getContentResolver();tree=t;prefs=p;}
         boolean cloudVerified(){return false;}
+        void ensureDocument(JSONObject metadata,BusinessDocumentStore local)throws Exception {
+            byte[] bytes;try{bytes=local.read(metadata);}catch(IOException absent){bytes=readDocumentVerified(metadata);local.store(bytes,metadata);}writeDocumentVerified(metadata,bytes);
+        }
         private Uri documentDirectory(boolean create)throws Exception{
             ArrayList<Doc> found=matches("HausGarten-Dokumente");if(found.size()>1)throw new IOException("Mehrere Dokumentordner; nichts überschrieben.");if(!found.isEmpty())return found.get(0).uri;if(!create)throw new IOException("Dokumentordner fehlt.");
             Uri root=DocumentsContract.buildDocumentUriUsingTree(tree,DocumentsContract.getTreeDocumentId(tree));Uri d=DocumentsContract.createDocument(resolver,root,DocumentsContract.Document.MIME_TYPE_DIR,"HausGarten-Dokumente");if(d==null)throw new IOException("Dokumentordner nicht beschreibbar.");return d;
@@ -159,7 +177,38 @@ final class DriveSyncCoordinator {
             try{try(OutputStream out=resolver.openOutputStream(temporary,"wt")){if(out==null)throw new IOException("Dokument ist nicht beschreibbar.");out.write(bytes);}checkDocument(readBytes(temporary),metadata);publicationAttempted=true;Uri finalUri=DocumentsContract.renameDocument(resolver,temporary,name);if(finalUri==null)throw new IOException("Dokument konnte nicht benannt werden.");own=finalUri;checkDocument(readDocumentVerified(metadata),metadata);complete=true;}
             finally{if(!complete&&!publicationAttempted)try{DocumentsContract.deleteDocument(resolver,own);}catch(Exception ignored){}}
         }
-        JSONObject publish(JSONObject snapshot,JSONArray actions)throws Exception{return new JSONObject();}
+        JSONObject reserveInvoice(JSONObject state,JSONObject action)throws Exception{throw new PixelMcpWriteTools.Rejected("DIRECT_DRIVE_REQUIRED","Rechnungsabschluss benötigt direkte Google-Drive-Verbindung mit atomarem Nummernvergleich. Entwurf bleibt erhalten.");}
+        JSONObject readPrimary(JSONObject legacy,String device)throws Exception {
+            Map<String,Doc> index=new LinkedHashMap<>();for(Doc d:documents())index.put(d.id,d);
+            return DrivePrimaryState.recover(legacy,device,new DrivePrimaryState.Storage(){
+                public Map<String,String> commits(){Map<String,String> out=new LinkedHashMap<>();for(Doc d:index.values())if(d.name.startsWith("HausGarten-Commit-"))out.put(d.id,d.name);return out;}
+                public byte[] read(String id)throws Exception{Doc d=index.get(id);if(d!=null)return Files.this.read(d.uri).getBytes(StandardCharsets.UTF_8);throw new IOException("Veröffentlichter Gesamtstand fehlt; keine leere Wiederanlage.");}
+            });
+        }
+        Doc immutable(String name,byte[] bytes)throws Exception {
+            ArrayList<Doc> found=matches(name);if(found.size()>1)throw new IOException("Mehrdeutige Veröffentlichung; Originale erhalten.");
+            if(found.size()==1){if(!Arrays.equals(read(found.get(0).uri).getBytes(StandardCharsets.UTF_8),bytes))throw new IOException("Unveränderliche Veröffentlichung hat anderen Inhalt.");return found.get(0);}
+            Uri root=DocumentsContract.buildDocumentUriUsingTree(tree,DocumentsContract.getTreeDocumentId(tree));
+            Uri temp=DocumentsContract.createDocument(resolver,root,"application/json",".uploading-state-"+UUID.randomUUID());if(temp==null)throw new IOException("Gesamtstand nicht beschreibbar.");
+            // Never delete a successfully written object after a rename/readback ambiguity.
+            try(OutputStream out=resolver.openOutputStream(temp,"wt")){if(out==null)throw new IOException("Gesamtstand nicht beschreibbar.");out.write(bytes);}
+            if(!Arrays.equals(read(temp).getBytes(StandardCharsets.UTF_8),bytes))throw new IOException("Gesamtstand-Lesekontrolle fehlgeschlagen.");
+            Uri finalUri=DocumentsContract.renameDocument(resolver,temp,name);if(finalUri==null)throw new IOException("Gesamtstand-Veröffentlichung unbestätigt.");
+            if(!Arrays.equals(read(finalUri).getBytes(StandardCharsets.UTF_8),bytes))throw new IOException("Gesamtstand-Lesekontrolle fehlgeschlagen.");
+            return new Doc(DocumentsContract.getDocumentId(finalUri),name,finalUri,0);
+        }
+        JSONObject publish(JSONObject snapshot,JSONArray actions)throws Exception {
+            JSONObject current=readPrimary(new JSONObject(read("HausGarten-Laptop.json")),snapshot.getString("drive_publisher_id"));DrivePrimaryState.checkParent(snapshot,current);
+            byte[] state=DrivePublication.stateBytes(snapshot);String sha=DriveRestClient.sha256(state);
+            if(sha.equals(snapshot.optString("drive_parent_state_sha256")))return new JSONObject().put("publication_id",snapshot.getString("drive_parent_publication_id")).put("receipts",new JSONObject());
+            Doc stored=immutable("HausGarten-State-"+sha+".json",state);
+            JSONObject manifest=DrivePublication.manifest(snapshot,actions,stored.id,sha).put("state_name",stored.name)
+                .put("publisher_id",snapshot.getString("drive_publisher_id")).put("sequence",snapshot.optLong("drive_parent_sequence")+1)
+                .put("previous_publication_id",snapshot.optString("drive_parent_publication_id")).put("previous_state_sha256",snapshot.optString("drive_parent_state_sha256"));
+            byte[] bytes=PixelMcpWriteTools.canonical(manifest).getBytes(StandardCharsets.UTF_8);Doc commit=immutable("HausGarten-Commit-"+DriveRestClient.sha256(bytes)+".json",bytes);
+            DrivePublication.verify(new JSONObject(read(commit.uri)),read(stored.uri).getBytes(StandardCharsets.UTF_8),actions);
+            return new JSONObject().put("publication_id",commit.id).put("receipts",new JSONObject()); // provider readback only
+        }
         ArrayList<Doc> documents()throws Exception{
             ArrayList<Doc> out=new ArrayList<>();Uri children=DocumentsContract.buildChildDocumentsUriUsingTree(tree,DocumentsContract.getTreeDocumentId(tree));
             try(Cursor rows=resolver.query(children,new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID,DocumentsContract.Document.COLUMN_DISPLAY_NAME,DocumentsContract.Document.COLUMN_LAST_MODIFIED},null,null,null)){

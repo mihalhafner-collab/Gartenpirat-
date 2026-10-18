@@ -11,7 +11,13 @@ import java.util.zip.*;
 
 /** Private streaming backup, outside operational storage. No shared/public export. */
 final class LegacyConflictBackup {
+    static void requireReady(Context c,MainActivity.LocalStore store)throws Exception {
+        android.content.SharedPreferences prefs=c.getSharedPreferences("haus_garten",0);JSONObject state=store.getState();
+        if(!DriveAccount.configured(c)||!"drive_server_manifest".equals(prefs.getString("drive_confirmation_scope",""))||prefs.getBoolean("drive_sync_failed",false))throw new IllegalArgumentException("Zuerst direkten Pixel-/Drive-Abgleich mit Serverbeleg prüfen. Keine Altentscheidung ausgeführt.");
+        if(LegacyConflictRules.preview(state).getInt("count")!=7||state.getJSONObject("sync_queue").getInt("total")!=7)throw new IllegalArgumentException("Zuerst technische und neue Aktionen prüfen; erwartet sind genau sieben historische Prüfungen.");
+    }
     static synchronized JSONObject create(Context c,MainActivity.LocalStore store,String request)throws Exception {
+        requireReady(c,store);
         String prior=store.ownerValue("legacy-backup-request:"+PixelMcpWriteTools.hash(request),"");if(!prior.isEmpty()){JSONObject saved=new JSONObject(prior);verify(c,store,saved.getJSONObject("backup").getString("backup_id"),saved.getJSONObject("preview").getString("preview_hash"));return saved.put("replayed",true);}
         JSONObject state=store.getState(),preview=LegacyConflictRules.preview(state);
         if(preview.getInt("count")==0)throw new IllegalArgumentException("Keine unverifizierbaren Alt-Konflikte vorhanden.");
@@ -33,11 +39,20 @@ final class LegacyConflictBackup {
             DriveSyncCoordinator.Files drive=DriveAccount.configured(c)?new DriveDirectFiles(c,DriveAccount.client(c,store)):tree.isEmpty()?null:new DriveSyncCoordinator.Files(c,Uri.parse(tree),c.getSharedPreferences("haus_garten",0));
             if(drive==null)throw new IOException("Drive-Snapshot ist für die Sicherung nicht lesbar.");
             String raw=drive.read("HausGarten-Laptop.json");if(raw==null)throw new IOException("Drive-Snapshot fehlt; nichts abgeschlossen.");DriveJournalRules.validateSnapshot(new JSONObject(raw));
+            String device=state.getJSONObject("master").getString("drive_publisher_id");
+            JSONObject primary=drive.readPrimary(new JSONObject(raw),device);
+            String primaryId=primary.optString("drive_parent_publication_id");if(primaryId.isEmpty())throw new IOException("Bestätigter Pixel-Gesamtstand fehlt; keine Altentscheidung.");
+            String stateId="";byte[] manifest=null;
+            for(DriveSyncCoordinator.Doc d:drive.documents())if(primaryId.equals(d.id)){manifest=drive.read(d.uri).getBytes(StandardCharsets.UTF_8);stateId=new JSONObject(new String(manifest,StandardCharsets.UTF_8)).getString("state_file_id");}
+            byte[] primaryBytes=null;for(DriveSyncCoordinator.Doc d:drive.documents())if(stateId.equals(d.id))primaryBytes=drive.read(d.uri).getBytes(StandardCharsets.UTF_8);
+            if(manifest==null||primaryBytes==null)throw new IOException("Aktueller Drive-Gesamtstand ist nicht vollständig sicherbar.");
+            DrivePublication.verify(new JSONObject(new String(manifest,StandardCharsets.UTF_8)),primaryBytes,new JSONArray());
             // Fail before confirmation if any referenced local original is absent/corrupt.
             JSONArray photos=PixelMcpReadTools.effective(state).getJSONArray("photos");for(int i=0;i<photos.length();i++){JSONObject m=store.photoAttachment(photos.getJSONObject(i).getString("id"));if(m==null)throw new IOException("Vollständige Sicherung benötigt alle Foto-Originale lokal.");store.photoAttachmentStore().read(m);}
             JSONObject all=PixelMcpReadTools.effective(state);for(String collection:new String[]{"invoices","offers"}){JSONArray docs=all.getJSONArray(collection);for(int i=0;i<docs.length();i++){JSONObject doc=docs.getJSONObject(i);if(!doc.optString("pdf_storage_name").isEmpty())try{new BusinessDocumentStore(c).read(doc);}catch(Exception missing){throw new IOException("Vollständige Sicherung benötigt alle referenzierten Dokumente lokal.");}}}
             try(ZipOutputStream out=new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zip)))){
                 add(out,"database/local.sqlite",dbCopy);add(out,"snapshot/local.json",state.toString().getBytes(StandardCharsets.UTF_8));add(out,"snapshot/drive.json",raw.getBytes(StandardCharsets.UTF_8));add(out,"preview.json",preview.toString().getBytes(StandardCharsets.UTF_8));
+                add(out,"snapshot/drive-primary.json",primaryBytes);add(out,"snapshot/drive-primary-commit.json",manifest);
                 walk(out,c.getFilesDir(),"files/");File prefs=new File(c.getApplicationInfo().dataDir,"shared_prefs");walk(out,prefs,"shared_prefs/");
                 // WebView browser drafts and Android credentials require the separate device backup.
                 // The operative database, queue, local media and private business files are included.
