@@ -16,17 +16,18 @@ Eine bytegleiche Drive-Sicherung des Ausgangsstands wurde vor weiteren produktiv
 - QA führt zusätzlich die vorhandenen Java-Sync-/Owner-Vertragstests aus.
 - Reparierter APK-Kandidat: `1.49.1`, `versionCode 70`.
 
-## Noch erforderlicher produktiver Rollout
+## Verbindlicher weiterer Rollout: Codex Cloud + Pixel/Drive
 
-Der Laptop/Web-Prozessor muss auf denselben aktuellen Repository-Stand aktualisiert und neu gestartet werden. Vor dem ersten vollständigen Import ist der gesicherte Ausgangsstand beizubehalten. Der aktualisierte Prozessor exportiert anschließend `business_settings`, `offers`, `service_catalog` sowie die Capabilities `offers_v1`, `service_catalog_v1`, `owner_journal_v2`, `invoice_compare_and_save`, `photo_compare_and_save` und `durable_action_receipts`.
+Der frühere Plan, einen Laptop-/Web-Prozessor zu aktualisieren und neu zu starten, ist **verworfen**. Ab 18. Oktober 2026 ist Laptop/Desktop weder Entwicklungsweg noch produktive Voraussetzung oder Fallback.
 
-Erst danach Pixel-Abgleich erneut ausführen und prüfen:
-- `offers_sync_ready=true`
-- `service_catalog_sync_ready=true`
-- `get_business_settings` erfolgreich
-- Foto- und Rechnungsentwurf-Update ohne `REMOTE_GUARD_REQUIRED`
-- keine `SYNC_COMPONENT_UPDATE_REQUIRED`-Einträge
-- technische Test-Konfliktentscheidung verschwindet ohne Geschäftsdatenänderung
-- anschließend Backup + Vorschau + kontrolliertes Schließen der sieben historischen Alt-Konflikte
+Alle noch fehlenden Sync-, Nummern-, Angebots-, Foto- und Rechnungsschutzfunktionen werden ausschließlich in **Codex Cloud** im bestehenden Repository weiterentwickelt und geprüft. Der operative Zielpfad ist **Pixel-App ↔ Google Drive direkt**. Historische Python-/Web-Komponenten dürfen nur noch als Legacy-/Testreferenz dienen; keine produktive Kernfunktion darf von ihrem Betrieb abhängen.
 
-Keine Installation oder produktive Konfliktschließung gilt allein durch einen erfolgreichen Build als freigegeben.
+Für die ausstehende Reparatur bedeutet das:
+- Pixel/Drive-direkte Verarbeitung muss `business_settings`, `offers` und `service_catalog` verlustfrei erhalten und synchronisieren.
+- Die Capabilities `offers_v1`, `service_catalog_v1`, `owner_journal_v2`, `invoice_compare_and_save`, `photo_compare_and_save` und `durable_action_receipts` dürfen erst aktiv gemeldet werden, wenn die Pixel/Drive-Verarbeitung sie tatsächlich implementiert.
+- Die bestehende Test-Angebotsaktion muss idempotent übernommen werden; keine doppelte Neuanlage.
+- `SYNC_COMPONENT_UPDATE_REQUIRED` und die daraus entstandene technische Test-Konfliktentscheidung müssen ohne Änderung von Geschäftsdaten verschwinden.
+- Danach Backup + Vorschau + kontrolliertes Schließen der sieben historischen Alt-Konflikte.
+- Abschließend End-to-End-Test direkt über Pixel-MCP und Drive: Angebot, Leistungskatalog, Fotoänderung, Rechnungsentwurf, Einstellungen, Retry/Replays und Queue-Zustand.
+
+Ein erfolgreicher Cloud-Build allein ist keine produktive Freigabe. Installation und Konfliktschließung bleiben bis Sicherung, Pixel-Abnahme und nachgewiesenem direkten Drive-Abgleich gesperrt.
