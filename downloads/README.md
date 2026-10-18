@@ -1,3 +1,25 @@
+# Original-Prüfkandidat 1.49.4 / 73
+
+[APK über Drive herunterladen](https://drive.google.com/file/d/1F1Dijrkqx9Rf7RoO3bGN8bU-Km6d_YNm/view) (verbundenes Google-Konto erforderlich) · [APK im privaten Repository](Haus-Garten-1.49.4-73-original-update-kandidat.apk?raw=true)
+
+Papierkorbeinträge einzeln wiederherstellen oder nach Bestätigung endgültig entfernen. Fotos blockieren das Verschieben nicht; betroffene Kunden-/Auftrags-/Arbeitszuordnungen werden dabei versionsgeschützt gelöst. Erhaltene Fotos sind unter Mehr → Fotos erreichbar. Bereits archivierte Fotos verursachen keine gegenseitigen Foto-/Kunden-Löschsperren. Geschützte Belege und andere Geschäftsabhängigkeiten bleiben geschützt.
+
+Kompaktere Bedienung: Unternehmens- und Fotoeinstellungen auf der bestehenden Einstellungsseite, Kundenkontakt/Zusatzaktionen und Fotofilter aufklappbar, ein Mehr-Menü in der Fotoansicht. Alle Funktionen bleiben in derselben operativen App.
+
+Paket `at.hausgarten.service`, **1.49.4 / 73**, **34.418.378 Bytes**. Originalzertifikat, ein Signer, v2/v3, 16-KiB-Ausrichtung und Cleanup PASS. 405 Assets bytegleich, Privacy PASS. 266 Python-Tests, 17 Java-Suiten/823 Prüfungen und 25 Browser-Suiten bestanden. Native Testquellen kompiliert, nicht auf einem Gerät ausgeführt. Quellabschluss `da039031671c91d438c19f12c5a65414cdc74d9b`.
+
+SHA256: `131287f91d05d33988393ab3f444f9987f9a7bf0329b51a717dd225a5c901eab`.
+
+**Geräte-/Drive-Abnahme offen.** Live weiterhin 72, 51 ausstehende Vorgänge und unveränderter gespeicherter Geschäftshash. Parallel veränderter ursprünglicher Drive-Stand wird geschützt zurückgehalten; keine alten Konflikte aufgelöst. Die neuen Purge-Werkzeuge sind im installierten MCP noch nicht vorhanden. Nach freigegebenem Update dieselbe Verbindung und ihren Werkzeugkatalog aktualisieren. Dateibereinigung wartet auf überprüfte Veröffentlichung/Übernahme; historische Sicherungen und Journale bleiben getrennt erhalten. Endgültig aus dem App-Papierkorb bedeutet keine forensische Vernichtung aller historischen Kopien.
+
+Installation erst nach vollständiger Sicherung und ausdrücklicher Freigabe; keine Deinstallation oder App-Datenlöschung. Originalsignierung allein beweist weder Updatefähigkeit noch Datenerhalt. Der private Drive-Rückabruf bestätigt Dateireferenz und volle Größe; kein unabhängiger Remote-Bytehash behauptet.
+
+[Zentraler Status und offene Abnahmen](../CODEX-STATUS.md) · [Prüfsummen](SHA256SUMS)
+
+## Erhaltener vorheriger Cloud-Kandidat 1.49.3 / 72
+
+Die folgenden Zustandsangaben sind historisch.
+
 # Original-Prüfkandidat 1.49.3 / 72
 
 [APK über Drive herunterladen](https://drive.google.com/file/d/1zS-mRZZV5V20mq0404CbqMvfcovXbO6B/view) (verbundenes Google-Konto erforderlich) · [APK im privaten Repository](Haus-Garten-1.49.3-72-original-update-kandidat.apk?raw=true)
