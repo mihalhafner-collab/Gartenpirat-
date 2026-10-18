@@ -415,6 +415,10 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
     target = destination / 'HausGarten-Laptop.json'
     before = target.read_bytes() if target.exists() else None
     previous = json.loads(before.decode('utf-8-sig')) if before else {}
+    import drive_publication
+    published=drive_publication.latest(destination)
+    if published is not None:
+        previous={key:value for key,value in published.items() if key!='_publication'}
     if not isinstance(previous, dict):
         raise ValueError('Drive-Gesamtstand ist beschädigt. Keine Datei überschrieben.')
     imported_records = set()
@@ -470,7 +474,8 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
             return int(stamp.timestamp())*1000+stamp.microsecond//1000
         except (ValueError,TypeError):return 0
     failures=set()
-    for action in sorted(actions.values(),key=created):
+    import sync_protocol
+    for action in sync_protocol.ordered(sorted(actions.values(),key=created)):
         action_id=str(action['client_id']);kind=action['kind'];filename=action_files[action_id]
         if action_id in accepted or action_id in resolved:continue
         if kind=='delete' and action_id in held:continue
@@ -480,6 +485,8 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
             failed.append(rejected[action_id]);continue
         if invoice_only and kind not in ('invoice','invoice_issue','owner_invoice_issue','invoice_correction','invoice_payment','business_settings'):continue
         try:
+            if any(identifier in failures for identifier in action['payload'].get('_sync_predecessors',[])):
+                raise ValueError('DEPENDENCY_BLOCKED: Eine Vorgängeränderung benötigt zuerst Prüfung.')
             refs=sync_review.validate_resolution(action,actions,failures,accepted,resolved)
             owner_journal.run_action(action, drive_photos)
             imported_records.update(owner_journal.verified_effects(action))

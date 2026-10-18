@@ -1,0 +1,373 @@
+{
+  "date_utc": "2026-10-18T14:30:34.409234+00:00",
+  "repository": "mihalhafner-collab/Gartenpirat-",
+  "branch": "codex/original-signing-cloud-setup-20261018",
+  "source_base": "5e1ca93ada3a8880d55b792470417e0d2b0b7d83",
+  "required_ancestor": "05fdcbec77e7c26a039945cbdfcd09c955859b54",
+  "main_baseline": "04264806112068131342aec41c9b03f5cc5a16ce",
+  "code_manifest_sha256": "8dc7e2f967d12c5d39113d4dc89789e6ce6e7e49b13c90cc6c801667f026261a",
+  "code_manifest_files": 226,
+  "tests": {
+    "python": {
+      "executions": 253,
+      "passed": true,
+      "skipped": 0,
+      "legacy_key_generating_tests_explicitly_excluded": 37
+    },
+    "java": {
+      "executions": 460,
+      "suites": [
+        {
+          "suite": "BillingTests",
+          "result": "PASS",
+          "summary": "RESULT 13 billing tests passed"
+        },
+        {
+          "suite": "DriveJournalTests",
+          "result": "PASS",
+          "summary": "Passed 37 Drive journal tests using isolated data."
+        },
+        {
+          "suite": "DriveTransportTests",
+          "result": "PASS",
+          "summary": "24 Drive transport/dependency/garden checks passed"
+        },
+        {
+          "suite": "EntityProtectionTests",
+          "result": "PASS",
+          "summary": "RESULT 24 entity protection checks passed; no Android storage simulated"
+        },
+        {
+          "suite": "ManualChangeTests",
+          "result": "PASS",
+          "summary": "PASS 9 manual baseline and chained replay checks"
+        },
+        {
+          "suite": "OrderReviewTests",
+          "result": "PASS",
+          "summary": "Passed 16 explicit order review tests."
+        },
+        {
+          "suite": "OwnerToolsTests",
+          "result": "PASS",
+          "summary": "PASS 139 owner schemas, access gates, file blocks, archives and conflict receipts (synthetic host data)"
+        },
+        {
+          "suite": "PixelMcpDailyTests",
+          "result": "PASS",
+          "summary": "PASS total=33 daily MCP rules/dispatch checks; Android persistence not simulated"
+        },
+        {
+          "suite": "PixelMcpEntityWriteTests",
+          "result": "PASS",
+          "summary": "PASS total=29 entity write tests"
+        },
+        {
+          "suite": "PixelMcpWriteTests",
+          "result": "PASS",
+          "summary": "PASS total=44 isolated write/schema tests"
+        },
+        {
+          "suite": "PixelTunnelContractTests",
+          "result": "PASS",
+          "summary": "RESULT 65 passed, 0 failed"
+        },
+        {
+          "suite": "WorkSessionPauseTests",
+          "result": "PASS",
+          "summary": "RESULT 10 pause calculations passed; native SQLite transitions not executed"
+        },
+        {
+          "suite": "WorklogRelationTests",
+          "result": "PASS",
+          "summary": "RESULT 17 relation tests passed"
+        }
+      ],
+      "cross_language_hash": "PASS",
+      "android_runtime_executed": false
+    },
+    "browser": {
+      "suites": [
+        {
+          "suite": "sync-customer-gallery.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "customer-photos.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "gartenpirat-plants.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "gartenpirat-photo.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "access-integrity.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "design-concept.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "daily-usability.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "worklog-window.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "billing-ui.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "personal-payment.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "customer-duplicate-ui.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "invoice-editor.test.js",
+          "exit_code": 0
+        },
+        {
+          "suite": "invoice-flow.test.js",
+          "exit_code": 0
+        },
+        {
+          "suite": "work-location.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "timer-completion.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "architecture-workflow.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "work-entry-photo-failure.test.cjs",
+          "exit_code": 0
+        }
+      ],
+      "new_checks": [
+        {
+          "name": "Customer overview has visible add-photo and garden facts without full history DOM",
+          "result": "PASS"
+        },
+        {
+          "name": "Garden fields preserve unknown values, unrelated fields and guarded baseline",
+          "result": "PASS"
+        },
+        {
+          "name": "Failed garden save and reload retain the draft and its opening revision",
+          "result": "PASS"
+        },
+        {
+          "name": "Customer history loads in bounded batches",
+          "result": "PASS"
+        },
+        {
+          "name": "Failed photo selection persists original and assignment across reload",
+          "result": "PASS"
+        },
+        {
+          "name": "Saved customer photos are accessible from the dedicated photo tab",
+          "result": "PASS"
+        },
+        {
+          "name": "Sync distinguishes conflict, actionable connection and real server evidence",
+          "result": "PASS"
+        },
+        {
+          "name": "Photo transfer progress distinguishes upload and server verification",
+          "result": "PASS"
+        },
+        {
+          "name": "Conflict review shows both variants and retains a failed decision",
+          "result": "PASS"
+        },
+        {
+          "name": "Customer dossier remains readable at 320/360/426px and 150% font",
+          "result": "PASS"
+        },
+        {
+          "name": "Browser-generated touch swipe changes the plant image",
+          "result": "PASS"
+        },
+        {
+          "name": "Horizontal swipes navigate same-plant images left and right",
+          "result": "PASS"
+        },
+        {
+          "name": "Vertical, short, cancelled and zoom-pan gestures never change images",
+          "result": "PASS"
+        },
+        {
+          "name": "Image source, caption, keyboard arrows and back navigation remain functional",
+          "result": "PASS"
+        }
+      ],
+      "environment": "Cloud Chromium",
+      "native_bridge": "synthetic",
+      "real_camera": false,
+      "browser_generated_touch": true
+    },
+    "performance": {
+      "name": "Synthetic render measurement",
+      "result": "MEASURED",
+      "records": 3000,
+      "median_ms": 38,
+      "visible_rows": 50,
+      "hidden_billing_rows": 0,
+      "dom_nodes": 4929
+    },
+    "android": {
+      "assemble_release": "PASS",
+      "lint_release": "PASS",
+      "lint_errors": 0,
+      "lint_warnings": 11,
+      "android_test_sources_compiled": true,
+      "instrumentation_executed": false
+    }
+  },
+  "candidate": {
+    "apk_sha256": "3230d5c0d1810718650f2ad31049626ed69f592128e3428a52ed54d8cbedec70",
+    "package": "at.hausgarten.service",
+    "version_code": 68,
+    "version_name": "1.48.0",
+    "signature_valid": true,
+    "certificates": [
+      "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8"
+    ],
+    "assets": {
+      "added": [],
+      "removed": [],
+      "changed": [],
+      "unchanged_count": 397,
+      "matches": true
+    },
+    "seed": {
+      "all_business_collections_empty": true,
+      "operational_seed_rows": 0
+    },
+    "operative_classes_present": [
+      "DriveAccount",
+      "DriveConnectionActivity",
+      "DriveDirectFiles",
+      "DrivePublication",
+      "DriveRestClient",
+      "DriveSyncCoordinator",
+      "DriveSyncJob",
+      "GardenRules",
+      "InvoiceDraftRules",
+      "MainActivity",
+      "ManualChangeRules",
+      "McpFileTransfer",
+      "McpSchema",
+      "OwnerJournalRules",
+      "PendingWorkPhotoStore",
+      "PhotoAttachmentStore",
+      "PhotoCaptureProvider",
+      "PixelMcpOwnerTools",
+      "PixelOwnerAccess",
+      "SyncActionOrder",
+      "WorkSessionStore"
+    ],
+    "plant_profiles": 181,
+    "plant_images": 362,
+    "catalog_sha256": "46bec4dc380c6b938b368422efb236c831656fe30209bf9fc5998709331837fc",
+    "original_apk_identity_comparison": "PASS",
+    "fresh_install": "NOT_RUN",
+    "in_place_update_data_retention": "NOT_RUN",
+    "pixel_installation": "NOT_PERFORMED",
+    "release_approved": false
+  },
+  "signature": {
+    "apk_sha256": "3230d5c0d1810718650f2ad31049626ed69f592128e3428a52ed54d8cbedec70",
+    "bytes": 34344102,
+    "certificate": {
+      "sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+      "sha1": "16fc7a137e58ca31c71d706d472f29fb9f558a5a"
+    },
+    "signature_checks": [
+      "Verified using v1 scheme (JAR signing): false",
+      "Verified using v2 scheme (APK Signature Scheme v2): true",
+      "Verified using v3 scheme (APK Signature Scheme v3): true",
+      "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+      "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+      "Verified using v4 scheme (APK Signature Scheme v4): false",
+      "Number of signers: 1"
+    ],
+    "zipalign_16k": "PASS",
+    "signing_temp_directories": 0,
+    "private_key_files_in_repository": 0,
+    "lint": {
+      "Warning": 11
+    }
+  },
+  "android_metadata": {
+    "min_sdk": 26,
+    "target_sdk": 37,
+    "compile_sdk": 37,
+    "debuggable": false
+  },
+  "privacy": {
+    "source": "PASS",
+    "final_apk": "PASS",
+    "operational_seed_rows": 0,
+    "private_markers_checked": 0,
+    "secret_values_printed": false
+  },
+  "signing": {
+    "only_tool": "tools/sign_original_apk.py",
+    "original_key_only": true,
+    "presence_only_precheck_before_each_attempt": true,
+    "unpublished_internal_candidates": [
+      {
+        "sha256": "1d2c264ac71aa6d35d5fefa41c11590ec8e9d0bd5d4ae20db91f4d18d58f34ba",
+        "superseded_by": "durable transfer progress and cancellation checks"
+      },
+      {
+        "sha256": "44c44ebf75c527577fbac2a9e6a315661c901b6673dd1e694550692e082bf950",
+        "superseded_by": "verified narrow customer header and enlarged text layout"
+      }
+    ],
+    "final_published_sha256": "3230d5c0d1810718650f2ad31049626ed69f592128e3428a52ed54d8cbedec70",
+    "all_signer_temp_cleanup_completed": true
+  },
+  "operational_limits": {
+    "production_data_writes": false,
+    "production_queue_modified": false,
+    "production_state_rechecked": false,
+    "prior_readonly_observation": {
+      "pending_actions": 7,
+      "customer_conflicts": 1,
+      "cloud_confirmed": false,
+      "not_current_live_acceptance": true
+    },
+    "google_oauth_or_drive_end_to_end": "NOT_RUN",
+    "external_grants_created": false,
+    "installed_pixel_version_certificate": "NOT_CHECKED",
+    "pixel_adb_access": false,
+    "installation": "NOT_PERFORMED",
+    "backup_restore_on_device": "NOT_RUN",
+    "in_place_update_data_retention": "NOT_RUN",
+    "release_approved": false
+  },
+  "external_requirements": [
+    "Google project Drive API enabled, Android OAuth package/certificate registration and consent",
+    "Device Google account approval for the existing Drive folder",
+    "Compatible shared Web/Drive importer and existing central invoice-number service",
+    "Private connector/tunnel organization grants",
+    "Android scheduling, battery permissions and network availability",
+    "Backup plus explicit installation approval"
+  ]
+}

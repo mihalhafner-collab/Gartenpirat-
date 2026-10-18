@@ -49,7 +49,7 @@
  photoInput.hidden=true;photoInput.setAttribute('aria-label','Eigenes Foto auswählen');
  dialog.appendChild(photoInput);
  let photoURL=null,pendingURL=null,pendingImage=null,photoGeneration=0,nativePhotoFullscreen=false;
- let viewerGesture={pointers:new Map(),distance:0,scale:1,x:0,y:0};
+ let viewerGesture={pointers:new Map(),distance:0,scale:1,x:0,y:0,swipe:null};
  function nativeFullscreen(enabled){
   try{
    if(typeof window.AndroidGardenPhotos?.setFullscreen==='function'){
@@ -268,7 +268,8 @@
   if(state.view!=='image'||event.target.id!=='gp-full-image')return;event.preventDefault();
   try{event.target.setPointerCapture(event.pointerId);}catch{}
   viewerGesture.pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
-  if(viewerGesture.pointers.size===2){const points=[...viewerGesture.pointers.values()];viewerGesture.distance=Math.hypot(points[0].x-points[1].x,points[0].y-points[1].y);}
+  if(viewerGesture.pointers.size===1)viewerGesture.swipe=viewerGesture.scale===1?{id:event.pointerId,x:event.clientX,y:event.clientY,at:performance.now()}:null;
+  if(viewerGesture.pointers.size===2){viewerGesture.swipe=null;const points=[...viewerGesture.pointers.values()];viewerGesture.distance=Math.hypot(points[0].x-points[1].x,points[0].y-points[1].y);}
  });
  content.addEventListener('pointermove',event=>{
   if(state.view!=='image'||!viewerGesture.pointers.has(event.pointerId))return;event.preventDefault();
@@ -276,7 +277,7 @@
   if(viewerGesture.pointers.size===2){const points=[...viewerGesture.pointers.values()],distance=Math.hypot(points[0].x-points[1].x,points[0].y-points[1].y);if(viewerGesture.distance)setViewerScale(viewerGesture.scale*distance/viewerGesture.distance);viewerGesture.distance=distance;}
   else if(viewerGesture.scale>1){viewerGesture.x+=event.clientX-previous.x;viewerGesture.y+=event.clientY-previous.y;applyViewerTransform();}
  });
- const endViewerPointer=event=>{if(!viewerGesture.pointers.has(event.pointerId))return;viewerGesture.pointers.delete(event.pointerId);viewerGesture.distance=0;};
+ const endViewerPointer=event=>{if(!viewerGesture.pointers.has(event.pointerId))return;const swipe=viewerGesture.swipe;viewerGesture.pointers.delete(event.pointerId);viewerGesture.distance=0;viewerGesture.swipe=null;if(event.type==='pointercancel'||!swipe||swipe.id!==event.pointerId||viewerGesture.scale!==1||viewerGesture.pointers.size)return;const dx=event.clientX-swipe.x,dy=event.clientY-swipe.y,threshold=Math.max(40,Math.min(90,content.clientWidth*.14));if(Math.abs(dx)>=threshold&&Math.abs(dx)>Math.abs(dy)*1.7&&performance.now()-swipe.at<1200&&(byId.get(state.selected)?.images?.length||0)>1)renderViewerImage(state.imageIndex+(dx<0?1:-1));};
  content.addEventListener('pointerup',endViewerPointer);content.addEventListener('pointercancel',endViewerPointer);
  content.addEventListener('dblclick',event=>{if(state.view==='image'&&event.target.id==='gp-full-image')setViewerScale(viewerGesture.scale>1?1:2.5);});
  content.addEventListener('wheel',event=>{if(state.view!=='image'||!event.target.closest('.gp-image-stage'))return;event.preventDefault();setViewerScale(viewerGesture.scale+(event.deltaY<0?.25:-.25));},{passive:false});

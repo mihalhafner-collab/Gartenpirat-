@@ -1,5 +1,10 @@
 # Eigentümerzugriff und Datenintegrität – Cloud-Stand 1.47.0 / 67
 
+Fortsetzung mit denselben 66 Werkzeugnamen: [Drive-Abgleich und Kundenakte
+1.48.0 / 68](SYNC-DRIVE-KUNDENAKTE-1.48.md). Der nachfolgende Nachweis beschreibt
+den früheren Stand 67; neue Serverbelege, Archivabläufe und externe Google-
+Voraussetzungen sind im Fortsetzungsnachweis getrennt dokumentiert.
+
 ## Ausgang und Abnahme
 
 Ausschließlich `mihalhafner-collab/Gartenpirat-`, Branch

@@ -22,7 +22,7 @@ classes.mkdir(parents=True, exist_ok=True)
 src = ROOT/'android/app/src/main/java/at/hausgarten/service'
 names = ['BillingRules', 'WorklogRules', 'PixelMcpWriteTools', 'EntityProtectionRules',
          'PixelMcpEntityWriteTools', 'PixelMcpReadTools', 'PixelMcpSessionTools', 'PixelMcpBusinessTools',
-         'WorklogRelationRules', 'ManualChangeRules', 'McpSchema', 'McpFileTransfer', 'InvoiceDraftRules', 'PixelMcpOwnerTools', 'OwnerJournalRules', 'DriveJournalRules', 'OrderReviewRules', 'PixelTunnelConfig',
+         'WorklogRelationRules', 'ManualChangeRules', 'GardenRules', 'SyncActionOrder', 'DriveRestClient', 'DrivePublication', 'McpSchema', 'McpFileTransfer', 'InvoiceDraftRules', 'PixelMcpOwnerTools', 'OwnerJournalRules', 'DriveJournalRules', 'OrderReviewRules', 'PixelTunnelConfig',
          'PixelTunnelWire', 'WorkSessionPauseRules']
 tests = sorted((ROOT/'tests/java/at/hausgarten/service').glob('*Tests.java'))
 cp = os.pathsep.join(map(str, [classes, jar, android]))

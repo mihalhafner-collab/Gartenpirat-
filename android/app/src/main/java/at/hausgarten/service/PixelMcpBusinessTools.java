@@ -12,7 +12,7 @@ final class PixelMcpBusinessTools {
         if(value.equals("sync_pending")&&state.optBoolean("drive_sync_failed"))value="sync_failed";
         legacy.put("retryable",value.equals("sync_failed"));
         if(value.equals("sync_failed")&&state.optBoolean("drive_sync_failed"))legacy.put("sync_message","Der letzte Drive-Abgleich ist fehlgeschlagen. Lokale Daten bleiben erhalten; App öffnen und Abgleich erneut versuchen.");
-        legacy.put("sync_state",value).put("local_state",legacy.optBoolean("saved_locally")?"local_saved":"unknown");return legacy;
+        legacy.put("sync_state",value).put("local_state",legacy.optBoolean("saved_locally")?"local_saved":"unknown");return DrivePublication.evidence(legacy,state);
     }
     static String billing(JSONObject row,JSONArray invoices)throws Exception{
         String id=row.optString("id");boolean draft=false,issued=false;

@@ -25,9 +25,9 @@ final class ManualChangeRules {
 
     static void prepare(String kind, JSONObject payload, JSONObject previous, String stamp) throws Exception {
         // A new action must not inherit the guard or resolution of an earlier action.
-        for (String key : new String[]{"_mcp_base", "_sync_base", "_sync_resolves", "_edit_base", "_edit_changes", "_new_record"}) payload.remove(key);
+        for (String key : new String[]{"_mcp_base", "_sync_base", "_sync_resolves", "_sync_predecessors", "_sync_field_merge", "_edit_base", "_edit_changes", "_new_record"}) payload.remove(key);
         payload.put("_mcp_create", previous == null);
-        if (previous != null) payload.put("_sync_base", DriveJournalRules.guard(previous, kind));
+        if (previous != null) payload.put("_sync_base", DriveJournalRules.guard(previous, kind)).put("_sync_field_merge",true);
         if (previous == null && kind.equals("customer")) {
             if (!payload.has("active")) payload.put("active", 1);
             if (!payload.has("custom_fields")) payload.put("custom_fields", new JSONObject());

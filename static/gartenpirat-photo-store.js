@@ -32,5 +32,12 @@
   });
   return record;
  }
- window.GartenpiratPhotoStore=Object.freeze({get,put});
+ async function customerDraft(customerId,value){
+  const db=await database(),key='customer-draft:'+customerId;
+  return new Promise((resolve,reject)=>{const tx=db.transaction('photo',value===undefined?'readonly':'readwrite'),store=tx.objectStore('photo');let found=null;
+   if(value===undefined){const r=store.get(key);r.onsuccess=()=>found=r.result||null;}else if(value===null)store.delete(key);else store.put(value,key);
+   tx.oncomplete=()=>resolve(value===undefined?found:value);tx.onabort=tx.onerror=()=>reject(tx.error||new Error('Fotoentwurf konnte nicht dauerhaft gesichert werden.'));
+  });
+ }
+ window.GartenpiratPhotoStore=Object.freeze({get,put,customerDraft});
 })();

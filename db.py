@@ -571,7 +571,9 @@ def mobile_photo_thumbnails(photos: list[dict], size: int = 144) -> list[dict]:
 
 
 def save_customer(data: dict) -> dict:
+    import sync_protocol
     data = existing_payload('customers', data)
+    data=sync_protocol.normalize_garden(data)
     identifier, stamp = data.get("id") or uid("cus"), sync_stamp(data)
     name = str(data.get("name", "")).strip()
     if not name: raise ValueError("Der Kundenname fehlt.")
@@ -880,6 +882,7 @@ def _upsert(table: str, identifier: str, columns: dict, stamp: str, database=Non
                 raise ValueError('Die Arbeitsaufzeichnung existiert nicht mehr. Keine Wiederanlage vorgenommen.')
             numeric = {'hours', 'break_minutes', 'kilometers', 'customer_visible', 'billed', 'active', 'garden_area'}
             def comparable(key, value):
+                if key=='garden_area' and value in (None,''):return None
                 if key == 'custom_fields':
                     try:
                         decoded = json.loads(value) if isinstance(value, str) else value

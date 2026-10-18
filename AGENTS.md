@@ -100,3 +100,14 @@ Journaltypen zurückhalten; keinen alten Importer als unsicheren Fallback nutzen
 Tests bleiben isoliert. Eine Geschäfts-MCP-Sicherung ersetzt keine vollständige
 Gerätesicherung; Installation bleibt bis Sicherung und ausdrücklicher Freigabe
 gesperrt.
+
+## Drive-Abgleich und Kundenakte 1.48
+
+Aktueller Einführungs-/Prüfnachweis: `docs/SYNC-DRIVE-KUNDENAKTE-1.48.md`.
+Direkter Drive-Serverbeleg und Android-Provider-Rücklesen bleiben unterschiedliche
+Zustände. Bestehende Journal-IDs, Veröffentlichungsfolgen und Originaldateien
+erhalten; keine Cloud-Bestätigung aus einer lokalen Kopie ableiten. Neue
+UI-Entfernungen archivieren mit Versionsschutz. Alte Löschaufträge benötigen
+eine ausdrückliche, nachvollziehbare Entscheidung. Kunden-Fotoentwürfe behalten
+Originalbytes und Request-ID. Google-/Tunnel-Freigaben werden nicht durch Code
+erteilt. Installation bleibt bis Sicherung und ausdrücklicher Freigabe gesperrt. Entwicklungstests bleiben isoliert; fachliche Betriebsdatenaktionen benötigen den jeweiligen Benutzerauftrag.

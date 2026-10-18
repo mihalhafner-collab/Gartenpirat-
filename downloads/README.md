@@ -1,3 +1,33 @@
+# Aktueller Original-Kandidat 1.48.0 / 68
+
+[APK 1.48.0 herunterladen](Haus-Garten-1.48.0-68-original-update-kandidat.apk?raw=true)
+
+Direkter Drive-Abgleich mit Serverbelegen und Wiederaufnahme, übersichtliche
+Kundenakte mit Garteninformationen und erhaltenen Foto-Originalen sowie Wischen
+zwischen Pflanzenbildern. Neue Entfernungen archivieren nachvollziehbar.
+
+**Installation bleibt bis Sicherung und ausdrücklicher Freigabe gesperrt.**
+Die neue Google-Verbindung benötigt die tatsächlich erteilte Konto-/Projektfreigabe
+und Anmeldung am Gerät. Bestehende Betriebsdaten und Warteschlangen wurden nicht verändert.
+
+- Paket `at.hausgarten.service`, Version `1.48.0`, Code `68`.
+- Originalzertifikat mit vorhandenem Keystore und Cloud-Kandidat 67 verglichen;
+  genau ein Signer, v2/v3 gültig, 16-KiB-Ausrichtung und Cleanup geprüft.
+- 253 Python-Tests, 460 JVM-Fälle und 17 ausgewählte Browser-Suiten erfolgreich;
+  darin 14 neue Browserprüfungen. Build/Lint bestanden: null Fehler, elf Warnungen.
+- Alle 397 App-Assets stimmen mit der Quelle überein; unverändert 181 Pflanzenprofile
+  und 362 Bilder. Datenschutzprüfung bestanden; keine operativen Seedzeilen.
+- Installierte Pixel-Version/-Signatur, echte Google-Verbindung, native Android-
+  Abläufe sowie Update/Datenerhalt sind noch nicht geprüft. Kein freigegebener Release.
+
+APK-SHA256: `3230d5c0d1810718650f2ad31049626ed69f592128e3428a52ed54d8cbedec70`.
+
+[Änderungen, Nachweise und notwendige Freigaben](../docs/SYNC-DRIVE-KUNDENAKTE-1.48.md) ·
+[Maschinenlesbarer Prüfnachweis](../docs/verification/sync-customer-gallery-1.48.json) ·
+[Prüfsummen](SHA256SUMS)
+
+## Erhaltener vorheriger Stand 1.47.0 / 67
+
 # Aktueller Original-Kandidat 1.47.0 / 67
 
 [APK 1.47.0 herunterladen](Haus-Garten-1.47.0-67-original-update-kandidat.apk?raw=true)

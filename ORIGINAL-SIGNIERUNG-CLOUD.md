@@ -281,3 +281,32 @@ Pixel-App. Keine Installation, kein ADB-/direkter Pixel-Zugriff, kein Fresh-Inst
 oder In-place-Update-/Datenerhalt-Test und keine Betriebsdatenänderung durch
 diesen Auftrag. Installation bleibt bis vollständiger Sicherung und ausdrücklicher
 Freigabe gesperrt. Die geänderte App ist nicht als Release freigegeben.
+
+
+### Drive-/Kundenakten-Fortsetzung 1.48.0 / 68
+
+Gleiche Cloud-Branch, Ausgang `5e1ca93`, keine Desktopübernahme oder Geräteaktion.
+Vor jeder Signierung ausschließlich das Vorhandensein der fünf Variablen geprüft;
+keine Werte ausgegeben. Ausschließlich `tools/sign_original_apk.py` und vorhandener
+Originalschlüssel. Drei interne Revisionen, nur die abschließend geprüfte ist unter
+`downloads/Haus-Garten-1.48.0-68-original-update-kandidat.apk` bereitgestellt. Die
+ersten beiden wurden durch Übertragungsfortschritt/Abbruchschutz beziehungsweise
+die visuell geprüfte schmale Kundenkopf-Darstellung ersetzt. Keine Ersatzschlüssel,
+QA-/Debug-Signierung oder CI-Verteilung von Originalwerten. Alle privaten
+Signierungsordner wurden aufgeräumt.
+
+Finaler SHA256: `3230d5c0d1810718650f2ad31049626ed69f592128e3428a52ed54d8cbedec70`.
+Paket `at.hausgarten.service`, Version `1.48.0`, versionCode `68`; minSdk 26,
+targetSdk/compileSdk 37, nicht debuggable. Originalzertifikat-SHA256 unverändert
+`a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`.
+Genau ein Signer, v2/v3 gültig, v1/v3.1/v3.2/v4 false; 16-KiB-Ausrichtung bestanden.
+397 Quellassets stimmen überein, null operative Seedzeilen. Keine privaten
+Signierungsordner/Schlüsseldateien nach den geprüften Namen/Endungen verblieben.
+
+253 Python-Tests, 460 JVM-Fälle, 17 Browser-Suiten (14 neue Browserprüfungen),
+Build/Lint und Android-Testquellen-Kompilierung bestanden. Keine native
+Geräteausführung, Google-End-to-End-Abnahme oder Installation. Vergleichspartner
+war der erhaltene Cloud-Kandidat 67; aktuell installierte Version/Signatur bleiben
+unbekannt. Installation und Update-/Datenerhalt-Abnahme weiterhin gesperrt bis
+Sicherung und ausdrücklicher Freigabe. Details: `docs/SYNC-DRIVE-KUNDENAKTE-1.48.md`
+und `docs/verification/sync-customer-gallery-1.48.json`.

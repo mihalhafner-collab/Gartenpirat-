@@ -95,6 +95,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         preferences = getSharedPreferences("haus_garten", MODE_PRIVATE);
         store = new LocalStore(this);
+        DriveSyncJob.install(this);
         pendingWorkPhotos = new PendingWorkPhotoStore(this);
         setContentView(buildLayout());
         if (Build.VERSION.SDK_INT >= 30) {
@@ -136,7 +137,7 @@ public class MainActivity extends Activity {
         if (foreground.get() == this) foreground.clear();
         syncHandler.removeCallbacks(delayedAutomaticSync);
         syncHandler.removeCallbacks(periodicAutomaticSync);
-        try { if(!preferences.getString("drive_tree_uri","").isEmpty()&&store.pendingActions().length()>0)
+        try { if(DriveAccount.available(this)&&store.pendingActions().length()>0)
             DriveSyncCoordinator.request(this,Math.max(AUTO_SYNC_DELAY_MS,store.remainingDeleteUndoMs()+200)); } catch(Exception ignored) {}
         super.onPause();
     }
@@ -347,8 +348,13 @@ public class MainActivity extends Activity {
     }
 
     public class DataBridge {
-        @JavascriptInterface public String getState() { return store.getState().toString(); }
+        @JavascriptInterface public String getState() { try{JSONObject state=store.getState();state.put("master",PixelMcpReadTools.effective(state)).put("ui_effective",true);return state.toString();}catch(Exception e){return store.getState().toString();} }
         @JavascriptInterface public String getSyncStatus() { return syncStatus().toString(); }
+        @JavascriptInterface public String getSyncDetails(){try{JSONObject s=store.getState();return DriveJournalRules.queueStatus(s.getJSONObject("master"),s.getJSONArray("pending")).toString();}catch(Exception e){return "{}";}}
+        @JavascriptInterface public String getSyncConflict(String id){try{return PixelMcpOwnerTools.conflicts(store.getState(),new JSONObject().put("limit",1).put("client_id",id)).toString();}catch(Exception e){return "ERROR: Konflikt konnte nicht vollständig gelesen werden.";}}
+        @JavascriptInterface public String resolveSyncConflict(String request){try{return new PixelOwnerAccess(MainActivity.this,store).execute("resolve_sync_conflict",new JSONObject(request)).toString();}catch(Exception e){return "ERROR: "+e.getMessage();}}
+        @JavascriptInterface public void connectDrive(){runOnUiThread(()->startActivity(new Intent(MainActivity.this,DriveConnectionActivity.class)));}
+        @JavascriptInterface public void retryDrive(){preferences.edit().putInt("drive_retry_count",0).putBoolean("drive_user_action_required",false).putLong("drive_next_retry",0).commit();runOnUiThread(()->MainActivity.this.synchronize());}
         @JavascriptInterface public String getPixelTunnelStatus() { return PixelTunnelService.status(MainActivity.this).toString(); }
         @JavascriptInterface public String getWorkSession() {
             try { return new WorkSessionStore(store.getWritableDatabase(),MainActivity.this).current().toString(); }
@@ -578,7 +584,7 @@ public class MainActivity extends Activity {
             JSONObject output = new JSONObject();
             try { JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));removeSnapshotPhotoBinaries(master);output.put("master",master); output.put("pending", DriveJournalRules.union(pendingActions(),output.getJSONObject("master").optJSONArray("drive_review_actions"))); output.put("last_drive_sync", preferences.getString("last_drive_sync", ""));output.put("work_session",new WorkSessionStore(getWritableDatabase(),context).current());output.put("sync_queue",DriveJournalRules.queueStatus(output.getJSONObject("master"),output.getJSONArray("pending"))); }
             catch (Exception error) { try { output.put("error", error.getMessage()); } catch (Exception ignored) {} }
-            try{output.put("drive_sync_failed",preferences.getBoolean("drive_sync_failed",false)).put("last_sync_attempt",preferences.getString("last_sync_attempt",""));}catch(Exception ignored){}
+            try{output.put("drive_sync_failed",preferences.getBoolean("drive_sync_failed",false)).put("last_sync_attempt",preferences.getString("last_sync_attempt","")).put("cloud_confirmed",preferences.getBoolean("drive_cloud_confirmed",false)&&output.getJSONObject("sync_queue").getInt("total")==0).put("confirmation_scope",preferences.getString("drive_confirmation_scope","local_only")).put("last_full_sync",preferences.getString("last_full_sync",""));}catch(Exception ignored){}
             return output;
         }
         String saveWorklog(JSONObject payload) throws Exception {
@@ -801,6 +807,7 @@ public class MainActivity extends Activity {
             JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));
             JSONArray customers=effectiveRows(master,"customers","customer");
             payload=ManualChangeRules.editor(payload,findById(customers,payload.optString("id")),"customer");
+            GardenRules.normalize(payload);
             BillingRules.customerConfig(payload,customers);
             if(findById(customers,payload.optString("id"))==null)EntityProtectionRules.validateNewCustomer(payload,customers);
             String entityId = payload.optString("id");
@@ -851,10 +858,14 @@ public class MainActivity extends Activity {
         }
         synchronized String savePhoto(JSONObject payload) throws Exception {
             if (payload.optString("customer_id").isEmpty() || payload.optString("data").isEmpty()) throw new IllegalArgumentException("Kunde und Foto sind erforderlich.");
+            JSONObject immutableRequest=new JSONObject(payload.toString());immutableRequest.remove("thumbnail_data");String request=payload.optString("_photo_request_id"),fingerprint=PixelMcpWriteTools.hash(immutableRequest);
+            if(!request.isEmpty()&&!request.matches("[A-Za-z0-9_-]{8,128}"))throw new IllegalArgumentException("Ungültige Foto-Anfragekennung.");
+            if(!request.isEmpty()){String saved=ownerValue("photo-ui:"+request,"");if(!saved.isEmpty()){JSONObject receipt=new JSONObject(saved);if(!fingerprint.equals(receipt.getString("hash")))throw new IllegalArgumentException("Die Foto-Anfragekennung enthält andere Angaben.");return receipt.getString("id");}}
             String entityId=payload.optString("id");if(entityId.isEmpty())entityId="pho_mobile_"+UUID.randomUUID().toString().replace("-","");payload.put("id",entityId);
             PhotoAttachmentStore.Prepared prepared=null;boolean committed=false;
             SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
             try {
+                if(!request.isEmpty()){String saved=ownerValue("photo-ui:"+request,"");if(!saved.isEmpty()){JSONObject receipt=new JSONObject(saved);if(!fingerprint.equals(receipt.getString("hash")))throw new IllegalArgumentException("Die Foto-Anfragekennung enthält andere Angaben.");database.setTransactionSuccessful();committed=true;return receipt.getString("id");}}
                 JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));
                 EntityProtectionRules.validatePhoto(payload,effectiveRows(master,"customers","customer"),effectiveRows(master,"orders","order"),effectiveRows(master,"worklogs","worklog"));
                 prepared=photoAttachments.prepare(payload);
@@ -862,8 +873,9 @@ public class MainActivity extends Activity {
                 for(java.util.Iterator<String> keys=prepared.metadata.keys();keys.hasNext();){String key=keys.next();payload.put(key,prepared.metadata.get(key));}
                 String original=payload.optString("original_name","foto.jpg").replace('\\','/');int slash=original.lastIndexOf('/');if(slash>=0)original=original.substring(slash+1);if(original.length()>240)original=original.substring(0,240);payload.put("original_name",original);
                 payload.remove("data");payload.put("filename",prepared.metadata.getString("storage_name"));
+                String thumbnail=payload.optString("thumbnail_data");if(thumbnail.length()>65536||!thumbnail.startsWith("data:image/jpeg;base64,"))payload.remove("thumbnail_data");
                 saveAttachmentMetadata(database,entityId,prepared.metadata,"local");
-                String saved=saveAction("photo", "pho_mobile_", payload);database.setTransactionSuccessful();committed=true;return saved;
+                String saved=saveAction("photo", "pho_mobile_", payload);if(!request.isEmpty())putOwnerValue("photo-ui:"+request,new JSONObject().put("hash",fingerprint).put("id",saved).toString());database.setTransactionSuccessful();committed=true;return saved;
             } finally {
                 database.endTransaction();
                 if(!committed&&prepared!=null&&prepared.created){
@@ -975,6 +987,10 @@ public class MainActivity extends Activity {
         }
         private void prepareManualChange(String kind,JSONObject payload,JSONObject previous)throws Exception{
             ManualChangeRules.prepare(kind,payload,previous,isoNow());
+            JSONArray queued=pendingActions(),dependencies=new JSONArray();String last="";
+            for(int i=0;i<queued.length();i++){JSONObject a=queued.getJSONObject(i),p=a.getJSONObject("payload");String type=a.optString("kind");if(kind.equals(type)&&payload.optString("id").equals(p.optString("id")))last=a.getString("client_id");
+                if(p.optBoolean("_mcp_create"))for(String[] ref:new String[][]{{"customer_id","customer"},{"billing_customer_id","customer"},{"order_id","order"},{"worklog_id","worklog"}})if(ref[1].equals(type)&&!payload.optString(ref[0]).isEmpty()&&payload.optString(ref[0]).equals(p.optString("id")))dependencies.put(a.getString("client_id"));}
+            if(!last.isEmpty())dependencies.put(last);if(dependencies.length()>0)payload.put("_sync_predecessors",dependencies);
         }
         String removeEntity(String entity, String entityId) throws Exception {
             if(entity.equals("customer")){
@@ -990,13 +1006,16 @@ public class MainActivity extends Activity {
                 JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));
                 EntityProtectionRules.validateInvoiceDelete(findById(effectiveRows(master,"invoices","invoice"),entityId));
             }
-            JSONObject payload = new JSONObject(); payload.put("entity", entity); payload.put("id", entityId); payload.put("_undo_until", System.currentTimeMillis() + UNDO_DELETE_WINDOW_MS);
-            String saved=saveAction("delete", "del_mobile_", payload);database.setTransactionSuccessful();return saved;
+            JSONObject current=OwnerJournalRules.findOrNull(PixelMcpReadTools.effective(getState()).getJSONArray(OwnerJournalRules.group(entity)),entityId);if(current==null)throw new IllegalArgumentException("Der Eintrag fehlt.");
+            OwnerJournalRules.validateArchive(entity,current,PixelMcpReadTools.effective(getState()));
+            JSONObject payload=new JSONObject().put("entity",entity).put("id",entityId).put("expected_record_hash",OwnerJournalRules.version(current)).put("_record_base",DriveJournalRules.guard(current,entity)).put("_archive_record",current).put("updated_at",isoNow()).put("_undo_until",System.currentTimeMillis()+UNDO_DELETE_WINDOW_MS);
+            JSONArray prior=pendingActions(),deps=new JSONArray();for(int i=0;i<prior.length();i++){JSONObject a=prior.getJSONObject(i);if(entity.equals(a.optString("kind"))&&entityId.equals(a.getJSONObject("payload").optString("id")))deps.put(a.getString("client_id"));}if(deps.length()>0)payload.put("_sync_predecessors",deps);
+            String saved=saveAction("archive", "archive_mobile_", payload);database.setTransactionSuccessful();return saved;
             } finally { database.endTransaction(); }
         }
         String undoRemoveEntity(String entity, String entityId) throws Exception {
             SQLiteDatabase database = getWritableDatabase();
-            try (Cursor cursor = database.rawQuery("SELECT id,payload FROM pending WHERE kind='delete' ORDER BY created_at DESC", null)) {
+            try (Cursor cursor = database.rawQuery("SELECT id,payload FROM pending WHERE kind IN ('delete','archive') ORDER BY created_at DESC", null)) {
                 while (cursor.moveToNext()) {
                     JSONObject payload = new JSONObject(cursor.getString(1));
                     if (entity.equals(payload.optString("entity")) && entityId.equals(payload.optString("id"))) {
@@ -1009,7 +1028,7 @@ public class MainActivity extends Activity {
         }
         long remainingDeleteUndoMs() {
             long remaining = 0;
-            try (Cursor cursor = getReadableDatabase().rawQuery("SELECT payload FROM pending WHERE kind='delete'", null)) {
+            try (Cursor cursor = getReadableDatabase().rawQuery("SELECT payload FROM pending WHERE kind IN ('delete','archive')", null)) {
                 while (cursor.moveToNext()) {
                     JSONObject payload = new JSONObject(cursor.getString(0));
                     remaining = Math.max(remaining, payload.optLong("_undo_until", 0) - System.currentTimeMillis());
@@ -1035,7 +1054,7 @@ public class MainActivity extends Activity {
             try (Cursor cursor = getReadableDatabase().rawQuery("SELECT id,kind,payload,created_at FROM pending WHERE kind!='mcp_receipt' ORDER BY created_at ASC,rowid ASC", null)) {
                 while (cursor.moveToNext()) {
                     String kind=cursor.getString(1);JSONObject payload=new JSONObject(cursor.getString(2));
-                    if(forDrive&&"delete".equals(kind)&&payload.optLong("_undo_until",0)>System.currentTimeMillis())continue;
+                    if(forDrive&&("delete".equals(kind)||"archive".equals(kind))&&payload.optLong("_undo_until",0)>System.currentTimeMillis())continue;
                     payload.remove("_undo_until");
                     if(!forDrive&&"photo".equals(kind)){
                         // WebView/MCP state stays lightweight. Legacy inline data remains only in the
@@ -1053,6 +1072,7 @@ public class MainActivity extends Activity {
     }
 
     private void synchronize() {
+        if(DriveAccount.configured(this)){performDriveSync(Uri.EMPTY,true);return;}
         String saved = preferences.getString("drive_tree_uri", "");
         if (saved.isEmpty()) {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
@@ -1070,6 +1090,8 @@ public class MainActivity extends Activity {
     }
 
     private void automaticSyncIfConfigured() {
+        if(preferences.getBoolean("drive_user_action_required",false)||preferences.getInt("drive_retry_count",0)>=8||preferences.getLong("drive_next_retry",0)>System.currentTimeMillis())return;
+        if(DriveAccount.configured(this)){performDriveSync(Uri.EMPTY,false);return;}
         String saved = preferences.getString("drive_tree_uri", "");
         if (!saved.isEmpty()) performDriveSync(Uri.parse(saved), false);
     }
@@ -1100,7 +1122,9 @@ public class MainActivity extends Activity {
     private JSONObject syncStatus() {
         JSONObject status = new JSONObject();
         try {
-            status.put("configured", !preferences.getString("drive_tree_uri", "").isEmpty());
+            status.put("configured", DriveAccount.available(this));
+            if(DriveAccount.configured(this)){String progress=store.ownerValue("drive-meta:"+preferences.getString("drive_folder_id","")+":progress","");if(!progress.isEmpty())status.put("transfer_progress",new JSONObject(progress));}
+            status.put("transport",DriveAccount.configured(this)?"direct_drive":"android_provider").put("user_action_required",preferences.getBoolean("drive_user_action_required",false)).put("retry_count",preferences.getInt("drive_retry_count",0)).put("next_retry",preferences.getLong("drive_next_retry",0)).put("last_full_sync",preferences.getString("last_full_sync",""));
             status.put("syncing", syncInProgress.get()||DriveSyncCoordinator.running()||driveFolderPicking);
             status.put("last_sync", preferences.getString("last_drive_sync", ""));
             JSONObject current=store.getState(),queue=current.getJSONObject("sync_queue");
@@ -1112,7 +1136,7 @@ public class MainActivity extends Activity {
             if(conflicts>0)status.put("warning",conflicts+" Änderung(en) benötigen Prüfung. Gültige Daten sind erhalten; widersprüchliche Angaben werden nicht überschrieben.");
             status.put("last_error",preferences.getString("drive_last_error",""));
             status.put("confirmation_scope",preferences.getString("drive_confirmation_scope",""));
-            status.put("cloud_confirmed",false);
+            status.put("cloud_confirmed",preferences.getBoolean("drive_cloud_confirmed",false)&&queue.getInt("total")==0);
         } catch (Exception ignored) {}
         return status;
     }

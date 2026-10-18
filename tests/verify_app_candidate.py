@@ -62,7 +62,8 @@ def verify(apk, aapt, apksigner, baseline=None):
     if not seed['all_business_collections_empty']:
         raise ValueError('Nonempty operational seed')
     required = {'MainActivity', 'WorkSessionStore', 'DriveSyncCoordinator', 'PhotoCaptureProvider',
-                'PhotoAttachmentStore', 'PendingWorkPhotoStore','PixelOwnerAccess','PixelMcpOwnerTools','OwnerJournalRules','InvoiceDraftRules','ManualChangeRules','McpSchema','McpFileTransfer'}
+                'PhotoAttachmentStore', 'PendingWorkPhotoStore','PixelOwnerAccess','PixelMcpOwnerTools','OwnerJournalRules','InvoiceDraftRules','ManualChangeRules','McpSchema','McpFileTransfer',
+                'DriveAccount','DriveConnectionActivity','DriveRestClient','DriveDirectFiles','DrivePublication','DriveSyncJob','SyncActionOrder','GardenRules'}
     classes = dex_classes(apk)
     if not all('at.hausgarten.service.' + name in classes for name in required):
         raise ValueError('Required operative classes missing from DEX')
@@ -70,7 +71,7 @@ def verify(apk, aapt, apksigner, baseline=None):
         catalog_raw = archive.read('assets/plant-catalog.json')
         catalog = json.loads(catalog_raw)
         html = archive.read('assets/mobile.html').decode()
-        for component in ('plant-catalog.js', 'gartenpirat.js', 'design-concept.js', 'workday-ui.js', 'personal-payment.js','owner-ui.js'):
+        for component in ('plant-catalog.js', 'gartenpirat.js', 'design-concept.js', 'workday-ui.js', 'personal-payment.js','owner-ui.js','customer-hub.js','sync-dashboard.js'):
             if 'src="' + component + '"' not in html:
                 raise ValueError('Component not connected to existing entry: ' + component)
         images = {image['path'] for plant in catalog['plants'] for image in plant['images']}

@@ -28,14 +28,15 @@ final class OwnerJournalRules {
         if(kind.equals("conflict_resolution")){
             String target=p.getString("client_id");JSONObject prior=all.get(target);
             if(prior==null||!OrderReviewRules.actionHash(prior).equals(p.getString("expected_action_hash"))||resolved.has(target))throw new PixelMcpWriteTools.Rejected("ACTION_ID_CONFLICT","Die ursprüngliche Konfliktaktion wurde verändert oder bereits geprüft.");
-            String entity=prior.getString("kind"),collection=DriveJournalRules.collection(entity);if(collection.isEmpty())throw new IllegalArgumentException("Diesen Vorgang fachlich separat prüfen.");
+            boolean legacyDelete="delete".equals(prior.getString("kind"));String entity=legacyDelete?prior.getJSONObject("payload").getString("entity"):prior.getString("kind"),collection=DriveJournalRules.collection(entity);if(collection.isEmpty())throw new IllegalArgumentException("Diesen Vorgang fachlich separat prüfen.");
             JSONObject patch=prior.getJSONObject("payload"),current=findOrNull(snapshot.getJSONArray(collection),patch.optString("id"));checkHash(current,p.getString("expected_current_hash"));
             JSONObject history=snapshot.optJSONObject("owner_conflict_history");if(history==null)history=new JSONObject();
             if(!p.optString("resolution").equals("keep_current")){
                 if(!p.optString("resolution").equals("apply_proposed"))throw new IllegalArgumentException("Ungültige Konfliktentscheidung.");
-                JSONObject merged=current==null?new JSONObject():DriveJournalRules.clean(current);JSONObject clean=DriveJournalRules.clean(patch);
-                for(Iterator<String> keys=clean.keys();keys.hasNext();){String key=keys.next();merged.put(key,clean.get(key));}
-                DriveJournalRules.validateChange(entity,merged,current,snapshot);replace(snapshot,collection,merged.getString("id"),merged);
+                if(legacyDelete){if(current!=null){JSONObject archive=new JSONObject().put("entity",entity).put("id",current.getString("id")).put("expected_record_hash",version(current)).put("_record_base",DriveJournalRules.guard(current,entity)).put("_archive_record",current).put("updated_at",action.optString("created_at",java.time.Instant.now().toString()));apply(snapshot,new JSONObject().put("kind","archive").put("client_id",action.getString("client_id")+"-archive").put("created_at",action.optString("created_at")).put("payload",archive),all,resolved);}}
+                else{JSONObject merged=current==null?new JSONObject():DriveJournalRules.clean(current);JSONObject clean=DriveJournalRules.clean(patch);
+                    for(Iterator<String> keys=clean.keys();keys.hasNext();){String key=keys.next();merged.put(key,clean.get(key));}
+                    DriveJournalRules.validateChange(entity,merged,current,snapshot);replace(snapshot,collection,merged.getString("id"),merged);}
             }
             history.put(target,new JSONObject().put("original_action",prior).put("previous",current==null?JSONObject.NULL:current).put("resolution",p.getString("resolution")).put("resolution_action",action.getString("client_id")));
             snapshot.put("owner_conflict_history",history);resolved.put(target,OrderReviewRules.actionHash(prior));return;

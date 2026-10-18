@@ -28,6 +28,7 @@ def compare_base(base,current):
     if not isinstance(base,dict) or current is None or not base.get('id') or base['id']!=current.get('id'):
         raise ValueError('WRITE_CONFLICT: Der geprüfte Datensatz fehlt oder hat eine andere ID.')
     def comparable(key,value):
+        if key=='garden_area' and value in (None,''):return None
         if key in NUMBERS:return int(value) if isinstance(value,bool) else db.number(value,0)
         if key=='custom_fields':return json.loads(value or '{}') if isinstance(value,str) else value or {}
         return '' if value is None else value
@@ -82,7 +83,7 @@ def apply(action,attachment_root=None):
             prior=p.get('_original_action');target=p.get('client_id')
             if not isinstance(prior,dict) or prior.get('client_id')!=target or sync_review.digest(prior)!=p.get('expected_action_hash') or target in state['drive_resolved_actions']:
                 raise ValueError('ACTION_ID_CONFLICT: Die ursprüngliche Konfliktaktion fehlt oder wurde verändert.')
-            entity=prior['kind'];proposed=prior['payload'];current=record(database,entity,proposed['id'])
+            legacy_delete=prior['kind']=='delete';proposed=prior['payload'];entity=proposed['entity'] if legacy_delete else prior['kind'];current=record(database,entity,proposed['id'])
             if p.get('_current_base') is None:
                 if current is not None:raise ValueError('WRITE_CONFLICT: Die neue ID ist inzwischen belegt.')
             else:compare_base(p['_current_base'],current)
@@ -90,8 +91,13 @@ def apply(action,attachment_root=None):
                 payload={**(current or {}),**clean(proposed)}
                 if current:payload['_sync_base']=p['_current_base']
                 else:payload['_mcp_create']=True
-                import server
-                server.apply_sync_action({'kind':entity,'client_id':identifier+'-resolved','payload':payload},attachment_root)
+                if legacy_delete:
+                    if current:
+                        apply({'kind':'archive','client_id':identifier+'-archive','created_at':action.get('created_at',''),'payload':{'entity':entity,'id':current['id'],'_record_base':p['_current_base'],'_archive_record':current,'updated_at':action.get('created_at') or db.now()}},attachment_root)
+                        state=metadata(database)
+                else:
+                    import server
+                    server.apply_sync_action({'kind':entity,'client_id':identifier+'-resolved','payload':payload},attachment_root)
             elif p['resolution']!='keep_current':raise ValueError('Ungültige Konfliktentscheidung.')
             state['owner_conflict_history'][target]={'original_action':prior,'previous':current,'resolution':p['resolution'],'resolution_action':identifier}
             state['drive_resolved_actions'][target]=sync_review.digest(prior)
@@ -157,7 +163,7 @@ def effects(database,action):
     if kind in TABLES:targets.append((kind,p.get('id')))
     elif kind in ('archive','restore'):targets.append((p.get('entity'),p.get('id')))
     elif kind=='conflict_resolution':
-        prior=p.get('_original_action',{});targets.append((prior.get('kind'),prior.get('payload',{}).get('id')))
+        prior=p.get('_original_action',{});original=prior.get('payload',{});targets.append((original.get('entity') if prior.get('kind')=='delete' else prior.get('kind'),original.get('id')))
     elif kind=='invoice_payment':targets.append(('invoice',p.get('id')))
     elif kind in ('invoice_issue','owner_invoice_issue'):
         invoice=record(database,'invoice',p.get('id'))
@@ -192,7 +198,15 @@ def run_action(action,attachment_root=None):
         if receipt:
             if receipt['sha256']!=fingerprint:raise ValueError('ACTION_ID_CONFLICT: Anfragekennung enthält andere Angaben.')
             return json.loads(receipt['result'])['business_result'] if 'business_result' in json.loads(receipt['result']) else json.loads(receipt['result'])
-        result=server.apply_sync_action(action,attachment_root)
+        effective=action
+        p=action['payload']
+        if action['kind'] in ('customer','order','worklog','photo') and p.get('_sync_field_merge') is True and p.get('_sync_base') and not p.get('_mcp_base'):
+            import sync_protocol
+            current=record(database,action['kind'],p.get('id'))
+            merged=sync_protocol.merge_fields(p['_sync_base'],p,current)
+            merged['_sync_base']={key:current.get(key) for key in p['_sync_base']}
+            effective={**action,'payload':merged}
+        result=server.apply_sync_action(effective,attachment_root)
         if action['kind'] not in ('archive','restore','conflict_resolution','invoice_payment','business_settings'):
             saved={'business_result':result,'effects':effects(database,action)}
             database.execute('INSERT INTO owner_journal_receipts(action_id,sha256,result) VALUES(?,?,?)',(action['client_id'],fingerprint,json.dumps(saved,ensure_ascii=False)))

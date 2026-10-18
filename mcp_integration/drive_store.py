@@ -113,6 +113,11 @@ def _index(rows: Any, label: str) -> dict[str, dict]:
 def load_snapshot() -> dict:
     snapshot_path, _ = paths()
     value, fingerprint = _read_json(snapshot_path, MAX_SNAPSHOT_BYTES, SNAPSHOT_NAME)
+    import drive_publication
+    published=drive_publication.latest(snapshot_path.parent)
+    if published is not None:
+        value=published
+        fingerprint=value['_publication']['state_sha256']
     if value.get("format") != 1:
         raise DriveStoreError("INVALID_SCHEMA", "HausGarten-Laptop.json hat ein nicht unterstütztes Format.")
     customers = _index(value.get("customers"), "customers")

@@ -21,6 +21,12 @@ final class OwnerNativeAcceptance {
     }
     static JSONObject request(String id)throws Exception{return new JSONObject().put("request_id",id);}
     static void run(PixelMcpInstrumentation test)throws Exception{
+        test.probe("customer original UI retry persists exactly one action and original",()->{try(Fixture f=new Fixture(test.getTargetContext())){
+            JSONObject payload=new JSONObject().put("customer_id","c").put("original_name","qa.gif").put("caption","QA Original").put("_photo_request_id","photo_ui_isolated_request").put("data",PixelMcpInstrumentation.VALID_GIF);String id=f.store.savePhoto(new JSONObject(payload.toString()));test.yes(f.store.savePhoto(new JSONObject(payload.toString())).equals(id));test.yes(f.store.pendingActions().length()==1);test.yes(f.store.photoAttachmentStore().read(f.store.photoAttachment(id)).length>0);payload.put("caption","Different request");test.rejected(()->f.store.savePhoto(payload));
+        }});
+        test.probe("UI archive is reversible locally and does not enqueue a permanent legacy delete",()->{try(Fixture f=new Fixture(test.getTargetContext())){
+            f.store.removeEntity("worklog","w");test.yes(f.store.pendingActions().getJSONObject(0).getString("kind").equals("archive"));test.yes(f.store.pendingActionsForDrive().length()==0);test.yes(PixelMcpReadTools.effective(f.store.getState()).getJSONArray("worklogs").length()==0);f.store.undoRemoveEntity("worklog","w");test.yes(f.store.pendingActions().length()==0&&PixelMcpReadTools.effective(f.store.getState()).getJSONArray("worklogs").length()==1);
+        }});
         test.probe("owner native settings/catalog/capability reads and settings replay",()->{try(Fixture f=new Fixture(test.getTargetContext())){
             JSONObject cap=f.call("get_capabilities",new JSONObject());test.yes(cap.getInt("protocol_version")==2);
             JSONObject settings=f.call("get_settings",new JSONObject());JSONObject args=request("owner-settings").put("expected_record_hash",settings.getString("record_hash")).put("updates",new JSONObject().put("default_activity","QA Garten"));f.call("update_settings",args);test.yes(f.call("update_settings",args).getBoolean("replayed"));

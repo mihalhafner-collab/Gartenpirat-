@@ -33,7 +33,7 @@ async function check(name,task){try{await task();results.push({name,result:'PASS
    window.AndroidSpeech={start:()=>{}};window.AndroidPhone={dial:()=>{},openMaps:()=>{}};
   });
   await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href,{waitUntil:'domcontentloaded',timeout:30000});
-  await page.waitForSelector('#design-metrics');await page.evaluate(()=>openCustomer('c1'));
+  await page.waitForSelector('#design-metrics');await page.evaluate(()=>openCustomer('c1'));await page.locator('[data-customer-tab="photos"]').click();
   await check('Existing customer photos and the profile role render in the customer account',async()=>{
    assert.equal(await page.locator('[data-design-action="photo"]').count(),3);
    assert.equal(await page.locator('.design-photo-role').count(),1);
@@ -66,7 +66,7 @@ async function check(name,task){try{await task();results.push({name,result:'PASS
    const writes=await page.evaluate(()=>photoWrites);
    assert.deepEqual(writes.map(row=>row.customer_id),['c1','c1']);
    assert.deepEqual(writes.map(row=>row.role),['profile','documentation']);
-   assert(writes.every(row=>row.mime_type==='image/jpeg'&&String(row.data).startsWith('data:image/jpeg')));
+   assert(writes.every(row=>row.mime_type==='image/png'&&String(row.data).split(',')[1]===png.toString('base64')));
    await page.waitForFunction(()=>document.querySelectorAll('[data-design-action="photo"]').length===5);
    assert((await page.locator('#design-profile-content').innerText()).includes('Fotos · 5'));
   });
@@ -79,7 +79,7 @@ async function check(name,task){try{await task();results.push({name,result:'PASS
    assert.equal((await page.evaluate(()=>photoWrites.at(-1))).customer_id,'c1');
   });
   await check('Stored customer photos survive an application reload',async()=>{
-   await page.reload({waitUntil:'domcontentloaded',timeout:30000});await page.waitForSelector('#design-metrics');await page.evaluate(()=>openCustomer('c1'));
+   await page.reload({waitUntil:'domcontentloaded',timeout:30000});await page.waitForSelector('#design-metrics');await page.evaluate(()=>openCustomer('c1'));await page.locator('[data-customer-tab="photos"]').click();
    assert.equal(await page.locator('[data-design-action="photo"]').count(),6);
   });
   await check('A synced metadata-only original is loaded on demand and linked work evidence is protected',async()=>{
