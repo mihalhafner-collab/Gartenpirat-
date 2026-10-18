@@ -1,3 +1,21 @@
+# Original-Prüfkandidat 1.49.2 / 71
+
+[APK über Drive herunterladen](https://drive.google.com/file/d/1sSRrb97nKbYlh_SEKetxAUkGMLIeiCqF/view) (verbundenes Google-Konto erforderlich) · [APK im privaten Repository](Haus-Garten-1.49.2-71-original-update-kandidat.apk?raw=true)
+
+Pixel-/Drive-native Verarbeitung mit wiederherstellbaren Gesamtständen, Settings-/Foto-/Entwurfsvergleich, dauerhaften Aktionsbelegen und geschützter Online-Nummernvergabe. Keine produktive Laptop-/Web-Voraussetzung. Bestehende Pflanzen-, Foto-, Zeit-, Angebots- und b.b.-Funktionen erhalten.
+
+**Kein freigegebener Geräte-Release.** Installation erst nach vollständiger Sicherung und ausdrücklicher Freigabe; keine Deinstallation oder Datenlöschung. Der Pixel läuft weiter auf 69; neun Reviews bleiben unverändert. Direkte Google-/CAS-, native Kamera- und Update-/Datenerhalt-Abnahmen fehlen. Signierung allein beweist keine Updatefähigkeit.
+
+Paket `at.hausgarten.service`; 1.49.2 / 71; 34.401.795 Bytes. Originalzertifikat und v2/v3 geprüft, ein Signer, 16-KiB-Ausrichtung und Cleanup PASS. 402 Assets/Privacy PASS, 266 Python-Tests, 637 JVM-Fälle, 24 Browser-Suiten; native Testquellen nur kompiliert.
+
+SHA256: `a57973c9268b15e50facbb0f0fd5ccde91e98ec6f7a15dbb2ad9213f54c9e1fa`.
+
+[Zentraler Status und offene Abnahmen](../CODEX-STATUS.md) · [Prüfsummen](SHA256SUMS)
+
+## Historischer Kandidat 1.49.0 / 69
+
+Die nachfolgenden älteren Rollout-Anweisungen sind historisch; maßgeblich ist der aktuelle Cloud-only-Auftrag in CODEX-STATUS.
+
 # Original-Kandidat 1.49.0 / 69
 
 [APK über Drive herunterladen](https://drive.google.com/file/d/1PulK2-5KxzVa-o94e_bQ9yKZG_vjXTMy/view)

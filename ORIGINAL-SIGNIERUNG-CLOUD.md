@@ -310,3 +310,8 @@ war der erhaltene Cloud-Kandidat 67; aktuell installierte Version/Signatur bleib
 unbekannt. Installation und Update-/Datenerhalt-Abnahme weiterhin gesperrt bis
 Sicherung und ausdrücklicher Freigabe. Details: `docs/SYNC-DRIVE-KUNDENAKTE-1.48.md`
 und `docs/verification/sync-customer-gallery-1.48.json`.
+
+
+### Cloud-only-Kandidat 1.49.2 / 71
+
+Ein tatsächlicher Signierlauf über denselben geschützten Originalweg; fünf Variablen nur auf Vorhandensein geprüft, vorhandenes Zertifikat und finale v2/v3-Signaturen bestätigt, Cleanup erfolgreich. Öffentliche Metadaten, SHA256, Quelle, Tests und offene Geräte-/Updateabnahmen stehen konsolidiert in [CODEX-STATUS.md](CODEX-STATUS.md#eintrag-7--phase-g--geprüfter-original-kandidat-und-erneute-live-lesung). Keine Installation oder Freigabe daraus ableiten.
