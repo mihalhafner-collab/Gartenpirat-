@@ -237,3 +237,47 @@ Signatur und Quellasset-Übereinstimmung erneut an der endgültigen signierten A
 geprüft. Die Installationssperre und die offenen Geräte-/Datenerhalt-Tests bleiben
 bestehen. Der ursprüngliche JSON-Nachweis beschreibt den abgeschlossenen
 Signierungszeitpunkt vor diesem späteren Bereitstellungs-Commit.
+
+
+### Funktionsfortsetzung 1.47.0 / 67 im selben Cloud-Repository
+
+Der weitere Auftrag zur Datenintegrität und zu fachlichen MCP-Eigentümerfunktionen
+wurde auf derselben Branch mit Quellbasis `36e5567` umgesetzt. Öffentlicher
+Nachweis: `docs/verification/mcp-owner-2026-10-18.json`; Funktions- und
+Berechtigungsmatrix: `docs/MCP-EIGENTUEMERZUGRIFF-2026-10-18.md`.
+
+Vor jeder tatsächlichen Signierung ausschließlich das Vorhandensein aller fünf
+Variablen geprüft; keine Werte zur Konfigurationskontrolle ausgegeben oder
+persistiert. Ausschließlich `tools/sign_original_apk.py`, vorhandener Schlüssel,
+keine CI-/QA-/Debug-Signierung und kein Fallback. Ein erster interner Kandidat
+bestand die Signaturprüfung, wurde aber wegen fehlender Einbindung von
+`owner-ui.js` nicht bereitgestellt. Nach Korrektur und zusätzlichen Tests wurde
+neu gebaut; eine weitere interne Revision erhielt die zusätzliche Schutzregel
+für alte Fotojournale vor der endgültigen Bereitstellung. Nur der letzte,
+gegen Quelle und Artefakt geprüfte Kandidat liegt als neuer GitHub-Download vor.
+Alle tatsächlichen Signierungsversuche räumten ihre privaten Temp-Dateien auf.
+
+Final tatsächlich geprüft: Paket `at.hausgarten.service`, Version `1.47.0`,
+versionCode `67`, minSdk `26`, targetSdk/compileSdk `37`, nicht debuggable.
+Originalzertifikat-SHA256
+`a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`.
+Genau ein Signer, v2 und v3 gültig; v1, v3.1, v3.2 und v4 false.
+16-KiB-Ausrichtungsprüfung bestanden; null verbliebene private Signierungsordner
+und null Schlüsseldateien nach den geprüften Dateiendungen im Repository.
+Finaler APK-SHA256:
+`a41d1a10dc98c652be8089eeca1c4048bf22f450785648ed0e7a467d7963015e`.
+
+244 Python-Tests und 436 JVM-Prüffälle erfolgreich. Die ältere QA-Signierungssuite
+mit 37 schlüsselerzeugenden Tests ausdrücklich ausgeschlossen. Elf bestehende
+Browser-Suiten und acht neue Reproduktions-/Adapterprüfungen bestanden. Release-
+Build, Release-Lint und Android-Testquellen-Kompilierung erfolgreich; null
+Lint-Fehler, neun bestehende Warnungen. Finale APK-Privacy-Prüfung erfolgreich,
+null operative Seedzeilen, 394 Assets bytegleich zur Quelle. Keine produktiven
+Daten zum zusätzlichen Markerabgleich vorhanden (`private_markers_checked=0`).
+
+Der Zertifikats-/Versionsvergleich erfolgte mit dem erhaltenen, früheren
+Cloud-Kandidaten 1.46.1 / 66. Er ist kein Vergleich mit der aktuell installierten
+Pixel-App. Keine Installation, kein ADB-/direkter Pixel-Zugriff, kein Fresh-Install-
+oder In-place-Update-/Datenerhalt-Test und keine Betriebsdatenänderung durch
+diesen Auftrag. Installation bleibt bis vollständiger Sicherung und ausdrücklicher
+Freigabe gesperrt. Die geänderte App ist nicht als Release freigegeben.

@@ -58,12 +58,15 @@ public final class PixelTunnelService extends Service {
                     }
                     public JSONObject status(String id,JSONObject state)throws Exception{return store.status(id,state);}
                 }:null;
-                PixelTunnelWire tunnel=new PixelTunnelWire(config.id(),http,new PixelMcpReadTools(this::readState,allowed));
+                PixelTunnelWire tunnel=new PixelTunnelWire(config.id(),http,new PixelMcpReadTools(this::readState,allowed,new PixelOwnerAccess(this,store)));
                 status("connecting","OpenAI-Tunnel wird geprüft.");tunnel.verify();failures=0;
                 while(!closing.get()&&config.enabled()){
                     if(System.currentTimeMillis()>=nextDriveSync){nextDriveSync=System.currentTimeMillis()+15*60*1000;DriveSyncCoordinator.request(this,1000);}
                     tunnel.cycle();status("ready",config.writeEnabled()?"Tunnel erreichbar · Betriebsdaten lesen und bearbeiten":"Tunnel erreichbar · Betriebsdaten lesen");
                 }
+            }catch(PixelTunnelWire.RateLimit limited){
+                failures=Math.min(8,failures+1);status("rate_limited","Tunnel-Anfragen vorübergehend begrenzt. Nach der Wartezeit wird erneut verbunden.");
+                try{Thread.sleep(Math.max(limited.retryAfterMs,Math.min(60000,1000L<<failures)));}catch(InterruptedException stopped){Thread.currentThread().interrupt();break;}
             }catch(PixelTunnelWire.AccessError denied){status("auth_error",denied.userMessage());new PixelTunnelConfig(this).enabled(false);break;}
             catch(InterruptedException stopped){Thread.currentThread().interrupt();break;}
             catch(Exception failed){
@@ -76,7 +79,7 @@ public final class PixelTunnelService extends Service {
     }
     private JSONObject readState() throws Exception {
         SharedPreferences p=getSharedPreferences("haus_garten",MODE_PRIVATE);
-        String snapshot=p.getString("drive_snapshot","");
+        String snapshot=store.snapshotText("");
         if(snapshot.isEmpty())throw new IOException("Zuerst Drive-Abgleich in der App ausführen.");
         JSONObject state=store.getState();if(state.has("error"))throw new IOException("Gespeicherten Drive-Stand prüfen.");return state;
     }

@@ -1,4 +1,5 @@
 """Persist reproducible test results; every test uses disposable data fixtures."""
+import argparse
 import json
 import sys
 import unittest
@@ -29,8 +30,19 @@ if __name__=='__main__':
     # root explicit so a clean QA run never depends on the caller's environment.
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--exclude-qa-signing',action='store_true',help='Exclude legacy tests that generate real temporary signing keys.')
+    args=parser.parse_args()
     suite=unittest.defaultTestLoader.discover(str(root/'tests'))
+    excluded=[]
+    if args.exclude_qa_signing:
+        def filtered(items):
+            for item in items:
+                if isinstance(item,unittest.TestSuite):yield from filtered(item)
+                elif item.__class__.__module__=='test_qa_signing':excluded.append(item.id())
+                else:yield item
+        suite=unittest.TestSuite(filtered(suite))
     result=unittest.TextTestRunner(resultclass=RecordingResult,verbosity=1).run(suite)
     (root/'outputs'/'QA-Python-results.json').write_text(json.dumps({'executions':result.testsRun,
-        'success':result.wasSuccessful(),'skips':len(result.skipped),'results':result.records},ensure_ascii=False,indent=2),encoding='utf-8')
+        'success':result.wasSuccessful(),'explicitly_excluded':excluded,'skips':len(result.skipped),'results':result.records},ensure_ascii=False,indent=2),encoding='utf-8')
     raise SystemExit(0 if result.wasSuccessful() else 1)

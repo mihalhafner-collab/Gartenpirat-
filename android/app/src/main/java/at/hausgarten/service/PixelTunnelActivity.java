@@ -47,8 +47,8 @@ public final class PixelTunnelActivity extends Activity {
         organization.setHint("org-…");view.addView(organization);
         text(view,"Tunnel und Schlüssel müssen zur selben OpenAI-Organisation gehören. Die vorbelegte Angabe wird erst mit Verbindung starten gespeichert. Ein gültiger Schlüssel aus einem anderen Konto funktioniert hier nicht.");
         text(view,"Runtime-Schlüssel");key=new EditText(this);key.setSingleLine(true);key.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);key.setSaveEnabled(false);key.setImportantForAutofill(android.view.View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);key.setHint(config.configured()?"Bereits gespeichert · leer lassen":"Schlüssel hier einfügen");view.addView(key);
-        write=new CheckBox(this);write.setText("ChatGPT darf Kunden, Aufträge, Arbeitsaufzeichnungen und Rechnungsentwürfe anlegen und bearbeiten");write.setChecked(config.writeEnabled());view.addView(write);
-        text(view,"Kunden, Aufträge, Arbeitsaufzeichnungen und lokale Rechnungsentwürfe können bearbeitet werden. Ausgestellte Rechnungen und endgültiges Löschen bleiben geschützt. Änderungen werden lokal gespeichert und mit Drive abgeglichen. Die Freigabe gilt nach Verbindung starten.");
+        write=new CheckBox(this);write.setText("ChatGPT darf fachliche Eigentümerfunktionen lesen und schreiben");write.setChecked(config.writeEnabled());view.addView(write);
+        text(view,"Freigabe für Kunden, Aufträge, Arbeitszeiten, Fotos, Entwürfe, Konfliktprüfung, Archiv und Sicherungen. Originalbelege bleiben unveränderlich; Abschluss und Korrekturen benötigen den Nummernservice. Kontozugänge und Android-Rechte werden hier nicht erweitert. Änderungen werden lokal gespeichert und mit Drive abgeglichen. Die Freigabe gilt nach Verbindung starten.");
         button(view,"Verbindung starten",()->startConnection());
         button(view,"Verbindung beenden",()->{config.enabled(false);stopService(new Intent(this,PixelTunnelService.class));refreshStatus();});
         heading(view,"Hintergrundbetrieb");

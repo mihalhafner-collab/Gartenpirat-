@@ -43,8 +43,8 @@ public final class PixelTunnelContractTests {
     public static void main(String[] args) throws Exception {
         JSONObject state=fixture();String unchanged=state.toString();
         PixelMcpReadTools tools=new PixelMcpReadTools(()->state);
-        check("18 advertised read tools; no writes",()->{
-            JSONArray rows=tools.tools();equal(18,rows.length());for(int i=0;i<rows.length();i++){JSONObject row=rows.getJSONObject(i);yes(row.getJSONObject("annotations").getBoolean("readOnlyHint"));yes(!row.getString("name").startsWith("create"));}});
+        check("Legacy and owner read tools; no writes",()->{
+            JSONArray rows=tools.tools();equal(18+PixelMcpOwnerTools.READS.length,rows.length());for(int i=0;i<rows.length();i++){JSONObject row=rows.getJSONObject(i);yes(row.getJSONObject("annotations").getBoolean("readOnlyHint"));yes(!row.getString("name").startsWith("create"));}});
         check("integration_health",()->equal("pixel_read_only",data(tools,"integration_health","{}").getString("mode")));
         check("search_customers ambiguity",()->{JSONObject row=data(tools,"search_customers","{\"query\":\"Huber\"}");equal(2,row.getInt("count"));yes(row.getBoolean("requires_clarification"));});
         check("inactive customers included explicitly",()->equal(3,data(tools,"search_customers","{\"query\":\"Huber\",\"include_inactive\":true}").getInt("count")));
@@ -115,13 +115,14 @@ public final class PixelTunnelContractTests {
         check("unrecognized provider reason never displayed",()->{equal("auth_denied",PixelTunnelWire.accessReason(json("{\"message\":\"private diagnostic detail\"}")));yes(!new PixelTunnelWire.AccessError(403,"auth_denied").userMessage().contains("private diagnostic detail"));});
         check("timeout grammar and zero deadline",()->{equal(10L,PixelTunnelWire.deadline("0s",10));equal(2000000010L,PixelTunnelWire.deadline("2s",10));equal(Long.MAX_VALUE,PixelTunnelWire.deadline("bogus",10));});
         check("idle 204 is normal",()->{Fake f=new Fake();f.pollCode=204;equal(0,wire(f,tools).cycle());});
-        check("all commands in oversized poll batch processed",()->{Fake f=new Fake();f.commands.put(command("r1","ping")).put(command("r2","tools/list"));equal(2,wire(f,tools).cycle());equal(18,f.posted.get(1).getJSONObject("resp_json").getJSONObject("result").getJSONArray("tools").length());});
+        check("all commands in oversized poll batch processed",()->{Fake f=new Fake();f.commands.put(command("r1","ping")).put(command("r2","tools/list"));equal(2,wire(f,tools).cycle());equal(18+PixelMcpOwnerTools.READS.length,f.posted.get(1).getJSONObject("resp_json").getJSONObject("result").getJSONArray("tools").length());});
         check("shard token only in header",()->{Fake f=new Fake();f.commands.put(command("r1","ping"));wire(f,tools).cycle();equal("test-shard",f.shards.get(0));yes(!f.posted.get(0).has("shard_token"));});
         check("unknown command skipped",()->{Fake f=new Fake();f.commands.put(command("r1","ping").put("command_type","future"));equal(0,wire(f,tools).cycle());});
         check("expired request not dispatched",()->{Fake f=new Fake();f.commands.put(command("r1","ping").put("response_timeout","0s"));equal(0,wire(f,tools).cycle());});
         check("notification ack 202",()->{Fake f=new Fake();JSONObject command=command("r1","notifications/initialized");command.getJSONObject("jsonrpc").remove("id");f.commands.put(command);wire(f,tools).cycle();equal("notify_ack",f.posted.get(0).getString("resp_type"));yes(!f.posted.get(0).has("resp_json"));});
         check("session termination ack",()->{Fake f=new Fake();f.commands.put(command("r1","ping").put("command_type","session_termination"));wire(f,tools).cycle();equal("session_termination_response",f.posted.get(0).getString("resp_type"));});
         check("authentication failure recognized",()->{Fake f=new Fake();f.metaCode=403;boolean denied=false;try{wire(f,tools).verify();}catch(PixelTunnelWire.AccessError expected){denied=true;}yes(denied);});
+        check("rate limit waits are bounded and never authentication grants",()->{equal(2000L,PixelTunnelWire.retryAfter("2",0));equal(900000L,PixelTunnelWire.retryAfter("999999",0));equal(15000L,PixelTunnelWire.retryAfter("private-untrusted-header",0));Fake f=new Fake();f.metaCode=429;try{wire(f,tools).verify();throw new AssertionError();}catch(PixelTunnelWire.RateLimit limited){equal(15000L,limited.retryAfterMs);yes(!limited.getMessage().contains("private"));}});
         check("server failure does not become success",()->{Fake f=new Fake();f.postCode=503;f.commands.put(command("r1","ping"));rejects(()->wire(f,tools).cycle());});
         check("duplicate request uses same response",()->{Fake f=new Fake();f.commands.put(command("r1","get"));PixelTunnelWire w=wire(f,tools);w.cycle();w.cycle();equal(f.posted.get(0).toString(),f.posted.get(1).toString());});
         check("same request ID with different content rejected",()->{Fake f=new Fake();f.commands.put(command("r1","ping"));PixelTunnelWire w=wire(f,tools);w.cycle();f.commands=new JSONArray().put(command("r1","tools/list"));rejects(w::cycle);equal(1,f.posted.size());});
@@ -140,7 +141,7 @@ public final class PixelTunnelContractTests {
                     if(path.endsWith("/response")){
                         JSONObject response=new JSONObject(new String(exchange.getRequestBody().readAllBytes(),StandardCharsets.UTF_8));
                         boolean valid="test-shard".equals(exchange.getRequestHeaders().getFirst("X-Tunnel-Shard-Token"))&&!response.has("shard_token")
-                            &&response.getJSONObject("resp_json").getJSONObject("result").getJSONArray("tools").length()==18;
+                            &&response.getJSONObject("resp_json").getJSONObject("result").getJSONArray("tools").length()==18+PixelMcpOwnerTools.READS.length;
                         if(valid)posts.incrementAndGet();code=valid?204:400;
                     }
                     if(code==204){exchange.sendResponseHeaders(code,-1);return;}

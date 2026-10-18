@@ -120,6 +120,12 @@ def save_photo(data: dict) -> dict:
             for key,table,label in [('customer_id','customers','Kunde'),('order_id','orders','Auftrag'),('worklog_id','worklogs','Arbeitsaufzeichnung')]:
                 if data.get(key) and not database.execute(f'SELECT 1 FROM {table} WHERE id=?',(data[key],)).fetchone():
                     raise ValueError(f'Foto noch nicht übernommen: Zugeordnete {label} fehlt. Bitte die Zuordnung prüfen; das Original bleibt in der mobilen Datei erhalten.')
+            previous=db.one(database.execute("SELECT * FROM photos WHERE id=?",(identifier,)))
+            if data.get('_mcp_create') and previous:raise ValueError('WRITE_CONFLICT: Die neue Foto-ID existiert bereits.')
+            base=data.get('_sync_base') or data.get('_mcp_base')
+            if base is not None:
+                from owner_journal import compare_base
+                compare_base(base,previous)
             database.execute(
                 """INSERT INTO photos
                 (id,customer_id,order_id,worklog_id,filename,original_name,caption,customer_visible,created_at,
@@ -138,6 +144,7 @@ def save_photo(data: dict) -> dict:
                     metadata["storage_name"], metadata["role"],
                 ),
             )
+            database.execute("UPDATE photos SET updated_at=? WHERE id=?",(data.get('updated_at') or db.now(),identifier))
             saved = db.one(database.execute("SELECT * FROM photos WHERE id=?", (identifier,)))
     except Exception:
         if created:
@@ -205,7 +212,7 @@ def _create_backup(folder="") -> dict:
 
 
 DRIVE_SYNC_LOCK = threading.RLock()
-SYNC_CAPABILITIES = {"worklog_compare_and_save": True, "entity_compare_and_save": True,
+SYNC_CAPABILITIES = {"owner_journal_v2":True,"invoice_compare_and_save":True,"photo_compare_and_save":True,"durable_action_receipts":True,"worklog_compare_and_save": True, "entity_compare_and_save": True,
                      "customer_custom_fields_compare_and_save": True, "billing_relations": True,
                      "photo_attachments_v1": True}
 
@@ -275,6 +282,12 @@ def apply_sync_action(action, attachment_root: Path | None = None):
     if not isinstance(action, dict) or not isinstance(action.get('payload', {}), dict):
         raise ValueError('Ungültiger Eintrag im Abgleichpaket.')
     kind = action.get('kind')
+    if kind=='owner_invoice_issue':
+        if not isinstance(action.get('payload',{}).get('_expected_invoice'),dict):raise ValueError('Vergleichsstand des Rechnungsabschlusses fehlt.')
+        return invoicing.issue(str(action['payload'].get('id','')), action['payload'].get('confirmed') is True,action['payload']['_expected_invoice'],action['payload'].get('_expected_worklogs'))
+    if kind in ('archive','restore','conflict_resolution','invoice_payment','business_settings'):
+        import owner_journal
+        return owner_journal.apply(action,attachment_root)
     if kind not in SAVERS: raise ValueError('Unbekannte Datenart im Abgleichpaket.')
     payload = dict(action.get('payload', {}))
     if kind == 'photo' and not payload.get('data'):
@@ -294,15 +307,23 @@ def apply_sync_action(action, attachment_root: Path | None = None):
         if verified['storage_name'] != name:
             raise ValueError('Der Dateiname des Foto-Originals stimmt nicht mit seiner Prüfsumme überein.')
         payload['_attachment_bytes'] = raw
-    tables={'customer':'customers','order':'orders','worklog':'worklogs'}
+    tables={'customer':'customers','order':'orders','worklog':'worklogs','invoice':'invoices','photo':'photos'}
     if kind in tables and payload.get('id') and not payload.get('_mcp_create') and not payload.get('_mcp_base') and not payload.get('_sync_base'):
         with db.connect() as connection:
-            current=db.one(connection.execute('SELECT * FROM '+tables[kind]+' WHERE id=?',(payload['id'],)))
+            from owner_journal import record
+            current=record(connection,kind,payload['id'])
         if current:
+            if kind=='invoice' and 'positions' in payload:
+                calculated=db.calculate_invoice(payload)
+                payload['positions']=calculated['positions']
+                if 'worklog_ids' in payload:payload['worklog_ids']=calculated['worklog_ids']
+            if kind=='photo' and payload.get('_attachment_bytes') is not None and hashlib.sha256(payload['_attachment_bytes']).hexdigest()!=current.get('content_sha256'):
+                raise ValueError('Ältere Fotoänderung ohne Vergleichsstand. Original bleibt erhalten.')
             numbers={'hours','break_minutes','kilometers','billed','customer_visible','active','garden_area'}
             def compare(key,value):
-                if key in numbers:return db.number(value,0)
-                if key=='custom_fields':return json.dumps(json.loads(value or '{}') if isinstance(value,str) else value or {},sort_keys=True)
+                if key in numbers:return int(value) if isinstance(value,bool) else db.number(value,0)
+                if key=='custom_fields':return __import__('sync_review').canonical(json.loads(value or '{}') if isinstance(value,str) else value or {})
+                if isinstance(value,(dict,list)):return __import__('sync_review').canonical(value)
                 return '' if value is None else value
             if any(compare(key,value)!=compare(key,current.get(key)) for key,value in payload.items()
                    if key in current and key not in {'created_at','updated_at','source'}):
@@ -314,6 +335,10 @@ def apply_sync_action(action, attachment_root: Path | None = None):
         with db.connect() as connection:
             prior = db.one(connection.execute("SELECT * FROM worklogs WHERE id=?", (payload.get("id"),)))
         payload["billing_customer_id"] = (prior.get("billing_customer_id") or prior["customer_id"]) if prior else payload.get("customer_id")
+    if kind == 'invoice' and payload.get('_sync_base') is not None:
+        payload['_expected_invoice']=payload['_sync_base']
+        with db.connect() as connection:invoice_columns={r[1] for r in connection.execute('PRAGMA table_info(invoices)')}
+        payload['_mcp_base']={k:v for k,v in payload['_sync_base'].items() if k in invoice_columns}
     if kind in ('customer', 'order', 'worklog'):
         base = payload.get('_sync_base')
         if base is not None:
@@ -326,6 +351,7 @@ def apply_sync_action(action, attachment_root: Path | None = None):
         client_id = str(action.get('client_id') or '')
         if not client_id: raise ValueError('Die eindeutige Abgleichkennung fehlt.')
         payload['id'] = kind + '_sync_' + hashlib.sha256(client_id.encode()).hexdigest()[:32]
+    if kind=='invoice_correction':payload['_action_id']=str(action.get('client_id') or '')
     return SAVERS[kind](payload)
 
 
@@ -348,6 +374,8 @@ def guard_drive_export(previous, candidate, imported_records):
         local = {row['id']: row for row in candidate[collection]}
         for row in rows:
             current = local.get(row['id'])
+            if (collection,row['id']) in imported_records:
+                continue
             if current is None:
                 raise ValueError('Drive enthält Datensätze, die der Web-App fehlen. Gesamtstand nicht überschrieben; Datenabgleich prüfen.')
             if (collection, row['id']) in imported_records:
@@ -410,6 +438,8 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
     except FileNotFoundError:ledger={'resolved':{},'applied':{}}
     except (ValueError,TypeError):raise ValueError('Die Auftrags-Prüfbestätigungen sind beschädigt. Keine Änderung übernommen.')
     resolved=ledger['resolved'];accepted.update(ledger['applied'])
+    import owner_journal
+    resolved.update(owner_journal.snapshot_metadata().get('drive_resolved_actions',{}))
     imported, failed = 0, []
     sources = list(destination.glob("HausGarten-Mobile-*.json"))
     chatgpt_source = destination / "HausGarten-ChatGPT.json"
@@ -430,6 +460,7 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
         except Exception as error:failed.append({'file':source.name,'error':str(error)})
     # Check immutable reviewed actions before any business saver is called.
     for identifier,action in actions.items():
+        imported_records.update(owner_journal.verified_effects(action))
         known=resolved.get(identifier) or ledger['applied'].get(identifier)
         if known and known!=sync_review.digest(action):raise ValueError('Eine geprüfte Änderung wurde verändert. Abgleich angehalten.')
     def created(action):
@@ -445,29 +476,33 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
         if kind=='delete' and action_id in held:continue
         if kind=='delete':
             failed.append({'file':filename,'client_id':action_id,'kind':kind,'code':'DELETE_REVIEW_REQUIRED','error':'Löschänderung bleibt zur gesonderten Prüfung erhalten. Keine Drive-Daten automatisch gelöscht.'});continue
-        if kind=='invoice_issue' and action_id in rejected:
+        if kind in ('invoice_issue','owner_invoice_issue') and action_id in rejected:
             failed.append(rejected[action_id]);continue
-        if invoice_only and kind not in ('invoice','invoice_issue'):continue
+        if invoice_only and kind not in ('invoice','invoice_issue','owner_invoice_issue','invoice_correction','invoice_payment','business_settings'):continue
         try:
             refs=sync_review.validate_resolution(action,actions,failures,accepted,resolved)
-            apply_sync_action(action, drive_photos)
+            owner_journal.run_action(action, drive_photos)
+            imported_records.update(owner_journal.verified_effects(action))
+            if kind=='conflict_resolution':resolved.update(owner_journal.snapshot_metadata().get('drive_resolved_actions',{}))
             collection={'customer':'customers','order':'orders','worklog':'worklogs','invoice':'invoices','photo':'photos'}.get(kind)
             if collection and action['payload'].get('id'):imported_records.add((collection,action['payload']['id']))
             if refs:
                 for identifier in refs:resolved[identifier]=sync_review.digest(actions[identifier])
-                ledger['applied'][action_id]=sync_review.digest(action)
-                write_json_atomic(ledger_path,ledger)
+            ledger['applied'][action_id]=sync_review.digest(action)
+            write_json_atomic(ledger_path,ledger)
             accepted.add(action_id);write_json_atomic(receipts_path,sorted(accepted));imported+=1
         except Exception as error:
             failures.add(action_id)
             failure={'file':filename,'client_id':action_id,'kind':kind,'invoice_id':action['payload'].get('id',''),'error':str(error)}
             failed.append(failure)
-            if kind=='invoice_issue':rejected[action_id]=failure
+            if kind in ('invoice_issue','owner_invoice_issue'):rejected[action_id]=failure
     failed=[failure for failure in failed if failure.get('client_id') not in resolved]
 
     write_json_atomic(receipts_path, sorted(accepted))
     write_json_atomic(rejected_path, rejected)
+    settings=db.settings()
     snapshot = {**previous,
+        "business_settings":owner_journal.business_settings(),
         "format": 1,
         "exported_at": db.now(),
         "capabilities": {**previous.get('capabilities', {}), **SYNC_CAPABILITIES},
@@ -482,6 +517,7 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
         "sync_errors": list({item.get('client_id',item['file']):item for item in [*rejected.values(),*failed]}.values()),
         "rejected_invoice_ids": list(rejected),
         "held_delete_ids": sorted(held),
+        **{k:v for k,v in owner_journal.snapshot_metadata().items() if k!='drive_resolved_actions'},
         "invoice_issuer": {key: settings.get(key, '') for key in (
             'business_name', 'owner_name', 'business_street', 'business_postal_code',
             'business_city', 'business_legal_info', 'business_iban', 'business_bank',
@@ -489,6 +525,7 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
     }
     for invoice in snapshot['invoices']:
         if invoice.get('issued_at'):
+            invoice['pdf_sha256']=hashlib.sha256(invoicing.issued_pdf(invoice['id'])).hexdigest()
             invoice['pdf_base64'] = base64.b64encode(invoicing.issued_pdf(invoice['id'])).decode('ascii')
             archive_folder = destination / 'Rechnungen' / str(invoice['invoice_date'][:4])
             archive_folder.mkdir(parents=True, exist_ok=True)
@@ -567,7 +604,8 @@ SAVERS = {
     "order": db.save_order,
     "worklog": db.save_worklog,
     "invoice": db.save_invoice,
-    "invoice_issue": lambda payload: invoicing.issue(str(payload.get('id','')), payload.get('confirmed') is True),
+    "invoice_issue": lambda payload: invoicing.issue(str(payload.get('id','')), payload.get('confirmed') is True, payload.get('_expected_invoice'),payload.get('_expected_worklogs')),
+    "invoice_correction": invoicing.create_correction,
     "photo": save_photo,
     "delete": lambda payload: db.remove_entity(str(payload.get("entity", "")), str(payload.get("id", ""))),
 }

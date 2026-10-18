@@ -19,10 +19,11 @@ const {chromium}=require('./browser.cjs');
   await check('Saved work is personally marked and Today shows bezahlt without a business write',async()=>{
    await page.locator('#workday-recent [data-personal-paid]').click();
    assert.equal(await page.locator('#workday-recent .personal-payment-label').innerText(),'bezahlt');
+   await page.evaluate(()=>openPage('worklogs'));
    assert.equal(await page.locator('#worklog-list [data-personal-paid]').getAttribute('aria-pressed'),'true');
    assert.equal(await page.evaluate(()=>JSON.stringify(fixture)),before);assert.deepEqual(await page.evaluate(()=>writes),[]);
    await page.setViewportSize({width:320,height:650});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
-   await page.setViewportSize({width:412,height:915});await page.screenshot({path:'outputs/Heute-bb-candidate.png'});
+   await page.setViewportSize({width:412,height:915});await page.evaluate(()=>openPage('home'));await page.screenshot({path:'outputs/Heute-bb-candidate.png'});
   });
   await check('Personal mark survives reload and is removable from saved work',async()=>{
    await load();assert.equal(await page.locator('#workday-recent .personal-payment-label').innerText(),'bezahlt');

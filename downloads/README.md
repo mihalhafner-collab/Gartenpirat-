@@ -1,3 +1,46 @@
+# Aktueller Original-Kandidat 1.47.0 / 67
+
+[APK 1.47.0 herunterladen](Haus-Garten-1.47.0-67-original-update-kandidat.apk?raw=true)
+
+**Nicht zur Installation freigegeben.** Sicherung und ausdrückliche Freigabe
+bleiben erforderlich. Keine Deinstallation oder App-Datenlöschung. Zuerst den
+kompatiblen Web-/Drive-Importer bereitstellen; neue Funktionen sind noch nicht
+auf dem Pixel installiert und nicht gegen Betriebsdaten schreibend getestet.
+
+| Eigenschaft | Tatsächlich geprüfter Wert |
+| --- | --- |
+| Paket | `at.hausgarten.service` |
+| Version / Code | `1.47.0` / `67`, höher als bisheriger Cloud-Kandidat `66` und Baseline `64` |
+| Android | minSdk `26`, targetSdk / compileSdk `37` |
+| Build | Release, nicht debuggable |
+| Originalzertifikat | Übereinstimmung mit konfiguriertem Keystore und vorherigem Cloud-Kandidaten geprüft |
+| Signatur | Genau ein Signer; v2 und v3 gültig; Ausrichtung mit 16-KiB-Prüfung bestanden |
+| Cleanup | Keine privaten Signierungsordner oder Schlüsseldateien nach den geprüften Dateiendungen zurückgeblieben |
+
+APK-SHA256:
+`a41d1a10dc98c652be8089eeca1c4048bf22f450785648ed0e7a467d7963015e`
+
+Geprüfter öffentlicher Zertifikat-SHA256:
+`a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`
+
+Alle sieben beschriebenen Fehler/Optimierungen sind im Cloud-Quellcode umgesetzt.
+Der private MCP-Umfang umfasst 66 Werkzeuge; externe Konto-/Gerätefreigaben
+werden dadurch nicht ersetzt. 244 Python-Tests, 436 JVM-Prüffälle, elf bestehende
+Browser-Suiten und acht neue Browserprüfungen erfolgreich. Release-Build und
+Lint erfolgreich (null Fehler, neun bestehende Warnungen). Alle 394 App-Assets
+stimmen mit der Quelle überein, inklusive unverändertem Katalog mit 181 Profilen
+und 362 Bildern. Keine operativen Seedzeilen im Artefakt.
+
+Native Android-Testquellen sind nur kompiliert. Fresh-Install, In-place-Update,
+Datenerhalt sowie die derzeit installierte Pixel-Version/-Signatur wurden nicht
+geprüft. Eine erfolgreiche Originalsignierung ist kein Update-/Datenerhalt-Test.
+
+[Funktions-/Berechtigungsmatrix und Einführungsgrenzen](../docs/MCP-EIGENTUEMERZUGRIFF-2026-10-18.md) ·
+[Öffentlicher Prüfnachweis](../docs/verification/mcp-owner-2026-10-18.json) ·
+[Prüfsummen](SHA256SUMS)
+
+## Erhaltener vorheriger Cloud-Kandidat
+
 # Haus & Garten – originalsignierter Update-Kandidat
 
 [APK herunterladen](Haus-Garten-1.46.1-66-original-update-kandidat.apk?raw=true)

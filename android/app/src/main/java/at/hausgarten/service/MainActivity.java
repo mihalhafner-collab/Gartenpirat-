@@ -420,34 +420,27 @@ public class MainActivity extends Activity {
             try { String id = store.saveOrder(new JSONObject(value)); requestAutomaticSync(AUTO_SYNC_DELAY_MS); return id; }
             catch (Exception error) { return "ERROR: " + error.getMessage(); }
         }
+        @JavascriptInterface public String getOwnerSettings(){return store.ownerValue("settings","{}");}
+        @JavascriptInterface public String getPersonalPaid(){return "1".equals(store.ownerValue("personal_paid_migrated",""))?store.ownerValue("personal_paid","[]"):"";}
+        @JavascriptInterface public String migratePersonalPaid(String value){
+            SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();try{if(!"1".equals(store.ownerValue("personal_paid_migrated",""))){JSONArray old=new JSONArray(value),current=new JSONArray(store.ownerValue("personal_paid","[]"));Set<String> union=new java.util.LinkedHashSet<>();for(JSONArray list:new JSONArray[]{old,current})for(int i=0;i<list.length();i++){String id=list.getString(i);if(id.isEmpty()||id.length()>500)throw new IllegalArgumentException();union.add(id);}store.putOwnerValue("personal_paid",new JSONArray(union).toString());store.putOwnerValue("personal_paid_migrated","1");}db.setTransactionSuccessful();return "OK";}catch(Exception e){return "ERROR: Persönliche Übersicht bleibt erhalten; Übernahme nicht abgeschlossen.";}finally{db.endTransaction();}
+        }
+        @JavascriptInterface public String setPersonalPaid(String value){
+            try{JSONArray ids=new JSONArray(value);JSONObject all=PixelMcpReadTools.effective(store.getState());for(int i=0;i<ids.length();i++)PixelMcpWriteTools.find(all.getJSONArray("worklogs"),ids.getString(i));store.putOwnerValue("personal_paid",ids.toString());return "OK";}catch(Exception e){return "ERROR: Persönliche Übersicht konnte nicht gespeichert werden.";}
+        }
+        @JavascriptInterface public String getInvoiceShareHandoff(){return store.ownerValue("invoice_share_handoff", "{}");}
+        @JavascriptInterface public String sharePreparedInvoice(){
+            try{JSONObject handoff=new JSONObject(store.ownerValue("invoice_share_handoff","{}")),all=PixelMcpReadTools.effective(store.getState()),invoice=PixelMcpWriteTools.find(all.getJSONArray("invoices"),handoff.getString("invoice_id"));return shareInvoiceVia(invoice.toString(),handoff.getString("channel"));}catch(Exception e){return "ERROR: Originalbeleg oder Versandvorbereitung fehlt.";}
+        }
         @JavascriptInterface public String saveInvoice(String value) {
-            try {
-                JSONObject payload = new JSONObject(value);
-                if (!"Entwurf".equals(payload.optString("status")) || !payload.optString("sevdesk_id").isEmpty())
-                    throw new Exception("Nur lokale Rechnungsentwürfe können hier gespeichert werden.");
-                String entityId = payload.optString("id");
-                if (entityId.isEmpty()) entityId = "inv_mobile_" + UUID.randomUUID().toString().replace("-", "");
-                assertEditableInvoice(entityId);
-                payload.put("id", entityId);
-                ContentValues values = new ContentValues();
-                values.put("id", "invoice_change_" + UUID.randomUUID().toString());
-                values.put("kind", "invoice"); values.put("payload", payload.toString()); values.put("created_at", isoNow());
-                store.getWritableDatabase().insertOrThrow("pending", null, values);
-                requestAutomaticSync(AUTO_SYNC_DELAY_MS); return entityId;
-            } catch (Exception error) { return "ERROR: " + error.getMessage(); }
+            try{String id=store.saveInvoiceDraft(new JSONObject(value));requestAutomaticSync(AUTO_SYNC_DELAY_MS);return id;}
+            catch(Exception error){return "ERROR: "+error.getMessage();}
         }
         @JavascriptInterface public String requestInvoiceIssue(String identifier) {
-            try {
-                assertEditableInvoice(identifier);
-                JSONObject payload = new JSONObject(); payload.put("id", identifier); payload.put("confirmed", true);
-                ContentValues values = new ContentValues(); values.put("id", "invoice_issue_" + UUID.randomUUID());
-                values.put("kind", "invoice_issue"); values.put("payload", payload.toString()); values.put("created_at", isoNow());
-                store.getWritableDatabase().insertOrThrow("pending", null, values);
-                requestAutomaticSync(AUTO_SYNC_DELAY_MS); return "OK";
-            } catch(Exception error) { return "ERROR: " + error.getMessage(); }
+            try{JSONObject all=PixelMcpReadTools.effective(store.getState()),invoice=PixelMcpWriteTools.find(all.getJSONArray("invoices"),identifier);store.execute("request_invoice_issue",new JSONObject().put("request_id","ui-issue-"+UUID.randomUUID()).put("invoice_id",identifier).put("expected_record_hash",PixelMcpWriteTools.hash(PixelMcpEntityWriteTools.recordForHash("invoice",invoice))).put("confirmed",true));return "OK";}catch(Exception e){return "ERROR: "+e.getMessage();}
         }
         private void assertEditableInvoice(String identifier) throws Exception {
-            JSONObject snapshot=new JSONObject(preferences.getString("drive_snapshot",readAsset("initial-data.json")));
+            JSONObject snapshot=new JSONObject(store.snapshotText(readAsset("initial-data.json")));
             JSONArray invoices=snapshot.optJSONArray("invoices");
             if(invoices!=null)for(int i=0;i<invoices.length();i++){JSONObject row=invoices.getJSONObject(i);if(identifier.equals(row.optString("id"))&&(!row.optString("issued_at").isEmpty()||!"Entwurf".equals(row.optString("status"))))throw new Exception("Abgeschlossene Rechnungen bleiben unverändert.");}
             try(Cursor cursor=store.getReadableDatabase().rawQuery("SELECT payload FROM pending WHERE kind='invoice_issue'",null)){
@@ -527,7 +520,7 @@ public class MainActivity extends Activity {
         private final SharedPreferences preferences;
         private final PhotoAttachmentStore photoAttachments;
         LocalStore(Context context) {
-            super(context, "haus-garten-mobile.db", null, 3);
+            super(context, "haus-garten-mobile.db", null, 4);
             this.context = context;
             preferences = context.getSharedPreferences("haus_garten", Context.MODE_PRIVATE);
             photoAttachments = new PhotoAttachmentStore(context);
@@ -549,8 +542,23 @@ public class MainActivity extends Activity {
         private void removeSnapshotPhotoBinaries(JSONObject snapshot){
             JSONArray photos=snapshot.optJSONArray("photos");for(int i=0;photos!=null&&i<photos.length();i++){JSONObject photo=photos.optJSONObject(i);if(photo!=null){photo.remove("data");photo.remove("full_data");}}
         }
-        @Override public void onCreate(SQLiteDatabase database) { database.execSQL("CREATE TABLE pending(id TEXT PRIMARY KEY,kind TEXT NOT NULL,payload TEXT NOT NULL,created_at TEXT NOT NULL)"); WorkSessionStore.createSchema(database); createPhotoAttachmentSchema(database); }
-        @Override public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) { if(oldVersion<2) WorkSessionStore.createSchema(database);if(oldVersion<3){createPhotoAttachmentSchema(database);migrateLegacyPendingPhotoAttachments(database);} }
+        @Override public void onCreate(SQLiteDatabase database) { database.execSQL("CREATE TABLE pending(id TEXT PRIMARY KEY,kind TEXT NOT NULL,payload TEXT NOT NULL,created_at TEXT NOT NULL)"); WorkSessionStore.createSchema(database); createPhotoAttachmentSchema(database); createOwnerSchema(database); }
+        @Override public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) { if(oldVersion<2) WorkSessionStore.createSchema(database);if(oldVersion<3){createPhotoAttachmentSchema(database);migrateLegacyPendingPhotoAttachments(database);}if(oldVersion<4)createOwnerSchema(database); }
+        private void createOwnerSchema(SQLiteDatabase database){
+            database.execSQL("CREATE TABLE IF NOT EXISTS owner_state(key TEXT PRIMARY KEY,value TEXT NOT NULL)");
+            database.execSQL("CREATE TABLE IF NOT EXISTS mcp_uploads(id TEXT PRIMARY KEY,metadata TEXT NOT NULL,data BLOB NOT NULL)");
+        }
+        String snapshotText(String fallback){
+            String value=ownerValue("snapshot",null);return value==null?preferences.getString("drive_snapshot",fallback):value;
+        }
+        void putOwnerValue(String key,String value){ContentValues v=new ContentValues();v.put("key",key);v.put("value",value);getWritableDatabase().insertWithOnConflict("owner_state",null,v,SQLiteDatabase.CONFLICT_REPLACE);}
+        String ownerValue(String key,String fallback){
+            int count;try(Cursor row=getReadableDatabase().rawQuery("SELECT length(value) FROM owner_state WHERE key=?",new String[]{key})){if(!row.moveToFirst())return fallback;count=row.getInt(0);}
+            StringBuilder out=new StringBuilder();for(int offset=0;offset<count;offset+=32768)try(Cursor row=getReadableDatabase().rawQuery("SELECT substr(value,?,32768) FROM owner_state WHERE key=?",new String[]{Integer.toString(offset+1),key})){if(!row.moveToFirst())return fallback;out.append(row.getString(0));}return out.toString();
+        }
+        void commitSnapshot(JSONObject snapshot,Set<String> confirmed)throws Exception{
+            SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{putOwnerValue("snapshot",snapshot.toString());acknowledge(confirmed);db.setTransactionSuccessful();}finally{db.endTransaction();}
+        }
         private void createPhotoAttachmentSchema(SQLiteDatabase database){
             database.execSQL("CREATE TABLE IF NOT EXISTS photo_attachments(photo_id TEXT PRIMARY KEY,content_sha256 TEXT NOT NULL,mime_type TEXT NOT NULL,byte_size INTEGER NOT NULL,storage_name TEXT NOT NULL,role TEXT NOT NULL DEFAULT 'documentation',transfer_state TEXT NOT NULL DEFAULT 'local',created_at TEXT NOT NULL)");
             database.execSQL("CREATE INDEX IF NOT EXISTS ix_photo_attachments_hash ON photo_attachments(content_sha256)");
@@ -564,19 +572,29 @@ public class MainActivity extends Activity {
             }
         }
         JSONObject getState() {
+            SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{JSONObject result=getStateLocked();db.setTransactionSuccessful();return result;}finally{db.endTransaction();}
+        }
+        private JSONObject getStateLocked() {
             JSONObject output = new JSONObject();
-            try { JSONObject master=new JSONObject(preferences.getString("drive_snapshot", readAsset("initial-data.json")));removeSnapshotPhotoBinaries(master);output.put("master",master); output.put("pending", DriveJournalRules.union(pendingActions(),output.getJSONObject("master").optJSONArray("drive_review_actions"))); output.put("last_drive_sync", preferences.getString("last_drive_sync", ""));output.put("work_session",new WorkSessionStore(getWritableDatabase(),context).current());output.put("sync_queue",DriveJournalRules.queueStatus(output.getJSONObject("master"),output.getJSONArray("pending"))); }
+            try { JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));removeSnapshotPhotoBinaries(master);output.put("master",master); output.put("pending", DriveJournalRules.union(pendingActions(),output.getJSONObject("master").optJSONArray("drive_review_actions"))); output.put("last_drive_sync", preferences.getString("last_drive_sync", ""));output.put("work_session",new WorkSessionStore(getWritableDatabase(),context).current());output.put("sync_queue",DriveJournalRules.queueStatus(output.getJSONObject("master"),output.getJSONArray("pending"))); }
             catch (Exception error) { try { output.put("error", error.getMessage()); } catch (Exception ignored) {} }
             try{output.put("drive_sync_failed",preferences.getBoolean("drive_sync_failed",false)).put("last_sync_attempt",preferences.getString("last_sync_attempt",""));}catch(Exception ignored){}
             return output;
         }
         String saveWorklog(JSONObject payload) throws Exception {
+            SQLiteDatabase transaction=getWritableDatabase();transaction.beginTransaction();
+            try {String result=saveWorklogLocked(payload);transaction.setTransactionSuccessful();return result;}
+            finally{transaction.endTransaction();}
+        }
+        private String saveWorklogLocked(JSONObject payload) throws Exception {
+            JSONObject current=PixelMcpReadTools.effective(getState());
+            payload=ManualChangeRules.editor(payload,findById(current.getJSONArray("worklogs"),payload.optString("id")),"worklog");
             String customerId = payload.optString("customer_id").trim();
             if (customerId.isEmpty() || payload.optString("activity").trim().isEmpty()) throw new IllegalArgumentException("Kunde und Tätigkeit sind erforderlich.");
             boolean isNew = payload.optString("id").isEmpty();
             boolean requireOrder = payload.optBoolean("_require_order", false) || payload.optBoolean("require_order", false);
             String orderId = payload.isNull("order_id") ? "" : payload.optString("order_id").trim();
-            JSONObject master = new JSONObject(preferences.getString("drive_snapshot", readAsset("initial-data.json")));
+            JSONObject master = new JSONObject(snapshotText(readAsset("initial-data.json")));
             JSONArray customers = effectiveRows(master, "customers", "customer"), orders = effectiveRows(master, "orders", "order");
             JSONObject previous=findById(effectiveRows(master,"worklogs","worklog"),payload.optString("id"));
             isNew=previous==null;
@@ -606,7 +624,7 @@ public class MainActivity extends Activity {
             return entityId;
         }
         JSONObject startWorkSession(JSONObject payload)throws Exception{
-            JSONObject master=new JSONObject(preferences.getString("drive_snapshot",readAsset("initial-data.json")));
+            JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));
             String customer=payload.optString("customer_id").trim(),order=payload.optString("order_id").trim();
             if(!customer.isEmpty()&&!containsId(effectiveRows(master,"customers","customer"),customer))throw new IllegalArgumentException("Der ausgewählte Kunde existiert nicht.");
             if(!customer.isEmpty())BillingRules.work(payload,null,new JSONObject().put("customers",effectiveRows(master,"customers","customer")).put("orders",effectiveRows(master,"orders","order")));
@@ -639,7 +657,7 @@ public class MainActivity extends Activity {
         // Business action and replay receipt commit together in the existing database.
         // Receipts are internal metadata, never exported as Drive actions.
         @Override public JSONObject execute(String tool, JSONObject args) throws Exception {
-            if(tool.equals("create_invoice_draft")||tool.equals("update_invoice_draft"))throw new PixelMcpWriteTools.Rejected("INVOICE_PERMISSION_REQUIRED","Rechnungsänderungen über MCP erfordern eine gesonderte Freigabe.");
+            if(PixelMcpOwnerTools.write(tool))return new PixelOwnerAccess(context,this).execute(tool,args);
             if(PixelMcpSessionTools.handles(tool))return executeSession(tool,args);
             if(PixelMcpWriteTools.handles(tool))PixelMcpWriteTools.validate(args, PixelMcpWriteTools.schema(tool));
             else if(PixelMcpEntityWriteTools.handles(tool))PixelMcpEntityWriteTools.validate(tool,args);
@@ -654,11 +672,12 @@ public class MainActivity extends Activity {
                     if (!fingerprint.equals(receipt.optString("fingerprint"))) throw new PixelMcpWriteTools.Rejected("REPLAY_MISMATCH","Diese Anfragekennung wurde bereits für andere Angaben verwendet. Bitte die ursprüngliche Anfrage prüfen.");
                     result = new JSONObject().put("entity_type",receipt.optString("entity_type","worklog")).put("entity_id",receipt.optString("entity_id",receipt.optString("work_record_id"))).put("replayed",true).put("sync",status(clientId,getState()));
                 } else {
-                    if (preferences.getString("drive_snapshot", "").isEmpty()) throw new PixelMcpWriteTools.Rejected("NO_DATA","Bitte zuerst einen Drive-Abgleich durchführen.");
+                    if (snapshotText("").isEmpty()) throw new PixelMcpWriteTools.Rejected("NO_DATA","Bitte zuerst einen Drive-Abgleich durchführen.");
                     JSONObject prepared=PixelMcpWriteTools.handles(tool)?new JSONObject().put("entity_type","worklog").put("payload",PixelMcpWriteTools.prepare(tool,args,getState(),clientId)):PixelMcpEntityWriteTools.prepare(tool,args,getState(),clientId);
                     String entityType=prepared.getString("entity_type");JSONObject payload=prepared.getJSONObject("payload");
                     String source = payload.optString("source","ChatGPT Sprache");
                     String changedAt=isoNow();payload.put("updated_at",changedAt);if(!payload.has("created_at"))payload.put("created_at",changedAt);
+                    Set<String> existingActions=new HashSet<>();JSONArray priorActions=pendingActions();for(int i=0;i<priorActions.length();i++)existingActions.add(priorActions.getJSONObject(i).getString("client_id"));
                     String entityId;
                     switch(entityType){
                         case "customer":entityId=saveCustomer(payload);break;
@@ -669,7 +688,7 @@ public class MainActivity extends Activity {
                     payload.put("source",source);
                     // Replace only the queue action just allocated by the shared saver, inside this transaction.
                     try (Cursor rows = database.rawQuery("SELECT id,payload FROM pending WHERE kind=?",new String[]{entityType})) {
-                        while(rows.moveToNext()) if(entityId.equals(new JSONObject(rows.getString(1)).optString("id"))) database.delete("pending","id=?",new String[]{rows.getString(0)});
+                        while(rows.moveToNext()) if(!existingActions.contains(rows.getString(0))&&entityId.equals(new JSONObject(rows.getString(1)).optString("id"))) database.delete("pending","id=?",new String[]{rows.getString(0)});
                     }
                     ContentValues action = new ContentValues(); action.put("id",clientId); action.put("kind",entityType); action.put("payload",payload.toString()); action.put("created_at",isoNow());database.insertOrThrow("pending",null,action);
                     JSONObject metadata = new JSONObject().put("fingerprint",fingerprint).put("tool",tool).put("entity_type",entityType).put("entity_id",entityId).put("work_record_id",entityType.equals("worklog")?entityId:"").put("uploaded",false);
@@ -694,7 +713,7 @@ public class MainActivity extends Activity {
                 JSONObject existing=receipt(clientId);if(existing!=null){if(!fingerprint.equals(existing.optString("fingerprint")))throw new PixelMcpWriteTools.Rejected("REPLAY_MISMATCH","Anfragekennung wurde für andere Angaben verwendet.");result=new JSONObject(existing.getJSONObject("result").toString()).put("replayed",true);}
                 else{
                     JSONObject payload=PixelMcpSessionTools.prepare(tool,args,getState()),session;WorkSessionStore timer=new WorkSessionStore(database,context);String id=args.optString("session_id"),request="mcp-session-"+clientId;
-                    switch(tool){case "start_work":payload.put("request_id",request);session=startWorkSession(payload);break;case "start_break":session=timer.pause(id,request);break;case "end_break":session=timer.resume(id,request);break;case "stop_work":session=timer.stop(id,request);break;default:
+                    switch(tool){case "start_work":payload.put("request_id",request);session=startWorkSession(payload);break;case "start_break":session=timer.pause(id,request);break;case "end_break":session=timer.resume(id,request);break;case "stop_work":session=timer.stop(id,request);break;case "continue_work":session=timer.continueStopped(id,request);break;case "discard_work_session":session=timer.discard(id,request);break;case "restore_work_session":session=timer.restore(id,request);break;default:
                         payload.remove("request_id");payload.remove("session_id");String saved=completeWorkSession(id,payload,request);payload.put("id",saved).put("_mcp_create",true);
                         try(Cursor rows=database.rawQuery("SELECT id,payload FROM pending WHERE kind='worklog'",null)){while(rows.moveToNext())if(saved.equals(new JSONObject(rows.getString(1)).optString("id")))database.delete("pending","id=?",new String[]{rows.getString(0)});}
                         ContentValues action=new ContentValues();action.put("id",clientId);action.put("kind","worklog");action.put("payload",payload.toString());action.put("created_at",isoNow());database.insertOrThrow("pending",null,action);session=timer.current(id);
@@ -709,7 +728,7 @@ public class MainActivity extends Activity {
             return new JSONObject().put("ok",true).put("data",result).put("message",tool.equals("stop_work")?"Zeiterfassung lokal gestoppt. Tätigkeit prüfen und mit complete_work_session als Arbeitsaufzeichnung abschließen.":"Aktion dauerhaft auf dem Pixel gesichert. Nur Arbeitsaufzeichnungen werden über Drive übertragen; Timerstatus ist lokal.");
         }
         @Override public JSONObject status(String clientId,JSONObject state) throws Exception {
-            JSONObject master=state.getJSONObject("master"),metadata=receipt(clientId);
+            JSONObject master=state.getJSONObject("master"),metadata=receipt(clientId);boolean ownerSaved=!ownerValue("receipt:"+clientId,"").isEmpty();
             if(metadata!=null&&"work_session".equals(metadata.optString("entity_type")))return new JSONObject().put("client_id",clientId).put("status","local_saved").put("sync_state","not_applicable").put("local_state","local_saved").put("saved_locally",true).put("confirmed_by_app",false).put("uploaded_to_drive",false).put("entity_id",metadata.optString("entity_id")).put("message","Timeraktion dauerhaft lokal gespeichert; keine Drive-Arbeitsaufzeichnung. Aktuellen Zustand mit get_active_work_session lesen.");
             String phase="unknown";JSONArray accepted=master.optJSONArray("accepted_ids");
             for(int i=0;accepted!=null&&i<accepted.length();i++)if(clientId.equals(accepted.optString(i)))phase="accepted";
@@ -722,15 +741,16 @@ public class MainActivity extends Activity {
                 JSONArray errors=master.optJSONArray("sync_errors");for(int i=0;errors!=null&&i<errors.length();i++){JSONObject error=errors.optJSONObject(i);if(error!=null&&clientId.equals(error.optString("client_id")))phase="failed";}
                 JSONArray journalErrors=master.optJSONArray("drive_journal_errors");for(int i=0;journalErrors!=null&&i<journalErrors.length();i++){JSONObject error=journalErrors.optJSONObject(i);if(error!=null&&clientId.equals(error.optString("client_id")))phase="failed";}
             }
+            if(master.optJSONObject("drive_resolved_actions")!=null&&master.getJSONObject("drive_resolved_actions").has(clientId))phase="resolved";
             return PixelMcpBusinessTools.sync(new JSONObject().put("client_id",clientId).put("status",phase).put("confirmed_by_app",phase.equals("accepted"))
-                .put("saved_locally",metadata!=null).put("uploaded_to_drive",phase.equals("accepted")||phase.equals("transferred")||(metadata!=null&&metadata.optBoolean("uploaded")))
+                .put("saved_locally",metadata!=null||ownerSaved).put("uploaded_to_drive",phase.equals("accepted")||phase.equals("transferred")||(metadata!=null&&metadata.optBoolean("uploaded")))
                 .put("entity_type",metadata==null?"":metadata.optString("entity_type","worklog"))
                 .put("entity_id",metadata==null?"":metadata.optString("entity_id",metadata.optString("work_record_id")))
                 .put("work_record_id",metadata==null?"":metadata.optString("work_record_id"))
                 .put("applied_on_pixel",DriveJournalRules.ids(master.optJSONArray("drive_applied_ids")).contains(clientId))
                 .put("confirmation_scope",phase.equals("accepted")?"web_import_receipt":metadata!=null&&metadata.optBoolean("uploaded")?"drive_provider_readback":"local_only")
                 .put("cloud_confirmed",false)
-                .put("message",phase.equals("accepted")?"Im Gesamtstand übernommen und bestätigt. Cloud-Upload wird durch Drive durchgeführt.":phase.equals("failed")?"Die Änderung benötigt eine Prüfung. Lokale Daten bleiben erhalten.":phase.equals("superseded")?"Die vorgemerkte Änderung wurde in der App ersetzt. Bitte den Eintrag öffnen.":phase.equals("transferred")?"Änderung an die Drive-App übergeben und zurückgelesen; auf dem Pixel nutzbar. Der Google-Cloud-Upload ist nicht unabhängig bestätigt.":phase.equals("queued")?"Auf dem Pixel gesichert. Drive-Abgleich steht noch aus.":"Für diese Anfrage liegt noch keine Bestätigung vor."),state);
+                .put("message",phase.equals("resolved")?"Die Konfliktentscheidung wurde übernommen. Die ursprüngliche Aktion bleibt im Journal erhalten.":phase.equals("accepted")?"Im Gesamtstand übernommen und bestätigt. Cloud-Upload wird durch Drive durchgeführt.":phase.equals("failed")?"Die Änderung benötigt eine Prüfung. Lokale Daten bleiben erhalten.":phase.equals("superseded")?"Die vorgemerkte Änderung wurde in der App ersetzt. Bitte den Eintrag öffnen.":phase.equals("transferred")?"Änderung an die Drive-App übergeben und zurückgelesen; auf dem Pixel nutzbar. Der Google-Cloud-Upload ist nicht unabhängig bestätigt.":phase.equals("queued")?"Auf dem Pixel gesichert. Drive-Abgleich steht noch aus.":"Für diese Anfrage liegt noch keine Bestätigung vor."),state);
         }
         void markUploaded(JSONArray actions) throws Exception {
             SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
@@ -778,8 +798,9 @@ public class MainActivity extends Activity {
             if (payload.optString("name").trim().isEmpty()) throw new IllegalArgumentException("Der Kundenname fehlt.");
             SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
             try {
-            JSONObject master=new JSONObject(preferences.getString("drive_snapshot",readAsset("initial-data.json")));
+            JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));
             JSONArray customers=effectiveRows(master,"customers","customer");
+            payload=ManualChangeRules.editor(payload,findById(customers,payload.optString("id")),"customer");
             BillingRules.customerConfig(payload,customers);
             if(findById(customers,payload.optString("id"))==null)EntityProtectionRules.validateNewCustomer(payload,customers);
             String entityId = payload.optString("id");
@@ -798,11 +819,15 @@ public class MainActivity extends Activity {
             finally{database.endTransaction();}
         }
         String saveOrder(JSONObject payload) throws Exception {
-            BillingRules.order(payload,PixelMcpReadTools.effective(getState()));
+            SQLiteDatabase tx=getWritableDatabase();tx.beginTransaction();try{String result=saveOrderLocked(payload);tx.setTransactionSuccessful();return result;}finally{tx.endTransaction();}
+        }
+        private String saveOrderLocked(JSONObject payload) throws Exception {
+            JSONObject current=PixelMcpReadTools.effective(getState());payload=ManualChangeRules.editor(payload,findById(current.getJSONArray("orders"),payload.optString("id")),"order");
+            BillingRules.order(payload,current);
             if (payload.optString("customer_id").isEmpty() || payload.optString("title").trim().isEmpty()) throw new IllegalArgumentException("Kunde und Auftragsbezeichnung sind erforderlich.");
             SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
             try {
-            JSONObject master = new JSONObject(preferences.getString("drive_snapshot", readAsset("initial-data.json")));
+            JSONObject master = new JSONObject(snapshotText(readAsset("initial-data.json")));
             if (!containsId(effectiveRows(master,"customers","customer"), payload.optString("customer_id"))) throw new IllegalArgumentException("Der ausgewählte Kunde existiert nicht.");
             if (!payload.optString("scheduled_date").isEmpty() && !payload.isNull("scheduled_date")) {
                 try { java.time.LocalDate.parse(payload.optString("scheduled_date")); } catch (Exception error) { throw new IllegalArgumentException("Bitte ein gültiges Auftragsdatum auswählen."); }
@@ -816,19 +841,13 @@ public class MainActivity extends Activity {
             } finally { database.endTransaction(); }
         }
         String saveInvoiceDraft(JSONObject payload) throws Exception {
-            if (!"Entwurf".equals(payload.optString("status","Entwurf")) || !payload.optString("sevdesk_id").isEmpty() || !payload.optString("issued_at").isEmpty())
-                throw new IllegalArgumentException("Nur lokale Rechnungsentwürfe können über ChatGPT gespeichert werden.");
-            JSONObject master = new JSONObject(preferences.getString("drive_snapshot", readAsset("initial-data.json")));
-            if (!containsId(effectiveRows(master,"customers","customer"), payload.optString("customer_id"))) throw new IllegalArgumentException("Der ausgewählte Kunde existiert nicht.");
-            if (payload.optJSONArray("positions") == null || payload.optJSONArray("positions").length() == 0) throw new IllegalArgumentException("Mindestens eine Rechnungsposition ist erforderlich.");
-            JSONObject effective=PixelMcpReadTools.effective(getState());
-            for(int i=0;i<payload.getJSONArray("positions").length();i++){
-                JSONObject position=payload.getJSONArray("positions").getJSONObject(i);String work=position.optString("worklog_id");
-                if(!work.isEmpty()){JSONObject log=PixelMcpWriteTools.find(effective.optJSONArray("worklogs"),work);
-                    if(!payload.getString("customer_id").equals(BillingRules.recipient(log))||log.optInt("billed",0)!=0)throw new IllegalArgumentException("Die Arbeit muss offen sein und zu diesem Rechnungsempfänger gehören.");}
-            }
-            payload.put("status","Entwurf").put("sevdesk_id","").put("source","ChatGPT Sprache");
-            return saveAction("invoice", "inv_mobile_", payload);
+            SQLiteDatabase db=getWritableDatabase();db.beginTransaction();
+            try{JSONObject all=PixelMcpReadTools.effective(getState());String id=payload.optString("id");if(id.isEmpty())id="inv_mobile_"+UUID.randomUUID().toString().replace("-","");payload.put("id",id);
+                JSONObject old=findById(all.getJSONArray("invoices"),id);if(old!=null&&(all.optJSONObject("capabilities")==null||!all.getJSONObject("capabilities").optBoolean("invoice_compare_and_save")))throw new PixelMcpWriteTools.Rejected("REMOTE_GUARD_REQUIRED","Zuerst gemeinsame Web-/Drive-Verarbeitung aktualisieren und abgleichen. Rechnungsvergleichsschutz fehlt.");payload=ManualChangeRules.editor(payload,old,"invoice");
+                for(int i=0;i<getState().getJSONArray("pending").length();i++){JSONObject a=getState().getJSONArray("pending").getJSONObject(i);if(java.util.Arrays.asList("invoice_issue","owner_invoice_issue").contains(a.optString("kind"))&&id.equals(a.getJSONObject("payload").optString("id")))throw new IllegalArgumentException("Rechnungsabschluss ist bereits vorgemerkt.");}
+                InvoiceDraftRules.normalize(payload,old,all);if(payload.optString("invoice_number").isEmpty())payload.put("invoice_number","Entwurf-"+id);
+                prepareManualChange("invoice",payload,old);String result=saveAction("invoice","inv_mobile_",payload);db.setTransactionSuccessful();return result;
+            }finally{db.endTransaction();}
         }
         synchronized String savePhoto(JSONObject payload) throws Exception {
             if (payload.optString("customer_id").isEmpty() || payload.optString("data").isEmpty()) throw new IllegalArgumentException("Kunde und Foto sind erforderlich.");
@@ -836,13 +855,13 @@ public class MainActivity extends Activity {
             PhotoAttachmentStore.Prepared prepared=null;boolean committed=false;
             SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
             try {
-                JSONObject master=new JSONObject(preferences.getString("drive_snapshot",readAsset("initial-data.json")));
+                JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));
                 EntityProtectionRules.validatePhoto(payload,effectiveRows(master,"customers","customer"),effectiveRows(master,"orders","order"),effectiveRows(master,"worklogs","worklog"));
                 prepared=photoAttachments.prepare(payload);
                 prepareManualChange("photo",payload,findById(effectiveRows(master,"photos","photo"),payload.optString("id")));
                 for(java.util.Iterator<String> keys=prepared.metadata.keys();keys.hasNext();){String key=keys.next();payload.put(key,prepared.metadata.get(key));}
                 String original=payload.optString("original_name","foto.jpg").replace('\\','/');int slash=original.lastIndexOf('/');if(slash>=0)original=original.substring(slash+1);if(original.length()>240)original=original.substring(0,240);payload.put("original_name",original);
-                payload.remove("data");
+                payload.remove("data");payload.put("filename",prepared.metadata.getString("storage_name"));
                 saveAttachmentMetadata(database,entityId,prepared.metadata,"local");
                 String saved=saveAction("photo", "pho_mobile_", payload);database.setTransactionSuccessful();committed=true;return saved;
             } finally {
@@ -861,6 +880,7 @@ public class MainActivity extends Activity {
             ContentValues values=new ContentValues();values.put("photo_id",photoId);values.put("content_sha256",hash);values.put("mime_type",mime);values.put("byte_size",metadata.getLong("byte_size"));values.put("storage_name",name);values.put("role",role);values.put("transfer_state",state);values.put("created_at",isoNow());
             database.insertWithOnConflict("photo_attachments",null,values,SQLiteDatabase.CONFLICT_REPLACE);
         }
+        void restoreAttachmentMetadata(String photoId,JSONObject metadata)throws Exception{saveAttachmentMetadata(getWritableDatabase(),photoId,metadata,"local");}
         JSONObject photoAttachment(String photoId)throws Exception{
             try(Cursor row=getReadableDatabase().rawQuery("SELECT photo_id,content_sha256,mime_type,byte_size,storage_name,role,transfer_state,created_at FROM photo_attachments WHERE photo_id=?",new String[]{photoId})){
                 if(!row.moveToFirst())return null;return new JSONObject().put("photo_id",row.getString(0)).put("content_sha256",row.getString(1)).put("mime_type",row.getString(2)).put("byte_size",row.getLong(3)).put("storage_name",row.getString(4)).put("role",row.getString(5)).put("transfer_state",row.getString(6)).put("created_at",row.getString(7));
@@ -954,14 +974,7 @@ public class MainActivity extends Activity {
             try{return photoAttachments.dataUri(metadata);}catch(Exception missing){if(!DriveSyncCoordinator.fetchPhoto(context,metadata,photoAttachments))throw missing;return photoAttachments.dataUri(metadata);}
         }
         private void prepareManualChange(String kind,JSONObject payload,JSONObject previous)throws Exception{
-            payload.remove("_sync_resolves"); // Only explicit review creates a resolution; later edits form the normal guarded chain.
-            if(!kind.equals("photo"))payload.put("_mcp_create",previous==null);
-            if(previous==null&&kind.equals("customer")){if(!payload.has("active"))payload.put("active",1);if(!payload.has("custom_fields"))payload.put("custom_fields",new JSONObject());}
-            if(previous==null&&(kind.equals("order")||kind.equals("photo"))&&!payload.has("customer_visible"))payload.put("customer_visible",1);
-            if(previous==null&&kind.equals("order")&&payload.optString("status").isEmpty())payload.put("status","Geplant");
-            if(previous!=null&&!payload.has("_mcp_base")&&!payload.optBoolean("_mcp_create"))payload.put("_sync_base",DriveJournalRules.guard(previous,kind));
-            String stamp=isoNow();payload.put("updated_at",stamp);
-            if(!payload.has("created_at"))payload.put("created_at",previous!=null&&previous.has("created_at")?previous.get("created_at"):stamp);
+            ManualChangeRules.prepare(kind,payload,previous,isoNow());
         }
         String removeEntity(String entity, String entityId) throws Exception {
             if(entity.equals("customer")){
@@ -974,7 +987,7 @@ public class MainActivity extends Activity {
             SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
             try {
             if("invoice".equals(entity)){
-                JSONObject master=new JSONObject(preferences.getString("drive_snapshot",readAsset("initial-data.json")));
+                JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));
                 EntityProtectionRules.validateInvoiceDelete(findById(effectiveRows(master,"invoices","invoice"),entityId));
             }
             JSONObject payload = new JSONObject(); payload.put("entity", entity); payload.put("id", entityId); payload.put("_undo_until", System.currentTimeMillis() + UNDO_DELETE_WINDOW_MS);

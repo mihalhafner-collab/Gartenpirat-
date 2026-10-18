@@ -53,11 +53,21 @@ def prepare(database, identifier):
     if dates.get('invoice_date') and dates['invoice_date'] != date.today(): errors.append('Rechnungsdatum muss beim Abschluss heute sein')
     if dates.get('service_end') and dates['service_end'] > date.today(): errors.append('Leistung liegt noch in der Zukunft; Anzahlungen sind nicht unterstützt')
     calculated = db.calculate_invoice(details)
-    if calculated['gross_total'] <= 0: errors.append('positiver Rechnungsbetrag')
+    if abs(calculated['gross_total']) <= 0: errors.append('positiver Rechnungsbetrag')
     for worklog_id in calculated['worklog_ids']:
         worklog = database.execute('SELECT customer_id,billing_customer_id,billed FROM worklogs WHERE id=?',(worklog_id,)).fetchone()
         if not worklog or (worklog['billing_customer_id'] or worklog['customer_id']) != invoice['customer_id'] or worklog['billed']:
             errors.append('verknüpfte Arbeit ist bereits abgerechnet oder gehört nicht zum Kunden')
+    if calculated.get('document_type') in ('replacement','cancellation'):
+        original=database.execute('SELECT i.status,d.payload FROM invoices i JOIN invoice_details d ON d.invoice_id=i.id WHERE i.id=?',(calculated['correction_of'],)).fetchone()
+        if not original or not json.loads(original['payload']).get('issued_at'):errors.append('ausgestellter Originalbeleg der Korrektur fehlt')
+        elif calculated['document_type']=='cancellation':
+            if original['status']=='Storniert':errors.append('Originalbeleg wurde bereits storniert')
+            frozen=json.loads(original['payload'])
+            expected_positions=[{**p,'worklog_id':''} for p in frozen.get('positions',[])]
+            actual=[{**p,'net':abs(p.get('net',0)),'tax':abs(p.get('tax',0))} for p in calculated['positions']]
+            import sync_review
+            if sync_review.digest(expected_positions)!=sync_review.digest(actual):errors.append('Stornopositionen entsprechen nicht dem unveränderten Original')
     allocated = set()
     for detail_row in database.execute('SELECT invoice_id,payload FROM invoice_details WHERE invoice_id<>?', (identifier,)):
         previous = json.loads(detail_row['payload'])
@@ -91,7 +101,7 @@ def render_pdf(invoice, draft=False):
     def display_date(value): return date.fromisoformat(value).strftime('%d.%m.%Y')
     output = BytesIO()
     issuer, recipient = invoice['issuer'], invoice['recipient']
-    headline = 'ENTWURF - keine ausgestellte Rechnung' if draft else 'Rechnungs Nr. '+invoice['invoice_number']
+    headline = 'ENTWURF - keine ausgestellte Rechnung' if draft else ('Stornorechnung Nr. ' if invoice.get('document_type')=='cancellation' else 'Korrekturrechnung Nr. ' if invoice.get('document_type')=='replacement' else 'Rechnungs Nr. ')+invoice['invoice_number']
     story = [p(headline,'Title'),Spacer(1,6*mm),p(invoice.get('header_text') or
         'Sehr geehrte Damen und Herren,\n\nvielen Dank für Ihren Auftrag und das damit verbundene Vertrauen!\nHiermit stelle ich Ihnen die folgenden Leistungen in Rechnung:'),Spacer(1,4*mm)]
     rows = [[p('Pos.','Bold'),p('Beschreibung','Bold'),p('Menge','RightBold'),p('Einzelpreis','RightBold'),p('Gesamtpreis','RightBold')]]
@@ -108,8 +118,8 @@ def render_pdf(invoice, draft=False):
     summary.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),grey),('BACKGROUND',(0,2),(-1,2),grey),('SPAN',(0,1),(-1,1)),
         ('TOPPADDING',(0,0),(-1,-1),4),('BOTTOMPADDING',(0,0),(-1,-1),4)]))
     story += [table,Spacer(1,2*mm),KeepTogether([summary]),Spacer(1,7*mm),
-        p(f"Zahlungsbedingungen: Zahlung innerhalb von {invoice['payment_days']} Tagen, ohne Abzüge.\nFällig am {display_date(invoice['due_date'])}."),Spacer(1,4*mm),
-        p(invoice.get('footer_text') or 'Bitte überweisen Sie den Rechnungsbetrag unter Angabe der Rechnungsnummer auf das unten angegebene Konto.\n\nMit freundlichen Grüßen\n'+issuer['owner_name'])]
+        p('Gutschrift aus Storno. Die Verrechnung oder Rückzahlung wird gesondert vereinbart.' if invoice.get('document_type')=='cancellation' else f"Zahlungsbedingungen: Zahlung innerhalb von {invoice['payment_days']} Tagen, ohne Abzüge.\nFällig am {display_date(invoice['due_date'])}."),Spacer(1,4*mm),
+        p(('Bezug und Originalbeleg bleiben im Archiv erhalten.' if invoice.get('document_type')=='cancellation' else invoice.get('footer_text')) or 'Bitte überweisen Sie den Rechnungsbetrag unter Angabe der Rechnungsnummer auf das unten angegebene Konto.\n\nMit freundlichen Grüßen\n'+issuer['owner_name'])]
     logo=Path(__file__).parent/'android'/'app'/'src'/'main'/'assets'/'hafner-logo.png'
     def heading(canvas,doc):
         canvas.setFillColor(colors.black)
@@ -151,13 +161,20 @@ def preview(identifier):
     return render_pdf(invoice, draft=True)
 
 
-def issue(identifier, confirmed=False):
+def issue(identifier, confirmed=False, expected=None, expected_worklogs=None):
     if not confirmed: raise ValueError('Bitte den Abschluss ausdrücklich bestätigen.')
     with db.connect() as database:
         database.execute('BEGIN IMMEDIATE')
         existing = database.execute('SELECT 1 FROM issued_invoice_files WHERE invoice_id=?',(identifier,)).fetchone()
         if existing:
             return dict(database.execute('SELECT * FROM invoices WHERE id=?',(identifier,)).fetchone())
+        if expected is not None:
+            from owner_journal import compare_base, record
+            compare_base(expected,record(database,'invoice',identifier))
+        if expected_worklogs is not None:
+            from owner_journal import compare_base, record
+            if not isinstance(expected_worklogs,dict):raise ValueError('Ungültige Leistungs-Vergleichsstände.')
+            for linked,base in expected_worklogs.items():compare_base(base,record(database,'worklog',linked))
         invoice = prepare(database, identifier)
         numbers = [r[0] for r in database.execute('SELECT invoice_number FROM invoices')]
         if invoice['number_format'] == 'sevdesk':
@@ -170,10 +187,13 @@ def issue(identifier, confirmed=False):
             invoice['invoice_number'] = f'{prefix}{counter:04d}'
         invoice['issued_at'] = db.now()
         pdf = render_pdf(invoice)
+        invoice['pdf_sha256']=hashlib.sha256(pdf).hexdigest()
         database.execute('INSERT INTO issued_invoice_files(invoice_id,pdf,sha256) VALUES(?,?,?)',(identifier,pdf,hashlib.sha256(pdf).hexdigest()))
         database.execute("UPDATE invoices SET invoice_number=?,status='Gestellt',updated_at=? WHERE id=?",(invoice['invoice_number'],invoice['issued_at'],identifier))
         for worklog_id in invoice['worklog_ids']:
             database.execute('UPDATE worklogs SET billed=1,updated_at=? WHERE id=?',(invoice['issued_at'],worklog_id))
+        if invoice.get('document_type')=='cancellation':
+            database.execute("UPDATE invoices SET status='Storniert',updated_at=? WHERE id=?",(invoice['issued_at'],invoice['correction_of']))
         details = {k:v for k,v in invoice.items() if k not in ('id','customer_id','order_id','status','amount','created_at','updated_at','sevdesk_id')}
         database.execute('UPDATE invoice_details SET payload=? WHERE invoice_id=?',(json.dumps(details,ensure_ascii=False),identifier))
         return {'id':identifier,'invoice_number':invoice['invoice_number'],'status':'Gestellt'}
@@ -185,3 +205,27 @@ def issued_pdf(identifier):
     if not row: raise ValueError('Für diesen Eintrag liegt kein in der App ausgestelltes PDF vor.')
     if hashlib.sha256(row['pdf']).hexdigest() != row['sha256']: raise ValueError('Archivprüfung fehlgeschlagen. PDF nicht verändern; Sicherung prüfen.')
     return row['pdf']
+
+
+def create_correction(payload):
+    """Create a separate draft; finalization still requires explicit issue confirmation."""
+    from owner_journal import compare_base, record
+    import sync_review
+    action_id=str(payload.get('_action_id') or '')
+    if not action_id:raise ValueError('Anfragekennung der Korrektur fehlt.')
+    identifier='inv_correction_'+sync_review.digest(action_id)[:32]
+    with db.atomic() as database:
+        existing=record(database,'invoice',identifier)
+        if existing:return existing
+        original=record(database,'invoice',str(payload.get('id') or ''))
+        compare_base(payload.get('_expected_invoice'),original)
+        if not original.get('issued_at'):raise ValueError('Korrektur benötigt einen ausgestellten Originalbeleg.')
+        kind=payload.get('correction_type')
+        if kind not in ('replacement','cancellation') or not str(payload.get('reason') or '').strip():raise ValueError('Korrekturart und Grund sind erforderlich.')
+        if kind=='cancellation' and original['status']=='Storniert':raise ValueError('Originalbeleg wurde bereits storniert.')
+        data={**original,'id':identifier,'invoice_number':'Entwurf-'+identifier,'invoice_date':date.today().isoformat(),
+              'status':'Entwurf','issued_at':'','sevdesk_id':None,'document_type':kind,'correction_of':original['id'],
+              'correction_reason':payload['reason'],'positions':[{**p,'worklog_id':''} for p in original.get('positions',[])],
+              'header_text':('Storno' if kind=='cancellation' else 'Korrektur')+' zu '+original['invoice_number']+' – '+payload['reason']}
+        saved=db.save_invoice(data)
+        return {**saved,'correction_state':'draft_created','original_unchanged':True}

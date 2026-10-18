@@ -1,0 +1,44 @@
+{
+  "integration_health": {
+    "tool": "integration_health",
+    "ok": true,
+    "health": {
+      "status": "ready",
+      "server": "haus-garten-private",
+      "mode": "pixel_business_write",
+      "write_enabled": true
+    }
+  },
+  "get_sync_overview": {
+    "tool": "get_sync_overview",
+    "ok": true,
+    "pending_actions": 7,
+    "journal_errors": [
+      {
+        "kind": "customer",
+        "code": "WRITE_CONFLICT"
+      }
+    ],
+    "sync_error_count": 0,
+    "cloud_confirmed": false,
+    "confirmation_scope": "drive_provider_readback",
+    "last_drive_sync": "2026-10-18T12:45:20.546467Z"
+  },
+  "get_business_summary": {
+    "tool": "get_business_summary",
+    "ok": true
+  },
+  "get_active_work_session": {
+    "tool": "get_active_work_session",
+    "ok": true,
+    "session_state": "IDLE"
+  },
+  "list_invoices": {
+    "tool": "list_invoices",
+    "ok": true
+  },
+  "list_photos": {
+    "tool": "list_photos",
+    "ok": true
+  }
+}

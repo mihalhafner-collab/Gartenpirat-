@@ -4,6 +4,8 @@ import json
 import base64
 import io
 import sqlite3
+import threading
+from contextlib import contextmanager
 import uuid
 import math
 import re
@@ -169,7 +171,43 @@ class ClosingConnection(sqlite3.Connection):
         return False
 
 
+_transaction = threading.local()
+
+
+class _TransactionView:
+    """Borrow an application transaction without committing/closing it in a saver."""
+    def __init__(self, database): self.database = database
+    def __enter__(self): return self
+    def __exit__(self, *error): return False
+    def __getattr__(self, name): return getattr(self.database, name)
+    def execute(self, sql, parameters=()):
+        if sql.strip().upper() in ('BEGIN', 'BEGIN IMMEDIATE'):
+            return self.database.execute('SELECT 1')
+        return self.database.execute(sql, parameters)
+    def commit(self): raise RuntimeError('Die gemeinsame Transaktion wird nur vom Besitzer abgeschlossen.')
+    def rollback(self): raise RuntimeError('Die gemeinsame Transaktion wird nur vom Besitzer zurückgesetzt.')
+    def close(self): pass
+
+
+@contextmanager
+def atomic():
+    """Reuse existing domain savers with one lock and one durable action receipt."""
+    current = getattr(_transaction, 'database', None)
+    if current is not None:
+        yield current
+        return
+    with connect() as database:
+        database.execute('BEGIN IMMEDIATE')
+        _transaction.database = database
+        try:
+            yield database
+        finally:
+            del _transaction.database
+
+
 def connect() -> sqlite3.Connection:
+    if getattr(_transaction, 'database', None) is not None:
+        return _TransactionView(_transaction.database)
     database = sqlite3.connect(DB_PATH, timeout=20, factory=ClosingConnection)
     database.row_factory = sqlite3.Row
     database.execute("PRAGMA foreign_keys=ON")
@@ -190,7 +228,7 @@ def init() -> None:
                 try: probe.backup(target)
                 finally: target.close()
             photo_columns = {r[1] for r in probe.execute("PRAGMA table_info(photos)")}
-            required_photo_columns = {"content_sha256", "byte_size", "mime_type", "storage_name", "role"}
+            required_photo_columns = {"content_sha256", "byte_size", "mime_type", "storage_name", "role", "updated_at"}
             photo_schema_upgrade = bool(photo_columns and not required_photo_columns.issubset(photo_columns))
             if photo_schema_upgrade:
                 target = sqlite3.connect(BACKUP_DIR / ("before-photo-attachments-" + datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-%f") + ".db"))
@@ -255,6 +293,8 @@ def init() -> None:
               role TEXT NOT NULL DEFAULT 'documentation'
             );
             CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS owner_journal_receipts (action_id TEXT PRIMARY KEY, sha256 TEXT NOT NULL, result TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS owner_journal_metadata (key TEXT PRIMARY KEY, payload TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS invoice_details (
               invoice_id TEXT PRIMARY KEY REFERENCES invoices(id) ON DELETE CASCADE,
               payload TEXT NOT NULL
@@ -279,7 +319,7 @@ def init() -> None:
                     "orders": {"billing_customer_id": "TEXT REFERENCES customers(id)"},
                     "worklogs": {"billing_customer_id": "TEXT REFERENCES customers(id)"},
                     "photos": {"content_sha256": "TEXT", "byte_size": "INTEGER", "mime_type": "TEXT",
-                               "storage_name": "TEXT", "role": "TEXT NOT NULL DEFAULT 'documentation'"}}
+                               "storage_name": "TEXT", "role": "TEXT NOT NULL DEFAULT 'documentation'", "updated_at": "TEXT"}}
         for table, fields in additions.items():
             present = {r[1] for r in database.execute(f"PRAGMA table_info({table})")}
             for name, definition in fields.items():
@@ -680,6 +720,9 @@ def save_invoice(data: dict) -> dict:
         database.execute('BEGIN IMMEDIATE')
         if database.execute('SELECT 1 FROM issued_invoice_files WHERE invoice_id=?', (identifier,)).fetchone():
             raise ValueError('Die Rechnung wurde inzwischen abgeschlossen und bleibt unverändert.')
+        if '_expected_invoice' in data:
+            from owner_journal import compare_base, record
+            compare_base(data['_expected_invoice'], record(database, 'invoice', identifier))
         if '_mcp_invoice_positions' in data:
             current_details = database.execute('SELECT payload FROM invoice_details WHERE invoice_id=?',(identifier,)).fetchone()
             current_positions = json.loads(current_details['payload']).get('positions') if current_details else None
@@ -732,7 +775,13 @@ def calculate_invoice(data: dict) -> dict:
     days = int(data.get('payment_days', 14))
     if not 0 <= days <= 365:
         raise ValueError('Zahlungsziel muss zwischen 0 und 365 Tagen liegen.')
-    return {'positions': positions, 'net_total': float(net), 'tax_total': float(tax),
+    document_type=data.get('document_type','invoice')
+    if document_type not in ('invoice','replacement','cancellation'):raise ValueError('Unbekannte Belegart.')
+    if document_type!='invoice' and not data.get('correction_of'):raise ValueError('Originalbezug der Korrektur fehlt.')
+    if document_type=='cancellation':
+        net,tax=-net,-tax
+        for position in positions:position['net']=-position['net'];position['tax']=-position['tax']
+    return {'document_type':document_type,'correction_of':str(data.get('correction_of') or ''),'correction_reason':str(data.get('correction_reason') or ''),'positions': positions, 'net_total': float(net), 'tax_total': float(tax),
             'gross_total': float(net + tax), 'payment_days': days,
             'header_text': str(data.get('header_text', '')), 'footer_text': str(data.get('footer_text', '')),
             'worklog_ids': list(dict.fromkeys([p['worklog_id'] for p in positions if p['worklog_id']])),
@@ -819,20 +868,10 @@ def _upsert(table: str, identifier: str, columns: dict, stamp: str, database=Non
     if table in ("orders","worklogs") and columns.get("billing_customer_id"):
         if not database.execute("SELECT 1 FROM customers WHERE id=?", (columns["billing_customer_id"],)).fetchone():
             raise ValueError("Der Rechnungsempfänger existiert nicht mehr.")
+    if table == 'worklogs':
+        _validate_worklog_write(database, identifier, columns)
     if expected is not None:
         current = one(database.execute(f'SELECT * FROM {table} WHERE id=?', (identifier,)))
-        if table == 'worklogs':
-            if not database.execute('SELECT 1 FROM customers WHERE id=?', (columns['customer_id'],)).fetchone():
-                raise ValueError('Der ausgewählte Kunde existiert nicht mehr.')
-            if columns.get('order_id'):
-                order = database.execute('SELECT customer_id FROM orders WHERE id=?', (columns['order_id'],)).fetchone()
-                if not order or order['customer_id'] != columns['customer_id']:
-                    raise ValueError('Kunde und Auftrag passen nicht mehr zusammen. Bitte erneut abgleichen.')
-            # Related records can change after save_worklog's initial validation.
-            # Recheck under the same write lock as the guarded update.
-            for photo in database.execute('SELECT customer_id,order_id FROM photos WHERE worklog_id=?', (identifier,)):
-                if photo['customer_id'] != columns['customer_id'] or (photo['order_id'] and photo['order_id'] != columns.get('order_id')):
-                    raise ValueError('Die Fotozuordnung wurde inzwischen geändert. Bitte Kunde und Auftrag erneut prüfen.')
         if not expected:
             if current:
                 raise ValueError('Die neue ChatGPT-Aufzeichnung existiert bereits. Keine Überschreibung vorgenommen.')
@@ -866,6 +905,38 @@ def _upsert(table: str, identifier: str, columns: dict, stamp: str, database=Non
                 entity = {'customers': 'Der Kunde', 'orders': 'Der Auftrag', 'invoices': 'Die Rechnung'}.get(table, 'Die Arbeitsaufzeichnung')
                 raise ValueError(entity + ' wurde inzwischen geändert. Bitte erneut öffnen und abgleichen.')
     return _upsert_in_connection(table, identifier, columns, stamp, database)
+
+
+def _validate_worklog_write(database, identifier, columns):
+    """All relationship/issued-document checks share the actual write lock.
+
+    Preflight validation is useful feedback, but cannot authorize a later write:
+    an invoice or a photo may have been committed in between, including for UI
+    requests without an MCP compare-and-save base.
+    """
+    current = one(database.execute('SELECT * FROM worklogs WHERE id=?', (identifier,)))
+    if not database.execute('SELECT 1 FROM customers WHERE id=?', (columns['customer_id'],)).fetchone():
+        raise ValueError('Der ausgewählte Kunde existiert nicht mehr.')
+    if columns.get('order_id'):
+        order = database.execute('SELECT customer_id FROM orders WHERE id=?', (columns['order_id'],)).fetchone()
+        if not order or order['customer_id'] != columns['customer_id']:
+            raise ValueError('Kunde und Auftrag passen nicht mehr zusammen. Bitte erneut abgleichen.')
+    for photo in database.execute('SELECT customer_id,order_id FROM photos WHERE worklog_id=?', (identifier,)):
+        if photo['customer_id'] != columns['customer_id'] or (photo['order_id'] and photo['order_id'] != columns.get('order_id')):
+            raise ValueError('Die Fotozuordnung wurde inzwischen geändert. Bitte Kunde und Auftrag erneut prüfen.')
+    for detail in database.execute('SELECT payload FROM invoice_details'):
+        invoice = json.loads(detail['payload'])
+        if identifier not in invoice.get('worklog_ids', []):
+            continue
+        if current is None or any(columns.get(key) != current.get(key) for key in ('customer_id', 'order_id')) or billing.recipient(current) != billing.recipient(columns):
+            raise ValueError('Diese Arbeit ist mit einer Rechnung verknüpft. Kunde und Auftrag bleiben erhalten.')
+        if invoice.get('issued_at'):
+            numeric = {'break_minutes', 'hours', 'kilometers'}
+            def comparable(key, value):
+                return number(value, 0) if key in numeric else str(value if value is not None else '')
+            locked = ('work_date', 'start_time', 'end_time', 'break_minutes', 'hours', 'activity', 'material', 'kilometers')
+            if any(comparable(key, columns.get(key)) != comparable(key, current.get(key)) for key in locked) or not truth(columns.get('billed')):
+                raise ValueError('Abgerechnete Leistungsdaten bleiben unverändert. Interne Notizen können weiterhin ergänzt werden.')
 
 
 def _upsert_in_connection(table, identifier, columns, stamp, database):

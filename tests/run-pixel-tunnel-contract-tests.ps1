@@ -12,7 +12,7 @@ if ($taskJsonHash -ne '3CF6CD6892E32E2B4C1C39E0F52F5248A2F5B37646FDFBB79A66B46B6
 New-Item -ItemType Directory -Force -Path $taskClasses | Out-Null
 $taskSource = Join-Path $taskRoot 'android/app/src/main/java/at/hausgarten/service'
 $taskClasspath = "$taskJson;$taskAndroid"
-& (Join-Path $taskJdk 'javac.exe') -encoding UTF-8 -cp $taskClasspath -d $taskClasses (Join-Path $taskSource 'BillingRules.java') (Join-Path $taskSource 'WorklogRules.java') (Join-Path $taskSource 'PixelMcpWriteTools.java') (Join-Path $taskSource 'EntityProtectionRules.java') (Join-Path $taskSource 'PixelMcpEntityWriteTools.java') (Join-Path $taskSource 'PixelMcpReadTools.java') (Join-Path $taskSource 'PixelMcpSessionTools.java') (Join-Path $taskSource 'PixelMcpBusinessTools.java') (Join-Path $taskSource 'WorklogRelationRules.java') (Join-Path $taskSource 'DriveJournalRules.java') (Join-Path $taskSource 'OrderReviewRules.java')
+& (Join-Path $taskJdk 'javac.exe') -encoding UTF-8 -cp $taskClasspath -d $taskClasses (Join-Path $taskSource 'BillingRules.java') (Join-Path $taskSource 'WorklogRules.java') (Join-Path $taskSource 'PixelMcpWriteTools.java') (Join-Path $taskSource 'EntityProtectionRules.java') (Join-Path $taskSource 'PixelMcpEntityWriteTools.java') (Join-Path $taskSource 'PixelMcpReadTools.java') (Join-Path $taskSource 'PixelMcpSessionTools.java') (Join-Path $taskSource 'PixelMcpBusinessTools.java') (Join-Path $taskSource 'WorklogRelationRules.java') (Join-Path $taskSource 'DriveJournalRules.java') (Join-Path $taskSource 'OrderReviewRules.java') (Join-Path $taskSource 'ManualChangeRules.java') (Join-Path $taskSource 'McpSchema.java') (Join-Path $taskSource 'McpFileTransfer.java') (Join-Path $taskSource 'InvoiceDraftRules.java') (Join-Path $taskSource 'PixelMcpOwnerTools.java') (Join-Path $taskSource 'OwnerJournalRules.java')
 if ($LASTEXITCODE -ne 0) { throw 'Neue MCP-Adapter konnten nicht übersetzt werden.' }
 $taskClasspath = "$taskClasses;$taskClasspath"
 & (Join-Path $taskJdk 'javac.exe') -encoding UTF-8 -cp $taskClasspath -d $taskClasses (Join-Path $PSScriptRoot 'java/at/hausgarten/service/BillingTests.java')
@@ -50,3 +50,10 @@ if ($LASTEXITCODE -ne 0) { throw 'Drive-Journalregeln fehlgeschlagen.' }
 if ($LASTEXITCODE -ne 0) { throw 'Auftragsprüfungen konnten nicht übersetzt werden.' }
 & (Join-Path $taskJdk 'java.exe') -cp $taskClasspath at.hausgarten.service.OrderReviewTests | Tee-Object -FilePath (Join-Path $taskRoot 'outputs/Auftrag-Pruefen-Tests.txt')
 if ($LASTEXITCODE -ne 0) { throw 'Auftragsprüfungen fehlgeschlagen.' }
+
+foreach ($taskSuite in @('ManualChangeTests','OwnerToolsTests')) {
+    & (Join-Path $taskJdk 'javac.exe') -encoding UTF-8 -cp $taskClasspath -d $taskClasses (Join-Path $PSScriptRoot "java/at/hausgarten/service/$taskSuite.java")
+    if ($LASTEXITCODE -ne 0) { throw 'Owner contract tests did not compile.' }
+    & (Join-Path $taskJdk 'java.exe') -cp $taskClasspath "at.hausgarten.service.$taskSuite"
+    if ($LASTEXITCODE -ne 0) { throw 'Owner contract tests failed.' }
+}

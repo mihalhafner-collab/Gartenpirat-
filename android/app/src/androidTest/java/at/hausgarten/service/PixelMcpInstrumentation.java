@@ -147,6 +147,9 @@ public final class PixelMcpInstrumentation extends Instrumentation {
         final String prefix="mcp_qa_"+UUID.randomUUID().toString().replace("-","")+"_";
         Isolated(Context base){super(base);}
         String name(String n){if(!n.matches("[a-zA-Z0-9_.-]+"))throw new IllegalArgumentException("Invalid test path");return prefix+n;}
+        @Override public Context getApplicationContext(){return this;}
+        @Override public File getFilesDir(){return getBaseContext().getDir(prefix+"files",MODE_PRIVATE);}
+        @Override public File getCacheDir(){return getBaseContext().getDir(prefix+"cache",MODE_PRIVATE);}
         @Override public SharedPreferences getSharedPreferences(String n,int mode){return super.getSharedPreferences(name(n),mode);}
         @Override public File getDatabasePath(String n){return super.getDatabasePath(name(n));}
         @Override public SQLiteDatabase openOrCreateDatabase(String n,int mode,SQLiteDatabase.CursorFactory f){return super.openOrCreateDatabase(name(n),mode,f);}
@@ -285,7 +288,7 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             String hash=PixelMcpWriteTools.hash(PixelMcpWriteTools.base(saved));
             JSONObject edit=new JSONObject().put("request_id","qa-update-one").put("work_record_id",id).put("expected_record_hash",hash).put("updates",new JSONObject().put("notes","QA Nachtrag"));
             JSONObject updated=reopened.execute("update_work_record",edit);
-            check("update keeps customer/entity ID",()->{JSONObject row=reopened.pendingActions().getJSONObject(0).getJSONObject("payload");yes(row.getString("id").equals(id)&&row.getString("customer_id").equals("qa_c1"));yes(row.has("_mcp_base")&&row.getString("notes").equals("QA Nachtrag"));});
+            check("update keeps customer/entity ID",()->{JSONObject row=reopened.pendingActions().getJSONObject(0).getJSONObject("payload");yes(row.getString("id").equals(id)&&row.getString("customer_id").equals("qa_c1"));yes(row.has("_sync_base")&&row.getString("notes").equals("QA Nachtrag"));});
             check("parallel pending edit rejected",()->rejected(()->reopened.execute("update_work_record",new JSONObject(edit.toString()).put("request_id","qa-update-two"))));
             String updateClient=updated.getJSONObject("data").getJSONObject("sync").getString("client_id");
             check("manual follow-up preserves pending MCP request as guarded action chain",()->{reopened.saveWorklog(new JSONObject(saved.toString()).put("notes","QA manual"));yes(reopened.status(updateClient,reopened.getState()).getString("status").equals("queued"));JSONArray chain=reopened.pendingActions();yes(chain.length()==2);yes(chain.getJSONObject(0).getString("client_id").equals(updateClient));yes(chain.getJSONObject(1).getJSONObject("payload").getString("id").equals(id));yes(chain.getJSONObject(1).getJSONObject("payload").getJSONObject("_sync_base").getString("notes").equals("QA Nachtrag"));JSONObject mirrored=new JSONObject(reopened.getState().getJSONObject("master").toString()).put("photos",new JSONArray());yes(DriveJournalRules.apply(mirrored,chain).length()==0);yes(PixelMcpWriteTools.find(mirrored.getJSONArray("worklogs"),id).getString("notes").equals("QA manual"));});
@@ -321,7 +324,7 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             check("completion uses native net time and pause rather than stale form values",()->{JSONArray rows=PixelMcpReadTools.effective(reopened.getState()).getJSONArray("worklogs");JSONObject row=rows.getJSONObject(rows.length()-1);yes(row.getString("id").equals(authoritativeWorklog)&&row.getDouble("hours")==1.5&&row.getInt("break_minutes")==30);yes(row.optString("start_time").isEmpty()&&row.optString("end_time").isEmpty());yes(row.getString("notes").contains("Timer"));});
             check("completion replay cannot create a second worklog",()->{int count=reopened.pendingActions().length();yes(reopened.completeWorkSession(authoritativeId,new JSONObject(),"timer-authoritative-finalize").equals(authoritativeWorklog));yes(reopened.pendingActions().length()==count);});
             check("productive Drive snapshot unchanged during isolated tests",()->yes(productionBefore.equals(businessSnapshotHash())));
-            acceptance();NativeDriveAcceptance.run(this);DriveProviderAcceptance.run(this);check("productive Drive snapshot unchanged after acceptance probes",()->yes(productionBefore.equals(businessSnapshotHash())));
+            acceptance();OwnerNativeAcceptance.run(this);NativeDriveAcceptance.run(this);DriveProviderAcceptance.run(this);check("productive Drive snapshot unchanged after acceptance probes",()->yes(productionBefore.equals(businessSnapshotHash())));
             result.putString("stream","RESULT "+passed+" Android SQLite/MCP tests passed; acceptance failures="+acceptanceFailed+"; isolated namespace="+context.prefix+"\n");result.putInt("passed",passed);result.putInt("failed",acceptanceFailed);finish(acceptanceFailed==0?-1:0,result);
         }catch(Throwable error){result.putString("stream","FAILED "+error.getClass().getSimpleName()+": "+error.getMessage()+"\n");finish(0,result);}
         finally{if(store!=null)store.close();}

@@ -84,3 +84,19 @@ Keine versteckten automatischen Datenänderungen und keine dekorative Komplexit�
   überspringen oder ein erfolgreiches Build als Abnahme auszugeben.
 - Änderungen, Tests, Ergebnisse und offene Einschränkungen verständlich berichten.
   Keine Erfolgsbehauptung ohne tatsächlich vorliegenden Nachweis.
+
+## Fachliche MCP-Eigentümerfunktionen (18. Oktober 2026)
+
+Aktueller Umfang und technische Grenzen: `docs/MCP-EIGENTUEMERZUGRIFF-2026-10-18.md`.
+Die ausdrücklich beauftragten Eigentümerfunktionen einschließlich Rechnungsentwurf,
+Korrektur/Storno, Archiv, Dateitransfer und nicht geheimer Rechnungskonfiguration
+sind Produktfunktionen; historische Einzelauftrags-Sperren nicht erneut als
+fehlende Entwicklungsautorisierung behandeln. Konkrete Betriebsdatenaktionen
+benötigen weiterhin den entsprechenden Benutzerauftrag. Schreibschalter,
+Vergleichsstände, Belege und externe Konto-/Gerätefreigaben erhalten.
+Vor der App-Einführung den gemeinsamen Web-/Drive-Importer aktualisieren;
+Capabilities für Foto-/Rechnungsvergleichsschutz prüfen. Unbekannte neue
+Journaltypen zurückhalten; keinen alten Importer als unsicheren Fallback nutzen.
+Tests bleiben isoliert. Eine Geschäfts-MCP-Sicherung ersetzt keine vollständige
+Gerätesicherung; Installation bleibt bis Sicherung und ausdrücklicher Freigabe
+gesperrt.

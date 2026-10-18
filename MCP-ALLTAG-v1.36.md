@@ -1,3 +1,5 @@
+> Historischer Stand v1.36. Aktueller Eigentümerumfang, Vergleichsschutz und offene Geräteabnahme: [Cloud-Stand 1.47.0](docs/MCP-EIGENTUEMERZUGRIFF-2026-10-18.md). Frühere auf Einzelaufträge begrenzte Rechnungssperren beschreiben nicht die aktuelle Produktfreigabe.
+
 # MCP-Alltagsworkflow – Version 1.36.0
 
 ## Ergebnis und Freigabegrenzen

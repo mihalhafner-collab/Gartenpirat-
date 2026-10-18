@@ -5,9 +5,9 @@ import java.util.*;
 
 /** Existing Drive snapshot + action journals. No new database or replacement IDs. */
 final class DriveJournalRules {
-    static final String[] KINDS={"customer","order","worklog","photo"};
+    static final String[] KINDS={"customer","order","worklog","photo","invoice"};
     static String collection(String kind) {
-        switch(kind){case "customer":return "customers";case "order":return "orders";case "worklog":return "worklogs";case "photo":return "photos";default:return "";}
+        switch(kind){case "customer":return "customers";case "order":return "orders";case "worklog":return "worklogs";case "photo":return "photos";case "invoice":return "invoices";default:return "";}
     }
     static void validateSnapshot(JSONObject snapshot)throws Exception{
         for(String key:new String[]{"customers","orders","worklogs","invoices","photos"}){
@@ -33,7 +33,8 @@ final class DriveJournalRules {
         String[] keys=kind.equals("worklog")?PixelMcpWriteTools.BASE_FIELDS:kind.equals("customer")?
             new String[]{"id","updated_at","name","first_name","last_name","company","street","postal_code","city","country","email","phone","notes","active","garden_area","sevdesk_customer_number","custom_fields","billing_mode","default_billing_customer_id"}:
             kind.equals("order")?new String[]{"id","updated_at","customer_id","title","description","location","scheduled_date","status","notes","customer_visible","billing_customer_id"}:
-            new String[]{"id","customer_id","order_id","worklog_id","filename","caption","customer_visible"};
+            kind.equals("invoice")?new String[]{"id","updated_at","customer_id","order_id","invoice_number","invoice_date","service_start","service_end","status","sevdesk_id","issued_at","positions","payment_days","notes","domestic_service_confirmed","document_type","correction_of","correction_reason","header_text","footer_text"}:
+            new String[]{"id","customer_id","order_id","worklog_id","filename","caption","customer_visible","content_sha256","byte_size","mime_type","storage_name","role","updated_at"};
         for(String key:keys)base.put(key,key.equals("custom_fields")?comparable(key,row.opt(key)):row.has(key)?row.get(key):JSONObject.NULL);return base;
     }
     static JSONObject clean(JSONObject value)throws Exception{
@@ -88,7 +89,12 @@ final class DriveJournalRules {
             // A later desktop rejection must remain reviewable even if a previous Pixel pass accepted it locally.
             if(remoteErrors.containsKey(client)){seen.remove(client);failed.add(client);errors.put(new JSONObject(remoteErrors.get(client).toString()).put("kind",kind));continue;}
             if(seen.contains(client))continue;
-            // Invoice issuing and historical deletes keep their existing guarded laptop workflow.
+            if(OwnerJournalRules.handles(kind)){
+                try{OwnerJournalRules.apply(snapshot,action,all,resolved);seen.add(client);hashes.put(client,digest);}
+                catch(Exception error){failed.add(client);errors.put(new JSONObject().put("client_id",client).put("kind",kind).put("code",error instanceof PixelMcpWriteTools.Rejected?((PixelMcpWriteTools.Rejected)error).code:"INVALID_ACTION").put("error",error.getMessage()));}
+                continue;
+            }
+            // Protected financial finalization uses the existing central numbering service.
             if(group.isEmpty())continue;
             try{
                 JSONObject patch=action.getJSONObject("payload");
@@ -131,9 +137,9 @@ final class DriveJournalRules {
         Set<String> failed=new HashSet<>(),accepted=ids(snapshot.optJSONArray("accepted_ids"));
         JSONObject resolved=snapshot.optJSONObject("drive_resolved_actions");
         for(String key:new String[]{"sync_errors","drive_journal_errors"}){JSONArray rows=snapshot.optJSONArray(key);for(int i=0;rows!=null&&i<rows.length();i++)failed.add(rows.getJSONObject(i).optString("client_id"));}
-        JSONArray result=new JSONArray();
-        for(int i=0;i<actions.length();i++){JSONObject action=actions.getJSONObject(i);String client=action.getString("client_id");if("order".equals(action.optString("kind"))&&failed.contains(client)&&!accepted.contains(client)&&(resolved==null||!resolved.has(client)))result.put(new JSONObject(action.toString()));}
-        return result;
+        JSONArray result=new JSONArray(),legacyPhotoReview=new JSONArray();
+        for(int i=0;i<actions.length();i++){JSONObject action=actions.getJSONObject(i);String client=action.getString("client_id");if("photo".equals(action.optString("kind"))&&(action.getJSONObject("payload").has("data")||action.getJSONObject("payload").has("full_data"))&&failed.contains(client)){legacyPhotoReview.put(client);continue;}if((!collection(action.optString("kind")).isEmpty()||OwnerJournalRules.handles(action.optString("kind")))&&failed.contains(client)&&!accepted.contains(client)&&(resolved==null||!resolved.has(client)))result.put(new JSONObject(action.toString()));}
+        snapshot.put("drive_legacy_photo_review_ids",legacyPhotoReview);return result;
     }
     private static void refreshDisplayFields(JSONObject snapshot)throws Exception{
         Map<String,String> names=new HashMap<>(),titles=new HashMap<>();Map<String,Double> totals=new HashMap<>();
@@ -146,10 +152,11 @@ final class DriveJournalRules {
     private static String hashString(String value)throws Exception{
         byte[] bytes=java.security.MessageDigest.getInstance("SHA-256").digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));StringBuilder out=new StringBuilder();for(byte b:bytes)out.append(String.format(Locale.ROOT,"%02x",b&255));return out.toString();
     }
-    private static void validateChange(String kind,JSONObject row,JSONObject old,JSONObject snapshot)throws Exception{
+    static void validateChange(String kind,JSONObject row,JSONObject old,JSONObject snapshot)throws Exception{
         JSONArray customers=snapshot.getJSONArray("customers"),orders=snapshot.getJSONArray("orders"),logs=snapshot.getJSONArray("worklogs"),photos=snapshot.getJSONArray("photos"),invoices=snapshot.getJSONArray("invoices");
         if(kind.equals("customer")){
             BillingRules.customerConfig(row,customers);if(row.optString("name").trim().isEmpty())throw new IllegalArgumentException("Der Kundenname fehlt.");if(old==null){EntityProtectionRules.validateNewCustomer(row,customers);if(!row.has("active"))row.put("active",1);if(!row.has("custom_fields"))row.put("custom_fields",new JSONObject());}return;}
+        if(kind.equals("invoice")){InvoiceDraftRules.normalize(row,old,snapshot);return;}
         PixelMcpWriteTools.find(customers,row.optString("customer_id"));String orderId=row.isNull("order_id")?"":row.optString("order_id");
         if(!orderId.isEmpty()&&!row.optString("customer_id").equals(PixelMcpWriteTools.find(orders,orderId).optString("customer_id")))throw new IllegalArgumentException("Kunde und Auftrag passen nicht zusammen.");
         if(kind.equals("order")){

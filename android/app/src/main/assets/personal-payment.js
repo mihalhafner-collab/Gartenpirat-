@@ -4,8 +4,10 @@
  function install(){
  const key='hausgarten.overview.personal-paid.v1';
  function read(){
-  const value=JSON.parse(localStorage.getItem(key)||'[]');
+  const native=typeof AndroidData?.getPersonalPaid==='function'?AndroidData.getPersonalPaid():'';
+  const value=JSON.parse(native||localStorage.getItem(key)||'[]');
   if(!Array.isArray(value)||!value.every(id=>typeof id==='string'))throw Error('Invalid payment overview');
+  if(!native&&typeof AndroidData?.migratePersonalPaid==='function'){const result=AndroidData.migratePersonalPaid(JSON.stringify(value));if(String(result).startsWith('ERROR:'))throw Error('Migration not completed');}
   return new Set(value);
  }
  function refresh(){
@@ -32,7 +34,7 @@
   const button=event.target.closest('[data-personal-paid]');if(!button)return;
   event.preventDefault();event.stopImmediatePropagation();
   const id=button.dataset.personalPaid;if(!worklogs().some(row=>row.id===id))return;
-  try{const paid=read();if(paid.has(id))paid.delete(id);else paid.add(id);localStorage.setItem(key,JSON.stringify([...paid]));refresh();}
+  try{const paid=read();if(paid.has(id))paid.delete(id);else paid.add(id);const value=JSON.stringify([...paid]);if(typeof AndroidData?.setPersonalPaid==='function'){const result=AndroidData.setPersonalPaid(value);if(String(result).startsWith('ERROR:'))throw Error('Saving failed');}else localStorage.setItem(key,value);refresh();}
   catch(_){window.showUndoToast?.('Bezahlmarkierung nicht gespeichert. Die bisherige Übersicht bleibt erhalten.');}
  },true);
  const render=window.render;window.render=function(...args){const result=render.apply(this,args);refresh();return result;};

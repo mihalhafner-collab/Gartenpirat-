@@ -88,7 +88,7 @@ final class PixelMcpWriteTools {
         if(update) {
             JSONObject capabilities=master.optJSONObject("capabilities");
             if(capabilities==null || !Boolean.TRUE.equals(capabilities.opt("worklog_compare_and_save")))
-                throw new Rejected("REMOTE_GUARD_REQUIRED","Der Laptop hat den neuen Änderungsschutz noch nicht bestätigt. Bitte die aktuelle Laptop-App neu starten und mit Drive abgleichen; danach die Pixel-App abgleichen.");
+                throw new Rejected("REMOTE_GUARD_REQUIRED","Der gemeinsame Änderungsschutz fehlt im Gesamtstand. Bitte die aktuelle Web-/Drive-Verarbeitung bereitstellen und anschließend abgleichen.");
             JSONObject old=find(master.optJSONArray("worklogs"),args.getString("work_record_id"));
             if(!hash(base(old)).equals(args.getString("expected_record_hash")))throw new Rejected("WRITE_CONFLICT","Der Eintrag wurde inzwischen geändert. Bitte erneut öffnen und die Änderung prüfen.");
             JSONArray pending=state.optJSONArray("pending");for(int i=0;pending!=null&&i<pending.length();i++){JSONObject a=pending.getJSONObject(i),p=a.optJSONObject("payload");if(p!=null&&old.getString("id").equals(p.optString("id")))throw new Rejected("WRITE_CONFLICT","Für diesen Eintrag ist bereits eine Änderung vorgemerkt. Bitte zuerst abgleichen.");}

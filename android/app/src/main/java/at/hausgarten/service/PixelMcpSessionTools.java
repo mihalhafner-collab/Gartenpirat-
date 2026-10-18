@@ -6,7 +6,7 @@ import java.time.*;
 
 /** Typed adapters for the existing persistent timer, not a second time store. */
 final class PixelMcpSessionTools {
-    static final String[] NAMES={"start_work","start_break","end_break","stop_work","complete_work_session"};
+    static final String[] NAMES={"start_work","start_break","end_break","stop_work","complete_work_session","continue_work","discard_work_session","restore_work_session"};
     static boolean handles(String name){return Arrays.asList(NAMES).contains(name);}
     static JSONObject schema(String name)throws Exception{
         JSONObject props=new JSONObject().put("request_id",PixelMcpWriteTools.field("request_id").put("minLength",8).put("maxLength",128));JSONArray required=new JSONArray().put("request_id");
@@ -33,8 +33,10 @@ final class PixelMcpSessionTools {
             BillingRules.work(out,null,master);
             if(!out.has("work_date"))out.put("work_date",LocalDate.now(ZoneId.of("Europe/Vienna")).toString());LocalDate.parse(out.getString("work_date"));return out;
         }
+        if(name.equals("restore_work_session")){if(!"IDLE".equals(current.optString("state")))throw new PixelMcpWriteTools.Rejected("SESSION_CONFLICT","Eine andere Sitzung ist aktiv.");return out;}
         if(!args.getString("session_id").equals(current.optString("id")))throw new PixelMcpWriteTools.Rejected("SESSION_CONFLICT","Die Sitzung ist nicht mehr die aktuelle Sitzung. Bitte erneut abfragen.");
-        String expected=name.equals("start_break")?"RUNNING":name.equals("end_break")?"PAUSED":name.equals("complete_work_session")?"STOPPED_PENDING_REVIEW":"";
+        if(name.equals("discard_work_session")){if(!Arrays.asList("RUNNING","PAUSED","STOPPED_PENDING_REVIEW").contains(current.optString("state")))throw new PixelMcpWriteTools.Rejected("SESSION_CONFLICT","Diese Sitzung kann nicht verworfen werden.");return out;}
+        String expected=name.equals("continue_work")?"STOPPED_PENDING_REVIEW":name.equals("start_break")?"RUNNING":name.equals("end_break")?"PAUSED":name.equals("complete_work_session")?"STOPPED_PENDING_REVIEW":"";
         if(!expected.isEmpty()&&!expected.equals(current.optString("state"))||name.equals("stop_work")&&!Arrays.asList("RUNNING","PAUSED").contains(current.optString("state")))throw new PixelMcpWriteTools.Rejected("SESSION_CONFLICT","Diese Aktion passt nicht zum aktuellen Sitzungszustand.");
         if(name.equals("complete_work_session")){
             if(current.optBoolean("pause_unverified"))throw new PixelMcpWriteTools.Rejected("TIME_REVIEW_REQUIRED","Die Geräteuhr hat sich während einer Pause widersprüchlich geändert. Bitte die Sitzung in der App prüfen.");

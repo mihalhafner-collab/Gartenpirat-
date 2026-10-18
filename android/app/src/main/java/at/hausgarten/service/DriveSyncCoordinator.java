@@ -72,7 +72,10 @@ final class DriveSyncCoordinator {
                 // Commit data before dropping acknowledged local queue rows. Crash retries are idempotent.
                 snapshot.put("sync_primary","pixel").put("drive_storage","snapshot_and_journals").put("drive_delivered_ids",new JSONArray(deliveredIds));
                 String now=java.time.Instant.now().toString();
-                if(!prefs.edit().putString("drive_snapshot",snapshot.toString()).putString("last_drive_sync",now)
+                Set<String> committed=DriveJournalRules.ids(snapshot.optJSONArray("accepted_ids"));committed.addAll(DriveJournalRules.ids(snapshot.optJSONArray("drive_applied_ids")));
+                JSONObject resolutions=snapshot.optJSONObject("drive_resolved_actions");if(resolutions!=null)resolutions.keys().forEachRemaining(committed::add);
+                store.commitSnapshot(snapshot,committed);
+                if(!prefs.edit().putString("last_drive_sync",now)
                     .putString("last_sync_attempt",now).putBoolean("drive_sync_failed",false).putString("drive_last_error","")
                     .putString("drive_confirmation_scope","provider_readback").putInt("drive_duplicate_files",files.duplicates).putInt("drive_conflict_count",errors.length()).putInt("drive_retry_count",0).commit())throw new IOException("Drive-Änderungen konnten nicht lokal gesichert werden. Warteschlange bleibt erhalten.");
                 store.markUploaded(pending);

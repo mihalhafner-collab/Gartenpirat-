@@ -22,7 +22,7 @@ classes.mkdir(parents=True, exist_ok=True)
 src = ROOT/'android/app/src/main/java/at/hausgarten/service'
 names = ['BillingRules', 'WorklogRules', 'PixelMcpWriteTools', 'EntityProtectionRules',
          'PixelMcpEntityWriteTools', 'PixelMcpReadTools', 'PixelMcpSessionTools', 'PixelMcpBusinessTools',
-         'WorklogRelationRules', 'DriveJournalRules', 'OrderReviewRules', 'PixelTunnelConfig',
+         'WorklogRelationRules', 'ManualChangeRules', 'McpSchema', 'McpFileTransfer', 'InvoiceDraftRules', 'PixelMcpOwnerTools', 'OwnerJournalRules', 'DriveJournalRules', 'OrderReviewRules', 'PixelTunnelConfig',
          'PixelTunnelWire', 'WorkSessionPauseRules']
 tests = sorted((ROOT/'tests/java/at/hausgarten/service').glob('*Tests.java'))
 cp = os.pathsep.join(map(str, [classes, jar, android]))
@@ -47,6 +47,12 @@ for test in tests:
                  'hours': 1.00, 'customer_visible': True}, 'created_at': '2026-10-15T08:00:00Z'}
         if 'CROSS_HASH '+sync_review.digest(cross) not in output:
             raise RuntimeError('Android/Python review hash differs')
+    if test.stem == 'OwnerToolsTests':
+        sys.path.insert(0, str(ROOT))
+        import owner_journal, sync_review
+        fixture={'id':'c','name':'QA','active':0,'custom_fields':'{"A":true}','updated_at':'t2'}
+        if 'CROSS_OWNER_HASH '+sync_review.digest(owner_journal.customer_guard(fixture)) not in output:
+            raise RuntimeError('Android/Python archive guard differs')
     results.append({'suite': test.stem, 'result': 'PASS', 'summary': output.strip().splitlines()[-1]})
     print(results[-1], flush=True)
 (classes.parent/'results.json').write_text(json.dumps({'suites': results, 'cross_language_hash': 'PASS'}, indent=2))

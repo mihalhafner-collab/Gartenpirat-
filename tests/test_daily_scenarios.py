@@ -61,6 +61,40 @@ class DailyScenarioTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'bereits'): invoicing.issue(second['id'],True)
         self.assertEqual(next(row for row in db.list_invoices() if row['id']==second['id'])['status'],'Entwurf')
 
+    def test_invoice_issue_between_preflight_and_manual_write_keeps_performance(self):
+        work = self.work(); draft = self.draft(work)
+        original = db._upsert
+        issued = False
+        def interleave(table, *args, **kwargs):
+            nonlocal issued
+            if table == 'worklogs' and not issued:
+                issued = True
+                invoicing.issue(draft['id'], True)
+            return original(table, *args, **kwargs)
+        with patch.object(db, '_upsert', side_effect=interleave):
+            with self.assertRaisesRegex(ValueError, 'Abgerechnete'):
+                db.save_worklog({'id': work['id'], 'hours': 3, 'billed': 0})
+        saved = db.list_worklogs()[0]
+        self.assertEqual(saved['hours'], 2); self.assertEqual(saved['billed'], 1)
+        self.assertTrue(invoicing.issued_pdf(draft['id']).startswith(b'%PDF'))
+        self.assertEqual(db.save_worklog({'id': work['id'], 'notes': 'Interner Nachtrag'})['billed'], 1)
+
+    def test_new_invoice_link_between_preflight_and_relation_change_is_rechecked(self):
+        work = self.work()
+        other = db.save_customer({'name': 'QA anderer Einsatz'})
+        original = db._upsert
+        linked = False
+        def interleave(table, *args, **kwargs):
+            nonlocal linked
+            if table == 'worklogs' and not linked:
+                linked = True
+                self.draft(work)
+            return original(table, *args, **kwargs)
+        with patch.object(db, '_upsert', side_effect=interleave):
+            with self.assertRaisesRegex(ValueError, 'Rechnung verknüpft'):
+                db.save_worklog({'id': work['id'], 'customer_id': other['id'], 'order_id': None})
+        self.assertEqual(db.list_worklogs()[0]['customer_id'], self.customer['id'])
+
     def test_pdf_failure_rolls_back_number_archive_and_billing(self):
         work = self.work(); draft = self.draft(work)
         with patch.object(invoicing,'render_pdf',side_effect=OSError('QA PDF failure')):

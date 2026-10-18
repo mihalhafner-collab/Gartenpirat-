@@ -29,6 +29,15 @@ public final class PixelTunnelWire {
             }
         }
     }
+    public static final class RateLimit extends IOException {
+        public final long retryAfterMs;
+        RateLimit(long wait){super("Tunnel-Anfragen sind vorübergehend begrenzt.");retryAfterMs=Math.max(1000,Math.min(900000,wait));}
+    }
+    static long retryAfter(String value,long now){
+        if(value==null)return 15000;
+        try{return Math.max(1000,Math.min(900000,Math.multiplyExact(Long.parseLong(value.trim()),1000)));}
+        catch(Exception ignored){try{return Math.max(1000,Math.min(900000,java.time.ZonedDateTime.parse(value,java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME).toInstant().toEpochMilli()-now));}catch(Exception invalid){return 15000;}}
+    }
     private final String id;
     private final Transport transport;
     private final PixelMcpReadTools tools;
@@ -44,6 +53,7 @@ public final class PixelTunnelWire {
     }
     private String path(String suffix){return "/v1/tunnels/"+id+suffix;}
     private static void check(Reply r) throws IOException {
+        if(r.code==429)throw new RateLimit(r.json.optLong("retry_after_ms",15000));
         if(r.code==401||r.code==403)throw new AccessError(r.code,r.json.optString("access_reason","auth_denied"));
         if(r.code<200||r.code>=300)throw new IOException("Tunnel vorübergehend nicht erreichbar (HTTP "+r.code+").");
     }
@@ -127,6 +137,7 @@ public final class PixelTunnelWire {
                 if(code==204)return new Reply(code,new JSONObject(),receipt);
                 if(code<200||code>=300){
                     JSONObject safe=new JSONObject();
+                    if(code==429)safe.put("retry_after_ms",retryAfter(connection.getHeaderField("Retry-After"),System.currentTimeMillis()));
                     if(code==401||code==403)safe.put("access_reason",readAccessReason(connection));
                     return new Reply(code,safe,receipt); // Only a fixed category; never provider messages/credentials.
                 }
