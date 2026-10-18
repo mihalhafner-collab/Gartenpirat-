@@ -1,3 +1,11 @@
+# Aktueller verbindlicher Arbeitsweg: Codex Cloud only
+
+**Entwicklung, Build, Tests, Originalsignierung und Releasevorbereitung erfolgen ausschließlich in Codex Cloud.**
+
+Der Laptop/Desktop ist ab 18. Oktober 2026 **kein Bestandteil der aktiven Arbeitsweise, keine Voraussetzung und kein Fallback**. Der operative Zielpfad ist **Pixel-App ↔ Google Drive direkt**; der Entwicklungs- und Releasepfad ist **Codex Cloud ↔ GitHub**. Historische Laptop-/Web-Hinweise weiter unten dokumentieren frühere Architekturstufen und sind keine aktuelle Handlungsanweisung.
+
+Funktionen, die technisch noch einen lokalen Web-/Laptop-Prozessor voraussetzen, gelten als **noch nicht vollständig migriert**. Sie müssen vor produktiver Freigabe in Codex Cloud auf Pixel/Drive-direkte Verarbeitung umgestellt werden. Historische Dateinamen wie `HausGarten-Laptop.json` können aus Kompatibilitätsgründen bestehen bleiben und bedeuten keine Laptop-Abhängigkeit.
+
 # Aktueller gemeinsamer Entwicklungsstand: 18. Oktober 2026
 
 Die bestehenden Entwicklungsstände wurden im selben Repository zusammengeführt.
@@ -27,7 +35,7 @@ Rücklesen durch den Android-Dateianbieter ist weiterhin keine unabhängige Clou
 Keine Migration, keine neuen IDs für bestehende Datensätze und keine geänderte Tunnelkonfiguration.
 
 
-Kostenlose, lokal betriebene Verwaltungs-App für Windows-Laptop und Google Pixel.
+Private Verwaltungs-App mit Google Pixel als operativer Arbeits-App und Google Drive als zentralem Datenabgleich. Entwicklung und Release erfolgen ausschließlich in Codex Cloud.
 
 ## Enthalten
 
@@ -38,20 +46,11 @@ Kostenlose, lokal betriebene Verwaltungs-App für Windows-Laptop und Google Pixe
 - Rechnungsübersicht
 - mobile Offline-Warteschlange mit späterer Synchronisierung
 - lokale SQLite-Datenbank und ZIP-Sicherungen, optional in einen Google-Drive-Ordner
-- Airtable-inspirierte, aufgeräumte Laptop- und Mobilansicht
+- aufgeräumte mobile Bedienung; historische Web-Oberfläche bleibt nur als Legacy-Code erhalten
 
-## Starten
+## Entwicklung und Build
 
-1. `start-app.cmd` doppelt anklicken.
-2. Die App öffnet sich unter `http://localhost:8765`.
-3. Das angezeigte WLAN-Ziel am Android-Handy öffnen, solange Laptop und Handy im
-   selben WLAN sind.
-4. Am Handy einmalig den sechsstelligen Zugangscode aus dem Startfenster eingeben.
-
-Python 3.11 oder neuer wird benötigt. Der Webserver nutzt die Standardbibliothek;
-die Rechnungserstellung benötigt ReportLab und die mitgelieferten Schriftdateien.
-Pillow ermöglicht verkleinerte Fotovorschauen. Die vorhandenen lokalen Pakete liegen
-unter `.dependencies`; diese beim Kopieren der Anwendung mitnehmen.
+Quellcodeänderungen, Qualitätsprüfung, Android-Build und Originalsignierung werden ausschließlich in der persönlichen Gartenpirat-Codex-Cloud-Umgebung ausgeführt. Keine lokale Laptop-/Desktop-Entwicklungsumgebung ist Teil des freigegebenen Ablaufs. GitHub `main` ist die gemeinsame Codebasis; Pixel und Drive sind die operative Datenebene.
 
 ## Pixel-App installieren
 
@@ -75,25 +74,15 @@ Kilometer, Notizen und Fotos werden zuerst lokal gespeichert. **Mobil** öffnet 
 Erfassung. Die untere Navigation führt zu Heute, Kunden, Arbeiten und Mehr.
 Drive ist über den Status oben beziehungsweise die Startseite erreichbar.
 Ein gemeinsames WLAN ist für mobile Erfassung und Drive-Abgleich nicht erforderlich.
-Der endgültige Rechnungsabschluss mit Nummer und PDF benötigt aktuell weiterhin
-den Laptop und dessen Abgleich. Drive ist ein Austausch-/Sicherungsweg, keine
-gleichzeitig beschreibbare SQLite-Datenbank.
+Der Zielzustand für Rechnungsabschluss, Nummernvergabe, Angebote und Fotos ist Pixel/Drive-direkt. Eine Funktion, die noch einen lokalen Web-/Laptop-Prozessor verlangt, ist nicht produktionsreif und wird in Codex Cloud weiter migriert. Drive ist Austausch- und Sicherungsweg; Konfliktschutz und zentrale Nummernvergabe müssen dabei erhalten bleiben.
 
-Der Zugriff vom Laptop ist direkt möglich. Andere Geräte im WLAN erhalten ohne den
-bei jedem Start neu erzeugten Zugangscode keinen Zugriff auf APIs, Fotos oder Kundendaten.
+Ein lokaler Laptop-Zugriff ist nicht Bestandteil der aktuellen Arbeitsweise. Der private Pixel-Tunnel und seine Berechtigungen bleiben der vorgesehene ChatGPT-/MCP-Zugriff auf die operative App.
 
 ## Google-Drive-Sicherung und Pixel-Abgleich
 
-Google Drive für Desktop kann kostenlos installiert werden. In der App unter
-**Einstellungen** den lokalen Google-Drive-Ordner als Sicherungsordner eintragen.
-Die aktive Datenbank bleibt bewusst außerhalb des Sync-Ordners; geschlossene
-ZIP-Sicherungen und kleine Austauschdateien werden dort abgelegt.
+Der Pixel greift direkt auf den bestehenden Google-Drive-Datenbereich zu. Änderungen werden lokal sicher vorgemerkt, mit stabilen IDs und Prüfsummen übertragen und erst nach bestätigter Verarbeitung aus der Warteschlange entfernt. Ein Laptop-/Desktop-Importer ist kein zulässiger Pflichtbestandteil des Zielsystems. Alte Austauschdateien und Dateinamen bleiben bis zu einer geprüften Migration kompatibel.
 
-Auf dem Pixel beim ersten Druck auf **Drive** denselben Ordner über die Android-
-Dateiauswahl auswählen. Das Pixel legt seine noch nicht übernommenen Einträge dort
-ab und liest den aktuellen Kunden- und Auftragsstand ein. Die Laptop-App prüft den
-Ordner alle 30 Sekunden, solange sie läuft. Bereits bestätigte mobile Einträge werden
-nicht doppelt importiert.
+Provider-Rücklesen und unabhängige Google-Cloud-Bestätigung bleiben unterschiedliche Zustände. Konflikte werden fail-closed erhalten und nicht automatisch überschrieben.
 
 ## ChatGPT-Tunnel automatisch starten
 
@@ -101,8 +90,7 @@ Für die Sprachsteuerung muss der jeweilige private MCP-Tunnel laufen.
 Die Pixel-App besitzt einen eigenen Tunnel mit gesonderter Schreibfreigabe und
 lokaler Offline-Warteschlange. Der Pixel-Tunnel benötigt keinen eingeschalteten
 Laptop; für dessen dauerhafte Erreichbarkeit bleiben Internet, Android-Service und
-Akku-Einstellungen relevant. Ein laufender Laptop ist weiterhin für den endgültigen
-Rechnungsabschluss und die Übernahme ins Laptop-Datenarchiv erforderlich.
+Akku-Einstellungen relevant. Ein laufender Laptop ist nicht erforderlich und darf künftig nicht als Voraussetzung eingeführt werden. Noch vorhandene Abhängigkeiten im Legacy-Code müssen auf Pixel/Drive-direkte Verarbeitung migriert werden.
 
 Der frühere Windows-Tunnel wurde am 12.10.2026 auf Wunsch entfernt, einschließlich
 OpenAI-Tunnel, Autostart-Aufgabe und aktiver Startskripte/Laufzeit. Die lokale
@@ -122,15 +110,11 @@ Die Android-Dateifreigabe bestätigt das Rücklesen durch die Drive-App, nicht
 unabhängig den Upload in die Google-Cloud. Entsprechend gekennzeichnete Übergaben
 dürfen nicht als unabhängig verifizierte Cloud-Synchronisierung verstanden werden.
 
-Wichtig: Der tatsächliche Google-Drive-Abgleich muss einmal auf dem Pixel und Laptop
-mit dem eigenen Google-Konto getestet werden. Dieser Anmeldeschritt kann nicht im
-Voraus automatisiert werden.
+Wichtig: Der tatsächliche Google-Drive-Abgleich muss auf dem Pixel mit dem eigenen Google-Konto getestet werden. Geräte- und Kontofreigaben können nicht durch Quellcode ersetzt werden.
 
 ## Datenspeicher
 
-- Datenbank: `data/haus-garten.db`
-- Fotos: `data/photos/`
-- Standardsicherungen: `data/backups/`
+Die operative Datenhaltung liegt auf dem Pixel und im bestehenden Drive-Abgleich. Die früheren lokalen Python-/SQLite-Pfade im Repository sind Legacy-/Testbestand und keine produktive Laptop-Voraussetzung.
 
 Vorhandene Kunden und Rechnungen können wiederholbar mit
 `py -3.11 import_existing_data.py` importiert werden. Bereits vorhandene technische
@@ -143,7 +127,7 @@ HTTP-Endpunkte, lokale Drive-Austauschdateien und Sicherungen ausschließlich mi
 temporären Testdaten. Die beiden JavaScript-Suiten können direkt mit
 `node tests/invoice-flow.test.js` und `node tests/invoice-editor.test.js` laufen.
 
-`tests/release_qa_server.py` startet mit `PYTHONPATH=.` die echte Laptop-Anwendung
+`tests/release_qa_server.py` startet mit `PYTHONPATH=.` die historische Web-Anwendung zu isolierten Regressionstests
 auf Port 18765 mit einer temporären Datenbank. `tests/mobile_invoice_preview_server.py`
 stellt die Android-Oberfläche mit einem ausdrücklich simulierten Android-Speicher
 bereit. `tests/release-browser.test.js` führt Browser-Workflows aus; die zweite URL
