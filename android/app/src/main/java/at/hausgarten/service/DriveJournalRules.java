@@ -71,7 +71,7 @@ final class DriveJournalRules {
             if(error!=null){review++;phase=error.optString("code").contains("CONFLICT")?"sync_conflict":"sync_failed";message="Prüfung erforderlich: "+(error.optString("code").contains("CONFLICT")?"Widersprüchliche Änderungen; vorhandene Daten wurden nicht überschrieben.":"Die Änderung konnte nicht übernommen werden.");}
             else if(held&&transferred){review++;phase="review_required";message=kind.equals("delete")?"An die Drive-App übergeben · Löschauftrag bleibt bis zur gesonderten Prüfung zurückgehalten.":"An die Drive-App übergeben · geschützter Vorgang benötigt Prüfung.";}
             else{upload++;phase="sync_pending";message="Lokal gespeichert · Übertragung ausstehend.";}
-            String code=error==null?"":error.optString("code"),next=(code.contains("CONFLICT")||code.equals("DELETE_REVIEW_REQUIRED"))?"compare_versions":code.equals("AUTH_REQUIRED")||code.equals("PERMISSION_REQUIRED")?"connect_drive":code.equals("MEDIA_TRANSFER_PENDING")?"retry_media":held?"open_processor":"retry_sync";
+            String code=error==null?"":error.optString("code"),next=code.equals("SYNC_COMPONENT_UPDATE_REQUIRED")?"update_sync_component":(code.contains("CONFLICT")||code.equals("DELETE_REVIEW_REQUIRED"))?"compare_versions":code.equals("AUTH_REQUIRED")||code.equals("PERMISSION_REQUIRED")?"connect_drive":code.equals("MEDIA_TRANSFER_PENDING")?"retry_media":held?"open_processor":"retry_sync";
             JSONObject item=new JSONObject().put("client_id",id).put("state",phase).put("provider_readback",transferred).put("cloud_confirmed",false).put("kind",kind).put("entity_id",action.getJSONObject("payload").optString("id")).put("created_at",action.optString("created_at")).put("error",error==null?"":error.optString("error")).put("code",code).put("next_action",next).put("message",message);
             DrivePublication.evidence(item,new JSONObject().put("master",snapshot).put("pending",new JSONArray().put(action)));items.put(item);
         }
@@ -93,6 +93,14 @@ final class DriveJournalRules {
             if(hashes.has(client)&&!digest.equals(hashes.getString(client)))throw new PixelMcpWriteTools.Rejected("ACTION_ID_CONFLICT","Eine bestätigte Änderungskennung wurde verändert. Abgleich angehalten.");
             if(resolved.has(client)&&!OrderReviewRules.actionHash(action).equals(resolved.getString(client)))throw new PixelMcpWriteTools.Rejected("ACTION_ID_CONFLICT","Eine geprüfte Änderung wurde verändert. Abgleich angehalten.");
             if(accepted.contains(client)||resolved.has(client))continue;
+            if(kind.equals("conflict_resolution")){
+                String target=action.getJSONObject("payload").optString("client_id");
+                if(!target.isEmpty()&&(accepted.contains(target)||seen.contains(target)||resolved.has(target))){
+                    // The business action already won the race. The later decision is now
+                    // control-plane history only and must not manufacture a new conflict.
+                    seen.add(client);hashes.put(client,digest);continue;
+                }
+            }
             // A later desktop rejection must remain reviewable even if a previous Pixel pass accepted it locally.
             if(remoteErrors.containsKey(client)){seen.remove(client);failed.add(client);errors.put(new JSONObject(remoteErrors.get(client).toString()).put("kind",kind));continue;}
             if(seen.contains(client))continue;
