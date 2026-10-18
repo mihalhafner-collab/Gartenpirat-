@@ -2,9 +2,6 @@ name: Haus & Garten unsigned update candidate (manual)
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - codex/original-signing-cloud-setup-20261018
 
 permissions:
   contents: read
