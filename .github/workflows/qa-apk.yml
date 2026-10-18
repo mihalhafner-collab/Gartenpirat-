@@ -53,6 +53,12 @@ jobs:
           PY
       - name: Install Android 17 build packages
         run: '"$SDKMANAGER" --install "platforms;android-37.0" "build-tools;37.0.0" "platform-tools"'
+      - name: Run Java sync and owner contract regressions
+        run: |
+          mkdir -p .dependencies/pixel-tunnel-tests
+          curl -fsSL https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o .dependencies/pixel-tunnel-tests/json-20240303.jar
+          echo "3cf6cd6892e32e2b4c1c39e0f52f5248a2f5b37646fdfbb79a66b46b618414ed  .dependencies/pixel-tunnel-tests/json-20240303.jar" | sha256sum -c -
+          python3 tools/run-followup-java.py
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
