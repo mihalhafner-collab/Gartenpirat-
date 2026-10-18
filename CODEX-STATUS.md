@@ -13,13 +13,14 @@ Repository: `mihalhafner-collab/Gartenpirat-`
 - Operativer Zielpfad: Pixel ↔ Google Drive direkt
 - Entwicklungsweg: ausschließlich Codex Cloud
 - Repository-Version: 1.49.2 / 71 (Cloud-Kandidat, nicht produktiv abgenommen)
-- Live-Pixel bei letzter Prüfung: 1.49.0 / 69
-- Live `offers_sync_ready`: false
-- Live `service_catalog_sync_ready`: false
+- Live-Pixel bei letzter Prüfung: 1.49.2 / 71 (erneut über MCP bestätigt)
+- Live `offers_sync_ready`: true
+- Live `service_catalog_sync_ready`: true
 - Live `cloud_confirmed`: false
-- Live Queue: 9 Review-Aktionen
-- `get_business_settings`: SETTINGS_UNAVAILABLE
-- Quelle: native Pixel-/Drive-Verarbeitung implementiert; live noch Build 69 mit alter Abhängigkeit. **Gesamtauftrag NICHT abgeschlossen; P0/P1-Abnahme offen.**
+- Live Queue vor der aktuellen MCP-Testphase: 8 Review-Aktionen, 0 Uploads; 1 archivierte Prüfung. Sieben historische Fälle unverändert, zusätzlich ein älterer fehlgeschlagener Archivierungsauftrag. Aktuelle synthetische Testaktionen werden gesondert bilanziert.
+- Live Queue nach MCP-Tests: **38 = 8 bestehende Prüfungen + 30 synthetische Test-/Archivaktionen**. Kein neuer Drive-Beleg; lokaler Cleanup ist noch nicht synchronisiert.
+- `get_business_settings`: lesbar; nur bekannte historische Ausstellerfelder, Steuer-/Nummernfreigaben nicht bestätigt.
+- Quelle: native Pixel-/Drive-Verarbeitung jetzt auch vom installierten Build gemeldet. Isolierte Live-MCP-Abnahme läuft; Drive-Rundlauf und Geräteabnahme weiter offen. **Gesamtauftrag NICHT abgeschlossen; P0/P1-Abnahme offen.**
 
 ## Arbeitsstatus
 
@@ -28,9 +29,9 @@ Repository: `mihalhafner-collab/Gartenpirat-`
 | A – Bestand verifizieren | PASS | Regeln, Issue #1, Historien und Live-MCP geprüft; keine Betriebsdatenänderung |
 | B – produktive Laptop-Abhängigkeit entfernen | PASS (Analyse/Zielpfad) | Abhängigkeiten ermittelt; native Ablösung in C in Arbeit, noch keine operative Abnahme |
 | C – Pixel/Drive-Sync vervollständigen | PASS Host / NOT TESTABLE Gerät | Native Migration, Gesamtstände, Handler, Belege, Finanzabschluss; Geräte-/Google-Abnahme offen |
-| D – 2 technische Testfehler bereinigen | NOT TESTABLE live | Synthetischer Replay/Supersession PASS; beide Live-Aktionen unverändert |
+| D – 2 technische Testfehler bereinigen | Neue Live-Beobachtung / Belegabnahme offen | Beide früheren technischen IDs jetzt nicht mehr aktiv, 1 Konfliktprüfung archiviert; Übergang vor aktueller Testphase, kein Eingriff durch diese Tests |
 | E – 7 Legacy-Konflikte kontrolliert schließen | Vorschau PASS / Ausführung gesperrt | Genau 7 bestätigt; direkte Drive-Abnahme und neue vollständige Sicherung fehlen |
-| F – End-to-End-Abnahme | Host PASS / Gerät NOT TESTABLE | 266 Python, 637 JVM-Prüffälle, 24 Browser-Suiten; echte Pixel-Schreibabnahme fehlt |
+| F – End-to-End-Abnahme | Host PASS / Live-MCP TEILWEISE, P0/P1 FAIL | 83 Werkzeuge angesprochen; 50/51 lokale Vergleiche PASS, Fotorolle FAIL, Drive-Rundlauf FAIL; Details Eintrag 8 |
 | G – neuer Release-Build + Originalsignierung | PASS Kandidat / Release gesperrt | Originalsignierter 1.49.2/71 geprüft; keine Geräte-/Update-/Datenerhaltabnahme |
 
 ## Bekannte technische Queue-Einträge
@@ -44,9 +45,11 @@ Repository: `mihalhafner-collab/Gartenpirat-`
 - `customer_change_3b8f4a4bdaca4d5e9b67a4b9b3ac3020`
 - `delete_change_9304498d-e90b-47de-be7c-bfd2e627fdf3`
 
-### Technische 2
+### Technische 2 (historischer Stand vor der aktuellen MCP-Testphase)
 - `mcp_owner_b6f1c56ba6534a250f6f5057175f365623155aa656d55fd0342f2517b4a539da` → `SYNC_COMPONENT_UPDATE_REQUIRED`
 - `mcp_owner_43e89c1a01b88694f43a944e5c4109cb1a7e1a8c15378ee0c1116779bb1ce54c` → `ACTION_ID_CONFLICT`
+
+Diese beiden IDs sind bei der aktuellen Live-Prüfung nicht mehr aktiv. Der achte bestehende Prüfauftrag ist jetzt `mcp_owner_739bc9fcba337de095f4dbb8beccf5e44f336e735468bd7c2c07399c98252a0e` (`archive`, `INVALID_ACTION`, verknüpfte Daten). In der aktuellen Testphase unverändert erhalten.
 
 ## Letzter geprüfter Sicherungsstand
 
@@ -60,6 +63,170 @@ Drive-Ausgangssicherung:
 - SHA-256: `8556108cafc9ad47a6ee82fa3ce49d01d7a057b42407c8098539dc3825f18cc3`
 
 ## Fortlaufender Arbeitsnachweis
+
+### Eintrag 8 – echte MCP-Abnahme auf dem installierten Pixel (18.10.2026)
+
+- Auftrag: „Teste App vollständig per mcp Schnittstelle“. Cloud-Ausgangspunkt `9509df6919c65ed913e1864965e087d8dc814dee`, unverändert auf `codex/original-signing-cloud-setup-20261018`; Pflichtvorfahr vorhanden. main unverändert (`a38765d586c3ea02b999e770e5ecb22b34642962`). Nur diese zentrale Statusdatei geändert; kein neuer Build, keine Installation, kein ADB, keine Schlüsselverwendung.
+- **Gesamtergebnis: TEILWEISE BESTANDEN, KEINE vollständige Abnahme.** 83/83 Werkzeugnamen real angesprochen; bei 67 mindestens eine erfolgreiche Antwort, 16 nur Schutz-/Fehlerfälle. Eine erfolgreiche Antwort allein gilt nicht als erfolgreicher Fachprozess. 51 explizite fachliche Vergleiche: 50 PASS, 1 FAIL (Fotorolle). Zusätzlich Drive-Rundlauf FAIL und Capabilities-Schema inkonsistent.
+- Tatsächlich installiert laut erneutem `get_capabilities` und `integration_health`: at.hausgarten.service, 1.49.2/71, DB 4, Snapshot 2, Protokoll 4, `pixel_drive_v1`, ready/pixel_business_write/write_enabled=true. Owner-Werkzeuge sowie Rechnungs-/Angebotswerkzeuge im Connector sichtbar. Kataloghash `ad4c1af1cd1f5b58db4ba18563d1165748c132b91099a929bac6a0980a5db8c6`; Hashabweichung allein nicht als Ursache eines Refresh-Problems interpretiert.
+- Live-Start: 8 aktive Prüfungen, 0 Uploads, 1 archivierte Konfliktprüfung. Sieben historische Fälle und ein früherer `INVALID_ACTION`-Archivierungsauftrag; keine Auflösung ausgeführt. Der Übergang von früher 9 auf 8 fand vor dieser Testphase statt.
+- Neue lokale Geschäftssicherung vor Teständerungen: `backup_9778e41a06e30d409bb8281417410ca5344f07aeae60367e1709bea5275b75f6`, 372514 Bytes, SHA-256 `3a4d578b87ec40d3a4ce83e5e277664888aecbe75b4a3b6f92ff8925609eb56b`. `inspect_backup`, Dateimetadaten, Liste und idempotente Wiederholung geprüft. Scope Geschäftssnapshot, offene Aktionen und lokal vorhandene Medien/Dokumente; **keine vollständige Gerätesicherung und keine neue vollständige Drive-Sicherung**.
+- Testphase: 18:45–19:05 UTC; rein synthetische Datensätze, Namespace `mcpE2E_20261018_mve6e3g8`, sowie vorgesehener technischer Testkunde. Keine echten Kunden, Arbeitsleistungen, Preise oder Geschäftsrechnungen verändert. Zwei anfänglich unvollständige Test-Aufrufe auf Service-Wrapper wurden mit korrektem `entry.id` wiederholt; diese Parameterfehler sind kein App-Befund. Zu große Listenlimits wurden abgewiesen und anschließend mit ≤100 gelesen. Keine Produktionsinhalte als Fixtures/Logs gespeichert.
+
+#### Abgeschlossene lokale Testphase
+
+- Kunde neu/lesen/gezielt ändern, Zusatzfelder zusammenführen, Replay, stale Hash und Archiv/Wiederherstellung mit Original-ID bestanden.
+- Auftrag neu/lesen/ändern, Replay, Request-ID mit abweichendem Inhalt (`REPLAY_MISMATCH`), stale Hash und lokales Archiv bestanden.
+- Arbeitsaufzeichnung: 0 Stunden in beiden Create-Wegen abgewiesen, 0,01 h gespeichert, 0,02 h gezielt geändert, stale Hash blockiert. Manuelle Abrechnungsmarkierung an/aus getrennt von Rechnung und b.b.; identische Einsatz-/Empfängerzuordnung geprüft. Kein Wechsel zu einem fremden Kunden getestet.
+- Timer: IDLE → RUNNING → PAUSED → RUNNING → STOPPED_PENDING_REVIEW → RUNNING → STOPPED_PENDING_REVIEW → CANCELLED → IDLE; Wiederherstellung derselben Testsitzung als PAUSED, erneut verworfen, abschließend IDLE. Keine zusätzliche Timer-Arbeitsaufzeichnung. Übernahme einer unbekannten Sitzung mit SESSION_CONFLICT blockiert; erfolgreicher `complete_work_session` nicht ausgeführt.
+- Rechnungsentwurf neu/lesen/ändern (Zahlungsziel 7 Tage), Replay gleiche ID, stale Hash abgewiesen. Rein synthetische Null-Euro-Testposition; keine reale Preisbehauptung. Status bleibt Entwurf; Steuerstatus bleibt unconfigured. `confirmed=false` für Abschluss am Connector blockiert. Entwurf ohne ausgestelltes Original-PDF nicht zum Teilen freigegeben; Entwurf weder als bezahlt markierbar noch stornierbar. Keine Nummer reserviert, Rechnung ausgestellt oder versendet.
+- Angebotsentwurf neu/lesen/ändern/Replay/stale Hash und alle vier Dokumentarten gespeichert. Validator meldet fehlenden Preis/Preisquelle, Aussteller-, Steuer- und Empfängerpflichtangaben; Entwurf bleibt unvollständig. Unbestätigter Abschluss/Umwandlung am Connector blockiert; Teilen eines Entwurfs abgewiesen. Kein gültiges finales Angebot, PDF, erfolgreicher Duplikat- oder Auftrag-Erfolgsweg getestet.
+- Pflanzen-/Leistungskatalog und Vorlagen tatsächlich gelesen. Ein eigener Baustein mit bewusst fehlendem Preis erstellt/gezielt geändert, stale Hash blockiert, dauerhaft inaktiv. Keine bestehenden Preise geändert.
+- Foto-MCP: zwei synthetische JPEGs hochgeladen, Datei/SHA wieder gelesen, Änderung der Beschriftung und stale Hash geprüft. Datei-Replay und Foto-Replay erzeugen dieselben IDs. Kleines Bild 96×64/524 Bytes bytegleich. Großes Bild 4200×2800, EXIF 6: nach Speicherung 2048×3072, 69.360 → 37.625 Bytes. Zurückgelieferte Datei in Cloud unabhängig dekodiert; SHA-256 `e99b1c7bf705b301dc6c6b64b2c4f534046b23188a8df3794b643bc087251f44`, Orientierungstag entfernt. **Rollenänderung fehlgeschlagen**, siehe Befunde.
+- Geräte-/Unternehmenseinstellungen ausschließlich gelesen; absichtlich falsche Versionshashes bei Update und Restore abgewiesen. Reale Wiederherstellung, globale Settingsänderung und Entzug echter Berechtigungen nicht ausgeführt.
+
+#### Abgeschlossene Sync-/Integritätsprüfung und Befunde
+
+1. **P0 – Drive-Rundlauf live fehlgeschlagen.** Drei `request_sync`-Anforderungen wurden angenommen; kein neuer Lauf/Provider-Readback nachweisbar. Letzter gemeldeter Versuch 18:41:58.596338Z, letzter Sync 18:41:43.930867Z. Nutzer meldet nach manuellem Versuch „Lokal gespeichert · Abgleich fehlgeschlagen“. `android_provider`, `provider_readback`, `cloud_confirmed=false`. Kein direkter Drive-Serverbeleg, kein Medien-Retry-/Neustart-/Server-Roundtrip-Erfolgsnachweis. Die genaue Ursache ist über die vorhandene MCP-Antwort nicht feststellbar; fehlende Konto-/Ordnerrechte, Netzfehler oder ein Versionskonflikt werden nicht ungeprüft behauptet.
+2. **P1 – Fotorolle wird lokal überdeckt.** `update_photo` mit neuer Beschriftung und `role=before` quittiert Erfolg; `get_photo` liefert die neue Beschriftung, aber weiterhin `role=documentation`. Gleicher Wert im lokalen Archiv. Quellursache: `MainActivity.LocalStore.pendingActions(false)` überschreibt in jedem Fotojournal die Nutzlastfelder mit älteren `photo_attachments`-Metadaten einschließlich `role` (um Zeile 1084); `pendingActions(true)` macht dies nicht. Daraus entsteht zusätzlich ein Risiko unterschiedlicher Aktions-/Vergleichshashes zwischen Vorschau und Drive. Der spätere Drive-Fehler dieses Testpfades ist **nicht tatsächlich ausgeführt**; eventuelle neue Konflikte müssen nach funktionierendem Sync hashgebunden geprüft werden. Keine unveränderliche Aktion nachträglich geändert.
+3. **P2 – Capabilities-Schema unvollständig.** `write_file_chunk.inputSchema.required` nennt `chunk_base64`, in `properties` fehlt das Feld. `PixelMcpReadTools.withoutBinary` entfernt rekursiv alle gleichnamigen Schlüssel und trifft auch Schemadefinitionen. Connector und tatsächlicher Upload können das Feld korrekt nutzen; Werkzeugnamen stimmen 83/83 überein. Kein HTTP-401-Umgehen und keine erfundene Connector-Freigabe.
+4. **Diagnosegrenze:** UI `syncStatus()` enthält `last_error`, `user_action_required`, `retry_count`, `next_retry`; `get_sync_overview` exponiert diese Transportdiagnose nicht. Deshalb kann MCP die genaue Ursache und notwendige erneute Geräte-/Kontofreigabe aktuell nicht zuverlässig bestimmen. Quellcode zeigt, dass sowohl REST als auch ein gespeicherter Android-Dokumentbaum grundsätzlich automatisch vorgesehen sind; ein Provider-Verbot wird daraus nicht abgeleitet.
+5. **Funktionsgrenzen:** `list_photos` hat kein offset/cursor und höchstens 100 Ergebnisse; eine vollständige MCP-Blätterfunktion für größere Kundenbibliotheken fehlt. `archive_entity` unterstützt keine offers; synthetische Angebotsentwürfe können über MCP nicht ins Archiv verschoben werden. Diese Grenzen wurden am Schema statisch festgestellt, kein Last-/Pagination-Erfolgsnachweis daraus abgeleitet.
+
+#### Nachbereitung und verbleibende Warteschlange
+
+- Geschäftssammlungen im gespeicherten Ausgangsstand bleiben hashgleich: `0934de6f74b8280781fd12ed018de00a529b6388e94397ca716014768d4fa52b`. Rohbestand vorher/nachher: Kunden 51, Aufträge 2, Arbeiten 173, Rechnungen 95, Fotos 12, Leistungsbausteine 32, Angebote 1. Diese Werte schließen die ausstehenden Testprojektionen nicht ein.
+- Bestehender technischer Testkunde, seine ursprüngliche Foto-Liste sowie Unternehmens-/Geräteeinstellungen unverändert. Alle 8 ursprünglichen Prüfungen mit identischen client_ids, action_hashes und current_hashes; Legacy-Vorschau weiterhin 7 und Hash `68c60929c2477b987524f578cade273d041a74380863b5dc6b2af146bab9f5c7`. Keine Löschung/Altentscheidung, kein Beleg erfunden, keine Queue gelöscht.
+- Sechs eigene Einträge lokal im Archiv: ein neuer synthetischer Kunde, Auftrag, Arbeitsaufzeichnung, Rechnungsentwurf und zwei Fotos. Originalbytes nicht physisch gelöscht. Testbaustein inaktiv. Angebot bleibt klar markierter Entwurf ohne Auftragsverknüpfung, da kein Angebotsarchiv-MCP existiert. Timer IDLE; b.b.-Testmarkierung entfernt.
+- **Aktive Queue danach: 38 = 8 vorherige Prüfungen + 30 neue synthetische Testaktionen (einschließlich Archivierungen).** Neue Aktionen vollständig den acht eigenen Testentitäten zugeordnet; keine zusätzliche persistierte Review-Aktion. Lokales Archivieren ist noch kein synchronisierter Cleanup. Die 30 dürfen weder gelöscht noch als bestätigt ausgegeben werden; nach Reparatur des Syncs normale hashgebundene Verarbeitung/Belegprüfung, beim Fotorollenpfad gegebenenfalls kontrollierte Konfliktprüfung. Keine weiteren Massen-Schreibtests bis dahin.
+- Synthetische IDs: Kunde `cus_mobile_mcp_e8fd82850e5fb414fa5f85376cc6154f`; Auftrag `ord_mobile_mcp_c90b203ce9485a27b0717c30678e4f7b`; Arbeit `wrk_mobile_mcp_f5ae9f29b900a0cf9f86467ca4ecae36`; Entwurf `inv_mobile_mcp_b5def23d28b8eff3761111fe9dcb87cd`; Fotos `pho_mcp_39612a180dead58cfb430f3f8edd3205`, `pho_mcp_20c14716be17ceb5efa7fcb41941f707`; Angebot `off_a584c1640db5973da7d85cae204a4abe`; Baustein `svc_639d0ee62bf9cf360a49d973f0760acb`.
+
+<details>
+<summary>30 neue synthetische Journalaktionen für die spätere Belegprüfung</summary>
+
+| client_id | Art | Synthetische Entität |
+|---|---|---|
+| `mcp_pixel_3dbdcb71bcfeeacc77ef16acd4f56ea3409bf6ac` | order | `ord_mobile_mcp_c90b203ce9485a27b0717c30678e4f7b` |
+| `mcp_pixel_865559d81eba43a3e55fbf1c46d7144c38291f05` | order | `ord_mobile_mcp_c90b203ce9485a27b0717c30678e4f7b` |
+| `mcp_pixel_f5d406529401d97a4a3e69e3610d3615df0e3007` | worklog | `wrk_mobile_mcp_f5ae9f29b900a0cf9f86467ca4ecae36` |
+| `mcp_pixel_be8230f383d7a760522af8eb5a9c2d4072376c6d` | worklog | `wrk_mobile_mcp_f5ae9f29b900a0cf9f86467ca4ecae36` |
+| `photo_change_b173108b-6808-4768-9ac5-a88809254202` | photo | `pho_mcp_39612a180dead58cfb430f3f8edd3205` |
+| `mcp_owner_e6009ed5da9f9b59ee0052564b7e412fd2c989710652cb8aa5b4e7fcfb0d47a0` | photo | `pho_mcp_39612a180dead58cfb430f3f8edd3205` |
+| `mcp_pixel_5fad9aac1d3c265ba4e34dbdc549fad70deb3b54` | invoice | `inv_mobile_mcp_b5def23d28b8eff3761111fe9dcb87cd` |
+| `mcp_pixel_2fc08b3849ed3422c465b7548755d452c0a14914` | invoice | `inv_mobile_mcp_b5def23d28b8eff3761111fe9dcb87cd` |
+| `mcp_owner_109b45a637af58056e51bd1400494fcaeef8640554ac8d8ecf347205c47a1de9` | offer | `off_a584c1640db5973da7d85cae204a4abe` |
+| `mcp_owner_98964f7240f95746b88b46f34461bbf40fb049acd9f108f275f554db76517f38` | offer | `off_a584c1640db5973da7d85cae204a4abe` |
+| `photo_change_d82ee904-3a41-4512-b955-ae039e57dfab` | photo | `pho_mcp_20c14716be17ceb5efa7fcb41941f707` |
+| `mcp_owner_3ba2b1aea9e8eb1833fac42036a37ad554fb18b3e1992ed5f0fca918240ed8a4` | offer | `off_a584c1640db5973da7d85cae204a4abe` |
+| `mcp_owner_9ee3eea31c7922722870a45e5668d178be6a67df88b5c2e59c933cd1d522fa79` | offer | `off_a584c1640db5973da7d85cae204a4abe` |
+| `mcp_owner_4c20f8c5fcf095a01628ed1eb9cc666fdcfeb26dc0bd24aa76a4471cbb839d33` | offer | `off_a584c1640db5973da7d85cae204a4abe` |
+| `mcp_pixel_d5c69e42db79333ee3f84ca62124788c12b26c3c` | customer | `cus_mobile_mcp_e8fd82850e5fb414fa5f85376cc6154f` |
+| `mcp_pixel_189665c3d9988867a93bbfc5d74ebeefd0c10056` | customer | `cus_mobile_mcp_e8fd82850e5fb414fa5f85376cc6154f` |
+| `mcp_owner_e334a11ea03e913c49e81ff3f5108661f8918a6fb39fd97d17f523e99a23226a` | service_template | `svc_639d0ee62bf9cf360a49d973f0760acb` |
+| `mcp_owner_d5cbd686add476c13461db3d6dd2c21bec87fe96d6f1d0fba414dd9069baf0cb` | archive | `cus_mobile_mcp_e8fd82850e5fb414fa5f85376cc6154f` |
+| `mcp_owner_c058585c0525d592e4274c404d0028504213cba4805e35eb9866592d13e053c1` | service_template | `svc_639d0ee62bf9cf360a49d973f0760acb` |
+| `mcp_owner_f2d9a9e105654f267f0dfe424d30686a8748a947d956bf466edd55fecf92ef5d` | restore | `cus_mobile_mcp_e8fd82850e5fb414fa5f85376cc6154f` |
+| `mcp_owner_c79539cc896f180248ec536553c7e195b98dc04610af8203054c6f535a6c1b74` | archive | `cus_mobile_mcp_e8fd82850e5fb414fa5f85376cc6154f` |
+| `mcp_owner_b3dc470efa9ee77d5a65df1d865f2ff265eb7accc12811df63b006509f4b78f7` | worklog | `wrk_mobile_mcp_f5ae9f29b900a0cf9f86467ca4ecae36` |
+| `mcp_owner_74d17eed7fa434c230c4e3078b976ae42bda726509a737a79c13199072bacea7` | worklog | `wrk_mobile_mcp_f5ae9f29b900a0cf9f86467ca4ecae36` |
+| `mcp_owner_545331ff3cc5b786d96f025d96ca7698585aaa1805570f6fcb4c93f1ff8c9a64` | worklog | `wrk_mobile_mcp_f5ae9f29b900a0cf9f86467ca4ecae36` |
+| `mcp_owner_cfd7d3d752798b94e0a077ac414ba80325124dd06c2f6e1bc1db6fb9052d7e31` | archive | `pho_mcp_39612a180dead58cfb430f3f8edd3205` |
+| `mcp_owner_a4d7bcf72f83992e29dd876e789bdf588e79599311b0df55e68f109027b962f2` | archive | `pho_mcp_20c14716be17ceb5efa7fcb41941f707` |
+| `mcp_owner_f17a6bee01bd9064f92e786b59092327e91f18e82958fe49cf430ba9d99c5cfe` | archive | `inv_mobile_mcp_b5def23d28b8eff3761111fe9dcb87cd` |
+| `mcp_owner_4707ed8c6bbeb5809f441731647f00a2d17b46630d4faa05ecc6f0d7b538cc36` | archive | `wrk_mobile_mcp_f5ae9f29b900a0cf9f86467ca4ecae36` |
+| `mcp_owner_1011d4301e40f240268203f722c479d9dddae9fc832bdef89c3ee322efa3b667` | offer | `off_a584c1640db5973da7d85cae204a4abe` |
+| `mcp_owner_55d3c61c4271a2a7d775274bb1449c7d0199a7364c711c71c1b10de011b153b5` | archive | `ord_mobile_mcp_c90b203ce9485a27b0717c30678e4f7b` |
+
+</details>
+
+#### Tatsächliche Funktions- und Berechtigungsmatrix
+
+„Bestanden“ bedeutet in dieser Tabelle den angegebenen lokalen MCP-Teilablauf, keine vollständige Geräte- oder Sync-Abnahme. Für 16 Werkzeuge gab es ausschließlich Negativprüfungen; bei `confirmed=false` blockiert bereits das Connector-Schema, nicht erst der native Ablauf.
+
+| App-Bereich | Tatsächlich angesprochene MCP-Werkzeuge | Fachlicher Umfang | Erforderliche Rechte/Prüfungen | Tatsächlicher Teststatus / Barriere |
+|---|---|---|---|---|
+| Verbindung/Version | `integration_health`, `get_capabilities`, `get_business_summary` | Lesen | Privater Tunnel | Live lesbar; 83 Namen, Schemaabweichung bei chunk_base64. |
+| Kunden/Suche | `search_customers`, `get_customer`, `create_customer`, `update_customer`, `search_business_data` | Lesen, Anlegen, gezielte Änderungen | Owner/Write, Hash bei Updates | Synthetischer Kunde: CRUD, Zusatzfelder, Replay/CAS bestanden. |
+| Aufträge | `search_orders`, `get_order`, `get_open_orders`, `create_order`, `update_order` | Lesen, Anlegen, Ändern | Owner/Write, Hash | Testauftrag bestanden; Archiv als lokale Projektion geprüft. |
+| Arbeitsaufzeichnungen | `list_work_records`, `get_work_record`, `get_customer_work_records`, `get_work_record_summary`, `create_work_record`, `create_customer_work_record`, `update_work_record`, `set_work_record_billed`, `reassign_work_record` | Lesen, Anlegen, Ändern, manuelle Abrechnungsmarkierung, Zuordnung | Owner/Write, Hash/Begründung | 0-Stunden-Negativtest beider Create-Wege; 0,01→0,02 h über Kundenweg; Markierung an/aus; identische Zuordnung bestätigt. Wechsel zu anderem Kunden nicht getestet. |
+| Timer/Pausen | `get_active_work_session`, `start_work`, `start_break`, `end_break`, `stop_work`, `continue_work`, `discard_work_session`, `restore_work_session`, `complete_work_session` | Lesen, Start/Pause/Fortsetzen/Stop/Verwerfen/Wiederherstellen/Übernahme | Owner/Write, eigene Session-ID | Start bis Verwerfen/Wiederherstellen bestanden, am Ende IDLE. complete nur falsche Session abgewiesen; kein Timer-Worklog erzeugt. |
+| Persönliche Markierung | `set_personal_paid` | b.b. an/aus | Owner/Write; gerätelokal | Bestanden; billed und Rechnung unverändert. |
+| Fotos/Dateitransfer | `list_photos`, `get_photo`, `begin_file_upload`, `write_file_chunk`, `create_photo`, `update_photo`, `get_file_metadata`, `read_file_chunk` | Lesen, begrenzter Upload, Anlegen, Metadatenänderung | Owner/Write; Datei-ID/SHA; Hash bei Update | Kleine/große synthetische Datei und Leseschutz bestanden. Beschriftung geändert; Rollenwechsel FAIL. Keine MCP-Fotopagination (limit≤100, kein offset). |
+| Rechnungsentwürfe | `list_invoices`, `get_invoice`, `create_invoice_draft`, `update_invoice_draft` | Lesen, Entwurf erstellen/ändern | Owner/Write, CAS/Request-ID | Null-Euro-Testentwurf erstellt, gelesen, geändert; Replay und stale Hash bestanden. Nicht gestellt/bezahlt/versendet. |
+| Rechnungsabschluss/-korrektur | `request_invoice_issue`, `prepare_invoice_share`, `create_invoice_correction`, `update_invoice_payment` | Bestätigter Abschluss, PDF-Übergabe, Korrektur, Zahlung | Explizite Nutzeranweisung; Aussteller/Nummernfreigabe; Online-CAS; Original-PDF | Nur Schutzprüfungen: confirmed=false am Connector, Entwurf ohne Original-PDF, Zahlung/Korrektur auf Entwurf blockiert. Erfolgswege nicht ausgeführt. |
+| Angebote | `list_offers`, `get_offer`, `get_offer_context`, `create_offer_draft`, `update_offer_draft`, `validate_offer` | Lesen, Kontext, Entwurf erstellen/ändern/prüfen | Owner/Write, Hash/Request-ID | Vier Dokumentarten, fehlender Preis/Pflichtangaben, Replay/CAS geprüft. Kein gültiges finales Dokument ohne Aussteller-/Steuerfreigabe. |
+| Angebotsabschluss/Weitergabe | `finalize_offer`, `duplicate_offer`, `prepare_offer_share`, `convert_offer_to_order` | Bestätigter Abschluss, Duplikat, PDF-Übergabe, Auftrag | Owner/Write; aktuelle Hashes; ausdrückliche Bestätigung | Nur Negativtests: unbestätigt, Entwurf, unbekannte ID. Kein PDF-/Konvertierungs-Erfolgsnachweis. Kein Angebotsarchiv-Werkzeug vorhanden. |
+| Pflanzen-/Leistungskatalog | `search_catalog`, `get_catalog_entry`, `search_offer_templates`, `get_offer_template`, `create_catalog_entry`, `update_catalog_entry` | Lesen, Leistungsbaustein erstellen/ändern/deaktivieren | Owner/Write für Bausteine, Hash | Pflanze und bestehende Bausteine gelesen; eigener preisloser Baustein erstellt/geändert, stale Hash blockiert, bleibt inaktiv. Keine Pflege echter Preise. |
+| Archiv | `list_archive`, `archive_entity`, `restore_entity` | Lesen, reversibel archivieren/wiederherstellen | Owner/Write, Entity-/Archivhash, Beziehungsschutz | Eigener Kunde archiviert/wiederhergestellt/erneut archiviert; sechs eigene Einträge lokal archiviert. Drive-Übernahme ausstehend. |
+| Sync/Konflikte | `get_sync_overview`, `get_sync_status`, `get_sync_conflicts`, `request_sync`, `preview_legacy_conflict_resolution`, `resolve_sync_conflict`, `prepare_legacy_conflict_backup`, `close_legacy_conflicts` | Lesen/Anfordern; hashgebundene Entscheidung | Owner/Write; Backup+Bestätigung für Altabschluss; direkte Drive-Freigabe | Lesen bestanden. request_sync nur angenommen, kein neuer Lauf sichtbar; Nutzer meldet Fehler. 8 Altprüfungen unverändert. Nur unbekannter Konflikt/unbestätigter Abschluss/fehlender Drive-Beleg negativ getestet. |
+| Sicherung | `list_backups`, `inspect_backup`, `create_backup`, `restore_backup` | Lesen, Geschäftssicherung, geschützte additive Wiederherstellung | Owner/Write; State-Hash, leere Queue/IDLE für Restore | Backup erstellt/geprüft/Replay; veralteter Restore-Hash abgewiesen. Keine tatsächliche Wiederherstellung des produktiven Stores. |
+| Einstellungen/Aussteller | `get_settings`, `get_business_settings`, `update_settings`, `update_business_settings` | Lesen, versioniert ändern | Owner/Write, Hash; keine OAuth-/Tunnelrechte durch Code | Lesen und stale-Hash-Abweisung bestanden, bestehende Einstellungen unverändert. Keine positive Änderung produktiver Konfiguration. |
+
+#### Explizite Live-Vergleiche
+
+| Prüfung | Ergebnis |
+|---|---|
+| App/Protokoll/Owner-Freigabe | PASS |
+| Werkzeugnamen: Connector/Pixel 83/83 | PASS |
+| Kunde Zusatzfelder gezielt zusammengeführt | PASS |
+| Kunde Request-Replay gleiche ID | PASS |
+| Kunde veralteter Hash abgewiesen | PASS |
+| Kunde Archiv/Wiederherstellung Original-ID | PASS |
+| Auftrag Update gelesen | PASS |
+| Auftrag Replay gleiche ID | PASS |
+| Request-ID mit anderem Inhalt abgewiesen | PASS |
+| Auftrag veralteter Hash abgewiesen | PASS |
+| Nullstunden abgewiesen | PASS |
+| Arbeitsaufzeichnung erstellt/gezielt geändert | PASS |
+| Arbeitsaufzeichnung veralteter Hash abgewiesen | PASS |
+| b.b. ändert Arbeits- und Rechnungsstand nicht | PASS |
+| Manuelle Abrechnungsmarkierung getrennt | PASS |
+| Arbeitszuordnung identischer Ziel-IDs | PASS |
+| Timer Pause/Fortsetzen/Stop | PASS |
+| Timer Verwerfen/Wiederherstellen/IDLE | PASS |
+| Timer falsche Sitzung abgewiesen | PASS |
+| Foto Upload/Erstellen/Ändern/Lesen | FAIL – Rolle bleibt documentation statt before; Beschriftung geändert |
+| Foto veralteter Hash abgewiesen | PASS |
+| Datei Versionsschutz | PASS |
+| Kleines Bild bytegleich | PASS |
+| Großes Bild verkleinert/EXIF gedreht | PASS |
+| Gespeicherte Bildbytes unabhängig dekodiert/Hash | PASS |
+| Foto/Chunk Replay ohne Duplikat | PASS |
+| Rechnungsentwurf erstellt/geändert/gelesen | PASS |
+| Rechnungsentwurf Replay gleiche ID | PASS |
+| Rechnungsentwurf veralteter Hash abgewiesen | PASS |
+| Abschluss ohne Bestätigung im Connector abgewiesen | PASS |
+| Entwurf ohne PDF nicht teilbar | PASS |
+| Entwurf nicht bezahlbar/stornierbar | PASS |
+| Angebot erstellt/geändert/Replay | PASS |
+| Angebot veralteter Hash abgewiesen | PASS |
+| Fehlender Preis/Pflichtangaben blockieren Angebot | PASS |
+| Vier Angebotsarten gespeichert | PASS |
+| Angebotsabschluss/Umwandlung ohne Bestätigung abgewiesen | PASS |
+| Entwurf nicht zum Teilen freigegeben | PASS |
+| Katalogbaustein erzeugt/geändert/inaktiv | PASS |
+| Katalog veralteter Hash abgewiesen | PASS |
+| Backup erstellt/geprüft/Replay | PASS |
+| Settings/Backup veraltete Hashes blockiert | PASS |
+| Kein unbekannter Konflikt aufgelöst | PASS |
+| Altabschluss ohne Bestätigung abgewiesen | PASS |
+| Legacy-Sicherung ohne direkten Drive-Beleg blockiert | PASS |
+| Originale Geschäftssammlungen unverändert | PASS |
+| Altaktionen/Hashes unverändert | PASS |
+| Keine zusätzliche Konfliktprüfung | PASS |
+| Aussteller-/Geräteeinstellungen unverändert | PASS |
+| Bestehender Testkunde/Foto-Liste unverändert | PASS |
+| Sechs eigene Einträge archiviert | PASS |
+
+#### Nicht als getestet oder freigegeben ausgeben
+
+- Erfolgreicher Drive-/Medien-Server-Rundlauf, Netzabbruch/Offline-Wechsel, wiederaufgenommener Upload nach Prozessabsturz, echte App-Neustart-/Snapshot-Migration: nicht live nachgewiesen.
+- Mehr als 10 bzw. 100 Kundenfotos, komplette Fotopagination, reale Kamera, Wischgesten, Bildschirmdarstellung und Pixel-Leistung: in dieser MCP-Phase nicht getestet. Zwei neue synthetische Originale; frühere Hosttests mit 105 Metadatensätzen/21 Importdateien sind davon strikt getrennt. Wegen defektem Sync keine weiteren Massenaktionen erzeugt.
+- Tatsächlicher Entzug/Wiedererteilung von Tunnel-, Android-, Drive- oder Organisationsrechten nicht getestet; laufende produktive Verbindung nicht absichtlich unterbrochen. Authentifizierter privater Tunnel und Write-Gate funktionieren für die angegebenen synthetischen Tests. Direkte Drive-Freigabe/Serverbeleg fehlt.
+- Echtes Angebot finalisieren/PDF/Annahme→Auftrag, tatsächlicher zentraler Rechnungsabschluss/Nummernreservierung/PDF/Versand/Zahlung/Korrektur, vollständige Restore-Abnahme und Legacy-Abschluss nicht durchgeführt. Business Settings enthalten noch keine bestätigte Steuer-/Nummernkonfiguration.
+- Installations-, Zertifikatsprüfung der installierten APK und Datenerhalt bei Update nicht durch MCP nachweisbar. Es wurde weder installiert noch deinstalliert, keine App-Daten gelöscht und keine neue APK gebaut. Die Originalsignaturprüfung des zuvor bereitgestellten Cloud-Kandidaten bleibt ein gesonderter früherer Nachweis.
+- Nächster Schritt: tatsächlichen Drive-Transportfehler diagnostizierbar machen und beheben; Fotorollen-/Journalprojektion sowie Capabilities-Schema korrigieren, gezielt regressieren; danach dieselben synthetischen Aktionen mit echten Belegen abnehmen. Aktueller Build bleibt ohne vollständige P0/P1-Abnahme.
+
 
 ### Eintrag 0 – Initialisierung
 
