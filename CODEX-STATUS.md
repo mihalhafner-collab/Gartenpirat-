@@ -161,3 +161,25 @@ Nächster Schritt:
 - Live-Vorher/Nachher: Queue **9 → 9**, archiviert **0 → 0**, sechs DELETE_REVIEW_REQUIRED + ein WRITE_CONFLICT + je eine SYNC_COMPONENT_UPDATE_REQUIRED/ACTION_ID_CONFLICT unverändert. Legacy-Preview-Hash unverändert 68c60929c2477b987524f578cade273d041a74380863b5dc6b2af146bab9f5c7; damit Auswahl, Aktionshashes und sieben geprüfte aktuelle Datensatzhashes unverändert. Live-Lesezahlen unverändert 50 Kunden/1 Auftrag/171 Arbeiten, 1.001,75 Stunden/170 als unabgerechnet markiert. Kein vollständiger Geschäftshash über alten Connector vorhanden; keine weitergehende Integritätsbehauptung.
 - Kein Produktivschreiben über Pixel-MCP, keine Installation, kein ADB, kein Kamera-/In-place-Update-/Datenerhalt-Test. Erfolgreiche Signierung ist kein Update- oder Datenerhalt-Nachweis.
 - Offene P0/P1 aus Eintrag 6 bleiben bestehen. Nächste Geräteaktion benötigt vollständige Sicherung und ausdrückliche Freigabe gemäß AGENTS.md: „keine automatische Installation ohne Sicherung und Freigabe“. Danach direkte Google-Verbindung/Versionsschutz mit synthetischen Daten abnehmen; erst dann D, anschließend neues Backup und bestätigte E-Auflösung und der vollständige F-Plan. Keine Laptop-Handlung erforderlich.
+
+
+### Technische Hashliste der nur gelesenen Ausgangsfälle
+
+Kein Betriebsinhalt, keine angewendete Entscheidung. Hashes aus get_sync_conflicts; Legacy-Vorschau vor/nach Arbeit identisch.
+
+| client_id | Fehler | Action-Hash | Current-Hash |
+| --- | --- | --- | --- |
+| `wrk_mobile_913976ba4bd1453ba75a5468b89c3c32` | DELETE_REVIEW_REQUIRED | `d4ad7e0bb45f60ed925cd3fa294343aa44efe84ed0ca2627ac9c63bd74db74e8` | `74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b` |
+| `wrk_mobile_b8445cff3af746718d480fce9be3889a` | DELETE_REVIEW_REQUIRED | `bb84d7424474d267d75981f29cc69914ff4bc7054e82732feae089b46d170364` | `74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b` |
+| `wrk_mobile_325735fd783c4f5fb3d012ab7969ccfd` | DELETE_REVIEW_REQUIRED | `81fdd1bac9a83b6f81502513dacd59e58eac4e1ff10b7889b657372478d519ce` | `74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b` |
+| `delete_change_f82a727e-90ce-4021-a741-2238101b2505` | DELETE_REVIEW_REQUIRED | `06a95cf238bd35098f5b3dd9147b16b26eaf063e4fe504f154c22859ded65c7b` | `78957fa4902bb23535b4e994935a1d9794680abc2f6f1be7ba43f3fb5dbf1123` |
+| `delete_change_b1fc39af-3f04-4baa-81bf-a34a20e76479` | DELETE_REVIEW_REQUIRED | `2b45a83fc17f6eb72163f0a58b3779f7904259518b22dece9a7e88120f54bb41` | `d205eab650bc4f727a52ddfa2f29cfcaa7e7d3697820d28076aa01b845313d0e` |
+| `customer_change_3b8f4a4bdaca4d5e9b67a4b9b3ac3020` | WRITE_CONFLICT | `258d26b477b41ec0a3f097d893217e8c22c988071eb11a98d6a03d89d9ea0701` | `30599c5c7807db1f9ccc8ceb0381df8c914ba43b38f3f7494b49b08d3324ae6f` |
+| `delete_change_9304498d-e90b-47de-be7c-bfd2e627fdf3` | DELETE_REVIEW_REQUIRED | `d5a7f9020c75ec994d0d8b09aee5a94cc2b53648bce8bf6f4cc81f9f8c237a8a` | `e3c8da0a874c1b44a7a1d27cdbe63ff1b06ccbe20fd77508a7d56be87561d7e6` |
+| `mcp_owner_43e89c1a01b88694f43a944e5c4109cb1a7e1a8c15378ee0c1116779bb1ce54c` | ACTION_ID_CONFLICT | `51562d617c3418e3538a009a5b3b0ac149122c2920e8064b2666056be8046208` | `74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b` |
+| `mcp_owner_b6f1c56ba6534a250f6f5057175f365623155aa656d55fd0342f2517b4a539da` | SYNC_COMPONENT_UPDATE_REQUIRED | `e1df44d3146a8d0e4ce1dd901f45332093aab65e3e0b0ae4e4f0986ffb6c40c0` | `74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b` |
+
+### Bereitstellung bestätigt
+
+- GitHub-Commit und normaler Push bestätigt: **8e9a33af6552199d3f8b3b0a521d1b7554f09584** auf codex/original-signing-cloud-setup-20261018. Enthält Implementierungscommit 545bd68 und geprüfte APK. main weiterhin a38765d586c3ea02b999e770e5ecb22b34642962.
+- Der folgende reine Statuscommit ergänzt nur diese Hashliste und die Remote-Bestätigung. Code/APK bleiben bytegleich; Gesamtauftrag bleibt wegen der dokumentierten P0/P1-Gates offen.
