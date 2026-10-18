@@ -95,6 +95,25 @@ class OfferTests(unittest.TestCase):
         row=offers.save(self.draft());p=dict(id='off',expected_record_hash=sync_review.digest(row),expected_context_hash=sync_review.digest(offers.context(row,self.state())),confirmed=True,pdf_sha256='a'*64,pdf_storage_name='a'*64+'.pdf',pdf_byte_size=5)
         with self.assertRaises(ValueError):owner_journal.run_action(self.action('missing-pdf','offer_finalize',p))
         self.assertEqual(offers.get('off')['status'],'draft')
+    def test_drive_sync_supersedes_obsolete_resolution_after_target_applies(self):
+        drive=db.DATA_DIR/'drive';drive.mkdir()
+        offer_action=self.action('offer-before-resolution','offer',self.draft())
+        decision=self.action('obsolete-resolution','conflict_resolution',dict(
+            client_id=offer_action['client_id'],
+            expected_action_hash=sync_review.digest(offer_action),
+            expected_current_hash=sync_review.digest(None),
+            resolution='keep_current',
+            _original_action=deepcopy(offer_action),
+            _current_base=None,
+        ))
+        (drive/'HausGarten-Mobile-test.json').write_text(json.dumps({'actions':[offer_action,decision]}),encoding='utf-8')
+        result=server.drive_sync(str(drive))
+        self.assertTrue(result['ok'],result['failed']);self.assertEqual(result['imported'],2)
+        self.assertEqual(offers.get('off')['title'],'QA Pflege')
+        snapshot=json.loads((drive/'HausGarten-Laptop.json').read_text(encoding='utf-8'))
+        self.assertIn(offer_action['client_id'],snapshot['accepted_ids']);self.assertIn(decision['client_id'],snapshot['accepted_ids'])
+        self.assertFalse(any(item.get('client_id')==decision['client_id'] for item in snapshot['sync_errors']))
+
     def test_old_snapshot_export_guard_preserves_new_offer(self):
         previous={key:[] for key in ('customers','orders','worklogs','photos','invoices')};previous['offers']=[{'id':'remote-offer'}]
         candidate={**previous,'offers':[],'service_catalog':[]}
