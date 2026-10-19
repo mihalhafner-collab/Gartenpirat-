@@ -52,7 +52,7 @@ Ausgang am 19.10.2026: aktuelles Remote-`main` war `b2c37a2f909cc8ac6defabe68dbd
 
 Tatsächlich über den bestehenden Connector gelesener Pixel: `at.hausgarten.service`, **1.50.1 / 77**, Datenbank 4, Snapshot 2, internes MCP-Protokoll 8, 111 Werkzeuge, Katalog-Hash `ae7cb69f7994ae8141d2d8c925594982f40236921d65abb3739eee270b5b312f`, Schreiben aktiv. Dieser installierte Stand wurde nicht durch Codex Cloud aktualisiert.
 
-Neuer Quellstand: **1.51.0 / 78**, gleiches Paket und bestehende Originalsignierung, internes MCP-Protokoll **9**, **117 Werkzeuge**. `build.gradle` bleibt Versionsquelle; Release-Builds müssen die bestätigte installierte Baseline 77 überschreiten. Git-SHA, Quellhash, Dirty-Status, Buildtyp und Protokoll sind über den Build-Fingerprint lesbar. Ein physischer Update-/Connector-Test bleibt bis zu einem tatsächlich autorisierten Geräteupdate offen.
+Neuer Quellstand: **1.51.0 / 79**, gleiches Paket und bestehende Originalsignierung, internes MCP-Protokoll **9**, **117 Werkzeuge**. `build.gradle` bleibt Versionsquelle; Release-Builds müssen die bestätigte installierte Baseline 77 überschreiten. Git-SHA, Quellhash, Dirty-Status, Buildtyp und Protokoll sind über den Build-Fingerprint lesbar. Ein physischer Update-/Connector-Test bleibt bis zu einem tatsächlich autorisierten Geräteupdate offen.
 
 ## 4. Erneute Fehlerprüfung und konsolidierter Umsetzungsstand
 
@@ -66,14 +66,14 @@ Die verbindliche Abnahme steht im abschließenden Statusblock dieser Datei und i
 - **Versand:** `share_prepared` ist getrennt von `finalized`/`sent`. `prepare_offer_delivery` bereitet den bestätigten Empfänger und das Original-PDF vor; ein separat ausdrücklich beauftragter Mailkanal sendet. `confirm_offer_delivery` setzt `sent` erst nach echtem Gmail-SENT-Readback mit Abgleich von Aussteller, Empfänger und PDF-SHA. Das Pixel benötigt dafür eine gesonderte Gmail-Lesefreigabe; eine ChatGPT-Freigabe ersetzt sie nicht. Kein realer Versand im Entwicklungstest.
 - **Readonly Self-Test:** Version/Protokoll, Katalog, Write-Gate, Einstellungs-Vollständigkeit, Drive-/Sync-Zustand, Capabilities, privater Dateispeicher, UI-Zuordnung und Plattformgrenzen; PASS/FAIL/NOT TESTABLE ohne Geschäftsdatenänderung.
 
-Der ausdrücklich zur Bereinigung freigegebene falsche 1-EUR-Testentwurf bleibt eindeutig identifiziert als `off_0edfb5133e3c1e4269dd76e2b47b3746` (`[TEST] MCP Angebotsworkflow`, Entwurf). Seine kontrollierte Archivierung darf erst nach erfolgreichem neuen Build und frischer Versionsprüfung erfolgen. Das echte Angebot für Michael Hilpert darf weder neu erstellt, finalisiert noch erneut versendet werden. Für technische Tests ausschließlich private synthetische Stores; kein Testangebot an einem realen Kunden, kein produktiver Test-Sync und keine echte Testmail.
+Der ausdrücklich zur Bereinigung freigegebene falsche 1-EUR-Testentwurf `off_0edfb5133e3c1e4269dd76e2b47b3746` (`[TEST] MCP Angebotsworkflow`) wurde nach erfolgreicher Build-/Android-Abnahme, frischer Versionsprüfung und erlaubter Vorschau am 19.10.2026 reversibel archiviert. Archiv-Readback: genau ein passender Eintrag; aktive Angebote 2→1. Nur diese Angebotsgruppe änderte sich; alle anderen Geschäftsgruppenhashes blieben im unmittelbaren Vergleich identisch. Keine physische Löschung. Das echte Angebot für Michael Hilpert darf weder neu erstellt, finalisiert noch erneut versendet werden. Für technische Tests ausschließlich private synthetische Stores; kein Testangebot an einem realen Kunden, kein produktiver Test-Sync und keine echte Testmail.
 
 ## 5. Offene Sync-Warteschlange
 
 Aktueller realer Sicherungsversuch im installierten Build 77: `READ_ERROR: Ungültige Foto-Dateireferenz.` Mindestens eine ältere Foto-Referenz verhindert die vollständige Sicherung; zwölf aktive Snapshot-Fotozeilen besitzen noch keine heutigen SHA-/Storage-Metadaten. Keine Altentscheidung ohne vollständigen Beleg. Der ergänzte Quellweg sichert exakt referenzierte Legacy-Originale mit zwei identischen Provider-Reads und beobachtetem Hash im selben Backup, ohne Foto-/Geschäftsdaten umzuschreiben. Realer Nachtest nach Update bleibt offen.
 
 
-Aktuell existieren exakt 7 Review-Aktionen. `pending_upload=0`; der normale Drive-Abgleich ist nicht technisch fehlgeschlagen.
+Ursprüngliche Baseline: sieben Review-Aktionen. **Letzter realer Readback 19.10.2026 11:03:55 UTC: sechs aktive Reviews, null Uploads, 15 Historieneinträge.** Normaler Drive-Abgleich ohne technischen Fehler; `provider_readback`, `cloud_confirmed=false`. Folgende Liste bleibt als historische Ausgangsmenge erhalten; Eintrag 1 ist inzwischen nicht mehr aktiv.
 
 1. `wrk_mobile_913976ba4bd1453ba75a5468b89c3c32`  
    `DELETE_REVIEW_REQUIRED`
@@ -103,7 +103,9 @@ Der dedizierte Legacy-Workflow bleibt:
 - `prepare_legacy_conflict_backup`
 - `close_legacy_conflicts`
 
-Zielentscheidung für alle sieben: `keep_current`, keine alte Löschung nachziehen, keine Geschäftsdaten verändern.
+Ziel für eine künftig frisch bestätigte Auswahl: `keep_current`, keine alte Löschung nachziehen, keine Geschäftsdaten verändern. **In diesem Auftrag kein Legacy-Abschluss ausgeführt.** Der Dienst meldete inzwischen außerhalb der hier ausgeführten Aufrufe für Eintrag 1 `apply_proposed` (19.10.2026 10:33:04 UTC). Keine Zuschreibung an eine Person und keine Änderung dieser Historie; der betroffene Datensatz war bereits in der ursprünglichen Vorschau nicht vorhanden. Die anderen Geschäftsgruppen außerhalb der ausdrücklich archivierten Fehl-Testofferte sind im Vorher-/Nachher-Vergleich hashgleich.
+
+Ursprünglicher Siebener-Preview `68c60929c2477b987524f578cade273d041a74380863b5dc6b2af146bab9f5c7` ist ungültig. Neuer lesender Sechser-Preview `e6752c0dc5a04bc3f729caccdbc3187d87327f6adc0792ccc7f7f722b0a51c8b`, Effekt unverändert `no_business_data_changed`. Keine Wiederverwendung der alten Sammelfreigabe. Der Quellfix erlaubt 1–100 vollständig historische Einträge bei exakt passendem Queueumfang; abweichende Anzahl erfordert explizit den frischen Previewhash. Vollständiges Backup, CAS und `confirmed=true` bleiben Pflicht. Reale Bereinigung bis zur vollständigen Sicherung und neuer Prüfung offen.
 
 Die früher dokumentierten zwei technischen Testfehler `SYNC_COMPONENT_UPDATE_REQUIRED` und `ACTION_ID_CONFLICT` sind in der aktuellen Queue nicht mehr vorhanden. Sie nicht künstlich neu erzeugen und nicht weiter als offene Live-Queue-Fälle behandeln.
 
@@ -287,7 +289,7 @@ Regression zwingend:
 6. Replay gleicher `request_id` bleibt idempotent.
 7. `prepare_offer_share` funktioniert nur mit finalisiertem, unverändertem Angebot.
 
-Rechtsregelsatz aktuell: `AT-2026-10-18`.
+Rechtsregelsatz im neuen gemeinsamen Vertrag: `AT-2026-10-19` (offizielle RIS-Quellen und Grenzen siehe Abschnitt 31).
 
 Das reale 540-EUR-Angebot an Michael Hilpert wurde wegen des damaligen Validierungsfehlers nicht als App-PDF finalisiert; es wurde nur als bestätigter E-Mail-Text versendet. Keine falsche Behauptung erzeugen, es existiere bereits ein finalisiertes Angebots-PDF.
 
@@ -407,7 +409,7 @@ Name:
 
 `MCP FUNKTIONSTEST – KEIN ECHTER KUNDE`
 
-Nur diesen oder vollständig synthetische Datensätze für Schreibtests verwenden.
+Nur vollständig isolierte synthetische Datensätze für technische Schreibtests verwenden; der historische Testkunde ist kein Anlass für neue produktive Testaktionen.
 
 Keine echten Kunden als Testdaten.
 
@@ -567,15 +569,15 @@ Technischen `ACTION_ID_CONFLICT` ohne Geschäftsdatenwirkung bereinigen.
 
 Danach dürfen diese zwei technischen Queue-Einträge nicht mehr offen sein.
 
-### Phase E – sieben Alt-Konflikte
+### Phase E – historische Alt-Konflikte, aktuelle Auswahl erneut bestätigen
 
-Neues Backup.
+Die ursprüngliche Siebener-Auswahl ist überholt (Abschnitt 5). Kein Abschluss mit altem Hash. Neues Backup.
 
 `preview_legacy_conflict_resolution`
 
 Prüfen:
 
-- exakt 7
+- frisch gelesene Anzahl und exakte Hashes; ursprüngliche sieben sind jetzt sechs
 - `keep_current`
 - `no_business_data_changed`
 
@@ -591,7 +593,7 @@ Keine Geschäftsdatenänderung.
 
 ### Phase F – End-to-End-Test
 
-Nur technischen Testkunden verwenden.
+Ausschließlich private synthetische Stores mit klar markiertem Testkunden verwenden, keine produktiven Schreibtests.
 
 Testen:
 
@@ -635,7 +637,7 @@ Mindestens neue/angepasste Tests für:
 - ACTION_ID_CONFLICT prevention
 - superseded technical action
 - SYNC_COMPONENT_UPDATE_REQUIRED nicht manuell auflösbar
-- Legacy-Preview exakt 7
+- Legacy-Preview für sieben sowie 7→6 mit veraltetem/fehlendem/frischem Hash
 - keep_current ohne Business-Data-Diff
 - Capability-Flags nur bei echter Implementierung
 - Crash/Restart zwischen Write und Ack
@@ -772,7 +774,7 @@ Am Ende in `CODEX-STATUS.md` und im Abschlussbericht dokumentieren:
 - Testangebot am echten Kunden bereinigt, ohne Kundenänderung
 
 ### Queue
-- Zustand vorher: aktuell 7 Review-Fälle
+- Zustand vorher: ursprünglich sieben, letzter Readback sechs Review-Fälle (Abschnitt 5)
 - Zustand danach
 - Behandlung aller tatsächlich noch vorhandenen Fälle
 
@@ -931,7 +933,7 @@ Zusätzlich Schutzmechanismus prüfen:
 - `[TEST]`-Dokumente dürfen nicht versehentlich an reale externe Empfänger versendet oder produktiv finalisiert werden
 - Regressionstest dafür ergänzen
 
-Der aktuell vorhandene 1-EUR-Testentwurf am echten Kunden Michael Hilpert muss nach erfolgreichem neuen Build kontrolliert bereinigt werden.
+Erledigt: Der falsche 1-EUR-Testentwurf am echten Kunden wurde am 19.10.2026 kontrolliert reversibel archiviert (siehe Abschnitt 4 und CODEX-STATUS Eintrag 44). Nicht neu anlegen oder erneut versenden.
 
 ### H. MCP-Self-Test
 
@@ -954,7 +956,7 @@ Keine echten Kunden- oder Rechnungsdaten in Diagnoseausgabe aufnehmen.
 
 ### I. Legacy-Reviews aus Normalbetrieb entfernen
 
-Nach erfolgreichem Build und neuem Backup die sieben historischen Review-Fälle mit dem bereits geprüften `keep_current`-Workflow abschließen, sofern Preview/Hashes unverändert bestätigen:
+Nach erfolgreichem Build und vollständigem neuem Backup ausschließlich eine frisch ausdrücklich bestätigte aktuelle Auswahl über `keep_current` abschließen. Die ursprünglichen sieben sind inzwischen sechs (Abschnitt 5); ihre alte Vorschau/Freigabe nicht wiederverwenden. Voraussetzungen:
 
 - keine alten Löschungen
 - keine Geschäftsdatenänderung
@@ -1161,7 +1163,7 @@ Alle technischen Kostenvoranschlags-Tests ausschließlich mit dem bestehenden Te
 
 Keine realen Kunden verwenden.
 
-Der bestehende 1-EUR-Testentwurf am echten Kunden Michael Hilpert ist nach erfolgreichem Build kontrolliert zu bereinigen, ohne andere Kundendaten zu verändern.
+Erledigt: Der falsche 1-EUR-Testentwurf wurde nach erfolgreicher Abnahme reversibel archiviert, ohne andere Geschäftsgruppen zu ändern. Keine neue Testaktion an einem echten Kunden erzeugen.
 
 ### Automatisierte Tests
 
@@ -1260,3 +1262,95 @@ Ziel ist:
 **eine eigenständige, sichere Pixel-App mit direktem Google-Drive-Abgleich und vollständiger MCP-Eigentümerfunktion, deren gesamte Entwicklung, Prüfung, Build- und Signierkette ausschließlich über Codex Cloud erfolgt.**
 
 Datenintegrität hat Vorrang vor Geschwindigkeit und Zusatzfunktionen.
+
+
+## 31. Konsolidierter Abschluss – 1.51.0 / 79, 19.10.2026
+
+**Implementierung und Cloud-Abnahme getrennt von Geräteabnahme behandeln. Gesamtauftrag noch nicht vollständig abgenommen:** physischer Pixel/Connector nach Update, reale Legacy-Originalsicherung und neu bestätigter Abschluss sowie echter Gmail-Versandbeleg bleiben offen. Keine Installation, keine echte Testmail, kein erneut erstelltes oder versendetes Hilpert-Angebot. Ein erfolgreicher Originalbuild beweist keinen Datenerhalt auf dem physischen Gerät.
+
+### 31.1 Ausgang, Lieferung und Provenienz
+
+- Tatsächlich aktuelles Remote-main beim Einstieg und abschließenden Fetch: `b2c37a2f909cc8ac6defabe68dbdd3ce6a42db14`, **1.49.1/70**. Neuere operative Cloud-Historie bis `5fbe0a3a8c1f9073dc83f83b37b741a59e935ee4` normal integriert, Merge `d67a4ffe549039df4bff78dc41ee0f27076c680b`. Kein Reset, Desktopimport, neuer Branch, neues Repository oder History-Rewrite.
+- Reales Gerät vor/nach Entwicklung weiterhin **1.50.1/77**, Datenbank 4, Snapshot 2, Protokoll 8, 111 Tools. Kein Zugriff auf physisches Pixel über ADB.
+- Neuer Release **1.51.0/79**, `at.hausgarten.service`, Protokoll **9**, 117 Tools. Finaler **APK-Quellcommit `5ae296394b5a9103f94421ea04ba01e55d06f8f0`**, Quellhash `b8b68448d1b6971c8cde6ebd7a00c7ccd88ecb6cf15c9a7b0065a9962c05f4da`, Buildtyp release, Quellbaum beim Build unverändert. Späterer Liefercommit enthält ausschließlich Dokumentation und fertiges Artefakt; dessen Hash ist `git log -1` zu entnehmen, nicht der eingebettete APK-Quellcommit.
+- APK `downloads/Haus-Garten-1.51.0-79-original-update-kandidat.apk`, **34.504.813 Bytes**, SHA256 **`b06798341ac929d00145f566db26d15377c3472b676e4d96b275a677291cc891`**. Originalzertifikat **`a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`**, ein Signer, v2/v3 gültig, 16-KiB-Ausrichtung bestanden, 411 Assets bytegleich. Ausschließlich `tools/sign_original_apk.py`, vorhandene Environment-Secrets; keine neue Signatur/QA-App.
+- Privater, kontoabhängiger Download und vollständige Rückleseprüfung stehen in [downloads/README.md](downloads/README.md). Die frühere interne 78 wird nicht ausgeliefert. Installation ausschließlich als bestehendes Originalupdate nach vollständiger Sicherung und ausdrücklicher Freigabe, ohne Deinstallation/App-Datenlöschung.
+
+### 31.2 Erneute Einordnung sämtlicher dokumentierter Review-Fälle
+
+Die Einordnung betrifft genau den genannten Umfang. „Behoben“ im neuen Code bedeutet keine bereits erfolgte Pixel-Installation.
+
+| Review-Fall | Einordnung | Nachweis / Grenze |
+| --- | --- | --- |
+| `price_source` Schema/Validator/Persistenz widersprüchlich | **behoben** | Exakt `user_confirmed`, ungültig/fehlend/staler Katalog abgewiesen; gemeinsamer Vertrag und Java/Android/Browser-Regressionsfälle |
+| Literale Backslash-n-Sequenzen der früheren Main-Fixes verhindern Java-Build | **behoben** | Echte Zeilenumbrüche, Release/Instrumentation/Lint erfolgreich |
+| UI-Katalog grundsätzlich auf 50 abgeschnitten | **nicht reproduzierbar** | Installierter Build77 lieferte bereits 100+56/156 |
+| Fehlender Cursor/Hashbindung/Vollständigkeitsvertrag des UI-Katalogs | **behoben** | 156 vollständig, 145 fachliche Pfade, elf explizite Plattformgruppen; 47 geprüfte Quell-Fingerprints, Contract-Gate |
+| Falscher 1-EUR-Testentwurf an realem Kunden | **behoben** | Ausschließlich exakt freigegebenen Entwurf reversibel archiviert; Archiv-Readback, Angebote2→1, übrige Geschäftsgruppen hashgleich |
+| Test-Provenienz geht bei Validierung/Finalisierung/Archiv/Purge verloren | **behoben** | UI/MCP/Journal bewahren local_only; gemischte Test-/Drive-Sammellöschung vor Mutation abgewiesen; native Export-/Neustartprobe |
+| Kostenvoranschläge bisher nur teilweise / unterschiedlich implementiert | **behoben** | Vier Dokumentarten in bestehender Offer-Entität, persistierte Bindungsart/Hinweis/Bestätigungshash, UI/MCP/PDF/Sync-/Migrationstests |
+| Stille Bindungsannahme bzw. alte Bestätigung nach Typ-/Textänderung | **behoben** | Bewusste Auswahl/Bestätigung; Änderung invalidiert vorherige Bestätigung, unbekannte Altarten nicht umgedeutet |
+| Preisgrundlage berechnet/geschätzt/Katalog nicht nachvollziehbar | **behoben** | Gemeinsame Enums, Faktoren/Erläuterung, explizite Preisfreigabe; fehlende Preise bleiben fehlend |
+| Finales PDF aus veränderlichen Ausstellerdefaults / Share gleich sent | **behoben** | Eingefrorener Kontext, identischer SHA-Readback, eigener delivery_status; sent nur nach echtem Providerbeleg |
+| Reale Gmail-End-to-End-Abnahme und Kontofreigabe | **weiterer Fix notwendig** | Geräte-/Google-Konto-/API-Freigabe und expliziter echter Versand müssen separat erfolgen; synthetischer Belegtest bestanden, keine reale Mail versendet |
+| 540-EUR-Angebot historisch nur als Mailtext, kein App-PDF belegt | **veraltet** | Historischer Zustand bleibt dokumentiert; nicht neu erstellt, finalisiert oder erneut versendet; kein PDF nachträglich behauptet |
+| Produktive Laptop-/Web-Runtime für Kernaktionen erforderlich | **veraltet** | Bereits vorhandene direkte Pixel/Drive-Engine wiederverwendet; reale Capabilities/Readback und isolierter Provider-Rundlauf, kein Laptop-Fallback |
+| `offers_v1`/Katalog/Business Settings fehlen operativ | **veraltet** | Bereits im tatsächlichen Build77 vorhanden, neue Folgeaktionen über offer_workflow_v2; Daten nicht neu erfunden |
+| `SYNC_COMPONENT_UPDATE_REQUIRED` / `ACTION_ID_CONFLICT` als zwei aktive Testfehler | **veraltet** | Nicht mehr in tatsächlich gelesener Queue; fail-closed Schutzregressionen erhalten |
+| Zyklus „erst Drive-Sync abschließen, dann Konfliktbackup“ | **behoben** | Dedizierter preview-/hashgebundener Backup-Pfad, synthetische sieben Keep-current-Abschlüsse ohne Geschäftsänderung, keine Sicherungsabkürzung |
+| Reales Legacy-Backup „Ungültige Foto-Dateireferenz“ | **reproduzierbar** | Auf Build77 tatsächlich fehlgeschlagen; neuer sicherer exakter Legacy-Dateiweg positiv/negativ im Android-Provider getestet, echte Originalverfügbarkeit offen |
+| Exakt sieben historische Reviews noch aktiv | **veraltet** | Aktuell sechs, Historie15; unabhängiger apply_proposed-Beleg für bereits zuvor fehlenden Datensatz. Keine Legacy-Auflösung durch diesen Auftrag |
+| Reale historische Reviews vollständig sicher abgeschlossen | **weiterer Fix notwendig** | Sechs offen; neuer Preview/Backup/ausdrückliche neue Bestätigung nach Geräteupdate erforderlich, keine Wiederverwendung des alten Siebener-Hashes |
+| Feste Siebener-Konstante blockiert frisch bestätigte Sechser-Auswahl | **behoben** | 1–100 historische Einträge, exakter Queueumfang; 7→6 stale/ohneHash FAIL, neuerHash PASS, zusätzliche Aktion FAIL |
+| Owner-Beleg transferred, aber confirmation_scope=local_only | **behoben** | Echte aktuelle oder kompatible alte Uploadbelege zählen, applied_on_pixel allein nicht; nativer Positiv-/Negativtest |
+| Katalog-UI: freie Pricing-Enum / Zurück-Klick als weitere Seite | **behoben** | Gemeinsamer Picker, leerer Preis null, expliziter Event-Adapter, Browser-Regressionsfall |
+| Schmale Dokumentliste quetscht Titel | **behoben** | Gemeinsame gestapelte Aktionen, sichtbare Titelbreite/Zeilenhöhe bei320/360/426px und150% geprüft |
+| Version/Build/Quellstand nicht eindeutig; main70 älter als Pixel77 | **behoben** | Neuere Cloud-Historie erhalten, Release79>77, tatsächlicher SHA/Quellhash/Buildtyp/Protokoll im Fingerprint |
+| Physischer Connector zeigt neuen Quellumfang noch nicht | **weiterer Fix notwendig** | Noch111/Protokoll8; gesichertes freigegebenes Update und Refresh derselben Verbindung nötig, keine Quellcode-Freigabe ersetzt Geräteinstallation |
+| Kamera, reale Kalender-/Wetter-/Google-Freigaben und Hintergrundbetrieb | **weiterer Fix notwendig** | Automatisierte Originalcode-/Browser-/Providerregressionen bestanden; physische Aufnahme, Sensorik, Google-OAuth, Kalender und Wetter nicht bestätigt |
+
+### 31.3 Angebot / Kostenvoranschlag – gemeinsamer Ende-zu-Ende-Pfad
+
+Keine zweite Entität, UI oder Estimate-Toolfamilie. `fixed_price`, `time_material`, `estimate_binding`, `estimate_nonbinding` verwenden dieselben Regeln, Status, Positionen, Preisquellen und privaten Dokumentdateien. `draft` → `validated` → `finalized`; Änderungen am geprüften Entwurf setzen Validierung zurück, finale Dokumente bleiben unveränderlich. `delivery_status=share_prepared|sent` ist separat. Angebot→Auftrag nur ausdrücklich, keine automatische Rechnung. Zentrale editierbare Aussteller-/Steuer-/Zahlungs-/Rechtstexte, keine erfundenen Preise oder Kunden.
+
+Neue MCP-Operationen: `get_offer_contract`, `run_self_test`, `create_and_validate_offer`, `validate_offer_draft`, `prepare_offer_delivery`, `confirm_offer_delivery`. Alle bisherigen111 erhalten, sechs ergänzt; vollständige Katalogprüfung zeigt keine fehlenden bisherigen Werkzeuge. Gemeinsame Fehlerfelder, erlaubte Enums/Datentypen/Zahlengrenzen, Write-Gates, Request-Idempotenz, aktuelle Hashes und Bestätigungen geprüft. Self-Test ist read-only und meldet PASS/FAIL/NOT TESTABLE statt produktiver Testschreibvorgänge.
+
+Kostenvoranschläge erhalten explizit gespeicherten Bindungsmodus, bestätigten Hinweistext und dessen Hash. KV-/Angebotsnummern bleiben vom zentralen Rechnungsnummernstand getrennt. Beide KV-Arten mit Netto-/Steuer-/Bruttosummen, Kleinunternehmer-/Standardsteuer, Pflichtfeldern, PDF-Metadaten/Readback, Migration, Idempotenz, stale Hash, Bearbeitung, Duplikat, Status und direkter Journal-/Neustartverarbeitung getestet. Alte Snapshots ohne offers bleiben gültig; unbekannte Dokumentarten werden nicht still umgedeutet.
+
+Offizielle RIS-Quellen tatsächlich am19.10.2026 gelesen: [ABGB§1170a](https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=10001622&Paragraf=1170a), [KSchG§5](https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=10002462&Paragraf=5). Regelversion `AT-2026-10-19`. Verbraucherstatus und Bindungsart bewusst bestätigen; technische Regeln sind keine automatische Rechtsprüfung aller Klauseln oder FAGG-Ausnahmen. Bestehende Texte zentral editierbar erhalten.
+
+### 31.4 MCP, UI-Katalog und tatsächliche Berechtigungen
+
+- Quell-/Emulatorkatalog: **117**, davon52 read/65 write, Protokoll9, Hash **`235f683d99d5170801d1e34c19ad386d9c4acf68b60a6992f72a3e5d2ea14314`**.
+- Echter Pixel/ChatGPT-Connector: **111**, Protokoll8, Hash **`ae7cb69f7994ae8141d2d8c925594982f40236921d65abb3739eee270b5b312f`**, ready/pixel_business_write/write_enabled=true. Reale autorisierte Archivoperation belegt erreichbar; keine Behauptung, sämtliche destruktiven Tools am Produktivbestand ausgeführt zu haben.
+- UI-Katalog: **156** semantische Aktionen, **145** fachliche MCP-Pfade, **11** begründete Plattform-/Darstellungsgruppen. Hash **`34c9cdd7494658bb1a3ec0a71db267e1ffa1044fd31e6a735c5be2ce0c8a0d91`**. Vollständig100+56 abrufbar, Cursor/Offset/Limit und Hashbindung getestet. Contract-Abdeckung ist keine physische Ausführung jeder Aktion.
+- Elf Grenzen: erstmalige Android-/Google-/Drive-Zustimmung; Kalenderkonto-Ersteinrichtung; privater Wetterschlüssel; Tunnel-Vertrauensanker/Stop; Android-Benachrichtigungs-/Standort-/Kamera-/Akku-Dialoge; physische Kamera/Galerieauswahl; GPS-Messung; fremde Teilen-/Telefon-/Karten-App; vollständiges Gerätebackup/Installation; flüchtige Darstellung; ungespeicherte lokale Eingabe. Fachliche Alternativen und konkrete Gründe stehen je Aktion im bestehenden `ui-mcp-actions.json`.
+- Nach geschütztem Originalupdate denselben Tunnel/Connector aktualisieren; tatsächliches tools/list, `get_capabilities`, `integration_health`, Fingerprint und Hash neu vergleichen. Kein neuer Connector/Desktop-Tunnel. Google-Konto-/API-/OAuth-/Dokumentbaumrechte bleiben unabhängig von ChatGPT „Allow all actions“.
+
+### 31.5 Tests und Datenintegrität
+
+- **24 JVM-Suiten PASS**, darunter121 neue gemeinsame Estimate-/Preis-/Status-/Versandbeleg-Verträge,1032 UI-/MCP-Paritätsprüfungen und173 Papierkorb-/Backup-Policy-Prüfungen. `HG_JSON_JAR=… python3 tools/run-followup-java.py`.
+- **273 Python-Tests PASS**, `python3 tests/run_quality_suite.py --exclude-qa-signing`. QA-Key-Erzeugung bewusst nicht ausgeführt; deren Tests/Code erhalten. Keine Ersatzsignatur für die Abnahme.
+- **28 Browser-Suiten PASS**, lokaler Chromium/Playwright mit lokalen Assets;130 Angebote paginiert/gefiltert,105 Foto-Metadaten/30er-Lazy-Seiten,21 Dateien nacheinander einschließlich fehlerhafter Datei, sichtbare Titel/Zeilenhöhe bei320/360/426px und150%. Keine Pixel-Leistungsmessung.
+- **Endgültige79: 133 native Android-/SQLite-/MCP-/Providerproben PASS,0 Fehler**, einschließlich beider KV-Arten, aller vier Dokumenttypen, PDF/Chunk/SHA, Test-Provenienz/kein Drive-Export, Journal-/Retry-/Neustartpfade, echter LocalStore, synthetischer Gmail-Belegtransport sowie vollständiger Legacy-Sicherung und sieben synthetischer Keep-current-Abschlüsse ohne Geschäftsänderung. Native Provider-Upload/Readback, falscherReadback/Netzfehler/Retry/Hashgrenzen und alte/neue Übertragungsbelege geprüft.
+- Anschließend auf derselben endgültigen79-APK **In-place-Update PASS** (bestehender synthetischer Snapshot/IDs/Beziehungen/Queue/Einstellungen/Tunnelkonfiguration/aktiver Timer erhalten), **echte native WebView-Navigation PASS** und **frischer isolierter Originalcode-Datenbereich PASS** (leer, keine Credentials/automatische Netzwerkverbindung). Ausschließlich expliziter Cloud-Emulator5582 mit AVD-/QEMU-Prüfung und exklusivem Lock; keine Pixel-ADB-Verbindung, kein bestehendes Profil gelöscht.
+- Gradle offline Release/AndroidTest/**Lint PASS**,33 nichtfatale Lint-Hinweise bleiben ausgewiesen; kein fehlerfreier Warnungsstand behauptet. Shared-Contract-/Pflanzen-/UI-Fingerprint-Gates, APK-Privacy, Assetvergleich, DEX-Buildfingerprint, apksigner und zipalign PASS.
+- Signiert ausschließlich über vorhandenen Originalweg. Signier-Tempverzeichnisse0, getrackte Schlüsseldateien0, keine Secrets ausgegeben/gespeichert;27 eigene veraltete interne78-APKs entfernt, frühere gelieferte74–77 und Emulatorprofile erhalten. Working Tree enthält nur beabsichtigte Lieferdateien, keine produktiven Testdaten.
+
+Tests ausschließlich synthetisch/isoliert; keine technischen Angebote an realen Kunden, keine Testmails oder produktiver Test-Sync. Einzige reale Änderung dieses Auftrags: ausdrücklich freigegebenen falschen 1-EUR-Testentwurf reversibel archiviert. Frisch rückgelesen: Kunden53, Aufträge3, Arbeiten45, Rechnungen95, Fotos25, Bausteine33, Angebote1, Termine0; außer Angebotsgruppe alle Gruppenhashes zum Ausgang identisch. Existierende Beziehungen, Medien und ausstehende Aktionen nicht entfernt.
+
+Fotoarchitektur wiederverwendet: private content-addressed Dateien, getrennte Metadaten/Thumbnails, automatische Qualitätsprofile, 30er-Lazy-Pagination, keine Base64-Originale im Snapshot. Mehr als10 und105 synthetische Metadatensätze/20+-Importpfade in erhaltenen Browser-/Android-Regressionen; keine Pixel-Kameramessung daraus ableiten. Getrennte Medienübertragung/Hashreadback, Fehler-/Retry-/Neustartpfade ohne Duplikate und ohne Blockieren unabhängiger Geschäftsaktionen geprüft.
+
+### 31.6 Reale Sync-/Legacy-Abnahme und offene externe Grenzen
+
+Letzter realer Readback19.10.2026 11:03:55 UTC: **pending_upload0, review6, Historie15**, `drive_sync_failed=false`, keine technischen Syncfehler, Zustand `review_required`, Provider-Readback, **cloud_confirmed=false**. Keine unabhängige zentrale Cloud-Bestätigung behauptet. Ursprünglicher Backupversuch im alten installierten Build scheiterte an Legacy-Fotoreferenz; deshalb keine Legacy-Auflösung durch diesen Auftrag. Die aktuelle Sechser-Vorschau ist kein Ersatz für vollständige Sicherung oder eine neue ausdrückliche Sammelbestätigung.
+
+Offen: tatsächliche Originaldateien und vollständiges Backup am aktualisierten Pixel prüfen, frisch bestätigte Keep-current-Auswahl sicher abschließen und neue Queue/History/Providerbelege zurücklesen; unabhängige Gerätesicherung und ausdrückliche Installationsfreigabe; physischer Update-/Datenerhalt-/Kamera-/Connector-Endtest; Google-Gmail-Zustimmung und API-Leserecht für echte Versandbelege; reale Kalender-/Wetterkonfiguration und Android-Hintergrund-/Akkuverhalten. Cloud-Egress, Google-Kontorechte und Providerquoten können zusätzlich begrenzen; Quellcode ersetzt keine dieser Freigaben. 401 nicht umgehen, temporäre Fehler mit begrenztem Backoff/Retry-After. Keine Dauerverfügbarkeit zusichern.
+
+### 31.7 Geänderte Bereiche und bestehende Nachweise
+
+- Gemeinsamer Vertrag/Generator: `offer-contract.json`, generierte `OfferContract.java`/`offer-contract.js`, `tools/sync_offer_contract.py`; bestehende `OfferRules`, `OfferTools`, `OfferJournalRules`, historische `offers.py` kompatibel vereinheitlicht.
+- MCP/UI/Isolation: `McpSchema`, `PixelMcpReadTools`, `PixelMcpOwnerTools`, `PixelMcpEntityWriteTools`, `PixelMcpBusinessTools`, `PixelOwnerAccess`, `MainActivity`, `TestDataRules`, `InvoiceDraftRules`, `InvoiceIssueRules`, `OwnerJournalRules`, `offers-ui.js`, `owner-ui.js`, `mobile.html`, `design-concept.css`, `ui-mcp-actions.json` und Quellreview-Gate.
+- Dateien/Provider: `BusinessDocumentStore`, `OfferDeliveryClient`, `MailAccount`, `DriveConnectionActivity`, `DriveDirectFiles`, `DriveSyncCoordinator`, `DriveJournalRules`, `PixelDriveState`, `PhotoAttachmentStore`, `LegacyBackupPolicy`, `LegacyConflictBackup`.
+- Version/Fingerprint: `android/app/build.gradle`, `BuildProvenance`, `tools/check_release_baseline.py`. Tests: neue `EstimateContractTests`/`EstimateNativeAcceptance`, erweiterte bestehende Offer-/Trash-/Parity-/Daily-/Provider-/Planning-/Lifecycle-/Instrumentation-/Browserfälle und Runner. Keine operative Test-App-Codebasis oder neue Dossiers.
+- Zentrale Dokumentation hier, `CODEX-STATUS.md`, bestehender MCP-Nachweis und `downloads/README.md`/`SHA256SUMS`; fertige Original-APK ausdrücklich von `.gitignore` ausgenommen. Vollständige Pfadliste: `git diff --name-only d67a4ffe549039df4bff78dc41ee0f27076c680b..HEAD`.

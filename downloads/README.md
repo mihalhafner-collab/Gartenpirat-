@@ -1,3 +1,25 @@
+# Original-Release 1.51.0 / 79
+
+[APK über privates Drive herunterladen](https://drive.google.com/file/d/14t3aDwlKqPZkPWNH2qYRg8pXbdlr0H3v/view?usp=drivesdk) · [APK im privaten Repository](Haus-Garten-1.51.0-79-original-update-kandidat.apk?raw=true)
+
+Bestehende App **at.hausgarten.service**, **1.51.0/79**, **34.504.813 Bytes**. SHA256: **`b06798341ac929d00145f566db26d15377c3472b676e4d96b275a677291cc891`**. Bestehendes Originalzertifikat `a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`, ein Signer, v2/v3 gültig,16-KiB-Ausrichtung,411 Quellassets bytegleich und Source-/APK-Privacy bestanden. Kein neuer Schlüssel und keine QA-Signierung.
+
+APK-Quellcommit **`5ae296394b5a9103f94421ea04ba01e55d06f8f0`**, Quellhash `b8b68448d1b6971c8cde6ebd7a00c7ccd88ecb6cf15c9a7b0065a9962c05f4da`, release, source_dirty=false. Der spätere Liefercommit ergänzt nur APK und zentrale Dokumentation; er unterscheidet sich vom eingebetteten Quellcommit.
+
+Gemeinsame Angebote/verbindliche und unverbindliche Kostenvoranschläge, zentrale Preis-/Bindungsregeln, immutable PDF/Hash, getrennte Validierung/Finalisierung/Versandbelege, lokale Testdaten-Isolation, vollständiger UI-Katalog und read-only Self-Test. Quellkatalog **117 Tools/Protokoll9**, Hash `235f683d99d5170801d1e34c19ad386d9c4acf68b60a6992f72a3e5d2ea14314`. UI156/145 fachliche MCP-Pfade plus elf begründete Plattformgruppen, vollständig paginiert. Die tatsächlich installierte App ist unverändert77/111Tools/Protokoll8.
+
+**Cloud-Abnahme:**24 JVM-Suiten,273 Python-Tests,28 Browser-Suiten und abschließend133 native Android-/SQLite-/MCP-/Providerproben auf79 ohne Fehler. Anschließend vorhandener synthetischer Updatebestand/IDs/Queue/Einstellungen/aktiver Timer, native WebView-Navigation und frischer isolierter Datenbereich bestanden. Release/Instrumentation/Lint erfolgreich;33 nichtfatale Lint-Hinweise ausgewiesen. Alle Tests isoliert, keine echten Testmails oder Geschäftsteständerungen.
+
+**Reale Grenzen:** Physischer Pixel nicht installiert/aktualisiert; kein physischer Update-/Datenerhalt-/Connector-Endtest. Erst vollständige Sicherung und ausdrückliche Installationsfreigabe, normales Originalupdate ohne Deinstallation/App-Datenlöschung, dann bestehende ChatGPT-Verbindung aktualisieren und neuen Katalog/Fingerprint prüfen. Erfolgreiche Signierung und Emulatorabnahme ersetzen diese Prüfung nicht.
+
+Aktuell real: sechs historische Reviews, keine Uploads, Provider-Readback, cloud_confirmed=false. Ursprüngliche sieben änderten sich außerhalb der hier ausgeführten Legacy-Aufrufe; alte Siebener-Vorschau nicht wiederverwenden. Vollständiges Legacy-Backup scheiterte im installierten77 an alten Fotoreferenzen; neuer sicherer Dateipfad/aktuelle Auswahl isoliert getestet. Kein Legacy-Abschluss durch diesen Auftrag. Nur ausdrücklich freigegebenen falschen1-EUR-Testentwurf reversibel archiviert; kein echtes Angebot neu erstellt/finalisiert/versendet. Reale Gmail-Lesefreigabe/Versandbelege, Kalender-/Wetterkonfiguration und Geräteverhalten bleiben offen.
+
+Privater Download nach tatsächlichem Austausch der internen78-Datei gegen finale79 erneut geprüft: Dateiname/ID/MIME/Eltern/34.504.813Bytes und Owner-only-Zugriff rückgelesen, vollständige Rohdateireferenz gleicher Größe zurückerhalten, keine Inline-Binärdaten. Kein unabhängiger Remote-Bytehash behauptet. Zugriff mit verbundenem berechtigtem Google-Konto; keine öffentliche Freigabe erstellt und keine Betriebsdatei ersetzt.
+
+[Zentraler Auftrag und Einzelfallprüfung](../CODEX-AUFTRAG-GARTENPIRAT.md#31-konsolidierter-abschluss--1510--79-19102026) · [Phasenstatus](../CODEX-STATUS.md) · [Prüfsummen](SHA256SUMS)
+
+## Erhaltener Kandidat1.50.1/77 – ausschließlich historische Zustandsangaben
+
 # Original-Prüfkandidat 1.50.1 / 77
 
 [APK über Drive herunterladen](https://drive.google.com/file/d/1s4GCUx3YcqtRE8elKCLuCXLjruuHW35i/view?usp=drivesdk) · [APK im privaten Repository](Haus-Garten-1.50.1-77-original-update-kandidat.apk?raw=true)
