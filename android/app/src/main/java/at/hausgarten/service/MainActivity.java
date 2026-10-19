@@ -767,7 +767,7 @@ public class MainActivity extends Activity {
             return new JSONObject().put("ok",true).put("data",result).put("message",tool.equals("stop_work")?"Zeiterfassung lokal gestoppt. Tätigkeit prüfen und mit complete_work_session als Arbeitsaufzeichnung abschließen.":"Aktion dauerhaft auf dem Pixel gesichert. Nur Arbeitsaufzeichnungen werden über Drive übertragen; Timerstatus ist lokal.");
         }
         @Override public JSONObject status(String clientId,JSONObject state) throws Exception {
-            JSONObject master=state.getJSONObject("master"),metadata=receipt(clientId);boolean ownerSaved=!ownerValue("receipt:"+clientId,"").isEmpty();
+            JSONObject master=state.getJSONObject("master"),metadata=receipt(clientId);String ownerReceipt=ownerValue("receipt:"+clientId,"");boolean ownerSaved=!ownerReceipt.isEmpty(),providerReadback=DriveJournalRules.ids(master.optJSONArray("drive_delivered_ids")).contains(clientId);JSONObject ownerResult=ownerSaved?new JSONObject(ownerReceipt).optJSONObject("result"):null;
             if(metadata!=null&&"work_session".equals(metadata.optString("entity_type")))return new JSONObject().put("client_id",clientId).put("status","local_saved").put("sync_state","not_applicable").put("local_state","local_saved").put("saved_locally",true).put("confirmed_by_app",false).put("uploaded_to_drive",false).put("entity_id",metadata.optString("entity_id")).put("message","Timeraktion dauerhaft lokal gespeichert; keine Drive-Arbeitsaufzeichnung. Aktuellen Zustand mit get_active_work_session lesen.");
             String phase="unknown";JSONArray accepted=master.optJSONArray("accepted_ids");
             for(int i=0;accepted!=null&&i<accepted.length();i++)if(clientId.equals(accepted.optString(i)))phase="accepted";
@@ -776,20 +776,20 @@ public class MainActivity extends Activity {
                 for(int i=0;pending!=null&&i<pending.length();i++)if(clientId.equals(pending.getJSONObject(i).optString("client_id")))queued=true;
                 if(queued)phase=metadata!=null&&metadata.optBoolean("uploaded")?"transferred":"queued";
                 else if(metadata!=null)phase="superseded";
-                if(DriveJournalRules.ids(master.optJSONArray("drive_applied_ids")).contains(clientId))phase="transferred";
+                if(DriveJournalRules.ids(master.optJSONArray("drive_applied_ids")).contains(clientId))phase=providerReadback?"transferred":"applied_on_pixel";
                 JSONArray errors=master.optJSONArray("sync_errors");for(int i=0;errors!=null&&i<errors.length();i++){JSONObject error=errors.optJSONObject(i);if(error!=null&&clientId.equals(error.optString("client_id")))phase="failed";}
                 JSONArray journalErrors=master.optJSONArray("drive_journal_errors");for(int i=0;journalErrors!=null&&i<journalErrors.length();i++){JSONObject error=journalErrors.optJSONObject(i);if(error!=null&&clientId.equals(error.optString("client_id")))phase="failed";}
             }
             if(master.optJSONObject("drive_resolved_actions")!=null&&master.getJSONObject("drive_resolved_actions").has(clientId))phase="resolved";
             return PixelMcpBusinessTools.sync(new JSONObject().put("client_id",clientId).put("status",phase).put("confirmed_by_app",phase.equals("accepted"))
-                .put("saved_locally",metadata!=null||ownerSaved).put("uploaded_to_drive",phase.equals("accepted")||phase.equals("transferred")||(metadata!=null&&metadata.optBoolean("uploaded")))
-                .put("entity_type",metadata==null?"":metadata.optString("entity_type","worklog"))
-                .put("entity_id",metadata==null?"":metadata.optString("entity_id",metadata.optString("work_record_id")))
+                .put("saved_locally",metadata!=null||ownerSaved).put("uploaded_to_drive",phase.equals("accepted")||providerReadback||(metadata!=null&&metadata.optBoolean("uploaded"))).put("provider_readback",providerReadback||(metadata!=null&&metadata.optBoolean("uploaded")))
+                .put("entity_type",metadata==null?(ownerResult==null?"":ownerResult.optString("entity_type")):metadata.optString("entity_type","worklog"))
+                .put("entity_id",metadata==null?(ownerResult==null?"":ownerResult.optString("entity_id")):metadata.optString("entity_id",metadata.optString("work_record_id")))
                 .put("work_record_id",metadata==null?"":metadata.optString("work_record_id"))
                 .put("applied_on_pixel",DriveJournalRules.ids(master.optJSONArray("drive_applied_ids")).contains(clientId))
-                .put("confirmation_scope",phase.equals("accepted")?"web_import_receipt":metadata!=null&&metadata.optBoolean("uploaded")?"drive_provider_readback":"local_only")
+                .put("confirmation_scope",phase.equals("accepted")?"web_import_receipt":(providerReadback||metadata!=null&&metadata.optBoolean("uploaded"))?"drive_provider_readback":"local_only")
                 .put("cloud_confirmed",false)
-                .put("message",phase.equals("resolved")?"Die Konfliktentscheidung wurde übernommen. Die ursprüngliche Aktion bleibt im Journal erhalten.":phase.equals("accepted")?"Im Gesamtstand übernommen und bestätigt. Cloud-Upload wird durch Drive durchgeführt.":phase.equals("failed")?"Die Änderung benötigt eine Prüfung. Lokale Daten bleiben erhalten.":phase.equals("superseded")?"Die vorgemerkte Änderung wurde in der App ersetzt. Bitte den Eintrag öffnen.":phase.equals("transferred")?"Änderung an die Drive-App übergeben und zurückgelesen; auf dem Pixel nutzbar. Der Google-Cloud-Upload ist nicht unabhängig bestätigt.":phase.equals("queued")?"Auf dem Pixel gesichert. Drive-Abgleich steht noch aus.":"Für diese Anfrage liegt noch keine Bestätigung vor."),state);
+                .put("message",phase.equals("resolved")?"Die Konfliktentscheidung wurde übernommen. Die ursprüngliche Aktion bleibt im Journal erhalten.":phase.equals("accepted")?"Im Gesamtstand übernommen und bestätigt. Cloud-Upload wird durch Drive durchgeführt.":phase.equals("failed")?"Die Änderung benötigt eine Prüfung. Lokale Daten bleiben erhalten.":phase.equals("superseded")?"Die vorgemerkte Änderung wurde in der App ersetzt. Bitte den Eintrag öffnen.":phase.equals("transferred")?"Änderung an die Drive-App übergeben und zurückgelesen; auf dem Pixel nutzbar. Der Google-Cloud-Upload ist nicht unabhängig bestätigt.":phase.equals("applied_on_pixel")?"Auf dem Pixel übernommen; Provider-Rücklesen noch nicht nachgewiesen.":phase.equals("queued")?"Auf dem Pixel gesichert. Drive-Abgleich steht noch aus.":"Für diese Anfrage liegt noch keine Bestätigung vor."),state);
         }
         void markUploaded(JSONArray actions) throws Exception {
             SQLiteDatabase database=getWritableDatabase();database.beginTransaction();

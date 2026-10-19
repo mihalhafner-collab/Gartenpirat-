@@ -6,7 +6,7 @@ import java.util.*;
 /** Read-only evidence and quality checks using the existing effective data. */
 final class PixelMcpBusinessTools {
     static JSONObject sync(JSONObject legacy,JSONObject state)throws Exception{
-        String phase=legacy.optString("status"),value=phase.equals("resolved")?"review_resolved":phase.equals("local_saved")?"not_applicable":phase.equals("accepted")?"sync_confirmed":phase.equals("failed")?"sync_failed":phase.equals("superseded")?"sync_conflict":Arrays.asList("queued","transferred").contains(phase)?"sync_pending":"unknown";
+        String phase=legacy.optString("status"),value=phase.equals("resolved")?"review_resolved":phase.equals("local_saved")?"not_applicable":phase.equals("accepted")?"sync_confirmed":phase.equals("failed")?"sync_failed":phase.equals("superseded")?"sync_conflict":Arrays.asList("queued","transferred","applied_on_pixel").contains(phase)?"sync_pending":"unknown";
         JSONArray errors=state.getJSONObject("master").optJSONArray("sync_errors");for(int i=0;errors!=null&&i<errors.length();i++){JSONObject e=errors.optJSONObject(i);if(e!=null&&e.optString("client_id").equals(legacy.optString("client_id"))&&"WRITE_CONFLICT".equals(e.optString("code")))value="sync_conflict";}
         errors=state.getJSONObject("master").optJSONArray("drive_journal_errors");for(int i=0;errors!=null&&i<errors.length();i++){JSONObject e=errors.optJSONObject(i);if(e!=null&&e.optString("client_id").equals(legacy.optString("client_id")))value="WRITE_CONFLICT".equals(e.optString("code"))?"sync_conflict":"sync_failed";}
         if(value.equals("sync_pending")&&state.optBoolean("drive_sync_failed"))value="sync_failed";
