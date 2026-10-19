@@ -24,6 +24,23 @@ final class OwnerNativeAcceptance {
         try{task.run();}catch(java.io.IOException|IllegalArgumentException expected){test.yes(true);return;}throw new AssertionError("Changed document must be rejected");
     }
     static void run(PixelMcpInstrumentation test)throws Exception{
+        test.probe("empty trash is one atomic durable request for 136 entries and survives restart",()->{try(Fixture f=new Fixture(test.getTargetContext())){
+            JSONObject snapshot=f.store.getState().getJSONObject("master");PixelDriveState.prepare(snapshot);JSONObject archive=OwnerJournalRules.archives(snapshot);
+            for(int i=0;i<136;i++)archive.put("worklog:trash-"+i,new JSONObject().put("record",new JSONObject().put("id","trash-"+i).put("customer_id","c").put("work_date","2026-07-31").put("activity","Synthetic trash").put("hours",1).put("billed",0)).put("archive_action","synthetic-archive-"+i).put("archived_at","2026-08-01"));
+            f.store.commitSnapshot(snapshot,new HashSet<>());JSONObject preview=f.call("preview_empty_trash",new JSONObject());test.yes(preview.getInt("count")==136);
+            JSONObject args=request("native-empty-136").put("expected_preview_hash",preview.getString("preview_hash")).put("confirmed",true);
+            f.store.getWritableDatabase().execSQL("CREATE TEMP TRIGGER abort_empty BEFORE INSERT ON pending WHEN NEW.kind='purge_trash_v1' BEGIN SELECT RAISE(ABORT,'synthetic crash'); END");
+            try{f.call("empty_trash",args);throw new AssertionError("Expected synthetic transaction abort");}catch(android.database.sqlite.SQLiteException expected){test.yes(true);}
+            test.yes(f.store.pendingActions().length()==0&&f.call("list_archive",new JSONObject()).getInt("total")==136);f.store.getWritableDatabase().execSQL("DROP TRIGGER abort_empty");
+            test.yes(f.call("empty_trash",args).getInt("deleted")==136);test.yes(f.call("empty_trash",args).getBoolean("replayed"));test.yes(f.store.pendingActions().length()==1&&f.call("list_archive",new JSONObject()).getInt("total")==0);
+            JSONObject committed=f.store.getState().getJSONObject("master");test.yes(DriveJournalRules.apply(committed,f.store.pendingActions()).length()==0);f.store.commitSnapshot(committed,DriveJournalRules.ids(committed.getJSONArray("drive_applied_ids")));f.store.close();
+            try(MainActivity.LocalStore reopened=new MainActivity.LocalStore(f.context)){test.yes(reopened.pendingActions().length()==0&&PixelMcpReadTools.effective(reopened.getState()).getJSONArray("worklogs").length()==1);test.yes(TrashPurgeBatch.preview(PixelMcpReadTools.effective(reopened.getState())).getInt("total")==0);}
+        }});
+        test.probe("empty trash rejects a changed active reference before adding any journal",()->{try(Fixture f=new Fixture(test.getTargetContext())){
+            JSONObject snapshot=f.store.getState().getJSONObject("master");PixelDriveState.prepare(snapshot);OwnerJournalRules.archives(snapshot).put("worklog:old",new JSONObject().put("record",new JSONObject().put("id","old").put("customer_id","c").put("activity","Synthetic old").put("hours",1)).put("archived_at","t1"));f.store.commitSnapshot(snapshot,new HashSet<>());
+            JSONObject p=f.call("preview_empty_trash",new JSONObject());snapshot.getJSONArray("invoices").put(new JSONObject().put("id","protected").put("customer_id","c").put("issued_at","2026-10-18").put("invoice_number","R-1").put("status","Gestellt").put("positions",new JSONArray().put(new JSONObject().put("worklog_id","old"))));f.store.commitSnapshot(snapshot,new HashSet<>());
+            test.rejected(()->f.call("empty_trash",request("native-stale-empty").put("expected_preview_hash",p.getString("preview_hash")).put("confirmed",true)));test.yes(f.store.pendingActions().length()==0&&f.call("list_archive",new JSONObject()).getInt("total")==1);
+        }});
         test.probe("batch archive atomically rolls back an interrupted write and replays after reopen",()->{try(Fixture f=new Fixture(test.getTargetContext())){
             JSONObject snapshot=f.store.getState().getJSONObject("master");JSONArray ids=new JSONArray(),rows=new JSONArray();
             for(int i=0;i<128;i++){String id="synthetic-batch-"+i;ids.put(id);rows.put(new JSONObject().put("id",id).put("customer_id","c").put("work_date","2026-07-31").put("activity","Isolated batch work").put("hours",1));}
@@ -72,7 +89,7 @@ final class OwnerNativeAcceptance {
             f.store.close();try(MainActivity.LocalStore reopened=new MainActivity.LocalStore(f.context)){JSONObject row=PixelMcpWriteTools.find(PixelMcpReadTools.effective(reopened.getState()).getJSONArray("photos"),id);test.yes(row.getString("role").equals("before"));}
         }});
         test.probe("owner native settings/catalog/capability reads and settings replay",()->{try(Fixture f=new Fixture(test.getTargetContext())){
-            JSONObject cap=f.call("get_capabilities",new JSONObject());test.yes(cap.getInt("protocol_version")==5);
+            JSONObject cap=f.call("get_capabilities",new JSONObject());test.yes(cap.getInt("protocol_version")==6);
             JSONObject settings=f.call("get_settings",new JSONObject());JSONObject args=request("owner-settings").put("expected_record_hash",settings.getString("record_hash")).put("updates",new JSONObject().put("default_activity","QA Garten"));f.call("update_settings",args);test.yes(f.call("update_settings",args).getBoolean("replayed"));
             test.yes(f.call("search_catalog",new JSONObject().put("query","Thuja")).getInt("total")>0);test.yes(f.call("get_catalog_entry",new JSONObject().put("entry_id","thuja-occidentalis")).getString("id").equals("thuja-occidentalis"));
             test.yes(f.call("get_sync_conflicts",new JSONObject()).getInt("total")==0);test.yes(f.store.pendingActions().length()==0);

@@ -1,3 +1,45 @@
+# Original-Prüfkandidat 1.49.6 / 75
+
+[APK über Drive herunterladen](https://drive.google.com/file/d/1Q8Ttp8Bm1xlwIeW3e_AXY2B11a0a6HHX/view?usp=drivesdk) · [APK im privaten Repository](Haus-Garten-1.49.6-75-original-update-kandidat.apk?raw=true)
+
+**Papierkorb → Papierkorb leeren:** prüft alle Seiten und löscht nach einer
+Bestätigung sämtliche freigegebenen Einträge endgültig. Eine gemeinsame atomare
+Aktion, dauerhafte Request-ID und aktuelle Vergleichshashes; Beziehungen innerhalb
+der Löschmenge blockieren sich nicht. Aktive Verknüpfungen und geschützte Belege
+bleiben erhalten. Nicht mehr verwendete Fotos/Entwurfs-PDFs werden nach geprüftem
+Drive-Abgleich entfernt; Sicherungen und unveränderliche Historie bleiben separat.
+
+**Sieben alte Sync-Prüfungen:** vollständige Sicherung und keep_current-Abschluss
+jetzt auch über den bestehenden verifizierten Android-Drive-Zugang möglich.
+Keine alte Löschung wird ausgeführt und kein Provider-Rücklesen als unabhängige
+Cloud-Bestätigung ausgegeben. **Mehr** bündelt alle vorhandenen Funktionen in
+vier übersichtlichen Gruppen.
+
+`at.hausgarten.service`, **1.49.6 / 75**, **34.426.640 Bytes**, Protokoll6/91
+Quellwerkzeuge. Originalzertifikat identisch zu74, ein Signer, v2/v3 gültig,
+16-KiB-Ausrichtung, Privacy,406 Quellassets und Cleanup PASS.
+SHA256: `db9035109b9206fbfe0cf621ad0198bd14f0d5baf45e5812553d4396f27f69a0`.
+
+**273 Python-Tests,21 JVM-Suiten,27 Browser-Suiten und103 native Android-Prüfungen
+bestanden.** Zusätzlich enge Ansichten/große Schrift, native WebView83 sowie
+Original-Update mit synthetischem Datenerhalt geprüft. Keine Pixel-/Google-
+End-to-End-Abnahme daraus ableiten.
+
+**Produktiv weiterhin Build74: sieben Prüfungen und136 Papierkorbeinträge.**
+Diese wurden während der Entwicklung nicht gelöscht. Die neuen Abläufe benötigen
+Build75; gleiche App und Originalsignatur, keine Deinstallation/App-Datenlöschung.
+Installation am Pixel bleibt bis vollständiger Sicherung und ausdrücklicher
+Freigabe gesperrt. Danach denselben MCP-Zugang/Toolkatalog aktualisieren.
+Die bereits erteilte Freigabe für die unveränderten sieben Altfälle bleibt gültig.
+
+Privater Upload in den vorhandenen Build-Archivordner; ID/Name/Größe/Eltern und
+Owner-only-Freigabe rückgelesen, vollständige Dateireferenz34.426.640 Bytes
+zurückerhalten. Kein unabhängiger Remote-Bytehash behauptet.
+
+[Zentraler Status](../CODEX-STATUS.md) · [Prüfsummen](SHA256SUMS)
+
+## Erhaltener Cloud-Kandidat 1.49.5 / 74 (historische Zustandsangaben)
+
 # Original-Prüfkandidat 1.49.5 / 74
 
 [APK über Drive herunterladen](https://drive.google.com/file/d/11ASToMZ3qHlpmgq7dkPoKl7-A28klzm-/view?usp=drivesdk) (verbundenes Google-Konto erforderlich) · [APK im privaten Repository](Haus-Garten-1.49.5-74-original-update-kandidat.apk?raw=true)

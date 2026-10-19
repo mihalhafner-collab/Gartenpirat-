@@ -6,9 +6,9 @@ import org.json.*;
 final class DeletionRules {
     static final String[] ENTITIES={"customer","order","worklog","photo","invoice","offer","service_template"};
     static boolean cancelable(JSONObject action,String code) {
-        return action!=null&&java.util.Arrays.asList("archive","purge_v1").contains(action.optString("kind"))
+        return action!=null&&java.util.Arrays.asList("archive","purge_v1","purge_trash_v1").contains(action.optString("kind"))
             &&java.util.Arrays.asList("WRITE_CONFLICT","INVALID_ACTION","DEPENDENCY_BLOCKED").contains(code)
-            &&action.optJSONObject("payload")!=null&&java.util.Arrays.asList(ENTITIES).contains(action.optJSONObject("payload").optString("entity"));
+            &&action.optJSONObject("payload")!=null&&(TrashPurgeBatch.KIND.equals(action.optString("kind"))||java.util.Arrays.asList(ENTITIES).contains(action.optJSONObject("payload").optString("entity")));
     }
     static JSONObject preview(JSONObject snapshot,String entity,String id)throws Exception {
         if(!java.util.Arrays.asList(ENTITIES).contains(entity))throw new IllegalArgumentException("Dieser Bereich kann nicht gelöscht werden.");

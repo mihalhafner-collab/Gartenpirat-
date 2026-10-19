@@ -13,11 +13,16 @@ import java.util.zip.*;
 final class LegacyConflictBackup {
     static void requireReady(Context c,MainActivity.LocalStore store)throws Exception {
         android.content.SharedPreferences prefs=c.getSharedPreferences("haus_garten",0);JSONObject state=store.getState();
-        if(!DriveAccount.configured(c)||!"drive_server_manifest".equals(prefs.getString("drive_confirmation_scope",""))||prefs.getBoolean("drive_sync_failed",false))throw new IllegalArgumentException("Zuerst direkten Pixel-/Drive-Abgleich mit Serverbeleg prüfen. Keine Altentscheidung ausgeführt.");
-        if(LegacyConflictRules.preview(state).getInt("count")!=7||state.getJSONObject("sync_queue").getInt("total")!=7)throw new IllegalArgumentException("Zuerst technische und neue Aktionen prüfen; erwartet sind genau sieben historische Prüfungen.");
+        LegacyBackupPolicy.require(state,DriveAccount.available(c),DriveAccount.configured(c)||DriveAccount.providerPermission(c),prefs.getBoolean("drive_sync_failed",false),DriveSyncCoordinator.running(),prefs.getString("drive_confirmation_scope",""));
     }
     static synchronized JSONObject create(Context c,MainActivity.LocalStore store,String request)throws Exception {
         requireReady(c,store);
+        android.content.SharedPreferences prefs=c.getSharedPreferences("haus_garten",0);
+        DriveSyncCoordinator.Files drive=DriveAccount.configured(c)?new DriveDirectFiles(c,DriveAccount.client(c,store)):new DriveSyncCoordinator.Files(c,Uri.parse(prefs.getString("drive_tree_uri","")),prefs);
+        return createVerified(c,store,request,drive);
+    }
+    /** Same serialized provider core, injectable for isolated ContentResolver regression tests. */
+    static synchronized JSONObject createVerified(Context c,MainActivity.LocalStore store,String request,DriveSyncCoordinator.Files drive)throws Exception {
         String prior=store.ownerValue("legacy-backup-request:"+PixelMcpWriteTools.hash(request),"");if(!prior.isEmpty()){JSONObject saved=new JSONObject(prior);verify(c,store,saved.getJSONObject("backup").getString("backup_id"),saved.getJSONObject("preview").getString("preview_hash"));return saved.put("replayed",true);}
         JSONObject state=store.getState(),preview=LegacyConflictRules.preview(state);
         if(preview.getInt("count")==0)throw new IllegalArgumentException("Keine unverifizierbaren Alt-Konflikte vorhanden.");
@@ -35,8 +40,6 @@ final class LegacyConflictBackup {
             // SQLite creates a consistent database image, including WAL contents. Older
             // SQLite engines fail closed; copying a live database file is not a fallback.
             store.getWritableDatabase().execSQL("VACUUM INTO '"+dbCopy.getAbsolutePath().replace("'","''")+"'");
-            String tree=c.getSharedPreferences("haus_garten",0).getString("drive_tree_uri","");
-            DriveSyncCoordinator.Files drive=DriveAccount.configured(c)?new DriveDirectFiles(c,DriveAccount.client(c,store)):tree.isEmpty()?null:new DriveSyncCoordinator.Files(c,Uri.parse(tree),c.getSharedPreferences("haus_garten",0));
             if(drive==null)throw new IOException("Drive-Snapshot ist für die Sicherung nicht lesbar.");
             String raw=drive.read("HausGarten-Laptop.json");if(raw==null)throw new IOException("Drive-Snapshot fehlt; nichts abgeschlossen.");DriveJournalRules.validateSnapshot(new JSONObject(raw));
             String device=state.getJSONObject("master").getString("drive_publisher_id");
@@ -48,8 +51,17 @@ final class LegacyConflictBackup {
             if(manifest==null||primaryBytes==null)throw new IOException("Aktueller Drive-Gesamtstand ist nicht vollständig sicherbar.");
             DrivePublication.verify(new JSONObject(new String(manifest,StandardCharsets.UTF_8)),primaryBytes,new JSONArray());
             // Fail before confirmation if any referenced local original is absent/corrupt.
-            JSONArray photos=PixelMcpReadTools.effective(state).getJSONArray("photos");for(int i=0;i<photos.length();i++){JSONObject m=store.photoAttachment(photos.getJSONObject(i).getString("id"));if(m==null)throw new IOException("Vollständige Sicherung benötigt alle Foto-Originale lokal.");store.photoAttachmentStore().read(m);}
-            JSONObject all=PixelMcpReadTools.effective(state);for(String collection:new String[]{"invoices","offers"}){JSONArray docs=all.getJSONArray(collection);for(int i=0;i<docs.length();i++){JSONObject doc=docs.getJSONObject(i);if(!doc.optString("pdf_storage_name").isEmpty())try{new BusinessDocumentStore(c).read(doc);}catch(Exception missing){throw new IOException("Vollständige Sicherung benötigt alle referenzierten Dokumente lokal.");}}}
+            JSONObject all=PixelMcpReadTools.effective(state);JSONArray photos=new JSONArray(all.getJSONArray("photos").toString());
+            JSONObject archived=OwnerJournalRules.archives(all);for(Iterator<String> it=archived.keys();it.hasNext();){String key=it.next();JSONObject entry=archived.getJSONObject(key);if(key.startsWith("photo:")&&entry.has("record"))photos.put(entry.getJSONObject("record"));}
+            for(int i=0;i<photos.length();i++){JSONObject photo=photos.getJSONObject(i),m=store.photoAttachment(photo.getString("id"));if(m==null)m=photo;
+                try{store.photoAttachmentStore().read(m);}catch(IOException absent){store.photoAttachmentStore().storeExpected(drive.readPhotoVerified(m),m);}
+            }
+            JSONArray documents=new JSONArray();for(String collection:new String[]{"invoices","offers"}){JSONArray docs=all.getJSONArray(collection);for(int i=0;i<docs.length();i++)documents.put(docs.getJSONObject(i));}
+            for(Iterator<String> it=archived.keys();it.hasNext();){String key=it.next();JSONObject entry=archived.getJSONObject(key);if((key.startsWith("invoice:")||key.startsWith("offer:"))&&entry.has("record"))documents.put(entry.getJSONObject("record"));}
+            for(int i=0;i<documents.length();i++){JSONObject doc=documents.getJSONObject(i);if(!doc.optString("pdf_storage_name").isEmpty())try{new BusinessDocumentStore(c).read(doc);}catch(IOException absent){new BusinessDocumentStore(c).store(drive.readDocumentVerified(doc),doc);}}
+            // Read the same publication again: a concurrent remote change invalidates this backup.
+            JSONObject latest=drive.readPrimary(new JSONObject(drive.read("HausGarten-Laptop.json")),device);
+            if(!primaryId.equals(latest.optString("drive_parent_publication_id"))||!PixelMcpWriteTools.hash(primary).equals(PixelMcpWriteTools.hash(latest)))throw new IOException("Drive-Stand während der Sicherung geändert. Sicherung erneut erstellen.");
             try(ZipOutputStream out=new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zip)))){
                 add(out,"database/local.sqlite",dbCopy);add(out,"snapshot/local.json",state.toString().getBytes(StandardCharsets.UTF_8));add(out,"snapshot/drive.json",raw.getBytes(StandardCharsets.UTF_8));add(out,"preview.json",preview.toString().getBytes(StandardCharsets.UTF_8));
                 add(out,"snapshot/drive-primary.json",primaryBytes);add(out,"snapshot/drive-primary-commit.json",manifest);
@@ -59,7 +71,7 @@ final class LegacyConflictBackup {
             }
             LegacyConflictRules.require(store.getState(),preview.getString("preview_hash"));
             if(!PixelMcpWriteTools.hash(state).equals(PixelMcpWriteTools.hash(store.getState())))throw new IOException("Lokaler Bestand wurde während der Sicherung geändert. Sicherung erneut erstellen.");
-            JSONObject meta=new JSONObject().put("backup_id",id).put("complete",true).put("scope","local_business_database_queue_all_local_media_and_drive_snapshot").put("complete_device_backup",false).put("preview_hash",preview.getString("preview_hash")).put("sha256",sha(zip)).put("byte_size",zip.length()).put("created_at",java.time.Instant.now().toString());
+            JSONObject meta=new JSONObject().put("backup_id",id).put("complete",true).put("scope","local_business_database_queue_all_local_media_and_drive_snapshot").put("confirmation_scope",drive.cloudVerified()?"drive_server_manifest":"provider_readback").put("cloud_confirmed",false).put("drive_publication_id",primaryId).put("complete_device_backup",false).put("preview_hash",preview.getString("preview_hash")).put("sha256",sha(zip)).put("byte_size",zip.length()).put("created_at",java.time.Instant.now().toString());
             store.putOwnerValue("legacy-backup:"+id,meta.toString());JSONObject result=new JSONObject().put("backup",meta).put("preview",preview);store.putOwnerValue("legacy-backup-request:"+PixelMcpWriteTools.hash(request),result.toString());complete=true;return result;
         } finally {if(dbCopy.exists())dbCopy.delete();if(!complete){zip.delete();directory.delete();}}
     }

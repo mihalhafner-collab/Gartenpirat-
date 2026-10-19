@@ -50,6 +50,10 @@ final class DriveDirectFiles extends DriveSyncCoordinator.Files {
         if(!PhotoAttachmentStore.canonicalName(name)||!hash.matches("[0-9a-f]{64}")||!name.startsWith(hash+"."))throw new IOException("Ungültige Löschreferenz.");
         JSONObject folder=client.unique(client.folder,"HausGarten-Fotos");if(folder!=null)client.deleteVerified(folder.getString("id"),name,hash);
     }
+    @Override void deleteDocumentFileVerified(JSONObject metadata)throws Exception{
+        String name=metadata.optString("pdf_storage_name"),hash=metadata.optString("pdf_sha256");if(!hash.matches("[0-9a-f]{64}")||!name.equals(hash+".pdf"))throw new IOException("Ungültige Dokument-Löschreferenz.");
+        JSONObject folder=client.unique(client.folder,"HausGarten-Dokumente");if(folder!=null)client.deleteVerified(folder.getString("id"),name,hash);
+    }
     @Override void writePhotoVerified(JSONObject metadata,PhotoAttachmentStore local)throws Exception{
         byte[] bytes=local.read(metadata);verifyBytes(bytes,metadata);client.put(client.ensureDirectory("HausGarten-Fotos"),metadata.getString("storage_name"),metadata.getString("mime_type"),bytes);
     }

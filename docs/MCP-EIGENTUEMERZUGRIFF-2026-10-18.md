@@ -228,3 +228,33 @@ Nach ausdrücklich freigegebenem gesichertem Update private Verbindung und
 ChatGPT-Toolkatalog neu initialisieren, danach Version/Hash/Get-Capabilities prüfen.
 Reale Prüfmatrix, Emulator-/Browser-/Host-Ergebnisse und verbleibende Grenzen:
 ausschließlich `CODEX-STATUS.md`. Keine neue externe Konto-/Drive-Freigabe erteilt.
+
+### Gemeinsame Papierkorbleerung / Cloud-Kandidat 1.49.6/75
+
+Quellkatalog91 Werkzeuge, internes Protokoll6. `preview_empty_trash` prüft alle
+Archivseiten und aktive Referenzen gemeinsam. `empty_trash` verlangt den aktuellen
+`expected_preview_hash`, `confirmed=true` und eine dauerhafte `request_id`.
+Die neue atomare Journalaktion `purge_trash_v1` benötigt `trash_empty_v1`;
+ältere Verarbeiter müssen sie zurückhalten. Abhängigkeiten innerhalb der
+bestätigten Archivmenge sind gemeinsam löschbar, geschützte Restfälle bleiben
+mit Begründung erhalten. Eine fehlgeschlagene Sammelaktion lässt sich nur mit
+geprüften Aktions-/Ausgangshashes und `keep_current` zurücknehmen.
+
+Der Legacy-Abschluss verwendet weiterhin vollständige private Sicherung,
+aktuelle Vorschau und `keep_current`. Eine vollständig nachgelesene, inhaltlich
+verifizierte Provider-Veröffentlichung wird nun für die Sicherung akzeptiert.
+Das setzt weiterhin bestehende Ordnerrechte, einen abgeschlossenen Abgleich und
+unveränderte State-/Commit-Kette voraus; fehlende Originale stoppen den Vorgang.
+Provider-Rücklesen wird ausdrücklich nicht zu `cloud_confirmed` umgedeutet.
+
+Foto- und Entwurfs-PDF-Bereinigung erst nach überprüfter Veröffentlichung und
+lokaler Übernahme; aktive/archivierte/offene Referenzen und gemeinsame Dateien
+bleiben geschützt. Historische Sicherungen und unveränderliche Belege bleiben
+erhalten. Keine pauschale Löschung des Google-Konto-Papierkorbs.
+
+Tatsächlich installierter Pixel bei dieser Umsetzung74/Protokoll5/89 Laufzeit-
+Werkzeuge; hier verbundener Katalog83. Nach gesichertem, ausdrücklich freigegebenem
+Update dieselbe Verbindung neu initialisieren/aktualisieren und tatsächliche
+91 Werkzeuge samt neuen Schemata prüfen. Bestehende Rechnungs-/Angebotswerkzeuge
+bleiben erhalten. Aktuelle Ausführung, Testergebnisse und Live-Grenzen nur im
+zentralen `CODEX-STATUS.md`; Quellimplementierung ist keine produktive Löschquittung.

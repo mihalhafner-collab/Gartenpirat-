@@ -25,13 +25,18 @@ final class ReleaseLifecycleProbe {
         runner.waitForIdleSync();SystemClock.sleep(1000);
         try(android.os.ParcelFileDescriptor screenshot=runner.getUiAutomation().executeShellCommand("screencap -p /data/local/tmp/gartenpirat-cloud-ui.png");java.io.InputStream stream=new android.os.ParcelFileDescriptor.AutoCloseInputStream(screenshot)){byte[] buffer=new byte[1024];while(stream.read(buffer)!=-1){}}
         require("true".equals(js(runner,view,"(()=>{openCustomer('qa_site');document.querySelector('[data-customer-tab=\"garden\"]').click();return currentPage==='customer-profile-page'&&document.querySelector('[data-customer-tab=\"garden\"]').getAttribute('aria-pressed')==='true';})()")));
-        require("true".equals(js(runner,view,"(()=>{TrashUI.open();return currentPage==='trash-page'&&document.getElementById('trash-content').innerText.length>0;})()")));
-        require("true".equals(js(runner,view,"(()=>{openPage('more-page');return !!document.querySelector('#more-page .more-destinations');})()")));
+        require("true".equals(js(runner,view,"(()=>{TrashUI.open();return currentPage==='trash-page'&&document.getElementById('trash-content').innerText.length>0&&!!document.getElementById('trash-empty');})()")));
+        require("true".equals(js(runner,view,"(()=>{openPage('more-page');return document.querySelectorAll('#more-page [data-more-group]').length===4&&document.querySelectorAll('#more-page [data-open-trash]').length===1;})()")));
     }
     static void require(boolean value){if(!value)throw new AssertionError("Lifecycle condition failed");}
     static String fingerprint(MainActivity.LocalStore store)throws Exception{
         JSONObject state=store.getState();
-        return PixelMcpWriteTools.hash(new JSONObject().put("master",state.getJSONObject("master")).put("pending",state.getJSONArray("pending")));
+        JSONObject master=new JSONObject(state.getJSONObject("master").toString());
+        // getState adds runtime handler capabilities. Exactly this new additive flag
+        // is expected across 74 -> 75; all prior capabilities, business fields and
+        // every pending byte remain part of the original baseline comparison.
+        JSONObject capabilities=master.optJSONObject("capabilities");if(capabilities!=null)capabilities.remove("trash_empty_v1");
+        return PixelMcpWriteTools.hash(new JSONObject().put("master",master).put("pending",state.getJSONArray("pending")));
     }
     static void run(Instrumentation runner,Context context,String mode){
         Bundle report=new Bundle();MainActivity.LocalStore store=null;

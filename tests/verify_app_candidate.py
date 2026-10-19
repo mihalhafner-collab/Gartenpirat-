@@ -63,7 +63,7 @@ def verify(apk, aapt, apksigner, baseline=None):
         raise ValueError('Nonempty operational seed')
     required = {'MainActivity', 'WorkSessionStore', 'DriveSyncCoordinator', 'PhotoCaptureProvider',
                 'PhotoAttachmentStore', 'PendingWorkPhotoStore','PixelOwnerAccess','PixelMcpOwnerTools','OwnerJournalRules','InvoiceDraftRules','ManualChangeRules','McpSchema','McpFileTransfer',
-                'DriveAccount','DriveConnectionActivity','DriveRestClient','DriveDirectFiles','DrivePublication','DriveSyncJob','SyncActionOrder','GardenRules','BusinessDocumentStore','PhotoPolicy','PhotoThumbnailProvider','LegacyConflictRules','LegacyConflictBackup','OfferRules','OfferJournalRules','OfferTools'}
+                'DriveAccount','DriveConnectionActivity','DriveRestClient','DriveDirectFiles','DrivePublication','DriveSyncJob','SyncActionOrder','GardenRules','BusinessDocumentStore','PhotoPolicy','PhotoThumbnailProvider','LegacyConflictRules','LegacyConflictBackup','LegacyBackupPolicy','TrashPurgeBatch','OfferRules','OfferJournalRules','OfferTools'}
     classes = dex_classes(apk)
     if not all('at.hausgarten.service.' + name in classes for name in required):
         raise ValueError('Required operative classes missing from DEX')

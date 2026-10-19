@@ -189,6 +189,7 @@ final class DriveJournalRules {
     private static String errorCode(Exception error){return error instanceof PixelMcpWriteTools.Rejected?((PixelMcpWriteTools.Rejected)error).code:error instanceof DriveRestClient.Failure?((DriveRestClient.Failure)error).code:error instanceof java.io.IOException?"IO_RETRY_REQUIRED":"INVALID_ACTION";}
     static boolean componentReady(JSONObject snapshot,String kind){
         JSONObject capabilities=snapshot.optJSONObject("capabilities");
+        if(kind.equals("purge_trash_v1"))return capabilities!=null&&capabilities.optBoolean("trash_empty_v1");
         if(kind.equals("purge_v1"))return capabilities!=null&&capabilities.optBoolean("trash_purge_v1");
         if(Arrays.asList("offer","offer_finalize","offer_convert").contains(kind))return capabilities!=null&&capabilities.optBoolean("offers_v1");
         if(kind.equals("service_template"))return capabilities!=null&&capabilities.optBoolean("service_catalog_v1");

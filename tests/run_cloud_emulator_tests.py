@@ -4,6 +4,8 @@ APKs must already be signed through tools/sign_original_apk.py. No key access,
 test app runtime, account login, uninstall, data clearing or device auto-selection.
 """
 import argparse
+from contextlib import contextmanager
+import fcntl
 import os
 from pathlib import Path
 import re
@@ -34,6 +36,34 @@ def require_emulator(adb, serial):
         raise ValueError('Wait for complete emulator startup before installing/testing.')
 
 
+@contextmanager
+def emulator_lock(serial, folder=None):
+    require_serial(serial)
+    directory = folder or ROOT / 'outputs' / 'cloud-emulator'
+    directory.mkdir(parents=True, exist_ok=True)
+    with (directory / (serial + '.lock')).open('a') as lock:
+        try:
+            fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as error:
+            raise ValueError('Another test owns this emulator. Finish that run first.') from error
+        try:
+            yield
+        finally:
+            fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+
+
+def successful_output(output, mode):
+    if re.search(r'\bFAIL(?:ED)?\b|INSTRUMENTATION_FAILED|Process crashed|acceptance failures=[1-9]', output):
+        return False
+    if mode == 'acceptance':
+        return bool(re.search(r'RESULT [0-9]+ Android SQLite/MCP tests passed; acceptance failures=0;', output))
+    expected = {'verify': 'PASS in-place update preserves complete snapshot',
+                'fresh': 'PASS fresh empty business data',
+                'prepare': 'PASS synthetic upgrade fixture prepared',
+                'ui': 'PASS native WebView boot'}
+    return expected.get(mode, '\0') in output
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--serial', required=True)
@@ -42,6 +72,11 @@ def main():
     parser.add_argument('--instrumentation-apk', type=Path)
     parser.add_argument('--mode', choices=['acceptance', 'fresh', 'prepare', 'verify', 'ui'], default='acceptance')
     args = parser.parse_args()
+    with emulator_lock(args.serial):
+        run(args)
+
+
+def run(args):
     require_emulator(args.adb, args.serial)
     for apk in [args.apk, args.instrumentation_apk]:
         if apk:
@@ -61,7 +96,7 @@ def main():
                        env=env, stdout=stream, stderr=subprocess.STDOUT, timeout=900, check=True)
     output = log.read_text()
     print(output)
-    if re.search(r'\bFAIL(?:ED)?\b|INSTRUMENTATION_FAILED|acceptance failures=[1-9]', output) or 'PASS' not in output:
+    if not successful_output(output, args.mode):
         raise SystemExit(1)
 
 

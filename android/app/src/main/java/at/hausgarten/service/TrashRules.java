@@ -90,10 +90,19 @@ final class TrashRules {
         JSONObject current=OwnerJournalRules.findOrNull(s.getJSONArray(OwnerJournalRules.group(entity)),id);
         if(entity.equals("customer")||entity.equals("service_template")){OwnerJournalRules.checkHash(current,saved.getString("archived_record_hash"));}
         else if(current!=null)throw new IllegalArgumentException("Die ID ist inzwischen wieder aktiv. Nichts gelöscht.");
-        JSONObject tombstone=new JSONObject().put("purged",true).put("purged_at",action.getString("created_at")).put("purge_action",action.getString("client_id")).put("archive_hash",p.getString("expected_record_hash"));
+        commitPurge(s,action,entity,id,saved);
+    }
+    /** Called only after all individual or common-set reference/version checks have passed. */
+    static void commitPurge(JSONObject s,JSONObject action,String entity,String id,JSONObject saved)throws Exception {
+        JSONObject record=saved.getJSONObject("record"),archive=OwnerJournalRules.archives(s);
+        String receipt=action.getString("client_id")+(TrashPurgeBatch.KIND.equals(action.optString("kind"))?":"+entity+":"+id:"");
+        JSONObject tombstone=new JSONObject().put("purged",true).put("purged_at",action.getString("created_at")).put("purge_action",receipt).put("archive_hash",OwnerJournalRules.version(saved));
         JSONObject media=new JSONObject();if(entity.equals("photo"))for(String field:new String[]{"content_sha256","storage_name","byte_size","mime_type","thumbnail_storage_name","thumbnail_sha256"})if(record.has(field))media.put(field,record.get(field));
         if(media.length()>0)tombstone.put("media",media);
-        OwnerJournalRules.replace(s,OwnerJournalRules.group(entity),id,null);archive.put(key,tombstone);
+        if((entity.equals("invoice")||entity.equals("offer"))&&!record.optString("pdf_storage_name").isEmpty()){
+            JSONObject document=new JSONObject();for(String field:new String[]{"document_id","pdf_storage_name","pdf_sha256","pdf_byte_size"})if(record.has(field))document.put(field,record.get(field));tombstone.put("document",document);
+        }
+        OwnerJournalRules.replace(s,OwnerJournalRules.group(entity),id,null);archive.put(entity+":"+id,tombstone);
     }
     static boolean referenced(JSONObject s,JSONArray pending,String name)throws Exception {
         if(name.isEmpty())return false;

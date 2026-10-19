@@ -1004,6 +1004,14 @@ public class MainActivity extends Activity {
             }finally{database.endTransaction();}
         }
         boolean hasOtherPhotoAttachment(String id,String hash){try(Cursor rows=getReadableDatabase().rawQuery("SELECT 1 FROM photo_attachments WHERE content_sha256=? AND photo_id<>? LIMIT 1",new String[]{hash,id})){return rows.moveToFirst();}}
+        void cleanupPurgedDocument(String key,JSONObject document,String marker)throws Exception{
+            SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{
+                JSONObject current=PixelMcpReadTools.effective(getState()),saved=OwnerJournalRules.archives(current).optJSONObject(key);
+                if(saved==null||!saved.optBoolean("purged")||!PixelMcpWriteTools.hash(saved.getJSONObject("document")).equals(PixelMcpWriteTools.hash(document)))throw new IllegalArgumentException("Dokument-Löschbeleg fehlt oder wurde geändert.");
+                if(!TrashRules.referenced(current,pendingActions(),document.optString("pdf_storage_name")))new BusinessDocumentStore(context).deleteVerified(document);
+                putOwnerValue(marker,"done");db.setTransactionSuccessful();
+            }finally{db.endTransaction();}
+        }
         void cleanupPurgedPhoto(String id,JSONObject media,String marker)throws Exception{
             SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{
                 JSONObject effective=PixelMcpReadTools.effective(getState());JSONArray queued=pendingActions();

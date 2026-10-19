@@ -8,10 +8,15 @@ final class TrashMediaCleanup {
     static JSONObject run(MainActivity.LocalStore store,DriveSyncCoordinator.Files files,JSONObject committed)throws Exception {
         JSONObject archive=OwnerJournalRules.archives(committed);int pending=0,done=0;String error="";
         for(Iterator<String> it=archive.keys();it.hasNext();){String key=it.next();JSONObject tombstone=archive.getJSONObject(key);
-            if(!key.startsWith("photo:")||!tombstone.optBoolean("purged")||!tombstone.has("media"))continue;
+            if(!tombstone.optBoolean("purged")||!tombstone.has("media")&&!tombstone.has("document"))continue;
             String marker="purge-cleaned:"+tombstone.getString("purge_action");if(store.ownerValue(marker,"").equals("done"))continue;
             pending++;if(done>=4)continue;
             try {
+                if(tombstone.has("document")){
+                    JSONObject document=tombstone.getJSONObject("document"),current=PixelMcpReadTools.effective(store.getState());JSONArray queued=store.pendingActions();
+                    if(!TrashRules.referenced(current,queued,document.optString("pdf_storage_name")))files.deleteDocumentFileVerified(document);
+                    store.cleanupPurgedDocument(key,document,marker);pending--;done++;continue;
+                }
                 JSONObject media=tombstone.getJSONObject("media"),current=PixelMcpReadTools.effective(store.getState());JSONArray queued=store.pendingActions();
                 String original=media.optString("storage_name"),thumb=media.optString("thumbnail_storage_name");
                 if(!TrashRules.referenced(current,queued,original)&&!store.hasOtherPhotoAttachment(key.substring(6),media.optString("content_sha256")))files.deletePhotoFileVerified(original,media.getString("content_sha256"));

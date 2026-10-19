@@ -215,6 +215,12 @@ final class DriveSyncCoordinator {
         byte[] readDocumentVerified(JSONObject metadata)throws Exception{
             String name=metadata.optString("pdf_storage_name");if(!name.matches("[0-9a-f]{64}\\.pdf"))throw new IOException("Ungültige Dokumentreferenz.");ArrayList<Doc> found=photoMatches(documentDirectory(false),name);if(found.size()!=1)throw new IOException("Original-PDF ist nicht eindeutig verfügbar.");byte[] bytes=readBytes(found.get(0).uri);checkDocument(bytes,metadata);return bytes;
         }
+        void deleteDocumentFileVerified(JSONObject metadata)throws Exception{
+            String name=metadata.optString("pdf_storage_name"),hash=metadata.optString("pdf_sha256");if(!hash.matches("[0-9a-f]{64}")||!name.equals(hash+".pdf"))throw new IOException("Ungültige Dokument-Löschreferenz.");
+            ArrayList<Doc> folders=matches("HausGarten-Dokumente");if(folders.isEmpty())return;if(folders.size()!=1)throw new IOException("Dokumentordner nicht eindeutig.");
+            Uri folder=folders.get(0).uri;ArrayList<Doc> found=photoMatches(folder,name);if(found.size()>1)throw new IOException("Dokumentdatei nicht eindeutig.");if(found.isEmpty())return;
+            checkDocument(readBytes(found.get(0).uri),metadata);if(!DocumentsContract.deleteDocument(resolver,found.get(0).uri)||!photoMatches(folder,name).isEmpty())throw new IOException("Dokumentlöschung noch nicht zurückgelesen.");
+        }
         void writeDocumentVerified(JSONObject metadata,byte[] bytes)throws Exception{
             checkDocument(bytes,metadata);String name=metadata.getString("pdf_storage_name");Uri folder=documentDirectory(true);ArrayList<Doc> found=photoMatches(folder,name);if(!found.isEmpty()){if(found.size()!=1)throw new IOException("PDF-Original ist nicht eindeutig. Keine Datei verändert.");checkDocument(readBytes(found.get(0).uri),metadata);return;}
             Uri temporary=DocumentsContract.createDocument(resolver,folder,"application/pdf",".uploading-"+UUID.randomUUID());if(temporary==null)throw new IOException("Dokument ist nicht beschreibbar.");boolean complete=false,publicationAttempted=false;Uri own=temporary;

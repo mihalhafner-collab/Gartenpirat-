@@ -20,6 +20,8 @@ const assert=require('node:assert/strict'),path=require('node:path'),fs=require(
      if(failDelete)return bad('Neue Version – nichts gelöscht');const group=a.entity==='photo'?'photos':'orders',row=fixture.master[group].find(x=>x.id===a.entity_id);if(!row)return bad('Nicht vorhanden');archive.unshift({archive_key:a.entity+':'+a.entity_id,record_hash:'new-archive-hash',entry:{record:row,archived_at:'2026-10-18T13:00:00Z'}});fixture.master[group]=fixture.master[group].filter(x=>x.id!==row.id);return ok({entity_id:row.id,local_state:'local_saved',cloud_confirmed:false});
     }
     if(name==='preview_purge'){const x=archive.find(x=>x.archive_key===a.entity+':'+a.entity_id);return x?ok({allowed:true,expected_record_hash:x.record_hash}):bad('Nicht im Papierkorb');}
+    if(name==='preview_empty_trash')return ok({total:archive.length,count:archive.length,blocked:[],preview_hash:'empty-'+archive.map(x=>x.record_hash).join('|')});
+    if(name==='empty_trash'){if(failPurge)return bad('Papierkorb wurde geändert');if(a.confirmed!==true||a.expected_preview_hash!=='empty-'+archive.map(x=>x.record_hash).join('|'))return bad('Ungültige Vorschau');const deleted=archive.length;archive=[];return ok({deleted,cloud_confirmed:false});}
     if(name==='purge_entity'){if(failPurge)return bad('Archiv wurde geändert');const x=archive.find(x=>x.archive_key===a.entity+':'+a.entity_id);if(!x||x.record_hash!==a.expected_record_hash||a.confirmed!==true)return bad('Ungültiger Löschvergleich');archive=archive.filter(v=>v!==x);return ok({local_state:'local_saved'});}
     if(name==='list_archive'){let rows=archive.filter(x=>(!a.entity||x.archive_key.split(':')[0]===a.entity)&&(!a.entity_id||x.archive_key.split(':')[1]===a.entity_id));return ok({archive:rows.slice(a.offset||0,(a.offset||0)+(a.limit||20)),total:rows.length});}
     if(name==='restore_entity'){
@@ -73,6 +75,19 @@ const assert=require('node:assert/strict'),path=require('node:path'),fs=require(
   await check('Settings are grouped on their existing page; More contains navigation',async()=>{
    assert.equal(await page.locator('#settings-page #photo-quality').count(),1);assert.equal(await page.locator('#more-page #photo-quality').count(),0);assert.equal(await page.locator('#settings-page [data-business-editor]').count(),1);
   });
+  await check('More groups all existing destinations and preserves native handlers',async()=>{
+   await page.waitForSelector('[data-more-group="data"]',{state:'attached'});
+   assert.equal(await page.locator('#more-page [data-more-group]').count(),4);
+   assert.equal(await page.locator('[data-more-group="work"] [data-open="orders"]').count(),1);
+   assert.equal(await page.locator('[data-more-group="billing"] [data-open="invoices"]').count(),1);
+   assert.equal(await page.locator('[data-more-group="media"] [data-open-garden-menu]').count(),1);
+   assert.equal(await page.locator('[data-more-group="data"] [data-open-trash]').count(),1);
+   assert.equal(await page.locator('#sync-page [data-open-trash]').count(),0);
+  });
+  await check('More labels stay readable at narrow widths and 150 percent font',async()=>{
+   for(const width of [320,360,426]){await page.setViewportSize({width,height:1000});await page.evaluate(()=>{document.documentElement.style.fontSize='24px';openPage('more-page');});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));const labels=await page.locator('#more-page .more-destinations button strong').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return{width:r.width,height:r.height,text:n.textContent};}));assert(labels.length>=9);assert(labels.every(x=>x.width>=140&&x.height<130&&x.text.trim().length));for(const b of await page.locator('#more-page .more-destinations button').all())assert((await b.boundingBox()).height>=44);}
+   await page.setViewportSize({width:320,height:1000});await page.screenshot({path:'outputs/more75-320.png',fullPage:true});await page.evaluate(()=>document.documentElement.style.fontSize='16px');
+  });
   await check('105 unassigned photos remain reachable with bounded lazy thumbnails',async()=>{
    await page.evaluate(()=>{fixture.master.photos=Array.from({length:105},(_,i)=>({id:'p'+i,customer_id:'',caption:'QA Foto '+i,updated_at:'t1',thumbnail_data:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j8S0AAAAASUVORK5CYII='}));load();openPage('more-page');});await page.locator('#more-page .more-destinations button').filter({has:page.locator('strong', {hasText:/^Fotos$/})}).click();await page.locator('#photo-library-scope').selectOption('unassigned');assert.equal(await page.locator('#photo-library-results [data-design-action="photo"]').count(),30);await page.locator('[data-library-next]').click();assert.equal(await page.locator('#photo-library-results [data-design-action="photo"]').count(),60);assert.equal(await page.locator('#photo-library-results img:not([loading="lazy"])').count(),0);assert.match(await page.locator('#photo-library-count').innerText(),/105/);
   });
@@ -89,6 +104,13 @@ const assert=require('node:assert/strict'),path=require('node:path'),fs=require(
   await check('Sync and trash remain readable at 320/360/426 and enlarged text',async()=>{
    for(const width of [320,360,426]){await page.setViewportSize({width,height:900});await page.evaluate(()=>document.documentElement.style.fontSize='24px');for(const target of ['sync','trash']){await page.evaluate(target=>target==='trash'?TrashUI.open():openPage('sync-page'),target);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));const button=page.locator(target==='sync'?'#sync':'[data-trash-restore="0"]');assert((await button.boundingBox()).height>=44);}}
    await page.screenshot({path:'outputs/trash320.png'});assert.deepEqual(errors,[]);
+  });
+  await check('Empty trash covers every page, supports cancel and durable retry, and preserves active data',async()=>{
+   await page.evaluate(()=>{archive=Array.from({length:136},(_,i)=>({archive_key:'worklog:trash-'+i,record_hash:'trash-hash-'+i,entry:{record:{id:'trash-'+i,activity:'QA alte Arbeit '+i},archived_at:'2026-07-31'}}));TrashUI.open();});
+   const active=await page.evaluate(()=>JSON.stringify(fixture.master));assert.equal(await page.locator('[data-trash-restore]').count(),30);assert(await page.locator('#trash-empty').isEnabled());
+   page.once('dialog',d=>{assert.match(d.message(),/136/);d.dismiss();});assert.equal(await page.evaluate(()=>TrashUI.empty()),false);assert.equal(await page.evaluate(()=>archive.length),136);
+   await page.evaluate(()=>failPurge=true);page.once('dialog',d=>d.accept());assert.equal(await page.evaluate(()=>TrashUI.empty()),false);const first=await page.evaluate(()=>calls.filter(x=>x.name==='empty_trash').at(-1).args.request_id);assert.equal(await page.evaluate(()=>archive.length),136);
+   await page.evaluate(()=>failPurge=false);page.once('dialog',d=>d.accept());assert.equal(await page.evaluate(()=>TrashUI.empty()),true);assert.equal(await page.evaluate(()=>calls.filter(x=>x.name==='empty_trash').at(-1).args.request_id),first);assert.equal(await page.locator('[data-trash-restore]').count(),0);assert(await page.locator('#trash-empty').isDisabled());assert.equal(await page.evaluate(()=>JSON.stringify(fixture.master)),active);
   });
   fs.mkdirSync('outputs',{recursive:true});fs.writeFileSync('outputs/sync-trash-results.json',JSON.stringify({environment:'Cloud Chromium',bridge:'synthetic',device:false,results},null,2));if(results.some(x=>x.result==='FAIL'))process.exitCode=1;
  }finally{await browser.close();}

@@ -59,6 +59,15 @@ final class DriveProviderAcceptance {
     static JSONObject action(String client,String id)throws Exception{return new JSONObject().put("client_id",client).put("kind","worklog").put("payload",new JSONObject().put("id",id).put("customer_id","qa_c1").put("work_date","2026-10-12").put("activity","QA "+id).put("hours",1));}
     static String pkg(JSONObject action)throws Exception{return new JSONObject().put("format",1).put("actions",new JSONArray().put(action)).toString();}
     static void run(PixelMcpInstrumentation qa)throws Exception{
+        qa.probe("provider trash document cleanup removes only unreferenced verified PDFs and is repeatable",()->{try(Setup s=new Setup(qa)){
+            s.sync();JSONObject snapshot=s.files.readPrimary(new JSONObject(s.files.read("HausGarten-Laptop.json")),"qadevice");PixelDriveState.prepare(snapshot);JSONObject archive=OwnerJournalRules.archives(snapshot);BusinessDocumentStore documents=new BusinessDocumentStore(s.io);
+            JSONObject[] metadata=new JSONObject[2];for(int i=0;i<2;i++){byte[] raw=("%PDF-1.4\n% Synthetic cleanup "+i+"\n%%EOF").getBytes(StandardCharsets.UTF_8);String sha=PhotoAttachmentStore.sha256(raw);metadata[i]=new JSONObject().put("document_id","offer:qa-doc-"+i).put("pdf_storage_name",sha+".pdf").put("pdf_sha256",sha).put("pdf_byte_size",raw.length);documents.store(raw,metadata[i]);s.files.writeDocumentVerified(metadata[i],raw);JSONObject record=new JSONObject(metadata[i].toString()).put("id","qa-doc-"+i).put("offer_number","").put("status","draft").put("customer_id","qa_c1");archive.put("offer:qa-doc-"+i,new JSONObject().put("record",record).put("archived_at","2026-10-18"));}
+            snapshot.getJSONArray("invoices").put(new JSONObject(metadata[0].toString()).put("id","qa-protected-document").put("customer_id","qa_c1").put("invoice_number","R-1").put("issued_at","2026-10-18").put("status","Gestellt").put("positions",new JSONArray()));
+            JSONObject preview=TrashPurgeBatch.preview(snapshot);qa.yes(preview.getInt("count")==2);JSONObject purge=new JSONObject().put("client_id","qa-provider-empty-documents").put("kind",TrashPurgeBatch.KIND).put("created_at","2026-10-19T00:00:00Z").put("payload",TrashPurgeBatch.payload(snapshot,preview.getString("preview_hash"),true));TrashPurgeBatch.apply(snapshot,purge);
+            s.files.publish(snapshot,new JSONArray());s.store.commitSnapshot(snapshot,new HashSet<>());
+            JSONObject cleaned=TrashMediaCleanup.run(s.store,s.files,snapshot);qa.yes(cleaned.getInt("pending")==0&&cleaned.getInt("completed")==2);qa.yes(documents.read(metadata[0]).length>0&&s.files.readDocumentVerified(metadata[0]).length>0);
+            boolean localMissing=false,remoteMissing=false;try{documents.read(metadata[1]);}catch(IOException expected){localMissing=true;}try{s.files.readDocumentVerified(metadata[1]);}catch(IOException expected){remoteMissing=true;}qa.yes(localMissing&&remoteMissing);qa.yes(TrashMediaCleanup.run(s.store,s.files,snapshot).getInt("completed")==0);
+        }});
         qa.probe("Android provider full write readback and local acknowledgement without laptop",()->{try(Setup s=new Setup(qa)){
             JSONObject created=s.store.execute("create_customer_work_record",qa.args("qa-provider-success")).getJSONObject("data");String client=created.getJSONObject("sync").getString("client_id");
             JSONObject result=s.sync();qa.yes(result.getBoolean("ok")&&!result.getBoolean("cloud_confirmed"));qa.yes(s.store.pendingActions().length()==0);qa.yes(s.store.getState().getJSONObject("master").getJSONArray("worklogs").length()==1);
@@ -91,10 +100,22 @@ final class DriveProviderAcceptance {
             qa.yes(s.files.readActions(MOBILE).length()==1&&s.store.getState().getJSONObject("master").getJSONArray("customers").length()==1);
         }});
         qa.probe("Android provider six deletes and one customer conflict stay protected across seven retries",()->{try(Setup s=new Setup(qa)){
+            String photo=s.store.savePhoto(new JSONObject().put("customer_id","qa_c1").put("original_name","QA-backup.gif").put("data",PixelMcpInstrumentation.VALID_GIF));s.sync();JSONObject media=s.store.photoAttachment(photo);
             for(int i=0;i<7;i++){android.content.ContentValues row=new android.content.ContentValues();row.put("id","qa-review-"+i);row.put("kind",i<6?"delete":"customer");row.put("payload",(i<6?new JSONObject().put("entity","worklog").put("id","qa-missing-"+i):new JSONObject().put("id","qa_c1").put("name","QA altered").put("_mcp_create",true)).toString());row.put("created_at","2026-10-13T01:00:0"+i+"Z");s.store.getWritableDatabase().insertOrThrow("pending",null,row);}
             for(int i=0;i<7;i++){JSONObject reviewed=s.sync();qa.yes(reviewed.getBoolean("ok")&&reviewed.getBoolean("needs_review"));}
             JSONObject state=s.store.getState(),q=state.getJSONObject("sync_queue");qa.yes(q.getInt("total")==7&&q.getInt("review")==7&&q.getInt("pending_upload")==0);
-            qa.yes(state.getJSONObject("master").getJSONArray("customers").getJSONObject(0).getString("name").equals("QA Kunde"));qa.yes(s.files.readActions(MOBILE).length()==7);
+            qa.yes(state.getJSONObject("master").getJSONArray("customers").getJSONObject(0).getString("name").equals("QA Kunde"));qa.yes(s.files.readActions(MOBILE).length()==8);
+            s.store.photoAttachmentStore().discardCreated(media);boolean missing=false;try{s.store.photoAttachmentStore().read(media);}catch(IOException expected){missing=true;}qa.yes(missing);
+            String before=PixelDriveState.integrity(state.getJSONObject("master")).getString("business_state_hash");
+            JSONObject backup=LegacyConflictBackup.createVerified(s.io,s.store,"qa-provider-seven-backup",s.files),meta=backup.getJSONObject("backup"),preview=backup.getJSONObject("preview");
+            qa.yes(meta.getBoolean("complete")&&meta.getString("confirmation_scope").equals("provider_readback")&&!meta.getBoolean("cloud_confirmed"));
+            qa.yes(s.store.photoAttachmentStore().read(media).length==media.getInt("byte_size"));
+            LegacyConflictBackup.verify(s.io,s.store,meta.getString("backup_id"),preview.getString("preview_hash"));
+            PixelOwnerAccess owner=new PixelOwnerAccess(s.io,s.store);JSONArray entries=preview.getJSONArray("entries");
+            for(int i=0;i<entries.length();i++){JSONObject args=new JSONObject(entries.getJSONObject(i).toString()).put("request_id","qa-provider-keep-current-"+i);args.remove("reason");owner.execute("resolve_sync_conflict",args);}
+            s.sync();qa.yes(s.store.pendingActions().length()==0&&before.equals(PixelDriveState.integrity(s.store.getState().getJSONObject("master")).getString("business_state_hash")));
+            qa.yes(s.store.getState().getJSONObject("master").getJSONObject("owner_conflict_history").length()==7&&s.files.readActions(MOBILE).length()==15);
+            s.sync();qa.yes(s.store.getState().getJSONObject("sync_queue").getInt("total")==0&&!s.prefs.getBoolean("drive_cloud_confirmed",false));
         }});
         qa.probe("Android provider wrong readback never acknowledges local action",()->{try(Setup s=new Setup(qa)){
             s.store.execute("create_customer_work_record",qa.args("qa-provider-bad-read"));s.provider.badReadback=true;

@@ -5,7 +5,7 @@ import java.util.*;
 
 /** Additive owner journal protocol. Old journals and immutable receipts survive. */
 final class OwnerJournalRules {
-    static final String[] KINDS={"purge_v1","archive","restore","conflict_resolution","invoice_payment","business_settings","invoice_correction"};
+    static final String[] KINDS={"purge_v1","purge_trash_v1","archive","restore","conflict_resolution","invoice_payment","business_settings","invoice_correction"};
     static boolean handles(String kind){return Arrays.asList(KINDS).contains(kind)||OfferJournalRules.handles(kind);}
     static JSONObject archives(JSONObject snapshot)throws Exception{JSONObject a=snapshot.optJSONObject("owner_archive");if(a==null){a=new JSONObject();snapshot.put("owner_archive",a);}return a;}
     static String group(String entity){return entity.equals("invoice")?"invoices":DriveJournalRules.collection(entity);}
@@ -18,6 +18,7 @@ final class OwnerJournalRules {
     static void checkHash(JSONObject row,String expected)throws Exception{if(!version(row).equals(expected))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Der geprüfte Stand hat sich verändert. Beide Varianten bleiben erhalten.");}
     static void apply(JSONObject snapshot,JSONObject action,Map<String,JSONObject> all,JSONObject resolved)throws Exception{
         String kind=action.getString("kind");JSONObject p=action.getJSONObject("payload");
+        if(kind.equals(TrashPurgeBatch.KIND)){TrashPurgeBatch.apply(snapshot,action);return;}
         if(kind.equals("purge_v1")){TrashRules.purge(snapshot,action);return;}
         if(kind.equals("invoice_correction")){InvoiceIssueRules.correction(snapshot,action);return;}
         if(OfferJournalRules.handles(kind)){OfferJournalRules.apply(snapshot,action);return;}
@@ -38,8 +39,8 @@ final class OwnerJournalRules {
             if(prior==null||!target.equals(prior.optString("client_id"))||!OrderReviewRules.actionHash(prior).equals(p.getString("expected_action_hash"))||resolved.has(target))throw new PixelMcpWriteTools.Rejected("ACTION_ID_CONFLICT","Die ursprüngliche Konfliktaktion wurde verändert, ist nicht mehr nachweisbar oder bereits geprüft.");
             if(embedded!=null&&!OrderReviewRules.actionHash(embedded).equals(p.getString("expected_action_hash")))throw new PixelMcpWriteTools.Rejected("ACTION_ID_CONFLICT","Der eingebettete Konfliktbeleg stimmt nicht mit dem geprüften Hash überein.");
             for(String errorKey:new String[]{"sync_errors","drive_journal_errors"}){JSONArray failures=snapshot.optJSONArray(errorKey);for(int i=0;failures!=null&&i<failures.length();i++){JSONObject failure=failures.getJSONObject(i);if(target.equals(failure.optString("client_id"))&&!Arrays.asList("WRITE_CONFLICT","DELETE_REVIEW_REQUIRED").contains(failure.optString("code"))&&!("keep_current".equals(p.optString("resolution"))&&DeletionRules.cancelable(prior,failure.optString("code"))))throw new PixelMcpWriteTools.Rejected("CONFLICT_RESOLUTION_NOT_AVAILABLE","Infrastrukturfehler darf nicht als Geschäftsentscheidung quittiert werden.");}}
-            boolean legacyDelete="delete".equals(prior.getString("kind")),purgeCancel="purge_v1".equals(prior.getString("kind")),archiveCancel="archive".equals(prior.getString("kind"))||purgeCancel;if(archiveCancel&&!"keep_current".equals(p.optString("resolution")))throw new PixelMcpWriteTools.Rejected("CONFLICT_RESOLUTION_NOT_AVAILABLE","Löschauftrag nur zurücknehmen oder anhand des aktuellen Stands neu prüfen.");String entity=(legacyDelete||archiveCancel)?prior.getJSONObject("payload").getString("entity"):prior.getString("kind"),collection=DriveJournalRules.collection(entity);if(collection.isEmpty())throw new IllegalArgumentException("Diesen Vorgang fachlich separat prüfen.");
-            JSONObject patch=prior.getJSONObject("payload"),current=purgeCancel?archives(snapshot).optJSONObject(entity+":"+patch.optString("id")):findOrNull(snapshot.getJSONArray(collection),patch.optString("id"));checkHash(current,p.getString("expected_current_hash"));
+            boolean legacyDelete="delete".equals(prior.getString("kind")),purgeCancel="purge_v1".equals(prior.getString("kind")),bulkCancel=TrashPurgeBatch.KIND.equals(prior.getString("kind")),archiveCancel="archive".equals(prior.getString("kind"))||purgeCancel||bulkCancel;if(archiveCancel&&!"keep_current".equals(p.optString("resolution")))throw new PixelMcpWriteTools.Rejected("CONFLICT_RESOLUTION_NOT_AVAILABLE","Löschauftrag nur zurücknehmen oder anhand des aktuellen Stands neu prüfen.");String entity=bulkCancel?"":(legacyDelete||archiveCancel)?prior.getJSONObject("payload").getString("entity"):prior.getString("kind"),collection=DriveJournalRules.collection(entity);if(!bulkCancel&&collection.isEmpty())throw new IllegalArgumentException("Diesen Vorgang fachlich separat prüfen.");
+            JSONObject patch=prior.getJSONObject("payload"),current=bulkCancel?TrashPurgeBatch.currentGuard(snapshot):purgeCancel?archives(snapshot).optJSONObject(entity+":"+patch.optString("id")):findOrNull(snapshot.getJSONArray(collection),patch.optString("id"));checkHash(current,p.getString("expected_current_hash"));
             JSONObject history=snapshot.optJSONObject("owner_conflict_history");if(history==null)history=new JSONObject();
             if(!p.optString("resolution").equals("keep_current")){
                 if(!p.optString("resolution").equals("apply_proposed"))throw new IllegalArgumentException("Ungültige Konfliktentscheidung.");

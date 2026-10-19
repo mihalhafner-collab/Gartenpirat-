@@ -9,7 +9,7 @@ import java.util.Iterator;
 
 /** Private Pixel MCP: shared UI snapshot, versioned writes and bounded file access. */
 public final class PixelMcpReadTools {
-    static final int PROTOCOL_VERSION = 5;
+    static final int PROTOCOL_VERSION = 6;
     public interface Source { JSONObject state() throws Exception; }
     private final Source source;
     private final PixelMcpWriteTools.Sink writer;
