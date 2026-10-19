@@ -1,3 +1,19 @@
+# Original-Prüfkandidat 1.50.1 / 77
+
+[APK über Drive herunterladen](https://drive.google.com/file/d/1s4GCUx3YcqtRE8elKCLuCXLjruuHW35i/view?usp=drivesdk) · [APK im privaten Repository](Haus-Garten-1.50.1-77-original-update-kandidat.apk?raw=true)
+
+Bestehende operative App **at.hausgarten.service**, **1.50.1/77**, **34.488.287 Bytes**. SHA256: `0024d12ca3137f326f61e1c454f062855357c73e385a179e34c20bb1230b818f`. Vorhandener Originalsigner, v2/v3 und16-KiB-Ausrichtung geprüft; kein Ersatzschlüssel.
+
+Neu: dedizierte versionsgeschützte Konfliktsicherung trotz LEGACY_SOURCE_CHANGED, Kompatibilität alter Hashes bei ausschließlich leeren additiven Sammlungen, lokaler atomarer keep_current-Sammelabschluss ohne zyklische Sync-Voraussetzung. Vollständige Sicherung und aktuelle Aktions-/Datensatzhashes bleiben Pflicht; echte fremde Geschäftsdatenänderungen bleiben gesperrt. Zusätzlich UI-MCP-Inventar, gemeinsame Auftragsprüfung, Planungseinstellungen, Wetterabgleich-Anforderung, atomarer Timerabschluss und paginierte gefilterte Fotolisten.
+
+**Cloud-Qualifikation:**273 Python-Tests,23 JVM-Suiten einschließlich993 Paritätsprüfungen,28 Browser-Suiten und abschließend124 native Android-/SQLite-/MCP-/Providerprüfungen ohne Fehler. Sieben synthetische Alt-Konflikte nach Sicherung geschlossen, keine alte Löschung/Geschäftsdatenänderung, Historie erhalten, Provider-Queue danach0. Fresh77 in neuem Emulatorprofil, vorhandener synthetischer Updatebestand/Timer und echte WebView-Navigation geprüft.409 Assets bytegleich; Source-/APK-Privacy bestanden. Einzelheiten und tatsächliche Grenzen in [CODEX-STATUS](../CODEX-STATUS.md).
+
+**Echter Pixel noch1.50.0/76:**104 Werkzeuge, Protokoll7, Allow all actions ausdrücklich bestätigt. Tatsächlicher letzter Sync weiterhin LEGACY_SOURCE_CHANGED mit sieben Reviews, keine Uploads, Geschäftshash unverändert, provider_readback/cloud_confirmed=false. Neue Quellfassung111 Werkzeuge/Protokoll8, Kataloghash `392fdfacf116c49e13306fcfc8c84ab49ee0ce20b35ca62d250fa069ecd1f2ff`. Nach vollständiger Sicherung und ausdrücklicher Installationsfreigabe normales Originalupdate, vorhandenen Tunnel/ChatGPT-Katalog aktualisieren, danach frische Konfliktsicherung/keep_current und Drive-Abschluss real prüfen. Keine automatische Pixel-Installation, keine Deinstallation oder App-Datenlöschung. Signierung und Emulatorabnahme ersetzen keinen Pixel-Update-/Datenerhalt-Test.
+
+Privater Upload im vorhandenen Buildordner; ID/Name/MIME/Eltern/Größe und Owner-only-Freigabe rückgelesen. Keine Betriebsdateien oder vorhandenen Kandidaten ersetzt.
+
+## Erhaltener Kandidat1.50.0/76 (historische Zustandsangaben)
+
 # Original-Prüfkandidat 1.50.0 / 76
 
 [APK über Drive herunterladen](https://drive.google.com/file/d/1HkgAS3mxW4qaT7m6n6qgEh-m8Cn5WPIJ/view?usp=drivesdk) · [APK im privaten Repository](Haus-Garten-1.50.0-76-original-update-kandidat.apk?raw=true)
