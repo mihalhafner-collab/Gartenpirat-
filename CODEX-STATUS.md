@@ -862,3 +862,25 @@ Kein Betriebsinhalt, keine angewendete Entscheidung. Hashes aus get_sync_conflic
 - PASS26JVM-Suiten (neue14Fehler-/Redaktionsvergleiche),55MCP-Szenarien, unveränderter Gesamtvertrag `899906c2…aa813`. Source/Workspace und bestehende Original80-APK erneut PASS,0Seeds. Native Ausgangsabnahme noch offen: Software-Android meldete Bootproperty vor erreichbarem ActivityManager; erster Aufruf ausdrücklich fehlgeschlagen, kein Teilerfolg behauptet. Kein physisches Gerät.
 - Messung: Reader2→1Switches,32→14Cases,31279→20263Bytes; OwnerTools2→1Switches,66→28Cases,25283→14781Bytes. Fachliche Queryzweige existieren einmal je Domäne, Schemafelder einmal je Builder; keine parallele Runtime. UI- und Domain-/Datenformatverträge unverändert.
 - Nächster Schritt R2: Use Cases nacheinander hinter einen Android-/SQL-freien Repositoryvertrag stellen; nach jeder Domäne vollständige JVM-/Vertragsregression.
+
+- R2 Teilabnahme Offer: vollständige26JVM-Suiten und eingefrorener P1-Vertragsvergleich PASS; Originalalgorithmen hinter OwnerRepository, keine Betriebsdaten.
+
+- R2 Teilabnahme Work: vollständige26JVM-Suiten und eingefrorener P1-Vertragsvergleich PASS; Originalalgorithmen hinter OwnerRepository, keine Betriebsdaten.
+
+- R2 Teilabnahme Photo: vollständige26JVM-Suiten und eingefrorener P1-Vertragsvergleich PASS; Originalalgorithmen hinter OwnerRepository, keine Betriebsdaten.
+
+- R2 Teilabnahme SyncArchive: vollständige26JVM-Suiten und eingefrorener P1-Vertragsvergleich PASS; Originalalgorithmen hinter OwnerRepository, keine Betriebsdaten.
+
+- R2 Teilabnahme Settings: vollständige26JVM-Suiten und eingefrorener P1-Vertragsvergleich PASS; Originalalgorithmen hinter OwnerRepository, keine Betriebsdaten.
+
+- R2 Teilabnahme Invoice: vollständige26JVM-Suiten und eingefrorener P1-Vertragsvergleich PASS; Originalalgorithmen hinter OwnerRepository, keine Betriebsdaten.
+
+- R2 Teilabnahme Planning: vollständige26JVM-Suiten und eingefrorener P1-Vertragsvergleich PASS; Originalalgorithmen hinter OwnerRepository, keine Betriebsdaten.
+
+## P1 – R2 Application Services abgeschlossen (19.10.2026)
+
+- Alle sieben Ownerdomänen einzeln herausgelöst, jeweils komplette26JVM-/Vertragsregression danach PASS (Teilabnahmen oben). EntityApplicationService/EntityContract trennen zusätzlich Kunden-/Auftrags-/Rechnungsentwurfsabläufe von MCP-Schemata; nach dieser Domäne ebenfalls vollständige Regression PASS. Gemeinsame OwnerCommand-/OwnerRepository-Ports enthalten keine Android-/SQL-/UI-Typen. Router hängt von den Ports ab; Services hängen nicht vom Router ab. Atomare SQLite-/Replay-Grenze unverändert in nativer Implementierung.
+- Schlussprüfung PASS27JVM-Suiten einschließlich79 direkter Service-/Port-/CAS-/Referenz-/Datei-/Konto-/Backup-/Seiteneffektprüfungen,55MCP-E2E; Vertrag weiterhin exakt `899906c2…aa813`. Erster neuer Service-Test übergab berechnete/stored Felder als MCP-Eingabe und wurde korrekt abgewiesen; Fixture auf erlaubte Eingabefelder begrenzt, kein Schema oder Schutz geändert.
+- Gradle Release/AndroidTest PASS; Source/Workspace und tatsächliche neue unsigned Zwischen-APK Artifact PASS,0Seeds. Nicht signiert/ausgeliefert/installiert. Bestehende Original80 unverändert. OwnerAccess61731→34720Bytes,58→21Cases,38→29Projektabhängigkeiten; fachliche Kommandos hinter testbarem Effektport statt im nativen Dispatch.
+- Zusätzliche native Vorher-Abnahme jetzt tatsächlich134/0 PASS auf unveränderter Original80. Eingangsledger nur im RAM verarbeitet: SHA256 `be1523c98d2fced2b5b446a9191b7d37be4dc98c56a169d2659cc3047fe407af`,3QA-Kunden/1Auftrag/2Arbeiten/1Pending,0Fotos/Rechnungen/Angebote,32öffentlicheBausteine/0Termine. Frühere Boot-/Timeoutversuche keine Erfolge; nach vollständiger Systembereitschaft gelaufen. Dies ist die Vorher-Abnahme, noch kein nativer Nachher-Nachweis des Refactorings.
+- Nächster Schritt R3: vorhandenen SQLite-Store aus Activity-Lifecycle lösen, native Effekte/Receipts hinter LocalOwnerRepository und Snapshotprojektion gemeinsam halten. Keine Datenformat-/Pfad-/IDmigration.
