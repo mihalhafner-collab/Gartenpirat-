@@ -906,6 +906,161 @@ Nach jeder abgeschlossenen Phase dokumentieren:
 
 Keine langen Freitext-Tagebücher; nur belastbare technische Zustände.
 
+## 29a. Zusätzliche Architektur- und Bedienverbesserungen – verbindlich prüfen
+
+Diese Punkte sind kein kosmetischer Zusatz, sondern dienen dazu, wiederkehrende Fehlerklassen strukturell zu beseitigen.
+
+### A. Single Source of Truth für MCP-Verträge
+
+Schema, Validator, UI und Tests dürfen zentrale Domänenwerte nicht unabhängig voneinander definieren.
+
+Besonders zentralisieren:
+
+- `price_source`
+- Dokumentarten
+- Statuswerte
+- Steuerarten
+- Pflichtfelder
+- Rollen / Rechte
+- destruktive Bestätigungsparameter
+- zulässige Vertragswege
+- Archiv-/Restore-/Purge-Zustände
+
+Ziel: Ein Wert, den das MCP-Schema akzeptiert, darf nicht erst später vom Validator wegen einer abweichenden versteckten Konstante abgelehnt werden.
+
+Contract-Test: alle Enum-/Pflichtfelddefinitionen zwischen Tool-Schema und Validator automatisch vergleichen.
+
+### B. Source-/APK-Provenienz
+
+Es muss jederzeit eindeutig nachweisbar sein, welcher Git-Commit auf dem Pixel installiert ist.
+
+Erforderlich:
+
+- versionName/versionCode aus derselben Releasequelle
+- Commit-SHA oder Build-Provenienz im Diagnosebereich lesbar
+- kein Repository-Stand hinter installiertem Produktiv-Build
+- Release darf nicht gebaut werden, wenn `build.gradle` hinter der installierten Baseline liegt
+- Buildbericht enthält Commit, Version, versionCode, APK-SHA256 und Zertifikat-SHA256
+
+### C. UI→MCP-Parität als automatischer Contract-Test
+
+Nicht nur manuell zählen.
+
+Build-/Testschritt muss für alle 156 semantischen UI-Aktionen prüfen:
+
+1. MCP-Pfad vorhanden, oder
+2. ausdrücklich `platform_only` mit Begründung.
+
+Fehlende oder unbekannte Zuordnungen => Test FAIL.
+
+`get_ui_action_catalog` darf nicht still bei 50 Aktionen abschneiden. Entweder vollständige Rückgabe oder explizite Pagination mit `offset/limit/next_cursor`.
+
+### D. Höherwertige Voice-Tools
+
+111 Einzeltools bleiben als technische Grundlage bestehen. Zusätzlich prüfen, ob häufige Sprachabläufe durch fachlich atomare Tools robuster werden.
+
+Kandidaten:
+
+- Arbeit bei Kunde starten
+- Arbeit beenden und Arbeitsnachweis speichern
+- offene Arbeitszeiten eines Kunden zu Rechnungsentwurf zusammenfassen
+- Angebot aus bestätigten Leistungen/Preisen erstellen und validieren
+- Angebot finalisieren und Versand vorbereiten
+- Fotos aufnehmen/hochladen und eindeutig Kunde/Auftrag/Worklog zuordnen
+- Sync prüfen und nur bei echtem Handlungsbedarf melden
+
+Diese Tools dürfen bestehende Sicherheitsprüfungen nicht umgehen. Intern weiterhin Hashes, request_id, Preview und bestätigte Ziel-IDs verwenden.
+
+### E. Sprachsichere Aktionsklassen
+
+Bedienmodell prüfen:
+
+- Read-only: direkt ausführbar
+- reversible Low-Risk Writes: direkt nach klarer Sprachabsicht
+- geschäftlich bindende Aktionen: kurze explizite Bestätigung
+- endgültige/destruktive Aktionen: Preview + Hash + `confirmed=true`
+
+Keine zusätzliche Sicherheitsabfrage nur aus Gewohnheit einbauen, wenn die Plattformfreigabe und der fachliche Vertrag bereits eine eindeutige Freigabe darstellen.
+
+### F. Angebotsversand Ende-zu-Ende
+
+Ziel für vollständig sprachbedienbaren Ablauf:
+
+1. Angebot validieren
+2. finalisieren
+3. Original-PDF erzeugen
+4. PDF per MCP-Dateipfad sicher lesbar machen
+5. Versand an bestätigte Kundenadresse über verbundenen Mailkanal vorbereiten
+6. tatsächlichen Versand nur auf ausdrückliche Nutzeranweisung
+7. Versand-ID / Zeitstempel als separate Versandquittung erfassen
+8. nie `sent` behaupten, bevor der Mailanbieter den Versand bestätigt
+
+Wenn Android `prepare_offer_share` Geräteinteraktion benötigt, diese Plattformgrenze sauber von einem möglichen direkten Gmail-MCP-Versand trennen.
+
+### G. Testdaten-Isolation
+
+Technische Schreibtests ausschließlich mit:
+
+`cus_mobile_mcp_cff36e205f50a96f92d9d8872a75022a`
+
+`MCP FUNKTIONSTEST – KEIN ECHTER KUNDE`
+
+Zusätzlich Schutzmechanismus prüfen:
+
+- Testangebote/-rechnungen/-aufträge nur an Testdatensätzen
+- `test_record=true` als erkennbare Schranke
+- `[TEST]`-Dokumente dürfen nicht versehentlich an reale externe Empfänger versendet oder produktiv finalisiert werden
+- Regressionstest dafür ergänzen
+
+Der aktuell vorhandene 1-EUR-Testentwurf am echten Kunden Michael Hilpert muss nach erfolgreichem neuen Build kontrolliert bereinigt werden.
+
+### H. MCP-Self-Test
+
+Neues read-only Diagnose-/Self-Test-Tool prüfen, das ohne produktive Datenänderung mindestens testet:
+
+- App-/MCP-Version
+- Tool-Katalog und Hash
+- Write-Gate
+- Business Settings Vollständigkeit
+- Drive-Konfiguration
+- Sync-Status
+- Service Catalog / Offers Capabilities
+- Datei-/PDF-Speicher erreichbar
+- benötigte Plattformgrenzen
+- UI→MCP-Paritätsstatus
+
+Ausgabe kompakt als PASS / FAIL / NOT TESTABLE je Teilprüfung.
+
+Keine echten Kunden- oder Rechnungsdaten in Diagnoseausgabe aufnehmen.
+
+### I. Legacy-Reviews aus Normalbetrieb entfernen
+
+Nach erfolgreichem Build und neuem Backup die sieben historischen Review-Fälle mit dem bereits geprüften `keep_current`-Workflow abschließen, sofern Preview/Hashes unverändert bestätigen:
+
+- keine alten Löschungen
+- keine Geschäftsdatenänderung
+- Konflikthistorie erhalten
+
+Danach soll `get_sync_overview` nicht dauerhaft `review_required` nur wegen historischer Altlasten anzeigen.
+
+### J. Business Settings als zentraler Ausstellerkontext
+
+Angebote, Rechnungen, PDFs und Versandtexte müssen dieselben bestätigten Stammdaten verwenden.
+
+Keine getrennten Defaults pro Dokumentpfad.
+
+Persistenz- und Konsistenztests für:
+
+- owner_name
+- business_name
+- Adresse
+- Telefon
+- E-Mail
+- Steuerhinweis
+- Zahlungsbedingungen
+- Bankdaten
+- UID bzw. Kleinunternehmermodus
+
 ## 30. Abschlussregel
 
 Nicht versuchen, die alte Laptop-Architektur lediglich wieder zum Laufen zu bringen.
