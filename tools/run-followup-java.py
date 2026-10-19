@@ -68,3 +68,5 @@ for test in tests:
     results.append({'suite': test.stem, 'result': 'PASS', 'summary': output.strip().splitlines()[-1]})
     print(results[-1], flush=True)
 (classes.parent/'results.json').write_text(json.dumps({'suites': results, 'cross_language_hash': 'PASS'}, indent=2))
+if (ROOT/'tests/fixtures/refactoring-baseline.json').exists():
+    print(run([sys.executable, str(ROOT/'tools/check_refactoring_contract.py')]).strip())
