@@ -1061,6 +1061,277 @@ Persistenz- und Konsistenztests für:
 - Bankdaten
 - UID bzw. Kleinunternehmermodus
 
+## 29b. Kostenvoranschlag vollständig implementieren und bestehende Angebotslogik konsolidieren
+
+Dieser Punkt ist verbindlich und gehört zum selben Release wie die oben beschriebenen MCP-/Angebotskorrekturen.
+
+### Ausgangslage
+
+Im Repository existieren bereits Teilbausteine für Kostenvoranschläge, insbesondere Dokumentarten wie:
+
+- `estimate_nonbinding`
+- `estimate_binding`
+
+sowie PDF-/Darstellungslogik in der bestehenden Angebots-/Dokumentpipeline.
+
+Diese Teilimplementierung darf **nicht** durch einen zweiten, unabhängigen Dokumentpfad ersetzt werden. Codex soll den vorhandenen Angebots-/Kostenvoranschlags-Pfad konsolidieren und als Single Source of Truth fertigstellen.
+
+### Zielbild
+
+Kostenvoranschläge müssen als eigener fachlicher Dokumenttyp innerhalb derselben konsistenten Business-Dokumentarchitektur funktionieren.
+
+Unterstützt werden mindestens:
+
+1. unverbindlicher Kostenvoranschlag
+2. verbindlicher Kostenvoranschlag
+3. normales Angebot / Fixpreisangebot
+4. Zeit-/Material-Angebot, falls im bestehenden Modell vorgesehen
+
+Die Dokumentarten müssen in UI, MCP, Validator, PDF, Persistenz, Sync und Tests identisch verstanden werden.
+
+### Datenmodell
+
+Prüfe und vereinheitliche mindestens:
+
+- `document_type`
+- `pricing_mode`
+- Bindungsart
+- Gültigkeitsdatum
+- Annahmen
+- Ausschlüsse
+- Hinweise
+- Zahlungsbedingungen
+- Positionen
+- Menge
+- Einheit
+- Einzelpreis
+- Preisquelle
+- Steuerart / Steuerbetrag
+- Netto / Brutto
+- Ausstellerdaten
+- Empfängerdaten
+- Status
+- Finalisierungszeitpunkt
+- PDF-Metadaten
+- Versandstatus
+
+Keine versteckten Defaultwerte, die UI und MCP unterschiedlich behandeln.
+
+### Preislogik
+
+Der bereits gefundene `price_source`-Fehler ist auch für Kostenvoranschläge verbindlich zu berücksichtigen.
+
+`user_confirmed` muss schema-, validator- und persistenzseitig identisch behandelt werden.
+
+Für Kostenvoranschläge muss außerdem klar abgebildet sein, ob ein Preis:
+
+- vom Nutzer bestätigt
+- aus Leistungskatalog übernommen
+- berechnet
+- geschätzt
+
+ist.
+
+Nur tatsächlich unterstützte Enum-Werte zulassen. Keine freien Fantasiewerte.
+
+### Unverbindlich vs. verbindlich
+
+Die beiden Kostenvoranschlagsarten dürfen nicht nur unterschiedliche PDF-Texte sein.
+
+Prüfe, welche Unterschiede fachlich im Datenmodell und Verhalten erforderlich sind.
+
+Mindestens muss eindeutig gespeichert und abrufbar sein:
+
+- Dokumentart
+- Bindungsstatus
+- zugehöriger Hinweistext
+- Gültigkeit
+- eventuelle Annahmen / Ausschlüsse
+
+Keine Rechtswirkung erfinden oder aus Bezeichnungen ableiten, die im Code nicht fachlich definiert ist.
+
+Rechtstexte nicht stillschweigend verändern. Vorhandene Texte gegen die tatsächlich gewünschte österreichische Betriebslogik prüfen und als zentral konfigurierte Dokumenttexte behandeln, nicht mehrfach hardcoden.
+
+### MCP-Funktionsumfang
+
+Der Kostenvoranschlags-Pfad muss vollständig über MCP bedienbar sein.
+
+Mindestens prüfen bzw. implementieren:
+
+- Entwurf erstellen
+- Entwurf lesen
+- Entwurf bearbeiten
+- validieren
+- Dokumentart setzen/ändern, solange fachlich erlaubt
+- Positionen hinzufügen/ändern/löschen
+- Preise/Preisquellen setzen
+- Annahmen/Ausschlüsse/Hinweise setzen
+- finalisieren
+- PDF erzeugen
+- PDF abrufen
+- Share/Versand vorbereiten
+- Versandstatus getrennt vom Finalisierungsstatus führen
+- duplizieren
+- in Auftrag überführen, sofern bestehender Workflow dies unterstützt
+- Suche/Liste/Filter nach Dokumentart und Status
+
+Keine neue Parallelfamilie wie `create_estimate_*`, wenn die vorhandenen `create_offer_*`-Tools mit sauberem `document_type` fachlich korrekt erweitert werden können.
+
+Wenn getrennte Tools technisch doch erforderlich sind, muss Codex dies im Abschlussbericht begründen.
+
+### UI
+
+Die UI muss Kostenvoranschläge explizit und verständlich unterstützen.
+
+Mindestens:
+
+- Dokumentart auswählbar
+- verbindlich/unverbindlich klar sichtbar
+- Entwurf vs. finalisiert klar sichtbar
+- Kostenpositionen einfach erfassbar
+- Summen jederzeit nachvollziehbar
+- Pflichtfeldfehler feldbezogen anzeigen
+- PDF-Vorschau
+- kein automatischer Versand
+- bestehendes Design beibehalten
+- keine doppelte Angebots-/Kostenvoranschlags-Oberfläche erzeugen, wenn eine gemeinsame Oberfläche mit Dokumentart genügt
+
+### PDF
+
+PDF-Erzeugung muss denselben bestätigten Datensatz verwenden wie UI und MCP.
+
+Prüfen:
+
+- korrekte Dokumentbezeichnung
+- korrekte Aussteller-/Empfängerdaten
+- Datum / Gültigkeit
+- Positionen
+- Netto/Steuer/Brutto
+- Kleinunternehmerlogik
+- Annahmen
+- Ausschlüsse
+- Hinweise
+- Zahlungsbedingungen
+- zentral definierter Text für verbindlich/unverbindlich
+- Dateiname
+- Dokument-ID
+- PDF-SHA256
+- erneuter Readback identisch zum finalisierten Datensatz
+
+Keine PDF-Erzeugung aus separaten veralteten Defaults.
+
+### Statusmodell
+
+Statuslogik vereinheitlichen.
+
+Mindestens unterscheiden:
+
+- draft
+- validated
+- finalized
+- share_prepared
+- sent
+
+`sent` darf ausschließlich gesetzt werden, wenn der externe Versand tatsächlich bestätigt wurde.
+
+`prepare_offer_share` bzw. dessen Kostenvoranschlags-Nutzung darf niemals allein `sent` setzen.
+
+### Testdaten
+
+Alle technischen Kostenvoranschlags-Tests ausschließlich mit dem bestehenden Testkunden und Testflag.
+
+Keine realen Kunden verwenden.
+
+Der bestehende 1-EUR-Testentwurf am echten Kunden Michael Hilpert ist nach erfolgreichem Build kontrolliert zu bereinigen, ohne andere Kundendaten zu verändern.
+
+### Automatisierte Tests
+
+Mindestens ergänzen:
+
+1. unverbindlicher Kostenvoranschlag vollständig gültig
+2. verbindlicher Kostenvoranschlag vollständig gültig
+3. ungültiger `document_type`
+4. `price_source=user_confirmed` PASS
+5. ungültige Preisquelle FAIL
+6. fehlende Pflichtfelder FAIL
+7. Summenberechnung
+8. Kleinunternehmermodus
+9. Standardsteuer-Modus
+10. PDF für unverbindlich
+11. PDF für verbindlich
+12. PDF-Readback
+13. Finalisierung
+14. Finalisierung mit veraltetem Hash FAIL
+15. Share-Vorbereitung
+16. `sent` ohne Versandbestätigung darf nicht möglich sein
+17. Sync + Neustart + Readback
+18. Testdaten-Isolation
+19. UI-/MCP-`document_type`-Parität
+20. Migration bestehender Angebots-/Kostenvoranschlagsdaten ohne Datenverlust
+
+### Migration und Rückwärtskompatibilität
+
+Bestehende Angebote/Kostenvoranschläge dürfen durch die Konsolidierung nicht beschädigt werden.
+
+Codex muss:
+
+- vorhandene Dokumentarten inventarisieren
+- bestehende Datensätze migrieren oder kompatibel lesen
+- unbekannte/alte Typen sauber melden
+- keine Daten stillschweigend umdeuten
+- Regressionstest mit altem Snapshot ergänzen
+
+### Zusammenhang mit bereits gefundenen Fehlern
+
+Der Kostenvoranschlags-Block ist gemeinsam mit folgenden bereits bekannten Punkten zu lösen:
+
+- MCP-Schema/Validator-Drift bei `price_source`
+- UI-Aktionskatalog meldet mehr Aktionen als abrufbar
+- Tool-/UI-Abdeckung als Contract-Test
+- Testdaten an realem Kunden
+- Build-/APK-Provenienz
+- Business Settings als zentrale Ausstellerquelle
+- Angebots-/Dokumentversand Ende-zu-Ende
+- strukturierte Fehlerantworten
+- Self-Test / Diagnose
+- Versions- und Katalog-Hash-Verifikation nach neuem Build
+
+Keine Einzellösung implementieren, die diese Architekturprobleme umgeht.
+
+### Abnahmekriterien Kostenvoranschlag
+
+Der Kostenvoranschlag gilt erst als fertig, wenn:
+
+- UI PASS
+- MCP create/read/update/validate/finalize PASS
+- beide Dokumentarten PASS
+- PDF PASS
+- PDF-Readback PASS
+- Sync/Restart PASS
+- Testdaten-Isolation PASS
+- Schema/Validator-Contract PASS
+- keine Produktivdaten verändert
+- kein Versand ohne explizite Nutzerfreigabe
+- keine falsche `sent`-Markierung
+- bestehende Daten weiterhin lesbar
+- neuer originalsignierter APK-Build erfolgreich
+- neuer Build-Fingerprint über MCP eindeutig nachweisbar
+
+Wenn einer dieser Punkte FAIL oder NOT TESTABLE ist, im Abschlussbericht offen ausweisen und den Auftrag nicht als vollständig abgeschlossen markieren.
+
+### Arbeitsweise für Codex
+
+Codex soll vor Implementierung den bestehenden Pfad vollständig inventarisieren und danach die kleinste konsistente Änderung durchführen.
+
+Keine zweite Dokumentarchitektur aufbauen.
+Keine großflächige Nebenrefaktorierung.
+Keine produktiven Kundendaten für Tests verwenden.
+Keine Rechts-/Steuerdaten erfinden.
+Keine erfolgreiche Geräteinstallation oder Live-Verifikation behaupten, wenn kein physischer Zugriff bestand.
+
+`CODEX-STATUS.md` nach jeder abgeschlossenen Phase aktualisieren.
+
+
 ## 30. Abschlussregel
 
 Nicht versuchen, die alte Laptop-Architektur lediglich wieder zum Laufen zu bringen.
