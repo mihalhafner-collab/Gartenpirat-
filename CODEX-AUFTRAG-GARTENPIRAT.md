@@ -46,6 +46,225 @@ Vor jeder Änderung:
 
 Neuere Änderungen niemals überschreiben.
 
+
+## P0 – Repository dauerhaft frei von produktiven Betriebsdaten machen
+
+Dieser Block hat Vorrang vor allen nicht sicherheitskritischen Erweiterungen. Ziel ist eine harte technische Trennung zwischen Programmcode und Produktivdaten, damit Codex Cloud den vollständigen Quellstand bearbeiten, bauen und testen kann, ohne reale Kunden-, Arbeits-, Rechnungs-, Angebots-, Foto-, Drive- oder Backupdaten sehen oder benötigen zu müssen.
+
+### P0.1 Zielarchitektur
+
+Verbindliche Trennung:
+
+- GitHub / Codex Cloud: ausschließlich Quellcode, öffentliche Katalog-/Markendaten, leere Bootstrap-Daten und synthetische QA-Fixtures.
+- Pixel: operative Datenbank, Kunden, Aufträge, Arbeitsaufzeichnungen, Angebote, Rechnungen, Fotos und lokale Dokumente.
+- Google Drive: produktiver Sync-, Austausch-, Dokument- und Sicherungspfad.
+- Externer privater Sicherungsspeicher: optionale Rohbackups außerhalb des Git-Checkouts.
+- Keine produktiven Rohdaten zurück in den Repository-Workspace.
+
+.gitignore allein gilt ausdrücklich nicht als ausreichende Schutzmaßnahme: ignorierte Dateien innerhalb des Checkouts sind weiterhin für lokale Werkzeuge/Codex lesbar.
+
+### P0.2 Zentrale Datenpfad-Regel
+
+Eine zentrale Pfadabstraktion einführen, z. B. runtime_paths.py bzw. eine äquivalente gemeinsame Konfiguration.
+
+Produktive Betriebsdaten dürfen nur über einen externen privaten Root erreichbar sein, vorzugsweise HG_PRIVATE_DATA_ROOT.
+
+Verbindliche Regeln:
+
+1. Produktive Datenpfade dürfen nicht implizit auf ROOT/data, ROOT/outputs, android/.../assets oder andere Unterverzeichnisse des Repositorys zurückfallen.
+2. Ist HG_PRIVATE_DATA_ROOT nicht gesetzt, müssen produktive Backup-/Export-/Importfunktionen fail-closed abbrechen.
+3. Löst sich HG_PRIVATE_DATA_ROOT innerhalb des Repositorys auf, muss der Vorgang mit klarer Fehlermeldung abbrechen.
+4. Testpfade verwenden ausschließlich tempfile/isolierte synthetische Stores und niemals HG_PRIVATE_DATA_ROOT.
+5. Secrets bleiben weiterhin getrennt von Betriebsdaten und dürfen ebenfalls nicht in den Workspace.
+
+### P0.3 initial-data.json unveränderlich als leerer Bootstrap
+
+android/app/src/main/assets/initial-data.json bleibt dauerhaft ein leerer, schemafähiger Bootstrap-Datensatz.
+
+Verbindlich:
+
+- alle betrieblichen Collections leer;
+- keine Kunden-, Arbeits-, Rechnungs-, Foto-, Angebots- oder Auftragsdaten;
+- kein produktives Tool darf diese Datei mit Live-Daten überschreiben;
+- Quelltest muss Schreibzugriffe auf initial-data.json erkennen und blockieren, außer ausdrücklich erlaubter Erzeugung des leeren Bootstrap-Inhalts.
+
+export_mobile_snapshot.py in seiner bisherigen Form darf nicht weiter reale Daten in initial-data.json schreiben. Entweder entfernen oder in einen klar benannten externen Betriebsdaten-Exporter umbauen, dessen Ziel ausschließlich außerhalb des Repositorys liegt.
+
+### P0.4 Produktive Backups aus dem Repository-Workspace entfernen
+
+Alle Skripte prüfen, die Rohdaten unter data/, outputs/, output/, tmp/ oder anderen Repository-Unterordnern ablegen.
+
+Mindestens inventarisieren und korrigieren:
+
+- tests/pixel_update_release.py
+- tests/pixel-usb-backup.cjs
+- historische Backup-/Export-/Restore-Helfer
+- Python-DB-Pfade in db.py
+- MCP-/Server-Testpfade, soweit sie produktiven Fallback verwenden
+- alle weiteren Treffer auf data/backups, haus-garten.db, HausGarten-Laptop.json oder produktive Fotoordner.
+
+Rohbackups dürfen nur außerhalb des Checkouts gespeichert werden.
+
+Im Repository dürfen für Update-/Datenerhalt-Nachweise nur technische Metadaten verbleiben, z. B.:
+
+- Collection-Counts
+- Schema-Version
+- kanonische SHA-256-Hashes
+- Relations-/ID-Hash
+- Queue-/Journal-Hash
+- PASS/FAIL/NOT TESTABLE
+
+Keine Namen, Adressen, E-Mails, Telefonnummern, Rechnungstexte, Fotoinhalte oder sonstigen Geschäftsdaten in Testreports.
+
+### P0.5 Synthetische Testdaten als einzige Entwicklungsdaten
+
+Eine zentrale synthetische Testdatenquelle einführen, z. B. SyntheticBusinessDataFactory / synthetic_fixtures.
+
+Mindestens drei reproduzierbare Profile:
+
+- minimal
+- edge_cases
+- scale
+
+Verbindliche Testkennzeichen:
+
+- IDs nur im qa_/test_-Namespace;
+- Namen wie QA Musterkunde;
+- Adressen ausschließlich künstlich;
+- E-Mail nur unter example.invalid;
+- test_record=true, soweit das Datenmodell dies unterstützt;
+- keine echten sevDesk-IDs, Telefonnummern, IBANs, Kunden-IDs oder historischen Rechnungsnummern.
+
+Alle Unit-, JVM-, Python-, Browser-, MCP- und Android-Instrumentationstests auf diese synthetische Quelle migrieren. Reale Stammdaten in Tests ebenfalls ersetzen, einschließlich realer Ausstelleradresse/-name, soweit sie nur Testzwecken dienen.
+
+### P0.6 Test-/Produktiv-Datastore klar trennen
+
+Fachlogik soll nicht direkt an produktive Dateipfade gekoppelt sein.
+
+Zielstruktur sinngemäß:
+
+- gemeinsamer Business-/Repository-Vertrag;
+- produktiver Adapter: Pixel/Drive;
+- Testadapter: temporärer/synthetischer Store.
+
+Keine zweite operative App und keine konkurrierende produktive Datenbank erzeugen. Der Teststore ist ausschließlich kurzlebige QA-Infrastruktur.
+
+### P0.7 Drei verpflichtende Privacy-Gates
+
+Die vorhandenen Datenschutzprüfungen zu einem dreistufigen Release-Gate ausbauen:
+
+A. Source Gate
+- committed Quellcode enthält keine produktiven Betriebsdaten oder Secrets;
+- initial-data.json leer;
+- keine bekannten Produktivmarker in Source/Fixtures.
+
+B. Workspace Gate
+- gesamten Checkout prüfen, nicht nur Git-tracked Dateien;
+- auch ignorierte/untracked Dateien berücksichtigen;
+- keine .db, .sqlite*, Rohbackups, Drive-Snapshots, Kundendokumente, produktiven Fotos oder Exporte im Workspace;
+- Ausnahmen nur für eindeutig synthetische Testartefakte und Buildartefakte ohne Betriebsdaten.
+
+C. Artifact Gate
+- APK/AAB/Source-ZIP/Review-Paket auf eingebettete Betriebsdaten und Secrets prüfen;
+- operative Seed-Zeilen exakt 0;
+- bei Befund Build/Release abbrechen.
+
+Alle drei Gates sind verpflichtend für Release-Abnahme. Ein fehlgeschlagenes Gate ist P0 und verhindert Abschluss.
+
+### P0.8 Datenschutzklassifikation
+
+Dateien/Artefakte logisch in vier Klassen einteilen:
+
+- PUBLIC_SOURCE
+- SYNTHETIC_TEST
+- PRIVATE_RUNTIME
+- SECRET
+
+Nur PUBLIC_SOURCE und SYNTHETIC_TEST dürfen innerhalb des Repository-Workspaces existieren.
+
+PRIVATE_RUNTIME und SECRET müssen außerhalb liegen.
+
+Codex soll diese Klassifikation in Regeln/Dokumentation nachvollziehbar machen und nicht für jede Datei manuell duplizieren, wenn eine zentrale Regel genügt.
+
+### P0.9 Self-Test ohne Produktivdaten
+
+Den read-only MCP-Self-Test so erweitern/erhalten, dass er keine produktiven Rohdaten benötigt und keine Geschäftsdaten ausgibt.
+
+Technische Checks dürfen z. B. umfassen:
+
+- Build-/MCP-Version und Fingerprint
+- Tool-Katalog/Hash
+- Schema-/Validator-Contracts
+- UI→MCP-Parität
+- Write-Gate
+- Drive-Konfiguration
+- Sync-Grundzustand
+- Dokument-/Dateispeicher technisch erreichbar
+- Capabilities
+- Plattformgrenzen
+
+Für schreibende End-to-End-QA einen temporären Sandbox-/synthetischen Store verwenden, nicht den produktiven Kundenbestand.
+
+### P0.10 AGENTS.md dauerhaft absichern
+
+Nach Implementierung folgende Regel sinngemäß dauerhaft in AGENTS.md verankern:
+
+Produktive Kunden-, Auftrags-, Arbeitszeit-, Angebots-, Rechnungs-, Foto-, Drive- und Backupdaten dürfen nicht Bestandteil des Repository-Workspaces, von Testfixtures oder Entwicklungsartefakten sein. Tests verwenden ausschließlich synthetische Daten. Produktive Datenintegrität wird über Counts, Hashes, Schema- und Relationsinformationen geprüft.
+
+Diese Regel darf nicht durch bequemere Testpfade umgangen werden.
+
+### P0.11 Historische Git-Historie separat behandeln
+
+In diesem P0-Schritt kein History-Rewrite.
+
+Zuerst den aktuellen main-Checkout und alle zukünftigen Builds dauerhaft betriebsdatenfrei machen.
+
+Danach ausschließlich lesend prüfen, ob frühere Commits tatsächlich produktive sensible Daten enthalten. Ergebnis klassifizieren:
+
+- keine produktiven Daten gefunden;
+- nur bereits synthetische/historische technische Werte;
+- produktive sensible Daten in Historie gefunden.
+
+Falls echte sensible Daten in der Git-Historie vorhanden sind, nicht automatisch filter-repo, Force-Push oder History-Rewrite ausführen. Dafür separaten Sicherheitsauftrag mit Backup, Auswirkungsanalyse und ausdrücklicher Freigabe verlangen.
+
+### P0.12 Verbindliche Umsetzungsreihenfolge
+
+1. aktuellen Workspace/Source read-only inventarisieren;
+2. alle produktiven Datenpfade und echten Testwerte auflisten;
+3. zentrale externe Runtime-Pfadregel implementieren;
+4. initial-data.json gegen produktive Befüllung absichern;
+5. Backup-/Export-/Update-Skripte auf externen privaten Root umstellen;
+6. synthetische Factory/Fixtures zentralisieren;
+7. bestehende Tests auf synthetische Daten migrieren;
+8. reale Betriebsstammdaten aus Tests/Beispielen entfernen;
+9. Source-/Workspace-/Artifact-Privacy-Gates implementieren;
+10. Gates in normale Quality-Suite und Releaseprozess integrieren;
+11. Self-Test/Sandbox gegen Produktivdatenzugriff absichern;
+12. AGENTS.md, CODEX-STATUS.md und diese Datei aktualisieren;
+13. erst danach weitere nicht sicherheitskritische Funktionsarbeit fortsetzen.
+
+### P0.13 Abnahmekriterien
+
+P0 gilt nur als bestanden, wenn:
+
+- initial-data.json garantiert leer bleibt;
+- kein produktives Skript Rohdaten innerhalb des Repositorys ablegt;
+- produktive Datenroot innerhalb des Repos technisch abgewiesen wird;
+- alle automatisierten Tests ausschließlich synthetische/temporäre Daten verwenden;
+- reale Betriebsstammdaten aus Testfixtures entfernt sind;
+- Source Gate PASS;
+- Workspace Gate PASS;
+- Artifact Gate PASS;
+- APK enthält 0 operative Seed-Zeilen;
+- keine produktive .db/.sqlite/Backup-/Drive-Datei im Checkout;
+- Update-/Datenerhalt-Nachweise funktionieren mit Hashes/Counts ohne Rohdaten im Report;
+- bestehende App-ID, IDs, Relationen, Sync-Formate und Originalsignierung unverändert kompatibel bleiben;
+- keine produktiven Kunden-/Rechnungs-/Arbeits-/Foto-Daten während der Migration verändert werden;
+- Abschlussbericht PASS/FAIL/NOT TESTABLE je Unterpunkt ausweist.
+
+Wenn ein P0-Kriterium FAIL oder NOT TESTABLE ist, darf dieser Block nicht als vollständig abgeschlossen markiert werden.
+
+
 ## 3. Tatsächlich abgeglichener Ausgang und neuer Quellstand
 
 Ausgang am 19.10.2026: aktuelles Remote-`main` war `b2c37a2f909cc8ac6defabe68dbdd3ce6a42db14` (Build 70). Der vorhandene operative Cloud-Branch enthielt bereits Build 77 bis `5fbe0a3a8c1f9073dc83f83b37b741a59e935ee4`. Beide Historien wurden normal in `main` zusammengeführt (`d67a4ffe549039df4bff78dc41ee0f27076c680b`), ohne Reset, Desktopimport, neue operative App oder History-Rewrite.
