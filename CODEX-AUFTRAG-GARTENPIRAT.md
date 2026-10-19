@@ -555,9 +555,33 @@ P1 gilt erst als bestanden, wenn:
 P1 darf nicht als abgeschlossen markiert werden, solange eine funktionale Regression, Vertragsabweichung oder P0-Privacy-Regression offen ist.
 
 
+### P1.14 Tatsächliche Abnahme dieses Refactorings
+
+**PASS im definierten Cloud-Abnahmeumfang: alle zwölf Kriterien aus P1.13 erfüllt.** Ausgang `1abf049c1e27167bc16259d8717513aeb5ffe670`, Version 1.51.1/80; operativer Abschluss-/APK-Quellcommit `e8a1d09ba7bb93438fb5aaff1e6008a670339764`, Version 1.51.2/81. R0–R7 wurden phasenweise mit normalen Commits, Regressionstests und Statusnachweis ausgeführt. Vollständiger Architektur-, Test-, Artefakt- und Grenzennachweis im letzten P1-Abschnitt von `CODEX-STATUS.md`.
+
+| Kriterium aus P1.13 | Ergebnis und Nachweis |
+| --- | --- |
+| Verhalten charakterisiert und unverändert | PASS: 23 eingefrorene Antworten/Fehler, 79 direkte Serviceprüfungen, 135 native Proben |
+| MCP-Toolset und Schemas | PASS: 117 Tools, alle Schemas/Annotationen identisch; Protokoll 9 |
+| 156 UI-Aktionen | PASS: 145 MCP-Pfade / elf Plattformgruppen, 57 Bridge-Signaturen, vollständige Pagination |
+| DB-/Snapshot-/Drive-Formate | PASS: fünf DDL- und zwölf Domainquellverträge sowie Snapshot-/Offer-/Journalfixtures unverändert |
+| IDs und Relationen | PASS: synthetisches Emulatorupdate 80 → 81, Geschäfts-/Queue-/Sitzungshashes unverändert |
+| Drei P0-Gates | PASS: Source, gesamter Workspace und tatsächliche APK/AAB; keine operativen Seed-Datensätze |
+| Automatisierte Tests | PASS: 306 Python-Tests, 27 JVM-/30 UI-JS-Suiten, 55 MCP-Szenarien, 29 Kamera-Hostfälle, 135 native Android-Proben sowie WebView und isolierter Erststart; 37 historische QA-Schlüsselerzeugungstests ausdrücklich ausgeschlossen |
+| Hotspots messbar entkoppelt | PASS: PixelOwnerAccess ohne Fachswitches/SQL; MainActivity ohne SQL, fachliche Abhängigkeiten 23 → 3; Metriken im Status |
+| Keine Parallelarchitektur | PASS: ein Originalpaket und ein Store; alter verschachtelter Store im DEX nicht vorhanden |
+| Keine produktiven Daten verwendet | PASS: nur QA-/Tempstores; keine Pixel- oder produktive Driveaktion |
+| Kein neuer Signing Key | PASS: bestehendes Originalzertifikat `a939a34e…f37bff8`, v2/v3 und 16-KiB-Ausrichtung bestätigt |
+| Architektur und Restschulden dokumentiert | PASS: Status R0–R7, Abhängigkeitsmetriken und verbleibende Grenzen |
+
+Vorher-/Nachher-Gesamtvertrag SHA-256 `899906c246f9cb8256666c32a89435aa5f792eede3d3407b1c846380900aa813` identisch. MCP-Toolhash `235f683d99d5170801d1e34c19ad386d9c4acf68b60a6992f72a3e5d2ea14314` identisch. Nur die bewusst aktualisierte UI-Quellreviewprovenienz ändert ihren Kataloghash auf `028c2151903c9cc07d7ed3761102002b79fd5d8bd900810ed3bf5094a7a6c11a`; keine UI-Aktion geändert.
+
+Physischer Pixel, Live-Connector und echte Google-Provider bleiben ausdrücklich **NOT TESTABLE / offen**. Keine produktive Legacy-Auflösung oder Installationsfreigabe aus dieser P1-Abnahme ableiten. Die geprüfte Original-81-APK liegt als Cloud-Kandidat unter `outputs/`; bestehende Downloads bleiben unverändert. Keine funktionale, Vertrags- oder P0-Privacyregression offen; frühere externe Funktionsabnahmen bleiben ausstehend.
+
+
 ## 3. Tatsächlich abgeglichener Ausgang und neuer Quellstand
 
-Dieser Funktionsabgleich ist historisch vor P0. Aktuelle Datenschutzabnahme und Quellstand1.51.1/80 stehen in P0.14 und im letzten CODEX-STATUS-Eintrag.
+Dieser Funktionsabgleich ist historisch vor P0. Die Datenschutzabnahme steht in P0.14; der aktuelle Refactoringstand 1.51.2/81 und seine Abnahme stehen in P1.14 und im letzten P1-Abschnitt von CODEX-STATUS.md.
 
 Ausgang am 19.10.2026: aktuelles Remote-`main` war `b2c37a2f909cc8ac6defabe68dbdd3ce6a42db14` (Build 70). Der vorhandene operative Cloud-Branch enthielt bereits Build 77 bis `5fbe0a3a8c1f9073dc83f83b37b741a59e935ee4`. Beide Historien wurden normal in `main` zusammengeführt (`d67a4ffe549039df4bff78dc41ee0f27076c680b`), ohne Reset, Desktopimport, neue operative App oder History-Rewrite.
 

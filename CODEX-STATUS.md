@@ -9,7 +9,7 @@ Repository: `mihalhafner-collab/Gartenpirat-`
 
 ## Aktueller P1-Refactoringauftrag
 
-Ausgang `1abf049c1e27167bc16259d8717513aeb5ffe670`,1.51.1/80. R0–R6 mit Phasenregressionen bestanden, Außenvertrag unverändert. **R7/Gesamtabnahme läuft noch; P1 nicht abgeschlossen.** Neuer Original-Prüfkandidat1.51.2/81, gleiche App-ID/MCP9/117/156UI-Aktionen. Keine produktiven Daten verwendet oder physische Installation ausgeführt. Abschluss und genaue Ergebnisse folgen unten.
+**P1: PASS, alle 12 Abnahmekriterien im definierten Cloud-Umfang erfüllt.** Ausgang `1abf049c1e27167bc16259d8717513aeb5ffe670`, Version 1.51.1/80; operativer Abschluss- und APK-Quellcommit `e8a1d09ba7bb93438fb5aaff1e6008a670339764`, Version 1.51.2/81. R0–R7 bestanden, Außenverträge unverändert: MCP 9 / 117 Tools / 156 UI-Aktionen. Alle drei P0-Gates PASS. Keine produktiven Daten verwendet. Physischer Pixel und realer Connector nicht aktualisiert; vollständige Schlussabnahme und Grenzen im letzten P1-Abschnitt unten.
 
 ## Bestandener P0-Datenschutzauftrag
 
@@ -921,3 +921,63 @@ Kein Betriebsinhalt, keine angewendete Entscheidung. Hashes aus get_sync_conflic
 ## P1 – R7 Gesamtabnahme gestartet (19.10.2026)
 
 - Remote-main erneut unverändert1abf049, alle bisherigen Phasen als normale Commits auf main. Neuer1.51.2/81-Quellstand für nachvollziehbaren sauberen Buildcommit, kein Protokoll-/Datenformatwechsel. Abschließende Python-/JVM-/Browser-/MCP-/Release-/Lint-/Privacyläufe und Original-/Emulatorupdate folgen. Noch keine Abschlussbehauptung.
+
+
+## P1 – R7 Abschluss und konsolidierte Cloud-Abnahme (19.10.2026)
+
+**PASS: alle 12 Kriterien aus P1.13 im definierten Cloud-Abnahmeumfang.** Ausgang `main` mit Commit `1abf049c1e27167bc16259d8717513aeb5ffe670`, Version 1.51.1/80. Operativer Abschluss-/APK-Quellcommit `e8a1d09ba7bb93438fb5aaff1e6008a670339764`, Version **1.51.2/81**, `source_dirty=false`, Quellhash `1a4d752fce32b09b08972fdabb4349917d8123f2c770986db78b894a327dcc54`. Der anschließende normale Abnahmecommit ändert ausschließlich zentrale Dokumentation; dessen SHA ist über `git log -1` verfügbar und nicht der eingebettete APK-Commit.
+
+### Tatsächlich ausgeführte Prüfungen
+
+| Prüfung | Ergebnis |
+| --- | --- |
+| Python Quality | 306 Tests PASS, 0 Skips; 37 historische Tests mit QA-Schlüsselerzeugung ausdrücklich ausgeschlossen, Originalsignier- und Privacy-Tests enthalten |
+| JVM | 27 Suiten PASS, einschließlich 23 eingefrorener Antworten/Fehler, 14 Fehleradapter- und 79 direkter Application-Service-Prüfungen |
+| Android-unabhängige Services | Die 79 direkten Serviceprüfungen zusätzlich ohne Android-SDK im Runtime-Classpath PASS |
+| Browser / JavaScript | 30 Suiten PASS; gemeinsamer Ownerclient mit 130 Äquivalenzvergleichen gegen 30 Vorher-Beobachtungen |
+| MCP stdio E2E | 55 synthetische Szenarien PASS |
+| Kamera-/Provider-Hosttests | 29 Fälle PASS; vorhandenen Runner an Projektimport und zentrale synthetische Factory angeschlossen, keine Tests entfernt oder abgeschwächt |
+| Native Android / SQLite / MCP / Provider | 135 Proben, 0 Fehler auf der endgültigen Original-81-APK; öffentliche Bridgevererbung und isolierter UI-Schreibpfad enthalten |
+| WebView | Native Navigation, Arbeitsauswahl/Abbruch, Kunden-Gartenansicht und Papierkorb PASS |
+| Isolierter Erststart | `fresh_isolated` PASS: neuer privater Testkontext ohne Geschäftsdaten/Zugangsdaten/automatische Providerverbindung; kein Löschen bestehender Profile |
+| Release / AndroidTest / AAB / Lint | PASS; 0 Lintfehler, 33 bestehende Warnungen |
+| Datenschutz | Source-, Workspace- und Artifact-Gates PASS; Workspace einschließlich ignorierter/untracked Dateien, tatsächliche APK und AAB geprüft, 0 operative Seed-Datensätze |
+
+Keine prozentuale Zeilenabdeckung oder physische Kameraprüfung behauptet. Frühere Boot-/Timeoutversuche waren keine erfolgreichen Abnahmen; die endgültigen vollständigen Durchläufe sind oben ausgewiesen.
+
+### Unveränderte Verträge und synthetisches Update
+
+Der vor R1 eingefrorene Gesamtvertrag bleibt exakt **`899906c246f9cb8256666c32a89435aa5f792eede3d3407b1c846380900aa813`**: alle 117 Toolnamen/Schemas/Annotationen und ihre Reihenfolge, 156 semantische UI-Aktionen, 57 Bridge-Signaturen, fünf DDL-Anweisungen, zwölf Domain-/Formatquellhashes, Offer-/Bootstrap-Vertrag sowie 23 synthetische Antwort-/Fehlerhashes. Die Baseline wurde nach Refactoringbeginn nicht neu aufgenommen.
+
+MCP bleibt **Protokoll 9, 117 Tools (52 Read / 65 Write, 17 destruktiv annotiert)**, Toolhash `235f683d99d5170801d1e34c19ad386d9c4acf68b60a6992f72a3e5d2ea14314`. Der vollständig paginierte UI-Katalog behält 145 fachliche MCP-Pfade und elf Plattformgruppen. Nur die aktualisierte Reviewprovenienz der jetzt 51 geprüften Quelldateien ändert seinen Kataloghash auf `028c2151903c9cc07d7ed3761102002b79fd5d8bd900810ed3bf5094a7a6c11a`; Aktionen und Bedienverhalten bleiben gleich. DB 4, Snapshot 2 und Drive-/Journalformate unverändert.
+
+Tatsächliches normales Emulatorupdate **80 → 81 PASS**, ohne Deinstallation oder Datenlöschung. Vor Update, danach und nach allen nativen Tests identischer Hash des Geschäftsmasters ohne technische `capabilities` einschließlich vollständiger Pending-Queue: `be1523c98d2fced2b5b446a9191b7d37be4dc98c56a169d2659cc3047fe407af`. Unverändert: drei QA-Kunden, ein Auftrag, zwei Arbeitsaufzeichnungen, eine ausstehende Aktion, 32 öffentliche Katalogeinträge; keine Fotos/Rechnungen/Angebote/Termine. Laufende Zeiterfassung bleibt `RUNNING`, stabiler Sitzungshash `78070c6fcd158b6e8e24d651716c5277905bf57bed3fa8386628e5a3514925b1`; nur berechnete `worked_ms`, `hours`, `break_minutes` aus diesem Vergleich ausgeschlossen. Rohzustände ausschließlich im RAM verarbeitet, Berichte enthalten nur Counts/Hashes. Kein produktiver Hostroot eingerichtet oder geöffnet, keine Betriebsdaten importiert, kopiert oder verändert.
+
+### Architektur und messbare Entkopplung
+
+MCP-Verträge, Schemafelder und Fehlerabbildung führen zu reinen Queries und domänenspezifischen Application Services. Diese verwenden `OwnerRepository`/`OwnerCommand` als Ports zum bestehenden nativen `LocalOwnerRepository`, `PixelLocalStore` und Drive-/Dateispeicher. `MainActivity` hält Lifecycle, Navigation und Android-Integration; `BusinessDataBridge` übersetzt bestehende UI-Aufrufe. Der gemeinsame JavaScript-Ownerclient ist zustandslos; Entwürfe, Requests und ihre Speicherschlüssel bleiben in den vorhandenen Workflowmodulen. Keine zweite Runtime, DB oder Dokumentlogik.
+
+| Hotspot | Vorher → nachher | Aussage |
+| --- | --- | --- |
+| PixelOwnerAccess | 61.731 → 2.183 Bytes; 39 → 11 Projektabhängigkeiten; 3 Switches / 58 Cases → 0; 42 → 0 Storeaufrufe; 8 → 0 SQL-Aufrufe | Native Grenze enthält keine Fach- oder Persistenzimplementierung mehr |
+| MainActivity | 117.635 → 38.136 Bytes; 23 → 3 fachliche Abhängigkeiten; 54 → 13 Storeaufrufe; 28 → 0 SQL-Aufrufe | Verbleibende Storeaufrufe betreffen native Share-/Medienadapter; SQL-Metrik zählt kein `File.delete` |
+| PixelMcpReadTools | 31.279 → 16.768 Bytes; 2 Switches / 32 Cases → 1 / 14; 13 → 15 Projektabhängigkeiten | Abfragen und Projektion getrennt; zusätzliche kleine Helperabhängigkeiten ausdrücklich sichtbar |
+| PixelMcpOwnerTools | 25.283 → 14.781 Bytes; 2 Switches / 66 Cases → 1 / 28; 7 → 8 Projektabhängigkeiten | Übriger Switch beschreibt Tools; Felddefinitionen in 37 registrierten Schemabuildern |
+| Größte Klassen | Vorher MainActivity 117.635 / PixelOwnerAccess 61.731 Bytes; nachher PixelLocalStore 64.506 / DriveSyncCoordinator 46.596 Bytes | Keine pauschale Gesamtschrumpfung oder willkürliche Zeilengrenze behauptet |
+| UI-Helfer | Fünf gleiche Native-Calladapter → einer; zwei gleiche Clonehilfen → eine | Gleiche Rückgaben/Fehler, keine zusätzlichen globalen Geschäftsdaten |
+
+Direkte Referenzen auf `DriveSyncCoordinator`/`DriveDirectFiles`/`DriveRestClient` sinken im Reader von sechs auf null, in `PixelOwnerAccess` von sechs auf zwei und in `MainActivity` von zwölf auf zehn. Die verbleibenden Aufrufe betreffen native Sync-Steuerung und Dokumentbereitstellung; dies sind statische Referenzzahlen, keine gemessenen Netzaufrufe. Die ursprüngliche konkrete Rückkopplung über `MainActivity.LocalStore` entfällt; der Store kennt Activity und Tunnelservice nicht mehr und verwendet für die bisherige Sync-Benachrichtigung allein `McpSyncHost`.
+
+Sieben Schema-Primitiven bleiben einmal definiert, jetzt unabhängig von der Toolregistrierung in `McpFields`. `EntityContract` bündelt drei Entity-Feldverträge, Record-Hashregeln und Positionsprüfung. `OfferContract` bleibt unveränderte zentrale Definition. Sechs Architekturtests sichern die beschriebenen Grenzen, darunter keine Android-Imports, direkten SQL-Aufrufe oder direkten `DriveRestClient`-Zugriffe in Services und Ports; native Tests prüfen die tatsächliche Persistenz zusätzlich zu Porttests.
+
+Bewusst verbleibende Schulden: `PixelLocalStore` orchestriert weiterhin bestehende atomare Saver-, Timer- und Receipt-Abläufe. Ältere Domainhilfen verwenden kompatible MCP-Hash-/Fehlerfassaden; die reine Adressprüfung verwendet weiterhin den statischen Helfer `OfferDeliveryClient.oneAddress`, tatsächlicher Mailzugriff erfolgt über den Repository-Port. Bestehende Render-Hooks, Workflow-Spezialadapter und unterschiedliche historische Validator-/Fehlerstring-Verträge bleiben zur Wahrung des Außenverhaltens erhalten. Historische Python-/Web-Komponenten werden für Regression und Migration benötigt. Weitere Entkopplung nur inkrementell unter denselben Gates.
+
+Geändert wurden MCP-/Query-/Schema-/Fehleradapter, Application Services/Ports/EntityContract, nativer Store/Repository/Bridge und typgleiche Aufrufer, fünf UI-Module mit gemeinsamem Ownerclient und Quellreview, Charakterisierungs-/Service-/Architektur-/UI-/Native-Tests und Runner sowie die App-Version. Vollständige Liste der 75 Dateien bis zum APK-Quellcommit: `git diff --name-only 1abf049..e8a1d09`; abschließende zentrale Dokumentationsänderungen kommen hinzu. Keine bestehenden Regressionstests entfernt oder abgeschwächt.
+
+### Originalartefakt und Grenzen
+
+- APK: `outputs/Haus-Garten-1.51.2-81-original-p1-kandidat.apk`, 34.513.073 Bytes, SHA-256 `7e569519f8f3328335499a84181f6eb6746c860e4325e80d67f0f44ba59e865e`.
+- Paket `at.hausgarten.service`, Originalzertifikat `a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8` identisch zu Original 80. Ein Signer, v2/v3 gültig, 16-KiB-Ausrichtung PASS. Alle 412 APK-Assets stimmen bytegenau mit dem aktuellen Quellstand überein; neue operative Klassen vorhanden, die alte verschachtelte `MainActivity$LocalStore`-Klasse nicht mehr im DEX.
+- Ausschließlich `tools/sign_original_apk.py`; vorher nur das Vorhandensein der fünf dokumentierten Variablen geprüft. Instrumentierung ebenfalls mit bestehender Originalsignierung, kein neuer Schlüssel. Cleanup bestätigt: keine privaten Signiertempordner oder Schlüsseldateien im Repository. Vorhandene Downloadartefakte bleiben unverändert; keine neue APK in Drive/GitHub-Downloads veröffentlicht.
+
+**Extern NOT TESTABLE / offen:** physischer Pixel nicht aktualisiert; realer ChatGPT-Connector und echte Google-Drive-/Kalender-/Gmail-/Kamera-/Hintergrund-Endtests nicht ausgeführt. Produktive Legacyaktionen und Warteschlangen nicht angefasst oder als geschlossen ausgegeben. Vor einer ausdrücklich freigegebenen Pixelinstallation bleiben Sicherung und Geräte-/Kontofreigaben erforderlich. Originalsignierung und synthetisches Emulatorupdate sind keine physische Update- oder Datenerhaltfreigabe. Diese externen Grenzen ändern nicht den bestandenen P1-Cloud-Vertrags- und Refactoringumfang.

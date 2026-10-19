@@ -2,7 +2,7 @@
 
 ## Codex-Cloud-Einstieg
 
-Für den aktuellen P0-Auftrag gilt diese Lesereihenfolge verbindlich:
+Für den aktuellen Cloud-Auftrag gilt diese Lesereihenfolge verbindlich:
 
 1. `AGENTS.md` – übergeordnete Regeln und Sicherheitsgrenzen
 2. `CODEX-AUFTRAG-GARTENPIRAT.md` – vollständiger ausführbarer Arbeitsauftrag
