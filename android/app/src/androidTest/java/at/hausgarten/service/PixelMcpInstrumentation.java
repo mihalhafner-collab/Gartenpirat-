@@ -243,7 +243,7 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             }
             return;
         }
-        if(releaseMode.equals("estimates")){Bundle result=new Bundle();try{String before=businessSnapshotHash();EstimateNativeAcceptance.run(this);check("business snapshot unchanged after estimate probes",()->yes(before.equals(businessSnapshotHash())));result.putString("stream","RESULT "+passed+" Android SQLite/MCP tests passed; acceptance failures="+acceptanceFailed+"; isolated estimates only\n");finish(acceptanceFailed==0?-1:0,result);}catch(Throwable error){result.putString("stream","FAILED "+error.getClass().getSimpleName()+"\n");finish(0,result);}return;}
+        if(releaseMode.equals("estimates")||releaseMode.equals("provider")){Bundle result=new Bundle();try{String before=businessSnapshotHash();if(releaseMode.equals("provider"))DriveProviderAcceptance.run(this);else EstimateNativeAcceptance.run(this);check("business snapshot unchanged after isolated probes",()->yes(before.equals(businessSnapshotHash())));result.putString("stream","RESULT "+passed+" Android SQLite/MCP tests passed; acceptance failures="+acceptanceFailed+"; isolated group only\n");finish(acceptanceFailed==0?-1:0,result);}catch(Throwable error){result.putString("stream","FAILED "+error.getClass().getSimpleName()+"\n");finish(0,result);}return;}
         if(!releaseMode.isEmpty()){ReleaseLifecycleProbe.run(this,getTargetContext(),releaseMode);return;}
         if(liveTunnelProbe){PixelTunnelLiveProbe.run(this,getTargetContext());return;}
         Bundle result=new Bundle();MainActivity.LocalStore store=null;

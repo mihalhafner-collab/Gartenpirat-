@@ -55,7 +55,7 @@ def emulator_lock(serial, folder=None):
 def successful_output(output, mode):
     if re.search(r'\bFAIL(?:ED)?\b|INSTRUMENTATION_FAILED|Process crashed|acceptance failures=[1-9]', output):
         return False
-    if mode in ('acceptance','estimates'):
+    if mode in ('acceptance','estimates','provider'):
         return bool(re.search(r'RESULT [0-9]+ Android SQLite/MCP tests passed; acceptance failures=0;', output))
     expected = {'verify': 'PASS in-place update preserves complete snapshot',
                 'fresh': 'PASS fresh empty business data',
@@ -70,7 +70,7 @@ def main():
     parser.add_argument('--adb', default=str(Path(os.environ.get('ANDROID_HOME', '')) / 'platform-tools/adb'))
     parser.add_argument('--apk', type=Path)
     parser.add_argument('--instrumentation-apk', type=Path)
-    parser.add_argument('--mode', choices=['acceptance', 'fresh', 'prepare', 'verify', 'ui', 'estimates'], default='acceptance')
+    parser.add_argument('--mode', choices=['acceptance', 'fresh', 'prepare', 'verify', 'ui', 'estimates', 'provider'], default='acceptance')
     args = parser.parse_args()
     with emulator_lock(args.serial):
         run(args)

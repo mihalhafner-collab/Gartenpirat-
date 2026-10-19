@@ -1,3 +1,36 @@
+> Aktuelle Implementierung 19.10.2026: **1.51.0 / 78**, Paket `at.hausgarten.service`, internes MCP-Protokoll **9**, **117 Tools** (52 lesend / 65 schreibend), Quellkatalog `235f683d99d5170801d1e34c19ad386d9c4acf68b60a6992f72a3e5d2ea14314`. Der tatsächlich verbundene physische Pixel bleibt **1.50.1 / 77, 111 Tools / Protokoll 8**. Quelle und installierter Stand nicht gleichsetzen; abschließende Abnahme und verbleibende Grenzen stehen in [CODEX-AUFTRAG-GARTENPIRAT.md](../CODEX-AUFTRAG-GARTENPIRAT.md) und [CODEX-STATUS.md](../CODEX-STATUS.md).
+
+## Gemeinsamer Dokumentvertrag und aktuelle MCP-Ergänzungen
+
+`android/app/src/main/assets/offer-contract.json` ist die gemeinsame Definition für Dokumentarten, Preisquellen/-grundlagen, Steuer-/Kundentypen, Vertragswege, Pflichtangaben und Statuswerte. Java-/Browser-Adapter werden mit `tools/sync_offer_contract.py` generiert und im Build geprüft. Keine zweite Estimate-Entität und kein paralleler Nummernkreis.
+
+| Fachlicher Ablauf | MCP-Pfad | Schutz / realer Nachweis |
+| --- | --- | --- |
+| Gemeinsame Werte nachlesen | `get_offer_contract` | Readonly, keine Kundeninhalte |
+| Angebot/Kostenvoranschlag erstellen und prüfen | `create_and_validate_offer`, bestehende `create_offer_draft`/`update_offer_draft`/`get_offer`/`validate_offer` | Atomare Create+Validate-Operation; unvollständige Entwürfe bleiben separat möglich; `request_id`, Hash; keine erfundenen Preise |
+| Geprüften Entwurf speichern | `validate_offer_draft` | Aktueller Hash, Status `validated`; Änderungen machen die Validierung erneut erforderlich |
+| Verbindlich/unverbindlich | bestehende Offer-Tools mit `estimate_binding` / `estimate_nonbinding` | Persistierter Bindungsmodus, explizite Bestätigung und zugehöriger Texthash; Änderungen erben keine alte Bestätigung |
+| Finale Dokumente und PDF | `finalize_offer`, `get_file_metadata`, `read_file_chunk` | `confirmed=true`, Record-/Kontexthash; eingefrorener Aussteller/Empfänger, Dokument-ID, Dateiname, SHA und privater Dateispeicher |
+| Share-Handoff | `prepare_offer_share` | `share_prepared` ist kein Versand; normale OS-Teilen-Funktion benötigt Geräteinteraktion; Tests nur lokale Vorschau |
+| Bestätigten Mailversand vorbereiten | `prepare_offer_delivery` | Expliziter Empfänger und Bestätigung, Original-PDF-Ressource; selbst kein Versand. Separater verbundener Gmail-Kanal nur bei ausdrücklicher Nutzeranweisung |
+| Versandbeleg übernehmen | `confirm_offer_delivery` | Pixel liest echte Gmail-SENT-Nachricht, Aussteller, Empfänger, identischen PDF-Anhang; erst dann `sent`. Keine frei übermittelte Quittung akzeptiert |
+| Gefahrloser Self-Test | `run_self_test` | Readonly PASS/FAIL/NOT TESTABLE; keine Mail-/Geschäftsschreibtests oder Kunden-/Rechnungsinhalte |
+| Vollständiger UI-Katalog | `get_ui_action_catalog` | `offset`, maximal 100 je Seite, `next_cursor`, `expected_catalog_hash`; 100+56; 145 Fachaktionen und elf explizite Plattform-/Darstellungsgruppen |
+
+**Preisvertrag:** Manuelle bestätigte Preise ausschließlich `price_source=user_confirmed`; freigegebener Katalogpreis über ID/aktuellen Hash. `price_basis=confirmed|catalog|calculated|estimated`; berechnete und geschätzte Werte benötigen Erläuterung, berechnete zusätzlich nachvollziehbare Faktoren. Kein unbekannter Preis wird automatisch ergänzt.
+
+**Testdaten:** Markierung und Testkunde/Testempfänger müssen zusammenpassen. Lokale Entwurfs-, Validierungs-, Finalisierungs-, Share- und Archivaktionen werden nicht zu Drive exportiert. Test-PDFs sind markiert; externe Mailübergabe und produktive Auftragsübernahme bleiben gesperrt. Technische Tests verwenden ausschließlich private synthetische Datenräume.
+
+**Versandgrenze:** Der vorhandene ChatGPT-Gmail-Connector erteilt dem Pixel keinen Gmail-Zugriff. Nach Update muss der Eigentümer am Gerät unter Drive-Verbindung „Gmail-Versandbelege freigeben (nur Lesen)“ bestätigen; Google-Konto-/API-/OAuth-Freigabe müssen tatsächlich bestehen. Ohne diesen Readback bleibt der Status unsent. 401 wird nicht umgangen; temporäre Providerfehler liefern begrenztes `retry_after_ms`, keinen automatischen erneuten Mailversand. Reale Gmail-Send-/Readback-Abnahme ist offen, da keine echte Testmail erlaubt ist.
+
+**Connector-Refresh:** Nach autorisiertem Originalupdate App/Pixel-Tunnel mit bestehender Konfiguration starten. Internes Protokoll 9 und neuer `tool_catalog_hash` kommen aus derselben Laufzeit wie `tools/list`. Bestehende ChatGPT-Verbindung aktualisieren/neu verbinden, keinen weiteren Connector und keinen alten Desktop-Tunnel anlegen. `get_capabilities`/`integration_health` und den tatsächlich sichtbaren Toolkatalog vergleichen; 117 Werkzeuge und obiger Hash müssen real bestätigt werden. Ohne Pixel-Update/Refresh ist der weiterhin sichtbare 111er-Katalog erwartbar, kein Beweis der neuen Freigabe.
+
+**Legacy-Sicherung:** Alte Fotoreferenzen ohne SHA werden ausschließlich im freigegebenen Fotoordner exakt aufgelöst und im selben Backup mit zwei identischen Provider-Lesevorgängen, Bildprüfung und beobachtetem Hash gesichert. Keine stillschweigende Änderung von Foto-IDs oder Geschäftsdaten und kein erfundener historischer Hash. Fehlende/doppelte/abweichende Originale blockieren die Sicherung. Sieben Altprüfungen bleiben bis zu einem vollständigen Backup offen.
+
+**Rechtliche Grundlage:** Am 19.10.2026 wurden die offiziellen RIS-Fassungen von [ABGB §1170a](https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=10001622&Paragraf=1170a) und [KSchG §5](https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=10002462&Paragraf=5) gelesen. Bindungsart bewusst bestätigen; bei Verbrauchern keine stillschweigende Nichtgewährleistung annehmen. Bestehende Texte bleiben zentral editierbar. Die technische Vollständigkeitsprüfung ersetzt keine vollständige Prüfung sämtlicher Vertragsklauseln oder FAGG-Ausnahmen.
+
+---
+
 > Historischer Nachweis 1.47. Aktueller Cloud-only-/Pixel-Drive-Auftrag und Abnahme: [CODEX-STATUS.md](../CODEX-STATUS.md), Umsetzung [Cloud-only 1.49.2 / 71](SYNC-DRIVE-KUNDENAKTE-1.48.md#cloud-only-1492--71-18102026). Frühere Laptop-/Web-Rolloutvoraussetzungen sind aufgehoben.
 
 # Eigentümerzugriff und Datenintegrität – Cloud-Stand 1.47.0 / 67
