@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.webkit.WebView;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.BufferedReader;

@@ -2,9 +2,6 @@ package at.hausgarten.service;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import java.util.Locale;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Iterator;
 import static at.hausgarten.service.SnapshotReadSupport.*;
 

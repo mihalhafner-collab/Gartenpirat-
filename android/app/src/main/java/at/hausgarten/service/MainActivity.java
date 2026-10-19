@@ -4,22 +4,15 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.DocumentsContract;
 import android.provider.MediaStore;
-import android.provider.Settings;
 import android.speech.RecognizerIntent;
 import android.view.View;
 import android.view.WindowInsets;
@@ -36,23 +29,14 @@ import android.webkit.WebResourceRequest;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -386,14 +370,6 @@ public class MainActivity extends Activity implements McpSyncHost {
             try{JSONObject handoff=new JSONObject(store.ownerValue("invoice_share_handoff","{}")),all=PixelMcpReadTools.effective(store.getState()),invoice=PixelMcpWriteTools.find(all.getJSONArray("invoices"),handoff.getString("invoice_id"));return shareInvoiceById(invoice.getString("id"),handoff.getString("channel"));}catch(Exception e){return "ERROR: Originalbeleg oder Versandvorbereitung fehlt.";}
         }
 
-        private void assertEditableInvoice(String identifier) throws Exception {
-            JSONObject snapshot=new JSONObject(store.snapshotText(readAsset("initial-data.json")));
-            JSONArray invoices=snapshot.optJSONArray("invoices");
-            if(invoices!=null)for(int i=0;i<invoices.length();i++){JSONObject row=invoices.getJSONObject(i);if(identifier.equals(row.optString("id"))&&(!row.optString("issued_at").isEmpty()||!"Entwurf".equals(row.optString("status"))))throw new Exception("Abgeschlossene Rechnungen bleiben unverändert.");}
-            try(Cursor cursor=store.getReadableDatabase().rawQuery("SELECT payload FROM pending WHERE kind IN ('invoice_issue','owner_invoice_issue','pixel_invoice_issue_v1')",null)){
-                while(cursor.moveToNext())if(identifier.equals(new JSONObject(cursor.getString(0)).optString("id")))throw new Exception("Abschluss bereits vorgemerkt. Bitte Drive-Abgleich abwarten.");
-            }
-        }
         @JavascriptInterface public void shareOffer(String id){
             new Thread(()->{try{JSONObject offer=PixelMcpWriteTools.find(PixelMcpReadTools.effective(store.getState()).getJSONArray("offers"),id);TestDataRules.noDelivery(offer,PixelMcpReadTools.effective(store.getState()));byte[] bytes;try{bytes=new BusinessDocumentStore(MainActivity.this).read(offer);}catch(Exception missing){bytes=DriveSyncCoordinator.fetchDocument(MainActivity.this,offer);new BusinessDocumentStore(MainActivity.this).store(bytes,offer);}File dir=new File(getCacheDir(),"invoice-share");if(!dir.isDirectory()&&!dir.mkdirs())throw new IOException("Freigabeordner fehlt.");File target=new File(dir,"Angebot-"+UUID.randomUUID()+".pdf");try(java.io.FileOutputStream out=new java.io.FileOutputStream(target)){out.write(bytes);}Uri uri=Uri.parse("content://"+getPackageName()+".invoicefiles/"+target.getName());Intent send=new Intent(Intent.ACTION_SEND).setType("application/pdf").putExtra(Intent.EXTRA_STREAM,uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);send.setClipData(android.content.ClipData.newRawUri("Angebot",uri));runOnUiThread(()->startActivity(Intent.createChooser(send,"Angebots-PDF teilen")));}catch(Exception error){runOnUiThread(()->Toast.makeText(MainActivity.this,"PDF noch nicht verfügbar. Dokument und Drive-Abgleich prüfen.",Toast.LENGTH_LONG).show());}}).start();
         }
@@ -498,9 +474,6 @@ public class MainActivity extends Activity implements McpSyncHost {
         }catch(Exception error){return new JSONObject();}
     }
 
-    private String readAsset(String name) throws Exception { return readStream(getAssets().open(name)); }
-    private String readStream(InputStream stream) throws Exception { StringBuilder result = new StringBuilder(); try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) { String line; while ((line = reader.readLine()) != null) result.append(line); } return result.toString(); }
-    private String isoNow() { return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.ROOT).format(new Date()); }
     private void callback(String function, JSONObject data) { runOnUiThread(() -> webView.evaluateJavascript(function + "(" + data.toString() + ")", null)); }
 
     public class SpeechBridge {

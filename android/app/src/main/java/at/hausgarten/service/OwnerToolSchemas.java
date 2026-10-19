@@ -19,7 +19,6 @@ final class OwnerToolSchemas {
         BUILDERS.put("get_photo", OwnerToolSchemas::getPhoto);
         BUILDERS.put("list_archive", OwnerToolSchemas::listArchive);
         BUILDERS.put("get_sync_conflicts", OwnerToolSchemas::getSyncConflicts);
-        BUILDERS.put("get_settings", OwnerToolSchemas::getSettings);
         BUILDERS.put("search_catalog", OwnerToolSchemas::searchCatalog);
         BUILDERS.put("get_catalog_entry", OwnerToolSchemas::getCatalogEntry);
         BUILDERS.put("get_file_metadata", OwnerToolSchemas::getFileMetadata);
@@ -86,9 +85,6 @@ final class OwnerToolSchemas {
     }
     private static void getSyncConflicts(String name, JSONObject p, List<String> required) throws Exception {
         p.put("limit",number(1,100)).put("offset",number(0,1000000)).put("client_id",id()).put("include_history",bool());
-    }
-    private static void getSettings(String name, JSONObject p, List<String> required) throws Exception {
-        
     }
     private static void searchCatalog(String name, JSONObject p, List<String> required) throws Exception {
         p.put("catalog_type",enumeration("plant","service")).put("query",text(200)).put("offset",number(0,1000000)).put("limit",number(1,100));

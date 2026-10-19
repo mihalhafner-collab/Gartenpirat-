@@ -13,7 +13,7 @@ class RefactoringArchitectureTests(unittest.TestCase):
         for path in sources:
             with self.subTest(source=path.name):
                 text = path.read_text()
-                self.assertNotRegex(text, r'import android\.|MainActivity|SQLiteDatabase|\.rawQuery\(')
+                self.assertNotRegex(text, r'import android\.|MainActivity|SQLiteDatabase|DriveRestClient|\.rawQuery\(')
                 if path.name != 'OwnerApplicationService.java':
                     self.assertNotIn('OwnerApplicationService.', text)
 
@@ -40,3 +40,8 @@ class RefactoringArchitectureTests(unittest.TestCase):
         self.assertNotRegex(text, r'MainActivity|AlertDialog|startActivity|\.rawQuery\(|\.beginTransaction\(')
         self.assertIn('public class BusinessDataBridge', text)
         self.assertIn('DataBridge extends BusinessDataBridge', (JAVA/'MainActivity.java').read_text())
+
+    def test_dead_unexported_activity_helpers_are_not_reintroduced(self):
+        text = (JAVA/'MainActivity.java').read_text()
+        self.assertNotRegex(text, r'assertEditableInvoice|private String (?:readAsset|readStream|isoNow)\(')
+        self.assertNotRegex(text, r'\.rawQuery\(|\.insertOrThrow\(|\.insertWithOnConflict\(')

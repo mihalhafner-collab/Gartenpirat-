@@ -1,7 +1,5 @@
 package at.hausgarten.service;
 import android.content.*;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import org.json.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;

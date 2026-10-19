@@ -18,7 +18,7 @@ final class PhotoApplicationService implements OwnerCommand {
             }
             case "create_photo":{
                 String upload=a.getString("upload_id");JSONObject m=repository.fileMeta(upload);byte[] bytes=repository.fileBytes(upload);
-                if(m.has("attached_photo")||bytes.length!=m.getInt("byte_size")||!DriveRestClient.sha256(bytes).equals(m.getString("sha256")))throw new IllegalArgumentException("Upload unvollständig, verändert oder bereits verwendet.");
+                if(m.has("attached_photo")||bytes.length!=m.getInt("byte_size")||!McpFileTransfer.sha(bytes).equals(m.getString("sha256")))throw new IllegalArgumentException("Upload unvollständig, verändert oder bereits verwendet.");
                 JSONObject p=new JSONObject(a.toString());p.remove("request_id");p.remove("upload_id");p.put("id","pho_mcp_"+PixelMcpWriteTools.hash(request).substring(0,32)).put("data","data:"+m.getString("mime_type")+";base64,"+Base64.getEncoder().encodeToString(bytes));String id=repository.savePhoto(p);m.put("attached_photo",id);repository.putFile(upload,m,new byte[0]);return new JSONObject().put("photo_id",id).put("local_state","local_saved").put("sync_state","sync_pending");
             }
             case "update_photo":{
