@@ -2,7 +2,7 @@
 
 Stand: 19. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
-Priorität: P0
+Priorität: P1 – verhaltensgleiches Refactoring; P0 bestanden
 Arbeitsumgebung: **ausschließlich Codex Cloud**
 
 > Diese Datei ist der zentrale ausführbare Arbeitsauftrag. `AGENTS.md` bleibt die übergeordnete Regeldatei. Bei Widerspruch gilt `AGENTS.md`.

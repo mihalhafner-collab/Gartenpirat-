@@ -7,7 +7,11 @@ Repository: `mihalhafner-collab/Gartenpirat-`
 > Regeln: `AGENTS.md`  
 > Vollständiger Auftrag: `CODEX-AUFTRAG-GARTENPIRAT.md`
 
-## Aktueller P0-Datenschutzauftrag
+## Aktueller P1-Refactoringauftrag
+
+Ausgang `1abf049c1e27167bc16259d8717513aeb5ffe670`,1.51.1/80. R0–R6 mit Phasenregressionen bestanden, Außenvertrag unverändert. **R7/Gesamtabnahme läuft noch; P1 nicht abgeschlossen.** Neuer Original-Prüfkandidat1.51.2/81, gleiche App-ID/MCP9/117/156UI-Aktionen. Keine produktiven Daten verwendet oder physische Installation ausgeführt. Abschluss und genaue Ergebnisse folgen unten.
+
+## Bestandener P0-Datenschutzauftrag
 
 Ausgang `aa04cbd04d2035a877acd243af612a2fc97f5519`, sauberer aktueller main; Implementierungscommit `7725f425e57d8a40733b0e798def1e279c8488ec`, anschließender Abnahme-/Härtungscommit über `git log -1`. **P0 für aktuellen Checkout und zukünftige Builds: PASS,14/14 Kriterien.**297 Python-Tests/24 JVM-/29 Browser-Suiten/55 MCP-E2E-Szenarien/134 native Android-Proben sowie Emulatorupdate77→80, WebView und isolierter Erststart bestanden. Alle drei Privacy-Gates PASS. Keine produktiven Daten kopiert oder geändert. Historische Git-Befunde und physischer Pixel-/echter Provider-/Connector-Endtest separat offen. Vorherige Zwischenstände/NOT-TESTABLE-Startversuche unten sind historische Phasen.
 
@@ -913,3 +917,7 @@ Kein Betriebsinhalt, keine angewendete Entscheidung. Hashes aus get_sync_conflic
 - PASS27JVM-Suiten,6Architekturchecks und vollständiger Vertrag `899906c2…aa813`. Release/AndroidTest/Lint mit Source/Workspace/Artifact-Gates PASS,0Seeds,0Lintfehler/33bestehendeHinweise. Finale native Ausführung folgt in R7.
 - Reproduzierbare Abschlussmetrik korrigiert frühere manuelle Zwischenzählungen: MainActivity117635→38136Bytes,43→23Projekt-/23→3fachliche Abhängigkeiten,54→13direkteStoreaufrufe (verbleibend native Share/Medien),28→0SQL-Query/Insert/Delete-Aufrufe. Zwei Kamera-Dateilöschungen werden nicht mehr fälschlich als SQL gezählt. OwnerAccess61731→2183Bytes,39→11Projektabhängigkeiten,42→0Storeaufrufe,8→0SQL,3/58→0/0Switches/Cases. Reader31279→16768Bytes und2/32→1/14; OwnerTools25283→14781Bytes und2/66→1/28 (übriger Switch beschreibt nur Tools). Zusätzliche kleine Helperabhängigkeiten sind bewusst sichtbar, kein pauschaler Rückgang aller Einzelmetriken behauptet.
 - MCP117 (52Read/65Write), Protokoll9, Toolhash `235f683d99d5170801d1e34c19ad386d9c4acf68b60a6992f72a3e5d2ea14314` unverändert. UI156/145fachlich/11Plattformgruppen; jetziger quellengebundener UI-Kataloghash `028c2151903c9cc07d7ed3761102002b79fd5d8bd900810ed3bf5094a7a6c11a` ändert ausschließlich Reviewprovenienz, Aktionsvertragsvergleich bleibt identisch. Nächster Schritt R7: abschließende Gesamtregression und neuer81erOriginalkandidat mit synthetischem Update.
+
+## P1 – R7 Gesamtabnahme gestartet (19.10.2026)
+
+- Remote-main erneut unverändert1abf049, alle bisherigen Phasen als normale Commits auf main. Neuer1.51.2/81-Quellstand für nachvollziehbaren sauberen Buildcommit, kein Protokoll-/Datenformatwechsel. Abschließende Python-/JVM-/Browser-/MCP-/Release-/Lint-/Privacyläufe und Original-/Emulatorupdate folgen. Noch keine Abschlussbehauptung.
