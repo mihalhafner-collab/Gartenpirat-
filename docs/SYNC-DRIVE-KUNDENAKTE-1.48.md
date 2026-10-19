@@ -2,6 +2,8 @@
 
 # Drive-Abgleich und Kundenakte – 1.48.0 / 68
 
+Neues, noch nicht implementiertes Konzept: [Aufträge, Termine, Google Kalender und Wetter](#konzept-aufträge-termine-google-kalender-und-wetter-19102026).
+
 Umsetzung des freigegebenen Konzepts im vorhandenen Cloud-Repository und auf
 `codex/original-signing-cloud-setup-20261018`, Ausgang `5e1ca93`. Vor Beginn war
 der Arbeitsbaum sauber; der vorgeschriebene Vorfahr `05fdcbe` ist enthalten.
@@ -416,3 +418,121 @@ Offizielle Grundlagen erneut am 18.10.2026 abgerufen: [USP/BMF Rechnungsmerkmale
 Live bestätigt: 1.49.0/69, Protokoll 3, ready, write_enabled, 83 registrierte Werkzeuge. Die Angebots-/Rechnungswerkzeuge sind inzwischen sichtbar, die installierten Handler weiterhin alt. Angebote/Katalog melden false, Settings fehlen, Android-Provider statt direktem REST. Kein Connector-Manifest im Repository und kein verwalteter Veröffentlichungsendpunkt verfügbar. Nach freigegebenem Update private Verbindung neu starten, initialize/tools/list aktualisieren und Quell-Kataloghash/Protokoll 4 vergleichen; notwendige Konto-/Connector-Freigaben kann Quellcode nicht erteilen.
 
 Die sieben historischen Aktionen und zwei technischen Fehler wurden nur gelesen. Vorschau genau sieben, keine Löschung und keine Konfliktentscheidung ausgeführt. Neue Bulk-Sicherung erfordert zuerst direkten Drive-Serverbeleg und ausschließlich sieben historische Restfälle; sie umfasst aktuelle Pixel-Veröffentlichung und Original-Altdatei. Keine Geschäfts-MCP-Sicherung ersetzt die vollständige Gerätesicherung. Gesamtauftrag wegen fehlender nativer End-to-End-Abnahme ausdrücklich nicht abgeschlossen. Fortlaufende Testergebnisse, Queue-Hashes, Kandidatenprüfung und verbleibende P0/P1 stehen ausschließlich im zentralen CODEX-STATUS.
+
+## Konzept: Aufträge, Termine, Google Kalender und Wetter (19.10.2026)
+
+**Planungsstand, keine Implementierung oder Konto-/Kalenderänderung.** Geprüfte Quelle: Cloud-Branch `codex/original-signing-cloud-setup-20261018`, Commit `8b23ab8151131303e35fa6203a9f771dc94dcc8d`, App 1.49.6/75. Der zuletzt belegte Pixelstand 1.49.5/74 ist in dieser Konzeptphase nicht erneut abgefragt. Frühere Versions-/Abnahmeangaben oben sind historische Nachweise, keine Freigabe dieses Konzepts.
+
+### Bestand und Zielablauf
+
+`OfferTools`/`OfferJournalRules` bieten bereits `convert_offer_to_order`: finalisiertes Angebot ausdrücklich annehmen, Kunde/Einsatzort/Leistungen übernehmen, `offer_id` und `converted_order_id` erhalten, keine Rechnung erzeugen. Ein vorhandener Auftrag kann derzeit nur ohne bisherige Angebotsreferenz verknüpft werden. `scheduled_date` ist ein optionales Auftragsdatum ohne Uhrzeit oder mehrere Einsätze. `workflow-ui.js` bündelt Arbeit/Planung im Mehr-Menü; `DriveSyncJob` nutzt bereits den Android-JobScheduler. Die untersuchten operativen Pfade enthalten noch keine strukturierte Termin-, Google-Calendar- oder Wetterfunktion.
+
+Zielkette: **Kunde → Angebot → Auftrag → ein oder mehrere Termine → tatsächlich erfasste Arbeiten → getrennte Abrechnung.** Besichtigungen und Aufträge ohne Angebot bleiben möglich. Ein Termin ist eine Planung, kein Arbeitsnachweis und keine Annahmeerklärung für ein Angebot.
+
+- Im angenommenen Angebot eine Hauptaktion „Auftrag öffnen / Einsatz planen“. Bestehende Auftragsreferenz zuerst verwenden; neue Request-ID darf bei erneutem Antippen keinen zweiten Auftrag für dieselbe Übernahme erzeugen.
+- Im Auftrag kompakt: vereinbarte Leistungen/Angebotsreferenz, nächste Termine, geplante und tatsächlich erfasste Stunden, Fotos und offene Aufgaben. „Angebot erstellen“ übernimmt eindeutigen Kunden, Rechnungsempfänger und Einsatzort; keine Preise erfinden.
+- Ein Auftrag kann mehrere Einsätze besitzen. Angebotspositionen können auf Einsätze verteilt werden; Fixpreis und Regie bleiben unverändert. Ein Angebot über 14 Stunden erzeugt weder automatisch 14 Ist-Stunden noch eine Rechnung.
+- Hauptangebot weiter über `offer_id`; ausdrücklich angenommene Nachträge bei Bedarf als additive Referenzen mit Angebots-ID, Rolle und angenommenem Versionshash. Finalisierte Dokumente nicht nachträglich umschreiben. Änderungen des Leistungsumfangs werden sichtbar geprüft, nicht rückwirkend in Zusagen übernommen.
+- Angebots-Zeitraum als Planungsgrenze übernehmen, nicht als erfundene exakte Uhrzeit. „Vorgemerkt“ und „mit Kunde bestätigt“ getrennt halten; interne Bestätigung dokumentiert eine bekannte Zusage und sendet keine Nachricht.
+
+### Einfache Oberfläche
+
+Die untere Navigation Heute/Kunden/Arbeiten/Mehr bleibt bestehen. **Heute** zeigt nach dem aktiven Timer den nächsten Termin und höchstens einen zusammengefassten Wetterhinweis. „Planung“ im vorhandenen Mehr-Bereich Arbeit & Planung öffnet eine gemeinsame Ansicht mit **Tag / Woche / Stunden**; die bestehende Wochenstundenfunktion bleibt als Ist-Auswertung erhalten. Kein zusätzliches paralleles Kalender-Modul im Hauptmenü.
+
+- Standard eine gut lesbare Wochenagenda; optional Zeitraster. Karte: Uhrzeit, Kunde, Tätigkeit, Ort, Terminstatus und verständlicher Wetterhinweis. Ungeplante Aufträge stehen in einem einklappbaren Bereich, getrennt von Sync-Aufträgen.
+- Kundenkonto, Auftrag und angenommenes Angebot öffnen denselben Termin-Editor, bereits mit festen IDs und Kontext. Schnellerfassung benötigt im Normalfall nur Datum, Uhrzeit und Dauer; Ort/Tätigkeit werden nur bei Widerspruch erneut gefragt. Ziel: bekannter Auftrag in höchstens drei Aktionen ab Kontextansicht einplanen.
+- Mehrtägige Arbeit in einzelne Tageseinsätze aufteilen, damit Pausen, Wetter und freie Zeiten richtig geprüft werden. Wiederkehrende Pflege mit Vorschau und begrenztem Planungshorizont, Ausnahmen pro Termin; eine Verschiebung ändert nicht ungefragt die ganze Serie. Vor automatischer Fortsetzung bestehende Serienvorgaben und Dubletten prüfen.
+- Termin öffnen: „Arbeit starten“, „Verschieben“, „Absagen“, weitere Details im Aktionsmenü. Start nutzt vorhandene Zeiterfassung und deren Kundenzuordnung; laufenden Timer nicht ersetzen. Tatsächlicher Abschluss erfolgt weiter in der App, Fotos laufen über die vorhandene Sitzung-/Arbeitszuordnung.
+- Wischen zwischen Tagen ist möglich, aber jede Aktion auch per Schaltfläche erreichbar. Verschieben im Raster zeigt vor dem Speichern Zeit und Konflikte. Tastatur, lokale Entwürfe, Zurück und aktive Zeiterfassung bleiben erhalten.
+
+### Datenmodell und gemeinsame Regeln
+
+Neue Sammlung `appointments: []` im **bestehenden** SQLite-/Snapshot-/Drive-Journal. Alte Snapshots ohne Sammlung werden als leer gelesen. Keine zweite operative Datenbank. Erforderliche native Migrationen additiv und transaktional; Datenbank-/Snapshot-Version erst anhand der tatsächlichen Änderungen festlegen. Alte Verarbeiter dürfen neue Sammlungen weder verlieren noch unbekannte Aktionen bestätigen; Capability `appointments_v1` erst nach implementierten und geprüften Regeln aktivieren.
+
+Termin enthält mindestens: `id`, `customer_id`, optional `order_id`, expliziten Zweck (Arbeit/Besichtigung), Titel/Leistungsreferenzen, Beginn/Ende als UTC-Zeitpunkte plus IANA-Zeitzone (Standard Europe/Vienna), geplante Arbeitsdauer getrennt von Pausen und Anfahrt, Einsatzort/bestätigte Koordinaten, Zeitfenster/Flexibilität, Wetterprofil, Status, optionale Serien-/Ausnahme-ID, Erstell-/Änderungszeit und Version. Status: Entwurf/vorgemerkt/bestätigt/erledigt/abgesagt; Wetterbewertung und Kalender-Transportstatus sind davon unabhängig. Eine ausdrückliche Terminbestätigung ist keine gesendete Kundenbestätigung.
+
+`scheduled_date` bleibt als historisches Feld erhalten. Alte reine Datumsangaben erscheinen zunächst als „Zeit offen“ und werden nicht automatisch zu verbindlichen Kalenderterminen. Neue Terminansichten verwenden die Termin-Sammlung; kein zweites manuell zu pflegendes Termin-Datum am Auftrag. Vorhandene Auftrags-/Kundenbeziehungen und Rechnungsempfänger erhalten. Keine Zuordnung anhand des zuletzt geöffneten Kunden.
+
+Geplante gemeinsame Bausteine: `AppointmentRules` und `AppointmentJournalRules` für UI/MCP/Drive; `CalendarAdapter` und reine `WeatherRiskRules` für externe Abbildung bzw. nachvollziehbare Risikobewertung. Terminspeicherung, Journalaktion, dauerhafter Request-Beleg und Kalender-Übertragungsabsicht gemeinsam in einer lokalen Transaktion. Stabile IDs/Request-IDs, Ausgangshash vom Formularöffnen, gezielte Änderungen und aktuelle Beziehungs-/Belegprüfung. Sich überschneidende eigene Termine werden bei Speicherung erneut geprüft; externer Free/Busy-Abruf kann fremde Kalenderänderungen nicht atomar reservieren und wird mit Prüfzeitpunkt ausgewiesen.
+
+### Google Kalender
+
+Empfehlung: direkter Calendar-API-Adapter auf dem Pixel, eigener Kalender **„Haus & Garten – Einsätze“**, automatisch nach ausdrücklich bestätigter Einrichtung. Die App bleibt maßgeblich für fachliche Daten; Google Kalender ist die verbundene Terminansicht. Keine zweite Kunden-/Auftrags-Cloud und kein Codex-Dauerserver. Der Android-Calendar-Provider wird nicht zusätzlich als konkurrierender Schreibweg eingeführt.
+
+Minimaler Einrichtungsscope `calendar.app.created` für den von der App erstellten Kalender. Optional separat `calendar.freebusy` für eigene weitere Kalender bzw. `calendar.events.freebusy` für zugängliche Kalender; Kalenderliste nur bei benötigter Auswahl mit zusätzlichem `calendar.calendarlist.readonly`. Fremde Kalender dienen zunächst nur als Belegtzeiten. Ein schon vorhandener, nicht von der App erstellter Zielkalender benötigt gesonderte tatsächliche Schreibrechte und passende Scopes; dies wird nicht aus einer Drive-Freigabe abgeleitet. [Offizielle Scopes](https://developers.google.com/workspace/calendar/api/auth).
+
+- Vorgemerkte Termine sind als solche gekennzeichnet; bestätigte Termine blockieren die eigene Arbeitszeit. Externe Kalender berücksichtigen Busy-Zeiten, konfigurierbare Arbeitszeiten, Pausen, Urlaub und Anfahrtpuffer. Ohne Routendienst nur ausdrücklich eingestellter oder als Schätzung gekennzeichneter Puffer, keine erfundene exakte Fahrzeit.
+- Verknüpfung über Termin-ID und private Event-Metadaten; clientseitige stabile, Google-konforme Event-ID, gespeicherte Kalender-ID/ETag. Antwortverlust: dieselbe ID nachlesen, keinen neuen Termin anlegen. ID-Kollision erst inhaltlich prüfen. [Events.insert](https://developers.google.com/workspace/calendar/api/v3/reference/events/insert).
+- Rücklesen über vollständigen Erstabgleich und danach `syncToken`, einschließlich gelöschter Events. HTTP410 setzt ausschließlich den Calendar-Spiegel/Token zurück, niemals Geschäftsdaten oder ausstehende lokale Absichten. Pagination vollständig beenden, bevor neuer Token gilt. [Inkrementeller Abgleich](https://developers.google.com/workspace/calendar/api/guides/sync).
+- Externe Änderungen von Uhrzeit/Ort an verknüpften Events anhand der letzten gemeinsamen Basis prüfen und über dieselben App-Regeln als Journaländerung übernehmen. Gleichzeitige Änderung desselben Feldes: beide Varianten erhalten, sichtbare Entscheidung. Änderungen in Google erzeugen keine neuen Kunden, Preise oder Rechnungszustände. Fremde Termine werden nicht automatisch zu Aufträgen.
+- Updates/Löschungen mit ETag/If-Match; HTTP412 führt zum erneuten Lesen und sichtbaren Konflikt, nicht zum blinden Retry. Externe Löschung meldet „Kalendereintrag entfernt – Termin prüfen“, löscht weder Auftrag noch Arbeit und erzeugt den Eintrag nicht still erneut. App-Absage bewahrt die Termin-/Auftragshistorie und entfernt den verbundenen Event nachvollziehbar. [Versionsschutz](https://developers.google.com/workspace/calendar/api/guides/version-resources).
+- Keine ungefragten Kundeneinladungen, E-Mails oder Serienänderungen. Standard private Events mit knappen Arbeitsangaben; Umfang von Kundennamen/Adresse bewusst einstellbar, keine Rechnungs-/Gartennotizen oder Fotos im Event. Einladung und Änderung einer Kundenzusage sind eigene ausdrücklich ausgelöste Schritte.
+
+Kalenderabgleich und Drive benutzen eigene begrenzte Transportaufträge innerhalb derselben Datenhaltung. Ein Calendar-/Wetterfehler blockiert keine Arbeits-/Kunden-/Fotoübernahme. Keine verteilte Atomarität zwischen SQLite, Drive und Google behaupten: nur lokal atomar, danach wiederaufnehmbare Übertragung mit Versions-/Request-Belegen. Veraltete Übertragungsabsichten überspringen nicht die Historie, sondern werden nachvollziehbar durch ihren bestätigten Nachfolger ersetzt. Konflikt am Termin stoppt nur dessen weitere Veröffentlichung.
+
+Anzeigen unterscheiden **lokal gespeichert / Drive bestätigt bzw. Provider zurückgelesen / Google-Kalender bestätigt / Prüfung nötig**. Ein Calendar-Erfolg bestätigt keinen Drive-Snapshot. Gerätebindung des einzigen operativen Herausgebers auch nach Restore beachten; keine zweite gleichzeitig publizierende App. OAuth-Tokens bleiben privat auf dem Gerät und außerhalb von Geschäftssnapshots und MCP.
+
+### Wetter für die Arbeitswoche
+
+Primäre Vorhersage: **Open-Meteo mit für den Betrieb zulässiger gewerblicher Lizenz**; 14 Tage abrufen, um sowohl die nächsten fünf eingestellten Arbeitstage als auch die vollständige nächste Montag-bis-Freitag-Woche abzudecken. Eigene Arbeitstage/Ferien berücksichtigen; außerhalb tatsächlicher Datenabdeckung „noch keine Vorhersage“. Die API bietet bis zu16 Tage und stündliche Parameter; die freie API ist nicht für den gewerblichen Produktivbetrieb freigegeben. Kein Abonnement abschließen und keinen API-Schlüssel anfordern, bevor Kosten/Einrichtung ausdrücklich freigegeben sind. Ohne Wetterfreischaltung bleibt die gesamte manuelle Terminplanung nutzbar. [API](https://open-meteo.com/en/docs), [Nutzungsmodell](https://open-meteo.com/en/pricing).
+
+Amtliche österreichische Warnungen ergänzend aus **GeoSphere Austria**, räumlich/zeitlich passend zum Einsatz, unter der ausgewiesenen CC-BY4.0-Lizenz mit Herkunftshinweis. Amtliche Warnung und eigene Arbeitsbewertung getrennt darstellen. Keine Annahme, dass fehlende amtliche Warnung gutes Arbeitswetter bedeutet. [Datensatz und Warn-API](https://data.hub.geosphere.at/en/dataset/warnungen-v1).
+
+Bewertung jeweils für Ort und tatsächliches Terminintervall, nicht nur ein Tages-Symbol:
+
+| Profil | Relevante Hinweise |
+| --- | --- |
+| Rasenpflege / Bodenarbeit | Niederschlagsmenge/-wahrscheinlichkeit, länger anhaltender Regen und mögliche Bodennässe; Vorregen nur bei vorhandenen Daten, Modellbodenfeuchte ersetzt keine Prüfung vor Ort |
+| Hecken-/Gehölzpflege | Böen, Niederschlag, Gewitter-/Windwarnung; höhenbezogene Arbeit gesondert bewerten |
+| Pflanzung / Bewässerung | Frost, Hitze, Niederschlag, verfügbare Ausweichzeiten; keine automatische Bewässerungssteuerung |
+| Besichtigung / wetterarme Tätigkeit | Nur tatsächlich relevante Beeinträchtigungen; keine pauschale Regen-Absage |
+
+Wetterprofil aus Leistungsbausteinen vorschlagen und editierbar halten, gemischte Tätigkeiten getrennt prüfen. Bei unbekannter Tätigkeit/Ort keine beruhigende Freigabe erfinden. Versionsfähige Regeln mit anpassbaren Schwellen für Regen, Böen, Frost und Hitze; Schwellen sind betriebliche Planungshinweise, keine Sicherheitsfreigabe oder Rechts-/Maschinenvorgabe. Modellzeitraum, Datenalter und fehlende Werte immer Teil der Bewertung. Fernere Tage ausdrücklich unsicherer kennzeichnen; keine vorgetäuschten Prozentwerte zur Prognosegüte.
+
+Vier leicht verständliche Ausgaben: **kein erkennbares Wetterhindernis / erschwert / kritisch – prüfen / Wetter unbekannt**; zusätzlich Text und Symbol statt Farbe allein. Beispiel nur zur Darstellung: „Dienstag10–13Uhr: Rasenarbeit voraussichtlich erschwert durch Regen. Mittwochvormittag als Alternative prüfen.“ Vorschläge berücksichtigen freie Dauerblöcke, Anfahrtpuffer, Arbeitszeiten, Auftragsfristen und Kundenverfügbarkeit. Sie begründen ihre Rangfolge; unbekannte Verfügbarkeit bleibt unbekannt. Kein automatisches Verschieben, Absagen, Kundenkontaktieren oder Anpassen des Auftragswertes.
+
+### Aktualisierung und Benachrichtigungen
+
+- Wochenüberblick als Ziel morgens/abends aktualisieren; für Termine innerhalb48Stunden etwa alle3Stunden, innerhalb24Stunden nach Möglichkeit stündlich. Zusätzlich bei Termin-/Ort-/Tätigkeitsänderung, beim Öffnen der Planung, nach wiederkehrendem Netz und „Jetzt prüfen“. Diese Intervalle sind fachliche Ziele, keine zugesicherte Ausführungszeit.
+- Vorhersage je räumlichem Raster/Zeitraum cachen und Anfragen bündeln. Nur erforderliche Koordinaten, Zeit und Wetterparameter übertragen, keine Kundennamen, Texte oder Medien. UTC-Zeitwerte abrufen und mit Europe/Vienna je Zeitstempel umrechnen, damit Sommerzeitwechsel nicht durch einen festen Tagesoffset verfälscht werden.
+- Bestehenden JobScheduler-Ansatz mit eigenen begrenzten Job-IDs/Zeitschranken wiederverwenden. Wetterarbeit läuft unabhängig von der Drive-Jobwarteschlange; keine weitere dauerhafte Foreground-Verbindung. Keine Exact-Alarm-Berechtigung für Prognoseabrufe. Ohne dauerhaftes Server-Backend sind sofortige Google-Push-Webhooks nicht die Basis; Abgleich bei Nutzung und OS-geplanter Ausführung genügt, Verzögerung sichtbar halten. [Google-Push-Voraussetzungen](https://developers.google.com/workspace/calendar/api/guides/push).
+- Persistenter Wetterhinweis pro Termin/Risikoepisode, Push bei neuem relevantem Risiko oder deutlicher Verschärfung. Wiederholte identische Modellabfragen erzeugen keine neue Meldung. Mehrere leichte Hinweise als Wochenzusammenfassung; kurzfristige amtliche Verschärfungen priorisieren. Ruhezeiten und Benachrichtigungskanäle einstellbar; keine ungefragte Umgehung der Ruhezeit.
+- Aktionen: „Termin ansehen“, „Alternative suchen“, „Geprüft“. „Geprüft“ bestätigt Kenntnis und ändert keinen Auftrag; neue Verschärfung darf erneut melden. Nach Absage keine weiteren Terminwarnungen, Verlauf bleibt. Sperrbildschirm standardmäßig ohne Kundendetails.
+- Schon vorhandene Manifest-Permission `POST_NOTIFICATIONS` ist kein Nachweis einer erteilten Laufzeitfreigabe. Android13+ benötigt diese tatsächlich; bei Ablehnung Hinweise weiter in der App und klare Aktivierungsoption. Offline/Doze/Akkuoptimierung/erzwungener App-Stopp können Prüfungen verzögern; letzte erfolgreiche Aktualisierung und fehlende Prüfbarkeit sichtbar. [Android-Benachrichtigungen](https://developer.android.com/develop/ui/compose/notifications/notification-permission).
+- HTTP401/403: echte Neuautorisierung statt Umgehung;429/temporäre Netzfehler mit Retry-After, Backoff, Jitter und begrenzten Versuchen. Fehler erhalten den Termin und seine Übertragungsabsicht. Alte Wetterdaten bleiben als veraltet gekennzeichnet, niemals automatisch als unauffällig bewertet.
+
+### ChatGPT/MCP und manuelle Gleichwertigkeit
+
+Dies sind **geplante, heute nicht implementierte App-Werkzeuge**:
+
+| Werkzeuge | Zweck und Schutz |
+| --- | --- |
+| `get_planning_context` | Kunde/Auftrag/Angebotsversion, bekannte Dauer/Ort, Arbeitszeiten, freie Blöcke, Wetterstand und fehlende Angaben kompakt; keine Geheimnisse |
+| `list_appointments`, `get_appointment` | Filterbare begrenzte Liste, Version und alle getrennten Status |
+| `suggest_appointment_slots` | Read-only Vorschläge mit Gründen und Datenalter; nicht heimlich buchen |
+| `create_appointment`, `update_appointment`, `cancel_appointment` | Konkreter Benutzerauftrag, Owner/Write, stabile Request-ID, aktuelle Hashes; Status-/Beziehungs-/Zeitregeln wie UI, keine automatische Einladung |
+| `get_workweek_weather`, `get_weather_risks` | Strukturierte Vorhersage und betroffene Termine samt Quellen/Prüfzeitpunkt |
+| `acknowledge_weather_alert` | Kenntnisnahme mit Hash/Request-ID, keine fachliche Terminänderung |
+| `request_calendar_sync` | Begrenzten Abgleich anfordern; Rückgabe „vorgemerkt“ oder belegter Abschluss, keine falsche Sofortbestätigung |
+
+Beispiel: „Plane Hofers angenommenen Auftrag nächste Woche auf zwei trockene Vormittage.“ Kunden-/Auftragsidentität und vereinbarte Stunden prüfen, bekannte Daten übernehmen, nur fehlende Dauer oder Zusage-Verfügbarkeit erfragen, geeignete freie Blöcke vorschlagen. Buchen auf ausreichende konkrete Anweisung oder Auswahl; bei unbestimmter Anfrage nur Vorschläge. „Wegen Regen verschieben“ verlangt einen eindeutig bestimmten Termin und Zielzeit oder Auswahl. Neue operative Arbeitsaufzeichnungen weiterhin ausschließlich über die App; Kalender/MCP erzeugen keine Ist-Zeiten.
+
+Der in ChatGPT bereits verfügbare allgemeine Google-Calendar-Connector ist eine getrennte Freigabe und besitzt in den sichtbaren create/update-Schemata keinen App-Request-/Record-Hash-Vertrag. Deshalb App-Einsätze über die App-MCP-Werkzeuge verwalten und nicht zusätzlich mit dem allgemeinen Calendar-Connector anlegen. Externe Kalenderbearbeitung bleibt über den Rücklese-/Konfliktweg möglich. In get_capabilities Kalender-Verbindung, tatsächlich gewährte Rechte und Wetter-/Termin-Capabilities differenzieren; Schemata, Laufzeit und Registrierung gemeinsam qualifizieren. Internes Protokoll bei inkompatiblen Änderungen erhöhen, additive Clients erhalten. Nach Update tools/list/Connector-Refresh und echte Werkzeugausführung nachweisen, Quellnamen allein reichen nicht.
+
+Einrichtung bleibt konkret zu bestätigen: Calendar API im tatsächlichen Google-Projekt aktivieren, Android-OAuth-Zuordnung für Originalpaket/-zertifikat und Consent-/Organisationsregeln prüfen; danach Kalenderrechte am Gerät gewähren. Vorhandene Drive- oder ChatGPT-Rechte ersetzen dies nicht. Wetterzugangsdaten wie OAuth-Tokens nur im privaten, geeigneten Gerätespeicher, keine Schlüssel in APK/JavaScript/Geschäftsbackup oder protokollierten Anfrage-URLs. Cloud-Egress zu Google/Wetterdienst separat prüfen; funktionierende Connectoren beweisen keinen direkten API-Netzzugang. Ist der Pixel-Tunnel offline, darf ChatGPT Vorschläge erläutern, aber keine App-Speicherung bestätigen oder stattdessen ein unverbundenes Google-Event anlegen.
+
+### Umsetzung und Abnahme nach gesondertem Umsetzungsauftrag
+
+1. **Grundlage:** tatsächlichen Pixel-/Repo-/Connectorstand neu abgleichen; bestehenden Drive-Pfad und Datensicherung qualifizieren. Keine Erweiterung auf ungeprüfte alte Daten aufsetzen. Kalender-/Wetterrechte und Kosten getrennt freigeben, keine Installation aus diesem Konzept ableiten.
+2. **Gemeinsame Planung:** Angebotsübernahme gegen Dubletten absichern, Terminmodell/Regeln/Drive-Migration und gemeinsame Tag-/Wochenoberfläche zuerst offline funktionsfähig machen.
+3. **Kalender:** Einrichtung, Erstellen/Ändern/Absage, Busy-Zeiten, inkrementelles Rücklesen und geschützte Paralleländerungen. Wiederholung, Netzabbruch und Restore dürfen keine Event-Dubletten erzeugen.
+4. **Wetter:** lizenzierter Abruf, lokale regelbasierte Bewertung, Wochenübersicht, Cache und deduplizierte Android-Hinweise. Vorschläge bleiben ohne KI nutzbar; ChatGPT verwendet dieselben geprüften Regeln.
+5. **MCP/Gesamtabnahme:** alle neuen read/write-Pfade isoliert, anschließend genehmigtes Originalupdate und tatsächlicher Pixel-/Google-/Connector-Nachweis. Bestehende Rechnungs-, Foto-, Pflanzen-, Timer-, b.b.-, Papierkorb- und Privacy-Regressionen erhalten.
+
+Messbare Abnahmen: ein angenommenes Angebot ergibt auch bei Doppeltippen/Retry genau einen verknüpften Auftrag; ein Auftrag mit drei Einsätzen bleibt ein Auftrag; kein Termin erzeugt eine Rechnung oder Ist-Stunden. Planen aus bestehendem Kontext höchstens drei normale Aktionen ohne Doppeleingabe. Identischer Request nach Commit/Ack-Verlust und Neustart genau einmal wirksam; stale Hash/ETag bewahrt beide Varianten. Kalender410 verliert keine lokale Änderung; externe Löschung wird nicht automatisch rückgängig gemacht. Drive-Ausfall verhindert keinen lokalen Termin, Kalenderausfall keinen Drive-Abgleich.
+
+Zeitfälle: Europe/Vienna-Sommerzeitwechsel, zweideutige/nicht existente Uhrzeit, Mitternacht, ganztägige/exklusive Enddaten, Mehrtageseinsatz, Serienausnahme, Woche über Jahreswechsel und veränderte Arbeitstage. Wetterfälle: Regen nur außerhalb/innerhalb der Arbeitszeit, Böen/Gewitter, Frost/Hitze, fehlende Position/Variable, veralteter Abruf, kurzfristige Verschärfung, unveränderte Wiederholung, Absage/Bestätigung und API-Ausfall. Keine Benachrichtigungsflut; gesperrte Benachrichtigungen bleiben in der App nachvollziehbar.
+
+UI320/360/426px und150%-Schrift einschließlich lesbarer Kunden-/Tätigkeitsnamen, großem Touchziel, aktiver Zeiterfassung, Entwurferhalt und unverändertem Zurückweg. Große Terminlisten portionsweise und nur aktive Ansicht rendern; Wetterabrufe nach Ort bündeln. Tests nur synthetisch, Google-Rundlauf nur in ausdrücklich isoliertem Testkalender; Pixel-Hintergrundverhalten und echter Connector erst nach tatsächlichem Test als bestätigt melden.
+
+**In dieser Phase tatsächlich geprüft:** vorhandene Quellpfade, saubere Branch/HEAD/Remote-Refs und offizielle API-/Lizenzdokumentation. **Nicht ausgeführt:** Implementierung, neue Tests, Konto-/Kalenderzugriff, Ereignisänderung, Wetter-Liveabruf für Kunden, Build, Signierung oder Geräteinstallation. Sämtliche neuen Funktionen und Abnahmen oben sind Planungsumfang.
