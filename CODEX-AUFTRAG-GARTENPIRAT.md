@@ -293,6 +293,268 @@ Historienbefund gemäß P0.11: **produktive sensible Daten in Historie gefunden*
 Aktueller P0-Quellkandidat1.51.1/80, gleiche App-ID, MCP9/117; bisheriger qualifizierter Download79 bleibt erhalten. Der nachgewiesene Datenerhalt betrifft ausschließlich den Cloud-Emulator; kein physischer Pixel aktualisiert. Abschließende Testzahlen, Signatur-/Cleanup- und Source-ZIP-Ergebnisse stehen im letzten P0-Eintrag von CODEX-STATUS.md.
 
 
+
+## P1 – Verhaltensgleiches Refactoring nach bestandenem P0
+
+P0 ist laut CODEX-STATUS.md im festgelegten Abnahmeumfang vollständig bestanden. Dieses P1 beginnt erst auf dieser sauberen Basis. Ziel ist **keine Neuentwicklung**, sondern eine kontrollierte interne Vereinfachung der bestehenden App bei unverändertem fachlichem Verhalten.
+
+### P1.1 Nicht verhandelbare Invarianten
+
+Während dieses Refactorings erhalten:
+
+- Paket-ID `at.hausgarten.service`;
+- bestehende Originalsignierung;
+- bestehende Datenbank-/Snapshot-/Drive-Formate, sofern kein zwingender dokumentierter Migrationsgrund besteht;
+- bestehende produktive IDs und Relationen;
+- bestehende MCP-Toolnamen und fachliche Semantik;
+- bestehende UI-Aktionsmenge und Bedienabläufe;
+- bestehende Sicherheitsregeln: request_id, CAS/Hashes, Preview, confirmed=true, Backup-/Restore-Schutz;
+- P0-Datentrennung und alle drei Privacy-Gates;
+- keine produktiven Rohdaten im Repository oder in Tests;
+- keine neue App, kein zweites Repository, kein paralleler produktiver Datastore;
+- keine automatische Produktivmigration nur aus Architekturgründen.
+
+Refactoring bedeutet hier: gleiche Funktion, gleiche Außenverträge, weniger Kopplung und klarere Verantwortlichkeiten.
+
+### P1.2 Vorher-Baseline zwingend erfassen
+
+Vor der ersten strukturellen Änderung:
+
+1. aktuellen `main`-Commit dokumentieren;
+2. App-Version/versionCode/MCP-Protokoll erfassen;
+3. vollständige Quality-Suite ausführen;
+4. MCP-Toolnamen, Toolanzahl, Read-/Write-Verteilung und Input-Schemas als maschinenlesbare Baseline erfassen;
+5. UI-Aktionskatalog vollständig erfassen;
+6. wichtige Snapshot-/Journal-/Offer-/Invoice-/Photo-Contract-Hashes bzw. Contract-Fixtures erfassen;
+7. P0 Source-/Workspace-/Artifact-Gates erneut ausführen;
+8. keine strukturelle Änderung beginnen, wenn diese Baseline nicht PASS ist.
+
+Diese Baseline ist das Vergleichsobjekt für jede Refactoring-Phase.
+
+### P1.3 Zielarchitektur
+
+Die vorhandene Architektur schrittweise in klarere Verantwortungsbereiche trennen:
+
+**Domain / Contracts**
+- reine fachliche Regeln, Enums, Validierung, Berechnung, Statusübergänge;
+- keine Android-UI-, Tunnel-, Dateisystem- oder Providerabhängigkeit;
+- vorhandene zentrale Verträge wie OfferContract weiterverwenden und nicht duplizieren.
+
+**Application / Use Cases**
+- orchestriert fachliche Abläufe;
+- z. B. Kunde ändern, Arbeit abschließen, Angebot finalisieren, Rechnung vorbereiten, Foto zuordnen, Konfliktentscheidung;
+- ruft Domain-Regeln und Repository-/Storage-Schnittstellen auf;
+- enthält keine UI-Darstellung.
+
+**Storage / Provider**
+- Pixel-LocalStore, Drive, Dokument-/Foto-Speicher, Journale, Receipts;
+- technische Persistenzlogik getrennt von fachlichen Entscheidungen;
+- keine neue konkurrierende Datenquelle.
+
+**MCP**
+- dünne Tooldefinitionen, Schema-/Contract-Registrierung, Routing und Fehlerabbildung;
+- fachliche Logik nicht in großen Tool-Switches duplizieren;
+- Toolrouter nach Domänen gliedern.
+
+**UI / Android Bridge**
+- MainActivity und JavaScript-Bridges möglichst dünn;
+- UI löst Use Cases aus und stellt Ergebnisse dar;
+- keine fachliche Berechnung mehrfach in UI und Backend.
+
+### P1.4 Konkrete Hotspots zuerst refaktorieren
+
+Die aktuelle Struktur zeigt mehrere zentrale Dispatch-/Verantwortungsknoten. Diese sind bevorzugt zu entkoppeln:
+
+1. **PixelOwnerAccess**
+   - aktuell zentrale Native-Grenze mit mehreren großen `switch(name)`-Blöcken;
+   - nach Fachdomänen in Handler/Services zerlegen, z. B. Offers, Invoices, Worklogs/Sessions, Photos/Files, Sync/Archive, Planning/Settings;
+   - PixelOwnerAccess selbst soll primär Auth-/Write-Gate, Dispatch und einheitliche Ergebnis-/Fehlerhülle koordinieren.
+
+2. **PixelMcpReadTools**
+   - große Read-Dispatchlogik in domänenspezifische Query-Handler aufteilen;
+   - Toolnamen und Rückgabeformate unverändert halten.
+
+3. **PixelMcpOwnerTools**
+   - Schemaerzeugung und Toolregistrierung nach Domänen gliedern;
+   - gemeinsame Schemahelfer/Enums zentral verwenden;
+   - keine erneute Schema/Validator-Drift zulassen.
+
+4. **MainActivity / DataBridge / LocalStore**
+   - Android-Lifecycle, WebView-Brücke, Store und fachliche Owner-Aktionen nicht weiter vermischen;
+   - Bridge in klar benannte Adapter/Fassaden auslagern;
+   - MainActivity auf Lifecycle/Navi/Android-Integration reduzieren;
+   - LocalStore nur dann aufteilen, wenn dies ohne Datenformatänderung möglich ist.
+
+5. **JavaScript-UI**
+   - bestehende Module erhalten, aber Verantwortungen klar schneiden;
+   - offers, invoices, customers, workday, photos, sync, planning nicht über globale Seiteneffekte koppeln;
+   - gemeinsam genutzte UI-/Request-/Error-Helfer zentralisieren;
+   - keine Frameworkmigration nur des Refactorings wegen.
+
+### P1.5 Keine Schein-Refaktorierung
+
+Nicht ausreichend:
+
+- nur große Dateien in kleinere Dateien kopieren;
+- gleiche Switch-Logik mehrfach verteilen;
+- Wrapper-Klassen ohne klare Verantwortungsgrenze hinzufügen;
+- tote alte Pfade parallel weiterführen;
+- neue Abstraktionen einführen, die nur einen einzigen Aufrufer komplizierter machen.
+
+Jede neue Klasse/Funktion muss mindestens eine klare Verantwortung, Testgrenze oder Abhängigkeitsentkopplung schaffen.
+
+### P1.6 Charakterisierung vor Änderung
+
+Für jeden Hotspot zuerst bestehendes Verhalten durch Tests absichern.
+
+Mindestens:
+
+- positive Standardfälle;
+- Fehlerfälle;
+- stale hash/CAS;
+- idempotentes request_id-Replay;
+- Write-Gate aus;
+- ungültige Referenzen;
+- Sync pending/provider readback;
+- Testdaten-Isolation;
+- keine ungewollten Nebenwirkungen auf andere Collections.
+
+Erst danach intern umbauen.
+
+### P1.7 Domänenweise Arbeitsreihenfolge
+
+**Phase R0 – Analyse**
+- Abhängigkeits-/Call-Graph der Hotspots erstellen;
+- doppelte Regeln, zyklische Abhängigkeiten, große Dispatchblöcke, direkte Store-Zugriffe und tote Pfade markieren;
+- keine Codeänderung außer Tests/Analysehilfen.
+
+**Phase R1 – Contracts und Routing**
+- Tool-/Schema-/Enum-/Error-Verträge zentralisieren;
+- MCP-Router domänenweise strukturieren;
+- Außenvertrag identisch halten.
+
+**Phase R2 – Application Services**
+- fachliche Use Cases aus PixelOwnerAccess/MainActivity/MCP-Handlern herauslösen;
+- Kunden, Arbeit/Timer, Angebote/KV, Rechnungen, Fotos und Sync getrennt bearbeiten;
+- nach jeder Domäne vollständige relevante Regression.
+
+**Phase R3 – Storage-Grenzen**
+- LocalStore/Drive/Journale/Dateien über klare Interfaces/Fassaden ansprechen;
+- keine Änderung der gespeicherten Datenformate, sofern nicht separat freigegeben;
+- Provider-/Retry-/Receipt-Verhalten unverändert testen.
+
+**Phase R4 – Android Bridge**
+- MainActivity/DataBridge verschlanken;
+- Android-Geräteaktionen von Business-Use-Cases trennen;
+- Kamera/Share/Consent bleiben explizite Plattformgrenzen.
+
+**Phase R5 – JavaScript/UI**
+- gemeinsame Request-/Error-/State-Helfer konsolidieren;
+- globale Kopplungen reduzieren;
+- bestehendes Design und alle 156 UI-Aktionen erhalten.
+
+**Phase R6 – Dead-/Legacy-Code**
+- erst nach nachgewiesener Nichtnutzung entfernen;
+- Referenzen, Build, Tests, UI-Katalog und Runtime-Pfade prüfen;
+- historische Python-/Laptop-Komponenten nicht löschen, wenn sie noch Regression/Migration dokumentieren;
+- bei Unsicherheit markieren statt entfernen.
+
+**Phase R7 – Abschluss**
+- komplette Quality-/Privacy-/Native-/Browser-/MCP-Suite;
+- Vorher-/Nachher-Vertragsvergleich;
+- Architekturbericht und Restschulden.
+
+### P1.8 Komplexität messbar verbessern
+
+Vorher/Nachher mindestens dokumentieren:
+
+- Anzahl zentraler Dispatch-Switches und Cases je Hotspot;
+- direkte Abhängigkeiten von MainActivity auf Businesslogik;
+- direkte Store-/Drive-Zugriffe aus UI/MCP-Routern;
+- duplizierte Enum-/Schema-/Validierungsdefinitionen;
+- zyklische oder unerwünschte Domänenabhängigkeiten;
+- größte/komplexeste Klassen/Module;
+- Testabdeckung der refaktorierten Use Cases.
+
+Keine willkürliche harte Maximalzeilenzahl als alleinige Qualitätsmetrik. Ziel ist geringere Kopplung und höhere Kohäsion, nicht künstliche Dateizerlegung.
+
+### P1.9 Außenvertrags-Regression als automatisches Gate
+
+Nach jeder Phase automatisch vergleichen:
+
+- MCP-Toolset: keine unbeabsichtigten fehlenden/zusätzlichen Tools;
+- Input-Schemas: semantisch identisch, außer ausdrücklich freigegebener Änderung;
+- Tool-Annotations/Rechte unverändert;
+- UI-Aktionskatalog vollständig und gleiche fachliche Abdeckung;
+- Offer-/Invoice-/Worklog-/Photo-/Sync-Contracts unverändert;
+- Daten-/Snapshot-/Journal-Formate kompatibel;
+- Build-Fingerprint/Protokoll nachvollziehbar.
+
+Wenn eine gewünschte funktionale Änderung notwendig wird: Refactoring stoppen, separat dokumentieren und als eigener Feature-/Bugfix-Auftrag behandeln.
+
+### P1.10 Fehler- und Ergebnisstruktur vereinheitlichen
+
+Bestehende Fehlercodes erhalten. Intern gemeinsame Fehlerabbildung verwenden:
+
+- Domain-Fehler;
+- Validierungsfehler;
+- Reference Not Found;
+- Write Conflict;
+- Permission/Write Gate;
+- Provider/Sync;
+- Platform Interaction Required.
+
+Keine Roh-Exceptions oder sensible Inhalte nach außen. UI und MCP sollen denselben fachlichen Fehler eindeutig verstehen.
+
+### P1.11 Teststrategie während des Refactorings
+
+Nach jeder Teilphase mindestens die betroffenen schnellen Tests ausführen; vor Commit einer Phase vollständige relevante Suite.
+
+Am Gesamtende zwingend:
+
+- Python Quality-Suite;
+- JVM-Suiten;
+- Browser/UI-Suiten;
+- MCP-E2E/Contract-Suiten;
+- Android native/instrumentation soweit Cloud-Emulator verfügbar;
+- Source Gate;
+- Workspace Gate;
+- Artifact Gate;
+- Release/Lint;
+- Update-/Datenerhalt-Test ausschließlich synthetisch.
+
+Keine echten Kunden oder Produktivdaten für Refactoringtests.
+
+### P1.12 Git-/Arbeitsweise
+
+- kleine logisch zusammenhängende Commits;
+- keine unnötigen Branches;
+- kein Force-Push/History-Rewrite;
+- keine parallele Großmigration mehrerer Domänen ohne Zwischenabnahme;
+- nach jeder Phase `CODEX-STATUS.md` aktualisieren;
+- bei Regression Ursache beheben oder Phase zurücksetzen, nicht Test abschwächen;
+- keine bestehenden Regressionstests löschen, nur weil sie Refactoring erschweren.
+
+### P1.13 Abnahmekriterien
+
+P1 gilt erst als bestanden, wenn:
+
+- Verhalten aller refaktorierten Domänen nach Charakterisierungstests unverändert;
+- MCP-Toolset und fachliche Schemas ohne unbeabsichtigte Änderung;
+- 156 UI-Aktionen vollständig erhalten;
+- keine DB-/Snapshot-/Drive-Formatregression;
+- keine ID-/Relationsänderung;
+- P0 Source-/Workspace-/Artifact-Gates weiterhin PASS;
+- vollständige automatisierte Tests PASS oder externe NOT TESTABLE-Punkte klar ausgewiesen;
+- zentrale Hotspots messbar kleiner gekoppelt bzw. domänenspezifisch getrennt;
+- keine neue Parallelarchitektur;
+- keine produktiven Daten verwendet;
+- kein neuer Signing Key;
+- Architektur- und Abschlussstatus dokumentiert.
+
+P1 darf nicht als abgeschlossen markiert werden, solange eine funktionale Regression, Vertragsabweichung oder P0-Privacy-Regression offen ist.
+
+
 ## 3. Tatsächlich abgeglichener Ausgang und neuer Quellstand
 
 Dieser Funktionsabgleich ist historisch vor P0. Aktuelle Datenschutzabnahme und Quellstand1.51.1/80 stehen in P0.14 und im letzten CODEX-STATUS-Eintrag.
