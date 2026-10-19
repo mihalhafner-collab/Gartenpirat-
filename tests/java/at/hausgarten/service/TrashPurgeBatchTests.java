@@ -44,7 +44,7 @@ public final class TrashPurgeBatchTests {
         JSONObject conflicted=PixelMcpOwnerTools.conflicts(new JSONObject().put("master",failed).put("pending",new JSONArray().put(original)),new JSONObject());JSONObject conflict=conflicted.getJSONArray("conflicts").getJSONObject(0);yes(conflict.getBoolean("resolution_available"));yes(conflict.getJSONArray("allowed_resolutions").getString(0).equals("keep_current"));
         JSONObject decision=OffersAndPhotosTests.event("cancel-bulk","conflict_resolution",new JSONObject().put("client_id",original.getString("client_id")).put("expected_action_hash",conflict.getString("action_hash")).put("expected_current_hash",conflict.getString("current_hash")).put("resolution","keep_current").put("_original_action",original));
         yes(DriveJournalRules.apply(failed,new JSONArray().put(original).put(decision)).length()==0);yes(!OwnerJournalRules.archives(failed).getJSONObject("photo:p").optBoolean("purged"));
-        // Transport choice does not waive backup freshness, rights, scope or seven-case selection.
+        // Transport choice does not waive freshness, rights, scope or exact current selection.
         JSONObject legacy=state();JSONArray pending=new JSONArray(),legacyErrors=new JSONArray();for(int i=0;i<7;i++){JSONObject a=OffersAndPhotosTests.event("legacy-"+i,i<6?"delete":"customer",i<6?new JSONObject().put("entity","worklog").put("id","absent-"+i):new JSONObject().put("id","c").put("name","Proposed").put("_mcp_create",true));a.put("created_at","2026-10-13T00:00:00Z");pending.put(a);legacyErrors.put(new JSONObject().put("client_id",a.getString("client_id")).put("code",i<6?"DELETE_REVIEW_REQUIRED":"WRITE_CONFLICT"));}
         legacy.put("drive_journal_errors",legacyErrors);JSONObject local=new JSONObject().put("master",legacy).put("pending",pending).put("sync_queue",new JSONObject().put("total",7));
         String preview=LegacyConflictRules.preview(local).getString("preview_hash");
@@ -55,6 +55,8 @@ public final class TrashPurgeBatchTests {
         no(()->LegacyBackupPolicy.require(local,true,false,true,false,"provider_readback","LEGACY_SOURCE_CHANGED",preview));
         LegacyBackupPolicy.require(local,true,true,false,false,"provider_readback");yes(true);LegacyBackupPolicy.require(local,true,true,false,false,"drive_server_manifest");yes(true);
         no(()->LegacyBackupPolicy.require(local,true,false,false,false,"provider_readback"));no(()->LegacyBackupPolicy.require(local,true,true,false,true,"provider_readback"));no(()->LegacyBackupPolicy.require(local,true,true,true,false,"provider_readback"));no(()->LegacyBackupPolicy.require(local,true,true,false,false,"local_only"));
+        JSONObject six=new JSONObject(local.toString());six.getJSONArray("pending").remove(0);six.getJSONObject("master").getJSONArray("drive_journal_errors").remove(0);six.getJSONObject("sync_queue").put("total",6);String sixHash=LegacyConflictRules.preview(six).getString("preview_hash");yes(!sixHash.equals(preview));
+        no(()->LegacyBackupPolicy.require(six,true,true,false,false,"provider_readback"));no(()->LegacyBackupPolicy.require(six,true,true,false,false,"provider_readback","",preview));LegacyBackupPolicy.require(six,true,true,false,false,"provider_readback","",sixHash);yes(true);no(()->LegacyBackupPolicy.require(new JSONObject(six.toString()).put("sync_queue",new JSONObject().put("total",7)),true,true,false,false,"provider_readback","",sixHash));
         System.out.println("PASS empty-trash/provider-backup checks="+checks);
     }
 }
