@@ -2137,7 +2137,7 @@
     "android/app/src/main/assets/workday-ui.js": "6e15cf73e687532e3f83a01a3cb9831ba737a7ba380ca1fae61c83510dcfcd24",
     "android/app/src/main/assets/workflow-ui.css": "b8e0a8db087ca6c4e849b74e3164bba90be0008630aab253571b0d98b2f70f17",
     "android/app/src/main/assets/workflow-ui.js": "b5a95484193d768d9a7993e41a56706568e7c6c5767702d2372d4f50c796b326",
-    "android/app/src/main/java/at/hausgarten/service/MainActivity.java": "644f79688c4cc4e33391e014c7e6294f70832fce3479ecfd6547ca25e4e1aca0",
+    "android/app/src/main/java/at/hausgarten/service/MainActivity.java": "78bc82008c74e7e9f94243ff11361714386f5613f56896aba8eaecf35bacc312",
     "android/app/src/main/java/at/hausgarten/service/PlanningConnectionActivity.java": "f8b73a4b2995ebe417ea464c773fdb075b3aa3e591fbd85d19b1bdf6b1e521a2",
     "android/app/src/main/java/at/hausgarten/service/DriveConnectionActivity.java": "a65452d62b9866f66adb7394cf5f718bb94f94056077d6bbefda12654ea03506",
     "android/app/src/main/java/at/hausgarten/service/PixelTunnelActivity.java": "0a339f54589cdbfdf3497ee1470586190cbd1fb501da85dcdaebd132cfb4ac59"
