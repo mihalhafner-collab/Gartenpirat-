@@ -6,70 +6,13 @@ import java.util.*;
 /** Owner operations use the same private tunnel and the same runtime write gate. */
 final class PixelMcpOwnerTools {
     interface Access { JSONObject query(String name,JSONObject args) throws Exception; }
-    static final int CHUNK=48*1024;
-    static final String[] BUSINESS_KEYS={"offer_binding_text","offer_nonbinding_text","offer_time_material_text","business_name","owner_name","business_street","business_postal_code","business_city","business_legal_info","business_iban","business_bank","business_bic","business_phone","business_email","invoice_issuer_confirmed","invoice_numbering_confirmed","invoice_number_format","invoice_prefix","invoice_sevdesk_last_number","invoice_sevdesk_checked_at","invoice_numbering_authority","invoice_numbering_device_id","invoice_numbering_last_number","invoice_numbering_checked_at","tax_mode","tax_exemption_text","business_vat_id","default_payment_days","default_payment_terms"};
+    static final int CHUNK=McpFields.CHUNK;
+    static final String[] BUSINESS_KEYS=McpFields.BUSINESS_KEYS;
     static final String[] READS={"run_self_test","get_ui_action_catalog","inspect_order_review","get_capabilities","preview_empty_trash","preview_archive_work_records","preview_purge","preview_delete","preview_legacy_conflict_resolution","get_sync_conflicts","get_photo","get_settings","get_business_settings","search_catalog","get_catalog_entry","read_file_chunk","get_file_metadata","list_archive","list_backups","inspect_backup"};
     static final String[] WRITES={"save_reviewed_order","empty_trash","archive_work_records","prepare_legacy_conflict_backup","close_legacy_conflicts","set_work_record_billed","reassign_work_record","update_photo","begin_file_upload","write_file_chunk","create_photo","purge_entity","delete_entity","archive_entity","restore_entity","resolve_sync_conflict","request_sync","update_settings","update_business_settings","set_personal_paid","create_backup","restore_backup","request_invoice_issue","prepare_invoice_share","create_invoice_correction","update_invoice_payment"};
     static boolean read(String n){return Arrays.asList(READS).contains(n);}
     static boolean write(String n){return Arrays.asList(WRITES).contains(n);}
-    static JSONObject text(int n)throws Exception{return new JSONObject().put("type","string").put("maxLength",n);}
-    static JSONObject id()throws Exception{return text(500).put("minLength",1);}
-    static JSONObject hash()throws Exception{return text(64).put("pattern","[0-9a-f]{64}");}
-    static JSONObject number(int min,int max)throws Exception{return new JSONObject().put("type","integer").put("minimum",min).put("maximum",max);}
-    static JSONObject bool()throws Exception{return new JSONObject().put("type","boolean");}
-    static JSONObject object(JSONObject props,String... required)throws Exception{return new JSONObject().put("type","object").put("properties",props).put("required",new JSONArray(required)).put("additionalProperties",false);}
-    static JSONObject enumeration(String...values)throws Exception{return id().put("enum",new JSONArray(values));}
-    static JSONObject schema(String name)throws Exception{
-        JSONObject p=new JSONObject();List<String> required=new ArrayList<>();
-        if(write(name)){p.put("request_id",text(128).put("minLength",8));required.add("request_id");}
-        switch(name){
-            case "get_ui_action_catalog":p.put("expected_catalog_hash",hash()).put("offset",number(0,1000000)).put("limit",number(1,100));break;
-            case "inspect_order_review":p.put("order_id",id());required.add("order_id");break;
-            case "save_reviewed_order":p.put("id",id()).put("token",hash()).put("decision",enumeration("keep","save")).put("confirmed",bool().put("enum",new JSONArray().put(true)));JSONObject edits=new JSONObject();for(String k:new String[]{"title","customer_id","billing_customer_id","description","location","scheduled_date","status"})edits.put(k,text(10000));edits.put("customer_visible",number(0,1));p.put("order",object(edits));required.addAll(Arrays.asList("id","token","decision","confirmed"));break;
-            case "prepare_legacy_conflict_backup":p.put("expected_preview_hash",hash());break;
-            case "preview_archive_work_records":case "archive_work_records":
-                p.put("work_record_ids",new JSONObject().put("type","array").put("minItems",1).put("maxItems",WorklogArchiveBatch.MAX).put("items",id()));required.add("work_record_ids");
-                if(name.equals("archive_work_records")){p.put("expected_preview_hash",hash()).put("confirmed",bool().put("enum",new JSONArray().put(true)));required.addAll(Arrays.asList("expected_preview_hash","confirmed"));}break;
-            case "empty_trash":p.put("expected_preview_hash",hash()).put("confirmed",bool().put("enum",new JSONArray().put(true)));required.addAll(Arrays.asList("expected_preview_hash","confirmed"));break;
-            case "close_legacy_conflicts":p.put("backup_id",id()).put("expected_preview_hash",hash()).put("confirmed",bool().put("enum",new JSONArray().put(true)));required.addAll(Arrays.asList("backup_id","expected_preview_hash","confirmed"));break;
-            case "get_photo":p.put("photo_id",id());required.add("photo_id");break;
-            case "list_archive":p.put("limit",number(1,100)).put("offset",number(0,1000000)).put("entity",enumeration(DeletionRules.ENTITIES)).put("entity_id",id());break;
-            case "get_sync_conflicts":p.put("limit",number(1,100)).put("offset",number(0,1000000)).put("client_id",id()).put("include_history",bool());break;
-            case "get_settings":break;
-            case "search_catalog":p.put("catalog_type",enumeration("plant","service")).put("query",text(200)).put("offset",number(0,1000000)).put("limit",number(1,100));break;
-            case "get_catalog_entry":p.put("entry_id",id());required.add("entry_id");break;
-            case "get_file_metadata":case "read_file_chunk":p.put("resource_type",enumeration("photo","invoice","offer","catalog","backup")).put("resource_id",id()).put("offset",number(0,1024*1024*1024)).put("length",number(1,CHUNK)).put("expected_sha256",hash());required.addAll(Arrays.asList("resource_type","resource_id"));if(name.equals("read_file_chunk"))required.addAll(Arrays.asList("offset","expected_sha256"));break;
-            case "begin_file_upload":p.put("byte_size",number(1,20*1024*1024)).put("sha256",hash()).put("mime_type",enumeration("image/jpeg","image/png","image/webp","image/gif","image/heic"));required.addAll(Arrays.asList("byte_size","sha256","mime_type"));break;
-            case "write_file_chunk":p.put("upload_id",id()).put("offset",number(0,20*1024*1024)).put("chunk_base64",text(CHUNK/3*4).put("minLength",4)).put("chunk_sha256",hash());required.addAll(Arrays.asList("upload_id","offset","chunk_base64","chunk_sha256"));break;
-            case "create_photo":p.put("upload_id",id()).put("customer_id",id());required.addAll(Arrays.asList("upload_id","customer_id"));photoFields(p);break;
-            case "set_work_record_billed":case "reassign_work_record":{
-                p.put("work_record_id",id()).put("expected_record_hash",hash()).put("reason",text(2000).put("minLength",1));required.addAll(Arrays.asList("work_record_id","expected_record_hash","reason"));
-                if(name.equals("set_work_record_billed")){p.put("billed",bool());required.add("billed");}else{p.put("customer_id",id()).put("billing_customer_id",id()).put("order_id",text(500));required.addAll(Arrays.asList("customer_id","billing_customer_id"));}break;
-            }
-            case "update_photo":p.put("photo_id",id()).put("expected_record_hash",hash()).put("updates",object(photoFields(new JSONObject())) .put("minProperties",1));required.addAll(Arrays.asList("photo_id","expected_record_hash","updates"));break;
-            case "preview_purge":case "preview_delete":p.put("entity",enumeration(DeletionRules.ENTITIES)).put("entity_id",id());required.addAll(Arrays.asList("entity","entity_id"));break;
-            case "purge_entity":p.put("confirmed",new JSONObject().put("type","boolean").put("enum",new JSONArray().put(true)));required.add("confirmed");
-            case "delete_entity":case "archive_entity":case "restore_entity":p.put("entity",enumeration(DeletionRules.ENTITIES)).put("entity_id",id()).put("expected_record_hash",hash());required.addAll(Arrays.asList("entity","entity_id","expected_record_hash"));if(name.equals("delete_entity")||name.equals("archive_entity"))p.put("expected_photo_links_hash",hash());break;
-            case "resolve_sync_conflict":p.put("client_id",id()).put("expected_action_hash",hash()).put("expected_current_hash",hash()).put("resolution",enumeration("keep_current","apply_proposed"));required.addAll(Arrays.asList("client_id","expected_action_hash","expected_current_hash","resolution"));break;
-            case "update_business_settings":{
-                JSONObject fields=new JSONObject();for(String key:BUSINESS_KEYS)fields.put(key,key.endsWith("_confirmed")?bool():(key.equals("invoice_sevdesk_last_number")||key.equals("invoice_numbering_last_number"))?number(0,1000000000):key.equals("invoice_number_format")?enumeration("own","sevdesk"):text(2000));
-                fields.put("invoice_numbering_authority",enumeration("","pixel_drive")).put("invoice_numbering_device_id",text(200)).put("tax_mode",enumeration("small_business","standard")).put("default_payment_days",number(0,365));
-                fields.put("invoice_prefix",text(20).put("pattern","[A-Za-z][A-Za-z0-9-]{0,19}"));
-                p.put("expected_record_hash",hash()).put("updates",object(fields).put("minProperties",1));required.addAll(Arrays.asList("expected_record_hash","updates"));break;
-            }
-            case "update_settings":p.put("expected_record_hash",hash()).put("updates",object(new JSONObject().put("default_activity",text(500)).put("default_location",text(500)).put("photo_quality",enumeration("optimized","high","original"))).put("minProperties",1));required.addAll(Arrays.asList("expected_record_hash","updates"));break;
-            case "set_personal_paid":p.put("work_record_id",id()).put("paid",bool());required.addAll(Arrays.asList("work_record_id","paid"));break;
-            case "inspect_backup":p.put("backup_id",id());required.add("backup_id");break;
-            case "restore_backup":p.put("backup_id",id()).put("expected_state_hash",hash());required.addAll(Arrays.asList("backup_id","expected_state_hash"));break;
-            case "request_invoice_issue":p.put("invoice_id",id()).put("expected_record_hash",hash()).put("confirmed",bool().put("enum",new JSONArray().put(true)));required.addAll(Arrays.asList("invoice_id","expected_record_hash","confirmed"));break;
-            case "prepare_invoice_share":p.put("invoice_id",id()).put("channel",enumeration("share","email","whatsapp"));required.addAll(Arrays.asList("invoice_id","channel"));break;
-            case "create_invoice_correction":p.put("invoice_id",id()).put("expected_record_hash",hash()).put("reason",text(2000).put("minLength",1)).put("correction_type",enumeration("replacement","cancellation"));required.addAll(Arrays.asList("invoice_id","expected_record_hash","reason","correction_type"));break;
-            case "update_invoice_payment":p.put("invoice_id",id()).put("expected_record_hash",hash()).put("paid",bool());required.addAll(Arrays.asList("invoice_id","expected_record_hash","paid"));break;
-        }
-        if(p.has("expected_record_hash"))p.getJSONObject("expected_record_hash").put("description",Arrays.asList("delete_entity","archive_entity","update_invoice_payment").contains(name)?"entity_hash des zuvor gelesenen Datensatzes.":name.equals("restore_entity")?"record_hash des Eintrags aus list_archive.":"record_hash des zuvor gelesenen Datensatzes.");
-        return object(p,required.toArray(new String[0]));
-    }
-    private static JSONObject photoFields(JSONObject p)throws Exception{return p.put("session_id",text(500)).put("capture_time",text(80)).put("order_id",text(500)).put("worklog_id",text(500)).put("caption",text(10000)).put("role",enumeration("profile","documentation","before","during","after","damage","other")).put("customer_visible",bool()).put("original_name",text(240));}
+    static JSONObject schema(String name)throws Exception{return OwnerToolSchemas.schema(name,write(name));}
     static JSONArray tools(boolean writable)throws Exception{
         JSONArray out=new JSONArray();List<String> names=new ArrayList<>(Arrays.asList(READS));if(writable)names.addAll(Arrays.asList(WRITES));
         for(String n:names)out.put(new JSONObject().put("name",n).put("description",description(n)).put("inputSchema",schema(n)).put("annotations",new JSONObject().put("readOnlyHint",read(n)).put("destructiveHint",Arrays.asList("empty_trash","archive_work_records","set_work_record_billed","reassign_work_record","purge_entity","delete_entity","archive_entity","restore_entity","restore_backup","resolve_sync_conflict","request_invoice_issue","create_invoice_correction","update_invoice_payment").contains(n)).put("idempotentHint",true).put("openWorldHint",false)));return out;

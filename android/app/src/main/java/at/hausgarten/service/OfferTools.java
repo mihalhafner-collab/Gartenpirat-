@@ -9,44 +9,44 @@ final class OfferTools {
     static boolean read(String n){return Arrays.asList(READS).contains(n);}
     static boolean write(String n){return Arrays.asList(WRITES).contains(n);}
     static JSONObject fields()throws Exception{
-        JSONObject p=new JSONObject();for(String k:OfferRules.FIELDS)p.put(k,PixelMcpOwnerTools.text(10000));
-        for(String k:new String[]{"scope_confirmed","consumer_information_confirmed","binding_confirmed","test_record"})p.put(k,PixelMcpOwnerTools.bool());
-        p.put("document_type",PixelMcpOwnerTools.enumeration(OfferRules.TYPES)).put("customer_type",PixelMcpOwnerTools.enumeration(OfferContract.values("customer_types"))).put("contract_channel",PixelMcpOwnerTools.enumeration(OfferContract.values("contract_channels"))).put("tax_mode",PixelMcpOwnerTools.enumeration(OfferContract.values("tax_modes")));
-        JSONObject line=new JSONObject();for(String k:new String[]{"title","description","unit","catalog_entry_id","catalog_hash"})line.put(k,PixelMcpOwnerTools.text(10000));
-        line.put("title",PixelMcpOwnerTools.text(500));
-        line.put("price_source",PixelMcpOwnerTools.enumeration(OfferContract.values("price_sources")).put("description","Bei einem ausdrücklich vom Nutzer bestätigten manuellen Preis exakt user_confirmed verwenden; bei freigegebenem Katalogpreis weglassen und catalog_entry_id/catalog_hash verwenden."));
-        line.put("price_basis",PixelMcpOwnerTools.enumeration(OfferContract.values("price_bases"))).put("price_note",PixelMcpOwnerTools.text(2000));
-        JSONObject calculation=new JSONObject();for(String k:new String[]{"base_price","factor","surcharge"})calculation.put(k,new JSONObject().put("type",new JSONArray().put("number").put("null")).put("minimum",0).put("maximum",1000000000));line.put("calculation",PixelMcpOwnerTools.object(calculation));
+        JSONObject p=new JSONObject();for(String k:OfferRules.FIELDS)p.put(k,McpFields.text(10000));
+        for(String k:new String[]{"scope_confirmed","consumer_information_confirmed","binding_confirmed","test_record"})p.put(k,McpFields.bool());
+        p.put("document_type",McpFields.enumeration(OfferRules.TYPES)).put("customer_type",McpFields.enumeration(OfferContract.values("customer_types"))).put("contract_channel",McpFields.enumeration(OfferContract.values("contract_channels"))).put("tax_mode",McpFields.enumeration(OfferContract.values("tax_modes")));
+        JSONObject line=new JSONObject();for(String k:new String[]{"title","description","unit","catalog_entry_id","catalog_hash"})line.put(k,McpFields.text(10000));
+        line.put("title",McpFields.text(500));
+        line.put("price_source",McpFields.enumeration(OfferContract.values("price_sources")).put("description","Bei einem ausdrücklich vom Nutzer bestätigten manuellen Preis exakt user_confirmed verwenden; bei freigegebenem Katalogpreis weglassen und catalog_entry_id/catalog_hash verwenden."));
+        line.put("price_basis",McpFields.enumeration(OfferContract.values("price_bases"))).put("price_note",McpFields.text(2000));
+        JSONObject calculation=new JSONObject();for(String k:new String[]{"base_price","factor","surcharge"})calculation.put(k,new JSONObject().put("type",new JSONArray().put("number").put("null")).put("minimum",0).put("maximum",1000000000));line.put("calculation",McpFields.object(calculation));
         for(String k:new String[]{"quantity","price","tax_rate"})line.put(k,new JSONObject().put("type",new JSONArray().put("number").put("null")).put("minimum",0).put("maximum",1000000000));
         line.getJSONObject("tax_rate").put("maximum",100);line.getJSONObject("quantity").put("exclusiveMinimum",0).put("description","Bei bekannten Mengen größer als0, andernfalls null für einen unvollständigen Entwurf.");
-        p.put("positions",new JSONObject().put("type","array").put("maxItems",200).put("items",PixelMcpOwnerTools.object(line,"title","unit")));return p;
+        p.put("positions",new JSONObject().put("type","array").put("maxItems",200).put("items",McpFields.object(line,"title","unit")));return p;
     }
     static JSONObject catalogFields()throws Exception{
-        JSONObject p=new JSONObject();for(String k:new String[]{"title","description","unit","pricing_type","category","legal_notes","assumptions","exclusions"})p.put(k,PixelMcpOwnerTools.text(10000));
+        JSONObject p=new JSONObject();for(String k:new String[]{"title","description","unit","pricing_type","category","legal_notes","assumptions","exclusions"})p.put(k,McpFields.text(10000));
         for(String k:new String[]{"default_price","default_quantity"})p.put(k,new JSONObject().put("type",new JSONArray().put("number").put("null")).put("minimum",0).put("maximum",1000000000));
-        p.put("pricing_type",PixelMcpOwnerTools.enumeration(OfferContract.values("pricing_types")));
-        p.put("active",PixelMcpOwnerTools.bool()).put("price_confirmed",PixelMcpOwnerTools.bool());return p;
+        p.put("pricing_type",McpFields.enumeration(OfferContract.values("pricing_types")));
+        p.put("active",McpFields.bool()).put("price_confirmed",McpFields.bool());return p;
     }
     static JSONObject schema(String n)throws Exception {
         JSONObject p=new JSONObject();List<String> required=new ArrayList<>();
-        if(write(n)){p.put("request_id",PixelMcpOwnerTools.text(128).put("minLength",8));required.add("request_id");}
-        if(Arrays.asList("get_offer","validate_offer","update_offer_draft","finalize_offer","duplicate_offer","prepare_offer_share","convert_offer_to_order","validate_offer_draft","prepare_offer_delivery","confirm_offer_delivery").contains(n)){p.put("offer_id",PixelMcpOwnerTools.id());required.add("offer_id");}
-        if(Arrays.asList("update_offer_draft","finalize_offer","convert_offer_to_order","prepare_offer_share","validate_offer_draft","prepare_offer_delivery","confirm_offer_delivery").contains(n)){p.put("expected_record_hash",PixelMcpOwnerTools.hash());required.add("expected_record_hash");}
+        if(write(n)){p.put("request_id",McpFields.text(128).put("minLength",8));required.add("request_id");}
+        if(Arrays.asList("get_offer","validate_offer","update_offer_draft","finalize_offer","duplicate_offer","prepare_offer_share","convert_offer_to_order","validate_offer_draft","prepare_offer_delivery","confirm_offer_delivery").contains(n)){p.put("offer_id",McpFields.id());required.add("offer_id");}
+        if(Arrays.asList("update_offer_draft","finalize_offer","convert_offer_to_order","prepare_offer_share","validate_offer_draft","prepare_offer_delivery","confirm_offer_delivery").contains(n)){p.put("expected_record_hash",McpFields.hash());required.add("expected_record_hash");}
         switch(n){
             case "create_offer_draft":case "create_and_validate_offer":{JSONObject f=fields();for(Iterator<String> it=f.keys();it.hasNext();){String k=it.next();p.put(k,f.get(k));}required.addAll(Arrays.asList("customer_id","title","positions"));break;}
-            case "update_offer_draft":p.put("updates",PixelMcpOwnerTools.object(fields()).put("minProperties",1));required.add("updates");break;
-            case "list_offers":p.put("customer_id",PixelMcpOwnerTools.id()).put("document_type",PixelMcpOwnerTools.enumeration(OfferRules.TYPES)).put("status",PixelMcpOwnerTools.enumeration(OfferContract.values("workflow_statuses"))).put("offset",PixelMcpOwnerTools.number(0,1000000)).put("limit",PixelMcpOwnerTools.number(1,100));break;
-            case "search_offer_templates":p.put("query",PixelMcpOwnerTools.text(200)).put("offset",PixelMcpOwnerTools.number(0,1000000)).put("limit",PixelMcpOwnerTools.number(1,100));break;
-            case "get_offer_template":p.put("entry_id",PixelMcpOwnerTools.id());required.add("entry_id");break;
-            case "get_offer_context":p.put("customer_id",PixelMcpOwnerTools.id());required.add("customer_id");break;
-            case "prepare_offer_delivery":p.put("recipient_email",PixelMcpOwnerTools.text(320).put("minLength",3)).put("confirmed",PixelMcpOwnerTools.bool().put("enum",new JSONArray().put(true)));required.addAll(Arrays.asList("recipient_email","confirmed"));break;
-            case "confirm_offer_delivery":p.put("provider",PixelMcpOwnerTools.enumeration("gmail")).put("message_id",PixelMcpOwnerTools.id());required.addAll(Arrays.asList("provider","message_id"));break;
-            case "finalize_offer":p.put("expected_context_hash",PixelMcpOwnerTools.hash()).put("confirmed",PixelMcpOwnerTools.bool().put("enum",new JSONArray().put(true)));required.addAll(Arrays.asList("expected_context_hash","confirmed"));break;
-            case "convert_offer_to_order":p.put("confirmed",PixelMcpOwnerTools.bool().put("enum",new JSONArray().put(true))).put("existing_order_id",PixelMcpOwnerTools.id()).put("expected_order_hash",PixelMcpOwnerTools.hash());required.add("confirmed");break;
+            case "update_offer_draft":p.put("updates",McpFields.object(fields()).put("minProperties",1));required.add("updates");break;
+            case "list_offers":p.put("customer_id",McpFields.id()).put("document_type",McpFields.enumeration(OfferRules.TYPES)).put("status",McpFields.enumeration(OfferContract.values("workflow_statuses"))).put("offset",McpFields.number(0,1000000)).put("limit",McpFields.number(1,100));break;
+            case "search_offer_templates":p.put("query",McpFields.text(200)).put("offset",McpFields.number(0,1000000)).put("limit",McpFields.number(1,100));break;
+            case "get_offer_template":p.put("entry_id",McpFields.id());required.add("entry_id");break;
+            case "get_offer_context":p.put("customer_id",McpFields.id());required.add("customer_id");break;
+            case "prepare_offer_delivery":p.put("recipient_email",McpFields.text(320).put("minLength",3)).put("confirmed",McpFields.bool().put("enum",new JSONArray().put(true)));required.addAll(Arrays.asList("recipient_email","confirmed"));break;
+            case "confirm_offer_delivery":p.put("provider",McpFields.enumeration("gmail")).put("message_id",McpFields.id());required.addAll(Arrays.asList("provider","message_id"));break;
+            case "finalize_offer":p.put("expected_context_hash",McpFields.hash()).put("confirmed",McpFields.bool().put("enum",new JSONArray().put(true)));required.addAll(Arrays.asList("expected_context_hash","confirmed"));break;
+            case "convert_offer_to_order":p.put("confirmed",McpFields.bool().put("enum",new JSONArray().put(true))).put("existing_order_id",McpFields.id()).put("expected_order_hash",McpFields.hash());required.add("confirmed");break;
             case "create_catalog_entry":{JSONObject f=catalogFields();for(Iterator<String> it=f.keys();it.hasNext();){String k=it.next();p.put(k,f.get(k));}required.addAll(Arrays.asList("title","unit","category"));break;}
-            case "update_catalog_entry":p.put("entry_id",PixelMcpOwnerTools.id()).put("expected_record_hash",PixelMcpOwnerTools.hash()).put("updates",PixelMcpOwnerTools.object(catalogFields()).put("minProperties",1));required.addAll(Arrays.asList("entry_id","expected_record_hash","updates"));break;
+            case "update_catalog_entry":p.put("entry_id",McpFields.id()).put("expected_record_hash",McpFields.hash()).put("updates",McpFields.object(catalogFields()).put("minProperties",1));required.addAll(Arrays.asList("entry_id","expected_record_hash","updates"));break;
         }
-        return PixelMcpOwnerTools.object(p,required.toArray(new String[0]));
+        return McpFields.object(p,required.toArray(new String[0]));
     }
     static JSONArray tools(boolean writable)throws Exception{
         JSONArray out=new JSONArray();List<String> names=new ArrayList<>(Arrays.asList(READS));if(writable)names.addAll(Arrays.asList(WRITES));

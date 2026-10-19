@@ -23,7 +23,7 @@ final class PixelMcpEntityWriteTools {
         if("billing_mode".equals(key))return string(30).put("enum",new JSONArray().put("direct").put("via_customer"));
         if("payment_days".equals(key))return integer();
         if("positions".equals(key)){
-            JSONObject p=new JSONObject();for(String k:new String[]{"title","description","unit","worklog_id"})p.put(k,string(10000));for(String k:new String[]{"quantity","price","tax_rate","discount","net","tax","net_total","tax_total","gross_total"})p.put(k,new JSONObject().put("type","number"));return new JSONObject().put("type","array").put("minItems",1).put("maxItems",200).put("items",PixelMcpOwnerTools.object(p,"title","quantity","price"));}
+            JSONObject p=new JSONObject();for(String k:new String[]{"title","description","unit","worklog_id"})p.put(k,string(10000));for(String k:new String[]{"quantity","price","tax_rate","discount","net","tax","net_total","tax_total","gross_total"})p.put(k,new JSONObject().put("type","number"));return new JSONObject().put("type","array").put("minItems",1).put("maxItems",200).put("items",McpFields.object(p,"title","quantity","price"));}
         if("recipient_type".equals(key))return string(30).put("enum",new JSONArray().put("b2b").put("consumer").put(""));
         if("tax_mode".equals(key))return string(30).put("enum",new JSONArray().put("small_business").put("standard"));
         return string(Arrays.asList("notes","description").contains(key)?10000:500);
