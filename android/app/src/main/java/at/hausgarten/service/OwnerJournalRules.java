@@ -93,7 +93,7 @@ final class OwnerJournalRules {
             for(String group:new String[]{"customers","orders","worklogs"}){JSONArray records=snapshot.optJSONArray(group);for(int i=0;records!=null&&i<records.length();i++){JSONObject r=records.getJSONObject(i);String key=group.equals("customers")?"default_billing_customer_id":"billing_customer_id";if(row.getString("id").equals(r.optString(key))&&!row.getString("id").equals(r.optString(group.equals("customers")?"id":"customer_id")))throw new IllegalArgumentException("Dieser Kunde wird als Rechnungsempfänger verwendet. Zuerst die Abrechnungszuordnungen prüfen.");}}
             return; // Keep the row and all historic references.
         }
-        if(entity.equals("offer")&&!"draft".equals(row.optString("status")))throw new IllegalArgumentException("Finalisierte oder angenommene Angebote bleiben als Beleg erhalten.");
+        if(entity.equals("offer")&&!OfferRules.editable(row))throw new IllegalArgumentException("Finalisierte oder angenommene Angebote bleiben als Beleg erhalten.");
         if(entity.equals("service_template"))return; // Inactive, never remove historical price references.
         String id=row.getString("id");
         if(entity.equals("invoice"))EntityProtectionRules.validateInvoiceDelete(row);

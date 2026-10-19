@@ -414,7 +414,7 @@ public class MainActivity extends Activity {
             JSONObject info = new JSONObject();
             try {
                 android.content.pm.PackageInfo installed = getPackageManager().getPackageInfo(getPackageName(), 0);
-                info.put("versionName", installed.versionName);
+                info.put("build_fingerprint",BuildProvenance.describe());info.put("versionName", installed.versionName);
                 info.put("versionCode", android.os.Build.VERSION.SDK_INT >= 28 ? installed.getLongVersionCode() : installed.versionCode);
             } catch (Exception ignored) {}
             return info.toString();
@@ -468,7 +468,7 @@ public class MainActivity extends Activity {
             }
         }
         @JavascriptInterface public void shareOffer(String id){
-            new Thread(()->{try{JSONObject offer=PixelMcpWriteTools.find(PixelMcpReadTools.effective(store.getState()).getJSONArray("offers"),id);byte[] bytes;try{bytes=new BusinessDocumentStore(MainActivity.this).read(offer);}catch(Exception missing){bytes=DriveSyncCoordinator.fetchDocument(MainActivity.this,offer);new BusinessDocumentStore(MainActivity.this).store(bytes,offer);}File dir=new File(getCacheDir(),"invoice-share");if(!dir.isDirectory()&&!dir.mkdirs())throw new IOException("Freigabeordner fehlt.");File target=new File(dir,"Angebot-"+UUID.randomUUID()+".pdf");try(java.io.FileOutputStream out=new java.io.FileOutputStream(target)){out.write(bytes);}Uri uri=Uri.parse("content://"+getPackageName()+".invoicefiles/"+target.getName());Intent send=new Intent(Intent.ACTION_SEND).setType("application/pdf").putExtra(Intent.EXTRA_STREAM,uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);send.setClipData(android.content.ClipData.newRawUri("Angebot",uri));runOnUiThread(()->startActivity(Intent.createChooser(send,"Angebots-PDF teilen")));}catch(Exception error){runOnUiThread(()->Toast.makeText(MainActivity.this,"PDF noch nicht verfügbar. Dokument und Drive-Abgleich prüfen.",Toast.LENGTH_LONG).show());}}).start();
+            new Thread(()->{try{JSONObject offer=PixelMcpWriteTools.find(PixelMcpReadTools.effective(store.getState()).getJSONArray("offers"),id);TestDataRules.noDelivery(offer,PixelMcpReadTools.effective(store.getState()));byte[] bytes;try{bytes=new BusinessDocumentStore(MainActivity.this).read(offer);}catch(Exception missing){bytes=DriveSyncCoordinator.fetchDocument(MainActivity.this,offer);new BusinessDocumentStore(MainActivity.this).store(bytes,offer);}File dir=new File(getCacheDir(),"invoice-share");if(!dir.isDirectory()&&!dir.mkdirs())throw new IOException("Freigabeordner fehlt.");File target=new File(dir,"Angebot-"+UUID.randomUUID()+".pdf");try(java.io.FileOutputStream out=new java.io.FileOutputStream(target)){out.write(bytes);}Uri uri=Uri.parse("content://"+getPackageName()+".invoicefiles/"+target.getName());Intent send=new Intent(Intent.ACTION_SEND).setType("application/pdf").putExtra(Intent.EXTRA_STREAM,uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);send.setClipData(android.content.ClipData.newRawUri("Angebot",uri));runOnUiThread(()->startActivity(Intent.createChooser(send,"Angebots-PDF teilen")));}catch(Exception error){runOnUiThread(()->Toast.makeText(MainActivity.this,"PDF noch nicht verfügbar. Dokument und Drive-Abgleich prüfen.",Toast.LENGTH_LONG).show());}}).start();
         }
         @JavascriptInterface public String shareInvoiceById(String id,String channel){try{JSONObject invoice=PixelMcpWriteTools.find(PixelMcpReadTools.effective(store.getState()).getJSONArray("invoices"),id);if(invoice.optString("issued_at").isEmpty())throw new IllegalArgumentException("Nur ausgestellte Originalbelege teilen.");byte[] bytes;try{bytes=new BusinessDocumentStore(MainActivity.this).read(invoice);}catch(IOException absent){bytes=DriveSyncCoordinator.fetchDocument(MainActivity.this,invoice);new BusinessDocumentStore(MainActivity.this).store(bytes,invoice);}invoice.put("pdf_base64",android.util.Base64.encodeToString(bytes,android.util.Base64.NO_WRAP));return shareInvoiceVia(invoice.toString(),channel);}catch(Exception e){return "ERROR: Original-PDF ist noch nicht vollständig verfügbar. Drive abgleichen.";}}
         @JavascriptInterface public String shareInvoice(String value) {
@@ -722,7 +722,7 @@ public class MainActivity extends Activity {
                         case "invoice":entityId=saveInvoiceDraft(payload);break;
                         default:entityId=saveWorklog(payload);
                     }
-                    payload.put("source",source);
+                    payload.put("source",source);if(testLocalOnly(entityType,payload))payload.put("_local_only",true);
                     // Replace only the queue action just allocated by the shared saver, inside this transaction.
                     try (Cursor rows = database.rawQuery("SELECT id,payload FROM pending WHERE kind=?",new String[]{entityType})) {
                         while(rows.moveToNext()) if(!existingActions.contains(rows.getString(0))&&entityId.equals(new JSONObject(rows.getString(1)).optString("id"))) database.delete("pending","id=?",new String[]{rows.getString(0)});
@@ -836,6 +836,7 @@ public class MainActivity extends Activity {
             JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));
             JSONArray customers=effectiveRows(master,"customers","customer");
             payload=ManualChangeRules.editor(payload,findById(customers,payload.optString("id")),"customer");
+            TestDataRules.customerChange(payload,findById(customers,payload.optString("id")));
             GardenRules.normalize(payload);
             BillingRules.customerConfig(payload,customers);
             if(findById(customers,payload.optString("id"))==null)EntityProtectionRules.validateNewCustomer(payload,customers);
@@ -843,6 +844,7 @@ public class MainActivity extends Activity {
             if (entityId.isEmpty()) entityId = "cus_mobile_" + UUID.randomUUID().toString().replace("-", "");
             payload.put("id", entityId);
             prepareManualChange("customer",payload,findById(customers,entityId));
+            if(TestDataRules.customer(payload))payload.put("_local_only",true);
             String actionId = "customer_change_" + UUID.randomUUID().toString().replace("-", "");
             ContentValues values = new ContentValues(); values.put("id", actionId); values.put("kind", "customer"); values.put("payload", payload.toString()); values.put("created_at", isoNow());
             database.insertOrThrow("pending", null, values);database.setTransactionSuccessful();
@@ -1071,7 +1073,16 @@ public class MainActivity extends Activity {
             } catch (Exception ignored) {}
             return Math.max(0, remaining);
         }
+        boolean testLocalOnly(String kind,JSONObject payload)throws Exception {
+            // Inspect provenance, not the entire journal projection on every save/batch entry.
+            JSONObject event=new JSONObject().put("kind",kind).put("payload",payload),master=new JSONObject(snapshotText("{}"));
+            if(TestDataRules.localOnly(event,master))return true;
+            String entity=java.util.Arrays.asList("archive","restore","purge_v1").contains(kind)?payload.optString("entity"):kind.startsWith("offer_")?"offer":kind.startsWith("invoice_")?"invoice":kind;
+            JSONArray pending=pendingActions();for(int i=0;i<pending.length();i++){JSONObject a=pending.getJSONObject(i),p=a.getJSONObject("payload");if(!p.optBoolean("_local_only")&&!p.optBoolean("test_record"))continue;if(a.optString("kind").equals("customer")&&p.optString("id").equals(payload.optString("customer_id"))||a.optString("kind").equals(entity)&&!p.optString("id").isEmpty()&&p.optString("id").equals(payload.optString("id")))return true;}
+            return false;
+        }
         String saveAction(String kind, String prefix, JSONObject payload) throws Exception {
+            if(testLocalOnly(kind,payload))payload.put("_local_only",true);
             String id = payload.optString("id"); if (id.isEmpty()) id = prefix + UUID.randomUUID().toString().replace("-", "");
             payload.put("id", id);
             // Entity IDs are stable. Each change must have a fresh receipt ID, including deletions.
@@ -1089,6 +1100,7 @@ public class MainActivity extends Activity {
             try (Cursor cursor = getReadableDatabase().rawQuery("SELECT id,kind,payload,created_at FROM pending WHERE kind!='mcp_receipt' ORDER BY created_at ASC,rowid ASC", null)) {
                 while (cursor.moveToNext()) {
                     String kind=cursor.getString(1);JSONObject payload=new JSONObject(cursor.getString(2));
+                    if(forDrive&&(payload.optBoolean("_local_only")||payload.optBoolean("test_record")))continue;
                     if(forDrive&&("delete".equals(kind)||"archive".equals(kind))&&payload.optLong("_undo_until",0)>System.currentTimeMillis())continue;
                     payload.remove("_undo_until");
                     if(!forDrive&&"photo".equals(kind)){

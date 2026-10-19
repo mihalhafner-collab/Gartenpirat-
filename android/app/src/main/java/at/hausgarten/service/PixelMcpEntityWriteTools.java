@@ -6,16 +6,16 @@ import java.util.*;
 /** Typed, reversible business writes for the private Pixel MCP. */
 final class PixelMcpEntityWriteTools {
     static final String[] NAMES={"create_customer","update_customer","create_order","update_order","create_invoice_draft","update_invoice_draft"};
-    static final String[] CUSTOMER_FIELDS={"name","company","first_name","last_name","street","postal_code","city","country","phone","email","notes","active","garden_area","sevdesk_customer_number","custom_fields","billing_mode","default_billing_customer_id"};
-    static final String[] ORDER_FIELDS={"customer_id","billing_customer_id","title","description","location","scheduled_date","status","customer_visible"};
-    static final String[] INVOICE_FIELDS={"customer_id","invoice_date","service_start","service_end","payment_days","notes","positions","domestic_service_confirmed","order_id","header_text","footer_text","tax_mode","recipient_type","recipient_vat_id"};
+    static final String[] CUSTOMER_FIELDS={"test_record","name","company","first_name","last_name","street","postal_code","city","country","phone","email","notes","active","garden_area","sevdesk_customer_number","custom_fields","billing_mode","default_billing_customer_id"};
+    static final String[] ORDER_FIELDS={"test_record","customer_id","billing_customer_id","title","description","location","scheduled_date","status","customer_visible"};
+    static final String[] INVOICE_FIELDS={"test_record","customer_id","invoice_date","service_start","service_end","payment_days","notes","positions","domestic_service_confirmed","order_id","header_text","footer_text","tax_mode","recipient_type","recipient_vat_id"};
     static boolean handles(String name){return Arrays.asList(NAMES).contains(name);}
     private static JSONObject string(int max)throws Exception{return new JSONObject().put("type","string").put("maxLength",max);}
     private static JSONObject number()throws Exception{return new JSONObject().put("type","number").put("minimum",0);}
     private static JSONObject integer()throws Exception{return new JSONObject().put("type","integer").put("minimum",0);}
     private static JSONObject bool()throws Exception{return new JSONObject().put("type","boolean");}
     private static JSONObject field(String key)throws Exception{
-        if(Arrays.asList("active","customer_visible","domestic_service_confirmed").contains(key))return bool();
+        if(Arrays.asList("active","customer_visible","domestic_service_confirmed","test_record").contains(key))return bool();
         if("garden_area".equals(key))return number().put("type",new JSONArray().put("number").put("null"));
         if("custom_fields".equals(key))return new JSONObject().put("type","object").put("maxProperties",50)
             .put("additionalProperties",new JSONObject().put("type",new JSONArray().put("string").put("number").put("boolean").put("null")).put("maxLength",2000))

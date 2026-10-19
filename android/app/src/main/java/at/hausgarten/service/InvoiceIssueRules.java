@@ -8,6 +8,7 @@ import java.util.*;
 final class InvoiceIssueRules {
     static JSONObject prepare(JSONObject s,JSONObject a,LocalDate today)throws Exception {
         JSONObject p=a.getJSONObject("payload"),old=PixelMcpWriteTools.find(s.getJSONArray("invoices"),p.getString("id"));
+        TestDataRules.noDelivery(old,s);
         if(!p.optBoolean("confirmed"))throw new IllegalArgumentException("Rechnungsabschluss ausdrücklich bestätigen.");
         DriveJournalRules.compare(p.getJSONObject("_expected_invoice"),old);
         JSONObject settings=s.getJSONObject("business_settings"),customer=PixelMcpWriteTools.find(s.getJSONArray("customers"),old.getString("customer_id"));

@@ -7,7 +7,8 @@ from pathlib import Path
 import db
 import sync_review
 
-TYPES = ('fixed_price', 'time_material', 'estimate_binding', 'estimate_nonbinding')
+CONTRACT=json.loads((Path(__file__).parent/'android/app/src/main/assets/offer-contract.json').read_text())
+TYPES=tuple(t['id'] for t in CONTRACT['document_types'])
 TEXT_FIELDS = ('location','title','execution_window','payment_terms','notes','assumptions','exclusions','header_text','footer_text','customer_type','contract_channel','consumer_information')
 
 def decimal(value):
@@ -37,25 +38,40 @@ def snapshot(database):
             'business_settings':owner_journal.business_settings(database)}
 
 def normalize(row, old, state):
-    if old and old.get('status','draft')!='draft':raise ValueError('Finalisierte Angebote bleiben unverändert. Für Änderungen duplizieren.')
+    if old and old.get('status','draft') not in ('draft','validated'):raise ValueError('Finalisierte Angebote bleiben unverändert. Für Änderungen duplizieren.')
     if not any(c['id']==row.get('customer_id') for c in state['customers']):raise ValueError('Eindeutiger Kunde fehlt.')
     if row.get('billing_customer_id') and not any(c['id']==row['billing_customer_id'] for c in state['customers']):raise ValueError('Rechnungsempfänger fehlt.')
     if row.get('order_id') and not any(o['id']==row['order_id'] and o['customer_id']==row['customer_id'] for o in state['orders']):raise ValueError('Kunde und Auftrag widersprechen sich.')
     kind=row.get('document_type','')
     if kind and kind not in TYPES:raise ValueError('Unbekannte Angebotsart.')
-    row['pricing_mode']='time_material' if kind=='time_material' else 'estimate' if kind.startswith('estimate_') else 'fixed'
+    definition=next((t for t in CONTRACT['document_types'] if t['id']==kind),{})
+    row['pricing_mode']=definition.get('pricing_mode','unselected');row['binding_mode']=definition.get('binding_mode','unselected')
+    if old and kind!=old.get('document_type') and row.get('binding_notice')==old.get('binding_notice'):row.pop('binding_notice',None)
+    notice_key='offer_binding_text' if kind=='estimate_binding' else 'offer_nonbinding_text' if kind=='estimate_nonbinding' else 'offer_time_material_text'
+    row.setdefault('binding_notice','' if kind=='fixed_price' else (state.get('business_settings',{}).get(notice_key) or definition.get('notice','')))
+    binding_hash=sync_review.digest(dict(document_type=kind,binding_notice=row.get('binding_notice','')))
+    if old and (kind!=old.get('document_type') or row.get('binding_notice')!=old.get('binding_notice')) and row.get('binding_confirmation_hash')!=binding_hash:row['binding_confirmed']=False
+    if row.get('binding_confirmed'):row['binding_confirmation_hash']=binding_hash
+    else:row.pop('binding_confirmation_hash',None)
+    row['binding_status']=('confirmed' if row.get('binding_confirmed') else 'pending_review') if kind.startswith('estimate_') else 'not_applicable'
+    row.setdefault('delivery_status','not_prepared');row.pop('validated_at',None);row.pop('validation_context_hash',None)
     for key in TEXT_FIELDS:
         row.setdefault(key,'')
         if not isinstance(row[key],str) or len(row[key])>10000:raise ValueError('Ungültiger Angebotstext: '+key)
     for key in ('issue_date','valid_until'):
         if row.get(key):date.fromisoformat(row[key])
     if not row.get('tax_mode'):row['tax_mode']=state.get('business_settings',{}).get('tax_mode','')
+    for key,values in [('tax_mode','tax_modes'),('customer_type','customer_types'),('contract_channel','contract_channels')]:
+        if row.get(key) and row[key] not in CONTRACT[values]:raise ValueError('Unbekannter Domänenwert: '+key)
     lines=row.setdefault('positions',[])
     if not isinstance(lines,list) or len(lines)>200:raise ValueError('Höchstens 200 Angebotspositionen.')
     net=tax=Decimal(0);complete=True
     for line in lines:
         if not isinstance(line,dict):raise ValueError('Position ist kein Datensatz.')
-        if len(line.get('title',''))>500 or len(line.get('description',''))>10000:raise ValueError('Positionstext ist zu lang.')
+        line.setdefault('price_basis','catalog' if line.get('catalog_entry_id') else 'confirmed')
+        if 'price_source' in line and line['price_source'] not in CONTRACT['price_sources']:raise ValueError('Preisquelle exakt user_confirmed verwenden.')
+        if 'price_basis' in line and line['price_basis'] not in CONTRACT['price_bases']:raise ValueError('Unbekannte Preisgrundlage.')
+        if len(line.get('title',''))>500 or len(line.get('description',''))>10000 or len(line.get('price_note',''))>2000:raise ValueError('Positionstext ist zu lang.')
         if line.get('quantity') is None or line.get('price') is None:
             complete=False;line['net']=line['tax']=None;continue
         quantity,price,rate=decimal(line['quantity']),decimal(line['price']),decimal(line.get('tax_rate') if line.get('tax_rate') is not None else 0)
@@ -71,11 +87,14 @@ def normalize(row, old, state):
     return row
 
 def validate(row,state):
+    if row.get('status','draft') not in ('draft','validated') and row.get('issuer') and row.get('recipient'):
+        state=deepcopy(state);state['business_settings']=row['issuer'];recipient_id=row.get('billing_customer_id') or row['customer_id'];state['customers']=[c for c in state['customers'] if c['id']!=recipient_id]+[{**row['recipient'],'id':recipient_id}]
+    normalize(deepcopy(row),None,state)
     errors=[];settings=state.get('business_settings',{})
-    for key in ('owner_name','business_street','business_postal_code','business_city'):
+    for key in CONTRACT['issuer_required_fields']:
         if not str(settings.get(key,'')).strip():errors.append('Aussteller: '+key)
     if str(settings.get('invoice_issuer_confirmed','')) not in ('1','true'):errors.append('Ausstellerdaten bestätigen')
-    for key in ('title','issue_date','valid_until','execution_window','payment_terms'):
+    for key in CONTRACT['required_fields']:
         if not str(row.get(key,'')).strip():errors.append(key+' fehlt')
     if row.get('document_type') not in TYPES:errors.append('Dokumentart ausdrücklich auswählen')
     try:
@@ -101,9 +120,18 @@ def validate(row,state):
         if line.get('catalog_entry_id'):
             template=next((t for t in state.get('service_catalog',[]) if t['id']==line['catalog_entry_id']),None)
             if not template or not template.get('price_confirmed') or template.get('default_price') is None or sync_review.digest(template)!=line.get('catalog_hash') or line.get('price') is None or decimal(template['default_price'])!=decimal(line['price']):errors.append(at+'freigegebenen Katalogpreis erneut prüfen')
-        elif line.get('price_source')!='user_confirmed':errors.append(at+'Preisquelle fehlt – keinen Preis erfinden')
+        elif line.get('price_source') not in CONTRACT['price_sources']:errors.append(at+'Preisquelle fehlt – keinen Preis erfinden')
+        basis=line.get('price_basis','catalog' if line.get('catalog_entry_id') else 'confirmed')
+        if basis not in CONTRACT['price_bases'] or (basis=='catalog')!=bool(line.get('catalog_entry_id')):errors.append(at+'Preisgrundlage widerspricht Preisquelle')
+        if basis in ('calculated','estimated') and not line.get('price_note','').strip():errors.append(at+'Preisgrundlage erläutern und bestätigen')
+        if basis=='calculated':
+            try:
+                calculation=line['calculation'];derived=money(decimal(calculation['base_price'])*decimal(calculation['factor'])+decimal(calculation.get('surcharge',0)))
+                if derived!=decimal(line['price']):errors.append(at+'Berechnung stimmt nicht mit dem Einzelpreis überein')
+            except (KeyError,ValueError,TypeError):errors.append(at+'Vollständige Preisberechnung erforderlich')
         if row.get('tax_mode')=='standard' and line.get('tax_rate') is None:errors.append(at+'Steuersatz fehlt')
-    if row.get('customer_type') not in ('b2b','consumer'):errors.append('B2B oder Verbraucher bewusst auswählen')
+    if row.get('document_type','').startswith('estimate_') and (row.get('binding_confirmed') is not True or not row.get('binding_notice','').strip()):errors.append('Bindungsart und Hinweis ausdrücklich bestätigen')
+    if row.get('customer_type') not in CONTRACT['customer_types']:errors.append('B2B oder Verbraucher bewusst auswählen')
     if row.get('scope_confirmed') is not True:errors.append('Leistungsumfang, Annahmen und Ausschlüsse prüfen')
     if row.get('customer_type')=='consumer':
         if row.get('contract_channel') not in ('on_premise','distance','off_premise'):errors.append('Vertragsweg für Verbraucher auswählen')
@@ -111,7 +139,7 @@ def validate(row,state):
     if row.get('customer_type')=='consumer' and row.get('contract_channel') in ('distance','off_premise'):
         for key in ('business_phone','business_email'):
             if not str(settings.get(key,'')).strip():errors.append('FAGG-Kontaktangaben: '+key)
-    return {'valid':not errors,'errors':errors,'legal_rules_version':'AT-2026-10-18'}
+    return {'valid':not errors,'errors':errors,'legal_rules_version':CONTRACT['legal_rules_version']}
 
 def context(row,state):
     import owner_journal
@@ -163,7 +191,7 @@ def apply(action,attachment_root=None):
             if sync_review.digest(context(old,state))!=p.get('expected_context_hash'):raise ValueError('WRITE_CONFLICT: Kunde, Aussteller oder Preise wurden geändert.')
             normalize(row,old,state);result=validate(row,state)
             if not result['valid']:raise ValueError('; '.join(result['errors']))
-            number='ANG-'+row['issue_date'][:4]+'-'+sync_review.digest(row['id'])[:16].upper()
+            number=('KV-' if row.get('document_type','').startswith('estimate_') else 'ANG-')+row['issue_date'][:4]+'-'+sync_review.digest(row['id'])[:16].upper()
             if any(o.get('offer_number')==number and o['id']!=row['id'] for o in state['offers']):raise ValueError('Angebotsnummer bereits vergeben.')
             frozen=context(old,state);row.update(offer_number=number,status='finalized',finalized_at=action['created_at'],issuer=frozen['business_settings'],recipient=frozen['recipient'])
             # Preserve the exact Pixel PDF, not a differently rendered replacement.

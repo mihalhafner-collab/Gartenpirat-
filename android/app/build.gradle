@@ -3,13 +3,30 @@ plugins {
 }
 
 // Mandatory for ALL future builds. Prevent accidental productive seed/config packaging.
+def offerContractGate = tasks.register('verifyOfferContract', Exec) {
+    workingDir rootProject.projectDir.parentFile
+    commandLine 'python3', 'tools/sync_offer_contract.py'
+}
+tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn offerContractGate }
+def uiCatalogGate = tasks.register('verifyUiMcpInventory', Exec) {
+    workingDir rootProject.projectDir.parentFile
+    commandLine 'python3', 'tools/verify_ui_mcp_inventory.py'
+}
+tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn uiCatalogGate }
 def privacyGate = tasks.register('verifyDistributablePrivacy', Exec) {
     workingDir rootProject.projectDir.parentFile
     commandLine(System.getProperty('os.name').toLowerCase().contains('windows') ? ['py', '-3.11', 'tests/apk_privacy_guard.py'] : ['python3', 'tests/apk_privacy_guard.py'])
 }
 tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn privacyGate }
 
+def fingerprintResult = providers.exec {
+    workingDir rootProject.projectDir.parentFile
+    commandLine 'python3', 'tools/check_release_baseline.py'
+}.standardOutput.asText.get()
+def releaseFingerprint = new groovy.json.JsonSlurper().parseText(fingerprintResult)
+
 android {
+    buildFeatures { buildConfig true }
     namespace 'at.hausgarten.service'
     compileSdk { version = release(37) }
     buildToolsVersion '37.0.0'
@@ -18,10 +35,13 @@ android {
 
     defaultConfig {
         applicationId 'at.hausgarten.service'
+        buildConfigField 'String', 'GIT_SHA', '"' + releaseFingerprint.git_sha + '"'
+        buildConfigField 'String', 'SOURCE_SHA256', '"' + releaseFingerprint.source_sha256 + '"'
+        buildConfigField 'boolean', 'SOURCE_DIRTY', releaseFingerprint.source_dirty.toString()
         minSdk 26
         targetSdk 37
-        versionCode 77
-        versionName '1.50.1'
+        versionCode 78
+        versionName '1.51.0'
         testInstrumentationRunner 'at.hausgarten.service.PixelMcpInstrumentation'
     }
 

@@ -19,6 +19,7 @@ public final class DriveConnectionActivity extends Activity {
         android.content.SharedPreferences p=getSharedPreferences("haus_garten",0);account=p.getString("drive_account","");accountLabel.setText(account.isEmpty()?getString(R.string.drive_connection_no_account):account);folder.setText(p.getString("drive_folder_id",""));
         connect=new Button(this);connect.setText(R.string.drive_connection_4);root.addView(connect);status=new TextView(this);root.addView(status);
         TextView note=new TextView(this);note.setText(R.string.drive_connection_5);root.addView(note);
+        Button mail=new Button(this);mail.setText("Gmail-Versandbelege freigeben (nur Lesen)");root.addView(mail);mail.setOnClickListener(v->{String chosen=account;new Thread(()->{try{MailAccount.token(this,chosen,this);getSharedPreferences("haus_garten_mail",0).edit().putString("account",chosen).commit();runOnUiThread(()->status.setText("Gmail-Versandbelege lesbar. Kein Versand ausgelöst."));}catch(Exception e){runOnUiThread(()->status.setText("Gmail-Freigabe nicht bestätigt; Kontorechte am Gerät prüfen."));}}).start();});
         connect.setOnClickListener(v->validate());Button close=new Button(this);close.setText(R.string.drive_connection_6);root.addView(close);close.setOnClickListener(v->finish());
     }
     private void validate(){

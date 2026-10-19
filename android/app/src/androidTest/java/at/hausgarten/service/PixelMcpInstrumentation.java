@@ -31,7 +31,7 @@ public final class PixelMcpInstrumentation extends Instrumentation {
     void check(String title,Task task)throws Exception{task.run();passed++;Bundle b=new Bundle();b.putString("stream","PASS "+title+"\n");sendStatus(0,b);}
     void yes(boolean b){if(!b)throw new AssertionError("Assertion failed");}
     void rejected(Task t)throws Exception{try{t.run();}catch(IllegalArgumentException expected){return;}throw new AssertionError("Expected rejection");}
-    void probe(String title,Task task){try{check(title,task);}catch(Throwable error){acceptanceFailed++;Bundle b=new Bundle();b.putString("stream","FAIL "+title+" ["+error.getClass().getSimpleName()+"] "+(error.getStackTrace().length>0?error.getStackTrace()[0].toString():"no frame")+"\n");sendStatus(0,b);}}
+    void probe(String title,Task task){try{check(title,task);}catch(Throwable error){acceptanceFailed++;Bundle b=new Bundle();b.putString("stream","FAIL "+title+" ["+error.getClass().getSimpleName()+"] "+(error.getStackTrace().length>0?(error.getStackTrace()[0].getMethodName().equals("yes")&&error.getStackTrace().length>1?error.getStackTrace()[1]:error.getStackTrace()[0]).toString():"no frame")+"\n");sendStatus(0,b);}}
     MainActivity.LocalStore acceptanceStore()throws Exception{
         Isolated isolated=new Isolated(getTargetContext());JSONObject snapshot=fixture();
         snapshot.getJSONObject("capabilities").put("entity_compare_and_save",true).put("customer_custom_fields_compare_and_save",true);
@@ -243,6 +243,7 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             }
             return;
         }
+        if(releaseMode.equals("estimates")){Bundle result=new Bundle();try{String before=businessSnapshotHash();EstimateNativeAcceptance.run(this);check("business snapshot unchanged after estimate probes",()->yes(before.equals(businessSnapshotHash())));result.putString("stream","RESULT "+passed+" Android SQLite/MCP tests passed; acceptance failures="+acceptanceFailed+"; isolated estimates only\n");finish(acceptanceFailed==0?-1:0,result);}catch(Throwable error){result.putString("stream","FAILED "+error.getClass().getSimpleName()+"\n");finish(0,result);}return;}
         if(!releaseMode.isEmpty()){ReleaseLifecycleProbe.run(this,getTargetContext(),releaseMode);return;}
         if(liveTunnelProbe){PixelTunnelLiveProbe.run(this,getTargetContext());return;}
         Bundle result=new Bundle();MainActivity.LocalStore store=null;
@@ -325,7 +326,7 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             check("completion uses native net time and pause rather than stale form values",()->{JSONArray rows=PixelMcpReadTools.effective(reopened.getState()).getJSONArray("worklogs");JSONObject row=rows.getJSONObject(rows.length()-1);yes(row.getString("id").equals(authoritativeWorklog)&&row.getDouble("hours")==1.5&&row.getInt("break_minutes")==30);yes(row.optString("start_time").isEmpty()&&row.optString("end_time").isEmpty());yes(row.getString("notes").contains("Timer"));});
             check("completion replay cannot create a second worklog",()->{int count=reopened.pendingActions().length();yes(reopened.completeWorkSession(authoritativeId,new JSONObject(),"timer-authoritative-finalize").equals(authoritativeWorklog));yes(reopened.pendingActions().length()==count);});
             check("productive Drive snapshot unchanged during isolated tests",()->yes(productionBefore.equals(businessSnapshotHash())));
-            acceptance();OwnerNativeAcceptance.run(this);PlanningNativeAcceptance.run(this);NativeDriveAcceptance.run(this);DriveProviderAcceptance.run(this);check("productive Drive snapshot unchanged after acceptance probes",()->yes(productionBefore.equals(businessSnapshotHash())));
+            acceptance();OwnerNativeAcceptance.run(this);EstimateNativeAcceptance.run(this);PlanningNativeAcceptance.run(this);NativeDriveAcceptance.run(this);DriveProviderAcceptance.run(this);check("productive Drive snapshot unchanged after acceptance probes",()->yes(productionBefore.equals(businessSnapshotHash())));
             result.putString("stream","RESULT "+passed+" Android SQLite/MCP tests passed; acceptance failures="+acceptanceFailed+"; isolated namespace="+context.prefix+"\n");result.putInt("passed",passed);result.putInt("failed",acceptanceFailed);finish(acceptanceFailed==0?-1:0,result);
         }catch(Throwable error){result.putString("stream","FAILED "+error.getClass().getSimpleName()+": "+error.getMessage()+"\n");finish(0,result);}
         finally{if(store!=null)store.close();}

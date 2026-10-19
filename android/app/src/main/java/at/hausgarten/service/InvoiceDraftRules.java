@@ -8,7 +8,7 @@ final class InvoiceDraftRules {
     static void normalize(JSONObject p,JSONObject previous,JSONObject master)throws Exception{
         if(previous!=null&&(!previous.optString("issued_at").isEmpty()||!previous.optString("sevdesk_id").isEmpty()||!"Entwurf".equals(previous.optString("status","Entwurf"))))throw new IllegalArgumentException("Ausgestellte und importierte Belege bleiben unverändert.");
         if(!"Entwurf".equals(p.optString("status","Entwurf"))||!p.optString("issued_at").isEmpty()||!p.optString("sevdesk_id").isEmpty())throw new IllegalArgumentException("Nur lokale Entwürfe können gespeichert werden.");
-        PixelMcpWriteTools.find(master.getJSONArray("customers"),p.optString("customer_id"));
+        PixelMcpWriteTools.find(master.getJSONArray("customers"),p.optString("customer_id"));TestDataRules.guard(p,master);
         String order=p.optString("order_id");if(!order.isEmpty()&&!p.optString("customer_id").equals(PixelMcpWriteTools.find(master.getJSONArray("orders"),order).optString("customer_id")))throw new IllegalArgumentException("Rechnungskunde und Auftrag passen nicht zusammen.");
         for(String key:new String[]{"invoice_date","service_start","service_end"})if(!p.optString(key).isEmpty())java.time.LocalDate.parse(p.getString(key));
         if(!p.optString("service_start").isEmpty()&&!p.optString("service_end").isEmpty()&&p.getString("service_start").compareTo(p.getString("service_end"))>0)throw new IllegalArgumentException("Leistungszeitraum ist widersprüchlich.");

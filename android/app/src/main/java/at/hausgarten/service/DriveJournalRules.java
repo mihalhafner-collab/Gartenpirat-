@@ -65,7 +65,7 @@ final class DriveJournalRules {
         for(String key:new String[]{"sync_errors","drive_journal_errors"}){JSONArray rows=snapshot.optJSONArray(key);for(int i=0;rows!=null&&i<rows.length();i++){JSONObject row=rows.optJSONObject(i);if(row!=null)errors.put(row.optString("client_id"),row);}}
         int upload=0,review=0;JSONArray items=new JSONArray();
         for(int i=0;pending!=null&&i<pending.length();i++){
-            JSONObject action=pending.getJSONObject(i);String id=action.optString("client_id"),kind=action.optString("kind");JSONObject error=errors.get(id);
+            JSONObject action=pending.getJSONObject(i);if(action.getJSONObject("payload").optBoolean("_local_only"))continue;String id=action.optString("client_id"),kind=action.optString("kind");JSONObject error=errors.get(id);
             JSONObject resolved=snapshot.optJSONObject("drive_resolved_actions");if(resolved!=null&&resolved.has(id)&&!OrderReviewRules.actionHash(action).equals(resolved.optString(id)))error=new JSONObject().put("code","ACTION_ID_CONFLICT").put("error","Die geprüfte Aktionskennung enthält einen anderen Hash. Manuell prüfen; keine alte Entscheidung anwenden.");
             boolean transferred=delivered.contains(id),held=collection(kind).isEmpty();
             String phase,message;
@@ -191,6 +191,7 @@ final class DriveJournalRules {
     private static String errorCode(Exception error){return error instanceof PixelMcpWriteTools.Rejected?((PixelMcpWriteTools.Rejected)error).code:error instanceof DriveRestClient.Failure?((DriveRestClient.Failure)error).code:error instanceof java.io.IOException?"IO_RETRY_REQUIRED":"INVALID_ACTION";}
     static boolean componentReady(JSONObject snapshot,String kind){
         JSONObject capabilities=snapshot.optJSONObject("capabilities");
+        if(Arrays.asList("offer_validate","offer_share","offer_delivery").contains(kind))return capabilities!=null&&capabilities.optBoolean("offer_workflow_v2");
         if(kind.equals("appointment"))return capabilities!=null&&capabilities.optBoolean("appointments_v1");
         if(kind.equals("purge_trash_v1"))return capabilities!=null&&capabilities.optBoolean("trash_empty_v1");
         if(kind.equals("purge_v1"))return capabilities!=null&&capabilities.optBoolean("trash_purge_v1");
@@ -199,6 +200,7 @@ final class DriveJournalRules {
         return true;
     }
     static void validateTemplate(JSONObject row)throws Exception{
+        if(!row.has("pricing_type"))row.put("pricing_type","unit");if(!java.util.Arrays.asList(OfferContract.values("pricing_types")).contains(row.optString("pricing_type")))throw new IllegalArgumentException("Unbekannte Bausteinart.");
         for(String key:new String[]{"title","category","unit"})if(row.optString(key).trim().isEmpty())throw new IllegalArgumentException("Leistungsbaustein benötigt Titel, Kategorie und Einheit.");
         for(String key:new String[]{"default_price","default_quantity"})if(row.has(key)&&!row.isNull(key)&&OfferRules.decimal(row.get(key)).signum()<0)throw new IllegalArgumentException("Negative Bausteinwerte sind ungültig.");
         if(!row.has("default_price"))row.put("default_price",JSONObject.NULL);if(!row.has("active"))row.put("active",true);if(!row.has("price_confirmed"))row.put("price_confirmed",false);
@@ -207,6 +209,7 @@ final class DriveJournalRules {
         if(TrashRules.purged(snapshot,kind,row.getString("id")))throw new PixelMcpWriteTools.Rejected("RECORD_PURGED","Diese ID wurde endgültig gelöscht und darf nicht durch ein altes Formular, Journal oder Backup wieder angelegt werden.");
         JSONArray customers=snapshot.getJSONArray("customers"),orders=snapshot.getJSONArray("orders"),logs=snapshot.getJSONArray("worklogs"),photos=snapshot.getJSONArray("photos"),invoices=snapshot.getJSONArray("invoices");
         if(kind.equals("customer")){
+            TestDataRules.customerChange(row,old);
             GardenRules.normalize(row);
             BillingRules.customerConfig(row,customers);if(row.optString("name").trim().isEmpty())throw new IllegalArgumentException("Der Kundenname fehlt.");if(old==null){EntityProtectionRules.validateNewCustomer(row,customers);if(!row.has("active"))row.put("active",1);if(!row.has("custom_fields"))row.put("custom_fields",new JSONObject());}return;}
         if(kind.equals("appointment")){AppointmentRules.validate(row,old,snapshot);return;}
@@ -216,7 +219,7 @@ final class DriveJournalRules {
         if(kind.equals("photo")){EntityProtectionRules.validatePhoto(row,customers,orders,logs);return;}
         PixelMcpWriteTools.find(customers,row.optString("customer_id"));String orderId=row.isNull("order_id")?"":row.optString("order_id");
         if(!orderId.isEmpty()&&!row.optString("customer_id").equals(PixelMcpWriteTools.find(orders,orderId).optString("customer_id")))throw new IllegalArgumentException("Kunde und Auftrag passen nicht zusammen.");
-        if(kind.equals("order")){
+        if(kind.equals("order")){TestDataRules.guard(row,snapshot);
             BillingRules.order(row,snapshot);if(row.optString("title").trim().isEmpty())throw new IllegalArgumentException("Auftragsbezeichnung fehlt.");if(old==null){if(row.optString("status").isEmpty())row.put("status","Geplant");if(!row.has("customer_visible"))row.put("customer_visible",1);}if(!row.optString("scheduled_date").isEmpty()&&!row.isNull("scheduled_date"))java.time.LocalDate.parse(row.getString("scheduled_date"));EntityProtectionRules.validateOrderChange(row,old,logs,invoices,photos);}
         if(kind.equals("worklog")){AppointmentRules.worklog(row,old,snapshot);if(row.optString("activity").trim().isEmpty()||row.optString("work_date").isEmpty())throw new IllegalArgumentException("Datum und Tätigkeit sind erforderlich.");BillingRules.work(row,old==null&&!row.has("billing_customer_id")?new JSONObject().put("customer_id",row.getString("customer_id")):old,snapshot);double hours=row.optDouble("hours",0);WorklogRules.validate(row,old==null);if(Math.abs(hours-row.optDouble("hours"))>0.005)throw new IllegalArgumentException("Stunden und Uhrzeiten widersprechen sich.");WorklogRelationRules.validate(row,old,photos,invoices);}
         if(kind.equals("photo"))EntityProtectionRules.validatePhoto(row,customers,orders,logs);

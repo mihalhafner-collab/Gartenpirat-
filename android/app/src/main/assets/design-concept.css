@@ -90,3 +90,20 @@ body{background:#f7f8f5;color:#1d2922}.app{max-width:760px;padding-bottom:110px}
 .design-photo-view{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;border:0;border-radius:0;padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));background:#08100c;color:#fff;overflow:hidden}.design-photo-view::backdrop{background:#08100c}.design-photo-view[open]{display:grid;grid-template-rows:auto minmax(0,1fr) auto}.design-photo-view header,.design-photo-view footer{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;z-index:2}.design-photo-view header p{margin:0;text-align:center}.design-photo-view header button,.design-photo-view footer button{width:auto;min-width:48px;min-height:48px;margin:0;border:0;border-radius:12px}.design-photo-close{background:#edf3ee;color:#123e29;font-size:1.3rem}.design-photo-delete{background:#5f231f;color:#fff;padding:9px 12px;font-weight:750}.design-photo-stage{position:relative;display:grid;place-items:center;min-height:0;overflow:hidden}.design-photo-view .design-photo-stage img{display:block;width:auto;height:auto;max-width:100%;max-height:100%;object-fit:contain;transform-origin:center;touch-action:none;user-select:none;will-change:transform}.design-photo-view footer>div{display:grid;gap:3px;text-align:center;min-width:0}.design-photo-view footer strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.design-photo-view footer small{color:#b9c8bf}.design-photo-view footer .secondary{background:#dce9df;color:#0c4a2f;font-size:1.5rem}
 .design-photo-delete:disabled{opacity:.5;cursor:not-allowed}.design-photo-view [data-photo-status]{white-space:normal;line-height:1.35;max-width:min(72vw,580px);justify-self:center}
 @media(max-width:390px){.design-photo-add-actions{grid-template-columns:1fr}.design-photo-view{padding-left:8px;padding-right:8px}.design-photo-view header{grid-template-columns:auto 1fr auto}.design-photo-delete{font-size:.78rem}}
+
+/* Document titles and customer context share the full row width on small screens. */
+#offer-rows [data-offer-open] {
+  display: flex !important;
+  flex-direction: column;
+  align-items: stretch;
+  gap: .4rem;
+  text-align: left;
+  min-width: 0;
+}
+#offer-rows [data-offer-open] > strong,
+#offer-rows [data-offer-open] > span {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

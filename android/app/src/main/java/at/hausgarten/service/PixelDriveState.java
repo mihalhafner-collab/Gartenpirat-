@@ -8,7 +8,7 @@ final class PixelDriveState {
     static final String[] CAPABILITIES={"offers_v1","service_catalog_v1","owner_journal_v2",
         "invoice_compare_and_save","photo_compare_and_save","durable_action_receipts",
         "worklog_compare_and_save","entity_compare_and_save","customer_custom_fields_compare_and_save",
-        "billing_relations","photo_attachments_v1","recoverable_delete_v1","trash_purge_v1","trash_empty_v1","appointments_v1"};
+        "billing_relations","photo_attachments_v1","recoverable_delete_v1","trash_purge_v1","trash_empty_v1","appointments_v1","offer_workflow_v2"};
 
     static void prepare(JSONObject snapshot)throws Exception {
         DriveJournalRules.validateSnapshot(snapshot);
@@ -27,7 +27,7 @@ final class PixelDriveState {
 
     static boolean retryableInfrastructure(JSONObject failure,String kind) {
         return failure!=null&&"SYNC_COMPONENT_UPDATE_REQUIRED".equals(failure.optString("code"))
-            &&java.util.Arrays.asList("offer","offer_finalize","offer_convert","service_template").contains(kind);
+            &&(java.util.Arrays.asList("offer","service_template").contains(kind)||OfferJournalRules.handles(kind));
     }
     static JSONObject integrity(JSONObject stored)throws Exception {
         JSONObject counts=new JSONObject(),hashes=new JSONObject();

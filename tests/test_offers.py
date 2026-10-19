@@ -20,7 +20,7 @@ class OfferTests(unittest.TestCase):
     def tearDown(self):
         db.DATA_DIR,db.DB_PATH,db.PHOTO_DIR,db.BACKUP_DIR=self.previous;self.temp.cleanup()
     def draft(self,**patch):
-        p=dict(id='off',offer_number='',customer_id=self.customer['id'],title='QA Pflege',document_type='fixed_price',issue_date='2026-10-18',valid_until='2026-11-18',execution_window='November',payment_terms='14 Tage',customer_type='b2b',scope_confirmed=True,positions=[dict(title='Pflege',quantity=14,price=50,unit='h',tax_rate=0,price_source='user_confirmed')],_mcp_create=True,updated_at='2026-10-18T10:00:00Z',**patch)
+        p=dict(id='off',offer_number='',customer_id=self.customer['id'],title='QA Pflege',document_type='fixed_price',issue_date='2026-10-18',valid_until='2026-11-18',execution_window='November',payment_terms='14 Tage',customer_type='b2b',scope_confirmed=True,binding_confirmed=True,positions=[dict(title='Pflege',quantity=14,price=50,unit='h',tax_rate=0,price_source='user_confirmed')],_mcp_create=True,updated_at='2026-10-18T10:00:00Z',**patch)
         return p
     def action(self,id,kind,p):return dict(client_id=id,kind=kind,payload=p,created_at='2026-10-18T12:00:00Z')
     def state(self):

@@ -36,7 +36,7 @@ final class ReleaseLifecycleProbe {
         JSONObject master=new JSONObject(state.getJSONObject("master").toString());
         // Only fields introduced AFTER the recorded source release may be absent in its baseline.
         int baseline=Integer.parseInt(store.ownerValue("release_lifecycle_baseline_version","74"));JSONObject capabilities=master.optJSONObject("capabilities");
-        if(capabilities!=null){if(baseline<75)capabilities.remove("trash_empty_v1");if(baseline<76)capabilities.remove("appointments_v1");}
+        if(capabilities!=null){if(baseline<78)capabilities.remove("offer_workflow_v2");if(baseline<75)capabilities.remove("trash_empty_v1");if(baseline<76)capabilities.remove("appointments_v1");}
         if(baseline<76&&master.optJSONArray("appointments")!=null&&master.getJSONArray("appointments").length()==0)master.remove("appointments");
         return PixelMcpWriteTools.hash(new JSONObject().put("master",master).put("pending",state.getJSONArray("pending")));
     }

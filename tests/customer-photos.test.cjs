@@ -50,6 +50,7 @@ async function check(name,task){try{await task();results.push({name,result:'PASS
    assert.equal(await page.locator('#design-photo-view [data-photo-counter]').innerText(),'2 / 3');
    assert.equal(await page.locator('#design-photo-view [data-photo-caption]').innerText(),'Garten vorher');
    await page.keyboard.press('Escape');
+   await page.waitForFunction(()=>!document.getElementById('design-photo-view').open&&fullscreenStates.at(-1)===false);
    assert.equal(await page.locator('#design-photo-view').evaluate(dialog=>dialog.open),false);
    assert.equal((await page.evaluate(()=>fullscreenStates)).at(-1),false);
   });
