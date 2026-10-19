@@ -207,3 +207,24 @@ Bestehende Funktionen erhalten; Quellkatalog 87 Werkzeuge, Hash `0cd1b37e492eb93
 Purge entfernt den ausgewählten Archivdatensatz, hält einen minimalen Löschbeleg in `owner_archive`, blockiert Wiederbelebung derselben ID und bereinigt nicht mehr verwendete Fotodateien erst nach überprüfter Veröffentlichung und lokaler Snapshot-Übernahme. Historische Sicherungen/Journale bleiben getrennt erhalten; keine forensische Löschzusage. Finanzielle Belege und andere Geschäftsabhängigkeiten bleiben geschützt. Fehlgeschlagener Purge kann ausschließlich mit `keep_current` und erneut geprüften Aktions-/Archivhashes zurückgenommen werden.
 
 Live weiterhin Build 72 / Protokoll 4 / 85 Werkzeuge: die neuen Werkzeuge sind dort noch nicht angeboten oder getestet. Nach gesichertem und ausdrücklich freigegebenem Update auf 73 dieselbe private Pixel-Verbindung neu verbinden, initialize und tools/list aktualisieren, danach get_capabilities auf Version, Hash, Schreibgate und 87 tatsächliche Werkzeuge prüfen. Der Tunnel erzeugt die Liste dynamisch aus derselben Implementierung; ein alter Connector-/ChatGPT-Katalog benötigt ebenfalls Refresh/Neuverbindung. Code erteilt keine externen Freigaben. Abnahmen/Testergebnisse ausschließlich zentral in CODEX-STATUS.md.
+
+
+### Additive Mehrfacharchivierung / Cloud-Kandidat 1.49.5/74
+
+Zwei zusätzliche Werkzeuge im Quellkatalog: `preview_archive_work_records`
+(lesen) und `archive_work_records` (Owner schreiben). Auswahl 1–200 eindeutige
+Arbeits-IDs, gemeinsamer Vorschauhash über sämtliche Record-/Fotovergleichsstände,
+`confirmed=true`, dauerhafte request_id. Bei einem Konflikt/geschützten Eintrag
+atomarer lokaler Abbruch. Bestehende einzelne archive-Journale und Restore-Pfade,
+keine Kaskaden- oder endgültige Massenlöschung, Originaldateien bleiben erhalten.
+UI unter Arbeiten → Mehrere auswählen; Transportstatuswechsel allein verwirft
+die Auswahl nicht. Versions-/Finanzschutz bleibt im gemeinsamen nativen Pfad.
+
+Protokoll5 bleibt kompatibel, **89 Quellwerkzeuge**, Kataloghash
+`2dde37b0694c5379cc55048b9ec7f681a9ffaa0d4162d6d7ae385c324a644a2b`.
+Tatsächlich installierter Pixel bei diesem Auftrag: **73 /Protokoll5 /87 Tools**.
+Neue zwei Werkzeuge sind dort noch nicht angeboten oder live getestet.
+Nach ausdrücklich freigegebenem gesichertem Update private Verbindung und
+ChatGPT-Toolkatalog neu initialisieren, danach Version/Hash/Get-Capabilities prüfen.
+Reale Prüfmatrix, Emulator-/Browser-/Host-Ergebnisse und verbleibende Grenzen:
+ausschließlich `CODEX-STATUS.md`. Keine neue externe Konto-/Drive-Freigabe erteilt.

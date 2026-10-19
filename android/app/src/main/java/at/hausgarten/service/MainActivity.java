@@ -924,7 +924,7 @@ public class MainActivity extends Activity {
         private Set<String> persistedConfirmedActionIds(){
             Set<String> confirmed=new HashSet<>();
             try{
-                JSONObject snapshot=new JSONObject(preferences.getString("drive_snapshot","{}"));
+                JSONObject snapshot=new JSONObject(snapshotText("{}"));
                 confirmed.addAll(DriveJournalRules.ids(snapshot.optJSONArray("accepted_ids")));
                 confirmed.addAll(DriveJournalRules.ids(snapshot.optJSONArray("rejected_invoice_ids")));
                 confirmed.addAll(DriveJournalRules.ids(snapshot.optJSONArray("drive_applied_ids")));

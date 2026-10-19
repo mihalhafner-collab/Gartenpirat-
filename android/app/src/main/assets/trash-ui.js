@@ -51,10 +51,48 @@
   }catch(e){body.textContent=e.message+' Gespeicherte Originale bleiben erhalten.';}
  }
  function open(){openPage('trash-page');render();}
+ function installWorkSelection(){
+  const list=get('worklog-list');if(!list||typeof AndroidData.ownerCall!=='function')return;
+  const chosen=new Map();let selecting=false;
+  const stamp=row=>{if(!row)return '';const fields={};for(const key of Object.keys(row).sort())if(!key.startsWith('_')&&!['pending','client_id','customer_name','order_title'].includes(key))fields[key]=row[key];return JSON.stringify(fields);};
+  const bar=document.createElement('section');bar.id='worklog-selection';bar.className='card';
+  bar.innerHTML='<button type="button" class="secondary" data-select-start>Mehrere auswählen</button><div data-select-controls hidden><p role="status" data-select-status></p><p class="sub">Arbeiten zum Auswählen antippen. Höchstens 200 pro Vorgang; Fotos bleiben erhalten.</p><div class="trash-actions"><button type="button" class="secondary" data-select-visible>Angezeigte auswählen</button><button type="button" class="danger-button" data-select-trash>In den Papierkorb</button><button type="button" class="secondary" data-select-cancel>Abbrechen</button></div></div>';
+  list.before(bar);
+  const button=key=>bar.querySelector('[data-select-'+key+']');
+  function refresh(){
+   list.classList.toggle('worklog-selecting',selecting);button('start').hidden=selecting;button('controls').hidden=!selecting;
+   button('status').textContent=chosen.size+' ausgewählt';button('trash').disabled=!chosen.size||busy;
+   for(const row of list.querySelectorAll('[data-edit-worklog]')){const marked=chosen.has(row.dataset.editWorklog);row.classList.toggle('worklog-selected',marked);if(selecting)row.setAttribute('aria-pressed',String(marked));else row.removeAttribute('aria-pressed');}
+  }
+  function select(id){
+   if(chosen.has(id))chosen.delete(id);
+   else{if(chosen.size>=200){window.showUndoToast?.('Höchstens 200 Arbeiten pro Vorgang auswählen.');return;}const row=worklogs().find(x=>x.id===id);if(row)chosen.set(id,stamp(row));}
+  }
+  function archive(){
+   if(busy||!chosen.size)return false;
+   try{
+    const records=new Map(worklogs().map(x=>[x.id,x]));for(const [id,base] of chosen)if(stamp(records.get(id))!==base)throw new Error('Eine ausgewählte Arbeit wurde geändert. Nichts entfernt; Auswahl neu treffen.');
+    const ids=[...chosen.keys()],preview=call('preview_archive_work_records',{work_record_ids:ids});
+    if(!preview.allowed)throw new Error(preview.entries.find(x=>!x.allowed)?.message||'Eine ausgewählte Arbeit ist geschützt. Nichts entfernt.');
+    const linked=preview.entries.reduce((n,x)=>n+Number(x.related_photos||0),0);
+    if(!confirm(ids.length+' ausgewählte Arbeiten in den Papierkorb verschieben? Alle bleiben dort wiederherstellbar.'+(linked?' Zugehörige Fotos bleiben in der Fotobibliothek erhalten.':'')))return false;
+    busy=true;refresh();call('archive_work_records',{request_id:request('work-batch:'+preview.preview_hash),work_record_ids:ids,expected_preview_hash:preview.preview_hash,confirmed:true});
+    chosen.clear();selecting=false;load();window.showUndoToast?.(ids.length+' Arbeiten im Papierkorb. Dort einzeln wiederherstellbar.');return true;
+   }catch(e){window.showUndoToast?.(e.message);return false;}finally{busy=false;refresh();}
+  }
+  button('start').onclick=()=>{selecting=true;refresh();};
+  button('cancel').onclick=()=>{chosen.clear();selecting=false;refresh();};
+  button('visible').onclick=()=>{for(const row of list.querySelectorAll('[data-edit-worklog]'))if(!chosen.has(row.dataset.editWorklog))select(row.dataset.editWorklog);refresh();};
+  button('trash').onclick=archive;
+  window.addEventListener('click',event=>{const row=event.target.closest('#worklog-list [data-edit-worklog]');if(!selecting||!row)return;event.preventDefault();event.stopImmediatePropagation();select(row.dataset.editWorklog);refresh();},true);
+  new MutationObserver(refresh).observe(list,{childList:true});refresh();
+  window.WorklogArchiveUI=Object.freeze({archive,refresh});
+ }
  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{
   const page=document.createElement('section');page.id='trash-page';page.className='page';page.innerHTML='<div class="page-head"><button type="button" class="back">‹</button><h2>Papierkorb</h2></div><div id="trash-content"></div>';document.querySelector('main.app').append(page);
   for(const host of [document.querySelector('#more-page .more-destinations'),get('sync-page')])if(host){const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent='Papierkorb öffnen';b.dataset.openTrash='';b.onclick=open;host.append(b);}
   window.removeRecordWithUndo=remove;
+  installWorkSelection();
  },0),{once:true});
  window.TrashUI=Object.freeze({open,remove,restore,purge});
 })();

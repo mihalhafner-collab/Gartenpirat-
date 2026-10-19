@@ -171,6 +171,13 @@ def apk_metadata(path, aapt, env, expected):
         raise SigningError('Candidate package or versionCode violates the operative baseline.')
     if not re.fullmatch(r'[0-9][0-9A-Za-z.+_-]{0,63}', version):
         raise SigningError('Candidate versionName has an invalid format.')
+    if expected.get('instrumentation'):
+        tree = tool([aapt, 'dump', 'xmltree', str(path), 'AndroidManifest.xml'], env).decode('utf-8', 'replace')
+        if (len(re.findall(r'^\s*E: instrumentation ', tree, re.MULTILINE)) != 1
+                or re.search(r'^\s*E: (?:activity|activity-alias|service|receiver|provider) ', tree, re.MULTILINE)
+                or len(re.findall(r'android:targetPackage\([^\n]*="at\.hausgarten\.service"', tree)) != 1
+                or len(re.findall(r'android:name\([^\n]*="at\.hausgarten\.service\.PixelMcpInstrumentation"', tree)) != 1):
+            raise SigningError('Instrumentation must exclusively target the original operative package and runner.')
     return {'package': package, 'version_name': version, 'version_code': int(code)}
 
 
@@ -194,13 +201,16 @@ def verify_signed(path, apksigner, env, expected):
         raise SigningError('Signed APK does not have exactly the expected single original signer.')
 
 
-def _sign(apk, output, *, keytool, aapt, zipalign, apksigner, env=None):
+def _sign(apk, output, *, keytool, aapt, zipalign, apksigner, env=None, instrumentation=False):
     env = dict(os.environ if env is None else env)
     private = configuration(env)  # Missing values fail before any tool or temp-file operation.
     ci_names = ('CI', 'GITHUB_ACTIONS', 'GITLAB_CI', 'TF_BUILD', 'BUILDKITE', 'CIRCLECI', 'JENKINS_URL')
     if any(env.get(name, '').lower() not in ('', '0', 'false') for name in ci_names):
         raise SigningError('Original signing is forbidden in CI; use the selected personal Cloud environment.')
     expected = baseline()
+    if instrumentation:
+        # Existing androidTest runner only; no alternate operative application or key.
+        expected = dict(expected, package='at.hausgarten.service.test', version_code=0, instrumentation=True)
     output = Path(output)
     if output.exists() or output.is_symlink():
         raise SigningError('Output already exists; no existing file will be overwritten.')
@@ -272,11 +282,11 @@ def _sign(apk, output, *, keytool, aapt, zipalign, apksigner, env=None):
     return result
 
 
-def sign(apk, output, *, keytool, aapt, zipalign, apksigner, env=None):
+def sign(apk, output, *, keytool, aapt, zipalign, apksigner, env=None, instrumentation=False):
     failure = None
     try:
         return _sign(apk, output, keytool=keytool, aapt=aapt, zipalign=zipalign,
-                     apksigner=apksigner, env=env)
+                     apksigner=apksigner, env=env, instrumentation=instrumentation)
     except SigningError as error:
         failure = str(error)
     except Exception:
@@ -295,6 +305,8 @@ def main(argv=None):
         parser = SafeParser(description=__doc__)
         for name in ('apk', 'output', 'keytool', 'aapt', 'zipalign', 'apksigner'):
             parser.add_argument('--' + name, required=True)
+        parser.add_argument('--instrumentation', action='store_true',
+                            help='Sign only the existing androidTest runner for the original app; never installs.')
         result = sign(**vars(parser.parse_args(argv)))
     except SigningError as error:
         print('ORIGINAL_SIGNING_FAILED: ' + str(error), file=sys.stderr)

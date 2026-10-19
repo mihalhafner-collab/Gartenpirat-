@@ -228,9 +228,10 @@
   else if(state.view==='lexicon')menu();else close();
   return true;
  }
- async function open() {
+ async function open(fromMenu=false) {
   syncLauncherVisibility();
-  if(dialog.open||launcher.hidden)return false;
+  const menuRequest=fromMenu===true&&document.querySelector('#more-page.active')&&!document.querySelector('dialog[open]');
+  if(dialog.open||(launcher.hidden&&!menuRequest))return false;
   previousFocus=document.activeElement;menu();dialog.showModal();launcher.setAttribute('aria-expanded','true');
   dialog.querySelector('.gp-back').focus({preventScroll:true});
   await storageReady;
@@ -308,7 +309,7 @@
   const webView=document.querySelector('.view.active');
   const foreignModal=[...document.querySelectorAll('dialog[open]')].some(item=>item!==dialog);
   const onDashboard=androidPage?.id==='home'||webView?.id==='view-dashboard';
-  return Boolean(onDashboard)&&!foreignModal;
+  return Boolean(onDashboard)&&!foreignModal&&!document.querySelector('#workday-timer.has-active-session');
  }
  function syncLauncherVisibility(){
   const allowed=launcherAllowed(),wasHidden=launcher.hidden;
@@ -325,6 +326,7 @@
  const observer=new MutationObserver(records=>{let changed=false;for(const r of records){
    if(r.attributeName==='open'&&r.target.tagName==='DIALOG')changed=true;
    if(r.attributeName==='class'&&(r.target.classList?.contains('page')||r.target.classList?.contains('view')))changed=true;
+   if(r.attributeName==='class'&&r.target.id==='workday-timer')changed=true;
    if(r.target.nodeType===1&&r.target.closest('#mobile-toast,#undo-toast,.undo-toast'))changed=true;
    if([...r.addedNodes,...r.removedNodes].some(n=>n.nodeType===1&&n.matches('#mobile-toast,#undo-toast,.undo-toast')))changed=true;
   }if(changed)host();});

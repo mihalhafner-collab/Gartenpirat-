@@ -14,8 +14,8 @@ final class InvoiceDraftRules {
         if(!p.optString("service_start").isEmpty()&&!p.optString("service_end").isEmpty()&&p.getString("service_start").compareTo(p.getString("service_end"))>0)throw new IllegalArgumentException("Leistungszeitraum ist widersprüchlich.");
         int days=p.optInt("payment_days",14);if(days<0||days>365)throw new IllegalArgumentException("Zahlungsziel 0 bis 365 Tage.");
         JSONArray positions=p.getJSONArray("positions");if(positions.length()<1||positions.length()>200)throw new IllegalArgumentException("1 bis 200 Rechnungspositionen erforderlich.");PixelMcpEntityWriteTools.validatePositions(positions);
-        JSONObject settings=master.optJSONObject("business_settings");if(settings==null)settings=new JSONObject();String taxMode=p.optString("tax_mode",settings.optString("tax_mode","unconfigured"));
-        if(taxMode.equals("unconfigured"))taxMode=settings.optString("tax_mode","unconfigured");
+        JSONObject settings=master.optJSONObject("business_settings");if(settings==null)settings=new JSONObject();String taxMode=p.optString("tax_mode");
+        if(taxMode.isEmpty()||taxMode.equals("unconfigured")){taxMode=settings.optString("tax_mode");if(taxMode.isEmpty())taxMode="unconfigured";}
         if(!Arrays.asList("small_business","standard","unconfigured").contains(taxMode))throw new IllegalArgumentException("Steuermodus ist ungültig.");
         String recipientType=p.optString("recipient_type"),recipientVat=p.optString("recipient_vat_id");
         if(!Arrays.asList("","b2b","consumer").contains(recipientType)||recipientVat.length()>40||(!recipientVat.isEmpty()&&!recipientVat.matches("[A-Za-z]{2}[A-Za-z0-9]{2,38}")))throw new IllegalArgumentException("Empfängertyp oder UID ist ungültig.");

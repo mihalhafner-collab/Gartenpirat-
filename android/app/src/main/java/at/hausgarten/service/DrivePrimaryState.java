@@ -11,6 +11,10 @@ final class DrivePrimaryState {
         byte[] read(String id)throws Exception;
     }
     static JSONObject recover(JSONObject legacy,String publisher,Storage storage)throws Exception {
+        // Every caller (initial read, publish recheck, restart) uses the same additive
+        // schema normalization. Never mutate the actual legacy object or its file.
+        String observedLegacyHash=PixelMcpWriteTools.hash(legacy);
+        legacy=new JSONObject(legacy.toString());DriveJournalRules.validateSnapshot(legacy);
         JSONArray summaries=new JSONArray();Map<String,JSONObject> manifests=new HashMap<>();
         for(Map.Entry<String,String> file:storage.commits().entrySet()) {
             String name=file.getValue();if(!name.matches("HausGarten-Commit-[0-9a-f]{64}\\.json"))throw new IllegalArgumentException("PUBLICATION_INVALID: Ungültige Veröffentlichungsreferenz.");
@@ -28,7 +32,8 @@ final class DrivePrimaryState {
         if(head.length()>0) {
             JSONObject m=manifests.get(head.getString("id"));byte[] bytes=storage.read(m.getString("state_file_id"));
             DrivePublication.verify(m,bytes,new JSONArray());state=new JSONObject(new String(bytes,StandardCharsets.UTF_8));
-            if(state.has("drive_legacy_base_hash")&&!legacyHash.equals(state.getString("drive_legacy_base_hash")))
+            if(state.has("drive_legacy_base_hash")&&!legacyHash.equals(state.getString("drive_legacy_base_hash"))
+                    &&!observedLegacyHash.equals(state.getString("drive_legacy_base_hash")))
                 throw new PixelMcpWriteTools.Rejected("LEGACY_SOURCE_CHANGED","Der ursprüngliche Drive-Gesamtstand wurde parallel verändert. Beide Stände bleiben erhalten; Migration ausdrücklich prüfen.");
         }
         PixelDriveState.prepare(state);

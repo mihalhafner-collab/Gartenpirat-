@@ -30,7 +30,7 @@
     const groups=[['Name & Kontakt',['name','company','phone','email']],['Adresse',['street','postal_code','city']],['Weitere Kundendaten',['first_name','last_name','country','garden_area','sevdesk_customer_number']]];
     for(const [title,names] of groups){const isExtra=title==='Weitere Kundendaten',section=document.createElement(isExtra?'details':'fieldset');section.className=isExtra?'more workday-customer-extra':'customer-form-section';const heading=document.createElement(isExtra?'summary':'legend');heading.textContent=title;const body=document.createElement('div');body.className='form-grid';section.append(heading,body);grid.before(section);for(const name of names){const field=form.elements[name];if(field?.parentElement)body.append(field.parentElement);}}
     grid.remove();
-    form.querySelectorAll('input,textarea').forEach(field=>{const label=field.previousElementSibling;if(label?.tagName==='LABEL'){field.id||='customer-field-'+field.name;label.htmlFor=field.id;}});
+    form.querySelectorAll('input,textarea').forEach(field=>{const label=field.previousElementSibling;if(label?.tagName==='LABEL'){if(!field.id)field.id='customer-field-'+field.name;label.htmlFor=field.id;}});
   }
   function configureWorkPhotoCamera(){
     const input=get('photo');
@@ -118,6 +118,7 @@
   }
   function renderTimer(session){
     const panel=get('workday-timer');if(!panel)return;const state=session.state||'IDLE',active=state==='RUNNING',paused=state==='PAUSED',stopped=state==='STOPPED_PENDING_REVIEW';
+    panel.classList.toggle('has-active-session',active||paused||stopped);
     panel.innerHTML=state==='UNAVAILABLE'?'<h3>Arbeitszeit</h3><p>Zeiterfassung ist in dieser Vorschau nicht verfügbar.</p>':state==='IDLE'||state==='FINALIZED'?'<div class="timer-title"><small>Schnelle Zeiterfassung</small><h3>Bereit für den Einsatz?</h3><p>Die Zeit läuft auch offline zuverlässig auf diesem Pixel.</p></div><button type="button" class="timer-main timer-start" data-session-action="start"><span>▶</span><b>Start</b><small>Arbeitszeit starten</small></button>':`<div class="timer-state"><small>${active?'Arbeit läuft':paused?'Pausiert':'Einsatz beendet'}</small><strong>${sessionDuration(session.worked_ms)}</strong><span>${active?'Die Zeit läuft auf diesem Pixel weiter.':paused?'Pausenzeit wird nicht mitgerechnet.':'Ergänze jetzt Kunde, Tätigkeit und weitere Angaben.'}</span></div><div class="timer-actions">${active?'<button type="button" class="timer-secondary" data-session-action="pause"><span>Ⅱ</span><b>Pause</b><small>Arbeitszeit pausieren</small></button>':''}${paused?'<button type="button" class="timer-main" data-session-action="resume"><span>▶</span><b>Fortsetzen</b><small>Arbeitszeit fortsetzen</small></button>':''}${active||paused?'<button type="button" class="timer-stop" data-session-action="stop"><span>■</span><b>Stop</b><small>Arbeitszeit beenden</small></button>':''}${active||paused?'<button type="button" class="timer-secondary" data-session-action="photo"><span>▣</span><b>Foto</b><small>Kamera öffnen</small></button>':''}${stopped?'<button type="button" class="timer-main" data-session-action="complete"><span>›</span><b>Angaben ergänzen</b><small>Prüfen und speichern</small></button>':''}</div>`;
   }
   function refresh(){navigationState();compactFilters();compactCustomers();recentWork();photoTools();versionLabel();workTimer();}

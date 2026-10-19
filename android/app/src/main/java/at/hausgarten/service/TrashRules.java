@@ -5,8 +5,9 @@ import java.util.*;
 
 /** Shared UI/MCP/Drive trash policy. No cascade deletion, no filesystem side effects. */
 final class TrashRules {
+    private static JSONObject existingArchive(JSONObject s){JSONObject a=s.optJSONObject("owner_archive");return a==null?new JSONObject():a;}
     static boolean purged(JSONObject s,String entity,String id)throws Exception {
-        JSONObject a=OwnerJournalRules.archives(s).optJSONObject(entity+":"+id);
+        JSONObject a=existingArchive(s).optJSONObject(entity+":"+id);
         return a!=null&&a.optBoolean("purged");
     }
     static JSONObject links(JSONObject photo,String entity,String id)throws Exception {
@@ -24,7 +25,7 @@ final class TrashRules {
         TreeMap<String,JSONObject> sorted=new TreeMap<>();JSONArray photos=s.getJSONArray("photos");
         for(int i=0;i<photos.length();i++){JSONObject p=photos.getJSONObject(i);if(links(p,entity,id).length()>0)
             sorted.put(p.getString("id"),new JSONObject().put("id",p.getString("id")).put("hash",OwnerJournalRules.version(p)));}
-        JSONObject archive=OwnerJournalRules.archives(s);
+        JSONObject archive=existingArchive(s);
         for(Iterator<String> it=archive.keys();it.hasNext();){String key=it.next();JSONObject entry=archive.getJSONObject(key),p=entry.optJSONObject("record");if(key.startsWith("photo:")&&p!=null&&links(p,entity,id).length()>0)
             sorted.put("archive:"+p.getString("id"),new JSONObject().put("id",p.getString("id")).put("hash",OwnerJournalRules.version(entry)).put("location","archive"));}
         return new JSONArray(sorted.values());

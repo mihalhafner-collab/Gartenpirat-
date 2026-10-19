@@ -40,7 +40,7 @@
         const payload=studio.validate();
         if(!event.currentTarget.checkValidity()){studio.revealInvalid();return;}
         if(original.id){payload._edit_base=original;payload._edit_changes=Object.fromEntries(Object.entries(payload).filter(([key,value])=>['customer_id','order_id','invoice_date','service_start','service_end','payment_days','notes','positions','domestic_service_confirmed','header_text','footer_text','tax_mode','recipient_type','recipient_vat_id'].includes(key)&&JSON.stringify(value)!==JSON.stringify(original[key])));}
-        payload.invoice_number ||= 'Entwurf-Pixel-'+Date.now();
+        if(!payload.invoice_number)payload.invoice_number='Entwurf-Pixel-'+Date.now();
         saving=true;studio.setBusy(true);dialog.querySelector('[type="submit"]').disabled=true;
         const result=AndroidData.saveInvoice(JSON.stringify(payload));
         if(String(result).startsWith('ERROR:'))throw Error(String(result).replace(/^ERROR:\s*/,''));

@@ -14,9 +14,10 @@ final class DeletionRules {
         if(!java.util.Arrays.asList(ENTITIES).contains(entity))throw new IllegalArgumentException("Dieser Bereich kann nicht gelöscht werden.");
         JSONObject current=OwnerJournalRules.findOrNull(snapshot.optJSONArray(OwnerJournalRules.group(entity)),id);
         if(current==null)throw new IllegalArgumentException("Der Eintrag fehlt oder liegt bereits im Papierkorb.");
+        JSONArray related=TrashRules.related(snapshot,entity,id);
         JSONObject out=new JSONObject().put("entity",entity).put("entity_id",id).put("expected_record_hash",OwnerJournalRules.version(current))
             .put("recoverable",true).put("physical_delete",false).put("cascade",false).put("updated_at",current.optString("updated_at"))
-            .put("related_photos",TrashRules.related(snapshot,entity,id).length()).put("expected_photo_links_hash",PixelMcpWriteTools.hash(TrashRules.related(snapshot,entity,id)))
+            .put("related_photos",related.length()).put("expected_photo_links_hash",PixelMcpWriteTools.hash(related))
             .put("mode",entity.equals("customer")||entity.equals("service_template")?"deactivate":"trash");
         JSONObject archived=snapshot.optJSONObject("owner_archive");if(archived!=null&&archived.has(entity+":"+id))return out.put("allowed",false).put("message","Der Eintrag liegt bereits im Papierkorb.");
         try{OwnerJournalRules.validateArchive(entity,current,snapshot);out.put("allowed",true).put("message","Aus aktiven Ansichten entfernen. Original bleibt im Papierkorb. Fotos bleiben erhalten; betroffene Fotozuordnungen werden gelöst und beim Wiederherstellen nur bei unverändertem Foto wieder verbunden.");}
