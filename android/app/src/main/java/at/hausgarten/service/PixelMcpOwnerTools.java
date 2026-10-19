@@ -8,8 +8,8 @@ final class PixelMcpOwnerTools {
     interface Access { JSONObject query(String name,JSONObject args) throws Exception; }
     static final int CHUNK=48*1024;
     static final String[] BUSINESS_KEYS={"business_name","owner_name","business_street","business_postal_code","business_city","business_legal_info","business_iban","business_bank","business_bic","business_phone","business_email","invoice_issuer_confirmed","invoice_numbering_confirmed","invoice_number_format","invoice_prefix","invoice_sevdesk_last_number","invoice_sevdesk_checked_at","invoice_numbering_authority","invoice_numbering_device_id","invoice_numbering_last_number","invoice_numbering_checked_at","tax_mode","tax_exemption_text","business_vat_id","default_payment_days","default_payment_terms"};
-    static final String[] READS={"get_capabilities","preview_empty_trash","preview_archive_work_records","preview_purge","preview_delete","preview_legacy_conflict_resolution","get_sync_conflicts","get_photo","get_settings","get_business_settings","search_catalog","get_catalog_entry","read_file_chunk","get_file_metadata","list_archive","list_backups","inspect_backup"};
-    static final String[] WRITES={"empty_trash","archive_work_records","prepare_legacy_conflict_backup","close_legacy_conflicts","set_work_record_billed","reassign_work_record","update_photo","begin_file_upload","write_file_chunk","create_photo","purge_entity","delete_entity","archive_entity","restore_entity","resolve_sync_conflict","request_sync","update_settings","update_business_settings","set_personal_paid","create_backup","restore_backup","request_invoice_issue","prepare_invoice_share","create_invoice_correction","update_invoice_payment"};
+    static final String[] READS={"get_ui_action_catalog","inspect_order_review","get_capabilities","preview_empty_trash","preview_archive_work_records","preview_purge","preview_delete","preview_legacy_conflict_resolution","get_sync_conflicts","get_photo","get_settings","get_business_settings","search_catalog","get_catalog_entry","read_file_chunk","get_file_metadata","list_archive","list_backups","inspect_backup"};
+    static final String[] WRITES={"save_reviewed_order","empty_trash","archive_work_records","prepare_legacy_conflict_backup","close_legacy_conflicts","set_work_record_billed","reassign_work_record","update_photo","begin_file_upload","write_file_chunk","create_photo","purge_entity","delete_entity","archive_entity","restore_entity","resolve_sync_conflict","request_sync","update_settings","update_business_settings","set_personal_paid","create_backup","restore_backup","request_invoice_issue","prepare_invoice_share","create_invoice_correction","update_invoice_payment"};
     static boolean read(String n){return Arrays.asList(READS).contains(n);}
     static boolean write(String n){return Arrays.asList(WRITES).contains(n);}
     static JSONObject text(int n)throws Exception{return new JSONObject().put("type","string").put("maxLength",n);}
@@ -23,6 +23,10 @@ final class PixelMcpOwnerTools {
         JSONObject p=new JSONObject();List<String> required=new ArrayList<>();
         if(write(name)){p.put("request_id",text(128).put("minLength",8));required.add("request_id");}
         switch(name){
+            case "get_ui_action_catalog":p.put("offset",number(0,1000000)).put("limit",number(1,100));break;
+            case "inspect_order_review":p.put("order_id",id());required.add("order_id");break;
+            case "save_reviewed_order":p.put("id",id()).put("token",hash()).put("decision",enumeration("keep","save")).put("confirmed",bool().put("enum",new JSONArray().put(true)));JSONObject edits=new JSONObject();for(String k:new String[]{"title","customer_id","billing_customer_id","description","location","scheduled_date","status"})edits.put(k,text(10000));edits.put("customer_visible",number(0,1));p.put("order",object(edits));required.addAll(Arrays.asList("id","token","decision","confirmed"));break;
+            case "prepare_legacy_conflict_backup":p.put("expected_preview_hash",hash());break;
             case "preview_archive_work_records":case "archive_work_records":
                 p.put("work_record_ids",new JSONObject().put("type","array").put("minItems",1).put("maxItems",WorklogArchiveBatch.MAX).put("items",id()));required.add("work_record_ids");
                 if(name.equals("archive_work_records")){p.put("expected_preview_hash",hash()).put("confirmed",bool().put("enum",new JSONArray().put(true)));required.addAll(Arrays.asList("expected_preview_hash","confirmed"));}break;
@@ -73,6 +77,9 @@ final class PixelMcpOwnerTools {
     private static String description(String n){
         String common=" Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.";
         switch(n){
+            case "prepare_legacy_conflict_backup":return "Erstellt eine vollständig geprüfte private Geschäftssicherung mit Originalen, Queue und beiden Drive-Ständen. Bei LEGACY_SOURCE_CHANGED zwingend expected_preview_hash der frisch gelesenen Siebener-Vorschau angeben. Kein laufender Sync, keine automatische Übernahme abweichender Geschäftsdaten.";
+            case "get_ui_action_catalog":return "Liest die versionierte UI-MCP-Funktionsmatrix mit Werkzeugpfaden und notwendigen Geräte-/Kontofreigaben, paginiert.";
+            case "save_reviewed_order":return "Übernimmt eine ausdrücklich bestätigte Auftragsprüfung mit aktuellem Token aus inspect_order_review. Keine blinde Konfliktüberschreibung, Originalaktionen bleiben dokumentiert.";
             case "preview_archive_work_records":return "Prüft eine ausdrückliche Auswahl von höchstens 200 Arbeitsaufzeichnungen samt Versionen, Fotozuordnungen und Finanzschutz. Keine Änderung. Liefert preview_hash für archive_work_records.";
             case "archive_work_records":return "Verschiebt die ausdrücklich bestätigte Auswahl anhand des unveränderten preview_hash atomar in den wiederherstellbaren Papierkorb. Bei nur einem geänderten/geschützten Eintrag keine Änderung. Bestehende Einzeljournale, Originalfotos und stabile Request-Belege bleiben erhalten."+common;
             case "get_capabilities":return "Liest App-/MCP-Version, tatsächlich unterstützte Funktionen, Grenzen und Berechtigungen.";

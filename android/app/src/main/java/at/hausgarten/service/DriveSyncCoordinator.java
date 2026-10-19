@@ -13,7 +13,7 @@ import java.util.concurrent.*;
 
 /** Single app-wide synchronizer, also usable by the opted-in Pixel foreground service. */
 final class DriveSyncCoordinator {
-    private static final Object LOCK=new Object();
+    static final Object LOCK=new Object();
     private static final ScheduledExecutorService EXECUTOR=Executors.newSingleThreadScheduledExecutor();
     private static ScheduledFuture<?> scheduled;
     private static volatile boolean running;
@@ -229,11 +229,14 @@ final class DriveSyncCoordinator {
         }
         JSONObject reserveInvoice(JSONObject state,JSONObject action)throws Exception{throw new PixelMcpWriteTools.Rejected("DIRECT_DRIVE_REQUIRED","Rechnungsabschluss benötigt direkte Google-Drive-Verbindung mit atomarem Nummernvergleich. Entwurf bleibt erhalten.");}
         JSONObject readPrimary(JSONObject legacy,String device)throws Exception {
+            return readPrimary(legacy,device,false);
+        }
+        JSONObject readPrimary(JSONObject legacy,String device,boolean evidenceOnly)throws Exception {
             Map<String,Doc> index=new LinkedHashMap<>();for(Doc d:documents())index.put(d.id,d);
             return DrivePrimaryState.recover(legacy,device,new DrivePrimaryState.Storage(){
                 public Map<String,String> commits(){Map<String,String> out=new LinkedHashMap<>();for(Doc d:index.values())if(d.name.startsWith("HausGarten-Commit-"))out.put(d.id,d.name);return out;}
                 public byte[] read(String id)throws Exception{Doc d=index.get(id);if(d!=null)return Files.this.read(d.uri).getBytes(StandardCharsets.UTF_8);throw new IOException("Veröffentlichter Gesamtstand fehlt; keine leere Wiederanlage.");}
-            });
+            },evidenceOnly);
         }
         Doc immutable(String name,byte[] bytes)throws Exception {
             ArrayList<Doc> found=matches(name);if(found.size()>1)throw new IOException("Mehrdeutige Veröffentlichung; Originale erhalten.");

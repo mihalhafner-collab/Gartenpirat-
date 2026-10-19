@@ -100,6 +100,7 @@ final class DriveProviderAcceptance {
             qa.yes(s.files.readActions(MOBILE).length()==1&&s.store.getState().getJSONObject("master").getJSONArray("customers").length()==1);
         }});
         qa.probe("Android provider six deletes and one customer conflict stay protected across seven retries",()->{try(Setup s=new Setup(qa)){
+            JSONObject oldLegacy=new JSONObject(s.files.read("HausGarten-Laptop.json"));DriveJournalRules.validateSnapshot(oldLegacy);oldLegacy.remove("appointments");String oldLegacyHash=PixelMcpWriteTools.hash(oldLegacy);PixelDriveState.prepare(oldLegacy);oldLegacy.put("drive_publisher_id","qadevice").put("drive_legacy_base_hash",oldLegacyHash);s.files.publish(oldLegacy,new JSONArray());
             String photo=s.store.savePhoto(new JSONObject().put("customer_id","qa_c1").put("original_name","QA-backup.gif").put("data",PixelMcpInstrumentation.VALID_GIF));s.sync();JSONObject media=s.store.photoAttachment(photo);
             for(int i=0;i<7;i++){android.content.ContentValues row=new android.content.ContentValues();row.put("id","qa-review-"+i);row.put("kind",i<6?"delete":"customer");row.put("payload",(i<6?new JSONObject().put("entity","worklog").put("id","qa-missing-"+i):new JSONObject().put("id","qa_c1").put("name","QA altered").put("_mcp_create",true)).toString());row.put("created_at","2026-10-13T01:00:0"+i+"Z");s.store.getWritableDatabase().insertOrThrow("pending",null,row);}
             for(int i=0;i<7;i++){JSONObject reviewed=s.sync();qa.yes(reviewed.getBoolean("ok")&&reviewed.getBoolean("needs_review"));}
@@ -107,12 +108,23 @@ final class DriveProviderAcceptance {
             qa.yes(state.getJSONObject("master").getJSONArray("customers").getJSONObject(0).getString("name").equals("QA Kunde"));qa.yes(s.files.readActions(MOBILE).length()==8);
             s.store.photoAttachmentStore().discardCreated(media);boolean missing=false;try{s.store.photoAttachmentStore().read(media);}catch(IOException expected){missing=true;}qa.yes(missing);
             String before=PixelDriveState.integrity(state.getJSONObject("master")).getString("business_state_hash");
-            JSONObject backup=LegacyConflictBackup.createVerified(s.io,s.store,"qa-provider-seven-backup",s.files),meta=backup.getJSONObject("backup"),preview=backup.getJSONObject("preview");
+            String previewHash=LegacyConflictRules.preview(s.store.getState()).getString("preview_hash");
+            // The current publication was created with a pre-appointments legacy hash.
+            // Reproduce an action_required sync without changing a single business record.
+            s.prefs.edit().putBoolean("drive_sync_failed",true).putString("drive_last_error_code","LEGACY_SOURCE_CHANGED").commit();
+            LegacyBackupPolicy.require(s.store.getState(),true,true,true,false,"provider_readback","LEGACY_SOURCE_CHANGED",previewHash);
+            qa.rejected(()->LegacyConflictBackup.createVerified(s.io,s.store,"qa-provider-stale-backup",s.files,"0".repeat(64)));
+            DriveSyncCoordinator.Files drifting=new DriveSyncCoordinator.Files(s.io,Uri.parse(s.prefs.getString("drive_tree_uri","")),s.prefs){int reads;@Override String read(String name)throws Exception{String raw=super.read(name);if(name.equals("HausGarten-Laptop.json")&&++reads==2)return new JSONObject(raw).put("concurrent_evidence","changed").toString();return raw;}};
+            boolean driftRejected=false;try{LegacyConflictBackup.createVerified(s.io,s.store,"qa-provider-drifting-backup",drifting,previewHash);}catch(IOException changed){driftRejected=changed.getMessage().contains("Drive-Quelle während der Sicherung geändert");}qa.yes(driftRejected);qa.yes(s.store.ownerValue("legacy-backup-request:"+PixelMcpWriteTools.hash("qa-provider-drifting-backup"),"").isEmpty());
+            JSONObject backup=LegacyConflictBackup.createVerified(s.io,s.store,"qa-provider-seven-backup",s.files,previewHash),meta=backup.getJSONObject("backup"),preview=backup.getJSONObject("preview");
             qa.yes(meta.getBoolean("complete")&&meta.getString("confirmation_scope").equals("provider_readback")&&!meta.getBoolean("cloud_confirmed"));
             qa.yes(s.store.photoAttachmentStore().read(media).length==media.getInt("byte_size"));
             LegacyConflictBackup.verify(s.io,s.store,meta.getString("backup_id"),preview.getString("preview_hash"));
             PixelOwnerAccess owner=new PixelOwnerAccess(s.io,s.store);JSONArray entries=preview.getJSONArray("entries");
-            for(int i=0;i<entries.length();i++){JSONObject args=new JSONObject(entries.getJSONObject(i).toString()).put("request_id","qa-provider-keep-current-"+i);args.remove("reason");owner.execute("resolve_sync_conflict",args);}
+            JSONObject close=new JSONObject().put("request_id","qa-provider-bulk-close").put("backup_id",meta.getString("backup_id")).put("expected_preview_hash",previewHash).put("confirmed",true);
+            qa.rejected(()->owner.execute("close_legacy_conflicts",new JSONObject(close.toString()).put("confirmed",false)));
+            qa.yes(owner.execute("close_legacy_conflicts",close).getJSONObject("data").getInt("decisions_queued")==7);
+            qa.yes(owner.execute("close_legacy_conflicts",close).getJSONObject("data").getBoolean("replayed"));
             s.sync();qa.yes(s.store.pendingActions().length()==0&&before.equals(PixelDriveState.integrity(s.store.getState().getJSONObject("master")).getString("business_state_hash")));
             qa.yes(s.store.getState().getJSONObject("master").getJSONObject("owner_conflict_history").length()==7&&s.files.readActions(MOBILE).length()==15);
             s.sync();qa.yes(s.store.getState().getJSONObject("sync_queue").getInt("total")==0&&!s.prefs.getBoolean("drive_cloud_confirmed",false));

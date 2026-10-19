@@ -11,7 +11,7 @@ import java.util.*;
 final class AppointmentRuntime {
     private static final Object LOCK=new Object();
     static JSONObject request(Context c,MainActivity.LocalStore store)throws Exception {
-        boolean configured=PlanningAccount.connected(c)||PlanningAccount.prefs(c).getBoolean("weather_enabled",false);
+        boolean configured=calendarEnabled(c,store)||flag(c,store,"weather_enabled");
         if(configured)PlanningAccount.prefs(c).edit().putInt("calendar_failures",0).putInt("weather_failures",0).remove("calendar_retry_at").remove("weather_retry_at").apply();
         return new JSONObject().put("state",configured?"queued":"configuration_required").put("confirmed",false).put("integration",integration(c,store));
     }
@@ -21,16 +21,28 @@ final class AppointmentRuntime {
         if(!s.has("day_start"))s.put("day_start","08:00");if(!s.has("day_end"))s.put("day_end","17:00");
         if(!s.has("travel_minutes"))s.put("travel_minutes",0);return s;
     }
+    static JSONObject publicSettings(Context c,MainActivity.LocalStore store)throws Exception {
+        JSONObject s=settings(store);android.content.SharedPreferences p=PlanningAccount.prefs(c);for(String k:new String[]{"weather_enabled","weather_license_confirmed","notifications"})if(!s.has(k))s.put(k,p.getBoolean(k,false));if(!s.has("calendar_enabled"))s.put("calendar_enabled",PlanningAccount.connected(c));return s;
+    }
+    static boolean flag(Context c,MainActivity.LocalStore store,String key){try{return publicSettings(c,store).optBoolean(key);}catch(Exception unavailable){return false;}}
+    static boolean calendarEnabled(Context c,MainActivity.LocalStore store){return PlanningAccount.connected(c)&&flag(c,store,"calendar_enabled");}
+    static void saveSettings(Context c,MainActivity.LocalStore store,JSONObject s,String expected)throws Exception {
+        android.database.sqlite.SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();try{
+            if(!PixelMcpWriteTools.hash(publicSettings(c,store)).equals(expected))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Planungseinstellungen wurden inzwischen geändert. Angaben bleiben erhalten; neu prüfen.");
+            saveSettings(store,s);db.setTransactionSuccessful();
+        }finally{db.endTransaction();}
+    }
     static void saveSettings(MainActivity.LocalStore store,JSONObject s)throws Exception {
         LocalTime start=LocalTime.parse(s.getString("day_start")),end=LocalTime.parse(s.getString("day_end"));if(!end.isAfter(start))throw new IllegalArgumentException("Ende muss nach Beginn liegen.");
         JSONArray days=s.getJSONArray("workdays");Set<Integer> seen=new HashSet<>();for(int i=0;i<days.length();i++)if(days.getInt(i)<1||days.getInt(i)>7||!seen.add(days.getInt(i)))throw new IllegalArgumentException("Ungültige Arbeitstage.");if(days.length()==0)throw new IllegalArgumentException("Mindestens einen Arbeitstag wählen.");
         int travel=s.optInt("travel_minutes");if(travel<0||travel>720)throw new IllegalArgumentException("Anfahrtpuffer ungültig.");
         for(String key:new String[]{"rain_mm","rain_probability","gust_kmh","frost_c","heat_c"})if(s.has(key)&&(!Double.isFinite(s.getDouble(key))||s.getDouble(key)<(key.equals("frost_c")?-30:0)||s.getDouble(key)>200))throw new IllegalArgumentException("Wetterschwelle ungültig.");
+        if(s.has("rain_probability")&&s.getDouble("rain_probability")>100)throw new IllegalArgumentException("Regenwahrscheinlichkeit muss zwischen0 und100 liegen.");
         store.putOwnerValue("planning:settings",s.toString());
     }
     static JSONObject integration(Context c,MainActivity.LocalStore store)throws Exception {
         android.content.SharedPreferences p=PlanningAccount.prefs(c);JSONObject status=new JSONObject(store.ownerValue("planning:status","{}"));
-        return status.put("calendar_configured",PlanningAccount.connected(c)).put("weather_configured",p.getBoolean("weather_enabled",false)&&p.contains("weather_secret")).put("calendar_state",store.ownerValue("calendar:status",PlanningAccount.connected(c)?"pending":"not_connected")).put("weather_state",store.ownerValue("weather:status",p.getBoolean("weather_enabled",false)?"pending":"not_configured"))
+        return status.put("calendar_configured",calendarEnabled(c,store)).put("weather_configured",flag(c,store,"weather_enabled")&&p.contains("weather_secret")).put("calendar_state",store.ownerValue("calendar:status",calendarEnabled(c,store)?"pending":"not_connected")).put("weather_state",store.ownerValue("weather:status",flag(c,store,"weather_enabled")?"pending":"not_configured"))
             .put("notification_permission",Build.VERSION.SDK_INT<33||c.checkSelfPermission("android.permission.POST_NOTIFICATIONS")==android.content.pm.PackageManager.PERMISSION_GRANTED).put("background_best_effort",true).put("credentials_exposed",false);
     }
     static JSONObject risk(MainActivity.LocalStore store,JSONObject a,Instant now)throws Exception {
@@ -38,6 +50,7 @@ final class AppointmentRuntime {
         return WeatherRiskRules.evaluate(a,cache==null||cache.length()==0?null:cache,now,settings(store));
     }
     static JSONObject query(Context c,MainActivity.LocalStore store,String name,JSONObject args)throws Exception {
+        if(name.equals("get_planning_settings")){McpSchema.validate(args,AppointmentTools.schema(name));JSONObject s=publicSettings(c,store);return new JSONObject().put("settings",s).put("record_hash",PixelMcpWriteTools.hash(s)).put("integration",integration(c,store));}
         McpSchema.validate(args,AppointmentTools.schema(name));Instant now=Instant.now();if(name.equals("get_workweek_weather")||name.equals("get_weather_risks")){args=new JSONObject(args.toString());if(!args.has("date_from"))args.put("date_from",now.atZone(ZoneId.of("Europe/Vienna")).toLocalDate().toString());if(!args.has("date_to"))args.put("date_to",now.atZone(ZoneId.of("Europe/Vienna")).toLocalDate().plusDays(14).toString());}JSONObject state=store.getState(),master=PixelMcpReadTools.effective(state),out=AppointmentTools.query(name,args,state);
         if(name.equals("suggest_appointment_slots"))out=suggestions(store,master,args,now);
         else if(name.equals("get_appointment")){JSONObject a=out.getJSONObject("appointment");out.put("weather",risk(store,a,now)).put("calendar",calendarState(c,store,a));}
@@ -51,7 +64,7 @@ final class AppointmentRuntime {
     static String bindingKey(Context c,String id)throws Exception{return "calendar:binding:"+PixelMcpWriteTools.hash(PlanningAccount.prefs(c).getString("calendar_id","")).substring(0,24)+":"+id;}
     static JSONObject calendarState(Context c,MainActivity.LocalStore store,JSONObject a)throws Exception {
         JSONObject b=new JSONObject(store.ownerValue(bindingKey(c,a.getString("id")),"{}"));boolean matching=b.has("base")&&AppointmentRules.hash(a).equals(AppointmentRules.hash(b.getJSONObject("base")));
-        return new JSONObject().put("state",!PlanningAccount.connected(c)?"not_connected":b.has("conflict")?"review_required":b.optBoolean("detached")?"detached":matching?b.optString("state","pending"):"pending").put("last_confirmed_at",b.optString("confirmed_at")).put("error",b.optString("error")).put("conflict_hash",b.has("conflict")?PixelMcpWriteTools.hash(b):"").put("conflict",b.opt("conflict")==null?JSONObject.NULL:b.get("conflict"));
+        return new JSONObject().put("state",!calendarEnabled(c,store)?"not_connected":b.has("conflict")?"review_required":b.optBoolean("detached")?"detached":matching?b.optString("state","pending"):"pending").put("last_confirmed_at",b.optString("confirmed_at")).put("error",b.optString("error")).put("conflict_hash",b.has("conflict")?PixelMcpWriteTools.hash(b):"").put("conflict",b.opt("conflict")==null?JSONObject.NULL:b.get("conflict"));
     }
     static JSONArray nextWorkdays(MainActivity.LocalStore store,Instant now)throws Exception {Set<Integer> days=new HashSet<>();JSONArray configured=settings(store).getJSONArray("workdays");for(int i=0;i<configured.length();i++)days.add(configured.getInt(i));JSONArray out=new JSONArray();LocalDate day=now.atZone(ZoneId.of("Europe/Vienna")).toLocalDate();for(int i=0;i<16&&out.length()<5;i++,day=day.plusDays(1))if(days.contains(day.getDayOfWeek().getValue()))out.put(day.toString());return out;}
     static JSONObject suggestions(MainActivity.LocalStore store,JSONObject s,JSONObject a,Instant now)throws Exception {
@@ -94,8 +107,8 @@ final class AppointmentRuntime {
 
     interface AdapterTask {void run()throws Exception;}
     static void refresh(Context c,MainActivity.LocalStore store){synchronized(LOCK){
-        Instant now=Instant.now();long calendarNext=adapter(c,store,"calendar",PlanningAccount.connected(c),now,()->syncCalendar(c,store,now));
-        long weatherNext=adapter(c,store,"weather",PlanningAccount.prefs(c).getBoolean("weather_enabled",false),now,()->refreshWeather(c,store,now));
+        Instant now=Instant.now();long calendarNext=adapter(c,store,"calendar",calendarEnabled(c,store),now,()->syncCalendar(c,store,now));
+        long weatherNext=adapter(c,store,"weather",flag(c,store,"weather_enabled"),now,()->refreshWeather(c,store,now));
         try{notifyRisks(c,store,now);store.putOwnerValue("planning:status",new JSONObject().put("last_check_at",now.toString()).put("background_best_effort",true).toString());}catch(Exception ignored){}
         long next=Math.min(calendarNext,weatherNext);if(next<Long.MAX_VALUE)PlanningJob.schedule(c,next);
     }}
@@ -182,7 +195,7 @@ final class AppointmentRuntime {
     }
     private static boolean contains(JSONArray list,String id){for(int i=0;i<list.length();i++)if(id.equals(list.optString(i)))return true;return false;}
     static void refreshWeather(Context c,MainActivity.LocalStore store,Instant now)throws Exception {
-        String key=PlanningAccount.weatherKey(c);if(key.isEmpty())throw new IllegalArgumentException("Wetterzugang fehlt.");JSONArray all=PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments");Map<String,JSONObject> sites=new LinkedHashMap<>();
+        if(!flag(c,store,"weather_license_confirmed"))throw new IllegalArgumentException("Gewerbliche Wetterfreigabe fehlt.");String key=PlanningAccount.weatherKey(c);if(key.isEmpty())throw new IllegalArgumentException("Wetterzugang fehlt.");JSONArray all=PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments");Map<String,JSONObject> sites=new LinkedHashMap<>();
         for(int i=0;i<all.length();i++){JSONObject a=all.getJSONObject(i);if(!AppointmentRules.active(a)||!a.has("latitude")||a.isNull("latitude"))continue;Instant start=AppointmentRules.instant(a.getString("starts_at"));if(start.isBefore(now.minusSeconds(86400))||start.isAfter(now.plusSeconds(14*86400)))continue;sites.put(WeatherRiskRules.locationKey(a),a);}
         for(Map.Entry<String,JSONObject> site:sites.entrySet()){
             if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException();String loc=site.getKey();JSONObject cache=new JSONObject(store.ownerValue("weather:"+loc,"{}"));
@@ -196,7 +209,7 @@ final class AppointmentRuntime {
         }
     }
     static void notifyRisks(Context c,MainActivity.LocalStore store,Instant now)throws Exception {
-        android.content.SharedPreferences p=PlanningAccount.prefs(c);if(!p.getBoolean("notifications",false))return;NotificationManager manager=c.getSystemService(NotificationManager.class);if(manager==null)return;
+        android.content.SharedPreferences p=PlanningAccount.prefs(c);if(!flag(c,store,"notifications"))return;NotificationManager manager=c.getSystemService(NotificationManager.class);if(manager==null)return;
         if(Build.VERSION.SDK_INT>=33&&c.checkSelfPermission("android.permission.POST_NOTIFICATIONS")!=android.content.pm.PackageManager.PERMISSION_GRANTED)return;
         manager.createNotificationChannel(new NotificationChannel("planning_weather","Einsätze & Wetter",NotificationManager.IMPORTANCE_DEFAULT));
         JSONArray all=PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments");List<String> alerts=new ArrayList<>();List<String> ids=new ArrayList<>();

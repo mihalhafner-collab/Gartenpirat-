@@ -9,7 +9,7 @@ import java.util.Iterator;
 
 /** Private Pixel MCP: shared UI snapshot, versioned writes and bounded file access. */
 public final class PixelMcpReadTools {
-    static final int PROTOCOL_VERSION = 7;
+    static final int PROTOCOL_VERSION = 8;
     public interface Source { JSONObject state() throws Exception; }
     private final Source source;
     private final PixelMcpWriteTools.Sink writer;
@@ -24,23 +24,23 @@ public final class PixelMcpReadTools {
         JSONObject props = new JSONObject(); JSONArray required = new JSONArray();
         String[] fields;
         switch (name) {
-            case "search_customers": fields=new String[]{"query","include_inactive","limit"};required.put("query");break;
+            case "search_customers": fields=new String[]{"query","include_inactive","offset","limit"};required.put("query");break;
             case "get_customer":fields=new String[]{"customer_id"};required.put("customer_id");break;
-            case "search_orders":fields=new String[]{"query","customer_id","status","limit"};break;
+            case "search_orders":fields=new String[]{"query","customer_id","status","offset","limit"};break;
             case "get_order":fields=new String[]{"order_id"};required.put("order_id");break;
-            case "list_work_records":fields=new String[]{"customer_id","billing_customer_id","order_id","date_from","date_to","billed","limit"};break;
-            case "get_customer_work_records":fields=new String[]{"customer_id","date_from","date_to","limit"};required.put("customer_id");break;
+            case "list_work_records":fields=new String[]{"customer_id","billing_customer_id","order_id","date_from","date_to","billed","offset","limit"};break;
+            case "get_customer_work_records":fields=new String[]{"customer_id","date_from","date_to","offset","limit"};required.put("customer_id");break;
             case "get_work_record_summary":fields=new String[]{"group_by_billing_customer","billing_customer_id","customer_id","date_from","date_to"};break;
             case "get_work_record":fields=new String[]{"work_record_id"};required.put("work_record_id");break;
-            case "get_open_orders":fields=new String[]{"customer_id","limit"};break;
-            case "list_invoices":fields=new String[]{"customer_id","status","limit"};break;
+            case "get_open_orders":fields=new String[]{"customer_id","offset","limit"};break;
+            case "list_invoices":fields=new String[]{"customer_id","status","offset","limit"};break;
             case "get_invoice":fields=new String[]{"invoice_id"};required.put("invoice_id");break;
-            case "list_photos":fields=new String[]{"customer_id","order_id","limit"};break;
+            case "list_photos":fields=new String[]{"customer_id","order_id","worklog_id","session_id","role","date_from","date_to","offset","limit"};break;
             case "search_business_data":fields=new String[]{"query","limit_per_type"};required.put("query");break;
             case "get_sync_status":fields=new String[]{"client_id"};required.put("client_id");break;
             default:fields=new String[0];
         }
-        for(String field:fields)props.put(field,new JSONObject().put("type",field.equals("limit")||field.equals("limit_per_type")?"integer":field.equals("billed")||field.equals("include_inactive")||field.equals("group_by_billing_customer")?"boolean":"string"));
+        for(String field:fields)props.put(field,new JSONObject().put("type",field.equals("limit")||field.equals("offset")||field.equals("limit_per_type")?"integer":field.equals("billed")||field.equals("include_inactive")||field.equals("group_by_billing_customer")?"boolean":"string"));
         return new JSONObject().put("type","object").put("properties",props).put("required",required).put("additionalProperties",false);
     }
     private boolean writable(){return writer!=null&&writer.writable();}
@@ -112,7 +112,10 @@ public final class PixelMcpReadTools {
         int limit=a.optInt("limit",kind.equals("worklog")?50:20);if(limit<1||limit>100)throw new IllegalArgumentException("Bitte 1 bis 100 Ergebnisse anfordern.");
         ArrayList<JSONObject> sorted=new ArrayList<>();for(int i=0;i<rows.length();i++)sorted.add(rows.getJSONObject(i));
         if(kind.equals("worklog"))sorted.sort(Comparator.comparing((JSONObject x)->x.optString("work_date")).reversed().thenComparing(x->x.optString("id")));
+        if(kind.equals("photo"))sorted.sort(Comparator.comparing((JSONObject x)->x.optString("capture_time",x.optString("created_at"))).reversed().thenComparing(x->x.optString("id")));
+        int offset=a.optInt("offset"),matched=0;if(offset<0||offset>1000000)throw new IllegalArgumentException("Ungültiger Listenversatz.");
         for(JSONObject row:sorted){
+            if(kind.equals("photo")){boolean skip=false;for(String f:new String[]{"role","worklog_id","session_id"})if(!a.optString(f).isEmpty()&&!a.getString(f).equals(row.optString(f)))skip=true;if(skip)continue;}
             if(kind.equals("customer")&&!a.optBoolean("include_inactive",false)&&row.optInt("active",1)==0)continue;
             if(!a.optString("customer_id").isEmpty()&&!a.optString("customer_id").equals(row.optString("customer_id")))continue;
             if(!a.optString("billing_customer_id").isEmpty()&&!a.optString("billing_customer_id").equals(BillingRules.recipient(row)))continue;
@@ -120,11 +123,12 @@ public final class PixelMcpReadTools {
             if(!a.optString("status").isEmpty()&&!a.optString("status").equals(row.optString("status")))continue;
             if(kind.equals("order")&&a.optBoolean("open_only",false)&&!java.util.Arrays.asList("","Geplant","Aktiv","In Arbeit","Wartet auf Material","Offen").contains(row.optString("status")))continue;
             if(a.has("billed")&&a.getBoolean("billed")!=(row.optInt("billed",0)!=0))continue;
-            String day=row.optString("work_date");if(!a.optString("date_from").isEmpty()&&day.compareTo(a.optString("date_from"))<0)continue;
+            String day=kind.equals("photo")?row.optString("capture_time",row.optString("created_at")):row.optString("work_date");if(day.length()>10)day=day.substring(0,10);if(!a.optString("date_from").isEmpty()&&day.compareTo(a.optString("date_from"))<0)continue;
             if(!a.optString("date_to").isEmpty()&&day.compareTo(a.optString("date_to"))>0)continue;
             String haystack=kind.equals("customer")?text(row,"name","company","first_name","last_name","street","postal_code","city","email","phone")
                 :kind.equals("order")?text(row,"title","description","location","customer_name"):text(row,"activity","notes","material","location","customer_name","order_title");
             if(!query.isEmpty()&&!haystack.contains(query))continue;
+            if(matched++<offset)continue;
             result.put(new JSONObject(row.toString()));if(result.length()>=limit)break;
         }
         return (JSONArray)withoutBinary(result);
@@ -140,7 +144,7 @@ public final class PixelMcpReadTools {
             PixelMcpOwnerTools.validate(name,a);JSONObject state=source.state(),data;
             if(name.equals("preview_legacy_conflict_resolution"))data=LegacyConflictRules.preview(state);
             else if(name.equals("get_sync_conflicts"))data=PixelMcpOwnerTools.conflicts(state,a);
-            else if(name.equals("get_capabilities")){data=new JSONObject().put("protocol_version",PROTOCOL_VERSION).put("write_enabled",writable()).put("tools",tools()).put("tool_catalog_hash",PixelMcpWriteTools.hash(tools())).put("max_file_chunk_bytes",PixelMcpOwnerTools.CHUNK).put("authorization_boundary","private_tunnel_runtime_credential").put("cloud_confirmed",false).put("invoice_finalization","pixel_drive_online_compare_required");if(access!=null)data.put("runtime",access.query(name,a));}
+            else if(name.equals("get_capabilities")){data=new JSONObject().put("protocol_version",PROTOCOL_VERSION).put("write_enabled",writable()).put("tools",tools()).put("tool_catalog_hash",PixelMcpWriteTools.hash(tools())).put("max_file_chunk_bytes",PixelMcpOwnerTools.CHUNK).put("authorization_boundary","private_tunnel_runtime_credential").put("owner_admin_write_enabled",writable()).put("owner_action_scope",writable()?"all_registered_business_and_admin_operations":"read_only").put("client_action_consent","managed_by_chatgpt_not_attested_by_app").put("safety_requirements",new JSONArray().put("request_id").put("current_versions").put("critical_previews_and_confirmation").put("verified_backup_for_legacy_bulk_close").put("no_blind_overwrites")).put("cloud_confirmed",false).put("invoice_finalization","pixel_drive_online_compare_required");if(access!=null)data.put("runtime",access.query(name,a));}
             else if(name.equals("get_photo")){JSONObject row=find(effective(state).optJSONArray("photos"),a.getString("photo_id"));data=new JSONObject().put("photo",withoutBinary(row)).put("record_hash",PixelMcpWriteTools.hash(PixelMcpOwnerTools.photoHash(row))).put("entity_hash",OwnerJournalRules.version(row));}
             else{if(access==null)throw new PixelMcpWriteTools.Rejected("NATIVE_ACCESS_REQUIRED","Diese Funktion benötigt die aktualisierte installierte App.");data=access.query(name,a);}
             return new JSONObject().put("ok",true).put("data",name.equals("read_file_chunk")||name.equals("get_capabilities")?data:withoutBinary(data)).put("source","pixel_local_snapshot").put("last_drive_sync",state.optString("last_drive_sync")).put("cloud_confirmed",false).put("untrusted_business_data",true);

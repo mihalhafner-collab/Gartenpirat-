@@ -31,6 +31,8 @@ final class PixelOwnerAccess implements PixelMcpOwnerTools.Access {
     @Override public JSONObject query(String name,JSONObject args)throws Exception{
         if(AppointmentTools.read(name))return AppointmentRuntime.query(context,store,name,args);
         switch(name){
+            case "get_ui_action_catalog":{JSONObject catalog=new JSONObject(new String(asset("ui-mcp-actions.json"),StandardCharsets.UTF_8));JSONArray all=catalog.getJSONArray("actions"),page=new JSONArray();for(int i=args.optInt("offset");i<all.length()&&page.length()<args.optInt("limit",50);i++)page.put(all.get(i));return new JSONObject().put("actions",page).put("total",all.length()).put("catalog_hash",PixelMcpWriteTools.hash(catalog)).put("scope",catalog.getString("scope"));}
+            case "inspect_order_review":return OrderReviewRules.inspect(state(),args.getString("order_id"));
             case "preview_empty_trash":return TrashPurgeBatch.preview(effective());
             case "preview_archive_work_records":return WorklogArchiveBatch.preview(effective(),args.getJSONArray("work_record_ids"));
             case "get_capabilities":{
@@ -77,7 +79,7 @@ final class PixelOwnerAccess implements PixelMcpOwnerTools.Access {
     }
     JSONObject execute(String name,JSONObject args)throws Exception{
         if(AppointmentTools.write(name))McpSchema.validate(args,AppointmentTools.schema(name));else if(OfferTools.write(name))McpSchema.validate(args,OfferTools.schema(name));else PixelMcpOwnerTools.validate(name,args);
-        if(name.equals("prepare_legacy_conflict_backup"))return new JSONObject().put("ok",true).put("data",LegacyConflictBackup.create(context,store,args.getString("request_id")));
+        if(name.equals("prepare_legacy_conflict_backup"))return new JSONObject().put("ok",true).put("data",LegacyConflictBackup.create(context,store,args.getString("request_id"),args.optString("expected_preview_hash")));
         String request="mcp_owner_"+PixelMcpWriteTools.hash(args.getString("request_id")),fingerprint=PixelMcpWriteTools.hash(new JSONObject().put("tool",name).put("args",args));
         SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();JSONObject result;
         try{
@@ -87,7 +89,7 @@ final class PixelOwnerAccess implements PixelMcpOwnerTools.Access {
         }finally{db.endTransaction();}
         if(AppointmentTools.write(name))PlanningJob.schedule(context,1000);
         if(name.equals("request_sync"))result=DriveSyncCoordinator.requestExplicit(context,request);
-        else if(!Arrays.asList("begin_file_upload","write_file_chunk","create_backup","set_personal_paid","update_settings","prepare_offer_share","prepare_invoice_share").contains(name))DriveSyncCoordinator.request(context,1000);
+        else if(!AppointmentTools.write(name)&&!Arrays.asList("begin_file_upload","write_file_chunk","create_backup","set_personal_paid","update_settings","prepare_offer_share","prepare_invoice_share").contains(name))DriveSyncCoordinator.request(context,1000);
         return new JSONObject().put("ok",true).put("data",result).put("cloud_confirmed",false);
     }
     private JSONObject queued(String kind,JSONObject payload,String request)throws Exception{
@@ -114,6 +116,8 @@ final class PixelOwnerAccess implements PixelMcpOwnerTools.Access {
     private JSONObject perform(String name,JSONObject a,String request)throws Exception{
         JSONObject all=effective();String stamp=java.time.Instant.now().toString();
         if(AppointmentTools.write(name)){
+            if(name.equals("update_planning_settings")){JSONObject s=AppointmentRuntime.publicSettings(context,store);if(!PixelMcpWriteTools.hash(s).equals(a.getString("expected_record_hash")))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Planungseinstellungen wurden geändert.");JSONObject changes=a.getJSONObject("updates");for(Iterator<String> i=changes.keys();i.hasNext();){String k=i.next();s.put(k,changes.get(k));}if(s.optBoolean("calendar_enabled")&&!PlanningAccount.connected(context))throw new IllegalArgumentException("Google-Kalender zuerst am Gerät autorisieren.");if(s.optBoolean("weather_enabled")&&(!s.optBoolean("weather_license_confirmed")||!PlanningAccount.prefs(context).contains("weather_secret")))throw new IllegalArgumentException("Freigegebener Wetterzugang fehlt; bestehenden Schlüssel ausschließlich am Gerät hinterlegen.");AppointmentRuntime.saveSettings(context,store,s,a.getString("expected_record_hash"));return new JSONObject().put("record_hash",PixelMcpWriteTools.hash(s)).put("local_state","local_saved").put("credentials_changed",false);}
+            if(name.equals("request_weather_refresh"))return AppointmentRuntime.request(context,store);
             if(name.equals("request_calendar_sync"))return AppointmentRuntime.request(context,store);
             if(name.equals("acknowledge_weather_alert"))return AppointmentRuntime.acknowledge(context,store,a);
             if(name.equals("resolve_calendar_conflict"))return AppointmentRuntime.resolve(context,store,a);
@@ -122,6 +126,7 @@ final class PixelOwnerAccess implements PixelMcpOwnerTools.Access {
             JSONObject row=AppointmentRules.prepare(name,a,all,request,stamp);AppointmentRuntime.checkBusy(store,row);return queued("appointment",row,request).put("appointment_id",row.getString("id"));
         }
         switch(name){
+            case "save_reviewed_order":{JSONObject row=OrderReviewRules.prepare(state(),a);return queued("order",row,request).put("order_id",row.getString("id"));}
             case "empty_trash":{
                 JSONObject payload=TrashPurgeBatch.payload(all,a.getString("expected_preview_hash"),a.getBoolean("confirmed"));
                 JSONArray prior=store.pendingActions(),predecessors=new JSONArray();JSONObject projected=new JSONObject(state().getJSONObject("master").toString());DriveJournalRules.apply(projected,prior);
@@ -136,7 +141,8 @@ final class PixelOwnerAccess implements PixelMcpOwnerTools.Access {
                 return new JSONObject().put("count",saved.length()).put("actions",saved).put("recoverable",true).put("physical_delete",false).put("local_state","local_saved").put("sync_state","sync_pending");
             }
             case "close_legacy_conflicts":{
-                LegacyConflictBackup.requireReady(context,store);
+                // Local atomic decision needs its verified backup, not a successful network job.
+                // No Drive I/O or business mutation occurs here; delivery remains a separate sync.
                 String expected=a.getString("expected_preview_hash");LegacyConflictBackup.verify(context,store,a.getString("backup_id"),expected);LegacyConflictRules.require(state(),expected);
                 JSONObject preview=LegacyConflictRules.preview(state());JSONArray entries=preview.getJSONArray("entries");
                 // The outer SQLite transaction rolls back every queued decision if a single

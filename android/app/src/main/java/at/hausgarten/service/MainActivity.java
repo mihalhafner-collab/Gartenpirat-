@@ -749,19 +749,21 @@ public class MainActivity extends Activity {
             try{
                 JSONObject existing=receipt(clientId);if(existing!=null){if(!fingerprint.equals(existing.optString("fingerprint")))throw new PixelMcpWriteTools.Rejected("REPLAY_MISMATCH","Anfragekennung wurde für andere Angaben verwendet.");result=new JSONObject(existing.getJSONObject("result").toString()).put("replayed",true);}
                 else{
-                    JSONObject payload=PixelMcpSessionTools.prepare(tool,args,getState()),session;WorkSessionStore timer=new WorkSessionStore(database,context);String id=args.optString("session_id"),request="mcp-session-"+clientId;
+                    WorkSessionStore timer=new WorkSessionStore(database,context);String id=args.optString("session_id"),request="mcp-session-"+clientId;
+                    if(tool.equals("finish_work")){JSONObject current=timer.current(id);if(java.util.Arrays.asList("RUNNING","PAUSED").contains(current.optString("state")))timer.stop(id,request+"-stop");}
+                    JSONObject payload=PixelMcpSessionTools.prepare(tool,args,getState()),session;
                     switch(tool){case "start_work":payload.put("request_id",request);session=startWorkSession(payload);break;case "start_break":session=timer.pause(id,request);break;case "end_break":session=timer.resume(id,request);break;case "stop_work":session=timer.stop(id,request);break;case "continue_work":session=timer.continueStopped(id,request);break;case "discard_work_session":session=timer.discard(id,request);break;case "restore_work_session":session=timer.restore(id,request);break;default:
                         payload.remove("request_id");payload.remove("session_id");String saved=completeWorkSession(id,payload,request);payload.put("id",saved).put("_mcp_create",true);
                         try(Cursor rows=database.rawQuery("SELECT id,payload FROM pending WHERE kind='worklog'",null)){while(rows.moveToNext())if(saved.equals(new JSONObject(rows.getString(1)).optString("id")))database.delete("pending","id=?",new String[]{rows.getString(0)});}
                         ContentValues action=new ContentValues();action.put("id",clientId);action.put("kind","worklog");action.put("payload",payload.toString());action.put("created_at",isoNow());database.insertOrThrow("pending",null,action);session=timer.current(id);
                     }
-                    result=new JSONObject().put("client_id",clientId).put("session",session).put("replayed",false).put("local_state","local_saved").put("sync_state",tool.equals("complete_work_session")?"sync_pending":"not_applicable").put("requires_work_record_completion",tool.equals("stop_work"));
-                    JSONObject meta=new JSONObject().put("fingerprint",fingerprint).put("tool",tool).put("entity_type",tool.equals("complete_work_session")?"worklog":"work_session").put("entity_id",tool.equals("complete_work_session")?session.optString("finalized_worklog_id"):session.getString("id")).put("work_record_id",session.optString("finalized_worklog_id")).put("uploaded",false).put("result",result);
+                    result=new JSONObject().put("client_id",clientId).put("session",session).put("replayed",false).put("local_state","local_saved").put("sync_state",(tool.equals("complete_work_session")||tool.equals("finish_work"))?"sync_pending":"not_applicable").put("requires_work_record_completion",tool.equals("stop_work"));
+                    JSONObject meta=new JSONObject().put("fingerprint",fingerprint).put("tool",tool).put("entity_type",(tool.equals("complete_work_session")||tool.equals("finish_work"))?"worklog":"work_session").put("entity_id",(tool.equals("complete_work_session")||tool.equals("finish_work"))?session.optString("finalized_worklog_id"):session.getString("id")).put("work_record_id",session.optString("finalized_worklog_id")).put("uploaded",false).put("result",result);
                     ContentValues row=new ContentValues();row.put("id","receipt_"+clientId);row.put("kind","mcp_receipt");row.put("payload",meta.toString());row.put("created_at",isoNow());database.insertOrThrow("pending",null,row);
                 }
                 database.setTransactionSuccessful();
             }finally{database.endTransaction();}
-            if(tool.equals("complete_work_session")){if(context instanceof MainActivity || context instanceof PixelTunnelService)requestMcpSync(context);result.put("sync",status(clientId,getState()));}
+            if((tool.equals("complete_work_session")||tool.equals("finish_work"))){if(context instanceof MainActivity || context instanceof PixelTunnelService)requestMcpSync(context);result.put("sync",status(clientId,getState()));}
             return new JSONObject().put("ok",true).put("data",result).put("message",tool.equals("stop_work")?"Zeiterfassung lokal gestoppt. Tätigkeit prüfen und mit complete_work_session als Arbeitsaufzeichnung abschließen.":"Aktion dauerhaft auf dem Pixel gesichert. Nur Arbeitsaufzeichnungen werden über Drive übertragen; Timerstatus ist lokal.");
         }
         @Override public JSONObject status(String clientId,JSONObject state) throws Exception {

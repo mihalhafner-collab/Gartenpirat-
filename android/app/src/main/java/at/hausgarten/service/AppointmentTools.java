@@ -5,8 +5,8 @@ import java.time.*;
 import java.util.*;
 
 final class AppointmentTools {
-    static final String[] READS={"get_planning_context","list_appointments","get_appointment","suggest_appointment_slots","get_workweek_weather","get_weather_risks"};
-    static final String[] WRITES={"create_appointment","create_appointment_series","resolve_calendar_conflict","update_appointment","cancel_appointment","acknowledge_weather_alert","request_calendar_sync"};
+    static final String[] READS={"get_planning_settings","get_planning_context","list_appointments","get_appointment","suggest_appointment_slots","get_workweek_weather","get_weather_risks"};
+    static final String[] WRITES={"update_planning_settings","request_weather_refresh","create_appointment","create_appointment_series","resolve_calendar_conflict","update_appointment","cancel_appointment","acknowledge_weather_alert","request_calendar_sync"};
     static boolean read(String n){return Arrays.asList(READS).contains(n);}static boolean write(String n){return Arrays.asList(WRITES).contains(n);}
     static JSONObject fields()throws Exception {
         JSONObject p=new JSONObject();for(String k:AppointmentRules.FIELDS)p.put(k,PixelMcpOwnerTools.text(4000));
@@ -18,6 +18,12 @@ final class AppointmentTools {
     static JSONObject schema(String n)throws Exception {
         JSONObject p=new JSONObject();List<String> required=new ArrayList<>();
         if(write(n)){p.put("request_id",PixelMcpOwnerTools.text(128).put("minLength",8));required.add("request_id");}
+        if(n.equals("update_planning_settings")){
+            JSONObject f=new JSONObject().put("workdays",new JSONObject().put("type","array").put("minItems",1).put("maxItems",7).put("items",PixelMcpOwnerTools.number(1,7))).put("day_start",PixelMcpOwnerTools.text(5)).put("day_end",PixelMcpOwnerTools.text(5)).put("travel_minutes",PixelMcpOwnerTools.number(0,720));
+            for(String k:new String[]{"calendar_enabled","weather_enabled","weather_license_confirmed","notifications"})f.put(k,PixelMcpOwnerTools.bool());
+            for(String k:new String[]{"rain_mm","rain_probability","gust_kmh","frost_c","heat_c"})f.put(k,new JSONObject().put("type","number").put("minimum",k.equals("frost_c")?-30:0).put("maximum",k.equals("rain_probability")?100:200));
+            p.put("expected_record_hash",PixelMcpOwnerTools.hash()).put("updates",PixelMcpOwnerTools.object(f).put("minProperties",1));required.addAll(Arrays.asList("expected_record_hash","updates"));
+        }
         if(Arrays.asList("get_appointment","update_appointment","cancel_appointment","acknowledge_weather_alert").contains(n)){p.put("appointment_id",PixelMcpOwnerTools.id());required.add("appointment_id");}
         if(n.equals("create_appointment")||n.equals("create_appointment_series")){JSONObject f=fields();for(Iterator<String> it=f.keys();it.hasNext();){String k=it.next();p.put(k,f.get(k));}required.addAll(Arrays.asList("customer_id","title","starts_at","ends_at","timezone","weather_profile"));}
         if(n.equals("create_appointment_series")){p.put("occurrences",PixelMcpOwnerTools.number(2,26)).put("interval_weeks",PixelMcpOwnerTools.number(1,12));required.addAll(Arrays.asList("occurrences","interval_weeks"));}

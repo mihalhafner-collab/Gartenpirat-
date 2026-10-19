@@ -16,6 +16,16 @@ public final class DriveLegacyNormalizationTests {
    JSONObject changed=new JSONObject(legacy.toString());changed.getJSONArray("customers").getJSONObject(0).put("notes","real parallel modification");
    boolean blocked=false;try{DrivePrimaryState.recover(changed,"pixel-test",storage);}catch(PixelMcpWriteTools.Rejected e){blocked="LEGACY_SOURCE_CHANGED".equals(e.code);}yes(blocked);
   }
+
+  // Build75 hashed offers/service_catalog but knew no appointments; caller76 validates FIRST.
+  JSONObject v75=PixelDriveStateTests.state();v75.remove("appointments");String oldHash=PixelMcpWriteTools.hash(v75);
+  PixelDriveStateTests.Memory oldStorage=new PixelDriveStateTests.Memory();JSONObject published=DrivePrimaryState.recover(v75,"pixel-test",oldStorage).put("drive_legacy_base_hash",oldHash);oldStorage.publish(published,new JSONArray(),"commit-75",1,"","");
+  JSONObject caller76=new JSONObject(v75.toString());DriveJournalRules.validateSnapshot(caller76);
+  yes(DrivePrimaryState.recover(caller76,"pixel-test",oldStorage).getString("drive_parent_publication_id").equals("commit-75"));
+  JSONObject different=new JSONObject(caller76.toString());different.getJSONArray("customers").getJSONObject(0).put("notes","genuine external variant");
+  boolean denied=false;try{DrivePrimaryState.recover(different,"pixel-test",oldStorage);}catch(PixelMcpWriteTools.Rejected e){denied=e.code.equals("LEGACY_SOURCE_CHANGED");}yes(denied);
+  JSONObject evidence=DrivePrimaryState.recover(different,"pixel-test",oldStorage,true);yes(evidence.getBoolean("drive_legacy_source_changed"));yes(!evidence.getJSONArray("customers").getJSONObject(0).optString("notes").equals("genuine external variant"));
+  yes(!DrivePrimaryState.compatibleLegacyHash(new JSONObject(v75.toString()).put("appointments",new JSONArray().put(new JSONObject().put("id","a"))),oldHash));
   System.out.println("PASS "+count+" raw/normalized/restart/legacy-hash compatibility checks; actual business changes still blocked, original input unchanged");
  }
 }

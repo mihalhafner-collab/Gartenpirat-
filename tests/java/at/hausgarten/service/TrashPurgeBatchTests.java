@@ -47,6 +47,12 @@ public final class TrashPurgeBatchTests {
         // Transport choice does not waive backup freshness, rights, scope or seven-case selection.
         JSONObject legacy=state();JSONArray pending=new JSONArray(),legacyErrors=new JSONArray();for(int i=0;i<7;i++){JSONObject a=OffersAndPhotosTests.event("legacy-"+i,i<6?"delete":"customer",i<6?new JSONObject().put("entity","worklog").put("id","absent-"+i):new JSONObject().put("id","c").put("name","Proposed").put("_mcp_create",true));a.put("created_at","2026-10-13T00:00:00Z");pending.put(a);legacyErrors.put(new JSONObject().put("client_id",a.getString("client_id")).put("code",i<6?"DELETE_REVIEW_REQUIRED":"WRITE_CONFLICT"));}
         legacy.put("drive_journal_errors",legacyErrors);JSONObject local=new JSONObject().put("master",legacy).put("pending",pending).put("sync_queue",new JSONObject().put("total",7));
+        String preview=LegacyConflictRules.preview(local).getString("preview_hash");
+        LegacyBackupPolicy.require(local,true,true,true,false,"provider_readback","LEGACY_SOURCE_CHANGED",preview);yes(true);
+        no(()->LegacyBackupPolicy.require(local,true,true,true,true,"provider_readback","LEGACY_SOURCE_CHANGED",preview));
+        no(()->LegacyBackupPolicy.require(local,true,true,true,false,"provider_readback","LEGACY_SOURCE_CHANGED","0".repeat(64)));
+        no(()->LegacyBackupPolicy.require(local,true,true,true,false,"provider_readback","PERMISSION_REQUIRED",preview));
+        no(()->LegacyBackupPolicy.require(local,true,false,true,false,"provider_readback","LEGACY_SOURCE_CHANGED",preview));
         LegacyBackupPolicy.require(local,true,true,false,false,"provider_readback");yes(true);LegacyBackupPolicy.require(local,true,true,false,false,"drive_server_manifest");yes(true);
         no(()->LegacyBackupPolicy.require(local,true,false,false,false,"provider_readback"));no(()->LegacyBackupPolicy.require(local,true,true,false,true,"provider_readback"));no(()->LegacyBackupPolicy.require(local,true,true,true,false,"provider_readback"));no(()->LegacyBackupPolicy.require(local,true,true,false,false,"local_only"));
         System.out.println("PASS empty-trash/provider-backup checks="+checks);

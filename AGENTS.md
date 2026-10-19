@@ -64,6 +64,14 @@ externem Editor erzeugen. Bestehende MCP-Funktionen und synthetische
 Regressionstests erhalten; Lesen und ausdrücklich beauftragtes Bearbeiten oder
 Aufräumen bestehender Einträge bleiben möglich.
 
+Der spätere ausdrückliche Auftrag zur vollständigen UI–MCP-Parität und
+Sprachsteuerung autorisiert die vorhandenen fachlichen Erfassungswerkzeuge,
+insbesondere den Abschluss tatsächlich gemessener Timerarbeit per MCP.
+Echte Kunden, Tätigkeiten, Zeiten und Preise müssen dabei feststehen; bei
+Mehrdeutigkeit nachfragen. Diese fachliche Freigabe autorisiert keine produktiven
+Testeinträge, erfundenen Arbeitsnachweise oder automatische Datenerzeugung ohne
+konkreten Betriebsauftrag. Schreibtests bleiben vollständig isoliert.
+
 ## Bestehende App erhalten
 
 - Keine neue App und keine parallele betriebliche Datenbank aufbauen.

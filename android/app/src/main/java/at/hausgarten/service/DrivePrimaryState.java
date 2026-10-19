@@ -11,6 +11,10 @@ final class DrivePrimaryState {
         byte[] read(String id)throws Exception;
     }
     static JSONObject recover(JSONObject legacy,String publisher,Storage storage)throws Exception {
+        return recover(legacy,publisher,storage,false);
+    }
+    /** Evidence only: verify the immutable chain and preserve BOTH variants, never authorize sync. */
+    static JSONObject recover(JSONObject legacy,String publisher,Storage storage,boolean evidenceOnly)throws Exception {
         // Every caller (initial read, publish recheck, restart) uses the same additive
         // schema normalization. Never mutate the actual legacy object or its file.
         String observedLegacyHash=PixelMcpWriteTools.hash(legacy);
@@ -33,13 +37,27 @@ final class DrivePrimaryState {
             JSONObject m=manifests.get(head.getString("id"));byte[] bytes=storage.read(m.getString("state_file_id"));
             DrivePublication.verify(m,bytes,new JSONArray());state=new JSONObject(new String(bytes,StandardCharsets.UTF_8));
             if(state.has("drive_legacy_base_hash")&&!legacyHash.equals(state.getString("drive_legacy_base_hash"))
-                    &&!observedLegacyHash.equals(state.getString("drive_legacy_base_hash")))
-                throw new PixelMcpWriteTools.Rejected("LEGACY_SOURCE_CHANGED","Der ursprüngliche Drive-Gesamtstand wurde parallel verändert. Beide Stände bleiben erhalten; Migration ausdrücklich prüfen.");
+                    &&!observedLegacyHash.equals(state.getString("drive_legacy_base_hash"))
+                    &&!compatibleLegacyHash(legacy,state.getString("drive_legacy_base_hash"))) {
+                if(!evidenceOnly)throw new PixelMcpWriteTools.Rejected("LEGACY_SOURCE_CHANGED","Der ursprüngliche Drive-Gesamtstand wurde parallel verändert. Beide Stände bleiben erhalten; Migration ausdrücklich prüfen.");
+                state.put("drive_legacy_source_changed",true);
+            }
         }
         PixelDriveState.prepare(state);
         state.put("drive_legacy_base_hash",legacyHash).put("drive_parent_publication_id",head.optString("id"))
             .put("drive_parent_state_sha256",head.optString("sha")).put("drive_parent_sequence",head.optLong("sequence"));
         return state;
+    }
+    // Only absence versus EMPTY additive collections is equivalent. All unknown fields,
+    // nonempty collections, records, queues and control metadata still participate.
+    static boolean compatibleLegacyHash(JSONObject legacy,String expected)throws Exception {
+        String[] added={"offers","service_catalog","appointments"};
+        for(int mask=0;mask<8;mask++) {
+            JSONObject candidate=new JSONObject(legacy.toString());boolean allowed=true;
+            for(int i=0;i<added.length;i++)if((mask&(1<<i))!=0){JSONArray rows=candidate.optJSONArray(added[i]);if(rows==null||rows.length()!=0){allowed=false;break;}candidate.remove(added[i]);}
+            if(allowed&&PixelMcpWriteTools.hash(candidate).equals(expected))return true;
+        }
+        return false;
     }
     static void checkParent(JSONObject state,JSONObject current)throws Exception {
         if(!state.optString("drive_parent_publication_id").equals(current.optString("drive_parent_publication_id")))
