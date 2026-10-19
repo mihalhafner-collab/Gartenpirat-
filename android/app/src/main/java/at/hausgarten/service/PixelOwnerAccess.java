@@ -144,7 +144,7 @@ final class PixelOwnerAccess implements PixelMcpOwnerTools.Access {
         switch(name){
             case "save_reviewed_order":{JSONObject row=OrderReviewRules.prepare(state(),a);return queued("order",row,request).put("order_id",row.getString("id"));}
             case "empty_trash":{
-                JSONObject payload=TrashPurgeBatch.payload(all,a.getString("expected_preview_hash"),a.getBoolean("confirmed"));
+                JSONObject payload=TrashPurgeBatch.payload(all,a.getString("expected_preview_hash"),a.getBoolean("confirmed"));if(TestDataRules.localOnly(new JSONObject().put("kind",TrashPurgeBatch.KIND).put("payload",payload),all))payload.put("_local_only",true);
                 JSONArray prior=store.pendingActions(),predecessors=new JSONArray();JSONObject projected=new JSONObject(state().getJSONObject("master").toString());DriveJournalRules.apply(projected,prior);
                 Set<String> incorporated=DriveJournalRules.ids(projected.optJSONArray("drive_applied_ids"));for(int i=0;i<prior.length();i++){String id=prior.getJSONObject(i).getString("client_id");if(incorporated.contains(id))predecessors.put(id);}
                 if(predecessors.length()>0)payload.put("_sync_predecessors",predecessors);

@@ -45,6 +45,9 @@ final class EstimateNativeAcceptance {
    t.yes(PixelMcpWriteTools.find(PixelMcpReadTools.effective(f.store.getState()).getJSONArray("customers"),"c").getString("name").equals("QA Eigentümer"));
    t.yes(!c.equals(c2));
   }});
+  t.probe("native test draft archive and confirmed empty trash never export test tombstones",()->{try(OwnerNativeAcceptance.Fixture f=new OwnerNativeAcceptance.Fixture(t.getTargetContext())){
+   setup(f);String id=f.call("create_offer_draft",args("test-trash-draft","fixed_price")).getString("offer_id");JSONObject preview=f.call("preview_delete",new JSONObject().put("entity","offer").put("entity_id",id));f.call("archive_entity",new JSONObject().put("request_id","test-trash-archive").put("entity","offer").put("entity_id",id).put("expected_record_hash",preview.getString("expected_record_hash")));t.yes(f.store.pendingActionsForDrive().length()==0);JSONObject purge=f.call("preview_empty_trash",new JSONObject());t.yes(purge.getInt("count")==1);f.call("empty_trash",new JSONObject().put("request_id","test-trash-empty").put("expected_preview_hash",purge.getString("preview_hash")).put("confirmed",true));t.yes(f.store.pendingActionsForDrive().length()==0&&f.call("list_archive",new JSONObject()).getInt("total")==0);
+  }});
   t.probe("native test-to-real customer rejected atomically and no hidden exported test action",()->{try(OwnerNativeAcceptance.Fixture f=new OwnerNativeAcceptance.Fixture(t.getTargetContext())){
    setup(f);t.rejected(()->f.call("create_offer_draft",args("bad-isolation","estimate_binding").put("customer_id","c")));
    t.yes(f.store.pendingActions().length()==0);JSONObject input=args("valid-rollback","estimate_binding").put("binding_confirmed",false);t.rejected(()->f.call("create_and_validate_offer",input));
