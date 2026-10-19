@@ -1,6 +1,6 @@
 # CODEX-AUFTRAG-GARTENPIRAT
 
-Stand: 18. Oktober 2026  
+Stand: 19. Oktober 2026  
 Repository: `mihalhafner-collab/Gartenpirat-`  
 Priorität: P0  
 Arbeitsumgebung: **ausschließlich Codex Cloud**
@@ -46,117 +46,143 @@ Vor jeder Änderung:
 
 Neuere Änderungen niemals überschreiben.
 
-## 3. Aktueller Versionsstand
-
-Repository-Zielstand bei Auftragserstellung:
+## 3. Aktueller Versionsstand\n\nAktuell verifizierter Live-Pixel:
 
 - Paket: `at.hausgarten.service`
-- Repository-Version: `1.49.1`
-- Repository-versionCode: `70`
-- minSdk: 26
-- targetSdk: 37
-- compileSdk: 37
-
-Live installierter Pixel bei letzter Prüfung:
-
-- Version: `1.49.0`
-- versionCode: `69`
-- Paket: `at.hausgarten.service`
+- Version: `1.50.1`
+- versionCode / Build: `77`
 - Datenbankversion: 4
-- MCP-Protokoll: 3
+- MCP-Protokoll: 8
 - MCP-Modus: `pixel_business_write`
-- MCP-Tools: 83
-- Schreibzugriff: aktiv
+- MCP-Tools: exakt `111`
+- MCP-Tool-Katalog-Hash: `ae7cb69f7994ae8141d2d8c925594982f40236921d65abb3739eee270b5b312f`
+- Schreibzugriff: `write_enabled=true`
+- `offers_sync_ready=true`
+- `service_catalog_sync_ready=true`
+- Snapshot-Schema: 2
+- Drive konfiguriert
+- Provider-Rücklesen aktiv; `cloud_confirmed=false` bleibt davon getrennt.
 
-Der Pixel läuft also noch nicht auf Build 70.
+Aktueller `main`-HEAD nach der am 19.10.2026 bereits eingespielten Angebotskorrektur:
 
-## 4. Aktueller Live-Fehlerstand
+`8430f43542606391f960990dd485db5c5b2df69f`
 
-Letzte Live-Prüfung:
+Achtung: `android/app/build.gradle` steht im Repository noch auf `1.49.1 / versionCode 70`. Das ist gegenüber dem installierten Pixel `1.50.1 / 77` veraltet. Vor dem nächsten produktiven Build Versionsmetadaten sauber auf einen noch unbenutzten Wert **größer als Build 77** anheben. Kein Downgrade und keinen versionCode wiederverwenden.\n
+## 4. Aktueller Live-Fehlerstand\n\nLetzte Live-Prüfung am 19.10.2026:
 
-- `offers_sync_ready=false`
-- `service_catalog_sync_ready=false`
-- `get_business_settings` scheitert mit `SETTINGS_UNAVAILABLE`
-- Teile von Foto-/Rechnungsänderungen sind noch durch fehlende Remote-Capabilities blockiert
-- `cloud_confirmed=false`
-- `confirmation_scope=provider_readback`
-- `pending_actions=9`
+- MCP-Katalog vollständig erreichbar: 111 Tools.
+- Davon 50 Read-Tools und 61 Write-Tools.
+- 17 Tools sind als destruktiv/administrativ annotiert.
+- Angebote und Leistungskatalog sind im direkten Pixel-/Drive-Pfad sync-bereit.
+- `get_business_settings` funktioniert wieder.
+- Business Settings wurden aus einer realen, bereits ausgestellten Rechnung belastbar ergänzt:
+  - `business_phone=06802376503`
+  - `business_email=hafnerm@gmx.at`
+  - `tax_mode=small_business`
+  - Steuerbefreiungshinweis gemäß § 6 Abs. 1 Z 27 UStG 1994
+  - Zahlungsziel 14 Tage
+  - Ausstellerbestätigung aktiv
+- Keine aktuellen `sync_errors`.
+- Queue-Zustand: `review_required`, aber keine ausstehenden Uploads.
+- `cloud_confirmed=false`; `confirmation_scope=provider_readback`. Provider-Rücklesen nicht als unabhängige Google-Cloud-Bestätigung ausgeben.
 
-Provider-Rücklesen ist keine unabhängige Cloud-Bestätigung. Diese Trennung beibehalten.
+### P0/P1 – neu entdeckter Angebotsfehler `price_source`
 
-## 5. Offene Sync-Warteschlange
+Reproduzierter Fehler:
 
-Es existieren aktuell 9 Review-Aktionen.
+Das MCP-Schema akzeptierte für Angebotspositionen bei `price_source` beliebigen Text. Die tatsächliche Validierung akzeptiert bei manuell bestätigten Preisen jedoch ausschließlich exakt:
 
-### Sieben historische fachliche Fälle
+`user_confirmed`
+
+Folge: Ein korrekt befüllter Angebotsentwurf mit z. B. `price_source="Vom Eigentümer bestätigter Testpreis"` wurde später mit
+
+`Position N: Preisquelle fehlt – keinen Preis erfinden`
+
+abgewiesen.
+
+Der Fehler ist bereits in `main` korrigiert:
+
+- Commit `6d2a032c20a0bbe8ac0a14959ba837b57d194a21`: MCP-Schema auf `price_source=user_confirmed` einschränken und dokumentieren.
+- Commit `8430f43542606391f960990dd485db5c5b2df69f`: Regressionstest ergänzt.
+
+Geänderte Dateien:
+
+- `android/app/src/main/java/at/hausgarten/service/OfferTools.java`
+- `tests/java/at/hausgarten/service/OffersAndPhotosTests.java`
+
+Dieser Fix ist im aktuell installierten Build 77 noch **nicht** aktiv. Er muss mit einer neuen originalsignierten APK ausgerollt und anschließend live verifiziert werden.
+
+### P1 – UI-Aktionskatalog / MCP-Parität vollständig prüfen
+
+`get_ui_action_catalog` meldet:
+
+- `total=156` semantische UI-/Operatoraktionen
+- UI-Katalog-Hash: `39280e7fe8a2779ae31dcd2e513bb4cd293da98b093c18bb4ce7bc860a72b519`
+
+Die aktuell zurückgelieferte Antwort enthält jedoch nur die ersten 50 Aktionen. Bei diesen 50 gilt:
+
+- alle 50 besitzen mindestens einen MCP-Pfad
+- keine referenziert ein fehlendes MCP-Tool
+- Bereiche: Kunden, Aufträge, Arbeiten, Zeiterfassung und Beginn Rechnungen
+
+Zu klären und zu beheben:
+
+1. Ist die 50er-Grenze im App-Code, im MCP-Transport oder nur in der Antwortserialisierung?
+2. `get_ui_action_catalog` muss alle 156 Aktionen vollständig und deterministisch prüfbar machen, entweder vollständig oder sauber paginiert.
+3. Für alle 156 Aktionen muss automatisiert gelten: jede fachliche UI-Aktion hat mindestens einen existierenden MCP-Pfad.
+4. Plattformaktionen, die zwingend Android-/Google-Consent oder Geräteinteraktion benötigen, ausdrücklich als Plattformgrenze markieren statt fälschlich als MCP-Parität auszugeben.
+5. Besonders `prepare_offer_share` / Datei-/E-Mail-Weitergabe auf echte sprachbedienbare End-to-End-Nutzung prüfen. `sharing_requires_device_interaction` ist aktuell als Plattformlimit gemeldet und darf nicht als vollautomatischer Versand ausgegeben werden.
+
+### P1 – Testdatenhygiene
+
+Beim Live-Test wurde versehentlich ein klar markierter 1-EUR-Testentwurf am echten Kunden Michael Hilpert angelegt:
+
+`off_0edfb5133e3c1e4269dd76e2b47b3746`
+
+Titel:
+
+`[TEST] MCP Angebotsworkflow`
+
+Der Datensatz ist nicht finalisiert und nicht versendet. Nach erfolgreichem neuen Build-Test kontrolliert aus den aktiven Daten entfernen/archivieren, ohne den Kunden oder andere Geschäftsdaten zu verändern.
+
+Für alle weiteren Schreibtests ausschließlich verwenden:
+
+`cus_mobile_mcp_cff36e205f50a96f92d9d8872a75022a`
+
+`MCP FUNKTIONSTEST – KEIN ECHTER KUNDE`\n
+## 5. Offene Sync-Warteschlange\n\nAktuell existieren exakt 7 Review-Aktionen. `pending_upload=0`; der normale Drive-Abgleich ist nicht technisch fehlgeschlagen.
 
 1. `wrk_mobile_913976ba4bd1453ba75a5468b89c3c32`  
-   Code: `DELETE_REVIEW_REQUIRED`
+   `DELETE_REVIEW_REQUIRED`
 
 2. `wrk_mobile_b8445cff3af746718d480fce9be3889a`  
-   Code: `DELETE_REVIEW_REQUIRED`
+   `DELETE_REVIEW_REQUIRED`
 
 3. `wrk_mobile_325735fd783c4f5fb3d012ab7969ccfd`  
-   Code: `DELETE_REVIEW_REQUIRED`
+   `DELETE_REVIEW_REQUIRED`
 
 4. `delete_change_f82a727e-90ce-4021-a741-2238101b2505`  
-   Code: `DELETE_REVIEW_REQUIRED`
+   `DELETE_REVIEW_REQUIRED`
 
 5. `delete_change_b1fc39af-3f04-4baa-81bf-a34a20e76479`  
-   Code: `DELETE_REVIEW_REQUIRED`
+   `DELETE_REVIEW_REQUIRED`
 
 6. `customer_change_3b8f4a4bdaca4d5e9b67a4b9b3ac3020`  
-   Code: `WRITE_CONFLICT`  
+   `WRITE_CONFLICT`  
    Aktuellen Zustand erhalten.
 
 7. `delete_change_9304498d-e90b-47de-be7c-bfd2e627fdf3`  
-   Code: `DELETE_REVIEW_REQUIRED`
+   `DELETE_REVIEW_REQUIRED`
 
-Für diese sieben existiert der dedizierte Legacy-Workflow:
+Der dedizierte Legacy-Workflow bleibt:
 
 - `preview_legacy_conflict_resolution`
 - `prepare_legacy_conflict_backup`
 - `close_legacy_conflicts`
 
-Früherer geprüfter Preview:
+Zielentscheidung für alle sieben: `keep_current`, keine alte Löschung nachziehen, keine Geschäftsdaten verändern.
 
-- Anzahl: exakt 7
-- Resolution: `keep_current`
-- Reason: `historisch_nicht_mehr_pruefbar`
-- Effect: `no_business_data_changed`
-
-Diese sieben erst nach erfolgreicher technischer Reparatur und neuem Backup schließen.
-
-### Zwei technische Testfehler
-
-#### Technische Angebotsaktion
-
-Client-ID:
-
-`mcp_owner_b6f1c56ba6534a250f6f5057175f365623155aa656d55fd0342f2517b4a539da`
-
-Offer-ID:
-
-`off_88a3e818c170ae9ea1dc27c51bf48b64`
-
-Fehler:
-
-`SYNC_COMPONENT_UPDATE_REQUIRED`
-
-Das ist ein technisches Testangebot. Keine echte Rechnung erzeugen, nicht versenden, nicht doppelt anlegen.
-
-#### Technische Konfliktauflösungsaktion
-
-Client-ID:
-
-`mcp_owner_43e89c1a01b88694f43a944e5c4109cb1a7e1a8c15378ee0c1116779bb1ce54c`
-
-Fehler:
-
-`ACTION_ID_CONFLICT`
-
-Sie entstand durch einen früheren falschen Versuch, den Infrastrukturfehler manuell als Datenkonflikt aufzulösen. Sie darf keinerlei Geschäftsdaten ändern. Nach Behebung der technischen Ursache sicher als erledigt/superseded quittieren.
-
+Die früher dokumentierten zwei technischen Testfehler `SYNC_COMPONENT_UPDATE_REQUIRED` und `ACTION_ID_CONFLICT` sind in der aktuellen Queue nicht mehr vorhanden. Sie nicht künstlich neu erzeugen und nicht weiter als offene Live-Queue-Fälle behandeln.\n
 ## 6. Bereits implementierte Reparaturen nicht zurückbauen
 
 In 1.49.1 ist bereits korrigiert:
@@ -242,19 +268,30 @@ Wichtig: Capability-Flags erst auf `true` setzen, wenn die jeweilige Verarbeitun
 
 Keine reine Metadatenkosmetik.
 
-## 10. Business Settings
+## 10. Business Settings\n\n`get_business_settings` funktioniert aktuell auf dem Pixel. Die zuvor fehlenden produktiven Stammdaten wurden anhand einer bereits ausgestellten Originalrechnung ergänzt.
 
-`get_business_settings` muss ohne lokalen Web-/Laptop-Nummernservice funktionieren.
+Aktuell verifiziert:
 
-Vorhandene Einstellungen niemals überschreiben, nur weil sie in einem alten Snapshot fehlen.
+- owner: Hafner Michael
+- Straße: Goethestraße 2
+- PLZ/Ort: 9560 Feldkirchen
+- Telefon: 06802376503
+- E-Mail: hafnerm@gmx.at
+- Bank/BIC/IBAN vorhanden
+- Steuer-/Ausstellerinformation vorhanden
+- `invoice_issuer_confirmed=1`
+- `tax_mode=small_business`
+- Steuerbefreiungshinweis gemäß § 6 Abs. 1 Z 27 UStG 1994
+- Standardzahlungsziel: 14 Tage
 
-Erforderlich:
+Codex soll diese Werte **nicht neu erfinden oder überschreiben**. Prüfen:
 
-- lesen
-- versionsgeschützt ändern
-- bei Stale Hash fail-closed
-- keine stillen Defaults über bestehende produktive Werte schreiben
-
+- Persistenz nach Neustart
+- Persistenz nach Drive-Sync
+- versionsgeschütztes Update
+- Stale-Hash fail-closed
+- keine stillen Defaults über bestehende produktive Werte
+- Angebot, Rechnung und PDF verwenden denselben konsistenten Ausstellerkontext.\n
 ## 11. Rechnungen
 
 Ziel:
@@ -302,11 +339,9 @@ Keine Verbindung zu:
 
 Diese Trennung erhalten.
 
-## 13. Angebote
+## 13. Angebote\n\nAngebotsfunktion vollständig produktionsfähig machen und den am 19.10.2026 reproduzierten Schema-/Validatorfehler verifizieren.
 
-Angebotsfunktion vollständig produktionsfähig machen.
-
-Erforderlich:
+Erforderliche Funktionen:
 
 - create
 - read
@@ -315,15 +350,83 @@ Erforderlich:
 - duplicate
 - finalize
 - convert to order
-- share handoff
+- share/export handoff
+- Sync und Neustart überleben
 
-müssen Sync und Neustart überleben.
+### Verbindlicher `price_source`-Vertrag
 
-Finalisieren darf keine Rechnung erzeugen.
+Für eine manuell ausdrücklich bestätigte Preisposition gilt exakt:
 
-Kein erneutes „Angebot verschwindet nach Sync“.
+`price_source="user_confirmed"`
+
+Für einen freigegebenen Katalogpreis:
+
+- `catalog_entry_id`
+- aktueller `catalog_hash`
+- bestätigter Katalogpreis
+
+verwenden; nicht zusätzlich einen freien `price_source`-Text erfinden.
+
+Das MCP-Schema muss diesen Vertrag selbst ausdrücken, damit ChatGPT keinen Wert erzeugen kann, den der Validator später ablehnt.
+
+Regression zwingend:
+
+1. `user_confirmed` wird vom Schema akzeptiert und vom Validator akzeptiert.
+2. Beliebiger Text wie `"Vom Nutzer bestätigt"` wird bereits am Schema abgewiesen.
+3. Fehlende Preisquelle wird fail-closed abgewiesen.
+4. Katalogpreis mit falschem/stalem Hash wird abgewiesen.
+5. Finalisierung erzeugt genau ein unveränderliches Angebots-PDF und keine Rechnung.
+6. Replay gleicher `request_id` bleibt idempotent.
+7. `prepare_offer_share` funktioniert nur mit finalisiertem, unverändertem Angebot.
 
 Rechtsregelsatz aktuell: `AT-2026-10-18`.
+
+Das reale 540-EUR-Angebot an Michael Hilpert wurde wegen des damaligen Validierungsfehlers nicht als App-PDF finalisiert; es wurde nur als bestätigter E-Mail-Text versendet. Keine falsche Behauptung erzeugen, es existiere bereits ein finalisiertes Angebots-PDF.\n
+## 13a. MCP-Funktionsumfang und UI-Parität – Live-Audit 19.10.2026
+
+Aktueller MCP-Katalog:
+
+- 111 Tools gesamt
+- 50 Read-Tools
+- 61 Write-Tools
+- 17 als destruktiv/administrativ annotiert
+- Protokoll 8
+- write_enabled=true
+
+Funktionsbereiche im Katalog:
+
+- Settings/Admin: 8
+- Kunden: 6
+- Aufträge: 7
+- Arbeiten/Zeiterfassung: 22
+- Rechnungen: 8
+- Fotos/Dateien: 8
+- Sync/Backup/Konflikte: 18
+- Angebote/Leistungskatalog: 17
+- Archiv/Löschen/Wiederherstellen: 6
+- Planung/Kalender/Wetter: 11
+
+Diese Summen dienen als Live-Baseline. Codex muss nach Änderungen den vollständigen Katalog erneut zählen, Tool-Namen vergleichen und den neuen Katalog-Hash dokumentieren.
+
+Besonders vollständig testen:
+
+- Kunden create/read/update/archive/restore
+- Aufträge create/read/update/review/aus Angebot übernehmen
+- Worklogs create/update/reassign/billed/b.b./Archiv
+- Timer start/break/resume/stop/finish/discard/restore
+- Rechnungsentwurf create/update/read
+- Rechnungsabschluss nur nach Bestätigung
+- Zahlung/Korrektur
+- Fotos Chunk-Upload/create/read/update/Zuordnung
+- Datei-Metadaten/Chunk-Read
+- Angebote/Katalog vollständig
+- Backups create/list/inspect/restore
+- Delete/Archive/Purge/Restore mit Hash-/Preview-Schutz
+- Sync-Review/Legacy-Konflikte
+- Termine/Serien/Planung/Wetter
+- Business-/Geräteeinstellungen
+
+Adminziel: Für die private Eigentümer-App muss ChatGPT bei `Allow all actions` alle fachlich vorgesehenen Owner-Write/Adminpfade erreichen können. Schutzparameter wie Hash, Preview, confirmed=true, request_id und Backup bleiben zwingend erhalten.
 
 ## 14. Leistungskatalog
 
@@ -659,33 +762,46 @@ Nicht `cloud_confirmed=true` behaupten, wenn nur Provider-Rücklesen vorliegt.
 
 Wenn unabhängige Cloud-Bestätigung technisch nicht sicher möglich ist, weiterhin korrekt `provider_readback` ausweisen.
 
-## 26. Build und APK
+## 26. Build und APK\n\nFür die neue Korrektur ist eine **neue originalsignierte APK** erforderlich, weil der `price_source`-Schemafix im Android-Code liegt.
 
-Nach erfolgreicher funktionaler Reparatur neue Version vergeben.
+Installierte Live-Baseline:
 
-Build 70 nicht überschreiben.
+- `1.50.1`
+- versionCode `77`
+
+Repository-Metadaten sind noch älter (`1.49.1 / 70`) und müssen vor dem Release korrigiert werden.
 
 Nächster produktiver Kandidat mindestens:
 
-- Version `1.49.2`
-- versionCode `71`
+- Version `1.50.2`
+- versionCode `78`
 
-oder höher, falls bereits vergeben.
+oder höher, falls 78 bereits anderweitig vergeben wurde.
 
-Keinen versionCode wiederverwenden.
+Verbindliche Reihenfolge:
 
-Erforderliche Schritte:
+1. aktuellen `main`-HEAD und Versionshistorie prüfen
+2. versionName/versionCode auf unbenutzten Wert > 1.50.1 / 77 setzen
+3. vollständige Tests einschließlich neuem Offer-Schema-Regressionsfall
+4. Release-Build
+5. Privacy-Prüfung
+6. Asset-Abgleich
+7. Originalsignierung ausschließlich in persönlicher Codex-Cloud
+8. `apksigner verify --verbose --print-certs`
+9. Zertifikat exakt gegen `HG_ORIGINAL_CERT_SHA256` prüfen
+10. `zipalign` prüfen
+11. APK SHA-256 ermitteln
+12. APK **als Update** installieren; bestehende App nicht deinstallieren und keine App-Daten löschen
+13. nach Installation Version/Build/Datenbestand/MCP-Katalog verifizieren
+14. vorhandenen ChatGPT-Connector aktualisieren/refreshen; keinen dritten Connector anlegen
+15. Pixel-Toolanzahl und ChatGPT-Toolanzahl sowie Katalog-Hash müssen wieder übereinstimmen
+16. erst dann vollständigen Probeangebot-End-to-End-Test durchführen.
 
-1. Release-Build
-2. Privacy-Prüfung
-3. Asset-Abgleich
-4. Regressionstests
-5. Originalsignierung in persönlicher Codex-Cloud
-6. `apksigner verify`
-7. Zertifikat vergleichen
-8. zipalign prüfen
-9. SHA-256 ermitteln
+Nach dem Build muss mindestens geprüft werden:
 
+`create_offer_draft → validate_offer → finalize_offer → PDF-Nachweis → prepare_offer_share → Sync-Status → Neustart/Readback`
+
+Dabei ausschließlich den technischen Testkunden verwenden.\n
 ## 27. Originalsignierung
 
 Nur über die persönliche Gartenpirat-Codex-Cloud-Umgebung.
@@ -710,15 +826,21 @@ Keine GitHub-Actions-Signierung.
 Kein Debug-/QA-/Ersatzschlüssel.
 Keine automatische Installation.
 
-## 28. Abschlussbericht
-
-Am Ende in `CODEX-STATUS.md` und im Abschlussbericht dokumentieren:
+## 28. Abschlussbericht\n\nAm Ende in `CODEX-STATUS.md` und im Abschlussbericht dokumentieren:
 
 ### Code
 - finaler Commit
 - Version
 - versionCode
 - geänderte Dateien
+
+### MCP
+- Toolanzahl vorher/nachher
+- Read-/Write-/Admin-Zählung
+- Tool-Katalog-Hash
+- UI-Aktionskatalog: 156 Aktionen vollständig/paginiert prüfbar
+- fehlende UI→MCP-Zuordnungen: exakt auflisten
+- Plattformgrenzen separat auflisten
 
 ### Architektur
 - entfernte produktive Laptop-Abhängigkeiten
@@ -729,17 +851,28 @@ Am Ende in `CODEX-STATUS.md` und im Abschlussbericht dokumentieren:
 - Counts vorher/nachher
 - relevante Hashes
 - Nachweis, dass Konfliktcleanup keine Geschäftsdaten verändert hat
+- Testangebot am echten Kunden bereinigt, ohne Kundenänderung
 
 ### Queue
-- Zustand vorher
+- Zustand vorher: aktuell 7 Review-Fälle
 - Zustand danach
-- Behandlung aller 9 bekannten Einträge
+- Behandlung aller tatsächlich noch vorhandenen Fälle
 
 ### Tests
 Jeder Test mit:
 - PASS
 - FAIL
 - NOT TESTABLE
+
+### Angebotstest
+- `price_source=user_confirmed` Schema PASS
+- beliebiger freier `price_source` Schema FAIL wie erwartet
+- validate PASS
+- finalize PASS
+- PDF-Hash/Original PASS
+- prepare/share PASS oder sauber dokumentierte Plattformgrenze
+- Sync/Readback PASS
+- kein Invoice-Seiteneffekt
 
 ### APK
 - Dateiname
@@ -755,8 +888,7 @@ Jeder Test mit:
 ### Restprobleme
 Alle verbleibenden P0/P1-Probleme ausdrücklich nennen.
 
-Wenn noch ein P0/P1-Fehler besteht, Auftrag nicht als vollständig abgeschlossen markieren.
-
+Wenn noch ein P0/P1-Fehler besteht, Auftrag nicht als vollständig abgeschlossen markieren.\n
 ## 29. Statusführung
 
 `CODEX-STATUS.md` ist während der Bearbeitung fortlaufend zu aktualisieren.
