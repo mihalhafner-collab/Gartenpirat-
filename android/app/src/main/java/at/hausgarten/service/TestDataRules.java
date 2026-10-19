@@ -14,7 +14,7 @@ final class TestDataRules {
  }
  static void noDelivery(JSONObject p,JSONObject s)throws Exception {guard(new JSONObject(p.toString()),s);if(marked(p)||customer(OwnerJournalRules.findOrNull(s.optJSONArray("customers"),p.optString("customer_id"))))throw new PixelMcpWriteTools.Rejected("TEST_DELIVERY_BLOCKED","Testdokumente dürfen nicht an externe Empfänger übergeben oder versendet werden.");}
  static boolean localOnly(JSONObject a,JSONObject s)throws Exception {
-  JSONObject p=a.getJSONObject("payload");
+  JSONObject p=a.getJSONObject("payload");if(p.optBoolean("_local_only"))return true;
   if(a.optString("kind").equals(TrashPurgeBatch.KIND)){boolean local=false,remote=false;JSONArray entries=p.getJSONArray("entries");for(int i=0;i<entries.length();i++){JSONObject e=entries.getJSONObject(i);boolean test=localOnly(new JSONObject().put("kind","purge_v1").put("payload",new JSONObject().put("entity",e.getString("entity")).put("id",e.getString("entity_id"))),s);local|=test;remote|=!test;}if(local&&remote)throw new PixelMcpWriteTools.Rejected("TEST_DATA_ISOLATION","Lokale Testeinträge im Papierkorb zuerst einzeln endgültig löschen. Keine gemischte Test-/Drive-Löschaktion gespeichert.");return local;}
   if(p.optBoolean("_local_only")||marked(p)||a.optString("kind").equals("customer")&&customer(p))return true;
   if(customer(OwnerJournalRules.findOrNull(s.optJSONArray("customers"),p.optString("customer_id"))))return true;
