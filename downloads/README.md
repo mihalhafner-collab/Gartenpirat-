@@ -1,3 +1,21 @@
+# Original-Prüfkandidat 1.50.0 / 76
+
+[APK über Drive herunterladen](https://drive.google.com/file/d/1HkgAS3mxW4qaT7m6n6qgEh-m8Cn5WPIJ/view?usp=drivesdk) · [APK im privaten Repository](Haus-Garten-1.50.0-76-original-update-kandidat.apk?raw=true)
+
+Bestehende App **at.hausgarten.service**, Version **1.50.0 /76**, **34.475.927 Bytes**.
+SHA256: `3ae076024cec4ae38b51ea93f23a91fbbfce3582c7d169e80282423248f0ea42`.
+Ein Originalsigner, v2/v3 gültig und16-KiB-Ausrichtung geprüft; Zertifikat unverändert gegenüber Originalkandidat75.
+
+Neu: gemeinsame Angebots-/Auftrags-/Einsatzplanung, Tag/Woche/Ist-Stunden, wiederkehrende Einsätze, sichere mehrere Entwürfe, Zeiterfassung mit Terminreferenz, Google-Kalenderadapter und Wetterhinweise einschließlich Benachrichtigungsaktionen. Kalender- und Wetterzugang werden unter **Planung → Einrichten** bewusst am Gerät freigegeben. Ohne Wetter-/Kalenderzugang bleiben lokale Termine nutzbar. Kein Wettervertrag wurde abgeschlossen.
+
+**Cloud-Abnahme:**273 Python-Tests,22 JVM-Suiten (75 neue Termin-/Wetter-/Calendar-Prüfungen),28 Browser-Suiten (19 gezielte Planungsprüfungen),120 native Android-/SQLite-/MCP-/Providerprüfungen bestanden. Originalupdate75→76 einschließlich vorhandener Daten/IDs/Queue/Einstellungen/laufendem Timer und tatsächlicher WebView-Planungsansicht im isolierten Emulator bestanden. Frischer App-Datenbereich76 in einem getrennten Android-Testprofil geprüft; kein vorhandener Datenbereich gelöscht.408 Quellassets bytegleich, Source-/APK-Privacy bestanden.
+
+**Pixel-/Google-Abnahme offen:** zuletzt tatsächlich gelesen weiterhin1.49.6/75, Protokoll6/91 Runtime-Werkzeuge; hier83 registrierte Pixel-Werkzeuge. Kandidat76 bietet Protokoll7/104. Nach vollständiger Gerätesicherung und ausdrücklicher Updatefreigabe bestehende App aktualisieren, Kalender-/Wetterfreigabe am Gerät prüfen und dieselbe ChatGPT-Verbindung/Werkzeugliste aktualisieren. Keine Deinstallation oder App-Datenlöschung. Echte Google-Kalender-/Wetter-Rundläufe, Pixel-Hintergrundverhalten und neue MCP-Werkzeuge im realen Connector sind noch nicht bestätigt. Signierung und Emulatorupdate ersetzen diese Abnahme nicht.
+
+Upload in vorhandenen privaten Buildordner, Dateimetadaten/Owner-Freigabe und vollständige Rohdateireferenz mit34.475.927 Bytes rückgelesen. Kein unabhängiger Remote-Bytehash behauptet. Alle Einzelheiten und verbleibenden Grenzen in [CODEX-STATUS](../CODEX-STATUS.md) und [zentraler Umsetzung](../docs/SYNC-DRIVE-KUNDENAKTE-1.48.md#terminplanung-1500--76-umsetzung-und-geräteeinrichtung).
+
+## Erhaltener Cloud-Kandidat 1.49.6 / 75 (historische Zustandsangaben)
+
 # Original-Prüfkandidat 1.49.6 / 75
 
 [APK über Drive herunterladen](https://drive.google.com/file/d/1Q8Ttp8Bm1xlwIeW3e_AXY2B11a0a6HHX/view?usp=drivesdk) · [APK im privaten Repository](Haus-Garten-1.49.6-75-original-update-kandidat.apk?raw=true)

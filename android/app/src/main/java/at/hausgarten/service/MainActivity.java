@@ -97,6 +97,7 @@ public class MainActivity extends Activity {
         preferences = getSharedPreferences("haus_garten", MODE_PRIVATE);
         store = new LocalStore(this);
         DriveSyncJob.install(this);
+        if(PlanningAccount.connected(this)||PlanningAccount.prefs(this).getBoolean("weather_enabled",false))PlanningJob.install(this);
         pendingWorkPhotos = new PendingWorkPhotoStore(this);
         setContentView(buildLayout());
         if (Build.VERSION.SDK_INT >= 30) {
@@ -119,9 +120,12 @@ public class MainActivity extends Activity {
         openMobile();
     }
 
+    @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);if(webView!=null)webView.evaluateJavascript("window.PlanningUI&&window.PlanningUI.handleLaunch&&window.PlanningUI.handleLaunch()",null);}
+
     @Override protected void onResume() {
         foreground = new java.lang.ref.WeakReference<>(this);
         super.onResume();
+        PlanningJob.schedule(this,1500);
         // Resume only the previously opted-in runtime after a process restart or device test.
         // Never enable a stopped connection or change its credentials/permissions here.
         PixelTunnelConfig existingTunnel=new PixelTunnelConfig(this);
@@ -350,8 +354,12 @@ public class MainActivity extends Activity {
 
     public class DataBridge {
         @JavascriptInterface public String getState() { try{JSONObject state=store.getState();state.put("master",PixelMcpReadTools.effective(state)).put("ui_effective",true);JSONArray photos=state.getJSONObject("master").getJSONArray("photos");for(int i=0;i<photos.length();i++){JSONObject photo=photos.getJSONObject(i);String thumbnail=photo.optString("thumbnail_storage_name");if(thumbnail.matches("[0-9a-f]{64}\\.jpg"))photo.put("thumbnail_data","content://"+getPackageName()+".photothumbnails/"+thumbnail);}return state.toString();}catch(Exception e){return store.getState().toString();} }
+        @JavascriptInterface public void connectPlanning(){runOnUiThread(()->startActivity(new Intent(MainActivity.this,PlanningConnectionActivity.class)));}
+        @JavascriptInterface public String consumePlanningOpenContext(){try{if(!getIntent().getBooleanExtra("open_planning",false))return "{}";JSONObject result=new JSONObject().put("open",true).put("appointment_id",getIntent().getStringExtra("planning_appointment_id")).put("action",getIntent().getStringExtra("planning_action"));getIntent().removeExtra("open_planning");return result.toString();}catch(Exception e){return "{}";}}
+        @JavascriptInterface public boolean consumePlanningOpen(){boolean open=getIntent().getBooleanExtra("open_planning",false);getIntent().removeExtra("open_planning");return open;}
+        @JavascriptInterface public String planningTime(String value,String zone,String offset){try{return AppointmentRules.local(value,zone,offset).toString();}catch(Exception e){return "ERROR: "+e.getMessage();}}
         @JavascriptInterface public String ownerCall(String name,String arguments){
-            try{if(!PixelMcpOwnerTools.read(name)&&!PixelMcpOwnerTools.write(name)&&!OfferTools.read(name)&&!OfferTools.write(name))throw new IllegalArgumentException("Unbekannte Eigentümerfunktion.");PixelMcpReadTools tools=new PixelMcpReadTools(()->store.getState(),store,new PixelOwnerAccess(MainActivity.this,store));return tools.call(name,new JSONObject(arguments)).toString();}
+            try{if(!PixelMcpOwnerTools.read(name)&&!PixelMcpOwnerTools.write(name)&&!OfferTools.read(name)&&!OfferTools.write(name)&&!AppointmentTools.read(name)&&!AppointmentTools.write(name))throw new IllegalArgumentException("Unbekannte Eigentümerfunktion.");PixelMcpReadTools tools=new PixelMcpReadTools(()->store.getState(),store,new PixelOwnerAccess(MainActivity.this,store));return tools.call(name,new JSONObject(arguments)).toString();}
             catch(Exception e){try{return new JSONObject().put("ok",false).put("error",new JSONObject().put("code",e instanceof PixelMcpWriteTools.Rejected?((PixelMcpWriteTools.Rejected)e).code:"VALIDATION_ERROR").put("message",e instanceof IllegalArgumentException?e.getMessage():"Vorgang nicht abgeschlossen. Sicherung, Versionen und Berechtigungen prüfen.")).toString();}catch(Exception ignored){return "{}";}}
         }
         @JavascriptInterface public String getSyncStatus() { return syncStatus().toString(); }
@@ -628,6 +636,7 @@ public class MainActivity extends Activity {
                 if (payload.optString("location").trim().isEmpty()) payload.put("location", order.optString("location"));
             }
             BillingRules.work(payload,previous,new JSONObject().put("customers",customers).put("orders",orders));
+            AppointmentRules.worklog(payload,previous,current);
             WorklogRules.validate(payload, isNew);
             WorklogRelationRules.validate(payload,previous,effectiveRows(master,"photos","photo"),effectiveRows(master,"invoices","invoice"));
             String entityId = payload.optString("id");
@@ -644,7 +653,8 @@ public class MainActivity extends Activity {
             } finally { database.endTransaction(); }
             return entityId;
         }
-        JSONObject startWorkSession(JSONObject payload)throws Exception{
+        JSONObject startWorkSession(JSONObject payload)throws Exception{SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{JSONObject result=startWorkSessionLocked(payload);db.setTransactionSuccessful();return result;}finally{db.endTransaction();}}
+        private JSONObject startWorkSessionLocked(JSONObject payload)throws Exception{
             JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));
             String customer=payload.optString("customer_id").trim(),order=payload.optString("order_id").trim();
             if(!customer.isEmpty()&&!containsId(effectiveRows(master,"customers","customer"),customer))throw new IllegalArgumentException("Der ausgewählte Kunde existiert nicht.");
@@ -653,6 +663,7 @@ public class MainActivity extends Activity {
                 JSONObject row=findById(effectiveRows(master,"orders","order"),order);
                 if(row==null||!customer.equals(row.optString("customer_id")))throw new IllegalArgumentException("Kunde und Auftrag passen nicht zusammen.");
             }
+            if(!payload.optString("appointment_id").isEmpty()){JSONObject appointment=PixelMcpWriteTools.find(PixelMcpReadTools.effective(getState()).getJSONArray("appointments"),payload.getString("appointment_id"));if(!AppointmentRules.active(appointment)||appointment.optString("status").equals("draft")||!customer.equals(appointment.optString("customer_id"))||!order.equals(appointment.optString("order_id")))throw new IllegalArgumentException("Termin, Kunde und Auftrag passen nicht zu einer aktiven Arbeit.");}
             return new WorkSessionStore(getWritableDatabase(),context).start(payload);
         }
         String completeWorkSession(String sessionId,JSONObject payload,String requestId)throws Exception{
@@ -672,6 +683,7 @@ public class MainActivity extends Activity {
             if(!session.optString("customer_id").isEmpty()&&!session.optString("customer_id").equals(payload.optString("customer_id")))throw new IllegalArgumentException("Die Sitzung gehört zu einem anderen Einsatzkunden.");
             if(!payload.has("billing_customer_id")&&!session.optString("billing_customer_id").isEmpty())payload.put("billing_customer_id",session.getString("billing_customer_id"));
             if(payload.optString("location").trim().isEmpty()&&payload.optString("customer_id").equals(session.optString("customer_id")))payload.put("location",session.optString("location"));
+            if(!session.optString("appointment_id").isEmpty())payload.put("appointment_id",session.getString("appointment_id"));
             String saved=saveWorklog(payload);
             JSONObject photos=PixelMcpReadTools.effective(getState());JSONArray sessionPhotos=photos.getJSONArray("photos");
             for(int i=0;i<sessionPhotos.length();i++){JSONObject old=sessionPhotos.getJSONObject(i);if(!sessionId.equals(old.optString("session_id"))||!old.optString("worklog_id").isEmpty())continue;
@@ -682,7 +694,7 @@ public class MainActivity extends Activity {
         // Business action and replay receipt commit together in the existing database.
         // Receipts are internal metadata, never exported as Drive actions.
         @Override public JSONObject execute(String tool, JSONObject args) throws Exception {
-            if(OfferTools.write(tool)||PixelMcpOwnerTools.write(tool))return new PixelOwnerAccess(context,this).execute(tool,args);
+            if(AppointmentTools.write(tool)||OfferTools.write(tool)||PixelMcpOwnerTools.write(tool))return new PixelOwnerAccess(context,this).execute(tool,args);
             if(PixelMcpSessionTools.handles(tool))return executeSession(tool,args);
             if(PixelMcpWriteTools.handles(tool))PixelMcpWriteTools.validate(args, PixelMcpWriteTools.schema(tool));
             else if(PixelMcpEntityWriteTools.handles(tool))PixelMcpEntityWriteTools.validate(tool,args);

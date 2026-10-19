@@ -12,7 +12,7 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 LOGS = ROOT/'outputs/integration-ui'
-NAMES = ['invoice-editor.test.js', 'invoice-flow.test.js', 'billing-ui.test.cjs',
+NAMES = ['planning-ui.test.cjs', 'invoice-editor.test.js', 'invoice-flow.test.js', 'billing-ui.test.cjs',
          'architecture-workflow.test.cjs', 'daily-usability.test.cjs', 'design-concept.test.cjs',
          'simple-design.test.cjs', 'worklog-window.test.cjs', 'pixel-tunnel-ui.test.js',
          'work-location.test.cjs', 'timer-completion.test.cjs', 'design-v139.test.cjs',

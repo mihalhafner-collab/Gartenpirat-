@@ -12,6 +12,7 @@ final class OwnerJournalRules {
     static JSONObject findOrNull(JSONArray rows,String id)throws Exception{for(int i=0;rows!=null&&i<rows.length();i++)if(id.equals(rows.getJSONObject(i).optString("id")))return rows.getJSONObject(i);return null;}
     static String version(JSONObject row)throws Exception{
         if(row==null)return PixelMcpWriteTools.hash(JSONObject.NULL);
+        if(row.has("starts_at"))return AppointmentRules.hash(row);
         if(row.has("id")){if(row.has("offer_number")||row.has("pricing_mode")||(row.has("unit")&&row.has("default_price")))return PixelMcpWriteTools.hash(DriveJournalRules.clean(row));String kind=row.has("name")?"customer":row.has("activity")?"worklog":row.has("title")?"order":row.has("invoice_number")||row.has("positions")||row.has("issued_at")?"invoice":"photo";return PixelMcpWriteTools.hash(DriveJournalRules.guard(row,kind));}
         return PixelMcpWriteTools.hash(DriveJournalRules.clean(row));
     }
@@ -86,6 +87,8 @@ final class OwnerJournalRules {
         archive.put(key,saved);
     }
     static void validateArchive(String entity,JSONObject row,JSONObject snapshot)throws Exception{
+        if(entity.equals("order"))AppointmentRules.protectParent(snapshot,entity,row.getString("id"));
+        if(entity.equals("appointment")){JSONArray work=snapshot.getJSONArray("worklogs");for(int i=0;i<work.length();i++)if(row.getString("id").equals(work.getJSONObject(i).optString("appointment_id")))throw new IllegalArgumentException("Erfasste Arbeit verweist auf diesen Termin. Verlauf behalten und Termin als erledigt/abgesagt kennzeichnen.");}
         if(entity.equals("customer")){
             for(String group:new String[]{"customers","orders","worklogs"}){JSONArray records=snapshot.optJSONArray(group);for(int i=0;records!=null&&i<records.length();i++){JSONObject r=records.getJSONObject(i);String key=group.equals("customers")?"default_billing_customer_id":"billing_customer_id";if(row.getString("id").equals(r.optString(key))&&!row.getString("id").equals(r.optString(group.equals("customers")?"id":"customer_id")))throw new IllegalArgumentException("Dieser Kunde wird als Rechnungsempfänger verwendet. Zuerst die Abrechnungszuordnungen prüfen.");}}
             return; // Keep the row and all historic references.

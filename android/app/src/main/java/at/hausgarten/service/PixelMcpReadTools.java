@@ -9,7 +9,7 @@ import java.util.Iterator;
 
 /** Private Pixel MCP: shared UI snapshot, versioned writes and bounded file access. */
 public final class PixelMcpReadTools {
-    static final int PROTOCOL_VERSION = 6;
+    static final int PROTOCOL_VERSION = 7;
     public interface Source { JSONObject state() throws Exception; }
     private final Source source;
     private final PixelMcpWriteTools.Sink writer;
@@ -56,22 +56,23 @@ public final class PixelMcpReadTools {
         }
         JSONArray owner=PixelMcpOwnerTools.tools(writable());for(int i=0;i<owner.length();i++)rows.put(owner.get(i));
         JSONArray offers=OfferTools.tools(writable());for(int i=0;i<offers.length();i++)rows.put(offers.get(i));
+        JSONArray planning=AppointmentTools.tools(writable());for(int i=0;i<planning.length();i++)rows.put(planning.get(i));
         return rows;
     }
     static JSONObject effective(JSONObject state) throws Exception {
         JSONObject master = new JSONObject(state.getJSONObject("master").toString());
-        for(String key:new String[]{"offers","service_catalog"})if(!master.has(key))master.put(key,new JSONArray());
+        for(String key:new String[]{"offers","service_catalog","appointments"})if(!master.has(key))master.put(key,new JSONArray());
         JSONArray pending=state.optJSONArray("pending");
         if(pending==null)pending=new JSONArray();
         if(PixelDriveState.ENGINE.equals(master.optString("processing_engine"))){
             // Local presentation uses exactly the same validation as Drive replay.
             // Never project receipts or pretend a queued financial request is issued.
             JSONObject projected=new JSONObject(master.toString());DriveJournalRules.apply(projected,pending);
-            for(String key:new String[]{"customers","orders","worklogs","invoices","photos","offers","service_catalog","business_settings","invoice_issuer","owner_archive"})if(projected.has(key))master.put(key,projected.get(key));
+            for(String key:new String[]{"customers","orders","worklogs","invoices","photos","offers","service_catalog","appointments","business_settings","invoice_issuer","owner_archive"})if(projected.has(key))master.put(key,projected.get(key));
             return master;
         }
         java.util.Set<String> blocked=new java.util.HashSet<>();for(String key:new String[]{"sync_errors","drive_journal_errors"}){JSONArray errors=master.optJSONArray(key);for(int i=0;errors!=null&&i<errors.length();i++)blocked.add(errors.getJSONObject(i).optString("client_id"));}
-        for(String pair:new String[]{"customers:customer","orders:order","worklogs:worklog","invoices:invoice","photos:photo","offers:offer","service_catalog:service_template"}){
+        for(String pair:new String[]{"customers:customer","orders:order","worklogs:worklog","invoices:invoice","photos:photo","offers:offer","service_catalog:service_template","appointments:appointment"}){
             String[] parts=pair.split(":"); java.util.LinkedHashMap<String,JSONObject> rows=new java.util.LinkedHashMap<>();
             JSONArray base=master.optJSONArray(parts[0]);
             if(base!=null)for(int i=0;i<base.length();i++){JSONObject row=base.getJSONObject(i);String id=row.getString("id");if(rows.containsKey(id))throw new IllegalArgumentException("Doppelte Datensatz-ID im Datenstand.");rows.put(id,new JSONObject(row.toString()));}
@@ -129,10 +130,11 @@ public final class PixelMcpReadTools {
         return (JSONArray)withoutBinary(result);
     }
     public JSONObject call(String name,JSONObject a) throws Exception {
-        if(OfferTools.write(name)||PixelMcpOwnerTools.write(name)||PixelMcpWriteTools.handles(name)||PixelMcpEntityWriteTools.handles(name)||PixelMcpSessionTools.handles(name)) {
+        if(AppointmentTools.write(name)||OfferTools.write(name)||PixelMcpOwnerTools.write(name)||PixelMcpWriteTools.handles(name)||PixelMcpEntityWriteTools.handles(name)||PixelMcpSessionTools.handles(name)) {
             if(!writable())throw new PixelMcpWriteTools.Rejected("WRITE_DISABLED","Schreibzugriff ist auf dem Pixel nicht freigegeben.");
             return writer.execute(name,a);
         }
+        if(AppointmentTools.read(name))return new JSONObject().put("ok",true).put("data",withoutBinary(access==null?AppointmentTools.query(name,a,source.state()):access.query(name,a))).put("source","pixel_local_snapshot").put("cloud_confirmed",false).put("untrusted_business_data",true);
         if(OfferTools.read(name))return new JSONObject().put("ok",true).put("data",withoutBinary(OfferTools.query(name,a,source.state()))).put("source","pixel_local_snapshot").put("cloud_confirmed",false).put("untrusted_business_data",true);
         if(PixelMcpOwnerTools.read(name)){
             PixelMcpOwnerTools.validate(name,a);JSONObject state=source.state(),data;

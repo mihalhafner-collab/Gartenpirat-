@@ -89,7 +89,7 @@ final class OwnerNativeAcceptance {
             f.store.close();try(MainActivity.LocalStore reopened=new MainActivity.LocalStore(f.context)){JSONObject row=PixelMcpWriteTools.find(PixelMcpReadTools.effective(reopened.getState()).getJSONArray("photos"),id);test.yes(row.getString("role").equals("before"));}
         }});
         test.probe("owner native settings/catalog/capability reads and settings replay",()->{try(Fixture f=new Fixture(test.getTargetContext())){
-            JSONObject cap=f.call("get_capabilities",new JSONObject());test.yes(cap.getInt("protocol_version")==6);
+            JSONObject cap=f.call("get_capabilities",new JSONObject());test.yes(cap.getInt("protocol_version")==PixelMcpReadTools.PROTOCOL_VERSION);
             JSONObject settings=f.call("get_settings",new JSONObject());JSONObject args=request("owner-settings").put("expected_record_hash",settings.getString("record_hash")).put("updates",new JSONObject().put("default_activity","QA Garten"));f.call("update_settings",args);test.yes(f.call("update_settings",args).getBoolean("replayed"));
             test.yes(f.call("search_catalog",new JSONObject().put("query","Thuja")).getInt("total")>0);test.yes(f.call("get_catalog_entry",new JSONObject().put("entry_id","thuja-occidentalis")).getString("id").equals("thuja-occidentalis"));
             test.yes(f.call("get_sync_conflicts",new JSONObject()).getInt("total")==0);test.yes(f.store.pendingActions().length()==0);

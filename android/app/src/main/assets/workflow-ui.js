@@ -9,7 +9,7 @@
   for(const [id,title]of groups)if(!nav.querySelector('[data-more-group="'+id+'"]')){const group=document.createElement('section');group.className='card more-group';group.dataset.moreGroup=id;const heading=document.createElement('h3');heading.textContent=title;group.append(heading);nav.append(group);}
   for(const button of [...nav.querySelectorAll('button')]){
    const destination=button.dataset.open||button.dataset.moreDestination;
-   const group=['orders','weeks'].includes(destination)?'work':['invoices','billing-page','offers'].includes(destination)?'billing':destination==='photos'||button.hasAttribute('data-open-garden-menu')?'media':'data';
+   const group=['orders','weeks','planning-page'].includes(destination)?'work':['invoices','billing-page','offers'].includes(destination)?'billing':destination==='photos'||button.hasAttribute('data-open-garden-menu')?'media':'data';
    const target=nav.querySelector('[data-more-group="'+group+'"]');if(button.parentElement!==target)target.append(button);
    if(button.hasAttribute('data-open-trash'))button.innerHTML='<span><strong>Papierkorb</strong><small>Wiederherstellen · endgültig löschen</small></span><b aria-hidden="true">›</b>';
   }

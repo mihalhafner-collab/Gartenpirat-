@@ -6,7 +6,7 @@ import java.util.*;
 /** One explicit trash selection, one guarded journal action. Never deletes active dependencies. */
 final class TrashPurgeBatch {
     static final String KIND="purge_trash_v1";
-    private static final String[] GROUPS={"customers","orders","worklogs","photos","invoices","offers","service_catalog"};
+    private static final String[] GROUPS={"customers","orders","worklogs","photos","invoices","offers","service_catalog","appointments"};
 
     static JSONObject preview(JSONObject snapshot)throws Exception {
         JSONObject archive=OwnerJournalRules.archives(snapshot),basis=new JSONObject();
@@ -19,7 +19,7 @@ final class TrashPurgeBatch {
             candidates.add(key);archiveGuards.put(new JSONObject().put("key",key).put("hash",OwnerJournalRules.version(entry)));
         }
         basis.put("archive",archiveGuards);
-        for(String group:GROUPS){TreeMap<String,String> guards=new TreeMap<>();JSONArray rows=snapshot.getJSONArray(group);
+        for(String group:GROUPS){TreeMap<String,String> guards=new TreeMap<>();JSONArray rows=snapshot.optJSONArray(group);if(rows==null&&group.equals("appointments"))rows=new JSONArray();if(rows==null)throw new IllegalArgumentException("Unvollständiger Geschäftsstand.");
             for(int i=0;i<rows.length();i++){JSONObject row=rows.getJSONObject(i);guards.put(row.getString("id"),OwnerJournalRules.version(row));}
             basis.put(group,new JSONObject(guards));}
         // Fixed point: protected trash continues to protect everything it references.

@@ -4,7 +4,7 @@ import org.json.*;
 
 /** User-requested deletion means recoverable removal in the existing owner archive. */
 final class DeletionRules {
-    static final String[] ENTITIES={"customer","order","worklog","photo","invoice","offer","service_template"};
+    static final String[] ENTITIES={"customer","order","worklog","photo","invoice","offer","service_template","appointment"};
     static boolean cancelable(JSONObject action,String code) {
         return action!=null&&java.util.Arrays.asList("archive","purge_v1","purge_trash_v1").contains(action.optString("kind"))
             &&java.util.Arrays.asList("WRITE_CONFLICT","INVALID_ACTION","DEPENDENCY_BLOCKED").contains(code)

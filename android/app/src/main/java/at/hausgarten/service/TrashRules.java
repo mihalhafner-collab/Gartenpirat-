@@ -62,10 +62,10 @@ final class TrashRules {
         }
     }
     static void requireUnreferenced(JSONObject s,String entity,String id)throws Exception {
-        String ref=entity.equals("customer")?"customer_id":entity.equals("order")?"order_id":entity.equals("worklog")?"worklog_id":entity.equals("offer")?"offer_id":"";
+        String ref=entity.equals("customer")?"customer_id":entity.equals("order")?"order_id":entity.equals("worklog")?"worklog_id":entity.equals("offer")?"offer_id":entity.equals("appointment")?"appointment_id":"";
         if(ref.isEmpty())return;
-        for(String group:new String[]{"customers","orders","worklogs","photos","invoices","offers"}){
-            JSONArray rows=s.getJSONArray(group);for(int i=0;i<rows.length();i++){JSONObject row=rows.getJSONObject(i);
+        for(String group:new String[]{"customers","orders","worklogs","photos","invoices","offers","appointments"}){
+            JSONArray rows=s.optJSONArray(group);if(rows==null&&group.equals("appointments"))continue;if(rows==null)throw new IllegalArgumentException("Unvollständiger Geschäftsstand.");for(int i=0;i<rows.length();i++){JSONObject row=rows.getJSONObject(i);
                 if(group.equals(OwnerJournalRules.group(entity))&&id.equals(row.optString("id")))continue;
                 if(id.equals(EntityProtectionRules.text(row,ref))||(entity.equals("customer")&&(id.equals(row.optString("billing_customer_id"))||id.equals(row.optString("default_billing_customer_id"))))||
                     (entity.equals("worklog")&&containsWork(row,id)))throw new IllegalArgumentException("Noch verknüpfte "+group+" vorhanden. Zuordnung zuerst gezielt lösen; keine Kaskadenlöschung.");
@@ -106,7 +106,7 @@ final class TrashRules {
     }
     static boolean referenced(JSONObject s,JSONArray pending,String name)throws Exception {
         if(name.isEmpty())return false;
-        for(String group:new String[]{"photos","invoices","offers"})if(hasFile(s.optJSONArray(group),name))return true;
+        for(String group:new String[]{"photos","invoices","offers","appointments"})if(hasFile(s.optJSONArray(group),name))return true;
         JSONObject a=OwnerJournalRules.archives(s);for(Iterator<String> it=a.keys();it.hasNext();){JSONObject entry=a.getJSONObject(it.next());if(!entry.optBoolean("purged")&&hasFile(entry.optJSONObject("record"),name))return true;}
         return hasFile(pending,name);
     }

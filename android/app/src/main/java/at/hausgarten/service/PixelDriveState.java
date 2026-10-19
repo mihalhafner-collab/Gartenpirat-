@@ -8,7 +8,7 @@ final class PixelDriveState {
     static final String[] CAPABILITIES={"offers_v1","service_catalog_v1","owner_journal_v2",
         "invoice_compare_and_save","photo_compare_and_save","durable_action_receipts",
         "worklog_compare_and_save","entity_compare_and_save","customer_custom_fields_compare_and_save",
-        "billing_relations","photo_attachments_v1","recoverable_delete_v1","trash_purge_v1","trash_empty_v1"};
+        "billing_relations","photo_attachments_v1","recoverable_delete_v1","trash_purge_v1","trash_empty_v1","appointments_v1"};
 
     static void prepare(JSONObject snapshot)throws Exception {
         DriveJournalRules.validateSnapshot(snapshot);
@@ -31,7 +31,7 @@ final class PixelDriveState {
     }
     static JSONObject integrity(JSONObject stored)throws Exception {
         JSONObject counts=new JSONObject(),hashes=new JSONObject();
-        for(String group:new String[]{"customers","orders","worklogs","invoices","photos","service_catalog","offers"}){
+        for(String group:new String[]{"customers","orders","worklogs","invoices","photos","service_catalog","offers","appointments"}){
             JSONArray rows=stored.optJSONArray(group);java.util.TreeMap<String,JSONObject> sorted=new java.util.TreeMap<>();
             for(int i=0;rows!=null&&i<rows.length();i++){JSONObject row=rows.getJSONObject(i);sorted.put(row.getString("id"),DriveJournalRules.clean(row));}
             counts.put(group,sorted.size());hashes.put(group,PixelMcpWriteTools.hash(new JSONArray(sorted.values())));

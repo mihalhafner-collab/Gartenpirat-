@@ -27,15 +27,17 @@ final class ReleaseLifecycleProbe {
         require("true".equals(js(runner,view,"(()=>{openCustomer('qa_site');document.querySelector('[data-customer-tab=\"garden\"]').click();return currentPage==='customer-profile-page'&&document.querySelector('[data-customer-tab=\"garden\"]').getAttribute('aria-pressed')==='true';})()")));
         require("true".equals(js(runner,view,"(()=>{TrashUI.open();return currentPage==='trash-page'&&document.getElementById('trash-content').innerText.length>0&&!!document.getElementById('trash-empty');})()")));
         require("true".equals(js(runner,view,"(()=>{openPage('more-page');return document.querySelectorAll('#more-page [data-more-group]').length===4&&document.querySelectorAll('#more-page [data-open-trash]').length===1;})()")));
+        require("true".equals(js(runner,view,"(()=>{PlanningUI.openForOrder('qa_order');return currentPage==='planning-page'&&document.querySelector('#appointment-form [name=customer_id]').value==='qa_site'&&document.querySelector('#appointment-form [name=order_id]').value==='qa_order'&&!!document.getElementById('planning-discard');})()")));
+        require("true".equals(js(runner,view,"(()=>{document.getElementById('planning-back').click();return !!document.querySelector('[data-planning-resume]')&&!!document.querySelector('#planning-page [data-open=weeks]');})()")));
     }
     static void require(boolean value){if(!value)throw new AssertionError("Lifecycle condition failed");}
     static String fingerprint(MainActivity.LocalStore store)throws Exception{
         JSONObject state=store.getState();
         JSONObject master=new JSONObject(state.getJSONObject("master").toString());
-        // getState adds runtime handler capabilities. Exactly this new additive flag
-        // is expected across 74 -> 75; all prior capabilities, business fields and
-        // every pending byte remain part of the original baseline comparison.
-        JSONObject capabilities=master.optJSONObject("capabilities");if(capabilities!=null)capabilities.remove("trash_empty_v1");
+        // Only fields introduced AFTER the recorded source release may be absent in its baseline.
+        int baseline=Integer.parseInt(store.ownerValue("release_lifecycle_baseline_version","74"));JSONObject capabilities=master.optJSONObject("capabilities");
+        if(capabilities!=null){if(baseline<75)capabilities.remove("trash_empty_v1");if(baseline<76)capabilities.remove("appointments_v1");}
+        if(baseline<76&&master.optJSONArray("appointments")!=null&&master.getJSONArray("appointments").length()==0)master.remove("appointments");
         return PixelMcpWriteTools.hash(new JSONObject().put("master",master).put("pending",state.getJSONArray("pending")));
     }
     static void run(Instrumentation runner,Context context,String mode){
@@ -65,6 +67,7 @@ final class ReleaseLifecycleProbe {
                 store.saveWorklog(new JSONObject().put("id","qa_offline").put("customer_id","qa_site").put("billing_customer_id","qa_payer").put("work_date","2026-10-13").put("activity","QA offline").put("hours",1));
                 WorkSessionStore timer=new WorkSessionStore(store.getWritableDatabase(),context);
                 timer.start(new JSONObject().put("request_id","qa-upgrade-start").put("customer_id","qa_site").put("billing_customer_id","qa_payer").put("work_date","2026-10-13"));
+                store.putOwnerValue("release_lifecycle_baseline_version",Integer.toString(context.getPackageManager().getPackageInfo(context.getPackageName(),0).versionCode));
                 require(prefs.edit().putString("qa_release_baseline_hash",fingerprint(store)).commit());
                 report.putString("stream","PASS synthetic upgrade fixture prepared on previous original version\n");
             }else if(mode.equals("verify")){
