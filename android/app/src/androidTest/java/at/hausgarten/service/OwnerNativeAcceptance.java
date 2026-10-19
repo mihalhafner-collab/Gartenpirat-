@@ -8,13 +8,13 @@ import java.util.*;
 final class OwnerNativeAcceptance {
     static final class Fixture implements AutoCloseable {
         final PixelMcpInstrumentation.Isolated context;
-        final MainActivity.LocalStore store;
+        final PixelLocalStore store;
         final PixelMcpReadTools tools;
         Fixture(Context base)throws Exception{
             context=new PixelMcpInstrumentation.Isolated(base);
             JSONObject snapshot=SyntheticBusinessData.object("{customers:[{id:'qa_c',name:'QA Eigentümer',active:1,billing_mode:'direct',updated_at:'2026-10-18T08:00:00Z'}],orders:[],worklogs:[{id:'qa_w',customer_id:'qa_c',billing_customer_id:'qa_c',work_date:'2026-10-18',activity:'QA Pflege',hours:2,break_minutes:0,kilometers:0,billed:0,customer_visible:1,notes:'Original',updated_at:'2026-10-18T08:00:00Z'}],invoices:[],photos:[],capabilities:{entity_compare_and_save:true,worklog_compare_and_save:true,customer_custom_fields_compare_and_save:true,invoice_compare_and_save:true,photo_compare_and_save:true,owner_journal_v2:true}}");
             JSONObject config=SyntheticBusinessData.object();for(String key:PixelMcpOwnerTools.BUSINESS_KEYS)config.put(key,"");snapshot.put("business_settings",config);
-            context.getSharedPreferences("haus_garten",0).edit().putString("drive_snapshot",snapshot.toString()).commit();store=new MainActivity.LocalStore(context);tools=new PixelMcpReadTools(store::getState,store,new PixelOwnerAccess(context,store));
+            context.getSharedPreferences("haus_garten",0).edit().putString("drive_snapshot",snapshot.toString()).commit();store=new PixelLocalStore(context);tools=new PixelMcpReadTools(store::getState,store,new PixelOwnerAccess(context,store));
         }
         JSONObject call(String n,JSONObject a)throws Exception{return tools.call(n,a).getJSONObject("data");}
         public void close(){store.close();}
@@ -34,7 +34,7 @@ final class OwnerNativeAcceptance {
             test.yes(f.store.pendingActions().length()==0&&f.call("list_archive",SyntheticBusinessData.object()).getInt("total")==136);f.store.getWritableDatabase().execSQL("DROP TRIGGER abort_empty");
             test.yes(f.call("empty_trash",args).getInt("deleted")==136);test.yes(f.call("empty_trash",args).getBoolean("replayed"));test.yes(f.store.pendingActions().length()==1&&f.call("list_archive",SyntheticBusinessData.object()).getInt("total")==0);
             JSONObject committed=f.store.getState().getJSONObject("master");test.yes(DriveJournalRules.apply(committed,f.store.pendingActions()).length()==0);f.store.commitSnapshot(committed,DriveJournalRules.ids(committed.getJSONArray("drive_applied_ids")));f.store.close();
-            try(MainActivity.LocalStore reopened=new MainActivity.LocalStore(f.context)){test.yes(reopened.pendingActions().length()==0&&PixelMcpReadTools.effective(reopened.getState()).getJSONArray("worklogs").length()==1);test.yes(TrashPurgeBatch.preview(PixelMcpReadTools.effective(reopened.getState())).getInt("total")==0);}
+            try(PixelLocalStore reopened=new PixelLocalStore(f.context)){test.yes(reopened.pendingActions().length()==0&&PixelMcpReadTools.effective(reopened.getState()).getJSONArray("worklogs").length()==1);test.yes(TrashPurgeBatch.preview(PixelMcpReadTools.effective(reopened.getState())).getInt("total")==0);}
         }});
         test.probe("empty trash rejects a changed active reference before adding any journal",()->{try(Fixture f=new Fixture(test.getTargetContext())){
             JSONObject snapshot=f.store.getState().getJSONObject("master");PixelDriveState.prepare(snapshot);OwnerJournalRules.archives(snapshot).put("worklog:qa_old",SyntheticBusinessData.object().put("record",SyntheticBusinessData.object().put("id","qa_old").put("customer_id","qa_c").put("activity","Synthetic old").put("hours",1)).put("archived_at","t1"));f.store.commitSnapshot(snapshot,new HashSet<>());
@@ -52,7 +52,7 @@ final class OwnerNativeAcceptance {
             f.store.getWritableDatabase().execSQL("DROP TRIGGER fail_isolated_batch");long start=android.os.SystemClock.elapsedRealtime();
             test.yes(f.call("archive_work_records",args).getInt("count")==128);long duration=android.os.SystemClock.elapsedRealtime()-start;
             test.yes(f.call("archive_work_records",args).getBoolean("replayed")&&f.store.pendingActions().length()==128);f.store.close();
-            try(MainActivity.LocalStore reopened=new MainActivity.LocalStore(f.context)){test.yes(reopened.pendingActions().length()==128);test.yes(PixelMcpReadTools.effective(reopened.getState()).getJSONArray("worklogs").length()==0);test.yes(new PixelOwnerAccess(f.context,reopened).execute("archive_work_records",args).getJSONObject("data").getBoolean("replayed"));}
+            try(PixelLocalStore reopened=new PixelLocalStore(f.context)){test.yes(reopened.pendingActions().length()==128);test.yes(PixelMcpReadTools.effective(reopened.getState()).getJSONArray("worklogs").length()==0);test.yes(new PixelOwnerAccess(f.context,reopened).execute("archive_work_records",args).getJSONObject("data").getBoolean("replayed"));}
             android.os.Bundle timing=new android.os.Bundle();timing.putString("stream","BATCH_128_LOCAL_COMMIT_MS "+duration+" (isolated Android emulator)\n");test.sendStatus(0,timing);
         }});
         test.probe("permanent trash replay and restart keep bytes until a committed publication",()->{try(Fixture f=new Fixture(test.getTargetContext())){
@@ -68,7 +68,7 @@ final class OwnerNativeAcceptance {
             // Synthetic verified publication/commit, followed by restart before independent cleanup.
             JSONObject committed=f.store.getState().getJSONObject("master");PixelDriveState.prepare(committed);test.yes(DriveJournalRules.apply(committed,f.store.pendingActions()).length()==0);
             f.store.commitSnapshot(committed,DriveJournalRules.ids(committed.getJSONArray("drive_applied_ids")));f.store.close();
-            try(MainActivity.LocalStore reopened=new MainActivity.LocalStore(f.context)){
+            try(PixelLocalStore reopened=new PixelLocalStore(f.context)){
                 final int[] deletes={0};DriveSyncCoordinator.Files files=new DriveSyncCoordinator.Files(f.context,android.net.Uri.EMPTY,f.context.getSharedPreferences("haus_garten",0)){
                     @Override void deletePhotoFileVerified(String name,String hash)throws Exception{test.yes(name.startsWith(hash+"."));deletes[0]++;}
                 };
@@ -86,7 +86,7 @@ final class OwnerNativeAcceptance {
             String id=f.store.savePhoto(SyntheticBusinessData.object().put("customer_id","qa_c").put("role","documentation").put("caption","QA").put("data",PixelMcpInstrumentation.VALID_GIF));
             JSONObject before=f.call("get_photo",SyntheticBusinessData.object().put("photo_id",id));f.call("update_photo",request("native-role-update").put("photo_id",id).put("expected_record_hash",before.getString("record_hash")).put("updates",SyntheticBusinessData.object().put("role","before").put("caption","QA changed")));
             JSONObject after=f.call("get_photo",SyntheticBusinessData.object().put("photo_id",id));test.yes(after.getJSONObject("photo").getString("role").equals("before"));test.yes(after.getJSONObject("photo").getString("caption").equals("QA changed"));test.yes(PixelMcpWriteTools.hash(f.store.pendingActions()).equals(PixelMcpWriteTools.hash(f.store.pendingActionsForDrive())));
-            f.store.close();try(MainActivity.LocalStore reopened=new MainActivity.LocalStore(f.context)){JSONObject row=PixelMcpWriteTools.find(PixelMcpReadTools.effective(reopened.getState()).getJSONArray("photos"),id);test.yes(row.getString("role").equals("before"));}
+            f.store.close();try(PixelLocalStore reopened=new PixelLocalStore(f.context)){JSONObject row=PixelMcpWriteTools.find(PixelMcpReadTools.effective(reopened.getState()).getJSONArray("photos"),id);test.yes(row.getString("role").equals("before"));}
         }});
         test.probe("owner native settings/catalog/capability reads and settings replay",()->{try(Fixture f=new Fixture(test.getTargetContext())){
             JSONObject cap=f.call("get_capabilities",SyntheticBusinessData.object());test.yes(cap.getInt("protocol_version")==PixelMcpReadTools.PROTOCOL_VERSION);
@@ -155,7 +155,7 @@ final class OwnerNativeAcceptance {
             byte[] small=Base64.getDecoder().decode(PixelMcpInstrumentation.VALID_GIF.split(",",2)[1]);PhotoAttachmentStore.Prepared tiny=f.store.photoAttachmentStore().prepare(SyntheticBusinessData.object().put("data",PixelMcpInstrumentation.VALID_GIF));test.yes(Arrays.equals(small,tiny.bytes));
         }});
         test.probe("native 21 photo writes keep customer relationships and survive store reopen",()->{try(Fixture f=new Fixture(test.getTargetContext())){
-            for(int i=0;i<21;i++)f.store.savePhoto(SyntheticBusinessData.object().put("customer_id","qa_c").put("caption","QA "+i).put("_photo_request_id","isolated-21-photos-"+i).put("data",PixelMcpInstrumentation.VALID_GIF));test.yes(PixelMcpReadTools.effective(f.store.getState()).getJSONArray("photos").length()==21);test.yes(f.store.pendingActions().length()==21);f.store.close();try(MainActivity.LocalStore reopened=new MainActivity.LocalStore(f.context)){test.yes(reopened.pendingActions().length()==21);test.yes(PixelMcpReadTools.effective(reopened.getState()).getJSONArray("photos").length()==21);for(int i=0;i<21;i++)test.yes("qa_c".equals(PixelMcpReadTools.effective(reopened.getState()).getJSONArray("photos").getJSONObject(i).getString("customer_id")));}
+            for(int i=0;i<21;i++)f.store.savePhoto(SyntheticBusinessData.object().put("customer_id","qa_c").put("caption","QA "+i).put("_photo_request_id","isolated-21-photos-"+i).put("data",PixelMcpInstrumentation.VALID_GIF));test.yes(PixelMcpReadTools.effective(f.store.getState()).getJSONArray("photos").length()==21);test.yes(f.store.pendingActions().length()==21);f.store.close();try(PixelLocalStore reopened=new PixelLocalStore(f.context)){test.yes(reopened.pendingActions().length()==21);test.yes(PixelMcpReadTools.effective(reopened.getState()).getJSONArray("photos").length()==21);for(int i=0;i<21;i++)test.yes("qa_c".equals(PixelMcpReadTools.effective(reopened.getState()).getJSONArray("photos").getJSONObject(i).getString("customer_id")));}
         }});
         test.probe("native timer photos link their final worklog atomically and completion retries do not duplicate",()->{try(Fixture f=new Fixture(test.getTargetContext())){
             PixelMcpInstrumentation.FakeClock clock=new PixelMcpInstrumentation.FakeClock();WorkSessionStore timer=new WorkSessionStore(f.store.getWritableDatabase(),clock);JSONObject session=timer.start(SyntheticBusinessData.object().put("request_id","isolated-photo-session").put("customer_id","qa_c").put("billing_customer_id","qa_c").put("work_date","2026-10-18"));String sid=session.getString("id");String photo=f.store.savePhoto(SyntheticBusinessData.object().put("customer_id","qa_c").put("session_id",sid).put("data",PixelMcpInstrumentation.VALID_GIF));test.rejected(()->f.store.savePhoto(SyntheticBusinessData.object().put("customer_id","qa_unknown").put("session_id",sid).put("data",PixelMcpInstrumentation.VALID_GIF)));clock.advance(3600000);timer.stop(sid,"isolated-photo-stop");String work=f.store.completeWorkSession(sid,SyntheticBusinessData.object().put("activity","QA Gartenpflege"),"isolated-photo-complete");int count=f.store.pendingActions().length();test.yes(f.store.completeWorkSession(sid,SyntheticBusinessData.object(),"isolated-photo-complete").equals(work));test.yes(f.store.pendingActions().length()==count);JSONObject row=PixelMcpWriteTools.find(PixelMcpReadTools.effective(f.store.getState()).getJSONArray("photos"),photo);test.yes(row.getString("session_id").equals(sid)&&row.getString("worklog_id").equals(work)&&row.getString("customer_id").equals("qa_c"));

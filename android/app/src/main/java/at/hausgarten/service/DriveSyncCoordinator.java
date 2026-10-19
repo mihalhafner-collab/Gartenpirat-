@@ -51,11 +51,11 @@ final class DriveSyncCoordinator {
         delay=Math.max(delay,due);
         DriveSyncJob.schedule(context,delay);
         Context app=context.getApplicationContext();if(scheduled!=null)scheduled.cancel(false);
-        scheduled=EXECUTOR.schedule(()->{try(MainActivity.LocalStore store=new MainActivity.LocalStore(app)){
+        scheduled=EXECUTOR.schedule(()->{try(PixelLocalStore store=new PixelLocalStore(app)){
             if(automaticAllowed(app))run(app,store);
         }catch(Exception ignored){/* run persists a bounded, user-facing failure; local actions survive. */}},Math.max(500,delay),TimeUnit.MILLISECONDS);
     }
-    static JSONObject run(Context context,MainActivity.LocalStore store)throws Exception{
+    static JSONObject run(Context context,PixelLocalStore store)throws Exception{
         if(DriveAccount.configured(context))return run(context,store,new DriveDirectFiles(context,DriveAccount.client(context,store)),Settings.Secure.getString(context.getContentResolver(),Settings.Secure.ANDROID_ID));
         SharedPreferences prefs=context.getSharedPreferences("haus_garten",0);
         String tree=prefs.getString("drive_tree_uri","");if(tree.isEmpty())throw new IOException("Bitte zuerst den bestehenden Drive-Ordner auswählen.");
@@ -63,7 +63,7 @@ final class DriveSyncCoordinator {
         return run(context,store,new Files(context,Uri.parse(tree),prefs),Settings.Secure.getString(context.getContentResolver(),Settings.Secure.ANDROID_ID));
     }
     // Package-private dependency boundary for isolated provider tests, never an MCP/UI endpoint.
-    static JSONObject run(Context context,MainActivity.LocalStore store,Files files,String device)throws Exception{
+    static JSONObject run(Context context,PixelLocalStore store,Files files,String device)throws Exception{
         synchronized(LOCK){
             running=true;SharedPreferences prefs=context.getSharedPreferences("haus_garten",0);
             try{
@@ -181,17 +181,17 @@ final class DriveSyncCoordinator {
         String value=error.getMessage();return value!=null&&value.length()<300&&error instanceof IllegalArgumentException?value:"Drive-Abgleich nicht abgeschlossen. Internet und Ordnerfreigabe prüfen. Lokale Einträge bleiben erhalten.";
     }
     static boolean fetchPhoto(Context context,JSONObject metadata,PhotoAttachmentStore local)throws Exception{
-        if(DriveAccount.configured(context))try(MainActivity.LocalStore store=new MainActivity.LocalStore(context)){synchronized(LOCK){byte[] bytes=new DriveDirectFiles(context,DriveAccount.client(context,store)).readPhotoVerified(metadata);local.storeExpected(bytes,metadata);return true;}}
+        if(DriveAccount.configured(context))try(PixelLocalStore store=new PixelLocalStore(context)){synchronized(LOCK){byte[] bytes=new DriveDirectFiles(context,DriveAccount.client(context,store)).readPhotoVerified(metadata);local.storeExpected(bytes,metadata);return true;}}
         SharedPreferences prefs=context.getSharedPreferences("haus_garten",0);String tree=prefs.getString("drive_tree_uri","");if(tree.isEmpty())return false;
         synchronized(LOCK){Files files=new Files(context,Uri.parse(tree),prefs);byte[] bytes=files.readPhotoVerified(metadata);local.storeExpected(bytes,metadata);return true;}
     }
     static byte[] fetchDocument(Context context,JSONObject metadata)throws Exception{
-        synchronized(LOCK){if(DriveAccount.configured(context))try(MainActivity.LocalStore store=new MainActivity.LocalStore(context)){return new DriveDirectFiles(context,DriveAccount.client(context,store)).readDocumentVerified(metadata);}
+        synchronized(LOCK){if(DriveAccount.configured(context))try(PixelLocalStore store=new PixelLocalStore(context)){return new DriveDirectFiles(context,DriveAccount.client(context,store)).readDocumentVerified(metadata);}
             SharedPreferences p=context.getSharedPreferences("haus_garten",0);String tree=p.getString("drive_tree_uri","");if(tree.isEmpty())throw new IOException("Dokument fehlt lokal und Drive ist nicht verbunden.");return new Files(context,Uri.parse(tree),p).readDocumentVerified(metadata);}
     }
     static byte[] fetchThumbnail(Context c,String name)throws Exception{
         if(!name.matches("[0-9a-f]{64}\\.jpg"))throw new IOException("Ungültige Vorschaureferenz.");
-        synchronized(LOCK){if(DriveAccount.configured(c))try(MainActivity.LocalStore s=new MainActivity.LocalStore(c)){return new DriveDirectFiles(c,DriveAccount.client(c,s)).readThumbnailVerified(name);}
+        synchronized(LOCK){if(DriveAccount.configured(c))try(PixelLocalStore s=new PixelLocalStore(c)){return new DriveDirectFiles(c,DriveAccount.client(c,s)).readThumbnailVerified(name);}
             SharedPreferences p=c.getSharedPreferences("haus_garten",0);String tree=p.getString("drive_tree_uri","");if(tree.isEmpty())throw new IOException("Drive nicht verbunden.");return new Files(c,Uri.parse(tree),p).readThumbnailVerified(name);}
     }
     static final class Doc{

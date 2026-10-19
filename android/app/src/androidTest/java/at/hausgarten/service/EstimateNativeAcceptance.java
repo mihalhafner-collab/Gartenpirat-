@@ -28,7 +28,7 @@ final class EstimateNativeAcceptance {
    t.yes(DriveJournalRules.apply(roundtrip,f.store.pendingActions()).length()==0);
    t.yes(PixelMcpWriteTools.find(roundtrip.getJSONArray("offers"),id).getString("delivery_status").equals("share_prepared"));
    t.yes(DriveJournalRules.apply(roundtrip,f.store.pendingActions()).length()==0);
-   t.yes(f.store.pendingActionsForDrive().length()==0&&PixelMcpReadTools.effective(f.store.getState()).getJSONArray("invoices").length()==0);f.store.close();try(MainActivity.LocalStore reopened=new MainActivity.LocalStore(f.context)){JSONObject restored=PixelMcpWriteTools.find(PixelMcpReadTools.effective(reopened.getState()).getJSONArray("offers"),id);
+   t.yes(f.store.pendingActionsForDrive().length()==0&&PixelMcpReadTools.effective(f.store.getState()).getJSONArray("invoices").length()==0);f.store.close();try(PixelLocalStore reopened=new PixelLocalStore(f.context)){JSONObject restored=PixelMcpWriteTools.find(PixelMcpReadTools.effective(reopened.getState()).getJSONArray("offers"),id);
    t.yes(restored.getString("binding_mode").equals(row.getString("binding_mode"))&&new BusinessDocumentStore(f.context).read(restored).length==pdf.length&&reopened.pendingActionsForDrive().length()==0);}
   }});
   t.probe("native complete paginated UI catalog and read-only selftest leave store unchanged",()->{try(OwnerNativeAcceptance.Fixture f=new OwnerNativeAcceptance.Fixture(t.getTargetContext())){

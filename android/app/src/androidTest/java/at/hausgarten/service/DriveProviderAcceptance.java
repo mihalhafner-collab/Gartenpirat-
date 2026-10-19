@@ -40,7 +40,7 @@ final class DriveProviderAcceptance {
         }
     }
     static final class Setup implements AutoCloseable{
-        final PixelMcpInstrumentation.Isolated context;final Context io;final SharedPreferences prefs;final MockDrive provider;final MainActivity.LocalStore store;final DriveSyncCoordinator.Files files;
+        final PixelMcpInstrumentation.Isolated context;final Context io;final SharedPreferences prefs;final MockDrive provider;final PixelLocalStore store;final DriveSyncCoordinator.Files files;
         Setup(PixelMcpInstrumentation qa)throws Exception{
             context=new PixelMcpInstrumentation.Isolated(qa.getTargetContext());prefs=context.getSharedPreferences("haus_garten",0);
             provider=new MockDrive(new File(context.getFilesDir(),context.prefix+"provider"));
@@ -51,7 +51,7 @@ final class DriveProviderAcceptance {
             io=new ContextWrapper(context){@Override public ContentResolver getContentResolver(){return resolver;}@Override public File getFilesDir(){File folder=new File(super.getFilesDir(),context.prefix+"backups");folder.mkdirs();return folder;}};
             Uri tree=DocumentsContract.buildTreeDocumentUri(AUTHORITY,"root");JSONObject base=qa.fixture().put("photos",new JSONArray());
             provider.add("HausGarten-Laptop.json",base.toString());prefs.edit().putString("drive_tree_uri",tree.toString()).putString("drive_snapshot",base.toString()).commit();
-            files=new DriveSyncCoordinator.Files(io,tree,prefs);store=new MainActivity.LocalStore(io);
+            files=new DriveSyncCoordinator.Files(io,tree,prefs);store=new PixelLocalStore(io);
         }
         JSONObject sync()throws Exception{return DriveSyncCoordinator.run(context,store,files,"qadevice");}
         @Override public void close(){store.close();}

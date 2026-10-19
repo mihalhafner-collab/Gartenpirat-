@@ -9,12 +9,12 @@ final class NativeDriveAcceptance {
     static void run(PixelMcpInstrumentation qa)throws Exception{
         qa.probe("native offline new customer and later edit share consistent defaults",()->{
             PixelMcpInstrumentation.Isolated ctx=new PixelMcpInstrumentation.Isolated(qa.getTargetContext());JSONObject base=qa.fixture().put("photos",new JSONArray());ctx.getSharedPreferences("haus_garten",0).edit().putString("drive_snapshot",base.toString()).commit();
-            try(MainActivity.LocalStore local=new MainActivity.LocalStore(ctx)){String id=local.saveCustomer(SyntheticBusinessData.object().put("name","QA Offline Defaults"));local.saveCustomer(SyntheticBusinessData.object().put("id",id).put("name","QA Offline Defaults").put("notes","QA Nachtrag"));qa.yes(DriveJournalRules.apply(base,local.pendingActionsForDrive()).length()==0);JSONObject row=PixelMcpWriteTools.find(base.getJSONArray("customers"),id);qa.yes(row.getString("notes").equals("QA Nachtrag")&&row.getInt("active")==1&&row.getJSONObject("custom_fields").length()==0);}
+            try(PixelLocalStore local=new PixelLocalStore(ctx)){String id=local.saveCustomer(SyntheticBusinessData.object().put("name","QA Offline Defaults"));local.saveCustomer(SyntheticBusinessData.object().put("id",id).put("name","QA Offline Defaults").put("notes","QA Nachtrag"));qa.yes(DriveJournalRules.apply(base,local.pendingActionsForDrive()).length()==0);JSONObject row=PixelMcpWriteTools.find(base.getJSONArray("customers"),id);qa.yes(row.getString("notes").equals("QA Nachtrag")&&row.getInt("active")==1&&row.getJSONObject("custom_fields").length()==0);}
         });
         qa.probe("native manual edits retain a guarded offline action chain",()->{
             PixelMcpInstrumentation.Isolated ctx=new PixelMcpInstrumentation.Isolated(qa.getTargetContext());
             JSONObject base=qa.fixture().put("photos",new JSONArray());ctx.getSharedPreferences("haus_garten",0).edit().putString("drive_snapshot",base.toString()).commit();
-            try(MainActivity.LocalStore local=new MainActivity.LocalStore(ctx)){
+            try(PixelLocalStore local=new PixelLocalStore(ctx)){
                 String id=local.saveWorklog(SyntheticBusinessData.object().put("customer_id","qa_c1").put("activity","QA Offline").put("hours",2).put("work_date","2026-10-12"));
                 local.saveWorklog(SyntheticBusinessData.object().put("id",id).put("customer_id","qa_c1").put("activity","QA Offline").put("hours",3).put("work_date","2026-10-12").put("notes","QA Ergänzung"));
                 JSONArray actions=local.pendingActionsForDrive();qa.yes(actions.length()==2);
@@ -27,7 +27,7 @@ final class NativeDriveAcceptance {
             PixelMcpInstrumentation.Isolated ctx=new PixelMcpInstrumentation.Isolated(qa.getTargetContext());SharedPreferences prefs=ctx.getSharedPreferences("haus_garten",0);
             JSONObject base=qa.fixture().put("photos",new JSONArray());prefs.edit().putString("drive_snapshot",base.toString()).commit();
             String client,id;JSONArray actions;
-            try(MainActivity.LocalStore local=new MainActivity.LocalStore(ctx)){
+            try(PixelLocalStore local=new PixelLocalStore(ctx)){
                 JSONObject result=local.execute("create_customer_work_record",qa.args("qa-drive-restart")).getJSONObject("data");
                 id=result.getString("work_record_id");client=result.getJSONObject("sync").getString("client_id");actions=local.pendingActionsForDrive();
                 File folder=new File(ctx.getFilesDir(),ctx.prefix+"journal-test");qa.yes(folder.mkdir());File file=new File(folder,"journal.json");
@@ -39,7 +39,7 @@ final class NativeDriveAcceptance {
                 qa.yes(prefs.edit().putString("drive_snapshot",base.toString()).commit());local.markUploaded(actions);
                 local.acknowledge(DriveJournalRules.ids(base.getJSONArray("drive_applied_ids")));
             }
-            try(MainActivity.LocalStore reopened=new MainActivity.LocalStore(ctx)){
+            try(PixelLocalStore reopened=new PixelLocalStore(ctx)){
                 qa.yes(reopened.pendingActions().length()==0);
                 qa.yes(PixelMcpWriteTools.find(PixelMcpReadTools.effective(reopened.getState()).getJSONArray("worklogs"),id).getString("customer_id").equals("qa_c1"));
                 JSONObject status=reopened.status(client,reopened.getState());qa.yes(status.getBoolean("applied_on_pixel")&&!status.getBoolean("cloud_confirmed")&&status.getString("status").equals("transferred"));
@@ -56,7 +56,7 @@ final class NativeDriveAcceptance {
         qa.probe("native conflict retains local queue and remote value",()->{
             PixelMcpInstrumentation.Isolated ctx=new PixelMcpInstrumentation.Isolated(qa.getTargetContext());JSONObject base=qa.fixture().put("photos",new JSONArray());
             base.getJSONArray("customers").getJSONObject(0).put("notes","Original").put("updated_at","2026-10-12T08:00:00Z");ctx.getSharedPreferences("haus_garten",0).edit().putString("drive_snapshot",base.toString()).commit();
-            try(MainActivity.LocalStore local=new MainActivity.LocalStore(ctx)){
+            try(PixelLocalStore local=new PixelLocalStore(ctx)){
                 local.saveCustomer(SyntheticBusinessData.object().put("id","qa_c1").put("name","QA Kunde").put("notes","Pixel Änderung"));
                 base.getJSONArray("customers").getJSONObject(0).put("notes","Web Änderung");JSONArray errors=DriveJournalRules.apply(base,local.pendingActionsForDrive());
                 qa.yes(errors.length()==1&&errors.getJSONObject(0).getString("code").equals("WRITE_CONFLICT"));qa.yes(local.pendingActions().length()==1&&base.getJSONArray("customers").getJSONObject(0).getString("notes").equals("Web Änderung"));

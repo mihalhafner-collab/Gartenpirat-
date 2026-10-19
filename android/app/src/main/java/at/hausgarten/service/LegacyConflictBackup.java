@@ -11,17 +11,17 @@ import java.util.zip.*;
 
 /** Private streaming backup, outside operational storage. No shared/public export. */
 final class LegacyConflictBackup {
-    static void requireReady(Context c,MainActivity.LocalStore store)throws Exception {
+    static void requireReady(Context c,PixelLocalStore store)throws Exception {
         requireReady(c,store,"");
     }
-    static void requireReady(Context c,MainActivity.LocalStore store,String expected)throws Exception {
+    static void requireReady(Context c,PixelLocalStore store,String expected)throws Exception {
         android.content.SharedPreferences prefs=c.getSharedPreferences("haus_garten",0);JSONObject state=store.getState();
         LegacyBackupPolicy.require(state,DriveAccount.available(c),DriveAccount.configured(c)||DriveAccount.providerPermission(c),prefs.getBoolean("drive_sync_failed",false),DriveSyncCoordinator.running(),prefs.getString("drive_confirmation_scope",""),prefs.getString("drive_last_error_code",""),expected);
     }
-    static synchronized JSONObject create(Context c,MainActivity.LocalStore store,String request)throws Exception {
+    static synchronized JSONObject create(Context c,PixelLocalStore store,String request)throws Exception {
         return create(c,store,request,"");
     }
-    static synchronized JSONObject create(Context c,MainActivity.LocalStore store,String request,String expected)throws Exception {
+    static synchronized JSONObject create(Context c,PixelLocalStore store,String request,String expected)throws Exception {
         if(DriveSyncCoordinator.running())throw new IllegalArgumentException("Drive-Abgleich läuft noch. Keine Altentscheidung ausgeführt.");
         synchronized(DriveSyncCoordinator.LOCK){
         requireReady(c,store,expected);
@@ -31,10 +31,10 @@ final class LegacyConflictBackup {
         }
     }
     /** Same serialized provider core, injectable for isolated ContentResolver regression tests. */
-    static synchronized JSONObject createVerified(Context c,MainActivity.LocalStore store,String request,DriveSyncCoordinator.Files drive)throws Exception {
+    static synchronized JSONObject createVerified(Context c,PixelLocalStore store,String request,DriveSyncCoordinator.Files drive)throws Exception {
         return createVerified(c,store,request,drive,"");
     }
-    static synchronized JSONObject createVerified(Context c,MainActivity.LocalStore store,String request,DriveSyncCoordinator.Files drive,String expected)throws Exception {
+    static synchronized JSONObject createVerified(Context c,PixelLocalStore store,String request,DriveSyncCoordinator.Files drive,String expected)throws Exception {
         if(!expected.isEmpty())LegacyConflictRules.require(store.getState(),expected);
         String prior=store.ownerValue("legacy-backup-request:"+PixelMcpWriteTools.hash(request),"");if(!prior.isEmpty()){JSONObject saved=new JSONObject(prior);if(!expected.isEmpty()&&!expected.equals(saved.getJSONObject("preview").getString("preview_hash")))throw new PixelMcpWriteTools.Rejected("REPLAY_MISMATCH","Sicherungsanfrage gehört zu einer anderen Vorschau.");verify(c,store,saved.getJSONObject("backup").getString("backup_id"),saved.getJSONObject("preview").getString("preview_hash"));return saved.put("replayed",true);}
         JSONObject state=store.getState(),preview=LegacyConflictRules.preview(state);
@@ -102,7 +102,7 @@ final class LegacyConflictBackup {
             store.putOwnerValue("legacy-backup:"+id,meta.toString());JSONObject result=new JSONObject().put("backup",meta).put("preview",preview);store.putOwnerValue("legacy-backup-request:"+PixelMcpWriteTools.hash(request),result.toString());complete=true;return result;
         } finally {if(dbCopy.exists())dbCopy.delete();if(!complete){zip.delete();directory.delete();}}
     }
-    static JSONObject verify(Context c,MainActivity.LocalStore s,String id,String preview)throws Exception {
+    static JSONObject verify(Context c,PixelLocalStore s,String id,String preview)throws Exception {
         if(!id.matches("legacy_[0-9a-f]{32}"))throw new IllegalArgumentException("Ungültige Sicherungskennung.");
         JSONObject meta=new JSONObject(s.ownerValue("legacy-backup:"+id,"{}"));File file=new File(new File(new File(c.getNoBackupFilesDir(),"legacy-conflict-backups"),id),"backup.zip");
         if(!meta.optBoolean("complete")||!preview.equals(meta.optString("preview_hash"))||!file.isFile()||!sha(file).equals(meta.optString("sha256")))throw new IllegalArgumentException("Vollständige unveränderte Sicherung fehlt. Nichts abgeschlossen.");if(meta.has("business_hash")&&!meta.getString("business_hash").equals(businessHash(s.getState())))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Geschäftsdaten seit der Sicherung geändert. Neu sichern; nichts abgeschlossen.");return meta;

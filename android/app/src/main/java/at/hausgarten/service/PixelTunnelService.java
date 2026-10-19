@@ -12,7 +12,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /** User-visible, user-stoppable private MCP responder; no dataSync timeout evasion. */
-public final class PixelTunnelService extends Service {
+public final class PixelTunnelService extends Service implements McpSyncHost {
+    @Override public void requestMcpSync(){MainActivity.requestMcpSync(this);}
     public static final String STOP="at.hausgarten.service.PIXEL_TUNNEL_STOP";
     private static final String CHANNEL="pixel_tunnel";
     private static final int NOTICE=2810;
@@ -22,12 +23,12 @@ public final class PixelTunnelService extends Service {
     private volatile PixelTunnelWire.HttpTransport http;
     private ConnectivityManager manager;
     private ConnectivityManager.NetworkCallback callback;
-    private MainActivity.LocalStore store;
+    private PixelLocalStore store;
     private long nextDriveSync;
 
     @Override public void onCreate(){
         super.onCreate();
-        store=new MainActivity.LocalStore(this);
+        store=new PixelLocalStore(this);
         NotificationChannel channel=new NotificationChannel(CHANNEL,"ChatGPT-Verbindung",NotificationManager.IMPORTANCE_LOW);
         ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).createNotificationChannel(channel);
         startForeground(NOTICE,notice("Verbindung startet"));running=true;closing.set(false);

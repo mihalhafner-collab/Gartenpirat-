@@ -10,7 +10,7 @@ final class PixelTunnelLiveProbe {
     static void run(Instrumentation runner, Context context) {
         Bundle result = new Bundle();
         JSONObject report = SyntheticBusinessData.object();
-        MainActivity.LocalStore store = null;
+        PixelLocalStore store = null;
         PixelTunnelWire.HttpTransport http = null;
         try {
             report.put("business_writes", false);
@@ -21,8 +21,8 @@ final class PixelTunnelLiveProbe {
             if (context.getSharedPreferences("haus_garten", 0).getString("drive_snapshot", "").isEmpty())
                 throw new IllegalStateException("Kein tatsächlicher Drive-Datenstand vorhanden.");
             report.put("expected_pixel_id", config.configured() && !config.id().isEmpty());
-            store = new MainActivity.LocalStore(context);
-            final MainActivity.LocalStore source = store;
+            store = new PixelLocalStore(context);
+            final PixelLocalStore source = store;
             http = new PixelTunnelWire.HttpTransport(config.secret(), config.organization());
             final PixelTunnelWire.HttpTransport transport = http;
             // Read-only authentication cross-check; model names are neither used nor reported.

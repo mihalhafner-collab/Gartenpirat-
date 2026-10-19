@@ -7,7 +7,7 @@ import static at.hausgarten.service.EntityContract.*;
 /** Validated customer/order/invoice-draft use cases, independent of transport and storage. */
 final class EntityApplicationService {
     static JSONObject prepare(String name,JSONObject args,JSONObject state,String actionId)throws Exception{
-        JSONObject master=PixelMcpReadTools.effective(state);boolean update=name.startsWith("update_");
+        JSONObject master=SnapshotProjection.effective(state);boolean update=name.startsWith("update_");
         String entity=name.contains("customer")?"customer":name.contains("order")?"order":"invoice";
         String collection=entity.equals("customer")?"customers":entity.equals("order")?"orders":"invoices";
         String[] fields=entity.equals("customer")?CUSTOMER_FIELDS:entity.equals("order")?ORDER_FIELDS:INVOICE_FIELDS;

@@ -5,7 +5,7 @@ import java.util.*;
 
 /** Retryable cleanup after a verified publication and local snapshot commit, never before. */
 final class TrashMediaCleanup {
-    static JSONObject run(MainActivity.LocalStore store,DriveSyncCoordinator.Files files,JSONObject committed)throws Exception {
+    static JSONObject run(PixelLocalStore store,DriveSyncCoordinator.Files files,JSONObject committed)throws Exception {
         JSONObject archive=OwnerJournalRules.archives(committed);int pending=0,done=0;String error="";
         for(Iterator<String> it=archive.keys();it.hasNext();){String key=it.next();JSONObject tombstone=archive.getJSONObject(key);
             if(!tombstone.optBoolean("purged")||!tombstone.has("media")&&!tombstone.has("document"))continue;

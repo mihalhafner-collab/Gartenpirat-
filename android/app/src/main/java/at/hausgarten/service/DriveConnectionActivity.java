@@ -25,7 +25,7 @@ public final class DriveConnectionActivity extends Activity {
     private void validate(){
         final String id;try{if(account.isEmpty())throw new IllegalArgumentException("Bitte zuerst ein Google-Konto auswählen.");id=DriveRestClient.folderId(folder.getText().toString());}catch(Exception e){status.setText(e.getMessage());return;}
         connect.setEnabled(false);status.setText(R.string.drive_connection_7);final String selected=account;
-        new Thread(()->{try(MainActivity.LocalStore store=new MainActivity.LocalStore(this)){
+        new Thread(()->{try(PixelLocalStore store=new PixelLocalStore(this)){
             String granted=DriveAccount.token(this,selected,this);DriveRestClient client=new DriveRestClient(id,()->granted,new DriveRestClient.HttpWire(),new DriveRestClient.Checkpoints(){public String get(String k){return "";}public void put(String k,String v){}});client.validateFolder();
             JSONObject file=client.unique(id,"HausGarten-Laptop.json");if(file==null)throw new IllegalArgumentException("Der bestehende Gesamtstand HausGarten-Laptop.json fehlt. Es wird kein leerer Ersatz angelegt.");
             String content=new String(client.read(file.getString("id"),DriveRestClient.MAX_JSON),StandardCharsets.UTF_8);DriveJournalRules.validateSnapshot(new JSONObject(content));

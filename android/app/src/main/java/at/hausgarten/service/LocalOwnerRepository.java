@@ -1,0 +1,126 @@
+package at.hausgarten.service;
+import android.content.*;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import org.json.*;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+
+/** Existing SQLite/medial storage adapter. Same files, tables, journals and receipt bytes. */
+final class LocalOwnerRepository implements OwnerRepository {
+    private final Context context;
+    private final PixelLocalStore store;
+    LocalOwnerRepository(Context context,PixelLocalStore store){this.context=context;this.store=store;}
+    private static String digest(byte[] bytes)throws Exception{return PhotoAttachmentStore.sha256(bytes);}
+    public JSONObject state(){return store.getState();}
+    public JSONObject effective()throws Exception{return PixelMcpReadTools.effective(state());}
+    public JSONObject settings()throws Exception{return new JSONObject(store.ownerValue("settings","{}"));}
+    public JSONObject fileMeta(String id)throws Exception{try(Cursor row=store.getReadableDatabase().rawQuery("SELECT metadata FROM mcp_uploads WHERE id=?",new String[]{id})){if(!row.moveToFirst())throw new IllegalArgumentException("Die Dateireferenz fehlt.");return new JSONObject(row.getString(0));}}
+    public byte[] fileBytes(String id)throws Exception{
+        int size;try(Cursor row=store.getReadableDatabase().rawQuery("SELECT length(data) FROM mcp_uploads WHERE id=?",new String[]{id})){if(!row.moveToFirst())throw new IllegalArgumentException("Dateireferenz fehlt.");size=row.getInt(0);}
+        if(size>64*1024*1024)throw new IOException("Datei überschreitet Transfergrenze.");ByteArrayOutputStream out=new ByteArrayOutputStream(size);
+        for(int offset=0;offset<size;offset+=PixelMcpOwnerTools.CHUNK)try(Cursor row=store.getReadableDatabase().rawQuery("SELECT substr(data,?,?) FROM mcp_uploads WHERE id=?",new String[]{Integer.toString(offset+1),Integer.toString(Math.min(PixelMcpOwnerTools.CHUNK,size-offset)),id})){if(!row.moveToFirst())throw new IOException("Dateiblock fehlt.");out.write(row.getBlob(0));}
+        return out.toByteArray();
+    }
+    public void putFile(String id,JSONObject meta,byte[] data)throws Exception{ContentValues values=new ContentValues();values.put("id",id);values.put("metadata",meta.toString());values.put("data",data);store.getWritableDatabase().insertWithOnConflict("mcp_uploads",null,values,SQLiteDatabase.CONFLICT_REPLACE);}
+    byte[] asset(String path)throws Exception{try(InputStream in=context.getAssets().open(path)){ByteArrayOutputStream out=new ByteArrayOutputStream();byte[] buffer=new byte[8192];int n;while((n=in.read(buffer))!=-1){if(out.size()+n>20*1024*1024)throw new IOException("Datei zu groß.");out.write(buffer,0,n);}return out.toByteArray();}}
+    JSONArray plants()throws Exception{return new JSONObject(new String(asset("plant-catalog.json"),StandardCharsets.UTF_8)).getJSONArray("plants");}
+    JSONObject entry(String id)throws Exception{return PixelMcpWriteTools.find(plants(),id);}
+    JSONObject readChunk(JSONObject a)throws Exception{
+        String type=a.getString("resource_type"),id=a.getString("resource_id"),mime;byte[] bytes;
+        switch(type){
+            case "photo":{
+                PixelMcpWriteTools.find(effective().getJSONArray("photos"),id);JSONObject m=store.photoAttachment(id);if(m==null)throw new IOException("Original fehlt lokal. Zuerst abgleichen.");
+                // Explicit read may retrieve the referenced, hash-verified original from Drive.
+                try{bytes=store.photoAttachmentStore().read(m);}catch(IOException absent){if(!DriveSyncCoordinator.fetchPhoto(context,m,store.photoAttachmentStore()))throw absent;bytes=store.photoAttachmentStore().read(m);}mime=m.getString("mime_type");break;
+            }
+            case "offer":{JSONObject offer=PixelMcpWriteTools.find(effective().getJSONArray("offers"),id);try{bytes=new BusinessDocumentStore(context).read(offer);}catch(IOException missing){bytes=DriveSyncCoordinator.fetchDocument(context,offer);new BusinessDocumentStore(context).store(bytes,offer);}mime="application/pdf";break;}
+            case "invoice":{JSONObject invoice=PixelMcpWriteTools.find(effective().getJSONArray("invoices"),id);String data=invoice.optString("pdf_base64");if(data.isEmpty()){try{bytes=new BusinessDocumentStore(context).read(invoice);}catch(IOException absent){bytes=DriveSyncCoordinator.fetchDocument(context,invoice);new BusinessDocumentStore(context).store(bytes,invoice);}mime="application/pdf";break;}if(data.length()>28*1024*1024)throw new IOException("PDF zu groß.");bytes=Base64.getDecoder().decode(data);mime="application/pdf";if(bytes.length<5||!new String(bytes,0,5,StandardCharsets.US_ASCII).equals("%PDF-"))throw new IOException("Original-PDF beschädigt.");if(!invoice.optString("pdf_sha256").isEmpty()&&!digest(bytes).equals(invoice.getString("pdf_sha256")))throw new IOException("Original-PDF stimmt nicht mit dem Archiv überein.");break;}
+            case "catalog":{
+                // Only the exact asset paths named by an existing catalog record are addressable.
+                String[] parts=id.split("#",2);JSONObject p=entry(parts[0]);String path=parts.length==2?parts[1]:"";boolean listed=false;JSONArray images=p.optJSONArray("images");for(int i=0;images!=null&&i<images.length();i++)if(path.equals(images.getJSONObject(i).optString("path")))listed=true;
+                if(!listed||path.isEmpty()||path.contains("..")||path.startsWith("/")||!p.toString().contains(JSONObject.quote(path))||!path.matches("[A-Za-z0-9_./-]+\\.(jpg|jpeg|png|webp)"))throw new IllegalArgumentException("Katalogbild nicht freigegeben.");bytes=asset(path);mime=path.endsWith("png")?"image/png":path.endsWith("webp")?"image/webp":"image/jpeg";break;
+            }
+            default:{JSONObject m=fileMeta(id);if(!"backup".equals(m.optString("kind")))throw new IllegalArgumentException("Keine Sicherung.");bytes=fileBytes(id);mime="application/json";}
+        }
+        String hash=digest(bytes);if(!a.has("expected_sha256"))return new JSONObject().put("resource_type",type).put("resource_id",id).put("mime_type",mime).put("byte_size",bytes.length).put("sha256",hash);if(!hash.equals(a.getString("expected_sha256")))throw new PixelMcpWriteTools.Rejected("FILE_VERSION_CONFLICT","Prüfsumme des Originals stimmt nicht mit dem angeforderten Stand überein.");
+        int offset=a.getInt("offset"),length=a.optInt("length",PixelMcpOwnerTools.CHUNK);if(offset>bytes.length)throw new IllegalArgumentException("Dateibereich fehlt.");byte[] part=Arrays.copyOfRange(bytes,offset,Math.min(bytes.length,offset+length));
+        return new JSONObject().put("resource_type",type).put("resource_id",id).put("mime_type",mime).put("byte_size",bytes.length).put("sha256",hash).put("offset",offset).put("next_offset",offset+part.length).put("eof",offset+part.length==bytes.length).put("chunk_sha256",digest(part)).put("chunk_base64",Base64.getEncoder().encodeToString(part));
+    }
+    public JSONObject enqueue(String kind,JSONObject payload,String request)throws Exception{
+        JSONArray predecessors=payload.optJSONArray("_sync_predecessors");if(predecessors==null)predecessors=new JSONArray();JSONArray prior=store.pendingActions();for(int i=0;i<prior.length();i++){JSONObject event=prior.getJSONObject(i);if((!payload.optString("id").isEmpty()&&payload.optString("id").equals(event.getJSONObject("payload").optString("id")))||(kind.equals("business_settings")&&kind.equals(event.getString("kind"))))predecessors.put(event.getString("client_id"));JSONArray linked=payload.optJSONArray("photo_link_ids");for(int j=0;linked!=null&&j<linked.length();j++)if(linked.getJSONObject(j).getString("id").equals(event.getJSONObject("payload").optString("id")))predecessors.put(event.getString("client_id"));}if(predecessors.length()>0)payload.put("_sync_predecessors",predecessors);
+        if(kind.equals("appointment")||kind.equals("offer_convert")){JSONObject parentProjection=new JSONObject(state().getJSONObject("master").toString());DriveJournalRules.apply(parentProjection,prior);Set<String> incorporated=DriveJournalRules.ids(parentProjection.optJSONArray("drive_applied_ids"));
+        String targetOrder=payload.optString("order_id",payload.optString("existing_order_id"));
+        for(int i=0;i<prior.length();i++){JSONObject event=prior.getJSONObject(i),p=event.getJSONObject("payload");String previous=event.getString("client_id"),type=event.getString("kind");if(!incorporated.contains(previous))continue;
+            boolean parent=type.equals("customer")&&p.optBoolean("_mcp_create")&&payload.optString("customer_id").equals(p.optString("id"));
+            if(!targetOrder.isEmpty()&&type.equals("order")&&targetOrder.equals(p.optString("id")))parent=true;
+            if(!targetOrder.isEmpty()&&type.equals("offer_convert")){String converted=p.optString("existing_order_id");if(converted.isEmpty())converted="ord_offer_"+PixelMcpWriteTools.hash(previous).substring(0,32);if(targetOrder.equals(converted))parent=true;}
+            if(parent&&!predecessors.toString().contains(JSONObject.quote(previous)))predecessors.put(previous);
+        }
+        }if(predecessors.length()>0)payload.put("_sync_predecessors",predecessors);
+        if(store.testLocalOnly(kind,payload))payload.put("_local_only",true);
+        ContentValues a=new ContentValues();a.put("id",request);a.put("kind",kind);a.put("payload",payload.toString());a.put("created_at",java.time.Instant.now().toString());store.getWritableDatabase().insertOrThrow("pending",null,a);
+        return new JSONObject().put("client_id",request).put("entity_type",payload.optString("entity",kind)).put("entity_id",payload.optString("id")).put("local_state","local_saved").put("sync_state",payload.optBoolean("_local_only")?"not_applicable":"sync_pending").put("test_local_only",payload.optBoolean("_local_only")).put("cloud_confirmed",false);
+    }
+    JSONObject backupCounts(JSONObject saved)throws Exception{JSONObject out=new JSONObject(),master=saved.getJSONObject("state").getJSONObject("master");for(String key:new String[]{"customers","orders","worklogs","invoices","photos","service_catalog","offers","appointments"})out.put(key,master.getJSONArray(key).length());return out;}
+    public JSONObject createBackup(String request)throws Exception{
+        JSONObject saved=new JSONObject().put("format",1).put("state",state()).put("settings",settings()).put("personal_paid",new JSONArray(store.ownerValue("personal_paid","[]")));JSONArray originals=new JSONArray();long originalBytes=0;
+        try(Cursor rows=store.getReadableDatabase().rawQuery("SELECT photo_id FROM photo_attachments ORDER BY photo_id",null)){while(rows.moveToNext()){String id=rows.getString(0);JSONObject m=store.photoAttachment(id);byte[] bytes;try{bytes=store.photoAttachmentStore().read(m);}catch(Exception missing){throw new IOException("Sicherung nicht vollständig: ein Foto-Original fehlt lokal. Zuerst vollständig laden.");}originalBytes+=bytes.length;if(originalBytes>40*1024*1024)throw new IOException("Vollständige Datei-/Gerätesicherung für diesen Fotoumfang verwenden.");originals.put(new JSONObject().put("photo_id",id).put("metadata",m).put("base64",Base64.getEncoder().encodeToString(bytes)));}}
+        saved.put("originals",originals);JSONArray documents=new JSONArray();JSONObject master=saved.getJSONObject("state").getJSONObject("master");long mediaBytes=originalBytes;
+        for(String collection:new String[]{"invoices","offers"})for(int i=0;i<master.getJSONArray(collection).length();i++){JSONObject record=master.getJSONArray(collection).getJSONObject(i);if(record.optString("pdf_storage_name").isEmpty())continue;byte[] pdf;try{pdf=new BusinessDocumentStore(context).read(record);}catch(Exception missing){throw new IOException("Sicherung nicht vollständig: ein Dokument fehlt lokal. Zuerst vollständig laden.");}mediaBytes+=pdf.length;if(mediaBytes>40*1024*1024)throw new IOException("Vollständige Datei-/Gerätesicherung für diesen Medienumfang verwenden.");documents.put(new JSONObject().put("metadata",record).put("base64",Base64.getEncoder().encodeToString(pdf)));}
+        saved.put("documents",documents);
+        // A backup is an explicit private transfer artifact, never a business snapshot or log.
+        byte[] bytes=saved.toString().getBytes(StandardCharsets.UTF_8);if(bytes.length>64*1024*1024)throw new IOException("Sicherung überschreitet die sichere Transfergrenze von 64 MiB. Vollständige Geräte-/Dateisicherung verwenden; kein Teilerfolg.");
+        String id="backup_"+PixelMcpWriteTools.hash(request);JSONObject meta=new JSONObject().put("kind","backup").put("byte_size",bytes.length).put("sha256",digest(bytes)).put("created_at",java.time.Instant.now().toString()).put("includes_credentials",false).put("scope","business_snapshot_pending_local_photos_and_documents");putFile(id,meta,bytes);return new JSONObject().put("backup_id",id).put("metadata",meta).put("collections",backupCounts(saved)).put("complete_device_backup",false);
+    }
+    public JSONObject restoreBackup(JSONObject a,String request)throws Exception{
+        if(!PixelMcpWriteTools.hash(state()).equals(a.getString("expected_state_hash")))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","App-Datenstand wurde seit Prüfung geändert.");
+        if(state().getJSONArray("pending").length()!=0||!"IDLE".equals(state().getJSONObject("work_session").optString("state")))throw new IllegalArgumentException("Ausstehende Aktionen oder Zeiterfassung zuerst prüfen. Keine Daten ersetzt.");
+        JSONObject meta=fileMeta(a.getString("backup_id"));byte[] bytes=fileBytes(a.getString("backup_id"));if(!"backup".equals(meta.optString("kind"))||!digest(bytes).equals(meta.getString("sha256")))throw new IllegalArgumentException("Sicherung beschädigt.");
+        JSONObject backup=new JSONObject(new String(bytes,StandardCharsets.UTF_8)),old=backup.getJSONObject("state");if(old.getJSONArray("pending").length()!=0||!"IDLE".equals(old.getJSONObject("work_session").optString("state")))throw new IllegalArgumentException("Sicherung enthält offene Aktionen oder Zeiterfassung. Nur isoliert prüfen; keine automatische Übernahme.");
+        JSONObject target=effective(),source=old.getJSONObject("master");DriveJournalRules.validateSnapshot(source);
+        // First verify every existing ID. A single conflict aborts the whole transaction.
+        for(String key:new String[]{"customers","orders","worklogs","invoices","photos","service_catalog","offers","appointments"})for(int i=0;i<source.getJSONArray(key).length();i++){JSONObject row=source.getJSONArray(key).getJSONObject(i);String entity=key.equals("customers")?"customer":key.equals("orders")?"order":key.equals("appointments")?"appointment":key.equals("worklogs")?"worklog":key.equals("invoices")?"invoice":key.equals("offers")?"offer":key.equals("service_catalog")?"service_template":"photo";if(TrashRules.purged(target,entity,row.getString("id")))throw new PixelMcpWriteTools.Rejected("RECORD_PURGED","Sicherung enthält endgültig gelöschte IDs. Keine automatische Wiederherstellung.");JSONObject existing=OwnerJournalRules.findOrNull(target.getJSONArray(key),row.getString("id"));if(existing!=null&&!OwnerJournalRules.version(existing).equals(OwnerJournalRules.version(row)))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Sicherung und aktuelle Daten enthalten verschiedene Versionen. Keine Überschreibung.");}
+        int count=0;for(String key:new String[]{"customers","orders","worklogs","invoices","photos","service_catalog","offers","appointments"}){JSONArray rows=source.getJSONArray(key);for(int i=0;i<rows.length();i++){JSONObject row=rows.getJSONObject(i);if(OwnerJournalRules.findOrNull(target.getJSONArray(key),row.getString("id"))==null){String entity=key.equals("customers")?"customer":key.equals("orders")?"order":key.equals("appointments")?"appointment":key.equals("worklogs")?"worklog":key.equals("invoices")?"invoice":"photo";if(OwnerJournalRules.archives(target).has(entity+":"+row.getString("id")))throw new IllegalArgumentException("Archiveintrag zuerst ausdrücklich prüfen und wiederherstellen.");if(key.equals("invoices")&&!row.optString("issued_at").isEmpty())throw new IllegalArgumentException("Ausgestellte Rechnungen benötigen vollständige Archivwiederherstellung; nichts übernommen.");String kind=key.equals("customers")?"customer":key.equals("orders")?"order":key.equals("appointments")?"appointment":key.equals("worklogs")?"worklog":key.equals("invoices")?"invoice":key.equals("offers")?"offer":key.equals("service_catalog")?"service_template":"photo";if(key.equals("offers")&&!row.optString("status","draft").equals("draft"))throw new IllegalArgumentException("Finalisierte Angebote benötigen vollständige Archivwiederherstellung; nichts übernommen.");JSONObject p=DriveJournalRules.clean(row);p.put("_mcp_create",true);DriveJournalRules.validateChange(kind,p,null,target);target.getJSONArray(key).put(row);enqueue(kind,p,request+"_"+count++);}}}
+        // Media must already be verified locally; never restore dangling references.
+        JSONArray originals=backup.getJSONArray("originals");for(int i=0;i<originals.length();i++){JSONObject photo=originals.getJSONObject(i);JSONObject m=photo.getJSONObject("metadata");store.photoAttachmentStore().storeExpected(Base64.getDecoder().decode(photo.getString("base64")),m);store.restoreAttachmentMetadata(photo.getString("photo_id"),m);}
+        JSONArray documents=backup.optJSONArray("documents");for(int i=0;documents!=null&&i<documents.length();i++){JSONObject document=documents.getJSONObject(i);new BusinessDocumentStore(context).store(Base64.getDecoder().decode(document.getString("base64")),document.getJSONObject("metadata"));}
+        return new JSONObject().put("added_records",count).put("overwritten_records",0).put("sync_state","sync_pending");
+    }
+
+    @Override public JSONArray pendingActions()throws Exception{return store.pendingActions();}
+    @Override public String ownerValue(String key,String fallback){return store.ownerValue(key,fallback);}
+    @Override public void putOwnerValue(String key,String value){store.putOwnerValue(key,value);}
+    @Override public String savePhoto(JSONObject payload)throws Exception{return store.savePhoto(payload);}
+    @Override public void replaceWorklog(JSONObject p)throws Exception{
+        Set<String> prior=new HashSet<>();JSONArray before=store.pendingActions();for(int i=0;i<before.length();i++)prior.add(before.getJSONObject(i).getString("client_id"));store.saveWorklog(p);
+        JSONArray after=store.pendingActions();for(int i=0;i<after.length();i++){JSONObject added=after.getJSONObject(i);if(!prior.contains(added.getString("client_id"))&&"worklog".equals(added.getString("kind"))&&p.getString("id").equals(added.getJSONObject("payload").optString("id")))store.getWritableDatabase().delete("pending","id=?",new String[]{added.getString("client_id")});}
+    }
+    @Override public JSONObject createDocument(JSONObject record)throws Exception{return new BusinessDocumentStore(context).create(record);}
+    @Override public void readDocument(JSONObject record)throws Exception{new BusinessDocumentStore(context).read(record);}
+    @Override public JSONObject verifyDelivery(String id,JSONObject offer)throws Exception{return MailAccount.client(context).verify(id,offer);}
+    @Override public void verifyLegacyBackup(String id,String preview)throws Exception{LegacyConflictBackup.verify(context,store,id,preview);}
+    @Override public JSONObject planningSettings()throws Exception{return AppointmentRuntime.publicSettings(context,store);}
+    @Override public boolean calendarConnected(){return PlanningAccount.connected(context);}
+    @Override public boolean weatherCredentialAvailable(){return PlanningAccount.prefs(context).contains("weather_secret");}
+    @Override public void savePlanningSettings(JSONObject settings,String expected)throws Exception{AppointmentRuntime.saveSettings(context,store,settings,expected);}
+    @Override public JSONObject requestPlanning()throws Exception{return AppointmentRuntime.request(context,store);}
+    @Override public JSONObject acknowledgeWeather(JSONObject args)throws Exception{return AppointmentRuntime.acknowledge(context,store,args);}
+    @Override public JSONObject resolveCalendar(JSONObject args)throws Exception{return AppointmentRuntime.resolve(context,store,args);}
+    @Override public void checkBusy(JSONObject appointment)throws Exception{AppointmentRuntime.checkBusy(store,appointment);}
+    interface Request { JSONObject run() throws Exception; }
+    JSONObject runRequest(String request,String fingerprint,Request command)throws Exception{
+        SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();JSONObject result;
+        try{
+            String old=store.ownerValue("receipt:"+request,"");if(!old.isEmpty()){JSONObject receipt=new JSONObject(old);if(!fingerprint.equals(receipt.getString("fingerprint")))throw new PixelMcpWriteTools.Rejected("REPLAY_MISMATCH","Die Anfragekennung gehört zu anderen Angaben.");result=receipt.getJSONObject("result").put("replayed",true);}
+            else{result=command.run();store.putOwnerValue("receipt:"+request,new JSONObject().put("fingerprint",fingerprint).put("result",result).toString());}
+            db.setTransactionSuccessful();
+        }finally{db.endTransaction();}
+        return result;
+    }
+    JSONObject prepareLegacyBackup(String request,String preview)throws Exception{return LegacyConflictBackup.create(context,store,request,preview);}
+    JSONObject photoStorageSummary()throws Exception{return store.photoAttachmentStore().storageSummary();}
+    JSONObject listBackups()throws Exception{
+JSONArray out=new JSONArray();try(Cursor rows=store.getReadableDatabase().rawQuery("SELECT id,metadata FROM mcp_uploads ORDER BY rowid DESC",null)){while(rows.moveToNext()){JSONObject m=new JSONObject(rows.getString(1));if("backup".equals(m.optString("kind")))out.put(new JSONObject().put("backup_id",rows.getString(0)).put("metadata",m));if(out.length()>=100)break;}}return new JSONObject().put("backups",out);    }
+}

@@ -5,7 +5,7 @@ import java.util.*;
 /** Effects required by owner use cases. No Android, SQL, UI or provider types. */
 interface OwnerRepository {
     JSONObject state() throws Exception;
-    default JSONObject effective() throws Exception { return PixelMcpReadTools.effective(state()); }
+    default JSONObject effective() throws Exception { return SnapshotProjection.effective(state()); }
     default JSONObject settings() throws Exception { return new JSONObject(ownerValue("settings","{}")); }
     String ownerValue(String key,String fallback);
     void putOwnerValue(String key,String value);

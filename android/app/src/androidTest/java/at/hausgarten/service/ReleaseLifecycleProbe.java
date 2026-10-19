@@ -31,7 +31,7 @@ final class ReleaseLifecycleProbe {
         require("true".equals(js(runner,view,"(()=>{document.getElementById('planning-back').click();return !!document.querySelector('[data-planning-resume]')&&!!document.querySelector('#planning-page [data-open=weeks]');})()")));
     }
     static void require(boolean value){if(!value)throw new AssertionError("Lifecycle condition failed");}
-    static String fingerprint(MainActivity.LocalStore store)throws Exception{
+    static String fingerprint(PixelLocalStore store)throws Exception{
         JSONObject state=store.getState();
         JSONObject master=SyntheticBusinessData.object(state.getJSONObject("master").toString());
         // Only fields introduced AFTER the recorded source release may be absent in its baseline.
@@ -41,11 +41,11 @@ final class ReleaseLifecycleProbe {
         return PixelMcpWriteTools.hash(SyntheticBusinessData.object().put("master",master).put("pending",state.getJSONArray("pending")));
     }
     static void run(Instrumentation runner,Context context,String mode){
-        Bundle report=new Bundle();MainActivity.LocalStore store=null;
+        Bundle report=new Bundle();PixelLocalStore store=null;
         try{
             require(Build.FINGERPRINT.startsWith("google/sdk_gphone")||Build.FINGERPRINT.contains("generic")||Build.MODEL.startsWith("sdk_"));
             SharedPreferences prefs=context.getSharedPreferences("haus_garten",0);
-            store=new MainActivity.LocalStore(context);
+            store=new PixelLocalStore(context);
             if(mode.equals("ui")){
                 ui(runner,context);report.putString("stream","PASS native WebView boot, compatible JavaScript, complete navigation, work selection/cancel, customer garden and trash on isolated emulator\n");
             }else if(mode.equals("fresh")){
