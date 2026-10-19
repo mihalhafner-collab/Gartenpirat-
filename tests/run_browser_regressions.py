@@ -19,7 +19,7 @@ NAMES = ['current-data-ui-smoke.cjs', 'planning-ui.test.cjs', 'invoice-editor.te
          'gartenpirat-removal.test.cjs', 'customer-duplicate-ui.test.cjs', 'gartenpirat-plants.test.cjs',
          'gartenpirat-photo.test.cjs', 'garden-followup.test.cjs', 'customer-photos.test.cjs',
          'work-entry-photo-failure.test.cjs', 'camera-timer-static.test.cjs', 'personal-payment.test.cjs',
-         'access-integrity.test.cjs', 'sync-customer-gallery.test.cjs', 'offers-photo-library.test.cjs', 'sync-trash.test.cjs', 'worklog-batch.test.cjs', 'runtime-compat.test.cjs']
+         'access-integrity.test.cjs', 'sync-customer-gallery.test.cjs', 'offers-photo-library.test.cjs', 'sync-trash.test.cjs', 'worklog-batch.test.cjs', 'runtime-compat.test.cjs', 'owner-client-contract.test.cjs']
 
 
 if __name__ == '__main__':

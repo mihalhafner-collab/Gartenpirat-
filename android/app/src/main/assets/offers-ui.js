@@ -1,9 +1,9 @@
 /* Existing app navigation and native owner journal; no parallel browser database. */
 (()=>{'use strict';
  const contract=window.OfferContract,types=contract.document_types,typeInfo=id=>types.find(t=>t.id===id)||{label:id?'Unbekannte Dokumentart: '+id:'Dokumentart fehlt',notice:''};
- const $=id=>document.getElementById(id),draftKey='hausgarten.offer.editor.v1',clone=x=>JSON.parse(JSON.stringify(x));
+ const $=id=>document.getElementById(id),draftKey='hausgarten.offer.editor.v1',clone=window.HGOwnerClient.clone;
  let page,editor=null,templates=[],request=null,speechTarget=false,listOffset=0,listFilters={};
- function call(name,args={}){const r=JSON.parse(AndroidData.ownerCall(name,JSON.stringify(args)));if(!r.ok)throw new Error(r.error?.message||'Vorgang nicht bestätigt');return r.data;}
+ const call=window.HGOwnerClient.create("Vorgang nicht bestätigt");
  function documentNotices(settings={}){return Object.fromEntries(types.map(t=>[t.id,t.id==='fixed_price'?'':settings[{estimate_binding:'offer_binding_text',estimate_nonbinding:'offer_nonbinding_text',time_material:'offer_time_material_text'}[t.id]]||t.notice]));}
  function rows(){return merged('offers','offer');}
  function retain(){if(editor)try{localStorage.setItem(draftKey,JSON.stringify({editor,request}));}catch(_){status('Entwurf nur in dieser Ansicht erhalten. Bitte ausdrücklich speichern.');}}

@@ -1,0 +1,27 @@
+[
+  {
+    "module": "offers-ui",
+    "before": "function(name,args={}){const r=JSON.parse(AndroidData.ownerCall(name,JSON.stringify(args)));if(!r.ok)throw new Error(r.error?.message||'Vorgang nicht bestätigt');return r.data;}",
+    "fallback": "Vorgang nicht bestätigt"
+  },
+  {
+    "module": "planning-ui",
+    "before": "function(name,args={}){const raw=JSON.parse(AndroidData.ownerCall(name,JSON.stringify(args)));if(!raw.ok)throw new Error(raw.error?.message||'Vorgang nicht bestätigt.');return raw.data;}",
+    "fallback": "Vorgang nicht bestätigt."
+  },
+  {
+    "module": "trash-ui",
+    "before": "function(name,args={}){const r=JSON.parse(AndroidData.ownerCall(name,JSON.stringify(args)));if(!r.ok)throw new Error(r.error?.message||'Speicherung nicht bestätigt.');return r.data;}",
+    "fallback": "Speicherung nicht bestätigt."
+  },
+  {
+    "module": "legacy-conflicts-ui",
+    "before": "function(name,args={}){const r=JSON.parse(AndroidData.ownerCall(name,JSON.stringify(args)));if(!r.ok)throw new Error(r.error?.message||'Vorgang nicht abgeschlossen');return r.data;}",
+    "fallback": "Vorgang nicht abgeschlossen"
+  },
+  {
+    "module": "owner-ui",
+    "before": "(n,a={})=>{const r=JSON.parse(AndroidData.ownerCall(n,JSON.stringify(a)));if(!r.ok)throw new Error(r.error?.message||'Einstellungen nicht verfügbar');return r.data;}",
+    "fallback": "Einstellungen nicht verfügbar"
+  }
+]

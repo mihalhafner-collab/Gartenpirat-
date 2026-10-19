@@ -3,7 +3,7 @@
  'use strict';
  const get=id=>document.getElementById(id),names={customer:'Kunde',order:'Auftrag',worklog:'Arbeit',photo:'Foto',invoice:'Rechnungsentwurf',offer:'Angebotsentwurf',service_template:'Leistungsbaustein'},groups={customer:'customers',order:'orders',worklog:'worklogs',photo:'photos',invoice:'invoices',offer:'offers',service_template:'service_catalog'},requests=new Map();
  let offset=0,entries=[],busy=false;
- function call(name,args={}){const r=JSON.parse(AndroidData.ownerCall(name,JSON.stringify(args)));if(!r.ok)throw new Error(r.error?.message||'Speicherung nicht bestätigt.');return r.data;}
+ const call=window.HGOwnerClient.create("Speicherung nicht bestätigt.");
  function request(key){if(!requests.has(key)){const saved=localStorage.getItem('hausgarten.trash.request.'+key),id=saved||'trash-'+crypto.randomUUID();requests.set(key,id);try{localStorage.setItem('hausgarten.trash.request.'+key,id);}catch(_){}}return requests.get(key);}
  function empty(){
   if(busy)return false;

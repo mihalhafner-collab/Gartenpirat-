@@ -1,11 +1,11 @@
 /* One operative appointment editor. Drafts and original compare versions survive navigation/retry. */
 (() => {
  'use strict';
- const $=id=>document.getElementById(id),key='hausgarten.planning.draft.v1',copy=x=>JSON.parse(JSON.stringify(x));
+ const $=id=>document.getElementById(id),key='hausgarten.planning.draft.v1',copy=window.HGOwnerClient.clone;
  const labels={draft:'Entwurf',tentative:'Vorgemerkt',confirmed:'Mit Kunde bestätigt',completed:'Erledigt',cancelled:'Abgesagt'};
  const profiles={general:'Allgemeine Außenarbeit',lawn:'Rasen / Boden',hedge:'Hecken / Gehölze',planting:'Pflanzen / Bewässerung',inspection:'Besichtigung',indoor:'Wetterarme Tätigkeit'};
  let editor=null,view='week',anchor=new Date(),customerFilter='',offset=0,total=0,items=[],locationRequest='',homeKey='';
- function call(name,args={}){const raw=JSON.parse(AndroidData.ownerCall(name,JSON.stringify(args)));if(!raw.ok)throw new Error(raw.error?.message||'Vorgang nicht bestätigt.');return raw.data;}
+ const call=window.HGOwnerClient.create("Vorgang nicht bestätigt.");
  const uuid=()=>crypto.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
  const day=date=>{const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Vienna',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date);return ['year','month','day'].map(k=>parts.find(p=>p.type===k).value).join('-');};
  const stamp=s=>new Date(s).toLocaleString('de-AT',{timeZone:'Europe/Vienna',weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
