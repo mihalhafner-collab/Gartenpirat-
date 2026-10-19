@@ -180,6 +180,9 @@ final class PhotoAttachmentStore {
         return bytes;
     }
 
+    static String legacyName(JSONObject photo)throws Exception {
+        String name=photo.optString("filename");if(!name.matches("[A-Za-z0-9][A-Za-z0-9_.-]{0,179}\\.(?:jpg|jpeg|png|webp|gif|heic|heif)")||name.contains("..")||!photo.optString("storage_name").isEmpty())throw new PixelMcpWriteTools.Rejected("LEGACY_MEDIA_UNAVAILABLE","Altes Foto benötigt eine sichere Dateireferenz und sein Original im freigegebenen Fotoordner.");return name;
+    }
     static boolean canonicalName(String name){return name!=null&&name.matches("[0-9a-f]{64}\\.(?:jpg|png|webp|gif|heic)");}
     static String canonicalMime(String value){value=value==null?"":value.trim().toLowerCase(Locale.ROOT);if(value.equals("image/jpg")||value.equals("image/pjpeg"))return "image/jpeg";if(value.equals("image/heif"))return "image/heic";return value;}
     static String sniff(byte[] bytes){

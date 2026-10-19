@@ -70,6 +70,9 @@ Der ausdrücklich zur Bereinigung freigegebene falsche 1-EUR-Testentwurf bleibt 
 
 ## 5. Offene Sync-Warteschlange
 
+Aktueller realer Sicherungsversuch im installierten Build 77: `READ_ERROR: Ungültige Foto-Dateireferenz.` Mindestens eine ältere Foto-Referenz verhindert die vollständige Sicherung; zwölf aktive Snapshot-Fotozeilen besitzen noch keine heutigen SHA-/Storage-Metadaten. Keine Altentscheidung ohne vollständigen Beleg. Der ergänzte Quellweg sichert exakt referenzierte Legacy-Originale mit zwei identischen Provider-Reads und beobachtetem Hash im selben Backup, ohne Foto-/Geschäftsdaten umzuschreiben. Realer Nachtest nach Update bleibt offen.
+
+
 Aktuell existieren exakt 7 Review-Aktionen. `pending_upload=0`; der normale Drive-Abgleich ist nicht technisch fehlgeschlagen.
 
 1. `wrk_mobile_913976ba4bd1453ba75a5468b89c3c32`  

@@ -66,7 +66,8 @@ final class LegacyConflictBackup {
             // Fail before confirmation if any referenced local original is absent/corrupt.
             JSONObject all=PixelMcpReadTools.effective(state);JSONArray photos=new JSONArray(all.getJSONArray("photos").toString());
             JSONObject archived=OwnerJournalRules.archives(all);for(Iterator<String> it=archived.keys();it.hasNext();){String key=it.next();JSONObject entry=archived.getJSONObject(key);if(key.startsWith("photo:")&&entry.has("record"))photos.put(entry.getJSONObject("record"));}
-            for(int i=0;i<photos.length();i++){JSONObject photo=photos.getJSONObject(i),m=store.photoAttachment(photo.getString("id"));if(m==null)m=photo;
+            JSONArray legacyPhotos=new JSONArray();
+            for(int i=0;i<photos.length();i++){JSONObject photo=photos.getJSONObject(i),m=store.photoAttachment(photo.getString("id"));if(m==null&&photo.optString("storage_name").isEmpty()){PhotoAttachmentStore.legacyName(photo);legacyPhotos.put(photo);continue;}if(m==null)m=photo;
                 try{store.photoAttachmentStore().read(m);}catch(IOException absent){store.photoAttachmentStore().storeExpected(drive.readPhotoVerified(m),m);}
             }
             JSONArray documents=new JSONArray();for(String collection:new String[]{"invoices","offers"}){JSONArray docs=all.getJSONArray(collection);for(int i=0;i<docs.length();i++)documents.put(docs.getJSONObject(i));}
@@ -78,15 +79,23 @@ final class LegacyConflictBackup {
             JSONObject latest=drive.readPrimary(new JSONObject(latestRaw),device,!expected.isEmpty());
             if(!primaryId.equals(latest.optString("drive_parent_publication_id"))||!PixelMcpWriteTools.hash(primary).equals(PixelMcpWriteTools.hash(latest)))throw new IOException("Drive-Stand während der Sicherung geändert. Sicherung erneut erstellen.");
             try(ZipOutputStream out=new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zip)))){
+                JSONArray legacyIndex=new JSONArray();
+                for(int i=0;i<legacyPhotos.length();i++){
+                    JSONObject photo=legacyPhotos.getJSONObject(i);byte[] bytes=drive.readLegacyPhoto(photo);JSONObject inspected=store.photoAttachmentStore().inspect(bytes,"");byte[] readback=drive.readLegacyPhoto(photo);if(!PhotoAttachmentStore.sha256(bytes).equals(PhotoAttachmentStore.sha256(readback)))throw new IOException("Legacy-Foto während der Sicherung geändert; nichts abgeschlossen.");
+                    String path="legacy-photos/"+PixelMcpWriteTools.hash(photo.getString("id"))+"/"+PhotoAttachmentStore.legacyName(photo);add(out,path,bytes);legacyIndex.put(new JSONObject().put("photo_id",photo.getString("id")).put("snapshot_record_hash",PixelMcpWriteTools.hash(photo)).put("filename",photo.getString("filename")).put("archive_path",path).put("observed_sha256",inspected.getString("content_sha256")).put("byte_size",bytes.length).put("mime_type",inspected.getString("mime_type")).put("verification","two_identical_provider_reads_no_historical_hash"));
+                }
+                add(out,"legacy-photo-index.json",legacyIndex.toString().getBytes(StandardCharsets.UTF_8));
                 add(out,"database/local.sqlite",dbCopy);add(out,"snapshot/local.json",state.toString().getBytes(StandardCharsets.UTF_8));add(out,"snapshot/drive.json",raw.getBytes(StandardCharsets.UTF_8));add(out,"preview.json",preview.toString().getBytes(StandardCharsets.UTF_8));
                 add(out,"snapshot/drive-primary.json",primaryBytes);add(out,"snapshot/drive-primary-commit.json",manifest);
                 walk(out,c.getFilesDir(),"files/");File prefs=new File(c.getApplicationInfo().dataDir,"shared_prefs");walk(out,prefs,"shared_prefs/");
                 // WebView browser drafts and Android credentials require the separate device backup.
                 // The operative database, queue, local media and private business files are included.
             }
+            if(!raw.equals(drive.read("HausGarten-Laptop.json")))throw new IOException("Drive-Quelle während der Mediensicherung geändert. Sicherung erneut erstellen.");
+            JSONObject afterMedia=drive.readPrimary(new JSONObject(raw),device,!expected.isEmpty());if(!primaryId.equals(afterMedia.optString("drive_parent_publication_id"))||!PixelMcpWriteTools.hash(primary).equals(PixelMcpWriteTools.hash(afterMedia)))throw new IOException("Drive-Gesamtstand während der Mediensicherung geändert. Sicherung erneut erstellen.");
             LegacyConflictRules.require(store.getState(),preview.getString("preview_hash"));
             if(!PixelMcpWriteTools.hash(state).equals(PixelMcpWriteTools.hash(store.getState())))throw new IOException("Lokaler Bestand wurde während der Sicherung geändert. Sicherung erneut erstellen.");
-            JSONObject meta=new JSONObject().put("backup_id",id).put("complete",true).put("scope","local_business_database_queue_all_local_media_and_drive_snapshot").put("confirmation_scope",drive.cloudVerified()?"drive_server_manifest":"provider_readback").put("cloud_confirmed",false).put("drive_publication_id",primaryId).put("complete_device_backup",false).put("preview_hash",preview.getString("preview_hash")).put("sha256",sha(zip)).put("byte_size",zip.length()).put("created_at",java.time.Instant.now().toString());
+            JSONObject meta=new JSONObject().put("backup_id",id).put("complete",true).put("scope","local_business_database_queue_all_local_media_and_drive_snapshot").put("confirmation_scope",drive.cloudVerified()?"drive_server_manifest":"provider_readback").put("cloud_confirmed",false).put("drive_publication_id",primaryId).put("complete_device_backup",false).put("legacy_photo_originals",legacyPhotos.length()).put("preview_hash",preview.getString("preview_hash")).put("sha256",sha(zip)).put("byte_size",zip.length()).put("created_at",java.time.Instant.now().toString());
             meta.put("business_hash",businessHash(state)).put("legacy_source_sha256",PixelMcpWriteTools.hash(new JSONObject(raw))).put("legacy_source_changed",primary.optBoolean("drive_legacy_source_changed")).put("normal_sync_authorized",!primary.optBoolean("drive_legacy_source_changed"));
             // Read every ZIP member to EOF and verify its CRC before marking the backup complete.
             try(ZipFile checked=new ZipFile(zip)){Enumeration<? extends ZipEntry> entries=checked.entries();byte[] b=new byte[65536];while(entries.hasMoreElements()){ZipEntry e=entries.nextElement();java.util.zip.CRC32 crc=new java.util.zip.CRC32();try(InputStream in=checked.getInputStream(e)){int n;while((n=in.read(b))!=-1)crc.update(b,0,n);}if(crc.getValue()!=e.getCrc())throw new IOException("Sicherungsprüfung fehlgeschlagen.");}}

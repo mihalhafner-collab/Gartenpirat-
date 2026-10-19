@@ -43,6 +43,9 @@ final class DriveDirectFiles extends DriveSyncCoordinator.Files {
         JSONArray result=new JSONArray();String prefix=name.substring(0,name.length()-5)+"-";
         for(DriveSyncCoordinator.Doc doc:documents())if(doc.name.equals(name)||(doc.name.startsWith(prefix)&&doc.name.endsWith(".json")))result=DriveJournalRules.union(result,new JSONObject(read(doc.uri)).getJSONArray("actions"));return result;
     }
+    @Override byte[] readLegacyPhoto(JSONObject photo)throws Exception {
+        String name=PhotoAttachmentStore.legacyName(photo);client.refresh();JSONObject directory=client.unique(client.folder,"HausGarten-Fotos");if(directory==null)throw new IOException("Legacy-Fotoordner fehlt; keine vollständige Sicherung.");JSONObject file=client.unique(directory.getString("id"),name);if(file==null)throw new IOException("Legacy-Foto fehlt; keine vollständige Sicherung.");return client.read(file.getString("id"),PhotoAttachmentStore.MAX_BYTES);
+    }
     @Override byte[] readPhotoVerified(JSONObject metadata)throws Exception{
         JSONObject directory=client.unique(client.folder,"HausGarten-Fotos");if(directory==null)throw new IOException("Foto-Original ist in Drive noch nicht verfügbar.");JSONObject file=client.unique(directory.getString("id"),metadata.getString("storage_name"));if(file==null)throw new IOException("Foto-Original ist in Drive noch nicht verfügbar.");byte[] bytes=client.read(file.getString("id"),PhotoAttachmentStore.MAX_BYTES);verifyBytes(bytes,metadata);return bytes;
     }

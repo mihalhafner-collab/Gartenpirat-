@@ -295,6 +295,9 @@ final class DriveSyncCoordinator {
         private void verifyBytes(byte[] bytes,JSONObject metadata)throws Exception{
             if(bytes.length!=metadata.getLong("byte_size")||!PhotoAttachmentStore.sha256(bytes).equals(metadata.getString("content_sha256"))||!PhotoAttachmentStore.sniff(bytes).equals(PhotoAttachmentStore.canonicalMime(metadata.getString("mime_type"))))throw new IOException("Drive-Foto stimmt nicht mit Prüfsumme, Größe oder Dateityp überein.");
         }
+        byte[] readLegacyPhoto(JSONObject photo)throws Exception {
+            String name=PhotoAttachmentStore.legacyName(photo);Uri folder=photoDirectory(false);if(folder==null)throw new IOException("Legacy-Fotoordner fehlt; keine vollständige Sicherung.");ArrayList<Doc> found=photoMatches(folder,name);if(found.size()!=1)throw new IOException("Legacy-Foto fehlt oder ist nicht eindeutig; keine vollständige Sicherung.");return readBytes(found.get(0).uri);
+        }
         byte[] readPhotoVerified(JSONObject metadata)throws Exception{
             String name=metadata.optString("storage_name");if(!PhotoAttachmentStore.canonicalName(name))throw new IllegalArgumentException("Ungültige Foto-Dateireferenz.");Uri folder=photoDirectory(false);if(folder==null)throw new IOException("Der Ordner HausGarten-Fotos fehlt. Das lokale Original bleibt erhalten.");ArrayList<Doc> found=photoMatches(folder,name);if(found.size()!=1)throw new IOException("Das Foto-Original fehlt oder ist nicht eindeutig in HausGarten-Fotos.");byte[] bytes=readBytes(found.get(0).uri);verifyBytes(bytes,metadata);return bytes;
         }
