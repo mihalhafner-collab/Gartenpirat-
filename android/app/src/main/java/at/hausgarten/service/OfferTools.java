@@ -12,7 +12,7 @@ final class OfferTools {
         JSONObject p=new JSONObject();for(String k:OfferRules.FIELDS)p.put(k,PixelMcpOwnerTools.text(10000));
         for(String k:new String[]{"scope_confirmed","consumer_information_confirmed"})p.put(k,PixelMcpOwnerTools.bool());
         p.put("document_type",PixelMcpOwnerTools.enumeration(OfferRules.TYPES)).put("customer_type",PixelMcpOwnerTools.enumeration("b2b","consumer")).put("contract_channel",PixelMcpOwnerTools.enumeration("on_premise","distance","off_premise")).put("tax_mode",PixelMcpOwnerTools.enumeration("small_business","standard"));
-        JSONObject line=new JSONObject();for(String k:new String[]{"title","description","unit","catalog_entry_id","catalog_hash","price_source"})line.put(k,PixelMcpOwnerTools.text(10000));
+        JSONObject line=new JSONObject();for(String k:new String[]{"title","description","unit","catalog_entry_id","catalog_hash"})line.put(k,PixelMcpOwnerTools.text(10000));\n        line.put("price_source",PixelMcpOwnerTools.enumeration("user_confirmed").put("description","Bei einem ausdrücklich vom Nutzer bestätigten manuellen Preis exakt user_confirmed verwenden; bei freigegebenem Katalogpreis weglassen und catalog_entry_id/catalog_hash verwenden."));
         for(String k:new String[]{"quantity","price","tax_rate"})line.put(k,new JSONObject().put("type",new JSONArray().put("number").put("null")).put("minimum",0).put("maximum",1000000000));
         p.put("positions",new JSONObject().put("type","array").put("maxItems",200).put("items",PixelMcpOwnerTools.object(line,"title","unit")));return p;
     }
