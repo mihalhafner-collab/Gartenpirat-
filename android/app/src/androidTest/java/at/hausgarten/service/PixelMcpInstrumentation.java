@@ -151,6 +151,7 @@ public final class PixelMcpInstrumentation extends Instrumentation {
         @Override public Context getApplicationContext(){return this;}
         @Override public File getFilesDir(){return getBaseContext().getDir(prefix+"files",MODE_PRIVATE);}
         @Override public File getCacheDir(){return getBaseContext().getDir(prefix+"cache",MODE_PRIVATE);}
+        @Override public File getNoBackupFilesDir(){return getBaseContext().getDir(prefix+"no_backup",MODE_PRIVATE);}
         @Override public SharedPreferences getSharedPreferences(String n,int mode){return super.getSharedPreferences(name(n),mode);}
         @Override public File getDatabasePath(String n){return super.getDatabasePath(name(n));}
         @Override public SQLiteDatabase openOrCreateDatabase(String n,int mode,SQLiteDatabase.CursorFactory f){return super.openOrCreateDatabase(name(n),mode,f);}
@@ -252,6 +253,10 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             String productionBefore=businessSnapshotHash();
             reportProductionCounts();
             Isolated context=new Isolated(getTargetContext());SharedPreferences prefs=context.getSharedPreferences("haus_garten",0);
+            check("synthetic database media cache and backup paths remain inside their isolated QA context",()->{
+                for(File path:new File[]{context.getFilesDir(),context.getCacheDir(),context.getNoBackupFilesDir(),context.getDatabasePath("haus-garten-mobile.db")})yes(path.getCanonicalPath().contains(context.prefix));
+                yes(!context.getNoBackupFilesDir().getCanonicalPath().equals(new File(getTargetContext().getApplicationInfo().dataDir,"no_backup").getCanonicalPath()));
+            });
             check("legacy tunnel preferences stay unchanged without user save",()->{PixelTunnelConfig c=new PixelTunnelConfig(context);yes(c.organization().isEmpty()&&!c.configured());yes(!context.getSharedPreferences("pixel_tunnel_private",0).contains("organization"));});
             check("organization persists separately without changing IDs or credentials",()->{PixelTunnelConfig c=new PixelTunnelConfig(context);String id=c.id();c.organization("org-IsolatedTest1234");PixelTunnelConfig reopenedConfig=new PixelTunnelConfig(context);yes(reopenedConfig.organization().equals("org-IsolatedTest1234")&&reopenedConfig.id().equals(id)&&!reopenedConfig.configured());rejected(()->c.organization("org-unsafe\r\n"));yes(c.organization().equals("org-IsolatedTest1234"));});
             JSONObject master=fixture();yes(prefs.edit().putString("drive_snapshot",master.toString()).commit());

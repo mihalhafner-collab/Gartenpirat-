@@ -317,10 +317,14 @@ def main(argv=None):
         source_gate();workspace_gate()
         result = sign(**arguments)
         try:
-            artifact_gate(arguments['output'],instrumentation=arguments['instrumentation'])
+            checked=artifact_gate(arguments['output'],instrumentation=arguments['instrumentation'])
+            if checked['sha256'] != result['apk_sha256']:
+                raise SigningError('Output changed during artifact verification.')
         except Exception:
-            Path(arguments['output']).unlink(missing_ok=True)
-            raise SigningError('Artifact privacy gate failed; rejected output removed.')
+            output=Path(arguments['output'])
+            if output.is_file() and not output.is_symlink() and hashlib.sha256(output.read_bytes()).hexdigest()==result['apk_sha256']:
+                output.unlink()
+            raise SigningError('Artifact privacy gate failed; only unchanged signer output may be removed.')
     except SigningError as error:
         print('ORIGINAL_SIGNING_FAILED: ' + str(error), file=sys.stderr)
         return 1

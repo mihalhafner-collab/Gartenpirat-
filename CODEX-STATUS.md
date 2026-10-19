@@ -9,7 +9,7 @@ Repository: `mihalhafner-collab/Gartenpirat-`
 
 ## Aktueller P0-Datenschutzauftrag
 
-Ausgang `aa04cbd04d2035a877acd243af612a2fc97f5519`, sauberer aktueller main. Neuer P0-Block vollständig geprüft; frühere Funktions-/Gerätezustände unten sind historische Nachweise. Keine produktiven Datenzugriffe/Änderungen in dieser Migration. P0-Abnahme noch OFFEN.
+Ausgang `aa04cbd04d2035a877acd243af612a2fc97f5519`, sauberer aktueller main; Implementierungscommit `7725f425e57d8a40733b0e798def1e279c8488ec`, anschließender Abnahme-/Härtungscommit über `git log -1`. **P0 für aktuellen Checkout und zukünftige Builds: PASS,14/14 Kriterien.**297 Python-Tests/24 JVM-/29 Browser-Suiten/55 MCP-E2E-Szenarien/134 native Android-Proben sowie Emulatorupdate77→80, WebView und isolierter Erststart bestanden. Alle drei Privacy-Gates PASS. Keine produktiven Daten kopiert oder geändert. Historische Git-Befunde und physischer Pixel-/echter Provider-/Connector-Endtest separat offen. Vorherige Zwischenstände/NOT-TESTABLE-Startversuche unten sind historische Phasen.
 
 ## Historischer Ausgangsstand
 
@@ -793,3 +793,50 @@ Kein Betriebsinhalt, keine angewendete Entscheidung. Hashes aus get_sync_conflic
 - Source-Review-ZIP aus1114 aktuellen Originaldateien tatsächlich erzeugt und byteweise Artifact-Gate PASS, SHA256 fec1b8728934d30277450f19ac5bc1d959164a46f6b6dc61c1e6fe8cf4fcfc11. Nur vorübergehendes QA-Artefakt außerhalb des Checkouts; keine Ersatzruntime und kein zusätzliches Dossier. APK/AAB und Sourcepaket-Gates damit jeweils tatsächlich ausgeführt.
 - Originalkandidat1.51.1/80, APK-SHA256 d8208fd3c5b42e52688778195ce7d276cde09ddaf2416c783003de6b1bf133aa; Zertifikat a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8 identisch mit bestehender79. Signatur v2/v3 und16-KiB-Alignment überprüft,411 aktuelle Assets bytegleich, Signier-Tempverzeichnisse0. Originalsignierwerkzeug allein verwendet. Keine Pixel-Installation oder Produktivdatenaktion.
 - Zweiter begrenzter Software-Emulatorversuch: system_server und Bootanimation laufen, bislang0 beobachtete Java-/native Crashmarker; Bootabschluss noch nicht bestätigt. Native Abnahme weiter offen, keine alte133er-Probe als P0-Nachweis wiederverwendet. Temporärer bestehender AndroidTest-Runner wird für einen möglichen reinen Cloud-Emulatorlauf ausschließlich originalsigniert; keine neue operative App oder QA-Signatur.
+
+
+## Eintrag 54 – P0 echtes Cloud-Emulatorupdate, Datenvergleich nur technisch (19.10.2026)
+
+- Software-Emulator schließlich vollständig gestartet; frühere NOT-TESTABLE-Startbefunde durch diesen tatsächlichen Nachweis überholt. QEMU=1, exakt AVD GartenpiratCloud, expliziter emulator-5582 und exklusives Installations-/Testlock geprüft. Kein physisches Gerät.
+- Vorhandene operative QA-App tatsächlich1.50.1/77, nicht ungeprüft79 angenommen. Vor Update ausschließlich eindeutig künstliche QA-Kunden im vorhandenen Emulatorstore geprüft; Original-AndroidTest-Runner mit Originalzertifikat installiert. Danach ausschließlich normales Originalpaket-Update -r auf1.51.1/80, keine Deinstallation/Datenspeicherlöschung und kein neues operatives Paket.
+- Business-Readbacks vor/nach Update nur im Prozessspeicher ausgewertet, keine Base64-/Rohdaten gespeichert oder ausgegeben. Geschäftsmaster ohne technische capabilities und gesamte Pending-Queue kanonisch SHA256 be1523c98d2fced2b5b446a9191b7d37be4dc98c56a169d2659cc3047fe407af unverändert.3 künstliche Kunden/1 Auftrag/2 Arbeitsaufzeichnungen/1 Pending-Aktion erhalten,0 Fotos/Rechnungen/Angebote;32 öffentliche Bausteine und0 Termine unverändert. IDs/Beziehungen/sonstige Masterfelder durch identischen Ledgerhash mitgeschützt.
+- Vollständige native Android-SQLite-/MCP-/Provider-Abnahme jetzt auf diesem originalsignierten80er-Build gestartet; Ergebnis folgt separat. Keine physische Pixel-Kompatibilität oder echte Google-Providerfreigabe behauptet.
+
+
+## Eintrag 55 – P0 native Fixture-Abnahme nach echter Ausführung korrigiert (19.10.2026)
+
+- Erster neuer vollständiger Android-Lauf:128 PASS/5 FAIL. Ursache ausschließlich migrierter Testprovider: Datei-IDs wurden zu qa_docN geändert, drei Referenzen blieben doc1; drei Schreibmodusprüfungen wurden versehentlich von w auf qa_w umbenannt. Dadurch falsch simulierte Providerfehler und fehlende Testdatei. Alle Referenzen konsistent, echte Android-Dateimodi wieder unverändert; keine operative Drive-Logik verändert.
+- Native WebView-Probe sucht eindeutig benannte QA-Einsatzort-/Pflege-Datensätze statt eine Änderung erhaltener älterer synthetischer IDs zu verlangen. Keine bestehenden Datensätze für einen passenden Test überschrieben. AndroidTest-Neubuild mit Pflichtgates erfolgreich; erneute Originalsignierung/native Gesamtabnahme läuft.
+- Zusätzliche Workspace-Regressionsprüfung: nur die tatsächliche .git-Historie des Checkoutroots ist separat; verschachtelte Ordner mit Namen .git können keine SQLite-Dateien verstecken.22 gezielte Privacy-Fälle PASS, neuer Python-Gesamtlauf295 Tests PASS vor abschließendem Nachher-Gate; endgültiger Gatebeleg folgt.
+
+
+## Eintrag 56 – P0 native133 bestanden, vollständige QA-Backupisolation nachgeschärft (19.10.2026)
+
+- Wiederholung nach konsistenten synthetischen Dokumentreferenzen und unveränderten echten Dateimodi:133 native Android-SQLite-/MCP-/Providerproben PASS,0 Fehler. Root-Drive-Snapshot vor/nach Proben unverändert. Enthalten Originalfoto/Rotation/21 Uploads, Offers/Estimates/PDF/Restart/Journal, Provider-Retry/Readback und sieben vollständig synthetische Legacyfälle; keine tatsächlichen Pixel-/Drive-Altaktionen.
+- Zusätzliche Isolationanalyse: der vorhandene native QA-Kontext überschreibt Dateien/Cache/Prefs/DB, leitete getNoBackupFilesDir aber noch an den Basiscontext weiter. Nun eigener QA-Backupordner und neue native Pfadprüfung für alle vier Speicherarten. Operative App-Backupimplementierung unverändert. Letzter AndroidTest-Neubuild/134er-Lauf folgt; bis dahin kein P0-Abschluss.
+- Originalsigner-Privacyfehler darf nur seine eigene unveränderte Ausgabedatei entfernen. Ein nachträglich fremd ersetztes Ziel bleibt erhalten; tatsächlicher Artefakt-SHA muss zum signierten Resultat passen.42 synthetische Signer-Tests PASS, darunter Gate-Rejection ohne Fremdverlust. Keine zusätzliche Schlüsselidentität erzeugt.
+- Letzter vollständiger296er-Quality-Lauf mit22 Privacy-/Pfadfällen läuft. Native WebView-/Fresh-Proben ebenfalls gestartet. Frühere133er-PASS-Angabe ist tatsächlicher neuer P0-Lauf; die zusätzliche134. Speicherisolation wird ausdrücklich noch nicht als bestanden behauptet.
+
+
+## Eintrag 57 – P0 WebView/Fresh und Bootstrap-Erhaltsschutz (19.10.2026)
+
+- Tatsächliche native WebView-Probe auf80 PASS: kompatibles JavaScript, Navigation, Auswahl/Abbruch, Kunden-Garten, Papierkorb und auftragsbezogener Terminpfad. Eindeutige QA-Datensätze dynamisch gefunden, ursprüngliche IDs erhalten. Anschließend fresh_isolated PASS:0 operative Startdaten, keine Credentials, kein automatischer Drive-/Tunnelzugriff.
+- Backupisolations-Erweiterung kompiliert und ausschließlich originalsigniert, zusätzliche134. Pfadprobe im nun gestarteten Gesamtlauf. Produktiver App-Code und80er-APK gegenüber der erfolgreichen133er-/Update-/UI-Probe unverändert.
+- Konstanter Bootstrapgenerator verweigert jetzt zusätzlich Symlinks und vorhandenen nichtleeren/unbekannten Inhalt. Er kann einen versehentlich befüllten Seed nicht still durch Leerinhalt ersetzen; Bestand bleibt zur Prüfung erhalten.23 gezielte Privacy-Tests PASS,42 Signer-Tests PASS, abschließender297er-Gesamtlauf gestartet.
+
+
+## Eintrag 58 – P0 vollständig im festgelegten Abnahmeumfang bestanden (19.10.2026)
+
+- P0.13-Tabelle vollständig14/14 PASS.297 Python-Tests,0 Fehler/Skips, darunter23 Privacy-/Pfad-/Bootstrapfälle und42 Originalsignierungsregressionen;37 historische QA-Schlüsselerzeugungstests ausdrücklich ausgeschlossen.24 JVM- und29 Browser-Suiten sowie55 synthetische MCP-stdio-E2E-Szenarien bestanden. Keine Testdaten von realen Kunden verwendet.
+- Endgültiger originalsignierter80er-Stand:134 Android-SQLite-/MCP-/Providerproben,0 Fehler. Neue Speicherprobe bestätigt eigene QA-Pfade für Datenbank, Medien, Cache und NoBackup. Danach erneut native WebView-Navigation und fresh_isolated PASS. Vollständiger Schlussreadback nur im RAM: Geschäftsmaster ohne capabilities plus gesamte Pending-Queue weiterhin SHA256 be1523c98d2fced2b5b446a9191b7d37be4dc98c56a169d2659cc3047fe407af. Alle synthetischen IDs/Relationen des geprüften Geschäftsmaster und1 ausstehende QA-Aktion nach Update und sämtlichen Proben erhalten; keine Rohdatensätze/Base64 gespeichert.
+- Source und Workspace vor/nach letzter Quality-Suite PASS; Workspace3032 Dateien einschließlich ignored/untracked (Dateizahl variiert durch ausschließlich geprüfte Build-/Testartefakte). Source1126 Dateien; untergeordnete .git-Namensverzeichnisse eingeschlossen, tatsächliche Git-Objekte separat. Tatsächliche originalsignierte APK, AAB und Source-ZIP jeweils Artifact-Gate PASS; operative APK-Seeds exakt0. Pflichtgates im normalen Quality-/Build-/Signier-/Sourcepaketweg.
+- Release/AndroidTest/AAB/Lint gebaut;0 Lintfehler/33 bestehende Hinweise. App1.51.1/80, Paket at.hausgarten.service, MCP9/117 unverändert. Produktions-App-Quellhash d329f9714af8ab6370e76a5a0d358cff79c0f7618feb5a8635a826f1af626ebd passt zum endgültigen App-Quellinhalt; APK-Fingerprint dokumentiert korrekt den Build aus aa04cbd mit damaligem source_dirty=true. Kein behaupteter anderer eingebetteter Commit. Bisheriger qualifizierter Download79 bleibt unverändert; neuer80er-P0-Kandidat ist lokal qualifiziert, nicht auf Pixel installiert/veröffentlicht.
+- Original80-APK-SHA d8208fd3c5b42e52688778195ce7d276cde09ddaf2416c783003de6b1bf133aa; Originalzertifikat a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8 identisch mit79, ein Signer/v2/v3/16-KiB-Alignment,411 Assets bytegleich. Sole Signierweg tools/sign_original_apk.py, kein Ersatz-/QA-Schlüssel. Vorhandene nichtleere Bootstrapinhalte und fremd ersetzte Signerausgaben bleiben erhalten; Gatefehler blockieren statt blind zu löschen.
+- Historienprüfung nach Implementierungscommit erneut nur lesend:12 unterschiedliche bekannte Bootstrap-/Ausstellerobjekte,4 sensible ältere Aussteller-Fixture-Befunde,0 nichtleere historische Bootstraps in diesem begrenzten Umfang. Klassifikation produktive sensible Daten in Historie gefunden. Kein vollständiger forensischer Audit und kein History-Rewrite; separater Sicherheitsauftrag bleibt erforderlich. Das ist ausdrücklich getrennt vom bestandenen aktuellen Checkout-/Build-P0 gemäß P0.11.
+- Physischer Pixel, produktiver Drive, echte Kalender-/Gmail-/Tunnelkonten und tatsächlicher ChatGPT-Connector wurden in diesem P0-Auftrag nicht verwendet oder aktualisiert. Reale Legacyaktionen unverändert. Der Emulatornachweis ersetzt keinen physischen Update-/Datenerhalt-/Provider-Test; frühere offene Funktionsabnahmen bleiben bestehen. Keine produktive Datenmigration durchgeführt; HG_PRIVATE_DATA_ROOT für echte Hostdaten absichtlich nicht eingerichtet.
+
+
+## Eintrag 59 – P0 Cleanup und Übergabe (19.10.2026)
+
+- Eigenen Software-Emulator nach134er-/WebView-/Fresh- und erneut hashgleichem Ledger-Schlussreadback normal beendet; vorhandenes AVD samt synthetischen Daten nicht gelöscht. Eigenes temporäres Source-ZIP und drei eigene signierte Zwischen-Test-APKs nur nach Übereinstimmung ihrer bekannten SHA entfernt; bestehende operative Downloads und automatisierte Tests erhalten.
+- Signier-Tempverzeichnisse0, getrackte Keystore-/Privatschlüsseldateien0. Kein privater Root eingerichtet, keine produktiven Dateien migriert, kopiert oder gelöscht. Aktuelle Betriebssystem-/Build-/Testartefakte im Checkout durch Workspace-Gate geprüft; reine Code-/synthetische Artefakte zulässig. Letzter Checkout-Gatelauf bestätigt Source/Workspace/Signed-APK PASS; abschließender normaler Abnahmecommit und Remote-Abgleich folgen ohne Historyänderung.

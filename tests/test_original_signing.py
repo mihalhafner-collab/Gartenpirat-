@@ -454,6 +454,22 @@ class OriginalSigningTests(unittest.TestCase):
             self.assertEqual(signing.main(['--unknown',self.env[signing.VARIABLES[1]]]),1)
         self.assert_no_private(out.getvalue()+err.getvalue())
 
+    def test_cli_privacy_rejection_removes_only_own_unchanged_output(self):
+        args=['--apk',str(self.apk),'--output',str(self.output)]
+        for name,value in self.tools.items():args+=['--'+name,value]
+        for replaced in (False,True):
+            with self.subTest(replaced=replaced):
+                self.output.unlink(missing_ok=True)
+                def reject(*a,**kw):
+                    if replaced:self.output.write_bytes(b'PRESERVE_OTHER_WRITER')
+                    raise ValueError('Synthetic privacy rejection')
+                out,err=io.StringIO(),io.StringIO()
+                with mock.patch('privacy_guard.source_gate',return_value={'status':'PASS'}),mock.patch('privacy_guard.workspace_gate',return_value={'status':'PASS'}),mock.patch('privacy_guard.artifact_gate',side_effect=reject),mock.patch.dict(os.environ,self.env,clear=True),mock.patch.object(signing.subprocess,'run',side_effect=self.fake_tool),contextlib.redirect_stdout(out),contextlib.redirect_stderr(err):
+                    self.assertEqual(signing.main(args),1)
+                if replaced:self.assertEqual(self.output.read_bytes(),b'PRESERVE_OTHER_WRITER')
+                else:self.assertFalse(self.output.exists())
+                self.assert_no_private(out.getvalue()+err.getvalue())
+
 
 if __name__ == '__main__':
     unittest.main()

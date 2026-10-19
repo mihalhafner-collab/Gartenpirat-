@@ -99,6 +99,25 @@ class RuntimeIsolationTests(unittest.TestCase):
 
 
 class PrivacyContractTests(unittest.TestCase):
+    def test_empty_generator_preserves_nonempty_content_and_never_follows_links(self):
+        from tools.empty_bootstrap import generate
+        with temporary_directory() as folder:
+            root=Path(folder);target=root/'initial-data.json'
+            generate(target);before=target.read_bytes()
+            with patch.object(Path,'read_bytes',return_value=json.dumps(profile()).encode()):
+                with self.assertRaises(ValueError):generate(target)
+            self.assertEqual(target.read_bytes(),before)
+            target.unlink();sentinel=root/'qa_sentinel.json';sentinel.write_text(json.dumps(bootstrap.BOOTSTRAP)+'  ')
+            before=sentinel.read_bytes();target.symlink_to(sentinel)
+            with self.assertRaises(ValueError):generate(target)
+            self.assertEqual(sentinel.read_bytes(),before)
+
+    def test_nested_git_named_directory_is_not_a_workspace_privacy_escape(self):
+        with temporary_directory() as folder:
+            root=Path(folder);hidden=root/'qa_nested'/'.git';hidden.mkdir(parents=True)
+            (hidden/'qa.sqlite').write_bytes(b'SQLite format 3\0qa')
+            with self.assertRaises(privacy.PrivacyFailure):privacy.workspace_gate(root)
+
     def test_individual_runtime_records_are_blocked_outside_snapshot_collections(self):
         with self.assertRaises(privacy.PrivacyFailure):
             privacy.scan_files({'record.json':json.dumps({'id':'not_qa','customer_id':'not_qa_customer','title':'not_production_fixture'}).encode()})

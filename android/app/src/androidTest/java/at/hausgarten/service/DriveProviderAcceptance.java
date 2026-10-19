@@ -33,9 +33,9 @@ final class DriveProviderAcceptance {
         @Override public String renameDocument(String id,String name)throws FileNotFoundException{if(!names.containsKey(id))throw new FileNotFoundException();names.put(id,name);renamed=id;return id;}
         @Override public void deleteDocument(String id)throws FileNotFoundException{names.remove(id);mimes.remove(id);parents.remove(id);if(file(id).exists()&&!file(id).delete())throw new FileNotFoundException("Isolated deletion failed");}
         @Override public ParcelFileDescriptor openDocument(String id,String mode,CancellationSignal cancellation)throws FileNotFoundException{
-            if(failAfterRename&&id.equals(renamed)&&!mode.contains("qa_w"))throw new FileNotFoundException("Simulated response lost after publish");
-            if(mode.contains("qa_w")){if(offlineWrite)throw new FileNotFoundException("Simulated network failure");written=true;}
-            if(badReadback&&written&&!mode.contains("qa_w")){File fake=new File(directory,"bad.json");try(FileOutputStream out=new FileOutputStream(fake)){out.write("{}".getBytes(StandardCharsets.UTF_8));}catch(IOException error){throw new FileNotFoundException();}return ParcelFileDescriptor.open(fake,ParcelFileDescriptor.MODE_READ_ONLY);}
+            if(failAfterRename&&id.equals(renamed)&&!mode.contains("w"))throw new FileNotFoundException("Simulated response lost after publish");
+            if(mode.contains("w")){if(offlineWrite)throw new FileNotFoundException("Simulated network failure");written=true;}
+            if(badReadback&&written&&!mode.contains("w")){File fake=new File(directory,"bad.json");try(FileOutputStream out=new FileOutputStream(fake)){out.write("{}".getBytes(StandardCharsets.UTF_8));}catch(IOException error){throw new FileNotFoundException();}return ParcelFileDescriptor.open(fake,ParcelFileDescriptor.MODE_READ_ONLY);}
             return ParcelFileDescriptor.open(file(id),ParcelFileDescriptor.parseMode(mode));
         }
     }
@@ -72,7 +72,7 @@ final class DriveProviderAcceptance {
         qa.probe("Android provider full write readback and local acknowledgement without laptop",()->{try(Setup s=new Setup(qa)){
             JSONObject created=s.store.execute("create_customer_work_record",qa.args("qa-provider-success")).getJSONObject("data");String client=created.getJSONObject("sync").getString("client_id");
             JSONObject result=s.sync();qa.yes(result.getBoolean("ok")&&!result.getBoolean("cloud_confirmed"));qa.yes(s.store.pendingActions().length()==0);qa.yes(s.store.getState().getJSONObject("master").getJSONArray("worklogs").length()==1);
-            qa.yes(s.files.readActions(MOBILE).length()==1);qa.yes(SyntheticBusinessData.object(s.provider.text("doc1")).getJSONArray("worklogs").length()==0);qa.yes(s.store.status(client,s.store.getState()).getString("status").equals("transferred"));
+            qa.yes(s.files.readActions(MOBILE).length()==1);qa.yes(SyntheticBusinessData.object(s.provider.text("qa_doc1")).getJSONArray("worklogs").length()==0);qa.yes(s.store.status(client,s.store.getState()).getString("status").equals("transferred"));
         }});
         qa.probe("Android provider reopens committed primary state with no local database or processor",()->{try(Setup s=new Setup(qa)){
             s.store.execute("create_customer_work_record",qa.args("qa-primary-restart"));qa.yes(s.sync().getBoolean("ok"));
@@ -80,7 +80,7 @@ final class DriveProviderAcceptance {
             qa.yes(reopened.getJSONArray("worklogs").length()==1&&reopened.getJSONObject("drive_action_receipts").length()==1);
             String first=reopened.getString("drive_parent_publication_id");qa.yes(s.sync().getBoolean("ok"));
             JSONObject replay=s.files.readPrimary(original,"qadevice");qa.yes(replay.getJSONArray("worklogs").length()==1);qa.yes(replay.getJSONObject("capabilities").getBoolean("offers_v1"));
-            qa.yes(s.files.read("HausGarten-Laptop.json").equals(s.provider.text("doc1")));qa.yes(!s.prefs.getBoolean("drive_cloud_confirmed",false));
+            qa.yes(s.files.read("HausGarten-Laptop.json").equals(s.provider.text("qa_doc1")));qa.yes(!s.prefs.getBoolean("drive_cloud_confirmed",false));
         }});
         qa.probe("Android provider duplicate names merge all actions without extra file",()->{try(Setup s=new Setup(qa)){
             String older=s.provider.add(MOBILE,pkg(action("qa-a","qa_w_a")));String before=s.provider.text(older);s.provider.add(MOBILE,pkg(action("qa-b","qa_w_b")));
@@ -159,7 +159,7 @@ final class DriveProviderAcceptance {
             byte[] bytes=android.util.Base64.decode(PixelMcpInstrumentation.VALID_GIF.substring(PixelMcpInstrumentation.VALID_GIF.indexOf(',')+1),android.util.Base64.DEFAULT);String hash=PhotoAttachmentStore.sha256(bytes),name=hash+".gif";
             String folder=s.provider.add("root",DocumentsContract.Document.MIME_TYPE_DIR,"HausGarten-Fotos",new byte[0]);s.provider.add(folder,"image/gif",name,bytes);
             JSONObject snapshot=qa.fixture().put("photos",new JSONArray().put(SyntheticBusinessData.object().put("id","qa_remote_photo").put("customer_id","qa_c1").put("original_name","Remote.gif").put("filename",name).put("storage_name",name).put("content_sha256",hash).put("mime_type","image/gif").put("byte_size",bytes.length).put("role","documentation")));
-            s.provider.replace("doc1",snapshot.toString().getBytes(StandardCharsets.UTF_8));qa.yes(s.sync().getBoolean("ok"));qa.yes(s.store.pendingActions().length()==0&&s.store.loadPhotoData("qa_remote_photo").equals(PixelMcpInstrumentation.VALID_GIF));
+            s.provider.replace("qa_doc1",snapshot.toString().getBytes(StandardCharsets.UTF_8));qa.yes(s.sync().getBoolean("ok"));qa.yes(s.store.pendingActions().length()==0&&s.store.loadPhotoData("qa_remote_photo").equals(PixelMcpInstrumentation.VALID_GIF));
         }});
     }
 }

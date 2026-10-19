@@ -215,7 +215,9 @@ def source_gate(root=ROOT, filenames=None):
 def workspace_gate(root=ROOT):
     root=Path(root).resolve(); failures=[]; count=0
     for base,dirs,names in os.walk(root,followlinks=False):
-        dirs[:]=[n for n in dirs if n!='.git']
+        # Only this checkout's actual Git history is a separate audit scope.
+        # A nested directory merely named .git must not hide runtime files.
+        if Path(base)==root:dirs[:]=[n for n in dirs if n!='.git']
         for name in list(dirs)+names:
             path=Path(base)/name; rel=path.relative_to(root).as_posix()
             if path.is_symlink():

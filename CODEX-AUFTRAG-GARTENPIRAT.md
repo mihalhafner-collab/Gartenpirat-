@@ -267,14 +267,14 @@ Wenn ein P0-Kriterium FAIL oder NOT TESTABLE ist, darf dieser Block nicht als vo
 
 ### P0.14 Tatsächlicher Abnahmestand dieses Cloud-Auftrags
 
-Ausgang `aa04cbd04d2035a877acd243af612a2fc97f5519` auf aktuellem main, Version1.51.0/79. **P0 bleibt OFFEN**, solange die unten ausdrücklich als NOT TESTABLE ausgewiesene native Kompatibilitätsabnahme nicht nachgeholt ist. Kein Produktionsbestand kopiert, importiert, migriert oder geändert; kein privater Root für echte Daten konfiguriert. Normaler Git-Commit, kein neues Repository/Branch/Rewrite.
+Ausgang `aa04cbd04d2035a877acd243af612a2fc97f5519` auf aktuellem main, Version1.51.0/79. **P0 für den aktuellen Checkout und zukünftige Builds: PASS (14/14 Kriterien).** Native Kompatibilität im dedizierten Cloud-Emulator tatsächlich nachgewiesen; physischer Pixel-/Google-Connector-Endtest bleibt außerhalb dieser P0-Abnahme offen. Kein Produktionsbestand kopiert, importiert, migriert oder geändert; kein privater Root für echte Daten konfiguriert. Normaler Git-Commit, kein neues Repository/Branch/Rewrite.
 
 | P0.13-Kriterium | Ergebnis | Tatsächlicher Nachweis |
 | --- | --- | --- |
 | Bootstrap garantiert leer | PASS | Exakter8-Collections-Vertrag; einziger konstanter Generator; Writer-Negativtests |
 | Keine Rohdaten-Ausgabe produktiver Skripte ins Repository | PASS | Zentrale Pfade für DB/Export/Backup/Import/Drive/Medien, historische Helfer korrigiert; fehlender Root blockiert |
 | Interner produktiver Datenroot abgewiesen | PASS | Absolute/relative/übergeordnete Roots, Symlink und verschachtelter Medienausweg negativ getestet |
-| Automatisierte Tests nur synthetisch/temporär | PASS | Zentrale minimal/edge_cases/scale-Factory, QA-Tempstores, JVM-/Browser-/MCP-Adapter; native Quellen migriert und kompiliert |
+| Automatisierte Tests nur synthetisch/temporär | PASS | Zentrale minimal/edge_cases/scale-Factory, QA-Tempstores, JVM-/Browser-/MCP-Adapter; native Quellen migriert, kompiliert und134 Proben bestanden; Dateien/Cache/DB/NoBackup vollständig im QA-Kontext |
 | Reale Teststammdaten entfernt | PASS | Aktueller Quellstand synthetische Aussteller/Adressen/IDs/example.invalid; bekannte Altliterale gehashtes Gate |
 | Source Gate | PASS | Verpflichtend vor Quality/Build/Signierung/Sourcepaket |
 | Workspace Gate | PASS | Vollständiger Checkout einschließlich ignoriert/untracked; SQLite-Magic, Archive, Secret-/Medienklassifikation; .git separat |
@@ -282,18 +282,20 @@ Ausgang `aa04cbd04d2035a877acd243af612a2fc97f5519` auf aktuellem main, Version1.
 | APK operative Seed-Zeilen0 | PASS | Tatsächlicher APK-Assetsread, nicht aus DB-Markern abgeleitet |
 | Keine produktive DB/Backup/Drive-Datei im Checkout | PASS | Read-only Inventar und rekursives Gate; ausschließlich belegte alte QA-Caches/Testartefakte entfernt |
 | Integritätsnachweis nur Hashes/Counts/Schema/Relationen | PASS | Read-only SQL-Audit, Backup-/Update-Vergleicher und Report-Negativtests ohne Rohdatenausgabe |
-| App-ID/IDs/Relationen/Sync/Originalsignierung kompatibel | NOT TESTABLE | Statische/JVM-/Buildverträge bestehen; tatsächliche Signaturprüfung separat dokumentiert. Neue Android-Laufzeit-/Updateprobe mangels /dev/kvm nicht ausführbar; kein physisches Gerät verwendet |
+| App-ID/IDs/Relationen/Sync/Originalsignierung kompatibel | PASS | Gleiches Originalpaket/Zertifikat; tatsächliches Emulatorupdate77→80, Geschäftsmaster und Pending-Queue hashgleich,134 native Proben sowie WebView/Fresh bestanden. Kein physisches Gerät verwendet |
 | Keine produktiven Daten während Migration geändert | PASS | Kein produktiver Store geöffnet, keine MCP-/Drive-/Pixel-Betriebsaktion, keine Datenmigration |
 | Unterpunkte und Grenzen ausdrücklich ausgewiesen | PASS | Diese Tabelle und laufende Phasen in CODEX-STATUS.md |
 
 Externe Host-Konfiguration: vorhandenen dedizierten privaten Ordner außerhalb des Checkouts mit Eigentümerrechten0700 als `HG_PRIVATE_DATA_ROOT` setzen. Dies ist **keine automatische Datenmigration**. Tests verwenden ausschließlich eigene registrierte OS-Tempstores und können auch bei gesetztem privaten Root nicht auf ihn zurückfallen. Signing-Secrets bleiben in der sicheren Environment-Konfiguration und werden nicht ausgegeben.
 
-Historienbefund gemäß P0.11: **produktive sensible Daten in Historie gefunden** (4 frühere Aussteller-Fixture-Befunde in8 unterschiedlichen bekannten Bootstrap-/Ausstellerobjekten). Keine gefüllten historischen Bootstraps in diesem begrenzten Umfang gefunden; keine vollständige forensische Historienprüfung behauptet. Bereinigung dieser alten Git-Objekte erfordert einen separaten Sicherheitsauftrag; hier kein Rewrite/Force-Push. Aktueller Checkout und zukünftige Builds werden unabhängig davon gesperrt, sobald ein Privacy-Gate fehlschlägt.
+Historienbefund gemäß P0.11: **produktive sensible Daten in Historie gefunden** (4 frühere Aussteller-Fixture-Befunde in12 unterschiedlichen bekannten Bootstrap-/Ausstellerobjekten). Keine gefüllten historischen Bootstraps in diesem begrenzten Umfang gefunden; keine vollständige forensische Historienprüfung behauptet. Bereinigung dieser alten Git-Objekte erfordert einen separaten Sicherheitsauftrag; hier kein Rewrite/Force-Push. Aktueller Checkout und zukünftige Builds werden unabhängig davon gesperrt, sobald ein Privacy-Gate fehlschlägt.
 
-Aktueller P0-Quellkandidat1.51.1/80, gleiche App-ID, MCP9/117; bisheriger qualifizierter Download79 bleibt erhalten. Nicht mit einem physisch installierten Update oder abgeschlossenem Datenerhaltstest verwechseln. Abschließende Testzahlen, Signatur-/Cleanup- und Source-ZIP-Ergebnisse stehen im letzten P0-Eintrag von CODEX-STATUS.md.
+Aktueller P0-Quellkandidat1.51.1/80, gleiche App-ID, MCP9/117; bisheriger qualifizierter Download79 bleibt erhalten. Der nachgewiesene Datenerhalt betrifft ausschließlich den Cloud-Emulator; kein physischer Pixel aktualisiert. Abschließende Testzahlen, Signatur-/Cleanup- und Source-ZIP-Ergebnisse stehen im letzten P0-Eintrag von CODEX-STATUS.md.
 
 
 ## 3. Tatsächlich abgeglichener Ausgang und neuer Quellstand
+
+Dieser Funktionsabgleich ist historisch vor P0. Aktuelle Datenschutzabnahme und Quellstand1.51.1/80 stehen in P0.14 und im letzten CODEX-STATUS-Eintrag.
 
 Ausgang am 19.10.2026: aktuelles Remote-`main` war `b2c37a2f909cc8ac6defabe68dbdd3ce6a42db14` (Build 70). Der vorhandene operative Cloud-Branch enthielt bereits Build 77 bis `5fbe0a3a8c1f9073dc83f83b37b741a59e935ee4`. Beide Historien wurden normal in `main` zusammengeführt (`d67a4ffe549039df4bff78dc41ee0f27076c680b`), ohne Reset, Desktopimport, neue operative App oder History-Rewrite.
 
@@ -1511,7 +1513,7 @@ Ziel ist:
 Datenintegrität hat Vorrang vor Geschwindigkeit und Zusatzfunktionen.
 
 
-## 31. Konsolidierter Abschluss – 1.51.0 / 79, 19.10.2026
+## 31. Historischer Funktionsabschluss vor P0 – 1.51.0 / 79, 19.10.2026
 
 **Implementierung und Cloud-Abnahme getrennt von Geräteabnahme behandeln. Gesamtauftrag noch nicht vollständig abgenommen:** physischer Pixel/Connector nach Update, reale Legacy-Originalsicherung und neu bestätigter Abschluss sowie echter Gmail-Versandbeleg bleiben offen. Keine Installation, keine echte Testmail, kein erneut erstelltes oder versendetes geschütztes reales Angebot. Ein erfolgreicher Originalbuild beweist keinen Datenerhalt auf dem physischen Gerät.
 
