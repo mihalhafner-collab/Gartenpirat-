@@ -24,7 +24,7 @@ class PixelBackupTests(unittest.TestCase):
             connection.commit()
         archive = root / "fixture.tar"
         with tarfile.open(archive, "w") as target:
-            prefs = b'<map><string name="drive_snapshot">{"customers":[{"id":"test-customer"}]}</string></map>'
+            prefs = b'<map><string name="drive_snapshot">{"customers":[{"id":"qa_test-customer"}]}</string></map>'
             for name, content in (("./shared_prefs/haus_garten.xml", prefs), ("./databases/haus-garten-mobile.db", database.read_bytes())):
                 info = tarfile.TarInfo(name)
                 info.size = len(content)
@@ -36,28 +36,28 @@ class PixelBackupTests(unittest.TestCase):
         return archive
 
     def test_sqlite_copy_is_valid_and_closed_on_windows(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with __import__("synthetic_fixtures").temporary_directory() as directory:
             report = audit.inspect(self.fixture(Path(directory)))
             self.assertEqual(report["database_integrity"], "ok")
             self.assertEqual(report["pending_count"], 1)
             self.assertEqual(report["master_counts"]["customers"], 1)
             self.assertFalse(report["drive_configured"])
-            self.assertNotIn("test-customer", json.dumps(report))
+            self.assertNotIn("qa_test-customer", json.dumps(report))
 
     def test_repeated_inspection_preserves_bytes(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with __import__("synthetic_fixtures").temporary_directory() as directory:
             archive = self.fixture(Path(directory))
             before = archive.read_bytes()
             self.assertEqual(audit.inspect(archive), audit.inspect(archive))
             self.assertEqual(before, archive.read_bytes())
 
     def test_malformed_pending_is_reported_not_changed(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with __import__("synthetic_fixtures").temporary_directory() as directory:
             report = audit.inspect(self.fixture(Path(directory), invalid_json=True))
             self.assertEqual(report["invalid_pending_json"], 1)
 
     def test_unsafe_archive_name_is_rejected(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with __import__("synthetic_fixtures").temporary_directory() as directory:
             with self.assertRaises(ValueError):
                 audit.inspect(self.fixture(Path(directory), unsafe=True))
 

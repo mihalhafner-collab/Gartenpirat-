@@ -751,10 +751,10 @@ function bindEvents() {
         const invoice=state.invoices.find(i=>i.id===share.dataset.shareInvoice), subject='Rechnung '+invoice.invoice_number;
         const response=await fetch('/api/invoice-pdf/'+encodeURIComponent(invoice.id));if(!response.ok)throw new Error('PDF konnte nicht geladen werden.');
         const file=new File([await response.blob()],invoice.invoice_number.replace(/[^A-Za-z0-9_-]/g,'-')+'.pdf',{type:'application/pdf'});
-        if(navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:subject,text:'Guten Tag, anbei Ihre Rechnung. Mit freundlichen Grüßen, Hafner Michael.'});notice('PDF übergeben. Die App bestätigt keine Zustellung.');}
+        if(navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:subject,text:'Guten Tag, anbei Ihre Rechnung. Mit freundlichen Grüßen, .'});notice('PDF übergeben. Die App bestätigt keine Zustellung.');}
         else {
           const url=URL.createObjectURL(file), download=document.createElement('a');download.href=url;download.download=file.name;download.click();setTimeout(()=>URL.revokeObjectURL(url),60000);
-          const link=share.dataset.channel==='whatsapp'?'https://wa.me/?text='+encodeURIComponent('Guten Tag, anbei Ihre '+subject+'.'):'mailto:'+encodeURIComponent(invoice.recipient?.email||'')+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent('Guten Tag,\n\nanbei Ihre Rechnung. Bitte das heruntergeladene PDF anhängen.\n\nMit freundlichen Grüßen\nHafner Michael');
+          const link=share.dataset.channel==='whatsapp'?'https://wa.me/?text='+encodeURIComponent('Guten Tag, anbei Ihre '+subject+'.'):'mailto:'+encodeURIComponent(invoice.recipient?.email||'')+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent('Guten Tag,\n\nanbei Ihre Rechnung. Bitte das heruntergeladene PDF anhängen.\n\nMit freundlichen Grüßen\n');
           const action=document.createElement('a');action.href=link;action.target='_blank';action.rel='noopener';action.textContent=share.dataset.channel==='whatsapp'?'WhatsApp öffnen':'E-Mail öffnen';
           notice('PDF heruntergeladen. Öffne den Versand und füge dieses PDF als Anhang hinzu.');clearTimeout(notice.timer);$('#notice').append(' ',action);
         }

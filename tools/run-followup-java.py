@@ -35,7 +35,7 @@ def run(command):
     return result.stdout
 
 run([shutil.which('javac'), '-encoding', 'UTF-8', '-cp', cp, '-d', str(classes),
-     *[str(src/(name+'.java')) for name in names], *map(str, tests)])
+     *[str(src/(name+'.java')) for name in names], str(ROOT/'tests/java/at/hausgarten/service/SyntheticBusinessData.java'), *map(str, tests)])
 results = []
 for test in tests:
     output = run([shutil.which('java'), '-Dfile.encoding=UTF-8', '-cp', cp, 'at.hausgarten.service.'+test.stem])
@@ -43,7 +43,7 @@ for test in tests:
     if test.stem == 'OrderReviewTests':
         sys.path.insert(0, str(ROOT))
         import sync_review
-        cross = {'client_id': 'hash', 'kind': 'order', 'payload': {'id': 'o', 'title': 'ÄÖÜ </script> \u2028 ☘',
+        cross = {'client_id': 'hash', 'kind': 'order', 'payload': {'id': 'qa_o', 'title': 'ÄÖÜ </script> \u2028 ☘',
                  'hours': 1.00, 'customer_visible': True}, 'created_at': '2026-10-15T08:00:00Z'}
         if 'CROSS_HASH '+sync_review.digest(cross) not in output:
             raise RuntimeError('Android/Python review hash differs')
@@ -62,7 +62,7 @@ for test in tests:
     if test.stem == 'OwnerToolsTests':
         sys.path.insert(0, str(ROOT))
         import owner_journal, sync_review
-        fixture={'id':'c','name':'QA','active':0,'custom_fields':'{"A":true}','updated_at':'t2'}
+        fixture={'id':'qa_c','name':'QA','active':0,'custom_fields':'{"A":true}','updated_at':'t2'}
         if 'CROSS_OWNER_HASH '+sync_review.digest(owner_journal.customer_guard(fixture)) not in output:
             raise RuntimeError('Android/Python archive guard differs')
     results.append({'suite': test.stem, 'result': 'PASS', 'summary': output.strip().splitlines()[-1]})

@@ -15,9 +15,24 @@ def uiCatalogGate = tasks.register('verifyUiMcpInventory', Exec) {
 tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn uiCatalogGate }
 def privacyGate = tasks.register('verifyDistributablePrivacy', Exec) {
     workingDir rootProject.projectDir.parentFile
-    commandLine(System.getProperty('os.name').toLowerCase().contains('windows') ? ['py', '-3.11', 'tests/apk_privacy_guard.py'] : ['python3', 'tests/apk_privacy_guard.py'])
+    commandLine(System.getProperty('os.name').toLowerCase().contains('windows') ? ['py', '-3.11', 'tests/apk_privacy_guard.py', '--prebuild'] : ['python3', 'tests/apk_privacy_guard.py', '--prebuild'])
 }
 tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn privacyGate }
+def syntheticFixtureGate = tasks.register('verifySyntheticFixtures', Exec) {
+    workingDir rootProject.projectDir.parentFile
+    commandLine 'python3', 'tools/sync_synthetic_fixtures.py'
+}
+tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn syntheticFixtureGate }
+def artifactPrivacyGate = tasks.register('verifyReleaseArtifactPrivacy', Exec) {
+    workingDir rootProject.projectDir.parentFile
+    commandLine 'python3', 'tests/apk_privacy_guard.py', '--apk', 'android/app/build/outputs/apk/release/app-release-unsigned.apk'
+}
+tasks.matching { it.name == 'assembleRelease' }.configureEach { finalizedBy artifactPrivacyGate }
+def bundlePrivacyGate = tasks.register('verifyReleaseBundlePrivacy', Exec) {
+    workingDir rootProject.projectDir.parentFile
+    commandLine 'python3', 'tests/apk_privacy_guard.py', '--artifact', 'android/app/build/outputs/bundle/release/app-release.aab'
+}
+tasks.matching { it.name == 'bundleRelease' }.configureEach { finalizedBy bundlePrivacyGate }
 
 def fingerprintResult = providers.exec {
     workingDir rootProject.projectDir.parentFile
@@ -40,8 +55,8 @@ android {
         buildConfigField 'boolean', 'SOURCE_DIRTY', releaseFingerprint.source_dirty.toString()
         minSdk 26
         targetSdk 37
-        versionCode 79
-        versionName '1.51.0'
+        versionCode 80
+        versionName '1.51.1'
         testInstrumentationRunner 'at.hausgarten.service.PixelMcpInstrumentation'
     }
 

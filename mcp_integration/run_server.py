@@ -24,10 +24,16 @@ if os.environ.get("HAUSGARTEN_MCP_ENABLED") != "1":
 import db  # noqa: E402  (paths are deliberately configured before importing the MCP app)
 
 test_root = os.environ.get("HAUSGARTEN_MCP_TEST_ROOT")
+if os.environ.get('HAUSGARTEN_MCP_TESTING') == '1':
+    import runtime_paths
+    runtime_paths.synthetic_only()
+    if not test_root:_refuse('Testmodus benötigt einen ausdrücklich synthetischen Store.')
 if test_root:
     if os.environ.get("HAUSGARTEN_MCP_TESTING") != "1":
         _refuse("Ein abweichender Datenordner ist ausschließlich im ausdrücklich aktivierten Testmodus erlaubt.")
-    root = Path(test_root).resolve()
+    sys.path.insert(0, str(PROJECT_ROOT / "tests"))
+    from synthetic_fixtures import configure_db
+    root = configure_db(test_root)
     db.DATA_DIR = root / "data"
     db.DB_PATH = db.DATA_DIR / "haus-garten.db"
     db.PHOTO_DIR = db.DATA_DIR / "photos"

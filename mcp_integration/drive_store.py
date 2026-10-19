@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 import db
+import runtime_paths
 
 
 SNAPSHOT_NAME = "HausGarten-Laptop.json"
@@ -59,7 +60,7 @@ def resolve_drive_folder() -> Path:
             "DRIVE_NOT_CONFIGURED",
             "Der lokale Google-Drive-Ordner ist nicht konfiguriert.",
         )
-    folder = Path(configured).expanduser().resolve()
+    folder = runtime_paths.business_path(configured).resolve()
     if not folder.is_dir():
         raise DriveStoreError(
             "DRIVE_UNAVAILABLE",
@@ -71,7 +72,7 @@ def resolve_drive_folder() -> Path:
 
 def paths() -> tuple[Path, Path]:
     folder = resolve_drive_folder()
-    return folder / SNAPSHOT_NAME, folder / CHANNEL_NAME
+    return runtime_paths.business_path(folder / SNAPSHOT_NAME), runtime_paths.business_path(folder / CHANNEL_NAME)
 
 
 def _read_json(path: Path, maximum: int, label: str) -> tuple[dict, str]:
@@ -177,10 +178,10 @@ def channel_action(client_id: str, package: dict | None = None) -> dict | None:
 
 
 def _backup_channel(channel_path: Path) -> Path:
-    backup_folder = Path(db.DATA_DIR) / "mcp-channel-backups"
+    backup_folder = runtime_paths.business_path(Path(db.DATA_DIR) / "mcp-channel-backups")
     backup_folder.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
-    target = backup_folder / f"HausGarten-ChatGPT.{timestamp}.json"
+    target = runtime_paths.business_path(backup_folder / f"HausGarten-ChatGPT.{timestamp}.json")
     shutil.copy2(channel_path, target)
     return target
 
@@ -211,9 +212,9 @@ def append_action(action: dict) -> dict:
         if current != baseline:
             raise DriveStoreError("CHANNEL_CONFLICT", "Der Drive-Kanal wurde gleichzeitig geändert. Bitte erneut versuchen.", retryable=True)
         _backup_channel(channel_path)
-        temporary = channel_path.with_name(
+        temporary = runtime_paths.business_path(channel_path.with_name(
             f".{CHANNEL_NAME}.{os.getpid()}.{threading.get_ident()}.tmp"
-        )
+        ))
         try:
             encoded = json.dumps(package, ensure_ascii=False, indent=2).encode("utf-8")
             with temporary.open("wb") as handle:

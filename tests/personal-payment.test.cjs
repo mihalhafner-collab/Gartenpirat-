@@ -9,7 +9,7 @@ const {chromium}=require('./browser.cjs');
   const page=await browser.newPage({viewport:{width:412,height:915}}),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(()=>{
-   window.fixture={customers:[{id:'c1',name:'Synthetischer Kunde',active:1}],orders:[],invoices:[],photos:[],worklogs:[{id:'w1',customer_id:'c1',work_date:'2026-10-18',activity:'Synthetische Gartenarbeit',hours:2,billed:0}]};
+   window.fixture={customers:[{id:'qa_c1',name:'Synthetischer Kunde',active:1}],orders:[],invoices:[],photos:[],worklogs:[{id:'qa_w1',customer_id:'qa_c1',work_date:'2026-10-18',activity:'Synthetische Gartenarbeit',hours:2,billed:0}]};
    window.writes=[];window.AndroidData={getState:()=>JSON.stringify({master:fixture,pending:[]}),getWorkSession:()=>JSON.stringify({state:'IDLE'}),getSyncStatus:()=>JSON.stringify({configured:false}),getAppInfo:()=>JSON.stringify({versionName:'1.46.1'}),saveWorklog:()=>writes.push('worklog'),saveInvoice:()=>writes.push('invoice'),synchronize:()=>writes.push('sync')};
    window.AndroidPhone={dial:()=>{}};window.AndroidSpeech={start:()=>{}};
   });

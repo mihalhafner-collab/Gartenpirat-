@@ -4,8 +4,8 @@ import db
 
 class IntegrityTests(unittest.TestCase):
     def setUp(self):
-        self.temp=tempfile.TemporaryDirectory()
-        root=Path(self.temp.name); db.DATA_DIR=root; db.DB_PATH=root/'test.db'; db.PHOTO_DIR=root/'photos'; db.BACKUP_DIR=root/'backups'; db.init()
+        self.temp=__import__("synthetic_fixtures").temporary_directory()
+        root=Path(self.temp.name); db.DATA_DIR=root; db.DB_PATH=root/'test.db'; db.PHOTO_DIR=root/'photos'; db.BACKUP_DIR=root/'backups'; __import__("synthetic_fixtures").configure_db(db.DATA_DIR); db.init()
     def tearDown(self): self.temp.cleanup()
     def test_duplicate_customer_including_inactive_warns(self):
         first=db.save_customer({'name':'Georg Seidl','city':'Klagenfurt','active':0})

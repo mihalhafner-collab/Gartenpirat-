@@ -49,7 +49,7 @@ public final class PhotoCaptureHostTest {
         int calls;Uri[] value;
         public void onReceiveValue(Uri[] result){calls++;value=result;}
     }
-    public static void main(String[] args)throws Exception {
+    public static void main(String[] args)throws Exception { SyntheticBusinessData.verify();
         root=Files.createDirectories(Path.of(args[0]));
         test("normal cache target and content URI",()->{
             MainActivity app=fresh();File file=PhotoCaptureProvider.createTarget(app);

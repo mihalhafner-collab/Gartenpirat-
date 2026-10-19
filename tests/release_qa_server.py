@@ -11,11 +11,11 @@ import server
 
 
 if __name__ == '__main__':
-    with tempfile.TemporaryDirectory(prefix='hausgarten-qa-') as staging:
+    with __import__("synthetic_fixtures").temporary_directory(prefix='hausgarten-qa-') as staging:
         root=Path(staging)
         db.DATA_DIR,db.DB_PATH,db.PHOTO_DIR,db.BACKUP_DIR=root,root/'qa.db',root/'photos',root/'backups'
-        db.init()
-        c=db.save_customer({'id':'cus_qa','name':'QA Gartenkunde','street':'Gartenstraße 1','city':'Feldkirchen','postal_code':'9560','country':'Österreich','phone':'+430000000','email':'test@example.invalid','active':1})
+        __import__("synthetic_fixtures").configure_db(db.DATA_DIR); db.init()
+        c=db.save_customer({'id':'cus_qa','name':'QA Gartenkunde','street':'Gartenstraße 1','city':'QA Beispielort','postal_code':'9560','country':'Österreich','phone':'+430000000','email':'test@example.invalid','active':1})
         o=db.save_order({'id':'ord_qa','customer_id':c['id'],'title':'Herbstpflege','location':'Gartenstraße 1','status':'Geplant'})
         w=db.save_worklog({'id':'wrk_qa','customer_id':c['id'],'order_id':o['id'],'work_date':'2026-10-08','hours':3,'activity':'Hecke pflegen','notes':'Interne Notiz'})
         db.save_invoice({'id':'inv_qa','customer_id':c['id'],'invoice_number':'Entwurf-QA','invoice_date':'2026-10-08','service_start':'2026-10-08','service_end':'2026-10-08','positions':[{'title':'Pflege','quantity':3,'price':50,'worklog_id':w['id']}],'domestic_service_confirmed':True})

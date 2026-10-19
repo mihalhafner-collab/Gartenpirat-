@@ -7,10 +7,14 @@ import sqlite3
 import tarfile
 import tempfile
 import xml.etree.ElementTree as ET
+import sys
+sys.path.insert(0,str(__import__("pathlib").Path(__file__).resolve().parents[1]))
+import runtime_paths
 from pathlib import Path, PurePosixPath
 
 
 def inspect(archive_path):
+    archive_path = runtime_paths.business_path(archive_path)
     result = {"files": {}, "database_integrity": None, "master_counts": {}, "duplicate_master_ids": {}}
     with tarfile.open(archive_path, "r:") as archive:
         files = {}
@@ -24,7 +28,7 @@ def inspect(archive_path):
                 raise ValueError("Repeated backup member")
             files[name] = member
             content = archive.extractfile(member).read()
-            result["files"][name] = {"bytes": len(content), "sha256": hashlib.sha256(content).hexdigest()}
+            result["files"][hashlib.sha256(name.encode()).hexdigest()] = {"bytes": len(content), "sha256": hashlib.sha256(content).hexdigest()}
         prefs_name = "shared_prefs/haus_garten.xml"
         if prefs_name not in files:
             raise ValueError("App preferences missing from backup")
@@ -40,7 +44,7 @@ def inspect(archive_path):
         db_name = "databases/haus-garten-mobile.db"
         if db_name not in files:
             raise ValueError("Mobile database missing from backup")
-        with tempfile.TemporaryDirectory(prefix="hausgarten-backup-audit-") as temporary:
+        with runtime_paths.staging_directory(archive_path) as temporary:
             target = Path(temporary) / "haus-garten-mobile.db"
             for suffix in ("", "-journal", "-wal", "-shm"):
                 entry = files.get(db_name + suffix)

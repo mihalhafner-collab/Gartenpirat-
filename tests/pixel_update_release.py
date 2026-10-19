@@ -3,10 +3,13 @@ import base64, hashlib, json, os, re, subprocess, sys
 from datetime import datetime, timezone
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT))
+import runtime_paths
 ADB=ROOT/'android-toolchain/sdk/platform-tools/adb.exe'
 APP='at.hausgarten.service'
 DIAG=APP+'.test'
 def main(serial):
+    runtime_paths.private_root()  # fail before device access
     if not serial or os.environ.get('HG_TEST_DEVICE_CONFIRMED') != '1':
         raise RuntimeError('Manual device update requires explicit user consent and HG_TEST_DEVICE_CONFIRMED=1; no device operation performed.')
     def run(args,timeout=90):
@@ -37,8 +40,9 @@ def main(serial):
         run(['shell','am','force-stop',APP])
         run(['install','-r','-t',str(diagnostic)]);installed=True
         before=capture()
-        backup=ROOT/'data/backups/pixel-usb'/('before-v'+version+'-'+datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%SZ')+'.business.json')
-        backup.parent.mkdir(parents=True,exist_ok=True)
+        backup=runtime_paths.private_root()/'backups/pixel-usb'/('before-v'+version+'-'+datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%SZ')+'.business.json')
+        backup=runtime_paths.business_path(backup)
+        backup.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
         with backup.open('x',encoding='utf-8') as handle:json.dump(before,handle,ensure_ascii=False)
         # Verify the backup we just wrote before touching the original APK.
         if digest(json.loads(backup.read_text(encoding='utf-8')))!=digest(before):raise RuntimeError('Business backup verification failed')
@@ -48,7 +52,7 @@ def main(serial):
         if not re.search(r'versionCode='+str(code)+r'\b',installed_version) or 'versionName='+version not in installed_version:raise RuntimeError('Unexpected installed version')
         after=capture()
         preserved=digest(before)==digest(after)
-        result={'updated':True,'version':version,'version_code':code,'business_backup':str(backup),'backup_excludes_credentials':True,'before_hash':digest(before),'after_hash':digest(after),'productive_ledger_identical':preserved,'counts':{key:len(after['master'].get(key,[])) for key in ['customers','orders','worklogs','invoices','photos']},'pending_count':len(after.get('pending',[]))}
+        result={'updated':True,'version':version,'version_code':code,'business_backup_path_hash':hashlib.sha256(str(backup).encode()).hexdigest(),'backup_excludes_credentials':True,'before_hash':digest(before),'after_hash':digest(after),'productive_ledger_identical':preserved,'counts':{key:len(after['master'].get(key,[])) for key in ['customers','orders','worklogs','invoices','photos']},'pending_count':len(after.get('pending',[]))}
         report.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
         print(json.dumps({k:v for k,v in result.items() if k not in ['before_hash','after_hash']}),flush=True)
         if not preserved:raise RuntimeError('Business ledger changed; investigate before claiming preservation')

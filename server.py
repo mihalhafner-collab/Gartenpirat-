@@ -22,6 +22,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
 import db
+import runtime_paths
 import invoicing
 import photo_storage
 
@@ -172,13 +173,13 @@ def _create_backup(folder="") -> dict:
         db.save_settings({"backup_folder": folder})
     else:
         folder = db.settings().get("backup_folder", "")
-    destination = Path(folder).expanduser() if folder else db.BACKUP_DIR
+    destination = runtime_paths.business_path(folder) if folder else runtime_paths.business_path(db.BACKUP_DIR)
     destination.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S_%f")
-    target = destination / f"Haus-Garten-Sicherung_{stamp}.zip"
+    target = runtime_paths.business_path(destination / f"Haus-Garten-Sicherung_{stamp}.zip")
     # SQLite's backup API includes committed WAL data even during concurrent writes.
     import tempfile
-    with tempfile.TemporaryDirectory() as staging:
+    with tempfile.TemporaryDirectory(prefix="qa_backup_" if runtime_paths.synthetic_root(db.DATA_DIR) else "backup_", dir=runtime_paths.business_path(db.DATA_DIR)) as staging:
         copy = Path(staging) / 'haus-garten.db'
         backup = sqlite3.connect(copy)
         try:
@@ -231,7 +232,7 @@ def refresh_drive_capabilities(expected_snapshot_hash):
         folder = str(db.settings().get('backup_folder', '')).strip()
         if not folder:
             raise ValueError('Der bestehende Drive-Ordner ist nicht eingerichtet.')
-        target = Path(folder) / 'HausGarten-Laptop.json'
+        target = runtime_paths.business_path(Path(folder) / 'HausGarten-Laptop.json')
         before = target.read_bytes()
         if hashlib.sha256(before).hexdigest() != expected_snapshot_hash:
             raise ValueError('Der Drive-Datenstand hat sich geändert. Keine Datei überschrieben.')
@@ -269,7 +270,8 @@ def refresh_drive_capabilities(expected_snapshot_hash):
 
 
 def write_json_atomic(path, value):
-    temporary = path.with_suffix(path.suffix + '.tmp')
+    path = runtime_paths.business_path(path)
+    temporary = runtime_paths.business_path(path.with_suffix(path.suffix + '.tmp'))
     temporary.write_text(json.dumps(value, ensure_ascii=False), encoding='utf-8')
     temporary.replace(path)
 
@@ -418,10 +420,10 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
     configured = str(settings.get("backup_folder", "")).strip()
     if not configured:
         raise ValueError("Bitte zuerst den lokalen Google-Drive-Ordner auswählen.")
-    destination = Path(configured).expanduser()
+    destination = runtime_paths.business_path(configured)
     destination.mkdir(parents=True, exist_ok=True)
-    drive_photos = destination / "HausGarten-Fotos"
-    target = destination / 'HausGarten-Laptop.json'
+    drive_photos = runtime_paths.business_path(destination / "HausGarten-Fotos")
+    target = runtime_paths.business_path(destination / 'HausGarten-Laptop.json')
     before = target.read_bytes() if target.exists() else None
     previous = json.loads(before.decode('utf-8-sig')) if before else {}
     import drive_publication
@@ -556,14 +558,14 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
             invoice['pdf_sha256']=hashlib.sha256(invoicing.issued_pdf(invoice['id'])).hexdigest()
             pdf=invoicing.issued_pdf(invoice['id']);invoice.pop('pdf_base64',None)
             invoice['pdf_storage_name']=invoice['pdf_sha256']+'.pdf';invoice['pdf_byte_size']=len(pdf);invoice['document_id']='invoice:'+invoice['id']
-            documents=destination/'HausGarten-Dokumente';documents.mkdir(exist_ok=True);document=documents/invoice['pdf_storage_name']
+            documents=runtime_paths.business_path(destination/'HausGarten-Dokumente');documents.mkdir(exist_ok=True);document=runtime_paths.business_path(documents/invoice['pdf_storage_name'])
             if document.exists() and hashlib.sha256(document.read_bytes()).hexdigest()!=invoice['pdf_sha256']:raise ValueError('Original-PDF im Dokumentordner weicht ab. Keine Überschreibung.')
             if not document.exists():
                 with document.open('xb') as output:output.write(pdf)
-            archive_folder = destination / 'Rechnungen' / str(invoice['invoice_date'][:4])
+            archive_folder = runtime_paths.business_path(destination / 'Rechnungen' / str(invoice['invoice_date'][:4]))
             archive_folder.mkdir(parents=True, exist_ok=True)
             archive_name = re.sub(r'[^A-Za-z0-9_-]', '-', invoice['invoice_number']) + '.pdf'
-            archive_file = archive_folder / archive_name
+            archive_file = runtime_paths.business_path(archive_folder / archive_name)
             if not archive_file.exists():
                 archive_file.write_bytes(invoicing.issued_pdf(invoice['id']))
             elif hashlib.sha256(archive_file.read_bytes()).hexdigest() != hashlib.sha256(invoicing.issued_pdf(invoice['id'])).hexdigest():
@@ -574,7 +576,7 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
         if not name or Path(name).name != name:
             failed.append({'file':name or '<leer>','photo_id':photo.get('id'),'error':'Unsichere Foto-Dateireferenz; nicht exportiert.'})
             continue
-        source, target_photo = db.PHOTO_DIR / name, drive_photos / name
+        source, target_photo = runtime_paths.business_path(db.PHOTO_DIR / name), runtime_paths.business_path(drive_photos / name)
         try:
             raw, metadata = photo_storage.read_verified(
                 source, photo.get('content_sha256'), photo.get('byte_size'), photo.get('mime_type'))
@@ -602,7 +604,7 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
     for photo in snapshot['photos']:
         name=photo.get('thumbnail_storage_name','')
         if not name:continue
-        source=db.PHOTO_DIR/'thumbnails'/name;target=drive_photos/name
+        source=runtime_paths.business_path(db.PHOTO_DIR/'thumbnails'/name);target=runtime_paths.business_path(drive_photos/name)
         try:
             if not re.fullmatch(r'[0-9a-f]{64}\.jpg',name):raise ValueError('Ungültige Vorschaureferenz.')
             raw=source.read_bytes()
@@ -611,8 +613,8 @@ def _drive_sync(folder="", invoice_only=False) -> dict:
             if not target.exists():
                 with target.open('xb') as output:output.write(raw)
         except (OSError,ValueError) as error:failed.append({'file':name,'photo_id':photo['id'],'error':str(error)})
-    temporary = destination / "HausGarten-Laptop.tmp"
-    target = destination / "HausGarten-Laptop.json"
+    temporary = runtime_paths.business_path(destination / "HausGarten-Laptop.tmp")
+    target = runtime_paths.business_path(destination / "HausGarten-Laptop.json")
     # Include failures discovered during archive/photo export, not only import.
     snapshot['sync_errors'] = list({item.get('client_id',item['file']):item for item in [*rejected.values(),*failed]}.values())
     try:
@@ -668,7 +670,9 @@ class Handler(SimpleHTTPRequestHandler):
         super().__init__(*args, directory=str(STATIC), **kwargs)
 
     def log_message(self, fmt, *args):
-        sys.stdout.write(f"[{datetime.now().strftime('%H:%M:%S')}] {fmt % args}\n")
+        method=self.command if self.command in {'GET','POST','PUT','DELETE','HEAD','OPTIONS'} else 'OTHER'
+        status=next((str(v) for v in args[1:] if re.fullmatch(r'[1-5][0-9]{2}',str(v))),None)
+        sys.stdout.write(json.dumps({'http_method':method,'status':status})+'\n')
 
     def send_json(self, value, status=HTTPStatus.OK):
         content = json.dumps(value, ensure_ascii=False).encode("utf-8")
@@ -935,7 +939,17 @@ def main():
     print(f"Laptop: http://localhost:{options.port}")
     print(f"Android im selben WLAN: http://{local_ip()}:{options.port}")
     if options.host not in {"127.0.0.1", "localhost", "::1"}:
-        print(f"Zugangscode für Android: {ACCESS_PIN}")
+        private=runtime_paths.business_path(runtime_paths.private_root()/'.secrets')
+        private.mkdir(mode=0o700,exist_ok=True)
+        destination=runtime_paths.business_path(private/'host-access-pin')
+        import os,tempfile
+        descriptor,temporary=tempfile.mkstemp(prefix='host-pin-',dir=private)
+        try:
+            with os.fdopen(descriptor,'w') as output:output.write(ACCESS_PIN)
+            os.replace(temporary,destination)
+        finally:
+            Path(temporary).unlink(missing_ok=True)
+        print('Zugangscode liegt ausschließlich im privaten Secret-Unterordner .secrets; keine Ausgabe in Logs.')
     print("Beenden mit Strg+C\n")
     try:
         server.serve_forever()

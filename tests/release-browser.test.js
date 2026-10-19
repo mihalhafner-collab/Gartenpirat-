@@ -45,7 +45,7 @@ async function main(){
     await page.locator('.customer-card').filter({hasText:'QA Browser Kunde geändert'}).waitFor({state:'detached'});
   });
   await check('Customer, order, worklog options and calculated save',async()=>{
-    await page.evaluate(()=>openEditor('worklog',{customer_id:'cus_qa',order_id:'ord_qa'}));
+    await page.evaluate(()=>openEditor('worklog',{customer_id:'qa_cus_qa',order_id:'qa_ord_qa'}));
     await page.locator('#editor-form [name="start_time"]').fill('08:00');
     await page.locator('#editor-form [name="end_time"]').fill('14:30');
     await page.locator('#editor-form [name="break_minutes"]').fill('60');
@@ -54,7 +54,7 @@ async function main(){
     await page.locator('#editor-form button[type="submit"]').click();
     await page.waitForFunction(()=>!document.querySelector('#editor-dialog').open);
     const rows=await page.request.get(laptopUrl+'/api/worklogs').then(r=>r.json());
-    const row=rows.find(r=>r.activity==='Browser Arbeitsablauf'); assert.equal(row.hours,5.5); assert.equal(row.order_id,'ord_qa');
+    const row=rows.find(r=>r.activity==='Browser Arbeitsablauf'); assert.equal(row.hours,5.5); assert.equal(row.order_id,'qa_ord_qa');
     await page.evaluate(()=>loadAll());
     await page.evaluate(id=>openEditor('worklog',state.worklogs.find(w=>w.id===id)),row.id);
     await page.locator('#editor-form [name="activity"]').fill('Browser Nachtrag');
@@ -64,13 +64,13 @@ async function main(){
     await page.evaluate(()=>loadAll());
   });
   await check('Order CRUD through form and customer relation',async()=>{
-    await page.evaluate(()=>openEditor('order',{customer_id:'cus_qa'}));
+    await page.evaluate(()=>openEditor('order',{customer_id:'qa_cus_qa'}));
     await page.locator('#editor-form [name="title"]').fill('QA Neuer Auftrag');
     await page.locator('#editor-form [name="location"]').fill('Testort');
     await page.locator('#editor-form button[type="submit"]').click();
     await page.waitForFunction(()=>!document.querySelector('#editor-dialog').open);
     const row=await page.request.get(laptopUrl+'/api/orders').then(r=>r.json()).then(rows=>rows.find(r=>r.title==='QA Neuer Auftrag'));
-    assert.equal(row.customer_id,'cus_qa');
+    assert.equal(row.customer_id,'qa_cus_qa');
     await page.evaluate(row=>openEditor('order',row),row);
     await page.locator('#editor-form [name="description"]').fill('Besichtigung geändert');
     await page.locator('#editor-form button[type="submit"]').click();
@@ -81,21 +81,21 @@ async function main(){
     page.once('dialog',dialog=>dialog.accept());await card.locator('[data-remove]').click();await card.waitFor({state:'detached'});
   });
   await check('Archive selection preserved when editing historical work',async()=>{
-    await page.evaluate(()=>{state.customers.find(c=>c.id==='cus_qa').active=0;openEditor('worklog',state.worklogs.find(w=>w.id==='wrk_qa'));});
-    assert.equal(await page.locator('#worklog-customer').inputValue(),'cus_qa');
+    await page.evaluate(()=>{state.customers.find(c=>c.id==='qa_cus_qa').active=0;openEditor('worklog',state.worklogs.find(w=>w.id==='wrk_qa'));});
+    assert.equal(await page.locator('#worklog-customer').inputValue(),'qa_cus_qa');
     await page.locator('#editor-dialog [data-close]').first().click();await page.evaluate(()=>loadAll());
   });
   await check('Multiple photo upload, compression and linked previews',async()=>{
     const prior=await page.request.get(laptopUrl+'/api/photos').then(r=>r.json());
     for(const row of prior)await page.request.delete(laptopUrl+'/api/photos/'+row.id);
     await page.evaluate(()=>loadAll());
-    await page.evaluate(()=>openEditor('photo',{customer_id:'cus_qa',order_id:'ord_qa'}));
+    await page.evaluate(()=>openEditor('photo',{customer_id:'qa_cus_qa',order_id:'qa_ord_qa'}));
     const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jD1sAAAAASUVORK5CYII=','base64');
     await page.locator('#editor-form [name="files"]').setInputFiles([{name:'qa1.png',mimeType:'image/png',buffer:png},{name:'qa2.png',mimeType:'image/png',buffer:png}]);
     await page.locator('#editor-form button[type="submit"]').click();
     await page.waitForFunction(()=>!document.querySelector('#editor-dialog').open);
     const rows=await page.request.get(laptopUrl+'/api/photos').then(r=>r.json());assert.equal(rows.length,2);
-    assert(rows.every(r=>r.customer_id==='cus_qa'&&r.order_id==='ord_qa'));
+    assert(rows.every(r=>r.customer_id==='qa_cus_qa'&&r.order_id==='qa_ord_qa'));
     await page.evaluate(()=>loadAll());await page.evaluate(()=>showView('photos'));assert.equal(await page.locator('.photo-card img').count(),2);
     for(const row of rows)await page.request.delete(laptopUrl+'/api/photos/'+row.id);
     await page.evaluate(()=>loadAll());
@@ -104,7 +104,7 @@ async function main(){
     await page.locator('#navigation [data-view="customers"]').click();
     await page.locator('#customer-search').fill('Gartenstraße');await page.waitForTimeout(200);
     assert.equal(await page.locator('.customer-card').count(),1);
-    await page.locator('[data-customer-detail="cus_qa"]').first().click();
+    await page.locator('[data-customer-detail="qa_cus_qa"]').first().click();
     assert((await page.locator('#customer-detail-content').innerText()).includes('Hecke pflegen'));
     await page.locator('#customer-detail-dialog [data-close]').click();
     await page.locator('#navigation [data-view="worklogs"]').click();
@@ -134,17 +134,17 @@ async function main(){
   await check('Offline create survives reload and synchronizes',async()=>{
     try{
     await context.setOffline(true);
-    await page.evaluate(()=>saveEntity('worklog',{id:'wrk_qa_offline',customer_id:'cus_qa',order_id:'ord_qa',activity:'Offline QA',hours:2,work_date:'2026-10-08'}));
+    await page.evaluate(()=>saveEntity('worklog',{id:'qa_wrk_qa_offline',customer_id:'qa_cus_qa',order_id:'qa_ord_qa',activity:'Offline QA',hours:2,work_date:'2026-10-08'}));
     assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('haus-garten-queue')).length),1);
     await page.reload();await page.waitForTimeout(700);
     assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('haus-garten-queue')).length),1);
     assert.equal(await page.evaluate(()=>state.dashboard.unbilled_hours),5);
-    assert(await page.evaluate(()=>state.dashboard.recent.some(w=>w.id==='wrk_qa_offline')));
+    assert(await page.evaluate(()=>state.dashboard.recent.some(w=>w.id==='qa_wrk_qa_offline')));
     await context.setOffline(false);await page.evaluate(()=>synchronize());
     await page.waitForFunction(()=>JSON.parse(localStorage.getItem('haus-garten-queue')).length===0);
     assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('haus-garten-queue')).length),0);
     const rows=await page.request.get(laptopUrl+'/api/worklogs').then(r=>r.json());
-    assert.equal(rows.filter(w=>w.id==='wrk_qa_offline').length,1);
+    assert.equal(rows.filter(w=>w.id==='qa_wrk_qa_offline').length,1);
     }finally{await context.setOffline(false);}
   });
   await check('Corrupted offline queue is preserved and clearly reported',async()=>{
@@ -156,7 +156,7 @@ async function main(){
     await page.evaluate(()=>localStorage.setItem('haus-garten-queue','[]'));await page.evaluate(()=>loadAll());
   });
   await check('Unsaved customer edits are protected on close',async()=>{
-    await page.evaluate(()=>openEditor('customer',state.customers.find(c=>c.id==='cus_qa')));
+    await page.evaluate(()=>openEditor('customer',state.customers.find(c=>c.id==='qa_cus_qa')));
     await page.locator('#editor-form [name="name"]').fill('Nicht gespeichert');
     page.once('dialog',dialog=>dialog.dismiss());await page.locator('#editor-dialog [data-close]').first().click();
     assert(await page.locator('#editor-dialog').isVisible());
@@ -166,9 +166,9 @@ async function main(){
   await check('New changes survive synchronization already in progress',async()=>{
     let resume,started;const gate=new Promise(resolve=>resume=resolve),began=new Promise(resolve=>started=resolve);
     await page.route('**/api/sync',async route=>{started();await gate;await route.continue();});
-    await page.evaluate(()=>queueAction('worklog',{id:'wrk_race_a',customer_id:'cus_qa',order_id:'ord_qa',activity:'Race A',hours:1,work_date:'2026-10-08'}));
+    await page.evaluate(()=>queueAction('worklog',{id:'qa_wrk_race_a',customer_id:'qa_cus_qa',order_id:'qa_ord_qa',activity:'Race A',hours:1,work_date:'2026-10-08'}));
     const sync=page.evaluate(()=>synchronize());await began;
-    await page.evaluate(()=>queueAction('worklog',{id:'wrk_race_b',customer_id:'cus_qa',order_id:'ord_qa',activity:'Race B',hours:1,work_date:'2026-10-08'}));
+    await page.evaluate(()=>queueAction('worklog',{id:'qa_wrk_race_b',customer_id:'qa_cus_qa',order_id:'qa_ord_qa',activity:'Race B',hours:1,work_date:'2026-10-08'}));
     resume();await sync;await page.unroute('**/api/sync');
     assert.equal(await page.evaluate(()=>readQueue().length),1);
     await page.evaluate(()=>synchronize());assert.equal(await page.evaluate(()=>readQueue().length),0);

@@ -5,6 +5,7 @@ from decimal import Decimal, ROUND_HALF_UP
 import json
 from pathlib import Path
 import db
+import runtime_paths
 import sync_review
 
 CONTRACT=json.loads((Path(__file__).parent/'android/app/src/main/assets/offer-contract.json').read_text())
@@ -200,7 +201,7 @@ def apply(action,attachment_root=None):
             if row.get('pdf_storage_name'):
                 if attachment_root is None:raise ValueError('Angebots-PDF fehlt noch im Medienabgleich.')
                 if not __import__('re').fullmatch(r'[0-9a-f]{64}\.pdf',str(row['pdf_storage_name'])) or not isinstance(row.get('pdf_byte_size'),int) or not 5<=row['pdf_byte_size']<=20*1024*1024:raise ValueError('Ungültige PDF-Referenz.')
-                root=Path(attachment_root).parent/'HausGarten-Dokumente';file=root/row['pdf_storage_name']
+                root=runtime_paths.business_path(Path(attachment_root).parent/'HausGarten-Dokumente');file=root/row['pdf_storage_name']
                 if file.is_symlink() or file.stat().st_size>20*1024*1024:raise ValueError('Ungültige PDF-Datei.')
                 raw=file.read_bytes()
                 if not row['pdf_storage_name']==row.get('pdf_sha256','')+'.pdf' or len(raw)!=row['pdf_byte_size'] or __import__('hashlib').sha256(raw).hexdigest()!=row['pdf_sha256'] or not raw.startswith(b'%PDF-'):raise ValueError('Angebots-PDF-Prüfsumme stimmt nicht überein.')

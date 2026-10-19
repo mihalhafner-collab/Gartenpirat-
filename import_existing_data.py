@@ -5,10 +5,11 @@ import json
 from pathlib import Path
 
 import db
+import runtime_paths
 
 
 ROOT = Path(__file__).resolve().parent
-PLAN = ROOT.parent / "work" / "migration_plan.json"
+PLAN = runtime_paths.PrivatePath("imports/migration_plan.json")
 
 
 def split_address(value: str) -> tuple[str, str, str, str]:

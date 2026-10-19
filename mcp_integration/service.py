@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 import db
+import runtime_paths
 
 from mcp_integration import drive_store
 
@@ -92,7 +93,7 @@ def call_safely(function: Callable[..., dict], *args: Any, **kwargs: Any) -> dic
 
 
 def _state_path() -> Path:
-    return Path(db.DATA_DIR) / "mcp-integration.db"
+    return runtime_paths.business_path(Path(db.DATA_DIR) / "mcp-integration.db")
 
 
 def _audit(tool: str, success: bool, *, entity_id: str | None = None,

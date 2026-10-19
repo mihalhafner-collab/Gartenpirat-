@@ -25,7 +25,7 @@ class PixelMobileWrites(unittest.TestCase):
         return result, snapshot
 
     def test_create_read_replay_mobile_channel_no_order(self):
-        payload = {'id': 'wrk_mobile_mcp_qa1', 'customer_id': self.customer['id'],
+        payload = {'id': 'qa_wrk_mobile_mcp_qa1', 'customer_id': self.customer['id'],
                    'order_id': '', 'work_date': '2026-10-10', 'activity': 'QA Hecke ÄÖÜ',
                    'hours': 3, 'break_minutes': 0, 'kilometers': 0, 'billed': 0,
                    'customer_visible': 1, 'source': 'ChatGPT Sprache', '_mcp_create': True}

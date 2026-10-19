@@ -1,13 +1,17 @@
 # CODEX-STATUS
 
-Stand: 18. Oktober 2026  
+Stand: 19. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
 > Diese Datei ist der fortlaufende technische Arbeitsnachweis für Codex Cloud.  
 > Regeln: `AGENTS.md`  
 > Vollständiger Auftrag: `CODEX-AUFTRAG-GARTENPIRAT.md`
 
-## Aktueller Ausgangsstand
+## Aktueller P0-Datenschutzauftrag
+
+Ausgang `aa04cbd04d2035a877acd243af612a2fc97f5519`, sauberer aktueller main. Neuer P0-Block vollständig geprüft; frühere Funktions-/Gerätezustände unten sind historische Nachweise. Keine produktiven Datenzugriffe/Änderungen in dieser Migration. P0-Abnahme noch OFFEN.
+
+## Historischer Ausgangsstand
 
 - Auftrag: **P0 Pixel/Drive Cloud-only Sync abschließen**
 - Operativer Zielpfad: Pixel ↔ Google Drive direkt
@@ -39,13 +43,13 @@ Repository: `mihalhafner-collab/Gartenpirat-`
 ## Bekannte technische Queue-Einträge
 
 ### Historische 7
-- `wrk_mobile_913976ba4bd1453ba75a5468b89c3c32`
-- `wrk_mobile_b8445cff3af746718d480fce9be3889a`
-- `wrk_mobile_325735fd783c4f5fb3d012ab7969ccfd`
-- `delete_change_f82a727e-90ce-4021-a741-2238101b2505`
-- `delete_change_b1fc39af-3f04-4baa-81bf-a34a20e76479`
-- `customer_change_3b8f4a4bdaca4d5e9b67a4b9b3ac3020`
-- `delete_change_9304498d-e90b-47de-be7c-bfd2e627fdf3`
+- `id_sha256_ca46d340bc52b9e93e578b4a47c1afa08b11c87a013e5c9dee7cd7624bc12824`
+- `id_sha256_57c833b527f0ca0f4da04e79ff2ca787c57ab9a891833becee4c3e4faccf3914`
+- `id_sha256_81dda83b42bd64510013bec7217cae7c4e9b01537341db98abc6f91ed52ca52a`
+- `id_sha256_c09057d51603a99907adeef4bb7e9c332c97e4ddd2fbdf687ccfb45e83d35264`
+- `id_sha256_2a69731a26c376695ce26e7d1788647b6ac11aa887024a8b3c981d84b2a5e2dd`
+- `id_sha256_c28c6391b7e050a97a7034e9ae7622d4f3c9bf73c4d9e5e893fde925e9abe1bd`
+- `id_sha256_04ecd644998e4d3962e834a23db5feeb936ea7d85d055acc300c448fd4ea7899`
 
 ### Technische 2 (historischer Stand vor der aktuellen MCP-Testphase)
 - `mcp_owner_b6f1c56ba6534a250f6f5057175f365623155aa656d55fd0342f2517b4a539da` → `SYNC_COMPONENT_UPDATE_REQUIRED`
@@ -134,43 +138,43 @@ Drive-Ausgangssicherung:
 - Bestehender technischer Testkunde, seine ursprüngliche Foto-Liste sowie Unternehmens-/Geräteeinstellungen unverändert. Alle 8 ursprünglichen Prüfungen mit identischen client_ids, action_hashes und current_hashes; Legacy-Vorschau weiterhin 7 und Hash `68c60929c2477b987524f578cade273d041a74380863b5dc6b2af146bab9f5c7`. Keine Löschung/Altentscheidung, kein Beleg erfunden, keine Queue gelöscht.
 - Sechs eigene Einträge lokal im Archiv: ein neuer synthetischer Kunde, Auftrag, Arbeitsaufzeichnung, Rechnungsentwurf und zwei Fotos. Originalbytes nicht physisch gelöscht. Testbaustein inaktiv. Angebot bleibt klar markierter Entwurf ohne Auftragsverknüpfung, da kein Angebotsarchiv-MCP existiert. Timer IDLE; b.b.-Testmarkierung entfernt.
 - **Aktive Queue danach: 38 = 8 vorherige Prüfungen + 30 neue synthetische Testaktionen (einschließlich Archivierungen).** Neue Aktionen vollständig den acht eigenen Testentitäten zugeordnet; keine zusätzliche persistierte Review-Aktion. Lokales Archivieren ist noch kein synchronisierter Cleanup. Die 30 dürfen weder gelöscht noch als bestätigt ausgegeben werden; nach Reparatur des Syncs normale hashgebundene Verarbeitung/Belegprüfung, beim Fotorollenpfad gegebenenfalls kontrollierte Konfliktprüfung. Keine weiteren Massen-Schreibtests bis dahin.
-- Synthetische IDs: Kunde `cus_mobile_mcp_e8fd82850e5fb414fa5f85376cc6154f`; Auftrag `ord_mobile_mcp_c90b203ce9485a27b0717c30678e4f7b`; Arbeit `wrk_mobile_mcp_f5ae9f29b900a0cf9f86467ca4ecae36`; Entwurf `inv_mobile_mcp_b5def23d28b8eff3761111fe9dcb87cd`; Fotos `pho_mcp_39612a180dead58cfb430f3f8edd3205`, `pho_mcp_20c14716be17ceb5efa7fcb41941f707`; Angebot `off_a584c1640db5973da7d85cae204a4abe`; Baustein `svc_639d0ee62bf9cf360a49d973f0760acb`.
+- Synthetische IDs: Kunde `id_sha256_04d3738af3f78ea5d75c30d1acbd9986f25f427865a39a8f0fcffdab2eab9a6e`; Auftrag `id_sha256_2248b4da5ada771c10deeb5c060b378603875e3389c0524478469d14844ca9f9`; Arbeit `id_sha256_9f5265b31b9a97be269bf5faf93bfe87adb4f7d01d62bf5c0023f92fee03c92f`; Entwurf `id_sha256_abbdad18e36cf5365aa24e00762ad87fcb9f14c656603af9a9b1f1e185d63217`; Fotos `id_sha256_8cbd663a374da3be09cd94c037a3025e77341079fc33f85d08a54ba4e9933abc`, `id_sha256_06e7df1f19442bfb007e6d46dc69a5dc3f771862668078e6906f50bfd14071af`; Angebot `id_sha256_7556f393bca85a490d4665531a06d7f7f612a1568554e9894911b74e313f87c5`; Baustein `id_sha256_494ef829768228263de344ca1e8feb695eddc5c41ec3398da289b1674618728f`.
 
 <details>
 <summary>30 neue synthetische Journalaktionen für die spätere Belegprüfung</summary>
 
 | client_id | Art | Synthetische Entität |
 |---|---|---|
-| `mcp_pixel_3dbdcb71bcfeeacc77ef16acd4f56ea3409bf6ac` | order | `ord_mobile_mcp_c90b203ce9485a27b0717c30678e4f7b` |
-| `mcp_pixel_865559d81eba43a3e55fbf1c46d7144c38291f05` | order | `ord_mobile_mcp_c90b203ce9485a27b0717c30678e4f7b` |
-| `mcp_pixel_f5d406529401d97a4a3e69e3610d3615df0e3007` | worklog | `wrk_mobile_mcp_f5ae9f29b900a0cf9f86467ca4ecae36` |
-| `mcp_pixel_be8230f383d7a760522af8eb5a9c2d4072376c6d` | worklog | `wrk_mobile_mcp_f5ae9f29b900a0cf9f86467ca4ecae36` |
-| `photo_change_b173108b-6808-4768-9ac5-a88809254202` | photo | `pho_mcp_39612a180dead58cfb430f3f8edd3205` |
-| `mcp_owner_e6009ed5da9f9b59ee0052564b7e412fd2c989710652cb8aa5b4e7fcfb0d47a0` | photo | `pho_mcp_39612a180dead58cfb430f3f8edd3205` |
-| `mcp_pixel_5fad9aac1d3c265ba4e34dbdc549fad70deb3b54` | invoice | `inv_mobile_mcp_b5def23d28b8eff3761111fe9dcb87cd` |
-| `mcp_pixel_2fc08b3849ed3422c465b7548755d452c0a14914` | invoice | `inv_mobile_mcp_b5def23d28b8eff3761111fe9dcb87cd` |
-| `mcp_owner_109b45a637af58056e51bd1400494fcaeef8640554ac8d8ecf347205c47a1de9` | offer | `off_a584c1640db5973da7d85cae204a4abe` |
-| `mcp_owner_98964f7240f95746b88b46f34461bbf40fb049acd9f108f275f554db76517f38` | offer | `off_a584c1640db5973da7d85cae204a4abe` |
-| `photo_change_d82ee904-3a41-4512-b955-ae039e57dfab` | photo | `pho_mcp_20c14716be17ceb5efa7fcb41941f707` |
-| `mcp_owner_3ba2b1aea9e8eb1833fac42036a37ad554fb18b3e1992ed5f0fca918240ed8a4` | offer | `off_a584c1640db5973da7d85cae204a4abe` |
-| `mcp_owner_9ee3eea31c7922722870a45e5668d178be6a67df88b5c2e59c933cd1d522fa79` | offer | `off_a584c1640db5973da7d85cae204a4abe` |
-| `mcp_owner_4c20f8c5fcf095a01628ed1eb9cc666fdcfeb26dc0bd24aa76a4471cbb839d33` | offer | `off_a584c1640db5973da7d85cae204a4abe` |
-| `mcp_pixel_d5c69e42db79333ee3f84ca62124788c12b26c3c` | customer | `cus_mobile_mcp_e8fd82850e5fb414fa5f85376cc6154f` |
-| `mcp_pixel_189665c3d9988867a93bbfc5d74ebeefd0c10056` | customer | `cus_mobile_mcp_e8fd82850e5fb414fa5f85376cc6154f` |
-| `mcp_owner_e334a11ea03e913c49e81ff3f5108661f8918a6fb39fd97d17f523e99a23226a` | service_template | `svc_639d0ee62bf9cf360a49d973f0760acb` |
-| `mcp_owner_d5cbd686add476c13461db3d6dd2c21bec87fe96d6f1d0fba414dd9069baf0cb` | archive | `cus_mobile_mcp_e8fd82850e5fb414fa5f85376cc6154f` |
-| `mcp_owner_c058585c0525d592e4274c404d0028504213cba4805e35eb9866592d13e053c1` | service_template | `svc_639d0ee62bf9cf360a49d973f0760acb` |
-| `mcp_owner_f2d9a9e105654f267f0dfe424d30686a8748a947d956bf466edd55fecf92ef5d` | restore | `cus_mobile_mcp_e8fd82850e5fb414fa5f85376cc6154f` |
-| `mcp_owner_c79539cc896f180248ec536553c7e195b98dc04610af8203054c6f535a6c1b74` | archive | `cus_mobile_mcp_e8fd82850e5fb414fa5f85376cc6154f` |
-| `mcp_owner_b3dc470efa9ee77d5a65df1d865f2ff265eb7accc12811df63b006509f4b78f7` | worklog | `wrk_mobile_mcp_f5ae9f29b900a0cf9f86467ca4ecae36` |
-| `mcp_owner_74d17eed7fa434c230c4e3078b976ae42bda726509a737a79c13199072bacea7` | worklog | `wrk_mobile_mcp_f5ae9f29b900a0cf9f86467ca4ecae36` |
-| `mcp_owner_545331ff3cc5b786d96f025d96ca7698585aaa1805570f6fcb4c93f1ff8c9a64` | worklog | `wrk_mobile_mcp_f5ae9f29b900a0cf9f86467ca4ecae36` |
-| `mcp_owner_cfd7d3d752798b94e0a077ac414ba80325124dd06c2f6e1bc1db6fb9052d7e31` | archive | `pho_mcp_39612a180dead58cfb430f3f8edd3205` |
-| `mcp_owner_a4d7bcf72f83992e29dd876e789bdf588e79599311b0df55e68f109027b962f2` | archive | `pho_mcp_20c14716be17ceb5efa7fcb41941f707` |
-| `mcp_owner_f17a6bee01bd9064f92e786b59092327e91f18e82958fe49cf430ba9d99c5cfe` | archive | `inv_mobile_mcp_b5def23d28b8eff3761111fe9dcb87cd` |
-| `mcp_owner_4707ed8c6bbeb5809f441731647f00a2d17b46630d4faa05ecc6f0d7b538cc36` | archive | `wrk_mobile_mcp_f5ae9f29b900a0cf9f86467ca4ecae36` |
-| `mcp_owner_1011d4301e40f240268203f722c479d9dddae9fc832bdef89c3ee322efa3b667` | offer | `off_a584c1640db5973da7d85cae204a4abe` |
-| `mcp_owner_55d3c61c4271a2a7d775274bb1449c7d0199a7364c711c71c1b10de011b153b5` | archive | `ord_mobile_mcp_c90b203ce9485a27b0717c30678e4f7b` |
+| `mcp_pixel_3dbdcb71bcfeeacc77ef16acd4f56ea3409bf6ac` | order | `id_sha256_2248b4da5ada771c10deeb5c060b378603875e3389c0524478469d14844ca9f9` |
+| `mcp_pixel_865559d81eba43a3e55fbf1c46d7144c38291f05` | order | `id_sha256_2248b4da5ada771c10deeb5c060b378603875e3389c0524478469d14844ca9f9` |
+| `mcp_pixel_f5d406529401d97a4a3e69e3610d3615df0e3007` | worklog | `id_sha256_9f5265b31b9a97be269bf5faf93bfe87adb4f7d01d62bf5c0023f92fee03c92f` |
+| `mcp_pixel_be8230f383d7a760522af8eb5a9c2d4072376c6d` | worklog | `id_sha256_9f5265b31b9a97be269bf5faf93bfe87adb4f7d01d62bf5c0023f92fee03c92f` |
+| `photo_change_b173108b-6808-4768-9ac5-a88809254202` | photo | `id_sha256_8cbd663a374da3be09cd94c037a3025e77341079fc33f85d08a54ba4e9933abc` |
+| `mcp_owner_e6009ed5da9f9b59ee0052564b7e412fd2c989710652cb8aa5b4e7fcfb0d47a0` | photo | `id_sha256_8cbd663a374da3be09cd94c037a3025e77341079fc33f85d08a54ba4e9933abc` |
+| `mcp_pixel_5fad9aac1d3c265ba4e34dbdc549fad70deb3b54` | invoice | `id_sha256_abbdad18e36cf5365aa24e00762ad87fcb9f14c656603af9a9b1f1e185d63217` |
+| `mcp_pixel_2fc08b3849ed3422c465b7548755d452c0a14914` | invoice | `id_sha256_abbdad18e36cf5365aa24e00762ad87fcb9f14c656603af9a9b1f1e185d63217` |
+| `mcp_owner_109b45a637af58056e51bd1400494fcaeef8640554ac8d8ecf347205c47a1de9` | offer | `id_sha256_7556f393bca85a490d4665531a06d7f7f612a1568554e9894911b74e313f87c5` |
+| `mcp_owner_98964f7240f95746b88b46f34461bbf40fb049acd9f108f275f554db76517f38` | offer | `id_sha256_7556f393bca85a490d4665531a06d7f7f612a1568554e9894911b74e313f87c5` |
+| `photo_change_d82ee904-3a41-4512-b955-ae039e57dfab` | photo | `id_sha256_06e7df1f19442bfb007e6d46dc69a5dc3f771862668078e6906f50bfd14071af` |
+| `mcp_owner_3ba2b1aea9e8eb1833fac42036a37ad554fb18b3e1992ed5f0fca918240ed8a4` | offer | `id_sha256_7556f393bca85a490d4665531a06d7f7f612a1568554e9894911b74e313f87c5` |
+| `mcp_owner_9ee3eea31c7922722870a45e5668d178be6a67df88b5c2e59c933cd1d522fa79` | offer | `id_sha256_7556f393bca85a490d4665531a06d7f7f612a1568554e9894911b74e313f87c5` |
+| `mcp_owner_4c20f8c5fcf095a01628ed1eb9cc666fdcfeb26dc0bd24aa76a4471cbb839d33` | offer | `id_sha256_7556f393bca85a490d4665531a06d7f7f612a1568554e9894911b74e313f87c5` |
+| `mcp_pixel_d5c69e42db79333ee3f84ca62124788c12b26c3c` | customer | `id_sha256_04d3738af3f78ea5d75c30d1acbd9986f25f427865a39a8f0fcffdab2eab9a6e` |
+| `mcp_pixel_189665c3d9988867a93bbfc5d74ebeefd0c10056` | customer | `id_sha256_04d3738af3f78ea5d75c30d1acbd9986f25f427865a39a8f0fcffdab2eab9a6e` |
+| `mcp_owner_e334a11ea03e913c49e81ff3f5108661f8918a6fb39fd97d17f523e99a23226a` | service_template | `id_sha256_494ef829768228263de344ca1e8feb695eddc5c41ec3398da289b1674618728f` |
+| `mcp_owner_d5cbd686add476c13461db3d6dd2c21bec87fe96d6f1d0fba414dd9069baf0cb` | archive | `id_sha256_04d3738af3f78ea5d75c30d1acbd9986f25f427865a39a8f0fcffdab2eab9a6e` |
+| `mcp_owner_c058585c0525d592e4274c404d0028504213cba4805e35eb9866592d13e053c1` | service_template | `id_sha256_494ef829768228263de344ca1e8feb695eddc5c41ec3398da289b1674618728f` |
+| `mcp_owner_f2d9a9e105654f267f0dfe424d30686a8748a947d956bf466edd55fecf92ef5d` | restore | `id_sha256_04d3738af3f78ea5d75c30d1acbd9986f25f427865a39a8f0fcffdab2eab9a6e` |
+| `mcp_owner_c79539cc896f180248ec536553c7e195b98dc04610af8203054c6f535a6c1b74` | archive | `id_sha256_04d3738af3f78ea5d75c30d1acbd9986f25f427865a39a8f0fcffdab2eab9a6e` |
+| `mcp_owner_b3dc470efa9ee77d5a65df1d865f2ff265eb7accc12811df63b006509f4b78f7` | worklog | `id_sha256_9f5265b31b9a97be269bf5faf93bfe87adb4f7d01d62bf5c0023f92fee03c92f` |
+| `mcp_owner_74d17eed7fa434c230c4e3078b976ae42bda726509a737a79c13199072bacea7` | worklog | `id_sha256_9f5265b31b9a97be269bf5faf93bfe87adb4f7d01d62bf5c0023f92fee03c92f` |
+| `mcp_owner_545331ff3cc5b786d96f025d96ca7698585aaa1805570f6fcb4c93f1ff8c9a64` | worklog | `id_sha256_9f5265b31b9a97be269bf5faf93bfe87adb4f7d01d62bf5c0023f92fee03c92f` |
+| `mcp_owner_cfd7d3d752798b94e0a077ac414ba80325124dd06c2f6e1bc1db6fb9052d7e31` | archive | `id_sha256_8cbd663a374da3be09cd94c037a3025e77341079fc33f85d08a54ba4e9933abc` |
+| `mcp_owner_a4d7bcf72f83992e29dd876e789bdf588e79599311b0df55e68f109027b962f2` | archive | `id_sha256_06e7df1f19442bfb007e6d46dc69a5dc3f771862668078e6906f50bfd14071af` |
+| `mcp_owner_f17a6bee01bd9064f92e786b59092327e91f18e82958fe49cf430ba9d99c5cfe` | archive | `id_sha256_abbdad18e36cf5365aa24e00762ad87fcb9f14c656603af9a9b1f1e185d63217` |
+| `mcp_owner_4707ed8c6bbeb5809f441731647f00a2d17b46630d4faa05ecc6f0d7b538cc36` | archive | `id_sha256_9f5265b31b9a97be269bf5faf93bfe87adb4f7d01d62bf5c0023f92fee03c92f` |
+| `mcp_owner_1011d4301e40f240268203f722c479d9dddae9fc832bdef89c3ee322efa3b667` | offer | `id_sha256_7556f393bca85a490d4665531a06d7f7f612a1568554e9894911b74e313f87c5` |
+| `mcp_owner_55d3c61c4271a2a7d775274bb1449c7d0199a7364c711c71c1b10de011b153b5` | archive | `id_sha256_2248b4da5ada771c10deeb5c060b378603875e3389c0524478469d14844ca9f9` |
 
 </details>
 
@@ -371,13 +375,13 @@ Kein Betriebsinhalt, keine angewendete Entscheidung. Hashes aus get_sync_conflic
 
 | client_id | Fehler | Action-Hash | Current-Hash |
 | --- | --- | --- | --- |
-| `wrk_mobile_913976ba4bd1453ba75a5468b89c3c32` | DELETE_REVIEW_REQUIRED | `d4ad7e0bb45f60ed925cd3fa294343aa44efe84ed0ca2627ac9c63bd74db74e8` | `74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b` |
-| `wrk_mobile_b8445cff3af746718d480fce9be3889a` | DELETE_REVIEW_REQUIRED | `bb84d7424474d267d75981f29cc69914ff4bc7054e82732feae089b46d170364` | `74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b` |
-| `wrk_mobile_325735fd783c4f5fb3d012ab7969ccfd` | DELETE_REVIEW_REQUIRED | `81fdd1bac9a83b6f81502513dacd59e58eac4e1ff10b7889b657372478d519ce` | `74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b` |
-| `delete_change_f82a727e-90ce-4021-a741-2238101b2505` | DELETE_REVIEW_REQUIRED | `06a95cf238bd35098f5b3dd9147b16b26eaf063e4fe504f154c22859ded65c7b` | `78957fa4902bb23535b4e994935a1d9794680abc2f6f1be7ba43f3fb5dbf1123` |
-| `delete_change_b1fc39af-3f04-4baa-81bf-a34a20e76479` | DELETE_REVIEW_REQUIRED | `2b45a83fc17f6eb72163f0a58b3779f7904259518b22dece9a7e88120f54bb41` | `d205eab650bc4f727a52ddfa2f29cfcaa7e7d3697820d28076aa01b845313d0e` |
-| `customer_change_3b8f4a4bdaca4d5e9b67a4b9b3ac3020` | WRITE_CONFLICT | `258d26b477b41ec0a3f097d893217e8c22c988071eb11a98d6a03d89d9ea0701` | `30599c5c7807db1f9ccc8ceb0381df8c914ba43b38f3f7494b49b08d3324ae6f` |
-| `delete_change_9304498d-e90b-47de-be7c-bfd2e627fdf3` | DELETE_REVIEW_REQUIRED | `d5a7f9020c75ec994d0d8b09aee5a94cc2b53648bce8bf6f4cc81f9f8c237a8a` | `e3c8da0a874c1b44a7a1d27cdbe63ff1b06ccbe20fd77508a7d56be87561d7e6` |
+| `id_sha256_ca46d340bc52b9e93e578b4a47c1afa08b11c87a013e5c9dee7cd7624bc12824` | DELETE_REVIEW_REQUIRED | `d4ad7e0bb45f60ed925cd3fa294343aa44efe84ed0ca2627ac9c63bd74db74e8` | `74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b` |
+| `id_sha256_57c833b527f0ca0f4da04e79ff2ca787c57ab9a891833becee4c3e4faccf3914` | DELETE_REVIEW_REQUIRED | `bb84d7424474d267d75981f29cc69914ff4bc7054e82732feae089b46d170364` | `74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b` |
+| `id_sha256_81dda83b42bd64510013bec7217cae7c4e9b01537341db98abc6f91ed52ca52a` | DELETE_REVIEW_REQUIRED | `81fdd1bac9a83b6f81502513dacd59e58eac4e1ff10b7889b657372478d519ce` | `74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b` |
+| `id_sha256_c09057d51603a99907adeef4bb7e9c332c97e4ddd2fbdf687ccfb45e83d35264` | DELETE_REVIEW_REQUIRED | `06a95cf238bd35098f5b3dd9147b16b26eaf063e4fe504f154c22859ded65c7b` | `78957fa4902bb23535b4e994935a1d9794680abc2f6f1be7ba43f3fb5dbf1123` |
+| `id_sha256_2a69731a26c376695ce26e7d1788647b6ac11aa887024a8b3c981d84b2a5e2dd` | DELETE_REVIEW_REQUIRED | `2b45a83fc17f6eb72163f0a58b3779f7904259518b22dece9a7e88120f54bb41` | `d205eab650bc4f727a52ddfa2f29cfcaa7e7d3697820d28076aa01b845313d0e` |
+| `id_sha256_c28c6391b7e050a97a7034e9ae7622d4f3c9bf73c4d9e5e893fde925e9abe1bd` | WRITE_CONFLICT | `258d26b477b41ec0a3f097d893217e8c22c988071eb11a98d6a03d89d9ea0701` | `30599c5c7807db1f9ccc8ceb0381df8c914ba43b38f3f7494b49b08d3324ae6f` |
+| `id_sha256_04ecd644998e4d3962e834a23db5feeb936ea7d85d055acc300c448fd4ea7899` | DELETE_REVIEW_REQUIRED | `d5a7f9020c75ec994d0d8b09aee5a94cc2b53648bce8bf6f4cc81f9f8c237a8a` | `e3c8da0a874c1b44a7a1d27cdbe63ff1b06ccbe20fd77508a7d56be87561d7e6` |
 | `mcp_owner_43e89c1a01b88694f43a944e5c4109cb1a7e1a8c15378ee0c1116779bb1ce54c` | ACTION_ID_CONFLICT | `51562d617c3418e3538a009a5b3b0ac149122c2920e8064b2666056be8046208` | `74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b` |
 | `mcp_owner_b6f1c56ba6534a250f6f5057175f365623155aa656d55fd0342f2517b4a539da` | SYNC_COMPONENT_UPDATE_REQUIRED | `e1df44d3146a8d0e4ce1dd901f45332093aab65e3e0b0ae4e4f0986ffb6c40c0` | `74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b` |
 
@@ -537,8 +541,8 @@ Kein Betriebsinhalt, keine angewendete Entscheidung. Hashes aus get_sync_conflic
 - **Drive geordnet:** vier frühere Original-APK-Kandidaten69/71/72/73 aus My Drive in vorhandenen Ordner Haus & Garten App → APK-Backups → Codex-Cloud-Builds verschoben. Ausschließlich überprüfte Ausgangseltern entfernt; Ziel vorab gelesen. Jede Datei anschließend einzeln per ID/Name/Größe/Eltern rückgelesen. Zusammen137.619.731 Bytes weiterhin vorhanden; keine Speicherfreigabe behauptet. IDs und bisherige Download-Links bleiben erhalten, keine Inhalts-/Freigabeänderung. Aktueller Kandidat74 separat per Metadaten unverändert bestätigt. Keine Betriebs-JSONs, Commit-/State-Ketten, Originalfotos, Dokumente oder Sicherungen aus Drive entfernt. Drive-Suche zeigte nicht alle bekannten APK-/JSON-Dateien; Suchleere ausdrücklich kein Nachweis eines leeren Ordners oder verwaister Dateien.
 - **Realer Pixel-/Drive-Lauf:** einmalige explizite request_sync-Anforderung. Installierter74 verarbeitete die vorhandenen176 Übertragungen im regulären geschützten Journal-/Medienweg; alter LEGACY_SOURCE_CHANGED verschwand. Zwischenstände185→20→16→13 wurden tatsächlich gelesen. Keine Queue gelöscht und kein Beleg erfunden; Medien liefen in weiteren automatischen Abschnitten weiter. Nach technischer Konfliktnachbereitung und abschließender Fotoarchivierung: **Upload0,Prüfung7,gesamt7**,phase idle,kein Transportfehler/Retry/Medien-Cleanup offen. Letzter gelesener Provider-Abgleich **2026-10-19T04:35:04.039474Z**; **provider_readback,cloud_confirmed=false,last_full_sync leer**. Kein unabhängiger Google-Serverbeleg behauptet.
 - **Testreste:** sechs fehlgeschlagene Archivaufträge ausschließlich für dokumentierte synthetische IDs über resolve_sync_conflict mit jeweils frisch gelesenen expected_action_hash/expected_current_hash und keep_current zurückgenommen. Originalaktionen und Entscheidungen erhalten; überholte Kontrollaktionen vom vorhandenen Prozessor als superseded quittiert. Konflikthistorie zuletzt12 Einträge einschließlich solcher Kontrollbelege; das sind nicht12 historische Geschäftskonflikte. Sieben geschützte Alt-Fälle unverändert.
-- Erste neue Testfoto-Archivanfrage wurde hinter einem alten fehlgeschlagenen Archivvorgänger mit DEPENDENCY_BLOCKED angehalten; sie war zunächst nur lokal vorgemerkt, nicht erfolgreich archiviert. Diese Anforderung ebenfalls hashgebunden zurückgenommen. Nach Vorgängerprüfung erneute aktuelle Anfrage erfolgreich verarbeitet. Dokumentierte synthetische Arbeit **wrk_mobile_mcp_f5ae9f29b900a0cf9f86467ca4ecae36** und Foto **pho_mcp_39612a180dead58cfb430f3f8edd3205** jetzt im bestehenden Papierkorb tatsächlich rückgelesen; Originale erhalten, keine physische Löschung. Papierkorb **136**. Alle vorherigen134 Archiv-IDs und die128 Stichtags-Arbeitsarchive unverändert erhalten.
-- Zwei verbleibende technische Testaufträge haben noch aktive oder bereits archivierte Fotobeziehungen. Ein aktueller Archivversuch für ord_mobile_mcp_8daf81ce01aa677c4fc3842c71069eb5 wurde vor Mutation korrekt mit **PREVIEW_REQUIRED** blockiert, obwohl aktive Foto-/Arbeitslisten leer waren: archivierte Fotozuordnungen zählen ebenfalls. Ohne exponierte preview_delete/expected_photo_links_hash keine Umgehung, kein Löschen von Beziehungen und kein weiterer blind wiederholter Auftrag.
+- Erste neue Testfoto-Archivanfrage wurde hinter einem alten fehlgeschlagenen Archivvorgänger mit DEPENDENCY_BLOCKED angehalten; sie war zunächst nur lokal vorgemerkt, nicht erfolgreich archiviert. Diese Anforderung ebenfalls hashgebunden zurückgenommen. Nach Vorgängerprüfung erneute aktuelle Anfrage erfolgreich verarbeitet. Dokumentierte synthetische Arbeit **id_sha256_9f5265b31b9a97be269bf5faf93bfe87adb4f7d01d62bf5c0023f92fee03c92f** und Foto **id_sha256_8cbd663a374da3be09cd94c037a3025e77341079fc33f85d08a54ba4e9933abc** jetzt im bestehenden Papierkorb tatsächlich rückgelesen; Originale erhalten, keine physische Löschung. Papierkorb **136**. Alle vorherigen134 Archiv-IDs und die128 Stichtags-Arbeitsarchive unverändert erhalten.
+- Zwei verbleibende technische Testaufträge haben noch aktive oder bereits archivierte Fotobeziehungen. Ein aktueller Archivversuch für id_sha256_c6ccbf58d78cbaaeeec27aa7d60d0d30639ddee2faeaba44a74c4fefe8224705 wurde vor Mutation korrekt mit **PREVIEW_REQUIRED** blockiert, obwohl aktive Foto-/Arbeitslisten leer waren: archivierte Fotozuordnungen zählen ebenfalls. Ohne exponierte preview_delete/expected_photo_links_hash keine Umgehung, kein Löschen von Beziehungen und kein weiterer blind wiederholter Auftrag.
 - **Integritätsnachweis:** alle45 nicht synthetischen aktiven Arbeitsaufzeichnungen ab01.08.2026 feldweise mit kanonischer Schlüsselreihenfolge unverändert gegenüber der Eingangsliste; ausschließlich die eindeutig dokumentierte zusätzliche synthetische Testarbeit wurde archiviert. Rechnungssammlung einschließlich aller95 Datensätze hat unveränderten Sammlungshash. Ursprüngliche sieben client_ids/action_hashes/current_hashes weiterhin exakt gleich; Legacy-Vorschau7,keep_current,no_business_data_changed,Hash68c60929c2477b987524f578cade273d041a74380863b5dc6b2af146bab9f5c7. Gespeicherte Sammlungen jetzt52 Kunden/3 Aufträge/45 Arbeiten/95 Rechnungen/25 Fotos/33 Bausteine/0 Angebote; der Unterschied zum alten Rohsnapshot folgt der regulären Übernahme bestehender Aktionen und den genannten technischen Bereinigungen, nicht einer pauschalen Datenlöschung.
 - **Legacy-Abschluss weiterhin gesperrt:** prepare_legacy_conflict_backup tatsächlich versucht, ohne Änderung abgewiesen: „Zuerst direkten Pixel-/Drive-Abgleich mit Serverbeleg prüfen. Keine Altentscheidung ausgeführt.“ Der vorhandene Sicherungs-/Abschlussweg verlangt einen direkten Drive-Serverbeleg; Provider-Rücklesen genügt nicht. Keine sieben Altentscheidungen erzeugt. Nächste notwendige Gerätehandlung: Sync-Zentrale → Drive-Verbindung einrichten, vorhandenes Google-Konto und denselben Ordner bewusst bestätigen; tatsächliche OAuth-/Projekt-/Kontorechte und Serverbeleg anschließend prüfen. Danach erst frische vollständige Backup-/Hash-Vorschau und die vom Nutzer verlangte einmalige ausdrückliche Bestätigung. Keine Geheimnisse anfordern, kein Rechte-Bypass.
 - **Weiter offen:** denselben ChatGPT-MCP-Zugang neu initialisieren/Toolkatalog aktualisieren bzw. neu verbinden;89 tatsächlich aufrufbare Werkzeuge und aktuelle Archivschemata nachweisen. Zwei technische Testaufträge erst mit korrekter Fotovergleichsvorschau archivieren. Endgültige Papierkorbleerung/physische Medienlöschung nicht durchgeführt. Keine neuen Kosten/Freigaben, kein neuer Build, keine Installation. Diese Phase prüft echte autorisierte Bereinigung per MCP und Drive-Metadatenrücklesen; keine neuen automatisierten Tests erforderlich, da ausschließlich diese zentrale Statusdatei und bestehende operative Bereinigungswege verwendet wurden. Vorherige automatisierte Qualifikation bleibt unverändert; keine Vollabnahme des restlichen Funktionsumfangs behauptet.
@@ -714,7 +718,7 @@ Kein Betriebsinhalt, keine angewendete Entscheidung. Hashes aus get_sync_conflic
 
 ## Eintrag 44 – kontrollierte echte Testentwurfs-Bereinigung (19.10.2026)
 
-- Nach erfolgreichem vollständigem Android-Lauf mit 132 Proben/0 Fehlern ausschließlich den ausdrücklich freigegebenen falschen 1-EUR-Entwurf `off_0edfb5133e3c1e4269dd76e2b47b3746` frisch gelesen, exakten Titel/Entwurfsstatus/Betrag und Hash `acfa1c3c0e366e7d3f9556e1f032f08116e6da395417c1f2332342d1d6d0ead6` geprüft. Löschvorschau erlaubt, keine Fotoverknüpfungen. Reversibel archiviert, keine physische Löschung; Request-Beleg `mcp_owner_f762da2ce0789749b5969bf83bccfa3d86f2ae6d5cad0ec709e2ef7aa171e06e`.
+- Nach erfolgreichem vollständigem Android-Lauf mit 132 Proben/0 Fehlern ausschließlich den ausdrücklich freigegebenen falschen 1-EUR-Entwurf `id_sha256_760622aaec5679a80d4929b9852789a5354a8823cbbef7fb23defb5d49a08b45` frisch gelesen, exakten Titel/Entwurfsstatus/Betrag und Hash `acfa1c3c0e366e7d3f9556e1f032f08116e6da395417c1f2332342d1d6d0ead6` geprüft. Löschvorschau erlaubt, keine Fotoverknüpfungen. Reversibel archiviert, keine physische Löschung; Request-Beleg `mcp_owner_f762da2ce0789749b5969bf83bccfa3d86f2ae6d5cad0ec709e2ef7aa171e06e`.
 - Frischer Vorher-/Nachher-Integritätsvergleich: ausschließlich Angebotsgruppe geändert, aktive Angebote 2→1. Unverändert 53 Kunden, 3 Aufträge, 45 Arbeitsaufzeichnungen, 95 Rechnungen, 25 Fotos, 33 Bausteine, 0 Termine; ihre jeweiligen Gruppenhashes identisch. Kein echtes Angebot neu erstellt, finalisiert oder versendet. Auto-Drive-Abgleich lieferte `transferred`/`uploaded_to_drive=true`, Gesamtstand weiterhin Provider-Readback ohne Cloud-Behauptung. Sieben Legacy-Reviews, keine ausstehenden Uploads.
 - Reale Statusinkonsistenz des installierten Builds 77 reproduziert: Owner-Aktionsbeleg zeigte trotz Übertragung `confirmation_scope=local_only`. Quellfix verwendet tatsächliche `drive_delivered_ids` für Provider-Belege, unterscheidet davon `applied_on_pixel` und erhält Original-Owner-Entitätsangaben. Nur lokales Anwenden behauptet keine Übertragung; unabhängige Serverbelege bleiben erforderlich. JVM-Regressionsprüfung und Build/Lint bestanden; eigener Android-Provider-Positiv-/Negativfall im abschließenden Lauf.
 - Keine sieben Altentscheidungen ausgeführt, da die vollständige reale Sicherung im installierten alten Build weiterhin an Legacy-Fotoreferenzen scheitert. Neues Originalupdate und realer Connector-/Legacy-Backup-Endtest bleiben offen.
@@ -722,7 +726,7 @@ Kein Betriebsinhalt, keine angewendete Entscheidung. Hashes aus get_sync_conflic
 ## Eintrag 45 – finale native Abnahme und unabhängige Live-Änderung (19.10.2026)
 
 - Originalsignierter Stand mit kompatiblen alten Transferbelegen: **133 native Android-/SQLite-/MCP-/Providerproben, 0 Fehler**, anschließend vorhandener synthetischer Updatebestand vollständig erhalten, echte WebView-Navigation und frischer getrennter Android-Datenbereich bestanden. Keine Pixel-Installation und kein Pixel-ADB.
-- Letzter realer Readback änderte den Ausgang unerwartet von sieben auf **sechs aktive Legacy-Reviews**. Historie 12→15. Für `wrk_mobile_913976ba4bd1453ba75a5468b89c3c32` enthält der Dienst `apply_proposed`, `resolved_at=2026-10-19T10:33:04.591674Z`, Resolution-Aktion `mcp_owner_ad17a4d7e84b3a8e5bcad2b615ea55ec5e80b83ec552f940b78df49036755ffc`. Diese Aktion wurde in diesem Auftrag nicht aufgerufen; hier wurde ausschließlich der bekannte Testentwurf archiviert. Keine Zuschreibung an eine Person und keine Umschreibung dieser Historie.
+- Letzter realer Readback änderte den Ausgang unerwartet von sieben auf **sechs aktive Legacy-Reviews**. Historie 12→15. Für `id_sha256_ca46d340bc52b9e93e578b4a47c1afa08b11c87a013e5c9dee7cd7624bc12824` enthält der Dienst `apply_proposed`, `resolved_at=2026-10-19T10:33:04.591674Z`, Resolution-Aktion `mcp_owner_ad17a4d7e84b3a8e5bcad2b615ea55ec5e80b83ec552f940b78df49036755ffc`. Diese Aktion wurde in diesem Auftrag nicht aufgerufen; hier wurde ausschließlich der bekannte Testentwurf archiviert. Keine Zuschreibung an eine Person und keine Umschreibung dieser Historie.
 - Neuer Preview: `e6752c0dc5a04bc3f729caccdbc3187d87327f6adc0792ccc7f7f722b0a51c8b`, Count 6. Die ursprüngliche Siebener-Vorschau ist ungültig; **keine Sammelentscheidung und kein weiterer Legacy-Schreibaufruf**. Geschäftsgruppenhashes außerhalb der erlaubten Angebotsbereinigung bleiben im Vergleich identisch. Kein Nachweis unabhängiger Google-Cloud-Bestätigung.
 - Damit eine künftig ausdrücklich neu bestätigte Sechser-Auswahl nicht an einer künstlichen Siebener-Konstante hängen bleibt, Backup-Policy auf 1–100 vollständig historische aktive Einträge mit exakt passendem Queue-Umfang begrenzt. Für eine von sieben abweichende Anzahl zwingend aktueller Previewhash; alte Siebener-Hashes und zusätzliche technische/neue Aktionen bleiben gesperrt. Frischer Preview, Backup, Hashprüfung und `confirmed=true` für den Abschluss bleiben unverändert Pflicht. Host-Regressionsfall: 7→6 mit altem Hash FAIL, ohne frischen Hash FAIL, mit neuem Hash PASS, zusätzliche Aktion FAIL.
 - Diese Policy-Änderung führt keine tatsächliche Entscheidung aus und autorisiert keine automatische Anpassung der alten Sammelfreigabe. Realer Backup-/Cleanup-Endtest nach gesichertem Geräteupdate weiterhin offen.
@@ -743,3 +747,49 @@ Kein Betriebsinhalt, keine angewendete Entscheidung. Hashes aus get_sync_conflic
 - Quellkatalog **117/Protokoll9**, Hash `235f683d99d5170801d1e34c19ad386d9c4acf68b60a6992f72a3e5d2ea14314`. UI **156**, davon145 fachliche MCP-Pfade und elf explizite Plattform-/Darstellungsgruppen, vollständig100+56, Hash `34c9cdd7494658bb1a3ec0a71db267e1ffa1044fd31e6a735c5be2ce0c8a0d91`. Neuer Katalog/Fingerprint im Originalcode geprüft, nicht auf dem unveränderten physischen Pixel behauptet.
 - Reales abschließendes Readback19.10.2026 **11:03:55UTC**: Pixel **1.50.1/77**,111Tools/Protokoll8, ready/write_enabled=true, persistierte Drive-Berechtigung, kein technischer Syncfehler, **0 Uploads/6 Reviews/15 Historie**, Provider-Readback/cloud_confirmed=false. Vorschau weiterhin sechs/e6752c0d… . Kalender nicht verbunden/Wetter nicht eingerichtet. Einzige reale Änderung dieses Auftrags bleibt die ausdrücklich erlaubte reversible Archivierung des falschen1-EUR-Testentwurfs; außer Angebotsgruppe alle Geschäftsgruppenhashes unverändert. Keine Legacy-Abschlussoperation durch diesen Auftrag, keine echte Mail, kein neues/finalisiertes/erneut versendetes echtes Angebot.
 - **Gesamtauftrag nicht vollständig abgenommen:** unabhängige Gerätesicherung und ausdrückliche Installationsfreigabe, physischer Pixel-Update-/Datenerhalt-/Kamera-/Connector-Test, tatsächlicher117er-Katalog nach Refresh, reale Legacy-Originalsicherung und frisch bestätigter Sechser-Keep-current-Abschluss, echte Gmail-Konto-/API-Freigabe/Versandreadback sowie Kalender-/Wetter-/Hintergrundverhalten bleiben offen. Die ursprüngliche Siebener-Freigabe gilt nicht automatisch für veränderte Hashes. Keine Sicherungs-/Konfliktschutzprüfung entfernt und kein Cloud-Abschluss erfunden.
+
+
+## Eintrag 48 – P0-Datentrennung / Bestandsprüfung (19.10.2026)
+
+- main per Fast-forward auf aa04cbd aktualisiert; keine vorhandenen Änderungen, neue Branch oder Historienänderung. Regeln/Auftrag/Status gelesen.
+- Reproduziert: export_mobile_snapshot schreibt Betriebsdaten ins Android-Bootstrap und outputs; db.py fällt auf Repository-data zurück; Geräte-Backup-/Update- und Audithelfer schreiben Rohdaten oder rohe Beziehungen in den Checkout. Vorhandenes Privacy-Gate liest optional eine produktive DB und prüft ignorierte Dateien nicht.
+- Read-only Workspaceinventar ohne Werteausgabe: keine Geschäfts-SQLite mit betrieblichen Tabellen gefunden; ältere ausschließlich synthetische Browserprofile enthalten allgemeine Chromium-DBs. Ein synthetisches Kunden-/Auftragsfixture vorhanden. Kein Produktivbestand kopiert, migriert oder verändert.
+- Abnahme: fehlender/interner/symlink-umgeleiteter Datenroot blockiert vor Dateizugriff; Bootstrap exakt leer; Exporte/Backups nur extern; zentrale synthetische Profile und temporäre Teststores; drei verpflichtende Gates einschließlich ignored/untracked und Archivprüfung; technische Reports ohne Geschäftsinhalte. P0 bleibt bis zum vollständigen Schlusslauf offen.
+
+
+## Eintrag 49 – P0-Datentrennung / Pfade, Fixtures und Gates implementiert (19.10.2026)
+
+- Host-Pfade zentral über lazy runtime_paths; fehlender/interner/relativer/Symlink-Root und QA-Zugriff auf fremde/private Stores fail-closed. Tests registrieren ausschließlich neu angelegte eigene Tempstores, unbekannte nichtleere Ordner werden nicht umgewidmet. Original-Pixel-/Drive-Adapter und IDs/Formate unverändert. Kein privater Root für reale Daten konfiguriert oder produktiver Bestand migriert.
+- Snapshotexport read-only nur extern/exklusiv, kein db.init/Thumbnail-/Assetschreiben. Leerer Bootstrap mit eigenem konstanten Generator/Vertrag. DB, Bilder, Drive-/MCP-Hostkanäle, historische Importe, Backup-/Update-/Audithelfer auf externe Pfadprüfung umgestellt; technische Audit-/Vergleichsberichte nur Counts/Hashes/Schema/Relationsinformation. Reale Aussteller-Testwerte und personenbezogener Angebotsname aus aktuellen Quellen entfernt, historische Angaben als technische Nachweise erhalten.
+- Zentrale JSON-Factory minimal/edge_cases/scale, Python-Tempadapter, Browseradapter und generierte JVM-/AndroidTest-Adapter. Test-Eingabe-IDs in QA-Namespace überführt, example.invalid und künstliche Aussteller-/Adressdaten. Fachliche Legacyformat-/IDgenerator-Proben bleiben künstliche isolierte Vertragsfälle; keine produktiven IDs als Fixtures. 25 nachweislich lokale synthetische Browserprofile und38 entbehrliche alte QA-Screenshots entfernt; keine Originalmedien oder Betriebsdateien angefasst.
+- Erster Source-/Workspace-/Artifact-Schlusslauf PASS: gesamter Checkout einschließlich ignorierter/untracked Dateien, umbenannte SQLite-Dateien, Archive und bestehende79-APK (0 operative Seeds). Dokumentierte synthetische Bildnachweise erhalten Bytehash/Fixture-Herkunft; unbekannte Bilder bleiben gesperrt. Gates zusätzlich vor/nach Quality-Suite und im Releaseprozess verankert.
+- Neue negative Privacy-/Pfad-/Export-/Reportregressionen;288 Python-Tests zuletzt PASS vor abschließender Gate-Verschärfung. JVM-Migrationsläufe fanden nur inkonsistente alte Fixture-Referenzen/Enum- bzw. HTML-ID-Ersetzungen; zurück auf unveränderte fachliche/DOM-Verträge korrigiert. Letzter kompletter24-JVM-Lauf PASS. Browser-Gesamtregression läuft erneut; ein alter GPS-Test musste nach Adress-Anonymisierung konsistent auf dieselbe künstliche Straße umgestellt werden. Kein App-Fehler daraus behauptet. P0 bleibt bis finalen vollständigen Tests/Gates OFFEN.
+
+## Eintrag 50 – P0-Regressionsphase und native Umgebungsgrenze (19.10.2026)
+
+- Nach Fixture-Migration alle24 JVM-Suiten und alle29 Browser-Suiten PASS.18 gezielte Privacy-/Pfadfälle einschließlich unbekanntem nichtleerem Store, Rootrechten, umbenannter SQLite/JSON, Archivfoto, Reportdaten und Source-Writer-Prüfung Bestandteil der abschließenden Python-Abnahme.
+- Zusätzliche Pfadnachprüfung: historischer physischer Native-Diagnosehelfer schreibt ausschließlich unter privaten externen Root; alter verify.py verwendet jetzt denselben read-only Hash-/Counts-Audit statt Initialisierung und festen Umsatz-/Importwerten. Source-Pakethelfer übernimmt geprüften Originalcode ohne anonymisierte Ersatzruntime; alle drei Gates vor Freigabe der tatsächlichen ZIP-Bytes.
+- Native Android-Abnahme derzeit NOT TESTABLE: /dev/kvm fehlt, Emulator meldet fehlende CPU-Beschleunigung. Begrenzter Softwarestartversuch läuft; kein physischer Pixel berührt, keine App-Daten migriert. Bisherige133 Android-Proben gehören ausdrücklich zum historischen79-Nachweis, nicht zur aktuellen P0-Abnahme.
+- Historienprüfung rein lesend:8 unterschiedliche bekannte Bootstrap-/Ausstellerobjekte geprüft,4 sensible frühere Aussteller-Fixture-Befunde. Kein befülltes historisches Bootstrap in diesem begrenzten Prüfumfang. Klassifikation: produktive sensible Daten in Historie gefunden; keine vollständige forensische Historienprüfung behauptet und keine Historie umgeschrieben. Separate berechtigte Historienbereinigung bleibt offen.
+
+## Eintrag 51 – P0-Artefaktbefunde überprüft (19.10.2026)
+
+- Release-Gate stoppte fünf ignorierte alte AndroidTest-APKs: deren DEX enthielt frühere feste synthetische Tunnel-/Organisations-IDs. Vor Entfernung jeweils tatsächlich Paketkennung at.hausgarten.service.test und Übereinstimmung sämtlicher Treffer mit alten Testquell-Literalen geprüft; untracked, ausschließlich abgeleitete Testartefakte entfernt. Operative APK-Downloads, Kundenmedien und Emulator-Datenbereiche erhalten. Neue Testverbindungen werden erst zur Laufzeit deterministisch erzeugt und nicht als opake Werte eingebettet.
+- Öffentliche Bildausnahmen auf SHA-geprüfte Markenbilder und explizite lizenzierte Pflanzenkataloge begrenzt; ein beliebiges neu eingelegtes Bild erhält keine Freigabe durch den Ordnernamen. Unklassifizierte Bilder und Archivmedien bleiben FAIL.
+- Software-Emulator ohne Beschleunigung startet den Android-Boot in dieser Sitzung nach begrenztem Versuch nicht vollständig; eigener Prozess beendet, vorhandenes AVD nicht gelöscht. Aktuelle native Abnahme weiter NOT TESTABLE. Erste Python-Gesamtprobe fand eine noch alte künstliche Rechnungsnummernerwartung und eine übergreifend gemockte Git-Toolfunktion im Signer-Unit-Test; Testgrenzen/erwartete synthetische Nummer korrigiert, fachliche Rechnungs-/Signaturlogik unverändert. Abschließende Regression erneut gestartet.
+
+
+## Eintrag 52 – P0-Build-/Hostabnahme (19.10.2026)
+
+- Release-APK, Release-AndroidTest, AAB und lintRelease tatsächlich erfolgreich gebaut (94 Tasks, Gradle5m03s). Source-/Workspace-/APK-/AAB-Gates PASS;0 operative APK-Seeds.19 gezielte Privacy-Fälle PASS, zuletzt291 Python-Tests vor zusätzlichem verschachteltem Drive-Symlink-Fall PASS; abschließender292er-Quality-Lauf folgt.24 JVM-/29 Browser-Suiten und55 isolierte MCP-stdio-E2E-Szenarien PASS. Keine QA-Ersatzsignierung ausgeführt.
+- Externe Pfadprüfung auch für verschachtelte Medien-/Dokument-/Thumbnail-/Tempdateien und SQLite-Readbacks; Repository-Symlink vor Export blockiert. Neue Regression PASS. Bootstrap-Writer-Gate umfasst direkte/aliasierte Writes, Copy/Move/Replace und bekannte Shell-/JS-/PowerShell-Schreibpfade. Leere ältere APK-Bootstraps bleiben kompatibel, unbekannte Felder/Versionswerte sind blockiert.
+- Kandidat1.51.1/80, unveränderte App-ID at.hausgarten.service, MCP9/117. APK-Fingerprint kennzeichnet den tatsächlichen Arbeitsstand aa04cbd/source_dirty=true; kein behaupteter sauberer Releasecommit und keine Auslieferungs-/Installationsfreigabe. Der bisher qualifizierte Download79 bleibt unverändert. Originalsignaturprüfung dieses P0-Kandidaten läuft ausschließlich über tools/sign_original_apk.py.
+- Vollständige P0-Abnahme weiter OFFEN: Vertrags-/Schema-/Relations-/Buildprüfungen erfolgreich, neue native Android-Laufzeit-/Update-Abnahme dieser migrierten Tests wegen fehlender Cloud-Beschleunigung NOT TESTABLE. Physischer Pixel und produktiver Drive unberührt. Historische sensible Git-Objekte separat offen; keine Historie umgeschrieben.
+
+
+## Eintrag 53 – P0-Schlusslauf ohne produktive Daten (19.10.2026)
+
+- Quality-Suite tatsächlich294 Tests PASS,0 Fehler/Skips, darunter21 Datenschutz-/Pfadfälle.37 historische QA-Schlüsselerzeugungstests ausdrücklich ausgeschlossen, damit keine Ersatz-/QA-Schlüssel entstehen; Originalsignierungsregressionen enthalten. Vorher-/Nachher-Source und vollständiger Workspace PASS (1126 Quellen,3011 Workspace-Dateien einschließlich ignored/untracked), tatsächliche originalsignierte APK PASS,0 operative Seeds. Einzelne JSON-Datensätze und bekannte private Literale auch in DEX/Klassen/Ressourcen werden geprüft.
+- Source-Review-ZIP aus1114 aktuellen Originaldateien tatsächlich erzeugt und byteweise Artifact-Gate PASS, SHA256 fec1b8728934d30277450f19ac5bc1d959164a46f6b6dc61c1e6fe8cf4fcfc11. Nur vorübergehendes QA-Artefakt außerhalb des Checkouts; keine Ersatzruntime und kein zusätzliches Dossier. APK/AAB und Sourcepaket-Gates damit jeweils tatsächlich ausgeführt.
+- Originalkandidat1.51.1/80, APK-SHA256 d8208fd3c5b42e52688778195ce7d276cde09ddaf2416c783003de6b1bf133aa; Zertifikat a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8 identisch mit bestehender79. Signatur v2/v3 und16-KiB-Alignment überprüft,411 aktuelle Assets bytegleich, Signier-Tempverzeichnisse0. Originalsignierwerkzeug allein verwendet. Keine Pixel-Installation oder Produktivdatenaktion.
+- Zweiter begrenzter Software-Emulatorversuch: system_server und Bootanimation laufen, bislang0 beobachtete Java-/native Crashmarker; Bootabschluss noch nicht bestätigt. Native Abnahme weiter offen, keine alte133er-Probe als P0-Nachweis wiederverwendet. Temporärer bestehender AndroidTest-Runner wird für einen möglichen reinen Cloud-Emulatorlauf ausschließlich originalsigniert; keine neue operative App oder QA-Signatur.

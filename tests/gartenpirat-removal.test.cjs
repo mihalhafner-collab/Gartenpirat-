@@ -9,7 +9,7 @@ const {chromium}=require('./browser.cjs');
   const page=await browser.newPage({viewport:{width:412,height:915},isMobile:true,hasTouch:true}),errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   await page.addInitScript(()=>{
-   const master={customers:[{id:'c1',name:'Kunde Muster',city:'Feldkirchen',active:1}],orders:[],invoices:[],photos:[],worklogs:[]};
+   const master={customers:[{id:'qa_c1',name:'Kunde Muster',city:'QA Beispielort',active:1}],orders:[],invoices:[],photos:[],worklogs:[]};
    window.removalFixture={master,pending:[]};window.speechCalls=0;window.syncCalls=0;window.writeCalls=0;
    window.AndroidData={getState:()=>JSON.stringify(removalFixture),getSyncStatus:()=>JSON.stringify({configured:true,pending:0}),getAppInfo:()=>JSON.stringify({versionName:'1.38.1'}),getWorkSession:()=>JSON.stringify({state:'IDLE'}),synchronize:()=>{syncCalls++;},saveWorklog:()=>{writeCalls++;throw new Error('No write permitted in removal smoke test');}};
    window.AndroidSpeech={start:()=>{speechCalls++;}};
@@ -36,7 +36,7 @@ const {chromium}=require('./browser.cjs');
   await check('Normal speech button and native speech parsing remain operational',async()=>{
    await page.locator('#speak').click();assert.equal(await page.evaluate(()=>speechCalls),1);
    await page.evaluate(()=>acceptNativeSpeech('Heute Kunde Muster von 8:00 bis 12:00 30 Minuten Pause Tätigkeit Hecke schneiden Material drei Säcke Mulch, 15 km'));
-   assert.equal(await page.locator('#customer').inputValue(),'c1');
+   assert.equal(await page.locator('#customer').inputValue(),'qa_c1');
    assert.equal(await page.locator('#start').inputValue(),'08:00');assert.equal(await page.locator('#end').inputValue(),'12:00');
    assert.equal(await page.locator('#pause').inputValue(),'30');assert.equal(await page.evaluate(()=>calculateHours()),3.5);
    assert.equal(await page.locator('#entry-kilometers').inputValue(),'15');assert.match(await page.locator('#activity').inputValue(),/Hecke schneiden/);

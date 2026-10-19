@@ -2,8 +2,9 @@
 import json
 from pathlib import Path
 import db
+import runtime_paths
 
-folder=Path(db.settings()['backup_folder'])
+folder=runtime_paths.business_path(db.settings()['backup_folder'])
 sources=[*folder.glob('HausGarten-Mobile-*.json')]
 if (folder/'HausGarten-ChatGPT.json').exists():sources.append(folder/'HausGarten-ChatGPT.json')
 target=db.DATA_DIR/'drive-held-deletions.json'

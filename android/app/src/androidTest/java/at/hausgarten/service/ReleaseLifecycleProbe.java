@@ -33,12 +33,12 @@ final class ReleaseLifecycleProbe {
     static void require(boolean value){if(!value)throw new AssertionError("Lifecycle condition failed");}
     static String fingerprint(MainActivity.LocalStore store)throws Exception{
         JSONObject state=store.getState();
-        JSONObject master=new JSONObject(state.getJSONObject("master").toString());
+        JSONObject master=SyntheticBusinessData.object(state.getJSONObject("master").toString());
         // Only fields introduced AFTER the recorded source release may be absent in its baseline.
         int baseline=Integer.parseInt(store.ownerValue("release_lifecycle_baseline_version","74"));JSONObject capabilities=master.optJSONObject("capabilities");
         if(capabilities!=null){if(baseline<78)capabilities.remove("offer_workflow_v2");if(baseline<75)capabilities.remove("trash_empty_v1");if(baseline<76)capabilities.remove("appointments_v1");}
         if(baseline<76&&master.optJSONArray("appointments")!=null&&master.getJSONArray("appointments").length()==0)master.remove("appointments");
-        return PixelMcpWriteTools.hash(new JSONObject().put("master",master).put("pending",state.getJSONArray("pending")));
+        return PixelMcpWriteTools.hash(SyntheticBusinessData.object().put("master",master).put("pending",state.getJSONArray("pending")));
     }
     static void run(Instrumentation runner,Context context,String mode){
         Bundle report=new Bundle();MainActivity.LocalStore store=null;
@@ -58,15 +58,15 @@ final class ReleaseLifecycleProbe {
                 report.putString("stream","PASS fresh empty business data, no credentials and no automatic Drive/tunnel access\n");
             }else if(mode.equals("prepare")){
                 require(prefs.getString("drive_snapshot","").isEmpty());
-                JSONObject master=new JSONObject("{\"customers\":[{\"id\":\"qa_direct\",\"name\":\"QA Direkt\"},{\"id\":\"qa_payer\",\"name\":\"QA Auftraggeber\"},{\"id\":\"qa_site\",\"name\":\"QA Einsatzort\",\"billing_mode\":\"via_customer\",\"default_billing_customer_id\":\"qa_payer\"}],\"orders\":[{\"id\":\"qa_order\",\"customer_id\":\"qa_site\",\"title\":\"QA Pflege\"}],\"worklogs\":[{\"id\":\"qa_legacy\",\"customer_id\":\"qa_direct\",\"work_date\":\"2026-10-13\",\"activity\":\"QA Bestand\",\"hours\":2},{\"id\":\"qa_billed_site\",\"customer_id\":\"qa_site\",\"billing_customer_id\":\"qa_payer\",\"work_date\":\"2026-10-13\",\"activity\":\"QA Einsatz\",\"hours\":3}],\"photos\":[],\"invoices\":[],\"accepted_ids\":[],\"sync_errors\":[],\"capabilities\":{\"worklog_compare_and_save\":true,\"entity_compare_and_save\":true}}");
+                JSONObject master=SyntheticBusinessData.object("{\"customers\":[{\"id\":\"qa_direct\",\"name\":\"QA Direkt\"},{\"id\":\"qa_payer\",\"name\":\"QA Auftraggeber\"},{\"id\":\"qa_site\",\"name\":\"QA Einsatzort\",\"billing_mode\":\"via_customer\",\"default_billing_customer_id\":\"qa_payer\"}],\"orders\":[{\"id\":\"qa_order\",\"customer_id\":\"qa_site\",\"title\":\"QA Pflege\"}],\"worklogs\":[{\"id\":\"qa_legacy\",\"customer_id\":\"qa_direct\",\"work_date\":\"2026-10-13\",\"activity\":\"QA Bestand\",\"hours\":2},{\"id\":\"qa_billed_site\",\"customer_id\":\"qa_site\",\"billing_customer_id\":\"qa_payer\",\"work_date\":\"2026-10-13\",\"activity\":\"QA Einsatz\",\"hours\":3}],\"photos\":[],\"invoices\":[],\"accepted_ids\":[],\"sync_errors\":[],\"capabilities\":{\"worklog_compare_and_save\":true,\"entity_compare_and_save\":true}}");
                 require(prefs.edit().putString("drive_snapshot",master.toString()).putString("qa_setting","keep-this").commit());
-                require(context.getSharedPreferences("pixel_tunnel_private",0).edit().putString("id","tunnel_00000000000000000000000000000001").putString("organization","org-QAOnly1234").commit());
+                require(context.getSharedPreferences("pixel_tunnel_private",0).edit().putString("id",(""+("tunnel_"+"a".repeat(32))+"")).putString("organization","org-QAOnly1234").commit());
                 PixelTunnelConfig configured=new PixelTunnelConfig(context);
-                configured.save("tunnel_00000000000000000000000000000001","org-QAOnly1234","qa-runtime-not-a-valid-api-key-00000000");
+                configured.save((""+("tunnel_"+"a".repeat(32))+""),"org-QAOnly1234","qa-runtime-not-a-valid-api-key-00000000");
                 configured.writeEnabled(true);configured.enabled(false); // No external connection.
-                store.saveWorklog(new JSONObject().put("id","qa_offline").put("customer_id","qa_site").put("billing_customer_id","qa_payer").put("work_date","2026-10-13").put("activity","QA offline").put("hours",1));
+                store.saveWorklog(SyntheticBusinessData.object().put("id","qa_offline").put("customer_id","qa_site").put("billing_customer_id","qa_payer").put("work_date","2026-10-13").put("activity","QA offline").put("hours",1));
                 WorkSessionStore timer=new WorkSessionStore(store.getWritableDatabase(),context);
-                timer.start(new JSONObject().put("request_id","qa-upgrade-start").put("customer_id","qa_site").put("billing_customer_id","qa_payer").put("work_date","2026-10-13"));
+                timer.start(SyntheticBusinessData.object().put("request_id","qa-upgrade-start").put("customer_id","qa_site").put("billing_customer_id","qa_payer").put("work_date","2026-10-13"));
                 store.putOwnerValue("release_lifecycle_baseline_version",Integer.toString(context.getPackageManager().getPackageInfo(context.getPackageName(),0).versionCode));
                 require(prefs.edit().putString("qa_release_baseline_hash",fingerprint(store)).commit());
                 report.putString("stream","PASS synthetic upgrade fixture prepared on previous original version\n");
@@ -74,7 +74,7 @@ final class ReleaseLifecycleProbe {
                 require(fingerprint(store).equals(prefs.getString("qa_release_baseline_hash","")));
                 require(prefs.getString("qa_setting","").equals("keep-this"));
                 PixelTunnelConfig c=new PixelTunnelConfig(context);
-                require(c.id().equals("tunnel_00000000000000000000000000000001")&&c.organization().equals("org-QAOnly1234")&&c.configured()&&!c.enabled()&&c.writeEnabled());
+                require(c.id().equals((""+("tunnel_"+"a".repeat(32))+""))&&c.organization().equals("org-QAOnly1234")&&c.configured()&&!c.enabled()&&c.writeEnabled());
                 require(c.secret().equals("qa-runtime-not-a-valid-api-key-00000000"));
                 JSONObject session=new WorkSessionStore(store.getWritableDatabase(),context).current();
                 require(session.getString("customer_id").equals("qa_site")&&session.getString("billing_customer_id").equals("qa_payer"));

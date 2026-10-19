@@ -11,12 +11,12 @@ const {chromium}=require('./browser.cjs');
   page.on('pageerror',error=>errors.push(error.message));
   await page.addInitScript(()=>{
    if(!sessionStorage.getItem('qa.work.photo.initialized')){for(const key of ['qa.work.photo.state','qa.work.photo.workWrites','qa.work.photo.photoWrites','qa.work.photo.staged'])localStorage.removeItem(key);sessionStorage.setItem('qa.work.photo.initialized','1');}
-   const master={customers:[{id:'c1',name:'Fotokunde',active:1}],orders:[],worklogs:[],photos:[],invoices:[]},pending=JSON.parse(localStorage.getItem('qa.work.photo.state')||'[]');
+   const master={customers:[{id:'qa_c1',name:'Fotokunde',active:1}],orders:[],worklogs:[],photos:[],invoices:[]},pending=JSON.parse(localStorage.getItem('qa.work.photo.state')||'[]');
    window.workWrites=JSON.parse(localStorage.getItem('qa.work.photo.workWrites')||'[]');window.photoWrites=JSON.parse(localStorage.getItem('qa.work.photo.photoWrites')||'[]');
    const persist=()=>{localStorage.setItem('qa.work.photo.state',JSON.stringify(pending));localStorage.setItem('qa.work.photo.workWrites',JSON.stringify(workWrites));localStorage.setItem('qa.work.photo.photoWrites',JSON.stringify(photoWrites));};
    window.AndroidData={
     getState:()=>JSON.stringify({master,pending}),getSyncStatus:()=>JSON.stringify({configured:false,pending:pending.length}),getAppInfo:()=>JSON.stringify({versionName:'1.45.0'}),getWorkSession:()=>JSON.stringify({state:'IDLE'}),
-    saveWorklog:raw=>{const row={...JSON.parse(raw),id:'w1'};workWrites.push(row);pending.push({kind:'worklog',payload:row});persist();return 'w1';},
+    saveWorklog:raw=>{const row={...JSON.parse(raw),id:'qa_w1'};workWrites.push(row);pending.push({kind:'worklog',payload:row});persist();return 'qa_w1';},
     stagePendingWorkPhoto:raw=>{const row=JSON.parse(raw);localStorage.setItem('qa.work.photo.staged',JSON.stringify(row));return JSON.stringify(row);},
     getPendingWorkPhoto:()=>localStorage.getItem('qa.work.photo.staged')||'',
     clearPendingWorkPhoto:()=>{localStorage.removeItem('qa.work.photo.staged');return 'OK';},
@@ -28,7 +28,7 @@ const {chromium}=require('./browser.cjs');
   await page.waitForSelector('#design-metrics');
   await check('A photo failure after a successful work save preserves a retry without duplicating the work record',async()=>{
    await page.evaluate(()=>openPage('work-entry'));
-   await page.locator('#customer').selectOption('c1');
+   await page.locator('#customer').selectOption('qa_c1');
    await page.locator('#entry-hours').fill('1.5');
    await page.locator('#activity').fill('Hecke schneiden');
    await page.locator('#entry [data-section="notes"] > summary').click();
@@ -59,7 +59,7 @@ const {chromium}=require('./browser.cjs');
    assert.equal(await page.evaluate(()=>localStorage.getItem('qa.work.photo.staged')),null);
   });
   await check('The failed photo was linked to the one successfully stored work record',async()=>{
-   const saved=await page.evaluate(()=>photoWrites);assert.equal(saved.length,2);for(const payload of saved){assert.equal(payload.worklog_id,'w1');assert.equal(payload.customer_id,'c1');assert.equal(payload.role,'documentation');assert.equal(payload.mime_type,'image/jpeg');}
+   const saved=await page.evaluate(()=>photoWrites);assert.equal(saved.length,2);for(const payload of saved){assert.equal(payload.worklog_id,'qa_w1');assert.equal(payload.customer_id,'qa_c1');assert.equal(payload.role,'documentation');assert.equal(payload.mime_type,'image/jpeg');}
   });
   await check('No runtime errors occurred',()=>assert.deepEqual(errors,[]));
  }finally{await Promise.race([browser.close(),new Promise(resolve=>setTimeout(resolve,5000))]);}

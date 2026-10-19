@@ -16,13 +16,17 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 import billing
 import photo_storage
+import runtime_paths
 
 
 ROOT = Path(__file__).resolve().parent
-DATA_DIR = ROOT / "data"
-DB_PATH = DATA_DIR / "haus-garten.db"
-PHOTO_DIR = DATA_DIR / "photos"
-BACKUP_DIR = DATA_DIR / "backups"
+DATA_DIR = runtime_paths.PrivatePath("data")
+DB_PATH = runtime_paths.PrivatePath("data/haus-garten.db")
+PHOTO_DIR = runtime_paths.PrivatePath("data/photos")
+BACKUP_DIR = runtime_paths.PrivatePath("data/backups")
+
+def ensure_paths():
+    runtime_paths.checked_paths(DATA_DIR, DB_PATH, PHOTO_DIR, BACKUP_DIR)
 
 
 def now() -> str:
@@ -30,7 +34,8 @@ def now() -> str:
 
 
 def uid(prefix: str) -> str:
-    return f"{prefix}_{uuid.uuid4().hex}"
+    namespace = "qa_" if runtime_paths.synthetic_root(DATA_DIR) is not None else ""
+    return f"{namespace}{prefix}_{uuid.uuid4().hex}"
 
 
 class DuplicateWarning(ValueError):
@@ -207,6 +212,7 @@ def atomic():
 
 
 def connect() -> sqlite3.Connection:
+    ensure_paths()
     if getattr(_transaction, 'database', None) is not None:
         return _TransactionView(_transaction.database)
     database = sqlite3.connect(DB_PATH, timeout=20, factory=ClosingConnection)
@@ -217,6 +223,7 @@ def connect() -> sqlite3.Connection:
 
 
 def init() -> None:
+    ensure_paths()
     for folder in (DATA_DIR, PHOTO_DIR, BACKUP_DIR):
         folder.mkdir(parents=True, exist_ok=True)
     # A recoverable SQLite backup BEFORE the additive billing migration.
@@ -565,7 +572,7 @@ def mobile_photo_thumbnails(photos: list[dict], size: int = 144) -> list[dict]:
     except ImportError:
         return photos
     for item in photos:
-        source = PHOTO_DIR / Path(str(item.get("storage_name") or item.get("filename", ""))).name
+        source = runtime_paths.business_path(PHOTO_DIR / Path(str(item.get("storage_name") or item.get("filename", ""))).name)
         try:
             with Image.open(source) as image:
                 image = ImageOps.exif_transpose(image).convert("RGB")
@@ -574,7 +581,7 @@ def mobile_photo_thumbnails(photos: list[dict], size: int = 144) -> list[dict]:
                 image.save(output, format="JPEG", quality=48, optimize=True)
             raw=output.getvalue()
             if not raw or len(raw)>65536:continue
-            digest=hashlib.sha256(raw).hexdigest();directory=PHOTO_DIR/'thumbnails';directory.mkdir(exist_ok=True);target=directory/(digest+'.jpg')
+            digest=hashlib.sha256(raw).hexdigest();directory=PHOTO_DIR/'thumbnails';directory.mkdir(exist_ok=True);target=runtime_paths.business_path(directory/(digest+'.jpg'))
             if target.exists() and hashlib.sha256(target.read_bytes()).hexdigest()!=digest:raise ValueError('Vorschaudatei wurde verändert.')
             if not target.exists():
                 with target.open('xb') as file:file.write(raw)
@@ -1019,5 +1026,7 @@ def save_settings(values: dict) -> dict:
     with connect() as database:
         for key, value in values.items():
             if key in allowed:
+                if key == "backup_folder" and str(value).strip():
+                    runtime_paths.business_path(value)
                 database.execute("INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)", (key, str(value)))
     return settings()

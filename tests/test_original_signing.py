@@ -26,7 +26,7 @@ from tools import sign_original_apk as signing
 
 class OriginalSigningTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix='hg-signing-synthetic-test-')
+        self.temp = __import__("synthetic_fixtures").temporary_directory(prefix='hg-signing-synthetic-test-')
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.apk = self.root/'synthetic-candidate.zip'
@@ -432,7 +432,7 @@ class OriginalSigningTests(unittest.TestCase):
             private=(' '.join(self.env.values())).encode()
             return subprocess.CompletedProcess(command,1,private,private)
         out,err=io.StringIO(),io.StringIO()
-        with mock.patch.dict(os.environ,self.env,clear=True),mock.patch.object(signing.subprocess,'run',side_effect=failed),contextlib.redirect_stdout(out),contextlib.redirect_stderr(err):
+        with mock.patch('privacy_guard.source_gate',return_value={'status':'PASS'}),mock.patch('privacy_guard.workspace_gate',return_value={'status':'PASS'}),mock.patch.dict(os.environ,self.env,clear=True),mock.patch.object(signing.subprocess,'run',side_effect=failed),contextlib.redirect_stdout(out),contextlib.redirect_stderr(err):
             self.assertEqual(signing.main(args),1)
         self.assertEqual(out.getvalue(),'')
         self.assert_no_private(err.getvalue())
@@ -441,7 +441,8 @@ class OriginalSigningTests(unittest.TestCase):
         args=['--apk',str(self.apk),'--output',str(self.output)]
         for name,value in self.tools.items():args+=['--'+name,value]
         out,err=io.StringIO(),io.StringIO()
-        with mock.patch.dict(os.environ,self.env,clear=True),mock.patch.object(signing.subprocess,'run',side_effect=self.fake_tool),contextlib.redirect_stdout(out),contextlib.redirect_stderr(err):
+        # Unit boundary: real gates are covered by PrivacyContractTests and release CLI.
+        with mock.patch('privacy_guard.source_gate',return_value={'status':'PASS'}),mock.patch('privacy_guard.workspace_gate',return_value={'status':'PASS'}),mock.patch.dict(os.environ,self.env,clear=True),mock.patch.object(signing.subprocess,'run',side_effect=self.fake_tool),contextlib.redirect_stdout(out),contextlib.redirect_stderr(err):
             self.assertEqual(signing.main(args),0)
         self.assertEqual(err.getvalue(),'')
         self.assert_no_private(out.getvalue())

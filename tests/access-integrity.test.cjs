@@ -9,7 +9,7 @@ const {pathToFileURL}=require('node:url'),{chromium}=require('./browser.cjs');
   const page=await browser.newPage({viewport:{width:426,height:852}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.clock.setFixedTime(new Date('2026-10-18T12:00:00Z'));
   await page.addInitScript(()=>{
-   window.fixture={master:{customers:Array.from({length:50},(_,i)=>({id:'c'+i,name:'Synthetischer Kunde '+i,active:1,billing_mode:'direct'})),orders:[],photos:[],invoices:[],worklogs:Array.from({length:3000},(_,i)=>({id:'w'+i,customer_id:'c'+i%50,billing_customer_id:'c'+i%50,work_date:i===1?'2025-12-31':'2026-10-18',activity:'Synthetische Arbeit '+i,hours:2,notes:'Originalnotiz',break_minutes:0,kilometers:0,billed:0,customer_visible:1,updated_at:'t1'}))},pending:[]};window.writes=[];window.failSave=false;window.ownerShareRequest={};window.shareHandoffs=0;
+   window.fixture={master:{customers:Array.from({length:50},(_,i)=>({id:'qa_c'+i,name:'Synthetischer Kunde '+i,active:1,billing_mode:'direct'})),orders:[],photos:[],invoices:[],worklogs:Array.from({length:3000},(_,i)=>({id:'qa_w'+i,customer_id:'qa_c'+i%50,billing_customer_id:'qa_c'+i%50,work_date:i===1?'2025-12-31':'2026-10-18',activity:'Synthetische Arbeit '+i,hours:2,notes:'Originalnotiz',break_minutes:0,kilometers:0,billed:0,customer_visible:1,updated_at:'t1'}))},pending:[]};window.writes=[];window.failSave=false;window.ownerShareRequest={};window.shareHandoffs=0;
    window.AndroidData={getState:()=>JSON.stringify(fixture),getSyncStatus:()=>JSON.stringify({configured:false}),getWorkSession:()=>JSON.stringify({state:'IDLE'}),getAppInfo:()=>JSON.stringify({versionName:'fixture',versionCode:67}),getOwnerSettings:()=>JSON.stringify({}),getInvoiceShareHandoff:()=>JSON.stringify(ownerShareRequest),sharePreparedInvoice:()=>{shareHandoffs++;return 'OK';},saveWorklog:raw=>{if(failSave)return 'ERROR: Synthetischer Speicherfehler';const p=JSON.parse(raw);writes.push(p);const accepted={...p};delete accepted._edit_base;delete accepted._edit_changes;fixture.pending.push({client_id:'edit-'+writes.length,kind:'worklog',payload:accepted});return p.id;}};window.AndroidSpeech={start:()=>{}};
   });
   await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href);
@@ -18,20 +18,20 @@ const {pathToFileURL}=require('node:url'),{chromium}=require('./browser.cjs');
    await page.evaluate(()=>{openPage('worklogs');document.getElementById('worklog-period').value='year';render();});
    assert.match(await page.locator('#worklog-filter-summary').innerText(),/2999/);
    await page.evaluate(()=>{openPage('weeks');document.getElementById('week-period').value='year';render();});
-   assert.equal(await page.locator('.week-worklog[data-edit-weeklog="w1"]').count(),0);
+   assert.equal(await page.locator('.week-worklog[data-edit-weeklog="qa_w1"]').count(),0);
    assert.equal(await page.evaluate(()=>weekInfo('2025-12-31').year),2026);
   });
   await check('Stale opened form preserves remotely changed note and local draft',async()=>{
-   await page.evaluate(()=>openWorklogDetail('w0'));await page.locator('[data-work-window-edit]').click();await page.locator('#edit-worklog-activity').fill('Lokaler Entwurf');
+   await page.evaluate(()=>openWorklogDetail('qa_w0'));await page.locator('[data-work-window-edit]').click();await page.locator('#edit-worklog-activity').fill('Lokaler Entwurf');
    await page.evaluate(()=>{fixture.master.worklogs[0].notes='Remote Nachtrag';fixture.master.worklogs[0].updated_at='t2';load();});
    const before=await page.evaluate(()=>writes.length);await page.locator('[data-work-window-save]').click();assert.equal(await page.evaluate(()=>writes.length),before);assert.equal(await page.locator('#edit-worklog-activity').inputValue(),'Lokaler Entwurf');assert.match(await page.locator('#worklog-detail-status').innerText(),/inzwischen geändert/);
    await page.evaluate(()=>cancelWorklogDetail());
   });
   await check('Fresh save includes immutable baseline and only changed form fields',async()=>{
-   await page.evaluate(()=>openWorklogDetail('w0'));await page.locator('[data-work-window-edit]').click();await page.locator('#edit-worklog-activity').fill('Kontrolliert geändert');await page.locator('[data-work-window-save]').click();const p=await page.evaluate(()=>writes.at(-1));assert.equal(p._edit_base.notes,'Remote Nachtrag');assert.equal(p._edit_changes.activity,'Kontrolliert geändert');assert.equal(Object.hasOwn(p._edit_changes,'notes'),false);
+   await page.evaluate(()=>openWorklogDetail('qa_w0'));await page.locator('[data-work-window-edit]').click();await page.locator('#edit-worklog-activity').fill('Kontrolliert geändert');await page.locator('[data-work-window-save]').click();const p=await page.evaluate(()=>writes.at(-1));assert.equal(p._edit_base.notes,'Remote Nachtrag');assert.equal(p._edit_changes.activity,'Kontrolliert geändert');assert.equal(Object.hasOwn(p._edit_changes,'notes'),false);
   });
   await check('Addendum persists on accept; failed save retains input without duplicate append',async()=>{
-   await page.evaluate(()=>{openWorklogDetail('w2');document.getElementById('worklog-addendum-text').value='Neuer Nachtrag';document.getElementById('worklog-addendum-add').click();});assert.equal(await page.locator('#worklog-addendum-text').inputValue(),'');assert.match(await page.evaluate(()=>writes.at(-1).notes),/Neuer Nachtrag/);
+   await page.evaluate(()=>{openWorklogDetail('qa_w2');document.getElementById('worklog-addendum-text').value='Neuer Nachtrag';document.getElementById('worklog-addendum-add').click();});assert.equal(await page.locator('#worklog-addendum-text').inputValue(),'');assert.match(await page.evaluate(()=>writes.at(-1).notes),/Neuer Nachtrag/);
    await page.evaluate(()=>{failSave=true;document.getElementById('worklog-addendum-text').value='Erhaltener Nachtrag';document.getElementById('worklog-addendum-add').click();document.getElementById('worklog-addendum-add').click();});assert.equal(await page.locator('#worklog-addendum-text').inputValue(),'Erhaltener Nachtrag');assert.equal((await page.locator('#edit-worklog-notes').inputValue()).split('Erhaltener Nachtrag').length-1,1);await page.evaluate(()=>{failSave=false;document.getElementById('worklog-addendum-add').click();});assert.equal(await page.locator('#worklog-addendum-text').inputValue(),'');
   });
   await check('320/360/426px and enlarged text keep paid record identity readable',async()=>{
@@ -47,7 +47,7 @@ const {pathToFileURL}=require('node:url'),{chromium}=require('./browser.cjs');
    await page.evaluate(()=>openPage('billing-page'));assert.equal(await page.locator('.billing-work-row').count(),50);await page.locator('#billing-load-more').click();assert.equal(await page.locator('.billing-work-row').count(),100);
   });
   await check('Owner UI adapter is connected and sharing requires device action',async()=>{
-   await page.evaluate(()=>{fixture.master.invoices.push({id:'i',customer_id:'c0',invoice_number:'QA-1',status:'Gestellt',issued_at:'2026-10-18',amount:90});ownerShareRequest={invoice_id:'i',channel:'share'};load();openPage('invoices');});
+   await page.evaluate(()=>{fixture.master.invoices.push({id:'qa_i',customer_id:'qa_c0',invoice_number:'QA-1',status:'Gestellt',issued_at:'2026-10-18',amount:90});ownerShareRequest={invoice_id:'qa_i',channel:'share'};load();openPage('invoices');});
    assert.match(await page.locator('#invoice-share-handoff p').innerText(),/QA-1/);assert.equal(await page.evaluate(()=>shareHandoffs),0);await page.locator('#invoice-share-handoff button').click();assert.equal(await page.evaluate(()=>shareHandoffs),1);
   });
   await check('No browser runtime errors',async()=>assert.deepEqual(errors,[]));

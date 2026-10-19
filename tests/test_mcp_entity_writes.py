@@ -11,7 +11,7 @@ class EntityWrites(unittest.TestCase):
     tearDown = mcp_tests.MCPIntegrationTests.tearDown
 
     def test_custom_field_numbers_keep_numeric_equivalence_but_not_boolean_equivalence(self):
-        payload = {'id': 'cus_typed_custom', 'name': 'Typed QA',
+        payload = {'id': 'qa_cus_typed_custom', 'name': 'Typed QA',
                    'custom_fields': {'number': 1.0, 'enabled': False}, '_mcp_create': True, '_new_record': True}
         self.action('mcp_typed_create', 'customer', payload)
         old = next(x for x in db.list_customers() if x['id'] == payload['id'])
@@ -36,7 +36,7 @@ class EntityWrites(unittest.TestCase):
         target.write_text(json.dumps(snapshot), encoding='utf-8')
         channel = self.drive / 'HausGarten-Mobile-metadata-test.json'
         channel.write_text(json.dumps({'actions': [{'client_id': 'do-not-import', 'kind': 'customer',
-            'payload': {'id': 'never-created', 'name': 'Not imported'}}]}), encoding='utf-8')
+            'payload': {'id': 'qa_never-created', 'name': 'Not imported'}}]}), encoding='utf-8')
         database_before = db.DB_PATH.read_bytes()
         channel_before = channel.read_bytes()
         result = server.refresh_drive_capabilities(hashlib.sha256(target.read_bytes()).hexdigest())
@@ -74,7 +74,7 @@ class EntityWrites(unittest.TestCase):
         return json.loads((self.drive / 'HausGarten-Laptop.json').read_text(encoding='utf-8'))
 
     def test_customer_create_replay_update_conflict(self):
-        payload = {'id': 'cus_mobile_mcp_test', 'name': 'Neuer Testkunde',
+        payload = {'id': 'qa_cus_mobile_mcp_test', 'name': 'Neuer Testkunde',
                    '_mcp_create': True, '_new_record': True}
         first = self.action('mcp_entity_create', 'customer', payload)
         self.assertIn('mcp_entity_create', first['accepted_ids'])
@@ -93,12 +93,12 @@ class EntityWrites(unittest.TestCase):
             **self.customer, 'name': 'Overwrite', '_mcp_create': True})
         self.assertNotIn('mcp_entity_collision', collision['accepted_ids'])
         duplicate = self.action('mcp_entity_duplicate', 'customer', {
-            **self.customer, 'id': 'cus_duplicate', '_new_record': True, '_mcp_create': True})
+            **self.customer, 'id': 'qa_cus_duplicate', '_new_record': True, '_mcp_create': True})
         self.assertNotIn('mcp_entity_duplicate', duplicate['accepted_ids'])
 
     def test_order_reference_and_guard(self):
-        invalid = self.action('mcp_invalid_order', 'order', {'id': 'ord_invalid',
-            'customer_id': 'invented', 'title': 'Pflege', '_mcp_create': True})
+        invalid = self.action('mcp_invalid_order', 'order', {'id': 'qa_ord_invalid',
+            'customer_id': 'qa_invented', 'title': 'Pflege', '_mcp_create': True})
         self.assertNotIn('mcp_invalid_order', invalid['accepted_ids'])
         base = {k: self.order[k] for k in ('id', 'updated_at', 'title', 'customer_id')}
         updated = self.action('mcp_order_edit', 'order', {**self.order, 'title': 'Neue Pflege', '_mcp_base': base})
@@ -107,7 +107,7 @@ class EntityWrites(unittest.TestCase):
         self.assertNotIn('mcp_order_stale', conflict['accepted_ids'])
 
     def test_invoice_draft_create_update_and_position_conflict(self):
-        payload = {'id': 'inv_mobile_mcp_test', 'customer_id': self.customer['id'],
+        payload = {'id': 'qa_inv_mobile_mcp_test', 'customer_id': self.customer['id'],
             'invoice_number': 'Entwurf-inv_mobile_mcp_test', 'invoice_date': '2026-10-12',
             'status': 'Entwurf', 'positions': [{'title': 'Pflege', 'quantity': 3, 'price': 50}],
             '_mcp_create': True}
@@ -125,15 +125,15 @@ class EntityWrites(unittest.TestCase):
         self.assertNotIn('mcp_invoice_stale', stale['accepted_ids'])
 
     def test_capability_export(self):
-        snapshot = self.action('mcp_capability', 'customer', {'id': 'cus_capability', 'name': 'Capability', '_mcp_create': True})
+        snapshot = self.action('mcp_capability', 'customer', {'id': 'qa_cus_capability', 'name': 'Capability', '_mcp_create': True})
         self.assertIs(snapshot['capabilities']['entity_compare_and_save'], True)
         self.assertIs(snapshot['capabilities']['customer_custom_fields_compare_and_save'], True)
 
     def test_customer_all_fields_custom_compare_and_relation_retention(self):
-        payload = {'id': 'cus_mcp_all_fields', 'name': 'QA Gartenkundin',
+        payload = {'id': 'qa_cus_mcp_all_fields', 'name': 'QA Gartenkundin',
             'company': 'QA Betrieb', 'first_name': 'Anna', 'last_name': 'Muster',
-            'street': 'Beispielweg 4', 'postal_code': '9560', 'city': 'Feldkirchen',
-            'country': 'Österreich', 'phone': '+43 664 1234567', 'email': 'qa@example.test',
+            'street': 'Beispielweg 4', 'postal_code': '9560', 'city': 'QA Beispielort',
+            'country': 'Österreich', 'phone': '+43 664 1234567', 'email': 'qa_603ba7ede2fe@example.invalid',
             'notes': 'Tor links', 'garden_area': 200.5, 'active': 1,
             'sevdesk_customer_number': 'QA-42', 'custom_fields': {'Torcode': '1234', 'Breite': 2.5},
             '_mcp_create': True, '_new_record': True}

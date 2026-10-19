@@ -73,7 +73,7 @@ const root=path.resolve(__dirname,'..'),assets=path.join(root,'android/app/src/m
    const oversize=path.join(root,'outputs','synthetic-oversize-'+process.pid+'.jpg');fs.writeFileSync(oversize,Buffer.alloc(0),{flag:'wx'});fs.truncateSync(oversize,40*1024*1024+1);
    try{for(const [file,expected] of [
     [{name:'leer.jpg',mimeType:'image/jpeg',buffer:Buffer.alloc(0)},'leer'],
-    [{name:'kein-bild.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>')},'Bilddatei'],
+    [{name:'kein-bild.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.qa_w3.org/2000/svg"/>')},'Bilddatei'],
     [{name:'kaputt.jpg',mimeType:'image/jpeg',buffer:Buffer.from('not a JPEG')},'nicht öffnen'],
     [oversize,'40 MB']
    ]){

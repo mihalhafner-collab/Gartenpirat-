@@ -23,7 +23,7 @@ class CloudEmulatorGuardTests(unittest.TestCase):
         self.assertFalse(runner.successful_output('PASS native WebView boot', 'verify'))
 
     def test_same_emulator_cannot_run_concurrent_installs_or_tests(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with __import__("synthetic_fixtures").temporary_directory() as directory:
             folder = Path(directory)
             with runner.emulator_lock('emulator-5580', folder):
                 with self.assertRaises(ValueError):

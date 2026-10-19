@@ -26,7 +26,7 @@ class LocalUpdateComparisonTests(unittest.TestCase):
                           'unchanged_count': 1})
 
     def test_package_must_match_every_source_asset(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with __import__("synthetic_fixtures").temporary_directory() as directory:
             root = Path(directory)
             assets = root/'assets'
             assets.mkdir()
@@ -41,16 +41,16 @@ class LocalUpdateComparisonTests(unittest.TestCase):
             self.assertEqual(result['added'], ['unexpected.txt'])
 
     def test_seed_is_empty_and_no_values_are_returned(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with __import__("synthetic_fixtures").temporary_directory() as directory:
             apk = Path(directory)/'synthetic.zip'
             seed = {key: [] for key in COLLECTIONS}
             for occupied in (False, True):
-                seed['customers'] = [{'id': 'synthetic-only'}] if occupied else []
+                seed['customers'] = [{'id': 'qa_synthetic-only'}] if occupied else []
                 with zipfile.ZipFile(apk, 'w') as archive:
                     archive.writestr('assets/initial-data.json', json.dumps(seed))
                 result = empty_seed(apk)
                 self.assertEqual(result['all_business_collections_empty'], not occupied)
-                self.assertNotIn('synthetic-only', json.dumps(result))
+                self.assertNotIn('qa_synthetic-only', json.dumps(result))
                 self.assertIn('assets/initial-data.json', apk_inventory(apk))
 
 

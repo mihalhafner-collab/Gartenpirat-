@@ -71,7 +71,7 @@ checks = {key: result[key] == value for key, value in expected.items()}
             sanitize_snapshot_verifier(b'expected = {"unknown_rule": 42}')
 
     def test_email_retains_shape_and_consistent_case(self):
-        original = 'someone@private.invalid'
+        original = 'qa_914b2c6ec31a@example.invalid'
         out = anonymize((original + ' ' + original.upper()).encode(), {original}, '.py').decode()
         first, second = out.split()
         self.assertEqual(first.upper(), second)

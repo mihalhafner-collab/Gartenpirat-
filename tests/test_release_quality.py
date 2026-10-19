@@ -19,11 +19,11 @@ from photo_fixture import VALID_GIF_BASE64
 
 class ReleaseQualityTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
+        self.temp = __import__("synthetic_fixtures").temporary_directory()
         root = Path(self.temp.name)
         self.previous = (db.DATA_DIR, db.DB_PATH, db.PHOTO_DIR, db.BACKUP_DIR)
         db.DATA_DIR, db.DB_PATH, db.PHOTO_DIR, db.BACKUP_DIR = root, root/'test.db', root/'photos', root/'backups'
-        db.init()
+        __import__("synthetic_fixtures").configure_db(db.DATA_DIR); db.init()
         self.customer = db.save_customer({'name':'Gärtner ÄÖÜ <Test>', 'notes':'Historie erhalten', 'active':1})
         self.order = db.save_order({'customer_id':self.customer['id'], 'title':'Pflege', 'location':'Gartenweg 1'})
         self.work = dict(customer_id=self.customer['id'], order_id=self.order['id'], activity='Hecke pflegen', hours=2, work_date='2026-10-08')
@@ -72,9 +72,9 @@ class ReleaseQualityTests(unittest.TestCase):
         self.assertEqual(saved['worklog_ids'],[work['id']])
 
     def test_issued_performance_locked_but_numeric_equivalent_notes_allowed(self):
-        db.save_customer({**self.customer,'street':'Testweg 1','postal_code':'9560','city':'Feldkirchen','country':'Österreich'})
+        db.save_customer({**self.customer,'street':'Testweg 1','postal_code':'9560','city':'QA Beispielort','country':'Österreich'})
         db.save_settings({'owner_name':'QA Aussteller','business_street':'Testweg 2','business_postal_code':'9560',
-            'business_city':'Feldkirchen','tax_mode':'small_business','tax_exemption_text':'Umsatzsteuerfrei gemäß § 6 Abs. 1 Z 27 UStG.','invoice_issuer_confirmed':'1','invoice_prefix':'QA','invoice_numbering_confirmed':'1',
+            'business_city':'QA Beispielort','tax_mode':'small_business','tax_exemption_text':'Umsatzsteuerfrei gemäß § 6 Abs. 1 Z 27 UStG.','invoice_issuer_confirmed':'1','invoice_prefix':'QA','invoice_numbering_confirmed':'1',
             'invoice_number_format':'sevdesk','invoice_sevdesk_last_number':'100','invoice_sevdesk_checked_at':db.now()})
         work=db.save_worklog(self.work)
         draft=db.save_invoice({'customer_id':self.customer['id'],'invoice_number':'Entwurf-QA',
@@ -90,19 +90,19 @@ class ReleaseQualityTests(unittest.TestCase):
         text='ÄÖÜ ß <script>alert(1)</script> 🌳 ' * 1000
         row=db.save_worklog({**self.work,'notes':text})
         self.assertEqual(row['notes'],text)
-        for values in [{'customer_id':'missing'},{'order_id':'missing'},{'activity':'   '}]:
+        for values in [{'customer_id':'qa_missing'},{'order_id':'qa_missing'},{'activity':'   '}]:
             with self.subTest(values=values), self.assertRaises(ValueError): db.save_worklog({**self.work,**values})
-        with self.assertRaises(ValueError): self.photo(worklog_id='missing')
-        with self.assertRaises(ValueError): self.photo(order_id='missing')
+        with self.assertRaises(ValueError): self.photo(worklog_id='qa_missing')
+        with self.assertRaises(ValueError): self.photo(order_id='qa_missing')
 
     def test_archive_parser_preserves_explicit_year_and_ambiguous_customer(self):
         self.assertEqual(archive_import.parse_date('06.10.2025').isoformat(),'2025-10-06')
         self.assertEqual(archive_import.parse_date('06.10.26').isoformat(),'2026-10-06')
         self.assertEqual(archive_import.parse_date('06.10.').isoformat(),'2026-10-06')
-        fallback={'id':'unassigned','name':'Ungeklärt'}
-        rows=[{'id':'a','name':'Georg Seidl'},{'id':'b','name':'Andreas Seidl'}]
-        self.assertEqual(archive_import.find_customer('Seidl',rows,fallback)['id'],'unassigned')
-        self.assertEqual(archive_import.find_customer('Georg Seidl',rows,fallback)['id'],'a')
+        fallback={'id':'qa_unassigned','name':'Ungeklärt'}
+        rows=[{'id':'qa_a','name':'Georg Seidl'},{'id':'qa_b','name':'Andreas Seidl'}]
+        self.assertEqual(archive_import.find_customer('Seidl',rows,fallback)['id'],'qa_unassigned')
+        self.assertEqual(archive_import.find_customer('Georg Seidl',rows,fallback)['id'],'qa_a')
 
     def test_malformed_drive_action_does_not_block_next_valid_action(self):
         folder=db.DATA_DIR/'drive';folder.mkdir()
@@ -185,10 +185,10 @@ class ReleaseQualityTests(unittest.TestCase):
         self.assertEqual(overnight['hours'],1.5)
 
     def test_offline_supplied_id_cannot_bypass_new_workflow_validation(self):
-        with self.assertRaises(ValueError): db.save_worklog({**self.work,'id':'wrk_offline','order_id':None,'_require_order':True})
-        with self.assertRaises(ValueError): db.save_worklog({**self.work,'id':'wrk_offline','hours':0,'_require_order':True})
-        saved=db.save_worklog({**self.work,'id':'wrk_offline','_require_order':True})
-        self.assertEqual(saved['id'],'wrk_offline')
+        with self.assertRaises(ValueError): db.save_worklog({**self.work,'id':'qa_wrk_offline','order_id':None,'_require_order':True})
+        with self.assertRaises(ValueError): db.save_worklog({**self.work,'id':'qa_wrk_offline','hours':0,'_require_order':True})
+        saved=db.save_worklog({**self.work,'id':'qa_wrk_offline','_require_order':True})
+        self.assertEqual(saved['id'],'qa_wrk_offline')
 
     def test_invalid_order_date_rejected(self):
         with self.assertRaises(ValueError): db.save_order({**self.order,'scheduled_date':'2026-02-30'})
@@ -284,9 +284,9 @@ class HttpQualityTests(ReleaseQualityTests):
             self.assertEqual(list(workers.map(request,range(24))),[200]*24)
 
     def test_invoice_http_confirmation_issue_and_pdf(self):
-        db.save_customer({**self.customer,'street':'QA Straße 1','postal_code':'9560','city':'Feldkirchen','country':'Österreich'})
+        db.save_customer({**self.customer,'street':'QA Straße 1','postal_code':'9560','city':'QA Beispielort','country':'Österreich'})
         db.save_settings({'owner_name':'QA Aussteller','business_street':'Testweg 2','business_postal_code':'9560',
-            'business_city':'Feldkirchen','tax_mode':'small_business','tax_exemption_text':'Umsatzsteuerfrei gemäß § 6 Abs. 1 Z 27 UStG.','invoice_issuer_confirmed':'1','invoice_prefix':'QA','invoice_numbering_confirmed':'1',
+            'business_city':'QA Beispielort','tax_mode':'small_business','tax_exemption_text':'Umsatzsteuerfrei gemäß § 6 Abs. 1 Z 27 UStG.','invoice_issuer_confirmed':'1','invoice_prefix':'QA','invoice_numbering_confirmed':'1',
             'invoice_number_format':'own'})
         draft=db.save_invoice({'customer_id':self.customer['id'],'invoice_number':'Entwurf-HTTP',
             'invoice_date':invoicing.date.today().isoformat(),'service_start':'2026-10-01','service_end':'2026-10-01',

@@ -127,3 +127,13 @@ UI-Entfernungen archivieren mit Versionsschutz. Alte Löschaufträge benötigen
 eine ausdrückliche, nachvollziehbare Entscheidung. Kunden-Fotoentwürfe behalten
 Originalbytes und Request-ID. Google-/Tunnel-Freigaben werden nicht durch Code
 erteilt. Fachliche Betriebsdatenaktionen benötigen den jeweiligen Benutzerauftrag.
+
+## Dauerhafte Trennung von Quellcode und Betriebsdaten (P0)
+
+Im Repository-Workspace sind ausschließlich PUBLIC_SOURCE (Quellcode/öffentliche Katalog- und Markendaten/leerer Bootstrap) und SYNTHETIC_TEST (klar synthetische Fixtures/technische QA-Artefakte) zulässig. PRIVATE_RUNTIME (Kunden, Aufträge, Zeiten, Angebote, Rechnungen, Fotos, Drive-Snapshots, Rohbackups) und SECRET gehören ausschließlich außerhalb des Checkouts; .gitignore ersetzt diese Trennung nicht. Auch ignorierte/untracked Dateien und Archive prüfen. Keine produktiven Daten für Tests importieren, kopieren, verändern oder als Fixtures verwenden.
+
+Host-Betriebsdatenpfade ausschließlich über `runtime_paths.py` und ausdrücklich gesetztes externes `HG_PRIVATE_DATA_ROOT`; fehlt der Root oder zeigt er direkt/per Symlink ins Repository, vor Zugriff fail-closed abbrechen. Kein Fallback auf data/outputs/tmp/assets. Tests verwenden die zentrale synthetische Factory und eigene OS-Tempstores, niemals den privaten Root. Neue Fixtures nur qa_/test_-IDs, künstliche Adressen, example.invalid, keine echten Aussteller-/Kunden-/Bank-/sevDesk-Werte. Sonderfälle alter Datenformate ausschließlich explizit synthetisch isoliert testen.
+
+`initial-data.json` bleibt exakt der leere Vertrag aus `bootstrap_contract.py`; allein `tools/empty_bootstrap.py --write` darf ihn aus konstanten leeren Daten erzeugen. Der externe Snapshotexporter darf niemals Android-Assets oder andere Repositorypfade beschreiben. Integritäts-/Updateberichte nur Counts, Hashes, Schema-/Relationsinformationen und PASS/FAIL/NOT TESTABLE; keine Rohdatensätze oder identifizierenden Texte.
+
+Source-, Workspace- und Artifact-Privacy-Gates sind verpflichtende Quality-/Releasegates. Ein FAIL oder NOT TESTABLE verhindert P0-Abschluss/Releaseabnahme. Historische Git-Objekte separat nur lesend prüfen; sensible Althistorie erfordert eigenen Sicherheitsauftrag, niemals automatisches Rewrite/Force-Push. Produktive Android-/Drive-Daten unverändert lassen, keine automatische Migration oder Installation.

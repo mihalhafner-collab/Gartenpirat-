@@ -10,24 +10,23 @@ from pathlib import Path
 
 import db
 import server
+import runtime_paths
 
 
-CUSTOMER = "cus_mobile_931ecf0c4cd8486395cf83656a601180"
-LINKS = {
-    "pho_mobile_8ad66f0e49904ced9e413a38ec0a229d": "wrk_mobile_913976ba4bd1453ba75a5468b89c3c32",
-    "pho_mobile_3a3b0631eb594a91bcce8f73ec75592f": "wrk_mobile_b8445cff3af746718d480fce9be3889a",
-    "pho_mobile_abac73f3d3c44aa59a4fe542711d26a0": "wrk_mobile_325735fd783c4f5fb3d012ab7969ccfd",
-}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()
-    folder = Path(db.settings()["backup_folder"])
-    source = folder / "HausGarten-Mobile-89fbc9e3b571450c.json"
+    config_path = runtime_paths.business_path(runtime_paths.private_root()/"maintenance/photo-links.json")
+    config=json.loads(config_path.read_text())
+    CUSTOMER=config["customer_id"]; LINKS=config["links"]
+    folder = runtime_paths.business_path(db.settings()["backup_folder"])
+    source = runtime_paths.business_path(folder / config["source_name"])
     original_bytes = source.read_bytes()
     source_hash = hashlib.sha256(original_bytes).hexdigest()
+    if source_hash != config.get("expected_source_sha256"): raise ValueError("Quellhash muss frisch ausdrücklich bestätigt sein.")
     package = json.loads(original_bytes)
     matches = [a for a in package.get("actions", []) if a.get("client_id") in LINKS]
     if len(matches) != 3 or {a["client_id"] for a in matches} != set(LINKS):
@@ -70,7 +69,7 @@ def main():
                 "original_name": payload.get("original_name"), "sha256": digest,
             })
     if not args.apply:
-        print(json.dumps({"ready": True, "customer": customer["name"], "photos": audit_rows}, ensure_ascii=False))
+        print(json.dumps({"ready": True, "photo_count": len(audit_rows), "source_sha256": source_hash}, ensure_ascii=False))
         return
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     backup = db.BACKUP_DIR / ("before-confirmed-photo-links-" + stamp)
@@ -112,8 +111,8 @@ def main():
     assert held_path.read_bytes() == held_before
     assert source.read_bytes() == original_bytes, "Mobile Quelldatei wurde währenddessen verändert."
     assert not any(x.get("client_id") in LINKS for x in snapshot["sync_errors"])
-    print(json.dumps({"repaired": 3, "customer": customer["name"], "audit": str(audit),
-                      "backup": str(backup), "sync": result,
+    print(json.dumps({"repaired": 3, "source_sha256": source_hash,
+                      "sync_ok": bool(result.get("ok")),
                       "snapshot_photo_count": len(photos), "held_deletions": len(held),
                       "source_unchanged": True}, ensure_ascii=False))
 

@@ -44,7 +44,7 @@ class PixelPrimaryDrive(unittest.TestCase):
         self.assertEqual(next(r['notes'] for r in db.list_customers() if r['id']==old['id']),'Web Ergänzung')
 
     def test_two_files_repeated_action_preserve_one_worklog_id(self):
-        payload={'id':'wrk_pixel_same','customer_id':self.customer['id'],'work_date':'2026-10-12',
+        payload={'id':'qa_wrk_pixel_same','customer_id':self.customer['id'],'work_date':'2026-10-12',
                  'activity':'Isolierter Heckenschnitt','hours':3,'updated_at':'2026-10-12T09:00:00Z','_mcp_create':True}
         action=self.action('pixel-repeat','worklog',payload)
         self.journal([action])
@@ -55,9 +55,9 @@ class PixelPrimaryDrive(unittest.TestCase):
         self.assertEqual(len([r for r in db.list_worklogs() if r['id']==payload['id']]),1)
 
     def test_offline_customer_order_work_chain_same_relations(self):
-        c={'id':'cus_offline','name':'Einzigartiger Offline-Kunde','updated_at':'2026-10-12T09:00:00Z','_mcp_create':True}
-        o={'id':'ord_offline','customer_id':c['id'],'title':'Test Hecke','updated_at':'2026-10-12T09:01:00Z','_mcp_create':True}
-        w={'id':'wrk_offline','customer_id':c['id'],'order_id':o['id'],'work_date':'2026-10-12','hours':5.5,
+        c={'id':'qa_cus_offline','name':'Einzigartiger Offline-Kunde','updated_at':'2026-10-12T09:00:00Z','_mcp_create':True}
+        o={'id':'qa_ord_offline','customer_id':c['id'],'title':'Test Hecke','updated_at':'2026-10-12T09:01:00Z','_mcp_create':True}
+        w={'id':'qa_wrk_offline','customer_id':c['id'],'order_id':o['id'],'work_date':'2026-10-12','hours':5.5,
            'start_time':'08:00','end_time':'14:30','break_minutes':60,'activity':'Test Thuja','updated_at':'2026-10-12T09:02:00Z','_mcp_create':True}
         self.journal([self.action('c-new','customer',c),self.action('o-new','order',o),self.action('w-new','worklog',w)])
         self.assertTrue(server.drive_sync(str(self.drive))['ok'])
@@ -67,7 +67,7 @@ class PixelPrimaryDrive(unittest.TestCase):
 
     def test_missing_remote_customer_blocks_whole_snapshot_overwrite(self):
         path=self.drive/'HausGarten-Laptop.json'
-        remote=json.loads(path.read_text(encoding='utf-8'));remote['customers'].append({'id':'only-on-drive','name':'Remote protected'})
+        remote=json.loads(path.read_text(encoding='utf-8'));remote['customers'].append({'id':'qa_only-on-drive','name':'Remote protected'})
         path.write_text(json.dumps(remote),encoding='utf-8');before=path.read_bytes()
         result=server.drive_sync(str(self.drive))
         self.assertFalse(result['ok']);self.assertIn('fehlen',result['failed'][-1]['error'])

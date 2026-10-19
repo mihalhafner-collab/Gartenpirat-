@@ -12,19 +12,19 @@ from photo_fixture import VALID_GIF_DATA_URI
 
 class AppTest(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
+        self.temp = __import__("synthetic_fixtures").temporary_directory()
         root = Path(self.temp.name)
         db.DATA_DIR = root
         db.DB_PATH = root / "test.db"
         db.PHOTO_DIR = root / "photos"
         db.BACKUP_DIR = root / "backups"
-        db.init()
+        __import__("synthetic_fixtures").configure_db(db.DATA_DIR); db.init()
 
     def tearDown(self):
         self.temp.cleanup()
 
     def test_core_workflow(self):
-        customer = db.save_customer({"name": "Testkunde", "city": "Glanegg"})
+        customer = db.save_customer({"name": "Testkunde", "city": "QA Beispielort"})
         order = db.save_order({"customer_id": customer["id"], "title": "Gartenpflege", "status": "Aktiv"})
         worklog = db.save_worklog({
             "customer_id": customer["id"], "order_id": order["id"],
@@ -76,23 +76,23 @@ class AppTest(unittest.TestCase):
         self.assertEqual(snapshot['invoices'][0]['positions'][0]['title'], 'Pflege')
 
     def test_small_business_issue_archive_and_lock(self):
-        customer = db.save_customer({'name':'Testkunde', 'street':'Teststraße 1', 'postal_code':'9560', 'city':'Feldkirchen', 'country':'Österreich'})
+        customer = db.save_customer({'name':'Testkunde', 'street':'Teststraße 1', 'postal_code':'9560', 'city':'QA Beispielort', 'country':'Österreich'})
         worklog = db.save_worklog({'customer_id':customer['id'],'activity':'Heckenpflege','hours':2})
         draft = db.save_invoice({'customer_id':customer['id'],'invoice_number':'Entwurf-Test',
             'invoice_date':invoicing.date.today().isoformat(),'service_start':'2026-10-01','service_end':'2026-10-01',
             'domestic_service_confirmed':True,'worklog_ids':[worklog['id']],
             'positions':[{'title':'Heckenpflege - Thuja occidentalis','quantity':2,'price':50,'worklog_id':worklog['id']}]})
         with self.assertRaises(ValueError): invoicing.issue(draft['id'],True)
-        db.save_settings({'owner_name':'Hafner Michael','business_street':'Goethestraße 2','business_postal_code':'9560',
-            'business_city':'Feldkirchen','tax_mode':'small_business','tax_exemption_text':'Umsatzsteuerfrei gemäß § 6 Abs. 1 Z 27 UStG.','invoice_issuer_confirmed':'1','invoice_prefix':'RE','invoice_numbering_confirmed':'1',
-            'invoice_number_format':'sevdesk','invoice_sevdesk_last_number':'94','invoice_sevdesk_checked_at':db.now()})
+        db.save_settings({'owner_name':'QA Musteraussteller','business_street':'QA Musterweg 2','business_postal_code':'9560',
+            'business_city':'QA Beispielort','tax_mode':'small_business','tax_exemption_text':'Umsatzsteuerfrei gemäß § 6 Abs. 1 Z 27 UStG.','invoice_issuer_confirmed':'1','invoice_prefix':'RE','invoice_numbering_confirmed':'1',
+            'invoice_number_format':'sevdesk','invoice_sevdesk_last_number':'700','invoice_sevdesk_checked_at':db.now()})
         self.assertTrue(invoicing.preview(draft['id']).startswith(b'%PDF-'))
         with db.connect() as database: layout=invoicing.prepare(database,draft['id'])
         layout['positions']=[{**layout['positions'][0],'description':'Längere Tätigkeitsbeschreibung mit Umlauten: Äste, Rückschnitt, Grünfläche.'} for _ in range(35)]
         import re
         self.assertGreater(len(re.findall(rb'/Type /Page\b',invoicing.render_pdf(layout,draft=True))),1)
         issued=invoicing.issue(draft['id'],True)
-        self.assertEqual(issued['invoice_number'],f'RE-95/{invoicing.date.today().year}')
+        self.assertEqual(issued['invoice_number'],f'RE-701/{invoicing.date.today().year}')
         self.assertEqual(invoicing.issue(draft['id'],True)['invoice_number'],issued['invoice_number'])
         self.assertTrue(invoicing.issued_pdf(draft['id']).startswith(b'%PDF-'))
         self.assertTrue(db.list_worklogs()[0]['billed'])
@@ -106,7 +106,7 @@ class AppTest(unittest.TestCase):
         self.assertEqual((folder/'HausGarten-Dokumente'/snapshot['invoices'][0]['pdf_storage_name']).read_bytes(),invoicing.issued_pdf(draft['id']))
         self.assertTrue(list((folder/'Rechnungen').rglob('*.pdf')))
         next_draft=db.save_invoice({**draft,'id':db.uid('inv'),'invoice_number':'Entwurf-2','worklog_ids':[], 'positions':[{**p,'worklog_id':''} for p in draft['positions']]})
-        self.assertEqual(invoicing.issue(next_draft['id'],True)['invoice_number'],f'RE-96/{invoicing.date.today().year}')
+        self.assertEqual(invoicing.issue(next_draft['id'],True)['invoice_number'],f'RE-702/{invoicing.date.today().year}')
         with self.assertRaises(ValueError): db.remove_entity('worklog',worklog['id'])
 
     def test_photo_and_backup(self):
@@ -142,7 +142,7 @@ class AppTest(unittest.TestCase):
         draft=db.save_invoice({'customer_id':c['id'],'invoice_number':'Entwurf-Test','positions':[{'title':'Pflege','quantity':1,'price':40}]})
         folder=db.DATA_DIR/'drive';folder.mkdir()
         actions=[{'client_id':'bad-issue','kind':'invoice_issue','payload':{'id':draft['id'],'confirmed':True}},
-            {'client_id':'valid-customer','kind':'customer','payload':{'id':'extra-customer','name':'Weiterer Kunde'}}]
+            {'client_id':'valid-customer','kind':'customer','payload':{'id':'qa_extra-customer','name':'Weiterer Kunde'}}]
         (folder/'HausGarten-Mobile-test.json').write_text(json.dumps({'actions':actions}),encoding='utf-8')
         result=server.drive_sync(str(folder))
         self.assertEqual(result['imported'],1)

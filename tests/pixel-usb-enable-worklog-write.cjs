@@ -1,5 +1,7 @@
 /* Only run following explicit user consent to enable the narrow native write opt-in. */
 'use strict';
+const privateDiagnostics=require('./private-diagnostics.cjs');
+privateDiagnostics.requireManualContext();
 if (!(process.argv[2] || process.env.HG_TEST_DEVICE_SERIAL) || process.env.HG_TEST_DEVICE_CONFIRMED !== '1') {
   throw Error('Manual device test requires an explicitly selected device and HG_TEST_DEVICE_CONFIRMED=1 after user consent.');
 }
@@ -32,8 +34,8 @@ async function main(){let browser,port;
     const button=list.find(n=>n.text==='Verbindung starten'&&n.clickable==='true');assert(button);tap(button);
     await new Promise(r=>setTimeout(r,1500));
     const status=await page.evaluate(()=>JSON.parse(AndroidData.getPixelTunnelStatus()));
-    console.log(JSON.stringify({native_write_consent:status.write_enabled,tunnel_state:status.state,detail:status.detail,configured:status.configured,running:status.running}));
+    privateDiagnostics.log(JSON.stringify({native_write_consent:status.write_enabled,tunnel_state:status.state,detail:status.detail,configured:status.configured,running:status.running}));
     assert(status.write_enabled===true,'Write consent must be persisted');
   }finally{if(browser)await browser.close();if(port)adb(['forward','--remove','tcp:'+port]);}
 }
-main().catch(e=>{console.error(e.message);process.exitCode=1;});
+main().catch(e=>{privateDiagnostics.log(e.message);process.exitCode=1;});

@@ -1,8 +1,8 @@
 # CODEX-AUFTRAG-GARTENPIRAT
 
-Stand: 19. Oktober 2026  
-Repository: `mihalhafner-collab/Gartenpirat-`  
-Priorität: P0  
+Stand: 19. Oktober 2026
+Repository: `mihalhafner-collab/Gartenpirat-`
+Priorität: P0
 Arbeitsumgebung: **ausschließlich Codex Cloud**
 
 > Diese Datei ist der zentrale ausführbare Arbeitsauftrag. `AGENTS.md` bleibt die übergeordnete Regeldatei. Bei Widerspruch gilt `AGENTS.md`.
@@ -25,11 +25,11 @@ Nur dieses Repository verwenden:
 
 `mihalhafner-collab/Gartenpirat-`
 
-Keine zweite App.  
-Kein zweites Repository.  
-Keine parallele Desktop-/Laptop-Codebasis.  
-Keine unnötigen neuen Branches.  
-Kein Force-Push.  
+Keine zweite App.
+Kein zweites Repository.
+Keine parallele Desktop-/Laptop-Codebasis.
+Keine unnötigen neuen Branches.
+Kein Force-Push.
 Kein History-Rewrite.
 
 Vor jeder Änderung:
@@ -265,13 +265,41 @@ P0 gilt nur als bestanden, wenn:
 Wenn ein P0-Kriterium FAIL oder NOT TESTABLE ist, darf dieser Block nicht als vollständig abgeschlossen markiert werden.
 
 
+### P0.14 Tatsächlicher Abnahmestand dieses Cloud-Auftrags
+
+Ausgang `aa04cbd04d2035a877acd243af612a2fc97f5519` auf aktuellem main, Version1.51.0/79. **P0 bleibt OFFEN**, solange die unten ausdrücklich als NOT TESTABLE ausgewiesene native Kompatibilitätsabnahme nicht nachgeholt ist. Kein Produktionsbestand kopiert, importiert, migriert oder geändert; kein privater Root für echte Daten konfiguriert. Normaler Git-Commit, kein neues Repository/Branch/Rewrite.
+
+| P0.13-Kriterium | Ergebnis | Tatsächlicher Nachweis |
+| --- | --- | --- |
+| Bootstrap garantiert leer | PASS | Exakter8-Collections-Vertrag; einziger konstanter Generator; Writer-Negativtests |
+| Keine Rohdaten-Ausgabe produktiver Skripte ins Repository | PASS | Zentrale Pfade für DB/Export/Backup/Import/Drive/Medien, historische Helfer korrigiert; fehlender Root blockiert |
+| Interner produktiver Datenroot abgewiesen | PASS | Absolute/relative/übergeordnete Roots, Symlink und verschachtelter Medienausweg negativ getestet |
+| Automatisierte Tests nur synthetisch/temporär | PASS | Zentrale minimal/edge_cases/scale-Factory, QA-Tempstores, JVM-/Browser-/MCP-Adapter; native Quellen migriert und kompiliert |
+| Reale Teststammdaten entfernt | PASS | Aktueller Quellstand synthetische Aussteller/Adressen/IDs/example.invalid; bekannte Altliterale gehashtes Gate |
+| Source Gate | PASS | Verpflichtend vor Quality/Build/Signierung/Sourcepaket |
+| Workspace Gate | PASS | Vollständiger Checkout einschließlich ignoriert/untracked; SQLite-Magic, Archive, Secret-/Medienklassifikation; .git separat |
+| Artifact Gate | PASS | Tatsächliche Release-APK und AAB geprüft; Source-ZIP/Signed-APK-Schlussprüfung im aktuellen Status nachgewiesen |
+| APK operative Seed-Zeilen0 | PASS | Tatsächlicher APK-Assetsread, nicht aus DB-Markern abgeleitet |
+| Keine produktive DB/Backup/Drive-Datei im Checkout | PASS | Read-only Inventar und rekursives Gate; ausschließlich belegte alte QA-Caches/Testartefakte entfernt |
+| Integritätsnachweis nur Hashes/Counts/Schema/Relationen | PASS | Read-only SQL-Audit, Backup-/Update-Vergleicher und Report-Negativtests ohne Rohdatenausgabe |
+| App-ID/IDs/Relationen/Sync/Originalsignierung kompatibel | NOT TESTABLE | Statische/JVM-/Buildverträge bestehen; tatsächliche Signaturprüfung separat dokumentiert. Neue Android-Laufzeit-/Updateprobe mangels /dev/kvm nicht ausführbar; kein physisches Gerät verwendet |
+| Keine produktiven Daten während Migration geändert | PASS | Kein produktiver Store geöffnet, keine MCP-/Drive-/Pixel-Betriebsaktion, keine Datenmigration |
+| Unterpunkte und Grenzen ausdrücklich ausgewiesen | PASS | Diese Tabelle und laufende Phasen in CODEX-STATUS.md |
+
+Externe Host-Konfiguration: vorhandenen dedizierten privaten Ordner außerhalb des Checkouts mit Eigentümerrechten0700 als `HG_PRIVATE_DATA_ROOT` setzen. Dies ist **keine automatische Datenmigration**. Tests verwenden ausschließlich eigene registrierte OS-Tempstores und können auch bei gesetztem privaten Root nicht auf ihn zurückfallen. Signing-Secrets bleiben in der sicheren Environment-Konfiguration und werden nicht ausgegeben.
+
+Historienbefund gemäß P0.11: **produktive sensible Daten in Historie gefunden** (4 frühere Aussteller-Fixture-Befunde in8 unterschiedlichen bekannten Bootstrap-/Ausstellerobjekten). Keine gefüllten historischen Bootstraps in diesem begrenzten Umfang gefunden; keine vollständige forensische Historienprüfung behauptet. Bereinigung dieser alten Git-Objekte erfordert einen separaten Sicherheitsauftrag; hier kein Rewrite/Force-Push. Aktueller Checkout und zukünftige Builds werden unabhängig davon gesperrt, sobald ein Privacy-Gate fehlschlägt.
+
+Aktueller P0-Quellkandidat1.51.1/80, gleiche App-ID, MCP9/117; bisheriger qualifizierter Download79 bleibt erhalten. Nicht mit einem physisch installierten Update oder abgeschlossenem Datenerhaltstest verwechseln. Abschließende Testzahlen, Signatur-/Cleanup- und Source-ZIP-Ergebnisse stehen im letzten P0-Eintrag von CODEX-STATUS.md.
+
+
 ## 3. Tatsächlich abgeglichener Ausgang und neuer Quellstand
 
 Ausgang am 19.10.2026: aktuelles Remote-`main` war `b2c37a2f909cc8ac6defabe68dbdd3ce6a42db14` (Build 70). Der vorhandene operative Cloud-Branch enthielt bereits Build 77 bis `5fbe0a3a8c1f9073dc83f83b37b741a59e935ee4`. Beide Historien wurden normal in `main` zusammengeführt (`d67a4ffe549039df4bff78dc41ee0f27076c680b`), ohne Reset, Desktopimport, neue operative App oder History-Rewrite.
 
 Tatsächlich über den bestehenden Connector gelesener Pixel: `at.hausgarten.service`, **1.50.1 / 77**, Datenbank 4, Snapshot 2, internes MCP-Protokoll 8, 111 Werkzeuge, Katalog-Hash `ae7cb69f7994ae8141d2d8c925594982f40236921d65abb3739eee270b5b312f`, Schreiben aktiv. Dieser installierte Stand wurde nicht durch Codex Cloud aktualisiert.
 
-Neuer Quellstand: **1.51.0 / 79**, gleiches Paket und bestehende Originalsignierung, internes MCP-Protokoll **9**, **117 Werkzeuge**. `build.gradle` bleibt Versionsquelle; Release-Builds müssen die bestätigte installierte Baseline 77 überschreiten. Git-SHA, Quellhash, Dirty-Status, Buildtyp und Protokoll sind über den Build-Fingerprint lesbar. Ein physischer Update-/Connector-Test bleibt bis zu einem tatsächlich autorisierten Geräteupdate offen.
+Vor P0 qualifizierter Quell-/Downloadstand: **1.51.0 / 79**, gleiches Paket und bestehende Originalsignierung, internes MCP-Protokoll **9**, **117 Werkzeuge**. `build.gradle` bleibt Versionsquelle; Release-Builds müssen die bestätigte installierte Baseline 77 überschreiten. Git-SHA, Quellhash, Dirty-Status, Buildtyp und Protokoll sind über den Build-Fingerprint lesbar. Ein physischer Update-/Connector-Test bleibt bis zu einem tatsächlich autorisierten Geräteupdate offen.
 
 ## 4. Erneute Fehlerprüfung und konsolidierter Umsetzungsstand
 
@@ -285,7 +313,7 @@ Die verbindliche Abnahme steht im abschließenden Statusblock dieser Datei und i
 - **Versand:** `share_prepared` ist getrennt von `finalized`/`sent`. `prepare_offer_delivery` bereitet den bestätigten Empfänger und das Original-PDF vor; ein separat ausdrücklich beauftragter Mailkanal sendet. `confirm_offer_delivery` setzt `sent` erst nach echtem Gmail-SENT-Readback mit Abgleich von Aussteller, Empfänger und PDF-SHA. Das Pixel benötigt dafür eine gesonderte Gmail-Lesefreigabe; eine ChatGPT-Freigabe ersetzt sie nicht. Kein realer Versand im Entwicklungstest.
 - **Readonly Self-Test:** Version/Protokoll, Katalog, Write-Gate, Einstellungs-Vollständigkeit, Drive-/Sync-Zustand, Capabilities, privater Dateispeicher, UI-Zuordnung und Plattformgrenzen; PASS/FAIL/NOT TESTABLE ohne Geschäftsdatenänderung.
 
-Der ausdrücklich zur Bereinigung freigegebene falsche 1-EUR-Testentwurf `off_0edfb5133e3c1e4269dd76e2b47b3746` (`[TEST] MCP Angebotsworkflow`) wurde nach erfolgreicher Build-/Android-Abnahme, frischer Versionsprüfung und erlaubter Vorschau am 19.10.2026 reversibel archiviert. Archiv-Readback: genau ein passender Eintrag; aktive Angebote 2→1. Nur diese Angebotsgruppe änderte sich; alle anderen Geschäftsgruppenhashes blieben im unmittelbaren Vergleich identisch. Keine physische Löschung. Das echte Angebot für Michael Hilpert darf weder neu erstellt, finalisiert noch erneut versendet werden. Für technische Tests ausschließlich private synthetische Stores; kein Testangebot an einem realen Kunden, kein produktiver Test-Sync und keine echte Testmail.
+Der ausdrücklich zur Bereinigung freigegebene falsche 1-EUR-Testentwurf `id_sha256_760622aaec5679a80d4929b9852789a5354a8823cbbef7fb23defb5d49a08b45` (`[TEST] MCP Angebotsworkflow`) wurde nach erfolgreicher Build-/Android-Abnahme, frischer Versionsprüfung und erlaubter Vorschau am 19.10.2026 reversibel archiviert. Archiv-Readback: genau ein passender Eintrag; aktive Angebote 2→1. Nur diese Angebotsgruppe änderte sich; alle anderen Geschäftsgruppenhashes blieben im unmittelbaren Vergleich identisch. Keine physische Löschung. Das echte Angebot für den geschützten realen Angebotsempfänger darf weder neu erstellt, finalisiert noch erneut versendet werden. Für technische Tests ausschließlich private synthetische Stores; kein Testangebot an einem realen Kunden, kein produktiver Test-Sync und keine echte Testmail.
 
 ## 5. Offene Sync-Warteschlange
 
@@ -294,26 +322,26 @@ Aktueller realer Sicherungsversuch im installierten Build 77: `READ_ERROR: Ungü
 
 Ursprüngliche Baseline: sieben Review-Aktionen. **Letzter realer Readback 19.10.2026 11:03:55 UTC: sechs aktive Reviews, null Uploads, 15 Historieneinträge.** Normaler Drive-Abgleich ohne technischen Fehler; `provider_readback`, `cloud_confirmed=false`. Folgende Liste bleibt als historische Ausgangsmenge erhalten; Eintrag 1 ist inzwischen nicht mehr aktiv.
 
-1. `wrk_mobile_913976ba4bd1453ba75a5468b89c3c32`  
+1. `id_sha256_ca46d340bc52b9e93e578b4a47c1afa08b11c87a013e5c9dee7cd7624bc12824`
    `DELETE_REVIEW_REQUIRED`
 
-2. `wrk_mobile_b8445cff3af746718d480fce9be3889a`  
+2. `id_sha256_57c833b527f0ca0f4da04e79ff2ca787c57ab9a891833becee4c3e4faccf3914`
    `DELETE_REVIEW_REQUIRED`
 
-3. `wrk_mobile_325735fd783c4f5fb3d012ab7969ccfd`  
+3. `id_sha256_81dda83b42bd64510013bec7217cae7c4e9b01537341db98abc6f91ed52ca52a`
    `DELETE_REVIEW_REQUIRED`
 
-4. `delete_change_f82a727e-90ce-4021-a741-2238101b2505`  
+4. `id_sha256_c09057d51603a99907adeef4bb7e9c332c97e4ddd2fbdf687ccfb45e83d35264`
    `DELETE_REVIEW_REQUIRED`
 
-5. `delete_change_b1fc39af-3f04-4baa-81bf-a34a20e76479`  
+5. `id_sha256_2a69731a26c376695ce26e7d1788647b6ac11aa887024a8b3c981d84b2a5e2dd`
    `DELETE_REVIEW_REQUIRED`
 
-6. `customer_change_3b8f4a4bdaca4d5e9b67a4b9b3ac3020`  
-   `WRITE_CONFLICT`  
+6. `id_sha256_c28c6391b7e050a97a7034e9ae7622d4f3c9bf73c4d9e5e893fde925e9abe1bd`
+   `WRITE_CONFLICT`
    Aktuellen Zustand erhalten.
 
-7. `delete_change_9304498d-e90b-47de-be7c-bfd2e627fdf3`  
+7. `id_sha256_04ecd644998e4d3962e834a23db5feeb936ea7d85d055acc300c448fd4ea7899`
    `DELETE_REVIEW_REQUIRED`
 
 Der dedizierte Legacy-Workflow bleibt:
@@ -510,7 +538,7 @@ Regression zwingend:
 
 Rechtsregelsatz im neuen gemeinsamen Vertrag: `AT-2026-10-19` (offizielle RIS-Quellen und Grenzen siehe Abschnitt 31).
 
-Das reale 540-EUR-Angebot an Michael Hilpert wurde wegen des damaligen Validierungsfehlers nicht als App-PDF finalisiert; es wurde nur als bestätigter E-Mail-Text versendet. Keine falsche Behauptung erzeugen, es existiere bereits ein finalisiertes Angebots-PDF.
+Das reale 540-EUR-Angebot an den geschützten realen Angebotsempfänger wurde wegen des damaligen Validierungsfehlers nicht als App-PDF finalisiert; es wurde nur als bestätigter E-Mail-Text versendet. Keine falsche Behauptung erzeugen, es existiere bereits ein finalisiertes Angebots-PDF.
 
 ## 13a. Installierte Live-Baseline und UI-Parität – 19.10.2026
 
@@ -622,7 +650,7 @@ Bereits grundsätzlich funktionierend:
 
 ### Technischer Testkunde
 
-`cus_mobile_mcp_cff36e205f50a96f92d9d8872a75022a`
+`id_sha256_0184d232b3fe4b69b3c95cda88661a54143fd208e2fbf34c2766f6a3429f6026`
 
 Name:
 
@@ -638,7 +666,7 @@ Create/read/update/hash/sync/provider-readback/archive funktionierte.
 
 ### Worklog
 
-0 Stunden korrekt abgewiesen.  
+0 Stunden korrekt abgewiesen.
 0,01 Stunden korrekt gespeichert und gelesen.
 
 ### Timer
@@ -1141,7 +1169,7 @@ Wenn Android `prepare_offer_share` Geräteinteraktion benötigt, diese Plattform
 
 Technische Schreibtests ausschließlich mit:
 
-`cus_mobile_mcp_cff36e205f50a96f92d9d8872a75022a`
+`id_sha256_0184d232b3fe4b69b3c95cda88661a54143fd208e2fbf34c2766f6a3429f6026`
 
 `MCP FUNKTIONSTEST – KEIN ECHTER KUNDE`
 
@@ -1485,7 +1513,7 @@ Datenintegrität hat Vorrang vor Geschwindigkeit und Zusatzfunktionen.
 
 ## 31. Konsolidierter Abschluss – 1.51.0 / 79, 19.10.2026
 
-**Implementierung und Cloud-Abnahme getrennt von Geräteabnahme behandeln. Gesamtauftrag noch nicht vollständig abgenommen:** physischer Pixel/Connector nach Update, reale Legacy-Originalsicherung und neu bestätigter Abschluss sowie echter Gmail-Versandbeleg bleiben offen. Keine Installation, keine echte Testmail, kein erneut erstelltes oder versendetes Hilpert-Angebot. Ein erfolgreicher Originalbuild beweist keinen Datenerhalt auf dem physischen Gerät.
+**Implementierung und Cloud-Abnahme getrennt von Geräteabnahme behandeln. Gesamtauftrag noch nicht vollständig abgenommen:** physischer Pixel/Connector nach Update, reale Legacy-Originalsicherung und neu bestätigter Abschluss sowie echter Gmail-Versandbeleg bleiben offen. Keine Installation, keine echte Testmail, kein erneut erstelltes oder versendetes geschütztes reales Angebot. Ein erfolgreicher Originalbuild beweist keinen Datenerhalt auf dem physischen Gerät.
 
 ### 31.1 Ausgang, Lieferung und Provenienz
 

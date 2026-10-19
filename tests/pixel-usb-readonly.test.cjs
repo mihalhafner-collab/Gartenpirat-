@@ -1,5 +1,7 @@
 /* Real Pixel/WebView/native bridge. Read-only business-data checks, no CRUD. */
 'use strict';
+const privateDiagnostics=require('./private-diagnostics.cjs');
+privateDiagnostics.requireManualContext();
 if (!(process.argv[2] || process.env.HG_TEST_DEVICE_SERIAL) || process.env.HG_TEST_DEVICE_CONFIRMED !== '1') {
   throw Error('Manual device test requires an explicitly selected device and HG_TEST_DEVICE_CONFIRMED=1 after user consent.');
 }
@@ -31,12 +33,12 @@ const pageErrors = [];
 function adb(args, binary=false) {
   return execFileSync(adbPath, ['-s',serial,...args], {encoding:binary?null:'utf8', windowsHide:true, timeout:30000, maxBuffer:16*1024*1024});
 }
-function save() { fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(report,null,2)); }
+function save() { privateDiagnostics.writeFile(path.join(out,'report.json'),JSON.stringify(report,null,2)); }
 async function check(name, method, fn) {
   const at = Date.now();
   try { const info=await fn(); report.results.push({name,method,result:info?.skip?'SKIP':'PASS',...(info?.skip?{reason:info.skip}:{}),elapsedMs:Date.now()-at}); }
   catch (error) { report.results.push({name,method,result:'FAIL',error:error.message,elapsedMs:Date.now()-at}); }
-  console.log(report.results.at(-1).result+' '+name); save();
+  privateDiagnostics.log(report.results.at(-1).result+' '+name); save();
 }
 async function state() { return page.evaluate(()=>JSON.parse(AndroidData.getState())); }
 function ledgerHash(data) {
@@ -203,7 +205,7 @@ async function main() {
   finally {
     save(); if(browser)await browser.close();
     if(port)try{adb(['forward','--remove','tcp:'+port]);}catch(_){}
-    console.log(JSON.stringify({report:path.join(out,'report.json'),status:report.status,passed:report.results.filter(r=>r.result==='PASS').length,failed:report.results.filter(r=>r.result==='FAIL').length}));
+    privateDiagnostics.log(JSON.stringify({report:path.join(out,'report.json'),status:report.status,passed:report.results.filter(r=>r.result==='PASS').length,failed:report.results.filter(r=>r.result==='FAIL').length}));
   }
   if(report.status!=='READONLY_DEVICE_PASSED')process.exitCode=1;
 }

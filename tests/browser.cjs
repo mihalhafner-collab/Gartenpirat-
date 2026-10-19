@@ -1,6 +1,8 @@
 'use strict';
 // Use the installed browser tooling; never depend on a developer's private path.
 const playwright=require(process.env.HG_PLAYWRIGHT_MODULE||'playwright');
+const synthetic=require('./synthetic-fixtures.cjs');
+if(!synthetic.profile('minimal').customers[0].test_record)throw Error('Synthetic fixture contract required');
 const fs=require('node:fs'),path=require('node:path'),{fileURLToPath}=require('node:url');
 if(process.env.HG_BROWSER_EXECUTABLE_PATH){
  const launch=playwright.chromium.launch.bind(playwright.chromium);
@@ -34,4 +36,21 @@ if(process.env.HG_TEST_LOCAL_ASSETS==='1'){
  const persistent=playwright.chromium.launchPersistentContext.bind(playwright.chromium);
  playwright.chromium.launchPersistentContext=async(...args)=>{const context=await persistent(...args);context.on('page',wrap);context.pages().forEach(wrap);return context;};
 }
+const os=require('node:os');
+const originalPersistent=playwright.chromium.launchPersistentContext.bind(playwright.chromium);
+playwright.chromium.launchPersistentContext=async(directory,options)=>{
+ const temporary=path.resolve(directory),canonical=fs.realpathSync(temporary),temp=fs.realpathSync(os.tmpdir());
+ if(!canonical.startsWith(temp+path.sep)||!path.basename(temporary).startsWith('qa_'))throw Error('Persistent QA profile must be a private synthetic OS-temp directory.');
+ const context=await originalPersistent(temporary,options);
+ context.on('page',screenshotProof);context.pages().forEach(screenshotProof);
+ return context;
+};
+// Screenshots are test artifacts only when their exact bytes have fixture provenance.
+function screenshotProof(page){
+ if(page.__qaScreenshotProof)return page;page.__qaScreenshotProof=true;
+ const screenshot=page.screenshot.bind(page);
+ page.screenshot=async options=>{const result=await screenshot(options);if(options&&options.path){const file=path.resolve(options.path);fs.writeFileSync(file+'.privacy.json',JSON.stringify({classification:'SYNTHETIC_TEST',fixture:'qa_browser_fixture',sha256:require('node:crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex')}));}return result;};return page;
+}
+const launchForProof=playwright.chromium.launch.bind(playwright.chromium);
+playwright.chromium.launch=async options=>{const b=await launchForProof(options),np=b.newPage.bind(b),nc=b.newContext.bind(b);b.newPage=async(...args)=>screenshotProof(await np(...args));b.newContext=async(...args)=>{const c=await nc(...args);c.on('page',screenshotProof);c.pages().forEach(screenshotProof);return c;};return b;};
 module.exports=playwright;

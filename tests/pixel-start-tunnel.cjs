@@ -1,4 +1,6 @@
 'use strict';
+const privateDiagnostics=require('./private-diagnostics.cjs');
+privateDiagnostics.requireManualContext();
 if (!(process.argv[2] || process.env.HG_TEST_DEVICE_SERIAL) || process.env.HG_TEST_DEVICE_CONFIRMED !== '1') {
   throw Error('Manual device test requires an explicitly selected device and HG_TEST_DEVICE_CONFIRMED=1 after user consent.');
 }
@@ -24,6 +26,6 @@ async function findButton(text){for(let i=0;i<5;i++){const button=nodes().find(n
   if(!status.configured)throw Error('Tunnel ist nicht eingerichtet');
   if(!status.running){let open=page.locator('.bottom [data-open="sync-page"]');if(!await open.count()){await page.locator('.bottom [data-open="home"]').click();open=page.locator('#home [data-open="sync-page"]:visible').first();}await open.click();await page.locator('#sync-page.active').waitFor();await page.locator('#pixel-tunnel-setup').click();await page.waitForTimeout(500);const button=await findButton('Verbindung starten');if(!button)throw Error('Startknopf nicht gefunden');tap(button);await new Promise(r=>setTimeout(r,5000));}
   const final=await page.evaluate(()=>JSON.parse(AndroidData.getPixelTunnelStatus()));
-  console.log(JSON.stringify(final));
+  privateDiagnostics.log(JSON.stringify(final));
   if(!final.running)throw Error('Tunnel-Dienst läuft nicht');
-}finally{if(browser)await browser.close();if(port)try{adb(['forward','--remove','tcp:'+port]);}catch{}}})().catch(e=>{console.error(e.message);process.exitCode=1;});
+}finally{if(browser)await browser.close();if(port)try{adb(['forward','--remove','tcp:'+port]);}catch{}}})().catch(e=>{privateDiagnostics.log(e.message);process.exitCode=1;});

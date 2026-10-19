@@ -1,25 +1,17 @@
-"""Visual test only: produces a marked sample, never inserts or issues real records."""
-from pathlib import Path
-import invoicing
-import db
+"""Read-only technical check of an explicitly selected private document.
 
-invoice = {
-    **db.calculate_invoice({'positions':[
-        {'title':'Pflege der Thuja-Hecke: abgestorbene Äste entfernen und Rückschnitt','quantity':5.5,'unit':'h','price':45},
-        {'title':'Lärchenrindenmulch fein - gelieferte Materialmenge','quantity':3,'unit':'Säcke','price':12},
-        {'title':'An- und Rückfahrt','quantity':77.7,'unit':'km','price':0.5},
-    ],'payment_days':14}),
-    'invoice_number':'MUSTER - KEINE RECHNUNG','invoice_date':invoicing.date.today().isoformat(),
-    'service_start':'2026-10-01','service_end':'2026-10-01',
-    'due_date':(invoicing.date.today()+invoicing.timedelta(days=14)).isoformat(),
-    'issuer':{'business_name':'Hafner Grünraum Handwerk','owner_name':'Hafner Michael',
-        'business_street':'Goethestraße 2','business_postal_code':'9560','business_city':'Feldkirchen',
-        'business_iban':db.settings().get('business_iban',''),'business_bank':db.settings().get('business_bank',''),
-        'business_bic':db.settings().get('business_bic',''),'business_legal_info':''},
-    'recipient':{'name':'Musterkunde - nur Layoutprüfung','street':'Beispielstraße 1','postal_code':'9560','city':'Feldkirchen'},
-    'footer_text':'Unverbindliches Gestaltungsmuster. Keine Zahlungsaufforderung.'
-}
-target=Path(__file__).parent/'output'/'pdf'/'Rechnungsmenue-Musterentwurf.pdf'
-target.parent.mkdir(parents=True,exist_ok=True)
-target.write_bytes(invoicing.render_pdf(invoice,draft=True))
-print(target)
+Does not issue an invoice, select a real customer or check invented legal data.
+"""
+import argparse,hashlib,json,re
+from pathlib import Path
+import runtime_paths
+
+def inspect(path,expected_sha256=None):
+    path=runtime_paths.business_path(path);raw=path.read_bytes();digest=hashlib.sha256(raw).hexdigest()
+    if expected_sha256 and digest!=expected_sha256:raise ValueError('Document hash mismatch')
+    if not raw.startswith(b'%PDF-') or b'%%EOF' not in raw[-2048:]:raise ValueError('Invalid PDF framing')
+    return {'result':'PASS','check':'PDF framing and byte hash only','bytes':len(raw),'sha256':digest,'page_objects':len(re.findall(rb'/Type\s*/Page\b',raw))}
+
+if __name__=='__main__':
+    parser=argparse.ArgumentParser();parser.add_argument('pdf',type=Path);parser.add_argument('--expected-sha256');args=parser.parse_args()
+    runtime_paths.private_root();print(json.dumps(inspect(args.pdf,args.expected_sha256)))

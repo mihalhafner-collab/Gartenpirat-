@@ -307,7 +307,20 @@ def main(argv=None):
             parser.add_argument('--' + name, required=True)
         parser.add_argument('--instrumentation', action='store_true',
                             help='Sign only the existing androidTest runner for the original app; never installs.')
-        result = sign(**vars(parser.parse_args(argv)))
+        arguments=vars(parser.parse_args(argv))
+        missing=[name for name in VARIABLES if not os.environ.get(name,'').strip()]
+        if missing:
+            print('\n'.join(missing),file=sys.stderr)
+            return 1
+        sys.path.insert(0,str(ROOT))
+        from privacy_guard import source_gate,workspace_gate,artifact_gate
+        source_gate();workspace_gate()
+        result = sign(**arguments)
+        try:
+            artifact_gate(arguments['output'],instrumentation=arguments['instrumentation'])
+        except Exception:
+            Path(arguments['output']).unlink(missing_ok=True)
+            raise SigningError('Artifact privacy gate failed; rejected output removed.')
     except SigningError as error:
         print('ORIGINAL_SIGNING_FAILED: ' + str(error), file=sys.stderr)
         return 1

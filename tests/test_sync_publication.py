@@ -36,9 +36,9 @@ class SyncPublicationTests(unittest.TestCase):
         with db.connect() as database:self.assertIsNone(database.execute('SELECT 1 FROM owner_journal_receipts WHERE action_id=?',('merge-002',)).fetchone())
 
     def test_dependency_order_uses_relations_and_predecessors_not_clock(self):
-        c=self.action('create-c','customer',{'id':'new-c','name':'QA','_mcp_create':True,'updated_at':'t1'})
-        edit=self.action('edit-c','customer',{'id':'new-c','name':'QA2','_sync_base':{'id':'new-c','updated_at':'t1'}})
-        w=self.action('work','worklog',{'id':'new-w','customer_id':'new-c'})
+        c=self.action('create-c','customer',{'id':'qa_new-c','name':'QA','_mcp_create':True,'updated_at':'t1'})
+        edit=self.action('edit-c','customer',{'id':'qa_new-c','name':'QA2','_sync_base':{'id':'qa_new-c','updated_at':'t1'}})
+        w=self.action('work','worklog',{'id':'qa_new-w','customer_id':'qa_new-c'})
         self.assertEqual([a['client_id'] for a in sync_protocol.ordered([edit,w,c])],['create-c','edit-c','work'])
         c['payload']['_sync_predecessors']=['edit-c']
         with self.assertRaisesRegex(ValueError,'DEPENDENCY_CYCLE'):sync_protocol.ordered([edit,w,c])
@@ -63,7 +63,7 @@ class SyncPublicationTests(unittest.TestCase):
     def test_tampered_incomplete_and_forked_publications_are_not_silently_selected(self):
         root=Path(self.temp.name);manifest,state=self.publish(root,{'format':1,'customers':[]});state.write_text('{}')
         with self.assertRaises(ValueError):drive_publication.latest(root)
-        manifest.unlink();state.unlink();self.publish(root,{'customers':[]});self.publish(root,{'customers':[{'id':'c'}]})
+        manifest.unlink();state.unlink();self.publish(root,{'customers':[]});self.publish(root,{'customers':[{'id':'qa_c'}]})
         with self.assertRaisesRegex(ValueError,'WRITE_CONFLICT'):drive_publication.latest(root)
 
     def test_two_primary_devices_require_explicit_resolution(self):
@@ -81,9 +81,9 @@ class SyncPublicationTests(unittest.TestCase):
 
     def test_independent_actions_continue_after_customer_conflict(self):
         root=Path(self.temp.name)/'drive';root.mkdir();db.save_settings({'backup_folder':str(root)})
-        actions=[self.action('bad-c','customer',{'id':self.customer['id'],'name':'Conflict','_mcp_create':True}),self.action('good-c','customer',{'id':'independent-qa','name':'Independent QA','_mcp_create':True}),self.action('dependent','order',{'id':'dependent-o','customer_id':self.customer['id'],'title':'Wait','_sync_predecessors':['bad-c']})]
+        actions=[self.action('bad-c','customer',{'id':self.customer['id'],'name':'Conflict','_mcp_create':True}),self.action('good-c','customer',{'id':'qa_independent-qa','name':'Independent QA','_mcp_create':True}),self.action('dependent','order',{'id':'qa_dependent-o','customer_id':self.customer['id'],'title':'Wait','_sync_predecessors':['bad-c']})]
         (root/'HausGarten-Mobile-synthetic.json').write_text(json.dumps({'format':1,'actions':actions}))
-        result=server.drive_sync();self.assertEqual(self.customer_by_id('independent-qa')['name'],'Independent QA')
+        result=server.drive_sync();self.assertEqual(self.customer_by_id('qa_independent-qa')['name'],'Independent QA')
         self.assertTrue((root/'HausGarten-Mobile-synthetic.json').exists())
         snapshot=json.loads((root/'HausGarten-Laptop.json').read_text());self.assertIn('good-c',snapshot['accepted_ids']);self.assertNotIn('bad-c',snapshot['accepted_ids']);self.assertNotIn('dependent',snapshot['accepted_ids'])
 

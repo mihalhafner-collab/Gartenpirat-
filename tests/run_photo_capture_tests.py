@@ -190,7 +190,7 @@ class MainActivity extends Context {
 '''
     wrapper += "\n".join(methods)
     wrapper += "\nvoid resultForTest(int resultCode,Intent data){int requestCode=FILE_REQUEST;\n" + result + "\n}\n}\n"
-    with tempfile.TemporaryDirectory(prefix="gartenpirat-camera-test-") as directory:
+    with __import__("synthetic_fixtures").temporary_directory(prefix="gartenpirat-camera-test-") as directory:
         root = Path(directory)
         for path, text in STUBS.items():
             target = root / path

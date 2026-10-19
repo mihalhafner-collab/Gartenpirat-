@@ -1,4 +1,6 @@
 'use strict';
+const privateDiagnostics=require('./private-diagnostics.cjs');
+privateDiagnostics.requireManualContext();
 if (!(process.argv[2] || process.env.HG_TEST_DEVICE_SERIAL) || process.env.HG_TEST_DEVICE_CONFIRMED !== '1') {
   throw Error('Manual device test requires an explicitly selected device and HG_TEST_DEVICE_CONFIRMED=1 after user consent.');
 }
@@ -23,5 +25,5 @@ const adb=args=>execFileSync(adbPath,['-s',serial,...args],{encoding:'utf8',wind
   await page.locator('[data-session-action="pause"]').click();const paused=await page.evaluate(()=>JSON.parse(AndroidData.getWorkSession()));assert.equal(paused.state,'PAUSED');assert(paused.worked_ms>=900);
   await page.locator('[data-session-action="resume"]').click();await page.waitForTimeout(600);await page.locator('[data-session-action="stop"]').click();const stopped=await page.evaluate(()=>JSON.parse(AndroidData.getWorkSession()));assert.equal(stopped.state,'STOPPED_PENDING_REVIEW');
   await page.locator('[data-session-action="complete"]').click();assert(await page.locator('#work-entry').evaluate(e=>e.classList.contains('active')));assert.equal(await page.locator('#work-session-id').inputValue(),stopped.id);assert.equal(Number(await page.locator('#entry-hours').inputValue()),Number(stopped.hours));
-  console.log(JSON.stringify({passed:8,package:pkg,states:['IDLE','RUNNING','PAUSED','RUNNING','STOPPED_PENDING_REVIEW'],review_page:true,productive_app_untouched:true}));
-}finally{if(browser)await browser.close();if(port)try{adb(['forward','--remove','tcp:'+port]);}catch{}}})().catch(error=>{console.error(error.stack||error);process.exitCode=1;});
+  privateDiagnostics.log(JSON.stringify({passed:8,package:pkg,states:['IDLE','RUNNING','PAUSED','RUNNING','STOPPED_PENDING_REVIEW'],review_page:true,productive_app_untouched:true}));
+}finally{if(browser)await browser.close();if(port)try{adb(['forward','--remove','tcp:'+port]);}catch{}}})().catch(error=>{privateDiagnostics.log(error.stack||error);process.exitCode=1;});

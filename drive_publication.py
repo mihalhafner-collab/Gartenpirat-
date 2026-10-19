@@ -7,18 +7,19 @@ import hashlib
 import json
 import re
 from pathlib import Path
+import runtime_paths
 
 MAX_BYTES=64*1024*1024
 
 def read(path):
-    path=Path(path)
+    path=runtime_paths.business_path(path)
     if path.stat().st_size>MAX_BYTES:raise ValueError('Drive-Veröffentlichung ist zu groß.')
     raw=path.read_bytes()
     if len(raw)>MAX_BYTES:raise ValueError('Drive-Veröffentlichung ist zu groß.')
     return raw
 
 def latest(folder):
-    folder=Path(folder);manifests={};publishers=set()
+    folder=runtime_paths.business_path(folder);manifests={};publishers=set()
     for path in folder.glob('HausGarten-Commit-*.json'):
         if not re.fullmatch(r'HausGarten-Commit-[0-9a-f]{64}\.json',path.name):raise ValueError('Ungültiger Drive-Veröffentlichungsname.')
         raw=read(path)

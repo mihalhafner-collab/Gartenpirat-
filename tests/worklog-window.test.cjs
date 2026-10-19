@@ -13,7 +13,7 @@ async function main(){
   const page=await browser.newPage({viewport:{width:426,height:852}}),errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   await page.addInitScript(()=>{
-   const master={customers:[{id:'cus_test',name:'Testkunde',active:1}],orders:[],worklogs:[{id:'wrk_test',customer_id:'cus_test',work_date:'2026-10-10',hours:3,activity:'Hecke pflegen',break_minutes:0,kilometers:0,billed:0,customer_visible:1},{id:'wrk_second',customer_id:'cus_test',work_date:'2026-10-09',hours:2,activity:'Rasen pflegen',break_minutes:0,kilometers:0,billed:0,customer_visible:1}],photos:[],invoices:[]},pending=[];
+   const master={customers:[{id:'qa_cus_test',name:'Testkunde',active:1}],orders:[],worklogs:[{id:'qa_wrk_test',customer_id:'qa_cus_test',work_date:'2026-10-10',hours:3,activity:'Hecke pflegen',break_minutes:0,kilometers:0,billed:0,customer_visible:1},{id:'qa_wrk_second',customer_id:'qa_cus_test',work_date:'2026-10-09',hours:2,activity:'Rasen pflegen',break_minutes:0,kilometers:0,billed:0,customer_visible:1}],photos:[],invoices:[]},pending=[];
    window.testWrites=0;
    window.AndroidData={getState:()=>JSON.stringify({master,pending}),getSyncStatus:()=>JSON.stringify({configured:false,pending:pending.length}),saveWorklog:raw=>{const payload=JSON.parse(raw);if(!payload.activity)return 'ERROR: Tätigkeit fehlt.';window.testWrites++;pending.push({client_id:'test_action_'+window.testWrites,kind:'worklog',payload});return payload.id;}};
    window.AndroidSpeech={start:()=>{}};
@@ -23,7 +23,7 @@ async function main(){
   async function check(name,fn){try{await fn();results.push({name,result:'PASS'});}catch(e){results.push({name,result:'FAIL',error:e.message});}console.log(results.at(-1).result+' '+name+(results.at(-1).error?' '+results.at(-1).error:''));}
   await check('Deferred script initialises after dynamically created worklog page',async()=>{
    await page.locator('.bottom [data-open="worklogs"]').first().click();
-   await page.locator('#worklog-list [data-edit-worklog="wrk_test"]').first().click();
+   await page.locator('#worklog-list [data-edit-worklog="qa_wrk_test"]').first().click();
    assert.equal(await page.locator('#worklog-detail').getAttribute('data-work-mode'),'overview');
    assert.equal(await page.locator('.worklog-window-summary dl > div').count(),12);
    assert.equal(await page.locator('.worklog-window-actions').count(),1);
@@ -36,11 +36,11 @@ async function main(){
    assert.equal(await page.evaluate(()=>testWrites),0);
   });
   await check('Explicit reachable footer save preserves worklog ID and relation',async()=>{
-   await page.evaluate(()=>openWorklogDetail('wrk_test'));await page.locator('[data-work-window-edit]').click();
+   await page.evaluate(()=>openWorklogDetail('qa_wrk_test'));await page.locator('[data-work-window-edit]').click();
    await page.locator('#edit-worklog-activity').fill('Testnachtrag');await page.locator('[data-work-window-save]').click();
    assert.equal(await page.locator('#worklog-detail').getAttribute('data-work-mode'),'overview');
    const data=await page.evaluate(()=>JSON.parse(AndroidData.getState()).pending.at(-1).payload);
-   assert.equal(data.id,'wrk_test');assert.equal(data.customer_id,'cus_test');assert.equal(data.activity,'Testnachtrag');
+   assert.equal(data.id,'qa_wrk_test');assert.equal(data.customer_id,'qa_cus_test');assert.equal(data.activity,'Testnachtrag');
    assert((await page.locator('.worklog-window-summary').innerText()).includes('Testnachtrag'));
   });
   await check('Back saves through the existing channel without committing while typing',async()=>{
@@ -63,14 +63,14 @@ async function main(){
   });
   await check('No browser runtime errors',async()=>assert.deepEqual(errors,[]));
   await check('Separate detail pages keep record selection hidden and save the selected ID',async()=>{
-   await page.evaluate(()=>handleAndroidBack());await page.evaluate(()=>openWorklogDetail('wrk_second'));await page.locator('[data-work-window-edit]').click();
+   await page.evaluate(()=>handleAndroidBack());await page.evaluate(()=>openWorklogDetail('qa_wrk_second'));await page.locator('[data-work-window-edit]').click();
    assert.equal(await page.locator('#edit-worklog-select').isVisible(),false);
    assert.equal(await page.locator('.select-search[data-for="edit-worklog-select"]').isVisible(),false);
    assert.equal(await page.locator('#edit-worklog-activity').inputValue(),'Rasen pflegen');
    await page.locator('#edit-worklog-activity').fill('Zweiter Testnachtrag');await page.locator('[data-work-window-save]').click();
    const last=await page.evaluate(()=>JSON.parse(AndroidData.getState()).pending.at(-1).payload);
-   assert.equal(last.id,'wrk_second');assert.equal(last.activity,'Zweiter Testnachtrag');
-   const bad=await page.evaluate(()=>JSON.parse(AndroidData.getState()).pending.some(a=>a.payload.id==='wrk_test'&&a.payload.activity==='Rasen pflegen'));
+   assert.equal(last.id,'qa_wrk_second');assert.equal(last.activity,'Zweiter Testnachtrag');
+   const bad=await page.evaluate(()=>JSON.parse(AndroidData.getState()).pending.some(a=>a.payload.id==='qa_wrk_test'&&a.payload.activity==='Rasen pflegen'));
    assert.equal(bad,false,'Record selection must not overwrite another worklog ID');
   });
   fs.writeFileSync(path.resolve(__dirname,'../outputs/Worklog-Window-Tests.json'),JSON.stringify({actualBrowser:true,nativeBridge:'isolated in-memory fixture',results},null,2));

@@ -16,12 +16,12 @@ import server
 
 class ArchitectureAcceptanceTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix='hg-acceptance-')
+        self.temp = __import__("synthetic_fixtures").temporary_directory(prefix='hg-acceptance-')
         self.previous = (db.DATA_DIR, db.DB_PATH, db.PHOTO_DIR, db.BACKUP_DIR)
         root = Path(self.temp.name)
         db.DATA_DIR, db.DB_PATH, db.PHOTO_DIR, db.BACKUP_DIR = root, root/'qa.db', root/'photos', root/'backups'
-        db.init()
-        self.customer = db.save_customer({'name':'QA Acceptance', 'city':'Feldkirchen'})
+        __import__("synthetic_fixtures").configure_db(db.DATA_DIR); db.init()
+        self.customer = db.save_customer({'name':'QA Acceptance', 'city':'QA Beispielort'})
         self.http = server.AppHTTPServer(('127.0.0.1', 0), server.Handler)
         self.thread = threading.Thread(target=self.http.serve_forever, daemon=True)
         self.thread.start()
@@ -80,7 +80,7 @@ class ArchitectureAcceptanceTests(unittest.TestCase):
                                 'Accepted dates must be normalized to YYYY-MM-DD before sorting/export')
 
     def test_sync_failure_does_not_block_valid_action_and_replay_is_stable(self):
-        package = {'actions':[{'client_id':'qa-invalid','kind':'worklog','payload':{'customer_id':'unknown','activity':'bad','hours':1}},
+        package = {'actions':[{'client_id':'qa-invalid','kind':'worklog','payload':{'customer_id':'qa_unknown','activity':'bad','hours':1}},
             {'client_id':'qa-valid','kind':'worklog','payload':{'customer_id':self.customer['id'],'activity':'QA gültig','hours':1,'work_date':'2026-10-12'}}]}
         first = self.post('/api/sync', package)
         second = self.post('/api/sync', package)
@@ -116,7 +116,7 @@ class ArchitectureAcceptanceTests(unittest.TestCase):
         db.remove_entity('customer', self.customer['id'])
         self.assertEqual(db.list_customers()[0]['active'], 0)
         self.assertEqual(db.list_worklogs()[0]['id'], work['id'])
-        status, error = self.post('/api/customers', {'name':'QA Acceptance','city':'Feldkirchen'})
+        status, error = self.post('/api/customers', {'name':'QA Acceptance','city':'QA Beispielort'})
         self.assertEqual(status,409); self.assertEqual(error['code'],'DUPLICATE')
         self.assertTrue(db.integrity_report()['ok'])
 

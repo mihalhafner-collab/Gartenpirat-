@@ -14,6 +14,7 @@ import os
 import re
 import tempfile
 from pathlib import Path
+import runtime_paths
 
 
 MAX_PHOTO_BYTES = 20 * 1024 * 1024
@@ -162,6 +163,7 @@ def is_canonical_storage_name(value: object) -> bool:
 
 def read_verified(path: Path, expected_sha256: str | None = None, expected_size: int | None = None,
                   expected_mime: str | None = None) -> tuple[bytes, dict]:
+    path = runtime_paths.business_path(path)
     if not path.is_file():
         raise ValueError("Das Foto-Original fehlt.")
     if path.stat().st_size > MAX_PHOTO_BYTES:
@@ -177,11 +179,12 @@ def read_verified(path: Path, expected_sha256: str | None = None, expected_size:
 
 def store_atomic(directory: Path, raw: bytes, metadata: dict) -> tuple[Path, bool]:
     """Store a verified blob without ever overwriting a pre-existing path."""
+    directory = runtime_paths.business_path(directory)
     directory.mkdir(parents=True, exist_ok=True)
     name = str(metadata.get("storage_name", ""))
     if not is_canonical_storage_name(name):
         raise ValueError("Ungültiger interner Foto-Dateiname.")
-    target = directory / name
+    target = runtime_paths.business_path(directory / name)
     if target.exists():
         read_verified(target, metadata["content_sha256"], metadata["byte_size"], metadata["mime_type"])
         return target, False
@@ -208,6 +211,7 @@ def store_atomic(directory: Path, raw: bytes, metadata: dict) -> tuple[Path, boo
 
 def legacy_metadata(path: Path) -> dict:
     """Hash a legacy file without rejecting historical/corrupt data during migration."""
+    path = runtime_paths.business_path(path)
     raw = path.read_bytes()
     return {
         "content_sha256": hashlib.sha256(raw).hexdigest(),

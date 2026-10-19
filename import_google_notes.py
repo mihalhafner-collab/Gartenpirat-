@@ -5,9 +5,10 @@ from datetime import date
 from pathlib import Path
 
 import db
+import runtime_paths
 
 
-SOURCE = Path(__file__).resolve().parent / "data" / "Google_Notizen_Export_2020.txt"
+SOURCE = runtime_paths.PrivatePath("imports/Google_Notizen_Export_2020.txt")
 
 
 def parse_blocks(text: str):

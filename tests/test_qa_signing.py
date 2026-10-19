@@ -33,7 +33,7 @@ class QaSigningTests(unittest.TestCase):
     def setUpClass(cls):
         if not shutil.which("keytool") or not shutil.which("jarsigner"):
             raise RuntimeError("JDK required: signing tests were NOT run.")
-        cls.fixture_temp = tempfile.TemporaryDirectory(prefix="qa-key-fixture-")
+        cls.fixture_temp = __import__("synthetic_fixtures").temporary_directory(prefix="qa-key-fixture-")
         cls.fixture = Path(cls.fixture_temp.name) / "synthetic-key"
         cls.contents, cls.password, cls.sha256 = signing.local_key(cls.fixture)
 
@@ -42,7 +42,7 @@ class QaSigningTests(unittest.TestCase):
         cls.fixture_temp.cleanup()
 
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix="qa-signing-test-")
+        self.temp = __import__("synthetic_fixtures").temporary_directory(prefix="qa-signing-test-")
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.env = {"RUNNER_TEMP": str(self.root),

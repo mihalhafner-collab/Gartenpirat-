@@ -16,7 +16,7 @@ class OwnerProtocolTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             with db.atomic() as database:
                 db.save_customer({'name':'QA rollback customer'})
-                db.save_worklog({'customer_id':'missing','activity':'Invalid','hours':1})
+                db.save_worklog({'customer_id':'qa_missing','activity':'Invalid','hours':1})
         self.assertEqual(len(db.list_customers()),count)
 
     def test_archive_restore_preserves_original_id_and_action_receipt(self):
@@ -87,7 +87,7 @@ class OwnerProtocolTests(unittest.TestCase):
 
     def test_drive_recovery_after_export_failure_uses_atomic_receipt(self):
         folder=db.DATA_DIR/'owner-drive-crash';folder.mkdir();server.drive_sync(str(folder))
-        action={'client_id':'atomic-customer','kind':'customer','payload':{'id':'cus_atomic','name':'QA durable replay','_mcp_create':True}}
+        action={'client_id':'atomic-customer','kind':'customer','payload':{'id':'qa_cus_atomic','name':'QA durable replay','_mcp_create':True}}
         (folder/'HausGarten-Mobile-qa.json').write_text(json.dumps({'actions':[action]}))
         write=server.write_json_atomic
         def fail_receipt(path,value):
@@ -95,9 +95,9 @@ class OwnerProtocolTests(unittest.TestCase):
             return write(path,value)
         with patch.object(server,'write_json_atomic',side_effect=fail_receipt):
             self.assertFalse(server.drive_sync(str(folder))['ok'])
-        self.assertEqual(sum(r['id']=='cus_atomic' for r in db.list_customers()),1)
+        self.assertEqual(sum(r['id']=='qa_cus_atomic' for r in db.list_customers()),1)
         self.assertTrue(server.drive_sync(str(folder))['ok'])
-        self.assertEqual(sum(r['id']=='cus_atomic' for r in db.list_customers()),1)
+        self.assertEqual(sum(r['id']=='qa_cus_atomic' for r in db.list_customers()),1)
 
     def test_invoice_queued_performance_version_is_checked(self):
         work=self.work();draft=self.draft(work);db.save_worklog({'id':work['id'],'notes':'Changed after request'})

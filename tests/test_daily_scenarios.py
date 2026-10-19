@@ -16,13 +16,13 @@ from photo_fixture import VALID_GIF_BASE64
 class DailyScenarioTests(unittest.TestCase):
     def setUp(self):
         self.previous = db.DATA_DIR, db.DB_PATH, db.PHOTO_DIR, db.BACKUP_DIR
-        self.temp = tempfile.TemporaryDirectory(prefix='hausgarten-scenarios-')
+        self.temp = __import__("synthetic_fixtures").temporary_directory(prefix='hausgarten-scenarios-')
         root = Path(self.temp.name)
         db.DATA_DIR, db.DB_PATH, db.PHOTO_DIR, db.BACKUP_DIR = root, root/'qa.db', root/'photos', root/'backups'
-        db.init()
-        self.customer = db.save_customer({'name':'QA Gartenkunde','street':'Testweg 1','postal_code':'9560','city':'Feldkirchen','country':'Österreich'})
+        __import__("synthetic_fixtures").configure_db(db.DATA_DIR); db.init()
+        self.customer = db.save_customer({'name':'QA Gartenkunde','street':'Testweg 1','postal_code':'9560','city':'QA Beispielort','country':'Österreich'})
         self.order = db.save_order({'customer_id':self.customer['id'],'title':'Gartenpflege','location':'Testweg 1'})
-        db.save_settings({'owner_name':'QA Aussteller','business_street':'Testweg 2','business_postal_code':'9560','business_city':'Feldkirchen',
+        db.save_settings({'owner_name':'QA Aussteller','business_street':'Testweg 2','business_postal_code':'9560','business_city':'QA Beispielort',
             'tax_mode':'small_business','tax_exemption_text':'Umsatzsteuerfrei gemäß § 6 Abs. 1 Z 27 UStG.','invoice_issuer_confirmed':'1','invoice_numbering_confirmed':'1','invoice_number_format':'sevdesk','invoice_prefix':'RE',
             'invoice_sevdesk_last_number':'500','invoice_sevdesk_checked_at':db.now()})
 
@@ -159,7 +159,7 @@ class DailyScenarioTests(unittest.TestCase):
         self.assertTrue(db.integrity_report()['ok'])
 
     def test_offline_update_new_action_preserves_id_and_replays_once(self):
-        payload = {'id':'wrk_qa_offline_stable','customer_id':self.customer['id'],'order_id':self.order['id'],'activity':'Offline Pflege','hours':2,'_require_order':True}
+        payload = {'id':'qa_wrk_qa_offline_stable','customer_id':self.customer['id'],'order_id':self.order['id'],'activity':'Offline Pflege','hours':2,'_require_order':True}
         first = {'client_id':'offline-create','kind':'worklog','payload':payload}; folder = self.drive([first])
         self.assertEqual(server.drive_sync(str(folder))['imported'],1)
         previous=db.list_worklogs()[0]

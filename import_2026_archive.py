@@ -3,8 +3,9 @@ import re
 from datetime import date
 from pathlib import Path
 import db
+import runtime_paths
 
-SOURCE = Path(__file__).resolve().parent / "data" / "Arbeitsaufzeichnungen_2026_Notizenarchiv.md"
+SOURCE = runtime_paths.PrivatePath("imports/Arbeitsaufzeichnungen_2026_Notizenarchiv.md")
 MONTHS = {"januar":1,"februar":2,"märz":3,"maerz":3,"april":4,"mai":5,"juni":6,"juli":7,"august":8,"september":9,"oktober":10,"november":11,"dezember":12}
 
 def parse_date(value):

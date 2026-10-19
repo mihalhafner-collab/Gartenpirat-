@@ -36,9 +36,9 @@ class OrderReviewSync(unittest.TestCase):
         self.assertEqual(next(o for o in db.list_orders() if o['id']==self.order['id'])['title'],'Parallel')
     def test_corrupt_review_receipts_fail_closed(self):
         (db.DATA_DIR/'drive-order-review-receipts.json').write_text('broken',encoding='utf-8')
-        self.journal([self.action('new',dict(id='new',customer_id=self.customer['id'],title='Kein Import',_mcp_create=True))])
+        self.journal([self.action('qa_new',dict(id='qa_new',customer_id=self.customer['id'],title='Kein Import',_mcp_create=True))])
         with self.assertRaises(ValueError):server.drive_sync(str(self.drive))
-        self.assertFalse(any(o['id']=='new' for o in db.list_orders()))
+        self.assertFalse(any(o['id']=='qa_new' for o in db.list_orders()))
     def test_changed_resolved_action_is_detected(self):
         bad,fix=self.pair();self.journal([bad,fix]);self.assertTrue(server.drive_sync(str(self.drive))['ok'])
         bad['payload']['title']='Mutiert';self.journal([bad,fix])

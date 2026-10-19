@@ -9,8 +9,8 @@ const root=path.resolve(__dirname,'..'),url=pathToFileURL(path.join(root,'androi
  try{
   const context=await browser.newContext({viewport:{width:412,height:915},isMobile:true,hasTouch:true});
   await context.addInitScript(()=>{
-   const order={id:'qa-order',customer_id:'qa-customer',billing_customer_id:'qa-customer',title:'Testauftrag',status:'Geplant',customer_visible:1,description:'Test'};
-   const master={customers:[{id:'qa-customer',name:'QA Kunde',active:1}],orders:[order],worklogs:[],invoices:[],photos:[]};
+   const order={id:'qa_qa-order',customer_id:'qa_qa-customer',billing_customer_id:'qa_qa-customer',title:'Testauftrag',status:'Geplant',customer_visible:1,description:'Test'};
+   const master={customers:[{id:'qa_qa-customer',name:'QA Kunde',active:1}],orders:[order],worklogs:[],invoices:[],photos:[]};
    const pending=[{client_id:'qa-failed',kind:'order',payload:{...order,title:'Offen'}}];
    window.qaCalls=[];window.qaSaved=[];window.qaBlockSave=false;window.qaSync=0;
    const state=()=>({master,pending,sync_queue:{total:1,pending_upload:0,review:1,items:[{client_id:'qa-failed',state:'sync_conflict',error:'Parallel geändert; bitte prüfen.'}]}});
@@ -108,7 +108,7 @@ const root=path.resolve(__dirname,'..'),url=pathToFileURL(path.join(root,'androi
    assert.deepEqual(await page.evaluate(()=>qaCalls),[]);assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
   });
   await check('Stored photo survives an actual browser process restart in the same profile',async()=>{
-   const profile=fs.mkdtempSync(path.join(root,'outputs/photo-profile-'));let persistent;
+   const profile=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'qa_photo_profile_'));let persistent;
    const boot=async()=>{
     persistent=await chromium.launchPersistentContext(profile,{channel:'chrome',headless:true,viewport:{width:412,height:915}});
     await persistent.addInitScript(()=>{const master={customers:[],orders:[],worklogs:[],invoices:[],photos:[]};window.AndroidData={getState:()=>JSON.stringify({master,pending:[]}),getSyncStatus:()=>JSON.stringify({configured:false,pending:0}),getWorkSession:()=>JSON.stringify({state:'IDLE'}),getAppInfo:()=>JSON.stringify({versionName:'1.45.0'})};window.AndroidSpeech={start:()=>{}};window.AndroidPhone={};});

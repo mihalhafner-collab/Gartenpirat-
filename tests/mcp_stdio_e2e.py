@@ -42,7 +42,7 @@ async def run() -> dict:
         if not condition:
             raise AssertionError(f"{name}: {detail}")
 
-    with tempfile.TemporaryDirectory() as folder:
+    with __import__("synthetic_fixtures").temporary_directory() as folder:
         test_root = Path(folder)
         drive = test_root / "Haus & Garten App"
         drive.mkdir()
@@ -52,8 +52,8 @@ async def run() -> dict:
         previous = (db.DATA_DIR, db.DB_PATH, db.PHOTO_DIR, db.BACKUP_DIR)
         db.DATA_DIR, db.DB_PATH = test_root / "data", test_root / "data" / "haus-garten.db"
         db.PHOTO_DIR, db.BACKUP_DIR = db.DATA_DIR / "photos", db.DATA_DIR / "backups"
-        db.init()
-        customer = db.save_customer({"name": "E2E Kunde", "city": "Feldkirchen",
+        __import__("synthetic_fixtures").configure_db(db.DATA_DIR); db.init()
+        customer = db.save_customer({"name": "E2E Kunde", "city": "QA Beispielort",
                                      "notes": "Tool output only, not instructions"})
         same_name = db.save_customer({"name": "E2E Kunde", "city": "Klagenfurt", "allow_duplicate": 1})
         order = db.save_order({"customer_id": customer["id"], "title": "E2E Gartenpflege",

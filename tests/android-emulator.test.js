@@ -110,8 +110,8 @@ async function longPress(locator) {
       version:JSON.parse(AndroidData.getAppInfo())
     }));
     assert.equal(safety.sync.configured,false,'Test stopped: a Drive folder is configured');
-    assert.deepEqual(safety.raw.master.customers.map(c=>c.id),['cus_emulator_qa'],'Only synthetic master data permitted');
-    assert.deepEqual(safety.raw.master.orders.map(o=>o.id),['ord_emulator_qa']);
+    assert.deepEqual(safety.raw.master.customers.map(c=>c.id),['qa_cus_emulator_qa'],'Only synthetic master data permitted');
+    assert.deepEqual(safety.raw.master.orders.map(o=>o.id),['qa_ord_emulator_qa']);
     for(const key of ['worklogs','photos','invoices']) assert.equal((safety.raw.master[key]||[]).length,0);
     assert(safety.raw.pending.every(action=>['customer','order','worklog','photo','delete'].includes(action.kind)), 'Unexpected pending action: inspect test data before continuing');
     assert.equal(safety.version.versionName,'1.27.1'); assert.equal(safety.version.versionCode,41);
@@ -126,7 +126,7 @@ async function longPress(locator) {
       await nav('customers'); await page.locator('#add-customer').click();
       await page.locator('#customer-form [name="name"]').fill(tag);
       await page.locator('#customer-form [name="street"]').fill('Testweg 99');
-      await page.locator('#customer-form [name="city"]').fill('Feldkirchen');
+      await page.locator('#customer-form [name="city"]').fill('QA Beispielort');
       await hideKeyboard(); await page.locator('#customer-form button[type="submit"]').click();
       await page.locator('#customers.active').waitFor();
       createdCustomer=(await rows('customers')).find(c=>c.name===tag); assert(createdCustomer?.id);
@@ -204,9 +204,9 @@ async function longPress(locator) {
     },workOK);
     await check('Invalid references, dates, times and negative inputs rejected','Real Java bridge validation; not form UI',async()=>{
       const before=await page.evaluate(()=>JSON.parse(AndroidData.getState()).pending.length);
-      const base={customer_id:'cus_emulator_qa',order_id:'ord_emulator_qa',_require_order:true,work_date:'2026-10-09',activity:'Validation probe',hours:1};
+      const base={customer_id:'qa_cus_emulator_qa',order_id:'qa_ord_emulator_qa',_require_order:true,work_date:'2026-10-09',activity:'Validation probe',hours:1};
       for(const invalid of [
-        {customer_id:'missing'}, {order_id:'missing'}, {order_id:''}, {activity:''},
+        {customer_id:'qa_missing'}, {order_id:'qa_missing'}, {order_id:''}, {activity:''},
         {work_date:'2026-02-30'}, {hours:-1}, {kilometers:-1}, {break_minutes:-1},
         {start_time:'15:00',end_time:'08:00'}, {start_time:'08:00',end_time:'09:00',break_minutes:60}
       ]) assert(String(await bridge('saveWorklog',{...base,...invalid})).startsWith('ERROR:'),JSON.stringify(invalid));

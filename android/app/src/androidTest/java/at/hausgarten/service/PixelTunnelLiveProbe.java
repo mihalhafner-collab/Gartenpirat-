@@ -9,7 +9,7 @@ import org.json.JSONObject;
 final class PixelTunnelLiveProbe {
     static void run(Instrumentation runner, Context context) {
         Bundle result = new Bundle();
-        JSONObject report = new JSONObject();
+        JSONObject report = SyntheticBusinessData.object();
         MainActivity.LocalStore store = null;
         PixelTunnelWire.HttpTransport http = null;
         try {
@@ -83,14 +83,14 @@ final class PixelTunnelLiveProbe {
             connection.setRequestProperty("X-Tunnel-MCP-Server-Info", "{\"version\":1,\"channels\":[{\"name\":\"main\",\"proc_affinity\":true}]}");
             int code = connection.getResponseCode();
             java.io.InputStream input = code >= 200 && code < 300 ? connection.getInputStream() : connection.getErrorStream();
-            JSONObject json = new JSONObject();
+            JSONObject json = SyntheticBusinessData.object();
             if (input != null) try (java.io.InputStream in = input; java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream()) {
                 byte[] buffer = new byte[4096]; int count, total = 0;
                 while ((count = in.read(buffer)) != -1) {
                     total += count; if (total > 65536) throw new java.io.IOException("Diagnostic response too large");
                     bytes.write(buffer, 0, count);
                 }
-                try { json = new JSONObject(new String(bytes.toByteArray(), java.nio.charset.StandardCharsets.UTF_8)); }
+                try { json = SyntheticBusinessData.object(new String(bytes.toByteArray(), java.nio.charset.StandardCharsets.UTF_8)); }
                 catch (org.json.JSONException ignored) { report.put(phase + "_error_category", "non_json_response"); }
             }
             if (code < 200 || code >= 300) {
@@ -118,7 +118,7 @@ final class PixelTunnelLiveProbe {
                     .replaceAll("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}", "[email removed]")
                     .replaceAll("[\\r\\n\\t]+", " ").trim();
                 report.put(phase + "_redacted_reason", safeMessage.length() > 500 ? safeMessage.substring(0, 500) : safeMessage);
-                return new PixelTunnelWire.Reply(code, new JSONObject());
+                return new PixelTunnelWire.Reply(code, SyntheticBusinessData.object());
             }
             return new PixelTunnelWire.Reply(code, json);
         } finally { connection.disconnect(); }

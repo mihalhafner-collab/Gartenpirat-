@@ -33,10 +33,10 @@ Haus & Garten App/HausGarten-Laptop.json
 1. Google Drive für Desktop muss auf dem Laptop laufen. In der Haus-&-Garten-App muss als Drive-Ordner weiterhin **Haus & Garten App** eingestellt sein.
 2. In diesem Ordner müssen `HausGarten-Laptop.json` und `HausGarten-ChatGPT.json` vorhanden sein.
 3. Python 3.11 wird verwendet. Die mitgelieferten Startdateien wählen diese getestete Version automatisch.
-4. Der offizielle OpenAI `tunnel-client` v0.0.16 ist lokal installiert, per veröffentlichter SHA-256-Prüfsumme verifiziert und das Profil `haus-garten-private` ist für den Tunnel `tunnel_6ac907ffecb881919abd249f97b2c963` vorbereitet.
+4. Der offizielle OpenAI `tunnel-client` v0.0.16 ist lokal installiert, per veröffentlichter SHA-256-Prüfsumme verifiziert und das Profil `haus-garten-private` ist für den Tunnel `<PRIVATE_TUNNEL_ID>` vorbereitet.
 5. Unter https://platform.openai.com/settings/organization/api-keys einen **Runtime API Key** erzeugen. Der zugehörige Benutzer benötigt **Tunnels Read + Use**.
 6. Im App-Ordner `ChatGPT-Verbindung-starten.cmd` doppelklicken. Den Runtime API Key in das Fenster einfügen. Die Eingabe bleibt unsichtbar, gilt nur für diesen laufenden Prozess und wird nicht gespeichert.
-7. Während dieses Fenster läuft, in ChatGPT einen benutzerdefinierten MCP-Server über **Tunnel** hinzufügen und den Tunnel `tunnel_6ac907ffecb881919abd249f97b2c963` auswählen.
+7. Während dieses Fenster läuft, in ChatGPT einen benutzerdefinierten MCP-Server über **Tunnel** hinzufügen und den Tunnel `<PRIVATE_TUNNEL_ID>` auswählen.
 
 Für spätere Starts genügt wieder ein Doppelklick auf `ChatGPT-Verbindung-starten.cmd` und die verdeckte Eingabe des Runtime API Key.
 
