@@ -24,6 +24,20 @@ final class OwnerNativeAcceptance {
         try{task.run();}catch(java.io.IOException|IllegalArgumentException expected){test.yes(true);return;}throw new AssertionError("Changed document must be rejected");
     }
     static void run(PixelMcpInstrumentation test)throws Exception{
+        test.probe("refactored public bridge preserves inherited actions and isolated business writes",()->{try(Fixture f=new Fixture(test.getTargetContext())){
+            int inherited=0,business=0;for(java.lang.reflect.Method method:MainActivity.DataBridge.class.getMethods())if(method.isAnnotationPresent(android.webkit.JavascriptInterface.class))inherited++;
+            for(java.lang.reflect.Method method:BusinessDataBridge.class.getMethods())if(method.isAnnotationPresent(android.webkit.JavascriptInterface.class))business++;
+            test.yes(inherited==52&&business==35);
+            java.util.concurrent.atomic.AtomicInteger sync=new java.util.concurrent.atomic.AtomicInteger();
+            BusinessDataBridge bridge=new BusinessDataBridge(f.context,f.store,new PendingWorkPhotoStore(f.context),sync::incrementAndGet);
+            test.yes(new JSONObject(bridge.getState()).getBoolean("ui_effective"));
+            test.yes(new JSONObject(bridge.ownerCall("get_settings","{}")).getBoolean("ok"));
+            test.yes(!new JSONObject(bridge.ownerCall("qa_unknown_operation","{}")).getBoolean("ok"));
+            test.yes(bridge.migratePersonalPaid("[]").equals("OK"));test.yes(bridge.getPersonalPaid().equals("[]"));
+            test.yes(bridge.setPersonalPaid("[\"qa_missing\"]").startsWith("ERROR:"));test.yes(bridge.getPersonalPaid().equals("[]"));
+            String saved=bridge.saveCustomer(SyntheticBusinessData.object().put("name","[TEST] QA Bridgekunde").put("test_record",true).toString());test.yes(!saved.startsWith("ERROR:"));test.yes(sync.get()==1);
+            test.yes(PixelMcpWriteTools.find(PixelMcpReadTools.effective(f.store.getState()).getJSONArray("customers"),saved).getString("name").equals("[TEST] QA Bridgekunde"));
+        }});
         test.probe("empty trash is one atomic durable request for 136 entries and survives restart",()->{try(Fixture f=new Fixture(test.getTargetContext())){
             JSONObject snapshot=f.store.getState().getJSONObject("master");PixelDriveState.prepare(snapshot);JSONObject archive=OwnerJournalRules.archives(snapshot);
             for(int i=0;i<136;i++)archive.put("worklog:qa_trash-"+i,SyntheticBusinessData.object().put("record",SyntheticBusinessData.object().put("id","qa_trash-"+i).put("customer_id","qa_c").put("work_date","2026-07-31").put("activity","Synthetic trash").put("hours",1).put("billed",0)).put("archive_action","synthetic-archive-"+i).put("archived_at","2026-08-01"));

@@ -34,3 +34,9 @@ class RefactoringArchitectureTests(unittest.TestCase):
     def test_snapshot_projection_is_independent_of_transport(self):
         text = (JAVA/'SnapshotProjection.java').read_text()
         self.assertNotRegex(text, r'android\.|PixelMcpReadTools|MainActivity|rawQuery|tools/call')
+
+    def test_business_bridge_owns_no_lifecycle_or_platform_dialogs(self):
+        text = (JAVA/'BusinessDataBridge.java').read_text()
+        self.assertNotRegex(text, r'MainActivity|AlertDialog|startActivity|\.rawQuery\(|\.beginTransaction\(')
+        self.assertIn('public class BusinessDataBridge', text)
+        self.assertIn('DataBridge extends BusinessDataBridge', (JAVA/'MainActivity.java').read_text())

@@ -4,15 +4,21 @@
 Compiles the real PhotoCaptureProvider and extracts the real camera/result methods
 from MainActivity. Android boundary classes are deliberately small test doubles.
 Filesystem/symlink operations are real. Intent delivery, permissions, WebView and
-camera hardware are NOT Android/device acceptance tests. Requires Python 3 + JDK 17.
+camera hardware are NOT Android/device acceptance tests. Requires Python 3 + JDK 17
+and the same pinned HG_JSON_JAR dependency as tools/run-followup-java.py.
 Run from any working directory: python3 tests/run_photo_capture_tests.py
 """
 from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+import sys
+import os
+import hashlib
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 JAVA = ROOT / "android/app/src/main/java/at/hausgarten/service"
 
 STUBS = {
@@ -203,8 +209,12 @@ class MainActivity extends Context {
         classes = root / "classes"
         classes.mkdir()
         sources = sorted(str(path) for path in root.rglob("*.java"))
-        subprocess.run(["javac", "-encoding", "UTF-8", "--release", "17", "-d", str(classes), *sources], check=True, timeout=45)
-        subprocess.run(["java", "-cp", str(classes), "at.hausgarten.service.PhotoCaptureHostTest", str(root / "fixtures")], check=True, timeout=45)
+        jar = Path(os.environ.get('HG_JSON_JAR', ROOT/'.dependencies/pixel-tunnel-tests/json-20240303.jar'))
+        if hashlib.sha256(jar.read_bytes()).hexdigest() != '3cf6cd6892e32e2b4c1c39e0f52f5248a2f5b37646fdfbb79a66b46b618414ed':
+            raise RuntimeError('JSON test dependency mismatch')
+        sources.append(str(ROOT/'tests/java/at/hausgarten/service/SyntheticBusinessData.java'))
+        subprocess.run(["javac", "-encoding", "UTF-8", "--release", "17", "-cp", str(jar), "-d", str(classes), *sources], cwd=ROOT, check=True, timeout=45)
+        subprocess.run(["java", "-cp", os.pathsep.join((str(classes),str(jar))), "at.hausgarten.service.PhotoCaptureHostTest", str(root / "fixtures")], cwd=ROOT, check=True, timeout=45)
     print("PASS: camera chooser wiring guard. Android/device acceptance remains NOT RUN.")
 
 

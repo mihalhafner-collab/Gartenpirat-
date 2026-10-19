@@ -123,4 +123,10 @@ final class LocalOwnerRepository implements OwnerRepository {
     JSONObject photoStorageSummary()throws Exception{return store.photoAttachmentStore().storageSummary();}
     JSONObject listBackups()throws Exception{
 JSONArray out=new JSONArray();try(Cursor rows=store.getReadableDatabase().rawQuery("SELECT id,metadata FROM mcp_uploads ORDER BY rowid DESC",null)){while(rows.moveToNext()){JSONObject m=new JSONObject(rows.getString(1));if("backup".equals(m.optString("kind")))out.put(new JSONObject().put("backup_id",rows.getString(0)).put("metadata",m));if(out.length()>=100)break;}}return new JSONObject().put("backups",out);    }
+String migratePersonalPaid(String value){
+    SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();try{if(!"1".equals(store.ownerValue("personal_paid_migrated",""))){JSONArray old=new JSONArray(value),current=new JSONArray(store.ownerValue("personal_paid","[]"));Set<String> union=new java.util.LinkedHashSet<>();for(JSONArray list:new JSONArray[]{old,current})for(int i=0;i<list.length();i++){String id=list.getString(i);if(id.isEmpty()||id.length()>500)throw new IllegalArgumentException();union.add(id);}store.putOwnerValue("personal_paid",new JSONArray(union).toString());store.putOwnerValue("personal_paid_migrated","1");}db.setTransactionSuccessful();return "OK";}catch(Exception e){return "ERROR: Persönliche Übersicht bleibt erhalten; Übernahme nicht abgeschlossen.";}finally{db.endTransaction();}
+}
+String setPersonalPaid(String value){
+    try{JSONArray ids=new JSONArray(value);JSONObject all=SnapshotProjection.effective(store.getState());for(int i=0;i<ids.length();i++)PixelMcpWriteTools.find(all.getJSONArray("worklogs"),ids.getString(i));store.putOwnerValue("personal_paid",ids.toString());return "OK";}catch(Exception e){return "ERROR: Persönliche Übersicht konnte nicht gespeichert werden.";}
+}
 }

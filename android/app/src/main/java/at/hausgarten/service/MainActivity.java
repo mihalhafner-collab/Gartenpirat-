@@ -353,61 +353,22 @@ public class MainActivity extends Activity implements McpSyncHost {
         }
     }
 
-    public class DataBridge {
-        @JavascriptInterface public String getState() { try{JSONObject state=store.getState();state.put("master",PixelMcpReadTools.effective(state)).put("ui_effective",true);JSONArray photos=state.getJSONObject("master").getJSONArray("photos");for(int i=0;i<photos.length();i++){JSONObject photo=photos.getJSONObject(i);String thumbnail=photo.optString("thumbnail_storage_name");if(thumbnail.matches("[0-9a-f]{64}\\.jpg"))photo.put("thumbnail_data","content://"+getPackageName()+".photothumbnails/"+thumbnail);}return state.toString();}catch(Exception e){return store.getState().toString();} }
+    public class DataBridge extends BusinessDataBridge {
+        public DataBridge(){super(MainActivity.this,MainActivity.this.store,MainActivity.this.pendingWorkPhotos,()->requestAutomaticSync(AUTO_SYNC_DELAY_MS));}
+
         @JavascriptInterface public void connectPlanning(){runOnUiThread(()->startActivity(new Intent(MainActivity.this,PlanningConnectionActivity.class)));}
         @JavascriptInterface public String consumePlanningOpenContext(){try{if(!getIntent().getBooleanExtra("open_planning",false))return "{}";JSONObject result=new JSONObject().put("open",true).put("appointment_id",getIntent().getStringExtra("planning_appointment_id")).put("action",getIntent().getStringExtra("planning_action"));getIntent().removeExtra("open_planning");return result.toString();}catch(Exception e){return "{}";}}
         @JavascriptInterface public boolean consumePlanningOpen(){boolean open=getIntent().getBooleanExtra("open_planning",false);getIntent().removeExtra("open_planning");return open;}
-        @JavascriptInterface public String planningTime(String value,String zone,String offset){try{return AppointmentRules.local(value,zone,offset).toString();}catch(Exception e){return "ERROR: "+e.getMessage();}}
-        @JavascriptInterface public String ownerCall(String name,String arguments){
-            try{if(!PixelMcpOwnerTools.read(name)&&!PixelMcpOwnerTools.write(name)&&!OfferTools.read(name)&&!OfferTools.write(name)&&!AppointmentTools.read(name)&&!AppointmentTools.write(name))throw new IllegalArgumentException("Unbekannte Eigentümerfunktion.");PixelMcpReadTools tools=new PixelMcpReadTools(()->store.getState(),store,new PixelOwnerAccess(MainActivity.this,store));return tools.call(name,new JSONObject(arguments)).toString();}
-            catch(Exception e){try{return new JSONObject().put("ok",false).put("error",new JSONObject().put("code",e instanceof PixelMcpWriteTools.Rejected?((PixelMcpWriteTools.Rejected)e).code:"VALIDATION_ERROR").put("message",e instanceof IllegalArgumentException?e.getMessage():"Vorgang nicht abgeschlossen. Sicherung, Versionen und Berechtigungen prüfen.")).toString();}catch(Exception ignored){return "{}";}}
-        }
+
         @JavascriptInterface public String getSyncStatus() { return syncStatus().toString(); }
-        @JavascriptInterface public String getSyncDetails(){try{JSONObject s=store.getState();return DriveJournalRules.queueStatus(s.getJSONObject("master"),s.getJSONArray("pending")).toString();}catch(Exception e){return "{}";}}
-        @JavascriptInterface public String getSyncConflict(String id){try{return PixelMcpOwnerTools.conflicts(store.getState(),new JSONObject().put("limit",1).put("client_id",id)).toString();}catch(Exception e){return "ERROR: Konflikt konnte nicht vollständig gelesen werden.";}}
-        @JavascriptInterface public String resolveSyncConflict(String request){try{return new PixelOwnerAccess(MainActivity.this,store).execute("resolve_sync_conflict",new JSONObject(request)).toString();}catch(Exception e){return "ERROR: "+e.getMessage();}}
+
         @JavascriptInterface public void connectDrive(){runOnUiThread(()->startActivity(new Intent(MainActivity.this,DriveConnectionActivity.class)));}
         @JavascriptInterface public void retryDrive(){runOnUiThread(()->MainActivity.this.synchronize());}
         @JavascriptInterface public String getPixelTunnelStatus() { return PixelTunnelService.status(MainActivity.this).toString(); }
-        @JavascriptInterface public String getWorkSession() {
-            try { return new WorkSessionStore(store.getWritableDatabase(),MainActivity.this).current().toString(); }
-            catch (Exception error) { return "{\"state\":\"ERROR\",\"message\":"+JSONObject.quote(String.valueOf(error.getMessage()))+"}"; }
-        }
-        @JavascriptInterface public String startWorkSession(String value) {
-            try { return store.startWorkSession(new JSONObject(value)).toString(); }
-            catch (Exception error) { return "ERROR: " + error.getMessage(); }
-        }
-        @JavascriptInterface public String pauseWorkSession(String sessionId,String requestId) {
-            try { return new WorkSessionStore(store.getWritableDatabase(),MainActivity.this).pause(sessionId,requestId).toString(); }
-            catch (Exception error) { return "ERROR: " + error.getMessage(); }
-        }
-        @JavascriptInterface public String resumeWorkSession(String sessionId,String requestId) {
-            try { return new WorkSessionStore(store.getWritableDatabase(),MainActivity.this).resume(sessionId,requestId).toString(); }
-            catch (Exception error) { return "ERROR: " + error.getMessage(); }
-        }
-        @JavascriptInterface public String stopWorkSession(String sessionId,String requestId) {
-            try { return new WorkSessionStore(store.getWritableDatabase(),MainActivity.this).stop(sessionId,requestId).toString(); }
-            catch (Exception error) { return "ERROR: " + error.getMessage(); }
-        }
-        @JavascriptInterface public String continueWorkSession(String sessionId,String requestId) {
-            try { return new WorkSessionStore(store.getWritableDatabase(),MainActivity.this).continueStopped(sessionId,requestId).toString(); }
-            catch (Exception error) { return "ERROR: " + error.getMessage(); }
-        }
+
         @JavascriptInterface public void requestWorkLocation(String requestId) { runOnUiThread(()->workLocation.request(requestId)); }
         @JavascriptInterface public void cancelWorkLocation() { runOnUiThread(()->workLocation.cancel()); }
-        @JavascriptInterface public String discardWorkSession(String sessionId,String requestId) {
-            try { return new WorkSessionStore(store.getWritableDatabase(),MainActivity.this).discard(sessionId,requestId).toString(); }
-            catch(Exception error){return "ERROR: "+error.getMessage();}
-        }
-        @JavascriptInterface public String restoreWorkSession(String sessionId,String requestId) {
-            try { return new WorkSessionStore(store.getWritableDatabase(),MainActivity.this).restore(sessionId,requestId).toString(); }
-            catch(Exception error){return "ERROR: "+error.getMessage();}
-        }
-        @JavascriptInterface public String completeWorkSession(String sessionId,String value,String requestId) {
-            try { String id=store.completeWorkSession(sessionId,new JSONObject(value),requestId);requestAutomaticSync(AUTO_SYNC_DELAY_MS);return id; }
-            catch (Exception error) { return "ERROR: " + error.getMessage(); }
-        }
+
         @JavascriptInterface public void openPixelTunnelSettings() {
             runOnUiThread(() -> startActivity(new Intent(MainActivity.this, PixelTunnelActivity.class)));
         }
@@ -420,46 +381,11 @@ public class MainActivity extends Activity implements McpSyncHost {
             } catch (Exception ignored) {}
             return info.toString();
         }
-        @JavascriptInterface public String saveWorklog(String value) {
-            try { JSONObject payload=new JSONObject(value);String sessionId=payload.optString("_session_id");payload.remove("_session_id");String id=sessionId.isEmpty()?store.saveWorklog(payload):store.completeWorkSession(sessionId,payload,"ui-finalize-"+sessionId);requestAutomaticSync(AUTO_SYNC_DELAY_MS);return id; }
-            catch (Exception error) { return "ERROR: " + error.getMessage(); }
-        }
-        @JavascriptInterface public String saveCustomer(String value) {
-            try { String id = store.saveCustomer(new JSONObject(value)); requestAutomaticSync(AUTO_SYNC_DELAY_MS); return id; }
-            catch (Exception error) { return "ERROR: " + error.getMessage(); }
-        }
-        @JavascriptInterface public String inspectOrder(String id) {
-            try{return OrderReviewRules.inspect(store.getState(),id).toString();}
-            catch(Exception error){return "ERROR: "+error.getMessage();}
-        }
-        @JavascriptInterface public String saveReviewedOrder(String value) {
-            try{String id=store.saveReviewedOrder(new JSONObject(value));requestAutomaticSync(AUTO_SYNC_DELAY_MS);return new JSONObject().put("id",id).put("saved",true).toString();}
-            catch(Exception error){return "ERROR: "+error.getMessage();}
-        }
-        @JavascriptInterface public String saveOrder(String value) {
-            try { String id = store.saveOrder(new JSONObject(value)); requestAutomaticSync(AUTO_SYNC_DELAY_MS); return id; }
-            catch (Exception error) { return "ERROR: " + error.getMessage(); }
-        }
-        @JavascriptInterface public String getPhotoStorageSummary(){try{return store.photoAttachmentStore().storageSummary().toString();}catch(Exception e){return "ERROR: Speicherstatus nicht verfügbar.";}}
-        @JavascriptInterface public String getOwnerSettings(){return store.ownerValue("settings","{}");}
-        @JavascriptInterface public String getPersonalPaid(){return "1".equals(store.ownerValue("personal_paid_migrated",""))?store.ownerValue("personal_paid","[]"):"";}
-        @JavascriptInterface public String migratePersonalPaid(String value){
-            SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();try{if(!"1".equals(store.ownerValue("personal_paid_migrated",""))){JSONArray old=new JSONArray(value),current=new JSONArray(store.ownerValue("personal_paid","[]"));Set<String> union=new java.util.LinkedHashSet<>();for(JSONArray list:new JSONArray[]{old,current})for(int i=0;i<list.length();i++){String id=list.getString(i);if(id.isEmpty()||id.length()>500)throw new IllegalArgumentException();union.add(id);}store.putOwnerValue("personal_paid",new JSONArray(union).toString());store.putOwnerValue("personal_paid_migrated","1");}db.setTransactionSuccessful();return "OK";}catch(Exception e){return "ERROR: Persönliche Übersicht bleibt erhalten; Übernahme nicht abgeschlossen.";}finally{db.endTransaction();}
-        }
-        @JavascriptInterface public String setPersonalPaid(String value){
-            try{JSONArray ids=new JSONArray(value);JSONObject all=PixelMcpReadTools.effective(store.getState());for(int i=0;i<ids.length();i++)PixelMcpWriteTools.find(all.getJSONArray("worklogs"),ids.getString(i));store.putOwnerValue("personal_paid",ids.toString());return "OK";}catch(Exception e){return "ERROR: Persönliche Übersicht konnte nicht gespeichert werden.";}
-        }
-        @JavascriptInterface public String getInvoiceShareHandoff(){return store.ownerValue("invoice_share_handoff", "{}");}
+
         @JavascriptInterface public String sharePreparedInvoice(){
             try{JSONObject handoff=new JSONObject(store.ownerValue("invoice_share_handoff","{}")),all=PixelMcpReadTools.effective(store.getState()),invoice=PixelMcpWriteTools.find(all.getJSONArray("invoices"),handoff.getString("invoice_id"));return shareInvoiceById(invoice.getString("id"),handoff.getString("channel"));}catch(Exception e){return "ERROR: Originalbeleg oder Versandvorbereitung fehlt.";}
         }
-        @JavascriptInterface public String saveInvoice(String value) {
-            try{String id=store.saveInvoiceDraft(new JSONObject(value));requestAutomaticSync(AUTO_SYNC_DELAY_MS);return id;}
-            catch(Exception error){return "ERROR: "+error.getMessage();}
-        }
-        @JavascriptInterface public String requestInvoiceIssue(String identifier) {
-            try{JSONObject all=PixelMcpReadTools.effective(store.getState()),invoice=PixelMcpWriteTools.find(all.getJSONArray("invoices"),identifier);store.execute("request_invoice_issue",new JSONObject().put("request_id","ui-issue-"+UUID.randomUUID()).put("invoice_id",identifier).put("expected_record_hash",PixelMcpWriteTools.hash(PixelMcpEntityWriteTools.recordForHash("invoice",invoice))).put("confirmed",true));return "OK";}catch(Exception e){return "ERROR: "+e.getMessage();}
-        }
+
         private void assertEditableInvoice(String identifier) throws Exception {
             JSONObject snapshot=new JSONObject(store.snapshotText(readAsset("initial-data.json")));
             JSONArray invoices=snapshot.optJSONArray("invoices");
@@ -509,37 +435,9 @@ public class MainActivity extends Activity implements McpSyncHost {
                 return "OK";
             } catch(Exception error) { return "ERROR: " + error.getMessage(); }
         }
-        @JavascriptInterface public String savePhoto(String value) {
-            try { String id = store.savePhoto(new JSONObject(value)); requestAutomaticSync(AUTO_SYNC_DELAY_MS); return id; }
-            catch (Exception error) { return "ERROR: " + error.getMessage(); }
-        }
-        @JavascriptInterface public String stagePendingWorkPhoto(String value) {
-            try { return pendingWorkPhotos.stage(value); }
-            catch (Exception error) { return "ERROR: " + error.getMessage(); }
-        }
-        @JavascriptInterface public String getPendingWorkPhoto() {
-            try { return pendingWorkPhotos.read(); }
-            catch (Exception error) { return "ERROR: " + error.getMessage(); }
-        }
-        @JavascriptInterface public String clearPendingWorkPhoto() {
-            try { pendingWorkPhotos.clear(); return "OK"; }
-            catch (Exception error) { return "ERROR: " + error.getMessage(); }
-        }
-        @JavascriptInterface public String getPhotoData(String photoId) {
-            try { return store.loadPhotoData(photoId); }
-            catch (Exception error) { return "ERROR: " + error.getMessage(); }
-        }
-        @JavascriptInterface public String removeEntity(String entity, String id) {
-            try { String actionId = store.removeEntity(entity, id); requestAutomaticSync(AUTO_SYNC_DELAY_MS); return actionId; }
-            catch (Exception error) { return "ERROR: " + error.getMessage(); }
-        }
-        @JavascriptInterface public String undoRemoveEntity(String entity, String id) {
-            try { String result = store.undoRemoveEntity(entity, id); requestAutomaticSync(AUTO_SYNC_DELAY_MS); return result; }
-            catch (Exception error) { return "ERROR: " + error.getMessage(); }
-        }
+
         @JavascriptInterface public void synchronize() { runOnUiThread(() -> MainActivity.this.synchronize()); }
     }
-
 
     private void synchronize() {
         try{DriveSyncCoordinator.prepareExplicit(this,"ui-sync-"+UUID.randomUUID());}catch(Exception ignored){}
