@@ -24,7 +24,7 @@ final class DrivePublication {
         JSONObject out=new JSONObject(),rs=manifest.getJSONObject("receipts");for(Iterator<String> keys=rs.keys();keys.hasNext();){String id=keys.next();JSONObject r=new JSONObject(rs.getJSONObject(id).toString());r.put("cloud_confirmed",r.optBoolean("applied")).put("provider_readback",true).put("drive_manifest_readback",true).put("publication_id",publicationId).put("state_sha256",manifest.getString("state_sha256"));out.put(id,r);}return out;
     }
     static byte[] stateBytes(JSONObject snapshot)throws Exception{
-        JSONObject clean=new JSONObject(snapshot.toString());for(String key:new String[]{"drive_cloud_receipts","drive_last_publication"})clean.remove(key);return PixelMcpWriteTools.canonical(clean).getBytes(StandardCharsets.UTF_8);
+        JSONObject clean=new JSONObject(snapshot.toString());for(String key:new String[]{"drive_cloud_receipts","drive_last_publication","drive_parent_publication_id","drive_parent_state_sha256","drive_parent_sequence"})clean.remove(key);return PixelMcpWriteTools.canonical(clean).getBytes(StandardCharsets.UTF_8);
     }
     static JSONObject evidence(JSONObject result,JSONObject state)throws Exception{
         JSONObject master=state.getJSONObject("master"),rs=master.optJSONObject("drive_cloud_receipts"),r=rs==null?null:rs.optJSONObject(result.optString("client_id"));

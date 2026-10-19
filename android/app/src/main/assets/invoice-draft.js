@@ -21,7 +21,7 @@
   function open(id,preset={}) {
     original=JSON.parse(JSON.stringify(invoices().find(x=>x.id===id)||preset));
     if(original.id&&(original.status!=='Entwurf'||original.sevdesk_id||original.issued_at)){alert('Abgeschlossene und importierte Rechnungen bleiben unverändert.');return;}
-    if(original.id&&state.pending.some(a=>['invoice_issue','owner_invoice_issue'].includes(a.kind)&&a.payload.id===original.id)){alert('Abschluss bereits vorgemerkt. Bitte zuerst den Abgleich mit dem Nummernservice abwarten.');return;}
+    if(original.id&&state.pending.some(a=>['invoice_issue','owner_invoice_issue','pixel_invoice_issue_v1'].includes(a.kind)&&a.payload.id===original.id)){alert('Abschluss bereits vorgemerkt. Bitte zuerst den Pixel-/Drive-Abgleich abwarten.');return;}
     dialog.innerHTML='<form novalidate><div class="dialog-heading"><div><small>RECHNUNG · ENTWURF</small><h2>'+(original.id?'Entwurf bearbeiten':'Rechnung erstellen')+'</h2></div><button type="button" class="secondary" data-cancel aria-label="Entwurf schließen">×</button></div><div data-studio></div><div class="dialog-actions"><button type="button" class="secondary" data-cancel>Abbrechen</button><button type="submit" class="primary">Entwurf speichern</button></div></form>';
     studio=InvoiceStudio.mount(dialog.querySelector('[data-studio]'),{
       preset:original,customers:customers(),orders:orders(),worklogs:worklogs(),issuer:issuer(),logo:'hafner-logo.png',notify:toast,
@@ -40,7 +40,7 @@
         const payload=studio.validate();
         if(!event.currentTarget.checkValidity()){studio.revealInvalid();return;}
         if(original.id){payload._edit_base=original;payload._edit_changes=Object.fromEntries(Object.entries(payload).filter(([key,value])=>['customer_id','order_id','invoice_date','service_start','service_end','payment_days','notes','positions','domestic_service_confirmed','header_text','footer_text','tax_mode','recipient_type','recipient_vat_id'].includes(key)&&JSON.stringify(value)!==JSON.stringify(original[key])));}
-        payload.invoice_number ||= 'Entwurf-Pixel-'+Date.now();
+        if(!payload.invoice_number)payload.invoice_number='Entwurf-Pixel-'+Date.now();
         saving=true;studio.setBusy(true);dialog.querySelector('[type="submit"]').disabled=true;
         const result=AndroidData.saveInvoice(JSON.stringify(payload));
         if(String(result).startsWith('ERROR:'))throw Error(String(result).replace(/^ERROR:\s*/,''));
@@ -113,13 +113,13 @@
       row.classList.add('invoice-list-row');
       row.innerHTML='<div><strong class="invoice-list-title">'+esc(customerName(invoice.customer_id))+'</strong><p>'+esc(invoice.status==='Entwurf'&&!invoice.sevdesk_id?'Rechnungsentwurf':invoice.invoice_number)+' · '+esc(worklogDateLabel(invoice.invoice_date))+'</p><span class="invoice-list-status '+(invoice.status==='Entwurf'?'is-draft':'')+'">'+esc(invoice.status)+'</span></div><div class="invoice-list-amount">'+money(invoice.amount)+'</div>';
       const actions=document.createElement('div');actions.className='invoice-list-actions';row.append(actions);
-      const issueError=(state.master?.sync_errors||[]).find(e=>e.invoice_id===invoice.id&&['invoice_issue','owner_invoice_issue'].includes(e.kind));
-      if(issueError&&!invoice.issued_at&&!state.pending.some(a=>['invoice_issue','owner_invoice_issue'].includes(a.kind)&&a.payload.id===invoice.id)){const message=document.createElement('p');message.className='invoice-form-error';message.textContent='Nicht abgeschlossen: '+issueError.error+' Entwurf bearbeiten und erneut prüfen.';row.append(message);}
+      const issueError=(state.master?.sync_errors||[]).find(e=>e.invoice_id===invoice.id&&['invoice_issue','owner_invoice_issue','pixel_invoice_issue_v1'].includes(e.kind));
+      if(issueError&&!invoice.issued_at&&!state.pending.some(a=>['invoice_issue','owner_invoice_issue','pixel_invoice_issue_v1'].includes(a.kind)&&a.payload.id===invoice.id)){const message=document.createElement('p');message.className='invoice-form-error';message.textContent='Nicht abgeschlossen: '+issueError.error+' Entwurf bearbeiten und erneut prüfen.';row.append(message);}
       if(invoice.issued_at){for(const[channel,label]of [['email','E-Mail'],['whatsapp','WhatsApp'],['share','PDF teilen']]){const send=document.createElement('button');send.type='button';send.className='secondary';send.dataset.shareMobileInvoice=invoice.id;send.dataset.channel=channel;send.textContent=label;actions.append(send);}}
       else if(invoice.positions&&invoice.status==='Entwurf'&&!invoice.sevdesk_id){
         const edit=document.createElement('button');edit.type='button';edit.className='primary';edit.textContent='Bearbeiten';actions.append(edit);
         const view=document.createElement('button');view.type='button';view.className='secondary';view.textContent='Vorschau';view.dataset.previewMobileInvoice=invoice.id;actions.append(view);
-        const action=document.createElement('button');action.type='button';action.className='secondary';action.dataset.issueMobileInvoice=invoice.id;const pending=state.pending.some(a=>['invoice_issue','owner_invoice_issue'].includes(a.kind)&&a.payload.id===invoice.id);action.textContent=pending?'Abschluss vorgemerkt':'Abschließen';action.disabled=pending;actions.append(action);
+        const action=document.createElement('button');action.type='button';action.className='secondary';action.dataset.issueMobileInvoice=invoice.id;const pending=state.pending.some(a=>['invoice_issue','owner_invoice_issue','pixel_invoice_issue_v1'].includes(a.kind)&&a.payload.id===invoice.id);action.textContent=pending?'Abschluss vorgemerkt':'Abschließen';action.disabled=pending;actions.append(action);
       }
     });
     const invoiceData=new Map(invoices().map(x=>[x.id,x]));

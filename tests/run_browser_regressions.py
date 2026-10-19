@@ -12,13 +12,14 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 LOGS = ROOT/'outputs/integration-ui'
-NAMES = ['invoice-editor.test.js', 'invoice-flow.test.js', 'billing-ui.test.cjs',
+NAMES = ['planning-ui.test.cjs', 'invoice-editor.test.js', 'invoice-flow.test.js', 'billing-ui.test.cjs',
          'architecture-workflow.test.cjs', 'daily-usability.test.cjs', 'design-concept.test.cjs',
          'simple-design.test.cjs', 'worklog-window.test.cjs', 'pixel-tunnel-ui.test.js',
          'work-location.test.cjs', 'timer-completion.test.cjs', 'design-v139.test.cjs',
          'gartenpirat-removal.test.cjs', 'customer-duplicate-ui.test.cjs', 'gartenpirat-plants.test.cjs',
          'gartenpirat-photo.test.cjs', 'garden-followup.test.cjs', 'customer-photos.test.cjs',
-         'work-entry-photo-failure.test.cjs', 'camera-timer-static.test.cjs', 'personal-payment.test.cjs']
+         'work-entry-photo-failure.test.cjs', 'camera-timer-static.test.cjs', 'personal-payment.test.cjs',
+         'access-integrity.test.cjs', 'sync-customer-gallery.test.cjs', 'offers-photo-library.test.cjs', 'sync-trash.test.cjs', 'worklog-batch.test.cjs', 'runtime-compat.test.cjs']
 
 
 if __name__ == '__main__':

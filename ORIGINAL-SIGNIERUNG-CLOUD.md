@@ -310,3 +310,28 @@ war der erhaltene Cloud-Kandidat 67; aktuell installierte Version/Signatur bleib
 unbekannt. Installation und Update-/Datenerhalt-Abnahme weiterhin gesperrt bis
 Sicherung und ausdrücklicher Freigabe. Details: `docs/SYNC-DRIVE-KUNDENAKTE-1.48.md`
 und `docs/verification/sync-customer-gallery-1.48.json`.
+
+
+### Cloud-only-Kandidat 1.49.2 / 71
+
+Ein tatsächlicher Signierlauf über denselben geschützten Originalweg; fünf Variablen nur auf Vorhandensein geprüft, vorhandenes Zertifikat und finale v2/v3-Signaturen bestätigt, Cleanup erfolgreich. Öffentliche Metadaten, SHA256, Quelle, Tests und offene Geräte-/Updateabnahmen stehen konsolidiert in [CODEX-STATUS.md](CODEX-STATUS.md#eintrag-7--phase-g--geprüfter-original-kandidat-und-erneute-live-lesung). Keine Installation oder Freigabe daraus ableiten.
+
+
+### Native Cloud-Emulatorprüfung des Originalpakets
+
+Der ausdrücklich beauftragte Emulatorlauf verwendet die bestehende Android-
+Instrumentierung unter `android/app/src/androidTest`, keine zweite operative App.
+`tools/sign_original_apk.py --instrumentation` erlaubt dafür ausschließlich
+`at.hausgarten.service.test`, genau den Runner `PixelMcpInstrumentation`, Ziel
+`at.hausgarten.service` und keinerlei eigene Activity/Service/Provider/Receiver.
+Der normale Signiermodus bleibt auf das operative Paket beschränkt. Beide Wege
+verwenden denselben bereitgestellten Originalschlüssel und dieselben Geheimwert-,
+Zertifikats- und Cleanup-Prüfungen; keine Debug-/QA-Schlüsselerzeugung.
+
+`tests/run_cloud_emulator_tests.py` akzeptiert nur eine ausdrücklich benannte
+Emulator-Seriennummer, `ro.kernel.qemu=1`, die dedizierte AVD `GartenpiratCloud`
+und einen vollständig gestarteten Emulator. Kein Pixel-/Netzwerkziel, keine
+automatische Geräteauswahl, Deinstallation oder Datenlöschung. APKs müssen zuvor
+über den Originalweg signiert sein. Der Testlauf entfernt Signierungsvariablen
+aus der ADB-Umgebung. Tatsächliche Ergebnisse und Grenzen stehen ausschließlich
+im zentralen `CODEX-STATUS.md`; Emulatorabnahme ist keine Pixel-Updatefreigabe.

@@ -1,0 +1,9 @@
+/* Small feature fallbacks for supported Android WebViews; never weaken request IDs. */
+(()=>{
+ 'use strict';
+ if(typeof Element!=='undefined')for(const prototype of [Element.prototype,DocumentFragment.prototype])if(!prototype.replaceChildren)Object.defineProperty(prototype,'replaceChildren',{value:function(...children){const fragment=document.createDocumentFragment();fragment.append(...children);while(this.firstChild)this.removeChild(this.firstChild);this.appendChild(fragment);},writable:true,configurable:true});
+ if(!Array.prototype.at)Object.defineProperty(Array.prototype,'at',{value:function(index){const n=Math.trunc(Number(index)||0),i=n<0?this.length+n:n;return i<0||i>=this.length?undefined:this[i];},writable:true,configurable:true});
+ if(!Object.hasOwn)Object.defineProperty(Object,'hasOwn',{value:(value,key)=>Object.prototype.hasOwnProperty.call(value,key),writable:true,configurable:true});
+ if(!String.prototype.replaceAll)Object.defineProperty(String.prototype,'replaceAll',{value:function(search,replacement){if(search instanceof RegExp){if(!search.global)throw new TypeError('replaceAll requires a global expression');return String(this).replace(search,replacement);}const escaped=String(search).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return String(this).replace(new RegExp(escaped,'g'),replacement);},writable:true,configurable:true});
+ if(globalThis.crypto&&!crypto.randomUUID)Object.defineProperty(crypto,'randomUUID',{value:()=>{const bytes=new Uint8Array(16);crypto.getRandomValues(bytes);bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;const hex=Array.from(bytes,b=>b.toString(16).padStart(2,'0'));return hex.slice(0,4).join('')+'-'+hex.slice(4,6).join('')+'-'+hex.slice(6,8).join('')+'-'+hex.slice(8,10).join('')+'-'+hex.slice(10).join('');},configurable:true});
+})();

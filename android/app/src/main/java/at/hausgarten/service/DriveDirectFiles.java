@@ -12,6 +12,19 @@ final class DriveDirectFiles extends DriveSyncCoordinator.Files {
     private final DriveRestClient client;
     DriveDirectFiles(Context context,DriveRestClient client){super(context,Uri.EMPTY,context.getSharedPreferences("haus_garten",0));this.client=client;}
     @Override boolean cloudVerified(){return true;}
+    private void confirmDocument(JSONObject metadata)throws Exception {
+        String name=metadata.optString("pdf_storage_name"),hash=metadata.optString("pdf_sha256");
+        if(!hash.matches("[0-9a-f]{64}")||!name.equals(hash+".pdf"))throw new IOException("Ungültige Dokumentreferenz.");
+        JSONObject folder=client.unique(client.folder,"HausGarten-Dokumente");if(folder==null)throw new IOException("Dokumentordner fehlt.");
+        client.confirm(folder.getString("id"),name,hash,20*1024*1024);
+    }
+    @Override void ensureDocument(JSONObject metadata,BusinessDocumentStore local)throws Exception {
+        try{confirmDocument(metadata);}catch(IOException absent){if(absent instanceof DriveRestClient.Failure&&((DriveRestClient.Failure)absent).userAction)throw absent;writeDocumentVerified(metadata,local.read(metadata));confirmDocument(metadata);}
+    }
+    @Override JSONObject reserveInvoice(JSONObject state,JSONObject action)throws Exception{
+        client.refresh();DrivePrimaryState.checkParent(state,readPrimary(new JSONObject(read("HausGarten-Laptop.json")),state.getString("drive_publisher_id")));
+        return DriveNumbering.reserve(client,state,action);
+    }
     @Override void writeDocumentVerified(JSONObject m,byte[] bytes)throws Exception{
         if(!m.optString("pdf_storage_name").equals(DriveRestClient.sha256(bytes)+".pdf")||bytes.length!=m.getLong("pdf_byte_size"))throw new IOException("Dokument-Prüfsumme stimmt nicht überein.");client.put(client.ensureDirectory("HausGarten-Dokumente"),m.getString("pdf_storage_name"),"application/pdf",bytes);
     }
@@ -32,6 +45,14 @@ final class DriveDirectFiles extends DriveSyncCoordinator.Files {
     }
     @Override byte[] readPhotoVerified(JSONObject metadata)throws Exception{
         JSONObject directory=client.unique(client.folder,"HausGarten-Fotos");if(directory==null)throw new IOException("Foto-Original ist in Drive noch nicht verfügbar.");JSONObject file=client.unique(directory.getString("id"),metadata.getString("storage_name"));if(file==null)throw new IOException("Foto-Original ist in Drive noch nicht verfügbar.");byte[] bytes=client.read(file.getString("id"),PhotoAttachmentStore.MAX_BYTES);verifyBytes(bytes,metadata);return bytes;
+    }
+    @Override void deletePhotoFileVerified(String name,String hash)throws Exception{
+        if(!PhotoAttachmentStore.canonicalName(name)||!hash.matches("[0-9a-f]{64}")||!name.startsWith(hash+"."))throw new IOException("Ungültige Löschreferenz.");
+        JSONObject folder=client.unique(client.folder,"HausGarten-Fotos");if(folder!=null)client.deleteVerified(folder.getString("id"),name,hash);
+    }
+    @Override void deleteDocumentFileVerified(JSONObject metadata)throws Exception{
+        String name=metadata.optString("pdf_storage_name"),hash=metadata.optString("pdf_sha256");if(!hash.matches("[0-9a-f]{64}")||!name.equals(hash+".pdf"))throw new IOException("Ungültige Dokument-Löschreferenz.");
+        JSONObject folder=client.unique(client.folder,"HausGarten-Dokumente");if(folder!=null)client.deleteVerified(folder.getString("id"),name,hash);
     }
     @Override void writePhotoVerified(JSONObject metadata,PhotoAttachmentStore local)throws Exception{
         byte[] bytes=local.read(metadata);verifyBytes(bytes,metadata);client.put(client.ensureDirectory("HausGarten-Fotos"),metadata.getString("storage_name"),metadata.getString("mime_type"),bytes);
@@ -56,7 +77,7 @@ final class DriveDirectFiles extends DriveSyncCoordinator.Files {
             }catch(Exception error){missing.put(new JSONObject().put("photo_id",photo.optString("id")).put("code",error instanceof DriveRestClient.Failure?((DriveRestClient.Failure)error).code:"MEDIA_ORIGINAL_REQUIRED").put("message","Original und Zuordnung prüfen; vorhandene Bilder bleiben erhalten."));}
         }
         JSONObject exchange=new JSONObject(snapshot.toString());JSONArray invoices=exchange.optJSONArray("invoices");String documentFolder="";
-        JSONArray offers=exchange.optJSONArray("offers");for(int i=0;offers!=null&&i<offers.length();i++){JSONObject offer=offers.getJSONObject(i);if(!offer.optString("pdf_storage_name").isEmpty())try{readDocumentVerified(offer);}catch(Exception error){missing.put(new JSONObject().put("entity_type","offer").put("entity_id",offer.optString("id")).put("code","DOCUMENT_ORIGINAL_REQUIRED").put("message","Angebots-PDF und Drive-Verbindung prüfen; Original bleibt erhalten."));}}
+        JSONArray offers=exchange.optJSONArray("offers");for(int i=0;offers!=null&&i<offers.length();i++){JSONObject offer=offers.getJSONObject(i);if(!offer.optString("pdf_storage_name").isEmpty())try{confirmDocument(offer);}catch(Exception error){missing.put(new JSONObject().put("entity_type","offer").put("entity_id",offer.optString("id")).put("code","DOCUMENT_ORIGINAL_REQUIRED").put("message","Angebots-PDF und Drive-Verbindung prüfen; Original bleibt erhalten."));}}
         for(int i=0;invoices!=null&&i<invoices.length();i++){JSONObject invoice=invoices.getJSONObject(i);String inline=invoice.optString("pdf_base64");
             try{if(!inline.isEmpty()){if(inline.length()>28*1024*1024)throw new IOException("PDF-Original ist zu groß.");byte[] pdf=Base64.getDecoder().decode(inline);if(pdf.length<5||pdf.length>20*1024*1024||!new String(pdf,0,5,StandardCharsets.US_ASCII).equals("%PDF-"))throw new IOException("PDF-Original ist ungültig.");String digest=DriveRestClient.sha256(pdf);if(!invoice.optString("pdf_sha256").isEmpty()&&!digest.equals(invoice.getString("pdf_sha256")))throw new IOException("PDF-Prüfsumme stimmt nicht überein.");if(documentFolder.isEmpty())documentFolder=client.ensureDirectory("HausGarten-Dokumente");client.put(documentFolder,digest+".pdf","application/pdf",pdf);invoice.put("pdf_storage_name",digest+".pdf").put("pdf_sha256",digest).put("pdf_byte_size",pdf.length);}
                 else if(!invoice.optString("pdf_storage_name").isEmpty()){String name=invoice.getString("pdf_storage_name"),expected=invoice.getString("pdf_sha256");if(!expected.matches("[0-9a-f]{64}")||!name.equals(expected+".pdf"))throw new IOException("Ungültige PDF-Dateireferenz.");if(documentFolder.isEmpty()){JSONObject d=client.unique(client.folder,"HausGarten-Dokumente");if(d==null)throw new IOException("PDF-Original fehlt in Drive.");documentFolder=d.getString("id");}client.confirm(documentFolder,name,expected,20*1024*1024);}
@@ -66,6 +87,8 @@ final class DriveDirectFiles extends DriveSyncCoordinator.Files {
         }
         exchange.put("drive_media_errors",missing);snapshot.put("drive_media_errors",missing);
         byte[] state=DrivePublication.stateBytes(exchange);String sha=DriveRestClient.sha256(state);JSONObject stored=client.put(client.folder,"HausGarten-State-"+sha+".json","application/json",state);
+        client.refresh();
+        DrivePrimaryState.checkParent(snapshot,readPrimary(new JSONObject(read("HausGarten-Laptop.json")),snapshot.getString("drive_publisher_id")));
         JSONObject history=recoverPublication(snapshot.getString("drive_publisher_id"));
         JSONObject manifest=DrivePublication.manifest(snapshot,actions,stored.getString("id"),sha).put("state_name","HausGarten-State-"+sha+".json").put("publisher_id",snapshot.getString("drive_publisher_id")).put("media_complete",missing.length()==0);
         String generation=DriveRestClient.sha256(PixelMcpWriteTools.canonical(manifest).getBytes(StandardCharsets.UTF_8));boolean same=generation.equals(history.optString("generation"));long sequence=same?history.getLong("sequence"):history.optLong("sequence")+1;String parent=same?history.optString("parent"):history.optString("id"),parentSha=same?history.optString("parent_sha"):history.optString("sha");

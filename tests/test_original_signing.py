@@ -90,6 +90,24 @@ class OriginalSigningTests(unittest.TestCase):
         with mock.patch.object(signing.subprocess, 'run', side_effect=tool or self.fake_tool):
             return signing.sign(self.apk, self.output, env=self.env if env is None else env, **self.tools)
 
+    def test_instrumentation_is_explicit_and_restricted_to_original_runner(self):
+        expected = dict(signing.baseline(), package='at.hausgarten.service.test', version_code=0, instrumentation=True)
+        valid = ('E: instrumentation (line=9)\n'
+                 ' A: android:name(0x01010003)="at.hausgarten.service.PixelMcpInstrumentation"\n'
+                 ' A: android:targetPackage(0x01010021)="at.hausgarten.service"\n')
+        for tree, accepted in [(valid, True), (valid.replace('at.hausgarten.service"', 'at.hausgarten.service.qa"'), False),
+                               (valid + ' E: activity (line=20)\n', False), (valid + valid, False),
+                               (valid.replace('PixelMcpInstrumentation', 'OtherRunner'), False)]:
+            with self.subTest(tree=tree), mock.patch.object(signing, 'tool', side_effect=[self.metadata(package=expected['package'], code=1, version='1'), tree.encode()]):
+                if accepted:
+                    self.assertEqual(signing.apk_metadata(self.apk, 'mock-aapt', {}, expected)['package'], expected['package'])
+                else:
+                    with self.assertRaises(signing.SigningError):
+                        signing.apk_metadata(self.apk, 'mock-aapt', {}, expected)
+        with mock.patch.object(signing, 'tool', return_value=self.metadata(package=expected['package'], code=1, version='1')):
+            with self.assertRaises(signing.SigningError):
+                signing.apk_metadata(self.apk, 'mock-aapt', {}, signing.baseline())
+
     def assert_no_private(self, text):
         sentinels = [self.fake_key.decode(), self.fake_cert.decode(), *[self.env[name] for name in signing.VARIABLES[:4]]]
         self.assertFalse(any(value in text for value in sentinels), 'Private sentinel escaped its boundary')

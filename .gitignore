@@ -29,3 +29,11 @@ android/local.properties
 *.key
 qa-signing-password.txt
 .qa-signing/
+
+# Individually verified original candidate; other APK builds remain ignored.
+!downloads/Haus-Garten-1.49.5-74-original-update-kandidat.apk
+!downloads/Haus-Garten-1.49.6-75-original-update-kandidat.apk
+
+!downloads/Haus-Garten-1.50.0-76-original-update-kandidat.apk
+
+!downloads/Haus-Garten-1.50.1-77-original-update-kandidat.apk

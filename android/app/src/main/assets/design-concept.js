@@ -121,16 +121,16 @@
   function ensurePhotoViewer(){
     if(photoViewer)return photoViewer;
     photoViewer=document.createElement('dialog');photoViewer.id='design-photo-view';photoViewer.className='design-photo-view';photoViewer.setAttribute('aria-labelledby','design-photo-caption');photoViewer.setAttribute('aria-describedby','design-photo-load-state');
-    photoViewer.innerHTML='<header><button type="button" class="design-photo-close" aria-label="Foto schließen">×</button><p data-photo-counter></p><button type="button" class="design-photo-delete">Archivieren</button></header><div class="design-photo-stage"><img alt="Kundenfoto" draggable="false"></div><footer><button type="button" class="secondary" data-photo-previous aria-label="Vorheriges Foto">‹</button><div><strong id="design-photo-caption" data-photo-caption></strong><small data-photo-zoom>100 %</small><small id="design-photo-load-state" data-photo-status role="status" aria-live="polite"></small></div><button type="button" class="secondary" data-photo-next aria-label="Nächstes Foto">›</button></footer>';
+    photoViewer.innerHTML='<header><button type="button" class="design-photo-close" aria-label="Foto schließen">×</button><p data-photo-counter></p><details class="photo-more"><summary>Mehr</summary><button type="button" class="design-photo-delete">In den Papierkorb</button></details></header><div class="design-photo-stage"><img alt="Kundenfoto" draggable="false"></div><footer><button type="button" class="secondary" data-photo-previous aria-label="Vorheriges Foto">‹</button><div><strong id="design-photo-caption" data-photo-caption></strong><small data-photo-zoom>100 %</small><small id="design-photo-load-state" data-photo-status role="status" aria-live="polite"></small></div><button type="button" class="secondary" data-photo-next aria-label="Nächstes Foto">›</button></footer>';
     document.body.append(photoViewer);const image=photoViewer.querySelector('img'),pointers=new Map();let startDistance=0,startScale=1,startX=0,startY=0;
     const reset=()=>{viewerScale=1;viewerX=0;viewerY=0;applyViewerTransform();};
     const show=()=>{
       const picture=viewerRows[viewerIndex];if(!picture)return;
-      const token=++viewerLoadToken,status=photoViewer.querySelector('[data-photo-status]'),preview=picture.thumbnail_data,embedded=picture.full_data||picture.data,linked=!!(picture.worklog_id||picture.order_id),linkedNote=linked?' Dieses Belegfoto gehört zu '+(picture.worklog_id?'einer Arbeitsaufzeichnung':'einem Auftrag')+' und kann hier nicht gelöscht werden.':'';
+      const token=++viewerLoadToken,status=photoViewer.querySelector('[data-photo-status]'),preview=picture.thumbnail_data,embedded=picture.full_data||picture.data,linked=!!(picture.worklog_id||picture.order_id),linkedNote=linked?' Foto ist einem Arbeitseinsatz oder Auftrag zugeordnet.':'';
       const source=embedded||preview||'';
       status.textContent=(embedded?'Original ist offline verfügbar.':preview?'Vorschau wird angezeigt. Original wird geladen …':'Original wird geladen …')+linkedNote;
       if(source&&String(source).startsWith('data:image/'))image.src=source;else image.removeAttribute('src');
-      image.alt=picture.caption||'Kundenfoto';photoViewer.querySelector('[data-photo-caption]').textContent=picture.caption||picture.original_name||'Kundenfoto';photoViewer.querySelector('[data-photo-counter]').textContent=(viewerIndex+1)+' / '+viewerRows.length;photoViewer.querySelector('[data-photo-previous]').disabled=viewerRows.length<2;photoViewer.querySelector('[data-photo-next]').disabled=viewerRows.length<2;const remove=photoViewer.querySelector('.design-photo-delete');remove.disabled=linked;remove.title=linked?'Belegfotos bleiben mit ihrer Arbeitsaufzeichnung oder ihrem Auftrag erhalten.':'Dieses Kundenfoto entfernen';reset();
+      image.alt=picture.caption||'Kundenfoto';photoViewer.querySelector('[data-photo-caption]').textContent=picture.caption||picture.original_name||'Kundenfoto';photoViewer.querySelector('[data-photo-counter]').textContent=(viewerIndex+1)+' / '+viewerRows.length;photoViewer.querySelector('[data-photo-previous]').disabled=viewerRows.length<2;photoViewer.querySelector('[data-photo-next]').disabled=viewerRows.length<2;const remove=photoViewer.querySelector('.design-photo-delete');remove.disabled=false;remove.title='In den Papierkorb verschieben';photoViewer.querySelector('.photo-more').open=false;reset();
       if(embedded)return;
       if(typeof window.AndroidData?.getPhotoData!=='function'){status.textContent=(preview?'Vorschau wird angezeigt; Original ist auf diesem Gerät noch nicht verfügbar.':'Kein Bildinhalt auf diesem Gerät verfügbar.')+linkedNote;return;}
       requestAnimationFrame(()=>setTimeout(()=>{
@@ -147,10 +147,11 @@
     photoViewer.querySelector('.design-photo-close').onclick=()=>photoViewer.close();
     photoViewer.querySelector('[data-photo-previous]').onclick=()=>{viewerIndex=(viewerIndex-1+viewerRows.length)%viewerRows.length;show();};
     photoViewer.querySelector('[data-photo-next]').onclick=()=>{viewerIndex=(viewerIndex+1)%viewerRows.length;show();};
+
     photoViewer.querySelector('.design-photo-delete').onclick=()=>{
-      const picture=viewerRows[viewerIndex];if(!picture)return;if(picture.worklog_id||picture.order_id){window.showUndoToast('Dieses Belegfoto bleibt mit der Arbeitsaufzeichnung oder dem Auftrag erhalten.');return;}if(!confirm('Dieses Kundenfoto dauerhaft entfernen? Die Löschung wird über den bestehenden Drive-Abgleich an andere Geräte weitergegeben.'))return;
-      const result=AndroidData.removeEntity?.('photo',picture.id);if(!result||String(result).startsWith('ERROR:')){window.showUndoToast('Foto konnte nicht entfernt werden: '+String(result||'Funktion nicht verfügbar').replace(/^ERROR:\s*/,''));return;}
-      photoViewer.close();load();if(currentPage==='customer-profile-page')profileContent();window.showUndoToast('Foto zum Entfernen vorgemerkt.',()=>{try{const restored=AndroidData.undoRemoveEntity?.('photo',picture.id);if(!restored||String(restored).startsWith('ERROR:'))throw new Error(String(restored||'Funktion nicht verfügbar').replace(/^ERROR:\s*/,''));load();if(currentPage==='customer-profile-page')profileContent();window.showUndoToast('Fotolöschung zurückgenommen.');}catch(error){window.showUndoToast('Rückgängig ist nicht mehr möglich: '+String(error.message||error));}});
+      const picture=viewerRows[viewerIndex];if(!picture)return;if(!confirm('Dieses Foto in den Papierkorb verschieben? Original und Zuordnung bleiben wiederherstellbar.'))return;
+      const removed=window.TrashUI?window.TrashUI.remove('photo',picture.id,picture):window.removeRecordWithUndo?.('photo',picture.id);if(!removed)return;
+      photoViewer.close();if(currentPage==='customer-profile-page')profileContent();
     };
     image.addEventListener('dblclick',()=>{viewerScale=viewerScale>1?1:2.5;viewerX=viewerY=0;applyViewerTransform();});
     image.addEventListener('wheel',event=>{event.preventDefault();viewerScale=Math.min(5,Math.max(1,viewerScale*(event.deltaY<0?1.2:0.84)));if(viewerScale===1)viewerX=viewerY=0;applyViewerTransform();},{passive:false});
@@ -161,14 +162,14 @@
     photoViewer.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'){event.preventDefault();photoViewer.querySelector('[data-photo-previous]').click();}if(event.key==='ArrowRight'){event.preventDefault();photoViewer.querySelector('[data-photo-next]').click();}if(event.key==='+'||event.key==='='){viewerScale=Math.min(5,viewerScale*1.25);applyViewerTransform();}if(event.key==='-'){viewerScale=Math.max(1,viewerScale/1.25);applyViewerTransform();}});
     return photoViewer;
   }
-  function openPhotoViewer(id){
-    viewerRows=photos().filter(row=>row.customer_id===profileId);viewerIndex=Math.max(0,viewerRows.findIndex(row=>row.id===id));const picture=viewerRows[viewerIndex],source=picture?.full_data||picture?.data||picture?.thumbnail_data;
+  function openPhotoViewer(id,rows=null){
+    viewerRows=rows||photos().filter(row=>row.customer_id===profileId);viewerIndex=Math.max(0,viewerRows.findIndex(row=>row.id===id));const picture=viewerRows[viewerIndex],source=picture?.full_data||picture?.data||picture?.thumbnail_data;
     const canLoadOriginal=typeof window.AndroidData?.getPhotoData==='function'&&Boolean(picture?.id&&picture?.storage_name);
     if((!source||!String(source).startsWith('data:image/'))&&!canLoadOriginal){window.showUndoToast('Das Original ist noch nicht lokal verfügbar. Bitte Drive abgleichen.');return;}
     const dialog=ensurePhotoViewer();dialog.showModal();dialog._show();setPhotoFullscreen(true);dialog.querySelector('.design-photo-close').focus({preventScroll:true});
   }
   function profileActions(event){
-    const button=event.target.closest('[data-design-action]');if(!button)return;event.preventDefault();event.stopImmediatePropagation();const action=button.dataset.designAction,id=button.dataset.id,customer=customers().find(x=>x.id===profileId);if(!customer)return;
+    const button=event.target.closest('[data-design-action]');if(!button)return;event.preventDefault();event.stopImmediatePropagation();const action=button.dataset.designAction,id=button.dataset.id;if(action==='photo'&&currentPage==='photo-library-page'){window.PhotoLibraryUI?.open(id);return;}const customer=customers().find(x=>x.id===profileId);if(!customer)return;
     if(action==='edit'){window.editCustomer(profileId);return;}
     if(action==='call'){AndroidPhone.dial(customer.phone);return;}
     if(action==='maps'){AndroidPhone.openMaps([customer.street,customer.postal_code,customer.city,customer.country].filter(Boolean).join(', '));return;}
@@ -184,6 +185,7 @@
   }
   function init(){
     const css=document.createElement('link');css.rel='stylesheet';css.href='design-concept.css';document.head.append(css);
+    window.openStoredPhoto=(id,ids)=>{const rows=new Map(photos().map(p=>[p.id,p]));openPhotoViewer(id,ids?ids.map(id=>rows.get(id)).filter(Boolean):[...rows.values()]);};
     const page=document.createElement('section');page.id='customer-profile-page';page.className='page';page.innerHTML='<div class="page-head"><button type="button" class="back" aria-label="Zurück zur Kundenliste">‹</button><h2>Kundenakte</h2></div><div id="design-profile-content"></div><footer class="design-profile-footer"><button type="button" class="primary" data-design-action="edit">Kundendaten bearbeiten</button></footer>';document.querySelector('main.app').append(page);
     document.addEventListener('change',event=>{if(event.target.id==='design-documentation-filter'&&currentPage==='customer-profile-page'){documentationFilter=event.target.value;profileContent();}});
     window.editCustomer=window.openCustomer;window.openCustomer=function(id){if(!customers().some(x=>x.id===id))return;profileId=id;documentationFilter='all';documentationLimit=50;photoLimit=30;profileContent();openPage('customer-profile-page');};

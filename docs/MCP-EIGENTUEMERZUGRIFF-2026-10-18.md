@@ -1,3 +1,5 @@
+> Historischer Nachweis 1.47. Aktueller Cloud-only-/Pixel-Drive-Auftrag und Abnahme: [CODEX-STATUS.md](../CODEX-STATUS.md), Umsetzung [Cloud-only 1.49.2 / 71](SYNC-DRIVE-KUNDENAKTE-1.48.md#cloud-only-1492--71-18102026). Frühere Laptop-/Web-Rolloutvoraussetzungen sind aufgehoben.
+
 # Eigentümerzugriff und Datenintegrität – Cloud-Stand 1.47.0 / 67
 
 Fortsetzung mit denselben 66 Werkzeugnamen: [Drive-Abgleich und Kundenakte
@@ -79,7 +81,7 @@ Geräte- oder Drive-End-to-End-Abnahme.
 | Versand | `prepare_invoice_share` | H Schema, N | Bereitet Geräteübergabe vor; Versand-App und Benutzerhandlung erforderlich; weder Versand noch Zustellung behaupten |
 | Synchronisation | `get_sync_overview`, `get_sync_status`, `request_sync` | H Python/JVM/Browser, N, L Status | Provider-Rücklesen ist keine unabhängige Cloud-Bestätigung |
 | Konflikte | `get_sync_conflicts`, `resolve_sync_conflict` | H Python/JVM, N | Originalaktion und aktueller Stand mit Hashes; beide Varianten behalten; Entscheidung erneut prüfen |
-| Archiv | `archive_entity`, `list_archive`, `restore_entity` | H Python/JVM inklusive Drive-Export/Wiederholung, N | Keine physische Originaldateilöschung; keine belegte ID überschreiben; Beziehungen und Originale erhalten |
+| Papierkorb | `preview_delete`, `delete_entity`, `archive_entity`, `list_archive`, `restore_entity`, `preview_purge`, `purge_entity` | H JVM/Browser, native Pfade nur kompiliert | Archiv bewahrt Originale; Purge benötigt explizite Bestätigung/Hash und geschützte Referenzen. Foto-Dateibereinigung nach überprüfter Veröffentlichung; Live weiterhin Build72 ohne neue Purge-Werkzeuge |
 | Gerätestandards | `get_settings`, `update_settings` | H Schema, N | Nur erlaubte fachliche Defaults; kein Konto-/Berechtigungsersatz |
 | Rechnungseinstellungen | `get_business_settings`, `update_business_settings` | H Python/JVM, N | Nur nicht geheime Aussteller-/Nummernkonfiguration; tatsächliche Prüfung externer Nummernstände bleibt nötig |
 | Sicherung | `create_backup`, `list_backups`, `inspect_backup` | H Schema, N | Privates Geschäftsartefakt bis 64 MiB mit lokal verfügbaren Originalen; fehlende Originale führen zum Fehler, kein Teil-Erfolg |
@@ -196,3 +198,119 @@ Reproduktionen in `tests/access-integrity.test.cjs`, ausschließlich synthetisch
 Daten. Build, Lint und Android-Testquellen-Kompilierung wurden ausgeführt.
 `OwnerNativeAcceptance` ist vorbereitet und kompiliert, nicht auf einem Gerät
 ausgeführt. Keine produktiven Schreibtests und keine Installation.
+
+
+### Papierkorb-Protokoll 5 / Cloud-Kandidat 1.49.4/73
+
+Bestehende Funktionen erhalten; Quellkatalog 87 Werkzeuge, Hash `0cd1b37e492eb9370c481a636f45f81c129694d60cd2d6bd25e0517a110eaab0`. Neu: `preview_purge` (lesen) und `purge_entity` (Owner schreiben, `confirmed=true`, aktueller Archivhash, dauerhafte request_id). `delete_entity`/`archive_entity` benötigen bei betroffenen Fotozuordnungen zusätzlich `expected_photo_links_hash` aus `preview_delete`. Aktive und bereits archivierte Fotos werden beim Entfernen des zugehörigen Kunden/Auftrags/Arbeitseintrags kontrolliert entkoppelt. Originale bleiben erhalten. Keine separate manuelle Entkopplungsfunktion.
+
+Purge entfernt den ausgewählten Archivdatensatz, hält einen minimalen Löschbeleg in `owner_archive`, blockiert Wiederbelebung derselben ID und bereinigt nicht mehr verwendete Fotodateien erst nach überprüfter Veröffentlichung und lokaler Snapshot-Übernahme. Historische Sicherungen/Journale bleiben getrennt erhalten; keine forensische Löschzusage. Finanzielle Belege und andere Geschäftsabhängigkeiten bleiben geschützt. Fehlgeschlagener Purge kann ausschließlich mit `keep_current` und erneut geprüften Aktions-/Archivhashes zurückgenommen werden.
+
+Live weiterhin Build 72 / Protokoll 4 / 85 Werkzeuge: die neuen Werkzeuge sind dort noch nicht angeboten oder getestet. Nach gesichertem und ausdrücklich freigegebenem Update auf 73 dieselbe private Pixel-Verbindung neu verbinden, initialize und tools/list aktualisieren, danach get_capabilities auf Version, Hash, Schreibgate und 87 tatsächliche Werkzeuge prüfen. Der Tunnel erzeugt die Liste dynamisch aus derselben Implementierung; ein alter Connector-/ChatGPT-Katalog benötigt ebenfalls Refresh/Neuverbindung. Code erteilt keine externen Freigaben. Abnahmen/Testergebnisse ausschließlich zentral in CODEX-STATUS.md.
+
+
+### Additive Mehrfacharchivierung / Cloud-Kandidat 1.49.5/74
+
+Zwei zusätzliche Werkzeuge im Quellkatalog: `preview_archive_work_records`
+(lesen) und `archive_work_records` (Owner schreiben). Auswahl 1–200 eindeutige
+Arbeits-IDs, gemeinsamer Vorschauhash über sämtliche Record-/Fotovergleichsstände,
+`confirmed=true`, dauerhafte request_id. Bei einem Konflikt/geschützten Eintrag
+atomarer lokaler Abbruch. Bestehende einzelne archive-Journale und Restore-Pfade,
+keine Kaskaden- oder endgültige Massenlöschung, Originaldateien bleiben erhalten.
+UI unter Arbeiten → Mehrere auswählen; Transportstatuswechsel allein verwirft
+die Auswahl nicht. Versions-/Finanzschutz bleibt im gemeinsamen nativen Pfad.
+
+Protokoll5 bleibt kompatibel, **89 Quellwerkzeuge**, Kataloghash
+`2dde37b0694c5379cc55048b9ec7f681a9ffaa0d4162d6d7ae385c324a644a2b`.
+Tatsächlich installierter Pixel bei diesem Auftrag: **73 /Protokoll5 /87 Tools**.
+Neue zwei Werkzeuge sind dort noch nicht angeboten oder live getestet.
+Nach ausdrücklich freigegebenem gesichertem Update private Verbindung und
+ChatGPT-Toolkatalog neu initialisieren, danach Version/Hash/Get-Capabilities prüfen.
+Reale Prüfmatrix, Emulator-/Browser-/Host-Ergebnisse und verbleibende Grenzen:
+ausschließlich `CODEX-STATUS.md`. Keine neue externe Konto-/Drive-Freigabe erteilt.
+
+### Gemeinsame Papierkorbleerung / Cloud-Kandidat 1.49.6/75
+
+Quellkatalog91 Werkzeuge, internes Protokoll6. `preview_empty_trash` prüft alle
+Archivseiten und aktive Referenzen gemeinsam. `empty_trash` verlangt den aktuellen
+`expected_preview_hash`, `confirmed=true` und eine dauerhafte `request_id`.
+Die neue atomare Journalaktion `purge_trash_v1` benötigt `trash_empty_v1`;
+ältere Verarbeiter müssen sie zurückhalten. Abhängigkeiten innerhalb der
+bestätigten Archivmenge sind gemeinsam löschbar, geschützte Restfälle bleiben
+mit Begründung erhalten. Eine fehlgeschlagene Sammelaktion lässt sich nur mit
+geprüften Aktions-/Ausgangshashes und `keep_current` zurücknehmen.
+
+Der Legacy-Abschluss verwendet weiterhin vollständige private Sicherung,
+aktuelle Vorschau und `keep_current`. Eine vollständig nachgelesene, inhaltlich
+verifizierte Provider-Veröffentlichung wird nun für die Sicherung akzeptiert.
+Das setzt weiterhin bestehende Ordnerrechte, einen abgeschlossenen Abgleich und
+unveränderte State-/Commit-Kette voraus; fehlende Originale stoppen den Vorgang.
+Provider-Rücklesen wird ausdrücklich nicht zu `cloud_confirmed` umgedeutet.
+
+Foto- und Entwurfs-PDF-Bereinigung erst nach überprüfter Veröffentlichung und
+lokaler Übernahme; aktive/archivierte/offene Referenzen und gemeinsame Dateien
+bleiben geschützt. Historische Sicherungen und unveränderliche Belege bleiben
+erhalten. Keine pauschale Löschung des Google-Konto-Papierkorbs.
+
+Tatsächlich installierter Pixel bei dieser Umsetzung74/Protokoll5/89 Laufzeit-
+Werkzeuge; hier verbundener Katalog83. Nach gesichertem, ausdrücklich freigegebenem
+Update dieselbe Verbindung neu initialisieren/aktualisieren und tatsächliche
+91 Werkzeuge samt neuen Schemata prüfen. Bestehende Rechnungs-/Angebotswerkzeuge
+bleiben erhalten. Aktuelle Ausführung, Testergebnisse und Live-Grenzen nur im
+zentralen `CODEX-STATUS.md`; Quellimplementierung ist keine produktive Löschquittung.
+
+
+## Aktuelle Ergänzung: Eigentümer-Parität und Legacy-Sicherung 1.50.1/77
+
+Ausgang db5fcd3, installierter Pixel bei dieser Prüfung1.50.0/76, Protokoll7,104/104 Werkzeuge mit identischen Namen. Health und Capabilities melden beide9eade6bb724836aee976f9a912c80a0d40d8e0cc1dead509a55f8f7069fc3df2. Diese Live-Aussage nicht mit dem neuen Quellkatalog gleichsetzen.
+
+Die maschinenlesbare, in der APK enthaltene Funktionsmatrix liegt in `android/app/src/main/assets/ui-mcp-actions.json` und ist über `get_ui_action_catalog` mit offset/limit erreichbar. Sie inventarisiert semantische Benutzeraktionen; doppelte Schaltflächen sowie reine Navigation werden gruppiert, nicht als zusätzliche Fachfunktionen gezählt. Die vollständigen31 JavaScript-/HTML-/Native-UI-Quellen sind per SHA versionsgebunden: nach Änderungen ist eine erneute Prüfung erforderlich. `UiMcpParityTests` prüft jeden dokumentierten Werkzeugpfad gegen die tatsächliche Registrierung, Kataloghash, Lesemodus, kritische Parameter und Pagination. Das ersetzt keinen echten Gerätetest jeder Schaltfläche.
+
+| Bereich | Fachliche Aktionsgruppen mit MCP-Pfad | Wesentliche Pfade |
+|---|---:|---|
+| Kunden / Gartenakte |13|search/get/create/update_customer; archive/restore|
+| Aufträge / Versionsprüfung |12|search/get/create/update_order; inspect_order_review/save_reviewed_order|
+| Arbeitsaufzeichnungen / b.b. |14|list/get/create/update/reassign; set_personal_paid; Archive-Auswahl|
+| Dauerhafte Zeiterfassung |10|start_work; Pause/Fortsetzen/Stoppen; complete_work_session; finish_work|
+| Rechnungen |13|Entwurf, geschützter Abschluss, Korrektur, Zahlung, Original-PDF und Share-Vorbereitung|
+| Angebote |13|Kontext, Entwurf, Positionen, Validierung, Finalisierung, PDF, Annahme→Auftrag|
+| Leistungskatalog |5|search/get/create/update_catalog_entry; active=false/true|
+| Fotos / Dateitransfer |12|list/get_photo; begrenzte Chunks; create/update; Archiv/Restore|
+| Geschäftssicherungen |6|create/list/inspect/restore_backup; Dateitransfer; vollständige Legacy-Sicherung|
+| Papierkorb |6|list_archive; restore; preview/purge; preview_empty_trash/empty_trash|
+| Synchronisierung / Konflikte |10|get_sync_overview/status/conflicts; request_sync; resolve; Legacy-Vorschau/Sicherung/Abschluss|
+| App-/Unternehmenseinstellungen |7|get/update_settings/business_settings; capabilities; UI-Matrix|
+| Termine / Kalender / Wetter |20|Planung lesen/ändern, Serien, Alternativen, Warnungen, Kalendervergleich, get/update_planning_settings|
+| Pflanzen / Neophyten |4|search_catalog/get_catalog_entry; authentifizierte Katalogbilder; Kundengartenfelder|
+| **Summe fachlich** |**145**|**111 registrierte Werkzeuge im Quellstand, Protokoll8**|
+
+Zusätzlich elf erklärte Plattform-/Darstellungsgruppen: Erstfreigabe Google/Drive-Dokumentbaum, erstmalige Kalenderverbindung, private Wetter-Schlüsseleingabe, Tunnel-Vertrauensanker/Schreibfreigabe, Android-Systemberechtigungen, physische Kamera/Galerie, GPS-Messung, Versand-/Telefon-/Karten-App, vollständige Gerätesicherung/Installation, reine Anzeige/Navigation/Piratenknopfposition und ungespeicherte UI-Eingaben. Inhalte/Dateien sind per MCP lesbar; Kamera/Picker werden durch Datei-Upload ergänzt. Offene UI-Entwürfe dürfen durch MCP niemals heimlich geändert oder verworfen werden. Diese Ausnahmen sind keine künstliche Low-risk-Beschränkung.
+
+### Rechte und Sprachabläufe
+
+Ein authentifizierter Eigentümer mit aktiviertem Pixel-Schreibschalter erreicht alle registrierten Fach- und Adminoperationen. `get_capabilities` weist `owner_admin_write_enabled`, den Aktionsumfang und notwendige Sicherheitsparameter aus. ChatGPTs eigene Allow-all-actions-Einstellung verwaltet der Client; die App attestiert sie nicht und vergibt keine externen Google-/Tunnelrechte. Ohne Schreibschalter werden sämtliche Schreibwerkzeuge aus der Registrierung entfernt und Aufrufe serverseitig abgewiesen. Keine beliebigen SQL-, Dateisystem-, Shell- oder Geheimnislesefunktionen.
+
+Für Sprache IDs zunächst eindeutig suchen; mehrdeutige Namen nicht erraten. `finish_work(session_id,activity,request_id,...)` stoppt eine laufende/pausierte tatsächliche Sitzung und übernimmt die reale Nettozeit atomar. Fehler erhalten den vorherigen Timerzustand, identische Request-ID liefert denselben Beleg; keine doppelte Aufzeichnung. `start_work` akzeptiert eine geprüfte Terminreferenz. Das ist durch den aktuellen ausdrücklichen Benutzerauftrag autorisierte echte Timerarbeit, keine erfundene Tätigkeit. Persönlich bezahlt bleibt getrennt von billed und Rechnungszahlungen. Rechnung aus offenen Arbeiten: Arbeitseinträge lesen, reale bestätigte Preise/Empfänger übernehmen, create_invoice_draft; Abschluss ausschließlich nach ausdrücklicher Anweisung über request_invoice_issue, Versand separat.
+
+`get_planning_settings` liefert Vergleichshash; `update_planning_settings` ändert Arbeitstage, Tageszeiten, Puffer, Wetterschwellen und vorhandene Integrations-/Benachrichtigungsoptionen über denselben privaten SQLite-Speicher wie die Oberfläche. Aktivierung ohne bestehenden autorisierten Kalender beziehungsweise hinterlegten freigegebenen Wetterzugang wird abgewiesen. Kalenderpause löscht keine Termine/Google-Einträge. Android-Benachrichtigungsrechte werden separat ausgewiesen. `request_weather_refresh` stößt den vorhandenen Planungsjob mit seinen Cache-/Retry-Regeln an, keine garantierte neue Providerantwort.
+
+Listen für Kunden, Aufträge, Arbeitsaufzeichnungen und Rechnungen unterstützen offset; Fotos zusätzlich Rolle, Sitzung, Arbeit und Aufnahmedatum. Seiten mit höchstens100 Datensätzen, stabile Fotosortierung; Originale weiterhin nur über begrenzte authentifizierte Dateiblöcke. Kein Base64-Original im Geschäfts-Snapshot.
+
+### Zyklische Legacy-Sperre sicher auflösen
+
+Vorher lehnten Sicherung UND Sammelabschluss jedes drive_sync_failed ab, während readPrimary bei LEGACY_SOURCE_CHANGED selbst die beweissichernde Lesung verhinderte. Eine weitere konkrete Ursache ist die nachträglich eingeführte leere appointments-Sammlung: ein75er Hash kann nach76er Validierung abweichen, obwohl kein Geschäftsdatensatz verändert wurde. Der neue Leser prüft ausschließlich nachweisbar identische Varianten fehlender/leerer additiver Sammlungen; echte Inhalte bleiben Bestandteil der Prüfung.
+
+1. preview_legacy_conflict_resolution neu lesen: exakt sieben bekannte Altaktionen, keep_current, no_business_data_changed.
+2. prepare_legacy_conflict_backup mit request_id und **expected_preview_hash**. Das zusätzliche Feld bleibt für alte erfolgreiche Normalabläufe optional; im Fehlerbehebungspfad ist es zwingend. Sync darf nicht laufen, bestehende Ordnerrechte/Veröffentlichungskette müssen tatsächlich lesbar sein. Andere Fehler und neue/technische Queueaktionen bleiben gesperrt.
+3. Private vollständige lokale Geschäftssicherung: konsistentes SQLite inklusive Queue, Originale/private Dateien, aktueller Legacy-Snapshot und verifizierter unveränderlicher Pixel-Snapshot samt Commit. Beide Quellen vor/nach dem Lesen prüfen; alle ZIP-CRC, Archiv-SHA und Geschäftshash prüfen. Kein bloßes Storage-Rücklesen als Cloud-Bestätigung ausgeben.
+4. close_legacy_conflicts mit backup_id, unverändertem expected_preview_hash, confirmed=true und stabiler request_id. Eine SQLite-Transaktion prüft alle Aktions-/Datensatzhashes und merkt sieben keep_current-Entscheidungen vor. Keine alte Löschung/Variante anwenden. Der lokale Entscheidungsschritt verlangt keine erfolgreiche Netzwerkoperation.
+5. request_sync, danach Queue/aktive Konflikte/Historie/Geschäftshash und Bestätigung zurücklesen. Provider_readback bleibt von unabhängigem Drive-Serverbeleg getrennt.
+
+Eine tatsächlich fremdveränderte Legacy-Geschäftsdatei kann damit gesichert und als Evidenz erhalten werden, wird aber nicht automatisch angenommen oder überschrieben. Ein solcher verbleibender LEGACY_SOURCE_CHANGED benötigt die fachliche Prüfung beider erhaltenen Stände. Sicherung oder keep_current für historische Aktionen autorisiert keine fremde neue Geschäftsdatenmigration.
+
+### Veröffentlichung / Refresh
+
+Der neue Runtime-Katalog enthält111 Werkzeuge, Protokoll8. Nach gesichertem ausdrücklich freigegebenem Original-Update den vorhandenen Pixel-Tunnel neu verbinden, `integration_health` und `get_capabilities` lesen, anschließend den verwalteten ChatGPT-Connector aktualisieren/neu verbinden und seine Werkzeuge neu laden. Erwartet: identische Toolnamen, aktuelle Schemas und identischer Tool-Kataloghash zwischen Health/Capabilities/aktueller Registrierung. Bei weiterhin104 Werkzeugen ist der alte Katalog aktiv; neue Funktionen dann nicht als verfügbar ausgeben. Kein alter Desktop-Tunnel, keine Umgehung von401 und kein erneutes Anlegen einer zweiten App. Tatsächlicher Abschlussnachweis und eventuelle Blockaden stehen ausschließlich in CODEX-STATUS.md.
+
+
+Tatsächlich getrennt nachgeprüft: Die ChatGPT-App-Berechtigungsverwaltung bestätigt für **Haus & Gartenservice Pixel** die eigene Einstellung **Allow all actions**; die globale Low-risk-Voreinstellung wird übersteuert. Keine Einstellung geändert. Der installierte104er Katalog und die hier sichtbaren104 Connector-Deklarationen stimmen zusätzlich in sämtlichen obersten Parameternamen und Pflichtfeldern überein. Ein unabhängiger vollständiger Connector-Schemahash wird von dieser Verwaltung nicht ausgegeben; Hashgleichheit wurde zwischen Pixel-Health und Pixel-Capabilities geprüft. Der neue111er Quellkatalog hat Hash **392fdfacf116c49e13306fcfc8c84ab49ee0ce20b35ca62d250fa069ecd1f2ff**. Vollständige Min-/Max-/Enum-Verträge werden in der App validiert; TypeScript-Connector-Deklarationen stellen diese JSON-Schema-Grenzen nicht vollständig dar.

@@ -6,7 +6,13 @@ Der Laptop/Desktop ist ab 18. Oktober 2026 **kein Bestandteil der aktiven Arbeit
 
 Funktionen, die technisch noch einen lokalen Web-/Laptop-Prozessor voraussetzen, gelten als **noch nicht vollständig migriert**. Sie müssen vor produktiver Freigabe in Codex Cloud auf Pixel/Drive-direkte Verarbeitung umgestellt werden. Historische Dateinamen wie `HausGarten-Laptop.json` können aus Kompatibilitätsgründen bestehen bleiben und bedeuten keine Laptop-Abhängigkeit.
 
-# Aktueller gemeinsamer Entwicklungsstand: 18. Oktober 2026
+# Cloud-Prüfkandidat 1.49.2 / 71
+
+[Originalsignierte APK und Prüfsumme](downloads/README.md) · [Fortlaufender Auftrag-/Abnahmestatus](CODEX-STATUS.md)
+
+Die native Pixel-/Drive-Verarbeitung ist implementiert und isoliert geprüft. Der Pixel läuft weiterhin auf 1.49.0/69; neun Reviews bleiben erhalten. **Gesamtauftrag und Gerätefreigabe sind offen.** Vor einem Update vollständige Sicherung und ausdrückliche Freigabe; keine automatische Installation oder Datenlöschung. Originalsignatur allein beweist keinen Datenerhalt.
+
+# Historischer gemeinsamer Integrationsstand: 18. Oktober 2026
 
 Die bestehenden Entwicklungsstände wurden im selben Repository zusammengeführt.
 Der Update-Kandidat 1.46.1 (`versionCode 66`) verwendet `at.hausgarten.service`.

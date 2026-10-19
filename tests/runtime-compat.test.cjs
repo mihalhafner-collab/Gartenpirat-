@@ -1,0 +1,14 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),{webcrypto}=require('node:crypto');
+const context=vm.createContext({crypto:{getRandomValues:webcrypto.getRandomValues.bind(webcrypto)}});
+vm.runInContext('delete Array.prototype.at;delete Object.hasOwn;delete String.prototype.replaceAll;',context);
+vm.runInContext(fs.readFileSync('android/app/src/main/assets/runtime-compat.js','utf8'),context);
+assert.equal(vm.runInContext('[1,2].at(-1)',context),2);assert.equal(vm.runInContext('[1,2].at(-3)',context),undefined);
+assert.equal(vm.runInContext("Object.hasOwn(Object.create({a:1}),'a')",context),false);
+assert.equal(vm.runInContext("'a.b.a.b'.replaceAll('.','-')",context),'a-b-a-b');
+assert.equal(vm.runInContext("'a-b'.replaceAll('-', '$&$&')",context),'a--b');
+assert.equal(vm.runInContext("'a-b'.replaceAll(/-/g,()=>'+')",context),'a+b');
+assert.throws(()=>vm.runInContext("'a-b'.replaceAll(/-/,'.')",context));
+const ids=vm.runInContext('Array.from({length:1000},()=>crypto.randomUUID())',context);assert.equal(new Set(ids).size,1000);for(const id of ids)assert.match(id,/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+const noEntropy=vm.createContext({crypto:{getRandomValues(){throw new Error('No entropy');}}});vm.runInContext(fs.readFileSync('android/app/src/main/assets/runtime-compat.js','utf8'),noEntropy);assert.throws(()=>vm.runInContext('crypto.randomUUID()',noEntropy));
+console.log('PASS WebView API fallbacks, literal/regex replacement, 1000 secure v4 request IDs and fail-closed entropy loss');

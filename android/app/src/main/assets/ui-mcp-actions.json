@@ -1,0 +1,1955 @@
+{
+  "format": "hausgarten.ui_mcp_actions.v1",
+  "protocol_version": 8,
+  "scope": "Reviewed semantic operator actions; repeated buttons and purely visual navigation grouped; platform consent and uncommitted local drafts explicitly excluded from business parity.",
+  "actions": [
+    {
+      "id": "kunden.1",
+      "area": "kunden",
+      "action": "Suchen / Liste",
+      "source": "customer-hub.js",
+      "mcp": [
+        "search_customers"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "kunden.2",
+      "area": "kunden",
+      "action": "Kundenakte lesen",
+      "source": "customer-hub.js",
+      "mcp": [
+        "get_customer"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "kunden.3",
+      "area": "kunden",
+      "action": "Anlegen",
+      "source": "customer-hub.js",
+      "mcp": [
+        "create_customer"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "kunden.4",
+      "area": "kunden",
+      "action": "Stammdaten bearbeiten",
+      "source": "customer-hub.js",
+      "mcp": [
+        "get_customer",
+        "update_customer"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "kunden.5",
+      "area": "kunden",
+      "action": "Gartenfläche und Gartenhinweise",
+      "source": "customer-hub.js",
+      "mcp": [
+        "get_customer",
+        "update_customer"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "kunden.6",
+      "area": "kunden",
+      "action": "Rechnungsempfänger konfigurieren",
+      "source": "customer-hub.js",
+      "mcp": [
+        "get_customer",
+        "update_customer"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "kunden.7",
+      "area": "kunden",
+      "action": "Aktivstatus",
+      "source": "customer-hub.js",
+      "mcp": [
+        "get_customer",
+        "update_customer"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "kunden.8",
+      "area": "kunden",
+      "action": "Historie / Tätigkeiten",
+      "source": "customer-hub.js",
+      "mcp": [
+        "get_customer_work_records"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "kunden.9",
+      "area": "kunden",
+      "action": "Fotoübersicht",
+      "source": "customer-hub.js",
+      "mcp": [
+        "list_photos"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "kunden.10",
+      "area": "kunden",
+      "action": "Angebote zum Kunden",
+      "source": "customer-hub.js",
+      "mcp": [
+        "list_offers"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "kunden.11",
+      "area": "kunden",
+      "action": "Aufträge zum Kunden",
+      "source": "customer-hub.js",
+      "mcp": [
+        "search_orders"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "kunden.12",
+      "area": "kunden",
+      "action": "Archivieren mit Fotoablösung",
+      "source": "customer-hub.js",
+      "mcp": [
+        "preview_delete",
+        "archive_entity"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "kunden.13",
+      "area": "kunden",
+      "action": "Wiederherstellen",
+      "source": "customer-hub.js",
+      "mcp": [
+        "list_archive",
+        "restore_entity"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "auftraege.14",
+      "area": "auftraege",
+      "action": "Suchen / offene Aufträge",
+      "source": "order-sync-review.js",
+      "mcp": [
+        "search_orders",
+        "get_open_orders"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "auftraege.15",
+      "area": "auftraege",
+      "action": "Lesen",
+      "source": "order-sync-review.js",
+      "mcp": [
+        "get_order"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "auftraege.16",
+      "area": "auftraege",
+      "action": "Anlegen",
+      "source": "order-sync-review.js",
+      "mcp": [
+        "create_order"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "auftraege.17",
+      "area": "auftraege",
+      "action": "Bearbeiten / Status / Einsatzort",
+      "source": "order-sync-review.js",
+      "mcp": [
+        "get_order",
+        "update_order"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "auftraege.18",
+      "area": "auftraege",
+      "action": "Rechnungsempfänger",
+      "source": "order-sync-review.js",
+      "mcp": [
+        "get_order",
+        "update_order"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "auftraege.19",
+      "area": "auftraege",
+      "action": "Offene Versionen prüfen",
+      "source": "order-sync-review.js",
+      "mcp": [
+        "inspect_order_review"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "auftraege.20",
+      "area": "auftraege",
+      "action": "Prüfung aktuellen Stand behalten",
+      "source": "order-sync-review.js",
+      "mcp": [
+        "inspect_order_review",
+        "save_reviewed_order"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "auftraege.21",
+      "area": "auftraege",
+      "action": "Prüfung korrigiert speichern",
+      "source": "order-sync-review.js",
+      "mcp": [
+        "inspect_order_review",
+        "save_reviewed_order"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "auftraege.22",
+      "area": "auftraege",
+      "action": "Aus Angebot übernehmen",
+      "source": "order-sync-review.js",
+      "mcp": [
+        "convert_offer_to_order"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "auftraege.23",
+      "area": "auftraege",
+      "action": "Nachtrag mit Auftrag verbinden",
+      "source": "order-sync-review.js",
+      "mcp": [
+        "convert_offer_to_order"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "auftraege.24",
+      "area": "auftraege",
+      "action": "Archivieren",
+      "source": "order-sync-review.js",
+      "mcp": [
+        "preview_delete",
+        "archive_entity"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "auftraege.25",
+      "area": "auftraege",
+      "action": "Wiederherstellen",
+      "source": "order-sync-review.js",
+      "mcp": [
+        "list_archive",
+        "restore_entity"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "arbeiten.26",
+      "area": "arbeiten",
+      "action": "Liste / Datum / Suche",
+      "source": "mobile.html",
+      "mcp": [
+        "list_work_records",
+        "search_business_data"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "arbeiten.27",
+      "area": "arbeiten",
+      "action": "Details lesen",
+      "source": "mobile.html",
+      "mcp": [
+        "get_work_record"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "arbeiten.28",
+      "area": "arbeiten",
+      "action": "Manuell erfassen",
+      "source": "mobile.html",
+      "mcp": [
+        "create_customer_work_record"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "arbeiten.29",
+      "area": "arbeiten",
+      "action": "Bestehende bearbeiten / Nachtrag",
+      "source": "mobile.html",
+      "mcp": [
+        "get_work_record",
+        "update_work_record"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "arbeiten.30",
+      "area": "arbeiten",
+      "action": "Vorlage duplizieren und gezielt speichern",
+      "source": "mobile.html",
+      "mcp": [
+        "get_work_record",
+        "create_customer_work_record"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "arbeiten.31",
+      "area": "arbeiten",
+      "action": "Kunde / Rechnungsempfänger zuordnen",
+      "source": "mobile.html",
+      "mcp": [
+        "get_work_record",
+        "reassign_work_record"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "arbeiten.32",
+      "area": "arbeiten",
+      "action": "Abrechnungsmarkierung",
+      "source": "mobile.html",
+      "mcp": [
+        "get_work_record",
+        "set_work_record_billed"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "arbeiten.33",
+      "area": "arbeiten",
+      "action": "Persönlich bezahlt / b.b. setzen und entfernen",
+      "source": "mobile.html",
+      "mcp": [
+        "set_personal_paid"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "arbeiten.34",
+      "area": "arbeiten",
+      "action": "Persönliche Markierungen lesen",
+      "source": "mobile.html",
+      "mcp": [
+        "get_settings"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "arbeiten.35",
+      "area": "arbeiten",
+      "action": "Wochen / Kalenderjahr / Zusammenfassung",
+      "source": "mobile.html",
+      "mcp": [
+        "get_work_record_summary",
+        "list_work_records"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "arbeiten.36",
+      "area": "arbeiten",
+      "action": "Qualitätsübersicht / Überschneidungen",
+      "source": "mobile.html",
+      "mcp": [
+        "get_work_record_summary"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "arbeiten.37",
+      "area": "arbeiten",
+      "action": "Einzeln in Papierkorb",
+      "source": "mobile.html",
+      "mcp": [
+        "preview_delete",
+        "archive_entity"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "arbeiten.38",
+      "area": "arbeiten",
+      "action": "Auswahl in Papierkorb",
+      "source": "mobile.html",
+      "mcp": [
+        "preview_archive_work_records",
+        "archive_work_records"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "arbeiten.39",
+      "area": "arbeiten",
+      "action": "Rückgängig / wiederherstellen",
+      "source": "mobile.html",
+      "mcp": [
+        "list_archive",
+        "restore_entity"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "zeiterfassung.40",
+      "area": "zeiterfassung",
+      "action": "Aktuelle Sitzung / Pausen lesen",
+      "source": "workday-ui.js",
+      "mcp": [
+        "get_active_work_session"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "zeiterfassung.41",
+      "area": "zeiterfassung",
+      "action": "Bei Kunde / Auftrag / Termin starten",
+      "source": "workday-ui.js",
+      "mcp": [
+        "start_work"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "zeiterfassung.42",
+      "area": "zeiterfassung",
+      "action": "Pause starten",
+      "source": "workday-ui.js",
+      "mcp": [
+        "start_break"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "zeiterfassung.43",
+      "area": "zeiterfassung",
+      "action": "Pause beenden",
+      "source": "workday-ui.js",
+      "mcp": [
+        "end_break"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "zeiterfassung.44",
+      "area": "zeiterfassung",
+      "action": "Stoppen ohne Arbeitsnachweis",
+      "source": "workday-ui.js",
+      "mcp": [
+        "stop_work"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "zeiterfassung.45",
+      "area": "zeiterfassung",
+      "action": "Gestoppte Arbeit fortsetzen",
+      "source": "workday-ui.js",
+      "mcp": [
+        "continue_work"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "zeiterfassung.46",
+      "area": "zeiterfassung",
+      "action": "Geprüfte Zeit speichern",
+      "source": "workday-ui.js",
+      "mcp": [
+        "complete_work_session"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "zeiterfassung.47",
+      "area": "zeiterfassung",
+      "action": "Stoppen und Tätigkeit speichern",
+      "source": "workday-ui.js",
+      "mcp": [
+        "finish_work"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "zeiterfassung.48",
+      "area": "zeiterfassung",
+      "action": "Verwerfen",
+      "source": "workday-ui.js",
+      "mcp": [
+        "discard_work_session"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "zeiterfassung.49",
+      "area": "zeiterfassung",
+      "action": "Verworfene Sitzung zurückholen",
+      "source": "workday-ui.js",
+      "mcp": [
+        "restore_work_session"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "rechnungen.50",
+      "area": "rechnungen",
+      "action": "Liste / Filter",
+      "source": "invoice-editor.js",
+      "mcp": [
+        "list_invoices"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "rechnungen.51",
+      "area": "rechnungen",
+      "action": "Details und Positionen",
+      "source": "invoice-editor.js",
+      "mcp": [
+        "get_invoice"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "rechnungen.52",
+      "area": "rechnungen",
+      "action": "Entwurf erstellen",
+      "source": "invoice-editor.js",
+      "mcp": [
+        "create_invoice_draft"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "rechnungen.53",
+      "area": "rechnungen",
+      "action": "Entwurf / Positionen / Kopf-/Fußtext bearbeiten",
+      "source": "invoice-editor.js",
+      "mcp": [
+        "get_invoice",
+        "update_invoice_draft"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "rechnungen.54",
+      "area": "rechnungen",
+      "action": "Offene Arbeitseinträge übernehmen",
+      "source": "invoice-editor.js",
+      "mcp": [
+        "list_work_records",
+        "create_invoice_draft"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "rechnungen.55",
+      "area": "rechnungen",
+      "action": "Vorschau / Summen",
+      "source": "invoice-editor.js",
+      "mcp": [
+        "get_invoice"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "rechnungen.56",
+      "area": "rechnungen",
+      "action": "Geschützt ausstellen / Nummernkreis",
+      "source": "invoice-editor.js",
+      "mcp": [
+        "get_invoice",
+        "request_invoice_issue"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "rechnungen.57",
+      "area": "rechnungen",
+      "action": "Korrekturentwurf / Storno",
+      "source": "invoice-editor.js",
+      "mcp": [
+        "get_invoice",
+        "create_invoice_correction"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "rechnungen.58",
+      "area": "rechnungen",
+      "action": "Bezahlt und offen markieren",
+      "source": "invoice-editor.js",
+      "mcp": [
+        "get_invoice",
+        "update_invoice_payment"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "rechnungen.59",
+      "area": "rechnungen",
+      "action": "Original-PDF lesen",
+      "source": "invoice-editor.js",
+      "mcp": [
+        "get_file_metadata",
+        "read_file_chunk"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "rechnungen.60",
+      "area": "rechnungen",
+      "action": "Teilen vorbereiten, Versand gesondert",
+      "source": "invoice-editor.js",
+      "mcp": [
+        "prepare_invoice_share"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "rechnungen.61",
+      "area": "rechnungen",
+      "action": "Entwurf archivieren",
+      "source": "invoice-editor.js",
+      "mcp": [
+        "preview_delete",
+        "archive_entity"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "rechnungen.62",
+      "area": "rechnungen",
+      "action": "Ausstellerdaten und Steuermodus",
+      "source": "invoice-editor.js",
+      "mcp": [
+        "get_business_settings",
+        "update_business_settings"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "angebote.63",
+      "area": "angebote",
+      "action": "Liste / Suche",
+      "source": "offers-ui.js",
+      "mcp": [
+        "list_offers"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "angebote.64",
+      "area": "angebote",
+      "action": "Details lesen",
+      "source": "offers-ui.js",
+      "mcp": [
+        "get_offer"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "angebote.65",
+      "area": "angebote",
+      "action": "Kontext Kunde / Garten / freigegebene Preise",
+      "source": "offers-ui.js",
+      "mcp": [
+        "get_offer_context"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "angebote.66",
+      "area": "angebote",
+      "action": "Entwurf erstellen / Bausteine übernehmen",
+      "source": "offers-ui.js",
+      "mcp": [
+        "search_offer_templates",
+        "create_offer_draft"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "angebote.67",
+      "area": "angebote",
+      "action": "Fixpreis / Regie / verbindlicher und unverbindlicher KV",
+      "source": "offers-ui.js",
+      "mcp": [
+        "create_offer_draft",
+        "update_offer_draft"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "angebote.68",
+      "area": "angebote",
+      "action": "Positionen / Texte / Preis bearbeiten",
+      "source": "offers-ui.js",
+      "mcp": [
+        "get_offer",
+        "update_offer_draft"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "angebote.69",
+      "area": "angebote",
+      "action": "Pflichtangaben prüfen",
+      "source": "offers-ui.js",
+      "mcp": [
+        "validate_offer"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "angebote.70",
+      "area": "angebote",
+      "action": "Bewusst finalisieren",
+      "source": "offers-ui.js",
+      "mcp": [
+        "get_offer",
+        "finalize_offer"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "angebote.71",
+      "area": "angebote",
+      "action": "Duplizieren",
+      "source": "offers-ui.js",
+      "mcp": [
+        "duplicate_offer"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "angebote.72",
+      "area": "angebote",
+      "action": "PDF lesen",
+      "source": "offers-ui.js",
+      "mcp": [
+        "get_file_metadata",
+        "read_file_chunk"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "angebote.73",
+      "area": "angebote",
+      "action": "Teilen vorbereiten",
+      "source": "offers-ui.js",
+      "mcp": [
+        "prepare_offer_share"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "angebote.74",
+      "area": "angebote",
+      "action": "Annahme und Auftrag / Nachtrag",
+      "source": "offers-ui.js",
+      "mcp": [
+        "get_offer",
+        "convert_offer_to_order"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "angebote.75",
+      "area": "angebote",
+      "action": "Entwurf in Papierkorb",
+      "source": "offers-ui.js",
+      "mcp": [
+        "preview_delete",
+        "archive_entity"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "leistungskatalog.76",
+      "area": "leistungskatalog",
+      "action": "Bausteine suchen",
+      "source": "offers-ui.js",
+      "mcp": [
+        "search_offer_templates",
+        "search_catalog"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "leistungskatalog.77",
+      "area": "leistungskatalog",
+      "action": "Baustein lesen",
+      "source": "offers-ui.js",
+      "mcp": [
+        "get_offer_template",
+        "get_catalog_entry"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "leistungskatalog.78",
+      "area": "leistungskatalog",
+      "action": "Baustein erstellen",
+      "source": "offers-ui.js",
+      "mcp": [
+        "create_catalog_entry"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "leistungskatalog.79",
+      "area": "leistungskatalog",
+      "action": "Baustein bearbeiten / Preis / Standardtexte",
+      "source": "offers-ui.js",
+      "mcp": [
+        "get_offer_template",
+        "update_catalog_entry"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "leistungskatalog.80",
+      "area": "leistungskatalog",
+      "action": "Baustein deaktivieren / reaktivieren",
+      "source": "offers-ui.js",
+      "mcp": [
+        "get_offer_template",
+        "update_catalog_entry"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "fotos.81",
+      "area": "fotos",
+      "action": "Kundenfotobibliothek / weitere laden",
+      "source": "design-concept.js",
+      "mcp": [
+        "list_photos"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "fotos.82",
+      "area": "fotos",
+      "action": "Rollen / Zeitraum / Arbeit / Auftrag filtern",
+      "source": "design-concept.js",
+      "mcp": [
+        "list_photos"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "fotos.83",
+      "area": "fotos",
+      "action": "Metadaten lesen",
+      "source": "design-concept.js",
+      "mcp": [
+        "get_photo"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "fotos.84",
+      "area": "fotos",
+      "action": "Original authentifiziert lesen / Vollbild",
+      "source": "design-concept.js",
+      "mcp": [
+        "get_file_metadata",
+        "read_file_chunk"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "fotos.85",
+      "area": "fotos",
+      "action": "Bilder importieren / fortsetzen",
+      "source": "design-concept.js",
+      "mcp": [
+        "begin_file_upload",
+        "write_file_chunk",
+        "create_photo"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "fotos.86",
+      "area": "fotos",
+      "action": "Profilfoto / Dokumentation",
+      "source": "design-concept.js",
+      "mcp": [
+        "get_photo",
+        "update_photo"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "fotos.87",
+      "area": "fotos",
+      "action": "Bildunterschrift / Aufnahmedatum",
+      "source": "design-concept.js",
+      "mcp": [
+        "get_photo",
+        "update_photo"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "fotos.88",
+      "area": "fotos",
+      "action": "Auftrag / Sitzung / Arbeit zuordnen",
+      "source": "design-concept.js",
+      "mcp": [
+        "get_photo",
+        "update_photo"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "fotos.89",
+      "area": "fotos",
+      "action": "Mehrere Bilder einer Sitzung",
+      "source": "design-concept.js",
+      "mcp": [
+        "begin_file_upload",
+        "write_file_chunk",
+        "create_photo"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "fotos.90",
+      "area": "fotos",
+      "action": "Papierkorb und Kundenverknüpfung lösen",
+      "source": "design-concept.js",
+      "mcp": [
+        "preview_delete",
+        "archive_entity"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "fotos.91",
+      "area": "fotos",
+      "action": "Wiederherstellen einschließlich geprüfter Zuordnung",
+      "source": "design-concept.js",
+      "mcp": [
+        "list_archive",
+        "restore_entity"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "fotos.92",
+      "area": "fotos",
+      "action": "Speicherverbrauch / Fotoqualität",
+      "source": "design-concept.js",
+      "mcp": [
+        "get_settings",
+        "update_settings"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "sicherung.93",
+      "area": "sicherung",
+      "action": "Geschäftssicherung erstellen",
+      "source": "owner-ui.js",
+      "mcp": [
+        "create_backup"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "sicherung.94",
+      "area": "sicherung",
+      "action": "Sicherungen auflisten",
+      "source": "owner-ui.js",
+      "mcp": [
+        "list_backups"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "sicherung.95",
+      "area": "sicherung",
+      "action": "Sicherung prüfen",
+      "source": "owner-ui.js",
+      "mcp": [
+        "inspect_backup"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "sicherung.96",
+      "area": "sicherung",
+      "action": "Sicherung übertragen",
+      "source": "owner-ui.js",
+      "mcp": [
+        "get_file_metadata",
+        "read_file_chunk"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "sicherung.97",
+      "area": "sicherung",
+      "action": "Fehlende Daten geschützt wiederherstellen",
+      "source": "owner-ui.js",
+      "mcp": [
+        "inspect_backup",
+        "restore_backup"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "sicherung.98",
+      "area": "sicherung",
+      "action": "Vollständige Konfliktsicherung",
+      "source": "owner-ui.js",
+      "mcp": [
+        "preview_legacy_conflict_resolution",
+        "prepare_legacy_conflict_backup"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "papierkorb.99",
+      "area": "papierkorb",
+      "action": "Alle Einträge / weitere laden",
+      "source": "trash-ui.js",
+      "mcp": [
+        "list_archive"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "papierkorb.100",
+      "area": "papierkorb",
+      "action": "Einzeln wiederherstellen",
+      "source": "trash-ui.js",
+      "mcp": [
+        "list_archive",
+        "restore_entity"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "papierkorb.101",
+      "area": "papierkorb",
+      "action": "Endgültige Einzellöschung prüfen",
+      "source": "trash-ui.js",
+      "mcp": [
+        "preview_purge"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "papierkorb.102",
+      "area": "papierkorb",
+      "action": "Endgültig löschen",
+      "source": "trash-ui.js",
+      "mcp": [
+        "preview_purge",
+        "purge_entity"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "papierkorb.103",
+      "area": "papierkorb",
+      "action": "Papierkorb leeren prüfen / geschützte Fälle",
+      "source": "trash-ui.js",
+      "mcp": [
+        "preview_empty_trash"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "papierkorb.104",
+      "area": "papierkorb",
+      "action": "Freigegebenen Papierkorb endgültig leeren",
+      "source": "trash-ui.js",
+      "mcp": [
+        "preview_empty_trash",
+        "empty_trash"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "synchronisierung.105",
+      "area": "synchronisierung",
+      "action": "Status / Queue / Fehler lesen",
+      "source": "sync-dashboard.js",
+      "mcp": [
+        "get_sync_overview"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "synchronisierung.106",
+      "area": "synchronisierung",
+      "action": "Einzelaktionsstatus",
+      "source": "sync-dashboard.js",
+      "mcp": [
+        "get_sync_status"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "synchronisierung.107",
+      "area": "synchronisierung",
+      "action": "Synchronisieren / erneut versuchen",
+      "source": "sync-dashboard.js",
+      "mcp": [
+        "request_sync"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "synchronisierung.108",
+      "area": "synchronisierung",
+      "action": "Konfliktvarianten und Hashes lesen",
+      "source": "sync-dashboard.js",
+      "mcp": [
+        "get_sync_conflicts"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "synchronisierung.109",
+      "area": "synchronisierung",
+      "action": "Aktuellen Stand behalten",
+      "source": "sync-dashboard.js",
+      "mcp": [
+        "get_sync_conflicts",
+        "resolve_sync_conflict"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "synchronisierung.110",
+      "area": "synchronisierung",
+      "action": "Vorschlag geprüft übernehmen",
+      "source": "sync-dashboard.js",
+      "mcp": [
+        "get_sync_conflicts",
+        "resolve_sync_conflict"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "synchronisierung.111",
+      "area": "synchronisierung",
+      "action": "Historische Siebener-Vorschau",
+      "source": "sync-dashboard.js",
+      "mcp": [
+        "preview_legacy_conflict_resolution"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "synchronisierung.112",
+      "area": "synchronisierung",
+      "action": "Historische Sicherung mit Vorschauhash",
+      "source": "sync-dashboard.js",
+      "mcp": [
+        "prepare_legacy_conflict_backup"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "synchronisierung.113",
+      "area": "synchronisierung",
+      "action": "Alle historischen Konflikte keep_current abschließen",
+      "source": "sync-dashboard.js",
+      "mcp": [
+        "close_legacy_conflicts"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "synchronisierung.114",
+      "area": "synchronisierung",
+      "action": "Konflikthistorie lesen",
+      "source": "sync-dashboard.js",
+      "mcp": [
+        "get_sync_conflicts"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "einstellungen.115",
+      "area": "einstellungen",
+      "action": "Gerätestandards lesen",
+      "source": "owner-ui.js",
+      "mcp": [
+        "get_settings"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "einstellungen.116",
+      "area": "einstellungen",
+      "action": "Tätigkeit und Einsatzort vorbelegen",
+      "source": "owner-ui.js",
+      "mcp": [
+        "get_settings",
+        "update_settings"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "einstellungen.117",
+      "area": "einstellungen",
+      "action": "Fotoqualität wählen",
+      "source": "owner-ui.js",
+      "mcp": [
+        "get_settings",
+        "update_settings"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "einstellungen.118",
+      "area": "einstellungen",
+      "action": "Unternehmensdaten lesen / bearbeiten",
+      "source": "owner-ui.js",
+      "mcp": [
+        "get_business_settings",
+        "update_business_settings"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "einstellungen.119",
+      "area": "einstellungen",
+      "action": "Nummernkreis und Aussteller bewusst bestätigen",
+      "source": "owner-ui.js",
+      "mcp": [
+        "get_business_settings",
+        "update_business_settings"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "einstellungen.120",
+      "area": "einstellungen",
+      "action": "App-/DB-/Protokollversion und Rechte",
+      "source": "owner-ui.js",
+      "mcp": [
+        "get_capabilities",
+        "integration_health"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "einstellungen.121",
+      "area": "einstellungen",
+      "action": "UI-MCP-Zuordnung / Grenzen lesen",
+      "source": "owner-ui.js",
+      "mcp": [
+        "get_ui_action_catalog"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.122",
+      "area": "termine",
+      "action": "Tag / Woche / Kunde / Auftrag / weitere laden",
+      "source": "planning-ui.js",
+      "mcp": [
+        "list_appointments"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.123",
+      "area": "termine",
+      "action": "Termin und Ist-Zeit lesen",
+      "source": "planning-ui.js",
+      "mcp": [
+        "get_appointment"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.124",
+      "area": "termine",
+      "action": "Kunden-/Auftragskontext",
+      "source": "planning-ui.js",
+      "mcp": [
+        "get_planning_context"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.125",
+      "area": "termine",
+      "action": "Termin erstellen",
+      "source": "planning-ui.js",
+      "mcp": [
+        "create_appointment"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.126",
+      "area": "termine",
+      "action": "Serie bewusst erstellen",
+      "source": "planning-ui.js",
+      "mcp": [
+        "create_appointment_series"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.127",
+      "area": "termine",
+      "action": "Termin verschieben / bearbeiten",
+      "source": "planning-ui.js",
+      "mcp": [
+        "get_appointment",
+        "update_appointment"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.128",
+      "area": "termine",
+      "action": "Termin absagen",
+      "source": "planning-ui.js",
+      "mcp": [
+        "get_appointment",
+        "cancel_appointment"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.129",
+      "area": "termine",
+      "action": "Abgeschlossen markieren",
+      "source": "planning-ui.js",
+      "mcp": [
+        "get_appointment",
+        "update_appointment"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.130",
+      "area": "termine",
+      "action": "Alternativen vorschlagen",
+      "source": "planning-ui.js",
+      "mcp": [
+        "suggest_appointment_slots"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.131",
+      "area": "termine",
+      "action": "Wetter nächste Arbeitswoche",
+      "source": "planning-ui.js",
+      "mcp": [
+        "get_workweek_weather"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.132",
+      "area": "termine",
+      "action": "Risiken / unbekannte Wetterlage lesen",
+      "source": "planning-ui.js",
+      "mcp": [
+        "get_weather_risks"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.133",
+      "area": "termine",
+      "action": "Wetterhinweis zur Kenntnis nehmen",
+      "source": "planning-ui.js",
+      "mcp": [
+        "acknowledge_weather_alert"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.134",
+      "area": "termine",
+      "action": "Wetter aktualisieren",
+      "source": "planning-ui.js",
+      "mcp": [
+        "request_weather_refresh"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.135",
+      "area": "termine",
+      "action": "Kalenderabgleich anstoßen",
+      "source": "planning-ui.js",
+      "mcp": [
+        "request_calendar_sync"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.136",
+      "area": "termine",
+      "action": "Google-Konfliktvarianten lesen",
+      "source": "planning-ui.js",
+      "mcp": [
+        "get_appointment"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.137",
+      "area": "termine",
+      "action": "Google-Konflikt bewusst lösen",
+      "source": "planning-ui.js",
+      "mcp": [
+        "resolve_calendar_conflict"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.138",
+      "area": "termine",
+      "action": "App-Kalenderverbindung pausieren / wieder aktivieren",
+      "source": "planning-ui.js",
+      "mcp": [
+        "get_planning_settings",
+        "update_planning_settings"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.139",
+      "area": "termine",
+      "action": "Arbeitstage / Tageszeiten / Anfahrtpuffer",
+      "source": "planning-ui.js",
+      "mcp": [
+        "get_planning_settings",
+        "update_planning_settings"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.140",
+      "area": "termine",
+      "action": "Wetterschwellen / Benachrichtigungen / Wetter aktivieren",
+      "source": "planning-ui.js",
+      "mcp": [
+        "get_planning_settings",
+        "update_planning_settings"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "termine.141",
+      "area": "termine",
+      "action": "Archivieren und wiederherstellen",
+      "source": "planning-ui.js",
+      "mcp": [
+        "preview_delete",
+        "archive_entity",
+        "restore_entity"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "pflanzen.142",
+      "area": "pflanzen",
+      "action": "Pflanzenbibliothek / Neophyten / Suche",
+      "source": "gartenpirat.js",
+      "mcp": [
+        "search_catalog"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "pflanzen.143",
+      "area": "pflanzen",
+      "action": "Pflanzenprofil / Pflege / Quellen lesen",
+      "source": "gartenpirat.js",
+      "mcp": [
+        "get_catalog_entry"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "pflanzen.144",
+      "area": "pflanzen",
+      "action": "Alle Pflanzenbilder / Wischen-Äquivalent",
+      "source": "gartenpirat.js",
+      "mcp": [
+        "get_catalog_entry",
+        "get_file_metadata",
+        "read_file_chunk"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "pflanzen.145",
+      "area": "pflanzen",
+      "action": "Garteninformationen im Kundenkonto",
+      "source": "gartenpirat.js",
+      "mcp": [
+        "get_customer",
+        "update_customer"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "contract_and_isolated_regressions_not_live_write"
+    },
+    {
+      "id": "platform.146",
+      "area": "plattform",
+      "action": "Android/Google-Konto, OAuth, Drive-Dokumentbaum erstmalig freigeben",
+      "source": "DriveConnectionActivity.java",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Android system consent; MCP kann keine Kontorechte erteilen."
+    },
+    {
+      "id": "platform.147",
+      "area": "plattform",
+      "action": "Google-Kalender erstmalig verbinden / App-Kalender anlegen",
+      "source": "PlanningConnectionActivity.java",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Google OAuth und bewusste Kontoauswahl am Gerät; bestehende Verbindung per MCP bedienbar."
+    },
+    {
+      "id": "platform.148",
+      "area": "plattform",
+      "action": "Wetter-API-Schlüssel erstmalig hinterlegen / ersetzen",
+      "source": "PlanningConnectionActivity.java",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Privates Geheimnis ausschließlich im nativen Geräteeingabefeld; nie ChatGPT anfordern."
+    },
+    {
+      "id": "platform.149",
+      "area": "plattform",
+      "action": "Tunnel-Runtime-Schlüssel, Organisation, Schreibschalter / Verbindung stoppen",
+      "source": "PixelTunnelActivity.java",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Vertrauensanker und Freigabe müssen außerhalb der von ihnen geschützten Verbindung bleiben."
+    },
+    {
+      "id": "platform.150",
+      "area": "plattform",
+      "action": "Android-Benachrichtigungs-, Standort-, Kamera-, Akku-Freigaben",
+      "source": "MainActivity.java",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Android-Systemdialoge lassen sich über fachliches MCP nicht erteilen."
+    },
+    {
+      "id": "platform.151",
+      "area": "plattform",
+      "action": "Kamera / Galerie am Gerät aufnehmen oder auswählen",
+      "source": "design-concept.js",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Physische Quelle / Systempicker; vorhandene Datei über MCP-Upload gleichwertig speicherbar."
+    },
+    {
+      "id": "platform.152",
+      "area": "plattform",
+      "action": "Aktuellen GPS-Standort messen",
+      "source": "work-location.js",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Gerätesensor und Android-Einwilligung; bestätigte Koordinaten per update_appointment speicherbar."
+    },
+    {
+      "id": "platform.153",
+      "area": "plattform",
+      "action": "Versand-App / Telefon / Karten-App tatsächlich bedienen",
+      "source": "MainActivity.java",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "OS-Handoff; MCP bereitet Dokument vor, kein fingierter Versand oder Telefonanruf."
+    },
+    {
+      "id": "platform.154",
+      "area": "plattform",
+      "action": "Vollständige Android-Gerätesicherung / App installieren",
+      "source": "MainActivity.java",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Außerhalb der App-Betriebsfunktionen; Geschäftsbackup ersetzt keine Gerätesicherung."
+    },
+    {
+      "id": "platform.155",
+      "area": "plattform",
+      "action": "Ansicht / Filter / Zurück / Zoom / Wischen / Piratenknopf positionieren",
+      "source": "gartenpirat.js",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Flüchtige Darstellung; fachliche Inhalte durch Such-/Lese-/Dateiwerkzeuge erreichbar."
+    },
+    {
+      "id": "platform.156",
+      "area": "plattform",
+      "action": "Formularentwurf / Auswahl / Spracheingabe / Abbrechen / lokale Vorschau",
+      "source": "mobile.html",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Noch keine gespeicherte Geschäftsaktion; MCP übernimmt Entwurf erst als fachliches Create/Update. Fremde offene UI-Entwürfe werden nie überschrieben."
+    }
+  ],
+  "reviewed_sources": {
+    "android/app/src/main/assets/billing-ui.js": "ebcf6b7b95fae19ed8f447ab89ff0111433098d734337fb9418796c68776f156",
+    "android/app/src/main/assets/customer-hub.js": "53af1c1689a0c8ab9b5da240aa430dcbe2a261d51445e467255fde408014278d",
+    "android/app/src/main/assets/daily-usability.js": "8ccb0a2042918124cbb48d0ddb6d4475f99692f455b94da3abdcb30d893602c1",
+    "android/app/src/main/assets/design-concept.js": "0309f4732e1b327e18a1c9652e37155f4dc362908b01745706d969ee5975dbc6",
+    "android/app/src/main/assets/gartenpirat-photo-store.js": "2289636e3f3fb9914485c89a9128b85fe4c08c4b081d753f26cde6e66de1e333",
+    "android/app/src/main/assets/gartenpirat.js": "3cc7443ba61c91172ba8dee28a214fda8b34b86e9e3ff80f91a697053e8e6362",
+    "android/app/src/main/assets/invoice-draft.js": "6aa647c6ccf57de0378c839741c57de601dd972161e638f7c2e48c9cde010afa",
+    "android/app/src/main/assets/invoice-editor.js": "dd1fcf823776318d2035dc36bc391e654daf43b01f6da208917cfde988d49f42",
+    "android/app/src/main/assets/invoice-flow.js": "d0cac9d27be47c8d59dbc39e88fa3545faa075aac661ed0ce8d1fbad1a2c7455",
+    "android/app/src/main/assets/legacy-conflicts-ui.js": "89b8cd6cf5927562eb5643ce7b8c04147a62f2c617263532a6ec52574135cb7c",
+    "android/app/src/main/assets/mobile.html": "d741e92e7955fe8effd048b326d5e7bb6f04b115c607a8c1eadf9365bcfdc06b",
+    "android/app/src/main/assets/offers-ui.js": "3f4ec12cd7c1b32db57860ff3989fa4971e4c88f4f5d5e02dfe2415e536d6728",
+    "android/app/src/main/assets/order-sync-review.js": "8103e8d3d2ed6a35a6f45dae199fd1fa4e8c50b158f3bd191cc3749f3819f91b",
+    "android/app/src/main/assets/order-window.js": "e773c43ef1d6020b4793cb033a3941dfd8485d73c7609ec8f9685a92bad3e4a9",
+    "android/app/src/main/assets/owner-ui.js": "a60033a0d141113ba7672144663f1b5b6fd750e5a6887d507567d97467f083fe",
+    "android/app/src/main/assets/personal-payment.js": "50e82f12569a17d4e54edc0881e124e304eeadc3286d2b6a6de5d4eebc7b11ce",
+    "android/app/src/main/assets/photo-settings.js": "75c119f586264449ba7c0ddeb3639cc685aae648fe75032226cb6bc8428f407a",
+    "android/app/src/main/assets/pixel-tunnel-ui.js": "d9b95a746c5551cccb900ea64d92f9c4e27db8f5de10410ac8c9ded8a6e367b8",
+    "android/app/src/main/assets/planning-ui.js": "136960d0dc5876851370803673f3749295983587238bdb1fd803819a9e213ed8",
+    "android/app/src/main/assets/plant-catalog.js": "af4dcc1df1fc0e746a73faac9d38246bb57f8754427633063ef3b4f51b1c508c",
+    "android/app/src/main/assets/pull-refresh.js": "c24e2fcd7ddfae6394e634d5c5e0d1619a4b67acd716d52140581983373f8fa9",
+    "android/app/src/main/assets/runtime-compat.js": "04858fa88609733a1fb5bebab59bfd9332819ded0c0aab7fd3766cda76267b6c",
+    "android/app/src/main/assets/sync-dashboard.js": "209d6ca25f2eec78400fb04bc5b013d813b70dc787acdc0a1ad3d7fc56292ec7",
+    "android/app/src/main/assets/trash-ui.js": "833083bc4b00080113f23cff08c610dadec2bcc31c689e74d08918d0ad255d76",
+    "android/app/src/main/assets/work-location.js": "29247d6ac42fdd9838b5b83f74d1cfe5ab15691e20490bdf3fd841ea98e4d9b5",
+    "android/app/src/main/assets/workday-ui.js": "6e15cf73e687532e3f83a01a3cb9831ba737a7ba380ca1fae61c83510dcfcd24",
+    "android/app/src/main/assets/workflow-ui.js": "b5a95484193d768d9a7993e41a56706568e7c6c5767702d2372d4f50c796b326",
+    "android/app/src/main/java/at/hausgarten/service/MainActivity.java": "ec2b7f90c7212a410eb89d7e0289b81178ddaa10155e68b733a929a557cb47f6",
+    "android/app/src/main/java/at/hausgarten/service/PlanningConnectionActivity.java": "f8b73a4b2995ebe417ea464c773fdb075b3aa3e591fbd85d19b1bdf6b1e521a2",
+    "android/app/src/main/java/at/hausgarten/service/DriveConnectionActivity.java": "aa87679184a0bf7781554c13039ca002ddbded7706f9eb99ef20ed6fbccb3970",
+    "android/app/src/main/java/at/hausgarten/service/PixelTunnelActivity.java": "0a339f54589cdbfdf3497ee1470586190cbd1fb501da85dcdaebd132cfb4ac59"
+  }
+}

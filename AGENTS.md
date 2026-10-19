@@ -44,6 +44,34 @@ oder Kontoverbindungen, bei neuen Kosten, zusätzlichen Berechtigungen und
 irreversiblen Änderungen. Diese Arbeitsregel ersetzt keine Sicherheitsfreigaben
 und erweitert nicht den Umfang des jeweiligen Auftrags.
 
+## Design darf selbstständig verbessert werden
+
+Das aktuelle Design ist keine dauerhafte oder unveränderliche Vorgabe.
+Eigenständige Anpassungen von Gestaltung, Navigation und Bedienabläufen sind
+jederzeit ausdrücklich erwünscht, wenn sie Übersichtlichkeit, Effizienz,
+Barrierefreiheit oder Bedienbarkeit verbessern. Bestehende Funktionen und
+fachliche Schutzregeln erhalten; Entwürfe, Daten und laufende Vorgänge schützen.
+Die betroffenen Abläufe, schmale Ansichten und vergrößerte Schrift prüfen und
+Änderungen im zentralen Status dokumentieren. Für solche Verbesserungen innerhalb
+des beauftragten Bereichs ist keine erneute Designfreigabe erforderlich.
+
+## Neue Arbeitsaufzeichnungen
+
+Neue operative Arbeitsaufzeichnungen werden künftig über die bestehende
+Haus-&-Garten-App angelegt. Ohne einen späteren ausdrücklichen abweichenden
+Nutzerauftrag keine neuen operativen Arbeitsaufzeichnungen per MCP, Import oder
+externem Editor erzeugen. Bestehende MCP-Funktionen und synthetische
+Regressionstests erhalten; Lesen und ausdrücklich beauftragtes Bearbeiten oder
+Aufräumen bestehender Einträge bleiben möglich.
+
+Der spätere ausdrückliche Auftrag zur vollständigen UI–MCP-Parität und
+Sprachsteuerung autorisiert die vorhandenen fachlichen Erfassungswerkzeuge,
+insbesondere den Abschluss tatsächlich gemessener Timerarbeit per MCP.
+Echte Kunden, Tätigkeiten, Zeiten und Preise müssen dabei feststehen; bei
+Mehrdeutigkeit nachfragen. Diese fachliche Freigabe autorisiert keine produktiven
+Testeinträge, erfundenen Arbeitsnachweise oder automatische Datenerzeugung ohne
+konkreten Betriebsauftrag. Schreibtests bleiben vollständig isoliert.
+
 ## Bestehende App erhalten
 
 - Keine neue App und keine parallele betriebliche Datenbank aufbauen.

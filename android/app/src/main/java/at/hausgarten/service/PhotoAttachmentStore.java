@@ -151,6 +151,14 @@ final class PhotoAttachmentStore {
 
     byte[] read(JSONObject metadata)throws Exception{return verify(file(metadata),metadata);}
 
+    void deleteThumbnailVerified(String name)throws Exception{
+        synchronized(FILE_LOCK){
+            if(!name.matches("[0-9a-f]{64}\\.jpg"))throw new IOException("Ungültige Vorschau.");
+            File file=thumbnailFile(name);if(!file.exists())return;
+            if(!name.equals(sha256(readThumbnail(name))+".jpg"))throw new IOException("Vorschau verändert.");
+            if(!file.delete())throw new IOException("Vorschau konnte nicht entfernt werden.");
+        }
+    }
     void discardCreated(JSONObject metadata)throws Exception{
         synchronized(FILE_LOCK){
             File target=file(metadata);if(!target.exists())return;

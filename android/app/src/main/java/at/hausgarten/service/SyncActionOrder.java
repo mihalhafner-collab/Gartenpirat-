@@ -8,10 +8,15 @@ final class SyncActionOrder {
     static JSONArray order(JSONArray input)throws Exception{
         LinkedHashMap<String,JSONObject> actions=new LinkedHashMap<>();Map<String,String> creators=new HashMap<>(),versions=new HashMap<>();
         for(int i=0;i<input.length();i++){JSONObject a=input.getJSONObject(i),p=a.getJSONObject("payload");String id=a.getString("client_id"),entity=a.getString("kind")+":"+p.optString("id");actions.put(id,a);if(p.optBoolean("_mcp_create")&&!p.optString("id").isEmpty())creators.putIfAbsent(entity,id);if(!p.optString("updated_at").isEmpty())versions.put(entity+":"+p.getString("updated_at"),id);}
+        for(int i=0;i<input.length();i++){JSONObject a=input.getJSONObject(i),p=a.getJSONObject("payload");if("offer_convert".equals(a.optString("kind"))){String order=p.optString("existing_order_id");if(order.isEmpty()){order="ord_offer_"+PixelMcpWriteTools.hash(a.getString("client_id")).substring(0,32);creators.putIfAbsent("order:"+order,a.getString("client_id"));}versions.put("order:"+order+":"+a.optString("created_at"),a.getString("client_id"));}}
         Map<String,Set<String>> dependencies=new LinkedHashMap<>();
         for(Map.Entry<String,JSONObject> entry:actions.entrySet()){String id=entry.getKey();JSONObject a=entry.getValue(),p=a.getJSONObject("payload");Set<String> deps=new LinkedHashSet<>();
+            if("conflict_resolution".equals(a.getString("kind"))&&actions.containsKey(p.optString("client_id")))deps.add(p.getString("client_id"));
+            String ownKind=a.getString("kind").startsWith("offer_")?"offer":a.getString("kind").equals("pixel_invoice_issue_v1")?"invoice":a.getString("kind");
+            String creator=creators.get(ownKind+":"+p.optString("id"));if(creator!=null&&!creator.equals(id))deps.add(creator);
             JSONArray explicit=p.optJSONArray("_sync_predecessors");for(int j=0;explicit!=null&&j<explicit.length();j++)if(actions.containsKey(explicit.getString(j)))deps.add(explicit.getString(j));
-            for(String[] ref:new String[][]{{"customer_id","customer"},{"billing_customer_id","customer"},{"order_id","order"},{"worklog_id","worklog"}}){String parent=creators.get(ref[1]+":"+p.optString(ref[0]));if(parent!=null&&!parent.equals(id))deps.add(parent);}
+            for(String[] ref:new String[][]{{"customer_id","customer"},{"billing_customer_id","customer"},{"order_id","order"},{"worklog_id","worklog"},{"appointment_id","appointment"}}){String parent=creators.get(ref[1]+":"+p.optString(ref[0]));if(parent!=null&&!parent.equals(id))deps.add(parent);}
+            JSONObject expectedOrder=p.optJSONObject("_expected_order");if(expectedOrder!=null){String parent=versions.get("order:"+expectedOrder.optString("id")+":"+expectedOrder.optString("updated_at"));if(parent!=null&&!parent.equals(id))deps.add(parent);}
             JSONObject base=p.optJSONObject("_sync_base");if(base==null)base=p.optJSONObject("_mcp_base");if(base!=null){String prior=versions.get(a.getString("kind")+":"+p.optString("id")+":"+base.optString("updated_at"));if(prior!=null&&!prior.equals(id))deps.add(prior);}
             if(deps.contains(id))throw new PixelMcpWriteTools.Rejected("DEPENDENCY_CYCLE","Änderungen enthalten eine zyklische Vorgängerkette. Originale bleiben erhalten.");dependencies.put(id,deps);
         }

@@ -34,6 +34,7 @@ final class EntityProtectionRules {
     }
     static void validatePhoto(JSONObject payload,JSONArray customers,JSONArray orders,JSONArray worklogs){
         String customer=text(payload,"customer_id"),orderId=text(payload,"order_id"),workId=text(payload,"worklog_id");
+        if(customer.isEmpty()&&orderId.isEmpty()&&workId.isEmpty()&&text(payload,"session_id").isEmpty()&&!text(payload,"role").equals("profile"))return;
         if(find(customers,customer)==null)throw new IllegalArgumentException("Der ausgewählte Kunde existiert nicht.");
         if(!orderId.isEmpty()){
             JSONObject order=find(orders,orderId);
@@ -49,6 +50,7 @@ final class EntityProtectionRules {
     }
     static void validateInvoiceDelete(JSONObject row){
         if(row==null)throw new IllegalArgumentException("Die Rechnung wurde nicht gefunden. Bitte Ansicht aktualisieren.");
+        if(!text(row,"invoice_number").isEmpty()&&!text(row,"invoice_number").startsWith("Entwurf"))throw new IllegalArgumentException("Eine vergebene Rechnungsnummer bleibt als Beleg erhalten. Nur einen lokalen Entwurf löschen.");
         if(!text(row,"sevdesk_id").isEmpty()||!text(row,"issued_at").isEmpty()||!java.util.Arrays.asList("Entwurf","Storniert").contains(text(row,"status")))
             throw new IllegalArgumentException("Diese Rechnung ist geschützt und kann hier nicht gelöscht werden. Nur lokale, nicht ausgestellte Entwürfe dürfen entfernt werden.");
     }
