@@ -1,3 +1,23 @@
+# Original-Prüfkandidat 1.49.5 / 74
+
+[APK über Drive herunterladen](https://drive.google.com/file/d/11ASToMZ3qHlpmgq7dkPoKl7-A28klzm-/view?usp=drivesdk) (verbundenes Google-Konto erforderlich) · [APK im privaten Repository](Haus-Garten-1.49.5-74-original-update-kandidat.apk?raw=true)
+
+Arbeiten → **Mehrere auswählen**: bis zu 200 ausdrücklich ausgewählte Arbeiten gemeinsam und wiederherstellbar in den Papierkorb verschieben. Vorschau, aktuelle Datensatz-/Fotohashes, Finanzschutz und dauerhafte Request-IDs; bei einer geänderten/geschützten Arbeit keine lokale Teilarchivierung. Keine automatische endgültige Massenlöschung.
+
+Behoben: falscher Drive-Parallelstandfehler durch unterschiedlich normalisierte alte Snapshots, falsche Foto-Belegquelle nach Neustart, blockierte Rechnungsentwürfe bei unbekanntem Steuermodus sowie Startfehler in älteren WebViews. Echte Paralleländerungen und endgültige Rechnungen bleiben geschützt. Sync-Liste behält Fokus; gemeinsamer Archivhandler. Während einer aktiven Zeiterfassung verdeckt der Gartenpirat Stop nicht mehr; Pflanzen/Neophyten sind über Mehr erreichbar. Im Ruhezustand bleibt der bewegliche Piratenknopf.
+
+Paket `at.hausgarten.service`, **1.49.5 / 74**, **34.422.544 Bytes**. Originalzertifikat unverändert, ein Signer, v2/v3, 16-KiB-Ausrichtung und Cleanup PASS. 406 Quellassets bytegleich, Privacy PASS. **270 Python-Tests, 20 JVM-Suiten / 864 Prüfungen, 27 Browser-Suiten und 100 native Android-Prüfungen bestanden.** Tatsächliche WebView83-Navigation und Timerdarstellung im Cloud-Emulator bestanden; ebenso Fresh-Install und In-place-Update 73→74 mit synthetischem Datenerhalt. Keine Pixel-Leistungs-/Geräteabnahme daraus ableiten.
+
+SHA256: `48cdd6d96f7c5eb91bf64e79f8981823b18453fe7e9fe4f7d567d0dbfea6c527`.
+
+**Pixel-/Google-Abnahme offen.** Live weiterhin 73, 87 MCP-Werkzeuge, 183 unveränderte Vorgänge (175 Übertragungen / 8 Prüfungen), nur Provider-Readback. Die Quellkorrektur ist dort noch nicht installiert; tatsächlich veränderte Drive-Daten bleiben geschützt. Kandidat bietet 89 Werkzeuge; nach gesichertem und ausdrücklich freigegebenem Update dieselbe Verbindung/Toolliste aktualisieren. Keine alten Konflikte aufgelöst.
+
+Installation am Pixel erst nach vollständiger Sicherung und ausdrücklicher Freigabe; keine Deinstallation/App-Datenlöschung. Originalsignierung und Emulatorupdate ersetzen keinen Pixel-Datenerhalt-Test. Neuer privater Drive-Upload durch Metadaten und vollständige Rohdatei-Referenz mit 34.422.544 Bytes zurückgelesen; kein unabhängiger Remote-Bytehash behauptet. Bestehende Dateien und Freigaben unverändert.
+
+[Zentraler Status und Funktions-/Prüfmatrix](../CODEX-STATUS.md) · [Prüfsummen](SHA256SUMS)
+
+## Erhaltener Cloud-Kandidat 1.49.4 / 73 (historische Zustandsangaben)
+
 # Original-Prüfkandidat 1.49.4 / 73
 
 [APK über Drive herunterladen](https://drive.google.com/file/d/1F1Dijrkqx9Rf7RoO3bGN8bU-Km6d_YNm/view) (verbundenes Google-Konto erforderlich) · [APK im privaten Repository](Haus-Garten-1.49.4-73-original-update-kandidat.apk?raw=true)
