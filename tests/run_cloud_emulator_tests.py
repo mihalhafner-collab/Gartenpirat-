@@ -58,7 +58,7 @@ def successful_output(output, mode):
     if mode in ('acceptance','estimates','provider'):
         return bool(re.search(r'RESULT [0-9]+ Android SQLite/MCP tests passed; acceptance failures=0;', output))
     expected = {'verify': 'PASS in-place update preserves complete snapshot',
-                'fresh': 'PASS fresh empty business data',
+                'fresh': 'PASS fresh empty business data', 'fresh_isolated': 'PASS fresh empty business data',
                 'prepare': 'PASS synthetic upgrade fixture prepared',
                 'ui': 'PASS native WebView boot'}
     return expected.get(mode, '\0') in output
@@ -70,7 +70,7 @@ def main():
     parser.add_argument('--adb', default=str(Path(os.environ.get('ANDROID_HOME', '')) / 'platform-tools/adb'))
     parser.add_argument('--apk', type=Path)
     parser.add_argument('--instrumentation-apk', type=Path)
-    parser.add_argument('--mode', choices=['acceptance', 'fresh', 'prepare', 'verify', 'ui', 'estimates', 'provider'], default='acceptance')
+    parser.add_argument('--mode', choices=['acceptance', 'fresh', 'prepare', 'verify', 'ui', 'estimates', 'provider', 'fresh_isolated'], default='acceptance')
     args = parser.parse_args()
     with emulator_lock(args.serial):
         run(args)
