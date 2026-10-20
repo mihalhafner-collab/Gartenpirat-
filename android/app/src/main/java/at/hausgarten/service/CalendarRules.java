@@ -16,7 +16,7 @@ final class CalendarRules {
     }
     static JSONObject event(JSONObject a,String customer)throws Exception {
         JSONObject e=event(a);if(customer!=null&&!customer.trim().isEmpty()){String prefix=customer.trim()+" · ";e.put("summary",prefix+a.getString("title"));e.getJSONObject("extendedProperties").getJSONObject("private").put("hg_customer_prefix",prefix);}
-        if(!a.optString("notes").isEmpty())e.put("description",a.getString("notes"));return e;
+        e.put("description",a.optString("notes"));return e;
     }
     static String title(JSONObject remote)throws Exception {
         String title=remote.optString("summary");JSONObject props=remote.optJSONObject("extendedProperties"),p=props==null?null:props.optJSONObject("private");String prefix=p==null?"":p.optString("hg_customer_prefix");return !prefix.isEmpty()&&title.startsWith(prefix)?title.substring(prefix.length()):title;
