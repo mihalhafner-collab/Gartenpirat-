@@ -989,3 +989,13 @@ Geändert wurden MCP-/Query-/Schema-/Fehleradapter, Application Services/Ports/E
 - [Privater Drive-Download](https://drive.google.com/file/d/1eVAH39SCVFCNCHJHh-ey5C5AR3s6W70K/view?usp=drivesdk). Name, MIME, Zielordner, 34.513.073 Bytes sowie ausschließlich Owner-Freigabe / shared=false per Metadaten rückgelesen. Vollständiger Rohdatei-Rückabruf liefert eine Dateireferenz mit derselben Größe. Kein unabhängiger Remote-Bytehash behauptet.
 - Lokale APK vor Upload erneut SHA-256-geprüft: `7e569519f8f3328335499a84181f6eb6746c860e4325e80d67f0f44ba59e865e`. Keine ältere APK, Betriebsdatei, Sicherung oder Freigabe verändert. Die frühere Aussage „nicht in Drive veröffentlicht“ beschreibt den Zeitpunkt der P1-Abnahme und ist durch diese spätere Bereitstellung überholt.
 - Physischer Pixel und realer Connector weiterhin nicht aktualisiert oder nach einem Update getestet; keine Installation durchgeführt oder freigegeben.
+
+
+## P2 – sichere Konsolidierung gestartet (20.10.2026)
+
+- P1 auf dem realen Pixel gelesen: 1.51.2 / Build 81, MCP9/117, write_enabled=true. UI-Katalog 156/145 fachlich/11 Plattformgruppen; Queue0, Review0, Journalfehler0. Drive aktuell provider_readback/idle ohne Transferfehler; cloud_confirmed=false bleibt externe Grenze.
+- Startinventar Geschäftsdaten:58 Kunden,3 Aufträge,46 Arbeitsaufzeichnungen,95 Rechnungen,31 Fotos,33 Leistungskatalogeinträge,0 aktive Angebote,1 Termin. Keine Schreib-/Löschaktion durch P2-Start.
+- Archiv read-only:2 Angebote,3 Kunden,129 Worklogs,3 Fotos,2 Rechnungen,0 Aufträge. Sechs vorhandene Backups gelistet. Noch keine Archiv-/Backup-/Dateilöschung freigegeben.
+- GitHub read-only: main plus drei alte codex/*-Branches. Alle drei waren beim letzten Vergleich vollständig in main enthalten; Löschung erst nach frischem Vergleich im P2-Schritt. downloads/ enthält zwölf alte APK-Kandidaten Build66–79 plus README/SHA256SUMS; P1/81 liegt privat in Drive und nicht im GitHub-downloads-Ordner.
+- Neuer verbindlicher P2-Block in CODEX-AUFTRAG-GARTENPIRAT.md: GitHub-/Codex-Konsolidierung, sichere Drive-/Archiv-/Backupklassifikation, read-only Orphan-Audit vor jeder Dateilöschung, kein History-Rewrite und keine pauschale Löschung geschäfts-/steuerrelevanter Unterlagen.
+- Noch keine destruktive P2-Aktion ausgeführt. Nächster Schritt: frischer Mergevergleich der drei alten Branches und Klassifikation der APK-/Dokumentationskandidaten.
