@@ -31,16 +31,17 @@ final class CalendarClient {
         DriveRestClient.Reply r=send("POST","calendars",new JSONObject().put("summary","Haus & Garten – Einsätze").put("description",marker).put("timeZone","Europe/Vienna"),null);
         if(r.status!=200&&r.status!=201)throw new java.io.IOException("Kalenderanlage unbestätigt. Vor Wiederholung vorhandene Kalender prüfen.");return r.json();
     }
-    interface CalendarSetup {boolean pending();void pending(boolean value)throws Exception;}
-    JSONObject ensureOwnCalendar(String marker,CalendarSetup state)throws Exception {
+    interface CalendarSetup {boolean pending();void pending(boolean value)throws Exception;default String confirmedId(){return "";}default void confirmedId(String id)throws Exception{}}
+    JSONObject ensureOwnCalendar(String marker,CalendarSetup state)throws Exception {synchronized(CalendarClient.class){
         if(marker==null||marker.isEmpty())throw new IllegalArgumentException("Kalenderzuordnung fehlt.");
         JSONArray rows=calendars();JSONObject found=null;
         for(int i=0;i<rows.length();i++){JSONObject row=rows.getJSONObject(i);if(marker.equals(row.optString("description"))){if(found!=null)throw new IllegalArgumentException("Mehrere App-Kalender gefunden. Zuordnung prüfen; kein weiterer Kalender wird angelegt.");if(!"owner".equals(row.optString("accessRole")))throw new IllegalArgumentException("Eigener App-Kalender benötigt Eigentümerfreigabe.");found=row;}}
+        if(found==null&&!state.confirmedId().isEmpty()){DriveRestClient.Reply known=send("GET","calendars/"+enc(state.confirmedId()),null,null);if(known.status!=200||!marker.equals(known.json().optString("description")))throw new java.io.IOException("Bisheriger eigener Kalender nicht bestätigt. Kein Ersatzkalender angelegt.");found=known.json();}
         if(found==null){if(state.pending())throw new java.io.IOException("Frühere Kalenderanlage noch nicht bestätigt. Erneut prüfen; kein zweiter Kalender wird angelegt.");state.pending(true);found=createCalendar(marker);}
         String id=found.getString("id");DriveRestClient.Reply read=send("GET","calendars/"+enc(id),null,null);
         if(read.status!=200||!id.equals(read.json().optString("id"))||!marker.equals(read.json().optString("description")))throw new java.io.IOException("Eigener Kalender konnte noch nicht bestätigt werden.");
-        state.pending(false);return found;
-    }
+        state.confirmedId(id);state.pending(false);return found;
+    }}
     String path(String calendar,String event)throws Exception{return "calendars/"+enc(calendar)+"/events"+(event.isEmpty()?"":"/"+enc(event));}
     JSONObject get(String calendar,String id)throws Exception {DriveRestClient.Reply r=send("GET",path(calendar,id),null,null);if(r.status==404||r.status==410)return null;if(r.status!=200)throw new java.io.IOException("Kalendereintrag nicht lesbar.");return r.json();}
     JSONObject save(String calendar,JSONObject a,JSONObject remote)throws Exception {

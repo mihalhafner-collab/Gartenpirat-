@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets;
 public final class CalendarSetupTests {
  static int checks;static void yes(boolean v){checks++;if(!v)throw new AssertionError("Calendar setup check "+checks);}
  interface Task{void run()throws Exception;}static void rejects(Task run)throws Exception{try{run.run();throw new AssertionError("Expected safe rejection");}catch(java.io.IOException|IllegalArgumentException expected){checks++;}}
- static final class State implements CalendarClient.CalendarSetup{boolean pending;public boolean pending(){return pending;}public void pending(boolean v){pending=v;}}
+ static final class State implements CalendarClient.CalendarSetup{boolean pending;String id="";public boolean pending(){return pending;}public void pending(boolean v){pending=v;}public String confirmedId(){return id;}public void confirmedId(String value){id=value;}}
  static final class Provider implements DriveRestClient.Wire{
   JSONArray calendars=new JSONArray();int created;boolean lost,hidden;int status=200;
   public DriveRestClient.Reply send(String m,String url,Map<String,String> headers,byte[] body,int maximum)throws Exception{
@@ -22,7 +22,7 @@ public final class CalendarSetupTests {
  public static void main(String[] args)throws Exception{
   SyntheticBusinessData.verify();Provider wire=new Provider();State state=new State();CalendarClient client=new CalendarClient(()->"synthetic",wire);String marker="hausgarten.app.calendar.v1:qa_device";
   wire.lost=true;rejects(()->client.ensureOwnCalendar(marker,state));yes(wire.created==1&&state.pending);wire.hidden=true;rejects(()->client.ensureOwnCalendar(marker,state));yes(wire.created==1&&state.pending);wire.hidden=false;
-  yes(client.ensureOwnCalendar(marker,state).getString("id").equals("qa-calendar")&&!state.pending&&wire.created==1);client.ensureOwnCalendar(marker,state);yes(wire.created==1);
+  yes(client.ensureOwnCalendar(marker,state).getString("id").equals("qa-calendar")&&!state.pending&&wire.created==1);client.ensureOwnCalendar(marker,state);yes(wire.created==1);wire.hidden=true;client.ensureOwnCalendar(marker,state);yes(wire.created==1);wire.hidden=false;
   wire.calendars.put(new JSONObject(wire.calendars.getJSONObject(0).toString()).put("id","qa-duplicate"));rejects(()->client.ensureOwnCalendar(marker,state));yes(wire.created==1);
   wire.calendars=new JSONArray().put(new JSONObject().put("id","qa-foreign").put("description",marker).put("accessRole","reader"));rejects(()->client.ensureOwnCalendar(marker,state));yes(wire.created==1);
   final int[] invalidations={0};CalendarClient guarded=new CalendarClient(new CalendarClient.Token(){public String get(){return "synthetic";}public void invalidate(String value){yes(value.equals("synthetic"));invalidations[0]++;}},wire);
