@@ -7,10 +7,14 @@ assert.equal(f.diagnostics().length,4);assert.equal(f.error('Pflichtangabe fehlt
 assert.match(f.sync({configured:true,last_error:'IOException'}).title,/nicht möglich/);
 assert.doesNotMatch(JSON.stringify(f.sync({configured:true,last_error:'IOException',user_action_required:true})),/Wir versuchen/);
 assert.match(f.sync({configured:true,review:7}).title,/Prüfung/);
-assert.match(f.sync({configured:true,last_sync:'2026-10-20',confirmation_scope:'provider_readback'}).detail,/nicht unabhängig bestätigt/);
+assert.match(f.sync({configured:true,last_sync:'2026-10-20',confirmation_scope:'provider_readback'}).detail,/vollständige Sicherung.*nicht bestätigt/);
 assert.match(f.sync({configured:true,cloud_confirmed:true,last_sync:'2026-10-20'}).title,/abgeglichen/);
 assert.doesNotMatch(JSON.stringify(f.sync({configured:true,cloud_confirmed:false})),/gesichert/);
 assert.match(f.sync({configured:false}).title,/nicht verbunden/);
 assert.match(f.sync({configured:true,pending:2}).title,/gespeichert/);
 assert.match(f.connection({running:true,state:'ready'}),/verbunden/);assert.match(f.connection({running:true,state:'reconnecting'}),/geprüft/);assert.match(f.connection({state:'auth_error'}),/freigeben/);
 console.log('PASS P3 business feedback: evidence distinctions, friendly errors, retained diagnostics');
+
+assert.doesNotMatch(f.error('UNRECOGNIZED_BACKEND_STATE action_hash '+ 'a'.repeat(64)),/UNRECOGNIZED|action_hash|aaaa/);
+assert.match(f.diagnostics().at(-1),/UNRECOGNIZED_BACKEND_STATE/);
+assert.doesNotMatch(JSON.stringify(f.sync({configured:true,cloud_confirmed:true,pending:1})),/abgeglichen|gesichert/);

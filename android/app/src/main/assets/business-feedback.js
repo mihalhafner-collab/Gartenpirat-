@@ -9,6 +9,7 @@
   if(/WRITE_CONFLICT|STALE_|record_hash|expected_.*hash|CAS|inzwischen geändert|Vergleichsstand/i.test(raw))return 'Inzwischen wurde dieser Eintrag geändert. Deine Eingabe bleibt erhalten. Bitte den aktuellen Stand prüfen, bevor du erneut speicherst.';
   if(/PERMISSION|UNAUTHORIZED|HTTP 401|HTTP 403|AUTH_REQUIRED|Freigabe fehlt|SecurityException/i.test(raw))return 'Die Freigabe fehlt oder ist abgelaufen. Bitte die Verbindung erneut freigeben. Bereits gespeicherte Daten bleiben erhalten.';
   if(/NETWORK|HTTP 429|HTTP 5\d\d|timeout|IOException|Socket|provider_readback|LEGACY_SOURCE_CHANGED|READ_ERROR|WRITE_ERROR|JSON|Snapshot|Journal|\bQueue\b/i.test(raw))return 'Der Vorgang konnte nicht abgeschlossen werden. Bereits gespeicherte Daten bleiben erhalten. Bitte später erneut versuchen; weitere Angaben stehen unter Erweitert / Diagnose.';
+  if(/\b[A-Z][A-Z_]{4,}\b|\b[a-f0-9]{32,64}\b|(?:record|preview|action|context)_hash|(?:content|file):\/\//.test(raw))return 'Der Vorgang konnte nicht abgeschlossen werden. Bereits gespeicherte Daten bleiben erhalten. Weitere Angaben stehen unter Erweitert / Diagnose.';
   return raw.replace(/^ERROR:\s*/, '')||'Der Vorgang konnte nicht abgeschlossen werden.';
  }
  function sync(s={}){
@@ -23,7 +24,7 @@
   if(!s.configured)return {title:'Google Drive ist nicht verbunden',detail:'Du kannst auf diesem Gerät arbeiten. Für den Abgleich bitte Google Drive verbinden.',tone:'busy'};
   if(pending)return {title:'Auf diesem Gerät gespeichert',detail:'Die Synchronisierung steht noch aus.',tone:'busy'};
   if(s.cloud_confirmed)return {title:'Mit Google Drive abgeglichen',detail:'Letzter bestätigter Abgleich'+(time(s.last_full_sync||s.last_sync)?': '+time(s.last_full_sync||s.last_sync):'')+'.',tone:'ok'};
-  if(s.last_sync&&s.confirmation_scope==='provider_readback')return {title:'Übertragung geprüft',detail:'Google Drive hat die Daten zurückgegeben. Der Online-Abgleich ist noch nicht unabhängig bestätigt.',tone:'busy'};
+  if(s.last_sync&&s.confirmation_scope==='provider_readback')return {title:'Übertragung geprüft',detail:'Die Übertragung zu Google Drive ist geprüft. Eine vollständige Sicherung ist damit noch nicht bestätigt.',tone:'busy'};
   if(s.last_sync)return {title:'Abgleich geprüft',detail:'Letzter erfolgreicher Abgleich: '+time(s.last_sync)+'. Eine vollständige Sicherung wird separat geprüft.',tone:'ok'};
   return {title:'Google Drive ist verbunden',detail:'Der erste erfolgreiche Abgleich steht noch aus.',tone:'busy'};
  }

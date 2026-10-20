@@ -6,6 +6,29 @@ import org.json.*;
 
 /** Original signed package lifecycle on the dedicated emulator ONLY. */
 final class ReleaseLifecycleProbe {
+    private static int conditionIndex;
+    static void collectViews(android.view.View view,java.util.List<android.view.View> result){
+        result.add(view);if(view instanceof android.view.ViewGroup){android.view.ViewGroup group=(android.view.ViewGroup)view;for(int i=0;i<group.getChildCount();i++)collectViews(group.getChildAt(i),result);}
+    }
+    /** Inspect presentation only; no switch, credential, account or save action is invoked. */
+    static void connectionUi(Instrumentation runner,Context context,Class<?> type,int normalSwitches)throws Exception{
+        android.app.Activity activity=runner.startActivitySync(new Intent(context,type).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        runner.waitForIdleSync();
+        runner.runOnMainSync(()->{
+            java.util.List<android.view.View> views=new java.util.ArrayList<>();collectViews(activity.getWindow().getDecorView(),views);
+            int shownSwitches=0,shownInputs=0;android.widget.Button reveal=null;
+            for(android.view.View v:views){
+                if(v.isShown()&&v instanceof android.widget.CheckBox)shownSwitches++;
+                if(v.isShown()&&v instanceof android.widget.EditText)shownInputs++;
+                if(v instanceof android.widget.Button&&((android.widget.Button)v).getText().toString().startsWith("Erweitert / Diagnose"))reveal=(android.widget.Button)v;
+            }
+            require(shownSwitches==normalSwitches&&shownInputs==0&&reveal!=null);
+            reveal.performClick();int revealed=0;for(android.view.View v:views)if(v.isShown()&&v instanceof android.widget.EditText)revealed++;
+            require(revealed>0);reveal.performClick();for(android.view.View v:views)if(v instanceof android.widget.EditText)require(!v.isShown());
+            activity.finish();
+        });
+        runner.waitForIdleSync();
+    }
     static String js(Instrumentation runner,android.webkit.WebView view,String script)throws Exception{
         java.util.concurrent.CountDownLatch done=new java.util.concurrent.CountDownLatch(1);String[] result={null};
         runner.runOnMainSync(()->view.evaluateJavascript(script,value->{result[0]=value;done.countDown();}));
@@ -24,13 +47,16 @@ final class ReleaseLifecycleProbe {
         require("true".equals(js(runner,view,"document.getElementById('gp-launcher').hidden")));
         runner.waitForIdleSync();SystemClock.sleep(1000);
         try(android.os.ParcelFileDescriptor screenshot=runner.getUiAutomation().executeShellCommand("screencap -p /data/local/tmp/gartenpirat-cloud-ui.png");java.io.InputStream stream=new android.os.ParcelFileDescriptor.AutoCloseInputStream(screenshot)){byte[] buffer=new byte[1024];while(stream.read(buffer)!=-1){}}
-        require("true".equals(js(runner,view,"(()=>{const site=customers().find(x=>x.name==='QA Einsatzort');if(!site)return false;openCustomer(site.id);document.querySelector('[data-customer-tab=\"garden\"]').click();return currentPage==='customer-profile-page'&&document.querySelector('[data-customer-tab=\"garden\"]').getAttribute('aria-pressed')==='true';})()")));
+        require("true".equals(js(runner,view,"(()=>{const site=customers().find(x=>x.name==='QA Einsatzort');if(!site)return false;openCustomer(site.id);document.querySelector('[data-customer-tab=\"garden\"]').click();return currentPage==='customer-profile-page'&&!!document.getElementById('customer-garden-form')&&document.querySelectorAll('.customer-hub-tabs button').length===4&&document.querySelector('.customer-hub-tabs [data-customer-tab=\"overview\"]').getAttribute('aria-pressed')==='true';})()")));
         require("true".equals(js(runner,view,"(()=>{TrashUI.open();return currentPage==='trash-page'&&document.getElementById('trash-content').innerText.length>0&&!!document.getElementById('trash-empty');})()")));
         require("true".equals(js(runner,view,"(()=>{openPage('more-page');return document.querySelectorAll('#more-page [data-more-group]').length===4&&document.querySelectorAll('#more-page [data-open-trash]').length===1;})()")));
         require("true".equals(js(runner,view,"(()=>{const site=customers().find(x=>x.name==='QA Einsatzort'),order=orders().find(x=>site&&x.customer_id===site.id&&x.title==='QA Pflege');if(!order)return false;PlanningUI.openForOrder(order.id);return currentPage==='planning-page'&&document.querySelector('#appointment-form [name=customer_id]').value===site.id&&document.querySelector('#appointment-form [name=order_id]').value===order.id&&!!document.getElementById('planning-discard');})()")));
         require("true".equals(js(runner,view,"(()=>{document.getElementById('planning-back').click();return !!document.querySelector('[data-planning-resume]')&&!!document.querySelector('#planning-page [data-open=weeks]');})()")));
+        connectionUi(runner,context,DriveConnectionActivity.class,1);
+        connectionUi(runner,context,PixelTunnelActivity.class,1);
+        connectionUi(runner,context,PlanningConnectionActivity.class,3);
     }
-    static void require(boolean value){if(!value)throw new AssertionError("Lifecycle condition failed");}
+    static void require(boolean value){conditionIndex++;if(!value)throw new AssertionError("Lifecycle condition "+conditionIndex+" failed");}
     static String fingerprint(PixelLocalStore store)throws Exception{
         JSONObject state=store.getState();
         JSONObject master=SyntheticBusinessData.object(state.getJSONObject("master").toString());
