@@ -20,7 +20,7 @@ final class PlanningAccount {
         Bundle b=consent==null?manager.getAuthToken(a,scope,null,false,null,null).getResult():manager.getAuthToken(a,scope,null,consent,null,null).getResult();String token=b.getString(AccountManager.KEY_AUTHTOKEN,"");
         if(token.isEmpty())throw new DriveRestClient.Failure("CALENDAR_AUTH_REQUIRED","Kalenderfreigabe am Gerät bestätigen.",0,true);return token;
     }
-    static CalendarClient client(Context c){SharedPreferences p=prefs(c);return new CalendarClient(()->token(c,p.getString("account",""),p.getBoolean("read_busy",false),null),new PlanningWire());}
+    static CalendarClient client(Context c){SharedPreferences p=prefs(c);return new CalendarClient(new CalendarClient.Token(){public String get()throws Exception{return token(c,p.getString("account",""),p.getBoolean("read_busy",false),null);}public void invalidate(String rejected){AccountManager.get(c).invalidateAuthToken("com.google",rejected);}},new PlanningWire());}
     static javax.crypto.SecretKey encryptionKey()throws Exception {
         KeyStore ks=KeyStore.getInstance("AndroidKeyStore");ks.load(null);String alias="hausgarten.weather.private.v1";
         if(!ks.containsAlias(alias)){KeyGenerator g=KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES,"AndroidKeyStore");g.init(new KeyGenParameterSpec.Builder(alias,KeyProperties.PURPOSE_ENCRYPT|KeyProperties.PURPOSE_DECRYPT).setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE).build());g.generateKey();}return (javax.crypto.SecretKey)ks.getKey(alias,null);

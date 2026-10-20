@@ -2,136 +2,153 @@ package at.hausgarten.service;
 
 import org.json.*;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 import java.util.*;
 
-/**
- * Permanent no-subscription weather sources.
- *
- * Long range: ECMWF Open Charts (CC BY 4.0) is used only as an early 15-day
- * outlook/availability signal. It is deliberately not converted into a hard
- * work warning because the public Open Charts endpoint is graphical.
- *
- * Actionable forecast: GeoSphere Austria Data Hub nwp-v2-1h-1km (CC BY 4.0).
- * Official warnings: GeoSphere Austria warning API.
- *
- * No API key, paid account or business secret is required.
- */
+/** Fixed, keyless GeoSphere adapters. Unknown format/unit/licence fails closed. */
 final class FreeWeatherSource {
     static final long HOUR=3600L, DAY=24*HOUR, MONITOR_WINDOW=14*DAY;
-    static final String ATTRIBUTION="Datenquelle: GeoSphere Austria - https://data.hub.geosphere.at; Langfristblick: ECMWF Open Charts (CC BY 4.0)";
+    static final String API="https://dataset.api.hub.geosphere.at/v1/timeseries/forecast/";
+    static final String LICENCE="https://dataset.api.hub.geosphere.at/v1/docs/index.html";
+    static final String ATTRIBUTION="GeoSphere Austria · CC BY 4.0 · https://data.hub.geosphere.at";
 
     static long intervalSeconds(long untilStart){
         if(untilStart>MONITOR_WINDOW)return Math.max(60,untilStart-MONITOR_WINDOW);
         if(untilStart>7*DAY)return DAY;
-        if(untilStart>4*DAY)return 12*HOUR;
-        if(untilStart>60*HOUR)return 6*HOUR;
-        if(untilStart>24*HOUR)return 3*HOUR;
-        if(untilStart>6*HOUR)return HOUR;
-        if(untilStart>HOUR)return 30*60L;
-        return 15*60L;
+        if(untilStart>72*HOUR)return 12*HOUR;
+        if(untilStart>24*HOUR)return 6*HOUR;
+        if(untilStart>6*HOUR)return 3*HOUR;
+        return HOUR;
     }
-
-    static long nextDelayMillis(JSONArray appointments,Instant now)throws Exception{
+    static long nextDelayMillis(JSONArray appointments,Instant now){
         long best=Long.MAX_VALUE;
-        for(int i=0;i<appointments.length();i++){
+        for(int i=0;i<appointments.length();i++)try{
             JSONObject a=appointments.getJSONObject(i);
-            if(!AppointmentRules.active(a)||!a.has("starts_at"))continue;
+            if(!AppointmentRules.active(a)||a.optString("status").equals("draft"))continue;
             Instant start=AppointmentRules.instant(a.getString("starts_at")),end=AppointmentRules.instant(a.getString("ends_at"));
             if(!end.isAfter(now))continue;
-            long delta=Math.max(0,Duration.between(now,start).getSeconds());
-            long wait=intervalSeconds(delta);
-            if(delta>MONITOR_WINDOW)wait=Math.max(60,delta-MONITOR_WINDOW);
-            best=Math.min(best,wait*1000L);
-        }
+            best=Math.min(best,intervalSeconds(Math.max(0,Duration.between(now,start).getSeconds()))*1000L);
+        }catch(Exception legacy){/* An incomplete historical row must not disable other appointments. */}
         return best;
     }
-
-    static boolean due(JSONObject cache,String key,Instant now,long maxAgeSeconds){
-        try{return Instant.parse(cache.getString(key)).isBefore(now.minusSeconds(maxAgeSeconds));}
+    static boolean due(JSONObject cache,String key,Instant now,long age){
+        try{Instant at=Instant.parse(cache.getString(key));return at.isAfter(now.plusSeconds(300))||!at.isAfter(now.minusSeconds(age));}
         catch(Exception missing){return true;}
     }
-
+    static DriveRestClient.Reply fetch(DriveRestClient.Wire wire,String url,int max,Instant now)throws Exception{
+        DriveRestClient.Reply reply=wire.send("GET",url,Collections.emptyMap(),null,max);
+        if(reply.status==429||reply.status>=500){
+            long delay=30000;String retry=reply.header("Retry-After");
+            try{delay=Math.max(delay,Long.parseLong(retry)*1000);}catch(Exception numeric){try{delay=Math.max(delay,Duration.between(now,ZonedDateTime.parse(retry,DateTimeFormatter.RFC_1123_DATE_TIME).toInstant()).toMillis());}catch(Exception ignored){}}
+            throw new DriveRestClient.Failure("WEATHER_RETRY","Wetterdaten derzeit nicht verfügbar.",Math.min(24*HOUR*1000,delay),false);
+        }
+        if(reply.status!=200)throw new DriveRestClient.Failure("WEATHER_UNAVAILABLE","Wetterdaten derzeit nicht verfügbar.",0,reply.status==401||reply.status==403);
+        return reply;
+    }
+    static void requireLicence(JSONObject cache,Instant now,DriveRestClient.Wire wire)throws Exception{
+        if(!due(cache,"licence_checked_at",now,7*DAY))return;
+        String html=new String(fetch(wire,LICENCE,512*1024,now).body,StandardCharsets.UTF_8);
+        String plain=html.replaceAll("<[^>]*>"," ").replaceAll("\\s+"," ").toLowerCase(Locale.ROOT);
+        if(!plain.contains("all data that is publicly accessible without authentication")||!html.contains("creativecommons.org/licenses/by/4.0")){
+            cache.remove("licence_checked_at");throw new DriveRestClient.Failure("WEATHER_LICENCE_UNVERIFIED","Wetterdaten derzeit nicht verfügbar. Kostenfreier öffentlicher Datenzugang ist nicht bestätigt.",0,true);
+        }
+        cache.put("licence_checked_at",now.toString());
+    }
+    static JSONObject parameters(JSONObject metadata)throws Exception{
+        JSONObject object=metadata.optJSONObject("parameters");if(object!=null)return object;
+        JSONArray list=metadata.optJSONArray("parameters");if(list==null)throw new IOException("Wetterdaten derzeit nicht verfügbar.");
+        JSONObject out=new JSONObject();for(int i=0;i<list.length();i++){JSONObject p=list.getJSONObject(i);String id=p.optString("name",p.optString("id"));if(id.isEmpty()||out.has(id))throw new IOException("Wetterparameter nicht eindeutig.");out.put(id,p);}return out;
+    }
+    static JSONObject metadata(String dataset,JSONObject cache,Instant now,DriveRestClient.Wire wire)throws Exception{
+        String key=dataset+":metadata";
+        if(due(cache,key+":at",now,DAY)){
+            JSONObject m=fetch(wire,API+dataset+"/metadata",1024*1024,now).json();parameters(m);
+            cache.put(key,m).put(key+":at",now.toString());
+        }
+        return cache.getJSONObject(key);
+    }
+    static double[] coords(String location)throws Exception{
+        String[] pair=location.split(",");if(pair.length!=2)throw new IOException("Einsatzort für Wetterprüfung ergänzen.");
+        double lat=Double.parseDouble(pair[0]),lon=Double.parseDouble(pair[1]);if(!Double.isFinite(lat)||!Double.isFinite(lon)||lat< -90||lat>90||lon< -180||lon>180)throw new IOException("Einsatzort für Wetterprüfung ergänzen.");return new double[]{lat,lon};
+    }
+    static JSONObject response(String dataset,String requested,String loc,JSONObject meta,DriveRestClient.Wire wire,Instant now)throws Exception{
+        double[] point=coords(loc);JSONObject raw=fetch(wire,API+dataset+"?parameters="+requested+"&lat_lon="+point[0]+","+point[1]+"&output_format=geojson",1024*1024,now).json();
+        JSONArray features=raw.optJSONArray("features");if(features==null||features.length()!=1)throw new IOException("Wetterort nicht eindeutig.");
+        JSONObject geometry=features.getJSONObject(0).optJSONObject("geometry");JSONArray coordinates=geometry==null?null:geometry.optJSONArray("coordinates");
+        if(coordinates==null||coordinates.length()<2||Math.abs(coordinates.getDouble(1)-point[0])>.05||Math.abs(coordinates.getDouble(0)-point[1])>.08)throw new IOException("Wetterdaten für diesen Einsatzort nicht verfügbar.");
+        JSONObject actual=features.getJSONObject(0).getJSONObject("properties").getJSONObject("parameters"),declared=parameters(meta);
+        for(String id:requested.split(",")){JSONObject p=actual.optJSONObject(id),m=declared.optJSONObject(id);if(p==null||m==null)throw new IOException("Wetterparameter fehlt.");if(p.optString("unit").isEmpty())p.put("unit",m.getString("unit"));else if(!p.getString("unit").equals(m.getString("unit")))throw new IOException("Wettereinheiten widersprüchlich.");}
+        return raw;
+    }
     static JSONObject refreshSite(String loc,JSONObject cache,Instant now,long untilStart,DriveRestClient.Wire wire)throws Exception{
-        String[] coords=loc.split(",");
-        if(coords.length!=2)throw new IllegalArgumentException("Ungültige Einsatzkoordinaten.");
-        double lat=Double.parseDouble(coords[0]),lon=Double.parseDouble(coords[1]);
         long cadence=intervalSeconds(untilStart);
-
-        if(untilStart<=MONITOR_WINDOW&&untilStart>60*HOUR&&due(cache,"early_checked_at",now,cadence)){
-            JSONObject early=new JSONObject().put("checked_at",now.toString()).put("source","ECMWF Open Charts").put("forecast_only",true);
-            try{
-                String url="https://charts.ecmwf.int/opencharts-api/v1/products/opencharts_meteogram/?epsgram=classical_15d_with_climate&lat="+lat+"&lon="+lon;
-                DriveRestClient.Reply reply=wire.send("GET",url,Collections.emptyMap(),null,256*1024);
-                if(reply.status==200){
-                    JSONObject body=reply.json(),meta=body.optJSONObject("meta"),data=body.optJSONObject("data"),link=data==null?null:data.optJSONObject("link");
-                    String license=meta==null?"":meta.optString("license"),href=link==null?"":link.optString("href");
-                    boolean valid=license.toUpperCase(Locale.ROOT).contains("CC-BY-4.0")&&href.startsWith("https://charts.ecmwf.int/");
-                    early.put("available",valid);
-                    if(valid)early.put("chart_url",href);
-                }else early.put("available",false);
-            }catch(Exception unavailable){early.put("available",false);}
-            cache.put("early_outlook",early).put("early_checked_at",now.toString());
+        cache.put("monitoring",new JSONObject().put("active",untilStart<=MONITOR_WINDOW).put("first_check_days_before",14).put("next_interval_seconds",cadence).put("source",ATTRIBUTION));
+        if(untilStart>MONITOR_WINDOW)return cache; // No request before T-14.
+        coords(loc);requireLicence(cache,now,wire);
+        JSONObject meta=metadata("nwp-v2-1h-1km",cache,now,wire);
+        cache.put("availability_checked_at",now.toString()).put("source",ATTRIBUTION);
+        if(untilStart<=4*DAY&&due(cache,"warnings_fetched_at",now,cadence)){
+            double[] point=coords(loc);
+            try{JSONObject warnings=fetch(wire,"https://warnungen.zamg.at/wsapp/api/getWarningsForCoords?lat="+point[0]+"&lon="+point[1]+"&lang=de",512*1024,now).json();
+                cache.put("warnings",WeatherRiskRules.parseWarnings(warnings)).put("warnings_fetched_at",now.toString()).remove("warning_status");
+            }catch(DriveRestClient.Failure unavailable){cache.put("warning_status","Amtliche Warnungen derzeit nicht verfügbar.");throw unavailable;}
+            catch(Exception unavailable){cache.put("warning_status","Amtliche Warnungen derzeit nicht verfügbar.");}
         }
-
-        if(untilStart<=4*DAY&&due(cache,"warnings_fetched_at",now,Math.max(15*60L,Math.min(cadence,3*HOUR)))){
-            try{
-                DriveRestClient.Reply warnings=wire.send("GET","https://warnungen.zamg.at/wsapp/api/getWarningsForCoords?lat="+lat+"&lon="+lon+"&lang=de",Collections.emptyMap(),null,512*1024);
-                if(warnings.status!=200)throw new java.io.IOException();
-                cache.put("warnings",WeatherRiskRules.parseWarnings(warnings.json())).put("warnings_fetched_at",now.toString()).remove("warning_status");
-            }catch(Exception unavailable){cache.put("warning_status","Amtliche Warnungen konnten zuletzt nicht aktualisiert werden.");}
-        }
-
         if(untilStart<=60*HOUR&&due(cache,"fetched_at",now,cadence)){
-            String params="t2m,rain_acc,ugust,vgust";
-            String url="https://dataset.api.hub.geosphere.at/v1/timeseries/forecast/nwp-v2-1h-1km?parameters="+params+"&lat_lon="+lat+","+lon+"&output_format=geojson";
-            DriveRestClient.Reply reply=wire.send("GET",url,Collections.emptyMap(),null,1024*1024);
-            if(reply.status==429)throw new DriveRestClient.Failure("WEATHER_RETRY","Wetterdienst vorübergehend begrenzt.",30_000,false);
-            if(reply.status!=200)throw new java.io.IOException("GeoSphere-Wetterdaten derzeit nicht verfügbar.");
-            cache.put("forecast",normalizeGeoSphere(reply.json())).put("fetched_at",now.toString()).put("forecast_provider","geosphere_nwp_v2").put("source",ATTRIBUTION);
+            JSONObject p=parameters(meta);String names="t2m,rain_acc,ugust,vgust";
+            for(String id:names.split(","))if(!p.has(id))throw new IOException("Wetterdaten derzeit nicht verfügbar.");
+            for(String id:new String[]{"u10m","v10m","snow_acc"})if(p.has(id))names+=","+id;
+            JSONObject raw=response("nwp-v2-1h-1km",names,loc,meta,wire,now);
+            cache.put("forecast",normalizeGeoSphere(raw)).put("fetched_at",now.toString()).put("forecast_provider","geosphere_nwp_v2");
         }
-
-        cache.put("monitoring",new JSONObject()
-            .put("active",untilStart<=MONITOR_WINDOW)
-            .put("first_check_days_before",14)
-            .put("next_interval_seconds",cadence)
-            .put("source",ATTRIBUTION));
         return cache;
     }
-
-    static JSONObject normalizeGeoSphere(JSONObject raw)throws Exception{
+    static void refreshNowcast(String loc,JSONObject cache,Instant now,DriveRestClient.Wire wire)throws Exception{
+        if(!due(cache,"nowcast_fetched_at",now,HOUR))return;
+        requireLicence(cache,now,wire);
+        JSONObject m=metadata("nowcast-v1-15min-1km",cache,now,wire),p=parameters(m);
+        for(String id:new String[]{"t2m","rr","fx"})if(!p.has(id))throw new IOException("Kurzfristwetter derzeit nicht verfügbar.");
+        JSONObject raw=response("nowcast-v1-15min-1km","t2m,rr,fx",loc,m,wire,now);
+        cache.put("nowcast",normalizeNowcast(raw)).put("nowcast_fetched_at",now.toString());
+    }
+    static JSONObject normalized(JSONObject raw,boolean nowcast)throws Exception{
         JSONArray times=raw.optJSONArray("timestamps"),features=raw.optJSONArray("features");
-        if(times==null||features==null||features.length()==0)throw new java.io.IOException("GeoSphere-Vorhersage unvollständig.");
-        JSONObject parameters=features.getJSONObject(0).getJSONObject("properties").getJSONObject("parameters");
-        JSONArray temp=data(parameters,"t2m"),rainAcc=data(parameters,"rain_acc"),uGust=data(parameters,"ugust"),vGust=data(parameters,"vgust");
-        int n=times.length();if(n<2||n>200||temp.length()<n||rainAcc.length()<n||uGust.length()<n||vGust.length()<n)throw new java.io.IOException("GeoSphere-Zeitreihe unvollständig.");
-        JSONObject hourly=new JSONObject();JSONArray t=new JSONArray(),temperature=new JSONArray(),rain=new JSONArray(),gust=new JSONArray();
-        Double previousRain=null;
-        for(int i=0;i<n;i++){
-            t.put(parseTime(times.get(i)));
-            temperature.put(numberOrNull(temp,i));
-            Double current=doubleOrNull(rainAcc,i);
-            if(current==null)rain.put(JSONObject.NULL);
-            else {double amount=previousRain==null?0:Math.max(0,current-previousRain);rain.put(amount);previousRain=current;}
-            Double u=doubleOrNull(uGust,i),v=doubleOrNull(vGust,i);
-            gust.put(u==null||v==null?JSONObject.NULL:Math.sqrt(u*u+v*v)*3.6);
+        if(times==null||times.length()<2||times.length()>200||features==null||features.length()!=1)throw new IOException("Wetterzeitreihe unvollständig.");
+        JSONObject p=features.getJSONObject(0).getJSONObject("properties").getJSONObject("parameters"),out=new JSONObject();
+        JSONArray t=new JSONArray(),temp=new JSONArray(),rain=new JSONArray(),gust=new JSONArray(),snow=new JSONArray(),wind=new JSONArray();
+        String rainId=nowcast?"rr":"rain_acc";JSONArray rainData=data(p,rainId),snowData=p.has("snow_acc")?data(p,"snow_acc"):null;
+        Double previousRain=null,previousSnow=null;long previous=Long.MIN_VALUE;
+        for(int i=0;i<times.length();i++){
+            long stamp=parseTime(times.get(i));if(previous!=Long.MIN_VALUE&&stamp-previous!=(nowcast?900:3600))throw new IOException("Wetterzeitreihe widersprüchlich.");previous=stamp;t.put(stamp);
+            temp.put(convert(p,"t2m",i,"temperature"));
+            Double current=number(rainData,i),currentSnow=snowData==null?null:number(snowData,i);
+            double factor=factor(p.getJSONObject(rainId).getString("unit"),"rain");
+            if(nowcast){rain.put(current==null?JSONObject.NULL:current*factor);}
+            else{rain.put(current==null||previousRain==null||current<previousRain?JSONObject.NULL:(current-previousRain)*factor);previousRain=current;}
+            if(snowData!=null){double snowFactor=factor(p.getJSONObject("snow_acc").getString("unit"),"rain");snow.put(currentSnow==null||previousSnow==null||currentSnow<previousSnow?JSONObject.NULL:(currentSnow-previousSnow)*snowFactor);previousSnow=currentSnow;}
+            if(nowcast)gust.put(convert(p,"fx",i,"wind"));
+            else{Double u=value(p,"ugust",i,"wind"),v=value(p,"vgust",i,"wind");gust.put(u==null||v==null?JSONObject.NULL:Math.hypot(u,v));}
+            if(p.has("u10m")&&p.has("v10m")){Double u=value(p,"u10m",i,"wind"),v=value(p,"v10m",i,"wind");wind.put(u==null||v==null?JSONObject.NULL:Math.hypot(u,v));}
         }
-        hourly.put("time",t).put("temperature_2m",temperature).put("precipitation",rain).put("wind_gusts_10m",gust);
-        return new JSONObject().put("hourly",hourly);
+        out.put("time",t).put("temperature_2m",temp).put("precipitation",rain).put("wind_gusts_10m",gust);
+        if(snowData!=null)out.put("snowfall",snow);if(wind.length()>0)out.put("wind_speed_10m",wind);
+        return new JSONObject().put(nowcast?"quarter_hourly":"hourly",out);
     }
-
-    private static JSONArray data(JSONObject parameters,String name)throws Exception{
-        JSONObject p=parameters.optJSONObject(name);JSONArray rows=p==null?null:p.optJSONArray("data");
-        if(rows==null)throw new java.io.IOException("GeoSphere-Parameter fehlt: "+name);
-        return rows;
+    static JSONObject normalizeGeoSphere(JSONObject raw)throws Exception{return normalized(raw,false);}
+    static JSONObject normalizeNowcast(JSONObject raw)throws Exception{return normalized(raw,true);}
+    private static JSONArray data(JSONObject p,String id)throws Exception{JSONObject row=p.optJSONObject(id);JSONArray values=row==null?null:row.optJSONArray("data");if(values==null)throw new IOException("Wetterparameter fehlt.");return values;}
+    private static Double number(JSONArray rows,int i)throws Exception{if(i>=rows.length())throw new IOException("Wetterzeitreihe unvollständig.");if(rows.isNull(i))return null;double n=rows.getDouble(i);return Double.isFinite(n)?n:null;}
+    private static double factor(String unit,String kind)throws Exception{
+        String u=unit.toLowerCase(Locale.ROOT).replace(" ","").replace("**","^").replace("{","").replace("}","");
+        if(kind.equals("temperature")){if(Arrays.asList("°c","degc","c","celsius","k","kelvin").contains(u))return 1;}
+        if(kind.equals("wind")){if(Arrays.asList("ms-1","ms^-1","m/s").contains(u))return 3.6;if(Arrays.asList("km/h","kmh-1","kmh^-1").contains(u))return 1;}
+        if(kind.equals("rain")&&Arrays.asList("mm","kgm-2","kgm^-2","kg/m2","mm/15min").contains(u))return 1;
+        throw new IOException("Wettereinheit derzeit nicht unterstützt.");
     }
-    private static Object numberOrNull(JSONArray rows,int i){Double n=doubleOrNull(rows,i);return n==null?JSONObject.NULL:n;}
-    private static Double doubleOrNull(JSONArray rows,int i){
-        try{if(i<0||i>=rows.length()||rows.isNull(i))return null;double n=rows.getDouble(i);return Double.isFinite(n)?n:null;}catch(Exception e){return null;}
-    }
-    private static long parseTime(Object value)throws Exception{
-        if(value instanceof Number){long n=((Number)value).longValue();return n>100000000000L?n/1000:n;}
-        String s=String.valueOf(value);try{return Instant.parse(s).getEpochSecond();}catch(Exception ignored){}
-        return OffsetDateTime.parse(s).toInstant().getEpochSecond();
-    }
+    private static Double value(JSONObject p,String id,int i,String kind)throws Exception{JSONObject row=p.getJSONObject(id);double f=factor(row.getString("unit"),kind);Double n=number(data(p,id),i);if(n==null)return null;String u=row.getString("unit");return kind.equals("temperature")&&(u.equalsIgnoreCase("K")||u.equalsIgnoreCase("kelvin"))?n-273.15:n*f;}
+    private static Object convert(JSONObject p,String id,int i,String kind)throws Exception{Double n=value(p,id,i,kind);return n==null?JSONObject.NULL:n;}
+    private static long parseTime(Object value)throws Exception{if(value instanceof Number){long n=((Number)value).longValue();return n>100000000000L?n/1000:n;}return OffsetDateTime.parse(String.valueOf(value)).toInstant().getEpochSecond();}
     private FreeWeatherSource(){}
 }

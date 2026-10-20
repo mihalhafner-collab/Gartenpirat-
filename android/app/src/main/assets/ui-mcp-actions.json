@@ -2128,7 +2128,7 @@
     "android/app/src/main/assets/photo-settings.js": "11c3bd7281f061139656b908e46e1d2e669a54ae8df34dbd6428f7fe16ace0ed",
     "android/app/src/main/assets/pixel-tunnel-ui.js": "568bcdd746939dd4a6d55757472de0e0e3d03f737f4304c80c19c40c7c45bc40",
     "android/app/src/main/assets/planning-ui.css": "8820b7977c4d876d484b5cb39b4d340fcfe8c33092604f2ae9468547f18591ef",
-    "android/app/src/main/assets/planning-ui.js": "c12fb499f667065c77751eef1a37abb007bff76d8b72ab77660c1c530a23563f",
+    "android/app/src/main/assets/planning-ui.js": "66cb993d3e7e3c86754abeb0057ca89e80c4ae16faf42e05b2a84bc8ef303237",
     "android/app/src/main/assets/plant-catalog.js": "af4dcc1df1fc0e746a73faac9d38246bb57f8754427633063ef3b4f51b1c508c",
     "android/app/src/main/assets/pull-refresh.js": "c24e2fcd7ddfae6394e634d5c5e0d1619a4b67acd716d52140581983373f8fa9",
     "android/app/src/main/assets/runtime-compat.js": "04858fa88609733a1fb5bebab59bfd9332819ded0c0aab7fd3766cda76267b6c",
@@ -2144,7 +2144,7 @@
     "android/app/src/main/java/at/hausgarten/service/PixelLocalStore.java": "a64152f7e8aa7e3a3b3a319cccd49907cdd59e6e138dc1d2c9337acc4c0e43c6",
     "android/app/src/main/java/at/hausgarten/service/BusinessDataBridge.java": "fd5778b889d762fca620a0339e3a23ea3fcfa7e099340b268c3a969d8e1b9573",
     "android/app/src/main/java/at/hausgarten/service/NativeOwnerQueries.java": "5ba2912895d4177f28137c01d1e79c4b94863b4675869015933c770c7c35c150",
-    "android/app/src/main/java/at/hausgarten/service/PlanningConnectionActivity.java": "25de32fa4f1f5356a51f2e7466de0e9429c62bd048a00d848ce86b68f39a0712",
+    "android/app/src/main/java/at/hausgarten/service/PlanningConnectionActivity.java": "5a13a905a88d4c0486f0f0e34b26538cf388525f6268405e6fe420427f00b6de",
     "android/app/src/main/java/at/hausgarten/service/DriveConnectionActivity.java": "f854f1fa421b9ed9b0bf7765e6785da29d925b4a228850ca26a0632b7e6b43ec",
     "android/app/src/main/java/at/hausgarten/service/PixelTunnelActivity.java": "d49dfed590de0f048ba2a9b90a65f50b410790d7768bc9a80fc5f051a0b75615"
   }

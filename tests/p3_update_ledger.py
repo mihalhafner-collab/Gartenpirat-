@@ -65,23 +65,29 @@ def main():
     parser.add_argument('--serial', required=True)
     parser.add_argument('--adb', default=str(Path(os.environ['ANDROID_HOME']) / 'platform-tools/adb'))
     parser.add_argument('--compare', action='store_true')
+    parser.add_argument('--source-code', type=int, default=81)
+    parser.add_argument('--target-code', type=int, default=82)
+    parser.add_argument('--ledger-name', default='p3-update')
     args = parser.parse_args()
-    path = ROOT / 'outputs/cloud-emulator/p3-update-before.json'
+    import re
+    if args.target_code <= args.source_code or not re.fullmatch(r'[a-z0-9-]+', args.ledger_name):
+        raise ValueError('Only an explicit forward update and a safe ledger name are permitted.')
+    path = ROOT / 'outputs/cloud-emulator' / (args.ledger_name + '-before.json')
     with emulator_lock(args.serial):
         current = capture(args.adb, args.serial)
         if args.compare:
             before = json.loads(path.read_text())
-            if before['version_code'] != 81 or current['version_code'] != 82:
-                raise ValueError('Expected original in-place update 81 to 82.')
+            if before['version_code'] != args.source_code or current['version_code'] != args.target_code:
+                raise ValueError('Installed versions do not match the explicitly requested forward update.')
             for key in before:
                 if key != 'version_code' and current[key] != before[key]:
                     raise ValueError('Update ledger mismatch: ' + key)
-            target = path.with_name('p3-update-after.json')
+            target = path.with_name(args.ledger_name + '-after.json')
             target.write_text(json.dumps(current, indent=2) + '\n')
-            print('PASS original 81→82 update: complete master, pending actions, stable timer, counts and relations unchanged')
+            print(f'PASS original {args.source_code}→{args.target_code} update: complete master, pending actions, stable timer, counts and relations unchanged')
         else:
-            if path.exists() or current['version_code'] != 81:
-                raise ValueError('Do not replace an update baseline; source release must be 81.')
+            if path.exists() or current['version_code'] != args.source_code:
+                raise ValueError('Do not replace an update baseline; installed source release must match.')
             path.write_text(json.dumps(current, indent=2) + '\n')
             print('PASS read-only synthetic update baseline captured: counts and digests only')
         print(json.dumps(current, sort_keys=True))

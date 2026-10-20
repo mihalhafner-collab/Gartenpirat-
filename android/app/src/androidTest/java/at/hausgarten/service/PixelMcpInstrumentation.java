@@ -168,6 +168,7 @@ public final class PixelMcpInstrumentation extends Instrumentation {
         @Override public File getDatabasePath(String n){return super.getDatabasePath(name(n));}
         @Override public SQLiteDatabase openOrCreateDatabase(String n,int mode,SQLiteDatabase.CursorFactory f){return super.openOrCreateDatabase(name(n),mode,f);}
         @Override public SQLiteDatabase openOrCreateDatabase(String n,int mode,SQLiteDatabase.CursorFactory f,DatabaseErrorHandler h){return super.openOrCreateDatabase(name(n),mode,f,h);}
+        @Override public Object getSystemService(String name){if(Context.JOB_SCHEDULER_SERVICE.equals(name))return null;return super.getSystemService(name);}
         @Override public void sendBroadcast(Intent intent){} // never invoke the real Drive synchronizer
     }
     @Override public void onCreate(Bundle args){
