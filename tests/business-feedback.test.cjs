@@ -18,3 +18,5 @@ console.log('PASS P3 business feedback: evidence distinctions, friendly errors, 
 assert.doesNotMatch(f.error('UNRECOGNIZED_BACKEND_STATE action_hash '+ 'a'.repeat(64)),/UNRECOGNIZED|action_hash|aaaa/);
 assert.match(f.diagnostics().at(-1),/UNRECOGNIZED_BACKEND_STATE/);
 assert.doesNotMatch(JSON.stringify(f.sync({configured:true,cloud_confirmed:true,pending:1})),/abgeglichen|gesichert/);
+
+for(const field of ['request_id','price_source','client_id','provider_readback']){assert.doesNotMatch(f.error('Ungültiges Feld: '+field),new RegExp(field));assert.match(f.diagnostics().at(-1),new RegExp(field));}
