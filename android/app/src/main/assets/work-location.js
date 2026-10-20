@@ -72,14 +72,16 @@
     get('work-location-message').textContent=(fix.message||(fix.status==='OK'?'Standort ermittelt. Adresse und Kunde bitte bestätigen.':'Standort konnte nicht geprüft werden.'))+(fix.status==='OK'?' Genauigkeit ca. '+Math.round(fix.accuracy_m)+' m.':'')+(fix.approximate?' Nur ungefährer Standort: keine automatische Kundensuche.':'')+(a?' '+a:'');
     fillCustomers();
   };
-  function begin(){
+  function begin(customerId=''){
+    try{const current=JSON.parse(AndroidData.getWorkSession());if(!['IDLE','FINALIZED','CANCELLED'].includes(current.state)){if(['RUNNING','PAUSED','STOPPED_PENDING_REVIEW'].includes(current.state)){openPage('home');window.showUndoToast('Eine Arbeit läuft bereits oder wartet auf Abschluss. Bitte dort fortfahren.');}else window.showUndoToast('Zeiterfassung derzeit nicht verfügbar. Bitte erneut versuchen.');return;}}catch(_){window.showUndoToast('Zeiterfassung derzeit nicht verfügbar. Bitte erneut versuchen.');return;}
     ensureDialog();fix=null;get('work-location-search').value='';get('work-location-place').value='';get('work-location-customer').value='';get('work-location-message').textContent='Bei wem arbeitest du?';fillCustomers();dialog.showModal();
     // A modal normally focuses its first editable control, which opens Android's
     // software keyboard. Keep the initial focus on the heading; the keyboard is
     // then shown only after the user deliberately taps Search or another field.
     get('work-location-title').focus({preventScroll:true});
-    request='';get('work-location-message').textContent='Bei wem arbeitest du?';get('work-location-order').innerHTML='<option value="">Ohne Auftrag</option>';dialog.querySelector('.work-start-options').open=false;
+    request='';get('work-location-message').textContent='Bei wem arbeitest du?';get('work-location-order').innerHTML='<option value="">Ohne Auftrag</option>';dialog.querySelector('.work-start-options').open=false;if(customerId&&customers().some(c=>c.id===customerId&&Number(c.active??1)!==0)){get('work-location-customer').value=customerId;get('work-location-customer').dispatchEvent(new Event('change',{bubbles:true}));}
   }
+  window.WorkStart=Object.freeze({open:begin});
   function complete(session){
     const form=get('entry'),hidden=get('work-session-id');
     const focusHeading=()=>{const heading=get('work-entry')?.querySelector('.page-head h2');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});}};
