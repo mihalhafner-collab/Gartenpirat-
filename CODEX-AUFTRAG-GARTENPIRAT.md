@@ -2,7 +2,7 @@
 
 Stand: 20. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
-Priorität: P2 – sichere Konsolidierung; P0 und P1 bestanden
+Priorität: P3 – Black-Box-UX und Workflow-Vereinfachung; P0 und P1 bestanden, P2 technisch sicher konsolidiert mit dokumentierten Restgrenzen
 Arbeitsumgebung: **ausschließlich Codex Cloud**
 
 > Diese Datei ist der zentrale ausführbare Arbeitsauftrag. `AGENTS.md` bleibt die übergeordnete Regeldatei. Bei Widerspruch gilt `AGENTS.md`.
@@ -808,6 +808,359 @@ P2 ist erst abgeschlossen, wenn:
 Neue read-only Auditfunktion tools/audit_media_inventory.py hat ausdrücklich keinen Löschmodus. Sie verwendet ausschließlich normalisierte Metadaten und gibt aggregierte Counts/Bytes/Hashes aus; fehlende Abdeckung oder Versionskonsistenz verhindert Orphan-Nachweise. Dokumente, Backups, Historie und unbekannte Dateien bleiben geschützt. Vollständiger Audit ist keine Purge-Freigabe.
 
 322 Python-Tests,27 JVM-/30 Browser-Suiten und55synthetische MCP-Szenarien PASS. Keine neue APK, Signierung, Installation, operative Architektur- oder Vertragsänderung. Die drei verbleibenden unbekannten Drive-Objekte und alle Altbackups bleiben erhalten; zusätzliche Einzelentscheidung erst nach vollständigem Referenz-/Aufbewahrungsnachweis. Funktionaler Altbackup-Inspektionsfix ist nicht Teil des ausdrücklich nichtfunktionalen P2-Umfangs und bleibt gesondert offen. Nach vorübergehendem Pixel-Connector-Verbindungsfehler neuer finaler Integritäts-/Statusreadback bestanden. Kein neuer Sync angefordert und weiterhin keine unabhängige Cloud-Bestätigung. Sieben alte Actions-Artefakte noch vorhanden, automatischer Ablauf laut Provider23./25.10.2026; unterstützt löschender Actions-Zugang nicht verfügbar. Keine Historienbereinigung oder Force-Push.
+
+
+
+## P3 – Black-Box-UX und Workflow-Vereinfachung nach UAT/Gemini-Abgleich
+
+P3 ist die erste funktionale UX-Phase nach P1. Grundlage sind der vollständige Codex-UAT mit 115 bewerteten Benutzeraufgaben sowie der unabhängige Gemini-Produktbericht. Ziel ist **weniger sichtbare Komplexität bei mindestens gleichem fachlichem Funktionsumfang**.
+
+P3 ist kein Redesign um des Redesigns willen und keine neue Architektur. Die bestehende Pixel↔Drive-, MCP-, Daten-, Dokument- und Sicherheitslogik bleibt erhalten.
+
+### P3.1 Verbindliche Produktprämisse
+
+Der normale Benutzer bedient seinen Betrieb, nicht die Technik dahinter.
+
+Verbindlicher Grundsatz:
+
+> „Ich muss nicht wissen, wie es funktioniert. Ich muss keine technischen Abläufe sehen. Ich brauche nur die fachliche Funktion beziehungsweise EIN/AUS.“
+
+Im normalen UI muss die App im Wesentlichen vier Fragen beantworten:
+
+1. Ist gespeichert?
+2. Ist die Sicherung/Verbindung eingerichtet?
+3. Ist der Vorgang erledigt?
+4. Muss ich etwas tun?
+
+Technische Interna wie Request-ID, record_hash, preview_hash, CAS, Queue, Journal, Snapshot, Provider-Readback, Transportklasse, interne Phasen, Retry-Zähler, UUIDs, Dateipfade oder rohe JSON-/Feldschlüssel bleiben intern und in einem ausdrücklich geöffneten Bereich **Erweitert / Diagnose** verfügbar, sind aber kein normales Bedienmodell.
+
+Keine fachlich falsche Vereinfachung:
+- „Auf Gerät gespeichert“ darf nur erscheinen, wenn lokale Speicherung tatsächlich bestätigt ist.
+- „Mit Drive gesichert“ darf nur erscheinen, wenn der dafür definierte Nachweis erfüllt ist.
+- „Gesendet“ nur bei bestätigtem Versand.
+- „Bezahlt“ nur bei tatsächlicher Zahlungskennzeichnung.
+- „Ausgestellt“ ist nicht „bezahlt“.
+- Synchronisierung ist nicht automatisch gleichbedeutend mit vollständiger Geschäftssicherung.
+
+### P3.2 Nicht verhandelbare Außenverträge
+
+Unverändert bleiben, soweit kein separat autorisierter Vertragswechsel erforderlich wird:
+
+- Paket-ID `at.hausgarten.service`;
+- Originalsignatur und Originalzertifikat;
+- DB-Version, Snapshot- und Drive-/Journalformate;
+- bestehende IDs und Beziehungen;
+- MCP-Protokoll 9;
+- alle 117 bestehenden MCP-Toolnamen, Schemas, Annotationen und Semantiken;
+- Sicherheitsmechanismen für request_id, CAS, Hash, Preview, Confirm, Backup, Originaldokumente und Nummernautorität;
+- P0-Privacy-Gates;
+- P1-Vertragsbaseline `899906c246f9cb8256666c32a89435aa5f792eede3d3407b1c846380900aa813`.
+
+Die 156 semantischen UI-Aktionen dürfen nicht stillschweigend verschwinden. Bestehende Zugänge dürfen zusammengeführt oder kontextuell neu platziert werden, wenn dieselbe fachliche Aktion erhalten bleibt. Eine neue semantische UI-Aktion nur bei nachgewiesenem Bedarf und mit aktualisiertem Paritätsnachweis.
+
+### P3.3 P3-Kernpaket 1 – Black-Box-Status und Diagnose-Trennung
+
+UAT-Basis: U05, U13 sowie das vollständige Expositionsinventar.
+
+Umsetzen:
+
+- normalen Sync-/Speicherstatus in fachliche Aussagen übersetzen;
+- normale Oberfläche zeigt keine Queue-/Provider-/Transport-/Journaldetails;
+- technische Details nur unter `Erweitert / Diagnose`;
+- Alt-Konflikt-Wartung bei 0 aktiven Fällen aus der normalen Oberfläche entfernen;
+- serverseitige technische Fehler zentral in verständliche Benutzertexte übersetzen, ohne den technischen Fehler für Diagnose zu verlieren;
+- bei Netzfehler sinngemäß: „Synchronisierung derzeit nicht möglich. Deine Daten sind auf diesem Gerät gespeichert. Wir versuchen es später erneut.“ – nur wenn diese Aussagen tatsächlich wahr sind;
+- bei vollem Speicher klar: „Nicht gespeichert …“;
+- bei entzogenem Konto klar: erneute Freigabe nötig, lokal bestätigte Daten bleiben erhalten.
+
+EIN/AUS im normalen Betriebsbereich, soweit technisch und fachlich korrekt:
+
+- Google-Drive-Verbindung/Sicherungsabsicht;
+- ChatGPT-Steuerung;
+- Kalenderabgleich;
+- Wetterhinweise;
+- Benachrichtigungen.
+
+Nicht auf EIN/AUS reduzieren:
+- Dokumentart / Bindungsart;
+- Steuermodus;
+- Nummernkreis/Nummernautorität;
+- rechtlich relevante Bestätigungen;
+- Fotoqualität, solange die bewusste dreistufige Wahl erhalten bleiben soll.
+
+### P3.4 P3-Kernpaket 2 – Heute und Arbeitsworkflow
+
+UAT-Zielbild:
+
+- bestehende Hauptnavigation zunächst **Heute – Kunden – Arbeiten – Mehr** beibehalten;
+- Geminis Drei-Tab-Idee nicht blind übernehmen: „Arbeiten“ bleibt als eigener Hauptzugang, solange der erneute UAT keinen klaren Vorteil der Entfernung zeigt;
+- keine fünfte Hauptnavigation einführen.
+
+Heute:
+
+- bei laufender Sitzung ganz oben Kunde, Laufzeit und genau passende Aktionen Pause / Fortsetzen / Beenden;
+- ohne laufende Sitzung eine dominante Aktion **Arbeit starten**;
+- danach nächster Termin, heutige Arbeiten/Summe und **Arbeit nachtragen**;
+- nur ein kurzer wahrer Speicher-/Handlungsstatus, keine technischen Zähler;
+- Gartenpirat erreichbar, aber Timer-/Arbeitsaktionen nicht überdecken.
+
+Arbeitsworkflow:
+
+**Start → Kunde bestätigen → Auftrag optional → Pause/Fortsetzen → Ende → Tätigkeit prüfen → Speichern.**
+
+Regeln:
+
+- kein Pflicht-Auftrag, wenn fachlich nicht notwendig;
+- kein GPS-Zwang;
+- Zeit und Netto-Pause automatisch berechnen;
+- Material, Kilometer, Fotos, Notiz direkt optional ergänzbar;
+- „Später ergänzen“ darf keinen unvollständigen Abschluss als fertig ausgeben;
+- Korrektur aus dem Arbeitsdetail führt in genau einen Editor;
+- Speichern / Abbrechen / Zurück konsistent und sichtbar rückmelden;
+- bestehende Versions-/CAS-Prüfung bleibt im Hintergrund.
+
+### P3.5 P3-Kernpaket 3 – Kundenakte als zentrale Betriebsansicht
+
+Kopfbereich:
+
+- Name / Adresse / Kontakt;
+- **Arbeit starten/erfassen**;
+- **Termin**;
+- weiteres Menü nur für seltener benötigte Aktionen.
+
+Kernziele innerhalb der Akte:
+
+- **Übersicht**
+- **Arbeiten**
+- **Fotos**
+- **Dokumente**
+
+Übersicht zeigt fachlich kompakt:
+- letzten Einsatz;
+- offene Aufträge;
+- Gartenfläche;
+- nächste Termine.
+
+Dokumente enthält:
+- Angebote;
+- Kostenvoranschläge;
+- Rechnungen;
+- passende Entwürfe.
+
+Fotoansicht bleibt Foto-/Dateiansicht. Angebote dürfen nicht mehr nur über einen Foto-/Dateipfad wiedergefunden werden.
+
+Kunde, Einsatzort und gegebenenfalls abweichender Rechnungsempfänger bleiben getrennte Datenmodelle und fachlich eindeutig.
+
+### P3.6 P3-Kernpaket 4 – Drei bestätigte UAT-FAILs schließen
+
+**U01 – Foto nachträglich bearbeiten/zuordnen**
+
+Vorhandene technische `update_photo`-Funktion verwenden. Sichtbarer Weg aus dem Foto:
+
+**Foto → Mehr/Bearbeiten → Beschreibung / Rolle / Arbeit bzw. Auftrag zuordnen → Speichern.**
+
+Kein erneuter Import als Workaround. Keine Duplikatdatei erzeugen. Relations- und Record-Hash-Schutz erhalten.
+
+**U02 – Rechnung als bezahlt kennzeichnen**
+
+Sichtbarer Weg im Rechnungsdetail:
+
+**Rechnung → Zahlung erfassen / als bezahlt kennzeichnen → bestätigen.**
+
+Wichtig:
+- Rechnungszahlung niemals mit persönlichem `b.b.` gleichsetzen;
+- `b.b.`, „App: verrechnet“ und Rechnungszahlung bleiben fachlich getrennt;
+- keine automatische Zahlungsannahme.
+
+**U03 – Sicherungsstatus und Wiederherstellungszugang**
+
+Unter Einstellungen ein verständlicher Bereich **Sicherung**:
+
+- letzter tatsächlich geprüfter Sicherungszeitpunkt;
+- klarer Status;
+- **Jetzt sichern**;
+- **Wiederherstellen** führt über die vorhandene sichere Inspektion/Prüfung;
+- technische Backup-IDs, State-Hashes und Rohdetails nur erweitert.
+
+Restore-Sicherheit nicht zugunsten kürzerer Bedienung abschwächen.
+
+### P3.7 P3-Kernpaket 5 – Dokumente und Abrechnung vereinfachen
+
+**Rechnung aus offenen Leistungen**
+
+Aus Kunden-/Abrechnungskontext:
+
+**Rechnung vorbereiten → vorgeschlagene offene Arbeiten/Leistungen prüfen → bekannte Preise prüfen → Entwurf.**
+
+Nicht automatisch:
+- Empfänger erfinden;
+- unbekannte Preise schätzen;
+- bereits abgerechnete Leistungen doppelt übernehmen;
+- Rechnung ausstellen.
+
+**Rechnungsabschluss**
+
+Einmalige fachliche Einrichtung für Aussteller/Steuer/Nummernkreis verständlich führen. Danach:
+
+**Rechnung prüfen → Rechnung abschließen.**
+
+Zentrale Nummernautorität und unveränderliches Original bleiben geschützt.
+
+**Angebot/Kostenvoranschlag**
+
+Geführter Ablauf:
+
+**Kunde/Kontext → bewusste Dokumentart → Leistungen → fehlende Angaben → Vorschau/Prüfung → ausdrücklich abschließen → optional Teilen/Versenden.**
+
+B2B/B2C und Vertragsweg nur dann prominent abfragen, wenn fachlich erforderlich bzw. noch nicht bekannt. Keine stillen Rechtsannahmen.
+
+Statusbegriffe eindeutig:
+- Entwurf;
+- geprüft;
+- abgeschlossen/finalisiert;
+- zum Teilen bereit;
+- gesendet;
+- angenommen/abgelehnt;
+- bezahlt – nur Rechnungen.
+
+### P3.8 P3-Kernpaket 6 – Begriffe, Lebenszyklus und sichere Einfachheit
+
+U11/U12/U15:
+
+- `b.b.` erhält eine eindeutige Erklärung als persönliche Markierung und wird optisch nicht mit Rechnungszahlung vermischt;
+- „verrechnet“ nicht als Beweis einer ausgestellten Rechnung darstellen;
+- konsistente Begriffe für **Nicht mehr aktiv**, **In Papierkorb**, **Wiederherstellen**, **Endgültig löschen**;
+- Archiv/Papierkorb technisch nicht zusammenwerfen, aber aus Benutzersicht über einen klaren Datenverwaltungsweg führen;
+- endgültiges Löschen, geschützte Dokumente und abhängige Beziehungen behalten die bestehenden Bestätigungs-/Schutzmechanismen;
+- Speichern/Zurück/Verwerfen in Kunde, Auftrag und Arbeit konsistent kommunizieren.
+
+### P3.9 P3-Kernpaket 7 – Suche, Wiederholung und Einstellungen
+
+Nach den Kern-Fixes, sofern keine Regression:
+
+- übergreifende **reine Lesesuche** über Kunde, Arbeit, Foto, Rechnung, Angebot und Termin auf vorhandenen Indizes/Queries; keine zweite Datenhaltung;
+- Termin-Wiederholung aus Kunden-/Auftragskontext leichter auffindbar machen;
+- Kalender/Wetter unter verständlicher Betriebsoption; technische API-/OAuth-/Schwellenfelder nur erweitert;
+- Konfliktfreie Oberfläche bleibt ruhig: keine Wartungsaufforderung, wenn kein Handlungsfall besteht.
+
+### P3.10 Bewusst NICHT Teil der ersten P3-Umsetzung
+
+Nicht gleichzeitig einführen:
+
+- neues Warenwirtschafts-/Lagersystem;
+- digitale Kundenunterschrift;
+- Umsatzgrenzenmonitor;
+- Tourenoptimierungsengine;
+- neue externe Karten-/KAGIS-Integration;
+- neue KI-Automatik, die Preise, Rechtsart, Empfänger oder Konflikte selbst entscheidet;
+- Framework-Migration oder komplette UI-Neuschreibung.
+
+Gemini-Ideen wie Arbeitsvorlagen, Pflege-Turnusse, Material-Schnellwahl und Tourenreihenfolge bleiben Kandidaten für eine spätere Erweiterungsphase nach P3-UAT. Vorhandene Terminserien, Foto-Rollen, GPS, Wetter, Kalender und Spracheingabe werden zuerst besser zugänglich gemacht statt doppelt neu gebaut.
+
+### P3.11 Verbindliche Implementierungsreihenfolge
+
+**P3-R0 Baseline**
+- aktuellen main-Commit, Version, Build, P1-Vertrag, 117 MCP-Tools und 156 UI-Aktionen einfrieren;
+- UAT-Befunde U01–U17 als Charakterisierung festhalten;
+- keine Baseline nachträglich an die Implementierung anpassen.
+
+**P3-R1 Black-Box-Schicht**
+- fachliche Status-/Fehlerübersetzung;
+- Technik aus Normalansicht;
+- Diagnosebereich;
+- EIN/AUS-Betriebsoptionen.
+
+**P3-R2 UAT-FAILs**
+- U01 Foto bearbeiten/zuordnen;
+- U02 Rechnungszahlung;
+- U03 Sicherung/Wiederherstellen.
+
+**P3-R3 Heute + Arbeit**
+- Heute-Zentrale;
+- Arbeitsworkflow;
+- konsistentes Speichern/Zurück;
+- b.b.-Trennung.
+
+**P3-R4 Kundenakte**
+- Übersicht/Arbeiten/Fotos/Dokumente;
+- kontextuelle Start-/Termin-/Dokumentaktionen.
+
+**P3-R5 Dokumente**
+- offene Leistungen → Rechnungsentwurf;
+- Rechnungsbereitschaft;
+- Angebots-/Kostenvoranschlagsführung;
+- eindeutige Statusbegriffe.
+
+**P3-R6 Auffindbarkeit**
+- Suche;
+- Wiederholung;
+- Konflikt-/Settings-Beruhigung;
+- Textkonsistenz.
+
+**P3-R7 Gesamtabschluss**
+- vollständige Regression;
+- erneuter vollständiger UAT;
+- Privacy-Gates;
+- Originalbuild und Updateprüfung.
+
+Nach jeder Phase `CODEX-STATUS.md` aktualisieren. Kleine logische Commits. Keine neue Projektdokumentation.
+
+### P3.12 Testpflicht
+
+Nach jeder Phase mindestens betroffene Charakterisierungstests plus passende:
+
+- Python;
+- JVM;
+- Browser/JS;
+- MCP stdio;
+- Android/Native Instrumentation, soweit die Phase Android-Code betrifft;
+- UI-MCP-Parität;
+- P0 Source-/Workspace-/Artifact-Privacy-Gates.
+
+Am Ende vollständig:
+
+- P1-Vertragsvergleich;
+- alle 117 MCP-Tools;
+- vollständiger UI-Katalog;
+- DB-/Snapshot-/Drive-/Dokumentverträge;
+- Originalsignatur;
+- synthetisches In-place-Update;
+- vollständiger 115-Aufgaben-UAT erneut.
+
+Physische Kamera, echte Google-/Kalender-/Wetter-/Gmail-/Kontofreigaben und reale Pixel-Systemdialoge als externe Grenzen ehrlich kennzeichnen, wenn sie nicht tatsächlich ausgeführt wurden.
+
+### P3.13 P3-Abnahmekriterien
+
+P3 gilt erst als abgeschlossen, wenn:
+
+1. U01, U02 und U03 im erneuten UAT **PASS** sind;
+2. kein neuer UAT-FAIL entstanden ist;
+3. U05/U06/U07/U08/U09/U11/U12/U15 mindestens nachweislich weniger Reibung haben;
+4. normale UI keine Request-/Hash-/CAS-/Queue-/Journal-/Provider-/Transportdetails zum Verständnis voraussetzt;
+5. falsche Aussagen „gesichert“, „gesendet“, „bezahlt“ oder „ausgestellt“ technisch ausgeschlossen bzw. durch Tests geschützt sind;
+6. Heute-Arbeitsworkflow ohne technischen Kontext bedienbar ist;
+7. Kundenakte Arbeit/Fotos/Dokumente/Termine kontextuell erreichbar macht;
+8. Rechnung aus offenen Leistungen als Entwurf vorbereitet werden kann, ohne Doppelabrechnung oder Preisannahme;
+9. Foto nachträglich ohne Duplikatimport bearbeitet/zugeordnet werden kann;
+10. Rechnungszahlung sichtbar, aber von b.b. getrennt ist;
+11. Sicherung verständlich erreichbar ist, ohne Restore-Schutz zu schwächen;
+12. P0-Privacy-Gates PASS bleiben;
+13. P1-Vertragsbaseline PASS bleibt;
+14. Paket-ID, Datenformate, IDs/Beziehungen, Nummernautorität und Originalsignatur unverändert bleiben;
+15. keine produktiven Daten für Testzwecke verwendet werden;
+16. keine offene P2-Restfrage durch P3 stillschweigend als gelöst markiert wird.
+
+### P3.14 Version / APK
+
+Nach vollständig bestandenem P3:
+
+- neue Releaseversion aus aktuellem Stand ableiten; bei unverändertem Versionsverlauf bevorzugt **1.52.0 / Build 82**;
+- Originalsignierung ausschließlich über den bestehenden geschützten Cloud-Signierweg;
+- Privacy-/Signatur-/16-KiB-Prüfung;
+- synthetisches normales In-place-Update von 1.51.2/81 auf den P3-Build ohne Deinstallation oder Datenlöschung;
+- P3-APK erst danach als Kandidat bereitstellen;
+- physische Pixel-Installation nur nach ausdrücklicher Nutzerfreigabe und aktueller Sicherung;
+- nach Pixelinstallation Live-MCP, Geschäftshash/Counts, Queue/Review/Journal, Fotozugriff, Rechnungszahlung, Sicherungszugang und zentrale P3-Workflows erneut prüfen.
 
 
 ## 3. Tatsächlich abgeglichener Ausgang und neuer Quellstand
