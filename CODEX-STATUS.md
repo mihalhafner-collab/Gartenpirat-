@@ -1608,3 +1608,13 @@ Sichtbar bleiben müssen: fehlende echte Sicherung, nicht gespeicherte Fotos, er
 - Außenverträge bleiben geschützt: Paket-ID, Originalsignatur, DB/Snapshot/Drive/Journal, IDs/Relationen, MCP9/117 Tools, P1-Vertragsbaseline und P0-Privacy-Gates.
 - P3 ist mit diesem Eintrag **nur definiert, noch nicht implementiert**. Keine App-/Android-/JS-/MCP-/DB-/Drive-Funktion wurde durch das Anlegen des P3-Plans geändert.
 - Ziel nach vollständiger Abnahme bei unverändertem Versionsverlauf: 1.52.0 / Build 82, originalsignierter Kandidat erst nach kompletter Regression, erneutem 115-Aufgaben-UAT und synthetischem In-place-Update 81→82. Physische Pixelinstallation bleibt separat freigabepflichtig.
+
+
+## P3-R0 – Baseline und Charakterisierung (20.10.2026)
+
+- Aktueller `main` vor P3-Implementierung: `d1c57034f7c1e74152f96d62a3cecaaaaccf511e`, sauber per Fast-forward übernommen. Operativer Quellstand unverändert 1.51.2 / 81, Paket `at.hausgarten.service`, MCP9 / 117 Werkzeuge, 156 semantische UI-Aktionen. P0/P1 bleiben maßgeblich; P2-Restgrenzen werden nicht als erledigt umgedeutet.
+- Unveränderliche synthetische Vorher-Fixture `tests/fixtures/p3-ux-baseline.json`: alle 115 bisherigen UAT-Aufgaben, U01–U17 und Quellhashes vor der ersten Produktänderung. Drei neue Charakterisierungsprüfungen sichern die vollständige Aufgabenmenge, die ursprünglichen FAILs 41/81/106, die Herkunft der Quellhashes und die unveränderte P1-Fixture. Keine Betriebsdatensätze enthalten.
+- Neu ausgeführt: Python-Qualitätssuite 322 PASS (bestehende QA-Schlüsseltests ausdrücklich ausgeschlossen), 27 JVM-Suiten PASS, 30 Browser-/JavaScript-Testläufe PASS, 3 P3-Baselineprüfungen PASS. UI-MCP-Inventarprüfung PASS. P1-Vertragsvergleich unverändert PASS: `899906c246f9cb8256666c32a89435aa5f792eede3d3407b1c846380900aa813`.
+- Source-, Workspace- (einschließlich ignoriert/untracked) und Artifact-Privacy-Gate PASS. Geprüftes bestehendes Originalartefakt 81: SHA-256 `7e569519f8f3328335499a84181f6eb6746c860e4325e80d67f0f44ba59e865e`, leerer operativer Bootstrap. Kein neuer Kandidat erstellt.
+- Abnahmeziele der folgenden Phasen: verständliche belegbare Statusaussagen, technische Details nur explizit erweitert; drei UAT-FAILs über bestehende fachliche Funktionen schließen; alle 156 Aktionen und Außenverträge erhalten; schmale Ansichten, Entwürfe und Fehlerpfade prüfen.
+- Offen unverändert: früherer synthetischer Emulator-Lifecycle-Nachweis mit nicht lokalisiertem Verify-FAIL sowie SystemUI-ANR bei visueller Abnahme; erneute native Abnahme erforderlich. Kein physischer Pixel-, Konto-, Drive- oder Versandtest durchgeführt. Die historische UAT-Bewertung ist keine erneute P3-Abnahme.
