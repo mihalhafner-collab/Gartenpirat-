@@ -579,6 +579,213 @@ Vorher-/Nachher-Gesamtvertrag SHA-256 `899906c246f9cb8256666c32a89435aa5f792eede
 Physischer Pixel, Live-Connector und echte Google-Provider bleiben ausdrücklich **NOT TESTABLE / offen**. Keine produktive Legacy-Auflösung oder Installationsfreigabe aus dieser P1-Abnahme ableiten. Die geprüfte Original-81-APK liegt als Cloud-Kandidat unter `outputs/`; bestehende Downloads bleiben unverändert. Keine funktionale, Vertrags- oder P0-Privacyregression offen; frühere externe Funktionsabnahmen bleiben ausstehend.
 
 
+
+## P2 – Konsolidierung und sichere Bereinigung nach P1-Pixel-Abnahme
+
+P1 ist auf dem realen Pixel installiert und über MCP lesend geprüft. P2 dient ausschließlich der **Konsolidierung, Speicherbereinigung und Entfernung nachweislich überholter Entwicklungsartefakte**, nicht der funktionalen Weiterentwicklung. Produktive Geschäftsdaten haben Vorrang vor Speichergewinn.
+
+### P2.1 Grundregel
+
+Vor jeder Löschung gilt:
+
+1. aktuellen Pixel-/MCP-/Sync-Zustand lesen;
+2. Queue/Review/Journalfehler müssen 0 sein oder ausdrücklich begründet werden;
+3. mindestens eine aktuelle, prüfbare Geschäftssicherung muss vorhanden sein;
+4. Löschkandidat muss eindeutig klassifiziert und referenzfrei bzw. vollständig in `main`/aktueller Runtime enthalten sein;
+5. Preview/Hash/Bestätigung verwenden, sobald die App dies unterstützt;
+6. nach jeder Löschgruppe Readback und Integritätsprüfung;
+7. keine Sammellöschung bei unklarer Abhängigkeit.
+
+Kein History-Rewrite, kein Force-Push und keine Löschung produktiver Drive-/Geschäftsdaten allein zur Größenoptimierung.
+
+### P2.2 GitHub – Branches
+
+Aktueller Ausgang nach P1:
+
+- `main`
+- `codex/original-signing-cloud-setup-20261018`
+- `codex/preserve-cloud-28504c9-20261018`
+- `codex/v1.46-functional-optimization-20261016`
+
+Die drei `codex/*`-Branches sind nach aktuellem Vergleich vollständig in `main` enthalten; `main` ist ihnen voraus und nicht hinter ihnen.
+
+Vorgehen:
+
+- vor Löschung erneut Merge-/Commitvergleich ausführen;
+- nur vollständig in `main` enthaltene alte Branches löschen;
+- `main` bleibt einziger operativer Branch;
+- keine neue Archivbranch-Struktur anlegen.
+
+### P2.3 GitHub – APK-/Releaseartefakte
+
+Im Repository liegen zahlreiche alte APK-Kandidaten. Zielzustand:
+
+- aktuellen produktiv installierten bzw. freigegebenen Kandidaten dokumentieren;
+- **einen unmittelbar vorherigen kompatiblen Rollback-/Referenzbuild** behalten;
+- ältere APK-Binaries aus dem aktuellen Baum entfernen, wenn Prüfsummen/Releasehistorie ausreichend dokumentiert sind;
+- `downloads/README.md` und `SHA256SUMS` konsolidieren;
+- keine Aussage, dass das Löschen aus `main` die Git-Historie verkleinert.
+
+Falls die aktuelle P1-APK nicht im GitHub-`downloads/` liegt, vor Bereinigung entscheiden:
+- entweder P1-Artefakt bewusst als aktuellen Referenzbuild aufnehmen,
+- oder P1 ausschließlich im privaten Drive behalten und den letzten GitHub-Build als Rollbackreferenz markieren.
+
+Keine erneute Signierung nur für Bereinigung.
+
+### P2.4 GitHub – Dokumentation
+
+Historische Einzelberichte inventarisieren und in drei Klassen einteilen:
+
+- **KEEP:** zentrale aktuelle Regeln/Nachweise;
+- **MERGE:** relevante Information zuerst in zentrale Dateien übernehmen;
+- **REMOVE:** vollständig überholte, redundante Zwischenberichte.
+
+Mindestens dauerhaft erhalten:
+
+- `AGENTS.md`
+- `CODEX-AUFTRAG-GARTENPIRAT.md`
+- `CODEX-STATUS.md`
+- `ORIGINAL-SIGNIERUNG-CLOUD.md`
+- aktuelle technische README-/Release-/MCP-Nachweise, sofern noch verwendet.
+
+Alte Versionsdokumente erst löschen, wenn keine noch gültige Regel oder offene Abnahme ausschließlich dort dokumentiert ist.
+
+### P2.5 GitHub – Legacy-Code
+
+Historische Python-/Web-/Migrationskomponenten **nicht pauschal löschen**.
+
+Nur entfernen, wenn alle Bedingungen erfüllt sind:
+
+- keine produktive Runtime-Abhängigkeit;
+- keine Test-/Regression-/Migrationsabhängigkeit;
+- keine Referenz aus Build/Tools/Dokumentation;
+- vollständige Tests nach Entfernung PASS.
+
+P1 hat ausdrücklich bestätigt, dass `db.py`, `server.py`, `mcp_integration/` und Teile der Migration weiterhin für Regression/Migration benötigt werden. Diese bleiben bis zu einem separaten Nachweis erhalten.
+
+### P2.6 Codex Cloud
+
+GitHub-`main` bleibt dauerhafte Codequelle. Codex-Cloud-Arbeitsbereiche sind Entwicklungs-/Testumgebungen und keine produktive Datenquelle.
+
+Bereinigung:
+
+- abgeschlossene Codex-Aufgaben nur dann verwerfen/archivieren, wenn alle relevanten Änderungen in GitHub committed und Status/Nachweise übernommen sind;
+- veröffentlichte private Umgebung `Gartenpirat-` behalten;
+- keine produktiven Appdaten in Codex-Workspaces oder Umgebungsdateien ablegen;
+- temporäre Build-/Testartefakte nach erfolgreicher Abnahme entfernen;
+- Secrets nur in dafür vorgesehenen Environment-Secrets, niemals in Dateien/Logs.
+
+### P2.7 Pixel/Drive – aktueller Ausgang
+
+Bei P2-Start real gelesen:
+
+- App 1.51.2 / Build 81, MCP9;
+- Queue 0, Review 0, Journalfehler 0;
+- Drive `provider_readback`, kein aktueller Transferfehler;
+- 58 Kunden, 3 Aufträge, 46 Arbeitsaufzeichnungen, 95 Rechnungen, 31 Fotos, 33 Leistungskatalogeinträge, 0 aktive Angebote, 1 Termin;
+- Archiv: 2 Angebote, 3 Kunden, 129 Worklogs, 3 Fotos, 2 Rechnungen, 0 Aufträge;
+- 6 vorhandene Backups;
+- `cloud_confirmed=false`: Provider-Readback nicht als unabhängige Google-Cloud-Bestätigung ausgeben.
+
+Diese Werte sind nur Startinventar, keine automatische Löschfreigabe.
+
+### P2.8 Drive-/App-Datenbereinigung
+
+Bereinigung in dieser Reihenfolge:
+
+**A. Papierkorb/Archiv**
+- `list_archive` vollständig paginieren;
+- Einträge klassifizieren: Test, Dublette, historisch fachlich relevant, steuer-/rechnungsrelevant, unklar;
+- Rechnungen/finale Dokumente und geschäftlich relevante Historie nicht automatisch endgültig löschen;
+- Test-/Fehleinträge nur mit `preview_purge` bzw. `preview_empty_trash`, aktuellem Hash und ausdrücklicher Freigabe purgen.
+
+**B. Backups**
+- alle 6 Backups mit `inspect_backup` lesen;
+- Alter, Umfang, Vollständigkeit und Wiederherstellungswert klassifizieren;
+- mindestens ein aktuelles vollständiges Backup und einen sinnvollen Vor-P1-/Rollbackpunkt erhalten;
+- alte redundante Backups nur löschen, wenn ein sicherer unterstützter Löschweg vorhanden ist; andernfalls nicht manuell im Drive entfernen.
+
+**C. Medien/Dateien**
+- aktive Foto-/Dokumentreferenzen gegen gespeicherte Dateien vergleichen;
+- Kandidaten nur als `referenced`, `orphaned`, `temporary`, `protected`, `unknown` klassifizieren;
+- keine Originaldatei löschen, solange irgendeine aktive/archivierte/finale Referenz besteht;
+- Content-addressed Dateien nur löschen, wenn keine Referenz mehr vorhanden ist und Sync/Receipt dies bestätigt.
+
+**D. Journale/Receipts/Sync-Historie**
+- nicht zur kosmetischen Bereinigung löschen;
+- technische Historie nur nach klarer Retention-Regel und ohne Verlust von Idempotenz-/Konflikt-/Löschbelegen reduzieren;
+- keine alten Journale manuell im Drive entfernen.
+
+### P2.9 Drive-Orphan-Cleanup als sichere Funktion
+
+Falls noch kein vollständiger read-only Orphan-Audit existiert, P2 soll zunächst nur einen solchen Audit ergänzen, nicht sofort löschen.
+
+Erforderliche Ausgabe ohne Rohdaten:
+
+- Anzahl Dateien je Typ;
+- Anzahl referenziert;
+- Anzahl eindeutig verwaist;
+- Anzahl geschützt;
+- Anzahl unbekannt;
+- Gesamtbytes je Klasse;
+- Hash der geprüften Referenzmenge;
+- keine Kunden-/Dateiinhalte im Bericht.
+
+Ein späterer Löschmodus benötigt:
+
+- Preview;
+- unveränderlichen `preview_hash`;
+- explizites `confirmed=true`;
+- Ausschluss aller `protected`/`unknown`;
+- dauerhaften Löschbeleg;
+- Nachher-Readback;
+- erneuten Orphan-Audit.
+
+### P2.10 Steuer-/Geschäftsunterlagen
+
+Rechnungen, Korrekturen, finale Angebote/Kostenvoranschläge, Zahlungs-/Ausstellungsbelege und andere aufbewahrungspflichtige Unterlagen nicht im technischen Cleanup pauschal löschen.
+
+P2 darf Speicherbereinigung nicht mit buchhalterischer Aufbewahrungsentscheidung vermischen.
+
+### P2.11 Historische Git-Daten
+
+P0 hat sensible ältere Git-Historienobjekte gefunden. P2 führt **keinen History-Rewrite** durch.
+
+Optional nur lesend erneut inventarisieren und separaten Sicherheitsauftrag vorbereiten. Ein späterer Rewrite benötigt eigene Freigabe, Backup, Klon-/Branch-/Release-Auswirkungsanalyse und koordinierten Force-Push. Nicht Teil dieser P2-Bereinigung.
+
+### P2.12 Reihenfolge
+
+1. Read-only Gesamtinventar GitHub/Codex/Pixel/Drive;
+2. Sicherung und Sync-Zustand bestätigen;
+3. alte vollständig gemergte Codex-Branches bereinigen;
+4. APK-/Releaseartefakte konsolidieren;
+5. Dokumentation konsolidieren;
+6. toten Code nur nach P1-/Testnachweis entfernen;
+7. Archiv/Papierkorb klassifizieren;
+8. Backups klassifizieren;
+9. Orphan-Audit für Drive/Medien/Dokumente;
+10. erst dann explizit freigegebene App-/Drive-Löschungen;
+11. vollständige Tests/Privacy-Gates/Sync-Readback;
+12. `CODEX-STATUS.md` aktualisieren.
+
+### P2.13 Abnahmekriterien
+
+P2 ist erst abgeschlossen, wenn:
+
+- nur benötigte Git-Branches verbleiben;
+- Releaseartefakte nachvollziehbar konsolidiert sind;
+- zentrale Dokumentation ohne Informationsverlust reduziert ist;
+- kein benötigter Legacy-/Test-/Migrationscode versehentlich entfernt wurde;
+- P0-Privacy-Gates weiterhin PASS;
+- P1-Vertragsbaseline weiterhin PASS;
+- Pixel-Datenintegrität unverändert bzw. jede bewusste Löschung einzeln dokumentiert;
+- Queue/Review/Journalfehler 0;
+- Drive-/Datei-Cleanup nur referenzsicher durchgeführt;
+- mindestens ein aktuelles vollständiges Backup erhalten;
+- keine steuer-/geschäftsrelevanten Unterlagen ohne separate Entscheidung gelöscht;
+- alle tatsächlichen Löschungen mit Vorher-/Nachher-Nachweis dokumentiert sind.
+
+
 ## 3. Tatsächlich abgeglichener Ausgang und neuer Quellstand
 
 Dieser Funktionsabgleich ist historisch vor P0. Die Datenschutzabnahme steht in P0.14; der aktuelle Refactoringstand 1.51.2/81 und seine Abnahme stehen in P1.14 und im letzten P1-Abschnitt von CODEX-STATUS.md.
