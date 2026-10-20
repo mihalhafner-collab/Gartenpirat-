@@ -213,7 +213,8 @@ final class AppointmentRuntime {
         if(!s.has("weather_license_confirmed")){s.put("weather_license_confirmed",true);changed=true;}
         if(changed)saveSettings(store,s);
     }
-    static void refreshWeather(Context c,PixelLocalStore store,Instant now)throws Exception {
+    static void refreshWeather(Context c,PixelLocalStore store,Instant now)throws Exception {refreshWeather(c,store,now,new PlanningWire());}
+    static void refreshWeather(Context c,PixelLocalStore store,Instant now,DriveRestClient.Wire upstream)throws Exception {
         JSONArray all=PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments");
         Map<String,Long> sites=new LinkedHashMap<>();
         for(int i=0;i<all.length();i++){
@@ -233,7 +234,7 @@ final class AppointmentRuntime {
             if(count>=180)throw new DriveRestClient.Failure("WEATHER_RATE_LIMIT","Wetterprüfung wird später fortgesetzt.",(3600-now.getEpochSecond()%3600)*1000,false);
             store.putOwnerValue("weather:request-budget",new JSONObject().put("hour",bucket).put("count",count+1).toString());
             if(requests[0]>1)Thread.sleep(300); // Below the public 5 requests/second quota; worker only.
-            return new PlanningWire().send(method,url,headers,body,max);
+            return upstream.send(method,url,headers,body,max);
         };
         Exception failure=null;
         // Oldest site first prevents starvation when a large batch spans several jobs.
