@@ -1,8 +1,8 @@
 # CODEX-AUFTRAG-GARTENPIRAT
 
-Stand: 19. Oktober 2026
+Stand: 20. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
-Priorität: P1 – verhaltensgleiches Refactoring; P0 bestanden
+Priorität: P2 – sichere Konsolidierung; P0 und P1 bestanden
 Arbeitsumgebung: **ausschließlich Codex Cloud**
 
 > Diese Datei ist der zentrale ausführbare Arbeitsauftrag. `AGENTS.md` bleibt die übergeordnete Regeldatei. Bei Widerspruch gilt `AGENTS.md`.
@@ -784,6 +784,30 @@ P2 ist erst abgeschlossen, wenn:
 - mindestens ein aktuelles vollständiges Backup erhalten;
 - keine steuer-/geschäftsrelevanten Unterlagen ohne separate Entscheidung gelöscht;
 - alle tatsächlichen Löschungen mit Vorher-/Nachher-Nachweis dokumentiert sind.
+
+
+### P2.14 Tatsächlicher Bearbeitungs- und Abnahmestand (20.10.2026)
+
+**Technische Konsolidierung PASS; vollständige P2-Abnahme OFFEN.** Ausgang main348b40a, operative App weiterhin 1.51.2/81 aus e8a1d09. Keine produktive Löschung, neue geprüfte Geschäftssicherung zusätzlich erstellt. Belastbare Schritte, SHA-Nachweise und Grenzen stehen in CODEX-STATUS P2-1 bis P2-6.
+
+| Kriterium aus P2.13 | Tatsächlicher Stand |
+| --- | --- |
+| Nur benötigte Git-Branches | PASS: drei frisch geprüfte vollständig integrierte Branches entfernt, nur main remote |
+| Releaseartefakte konsolidiert | PASS aktueller Baum:81 privat in Drive,79 GitHub-Referenz; elf ältere APKs entfernt, Hash-/Historiennachweis erhalten. Separate Release-/Asset-API NOT TESTABLE (Forbidden) |
+| Zentrale Dokumentation reduziert | PASS:30→27 Markdown-Dateien, drei Berichte zusammengeführt, README und Downloadliste aktualisiert |
+| Benötigter Legacy-/Test-/Migrationscode erhalten | PASS: tatsächliche Imports/Regressionen nachgewiesen, keine solchen Komponenten entfernt |
+| P0-Gates | PASS: Source, kompletter Workspace und unveränderte Original-APK81 |
+| P1-Vertragsbaseline | PASS: identischer Gesamtvertrag; auch reale117Pixel-Schemas kanonisch gleich |
+| Pixel-Datenintegrität | PASS: Geschäftshash und alle139Archivversionen gleich, keine Geschäftslöschung |
+| Queue/Review/Journalfehler | PASS:0/0/0 im finalen aktiven Status, rohen Pending-Zähler separat dokumentiert |
+| Referenzsicherer Drive-/Datei-Cleanup | KEINE LÖSCHUNG: read-only Audit214Dateien,44referenziert/151geschützt/19unklar; globale Vollständigkeit OFFEN |
+| Aktuelles vollständiges Backup erhalten | PASS im bestehenden Geschäftsbackup-Scope:neue33524508-Byte-Sicherung inspektiert und SHA-geprüft, kein Gerätebackup. Sechs ältere Inspektionen READ_ERROR, keine davon entfernt |
+| Steuer-/Geschäftsunterlagen geschützt | PASS: keine Rechnung, finales Dokument, Journal, Originalfoto oder altes Backup gelöscht |
+| Löschungen vorher/nachher dokumentiert | PASS: Branch-SHAs, elf APK-SHAs/Historienpfad, zusammengeführte Dokumente und vier temporäre Archiv-SHAs dokumentiert |
+
+Neue read-only Auditfunktion tools/audit_media_inventory.py hat ausdrücklich keinen Löschmodus. Sie verwendet ausschließlich normalisierte Metadaten und gibt aggregierte Counts/Bytes/Hashes aus; fehlende Abdeckung oder Versionskonsistenz verhindert Orphan-Nachweise. Dokumente, Backups, Historie und unbekannte Dateien bleiben geschützt. Vollständiger Audit ist keine Purge-Freigabe.
+
+316 Python-Tests,27 JVM-/30 Browser-Suiten und55synthetische MCP-Szenarien PASS. Keine neue APK, Signierung, Installation, operative Architektur- oder Vertragsänderung. Unbekannte Drive-Objekte und nicht prüfbare Altbackups bleiben erhalten; zusätzliche Einzelentscheidung erst nach vollständigem Referenz-/Aufbewahrungsnachweis. Keine Historienbereinigung oder Force-Push.
 
 
 ## 3. Tatsächlich abgeglichener Ausgang und neuer Quellstand

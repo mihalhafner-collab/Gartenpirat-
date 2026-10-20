@@ -7,9 +7,13 @@ Repository: `mihalhafner-collab/Gartenpirat-`
 > Regeln: `AGENTS.md`  
 > Vollständiger Auftrag: `CODEX-AUFTRAG-GARTENPIRAT.md`
 
-## Aktueller P1-Refactoringauftrag
+## Aktueller P2-Konsolidierungsauftrag
 
-**P1: PASS, alle 12 Abnahmekriterien im definierten Cloud-Umfang erfüllt.** Ausgang `1abf049c1e27167bc16259d8717513aeb5ffe670`, Version 1.51.1/80; operativer Abschluss- und APK-Quellcommit `e8a1d09ba7bb93438fb5aaff1e6008a670339764`, Version 1.51.2/81. R0–R7 bestanden, Außenverträge unverändert: MCP 9 / 117 Tools / 156 UI-Aktionen. Alle drei P0-Gates PASS. Keine produktiven Daten verwendet. Physischer Pixel und realer Connector nicht aktualisiert; vollständige Schlussabnahme und Grenzen im letzten P1-Abschnitt unten.
+**Sichere technische Konsolidierung bestanden; vollständige P2-Abnahme noch offen.** Ausgang `348b40a`, App unverändert 1.51.2/81. Drei integrierte Remote-Branches, elf alte APKs und vier temporäre Archive entfernt; drei Berichte ohne Verlust gültiger Regeln konsolidiert. Geschäftsdaten und alle 139 Archivversionen unverändert; neue geprüfte Geschäftssicherung zusätzlich erhalten. 316 Python-Tests / 27 JVM- / 30 Browser-Suiten / 55 isolierte MCP-Szenarien und alle drei P0-Gates PASS, P1-Vertrag identisch. Globale Drive-Referenzabdeckung und sechs alte Backup-Inspektionen bleiben ungeklärt; separate GitHub-Release-Liste vom Cloud-Zugang blockiert. Keine produktive Löschung. Einzelheiten und Abnahmetabelle unten.
+
+## Bestandener P1-Refactoringauftrag
+
+**P1: PASS, alle 12 Abnahmekriterien im definierten Cloud-Umfang erfüllt.** Ausgang `1abf049c1e27167bc16259d8717513aeb5ffe670`, Version 1.51.1/80; operativer Abschluss- und APK-Quellcommit `e8a1d09ba7bb93438fb5aaff1e6008a670339764`, Version 1.51.2/81. R0–R7 bestanden, Außenverträge unverändert: MCP 9 / 117 Tools / 156 UI-Aktionen. Alle drei P0-Gates PASS. Keine produktiven Daten für P1-Tests verwendet. Der physische Pixel wurde anschließend außerhalb dieser Cloud-Installation auf 81 aktualisiert und bei P2 lesend bestätigt; der P1-Schlussabschnitt beschreibt seine damaligen Prüfgrenzen.
 
 ## Bestandener P0-Datenschutzauftrag
 
@@ -1018,3 +1022,99 @@ Geändert wurden MCP-/Query-/Schema-/Fehleradapter, Application Services/Ports/E
 - Bestehenden autorisierten App-Weg einmal mit stabiler Request-ID `p2_20261020_pre_cleanup_current_backup_v1` verwendet. Neue private Geschäftssicherung `backup_240b8a9bedea701bd45a7a92536916328f4cb6319e5dfaee8eff900e1ea0b0be`, 33.524.508 Bytes, SHA-256 `d965237fc10717e58e0897ebf14b13bddfcb18ff298a5139ca955750f252d780`. inspect_backup PASS; Umfang Snapshot/Pending/lokale Originale und Dokumente, keine Zugangsdaten und kein vollständiges Gerätebackup. Counts 58/3/46/95/31/33/0/1. Keine Rohbytes heruntergeladen oder im Repository gespeichert.
 - Geschäftsdatenhash vor/nach Sicherung identisch `2b8310a538134a49966b736ae660758e2863a1d9fe62e973c11cc1f4ddb07932`; aktive Queue/Review/Journalfehler weiterhin 0. Alle sechs früheren Backups unverändert erhalten. Deren READ_ERROR-Ursache nicht ungeprüft als beschädigte Datei ausgegeben; Quellcode setzt bei Inspektion alle heutigen Collections voraus, ältere Sicherungen können darunter scheitern.
 - PASS: Voraussetzung einer aktuellen prüfbaren Geschäftssicherung für die nachfolgenden rein technischen Löschgruppen erfüllt. Kein Restore, kein Purge, kein Drive-Datei-Cleanup und keine Installation.
+
+
+## P2-3 – integrierte Branches und Releaseartefakte konsolidiert (20.10.2026)
+
+- Frischer Remote-/Ancestryvergleich unmittelbar vor normalem atomarem Branch-Delete; alle drei dokumentierten SHA-Spitzen unverändert und vollständig in main enthalten. Drei alte codex/*-Branches entfernt, Remote-Readback bestätigt nur main. Main dabei unverändert 348b40a, keine Commit-/Historylöschung, kein Force-Push.
+- Zwölf APK-Prüfsummen automatisiert gegen vorhandenes Manifest verifiziert. 81 bleibt bewusst privat in Drive; letzter GitHub-Originalbuild 79 bleibt als Referenz mit unverändertem Hash erhalten. Elf ältere APKs 66–77 aus dem aktuellen downloads-Baum entfernt; Prüfsummen/Historienzuordnung in downloads/README.md, Wiederherstellung aus Commit 348b40a möglich. Dies verkleinert den aktuellen Baum, ausdrücklich nicht die Git-Historie. Keine Android-Downgradefreigabe. Original-80-/81-Cloud-Prüfkandidaten bleiben erhalten.
+- .gitignore-Ausnahmen auf den tatsächlich aufbewahrten Originalbuild79 reduziert; keine erneute Signierung und keine operative Quelländerung. Neue Geschäftssicherung aus P2-2 ist geprüft, aktive Queue0; keine App-/Drive-Datei gelöscht.
+
+
+## P2-4 – Dokumentation und Legacy-Nutzung (20.10.2026)
+
+- Alle 30 Markdown-Dateien mit Referenzsuche klassifiziert. KEEP: AGENTS, Auftrag, Status, Originalsignierung, README, downloads/README, Integrationsnachweis, Reparaturnachweis, MCP-Eigentümernachweis, beide Sync-/Abnahmedokumente, Android-Build-/Emulatoranleitung, QA-Signierung (weiter von qa_signing.py referenziert), österreichische Rechnungsquellen und übrige historische Architektur-/Pflanzen-/Kamera-/Foto-/MCP-/Timer-/Pixel-first-Berichte. Deren exklusive historische Nachweise oder Test-/Migrationsbezüge bleiben erhalten; alte Runtime-Anweisungen gelten nicht für den aktuellen Betrieb.
+- MERGE → REMOVE: RECHNUNGS-WORKFLOW-v1.24.md, RECHNUNGS-OBERFLAECHE-v1.25.md, DESIGN-v1.35.md. Vorher keine eingehenden Referenzen im aktuellen Baum, vollständig gelesen. Dauerhafte UI-/Dokumentschutzregeln in README und bestehendem MCP-Eigentümernachweis konsolidiert, heutige Regeln aus AGENTS/Auftrag bleiben vorrangig. Historische Details/Prüfungen unverändert aus Commit348b40a lesbar. Keine aus alten Dokumenten kopierten Kunden-/Bankdaten. 30 → 27 Markdown-Dateien, downloads/README und zentrale README verkürzt und auf den tatsächlichen Stand aktualisiert.
+- Legacy KEEP bestätigt: db.py/server.py/mcp_integration sowie Rechnungs-/Angebots-/Drive-Migrationsmodule werden tatsächlich von Python-/MCP-/HTTP-/Relations-/Sync-/Backup-Regressionen importiert bzw. aufgerufen. Keine nachweislich vollständig unbenutzte zusätzliche Legacy-Komponente gefunden; keine Tests, Migrationen oder Produktivfunktionen entfernt. Keine operative Java-/JS-/APK-Änderung.
+
+
+## P2-5 – Cloud-Artefakte, Archiv/Backups und read-only Medienaudit (20.10.2026)
+
+- Nur regenerierbare Gradle-APK/AAB-Ausgaben und den anhand seines P1-SHA belegten eigenen Instrumentierungsrunner aus dem Workspace entfernt; Original-80/81, getrackter Referenzbuild79 und technische Abnahmeberichte bleiben erhalten. Keine Emulatorprofile, fremden Tasks oder veröffentlichte private Cloud-Umgebung entfernt. Keine administrierbare Codex-Task-Archivierungsschnittstelle vorhanden; keine Aufgaben als gelöscht behauptet.
+- Archiv139 bleibt vollständig unverändert. Sechs alte Backups bleiben geschützt; zwei gleiche SHA-Werte allein sind keine Löschfreigabe. Neue siebte Sicherung zusätzlich über get_file_metadata vollständig auf Bytezahl/SHA geprüft, unverändert d965237f…2d780. Kein unterstützter Backup-Purge exponiert, kein manueller Drive-Ersatz. Steuer-/Geschäftsunterlagen und Journale unverändert erhalten.
+- Ergänzt: tools/audit_media_inventory.py, ausschließlich normalisierte Metadaten im RAM oder ausdrücklich extern unter HG_PRIVATE_DATA_ROOT; kein produktiver Root-Fallback, kein Download-/Löschmodus. Bericht enthält nur Typ-/Klassenanzahlen, Bytes, Referenz-/Inventarhash und Coverage. Bei fehlender Inventar-/Referenz-/Backup-/Historienvollständigkeit, offener Queue, Versionsrennen, Metadatenkollision oder fehlendem referenziertem Objekt kein Orphan-Löschnachweis. Auch vollständiger Audit autorisiert niemals eine Löschung.
+- Zehn synthetische Audit-Tests PASS: alle Klassen, aktive/archivierte/finale/pending/Backup-/Historienreferenzen, deterministisches Replay, fehlende Coverage, Rennen, fehlende Objekte, widersprüchliche Metadaten, unbekannte Größen, ungültige Schemawerte, keine Rohdaten in Ausgabe, kein Schreiben/Repository-Fallback. Keine App-/MCP-/UI-/DB-/Snapshotänderung.
+- Live-Metadaten-Audit auf allen 214 vom Connector beobachteten Dateien: 44 referenced / 24.605.212 Bytes, 151 protected / 529.373.512 Bytes, 19 unknown / 5.761.826 Bytes, 0 nachgewiesene orphaned/temporary. Zwei vollständige Ordner-Metadatenreads identisch. Inventarhash 55569b9974b53d57194fb3bfc744528b628f9b140e5c5c344dd2cb11d2caa78d; Referenzmengensha 18224433603a496c77c6f19b24696726dd11fd9b84b83d58c9ba6fde97a4f6aa. Status ausdrücklich INCOMPLETE: globale Connector-Abdeckung und vollständige Backup-/Historien-/Dokumentreferenzen nicht belegt. Zero Orphans bedeutet hier keinen Nachweis, dass keine existieren. **Keine Drive-/Medien-/Dokumentlöschung.**
+
+- Ergänzende externe Grenze: kein Remote-Git-Tag vorhanden; gesonderte GitHub-Release-/Asset-Liste über vorhandenes gh-CLI tatsächlich versucht, direkte api.github.com-Anfrage mit `Forbidden` blockiert. Kein Umgehen der Cloud-Netzwerkpolitik und keine Aussage, dass es deshalb keine Releases/Drafts gebe. Keine Release-/Actions-Artefakte remote gelöscht.
+- Dokumentdateien bleiben im neuen Audit auch ohne aktuelle Referenz geschützt; finanzielle Aufbewahrung wird nicht aus einem fehlenden Link abgeleitet.
+
+### P2-5 Vorher-/Nachher-Nachweis temporärer Archive
+
+Vier nachweislich regenerierbare Dateien entfernt, zusammen 69.151.796 Bytes; alle vier Pfade danach abwesend. Keine Profil-/Geschäftsdaten betroffen.
+
+| Datei | SHA-256 vor Entfernung |
+| --- | --- |
+| `outputs/qa-p1-original-instrumentation.apk` | `a60d1250ea9c82eb494c6d848332a46c97c859118fecd1fb25257ec6df250da7` |
+| `android/app/build/outputs/apk/release/app-release-unsigned.apk` | `09eaaabb295b07d9a891949ee10b35cf9b04aa5371d44dd4883f99f063320cd8` |
+| `android/app/build/outputs/apk/androidTest/release/app-release-androidTest.apk` | `9e4b3dc647274594aefe002ac0c418ef110e87a5b5b22154cbbbc8b2620de700` |
+| `android/app/build/outputs/bundle/release/app-release.aab` | `186d117bca2ac301dc9db2270063ebd990365e6ab85be3900e4073334ee86b8b` |
+
+Zusammen mit elf alten APKs 447.526.641 Bytes Dateiinhalte aus dem aktuellen Workspace entfernt, kein behaupteter Größenabbau der Git-Historie. README 171→67 und downloads/README 321→56 Zeilen; drei historische Einzelberichte zusammengeführt, keine operative Funktion entfernt.
+
+
+## P2-6 – Regression und finaler Live-Readback (20.10.2026)
+
+- PASS **316 Python-Tests, 0 Skips**, einschließlich zehn neuer read-only Audit-Tests; 37 historische Tests mit QA-Schlüsselerzeugung unverändert ausdrücklich ausgeschlossen. **27 JVM-Suiten, 30 Browser-/JS-Suiten, 55 isolierte MCP-stdio-Szenarien PASS**. Keine Regressionstests entfernt/abgeschwächt, ausschließlich synthetische Stores. Source/Workspace vor und nach Quality sowie Original-81-Artifact PASS, ignoriert/untracked eingeschlossen; operative Seeds0.
+- P1-Gesamtvertrag weiterhin exakt 899906c246f9cb8256666c32a89435aa5f792eede3d3407b1c846380900aa813, 117 Tools / MCP9 / 156 UI-Aktionen. Zusätzlich echte get_capabilities-Tooldefinitionen des Pixels vollständig gegen Baseline verglichen: alle Namen, Schemas, Annotationen und Reihenfolge semantisch identisch; kanonischer Hash235f683d…14314 auf beiden Seiten. Der nativ gemeldete Hash8780ff5f…139aa wird nicht mit diesem kanonischen Vergleich gleichgesetzt; unterschiedliche Darstellung allein ist kein nachgewiesener Vertragsfehler. Keine Katalog-/Runtimeänderung in P2.
+- Finaler echter MCP-Readback: Geschäftsdatenhash vor/nach allen Schritten identisch 2b8310a538134a49966b736ae660758e2863a1d9fe62e973c11cc1f4ddb07932, Counts58/3/46/95/31/33/0/1. Alle139 Archivschlüssel/Record-Hashes identisch. Sechs alte Backup-IDs/Metadaten identisch, neue geprüfte Sicherung zusätzlich:6→7. Aktive Queue/Review/Journalfehler0/0/0; provider_readback/cloud_confirmed=false. Keinen neuen Abgleich angefordert, keine Quittung erfunden.
+- Neue native/Gradle-/Pixel-Installationsprüfung nicht ausgeführt: operative Java-/JS-/Assets/Gradle unverändert, kein neuer APK-Build erforderlich. Vorhandene P1-Nativabnahme ist ein historischer Nachweis, keine neue P2-Geräteausführung. Reale MCP-Leseprüfung tatsächlich durchgeführt; keine produktiven Schreibtests; einzige speichernde Betriebsaktion war die ausdrücklich notwendige neue private Geschäftssicherung.
+- **Noch offen:** globale Vollständigkeit der Drive-/Dokument-/Backup-/Journalreferenzen; 19 beobachtete unbekannte Dateien bleiben KEEP. Alle sechs historischen inspect_backup-Aufrufe READ_ERROR trotz lesbarer Metadaten, Wiederherstellungswert daher nicht vollständig prüfbar. Direkte GitHub-Release-/Asset-Liste Forbidden; keine Aussage über abwesende Releases/Drafts. Fremde Codex-Tasks nicht administrierbar. Kein Bypass, keine manuelle Daten-/Backup-/Medienlöschung. P2 nicht pauschal als vollständig abgenommen markieren.
+
+### Vollständige Dokumentklassifikation
+
+| Datei | Entscheidung |
+| --- | --- |
+| `ABSCHLUSSBERICHT-v1.46.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `AGENTS.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `ARCHITEKTUR-PRUEFBERICHT-v1.34.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `CHATGPT-INTEGRATION.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `CODEX-AUFTRAG-GARTENPIRAT.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `CODEX-STATUS.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `DESIGN-v1.32.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `DESIGN-v1.35.md` | MERGE → REMOVE; gültige Regeln in zentralem MCP-Nachweis/README erhalten |
+| `FOTODOKUMENTATION-v1.47-PLAN.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `GARTENPIRAT-PFLANZEN-v1.46.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `INTEGRATIONSNACHWEIS-2026-10-18.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `KAMERA-KORREKTUR-v1.46.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `MCP-ALLTAG-v1.36.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `ORIGINAL-SIGNIERUNG-CLOUD.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `PHASE-0-PIXEL-FIRST-BASELINE.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `PHASE-1-BACKUP-UND-ARBEITSSITZUNG.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `PLUGIN-SCHREIBRECHTE-v1.31.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `QA-SIGNIERUNG.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `README.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `RECHNUNGEN-OESTERREICH.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `RECHNUNGS-OBERFLAECHE-v1.25.md` | MERGE → REMOVE; gültige Regeln in zentralem MCP-Nachweis/README erhalten |
+| `RECHNUNGS-WORKFLOW-v1.24.md` | MERGE → REMOVE; gültige Regeln in zentralem MCP-Nachweis/README erhalten |
+| `REPAIR-v1.49.1-2026-10-18.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `TIMER-STANDORT-v1.33.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `android/ANDROID-17-BUILD.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `docs/MCP-EIGENTUEMERZUGRIFF-2026-10-18.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `docs/SYNC-DRIVE-KUNDENAKTE-1.48.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `docs/SYNC-KUNDENAKTE-ABNAHME.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `downloads/README.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+| `tests/Android-Emulator.md` | KEEP; zentrale Anleitung oder historischer/technischer Nachweis |
+
+### Vollständiges Altbackup-Metadateninventar
+
+Alle sechs bleiben KEEP; Scope jeweils Geschäftssnapshot/Pending/lokale Fotos und Dokumente, keine Zugangsdaten. Die native Inspektion scheitert jeweils mit READ_ERROR, daher keine vollständige Wiederherstellbarkeitsbehauptung. Kleine Dateigröße allein beweist weder Vollständigkeit noch Unbrauchbarkeit; gleiche SHA allein autorisiert keine Löschung.
+
+| Technische Referenz (gekürzt) | Erstellt UTC | Bytes | Metadaten-SHA-256 |
+| --- | --- | ---: | --- |
+| `backup_275dabc158142698…` | 2026-10-19T04:32:46.944085Z | 22796693 | `3c6e59ef604c25919f0f10cfdf223eacb72c9555899c9b8c2e966e1d78ebfc01` |
+| `backup_3fa4460d4db94ee5…` | 2026-10-19T04:28:58.537608Z | 22987905 | `58e99ac2e57d4215106391daea6d4ebe25a8c4a96998e73050b6f8aec15f6045` |
+| `backup_7fd0a667d4708f06…` | 2026-10-18T20:23:14.763926Z | 22711249 | `776685e56ded05e41ae9363dfb9861dffbe83a34862845a57dbd62958c89e19e` |
+| `backup_9778e41a06e30d40…` | 2026-10-18T18:45:27.892581Z | 372514 | `3a4d578b87ec40d3a4ce83e5e277664888aecbe75b4a3b6f92ff8925609eb56b` |
+| `backup_4ef99a6925a1c66e…` | 2026-10-18T17:34:49.618231Z | 362292 | `4683945a1d959e34aeea818768eb8fc618ef2a9cc424e76054c05072e278cb6b` |
+| `backup_ed1e21387e525d05…` | 2026-10-18T17:30:05.649173Z | 362292 | `4683945a1d959e34aeea818768eb8fc618ef2a9cc424e76054c05072e278cb6b` |

@@ -347,3 +347,34 @@ Der neue Runtime-Katalog enthält111 Werkzeuge, Protokoll8. Nach gesichertem aus
 
 
 Tatsächlich getrennt nachgeprüft: Die ChatGPT-App-Berechtigungsverwaltung bestätigt für **Haus & Gartenservice Pixel** die eigene Einstellung **Allow all actions**; die globale Low-risk-Voreinstellung wird übersteuert. Keine Einstellung geändert. Der installierte104er Katalog und die hier sichtbaren104 Connector-Deklarationen stimmen zusätzlich in sämtlichen obersten Parameternamen und Pflichtfeldern überein. Ein unabhängiger vollständiger Connector-Schemahash wird von dieser Verwaltung nicht ausgegeben; Hashgleichheit wurde zwischen Pixel-Health und Pixel-Capabilities geprüft. Der neue111er Quellkatalog hat Hash **392fdfacf116c49e13306fcfc8c84ab49ee0ce20b35ca62d250fa069ecd1f2ff**. Vollständige Min-/Max-/Enum-Verträge werden in der App validiert; TypeScript-Connector-Deklarationen stellen diese JSON-Schema-Grenzen nicht vollständig dar.
+
+
+## P2: konsolidierte Bedien- und Dokumentgrenzen
+
+Die historischen Einzelberichte RECHNUNGS-WORKFLOW-v1.24,
+RECHNUNGS-OBERFLAECHE-v1.25 und DESIGN-v1.35 wurden nach Referenzprüfung hier und
+in README/AGENTS/Auftrag zusammengeführt. Ihre vollständigen damaligen
+Prüfprotokolle bleiben im Git-Commit 348b40a erreichbar; historische Laptoppflicht,
+Steuerdefaults und alte Geräteversionen sind keine aktuelle Anleitung.
+
+- Rechnungsempfänger und Einsatzkunde getrennt halten; fremde Arbeitspositionen
+  nicht bei einem Kundenwechsel übernehmen. Dieselbe Arbeit nicht doppelt
+  übernehmen. Entfernte Positionen bleiben gezielt wieder hinzufügbar.
+- Preis, Materialmenge, Fahrtkosten und Steuerstatus bewusst prüfen; keine Preise
+  aus Freitext raten. Interne Notizen nicht auf Kundendokumente übernehmen.
+- Ungespeicherte HTML-Vorschau ist kein finales PDF. Finale Ausgabe verwendet den
+  bestätigten gespeicherten Datensatz; Nummernvergabe und Arbeitsabrechnung nur
+  im bestehenden geschützten Abschlussweg. Keine parallelen Nummernkreise.
+- E-Mail/WhatsApp/Android-Teilen sind getrennte Handoffs. Eine geöffnete Versand-App
+  oder vorbereiteter Anhang beweist keinen Versand. Belegpflichtige Versand-/
+  Zahlungszustände nicht aus Darstellung ableiten. Externe App-Verfügbarkeit und
+  physische Share-/Tastatur-/Hardware-/GPS-Abläufe separat prüfen.
+- Zurück und Abbrechen unterscheiden; Fehlermeldung oder Verbindungsabbruch
+  darf Entwürfe nicht still verwerfen. Arbeitsduplikate übernehmen keine alten
+  IDs, Fotos, Abrechnungs- oder privaten Notizdaten. Laufende Timer und pausierte
+  Arbeit vor Doppeltipp/Überlagerung schützen. Aufklappbare Felder bleiben
+  erreichbar; keine Funktion aufgrund einer kompakten Ansicht entfernen.
+- Gewöhnliche Rechnungsfunktionen sind keine Zertifizierung, vollständige
+  Buchhaltung, Bankabgleich oder automatische Prüfung aller österreichischen
+  Steuer-/Gewerbe-/Aufbewahrungssonderfälle. Rechnungen/finale Dokumente und
+  unveränderliche Journale bleiben im technischen Cleanup geschützt.
