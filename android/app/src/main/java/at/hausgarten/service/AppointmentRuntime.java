@@ -128,11 +128,15 @@ final class AppointmentRuntime {
         try{notifyRisks(c,store,now);store.putOwnerValue("planning:status",new JSONObject().put("last_check_at",now.toString()).put("background_best_effort",true).toString());}catch(Exception ignored){}
         long next=Math.min(Math.min(calendarNext,weatherNext),weatherCadence);if(calendarEnabled(c,store))next=Math.min(next,15*60*1000L);if(next<Long.MAX_VALUE)PlanningJob.schedule(c,next);
     }}
-    private static long adapter(Context c,PixelLocalStore store,String kind,boolean enabled,Instant now,AdapterTask task){
+    static long adapter(Context c,PixelLocalStore store,String kind,boolean enabled,Instant now,AdapterTask task){
         android.content.SharedPreferences p=PlanningAccount.prefs(c);String prefix=kind+"_";int failures=p.getInt(prefix+"failures",0);if(!enabled||p.getBoolean(prefix+"blocked",false)||failures>=8)return Long.MAX_VALUE;
         try{String retry=p.getString(prefix+"retry_at","");if(!retry.isEmpty()){long remaining=Duration.between(now,Instant.parse(retry)).toMillis();if(remaining>0)return remaining;}}catch(Exception ignored){}
         try{task.run();p.edit().putInt(prefix+"failures",0).remove(prefix+"retry_at").apply();store.putOwnerValue(kind+":status","checked");return Long.MAX_VALUE;}
-        catch(Exception e){boolean auth=e instanceof DriveRestClient.Failure&&((DriveRestClient.Failure)e).userAction;
+        catch(Exception e){
+            if(kind.equals("weather")&&e instanceof DriveRestClient.Failure&&Arrays.asList("WEATHER_BATCH_PENDING","WEATHER_RATE_LIMIT").contains(((DriveRestClient.Failure)e).code)){
+                long delay=Math.max(30000,((DriveRestClient.Failure)e).retryAfter);p.edit().putString(prefix+"retry_at",now.plusMillis(delay).toString()).apply();store.putOwnerValue(kind+":status","pending");return delay;
+            }
+            boolean auth=e instanceof DriveRestClient.Failure&&((DriveRestClient.Failure)e).userAction;
             if(auth){p.edit().putBoolean(prefix+"blocked",true).apply();store.putOwnerValue(kind+":status","authorization_required");return Long.MAX_VALUE;}
             if(e instanceof PixelMcpWriteTools.Rejected){store.putOwnerValue(kind+":status","review_required");return Long.MAX_VALUE;}
             long delay=Math.min(3600000,30000L*(1L<<failures))+new Random().nextInt(3000);if(e instanceof DriveRestClient.Failure)delay=Math.max(delay,((DriveRestClient.Failure)e).retryAfter);
