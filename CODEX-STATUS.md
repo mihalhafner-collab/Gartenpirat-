@@ -1159,3 +1159,440 @@ Alle sechs bleiben KEEP; Scope jeweils Geschäftssnapshot/Pending/lokale Fotos u
 - Alle fünf bekannten Drive-Ordner erneut vollständig im angebotenen top_k1000-Leseumfang abgefragt:218beobachtete Einträge inklusive vier Ordnern/214Dateien. Vergleich von IDs, Namen, MIME, Größe, Änderungsdatum und Parent-IDs vor/nach identisch; Metadatenhash `b302e09dd8dcb5550c07ff9d372f48a99b8d2edfb80d8599ba984912f7e06877`. Keine globale Vollständigkeitsgarantie aus einer begrenzten Connector-Liste ableiten. Keine Medienoriginale heruntergeladen und keine Drive-Datei geändert/gelöscht.
 - Ergebnis: technisch sichere P2-Nachprüfung PASS; volle P2-Abnahme bleibt OFFEN. Noch offen: native Altbackup-Inspektion/ungeprüfter Restorewert, drei unbekannte JSON-Dateien und globale Backup-/Historien-/Dokumentreferenzen, tatsächlicher Ablauf der sieben alten Actions-Artefakte. Keine unterstützte Actions-Artefakt-DELETE-/Backup-Purge-/Codex-Task-Archivierungsschnittstelle vorhanden; kein Netzwerk- oder Berechtigungsbypass. Historische sensible Git-Objekte weiterhin separater Sicherheitsauftrag, kein Rewrite.
 - Geändert ausschließlich tools/audit_media_inventory.py, tests/test_media_inventory_audit.py und die beiden zentralen CODEX-Dateien. Keine neue Projektdokumentation oder parallele Architektur.
+
+
+## UAT und Black-Box-Usability – Analyseauftrag vom 20.10.2026
+
+### Phase A – geprüfte Basis und Testmaßstab
+
+- Ausgang/Remote-main identisch `d8960c46d42b5f6c99d8b6c2f3217686a6e4cf13`, sauber; operative Quelle/Originalartefakt1.51.2/81, Paket at.hausgarten.service, MCP9/117,156 UI-Aktionen. AGENTS, vollständiger Zentralauftrag und vollständiger bisheriger Status gelesen. Dieser neue Nutzerauftrag beschränkt die Arbeit auf Analyse/Test und diesen abgegrenzten Statusabschnitt; keine Reparatur, Design-/Architektur-/Vertrags-/Versionsänderung und keine produktiven Daten/Konten verwenden.
+- Methode: nachvollziehbarer kognitiver Persona-Walkthrough plus reale Browserbedienung derselben operativen Assets mit bestehenden synthetischen Bridges, erhaltene Regressionen und dedizierter GartenpiratCloud-Emulator5582. Ein Agentenwalkthrough ist keine Studie mit echten Erstbenutzern; Auffindbarkeit/Verständlichkeit sind begründete Heuristik. Browserdoubles nicht als native Persistenz oder echten Google-/Kamera-/Versandnachweis ausgeben. Externe Freigaben ohne QA-Konto bleiben NOT TESTABLE.
+- Abnahmekriterien: alle115 nummerierten Aufgaben einzeln erfassen, sämtliche sichtbaren Einstellungen inventarisieren, Technikexposition im normalen/Fehler-/Diagnosemodus unterscheiden, tatsächlich beobachtete Aktionszahlen von vorgeschlagenen Zielzahlen trennen. Keine Benutzerzeiten oder Fehlerquoten erfinden. Sicherheits-/Privacyschutz gilt auch dann als notwendig, wenn seine technische Darstellung UX-Reibung erzeugt.
+- Zählregel: ein Tippen/Klicken, Feldbefüllen, Auswählen, Scrollen oder Zurück jeweils eine Benutzeraktion; programmgesteuerte Zustandsabfragen und Testdatenvorbereitung zählen nicht. Navigation am jeweiligen Ausgangspunkt ausdrücklich ausweisen; keine Summe über115 Aufgaben als Zahl unabhängiger Gesamtworkflows ausgeben. Unnötige Aktionen sind eine Persona-Bewertung, keine Erlaubnis zum Entfernen von Bestätigung/CAS/Backup.
+- Emulator ohne KVM aus vorhandenem erhaltenem AVD gestartet, keine Profile/Stores gelöscht und keine Pixelverbindung. Testausführung, tatsächlicher Bootabschluss und abschließende Privacy-/P1-Vertragsnachweise noch offen. Der Auftrag endet mit einem priorisierten Bericht, nicht mit Umsetzung.
+
+### Phase B – synthetische Funktions- und Bildschirmprüfung
+
+- Erneut ausgeführt: 322 Python-Prüfungen PASS (0 Skips; 37 ausdrücklich ausgeschlossene historische QA-Schlüssel-/Parallelpaket-Prüfungen), 27 JVM-Suiten PASS, alle 30 Einträge des Browser-/JS-Regressionsrunners PASS und 55 Szenarien des isolierten MCP-stdio-Rundlaufs PASS. Dieser stdio-Rundlauf prüft den vorhandenen eingeschränkten Kanaladapter und ist kein Nachweis eines aktuell verbundenen Pixel-Connectors; dessen 117 Werkzeuge werden zusätzlich durch JVM-/native Contracts geprüft.
+- Ergänzender kognitiver Durchlauf auf unveränderten operativen Assets bei 360 × 900: Kunde mit Name/Adresse anlegen, Kontakt nachtragen; Arbeitsdetail und alle fünf Zusatzgruppen öffnen; Kundenaktion → Angebotsentwurf → Prüfung; Planungsformular; Offene Leistungen → Rechnungserstellung; Timer bei verweigertem Standort → manuelle Auswahl → Pause → Fortsetzen → Ende → Speichern. Sechs Durchläufe PASS auf der bestehenden synthetischen Bridge. Anfängliche Selektor-/Fixture-Extraktionsfehler des temporären Auswertungsskripts wurden dort korrigiert, ohne App- oder Testcode zu ändern; sie sind keine Appfehler.
+- Sichtprüfung tatsächlicher synthetischer Screenshots für Heute, Einstellungen, Kundenakte, Angebots- und Terminformular. Keine Produktivnamen, Originalfotos oder Kontozugänge verwendet. Browser-Fiktivversionen stammen aus bestehenden Fixtures und ersetzen nicht die nativ geprüfte Version 1.51.2/81.
+- Der ausschließlich ausgewählte Cloud-Emulator emulator-5582 wurde mit QEMU-, AVD-Namens- und Bootprüfung bestätigt; vorhandene operative App 1.51.2/81 und Instrumentierung gefunden. Zu diesem Phasenzeitpunkt liefen die nativen SQLite-/MCP-/Medien-/Provider-Tests noch; Endergebnis siehe Phase D. physischer Pixel, echter Google-Account, echter Drive und externer Versand wurden nicht berührt.
+
+### Phase C – Ergebnis des User-Acceptance- und Black-Box-Usability-Tests
+
+#### Prüfgrenzen, Nachweise und Zählweise
+
+Dies ist ein durch automatisierte Regressionen gestützter kognitiver Experten-Durchlauf mit der vorgegebenen Betreiberpersona, keine beobachtete Studie mit einer technisch uninteressierten Erstperson. Auffindbarkeit und unnötige Schritte sind deshalb begründete Usability-Bewertungen, keine gemessenen Erfolgsquoten oder Bearbeitungszeiten realer Benutzer. Es wurde kein Ein-Minuten-Versprechen bestätigt. Die unten vorgeschlagenen Abläufe sind ausschließlich Empfehlungen, nicht implementiert.
+
+Nachweise: **B** = tatsächlich ausgeführtes Chromium-UI auf operativen Assets mit vorhandener synthetischer Android-Bridge; **N** = vorhandene Android-Instrumentierung auf dem dedizierten Cloud-Emulator; **J** = JVM-/Contract-Test; **P** = Python-/isolierter Kanaltest; **S** = Quellcode-/Bedienelementprüfung. B bestätigt keine Android-Berechtigung, keine Kameraaufnahme und keinen echten Google-Upload. N mit synthetischem Provider bestätigt keine Erreichbarkeit eines echten Google-Kontos. Ein Katalog-Mapping bestätigt keine tatsächlich sichtbare Schaltfläche.
+
+**P = PASS**, **R = PASS MIT REIBUNG**, **F = FAIL des beschriebenen Benutzerziels**. Die angegebenen N-Nachweise sind die erfolgreichen isolierten Fach-/Neustarttests, keine pauschale Freigabe der nativen Sichtprüfung oder des zusätzlich fehlgeschlagenen alten Update-Verifiers (Phase D). **NT = NOT TESTABLE** bezeichnet den ausdrücklich nicht ausgeführten externen Teil, auch wenn Teilprüfungen PASS sind. Ein R kann technisch korrekt und trotzdem unnötig kompliziert sein. Kein F wird allein aus einer unvollständigen Browser-Bridge abgeleitet. Keine aktuelle Produktivwarteschlange oder historische Originalkonflikte wurden geprüft oder verändert.
+
+**A/U** zählt Benutzeraktionen/als vermeidbar bewertete Aktionen vom jeweils genannten Ausgangspunkt: Tap/Klick, Auswahl, Feldeingabe, Bestätigung je eine Aktion; zusammengesetzter App-Auswahldialog üblicherweise zwei. Betrachtung ohne Eingabe und automatisch wiederhergestellter Stand: null. **≥** ist die im ausgeführten Weg belegte Untergrenze; **~** eine aus dem geprüften Bedienpfad abgeleitete Spanne, ausdrücklich keine vollständig gemessene Bedienfolge. Die Browserautomation scrollt Bedienelemente teilweise automatisch in Sicht; manuelles Scrollen, Android-Dateiauswahl, Tastatur, Kontofreigabe und OS-Dialoge erhöhen die tatsächlichen Zahlen. Für nicht ausführbare Ziele ist „—“ ehrlicher als eine erfundene Klickzahl. U ist eine Entwurfsbewertung und keine Aufforderung, Bestätigung, Preisprüfung oder Rechtsentscheidung wegzulassen. Zusammenhängende Teilaufgaben nicht addieren, wenn dieselbe Navigation mehrfach enthalten ist.
+
+Die Profilspalte legt für **jede zugeordnete Zeile** Vorwissen, Auffindbarkeit, Verständlichkeit, Fehlerrisiko, Risiko unbeabsichtigter Änderung und Selbstkorrektur fest; abweichende Ursachen stehen in der Zeile. **V/N/A/E** nennt je Zeile: technische Informationen sichtbar / für das Benutzerziel notwendig / sicher automatisch erledigbar / fachliche Entscheidung auf EIN/AUS reduzierbar (J/N). „Automatisch“ bei einer Suche oder Dokumentprüfung meint nur Kontext-/Standardübernahme bzw. Prüfung, niemals erfundene Preise, rechtliche Bindung, Versand, endgültiges Löschen oder Konfliktüberschreiben. Profile:
+
+| Profil | Vorwissen | Auffindbarkeit | Verständlichkeit | Fehlerrisiko | unbeabsichtigte Änderung | Selbstkorrektur |
+|---|---|---|---|---|---|---|
+| R – Lesen | keines | gut | gut | niedrig | niedrig | Zurück/Filter zurücksetzen |
+| E – Eingabe | eigene Betriebsangaben | gut | überwiegend gut | mittel bei Auswahl | niedrig durch explizites Speichern | Bearbeiten/Abbrechen/Entwurf |
+| X – versteckter Weg | Menü-/Bereichskenntnis | eingeschränkt | mittel | mittel | niedrig | Zurück/Entwurf; Ziel zunächst finden |
+| D – Dokument | Preise, Empfänger, Bindung/Steuer fachlich kennen | mittel | erklärungsbedürftig | mittel bis hoch fachlich | begrenzt durch Prüfung/Bestätigung | Entwurf editieren; nach Abschluss Korrekturweg |
+| T – Technik | derzeit Verbindungs-/Übertragungswissen | schlecht für Persona | unzureichend | mittel | niedrig bei Lesen; Fehlentscheidung möglich | Wiederholen/Einrichtung, teilweise Hilfe nötig |
+| G – Entfernung | Papierkorb/Endgültigkeit unterscheiden | mittel | überwiegend gut | hoch bei endgültigem Löschen | durch Vorschau/Bestätigung begrenzt | Undo/Wiederherstellen; nach Purge nicht in App |
+| A – Hintergrund | keines | keine Bedienung erforderlich | gut bei wahrer Rückmeldung | niedrig | niedrig | Entwurf/Sitzung wieder aufnehmen |
+| L – fehlender Bedienpfad | derzeit MCP-/Hilfswissen nötig | nicht auffindbar | Ziel nicht ausführbar | mittel bei Workaround | durch Umwege erhöht | nur vorhandener alternativer Fachweg |
+| O – externe Grenze | Geräte-/Kontofreigabe | nur teilweise geprüft | teilweise technisch | nicht vollständig bewertbar | nicht vollständig bewertbar | neu freigeben; kein Erfolg behauptet |
+
+Severity bewertet den Befund, nicht den maximal denkbaren Schaden jeder Rechnung: **S0** = nachgewiesenes Daten-/Sicherheitsrisiko, **S1** = Benutzerziel blockiert, **S2** = deutlich unnötig kompliziert, **S3** = leichte Reibung, **S4** = kosmetisch; **–** = kein Befund. Es wurde kein neuer S0-Datenverlust nachgewiesen.
+
+#### Aufgabenmatrix A–N: alle 115 Aufgaben
+
+| Nr. | Aufgabe und Ausgangspunkt / Befund | Urteil; Nachweis | A/U | Profil | V/N/A/E | Severity |
+|---:|---|---|---|---|---|---|
+| 1 | Erster Start: leerer isolierter Bestand; keine Produktivdaten | P; N/B | ~1/0 | R | N/N/J/N | – |
+| 2 | Heute: Tages-/Wochensumme, nächster Einsatz, letzter Eintrag | P; B/N | 0/0 | R | N/N/J/N | – |
+| 3 | Heute: große Schaltfläche Arbeit starten; Leertext nennt abweichend „Arbeit erfassen“ | R; B/N | 0/0 | R | N/N/N/N | S3 |
+| 4 | Heute: laufende/pausierte Sitzung und Abschluss sind sichtbar | P; B/N | 0/0 | R | N/N/J/N | – |
+| 5 | Heute: lokalen Speicherzustand von erstem Drive-Abgleich unterscheiden | R; B/S | ~0–1/0 | T | J/N/J/N | S2 |
+| 6 | Startbelastung: Drive-Warnpille ohne fachlichen nächsten Schritt; sonst kompakt | R; B | 0/0 | T | J/N/J/N | S3 |
+| 7 | Heute → Kunden → Neu → Name/Straße/PLZ/Ort → speichern | P; B/N | ≥7/0 | E | N/N/N/N | – |
+| 8 | Name und Adresse genügen; Telefon/E-Mail optional | P; B/N | 0/0 | E | N/N/N/N | – |
+| 9 | Kundenliste → Akte → bearbeiten → Telefon → speichern | P; B | ≥4/0 | E | N/N/N/N | – |
+| 10 | Geöffneter Kundeneditor → E-Mail ergänzen → speichern | P; B | ≥2/0 | E | N/N/N/N | – |
+| 11 | Kundenliste: Suchfeld unten, ein Suchbegriff | P; B | ≥1/0 | R | N/N/N/N | – |
+| 12 | Kundenliste: Treffer öffnet Kundenakte | P; B/N | ≥1/0 | R | N/N/N/N | – |
+| 13 | Akte: letzte Arbeiten sichtbar; ältere über vollständige Arbeitsliste/Verlauf | P; B | ~0–2/0 | R | N/N/J/N | – |
+| 14 | Akte → Fotos & Dateien; 30 Vorschauen, weitere laden | P; B | ≥1/0 | R | N/N/J/N | – |
+| 15 | Akte → alle Arbeiten; fremde Zeit-/Suchfilter werden zurückgesetzt | P; B | ~1–2/0 | R | N/N/J/N | – |
+| 16 | Rechnungen in Übersicht, Angebote unter Fotos & Dateien, Termine als Kopfaktion | R; B/S | ~1–3/~1 | X | N/N/J/N | S2 |
+| 17 | Akte → Kundendaten bearbeiten → Änderung → speichern | P; B | ≥3/0 | E | N/N/N/N | – |
+| 18 | Kundeneditor: Kunde aktiv AUS; Entfernung separat über Papierkorb | R; B/S/N | ~4–6/~1 | X | N/N/N/J | S2 |
+| 19 | Inaktive Kunden bleiben suchbar; Papierkorb hat Wiederherstellen | P; B/N | ~2–4/0 | G | N/N/N/N | – |
+| 20 | Heute → Start → Kundenauswahl → Start; kein Start allein durch Ortsermittlung | P; B/N | ≥3/0 | E | N/N/N/N | – |
+| 21 | Startdialog/Kundenauswahl; Auftrag optional, ggf. separater Zusatzbereich | R; B/S | ~2–4/~1 | X | N/N/J/N | S3 |
+| 22 | Laufende Sitzung → Pause | P; B/N | ≥1/0 | E | N/N/N/N | – |
+| 23 | Pausierte Sitzung → Fortsetzen | P; B/N | ≥1/0 | E | N/N/N/N | – |
+| 24 | Laufende Sitzung → Ende; Arbeitsaufzeichnung erst nach ergänzen/speichern | P; B/N | ≥1/0 | E | N/N/N/N | – |
+| 25 | Abschluss → Tätigkeit → speichern; Timer-Nettozeit wird übernommen | P; B/N | ≥2/0 | E | N/N/J/N | – |
+| 26 | Abschluss → Material und Kilometer → Material | P; B | ≥2/0 | E | N/N/N/N | – |
+| 27 | Offene Materialgruppe → Kilometer eintragen | P; B | ≥1/0 | E | N/N/N/N | – |
+| 28 | Arbeit → Fotos und Notizen → Datei; Kamera-/Pickergrenze separat | R; B/N/S; OS NT | ~3–5/0 | O | N/N/J/N | S3 |
+| 29 | Arbeit → Fotos/Notizen → Notiz; zusätzlicher Nachtrag im Detail getrennt | R; B | ~2–3/~1 | E | N/N/N/N | S3 |
+| 30 | Arbeiten → Eintrag → Bearbeiten → Korrektur → Speichern | P; B/N | ≥4/0 | E | N/N/N/N | – |
+| 31 | Editor → Uhrzeiten/Zeit und Pause → Beginn/Ende; Dauer und Uhrzeiten erklärt | R; B/J | ~4–6/~1 | E | N/N/J/N | S3 |
+| 32 | Editor → Zeit und Pause → Pause → speichern; Nettozeit nicht doppelt reduzieren | P; B/N | ~3–4/0 | E | N/N/J/N | – |
+| 33 | Editor → Tätigkeit → speichern | P; B/N | ≥2/0 | E | N/N/N/N | – |
+| 34 | Editor → Kunde/Auftrag; Auftrag wird nur passend übernommen | P; B/N | ~3–6/0 | E | N/N/J/N | – |
+| 35 | Persönliches b.b. unabhängig von Arbeits-/Rechnungsstatus; Abkürzung verlangt Vorwissen | R; B/J/N | ~1–2/0 | X | N/N/N/J | S3 |
+| 36 | b.b., App: verrechnet und Rechnung bezahlt sind fachlich getrennt, aber erklärungsbedürftig | R; B/J/N | 0/0 | D | N/N/N/N | S2 |
+| 37 | Aktive Arbeit → Foto; Sitzung wird nach Abschluss mit Arbeit verbunden | R; B/N/S; Kamera NT | ~3–5/0 | O | N/N/J/N | S3 |
+| 38 | Kundenakte → + Foto → Galerie/Kamera; Kunde vorgegeben | P; B/N; Kamera NT | ≥2/0 | E | N/N/J/N | – |
+| 39 | Foto hinzufügen → Aufnahmephase wählen; Vorher/Während/Nachher | P; B | ~1–2/0 | E | N/N/N/N | – |
+| 40 | Beim Import Beschreibung eingebbar; vorhandenes Foto: kein Bearbeiten im Betrachter | R; B/S | ≥1/0; später — | X | N/N/N/N | S2 |
+| 41 | Vorhandenes Foto später einer Arbeit zuordnen: kein sichtbarer UI-Weg; MCP update_photo vorhanden | F; B/S/J | —/— | L | N/N/N/N | S1 |
+| 42 | Akte/Fotobibliothek → Filter/Vorschau → Vollbild, Blättern und Zoomen | P; B | ~2–4/0 | R | N/N/J/N | – |
+| 43 | Foto → Mehr → Papierkorb → Bestätigung; danach Undo/Wiederherstellen | P; B/N | ~3–4/0 | G | N/N/J/N | – |
+| 44 | Kamera-/Dateiberechtigung: Speicherfehler/Entwurf getestet; echter OS-Entzug nicht durchgeklickt | NT; B/S Teilprüfung | —/— | O | J/N/N/N | offen |
+| 45 | Bildbetrachter braucht weder Hash noch Pfad; Fallback kann Dateiname/Drive-Ladehinweis zeigen | R; B/S | 0/0 | R | J/N/J/N | S3 |
+| 46 | Mehr → Projekte & Aufträge → Neu → Angaben → speichern | R; B/S | ~6–9/~1 | X | N/N/J/N | S2 |
+| 47 | Auftrag aus Kundenakte übernimmt Kunden; globaler Dialog erfordert Auswahl | P; B/S/N | ~0–2/0 | E | N/N/J/N | – |
+| 48 | Arbeit → optional Auftrag; Auswahl auf Kunden eingeschränkt | P; B/J | ~2–3/0 | E | N/N/J/N | – |
+| 49 | Auftrag → Überblick → Bearbeiten → Änderung → speichern | R; B/S | ~4–5/~1 | X | N/N/N/N | S3 |
+| 50 | Auftragsstatus Erledigt; Archivierung/Entfernung extra und wiederherstellbar | R; S/N/B | ~3–5/~1 | X | N/N/N/N | S2 |
+| 51 | „Projekte & Aufträge“ ist eine gemeinsame Entität, kein zweites Projektsystem | R; B/S | 0/0 | X | N/N/J/N | S3 |
+| 52 | Mehr → Planung → Neu → Kunde/Tätigkeit/Beginn/Dauer → speichern | R; B/N | ~8–11/~1 | E | J/N/J/N | S2 |
+| 53 | Termin aus Kunde/Auftrag übernimmt Kontext; global bewusst auswählen | P; B/N | ~0–2/0 | E | N/N/J/N | – |
+| 54 | Termin → Beginn/Dauer → speichern; Alternative bleibt zunächst Entwurf | P; B/N | ~3–5/0 | E | N/N/N/N | – |
+| 55 | Termin absagen mit Bestätigung; Auftrag/Arbeit/Rechnung bleiben erhalten | P; B/N | ~2–3/0 | G | N/N/N/N | – |
+| 56 | Wiederholung unter „Ort, Anfahrt, Pause und Wiederholung“ mit Intervall/Anzahl | R; B/S/N | ~4–6/~1 | X | N/N/N/N | S2 |
+| 57 | Kundenakte → Termine → Neu, Kundenkontext vorgegeben | P; B/S | ~2–3/0 | E | N/N/J/N | – |
+| 58 | Kalender: native Einrichtung/Konto/OAuth; tägliche Freigabe könnte EIN/AUS sein | R; B/S/N; Google NT | ~2 bis Einrichtung/~1 | O | J/N/J/J | S2 |
+| 59 | Wetter: Funktion/Benachrichtigung EIN/AUS sinnvoll; Lizenz und Schlüssel bleiben Erstfreigaben | R; S/N; Anbieter NT | ~2 bis Einrichtung/~1 | O | J/N/J/J | S2 |
+| 60 | Akte → Kontakt/weitere Aktionen → Angebot → umfangreiches Formular | R; B/N | ≥3/~1 | X | N/N/J/N | S2 |
+| 61 | Dokumentart unverbindlicher Kostenvoranschlag + verständliche Bindungsbestätigung | P; B/N/J | ~2–3/0 zusätzlich | D | N/N/N/N | – |
+| 62 | Dokumentart verbindlicher Kostenvoranschlag + erneute Bestätigung nach Wechsel | P; B/N/J | ~2–3/0 zusätzlich | D | N/N/N/N | – |
+| 63 | Dokumentart Fixpreis; keine automatische Bindungsannahme | P; B/N/J | ~1–2/0 zusätzlich | D | N/N/N/N | – |
+| 64 | Dokumentart Regie; Mengen als geplante Stunden und Preisgrundlage | P; B/N/J | ~1–2/0 zusätzlich | D | N/N/N/N | – |
+| 65 | Baustein wählen → Menge; bestätigter Preis wird übernommen | P; B/N/J | ≥2/0 | E | N/N/J/N | – |
+| 66 | Eigene Position: Titel/Beschreibung/Einheit/Menge/Preis/Steuer/Grundlage | R; B/S/N | ~5–9/~2 | D | N/N/J/N | S2 |
+| 67 | Positionspreis ändern; Katalogbezug wird korrekt gelöst; Preisgrundlage wirkt technisch | R; B/J/N | ~1–3/~1 | D | N/N/N/N | S3 |
+| 68 | Texte und Hinweise → editierbarer Text oder Baustein | P; B | ~2–3/0 | E | N/N/N/N | – |
+| 69 | Prüfen und Vorschau; fehlende Angaben inline, keine erfundene Summe | P; B/N | ≥1/0 | D | N/N/J/N | – |
+| 70 | Finalisieren → Prüfung → Vorschau/Bestätigung; keine automatische Rechnung | P; B/N/J | ~2–3/0 | D | N/N/N/N | – |
+| 71 | Entwurf/finalisiert/geteilt/gesendet im Modell getrennt; Button „Finalisieren“ erklärungsbedürftig | R; B/S/N | 0/0 | D | N/N/J/N | S3 |
+| 72 | Teilen-App ist kein Versandbeweis; Text sagt ausdrücklich „nicht bestätigt“ | P; S/N/J; realer Versand NT | ~1–2/0 | D | N/N/J/N | – |
+| 73 | Offene Leistungen hat keine Rechnung-CTA; über Rechnungen → Neu → Leistungen → Arbeiten übernehmen | R; B/S/J/N | ~9–13/~3 | X | N/N/J/N | S2 |
+| 74 | Rechnung: Kunde und Rechnungsadresse kontrollieren, Einsatzort getrennt erhalten | P; B/J/N | ~0–2/0 | D | N/N/J/N | – |
+| 75 | Leistungen → Arbeitsaufzeichnungen übernehmen → Auswahl → übernehmen | R; B/S/J | ~3–5/~1 | X | N/N/J/N | S2 |
+| 76 | Positionen/Mengen/Preis kontrollieren; keine erfundenen Preise | P; B/S/J/N | ~0–3/0 | D | N/N/J/N | – |
+| 77 | Zahlungsziel zentral vorbelegt, im Entwurf prüfbar | P; B/J | ~0–1/0 | E | N/N/J/N | – |
+| 78 | Abschließen nur nach Nummern-/Ausstellerfreigabe; lokaler Test prüft Blockade und Abschluss | R; N/J/S; produktiver Dienst NT | ~2–4/0 | D | J/N/J/N | S2 |
+| 79 | Mehr → Rechnungen → Suchfeld/Statusfilter | P; B/S | ~3–4/0 | R | N/N/N/N | – |
+| 80 | Entwurf/Gestellt/Bezahlt/Storniert getrennt; Versand nicht automatisch behauptet | P; B/J/N | 0/0 | D | N/N/J/N | – |
+| 81 | Zahlung per MCP fachlich getestet; sichtbare Rechnungsaktionen bieten keine Zahlungsschaltfläche | F UI; S/N/J | —/— | L | N/N/N/N | S1 |
+| 82 | Entwurf zeigt Steuerart, Empfängertyp, UID und Inlandsfall in normalem Formular | R; B/S | 0/0 | D | N/N/J/N | S2 |
+| 83 | Kunden: ein lokales Suchfeld, sichtbare Treffer | P; B | ≥1/0 ab Liste | R | N/N/N/N | – |
+| 84 | Arbeiten: Suche plus Zeitraum; fremde Filter zurücksetzbar | P; B | ~1–3/0 ab Liste | R | N/N/N/N | – |
+| 85 | Fotos: Akte/Phase/Zeitraum; globale Bibliothek nur alle/ohne Kunde, keine freie Suche | R; B/S | ~3–6/~2 | X | N/N/J/N | S2 |
+| 86 | Rechnungen: Textsuche und Statusfilter | P; B/S | ~1–2/0 ab Liste | R | N/N/N/N | – |
+| 87 | Termine: Zeit-/Kundenkontext und Liste; übergreifender Suchpfad fehlt | R; B/S | ~3–5/~1 | X | N/N/J/N | S2 |
+| 88 | Fünf getrennte Wiederfindewege; globale Suche nur als belegter Kandidat empfehlen | R; B/S/P | —/— | X | N/N/J/N | S2 |
+| 89 | Archivieren führt intern in vorhandenen Wiederherstellungsbestand; Wörter variieren | R; S/N/B | ~2–4/~1 | G | N/N/N/N | S2 |
+| 90 | Entfernen/Papierkorb direkt möglich, auch mit Fotos; Originale geschützt | P; B/N | ~1–3/0 | G | N/N/J/N | – |
+| 91 | Mehr → Papierkorb → Wiederherstellen; bestehende Verknüpfungen werden geprüft | P; B/N | ~3–4/0 | G | N/N/J/N | – |
+| 92 | Einzel-Purge oder Papierkorb leeren → eine mengen-/versionsgebundene Bestätigung | P; B/N/J | ~2–4/0 | G | N/N/N/N | – |
+| 93 | Kunde aktiv AUS, Auftrag Erledigt, Archiv, Papierkorb nicht selbsterklärend zusammenhängend | R; B/S | 0/0 | X | N/N/N/N | S2 |
+| 94 | Endgültiges Löschen geschützt; aktive Referenzen und gestellte Belege bleiben erhalten | P; B/N/J | ~1 Bestätigung/0 | G | N/N/J/N | – |
+| 95 | Hash/Preview/CAS im normalen Papierkorb unsichtbar; Konflikt zeigt nur fachliche Entscheidung | P; B/N/J | 0/0 | G | N/N/J/N | – |
+| 96 | Offline fachlich arbeiten; lokale Speicherung unabhängig von Netz | P; N/B/P | 0/0 zusätzlich | A | N/N/J/N | – |
+| 97 | Offline Arbeit speichern; Wiederholung keine Doppelbuchung | P; N/B/P | ~1/0 zusätzlich | E | N/N/J/N | – |
+| 98 | Offline Kunde speichern und später ändern; Vorgängerkette erhalten | P; N/B/P | ~1/0 zusätzlich | E | N/N/J/N | – |
+| 99 | Offline Foto sichern; getrennte Medienwarteschlange, Fehler bewahrt Entwurf | P; N/B | ~1–3/0 zusätzlich | E | N/N/J/N | – |
+| 100 | App-/Store-Neustart nach synthetischen Änderungen | P; N/B | ~1–2/0 | A | N/N/J/N | – |
+| 101 | Testdaten, IDs, Beziehungen nach Wiederöffnung erhalten | P; N/B/P | 0/0 | A | N/N/J/N | – |
+| 102 | Netz/Provider wieder verfügbar: synthetischer Retry, kein echtes Google-Konto | P Teilstrecke; N/P; Google NT | 0/0 | A | N/N/J/N | – |
+| 103 | Drive auslösen: UI jetzt abgleichen; Provider- und Direkt-HTTP-Test doubles getrennt | P Teilstrecke; N/P; Drive live NT | ~1–3/~1 | T | J/N/J/N | S2 |
+| 104 | Unterbrechung/401/429/Schreibfehler im isolierten Provider, alte Daten/Queue bleiben | P; N/P/J/B | 0/0 für Fehlerauslösung | A | N/N/J/N | – |
+| 105 | Fehlerstatus unterscheidet Konflikt und Netz; rohe Fehlermeldung kann ins normale UI gelangen | R; B/S/N | ~0–2/~1 | T | J/N/J/N | S2 |
+| 106 | Keine klare alltägliche Aussage „letzte geprüfte Sicherung“; Sync ist kein Vollbackupnachweis | F UX; B/S/N | —/— | L | J/N/J/N | S1 |
+| 107 | Automatische Geschäftssicherung prinzipiell sinnvoll; umfassender automatischer Backupzyklus nicht nachgewiesen | R; S/N | 0/0 | A | N/N/J/J | S2 |
+| 108 | EIN/AUS kann Sicherungsabsicht abbilden, nicht Freigabe/Erfolg/Restore ersetzen | R; B/S | 0/0 | T | J/N/J/J | S2 |
+| 109 | Sync-/Verbindungs-/Historienflächen sichtbar; keine eigenständige verständliche Backupverwaltung gefunden | R; B/S | ~2–4/~1 | T | J/N/J/N | S2 |
+| 110 | Alle gefundenen Einstellungen einzeln bewertet, siehe Inventar unten | R; B/S/N/J | unterschiedlich; unten | T | J/N/J/N | S2 |
+| 111 | Bestehenden synthetischen Bestand schließen; keine Deinstallation/kein Löschen | P; N/B | ~1–2/0 | A | N/N/J/N | – |
+| 112 | Operative App wieder öffnen, gleicher Testbestand | P; N/B | ~1/0 | A | N/N/J/N | – |
+| 113 | Arbeits-/Angebots-/Termin-Entwürfe und private Dateien bleiben im geprüften Scope erhalten | P; N/B | 0/0 | A | N/N/J/N | – |
+| 114 | Laufende/pausierte Sitzung bzw. offener Abschluss rekonstruierbar, kein zweiter Timer | P; N/B/J | ~0–1/0 | A | N/N/J/N | – |
+| 115 | Normaler Neustart ohne technischen Wiederherstellungsdialog; Foto-Fehler fordert nur gezielte Aktion | P; B/N/S | ~0–1/0 | A | N/N/J/N | – |
+
+Bei 28/37/38 bedeutet das P/R ausschließlich den tatsächlich geprüften Import-/Zuordnungs- und Speicherpfad. Ein Kameragerät wurde nicht vorgetäuscht. Bei 70/72/78 wurden synthetische Dokumente lokal erzeugt bzw. native Grenzen geprüft; keine echte Nachricht versendet und keine produktive Nummer vergeben. 78 bleibt für echte Konten ein offener Endtest. Bei 111–114 belegen native Store-Neustarts und der WebView-Lifecycle den jeweiligen Scope, keinen Boot-/Akku-/Speicherstress über mehrere Tage.
+
+Zusätzlich zum nummerierten Alltagsszenario: Pflanzenbibliothek/Neophyten, Pflanzenbild-Blättern, Gartenpirat-Fotooptionen, Leistungskatalog, b.b.-Persistenz, Batch-Papierkorb und schmale Ansichten wurden über ihre vorhandenen Regressionssuiten erneut geprüft. Rollen-/MCP-Katalog, Berechtigungen, erlaubte Felder und Rückgaben bleiben durch P1-Contract/JVM/native Tests geschützt. Die 156 semantischen Katalogaktionen verteilen sich auf Kunden 13, Aufträge 12, Arbeiten 14, Zeiterfassung 10, Rechnungen 13, Angebote 13, Fotos 12, Sicherung 6, Synchronisierung 10, Papierkorb 6, Einstellungen 7, Termine 20, Leistungskatalog 5, Pflanzen 4 und Plattform/Darstellung 11. Das ist eine Vertragsinventur, keine Behauptung von 156 erfolgreich durchgeklickten Benutzerabläufen. Insbesondere Backup, Fotoänderung und Zahlung illustrieren die Differenz zwischen vorhandenem MCP-Fachweg und auffindbarer Oberfläche.
+#### Einstellungen: vollständiges gefundenes Bedieninventar zu Aufgabe 110
+
+56 einzelne Einstellungs-/Einrichtungsentscheidungen wurden erfasst: 2 allgemeine, 25 Unternehmens-/Rechnungsfelder, 21 Planungs-/Kalender-/Wetterfelder, 3 Drive-/Mailfreigaben, 4 ChatGPT-Verbindungsfelder und 1 Gartenpirat-Präferenz. Kontoauswahl und Freigabe sind Einrichtungsschritte, keine gewöhnlichen dauerhaften Formularfelder. Filter, Kunde aktiv, Foto-Aufnahmephase, Dokumentart und Vertragsweg sind Fachentscheidungen im jeweiligen Datensatz und bereits in der Aufgabenmatrix bewertet. Geheimnisfelder wurden ausschließlich anhand ihrer Definition bewertet; keine gespeicherten Werte gelesen.
+
+Nachweis W/B/G = B/S, PL/D/T = S plus passende native Grenz-/Berechtigungstests; echte Konto-/Schlüssel-Freigaben NT. „Entfernen“ bedeutet hier nur aus täglicher Darstellung entfernen, niemals Werte, Rechte oder Datenmodell löschen. Alle Zeilen haben bei derzeitiger Darstellung mindestens leichte Reibung, soweit „Erweitert“ empfohlen wird; notwendige Fachangaben sind kein UX-Fehler. Standard „beibehalten“ darf keinen unbekannten Wert erfinden.
+
+| ID | Einzelne Einstellung | Muss Eigentümer entscheiden? | Sicherer Standard / Automatik | EIN/AUS ausreichend? | Empfohlener Ort / technische Notwendigkeit |
+|---|---|---|---|---|---|
+| W1 | Seitlich zwischen Hauptseiten wischen | optional | bisher AUS behalten; explizites Opt-in | ja | Bedienung; keine technische Kenntnis nötig |
+| W2 | Fotoqualität | optional | speicheroptimiert, kleine Bilder schonen | nein, 3 sinnvolle Profile | Fotos/Erweitert; keine Pixel-/Qualitätszahlen im Alltag |
+| B1 | Geschäftsname | ja, einmalig | vorhandenen geprüften Wert übernehmen | nein | Unternehmen; fachlich nötig |
+| B2 | Rechtlicher Ausstellername | ja, einmalig | nie erfinden | nein | Unternehmen/Ersteinrichtung |
+| B3 | Geschäftsstraße | ja, einmalig | geprüften Bestand übernehmen | nein | Unternehmen/Ersteinrichtung |
+| B4 | Geschäfts-PLZ | ja, einmalig | geprüften Bestand übernehmen | nein | Unternehmen/Ersteinrichtung |
+| B5 | Geschäftsort | ja, einmalig | geprüften Bestand übernehmen | nein | Unternehmen/Ersteinrichtung |
+| B6 | Geschäfts-E-Mail | ja | vorhandenen Wert übernehmen | nein | Unternehmen/Kontakt |
+| B7 | Geschäftstelefon | ja | vorhandenen Wert übernehmen | nein | Unternehmen/Kontakt |
+| B8 | Bankname | ja, falls verwendet | vorhandenen Wert übernehmen | nein | Unternehmen/Zahlung, nicht täglicher Editor |
+| B9 | IBAN | ja | nie ableiten/erfinden | nein | Unternehmen/Zahlung; Prüfung erhalten |
+| B10 | BIC | falls fachlich benötigt | leer erlaubt, wenn nicht erforderlich | nein | Zahlungsdetails/Erweitert |
+| B11 | UID des Unternehmens | abhängig vom bestätigten Steuerfall | keine fiktive UID | nein | Unternehmen/Steuer |
+| B12 | Steuerbefreiungshinweis | ja/fachlich prüfen | bestätigten Text wiederverwenden | nein | Unternehmen/Steuer, nicht jedes Dokument neu |
+| B13 | Standard-Zahlungsziel in Tagen | ja, einmalig | bestätigten Standard übernehmen | nein | Zahlung; sicher vorbelegen |
+| B14 | Standard-Zahlungsbedingungen als Text | ja, einmalig | aus bewusst gepflegtem Standard, Konsistenz prüfen | nein | Zahlung; keine zweite tägliche Abfrage desselben Ziels |
+| B15 | Hinweis verbindlicher Kostenvoranschlag | ja, bei Einrichtung/Änderung | bestätigten Text wiederverwenden | nein | Dokumenttexte/Erweitert; Bindung weiter bewusst wählen |
+| B16 | Hinweis unverbindlicher Kostenvoranschlag | ja, bei Einrichtung/Änderung | bestätigten Text wiederverwenden | nein | Dokumenttexte/Erweitert |
+| B17 | Hinweis Regieangebot | ja, bei Einrichtung/Änderung | bestätigten Text wiederverwenden | nein | Dokumenttexte/Erweitert |
+| B18 | Rechnungspräfix | ja, Nummernkreis festlegen | bestehenden Kreis erhalten | nein | geschützte Rechnungs-Ersteinrichtung |
+| B19 | Zuletzt vergebene Rechnungsnummer/Zähler | ja, geprüft übernehmen | nie blind hoch-/zurücksetzen | nein | geschützte Einrichtung/Diagnose, nicht tägliche Einstellung |
+| B20 | Weitere Unternehmensangaben | falls nötig | vorhandenen Text übernehmen | nein | Unternehmen/Erweitert |
+| B21 | Steuermodus | ausdrücklich ja | ungeklärt bleibt ungeklärt | nein | Unternehmen/Steuer; niemals automatisch Kleinunternehmer annehmen |
+| B22 | Bestehender Nummernkreis: eigen/sevDesk | ausdrücklich ja | bestehende Autorität erhalten | nein | geführte einmalige Einrichtung |
+| B23 | Ausstellerdaten geprüft | ausdrücklich ja | keine automatische Zustimmung | ja als Bestätigung, kein beliebiger Alltagsschalter | Ersteinrichtung; bei relevanter Änderung erneut prüfen |
+| B24 | Nummernkreis/Überschneidungen geprüft | ausdrücklich ja | keine automatische Zustimmung | ja als Bestätigung | Ersteinrichtung, fachlich sicherheitsrelevant |
+| B25 | Pixel führt allein Rechnungsnummernkreis | ausdrücklich ja | kein automatischer Autoritätswechsel | nein, fachliche Einrichtung mit Voraussetzungen | zusammen mit B22/B24; nicht technische Providerwahl verlangen |
+| PL1 | Kalender-Google-Konto | ja, bei Verbindung | vorhandenes autorisiertes Konto vorschlagen | nein | Ersteinrichtung; danach Status und EIN/AUS |
+| PL2 | Hauptkalender-Belegtzeiten lesen | optional bewusst | AUS bis Freigabe | ja | Kalender/Erweitert; Zusatzrecht klar benennen |
+| PL3 | Montag Arbeitstag | ja, falls Standard abweichend | bestehenden Wochenplan verwenden | ja | eine gemeinsame Wochenplanauswahl |
+| PL4 | Dienstag Arbeitstag | wie PL3 | wie PL3 | ja | Wochenplan |
+| PL5 | Mittwoch Arbeitstag | wie PL3 | wie PL3 | ja | Wochenplan |
+| PL6 | Donnerstag Arbeitstag | wie PL3 | wie PL3 | ja | Wochenplan |
+| PL7 | Freitag Arbeitstag | wie PL3 | wie PL3 | ja | Wochenplan |
+| PL8 | Samstag Arbeitstag | wie PL3 | wie PL3 | ja | Wochenplan |
+| PL9 | Sonntag Arbeitstag | wie PL3 | wie PL3 | ja | Wochenplan |
+| PL10 | Vorschlags-Arbeitsbeginn | optional | vorhandenen validierten Wert, sonst 08:00 | nein | Wochenplan, nicht jedes Mal abfragen |
+| PL11 | Vorschlags-Arbeitsende | optional | vorhandenen validierten Wert, sonst 17:00 | nein | Wochenplan |
+| PL12 | Anfahrtpuffer | optional | vorhandenen Wert verwenden, keine erfundene Fahrzeit | nein | Planung/Erweitert |
+| PL13 | Wetterprüfung aktivieren | ja | AUS bis echter Zugang/Lizenz bestätigt | ja | normale Einstellung „Wetterhinweise“ |
+| PL14 | Gewerblicher Wetterzugang freigegeben | ausdrücklich ja | niemals automatisch bejahen | nein als täglicher Schalter | einmalige Zugangseinrichtung |
+| PL15 | Wetter-API-Schlüssel | Kontoinhaber einmalig am Gerät | privat lassen, vorhandenen Schlüssel behalten | nein | geschützte Einrichtung; nie Chat/Diagnoseausgabe |
+| PL16 | Wetterrisiko-Benachrichtigungen | ja | respektiert vorhandene Präferenz und OS-Recht/Ruhezeit | ja | normale Einstellung, kein technisches Wissen nötig |
+| PL17 | Regen mm/h | nur fortgeschrittene fachliche Anpassung | geprüfter Ausgangswert 1, nicht Sicherheitsgarantie | nein | Wetter/Erweitert; im Alltag verbergen |
+| PL18 | Regenwahrscheinlichkeit % | wie PL17 | Ausgangswert 60 | nein | Wetter/Erweitert |
+| PL19 | Böen km/h | wie PL17 | Ausgangswert 40 | nein | Wetter/Erweitert |
+| PL20 | Frost °C | wie PL17 | Ausgangswert 0 | nein | Wetter/Erweitert |
+| PL21 | Hitze °C | wie PL17 | Ausgangswert 30 | nein | Wetter/Erweitert |
+| D1 | Drive-Google-Konto | ja, einmalig | autorisierte Verbindung erhalten | nein | Sicherung/Verbindung einrichten; danach EIN/AUS der Absicht |
+| D2 | Link/ID des bestehenden Drive-Ordners | einmalig fachlichen Zielordner wählen, keine ID verstehen | bestehende geprüfte Zuordnung weiterverwenden | nein | Einrichtung mit Ordnerauswahl; rohe ID danach Diagnose |
+| D3 | Gmail-Versandbelege nur lesen | optional ausdrücklich | AUS bis Freigabe; kein Versandrecht implizieren | ja für aktivieren/deaktivieren | Versand/Erweitert; keine tägliche Kontowahl |
+| T1 | Pixel-Tunnel-ID | Administrator bei Einrichtung | bestehende bestätigte Verbindung erhalten | nein | ausschließlich Erweitert/Verbindung |
+| T2 | OpenAI-Organisation | Administrator bei Einrichtung | verifizierte Zuordnung erhalten | nein | ausschließlich Erweitert/Verbindung |
+| T3 | Runtime-Schlüssel | Kontoinhaber sicher am Gerät | vorhandenen verschlüsselten Schlüssel behalten | nein | geschützte Einrichtung, nicht normale Bedienung |
+| T4 | ChatGPT darf Eigentümerfunktionen lesen/schreiben | Eigentümer ausdrücklich | vorhandene bestätigte Freigabe erhalten | ja | „ChatGPT-Steuerung“; Kontofreigabe bleibt zusätzlich erforderlich |
+| G1 | Eigenes Gartenpirat-Bild automatisch anzeigen | optional | vorhandene Auswahl erhalten, nicht mit Geschäftsfotos vermischen | ja | Bildoptionen; kein normaler Betriebsdialog nötig |
+
+Weitere gespeicherte Zustände sind **keine zusätzlichen Benutzerentscheidungen**: Launcherposition, Such-/Zeitraumfilter, Formularentwürfe, stabile Request-IDs, Vergleichshashes, Vorgängerkette, Wiederholungszähler und Bestätigungsbelege. Diese gehören automatisch verwaltet. `default_activity` und `default_location` sind über vorhandene Owner-Einstellungen verfügbar und werden im Formular übernommen; kein separater sichtbarer Einstellungseditor dafür wurde gefunden. Das Inventar erfindet deshalb keine zwei weiteren UI-Schalter. Kamera, Mikrofon, Benachrichtigungen, Dateien und Akku/Hintergrundbetrieb bleiben Android-Rechte; nachgewiesene Freigabe darf nicht durch ein dekoratives App-EIN ersetzt werden.
+
+#### 1. Gesamturteil zur Bedienbarkeit
+
+**Für die tägliche Kernarbeit brauchbar, das geforderte Black-Box-Prinzip jedoch nur teilweise erfüllt.** Vier Hauptziele, große Start-/Pause-/Ende-Aktionen, Kundenkontext, optionale Kontaktfelder, Entwurfserhalt, Foto-Pagination und echte Schutzgrenzen sind tragfähig. Die stärkste Belastung liegt in Einrichtung/Sync, Dokumenterstellung und uneinheitlich platzierten Folgeaktionen. „Die Technik interessiert mich nicht“ funktioniert beim Timer überwiegend, bei Sicherung und Rechnungsabschluss noch nicht zuverlässig aus Sicht dieser Persona. Erfolgreiche Regressionen sind kein Beweis guter Auffindbarkeit. Die visuelle Lesbarkeit bei 320/360/426 px und vergrößerter Schrift ist in den geprüften Chromium-Fällen gut; die native Sichtprüfung bleibt durch den in Phase D beschriebenen System-UI-Fehler eingeschränkt; der frühere extrem schmale b.b.-Zeilenfehler wurde hier nicht wieder als aktueller Fehler behauptet.
+
+#### 2. Blockierende UX-Probleme
+
+- **U01 / S1:** Vorhandenes Foto später einer Arbeit zuordnen bzw. Beschreibung korrigieren ist im Betrachter nicht bedienbar. `update_photo` existiert, aber der sichtbare Weg endet bei Blättern/Zoom/Papierkorb. Ein erneuter Import wäre ein schlechter, duplizierender Workaround.
+- **U02 / S1:** Rechnungszahlung hat einen getesteten MCP-Fachweg, aber im untersuchten Rechnungsdetail/-aktionsbereich keinen gleichwertig auffindbaren UI-Weg. b.b. darf diesen Weg nicht ersetzen.
+- **U03 / S1:** Die Oberfläche liefert keinen klaren allgemeinen Sicherungs-/Wiederherstellungszugang mit letzter geprüfter Geschäftssicherung. Die sechs Katalogeinträge unter Sicherung und vorhandene Owner-Tools machen diesen Ablauf nicht automatisch für einen manuellen Benutzer auffindbar. „Drive eingerichtet“ beweist keine vollständige Sicherung.
+- **U04 / S2, Einrichtung kann S1 erreichen:** Rechnungsabschluss hängt von bewusst bestätigtem Aussteller/Nummernkreis und geeignetem Drive-Zugang ab. Die Schutzbedingung ist richtig; wechselnde Texte über Nummernservice, Pixel, Rücklesen und erneutes Synchronisieren liefern keinen einheitlichen nächsten fachlichen Schritt. Ein aktueller technischer Deadlock wurde in den synthetischen Tests nicht reproduziert.
+
+Kein nachgewiesener neuer S0. Wiederherstellbare Entfernung, unveränderliche Originalrechnungen, bewusste Bindungswahl, ausstehender Versandnachweis und versionsgebundene Löschbestätigung bleiben positiv und dürfen nicht einer kürzeren Bedienung geopfert werden.
+
+#### 3. Top 10 unnötig komplizierte bestehende Funktionen
+
+| Rang | Befund | Weshalb unnötig kompliziert? |
+|---:|---|---|
+| 1 | U05 Sync-/Speicherstatus | Nutzer muss lokal, Übergabe, Rücklesen und Cloud selbst gedanklich zusammensetzen |
+| 2 | U06 Rechnungsabschluss-Einrichtung | gemeinsames fachliches Ziel verteilt auf Unternehmensdaten, Nummernkreis und technische Verbindung |
+| 3 | U07 Rechnung aus mehreren offenen Arbeiten | Abrechnungsübersicht zeigt Arbeiten, aber startet keine gemeinsame Rechnung |
+| 4 | U08 Angebotsformular | vier Dokumentarten, Kundentyp, Vertragsweg, Preisgrundlage und viele Folgebuttons gleichzeitig |
+| 5 | U09 Angebot in Kundenakte finden | Erstellung unter Kontakt, Bestand unter Fotos & Dateien |
+| 6 | U10 Planung/Wiederholung | Serie steckt gemeinsam mit Ort, Anfahrt und Pause in einem langen Zusatzbereich |
+| 7 | U11 Drei Bezahl-/Abrechnungsbegriffe | b.b., App: verrechnet und Rechnungszahlung fachlich verschieden, optisch ähnlich |
+| 8 | U12 Archiv/Entfernen/Deaktivieren | ein Wiederherstellungsbestand und mehrere Lebenszyklusbegriffe ohne gemeinsamen Einstieg |
+| 9 | U13 Historische Konfliktbedienung | auch ohne aktive Fälle sichtbare Wartungsaufgabe im normalen Sync-Bereich |
+| 10 | U14 Verstreutes Wiederfinden | Kunde, Arbeit, Foto, Rechnung und Termin benötigen unterschiedliche Bereiche/Filter |
+
+#### 4. Top 10 zu vereinfachende Funktionen/Workflows – konkrete Vorschläge
+
+Alle Nachher-Zahlen sind **Zielwerte**, keine gemessenen Verbesserungen. Aufwand klein/mittel/groß relativ zur bestehenden App, kein Terminversprechen. Zeitnutzen ist ohne Benutzerstudie nicht in Sekunden belegt. Nummern-/Bindungs-/Löschbestätigungen und ungeklärte Konflikte werden nicht automatisch erledigt.
+
+| ID / Priorität | Problem / aktueller Ablauf | Vereinfachter Ablauf, nur Vorschlag | Aktionen vorher → nachher | Nutzen | Aufwand | Regressionsrisiko |
+|---|---|---|---|---|---|---|
+| U05 / P1 | Heute/Settings → Drive → Übertragungszustände deuten | überall ein wahrer Zustand: „Auf Gerät gespeichert“, „Mit Drive gesichert“ nur mit passendem Nachweis, sonst klare nächste Aktion; Details erweitert | ~2–4 → 0 im Normalfall, 1 bei Fehler | täglich weniger Prüfbedarf, keine falsche Sicherheit | mittel | mittel: Nachweisstufen weiter intern getrennt |
+| U06 / P1 | Unternehmen prüfen → Nummernkreis prüfen → technische Drive-Verbindung → zurück → Abschluss wiederholen | einmalige geführte fachliche Einrichtung, danach „Rechnung abschließen“ mit einer Zusammenfassung | ~8–15 Einrichtung → ~4–7; normal ~2–4 → 2 | weniger Abbrüche, eindeutiger nächster Schritt | mittel | hoch: Autorität/Parallelkreis unverändert schützen |
+| U07 / P1 | Offene Leistungen lesen → Rechnungen → Neu → Kunde → Leistungen → Arbeiten auswählen → übernehmen | bei Empfänger „Rechnung vorbereiten“ → vorgeschlagene offene Arbeiten/Preise prüfen → Entwurf | ~9–13 → ~4–6 | wiederkehrende Abrechnung deutlich kürzer | mittel | hoch: Empfänger, bekannte Preise, Doppelabrechnung |
+| U08 / P1 | Alle Angebotsfelder und Prüfen/Finalisieren gleichzeitig | Kunde → bewusste Dokumentart → Leistungen → Prüfen; geprüfte Stammdaten nur bei Abweichung; eine nächste Hauptaktion | ~12–18 → ~8–11 für Katalogfall | weniger Such-/Scrollschritte, Rechtswahl bleibt sichtbar | mittel | hoch: Typ-/Preis-/B2C-Validierung |
+| U09 / P1 | Akte → Kontakt → neues Angebot; Akte → Fotos & Dateien → vorhandenes Angebot | Akte → Dokumente mit Angebot/Kostenvoranschlag/Rechnung und „Neu“ | ~2–3 → 1–2 | tägliches Wiederfinden ohne Umweg | klein–mittel | mittel: Kontext/Rückkehr/Entwürfe |
+| U10 / P2 | Mehr → Planung → Termin → verstreute Zusatzfelder/Serie | bestehender Kunden-/Auftragskontext → Datum/Dauer → optionale klar benannte Wiederholung | ~8–11 → ~5–7; Serie ~4–6 zusätzlich → ~2–3 | Termine schneller, Serien leichter auffindbar | mittel | mittel: Zeitzone, Wiederholung, Kalender |
+| U11 / P1 | b.b.-Knopf, App-Verrechnet-Flag und Rechnung separat erklären | „Persönlich erledigt/bezahlt“ eindeutig von „Rechnung offen/bezahlt“ unterscheiden, bestehende Bedeutung beibehalten | ~1–2 → 1, Verständnisaufwand sinkt | weniger falsche Zahlungsannahmen | klein–mittel | hoch bei fachlicher Vermischung; keine Datenkonvertierung |
+| U12 / P1 | Aktiv-Checkbox/Erledigt/Aktionen/Archiv/Papierkorb getrennt suchen | klare Datensatzaktionen „Nicht mehr aktiv“ oder „In Papierkorb“; Wiederherstellen an einem Ort | ~3–6 → ~2–3; Purge bleibt bestätigt | weniger versehentliche falsche Aktion | mittel | hoch: Beziehungen, Belegschutz, Restore |
+| U13 / P2 | Drive öffnen → Alt-Konfliktfunktionen trotz 0 Vorgängen | nur „Handlung nötig“ bei tatsächlichem Fall; Historie in Erweitert | ~1–3 Prüfaktionen → 0 ohne Fall | weniger unnötige Wartungsentscheidungen | klein | mittel: aktive Konflikte dürfen nicht verschwinden |
+| U14 / P2 | Zielbereich erraten → lokaler Filter → zurück → anderer Bereich | übergreifender Lesezugang zu vorhandener Suche, gruppierte Treffer; keine neue Datenhaltung | ~3–6 → ~2–3 | weniger Fehlwege bei alten Einträgen | mittel | mittel: Sichtbarkeit/Archiv/Entwurfsschutz |
+
+Weitere konkret belegte Ergänzungen: **U01** Foto → Mehr → Bearbeiten → Beschreibung/Arbeit → speichern statt derzeit nicht ausführbar (Ziel ~4–6, P1, mittel, mittleres Relationsrisiko); **U02** Rechnung → Zahlung erfassen → bestätigen statt derzeit nicht ausführbar (Ziel ~2–3, P1, klein–mittel, hohes Risiko bei b.b.-Verwechslung); **U03** Einstellungen → Sicherung zeigt geprüften Zeitpunkt und „Wiederherstellen“ führt über bestehende Prüfung statt technischem Suchweg (Normalstatus Ziel 0–1, Restore nicht verkürzen, P1, mittel, hohes Restore-/Nachweisrisiko). **U15** bestehendes Arbeitsdetail → Bearbeiten → Zurück speichert, Auftrag/Kunde dagegen haben Verwerfen-Dialoge: konsistente sichtbare Rückmeldung/Begriffe vorschlagen, ohne das bestehende Speicherverhalten zu ändern (Schrittzahl ~2–4 → ~2–3, P1, mittel, hohes Entwurfsrisiko). **U16** gleiche große Startaktion mit zwei ähnlichen Textzeilen und abweichendem Leertexthinweis: Begriffe vereinheitlichen (0 Aktionen Unterschied, P3, klein, niedrig). **U17** Wetter-/Kalendereinrichtung unter einer Betriebsoption anbieten, technische Felder erweitert (Einrichtungszahl von Freigaben abhängig; keine pauschale Klickzahl, P2, mittel, mittleres Rechte-/Kostenrisiko).
+
+#### 5. Funktionen, die EIN/AUS werden sollten
+
+- **Google Drive-Verbindung/Sicherungsabsicht:** EIN/AUS nach verifizierter Einrichtung; Erfolg weiterhin separat mit verständlichem Datum/Fehler anzeigen. AUS löscht keine Daten und beendet nicht stillschweigend erforderliche lokale Sicherung. Synchronisation ersetzt keine versionierte Vollsicherung.
+- **ChatGPT-Steuerung:** EIN/AUS als Betriebsfreigabe, vorhandene Owner-Autorisierung und Client-/Kontorechte behalten. Tunnel-ID/Organisation/Schlüssel kein tägliches Bedienmodell.
+- **Kalenderabgleich:** EIN/AUS, bestehende Kalendertermine beim Trennen erhalten; zusätzliche Hauptkalender-Lesefreigabe getrennt optional.
+- **Wetterhinweise / Benachrichtigungen:** jeweils EIN/AUS; keine automatische Lizenzzustimmung, keine versteckten Kosten und keine vorgetäuschte OS-Freigabe.
+- Bereits angemessen: Seitenwischen und eigenes Gartenpirat-Bild automatisch anzeigen. Fotoqualität bleibt bewusst dreistufig; Dokumentart, Steuermodus, Nummernkreis und rechtliche Bindung sind **keine** sinnvollen EIN/AUS-Entscheidungen.
+
+#### 6. Funktionen, die automatisch laufen sollten
+
+Vorhandene Wiederholung/Idempotenz/Hashprüfung/Medienreihenfolge, sichere lokale Speicherung, Entwurfserhalt, Fotooptimierung, Vorschauladen und Kunden-/Auftragsübernahme ohne Konflikt automatisch weiterführen. Ohne Benutzerentscheidung veröffentlichen, was bereits fachlich bestätigt wurde; nicht allein wegen einer ausstehenden unabhängigen Medienübertragung andere Arbeitsdaten blockieren. Automatische Hintergrundwiederholung bei Netzfehlern ist bereits vorhanden, nicht als neue Funktion verkaufen. Sichtbare neue Meldung nur bei tatsächlichem Handlungsbedarf oder Speicherfehler.
+
+Automatischer Sicherungsplan wäre sinnvoll, ist aber erst nach geprüfter Vollständigkeit, Aufbewahrung und Wiederherstellbarkeit als aktiv darstellbar. Niemals ungeklärte Konflikte, alte Löschaufträge, Preise, Rechtsart, Nummernautorität, Kalender-Verschiebung oder Versandempfänger automatisch entscheiden. Der Nutzer entscheidet den Betrieb; die App prüft und transportiert im Hintergrund.
+
+#### 7. Aus normalem UI nach Erweitert/Diagnose verschieben
+
+Übertragungs-/Warteschlangendetail, Provider-/Transportnachweise, technische Dateinamen, Alt-Konflikt-Wartung bei null aktiven Fällen, Konflikt-ID-/Hashhistorie, Tunnel-/Organisation-/Runtime-Einrichtung, Akku-/Hintergrunddiagnose, Drive-Ordner-ID, Wetter-API-/Schwellenkonfiguration und Rechnungsnummern-Zähler. Bei echtem Fehler darf die normale UI verständlich sagen, was zu tun ist; technische Diagnose ist zusätzlich aufklappbar.
+
+Schon richtig gelöst und beibehalten: `#sync-technical` ist eingeklappt; `#sync-reviews` ist grundsätzlich eingeklappt; Rohdaten/Hashes sind im Papierkorb nicht Voraussetzung. Diese Bereiche nicht fälschlich als ständig offene Technikflächen zählen. Der normale Settings-Absatz und die historische Wartung außerhalb dieser Details bleiben trotzdem sichtbar.
+
+#### 8. Doppelte oder überlappende Funktionen
+
+Keine zweite operative Datenbank, kein zweites Projektsystem und kein zweites Angebotsmodell gefunden bzw. vorgeschlagen. Überlappungen betreffen **Zugänge und Begriffe**: Sync über Statuspille, Settings und Mehr; Angebot-Neuanlage unter Kontakt und Bestand unter Fotodokumenten; Fotos im Kundenkonto und globale Bibliothek; Rechnung aus Einzeleintrag und separater Rechnungseditor; Gartenpirat über schwebenden Knopf und Mehr; „Projekt/Auftrag“ als Doppelname. Mehrere kontextuelle Einstiege sind nützlich, wenn sie in denselben Workflow führen. Nicht einfach entfernen. b.b. und Rechnungszahlung sind absichtlich unterschiedliche Fachziele, keine Daten-Dubletten.
+
+#### 9. Einstellungen, die entfernt werden können
+
+Aus der täglichen Seite entfernbar: Warteschlangenzählung, Übertragungsstufe und technische Erklärung sowie technische Verbindungs-/Schwellenfelder. Aus der Anwendung fachlich **nicht** ersatzlos entfernen: geprüfte Aussteller-/Steuer-/Nummernkreisangaben, Datenschutz-/Kontofreigaben, Originalqualität-Option, Benachrichtigungspräferenz. Kein belegter Grund, die 56 Entscheidungen aus dem Datenmodell zu löschen. Gemeinsam geführte Einrichtung kann B22/B24/B25 bündeln, muss aber alle drei Schutzvoraussetzungen weiter prüfen. B13/B14 gemeinsam pflegen und Widersprüche anzeigen; freie Zahlungsbedingungen nicht kommentarlos überschreiben.
+
+#### 10. Workflows mit zu vielen Schritten
+
+Größte belegte Wegelängen: Mehr → Offene Leistungen → anderer Bereich → Rechnung → Arbeiten übernehmen (~9–13); globaler Termin (~8–11); Angebot mit Katalog (~12–18 einschließlich fachlicher Entscheidungen); Deaktivieren/Archivieren bei unklarer Wortwahl (~3–6). Dokumentprüfung und endgültige Bestätigung sind keine unnötigen Schritte. Timerpause/-fortsetzen sind bereits je eine Aktion und sollten keine neue Zwischenbestätigung erhalten. Kundenanlage bleibt mit ≥7 Aktionen im geprüften Name-/Adressfall vertretbar; keine zusätzlichen Pflichtfelder hinzufügen. Eine Zeitersparnis in Minuten wurde nicht gemessen.
+
+#### 11. Top 10 Kandidaten für neue Funktionen mit belegtem Alltagsbezug
+
+Es sind **zehn geprüfte Kandidaten**, keine künstliche Empfehlung zehn neuer Produktfunktionen. Nur fehlende Bedienwege und wiederkehrende nachgewiesene Such-/Abrechnungsarbeit begründen Erweiterungen. Häufigkeit ist eine Persona-Annahme; Zeitnutzen nur als Aktions-/Fehlerreduktion, nicht als erfundene Sekundenmessung. Bewertung N=Nutzen/H=Häufigkeit, Aufwand/UI/Wartung/Risiko niedrig/mittel/hoch.
+
+| Rang | Kandidat / konkrete Evidenz | N / H | Zeit-/Fehlernutzen | Aufwand / zusätzliche UI / Wartung / Risiko | Empfehlung |
+|---:|---|---|---|---|---|
+| 1 | Vorhandenes Foto bearbeiten/Arbeit zuordnen; Aufgabe 41 ohne UI-Weg | hoch / regelmäßig | derzeit unmögliche Korrektur wird ~4–6 Aktionen, kein Reimport-Duplikat | mittel / niedrig im Mehr-Menü / niedrig / mittel | P1: bestehenden update_photo-Fachweg bedienbar machen |
+| 2 | Rechnungszahlung im Detail; Aufgabe 81 ohne UI-Weg | hoch / regelmäßig | ~2–3 statt Hilfsweg; b.b.-Fehlersatz vermeiden | klein–mittel / niedrig / niedrig / hoch fachlich | P1: vorhandenen Zahlungsfachweg exponieren |
+| 3 | Sicherungsübersicht/Wiederherstellungs-Einstieg; Aufgabe 106 | hoch / seltene Aktion, tägliche Sicherheit | Normalprüfung 0–1 statt Techniklesen; weniger falsche Sicherheit | mittel / niedrig / mittel / hoch | P1: vorhandene Backupdienste nutzen, keinen zweiten Speicher |
+| 4 | Rechnung aus Empfängergruppe; Aufgabe 73 | hoch / regelmäßig | ~3–7 Aktionen weniger, weniger falsche Empfänger | mittel / niedrig / mittel / hoch | P1: Kontextübergabe, keine neue Rechnungslogik |
+| 5 | Ein gemeinsamer Dokumente-Einstieg in Kundenakte; Aufgabe 16 | hoch / regelmäßig | ~1–2 Suchaktionen weniger | klein–mittel / sinkend / niedrig / mittel | P1: Navigation konsolidieren, keine neue Entität |
+| 6 | Übergreifende Suche; Aufgaben 83–88 | mittel–hoch / regelmäßig | ~1–3 Bereichswechsel weniger | mittel / niedrig / mittel / mittel | P2: vorhandene Suchdaten nutzen; Nutzertest vor Ausbau |
+| 7 | Guided Setup für Rechnungsbereitschaft; Aufgabe 78 | hoch / selten | weniger Fehlversuche; keine feste Sekundenangabe | mittel / sinkend / mittel / hoch | P1: bestehende Einrichtung bündeln |
+| 8 | Hintergrund-Sicherungsplan mit verifiziertem Restore; Aufgaben 106–109 | hoch / automatisch | entlastet tägliche Kontrolle; keine falschen Erfolgsanzeigen | mittel–hoch / niedrig / hoch / hoch | P2 nach eigenem Nachweis; nicht blind „Backup EIN“ ergänzen |
+| 9 | Natürlichsprachlicher Sammelassistent für jeden Screen | Nutzen nicht zusätzlich belegt; MCP/Sprachfelder existieren | derzeit keine gemessene Mehrersparnis | hoch / hoch / hoch / hoch | NICHT neu ergänzen; vorhandene Wege konsistent halten |
+| 10 | Automatische Wetter-Umbuchung mit Kundenversand | bisher nur Wetterhinweisbedarf belegt | vermeintliche Einsparung, hohes Fehlplanungsrisiko | hoch / mittel / hoch / hoch | NICHT ergänzen; Vorschlag und bewusste Terminentscheidung behalten |
+
+Ränge 4/5/7 sind bewusst Verbesserungen vorhandener Workflows, keine neuen Subsysteme. Mehr neue Funktionen als die belegten Lücken wären diesem Auftrag und der Persona abträglich.
+
+#### 12. Ausdrücklich nicht ergänzen
+
+Kein Technikdashboard im Heute-Bildschirm, kein zweiter Sync-Modus für alltägliche Wahl, kein zweiter Backup-/Fotospeicher, keine automatische Alt-Konflikt- oder Löschbereinigung, kein automatischer Versand allein durch „Teilen“, keine automatische Rechnungsnummer oder Steuerannahme, kein neuer b.b.-Abrechnungsstatus, keine automatische Wetterabsage/-umbuchung, kein weiterer schwebender Betriebsassistent und kein zusätzlicher Haupttab pro Modul. Kein Build, keine neue APK und keine Änderung von MCP-Verträgen für diesen Analyseauftrag.
+
+#### 13. Vorgeschlagene ideale Hauptnavigation
+
+Die bestehenden vier Ziele **Heute – Kunden – Arbeiten – Mehr** behalten. Unter Mehr fachlich gruppiert: **Planung**, **Dokumente** (Angebote/Kostenvoranschläge/Rechnungen/offene Leistungen), **Aufträge**, **Fotos & Pflanzen**, **Einstellungen**. Das ist ein Navigationsvorschlag, keine Zusammenlegung von Datenmodellen. Papierkorb über Datenverwaltung und kontextuelle Rückgängig-Aktion erreichbar halten. Diagnose nur unter Einstellungen/Erweitert. Kontextuelle Direktwege aus Kunde, Auftrag und Arbeit bleiben erhalten.
+
+#### 14. Vorgeschlagener idealer Heute-Bildschirm
+
+Oben laufende Arbeit mit Kunde, Dauer und genau den passenden Aktionen Pause/Fortsetzen/Beenden; ohne Sitzung eine dominante Aktion **Arbeit starten**. Danach nächster Termin, heutige Arbeiten/Summe, **Arbeit nachtragen**. Kleiner wahrer Speicherhinweis **Auf diesem Gerät gespeichert**. Nur bei nötiger Handlung eine verständliche Problemmeldung; keine Queue-/Providerzählung. Die bestehende Startansicht erfüllt einen großen Teil bereits. Gartenpirat bleibt erreichbar und darf Timeraktionen nicht überdecken; vorhandene native UI-Prüfung behalten.
+
+#### 15. Vorgeschlagene ideale Kundenakte
+
+Kopf: Name/Adresse, Kontakt, **Arbeit starten/erfassen**, **Termin**, optional Menü. Danach **Übersicht – Arbeiten – Fotos – Dokumente** als verständliche Ziele; Garteninformationen auf Übersicht/Details, ohne sie als neue technische Entität zu behandeln. Übersicht: letzter Einsatz, offene Aufträge, Gartenfläche, nächste Termine. Dokumente enthalten Angebote und Rechnungen, Fotoansicht ausschließlich Bilder/zugehörige Dateien. Kontakt/Neues Angebot nicht unter demselben unbestimmten Sammelpunkt verstecken. Kunde und Einsatzort bleiben auch bei abweichendem Rechnungsempfänger eindeutig.
+
+#### 16. Vorgeschlagener idealer Arbeitszeit-Workflow
+
+**Start → Kunde bestätigen (Auftrag optional) → Pause/Fortsetzen → Ende → Tätigkeit prüfen → Speichern.** Zeit/Netto-Pause automatisch, Material/Kilometer/Fotos/Notiz als optionale direkte Ergänzungen. Kein Zwang zu GPS oder vorhandenem Auftrag. „Später ergänzen“ bewahrt den offenen Abschluss, benennt ihn aber nicht als fertige Arbeitsaufzeichnung. Korrektur aus Arbeitsdetail in genau einen Editor mit eindeutiger Speicher-/Abbrechen-Rückmeldung. b.b. bleibt persönliche Markierung; „App: verrechnet“ bleibt kein Beweis eines ausgestellten Dokuments. Bestehende Versionsprüfung im Hintergrund.
+
+#### 17. Vorgeschlagener idealer Dokument-Workflow
+
+**Kunde/Kontext → bewusst Dokumentart wählen → bekannte Leistungen/Preise übernehmen → fehlende Angaben ergänzen → Vorschau/Prüfung → ausdrücklich abschließen → optional Teilen/Versenden → bestätigten Status sehen.** Unterschiedliche Fachlogiken nicht vermischen: Angebot/Kostenvoranschlag haben bewusste Bindungsart; Rechnung hat zentrale Nummernautorität und unveränderliches Original. B2B/B2C und Vertragsweg nur bei fehlender/abweichender Datenlage nachfragen, keine stillen Rechtsannahmen. Ausgabe „Zum Teilen bereit“ ist nicht „Gesendet“; „Ausgestellt“ ist nicht „Bezahlt“. Nach Abschluss Korrektur-/Stornoweg statt freier Bearbeitung. Material-/Stunden-/Preisprüfung bleibt erforderlich.
+
+#### 18. Technische Interna: vollständiges gefundenes Expositionsinventar
+
+Die folgende Liste umfasst die bei dieser Prüfung gefundenen UI-Stellen und Fehlerrückgabefamilien; eine Garantie über jede zukünftig vom Provider gelieferte Fehlermeldung wäre unredlich. Nichts enthält echte Kontowerte, IDs, Pfade oder Hashes aus Betriebsdaten.
+
+| Stelle / Quelle | Sichtbarkeit heute | Konkrete technische Information | Bewertung |
+|---|---|---|---|
+| Heute-Status / mobile.html + daily-usability.js | normal | erster Drive-Abgleich, Übertragungs-/Prüfzustand | besser fachlicher Speicherstatus/Handlungsbedarf |
+| Einstellungen / daily-usability.js:15–18 | normal | Warteschlange, Übertragungsstand, Übergabe an Drive-App, Rücklesen vs Online-Upload | deutlich zu viel Erklärung im Alltag |
+| Einstellungen Fotos / photo-settings.js:8–9 | normal | lokale Bilddateien, MB/GB frei, Drive noch nicht vollständig bestätigt | Kapazität bei Bedarf sinnvoll; Transportbegründung erweitert |
+| Sync-Grundtext / mobile.html | normal | HausGarten-ChatGPT.json, Übernahmeweg, „kein dauerhafter Fernzugriff“ | historischer Kanaltext passt nicht als alleinige Beschreibung des heutigen Owner-Zugangs |
+| Pixel-Verbindungskarte / pixel-tunnel-ui.js:8–12 | normal auf Sync-Seite | Pixel, letzter gespeicherter Drive-Stand, eingeschränkte Liste alter Schreibfunktionen | unvollständige Erklärung gegenüber aktuellen 117 Tools |
+| Sync-Liste / sync-dashboard.js:9–17 | normal beim Öffnen der Seite | Übertragungen/Prüfungen, Cloud-Abschluss offen, nächste Abgleichphase/Serverprüfung | nur offene Handlungsfälle normal zeigen |
+| Sync-Verbindungsdetails / sync-dashboard.js:17–20 | ausdrücklich aufgeklappt | Android-Speicheranbieter/direct_drive, Fehlercode, Phasen, Retry-Anzahl | angemessener Diagnoseort; nicht als dauernd offen gewertet |
+| Sync-Fehler / mobile.html:191 + sync-dashboard.js | Fehler, normales UI | ungefiltertes result.error/last_error kann technische Codes/Providertext enthalten | verständliche Primärmeldung fehlt für alle Fehlerfamilien |
+| Historische Prüfungen / legacy-conflicts-ui.js:5 | normal, auch bei 0 Fällen | unverifizierbare Alt-Konflikte/Wartungsfunktion | unnötige ständige Wartungssicht |
+| Historienliste / legacy-conflicts-ui.js:5 | nach „Konflikthistorie anzeigen“ | client_id, keep_current, reason, action_hash als Rohtext | nach bewusster Aktion, aber noch kein klarer Diagnosebereich |
+| Alt-Konflikt-Detail / legacy-conflicts-ui.js:8 | aufgeklappte Details nach Vorschau | geprüfte IDs und Action-/Record-Hashes | Diagnose nützlich, für Bestätigung nicht nötig |
+| Alt-Konflikt-Bestätigung / legacy-conflicts-ui.js:9 | kritische Bestätigung | Warteschlange, Drive-Snapshot, Speicheranbieter-Readback, Cloud-Bestätigung | Datenbestand/Effekt/Sicherungsstatus verständlich zusammenfassen |
+| Konfliktvergleich / sync-dashboard.js:24–29 | echter Entscheidungsfall | unbekannte Feldnamen fallen auf Rohschlüssel zurück; Beziehungen können IDs, Objekte JSON zeigen | normale Fachwerte statt Rohobjekte; beide Varianten erhalten |
+| ChatGPT-Einrichtung / PixelTunnelActivity.java:40–60 | native Einrichtung | Tunnel-ID, Organisation, Runtime-Schlüssel, Akku-Ausnahme, Hintergrunddaten, Tunnelverwaltung | sicher geschützte Experteneinrichtung, kein normales Betriebsmodell |
+| Drive-Einrichtung / DriveConnectionActivity.java:17–38 | native Einrichtung/Fehler | gespeicherte Ordner-ID im Linkfeld, Konto-/App-/Ordnerrechte, Providerfehlermeldung | Konto/Ordner fachlich wählen; Details erweitert |
+| Planung / planning-ui.js:43 | normales Terminformular | Europe/Vienna, optionale Koordinaten/UTC-Offset in Zusatzgruppe | Ortszeit genügt täglich; DST-Ausnahme nur bei echter Mehrdeutigkeit |
+| Planungs-Zugang / PlanningConnectionActivity.java:20–46 | native Einrichtung | API-Schlüssel, Nutzungsfreigabe, 5 Schwellen, OAuth-/Calendar-API-/Organisationsfehler | Betriebsoptionen normal; Zugang/Diagnose getrennt |
+| Unternehmenseditor / owner-ui.js:22–32 | normales langes Editorformular | Nummernkreiszähler, Pixel als Nummernautorität, direkte Drive-Verbindung; Fehler „Vergleichsstand“ | fachliche Einrichtung bündeln; Versionstechnik aus Text entfernen |
+| Rechnungsabschluss / invoice-draft.js:98–101 | normale Bestätigung/Fehler | Nummernservice, Pixel-/Drive-Abgleich, nach Service erneut synchronisieren, sevDesk-Parallelkreis | zentrale Schutzregel bewahren, nächste Aktion fachlich erklären |
+| Rechnung fehlt lokal / invoice-draft.js:66–67 | Daten-/Dateifehler | Original-PDF nicht lokal, Datenstand abgleichen | kein Fake-PDF ist richtig; „Original wird geladen/derzeit nicht verfügbar“ verständlicher |
+| Angebotsstatus / offers-ui.js:30,43 | normal nach Speichern/Abschluss | privater Dokumentspeicher, Drive-Abgleich folgt, keine Rechnungsnummer vergeben | „Gespeichert/Abgeschlossen“ genügt; kein Versand vorgeben |
+| Foto-Ladestatus / design-concept.js:129–147 | Foto öffnen/Fehler | Original nach Drive-Abgleich, ggf. Dateiname statt Beschreibung | fachlicher Lade-/Fehlertext, kein Dateipfad nötig |
+| Foto-Fehlerwiederholung / mobile.html:178–187 | echter Speicherfehler/Neustart | Wiederholauftrag, Datenstand, dauerhafte Wiederherstellung nicht verfügbar | Handlung erforderlich; Arbeit und Foto getrennt verständlich benennen |
+| Papierkorb / trash-ui.js:14,24,58 | Bestätigung bzw. erklärende Details | Dateibereinigung nach geprüftem Abgleich, historische Sicherungen separat | sachlich notwendige Reichweite, keine Hash-/CAS-Bedienung; Text kürzen möglich |
+| Owner-Client-Fehler / owner-client.js und Konsumenten | Fehler | serverseitige Fehlermeldungen werden in Status/Toast durchgereicht | gemeinsame fachliche Fehlerübersetzung als spätere Empfehlung |
+| Versions-/Buildinfo / daily-usability.js | ausdrücklich Settings | Version/Build/Fingerprint | sinnvoll in Info/Diagnose, keine Betriebsentscheidung |
+
+Die Herkunftsnachweise bei Pflanzen/Neophyten und Hinweise zur bewussten Dokumentbindung sind fachliche Informationen, keine sinnlos sichtbare Technik. Fehlende Kundenzusage, ungeklärte Preise oder fehlende Rechte dürfen verständlich sichtbar bleiben. Ein echtes Problem darf nicht zugunsten einer grünen EIN-Pille versteckt werden.
+
+#### 19. Welche Informationen vollständig verborgen werden können
+
+Im normalen Betrieb vollständig verborgen: Request-IDs, Record-/Action-/Preview-Hashes, CAS, interne Queue-/Journal-/Snapshot-Bezeichnungen, JSON-Dateiname, Transportklasse, Provider-Readback als Fachbegriff, interne Phasen und Wiederholungszähler, rohe Feldschlüssel/UUIDs und Dateipfade. Die internen Nachweise bleiben unverändert gespeichert und diagnostizierbar.
+
+Ersetzen durch Antworten auf vier Fragen: **Ist gespeichert? Ist Sicherung/Verbindung eingerichtet? Ist der Vorgang erledigt? Muss ich etwas tun?** Beispiel für Netzfehler: **„Synchronisierung derzeit nicht möglich. Deine Daten sind auf diesem Gerät gespeichert. Wir versuchen es später erneut.“** Nur sagen, wenn die lokale Speicherung tatsächlich bestätigt ist und Wiederholung tatsächlich geplant ist. Bei vollem Speicher stattdessen **„Nicht gespeichert. Eingaben bleiben hier erhalten. Bitte Speicher freigeben und erneut speichern.“** Bei Kontoentzug **„Google Drive braucht erneut deine Freigabe. Auf diesem Gerät gespeicherte Daten bleiben erhalten. Verbindung prüfen.“** Kein automatischer Retry gegen dauerhaftes 401, keine Umgehung von Rechten.
+
+Sichtbar bleiben müssen: fehlende echte Sicherung, nicht gespeicherte Fotos, erforderliche Kontofreigabe, aktueller Konflikt mit fachlichen Alternativen, bewusste Dokumentart/Bindung, fällige Rechnung/fehlende Nummernfreigabe, endgültiger Löschumfang, tatsächlicher Versand-/Zahlungsstatus. Sicher automatisch lösbare Fälle brauchen keine Rückfrage; konkurrierende fachliche Varianten bleiben ausdrücklich Entscheidungssache.
+
+#### 20. Priorisierung und Abnahmeentscheidung
+
+| Priorität | Befunde / vorgeschlagene nächste Arbeit | Abnahmekriterium für einen späteren, separat autorisierten UX-Auftrag |
+|---|---|---|
+| P0 UX-Sicherheitsprüfung | U15 uneinheitliches Zurück/Speichern; U11 b.b./Rechnung nicht verwechseln; U03 keine falsche Sicherungsbestätigung; U06 Nummernautorität erhalten | Keine unbemerkte Fachänderung, kein falsches Bezahlt-/Gesichert-/Gesendet; Charakterisierungstests bleiben PASS. Kein neuer S0 wurde nachgewiesen. |
+| P1 hoher Alltagsnutzen | U01 Fotoänderung, U02 Zahlung, U03 Sicherungszugang, U05 verständlicher Speicher-/Syncstatus, U06 Rechnungsbereitschaft, U07 offene Leistungen → Entwurf, U08 Dokumentführung, U09 Kunden-Dokumente, U12 Löschbegriffe | Ziele ohne Technikvorwissen ausführbar; Kontext korrekt; keine zusätzlichen Pflichtdaten; Schutzparameter und Originale erhalten |
+| P2 sinnvoll | U10 Wiederholung auffindbar, U13 konfliktfreie Oberfläche ruhig, U14 Suche, U17 Kalender/Wetter-Ersteinrichtung; verifizierbare automatische Sicherung konzipieren | weniger Navigation, kein zweites Subsystem; Rechte/Kosten/Zusagen weiter explizit |
+| P3 optional | U16 konsistente Kurztexte, Speicher-MB-Rundung, Feinordnung der Mehr-Gruppen | messbar klarer, ohne neue UI-Komplexität oder Regressionsrisiko |
+
+**Dieser Auftrag endet mit dieser Analyse.** Es wurden weder die genannten Bedienlücken noch UX-Reibungen behoben. Die bestehenden fachlichen Regeln, Datenmodelle, App-ID, Signatur, 117 MCP-Verträge/Protokoll 9 und 156 UI-Katalogaktionen bleiben unverändert. Der nächste Schritt wäre eine ausdrücklich beauftragte Prioritätsauswahl oder ein darauf begrenzter UX-Umsetzungsauftrag, keine automatische Fortsetzung in Produktcode.
+
+### Phase D – abschließende Nachweise, Abweichungen und Grenzen
+
+**Ausgeführte Funktionsprüfungen dieses Auftrags:**
+
+| Prüfung | Tatsächliches Ergebnis / Grenze |
+|---|---|
+| Python-Qualitätsrunner | 322 PASS, 0 Skips; 37 historische QA-Signing-/Parallelpaket-Prüfungen durch den vorhandenen expliziten Schalter ausgeschlossen, nicht geändert oder als PASS gezählt |
+| JVM-Runner | 27 Suiten PASS; darin UI-/MCP-Parität 1.036 Prüfungen und eingefrorener P1-Vergleich |
+| Browser-/JS-Runner | alle 30 Runner-Einträge Exit 0; enthält Chromium- und reine JS-Prüfungen, deshalb nicht „30 native E2Es“ |
+| Zusätzlicher kognitiver Chromium-Durchlauf | 6/6 beschriebene Pfade abgeschlossen; operative Assets und bestehende synthetische Bridges, keine neuen Geschäftsregeln im Test simuliert |
+| MCP-stdio E2E | 55/55 synthetische Szenarien PASS; eingeschränkter vorhandener Kanaladapter, kein realer ChatGPT-Pixel-Connector |
+| Cloud-Android-Instrumentierung acceptance | **135 PASS; acceptance failures=0**, eigener QA-Namensraum; SQLite, Timer, Versionen, Rechte, Papierkorb/136 Einträge, Fotooptimierung/-rotation, Medienretry/Readback, PDF, vier Dokumentarten, Kalender/Wetter/Testprovider, sieben synthetische Legacy-Fälle |
+| Cloud-Android fresh_isolated | PASS: leerer isolierter Erststart, keine Credentials und kein automatischer Drive-/Tunnelzugriff; bestehender AVD-Bestand nicht gelöscht |
+| Cloud-Android ui | Assertion-Runner PASS: echter WebView, vier Tabs, Mehr-Gruppen, Auswahl/Abbrechen, Garten, Papierkorb, Planungsentwurf, aktiver Timer und verdeckter Launcher |
+| Native Screenshot-Sichtprüfung | **EINGESCHRÄNKT / weitere Prüfung nötig:** Screenshot enthält Systemdialog „System UI isn't responding“. Events-Log belegt ANR von `com.android.systemui/.keyguard.KeyguardService`. Programmgesteuerte WebView-Assertions erkennen diese OS-Überlagerung nicht. Deshalb keine uneingeschränkte manuelle native UI-Abnahme behaupten. |
+| Zusätzlicher historischer release_lifecycle verify | **FAIL:** `AssertionError`, nur Sammelstelle ReleaseLifecycleProbe.require:33 gemeldet. Keine Neuinstallation/kein Update dieses Auftrags. Der bestehende alte Verifier schließt technische capabilities und weitere vorbereitete Präferenzen ein; die konkret gescheiterte Bedingung ist mit dieser Ausgabe nicht lokalisiert. Keine Baseline neu geschrieben, kein Test abgeschwächt, keine Ursache als bewiesen ausgegeben. |
+| Lesender Abschlussvergleich des bestehenden synthetischen AVD-Bestands | PASS: vollständiger Geschäftsmaster ohne technische capabilities **einschließlich ganzer Pending-Queue** weiterhin SHA-256 `be1523c98d2fced2b5b446a9191b7d37be4dc98c56a169d2659cc3047fe407af`, identisch zum dokumentierten P1-Ledger. Nur im RAM über vorhandene Business-Capture-Instrumentierung verarbeitet; keine Rohzeilen/Base64 gespeichert oder ausgegeben. 3 QA-Kunden, 1 Auftrag, 2 Arbeitsaufzeichnungen, 1 Pending-Aktion, 32 öffentliche Katalogbausteine, 0 Fotos/Rechnungen/Angebote/Termine. IDs der Geschäftsentitäten ausschließlich synthetisch. Der fehlgeschlagene alte Verifier ist damit kein nachgewiesener Geschäftsdatenschaden, bleibt aber als fehlgeschlagene Prüfung offen. |
+| P1-Vertragsvergleich | PASS, `899906c246f9cb8256666c32a89435aa5f792eede3d3407b1c846380900aa813`, 117 Tools = 52 Lesen/65 Schreiben, Protokoll 9, 156 semantische UI-Aktionen; keine Baselineaktualisierung |
+
+**UAT-Zusammenfassung:** 115/115 Aufgaben bewertet; 69 PASS + 2 PASS auf ausdrücklich begrenzter synthetischer Sync-Teilstrecke, 40 PASS MIT REIBUNG, 3 FAIL des manuellen Benutzerziels (Foto nachträglich zuordnen, Rechnungszahlung manuell, Sicherungsstatus/-zugang) und 1 ausdrücklich NOT TESTABLE für echten Kamera-/Dateirechteentzug. Weitere externe Teilgrenzen stehen in den einzelnen Zeilen; diese Zahlen sind keine 114/115-Geräteabnahme. 56 Einstellungsentscheidungen einzeln inventarisiert, alle 20 verlangten Berichtsbereiche enthalten. Zählspannen/Verbesserungsziele nicht als empirisch gemessene Klickzeiten ausgeben.
+
+**Privacy und Unverändertheit:** Source PASS (1.148 Dateien, 0 operative Seedzeilen), Workspace PASS (3.139 Dateien einschließlich ignorierter/untracked Inhalte), vorhandenes Original-81-Artefakt PASS (0 operative Seedzeilen), vor den Tests sowie nach den Tests geprüft. APK weiterhin bytegleich SHA-256 `7e569519f8f3328335499a84181f6eb6746c860e4325e80d67f0f44ba59e865e`. Keine neue APK, keine Signierung, keine Installation. Auf main d8960c46d42b5f6c99d8b6c2f3217686a6e4cf13 ausschließlich diesen neuen UAT-Abschnitt in CODEX-STATUS.md ergänzt; kein Produkt-/Test-/Architekturcode geändert, bestehende Statusabschnitte erhalten. Keine produktiven Daten, realen Drive-Dateien, historischen Originalkonflikte oder Konten gelesen/geschrieben. Standardisierte synthetische QA-Ausgaben des vorhandenen Runners bleiben in den vorhandenen Outputpfaden; keine zusätzliche Projektdokumentation erzeugt.
+
+**Offen:** physischer Pixel und aktueller ChatGPT-Connector vollständig unberührt; echte Kamera/Dateifreigaben, Google-Konto/OAuth, Kalender-/Wetteranbieter, Drive-Cloudrundlauf, echte Zustellung und Akku-/Langzeitbetrieb nicht verifiziert. Der Cloud-Emulator läuft ohne KVM; ANR/Interaktionslatenz sind nicht auf Pixel-Alltagsleistung übertragbar. Native Sichtprüfung nach System-UI-Stabilisierung sowie genaue Diagnose des historischen Verifier-FAIL bleiben erforderlich. Keine Umgehung von Rechten, kein Reset/AVD-Wipe, keine produktive Reparatur. Die empfohlenen UX-Änderungen bleiben vollständig unimplementiert.
