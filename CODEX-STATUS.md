@@ -981,3 +981,11 @@ Geändert wurden MCP-/Query-/Schema-/Fehleradapter, Application Services/Ports/E
 - Ausschließlich `tools/sign_original_apk.py`; vorher nur das Vorhandensein der fünf dokumentierten Variablen geprüft. Instrumentierung ebenfalls mit bestehender Originalsignierung, kein neuer Schlüssel. Cleanup bestätigt: keine privaten Signiertempordner oder Schlüsseldateien im Repository. Vorhandene Downloadartefakte bleiben unverändert; keine neue APK in Drive/GitHub-Downloads veröffentlicht.
 
 **Extern NOT TESTABLE / offen:** physischer Pixel nicht aktualisiert; realer ChatGPT-Connector und echte Google-Drive-/Kalender-/Gmail-/Kamera-/Hintergrund-Endtests nicht ausgeführt. Produktive Legacyaktionen und Warteschlangen nicht angefasst oder als geschlossen ausgegeben. Vor einer ausdrücklich freigegebenen Pixelinstallation bleiben Sicherung und Geräte-/Kontofreigaben erforderlich. Originalsignierung und synthetisches Emulatorupdate sind keine physische Update- oder Datenerhaltfreigabe. Diese externen Grenzen ändern nicht den bestandenen P1-Cloud-Vertrags- und Refactoringumfang.
+
+
+## Original-APK 81 über Drive bereitgestellt (20.10.2026)
+
+- Auf ausdrücklichen Nutzerauftrag die bereits geprüfte Original-APK 1.51.2 / Build 81 unverändert im bestehenden privaten Ordner `APK-Backups / Codex-Cloud-Builds` ergänzt. Kein neuer Build und keine erneute Signierung.
+- [Privater Drive-Download](https://drive.google.com/file/d/1eVAH39SCVFCNCHJHh-ey5C5AR3s6W70K/view?usp=drivesdk). Name, MIME, Zielordner, 34.513.073 Bytes sowie ausschließlich Owner-Freigabe / shared=false per Metadaten rückgelesen. Vollständiger Rohdatei-Rückabruf liefert eine Dateireferenz mit derselben Größe. Kein unabhängiger Remote-Bytehash behauptet.
+- Lokale APK vor Upload erneut SHA-256-geprüft: `7e569519f8f3328335499a84181f6eb6746c860e4325e80d67f0f44ba59e865e`. Keine ältere APK, Betriebsdatei, Sicherung oder Freigabe verändert. Die frühere Aussage „nicht in Drive veröffentlicht“ beschreibt den Zeitpunkt der P1-Abnahme und ist durch diese spätere Bereitstellung überholt.
+- Physischer Pixel und realer Connector weiterhin nicht aktualisiert oder nach einem Update getestet; keine Installation durchgeführt oder freigegeben.
