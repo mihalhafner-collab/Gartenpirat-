@@ -1163,6 +1163,15 @@ Nach vollständig bestandenem P3:
 - nach Pixelinstallation Live-MCP, Geschäftshash/Counts, Queue/Review/Journal, Fotozugriff, Rechnungszahlung, Sicherungszugang und zentrale P3-Workflows erneut prüfen.
 
 
+### P3.15 Tatsächlich erreichter Stand (20.10.2026)
+
+**R0–R7 implementiert und im definierten Cloud-Prüfumfang abgenommen.** Vollständiger erneuter 115-Aufgaben-Abgleich und alle 16 P3.13-Kriterien stehen im letzten P3-R7-Abschnitt von CODEX-STATUS.md. 96 PASS, 18 PASS MIT REIBUNG, 0 FAIL, 1 NOT TESTABLE: echter Kamera-/Dateirechteentzug; weitere echte Anbieter-/Geräteteilstrecken ausdrücklich offen nach P3.12. Keine uneingeschränkte physische 115-Aufgaben-Abnahme behaupten. U01/U02/U03 im geprüften UI-/Nativeumfang PASS; U05/U06/U07/U08/U09/U11/U12/U15 nachweislich weniger Reibung.
+
+Ausgang d1c57034f7c1e74152f96d62a3cecaaaaccf511e, 1.51.2/81; endgültige APK-Quelle 89281daf5d5cfb48a1e08fac931f60deb451ddc7, **1.52.0/82**. 325 Python-, 27 JVM-, 37 Browser-/JS-Suiten, 55 MCP-stdio-Szenarien und 137 native Prüfungen PASS; ui/fresh_isolated und synthetischer Original-In-place-Updateledger PASS. Ausschließlich synthetische Daten; vollständiger Geschäftsmaster/Pending-/Relations-/persistierter Sitzungshash unverändert. P0 Source/Workspace/Artifact PASS, P1-Gesamtvertrag unverändert 899906c246f9cb8256666c32a89435aa5f792eede3d3407b1c846380900aa813, MCP9/117, 156 semantische UI-Aktionen, DB4/Snapshot2 und Originalzertifikat erhalten. Keine Baseline passend gemacht.
+
+Originalsignierter P3-Kandidat mit SHA-256 693a3b7efcaad1df0e4bfe10581ab8ab7fcad1b76294f301f44ba5a38b0fa59a privat über den vorhandenen Drive-Buildbereich bereitgestellt; zurückgelesene Downloadmetadaten/Größe und Grenzen in downloads/README.md und CODEX-STATUS.md. Keine physische Pixelinstallation. Installation und reale Endabnahme bleiben bis Sicherung/ausdrücklicher Freigabe gesperrt. P2 bleibt mit allen dokumentierten Restgrenzen erhalten; keine produktive Bereinigung/Legacy-Auflösung oder vollständige automatische Gerätesicherung aus P3 ableiten.
+
+
 ## 3. Tatsächlich abgeglichener Ausgang und neuer Quellstand
 
 Dieser Funktionsabgleich ist historisch vor P0. Die Datenschutzabnahme steht in P0.14; der aktuelle Refactoringstand 1.51.2/81 und seine Abnahme stehen in P1.14 und im letzten P1-Abschnitt von CODEX-STATUS.md.

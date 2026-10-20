@@ -1,16 +1,32 @@
-# Original-App: 1.51.2 / Build 81
+# Original-P3-Kandidat: 1.52.0 / Build 82
 
-[Aktuelle APK privat über Drive herunterladen](https://drive.google.com/file/d/1eVAH39SCVFCNCHJHh-ey5C5AR3s6W70K/view?usp=drivesdk)
+[Geprüften P3-Kandidaten privat über Drive herunterladen](https://drive.google.com/file/d/1wLZEkXi4VPpvsP9l2rZ_11RqiyjWCSL8/view?usp=drivesdk)
 
-Paket `at.hausgarten.service`, 34.513.073 Bytes, SHA-256:
-`7e569519f8f3328335499a84181f6eb6746c860e4325e80d67f0f44ba59e865e`.
+Paket `at.hausgarten.service`, 34.529.605 Bytes, SHA-256:
+`693a3b7efcaad1df0e4bfe10581ab8ab7fcad1b76294f301f44ba5a38b0fa59a`.
 Originalzertifikat: `a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`.
-APK-Quellcommit: `e8a1d09ba7bb93438fb5aaff1e6008a670339764`.
+APK-Quellcommit: `89281daf5d5cfb48a1e08fac931f60deb451ddc7`.
 
-Build 81 ist bewusst ausschließlich privat in Drive bereitgestellt. Am 20.10.2026
-wurden App-Version, Quellfingerprint und MCP 9 / 117 Werkzeuge auf dem Pixel lesend
-bestätigt. Das ist kein neuer vollständiger Hardware-, Restore- oder Google-Endtest.
-Provider-Readback bleibt von unabhängiger Cloud-Bestätigung getrennt.
+P0-/P1-Gates und Cloud-Abnahme bestanden, Originalsignatur und 16-KiB-Ausrichtung
+geprüft. 137 native Tests sowie UI-/Erststart- und synthetischer In-place-Updateledger
+bestanden; Geschäftsdaten, Queue und laufende Sitzung erhalten. Vollständige
+115-Aufgaben-Bewertung samt externen Grenzen in CODEX-STATUS.md.
+
+**Kandidat, keine physische Installationsfreigabe:** Der Pixel wurde nicht
+aktualisiert. Erst aktuelle Sicherung und ausdrückliche Freigabe; anschließend
+Live-Connector, reale Rechte, Kamera/Dateien und Datenerhalt prüfen. Keine
+Deinstallation oder App-Datenlöschung. Private Drive-Freigabe unverändert,
+Dateiname/MIME/Größe und vollständige authentifizierte Downloadreferenz zurückgelesen.
+
+## Vorheriger Original-P1-Build 81 bleibt erhalten
+
+[Original 1.51.2/81 privat in Drive](https://drive.google.com/file/d/1eVAH39SCVFCNCHJHh-ey5C5AR3s6W70K/view?usp=drivesdk)
+
+34.513.073 Bytes, SHA-256 `7e569519f8f3328335499a84181f6eb6746c860e4325e80d67f0f44ba59e865e`,
+Quellcommit `e8a1d09ba7bb93438fb5aaff1e6008a670339764`, gleicher Originalsigner.
+Am 20.10.2026 wurde dieser Pixelstand lesend bestätigt; das ist kein nachträglicher
+P3-Geräte-/Restore-/Google-Endtest. Provider-Readback und unabhängige Cloud-Bestätigung
+bleiben getrennt. Ein älterer Build ist keine Downgrade-Freigabe.
 
 ## Aufbewahrter GitHub-Referenzbuild
 

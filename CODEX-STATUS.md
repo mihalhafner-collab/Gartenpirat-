@@ -1690,3 +1690,194 @@ Sichtbar bleiben müssen: fehlende echte Sicherung, nicht gespeicherte Fotos, er
 - Quellversion für den internen Original-Prüfbuild **1.52.0/82** vorbereitet. Ausschließlich Vorhandensein der fünf dokumentierten HG_ORIGINAL_*-Variablen geprüft; vollständig vorhanden, keine Werte ausgegeben/gespeichert. **P3 noch nicht endgültig abgenommen:** native Ausführung, Artefaktprüfung und Updatevergleich stehen aus. Keine Bereitstellung/Installation auf dem physischen Pixel; P2-Restgrenzen bleiben offen.
 
 - R7-Härtung nach dem internen ersten 82-Prüfbuild: Auch unbekannte kleingeschriebene technische Feldbezeichner (z. B. request_id/price_source/client_id) werden jetzt zentral aus Normalfehlermeldungen entfernt; der Originalfehler bleibt in der begrenzten flüchtigen Diagnose. Zusätzliche Negativprüfungen hierfür. Die bekannten Softwarepfade bleiben unverändert; der endgültige Kandidat wird aus diesem strengeren Fehlertextstand erneut gebaut und geprüft. Der erste interne 82-Build wird nicht bereitgestellt.
+
+
+### P3-R7 – erneuter vollständiger 115-Aufgaben-UAT und endgültige Cloud-Abnahme
+
+**Methode und Grenze:** Alle 115 ursprünglichen Aufgaben erneut abgeglichen, anhand der unten zugeordneten erneut ausgeführten Browser-/Native-/JVM-Szenarien und zusätzlicher kognitiver Chromium-Durchläufe bewertet. **96 PASS, 18 PASS MIT REIBUNG, 0 FAIL, 1 NOT TESTABLE** (Aufgabe 44: echter Android-Kamera-/Dateirechteentzug). Keine 115-fache physische Pixel-Abnahme und keine Studie mit einer tatsächlichen Erstbenutzer-Testperson. Native operative App im dedizierten synthetischen Cloud-AVD, API30, 720×1280/320dpi; Chromium zusätzlich 320/360/426px und vergrößerte Schrift. Reale Kamera-/Google-/Kalender-/Wetter-/Gmail-/Share-Freigaben bleiben externe Teilgrenzen. Die Softwarepfade dieser Aufgaben sind geprüft; Anbieterfunktionen wurden nicht produktiv aufgerufen.
+
+**Tatsächlich beobachtet** sind die getesteten Pfade, Ergebniszustände, Versionsabwehr, Pagination, sichtbaren Eingaben und Layoutgrenzen. **Kognitive Bewertung/Empfehlung** sind Auffindbarkeit, Verständlichkeit, unnötige Orientierung und die mit ~ bzw. Spannen bezeichneten Schrittzahlen; keine gemessenen Erstbenutzer-Klickzeiten. Aktionen zählen Tap/Auswahl/Eingabe/Bestätigung je Feld, Startpunkt wie in der Aufgabe; bekannte Stammdaten werden nicht neu erfasst. Zahlen sind deshalb keine vergleichbaren Zeitbenchmarks.
+
+Tabellenprofil **K**: normal auffindbar und fachlich verständlich, kein Technikvorwissen erforderlich, fachliche Eingabe-/Auswahlfehler bleiben möglich, gezielte Korrektur/Abbrechen/Versionenschutz getestet. **E**: fachliches Einrichtungs-/Preis-/Steuer-/Rechtswissen erforderlich; keine stille Automatik, Schutzbestätigung bzw. fehlende Freigabe ausdrücklich erhalten. Kein neuer S0/S1 im geprüften Softwareumfang; restliche Reibung S3, vollständiger automatischer Vollsicherungsplan S2 als spätere Umfangsentscheidung. Flagfolge **Technik sichtbar / im Alltag notwendig / automatisierbar / EIN-AUS-Potenzial**; bei Aufgabe110 bedeutet sichtbar ausschließlich bewusst geöffnetes Erweitert. Automatisierung bezieht sich nur auf sichere technische Schritte, niemals auf Preise, Rechtswahl, Lösch-/Abschlussentscheidung oder fingierte Bestätigungen.
+
+**Ausgeführte Nachweise:** T1 daily-usability/design-concept/work-location/business-feedback und unveränderlicher Vorher-/Nachher-Vergleich; T2 Kundenakten-/Kunden-Duplikat-/Walkthrough-Tests; T3 worklog-window/design-v139/access-integrity/work-location/timer-completion/personal-payment plus native Timer/SQLite; T4 customer-photos/offers-photo-library/p3-business-actions/work-entry-photo-failure plus native Dateien/Optimierung/Rotation; T5 neuer Auftragsdurchlauf und bestehende Auftrags-/Relationsprüfungen; T6 planning-ui/p3-search-planning plus PlanningNativeAcceptance; T7 offers-photo-library/Walkthrough/EstimateNativeAcceptance/Offer-JVM und native PDF-/Delivery-Negativpfade; T8 p3-documents/invoice-flow/invoice-editor/p3-business-actions plus native Entwurf/Nummern/PDF/Zahlung; T9 p3-search-planning/daily-usability/access-integrity; T10 sync-trash/worklog-batch und native/JVM Papierkorb/Relations-/Purgeprüfungen; T11 NativeDriveAcceptance/DriveProviderAcceptance/SQLite/Browser-Fehlerpfade; T12 p3-business-actions/Walkthrough/business-feedback/native Backup/Restore und Drive-Automatikprobe; T13 Original-Updateledger/native fresh_isolated/ui/SQLite-Neuöffnung und Browser-Entwurf/Reload. Die Prüfungen sind zusammengesetzte Nachweise über die tatsächlichen Schichten; ein Bridge-Double wird nicht als realer Anbieterabschluss ausgegeben.
+
+| Nr. | Erneut geprüfte Aufgabe / aktueller Weg | Ergebnis | Schritte/unnötig vorher → nachher (~) | Profil; Technik/Notwendig/Auto/EIN-AUS | Severity | Beobachtungsnachweis / Grenze |
+|---|---|---|---|---|---|---|
+| 001 | Erster Start: leerer isolierter Bestand; keine Produktivdaten | PASS | ~1/0 → ~1/0 | K; N/N/N/N | – | T1; N: leerer eigener Namensraum |
+| 002 | Heute: Tages-/Wochensumme, nächster Einsatz, letzter Eintrag | PASS | 0/0 → 0/0 | K; N/N/N/N | – | T1; B: operative Assets; T1-Nachweis |
+| 003 | Heute: einheitlich Arbeit starten | PASS | 0/0 → 0/0 | K; N/N/N/N | – | T1; B: operative Assets; T1-Nachweis |
+| 004 | Heute: laufende/pausierte Sitzung und Abschluss sind sichtbar | PASS | 0/0 → 0/0 | K; N/N/N/N | – | T1; B: operative Assets; T1-Nachweis |
+| 005 | Heute: bestätigtes Speichern und Drive-Status verständlich getrennt | PASS | ~0–1/0 → 0/0 | K; N/N/J/N | – | T1; B: operative Assets; T1-Nachweis |
+| 006 | Start ohne technische Drive-Zähler oder Wartungsaufforderung ohne Fall | PASS | 0/0 → 0/0 | K; J/N/J/N | S4 | T1; Versionsnummer bleibt reine Info im Markenkopf, kein erforderliches Vorwissen |
+| 007 | Heute → Kunden → Neu → Name/Straße/PLZ/Ort → speichern | PASS | ≥7/0 → ≥7/0 | K; N/N/N/N | – | T2; B: operative Assets; T2-Nachweis |
+| 008 | Name und Adresse genügen; Telefon/E-Mail optional | PASS | 0/0 → 0/0 | K; N/N/N/N | – | T2; B: operative Assets; T2-Nachweis |
+| 009 | Kundenliste → Akte → bearbeiten → Telefon → speichern | PASS | ≥4/0 → ≥4/0 | K; N/N/N/N | – | T2; B: operative Assets; T2-Nachweis |
+| 010 | Geöffneter Kundeneditor → E-Mail ergänzen → speichern | PASS | ≥2/0 → ≥2/0 | K; N/N/N/N | – | T2; B: operative Assets; T2-Nachweis |
+| 011 | Kundenliste: Suchfeld unten, ein Suchbegriff | PASS | ≥1/0 → ≥1/0 | K; N/N/N/N | – | T2; B: operative Assets; T2-Nachweis |
+| 012 | Kundenliste: Treffer öffnet Kundenakte | PASS | ≥1/0 → ≥1/0 | K; N/N/N/N | – | T2; B: operative Assets; T2-Nachweis |
+| 013 | Akte: letzte Arbeiten sichtbar; ältere über vollständige Arbeitsliste/Verlauf | PASS | ~0–2/0 → ~0–2/0 | K; N/N/N/N | – | T2; B: operative Assets; T2-Nachweis |
+| 014 | Kundenakte → Fotos mit begrenzten Vorschauen | PASS | ≥1/0 → ≥1/0 | K; N/N/N/N | – | T2; B: operative Assets; T2-Nachweis |
+| 015 | Akte → alle Arbeiten; fremde Zeit-/Suchfilter werden zurückgesetzt | PASS | ~1–2/0 → ~1–2/0 | K; N/N/N/N | – | T2; B: operative Assets; T2-Nachweis |
+| 016 | Kundenakte: Dokumente bündelt Angebote/Kostenvoranschläge/Rechnungen; Termin im Kopf | PASS | ~1–3/~1 → 1–2/0 | K; N/N/N/N | – | T2; B: operative Assets; T2-Nachweis |
+| 017 | Akte → Kundendaten bearbeiten → Änderung → speichern | PASS | ≥3/0 → ≥3/0 | K; N/N/N/N | – | T2; B: operative Assets; T2-Nachweis |
+| 018 | Kundeneditor: Kunde aktiv AUS; Entfernung separat über Papierkorb | PASS | ~4–6/~1 → 4–5/0 | K; N/N/N/N | – | T2; B: operative Assets; T2-Nachweis |
+| 019 | Inaktive Kunden bleiben suchbar; Papierkorb hat Wiederherstellen | PASS | ~2–4/0 → ~2–4/0 | K; N/N/N/N | – | T2; B: operative Assets; T2-Nachweis |
+| 020 | Heute → Start → Kundenauswahl → Start; kein Start allein durch Ortsermittlung | PASS | ≥3/0 → 3/0 | K; N/N/N/N | – | T3; B: operative Assets; T3-Nachweis |
+| 021 | Start: Kunde bestätigen, Auftrag/Ort optional, GPS nur ausdrücklich | PASS | ~2–4/~1 → 1–3/0 optional | K; N/N/N/N | – | T3; B: operative Assets; T3-Nachweis |
+| 022 | Laufende Sitzung → Pause | PASS | ≥1/0 → ≥1/0 | K; N/N/N/N | – | T3; B: operative Assets; T3-Nachweis |
+| 023 | Pausierte Sitzung → Fortsetzen | PASS | ≥1/0 → ≥1/0 | K; N/N/N/N | – | T3; B: operative Assets; T3-Nachweis |
+| 024 | Laufende Sitzung → Ende; Arbeitsaufzeichnung erst nach ergänzen/speichern | PASS | ≥1/0 → ≥1/0 | K; N/N/J/N | – | T3; B: operative Assets; T3-Nachweis |
+| 025 | Abschluss → Tätigkeit → speichern; Timer-Nettozeit wird übernommen | PASS | ≥2/0 → ≥2/0 | K; N/N/J/N | – | T3; B: operative Assets; T3-Nachweis |
+| 026 | Abschluss → Material und Kilometer → Material | PASS | ≥2/0 → ≥2/0 | K; N/N/N/N | – | T3; B: operative Assets; T3-Nachweis |
+| 027 | Offene Materialgruppe → Kilometer eintragen | PASS | ≥1/0 → ≥1/0 | K; N/N/N/N | – | T3; B: operative Assets; T3-Nachweis |
+| 028 | Arbeit → Fotos und Notizen → Datei; Kamera-/Pickergrenze separat | PASS MIT REIBUNG | ~3–5/0 → 3–5/0; OS offen | K; N/N/N/N | S3 | T3; B/N: Picker-/Fehlerpfad; Kamera extern |
+| 029 | Notiz im selben Abschluss; Nachtrag wird ausdrücklich sofort gespeichert | PASS | ~2–3/~1 → 2–3/0 | K; N/N/N/N | – | T3; B: operative Assets; T3-Nachweis |
+| 030 | Arbeiten → Eintrag → Bearbeiten → Korrektur → Speichern | PASS | ≥4/0 → ≥4/0 | K; N/N/N/N | – | T3; B: operative Assets; T3-Nachweis |
+| 031 | Editor → Uhrzeiten/Zeit und Pause → Beginn/Ende; Dauer und Uhrzeiten erklärt | PASS MIT REIBUNG | ~4–6/~1 → ~4–6/~1 | K; N/N/J/N | S3 | T3; B: operative Assets; T3-Nachweis |
+| 032 | Editor → Zeit und Pause → Pause → speichern; Nettozeit nicht doppelt reduzieren | PASS | ~3–4/0 → ~3–4/0 | K; N/N/J/N | – | T3; B: operative Assets; T3-Nachweis |
+| 033 | Editor → Tätigkeit → speichern | PASS | ≥2/0 → ≥2/0 | K; N/N/N/N | – | T3; B: operative Assets; T3-Nachweis |
+| 034 | Editor → Kunde/Auftrag; Auftrag wird nur passend übernommen | PASS | ~3–6/0 → ~3–6/0 | K; N/N/N/N | – | T3; B: operative Assets; T3-Nachweis |
+| 035 | b.b. als persönliche Markierung mit Erklärung und Bestätigung im Toast | PASS | ~1–2/0 → 1/0 | K; N/N/N/N | – | T3; B: operative Assets; T3-Nachweis |
+| 036 | Persönliches b.b., App-Verrechnet und Rechnungszahlung bleiben getrennt | PASS | 0/0 → 0/0 | K; N/N/N/N | – | T3; B: operative Assets; T3-Nachweis |
+| 037 | Aktive Arbeit → Foto; Sitzung wird nach Abschluss mit Arbeit verbunden | PASS MIT REIBUNG | ~3–5/0 → 3–5/0; Kamera offen | K; N/N/N/N | S3 | T4; B/N: exakte Sitzung/Arbeitszuordnung; Kamera extern |
+| 038 | Kundenakte → + Foto → Galerie/Kamera; Kunde vorgegeben | PASS | ≥2/0 → ≥2/0 | K; N/N/N/N | – | T4; B: operative Assets; T4-Nachweis |
+| 039 | Foto hinzufügen → Aufnahmephase wählen; Vorher/Während/Nachher | PASS | ~1–2/0 → ~1–2/0 | K; N/N/N/N | – | T4; B: operative Assets; T4-Nachweis |
+| 040 | Bildbeschreibung beim Import und über Foto → Mehr → Bearbeiten | PASS | ≥1/0; später — → 4–6/0 nachträglich | K; N/N/N/N | – | T4; B: operative Assets; T4-Nachweis |
+| 041 | Vorhandenes Foto → Mehr → Bearbeiten → Arbeit/Auftrag → Speichern | PASS | —/— → 5–7/0 inkl. Auswahl | K; N/N/N/N | – | T4; B: operative Assets; T4-Nachweis |
+| 042 | Akte/Fotobibliothek → Filter/Vorschau → Vollbild, Blättern und Zoomen | PASS | ~2–4/0 → ~2–4/0 | K; N/N/N/N | – | T4; B: operative Assets; T4-Nachweis |
+| 043 | Foto → Mehr → Papierkorb → Bestätigung; danach Undo/Wiederherstellen | PASS | ~3–4/0 → ~3–4/0 | K; N/N/N/N | – | T4; B: operative Assets; T4-Nachweis |
+| 044 | Kamera-/Dateiberechtigung: Speicherfehler/Entwurf getestet; echter OS-Entzug nicht durchgeklickt | NOT TESTABLE | —/— → —/— | K; N/N/N/N | – | T4; B/N: Speicher-/Entwurfsfehler geprüft; echter OS-Entzug nicht ausführbar |
+| 045 | Vollbild ohne Hash/Pfad; fehlendes Original verständlich benannt | PASS MIT REIBUNG | 0/0 → 0/0 | K; N/N/N/N | S3 | T4; B: operative Assets; T4-Nachweis |
+| 046 | Mehr → Aufträge → Neu → Kunde/Titel → Speichern | PASS MIT REIBUNG | ~6–9/~1 → 6–8/0 Pflichtangaben | K; N/N/N/N | S3 | T5; B: operative Assets; T5-Nachweis |
+| 047 | Auftrag aus Kundenakte übernimmt Kunden; globaler Dialog erfordert Auswahl | PASS | ~0–2/0 → ~0–2/0 | K; N/N/N/N | – | T5; B: operative Assets; T5-Nachweis |
+| 048 | Arbeit → optional Auftrag; Auswahl auf Kunden eingeschränkt | PASS | ~2–3/0 → ~2–3/0 | K; N/N/N/N | – | T5; B: operative Assets; T5-Nachweis |
+| 049 | Auftrag → Überblick → Bearbeiten → Änderung → speichern | PASS MIT REIBUNG | ~4–5/~1 → ~4–5/~1 | K; N/N/N/N | S3 | T5; B: operative Assets; T5-Nachweis |
+| 050 | Auftragsstatus Erledigt; Archivierung/Entfernung extra und wiederherstellbar | PASS MIT REIBUNG | ~3–5/~1 → ~3–5/~1 | K; N/N/N/N | S3 | T5; B: operative Assets; T5-Nachweis |
+| 051 | Aufträge: ein gemeinsamer fachlicher Bereich, kein zweites Projektsystem | PASS | 0/0 → 0/0 | K; N/N/N/N | – | T5; B: operative Assets; T5-Nachweis |
+| 052 | Mehr → Planung → Neu → Kunde/Tätigkeit/Beginn/Dauer → speichern | PASS MIT REIBUNG | ~8–11/~1 → ~8–11/~1 | K; N/N/N/N | S3 | T6; B: operative Assets; T6-Nachweis |
+| 053 | Termin aus Kunde/Auftrag übernimmt Kontext; global bewusst auswählen | PASS | ~0–2/0 → ~0–2/0 | K; N/N/N/N | – | T6; B: operative Assets; T6-Nachweis |
+| 054 | Termin → Beginn/Dauer → speichern; Alternative bleibt zunächst Entwurf | PASS | ~3–5/0 → ~3–5/0 | K; N/N/N/N | – | T6; B: operative Assets; T6-Nachweis |
+| 055 | Termin absagen mit Bestätigung; Auftrag/Arbeit/Rechnung bleiben erhalten | PASS | ~2–3/0 → ~2–3/0 | K; N/N/N/N | – | T6; B: operative Assets; T6-Nachweis |
+| 056 | Termin: eigene aufklappbare Wiederholung bei Beginn/Dauer | PASS | ~4–6/~1 → 3/0 zusätzlich | K; N/N/N/N | – | T6; B: operative Assets; T6-Nachweis |
+| 057 | Kundenakte → Termin, Kunde bereits gesetzt | PASS | ~2–3/0 → 1/0 ab Akte | K; N/N/N/N | – | T6; B: operative Assets; T6-Nachweis |
+| 058 | Kalenderabgleich EIN/AUS; Konto-/OAuth-Einrichtung erweitert | PASS MIT REIBUNG | ~2 bis Einrichtung/~1 → 1–2/0; Erstfreigabe extern | E; N/N/N/J | S3 | T6; B/N: native Oberfläche/Schutz geprüft; echtes Google-Konto offen |
+| 059 | Wetterhinweise/Benachrichtigung EIN/AUS; Lizenz/Schlüssel erweitert | PASS MIT REIBUNG | ~2 bis Einrichtung/~1 → 1–2/0; Erstfreigabe extern | E; N/N/N/J | S3 | T6; B/N: native Oberfläche/Risiko-Provider geprüft; echter Wetterzugang offen |
+| 060 | Kundenakte → Angebot → Kontext/Art → Leistungen → fehlende Angaben | PASS | ≥3/~1 → 3–5/0 bis Leistung | K; N/N/N/N | – | T7; B: operative Assets; T7-Nachweis |
+| 061 | Dokumentart unverbindlicher Kostenvoranschlag + verständliche Bindungsbestätigung | PASS | ~2–3/0 zusätzlich → ~2–3/0 zusätzlich | K; N/N/N/N | – | T7; B: operative Assets; T7-Nachweis |
+| 062 | Dokumentart verbindlicher Kostenvoranschlag + erneute Bestätigung nach Wechsel | PASS | ~2–3/0 zusätzlich → ~2–3/0 zusätzlich | K; N/N/N/N | – | T7; B: operative Assets; T7-Nachweis |
+| 063 | Dokumentart Fixpreis; keine automatische Bindungsannahme | PASS | ~1–2/0 zusätzlich → ~1–2/0 zusätzlich | K; N/N/N/N | – | T7; B: operative Assets; T7-Nachweis |
+| 064 | Dokumentart Regie; Mengen als geplante Stunden und Preisgrundlage | PASS | ~1–2/0 zusätzlich → ~1–2/0 zusätzlich | K; N/N/N/N | – | T7; B: operative Assets; T7-Nachweis |
+| 065 | Baustein wählen → Menge; bestätigter Preis wird übernommen | PASS | ≥2/0 → ≥2/0 | K; N/N/N/N | – | T7; B: operative Assets; T7-Nachweis |
+| 066 | Eigene Angebotsposition im Leistungsschritt | PASS MIT REIBUNG | ~5–9/~2 → 6–9/0 fachliche Angaben | E; N/N/N/N | S3 | T7; B: operative Assets; T7-Nachweis |
+| 067 | Bewusst geänderter Preis löst Katalogbezug, behält dokumentierte Grundlage | PASS MIT REIBUNG | ~1–3/~1 → 1–3/0 | E; N/N/N/N | S3 | T7; B: operative Assets; T7-Nachweis |
+| 068 | Texte und Hinweise → editierbarer Text oder Baustein | PASS | ~2–3/0 → ~2–3/0 | K; N/N/N/N | – | T7; B: operative Assets; T7-Nachweis |
+| 069 | Prüfen und Vorschau; fehlende Angaben inline, keine erfundene Summe | PASS | ≥1/0 → ≥1/0 | K; N/N/N/N | – | T7; B: operative Assets; T7-Nachweis |
+| 070 | Finalisieren → Prüfung → Vorschau/Bestätigung; keine automatische Rechnung | PASS | ~2–3/0 → ~2–3/0 | K; N/N/N/N | – | T7; B: operative Assets; T7-Nachweis |
+| 071 | Dokumentstatus fachlich getrennt und lesbar, kein Versand durch Finalisieren | PASS | 0/0 → 0/0 | K; N/N/N/N | – | T7; B: operative Assets; T7-Nachweis |
+| 072 | Teilen-App ist kein Versandbeweis; Text sagt ausdrücklich „nicht bestätigt“ | PASS | ~1–2/0 → ~1–2/0 | K; N/N/N/N | – | T7; B/N/J: keine falsche Versandbestätigung; echtes Teilen/Versand offen |
+| 073 | Rechnung vorbereiten aus offenen Leistungen, keine ausgestellten/reservierten Arbeiten | PASS | ~9–13/~3 → 4–7/0 plus echte Preise | K; N/N/N/N | – | T8; B: operative Assets; T8-Nachweis |
+| 074 | Rechnung: Kunde und Rechnungsadresse kontrollieren, Einsatzort getrennt erhalten | PASS | ~0–2/0 → ~0–2/0 | K; N/N/N/N | – | T8; B: operative Assets; T8-Nachweis |
+| 075 | Vorgeschlagene offene Arbeiten prüfen; Auswahl vor Entwurf erneut validiert | PASS | ~3–5/~1 → 1–2/0 | K; N/N/N/N | – | T8; B: operative Assets; T8-Nachweis |
+| 076 | Positionen/Mengen/Preis kontrollieren; keine erfundenen Preise | PASS | ~0–3/0 → ~0–3/0 | K; N/N/N/N | – | T8; B: operative Assets; T8-Nachweis |
+| 077 | Zahlungsziel zentral vorbelegt, im Entwurf prüfbar | PASS | ~0–1/0 → ~0–1/0 | K; N/N/N/N | – | T8; B: operative Assets; T8-Nachweis |
+| 078 | Rechnung abschließen: fehlende Einrichtung geführt; zentrale Autorität/Bestätigung bleibt | PASS MIT REIBUNG | ~2–4/0 → 2–4/0; Einrichtung separat | E; N/N/N/N | S3 | T8; B/N/J: lokale Nummern-/PDF-Pipeline; echte produktive Autorität nicht betätigt |
+| 079 | Mehr → Rechnungen → Suchfeld/Statusfilter | PASS | ~3–4/0 → ~3–4/0 | K; N/N/N/N | – | T8; B: operative Assets; T8-Nachweis |
+| 080 | Entwurf/Gestellt/Bezahlt/Storniert getrennt; Versand nicht automatisch behauptet | PASS | 0/0 → 0/0 | K; N/N/N/N | – | T8; B: operative Assets; T8-Nachweis |
+| 081 | Rechnungsliste → Detail → Zahlung erfassen → bestätigen | PASS | —/— → 2/0 ab Liste | K; N/N/N/N | – | T8; B: operative Assets; T8-Nachweis |
+| 082 | Entwurf zeigt Steuerart, Empfängertyp, UID und Inlandsfall in normalem Formular | PASS MIT REIBUNG | 0/0 → 0/0 | E; N/N/N/N | S3 | T8; B: operative Assets; T8-Nachweis |
+| 083 | Kunden: ein lokales Suchfeld, sichtbare Treffer | PASS | ≥1/0 ab Liste → ≥1/0 ab Liste | K; N/N/N/N | – | T9; B: operative Assets; T9-Nachweis |
+| 084 | Arbeiten: Suche plus Zeitraum; fremde Filter zurücksetzbar | PASS | ~1–3/0 ab Liste → ~1–3/0 ab Liste | K; N/N/N/N | – | T9; B: operative Assets; T9-Nachweis |
+| 085 | Fotos über Kundenakte/Filter oder übergreifende Metadatensuche | PASS | ~3–6/~2 → 2–3/0 | K; N/N/N/N | – | T9; B: operative Assets; T9-Nachweis |
+| 086 | Rechnungen: Textsuche und Statusfilter | PASS | ~1–2/0 ab Liste → ~1–2/0 ab Liste | K; N/N/N/N | – | T9; B: operative Assets; T9-Nachweis |
+| 087 | Termine über Planung oder übergreifende Lesesuche | PASS | ~3–5/~1 → 2–3/0 | K; N/N/N/N | – | T9; B: operative Assets; T9-Nachweis |
+| 088 | Ein übergreifender Lesezugang zu sieben bestehenden Bereichen | PASS | —/— → 2–3/0 | K; N/N/N/N | – | T9; B: operative Assets; T9-Nachweis |
+| 089 | Nicht mehr aktiv / In Papierkorb / Wiederherstellen sprachlich getrennt | PASS MIT REIBUNG | ~2–4/~1 → 2–4/0 | K; N/N/N/N | S3 | T10; B: operative Assets; T10-Nachweis |
+| 090 | Entfernen/Papierkorb direkt möglich, auch mit Fotos; Originale geschützt | PASS | ~1–3/0 → ~1–3/0 | K; N/N/N/N | – | T10; B: operative Assets; T10-Nachweis |
+| 091 | Mehr → Papierkorb → Wiederherstellen; bestehende Verknüpfungen werden geprüft | PASS | ~3–4/0 → ~3–4/0 | K; N/N/N/N | – | T10; B: operative Assets; T10-Nachweis |
+| 092 | Einzel-Purge oder Papierkorb leeren → eine mengen-/versionsgebundene Bestätigung | PASS | ~2–4/0 → ~2–4/0 | K; N/N/N/N | – | T10; B: operative Assets; T10-Nachweis |
+| 093 | Inaktiv, erledigt und Papierkorb verständlich benannt; unterschiedliche Wirkungen erhalten | PASS MIT REIBUNG | 0/0 → 0/0 | K; N/N/N/N | S3 | T10; B: operative Assets; T10-Nachweis |
+| 094 | Endgültiges Löschen geschützt; aktive Referenzen und gestellte Belege bleiben erhalten | PASS | ~1 Bestätigung/0 → ~1 Bestätigung/0 | K; N/N/N/N | – | T10; B: operative Assets; T10-Nachweis |
+| 095 | Hash/Preview/CAS im normalen Papierkorb unsichtbar; Konflikt zeigt nur fachliche Entscheidung | PASS | 0/0 → 0/0 | K; N/N/N/N | – | T10; B: operative Assets; T10-Nachweis |
+| 096 | Offline fachlich arbeiten; lokale Speicherung unabhängig von Netz | PASS | 0/0 zusätzlich → 0/0 zusätzlich | K; N/N/J/N | – | T11; B/N: synthetisch offline |
+| 097 | Offline Arbeit speichern; Wiederholung keine Doppelbuchung | PASS | ~1/0 zusätzlich → ~1/0 zusätzlich | K; N/N/N/N | – | T11; N: echte isolierte SQLite-Persistenz/Retry |
+| 098 | Offline Kunde speichern und später ändern; Vorgängerkette erhalten | PASS | ~1/0 zusätzlich → ~1/0 zusätzlich | K; N/N/N/N | – | T11; B/N: Kunden-ID/Vorgängerkette |
+| 099 | Offline Foto sichern; getrennte Medienwarteschlange, Fehler bewahrt Entwurf | PASS | ~1–3/0 zusätzlich → ~1–3/0 zusätzlich | K; N/N/N/N | – | T11; B/N: lokale Originaldatei/Entwurf getrennt |
+| 100 | App-/Store-Neustart nach synthetischen Änderungen | PASS | ~1–2/0 → ~1–2/0 | K; N/N/J/N | – | T11; B/N: Store-Neuöffnung und App-Update |
+| 101 | Testdaten, IDs, Beziehungen nach Wiederöffnung erhalten | PASS | 0/0 → 0/0 | K; N/N/J/N | – | T11; N: Counts, Hashes und Relationen |
+| 102 | Netz/Provider wieder verfügbar: synthetischer Retry, kein echtes Google-Konto | PASS | 0/0 → 0/0 | K; N/N/J/N | – | T11; N: isolierter Provider wieder verfügbar; kein Google-Konto |
+| 103 | Drive auslösen: UI jetzt abgleichen; Provider- und Direkt-HTTP-Test doubles getrennt | PASS | ~1–3/~1 → ~1–3/~1 | K; N/N/J/N | – | T11; B/N: Auslösung/Providerstrecke; kein realer Drive-Rundlauf |
+| 104 | Unterbrechung/401/429/Schreibfehler im isolierten Provider, alte Daten/Queue bleiben | PASS | 0/0 für Fehlerauslösung → 0/0 für Fehlerauslösung | K; N/N/J/N | – | T11; N/J: Abbruch, 401/429, Retry und Erhalt |
+| 105 | Verständlicher Fehlertext; technische Rohdaten nur ausdrücklich Diagnose | PASS | ~0–2/~1 → 0–1/0 | K; N/N/J/N | – | T11; B: operative Assets; T11-Nachweis |
+| 106 | Einstellungen → Sicherung: zuletzt tatsächlich geprüfte Sicherung mit Zeitpunkt | PASS | —/— → 1–2/0 ab Heute | K; N/N/N/N | – | T12; B/N: lokale Sicherung/Dateihash; kein Vollgerätebackup |
+| 107 | Automatik nur für Drive-Abgleich; keine automatische vollständige Sicherung erfunden | PASS MIT REIBUNG | 0/0 → 0/0; kein neuer Automatismus | E; N/N/N/N | S2 | T12; S: bewusst begrenzter Umfang; Vollsicherungsplan nicht neu beauftragt |
+| 108 | Drive-Automatik EIN/AUS, manueller Abgleich und lokale Sicherung bleiben getrennt | PASS | 0/0 → 2–3/0 ab Einstellungen | K; N/N/N/J | – | T12; B/N: echter privater Automatikschalter, keine Erfolgsgarantie |
+| 109 | Einstellungen → Sicherung → Jetzt sichern / Wiederherstellen mit Prüfung | PASS | ~2–4/~1 → 2–4/0 plus Bestätigung | K; N/N/N/N | – | T12; B: operative Assets; T12-Nachweis |
+| 110 | Alle Einstellungsentscheidungen erneut auf Normalbetrieb/Erweitert geprüft | PASS MIT REIBUNG | unterschiedlich; unten → je Einstellung; kein Doppelpfad | E; J/N/N/N | S3 | T12; B/N/S: alle 56 bisherigen Entscheidungen plus Drive-Automatik; Details erweitert |
+| 111 | Bestehenden synthetischen Bestand schließen; keine Deinstallation/kein Löschen | PASS | ~1–2/0 → ~1–2/0 | K; N/N/J/N | – | T13; N: kein Löschen/Deinstallieren |
+| 112 | Operative App wieder öffnen, gleicher Testbestand | PASS | ~1/0 → ~1/0 | K; N/N/J/N | – | T13; N: Original-In-place-Update und WebView |
+| 113 | Arbeits-/Angebots-/Termin-Entwürfe und private Dateien bleiben im geprüften Scope erhalten | PASS | 0/0 → 0/0 | K; N/N/J/N | – | T13; B/N: Entwürfe, Medien und Bezüge isoliert |
+| 114 | Laufende/pausierte Sitzung bzw. offener Abschluss rekonstruierbar, kein zweiter Timer | PASS | ~0–1/0 → ~0–1/0 | K; N/N/J/N | – | T13; N: stabile laufende Sitzung ohne Doppelstart |
+| 115 | Normaler Neustart ohne technischen Wiederherstellungsdialog; Foto-Fehler fordert nur gezielte Aktion | PASS | ~0–1/0 → ~0–1/0 | K; N/N/J/N | – | T13; B/N: kein technischer Wiederherstellungsdialog |
+
+#### Befunde U01–U17: erneuter Abgleich und weniger Reibung
+
+| Befund | Tatsächlicher Stand nach P3 / Abnahmeevidenz |
+|---|---|
+| U01 | PASS: vorhandenes Foto bearbeiten/zuordnen, Öffnungshash, gezielte Änderungen, Retry und expliziter Vergleich; Datei/Foto-ID unverändert, kein Reimport |
+| U02 | PASS: sichtbare Zahlungsaktion auch nach tatsächlichem Tap in der Rechnungsliste; Bestätigung und entity_hash, idempotent; b.b./Original/PDF unverändert |
+| U03 | PASS im vorhandenen lokalen Geschäftssicherungsumfang: Liste, tatsächlich geprüfte Größe/SHA, Zeit, Jetzt sichern, inspektions-/state_hash-geschützter Restore; beschädigte Sicherung kein falsches Erfolgslabel |
+| U04/U06 | Weniger Reibung: eine Bereitschaftsanzeige mit nächstem Einrichtungsschritt und drei Gruppen; bestätigte bestehende Werte wiederverwenden. Nummernautorität und Aussteller-/Steuer-/Parallelkreisschutz bleiben, reale Konto-/Nummernfreigabe nicht automatisiert |
+| U05 | Weniger Reibung: Alltag enthält fachlichen Speicher-/Handlungsstatus; technische lokale/Übertragungszähler im identischen Vorher-/Nachher-Test sichtbar → verborgen. Unbekannte obere/untere technische Codes/Feldschlüssel nur Diagnose; keine falschen Sicherungsbehauptungen |
+| U07 | Weniger Reibung: offener Empfänger/Leistungen → Rechnung vorbereiten → Auswahl/Preise → Entwurf, ungefähr 9–13 → 4–7 Bedienhandlungen plus tatsächlich fehlende Preise. Vorhandene Entwürfe/gestellte Arbeiten und veraltete Auswahl geschützt |
+| U08 | Weniger Reibung: Angebotsstart 21 → 5 gleichzeitig sichtbare Eingaben bei gleicher Umgebung/Fixture; drei Präsentationsschritte, Bindungsart weiterhin bewusst. Eigenposition/Preisänderung/Notizen und Pflichtprüfung erhalten; keine behauptete menschliche Zeitmessung |
+| U09 | Weniger Reibung: Akte → Dokumente (1 Bereichswahl), statt Angebot zwischen Fotodateien zu suchen; 30 begrenzt, Rechnungen/Angebote/Kostenvoranschläge getrennt benannt |
+| U10 | Wiederholung bei Beginn/Dauer in eigenem klaren Abschnitt; vorhandenes Serienwerkzeug, kein neues Seriendatenmodell |
+| U11 | Weniger Verständnisreibung: persönliche Erklärung/zugängliche Beschriftung und Rückmeldung; sichtbare echte Rechnungszahlung getrennt. Kein b.b.-Datenumbau; Heute bleibt bezahlt |
+| U12 | Weniger Begriffsreibung: Aufträge, Nicht mehr aktiv, In Papierkorb, Wiederherstellen und Endgültig löschen konsistent. Unterschiedliche Lebenszyklen bleiben sichtbar, gefährliche Bestätigung bleibt eine fachliche Entscheidung |
+| U13 | Bei 0 Fällen keine normale Wartungsaufforderung; Historie/technische Einträge ausdrücklich erweitert. Aktive Konflikte bleiben sichtbar, keine automatischen Altentscheidungen |
+| U14 | Überall suchen über sieben bestehende Projektionen, reine Metadaten, 50/100/111 Pagination, Index je Revision, Entwurf/Fokus erhalten |
+| U15 | Weniger Aktionsreibung: im Arbeitseditor Speichern/Abbrechen statt redundanter dritter Fußaktion; Zurück-Wirkung explizit. Kunde/Auftrag behalten Verwerfen-Bestätigung. Keine unvermerkte Änderung des bewährten Speicherverhaltens |
+| U16 | Arbeit starten/Arbeit nachtragen im heutigen Ablauf konsistent; Timer oben, kein GPS-Zwang, optionaler Auftrag |
+| U17 | Normale Betriebsfreigaben EIN/AUS; Konten/Schlüssel/Lizenz/Schwellen ausdrücklich erweitert. Native echte View-Prüfung der drei Verbindungsmasken, ohne Kontofreigabe oder Schlüsseländerung |
+
+**Verbleibende Empfehlung, kein offener P3-Funktions-FAIL:** Rechts-/Steuer-/Preisentscheidungen bleiben fachliche Einrichtung. Uhrzeiten/Dauer und unterschiedliche Lebenszyklen verlangen etwas Betriebswissen. Ein vollständiger automatischer Vollsicherungs-/Aufbewahrungsplan ist nicht durch den Drive-Schalter implementiert und wird nicht als aktiv behauptet. Kamera-/Kontorechte benötigen echte Gerätefreigaben. Die reine Versionsinfo im Markenkopf bleibt kosmetisch sichtbar; sie verlangt keine technische Bedienentscheidung. Keine weiteren Funktionen, kein Lager, keine Signatur-/Touren-/KI-Ersatzarchitektur ergänzt.
+
+#### P3.13: Abnahme im ausdrücklich definierten Cloud-Prüfumfang
+
+| Nr. | Kriterium | Ergebnis |
+|---|---|---|
+| 1 | U01/U02/U03 | PASS über UI + vorhandene native Anwendungs-/Persistenzpfade; keine physische Anbieterbehauptung |
+| 2 | Kein neuer UAT-FAIL | PASS: 0 FAIL; alle 115 Aufgaben erneut bewertet, echter OS-Rechteentzug ausdrücklich NOT TESTABLE |
+| 3 | U05/U06/U07/U08/U09/U11/U12/U15 weniger Reibung | PASS: obiger Vorher-/Nachher-Abgleich, sichtbare Entscheidungen/Pfade/Begriffe; keine erfundenen Zeitgewinne |
+| 4 | Keine Request-/Hash-/CAS-/Queue-/Journal-/Provider-/Transportbedienung notwendig | PASS: normale Fachtexte, vollständige Diagnose nur ausdrücklich erweitert |
+| 5 | Kein falsches gesichert/gesendet/bezahlt/ausgestellt | PASS: Zustands-/Fehler-/Pending-/Readback-/Share-/Zahlungsprüfungen, native Nummernautorität unverändert |
+| 6 | Heute/Arbeit ohne Technik | PASS: manueller Kunde, Auftrag optional, GPS nur ausdrücklich, Timer/Nettozeit und Fokus erhalten |
+| 7 | Kundenakte zentral | PASS: vier Bereiche und exakte Arbeits-/Termin-/Dokumentkontexte |
+| 8 | Offene Leistungen → Entwurf | PASS: keine doppelte Reservierung, kein unbekannter Nullpreis, keine automatische Ausstellung/Abrechnung |
+| 9 | Foto nachträglich ohne Duplikat | PASS: gezielte Metadatenänderung, gleiche Datei/ID, Versionsschutz |
+| 10 | Rechnungszahlung sichtbar/getrennt | PASS: Zahlung bestätigt/hashgeschützt; b.b. und Original unverändert |
+| 11 | Sicherung/Restore verständlich/geschützt | PASS im vorhandenen Geschäftsbackupumfang, Grenzen unten ausdrücklich erhalten |
+| 12 | P0 Source/Workspace/Artifact | PASS für tatsächlichen finalen 82-Kandidaten; ignorierte/untracked Dateien eingeschlossen |
+| 13 | P1 eingefrorener Vertrag | PASS exakt 899906c246f9cb8256666c32a89435aa5f792eede3d3407b1c846380900aa813; keine Baseline neu geschrieben |
+| 14 | App-ID/Formate/IDs/Autorität/Originalsignatur | PASS: Originalzertifikat gleich81; DB4/Snapshot2, vollständiger Updateledger und zentrale Regeln unverändert |
+| 15 | Keine produktiven Testdaten | PASS: qa_/test_-Fixtures und eigene Stores, reine Metadaten-/Hashberichte; kein physischer Pixel-ADB |
+| 16 | P2-Grenzen bleiben offen | PASS: keine produktive Löschung/Konfliktauflösung/Sicherungsmigration oder historische Freigabe erfunden |
+
+**Status:** P3-R0–R7 sind implementiert und im erlaubten Cloud-Prüfumfang abgenommen. Dies ist ausdrücklich **keine uneingeschränkte 115-Aufgaben-Geräte-/Anbieterabnahme** und keine Installationsfreigabe. Die in P3.12 erlaubten externen Grenzen bleiben NOT TESTABLE/offen. Der Originalkandidat wird für die nach Sicherung gesondert freizugebende physische Abnahme bereitgestellt.
+
+#### Technischer Abschlussnachweis und Kandidat
+
+- Ausgang: main **d1c57034f7c1e74152f96d62a3cecaaaaccf511e**, Originalquelle **1.51.2/81**. R0-Baseline unverändert; kleine normale Phasencommits, keine Branchanlage/Force-Push/Historyänderung. Endgültiger APK-Quellcommit **89281daf5d5cfb48a1e08fac931f60deb451ddc7**; Release-Fingerprint **16d1e8aa7b83d82c1077d445e31e86f0cb609b61ae345fabc3feafed35ed5b20**, Buildtyp release, source_dirty=false. Beide Fingerprints zusätzlich in den tatsächlichen signierten DEX-Strings nachgewiesen. Abschlussdokumentation separat versioniert.
+- Tests des endgültigen Stands: **325 Python PASS, 0 Skips** (37 alte QA-Schlüsselerzeugungstests explizit ausgeschlossen/erhalten), **27 JVM-Suiten PASS**, **37 Browser-/JS-Suiten PASS**, **55 synthetische MCP-stdio-Szenarien PASS**. Alle 117 registrierten MCP-Verträge, UI-Pagination 100+56/einheitlicher Hash, Schema-/Enum-/Berechtigungs-/Negativpfade und read-only Self-Test durch bestehende Contract-/Nativeprüfungen. Stdio ist ein Kanaladaptertest, kein realer Pixel-Connector.
+- Original Android-Release und bestehender originalsignierter androidTest-Runner: **137 native Prüfungen PASS, acceptance failures=0**, danach **ui PASS**, **fresh_isolated PASS**. Echter WebView/SQLite, drei native Verbindungsmasken: 1/1/3 normale Schalter, keine technischen Eingabefelder sichtbar bis Erweitert, öffnen/schließen ohne Speichern/Kontoverbindung. Native Abnahme nochmals am endgültigen 82-Kandidaten ausgeführt, keine Deinstallation oder Datenlöschung.
+- Screenshot-Sichtprüfung des endgültigen Builds: klar lesbare aktive Arbeit/Pause/Beenden/Foto und vier Hauptziele, kein verdeckter Gartenpirat, **kein System-UI-ANR-Dialog**. Der zuvor tatsächlich vorhandene com.android.systemui-ANR wurde im dedizierten AVD durch Auswahl des eindeutig geprüften OS-Buttons Wait verlassen, nicht durch einen App-/Datenreset; dies ist kein behaupteter App-Fix für einen OS-/Pixel-ANR. Emulator API30/Softwaredarstellung ist keine Pixel-Leistungsmessung.
+- Updatekette **Original81 → interner82-Prüfbuild → endgültiger82-Kandidat**, jeweils normales install -r im exklusiv geprüften GartenpiratCloud/emulator-5582, ohne Wipe/Uninstall. Der erste interne82-Build wurde nie bereitgestellt und nach SHA-Prüfung als eigenes überholtes Testartefakt entfernt. Original81 bleibt erhalten. Neuer Ledger wurde vor dem ersten Update aus dem tatsächlich installierten81 ausschließlich lesend erfasst; alte historische Lifecycle-Baseline weder ersetzt noch passend gemacht.
+- Final weiterhin identisch: vollständiger Master inkl. Capabilities **9436aa2dd614cd1512672b8bed6fa0478c3f188858d9f1fb38613da1e3aa4287**; Geschäft+vollständige Pending-Liste **be1523c98d2fced2b5b446a9191b7d37be4dc98c56a169d2659cc3047fe407af**; Pending **24bb047d5676a9e0e9cae4928e0e9d87e28a5e3c6892ea6d2a93ada956755087**; Beziehungen **eacbcd804eb160d0f022c32200d3004329764f23a5a6190b15560605d7f6299a**; persistierte Sitzungsfelder **78070c6fcd158b6e8e24d651716c5277905bf57bed3fa8386628e5a3514925b1**, RUNNING. Abgeleitete laufende Sekunden/Stunden/Pausenminuten wachsen naturgemäß und sind kein gespeicherter Versionswechsel. 3 Kunden,1 Auftrag,2 Snapshot-Arbeiten,1 Pending-Aktion;0 Fotos/Rechnungen/Angebote/Termine. Queue bewusst erhalten. Keine Rohdatensätze/Base64 gespeichert.
+- Protokoll **9**, **117 Tools = 52 Lesen/65 Schreiben**, unveränderter Tool-Katalog-Hash **235f683d99d5170801d1e34c19ad386d9c4acf68b60a6992f72a3e5d2ea14314**. **156 semantische UI-Aktionen = 145 MCP-abgedeckt + 11 bereits ausgewiesene Plattform-/Präsentationsgruppen**; nur geprüfte Quellreviewprovenienz ändert den UI-Katalog-Hash auf **214355fb438d7c71ab0e7d143ca779f1378c28305ce4c101ffe1c52950fefb92**. Native Fenster/OS-Einwilligungen bleiben in den bestehenden Plattformgruppen; kein neuer öffentlicher Vertrag.
+- Endgültiger Kandidat **Haus-Garten-1.52.0-82-original-p3-kandidat.apk**, **at.hausgarten.service**, **1.52.0/82**, **34.529.605 Bytes**, SHA-256 **693a3b7efcaad1df0e4bfe10581ab8ab7fcad1b76294f301f44ba5a38b0fa59a**. Ausschließlich tools/sign_original_apk.py; Paket/Version vor/nach Signieren identisch, apksigner-Verifikation und zipalign -c -P16 PASS, keine eigenen .so. Original81/82-Zertifikat identisch **a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8**. Fünf vorhandene HG_ORIGINAL_*-Variablen nur auf Vorhandensein geprüft, Werte nicht ausgegeben/gespeichert; eigentliche Schlüsselnutzung nur im erlaubten Signierwerkzeug. Signiertemp außerhalb Checkout vollständig entfernt, keine Ersatz-/Debug-/QA-Schlüssel.
+- Über den bestehenden Google-Drive-Skill in den vorhandenen privaten Codex-Cloud-Buildordner hochgeladen. Metadaten zurückgelesen: exakter Name/MIME/Dateigröße/Elternordner, shared=false, ausschließlich Eigentümerrecht. Vollständige authentifizierte Downloadreferenz mit **34.529.605 Bytes** geliefert, keine Base64 im Chat/Repository. Der Connector exponiert hier kein SHA-Prüfsummenfeld: angegebene SHA ist die tatsächliche lokale Artefaktprüfung; kein zweiter byteweiser Drive-SHA-Vergleich behauptet. Nur die APK übertragen, keine Betriebsdaten, Sicherungen oder Schlüssel. Bestehende Artefakte/Freigaben unverändert; aktueller privater Download in downloads/README.md aktualisiert. Ein APK-Upload ist kein App-/Geschäftsdaten-Syncbeleg.
+
+**Geänderte Bereiche:** bestehende Android-Verbindungsaktivitäten/Sync-Automatik/BusinessDataBridge; mobile.html, gemeinsame Fachtexte/-aktionen, Heute/Arbeitsstart, Kundenakte, Dokument-/Rechnungseditor, Angebotsführung, Suche/Planung, Gartenpirat-Kollisionsschutz und vorhandene generierte Webspiegel; gezielte Regressions-/Charakterisierungs-/UAT-/Updateledger-Tests, Version und zentrale Status-/Auftrags-/Downloadmetadaten. Keine frozen Domainregel, ID-/DB-/Snapshot-/Journalmigration, MCP-Neuveröffentlichung oder zweite operative App. Vollständige Dateiliste/kleine Phasenänderungen in normaler Git-Historie ab d1c5703.
+
+**Weiter offen und nicht umgedeutet:** physische Pixelinstallation nach aktueller Sicherung und ausdrücklicher Freigabe; danach Live-Connector/117 Tools/Fingerprint und echte Kamera-/Datei-/Google-/Kalender-/Wetter-/Gmail-/Share-/Hintergrund-/Kontorechte. Kein produktiver Kunde/Foto/Drive-Journal/Backup geändert oder gelöscht. Keine sieben Original-Altaktionen aufgelöst. Alle P2-Restgrenzen bleiben erhalten, insbesondere große/alte Sicherungen, historische Artefakte/History und fehlende unabhängige Cloudbestätigung. Der historische nicht lokalisierte Lifecycle-verify-FAIL bleibt als solcher dokumentiert; die neue explizite81→82-Ledgerprüfung ist ein eigener nachvollziehbarer Nachweis, keine Behauptung über dessen unbekannte Ursache oder frühere Präferenzen. Erfolgreiche Signierung und Cloud-Updateprüfung ersetzen keinen physischen Datenerhalt-/Restoretest.

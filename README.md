@@ -4,6 +4,7 @@ Private Eigentümer-App für Kunden, Aufträge, Arbeitszeit, Fotos, Rechnungen,
 Angebote/Kostenvoranschläge und Einsatzplanung. Operative Android-App:
 **at.hausgarten.service**, Quellstand **1.52.0 / Build 82**, MCP **9 / 117 Werkzeuge**.
 Pflanzenbibliothek und Neophytenbereich bleiben Bestandteil derselben App.
+Originalsignierter P3-Kandidat: Cloud-Abnahme bestanden, physische Pixel-Abnahme offen.
 
 [APK und geprüfte Originalsignatur](downloads/README.md) · [Aktueller Auftrag](CODEX-AUFTRAG-GARTENPIRAT.md) · [Abnahme und offene Grenzen](CODEX-STATUS.md)
 
