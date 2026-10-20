@@ -121,7 +121,7 @@
   function ensurePhotoViewer(){
     if(photoViewer)return photoViewer;
     photoViewer=document.createElement('dialog');photoViewer.id='design-photo-view';photoViewer.className='design-photo-view';photoViewer.setAttribute('aria-labelledby','design-photo-caption');photoViewer.setAttribute('aria-describedby','design-photo-load-state');
-    photoViewer.innerHTML='<header><button type="button" class="design-photo-close" aria-label="Foto schließen">×</button><p data-photo-counter></p><details class="photo-more"><summary>Mehr</summary><button type="button" class="design-photo-delete">In den Papierkorb</button></details></header><div class="design-photo-stage"><img alt="Kundenfoto" draggable="false"></div><footer><button type="button" class="secondary" data-photo-previous aria-label="Vorheriges Foto">‹</button><div><strong id="design-photo-caption" data-photo-caption></strong><small data-photo-zoom>100 %</small><small id="design-photo-load-state" data-photo-status role="status" aria-live="polite"></small></div><button type="button" class="secondary" data-photo-next aria-label="Nächstes Foto">›</button></footer>';
+    photoViewer.innerHTML='<header><button type="button" class="design-photo-close" aria-label="Foto schließen">×</button><p data-photo-counter></p><details class="photo-more"><summary>Mehr</summary><div class="photo-more-menu"><button type="button" class="design-photo-edit">Bearbeiten</button><button type="button" class="design-photo-delete">In den Papierkorb</button></div></details></header><div class="design-photo-stage"><img alt="Kundenfoto" draggable="false"></div><footer><button type="button" class="secondary" data-photo-previous aria-label="Vorheriges Foto">‹</button><div><strong id="design-photo-caption" data-photo-caption></strong><small data-photo-zoom>100 %</small><small id="design-photo-load-state" data-photo-status role="status" aria-live="polite"></small></div><button type="button" class="secondary" data-photo-next aria-label="Nächstes Foto">›</button></footer>';
     document.body.append(photoViewer);const image=photoViewer.querySelector('img'),pointers=new Map();let startDistance=0,startScale=1,startX=0,startY=0;
     const reset=()=>{viewerScale=1;viewerX=0;viewerY=0;applyViewerTransform();};
     const show=()=>{
@@ -148,6 +148,7 @@
     photoViewer.querySelector('[data-photo-previous]').onclick=()=>{viewerIndex=(viewerIndex-1+viewerRows.length)%viewerRows.length;show();};
     photoViewer.querySelector('[data-photo-next]').onclick=()=>{viewerIndex=(viewerIndex+1)%viewerRows.length;show();};
 
+    photoViewer.querySelector('.design-photo-edit').onclick=()=>{const picture=viewerRows[viewerIndex];if(picture)window.HGBusinessActions.photo(picture,show);};
     photoViewer.querySelector('.design-photo-delete').onclick=()=>{
       const picture=viewerRows[viewerIndex];if(!picture)return;if(!confirm('Dieses Foto in den Papierkorb verschieben? Original und Zuordnung bleiben wiederherstellbar.'))return;
       const removed=window.TrashUI?window.TrashUI.remove('photo',picture.id,picture):window.removeRecordWithUndo?.('photo',picture.id);if(!removed)return;

@@ -30,3 +30,6 @@
 #customer-form label[hidden]{display:none!important}
 @media(max-width:380px){.daily-list-tools{width:calc(100% - 16px);gap:6px;padding:8px}.daily-list-tools .daily-add{font-size:.82rem;padding:10px}.daily-settings{width:44px;height:44px}.daily-list-tools input{font-size:16px}#settings-page .settings-diagnostics>div{grid-template-columns:1fr;gap:3px}}
 @media(min-width:800px){.daily-list-tools{width:650px}}
+
+/* Existing dialogs, readable on narrow screens and with larger system text. */
+.business-action-dialog{box-sizing:border-box;width:min(96vw,40rem);max-height:92dvh;overflow:auto;padding:1rem;border:1px solid #cbd9cf;border-radius:14px;color:#183c2c}.business-action-dialog label{display:grid;gap:.4rem;margin:.8rem 0}.business-action-dialog input,.business-action-dialog select,.business-action-dialog textarea{box-sizing:border-box;max-width:100%;width:100%;font:inherit;min-height:48px}.settings-section pre,.settings-error-details{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.8rem}.business-action-dialog .dialog-actions{display:flex;gap:.5rem;flex-wrap:wrap}.business-action-dialog button{min-height:48px}

@@ -1,0 +1,66 @@
+/* Missing UI paths into existing owner use cases. No second storage or business rules. */
+(()=>{'use strict';
+ const get=id=>document.getElementById(id),clone=HGOwnerClient.clone,call=HGOwnerClient.create('Vorgang nicht abgeschlossen');
+ const request=prefix=>prefix+'-'+crypto.randomUUID();
+ function envelope(name,args){const r=JSON.parse(AndroidData.ownerCall(name,JSON.stringify(args)));if(!r.ok)throw new Error(r.error?.message||'Vorgang nicht abgeschlossen');return r;}
+ function dialog(id,title){let d=get(id);if(!d){d=document.createElement('dialog');d.id=id;d.className='business-action-dialog';document.body.append(d);}d.innerHTML='<h2>'+esc(title)+'</h2>';return d;}
+ function photo(picture,saved){
+  try{
+   const key='hausgarten.photo.edit.'+picture.id,stored=JSON.parse(localStorage.getItem(key)||'null'),fresh=call('get_photo',{photo_id:picture.id});
+   let base=stored?.base||fresh;const values=stored?.values||clone(base.photo),d=dialog('photo-edit-dialog','Foto bearbeiten');
+   const jobs=merged('orders','order').filter(o=>o.customer_id===base.photo.customer_id),works=worklogs().filter(w=>w.customer_id===base.photo.customer_id);
+   d.innerHTML+='<form><p>'+esc(customerName(base.photo.customer_id))+'</p><label>Beschreibung<textarea name="caption" maxlength="10000"></textarea></label><label>Art<select name="role">'+[['profile','Profil'],['documentation','Dokumentation'],['before','Vorher'],['during','Während'],['after','Nachher'],['damage','Schaden'],['other','Sonstiges']].map(([v,t])=>'<option value="'+v+'">'+t+'</option>').join('')+'</select></label><label>Auftrag<select name="order_id"><option value="">Ohne Auftrag</option>'+jobs.map(o=>'<option value="'+esc(o.id)+'">'+esc(o.title||'Auftrag')+'</option>').join('')+'</select></label><label>Arbeit<select name="worklog_id"><option value="">Ohne Arbeit</option>'+works.map(w=>'<option value="'+esc(w.id)+'">'+esc((w.work_date||'')+' · '+w.activity)+'</option>').join('')+'</select></label><p role="status" data-status></p><button type="button" class="secondary" data-photo-review hidden>Aktuellen Stand vergleichen</button><div class="dialog-actions"><button type="button" class="secondary" data-cancel>Abbrechen</button><button type="submit" class="primary">Speichern</button></div></form>';
+   const form=d.querySelector('form'),status=d.querySelector('[data-status]');for(const k of ['caption','role','order_id','worklog_id']){const field=form.elements[k],value=values[k]|| (k==='role'?'documentation':'');if(field.tagName==='SELECT'&&value&&![...field.options].some(o=>o.value===value))field.add(new Option('Bisherige Zuordnung (derzeit nicht verfügbar)',value));field.value=value;}
+   let dirty=!!stored,writing=false,stable=stored?.request||null;
+   const current=()=>Object.fromEntries(['caption','role','order_id','worklog_id'].map(k=>[k,form.elements[k].value]));
+   const retain=()=>{dirty=true;try{localStorage.setItem(key,JSON.stringify({base,values:current(),request:stable}));}catch(_){status.textContent='Entwurf bleibt in dieser Ansicht. Bitte speichern.';}};
+   form.oninput=retain;form.onchange=e=>{if(e.target.name==='worklog_id'){const work=works.find(w=>w.id===e.target.value);if(work)form.elements.order_id.value=work.order_id||'';}if(e.target.name==='order_id'){const work=works.find(w=>w.id===form.elements.worklog_id.value);if(work&&(work.order_id||'')!==e.target.value)form.elements.worklog_id.value='';}retain();};
+   const close=()=>{if(writing)return;if(dirty&&!confirm('Ungespeicherten Fotoentwurf verwerfen?'))return;localStorage.removeItem(key);d.close();};d.oncancel=e=>{e.preventDefault();close();};d.querySelector('[data-cancel]').onclick=close;
+   const review=form.querySelector('[data-photo-review]');review.onclick=()=>{try{const changes=Object.fromEntries(Object.entries(current()).filter(([k,v])=>v!==String(base.photo[k]||(k==='role'?'documentation':'')))),next=call('get_photo',{photo_id:picture.id}),names={caption:'Beschreibung',role:'Art',order_id:'Auftrag',worklog_id:'Arbeit'},label=(k,v)=>k==='order_id'?(jobs.find(o=>o.id===v)?.title|| (v?'Bisheriger Auftrag':'Ohne Auftrag')):k==='worklog_id'?(works.find(w=>w.id===v)?.activity||(v?'Bisherige Arbeit':'Ohne Arbeit')):k==='role'?({profile:'Profil',documentation:'Dokumentation',before:'Vorher',during:'Während',after:'Nachher',damage:'Schaden',other:'Sonstiges'}[v]||v):v;
+    const lines=Object.entries(changes).map(([k,v])=>names[k]+': aktuell „'+label(k,next.photo[k]||'')+'“; dein Entwurf „'+label(k,v)+'“');if(!confirm('Aktuellen Stand vergleichen:\n'+lines.join('\n')+'\n\nDiese Entwurfsfelder für den aktuellen Stand behalten? Alle anderen Felder werden aus dem aktuellen Stand übernommen. Anschließend ausdrücklich speichern.'))return;
+    base=next;stable=null;for(const [k,v]of Object.entries({...next.photo,...changes})){const field=form.elements[k];if(field&&['caption','role','order_id','worklog_id'].includes(k)){if(field.tagName==='SELECT'&&v&&![...field.options].some(o=>o.value===v))field.add(new Option('Bisherige Zuordnung (derzeit nicht verfügbar)',v));field.value=v||'';}}retain();review.hidden=true;status.textContent='Stand verglichen. Dein Entwurf bleibt erhalten. Bitte erneut speichern.';
+   }catch(e){status.textContent=HGBusinessFeedback.error(e);}};
+   form.onsubmit=e=>{e.preventDefault();if(writing)return;try{const updates={};for(const [k,v]of Object.entries(current()))if(v!==String(base.photo[k]|| (k==='role'?'documentation':'')))updates[k]=v;if(!Object.keys(updates).length){localStorage.removeItem(key);d.close();return;}
+     const body={photo_id:picture.id,expected_record_hash:base.record_hash,updates},fingerprint=JSON.stringify(body);if(stable?.body!==fingerprint)stable={body:fingerprint,id:request('photo-edit')};retain();writing=true;form.querySelector('[type=submit]').disabled=true;
+     call('update_photo',{...body,request_id:stable.id});dirty=false;localStorage.removeItem(key);Object.assign(picture,updates);load();d.close();saved?.();window.showUndoToast('Foto auf diesem Gerät gespeichert.');
+    }catch(error){retain();review.hidden=false;status.textContent=HGBusinessFeedback.error(error)+' Dein Entwurf bleibt erhalten.';}finally{writing=false;form.querySelector('[type=submit]').disabled=false;}};
+   if(stored)status.textContent='Dein Fotoentwurf wurde wiederhergestellt. Der ursprüngliche Vergleichsstand bleibt geschützt.';d.showModal();form.elements.caption.focus();
+  }catch(e){window.showUndoToast(HGBusinessFeedback.error(e));}
+ }
+ function payment(host,id){
+  const button=document.createElement('button');button.type='button';button.className='primary';button.dataset.invoicePayment=id;button.textContent='Zahlung erfassen';host.append(button);
+  let opened;try{opened=envelope('get_invoice',{invoice_id:id});}catch(_){/* Read must succeed before offering a write. */}
+  const invoice=opened?.data;if(invoice?.status==='Bezahlt')button.textContent='Zahlung korrigieren';
+  let stable=null;
+  button.onclick=()=>{try{
+   if(!opened)opened=envelope('get_invoice',{invoice_id:id});const row=opened.data,paid=row.status!=='Bezahlt';
+   if(!row.issued_at||row.status==='Storniert')throw new Error('Nur ausgestellte, gültige Rechnungen können als bezahlt oder offen gekennzeichnet werden.');
+   if(!confirm((paid?'Zahlung für diese Rechnung ist eingegangen. Als bezahlt kennzeichnen?':'Zahlungsmarkierung dieser Rechnung zurücknehmen und wieder als offen kennzeichnen?')+'\nDiese Änderung betrifft ausschließlich die Rechnungszahlung. Persönliches b.b. bleibt unverändert.'))return;
+   stable||=request('invoice-payment');call('update_invoice_payment',{request_id:stable,invoice_id:id,expected_record_hash:opened.entity_hash,paid});load();button.disabled=true;button.textContent=paid?'Als bezahlt gespeichert':'Als offen gespeichert';window.showUndoToast('Rechnungszahlung auf diesem Gerät gespeichert.');
+  }catch(e){window.showUndoToast(HGBusinessFeedback.error(e));}};
+ }
+ function backups(){
+  const host=get('settings-page');if(!host||get('business-backup-card'))return;
+  const card=document.createElement('section');card.id='business-backup-card';card.className='card settings-section';card.innerHTML='<h3>Sicherung</h3><p data-backup-state role="status">Sicherung wird geprüft …</p><p class="sub">Geschäftssicherungen auf diesem Gerät. Eine vollständige Gerätesicherung und eine externe Kopie sind zusätzlich nötig. Die Synchronisierung allein ersetzt keine Sicherung.</p><button type="button" class="primary" data-backup-create>Jetzt sichern</button><button type="button" class="secondary" data-backup-restore>Wiederherstellen</button><div data-backup-list></div><details><summary>Erweitert / Diagnose</summary><pre data-backup-diagnostics></pre></details>';host.querySelector('.settings-about').before(card);
+  const status=card.querySelector('[data-backup-state]'),diagnosis=card.querySelector('[data-backup-diagnostics]');let createRequest=null,busy=false,verified=null;try{createRequest=localStorage.getItem('hausgarten.backup.request');}catch(_){}
+  const inspect=id=>{const p=call('inspect_backup',{backup_id:id}),bytes=call('get_file_metadata',{resource_type:'backup',resource_id:id});if(bytes.sha256!==p.metadata.sha256||bytes.byte_size!==p.metadata.byte_size||!p.state_hash||p.restore_mode!=='add_missing_without_overwrite')throw new Error('Sicherung konnte nicht vollständig geprüft werden. Keine Wiederherstellung.');verified=p;diagnosis.textContent=JSON.stringify({backup_id:id,metadata:p.metadata,state_hash:p.state_hash,collections:p.collections},null,2);return p;};
+  function refresh(){try{const items=call('list_backups').backups||[];if(!items.length){verified=null;status.textContent='Noch keine geprüfte Geschäftssicherung vorhanden.';return items;}
+    let found=null;for(const item of items.slice(0,5)){try{found=inspect(item.backup_id);break;}catch(_){/* An unreadable historical backup must not mask later valid entries. */}}
+    status.textContent=found?'Sicherung vom '+HGBusinessFeedback.time(found.metadata.created_at)+' jetzt geprüft. Auf diesem Gerät gespeichert.':'Vorhandene Sicherungen konnten nicht geprüft werden. Bitte eine neue Sicherung erstellen.';return items;
+   }catch(e){status.textContent=HGBusinessFeedback.error(e);return [];}}
+  card.querySelector('[data-backup-create]').onclick=()=>{if(busy)return;busy=true;const button=card.querySelector('[data-backup-create]');button.disabled=true;status.textContent='Sicherung wird erstellt und geprüft …';setTimeout(()=>{try{createRequest||=request('backup');try{localStorage.setItem('hausgarten.backup.request',createRequest);}catch(_){}const r=call('create_backup',{request_id:createRequest});const p=inspect(r.backup_id);status.textContent='Sicherung vom '+HGBusinessFeedback.time(p.metadata.created_at)+' erstellt und geprüft. Auf diesem Gerät gespeichert.';createRequest=null;localStorage.removeItem('hausgarten.backup.request');}catch(e){status.textContent=HGBusinessFeedback.error(e)+' Keine neue geprüfte Sicherung bestätigt.';}finally{busy=false;button.disabled=false;}},20);};
+  card.querySelector('[data-backup-restore]').onclick=()=>{
+   const rows=refresh(),list=card.querySelector('[data-backup-list]');list.replaceChildren();if(!rows.length)return;
+   const heading=document.createElement('h4');heading.textContent='Sicherung auswählen';list.append(heading);
+   for(const row of rows){const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent='Sicherung vom '+(HGBusinessFeedback.time(row.metadata.created_at)||'unbekannten Zeitpunkt');list.append(b);let restoreRequest=null,preview=null;
+    b.onclick=()=>{if(busy)return;try{preview||=inspect(row.backup_id);const count=Object.values(preview.collections).reduce((sum,n)=>sum+Number(n||0),0);
+      if(!confirm('Diese Sicherung prüfen und fehlende Einträge wiederherstellen?\n'+count+' gespeicherte Einträge. Bestehende abweichende Daten werden nicht überschrieben. Bei laufender Arbeit oder ausstehenden Änderungen wird sicher abgebrochen.'))return;
+      restoreRequest||=request('restore-backup');busy=true;call('restore_backup',{request_id:restoreRequest,backup_id:row.backup_id,expected_state_hash:preview.state_hash});load();status.textContent='Wiederherstellung abgeschlossen. Bestehende Einträge wurden nicht überschrieben.';b.disabled=true;
+     }catch(e){status.textContent=HGBusinessFeedback.error(e)+' Keine ungeprüfte Wiederherstellung. Sicherung bleibt erhalten.';}finally{busy=false;}};
+   }
+  };
+  refresh();
+ }
+ window.HGBusinessActions=Object.freeze({photo,payment});
+ document.addEventListener('DOMContentLoaded',()=>setTimeout(backups,180),{once:true});
+})();

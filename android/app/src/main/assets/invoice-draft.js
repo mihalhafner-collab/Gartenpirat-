@@ -61,6 +61,7 @@
     const invoice=invoices().find(x=>x.id===id);if(!invoice){toast('Diese Rechnung ist im lokalen Datenstand nicht vorhanden. Bitte abgleichen.');return;}
     if(invoice.status==='Entwurf'&&!invoice.sevdesk_id&&!invoice.issued_at){open(id);return;}
     layout.innerHTML='<div class="invoice-preview-close"><strong>Rechnungsdetails</strong><button type="button" class="secondary">Schließen</button></div><section class="card"><h2>'+esc(invoice.invoice_number||'Rechnung')+'</h2><p>'+esc(customerName(invoice.customer_id))+'</p><dl><dt>Status</dt><dd>'+esc(invoice.status||'Nicht angegeben')+'</dd><dt>Rechnungsdatum</dt><dd>'+esc(worklogDateLabel(invoice.invoice_date))+'</dd><dt>Betrag</dt><dd>'+money(invoice.amount)+'</dd></dl>'+(invoice.notes?'<p>'+esc(invoice.notes)+'</p>':'')+((invoice.pdf_base64||invoice.pdf_storage_name)?'<button type="button" class="primary" data-share-mobile-invoice="'+esc(invoice.id)+'" data-channel="share">PDF teilen</button>':'<p class="sub">Kein Rechnungs-PDF im lokalen Datenstand. Eine neu erzeugte Vorschau wäre nicht das Original und wird deshalb nicht angezeigt.</p>')+'</section>';
+    if(invoice.issued_at&&invoice.status!=='Storniert')window.HGBusinessActions?.payment(layout.querySelector('section'),invoice.id);
     layout.querySelector('.invoice-preview-close button').onclick=()=>layout.close();layout.showModal();
   };
   const button=document.createElement('button');button.className='primary';button.textContent='+ Rechnung erstellen';button.onclick=()=>open();

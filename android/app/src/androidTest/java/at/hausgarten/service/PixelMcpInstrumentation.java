@@ -44,6 +44,12 @@ public final class PixelMcpInstrumentation extends Instrumentation {
     }
     void acceptance()throws Exception{
         billingAcceptance();
+        probe("P3 invoice detail bridge exposes existing invoice hashes and protected payment",()->{
+            Isolated ctx=new Isolated(getTargetContext());yes(ctx.getSharedPreferences("haus_garten",0).edit().putString("drive_snapshot",fixture().put("invoices",new JSONArray().put(SyntheticBusinessData.object().put("id","qa_p3_invoice").put("customer_id","qa_c1").put("invoice_number","QA-P3-1").put("status","Gestellt").put("issued_at","2026-10-20T08:00:00Z"))).toString()).commit());
+            try(PixelLocalStore local=new PixelLocalStore(ctx)){BusinessDataBridge bridge=new BusinessDataBridge(ctx,local,new PendingWorkPhotoStore(ctx),()->{});JSONObject invoice=new JSONObject(bridge.ownerCall("get_invoice","{\"invoice_id\":\"qa_p3_invoice\"}"));yes(invoice.getBoolean("ok"));yes(invoice.getString("entity_hash").matches("[0-9a-f]{64}"));
+                JSONObject args=SyntheticBusinessData.object().put("request_id","qa_p3_payment").put("invoice_id","qa_p3_invoice").put("expected_record_hash",invoice.getString("entity_hash")).put("paid",true);yes(new JSONObject(bridge.ownerCall("update_invoice_payment",args.toString())).getBoolean("ok"));yes(new JSONObject(bridge.ownerCall("update_invoice_payment",args.toString())).getBoolean("ok"));yes(local.pendingActions().length()==1);yes(PixelMcpReadTools.effective(local.getState()).getJSONArray("invoices").getJSONObject(0).getString("status").equals("Bezahlt"));yes(local.ownerValue("personal_paid","[]").equals("[]"));
+            }
+        });
         probe("P3 Drive automatic pause retains manual request and connection without business writes",()->{
             Isolated ctx=new Isolated(getTargetContext());android.content.SharedPreferences prefs=ctx.getSharedPreferences("haus_garten",0);
             yes(DriveSyncCoordinator.automaticEnabled(ctx));yes(prefs.edit().putString("drive_transport","rest").putString("drive_account","qa_owner@example.invalid").putString("drive_folder_id","qa_private_folder_123456789").commit());
