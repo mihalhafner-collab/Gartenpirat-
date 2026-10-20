@@ -293,14 +293,20 @@
  }
  function move(x,y){const b=bounds();launcher.style.left=Math.max(b.minX,Math.min(b.maxX,x))+'px';launcher.style.top=Math.max(b.minY,Math.min(b.maxY,y))+'px';}
  function remember(){const b=bounds(true);position={x:(parseFloat(launcher.style.left)-b.minX)/Math.max(1,b.maxX-b.minX),y:(parseFloat(launcher.style.top)-b.minY)/Math.max(1,b.maxY-b.minY)};try{localStorage.setItem(POSITION_KEY,JSON.stringify(position));}catch{}}
- function layout(){const b=bounds(true);move(position?b.minX+position.x*(b.maxX-b.minX):b.maxX,position?b.minY+position.y*(b.maxY-b.minY):b.maxY);}
+ function layout(){if(drag)return;const b=bounds(true);move(position?b.minX+position.x*(b.maxX-b.minX):b.maxX,position?b.minY+position.y*(b.maxY-b.minY):b.maxY);
+  if(launcher.hidden||dialog.open)return;
+  const controls=[...document.querySelectorAll('.page.active button,.page.active input,.page.active select,.page.active textarea,.page.active [role="button"],.view.active button,.bottom button')].filter(n=>n!==launcher&&!n.closest('dialog')&&n.getClientRects().length).map(n=>n.getBoundingClientRect()),w=launcher.offsetWidth,h=launcher.offsetHeight;
+  const free=(x,y)=>controls.every(r=>x+w+4<=r.left||x-4>=r.right||y+h+4<=r.top||y-4>=r.bottom);
+  const r=launcher.getBoundingClientRect();if(free(r.left,r.top))return;
+  const candidates=[[b.minX,b.minY],[b.maxX,b.minY],[b.minX,b.maxY]];for(let y=b.minY;y<=b.maxY;y+=24)for(const x of [b.minX,b.maxX])candidates.push([x,y]);const next=candidates.find(([x,y])=>free(x,y));if(next)move(...next);
+ }
  launcher.addEventListener('pointerdown',event=>{if(event.button!==0)return;const r=launcher.getBoundingClientRect();drag={id:event.pointerId,x:event.clientX,y:event.clientY,left:r.left,top:r.top,moved:false};try{launcher.setPointerCapture(event.pointerId);}catch{}});
  launcher.addEventListener('pointermove',event=>{if(!drag||event.pointerId!==drag.id)return;const dx=event.clientX-drag.x,dy=event.clientY-drag.y;if(Math.hypot(dx,dy)>7)drag.moved=true;if(drag.moved){event.preventDefault();launcher.classList.add('gp-dragging');move(drag.left+dx,drag.top+dy);}});
  launcher.addEventListener('pointerup',event=>{if(!drag||event.pointerId!==drag.id)return;suppressClick=drag.moved;if(drag.moved)remember();drag=null;launcher.classList.remove('gp-dragging');});
  launcher.addEventListener('pointercancel',()=>{drag=null;suppressClick=false;launcher.classList.remove('gp-dragging');layout();});
  launcher.addEventListener('keydown',event=>{const deltas={ArrowLeft:[-12,0],ArrowRight:[12,0],ArrowUp:[0,-12],ArrowDown:[0,12]};if(event.key==='Home'){event.preventDefault();position=null;try{localStorage.removeItem(POSITION_KEY);}catch{}layout();return;}if(deltas[event.key]){event.preventDefault();const r=launcher.getBoundingClientRect(),d=deltas[event.key];move(r.left+d[0],r.top+d[1]);remember();}});
  document.addEventListener('transitionend',e=>{if(e.target.matches?.('#mobile-toast,#undo-toast,.undo-toast'))layout();},true);
- addEventListener('resize',layout);window.visualViewport?.addEventListener('resize',layout);
+ addEventListener('resize',layout);window.visualViewport?.addEventListener('resize',layout);let pendingLayout=false;addEventListener('scroll',()=>{if(pendingLayout)return;pendingLayout=true;requestAnimationFrame(()=>{pendingLayout=false;layout();});},{passive:true,capture:true});
  // Android names the Today/dashboard page #home; the web/PWA shell names it
  // #view-dashboard. The launcher stays on either real dashboard surface and
  // never enters an unrelated modal/editor.
@@ -309,7 +315,7 @@
   const webView=document.querySelector('.view.active');
   const foreignModal=[...document.querySelectorAll('dialog[open]')].some(item=>item!==dialog);
   const onDashboard=androidPage?.id==='home'||webView?.id==='view-dashboard';
-  return Boolean(onDashboard)&&!foreignModal&&!document.querySelector('#workday-timer.has-active-session');
+  return Boolean(onDashboard)&&!dialog.open&&!foreignModal&&!document.querySelector('#workday-timer.has-active-session');
  }
  function syncLauncherVisibility(){
   const allowed=launcherAllowed(),wasHidden=launcher.hidden;
@@ -324,6 +330,7 @@
   if(syncLauncherVisibility())layout();
  }
  const observer=new MutationObserver(records=>{let changed=false;for(const r of records){
+   if(r.type==='childList'&&r.target.nodeType===1&&r.target.closest('#workday-recent'))changed=true;
    if(r.attributeName==='open'&&r.target.tagName==='DIALOG')changed=true;
    if(r.attributeName==='class'&&(r.target.classList?.contains('page')||r.target.classList?.contains('view')))changed=true;
    if(r.attributeName==='class'&&r.target.id==='workday-timer')changed=true;

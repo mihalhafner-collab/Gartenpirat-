@@ -98,17 +98,17 @@ const catalog=JSON.parse(fs.readFileSync(path.join(assets,'plant-catalog.json'),
    await page.evaluate(()=>{Gartenpirat.close();openPage('work-entry');});await page.locator('#activity').fill('QA Entwurf bleibt erhalten');assert.equal(await page.locator('#gp-launcher').isVisible(),false);
    await page.evaluate(()=>openPage('home'));await launch();await page.locator('[data-gp-action=random]').click();await page.locator('.gp-close').click();await page.evaluate(()=>openPage('work-entry'));assert.equal(await page.locator('#activity').inputValue(),'QA Entwurf bleibt erhalten');assert.deepEqual(await page.evaluate(()=>gpWrites),[]);
   });
-  await test('Mouse drag persists position, stays inside viewport and does not accidentally open menu',async()=>{
+  await test('Mouse drag persists preferred position; collision avoidance protects business controls and never opens menu',async()=>{
    await page.evaluate(()=>openPage('home'));
    const before=await page.locator('#gp-launcher').boundingBox();await page.mouse.move(before.x+35,before.y+35);await page.mouse.down();await page.mouse.move(42,180,{steps:15});await page.mouse.up();
    assert.equal(await page.locator('#gp-dialog').getAttribute('open'),null);const moved=await page.locator('#gp-launcher').boundingBox();assert(moved.x<before.x-100);
-   assert(await page.evaluate(()=>localStorage.getItem('hausgarten.gartenpirat.position.v1')));await page.reload({waitUntil:'domcontentloaded',timeout:60000});await page.waitForSelector('#gp-launcher');const after=await page.locator('#gp-launcher').boundingBox();assert(Math.abs(after.x-moved.x)<3&&Math.abs(after.y-moved.y)<3);
+   const preferred=await page.evaluate(()=>localStorage.getItem('hausgarten.gartenpirat.position.v1'));assert(preferred);await page.reload({waitUntil:'domcontentloaded',timeout:60000});await page.waitForSelector('#gp-launcher');const after=await page.locator('#gp-launcher').boundingBox();assert.equal(await page.evaluate(()=>localStorage.getItem('hausgarten.gartenpirat.position.v1')),preferred);assert(after.x>=0&&after.y>=0&&after.x+after.width<=412);assert(await page.evaluate(()=>[...document.querySelectorAll('.page.active button')].filter(b=>b.id!=='gp-launcher').every(b=>{const r=b.getBoundingClientRect();if(!r.width||!r.height||r.top<0||r.bottom>innerHeight)return true;return !document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.closest('#gp-launcher');})));
   });
   await test('Keyboard move, position reset, resizing and touch cancellation remain usable',async()=>{
    const b=await page.locator('#gp-launcher').boundingBox();await page.locator('#gp-launcher').focus();await page.keyboard.press('ArrowRight');const n=await page.locator('#gp-launcher').boundingBox();assert(n.x>=b.x);
    await page.locator('#gp-launcher').dispatchEvent('pointerdown',{pointerId:75,button:0,clientX:n.x+5,clientY:n.y+5});
    await page.locator('#gp-launcher').dispatchEvent('pointercancel',{pointerId:75});
-   for(const [width,height] of [[320,568],[915,412],[412,915]]){await page.setViewportSize({width,height});const p=await page.locator('#gp-launcher').boundingBox();assert(p.x>=0&&p.y>=0&&p.x+p.width<=width+1&&p.y+p.height<=height+1);}
+   for(const [width,height] of [[320,568],[915,412],[412,915]]){await page.setViewportSize({width,height});await page.waitForFunction(()=>{const p=document.getElementById('gp-launcher').getBoundingClientRect();return p.x>=0&&p.y>=0&&p.right<=innerWidth+1&&p.bottom<=innerHeight+1;});const p=await page.locator('#gp-launcher').boundingBox();assert(p.x>=0&&p.y>=0&&p.x+p.width<=width+1&&p.y+p.height<=height+1);}
    await launch();await page.locator('[data-gp-action=reset-position]').click();assert.equal(await page.evaluate(()=>localStorage.getItem('hausgarten.gartenpirat.position.v1')),null);await page.locator('.gp-close').click();
   });
   await test('Launcher is hidden for a foreign editor modal and returns to Today at the same position',async()=>{

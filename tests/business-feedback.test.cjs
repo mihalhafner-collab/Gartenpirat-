@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('nod
 const window={},document={addEventListener(){}};vm.runInNewContext(fs.readFileSync('android/app/src/main/assets/business-feedback.js','utf8'),{window,document,Date});
 const f=window.HGBusinessFeedback;
 for(const [e,text] of [['SQLITE_FULL','Nicht gespeichert'],['WRITE_CONFLICT expected_record_hash','inzwischen'],['HTTP 401','Freigabe'],['READ_ERROR provider_readback','nicht abgeschlossen']])assert.match(f.error(e),new RegExp(text,'i'));
-assert.equal(f.diagnostics().length,4);assert.match(f.diagnostics().join(' '),/expected_record_hash/);
+assert.equal(f.diagnostics().length,4);assert.equal(f.error('Pflichtangabe fehlt: business_street'),'Bitte Geschäftsanschrift ergänzen.');assert.match(f.diagnostics().join(' '),/expected_record_hash/);
 assert.match(f.sync({configured:true,last_error:'IOException'}).title,/nicht möglich/);
 assert.doesNotMatch(JSON.stringify(f.sync({configured:true,last_error:'IOException',user_action_required:true})),/Wir versuchen/);
 assert.match(f.sync({configured:true,review:7}).title,/Prüfung/);

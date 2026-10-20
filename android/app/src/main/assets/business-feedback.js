@@ -4,6 +4,7 @@
  const time=value=>{const date=new Date(value);return value&&!Number.isNaN(date.getTime())?date.toLocaleString('de-AT',{dateStyle:'medium',timeStyle:'short'}):'';};
  function translate(value){
   const raw=String(value?.message||value||'');
+  const missing=raw.match(/Pflichtangabe fehlt:\s*([a-z_]+)/);if(missing){const names={owner_name:'Ausstellername',business_name:'Geschäftsname',business_street:'Geschäftsanschrift',business_postal_code:'Postleitzahl',business_city:'Ort',business_vat_id:'UID',tax_exemption_text:'Steuerhinweis',customer_id:'Kunde',activity:'Tätigkeit',price_source:'Preisgrundlage',invoice_number_format:'Rechnungsnummernkreis'};return names[missing[1]]?'Bitte '+names[missing[1]]+' ergänzen.':'Bitte die fehlenden Pflichtangaben ergänzen. Weitere Angaben stehen unter Erweitert / Diagnose.';}
   if(/ENOSPC|SQLITE_FULL|speicher.*(voll|knapp)|disk.*full|QuotaExceeded/i.test(raw))return 'Nicht gespeichert. Der Gerätespeicher ist voll. Bitte Speicher freigeben und erneut speichern. Deine Eingabe bleibt erhalten.';
   if(/WRITE_CONFLICT|STALE_|record_hash|expected_.*hash|CAS|inzwischen geändert|Vergleichsstand/i.test(raw))return 'Inzwischen wurde dieser Eintrag geändert. Deine Eingabe bleibt erhalten. Bitte den aktuellen Stand prüfen, bevor du erneut speicherst.';
   if(/PERMISSION|UNAUTHORIZED|HTTP 401|HTTP 403|AUTH_REQUIRED|Freigabe fehlt|SecurityException/i.test(raw))return 'Die Freigabe fehlt oder ist abgelaufen. Bitte die Verbindung erneut freigeben. Bereits gespeicherte Daten bleiben erhalten.';

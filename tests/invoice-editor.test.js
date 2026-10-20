@@ -29,3 +29,5 @@ assert.match(ui.preview({...draft,positions:[p('0','50')]}),/Bitte prüfen/);
 assert.equal(fs.readFileSync('static/invoice-editor.js','utf8'),fs.readFileSync('android/app/src/main/assets/invoice-editor.js','utf8'));
 assert.equal(fs.readFileSync('static/invoice-editor.css','utf8'),fs.readFileSync('android/app/src/main/assets/invoice-editor.css','utf8'));
 console.log('22 Prüfungen: gemeinsame Rechnungsvorschau, Rundung, Eingaben, Datenschutz und identische Android-/Laptop-Dateien bestanden.');
+
+assert.throws(()=>ui.lineCents(p(1,null)),/Preis fehlt/);assert.throws(()=>ui.lineCents(p(1,'')),/Preis fehlt/);assert.equal(ui.lineCents(p(1,0)),0);

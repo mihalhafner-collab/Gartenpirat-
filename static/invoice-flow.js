@@ -14,14 +14,15 @@
       seen.add(w.id);
       const date = w.work_date.split('-').reverse().join('.');
       const site = w.customer_id !== customer ? (w.work_customer_name || w.customer_name || w.location || w.customer_id) : '';
-      positions.push({title:w.activity.trim(),description:[date,site,w.order_title,w.location].filter(Boolean).join(' · '),quantity:Number(w.hours),unit:'Std.',price:0,tax_rate:0,discount:0,worklog_id:w.id});
-      if (w.material?.trim()) positions.push({title:w.material.trim(),description:'Materialmenge und Preis vor Abschluss prüfen.',quantity:1,unit:'pauschal',price:0,tax_rate:0,discount:0,worklog_id:w.id});
-      if (Number(w.kilometers) > 0) positions.push({title:'Fahrtkosten',description:date,quantity:Number(w.kilometers),unit:'km',price:0,tax_rate:0,discount:0,worklog_id:w.id});
+      positions.push({title:w.activity.trim(),description:[date,site,w.order_title,w.location].filter(Boolean).join(' · '),quantity:Number(w.hours),unit:'Std.',price:null,tax_rate:0,discount:0,worklog_id:w.id});
+      if (w.material?.trim()) positions.push({title:w.material.trim(),description:'Materialmenge und Preis vor Abschluss prüfen.',quantity:null,unit:'pauschal',price:null,tax_rate:0,discount:0,worklog_id:''});
+      if (Number(w.kilometers) > 0) positions.push({title:'Fahrtkosten',description:date,quantity:Number(w.kilometers),unit:'km',price:null,tax_rate:0,discount:0,worklog_id:''});
     });
     const dates = rows.map(w=>w.work_date).sort(), orders = [...new Set(rows.map(w=>w.order_id || ''))];
-    return {customer_id:customer,order_id:orders.length===1&&rows.every(w=>w.customer_id===customer)?orders[0]:null,service_start:dates[0],service_end:dates[dates.length-1],positions,worklog_ids:[...new Set(positions.map(p=>p.worklog_id))]};
+    return {customer_id:customer,order_id:orders.length===1&&rows.every(w=>w.customer_id===customer)?orders[0]:null,service_start:dates[0],service_end:dates[dates.length-1],positions,worklog_ids:[...new Set(positions.map(p=>p.worklog_id).filter(Boolean))]};
   }
   function total(positions) {
+    if(positions.some(p=>p.price===null||p.price===undefined||p.price===''||p.quantity===null||p.quantity===undefined||p.quantity===''))throw new Error('Menge und Preis bitte ausdrücklich ergänzen.');
     return positions.reduce((sum,p) => sum + Math.round((Number(p.quantity)*Number(p.price)*(1-Number(p.discount||0)/100)+Number.EPSILON)*100),0)/100;
   }
   root.InvoiceFlow = {fromWorklogs,total};
