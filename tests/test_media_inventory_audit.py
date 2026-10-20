@@ -8,7 +8,7 @@ import sys
 import tempfile
 import unittest
 
-from tools.audit_media_inventory import audit
+from tools.audit_media_inventory import audit, resolve_photo_references
 
 
 def fixture():
@@ -25,6 +25,67 @@ def fixture():
 
 
 class MediaInventoryAuditTests(unittest.TestCase):
+    def test_modern_and_legacy_photo_names_use_existing_storage_contract(self):
+        original, thumbnail = 'a'*64+'.jpg', 'b'*64+'.jpg'
+        photos = [{'storage_name': original, 'thumbnail_storage_name': thumbnail,
+                   'filename': 'qa_display_only.jpg'}, {'filename': 'qa_old_photo.jpeg'}]
+        files = [{'object_id': 'qa_'+str(i), 'name': name} for i, name in
+                 enumerate((original, thumbnail, 'qa_display_only.jpg', 'qa_old_photo.jpeg'))]
+        before = copy.deepcopy((photos, files))
+        result = resolve_photo_references(photos, files, 'active')
+        self.assertEqual((photos, files), before)
+        self.assertEqual(result['references'], [{'object_id': key, 'source': 'active'}
+                                              for key in ('qa_0', 'qa_1', 'qa_3')])
+        self.assertEqual(result['summary'], dict(matched_objects=3, legacy_photos=1,
+                         missing_names=0, ambiguous_names=0, invalid_names=0,
+                         inconsistent_objects=0, complete=True))
+
+    def test_inconsistent_file_identity_or_invalid_source_cannot_claim_complete(self):
+        files = [{'object_id': 'qa_same', 'name': name} for name in ('qa_old.jpg', 'qa_other.jpg')]
+        result = resolve_photo_references([{'filename': 'qa_old.jpg'}], files, 'active')
+        self.assertEqual(result['summary']['inconsistent_objects'], 1)
+        self.assertFalse(result['summary']['complete'])
+        for source in ('invalid', [], None):
+            with self.assertRaises(ValueError):
+                resolve_photo_references([], [], source)
+
+    def test_legacy_filename_cannot_override_missing_or_invalid_canonical_reference(self):
+        for storage in ('a'*64+'.jpg', '../qa_bad.jpg'):
+            result = resolve_photo_references([{'storage_name': storage, 'filename': 'qa_old.jpg'}],
+                     [{'object_id': 'qa_old', 'name': 'qa_old.jpg'}], 'archive')
+            self.assertEqual(result['references'], [])
+            self.assertFalse(result['summary']['complete'])
+
+    def test_photo_reference_resolution_rejects_paths_urls_and_nonimage_names(self):
+        for name in ('../qa_photo.jpg', 'qa..jpg', '/qa_photo.jpg', 'qa_file.pdf',
+                     'https://example.invalid/qa_photo.jpg', 'qa_photo.JPG', ''):
+            with self.subTest(name=name):
+                result = resolve_photo_references([{'filename': name}], [], 'active')
+                self.assertEqual(result['references'], [])
+                self.assertEqual(result['summary']['invalid_names'], 1)
+                self.assertFalse(result['summary']['complete'])
+
+    def test_ambiguous_photo_names_protect_all_copies_but_prevent_completeness(self):
+        files = [{'object_id': key, 'name': 'qa_old.jpg'} for key in ('qa_a', 'qa_b', 'qa_a')]
+        result = resolve_photo_references([{'filename': 'qa_old.jpg'}], files, 'archive')
+        self.assertEqual(len(result['references']), 2)
+        self.assertEqual(result['summary']['ambiguous_names'], 1)
+        self.assertFalse(result['summary']['complete'])
+        source = fixture(); source['references'] = result['references']
+        source['files'] = [{'object_id': key, 'kind': 'photo', 'byte_size': 10}
+                           for key in ('qa_a', 'qa_b', 'qa_other')]
+        source['coverage']['references_complete'] = result['summary']['complete']
+        report = audit(source)
+        self.assertEqual(report['classes']['referenced']['count'], 2)
+        self.assertEqual(report['classes']['orphaned']['count'], 0)
+
+    def test_photo_resolver_does_not_accept_business_records_or_emit_names_in_summary(self):
+        with self.assertRaises(ValueError):
+            resolve_photo_references([{'filename': 'qa_old.jpg', 'customer_id': 'qa_customer'}], [], 'active')
+        result = resolve_photo_references([{'filename': 'qa_missing.jpg'}], [], 'backup')
+        self.assertEqual(result['summary']['missing_names'], 1)
+        self.assertNotIn('qa_missing', json.dumps(result['summary']))
+
     def test_complete_classification_and_no_mutation(self):
         source = fixture(); before = copy.deepcopy(source)
         result = audit(source)

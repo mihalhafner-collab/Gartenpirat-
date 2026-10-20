@@ -788,26 +788,26 @@ P2 ist erst abgeschlossen, wenn:
 
 ### P2.14 Tatsächlicher Bearbeitungs- und Abnahmestand (20.10.2026)
 
-**Technische Konsolidierung PASS; vollständige P2-Abnahme OFFEN.** Ausgang main348b40a, operative App weiterhin 1.51.2/81 aus e8a1d09. Keine produktive Löschung, neue geprüfte Geschäftssicherung zusätzlich erstellt. Belastbare Schritte, SHA-Nachweise und Grenzen stehen in CODEX-STATUS P2-1 bis P2-6.
+**Technische Konsolidierung PASS; vollständige P2-Abnahme OFFEN.** Ausgang main348b40a, operative App weiterhin 1.51.2/81 aus e8a1d09. Keine produktive Löschung, neue geprüfte Geschäftssicherung zusätzlich erstellt. Belastbare Schritte, SHA-Nachweise und Grenzen stehen in CODEX-STATUS P2-1 bis P2-9; P2-7 ff. ersetzen die dort datierten offenen Lesebefunde, soweit neu geprüft.
 
 | Kriterium aus P2.13 | Tatsächlicher Stand |
 | --- | --- |
 | Nur benötigte Git-Branches | PASS: drei frisch geprüfte vollständig integrierte Branches entfernt, nur main remote |
-| Releaseartefakte konsolidiert | PASS aktueller Baum:81 privat in Drive,79 GitHub-Referenz; elf ältere APKs entfernt, Hash-/Historiennachweis erhalten. Separate Release-/Asset-API NOT TESTABLE (Forbidden) |
+| Releaseartefakte konsolidiert | PASS aktueller Baum:81 privat in Drive,79 GitHub-Referenz; elf ältere APKs entfernt, Hash-/Historiennachweis erhalten. Release-Liste über unterstützten Connector erneut gelesen:0 Releases. Sieben historische Actions-Artefakte inventarisiert,240642864 Bytes, Ablauf23./25.10.2026; kein unterstützter DELETE-Zugang. Direkte API-Sperre bleibt unverändert |
 | Zentrale Dokumentation reduziert | PASS:30→27 Markdown-Dateien, drei Berichte zusammengeführt, README und Downloadliste aktualisiert |
 | Benötigter Legacy-/Test-/Migrationscode erhalten | PASS: tatsächliche Imports/Regressionen nachgewiesen, keine solchen Komponenten entfernt |
 | P0-Gates | PASS: Source, kompletter Workspace und unveränderte Original-APK81 |
 | P1-Vertragsbaseline | PASS: identischer Gesamtvertrag; auch reale117Pixel-Schemas kanonisch gleich |
-| Pixel-Datenintegrität | PASS: Geschäftshash und alle139Archivversionen gleich, keine Geschäftslöschung |
-| Queue/Review/Journalfehler | PASS:0/0/0 im finalen aktiven Status, rohen Pending-Zähler separat dokumentiert |
-| Referenzsicherer Drive-/Datei-Cleanup | KEINE LÖSCHUNG: read-only Audit214Dateien,44referenziert/151geschützt/19unklar; globale Vollständigkeit OFFEN |
-| Aktuelles vollständiges Backup erhalten | PASS im bestehenden Geschäftsbackup-Scope:neue33524508-Byte-Sicherung inspektiert und SHA-geprüft, kein Gerätebackup. Sechs ältere Inspektionen READ_ERROR, keine davon entfernt |
+| Pixel-Datenintegrität | PASS erneut final gelesen: Geschäftshash und alle139Archivversionen gleich, sieben Backupmetadaten erhalten, keine Geschäftslöschung |
+| Queue/Review/Journalfehler | PASS erneut final gelesen:0/0/0, provider_readback/cloud_confirmed=false; vorübergehender Connector-Abbruch beendet, rohen Pending-Zähler separat dokumentiert |
+| Referenzsicherer Drive-/Datei-Cleanup | KEINE LÖSCHUNG: read-only Audit214Dateien,53referenziert/158geschützt/3unklar; alle53beobachteten Fotos aktiv/archiviert referenziert, globale Vollständigkeit OFFEN |
+| Aktuelles vollständiges Backup erhalten | PASS im bestehenden Geschäftsbackup-Scope:neue33524508-Byte-Sicherung inspektiert und SHA-geprüft, kein Gerätebackup. Sechs alte Dateien nach vollständigem SHA/Byte-Readback unverändert. READ_ERROR an einer Sicherung auf fehlendes appointments-Feld zurückgeführt; andere Inhalts-/Restoreprüfungen OFFEN, keine entfernt |
 | Steuer-/Geschäftsunterlagen geschützt | PASS: keine Rechnung, finales Dokument, Journal, Originalfoto oder altes Backup gelöscht |
 | Löschungen vorher/nachher dokumentiert | PASS: Branch-SHAs, elf APK-SHAs/Historienpfad, zusammengeführte Dokumente und vier temporäre Archiv-SHAs dokumentiert |
 
 Neue read-only Auditfunktion tools/audit_media_inventory.py hat ausdrücklich keinen Löschmodus. Sie verwendet ausschließlich normalisierte Metadaten und gibt aggregierte Counts/Bytes/Hashes aus; fehlende Abdeckung oder Versionskonsistenz verhindert Orphan-Nachweise. Dokumente, Backups, Historie und unbekannte Dateien bleiben geschützt. Vollständiger Audit ist keine Purge-Freigabe.
 
-316 Python-Tests,27 JVM-/30 Browser-Suiten und55synthetische MCP-Szenarien PASS. Keine neue APK, Signierung, Installation, operative Architektur- oder Vertragsänderung. Unbekannte Drive-Objekte und nicht prüfbare Altbackups bleiben erhalten; zusätzliche Einzelentscheidung erst nach vollständigem Referenz-/Aufbewahrungsnachweis. Keine Historienbereinigung oder Force-Push.
+322 Python-Tests,27 JVM-/30 Browser-Suiten und55synthetische MCP-Szenarien PASS. Keine neue APK, Signierung, Installation, operative Architektur- oder Vertragsänderung. Die drei verbleibenden unbekannten Drive-Objekte und alle Altbackups bleiben erhalten; zusätzliche Einzelentscheidung erst nach vollständigem Referenz-/Aufbewahrungsnachweis. Funktionaler Altbackup-Inspektionsfix ist nicht Teil des ausdrücklich nichtfunktionalen P2-Umfangs und bleibt gesondert offen. Nach vorübergehendem Pixel-Connector-Verbindungsfehler neuer finaler Integritäts-/Statusreadback bestanden. Kein neuer Sync angefordert und weiterhin keine unabhängige Cloud-Bestätigung. Sieben alte Actions-Artefakte noch vorhanden, automatischer Ablauf laut Provider23./25.10.2026; unterstützt löschender Actions-Zugang nicht verfügbar. Keine Historienbereinigung oder Force-Push.
 
 
 ## 3. Tatsächlich abgeglichener Ausgang und neuer Quellstand

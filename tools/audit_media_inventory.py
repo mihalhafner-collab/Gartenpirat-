@@ -10,6 +10,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,6 +24,8 @@ SOURCES = frozenset({'active', 'archive', 'final', 'pending', 'backup', 'history
 PROTECTED = frozenset({'document', 'history', 'receipt', 'backup', 'release'})
 CLASSES = ('referenced', 'orphaned', 'temporary', 'protected', 'unknown')
 COVERAGE = frozenset({'inventory_complete', 'references_complete', 'backups_complete', 'history_complete', 'queue_empty'})
+CANONICAL_PHOTO = re.compile(r'[0-9a-f]{64}\.(?:jpg|png|webp|gif|heic)')
+LEGACY_PHOTO = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,179}\.(?:jpg|jpeg|png|webp|gif|heic|heif)')
 
 
 def _require(valid):
@@ -33,6 +36,62 @@ def _require(valid):
 
 def _hash(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+
+def resolve_photo_references(photos, files, source):
+    """Resolve explicit photo names against one known photo folder, in memory.
+
+    Pass only storage_name/thumbnail_storage_name/filename photo metadata and
+    object_id/name file metadata. Returned references are private adapter data,
+    never a public report. Legacy names follow PhotoAttachmentStore.legacyName;
+    a display filename must never override a canonical storage reference.
+    Duplicate names protect *all* matches; ambiguity or invalid/missing names
+    must keep references_complete false. No URL/basename/fuzzy matching.
+    """
+    _require(isinstance(photos, list) and isinstance(files, list)
+             and len(photos) <= 100000 and len(files) <= 100000
+             and isinstance(source, str) and source in SOURCES)
+    names, objects, inconsistent = {}, {}, set()
+    for file in files:
+        _require(isinstance(file, dict) and set(file) == {'object_id', 'name'})
+        _require(all(isinstance(file[k], str) and 0 < len(file[k]) <= 256 for k in file))
+        if file['object_id'] in objects and objects[file['object_id']] != file['name']:
+            inconsistent.add(file['object_id'])
+        objects[file['object_id']] = file['name']
+        names.setdefault(file['name'], set()).add(file['object_id'])
+    references, missing, ambiguous = set(), set(), set()
+    invalid, legacy = 0, 0
+    for photo in photos:
+        _require(isinstance(photo, dict) and set(photo) <= {'storage_name', 'thumbnail_storage_name', 'filename'})
+        _require(all(isinstance(value, str) and len(value) <= 256 for value in photo.values()))
+        targets = []
+        for key in ('storage_name', 'thumbnail_storage_name'):
+            name = photo.get(key, '')
+            if not name:
+                continue
+            if not CANONICAL_PHOTO.fullmatch(name):
+                invalid += 1
+            else:
+                targets.append(name)
+        if not photo.get('storage_name'):
+            name = photo.get('filename', '')
+            if not LEGACY_PHOTO.fullmatch(name) or '..' in name:
+                invalid += 1
+            else:
+                legacy += 1
+                targets.append(name)
+        for name in targets:
+            matches = names.get(name, set())
+            if not matches:
+                missing.add(name)
+            if len(matches) > 1:
+                ambiguous.add(name)
+            references.update(matches)
+    return {'references': [{'object_id': key, 'source': source} for key in sorted(references)],
+            'summary': {'matched_objects': len(references), 'legacy_photos': legacy,
+                        'missing_names': len(missing), 'ambiguous_names': len(ambiguous),
+                        'invalid_names': invalid, 'inconsistent_objects': len(inconsistent),
+                        'complete': not (missing or ambiguous or invalid or inconsistent)}}
 
 
 def audit(manifest):
