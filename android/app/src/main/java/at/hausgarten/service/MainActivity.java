@@ -444,15 +444,16 @@ public class MainActivity extends Activity implements McpSyncHost {
     private void performDriveSync(Uri treeUri, boolean showToast) {
         if (!syncInProgress.compareAndSet(false, true)) { syncAgain.set(true); return; }
         if (showToast) Toast.makeText(this, "Drive-Abgleich läuft …", Toast.LENGTH_SHORT).show();
-        callback("window.onDriveSyncStarted", syncStatus());
         new Thread(() -> {
+            // Snapshot/queue calculation can be expensive: never do it on the UI looper.
+            callback("window.onDriveSyncStarted", syncStatus());
             JSONObject result;
             try {result=DriveSyncCoordinator.run(this,store);}
             catch(Exception error){result=new JSONObject();try{result.put("ok",false).put("error",DriveSyncCoordinator.friendly(error));}catch(Exception ignored){}}
             finally{syncInProgress.set(false);}
             final JSONObject completed=result;
+            try{completed.put("automatic",!showToast).put("sync",syncStatus());}catch(Exception ignored){}
             runOnUiThread(()->{
-                try{completed.put("automatic",!showToast).put("sync",syncStatus());}catch(Exception ignored){}
                 callback("window.onDriveSync",completed);
                 if(syncAgain.getAndSet(false))requestAutomaticSync(500);
                 else if(store.remainingDeleteUndoMs()>0)requestAutomaticSync(store.remainingDeleteUndoMs()+200);

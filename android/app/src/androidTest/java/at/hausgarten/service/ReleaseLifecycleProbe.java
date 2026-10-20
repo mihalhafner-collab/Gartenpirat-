@@ -38,7 +38,7 @@ final class ReleaseLifecycleProbe {
         android.app.Activity activity=runner.startActivitySync(new Intent(context,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         java.lang.reflect.Field field=MainActivity.class.getDeclaredField("webView");field.setAccessible(true);android.webkit.WebView view=(android.webkit.WebView)field.get(activity);
         long deadline=SystemClock.elapsedRealtime()+120000;boolean ready=false;
-        while(SystemClock.elapsedRealtime()<deadline){if("true".equals(js(runner,view,"typeof WorklogArchiveUI==='object'&&typeof PhotoLibraryUI==='object'&&typeof openPage==='function'&&!!document.querySelector('[data-open-garden-menu]')"))){ready=true;break;}SystemClock.sleep(250);}
+        while(SystemClock.elapsedRealtime()<deadline){if("true".equals(js(runner,view,"typeof HGBusinessActions==='object'&&typeof HGBusinessFeedback==='object'&&typeof WorklogArchiveUI==='object'&&typeof PhotoLibraryUI==='object'&&typeof openPage==='function'&&!!document.querySelector('[data-open-garden-menu]')"))){ready=true;break;}SystemClock.sleep(250);}
         require(ready);
         require("true".equals(js(runner,view,"(()=>{const nav=[...document.querySelectorAll('.bottom-inner [data-open]')].map(x=>x.dataset.open);return nav.length===4&&nav.includes('more-page')&&typeof crypto.randomUUID==='function'&&[1,2].at(-1)===2&&Object.hasOwn({a:1},'a')&&'a-a'.replaceAll('-','')==='aa';})()")));
         require("true".equals(js(runner,view,"(()=>{openPage('worklogs');document.querySelector('[data-select-start]').click();document.querySelector('[data-select-visible]').click();const n=document.querySelectorAll('#worklog-list .worklog-selected').length;document.querySelector('[data-select-cancel]').click();return n>0&&document.querySelectorAll('#worklog-list .worklog-entry[aria-pressed]').length===0&&currentPage==='worklogs';})()")));
@@ -111,7 +111,7 @@ final class ReleaseLifecycleProbe {
                 report.putString("stream","PASS in-place update preserves complete snapshot, IDs, pending records, settings, tunnel configuration and active timer recipient\n");
             }else throw new IllegalArgumentException("Unknown lifecycle mode");
             runner.finish(-1,report);
-        }catch(Throwable failure){report.putString("stream","FAIL lifecycle "+mode+" ["+failure.getClass().getSimpleName()+"] "+(failure.getStackTrace().length>0?failure.getStackTrace()[0].toString():"no frame")+"\n");runner.finish(0,report);}
+        }catch(Throwable failure){report.putString("stream","FAIL lifecycle "+mode+" ["+failure.getClass().getSimpleName()+"] "+(failure instanceof AssertionError?"condition="+conditionIndex+" ":"")+(failure.getStackTrace().length>0?failure.getStackTrace()[0].toString():"no frame")+"\n");runner.finish(0,report);}
         finally{if(store!=null)store.close();}
     }
 }

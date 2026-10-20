@@ -12,7 +12,7 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 LOGS = ROOT/'outputs/integration-ui'
-NAMES = ['p3-ux-comparison.test.cjs', 'p3-uat-walkthrough.test.cjs', 'p3-search-planning.test.cjs', 'p3-documents.test.cjs', 'p3-customer-hub.test.cjs', 'p3-business-actions.test.cjs', 'business-feedback.test.cjs', 'current-data-ui-smoke.cjs', 'planning-ui.test.cjs', 'invoice-editor.test.js', 'invoice-flow.test.js', 'billing-ui.test.cjs',
+NAMES = ['webview-syntax.test.cjs', 'sync-responsiveness.test.cjs', 'p3-ux-comparison.test.cjs', 'p3-uat-walkthrough.test.cjs', 'p3-search-planning.test.cjs', 'p3-documents.test.cjs', 'p3-customer-hub.test.cjs', 'p3-business-actions.test.cjs', 'business-feedback.test.cjs', 'current-data-ui-smoke.cjs', 'planning-ui.test.cjs', 'invoice-editor.test.js', 'invoice-flow.test.js', 'billing-ui.test.cjs',
          'architecture-workflow.test.cjs', 'daily-usability.test.cjs', 'design-concept.test.cjs',
          'simple-design.test.cjs', 'worklog-window.test.cjs', 'pixel-tunnel-ui.test.js',
          'work-location.test.cjs', 'timer-completion.test.cjs', 'design-v139.test.cjs',

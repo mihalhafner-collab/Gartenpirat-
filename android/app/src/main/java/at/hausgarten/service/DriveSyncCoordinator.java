@@ -17,6 +17,7 @@ final class DriveSyncCoordinator {
     private static final ScheduledExecutorService EXECUTOR=Executors.newSingleThreadScheduledExecutor();
     private static ScheduledFuture<?> scheduled;
     private static volatile boolean running;
+    private static final java.util.concurrent.atomic.AtomicBoolean claimed=new java.util.concurrent.atomic.AtomicBoolean();
     static boolean running(){return running;}
     static JSONObject status(Context c,JSONObject queue)throws Exception {
         SharedPreferences p=c.getSharedPreferences("haus_garten",0);
@@ -65,6 +66,11 @@ final class DriveSyncCoordinator {
     }
     // Package-private dependency boundary for isolated provider tests, never an MCP/UI endpoint.
     static JSONObject run(Context context,PixelLocalStore store,Files files,String device)throws Exception{
+        // Activity, JobScheduler and MCP may request the same run concurrently.
+        // Joining must not wait for the network lock and then repeat the entire I/O.
+        // This is no acknowledgement: the active run alone checks/commits receipts.
+        if(!claimed.compareAndSet(false,true))return new JSONObject().put("ok",true).put("coalesced",true).put("cloud_confirmed",false);
+        try{
         synchronized(LOCK){
             running=true;SharedPreferences prefs=context.getSharedPreferences("haus_garten",0);
             try{
@@ -162,16 +168,22 @@ final class DriveSyncCoordinator {
                 prefs.edit().putInt("trash_cleanup_pending",cleanup.getInt("pending")).putString("trash_cleanup_error",cleanup.getString("error_code")).commit();
                 if(cleanup.getInt("pending")>0){fully=false;prefs.edit().putBoolean("drive_cloud_confirmed",false).commit();if(cleanup.getInt("completed")>0)request(context,1500);}
                 if(mediaProgress>0&&deferredMedia>0)request(context,1500);
+                boolean follow=mediaProgress>0&&deferredMedia>0||cleanup.getInt("pending")>0&&cleanup.getInt("completed")>0;
+                Set<String> captured=DriveJournalRules.ids(allPending);
+                JSONArray later=store.pendingActionsForDrive();
+                for(int i=0;i<later.length();i++)if(!captured.contains(later.getJSONObject(i).getString("client_id"))){follow=true;request(context,1500);break;}
+                if(!follow)prefs.edit().putBoolean("drive_manual_sync_requested",false).apply();
                 return new JSONObject().put("ok",true).put("transport_ok",true).put("needs_review",errors.length()>0).put("state",store.getState()).put("accepted",confirmed.size()).put("chatgpt_imported",chatActions.length())
                     .put("journal_errors",errors).put("error","")
                     .put("confirmation_scope",files.cloudVerified()?"drive_server_manifest":"provider_readback").put("cloud_confirmed",fully).put("duplicate_files",files.duplicates);
             }catch(Exception failure){int attempts=Math.min(8,prefs.getInt("drive_retry_count",0)+1);boolean needs=failure instanceof JSONException||failure instanceof IllegalArgumentException||failure instanceof SecurityException||(failure instanceof DriveRestClient.Failure&&((DriveRestClient.Failure)failure).userAction);
                 long delay=SyncPolicy.retryDelay(attempts,failure instanceof DriveRestClient.Failure?((DriveRestClient.Failure)failure).retryAfter:0);
                 prefs.edit().putBoolean("drive_sync_failed",true).putBoolean("drive_cloud_confirmed",false).putBoolean("drive_user_action_required",needs||attempts>=8).putLong("drive_next_retry",needs||attempts>=8?0:System.currentTimeMillis()+delay).putString("last_sync_attempt",java.time.Instant.now().toString()).putString("drive_last_error_code",failureCode(failure)).putString("drive_last_error",friendly(failure)).putInt("drive_retry_count",attempts).commit();
-                if(!needs&&attempts<8)request(context,delay);
+                if(!needs&&attempts<8)request(context,delay);else prefs.edit().putBoolean("drive_manual_sync_requested",false).apply();
                 throw failure;}
-            finally{running=false;context.getSharedPreferences("haus_garten",0).edit().putBoolean("drive_manual_sync_requested",false).apply();}
+            finally{running=false;}
         }
+        }finally{claimed.set(false);}
     }
     private static boolean componentReady(JSONObject snapshot,JSONObject action){return DriveJournalRules.componentReady(snapshot,action.optString("kind"));}
     static String failureCode(Exception error){return error instanceof DriveRestClient.Failure?((DriveRestClient.Failure)error).code:error instanceof PixelMcpWriteTools.Rejected?((PixelMcpWriteTools.Rejected)error).code:error instanceof SecurityException?"PERMISSION_REQUIRED":error instanceof JSONException?"INVALID_REMOTE_DATA":"TRANSFER_FAILED";}

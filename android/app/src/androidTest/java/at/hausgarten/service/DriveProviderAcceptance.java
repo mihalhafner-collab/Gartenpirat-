@@ -60,6 +60,23 @@ final class DriveProviderAcceptance {
     static byte[] zipBytes(java.util.zip.ZipFile zip,String name)throws Exception{try(InputStream in=zip.getInputStream(zip.getEntry(name));ByteArrayOutputStream out=new ByteArrayOutputStream()){byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1){if(out.size()+n>21*1024*1024)throw new IOException("Synthetic ZIP bound exceeded");out.write(b,0,n);}return out.toByteArray();}}
     static String pkg(JSONObject action)throws Exception{return SyntheticBusinessData.object().put("format",1).put("actions",new JSONArray().put(action)).toString();}
     static void run(PixelMcpInstrumentation qa)throws Exception{
+        qa.probe("slow Drive read never holds SQLite and concurrent run joins without second network request",()->{try(Setup s=new Setup(qa)){
+            java.util.concurrent.CountDownLatch entered=new java.util.concurrent.CountDownLatch(1),release=new java.util.concurrent.CountDownLatch(1);
+            java.util.concurrent.atomic.AtomicInteger reads=new java.util.concurrent.atomic.AtomicInteger();
+            DriveSyncCoordinator.Files slow=new DriveSyncCoordinator.Files(s.io,Uri.parse(s.prefs.getString("drive_tree_uri","")),s.prefs){
+                @Override String read(String name)throws Exception{if(reads.incrementAndGet()==1){entered.countDown();if(!release.await(30,java.util.concurrent.TimeUnit.SECONDS))throw new IOException("QA slow provider timeout");}return super.read(name);}
+            };
+            java.util.concurrent.ExecutorService workers=java.util.concurrent.Executors.newFixedThreadPool(2);
+            java.util.concurrent.Future<JSONObject> first=workers.submit(()->DriveSyncCoordinator.run(s.context,s.store,slow,"qadevice"));
+            try{
+                qa.yes(entered.await(10,java.util.concurrent.TimeUnit.SECONDS));
+                java.util.concurrent.Future<JSONObject> local=workers.submit(()->{JSONObject saved=s.store.execute("create_customer_work_record",qa.args("qa-during-slow-provider"));qa.yes(s.store.getState().getJSONArray("pending").length()==1);return saved;});
+                qa.yes(local.get(10,java.util.concurrent.TimeUnit.SECONDS).getBoolean("ok"));
+                JSONObject joined=DriveSyncCoordinator.run(s.context,s.store,s.files,"qadevice");qa.yes(joined.getBoolean("coalesced")&&!joined.getBoolean("cloud_confirmed")&&reads.get()==1);
+            }finally{release.countDown();workers.shutdown();}
+            qa.yes(first.get(120,java.util.concurrent.TimeUnit.SECONDS).getBoolean("ok"));
+            qa.yes(s.store.getState().getJSONObject("master").getJSONArray("worklogs").length()==1&&s.store.pendingActions().length()==0);
+        }});
         qa.probe("provider trash document cleanup removes only unreferenced verified PDFs and is repeatable",()->{try(Setup s=new Setup(qa)){
             s.sync();JSONObject snapshot=s.files.readPrimary(SyntheticBusinessData.object(s.files.read("HausGarten-Laptop.json")),"qadevice");PixelDriveState.prepare(snapshot);JSONObject archive=OwnerJournalRules.archives(snapshot);BusinessDocumentStore documents=new BusinessDocumentStore(s.io);
             JSONObject[] metadata=new JSONObject[2];for(int i=0;i<2;i++){byte[] raw=("%PDF-1.4\n% Synthetic cleanup "+i+"\n%%EOF").getBytes(StandardCharsets.UTF_8);String sha=PhotoAttachmentStore.sha256(raw);metadata[i]=SyntheticBusinessData.object().put("document_id","offer:qa_qa-doc-"+i).put("pdf_storage_name",sha+".pdf").put("pdf_sha256",sha).put("pdf_byte_size",raw.length);documents.store(raw,metadata[i]);s.files.writeDocumentVerified(metadata[i],raw);JSONObject record=SyntheticBusinessData.object(metadata[i].toString()).put("id","qa_qa-doc-"+i).put("offer_number","").put("status","draft").put("customer_id","qa_c1");archive.put("offer:qa_qa-doc-"+i,SyntheticBusinessData.object().put("record",record).put("archived_at","2026-10-18"));}

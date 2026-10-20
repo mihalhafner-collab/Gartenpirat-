@@ -100,11 +100,11 @@
       try{const info=JSON.parse(AndroidData.getAppInfo());get('settings-version').textContent='Haus & Garten App · Version '+(info.versionName||'unbekannt')+(info.versionCode?' · Build '+info.versionCode:'');}catch(_){get('settings-version').textContent='Versionsangabe derzeit nicht verfügbar.';}
     }
     // Background service may finish a sync without an Activity callback. Refresh safe root screens only.
-    let lastRefresh='';
+    let lastRefresh='',lastBusinessRefresh=JSON.stringify([syncInfo.last_sync||'',syncInfo.pending||0,syncInfo.review||0,syncInfo.pending_total||0]);
     function refresh(){
       if(document.hidden)return;
       try{const native=JSON.parse(AndroidData.getSyncStatus()),signature=JSON.stringify(native);
-        if(signature!==lastRefresh){lastRefresh=signature;syncInfo={...syncInfo,...native};if(['home','customers','worklogs','orders','sync-page','settings-page','more-page'].includes(currentPage)&&!document.querySelector('dialog[open]'))load();else syncLabel();updateSettings();}
+        if(signature!==lastRefresh){lastRefresh=signature;const businessRevision=JSON.stringify([native.last_sync||'',native.pending||0,native.review||0,native.pending_total||0]),dataChanged=businessRevision!==lastBusinessRefresh;syncInfo={...syncInfo,...native};if(dataChanged&&['home','customers','worklogs','orders','sync-page','settings-page','more-page'].includes(currentPage)&&!document.querySelector('dialog[open]')){lastBusinessRefresh=businessRevision;load();}else syncLabel();updateSettings();}
         else if(currentPage==='settings-page')updateSettings();
       }catch(_){}
     }
