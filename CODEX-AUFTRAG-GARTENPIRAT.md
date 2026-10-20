@@ -2487,3 +2487,8 @@ Offen: tatsächliche Originaldateien und vollständiges Backup am aktualisierten
 ## Reparaturauftrag nach produktivem Build82 (20.10.2026)
 
 Aktuelle Nutzerpräzisierung: Drive-Synchronisierung verlangsamt Appprozesse. Diagnose/Fixes, automatische kostenfreie GeoSphere-Wetterüberwachung und Google-Kalender müssen gemeinsam regressionsgeprüft werden. Neuer Kandidat bevorzugt1.52.1/83;82 nicht erneut ausliefern. Aktueller Zwischenstand und konkrete Belege ausschließlich im Reparaturabschnitt von CODEX-STATUS.md. P3-Altabschluss82 ist historisch und ersetzt diese erneute Abnahme nicht. Keine produktive Installation ohne neue Sicherungs-/Hashprüfung und ausdrückliche Freigabe. P0/P1 sowie117Tools/156Aktionen unverändert erhalten. Echte GeoSphere-/Google-/Pixel-Endtests nur bei tatsächlich vorhandenem Zugriff als PASS markieren; fehlende Cloud-Egress- oder Gerätefreigaben offen halten.
+
+
+### Unterbrechung für neu veröffentlichte Cloud-Umgebung
+
+Auf ausdrückliche Nutzersteuerung wird dieser Reparaturtask als gesicherter Zwischenstand beendet. Kein weiterer GeoSphere-Livezugriff in der alten Task-Umgebung, keine Wetterfunktion als abgenommen markieren. Code-/Teststand35d7f7787a731ef6d8d1a663bf39947bbbf0b557 und aktuelle Nachweise/Einstiegspunkt im obersten Übergabeabschnitt von CODEX-STATUS.md. Neuer Task muss die tatsächlichen Quellenformate/Lizenzen aus der neu veröffentlichten Netzwerkumgebung erst live prüfen. Kein produktives Pixelupdate, kein abgeschlossener Wetter-Release und keine Schließung von Issue3 aus diesem Zwischenstand ableiten.
