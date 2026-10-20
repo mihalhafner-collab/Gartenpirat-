@@ -104,7 +104,7 @@
     }
     const row=event.target.closest('[data-invoice]');if(!row||!row.closest('#invoice-list'))return;
     const invoice=invoices().find(x=>x.id===row.dataset.invoice);
-    if(invoice?.status==='Entwurf'&&!invoice.sevdesk_id){event.preventDefault();event.stopImmediatePropagation();open(invoice.id);}
+    if(invoice){event.preventDefault();event.stopImmediatePropagation();if(invoice.status==='Entwurf'&&!invoice.sevdesk_id&&!invoice.issued_at)open(invoice.id);else window.openInvoiceRecord(invoice.id);}
   },true);
   const previousRender=render;
   document.getElementById('invoice-list').classList.add('invoice-overview');

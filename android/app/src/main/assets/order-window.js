@@ -13,7 +13,7 @@
     if(!active)return;
     const {card,summary,dialog,footer}=active;
     summary.replaceChildren();
-    const heading=document.createElement('h3');heading.textContent=document.getElementById('order-edit-title').value||'Projekt / Auftrag';
+    const heading=document.createElement('h3');heading.textContent=document.getElementById('order-edit-title').value||'Auftrag';
     const list=document.createElement('dl');
     const customer=document.getElementById('order-edit-customer');
     const values=[['Kunde',customer.selectedOptions[0]?.textContent],['Status',document.getElementById('order-edit-status').value],['Termin',document.getElementById('order-edit-date').value?new Date(document.getElementById('order-edit-date').value+'T12:00:00').toLocaleDateString('de-AT'):''],['Einsatzort',document.getElementById('order-edit-location').value],['Beschreibung',document.getElementById('order-edit-description').value]];
