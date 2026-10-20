@@ -37,7 +37,7 @@ final class DriveSyncCoordinator {
         SharedPreferences p=c.getSharedPreferences("haus_garten",0);
         if(!DriveAccount.available(c))return false;
         String marker="drive_explicit_request:"+PixelMcpWriteTools.hash(id);
-        if(!p.getBoolean(marker,false)&&!p.edit().putBoolean(marker,true).putInt("drive_retry_count",0).putBoolean("drive_user_action_required",false).putLong("drive_next_retry",0).commit())throw new IOException("Abgleichanforderung konnte nicht gesichert werden.");
+        if(!p.getBoolean(marker,false)&&!p.edit().putBoolean(marker,true).putBoolean("drive_manual_sync_requested",true).putInt("drive_retry_count",0).putBoolean("drive_user_action_required",false).putLong("drive_next_retry",0).commit())throw new IOException("Abgleichanforderung konnte nicht gesichert werden.");
         return true;
     }
     static JSONObject requestExplicit(Context c,String id)throws Exception {
@@ -45,7 +45,8 @@ final class DriveSyncCoordinator {
         if(!prepareExplicit(c,id))return new JSONObject().put("state","not_connected").put("next_action","connect_drive").put("message",SyncPolicy.message("NOT_CONNECTED"));
         request(c,500);return new JSONObject().put("state","requested").put("cloud_confirmed",false).put("message","Abgleich angefordert. Das Ergebnis wird gesondert geprüft.");
     }
-    static boolean automaticAllowed(Context c)throws Exception{return SyncPolicy.automaticAllowed(status(c,new JSONObject()),System.currentTimeMillis());}
+    static boolean automaticAllowed(Context c)throws Exception{return (automaticEnabled(c)||c.getSharedPreferences("haus_garten",0).getBoolean("drive_manual_sync_requested",false))&&SyncPolicy.automaticAllowed(status(c,new JSONObject()),System.currentTimeMillis());}
+    static boolean automaticEnabled(Context c){return c.getSharedPreferences("haus_garten",0).getBoolean("drive_automatic_enabled",true);}
     static synchronized void request(Context context,long delay){
         long due=context.getSharedPreferences("haus_garten",0).getLong("drive_next_retry",0)-System.currentTimeMillis();
         delay=Math.max(delay,due);
@@ -169,7 +170,7 @@ final class DriveSyncCoordinator {
                 prefs.edit().putBoolean("drive_sync_failed",true).putBoolean("drive_cloud_confirmed",false).putBoolean("drive_user_action_required",needs||attempts>=8).putLong("drive_next_retry",needs||attempts>=8?0:System.currentTimeMillis()+delay).putString("last_sync_attempt",java.time.Instant.now().toString()).putString("drive_last_error_code",failureCode(failure)).putString("drive_last_error",friendly(failure)).putInt("drive_retry_count",attempts).commit();
                 if(!needs&&attempts<8)request(context,delay);
                 throw failure;}
-            finally{running=false;}
+            finally{running=false;context.getSharedPreferences("haus_garten",0).edit().putBoolean("drive_manual_sync_requested",false).apply();}
         }
     }
     private static boolean componentReady(JSONObject snapshot,JSONObject action){return DriveJournalRules.componentReady(snapshot,action.optString("kind"));}

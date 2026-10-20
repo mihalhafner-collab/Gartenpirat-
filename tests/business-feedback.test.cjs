@@ -1,0 +1,16 @@
+'use strict';
+const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+const window={},document={addEventListener(){}};vm.runInNewContext(fs.readFileSync('android/app/src/main/assets/business-feedback.js','utf8'),{window,document,Date});
+const f=window.HGBusinessFeedback;
+for(const [e,text] of [['SQLITE_FULL','Nicht gespeichert'],['WRITE_CONFLICT expected_record_hash','inzwischen'],['HTTP 401','Freigabe'],['READ_ERROR provider_readback','nicht abgeschlossen']])assert.match(f.error(e),new RegExp(text,'i'));
+assert.equal(f.diagnostics().length,4);assert.match(f.diagnostics().join(' '),/expected_record_hash/);
+assert.match(f.sync({configured:true,last_error:'IOException'}).title,/nicht möglich/);
+assert.doesNotMatch(JSON.stringify(f.sync({configured:true,last_error:'IOException',user_action_required:true})),/Wir versuchen/);
+assert.match(f.sync({configured:true,review:7}).title,/Prüfung/);
+assert.match(f.sync({configured:true,last_sync:'2026-10-20',confirmation_scope:'provider_readback'}).detail,/nicht unabhängig bestätigt/);
+assert.match(f.sync({configured:true,cloud_confirmed:true,last_sync:'2026-10-20'}).title,/abgeglichen/);
+assert.doesNotMatch(JSON.stringify(f.sync({configured:true,cloud_confirmed:false})),/gesichert/);
+assert.match(f.sync({configured:false}).title,/nicht verbunden/);
+assert.match(f.sync({configured:true,pending:2}).title,/gespeichert/);
+assert.match(f.connection({running:true,state:'ready'}),/verbunden/);assert.match(f.connection({running:true,state:'reconnecting'}),/geprüft/);assert.match(f.connection({state:'auth_error'}),/freigeben/);
+console.log('PASS P3 business feedback: evidence distinctions, friendly errors, retained diagnostics');

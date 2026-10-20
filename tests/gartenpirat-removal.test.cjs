@@ -45,7 +45,7 @@ const {chromium}=require('./browser.cjs');
    await page.evaluate(()=>openPage('sync-page'));await page.locator('#sync').click();
    assert.equal(await page.evaluate(()=>syncCalls),1);
    await page.evaluate(()=>onDriveSync({ok:true,state:removalFixture,sync:{configured:true,pending:0,last_sync:'2026-10-12T18:00:00+02:00'}}));
-assert.match(await page.locator('#sync-status').textContent(),/Mit Drive abgeglichen/);
+assert.match(await page.locator('#sync-status').textContent(),/Abgleich geprüft/);
    assert.deepEqual(errors,[]);assert.equal(await page.evaluate(()=>writeCalls),0);
   });
   await check('Home remains clear at 360 and 412 pixels; current release screenshot captured',async()=>{

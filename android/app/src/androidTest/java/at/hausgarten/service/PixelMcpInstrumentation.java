@@ -44,6 +44,12 @@ public final class PixelMcpInstrumentation extends Instrumentation {
     }
     void acceptance()throws Exception{
         billingAcceptance();
+        probe("P3 Drive automatic pause retains manual request and connection without business writes",()->{
+            Isolated ctx=new Isolated(getTargetContext());android.content.SharedPreferences prefs=ctx.getSharedPreferences("haus_garten",0);
+            yes(DriveSyncCoordinator.automaticEnabled(ctx));yes(prefs.edit().putString("drive_transport","rest").putString("drive_account","qa_owner@example.invalid").putString("drive_folder_id","qa_private_folder_123456789").commit());
+            yes(DriveSyncCoordinator.automaticAllowed(ctx));yes(prefs.edit().putBoolean("drive_automatic_enabled",false).commit());yes(!DriveSyncCoordinator.automaticAllowed(ctx));
+            yes(DriveSyncCoordinator.prepareExplicit(ctx,"qa_p3_manual_sync"));yes(DriveSyncCoordinator.automaticAllowed(ctx));yes(!DriveSyncCoordinator.automaticEnabled(ctx));yes(DriveAccount.configured(ctx));yes(!prefs.contains("drive_snapshot"));
+        });
         probe("MCP customer all fields persist offline with stable replay ID",()->{PixelLocalStore local=acceptanceStore();try{
             JSONObject args=SyntheticBusinessData.object().put("request_id","qa-customer-all-fields").put("name","QA MCP Neue Kundin").put("company","QA Gartenfirma").put("first_name","Anna").put("last_name","Muster").put("street","Gartenweg 4").put("postal_code","9560").put("city","QA Beispielort").put("country","Österreich").put("phone","+43664123456").put("email","qa_603ba7ede2fe@example.invalid").put("notes","Tor links").put("garden_area",120.5).put("sevdesk_customer_number","QA42").put("active",true).put("custom_fields",SyntheticBusinessData.object().put("Torcode","4321").put("Breite",2.5));
             JSONObject result=local.execute("create_customer",args).getJSONObject("data");String id=result.getString("entity_id");

@@ -6,21 +6,21 @@
     const card = document.createElement('div');
     card.id = 'pixel-tunnel-card';
     card.className = 'card';
-    card.innerHTML = '<h3>ChatGPT-Verbindung auf dem Pixel</h3>' +
+    card.innerHTML = '<h3>ChatGPT-Steuerung</h3>' +
       '<p id="pixel-tunnel-state" class="sub" role="status" aria-live="polite">Verbindung noch nicht eingerichtet.</p>' +
-      '<p class="sub">Kunden, Aufträge und Arbeitsberichte lesen. Mit Freigabe auch Arbeitsaufzeichnungen anlegen und korrigieren. Verwendet deinen zuletzt gespeicherten Drive-Stand.</p>' +
-      '<button type="button" id="pixel-tunnel-setup" class="secondary" style="min-height:52px;width:100%">Verbindung und Akku-Einstellungen</button>';
+      '<p class="sub">Mit deiner Freigabe kannst du die App auch über ChatGPT bedienen.</p>' +
+      '<button type="button" id="pixel-tunnel-setup" class="secondary" style="min-height:52px;width:100%">ChatGPT EIN / AUS</button>';
     page.appendChild(card);
     const button = card.querySelector('button');
     button.addEventListener('click', function () {
       if (typeof AndroidData !== 'undefined' && AndroidData.openPixelTunnelSettings) AndroidData.openPixelTunnelSettings();
-      else document.getElementById('pixel-tunnel-state').textContent = 'Die Einrichtung ist in der neuen Android-Testversion verfügbar.';
+      else document.getElementById('pixel-tunnel-state').textContent = 'Die Einrichtung ist in der neuen aktuellen Android-App verfügbar.';
     });
     function update() {
       if (document.hidden || !page.classList.contains('active')) return;
       try {
         const info = JSON.parse(AndroidData.getPixelTunnelStatus());
-        document.getElementById('pixel-tunnel-state').textContent = info.detail || 'Verbindung noch nicht eingerichtet.';
+        document.getElementById('pixel-tunnel-state').textContent = window.HGBusinessFeedback?.connection(info)||'ChatGPT ist ausgeschaltet.';
       } catch (_) {}
     }
     update();

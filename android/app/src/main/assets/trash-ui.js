@@ -23,7 +23,7 @@
    if(preview.expected_record_hash!==expected)throw new Error('Papierkorb wurde inzwischen geändert. Erneut öffnen und prüfen.');
    if(!confirm('Diesen Eintrag endgültig löschen? Er kann in der App nicht wiederhergestellt werden. Nicht mehr verwendete Fotodateien werden nach bestätigtem Abgleich entfernt. Historische Sicherungen bleiben getrennt erhalten.'))return false;
    busy=true;call('purge_entity',{request_id:request('purge:'+entity+':'+id+':'+expected),entity,entity_id:id,expected_record_hash:expected,confirmed:true});load();window.showUndoToast?.('Endgültig aus dem Papierkorb entfernt. Dateibereinigung folgt nach dem Abgleich.');return true;
-  }catch(e){window.showUndoToast?.(e.message);return false;}finally{busy=false;}
+  }catch(e){window.showUndoToast?.(HGBusinessFeedback.error(e));return false;}finally{busy=false;}
  }
  function restore(entity,id,expected){
   if(busy)return false;busy=true;
@@ -32,7 +32,7 @@
    if(!row)throw new Error('Der Eintrag ist nicht mehr im Papierkorb. Aktuellen Stand prüfen.');
    call('restore_entity',{request_id:request('restore:'+entity+':'+id+':'+row.record_hash),entity,entity_id:id,expected_record_hash:row.record_hash});
    load();window.showUndoToast?.('Wiederhergestellt. Abgleich folgt automatisch.');return true;
-  }catch(e){window.showUndoToast?.(e.message);return false;}finally{busy=false;}
+  }catch(e){window.showUndoToast?.(HGBusinessFeedback.error(e));return false;}finally{busy=false;}
  }
  function remove(entity,id,shown){
   if(busy)return false;busy=true;
@@ -49,7 +49,7 @@
     if(typeof AndroidData.ownerCall==='function')restore(entity,id);
     else{const r=AndroidData.undoRemoveEntity(entity,id);if(String(r).startsWith('ERROR:'))window.showUndoToast?.(String(r).slice(6));else{load();window.showUndoToast?.('Wiederhergestellt.');}}
    });return true;
-  }catch(e){window.showUndoToast?.(e.message);return false;}finally{busy=false;}
+  }catch(e){window.showUndoToast?.(HGBusinessFeedback.error(e));return false;}finally{busy=false;}
  }
  function render(more=false){
   const body=get('trash-content');if(!body)return;
@@ -60,7 +60,7 @@
    body.querySelectorAll('[data-trash-restore]').forEach(b=>b.onclick=()=>{const x=entries[Number(b.dataset.trashRestore)],split=x.archive_key.indexOf(':');b.disabled=true;if(restore(x.archive_key.slice(0,split),x.archive_key.slice(split+1),x.record_hash))render();else b.disabled=false;});
    body.querySelectorAll('[data-trash-purge]').forEach(b=>b.onclick=()=>{const x=entries[Number(b.dataset.trashPurge)],split=x.archive_key.indexOf(':');b.disabled=true;if(purge(x.archive_key.slice(0,split),x.archive_key.slice(split+1),x.record_hash))render();else b.disabled=false;});
    get('trash-more')?.addEventListener('click',()=>render(true));
-  }catch(e){body.textContent=e.message+' Gespeicherte Originale bleiben erhalten.';}
+  }catch(e){body.textContent=HGBusinessFeedback.error(e)+' Gespeicherte Originale bleiben erhalten.';}
  }
  function open(){openPage('trash-page');render();}
  function installWorkSelection(){
@@ -90,7 +90,7 @@
     if(!confirm(ids.length+' ausgewählte Arbeiten in den Papierkorb verschieben? Alle bleiben dort wiederherstellbar.'+(linked?' Zugehörige Fotos bleiben in der Fotobibliothek erhalten.':'')))return false;
     busy=true;refresh();call('archive_work_records',{request_id:request('work-batch:'+preview.preview_hash),work_record_ids:ids,expected_preview_hash:preview.preview_hash,confirmed:true});
     chosen.clear();selecting=false;load();window.showUndoToast?.(ids.length+' Arbeiten im Papierkorb. Dort einzeln wiederherstellbar.');return true;
-   }catch(e){window.showUndoToast?.(e.message);return false;}finally{busy=false;refresh();}
+   }catch(e){window.showUndoToast?.(HGBusinessFeedback.error(e));return false;}finally{busy=false;refresh();}
   }
   button('start').onclick=()=>{selecting=true;refresh();};
   button('cancel').onclick=()=>{chosen.clear();selecting=false;refresh();};

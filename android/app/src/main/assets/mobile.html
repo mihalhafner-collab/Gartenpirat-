@@ -2,6 +2,7 @@
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0c4a2f"><title>Hafner Grünraum Handwerk</title>
 <script src="runtime-compat.js"></script>
 <script src="owner-client.js"></script>
+<script src="business-feedback.js"></script>
 <script src="invoice-flow.js" defer></script>
 <link rel="stylesheet" href="invoice-editor.css">
 <script src="invoice-editor.js" defer></script>
@@ -89,16 +90,9 @@ function renderWeeks(rows){
 }
 document.addEventListener('click',event=>{if(event.target.closest('#week-load-more')){weekDisplayLimit+=50;renderWeeks(worklogs())}});
 function syncLabel(){
-  if(syncInfo.state){const pill=el('sync-status');pill.textContent=syncInfo.title;pill.className='sync-pill '+(['error','action_required'].includes(syncInfo.state)?'error':['synced','provider_readback'].includes(syncInfo.state)?'ok':'busy');el('sync-title').textContent=syncInfo.title;el('sync-detail').textContent=syncInfo.detail;return}
-  const pill=el('sync-status'),title=el('sync-title'),detail=el('sync-detail'),warning=String(syncInfo.warning||''),pending=Number(syncInfo.pending||0),review=Number(syncInfo.review||0);
-  pill.className='sync-pill';
-  if(syncInfo.syncing){pill.textContent='Drive-Abgleich läuft …';pill.classList.add('busy');title.textContent='Abgleich läuft';detail.textContent='Lokal gespeicherte Daten werden sicher ausgetauscht.';return}
-  if(syncInfo.last_error){pill.textContent='Drive-Abgleich fehlgeschlagen';pill.classList.add('error');title.textContent='Lokal gespeichert · Abgleich fehlgeschlagen';detail.textContent='Deine Daten bleiben auf dem Pixel. '+String(syncInfo.last_error)+' Bitte Verbindung prüfen und erneut abgleichen.';return}
-  if(!syncInfo.configured){pill.textContent='Nur auf dem Pixel gespeichert';title.textContent='Drive noch nicht eingerichtet';detail.textContent='Wähle einmalig den bestehenden Drive-Ordner. Die lokale Erfassung funktioniert weiterhin.';return}
-  if(review){pill.textContent=review+' Änderung'+(review===1?'':'en')+' benötigt Prüfung';pill.classList.add('busy');title.textContent='Übertragung geprüft · Klärung erforderlich';detail.textContent=(pending?pending+' weitere Änderung(en) warten auf Übertragung. ':'')+'Zurückgehaltene Löschaufträge oder widersprüchliche Angaben werden nicht automatisch übernommen. Erneutes Abgleichen löst diese Prüfung nicht. Deine Daten bleiben erhalten.';return}
-  if(pending){pill.textContent=pending+' Änderung'+(pending===1?'':'en')+' wartet auf Drive';pill.classList.add('busy');title.textContent='Auf dem Pixel gespeichert';detail.textContent='Der Drive-Abgleich steht noch aus. Bei Verbindung wird erneut abgeglichen.';return}
-  if(syncInfo.last_sync){const when=new Date(syncInfo.last_sync),time=isNaN(when)?'zuletzt':when.toLocaleString('de-AT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});pill.textContent=warning?'Drive · Hinweis':(syncInfo.confirmation_scope==='provider_readback'?'An Drive-App übergeben · ':'Mit Drive abgeglichen · ')+time;pill.classList.add(warning?'busy':'ok');title.textContent=warning?'Drive verbunden · Hinweis':(syncInfo.confirmation_scope==='provider_readback'?'Übergabe an Drive-App geprüft':'Mit Drive abgeglichen');detail.textContent=warning||(syncInfo.confirmation_scope==='provider_readback'?'Drive-App zurückgelesen: '+time+'. Google-Cloud-Upload bitte bei Bedarf in Drive prüfen.':'Letzter erfolgreicher Abgleich: '+time+'.');return}
-  pill.textContent='Erster Drive-Abgleich ausstehend';pill.classList.add('busy');title.textContent='Drive eingerichtet';detail.textContent=warning||'Der erste erfolgreiche Abgleich steht noch aus.';
+  const shown=HGBusinessFeedback.sync(syncInfo),pill=el('sync-status');
+  pill.textContent=shown.title;pill.className='sync-pill '+shown.tone;
+  el('sync-title').textContent=shown.title;el('sync-detail').textContent=shown.detail;
 }
 function render(){
   clearDataCache();
