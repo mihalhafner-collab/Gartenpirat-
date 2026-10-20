@@ -18,8 +18,7 @@
     if(!metrics){metrics=document.createElement('section');metrics.id='design-metrics';metrics.className='design-metrics';metrics.setAttribute('aria-label','Dein Arbeitstag');const timer=get('workday-timer');if(timer)timer.after(metrics);else document.querySelector('#home .hero h2').after(metrics);}
     const logs=worklogs(),today=localDate(),todayHours=logs.filter(x=>x.work_date===today).reduce((sum,x)=>sum+Number(x.hours||0),0),open=orders().filter(x=>openStatuses.has(x.status||''));
     metrics.innerHTML=`<button type="button" class="design-metric" data-design-metric="today"><strong>${esc(hours(todayHours))}</strong><span>Heute erfasst</span></button><button type="button" class="design-metric" data-design-metric="week"><strong>${esc(get('current-week-hours')?.textContent||'0 h')}</strong><span>Diese Woche</span></button><button type="button" class="design-metric" data-design-metric="orders"><strong>${open.length}</strong><span>Offene Aufträge</span></button>`;
-    document.querySelector('#home .hero h2').after(metrics);
-    const timer=get('workday-timer');if(timer){metrics.after(timer);const start=timer.querySelector('[data-session-action="start"]');if(start)start.querySelector('b').textContent='Arbeit starten';}
+    const timer=get('workday-timer');if(timer){const heading=document.querySelector('#home .hero h2');if(heading.nextElementSibling!==timer)heading.after(timer);const anchor=get('planning-home')||timer;if(anchor.nextElementSibling!==metrics)anchor.after(metrics);const start=timer.querySelector('[data-session-action="start"]');if(start)start.querySelector('b').textContent='Arbeit starten';}
     let upcoming=get('design-upcoming');if(!upcoming){upcoming=document.createElement('section');upcoming.id='design-upcoming';upcoming.className='card';get('design-metrics').after(upcoming);}
     const scheduled=open.filter(x=>x.scheduled_date===today);
     upcoming.hidden=!scheduled.length;upcoming.innerHTML='<h3>Heute geplant</h3>'+scheduled.map(x=>`<button type="button" class="design-upcoming-row" data-edit-order="${esc(x.id)}"><strong>${esc(x.title)}</strong><small>${esc(customerName(x.customer_id))}${x.location?' · '+esc(x.location):''}</small></button>`).join('');
@@ -367,7 +366,7 @@
       if(record.work_date!==previous){const heading=document.createElement('h3');heading.className='design-date-group';heading.textContent=worklogDateLabel(record.work_date);outer.before(heading);previous=record.work_date;}
       parent.classList.add('design-record-row');
       if(!parent.querySelector('.design-record-menu')){const menu=document.createElement('button');menu.type='button';menu.className='design-record-menu';menu.textContent='⋮';menu.setAttribute('aria-label','Aktionen für '+customerName(record.customer_id));menu.onclick=()=>row.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true}));parent.append(menu);}
-      const status=row.querySelector('.worklog-entry-status');if(status)status.textContent=(Number(record.billed)?'App: verrechnet':'App: offen')+(record.pending?' · wartet auf Drive':'');
+      const status=row.querySelector('.worklog-entry-status');if(status)status.textContent=(Number(record.billed)?'App: verrechnet':'App: offen')+(record.pending?' · auf Gerät gespeichert':'');
       const duration=row.querySelector('.worklog-entry-hours');if(duration)duration.textContent=minutes(record.hours);
     });
     for(const card of get('customer-list')?.querySelectorAll('.customer-card')||[]){

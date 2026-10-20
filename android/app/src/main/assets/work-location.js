@@ -26,9 +26,9 @@
     try{const raw=AndroidData[name](...args);if(String(raw).startsWith('ERROR:'))throw new Error(String(raw).slice(6).trim());return JSON.parse(raw);}
     catch(error){window.showUndoToast(error.message||'Die Zeiterfassung konnte nicht geändert werden.');return null;}
   }
-  function start(customerId,location){
+  function start(customerId,location,orderId=''){
     if(starting)return false;
-    const session=native('startWorkSession',JSON.stringify({request_id:requestId(),work_date:localDate(),customer_id:customerId||'',order_id:'',location:location||''}));
+    const session=native('startWorkSession',JSON.stringify({request_id:requestId(),work_date:localDate(),customer_id:customerId||'',order_id:orderId,location:location||''}));
     if(!session)return false;
     starting=true;discarded='';render();finishPage('home');if(dialog?.open)setTimeout(()=>{closeDialog();starting=false;},350);else starting=false;window.showUndoToast('Zeiterfassung gestartet'+(customerId?' für '+customerName(customerId):' – Kunde kann später ergänzt werden')+'.');return true;
   }
@@ -36,15 +36,16 @@
   function ensureDialog(){
     if(dialog)return;
     dialog=document.createElement('dialog');dialog.id='work-location-dialog';dialog.className='work-location-dialog';dialog.setAttribute('aria-labelledby','work-location-title');
-    dialog.innerHTML='<h2 id="work-location-title" tabindex="-1">Einsatz auswählen</h2><p id="work-location-message" role="status"></p><div id="work-location-candidates"></div><label for="work-location-search">Kunden suchen</label><input id="work-location-search" type="search" placeholder="Name oder Ort"><label for="work-location-customer">Kunde</label><select id="work-location-customer"><option value="">Bitte auswählen</option></select><label for="work-location-place">Arbeitsort · bitte prüfen</label><input id="work-location-place"><p class="sub">Ein Vorschlag ist keine Zuordnung. Du entscheidest, bei wem du arbeitest.</p><button type="button" class="primary" id="work-location-start">Für diesen Kunden starten</button><button type="button" class="secondary" id="work-location-new">+ Neuen Kunden anlegen</button><button type="button" class="secondary" id="work-location-later">Ohne Kunde starten · später zuordnen</button><button type="button" class="secondary" id="work-location-cancel">Abbrechen</button>';
+    dialog.innerHTML='<h2 id="work-location-title" tabindex="-1">Einsatz auswählen</h2><p id="work-location-message" role="status"></p><div id="work-location-candidates"></div><label for="work-location-search">Kunden suchen</label><input id="work-location-search" type="search" placeholder="Name oder Ort"><label for="work-location-customer">Kunde</label><select id="work-location-customer"><option value="">Bitte auswählen</option></select><details class="work-start-options"><summary>Auftrag oder Arbeitsort ergänzen (optional)</summary><label for="work-location-order">Auftrag</label><select id="work-location-order"><option value="">Ohne Auftrag</option></select><label for="work-location-place">Arbeitsort · bitte prüfen</label><input id="work-location-place"><button type="button" class="secondary" id="work-location-suggest">Standortvorschlag verwenden</button></details><p class="sub">Ein Vorschlag ist keine Zuordnung. Du entscheidest, bei wem du arbeitest.</p><button type="button" class="primary" id="work-location-start">Für diesen Kunden starten</button><button type="button" class="secondary" id="work-location-new">+ Neuen Kunden anlegen</button><button type="button" class="secondary" id="work-location-later">Ohne Kunde starten · später zuordnen</button><button type="button" class="secondary" id="work-location-cancel">Abbrechen</button>';
     document.body.append(dialog);
     get('work-location-cancel').onclick=closeDialog;
     dialog.addEventListener('cancel',event=>{event.preventDefault();closeDialog();});
     get('work-location-search').oninput=fillCustomers;
-    get('work-location-customer').onchange=()=>{get('work-location-start').disabled=!get('work-location-customer').value;};
+    get('work-location-customer').onchange=()=>{const id=get('work-location-customer').value;get('work-location-start').disabled=!id;get('work-location-order').innerHTML='<option value="">Ohne Auftrag</option>'+orders().filter(o=>o.customer_id===id).map(o=>'<option value="'+esc(o.id)+'">'+esc(o.title||'Auftrag')+'</option>').join('');};
+    get('work-location-suggest').onclick=()=>{request=requestId();get('work-location-message').textContent='Standortvorschlag wird geprüft. Du kannst jederzeit manuell starten.';if(AndroidData.requestWorkLocation)AndroidData.requestWorkLocation(request);else window.onWorkLocationResult(request,{status:'UNAVAILABLE',message:'Standortvorschlag nicht verfügbar. Bitte Kunden auswählen.'});get('work-location-title').focus({preventScroll:true});};
     get('work-location-start').onclick=()=>{
       const id=get('work-location-customer').value;if(!customers().some(c=>c.id===id)){window.showUndoToast('Bitte einen vorhandenen Kunden auswählen.');return;}
-      start(id,get('work-location-place').value.trim());
+      start(id,get('work-location-place').value.trim(),get('work-location-order').value);
     };
     get('work-location-later').onclick=()=>start('',get('work-location-place').value.trim());
     get('work-location-new').onclick=()=>{
@@ -61,7 +62,7 @@
     select.innerHTML='<option value="">Bitte auswählen</option>'+rows.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.name+(c.city?' · '+c.city:'')+(rank.has(c.id)?' · Standortvorschlag':''))+'</option>').join('');
     if(rows.some(c=>c.id===previous))select.value=previous;
     get('work-location-start').disabled=!select.value;
-    get('work-location-candidates').textContent=recommended.length?recommended.length+' mögliche Kunden an dieser Adresse/Straße. Bitte auswählen und bestätigen.':'Keine eindeutige Adressübereinstimmung. Kunden manuell auswählen oder neu anlegen.';
+    get('work-location-candidates').textContent=!fix?'Bitte den Kunden auswählen. Ein Auftrag und der Standort sind optional.':recommended.length?recommended.length+' mögliche Kunden an dieser Adresse/Straße. Bitte auswählen und bestätigen.':'Keine eindeutige Adressübereinstimmung. Kunden manuell auswählen oder neu anlegen.';
   }
   window.onWorkLocationResult=function(id,value){
     if(id!==request||!dialog?.open)return;
@@ -72,14 +73,12 @@
     fillCustomers();
   };
   function begin(){
-    ensureDialog();fix=null;get('work-location-search').value='';get('work-location-place').value='';get('work-location-customer').value='';get('work-location-message').textContent='Aktuellen Pixel-Standort prüfen …';fillCustomers();dialog.showModal();
+    ensureDialog();fix=null;get('work-location-search').value='';get('work-location-place').value='';get('work-location-customer').value='';get('work-location-message').textContent='Bei wem arbeitest du?';fillCustomers();dialog.showModal();
     // A modal normally focuses its first editable control, which opens Android's
     // software keyboard. Keep the initial focus on the heading; the keyboard is
     // then shown only after the user deliberately taps Search or another field.
     get('work-location-title').focus({preventScroll:true});
-    request=requestId();
-    if(AndroidData.requestWorkLocation)AndroidData.requestWorkLocation(request);
-    else window.onWorkLocationResult(request,{status:'UNAVAILABLE',message:'Standortprüfung benötigt die aktualisierte Android-App. Bitte Kunden manuell auswählen.'});
+    request='';get('work-location-message').textContent='Bei wem arbeitest du?';get('work-location-order').innerHTML='<option value="">Ohne Auftrag</option>';dialog.querySelector('.work-start-options').open=false;
   }
   function complete(session){
     const form=get('entry'),hidden=get('work-session-id');
@@ -121,7 +120,7 @@
     const active=['RUNNING','PAUSED','STOPPED_PENDING_REVIEW'].includes(session.state);
     if(active&&!panel.querySelector('[data-session-action="discard"]')){
       const button=document.createElement('button');button.type='button';button.className='timer-discard';button.dataset.sessionAction='discard';button.textContent='Zeiterfassung löschen';panel.append(button);
-      const context=document.createElement('p');context.className='timer-location-context';context.textContent=(session.customer_id?customerName(session.customer_id):'Kunde noch nicht zugeordnet')+(session.location?' · '+session.location:'');panel.prepend(context);
+      if(panel.querySelector('.timer-location-context'))return;const context=document.createElement('p');context.className='timer-location-context';context.textContent=(session.customer_id?customerName(session.customer_id):'Kunde noch nicht zugeordnet')+(session.location?' · '+session.location:'');panel.prepend(context);
     }
   }
   function init(){

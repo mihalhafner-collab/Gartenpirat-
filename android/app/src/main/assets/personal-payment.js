@@ -24,9 +24,9 @@
    const marked=paid.has(id),button=wrapper.querySelector('[data-personal-paid]');
    button.textContent=marked?'b.b. · bezahlt':'b.b.';button.setAttribute('aria-pressed',String(marked));
    button.setAttribute('aria-label',(marked?'Bezahlmarkierung entfernen: ':'Persönlich als bezahlt markieren: ')+records.get(id).activity);
-   button.title='Persönliche Übersicht auf diesem Gerät';
+   button.title='b.b. = persönliche Markierung auf diesem Gerät. Keine Rechnungszahlung und kein Abrechnungsnachweis.';button.setAttribute('aria-description',button.title);
    let label=row.querySelector('.personal-payment-label');
-   if(marked&&!label){label=document.createElement('small');label.className='personal-payment-label';label.textContent='bezahlt';row.append(label);}
+   if(marked&&!label){label=document.createElement('small');label.className='personal-payment-label';label.textContent='bezahlt';label.title='Persönliche Markierung · keine Rechnungszahlung';row.append(label);}
    if(!marked)label?.remove();
   }
  }
@@ -34,7 +34,7 @@
   const button=event.target.closest('[data-personal-paid]');if(!button)return;
   event.preventDefault();event.stopImmediatePropagation();
   const id=button.dataset.personalPaid;if(!worklogs().some(row=>row.id===id))return;
-  try{const paid=read();if(paid.has(id))paid.delete(id);else paid.add(id);const value=JSON.stringify([...paid]);if(typeof AndroidData?.setPersonalPaid==='function'){const result=AndroidData.setPersonalPaid(value);if(String(result).startsWith('ERROR:'))throw Error('Saving failed');}else localStorage.setItem(key,value);refresh();}
+  try{const paid=read();if(paid.has(id))paid.delete(id);else paid.add(id);const value=JSON.stringify([...paid]);if(typeof AndroidData?.setPersonalPaid==='function'){const result=AndroidData.setPersonalPaid(value);if(String(result).startsWith('ERROR:'))throw Error('Saving failed');}else localStorage.setItem(key,value);refresh();window.showUndoToast?.(paid.has(id)?'Persönlich als bezahlt markiert. Rechnungen und Abrechnung bleiben unverändert.':'Persönliche Markierung entfernt. Rechnungen und Abrechnung bleiben unverändert.');}
   catch(_){window.showUndoToast?.('Bezahlmarkierung nicht gespeichert. Die bisherige Übersicht bleibt erhalten.');}
  },true);
  const render=window.render;window.render=function(...args){const result=render.apply(this,args);refresh();return result;};

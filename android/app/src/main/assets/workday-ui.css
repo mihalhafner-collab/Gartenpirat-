@@ -22,3 +22,5 @@ label{font-size:.86rem;margin-top:12px;margin-bottom:6px;line-height:1.3}input:n
 .timer-main{color:#fff;background:#155f43}.timer-secondary{color:#744900;background:#ffb42c}.timer-stop{color:#fff;background:#d9443d}
 .timer-state{display:grid;gap:4px}.timer-state small{font-weight:800;color:#155f43}.timer-state strong{font-size:2.15rem;font-variant-numeric:tabular-nums;letter-spacing:.04em}.timer-state span{color:#53645b}
 .timer-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px}
+
+#home .quick{background:#fff;color:var(--green);border:1px solid var(--line)}#home .quick .icon{background:#edf3ef}.work-start-options{margin:.7rem 0}.work-start-options>summary{padding:12px;min-height:48px;cursor:pointer}.work-start-options>label,.work-start-options>input,.work-start-options>select{display:block;box-sizing:border-box;width:100%;max-width:100%}.worklog-window-actions [data-work-window-back]{white-space:normal}.timer-location-context{font-weight:750;overflow-wrap:anywhere}
