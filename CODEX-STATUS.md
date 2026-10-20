@@ -1,6 +1,6 @@
 # CODEX-STATUS
 
-Stand: 19. Oktober 2026
+Stand: 20. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
 > Diese Datei ist der fortlaufende technische Arbeitsnachweis für Codex Cloud.  
@@ -999,3 +999,22 @@ Geändert wurden MCP-/Query-/Schema-/Fehleradapter, Application Services/Ports/E
 - GitHub read-only: main plus drei alte codex/*-Branches. Alle drei waren beim letzten Vergleich vollständig in main enthalten; Löschung erst nach frischem Vergleich im P2-Schritt. downloads/ enthält zwölf alte APK-Kandidaten Build66–79 plus README/SHA256SUMS; P1/81 liegt privat in Drive und nicht im GitHub-downloads-Ordner.
 - Neuer verbindlicher P2-Block in CODEX-AUFTRAG-GARTENPIRAT.md: GitHub-/Codex-Konsolidierung, sichere Drive-/Archiv-/Backupklassifikation, read-only Orphan-Audit vor jeder Dateilöschung, kein History-Rewrite und keine pauschale Löschung geschäfts-/steuerrelevanter Unterlagen.
 - Noch keine destruktive P2-Aktion ausgeführt. Nächster Schritt: frischer Mergevergleich der drei alten Branches und Klassifikation der APK-/Dokumentationskandidaten.
+
+
+## P2-1 – frisches read-only Gesamtinventar (20.10.2026)
+
+- Ausgang `348b40abcb7be78e6444407de58d96c6f07dd080`, sauber auf aktuellem `main`; nur zentrale P2-Anweisungen per Fast-forward übernommen. Keine Geschäftsdaten geschrieben, keine Datei/Branch gelöscht. P0 Source-/Workspace-/Original-81-Artifact-Gates PASS; P1-Gesamtvertrag unverändert `899906c246f9cb8256666c32a89435aa5f792eede3d3407b1c846380900aa813`, 117 Tools / 156 UI-Aktionen.
+- Branches erneut direkt vom Remote gelesen: `codex/original-signing-cloud-setup-20261018` bei `5fbe0a3a8c1f9073dc83f83b37b741a59e935ee4`, `codex/preserve-cloud-28504c9-20261018` bei `28504c97278a7deebdfdbf0d9d5eeb57c5c319e4`, `codex/v1.46-functional-optimization-20261016` bei `49d8cb965844a32c708dde5b52867d7c0ff85769`. Alle echte Vorfahren von main, jeweils 0 eigene / 32, 79, 82 zusätzliche Main-Commits. Veralteten lokalen Trackingref nicht als Nachweis verwendet.
+- Zwölf getrackte Original-APKs 66–79 inventarisiert und gegen SHA256SUMS verglichen. Zielklassifikation: 81 privat in Drive als aktueller freigegebener Referenzbuild, 79 als letzter GitHub-Referenzbuild erhalten; ältere elf Binaries sind überholte Entwicklungsartefakte, keine Appdaten. Keine Behauptung einer Android-Downgradefreigabe. 30 Markdown-Dateien erfasst, Referenzen geprüft; technische Legacy-Komponenten weiterhin tatsächlich von Tests/Migration benötigt.
+- Pixel frisch gelesen: Originalpaket, 1.51.2/81, MCP9/117, Write aktiv, eingebetteter Quellcommit e8a1d09. Aktive Queue/Upload/Review 0/0/0, keine Sync-/Journalfehler; Provider-Readback, cloud_confirmed=false. Rohzähler `pending_actions=1` ist vom gefilterten Queue-Status zu unterscheiden; kein Eintrag entfernt oder quittiert. Geschäftsgruppenhash `2b8310a538134a49966b736ae660758e2863a1d9fe62e973c11cc1f4ddb07932`, Counts 58/3/46/95/31/33/0/1. Live-Toolhash `8780ff5fa46d421c4a1ea858db30b232e0272303065d80f28f5f43e242a139aa` ausdrücklich vom JVM-Quellhash unterscheiden; kein Vertragsumbau in P2.
+- Archiv vollständig 100+39 paginiert: 139 Einträge, davon 129 historische Arbeiten, zwei geschützte Rechnungen und acht unklare Einträge (zwei Angebote, drei Kunden, drei Fotos); keine sicher ausdrücklich markierten Testdatensätze. **Alle KEEP**, keine Purge-Freigabe daraus ableiten.
+- Sechs Backups vollständig gelistet, alle sechs inspect_backup-Aufrufe READ_ERROR. Vier umfangreichere/ältere Referenzen und zwei bytegleiche kleine Altbackups bleiben geschützt; Metadaten allein sind kein aktueller vollständiger Restore-Nachweis. Kein unterstützter Backup-Löschweg gefunden. Aktuelle prüfbare Sicherung vor Löschgruppen noch offen.
+- Drive ausschließlich Metadaten: Hauptordner 116 Einträge, Fotoordner 53, APK-Backups 34, Codex-Cloud-Builds 9, geschützter Sicherungsordner 6; zusammen 218 Einträge einschließlich vier Ordnern. 99 State-/Commit-/Mobile-/Legacy-Dateien geschützt, 47 Releaseartefakte, 53 Fotos, 15 sonstige/unklare Dateien. 44 Foto-/Dokumentdateien lassen sich schon aktiven/archivierten Storage-Referenzen zuordnen. Unvollständige Backup-/Historienreferenzen und nicht zugesicherte globale Connector-Vollständigkeit verhindern jeden sicheren Orphan-Löschnachweis. Keine JSON-/Foto-/PDF-/Backup-Rohdatei in den Workspace kopiert.
+- Status: Inventar PASS soweit durch vorhandene Lesewege erreichbar, vollständige Sicherungs-/Orphan-Abnahme OFFEN. Nächster Schritt: bestehende lokale Backupfunktion einmal mit stabiler Request-ID verwenden und prüfen; dann ausschließlich nachgewiesen freigegebene technische Bereinigungen.
+
+
+## P2-2 – Sicherung vor Bereinigungen bestätigt (20.10.2026)
+
+- Bestehenden autorisierten App-Weg einmal mit stabiler Request-ID `p2_20261020_pre_cleanup_current_backup_v1` verwendet. Neue private Geschäftssicherung `backup_240b8a9bedea701bd45a7a92536916328f4cb6319e5dfaee8eff900e1ea0b0be`, 33.524.508 Bytes, SHA-256 `d965237fc10717e58e0897ebf14b13bddfcb18ff298a5139ca955750f252d780`. inspect_backup PASS; Umfang Snapshot/Pending/lokale Originale und Dokumente, keine Zugangsdaten und kein vollständiges Gerätebackup. Counts 58/3/46/95/31/33/0/1. Keine Rohbytes heruntergeladen oder im Repository gespeichert.
+- Geschäftsdatenhash vor/nach Sicherung identisch `2b8310a538134a49966b736ae660758e2863a1d9fe62e973c11cc1f4ddb07932`; aktive Queue/Review/Journalfehler weiterhin 0. Alle sechs früheren Backups unverändert erhalten. Deren READ_ERROR-Ursache nicht ungeprüft als beschädigte Datei ausgegeben; Quellcode setzt bei Inspektion alle heutigen Collections voraus, ältere Sicherungen können darunter scheitern.
+- PASS: Voraussetzung einer aktuellen prüfbaren Geschäftssicherung für die nachfolgenden rein technischen Löschgruppen erfüllt. Kein Restore, kein Purge, kein Drive-Datei-Cleanup und keine Installation.
