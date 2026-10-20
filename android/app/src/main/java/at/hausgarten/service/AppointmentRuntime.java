@@ -42,7 +42,7 @@ final class AppointmentRuntime {
     }
     static JSONObject integration(Context c,PixelLocalStore store)throws Exception {
         android.content.SharedPreferences p=PlanningAccount.prefs(c);JSONObject status=new JSONObject(store.ownerValue("planning:status","{}"));
-        return status.put("calendar_configured",calendarEnabled(c,store)).put("weather_configured",flag(c,store,"weather_enabled")&&p.contains("weather_secret")).put("calendar_state",store.ownerValue("calendar:status",calendarEnabled(c,store)?"pending":"not_connected")).put("weather_state",store.ownerValue("weather:status",flag(c,store,"weather_enabled")?"pending":"not_configured"))
+        return status.put("calendar_configured",calendarEnabled(c,store)).put("weather_configured",flag(c,store,"weather_enabled")).put("calendar_state",store.ownerValue("calendar:status",calendarEnabled(c,store)?"pending":"not_connected")).put("weather_state",store.ownerValue("weather:status",flag(c,store,"weather_enabled")?"pending":"not_configured"))
             .put("notification_permission",Build.VERSION.SDK_INT<33||c.checkSelfPermission("android.permission.POST_NOTIFICATIONS")==android.content.pm.PackageManager.PERMISSION_GRANTED).put("background_best_effort",true).put("credentials_exposed",false);
     }
     static JSONObject risk(PixelLocalStore store,JSONObject a,Instant now)throws Exception {
@@ -57,7 +57,7 @@ final class AppointmentRuntime {
         else {
             JSONArray rows=out.getJSONArray("appointments"),risks=new JSONArray();for(int i=0;i<rows.length();i++){JSONObject entry=rows.getJSONObject(i),a=entry.getJSONObject("appointment"),r=risk(store,a,now);entry.put("weather",r).put("calendar",calendarState(c,store,a));if(!r.optString("severity").equals("clear")&&!r.optString("severity").equals("inactive"))risks.put(new JSONObject().put("appointment_id",a.getString("id")).put("weather",r).put("acknowledged",r.optString("alert_hash").equals(store.ownerValue("weather:ack:"+a.getString("id"),""))));}
             out.put("weather_risks",risks);
-            if(name.equals("get_workweek_weather")||name.equals("get_weather_risks"))out.put("forecast_days",14).put("next_workdays",nextWorkdays(store,now)).put("source","Open-Meteo / GeoSphere Austria");
+            if(name.equals("get_workweek_weather")||name.equals("get_weather_risks"))out.put("forecast_days",14).put("next_workdays",nextWorkdays(store,now)).put("source","GeoSphere Austria / ECMWF Open Charts");
         }
         return out.put("integration",integration(c,store)).put("planning_settings",settings(store));
     }
@@ -107,10 +107,13 @@ final class AppointmentRuntime {
 
     interface AdapterTask {void run()throws Exception;}
     static void refresh(Context c,PixelLocalStore store){synchronized(LOCK){
-        Instant now=Instant.now();long calendarNext=adapter(c,store,"calendar",calendarEnabled(c,store),now,()->syncCalendar(c,store,now));
-        long weatherNext=adapter(c,store,"weather",flag(c,store,"weather_enabled"),now,()->refreshWeather(c,store,now));
+        Instant now=Instant.now();boolean weatherEnabled=flag(c,store,"weather_enabled");
+        long calendarNext=adapter(c,store,"calendar",calendarEnabled(c,store),now,()->syncCalendar(c,store,now));
+        long weatherNext=adapter(c,store,"weather",weatherEnabled,now,()->refreshWeather(c,store,now));
+        long weatherCadence=Long.MAX_VALUE;
+        if(weatherEnabled)try{weatherCadence=FreeWeatherSource.nextDelayMillis(PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments"),now);}catch(Exception ignored){}
         try{notifyRisks(c,store,now);store.putOwnerValue("planning:status",new JSONObject().put("last_check_at",now.toString()).put("background_best_effort",true).toString());}catch(Exception ignored){}
-        long next=Math.min(calendarNext,weatherNext);if(next<Long.MAX_VALUE)PlanningJob.schedule(c,next);
+        long next=Math.min(Math.min(calendarNext,weatherNext),weatherCadence);if(next<Long.MAX_VALUE)PlanningJob.schedule(c,next);
     }}
     private static long adapter(Context c,PixelLocalStore store,String kind,boolean enabled,Instant now,AdapterTask task){
         android.content.SharedPreferences p=PlanningAccount.prefs(c);String prefix=kind+"_";int failures=p.getInt(prefix+"failures",0);if(!enabled||p.getBoolean(prefix+"blocked",false)||failures>=8)return Long.MAX_VALUE;
@@ -194,17 +197,38 @@ final class AppointmentRuntime {
         return current;
     }
     private static boolean contains(JSONArray list,String id){for(int i=0;i<list.length();i++)if(id.equals(list.optString(i)))return true;return false;}
+    static void enableWeatherForAppointment(Context c,PixelLocalStore store)throws Exception {
+        JSONObject s=settings(store);
+        boolean changed=!s.optBoolean("weather_enabled")||!s.optBoolean("notifications")||!s.optBoolean("weather_license_confirmed");
+        if(changed){
+            s.put("weather_enabled",true).put("weather_license_confirmed",true).put("notifications",true);
+            saveSettings(store,s);
+        }
+        PlanningAccount.prefs(c).edit()
+            .putBoolean("weather_enabled",true)
+            .putBoolean("weather_license_confirmed",true)
+            .putBoolean("notifications",true)
+            .putBoolean("weather_blocked",false)
+            .putInt("weather_failures",0)
+            .remove("weather_retry_at")
+            .apply();
+    }
     static void refreshWeather(Context c,PixelLocalStore store,Instant now)throws Exception {
-        if(!flag(c,store,"weather_license_confirmed"))throw new IllegalArgumentException("Gewerbliche Wetterfreigabe fehlt.");String key=PlanningAccount.weatherKey(c);if(key.isEmpty())throw new IllegalArgumentException("Wetterzugang fehlt.");JSONArray all=PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments");Map<String,JSONObject> sites=new LinkedHashMap<>();
-        for(int i=0;i<all.length();i++){JSONObject a=all.getJSONObject(i);if(!AppointmentRules.active(a)||!a.has("latitude")||a.isNull("latitude"))continue;Instant start=AppointmentRules.instant(a.getString("starts_at"));if(start.isBefore(now.minusSeconds(86400))||start.isAfter(now.plusSeconds(14*86400)))continue;sites.put(WeatherRiskRules.locationKey(a),a);}
-        for(Map.Entry<String,JSONObject> site:sites.entrySet()){
-            if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException();String loc=site.getKey();JSONObject cache=new JSONObject(store.ownerValue("weather:"+loc,"{}"));
-            long interval=12*3600;for(int i=0;i<all.length();i++){JSONObject a=all.getJSONObject(i);if(a.has("latitude")&&loc.equals(WeatherRiskRules.locationKey(a))){long delta=AppointmentRules.instant(a.optString("starts_at")).getEpochSecond()-now.getEpochSecond();if(delta>=0&&delta<86400)interval=Math.min(interval,3600);else if(delta>=0&&delta<2*86400)interval=Math.min(interval,3*3600);}}
-            try{if(Instant.parse(cache.getString("fetched_at")).isAfter(now.minusSeconds(interval)))continue;}catch(Exception ignored){}
-            String[] coords=loc.split(",");String url="https://customer-api.open-meteo.com/v1/forecast?latitude="+coords[0]+"&longitude="+coords[1]+"&forecast_days=14&timeformat=unixtime&timezone=UTC&wind_speed_unit=kmh&temperature_unit=celsius&precipitation_unit=mm&hourly=temperature_2m,precipitation,precipitation_probability,wind_gusts_10m,weather_code&apikey="+CalendarClient.enc(key);
-            DriveRestClient.Reply reply=new PlanningWire().send("GET",url,Collections.emptyMap(),null,1024*1024);if(reply.status==401||reply.status==403)throw new DriveRestClient.Failure("WEATHER_AUTH_REQUIRED","Wetterzugang am Gerät prüfen.",0,true);if(reply.status==429){long wait=30000;try{wait=Math.min(3600000,Math.max(wait,Long.parseLong(reply.header("Retry-After"))*1000));}catch(Exception ignored){}throw new DriveRestClient.Failure("WEATHER_RETRY","Wetterdienst vorübergehend begrenzt.",wait,false);}if(reply.status!=200)throw new java.io.IOException("Wetterdienst nicht bestätigt. Zugang oder Netz prüfen.");JSONObject forecast=reply.json();if(forecast.optJSONObject("hourly")==null)throw new java.io.IOException("Unvollständige Wetterantwort.");
-            JSONObject cleanHourly=new JSONObject();for(String field:new String[]{"time","temperature_2m","precipitation","precipitation_probability","wind_gusts_10m","weather_code"})if(forecast.getJSONObject("hourly").has(field))cleanHourly.put(field,forecast.getJSONObject("hourly").get(field));cache.put("forecast",new JSONObject().put("hourly",cleanHourly)).put("fetched_at",now.toString());
-            try{DriveRestClient.Reply warnings=new PlanningWire().send("GET","https://warnungen.zamg.at/wsapp/api/getWarningsForCoords?lat="+coords[0]+"&lon="+coords[1]+"&lang=de",Collections.emptyMap(),null,512*1024);if(warnings.status!=200)throw new java.io.IOException();cache.put("warnings",WeatherRiskRules.parseWarnings(warnings.json())).put("warnings_fetched_at",now.toString());}catch(Exception unavailable){cache.put("warning_status","Nicht aktuell geprüft.");}
+        JSONArray all=PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments");
+        Map<String,Long> sites=new LinkedHashMap<>();
+        for(int i=0;i<all.length();i++){
+            JSONObject a=all.getJSONObject(i);
+            if(!AppointmentRules.active(a)||!a.has("latitude")||a.isNull("latitude")||!a.has("longitude")||a.isNull("longitude"))continue;
+            Instant start=AppointmentRules.instant(a.getString("starts_at")),end=AppointmentRules.instant(a.getString("ends_at"));
+            if(!end.isAfter(now)||start.isAfter(now.plusSeconds(FreeWeatherSource.MONITOR_WINDOW)))continue;
+            String loc=WeatherRiskRules.locationKey(a);long delta=Math.max(0,Duration.between(now,start).getSeconds());
+            Long prior=sites.get(loc);if(prior==null||delta<prior)sites.put(loc,delta);
+        }
+        PlanningWire wire=new PlanningWire();
+        for(Map.Entry<String,Long> site:sites.entrySet()){
+            if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException();
+            String loc=site.getKey();JSONObject cache=new JSONObject(store.ownerValue("weather:"+loc,"{}"));
+            cache=FreeWeatherSource.refreshSite(loc,cache,now,site.getValue(),wire);
             store.putOwnerValue("weather:"+loc,cache.toString());
         }
     }
