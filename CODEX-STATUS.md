@@ -3,6 +3,17 @@
 Stand: 21. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Cloud-Quellstand gesichert, GitHub-Regeln abgeglichen, Journalpaar geprüft (21.10.2026)
+
+Nutzerauftrag nach der reinen Bestandsanalyse: aktuellen Cloud-Quellstand dauerhaft sichern, neue GitHub-Regeln abgleichen und die Journal-Namenskollision prüfen. Kriterien: vollständige bytegleiche Sicherung der bisherigen Originalarbeit im bestehenden privaten Repository, tatsächlicher Remote-Readback, keine verlorenen Optimierungen oder schwächeren Gates, keine Betriebsdaten in Git und keine produktive Drive-Schreibaktion. Keine APK, Signierung, Versionserhöhung oder Installation.
+
+- **Originalarbeit zuerst gesichert:** alle 133 bisherigen Änderungen (87 geänderte und 46 neue Quelldateien) einzeln anhand Pfad, Größe und SHA256 geprüft und explizit aufgenommen; kein pauschales `git add .`. Sicherungscommit `74c7af719fcd5d3203bcaee77b0496bfcf0920fa` auf `backup/cloud-source-20261021` ins bestehende private Repository gepusht. Exakter Commit per `git ls-remote` und unabhängigem GitHub-Commit-Readback bestätigt: https://github.com/mihalhafner-collab/Gartenpirat-/commit/74c7af719fcd5d3203bcaee77b0496bfcf0920fa . Alle 133 Originaldateien anschließend gegen die Commitbytes verglichen. Source-Privacy 1.211 Dateien / Workspace-Privacy 4.805 Dateien PASS, 0 Betriebsdatenseeds. Keine Git-Historie umgeschrieben und kein Push auf main.
+- **Regeln vollständig übernommen:** tatsächlichen GitHub-main `e13ba07bf990fea7e712b888a5893b83fdfc36b5` nach vorheriger Sicherung in denselben Arbeitsbranch integriert. Veralteter lokaler origin/main-Verweis durch Fetch aktualisiert. Neue AGENTS-Sicherungsregeln, Zentralauftrag/README, `tools/source_preservation.py`, Signier-CLI-Sperre und synthetische Prüfungen erhalten. Konflikte ausschließlich in `CODEX-STATUS.md` und `tests/package_source_copy.py`: beide Statushistorien bewahrt; Exporter verbindet die neue Clean-/Remote-Prüfung und gepinnte Git-Originalbytes mit bisherigen deterministischen ZIPs, komprimierten Originalbildern, Modus-/CRC-/Byte-/Privacy-Prüfungen und explizitem `--reuse-existing`. Committete Symlinks/Submodule abweisen; Git-Unterprozesse erhalten keine Originalsignierungsvariablen. Kein Dirty-/Offline-/Skip-Ausweg ergänzt.
+- **Eindeutiger Einstieg:** `AKTUELLER-STAND.json` verweist für laufende Entwicklung auf diesen Sicherungsbranch und den bestätigten Originalcheckpoint; Main-/Gradle-Fingerprint unverändert `aa2981fe1e6cd251eb9fb5e590c5292b0841d7f0037b46ac594ed6bdc46d6c09` (539 Dateien). Der Entwicklungsstand enthält Nach-Build90-Änderungen; keine APK dafür gebaut. `verified_release_source` bleibt null, zuletzt beobachtete Installation89 und deren separate Provenienz bleiben ausdrücklich unbestätigt. Keine falsche Release-Versionsmarke erzeugt.
+- **Journalpaar tatsächlich lesend verglichen:** neuere Datei 612.709 Bytes / 469 eindeutige Aktionen, ältere 26.521 Bytes / 33 eindeutige Aktionen. Alle 33 älteren Aktionen nach stabiler JSON-/Zahlennormalisierung byteinhaltlich identisch im neueren Journal enthalten; 436 ausschließlich neue Aktionen, 0 ausschließlich alte Aktionen, 0 kollidierende Aktionskennungen, 0 ungültige Zeilen oder interne Wiederholungen. Metadaten vor/nach der Lesung unverändert. Der bestehende Union-Pfad dedupliziert diese identischen Kennungen; dieses Paar liefert keinen `ACTION_ID_CONFLICT`. Keine Löschung, Zusammenführung oder Quittierung auf Drive ausgeführt. Server-Veröffentlichungsquittungen und Pixel-Laufzeit nicht gelesen; keine vollständige Abgleich- oder Löschfreigabe daraus abgeleitet.
+- **Privatsphäre:** Journal-Rohbytes ausschließlich in temporären Downloads außerhalb des Checkouts gelesen, anschließend beide eigenen temporären Kopien entfernt. Im Repository ausschließlich Zählwerte und SHA256 in `docs/verification/journal-collision-audit-2026-10-21.json`; keine Kunden, Tätigkeiten, Preise, Aktionskennungen oder Rohdatensätze übernommen. Bekannte sensible Altobjekte in Git-Historie bleiben ein eigener Sicherheitsauftrag; kein automatisches Rewrite.
+- **Gezielte Abnahme tatsächlich ausgeführt:** 87 synthetische Tests für Quellcodesicherung, Originalsignier-CLI, Exportübertragung und Quellprivacy PASS. Zwei zusätzliche Integrationsproben sichern Wiederverwendung desselben gepinnten Archivs samt ausführbarem Git-Dateimodus und Ablehnung committeter Symlinks; die bestehende Probe mit nachträglich gelöschter/veränderter Arbeitskopie bleibt erhalten. Mock der Artefaktprüfung auf deren tatsächlichen neuen Aufrufort im gemeinsamen ZIP-Helfer angepasst; keine Schutzassertion entfernt. UI-Review-/MCP-Inventar PASS (117 Tools, 52 lesend / 65 schreibend, 156 UI-Aktionen), Vertrag `899906c246f9cb8256666c32a89435aa5f792eede3d3407b1c846380900aa813` unverändert; 370 generierte Pflanzenressourcen PASS. Abschließender Gesamtlauf und finaler Integrations-Readback folgen gesondert.
+
 ## Mobilfunkdurchsatz und unmittelbarer Abgleich (21.10.2026)
 
 **Auftrag / vorab festgelegte Kriterien:** Bestehende Mobilfunkverbindung auf nutzbaren Durchsatz, kurze Latenz, Parallelität, zeitnahen Änderungsabgleich und Zuverlässigkeit optimieren. **Datenvolumen ist ausdrücklich kein Optimierungsziel.** Bis zu drei unabhängige Dateiübertragungen gleichzeitig; vollständiger Readback jeder Datei, begrenzter RAM-/HTTP-Druck, unveränderte fachliche Journal-/Nummern-/Veröffentlichungs-/Löschreihenfolge. Künstliche 500-/1500-ms-Verzögerungen entfernen, Anforderungen nicht immer wieder nach hinten schieben, neue Änderungen nach laufendem Abgleich sofort weiterverarbeiten. Undo-Fristen, Serverwartezeiten, Freigaben/Opt-in und Android-Systemgrenzen erhalten. Nur synthetische App-Tests; keine APK/Signierung/Installation oder Betriebsdatenaktion.
@@ -380,6 +391,41 @@ Aktueller Quellfingerprint unverändert `f25f7379bf7e33ddac66b6e816a10a6266968f2
 - **Build PASS:** Version `1.52.2/84`, `at.hausgarten.service`; Release gebaut, Android-Instrumentierungsquellen kompiliert, Release-Lint 0 Fehler / 37 Warnungen. Finale unsignierte Prüf-APK SHA-256 `e1c57ba730791d4f9fd78248db2cd530cbc43e4214b3a8ccb56af8a3c60edf0f`, ZIP-Integrität und alle 414 Quellassets bytegleich. Source-/gesamter Workspace-/Artifact-Privacy-Gates PASS, 0 operative Seedzeilen. 21 vorbestehende unklassifizierte Ausgaben zu Beginn unverändert außerhalb des Checkouts erhalten (`/tmp/qa_preserved_previous_outputs_1_e5b1ct`), nichts gelöscht oder als neue Testprovenienz ausgegeben.
 - **Grenzen:** neue native Sequenz Kunde/Änderung/2,5-h-Arbeit/Purge/Replay/Neustart kompiliert, hier nicht ausgeführt (kein Emulator/KVM vorhanden). Physischer Pixel, echter Drive-/Google-/Wetterpfad und In-place-Update/Datenerhalt bleiben offen. Keine Originalsignierung, APK-Veröffentlichung, Installation, Kontofreigabe oder produktive Datenaktion; APK ist ausschließlich ein Cloud-Prüfartefakt. Keine automatische Commit-/PR-/Push-Aktion. Historisches MCP-Testdossier unverändert erhalten.
 - Nachweise: `outputs/qa-overview-browser-final.json`, `outputs/QA-Python-results.json`, `outputs/integration-java/results.json`, `outputs/QA-MCP-E2E.json`, synthetische Übersichtsscreenshots und Gradle-Berichte. Dauerhafte Anforderungen unter AGENTS/Alltagstauglichkeit fortgeschrieben. Nächster Geräte-Schritt benötigt die bestehende Sicherungs-/Originalsignatur-/Freigabekette; keine Geräteabnahme aus Hosttests ableiten.
+
+## Dauerhafte Cloud-Quellcodesicherung (21.10.2026)
+
+Nutzerauftrag: Den gültigen Originalcode dauerhaft außerhalb einzelner Cloud-Tasks
+abrufbar halten und ungesicherte Auslieferungen verhindern. Abnahme: bestätigter
+GitHub-Commit, Originalexport aus genau diesem Commit, Abbruch bei Dirty/Unpushed/
+falschem oder unerreichbarem Remote sowie nachträglicher Checkoutänderung; keine
+Schlüssel-, Geräte- oder Betriebsdatenaktion.
+
+- Verbindliche Regel in AGENTS.md, Querverweis im Zentralauftrag und README.
+  Nach Änderungsschritten/Unterbrechung/Abschluss sichern und extern bestätigen;
+  ursprüngliche Arbeit vor Taskwechsel/Übernahme erhalten. Versionsmarke,
+  Quell-/APK-/Archivhash, Drive-Kopie und frischer Task-Readback vor Auslieferung.
+- AKTUELLER-STAND.json dient als Einstieg. Der zuletzt beobachtete installierte
+  Stand1.54.0/89 meldet source_dirty=true; sein gemeldeter Basiscommit ersetzt
+  keinen bestätigten Originalquellstand. verified_release_source bleibt null.
+  Diese Regeländerung gewinnt den fremden Build-89-Arbeitsstand nicht wieder.
+- tools/source_preservation.py prüft lesend den sauberen Checkout einschließlich
+  unversionierter Android-Eingaben und einen Branch/Tag des bestehenden GitHub-
+  Repositorys auf genau diesem Commit. Fehler/Netzausfall bleiben blockierend;
+  Git erhält keine HG_ORIGINAL_*-Variablen. Kein Push, Reset oder Schlüsselzugriff
+  durch das Prüfwerkzeug. Es bestätigt nicht selbst die APK-Provenienz.
+- Offizieller Originalsignier-CLI und Quellcodeexport erzwingen die Prüfung. Der
+  Exporter liest Dateien aus den gepinnten Git-Objekten statt veränderlichen
+  Arbeitsdateien; Ziel perplexity ergänzt. Privacy-Gates unverändert erhalten.
+- Gezielte Abnahme: 11 neue isolierte Git-/Signier-CLI-/Exportproben PASS,
+  42 vorhandene synthetische Originalsigniertests PASS, 13 Quellprivacy-Regeltests
+  PASS. Temporäre lokale Git-Remotes, synthetische Nicht-Schlüsselbytes und
+  gemockte Androidwerkzeuge; keine echten Konten, Signierwerkzeuge oder Geräte.
+  Source-Gate PASS, Bootstrap0; Abbruch am uncommitteten echten Workspace bestätigt.
+  Keine Android-/UI-Regression behauptet: keine operative App-Funktion geändert.
+- Globale Kontoeinstellungen und bereits laufende andere Tasks werden nicht
+  automatisch umgestellt. Dort vor weiterer Auslieferung die aktuelle AGENTS.md
+  lesen und vorhandene Originalarbeit ohne Reset sichern. Separate Cloud-only-,
+  Originalsignatur-, Privacy- und Installationsfreigaben bleiben verbindlich.
 
 ## Übergabe an einen neuen Cloud-Task (20.10.2026)
 

@@ -1,0 +1,38 @@
+{
+  "classification": "TECHNICAL_READ_ONLY_AUDIT",
+  "checked_at_utc": "2026-10-21T16:35:03.568522+00:00",
+  "scope": "two explicitly requested same-name Drive journals; no snapshot receipts or Pixel runtime read",
+  "files": [
+    {
+      "label": "newer",
+      "bytes": 612709,
+      "sha256": "c4d4a0eb2aabab111eae2008e4d02f9d956134dcb4c7f903997751c1cc03a332",
+      "actions": 469,
+      "unique_action_ids": 469,
+      "identical_repeats_within_file": 0,
+      "conflicting_repeats_within_file": 0,
+      "invalid_action_rows": 0
+    },
+    {
+      "label": "older",
+      "bytes": 26521,
+      "sha256": "09b9397ed5ab7eb463b2169e1dcd3e431fcc60787e158c12a5df0522e514da91",
+      "actions": 33,
+      "unique_action_ids": 33,
+      "identical_repeats_within_file": 0,
+      "conflicting_repeats_within_file": 0,
+      "invalid_action_rows": 0
+    }
+  ],
+  "comparison": {
+    "shared_action_ids": 33,
+    "shared_identical_actions": 33,
+    "shared_conflicting_actions": 0,
+    "newer_only_actions": 436,
+    "older_only_actions": 0,
+    "older_is_complete_identical_subset": true
+  },
+  "metadata_stable_before_after": true,
+  "remote_changes": 0,
+  "conclusion": "Older actions are fully represented unchanged in newer journal. No ACTION_ID_CONFLICT in this pair. No deletion performed or receipt completeness inferred."
+}

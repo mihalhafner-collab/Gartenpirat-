@@ -1,0 +1,31 @@
+{
+  "format": "gartenpirat.source-location.v1",
+  "updated_at_utc": "2026-10-21",
+  "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
+  "development_ref": "refs/heads/backup/cloud-source-20261021",
+  "development_snapshot": {
+    "status": "PRESERVED_ON_GITHUB_NOT_RELEASED",
+    "original_cloud_checkpoint_git_sha": "74c7af719fcd5d3203bcaee77b0496bfcf0920fa",
+    "source_sha256": "aa2981fe1e6cd251eb9fb5e590c5292b0841d7f0037b46ac594ed6bdc46d6c09",
+    "main_and_gradle_files": 539,
+    "version_name": "1.54.1",
+    "version_code": 90,
+    "changes_after_delivered_build_90": true,
+    "rules_from_main_git_sha": "e13ba07bf990fea7e712b888a5893b83fdfc36b5",
+    "apk_for_this_development_snapshot": "NOT BUILT"
+  },
+  "verified_release_source": null,
+  "last_observed_installed_build": {
+    "observed_at_utc": "2026-10-21",
+    "version_name": "1.54.0",
+    "version_code": 89,
+    "reported_base_git_sha": "72f96919d6a42ef8a2759c14c6da1df7359726d6",
+    "source_sha256": "b05723a29302dfc98e8ac6a3aefcbaffd6cb5c0b1c5632fd6889df5761774aa1",
+    "source_dirty": true,
+    "source_status": "ORIGINAL_SOURCE_NOT_YET_VERIFIED_ON_GITHUB_OR_DRIVE"
+  },
+  "handoff": {
+    "reported_workspace": "/workspace/Gartenpirat-; current original cloud work preserved on the development_ref",
+    "required_action": "Read the development_ref and AGENTS.md before continuing. Keep the original cloud checkpoint and integrated rules. Build-89 provenance and actual Pixel installation remain separate and unverified; do not set verified_release_source from this later development checkpoint."
+  }
+}

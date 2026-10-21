@@ -26,6 +26,12 @@ from tools import sign_original_apk as signing
 
 class OriginalSigningTests(unittest.TestCase):
     def setUp(self):
+        # These tests isolate signing; the source handoff guard has its own real
+        # disposable-Git tests and an explicit signer rejection test.
+        preservation = mock.patch('tools.source_preservation.verify_preserved_source',
+                                  return_value={'status':'PASS','git_sha':'0'*40})
+        preservation.start()
+        self.addCleanup(preservation.stop)
         self.temp = __import__("synthetic_fixtures").temporary_directory(prefix='hg-signing-synthetic-test-')
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)

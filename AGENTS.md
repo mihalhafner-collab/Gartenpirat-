@@ -10,6 +10,58 @@ Für den aktuellen Cloud-Auftrag gilt diese Lesereihenfolge verbindlich:
 
 Codex Cloud soll den Auftrag aus `CODEX-AUFTRAG-GARTENPIRAT.md` selbstständig phasenweise abarbeiten und `CODEX-STATUS.md` nach jeder abgeschlossenen Phase aktualisieren. Historische Dokumentation dient nur als Referenz und darf den dort festgelegten Cloud-only-/Pixel-Drive-Zielpfad nicht wieder durch eine Laptop-/Desktop-Abhängigkeit ersetzen.
 
+## Dauerhafte Quellcodesicherung in Codex Cloud (21. Oktober 2026)
+
+Diese Regel gilt für alle künftigen Arbeiten in diesem Repository, einschließlich
+laufender Aufgaben, sobald sie die aktualisierten Regeln lesen. GitHub ist die
+verbindliche dauerhafte Originalquelle; ein Cloud-Arbeitsordner, ein Chatbericht
+oder eine fertige APK ist kein Ersatz für einen extern gesicherten Quellstand.
+
+- Beim Einstieg `AKTUELLER-STAND.json`, den tatsächlichen GitHub-main und bestehende
+  Arbeitsbranches lesen. Freigegebene Version, zuletzt beobachtete Installation
+  und laufende Entwicklung getrennt halten. Bei Abweichungen den ursprünglichen
+  Arbeitsstand erhalten; niemals einen alten Checkout nur auf eine neuere
+  Versionsnummer umbenennen oder ungesicherte Arbeit durch Reset/Pull überschreiben.
+- Nach jedem abgeschlossenen Änderungsschritt, vor Builds zur Auslieferung,
+  Aufgabenwechsel, Unterbrechung und Abschluss: relevante Originaldateien nach
+  Datenschutzprüfung committen, in das bestehende private Repository pushen und
+  den genauen Commit auf GitHub zurücklesen. Diese Sicherung ist für beauftragte
+  Änderungen ausdrücklich autorisiert. Nur die eigenen geprüften Änderungen
+  aufnehmen; kein pauschales `git add .`, kein Force-Push und kein History-Rewrite.
+- Unfertige Arbeit auf einem bestehenden passenden Arbeitsbranch sichern; falls
+  erforderlich genau einen nachvollziehbaren Sicherungsbranch im selben Repository
+  anlegen. Eine solche Sicherung ist keine Freigabe oder automatische Übernahme
+  nach main. Während längerer Arbeit zusätzliche kleine Sicherungspunkte erstellen.
+- Ein fehlgeschlagener Push oder unklarer Remote-Beleg bleibt **SICHERUNG OFFEN**.
+  Vor dem Abschluss eine zulässige externe Quellkopie anlegen, soweit erreichbar,
+  und den tatsächlichen Sicherungsort/Commit samt Einschränkung nennen. Ohne
+  erfolgreichen Nachweis weder „gesichert“ behaupten noch eine APK bereitstellen.
+- Vor Originalsignierung und Original-Quellcodeexport muss
+  `python3 tools/source_preservation.py` PASS melden. Der offizielle Signieraufruf
+  und der Exporter führen diese Prüfung selbst aus: sauberer versionierter
+  Arbeitsstand, korrektes Repository und ein tatsächlich erreichbarer GitHub-
+  Branch/Tag auf genau diesem Commit. Kein Offline-, Dirty- oder Skip-Schalter.
+  Diese Prüfung ersetzt nicht die Prüfung der tatsächlichen APK-Provenienz.
+- Nur aus dem gesicherten, während des Builds unveränderten Commit ausliefern.
+  Version/Buildnummer, eingebetteter Git-Commit und Quellfingerprint müssen mit
+  dem Kandidaten und dem vollständigen Originalquellcode übereinstimmen. Alle
+  benötigten Quellen, Builddateien, öffentlichen Assets, Verträge und Tests sichern.
+  Produktivdaten und Schlüssel bleiben ausgeschlossen; alle Privacy-Gates gelten.
+- Jede ausgelieferte Version erhält eine eindeutige, anschließend unveränderte
+  Git-Versionsmarke und einen Versionsnachweis mit Quellcommit, Quellfingerprint,
+  APK-SHA-256 sowie Original-Quellarchiv und dessen SHA-256. Kopie im bestehenden
+  privaten Drive ablegen und zurücklesen; Archive je Version erhalten. TXT-Dateien
+  für ChatGPT/Perplexity ausschließlich daraus ableiten. Die Originalsignierung
+  bleibt in der geschützten persönlichen Cloud-Umgebung, nicht in GitHub Actions.
+- `AKTUELLER-STAND.json` nach belegter Auslieferung aktualisieren. Unbestätigte
+  Installation oder fehlender Originalcode bleiben ausdrücklich unbestätigt.
+  Abschlussbericht: Repository-/Commitlink und ggf. Branch, Versionsmarke und
+  Drive-Originalarchiv nennen. Ein frischer Task muss den exakten Quellstand allein
+  anhand dieser Angaben ohne die vorherige VM abrufen können.
+- Bestehende Tasks erhalten neue Regeln nicht automatisch. Bei Fortsetzung die
+  aktuelle `AGENTS.md` vom GitHub-main lesen und die eigene Arbeit zuerst sichern;
+  die Regelaktualisierung autorisiert kein Überschreiben anderer Arbeitsstände.
+
 ## Verbindlicher Cloud-only-Arbeitsweg (Auftrag vom 18. Oktober 2026)
 
 - **Entwicklung, Codeänderungen, Builds, Tests, Originalsignierung und Releasevorbereitung ausschließlich in Codex Cloud.**
