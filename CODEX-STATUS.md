@@ -3,6 +3,14 @@
 Stand: 21. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Kalenderauftrag – Wiederaufnahme nach Cloud-Ausfall (21.10.2026, 19:08 UTC)
+
+- Cloud-Ausführung wieder erreichbar; sämtliche finalen APK-/Instrumentierungs-/Originalquellbytes erhalten und erneut per SHA-256 geprüft. Gepushte Zwischenstände ohne Reset per Fast-forward in denselben Checkout übernommen. Ein zusätzlich konservierter Stash enthält ausschließlich den bereits remote gesicherten Export-Metadaten-Einzeiler; kein offener Produktivcode.
+- Finale Python-/Privacy-Abnahme am tatsächlichen originalsignierten91-APK und aktuellen gesicherten Werkzeugstand: **383 Tests PASS, 0 Skips**,37 historische schlüsselerzeugende QA-Tests ausdrücklich ausgeschlossen. Kein erneuter Build und keine geänderten Appbytes.
+- Derselbe dedizierte GartenpiratCloud-AVD wieder gestartet, ohne Wipe/Deinstallation/Datenlöschung. Ausschließlich verwaiste Emulator-Lockdateien des nachweislich beendeten Prozesses außerhalb AVD erhalten; synthetische Geräte-Datenpartition unverändert. Erneute Snapshot-Verify-/native Endabnahme läuft; noch kein finaler PASS behauptet.
+- Exakte Originalquelle50b518a separat zusätzlich im privaten Entwicklungsordner gesichert: Ordner `1HFf0WpI0BGYL60jMEbYc9BfnvOVlYxKf`, Original-ZIP `1GZMxQpfGHwOF385_I5yyzyN0z5NQqFXh`. Authentifizierter vollständiger Streaming-Readback68.760.143Bytes, private Metadaten/Größe bestätigt; kein zusätzlicher Drive-SHA-Bytevergleich behauptet.14verlustlose TXT-Quelldateien und Manifest einzeln heruntergeladen und SHA-256-bytegleich bestätigt. Start-/Versionsnachweis und vollständige Generation werden erst nach den restlichen Prüfungen veröffentlicht. Vorherige Generationen unverändert erhalten.
+- Physischer Pixel, produktive Google-Freigabe und Google-Cloud-Konfiguration weiterhin unverändert/offen. Original90→91-Geräteupdate bleibt mangels lokal materialisierbarer Original90-APK NOT TESTABLE; bereits belegter interner91→91-Test wird davon getrennt geführt.
+
 ## Kalenderauftrag – gesicherter Zwischenstand nach Cloud-Ausfall (21.10.2026, 18:54 UTC)
 
 - Umsetzung und finales APK vollständig im bestehenden Cloud-Repository erarbeitet; Original-Appquellstand ist `50b518a1af9cee59763c4103d847f5016fb84fd9` auf `codex/calendar-permanent-20261021`. Kein Reset, Force-Push, weiteres Repository, Laptop-/Desktop-Pfad oder produktiver Schreibtest. Der installierte Pixel wurde zuletzt als1.54.1/90 ausschließlich lesend bestätigt.

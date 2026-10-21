@@ -4,7 +4,7 @@
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/calendar-permanent-20261021",
   "development_snapshot": {
-    "status": "CALENDAR_BUILD91_SIGNED_NATIVE_FINAL_RESULT_UNCONFIRMED_CLOUD_OFFLINE_NOT_DELIVERED",
+    "status": "CALENDAR_BUILD91_SIGNED_CLOUD_RECOVERED_FINAL_NATIVE_ACCEPTANCE_RUNNING_NOT_DELIVERED",
     "implementation_checkpoint_git_sha": "ef64255ef47344d2eaccee6e840181daa0472640",
     "source_sha256": "747762839020b4ffb0491ac360c3cc054c455245eb4126b0c1e6d4e8882b0c3c",
     "main_and_gradle_files": 540,
@@ -12,12 +12,15 @@
     "version_code": 91,
     "changes_after_delivered_build_90": true,
     "rules_from_main_git_sha": "a112765844ee5a41408dc0538236d0eca52eacbf",
-    "apk_for_this_development_snapshot": "BUILT_AND_ORIGINAL_SIGNED_IN_CLOUD; NOT DELIVERED; LOCAL_AVAILABILITY_AFTER_OUTAGE_UNCONFIRMED",
+    "apk_for_this_development_snapshot": "BUILT_AND_ORIGINAL_SIGNED_IN_CLOUD; LOCAL_HASH_RECONFIRMED; NOT DELIVERED",
     "apk_source_git_sha": "50b518a1af9cee59763c4103d847f5016fb84fd9",
     "apk_sha256": "874908a246f75a3c91f7399cf2e314364b9469f80843644ea340cf8c543b80c1",
     "original_zip_sha256": "99fba5a127d16211cbb7b62ffdac229321f35c21883aaec1dd63cf008e3b5e18",
     "pixel_installation": "NOT EXECUTED",
-    "google_project_and_consent": "NOT VERIFIED; NO ADMINISTRATIVE ACCESS"
+    "google_project_and_consent": "NOT VERIFIED; NO ADMINISTRATIVE ACCESS",
+    "drive_original_zip_id": "1GZMxQpfGHwOF385_I5yyzyN0z5NQqFXh",
+    "drive_source_folder_id": "1HFf0WpI0BGYL60jMEbYc9BfnvOVlYxKf",
+    "drive_readback": "ZIP COMPLETE_STREAM_SIZE_ONLY; 14 TXT AND MANIFEST SHA256_BYTES"
   },
   "verified_release_source": {
     "version": "1.54.1",
@@ -41,6 +44,6 @@
   },
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-; current original cloud work preserved on the development_ref",
-    "required_action": "Restore this exact development_ref; preserve any uncommitted Cloud work, read native final logs or repeat final acceptance from apk_source_git_sha. Do not claim build91 delivered or installed. Complete Google project/device consent only with actual access; no guessed project ID."
+    "required_action": "Continue exact development_ref and original signed APK from apk_source_git_sha; cloud recovered and artifact hashes confirmed. Finish native final acceptance, fresh/WebView, immutable source tag and release records only with actual evidence. Google project/device consent require actual access; no guessed project ID."
   }
 }
