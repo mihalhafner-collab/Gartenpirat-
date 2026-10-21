@@ -7,6 +7,8 @@ function bridge(){const s=fs.readFileSync(path.join(__dirname,'planning-ui.test.
  async function check(name,run){try{await run();results.push({name,result:'PASS'});}catch(e){results.push({name,result:'FAIL',error:e.stack});}console.log(results.at(-1));}
  async function swipe(selector,x1,y1,x2,y2){await page.evaluate(({selector,x1,y1,x2,y2})=>{const target=document.querySelector(selector),touch=(x,y)=>new Touch({identifier:1,target,clientX:x,clientY:y});for(const [type,ts] of [['touchstart',[touch(x1,y1)]],['touchmove',[touch(x2,y2)]],['touchend',[]]])target.dispatchEvent(new TouchEvent(type,{bubbles:true,cancelable:true,touches:ts,changedTouches:[touch(x2,y2)]}));},{selector,x1,y1,x2,y2});}
  try{
+  // Both fixture layers must share a deterministic day in UTC and Vienna.
+  await page.clock.setFixedTime(new Date('2026-10-21T10:00:00Z'));
   await page.addInitScript({content:bridge()});await page.addInitScript(()=>{
    const day=new Date().toISOString().slice(0,10),end=new Date(Date.now()+86400000).toISOString().slice(0,10);fixture.master.appointments=fixture.master.appointments.slice(0,2);fixture.master.appointments[0].title='QA Erster Einsatz';fixture.master.appointments[1].title='<img src=x onerror="window.qa_injected=true">';fixture.master.appointments[1].starts_at=day+'T11:00:00Z';fixture.master.appointments[1].ends_at=day+'T13:00:00Z';
    window.qaAvailability={verified:true,checked_at:new Date().toISOString(),from:day+'T00:00:00Z',to:end+'T23:59:59Z',busy:[{start:day+'T11:30:00Z',end:day+'T12:30:00Z'}]};
