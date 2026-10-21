@@ -245,7 +245,8 @@ def cleanup_local(root, records, now=None, apply=False, retained_builds=(89, 90)
         if item.get('protected') or item.get('active') or not item.get('completed'):
             continue
         retired_apk = item.get('role') == 'apk_retired' and item.get('classification') == 'PUBLIC_ARTIFACT'
-        generated = item.get('role') in ('build_output', 'log') and item.get('classification') == 'SYNTHETIC_TEST'
+        generated = item.get('role') in ('build_output', 'log') and (item.get('classification') == 'SYNTHETIC_TEST' or
+                    (item.get('classification') == 'PUBLIC_ARTIFACT' and item.get('replacement_verified')))
         if not (retired_apk or generated) or not path.is_file():
             continue
         if retired_apk and (not item.get('replacement_verified') or item.get('build') in retained_builds or path.suffix != '.apk'):

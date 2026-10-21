@@ -89,6 +89,10 @@ Keine pauschale Löschung nach Dateiname oder Alter und keine Git-Historienumsch
   und einzige ungesicherte Originalquellen schützen. Exporte nach 7 Tagen,
   erledigte Test-APKs nach 14 Tagen, Buildausgaben nach 7 Tagen und Logs nach
   30 Tagen ersetzen/löschen. SDK-/Abhängigkeitscaches gezielt bei Platzbedarf erhalten.
+- Bei einer tatsächlich geprüften neuen Auslieferung Schutzmengen in Policy und
+  Register anhand der neuesten zwei Auslieferungen und belegten Installation
+  fortschreiben; Original-Tags erhalten. Alte Schutzkennzeichen erst nach diesen
+  Nachweisen aufheben und die vollständige Frist ab bestätigter Ersetzung beginnen.
 - Die freigegebene Aufräumautomatik darf ausschließlich explizit registrierte,
   unveränderte Dateien in verwalteten administrativen Ordnern endgültig löschen.
   Frische vollständige Liste, bestätigter Ersatz, Frist, Originalschutz und

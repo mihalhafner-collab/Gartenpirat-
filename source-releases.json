@@ -30,6 +30,21 @@
       "remote_readback": "PASS",
       "drive_zip_id": "1C945yeV6Z0SgQQMBqK-GFtJS2a0zrIFW",
       "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB"
+    },
+    {
+      "version": "1.53.1",
+      "build": 88,
+      "source_sha256": "1dec4e6146dbb5decdba3d8775664b777f1cbe7cd27f44964aae4de4824f935f",
+      "source_files": 1176,
+      "original_zip_sha256": "3342188e78ae8b70ef4d12a7c4a974f2017673a3f169aa55b151f374e053ff30",
+      "apk_sha256": "a37fb5bbb9972c2f6afd5eb0b4fade01841d034cbc2358aee9d2473606420238",
+      "device_acceptance": "NOT EXECUTED",
+      "tag": "source/v1.53.1-build88",
+      "tree_sha": "112adcab3dc22454e11237955cd2eed96e43da29",
+      "drive_zip_id": "1Ewa2fhsDPZAzGEFG8hTZawcI_RsGjeJy",
+      "drive_readback": "HISTORICAL_EXPORT_RECEIPT; SOURCE_BYTES_VERIFIED_IN_GIT",
+      "git_sha": "dc394b5796fbcb268533a8d8951fe05a829956df",
+      "remote_readback": "PASS"
     }
   ]
 }

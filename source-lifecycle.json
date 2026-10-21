@@ -52,5 +52,11 @@
     "inventory": "daily",
     "cleanup": "weekly",
     "restore_check": "monthly"
+  },
+  "registry_file_id": "1lxLiMzK4NT7-ueLJvpsDU1gwbaxx610C",
+  "automations": {
+    "daily": "6ad8f3798fc081919a261c5eb3981ad1",
+    "weekly": "6ad8f37b548c8191b18d43b443aae6d3",
+    "monthly": "6ad8f37da1d88191b7aa7fbf09473760"
   }
 }

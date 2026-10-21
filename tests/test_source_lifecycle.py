@@ -211,6 +211,17 @@ class SourceLifecycleTests(unittest.TestCase):
             self.assertEqual(life.cleanup_local(self.root, [item], self.now, apply=True)['files'], [item['path']])
         self.assertFalse(path.exists())
 
+    def test_public_generated_build_requires_replacement_and_seven_days(self):
+        (self.root / 'outputs').mkdir()
+        path = self.root / 'outputs/qa_build.log'
+        path.write_text('QA_PUBLIC_BUILD')
+        item = {'path': 'outputs/qa_build.log', 'classification': 'PUBLIC_ARTIFACT', 'role': 'build_output',
+                'completed': True, 'replacement_verified': True, 'retired_at': '2026-10-14T00:00:00Z',
+                'sha256': life.digest(path.read_bytes())}
+        self.assertFalse(life.cleanup_local(self.root, [{**item, 'replacement_verified': False}], self.now)['files'])
+        self.assertFalse(life.cleanup_local(self.root, [{**item, 'retired_at': '2026-10-15T00:00:00Z'}], self.now)['files'])
+        self.assertEqual(life.cleanup_local(self.root, [item], self.now, apply=True)['files'], [item['path']])
+
 
 if __name__ == '__main__':
     unittest.main()
