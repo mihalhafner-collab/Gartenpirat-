@@ -50,6 +50,8 @@ final class AppointmentRuntime {
     }
     static JSONObject integration(Context c,PixelLocalStore store)throws Exception {
         android.content.SharedPreferences p=PlanningAccount.prefs(c);JSONObject status=new JSONObject(store.ownerValue("planning:status","{}"));
+        status.put("calendar_last_success_at",store.ownerValue("calendar:last_success_at","")).put("calendar_last_attempt_at",store.ownerValue("calendar:last_attempt_at","")).put("calendar_next_retry_at",p.getString("calendar_retry_at","")).put("calendar_setup_attempt_at",p.getString("calendar_setup_attempt_at","")).put("calendar_setup_failed_at",p.getString("calendar_setup_failed_at",""));
+        String setup=p.getString("calendar_setup_code","");status.put("calendar_setup_stage",setup.isEmpty()?"":CalendarAccessRules.phase(p.getString("calendar_setup_stage","grant")));if(p.contains("calendar_setup_result_code"))status.put("calendar_setup_result_code",p.getInt("calendar_setup_result_code",0));
         return status.put("calendar_setup_error_code",CalendarAccessRules.safeCode(p.getString("calendar_setup_code",""))).put("calendar_error_code",CalendarAccessRules.safeCode(PlanningAccount.connected(c)?store.ownerValue("calendar:last_error_code",""):p.getString("calendar_setup_code",""))).put("calendar_connected",PlanningAccount.connected(c)).put("calendar_configured",calendarEnabled(c,store)).put("weather_configured",flag(c,store,"weather_enabled")).put("calendar_state",store.ownerValue("calendar:status",calendarEnabled(c,store)?"pending":"not_connected")).put("weather_state",store.ownerValue("weather:status",flag(c,store,"weather_enabled")?"pending":"not_configured"))
             .put("notification_permission",Build.VERSION.SDK_INT<33||c.checkSelfPermission("android.permission.POST_NOTIFICATIONS")==android.content.pm.PackageManager.PERMISSION_GRANTED).put("notification_state",WeatherNotifications.state(c)).put("weather_notifications_enabled",flag(c,store,"notifications")).put("notifications_available",WeatherNotifications.ready(c)).put("background_best_effort",true).put("credentials_exposed",false);
     }
@@ -142,7 +144,9 @@ final class AppointmentRuntime {
     static void refresh(Context c,PixelLocalStore store){synchronized(LOCK){
         Instant now=Instant.now();boolean weatherEnabled=flag(c,store,"weather_enabled");
         long calendarNext=adapter(c,store,"calendar",calendarEnabled(c,store),now,()->syncCalendar(c,store,now));
+        if(Thread.currentThread().isInterrupted())return; // Android cancellation is not a completed planning check.
         long weatherNext=adapter(c,store,"weather",weatherEnabled,now,()->refreshWeather(c,store,now));
+        if(Thread.currentThread().isInterrupted())return;
         long weatherCadence=Long.MAX_VALUE;
         if(weatherEnabled)try{weatherCadence=FreeWeatherSource.nextDelayMillis(PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments"),now);}catch(Exception ignored){}
         try{notifyRisks(c,store,now);store.putOwnerValue("planning:status",new JSONObject().put("last_check_at",now.toString()).put("background_best_effort",true).toString());}catch(Exception ignored){}
@@ -150,17 +154,25 @@ final class AppointmentRuntime {
         long next=Math.min(Math.min(calendarNext,weatherNext),weatherCadence);if(calendarEnabled(c,store))next=Math.min(next,15*60*1000L);if(next<Long.MAX_VALUE)PlanningJob.schedule(c,next);
     }}
     static long adapter(Context c,PixelLocalStore store,String kind,boolean enabled,Instant now,AdapterTask task){
-        android.content.SharedPreferences p=PlanningAccount.prefs(c);String prefix=kind+"_";int failures=p.getInt(prefix+"failures",0);if(!enabled||p.getBoolean(prefix+"blocked",false)||failures>=8)return Long.MAX_VALUE;
+        android.content.SharedPreferences p=PlanningAccount.prefs(c);String prefix=kind+"_";boolean calendar=kind.equals("calendar");int failures=p.getInt(prefix+"failures",0);if(!enabled)return Long.MAX_VALUE;
+        // Older background cancellation was incorrectly persisted as a revoked grant.
+        if(calendar&&p.getBoolean(prefix+"blocked",false)&&Arrays.asList("CALENDAR_CONSENT_CANCELLED","CALENDAR_INTERRUPTED").contains(store.ownerValue("calendar:last_error_code","")))p.edit().putBoolean(prefix+"blocked",false).apply();
+        if(p.getBoolean(prefix+"blocked",false)||!calendar&&failures>=8)return Long.MAX_VALUE;
         try{String retry=p.getString(prefix+"retry_at","");if(!retry.isEmpty()){long remaining=Duration.between(now,Instant.parse(retry)).toMillis();if(remaining>0)return remaining;}}catch(Exception ignored){}
-        try{task.run();p.edit().putInt(prefix+"failures",0).remove(prefix+"retry_at").apply();store.putOwnerValue(kind+":status","checked");if(kind.equals("calendar"))store.putOwnerValue("calendar:last_error_code","");return Long.MAX_VALUE;}
+        try{if(Thread.currentThread().isInterrupted())throw new InterruptedException();if(calendar)store.putOwnerValue("calendar:last_attempt_at",now.toString());task.run();if(Thread.currentThread().isInterrupted())throw new InterruptedException();p.edit().putInt(prefix+"failures",0).remove(prefix+"retry_at").apply();store.putOwnerValue(kind+":status","checked");if(calendar){store.putOwnerValue("calendar:last_error_code","");store.putOwnerValue("calendar:last_success_at",Instant.now().toString());}return Long.MAX_VALUE;}
         catch(Exception e){
+            if(CalendarRecoveryRules.interrupted(e)||Thread.currentThread().isInterrupted()){
+                Thread.currentThread().interrupt();if(calendar)store.putOwnerValue("calendar:last_error_code","CALENDAR_INTERRUPTED");
+                p.edit().putString(prefix+"retry_at",now.plusMillis(CalendarRecoveryRules.MIN_RETRY).toString()).apply();store.putOwnerValue(kind+":status","retry_pending");return CalendarRecoveryRules.MIN_RETRY;
+            }
             if(kind.equals("calendar"))store.putOwnerValue("calendar:last_error_code",CalendarAccessRules.code(e));
             if(kind.equals("weather")&&e instanceof DriveRestClient.Failure&&Arrays.asList("WEATHER_BATCH_PENDING","WEATHER_RATE_LIMIT").contains(((DriveRestClient.Failure)e).code)){
                 long delay=Math.max(30000,((DriveRestClient.Failure)e).retryAfter);p.edit().putString(prefix+"retry_at",now.plusMillis(delay).toString()).apply();store.putOwnerValue(kind+":status","pending");return delay;
             }
-            boolean auth=e instanceof DriveRestClient.Failure&&((DriveRestClient.Failure)e).userAction;
+            boolean auth=e instanceof DriveRestClient.Failure&&((DriveRestClient.Failure)e).userAction&&!(calendar&&((DriveRestClient.Failure)e).code.equals("CALENDAR_CONSENT_CANCELLED"));
             if(auth){p.edit().putBoolean(prefix+"blocked",true).apply();store.putOwnerValue(kind+":status","authorization_required");return Long.MAX_VALUE;}
             if(e instanceof PixelMcpWriteTools.Rejected){store.putOwnerValue(kind+":status","review_required");return Long.MAX_VALUE;}
+            if(calendar){long delay=CalendarRecoveryRules.retryDelay(failures,e instanceof DriveRestClient.Failure?((DriveRestClient.Failure)e).retryAfter:0,new Random().nextInt(3000));p.edit().putInt(prefix+"failures",CalendarRecoveryRules.nextFailures(failures)).putString(prefix+"retry_at",now.plusMillis(delay).toString()).apply();store.putOwnerValue("calendar:status","retry_pending");return delay;}
             long delay=Math.min(3600000,30000L*(1L<<failures))+new Random().nextInt(3000);if(e instanceof DriveRestClient.Failure)delay=Math.max(delay,((DriveRestClient.Failure)e).retryAfter);
             p.edit().putInt(prefix+"failures",failures+1).putString(prefix+"retry_at",now.plusMillis(delay).toString()).apply();store.putOwnerValue(kind+":status",failures>=7?"retry_limit_reached":"retry_pending");return failures>=7?Long.MAX_VALUE:delay;
         }

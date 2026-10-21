@@ -122,7 +122,7 @@ public class MainActivity extends Activity implements McpSyncHost {
         if(connectivity!=null&&syncNetworkCallback==null){syncNetworkCallback=new android.net.ConnectivityManager.NetworkCallback(){
             private android.net.Network ready;
             @Override public void onCapabilitiesChanged(android.net.Network network,android.net.NetworkCapabilities caps){
-                if(caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED)){if(!network.equals(ready)){ready=network;runOnUiThread(()->requestAutomaticSync(0));}}else if(network.equals(ready))ready=null;
+                if(caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED)){if(!network.equals(ready)){ready=network;runOnUiThread(()->{requestAutomaticSync(0);PlanningJob.schedule(MainActivity.this,1000);});}}else if(network.equals(ready))ready=null;
             }
             @Override public void onLost(android.net.Network network){if(network.equals(ready))ready=null;}
         };try{connectivity.registerDefaultNetworkCallback(syncNetworkCallback);}catch(RuntimeException unavailable){syncNetworkCallback=null;}}

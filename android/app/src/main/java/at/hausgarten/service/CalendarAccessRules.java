@@ -25,7 +25,7 @@ final class CalendarAccessRules {
     private static final Set<String> CODES=new HashSet<>(Arrays.asList(
         "CALENDAR_AUTH_REQUIRED","CALENDAR_API_DISABLED","CALENDAR_RATE_LIMIT","CALENDAR_RETRY",
         "CALENDAR_APP_REGISTRATION_REQUIRED","CALENDAR_GOOGLE_AUTH_ERROR","CALENDAR_ACCOUNT_ACCESS_REQUIRED",
-        "CALENDAR_CONSENT_CANCELLED","CALENDAR_GOOGLE_SERVICES_REQUIRED","CALENDAR_SCOPE_UNSUPPORTED","CALENDAR_TOKEN_NETWORK","CALENDAR_NETWORK","CALENDAR_REQUEST_REJECTED",
+        "CALENDAR_CONSENT_CANCELLED","CALENDAR_INTERRUPTED","CALENDAR_AUTH_RESULT_MISSING","CALENDAR_GOOGLE_SERVICES_REQUIRED","CALENDAR_SCOPE_UNSUPPORTED","CALENDAR_TOKEN_NETWORK","CALENDAR_NETWORK","CALENDAR_REQUEST_REJECTED",
         "CALENDAR_CREATE_PENDING","CALENDAR_READBACK_PENDING","CALENDAR_DUPLICATE","CALENDAR_OWNER_REQUIRED",
         "CALENDAR_SETTINGS_CHANGED","CALENDAR_REPLY_INVALID","CALENDAR_BUSY_PERMISSION_REQUIRED","CALENDAR_UNKNOWN"));
     static String safeCode(String value){return "".equals(value)?"":CODES.contains(value)?value:"CALENDAR_UNKNOWN";}
@@ -45,7 +45,9 @@ final class CalendarAccessRules {
         case "CALENDAR_GOOGLE_SERVICES_REQUIRED":return "Die Google-Play-Dienste sind nicht bereit. Am Pixel aktualisieren und die Kalenderfreigabe anschließend erneut starten.";
         case "CALENDAR_SCOPE_UNSUPPORTED":return "Google hat die angefragten Kalenderrechte abgewiesen. Die Kalenderfreigabe der App muss bei Google geprüft werden.";
         case "CALENDAR_ACCOUNT_ACCESS_REQUIRED":return "Das gewählte Google-Konto ist für die App nicht zugänglich. Unter Konto und Freigaben erneut auswählen.";
-        case "CALENDAR_CONSENT_CANCELLED":return "Die Google-Freigabe wurde abgebrochen. Zum Verbinden erneut starten und die Freigabe bestätigen.";
+        case "CALENDAR_CONSENT_CANCELLED":return "Die Google-Freigabe wurde nicht abgeschlossen. Erneut verbinden. Falls du nicht abgebrochen hast, Konto und Google-App-Einrichtung prüfen.";
+        case "CALENDAR_AUTH_RESULT_MISSING":return "Google hat kein auswertbares Freigabeergebnis zurückgegeben. Erneut verbinden; bei Wiederholung Google-Konto und App-Einrichtung prüfen.";
+        case "CALENDAR_INTERRUPTED":return "Die Kalenderprüfung wurde technisch unterbrochen. Bei bestehender Verbindung folgt ein erneuter Abgleich; die Einrichtung kann erneut gestartet werden.";
         case "CALENDAR_RATE_LIMIT":return "Google begrenzt gerade die Kalenderzugriffe. Später erneut versuchen; keine neue Kontofreigabe nötig.";
         case "CALENDAR_RETRY":return "Google Kalender ist vorübergehend nicht verfügbar. Später erneut versuchen.";
         case "CALENDAR_TOKEN_NETWORK":case "CALENDAR_NETWORK":return "Google ist derzeit nicht erreichbar. Internetverbindung prüfen und erneut versuchen.";
@@ -60,6 +62,7 @@ final class CalendarAccessRules {
         default:return "Die Kalenderverbindung konnte nicht abgeschlossen werden. Erneut prüfen; der genaue Grund ist noch unbekannt.";
     }}
     static String code(Throwable error){
+        if(CalendarRecoveryRules.interrupted(error))return "CALENDAR_INTERRUPTED";
         if(error instanceof DriveRestClient.Failure)return safeCode(((DriveRestClient.Failure)error).code);
         if(error instanceof PixelMcpWriteTools.Rejected)return "CALENDAR_SETTINGS_CHANGED";
         if(error instanceof JSONException)return "CALENDAR_REPLY_INVALID";
@@ -67,6 +70,7 @@ final class CalendarAccessRules {
         return "CALENDAR_UNKNOWN";
     }
     static String authenticationCode(Exception error){
+        if(CalendarRecoveryRules.interrupted(error))return "CALENDAR_INTERRUPTED";
         String type=error.getClass().getSimpleName();
         if(type.equals("OperationCanceledException"))return "CALENDAR_CONSENT_CANCELLED";
         if(error instanceof SecurityException)return "CALENDAR_ACCOUNT_ACCESS_REQUIRED";
@@ -77,6 +81,7 @@ final class CalendarAccessRules {
         if(error instanceof java.io.IOException)return "CALENDAR_TOKEN_NETWORK";
         return "CALENDAR_GOOGLE_AUTH_ERROR";
     }
+    static String missingResultCode(int result){return result==0?"CALENDAR_CONSENT_CANCELLED":"CALENDAR_AUTH_RESULT_MISSING";}
     static boolean rejectedCreation(DriveRestClient.Failure error){return Arrays.asList(
         "CALENDAR_AUTH_REQUIRED","CALENDAR_API_DISABLED","CALENDAR_RATE_LIMIT","CALENDAR_REQUEST_REJECTED",
         "CALENDAR_APP_REGISTRATION_REQUIRED","CALENDAR_GOOGLE_AUTH_ERROR","CALENDAR_ACCOUNT_ACCESS_REQUIRED",
