@@ -6,9 +6,11 @@ import java.util.*;
 
 /** Immutable Pixel snapshots in the EXISTING Drive folder. No mutable master overwrite. */
 final class DrivePrimaryState {
+    interface CommitVisitor {void accept(String id,String name,byte[] bytes)throws Exception;}
     interface Storage {
         Map<String,String> commits()throws Exception; // immutable document ID -> name
         byte[] read(String id)throws Exception;
+        default void readCommits(Map<String,String> files,CommitVisitor visitor)throws Exception{for(Map.Entry<String,String> file:files.entrySet())visitor.accept(file.getKey(),file.getValue(),read(file.getKey()));}
     }
     static JSONObject recover(JSONObject legacy,String publisher,Storage storage)throws Exception {
         return recover(legacy,publisher,storage,false);
@@ -20,17 +22,17 @@ final class DrivePrimaryState {
         String observedLegacyHash=PixelMcpWriteTools.hash(legacy);
         legacy=new JSONObject(legacy.toString());DriveJournalRules.validateSnapshot(legacy);
         JSONArray summaries=new JSONArray();Map<String,JSONObject> manifests=new HashMap<>();
-        for(Map.Entry<String,String> file:storage.commits().entrySet()) {
-            String name=file.getValue();if(!name.matches("HausGarten-Commit-[0-9a-f]{64}\\.json"))throw new IllegalArgumentException("PUBLICATION_INVALID: Ungültige Veröffentlichungsreferenz.");
-            byte[] bytes=storage.read(file.getKey());
+        Map<String,String> commitFiles=storage.commits();
+        for(String name:commitFiles.values())if(!name.matches("HausGarten-Commit-[0-9a-f]{64}\\.json"))throw new IllegalArgumentException("PUBLICATION_INVALID: Ungültige Veröffentlichungsreferenz.");
+        storage.readCommits(commitFiles,(id,name,bytes)->{
             if(!name.equals("HausGarten-Commit-"+DriveRestClient.sha256(bytes)+".json"))throw new IllegalArgumentException("PUBLICATION_INVALID: Veröffentlichungsbeleg verändert.");
             JSONObject m=new JSONObject(new String(bytes,StandardCharsets.UTF_8));
             if(!"hausgarten.drive.commit.v1".equals(m.optString("format")))throw new IllegalArgumentException("PUBLICATION_INVALID: Unbekanntes Belegformat.");
-            summaries.put(new JSONObject().put("id",file.getKey()).put("publisher",m.getString("publisher_id"))
+            summaries.put(new JSONObject().put("id",id).put("publisher",m.getString("publisher_id"))
                 .put("sha",m.getString("state_sha256")).put("sequence",m.getLong("sequence"))
                 .put("parent",m.optString("previous_publication_id")).put("parent_sha",m.optString("previous_state_sha256")));
-            manifests.put(file.getKey(),m);
-        }
+            manifests.put(id,m);
+        });
         JSONObject head=DrivePublication.head(summaries,publisher),state=new JSONObject(legacy.toString());
         String legacyHash=PixelMcpWriteTools.hash(legacy);
         if(head.length()>0) {

@@ -9,7 +9,7 @@ public final class OwnerApplicationTests {
  interface Task{void run()throws Exception;}
  static void rejects(Task task)throws Exception{boolean denied=false;try{task.run();}catch(IllegalArgumentException|UnsupportedOperationException expected){denied=true;}yes(denied);}
  static final class MemoryRepository implements OwnerRepository {
-  final JSONObject state;final Map<String,String> preferences=new HashMap<>();final Map<String,JSONObject> metadata=new HashMap<>();final Map<String,byte[]> bytes=new HashMap<>();int workSaves;
+  final JSONObject state;final Map<String,String> preferences=new HashMap<>();final Map<String,JSONObject> metadata=new HashMap<>();final Map<String,byte[]> bytes=new HashMap<>();int workSaves,protections;boolean failProtection;
   MemoryRepository()throws Exception{JSONObject master=OffersAndPhotosTests.snapshot();PixelDriveState.prepare(master);state=SyntheticBusinessData.object().put("master",master).put("pending",new JSONArray());}
   public JSONObject state(){return state;}
   public String ownerValue(String key,String fallback){return preferences.getOrDefault(key,fallback);}
@@ -29,6 +29,7 @@ public final class OwnerApplicationTests {
   public JSONObject verifyDelivery(String id,JSONObject p){throw new UnsupportedOperationException("Provider receipt required");}
   public void verifyLegacyBackup(String id,String hash){throw new UnsupportedOperationException("Verified backup required");}
   public JSONObject createBackup(String request){throw new UnsupportedOperationException("Native backup required");}
+  public JSONObject protectDeletion(JSONObject snapshot,JSONArray entries,String request)throws Exception{protections++;if(failProtection)throw new java.io.IOException("QA safety backup unavailable");return SyntheticBusinessData.object().put("backup_id","qa_deletion_backup_"+request).put("protected_records",entries.length());}
   public JSONObject restoreBackup(JSONObject a,String request){throw new UnsupportedOperationException("Native backup required");}
   public JSONObject planningSettings(){return SyntheticBusinessData.object();}
   public boolean calendarConnected(){return false;}

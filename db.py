@@ -487,18 +487,13 @@ def dashboard() -> dict:
 
 
 def list_customers(search="") -> list[dict]:
+    import search_order
     with connect() as database:
-        if search:
-            match = f"%{search}%"
-            return dicts(database.execute(
-                """SELECT * FROM customers WHERE name LIKE ? OR company LIKE ? OR city LIKE ?
-                   OR email LIKE ? OR street LIKE ? OR postal_code LIKE ? OR phone LIKE ?
-                   ORDER BY active DESC,name COLLATE NOCASE""",
-                (match,) * 7,
-            ))
-        return dicts(database.execute(
-            "SELECT * FROM customers ORDER BY active DESC,name COLLATE NOCASE"
-        ))
+        rows = dicts(database.execute('SELECT * FROM customers'))
+    fields = ('name', 'company', 'first_name', 'last_name', 'street',
+              'postal_code', 'city', 'email', 'phone')
+    return search_order.customers(row for row in rows if not search or
+           search_order.matches(search, (row.get(key) for key in fields)))
 
 
 def list_orders(customer_id=None) -> list[dict]:

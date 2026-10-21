@@ -12,15 +12,16 @@ import java.util.*;
 
 /** Device consent and private weather key. Neither is part of snapshot/MCP/backup data. */
 final class PlanningAccount {
-    static final String BASE_SCOPE="https://www.googleapis.com/auth/calendar.app.created https://www.googleapis.com/auth/calendar.calendarlist.readonly";
+    static final String BASE_SCOPE=CalendarAccessRules.BASE_SCOPE;
     static SharedPreferences prefs(Context c){return c.getSharedPreferences("planning_private",0);}
     static boolean connected(Context c){return !prefs(c).getString("calendar_id","").isEmpty()&&!prefs(c).getString("account","").isEmpty();}
     static String token(Context c,String account,boolean busy,Activity consent)throws Exception {
-        String scope="oauth2:"+BASE_SCOPE+(busy?" https://www.googleapis.com/auth/calendar.freebusy":"");AccountManager manager=AccountManager.get(c);Account a=new Account(account,"com.google");
-        Bundle b=consent==null?manager.getAuthToken(a,scope,null,false,null,null).getResult():manager.getAuthToken(a,scope,null,consent,null,null).getResult();String token=b.getString(AccountManager.KEY_AUTHTOKEN,"");
-        if(token.isEmpty())throw new DriveRestClient.Failure("CALENDAR_AUTH_REQUIRED","Kalenderfreigabe am Gerät bestätigen.",0,true);return token;
+        try{return CalendarAuthorization.token(c,account,busy);}
+        catch(CalendarAuthorization.ConsentRequired required){if(consent!=null)throw required;throw CalendarAuthorization.failure("CALENDAR_AUTH_REQUIRED");}
     }
-    static CalendarClient client(Context c){SharedPreferences p=prefs(c);return new CalendarClient(new CalendarClient.Token(){public String get()throws Exception{return token(c,p.getString("account",""),p.getBoolean("read_busy",false),null);}public void invalidate(String rejected){AccountManager.get(c).invalidateAuthToken("com.google",rejected);}},new PlanningWire());}
+    static String bindingHash(Context c)throws Exception{Map<String,Object> p=new HashMap<>(prefs(c).getAll());return CalendarAccessRules.bindingHash((String)p.getOrDefault("account",""),(String)p.getOrDefault("calendar_id",""),Boolean.TRUE.equals(p.get("read_busy")));}
+    static CalendarClient client(Context c){Map<String,Object> p=new HashMap<>(prefs(c).getAll());return client(c,(String)p.getOrDefault("account",""),Boolean.TRUE.equals(p.get("read_busy")),"");}
+    static CalendarClient client(Context c,String account,boolean busy,String granted){Context app=c.getApplicationContext();return new CalendarClient(new CalendarCredential(granted,new CalendarCredential.Source(){public String acquire()throws Exception{return token(app,account,busy,null);}public void invalidate(String rejected)throws Exception{CalendarAuthorization.invalidate(app,rejected);}}),new PlanningWire());}
     static javax.crypto.SecretKey encryptionKey()throws Exception {
         KeyStore ks=KeyStore.getInstance("AndroidKeyStore");ks.load(null);String alias="hausgarten.weather.private.v1";
         if(!ks.containsAlias(alias)){KeyGenerator g=KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES,"AndroidKeyStore");g.init(new KeyGenParameterSpec.Builder(alias,KeyProperties.PURPOSE_ENCRYPT|KeyProperties.PURPOSE_DECRYPT).setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE).build());g.generateKey();}return (javax.crypto.SecretKey)ks.getKey(alias,null);

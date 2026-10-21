@@ -18,6 +18,7 @@ from typing import Any, Callable
 
 import db
 import runtime_paths
+import search_order
 
 from mcp_integration import drive_store
 
@@ -259,9 +260,9 @@ def search_customers(query: str, include_inactive: bool = False, limit: int = 20
     fields = ("name", "first_name", "last_name", "company", "street", "postal_code",
               "city", "email", "phone")
     rows = [dict(row) for row in _snapshot()["customers"] if
-            (include_inactive or bool(row.get("active", 1))) and
-            any(query in _normalize(row.get(field)) for field in fields)]
-    rows.sort(key=lambda row: (not bool(row.get("active", 1)), _normalize(row.get("name"))))
+            (include_inactive or search_order.active(row.get("active", 1))) and
+            search_order.matches(query, (row.get(field) for field in fields))]
+    rows = search_order.customers(rows)
     return _ok(rows[:limit], count=min(len(rows), limit), ambiguous=len(rows) > 1)
 
 
@@ -292,12 +293,12 @@ def search_orders(query: str = "", customer_id: str | None = None,
         customer = snapshot["_indexes"]["customers"].get(order.get("customer_id"), {})
         searchable = " ".join(str(order.get(key) or "") for key in ("title", "description", "location"))
         searchable += " " + str(customer.get("name") or "")
-        if query and query not in _normalize(searchable):
+        if query and not search_order.matches(query, [searchable]):
             continue
         rows.append(_enrich_order(snapshot, order))
     rows.sort(key=lambda row: (row.get("status") not in OPEN_STATUSES,
                                str(row.get("scheduled_date") or "9999-99-99"),
-                               _normalize(row.get("title"))))
+                               search_order.natural_key(row.get("title")), str(row.get("id", ""))))
     return _ok(rows[:limit], count=min(len(rows), limit))
 
 
@@ -373,15 +374,16 @@ def search_business_data(query: str, limit_per_type: int = 10) -> dict:
     query = _normalize(_text(query, "Suchtext", 200, required=True))
     limit = _limit(limit_per_type, 25)
     snapshot = _snapshot()
-    customer_fields = ("name", "company", "street", "city", "email", "phone")
-    customers = [dict(row) for row in snapshot["customers"] if
-                 any(query in _normalize(row.get(key)) for key in customer_fields)][:limit]
-    orders = [_enrich_order(snapshot, row) for row in snapshot["orders"] if query in _normalize(
+    customer_fields = ("name", "company", "first_name", "last_name", "street", "postal_code", "city", "email", "phone")
+    customers = search_order.customers(dict(row) for row in snapshot["customers"] if
+                 search_order.matches(query, (row.get(key) for key in customer_fields)))[:limit]
+    orders = [_enrich_order(snapshot, row) for row in snapshot["orders"] if search_order.matches(query, [
         " ".join(str(row.get(key) or "") for key in ("title", "description", "location")) + " " +
-        str(snapshot["_indexes"]["customers"].get(row.get("customer_id"), {}).get("name", "")))][:limit]
-    worklogs = [_enrich_worklog(snapshot, row) for row in snapshot["worklogs"] if query in _normalize(
+        str(snapshot["_indexes"]["customers"].get(row.get("customer_id"), {}).get("name", ""))])]
+    orders = sorted(orders, key=lambda row: (search_order.natural_key(row.get('title')), str(row.get('id', ''))))[:limit]
+    worklogs = [_enrich_worklog(snapshot, row) for row in snapshot["worklogs"] if search_order.matches(query, [
         " ".join(str(row.get(key) or "") for key in ("activity", "material", "notes")) + " " +
-        str(snapshot["_indexes"]["customers"].get(row.get("customer_id"), {}).get("name", "")))][:limit]
+        str(snapshot["_indexes"]["customers"].get(row.get("customer_id"), {}).get("name", ""))])][:limit]
     return _ok({"customers": customers, "orders": orders, "work_records": worklogs})
 
 
@@ -526,16 +528,18 @@ def create_work_record(*, request_id: str, order_id: str, work_date: str, activi
     }
     client_id = _client_id("create_work_record", request_id)
     action = {"client_id": client_id, "kind": "worklog", "payload": payload, "_request_hash":request_hash}
-    channel, _ = drive_store.load_channel()
-    action = _legacy_created_action(action, billing_customer_id, channel)
-    payload = action["payload"]
-    if drive_store.channel_action(client_id, channel) or client_id in set(snapshot.get("accepted_ids", [])):
+    # Check replay, duplicates and append against the same channel state.
+    with drive_store.WRITE_LOCK:
+        channel, _ = drive_store.load_channel()
+        action = _legacy_created_action(action, billing_customer_id, channel)
+        payload = action["payload"]
+        if drive_store.channel_action(client_id, channel) or client_id in set(snapshot.get("accepted_ids", [])):
+            return _action_result(drive_store.append_action(action), payload)
+        matches = _duplicate_matches(snapshot, payload)
+        if matches:
+            raise IntegrationError("POSSIBLE_DUPLICATE", "Eine sehr ähnliche Arbeitsaufzeichnung existiert bereits.",
+                                   details={"matches": matches})
         return _action_result(drive_store.append_action(action), payload)
-    matches = _duplicate_matches(snapshot, payload)
-    if matches:
-        raise IntegrationError("POSSIBLE_DUPLICATE", "Eine sehr ähnliche Arbeitsaufzeichnung existiert bereits.",
-                               details={"matches": matches})
-    return _action_result(drive_store.append_action(action), payload)
 
 
 def create_customer_work_record(*, request_id: str, customer_id: str, work_date: str,
@@ -579,16 +583,18 @@ def create_customer_work_record(*, request_id: str, customer_id: str, work_date:
     }
     client_id = _client_id("create_customer_work_record", request_id)
     action = {"client_id": client_id, "kind": "worklog", "payload": payload, "_request_hash":request_hash}
-    channel, _ = drive_store.load_channel()
-    action = _legacy_created_action(action, billing_customer_id, channel)
-    payload = action["payload"]
-    if drive_store.channel_action(client_id, channel) or client_id in set(snapshot.get("accepted_ids", [])):
+    # Check replay, duplicates and append against the same channel state.
+    with drive_store.WRITE_LOCK:
+        channel, _ = drive_store.load_channel()
+        action = _legacy_created_action(action, billing_customer_id, channel)
+        payload = action["payload"]
+        if drive_store.channel_action(client_id, channel) or client_id in set(snapshot.get("accepted_ids", [])):
+            return _action_result(drive_store.append_action(action), payload)
+        matches = _duplicate_matches(snapshot, payload)
+        if matches:
+            raise IntegrationError("POSSIBLE_DUPLICATE", "Eine sehr ähnliche Arbeitsaufzeichnung existiert bereits.",
+                                   details={"matches": matches})
         return _action_result(drive_store.append_action(action), payload)
-    matches = _duplicate_matches(snapshot, payload)
-    if matches:
-        raise IntegrationError("POSSIBLE_DUPLICATE", "Eine sehr ähnliche Arbeitsaufzeichnung existiert bereits.",
-                               details={"matches": matches})
-    return _action_result(drive_store.append_action(action), payload)
 
 
 def update_work_record(*, request_id: str, work_record_id: str, updates: dict[str, Any]) -> dict:

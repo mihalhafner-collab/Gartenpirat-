@@ -97,6 +97,9 @@ function fixture(name){
   });
   await scene('UAT 110: all web settings, advanced information hidden and three deliberate photo qualities','p3-business-actions.test.cjs',async p=>{
    await p.locator('#business-backup-card').waitFor({state:'attached'});await p.evaluate(()=>openPage('settings-page'));await p.locator('#business-backup-card').waitFor({state:'visible'});
+   await p.locator('#settings-page #photo-quality').waitFor({state:'attached'});
+   await p.evaluate(()=>{const more=document.getElementById('more-page');for(const id of ['business-settings-card','photo-storage-settings'])more.append(document.getElementById(id));});
+   await p.waitForFunction(()=>['business-settings-card','photo-storage-settings'].every(id=>document.getElementById(id)?.parentElement.id==='settings-page'));
    assert.equal(await p.locator('#settings-sync-local').isVisible(),false);assert.equal(await p.locator('#settings-sync-transfer').isVisible(),false);
    const settings=await p.locator('#settings-page input:not([type=hidden]),#settings-page select,#settings-page textarea').evaluateAll(nodes=>nodes.map(n=>({id:n.id,name:n.name,type:n.type,options:n.options?[...n.options].map(o=>o.value):undefined,label:n.labels?.[0]?.textContent||n.getAttribute('aria-label')||n.name})));
    assert(settings.length>=2);assert(settings.every(x=>x.id||x.name));const quality=settings.find(s=>s.id==='photo-quality');assert.deepEqual(quality.options,['optimized','high','original']);

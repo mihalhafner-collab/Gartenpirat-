@@ -21,7 +21,7 @@ const root=path.resolve(__dirname,'..'),assets=path.join(root,'android/app/src/m
    URL.createObjectURL=file=>{const url=create(file);photoBlobURLs.push(url);return url;};
    URL.revokeObjectURL=url=>{photoBlobURLs=photoBlobURLs.filter(item=>item!==url);revoke(url);};
   });
-  await page.goto(pathToFileURL(path.join(assets,'mobile.html')).href);await page.waitForSelector('#gp-launcher');
+  await page.goto(pathToFileURL(path.join(assets,'mobile.html')).href);await page.waitForFunction(()=>document.body.dataset.fieldReady==='true');await page.evaluate(()=>openPage('settings-page'));await page.locator('#setting-garden-shortcut').check();await page.evaluate(()=>openPage('home'));await page.waitForSelector('#gp-launcher');
   const png=Buffer.from(await page.evaluate(()=>{
    const c=document.createElement('canvas');c.width=800;c.height=1100;const ctx=c.getContext('2d');
    ctx.fillStyle='#f1e8cd';ctx.fillRect(0,0,800,1100);

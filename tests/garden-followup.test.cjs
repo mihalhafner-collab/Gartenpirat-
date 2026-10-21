@@ -22,7 +22,7 @@ const root=path.resolve(__dirname,'..'),url=pathToFileURL(path.join(root,'androi
    window.AndroidGardenPhotos={preparePicker:()=>{},setFullscreen:()=>{}};window.AndroidSpeech={start:()=>{}};window.AndroidPhone={dial:()=>{},openMaps:()=>{}};
   });
   let page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(/^https?:/.test(r.url())&&!r.url().startsWith('http://127.0.0.1:18766/'))external.push(r.url());});
-  await page.goto(url);await page.waitForSelector('#gp-launcher');
+  await page.goto(url);await page.waitForFunction(()=>document.body.dataset.fieldReady==='true');await page.evaluate(()=>openPage('settings-page'));await page.locator('#setting-garden-shortcut').check();await page.evaluate(()=>openPage('home'));await page.waitForSelector('#gp-launcher');
   const png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=600;c.height=900;const x=c.getContext('2d');x.fillStyle='#d4e1b6';x.fillRect(0,0,600,900);x.fillStyle='#244c38';x.font='30px sans-serif';x.fillText('Nur synthetisches Testbild',40,450);return [...Uint8Array.from(atob(c.toDataURL().split(',')[1]),c=>c.charCodeAt(0))];}));
   const ready=()=>page.waitForFunction(()=>document.getElementById('gp-own-photo')?.naturalWidth>0);
   const launch=async()=>{await page.evaluate(()=>Gartenpirat.close());await page.locator('#gp-launcher').click();};
@@ -35,7 +35,7 @@ const root=path.resolve(__dirname,'..'),url=pathToFileURL(path.join(root,'androi
    await page.screenshot({path:path.join(root,'outputs/Gartenpirat-Bildoptionen.png')});
   });
   await check('Stored bytes and auto-open preference survive page/app-view restart',async()=>{
-   await page.reload();await page.waitForSelector('#gp-launcher');await page.locator('#gp-launcher').click();await ready();assert.equal(await page.locator('#gp-own-photo').evaluate(i=>i.naturalWidth),600);
+   await page.reload();await page.waitForFunction(()=>document.body.dataset.fieldReady==='true');await page.evaluate(()=>openPage('settings-page'));await page.locator('#setting-garden-shortcut').check();await page.evaluate(()=>openPage('home'));await page.waitForSelector('#gp-launcher');await page.locator('#gp-launcher').click();await ready();assert.equal(await page.locator('#gp-own-photo').evaluate(i=>i.naturalWidth),600);
    assert(await page.locator('#gp-dialog').evaluate(d=>d.classList.contains('gp-photo-mode')));
    await page.keyboard.press('Escape');assert.equal(await page.locator('.gp-options button').count(),4);
    await page.locator('[data-gp-action=random]').click();assert(await page.locator('.gp-portrait').isVisible());
@@ -112,7 +112,7 @@ const root=path.resolve(__dirname,'..'),url=pathToFileURL(path.join(root,'androi
    const boot=async()=>{
     persistent=await chromium.launchPersistentContext(profile,{channel:'chrome',headless:true,viewport:{width:412,height:915}});
     await persistent.addInitScript(()=>{const master={customers:[],orders:[],worklogs:[],invoices:[],photos:[]};window.AndroidData={getState:()=>JSON.stringify({master,pending:[]}),getSyncStatus:()=>JSON.stringify({configured:false,pending:0}),getWorkSession:()=>JSON.stringify({state:'IDLE'}),getAppInfo:()=>JSON.stringify({versionName:'1.45.0'})};window.AndroidSpeech={start:()=>{}};window.AndroidPhone={};});
-    const p=persistent.pages()[0];await p.goto(url);await p.waitForSelector('#gp-launcher');return p;
+    const p=persistent.pages()[0];await p.goto(url);await p.waitForFunction(()=>document.body.dataset.fieldReady==='true');await p.evaluate(()=>openPage('settings-page'));await p.locator('#setting-garden-shortcut').check();await p.evaluate(()=>openPage('home'));await p.waitForSelector('#gp-launcher');return p;
    };
    try{
     let p=await boot();await p.evaluate(async bytes=>{await GartenpiratPhotoStore.put(new File([new Uint8Array(bytes)],'neustart.png',{type:'image/png'}),true);},[...png]);await persistent.close();persistent=null;

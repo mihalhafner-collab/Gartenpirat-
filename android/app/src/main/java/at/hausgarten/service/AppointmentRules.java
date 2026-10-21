@@ -10,6 +10,18 @@ final class AppointmentRules {
     static final String[] PROFILES={"general","lawn","hedge","planting","inspection","indoor"};
     static String hash(JSONObject row)throws Exception{return PixelMcpWriteTools.hash(DriveJournalRules.clean(row));}
     static boolean active(JSONObject row){return !Arrays.asList("cancelled","completed").contains(row.optString("status"));}
+    // Empty ends_at is explicit unknown duration; a missing/null field is invalid.
+    static boolean openEnd(JSONObject row){return row.has("ends_at")&&!row.isNull("ends_at")&&row.optString("ends_at").isEmpty();}
+    static boolean pending(JSONObject row,Instant now)throws Exception{return openEnd(row)?active(row):instant(row.getString("ends_at")).isAfter(now);}
+    static Instant weatherStart(JSONObject row,Instant now)throws Exception{Instant start=instant(row.getString("starts_at"));return openEnd(row)&&start.isBefore(now)?now:start;}
+    static Instant weatherEnd(JSONObject row,Instant now)throws Exception{return openEnd(row)?weatherStart(row,now).plusSeconds(1):instant(row.getString("ends_at"));}
+    /** 0=no intersection, 1=possible because an end is unknown, 2=known collision. */
+    static int overlapKind(JSONObject left,JSONObject right)throws Exception{
+        Instant a=instant(left.getString("starts_at")),b=instant(right.getString("starts_at"));boolean x=openEnd(left),y=openEnd(right);
+        Instant start=a.minusSeconds(left.optInt("travel_minutes")*60L),other=b.minusSeconds(right.optInt("travel_minutes")*60L),end=x?a:instant(left.getString("ends_at")),until=y?b:instant(right.getString("ends_at"));
+        if(start.isBefore(until)&&end.isAfter(other)||x&&!a.isBefore(other)&&a.isBefore(until)||y&&!b.isBefore(start)&&b.isBefore(end)||x&&y&&a.equals(b))return 2;
+        return x&&(y||until.isAfter(start))||y&&(x||end.isAfter(other))?1:0;
+    }
     static Instant instant(String value)throws Exception{try{return OffsetDateTime.parse(value).toInstant();}catch(Exception bad){throw new IllegalArgumentException("Beginn und Ende benötigen Datum, Uhrzeit und Zeitzonenoffset.");}}
     static Instant local(String value,String zone,String offset)throws Exception {
         LocalDateTime time=LocalDateTime.parse(value);ZoneId id=ZoneId.of(zone);List<ZoneOffset> valid=id.getRules().getValidOffsets(time);
@@ -26,9 +38,9 @@ final class AppointmentRules {
         }
         if(row.optString("title").trim().isEmpty())throw new IllegalArgumentException("Bitte eine Tätigkeit eintragen.");
         ZoneId zone=ZoneId.of(row.optString("timezone","Europe/Vienna"));row.put("timezone",zone.getId());
-        Instant start=instant(row.getString("starts_at")),end=instant(row.getString("ends_at"));
-        long minutes=Duration.between(start,end).toMinutes();if(minutes<5||minutes>24*60)throw new IllegalArgumentException("Ein Einsatz dauert mindestens5Minuten und höchstens24Stunden. Mehrtägige Arbeit bitte auf Einsätze aufteilen.");
-        row.put("starts_at",start.toString()).put("ends_at",end.toString());
+        String endValue=row.getString("ends_at");boolean open=endValue.isEmpty();Instant start=instant(row.getString("starts_at")),end=open?null:instant(endValue);
+        long minutes=open?0:Duration.between(start,end).toMinutes();if(!open&&(minutes<5||minutes>24*60))throw new IllegalArgumentException("Ein Einsatz dauert mindestens5Minuten und höchstens24Stunden. Mehrtägige Arbeit bitte auf Einsätze aufteilen.");
+        row.put("starts_at",start.toString()).put("ends_at",open?"":end.toString());
         if(!row.has("status"))row.put("status","tentative");
         if(!Arrays.asList("draft","tentative","confirmed","completed","cancelled").contains(row.optString("status")))throw new IllegalArgumentException("Ungültiger Terminstatus.");
         if(!row.has("purpose"))row.put("purpose","work");if(!Arrays.asList("work","inspection").contains(row.optString("purpose")))throw new IllegalArgumentException("Ungültiger Terminzweck.");
@@ -38,13 +50,13 @@ final class AppointmentRules {
             for(int i=0;i<refs.length();i++){String ref=refs.getString(i);int split=ref.lastIndexOf('#');if(split<1||!seen.add(ref))throw new IllegalArgumentException("Leistungsreferenz als Angebots-ID#Positionsindex angeben.");JSONObject offer=PixelMcpWriteTools.find(s.getJSONArray("offers"),ref.substring(0,split));int position=Integer.parseInt(ref.substring(split+1));if(!offer.optString("status").equals("accepted")||!row.getString("customer_id").equals(offer.optString("customer_id"))||orderId.isEmpty()||!orderId.equals(offer.optString("converted_order_id",offer.optString("order_id")))||position<0||position>=offer.getJSONArray("positions").length())throw new IllegalArgumentException("Leistung gehört nicht zu einem angenommenen Angebot dieses Auftrags.");}
         }
         for(String key:new String[]{"travel_minutes","break_minutes"}){int n=row.optInt(key,0);if(n<0||n>720)throw new IllegalArgumentException("Pause/Anfahrt muss zwischen0und720Minuten liegen.");row.put(key,n);}
-        if(row.getInt("break_minutes")>=minutes)throw new IllegalArgumentException("Die Pause muss kürzer als der Einsatz sein.");
+        if(!open&&row.getInt("break_minutes")>=minutes)throw new IllegalArgumentException("Die Pause muss kürzer als der Einsatz sein.");
         boolean lat=row.has("latitude")&&!row.isNull("latitude"),lon=row.has("longitude")&&!row.isNull("longitude");
         if(lat!=lon)throw new IllegalArgumentException("Breiten- und Längengrad gemeinsam angeben.");
         if(lat&&(!Double.isFinite(row.getDouble("latitude"))||Math.abs(row.getDouble("latitude"))>90||!Double.isFinite(row.getDouble("longitude"))||Math.abs(row.getDouble("longitude"))>180))throw new IllegalArgumentException("Ungültige Einsatzkoordinaten.");
         for(String field:new String[]{"flexible_from","flexible_until"})if(!row.optString(field).isEmpty())LocalDate.parse(row.getString(field));
         if(!row.optString("flexible_from").isEmpty()&&start.atZone(zone).toLocalDate().isBefore(LocalDate.parse(row.getString("flexible_from"))))throw new IllegalArgumentException("Termin liegt vor dem vereinbarten Ausführungsfenster.");
-        if(!row.optString("flexible_until").isEmpty()&&end.minusMillis(1).atZone(zone).toLocalDate().isAfter(LocalDate.parse(row.getString("flexible_until"))))throw new IllegalArgumentException("Termin liegt nach dem vereinbarten Ausführungsfenster.");
+        if(!row.optString("flexible_until").isEmpty()&&(open?start:end.minusMillis(1)).atZone(zone).toLocalDate().isAfter(LocalDate.parse(row.getString("flexible_until"))))throw new IllegalArgumentException("Termin liegt nach dem vereinbarten Ausführungsfenster.");
         if(old!=null&&(!old.optString("customer_id").equals(row.optString("customer_id"))||!old.optString("order_id").equals(orderId)))throw new IllegalArgumentException("Die ursprüngliche Kundenzuordnung bleibt erhalten. Bei falschem Kontext Termin absagen und neu planen.");
         if(old!=null&&old.optString("status").equals("cancelled")&&!row.optString("status").equals("cancelled"))throw new IllegalArgumentException("Abgesagten Termin nicht still reaktivieren. Bitte einen neuen Termin planen.");
         if(old!=null&&!old.optString("status").equals("draft")&&row.optString("status").equals("draft"))throw new IllegalArgumentException("Geplanten Termin verschieben oder ausdrücklich absagen; nicht zum Entwurf zurückstufen.");
@@ -52,8 +64,7 @@ final class AppointmentRules {
         JSONArray all=s.optJSONArray("appointments");
         for(int i=0;all!=null&&i<all.length();i++){
             JSONObject other=all.getJSONObject(i);if(row.getString("id").equals(other.optString("id"))||!active(other)||other.optString("status").equals("draft"))continue;
-            Instant a=instant(other.getString("starts_at")).minusSeconds(other.optInt("travel_minutes")*60L),b=instant(other.getString("ends_at"));
-            if(start.minusSeconds(row.getInt("travel_minutes")*60L).isBefore(b)&&end.isAfter(a))throw new PixelMcpWriteTools.Rejected("APPOINTMENT_OVERLAP","Zeit oder Anfahrt überschneidet sich mit einem vorhandenen Einsatz. Bitte eine freie Zeit wählen.");
+            if(overlapKind(row,other)==2)throw new PixelMcpWriteTools.Rejected("APPOINTMENT_OVERLAP","Zeit oder Anfahrt überschneidet sich mit einem vorhandenen Einsatz. Bitte eine freie Zeit wählen.");
         }
     }
     static JSONObject prepare(String name,JSONObject a,JSONObject s,String request,String stamp)throws Exception {

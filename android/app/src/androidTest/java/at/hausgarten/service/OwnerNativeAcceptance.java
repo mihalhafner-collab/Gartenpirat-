@@ -50,6 +50,23 @@ final class OwnerNativeAcceptance {
             JSONObject committed=f.store.getState().getJSONObject("master");test.yes(DriveJournalRules.apply(committed,f.store.pendingActions()).length()==0);f.store.commitSnapshot(committed,DriveJournalRules.ids(committed.getJSONArray("drive_applied_ids")));f.store.close();
             try(PixelLocalStore reopened=new PixelLocalStore(f.context)){test.yes(reopened.pendingActions().length()==0&&PixelMcpReadTools.effective(reopened.getState()).getJSONArray("worklogs").length()==1);test.yes(TrashPurgeBatch.preview(PixelMcpReadTools.effective(reopened.getState())).getInt("total")==0);}
         }});
+        test.probe("empty trash shares exact selection while private customer journals stay local",()->{try(Fixture f=new Fixture(test.getTargetContext())){
+            JSONObject snapshot=f.store.getState().getJSONObject("master");PixelDriveState.prepare(snapshot);
+            OwnerJournalRules.archives(snapshot).put("worklog:qa_shared_trash",SyntheticBusinessData.object().put("record",SyntheticBusinessData.object()
+                .put("id","qa_shared_trash").put("customer_id","qa_c").put("activity","QA isolated archive").put("work_date","2026-07-31").put("hours",1).put("billed",0)).put("archived_at","2026-08-01"));
+            f.store.commitSnapshot(snapshot,new HashSet<>());String active=PixelMcpWriteTools.hash(snapshot.getJSONArray("customers"));
+            String local=f.store.saveCustomer(SyntheticBusinessData.object().put("name","[TEST] QA private bulk customer").put("test_record",true));
+            JSONObject preview=f.call("preview_empty_trash",SyntheticBusinessData.object());test.yes(preview.getInt("count")==1);
+            JSONObject args=request("qa_native_private_bulk").put("expected_preview_hash",preview.getString("preview_hash")).put("confirmed",true);
+            test.yes(f.call("empty_trash",args).getInt("deleted")==1);test.yes(f.call("empty_trash",args).getBoolean("replayed"));
+            test.yes(f.store.pendingActionsForDrive().length()==1&&f.call("list_archive",SyntheticBusinessData.object()).getInt("total")==0);
+            JSONArray shared=f.store.pendingActionsForDrive();test.yes(shared.getJSONObject(0).getJSONObject("payload").has("_drive_preview_hash"));
+            JSONObject remote=new JSONObject(snapshot.toString());test.yes(DriveJournalRules.apply(remote,shared).length()==0);
+            test.yes(active.equals(PixelMcpWriteTools.hash(remote.getJSONArray("customers"))));test.yes(OwnerJournalRules.findOrNull(remote.getJSONArray("customers"),local)==null);
+            f.store.commitSnapshot(remote,DriveJournalRules.ids(remote.getJSONArray("drive_applied_ids")));
+            test.yes(f.store.pendingActionsForDrive().length()==0&&f.store.pendingActions().length()==1);
+            test.yes(OwnerJournalRules.findOrNull(PixelMcpReadTools.effective(f.store.getState()).getJSONArray("customers"),local)!=null);
+        }});
         test.probe("empty trash rejects a changed active reference before adding any journal",()->{try(Fixture f=new Fixture(test.getTargetContext())){
             JSONObject snapshot=f.store.getState().getJSONObject("master");PixelDriveState.prepare(snapshot);OwnerJournalRules.archives(snapshot).put("worklog:qa_old",SyntheticBusinessData.object().put("record",SyntheticBusinessData.object().put("id","qa_old").put("customer_id","qa_c").put("activity","Synthetic old").put("hours",1)).put("archived_at","t1"));f.store.commitSnapshot(snapshot,new HashSet<>());
             JSONObject p=f.call("preview_empty_trash",SyntheticBusinessData.object());snapshot.getJSONArray("invoices").put(SyntheticBusinessData.object().put("id","qa_protected").put("customer_id","qa_c").put("issued_at","2026-10-18").put("invoice_number","R-1").put("status","Gestellt").put("positions",new JSONArray().put(SyntheticBusinessData.object().put("worklog_id","qa_old"))));f.store.commitSnapshot(snapshot,new HashSet<>());

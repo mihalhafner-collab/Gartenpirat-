@@ -16,9 +16,13 @@ final class DriveSyncCoordinator {
     static final Object LOCK=new Object();
     private static final ScheduledExecutorService EXECUTOR=Executors.newSingleThreadScheduledExecutor();
     private static ScheduledFuture<?> scheduled;
+    private static final SyncWakeup.Window wakeup=new SyncWakeup.Window();
+    private static long scheduledGeneration;
+    private static final java.util.concurrent.atomic.AtomicLong requestedGeneration=new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicBoolean polling=new java.util.concurrent.atomic.AtomicBoolean();
     private static volatile boolean running;
     private static final java.util.concurrent.atomic.AtomicBoolean claimed=new java.util.concurrent.atomic.AtomicBoolean();
-    static boolean running(){return running;}
+    static boolean running(){return running||claimed.get();}
     static JSONObject status(Context c,JSONObject queue)throws Exception {
         SharedPreferences p=c.getSharedPreferences("haus_garten",0);
         JSONObject s=new JSONObject().put("configured",DriveAccount.available(c)).put("transport",DriveAccount.configured(c)?"direct_drive":"android_provider")
@@ -44,19 +48,44 @@ final class DriveSyncCoordinator {
     static JSONObject requestExplicit(Context c,String id)throws Exception {
         if(DriveAccount.available(c)&&!DriveAccount.configured(c)&&!DriveAccount.providerPermission(c))return new JSONObject().put("state","action_required").put("next_action","connect_drive").put("message",SyncPolicy.message("PERMISSION_REQUIRED"));
         if(!prepareExplicit(c,id))return new JSONObject().put("state","not_connected").put("next_action","connect_drive").put("message",SyncPolicy.message("NOT_CONNECTED"));
-        request(c,500);return new JSONObject().put("state","requested").put("cloud_confirmed",false).put("message","Abgleich angefordert. Das Ergebnis wird gesondert geprüft.");
+        request(c,0);return new JSONObject().put("state","requested").put("cloud_confirmed",false).put("message","Abgleich angefordert. Das Ergebnis wird gesondert geprüft.");
     }
     static boolean automaticAllowed(Context c)throws Exception{return (automaticEnabled(c)||c.getSharedPreferences("haus_garten",0).getBoolean("drive_manual_sync_requested",false))&&SyncPolicy.automaticAllowed(status(c,new JSONObject()),System.currentTimeMillis());}
     static boolean automaticEnabled(Context c){return c.getSharedPreferences("haus_garten",0).getBoolean("drive_automatic_enabled",true);}
-    static synchronized void request(Context context,long delay){
-        long due=context.getSharedPreferences("haus_garten",0).getLong("drive_next_retry",0)-System.currentTimeMillis();
-        delay=Math.max(delay,due);
-        DriveSyncJob.schedule(context,delay);
-        Context app=context.getApplicationContext();if(scheduled!=null)scheduled.cancel(false);
-        scheduled=EXECUTOR.schedule(()->{try(PixelLocalStore store=new PixelLocalStore(app)){
-            if(automaticAllowed(app))run(app,store);
-        }catch(Exception ignored){/* run persists a bounded, user-facing failure; local actions survive. */}},Math.max(500,delay),TimeUnit.MILLISECONDS);
+    static boolean hasNetwork(Context c){
+        android.net.ConnectivityManager manager=c.getSystemService(android.net.ConnectivityManager.class);if(manager==null)return false;
+        android.net.Network network=manager.getActiveNetwork();android.net.NetworkCapabilities caps=network==null?null:manager.getNetworkCapabilities(network);
+        return caps!=null&&caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)&&caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED);
     }
+    static void noteRequest(){requestedGeneration.incrementAndGet();}
+    static void request(Context context,long delay){noteRequest();scheduleRequest(context,delay);}
+    private static synchronized void scheduleRequest(Context context,long delay){
+        long now=System.currentTimeMillis(),previous=wakeup.due();
+        long due=wakeup.request(now,delay,context.getSharedPreferences("haus_garten",0).getLong("drive_next_retry",0));
+        if(scheduled!=null&&!scheduled.isDone()&&previous==due)return;
+        DriveSyncJob.schedule(context,Math.max(0,due-now));
+        Context app=context.getApplicationContext();if(scheduled!=null)scheduled.cancel(false);long generation=++scheduledGeneration;
+        scheduled=EXECUTOR.schedule(()->{
+            synchronized(DriveSyncCoordinator.class){if(generation!=scheduledGeneration)return;scheduled=null;wakeup.clear();}
+            try(PixelLocalStore store=new PixelLocalStore(app)){
+            if(automaticAllowed(app)&&hasNetwork(app))run(app,store);
+        }catch(Exception ignored){/* run persists a bounded, user-facing failure; local actions survive. */}},Math.max(0,due-now),TimeUnit.MILLISECONDS);
+    }
+    /** Active-use probe only. No service is enabled, no timestamp/receipt is fabricated on unchanged metadata. */
+    static void poll(Context context){
+        if(BuildConfig.UI_PREVIEW||running||!polling.compareAndSet(false,true))return;Context app=context.getApplicationContext();
+        EXECUTOR.execute(()->{try(PixelLocalStore store=new PixelLocalStore(app)){
+            if(!automaticAllowed(app)||!hasNetwork(app))return;
+            if(!DriveAccount.configured(app)){long last=lastAttempt(app);if(last>=SyncWakeup.FULL_CHECK_MS)request(app,0);return;}
+            DriveRestClient client=DriveAccount.client(app,store);String observed;
+            try{observed=client.inventoryFingerprint();}catch(Exception unavailable){recordFailure(app,unavailable);return;}
+            SharedPreferences p=app.getSharedPreferences("haus_garten",0);
+            if(SyncWakeup.fullCheck(observed,client.checkpoint("poll-inventory"),store.pendingActionsForDrive().length()>0,
+                p.getBoolean("drive_manual_sync_requested",false)||p.getInt("trash_cleanup_pending",0)>0||!p.getBoolean("drive_cloud_confirmed",false)&&p.getInt("drive_conflict_count",0)==0,p.getBoolean("drive_sync_failed",false),lastAttempt(app)))
+                run(app,store,new DriveDirectFiles(app,client),Settings.Secure.getString(app.getContentResolver(),Settings.Secure.ANDROID_ID));
+        }catch(Exception ignored){/* Full run owns durable failure/backoff; probe never confirms anything. */}finally{polling.set(false);}});
+    }
+    private static long lastAttempt(Context c){try{return Math.max(0,System.currentTimeMillis()-java.time.Instant.parse(c.getSharedPreferences("haus_garten",0).getString("last_sync_attempt","")).toEpochMilli());}catch(Exception absent){return Long.MAX_VALUE;}}
     static JSONObject run(Context context,PixelLocalStore store)throws Exception{
         if(DriveAccount.configured(context))return run(context,store,new DriveDirectFiles(context,DriveAccount.client(context,store)),Settings.Secure.getString(context.getContentResolver(),Settings.Secure.ANDROID_ID));
         SharedPreferences prefs=context.getSharedPreferences("haus_garten",0);
@@ -70,11 +99,13 @@ final class DriveSyncCoordinator {
         // Joining must not wait for the network lock and then repeat the entire I/O.
         // This is no acknowledgement: the active run alone checks/commits receipts.
         if(!claimed.compareAndSet(false,true))return new JSONObject().put("ok",true).put("coalesced",true).put("cloud_confirmed",false);
+        long requestAtStart=requestedGeneration.get();
         try{
         synchronized(LOCK){
             running=true;SharedPreferences prefs=context.getSharedPreferences("haus_garten",0);
             try{
                 prefs.edit().putString("drive_sync_phase","reading").putString("last_sync_attempt",java.time.Instant.now().toString()).commit();
+                String inventoryAtStart=files.inventoryFingerprint();
                 String tree=prefs.getString("drive_tree_uri","");if(tree.isEmpty()&&!files.cloudVerified())throw new IOException("Bitte zuerst den bestehenden Drive-Ordner auswählen.");
                 String incoming=files.read("HausGarten-Laptop.json");
                 if(incoming==null)throw new IOException("Der Gesamtstand HausGarten-Laptop.json fehlt im ausgewählten Ordner. Es wird kein leerer Ersatz angelegt.");
@@ -97,15 +128,20 @@ final class DriveSyncCoordinator {
                 Map<String,Exception> blockedDocuments=new HashMap<>();
                 for(int i=0;i<pending.length();i++){JSONObject a=pending.getJSONObject(i),p=a.getJSONObject("payload");if(!"offer_finalize".equals(a.optString("kind")))continue;
                     try{files.writeDocumentVerified(p,new BusinessDocumentStore(context).read(p));}catch(Exception error){blockedDocuments.put(a.getString("client_id"),error);}}
-                Set<String> selected=SyncMediaPlan.select(attachments),verified=new HashSet<>(),thumbnails=new HashSet<>();Map<String,Exception> mediaFailures=new HashMap<>();int mediaProgress=0,deferredMedia=0;
+                boolean urgentChanges=false;for(int i=0;i<pending.length();i++)if(!"photo".equals(pending.getJSONObject(i).optString("kind"))){urgentChanges=true;break;}
+                Set<String> selected=SyncMediaPlan.select(attachments,prefs.getString("drive_media_cursor",""),urgentChanges);int mediaProgress=0,deferredMedia=0;JSONArray batch=new JSONArray();
                 for(int i=0;i<attachments.length();i++){
                     JSONObject metadata=attachments.getJSONObject(i);String photoId=metadata.getString("photo_id"),hash=metadata.optString("content_sha256");
                     if(metadata.optBoolean("missing")||!hash.matches("[0-9a-f]{64}")){blockedPhotos.put(photoId,new DriveRestClient.Failure("PHOTO_ORIGINAL_REQUIRED","Foto-Original fehlt lokal. Original wieder bereitstellen; andere Änderungen werden weiter abgeglichen.",0,true));continue;}
                     if(!selected.contains(hash)){deferredMedia++;blockedPhotos.put(photoId,new DriveRestClient.Failure("MEDIA_TRANSFER_PENDING","Foto folgt automatisch im nächsten Übertragungsabschnitt.",0,false));continue;}
-                    if(mediaFailures.containsKey(hash)){blockedPhotos.put(photoId,mediaFailures.get(hash));continue;}
-                    try{if(!verified.contains(hash)){files.writePhotoVerified(metadata,store.photoAttachmentStore());verified.add(hash);mediaProgress++;}String thumb=metadata.optString("thumbnail_storage_name");if(!thumbnails.contains(thumb)){files.writeThumbnailVerified(metadata,store.photoAttachmentStore());thumbnails.add(thumb);}store.markPhotoAttachmentTransferred(photoId);}
-                    catch(Exception failure){blockedPhotos.put(photoId,failure);mediaFailures.put(hash,failure);}
+                    batch.put(metadata);
                 }
+                Map<String,Exception> mediaFailures=files.writeMediaBatchVerified(batch,store.photoAttachmentStore());Set<String> transferred=new HashSet<>();
+                for(int i=0;i<batch.length();i++){JSONObject metadata=batch.getJSONObject(i);String photoId=metadata.getString("photo_id");Exception failure=mediaFailures.get(photoId);
+                    if(failure!=null)blockedPhotos.put(photoId,failure);else{store.markPhotoAttachmentTransferred(photoId);transferred.add(metadata.getString("content_sha256"));}}
+                mediaProgress=transferred.size();
+                // Failed originals cannot occupy every slot forever. This cursor is not a receipt.
+                String cursor=SyncMediaPlan.nextCursor(attachments,prefs.getString("drive_media_cursor",""),selected);if(!cursor.isEmpty())prefs.edit().putString("drive_media_cursor",cursor).apply();
                 prefs.edit().putString("drive_sync_phase","journal").commit();
                 JSONArray combined=DriveJournalRules.union(own,pending);
                 // Preserve all existing action IDs, including actions in same-name duplicate files.
@@ -166,24 +202,32 @@ final class DriveSyncCoordinator {
                 store.acknowledge(confirmed);
                 JSONObject cleanup=TrashMediaCleanup.run(store,files,snapshot);
                 prefs.edit().putInt("trash_cleanup_pending",cleanup.getInt("pending")).putString("trash_cleanup_error",cleanup.getString("error_code")).commit();
-                if(cleanup.getInt("pending")>0){fully=false;prefs.edit().putBoolean("drive_cloud_confirmed",false).commit();if(cleanup.getInt("completed")>0)request(context,1500);}
-                if(mediaProgress>0&&deferredMedia>0)request(context,1500);
+                if(cleanup.getInt("pending")>0){fully=false;prefs.edit().putBoolean("drive_cloud_confirmed",false).commit();if(cleanup.getInt("completed")>0)scheduleRequest(context,0);}
+                if(mediaProgress>0&&deferredMedia>0)scheduleRequest(context,0);
                 boolean follow=mediaProgress>0&&deferredMedia>0||cleanup.getInt("pending")>0&&cleanup.getInt("completed")>0;
                 Set<String> captured=DriveJournalRules.ids(allPending);
                 JSONArray later=store.pendingActionsForDrive();
-                for(int i=0;i<later.length();i++)if(!captured.contains(later.getJSONObject(i).getString("client_id"))){follow=true;request(context,1500);break;}
+                for(int i=0;i<later.length();i++)if(!captured.contains(later.getJSONObject(i).getString("client_id"))){follow=true;scheduleRequest(context,0);break;}
+                // Only the inventory observed BEFORE applying actions may be remembered.
+                // A remote change during this run must still trigger the next probe.
+                files.rememberInventory(inventoryAtStart);
+                long undoRemaining=store.remainingDeleteUndoMs();
+                if(undoRemaining>0){follow=true;scheduleRequest(context,undoRemaining+200);}
                 if(!follow)prefs.edit().putBoolean("drive_manual_sync_requested",false).apply();
                 return new JSONObject().put("ok",true).put("transport_ok",true).put("needs_review",errors.length()>0).put("state",store.getState()).put("accepted",confirmed.size()).put("chatgpt_imported",chatActions.length())
                     .put("journal_errors",errors).put("error","")
                     .put("confirmation_scope",files.cloudVerified()?"drive_server_manifest":"provider_readback").put("cloud_confirmed",fully).put("duplicate_files",files.duplicates);
-            }catch(Exception failure){int attempts=Math.min(8,prefs.getInt("drive_retry_count",0)+1);boolean needs=failure instanceof JSONException||failure instanceof IllegalArgumentException||failure instanceof SecurityException||(failure instanceof DriveRestClient.Failure&&((DriveRestClient.Failure)failure).userAction);
-                long delay=SyncPolicy.retryDelay(attempts,failure instanceof DriveRestClient.Failure?((DriveRestClient.Failure)failure).retryAfter:0);
-                prefs.edit().putBoolean("drive_sync_failed",true).putBoolean("drive_cloud_confirmed",false).putBoolean("drive_user_action_required",needs||attempts>=8).putLong("drive_next_retry",needs||attempts>=8?0:System.currentTimeMillis()+delay).putString("last_sync_attempt",java.time.Instant.now().toString()).putString("drive_last_error_code",failureCode(failure)).putString("drive_last_error",friendly(failure)).putInt("drive_retry_count",attempts).commit();
-                if(!needs&&attempts<8)request(context,delay);else prefs.edit().putBoolean("drive_manual_sync_requested",false).apply();
-                throw failure;}
+            }catch(Exception failure){recordFailure(context,failure);throw failure;}
             finally{running=false;}
         }
-        }finally{claimed.set(false);}
+        }finally{claimed.set(false);if(requestedGeneration.get()>requestAtStart)scheduleRequest(context,0);}
+    }
+    private static void recordFailure(Context context,Exception failure){
+        SharedPreferences prefs=context.getSharedPreferences("haus_garten",0);
+        int attempts=Math.min(8,prefs.getInt("drive_retry_count",0)+1);boolean needs=failure instanceof JSONException||failure instanceof IllegalArgumentException||failure instanceof SecurityException||(failure instanceof DriveRestClient.Failure&&((DriveRestClient.Failure)failure).userAction);
+        long delay=SyncPolicy.retryDelay(attempts,failure instanceof DriveRestClient.Failure?((DriveRestClient.Failure)failure).retryAfter:0);
+        prefs.edit().putBoolean("drive_sync_failed",true).putBoolean("drive_cloud_confirmed",false).putBoolean("drive_user_action_required",needs||attempts>=8).putLong("drive_next_retry",needs||attempts>=8?0:System.currentTimeMillis()+delay).putString("last_sync_attempt",java.time.Instant.now().toString()).putString("drive_last_error_code",failureCode(failure)).putString("drive_last_error",friendly(failure)).putInt("drive_retry_count",attempts).commit();
+        if(!needs&&attempts<8)scheduleRequest(context,delay);else prefs.edit().putBoolean("drive_manual_sync_requested",false).apply();
     }
     private static boolean componentReady(JSONObject snapshot,JSONObject action){return DriveJournalRules.componentReady(snapshot,action.optString("kind"));}
     static String failureCode(Exception error){return error instanceof DriveRestClient.Failure?((DriveRestClient.Failure)error).code:error instanceof PixelMcpWriteTools.Rejected?((PixelMcpWriteTools.Rejected)error).code:error instanceof SecurityException?"PERMISSION_REQUIRED":error instanceof JSONException?"INVALID_REMOTE_DATA":"TRANSFER_FAILED";}
@@ -194,17 +238,26 @@ final class DriveSyncCoordinator {
         String value=error.getMessage();return value!=null&&value.length()<300&&error instanceof IllegalArgumentException?value:"Drive-Abgleich nicht abgeschlossen. Internet und Ordnerfreigabe prüfen. Lokale Einträge bleiben erhalten.";
     }
     static boolean fetchPhoto(Context context,JSONObject metadata,PhotoAttachmentStore local)throws Exception{
-        if(DriveAccount.configured(context))try(PixelLocalStore store=new PixelLocalStore(context)){synchronized(LOCK){byte[] bytes=new DriveDirectFiles(context,DriveAccount.client(context,store)).readPhotoVerified(metadata);local.storeExpected(bytes,metadata);return true;}}
+        if(DriveAccount.configured(context))try(PixelLocalStore store=new PixelLocalStore(context)){
+            byte[] bytes=new DriveDirectFiles(context,DriveAccount.client(context,store)).readPhotoVerified(metadata);
+            android.database.sqlite.SQLiteDatabase database=store.getWritableDatabase();database.beginTransaction();
+            try{JSONObject current=PixelMcpReadTools.effective(store.getState());
+                if(!TrashRules.referenced(current,store.pendingActions(),metadata.optString("storage_name")))throw new IOException("Foto wird nicht mehr verwendet. Kein gelöschtes Original erneut gespeichert.");
+                local.storeExpected(bytes,metadata);database.setTransactionSuccessful();return true;
+            }finally{database.endTransaction();}
+        }
         SharedPreferences prefs=context.getSharedPreferences("haus_garten",0);String tree=prefs.getString("drive_tree_uri","");if(tree.isEmpty())return false;
         synchronized(LOCK){Files files=new Files(context,Uri.parse(tree),prefs);byte[] bytes=files.readPhotoVerified(metadata);local.storeExpected(bytes,metadata);return true;}
     }
     static byte[] fetchDocument(Context context,JSONObject metadata)throws Exception{
-        synchronized(LOCK){if(DriveAccount.configured(context))try(PixelLocalStore store=new PixelLocalStore(context)){return new DriveDirectFiles(context,DriveAccount.client(context,store)).readDocumentVerified(metadata);}
+        if(DriveAccount.configured(context))try(PixelLocalStore store=new PixelLocalStore(context)){return new DriveDirectFiles(context,DriveAccount.client(context,store)).readDocumentVerified(metadata);}
+        synchronized(LOCK){
             SharedPreferences p=context.getSharedPreferences("haus_garten",0);String tree=p.getString("drive_tree_uri","");if(tree.isEmpty())throw new IOException("Dokument fehlt lokal und Drive ist nicht verbunden.");return new Files(context,Uri.parse(tree),p).readDocumentVerified(metadata);}
     }
     static byte[] fetchThumbnail(Context c,String name)throws Exception{
         if(!name.matches("[0-9a-f]{64}\\.jpg"))throw new IOException("Ungültige Vorschaureferenz.");
-        synchronized(LOCK){if(DriveAccount.configured(c))try(PixelLocalStore s=new PixelLocalStore(c)){return new DriveDirectFiles(c,DriveAccount.client(c,s)).readThumbnailVerified(name);}
+        if(DriveAccount.configured(c))try(PixelLocalStore s=new PixelLocalStore(c)){return new DriveDirectFiles(c,DriveAccount.client(c,s)).readThumbnailVerified(name);}
+        synchronized(LOCK){
             SharedPreferences p=c.getSharedPreferences("haus_garten",0);String tree=p.getString("drive_tree_uri","");if(tree.isEmpty())throw new IOException("Drive nicht verbunden.");return new Files(c,Uri.parse(tree),p).readThumbnailVerified(name);}
     }
     static final class Doc{
@@ -215,6 +268,16 @@ final class DriveSyncCoordinator {
         final Context context;final ContentResolver resolver;final Uri tree;final SharedPreferences prefs;int duplicates;
         Files(Context c,Uri t,SharedPreferences p){context=c;resolver=c.getContentResolver();tree=t;prefs=p;}
         boolean cloudVerified(){return false;}
+        String inventoryFingerprint()throws Exception{return "";}
+        void rememberInventory(String fingerprint){}
+        Map<String,Exception> writeMediaBatchVerified(JSONArray batch,PhotoAttachmentStore local)throws Exception{
+            Map<String,Exception> failures=new HashMap<>();Set<String> originals=new HashSet<>(),thumbs=new HashSet<>();
+            for(int i=0;i<batch.length();i++){JSONObject m=batch.getJSONObject(i);try{
+                if(originals.add(m.getString("content_sha256")))writePhotoVerified(m,local);
+                if(thumbs.add(m.optString("thumbnail_storage_name")))writeThumbnailVerified(m,local);
+            }catch(Exception error){failures.put(m.getString("photo_id"),error);originals.remove(m.getString("content_sha256"));thumbs.remove(m.optString("thumbnail_storage_name"));}}
+            return failures;
+        }
         void ensureDocument(JSONObject metadata,BusinessDocumentStore local)throws Exception {
             byte[] bytes;try{bytes=local.read(metadata);}catch(IOException absent){bytes=readDocumentVerified(metadata);local.store(bytes,metadata);}writeDocumentVerified(metadata,bytes);
         }
@@ -249,7 +312,11 @@ final class DriveSyncCoordinator {
             return DrivePrimaryState.recover(legacy,device,new DrivePrimaryState.Storage(){
                 public Map<String,String> commits(){Map<String,String> out=new LinkedHashMap<>();for(Doc d:index.values())if(d.name.startsWith("HausGarten-Commit-"))out.put(d.id,d.name);return out;}
                 public byte[] read(String id)throws Exception{Doc d=index.get(id);if(d!=null)return Files.this.read(d.uri).getBytes(StandardCharsets.UTF_8);throw new IOException("Veröffentlichter Gesamtstand fehlt; keine leere Wiederanlage.");}
+                public void readCommits(Map<String,String> names,DrivePrimaryState.CommitVisitor visitor)throws Exception{Files.this.readCommitFiles(index,names,visitor);}
             },evidenceOnly);
+        }
+        void readCommitFiles(Map<String,Doc> index,Map<String,String> names,DrivePrimaryState.CommitVisitor visitor)throws Exception{
+            for(Map.Entry<String,String> entry:names.entrySet()){Doc doc=index.get(entry.getKey());if(doc==null)throw new IOException("Veröffentlichter Beleg fehlt.");visitor.accept(entry.getKey(),entry.getValue(),read(doc.uri).getBytes(StandardCharsets.UTF_8));}
         }
         Doc immutable(String name,byte[] bytes)throws Exception {
             ArrayList<Doc> found=matches(name);if(found.size()>1)throw new IOException("Mehrdeutige Veröffentlichung; Originale erhalten.");

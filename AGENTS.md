@@ -85,6 +85,15 @@ konkreten Betriebsauftrag. Schreibtests bleiben vollständig isoliert.
 
 ## Alltagstauglichkeit
 
+Aktueller Nutzerauftrag vom 20.10.2026: Das
+[MCP-Testdossier](https://chatgpt.com/space/page_7f18b1e34e808191b3851b6c15ebf582)
+bei Folgearbeiten berücksichtigen. MCP übernimmt voraussichtlich die meisten
+Eingaben; die App priorisiert deshalb lesbare Übersichten. Gespeicherte Einträge
+zuerst lesend öffnen, manuelle Editoren erst ausdrücklich. Bekannten, eindeutig
+zugeordneten Kontext übernehmen und sichtbar machen; keine Kunden, Zeiten oder
+Preise erraten. Alle bisherigen Funktionen und die vollständige Bedienbarkeit
+ohne MCP erhalten. Laufende oder noch abzuschließende Arbeit bleibt vorrangig.
+
 Die App bleibt vollständig ohne KI bedienbar. Prioritäten: Datenintegrität,
 Zuverlässigkeit, Übersichtlichkeit und einfache, schnelle Bedienung.
 Wichtige Aktionen für kleine Hände gut erreichbar machen, eindeutige Beschriftungen
@@ -119,6 +128,28 @@ Journaltypen fail-closed zurückhalten. Eine Geschäfts-MCP-Sicherung ersetzt ke
 vollständige Gerätesicherung.
 
 ## Drive-Abgleich und Kundenakte
+
+Für ausdrücklich beauftragte Codex-Quellcode-/Dateiübertragungen nach Drive:
+`tools/drive_source_transfer.py` mit dem vorbereiteten öffentlichen ZIP-/UTF-8-TXT-Export,
+einer frischen vollständigen Ordnerliste und vorhandenen tatsächlichen Readback-Belegen
+verwenden. Eine Ordnerliste ersetzt Einzel-Metadatenabfragen. Nur geänderte/fehlende
+Dateien hochladen; neue/veränderte Dateien weiterhin zurücklesen. Bei unklarer
+Uploadantwort vor Wiederholung frisch auflisten und abgleichen, doppelte Namen
+zurückhalten. SHA256-Byteprüfung und reine Streamgrößenprüfung ausdrücklich
+unterscheiden. Keine Kontozugriffe oder Löschungen aus dem Plan ableiten;
+bestehende Nutzerautorisierung und Privacy-Gates bleiben maßgeblich. Quell-ZIPs
+über `tests/package_source_copy.py` deterministisch erzeugen; `--reuse-existing`
+prüft Originalbytes/Inventar/Dateimodi/Privacy vor Wiederverwendung. Prüfbelege
+außerhalb des Exportordners führen; technische Evidenz im zentralen Status.
+Für Durchsatz/Latenz bis zu drei unabhängige Artefaktketten aus dem Transferplan
+überlappend ausführen (Upload → tatsächliches Rücklesen → Beleg), nächste Datei
+sofort bei freiem Platz starten. Innerhalb der Payload-Phase größte Dateien zuerst;
+Inventar/Prüfsummen erst nach verifizierten Payloads, Startdatei zuletzt.
+Erst nach der Verifikationsbarriere Abschluss
+melden bzw. ausdrücklich autorisierte Altdateibereinigung ausführen. Keine
+parallelen konkurrierenden Änderungen derselben Datei, keine blinden POST-Retries.
+Datenvolumen ist auf ausdrücklichen Nutzerwunsch kein Optimierungsziel; Grenzen
+dienen RAM, Zuverlässigkeit, Anbieterlimits und zeitnahen Veröffentlichungen.
 
 Direkter Drive-Serverbeleg und Android-Provider-Rücklesen bleiben unterschiedliche
 Zustände. Bestehende Journal-IDs, Veröffentlichungsfolgen und Originaldateien

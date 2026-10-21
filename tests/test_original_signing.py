@@ -112,6 +112,27 @@ class OriginalSigningTests(unittest.TestCase):
         sentinels = [self.fake_key.decode(), self.fake_cert.decode(), *[self.env[name] for name in signing.VARIABLES[:4]]]
         self.assertFalse(any(value in text for value in sentinels), 'Private sentinel escaped its boundary')
 
+    def test_ui_preview_is_explicit_and_cannot_sign_an_operative_update(self):
+        expected = dict(signing.baseline(), package='at.hausgarten.service.preview', version_code=0, ui_preview=True)
+        valid = self.metadata(package=expected['package'], code=88, version='1.53.1-preview1') + b"application-label:'Haus & Garten Test'\n"
+        for raw, tree, accepted in [
+            (valid, b'E: manifest\n', True),
+            (self.metadata(), b'E: manifest\n', False),
+            (valid.replace(b'Haus & Garten Test', b'Haus & Garten'), b'E: manifest\n', False),
+            (valid+b"uses-permission: name='android.permission.INTERNET'\n", b'E: manifest\n', False),
+            (valid, b'E: instrumentation (line=2)\n', False),
+            (valid, b'A: android:sharedUserId="shared"\n', False),
+        ]:
+            with self.subTest(accepted=accepted, raw=raw, tree=tree), mock.patch.object(signing, 'tool', side_effect=[raw, tree]):
+                if accepted:
+                    self.assertEqual(signing.apk_metadata(self.apk, 'mock-aapt', {}, expected)['package'], expected['package'])
+                else:
+                    with self.assertRaises(signing.SigningError):
+                        signing.apk_metadata(self.apk, 'mock-aapt', {}, expected)
+        with mock.patch.object(signing, 'tool', return_value=valid):
+            with self.assertRaises(signing.SigningError):
+                signing.apk_metadata(self.apk, 'mock-aapt', {}, signing.baseline())
+
     def rejected(self, env=None, tool=None):
         with self.assertRaises(signing.SigningError) as caught:
             self.invoke(env=env, tool=tool)

@@ -76,8 +76,8 @@ public final class SyncDeletionTests {
         JSONObject numbered=state();numbered.getJSONArray("invoices").put(SyntheticBusinessData.object("{id:'qa_numbered',customer_id:'qa_c',status:'Storniert',invoice_number:'HG-2026-0012'}"));yes(!DeletionRules.preview(numbered,"invoice","qa_numbered").getBoolean("allowed"));
 
         JSONArray attachments=new JSONArray();for(int i=0;i<100;i++)attachments.put(SyntheticBusinessData.object().put("photo_id","qa_p"+i).put("content_sha256",String.format("%064x",i)).put("byte_size",2*1024*1024));
-        Set<String> selected=SyncMediaPlan.select(attachments);yes(selected.size()==4);yes(selected.contains("0".repeat(64)));yes(!selected.contains(String.format("%064x",4)));
-        attachments.getJSONObject(0).put("byte_size",20*1024*1024);yes(SyncMediaPlan.select(attachments).size()==1);
+        Set<String> selected=SyncMediaPlan.select(attachments);yes(selected.size()==12);yes(selected.contains("0".repeat(64)));yes(!selected.contains(String.format("%064x",12)));
+        attachments.getJSONObject(0).put("byte_size",20*1024*1024);yes(SyncMediaPlan.select(attachments).size()==7);
         JSONArray duplicate=new JSONArray();for(int i=0;i<100;i++)duplicate.put(SyntheticBusinessData.object().put("photo_id","qa_p"+i).put("content_sha256","a".repeat(64)).put("byte_size",100));yes(SyncMediaPlan.select(duplicate).size()==1);
         JSONObject pendingMedia=state().put("drive_journal_errors",new JSONArray().put(SyntheticBusinessData.object().put("client_id","media-wait").put("code","MEDIA_TRANSFER_PENDING")));
         JSONObject queue=DriveJournalRules.queueStatus(pendingMedia,new JSONArray().put(event("media-wait","photo",SyntheticBusinessData.object().put("id","qa_p"))));yes(queue.getInt("pending_upload")==1&&queue.getInt("review")==0);

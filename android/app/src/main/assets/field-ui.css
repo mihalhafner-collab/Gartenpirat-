@@ -1,0 +1,73 @@
+/* One shared production surface; color always accompanies a written action/state. */
+body.field-ui{--action:#176247;--action-soft:#e5f1e9;--planning:#205e8a;--planning-soft:#e9f2fa;--attention:#765000;--attention-soft:#fff2cf;--danger:#a12b29;--danger-soft:#fbe9e7;--ink:#192a21;background:#f5f7f5;color:var(--ink)}
+.field-ui button,.field-ui summary{min-height:48px;touch-action:manipulation}
+.field-ui button{overflow-wrap:anywhere}
+.field-ui .bottom .bottom-inner{grid-template-columns:1fr 1.4fr 1fr;gap:4px}
+.field-ui .bottom .nav{min-height:64px;padding:7px 5px;font-size:.82rem;line-height:1.3}
+.field-ui .nav.active{background:var(--action-soft);color:#15573d;font-weight:750}
+.field-ui .app{padding-bottom:calc(var(--app-nav-height,80px) + 32px)}
+.field-ui.field-home .app{padding-bottom:calc(var(--app-nav-height,80px) + 116px)}
+.field-heading{margin:8px 0 18px}.field-heading h1{font-size:1.75rem;margin:0 0 6px;line-height:1.2}.field-heading .home-dayline{font-size:.88rem;margin:0}
+.field-ui #home .brand,.field-ui #home .hero>h2,.field-ui #home .folder-grid,.field-ui #home>.week-summary{display:none!important}
+.field-ui:not(.field-garden-shortcut) #gp-launcher{display:none!important}
+.field-ui #home .hero{padding:0;margin:0}
+.field-ui #design-metrics{grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:14px;background:white;overflow:hidden}
+.field-ui #design-metrics [data-design-metric=orders]{display:none}
+.field-ui #design-metrics .design-metric{border:0;border-radius:0;box-shadow:none}
+.field-ui #design-metrics strong{font-size:1.4rem}
+.field-ui #workday-timer{background:#fff;box-shadow:none;border-radius:16px;margin:12px 0}
+.field-ui .timer-title p{font-size:.88rem}
+.field-ui .timer-main,.field-ui .primary{background:var(--action);color:#fff}
+.field-ui .timer-secondary{background:var(--attention-soft);color:var(--attention)}
+.field-ui .timer-stop{background:#e9efec;color:#233b30;border:1px solid #b6c8bd}
+.field-ui .timer-discard,.field-ui .field-danger,.field-ui .danger,.field-ui .danger-button,.field-ui .design-photo-delete,.field-ui [data-delete],.field-ui [data-record-delete]{color:var(--danger);background:var(--danger-soft)}
+.field-ui .timer-state strong{letter-spacing:0;font-size:2rem}
+.field-ui .timer-secondary[data-session-action=photo]{background:#edf2ef;color:#233b30}
+#field-today-actions{display:flex;position:fixed;z-index:14;bottom:calc(var(--app-nav-height,80px) + 6px);left:12px;right:12px;gap:8px;max-width:704px;margin:auto;padding:8px;background:#f5f7f5f5;border:1px solid var(--line);border-radius:16px}
+#field-today-actions>.secondary{flex:0 1 35%}
+#field-today-actions>.quick{flex:1;min-width:0;min-height:56px;border-radius:12px;box-shadow:none;padding:10px 12px;justify-content:center}
+#field-today-actions>.quick .icon,#field-today-actions>.quick .arrow,#field-today-actions>.quick small{display:none}
+#field-today-actions>.quick strong{font-size:1rem}
+.field-ui #field-today-actions>.quick{background:var(--action);color:white}
+.field-ui:not(.field-home) #field-today-actions{display:none}
+.field-ui .field-planning,.field-ui #more-page [data-open=planning-page]{background:var(--planning-soft);color:var(--planning);border-color:#c6d9e9}
+.field-ui #more-page .more-destinations button{min-height:56px}
+.field-ui #more-page .more-destinations button small{font-size:.82rem}
+.field-ui #more-page .more-group>h3{font-size:.85rem;background:#edf2ef}
+.field-ui .settings-state.is-error,.field-ui .sync-pill.error{background:var(--danger-soft);color:var(--danger)}
+.field-ui .settings-state.is-pending,.field-ui .sync-pill.busy{background:var(--attention-soft);color:var(--attention)}
+.field-ui .settings-error-details{white-space:pre-wrap;overflow-wrap:anywhere}
+#field-quick-entry{position:fixed;inset:auto 0 0;margin:0 auto;width:min(100%,680px);max-width:100%;max-height:95dvh;padding:0;border:1px solid #d3dfd7;border-radius:20px 20px 0 0;background:#f8faf8;color:var(--ink);overflow:auto;overscroll-behavior:contain}
+#field-quick-entry::backdrop{background:#14291e77}
+.field-sheet-heading{padding:16px 16px 4px}.field-sheet-heading h2{font-size:1.25rem;line-height:1.3;margin:0}.field-sheet-heading p{margin:4px 0;color:#52655b;font-size:.85rem}
+#field-quick-entry #work-entry{padding:0 12px;display:block}
+#field-quick-entry #work-entry>.page-head{display:none}
+#field-quick-entry #work-entry>.card{padding:0 4px;margin:0;border:0;background:transparent;box-shadow:none}
+#field-quick-entry .entry-block{padding:0;border:0;margin:6px 0}
+#field-quick-entry .entry-block>h3{display:none}
+#field-quick-entry textarea{min-height:64px}
+#field-quick-entry #entry>.actions{position:sticky;bottom:0;background:#f8faf8;z-index:2;padding:12px 0 max(12px,env(safe-area-inset-bottom));margin:12px 0 0;display:flex;flex-wrap:wrap}
+#field-quick-entry #entry>.actions>button{flex:1 1 40%;min-width:0;padding:12px 7px}
+#field-quick-entry input,#field-quick-entry select,#field-quick-entry textarea{min-height:48px}
+#field-quick-entry .field-context{margin:6px 0;font-size:.86rem;color:#385244;overflow-wrap:anywhere}
+#field-quick-entry .entry-meta{margin:8px 0}
+#field-quick-entry .more-fields>button{width:100%;margin-top:8px}
+@media(prefers-reduced-motion:reduce){.field-ui *{scroll-behavior:auto!important;transition:none!important}}
+
+.field-ui #planning-home>button[data-open=planning-page]{display:none}
+.field-home #mobile-toast{bottom:calc(var(--app-nav-height,80px) + 102px)}
+#field-quick-entry #hours-result:not([role=alert]){display:none}
+.field-ui .planning-collisions[data-state=conflict],.field-ui .planning-collision-badge{background:var(--attention-soft);color:var(--attention)}
+.field-ui #workday-timer[data-session-state=PAUSED],.field-ui #workday-timer[data-session-state=STOPPED_PENDING_REVIEW]{border:1px solid #caa24c;background:#fffaf0}
+.field-ui #workday-timer[data-session-state=PAUSED] .timer-state small,.field-ui #workday-timer[data-session-state=STOPPED_PENDING_REVIEW] .timer-state small{color:var(--attention)}
+.field-ui .status-card[data-tone=attention]{border-left:4px solid #ad7911}
+.field-ui .status-card[data-tone=error]{border-left:4px solid var(--danger)}
+.field-ui .status-card[data-tone=confirmed]{border-left:4px solid var(--action)}
+
+.field-ui #more-page .page-head .drawer-open{position:absolute;right:0;top:0;min-width:48px;width:48px;margin:0;padding:6px;font-size:1.4rem}
+#field-quick-entry #entry>.actions>button[type=submit]{order:2}
+#field-quick-entry #entry>.actions>button#field-entry-later{order:1}
+#field-quick-entry .timer-completion-options>button{order:1;flex:1 1 40%;min-width:0}
+#field-quick-entry .completion-more{order:3;flex-basis:100%}
+
+.field-ui .personal-payment-toggle[aria-pressed=true]{background:var(--action);color:#fff}

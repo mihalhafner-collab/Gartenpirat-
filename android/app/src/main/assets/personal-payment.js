@@ -22,7 +22,7 @@
     wrapper.append(button);
    }
    const marked=paid.has(id),button=wrapper.querySelector('[data-personal-paid]');
-   button.textContent=marked?'b.b. · bezahlt':'b.b.';button.setAttribute('aria-pressed',String(marked));
+   button.textContent=row.closest('#workday-recent')?(marked?'✓ bezahlt':'bezahlt?'):(marked?'b.b. · bezahlt':'b.b.');button.setAttribute('aria-pressed',String(marked));
    button.setAttribute('aria-label',(marked?'Bezahlmarkierung entfernen: ':'Persönlich als bezahlt markieren: ')+records.get(id).activity);
    button.title='b.b. = persönliche Markierung auf diesem Gerät. Keine Rechnungszahlung und kein Abrechnungsnachweis.';button.setAttribute('aria-description',button.title);
    let label=row.querySelector('.personal-payment-label');

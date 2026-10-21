@@ -1,7 +1,7 @@
 /* Daily navigation and reachability. Existing forms and native save APIs remain authoritative. */
 (() => {
   'use strict';
-  const get=id=>document.getElementById(id), roots=['home','customers','worklogs'];
+  const get=id=>document.getElementById(id), roots=['home','customers','more-page'];
   const preference='hausgarten.ui.side_swipe.v1';
   let swipePreference=false;
   try{swipePreference=localStorage.getItem(preference)==='true';}catch(_){/* Keep the safe in-memory default. */}
@@ -11,7 +11,8 @@
     if(get('settings-page'))return;
     const page=document.createElement('section');page.id='settings-page';page.className='page';
     page.innerHTML='<div class="page-head"><button type="button" class="back" aria-label="Zurück">‹</button><h2>Einstellungen</h2></div>'+
-      '<section class="card settings-section" aria-labelledby="settings-operation-title"><h3 id="settings-operation-title">Bedienung</h3><label class="check"><input id="setting-side-swipe" type="checkbox">Seitlich zwischen Heute, Kunden und Arbeiten wischen</label><p class="sub">Im freien Seitenbereich wischen. Die Zurück-Geste am Bildschirmrand und Aktionen an Einträgen bleiben getrennt.</p><p id="settings-preference-state" class="settings-note" role="status" aria-live="polite">Diese Einstellung wird nur auf diesem Gerät gespeichert.</p></section>'+
+      '<section class="card settings-section" aria-labelledby="settings-operation-title"><h3 id="settings-operation-title">Bedienung</h3><label class="check"><input id="setting-side-swipe" type="checkbox">Seitlich zwischen Heute, Kunden & Gärten und Mehr wischen</label><p class="sub">Im freien Seitenbereich wischen. Die Zurück-Geste am Bildschirmrand und Aktionen an Einträgen bleiben getrennt.</p><p id="settings-preference-state" class="settings-note" role="status" aria-live="polite">Diese Einstellung wird nur auf diesem Gerät gespeichert.</p></section>'+
+      '<section class="card settings-section"><h3>Kalender & Wetter</h3><p id="settings-planning-state" class="sub" role="status">Verbindung beim Öffnen prüfen.</p><button type="button" class="secondary" id="settings-planning">Kalender & Wetter einrichten</button></section>'+
       '<section class="card settings-section" aria-labelledby="settings-data-title"><h3 id="settings-data-title">Google Drive</h3><div id="settings-sync-state" class="settings-state" role="status" aria-live="polite"><strong id="settings-sync-summary">Drive wird geprüft</strong><span id="settings-sync-detail">Der lokale und der übertragene Stand werden getrennt angezeigt.</span></div><details class="settings-advanced"><summary>Erweitert / Diagnose</summary><dl class="settings-diagnostics"><div><dt>Lokale Änderungen</dt><dd id="settings-sync-local">Wird geprüft</dd></div><div><dt>Übertragungsstand</dt><dd id="settings-sync-transfer">Wird geprüft</dd></div><div><dt>Letzter erfolgreicher Stand</dt><dd id="settings-sync-last">Wird geprüft</dd></div></dl></details><button type="button" class="secondary" id="settings-drive">Google Drive EIN / AUS</button><button type="button" class="secondary" data-open="sync-page">Synchronisierung öffnen</button><p class="sub">Die Synchronisierung gleicht deine Arbeit ab. Eine vollständige Sicherung findest du separat unter Sicherung.</p></section>'+
       '<section class="card settings-section" aria-labelledby="settings-connection-title"><h3 id="settings-connection-title">ChatGPT-Steuerung</h3><p id="settings-connection-state" class="sub" role="status" aria-live="polite">Verbindungsstatus wird geprüft.</p><button type="button" class="secondary" id="settings-connection">ChatGPT EIN / AUS</button><p class="sub">Die Freigabe und das Ein- oder Ausschalten erfolgen in der bestehenden Verbindung.</p></section>'+
       '<section class="card settings-section settings-about" aria-labelledby="settings-about-title"><h3 id="settings-about-title">App-Information</h3><p id="settings-version" class="sub">Versionsangabe wird geprüft.</p></section>';
@@ -26,11 +27,12 @@
     });
     const diagnosis=document.createElement('details');diagnosis.innerHTML='<summary>Erweitert / Diagnose · Fehlermeldungen</summary><pre class="settings-error-details"></pre>';page.append(diagnosis);diagnosis.ontoggle=()=>{if(diagnosis.open)diagnosis.querySelector('pre').textContent=HGBusinessFeedback.diagnostics().join('\n\n')||'Keine technischen Fehlermeldungen in dieser Sitzung.';};
     get('settings-drive').onclick=()=>{if(typeof AndroidData.connectDrive==='function')AndroidData.connectDrive();else window.showUndoToast?.('Bitte die App aktualisieren, um die Google-Drive-Verbindung einzurichten.');};
+    get('settings-planning').onclick=()=>AndroidData.connectPlanning?.();
     get('settings-connection').onclick=()=>get('pixel-tunnel-setup')?.click();
     // Move, never duplicate, the existing inputs and handlers into reachable toolbars.
     for(const [id,searchId,addId,label] of [['customers','customer-search','add-customer','+ Kunde'],['worklogs','worklog-search','design-add-work','+ Arbeit'],['orders','order-search','add-order','+ Auftrag']]){
       const toolbar=document.createElement('div');toolbar.className='daily-list-tools';toolbar.setAttribute('aria-label',label.slice(2)+' suchen oder hinzufügen');toolbar.id='daily-tools-'+id;
-      const search=get(searchId),add=get(addId);if(search){search.setAttribute('aria-label',search.placeholder||'Suchen');toolbar.append(search);}if(add){add.className='primary daily-add';add.textContent=label;toolbar.append(add);}get(id).append(toolbar);get(id).classList.add('daily-list-page');
+      if(id==='orders'){const back=document.createElement('button');back.type='button';back.className='secondary daily-toolbar-back';back.textContent='‹';back.setAttribute('aria-label','Eine Ansicht zurück');back.onclick=()=>window.handleAndroidBack();toolbar.append(back);}const search=get(searchId),add=get(addId);if(search){search.setAttribute('aria-label',search.placeholder||'Suchen');toolbar.append(search);}if(add){add.className='primary daily-add';add.textContent=label;toolbar.append(add);}get(id).append(toolbar);get(id).classList.add('daily-list-page');
     }
     get('add-worklog').hidden=true;
     let initialCustomer='',customerTouched=false;
@@ -58,8 +60,8 @@
     let gesture=null;
     const excluded='input,textarea,select,button,a,summary,dialog,.swipe-shell,[data-swipe-item],.customer-card,.worklog-entry,.order-list-item,.invoice-entry,.bottom,.daily-list-tools';
     document.addEventListener('touchstart',event=>{
-      gesture=null;if(!swipeEnabled()||!roots.includes(currentPage)||event.touches.length!==1||event.target.closest(excluded))return;
-      const touch=event.touches[0];if(touch.clientX<32||touch.clientX>innerWidth-32)return;
+      gesture=null;if(currentPage==='planning-page'||!swipeEnabled()||!roots.includes(currentPage)||event.touches.length!==1||event.target.closest(excluded))return;
+      const touch=event.touches[0];if(touch.clientX<(window.HGGestures?.safeLeft()||32)+44||touch.clientX>innerWidth-32)return;
       gesture={x:touch.clientX,y:touch.clientY,time:performance.now(),page:currentPage};
     },{passive:true});
     document.addEventListener('touchmove',event=>{
@@ -94,6 +96,7 @@
       let last='Noch kein erfolgreicher Abgleich';
       if(syncInfo.last_sync){const date=new Date(syncInfo.last_sync);last=Number.isNaN(date.getTime())?'Erfolgreicher Zeitpunkt nicht lesbar':date.toLocaleString('de-AT',{dateStyle:'medium',timeStyle:'short'});}
       get('settings-sync-last').textContent=last;
+      if(currentPage==='settings-page')try{const result=JSON.parse(AndroidData.ownerCall('get_planning_settings','{}'));if(result.ok){const info=result.data.integration||{},s=result.data.settings||{};get('settings-planning-state').textContent=(info.calendar_configured?'Google Kalender aktiv':info.calendar_connected?'Google Kalender pausiert':'Google Kalender nicht verbunden')+' · Wetter '+(s.weather_enabled?'EIN':'AUS');}}catch(_){}
       let connection=get('pixel-tunnel-state')?.textContent||'Verbindung noch nicht eingerichtet.';
       try{const info=JSON.parse(AndroidData.getPixelTunnelStatus());connection=HGBusinessFeedback.connection(info);}catch(_){}
       get('settings-connection-state').textContent=connection;

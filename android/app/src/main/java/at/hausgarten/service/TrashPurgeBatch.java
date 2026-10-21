@@ -63,8 +63,23 @@ final class TrashPurgeBatch {
         return new JSONObject().put("confirmed",true).put("expected_preview_hash",expected).put("entries",preview.getJSONArray("entries"));
     }
     static JSONObject currentGuard(JSONObject snapshot)throws Exception {return new JSONObject().put("preview_hash",preview(snapshot).getString("preview_hash"));}
+    /** Bind the SAME confirmed entries to the view that can actually leave the device.
+     * Local-only test journals remain private and may change an unrelated guard row.
+     * Both full-state hashes are captured in the owner transaction before enqueueing.
+     */
+    static void bindDrivePreview(JSONObject payload,JSONObject shared)throws Exception {
+        JSONObject drive=preview(shared);
+        if(!PixelMcpWriteTools.hash(payload.getJSONArray("entries")).equals(PixelMcpWriteTools.hash(drive.getJSONArray("entries"))))
+            throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Lokale und für Drive vorgesehene Papierkorbmenge unterscheiden sich. Einträge einzeln prüfen; nichts gelöscht.");
+        if(!drive.getString("preview_hash").equals(payload.getString("expected_preview_hash")))
+            payload.put("_drive_preview_hash",drive.getString("preview_hash"));
+    }
     static void apply(JSONObject snapshot,JSONObject action)throws Exception {
-        JSONObject supplied=action.getJSONObject("payload"),checked=payload(snapshot,supplied.getString("expected_preview_hash"),supplied.optBoolean("confirmed"));
+        JSONObject supplied=action.getJSONObject("payload");String expected=supplied.getString("expected_preview_hash");
+        // An additive transport guard never widens the selection: all current reference,
+        // financial, version and exact-entry checks below still run against THIS snapshot.
+        if(supplied.has("_drive_preview_hash")&&!preview(snapshot).getString("preview_hash").equals(expected))expected=supplied.getString("_drive_preview_hash");
+        JSONObject checked=payload(snapshot,expected,supplied.optBoolean("confirmed"));
         if(!PixelMcpWriteTools.hash(checked.getJSONArray("entries")).equals(PixelMcpWriteTools.hash(supplied.getJSONArray("entries"))))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Die bestätigte Löschmenge stimmt nicht mehr überein.");
         JSONArray entries=checked.getJSONArray("entries");JSONObject archive=OwnerJournalRules.archives(snapshot);
         for(int i=0;i<entries.length();i++){JSONObject e=entries.getJSONObject(i);String type=e.getString("entity"),id=e.getString("entity_id");TrashRules.commitPurge(snapshot,action,type,id,archive.getJSONObject(type+":"+id));}

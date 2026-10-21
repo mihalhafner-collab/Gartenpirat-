@@ -21,6 +21,7 @@ interface OwnerRepository {
     JSONObject verifyDelivery(String messageId,JSONObject offer) throws Exception;
     void verifyLegacyBackup(String id,String preview) throws Exception;
     JSONObject createBackup(String request) throws Exception;
+    JSONObject protectDeletion(JSONObject snapshot,JSONArray entries,String request) throws Exception;
     JSONObject restoreBackup(JSONObject args,String request) throws Exception;
     JSONObject planningSettings() throws Exception;
     boolean calendarConnected();

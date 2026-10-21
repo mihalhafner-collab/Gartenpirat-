@@ -245,6 +245,7 @@ class MCPIntegrationTests(unittest.TestCase):
         for thread in threads:
             thread.join()
         self.assertEqual(len(self.channel()["actions"]), 1)
+        self.assertEqual(len(results), 2)
         self.assertEqual(sum(bool(item["replayed"]) for item in results), 1)
 
     def test_audit_has_no_business_text_or_secret(self):

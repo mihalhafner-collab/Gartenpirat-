@@ -18,7 +18,7 @@ async function main(){
   const errors=[]; page.on('pageerror',error=>errors.push(error.message));
   await page.goto(laptopUrl); await page.waitForSelector('.customer-card',{state:'attached'});
   const priorOffline=await page.request.get(laptopUrl+'/api/worklogs').then(r=>r.json());
-  for(const row of priorOffline.filter(w=>w.id!=='wrk_qa'))await page.request.delete(laptopUrl+'/api/worklogs/'+row.id);
+  for(const row of priorOffline.filter(w=>w.id!=='qa_wrk_qa'))await page.request.delete(laptopUrl+'/api/worklogs/'+row.id);
   await page.evaluate(()=>loadAll());
   await check('Desktop startup and all navigation views',async()=>{
     for(const name of ['customers','orders','worklogs','photos','invoices','customer','dashboard']){
@@ -81,7 +81,7 @@ async function main(){
     page.once('dialog',dialog=>dialog.accept());await card.locator('[data-remove]').click();await card.waitFor({state:'detached'});
   });
   await check('Archive selection preserved when editing historical work',async()=>{
-    await page.evaluate(()=>{state.customers.find(c=>c.id==='qa_cus_qa').active=0;openEditor('worklog',state.worklogs.find(w=>w.id==='wrk_qa'));});
+    await page.evaluate(()=>{state.customers.find(c=>c.id==='qa_cus_qa').active=0;openEditor('worklog',state.worklogs.find(w=>w.id==='qa_wrk_qa'));});
     assert.equal(await page.locator('#worklog-customer').inputValue(),'qa_cus_qa');
     await page.locator('#editor-dialog [data-close]').first().click();await page.evaluate(()=>loadAll());
   });
@@ -113,11 +113,11 @@ async function main(){
   });
   await check('Invoice draft preview and editor',async()=>{
     await page.locator('#navigation [data-view="invoices"]').click();
-    await page.locator('[data-invoice-layout="inv_qa"]').click();
+    await page.locator('[data-invoice-layout="qa_inv_qa"]').click();
     assert(await page.locator('#invoice-layout-dialog').isVisible());
     assert((await page.locator('#invoice-layout-dialog').innerText()).includes('150'));
     await page.locator('#invoice-layout-dialog [data-close]').click();
-    await page.locator('[data-edit-invoice="inv_qa"]').click(); assert(await page.locator('#editor-dialog').isVisible());
+    await page.locator('[data-edit-invoice="qa_inv_qa"]').click(); assert(await page.locator('#editor-dialog').isVisible());
     await page.locator('#editor-dialog [data-close]').first().click();
   });
   await check('Laptop mobile widths: no document overflow and menu navigation',async()=>{
@@ -172,7 +172,7 @@ async function main(){
     resume();await sync;await page.unroute('**/api/sync');
     assert.equal(await page.evaluate(()=>readQueue().length),1);
     await page.evaluate(()=>synchronize());assert.equal(await page.evaluate(()=>readQueue().length),0);
-    await page.request.delete(laptopUrl+'/api/worklogs/wrk_race_a');await page.request.delete(laptopUrl+'/api/worklogs/wrk_race_b');
+    await page.request.delete(laptopUrl+'/api/worklogs/qa_wrk_race_a');await page.request.delete(laptopUrl+'/api/worklogs/qa_wrk_race_b');
   });
   const mobile=await context.newPage();const mobileErrors=[];mobile.on('pageerror',e=>mobileErrors.push(e.message));
   const mobileUrl=process.env.QA_MOBILE_URL;
@@ -209,7 +209,7 @@ async function main(){
       await mobile.evaluate(()=>handleAndroidBack());
       await mobile.evaluate(()=>openPage('worklogs'));
       const row=mobile.locator('[data-edit-worklog="wrk_demo"]').filter({visible:true}).first();
-      await row.dispatchEvent('pointerdown',{pointerId:1,pointerType:'touch',clientX:80,clientY:350});
+      await row.dispatchEvent('pointerdown',{pointerId:1,pointerType:'touch',isPrimary:true,button:0,clientX:80,clientY:350});
       await mobile.waitForTimeout(650);await row.dispatchEvent('pointerup',{pointerId:1,pointerType:'touch'});
       assert(await mobile.locator('#record-action-dialog').isVisible());
       await mobile.evaluate(()=>handleAndroidBack());assert(!(await mobile.locator('#record-action-dialog').isVisible()));

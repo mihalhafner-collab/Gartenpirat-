@@ -12,6 +12,16 @@ final class DriveDirectFiles extends DriveSyncCoordinator.Files {
     private final DriveRestClient client;
     DriveDirectFiles(Context context,DriveRestClient client){super(context,Uri.EMPTY,context.getSharedPreferences("haus_garten",0));this.client=client;}
     @Override boolean cloudVerified(){return true;}
+    @Override String inventoryFingerprint()throws Exception{return client.inventoryFingerprint();}
+    @Override void rememberInventory(String fingerprint){client.checkpoint("poll-inventory",fingerprint);}
+    @Override void readCommitFiles(Map<String,DriveSyncCoordinator.Doc> index,Map<String,String> names,DrivePrimaryState.CommitVisitor visitor)throws Exception{client.readCommitFiles(names,visitor);}
+    @Override Map<String,Exception> writeMediaBatchVerified(JSONArray batch,PhotoAttachmentStore local)throws Exception{
+        return DriveMediaBatch.transfer(client,batch,new DriveMediaBatch.Source(){
+            public byte[] original(JSONObject metadata)throws Exception{return local.read(metadata);}
+            public void verify(byte[] raw,JSONObject metadata)throws Exception{verifyBytes(raw,metadata);}
+            public byte[] thumbnail(String name)throws Exception{return local.readThumbnail(name);}
+        });
+    }
     private void confirmDocument(JSONObject metadata)throws Exception {
         String name=metadata.optString("pdf_storage_name"),hash=metadata.optString("pdf_sha256");
         if(!hash.matches("[0-9a-f]{64}")||!name.equals(hash+".pdf"))throw new IOException("Ungültige Dokumentreferenz.");
@@ -34,8 +44,8 @@ final class DriveDirectFiles extends DriveSyncCoordinator.Files {
     @Override ArrayList<DriveSyncCoordinator.Doc> documents()throws Exception{
         ArrayList<DriveSyncCoordinator.Doc> out=new ArrayList<>();JSONArray rows=client.list(client.folder);for(int i=0;i<rows.length();i++){JSONObject row=rows.getJSONObject(i);out.add(new DriveSyncCoordinator.Doc(row.getString("id"),row.getString("name"),Uri.parse("https://www.googleapis.com/drive/v3/files/"+row.getString("id")),0));}return out;
     }
-    @Override String read(Uri uri)throws Exception{return new String(client.read(uri.getLastPathSegment(),DriveRestClient.MAX_JSON),StandardCharsets.UTF_8);}
-    @Override String read(String name)throws Exception{JSONObject file=client.unique(client.folder,name);return file==null?null:new String(client.read(file.getString("id"),DriveRestClient.MAX_JSON),StandardCharsets.UTF_8);}
+    @Override String read(Uri uri)throws Exception{return new String(client.readRoot(uri.getLastPathSegment(),DriveRestClient.MAX_JSON),StandardCharsets.UTF_8);}
+    @Override String read(String name)throws Exception{JSONObject file=client.unique(client.folder,name);return file==null?null:new String(client.readListed(file,DriveRestClient.MAX_JSON),StandardCharsets.UTF_8);}
     @Override void writeVerified(String name,JSONObject object,Map<String,String> originals)throws Exception{
         JSONObject stable=new JSONObject(object.toString());stable.remove("exported_at");byte[] bytes=PixelMcpWriteTools.canonical(stable).getBytes(StandardCharsets.UTF_8);String immutable=name.substring(0,name.length()-5)+"-"+DriveRestClient.sha256(bytes)+".json";client.put(client.folder,immutable,"application/json",bytes);
     }
@@ -106,7 +116,7 @@ final class DriveDirectFiles extends DriveSyncCoordinator.Files {
         for(int i=0;i<rows.length();i++){JSONObject file=rows.getJSONObject(i);String name=file.optString("name");if(!name.startsWith("HausGarten-Commit-"))continue;
             if(!name.matches("HausGarten-Commit-[0-9a-f]{64}\\.json"))throw new DriveRestClient.Failure("PUBLICATION_INVALID","Eine Drive-Veröffentlichung benötigt Prüfung.",0,true);
             String key="publication-meta:"+file.getString("id"),fingerprint=file.optString("version")+":"+file.optString("md5Checksum")+":"+file.optString("size");String saved=client.checkpoint(key);JSONObject summary=saved==null||saved.isEmpty()?new JSONObject():new JSONObject(saved);
-            if(file.optString("version").isEmpty()||!fingerprint.equals(summary.optString("fingerprint"))){byte[] raw=client.read(file.getString("id"),DriveRestClient.MAX_JSON);if(!DriveRestClient.sha256(raw).equals(name.substring(18,name.length()-5)))throw new DriveRestClient.Failure("PUBLICATION_INVALID","Eine Drive-Veröffentlichung wurde verändert. Originale bleiben erhalten.",0,true);JSONObject m=new JSONObject(new String(raw,StandardCharsets.UTF_8));
+            if(file.optString("version").isEmpty()||!fingerprint.equals(summary.optString("fingerprint"))){byte[] raw=client.readListed(file,DriveRestClient.MAX_JSON);if(!DriveRestClient.sha256(raw).equals(name.substring(18,name.length()-5)))throw new DriveRestClient.Failure("PUBLICATION_INVALID","Eine Drive-Veröffentlichung wurde verändert. Originale bleiben erhalten.",0,true);JSONObject m=new JSONObject(new String(raw,StandardCharsets.UTF_8));
                 if(!"hausgarten.drive.commit.v1".equals(m.optString("format"))||m.optLong("sequence")<1)throw new DriveRestClient.Failure("PUBLICATION_INVALID","Unbekannte Drive-Veröffentlichung benötigt Prüfung.",0,true);
                 summary=new JSONObject().put("fingerprint",fingerprint).put("id",file.getString("id")).put("publisher",m.getString("publisher_id")).put("generation",m.optString("generation_sha256")).put("sha",m.getString("state_sha256")).put("sequence",m.getLong("sequence")).put("parent",m.optString("previous_publication_id")).put("parent_sha",m.optString("previous_state_sha256"));client.checkpoint(key,summary.toString());
             }
