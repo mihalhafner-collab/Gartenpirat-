@@ -4,28 +4,22 @@
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/calendar-ui-overview-20261021",
   "development_snapshot": {
-    "status": "CALENDAR_RECOVERY_IMPLEMENTED_AND_CLOUD_TESTED; GOOGLE_PROJECT_AND_PIXEL_ACCEPTANCE_OPEN",
-    "implementation_checkpoint_git_sha": "ef64255ef47344d2eaccee6e840181daa0472640",
-    "source_sha256": "747762839020b4ffb0491ac360c3cc054c455245eb4126b0c1e6d4e8882b0c3c",
-    "main_and_gradle_files": 540,
+    "status": "UI_SOURCE_ONLY_IMPLEMENTED_AND_HOST_TESTED; HOST_CHECKS_PASS_WITH_TARGETED_GALLERY_RECHECK; PIXEL_GOOGLE_NOT_EXECUTED",
+    "implementation_checkpoint_git_sha": "97efbbbf9a2abbf7760f5beebbf7ce838291ed00",
+    "implementation_checkpoint_tree_sha": "aebf6ec2602d60f6aaacefcdc8a4a3e131a95aa6",
+    "local_test_checkpoint_git_sha": "29bf468ba873df73a233cc4e2d427c2bf777117c",
+    "validated_checkpoint_git_sha": "220f452914b50b6f0de9292eb984be4aabd41224",
+    "validated_checkpoint_tree_sha": "c49e8bb8bd35a937bb9909ad34092b86a473f9c3",
+    "source_sha256": "ca1123916fb41090faa6d3c9a6c87a72cebdf8ea3d057f70f57d4e724b7250d9",
+    "main_and_gradle_files": 542,
     "version_name": "1.54.2",
     "version_code": 91,
     "changes_after_delivered_build_90": true,
-    "rules_from_main_git_sha": "a112765844ee5a41408dc0538236d0eca52eacbf",
-    "apk_for_this_development_snapshot": "ORIGINAL_SIGNED_CLOUD_TESTED_CANDIDATE_AVAILABLE; NOT INSTALLED ON PIXEL",
-    "apk_source_git_sha": "50b518a1af9cee59763c4103d847f5016fb84fd9",
-    "apk_sha256": "874908a246f75a3c91f7399cf2e314364b9469f80843644ea340cf8c543b80c1",
-    "original_zip_sha256": "99fba5a127d16211cbb7b62ffdac229321f35c21883aaec1dd63cf008e3b5e18",
+    "apk_for_this_development_snapshot": "NONE; SOURCE ONLY; NO APK BUILT OR SIGNED",
     "pixel_installation": "NOT EXECUTED",
-    "google_project_and_consent": "NOT VERIFIED; NO ADMINISTRATIVE ACCESS",
-    "drive_original_zip_id": "1GZMxQpfGHwOF385_I5yyzyN0z5NQqFXh",
-    "drive_source_folder_id": "1HFf0WpI0BGYL60jMEbYc9BfnvOVlYxKf",
-    "drive_readback": "19 SOURCE FILES:18 SHA256_BYTES +1 ZIP COMPLETE_STREAM_SIZE_ONLY; APK COMPLETE_STREAM_SIZE_ONLY",
-    "native_acceptance": "158 PASS, 0 FAIL; fresh_isolated, native UI and final snapshot verify PASS",
-    "source_tag": "source/v1.54.2-build91",
-    "drive_apk_id": "1aqJIqC4oZXAym0QRYkE9pDFHeA3Yy2Kr",
-    "drive_provenance_id": "1YwVTmqP-HFSSU3JYXp8e1h9woNCAzb9s",
-    "pull_request": "https://github.com/mihalhafner-collab/Gartenpirat-/pull/5"
+    "google_project_and_consent": "NOT EXECUTED; NO ACCOUNT OR CLOUD CONFIGURATION ACCESSED",
+    "native_acceptance": "NOT EXECUTED; RELEASE AND INSTRUMENTATION JAVA COMPILE ONLY",
+    "source_location": "https://github.com/mihalhafner-collab/Gartenpirat-/tree/codex/calendar-ui-overview-20261021"
   },
   "verified_release_source": {
     "version": "1.54.1",
@@ -48,8 +42,8 @@
     "source_status": "EXACT_ORIGINAL_SOURCE_SECURED_ON_GITHUB_AND_DRIVE"
   },
   "handoff": {
-    "reported_workspace": "/workspace/Gartenpirat-; current original cloud work preserved on the development_ref",
-    "required_action": "Continue existing UI branch under CODEX-GESAMTAUFTRAG-1.54.2.md; all instructions are now present. Baseline45/46 browser suites has reported pre-existing photo failure; preserve it unchanged and compare later. Follow outer combined order A/C,G1/G3-G6,K1-K9, own commit per package. No main push, new APK/sign/version/device or Drive/account/key access."
+    "reported_workspace": "/workspace/Gartenpirat-; original UI work preserved on development_ref",
+    "required_action": "UI task complete; use the canonical UI branch and CODEX-STATUS.md. This source-only snapshot is different from the original signed91 tag/APK. No main merge, APK, installation, account or Drive actions authorized by this completed UI task."
   },
   "verified_candidate_source": {
     "version": "1.54.2",
@@ -66,13 +60,13 @@
     "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; original source bytes and actual APK verified in Cloud"
   },
   "calendar_ui_task": {
-    "status": "FINAL_VALIDATION_COMPLETE; FULL_BROWSER49_OF50_PLUS_TARGETED_GALLERY_PASS; REPORT_PENDING",
+    "status": "COMPLETED_SOURCE_ONLY; HOST_CHECKS_PASS_WITH_TARGETED_GALLERY_RECHECK; PIXEL_GOOGLE_NOT_EXECUTED",
     "task_file": "CODEX-GESAMTAUFTRAG-1.54.2.md",
     "task_file_sha256": "f408ab0d9875931d033de8d6f46d1b3cc4ddab4ce094f374a8a1562da8e5d783",
     "base_branch": "codex/calendar-permanent-20261021",
     "base_git_sha": "d45c72544533fbb4420513d454b03a9043cac99f",
     "main_at_start": "e499e745832449ce0202d04d9903495248e8b034",
-    "source_sha256": "747762839020b4ffb0491ac360c3cc054c455245eb4126b0c1e6d4e8882b0c3c",
+    "source_sha256": "ca1123916fb41090faa6d3c9a6c87a72cebdf8ea3d057f70f57d4e724b7250d9",
     "baseline": {
       "python_pass": 383,
       "python_skips": 0,
@@ -92,7 +86,7 @@
     "no_version_increase": true,
     "no_device_actions": true,
     "no_main_push": true,
-    "implementation": "K9 settings6 and affected existing browser suites PASS; all requested source packages implemented; final regression pending",
+    "implementation": "A/C,G1,G3-G6,K1-K9 implemented in own commits; complete report in CODEX-STATUS.md",
     "drive_account_access": "PROHIBITED BY COMBINED TASK; source backup on authorized GitHub branch only",
     "completed_packages": [
       "A",
@@ -112,6 +106,55 @@
       "K8",
       "K9"
     ],
-    "canonical_remote_checkpoint": "97efbbbf9a2abbf7760f5beebbf7ce838291ed00"
+    "canonical_remote_checkpoint": "220f452914b50b6f0de9292eb984be4aabd41224",
+    "baseline_source_sha256": "747762839020b4ffb0491ac360c3cc054c455245eb4126b0c1e6d4e8882b0c3c",
+    "final_checks": {
+      "python_pass": 393,
+      "python_skips": 0,
+      "excluded_qa_key_generation_tests": 37,
+      "jvm_suites_pass": 40,
+      "browser_suites_with_final_pass_evidence": 50,
+      "browser_full_run_suites_pass": 49,
+      "browser_full_run_suites_fail": 1,
+      "browser_full_run_failing_suites": [
+        "sync-customer-gallery.test.cjs"
+      ],
+      "targeted_gallery_checks_pass": 14,
+      "unresolved_failing_suites": [],
+      "mcp_scenarios_pass": 55,
+      "java_instrumentation_compile": "PASS; NOT RUN ON DEVICE",
+      "lint_errors": 0,
+      "lint_warnings": 56,
+      "contract": "UNCHANGED;117/156",
+      "privacy": "SOURCE/WORKSPACE PASS; NEW ARTIFACT NOT_TESTABLE",
+      "main_assets": 421,
+      "main_and_gradle_files": 542,
+      "ui_review_sources": 61,
+      "ui_review_sha256": "727d1d0689a78a9aa48ac1105ad2b14bf5007ea74f0df006418beee028ebe94d"
+    }
+  },
+  "previous_calendar_recovery_snapshot": {
+    "status": "CALENDAR_RECOVERY_IMPLEMENTED_AND_CLOUD_TESTED; GOOGLE_PROJECT_AND_PIXEL_ACCEPTANCE_OPEN",
+    "implementation_checkpoint_git_sha": "ef64255ef47344d2eaccee6e840181daa0472640",
+    "source_sha256": "747762839020b4ffb0491ac360c3cc054c455245eb4126b0c1e6d4e8882b0c3c",
+    "main_and_gradle_files": 540,
+    "version_name": "1.54.2",
+    "version_code": 91,
+    "changes_after_delivered_build_90": true,
+    "rules_from_main_git_sha": "a112765844ee5a41408dc0538236d0eca52eacbf",
+    "apk_for_this_development_snapshot": "ORIGINAL_SIGNED_CLOUD_TESTED_CANDIDATE_AVAILABLE; NOT INSTALLED ON PIXEL",
+    "apk_source_git_sha": "50b518a1af9cee59763c4103d847f5016fb84fd9",
+    "apk_sha256": "874908a246f75a3c91f7399cf2e314364b9469f80843644ea340cf8c543b80c1",
+    "original_zip_sha256": "99fba5a127d16211cbb7b62ffdac229321f35c21883aaec1dd63cf008e3b5e18",
+    "pixel_installation": "NOT EXECUTED",
+    "google_project_and_consent": "NOT VERIFIED; NO ADMINISTRATIVE ACCESS",
+    "drive_original_zip_id": "1GZMxQpfGHwOF385_I5yyzyN0z5NQqFXh",
+    "drive_source_folder_id": "1HFf0WpI0BGYL60jMEbYc9BfnvOVlYxKf",
+    "drive_readback": "19 SOURCE FILES:18 SHA256_BYTES +1 ZIP COMPLETE_STREAM_SIZE_ONLY; APK COMPLETE_STREAM_SIZE_ONLY",
+    "native_acceptance": "158 PASS, 0 FAIL; fresh_isolated, native UI and final snapshot verify PASS",
+    "source_tag": "source/v1.54.2-build91",
+    "drive_apk_id": "1aqJIqC4oZXAym0QRYkE9pDFHeA3Yy2Kr",
+    "drive_provenance_id": "1YwVTmqP-HFSSU3JYXp8e1h9woNCAzb9s",
+    "pull_request": "https://github.com/mihalhafner-collab/Gartenpirat-/pull/5"
   }
 }
