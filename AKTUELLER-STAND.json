@@ -2,7 +2,7 @@
   "format": "gartenpirat.source-location.v1",
   "updated_at_utc": "2026-10-21",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
-  "development_ref": "refs/heads/main",
+  "development_ref": "refs/heads/codex/calendar-ui-overview-20261021",
   "development_snapshot": {
     "status": "CALENDAR_RECOVERY_IMPLEMENTED_AND_CLOUD_TESTED; GOOGLE_PROJECT_AND_PIXEL_ACCEPTANCE_OPEN",
     "implementation_checkpoint_git_sha": "ef64255ef47344d2eaccee6e840181daa0472640",
@@ -49,7 +49,7 @@
   },
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-; current original cloud work preserved on the development_ref",
-    "required_action": "Read GitHub-main and immutable source/v1.54.2-build91 for the exact signed candidate; later test/docs commits do not change App bytes. Original source and candidate/provenance are in the referenced private Drive files. Actual Google Cloud project configuration and Pixel consent/install remain open; never infer project ID or live success from package/SHA1. Preserve stable90/fallback89 and productive data; Pixel install requires backup and explicit approval."
+    "required_action": "Continue codex/calendar-ui-overview-20261021, read attached task and its mandatory order. Baseline browser suite fails reproducibly before any App change; do not silently adjust tests or implement UI. Obtain missing security/graphics task MDs. No APK/sign/version/device/account/business actions or main push. Exact original91 remains at source/v1.54.2-build91 and its existing private Drive archive."
   },
   "verified_candidate_source": {
     "version": "1.54.2",
@@ -64,5 +64,37 @@
     "drive_apk_id": "1aqJIqC4oZXAym0QRYkE9pDFHeA3Yy2Kr",
     "drive_provenance_id": "1YwVTmqP-HFSSU3JYXp8e1h9woNCAzb9s",
     "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; original source bytes and actual APK verified in Cloud"
+  },
+  "calendar_ui_task": {
+    "status": "BASELINE_FAILED_AND_REQUIRED_SECURITY_GRAPHICS_MD_MISSING; NO_APP_CHANGES",
+    "task_file": "CODEX-AUFTRAG-KALENDER-UI-1.54.2.md",
+    "task_file_sha256": "6fe1a6edaa4a194703c5c3c114a40878edc7724610e26c1899f5a9d5e4a24e2f",
+    "base_branch": "codex/calendar-permanent-20261021",
+    "base_git_sha": "d45c72544533fbb4420513d454b03a9043cac99f",
+    "main_at_start": "e499e745832449ce0202d04d9903495248e8b034",
+    "source_sha256": "747762839020b4ffb0491ac360c3cc054c455245eb4126b0c1e6d4e8882b0c3c",
+    "baseline": {
+      "python_pass": 383,
+      "python_skips": 0,
+      "excluded_qa_key_generation_tests": 37,
+      "jvm_suites_pass": 40,
+      "browser_suites_pass": 45,
+      "browser_suites_fail": 1,
+      "failing_suite": "gartenpirat-photo.test.cjs",
+      "failing_check": "Cancellation leaves the menu or previous photo intact; selecting the same file again works",
+      "unchanged_isolated_diagnostic": "8 PASS /1 FAIL; same failing assertion at line68",
+      "original91_artifact": "READ_ONLY PASS; original bytes retained",
+      "preview": "SOURCE UI REGRESSION PASS; NO NEW APK"
+    },
+    "missing_requirements": [
+      "CODEX-AUFTRAG-SICHERHEIT-1.54.md",
+      "CODEX-AUFTRAG-GRAFIK-1.54.md"
+    ],
+    "required_sequence": "Baseline -> security A/C -> graphics G1 -> K1-K9 -> remaining G3-G6 -> final checks",
+    "no_apk": true,
+    "no_version_increase": true,
+    "no_device_actions": true,
+    "no_main_push": true,
+    "implementation": "NOT STARTED; baseline must be reported before any adjustment"
   }
 }
