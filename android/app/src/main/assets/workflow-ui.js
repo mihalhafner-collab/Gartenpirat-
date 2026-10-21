@@ -2,6 +2,28 @@
 (()=>{
  'use strict';
  const get=id=>document.getElementById(id);let limit=30,visible=[];
+ // Fixed presentation paths only; existing controls retain their original handlers.
+ const menuIcons={
+  search:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
+  'planning-page':'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18m-13 4h2m4 0h2"/>',
+  worklogs:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  orders:'<rect x="5" y="5" width="14" height="16" rx="2"/><path d="M9 5V3h6v2M9 10h6m-6 4h6m-6 4h4"/>',
+  weeks:'<path d="M4 20V4m0 16h17M8 16v-4m5 4V7m5 9v-6"/>',
+  invoices:'<path d="M6 3h9l4 4v14H6zM14 3v5h5M9 12h7m-7 4h5"/>',
+  'billing-page':'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8m-8 5h1m5 0h1m-7 5h1m5 0h1"/>',
+  offers:'<path d="M5 3h10l4 4v7M5 3v18h7m2-3 5-5 2 2-5 5-3 1zM8 8h4m-4 4h6"/>',
+  photos:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1"/><path d="m4 18 5-5 4 3 3-4 4 6"/>',
+  garden:'<path d="M20 4C7 2 2 8 6 15c5 5 13 2 14-11ZM4 21l12-12"/>',
+  'settings-page':'<path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="9" cy="18" r="2"/>',
+  'status-page':'<circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/>',
+  trash:'<path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/>'
+ };
+ function menuIcon(button,destination){
+  if(button.querySelector(':scope>.more-icon'))return;
+  const kind=button.hasAttribute('data-global-search')?'search':button.hasAttribute('data-open-garden-menu')?'garden':destination;
+  button.insertAdjacentHTML('afterbegin','<svg class="more-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(menuIcons[kind]||menuIcons['status-page'])+'</svg>');
+  if(kind==='search'){button.classList.add('more-search');button.querySelector('small').textContent='Kunden, Arbeiten, Fotos, Dokumente';}
+ }
  function organizeMenu(){
   const nav=document.querySelector('#more-page .more-destinations');if(!nav)return;
   const groups=[['data','Status & Einstellungen'],['work','Arbeit & Planung'],['billing','Angebote & Rechnungen'],['media','Fotos & Pflanzen']];
@@ -10,6 +32,7 @@
   let tools=get('settings-data-tools');if(!tools&&get('settings-page')){tools=document.createElement('section');tools.id='settings-data-tools';tools.className='card settings-section more-destinations';tools.innerHTML='<h3>Daten verwalten</h3>';get('settings-page').querySelector('.settings-about').before(tools);}
   for(const button of [...nav.querySelectorAll('button')]){
    const destination=button.dataset.open||button.dataset.moreDestination;
+   menuIcon(button,destination);
    if(button.hasAttribute('data-global-search')){if(button.parentElement!==nav)nav.prepend(button);continue;}
    if(destination==='sync-page'){button.remove();continue;}
    if(button.hasAttribute('data-open-trash')){if(tools)tools.append(button);continue;}

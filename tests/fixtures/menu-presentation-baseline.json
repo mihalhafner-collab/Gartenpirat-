@@ -1,0 +1,122 @@
+{
+  "classification": "SYNTHETIC_TEST",
+  "entries": [
+    {
+      "label": "Überall suchen",
+      "targets": [
+        [
+          "data-global-search",
+          ""
+        ]
+      ]
+    },
+    {
+      "label": "Einstellungen",
+      "targets": [
+        [
+          "data-open",
+          "settings-page"
+        ]
+      ]
+    },
+    {
+      "label": "Status",
+      "targets": [
+        [
+          "data-open",
+          "status-page"
+        ]
+      ]
+    },
+    {
+      "label": "Papierkorb",
+      "targets": [
+        [
+          "data-more-destination",
+          "trash"
+        ]
+      ]
+    },
+    {
+      "label": "Planung",
+      "targets": [
+        [
+          "data-open",
+          "planning-page"
+        ]
+      ]
+    },
+    {
+      "label": "Arbeiten",
+      "targets": [
+        [
+          "data-open",
+          "worklogs"
+        ]
+      ]
+    },
+    {
+      "label": "Aufträge",
+      "targets": [
+        [
+          "data-open",
+          "orders"
+        ]
+      ]
+    },
+    {
+      "label": "Wochenstunden",
+      "targets": [
+        [
+          "data-open",
+          "weeks"
+        ]
+      ]
+    },
+    {
+      "label": "Angebote",
+      "targets": [
+        [
+          "data-more-destination",
+          "offers"
+        ]
+      ]
+    },
+    {
+      "label": "Abrechnung vorbereiten",
+      "targets": [
+        [
+          "data-open",
+          "billing-page"
+        ]
+      ]
+    },
+    {
+      "label": "Rechnungen",
+      "targets": [
+        [
+          "data-open",
+          "invoices"
+        ]
+      ]
+    },
+    {
+      "label": "Fotos",
+      "targets": [
+        [
+          "data-more-destination",
+          "photos"
+        ]
+      ]
+    },
+    {
+      "label": "Gartenpirat & Pflanzen",
+      "targets": [
+        [
+          "data-open-garden-menu",
+          ""
+        ]
+      ]
+    }
+  ]
+}

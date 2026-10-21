@@ -55,6 +55,12 @@ function luminance(hex){const rgb=hex.slice(1).match(/../g).map(v=>parseInt(v,16
     await statusPage.screenshot({path:'outputs/grafik-status-freigabe-360.png'});
    }finally{await statusPage.close();}
   });
+  await check('More icons and search presentation preserve exact menu targets, order and original search dialog',async()=>{
+   await page.setViewportSize({width:360,height:800});await page.evaluate(()=>{document.documentElement.style.fontSize='16px';openPage('more-page');scrollTo(0,0);});
+   const before=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/menu-presentation-baseline.json'),'utf8')).entries,buttons=page.locator('#more-page .more-destinations button');const after=await buttons.evaluateAll(rows=>rows.map(b=>({label:b.querySelector('strong')?.textContent||b.textContent,targets:[...b.attributes].filter(a=>a.name.startsWith('data-')).map(a=>[a.name,a.value]).sort()})));assert.deepEqual(after,before);
+   for(const b of await buttons.all()){assert.equal(await b.locator(':scope>.more-icon').count(),1);assert.equal(await b.locator('.more-icon').getAttribute('stroke'),'currentColor');assert.equal(await b.locator('.more-icon').getAttribute('stroke-width'),'2');const r=await b.locator('.more-icon').boundingBox();assert.equal(r.width,24);assert.equal(r.height,24);}
+   const search=page.locator('#more-page [data-global-search]');assert.equal(await search.locator('small').innerText(),'Kunden, Arbeiten, Fotos, Dokumente');await search.click();assert(await page.locator('#global-search-dialog').isVisible());await page.evaluate(()=>handleAndroidBack());assert.equal(await page.locator('#global-search-dialog').isVisible(),false);assert.equal(await page.evaluate(()=>currentPage),'more-page');assert.equal(await page.evaluate(()=>writes.length),0);await page.screenshot({path:'outputs/grafik-mehr-G6-360.png'});
+  });
  }finally{await browser.close();}
  fs.writeFileSync('outputs/visual-consistency-tests.json',JSON.stringify({classification:'SYNTHETIC_TEST',nativeDevice:false,results},null,2));if(results.some(x=>x.result==='FAIL'))process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1;});

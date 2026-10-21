@@ -103,3 +103,9 @@ body.field-ui{--action:var(--hg-green-btn);--action-soft:var(--hg-sage);--planni
 .field-ui .planning-weather[data-severity=difficult],.field-ui .planning-weather[data-severity=unknown]{background:var(--hg-warn-bg);color:var(--hg-warn-text)}
 .field-ui .planning-weather[data-severity=critical]{background:var(--hg-danger-bg);color:var(--hg-danger)}
 .field-ui .planning-weather[data-severity=clear]{background:var(--hg-sage);color:var(--hg-green)}
+
+.more-icon{display:block;flex:none;width:24px;height:24px}
+.field-ui #more-page .more-destinations button>span{flex:1}
+.field-ui #more-page .more-search{display:flex;align-items:center;gap:12px;background:var(--hg-surface);border:1px solid var(--hg-line);border-radius:var(--hg-radius);text-align:left}
+.field-ui #more-page .more-search strong{font-size:var(--hg-fs-caption);color:var(--hg-green)}
+.field-ui #more-page .more-search small{font-size:var(--hg-fs-body);font-weight:var(--hg-fw-regular);color:var(--hg-muted)}
