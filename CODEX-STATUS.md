@@ -5,6 +5,8 @@ Repository: `mihalhafner-collab/Gartenpirat-`
 
 ## Kalender-Übersicht K1–K9 (Basis 1.54.2/91)
 
+**Fortsetzung durch neuen Gesamtauftrag:** `CODEX-GESAMTAUFTRAG-1.54.2.md` enthält jetzt alle drei Teile vollständig. Fehlende Voraussetzungen damit erledigt; die oberste Reihenfolge und der gemeinsame UI-Arbeitsbranch haben Vorrang vor den eingebetteten älteren Branch-/Versionsangaben. Gemeldeter unveränderter Foto-Ausgangsfehler bleibt als solcher sichtbar. Keine Testanpassung zum Verdecken dieses Befunds; Arbeit beginnt mit A/C. Keine Drive-/Konten-/Schlüsselzugriffe nach dem ausdrücklichen Verbot des neuen Gesamtauftrags; dauerhafte Originalquellsicherung auf dem ausdrücklich autorisierten GitHub-Arbeitsbranch, kein main-Push.
+
 Stand21.10.2026,20:13UTC: **Ausgangslauf ausgeführt, Umsetzung NICHT BEGONNEN.** Zwei Hindernisse: reproduzierbarer Browser-Ausgangsfehler und fehlende vorausgesetzte Sicherheits-/Grafikaufträge. Kein K1–K9-/A-/C-/G-Paket als abgeschlossen behauptet.
 
 - Originaler neuer Nutzerauftrag unverändert als `CODEX-AUFTRAG-KALENDER-UI-1.54.2.md` gesichert. Maßgeblich: Abschnitt0.7 „Baseline-Lauf → Sicherheit A, C → Grafik G1 → K1–K9 → Grafik G3–G6 … → Abschlusslauf“ sowie Abschnitt3 „Wenn der Ausgangslauf nicht grün ist: zuerst melden, nicht anpassen.“ Diese ausdrückliche Reihenfolge wird eingehalten. Neuer Arbeitsbranch **codex/calendar-ui-overview-20261021** vom frisch gelesenen **codex/calendar-permanent-20261021/d45c72544533fbb4420513d454b03a9043cac99f**. Aktueller main **e499e745832449ce0202d04d9903495248e8b034** separat frisch gelesen; dessen Baum ist zum Basisbranch identisch. Kein Reset/Force-Push/zweites Repository.

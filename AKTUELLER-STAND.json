@@ -49,7 +49,7 @@
   },
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-; current original cloud work preserved on the development_ref",
-    "required_action": "Continue codex/calendar-ui-overview-20261021, read attached task and its mandatory order. Baseline browser suite fails reproducibly before any App change; do not silently adjust tests or implement UI. Obtain missing security/graphics task MDs. No APK/sign/version/device/account/business actions or main push. Exact original91 remains at source/v1.54.2-build91 and its existing private Drive archive."
+    "required_action": "Continue existing UI branch under CODEX-GESAMTAUFTRAG-1.54.2.md; all instructions are now present. Baseline45/46 browser suites has reported pre-existing photo failure; preserve it unchanged and compare later. Follow outer combined order A/C,G1/G3-G6,K1-K9, own commit per package. No main push, new APK/sign/version/device or Drive/account/key access."
   },
   "verified_candidate_source": {
     "version": "1.54.2",
@@ -66,8 +66,8 @@
     "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; original source bytes and actual APK verified in Cloud"
   },
   "calendar_ui_task": {
-    "status": "BASELINE_FAILED_AND_REQUIRED_SECURITY_GRAPHICS_MD_MISSING; NO_APP_CHANGES",
-    "task_file": "CODEX-AUFTRAG-KALENDER-UI-1.54.2.md",
+    "status": "COMBINED_TASK_RECEIVED; BASELINE_FAILURE_REPORTED_UNCHANGED; SECURITY_A_NEXT",
+    "task_file": "CODEX-GESAMTAUFTRAG-1.54.2.md",
     "task_file_sha256": "6fe1a6edaa4a194703c5c3c114a40878edc7724610e26c1899f5a9d5e4a24e2f",
     "base_branch": "codex/calendar-permanent-20261021",
     "base_git_sha": "d45c72544533fbb4420513d454b03a9043cac99f",
@@ -86,15 +86,13 @@
       "original91_artifact": "READ_ONLY PASS; original bytes retained",
       "preview": "SOURCE UI REGRESSION PASS; NO NEW APK"
     },
-    "missing_requirements": [
-      "CODEX-AUFTRAG-SICHERHEIT-1.54.md",
-      "CODEX-AUFTRAG-GRAFIK-1.54.md"
-    ],
-    "required_sequence": "Baseline -> security A/C -> graphics G1 -> K1-K9 -> remaining G3-G6 -> final checks",
+    "missing_requirements": [],
+    "required_sequence": "Baseline -> A -> C -> G1 -> G3 -> G4 -> G5 -> G6 -> K1-K9 -> final checks",
     "no_apk": true,
     "no_version_increase": true,
     "no_device_actions": true,
     "no_main_push": true,
-    "implementation": "NOT STARTED; baseline must be reported before any adjustment"
+    "implementation": "NOT STARTED; baseline must be reported before any adjustment",
+    "drive_account_access": "PROHIBITED BY COMBINED TASK; source backup on authorized GitHub branch only"
   }
 }
