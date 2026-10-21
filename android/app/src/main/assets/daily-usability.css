@@ -37,3 +37,18 @@
 .document-steps{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}.document-steps button{flex:1 1 100px;min-height:48px}.document-steps [aria-pressed=true]{background:#e6f0e8;border:2px solid #176b46}.business-setup-step>summary{min-height:48px;padding:12px;font-weight:750;cursor:pointer}.business-setup-step{margin:10px 0;border:1px solid var(--line);border-radius:10px;padding:6px}.business-setup-step label{display:block}.business-setup-step input,.business-setup-step textarea,.business-setup-step select{max-width:100%;box-sizing:border-box}
 
 .daily-header-actions{display:grid;gap:6px;flex:none;margin-left:auto}.daily-header-actions .daily-settings{margin:0}#global-search-dialog input{font-size:1rem}#global-search-dialog .design-profile-row{min-height:64px}#global-search-dialog .design-profile-row strong{overflow-wrap:anywhere}
+
+/* Settings presentation: one diagnostic disclosure, neutral pending sync, explicit restore risk. */
+#settings-page .settings-about{margin:16px 2px 24px;padding:0;background:transparent;border:0;color:var(--hg-muted)}
+#settings-page .settings-about p{font-size:var(--hg-fs-caption)}
+#settings-page .settings-state.is-busy{background:var(--hg-sage);color:var(--hg-green)}
+#settings-page .settings-state.is-busy strong{color:inherit}
+#settings-page [data-backup-restore]{background:var(--hg-surface);border:1px solid var(--hg-danger);color:var(--hg-danger)}
+#settings-page .settings-advanced{min-width:0}
+#settings-page .sync-pill{display:flex;align-items:center;gap:8px;width:fit-content;max-width:100%;min-height:48px;overflow-wrap:anywhere}
+#settings-page .sync-pill.busy::before{content:'';flex:none;width:10px;height:10px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%}
+#settings-page .sync-pill.busy.is-syncing::before{animation:settings-sync-turn 1s linear infinite}
+@keyframes settings-sync-turn{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){#settings-page .sync-pill.busy.is-syncing::before{animation:none}}
+
+#settings-about-title,#settings-sync-summary{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}

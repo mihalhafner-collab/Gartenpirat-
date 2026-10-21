@@ -19,9 +19,8 @@
     get('customers').querySelector('h2').textContent='Kunden & Gärten';
     const menuButton=document.querySelector('#more-page .drawer-open');
     if(menuButton){menuButton.textContent='☰';menuButton.setAttribute('aria-label','Seitenmenü öffnen');get('more-page').querySelector('.page-head').append(menuButton);}
-    const about=get('settings-about-title').parentElement;
-    // Keep the existing status renderer, but outside the daily work surface.
-    about.append(get('sync-status'));
+    // Move the original status and its existing navigation handler into the sync card.
+    get('settings-data-title').after(get('sync-status'));
     const heading=document.createElement('header');heading.className='field-heading';
     const title=document.createElement('h1');title.textContent='Heute';
     const date=get('home-dayline');heading.append(title);if(date)heading.append(date);
