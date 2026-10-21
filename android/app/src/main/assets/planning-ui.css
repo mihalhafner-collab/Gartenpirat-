@@ -18,3 +18,17 @@
 .planning-open-end span{min-width:0;overflow-wrap:anywhere}.planning-open-end strong,.planning-open-end small{display:block;line-height:1.45}
 #planning-page input,#planning-page select{min-height:48px}#planning-duration[hidden]{display:none}
 .planning-collisions[data-state=uncertain],.planning-collision-badge[data-uncertain=true]{background:#fff4d5;border:1px solid #a78026;color:#674c10}
+
+/* K1: one week of loaded metadata, with accessible targets on narrow screens. */
+.planning-range{grid-template-columns:48px minmax(0,1fr) 48px auto}
+.planning-range>strong{overflow-wrap:anywhere}
+#planning-today{min-width:64px;padding:8px;font-size:var(--hg-fs-caption)}
+.planning-week-strip{display:grid;grid-template-columns:repeat(7,minmax(48px,1fr));gap:4px;margin:12px 0}
+.planning-week-strip>.planning-week-day{display:grid;justify-items:center;align-content:center;gap:2px;min-width:48px;min-height:68px;padding:6px 2px;border:1px solid var(--hg-line);border-radius:var(--hg-radius);background:var(--hg-surface);color:var(--hg-text);font-size:var(--hg-fs-caption)}
+.planning-week-day>strong{font-size:var(--hg-fs-body)}
+.planning-week-strip .planning-week-day[data-today=true]{background:var(--hg-sage);color:var(--hg-green)}
+.planning-week-strip .planning-week-day[aria-pressed=true]{border:2px solid var(--hg-green)}
+.planning-day-count{display:flex;align-items:center;gap:3px;min-height:1em;font-size:var(--hg-fs-caption);color:var(--hg-muted)}
+.planning-day-dot{width:6px;height:6px;border-radius:50%;background:var(--hg-green);flex:none}
+.planning-day-head{margin:18px 0 8px;font-size:var(--hg-fs-caption);color:var(--hg-muted);line-height:1.5}
+@media(max-width:389px){.planning-week-strip{grid-template-columns:repeat(4,minmax(48px,1fr))}}
