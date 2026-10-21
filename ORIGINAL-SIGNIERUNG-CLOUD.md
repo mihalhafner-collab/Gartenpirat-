@@ -1,5 +1,14 @@
 # Originalsignierung im erhaltenen Cloud-Stand
 
+Der ausdrückliche Nutzerauftrag vom20.10.2026 erlaubt zusätzlich die isolierte
+UI-Test-App `at.hausgarten.service.preview` mit dem Namen „Haus & Garten Test“.
+Nur dafür ist `tools/sign_original_apk.py --ui-preview` vorgesehen. Der vorhandene
+Originalschlüssel bleibt im geschützten temporären Cloud-Signierpfad; es wird
+kein Ersatzschlüssel erzeugt. Die Option verlangt das feste separate Paket,
+den Testnamen, eigene Sandbox und fehlende INTERNET-Berechtigung. Die normalen
+Produktiv- und Instrumentierungsprüfungen bleiben unverändert; kein allgemeiner
+Paketparameter, keine Installation und keine produktive Updatefreigabe.
+
 Geltungsbereich: ausschließlich der vorhandene Checkout von
 `mihalhafner-collab/Gartenpirat-` in der ausgewählten **persönlichen Gartenpirat-
 Codex-Cloud-Umgebung**. Keine Desktop-Code-/App-Dateien oder Desktop-Commits

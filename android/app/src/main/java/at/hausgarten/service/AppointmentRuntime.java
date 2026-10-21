@@ -12,7 +12,9 @@ final class AppointmentRuntime {
     private static final Object LOCK=new Object();
     static JSONObject request(Context c,PixelLocalStore store)throws Exception {
         boolean configured=calendarEnabled(c,store)||flag(c,store,"weather_enabled");
-        if(configured)PlanningAccount.prefs(c).edit().putInt("calendar_failures",0).putInt("weather_failures",0).remove("calendar_retry_at").remove("weather_retry_at").apply();
+        if(configured){PlanningAccount.prefs(c).edit().putInt("calendar_failures",0).putInt("weather_failures",0).putBoolean("weather_blocked",false).remove("calendar_retry_at").remove("weather_retry_at").apply();
+            JSONObject master=PixelMcpReadTools.effective(store.getState());JSONArray all=master.getJSONArray("appointments");for(int i=0;i<all.length();i++){JSONObject a=weatherLocation(store,all.getJSONObject(i),master);if(flag(c,store,"weather_enabled")&&WeatherLocationRules.retryable(a.optString("weather_location_state"))){String key=WeatherLocationRules.cacheKey(a);JSONObject cached=new JSONObject(store.ownerValue(key,"{}"));cached.remove("attempted_at");cached.put("state","pending");store.putOwnerValue(key,cached.toString());}}
+        }
         return new JSONObject().put("state",configured?"queued":"configuration_required").put("confirmed",false).put("integration",integration(c,store));
     }
     static JSONObject settings(PixelLocalStore store)throws Exception {
@@ -26,6 +28,12 @@ final class AppointmentRuntime {
     }
     static boolean flag(Context c,PixelLocalStore store,String key){try{return publicSettings(c,store).optBoolean(key);}catch(Exception unavailable){return false;}}
     static boolean calendarEnabled(Context c,PixelLocalStore store){return PlanningAccount.connected(c)&&flag(c,store,"calendar_enabled");}
+    static void setCalendarEnabled(Context c,PixelLocalStore store,boolean enabled,String expected)throws Exception {
+        if(enabled&&!PlanningAccount.connected(c))throw new IllegalArgumentException("Google Kalender zuerst am Gerät verbinden.");
+        JSONObject s=settings(store);s.put("calendar_enabled",enabled);saveSettings(c,store,s,expected);
+        if(enabled)PlanningAccount.prefs(c).edit().putBoolean("calendar_blocked",false).putInt("calendar_failures",0).remove("calendar_retry_at").apply();
+        PlanningJob.schedule(c,1000);
+    }
     static void saveSettings(Context c,PixelLocalStore store,JSONObject s,String expected)throws Exception {
         android.database.sqlite.SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();try{
             if(!PixelMcpWriteTools.hash(publicSettings(c,store)).equals(expected))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Planungseinstellungen wurden inzwischen geändert. Angaben bleiben erhalten; neu prüfen.");
@@ -42,37 +50,47 @@ final class AppointmentRuntime {
     }
     static JSONObject integration(Context c,PixelLocalStore store)throws Exception {
         android.content.SharedPreferences p=PlanningAccount.prefs(c);JSONObject status=new JSONObject(store.ownerValue("planning:status","{}"));
-        return status.put("calendar_configured",calendarEnabled(c,store)).put("weather_configured",flag(c,store,"weather_enabled")).put("calendar_state",store.ownerValue("calendar:status",calendarEnabled(c,store)?"pending":"not_connected")).put("weather_state",store.ownerValue("weather:status",flag(c,store,"weather_enabled")?"pending":"not_configured"))
-            .put("notification_permission",Build.VERSION.SDK_INT<33||c.checkSelfPermission("android.permission.POST_NOTIFICATIONS")==android.content.pm.PackageManager.PERMISSION_GRANTED).put("background_best_effort",true).put("credentials_exposed",false);
+        return status.put("calendar_setup_error_code",CalendarAccessRules.safeCode(p.getString("calendar_setup_code",""))).put("calendar_error_code",CalendarAccessRules.safeCode(PlanningAccount.connected(c)?store.ownerValue("calendar:last_error_code",""):p.getString("calendar_setup_code",""))).put("calendar_connected",PlanningAccount.connected(c)).put("calendar_configured",calendarEnabled(c,store)).put("weather_configured",flag(c,store,"weather_enabled")).put("calendar_state",store.ownerValue("calendar:status",calendarEnabled(c,store)?"pending":"not_connected")).put("weather_state",store.ownerValue("weather:status",flag(c,store,"weather_enabled")?"pending":"not_configured"))
+            .put("notification_permission",Build.VERSION.SDK_INT<33||c.checkSelfPermission("android.permission.POST_NOTIFICATIONS")==android.content.pm.PackageManager.PERMISSION_GRANTED).put("notification_state",WeatherNotifications.state(c)).put("weather_notifications_enabled",flag(c,store,"notifications")).put("notifications_available",WeatherNotifications.ready(c)).put("background_best_effort",true).put("credentials_exposed",false);
     }
     static JSONObject weatherLocation(PixelLocalStore store,JSONObject appointment)throws Exception {
-        if(appointment.has("latitude")&&!appointment.isNull("latitude")&&appointment.has("longitude")&&!appointment.isNull("longitude"))return appointment;
-        return weatherLocation(appointment,PixelMcpReadTools.effective(store.getState()).getJSONArray("customers"));
+        JSONObject master=PixelMcpReadTools.effective(store.getState());return weatherLocation(store,appointment,master);
     }
     static JSONObject weatherLocation(JSONObject appointment,JSONArray customers)throws Exception {
-        JSONObject a=new JSONObject(appointment.toString());if(a.has("latitude")&&!a.isNull("latitude")&&a.has("longitude")&&!a.isNull("longitude"))return a;
-        JSONObject customer=OwnerJournalRules.findOrNull(customers,a.optString("customer_id"));if(customer==null)return a;
-        String address=(customer.optString("street")+", "+customer.optString("postal_code")+" "+customer.optString("city")).trim();
-        if(a.optString("location").trim().equals(address)&&customer.has("latitude")&&!customer.isNull("latitude")&&customer.has("longitude")&&!customer.isNull("longitude"))a.put("latitude",customer.get("latitude")).put("longitude",customer.get("longitude"));return a;
+        return WeatherLocationRules.context(appointment,customers,new JSONArray());
+    }
+    private static JSONObject weatherLocation(PixelLocalStore store,JSONObject appointment,JSONObject master)throws Exception {
+        JSONObject a=WeatherLocationRules.context(appointment,master.getJSONArray("customers"),master.getJSONArray("orders"));
+        if(!WeatherLocationRules.coordinates(a)&&!a.optString("weather_location_label").isEmpty())a=WeatherLocationRules.cached(a,new JSONObject(store.ownerValue(WeatherLocationRules.cacheKey(a),"{}")));return a;
     }
     static JSONObject risk(PixelLocalStore store,JSONObject a,Instant now)throws Exception {
         return riskAtLocation(store,weatherLocation(store,a),now);
     }
     private static JSONObject riskAtLocation(PixelLocalStore store,JSONObject a,Instant now)throws Exception {
         JSONObject cache=null;if(a.has("latitude")&&!a.isNull("latitude"))cache=new JSONObject(store.ownerValue("weather:"+WeatherRiskRules.locationKey(a),"{}"));
-        return WeatherRiskRules.evaluate(a,cache==null||cache.length()==0?null:cache,now,settings(store));
+        JSONObject risk=WeatherRiskRules.evaluate(a,cache==null||cache.length()==0?null:cache,now,settings(store));
+        String state=a.optString("weather_location_state","missing");risk.put("location_label",a.optString("weather_location_label",a.optString("location"))).put("location_state",state);
+        if(state.equals("locality_resolved"))risk.put("location_precision","locality").put("location_area",a.optString("weather_location_area")).put("location_notice","Ortsvorhersage: Die genaue Hausadresse wurde nicht erkannt. Wetter am Grundstück kann abweichen.");
+        if(!WeatherLocationRules.coordinates(a)){
+            String reason=state.equals("ambiguous")?"Einsatzadresse ist mehrdeutig. Ort oder Postleitzahl ergänzen.":state.equals("unavailable")?"Adresssuche derzeit nicht verfügbar. Erneut prüfen oder Standort am Einsatzort übernehmen.":state.equals("not_found")?"Einsatzadresse nicht gefunden. Straße, Postleitzahl und Ort prüfen.":state.equals("missing")?"Einsatzort fehlt. Adresse im Termin oder beim Kunden ergänzen.":"Einsatzadresse wird bei der Wetterprüfung ermittelt. Bei Bedarf Jetzt prüfen wählen.";
+            risk.put("reasons",new JSONArray().put(reason));
+        }return risk;
     }
     static JSONObject query(Context c,PixelLocalStore store,String name,JSONObject args)throws Exception {
         if(name.equals("get_planning_settings")){McpSchema.validate(args,AppointmentTools.schema(name));JSONObject s=publicSettings(c,store);return new JSONObject().put("settings",s).put("record_hash",PixelMcpWriteTools.hash(s)).put("integration",integration(c,store));}
-        McpSchema.validate(args,AppointmentTools.schema(name));Instant now=Instant.now();if(name.equals("get_workweek_weather")||name.equals("get_weather_risks")){args=new JSONObject(args.toString());if(!args.has("date_from"))args.put("date_from",now.atZone(ZoneId.of("Europe/Vienna")).toLocalDate().toString());if(!args.has("date_to"))args.put("date_to",now.atZone(ZoneId.of("Europe/Vienna")).toLocalDate().plusDays(14).toString());}JSONObject state=store.getState(),master=PixelMcpReadTools.effective(state),out=AppointmentTools.query(name,args,state);
-        if(name.equals("suggest_appointment_slots"))out=suggestions(store,master,args,now);
-        else if(name.equals("get_appointment")){JSONObject a=out.getJSONObject("appointment");out.put("weather",riskAtLocation(store,weatherLocation(a,master.getJSONArray("customers")),now)).put("calendar",calendarState(c,store,a));}
+        McpSchema.validate(args,AppointmentTools.schema(name));Instant now=Instant.now();if(name.equals("get_workweek_weather")||name.equals("get_weather_risks")){args=new JSONObject(args.toString());if(!args.has("date_from"))args.put("date_from",now.atZone(ZoneId.of("Europe/Vienna")).toLocalDate().toString());if(!args.has("date_to"))args.put("date_to",now.atZone(ZoneId.of("Europe/Vienna")).toLocalDate().plusDays(14).toString());}JSONObject state=store.getState(),master=PixelMcpReadTools.effective(state),out=AppointmentTools.query(name,args,state),availability=availability(c,store,now);
+        if(name.equals("suggest_appointment_slots"))out=suggestions(store,master,args,now,availability);
+        else if(name.equals("get_appointment")){JSONObject a=out.getJSONObject("appointment");out.put("weather",riskAtLocation(store,weatherLocation(store,a,master),now)).put("calendar",calendarState(c,store,a)).put("collisions",AppointmentAvailability.assess(a,master.getJSONArray("appointments"),availability));}
         else {
-            JSONArray rows=out.getJSONArray("appointments"),risks=new JSONArray();for(int i=0;i<rows.length();i++){JSONObject entry=rows.getJSONObject(i),a=entry.getJSONObject("appointment"),r=riskAtLocation(store,weatherLocation(a,master.getJSONArray("customers")),now);entry.put("weather",r).put("calendar",calendarState(c,store,a));if(!r.optString("severity").equals("clear")&&!r.optString("severity").equals("inactive"))risks.put(new JSONObject().put("appointment_id",a.getString("id")).put("weather",r).put("acknowledged",!r.optString("alert_hash").isEmpty()&&r.optString("alert_hash").equals(store.ownerValue("weather:ack:"+a.getString("id"),""))));}
+            JSONArray rows=out.getJSONArray("appointments"),risks=new JSONArray();for(int i=0;i<rows.length();i++){JSONObject entry=rows.getJSONObject(i),a=entry.getJSONObject("appointment"),r=riskAtLocation(store,weatherLocation(store,a,master),now);entry.put("weather",r).put("calendar",calendarState(c,store,a)).put("collisions",AppointmentAvailability.assess(a,master.getJSONArray("appointments"),availability));if(!r.optString("severity").equals("clear")&&!r.optString("severity").equals("inactive"))risks.put(new JSONObject().put("appointment_id",a.getString("id")).put("weather",r).put("acknowledged",!r.optString("alert_hash").isEmpty()&&r.optString("alert_hash").equals(store.ownerValue("weather:ack:"+a.getString("id"),""))));}
             out.put("weather_risks",risks);
             if(name.equals("get_workweek_weather")||name.equals("get_weather_risks"))out.put("forecast_days",14).put("next_workdays",nextWorkdays(store,now)).put("source","GeoSphere Austria · CC BY 4.0");
         }
-        return out.put("integration",integration(c,store)).put("planning_settings",settings(store));
+        return out.put("availability",availability).put("integration",integration(c,store)).put("planning_settings",settings(store));
+    }
+    static JSONObject availability(Context c,PixelLocalStore store,Instant now)throws Exception {
+        boolean enabled=calendarEnabled(c,store)&&PlanningAccount.prefs(c).getBoolean("read_busy",false)&&store.ownerValue("calendar:status","").equals("checked");
+        return AppointmentAvailability.context(new JSONObject(store.ownerValue("calendar:busy","{}")),enabled,now);
     }
     static String bindingKey(Context c,String id)throws Exception{return "calendar:binding:"+PixelMcpWriteTools.hash(PlanningAccount.prefs(c).getString("calendar_id","")).substring(0,24)+":"+id;}
     static JSONObject calendarState(Context c,PixelLocalStore store,JSONObject a)throws Exception {
@@ -80,30 +98,31 @@ final class AppointmentRuntime {
         return new JSONObject().put("state",!calendarEnabled(c,store)?"not_connected":b.has("conflict")?"review_required":b.optBoolean("detached")?"detached":matching?b.optString("state","pending"):"pending").put("last_confirmed_at",b.optString("confirmed_at")).put("error",b.optString("error")).put("conflict_hash",b.has("conflict")?PixelMcpWriteTools.hash(b):"").put("conflict",b.opt("conflict")==null?JSONObject.NULL:b.get("conflict"));
     }
     static JSONArray nextWorkdays(PixelLocalStore store,Instant now)throws Exception {Set<Integer> days=new HashSet<>();JSONArray configured=settings(store).getJSONArray("workdays");for(int i=0;i<configured.length();i++)days.add(configured.getInt(i));JSONArray out=new JSONArray();LocalDate day=now.atZone(ZoneId.of("Europe/Vienna")).toLocalDate();for(int i=0;i<16&&out.length()<5;i++,day=day.plusDays(1))if(days.contains(day.getDayOfWeek().getValue()))out.put(day.toString());return out;}
-    static JSONObject suggestions(PixelLocalStore store,JSONObject s,JSONObject a,Instant now)throws Exception {
+    static JSONObject suggestions(PixelLocalStore store,JSONObject s,JSONObject a,Instant now,JSONObject availability)throws Exception {
         PixelMcpWriteTools.find(s.getJSONArray("customers"),a.getString("customer_id"));LocalDate from=LocalDate.parse(a.getString("date_from")),to=LocalDate.parse(a.getString("date_to"));if(to.isBefore(from)||java.time.temporal.ChronoUnit.DAYS.between(from,to)>30)throw new IllegalArgumentException("Bitte einen Zeitraum bis31Tage wählen.");
-        JSONObject preferences=settings(store),busy=new JSONObject(store.ownerValue("calendar:busy","{}"));boolean verified=false;
+        JSONObject preferences=settings(store),busy=availability;boolean verified=false;
         try{verified=busy.optBoolean("verified")&&Instant.parse(busy.getString("checked_at")).isAfter(now.minusSeconds(1800))&&AppointmentRules.instant(busy.getString("from")).isBefore(from.atStartOfDay(ZoneId.of("Europe/Vienna")).toInstant().plusSeconds(1))&&!AppointmentRules.instant(busy.getString("to")).isBefore(to.plusDays(1).atStartOfDay(ZoneId.of("Europe/Vienna")).toInstant());}catch(Exception ignored){}
         List<JSONObject> found=new ArrayList<>();JSONArray workdays=preferences.getJSONArray("workdays");Set<Integer> days=new HashSet<>();for(int i=0;i<workdays.length();i++)days.add(workdays.getInt(i));
         JSONObject prior=a.optString("order_id").isEmpty()?null:PixelMcpWriteTools.find(s.getJSONArray("orders"),a.getString("order_id"));if(prior!=null&&!a.getString("customer_id").equals(prior.getString("customer_id")))throw new IllegalArgumentException("Kunde und Auftrag passen nicht zusammen.");
         // Reuse only confirmed coordinates from appointments of this exact customer and location.
-        JSONObject location=null;JSONArray appts=s.getJSONArray("appointments");for(int i=0;i<appts.length();i++){JSONObject row=appts.getJSONObject(i);if(a.getString("customer_id").equals(row.optString("customer_id"))&&row.has("latitude")&&!row.isNull("latitude")&&(prior==null||prior.optString("location").equals(row.optString("location"))))location=row;}
+        JSONObject customer=PixelMcpWriteTools.find(s.getJSONArray("customers"),a.getString("customer_id"));String expectedPlace=prior!=null&&!prior.optString("location").trim().isEmpty()?prior.optString("location").trim():WeatherLocationRules.address(customer);JSONObject location=null;JSONArray appts=s.getJSONArray("appointments");for(int i=0;i<appts.length();i++){JSONObject row=appts.getJSONObject(i);if(a.getString("customer_id").equals(row.optString("customer_id"))&&row.has("latitude")&&!row.isNull("latitude")&&!expectedPlace.isEmpty()&&WeatherLocationRules.normalized(expectedPlace).equals(WeatherLocationRules.normalized(row.optString("location"))))location=row;}
         for(LocalDate day=from;!day.isAfter(to);day=day.plusDays(1))if(days.contains(day.getDayOfWeek().getValue())){
             ZonedDateTime first=day.atTime(LocalTime.parse(preferences.getString("day_start"))).atZone(ZoneId.of("Europe/Vienna")),end=day.atTime(LocalTime.parse(preferences.getString("day_end"))).atZone(ZoneId.of("Europe/Vienna"));
             for(ZonedDateTime time=first;!time.plusMinutes(a.getInt("duration_minutes")).isAfter(end);time=time.plusMinutes(30)){
                 if(time.toInstant().isBefore(now))continue;JSONObject row=new JSONObject().put("id","suggestion").put("customer_id",a.getString("customer_id")).put("order_id",a.optString("order_id")).put("title",prior==null?"Geplanter Einsatz":prior.optString("title")).put("starts_at",time.toInstant().toString()).put("ends_at",time.plusMinutes(a.getInt("duration_minutes")).toInstant().toString()).put("timezone","Europe/Vienna").put("status","tentative").put("weather_profile",a.optString("weather_profile","general")).put("travel_minutes",preferences.optInt("travel_minutes"));
-                if(location!=null)row.put("latitude",location.get("latitude")).put("longitude",location.get("longitude")).put("location",location.optString("location"));
+                row.put("location",expectedPlace);if(location!=null)row.put("latitude",location.get("latitude")).put("longitude",location.get("longitude")).put("location",location.optString("location"));
                 try{AppointmentRules.validate(row,null,s);}catch(Exception blocked){continue;}
                 boolean clash=false;JSONArray periods=busy.optJSONArray("busy");for(int j=0;verified&&periods!=null&&j<periods.length();j++){JSONObject b=periods.getJSONObject(j);if(AppointmentRules.instant(b.getString("start")).isBefore(time.plusMinutes(a.getInt("duration_minutes")).toInstant())&&AppointmentRules.instant(b.getString("end")).isAfter(time.minusMinutes(preferences.optInt("travel_minutes")).toInstant()))clash=true;}
-                if(!clash){JSONObject r=riskAtLocation(store,weatherLocation(row,s.getJSONArray("customers")),now);found.add(new JSONObject().put("appointment",row).put("weather",r).put("calendar_availability_verified",verified).put("customer_availability_confirmed",false));}
+                if(!clash){JSONObject r=riskAtLocation(store,weatherLocation(store,row,s),now);found.add(new JSONObject().put("appointment",row).put("weather",r).put("calendar_availability_verified",verified).put("customer_availability_confirmed",false));}
             }
         }
         found.sort(Comparator.comparingInt((JSONObject x)->Arrays.asList("clear","difficult","unknown","critical").indexOf(x.optJSONObject("weather").optString("severity"))).thenComparing(x->x.optJSONObject("appointment").optString("starts_at")));
         return new JSONObject().put("suggestions",new JSONArray(found.subList(0,Math.min(5,found.size())))).put("booked",false).put("calendar_availability_verified",verified).put("notice",verified?"Kundenverfügbarkeit separat bestätigen. Andere Kalender können sich nach der Prüfung ändern.":"Nur App-Belegung geprüft. Externe Belegtzeiten fehlen oder sind veraltet; keine Buchung ausgeführt.");
     }
-    static JSONObject acknowledge(Context c,PixelLocalStore store,JSONObject a)throws Exception {JSONObject row=PixelMcpWriteTools.find(PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments"),a.getString("appointment_id")),r=risk(store,row,Instant.now());if(!r.optString("alert_hash").equals(a.getString("expected_alert_hash")))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Wetterhinweis wurde geändert. Bitte neu prüfen.");store.putOwnerValue("weather:ack:"+row.getString("id"),r.getString("alert_hash"));return new JSONObject().put("acknowledged",true).put("appointment_changed",false);}
+    static JSONObject acknowledge(Context c,PixelLocalStore store,JSONObject a)throws Exception {JSONObject row=PixelMcpWriteTools.find(PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments"),a.getString("appointment_id")),r=risk(store,row,Instant.now());if(!r.optString("alert_hash").equals(a.getString("expected_alert_hash")))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Wetterhinweis wurde geändert. Bitte neu prüfen.");store.putOwnerValue("weather:ack:"+row.getString("id"),r.getString("alert_hash"));WeatherNotifications.cancel(c,row.getString("id"));return new JSONObject().put("acknowledged",true).put("appointment_changed",false);}
 
-    static boolean checkBusy(PixelLocalStore store,JSONObject row)throws Exception {
+    static boolean checkBusy(Context c,PixelLocalStore store,JSONObject row)throws Exception {
+        if(!availability(c,store,Instant.now()).optBoolean("verified"))return false;
         if(!AppointmentRules.active(row)||row.optString("status").equals("draft"))return false;
         JSONObject cache=new JSONObject(store.ownerValue("calendar:busy","{}"));Instant now=Instant.now(),start=AppointmentRules.instant(row.getString("starts_at")).minusSeconds(row.optInt("travel_minutes")*60L),end=AppointmentRules.instant(row.getString("ends_at"));
         boolean current=false;try{current=cache.optBoolean("verified")&&Instant.parse(cache.getString("checked_at")).isAfter(now.minusSeconds(1800))&&!AppointmentRules.instant(cache.getString("from")).isAfter(start)&&!AppointmentRules.instant(cache.getString("to")).isBefore(end);}catch(Exception ignored){}
@@ -126,13 +145,15 @@ final class AppointmentRuntime {
         long weatherCadence=Long.MAX_VALUE;
         if(weatherEnabled)try{weatherCadence=FreeWeatherSource.nextDelayMillis(PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments"),now);}catch(Exception ignored){}
         try{notifyRisks(c,store,now);store.putOwnerValue("planning:status",new JSONObject().put("last_check_at",now.toString()).put("background_best_effort",true).toString());}catch(Exception ignored){}
+        MainActivity.refreshPlanningView();
         long next=Math.min(Math.min(calendarNext,weatherNext),weatherCadence);if(calendarEnabled(c,store))next=Math.min(next,15*60*1000L);if(next<Long.MAX_VALUE)PlanningJob.schedule(c,next);
     }}
     static long adapter(Context c,PixelLocalStore store,String kind,boolean enabled,Instant now,AdapterTask task){
         android.content.SharedPreferences p=PlanningAccount.prefs(c);String prefix=kind+"_";int failures=p.getInt(prefix+"failures",0);if(!enabled||p.getBoolean(prefix+"blocked",false)||failures>=8)return Long.MAX_VALUE;
         try{String retry=p.getString(prefix+"retry_at","");if(!retry.isEmpty()){long remaining=Duration.between(now,Instant.parse(retry)).toMillis();if(remaining>0)return remaining;}}catch(Exception ignored){}
-        try{task.run();p.edit().putInt(prefix+"failures",0).remove(prefix+"retry_at").apply();store.putOwnerValue(kind+":status","checked");return Long.MAX_VALUE;}
+        try{task.run();p.edit().putInt(prefix+"failures",0).remove(prefix+"retry_at").apply();store.putOwnerValue(kind+":status","checked");if(kind.equals("calendar"))store.putOwnerValue("calendar:last_error_code","");return Long.MAX_VALUE;}
         catch(Exception e){
+            if(kind.equals("calendar"))store.putOwnerValue("calendar:last_error_code",CalendarAccessRules.code(e));
             if(kind.equals("weather")&&e instanceof DriveRestClient.Failure&&Arrays.asList("WEATHER_BATCH_PENDING","WEATHER_RATE_LIMIT").contains(((DriveRestClient.Failure)e).code)){
                 long delay=Math.max(30000,((DriveRestClient.Failure)e).retryAfter);p.edit().putString(prefix+"retry_at",now.plusMillis(delay).toString()).apply();store.putOwnerValue(kind+":status","pending");return delay;
             }
@@ -226,10 +247,16 @@ final class AppointmentRuntime {
     }
     static void refreshWeather(Context c,PixelLocalStore store,Instant now)throws Exception {refreshWeather(c,store,now,new PlanningWire());}
     static void refreshWeather(Context c,PixelLocalStore store,Instant now,DriveRestClient.Wire upstream)throws Exception {
+        refreshWeather(c,store,now,upstream,query->WeatherLocationResolver.lookup(c,query));
+    }
+    static void refreshWeather(Context c,PixelLocalStore store,Instant now,DriveRestClient.Wire upstream,WeatherLocationResolver.Lookup lookup)throws Exception {
         JSONObject snapshot=PixelMcpReadTools.effective(store.getState());JSONArray all=snapshot.getJSONArray("appointments");
-        Map<String,Long> sites=new LinkedHashMap<>();
+        Map<String,Long> sites=new LinkedHashMap<>();WeatherLocationResolver.Budget locationBudget=new WeatherLocationResolver.Budget();boolean locationsPending=false;
         for(int i=0;i<all.length();i++){
-            JSONObject a=weatherLocation(all.getJSONObject(i),snapshot.getJSONArray("customers"));all.put(i,a);
+            JSONObject original=all.getJSONObject(i);
+            if(!AppointmentRules.active(original)||original.optString("status").equals("draft")||!AppointmentRules.instant(original.getString("ends_at")).isAfter(now)||AppointmentRules.instant(original.getString("starts_at")).isAfter(now.plusSeconds(FreeWeatherSource.MONITOR_WINDOW)))continue;
+            JSONObject a=weatherLocation(store,original,snapshot);
+            if(!WeatherLocationRules.coordinates(a))a=WeatherLocationResolver.resolve(c,store,a,now,locationBudget,lookup);all.put(i,a);if(a.optString("weather_location_state").equals("pending"))locationsPending=true;
             if(!AppointmentRules.active(a)||a.optString("status").equals("draft")||!a.has("latitude")||a.isNull("latitude")||!a.has("longitude")||a.isNull("longitude"))continue;
             Instant start=AppointmentRules.instant(a.getString("starts_at")),end=AppointmentRules.instant(a.getString("ends_at"));
             if(!end.isAfter(now)||start.isAfter(now.plusSeconds(FreeWeatherSource.MONITOR_WINDOW)))continue;
@@ -267,32 +294,28 @@ final class AppointmentRuntime {
             }
             if(failure instanceof DriveRestClient.Failure)break; // Respect Retry-After globally, never hammer another site.
         }
-        if(failure!=null)throw failure;
+        if(failure!=null)throw failure;if(locationsPending)throw new DriveRestClient.Failure("WEATHER_BATCH_PENDING","Weitere Einsatzadressen werden später geprüft.",300000,false);
     }
     static void notifyRisks(Context c,PixelLocalStore store,Instant now)throws Exception {
-        android.content.SharedPreferences p=PlanningAccount.prefs(c);if(!flag(c,store,"weather_enabled")||!flag(c,store,"notifications"))return;NotificationManager manager=c.getSystemService(NotificationManager.class);if(manager==null)return;
-        if(Build.VERSION.SDK_INT>=33&&c.checkSelfPermission("android.permission.POST_NOTIFICATIONS")!=android.content.pm.PackageManager.PERMISSION_GRANTED)return;
-        manager.createNotificationChannel(new NotificationChannel("planning_weather","Einsätze & Wetter",NotificationManager.IMPORTANCE_DEFAULT));
-        JSONObject snapshot=PixelMcpReadTools.effective(store.getState());JSONArray all=snapshot.getJSONArray("appointments");List<String> alerts=new ArrayList<>();List<String> ids=new ArrayList<>();
-        int hour=now.atZone(ZoneId.of("Europe/Vienna")).getHour();boolean quiet=hour>=21||hour<6;
-        for(int i=0;i<all.length();i++){JSONObject a=all.getJSONObject(i);Instant end=AppointmentRules.instant(a.getString("ends_at"));if(end.isBefore(now)||!AppointmentRules.active(a))continue;JSONObject r=riskAtLocation(store,weatherLocation(a,snapshot.getJSONArray("customers")),now);String severity=r.optString("severity"),hash=r.optString("alert_hash"),id=a.getString("id");
-            if(severity.equals("inactive")){store.putOwnerValue("weather:notified:"+id,"");store.putOwnerValue("weather:ack:"+id,"");continue;}
-            if(!severity.equals("critical")&&!severity.equals("difficult"))continue;
-            if(quiet&&!r.optBoolean("critical_official_warning"))continue;
-            if(hash.equals(store.ownerValue("weather:ack:"+id,""))||hash.equals(store.ownerValue("weather:notified:"+id,"")))continue;
-            alerts.add(hash);ids.add(id);
+        if(!flag(c,store,"weather_enabled")||!flag(c,store,"notifications")){WeatherNotifications.cancelAll(c);store.putOwnerValue("weather:delivery-paused","true");return;}
+        if(!WeatherNotifications.ready(c)){store.putOwnerValue("weather:delivery-paused","true");return;}
+        boolean resumed=store.ownerValue("weather:delivery-paused","false").equals("true");
+        JSONObject snapshot=PixelMcpReadTools.effective(store.getState());JSONArray all=snapshot.getJSONArray("appointments"),customers=snapshot.getJSONArray("customers");Set<String> active=new HashSet<>();
+        for(int i=0;i<all.length();i++){
+            JSONObject a=all.getJSONObject(i);String id=a.getString("id");JSONObject r=riskAtLocation(store,weatherLocation(store,a,snapshot),now);
+            if(!WeatherAlertRules.actionable(a,r,now)){
+                WeatherNotifications.cancel(c,id);
+                // Once a stale/unknown notice is removed, a fresh unacknowledged risk may be delivered again.
+                store.putOwnerValue("weather:notified:"+id,"");
+                if(r.optString("severity").equals("clear")||r.optString("severity").equals("inactive")){store.putOwnerValue("weather:notified:"+id,"");store.putOwnerValue("weather:ack:"+id,"");}continue;
+            }
+            active.add(id);if(resumed)store.putOwnerValue("weather:notified:"+id,"");if(!WeatherAlertRules.shouldNotify(a,r,now,store.ownerValue("weather:ack:"+id,""),store.ownerValue("weather:notified:"+id,"")))continue;
+            JSONObject customer=OwnerJournalRules.findOrNull(customers,a.optString("customer_id"));
+            if(WeatherNotifications.post(c,a,r,customer==null?"":customer.optString("name")))store.putOwnerValue("weather:notified:"+id,r.getString("alert_hash"));
         }
-        if(alerts.isEmpty())return;Intent open=new Intent(c,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP).putExtra("open_planning",true);PendingIntent click=PendingIntent.getActivity(c,0x484713,open,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
-        Notification.Builder builder=new Notification.Builder(c,"planning_weather").setSmallIcon(android.R.drawable.ic_dialog_info).setContentTitle("Geplante Arbeit: Wetter prüfen").setContentText(alerts.size()+" Einsatz/Einsätze mit Wetterhinweis. Alternativen in der Planung ansehen.").setVisibility(Notification.VISIBILITY_PRIVATE).setContentIntent(click).setAutoCancel(true);
-        builder.addAction(new Notification.Action.Builder(android.graphics.drawable.Icon.createWithResource(c,android.R.drawable.ic_menu_view),"Termine ansehen",click).build());
-        if(ids.size()==1){
-            Intent alternative=new Intent(open).putExtra("planning_appointment_id",ids.get(0)).putExtra("planning_action","alternatives");PendingIntent choose=PendingIntent.getActivity(c,0x484715,alternative,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
-            builder.addAction(new Notification.Action.Builder(android.graphics.drawable.Icon.createWithResource(c,android.R.drawable.ic_menu_today),"Alternative suchen",choose).build());
-            Intent ack=new Intent(c,PlanningAlertReceiver.class).setData(android.net.Uri.parse("hausgarten-internal://weather-ack/"+android.net.Uri.encode(ids.get(0))+"/"+alerts.get(0))).putExtra("appointment_id",ids.get(0)).putExtra("alert_hash",alerts.get(0));PendingIntent acknowledge=PendingIntent.getBroadcast(c,0x484716,ack,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
-            builder.addAction(new Notification.Action.Builder(android.graphics.drawable.Icon.createWithResource(c,android.R.drawable.ic_menu_agenda),"Geprüft",acknowledge).build());
-        }
-        manager.notify(0x484714,builder.build());
-        for(int i=0;i<ids.size();i++)store.putOwnerValue("weather:notified:"+ids.get(i),alerts.get(i));
+        // Retired/archive notifications must not keep showing a removed appointment.
+        WeatherNotifications.retain(c,active);
+        store.putOwnerValue("weather:delivery-paused","false");
     }
     private AppointmentRuntime(){}
 }

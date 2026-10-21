@@ -221,7 +221,7 @@
     const notes=extra(form,'notes','+ Fotos und Notizen');moveField(notes,'entry-notes');moveField(notes,'photo');moveField(notes,'entry-photo_caption');
     const job=extra(form,'order','+ Auftrag und Arbeitsort · optional');moveField(job,'order');job.append(get('work-entry-add-order'));moveField(job,'entry-location');
     // Empty old shells contain no data and no actions; remove only those shells.
-    form.querySelectorAll('.entry-block').forEach(x=>x.remove());const oldExtra=form.querySelector('.more:not(.simple-extra)');if(oldExtra)oldExtra.remove();form.append(form.querySelector('.actions'));
+    form.querySelectorAll('.entry-block').forEach(x=>x.remove());const oldExtra=form.querySelector('.more:not(.simple-extra)');if(oldExtra)oldExtra.remove();form.append(form.querySelector('button[type="submit"]').closest('.actions'));
     const card=get('edit-worklog-card'),main=document.createElement('section');main.className='simple-primary';card.prepend(main);moveField(main,'edit-worklog-customer');
     const editGrid=document.createElement('div');editGrid.className='form-grid simple-date-hours';const editDate=document.createElement('div'),editHours=document.createElement('div');editGrid.append(editDate,editHours);main.append(editGrid);moveField(editDate,'edit-worklog-date');moveField(editHours,'edit-worklog-hours');moveField(main,'edit-worklog-activity');
     const editTimes=extra(card,'time','+ Zeit und Pause');editTimes.append(get('edit-worklog-start').closest('.form-grid'));moveField(editTimes,'edit-worklog-pause');
@@ -232,7 +232,7 @@
     const status=extra(card,'status','+ Abrechnung und Kundenansicht');['edit-worklog-billed','edit-worklog-visible'].forEach(id=>status.append(get(id).closest('label')));
     const invoiceAction=card.querySelector('[data-invoice-worklog]');if(invoiceAction)status.append(invoiceAction);
     card.querySelectorAll('.worklog-edit-section-heading,.worklog-hours-hint,h3').forEach(x=>x.remove());card.querySelector('.worklog-edit-advanced')?.remove();
-    const cancel=document.createElement('button');cancel.type='button';cancel.className='secondary';cancel.id='new-work-cancel';cancel.textContent='Abbrechen';cancel.onclick=()=>{if(window.hasWorkEntryDraft()&&!confirm('Begonnene Eingabe verwerfen?'))return;form.reset();get('date').value=localDate();window.handleAndroidBack();};form.querySelector('.actions').append(cancel);
+    const cancel=document.createElement('button');cancel.type='button';cancel.className='secondary';cancel.id='new-work-cancel';cancel.textContent='Abbrechen';cancel.onclick=()=>{if(window.hasWorkEntryDraft()&&!confirm('Begonnene Eingabe verwerfen?'))return;form.reset();get('date').value=localDate();window.handleAndroidBack();};form.querySelector('button[type="submit"]').closest('.actions').append(cancel);
   }
   document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});
 })();

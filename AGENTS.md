@@ -85,6 +85,15 @@ konkreten Betriebsauftrag. Schreibtests bleiben vollständig isoliert.
 
 ## Alltagstauglichkeit
 
+Aktueller Nutzerauftrag vom 20.10.2026: Das
+[MCP-Testdossier](https://chatgpt.com/space/page_7f18b1e34e808191b3851b6c15ebf582)
+bei Folgearbeiten berücksichtigen. MCP übernimmt voraussichtlich die meisten
+Eingaben; die App priorisiert deshalb lesbare Übersichten. Gespeicherte Einträge
+zuerst lesend öffnen, manuelle Editoren erst ausdrücklich. Bekannten, eindeutig
+zugeordneten Kontext übernehmen und sichtbar machen; keine Kunden, Zeiten oder
+Preise erraten. Alle bisherigen Funktionen und die vollständige Bedienbarkeit
+ohne MCP erhalten. Laufende oder noch abzuschließende Arbeit bleibt vorrangig.
+
 Die App bleibt vollständig ohne KI bedienbar. Prioritäten: Datenintegrität,
 Zuverlässigkeit, Übersichtlichkeit und einfache, schnelle Bedienung.
 Wichtige Aktionen für kleine Hände gut erreichbar machen, eindeutige Beschriftungen

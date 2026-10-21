@@ -24,7 +24,7 @@ const {chromium}=require('./browser.cjs');
   await page.waitForSelector('#design-metrics');
   await check('App initializes fully without removed-element event listener failures',async()=>{
    assert.deepEqual(errors,[]);assert.equal(await page.locator('.pirate,#pirate-speak').count(),0);
-   assert.deepEqual(await page.locator('.bottom .nav').allTextContents(),['Heute','Kunden','Arbeiten','Mehr']);
+   assert.deepEqual(await page.locator('.bottom .nav').allTextContents(),['Heute','Kunden & Gärten','Mehr']);
    assert.equal(await page.evaluate(()=>typeof window.onDriveSync),'function');
    assert.equal(await page.evaluate(()=>typeof window.acceptNativeSpeech),'function');
   });
@@ -34,7 +34,7 @@ const {chromium}=require('./browser.cjs');
    assert.equal(await page.locator('#entry').isVisible(),true);
   });
   await check('Normal speech button and native speech parsing remain operational',async()=>{
-   await page.locator('#speak').click();assert.equal(await page.evaluate(()=>speechCalls),1);
+   await page.locator('#entry [data-section=notes] summary').click();await page.locator('#speak').click();assert.equal(await page.evaluate(()=>speechCalls),1);
    await page.evaluate(()=>acceptNativeSpeech('Heute Kunde Muster von 8:00 bis 12:00 30 Minuten Pause Tätigkeit Hecke schneiden Material drei Säcke Mulch, 15 km'));
    assert.equal(await page.locator('#customer').inputValue(),'qa_c1');
    assert.equal(await page.locator('#start').inputValue(),'08:00');assert.equal(await page.locator('#end').inputValue(),'12:00');

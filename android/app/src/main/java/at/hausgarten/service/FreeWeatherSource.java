@@ -97,9 +97,9 @@ final class FreeWeatherSource {
             catch(Exception unavailable){cache.put("warning_status","Amtliche Warnungen derzeit nicht verfügbar.");}
         }
         if(untilStart<=60*HOUR&&due(cache,"fetched_at",now,cadence)){
-            JSONObject p=parameters(meta);String names="t2m,rain_acc,ugust,vgust";
+            JSONObject p=parameters(meta);boolean interval=p.has("2t")&&p.has("tp")&&p.has("10fg");String names=interval?"2t,tp,10fg":"t2m,rain_acc,ugust,vgust";
             for(String id:names.split(","))if(!p.has(id))throw new IOException("Wetterdaten derzeit nicht verfügbar.");
-            for(String id:new String[]{"u10m","v10m","snow_acc"})if(p.has(id))names+=","+id;
+            for(String id:interval?new String[]{"10u","10v","sf"}:new String[]{"u10m","v10m","snow_acc"})if(p.has(id))names+=","+id;
             JSONObject raw=response("nwp-v2-1h-1km",names,loc,meta,wire,now);
             cache.put("forecast",normalizeGeoSphere(raw)).put("fetched_at",now.toString()).put("forecast_provider","geosphere_nwp_v2");
         }
@@ -118,19 +118,23 @@ final class FreeWeatherSource {
         if(times==null||times.length()<2||times.length()>200||features==null||features.length()!=1)throw new IOException("Wetterzeitreihe unvollständig.");
         JSONObject p=features.getJSONObject(0).getJSONObject("properties").getJSONObject("parameters"),out=new JSONObject();
         JSONArray t=new JSONArray(),temp=new JSONArray(),rain=new JSONArray(),gust=new JSONArray(),snow=new JSONArray(),wind=new JSONArray();
-        String rainId=nowcast?"rr":"rain_acc";JSONArray rainData=data(p,rainId),snowData=p.has("snow_acc")?data(p,"snow_acc"):null;
+        boolean interval=!nowcast&&p.has("2t");String tempId=interval?"2t":"t2m",rainId=nowcast?"rr":interval?"tp":"rain_acc",snowId=interval?"sf":"snow_acc",uId=interval?"10u":"u10m",vId=interval?"10v":"v10m";
+        JSONArray rainData=data(p,rainId),snowData=p.has(snowId)?data(p,snowId):null;
         Double previousRain=null,previousSnow=null;long previous=Long.MIN_VALUE;
         for(int i=0;i<times.length();i++){
             long stamp=parseTime(times.get(i));if(previous!=Long.MIN_VALUE&&stamp-previous!=(nowcast?900:3600))throw new IOException("Wetterzeitreihe widersprüchlich.");previous=stamp;t.put(stamp);
-            temp.put(convert(p,"t2m",i,"temperature"));
+            temp.put(convert(p,tempId,i,"temperature"));
             Double current=number(rainData,i),currentSnow=snowData==null?null:number(snowData,i);
             double factor=factor(p.getJSONObject(rainId).getString("unit"),"rain");
-            if(nowcast){rain.put(current==null?JSONObject.NULL:current*factor);}
+            // NWP tp/sf and INCA rr are sums for the preceding interval, not
+            // cumulative model totals. Legacy rain_acc caches still use deltas.
+            if(nowcast||interval){rain.put(current==null?JSONObject.NULL:current*factor);}
             else{rain.put(current==null||previousRain==null||current<previousRain?JSONObject.NULL:(current-previousRain)*factor);previousRain=current;}
-            if(snowData!=null){double snowFactor=factor(p.getJSONObject("snow_acc").getString("unit"),"rain");snow.put(currentSnow==null||previousSnow==null||currentSnow<previousSnow?JSONObject.NULL:(currentSnow-previousSnow)*snowFactor);previousSnow=currentSnow;}
+            if(snowData!=null){double snowFactor=factor(p.getJSONObject(snowId).getString("unit"),"rain");snow.put(interval?(currentSnow==null?JSONObject.NULL:currentSnow*snowFactor):currentSnow==null||previousSnow==null||currentSnow<previousSnow?JSONObject.NULL:(currentSnow-previousSnow)*snowFactor);previousSnow=currentSnow;}
             if(nowcast)gust.put(convert(p,"fx",i,"wind"));
+            else if(interval)gust.put(convert(p,"10fg",i,"wind"));
             else{Double u=value(p,"ugust",i,"wind"),v=value(p,"vgust",i,"wind");gust.put(u==null||v==null?JSONObject.NULL:Math.hypot(u,v));}
-            if(p.has("u10m")&&p.has("v10m")){Double u=value(p,"u10m",i,"wind"),v=value(p,"v10m",i,"wind");wind.put(u==null||v==null?JSONObject.NULL:Math.hypot(u,v));}
+            if(p.has(uId)&&p.has(vId)){Double u=value(p,uId,i,"wind"),v=value(p,vId,i,"wind");wind.put(u==null||v==null?JSONObject.NULL:Math.hypot(u,v));}
         }
         out.put("time",t).put("temperature_2m",temp).put("precipitation",rain).put("wind_gusts_10m",gust);
         if(snowData!=null)out.put("snowfall",snow);if(wind.length()>0)out.put("wind_speed_10m",wind);
@@ -142,7 +146,7 @@ final class FreeWeatherSource {
     private static Double number(JSONArray rows,int i)throws Exception{if(i>=rows.length())throw new IOException("Wetterzeitreihe unvollständig.");if(rows.isNull(i))return null;double n=rows.getDouble(i);return Double.isFinite(n)?n:null;}
     private static double factor(String unit,String kind)throws Exception{
         String u=unit.toLowerCase(Locale.ROOT).replace(" ","").replace("**","^").replace("{","").replace("}","");
-        if(kind.equals("temperature")){if(Arrays.asList("°c","degc","c","celsius","k","kelvin").contains(u))return 1;}
+        if(kind.equals("temperature")){if(Arrays.asList("°c","degc","c","celsius","degreecelsius","degree_celsius","k","kelvin").contains(u))return 1;}
         if(kind.equals("wind")){if(Arrays.asList("ms-1","ms^-1","m/s").contains(u))return 3.6;if(Arrays.asList("km/h","kmh-1","kmh^-1").contains(u))return 1;}
         if(kind.equals("rain")&&Arrays.asList("mm","kgm-2","kgm^-2","kg/m2","mm/15min").contains(u))return 1;
         throw new IOException("Wettereinheit derzeit nicht unterstützt.");

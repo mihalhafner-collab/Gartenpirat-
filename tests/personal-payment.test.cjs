@@ -18,7 +18,7 @@ const {chromium}=require('./browser.cjs');
   await load();const before=await page.evaluate(()=>JSON.stringify(fixture));
   await check('Saved work is personally marked and Today shows bezahlt without a business write',async()=>{
    await page.locator('#workday-recent [data-personal-paid]').click();
-   assert.equal(await page.locator('#workday-recent .personal-payment-label').innerText(),'bezahlt');
+   assert.equal(await page.locator('#workday-recent .personal-payment-label').innerText(),'bezahlt');assert.equal(await page.locator('#workday-recent [data-personal-paid]').innerText(),'✓ bezahlt');
    await page.evaluate(()=>openPage('worklogs'));
    assert.equal(await page.locator('#worklog-list [data-personal-paid]').getAttribute('aria-pressed'),'true');
    assert.equal(await page.evaluate(()=>JSON.stringify(fixture)),before);assert.deepEqual(await page.evaluate(()=>writes),[]);
@@ -26,7 +26,7 @@ const {chromium}=require('./browser.cjs');
    await page.setViewportSize({width:412,height:915});await page.evaluate(()=>openPage('home'));await page.screenshot({path:'outputs/Heute-bb-candidate.png'});
   });
   await check('Personal mark survives reload and is removable from saved work',async()=>{
-   await load();assert.equal(await page.locator('#workday-recent .personal-payment-label').innerText(),'bezahlt');
+   await load();assert.equal(await page.locator('#workday-recent .personal-payment-label').innerText(),'bezahlt');assert.equal(await page.locator('#workday-recent [data-personal-paid]').innerText(),'✓ bezahlt');
    await page.evaluate(()=>openPage('worklogs'));await page.locator('#worklog-list [data-personal-paid]').click();
    assert.equal(await page.locator('#workday-recent .personal-payment-label').count(),0);
    assert.equal(await page.evaluate(()=>JSON.stringify(fixture)),before);assert.deepEqual(await page.evaluate(()=>writes),[]);
