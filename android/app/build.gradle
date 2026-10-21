@@ -98,7 +98,7 @@ def previewAssets = tasks.register('generatePreviewUiAssets', Exec) {
     workingDir rootProject.projectDir.parentFile
     commandLine 'python3', 'tools/build_ui_preview_assets.py', '--output',
         layout.buildDirectory.dir('generated/preview-assets').get().asFile.absolutePath
-    inputs.files(fileTree('src/main/assets') { include 'mobile.html', '*.js' }, fileTree('src/preview/assets'))
+    inputs.files(fileTree('src/main/assets') { include 'mobile.html', '*.js', '*.css' }, fileTree('src/preview/assets'))
     inputs.file rootProject.file('../tools/build_ui_preview_assets.py')
     outputs.dir layout.buildDirectory.dir('generated/preview-assets')
 }

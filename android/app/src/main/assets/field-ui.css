@@ -1,23 +1,23 @@
 /* One shared production surface; color always accompanies a written action/state. */
-body.field-ui{--action:#176247;--action-soft:#e5f1e9;--planning:#205e8a;--planning-soft:#e9f2fa;--attention:#765000;--attention-soft:#fff2cf;--danger:#a12b29;--danger-soft:#fbe9e7;--ink:#192a21;background:#f5f7f5;color:var(--ink)}
+body.field-ui{--action:var(--hg-green-btn);--action-soft:var(--hg-sage);--planning:var(--hg-info-text);--planning-soft:var(--hg-info-bg);--attention:var(--hg-warn-text);--attention-soft:var(--hg-warn-bg);--danger:var(--hg-danger);--danger-soft:var(--hg-danger-bg);--ink:var(--hg-text);background:var(--hg-bg);color:var(--ink)}
 .field-ui button,.field-ui summary{min-height:48px;touch-action:manipulation}
 .field-ui button{overflow-wrap:anywhere}
 .field-ui .bottom .bottom-inner{grid-template-columns:1fr 1.4fr 1fr;gap:4px}
 .field-ui .bottom .nav{min-height:64px;padding:7px 5px;font-size:.82rem;line-height:1.3}
-.field-ui .nav.active{background:var(--action-soft);color:#15573d;font-weight:750}
+.field-ui .nav.active{background:var(--action-soft);color:#15573d;font-weight:var(--hg-fw-strong)}
 .field-ui .app{padding-bottom:calc(var(--app-nav-height,80px) + 32px)}
 .field-ui.field-home .app{padding-bottom:calc(var(--app-nav-height,80px) + 116px)}
 .field-heading{margin:8px 0 18px}.field-heading h1{font-size:1.75rem;margin:0 0 6px;line-height:1.2}.field-heading .home-dayline{font-size:.88rem;margin:0}
 .field-ui #home .brand,.field-ui #home .hero>h2,.field-ui #home .folder-grid,.field-ui #home>.week-summary{display:none!important}
 .field-ui:not(.field-garden-shortcut) #gp-launcher{display:none!important}
 .field-ui #home .hero{padding:0;margin:0}
-.field-ui #design-metrics{grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:14px;background:white;overflow:hidden}
+.field-ui #design-metrics{grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:var(--hg-radius);background:white;overflow:hidden}
 .field-ui #design-metrics [data-design-metric=orders]{display:none}
 .field-ui #design-metrics .design-metric{border:0;border-radius:0;box-shadow:none}
 .field-ui #design-metrics strong{font-size:1.4rem}
-.field-ui #workday-timer{background:#fff;box-shadow:none;border-radius:16px;margin:12px 0}
+.field-ui #workday-timer{background:var(--hg-surface);box-shadow:none;border-radius:16px;margin:12px 0}
 .field-ui .timer-title p{font-size:.88rem}
-.field-ui .timer-main,.field-ui .primary{background:var(--action);color:#fff}
+.field-ui .timer-main,.field-ui .primary{background:var(--action);color:var(--hg-surface)}
 .field-ui .timer-secondary{background:var(--attention-soft);color:var(--attention)}
 .field-ui .timer-stop{background:#e9efec;color:#233b30;border:1px solid #b6c8bd}
 .field-ui .timer-discard,.field-ui .field-danger,.field-ui .danger,.field-ui .danger-button,.field-ui .design-photo-delete,.field-ui [data-delete],.field-ui [data-record-delete]{color:var(--danger);background:var(--danger-soft)}
@@ -70,4 +70,4 @@ body.field-ui{--action:#176247;--action-soft:#e5f1e9;--planning:#205e8a;--planni
 #field-quick-entry .timer-completion-options>button{order:1;flex:1 1 40%;min-width:0}
 #field-quick-entry .completion-more{order:3;flex-basis:100%}
 
-.field-ui .personal-payment-toggle[aria-pressed=true]{background:var(--action);color:#fff}
+.field-ui .personal-payment-toggle[aria-pressed=true]{background:var(--action);color:var(--hg-surface)}
