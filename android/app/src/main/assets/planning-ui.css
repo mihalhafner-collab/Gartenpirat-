@@ -47,3 +47,17 @@
 .planning-chip[data-status=cancelled]{background:var(--hg-danger-bg);color:var(--hg-danger)}
 .planning-chip[data-kind=calendar],.planning-chip[data-kind=duration],.planning-chips>.planning-collision-badge{background:var(--hg-warn-bg);color:var(--hg-warn-text)}
 .planning-weather-area{display:block}
+
+/* K3: two period choices; actual hours and status remain separate links. */
+.planning-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+.planning-list-links{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;margin:4px 0 10px}
+.planning-list-links>.secondary{width:auto;flex:0 1 auto;min-height:48px;padding:8px;background:transparent;color:var(--hg-info-text);font-size:var(--hg-fs-caption);text-decoration:underline}
+.planning-list-links>.planning-actual-hours{color:var(--hg-green)}
+.planning-customer-filter{min-height:48px;max-width:100%;margin:4px 0 12px;border:1px solid var(--hg-line);border-radius:var(--hg-radius-pill);background:var(--hg-sage);color:var(--hg-green)}
+#planning-page>.page-head{gap:8px}
+#planning-page>.page-head>h2{flex:1;min-width:0}
+#planning-page .planning-head-actions{display:flex;flex-wrap:nowrap;gap:4px;margin:0;flex:none}
+#planning-page .planning-head-actions>button{display:grid;place-items:center;flex:none;position:relative;width:48px;min-width:48px;height:48px;padding:8px}
+.planning-head-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;border:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.planning-tabs>button{border:1px solid var(--hg-line);background:var(--hg-surface);color:var(--hg-muted)}
+.planning-tabs>button[aria-pressed=true]{border:2px solid var(--hg-green);background:var(--hg-sage);color:var(--hg-green);font-weight:var(--hg-fw-strong)}
