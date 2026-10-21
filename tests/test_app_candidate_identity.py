@@ -2,10 +2,36 @@
 import unittest
 from unittest import mock
 import subprocess
-from verify_app_candidate import compare_identity, metadata, PACKAGE
+from pathlib import Path
+import tempfile
+import zipfile
+from verify_app_candidate import compare_identity, metadata, candidate_assets, PACKAGE
 
 
 class CandidateIdentityTests(unittest.TestCase):
+    def test_generated_art_profiles_require_exact_compiler_bytes(self):
+        with tempfile.TemporaryDirectory(prefix='qa_art_profiles_') as temp:
+            root = Path(temp); assets = root/'assets'; assets.mkdir(); (assets/'qa.txt').write_bytes(b'qa public asset')
+            profiles = {'baseline.prof': ('binary_art_profile', b'pro\x00010\x00qa_profile'),
+                        'baseline.profm': ('binary_art_profile_metadata', b'prm\x00002\x00qa_metadata')}
+            for name, (folder, raw) in profiles.items():
+                output = root/folder/'release/compileReleaseArtProfile'/name
+                output.parent.mkdir(parents=True); output.write_bytes(raw)
+            apk = root/'qa.apk'
+            def archive(extra=None):
+                with zipfile.ZipFile(apk, 'w') as z:
+                    z.writestr('assets/qa.txt', b'qa public asset')
+                    for name, (_, raw) in profiles.items(): z.writestr('assets/dexopt/'+name, raw)
+                    if extra: z.writestr('assets/'+extra, b'qa unexpected')
+            archive(); result = candidate_assets(apk, assets, root)
+            self.assertTrue(result['matches']); self.assertEqual(len(result['generated_profiles']), 2)
+            archive('dexopt/qa_unknown.prof'); self.assertFalse(candidate_assets(apk, assets, root)['matches'])
+            archive(); reference = root/'binary_art_profile/release/compileReleaseArtProfile/baseline.prof'
+            reference.write_bytes(b'pro\x00010\x00qa_other')
+            with self.assertRaises(ValueError): candidate_assets(apk, assets, root)
+            reference.unlink()
+            with self.assertRaises(ValueError): candidate_assets(apk, assets, root)
+
     def setUp(self):
         self.previous = dict(package=PACKAGE, version_code=65, signature_valid=True, certificates=['a'*64])
         self.candidate = dict(self.previous, version_code=66)
