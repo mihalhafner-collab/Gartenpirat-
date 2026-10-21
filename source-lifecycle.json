@@ -1,0 +1,56 @@
+{
+  "format": "hausgarten.source-lifecycle.v1",
+  "repository": "mihalhafner-collab/Gartenpirat-",
+  "timezone": "Europe/Vienna",
+  "folders": {
+    "root": "1-fLRbUEbGK4jQqRyHN07sd26zG-dQ_P0",
+    "start": "1rM9_fxQfMHVZJ5PjoVVZfAOgr4N8g0uc",
+    "source": "1llQ-k-EBroaMGDOjkoWyEOYRu19z8DkA",
+    "apk": "1_ylUbbIe_0Nh8c5XN_sBrKAXvvj3O38R",
+    "runtime_link": "1DDa4qCUYd_1RQ1rINrexW82V-phpwCac",
+    "reports": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
+    "development": "1nsKnSvjm4S_NWMD596m2sGfzxskS8bdb",
+    "released": "1LRV5nneZtU6IZ38IKdlS4BAzhK-0_tNF",
+    "legacy_exports": "1YXQdwhDO-Vn2348UVfaPq6pSftjH8_hp",
+    "source89": "1AT5_rxhKjHWtTB4UqtGoN6p5ckVa8gGx",
+    "source90": "1yMODROAbx3dsZU7KW-Sh003uuGJyddT_",
+    "fallback": "1nBpr9JeqBzYx2GQXZ59gN3A53USxJsmq",
+    "test": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+    "retired_apks": "1Mr-z4mNv3kZMqD3IvBtjQuNtX43ruenA",
+    "ki": "1BNJ3Zh3OjmBn-qySvu9gQzHB0Z1HgQZd",
+    "current_apk": "1K4WB9L6ZKlW-33o8uPK3zTfqgAOVOE8u",
+    "legacy_gemini": "1WLfTST7nZeqLU5oda2-CzPwbgWFjI6kz",
+    "gemini_link": "1pi6NAVn8tEfLusS9x950YQB0TV_eTkzA"
+  },
+  "runtime_folder_ids": [
+    "1qR33tKpsKa-VxLeuTbXibjgYGjpyE8__",
+    "17EhPSYr6L8SigSBJKbciJItwNGMcIFoE",
+    "1Zl3l25QTpVTMyM0VBRAOQKbwWCgZ896l"
+  ],
+  "protected_file_ids": [
+    "1yp-i450bx9MIrn_t6-O1Srhwe7yGlFSg",
+    "1hHgCQSG64R3jYN3TsdZlbMa0ibxI9OgQ"
+  ],
+  "retention_days": {
+    "apk_retired": 0,
+    "test_apk": 14,
+    "development_export": 7,
+    "ki_export": 7,
+    "build_output": 7,
+    "log": 30
+  },
+  "keep_release_count": 2,
+  "keep_builds": [
+    89,
+    90
+  ],
+  "no_runtime_writes": true,
+  "no_history_rewrite": true,
+  "verification_required_before_delete": true,
+  "source_history": "Keep immutable original-source tags; remove superseded artifact copies only",
+  "schedule": {
+    "inventory": "daily",
+    "cleanup": "weekly",
+    "restore_check": "monthly"
+  }
+}

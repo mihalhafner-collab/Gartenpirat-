@@ -50,7 +50,8 @@ oder eine fertige APK ist kein Ersatz für einen extern gesicherten Quellstand.
 - Jede ausgelieferte Version erhält eine eindeutige, anschließend unveränderte
   Git-Versionsmarke und einen Versionsnachweis mit Quellcommit, Quellfingerprint,
   APK-SHA-256 sowie Original-Quellarchiv und dessen SHA-256. Kopie im bestehenden
-  privaten Drive ablegen und zurücklesen; Archive je Version erhalten. TXT-Dateien
+  privaten Drive ablegen und zurücklesen; Originalquellen je Version als unveränderliche
+  Git-Tags erhalten, Drive-Artefakte nach `source-lifecycle.json` aufbewahren. TXT-Dateien
   für ChatGPT/Perplexity ausschließlich daraus ableiten. Die Originalsignierung
   bleibt in der geschützten persönlichen Cloud-Umgebung, nicht in GitHub Actions.
 - `AKTUELLER-STAND.json` nach belegter Auslieferung aktualisieren. Unbestätigte
@@ -61,6 +62,43 @@ oder eine fertige APK ist kein Ersatz für einen extern gesicherten Quellstand.
 - Bestehende Tasks erhalten neue Regeln nicht automatisch. Bei Fortsetzung die
   aktuelle `AGENTS.md` vom GitHub-main lesen und die eigene Arbeit zuerst sichern;
   die Regelaktualisierung autorisiert kein Überschreiben anderer Arbeitsstände.
+
+## Ablage, Aktualisierung und regelmäßige Bereinigung (21. Oktober 2026)
+
+Der Nutzer hat das Ablage-/Aufbewahrungskonzept vollständig zur autonomen Umsetzung
+freigegeben, einschließlich geprüfter PR-Übernahme nach main und endgültiger
+Löschung eindeutig ersetzter administrativer Artefakte. Maßgeblich sind
+`source-lifecycle.json`, `source-releases.json` und `tools/source_lifecycle.py`.
+Keine pauschale Löschung nach Dateiname oder Alter und keine Git-Historienumschreibung.
+
+- GitHub-main ist der geprüfte integrierte Stand; laufende Arbeit auf einem
+  passenden Branch sichern. Originalquellen ausgelieferter Versionen anhand
+  unveränderlicher `source/v<Version>-build<Nummer>`-Tags und Quell-/APK-/ZIP-Hashes
+  abrufbar halten. Installierter Stand und neuere Entwicklung bleiben getrennt.
+- Bei Arbeitsbeginn `AKTUELLER-STAND.json`, frischen main und offene Branches
+  vergleichen. Bei Abschluss nach Tests/Privacy Commit, Push und exakten Remote-
+  Readback durchführen; danach `python3 tools/source_lifecycle.py export --output
+  <neuer-externer-Exportordner>` verwenden. Derselbe verifizierte Export versorgt
+  Gemini und Perplexity. Neue Generation vollständig hochladen und zurücklesen,
+  erst danach Wegweiser aktualisieren. Vorhandene gute Generation bis dahin erhalten.
+- Drive-Ordner-IDs und private Freigaben aus der Policy erhalten. Produktiven
+  Datenordner ausschließlich verlinken; Journale, Fotos, Rechnungen, Nummern,
+  Datenbankschemata und operative Sync-Referenzen nicht umräumen oder bereinigen.
+- Behalten: aktuelle und vorherige ausgelieferte APK samt Originalquellen, zusätzlich
+  jede davon abweichende tatsächlich installierte Version. Aktive/unklare Dateien
+  und einzige ungesicherte Originalquellen schützen. Exporte nach 7 Tagen,
+  erledigte Test-APKs nach 14 Tagen, Buildausgaben nach 7 Tagen und Logs nach
+  30 Tagen ersetzen/löschen. SDK-/Abhängigkeitscaches gezielt bei Platzbedarf erhalten.
+- Die freigegebene Aufräumautomatik darf ausschließlich explizit registrierte,
+  unveränderte Dateien in verwalteten administrativen Ordnern endgültig löschen.
+  Frische vollständige Liste, bestätigter Ersatz, Frist, Originalschutz und
+  unmittelbar erneute Einzelmetadatenprüfung sind Pflicht. Fehlende Belege oder
+  Konflikte zurückhalten; keine blinden Upload-/Löschwiederholungen. Jede Löschung
+  mit ID/Hash/Bytezählung protokollieren, ohne Betriebsinhalte zu übernehmen.
+- Dauerhafter Scheduler: tägliche Bestands-/Aktualitätsprüfung, wöchentliche
+  Bereinigung, monatliche Wiederherstellungsprobe. Tatsächliche Ausführung und
+  eingerichtete Zeitpläne getrennt nachweisen. Fehlender Zugriff bleibt sichtbar.
+
 
 ## Verbindlicher Cloud-only-Arbeitsweg (Auftrag vom 18. Oktober 2026)
 

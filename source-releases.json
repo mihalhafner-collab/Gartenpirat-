@@ -1,0 +1,35 @@
+{
+  "format": "hausgarten.original-sources.v1",
+  "releases": [
+    {
+      "version": "1.54.0",
+      "build": 89,
+      "source_sha256": "b05723a29302dfc98e8ac6a3aefcbaffd6cb5c0b1c5632fd6889df5761774aa1",
+      "source_files": 1189,
+      "original_zip_sha256": "0215daf6bf2ed5a61c1e7b3d5c83758542284982e2680a27faa4f033001413a1",
+      "apk_sha256": "8464cb9e314e76979edbee6b6bc5ddde8ef8fa5a453c2cec7bd12baadcf8adea",
+      "device_acceptance": "NOT EXECUTED",
+      "tag": "source/v1.54.0-build89",
+      "git_sha": "68a19c5d49ddc77e94d299eee2cadf1652f9c92a",
+      "tree_sha": "9bdfa2e52e9bba49a2d902f73301f706b52b7847",
+      "remote_readback": "PASS",
+      "drive_zip_id": "14PwvVo4DGTa9r7zh-OYxKucKzjuWxqsh",
+      "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB"
+    },
+    {
+      "version": "1.54.1",
+      "build": 90,
+      "source_sha256": "42c1fd1a43c1e8331b7a34f54cbf7cbb91e0b615d16c64729e62427d689b1052",
+      "source_files": 1203,
+      "original_zip_sha256": "a66f521e07e2cd243ac469d17ef0c307b82e1efec0e095a1a81fea5183977981",
+      "apk_sha256": "5c767f48884d02df463aec7a08a2094383e5dda023077268b5cc2ad46329f178",
+      "device_acceptance": "NOT EXECUTED",
+      "tag": "source/v1.54.1-build90",
+      "git_sha": "5bf4e521bd1faab7a0095360faafaf7255d0d4d2",
+      "tree_sha": "cd302e37120641df9eb6d453ef662be0cf10461e",
+      "remote_readback": "PASS",
+      "drive_zip_id": "1C945yeV6Z0SgQQMBqK-GFtJS2a0zrIFW",
+      "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB"
+    }
+  ]
+}

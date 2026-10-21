@@ -2,7 +2,7 @@
   "format": "gartenpirat.source-location.v1",
   "updated_at_utc": "2026-10-21",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
-  "development_ref": "refs/heads/backup/cloud-source-20261021",
+  "development_ref": "refs/heads/main",
   "development_snapshot": {
     "status": "PRESERVED_ON_GITHUB_NOT_RELEASED",
     "original_cloud_checkpoint_git_sha": "74c7af719fcd5d3203bcaee77b0496bfcf0920fa",
@@ -14,7 +14,17 @@
     "rules_from_main_git_sha": "e13ba07bf990fea7e712b888a5893b83fdfc36b5",
     "apk_for_this_development_snapshot": "NOT BUILT"
   },
-  "verified_release_source": null,
+  "verified_release_source": {
+    "version": "1.54.1",
+    "build": 90,
+    "tag": "source/v1.54.1-build90",
+    "git_sha": "5bf4e521bd1faab7a0095360faafaf7255d0d4d2",
+    "source_sha256": "42c1fd1a43c1e8331b7a34f54cbf7cbb91e0b615d16c64729e62427d689b1052",
+    "original_zip_sha256": "a66f521e07e2cd243ac469d17ef0c307b82e1efec0e095a1a81fea5183977981",
+    "apk_sha256": "5c767f48884d02df463aec7a08a2094383e5dda023077268b5cc2ad46329f178",
+    "drive_zip_id": "1C945yeV6Z0SgQQMBqK-GFtJS2a0zrIFW",
+    "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB"
+  },
   "last_observed_installed_build": {
     "observed_at_utc": "2026-10-21",
     "version_name": "1.54.0",
@@ -22,10 +32,10 @@
     "reported_base_git_sha": "72f96919d6a42ef8a2759c14c6da1df7359726d6",
     "source_sha256": "b05723a29302dfc98e8ac6a3aefcbaffd6cb5c0b1c5632fd6889df5761774aa1",
     "source_dirty": true,
-    "source_status": "ORIGINAL_SOURCE_NOT_YET_VERIFIED_ON_GITHUB_OR_DRIVE"
+    "source_status": "EXACT_ORIGINAL_SOURCE_SECURED_ON_GITHUB_AND_DRIVE"
   },
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-; current original cloud work preserved on the development_ref",
-    "required_action": "Read the development_ref and AGENTS.md before continuing. Keep the original cloud checkpoint and integrated rules. Build-89 provenance and actual Pixel installation remain separate and unverified; do not set verified_release_source from this later development checkpoint."
+    "required_action": "Read fresh main and AGENTS.md. Keep immutable source tags for delivered builds and the separately identified post-build90 development source. Verify source preservation before exports or signing."
   }
 }
