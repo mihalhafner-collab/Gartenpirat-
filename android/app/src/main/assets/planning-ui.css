@@ -67,3 +67,6 @@
 .planning-list-actions>#planning-new{position:fixed;z-index:8;right:16px;left:auto;bottom:calc(var(--app-nav-height,80px) + 16px);width:56px;min-width:56px;max-width:56px;height:56px;min-height:56px;padding:0;margin:0;border-radius:var(--hg-radius-pill);display:grid;place-items:center;font-size:var(--hg-fs-head);line-height:1;box-shadow:var(--hg-shadow-2)}
 #planning-page[data-planning-mode=list]{padding-bottom:100px}
 .planning-list-links>#planning-suggest{color:var(--hg-green)}
+
+.planning-connection-notice{margin:8px 0}
+.planning-connection-chip{min-height:48px;max-width:100%;padding:8px 12px;border:1px solid var(--hg-warn-text);border-radius:var(--hg-radius-pill);background:var(--hg-warn-bg);color:var(--hg-warn-text);font-size:var(--hg-fs-caption);text-align:left}
