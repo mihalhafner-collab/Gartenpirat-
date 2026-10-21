@@ -2,9 +2,9 @@
   "format": "gartenpirat.source-location.v1",
   "updated_at_utc": "2026-10-21",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
-  "development_ref": "refs/heads/codex/calendar-permanent-20261021",
+  "development_ref": "refs/heads/main",
   "development_snapshot": {
-    "status": "CALENDAR_BUILD91_SIGNED_158_NATIVE_PASS_UI_TEST_CONTRACT_CORRECTION_NOT_DELIVERED",
+    "status": "CALENDAR_RECOVERY_IMPLEMENTED_AND_CLOUD_TESTED; GOOGLE_PROJECT_AND_PIXEL_ACCEPTANCE_OPEN",
     "implementation_checkpoint_git_sha": "ef64255ef47344d2eaccee6e840181daa0472640",
     "source_sha256": "747762839020b4ffb0491ac360c3cc054c455245eb4126b0c1e6d4e8882b0c3c",
     "main_and_gradle_files": 540,
@@ -12,7 +12,7 @@
     "version_code": 91,
     "changes_after_delivered_build_90": true,
     "rules_from_main_git_sha": "a112765844ee5a41408dc0538236d0eca52eacbf",
-    "apk_for_this_development_snapshot": "BUILT_AND_ORIGINAL_SIGNED_IN_CLOUD; LOCAL_HASH_RECONFIRMED; NOT DELIVERED",
+    "apk_for_this_development_snapshot": "ORIGINAL_SIGNED_CLOUD_TESTED_CANDIDATE_AVAILABLE; NOT INSTALLED ON PIXEL",
     "apk_source_git_sha": "50b518a1af9cee59763c4103d847f5016fb84fd9",
     "apk_sha256": "874908a246f75a3c91f7399cf2e314364b9469f80843644ea340cf8c543b80c1",
     "original_zip_sha256": "99fba5a127d16211cbb7b62ffdac229321f35c21883aaec1dd63cf008e3b5e18",
@@ -20,8 +20,12 @@
     "google_project_and_consent": "NOT VERIFIED; NO ADMINISTRATIVE ACCESS",
     "drive_original_zip_id": "1GZMxQpfGHwOF385_I5yyzyN0z5NQqFXh",
     "drive_source_folder_id": "1HFf0WpI0BGYL60jMEbYc9BfnvOVlYxKf",
-    "drive_readback": "ZIP COMPLETE_STREAM_SIZE_ONLY; 14 TXT AND MANIFEST SHA256_BYTES",
-    "native_acceptance": "158 PASS, 0 FAIL; fresh_isolated PASS; same-build91 in-place and reboot snapshot verify PASS"
+    "drive_readback": "19 SOURCE FILES:18 SHA256_BYTES +1 ZIP COMPLETE_STREAM_SIZE_ONLY; APK COMPLETE_STREAM_SIZE_ONLY",
+    "native_acceptance": "158 PASS, 0 FAIL; fresh_isolated, native UI and final snapshot verify PASS",
+    "source_tag": "source/v1.54.2-build91",
+    "drive_apk_id": "1aqJIqC4oZXAym0QRYkE9pDFHeA3Yy2Kr",
+    "drive_provenance_id": "1YwVTmqP-HFSSU3JYXp8e1h9woNCAzb9s",
+    "pull_request": "https://github.com/mihalhafner-collab/Gartenpirat-/pull/5"
   },
   "verified_release_source": {
     "version": "1.54.1",
@@ -45,6 +49,20 @@
   },
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-; current original cloud work preserved on the development_ref",
-    "required_action": "Continue exact development_ref and original signed APK from apk_source_git_sha; cloud recovered and artifact hashes confirmed. Finish native final acceptance, fresh/WebView, immutable source tag and release records only with actual evidence. Google project/device consent require actual access; no guessed project ID."
+    "required_action": "Read GitHub-main and immutable source/v1.54.2-build91 for the exact signed candidate; later test/docs commits do not change App bytes. Original source and candidate/provenance are in the referenced private Drive files. Actual Google Cloud project configuration and Pixel consent/install remain open; never infer project ID or live success from package/SHA1. Preserve stable90/fallback89 and productive data; Pixel install requires backup and explicit approval."
+  },
+  "verified_candidate_source": {
+    "version": "1.54.2",
+    "build": 91,
+    "status": "CLOUD_TESTED_ORIGINAL_CANDIDATE; GOOGLE_AND_PIXEL_NOT_VERIFIED",
+    "tag": "source/v1.54.2-build91",
+    "git_sha": "50b518a1af9cee59763c4103d847f5016fb84fd9",
+    "source_sha256": "747762839020b4ffb0491ac360c3cc054c455245eb4126b0c1e6d4e8882b0c3c",
+    "original_zip_sha256": "99fba5a127d16211cbb7b62ffdac229321f35c21883aaec1dd63cf008e3b5e18",
+    "apk_sha256": "874908a246f75a3c91f7399cf2e314364b9469f80843644ea340cf8c543b80c1",
+    "drive_zip_id": "1GZMxQpfGHwOF385_I5yyzyN0z5NQqFXh",
+    "drive_apk_id": "1aqJIqC4oZXAym0QRYkE9pDFHeA3Yy2Kr",
+    "drive_provenance_id": "1YwVTmqP-HFSSU3JYXp8e1h9woNCAzb9s",
+    "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; original source bytes and actual APK verified in Cloud"
   }
 }

@@ -46,5 +46,25 @@
       "git_sha": "dc394b5796fbcb268533a8d8951fe05a829956df",
       "remote_readback": "PASS"
     }
+  ],
+  "candidates": [
+    {
+      "version": "1.54.2",
+      "build": 91,
+      "status": "CLOUD_TESTED_ORIGINAL_CANDIDATE; GOOGLE_AND_PIXEL_NOT_VERIFIED",
+      "tag": "source/v1.54.2-build91",
+      "git_sha": "50b518a1af9cee59763c4103d847f5016fb84fd9",
+      "source_sha256": "747762839020b4ffb0491ac360c3cc054c455245eb4126b0c1e6d4e8882b0c3c",
+      "original_zip_sha256": "99fba5a127d16211cbb7b62ffdac229321f35c21883aaec1dd63cf008e3b5e18",
+      "apk_sha256": "874908a246f75a3c91f7399cf2e314364b9469f80843644ea340cf8c543b80c1",
+      "drive_zip_id": "1GZMxQpfGHwOF385_I5yyzyN0z5NQqFXh",
+      "drive_apk_id": "1aqJIqC4oZXAym0QRYkE9pDFHeA3Yy2Kr",
+      "drive_provenance_id": "1YwVTmqP-HFSSU3JYXp8e1h9woNCAzb9s",
+      "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; original source bytes and actual APK verified in Cloud",
+      "source_files": 1220,
+      "tree_sha": "b67dbfbe5cf2345be0c00983297d9dd7dc3e70c4",
+      "remote_readback": "PASS",
+      "device_acceptance": "NOT EXECUTED"
+    }
   ]
 }
