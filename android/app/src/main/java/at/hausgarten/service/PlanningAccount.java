@@ -12,13 +12,15 @@ import java.util.*;
 
 /** Device consent and private weather key. Neither is part of snapshot/MCP/backup data. */
 final class PlanningAccount {
-    static final String BASE_SCOPE="https://www.googleapis.com/auth/calendar.app.created https://www.googleapis.com/auth/calendar.calendarlist.readonly";
+    static final String BASE_SCOPE=CalendarAccessRules.BASE_SCOPE;
     static SharedPreferences prefs(Context c){return c.getSharedPreferences("planning_private",0);}
     static boolean connected(Context c){return !prefs(c).getString("calendar_id","").isEmpty()&&!prefs(c).getString("account","").isEmpty();}
     static String token(Context c,String account,boolean busy,Activity consent)throws Exception {
-        String scope="oauth2:"+BASE_SCOPE+(busy?" https://www.googleapis.com/auth/calendar.freebusy":"");AccountManager manager=AccountManager.get(c);Account a=new Account(account,"com.google");
-        Bundle b=consent==null?manager.getAuthToken(a,scope,null,false,null,null).getResult():manager.getAuthToken(a,scope,null,consent,null,null).getResult();String token=b.getString(AccountManager.KEY_AUTHTOKEN,"");
-        if(token.isEmpty())throw new DriveRestClient.Failure("CALENDAR_AUTH_REQUIRED","Kalenderfreigabe am Gerät bestätigen.",0,true);return token;
+        try{
+            String scope=CalendarAccessRules.scope(busy);AccountManager manager=AccountManager.get(c);Account a=new Account(account,"com.google");
+            Bundle b=consent==null?manager.getAuthToken(a,scope,null,false,null,null).getResult():manager.getAuthToken(a,scope,null,consent,null,null).getResult();String token=b.getString(AccountManager.KEY_AUTHTOKEN,"");
+            if(token.isEmpty())throw new DriveRestClient.Failure("CALENDAR_AUTH_REQUIRED",CalendarAccessRules.message("CALENDAR_AUTH_REQUIRED"),0,true);return token;
+        }catch(DriveRestClient.Failure known){throw known;}catch(Exception error){String code=CalendarAccessRules.authenticationCode(error);throw new DriveRestClient.Failure(code,CalendarAccessRules.message(code),code.equals("CALENDAR_TOKEN_NETWORK")?30000:0,!code.equals("CALENDAR_TOKEN_NETWORK"));}
     }
     static CalendarClient client(Context c){SharedPreferences p=prefs(c);return new CalendarClient(new CalendarClient.Token(){public String get()throws Exception{return token(c,p.getString("account",""),p.getBoolean("read_busy",false),null);}public void invalidate(String rejected){AccountManager.get(c).invalidateAuthToken("com.google",rejected);}},new PlanningWire());}
     static javax.crypto.SecretKey encryptionKey()throws Exception {

@@ -108,7 +108,7 @@ final class LocalOwnerRepository implements OwnerRepository {
     @Override public JSONObject requestPlanning()throws Exception{return AppointmentRuntime.request(context,store);}
     @Override public JSONObject acknowledgeWeather(JSONObject args)throws Exception{return AppointmentRuntime.acknowledge(context,store,args);}
     @Override public JSONObject resolveCalendar(JSONObject args)throws Exception{return AppointmentRuntime.resolve(context,store,args);}
-    @Override public void checkBusy(JSONObject appointment)throws Exception{AppointmentRuntime.checkBusy(store,appointment);}
+    @Override public void checkBusy(JSONObject appointment)throws Exception{AppointmentRuntime.checkBusy(context,store,appointment);}
     interface Request { JSONObject run() throws Exception; }
     JSONObject runRequest(String request,String fingerprint,Request command)throws Exception{
         SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();JSONObject result;

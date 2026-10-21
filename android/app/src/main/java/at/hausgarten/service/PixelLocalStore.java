@@ -208,7 +208,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
                     while(rows.moveToNext()) if(!existingActions.contains(rows.getString(0))&&entityId.equals(new JSONObject(rows.getString(1)).optString("id"))) database.delete("pending","id=?",new String[]{rows.getString(0)});
                 }
                 ContentValues action = new ContentValues(); action.put("id",clientId); action.put("kind",entityType); action.put("payload",payload.toString()); action.put("created_at",isoNow());database.insertOrThrow("pending",null,action);
-                JSONObject metadata = new JSONObject().put("fingerprint",fingerprint).put("tool",tool).put("entity_type",entityType).put("entity_id",entityId).put("work_record_id",entityType.equals("worklog")?entityId:"").put("uploaded",false);
+                JSONObject metadata = new JSONObject().put("fingerprint",fingerprint).put("tool",tool).put("entity_type",entityType).put("entity_id",entityId).put("work_record_id",entityType.equals("worklog")?entityId:"").put("uploaded",false).put("test_local_only",payload.optBoolean("_local_only"));
                 ContentValues saved = new ContentValues();saved.put("id","receipt_"+clientId);saved.put("kind","mcp_receipt");saved.put("payload",metadata.toString());saved.put("created_at",isoNow());database.insertOrThrow("pending",null,saved);
                 result = new JSONObject().put("entity_type",entityType).put("entity_id",entityId).put("replayed",false).put("sync",status(clientId,getState()));
             }
@@ -233,17 +233,17 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
                 if(tool.equals("finish_work")){JSONObject current=timer.current(id);if(java.util.Arrays.asList("RUNNING","PAUSED").contains(current.optString("state")))timer.stop(id,request+"-stop");}
                 JSONObject payload=PixelMcpSessionTools.prepare(tool,args,getState()),session;
                 switch(tool){case "start_work":payload.put("request_id",request);session=startWorkSession(payload);break;case "start_break":session=timer.pause(id,request);break;case "end_break":session=timer.resume(id,request);break;case "stop_work":session=timer.stop(id,request);break;case "continue_work":session=timer.continueStopped(id,request);break;case "discard_work_session":session=timer.discard(id,request);break;case "restore_work_session":session=timer.restore(id,request);break;default:
-                    payload.remove("request_id");payload.remove("session_id");String saved=completeWorkSession(id,payload,request);payload.put("id",saved).put("_mcp_create",true);
+                    payload.remove("request_id");payload.remove("session_id");String saved=completeWorkSession(id,payload,request);payload.put("id",saved).put("_mcp_create",true);if(testLocalOnly("worklog",payload))payload.put("_local_only",true);
                     try(Cursor rows=database.rawQuery("SELECT id,payload FROM pending WHERE kind='worklog'",null)){while(rows.moveToNext())if(saved.equals(new JSONObject(rows.getString(1)).optString("id")))database.delete("pending","id=?",new String[]{rows.getString(0)});}
                     ContentValues action=new ContentValues();action.put("id",clientId);action.put("kind","worklog");action.put("payload",payload.toString());action.put("created_at",isoNow());database.insertOrThrow("pending",null,action);session=timer.current(id);
                 }
                 result=new JSONObject().put("client_id",clientId).put("session",session).put("replayed",false).put("local_state","local_saved").put("sync_state",(tool.equals("complete_work_session")||tool.equals("finish_work"))?"sync_pending":"not_applicable").put("requires_work_record_completion",tool.equals("stop_work"));
-                JSONObject meta=new JSONObject().put("fingerprint",fingerprint).put("tool",tool).put("entity_type",(tool.equals("complete_work_session")||tool.equals("finish_work"))?"worklog":"work_session").put("entity_id",(tool.equals("complete_work_session")||tool.equals("finish_work"))?session.optString("finalized_worklog_id"):session.getString("id")).put("work_record_id",session.optString("finalized_worklog_id")).put("uploaded",false).put("result",result);
+                JSONObject meta=new JSONObject().put("fingerprint",fingerprint).put("tool",tool).put("entity_type",(tool.equals("complete_work_session")||tool.equals("finish_work"))?"worklog":"work_session").put("entity_id",(tool.equals("complete_work_session")||tool.equals("finish_work"))?session.optString("finalized_worklog_id"):session.getString("id")).put("work_record_id",session.optString("finalized_worklog_id")).put("uploaded",false).put("test_local_only",payload.optBoolean("_local_only")).put("result",result);
                 ContentValues row=new ContentValues();row.put("id","receipt_"+clientId);row.put("kind","mcp_receipt");row.put("payload",meta.toString());row.put("created_at",isoNow());database.insertOrThrow("pending",null,row);
             }
             database.setTransactionSuccessful();
         }finally{database.endTransaction();}
-        if((tool.equals("complete_work_session")||tool.equals("finish_work"))){if(context instanceof McpSyncHost)((McpSyncHost)context).requestMcpSync();result.put("sync",status(clientId,getState()));}
+        if((tool.equals("complete_work_session")||tool.equals("finish_work"))){if(context instanceof McpSyncHost)((McpSyncHost)context).requestMcpSync();JSONObject sync=status(clientId,getState());result.put("sync",sync).put("sync_state",sync.optString("sync_state"));}
         return new JSONObject().put("ok",true).put("data",result).put("message",tool.equals("stop_work")?"Zeiterfassung lokal gestoppt. Tätigkeit prüfen und mit complete_work_session als Arbeitsaufzeichnung abschließen.":"Aktion dauerhaft auf dem Pixel gesichert. Nur Arbeitsaufzeichnungen werden über Drive übertragen; Timerstatus ist lokal.");
     }
     @Override public JSONObject status(String clientId,JSONObject state) throws Exception {
@@ -262,6 +262,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         }
         if(master.optJSONObject("drive_resolved_actions")!=null&&master.getJSONObject("drive_resolved_actions").has(clientId))phase="resolved";
         return PixelMcpBusinessTools.sync(new JSONObject().put("client_id",clientId).put("status",phase).put("confirmed_by_app",phase.equals("accepted"))
+            .put("test_local_only",metadata!=null&&metadata.optBoolean("test_local_only")||ownerResult!=null&&ownerResult.optBoolean("test_local_only"))
             .put("saved_locally",metadata!=null||ownerSaved).put("uploaded_to_drive",phase.equals("accepted")||providerReadback||(metadata!=null&&metadata.optBoolean("uploaded"))).put("provider_readback",providerReadback||(metadata!=null&&metadata.optBoolean("uploaded")))
             .put("entity_type",metadata==null?(ownerResult==null?"":ownerResult.optString("entity_type")):metadata.optString("entity_type","worklog"))
             .put("entity_id",metadata==null?(ownerResult==null?"":ownerResult.optString("entity_id")):metadata.optString("entity_id",metadata.optString("work_record_id")))

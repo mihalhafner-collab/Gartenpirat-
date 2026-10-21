@@ -38,6 +38,16 @@
     dialog=document.createElement('dialog');dialog.id='work-location-dialog';dialog.className='work-location-dialog';dialog.setAttribute('aria-labelledby','work-location-title');
     dialog.innerHTML='<h2 id="work-location-title" tabindex="-1">Einsatz auswählen</h2><p id="work-location-message" role="status"></p><div id="work-location-candidates"></div><label for="work-location-search">Kunden suchen</label><input id="work-location-search" type="search" placeholder="Name oder Ort"><label for="work-location-customer">Kunde</label><select id="work-location-customer"><option value="">Bitte auswählen</option></select><details class="work-start-options"><summary>Auftrag oder Arbeitsort ergänzen (optional)</summary><label for="work-location-order">Auftrag</label><select id="work-location-order"><option value="">Ohne Auftrag</option></select><label for="work-location-place">Arbeitsort · bitte prüfen</label><input id="work-location-place"><button type="button" class="secondary" id="work-location-suggest">Standortvorschlag verwenden</button></details><p class="sub">Ein Vorschlag ist keine Zuordnung. Du entscheidest, bei wem du arbeitest.</p><button type="button" class="primary" id="work-location-start">Für diesen Kunden starten</button><button type="button" class="secondary" id="work-location-new">+ Neuen Kunden anlegen</button><button type="button" class="secondary" id="work-location-later">Ohne Kunde starten · später zuordnen</button><button type="button" class="secondary" id="work-location-cancel">Abbrechen</button>';
     document.body.append(dialog);
+    const customerFields=document.createElement('div');customerFields.id='work-location-customer-fields';
+    for(const id of ['work-location-search','work-location-customer']){
+      const field=get(id),label=dialog.querySelector('label[for="'+id+'"]');
+      if(!customerFields.parentElement)field.before(customerFields);
+      customerFields.append(label,field);
+    }
+    const context=document.createElement('div');context.id='work-location-selected';context.hidden=true;
+    context.innerHTML='<strong></strong><p></p><button type="button" class="secondary" id="work-location-change">Kunde ändern</button>';
+    customerFields.before(context);
+    get('work-location-change').onclick=()=>{context.hidden=true;customerFields.hidden=false;get('work-location-title').focus({preventScroll:true});};
     get('work-location-cancel').onclick=closeDialog;
     dialog.addEventListener('cancel',event=>{event.preventDefault();closeDialog();});
     get('work-location-search').oninput=fillCustomers;
@@ -80,6 +90,9 @@
     // then shown only after the user deliberately taps Search or another field.
     get('work-location-title').focus({preventScroll:true});
     request='';get('work-location-message').textContent='Bei wem arbeitest du?';get('work-location-order').innerHTML='<option value="">Ohne Auftrag</option>';dialog.querySelector('.work-start-options').open=false;if(customerId&&customers().some(c=>c.id===customerId&&Number(c.active??1)!==0)){get('work-location-customer').value=customerId;get('work-location-customer').dispatchEvent(new Event('change',{bubbles:true}));}
+    const selected=customers().find(c=>c.id===get('work-location-customer').value),context=get('work-location-selected');
+    get('work-location-customer-fields').hidden=!!selected;context.hidden=!selected;
+    if(selected){context.querySelector('strong').textContent=selected.name;context.querySelector('p').textContent=[selected.street,[selected.postal_code,selected.city].filter(Boolean).join(' ')].filter(Boolean).join(', ');get('work-location-message').textContent='Einsatz für diesen Kunden starten.';get('work-location-candidates').textContent='';}
   }
   window.WorkStart=Object.freeze({open:begin});
   function complete(session){

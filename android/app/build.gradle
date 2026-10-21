@@ -55,8 +55,8 @@ android {
         buildConfigField 'boolean', 'SOURCE_DIRTY', releaseFingerprint.source_dirty.toString()
         minSdk 26
         targetSdk 37
-        versionCode 83
-        versionName '1.52.1'
+        versionCode 88
+        versionName '1.53.1'
         testInstrumentationRunner 'at.hausgarten.service.PixelMcpInstrumentation'
     }
 

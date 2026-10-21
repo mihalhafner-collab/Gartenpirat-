@@ -61,6 +61,7 @@ public class MainActivity extends Activity implements McpSyncHost {
     private PendingWorkPhotoStore pendingWorkPhotos;
     private WorkLocationController workLocation;
     private static java.lang.ref.WeakReference<MainActivity> foreground = new java.lang.ref.WeakReference<>(null);
+    static void refreshPlanningView(){MainActivity activity=foreground.get();if(activity!=null)activity.runOnUiThread(()->{if(activity.webView!=null)activity.webView.evaluateJavascript("window.PlanningUI&&window.PlanningUI.refresh();window.StatusUI&&window.StatusUI.refresh()",null);});}
     static void requestMcpSync(Context context) {
         MainActivity activity=foreground.get();
         if(activity!=null)activity.runOnUiThread(()->activity.requestAutomaticSync(500));
@@ -110,6 +111,7 @@ public class MainActivity extends Activity implements McpSyncHost {
     @Override protected void onResume() {
         foreground = new java.lang.ref.WeakReference<>(this);
         super.onResume();
+        refreshPlanningView();
         PlanningJob.schedule(this,1500);
         // Resume only the previously opted-in runtime after a process restart or device test.
         // Never enable a stopped connection or change its credentials/permissions here.
@@ -132,12 +134,15 @@ public class MainActivity extends Activity implements McpSyncHost {
         super.onPause();
     }
 
+    private volatile int systemGestureLeftDp=32;
+
     private View buildLayout() {
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(android.graphics.Color.rgb(245,247,245));
         webView = new WebView(this);
         root.addView(webView, new FrameLayout.LayoutParams(-1,-1));
         root.setOnApplyWindowInsetsListener((view,insets) -> {
+            if(Build.VERSION.SDK_INT>=29)systemGestureLeftDp=Math.max(32,(int)Math.ceil(insets.getSystemGestureInsets().left/getResources().getDisplayMetrics().density)+8);
             if (Build.VERSION.SDK_INT >= 30) {
                 android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
                 int keyboard = insets.getInsets(WindowInsets.Type.ime()).bottom;
@@ -360,7 +365,7 @@ public class MainActivity extends Activity implements McpSyncHost {
             JSONObject info = new JSONObject();
             try {
                 android.content.pm.PackageInfo installed = getPackageManager().getPackageInfo(getPackageName(), 0);
-                info.put("build_fingerprint",BuildProvenance.describe());info.put("versionName", installed.versionName);
+                info.put("systemGestureLeftCss",systemGestureLeftDp);info.put("build_fingerprint",BuildProvenance.describe());info.put("versionName", installed.versionName);
                 info.put("versionCode", android.os.Build.VERSION.SDK_INT >= 28 ? installed.getLongVersionCode() : installed.versionCode);
             } catch (Exception ignored) {}
             return info.toString();

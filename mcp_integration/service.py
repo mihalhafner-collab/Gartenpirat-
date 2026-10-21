@@ -526,16 +526,18 @@ def create_work_record(*, request_id: str, order_id: str, work_date: str, activi
     }
     client_id = _client_id("create_work_record", request_id)
     action = {"client_id": client_id, "kind": "worklog", "payload": payload, "_request_hash":request_hash}
-    channel, _ = drive_store.load_channel()
-    action = _legacy_created_action(action, billing_customer_id, channel)
-    payload = action["payload"]
-    if drive_store.channel_action(client_id, channel) or client_id in set(snapshot.get("accepted_ids", [])):
+    # Check replay, duplicates and append against the same channel state.
+    with drive_store.WRITE_LOCK:
+        channel, _ = drive_store.load_channel()
+        action = _legacy_created_action(action, billing_customer_id, channel)
+        payload = action["payload"]
+        if drive_store.channel_action(client_id, channel) or client_id in set(snapshot.get("accepted_ids", [])):
+            return _action_result(drive_store.append_action(action), payload)
+        matches = _duplicate_matches(snapshot, payload)
+        if matches:
+            raise IntegrationError("POSSIBLE_DUPLICATE", "Eine sehr ähnliche Arbeitsaufzeichnung existiert bereits.",
+                                   details={"matches": matches})
         return _action_result(drive_store.append_action(action), payload)
-    matches = _duplicate_matches(snapshot, payload)
-    if matches:
-        raise IntegrationError("POSSIBLE_DUPLICATE", "Eine sehr ähnliche Arbeitsaufzeichnung existiert bereits.",
-                               details={"matches": matches})
-    return _action_result(drive_store.append_action(action), payload)
 
 
 def create_customer_work_record(*, request_id: str, customer_id: str, work_date: str,
@@ -579,16 +581,18 @@ def create_customer_work_record(*, request_id: str, customer_id: str, work_date:
     }
     client_id = _client_id("create_customer_work_record", request_id)
     action = {"client_id": client_id, "kind": "worklog", "payload": payload, "_request_hash":request_hash}
-    channel, _ = drive_store.load_channel()
-    action = _legacy_created_action(action, billing_customer_id, channel)
-    payload = action["payload"]
-    if drive_store.channel_action(client_id, channel) or client_id in set(snapshot.get("accepted_ids", [])):
+    # Check replay, duplicates and append against the same channel state.
+    with drive_store.WRITE_LOCK:
+        channel, _ = drive_store.load_channel()
+        action = _legacy_created_action(action, billing_customer_id, channel)
+        payload = action["payload"]
+        if drive_store.channel_action(client_id, channel) or client_id in set(snapshot.get("accepted_ids", [])):
+            return _action_result(drive_store.append_action(action), payload)
+        matches = _duplicate_matches(snapshot, payload)
+        if matches:
+            raise IntegrationError("POSSIBLE_DUPLICATE", "Eine sehr ähnliche Arbeitsaufzeichnung existiert bereits.",
+                                   details={"matches": matches})
         return _action_result(drive_store.append_action(action), payload)
-    matches = _duplicate_matches(snapshot, payload)
-    if matches:
-        raise IntegrationError("POSSIBLE_DUPLICATE", "Eine sehr ähnliche Arbeitsaufzeichnung existiert bereits.",
-                               details={"matches": matches})
-    return _action_result(drive_store.append_action(action), payload)
 
 
 def update_work_record(*, request_id: str, work_record_id: str, updates: dict[str, Any]) -> dict:
