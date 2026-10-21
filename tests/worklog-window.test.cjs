@@ -22,7 +22,7 @@ async function main(){
   await page.waitForFunction(()=>typeof openWorklogDetail==='function');
   async function check(name,fn){try{await fn();results.push({name,result:'PASS'});}catch(e){results.push({name,result:'FAIL',error:e.message});}console.log(results.at(-1).result+' '+name+(results.at(-1).error?' '+results.at(-1).error:''));}
   await check('Deferred script initialises after dynamically created worklog page',async()=>{
-   await page.locator('.bottom [data-open="worklogs"]').first().click();
+   await page.locator('.bottom [data-open="more-page"]').click();await page.locator('#more-page [data-open="worklogs"]').click();
    await page.locator('#worklog-list [data-edit-worklog="qa_wrk_test"]').first().click();
    assert.equal(await page.locator('#worklog-detail').getAttribute('data-work-mode'),'overview');
    assert.equal(await page.locator('.worklog-window-summary dl > div').count(),12);

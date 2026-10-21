@@ -6,6 +6,25 @@ import java.util.*;
 /** Read-only evidence and quality checks using the existing effective data. */
 final class PixelMcpBusinessTools {
     static JSONObject sync(JSONObject legacy,JSONObject state)throws Exception{
+        // Local test journals are retained for replay/projection, never sent to Drive.
+        // Older receipts lack provenance: read only their exact immutable action,
+        // even when the business record has since been purged. Do not infer from IDs.
+        boolean localOnly=legacy.optBoolean("test_local_only");
+        String client=legacy.optString("client_id");JSONArray pending=state.optJSONArray("pending");
+        for(int i=0;!localOnly&&!client.isEmpty()&&pending!=null&&i<pending.length();i++){
+            JSONObject action=pending.optJSONObject(i),payload=action==null?null:action.optJSONObject("payload");
+            if(action!=null&&client.equals(action.optString("client_id"))&&payload!=null)
+                localOnly=payload.optBoolean("_local_only")||payload.optBoolean("test_record");
+        }
+        if(localOnly){
+            legacy.remove("publication_id");
+            return legacy.put("status","local_saved").put("sync_state","not_applicable").put("local_state","local_saved")
+                .put("saved_locally",true).put("test_local_only",true).put("retryable",false)
+                .put("uploaded_to_drive",false).put("provider_readback",false).put("confirmed_by_app",false)
+                .put("applied_on_pixel",false).put("cloud_confirmed",false).put("fully_synchronized",false)
+                .put("confirmation_scope","local_only").put("message","Testaktion nur auf diesem Gerät gespeichert. Keine Drive-Übertragung vorgesehen; der Beleg bleibt auch nach dem Löschen erhalten.")
+                .put("sync_message","Lokale Testaktion; kein Drive-Abgleich erforderlich.");
+        }
         String phase=legacy.optString("status"),value=phase.equals("resolved")?"review_resolved":phase.equals("local_saved")?"not_applicable":phase.equals("accepted")?"sync_confirmed":phase.equals("failed")?"sync_failed":phase.equals("superseded")?"sync_conflict":Arrays.asList("queued","transferred","applied_on_pixel").contains(phase)?"sync_pending":"unknown";
         JSONArray errors=state.getJSONObject("master").optJSONArray("sync_errors");for(int i=0;errors!=null&&i<errors.length();i++){JSONObject e=errors.optJSONObject(i);if(e!=null&&e.optString("client_id").equals(legacy.optString("client_id"))&&"WRITE_CONFLICT".equals(e.optString("code")))value="sync_conflict";}
         errors=state.getJSONObject("master").optJSONArray("drive_journal_errors");for(int i=0;errors!=null&&i<errors.length();i++){JSONObject e=errors.optJSONObject(i);if(e!=null&&e.optString("client_id").equals(legacy.optString("client_id")))value="WRITE_CONFLICT".equals(e.optString("code"))?"sync_conflict":"sync_failed";}

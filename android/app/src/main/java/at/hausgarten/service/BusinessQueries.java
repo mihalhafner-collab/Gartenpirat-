@@ -36,11 +36,11 @@ final class BusinessQueries {
         JSONArray customers=master.optJSONArray("customers"),orders=master.optJSONArray("orders"),logs=master.optJSONArray("worklogs"),invoices=master.optJSONArray("invoices"),photos=master.optJSONArray("photos");
         Object data;
         switch(name){
-            case "search_customers":{JSONArray matches=select(customers,a,"customer");data=new JSONObject().put("customers",matches).put("count",matches.length()).put("requires_clarification",matches.length()>1);break;}
+            case "search_customers":{JSONArray matches=select(customers,a,"customer",master);data=new JSONObject().put("customers",matches).put("count",matches.length()).put("requires_clarification",matches.length()>1);break;}
             case "get_customer":data=find(customers,a.getString("customer_id"));break;
-            case "search_orders":data=new JSONObject().put("orders",select(orders,a,"order"));break;
+            case "search_orders":data=new JSONObject().put("orders",select(orders,a,"order",master));break;
             case "get_order":data=find(orders,a.getString("order_id"));break;
-            case "get_open_orders":data=new JSONObject().put("orders",select(orders,new JSONObject(a.toString()).put("open_only",true).put("limit",a.optInt("limit",50)),"order"));break;
+            case "get_open_orders":data=new JSONObject().put("orders",select(orders,new JSONObject(a.toString()).put("open_only",true).put("limit",a.optInt("limit",50)),"order",master));break;
             default:throw new IllegalArgumentException("Dieses Werkzeug ist in der Pixel-Testversion nicht freigegeben.");
         }
         return data;
@@ -49,8 +49,8 @@ final class BusinessQueries {
         JSONArray customers=master.optJSONArray("customers"),orders=master.optJSONArray("orders"),logs=master.optJSONArray("worklogs"),invoices=master.optJSONArray("invoices"),photos=master.optJSONArray("photos");
         Object data;
         switch(name){
-            case "list_work_records":data=new JSONObject().put("work_records",select(logs,a,"worklog"));break;
-            case "get_customer_work_records":data=new JSONObject().put("work_records",select(logs,a,"worklog"));break;
+            case "list_work_records":data=new JSONObject().put("work_records",select(logs,a,"worklog",master));break;
+            case "get_customer_work_records":data=new JSONObject().put("work_records",select(logs,a,"worklog",master));break;
             case "get_work_record_summary":{JSONArray matching=new JSONArray();for(int i=0;logs!=null&&i<logs.length();i++){JSONObject row=logs.getJSONObject(i);if(!a.optString("customer_id").isEmpty()&&!a.getString("customer_id").equals(row.optString("customer_id")))continue;if(!a.optString("billing_customer_id").isEmpty()&&!a.getString("billing_customer_id").equals(BillingRules.recipient(row)))continue;if(!a.optString("date_from").isEmpty()&&row.optString("work_date").compareTo(a.getString("date_from"))<0)continue;if(!a.optString("date_to").isEmpty()&&row.optString("work_date").compareTo(a.getString("date_to"))>0)continue;matching.put(row);}data=PixelMcpBusinessTools.report(matching,master);if(a.optBoolean("group_by_billing_customer"))((JSONObject)data).put("billing_groups",BillingRules.groups(matching,master));break;}
             case "get_active_work_session":data=state.has("work_session")?state.getJSONObject("work_session"):new JSONObject().put("state","UNAVAILABLE");break;
             case "get_work_record":data=find(logs,a.getString("work_record_id"));break;
@@ -62,9 +62,9 @@ final class BusinessQueries {
         JSONArray customers=master.optJSONArray("customers"),orders=master.optJSONArray("orders"),logs=master.optJSONArray("worklogs"),invoices=master.optJSONArray("invoices"),photos=master.optJSONArray("photos");
         Object data;
         switch(name){
-            case "list_invoices":data=new JSONObject().put("invoices",select(invoices,a,"invoice"));break;
+            case "list_invoices":data=new JSONObject().put("invoices",select(invoices,a,"invoice",master));break;
             case "get_invoice":data=find(invoices,a.getString("invoice_id"));break;
-            case "list_photos":data=new JSONObject().put("photos",select(photos,a,"photo"));break;
+            case "list_photos":data=new JSONObject().put("photos",select(photos,a,"photo",master));break;
             default:throw new IllegalArgumentException("Dieses Werkzeug ist in der Pixel-Testversion nicht freigegeben.");
         }
         return data;
@@ -87,7 +87,7 @@ final class BusinessQueries {
         Object data;
         switch(name){
             case "get_business_summary":{double hours=0;int unbilled=0;for(int i=0;logs!=null&&i<logs.length();i++){JSONObject row=logs.getJSONObject(i);hours+=row.optDouble("hours",0);if(row.optInt("billed",0)==0)unbilled++;}data=new JSONObject().put("customers",customers==null?0:customers.length()).put("orders",orders==null?0:orders.length()).put("work_records",logs==null?0:logs.length()).put("hours",Math.round(hours*100)/100.0).put("marked_unbilled",unbilled).put("billing_groups",BillingRules.groups(logs,master));break;}
-            case "search_business_data":{JSONObject filters=new JSONObject().put("query",a.getString("query")).put("include_inactive",true).put("limit",a.optInt("limit_per_type",10));data=new JSONObject().put("customers",select(customers,filters,"customer")).put("orders",select(orders,filters,"order")).put("work_records",select(logs,filters,"worklog"));break;}
+            case "search_business_data":{JSONObject filters=new JSONObject().put("query",a.getString("query")).put("include_inactive",true).put("limit",a.optInt("limit_per_type",10));data=new JSONObject().put("customers",select(customers,filters,"customer",master)).put("orders",select(orders,filters,"order",master)).put("work_records",select(logs,filters,"worklog",master));break;}
             default:throw new IllegalArgumentException("Dieses Werkzeug ist in der Pixel-Testversion nicht freigegeben.");
         }
         return data;

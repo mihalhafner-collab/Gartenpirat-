@@ -32,6 +32,22 @@ public final class PixelMcpDailyTests {
         PixelMcpWriteTests.test("clock inconsistency blocks unattended completion",()->PixelMcpWriteTests.bad(()->PixelMcpSessionTools.prepare("complete_work_session",transition().put("activity","Test"),state().put("work_session",session("STOPPED_PENDING_REVIEW").put("pause_unverified",true)))));
         PixelMcpWriteTests.test("photo reads never expose inline or thumbnail base64",()->{JSONObject s=state(),photo=SyntheticBusinessData.object().put("id","qa_p1").put("customer_id","qa_c1").put("original_name","garten.jpg").put("mime_type","image/jpeg").put("storage_name","aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg").put("data","data:image/jpeg;base64,VERY_SECRET_IMAGE").put("thumbnail_data","data:image/jpeg;base64,SECRET_THUMB").put("preview_base64","SECRET_PREVIEW");s.getJSONObject("master").getJSONArray("photos").put(photo);String output=new PixelMcpReadTools(()->s).call("list_photos",SyntheticBusinessData.object().put("customer_id","qa_c1")).toString();PixelMcpWriteTests.yes(!output.contains("VERY_SECRET_IMAGE")&&!output.contains("SECRET_THUMB")&&!output.contains("SECRET_PREVIEW")&&output.contains("storage_name"));});
         PixelMcpWriteTests.test("local application is not a provider delivery receipt",()->PixelMcpWriteTests.yes(PixelMcpBusinessTools.sync(SyntheticBusinessData.object().put("status","applied_on_pixel").put("uploaded_to_drive",false).put("confirmation_scope","local_only"),state()).getString("sync_state").equals("sync_pending")));
+        PixelMcpWriteTests.test("legacy local test action is not awaiting Drive even after purge",()->{
+            JSONObject s=state().put("drive_sync_failed",true),p=SyntheticBusinessData.object().put("id","qa_purged_work").put("_local_only",true);
+            s.put("pending",new JSONArray().put(SyntheticBusinessData.object().put("client_id","qa_local_request").put("kind","worklog").put("payload",p)));
+            String before=PixelMcpWriteTools.hash(s);
+            JSONObject r=PixelMcpBusinessTools.sync(SyntheticBusinessData.object().put("client_id","qa_local_request").put("status","queued").put("saved_locally",true),s);
+            PixelMcpWriteTests.yes(r.getString("status").equals("local_saved")&&r.getString("sync_state").equals("not_applicable")&&r.getBoolean("test_local_only"));
+            PixelMcpWriteTests.yes(!r.getBoolean("retryable")&&!r.getBoolean("cloud_confirmed")&&!r.getBoolean("uploaded_to_drive")&&!r.getBoolean("provider_readback")&&!r.getBoolean("confirmed_by_app"));
+            PixelMcpWriteTests.yes(PixelMcpWriteTools.hash(s).equals(before));
+            JSONObject other=PixelMcpBusinessTools.sync(SyntheticBusinessData.object().put("client_id","qa_other_request").put("status","queued").put("saved_locally",true),s);
+            PixelMcpWriteTests.yes(other.getString("sync_state").equals("sync_failed")&&!other.optBoolean("test_local_only"));
+        });
+        PixelMcpWriteTests.test("durable local receipt needs no remaining customer or journal row",()->{
+            JSONObject s=state();s.getJSONObject("master").put("drive_cloud_receipts",SyntheticBusinessData.object().put("qa_local_request",SyntheticBusinessData.object().put("cloud_confirmed",true).put("applied",true)));
+            JSONObject r=PixelMcpBusinessTools.sync(SyntheticBusinessData.object().put("client_id","qa_local_request").put("status","superseded").put("saved_locally",true).put("test_local_only",true),s);
+            PixelMcpWriteTests.yes(r.getString("sync_state").equals("not_applicable")&&r.getString("confirmation_scope").equals("local_only")&&!r.getBoolean("cloud_confirmed"));
+        });
         System.out.println("PASS total="+PixelMcpWriteTests.count+" daily MCP rules/dispatch checks; Android persistence not simulated");
     }
 }

@@ -61,7 +61,9 @@ public class MainActivity extends Activity implements McpSyncHost {
     private PendingWorkPhotoStore pendingWorkPhotos;
     private WorkLocationController workLocation;
     private static java.lang.ref.WeakReference<MainActivity> foreground = new java.lang.ref.WeakReference<>(null);
+    static void refreshPlanningView(){MainActivity activity=foreground.get();if(activity!=null)activity.runOnUiThread(()->{if(activity.webView!=null)activity.webView.evaluateJavascript("window.PlanningUI&&window.PlanningUI.refresh();window.StatusUI&&window.StatusUI.refresh()",null);});}
     static void requestMcpSync(Context context) {
+        if(BuildConfig.UI_PREVIEW)return;
         MainActivity activity=foreground.get();
         if(activity!=null)activity.runOnUiThread(()->activity.requestAutomaticSync(500));
         else DriveSyncCoordinator.request(context,500);
@@ -81,8 +83,10 @@ public class MainActivity extends Activity implements McpSyncHost {
         super.onCreate(savedInstanceState);
         preferences = getSharedPreferences("haus_garten", MODE_PRIVATE);
         store = new PixelLocalStore(this);
-        DriveSyncJob.install(this);
-        if(PlanningAccount.connected(this)||PlanningAccount.prefs(this).getBoolean("weather_enabled",false))PlanningJob.install(this);
+        if(!BuildConfig.UI_PREVIEW){
+            DriveSyncJob.install(this);
+            if(PlanningAccount.connected(this)||PlanningAccount.prefs(this).getBoolean("weather_enabled",false))PlanningJob.install(this);
+        }
         pendingWorkPhotos = new PendingWorkPhotoStore(this);
         setContentView(buildLayout());
         if (Build.VERSION.SDK_INT >= 30) {
@@ -110,6 +114,8 @@ public class MainActivity extends Activity implements McpSyncHost {
     @Override protected void onResume() {
         foreground = new java.lang.ref.WeakReference<>(this);
         super.onResume();
+        refreshPlanningView();
+        if(BuildConfig.UI_PREVIEW)return;
         PlanningJob.schedule(this,1500);
         // Resume only the previously opted-in runtime after a process restart or device test.
         // Never enable a stopped connection or change its credentials/permissions here.
@@ -127,10 +133,12 @@ public class MainActivity extends Activity implements McpSyncHost {
         if (foreground.get() == this) foreground.clear();
         syncHandler.removeCallbacks(delayedAutomaticSync);
         syncHandler.removeCallbacks(periodicAutomaticSync);
-        try { if(DriveAccount.available(this)&&store.pendingActions().length()>0)
+        try { if(!BuildConfig.UI_PREVIEW&&DriveAccount.available(this)&&store.pendingActions().length()>0)
             DriveSyncCoordinator.request(this,Math.max(AUTO_SYNC_DELAY_MS,store.remainingDeleteUndoMs()+200)); } catch(Exception ignored) {}
         super.onPause();
     }
+
+    private volatile int systemGestureLeftDp=32;
 
     private View buildLayout() {
         FrameLayout root = new FrameLayout(this);
@@ -138,6 +146,7 @@ public class MainActivity extends Activity implements McpSyncHost {
         webView = new WebView(this);
         root.addView(webView, new FrameLayout.LayoutParams(-1,-1));
         root.setOnApplyWindowInsetsListener((view,insets) -> {
+            if(Build.VERSION.SDK_INT>=29)systemGestureLeftDp=Math.max(32,(int)Math.ceil(insets.getSystemGestureInsets().left/getResources().getDisplayMetrics().density)+8);
             if (Build.VERSION.SDK_INT >= 30) {
                 android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
                 int keyboard = insets.getInsets(WindowInsets.Type.ime()).bottom;
@@ -340,13 +349,13 @@ public class MainActivity extends Activity implements McpSyncHost {
     public class DataBridge extends BusinessDataBridge {
         public DataBridge(){super(MainActivity.this,MainActivity.this.store,MainActivity.this.pendingWorkPhotos,()->requestAutomaticSync(AUTO_SYNC_DELAY_MS));}
 
-        @JavascriptInterface public void connectPlanning(){runOnUiThread(()->startActivity(new Intent(MainActivity.this,PlanningConnectionActivity.class)));}
+        @JavascriptInterface public void connectPlanning(){if(previewConnectionBlocked())return;runOnUiThread(()->startActivity(new Intent(MainActivity.this,PlanningConnectionActivity.class)));}
         @JavascriptInterface public String consumePlanningOpenContext(){try{if(!getIntent().getBooleanExtra("open_planning",false))return "{}";JSONObject result=new JSONObject().put("open",true).put("appointment_id",getIntent().getStringExtra("planning_appointment_id")).put("action",getIntent().getStringExtra("planning_action"));getIntent().removeExtra("open_planning");return result.toString();}catch(Exception e){return "{}";}}
         @JavascriptInterface public boolean consumePlanningOpen(){boolean open=getIntent().getBooleanExtra("open_planning",false);getIntent().removeExtra("open_planning");return open;}
 
         @JavascriptInterface public String getSyncStatus() { return syncStatus().toString(); }
 
-        @JavascriptInterface public void connectDrive(){runOnUiThread(()->startActivity(new Intent(MainActivity.this,DriveConnectionActivity.class)));}
+        @JavascriptInterface public void connectDrive(){if(previewConnectionBlocked())return;runOnUiThread(()->startActivity(new Intent(MainActivity.this,DriveConnectionActivity.class)));}
         @JavascriptInterface public void retryDrive(){runOnUiThread(()->MainActivity.this.synchronize());}
         @JavascriptInterface public String getPixelTunnelStatus() { return PixelTunnelService.status(MainActivity.this).toString(); }
 
@@ -354,13 +363,15 @@ public class MainActivity extends Activity implements McpSyncHost {
         @JavascriptInterface public void cancelWorkLocation() { runOnUiThread(()->workLocation.cancel()); }
 
         @JavascriptInterface public void openPixelTunnelSettings() {
+            if(previewConnectionBlocked())return;
             runOnUiThread(() -> startActivity(new Intent(MainActivity.this, PixelTunnelActivity.class)));
         }
         @JavascriptInterface public String getAppInfo() {
             JSONObject info = new JSONObject();
             try {
                 android.content.pm.PackageInfo installed = getPackageManager().getPackageInfo(getPackageName(), 0);
-                info.put("build_fingerprint",BuildProvenance.describe());info.put("versionName", installed.versionName);
+                info.put("uiPreview",BuildConfig.UI_PREVIEW);info.put("applicationId",getPackageName());
+                info.put("systemGestureLeftCss",systemGestureLeftDp);info.put("build_fingerprint",BuildProvenance.describe());info.put("versionName", installed.versionName);
                 info.put("versionCode", android.os.Build.VERSION.SDK_INT >= 28 ? installed.getLongVersionCode() : installed.versionCode);
             } catch (Exception ignored) {}
             return info.toString();
@@ -415,7 +426,14 @@ public class MainActivity extends Activity implements McpSyncHost {
         @JavascriptInterface public void synchronize() { runOnUiThread(() -> MainActivity.this.synchronize()); }
     }
 
+    private boolean previewConnectionBlocked(){
+        if(!BuildConfig.UI_PREVIEW)return false;
+        runOnUiThread(()->Toast.makeText(this,"Test-App: Verbindungen bleiben zum Schutz der Produktivdaten gesperrt.",Toast.LENGTH_LONG).show());
+        return true;
+    }
+
     private void synchronize() {
+        if(previewConnectionBlocked())return;
         try{DriveSyncCoordinator.prepareExplicit(this,"ui-sync-"+UUID.randomUUID());}catch(Exception ignored){}
         if(DriveAccount.configured(this)){performDriveSync(Uri.EMPTY,true);return;}
         String saved = preferences.getString("drive_tree_uri", "");
@@ -429,12 +447,14 @@ public class MainActivity extends Activity implements McpSyncHost {
     }
 
     private void requestAutomaticSync(long delayMs) {
+        if(BuildConfig.UI_PREVIEW)return;
         long undoDelay = store == null ? 0 : store.remainingDeleteUndoMs();
         syncHandler.removeCallbacks(delayedAutomaticSync);
         syncHandler.postDelayed(delayedAutomaticSync, Math.max(delayMs, undoDelay > 0 ? undoDelay + 200 : 0));
     }
 
     private void automaticSyncIfConfigured() {
+        if(BuildConfig.UI_PREVIEW)return;
         try{if(!DriveSyncCoordinator.automaticAllowed(this))return;}catch(Exception invalid){return;}
         if(DriveAccount.configured(this)){performDriveSync(Uri.EMPTY,false);return;}
         String saved = preferences.getString("drive_tree_uri", "");
@@ -442,6 +462,7 @@ public class MainActivity extends Activity implements McpSyncHost {
     }
 
     private void performDriveSync(Uri treeUri, boolean showToast) {
+        if(BuildConfig.UI_PREVIEW)return;
         if (!syncInProgress.compareAndSet(false, true)) { syncAgain.set(true); return; }
         if (showToast) Toast.makeText(this, "Drive-Abgleich läuft …", Toast.LENGTH_SHORT).show();
         new Thread(() -> {
