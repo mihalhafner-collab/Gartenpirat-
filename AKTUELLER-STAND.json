@@ -4,7 +4,7 @@
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/calendar-permanent-20261021",
   "development_snapshot": {
-    "status": "CALENDAR_BUILD91_SIGNED_CLOUD_RECOVERED_FINAL_NATIVE_ACCEPTANCE_RUNNING_NOT_DELIVERED",
+    "status": "CALENDAR_BUILD91_SIGNED_158_NATIVE_PASS_UI_TEST_CONTRACT_CORRECTION_NOT_DELIVERED",
     "implementation_checkpoint_git_sha": "ef64255ef47344d2eaccee6e840181daa0472640",
     "source_sha256": "747762839020b4ffb0491ac360c3cc054c455245eb4126b0c1e6d4e8882b0c3c",
     "main_and_gradle_files": 540,
@@ -20,7 +20,8 @@
     "google_project_and_consent": "NOT VERIFIED; NO ADMINISTRATIVE ACCESS",
     "drive_original_zip_id": "1GZMxQpfGHwOF385_I5yyzyN0z5NQqFXh",
     "drive_source_folder_id": "1HFf0WpI0BGYL60jMEbYc9BfnvOVlYxKf",
-    "drive_readback": "ZIP COMPLETE_STREAM_SIZE_ONLY; 14 TXT AND MANIFEST SHA256_BYTES"
+    "drive_readback": "ZIP COMPLETE_STREAM_SIZE_ONLY; 14 TXT AND MANIFEST SHA256_BYTES",
+    "native_acceptance": "158 PASS, 0 FAIL; fresh_isolated PASS; same-build91 in-place and reboot snapshot verify PASS"
   },
   "verified_release_source": {
     "version": "1.54.1",

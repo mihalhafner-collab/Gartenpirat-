@@ -3,6 +3,13 @@
 Stand: 21. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Kalenderauftrag – native Endabnahme und UI-Prüfer (21.10.2026, 19:12 UTC)
+
+- Tatsächlicher finaler91-Kandidat: **158 native SQLite/MCP-Prüfungen PASS, acceptance failures=0**. Alle neuen Kalenderproben und sämtliche alten Kalender-/Provider-/Journal-/Foto-/Rechnungsproben bestanden; synthetischer primärer Snapshot unverändert. **fresh_isolated PASS** und **verify nach Neustart PASS**;90→91 weiterhin ausdrücklich NOT TESTABLE.
+- Native UI-Abnahme meldete condition3 FAIL: vorbestehender Prüfer erwartete vier Hauptreiter, aktuelle gesicherte Oberfläche hat seit Build90 drei (Heute/Kunden & Gärten/Mehr). Derselbe Prüfer erwartete den Papierkorb noch im Mehr-Menü statt in Einstellungen. Ausschließlich diese Testannahmen an den bereits durch Browsertests bestätigten Vertrag angepasst; exakte drei Ziele plus Planungseinstieg und tatsächlichen Einstellungsweg weiterhin geprüft, keine Assertions gestrichen. Warten auf vollständig initialisierte bestehende fieldReady-Oberfläche ergänzt. Produktive App und finale APK bleiben bytegleich aus50b518a; neu originalsignierte Instrumentierung separat nachweisen.
+- Sichtprüfung fand außerdem im Software-AVD einen echten **System UI isn't responding**-Dialog. Dieser Betriebssystemdialog wird über seinen geprüften Wait-Button verlassen; keine App-/Datenlöschung und kein behaupteter Pixel- oder App-ANR-Fix. Native UI-Endergebnis erst nach erneutem tatsächlichem Lauf als PASS führen.
+- Finale APK zusätzlich privat im bestehenden Testartefaktordner erhalten: `1aqJIqC4oZXAym0QRYkE9pDFHeA3Yy2Kr`,36184019Bytes vollständig authentifiziert gestreamt, shared=false. Noch keine Auslieferungs-/Installationsbehauptung aus der Zwischenablage.
+
 ## Kalenderauftrag – Wiederaufnahme nach Cloud-Ausfall (21.10.2026, 19:08 UTC)
 
 - Cloud-Ausführung wieder erreichbar; sämtliche finalen APK-/Instrumentierungs-/Originalquellbytes erhalten und erneut per SHA-256 geprüft. Gepushte Zwischenstände ohne Reset per Fast-forward in denselben Checkout übernommen. Ein zusätzlich konservierter Stash enthält ausschließlich den bereits remote gesicherten Export-Metadaten-Einzeiler; kein offener Produktivcode.
