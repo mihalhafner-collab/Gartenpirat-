@@ -60,9 +60,9 @@ body.field-ui{--action:var(--hg-green-btn);--action-soft:var(--hg-sage);--planni
 .field-ui .planning-collisions[data-state=conflict],.field-ui .planning-collision-badge{background:var(--attention-soft);color:var(--attention)}
 .field-ui #workday-timer[data-session-state=PAUSED],.field-ui #workday-timer[data-session-state=STOPPED_PENDING_REVIEW]{border:1px solid #caa24c;background:#fffaf0}
 .field-ui #workday-timer[data-session-state=PAUSED] .timer-state small,.field-ui #workday-timer[data-session-state=STOPPED_PENDING_REVIEW] .timer-state small{color:var(--attention)}
-.field-ui .status-card[data-tone=attention]{border-left:4px solid #ad7911}
-.field-ui .status-card[data-tone=error]{border-left:4px solid var(--danger)}
-.field-ui .status-card[data-tone=confirmed]{border-left:4px solid var(--action)}
+
+
+
 
 .field-ui #more-page .page-head .drawer-open{position:absolute;right:0;top:0;min-width:48px;width:48px;margin:0;padding:6px;font-size:1.4rem}
 #field-quick-entry #entry>.actions>button[type=submit]{order:2}
@@ -90,3 +90,16 @@ body.field-ui{--action:var(--hg-green-btn);--action-soft:var(--hg-sage);--planni
 .field-ui #field-quick-entry #entry>.actions{bottom:0}
 .field-ui button{min-width:48px}
 .field-ui .app{padding-top:12px}
+
+/* A written status and dot replace clipped edge stripes. */
+.field-ui .status-chip{display:inline-flex;align-items:baseline;gap:8px;max-width:100%;padding:7px 10px;border-radius:var(--hg-radius);background:var(--hg-info-bg);color:var(--hg-info-text);font-size:var(--hg-fs-caption);font-weight:var(--hg-fw-strong);line-height:1.5}
+.status-dot{display:inline-block;flex:none;width:8px;height:8px;border-radius:50%;background:currentColor}
+.status-chip>span:last-child,.status-line>span:last-child{min-width:0;overflow-wrap:anywhere}
+.field-ui .status-card[data-tone=confirmed] .status-chip{background:var(--hg-sage);color:var(--hg-green)}
+.field-ui .status-card[data-tone=attention] .status-chip{background:var(--hg-warn-bg);color:var(--hg-warn-text)}
+.field-ui .status-card[data-tone=error] .status-chip{background:var(--hg-danger-bg);color:var(--hg-danger)}
+.status-line{display:flex;align-items:baseline;gap:8px;color:var(--hg-muted)}
+.field-ui .planning-weather{background:var(--hg-info-bg);color:var(--hg-info-text)}
+.field-ui .planning-weather[data-severity=difficult],.field-ui .planning-weather[data-severity=unknown]{background:var(--hg-warn-bg);color:var(--hg-warn-text)}
+.field-ui .planning-weather[data-severity=critical]{background:var(--hg-danger-bg);color:var(--hg-danger)}
+.field-ui .planning-weather[data-severity=clear]{background:var(--hg-sage);color:var(--hg-green)}
