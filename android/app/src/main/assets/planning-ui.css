@@ -70,3 +70,21 @@
 
 .planning-connection-notice{margin:8px 0}
 .planning-connection-chip{min-height:48px;max-width:100%;padding:8px 12px;border:1px solid var(--hg-warn-text);border-radius:var(--hg-radius-pill);background:var(--hg-warn-bg);color:var(--hg-warn-text);font-size:var(--hg-fs-caption);text-align:left}
+
+/* K6: original controls move into a short form; stored values and capture stay intact. */
+#appointment-form{padding:12px}
+#appointment-form>h3{font-size:var(--hg-fs-title);margin:0 0 12px}
+.planning-core{display:grid;gap:10px}
+#planning-page .planning-core label{display:grid;gap:4px;margin:0;font-size:var(--hg-fs-caption)}
+.planning-core input,.planning-core select{min-height:48px;padding:10px}
+.planning-duration-chips{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px}
+.planning-duration-chips>.secondary{flex:0 1 auto;min-width:48px;min-height:48px;padding:6px;border:1px solid var(--hg-line);background:var(--hg-surface);color:var(--hg-green);font-size:var(--hg-fs-caption);font-weight:var(--hg-fw-regular)}
+#planning-page .planning-duration-chips>.planning-open-end{display:flex!important;align-items:center;gap:5px;margin:0;padding:6px;min-height:48px;font-size:var(--hg-fs-caption);background:var(--hg-surface);border:1px solid var(--hg-line)}
+#planning-page .planning-duration-chips .planning-open-end input{margin:0;width:24px;min-width:24px;height:24px;min-height:24px;flex:0 0 24px}
+#planning-page .planning-duration-chips .planning-open-end strong{font-weight:var(--hg-fw-regular)}
+.planning-duration-chips>.secondary[aria-pressed=true],#planning-page .planning-duration-chips>.planning-open-end.is-selected{border:2px solid var(--hg-green);background:var(--hg-sage);color:var(--hg-green)}
+.planning-field-help{position:absolute;width:1px;height:1px;padding:0;margin:-1px;border:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+#planning-page .planning-more-options{margin:12px 0;padding:0 10px;border:1px solid var(--hg-line);border-radius:var(--hg-radius)}
+#planning-page .planning-more-options>summary{min-height:48px;padding:12px 0;color:var(--hg-green);font-weight:var(--hg-fw-strong)}
+#planning-message:empty{display:none}
+#planning-page .planning-core input,#planning-page .planning-core select{font-size:var(--hg-fs-body)}

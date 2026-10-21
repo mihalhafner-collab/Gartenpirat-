@@ -1,0 +1,62 @@
+{
+  "classification": "SYNTHETIC_TEST",
+  "baseline_git_sha": "d45c72544533fbb4420513d454b03a9043cac99f",
+  "cases": [
+    {
+      "case": "single",
+      "name": "create_appointment",
+      "args": {
+        "customer_id": "qa_c",
+        "order_id": "",
+        "title": "QA Golden Einsatz",
+        "purpose": "inspection",
+        "starts_at": "2026-10-23T06:30:00.000Z",
+        "ends_at": "2026-10-23T08:00:00.000Z",
+        "timezone": "Europe/Vienna",
+        "location": "QA Golden Einsatzort",
+        "latitude": null,
+        "longitude": null,
+        "weather_profile": "inspection",
+        "status": "confirmed",
+        "notes": "QA Golden Notiz",
+        "travel_minutes": 15,
+        "break_minutes": 10,
+        "flexible_from": "",
+        "flexible_until": "",
+        "request_id": "planning-create_appointment-qa_golden_request_01"
+      }
+    },
+    {
+      "case": "weekly_series",
+      "name": "create_appointment_series",
+      "args": {
+        "customer_id": "qa_c",
+        "order_id": "",
+        "title": "QA Golden Einsatz",
+        "purpose": "inspection",
+        "starts_at": "2026-10-23T06:30:00.000Z",
+        "ends_at": "2026-10-23T08:00:00.000Z",
+        "timezone": "Europe/Vienna",
+        "location": "QA Golden Einsatzort",
+        "latitude": null,
+        "longitude": null,
+        "weather_profile": "inspection",
+        "status": "confirmed",
+        "notes": "QA Golden Notiz",
+        "travel_minutes": 15,
+        "break_minutes": 10,
+        "flexible_from": "",
+        "flexible_until": "",
+        "occurrences": 3,
+        "interval_weeks": 2,
+        "request_id": "planning-create_appointment_series-qa_golden_request_01"
+      }
+    }
+  ],
+  "protected_function_sha256": {
+    "editorTimes": "59f75b0ce789500025ac884d1de155d4f0ef6597d5e5f743c6931f7b18a1db9f",
+    "capture": "a105a487fc34b5c4e75c8560cc51aa08d403494bd470d8ba1fca2c3c8e3cd08e",
+    "stable": "afe7727a8838ee09e3aa5e9156fc5e377a4435123bc19ba4083bcc06613e0f95",
+    "save": "5af74d6560b65cfac7b6e4d0b8ea0d1f0f64ca72297bc9d2fa0200c7d3fdde62"
+  }
+}
