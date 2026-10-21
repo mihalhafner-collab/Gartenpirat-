@@ -14,20 +14,29 @@ final class ReleaseLifecycleProbe {
     static void connectionUi(Instrumentation runner,Context context,Class<?> type,int normalSwitches)throws Exception{
         android.app.Activity activity=runner.startActivitySync(new Intent(context,type).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         runner.waitForIdleSync();
+        Throwable[] failure={null};
         runner.runOnMainSync(()->{
+            try{
             java.util.List<android.view.View> views=new java.util.ArrayList<>();collectViews(activity.getWindow().getDecorView(),views);
-            int shownSwitches=0,shownInputs=0;android.widget.Button reveal=null;
+            boolean planning=type==PlanningConnectionActivity.class;
+            int shownSwitches=0,shownInputs=0;android.widget.Button reveal=null,accountDetails=null;android.widget.TextView diagnostics=null;
             for(android.view.View v:views){
                 if(v.isShown()&&v instanceof android.widget.CheckBox)shownSwitches++;
                 if(v.isShown()&&v instanceof android.widget.EditText)shownInputs++;
-                if(v instanceof android.widget.Button&&((android.widget.Button)v).getText().toString().startsWith("Erweitert / Diagnose"))reveal=(android.widget.Button)v;
+                if(v instanceof android.widget.Button){String label=((android.widget.Button)v).getText().toString();if(planning?label.equals("Arbeitszeiten und Wettergrenzen"):label.startsWith("Erweitert / Diagnose"))reveal=(android.widget.Button)v;if(planning&&label.equals("Konto und Freigaben"))accountDetails=(android.widget.Button)v;}
+                if(planning&&v instanceof android.widget.TextView&&((android.widget.TextView)v).getText().toString().contains("Android-OAuth-Paket:"))diagnostics=(android.widget.TextView)v;
             }
             require(shownSwitches==normalSwitches&&shownInputs==0&&reveal!=null);
             reveal.performClick();int revealed=0;for(android.view.View v:views)if(v.isShown()&&v instanceof android.widget.EditText)revealed++;
             require(revealed>0);reveal.performClick();for(android.view.View v:views)if(v instanceof android.widget.EditText)require(!v.isShown());
+            if(planning){require(accountDetails!=null&&diagnostics!=null&&!diagnostics.isShown());accountDetails.performClick();require(diagnostics.isShown()&&diagnostics.getText().toString().contains(context.getPackageName())&&diagnostics.getText().toString().contains(CalendarAuthorization.signingSha1(context)));accountDetails.performClick();require(!diagnostics.isShown());}
+            }catch(Throwable caught){failure[0]=caught;}
+            finally{
             activity.finish();
+            }
         });
         runner.waitForIdleSync();
+        if(failure[0] instanceof Error)throw (Error)failure[0];if(failure[0] instanceof Exception)throw (Exception)failure[0];
     }
     static String js(Instrumentation runner,android.webkit.WebView view,String script)throws Exception{
         java.util.concurrent.CountDownLatch done=new java.util.concurrent.CountDownLatch(1);String[] result={null};
