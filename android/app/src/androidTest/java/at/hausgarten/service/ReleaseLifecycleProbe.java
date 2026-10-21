@@ -19,17 +19,17 @@ final class ReleaseLifecycleProbe {
             try{
             java.util.List<android.view.View> views=new java.util.ArrayList<>();collectViews(activity.getWindow().getDecorView(),views);
             boolean planning=type==PlanningConnectionActivity.class;
-            int shownSwitches=0,shownInputs=0;android.widget.Button reveal=null,accountDetails=null;android.widget.TextView diagnostics=null;
+            int shownSwitches=0,shownInputs=0;android.widget.Button reveal=null,accountDetails=null,technicalDetails=null;android.widget.TextView diagnostics=null;
             for(android.view.View v:views){
-                if(v.isShown()&&v instanceof android.widget.CheckBox)shownSwitches++;
+                if(v.isShown()&&v instanceof android.widget.CompoundButton)shownSwitches++;
                 if(v.isShown()&&v instanceof android.widget.EditText)shownInputs++;
-                if(v instanceof android.widget.Button){String label=((android.widget.Button)v).getText().toString();if(planning?label.equals("Arbeitszeiten und Wettergrenzen"):label.startsWith("Erweitert / Diagnose"))reveal=(android.widget.Button)v;if(planning&&label.equals("Konto und Freigaben"))accountDetails=(android.widget.Button)v;}
+                if(v instanceof android.widget.Button){String label=((android.widget.Button)v).getText().toString();if(planning?label.equals("Arbeitszeiten und Wettergrenzen"):label.startsWith("Erweitert / Diagnose"))reveal=(android.widget.Button)v;if(planning&&label.equals("Konto und Freigaben"))accountDetails=(android.widget.Button)v;if(planning&&label.equals("Technische Details"))technicalDetails=(android.widget.Button)v;}
                 if(planning&&v instanceof android.widget.TextView&&((android.widget.TextView)v).getText().toString().contains("Android-OAuth-Paket:"))diagnostics=(android.widget.TextView)v;
             }
             require(shownSwitches==normalSwitches&&shownInputs==0&&reveal!=null);
             reveal.performClick();int revealed=0;for(android.view.View v:views)if(v.isShown()&&v instanceof android.widget.EditText)revealed++;
             require(revealed>0);reveal.performClick();for(android.view.View v:views)if(v instanceof android.widget.EditText)require(!v.isShown());
-            if(planning){require(accountDetails!=null&&diagnostics!=null&&!diagnostics.isShown());accountDetails.performClick();require(diagnostics.isShown()&&diagnostics.getText().toString().contains(context.getPackageName())&&diagnostics.getText().toString().contains(CalendarAuthorization.signingSha1(context)));accountDetails.performClick();require(!diagnostics.isShown());}
+            if(planning){require(accountDetails!=null&&technicalDetails!=null&&diagnostics!=null&&!diagnostics.isShown());accountDetails.performClick();require(!diagnostics.isShown());accountDetails.performClick();technicalDetails.performClick();require(diagnostics.isShown()&&diagnostics.getText().toString().contains(context.getPackageName())&&diagnostics.getText().toString().contains(CalendarAuthorization.signingSha1(context)));technicalDetails.performClick();require(!diagnostics.isShown());}
             }catch(Throwable caught){failure[0]=caught;}
             finally{
             activity.finish();

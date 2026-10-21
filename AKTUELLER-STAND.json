@@ -66,7 +66,7 @@
     "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; original source bytes and actual APK verified in Cloud"
   },
   "calendar_ui_task": {
-    "status": "K1_TO_K7_IMPLEMENTED; K8_NEXT; BASELINE_PHOTO_INTERMITTENT",
+    "status": "K1_TO_K8_IMPLEMENTED; K9_NEXT; NATIVE_DEVICE_NOT_EXECUTED",
     "task_file": "CODEX-GESAMTAUFTRAG-1.54.2.md",
     "task_file_sha256": "f408ab0d9875931d033de8d6f46d1b3cc4ddab4ce094f374a8a1562da8e5d783",
     "base_branch": "codex/calendar-permanent-20261021",
@@ -92,7 +92,7 @@
     "no_version_increase": true,
     "no_device_actions": true,
     "no_main_push": true,
-    "implementation": "K7 overview19 and twelve other affected browser suites PASS; original choice handler protected",
+    "implementation": "K8 393Python/40JVM/Java+instrumentation compile and lint PASS; native on-device NOT EXECUTED",
     "drive_account_access": "PROHIBITED BY COMBINED TASK; source backup on authorized GitHub branch only",
     "completed_packages": [
       "A",
@@ -108,8 +108,9 @@
       "K4",
       "K5",
       "K6",
-      "K7"
+      "K7",
+      "K8"
     ],
-    "canonical_remote_checkpoint": "c6e1e79f0e624d240537f8a5247dc43763c861e9"
+    "canonical_remote_checkpoint": "6763d29ecf359cfe0018f8b80e2b731b7f1cb43e"
   }
 }
