@@ -1,0 +1,20 @@
+{
+  "format": "gartenpirat.source-location.v1",
+  "updated_at_utc": "2026-10-21",
+  "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
+  "development_ref": "refs/heads/main",
+  "verified_release_source": null,
+  "last_observed_installed_build": {
+    "observed_at_utc": "2026-10-21",
+    "version_name": "1.54.0",
+    "version_code": 89,
+    "reported_base_git_sha": "72f96919d6a42ef8a2759c14c6da1df7359726d6",
+    "source_sha256": "b05723a29302dfc98e8ac6a3aefcbaffd6cb5c0b1c5632fd6889df5761774aa1",
+    "source_dirty": true,
+    "source_status": "ORIGINAL_SOURCE_NOT_YET_VERIFIED_ON_GITHUB_OR_DRIVE"
+  },
+  "handoff": {
+    "reported_workspace": "/workspace/Gartenpirat- in the original build task; separate from other tasks",
+    "required_action": "Preserve the actual build-89 original source in its original task, verify provenance, push and read back the exact source commit before setting verified_release_source."
+  }
+}

@@ -1,11 +1,46 @@
 # CODEX-STATUS
 
-Stand: 20. Oktober 2026
+Stand: 21. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
 > Diese Datei ist der fortlaufende technische Arbeitsnachweis für Codex Cloud.  
 > Regeln: `AGENTS.md`  
 > Vollständiger Auftrag: `CODEX-AUFTRAG-GARTENPIRAT.md`
+
+## Dauerhafte Cloud-Quellcodesicherung (21.10.2026)
+
+Nutzerauftrag: Den gültigen Originalcode dauerhaft außerhalb einzelner Cloud-Tasks
+abrufbar halten und ungesicherte Auslieferungen verhindern. Abnahme: bestätigter
+GitHub-Commit, Originalexport aus genau diesem Commit, Abbruch bei Dirty/Unpushed/
+falschem oder unerreichbarem Remote sowie nachträglicher Checkoutänderung; keine
+Schlüssel-, Geräte- oder Betriebsdatenaktion.
+
+- Verbindliche Regel in AGENTS.md, Querverweis im Zentralauftrag und README.
+  Nach Änderungsschritten/Unterbrechung/Abschluss sichern und extern bestätigen;
+  ursprüngliche Arbeit vor Taskwechsel/Übernahme erhalten. Versionsmarke,
+  Quell-/APK-/Archivhash, Drive-Kopie und frischer Task-Readback vor Auslieferung.
+- AKTUELLER-STAND.json dient als Einstieg. Der zuletzt beobachtete installierte
+  Stand1.54.0/89 meldet source_dirty=true; sein gemeldeter Basiscommit ersetzt
+  keinen bestätigten Originalquellstand. verified_release_source bleibt null.
+  Diese Regeländerung gewinnt den fremden Build-89-Arbeitsstand nicht wieder.
+- tools/source_preservation.py prüft lesend den sauberen Checkout einschließlich
+  unversionierter Android-Eingaben und einen Branch/Tag des bestehenden GitHub-
+  Repositorys auf genau diesem Commit. Fehler/Netzausfall bleiben blockierend;
+  Git erhält keine HG_ORIGINAL_*-Variablen. Kein Push, Reset oder Schlüsselzugriff
+  durch das Prüfwerkzeug. Es bestätigt nicht selbst die APK-Provenienz.
+- Offizieller Originalsignier-CLI und Quellcodeexport erzwingen die Prüfung. Der
+  Exporter liest Dateien aus den gepinnten Git-Objekten statt veränderlichen
+  Arbeitsdateien; Ziel perplexity ergänzt. Privacy-Gates unverändert erhalten.
+- Gezielte Abnahme: 11 neue isolierte Git-/Signier-CLI-/Exportproben PASS,
+  42 vorhandene synthetische Originalsigniertests PASS, 13 Quellprivacy-Regeltests
+  PASS. Temporäre lokale Git-Remotes, synthetische Nicht-Schlüsselbytes und
+  gemockte Androidwerkzeuge; keine echten Konten, Signierwerkzeuge oder Geräte.
+  Source-Gate PASS, Bootstrap0; Abbruch am uncommitteten echten Workspace bestätigt.
+  Keine Android-/UI-Regression behauptet: keine operative App-Funktion geändert.
+- Globale Kontoeinstellungen und bereits laufende andere Tasks werden nicht
+  automatisch umgestellt. Dort vor weiterer Auslieferung die aktuelle AGENTS.md
+  lesen und vorhandene Originalarbeit ohne Reset sichern. Separate Cloud-only-,
+  Originalsignatur-, Privacy- und Installationsfreigaben bleiben verbindlich.
 
 ## Übergabe an einen neuen Cloud-Task (20.10.2026)
 

@@ -308,11 +308,16 @@ def main(argv=None):
         parser.add_argument('--instrumentation', action='store_true',
                             help='Sign only the existing androidTest runner for the original app; never installs.')
         arguments=vars(parser.parse_args(argv))
+        sys.path.insert(0,str(ROOT))
+        from tools.source_preservation import verify_preserved_source, SourcePreservationError
+        try:
+            preservation = verify_preserved_source(ROOT)
+        except SourcePreservationError as error:
+            raise SigningError(str(error)) from None
         missing=[name for name in VARIABLES if not os.environ.get(name,'').strip()]
         if missing:
             print('\n'.join(missing),file=sys.stderr)
             return 1
-        sys.path.insert(0,str(ROOT))
         from privacy_guard import source_gate,workspace_gate,artifact_gate
         source_gate();workspace_gate()
         result = sign(**arguments)
@@ -325,6 +330,7 @@ def main(argv=None):
             if output.is_file() and not output.is_symlink() and hashlib.sha256(output.read_bytes()).hexdigest()==result['apk_sha256']:
                 output.unlink()
             raise SigningError('Artifact privacy gate failed; only unchanged signer output may be removed.')
+        result['source_preservation'] = preservation
     except SigningError as error:
         print('ORIGINAL_SIGNING_FAILED: ' + str(error), file=sys.stderr)
         return 1

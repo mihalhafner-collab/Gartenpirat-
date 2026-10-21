@@ -46,6 +46,23 @@ Vor jeder Änderung:
 
 Neuere Änderungen niemals überschreiben.
 
+### Dauerhafte Sicherung vor Auslieferung (21.10.2026)
+
+Die Quellcodesicherungsregel in `AGENTS.md` gilt zusätzlich zu allen historischen
+Phasen dieses Auftrags. Beim Einstieg `AKTUELLER-STAND.json` lesen und mit GitHub
+vergleichen. Nach abgeschlossenen Änderungen sowie vor Unterbrechung/Taskende den
+Originalstand committen, pushen und extern bestätigen; WIP bei Bedarf auf einem
+Arbeitsbranch im selben Repository sichern. Vor Signierung und Quellcodeexport
+`python3 tools/source_preservation.py` ausführen. Die offiziellen Werkzeuge
+erzwingen diesen Check selbst. PASS bestätigt den sauberen Checkout und dessen
+exakten Remote-Commit; APK-Provenienz, Versionsmarke, vollständiges Originalarchiv,
+Drive-Rücklesen und bestehende Freigaben bleiben zusätzlich erforderlich.
+
+Der in dieser Sitzung beobachtete Build1.54.0/89 meldet source_dirty=true. Sein
+Originalstand muss im ursprünglichen Task gesichert und gegen den Build geprüft
+werden. Der ältere GitHub-Stand darf nicht als wiedergewonnener89-Quellcode gelten.
+Laufende fremde Arbeitsstände niemals für die Regelübernahme überschreiben.
+
 
 ## P0 – Repository dauerhaft frei von produktiven Betriebsdaten machen
 
