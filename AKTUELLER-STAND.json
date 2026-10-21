@@ -66,7 +66,7 @@
     "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; original source bytes and actual APK verified in Cloud"
   },
   "calendar_ui_task": {
-    "status": "A_C_G1_COMPLETE; G3_NEXT",
+    "status": "A_C_G1_G3_IMPLEMENTED; G4_NEXT; INTERMITTENT_BASELINE_PHOTO_FAIL",
     "task_file": "CODEX-GESAMTAUFTRAG-1.54.2.md",
     "task_file_sha256": "f408ab0d9875931d033de8d6f46d1b3cc4ddab4ce094f374a8a1562da8e5d783",
     "base_branch": "codex/calendar-permanent-20261021",
@@ -92,13 +92,14 @@
     "no_version_increase": true,
     "no_device_actions": true,
     "no_main_push": true,
-    "implementation": "Security A/C and tokens G1 host-tested; no APK/device/account access",
+    "implementation": "G3 visual checks PASS; full browser47/48 due unchanged baseline photo assertion",
     "drive_account_access": "PROHIBITED BY COMBINED TASK; source backup on authorized GitHub branch only",
     "completed_packages": [
       "A",
       "C",
-      "G1"
+      "G1",
+      "G3"
     ],
-    "canonical_remote_checkpoint": "87a533ac62db0e77425878cc031e366bc4a36760"
+    "canonical_remote_checkpoint": "4fec511366dddc64a8282333154cfc7e6472dc66"
   }
 }

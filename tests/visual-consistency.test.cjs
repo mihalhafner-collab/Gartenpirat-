@@ -21,6 +21,16 @@ function luminance(hex){const rgb=hex.slice(1).match(/../g).map(v=>parseInt(v,16
    for(const width of [320,360,426])for(const size of [16,24]){await page.setViewportSize({width,height:800});await page.evaluate(size=>document.documentElement.style.fontSize=size+'px',size);for(const id of ['home','more-page','status-page','customers','work-entry']){await page.evaluate(id=>openPage(id),id);assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--hg-green').trim()),tokens.green);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),id+' '+width+'/'+size);}}
    assert.deepEqual(errors,[]);
   });
+  await check('Today actions scroll below the timer, keep 48px targets clear of tabs, and metrics use a 1px separator',async()=>{
+   for(const width of [320,360,426])for(const size of [16,24]){await page.setViewportSize({width,height:800});await page.evaluate(size=>{document.documentElement.style.fontSize=size+'px';openPage('home');scrollTo(0,0);},size);
+    assert.equal(await page.locator('#field-today-actions').evaluate(d=>getComputedStyle(d).position),'static');const timer=await page.locator('#workday-timer').boundingBox(),dock=await page.locator('#field-today-actions').boundingBox();assert(dock.y>=timer.y+timer.height);await page.locator('#field-today-actions').scrollIntoViewIfNeeded();const nav=await page.locator('.bottom').boundingBox();for(const b of await page.locator('#field-today-actions button').all()){const r=await b.boundingBox();assert(r.width>=48&&r.height>=48&&r.y>=0&&r.y+r.height<=nav.y+1);assert(await b.evaluate(b=>document.elementFromPoint(b.getBoundingClientRect().x+b.offsetWidth/2,b.getBoundingClientRect().y+b.offsetHeight/2)?.closest('button')===b));}
+    assert.equal(await page.locator('#workday-timer [data-session-action=start] small').innerText(),'Zeit läuft ab jetzt');assert.equal(await page.locator('#design-metrics').evaluate(n=>getComputedStyle(n).gap),'0px');assert.equal(await page.locator('#design-metrics .design-metric').nth(1).evaluate(n=>getComputedStyle(n).borderLeftWidth),'1px');
+   }
+   await page.setViewportSize({width:360,height:800});await page.evaluate(()=>{document.documentElement.style.fontSize='16px';openPage('home');scrollTo(0,0);});await page.screenshot({path:'outputs/grafik-heute-G3-360.png'});
+  });
+  await check('Existing fixture weather causes appear in the same hint',async()=>{
+   const weatherPage=await browser.newPage({viewport:{width:360,height:800}});try{await weatherPage.addInitScript({content:fixtureSource('planning-ui.test.cjs')});await weatherPage.goto(pathToFileURL(path.join(assets,'mobile.html')).href);await weatherPage.waitForFunction(()=>document.body.dataset.fieldReady==='true');await weatherPage.evaluate(()=>PlanningUI.open());assert.match(await weatherPage.locator('#planning-body .planning-weather-reason').first().innerText(),/Regen im Arbeitszeitraum/);}finally{await weatherPage.close();}
+  });
  }finally{await browser.close();}
  fs.writeFileSync('outputs/visual-consistency-tests.json',JSON.stringify({classification:'SYNTHETIC_TEST',nativeDevice:false,results},null,2));if(results.some(x=>x.result==='FAIL'))process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1;});

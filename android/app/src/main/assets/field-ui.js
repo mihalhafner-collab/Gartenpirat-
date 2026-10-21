@@ -30,7 +30,7 @@
     const dock=document.createElement('div');dock.id='field-today-actions';dock.setAttribute('aria-label','Arbeit und Planung');
     dock.innerHTML='<button type="button" class="secondary field-planning" data-open="planning-page">Planung</button>';
     if(quick){quick.querySelector('strong').textContent='Arbeit erfassen';quick.querySelector('small').textContent='Zeit, Leistung & Notiz';dock.append(quick);}
-    get('home').append(dock);
+    (get('workday-timer')||get('home').querySelector('.hero')).after(dock);
     // Original record form is moved, never copied. Drafts and listeners survive.
     const form=get('entry'),entry=get('work-entry'),placeholder=document.createComment('work-entry origin');entry.before(placeholder);
     const sheet=document.createElement('dialog');sheet.id='field-quick-entry';sheet.setAttribute('aria-labelledby','field-quick-title');
