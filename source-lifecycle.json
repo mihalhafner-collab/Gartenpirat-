@@ -20,7 +20,8 @@
     "ki": "1BNJ3Zh3OjmBn-qySvu9gQzHB0Z1HgQZd",
     "current_apk": "1K4WB9L6ZKlW-33o8uPK3zTfqgAOVOE8u",
     "legacy_gemini": "1WLfTST7nZeqLU5oda2-CzPwbgWFjI6kz",
-    "gemini_link": "1pi6NAVn8tEfLusS9x950YQB0TV_eTkzA"
+    "gemini_link": "1pi6NAVn8tEfLusS9x950YQB0TV_eTkzA",
+    "candidate91": "1HFf0WpI0BGYL60jMEbYc9BfnvOVlYxKf"
   },
   "runtime_folder_ids": [
     "1qR33tKpsKa-VxLeuTbXibjgYGjpyE8__",
@@ -29,7 +30,9 @@
   ],
   "protected_file_ids": [
     "1yp-i450bx9MIrn_t6-O1Srhwe7yGlFSg",
-    "1hHgCQSG64R3jYN3TsdZlbMa0ibxI9OgQ"
+    "1hHgCQSG64R3jYN3TsdZlbMa0ibxI9OgQ",
+    "1aqJIqC4oZXAym0QRYkE9pDFHeA3Yy2Kr",
+    "1GZMxQpfGHwOF385_I5yyzyN0z5NQqFXh"
   ],
   "retention_days": {
     "apk_retired": 0,

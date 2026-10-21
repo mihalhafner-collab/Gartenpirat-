@@ -143,7 +143,7 @@ def review_bundle(archive_path, output, commit):
                 'source_sha256': fingerprint(main), 'source_files': len(files),
                 'text_files': len(texts), 'public_binary_files': len(files) - len(texts),
                 'zip_name': archive_path.name, 'zip_sha256': digest(archive_path.read_bytes()),
-                'text_reconstruction': 'PASS', 'apk_for_this_commit': 'NOT BUILT', 'files': inventory}
+                'text_reconstruction': 'PASS', 'apk_for_this_commit': 'NOT ATTESTED BY SOURCE EXPORT', 'files': inventory}
     (output / '01-MANIFEST.json').write_bytes(json_bytes(manifest))
     (output / '00-START.txt').write_text(
         f'HAUS & GARTEN – gemeinsamer aktueller Quellcode für Gemini und Perplexity\n'

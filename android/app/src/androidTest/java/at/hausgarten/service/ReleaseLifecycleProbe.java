@@ -14,20 +14,29 @@ final class ReleaseLifecycleProbe {
     static void connectionUi(Instrumentation runner,Context context,Class<?> type,int normalSwitches)throws Exception{
         android.app.Activity activity=runner.startActivitySync(new Intent(context,type).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         runner.waitForIdleSync();
+        Throwable[] failure={null};
         runner.runOnMainSync(()->{
+            try{
             java.util.List<android.view.View> views=new java.util.ArrayList<>();collectViews(activity.getWindow().getDecorView(),views);
-            int shownSwitches=0,shownInputs=0;android.widget.Button reveal=null;
+            boolean planning=type==PlanningConnectionActivity.class;
+            int shownSwitches=0,shownInputs=0;android.widget.Button reveal=null,accountDetails=null;android.widget.TextView diagnostics=null;
             for(android.view.View v:views){
                 if(v.isShown()&&v instanceof android.widget.CheckBox)shownSwitches++;
                 if(v.isShown()&&v instanceof android.widget.EditText)shownInputs++;
-                if(v instanceof android.widget.Button&&((android.widget.Button)v).getText().toString().startsWith("Erweitert / Diagnose"))reveal=(android.widget.Button)v;
+                if(v instanceof android.widget.Button){String label=((android.widget.Button)v).getText().toString();if(planning?label.equals("Arbeitszeiten und Wettergrenzen"):label.startsWith("Erweitert / Diagnose"))reveal=(android.widget.Button)v;if(planning&&label.equals("Konto und Freigaben"))accountDetails=(android.widget.Button)v;}
+                if(planning&&v instanceof android.widget.TextView&&((android.widget.TextView)v).getText().toString().contains("Android-OAuth-Paket:"))diagnostics=(android.widget.TextView)v;
             }
             require(shownSwitches==normalSwitches&&shownInputs==0&&reveal!=null);
             reveal.performClick();int revealed=0;for(android.view.View v:views)if(v.isShown()&&v instanceof android.widget.EditText)revealed++;
             require(revealed>0);reveal.performClick();for(android.view.View v:views)if(v instanceof android.widget.EditText)require(!v.isShown());
+            if(planning){require(accountDetails!=null&&diagnostics!=null&&!diagnostics.isShown());accountDetails.performClick();require(diagnostics.isShown()&&diagnostics.getText().toString().contains(context.getPackageName())&&diagnostics.getText().toString().contains(CalendarAuthorization.signingSha1(context)));accountDetails.performClick();require(!diagnostics.isShown());}
+            }catch(Throwable caught){failure[0]=caught;}
+            finally{
             activity.finish();
+            }
         });
         runner.waitForIdleSync();
+        if(failure[0] instanceof Error)throw (Error)failure[0];if(failure[0] instanceof Exception)throw (Exception)failure[0];
     }
     static String js(Instrumentation runner,android.webkit.WebView view,String script)throws Exception{
         java.util.concurrent.CountDownLatch done=new java.util.concurrent.CountDownLatch(1);String[] result={null};
@@ -38,9 +47,9 @@ final class ReleaseLifecycleProbe {
         android.app.Activity activity=runner.startActivitySync(new Intent(context,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         java.lang.reflect.Field field=MainActivity.class.getDeclaredField("webView");field.setAccessible(true);android.webkit.WebView view=(android.webkit.WebView)field.get(activity);
         long deadline=SystemClock.elapsedRealtime()+120000;boolean ready=false;
-        while(SystemClock.elapsedRealtime()<deadline){if("true".equals(js(runner,view,"typeof HGBusinessActions==='object'&&typeof HGBusinessFeedback==='object'&&typeof WorklogArchiveUI==='object'&&typeof PhotoLibraryUI==='object'&&typeof openPage==='function'&&!!document.querySelector('[data-open-garden-menu]')"))){ready=true;break;}SystemClock.sleep(250);}
+        while(SystemClock.elapsedRealtime()<deadline){if("true".equals(js(runner,view,"typeof HGBusinessActions==='object'&&typeof HGBusinessFeedback==='object'&&typeof WorklogArchiveUI==='object'&&typeof PhotoLibraryUI==='object'&&typeof openPage==='function'&&document.body.dataset.fieldReady==='true'&&!!document.querySelector('[data-open-garden-menu]')"))){ready=true;break;}SystemClock.sleep(250);}
         require(ready);
-        require("true".equals(js(runner,view,"(()=>{const nav=[...document.querySelectorAll('.bottom-inner [data-open]')].map(x=>x.dataset.open);return nav.length===4&&nav.includes('more-page')&&typeof crypto.randomUUID==='function'&&[1,2].at(-1)===2&&Object.hasOwn({a:1},'a')&&'a-a'.replaceAll('-','')==='aa';})()")));
+        require("true".equals(js(runner,view,"(()=>{const nav=[...document.querySelectorAll('.bottom-inner [data-open]')].map(x=>x.dataset.open);return nav.join(',')==='home,customers,more-page'&&!!document.querySelector('#field-today-actions [data-open=\"planning-page\"]')&&typeof crypto.randomUUID==='function'&&[1,2].at(-1)===2&&Object.hasOwn({a:1},'a')&&'a-a'.replaceAll('-','')==='aa';})()")));
         require("true".equals(js(runner,view,"(()=>{openPage('worklogs');document.querySelector('[data-select-start]').click();document.querySelector('[data-select-visible]').click();const n=document.querySelectorAll('#worklog-list .worklog-selected').length;document.querySelector('[data-select-cancel]').click();return n>0&&document.querySelectorAll('#worklog-list .worklog-entry[aria-pressed]').length===0&&currentPage==='worklogs';})()")));
         require("true".equals(js(runner,view,"(()=>{openPage('more-page');document.querySelector('[data-open-garden-menu]').click();return document.querySelector('#gp-dialog').open;})()")));
         require("true".equals(js(runner,view,"(()=>{Gartenpirat.close();openPage('home');return !!document.querySelector('#workday-timer.has-active-session');})()")));
@@ -49,7 +58,7 @@ final class ReleaseLifecycleProbe {
         try(android.os.ParcelFileDescriptor screenshot=runner.getUiAutomation().executeShellCommand("screencap -p /data/local/tmp/gartenpirat-cloud-ui.png");java.io.InputStream stream=new android.os.ParcelFileDescriptor.AutoCloseInputStream(screenshot)){byte[] buffer=new byte[1024];while(stream.read(buffer)!=-1){}}
         require("true".equals(js(runner,view,"(()=>{const site=customers().find(x=>x.name==='QA Einsatzort');if(!site)return false;openCustomer(site.id);document.querySelector('[data-customer-tab=\"garden\"]').click();return currentPage==='customer-profile-page'&&!!document.getElementById('customer-garden-form')&&document.querySelectorAll('.customer-hub-tabs button').length===4&&document.querySelector('.customer-hub-tabs [data-customer-tab=\"overview\"]').getAttribute('aria-pressed')==='true';})()")));
         require("true".equals(js(runner,view,"(()=>{TrashUI.open();return currentPage==='trash-page'&&document.getElementById('trash-content').innerText.length>0&&!!document.getElementById('trash-empty');})()")));
-        require("true".equals(js(runner,view,"(()=>{openPage('more-page');return document.querySelectorAll('#more-page [data-more-group]').length===4&&document.querySelectorAll('#more-page [data-open-trash]').length===1;})()")));
+        require("true".equals(js(runner,view,"(()=>{openPage('more-page');if(document.querySelectorAll('#more-page [data-more-group]').length!==4||document.querySelectorAll('#more-page [data-open-trash]').length!==0)return false;document.querySelector('#more-page [data-open=\"settings-page\"]').click();return currentPage==='settings-page'&&document.querySelectorAll('#settings-page [data-open-trash]').length===1;})()")));
         require("true".equals(js(runner,view,"(()=>{const site=customers().find(x=>x.name==='QA Einsatzort'),order=orders().find(x=>site&&x.customer_id===site.id&&x.title==='QA Pflege');if(!order)return false;PlanningUI.openForOrder(order.id);return currentPage==='planning-page'&&document.querySelector('#appointment-form [name=customer_id]').value===site.id&&document.querySelector('#appointment-form [name=order_id]').value===order.id&&!!document.getElementById('planning-discard');})()")));
         require("true".equals(js(runner,view,"(()=>{document.getElementById('planning-back').click();return !!document.querySelector('[data-planning-resume]')&&!!document.querySelector('#planning-page [data-open=weeks]');})()")));
         connectionUi(runner,context,DriveConnectionActivity.class,1);

@@ -51,11 +51,33 @@ def compare_identity(previous, candidate):
     return 'PASS'
 
 
+def candidate_assets(apk, assets_root, intermediates):
+    comparison = compare_assets_to_source(apk, assets_root)
+    profiles = {'dexopt/baseline.prof': ('binary_art_profile', b'pro\0'),
+                'dexopt/baseline.profm': ('binary_art_profile_metadata', b'prm\0')}
+    verified = {}
+    with zipfile.ZipFile(apk) as archive:
+        for name in comparison['added']:
+            if name not in profiles:
+                continue  # Every unknown addition continues to fail the asset gate.
+            folder, magic = profiles[name]
+            reference = Path(intermediates) / folder / 'release/compileReleaseArtProfile' / Path(name).name
+            raw = archive.read('assets/' + name)
+            if (not reference.is_file() or reference.is_symlink()
+                    or not raw.startswith(magic) or raw != reference.read_bytes()):
+                raise ValueError('Generated ART profile lacks an identical compiler output')
+            verified[name] = hashlib.sha256(raw).hexdigest()
+    comparison['added'] = [name for name in comparison['added'] if name not in verified]
+    comparison['generated_profiles'] = verified
+    comparison['matches'] = not any(comparison[key] for key in ('added', 'removed', 'changed'))
+    return comparison
+
+
 def verify(apk, aapt, apksigner, baseline=None):
     meta = metadata(apk, aapt, apksigner)
     if meta['package'] != PACKAGE or meta['version_code'] <= 65:
         raise ValueError('Unexpected package or old development version')
-    assets = compare_assets_to_source(apk, ROOT/'android/app/src/main/assets')
+    assets = candidate_assets(apk, ROOT/'android/app/src/main/assets', ROOT/'android/app/build/intermediates')
     if not assets['matches']:
         raise ValueError('Packaged assets differ: ' + json.dumps(assets))
     seed = empty_seed(apk)

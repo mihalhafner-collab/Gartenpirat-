@@ -40,8 +40,23 @@ final class CalendarAuthorization {
         }catch(ConsentRequired required){throw required;}catch(Exception error){throw failure(error);}
     }
     static String fromIntent(Context context,Intent data,boolean busy)throws DriveRestClient.Failure {
-        try{if(data==null)throw failure("CALENDAR_CONSENT_CANCELLED");return accepted(busy,Identity.getAuthorizationClient(context).getAuthorizationResultFromIntent(data));}
+        try{if(data==null)throw failure("CALENDAR_AUTH_RESULT_MISSING");return accepted(busy,Identity.getAuthorizationClient(context).getAuthorizationResultFromIntent(data));}
         catch(Exception error){throw failure(error);}
+    }
+    static String fromActivityResult(Context context,int result,Intent data,boolean busy)throws DriveRestClient.Failure {
+        // A non-OK Google result can contain a precise ApiException. Decode it first.
+        if(data==null)throw failure(CalendarAccessRules.missingResultCode(result));
+        return fromIntent(context,data,busy);
+    }
+    static String signingSha1(Context context){
+        try{
+            int flag=android.os.Build.VERSION.SDK_INT>=28?android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES:android.content.pm.PackageManager.GET_SIGNATURES;
+            android.content.pm.PackageInfo info=context.getPackageManager().getPackageInfo(context.getPackageName(),flag);
+            android.content.pm.Signature[] signers=android.os.Build.VERSION.SDK_INT>=28?info.signingInfo.getApkContentsSigners():info.signatures;
+            if(signers==null||signers.length!=1)return "nicht eindeutig";
+            byte[] digest=java.security.MessageDigest.getInstance("SHA-1").digest(signers[0].toByteArray());StringBuilder value=new StringBuilder();
+            for(byte b:digest){if(value.length()>0)value.append(':');value.append(String.format(java.util.Locale.ROOT,"%02X",b&255));}return value.toString();
+        }catch(Exception unavailable){return "nicht lesbar";}
     }
     private static String accepted(boolean busy,AuthorizationResult result)throws DriveRestClient.Failure {
         String code=CalendarAccessRules.grantCode(busy,result.getAccessToken(),result.getGrantedScopes());
@@ -51,13 +66,13 @@ final class CalendarAuthorization {
         try{Tasks.await(Identity.getAuthorizationClient(context).clearToken(ClearTokenRequest.builder().setToken(rejected).build()),45,TimeUnit.SECONDS);}
         catch(Exception error){throw failure(error);}
     }
-    static DriveRestClient.Failure failure(String code){return new DriveRestClient.Failure(code,CalendarAccessRules.message(code),code.equals("CALENDAR_TOKEN_NETWORK")?30000:0,!code.equals("CALENDAR_TOKEN_NETWORK"));}
+    static DriveRestClient.Failure failure(String code){boolean retry=code.equals("CALENDAR_TOKEN_NETWORK")||code.equals("CALENDAR_INTERRUPTED");return new DriveRestClient.Failure(code,CalendarAccessRules.message(code),retry?30000:0,!retry);}
     static DriveRestClient.Failure failure(Exception error){
         Throwable cause=error;for(int i=0;i<4&&cause instanceof ExecutionException&&cause.getCause()!=null;i++)cause=cause.getCause();
         if(cause instanceof DriveRestClient.Failure)return (DriveRestClient.Failure)cause;
         if(cause instanceof ApiException){String known=CalendarAccessRules.authenticationCode((ApiException)cause);return failure(known.equals("CALENDAR_APP_REGISTRATION_REQUIRED")||known.equals("CALENDAR_SCOPE_UNSUPPORTED")?known:CalendarAccessRules.googleStatus(((ApiException)cause).getStatusCode()));}
         if(cause instanceof java.util.concurrent.TimeoutException)return failure("CALENDAR_TOKEN_NETWORK");
-        if(cause instanceof InterruptedException){Thread.currentThread().interrupt();return failure("CALENDAR_CONSENT_CANCELLED");}
+        if(CalendarRecoveryRules.interrupted(cause)){Thread.currentThread().interrupt();return failure("CALENDAR_INTERRUPTED");}
         return failure(CalendarAccessRules.authenticationCode(cause instanceof Exception?(Exception)cause:error));
     }
     private CalendarAuthorization(){}
