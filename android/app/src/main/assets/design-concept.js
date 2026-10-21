@@ -4,6 +4,9 @@
   const get=id=>document.getElementById(id);
   let profileId='',documentationFilter='all',documentationLimit=50,photoLimit=30,photoAddDialog=null,photoViewer=null,viewerRows=[],viewerIndex=0,viewerScale=1,viewerX=0,viewerY=0,viewerLoadToken=0;
   const moreLists=new Map();let moreId=0;
+  const viewerOriginals=new Map();
+  function cacheViewerOriginal(picture,data){picture.full_data=data;viewerOriginals.delete(picture.id);viewerOriginals.set(picture.id,picture);while(viewerOriginals.size>2){const [id,old]=viewerOriginals.entries().next().value;if(old.full_data===old._viewerOriginal)delete old.full_data;delete old._viewerOriginal;viewerOriginals.delete(id);}picture._viewerOriginal=data;}
+  function releaseViewerOriginals(){for(const row of viewerOriginals.values()){if(row.full_data===row._viewerOriginal)delete row.full_data;delete row._viewerOriginal;}viewerOriginals.clear();}
   const hours=value=>Number(value||0).toLocaleString('de-AT',{maximumFractionDigits:2})+' h';
   const openStatuses=new Set(['','Geplant','Aktiv','In Arbeit','Wartet auf Material','Offen']);
   function previewRows(rows,limit,label,renderRow){
@@ -125,6 +128,7 @@
     const reset=()=>{viewerScale=1;viewerX=0;viewerY=0;applyViewerTransform();};
     const show=()=>{
       const picture=viewerRows[viewerIndex];if(!picture)return;
+      image.dataset.recordType='photo';image.dataset.recordId=picture.id;
       const token=++viewerLoadToken,status=photoViewer.querySelector('[data-photo-status]'),preview=picture.thumbnail_data,embedded=picture.full_data||picture.data,linked=!!(picture.worklog_id||picture.order_id),linkedNote=linked?' Foto ist einem Arbeitseinsatz oder Auftrag zugeordnet.':'';
       const source=embedded||preview||'';
       status.textContent=(embedded?'Original ist offline verfügbar.':preview?'Vorschau wird angezeigt. Original wird geladen …':'Original wird geladen …')+linkedNote;
@@ -137,11 +141,12 @@
         try{
           const loaded=window.AndroidData.getPhotoData(picture.id);
           if(token!==viewerLoadToken||!photoViewer.open)return;
-          if(String(loaded).startsWith('data:image/')){picture.full_data=loaded;image.src=loaded;status.textContent='Original ist offline verfügbar.'+linkedNote;}
+          if(String(loaded).startsWith('data:image/')){cacheViewerOriginal(picture,loaded);image.src=loaded;status.textContent='Original ist offline verfügbar.'+linkedNote;}
           else status.textContent='Original derzeit nicht verfügbar: '+String(loaded||'kein lokaler oder verbundener Drive-Inhalt').replace(/^ERROR:\s*/,'')+linkedNote;
         }catch(error){if(token===viewerLoadToken&&photoViewer.open)status.textContent='Original derzeit nicht verfügbar: '+String(error.message||error)+linkedNote;}
       },0));
     };
+    photoViewer.addEventListener('close',()=>{viewerLoadToken++;releaseViewerOriginals();image.removeAttribute('src');});
     photoViewer._show=show;
     photoViewer.querySelector('.design-photo-close').onclick=()=>photoViewer.close();
     photoViewer.querySelector('[data-photo-previous]').onclick=()=>{viewerIndex=(viewerIndex-1+viewerRows.length)%viewerRows.length;show();};
@@ -221,7 +226,7 @@
     const notes=extra(form,'notes','+ Fotos und Notizen');moveField(notes,'entry-notes');moveField(notes,'photo');moveField(notes,'entry-photo_caption');
     const job=extra(form,'order','+ Auftrag und Arbeitsort · optional');moveField(job,'order');job.append(get('work-entry-add-order'));moveField(job,'entry-location');
     // Empty old shells contain no data and no actions; remove only those shells.
-    form.querySelectorAll('.entry-block').forEach(x=>x.remove());const oldExtra=form.querySelector('.more:not(.simple-extra)');if(oldExtra)oldExtra.remove();form.append(form.querySelector('.actions'));
+    form.querySelectorAll('.entry-block').forEach(x=>x.remove());const oldExtra=form.querySelector('.more:not(.simple-extra)');if(oldExtra)oldExtra.remove();form.append(form.querySelector('button[type="submit"]').closest('.actions'));
     const card=get('edit-worklog-card'),main=document.createElement('section');main.className='simple-primary';card.prepend(main);moveField(main,'edit-worklog-customer');
     const editGrid=document.createElement('div');editGrid.className='form-grid simple-date-hours';const editDate=document.createElement('div'),editHours=document.createElement('div');editGrid.append(editDate,editHours);main.append(editGrid);moveField(editDate,'edit-worklog-date');moveField(editHours,'edit-worklog-hours');moveField(main,'edit-worklog-activity');
     const editTimes=extra(card,'time','+ Zeit und Pause');editTimes.append(get('edit-worklog-start').closest('.form-grid'));moveField(editTimes,'edit-worklog-pause');
@@ -232,7 +237,7 @@
     const status=extra(card,'status','+ Abrechnung und Kundenansicht');['edit-worklog-billed','edit-worklog-visible'].forEach(id=>status.append(get(id).closest('label')));
     const invoiceAction=card.querySelector('[data-invoice-worklog]');if(invoiceAction)status.append(invoiceAction);
     card.querySelectorAll('.worklog-edit-section-heading,.worklog-hours-hint,h3').forEach(x=>x.remove());card.querySelector('.worklog-edit-advanced')?.remove();
-    const cancel=document.createElement('button');cancel.type='button';cancel.className='secondary';cancel.id='new-work-cancel';cancel.textContent='Abbrechen';cancel.onclick=()=>{if(window.hasWorkEntryDraft()&&!confirm('Begonnene Eingabe verwerfen?'))return;form.reset();get('date').value=localDate();window.handleAndroidBack();};form.querySelector('.actions').append(cancel);
+    const cancel=document.createElement('button');cancel.type='button';cancel.className='secondary';cancel.id='new-work-cancel';cancel.textContent='Abbrechen';cancel.onclick=()=>{if(window.hasWorkEntryDraft()&&!confirm('Begonnene Eingabe verwerfen?'))return;form.reset();get('date').value=localDate();window.handleAndroidBack();};form.querySelector('button[type="submit"]').closest('.actions').append(cancel);
   }
   document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});
 })();

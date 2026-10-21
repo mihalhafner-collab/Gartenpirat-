@@ -24,7 +24,8 @@ public final class PixelTunnelService extends Service implements McpSyncHost {
     private ConnectivityManager manager;
     private ConnectivityManager.NetworkCallback callback;
     private PixelLocalStore store;
-    private long nextDriveSync;
+    private final Handler drivePollHandler=new Handler(Looper.getMainLooper());
+    private final Runnable drivePoll=new Runnable(){public void run(){if(running&&!closing.get()&&new PixelTunnelConfig(PixelTunnelService.this).enabled()){DriveSyncCoordinator.poll(PixelTunnelService.this);drivePollHandler.postDelayed(this,SyncWakeup.ACTIVE_POLL_MS);}}};
 
     @Override public void onCreate(){
         super.onCreate();
@@ -33,13 +34,17 @@ public final class PixelTunnelService extends Service implements McpSyncHost {
         ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).createNotificationChannel(channel);
         startForeground(NOTICE,notice("Verbindung startet"));running=true;closing.set(false);
         manager=(ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);
-        callback=new ConnectivityManager.NetworkCallback(){@Override public void onLost(Network network){if(http!=null)http.close();}@Override public void onAvailable(Network network){if(running&&!closing.get())DriveSyncCoordinator.request(PixelTunnelService.this,3000);}};
+        callback=new ConnectivityManager.NetworkCallback(){private Network ready;
+            @Override public void onLost(Network network){if(network.equals(ready))ready=null;if(http!=null)http.close();}
+            @Override public void onCapabilitiesChanged(Network network,NetworkCapabilities caps){if(caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)){if(!network.equals(ready)){ready=network;if(running&&!closing.get())DriveSyncCoordinator.request(PixelTunnelService.this,0);}}else if(network.equals(ready))ready=null;}
+        };
         manager.registerDefaultNetworkCallback(callback);
     }
     @Override public int onStartCommand(Intent intent,int flags,int startId){
         if(intent!=null&&STOP.equals(intent.getAction())){new PixelTunnelConfig(this).enabled(false);stopSelf();return START_NOT_STICKY;}
         PixelTunnelConfig config=new PixelTunnelConfig(this);
         if(!config.enabled()||!config.configured()){status("not_configured","Zweiten Tunnel einmalig einrichten.");stopSelf();return START_NOT_STICKY;}
+        drivePollHandler.removeCallbacks(drivePoll);drivePollHandler.post(drivePoll);
         if(worker==null||!worker.isAlive()){worker=new Thread(this::runTunnel,"pixel-mcp-tunnel");worker.start();}
         return START_STICKY;
     }
@@ -63,7 +68,6 @@ public final class PixelTunnelService extends Service implements McpSyncHost {
                 PixelTunnelWire tunnel=new PixelTunnelWire(config.id(),http,new PixelMcpReadTools(this::readState,allowed,new PixelOwnerAccess(this,store)));
                 status("connecting","OpenAI-Tunnel wird geprüft.");tunnel.verify();failures=0;
                 while(!closing.get()&&config.enabled()){
-                    if(System.currentTimeMillis()>=nextDriveSync){nextDriveSync=System.currentTimeMillis()+15*60*1000;DriveSyncCoordinator.request(this,1000);}
                     if(config.writeEnabled()!=(allowed!=null))break; // Rebuild the advertised catalogue after a permission change.
                     tunnel.cycle();status("ready",config.writeEnabled()?"Tunnel erreichbar · Betriebsdaten lesen und bearbeiten":"Tunnel erreichbar · Betriebsdaten lesen");
                 }
@@ -110,6 +114,7 @@ public final class PixelTunnelService extends Service implements McpSyncHost {
         return result;
     }
     @Override public void onDestroy(){
+        drivePollHandler.removeCallbacks(drivePoll);
         closing.set(true);running=false;if(http!=null)http.close();if(worker!=null)worker.interrupt();
         if(manager!=null&&callback!=null)try{manager.unregisterNetworkCallback(callback);}catch(Exception ignored){}
         SharedPreferences p=getSharedPreferences("pixel_tunnel_status",MODE_PRIVATE);

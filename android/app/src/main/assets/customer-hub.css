@@ -11,3 +11,4 @@
 @media(max-width:480px){.customer-hub-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.customer-hub-tabs button{word-break:normal;overflow-wrap:normal}}
 
 @media(max-width:360px){#customer-photo-library .form-grid{grid-template-columns:minmax(0,1fr)}}
+.customer-garden-facts{margin:12px 0}.customer-garden-facts summary{padding:12px 0;min-height:44px;cursor:pointer;font-weight:700;color:var(--green)}.customer-garden-facts dl>div{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:8px;padding:8px 0;border-top:1px solid var(--line)}.customer-garden-facts dt{color:var(--muted);overflow-wrap:anywhere}.customer-garden-facts dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}

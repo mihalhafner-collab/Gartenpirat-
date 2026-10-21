@@ -50,7 +50,8 @@ oder eine fertige APK ist kein Ersatz für einen extern gesicherten Quellstand.
 - Jede ausgelieferte Version erhält eine eindeutige, anschließend unveränderte
   Git-Versionsmarke und einen Versionsnachweis mit Quellcommit, Quellfingerprint,
   APK-SHA-256 sowie Original-Quellarchiv und dessen SHA-256. Kopie im bestehenden
-  privaten Drive ablegen und zurücklesen; Archive je Version erhalten. TXT-Dateien
+  privaten Drive ablegen und zurücklesen; Originalquellen je Version als unveränderliche
+  Git-Tags erhalten, Drive-Artefakte nach `source-lifecycle.json` aufbewahren. TXT-Dateien
   für ChatGPT/Perplexity ausschließlich daraus ableiten. Die Originalsignierung
   bleibt in der geschützten persönlichen Cloud-Umgebung, nicht in GitHub Actions.
 - `AKTUELLER-STAND.json` nach belegter Auslieferung aktualisieren. Unbestätigte
@@ -61,6 +62,47 @@ oder eine fertige APK ist kein Ersatz für einen extern gesicherten Quellstand.
 - Bestehende Tasks erhalten neue Regeln nicht automatisch. Bei Fortsetzung die
   aktuelle `AGENTS.md` vom GitHub-main lesen und die eigene Arbeit zuerst sichern;
   die Regelaktualisierung autorisiert kein Überschreiben anderer Arbeitsstände.
+
+## Ablage, Aktualisierung und regelmäßige Bereinigung (21. Oktober 2026)
+
+Der Nutzer hat das Ablage-/Aufbewahrungskonzept vollständig zur autonomen Umsetzung
+freigegeben, einschließlich geprüfter PR-Übernahme nach main und endgültiger
+Löschung eindeutig ersetzter administrativer Artefakte. Maßgeblich sind
+`source-lifecycle.json`, `source-releases.json` und `tools/source_lifecycle.py`.
+Keine pauschale Löschung nach Dateiname oder Alter und keine Git-Historienumschreibung.
+
+- GitHub-main ist der geprüfte integrierte Stand; laufende Arbeit auf einem
+  passenden Branch sichern. Originalquellen ausgelieferter Versionen anhand
+  unveränderlicher `source/v<Version>-build<Nummer>`-Tags und Quell-/APK-/ZIP-Hashes
+  abrufbar halten. Installierter Stand und neuere Entwicklung bleiben getrennt.
+- Bei Arbeitsbeginn `AKTUELLER-STAND.json`, frischen main und offene Branches
+  vergleichen. Bei Abschluss nach Tests/Privacy Commit, Push und exakten Remote-
+  Readback durchführen; danach `python3 tools/source_lifecycle.py export --output
+  <neuer-externer-Exportordner>` verwenden. Derselbe verifizierte Export versorgt
+  Gemini und Perplexity. Neue Generation vollständig hochladen und zurücklesen,
+  erst danach Wegweiser aktualisieren. Vorhandene gute Generation bis dahin erhalten.
+- Drive-Ordner-IDs und private Freigaben aus der Policy erhalten. Produktiven
+  Datenordner ausschließlich verlinken; Journale, Fotos, Rechnungen, Nummern,
+  Datenbankschemata und operative Sync-Referenzen nicht umräumen oder bereinigen.
+- Behalten: aktuelle und vorherige ausgelieferte APK samt Originalquellen, zusätzlich
+  jede davon abweichende tatsächlich installierte Version. Aktive/unklare Dateien
+  und einzige ungesicherte Originalquellen schützen. Exporte nach 7 Tagen,
+  erledigte Test-APKs nach 14 Tagen, Buildausgaben nach 7 Tagen und Logs nach
+  30 Tagen ersetzen/löschen. SDK-/Abhängigkeitscaches gezielt bei Platzbedarf erhalten.
+- Bei einer tatsächlich geprüften neuen Auslieferung Schutzmengen in Policy und
+  Register anhand der neuesten zwei Auslieferungen und belegten Installation
+  fortschreiben; Original-Tags erhalten. Alte Schutzkennzeichen erst nach diesen
+  Nachweisen aufheben und die vollständige Frist ab bestätigter Ersetzung beginnen.
+- Die freigegebene Aufräumautomatik darf ausschließlich explizit registrierte,
+  unveränderte Dateien in verwalteten administrativen Ordnern endgültig löschen.
+  Frische vollständige Liste, bestätigter Ersatz, Frist, Originalschutz und
+  unmittelbar erneute Einzelmetadatenprüfung sind Pflicht. Fehlende Belege oder
+  Konflikte zurückhalten; keine blinden Upload-/Löschwiederholungen. Jede Löschung
+  mit ID/Hash/Bytezählung protokollieren, ohne Betriebsinhalte zu übernehmen.
+- Dauerhafter Scheduler: tägliche Bestands-/Aktualitätsprüfung, wöchentliche
+  Bereinigung, monatliche Wiederherstellungsprobe. Tatsächliche Ausführung und
+  eingerichtete Zeitpläne getrennt nachweisen. Fehlender Zugriff bleibt sichtbar.
+
 
 ## Verbindlicher Cloud-only-Arbeitsweg (Auftrag vom 18. Oktober 2026)
 
@@ -137,6 +179,15 @@ konkreten Betriebsauftrag. Schreibtests bleiben vollständig isoliert.
 
 ## Alltagstauglichkeit
 
+Aktueller Nutzerauftrag vom 20.10.2026: Das
+[MCP-Testdossier](https://chatgpt.com/space/page_7f18b1e34e808191b3851b6c15ebf582)
+bei Folgearbeiten berücksichtigen. MCP übernimmt voraussichtlich die meisten
+Eingaben; die App priorisiert deshalb lesbare Übersichten. Gespeicherte Einträge
+zuerst lesend öffnen, manuelle Editoren erst ausdrücklich. Bekannten, eindeutig
+zugeordneten Kontext übernehmen und sichtbar machen; keine Kunden, Zeiten oder
+Preise erraten. Alle bisherigen Funktionen und die vollständige Bedienbarkeit
+ohne MCP erhalten. Laufende oder noch abzuschließende Arbeit bleibt vorrangig.
+
 Die App bleibt vollständig ohne KI bedienbar. Prioritäten: Datenintegrität,
 Zuverlässigkeit, Übersichtlichkeit und einfache, schnelle Bedienung.
 Wichtige Aktionen für kleine Hände gut erreichbar machen, eindeutige Beschriftungen
@@ -171,6 +222,28 @@ Journaltypen fail-closed zurückhalten. Eine Geschäfts-MCP-Sicherung ersetzt ke
 vollständige Gerätesicherung.
 
 ## Drive-Abgleich und Kundenakte
+
+Für ausdrücklich beauftragte Codex-Quellcode-/Dateiübertragungen nach Drive:
+`tools/drive_source_transfer.py` mit dem vorbereiteten öffentlichen ZIP-/UTF-8-TXT-Export,
+einer frischen vollständigen Ordnerliste und vorhandenen tatsächlichen Readback-Belegen
+verwenden. Eine Ordnerliste ersetzt Einzel-Metadatenabfragen. Nur geänderte/fehlende
+Dateien hochladen; neue/veränderte Dateien weiterhin zurücklesen. Bei unklarer
+Uploadantwort vor Wiederholung frisch auflisten und abgleichen, doppelte Namen
+zurückhalten. SHA256-Byteprüfung und reine Streamgrößenprüfung ausdrücklich
+unterscheiden. Keine Kontozugriffe oder Löschungen aus dem Plan ableiten;
+bestehende Nutzerautorisierung und Privacy-Gates bleiben maßgeblich. Quell-ZIPs
+über `tests/package_source_copy.py` deterministisch erzeugen; `--reuse-existing`
+prüft Originalbytes/Inventar/Dateimodi/Privacy vor Wiederverwendung. Prüfbelege
+außerhalb des Exportordners führen; technische Evidenz im zentralen Status.
+Für Durchsatz/Latenz bis zu drei unabhängige Artefaktketten aus dem Transferplan
+überlappend ausführen (Upload → tatsächliches Rücklesen → Beleg), nächste Datei
+sofort bei freiem Platz starten. Innerhalb der Payload-Phase größte Dateien zuerst;
+Inventar/Prüfsummen erst nach verifizierten Payloads, Startdatei zuletzt.
+Erst nach der Verifikationsbarriere Abschluss
+melden bzw. ausdrücklich autorisierte Altdateibereinigung ausführen. Keine
+parallelen konkurrierenden Änderungen derselben Datei, keine blinden POST-Retries.
+Datenvolumen ist auf ausdrücklichen Nutzerwunsch kein Optimierungsziel; Grenzen
+dienen RAM, Zuverlässigkeit, Anbieterlimits und zeitnahen Veröffentlichungen.
 
 Direkter Drive-Serverbeleg und Android-Provider-Rücklesen bleiben unterschiedliche
 Zustände. Bestehende Journal-IDs, Veröffentlichungsfolgen und Originaldateien

@@ -166,7 +166,7 @@ class SourcePreservationTests(unittest.TestCase):
             (self.repo / 'qa_untracked.py').write_text('QA_UNTRACKED = True\n')
         with mock.patch.object(packager, 'ROOT', self.repo):
             with mock.patch.object(packager, 'source_gate', side_effect=change_after_checkpoint), mock.patch.object(packager, 'workspace_gate'):
-                with mock.patch.object(packager, 'artifact_gate', return_value={'status': 'PASS'}):
+                with mock.patch('tools.drive_source_transfer.artifact_gate', return_value={'status': 'PASS'}):
                     with mock.patch.object(sys, 'argv', ['package_source_copy.py', '--target', 'perplexity', '--output', str(target)]):
                         output = io.StringIO()
                         with contextlib.redirect_stdout(output):
@@ -174,7 +174,51 @@ class SourcePreservationTests(unittest.TestCase):
         with zipfile.ZipFile(target) as archive:
             self.assertEqual(archive.namelist(), ['qa_source.py'])
             self.assertEqual(archive.read('qa_source.py'), b'QA_VALUE = 1\n')
+            self.assertEqual((archive.getinfo('qa_source.py').external_attr >> 16) & 0o777, 0o644)
         self.assertEqual(json.loads(output.getvalue())['source_preservation']['git_sha'], self.head)
+
+    def test_preserved_export_can_reuse_identical_archive_and_executable_mode(self):
+        self.source.chmod(0o755)
+        self.git('add', 'qa_source.py')
+        self.git('commit', '-m', 'QA executable source')
+        self.git('push', 'origin', 'main')
+        spec = importlib.util.spec_from_file_location('qa_source_packager', ROOT / 'tests/package_source_copy.py')
+        packager = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(packager)
+        target = self.root / 'qa_source.zip'
+        results = []
+        with mock.patch.object(packager, 'ROOT', self.repo):
+            with mock.patch.object(packager, 'source_gate'), mock.patch.object(packager, 'workspace_gate'):
+                for extra in ([], ['--reuse-existing']):
+                    with mock.patch.object(sys, 'argv', ['package_source_copy.py', '--output', str(target), *extra]):
+                        output = io.StringIO()
+                        with contextlib.redirect_stdout(output):
+                            packager.main()
+                        results.append(json.loads(output.getvalue()))
+        self.assertFalse(results[0]['reused'])
+        self.assertTrue(results[1]['reused'])
+        self.assertEqual(results[0]['artifact']['sha256'], results[1]['artifact']['sha256'])
+        self.assertEqual(results[1]['source_preservation']['git_sha'], self.git('rev-parse', 'HEAD'))
+        with zipfile.ZipFile(target) as archive:
+            self.assertEqual((archive.getinfo('qa_source.py').external_attr >> 16) & 0o777, 0o755)
+
+    def test_export_rejects_a_committed_symlink_without_reading_its_target(self):
+        outside = self.root / 'qa_outside.py'
+        outside.write_text('QA_OUTSIDE = True\n')
+        (self.repo / 'qa_link.py').symlink_to(outside)
+        self.git('add', 'qa_link.py')
+        self.git('commit', '-m', 'QA linked source')
+        self.git('push', 'origin', 'main')
+        spec = importlib.util.spec_from_file_location('qa_source_packager', ROOT / 'tests/package_source_copy.py')
+        packager = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(packager)
+        target = self.root / 'qa_source.zip'
+        with mock.patch.object(packager, 'ROOT', self.repo):
+            with mock.patch.object(packager, 'source_gate'), mock.patch.object(packager, 'workspace_gate'):
+                with mock.patch.object(sys, 'argv', ['package_source_copy.py', '--output', str(target)]):
+                    with self.assertRaisesRegex(ValueError, 'regular source files'):
+                        packager.main()
+        self.assertFalse(target.exists())
 
 
 if __name__ == '__main__':

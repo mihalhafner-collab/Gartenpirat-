@@ -9,7 +9,7 @@ const assert=require('node:assert/strict'),path=require('node:path'),fs=require(
   await page.addInitScript(()=>{
    window.fixture={master:{customers:[{id:'qa_c',name:'QA Testkunde',active:1,updated_at:'t1'}],orders:[{id:'qa_o',customer_id:'qa_c',title:'QA Testauftrag',updated_at:'t1'}],worklogs:[],invoices:[],photos:[],offers:[],service_catalog:[]},pending:[]};
    window.archive=Array.from({length:65},(_,i)=>({archive_key:'order:qa_old-'+i,record_hash:'archive-hash-'+i,entry:{record:{id:'qa_old-'+i,customer_id:'qa_c',title:i===0?'<script>QA untrusted</script>':'QA Papierkorb '+i},archived_at:'2026-10-18T12:00:00Z'}}));
-   window.calls=[];window.block=false;window.stale=false;window.failDelete=false;window.failRestore=false;window.failPurge=false;window.retryCount=0;
+   window.calls=[];window.blockedTrash=[];window.block=false;window.stale=false;window.failDelete=false;window.failRestore=false;window.failList=false;window.failPurge=false;window.retryCount=0;
    window.items=[{client_id:'queued',kind:'order',entity_id:'qa_o',state:'sync_pending',next_action:'retry_sync',message:'Lokal gespeichert · Übertragung ausstehend.'},{client_id:'review',kind:'customer',entity_id:'qa_c',state:'sync_conflict',next_action:'compare_versions',message:'QA Versionsprüfung'}];
    window.statusFixture={configured:true,state:'retry_wait',title:'Erneuter Versuch folgt',detail:'Auf diesem Gerät gesichert. Automatischer Versuch folgt.',last_error:'QA Verbindung unterbrochen',last_error_code:'TRANSFER_FAILED',phase:'reading',retry_count:2,last_sync_attempt:'2026-10-18T12:00:00Z',next_retry:1792328400000,transport:'android_provider',confirmation_scope:'provider_readback',cloud_confirmed:false,pending:1,review:1};
    const ok=data=>JSON.stringify({ok:true,data}),bad=message=>JSON.stringify({ok:false,error:{code:'WRITE_CONFLICT',message}});
@@ -20,10 +20,10 @@ const assert=require('node:assert/strict'),path=require('node:path'),fs=require(
      if(failDelete)return bad('Neue Version – nichts gelöscht');const group=a.entity==='photo'?'photos':'orders',row=fixture.master[group].find(x=>x.id===a.entity_id);if(!row)return bad('Nicht vorhanden');archive.unshift({archive_key:a.entity+':'+a.entity_id,record_hash:'new-archive-hash',entry:{record:row,archived_at:'2026-10-18T13:00:00Z'}});fixture.master[group]=fixture.master[group].filter(x=>x.id!==row.id);return ok({entity_id:row.id,local_state:'local_saved',cloud_confirmed:false});
     }
     if(name==='preview_purge'){const x=archive.find(x=>x.archive_key===a.entity+':'+a.entity_id);return x?ok({allowed:true,expected_record_hash:x.record_hash}):bad('Nicht im Papierkorb');}
-    if(name==='preview_empty_trash')return ok({total:archive.length,count:archive.length,blocked:[],preview_hash:'empty-'+archive.map(x=>x.record_hash).join('|')});
-    if(name==='empty_trash'){if(failPurge)return bad('Papierkorb wurde geändert');if(a.confirmed!==true||a.expected_preview_hash!=='empty-'+archive.map(x=>x.record_hash).join('|'))return bad('Ungültige Vorschau');const deleted=archive.length;archive=[];return ok({deleted,cloud_confirmed:false});}
+    if(name==='preview_empty_trash')return ok({total:archive.length,count:archive.filter(x=>!blockedTrash.includes(x.archive_key)).length,blocked:blockedTrash.map(archive_key=>({archive_key,message:'QA geschützte Verknüpfung'})),preview_hash:'empty-'+archive.map(x=>x.record_hash).join('|')});
+    if(name==='empty_trash'){if(failPurge)return bad('Papierkorb wurde geändert');if(a.confirmed!==true||a.expected_preview_hash!=='empty-'+archive.map(x=>x.record_hash).join('|'))return bad('Ungültige Vorschau');const deleted=archive.filter(x=>!blockedTrash.includes(x.archive_key)).length;archive=archive.filter(x=>blockedTrash.includes(x.archive_key));return ok({deleted,cloud_confirmed:false});}
     if(name==='purge_entity'){if(failPurge)return bad('Archiv wurde geändert');const x=archive.find(x=>x.archive_key===a.entity+':'+a.entity_id);if(!x||x.record_hash!==a.expected_record_hash||a.confirmed!==true)return bad('Ungültiger Löschvergleich');archive=archive.filter(v=>v!==x);return ok({local_state:'local_saved'});}
-    if(name==='list_archive'){let rows=archive.filter(x=>(!a.entity||x.archive_key.split(':')[0]===a.entity)&&(!a.entity_id||x.archive_key.split(':')[1]===a.entity_id));return ok({archive:rows.slice(a.offset||0,(a.offset||0)+(a.limit||20)),total:rows.length});}
+    if(name==='list_archive'){if(failList)return bad('QA Papierkorb vorübergehend nicht lesbar');let rows=archive.filter(x=>(!a.entity||x.archive_key.split(':')[0]===a.entity)&&(!a.entity_id||x.archive_key.split(':')[1]===a.entity_id));return ok({archive:rows.slice(a.offset||0,(a.offset||0)+(a.limit||20)),total:rows.length});}
     if(name==='restore_entity'){
      if(failRestore)return bad('Archivversion geändert – Original bleibt erhalten');const x=archive.find(x=>x.archive_key===a.entity+':'+a.entity_id);if(!x||a.expected_record_hash!==x.record_hash)return bad('Hash falsch');fixture.master.orders.push(x.entry.record);archive=archive.filter(y=>y!==x);return ok({local_state:'local_saved',cloud_confirmed:false});
     }
@@ -56,6 +56,12 @@ const assert=require('node:assert/strict'),path=require('node:path'),fs=require(
   await check('Trash pagination keeps 65 records accessible in bounded views',async()=>{
    await page.evaluate(()=>TrashUI.open());assert.equal(await page.locator('[data-trash-restore]').count(),30);await page.locator('#trash-more').click();assert.equal(await page.locator('[data-trash-restore]').count(),60);await page.locator('#trash-more').click();assert.equal(await page.locator('[data-trash-restore]').count(),65);assert.equal(await page.locator('#trash-content script').count(),0);assert.match(await page.locator('#trash-content').innerText(),/<script>QA untrusted/);
   });
+  await check('Trash category filter is read-only; whole-trash deletion remains explicit and cancellable',async()=>{
+   const before=await page.evaluate(()=>archive.length);await page.locator('#trash-kind').selectOption('photo');assert.equal(await page.locator('[data-trash-restore]').count(),0);assert.match(await page.locator('#trash-content').innerText(),/dieser Kategorie/);assert(await page.locator('#trash-empty').isEnabled());page.once('dialog',d=>{assert.match(d.message(),/gesamten Papierkorb/);d.dismiss();});await page.locator('#trash-empty').click();assert.equal(await page.evaluate(()=>archive.length),before);assert.equal(await page.evaluate(()=>calls.filter(x=>x.name==='empty_trash').length),0);await page.locator('#trash-kind').selectOption('');assert.equal(await page.locator('[data-trash-restore]').count(),30);assert.equal(await page.locator('#trash-kind option[value=appointment]').count(),1);
+  });
+  await check('Failed trash read offers a safe reload and retains all original entries',async()=>{
+   const before=await page.evaluate(()=>archive.length);await page.evaluate(()=>failList=true);await page.locator('#trash-refresh').click();assert.match(await page.locator('#trash-content').innerText(),/Neu laden/);assert.equal(await page.evaluate(()=>archive.length),before);await page.evaluate(()=>failList=false);await page.locator('#trash-refresh').click();assert.equal(await page.locator('[data-trash-restore]').count(),30);await page.locator('#trash-more').click();await page.locator('#trash-more').click();assert.equal(await page.locator('[data-trash-restore]').count(),65);
+  });
   await check('Restore conflict keeps archive visible and enables retry',async()=>{
    await page.evaluate(()=>failRestore=true);await page.locator('[data-trash-restore="0"]').click();assert.equal(await page.locator('[data-trash-restore]').count(),65);assert.equal(await page.locator('[data-trash-restore="0"]').isEnabled(),true);assert.match(await page.locator('#mobile-toast').innerText(),/Archivversion geändert/);await page.evaluate(()=>failRestore=false);
   });
@@ -76,12 +82,12 @@ const assert=require('node:assert/strict'),path=require('node:path'),fs=require(
    assert.equal(await page.locator('#settings-page #photo-quality').count(),1);assert.equal(await page.locator('#more-page #photo-quality').count(),0);assert.equal(await page.locator('#settings-page [data-business-editor]').count(),1);
   });
   await check('More groups all existing destinations and preserves native handlers',async()=>{
-   await page.waitForSelector('[data-more-group="data"]',{state:'attached'});
+   await page.waitForSelector('[data-more-group="data"]',{state:'attached'});await page.waitForFunction(()=>!!document.getElementById('app-drawer'));
    assert.equal(await page.locator('#more-page [data-more-group]').count(),4);
    assert.equal(await page.locator('[data-more-group="work"] [data-open="orders"]').count(),1);
    assert.equal(await page.locator('[data-more-group="billing"] [data-open="invoices"]').count(),1);
    assert.equal(await page.locator('[data-more-group="media"] [data-open-garden-menu]').count(),1);
-   assert.equal(await page.locator('[data-more-group="data"] [data-open-trash]').count(),1);
+   assert.equal(await page.locator('#settings-data-tools [data-open-trash]').count(),1);assert.equal(await page.locator('#more-page [data-more-destination=trash]').count(),1);
    assert.equal(await page.locator('#sync-page [data-open-trash]').count(),0);
   });
   await check('More labels stay readable at narrow widths and 150 percent font',async()=>{
@@ -111,6 +117,20 @@ const assert=require('node:assert/strict'),path=require('node:path'),fs=require(
    page.once('dialog',d=>{assert.match(d.message(),/136/);d.dismiss();});assert.equal(await page.evaluate(()=>TrashUI.empty()),false);assert.equal(await page.evaluate(()=>archive.length),136);
    await page.evaluate(()=>failPurge=true);page.once('dialog',d=>d.accept());assert.equal(await page.evaluate(()=>TrashUI.empty()),false);const first=await page.evaluate(()=>calls.filter(x=>x.name==='empty_trash').at(-1).args.request_id);assert.equal(await page.evaluate(()=>archive.length),136);
    await page.evaluate(()=>failPurge=false);page.once('dialog',d=>d.accept());assert.equal(await page.evaluate(()=>TrashUI.empty()),true);assert.equal(await page.evaluate(()=>calls.filter(x=>x.name==='empty_trash').at(-1).args.request_id),first);assert.equal(await page.locator('[data-trash-restore]').count(),0);assert(await page.locator('#trash-empty').isDisabled());assert.equal(await page.evaluate(()=>JSON.stringify(fixture.master)),active);
+  });
+  await check('A change during confirmation refuses the stale bulk request without losing archive entries',async()=>{
+   await page.evaluate(()=>{archive=[{archive_key:'worklog:qa_confirm_race',record_hash:'qa_before_confirm',entry:{record:{id:'qa_confirm_race',activity:'QA confirmed race'},archived_at:'2026-10-21'}}];TrashUI.open();});
+   const result=await page.evaluate(()=>{const original=window.confirm;window.confirm=()=>{archive[0].record_hash='qa_after_confirm';return true;};try{return TrashUI.empty();}finally{window.confirm=original;}});
+   assert.equal(result,false);assert.equal(await page.evaluate(()=>archive.length),1);assert.match(await page.locator('#mobile-toast').innerText(),/Vorschau|geändert/);
+  });
+  await check('Entirely protected trash explains why nothing is removed and sends no delete',async()=>{
+   await page.evaluate(()=>{blockedTrash=archive.map(x=>x.archive_key);TrashUI.open();});const before=await page.evaluate(()=>calls.filter(x=>x.name==='empty_trash').length);
+   assert.equal(await page.evaluate(()=>TrashUI.empty()),false);assert.equal(await page.evaluate(()=>calls.filter(x=>x.name==='empty_trash').length),before);assert.equal(await page.evaluate(()=>archive.length),1);assert.match(await page.locator('#mobile-toast').innerText(),/verknüpft/);
+  });
+  await check('Partial bulk deletion clearly reports protected remainder and keeps it restorable',async()=>{
+   await page.evaluate(()=>{archive.push({archive_key:'worklog:qa_free_trash',record_hash:'qa_free_hash',entry:{record:{id:'qa_free_trash',activity:'QA free trash'},archived_at:'2026-10-21'}});TrashUI.open();});
+   page.once('dialog',d=>{assert.match(d.message(),/1 geschützte/);d.accept();});assert.equal(await page.evaluate(()=>TrashUI.empty()),true);
+   assert.equal(await page.evaluate(()=>archive.length),1);assert.equal(await page.locator('[data-trash-restore]').count(),1);assert.match(await page.locator('#mobile-toast').innerText(),/1 geschützte Einträge bleiben/);
   });
   fs.mkdirSync('outputs',{recursive:true});fs.writeFileSync('outputs/sync-trash-results.json',JSON.stringify({environment:'Cloud Chromium',bridge:'synthetic',device:false,results},null,2));if(results.some(x=>x.result==='FAIL'))process.exitCode=1;
  }finally{await browser.close();}

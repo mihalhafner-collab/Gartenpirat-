@@ -28,6 +28,7 @@ final class LocalOwnerRepository implements OwnerRepository {
     JSONArray plants()throws Exception{return new JSONObject(new String(asset("plant-catalog.json"),StandardCharsets.UTF_8)).getJSONArray("plants");}
     JSONObject entry(String id)throws Exception{return PixelMcpWriteTools.find(plants(),id);}
     JSONObject readChunk(JSONObject a)throws Exception{
+        if("backup".equals(a.optString("resource_type"))){JSONObject meta=fileMeta(a.getString("resource_id"));if(DeletionBackupStore.SCOPE.equals(meta.optString("scope")))return DeletionBackupStore.chunk(deletionBackupRoot(),meta,a);}
         String type=a.getString("resource_type"),id=a.getString("resource_id"),mime;byte[] bytes;
         switch(type){
             case "photo":{
@@ -74,7 +75,21 @@ final class LocalOwnerRepository implements OwnerRepository {
         byte[] bytes=saved.toString().getBytes(StandardCharsets.UTF_8);if(bytes.length>64*1024*1024)throw new IOException("Sicherung überschreitet die sichere Transfergrenze von 64 MiB. Vollständige Geräte-/Dateisicherung verwenden; kein Teilerfolg.");
         String id="backup_"+PixelMcpWriteTools.hash(request);JSONObject meta=new JSONObject().put("kind","backup").put("byte_size",bytes.length).put("sha256",digest(bytes)).put("created_at",java.time.Instant.now().toString()).put("includes_credentials",false).put("scope","business_snapshot_pending_local_photos_and_documents");putFile(id,meta,bytes);return new JSONObject().put("backup_id",id).put("metadata",meta).put("collections",backupCounts(saved)).put("complete_device_backup",false);
     }
+    java.io.File deletionBackupRoot(){return new java.io.File(context.getNoBackupFilesDir(),"deletion-backups");}
+    public JSONObject protectDeletion(JSONObject snapshot,JSONArray entries,String request)throws Exception{
+        JSONObject result=DeletionBackupStore.capture(deletionBackupRoot(),snapshot,entries,request,(type,record)->{
+            if(type.equals("photo")){
+                try{return store.photoAttachmentStore().read(record);}catch(IOException missing){if(!DriveSyncCoordinator.fetchPhoto(context,record,store.photoAttachmentStore()))throw new IOException("Fotooriginal für Löschsicherung nicht verfügbar. Nichts gelöscht; Verbindung prüfen.");return store.photoAttachmentStore().read(record);}
+            }
+            try{return new BusinessDocumentStore(context).read(record);}catch(IOException missing){byte[] bytes=DriveSyncCoordinator.fetchDocument(context,record);new BusinessDocumentStore(context).store(bytes,record);return new BusinessDocumentStore(context).read(record);}
+        });
+        // Only the small index is transactional SQLite data. ZIP bytes stay private
+        // and durable even if a later enqueue/commit fails; originals are never lost.
+        putFile(result.getString("backup_id"),result.getJSONObject("metadata"),new byte[0]);return result;
+    }
+    JSONObject inspectDeletionBackup(String id,JSONObject meta)throws Exception{return DeletionBackupStore.inspect(deletionBackupRoot(),meta).put("backup_id",id).put("metadata",meta).put("state_hash",PixelMcpWriteTools.hash(state()));}
     public JSONObject restoreBackup(JSONObject a,String request)throws Exception{
+        if(DeletionBackupStore.SCOPE.equals(fileMeta(a.getString("backup_id")).optString("scope")))throw new IllegalArgumentException("Löschsicherung enthält gezielt gesicherte Originale. Vor einer Wiederherstellung einzeln prüfen; endgültig entfernte IDs werden nicht automatisch wieder angelegt.");
         if(!PixelMcpWriteTools.hash(state()).equals(a.getString("expected_state_hash")))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","App-Datenstand wurde seit Prüfung geändert.");
         if(state().getJSONArray("pending").length()!=0||!"IDLE".equals(state().getJSONObject("work_session").optString("state")))throw new IllegalArgumentException("Ausstehende Aktionen oder Zeiterfassung zuerst prüfen. Keine Daten ersetzt.");
         JSONObject meta=fileMeta(a.getString("backup_id"));byte[] bytes=fileBytes(a.getString("backup_id"));if(!"backup".equals(meta.optString("kind"))||!digest(bytes).equals(meta.getString("sha256")))throw new IllegalArgumentException("Sicherung beschädigt.");
@@ -108,7 +123,7 @@ final class LocalOwnerRepository implements OwnerRepository {
     @Override public JSONObject requestPlanning()throws Exception{return AppointmentRuntime.request(context,store);}
     @Override public JSONObject acknowledgeWeather(JSONObject args)throws Exception{return AppointmentRuntime.acknowledge(context,store,args);}
     @Override public JSONObject resolveCalendar(JSONObject args)throws Exception{return AppointmentRuntime.resolve(context,store,args);}
-    @Override public void checkBusy(JSONObject appointment)throws Exception{AppointmentRuntime.checkBusy(store,appointment);}
+    @Override public void checkBusy(JSONObject appointment)throws Exception{AppointmentRuntime.checkBusy(context,store,appointment);}
     interface Request { JSONObject run() throws Exception; }
     JSONObject runRequest(String request,String fingerprint,Request command)throws Exception{
         SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();JSONObject result;

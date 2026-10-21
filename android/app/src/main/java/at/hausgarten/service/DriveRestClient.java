@@ -10,9 +10,16 @@ import java.util.*;
 final class DriveRestClient {
     static final String API="https://www.googleapis.com/drive/v3/", UPLOAD="https://www.googleapis.com/upload/drive/v3/files";
     static final int MAX_JSON=64*1024*1024, CHUNK=256*1024;
+    static final int LARGE_CHUNK=4*1024*1024, CACHE_LIMIT=4*1024*1024, CACHE_ENTRY_LIMIT=512*1024;
+    static final int HTTP_CONCURRENCY=6;
+    private static final java.util.concurrent.Semaphore HTTP_SLOTS=new java.util.concurrent.Semaphore(HTTP_CONCURRENCY,true);
+    private static final java.util.regex.Pattern IMMUTABLE_JSON=java.util.regex.Pattern.compile("HausGarten-(?:Commit|State|Mobile-[A-Za-z0-9_-]+)-([0-9a-f]{64})\\.json");
     interface Token { String get() throws Exception; }
     interface Checkpoints { String get(String key); void put(String key,String value); }
-    interface Wire { Reply send(String method,String url,Map<String,String> headers,byte[] body,int maximum)throws Exception; }
+    interface Wire {
+        Reply send(String method,String url,Map<String,String> headers,byte[] body,int maximum)throws Exception;
+        default void cancel(Thread thread){}
+    }
     static final class Reply {
         final int status;final byte[] body;final Map<String,String> headers;
         Reply(int status,byte[] body,Map<String,String> headers){this.status=status;this.body=body;this.headers=headers;}
@@ -24,31 +31,64 @@ final class DriveRestClient {
         Failure(String code,String message,long retryAfter,boolean userAction){super(message);this.code=code;this.retryAfter=retryAfter;this.userAction=userAction;}
     }
     static final class HttpWire implements Wire {
+        interface Connections {HttpURLConnection open(URL target)throws IOException;}
+        private final Connections connections;
+        HttpWire(){this(target->(HttpURLConnection)target.openConnection());}
+        HttpWire(Connections connections){this.connections=connections;}
+        private final java.util.concurrent.ConcurrentHashMap<Thread,HttpURLConnection> active=new java.util.concurrent.ConcurrentHashMap<>();
+        public void cancel(Thread thread){HttpURLConnection connection=active.get(thread);if(connection!=null)connection.disconnect();}
         public Reply send(String method,String url,Map<String,String> headers,byte[] body,int maximum)throws Exception{
             URL target=new URL(url);if(!"https".equals(target.getProtocol())||!"www.googleapis.com".equals(target.getHost())||target.getPort()!=-1)throw new SecurityException("Unzulässiges Drive-Ziel.");
-            HttpURLConnection c=(HttpURLConnection)target.openConnection();c.setConnectTimeout(15000);c.setReadTimeout(30000);c.setInstanceFollowRedirects(false);c.setRequestMethod(method);
+            HttpURLConnection c=connections.open(target);c.setConnectTimeout(15000);c.setReadTimeout(30000);c.setInstanceFollowRedirects(false);c.setRequestMethod(method);
+            boolean drained=false;
+            active.put(Thread.currentThread(),c);
             try{
+                if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("Drive-Übertragung unterbrochen.");
                 for(Map.Entry<String,String> h:headers.entrySet())c.setRequestProperty(h.getKey(),h.getValue());
                 if(body!=null){c.setDoOutput(true);c.setFixedLengthStreamingMode(body.length);try(OutputStream out=c.getOutputStream()){out.write(body);}}
                 int status=c.getResponseCode();Map<String,String> hs=new HashMap<>();for(Map.Entry<String,List<String>> h:c.getHeaderFields().entrySet())if(h.getKey()!=null&&!h.getValue().isEmpty())hs.put(h.getKey(),h.getValue().get(0));
                 InputStream input=status>=400?c.getErrorStream():c.getInputStream();ByteArrayOutputStream out=new ByteArrayOutputStream();
                 if(input!=null)try(InputStream in=input){byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1){if(out.size()+n>maximum)throw new Failure("PAYLOAD_LIMIT","Drive-Datei überschreitet die zulässige Größe.",0,true);out.write(b,0,n);}}
-                return new Reply(status,out.toByteArray(),hs);
-            }finally{c.disconnect();}
+                drained=true;return new Reply(status,out.toByteArray(),hs);
+            }finally{ // Closed, fully consumed streams return to Android's connection pool; disconnect aborts failures.
+                active.remove(Thread.currentThread(),c);if(!drained)c.disconnect();
+            }
         }
     }
     final String folder;private final Token token;private final Wire wire;private final Checkpoints checkpoints;
     private final Map<String,JSONArray> listings=new HashMap<>();private final Map<String,Map<String,JSONObject>> indexes=new HashMap<>();
+    private final Map<String,JSONObject> rootIds=new HashMap<>();
+    private final LinkedHashMap<String,byte[]> immutableReads=new LinkedHashMap<>(16,.75f,true);
+    private int cachedBytes;
+    private final Set<Thread> activeRequests=java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private static final class Traffic {final java.util.concurrent.atomic.AtomicLong retryAt=new java.util.concurrent.atomic.AtomicLong();}
+    private Traffic traffic=new Traffic();
     String checkpoint(String key){return checkpoints.get("drive-meta:"+folder+":"+key);}
     void checkpoint(String key,String value){checkpoints.put("drive-meta:"+folder+":"+key,value);}
     DriveRestClient(String folder,Token token,Wire wire,Checkpoints checkpoints){if(!validId(folder))throw new IllegalArgumentException("Ungültige Drive-Ordnerkennung.");this.folder=folder;this.token=token;this.wire=wire;this.checkpoints=checkpoints;}
+    /** Each worker owns its caches; writes and refreshes never mutate another worker's inventory. */
+    DriveRestClient fork(String parent,JSONArray rows)throws Exception{
+        DriveRestClient child=new DriveRestClient(folder,token,wire,checkpoints);
+        child.traffic=traffic;child.listings.put(parent,new JSONArray(rows.toString()));return child;
+    }
+    void cancelActiveTransfers(){for(Thread thread:activeRequests)wire.cancel(thread);}
     static boolean validId(String id){return id!=null&&id.matches("[A-Za-z0-9_-]{10,200}");}
     static String folderId(String input){String value=input.trim();if(value.startsWith("https://drive.google.com/drive/folders/"))value=value.substring("https://drive.google.com/drive/folders/".length()).split("[?#/]",2)[0];if(!validId(value))throw new IllegalArgumentException("Bitte einen gültigen Drive-Ordnerlink verwenden.");return value;}
     private static String enc(String s)throws Exception{return URLEncoder.encode(s,"UTF-8");}
     private Reply send(String method,String url,byte[] body,Map<String,String> extra,int max)throws Exception{
         if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("Drive-Übertragung wurde unterbrochen. Gesicherte Teile bleiben erhalten.");
+        long remaining=traffic.retryAt.get()-System.currentTimeMillis();
+        if(remaining>0)throw new Failure("TEMPORARY_UNAVAILABLE","Google Drive ist vorübergehend nicht erreichbar. Automatischer neuer Versuch folgt.",remaining,false);
         Map<String,String> h=new HashMap<>(extra);String t=token.get();if(t==null||t.isEmpty())throw new Failure("AUTH_REQUIRED","Google Drive erneut verbinden.",0,true);h.put("Authorization","Bearer "+t);
-        Reply r=wire.send(method,url,h,body,max);if(r.status==401)throw new Failure("AUTH_REQUIRED","Google-Drive-Anmeldung ist abgelaufen. Erneut verbinden.",0,true);
+        try{HTTP_SLOTS.acquire();}catch(InterruptedException stopped){Thread.currentThread().interrupt();throw new InterruptedIOException("Drive-Übertragung unterbrochen.");}
+        Reply r;activeRequests.add(Thread.currentThread());
+        try{
+            if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("Drive-Übertragung unterbrochen.");
+            remaining=traffic.retryAt.get()-System.currentTimeMillis();if(remaining>0)throw new Failure("TEMPORARY_UNAVAILABLE","Google Drive ist vorübergehend nicht erreichbar. Automatischer neuer Versuch folgt.",remaining,false);
+            r=wire.send(method,url,h,body,max);
+            if(r.status==429||r.status>=500)traffic.retryAt.accumulateAndGet(System.currentTimeMillis()+retryAfter(r.header("Retry-After")),Math::max);
+        }finally{activeRequests.remove(Thread.currentThread());HTTP_SLOTS.release();}
+        if(r.status==401)throw new Failure("AUTH_REQUIRED","Google-Drive-Anmeldung ist abgelaufen. Erneut verbinden.",0,true);
         if(r.status==403)throw new Failure("PERMISSION_REQUIRED","Google-Freigabe für diesen Ordner fehlt oder das API-Kontingent ist eingeschränkt. Verbindung prüfen.",0,true);
         if(r.status==429||r.status>=500)throw new Failure("TEMPORARY_UNAVAILABLE","Google Drive ist vorübergehend nicht erreichbar. Automatischer neuer Versuch folgt.",retryAfter(r.header("Retry-After")),false);
         return r;
@@ -66,11 +106,61 @@ final class DriveRestClient {
             JSONArray rows=data.getJSONArray("files");for(int i=0;i<rows.length();i++){if(all.length()>=20000)throw new Failure("FOLDER_LIMIT","Drive-Ordner enthält zu viele Dateien. Prüfung erforderlich.",0,true);all.put(rows.getJSONObject(i));}page=data.optString("nextPageToken");if(!page.isEmpty()&&!pages.add(page))throw new IOException("Drive-Seitennavigation wiederholt sich.");
         }while(!page.isEmpty());listings.put(parent,all);return all;
     }
-    void refresh(){listings.clear();indexes.clear();}
+    void refresh(){listings.clear();indexes.clear();rootIds.clear();}
     JSONObject unique(String parent,String name)throws Exception{
         if(!indexes.containsKey(parent)){Map<String,JSONObject> index=new HashMap<>();JSONArray rows=list(parent);for(int i=0;i<rows.length();i++){JSONObject row=rows.getJSONObject(i);String key=row.getString("name");if(index.containsKey(key))index.put(key,null);else index.put(key,row);}indexes.put(parent,index);}Map<String,JSONObject> index=indexes.get(parent);if(index.containsKey(name)&&index.get(name)==null)throw new Failure("DUPLICATE_FILES","Gleichnamige Drive-Dateien benötigen Prüfung. Keine Variante überschrieben.",0,true);return index.get(name);
     }
     byte[] read(String id,int max)throws Exception{if(!validId(id))throw new IllegalArgumentException("Ungültige Drive-Datei.");Reply r=send("GET",API+"files/"+id+"?alt=media&supportsAllDrives=true",null,Collections.emptyMap(),max);if(r.status!=200)throw new Failure("DRIVE_READ_FAILED","Drive-Original ist nicht verfügbar.",0,true);return r.body;}
+    /** Only content-addressed JSON is reusable. A refresh still obtains the complete current inventory. */
+    byte[] readRoot(String id,int max)throws Exception{
+        if(rootIds.isEmpty()){JSONArray rows=list(folder);for(int i=0;i<rows.length();i++){JSONObject row=rows.getJSONObject(i);rootIds.put(row.getString("id"),row);}}
+        JSONObject file=rootIds.get(id);return file==null?read(id,max):readListed(file,max);
+    }
+    byte[] readListed(JSONObject file,int max)throws Exception{
+        String id=file.getString("id"),name=file.optString("name");
+        java.util.regex.Matcher match=IMMUTABLE_JSON.matcher(name);
+        if(!match.matches())return read(id,max); // Legacy state, counters, media and CAS always read fresh.
+        String version=file.optString("version"),md5=file.optString("md5Checksum"),size=file.optString("size");
+        boolean reusable=!version.isEmpty()&&md5.matches("[0-9a-f]{32}")&&size.matches("[0-9]+");
+        String key=id+":"+name+":"+version+":"+md5+":"+size;
+        byte[] saved;synchronized(immutableReads){saved=reusable?immutableReads.get(key):null;}
+        if(saved!=null){if(saved.length>max)throw new Failure("PAYLOAD_LIMIT","Drive-Datei überschreitet die zulässige Größe.",0,true);return saved.clone();}
+        byte[] raw=read(id,max);
+        if(!sha256(raw).equals(match.group(1)))throw new Failure("IMMUTABLE_FILE_CONFLICT","Hashgesicherte Drive-Datei wurde verändert. Originale bleiben erhalten.",0,true);
+        if(reusable&&size.equals(Integer.toString(raw.length))&&raw.length<=CACHE_ENTRY_LIMIT){
+            synchronized(immutableReads){
+            byte[] old=immutableReads.remove(key);if(old!=null)cachedBytes-=old.length;
+            while(!immutableReads.isEmpty()&&(cachedBytes+raw.length>CACHE_LIMIT||immutableReads.size()>=256)){Iterator<byte[]> it=immutableReads.values().iterator();cachedBytes-=it.next().length;it.remove();}
+            immutableReads.put(key,raw.clone());cachedBytes+=raw.length;
+            }
+        }
+        return raw;
+    }
+    static int uploadChunkSize(int total){return total>=8*1024*1024?LARGE_CHUNK:total>=1024*1024?1024*1024:CHUNK;}
+    String inventoryFingerprint()throws Exception{
+        JSONArray rows=list(folder);TreeMap<String,JSONArray> sorted=new TreeMap<>();
+        for(int i=0;i<rows.length();i++){JSONObject row=rows.getJSONObject(i);if(row.optString("version").isEmpty())return "";
+            sorted.put(row.getString("id"),new JSONArray().put(row.optString("name")).put(row.optString("mimeType")).put(row.getString("version")).put(row.optString("md5Checksum")).put(row.optString("size")));}
+        JSONArray ordered=new JSONArray();for(Map.Entry<String,JSONArray> entry:sorted.entrySet())ordered.put(new JSONArray().put(entry.getKey()).put(entry.getValue()));
+        return sha256(ordered.toString().getBytes(StandardCharsets.UTF_8));
+    }
+    /** Read independent commit bodies in bounded waves; validation/application still run in original order. */
+    void readCommitFiles(Map<String,String> names,DrivePrimaryState.CommitVisitor visitor)throws Exception{
+        Map<String,JSONObject> metadata=new HashMap<>();JSONArray rows=list(folder);for(int i=0;i<rows.length();i++){JSONObject row=rows.getJSONObject(i);metadata.put(row.getString("id"),row);}
+        Iterator<Map.Entry<String,String>> remaining=names.entrySet().iterator();Map.Entry<String,String> next=remaining.hasNext()?remaining.next():null;
+        while(next!=null){
+            List<Map.Entry<String,String>> wave=new ArrayList<>();List<java.util.concurrent.Callable<byte[]>> tasks=new ArrayList<>();
+            while(next!=null&&wave.size()<DriveTransferPool.WORKERS){
+                Map.Entry<String,String> file=next;JSONObject row=metadata.get(file.getKey());long size=row==null?-1:row.optLong("size",-1);boolean small=size>=0&&size<=CACHE_ENTRY_LIMIT;
+                if(!small&&!wave.isEmpty())break;
+                wave.add(file);int maximum=small?(int)Math.max(1,size):MAX_JSON;
+                tasks.add(()->row==null?read(file.getKey(),maximum):readListed(row,maximum));
+                next=remaining.hasNext()?remaining.next():null;if(!small)break;
+            }
+            List<DriveTransferPool.Result<byte[]>> result=DriveTransferPool.run(tasks,this::cancelActiveTransfers);
+            for(int i=0;i<result.size();i++){if(result.get(i).error!=null)throw result.get(i).error;Map.Entry<String,String> file=wave.get(i);visitor.accept(file.getKey(),file.getValue(),result.get(i).value);}
+        }
+    }
     Reply readConditional(String id)throws Exception {
         if(!validId(id))throw new IllegalArgumentException("Ungültige Nummernkreis-Datei.");
         Reply r=send("GET",API+"files/"+id+"?alt=media&supportsAllDrives=true",null,Collections.emptyMap(),4*1024*1024);
@@ -115,7 +205,7 @@ final class DriveRestClient {
     String ensureDirectory(String name)throws Exception{
         JSONObject old=unique(folder,name);if(old!=null){if(!"application/vnd.google-apps.folder".equals(old.optString("mimeType")))throw new IOException("Erwarteter Drive-Fotoordner ist keine Mappe.");return old.getString("id");}
         JSONObject m=new JSONObject().put("name",name).put("mimeType","application/vnd.google-apps.folder").put("parents",new JSONArray().put(folder));Reply r=send("POST",API+"files?fields=id&supportsAllDrives=true",m.toString().getBytes(StandardCharsets.UTF_8),Collections.singletonMap("Content-Type","application/json"),8192);
-        if(r.status!=200&&r.status!=201)throw new IOException("Drive-Ordner konnte nicht angelegt werden.");listings.clear();indexes.clear();return r.json().getString("id");
+        if(r.status!=200&&r.status!=201)throw new IOException("Drive-Ordner konnte nicht angelegt werden.");refresh();return r.json().getString("id");
     }
     /** Immutable, resumable upload. A server readback is mandatory, including after crash/replay. */
     JSONObject put(String parent,String name,String mime,byte[] bytes)throws Exception{
@@ -133,14 +223,14 @@ final class DriveRestClient {
             Reply start=send("POST",UPLOAD+"?uploadType=resumable&fields=id,name&supportsAllDrives=true",meta.toString().getBytes(StandardCharsets.UTF_8),hs,8192);
             if(start.status!=200&&start.status!=201)throw new IOException("Drive-Übertragung konnte nicht begonnen werden.");location=start.header("Location");validateSession(location);checkpoints.put(key,location);
         }
-        while(offset<bytes.length){int end=(int)Math.min(bytes.length,offset+CHUNK);Map<String,String> hs=new HashMap<>();hs.put("Content-Type",mime);hs.put("Content-Range","bytes "+offset+"-"+(end-1)+"/"+bytes.length);Reply chunk=send("PUT",location,Arrays.copyOfRange(bytes,(int)offset,end),hs,8192);
+        while(offset<bytes.length){int end=(int)Math.min(bytes.length,offset+uploadChunkSize(bytes.length));Map<String,String> hs=new HashMap<>();hs.put("Content-Type",mime);hs.put("Content-Range","bytes "+offset+"-"+(end-1)+"/"+bytes.length);Reply chunk=send("PUT",location,Arrays.copyOfRange(bytes,(int)offset,end),hs,8192);
             if(chunk.status==200||chunk.status==201){JSONObject done=chunk.json();progress(mime,bytes.length,bytes.length,"verifying");verifyUploaded(done,bytes,key);progress(mime,bytes.length,bytes.length,"confirmed");return done;}
             if(chunk.status!=308)throw new IOException("Drive-Übertragung ist noch nicht bestätigt.");long next=offset(chunk.header("Range"),bytes.length);if(next<=offset||next>end)throw new IOException("Drive-Uploadposition ist widersprüchlich.");offset=next;progress(mime,offset,bytes.length,"uploading");
         }
         throw new IOException("Drive-Abschlussbeleg fehlt.");
     }
     private void progress(String mime,long offset,long total,String state)throws Exception{checkpoint("progress",new JSONObject().put("kind",mime.startsWith("image/")?"photo":mime.equals("application/pdf")?"document":"data").put("bytes",offset).put("total",total).put("state",state).toString());}
-    private void verifyUploaded(JSONObject done,byte[] bytes,String key)throws Exception{if(!Arrays.equals(read(done.getString("id"),Math.max(bytes.length,1)),bytes))throw new IOException("Drive-Prüfsumme stimmt nach dem Upload nicht überein.");checkpoints.put(key,"");listings.clear();indexes.clear();}
+    private void verifyUploaded(JSONObject done,byte[] bytes,String key)throws Exception{if(!Arrays.equals(read(done.getString("id"),Math.max(bytes.length,1)),bytes))throw new IOException("Drive-Prüfsumme stimmt nach dem Upload nicht überein.");checkpoints.put(key,"");refresh();}
     private static long offset(String range,int total)throws Exception{if(range.isEmpty())return 0;if(!range.matches("bytes=0-[0-9]+"))throw new IOException("Ungültige Drive-Uploadposition.");long n=Long.parseLong(range.substring(8))+1;if(n<0||n>total)throw new IOException("Ungültige Drive-Uploadposition.");return n;}
     private static void validateSession(String url)throws Exception{URI u=new URI(url);if(!"https".equals(u.getScheme())||!"www.googleapis.com".equals(u.getHost())||u.getPort()!=-1||!u.getPath().startsWith("/upload/drive/"))throw new SecurityException("Unzulässiges Drive-Uploadziel.");}
     static String sha256(byte[] bytes)throws Exception{StringBuilder s=new StringBuilder();for(byte b:java.security.MessageDigest.getInstance("SHA-256").digest(bytes))s.append(String.format(Locale.ROOT,"%02x",b&255));return s.toString();}

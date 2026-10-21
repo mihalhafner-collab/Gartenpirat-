@@ -11,11 +11,16 @@ final class SyncArchiveApplicationService implements OwnerCommand {
         switch(name){
             case "empty_trash":{
                 JSONObject payload=TrashPurgeBatch.payload(all,a.getString("expected_preview_hash"),a.getBoolean("confirmed"));if(TestDataRules.localOnly(new JSONObject().put("kind",TrashPurgeBatch.KIND).put("payload",payload),all))payload.put("_local_only",true);
-                JSONArray prior=repository.pendingActions(),predecessors=new JSONArray();JSONObject projected=new JSONObject(repository.state().getJSONObject("master").toString());DriveJournalRules.apply(projected,prior);
-                Set<String> incorporated=DriveJournalRules.ids(projected.optJSONArray("drive_applied_ids"));for(int i=0;i<prior.length();i++){String id=prior.getJSONObject(i).getString("client_id");if(incorporated.contains(id))predecessors.put(id);}
+                JSONArray prior=repository.pendingActions(),shared=new JSONArray(),predecessors=new JSONArray();
+                for(int i=0;i<prior.length();i++){JSONObject event=prior.getJSONObject(i),p=event.getJSONObject("payload");
+                    if(payload.optBoolean("_local_only")||!p.optBoolean("_local_only")&&!p.optBoolean("test_record"))shared.put(event);}
+                JSONObject projected=new JSONObject(repository.state().getJSONObject("master").toString());DriveJournalRules.apply(projected,shared);
+                if(!payload.optBoolean("_local_only"))TrashPurgeBatch.bindDrivePreview(payload,projected);
+                Set<String> incorporated=DriveJournalRules.ids(projected.optJSONArray("drive_applied_ids"));for(int i=0;i<shared.length();i++){String id=shared.getJSONObject(i).getString("client_id");if(incorporated.contains(id))predecessors.put(id);}
                 if(predecessors.length()>0)payload.put("_sync_predecessors",predecessors);
                 TrashPurgeBatch.apply(new JSONObject(all.toString()),new JSONObject().put("kind",TrashPurgeBatch.KIND).put("client_id",request).put("created_at",stamp).put("payload",payload));
-                return repository.enqueue(TrashPurgeBatch.KIND,payload,request).put("deleted",payload.getJSONArray("entries").length()).put("recoverable",false).put("media_cleanup","after_verified_publication");
+                JSONObject backup=repository.protectDeletion(all,payload.getJSONArray("entries"),request);
+                return repository.enqueue(TrashPurgeBatch.KIND,payload,request).put("deletion_backup_id",backup.getString("backup_id")).put("deleted",payload.getJSONArray("entries").length()).put("recoverable",false).put("media_cleanup","after_verified_publication");
             }
             case "archive_work_records":{
                 JSONArray events=WorklogArchiveBatch.actions(all,a.getJSONArray("work_record_ids"),a.getString("expected_preview_hash"),request,stamp),saved=new JSONArray();
@@ -38,7 +43,9 @@ final class SyncArchiveApplicationService implements OwnerCommand {
             case "purge_entity":{
                 String kind="purge_v1";JSONObject p=new JSONObject().put("id",a.getString("entity_id")).put("expected_record_hash",a.getString("expected_record_hash")).put("updated_at",stamp);
                 if(name.equals("purge_entity"))p.put("entity",a.getString("entity")).put("confirmed",a.getBoolean("confirmed"));
-                OwnerJournalRules.apply(new JSONObject(all.toString()),new JSONObject().put("kind",kind).put("payload",p).put("client_id",request).put("created_at",stamp),new HashMap<>(),new JSONObject());return repository.enqueue(kind,p,request);
+                OwnerJournalRules.apply(new JSONObject(all.toString()),new JSONObject().put("kind",kind).put("payload",p).put("client_id",request).put("created_at",stamp),new HashMap<>(),new JSONObject());
+                JSONObject backup=repository.protectDeletion(all,new JSONArray().put(new JSONObject().put("entity",a.getString("entity")).put("entity_id",a.getString("entity_id")).put("expected_record_hash",a.getString("expected_record_hash"))),request);
+                return repository.enqueue(kind,p,request).put("deletion_backup_id",backup.getString("backup_id"));
             }
             case "delete_entity":case "archive_entity":return archiveOne(all,a,request,stamp);
             case "restore_entity":{

@@ -1,8 +1,8 @@
 /* Recoverable deletion uses the operative owner journal and its version checks. */
 (()=>{
  'use strict';
- const get=id=>document.getElementById(id),names={customer:'Kunde',order:'Auftrag',worklog:'Arbeit',photo:'Foto',invoice:'Rechnungsentwurf',offer:'Angebotsentwurf',service_template:'Leistungsbaustein'},groups={customer:'customers',order:'orders',worklog:'worklogs',photo:'photos',invoice:'invoices',offer:'offers',service_template:'service_catalog'},requests=new Map();
- let offset=0,entries=[],busy=false;
+ const get=id=>document.getElementById(id),names={appointment:'Termin',customer:'Kunde',order:'Auftrag',worklog:'Arbeit',photo:'Foto',invoice:'Rechnungsentwurf',offer:'Angebotsentwurf',service_template:'Leistungsbaustein'},groups={appointment:'appointments',customer:'customers',order:'orders',worklog:'worklogs',photo:'photos',invoice:'invoices',offer:'offers',service_template:'service_catalog'},requests=new Map();
+ let offset=0,entries=[],busy=false,filter='';
  const call=window.HGOwnerClient.create("Speicherung nicht bestätigt.");
  function request(key){if(!requests.has(key)){const saved=localStorage.getItem('hausgarten.trash.request.'+key),id=saved||'trash-'+crypto.randomUUID();requests.set(key,id);try{localStorage.setItem('hausgarten.trash.request.'+key,id);}catch(_){}}return requests.get(key);}
  function empty(){
@@ -11,9 +11,9 @@
    const preview=call('preview_empty_trash');
    if(!preview.count){window.showUndoToast?.(preview.total?'Die verbliebenen Einträge sind noch mit aktiven Daten oder geschützten Belegen verknüpft.':'Der Papierkorb ist leer.');return false;}
    const rest=preview.blocked||[];
-   if(!confirm(preview.count+' Einträge endgültig löschen?\n\nDiese Einträge können nicht wiederhergestellt werden. Aktive Daten bleiben erhalten. Nicht mehr verwendete Fotodateien werden nach geprüftem Drive-Abgleich entfernt.'+(rest.length?'\n\n'+rest.length+' geschützte Einträge bleiben im Papierkorb.':'')+'\n\nHistorische Sicherungen bleiben separat erhalten.'))return false;
+   if(!confirm(preview.count+' Einträge aus dem gesamten Papierkorb endgültig löschen?\n\nDiese Einträge werden aus dem Papierkorb entfernt. Eine spätere Übernahme aus der Löschsicherung muss einzeln geprüft werden. Aktive Daten bleiben erhalten. Nicht mehr verwendete Fotodateien werden nach geprüftem Drive-Abgleich entfernt.'+(rest.length?'\n\n'+rest.length+' geschützte Einträge bleiben im Papierkorb.':'')+'\n\nBetroffene Einträge und Originaldateien werden vor dem Löschen auf diesem Gerät gesichert. Historische Sicherungen bleiben separat erhalten.'))return false;
    busy=true;const result=call('empty_trash',{request_id:request('empty:'+preview.preview_hash),expected_preview_hash:preview.preview_hash,confirmed:true});
-   load();render();window.showUndoToast?.(result.deleted+' Einträge endgültig entfernt.'+(rest.length?' '+rest.length+' geschützte Einträge bleiben erhalten.':'')+' Drive-Abgleich und Dateibereinigung folgen.');return true;
+   load();render();window.showUndoToast?.(result.deleted+' Einträge endgültig entfernt.'+(rest.length?' '+rest.length+' geschützte Einträge bleiben erhalten.':'')+(result.deletion_backup_id?' Löschsicherung auf diesem Gerät erstellt.':'')+' Drive-Abgleich und Dateibereinigung folgen.');return true;
   }catch(e){window.showUndoToast?.(e.message+' Papierkorb bleibt verfügbar.');return false;}finally{busy=false;}
  }
  function purge(entity,id,expected){
@@ -21,8 +21,8 @@
   try{
    const preview=call('preview_purge',{entity,entity_id:id});if(!preview.allowed)throw new Error(preview.message);
    if(preview.expected_record_hash!==expected)throw new Error('Papierkorb wurde inzwischen geändert. Erneut öffnen und prüfen.');
-   if(!confirm('Diesen Eintrag endgültig löschen? Er kann in der App nicht wiederhergestellt werden. Nicht mehr verwendete Fotodateien werden nach bestätigtem Abgleich entfernt. Historische Sicherungen bleiben getrennt erhalten.'))return false;
-   busy=true;call('purge_entity',{request_id:request('purge:'+entity+':'+id+':'+expected),entity,entity_id:id,expected_record_hash:expected,confirmed:true});load();window.showUndoToast?.('Endgültig aus dem Papierkorb entfernt. Dateibereinigung folgt nach dem Abgleich.');return true;
+   if(!confirm('Diesen Eintrag endgültig löschen? Er kann in der App nicht wiederhergestellt werden. Nicht mehr verwendete Fotodateien werden nach bestätigtem Abgleich entfernt. Vorher wird eine Löschsicherung auf diesem Gerät erstellt. Historische Sicherungen bleiben getrennt erhalten.'))return false;
+   busy=true;const result=call('purge_entity',{request_id:request('purge:'+entity+':'+id+':'+expected),entity,entity_id:id,expected_record_hash:expected,confirmed:true});load();window.showUndoToast?.('Endgültig aus dem Papierkorb entfernt.'+(result.deletion_backup_id?' Löschsicherung auf diesem Gerät erstellt.':'')+' Dateibereinigung folgt nach dem Abgleich.');return true;
   }catch(e){window.showUndoToast?.(HGBusinessFeedback.error(e));return false;}finally{busy=false;}
  }
  function restore(entity,id,expected){
@@ -54,13 +54,13 @@
  function render(more=false){
   const body=get('trash-content');if(!body)return;
   try{
-   const result=call('list_archive',{limit:30,offset:more?offset:0});if(!more)entries=[];entries.push(...result.archive);offset=entries.length;
-   body.innerHTML='<section class="card"><p>'+Number(result.total)+' Einträge im Papierkorb</p><button type="button" class="danger-button" id="trash-empty" '+(!result.total?'disabled':'')+'>Papierkorb leeren</button><p class="sub">Löscht alle freigegebenen Einträge endgültig. Vorher wird die vollständige Menge geprüft.</p><details class="workflow-options"><summary>Was bleibt erhalten?</summary><p>Aktive Daten, geschützte Belege und historische Sicherungen bleiben erhalten. Einzelne Einträge können weiterhin wiederhergestellt werden.</p></details></section>'+entries.map((x,i)=>{const r=x.entry.record,type=x.archive_key.split(':')[0];return '<article class="card"><strong>'+esc(r.name||r.title||r.activity||r.caption||r.invoice_number||names[type]||'Eintrag')+'</strong><p>'+esc(names[type]||'Eintrag')+' · '+esc(x.entry.archived_at?new Date(x.entry.archived_at).toLocaleString('de-AT'):'Datum unbekannt')+'</p><div class="trash-actions"><button type="button" class="secondary" data-trash-restore="'+i+'">Wiederherstellen</button><button type="button" class="danger-button" data-trash-purge="'+i+'">Endgültig löschen</button></div></article>';}).join('')+(offset<result.total?'<button type="button" class="secondary" id="trash-more">Weitere 30 anzeigen</button>':'');
+   const result=call('list_archive',{limit:30,offset:more?offset:0,...(filter?{entity:filter}:{})});if(!more)entries=[];entries.push(...result.archive);offset=entries.length;
+   body.innerHTML='<section class="card"><p>'+Number(result.total)+' Einträge'+(filter?' dieser Kategorie':' im Papierkorb')+'</p><button type="button" class="danger-button" id="trash-empty" '+(!result.total&&!filter?'disabled':'')+'>Gesamten Papierkorb leeren</button><p class="sub">Leert alle Kategorien nach vollständiger Prüfung und Bestätigung. Aktive Daten bleiben erhalten.</p><details class="workflow-options"><summary>Was bleibt erhalten?</summary><p>Aktive Daten, geschützte Belege und historische Sicherungen bleiben erhalten. Einzelne Einträge können weiterhin wiederhergestellt werden.</p></details></section>'+entries.map((x,i)=>{const r=x.entry.record,type=x.archive_key.split(':')[0];return '<article class="card" data-trash-record="'+esc(x.archive_key)+'" data-trash-hash="'+esc(x.record_hash)+'"><strong>'+esc(r.name||r.title||r.activity||r.caption||r.invoice_number||names[type]||'Eintrag')+'</strong><p>'+esc(names[type]||'Eintrag')+' · '+esc(x.entry.archived_at?new Date(x.entry.archived_at).toLocaleString('de-AT'):'Datum unbekannt')+'</p><div class="trash-actions"><button type="button" class="secondary" data-trash-restore="'+i+'">Wiederherstellen</button><button type="button" class="danger-button" data-trash-purge="'+i+'">Endgültig löschen</button></div></article>';}).join('')+(offset<result.total?'<button type="button" class="secondary" id="trash-more">Weitere 30 anzeigen</button>':'');
    get('trash-empty').onclick=empty;
    body.querySelectorAll('[data-trash-restore]').forEach(b=>b.onclick=()=>{const x=entries[Number(b.dataset.trashRestore)],split=x.archive_key.indexOf(':');b.disabled=true;if(restore(x.archive_key.slice(0,split),x.archive_key.slice(split+1),x.record_hash))render();else b.disabled=false;});
    body.querySelectorAll('[data-trash-purge]').forEach(b=>b.onclick=()=>{const x=entries[Number(b.dataset.trashPurge)],split=x.archive_key.indexOf(':');b.disabled=true;if(purge(x.archive_key.slice(0,split),x.archive_key.slice(split+1),x.record_hash))render();else b.disabled=false;});
    get('trash-more')?.addEventListener('click',()=>render(true));
-  }catch(e){body.textContent=HGBusinessFeedback.error(e)+' Gespeicherte Originale bleiben erhalten.';}
+  }catch(e){body.textContent=HGBusinessFeedback.error(e)+' Gespeicherte Originale bleiben erhalten. Mit Neu laden erneut versuchen.';}
  }
  function open(){openPage('trash-page');render();}
  function installWorkSelection(){
@@ -68,7 +68,7 @@
   const chosen=new Map();let selecting=false;
   const stamp=row=>{if(!row)return '';const fields={};for(const key of Object.keys(row).sort())if(!key.startsWith('_')&&!['pending','client_id','customer_name','order_title'].includes(key))fields[key]=row[key];return JSON.stringify(fields);};
   const bar=document.createElement('section');bar.id='worklog-selection';bar.className='card';
-  bar.innerHTML='<button type="button" class="secondary" data-select-start>Mehrere auswählen</button><div data-select-controls hidden><p role="status" data-select-status></p><p class="sub">Arbeiten zum Auswählen antippen. Höchstens 200 pro Vorgang; Fotos bleiben erhalten.</p><div class="trash-actions"><button type="button" class="secondary" data-select-visible>Angezeigte auswählen</button><button type="button" class="danger-button" data-select-trash>In den Papierkorb</button><button type="button" class="secondary" data-select-cancel>Abbrechen</button></div></div>';
+  bar.innerHTML='<button type="button" class="secondary" data-select-start>Mehrere in Papierkorb</button><div data-select-controls hidden><p role="status" data-select-status></p><p class="sub">Arbeiten zum Auswählen antippen. Höchstens 200 pro Vorgang; Fotos bleiben erhalten.</p><div class="trash-actions"><button type="button" class="secondary" data-select-visible>Angezeigte auswählen</button><button type="button" class="danger-button" data-select-trash>In den Papierkorb</button><button type="button" class="secondary" data-select-cancel>Abbrechen</button></div></div>';
   list.before(bar);
   const button=key=>bar.querySelector('[data-select-'+key+']');
   function refresh(){
@@ -101,7 +101,7 @@
   window.WorklogArchiveUI=Object.freeze({archive,refresh});
  }
  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{
-  const page=document.createElement('section');page.id='trash-page';page.className='page';page.innerHTML='<div class="page-head"><button type="button" class="back">‹</button><h2>Papierkorb</h2></div><div id="trash-content"></div>';document.querySelector('main.app').append(page);
+  const page=document.createElement('section');page.id='trash-page';page.className='page';page.innerHTML='<div class="page-head"><button type="button" class="back">‹</button><h2>Papierkorb</h2></div><section class="card trash-filter"><label for="trash-kind">Datenart</label><select id="trash-kind"><option value="">Alle Kategorien</option>'+Object.entries(names).map(([id,name])=>'<option value="'+esc(id)+'">'+esc(name)+'</option>').join('')+'</select><button type="button" class="secondary" id="trash-refresh">Neu laden</button></section><div id="trash-content"></div>';document.querySelector('main.app').append(page);get('trash-kind').onchange=()=>{filter=get('trash-kind').value;render();};get('trash-refresh').onclick=()=>render();
   for(const host of [document.querySelector('#more-page .more-destinations')])if(host){const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent='Papierkorb öffnen';b.dataset.openTrash='';b.onclick=open;host.append(b);}
   window.removeRecordWithUndo=remove;
   installWorkSelection();
