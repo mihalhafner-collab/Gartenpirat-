@@ -79,3 +79,14 @@ body.field-ui{--action:var(--hg-green-btn);--action-soft:var(--hg-sage);--planni
 .planning-weather-reason{display:block;margin-top:4px;font-size:var(--hg-fs-caption);font-weight:var(--hg-fw-regular)}
 #home #field-today-actions{order:4}
 #home #workday-timer.has-active-session+#field-today-actions{order:0}
+
+/* Main tabs use a title; nested screens keep their existing header Back. */
+.field-ui #customers>.page-head>.back,.field-ui #more-page>.page-head>.back{display:none}
+.field-ui .page-head{min-height:48px;padding-right:0;margin-top:0;align-items:center}
+.field-ui #more-page>.page-head{padding-right:58px}
+.field-ui .has-header-back .daily-toolbar-back{display:none}
+.field-ui .has-header-back #daily-tools-orders{grid-template-columns:minmax(0,1fr) auto}
+.field-ui .actions,.field-ui .worklog-window-actions,.field-ui .order-window-actions{bottom:var(--app-nav-height,80px)}
+.field-ui #field-quick-entry #entry>.actions{bottom:0}
+.field-ui button{min-width:48px}
+.field-ui .app{padding-top:12px}

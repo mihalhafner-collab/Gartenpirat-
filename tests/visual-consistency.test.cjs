@@ -31,6 +31,23 @@ function luminance(hex){const rgb=hex.slice(1).match(/../g).map(v=>parseInt(v,16
   await check('Existing fixture weather causes appear in the same hint',async()=>{
    const weatherPage=await browser.newPage({viewport:{width:360,height:800}});try{await weatherPage.addInitScript({content:fixtureSource('planning-ui.test.cjs')});await weatherPage.goto(pathToFileURL(path.join(assets,'mobile.html')).href);await weatherPage.waitForFunction(()=>document.body.dataset.fieldReady==='true');await weatherPage.evaluate(()=>PlanningUI.open());assert.match(await weatherPage.locator('#planning-body .planning-weather-reason').first().innerText(),/Regen im Arbeitszeitraum/);}finally{await weatherPage.close();}
   });
+  await check('Main tabs have no Back, nested pages one header Back, and visible controls remain 48px clear of tabs',async()=>{
+   for(const width of [320,360,426])for(const size of [16,24]){await page.setViewportSize({width,height:800});await page.evaluate(size=>document.documentElement.style.fontSize=size+'px',size);
+    for(const [name,id]of [['heute','home'],['mehr','more-page'],['status','status-page'],['kunden','customers'],['arbeit','worklogs'],['erfassung','work-entry']]){
+     await page.evaluate(id=>{openPage(id);scrollTo(0,0);},id);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),id+' '+width+'/'+size);
+     const dialog=page.locator('dialog[open]'),modal=await dialog.count(),scope=modal?dialog.last():page.locator('#'+id);
+     if(id!=='work-entry'){const back=page.locator('#'+id+'>.page-head .back:visible');assert.equal(await back.count(),['home','customers','more-page'].includes(id)?0:1,id);assert.equal(await page.locator('.app-context-back:visible').count(),0);}
+     for(const b of await scope.locator('button:visible').all()){const r=await b.boundingBox();assert(r.width>=47.9&&r.height>=47.9,id+' target '+await b.innerText()+' '+JSON.stringify(r));}
+     if(!modal){const nav=await page.locator('.bottom').boundingBox();for(const bar of await scope.locator('.daily-list-tools:visible,.worklog-window-actions:visible,.order-window-actions:visible').all()){const r=await bar.boundingBox();assert(r.y+r.height<=nav.y+1,id+' toolbar');}}
+     await page.screenshot({path:'outputs/grafik-'+name+'-'+width+'-'+size+'.png'});
+    }
+   }
+  });
+  await check('The final work row in a long synthetic list scrolls clear of both toolbar and tabs',async()=>{
+   for(const width of [320,360,426])for(const size of [16,24]){await page.setViewportSize({width,height:800});await page.evaluate(async size=>{document.documentElement.style.fontSize=size+'px';const original=master.worklogs[0];master.worklogs=Array.from({length:25},(_,i)=>({...original,id:'qa_layout_work_'+i}));load();openPage('worklogs');scrollTo(0,document.documentElement.scrollHeight);await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));},size);
+    const last=page.locator('#worklog-list .worklog-entry').last(),r=await last.boundingBox(),bar=await page.locator('#daily-tools-worklogs').boundingBox();assert(r.y>=0&&r.y+r.height<=bar.y+1);assert(await last.evaluate(n=>{const r=n.getBoundingClientRect();return n.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}));assert.equal(await page.evaluate(()=>writes.length),0);
+   }
+  });
  }finally{await browser.close();}
  fs.writeFileSync('outputs/visual-consistency-tests.json',JSON.stringify({classification:'SYNTHETIC_TEST',nativeDevice:false,results},null,2));if(results.some(x=>x.result==='FAIL'))process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1;});

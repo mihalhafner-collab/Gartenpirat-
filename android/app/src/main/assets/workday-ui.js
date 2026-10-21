@@ -26,7 +26,8 @@
     if(brand&&!get('home-dayline')){const line=document.createElement('p');line.id='home-dayline';line.className='home-dayline';line.textContent=new Date().toLocaleDateString('de-AT',{weekday:'long',day:'numeric',month:'long'});brand.after(line);}
   }
   function navigationState(){const section=['customers','customer-edit','customer-profile-page'].includes(currentPage)?'customers':['home','planning-page','work-entry'].includes(currentPage)?'home':'more-page';document.querySelectorAll('.nav').forEach(button=>{const active=button.dataset.open===section;button.classList.toggle('active',active);active?button.setAttribute('aria-current','page'):button.removeAttribute('aria-current');});
-    const back=get('settings-page')&&document.querySelector('.app-context-back');if(back)back.hidden=!['settings-page','sync-page','photo-library-page','weeks','invoices','offers-page','billing-page','trash-page','status-page'].includes(currentPage)||!!document.querySelector('dialog[open]');
+    const page=document.getElementById(currentPage),header=page?.querySelector(':scope>.page-head .back'),headerBack=!['home','customers','more-page'].includes(currentPage)&&!!header?.getClientRects().length;page?.classList.toggle('has-header-back',headerBack);
+    const back=get('settings-page')&&document.querySelector('.app-context-back');if(back)back.hidden=headerBack||!['settings-page','sync-page','photo-library-page','weeks','invoices','offers-page','billing-page','trash-page','status-page'].includes(currentPage)||!!document.querySelector('dialog[open]');
     document.body.classList.toggle('app-planning-editing',currentPage==='planning-page'&&get('planning-page')?.dataset.planningMode==='edit');
   }
   window.HGNavigation=Object.freeze({update:navigationState});
