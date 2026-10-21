@@ -88,3 +88,17 @@
 #planning-page .planning-more-options>summary{min-height:48px;padding:12px 0;color:var(--hg-green);font-weight:var(--hg-fw-strong)}
 #planning-message:empty{display:none}
 #planning-page .planning-core input,#planning-page .planning-core select{font-size:var(--hg-fs-body)}
+
+/* K7: compare existing versions before the unchanged explicit decision. */
+.planning-compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.planning-compare-version{min-width:0;padding:10px;border:1px solid var(--hg-line);border-radius:var(--hg-radius);background:var(--hg-surface)}
+.planning-compare-version>h4{margin:0 0 10px;color:var(--hg-green)}
+.planning-compare-version dl{margin:0}
+.planning-compare-version dl>div{margin:8px 0}
+.planning-compare-version dt{font-size:var(--hg-fs-caption);color:var(--hg-muted)}
+.planning-compare-value{margin:4px 0 0;padding:4px;line-height:1.4;overflow-wrap:anywhere}
+.planning-compare-value[data-different=true]{background:var(--hg-warn-bg);color:var(--hg-warn-text);font-weight:var(--hg-fw-strong);border-radius:6px}
+.planning-calendar-choices{display:grid;gap:8px;margin-top:12px}
+.planning-calendar-choices>button{width:100%;min-height:48px}
+.planning-calendar-choices>.sub{margin:0;font-size:var(--hg-fs-caption);line-height:1.4}
+@media(max-width:360px){.planning-compare-grid{grid-template-columns:minmax(0,1fr)}}
