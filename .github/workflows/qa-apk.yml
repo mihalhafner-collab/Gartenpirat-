@@ -24,15 +24,29 @@ jobs:
           python-version: '3.11'
       - name: Install test dependencies
         run: python3 -m pip install -r requirements-mcp.txt reportlab Pillow
+      - name: Set up existing browser test tools
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install existing browser test tools outside the source tree
+        run: |
+          npm install --prefix "$RUNNER_TEMP/hg-browser-tools" --no-save playwright@1.64.1 acorn@8.19.0
+          "$RUNNER_TEMP/hg-browser-tools/node_modules/.bin/playwright" install --with-deps chromium
+          echo "HG_PLAYWRIGHT_MODULE=$RUNNER_TEMP/hg-browser-tools/node_modules/playwright" >> "$GITHUB_ENV"
+          echo "HG_ACORN_MODULE=$RUNNER_TEMP/hg-browser-tools/node_modules/acorn" >> "$GITHUB_ENV"
       - name: Verify single plant source and generated Web assets
         run: python3 tools/sync_plant_assets.py
       - name: Run synthetic data and camera host regressions
         run: |
           mkdir -p outputs
-          python3 tests/run_quality_suite.py
+          python3 tests/run_quality_suite.py --exclude-qa-signing
           python3 tests/run_photo_capture_tests.py
           node --check android/app/src/main/assets/workday-ui.js
           node tests/camera-timer-static.test.cjs
+      - name: Run synthetic browser regressions
+        env:
+          HG_TEST_LOCAL_ASSETS: '1'
+        run: python3 tests/run_browser_regressions.py
       - name: Locate preinstalled Android SDK tools
         run: |
           set -euo pipefail

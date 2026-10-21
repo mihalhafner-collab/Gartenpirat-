@@ -12,6 +12,9 @@ def generate(output):
         raise ValueError('Preview overlays must never overwrite operative assets')
     output.mkdir(parents=True, exist_ok=True)
     html = (main / 'mobile.html').read_text()
+    # Only the isolated preview package may serve its local thumbnail images.
+    html = html.replace('content://at.hausgarten.service.photothumbnails',
+                        'content://at.hausgarten.service.preview.photothumbnails')
     if html.count('</head>') != 1:
         raise ValueError('Expected one original HTML head')
     html = html.replace('</head>', '<link rel="stylesheet" href="preview-ui.css">\n'
