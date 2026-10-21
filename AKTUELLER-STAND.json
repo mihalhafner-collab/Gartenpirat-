@@ -2,16 +2,16 @@
   "format": "gartenpirat.source-location.v1",
   "updated_at_utc": "2026-10-21",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
-  "development_ref": "refs/heads/main",
+  "development_ref": "refs/heads/codex/calendar-permanent-20261021",
   "development_snapshot": {
-    "status": "PRESERVED_ON_GITHUB_NOT_RELEASED",
-    "original_cloud_checkpoint_git_sha": "74c7af719fcd5d3203bcaee77b0496bfcf0920fa",
-    "source_sha256": "aa2981fe1e6cd251eb9fb5e590c5292b0841d7f0037b46ac594ed6bdc46d6c09",
-    "main_and_gradle_files": 539,
-    "version_name": "1.54.1",
-    "version_code": 90,
+    "status": "CALENDAR_RECOVERY_IMPLEMENTED_ANDROID_ACCEPTANCE_PENDING",
+    "implementation_checkpoint_git_sha": "ef64255ef47344d2eaccee6e840181daa0472640",
+    "source_sha256": "747762839020b4ffb0491ac360c3cc054c455245eb4126b0c1e6d4e8882b0c3c",
+    "main_and_gradle_files": 540,
+    "version_name": "1.54.2",
+    "version_code": 91,
     "changes_after_delivered_build_90": true,
-    "rules_from_main_git_sha": "e13ba07bf990fea7e712b888a5893b83fdfc36b5",
+    "rules_from_main_git_sha": "a112765844ee5a41408dc0538236d0eca52eacbf",
     "apk_for_this_development_snapshot": "NOT BUILT"
   },
   "verified_release_source": {
@@ -27,15 +27,15 @@
   },
   "last_observed_installed_build": {
     "observed_at_utc": "2026-10-21",
-    "version_name": "1.54.0",
-    "version_code": 89,
+    "version_name": "1.54.1",
+    "version_code": 90,
     "reported_base_git_sha": "72f96919d6a42ef8a2759c14c6da1df7359726d6",
-    "source_sha256": "b05723a29302dfc98e8ac6a3aefcbaffd6cb5c0b1c5632fd6889df5761774aa1",
+    "source_sha256": "42c1fd1a43c1e8331b7a34f54cbf7cbb91e0b615d16c64729e62427d689b1052",
     "source_dirty": true,
     "source_status": "EXACT_ORIGINAL_SOURCE_SECURED_ON_GITHUB_AND_DRIVE"
   },
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-; current original cloud work preserved on the development_ref",
-    "required_action": "Read fresh main and AGENTS.md. Keep immutable source tags for delivered builds and the separately identified post-build90 development source. Verify source preservation before exports or signing."
+    "required_action": "Continue calendar acceptance on the development_ref. Preserve installed build90 and its immutable original source. Build91 is not installed; Google project access and actual device consent remain unverified."
   }
 }
