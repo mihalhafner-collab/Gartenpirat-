@@ -32,3 +32,18 @@
 .planning-day-dot{width:6px;height:6px;border-radius:50%;background:var(--hg-green);flex:none}
 .planning-day-head{margin:18px 0 8px;font-size:var(--hg-fs-caption);color:var(--hg-muted);line-height:1.5}
 @media(max-width:389px){.planning-week-strip{grid-template-columns:repeat(4,minmax(48px,1fr))}}
+
+/* K2: two text rows, with a separate wrapping region for meaningful notices. */
+.planning-row[data-appointment-open]{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:6px 10px;align-items:start;min-height:56px;border-radius:var(--hg-radius);box-shadow:var(--hg-shadow-1)}
+.planning-row>.planning-time{grid-column:1;grid-row:1;white-space:nowrap;font-size:var(--hg-fs-body);font-weight:var(--hg-fw-strong);font-variant-numeric:tabular-nums}
+.planning-row>.planning-customer{grid-column:2;grid-row:1;font-size:var(--hg-fs-body);line-height:1.4}
+.planning-row>.planning-what{grid-column:1/-1;grid-row:2;color:var(--hg-muted);font-size:var(--hg-fs-body)}
+.planning-customer,.planning-what{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.planning-row>.planning-chips{grid-column:1/-1;grid-row:3;display:flex;flex-wrap:wrap;align-items:start;gap:6px;min-width:0}
+.planning-row>.planning-chips:empty{display:none}
+.planning-chips>.planning-chip,.planning-chips>.planning-weather,.planning-chips>.planning-collision-badge{max-width:100%;min-width:0;padding:5px 8px;border:0;border-radius:var(--hg-radius);font-size:var(--hg-fs-caption);line-height:1.4;font-weight:var(--hg-fw-regular);overflow-wrap:anywhere}
+.planning-chip{background:var(--hg-sage);color:var(--hg-green)}
+.planning-chip[data-status=draft]{background:var(--hg-info-bg);color:var(--hg-info-text)}
+.planning-chip[data-status=cancelled]{background:var(--hg-danger-bg);color:var(--hg-danger)}
+.planning-chip[data-kind=calendar],.planning-chip[data-kind=duration],.planning-chips>.planning-collision-badge{background:var(--hg-warn-bg);color:var(--hg-warn-text)}
+.planning-weather-area{display:block}
