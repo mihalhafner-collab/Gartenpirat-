@@ -3,6 +3,14 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Native Abnahme B4 – Altquittung korrigiert (22.10.2026)
+
+Tatsächliches Original-In-place-Update94→085913e/95 PASS; vollständiger synthetischer Master, IDs/Relationen, Pending, Einstellungen/Tunnel und RUNNING-Timer per unverändertem Vor-/Nachledger erhalten. Native Gesamtprüfung:163PASS/1FAIL. Echter neuer Kompatibilitätsfehler im vorhandenen EstimateNativeAcceptance-Altquittungstest: Nach Test-GC fehlte bei einer alten MCP-Quittung ohne test_local_only ihr zuvor nur im Journal belegter Isolationsstatus. Datensätze blieben entfernt und es erfolgte kein Testupload; Status war falsch. Keine Anpassung dieser Abnahmeerwartung.
+
+Korrektur: Vor dem Entfernen jedes eindeutig lokalen Testjournals passende alte Standard-/Ownerquittung in derselben Transaktion mit dauerhaftem Test-/Purge-Kennzeichen ergänzen. Request-ID, Fingerprint und fachliche Bezüge erhalten; keine neuen Quittungen erzeugen. Native Regression zusätzlich für alte Ownerquittung sowie veränderten Replay-Request/0verbleibende Fachjournale erweitert.085-Kandidat nicht ausgeliefert; neue Abnahme nach neuem gesicherten Build erforderlich.
+
+Emulator nach AOSP-Ursachenprüfung stabilisiert: im ausschließlich eigenen synthetischen AVD DeviceConfig connectivity/always_ratelimit_networkstack_crash=true und min_uptime_before_crash=604800000 (vorher beide null) tatsächlich gesetzt/zurückgelesen. Diese Debug-OS-Konfiguration verhindert NetworkStack-bedingte Framework-Bootschleifen; daraus folgt keine Abnahme echter Google-/Netzverbindungen. Kein Produktivgerät/Systemkonto verändert und keine Appdaten gelöscht. Danach erstmals Vorupdateledger und echtes Update erfolgreich; vorherige Fehlversuche nicht als Abnahme gezählt.
+
 ## Datenintegrität B4 – Löschbelegpräzedenz korrigiert (22.10.2026)
 
 Zusätzlicher Review fand einen Randfall im neu eingeführten Test-GC: ein alter lokaler Tombstone durfte den späteren geteilten Purge-Beleg nicht überschreiben. Neuer reiner Projektor bevorzugt existierende serverseitige Purge-Belege byte-/hashgleich; private Provenienzfelder bleiben außerhalb des projizierten Fachbelegs. Seit dem bestätigten Löschen geänderte Originale/Archive werden nicht durch den alten lokalen Beleg versteckt.16gezielte reine JVM-Prüfungen einschließlich unverändertem Eingabehash im Konfliktfall PASS;45JVM-Suiten insgesamt PASS. Native SQLite-Integration um tatsächlichen Belegvergleich nach Bestätigung ergänzt. Keine Geschäfts-/Publikationshashes geändert. Vorbereiteter6f4c4f6-Kandidat/Quellstand dadurch überholt und nicht ausgeliefert; aktueller Kandidat wird aus neu gesichertem Stand neu gebaut/signiert/exportiert.

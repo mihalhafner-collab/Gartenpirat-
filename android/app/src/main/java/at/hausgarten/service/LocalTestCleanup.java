@@ -55,7 +55,7 @@ final class LocalTestCleanup {
                 JSONObject compacted=new JSONObject(tombstone.toString()).put("local_test_only",local);
                 JSONObject original=OwnerJournalRules.findOrNull(raw.optJSONArray(OwnerJournalRules.group(entity)),id),oldArchive=OwnerJournalRules.archives(raw).optJSONObject(key);
                 if(original!=null)compacted.put("source_record_hash",OwnerJournalRules.version(original));if(oldArchive!=null)compacted.put("source_archive_hash",OwnerJournalRules.version(oldArchive));receipts.put(key,compacted);
-                for(int j=0;j<pending.length();j++){JSONObject old=pending.getJSONObject(j);if(old.getJSONObject("payload").optBoolean("_local_only")&&sameTarget(old,entity,id))removed+=db.delete("pending","id=? AND kind!='mcp_receipt'",new String[]{old.getString("client_id")});}
+                for(int j=0;j<pending.length();j++){JSONObject old=pending.getJSONObject(j);if(old.getJSONObject("payload").optBoolean("_local_only")&&sameTarget(old,entity,id)){markReceipt(store,old.getString("client_id"),entity,id);removed+=db.delete("pending","id=? AND kind!='mcp_receipt'",new String[]{old.getString("client_id")});}}
             }
             for(int i=0;i<pending.length();i++){JSONObject a=pending.getJSONObject(i),p=a.getJSONObject("payload");if(!a.optString("kind").equals(TrashPurgeBatch.KIND)||!p.optBoolean("_local_only"))continue;boolean complete=true;JSONArray entries=p.getJSONArray("entries");for(int j=0;j<entries.length();j++){JSONObject e=entries.getJSONObject(j);if(!receipts.has(e.getString("entity")+":"+e.getString("entity_id")))complete=false;}if(complete)removed+=db.delete("pending","id=?",new String[]{a.getString("client_id")});}
             store.putOwnerValue(KEY,receipts.toString());db.setTransactionSuccessful();
@@ -70,6 +70,18 @@ final class LocalTestCleanup {
             try{if(key.startsWith("photo:")&&receipt.has("media"))store.cleanupPurgedPhoto(key.substring(6),receipt.getJSONObject("media"),marker);else if(receipt.has("document"))store.cleanupPurgedDocument(key,receipt.getJSONObject("document"),marker);}
             catch(Exception pending){store.putOwnerValue("local_test_cleanup_error","MEDIA_CLEANUP_PENDING");}
         }
+    }
+    private static void markReceipt(PixelLocalStore store,String client,String entity,String id)throws Exception {
+        // Migrate old receipts BEFORE removing their only journal provenance. Fingerprints stay immutable.
+        SQLiteDatabase db=store.getWritableDatabase();String key="receipt_"+client;
+        try(android.database.Cursor row=db.rawQuery("SELECT payload FROM pending WHERE id=? AND kind='mcp_receipt'",new String[]{key})){
+            if(row.moveToFirst()){JSONObject saved=new JSONObject(row.getString(0));
+                if(entity.equals(saved.optString("entity_type"))&&id.equals(saved.optString("entity_id",saved.optString("work_record_id")))){
+                    saved.put("test_local_only",true).put("test_purged",true);ContentValues values=new ContentValues();values.put("payload",saved.toString());db.update("pending",values,"id=? AND kind='mcp_receipt'",new String[]{key});
+                }
+            }
+        }
+        String old=store.ownerValue("receipt:"+client,"");if(!old.isEmpty()){JSONObject saved=new JSONObject(old),result=saved.optJSONObject("result");if(result!=null){result.put("test_local_only",true).put("test_purged",true);store.putOwnerValue("receipt:"+client,saved.toString());}}
     }
     private static void promoteSharedRemoval(PixelLocalStore store,JSONObject raw,JSONArray pending,String entity,String id,JSONObject purge)throws Exception {
         JSONObject record=OwnerJournalRules.findOrNull(raw.optJSONArray(OwnerJournalRules.group(entity)),id),saved=OwnerJournalRules.archives(raw).optJSONObject(entity+":"+id);
