@@ -3,6 +3,38 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Kalender/Wetter R3 – geprüfter Originalkandidat 1.54.4 / Build 93 (22.10.2026)
+
+**App-Umsetzung, Originalsignierung und Cloud-Abnahme abgeschlossen. Google-Projektfreischaltung und physische Pixel-Abnahme bleiben offen.** Der neue Nutzerauftrag erlaubt Kalender-/Wetterfunktionen und den Entwicklungsbuild. Main und produktive Daten wurden unverändert erhalten.
+
+Die App nutzt den kostenlosen öffentlichen Open-Meteo-Zugang für die vom Nutzer erklärte nichtkommerzielle Verwendung: ohne Konto, API-Schlüssel oder Abo, mit bis zu 16 Tagen Vorschau. Vollständige Arbeitsstunden eines Termins 14 Tage voraus sind im nativen App-/MCP-Pfad nachgewiesen. Tatsächliches Datenende, Aktualität, fehlende Werte und kurzfristiger GeoSphere-Ersatz werden offengelegt. Klare Fernprognosen erscheinen als unsicherer, neutral dargestellter Wettertrend. GeoSphere-Warnungen und Nowcast ergänzen die Hauptprognose. St./Sankt-Ortsvarianten werden erkannt; Originaladressen und Kundenbeziehungen bleiben erhalten.
+
+Die Kalendereinrichtung unterscheidet Kontoauswahl, beobachtete Google-Freigabe und bestätigten Kalender. Die Registrierungshilfe nennt ausschließlich öffentliche Paket-/Zertifikatsdaten. Vorhandene minimale Scopes, Google-Tokenverwaltung, 401-Behandlung, Wiederaufnahme, Kalender-Readback, ETags und Idempotenz bleiben erhalten. Alle sechs geschützten nativen Handler und Preference-Write-Fingerprints sind unverändert. Keine neuen Manifestrechte, SDKs oder MCP-Werkzeuge.
+
+| Tatsächlich ausgeführte Prüfung | Ergebnis |
+|---|---|
+| Python | 393 PASS, 0 Skips; 37 alte QA-Schlüsselerzeugungstests ausgeschlossen |
+| JVM / vollständiger Browserlauf / MCP | 42 Suiten / 51 Suiten / 55 Szenarien PASS |
+| Release, AndroidTest und Lint | 84 Tasks PASS; 0 Fehler, 53 Warnungen |
+| Android SQLite/MCP | 159 PASS, 0 FAIL; einschließlich T+14-Coverage und Cache nach Wiederöffnung |
+| Cloud-Updates | 92→erster93 und erster93→finaler93 PASS; vollständiger Snapshot, IDs, Queue, Einstellungen, Tunnel und aktiver Timer erhalten |
+| Frisch isoliert / native UI / letzter Snapshot | PASS; UI und Snapshot nach System-UI-Wait zusätzlich wiederholt |
+| Original-APK | Originalzertifikat, ein Signer, v2/v3, 16KiB, Assets, leere Seeds, Privacy und DEX-Provenienz PASS |
+
+Der dedizierte Softwareemulator GartenpiratCloud / emulator-5554 wurde vor jedem Gerätezugriff mit qemu=1 geprüft. Die Sichtprüfung fand einen System-UI-ANR; die ursprüngliche Aufnahme blieb erhalten. Ausschließlich der exakt identifizierte Wait-Knopf wurde betätigt. Danach bestanden native UI und vollständiger Snapshot erneut. Eine unmittelbar beim App-Start erstellte Ladeaufnahme wurde separat erhalten und die Ansicht nach dem Laden erneut aufgenommen. Keine App-Datenlöschung, kein behaupteter App-ANR-Fix oder physischer Pixel-Leistungsnachweis.
+
+117 MCP-Werkzeuge, 156 UI-Aktionen, DB4/Snapshot2 und Vertrag 899906c246f9cb8256666c32a89435aa5f792eede3d3407b1c846380900aa813 bleiben erhalten. 62 UI-Quellen wurden geprüft; fachliche Aktionsmappings sind bytegleich zur Ausgangsbasis. Abschließend 1047 UI-/MCP-Paritätsprüfungen PASS. Die letzte Änderung gegenüber 1cd2222 betrifft ausschließlich Android-Testanbieter und Protokoll; der Main-/Gradle-Fingerprint ist identisch. Build und Originalsignierung wurden dennoch mit dem neuen sauberen Commit wiederholt.
+
+Originalquelle: **b7d5fcd71fd0e376b8750cf9eaacd94e47d72883**, unveränderliches Tag **source/v1.54.4-build93**, Branch codex/calendar-weather-20261022. Commit und Tag regulär gepusht und exakt auf GitHub zurückgelesen. Striktes source_preservation vor Build, Signierung und Export PASS. Main-/Gradle-SHA256 **47e84a4a64d29117d828e49c26f4f700f0f4b75861274c5e15b7d75dbd1014c5** für 544 Dateien; tatsächliche DEX bestätigt denselben Hash, Commit, Version 1.54.4/93, SOURCE_DIRTY=false, DEBUG=false und UI_PREVIEW=false sowie beide neuen Klassen. 421 Mainassets entsprechen exakt den Quellbytes; zwei Compilerprofile ebenfalls geprüft. 181 Pflanzenprofile und 362 Bilder. Null Betriebsseedzeilen; Source-/Workspace-/fertige APK-Privacy PASS.
+
+APK **Haus-Garten-1.54.4-93-original-update.apk**, **36196370 Bytes**, SHA256 **16c7ed9dcbcc801002055d9646238398551ec69d8c797a039aa52eea50faa99d**. Originalzertifikat **a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8**. Original-ZIP **Haus-Garten-Quellcode-b7d5fcd71fd0.zip**, SHA256 **e4b80e526d57aace9193c20fa16d7e0c8b87c7abf54dc2f80a850091e2246383**, 1243 Originaldateien und 512 verlustlos rekonstruierte UTF-8-Dateien. Vollständiger maschinenlesbarer Nachweis: docs/verification/original-apk-1.54.4-93.json.
+
+Privater Ordner **1.54.4-build93-Kalender-Wetter-b7d5fcd**: https://drive.google.com/drive/folders/1RAFAWqhKgzzd633GTJ1FaEPWgh0B7xbS . APK: https://drive.google.com/file/d/17Pts6yNjNHiKyRqhJHaqAGarWJPZBnfA/view . Original-ZIP: https://drive.google.com/file/d/1lB4r1dg6zrB8pvTSXcIJ7s1HDecda3Bd/view . 19 tatsächliche Quell-Readbacks: 18 SHA256-Bytevergleiche und ein vollständig authentifizierter ZIP-Stream mit exakter Größe. APK ebenso vollständig gestreamt und mit frischen privaten Metadaten geprüft. Für APK/ZIP wegen der 32MiB-Materialisierungsgrenze ausdrücklich kein Remote-SHA256-Bytevergleich; lokale Originalhashes vollständig geprüft. Offizieller Transferplan: 0 Uploads, 19 Reuse, 0 Duplikate. Payloads vor Indizes, START zuletzt, höchstens drei unabhängige Ketten.
+
+Nach diesem Dokumentationscommit wird dessen vollständiger aktueller Quellstand mit dem offiziellen Exporter im privaten Unterordner https://drive.google.com/drive/folders/1kE3pqZns1XOrPSM7SZ2V7sMVAEIdFOjv gesichert. Manifest und START benennen den separaten exakten Dokumentationscommit; b7d5fcd bleibt die unveränderliche APK-Originalquelle. Readback-Belege liegen außerhalb der Exporte. Frühere Originale, tatsächlich installierter Stand 92 und Zwischenstand 1cd2222 bleiben erhalten. Keine Löschung, Retentionsverkürzung oder Mainübernahme.
+
+**Offene externe Abnahme:** Die aktuelle lesende Pixelprüfung zeigt 1.54.3/92/aff54db, CALENDAR_APP_REGISTRATION_REQUIRED, Stufe grant, verbunden=false. Für das bestehende Google-Projekt fehlen hier Verwaltungszugang und eine belegte Projekt-ID. Calendar API, Android-OAuth-Client für at.hausgarten.service mit Original-SHA1 und geeigneter Veröffentlichungs-/Verifizierungsstatus müssen stimmen; anschließend einmal ausdrücklich am Pixel Google-Zugriff gewähren und Kalender zurücklesen. Keine Projektkonfiguration oder Einwilligung vorgetäuscht. Physische Installation/Update92→93 und Live-Open-Meteo-Probe sind nicht ausgeführt; der Executor-Zielkatalog enthält api.open-meteo.com nicht. Dieser Kandidat ist kein vollständig live abgenommener Produktivrelease. Keine echten Kunden-/Adressdaten in Quellen, Fixtures oder Reports und keine produktiven Kalender-/Drive-Schreibtests.
+
 ## Kalender/Wetter R2 – Originalkandidat und Android-Rückmeldung (22.10.2026)
 
 Gesicherter Implementierungscommit1cd2222b66546edecccab387394400b60a4988ab:393Python/42JVM/55MCP und nach isolierter Wiederholung vollständige51/51Browser PASS. Erster kompletter Browserlauf50/51: unveränderter Menü-Reihenfolgetest fluktuierte; unmittelbare isolierte und vollständige Wiederholung PASS, keine Assertions oder Menüs geändert. Der abschließende kleine Anzeigeattribut-Fix für neutrale Trends wurde vor dem vollständigen Wiederholungslauf geprüft.

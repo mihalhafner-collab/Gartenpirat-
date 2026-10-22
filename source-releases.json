@@ -83,6 +83,26 @@
       "google_live_authorization": "NOT EXECUTED",
       "release_approved": false,
       "drive_readback": "18 source files SHA256_BYTES; original ZIP/APK COMPLETE_STREAM_SIZE_ONLY"
+    },
+    {
+      "version": "1.54.4",
+      "build": 93,
+      "tag": "source/v1.54.4-build93",
+      "git_sha": "b7d5fcd71fd0e376b8750cf9eaacd94e47d72883",
+      "source_sha256": "47e84a4a64d29117d828e49c26f4f700f0f4b75861274c5e15b7d75dbd1014c5",
+      "source_files": 1243,
+      "original_zip_sha256": "e4b80e526d57aace9193c20fa16d7e0c8b87c7abf54dc2f80a850091e2246383",
+      "apk_sha256": "16c7ed9dcbcc801002055d9646238398551ec69d8c797a039aa52eea50faa99d",
+      "drive_zip_id": "1lB4r1dg6zrB8pvTSXcIJ7s1HDecda3Bd",
+      "drive_apk_id": "17Pts6yNjNHiKyRqhJHaqAGarWJPZBnfA",
+      "drive_folder_id": "1RAFAWqhKgzzd633GTJ1FaEPWgh0B7xbS",
+      "development_export_folder_id": "1kE3pqZns1XOrPSM7SZ2V7sMVAEIdFOjv",
+      "native_cloud_acceptance": "159PASS; T+14 runtime; update/fresh/UI/final snapshot PASS",
+      "pixel_installation": "NOT EXECUTED; last observed92",
+      "google_live_authorization": "NOT EXECUTED",
+      "weather_live_provider": "NOT EXECUTED",
+      "release_approved": false,
+      "drive_readback": "19 verified receipts;18 SHA256_BYTES +1ZIP COMPLETE_STREAM_SIZE_ONLY;0 pending/duplicates"
     }
   ]
 }
