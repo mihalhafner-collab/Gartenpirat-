@@ -149,6 +149,30 @@
       "drive_readback": "19 source receipts:18 SHA256_BYTES+1ZIP COMPLETE_STREAM_SIZE_ONLY; APK COMPLETE_STREAM_SIZE_ONLY; small version/QA receipts separately verified",
       "drive_provenance_id": "1XYk1lHZpQ2fyXLr0ZTxg7sidZyGEhzWU",
       "drive_verification_id": "1F_vDQOOnO_W84u879Penqi9VWzcmT_kp"
+    },
+    {
+      "version": "1.54.7",
+      "build": 96,
+      "tag": "source/v1.54.7-build96",
+      "git_sha": "998d71f233f57b68264f771e64f8c576b214b957",
+      "tree_sha": "81b0f8dac3a7baf8304418cb0a9b328007d10e24",
+      "source_sha256": "8a29c1b793014be4f4e6f53b8feb8ef2744e0d0727541bc374a26bdd54bae336",
+      "source_files": 1282,
+      "original_zip_sha256": "ff8c5708a71a1566b89cc8e6dfe40434a6cf63c98463fb12f6be4df9e3ebfdfd",
+      "apk_sha256": "e4cc718fc51ed7b8f47f089ea582da52961c09d413267c7fcf8df06e836a2a25",
+      "drive_zip_id": "154LI5YHV11KiD-evgy2OoPwzjcuvfYTU",
+      "drive_apk_id": "1YOT0voQQZ_ntiA_O9jBWVr3ifR8AnBQ8",
+      "drive_folder_id": "1Juu_8VdoAdLC-vkoQVPrx_K2Qs4RDKxG",
+      "source_folder_id": "1PJqvAyhJlRAG-R2UpTtq4dA1wSjavwYr",
+      "development_export_folder_id": "1oMjiRt2OqcR5mKcSbsYjVv1hEGlL7QHD",
+      "drive_provenance_id": "1fthY3Q6T0qLdb2sfi2GWrAAUHzaNZa8_",
+      "drive_verification_id": "1UZJh4BhsZGZWez1hiLRo2w_X9skKKZZf",
+      "remote_readback": "PASS exact original branch/tag",
+      "native_cloud_acceptance": "172PASS/0FAIL; original95→96 full ledger/fresh_isolated/nativeWebView/font1.0/1.5/2.0/9reviewed screenshots PASS; OS font/display restored",
+      "pixel_installation": "NOT_EXECUTED; historical last observation94, not queried during96 work",
+      "google_live_authorization": "NOT_EXECUTED; no productive request_sync or queue mutation",
+      "release_approved": false,
+      "drive_readback": "19 source receipts:18SHA256_BYTES+1ZIP COMPLETE_STREAM_SIZE_ONLY; helper0upload/19reuse/0duplicates; APK COMPLETE_STREAM_SIZE_ONLY; QA/proof SHA256_BYTES"
     }
   ]
 }

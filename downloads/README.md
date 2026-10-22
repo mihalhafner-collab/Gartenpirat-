@@ -1,5 +1,21 @@
 # Haus & Garten – aktuelle Downloads
 
+Aktueller originalsignierter Kandidat: **[1.54.7 / Build96](https://drive.google.com/file/d/1YOT0voQQZ_ntiA_O9jBWVr3ifR8AnBQ8/view)**. AP1–AP7 umgesetzt: Syncfehler/Commitstatus, echte Produktionstests, sichere Quittungsbegrenzung, Arbeitsentwurf vor Menüwechsel, übersichtliche Heute-/Planungsansichten und kleine Displays/große Schrift. Linke Rand-/Zurückgeste unverändert.
+
+- [Versionsnachweis](https://drive.google.com/file/d/1fthY3Q6T0qLdb2sfi2GWrAAUHzaNZa8_/view), [QA je AP](https://drive.google.com/file/d/1UZJh4BhsZGZWez1hiLRo2w_X9skKKZZf/view), [lesbarer Abschlussbericht](../docs/verification/implementation-1.54.7-96.md).
+- [Originalquell-ZIP](https://drive.google.com/file/d/154LI5YHV11KiD-evgy2OoPwzjcuvfYTU/view), Tag `source/v1.54.7-build96`, Quellcommit `998d71f233f57b68264f771e64f8c576b214b957`.
+- [Originalquellordner](https://drive.google.com/drive/folders/1PJqvAyhJlRAG-R2UpTtq4dA1wSjavwYr):1282Dateien/551UTF8/731öffentliche Binärressourcen,19verifizierte Transferbelege.
+- [Abschlussquellen](https://drive.google.com/drive/folders/1oMjiRt2OqcR5mKcSbsYjVv1hEGlL7QHD): separater endgültiger Dokumentationscommit/ZIP im Manifest; Appcode/Tag bleiben unverändert.
+
+394Python,49JVM-Suiten,54Browser-Suiten,55synthetische stdio-MCP-Szenarien und172native Androidprüfungen PASS. Tatsächlicher Emulator360×640dp bei100/150/200Prozent,9Bilder visuell geprüft; Display/Font wiederhergestellt. Original95→96: vollständiger Master/Pending/Relationen und RUNNING-Timer erhalten; installierte APK byteidentisch.
+
+APK-SHA256: `e4cc718fc51ed7b8f47f089ea582da52961c09d413267c7fcf8df06e836a2a25`. App-Fingerprint: `8a29c1b793014be4f4e6f53b8feb8ef2744e0d0727541bc374a26bdd54bae336`. Original-ZIP-SHA256: `ff8c5708a71a1566b89cc8e6dfe40434a6cf63c98463fb12f6be4df9e3ebfdfd`. Originalzertifikat unverändert. APK/ZIP: vollständiger authentifizierter Stream und Größe geprüft; wegen32MiB-Grenze kein behaupteter Remote-SHA-Bytevergleich. Kleinere18Quellartefakte und QA/Versionsnachweis tatsächlich byteweise SHA256-geprüft.
+
+**Pixelinstallation und produktives Google Drive ausdrücklich nicht ausgeführt.** Historische Pixelbeobachtung1.54.5/94 vom22.10.2026 wird nicht als frischer Gerätestand ausgegeben. Sicherung, Installation, request_sync und Rücklesen bleiben Aufgabe des Nutzers. Emulatorerfolg beweist keinen produktiven Google-Drive-Abgleich. Keine produktiven Testdaten/Queueänderungen; alte Versionen/Schutzmengen erhalten.
+
+## Historischer Downloadstand95
+
+
 Aktueller originalsignierter Kandidat: **[1.54.6 / Build95](https://drive.google.com/file/d/1mNMctVtasftStxWfwZboVv6chkQ_CbXv/view)**. Alle sechs Auditoptimierungen, sichere Testbereinigung, Scroll-/Menüwechsel sowie Planung/Heute umgesetzt. Original94→95 mit Datenerhalt und laufendem Timer,164native Androidprüfungen und echter WebView PASS. Physisches Pixelupdate und produktiver Live-Sync95 bleiben offen.
 
 - [Versionsnachweis](https://drive.google.com/file/d/1XYk1lHZpQ2fyXLr0ZTxg7sidZyGEhzWU/view) und [vollständige QA-Abnahme](https://drive.google.com/file/d/1F_vDQOOnO_W84u879Penqi9VWzcmT_kp/view), tatsächlicher SHA256-Bytevergleich bestanden.

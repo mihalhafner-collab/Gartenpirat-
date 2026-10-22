@@ -25,7 +25,10 @@
     "candidate92": "1pzAVZQcxcvYEqbEYYzZXKg7cNm0qllw_",
     "candidate93": "1RAFAWqhKgzzd633GTJ1FaEPWgh0B7xbS",
     "candidate94": "1Gq89Ru3bCL-FNw60WAHEPLzsoUTsJnnR",
-    "candidate95": "1qV4B9lXj0P35DSsuIzTD9hIMWgx34bef"
+    "candidate95": "1qV4B9lXj0P35DSsuIzTD9hIMWgx34bef",
+    "candidate96": "1Juu_8VdoAdLC-vkoQVPrx_K2Qs4RDKxG",
+    "source96": "1PJqvAyhJlRAG-R2UpTtq4dA1wSjavwYr",
+    "documentation96": "1oMjiRt2OqcR5mKcSbsYjVv1hEGlL7QHD"
   },
   "runtime_folder_ids": [
     "1qR33tKpsKa-VxLeuTbXibjgYGjpyE8__",
@@ -44,7 +47,9 @@
     "1pwo3kz2shKIyPnXYV0KbL9Szyvya5OS8",
     "189LoXjhKV9a0GhsnCYpHfsL_60e5wBpL",
     "1mNMctVtasftStxWfwZboVv6chkQ_CbXv",
-    "1Y8xLj_5d08RZjUeoqmM5f2rWY1D24QWc"
+    "1Y8xLj_5d08RZjUeoqmM5f2rWY1D24QWc",
+    "1YOT0voQQZ_ntiA_O9jBWVr3ifR8AnBQ8",
+    "154LI5YHV11KiD-evgy2OoPwzjcuvfYTU"
   ],
   "retention_days": {
     "apk_retired": 0,
@@ -60,7 +65,8 @@
     90,
     93,
     94,
-    95
+    95,
+    96
   ],
   "no_runtime_writes": true,
   "no_history_rewrite": true,
@@ -77,5 +83,5 @@
     "weekly": "6ad8f37b548c8191b18d43b443aae6d3",
     "monthly": "6ad8f37da1d88191b7aa7fbf09473760"
   },
-  "keep_builds_evidence": "Retain89/90 formal references,93/94 existing candidates and installed94, plus new95 candidate. No old protection removed, retention/deletion not advanced before physical acceptance."
+  "keep_builds_evidence": "Previous89/90/93/94/95 protections retained; add original96 cloud candidate. Pixel observation94 remains historical. No protection removal, retirement clock or deletion without physical acceptance."
 }
