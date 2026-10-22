@@ -3,6 +3,12 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Umsetzung96 – ausdrückliches APK-Voraudit bestanden (22.10.2026)
+
+Jeden AP1–AP7-Unterpunkt vor APK-Erstellung nochmals gegen Quelle, Tests und Grenzen geprüft: [Abnahmeprotokoll](docs/verification/implementation-1.54.7-96.md).54aktuelle Browsersuiten grün(53Gesamtlauf plus korrigierte Planungsrechteck-Prüfung erneut; operative Assets nachweislich unverändert),394Python/0Skips/37explizite QA-Key-Altfallausnahmen,49JVM-Suiten/1047Paritätsassertions,114Syncfehlerprüfungen,55lokale stdio-MCP-,29Kamera-/47Cleanup-Hostfälle PASS. Native Java+AndroidTest+Lint42Tasks PASS,0Fehler/54Warnungen. Pflanzen-/Angebots-/UI-/Privacy-Gates grün. H3/H4kein Entwurfsverlust, H5gemessen/kein spekulativer Umbau. Synthetisches Emulator-Vorledger95 frisch erfasst:3Kunden/1Auftrag/2Arbeiten/1Pending/laufender Timer; nur Counts/Hashes gespeichert.
+
+Implementierungsnacharbeiten abgeschlossen. Version darf jetzt1.54.7/96 werden; danach sauber gesicherten Commit bauen/originalsignieren. Native Ausführung der96-Tests, OS-Großschrift, Artefakt- und Driveabnahme sind weiterhin separate nachfolgende Gates. Keine vollständige96-Freigabe vor diesen Nachweisen; kein Pixel-/Produktivsync.
+
 ## Umsetzung96 – Regressionsprüfung und Großschriftkorrekturen (22.10.2026)
 
 Vorhandene Positionstests bewusst auf die neue Heute-/Planungsstruktur umgestellt: echte Readiness statt entfernter Metrikkacheln, sichtbare aktive Terminkarte statt zusätzlichem versteckten Heute-Treffer, neues ⋯-Menü vor Zusatzaktionen öffnen. Fachliche CAS-/Request-/Timer-/Abrechnungs-/Kameraerwartungen nicht gelockert. Tatsächlich gefunden und behoben: Arbeitsdetail-Aktionsmenü war von einer entfernten Heute-Arbeitszeile abhängig; ruft jetzt denselben bestehenden Action-Sheet-Einstieg direkt mit Datensatz-ID auf. Offene Terminenden auf Heute wieder sichtbar. Persönliche bezahlt-Markierung einschließlich lokaler Persistenz/Fehlerfall über eingeklappten Arbeitsverlauf erhalten, Wochenstunden bleiben letzte Kennzahl.

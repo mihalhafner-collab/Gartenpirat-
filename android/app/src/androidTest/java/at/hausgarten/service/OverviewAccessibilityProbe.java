@@ -23,11 +23,16 @@ final class OverviewAccessibilityProbe {
             require("true".equals(ReleaseLifecycleProbe.js(runner,view,"(()=>{PlanningUI.open();return currentPage==='planning-page'&&!!document.getElementById('planning-new')&&document.querySelectorAll('#planning-rows [data-appointment-open]').length===4;})()")));
             require("true".equals(ReleaseLifecycleProbe.js(runner,view,bounds)));
             require("true".equals(ReleaseLifecycleProbe.js(runner,view,"(()=>{const b=document.getElementById('planning-new'),r=b.getBoundingClientRect(),n=document.querySelector('.bottom').getBoundingClientRect();return r.top>=0&&r.bottom<=n.top+1;})()")));
+            screenshot(runner,"planning",scale);
             require("true".equals(ReleaseLifecycleProbe.js(runner,view,"(()=>{openPage('home');const button=document.querySelector('[data-session-action=stop]')||document.querySelector('[data-session-action=start]');button.scrollIntoView({block:'center'});return true;})()")));
             runner.waitForIdleSync();SystemClock.sleep(500);
-            String file="/data/local/tmp/gartenpirat-cloud-font-"+Math.round(scale*100)+".png";
-            try(android.os.ParcelFileDescriptor shot=runner.getUiAutomation().executeShellCommand("screencap -p "+file);java.io.InputStream in=new android.os.ParcelFileDescriptor.AutoCloseInputStream(shot)){byte[] buffer=new byte[1024];while(in.read(buffer)!=-1){}}
+            require("true".equals(ReleaseLifecycleProbe.js(runner,view,"(()=>{const b=document.querySelector('[data-session-action=stop]')||document.querySelector('[data-session-action=start]'),r=b.getBoundingClientRect(),nav=document.querySelector('.bottom').getBoundingClientRect();return r.top>=0&&r.bottom<=nav.top+1&&b.scrollWidth<=b.clientWidth+1;})()")));
+            screenshot(runner,"today",scale);
         }finally{ReleaseLifecycleProbe.js(runner,view,"(()=>{if(window.__qaOverviewNative){window.AndroidData=window.__qaOverviewNative;delete window.__qaOverviewNative;load();openPage('home');PlanningUI.refresh();}return true;})()");}
+    }
+    private static void screenshot(Instrumentation runner,String page,float scale)throws Exception{
+        String file="/data/local/tmp/gartenpirat-cloud-font-"+page+"-"+Math.round(scale*100)+".png";
+        try(android.os.ParcelFileDescriptor shot=runner.getUiAutomation().executeShellCommand("screencap -p "+file);java.io.InputStream in=new android.os.ParcelFileDescriptor.AutoCloseInputStream(shot)){byte[] buffer=new byte[1024];while(in.read(buffer)!=-1){}}
     }
     private OverviewAccessibilityProbe(){}
 }
