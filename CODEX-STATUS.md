@@ -3,6 +3,12 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Umsetzung96 – Auftrag und Abnahmekriterien festgelegt (22.10.2026)
+
+Neuer Nutzerauftrag AP1–AP7: [CODEX-UMSETZUNG-1.54.7.md](CODEX-UMSETZUNG-1.54.7.md). Ausgang sauber d279945/Original95, Remote-Arbeitsbranch exakt identisch; frischer main e499e745 und alle bestehenden Branches verglichen, kein Reset/Merge. Aktuelle main-Regeln und Issue1 lesend über Connector geprüft; gh-GraphQL war gesperrt, kein fehlender Inhalt als gelesen behauptet. Cloudnetz eingeschränkt/enforced, erforderliche Originalsignierungsvariablen nur als bereit gemeldet, keine Werte ausgegeben. Noch keine Versionserhöhung, Codeänderung oder neue APK.
+
+AP1/AP2 tatsächlich in Quelle bestätigt. AP5 enthält bereits einen Leave-Guard im mobile.html; tatsächlichen Menüpfad prüfen und gezielt ergänzen. AP4 muss auch Wiederholung nach bereits bestätigter/entfernter pending-Zeile schützen; Primary Key allein ist dann kein dauerhafter Replay-Beleg. Diese Randfälle vor Implementierung isoliert belegen. Sämtliche produktiven Pixel-/Sync-Aktionen ausgeschlossen, linkes Randmenü unverändert. Fortschritt und Schlussaudit je AP folgen; vorhandene95-Nachweise sind keine96-Abnahme.
+
 ## Abschluss B1–B4 – Optimierungen und Originalkandidat95 (22.10.2026)
 
 **Umsetzung und Cloud-Abnahme abgeschlossen; physisches Pixelupdate und produktive Sync95-Bestätigung offen.** Alle sechs Auditoptimierungen sowie die beauftragten Sync-/Testreste-/Bedienkorrekturen sind implementiert. Vollständiger schichtenspezifischer Nachweis: [docs/verification/optimization-1.54.6-95.json](docs/verification/optimization-1.54.6-95.json). Die untenstehenden Zwischenstände und tatsächlich gefundenen Fehler bleiben als Historie erhalten.
