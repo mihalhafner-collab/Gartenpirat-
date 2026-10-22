@@ -9,11 +9,7 @@ final class LocalTestCleanup {
     private static final String KEY="purged_local_test_records_v1";
     static void overlay(PixelLocalStore store,JSONObject master)throws Exception {
         JSONObject tombstones=new JSONObject(store.ownerValue(KEY,"{}"));
-        for(Iterator<String> it=tombstones.keys();it.hasNext();){String key=it.next();int split=key.indexOf(':');
-            String entity=key.substring(0,split),id=key.substring(split+1);JSONObject receipt=tombstones.getJSONObject(key);
-            if(!receipt.optBoolean("purged")||receipt.has("record"))throw new IllegalArgumentException("Ungültiger lokaler Löschbeleg.");
-            OwnerJournalRules.replace(master,OwnerJournalRules.group(entity),id,null);OwnerJournalRules.archives(master).put(key,receipt);
-        }
+        for(Iterator<String> it=tombstones.keys();it.hasNext();){String key=it.next();LocalTestTombstone.project(master,key,tombstones.getJSONObject(key));}
     }
     static boolean sameTarget(JSONObject event,String entity,String id){
         String kind=event.optString("kind");JSONObject p=event.optJSONObject("payload");if(p==null||!id.equals(p.optString("id")))return false;
@@ -56,7 +52,9 @@ final class LocalTestCleanup {
                 LocalOwnerRepository repo=new LocalOwnerRepository(store.appContext(),store);JSONObject meta=repo.fileMeta(backup);repo.inspectDeletionBackup(backup,meta);
                 boolean local=OwnerJournalRules.findOrNull(raw.optJSONArray(OwnerJournalRules.group(entity)),id)==null&&!OwnerJournalRules.archives(raw).has(key);
                 promoteSharedRemoval(store,raw,pending,entity,id,action);
-                receipts.put(key,new JSONObject(tombstone.toString()).put("local_test_only",local));
+                JSONObject compacted=new JSONObject(tombstone.toString()).put("local_test_only",local);
+                JSONObject original=OwnerJournalRules.findOrNull(raw.optJSONArray(OwnerJournalRules.group(entity)),id),oldArchive=OwnerJournalRules.archives(raw).optJSONObject(key);
+                if(original!=null)compacted.put("source_record_hash",OwnerJournalRules.version(original));if(oldArchive!=null)compacted.put("source_archive_hash",OwnerJournalRules.version(oldArchive));receipts.put(key,compacted);
                 for(int j=0;j<pending.length();j++){JSONObject old=pending.getJSONObject(j);if(old.getJSONObject("payload").optBoolean("_local_only")&&sameTarget(old,entity,id))removed+=db.delete("pending","id=? AND kind!='mcp_receipt'",new String[]{old.getString("client_id")});}
             }
             for(int i=0;i<pending.length();i++){JSONObject a=pending.getJSONObject(i),p=a.getJSONObject("payload");if(!a.optString("kind").equals(TrashPurgeBatch.KIND)||!p.optBoolean("_local_only"))continue;boolean complete=true;JSONArray entries=p.getJSONArray("entries");for(int j=0;j<entries.length();j++){JSONObject e=entries.getJSONObject(j);if(!receipts.has(e.getString("entity")+":"+e.getString("entity_id")))complete=false;}if(complete)removed+=db.delete("pending","id=?",new String[]{a.getString("client_id")});}

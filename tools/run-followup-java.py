@@ -24,7 +24,7 @@ names = ['DeletionBackupStore', 'SnapshotProjection', 'OwnerCommand', 'EntityCon
          'PixelMcpEntityWriteTools', 'PixelMcpReadTools', 'PixelMcpSessionTools', 'PixelMcpBusinessTools',
          'WorklogRelationRules', 'ManualChangeRules', 'GardenRules', 'SyncActionOrder', 'DriveRestClient', 'DrivePublication', 'McpSchema', 'McpFileTransfer', 'InvoiceDraftRules', 'PixelMcpOwnerTools', 'OwnerJournalRules', 'DriveJournalRules', 'OrderReviewRules', 'PixelTunnelConfig',
          'PixelTunnelWire', 'WorkSessionPauseRules']
-names += ['ActiveWorkProtection','ImmutableStateReference','CatalogSemanticHash','SyncQueueCounters','VerifiedSyncCache','SyncIoFailure','CalendarRecoveryRules','OpenMeteoWeatherSource','CalendarSetupRules','PlanningWire']
+names += ['LocalTestTombstone','ActiveWorkProtection','ImmutableStateReference','CatalogSemanticHash','SyncQueueCounters','VerifiedSyncCache','SyncIoFailure','CalendarRecoveryRules','OpenMeteoWeatherSource','CalendarSetupRules','PlanningWire']
 tests = sorted((ROOT/'tests/java/at/hausgarten/service').glob('*Tests.java'))
 cp = os.pathsep.join(map(str, [classes, jar, android]))
 

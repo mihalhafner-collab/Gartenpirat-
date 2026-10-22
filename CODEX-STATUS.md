@@ -3,6 +3,12 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Datenintegrität B4 – Löschbelegpräzedenz korrigiert (22.10.2026)
+
+Zusätzlicher Review fand einen Randfall im neu eingeführten Test-GC: ein alter lokaler Tombstone durfte den späteren geteilten Purge-Beleg nicht überschreiben. Neuer reiner Projektor bevorzugt existierende serverseitige Purge-Belege byte-/hashgleich; private Provenienzfelder bleiben außerhalb des projizierten Fachbelegs. Seit dem bestätigten Löschen geänderte Originale/Archive werden nicht durch den alten lokalen Beleg versteckt.16gezielte reine JVM-Prüfungen einschließlich unverändertem Eingabehash im Konfliktfall PASS;45JVM-Suiten insgesamt PASS. Native SQLite-Integration um tatsächlichen Belegvergleich nach Bestätigung ergänzt. Keine Geschäfts-/Publikationshashes geändert. Vorbereiteter6f4c4f6-Kandidat/Quellstand dadurch überholt und nicht ausgeliefert; aktueller Kandidat wird aus neu gesichertem Stand neu gebaut/signiert/exportiert.
+
+Software-AVD: Emulatoroption ro.hw_timeout_multiplier wurde vom Emulator abgewiesen (nur qemu.* unterstützt), daher keine Wirksamkeit behauptet. Danach ausschließlich im nachgewiesenen dedizierten qemu-AVD adbd alsroot neu gestartet, ro.hw_timeout_multiplier=10 tatsächlich gesetzt/zurückgelesen und Android-Runtime ordentlich stop/start durchgeführt. Datenpartition/APKs unverändert erhalten; kein Wipe/Uninstall. Physischer Pixel blieb unberührt. Native Tests weiterhin erst nach tatsächlichem Erfolg PASS.
+
 ## Gesamtabnahme B4 – Zwischenstand (22.10.2026)
 
 Release-/AndroidTest-Build und lintRelease PASS84Tasks aus gesichertem6b55163, noch unsignierter Testbuild.53Browser-Suiten ausgeführt;51PASS und2alte Präsentationserwartungen zunächst FAIL. Beide gezielt korrigiert und erneut tatsächlich PASS: ui-preview14Checks prüft reale Erreichbarkeit statt früherer fester unterer Bildschirmhälfte; p3-customer-hub wartet auf tatsächlich geladenes Field-Stylesheet und bestätigt neue Arbeit-vor-Summen-Reihenfolge. Weiterer vollständiger Schlusslauf folgt.44JVM-Suiten/1047Paritätsassertions,29Kamera-Hostfälle,47Cleanup-Koordinatorfälle und55echte lokale MCP-stdio-Szenarien PASS. Python-Gesamtprüfung noch im Gang.
