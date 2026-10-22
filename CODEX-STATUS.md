@@ -3,6 +3,14 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Umsetzung96 – abschließende kleine Bildschirm-/Sichtprüfung (22.10.2026)
+
+Die ersten nativen Schriftproben lieferten zwar richtige OS-/TextZoom-/DOMwerte, die tatsächlich zurückgelesenen Screenshots zeigten jedoch einen verdeckenden Android-SystemUI-ANR-Dialog. Diese Bilder ausdrücklich nicht als visuelle Abnahme akzeptiert. Ausschließlich im bewachten eigenen AVD den exakt identifizierten Systemdialog über „Wait“ bestätigt; keine Appdaten/Queue geändert. Native Fontprüfung verlangt künftig zusätzlich fokussiertes Anwendungsfenster und prüft die tatsächliche Sichtbarkeit auf einem temporären360×640dp-Display, bei1.0/1.5/2.0; Font und Display werden zurückgestellt. Kein Schluss auf Pixelperformance aus dem nicht beschleunigten API30-Emulator.
+
+Zwei weitere konkrete UI-Regressionsfälle erst rot, dann behoben: bei laufender Sitzung lag der zweite heutige Termin unter der Navigation; nach Kundenumbenennung blieben Namen in Today-Rendercaches alt. Timer-Jetzt nun kompakt mit Pause/Fortsetzen und Stoppen/Ergänzen, Foto/Nachtragen/Löschen über vorhandene Aktionen im ⋯-Zusatzmenü. Keine Timer-/Foto-/Speicherkontrakte geändert. Renderer-Schlüssel berücksichtigen tatsächlich angezeigte Kundennamen;1s-Takt ersetzt weiterhin nur die Uhr bei unverändertem Kontext. Zeitraum darf bei großer Schrift ganze Datumswörter in zusätzliche Zeile legen; Timer-/Startbeschriftungen werden nicht mitten im Wort getrennt.
+
+Erneuter vollständiger54-Suiten-Browserlauf mit finalen operativen Assets:54PASS/0FAIL, keine zusammengesetzte Ersatzfreigabe mehr erforderlich. Neu10gezielte Übersichtsfälle einschließlich aktivem Timer+2Terminen, Kameraaufruf mit identischer Session/Kunde, Nachtragen ohne Timerneustart, umbenanntem Kunden, langen Namen und großen Idle-Startbeschriftungen.394Python erneut PASS/0Skips;49JVM-Suiten/1047Paritätsassertions sowie18Retentionfälle weiter grün. Finale native Java-/Lintprüfung und original96-Artefakt-/Emulatorwiederholung vor Auslieferung stehen noch an. Linke Rand-/Zurückgeste unverändert.
+
 ## Umsetzung96 – zusätzliche AP4-Referenzprüfung nach erstem Kandidaten (22.10.2026)
 
 Erster originalsignierter interner96-Kandidat aus57e1b01:84Release-/AndroidTest-/Lint-Tasks PASS; Paket/Originalzertifikat/komplette Assets/leerem Bootstrap/Commit/Fingerprint geprüft.172native SQLite/MCP/Providerfälle PASS/0FAIL und tatsächlicher WebView PASS. Kein Tag/Drive-Upload/Pixelupdate dieses Zwischenkandidaten.

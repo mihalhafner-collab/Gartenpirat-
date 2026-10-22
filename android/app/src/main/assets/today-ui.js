@@ -11,6 +11,7 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
     let panel=get('workday-timer');
     if(!panel)return;
     if(!panel._bound){panel._bound=true;panel.addEventListener('click',event=>{
+      const extra=event.target.closest('.today-timer-more');if(extra&&event.target.closest('button'))extra.open=false;
       const action=event.target.closest('[data-session-action]')?.dataset.sessionAction;if(!action)return;const session=readSession();let next=null;
       if(action==='photo'){
         const customerId=session.customer_id||get('customer')?.value;
@@ -41,15 +42,19 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
   function renderTimer(session){
     const panel=get('workday-timer');if(!panel)return;
     const status=session.state||'IDLE',active=status==='RUNNING',paused=status==='PAUSED',stopped=status==='STOPPED_PENDING_REVIEW';
-    const signature=JSON.stringify([session.id,status,session.customer_id,session.order_id,session.location]);
+    const signature=JSON.stringify([session.id,status,session.customer_id,session.order_id,session.location,customerName(session.customer_id)]);
     if(panel._sessionView===signature){const clock=panel.querySelector('.timer-state strong');if(clock)clock.textContent=sessionDuration(session.worked_ms);return;}
     panel._sessionView=signature;panel.dataset.sessionState=status;panel.classList.toggle('has-active-session',active||paused||stopped);
     const manual='<button type="button" class="quick secondary" data-open="work-entry"><strong>Nachtragen</strong></button>';
     let body;
     if(['IDLE','FINALIZED','CANCELLED'].includes(status))body='<div id="field-today-actions" aria-label="Arbeit beginnen oder nachtragen"><button type="button" class="timer-main timer-start" data-session-action="start"><b>Arbeit starten</b></button>'+manual+'</div>';
     else if(['UNAVAILABLE','ERROR'].includes(status))body='<p>Zeiterfassung derzeit nicht verfügbar.</p><div id="field-today-actions">'+manual+'</div>';
-    else body='<p class="timer-location-context">'+esc(session.customer_id?customerName(session.customer_id):'Kunde noch zuordnen')+'</p><div class="timer-state"><small>'+esc(active?'Arbeit läuft':paused?'Pausiert':'Einsatz beendet')+'</small><strong aria-label="Erfasste Arbeitszeit">'+sessionDuration(session.worked_ms)+'</strong></div><div class="timer-actions">'+(active?'<button type="button" class="timer-secondary" data-session-action="pause"><b>Pause</b></button>':'')+(paused?'<button type="button" class="timer-main" data-session-action="resume"><b>Fortsetzen</b></button>':'')+(active||paused?'<button type="button" class="timer-stop" data-session-action="stop"><b>Stoppen</b></button><button type="button" class="timer-secondary" data-session-action="photo"><b>Foto</b></button>':'')+(stopped?'<button type="button" class="timer-main" data-session-action="complete"><b>Angaben ergänzen</b></button>':'')+'</div><div id="field-today-actions"><span></span>'+manual+'</div>';
-    panel.innerHTML='<h2>Jetzt</h2>'+body+((active||paused||stopped)?'<details class="today-timer-more"><summary>Weitere Aktionen</summary><button type="button" class="timer-discard" data-session-action="discard">Zeiterfassung löschen</button></details>':'');
+    else{
+      const primary=(active?'<button type="button" class="timer-secondary" data-session-action="pause"><b>Pause</b></button>':'')+(paused?'<button type="button" class="timer-main" data-session-action="resume"><b>Fortsetzen</b></button>':'')+(active||paused?'<button type="button" class="timer-stop" data-session-action="stop"><b>Stoppen</b></button>':'')+(stopped?'<button type="button" class="timer-main" data-session-action="complete"><b>Angaben ergänzen</b></button>':'');
+      const extras='<details class="today-timer-more"><summary aria-label="Weitere Aktionen zur Zeiterfassung">⋯</summary><div class="today-timer-more-panel">'+(active||paused?'<button type="button" class="timer-secondary" data-session-action="photo"><b>Foto</b></button>':'')+'<div id="field-today-actions">'+manual+'</div><button type="button" class="timer-discard" data-session-action="discard">Zeiterfassung löschen</button></div></details>';
+      body='<p class="timer-location-context">'+esc(session.customer_id?customerName(session.customer_id):'Kunde noch zuordnen')+'</p><div class="timer-state"><small>'+esc(active?'Arbeit läuft':paused?'Pausiert':'Einsatz beendet')+'</small><strong aria-label="Erfasste Arbeitszeit">'+sessionDuration(session.worked_ms)+'</strong></div><div class="timer-actions">'+primary+extras+'</div>';
+    }
+    panel.innerHTML='<h2>Jetzt</h2>'+body;
   }
  function homeGestures(card){
   let touch=null,suppressUntil=0;
@@ -80,7 +85,7 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
     const date=get('home-dayline');date.textContent=new Date().toLocaleDateString('de-AT',{timeZone:'Europe/Vienna',weekday:'short',day:'numeric',month:'short'});date.setAttribute('aria-label',new Date().toLocaleDateString('de-AT',{timeZone:'Europe/Vienna',dateStyle:'full'}));
     syncChip();workTimer();
     const data=window.PlanningUI?.homeRows(showAll?Infinity:3,futureSelection)||{entries:[],total:0,future:[]},card=get('planning-home');
-    const key=JSON.stringify([data,showAll,orders().filter(o=>o.scheduled_date===localDate())]);
+    const key=JSON.stringify([data,showAll,data.entries.map(e=>customerName(e.appointment.customer_id)),data.next?customerName(data.next.appointment.customer_id):'',orders().filter(o=>o.scheduled_date===localDate()).map(o=>[o,customerName(o.customer_id)])]);
     if(key!==lastPlanningKey){lastPlanningKey=key;
       let content='<div class="today-planning-heading"><h2>Heute geplant'+(data.total?' · '+data.total:'')+'</h2><button type="button" class="field-planning" data-open="planning-page">Planung</button></div>';
       if(data.total){content+=data.entries.map(appointmentRow).join('');if(data.total>3)content+='<button type="button" class="secondary" data-today-all>'+(showAll?'Weniger anzeigen':'Alle anzeigen · '+data.total)+'</button>';}
@@ -90,7 +95,7 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
       content+='<section id="design-upcoming"'+(legacy.length?'':' hidden')+'><h3>Weitere Aufträge heute</h3>'+legacy.map(o=>'<button type="button" class="design-upcoming-row" data-edit-order="'+esc(o.id)+'"><strong>'+esc(o.title)+'</strong><small>'+esc(customerName(o.customer_id))+'</small></button>').join('')+'</section>';
       card.innerHTML=content;
     }
-    const recent=get('workday-recent'),rows=worklogs().slice().sort((a,b)=>String(b.work_date||'').localeCompare(String(a.work_date||''))||String(b.start_time||'').localeCompare(String(a.start_time||''))).slice(0,3),recentKey=JSON.stringify(rows);
+    const recent=get('workday-recent'),rows=worklogs().slice().sort((a,b)=>String(b.work_date||'').localeCompare(String(a.work_date||''))||String(b.start_time||'').localeCompare(String(a.start_time||''))).slice(0,3),recentKey=JSON.stringify(rows.map(row=>[row,customerName(row.customer_id)]));
     get('today-recent').hidden=!rows.length;
     if(recent._rowsKey!==recentKey){recent._rowsKey=recentKey;recent.innerHTML=rows.map(row=>'<button type="button" class="workday-recent-row" data-edit-worklog="'+esc(row.id)+'"><strong>'+esc(customerName(row.customer_id))+'</strong><span>'+esc(worklogDateLabel(row.work_date))+' · '+esc(String(row.activity||'').slice(0,75))+'</span><b>'+Number(row.hours||0).toLocaleString('de-AT')+' h</b></button>').join('');}
     const review=Number(syncInfo.review??state.sync_queue?.review??0),help=syncInfo.user_action_required||['action_required','error','status_warning'].includes(syncInfo.state),open=get('today-open');open.hidden=!review&&!help;
