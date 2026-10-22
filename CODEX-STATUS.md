@@ -3,6 +3,14 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Umsetzung96 – Regressionsprüfung und Großschriftkorrekturen (22.10.2026)
+
+Vorhandene Positionstests bewusst auf die neue Heute-/Planungsstruktur umgestellt: echte Readiness statt entfernter Metrikkacheln, sichtbare aktive Terminkarte statt zusätzlichem versteckten Heute-Treffer, neues ⋯-Menü vor Zusatzaktionen öffnen. Fachliche CAS-/Request-/Timer-/Abrechnungs-/Kameraerwartungen nicht gelockert. Tatsächlich gefunden und behoben: Arbeitsdetail-Aktionsmenü war von einer entfernten Heute-Arbeitszeile abhängig; ruft jetzt denselben bestehenden Action-Sheet-Einstieg direkt mit Datensatz-ID auf. Offene Terminenden auf Heute wieder sichtbar. Persönliche bezahlt-Markierung einschließlich lokaler Persistenz/Fehlerfall über eingeklappten Arbeitsverlauf erhalten, Wochenstunden bleiben letzte Kennzahl.
+
+Sichtprüfung100/200Prozent fand trotz rechnerisch korrekter Begrenzung zu schmale Kundenspalten. Heute und Planung geben dem vollständigen Kundennamen nun eine eigene Kartenzeile; Timeraktionen dürfen bei großer Schrift umbrechen. Geerbten zusätzlichen Pfeil im ⋯-Summary entfernt. Native Java/Main+AndroidTest erneut33Tasks PASS.49JVM-Suiten/1047Paritätsassertions PASS vor abschließender Netz-Backoff-Präzisierung; erneuter Gesamtlauf folgt. AP1 präzisiert: reine Netzfehler bleiben ohne Nutzeraktion im gedeckelten Backoff, auch ab Versuch8; Retryzähler bleibt begrenzt. Die vorhandene Grenze aller anderen Fehler unverändert. Diese bisherige Retrylimit-Verzweigung hätte sonst den ausdrücklich verlangten Netzwerkfall wieder zur Nutzeraktion gemacht.
+
+Neue Diagnosedarstellungsfälle prüfen tatsächliches sync-dashboard und business-feedback: Klasse/Meldung und read_step in Diagnose, vier neue Codes mit verständlichen Haupttexten; gezielter Sync-trash-Lauf PASS. Neue H3/H4-Fokus-/Entwurfsproben sowie H5-Bridge-/Hauptthreadmessung laufen, keine vorweggenommene Erfolgsbehauptung. Eigener Emulator bewahrt95-Datenpartition; noch keine96-APK/Installation, kein produktiver Pixel-/Drive-Abgleich. Vollständige abschließende Browser-/Python-/Native-Abnahme und Quellen-/Artefaktbelege weiterhin offen.
+
 ## Umsetzung96 – AP5 und erster AP6/AP7-Browsernachweis (22.10.2026)
 
 AP5: vorhandenen Leave-Guard erhalten, flushWorklogDetail ergänzt und Verwerfungsfrage auf eindeutigen Auftragstext gestellt. Tatsächlicher linker Menüpfad speichert gültige Änderung vor Wechsel; fehlender Kunde liefert false, Bestätigung erscheint und Abbrechen lässt Seite/Entwurf unverändert.10Worklog-Window-Browserfälle einschließlich2neuer Menüfälle PASS. Kein Warten auf einen Zeitgeber; keine pauschale zusätzliche Wrapperlage.

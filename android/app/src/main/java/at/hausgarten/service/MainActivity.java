@@ -183,6 +183,8 @@ public class MainActivity extends Activity implements McpSyncHost {
     private void configureWebView() {
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true); settings.setDomStorageEnabled(true); settings.setDatabaseEnabled(true);
+        float fontScale=getResources().getConfiguration().fontScale;
+        settings.setTextZoom(fontScale>0?Math.round(100*fontScale):100);
         // Bundled android_asset URLs remain accessible without general file access.
         settings.setAllowFileAccess(false);
         settings.setAllowFileAccessFromFileURLs(false);

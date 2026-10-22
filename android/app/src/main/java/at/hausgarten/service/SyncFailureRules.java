@@ -39,7 +39,7 @@ final class SyncFailureRules {
         boolean needs=error instanceof SyncIoFailure&&((SyncIoFailure)error).needsAction()||error instanceof JSONException||error instanceof IllegalArgumentException||error instanceof SecurityException||error instanceof DriveRestClient.Failure&&((DriveRestClient.Failure)error).userAction;
         boolean configuration=code.equals("FOLDER_NOT_SELECTED")||code.equals("DEVICE_ID_MISSING");
         int attempts=statusOnly?0:configuration?1:Math.min(SyncPolicy.MAX_ATTEMPTS,Math.max(0,previous)+1);
-        boolean paused=!statusOnly&&(needs||attempts>=SyncPolicy.MAX_ATTEMPTS);
+        boolean paused=!statusOnly&&(needs||attempts>=SyncPolicy.MAX_ATTEMPTS&&!code.equals("NETWORK_UNAVAILABLE"));
         long delay=SyncPolicy.retryDelay(attempts,error instanceof DriveRestClient.Failure?((DriveRestClient.Failure)error).retryAfter:0);
         boolean schedule=!statusOnly&&!paused;
         return new JSONObject().put("last_error_code",code).put("last_error",friendly(error)).put("last_error_detail",detail(error))

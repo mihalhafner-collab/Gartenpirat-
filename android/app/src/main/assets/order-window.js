@@ -116,7 +116,7 @@
   const oldBack=window.handleAndroidBack;window.handleAndroidBack=function(){if(currentPage==='worklog-detail'&&mode==='edit'){finishEditing();return true;}return oldBack();};
   footer.querySelector('[data-work-window-edit]').addEventListener('click',showEditor);footer.querySelector('[data-work-window-save]').addEventListener('click',finishEditing);footer.querySelector('[data-work-window-back]').addEventListener('click',()=>window.handleAndroidBack());
   footer.querySelector('[data-work-window-cancel]').addEventListener('click',()=>{window.cancelWorklogDetail();showOverview();window.scrollTo({top:0,behavior:'auto'});});
-  footer.querySelector('[data-work-window-more]').addEventListener('click',()=>{const id=value('edit-worklog-select'),row=document.querySelector('[data-edit-worklog="'+CSS.escape(id)+'"]');if(row)row.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true}));});
+  footer.querySelector('[data-work-window-more]').addEventListener('click',()=>{const id=value('edit-worklog-select');if(id)window.showRecordActionSheet?.({type:'worklog',id});});
   }
   // The inline page initializer runs on window.DOMContentLoaded. A deferred
   // script runs earlier, even while readyState is already "interactive".

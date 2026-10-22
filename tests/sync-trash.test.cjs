@@ -34,11 +34,21 @@ const assert=require('node:assert/strict'),path=require('node:path'),fs=require(
   });
   await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href);await page.waitForFunction(()=>window.TrashUI&&document.getElementById('trash-page'));await page.evaluate(()=>openPage('sync-page'));
   await check('One visible sync action with shared retry status and separate reviews',async()=>{
-   assert(await page.locator('#sync').isVisible());assert.equal(await page.locator('#sync').count(),1);assert.match(await page.locator('#sync-status').innerText(),/Prüfung erforderlich/);assert.match(await page.locator('#sync-transfer-details').innerText(),/Bitte 1 Änderung/);assert.equal(await page.locator('#sync-reviews').evaluate(x=>x.open),false);
+   assert(await page.locator('#sync').isVisible());assert.equal(await page.locator('#sync').count(),1);assert.match(await page.locator('#sync-status').innerText(),/Prüfung nötig/);assert.match(await page.locator('#sync-title').innerText(),/Prüfung erforderlich/);assert.match(await page.locator('#sync-transfer-details').innerText(),/Bitte 1 Änderung/);assert.equal(await page.locator('#sync-reviews').evaluate(x=>x.open),false);
    await page.locator('#sync').click();assert.equal(await page.evaluate(()=>retryCount),1);assert.equal(await page.evaluate(()=>statusFixture.cloud_confirmed),false);
   });
   await check('Transport diagnostics contain phase and error without claiming a server receipt',async()=>{
    await page.locator('#sync-technical summary').click();assert.match(await page.locator('[data-sync-diagnostics]').innerText(),/TRANSFER_FAILED/);assert.match(await page.locator('[data-sync-diagnostics]').innerText(),/Drive lesen/);assert.doesNotMatch(await page.locator('#sync-status').innerText(),/Vollständig/);
+  });
+  await check('96 sanitized exception detail and read step remain visible only in explicit diagnostics',async()=>{
+   const previous=await page.evaluate(()=>({...statusFixture}));
+   await page.evaluate(()=>{Object.assign(statusFixture,{last_error_code:'TRANSFER_FAILED',last_error_detail:'IOException: Stream closed',read_step:'journal_catalog'});syncInfo=statusFixture;syncLabel();});
+   assert.match(await page.locator('[data-sync-diagnostics]').innerText(),/IOException: Stream closed/);assert.match(await page.locator('[data-sync-diagnostics]').innerText(),/Leseabschnitt: journal_catalog/);
+   assert.doesNotMatch(await page.locator('#sync-title').innerText(),/IOException|journal_catalog/);
+   for(const [code,expected]of [['FOLDER_NOT_SELECTED',/Drive-Ordner auswählen/],['DEVICE_ID_MISSING',/Gerätekennung fehlt/],['NETWORK_UNAVAILABLE',/Internetverbindung unterbrochen/],['STATUS_NOT_SAVED',/Daten gesichert, Status offen/]]){
+    await page.evaluate(code=>{Object.assign(statusFixture,{last_error_code:code,detail:'',review:0,last_error:'QA Fehler'});syncInfo=statusFixture;syncLabel();},code);assert.match(await page.locator('#sync-title').innerText(),expected);
+   }
+   await page.evaluate(s=>{statusFixture=s;syncInfo=s;syncLabel();},previous);
   });
   await check('Blocked relationships never enqueue a delete',async()=>{
    await page.evaluate(()=>block=true);assert.equal(await page.evaluate(()=>TrashUI.remove('order','qa_o')),false);assert.equal(await page.evaluate(()=>calls.filter(x=>x.name==='delete_entity').length),0);assert.match(await page.locator('#mobile-toast').innerText(),/Fotos zuerst prüfen/);

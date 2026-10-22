@@ -2,6 +2,7 @@
 const fs=require('node:fs');
 const assert=require('node:assert/strict');
 const timer=fs.readFileSync('android/app/src/main/assets/workday-ui.js','utf8');
+const session=fs.readFileSync('android/app/src/main/assets/today-ui.js','utf8');
 const profile=fs.readFileSync('android/app/src/main/assets/design-concept.js','utf8');
 const html=fs.readFileSync('android/app/src/main/assets/mobile.html','utf8');
 const check=(name,source,pattern)=>{assert.match(source,pattern,name);console.log('PASS '+name);};
@@ -9,12 +10,12 @@ check('native camera input',html,/id="photo"[^>]*type="file"[^>]*accept="image\/
 check('camera shortcut',timer,/function configureWorkPhotoCamera\(\)/);
 check('customer guard',timer,/Bitte zuerst einen Kunden auswählen/);
 check('camera input click',timer,/input\.click\(\)/);
-check('timer photo action',timer,/if\(action==='photo'\)/);
-check('customer documentation routing',timer,/window\.openCustomerDocumentationCamera\(customerId,\{session_id:session\.id,order_id:session\.order_id\|\|\x27\x27\}\)/);
-check('manual fallback',timer,/Kunden auswählen und dann/);
-check('timer photo visible',timer,/data-session-action="photo"/);
-check('timer pause preserved',timer,/if\(action==='pause'\)next=sessionCall\('pauseWorkSession'/);
-check('timer stop preserved',timer,/if\(action==='stop'\)next=sessionCall\('stopWorkSession'/);
+check('timer photo action',session,/if\(action==='photo'\)/);
+check('customer documentation routing',session,/window\.openCustomerDocumentationCamera\(customerId,\{session_id:session\.id,order_id:session\.order_id\|\|\x27\x27\}\)/);
+check('manual fallback',session,/Kunden auswählen und dann/);
+check('timer photo visible',session,/data-session-action="photo"/);
+check('timer pause preserved',session,/if\(action==='pause'\)next=sessionCall\('pauseWorkSession'/);
+check('timer stop preserved',session,/if\(action==='stop'\)next=sessionCall\('stopWorkSession'/);
 check('customer camera route',profile,/window\.openCustomerDocumentationCamera=function\(id,context=\{\}\)/);
 check('customer documentation timeline',profile,/design-documentation-entry/);
 check('photo worklog selection',profile,/id="design-customer-photo-worklog"/);

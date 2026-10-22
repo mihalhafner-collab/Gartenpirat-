@@ -38,3 +38,13 @@
 @media(max-width:359px){#planning-page[data-planning-mode=list] .planning-week-strip{grid-template-columns:repeat(4,minmax(48px,1fr))}}
 
 #planning-page[data-planning-mode] summary{min-height:48px;min-width:48px;line-height:1.4}
+
+#planning-tools[data-filtered=true]>summary::after{content:"";position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--hg-green)}
+
+/* A complete customer name gets the full card width, including at 200% text. */
+#planning-page[data-planning-mode=list] .planning-row[data-appointment-open]{grid-template-columns:minmax(0,1fr)}
+#planning-page[data-planning-mode=list] .planning-row>.planning-time{grid-column:1;grid-row:1;white-space:normal;overflow-wrap:anywhere}
+#planning-page[data-planning-mode=list] .planning-row>.planning-customer{grid-column:1;grid-row:2}
+#planning-page[data-planning-mode=list] .planning-row>.planning-what{grid-column:1;grid-row:3}
+#planning-page[data-planning-mode=list] .planning-row>.planning-chips{grid-column:1;grid-row:4}
+#planning-page #planning-tools>summary::before{content:none}

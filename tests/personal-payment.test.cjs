@@ -14,7 +14,7 @@ const {chromium}=require('./browser.cjs');
    window.AndroidPhone={dial:()=>{}};window.AndroidSpeech={start:()=>{}};
   });
   const assets=path.resolve(process.env.HG_TEST_APP_ASSETS||'android/app/src/main/assets');
-  const load=async()=>{await page.goto(pathToFileURL(path.join(assets,'mobile.html')).href);await page.waitForFunction(()=>document.body.dataset.fieldReady==='true');await page.waitForSelector('#workday-recent [data-personal-paid]');};
+  const load=async()=>{await page.goto(pathToFileURL(path.join(assets,'mobile.html')).href);await page.waitForFunction(()=>document.body.dataset.fieldReady==='true');await page.locator('#today-recent>summary').click();await page.waitForSelector('#workday-recent [data-personal-paid]');};
   await load();const before=await page.evaluate(()=>JSON.stringify(fixture));
   await check('Saved work is personally marked and Today shows bezahlt without a business write',async()=>{
    await page.locator('#workday-recent [data-personal-paid]').click();

@@ -33,7 +33,7 @@ async function check(name,task){try{await task();results.push({name,result:'PASS
    window.AndroidSpeech={start:()=>{}};window.AndroidPhone={dial:()=>{},openMaps:()=>{}};
   });
   await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href,{waitUntil:'domcontentloaded',timeout:30000});
-  await page.waitForSelector('#design-metrics');await page.evaluate(()=>openCustomer('qa_c1'));await page.locator('[data-customer-tab="photos"]').click();
+  await page.waitForFunction(()=>document.body.dataset.fieldReady==='true'&&document.body.dataset.todayReady==='true');await page.evaluate(()=>openCustomer('qa_c1'));await page.locator('[data-customer-tab="photos"]').click();
   await check('Existing customer photos and the profile role render in the customer account',async()=>{
    assert.equal(await page.locator('[data-design-action="photo"]').count(),3);
    assert.equal(await page.locator('.design-photo-role').count(),1);
@@ -80,7 +80,7 @@ async function check(name,task){try{await task();results.push({name,result:'PASS
    assert.equal((await page.evaluate(()=>photoWrites.at(-1))).customer_id,'qa_c1');
   });
   await check('Stored customer photos survive an application reload',async()=>{
-   await page.reload({waitUntil:'domcontentloaded',timeout:30000});await page.waitForSelector('#design-metrics');await page.evaluate(()=>openCustomer('qa_c1'));await page.locator('[data-customer-tab="photos"]').click();
+   await page.reload({waitUntil:'domcontentloaded',timeout:30000});await page.waitForFunction(()=>document.body.dataset.fieldReady==='true'&&document.body.dataset.todayReady==='true');await page.evaluate(()=>openCustomer('qa_c1'));await page.locator('[data-customer-tab="photos"]').click();
    assert.equal(await page.locator('[data-design-action="photo"]').count(),6);
   });
   await check('A synced metadata-only original loads on demand and linked photos can enter recoverable trash',async()=>{

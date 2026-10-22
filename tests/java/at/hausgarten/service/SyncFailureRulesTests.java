@@ -23,7 +23,7 @@ public final class SyncFailureRulesTests {
         for(Exception error:new Exception[]{new UnknownHostException("qa.example.invalid"),new SocketTimeoutException("qa timeout"),new ConnectException("qa unavailable")}){
             JSONObject d=decision(error,0);yes(d.getString("last_error_code").equals("NETWORK_UNAVAILABLE"));yes(!d.getBoolean("user_action_required"));yes(d.getInt("retry_count")==1);
             yes(d.getBoolean("schedule_retry"));yes(d.getLong("next_retry")>100000);yes(display(d).getString("state").equals("retry_wait"));yes(display(d).getString("detail").contains("Internetverbindung"));
-            JSONObject exhausted=decision(error,7);yes(exhausted.getInt("retry_count")==8);yes(exhausted.getBoolean("user_action_required"));yes(!exhausted.getBoolean("schedule_retry"));
+            JSONObject exhausted=decision(error,7);yes(exhausted.getInt("retry_count")==8);yes(!exhausted.getBoolean("user_action_required"));yes(exhausted.getBoolean("schedule_retry"));yes(display(exhausted).getString("state").equals("retry_wait"));yes(SyncPolicy.automaticAllowed(display(exhausted),exhausted.getLong("next_retry")));
         }
         JSONObject invalid=decision(new JSONException("qa-private"),2);yes(invalid.getString("last_error_code").equals("INVALID_REMOTE_DATA"));yes(invalid.getBoolean("user_action_required"));yes(invalid.getInt("retry_count")==3);
         JSONObject permission=decision(new SecurityException("qa-private"),0);yes(permission.getString("last_error_code").equals("PERMISSION_REQUIRED"));yes(permission.getBoolean("user_action_required"));

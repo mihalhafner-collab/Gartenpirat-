@@ -4,7 +4,7 @@ function bridge(){const source=fs.readFileSync(path.join(__dirname,'planning-ui.
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']}),page=await browser.newPage({viewport:{width:360,height:640},hasTouch:true}),results=[],errors=[];
  page.on('pageerror',e=>errors.push(e.message));async function check(name,fn){try{await fn();results.push({name,result:'PASS'});}catch(e){results.push({name,result:'FAIL',error:e.stack});}console.log(results.at(-1));}
- async function screenshot(name){const file='outputs/'+name+'.png';await page.screenshot({path:file,fullPage:true});fs.writeFileSync(file+'.privacy.json',JSON.stringify({classification:'SYNTHETIC_TEST',source:'isolated QA bridge; no live device/provider data'}));}
+ async function screenshot(name){const file='outputs/'+name+'.png';await page.screenshot({path:file,fullPage:true});}
  async function fits(selector){const b=await page.locator(selector).first().boundingBox(),nav=await page.locator('.bottom').boundingBox();assert(b&&b.y>=0&&b.y+b.height<=nav.y+1,selector+' must be above navigation: '+JSON.stringify({b,nav}));}
  async function accessible(scope){const violations=await page.locator(scope).evaluate(root=>{const visible=e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return r.width&&r.height&&s.visibility!=='hidden'&&s.display!=='none';};return [...root.querySelectorAll('button,summary,[role=button]')].filter(visible).map(e=>{const r=e.getBoundingClientRect();return r.width<47.9||r.height<47.9?{id:e.id,text:e.textContent.trim(),width:r.width,height:r.height}:null;}).filter(Boolean);});assert.deepEqual(violations,[]);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
  try{

@@ -49,7 +49,7 @@ final class ReleaseLifecycleProbe {
         long deadline=SystemClock.elapsedRealtime()+120000;boolean ready=false;
         while(SystemClock.elapsedRealtime()<deadline){if("true".equals(js(runner,view,"typeof HGBusinessActions==='object'&&typeof HGBusinessFeedback==='object'&&typeof WorklogArchiveUI==='object'&&typeof PhotoLibraryUI==='object'&&typeof openPage==='function'&&document.body.dataset.fieldReady==='true'&&!!document.querySelector('[data-open-garden-menu]')"))){ready=true;break;}SystemClock.sleep(250);}
         require(ready);
-        require("true".equals(js(runner,view,"(()=>{const nav=[...document.querySelectorAll('.bottom-inner [data-open]')].map(x=>x.dataset.open);return nav.join(',')==='home,customers,more-page'&&!!document.querySelector('#field-today-actions [data-open=\"planning-page\"]')&&typeof crypto.randomUUID==='function'&&[1,2].at(-1)===2&&Object.hasOwn({a:1},'a')&&'a-a'.replaceAll('-','')==='aa';})()")));
+        require("true".equals(js(runner,view,"(()=>{const nav=[...document.querySelectorAll('.bottom-inner [data-open]')].map(x=>x.dataset.open);return nav.join(',')==='home,customers,more-page'&&!!document.querySelector('#planning-home [data-open=\"planning-page\"]')&&typeof crypto.randomUUID==='function'&&[1,2].at(-1)===2&&Object.hasOwn({a:1},'a')&&'a-a'.replaceAll('-','')==='aa';})()")));
         require("true".equals(js(runner,view,"(()=>{openPage('worklogs');document.querySelector('[data-select-start]').click();document.querySelector('[data-select-visible]').click();const n=document.querySelectorAll('#worklog-list .worklog-selected').length;document.querySelector('[data-select-cancel]').click();return n>0&&document.querySelectorAll('#worklog-list .worklog-entry[aria-pressed]').length===0&&currentPage==='worklogs';})()")));
         require("true".equals(js(runner,view,"(()=>{openPage('more-page');document.querySelector('[data-open-garden-menu]').click();return document.querySelector('#gp-dialog').open;})()")));
         require("true".equals(js(runner,view,"(()=>{Gartenpirat.close();openPage('home');return !!document.querySelector('#workday-timer.has-active-session');})()")));
@@ -85,7 +85,9 @@ final class ReleaseLifecycleProbe {
             require(Build.FINGERPRINT.startsWith("google/sdk_gphone")||Build.FINGERPRINT.contains("generic")||Build.MODEL.startsWith("sdk_"));
             SharedPreferences prefs=context.getSharedPreferences("haus_garten",0);
             store=new PixelLocalStore(context);
-            if(mode.equals("ui")){
+            if(mode.equals("accessibility")){
+                OverviewAccessibilityProbe.run(runner,context);report.putString("stream","PASS native overview accessibility font_scale="+context.getResources().getConfiguration().fontScale+"; synthetic in-memory read responses; no business writes\n");
+            }else if(mode.equals("ui")){
                 ui(runner,context);report.putString("stream","PASS native WebView boot, compatible JavaScript, complete navigation, work selection/cancel, customer garden and trash on isolated emulator\n");
             }else if(mode.equals("fresh")){
                 JSONObject state=store.getState(),master=state.getJSONObject("master");

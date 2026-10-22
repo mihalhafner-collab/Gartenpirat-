@@ -46,7 +46,7 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
     panel._sessionView=signature;panel.dataset.sessionState=status;panel.classList.toggle('has-active-session',active||paused||stopped);
     const manual='<button type="button" class="quick secondary" data-open="work-entry"><strong>Nachtragen</strong></button>';
     let body;
-    if(['IDLE','FINALIZED','CANCELLED'].includes(status))body='<div id="field-today-actions" aria-label="Arbeit beginnen oder nachtragen"><button type="button" class="timer-main" data-session-action="start"><b>Arbeit starten</b></button>'+manual+'</div>';
+    if(['IDLE','FINALIZED','CANCELLED'].includes(status))body='<div id="field-today-actions" aria-label="Arbeit beginnen oder nachtragen"><button type="button" class="timer-main timer-start" data-session-action="start"><b>Arbeit starten</b></button>'+manual+'</div>';
     else if(['UNAVAILABLE','ERROR'].includes(status))body='<p>Zeiterfassung derzeit nicht verfügbar.</p><div id="field-today-actions">'+manual+'</div>';
     else body='<p class="timer-location-context">'+esc(session.customer_id?customerName(session.customer_id):'Kunde noch zuordnen')+'</p><div class="timer-state"><small>'+esc(active?'Arbeit läuft':paused?'Pausiert':'Einsatz beendet')+'</small><strong aria-label="Erfasste Arbeitszeit">'+sessionDuration(session.worked_ms)+'</strong></div><div class="timer-actions">'+(active?'<button type="button" class="timer-secondary" data-session-action="pause"><b>Pause</b></button>':'')+(paused?'<button type="button" class="timer-main" data-session-action="resume"><b>Fortsetzen</b></button>':'')+(active||paused?'<button type="button" class="timer-stop" data-session-action="stop"><b>Stoppen</b></button><button type="button" class="timer-secondary" data-session-action="photo"><b>Foto</b></button>':'')+(stopped?'<button type="button" class="timer-main" data-session-action="complete"><b>Angaben ergänzen</b></button>':'')+'</div><div id="field-today-actions"><span></span>'+manual+'</div>';
     panel.innerHTML='<h2>Jetzt</h2>'+body+((active||paused||stopped)?'<details class="today-timer-more"><summary>Weitere Aktionen</summary><button type="button" class="timer-discard" data-session-action="discard">Zeiterfassung löschen</button></details>':'');
@@ -64,20 +64,20 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
   function syncChip(){
     const pill=get('sync-status');if(!pill)return;
     const labels={not_connected:'Drive verbinden',syncing:'Gleicht ab',action_required:'Hilfe nötig',review_required:'Prüfen',status_warning:'Status prüfen',pending:'Ausstehend',provider_readback:'Übergeben',synced:'Abgeglichen',retry_wait:'Versuch folgt',error:'Abgleich offen'};
-    const shown=HGBusinessFeedback.sync(syncInfo),label=syncInfo.syncing?'Gleicht ab':syncInfo.configured===false?'Drive verbinden':labels[syncInfo.state]||(syncInfo.last_error?'Abgleich offen':shown.title);
+    const shown=HGBusinessFeedback.sync(syncInfo),label=syncInfo.syncing?'Gleicht ab':Number(syncInfo.review)>0?'Prüfung nötig':syncInfo.configured===false?'Drive verbinden':labels[syncInfo.state]||(syncInfo.last_error?'Abgleich offen':shown.title);
     pill.textContent=label;pill.title=shown.title+'. '+shown.detail;pill.setAttribute('aria-label','Status öffnen: '+shown.title);pill.dataset.open='status-page';
   }
   function appointmentRow(entry){
     const a=entry.appointment,w=entry.weather||{},clashes=entry.collisions||[],warning=['critical','difficult','unknown'].includes(w.severity)||clashes.length||entry.availability_unknown||entry.calendar?.state==='review_required';
-    const time=new Date(a.starts_at).toLocaleTimeString('de-AT',{timeZone:a.timezone||'Europe/Vienna',hour:'2-digit',minute:'2-digit'}),weather=w.label||'Wetter noch ungeprüft';
+    const format=value=>new Date(value).toLocaleTimeString('de-AT',{timeZone:a.timezone||'Europe/Vienna',hour:'2-digit',minute:'2-digit'}),time=format(a.starts_at),end=a.ends_at?format(a.ends_at):'Ende offen',weather=w.label||'Wetter noch ungeprüft';
     const icon=['critical','difficult'].includes(w.severity)?'☂':w.severity==='good'||w.severity==='safe'?'☀':w.severity==='unknown'||!w.severity?'?':'☁';
     const notice=[weather,...(w.reasons||[]),clashes.length?'Terminkollision prüfen':'',entry.availability_unknown?'Google-Belegung ungeprüft':'',entry.calendar?.state==='review_required'?'Kalenderänderung prüfen':''].filter(Boolean).join(' · ');
-    return '<button type="button" class="today-appointment" data-appointment-open="'+esc(a.id)+'" aria-label="'+esc([time,customerName(a.customer_id),a.title,a.location||'Einsatzort offen',notice].filter(Boolean).join(' · '))+'"><span class="today-time">'+esc(time)+'</span><strong class="today-customer">'+esc(customerName(a.customer_id))+'</strong><span class="today-place">'+esc(a.location||'Einsatzort offen')+'</span><span class="today-weather" title="'+esc(notice)+'"><span role="img" aria-label="'+esc(weather)+'">'+icon+'</span>'+(warning?'<span class="today-warning" role="img" aria-label="Hinweis prüfen">⚠</span>':'')+'</span></button>';
+    return '<button type="button" class="today-appointment" data-appointment-open="'+esc(a.id)+'" aria-label="'+esc([time,end,customerName(a.customer_id),a.title,a.location||'Einsatzort offen',notice].filter(Boolean).join(' · '))+'"><span class="today-time">'+esc(time)+'<small>'+esc(end)+'</small></span><strong class="today-customer">'+esc(customerName(a.customer_id))+'</strong><span class="today-place">'+esc(a.location||'Einsatzort offen')+'</span><span class="today-weather" title="'+esc(notice)+'"><span role="img" aria-label="'+esc(weather)+'">'+icon+'</span>'+(warning?'<span class="today-warning" role="img" aria-label="Hinweis prüfen">⚠</span>':'')+'</span></button>';
   }
   function browseHome(direction){const rows=window.PlanningUI?.upcoming()||[],index=Math.max(0,rows.findIndex(a=>a.id===futureSelection));if(rows[index+direction]){futureSelection=rows[index+direction].id;lastPlanningKey='';renderToday();}}
   function renderToday(){
     if(currentPage!=='home')return;
-    const date=get('home-dayline');date.textContent=new Date().toLocaleDateString('de-AT',{weekday:'short',day:'numeric',month:'short'});date.setAttribute('aria-label',new Date().toLocaleDateString('de-AT',{dateStyle:'full'}));
+    const date=get('home-dayline');date.textContent=new Date().toLocaleDateString('de-AT',{timeZone:'Europe/Vienna',weekday:'short',day:'numeric',month:'short'});date.setAttribute('aria-label',new Date().toLocaleDateString('de-AT',{timeZone:'Europe/Vienna',dateStyle:'full'}));
     syncChip();workTimer();
     const data=window.PlanningUI?.homeRows(showAll?Infinity:3,futureSelection)||{entries:[],total:0,future:[]},card=get('planning-home');
     const key=JSON.stringify([data,showAll,orders().filter(o=>o.scheduled_date===localDate())]);
@@ -90,6 +90,9 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
       content+='<section id="design-upcoming"'+(legacy.length?'':' hidden')+'><h3>Weitere Aufträge heute</h3>'+legacy.map(o=>'<button type="button" class="design-upcoming-row" data-edit-order="'+esc(o.id)+'"><strong>'+esc(o.title)+'</strong><small>'+esc(customerName(o.customer_id))+'</small></button>').join('')+'</section>';
       card.innerHTML=content;
     }
+    const recent=get('workday-recent'),rows=worklogs().slice().sort((a,b)=>String(b.work_date||'').localeCompare(String(a.work_date||''))||String(b.start_time||'').localeCompare(String(a.start_time||''))).slice(0,3),recentKey=JSON.stringify(rows);
+    get('today-recent').hidden=!rows.length;
+    if(recent._rowsKey!==recentKey){recent._rowsKey=recentKey;recent.innerHTML=rows.map(row=>'<button type="button" class="workday-recent-row" data-edit-worklog="'+esc(row.id)+'"><strong>'+esc(customerName(row.customer_id))+'</strong><span>'+esc(worklogDateLabel(row.work_date))+' · '+esc(String(row.activity||'').slice(0,75))+'</span><b>'+Number(row.hours||0).toLocaleString('de-AT')+' h</b></button>').join('');}
     const review=Number(syncInfo.review??state.sync_queue?.review??0),help=syncInfo.user_action_required||['action_required','error','status_warning'].includes(syncInfo.state),open=get('today-open');open.hidden=!review&&!help;
     open.innerHTML='<h2>Offen</h2><div class="today-open-chips">'+(review?'<button type="button" data-open="sync-page">'+review+' Änderungen prüfen</button>':'')+(help?'<button type="button" data-open="status-page">'+(syncInfo.state==='status_warning'?'Status prüfen':'Abgleich braucht Hilfe')+'</button>':'')+'</div>';
     document.body.dataset.todayReady='true';

@@ -21,7 +21,7 @@ const {chromium}=require('./browser.cjs');
    assert(fs.existsSync('android/app/src/main/assets/hafner-logo.png'));
   });
   await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href);
-  await page.waitForSelector('#design-metrics');
+  await page.waitForFunction(()=>document.body.dataset.fieldReady==='true'&&document.body.dataset.todayReady==='true');
   await check('App initializes fully without removed-element event listener failures',async()=>{
    assert.deepEqual(errors,[]);assert.equal(await page.locator('.pirate,#pirate-speak').count(),0);
    assert.deepEqual(await page.locator('.bottom .nav').allTextContents(),['Heute','Kunden & Gärten','Mehr']);

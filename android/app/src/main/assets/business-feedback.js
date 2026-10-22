@@ -15,6 +15,8 @@
  function sync(s={}){
   const pending=Number(s.pending||0),review=Number(s.review||0),code=String(s.last_error_code||''),state=String(s.state||'');
   if(s.syncing)return {title:'Synchronisierung läuft …',detail:'Du kannst weiterarbeiten.',tone:'busy'};
+  const failures={FOLDER_NOT_SELECTED:['Drive-Ordner auswählen','Bitte zuerst den bestehenden Drive-Ordner auswählen. Lokale Daten bleiben erhalten.'],DEVICE_ID_MISSING:['Gerätekennung fehlt','App erneut öffnen und den Abgleich erneut versuchen. Keine neue Änderungsdatei angelegt.'],NETWORK_UNAVAILABLE:['Internetverbindung unterbrochen','Lokale Daten bleiben erhalten. Der nächste Versuch berücksichtigt die Wiederholungswartezeit.'],STATUS_NOT_SAVED:['Daten gesichert, Status offen','Daten gesichert, Status konnte nicht gespeichert werden. Der bestätigte Datenstand bleibt erhalten.']};
+  if(failures[code])return {title:failures[code][0],detail:s.detail||failures[code][1],tone:code==='STATUS_NOT_SAVED'||code==='NETWORK_UNAVAILABLE'?'busy':'error'};
   if(/PERMISSION|AUTH|FORBIDDEN/.test(code))return {title:'Verbindung freigeben',detail:'Bitte die Google-Drive-Verbindung erneut freigeben. Bereits gespeicherte Daten bleiben auf diesem Gerät.',tone:'error'};
   if(review||state==='action_required'&&/CONFLICT|LEGACY|REVIEW/.test(code))return {title:'Prüfung erforderlich',detail:'Widersprüchliche Änderungen benötigen eine Entscheidung. Der aktuelle Datenbestand bleibt erhalten.',tone:'error'};
   if(s.last_error||s.drive_sync_failed||state==='error'||state==='action_required'){

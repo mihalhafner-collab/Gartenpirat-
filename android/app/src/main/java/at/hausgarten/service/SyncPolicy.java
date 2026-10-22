@@ -7,7 +7,7 @@ final class SyncPolicy {
     static final int MAX_ATTEMPTS=8;
     static boolean automaticAllowed(JSONObject s,long now) {
         return s.optBoolean("configured")&&(s.optBoolean("automatic_enabled",true)||s.optBoolean("manual_requested"))&&!s.optBoolean("user_action_required")
-            &&s.optInt("retry_count")<MAX_ATTEMPTS&&s.optLong("next_retry")<=now;
+            &&(s.optInt("retry_count")<MAX_ATTEMPTS||s.optString("last_error_code").equals("NETWORK_UNAVAILABLE"))&&s.optLong("next_retry")<=now;
     }
     static long retryDelay(int attempt,long retryAfter) {
         return Math.max(Math.min(24*60*60*1000L,Math.max(0,retryAfter)),Math.min(15*60*1000L,15000L<<Math.min(Math.max(attempt,0),6)));
@@ -38,7 +38,7 @@ final class SyncPolicy {
         if(!s.optBoolean("configured")){state="not_connected";title="Drive verbinden";detail=message(code.equals("FOLDER_NOT_SELECTED")?code:"NOT_CONNECTED");action="connect_drive";}
         else if(running){state="syncing";title="Abgleich läuft";detail="Änderungen werden geprüft und übertragen.";}
         else if(s.optBoolean("drive_sync_failed")){
-            boolean paused=s.optBoolean("user_action_required")||s.optInt("retry_count")>=MAX_ATTEMPTS;
+            boolean paused=s.optBoolean("user_action_required")||s.optInt("retry_count")>=MAX_ATTEMPTS&&!code.equals("NETWORK_UNAVAILABLE");
             boolean scheduled=s.optBoolean("automatic_enabled",true)||s.optBoolean("manual_requested");
             state=paused?"action_required":scheduled&&s.optLong("next_retry")>now?"retry_wait":"error";
             title=paused?"Abgleich braucht deine Hilfe":state.equals("retry_wait")?"Erneuter Versuch folgt":"Abgleich erneut versuchen";
