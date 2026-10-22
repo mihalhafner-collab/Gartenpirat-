@@ -1,21 +1,34 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-22T15:49:38+00:00",
+  "updated_at_utc": "2026-10-22T16:23:51+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/calendar-weather-20261022",
   "development_snapshot": {
-    "status": "SOURCE_ONLY_UI_CHANGES_AFTER_ORIGINAL_BUILD93; NO_NEW_APK",
-    "implementation_checkpoint_git_sha": "6079d94118e7b9ce4bda83fc036a06db650c98af",
-    "source_sha256": "03c45d8eff22a9f66962562de79994516f174f7ec221b14f292ea7e8f83c4f11",
-    "version_name": "1.54.4",
-    "version_code": 93,
-    "version_numbers_unchanged": true,
-    "base_original_apk_git_sha": "b7d5fcd71fd0e376b8750cf9eaacd94e47d72883",
-    "apk_for_this_development_snapshot": "NOT_BUILT; UI task MD excludes APK/signing/version increase",
-    "pixel_installation": "NOT_EXECUTED; installed93 is a different source state",
-    "development_export_folder_id": "1bh6Q4Uu2RgwYBFcB22JWs14X7qGp3IY0",
-    "development_export_verification_requirement": "Official export manifest binds exact final documentation commit. Payloads and indexes read back before wayfinders change. Previous good generations preserved.",
-    "native_acceptance": "Java/API37 compilation and lint PASS; no native execution for this source-only change"
+    "version_name": "1.54.5",
+    "version_code": 94,
+    "source_git_sha": "429dfa11c622cd27228a5f572c9c916ccc137e82",
+    "source_tag": "source/v1.54.5-build94",
+    "source_sha256": "1d7e7d73b6801705ece1488f79f180c463ba0308083e695583181d9cbc8fab25",
+    "apk_sha256": "975ce32ca7e52338182c0f743044afbd57edeeaa9d376bd31292b1060809cc3c",
+    "drive_apk_id": "1pwo3kz2shKIyPnXYV0KbL9Szyvya5OS8",
+    "source_zip_drive_id": "189LoXjhKV9a0GhsnCYpHfsL_60e5wBpL",
+    "source_zip_sha256": "d1d580773d470273ea803f9f7a6461ed305c3882c136f3ef60587458c1940dde",
+    "drive_folder_id": "1Gq89Ru3bCL-FNw60WAHEPLzsoUTsJnnR",
+    "development_export_folder_id": "1lGyhXJtB_QuCex_R8ObLDxphhaq8SkC-",
+    "pixel_installation": "NOT_EXECUTED; read-only MCP confirms original93/b7d5fcd; calendar connected/checked/errors empty; no productive test or sync request",
+    "status": "CLOUD_VERIFIED_ORIGINAL_CANDIDATE; PHYSICAL_PIXEL_ACCEPTANCE_OPEN",
+    "native_cloud_acceptance": {
+      "target": "GartenpiratCloud emulator-5554; qemu=1; Android API30",
+      "android_sqlite_mcp_pass": 159,
+      "fail": 0,
+      "original_in_place_update": "93 -> 94 PASS; full snapshot/IDs/queue/settings/tunnel/active timer retained",
+      "read_only_ledger": "PASS before/after update and after all native checks; complete master/pending/session/relations digests unchanged",
+      "fresh_isolated": "PASS empty business data/no credentials/no automatic account access",
+      "native_ui": "PASS actual bundled WebView and owner read path; removed swipe option, retained Gartenpirat option, menu open/Back, Today card, calendar_busy_*",
+      "final_snapshot": "PASS",
+      "os_warning": "First cold boot lost system_server after NetworkStack failure while original93 was still installed. Framework was recovered by graceful emulator shutdown/restart with existing userdata preserved and 3072MiB memory. No reset/clear/uninstall. All94 native checks ran after complete framework readiness."
+    },
+    "verification_file": "docs/verification/original-apk-1.54.5-94.json"
   },
   "verified_release_source": {
     "version": "1.54.1",
@@ -29,31 +42,31 @@
     "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB"
   },
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-10-22",
+    "observed_at_utc": "2026-10-22T16:23:51+00:00",
     "version_name": "1.54.4",
     "version_code": 93,
     "reported_base_git_sha": "b7d5fcd71fd0e376b8750cf9eaacd94e47d72883",
     "source_sha256": "47e84a4a64d29117d828e49c26f4f700f0f4b75861274c5e15b7d75dbd1014c5",
     "source_dirty": false,
     "evidence": "Read-only Pixel MCP get_capabilities; protocol9,117tools; no Codex installation action",
-    "calendar_live_state": "NOT_CONNECTED; recorded CALENDAR_APP_REGISTRATION_REQUIRED from 08:24Z before Cloud setup; no post-registration connection attempt observed"
+    "calendar_live_state": "CONNECTED; fresh read-only Pixel MCP calendar_connected=true/calendar_state=checked/calendar_error_code empty; Cloud remains External/Testing"
   },
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-apk92",
-    "required_action": "Current development contains planning warnings, Today carousel and menu/scroll improvements after original APK93; use the official export manifest for exact final commit. No new APK built per UI-task MD. Preserve original93 source/v1.54.4-build93 / b7d5fcd. Build/version increase/signing and Pixel installation are separate steps. Google Calendar is connected in External/Testing; long-term consent remains unverified. Owned HTTPS homepage/privacy drafts exist privately, not published. Busy availability was not verified; native setting now exposes primary-calendar permission without silently granting it."
+    "required_action": "Original1.54.5/94 candidate is privately delivered and cloud qualified, exact source429dfa11/tag source/v1.54.5-build94. Final documentation export separately identified by manifest in candidate94/Aktueller-Entwicklungsquellcode-1.54.5-94. Physical Pixel remains original93; no automatic installation. Left EDGE_LEFT API34+ physical acceptance and durable Google Production authorization remain open; primary-calendar busy permission must be explicit/fresh."
   },
   "verified_candidate_source": {
-    "version": "1.54.4",
-    "build": 93,
-    "tag": "source/v1.54.4-build93",
-    "git_sha": "b7d5fcd71fd0e376b8750cf9eaacd94e47d72883",
-    "source_sha256": "47e84a4a64d29117d828e49c26f4f700f0f4b75861274c5e15b7d75dbd1014c5",
-    "original_zip_sha256": "e4b80e526d57aace9193c20fa16d7e0c8b87c7abf54dc2f80a850091e2246383",
-    "apk_sha256": "16c7ed9dcbcc801002055d9646238398551ec69d8c797a039aa52eea50faa99d",
-    "drive_zip_id": "1lB4r1dg6zrB8pvTSXcIJ7s1HDecda3Bd",
-    "drive_apk_id": "17Pts6yNjNHiKyRqhJHaqAGarWJPZBnfA",
-    "drive_folder_id": "1RAFAWqhKgzzd633GTJ1FaEPWgh0B7xbS",
-    "status": "CLOUD_VERIFIED_ORIGINAL_CANDIDATE; GOOGLE_PROJECT_AND_PHYSICAL_PIXEL_ACCEPTANCE_OPEN",
+    "version": "1.54.5",
+    "build": 94,
+    "tag": "source/v1.54.5-build94",
+    "git_sha": "429dfa11c622cd27228a5f572c9c916ccc137e82",
+    "source_sha256": "1d7e7d73b6801705ece1488f79f180c463ba0308083e695583181d9cbc8fab25",
+    "original_zip_sha256": "d1d580773d470273ea803f9f7a6461ed305c3882c136f3ef60587458c1940dde",
+    "apk_sha256": "975ce32ca7e52338182c0f743044afbd57edeeaa9d376bd31292b1060809cc3c",
+    "drive_zip_id": "189LoXjhKV9a0GhsnCYpHfsL_60e5wBpL",
+    "drive_apk_id": "1pwo3kz2shKIyPnXYV0KbL9Szyvya5OS8",
+    "drive_folder_id": "1Gq89Ru3bCL-FNw60WAHEPLzsoUTsJnnR",
+    "status": "CLOUD_VERIFIED_ORIGINAL_CANDIDATE; PHYSICAL_PIXEL_ACCEPTANCE_OPEN",
     "drive_readback": "19 verified receipts;18 SHA256_BYTES +1ZIP COMPLETE_STREAM_SIZE_ONLY;0 pending/duplicates"
   },
   "calendar_ui_task": {
@@ -410,15 +423,65 @@
     "drive_export_folder_id": "1bh6Q4Uu2RgwYBFcB22JWs14X7qGp3IY0",
     "calendar_overlap_root_cause": "External Google availability unverified; Build93 does not expose whether optional busy flag is off or cache unusable. Today also discarded external collision projection.",
     "supported_external_scope": "primary calendar only; no new OAuth scopes or hidden consent",
-    "left_edge": "API34+ native EDGE_LEFT opens app menu; API29-33 OS exclusion limited to200dp; native account activities remain separate"
+    "left_edge": "API34+ native EDGE_LEFT opens app menu; API29-33 OS exclusion limited to200dp; native account activities remain separate",
+    "subsequent_original_apk": "1.54.5/94; explicit later APK order authorizes build/signing/version increase; earlier no_apk flags describe source-only phase",
+    "apk_verification_file": "docs/verification/original-apk-1.54.5-94.json"
   },
   "apk_build_task_94": {
-    "status": "IN_PROGRESS; user explicitly requested original APK after source-only UI phase",
     "version_name": "1.54.5",
     "version_code": 94,
-    "base_ui_commit": "7d1af30a024c5b07d9d64342e99eb55a254ab504",
-    "original_baseline_build": 93,
-    "no_pixel_installation": true,
-    "original_signer_required": true
+    "source_git_sha": "429dfa11c622cd27228a5f572c9c916ccc137e82",
+    "source_tag": "source/v1.54.5-build94",
+    "source_sha256": "1d7e7d73b6801705ece1488f79f180c463ba0308083e695583181d9cbc8fab25",
+    "apk_sha256": "975ce32ca7e52338182c0f743044afbd57edeeaa9d376bd31292b1060809cc3c",
+    "drive_apk_id": "1pwo3kz2shKIyPnXYV0KbL9Szyvya5OS8",
+    "source_zip_drive_id": "189LoXjhKV9a0GhsnCYpHfsL_60e5wBpL",
+    "source_zip_sha256": "d1d580773d470273ea803f9f7a6461ed305c3882c136f3ef60587458c1940dde",
+    "drive_folder_id": "1Gq89Ru3bCL-FNw60WAHEPLzsoUTsJnnR",
+    "development_export_folder_id": "1lGyhXJtB_QuCex_R8ObLDxphhaq8SkC-",
+    "pixel_installation": "NOT_EXECUTED; read-only MCP confirms original93/b7d5fcd; calendar connected/checked/errors empty; no productive test or sync request",
+    "status": "CLOUD_VERIFIED_ORIGINAL_CANDIDATE; PHYSICAL_PIXEL_ACCEPTANCE_OPEN",
+    "native_cloud_acceptance": {
+      "target": "GartenpiratCloud emulator-5554; qemu=1; Android API30",
+      "android_sqlite_mcp_pass": 159,
+      "fail": 0,
+      "original_in_place_update": "93 -> 94 PASS; full snapshot/IDs/queue/settings/tunnel/active timer retained",
+      "read_only_ledger": "PASS before/after update and after all native checks; complete master/pending/session/relations digests unchanged",
+      "fresh_isolated": "PASS empty business data/no credentials/no automatic account access",
+      "native_ui": "PASS actual bundled WebView and owner read path; removed swipe option, retained Gartenpirat option, menu open/Back, Today card, calendar_busy_*",
+      "final_snapshot": "PASS",
+      "os_warning": "First cold boot lost system_server after NetworkStack failure while original93 was still installed. Framework was recovered by graceful emulator shutdown/restart with existing userdata preserved and 3072MiB memory. No reset/clear/uninstall. All94 native checks ran after complete framework readiness."
+    },
+    "verification_file": "docs/verification/original-apk-1.54.5-94.json",
+    "drive_provenance_id": "1QKvtz_IY9N-vg3WYoOAmdSqpjy20X1lY",
+    "version_proof_drive_readback": "SHA256_BYTES"
+  },
+  "previous_source_only_ui_snapshot": {
+    "status": "SOURCE_ONLY_UI_CHANGES_AFTER_ORIGINAL_BUILD93; NO_NEW_APK",
+    "implementation_checkpoint_git_sha": "6079d94118e7b9ce4bda83fc036a06db650c98af",
+    "source_sha256": "03c45d8eff22a9f66962562de79994516f174f7ec221b14f292ea7e8f83c4f11",
+    "version_name": "1.54.4",
+    "version_code": 93,
+    "version_numbers_unchanged": true,
+    "base_original_apk_git_sha": "b7d5fcd71fd0e376b8750cf9eaacd94e47d72883",
+    "apk_for_this_development_snapshot": "NOT_BUILT; UI task MD excludes APK/signing/version increase",
+    "pixel_installation": "NOT_EXECUTED; installed93 is a different source state",
+    "development_export_folder_id": "1bh6Q4Uu2RgwYBFcB22JWs14X7qGp3IY0",
+    "development_export_verification_requirement": "Official export manifest binds exact final documentation commit. Payloads and indexes read back before wayfinders change. Previous good generations preserved.",
+    "native_acceptance": "Java/API37 compilation and lint PASS; no native execution for this source-only change"
+  },
+  "previous_verified_candidate_source_93": {
+    "version": "1.54.4",
+    "build": 93,
+    "tag": "source/v1.54.4-build93",
+    "git_sha": "b7d5fcd71fd0e376b8750cf9eaacd94e47d72883",
+    "source_sha256": "47e84a4a64d29117d828e49c26f4f700f0f4b75861274c5e15b7d75dbd1014c5",
+    "original_zip_sha256": "e4b80e526d57aace9193c20fa16d7e0c8b87c7abf54dc2f80a850091e2246383",
+    "apk_sha256": "16c7ed9dcbcc801002055d9646238398551ec69d8c797a039aa52eea50faa99d",
+    "drive_zip_id": "1lB4r1dg6zrB8pvTSXcIJ7s1HDecda3Bd",
+    "drive_apk_id": "17Pts6yNjNHiKyRqhJHaqAGarWJPZBnfA",
+    "drive_folder_id": "1RAFAWqhKgzzd633GTJ1FaEPWgh0B7xbS",
+    "status": "CLOUD_VERIFIED_ORIGINAL_CANDIDATE; GOOGLE_PROJECT_AND_PHYSICAL_PIXEL_ACCEPTANCE_OPEN",
+    "drive_readback": "19 verified receipts;18 SHA256_BYTES +1ZIP COMPLETE_STREAM_SIZE_ONLY;0 pending/duplicates"
   }
 }

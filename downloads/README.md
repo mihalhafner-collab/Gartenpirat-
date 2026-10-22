@@ -1,14 +1,16 @@
 # Haus & Garten – aktuelle Downloads
 
-Die verbindlichen Ordner und Aufbewahrungsregeln stehen in `source-lifecycle.json`.
-Der aktuelle Entwicklungsstand steht in `AKTUELLER-STAND.json`; er ist neuer als die ausgelieferte APK.
+Aktueller originalsignierter Kandidat: **[1.54.5 / Build 94](https://drive.google.com/file/d/1pwo3kz2shKIyPnXYV0KbL9Szyvya5OS8/view)**. Cloud-Update93→94, Datenerhalt,159 native Tests und echter WebView bestanden. Keine automatische Pixelinstallation; physische API34+/37-Gestenabnahme offen.
 
-- Neuer originalsignierter Kalenderkandidat: [1.54.2 / Build 91](https://drive.google.com/file/d/1aqJIqC4oZXAym0QRYkE9pDFHeA3Yy2Kr/view). Cloud-Abnahme bestanden; echte Google-Freigabe und Pixelinstallation offen. [Versionsnachweis](https://drive.google.com/file/d/1YwVTmqP-HFSSU3JYXp8e1h9woNCAzb9s/view).
-- Bisherige Auslieferung und zuletzt beobachteter Pixel-Stand: [1.54.1 / Build 90](https://drive.google.com/file/d/1yp-i450bx9MIrn_t6-O1Srhwe7yGlFSg/view).
-- Weiter geschützte Rückfallversion: [1.54.0 / Build 89](https://drive.google.com/file/d/1hHgCQSG64R3jYN3TsdZlbMa0ibxI9OgQ/view).
-- [Verbindliche Ablage](https://drive.google.com/drive/folders/1-fLRbUEbGK4jQqRyHN07sd26zG-dQ_P0).
+- [Versionsnachweis](https://drive.google.com/file/d/1QKvtz_IY9N-vg3WYoOAmdSqpjy20X1lY/view), tatsächlicher SHA256-Bytevergleich bestanden.
+- [Exakt passende Originalquellen](https://drive.google.com/file/d/189LoXjhKV9a0GhsnCYpHfsL_60e5wBpL/view), unveränderliches Tag `source/v1.54.5-build94`, Commit `429dfa11c622cd27228a5f572c9c916ccc137e82`.
+- [Privater Versionsordner](https://drive.google.com/drive/folders/1Gq89Ru3bCL-FNw60WAHEPLzsoUTsJnnR) mit APK, Original-ZIP und verlustlosen TXT-Teilen.
+- [Aktuelle vollständige Dokumentations-/Entwicklungsquelle](https://drive.google.com/drive/folders/1lGyhXJtB_QuCex_R8ObLDxphhaq8SkC-): finaler gesonderter Commit im Manifest, gleicher App-Fingerprint.
 
-Originalquellen: unveränderliche Git-Tags `source/v1.54.0-build89` und `source/v1.54.1-build90`, Details in `source-releases.json`.
-Kandidat91: `source/v1.54.2-build91` zeigt auf den exakten APK-Quellcommit `50b518a1af9cee59763c4103d847f5016fb84fd9`; [Originalquellarchiv und verlustlose TXT-Dateien](https://drive.google.com/drive/folders/1HFf0WpI0BGYL60jMEbYc9BfnvOVlYxKf). Spätere reine Prüfer-/Dokumentationsänderungen auf main sind getrennt versioniert. APK-SHA256: `874908a246f75a3c91f7399cf2e314364b9469f80843644ea340cf8c543b80c1`.
-Keine APK im Quellcodeordner aufbewahren. Historische Downloadlinks in früheren Git-Ständen/Statusabschnitten können nach regelkonformer Bereinigung ungültig sein.
-Tatsächliche Pixel-Installation und Freigabe separat prüfen; keine automatische Installation.
+APK-SHA256: `975ce32ca7e52338182c0f743044afbd57edeeaa9d376bd31292b1060809cc3c`.
+App-Fingerprint: `1d7e7d73b6801705ece1488f79f180c463ba0308083e695583181d9cbc8fab25`.
+APK/Original-ZIP vollständig authentifiziert gestreamt und Größe geprüft; wegen32MiB-Materialisierungsgrenze kein behaupteter Remote-SHA-Bytevergleich dieser großen Dateien.
+
+Zuletzt per lesendem Pixel-MCP beobachtet: **1.54.4 / Build93**; keine Installation durch Codex. [Original93](https://drive.google.com/file/d/17Pts6yNjNHiKyRqhJHaqAGarWJPZBnfA/view) und [seine Quellen](https://drive.google.com/file/d/1lB4r1dg6zrB8pvTSXcIJ7s1HDecda3Bd/view) bleiben erhalten. Google-Konto verbunden; Produktion/Dauerfreigabe weiterhin offen.
+
+Bisherige formale Referenzen: [1.54.1/90](https://drive.google.com/file/d/1yp-i450bx9MIrn_t6-O1Srhwe7yGlFSg/view) und [1.54.0/89](https://drive.google.com/file/d/1hHgCQSG64R3jYN3TsdZlbMa0ibxI9OgQ/view). Schutzmengen/Original-Tags stehen in `source-lifecycle.json` und `source-releases.json`; keine Android-Downgradefreigabe. Quell-/Versionsnachweis in `AKTUELLER-STAND.json`; produktive Installation erst nach eigener Sicherung und Freigabe.

@@ -23,7 +23,8 @@
     "gemini_link": "1pi6NAVn8tEfLusS9x950YQB0TV_eTkzA",
     "candidate91": "1HFf0WpI0BGYL60jMEbYc9BfnvOVlYxKf",
     "candidate92": "1pzAVZQcxcvYEqbEYYzZXKg7cNm0qllw_",
-    "candidate93": "1RAFAWqhKgzzd633GTJ1FaEPWgh0B7xbS"
+    "candidate93": "1RAFAWqhKgzzd633GTJ1FaEPWgh0B7xbS",
+    "candidate94": "1Gq89Ru3bCL-FNw60WAHEPLzsoUTsJnnR"
   },
   "runtime_folder_ids": [
     "1qR33tKpsKa-VxLeuTbXibjgYGjpyE8__",
@@ -38,7 +39,9 @@
     "1UHmeEkSO6k0-zU3i6DM53gjgyHDL-fwk",
     "10o0nWq_EK2qAF4zQHj_U2jev_4s6C5qT",
     "17Pts6yNjNHiKyRqhJHaqAGarWJPZBnfA",
-    "1lB4r1dg6zrB8pvTSXcIJ7s1HDecda3Bd"
+    "1lB4r1dg6zrB8pvTSXcIJ7s1HDecda3Bd",
+    "1pwo3kz2shKIyPnXYV0KbL9Szyvya5OS8",
+    "189LoXjhKV9a0GhsnCYpHfsL_60e5wBpL"
   ],
   "retention_days": {
     "apk_retired": 0,
@@ -51,7 +54,9 @@
   "keep_release_count": 2,
   "keep_builds": [
     89,
-    90
+    90,
+    93,
+    94
   ],
   "no_runtime_writes": true,
   "no_history_rewrite": true,
@@ -67,5 +72,6 @@
     "daily": "6ad8f3798fc081919a261c5eb3981ad1",
     "weekly": "6ad8f37b548c8191b18d43b443aae6d3",
     "monthly": "6ad8f37da1d88191b7aa7fbf09473760"
-  }
+  },
+  "keep_builds_evidence": "Keep original94 and93 candidates plus last formal89/90 releases until physical acceptance resolves release status; no old protection removed or deletion scheduled."
 }

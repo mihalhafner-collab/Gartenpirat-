@@ -103,6 +103,29 @@
       "weather_live_provider": "NOT EXECUTED",
       "release_approved": false,
       "drive_readback": "19 verified receipts;18 SHA256_BYTES +1ZIP COMPLETE_STREAM_SIZE_ONLY;0 pending/duplicates"
+    },
+    {
+      "version": "1.54.5",
+      "build": 94,
+      "tag": "source/v1.54.5-build94",
+      "git_sha": "429dfa11c622cd27228a5f572c9c916ccc137e82",
+      "tree_sha": "6a96070649895e1621f5dac5f07f7f00768191dc",
+      "source_sha256": "1d7e7d73b6801705ece1488f79f180c463ba0308083e695583181d9cbc8fab25",
+      "source_files": 1247,
+      "original_zip_sha256": "d1d580773d470273ea803f9f7a6461ed305c3882c136f3ef60587458c1940dde",
+      "apk_sha256": "975ce32ca7e52338182c0f743044afbd57edeeaa9d376bd31292b1060809cc3c",
+      "drive_zip_id": "189LoXjhKV9a0GhsnCYpHfsL_60e5wBpL",
+      "drive_apk_id": "1pwo3kz2shKIyPnXYV0KbL9Szyvya5OS8",
+      "drive_folder_id": "1Gq89Ru3bCL-FNw60WAHEPLzsoUTsJnnR",
+      "development_export_folder_id": "1lGyhXJtB_QuCex_R8ObLDxphhaq8SkC-",
+      "remote_readback": "PASS exact source branch and immutable tag",
+      "native_cloud_acceptance": "159PASS; original93->94/read-only ledger/fresh_isolated/nativeWebView/final snapshot PASS",
+      "pixel_installation": "NOT_EXECUTED; fresh read-only Pixel MCP remains original93",
+      "google_live_authorization": "Existing93 connected; project External/Testing;94 fresh owner consent not executed",
+      "weather_live_provider": "NOT_EXECUTED",
+      "release_approved": false,
+      "drive_readback": "19 verified receipts;18 SHA256_BYTES +1ZIP COMPLETE_STREAM_SIZE_ONLY;0 pending/duplicates; APK COMPLETE_STREAM_SIZE_ONLY",
+      "drive_provenance_id": "1QKvtz_IY9N-vg3WYoOAmdSqpjy20X1lY"
     }
   ]
 }
