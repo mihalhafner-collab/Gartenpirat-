@@ -3,6 +3,17 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Umsetzung des Auditauftrags – Blöcke und Abnahme (22.10.2026)
+
+Ausgang: unveränderte Original-App1.54.5/94, Auditbranch3355a497; main und bestehende Arbeitsbranches frisch verglichen. Nutzerauftrag autorisiert die sechs dokumentierten Optimierungen, gezielte vollständige operative Entfernung der ausdrücklich benannten MCP-Testkunden sowie UX-/Sync-Korrekturen. Keine produktive Testanlage. Historische Originale/Backups und minimale Lösch-/Idempotenzbelege bleiben geschützt.
+
+1. **Sync und Verträge:** genaue nicht personenbezogene Leseunterphasen/IO-Codes; korrekte nächste Queueaktion; getrennte Roh-/Lokal-/Upload-/Prüfzähler; wahrheitsgemäßer Automatikstatus; zusätzlicher plattformneutraler Kataloghash; begrenzter laufbezogener Cache ausschließlich verifizierter unveränderlicher Inhalte. Alte Geschäfts-/CAS-/Publikationshashes und öffentliche Tool-/UI-Schemas bleiben erhalten. Vor Schreibvorgängen weiter frische Inventar-/Inhaltsprüfung. Abnahme: gezielte Fehler-, Paralleländerungs-, Hash-, Queue- und Statusfälle plus bestehende Vertrags-/Fachtests. Etwaige beauftragte additive Ausgabedeltas explizit gegen unveränderte historische Baseline dokumentieren.
+2. **Testreste:** vorhandene Zielkunden und Verknüpfungen lesen, Sicherung verifizieren, aktuellen Hash und Lösch-/Purge-Vorschau anwenden; ausschließlich eindeutig synthetische abhängige Datensätze entfernen. Lokale Testjournale dürfen weder in Drive gelangen noch entfernte Testdaten wiederherstellen. Abnahme: Wiederholung, Wiederöffnung, laufende Sitzung und echte Referenzen geschützt; Live-Nachlesen getrennt vom Emulator belegen.
+3. **Bedienung:** verlässliche Gestenrichtung, verschachteltes Scrollen, sichere Menüwechsel/Entwürfe; Planung und Heute mit klarer Priorität und weniger gleichzeitig sichtbaren Optionen. Funktionen, persönliche bezahlt-Markierung, Timer und156UI-Aktionen erhalten. Abnahme: echte Browserinteraktionen bei schmaler Ansicht/großer Schrift und gebündelter Emulator-WebView.
+4. **Gesamtabnahme und Sicherung:** passende vollständige Regression, Privacy, nativer Erhaltungsledger und Originalkandidat aus gesichertem Quellstand; private Quellkopie und belegte Übergabe. Physische Pixelinstallation bleibt gemäß AGENTS.md bis Sicherung und ausdrücklicher Installationsfreigabe offen. Produktiver Sync gilt erst nach tatsächlich erfolgreichem Rücklesen als gelöst.
+
+Status: Umsetzung begonnen; noch kein Block als PASS abgeschlossen, keine neue App installiert.
+
 ## Funktions-/Sync-Audit R3 – dauerhafte Sicherung und Abschluss (22.10.2026,17:37UTC)
 
 Prüf-/Exportcheckpoint **49d112d7b77f32dae5b2c2a71215dd8b1cb405ff** auf codex/function-sync-audit-20261022 committed/gepusht und exakt von GitHub zurückgelesen. Offizieller source_lifecycle-Export PASS: **1249Originaldateien,518UTF8-Dateien vollständig rekonstruierbar,731öffentliche Binärressourcen**, gleicher Appfingerprint1d7e7d73…fab25. Original-ZIP **68.915.847Bytes**,SHA256 **7fc8569b1f5cde44f246c8b9ac6471488e3e3f87b5f6a7a5857774c9145b513f**, Drive-Datei **1iYeJfMDKhMZ-RJCJ22KGfGqG63doFweK** im vorhandenen privaten Entwicklungsbereich/[Auditordner](https://drive.google.com/drive/folders/1VKq658WXV87bP_LQkkT0MDl3ZWPALK5A). Keine neue App-/APK-Auslieferung und keine produktiven Daten exportiert.
