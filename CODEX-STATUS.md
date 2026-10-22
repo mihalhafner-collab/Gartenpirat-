@@ -3,6 +3,18 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Umsetzung96 – AP5 und erster AP6/AP7-Browsernachweis (22.10.2026)
+
+AP5: vorhandenen Leave-Guard erhalten, flushWorklogDetail ergänzt und Verwerfungsfrage auf eindeutigen Auftragstext gestellt. Tatsächlicher linker Menüpfad speichert gültige Änderung vor Wechsel; fehlender Kunde liefert false, Bestätigung erscheint und Abbrechen lässt Seite/Entwurf unverändert.10Worklog-Window-Browserfälle einschließlich2neuer Menüfälle PASS. Kein Warten auf einen Zeitgeber; keine pauschale zusätzliche Wrapperlage.
+
+AP6: today-ui.js besitzt Heute-Struktur und ursprüngliche Timerkommandos; alte Heute-Renderer aus workday/design/planning/field entfernt, work-location behält Erfassung/Validierung und verändert die Heute-Struktur nicht mehr. Logo im vorhandenen Seitenmenü, Datum/Statuschip oben, Jetzt mit Start/Nachtragen oder laufender Arbeit/Stoppen, drei heutige Termine mit Alle anzeigen, bedarfsabhängige Offen-Chips und kleine Wochenkennzahl. Optionale bevorstehende Terminblätterung samt bisheriger Richtungs-/Klicksperre bleibt als Zusatz ohne heutige Termine. Versteckte Ordnerbuttons aus Markup entfernt; bestehende Ziele unter Mehr erhalten. Linke Rand-/Zurückgeste unverändert; nur das beauftragte Logo ergänzt.
+
+Planung: drei Bedienzeilen(Zeitraum/Ansicht/Wochenstreifen), Terminliste unmittelbar danach, fester beschrifteter +Termin-Knopf. Zusatzwerkzeuge/Kundenfilter/Status/Einrichtung im ⋯-Menü, verbindungsbezogener Chip bei Problem; bestehende Request-/Editor-/Zeitkonvertierungs-/Kalenderentscheidungswege erhalten. Planning-Listenaufrufe und Pagination unverändert, Heute liest erforderliche Detailmetadaten über denselben vorhandenen get_appointment-Pfad.
+
+AP7: neue feste Browser-Suite mit360×640 und100/150/200Prozent.7konkrete Fälle PASS: Start+2Termine initial sichtbar,3/Alle-Anzeige, erster Planungstermin und max3Bedienzeilen, mindestens48px-Touchziele, Timer-ID/Arbeitsdauer beim Hin-/Rückwechsel, erhaltener Planungsentwurf, horizontale Grenzen/umgebrochener Text und keine Browserfehler. Sichtprüfung der synthetischen100%-Heuteansicht erfolgt;150/200%- und Planungsbilder folgen. Neue Tests fanden44px-Alt-Summary, korrigiert; Timerstart bewusst über bestehende Kundenauswahl getestet, kein fiktiver Direktstart. Gesamter54-Suiten-Browserlauf läuft noch; alte Positionserwartung in visual-consistency meldet erwarteten Darstellungsdiff(Heute-Aktionen nun innerhalb Jetzt statt darunter), noch gezielt zu aktualisieren. Keine Baseline voreilig neu freigegeben.
+
+AP1–AP4: korrigierte Android-Main- und AndroidTest-Javakompilierung tatsächlich PASS33Tasks. Native Ausführung weiterhin ausstehend. Eigene AVD mit bestehender95-Datenpartition gestartet, qemu/Name geprüft, root nur dort; Timeoutmultiplikator10 gesetzt/zurückgelesen und Framework ohne Datenreset neu gestartet. Native große Schrift und Datenerhalt noch offen. Version bleibt95, keine neue APK, keine Pixel-/Drive-Betriebsaktion.
+
 ## Umsetzung96 – AP1–AP4 Implementierungscheckpoint (22.10.2026)
 
 AP1: gemeinsame reine SyncFailureRules,108gezielte Produktionsprüfungen PASS; Konfigurationsfehler Versuch1/Nutzeraktion ohne Planung, Netzfehler eigener Backoffcode. Bisherige Retryzählung anderer Fehler erhalten. Diagnose erhält Klasse/auf120Zeichen begrenzte datensparsame Meldung und read_step. Beliebige Provider-/Logikmeldungen können Geschäftstexte enthalten: ausschließlich exakt bekannte harmlose Plattformmeldungen übernehmen, sonst Inhalt ausblenden; keine scheinbar sichere Regex-Redaktion.

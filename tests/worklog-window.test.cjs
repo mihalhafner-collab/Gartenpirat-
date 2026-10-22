@@ -73,6 +73,24 @@ async function main(){
    const bad=await page.evaluate(()=>JSON.parse(AndroidData.getState()).pending.some(a=>a.payload.id==='qa_wrk_test'&&a.payload.activity==='Rasen pflegen'));
    assert.equal(bad,false,'Record selection must not overwrite another worklog ID');
   });
+  await check('96 left menu flushes a worklog detail immediately and reopening retains it',async()=>{
+   await page.waitForFunction(()=>window.HGGestures&&window.flushWorklogDetail);
+   await page.evaluate(()=>openWorklogDetail('qa_wrk_second'));await page.locator('[data-work-window-edit]').click();
+   await page.locator('#edit-worklog-activity').fill('QA menu flush retained');const before=await page.evaluate(()=>testWrites);
+   await page.evaluate(()=>HGGestures.openMenu());await page.locator('[data-drawer-open="customers"]').click();
+   assert.equal(await page.evaluate(()=>currentPage),'customers');assert.equal(await page.evaluate(()=>testWrites),before+1);
+   assert.equal(await page.evaluate(()=>JSON.parse(AndroidData.getState()).pending.at(-1).payload.activity),'QA menu flush retained');
+   await page.evaluate(()=>openWorklogDetail('qa_wrk_second'));await page.locator('[data-work-window-edit]').click();assert.equal(await page.locator('#edit-worklog-activity').inputValue(),'QA menu flush retained');
+  });
+  await check('96 invalid worklog menu exit asks before discarding and cancel keeps the draft',async()=>{
+   await page.locator('#edit-worklog-activity').fill('QA invalid draft retained');
+   await page.locator('#edit-worklog-customer').evaluate(select=>{select.value='';select.dispatchEvent(new Event('change',{bubbles:true}));});
+   assert.equal(await page.evaluate(()=>flushWorklogDetail()),false);const before=await page.evaluate(()=>testWrites);let message='';page.once('dialog',async d=>{message=d.message();await d.dismiss();});
+   await page.evaluate(()=>HGGestures.openMenu());await page.locator('[data-drawer-open="customers"]').click();
+   assert.equal(message,'Ungespeicherte Änderungen verwerfen?');assert.equal(await page.evaluate(()=>currentPage),'worklog-detail');
+   assert.equal(await page.locator('#edit-worklog-activity').inputValue(),'QA invalid draft retained');assert.equal(await page.evaluate(()=>testWrites),before);
+   await page.evaluate(()=>cancelWorklogDetail());assert.equal(await page.evaluate(()=>flushWorklogDetail()),true);
+  });
   fs.writeFileSync(path.resolve(__dirname,'../outputs/Worklog-Window-Tests.json'),JSON.stringify({actualBrowser:true,nativeBridge:'isolated in-memory fixture',results},null,2));
  }finally{await browser.close();}
  console.log('RESULT '+results.filter(r=>r.result==='PASS').length+' passed, '+results.filter(r=>r.result==='FAIL').length+' failed');

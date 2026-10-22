@@ -19,17 +19,6 @@
     get('customers').querySelector('h2').textContent='Kunden & Gärten';
     const menuButton=document.querySelector('#more-page .drawer-open');
     if(menuButton){menuButton.textContent='☰';menuButton.setAttribute('aria-label','Seitenmenü öffnen');get('more-page').querySelector('.page-head').append(menuButton);}
-    // Move the original status and its existing navigation handler into the sync card.
-    get('settings-data-title').after(get('sync-status'));
-    const heading=document.createElement('header');heading.className='field-heading';
-    const title=document.createElement('h1');title.textContent='Heute';
-    const date=get('home-dayline');heading.append(title);if(date)heading.append(date);
-    get('home').prepend(heading);
-    const quick=document.querySelector('#home .hero .quick');
-    const dock=document.createElement('div');dock.id='field-today-actions';dock.setAttribute('aria-label','Arbeit und Planung');
-    dock.innerHTML='<button type="button" class="secondary field-planning" data-open="planning-page">Planung</button>';
-    if(quick){quick.querySelector('strong').textContent='Arbeit erfassen';quick.querySelector('small').textContent='Zeit, Leistung & Notiz';dock.append(quick);}
-    (get('workday-timer')||get('home').querySelector('.hero')).after(dock);
     // Original record form is moved, never copied. Drafts and listeners survive.
     const form=get('entry'),entry=get('work-entry'),placeholder=document.createComment('work-entry origin');entry.before(placeholder);
     const sheet=document.createElement('dialog');sheet.id='field-quick-entry';sheet.setAttribute('aria-labelledby','field-quick-title');
@@ -84,7 +73,6 @@
     function projection(){
       if(moving)return;
       document.body.classList.toggle('field-home',currentPage==='home');
-      if(date)date.textContent=new Date().toLocaleDateString('de-AT',{weekday:'long',day:'numeric',month:'long'});
       const completing=entry.classList.contains('timer-completion-page');
       get('field-quick-title').textContent=completing?'Arbeit abschließen':'Arbeit erfassen';
       later.hidden=completing;
