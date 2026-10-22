@@ -24,7 +24,7 @@ names = ['DeletionBackupStore', 'SnapshotProjection', 'OwnerCommand', 'EntityCon
          'PixelMcpEntityWriteTools', 'PixelMcpReadTools', 'PixelMcpSessionTools', 'PixelMcpBusinessTools',
          'WorklogRelationRules', 'ManualChangeRules', 'GardenRules', 'SyncActionOrder', 'DriveRestClient', 'DrivePublication', 'McpSchema', 'McpFileTransfer', 'InvoiceDraftRules', 'PixelMcpOwnerTools', 'OwnerJournalRules', 'DriveJournalRules', 'OrderReviewRules', 'PixelTunnelConfig',
          'PixelTunnelWire', 'WorkSessionPauseRules']
-names += ['LocalTestTombstone','ActiveWorkProtection','ImmutableStateReference','CatalogSemanticHash','SyncQueueCounters','VerifiedSyncCache','SyncIoFailure','CalendarRecoveryRules','OpenMeteoWeatherSource','CalendarSetupRules','PlanningWire']
+names += ['SyncCommitRules','OwnerRequestTransactions','ReceiptRetentionRules','SyncFailureRules','LocalTestTombstone','ActiveWorkProtection','ImmutableStateReference','CatalogSemanticHash','SyncQueueCounters','VerifiedSyncCache','SyncIoFailure','CalendarRecoveryRules','OpenMeteoWeatherSource','CalendarSetupRules','PlanningWire']
 tests = sorted((ROOT/'tests/java/at/hausgarten/service').glob('*Tests.java'))
 cp = os.pathsep.join(map(str, [classes, jar, android]))
 
@@ -68,6 +68,21 @@ for test in tests:
             raise RuntimeError('Android/Python archive guard differs')
     results.append({'suite': test.stem, 'result': 'PASS', 'summary': output.strip().splitlines()[-1]})
     print(results[-1], flush=True)
+# Compile the actual Android repository adapter against its production dependency classes.
+# The executed method uses a named, pure transaction port; native acceptance separately proves SQLite.
+production = ROOT/'android/app/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes'
+if not (production/'at/hausgarten/service/PhotoAttachmentStore.class').is_file():
+    raise RuntimeError('Compile release Java with Gradle before the repository JVM adapter suite.')
+import tempfile
+with tempfile.TemporaryDirectory(prefix='qa_owner_repository_') as temporary:
+    owner_classes=Path(temporary)/'classes';owner_classes.mkdir()
+    owner_cp=os.pathsep.join(map(str,[owner_classes,classes,production,jar,android]))
+    test=ROOT/'tests/java-owner/at/hausgarten/service/LocalOwnerRepositoryTests.java'
+    run([shutil.which('javac'),'-encoding','UTF-8','-implicit:none','-sourcepath',temporary,'-cp',owner_cp,'-d',str(owner_classes),str(src/'LocalOwnerRepository.java'),str(test)])
+    output=run([shutil.which('java'),'-cp',owner_cp,'at.hausgarten.service.LocalOwnerRepositoryTests'])
+    (classes.parent/'LocalOwnerRepositoryTests.log').write_text(output)
+    results.append({'suite':'LocalOwnerRepositoryTests','result':'PASS','summary':output.strip().splitlines()[-1]})
+    print(results[-1],flush=True)
 (classes.parent/'results.json').write_text(json.dumps({'suites': results, 'cross_language_hash': 'PASS'}, indent=2))
 if (ROOT/'tests/fixtures/refactoring-baseline.json').exists():
     print(run([sys.executable, str(ROOT/'tools/check_refactoring_contract.py')]).strip())

@@ -14,6 +14,10 @@ final class SyncPolicy {
     }
     static String message(String code) {
         switch(code) {
+            case "FOLDER_NOT_SELECTED":return "Bitte zuerst den bestehenden Drive-Ordner auswählen. Lokale Daten bleiben erhalten.";
+            case "DEVICE_ID_MISSING":return "Die Gerätekennung fehlt. App erneut öffnen und den Abgleich erneut versuchen. Keine neue Änderungsdatei angelegt.";
+            case "NETWORK_UNAVAILABLE":return "Keine nutzbare Internetverbindung. Der Abgleich wird mit Abstand erneut versucht; lokale Daten bleiben erhalten.";
+            case "STATUS_NOT_SAVED":return "Daten gesichert, Status konnte nicht gespeichert werden. Der bestätigte Datenstand bleibt erhalten.";
             case "NOT_CONNECTED":return "Drive verbinden oder den bestehenden Ordner auswählen. Lokale Daten bleiben erhalten.";
             case "AUTH_REQUIRED":case "PERMISSION_REQUIRED":case "HTTP_401":case "HTTP_403":return "Drive-Freigabe am Gerät prüfen und die Verbindung bestätigen. Lokale Daten bleiben erhalten.";
             case "REMOTE_STATE_REFERENCE_MISSING":return "Der bestätigte Gesamtstand fehlt im verbundenen Ordner. Originale und lokale Änderungen bleiben erhalten; Drive-Dateien prüfen.";
@@ -31,14 +35,15 @@ final class SyncPolicy {
         JSONObject out=new JSONObject(s.toString());int pending=queue.optInt("pending_upload"),review=queue.optInt("review");
         out.put("pending",pending).put("review",review).put("pending_total",queue.optInt("total",pending+review)).put("syncing",running);
         String code=s.optString("last_error_code"),state,title,action="none",detail;
-        if(!s.optBoolean("configured")){state="not_connected";title="Drive verbinden";detail=message("NOT_CONNECTED");action="connect_drive";}
+        if(!s.optBoolean("configured")){state="not_connected";title="Drive verbinden";detail=message(code.equals("FOLDER_NOT_SELECTED")?code:"NOT_CONNECTED");action="connect_drive";}
         else if(running){state="syncing";title="Abgleich läuft";detail="Änderungen werden geprüft und übertragen.";}
         else if(s.optBoolean("drive_sync_failed")){
             boolean paused=s.optBoolean("user_action_required")||s.optInt("retry_count")>=MAX_ATTEMPTS;
             boolean scheduled=s.optBoolean("automatic_enabled",true)||s.optBoolean("manual_requested");
             state=paused?"action_required":scheduled&&s.optLong("next_retry")>now?"retry_wait":"error";
             title=paused?"Abgleich braucht deine Hilfe":state.equals("retry_wait")?"Erneuter Versuch folgt":"Abgleich erneut versuchen";
-            detail=message(code.isEmpty()?"TRANSFER_FAILED":code);action=java.util.Arrays.asList("REMOTE_DUPLICATES_DIFFER","LEGACY_SOURCE_CHANGED","PUBLICATION_CONFLICT","PUBLICATION_INVALID","ACTION_ID_CONFLICT").contains(code)?"compare_versions":java.util.Arrays.asList("AUTH_REQUIRED","PERMISSION_REQUIRED","HTTP_401","HTTP_403").contains(code)?"connect_drive":"retry_sync";
+            detail=message(code.isEmpty()?"TRANSFER_FAILED":code);action=java.util.Arrays.asList("REMOTE_DUPLICATES_DIFFER","LEGACY_SOURCE_CHANGED","PUBLICATION_CONFLICT","PUBLICATION_INVALID","ACTION_ID_CONFLICT").contains(code)?"compare_versions":java.util.Arrays.asList("AUTH_REQUIRED","PERMISSION_REQUIRED","HTTP_401","HTTP_403","FOLDER_NOT_SELECTED").contains(code)?"connect_drive":"retry_sync";
+        }else if(code.equals("STATUS_NOT_SAVED")){state="status_warning";title="Status konnte nicht gespeichert werden";detail=message(code);action="retry_sync";
         }else if(pending>0){state="pending";title=pending+" Änderung(en) warten auf Drive";boolean automatic=s.optBoolean("automatic_enabled",true),manual=s.optBoolean("manual_requested");detail=automatic?"Auf diesem Gerät gespeichert. Der Abgleich erfolgt automatisch bei verfügbarer Verbindung.":manual?"Auf diesem Gerät gespeichert. Der angeforderte Abgleich wartet auf eine Verbindung.":"Auf diesem Gerät gespeichert. Automatischer Abgleich ist ausgeschaltet.";action=automatic||manual?"none":"retry_sync";}
         else if(review>0){state="review_required";title=review+" Änderung(en) prüfen";detail="Die Übertragung ist getrennt von diesen Prüfungen. Unabhängige Änderungen werden weiter abgeglichen.";action="review_changes";}
         else if(s.optInt("trash_cleanup_pending")>0){state="cleanup_pending";title="Dateibereinigung ausstehend";detail="Papierkorbeinträge entfernt. Nicht mehr verwendete Dateien werden nach bestätigtem Abgleich bereinigt; andere Arbeiten bleiben möglich.";action="retry_sync";}

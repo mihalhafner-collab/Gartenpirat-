@@ -126,7 +126,7 @@ final class OwnerNativeAcceptance {
             f.store.commitSnapshot(committed,DriveJournalRules.ids(committed.getJSONArray("drive_applied_ids")));f.store.close();
             try(PixelLocalStore reopened=new PixelLocalStore(f.context)){
                 final int[] deletes={0};DriveSyncCoordinator.Files files=new DriveSyncCoordinator.Files(f.context,android.net.Uri.EMPTY,f.context.getSharedPreferences("haus_garten",0)){
-                    @Override void deletePhotoFileVerified(String name,String hash)throws Exception{test.yes(name.startsWith(hash+"."));deletes[0]++;}
+                    @Override public void deletePhotoFileVerified(String name,String hash)throws Exception{test.yes(name.startsWith(hash+"."));deletes[0]++;}
                 };
                 JSONObject cleanup=TrashMediaCleanup.run(reopened,files,committed);test.yes(cleanup.getInt("pending")==0);test.yes(reopened.photoAttachment(id)==null);test.yes(deletes[0]>0);
                 int count=deletes[0];TrashMediaCleanup.run(reopened,files,committed);test.yes(deletes[0]==count);

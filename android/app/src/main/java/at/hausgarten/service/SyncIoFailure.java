@@ -5,5 +5,5 @@ final class SyncIoFailure extends IOException {
     final String code;
     SyncIoFailure(String code){super(SyncPolicy.message(code));this.code=code;}
     SyncIoFailure(String code,Exception cause){super(SyncPolicy.message(code),cause);this.code=code;}
-    boolean needsAction(){return code.equals("PUBLICATION_INVALID")||code.equals("REMOTE_STATE_REFERENCE_MISSING")||code.equals("REMOTE_MASTER_MISSING")||code.equals("REMOTE_DUPLICATES_DIFFER")||code.equals("REMOTE_FILE_TOO_LARGE");}
+    boolean needsAction(){return code.equals("FOLDER_NOT_SELECTED")||code.equals("DEVICE_ID_MISSING")||code.equals("PUBLICATION_INVALID")||code.equals("REMOTE_STATE_REFERENCE_MISSING")||code.equals("REMOTE_MASTER_MISSING")||code.equals("REMOTE_DUPLICATES_DIFFER")||code.equals("REMOTE_FILE_TOO_LARGE");}
 }

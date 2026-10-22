@@ -59,11 +59,11 @@ final class DriveDirectFiles extends DriveSyncCoordinator.Files {
     @Override byte[] readPhotoVerified(JSONObject metadata)throws Exception{
         JSONObject directory=client.unique(client.folder,"HausGarten-Fotos");if(directory==null)throw new IOException("Foto-Original ist in Drive noch nicht verfügbar.");JSONObject file=client.unique(directory.getString("id"),metadata.getString("storage_name"));if(file==null)throw new IOException("Foto-Original ist in Drive noch nicht verfügbar.");byte[] bytes=client.read(file.getString("id"),PhotoAttachmentStore.MAX_BYTES);verifyBytes(bytes,metadata);return bytes;
     }
-    @Override void deletePhotoFileVerified(String name,String hash)throws Exception{
+    @Override public void deletePhotoFileVerified(String name,String hash)throws Exception{
         if(!PhotoAttachmentStore.canonicalName(name)||!hash.matches("[0-9a-f]{64}")||!name.startsWith(hash+"."))throw new IOException("Ungültige Löschreferenz.");
         JSONObject folder=client.unique(client.folder,"HausGarten-Fotos");if(folder!=null)client.deleteVerified(folder.getString("id"),name,hash);
     }
-    @Override void deleteDocumentFileVerified(JSONObject metadata)throws Exception{
+    @Override public void deleteDocumentFileVerified(JSONObject metadata)throws Exception{
         String name=metadata.optString("pdf_storage_name"),hash=metadata.optString("pdf_sha256");if(!hash.matches("[0-9a-f]{64}")||!name.equals(hash+".pdf"))throw new IOException("Ungültige Dokument-Löschreferenz.");
         JSONObject folder=client.unique(client.folder,"HausGarten-Dokumente");if(folder!=null)client.deleteVerified(folder.getString("id"),name,hash);
     }

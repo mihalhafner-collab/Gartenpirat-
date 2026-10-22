@@ -11,7 +11,19 @@ import java.util.*;
 final class LocalOwnerRepository implements OwnerRepository {
     private final Context context;
     private final PixelLocalStore store;
-    LocalOwnerRepository(Context context,PixelLocalStore store){this.context=context;this.store=store;}
+    private final OwnerRequestTransactions.Store requests;
+    LocalOwnerRepository(Context context,PixelLocalStore store){
+        this.context=context;this.store=store;
+        this.requests=new OwnerRequestTransactions.Store(){
+            public void begin(){store.getWritableDatabase().beginTransaction();}
+            public String read(String key){return store.ownerValue(key,"");}
+            public void write(String key,String value){store.putOwnerValue(key,value);}
+            public void successful(){store.getWritableDatabase().setTransactionSuccessful();}
+            public void end(){store.getWritableDatabase().endTransaction();}
+        };
+    }
+    // Pure storage/transaction boundary for JVM execution of this actual repository method.
+    LocalOwnerRepository(OwnerRequestTransactions.Store requests){this.context=null;this.store=null;this.requests=requests;}
     private static String digest(byte[] bytes)throws Exception{return PhotoAttachmentStore.sha256(bytes);}
     public JSONObject state(){return store.getState();}
     public JSONObject effective()throws Exception{return PixelMcpReadTools.effective(state());}
@@ -126,13 +138,7 @@ final class LocalOwnerRepository implements OwnerRepository {
     @Override public void checkBusy(JSONObject appointment)throws Exception{AppointmentRuntime.checkBusy(context,store,appointment);}
     interface Request { JSONObject run() throws Exception; }
     JSONObject runRequest(String request,String fingerprint,Request command)throws Exception{
-        SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();JSONObject result;
-        try{
-            String old=store.ownerValue("receipt:"+request,"");if(!old.isEmpty()){JSONObject receipt=new JSONObject(old);if(!fingerprint.equals(receipt.getString("fingerprint")))throw new PixelMcpWriteTools.Rejected("REPLAY_MISMATCH","Die Anfragekennung gehört zu anderen Angaben.");result=receipt.getJSONObject("result").put("replayed",true);}
-            else{result=command.run();store.putOwnerValue("receipt:"+request,new JSONObject().put("fingerprint",fingerprint).put("result",result).toString());}
-            db.setTransactionSuccessful();
-        }finally{db.endTransaction();}
-        return result;
+        return OwnerRequestTransactions.runRequest(requests,request,fingerprint,command::run,java.time.Instant.now().toString());
     }
     JSONObject prepareLegacyBackup(String request,String preview)throws Exception{return LegacyConflictBackup.create(context,store,request,preview);}
     JSONObject photoStorageSummary()throws Exception{return store.photoAttachmentStore().storageSummary();}

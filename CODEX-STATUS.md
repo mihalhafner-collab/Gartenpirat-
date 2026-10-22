@@ -3,6 +3,18 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Umsetzung96 – AP1–AP4 Implementierungscheckpoint (22.10.2026)
+
+AP1: gemeinsame reine SyncFailureRules,108gezielte Produktionsprüfungen PASS; Konfigurationsfehler Versuch1/Nutzeraktion ohne Planung, Netzfehler eigener Backoffcode. Bisherige Retryzählung anderer Fehler erhalten. Diagnose erhält Klasse/auf120Zeichen begrenzte datensparsame Meldung und read_step. Beliebige Provider-/Logikmeldungen können Geschäftstexte enthalten: ausschließlich exakt bekannte harmlose Plattformmeldungen übernehmen, sonst Inhalt ausblenden; keine scheinbar sichere Regex-Redaktion.
+
+AP2: SyncCommitRules bestätigt accepted/applied/rejected_invoice/resolved gemeinsam mit Snapshot über bestehende SQLite-Transaktion. Späteres false oder Exception der Statuspersistenz wird STATUS_NOT_SAVED/Retry0 und kein erneuter Übertragungsfehlversuch.17gezielte JVM-Commit-/Reihenfolge-/Preferencesfehlerfälle PASS, native SQLite-Prüfung vorbereitet.
+
+AP3: echte LocalOwnerRepository.runRequest-Methode im bestehenden JVM-Lauf frisch aus Produktionsquelle kompiliert und mit benanntem Transaktionsport ausgeführt:14Rollback-/Replay-/Mismatch-/Expiryprüfungen PASS. Keine Produktionsklasse als Testdouble. CleanupSyncStub implementiert schmalen I/O-Port, tatsächliche Fehlerklassifikation aus Produktionsklasse;47Hostfälle PASS.49JVM-Suiten/1047Paritätsassertions und bisheriger eingefrorener Vertrag PASS. Android-Main-Javakompilierung PASS; erste neue Testadapterkompilierungen fanden fehlende public-/throws-Deklarationen, korrigiert, erneute native Testkompilierung/Abnahme noch offen.
+
+AP4: bestätigte/entfernte pending-Zeile plus entfernte Quittung im tatsächlichen Repository reproduziert: derselbe Request wirkt erneut; PK allein genügt nicht. Daher nur volle Ergebnisquittungen älter90Tage ohne offene Action/Backup/Tombstone entfernen, in derselben Transaktion dauerhaften minimalen Fingerprint-Sperrbeleg behalten. Gleiche abgelaufene Anfrage liefert REQUEST_EXPIRED statt zweiter Aktion; abweichender Fingerprint bleibt REPLAY_MISMATCH.13reine Alters-/Referenzprüfungen PASS. Alte Quittungen ohne verlässliches Datum bekommen erst ein Beobachtungsdatum; keine sofortige Altersvermutung. Automatische Bereinigung ausschließlich nach serververifizierter Publikation und erfolgreicher lokaler Statuspersistenz; Provider-Rücklesen genügt nicht. Protokoll nur Anzahl/Zeit. Tatsächliche native SQLite-/Providernegativfälle vorbereitet, noch nicht ausgeführt.
+
+Version bleibt95 bis sämtliche Implementierungsgates und UI-Abnahme grün. Keine APK erstellt, kein produktiver Pixel-/Syncaufruf, keine Randmenüänderung. AP5–AP7 und Hypothesenprüfung folgen.
+
 ## Umsetzung96 – Auftrag und Abnahmekriterien festgelegt (22.10.2026)
 
 Neuer Nutzerauftrag AP1–AP7: [CODEX-UMSETZUNG-1.54.7.md](CODEX-UMSETZUNG-1.54.7.md). Ausgang sauber d279945/Original95, Remote-Arbeitsbranch exakt identisch; frischer main e499e745 und alle bestehenden Branches verglichen, kein Reset/Merge. Aktuelle main-Regeln und Issue1 lesend über Connector geprüft; gh-GraphQL war gesperrt, kein fehlender Inhalt als gelesen behauptet. Cloudnetz eingeschränkt/enforced, erforderliche Originalsignierungsvariablen nur als bereit gemeldet, keine Werte ausgegeben. Noch keine Versionserhöhung, Codeänderung oder neue APK.
