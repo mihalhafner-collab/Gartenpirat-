@@ -307,7 +307,7 @@
  launcher.addEventListener('pointercancel',()=>{drag=null;suppressClick=false;launcher.classList.remove('gp-dragging');layout();});
  launcher.addEventListener('keydown',event=>{const deltas={ArrowLeft:[-12,0],ArrowRight:[12,0],ArrowUp:[0,-12],ArrowDown:[0,12]};if(event.key==='Home'){event.preventDefault();position=null;try{localStorage.removeItem(POSITION_KEY);}catch{}layout();return;}if(deltas[event.key]){event.preventDefault();const r=launcher.getBoundingClientRect(),d=deltas[event.key];move(r.left+d[0],r.top+d[1]);avoidControls();remember();}});
  document.addEventListener('transitionend',e=>{if(e.target.matches?.('#mobile-toast,#undo-toast,.undo-toast'))layout();},true);
- addEventListener('resize',layout);window.visualViewport?.addEventListener('resize',layout);let pendingLayout=false;addEventListener('scroll',()=>{if(pendingLayout)return;pendingLayout=true;requestAnimationFrame(()=>{pendingLayout=false;layout();});},{passive:true,capture:true});
+ addEventListener('resize',layout);window.visualViewport?.addEventListener('resize',layout);let pendingLayout=false;addEventListener('scroll',()=>{if(pendingLayout)return;pendingLayout=true;requestAnimationFrame(()=>{pendingLayout=false;if(drag||launcher.hidden||dialog.open)return;const r=launcher.getBoundingClientRect();move(r.left,r.top);avoidControls();});},{passive:true,capture:true});
  // Android names the Today/dashboard page #home; the web/PWA shell names it
  // #view-dashboard. The launcher stays on either real dashboard surface and
  // never enters an unrelated modal/editor.

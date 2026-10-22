@@ -100,7 +100,7 @@ public class MainActivity extends Activity implements McpSyncHost {
                 android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS | android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
         }
         if (Build.VERSION.SDK_INT >= 33) {
-            backCallback = this::navigateBack;
+            backCallback = Build.VERSION.SDK_INT>=34 ? leftEdgeMenuCallback() : this::navigateBack;
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
                 android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT, backCallback);
         }
@@ -157,6 +157,12 @@ public class MainActivity extends Activity implements McpSyncHost {
         root.setBackgroundColor(android.graphics.Color.rgb(245,247,245));
         webView = new WebView(this);
         root.addView(webView, new FrameLayout.LayoutParams(-1,-1));
+        // Older Android releases allow only a 200dp system-gesture exclusion.
+        // API34+ also routes the remaining left edge through BackEvent above.
+        if(Build.VERSION.SDK_INT>=29)webView.addOnLayoutChangeListener((view,l,t,r,b,ol,ot,or,ob)->{
+            int width=(int)Math.ceil(32*getResources().getDisplayMetrics().density),height=(int)Math.ceil(200*getResources().getDisplayMetrics().density),top=Math.max(0,(b-t-height)/2);
+            webView.setSystemGestureExclusionRects(java.util.Collections.singletonList(new android.graphics.Rect(0,top,width,Math.min(b-t,top+height))));
+        });
         root.setOnApplyWindowInsetsListener((view,insets) -> {
             if(Build.VERSION.SDK_INT>=29)systemGestureLeftDp=Math.max(32,(int)Math.ceil(insets.getSystemGestureInsets().left/getResources().getDisplayMetrics().density)+8);
             if (Build.VERSION.SDK_INT >= 30) {
@@ -565,6 +571,21 @@ public class MainActivity extends Activity implements McpSyncHost {
         }
         if (requestCode == SPEECH_REQUEST && resultCode == RESULT_OK && data != null) { ArrayList<String> matches = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS); if (matches != null && !matches.isEmpty()) webView.evaluateJavascript("window.acceptNativeSpeech(" + JSONObject.quote(matches.get(0)) + ")", null); }
     }
+    @android.annotation.TargetApi(34)
+    private android.window.OnBackInvokedCallback leftEdgeMenuCallback() {
+        return new android.window.OnBackAnimationCallback() {
+            private boolean leftEdge;
+            @Override public void onBackStarted(android.window.BackEvent event) { leftEdge=event.getSwipeEdge()==android.window.BackEvent.EDGE_LEFT; }
+            @Override public void onBackProgressed(android.window.BackEvent event) {}
+            @Override public void onBackCancelled() { leftEdge=false; }
+            @Override public void onBackInvoked() {
+                boolean openMenu=leftEdge;leftEdge=false;
+                if(openMenu) { if(webView!=null)webView.evaluateJavascript("window.HGGestures&&window.HGGestures.openMenu()",null); }
+                else navigateBack();
+            }
+        };
+    }
+
     private void navigateBack() {
         String currentUrl = webView.getUrl();
         if (currentUrl != null && currentUrl.startsWith("file:///android_asset/")) {

@@ -104,3 +104,10 @@
 @media(max-width:360px){.planning-compare-grid{grid-template-columns:minmax(0,1fr)}}
 
 .planning-weather[data-severity="clear"][data-forecast-stage="trend"]{background:#edf2f3;color:#263c43}
+.planning-availability{margin:12px 0;padding:12px;border:1px solid var(--hg-warn-text);border-radius:var(--hg-radius);background:var(--hg-warn-bg);color:var(--hg-warn-text);font-size:var(--hg-fs-caption);overflow-wrap:anywhere}
+.planning-availability p{margin:6px 0;line-height:1.45}.planning-availability button{min-height:48px;max-width:100%}
+.planning-availability[data-verified=true]{border-color:var(--hg-line);background:var(--hg-sage);color:var(--hg-green)}
+#planning-home{touch-action:pan-y;min-width:0;overflow-wrap:anywhere}
+.planning-home-position{display:grid;grid-template-columns:48px minmax(0,1fr) 48px;gap:8px;align-items:center}
+.planning-home-position>button{min-width:48px;min-height:48px;padding:6px}.planning-home-position>span{text-align:center;font-size:var(--hg-fs-caption);line-height:1.5}
+.planning-home-position>button:disabled{opacity:.4}.planning-home-help{font-size:var(--hg-fs-caption);color:var(--hg-muted);margin:6px 0 0}

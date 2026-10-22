@@ -63,7 +63,7 @@ final class ReleaseLifecycleProbe {
         require("true".equals(js(runner,view,"(()=>{document.getElementById('planning-back').click();return !!document.querySelector('[data-planning-resume]')&&!!document.querySelector('#planning-page [data-open=weeks]');})()")));
         connectionUi(runner,context,DriveConnectionActivity.class,1);
         connectionUi(runner,context,PixelTunnelActivity.class,1);
-        connectionUi(runner,context,PlanningConnectionActivity.class,3);
+        connectionUi(runner,context,PlanningConnectionActivity.class,4);
     }
     static void require(boolean value){conditionIndex++;if(!value)throw new AssertionError("Lifecycle condition "+conditionIndex+" failed");}
     static String fingerprint(PixelLocalStore store)throws Exception{

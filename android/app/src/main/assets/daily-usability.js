@@ -1,17 +1,13 @@
 /* Daily navigation and reachability. Existing forms and native save APIs remain authoritative. */
 (() => {
   'use strict';
-  const get=id=>document.getElementById(id), roots=['home','customers','more-page'];
-  const preference='hausgarten.ui.side_swipe.v1';
-  let swipePreference=false;
-  try{swipePreference=localStorage.getItem(preference)==='true';}catch(_){/* Keep the safe in-memory default. */}
-  function swipeEnabled(){return swipePreference;}
+  const get=id=>document.getElementById(id);
   function formState(){return JSON.stringify([...get('customer-form').elements].filter(x=>x.name||x.classList.contains('custom-name')||x.classList.contains('custom-value')).map(x=>[x.name||x.className,x.type==='checkbox'?x.checked:x.value]));}
   function install(){
     if(get('settings-page'))return;
     const page=document.createElement('section');page.id='settings-page';page.className='page';
     page.innerHTML='<div class="page-head"><button type="button" class="back" aria-label="Zurück">‹</button><h2>Einstellungen</h2></div>'+
-      '<section class="card settings-section" aria-labelledby="settings-operation-title"><h3 id="settings-operation-title">Bedienung</h3><label class="check"><input id="setting-side-swipe" type="checkbox">Seitlich zwischen Heute, Kunden & Gärten und Mehr wischen</label><p class="sub">Im freien Seitenbereich wischen. Die Zurück-Geste am Bildschirmrand und Aktionen an Einträgen bleiben getrennt.</p><p id="settings-preference-state" class="settings-note" role="status" aria-live="polite">Diese Einstellung wird nur auf diesem Gerät gespeichert.</p></section>'+
+      '<section class="card settings-section" aria-labelledby="settings-operation-title"><h3 id="settings-operation-title">Bedienung</h3></section>'+
       '<section class="card settings-section"><h3>Kalender & Wetter</h3><p id="settings-planning-state" class="sub" role="status">Verbindung beim Öffnen prüfen.</p><button type="button" class="secondary" id="settings-planning">Kalender & Wetter einrichten</button></section>'+
       '<section class="card settings-section" aria-labelledby="settings-data-title"><h3 id="settings-data-title">Google Drive</h3><div id="settings-sync-state" class="settings-state" role="status" aria-live="polite"><strong id="settings-sync-summary">Drive wird geprüft</strong><span id="settings-sync-detail">Der lokale und der übertragene Stand werden getrennt angezeigt.</span></div><details class="settings-advanced"><summary>Erweitert / Diagnose</summary><dl class="settings-diagnostics"><div><dt>Lokale Änderungen</dt><dd id="settings-sync-local">Wird geprüft</dd></div><div><dt>Übertragungsstand</dt><dd id="settings-sync-transfer">Wird geprüft</dd></div><div><dt>Letzter erfolgreicher Stand</dt><dd id="settings-sync-last">Wird geprüft</dd></div></dl></details><button type="button" class="secondary" id="settings-drive">Google Drive EIN / AUS</button><button type="button" class="secondary" data-open="sync-page">Synchronisierung öffnen</button><p class="sub">Die Synchronisierung gleicht deine Arbeit ab. Eine vollständige Sicherung findest du separat unter Sicherung.</p></section>'+
       '<section class="card settings-section" aria-labelledby="settings-connection-title"><h3 id="settings-connection-title">ChatGPT-Steuerung</h3><p id="settings-connection-state" class="sub" role="status" aria-live="polite">Verbindungsstatus wird geprüft.</p><button type="button" class="secondary" id="settings-connection">ChatGPT EIN / AUS</button><p class="sub">Die Freigabe und das Ein- oder Ausschalten erfolgen in der bestehenden Verbindung.</p></section>'+
@@ -19,12 +15,6 @@
     document.querySelector('main.app').append(page);
     const more=document.createElement('button');more.type='button';more.dataset.open='settings-page';more.innerHTML='<span><strong>Einstellungen</strong><small>Bedienung, Daten und Verbindung</small></span><b aria-hidden="true">›</b>';get('more-page').querySelector('.more-destinations').append(more);
     const shortcut=document.createElement('button');shortcut.type='button';shortcut.className='daily-settings';shortcut.dataset.open='settings-page';shortcut.setAttribute('aria-label','Einstellungen öffnen');shortcut.textContent='⚙';document.querySelector('#home .brand').append(shortcut);
-    get('setting-side-swipe').checked=swipeEnabled();
-    get('setting-side-swipe').addEventListener('change',event=>{
-      const previous=swipePreference,wanted=event.target.checked;
-      try{localStorage.setItem(preference,String(wanted));swipePreference=wanted;get('settings-preference-state').textContent='Gespeichert. Die Einstellung gilt auch nach dem nächsten App-Start.';get('settings-preference-state').classList.remove('is-error');}
-      catch(_){swipePreference=previous;event.target.checked=previous;get('settings-preference-state').textContent='Nicht gespeichert. Die bisherige Einstellung bleibt aktiv.';get('settings-preference-state').classList.add('is-error');window.showUndoToast('Einstellung konnte nicht dauerhaft gespeichert werden.');}
-    });
     const diagnosis=page.querySelector('.settings-advanced');diagnosis.insertAdjacentHTML('beforeend','<h4>Fehlermeldungen</h4><pre class="settings-error-details"></pre>');diagnosis.ontoggle=()=>{if(diagnosis.open)diagnosis.querySelector('pre.settings-error-details').textContent=HGBusinessFeedback.diagnostics().join('\n\n')||'Keine technischen Fehlermeldungen in dieser Sitzung.';};
     get('settings-drive').onclick=()=>{if(typeof AndroidData.connectDrive==='function')AndroidData.connectDrive();else window.showUndoToast?.('Bitte die App aktualisieren, um die Google-Drive-Verbindung einzurichten.');};
     get('settings-planning').onclick=()=>AndroidData.connectPlanning?.();
@@ -57,25 +47,6 @@
       return previousBack();
     };
     document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!document.querySelector('dialog[open]')){event.preventDefault();window.handleAndroidBack();}});
-    let gesture=null;
-    const excluded='input,textarea,select,button,a,summary,dialog,.swipe-shell,[data-swipe-item],.customer-card,.worklog-entry,.order-list-item,.invoice-entry,.bottom,.daily-list-tools';
-    document.addEventListener('touchstart',event=>{
-      gesture=null;if(currentPage==='planning-page'||!swipeEnabled()||!roots.includes(currentPage)||event.touches.length!==1||event.target.closest(excluded))return;
-      const touch=event.touches[0];if(touch.clientX<(window.HGGestures?.safeLeft()||32)+44||touch.clientX>innerWidth-32)return;
-      gesture={x:touch.clientX,y:touch.clientY,time:performance.now(),page:currentPage};
-    },{passive:true});
-    document.addEventListener('touchmove',event=>{
-      if(!gesture||event.touches.length!==1)return;
-      const t=event.touches[0],dx=t.clientX-gesture.x,dy=t.clientY-gesture.y;
-      if(Math.abs(dy)>30&&Math.abs(dy)>Math.abs(dx))gesture=null;
-      else if(Math.abs(dx)>35&&Math.abs(dx)>Math.abs(dy)*1.6)event.preventDefault();
-    },{passive:false});
-    document.addEventListener('touchend',event=>{
-      const start=gesture;gesture=null;if(!start||!swipeEnabled()||start.page!==currentPage||performance.now()-start.time>800||event.changedTouches.length!==1)return;
-      const t=event.changedTouches[0],dx=t.clientX-start.x,dy=t.clientY-start.y;if(Math.abs(dx)<80||Math.abs(dx)<Math.abs(dy)*1.6)return;
-      const next=roots[roots.indexOf(currentPage)+(dx<0?1:-1)];if(next)openPage(next);
-    },{passive:true});
-    document.addEventListener('touchcancel',()=>gesture=null,{passive:true});
     function updateSettings(){
       const pending=Math.max(0,Number(syncInfo.pending??state.sync_queue?.pending_upload??state.pending?.length??0)||0),review=Math.max(0,Number(syncInfo.review??state.sync_queue?.review??0)||0),local=Math.max(pending+review,Number(syncInfo.pending_total??state.pending?.length??0)||0);
       const sourceTitle=get('sync-title')?.textContent||get('sync-status')?.textContent||'Drive wird geprüft',sourceDetail=get('sync-detail')?.textContent||'Noch keine Statusdetails verfügbar.';

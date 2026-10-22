@@ -39,9 +39,11 @@ public final class PlanningConnectionActivity extends Activity {
         button("Kalender-App öffnen",this::openCalendarApp);
         LinearLayout accountDetails=disclosure("Konto und Freigaben");root=accountDetails;accountLabel=text("");
         button("Google-Konto wählen oder wechseln",()->{connectAfterAccount=true;chooseAccount();});
+        root=calendarCard;
         busy=check("Belegtzeiten prüfen",p.getBoolean("read_busy",false));busy.setContentDescription("Auch Belegtzeiten meines Hauptkalenders prüfen");
-        NativeUi.note(text("Auch Belegtzeiten meines Hauptkalenders prüfen: Die Belegtzeiten brauchen eine zusätzliche Google-Freigabe. Übernehmen erfolgt ausdrücklich mit dem folgenden Knopf."));
+        NativeUi.note(text("Für Warnungen vor Überschneidungen mit deinem Google-Hauptkalender einschalten und Freigaben übernehmen. Andere Google-Kalender werden nicht geprüft. Ohne aktuelle Belegtzeiten bleiben externe Überschneidungen unbekannt. Google fragt die zusätzliche Berechtigung ausdrücklich ab."));
         button("Kalenderfreigaben übernehmen / erneuern",this::beginCalendarSetup);
+        root=accountDetails;
         Button disconnectButton=button("Kalenderverbindung trennen",()->new AlertDialog.Builder(this).setMessage("Nur Verbindung trennen? App-Termine und Google-Einträge bleiben erhalten.").setNegativeButton("Abbrechen",null).setPositiveButton("Trennen",(d,w)->disconnect()).show());NativeUi.style(disconnectButton,2);root=calendarCard;LinearLayout technicalDetails=disclosure("Technische Details");root=technicalDetails;connectionDetails=NativeUi.note(text(""));
         button("Einrichtungshinweise bei Google öffnen",()->{try{startActivity(new Intent(Intent.ACTION_VIEW,android.net.Uri.parse("https://developer.android.com/identity/authorization")));}catch(Exception unavailable){status.setText("Google-Einrichtungshinweise derzeit nicht erreichbar.");}});root=calendarCard;
         calendar.setOnCheckedChangeListener((view,enabled)->{if(working)return;if(enabled&&!PlanningAccount.connected(this))beginCalendarSetup();else saveCalendarSwitch(enabled);});
