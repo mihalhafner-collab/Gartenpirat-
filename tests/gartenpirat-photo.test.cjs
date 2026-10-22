@@ -34,7 +34,7 @@ const root=path.resolve(__dirname,'..'),assets=path.join(root,'android/app/src/m
   const fixture={name:'garten-test.png',mimeType:'image/png',buffer:png};
   const launch=async()=>{await page.evaluate(()=>{Gartenpirat.close();openPage('home');});await page.locator('#gp-launcher').click();};
   const choose=async(file=fixture)=>{if(await page.locator('.gp-photo-options').count()&&!await page.locator('.gp-photo-options').isVisible())await page.locator('[data-gp-action=photo-options]').first().click();const [picker]=await Promise.all([page.waitForEvent('filechooser'),page.locator('[data-gp-action=choose-photo]').first().click()]);await picker.setFiles(file);};
-  const ready=()=>page.waitForFunction(()=>document.querySelector('#gp-own-photo')?.naturalWidth===800);
+  const ready=(previous=null)=>page.waitForFunction(previous=>{const image=document.querySelector('#gp-own-photo');return image?.naturalWidth===800&&(!previous||image.getAttribute('src')!==previous);},previous);
 
   await check('Photo menu option opens the real browser file chooser and prepares the scoped native picker',async()=>{
    await launch();assert.deepEqual(await page.locator('.gp-options strong').allTextContents(),['Zufällige Pflanze','Pflanzenlexikon','Neophyten in Österreich','Eigenes Foto öffnen']);
@@ -65,7 +65,7 @@ const root=path.resolve(__dirname,'..'),assets=path.join(root,'android/app/src/m
    await launch();await choose([]);assert.equal(await page.locator('.gp-options button').count(),4);assert.equal(await page.locator('#gp-own-photo').count(),0);
    await choose();await ready();const previous=await page.locator('#gp-own-photo').getAttribute('src');await choose([]);
    assert.equal(await page.locator('#gp-own-photo').getAttribute('src'),previous);
-   await choose();await ready();assert.notEqual(await page.locator('#gp-own-photo').getAttribute('src'),previous);
+   await choose();await ready(previous);assert.notEqual(await page.locator('#gp-own-photo').getAttribute('src'),previous);
    assert.equal((await page.evaluate(()=>photoBlobURLs)).length,1);
   });
   await check('Empty, unsupported, corrupt and oversized files show recoverable errors',async()=>{

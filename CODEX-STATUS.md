@@ -1,7 +1,25 @@
 # CODEX-STATUS
 
-Stand: 21. Oktober 2026
+Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
+
+## Kalenderzugang und nichtkommerzielle 16-Tage-Wettervorschau – 22.10.2026 / R0
+
+Aktueller ausdrücklicher Nutzerauftrag: neues Kalenderkonzept umsetzen, Wetter für die vom Nutzer erklärte nichtkommerzielle Nutzung umstellen, Ausführung nach Projektprotokoll. Dieser Folgeauftrag autorisiert die dafür nötigen Kalender-/Wetter-Funktionsänderungen; die Layoutaufträge 1.54.2 bleiben als erledigte historische Abnahme erhalten. Datenschutz-, Originalsignierungs-, Installations-, Konto- und Scope-Schutz gelten weiter. Keine neue kostenpflichtige Nutzung, keine produktiven Testtermine.
+
+Ausgang: GitHub-main e499e745832449ce0202d04d9903495248e8b034, APK92-Branch e09b60b6f84ffbb03a8d56ae9180c8fdafa7457c, unveränderliche Original-APK-Quelle aff54dbd7cd64437645bba71242688ec5da4c30b. Neues einziges Arbeitsbranch codex/calendar-weather-20261022 im vorhandenen Git-Worktree; ältere Branches/Tags/Quellen erhalten. Aktuelle AGENTS.md vom GitHub-main gelesen; keine main-Übernahme. Technische Pixel-MCP-Lesung bestätigt tatsächlich 1.54.3/92, denselben aff54db-Quellfingerprint, MCP9 und117Werkzeuge; keine Betriebsinhalte übernommen. Kalender weiterhin CALENDAR_APP_REGISTRATION_REQUIRED, verbunden=false.
+
+Baseline vor App-Funktionsänderungen:393Python/0Skips (37alte QA-Schlüsselerzeugungstests ausgeschlossen),40JVM-Suiten,55MCP-Szenarien, Vertrags-/UI-Review-/Pflanzengates PASS. Zwei vollständige unveränderte Browserläufe jeweils49/50PASS: gartenpirat-photo wartete beim Wiederwählen auf die bereits bekannte Bildbreite des alten Bildes, bevor die asynchrone Dekodierung das neue Blobbild eingesetzt hatte. Originalfehlberichte außerhalb des Checkouts erhalten. Ausschließlich Test-Synchronisation korrigiert: Beim Wiederwählen wird zusätzlich die neue Bild-URL abgewartet. Alle bestehenden Assertions, Bildidentitätswechsel, Abbruch-/Entwurf-/Ressourcenschutz und App-Code erhalten. Danach gezielte Fotosuite und vollständiger50/50Browserlauf PASS. Keine Assertions/Gates entfernt oder Qualitätsausnahme eingeführt.
+
+Messbare Abnahme für die folgende Umsetzung:
+1. Native kostenlose Open-Meteo-Abfrage ohne Konto/API-Schlüssel, forecast_days=16, HTTPS/UTC/metrische Einheiten; gültige stündliche Werte decken einen vollständigen synthetischen Termin mindestens14Tage voraus. Keine Statistik als Modellprognose, Null-/veraltete/fehlende Werte bleiben unbekannt.
+2. Provider, tatsächlicher Datenzeitraum und Aktualität im vorhandenen Wetter-/MCP-Pfad korrekt; keine pauschale14Tage-Erfolgsangabe ohne Datennachweis. GeoSphere-Warnungen/Nowcast ergänzend, deren Ausfall darf eine vorhandene gültige Hauptprognose nicht vernichten.
+3. St./Sankt-Ortsvarianten und eindeutige Ortsauflösung synthetisch prüfen; mehrdeutige Orte ablehnen, Originaladressen/Termine/Koordinaten nicht überschreiben.
+4. Kalender-Kontoauswahl, tatsächliche Google-Freigabe und bestätigte Kalenderbindung wahrheitsgemäß unterscheiden; vorhandenen AuthorizationClient-/Readback-/Idempotenz-/ETag-/401-/Neustartschutz erhalten. Registrierungshinweise ohne Tokens, Konten oder neue Scopes.
+5.117MCP-Werkzeuge/156UI-Aktionen, DB4/Snapshot2, IDs/Relationen/Journalformate, Originalpaket und Manifest-Berechtigungen erhalten. Relevante neue positive/negative Tests sowie vollständige Regression/Release/Lint/Privacy und verifizierte Quellsicherung.
+6. Kein Pixelupdate, keine Konten-/Google-Projektänderung oder produktive Schreibprobe ohne die dafür erforderliche reale Freigabe. Aktuelle Umgebung meldet keine bereiten Originalsignierungsbindungen und keinen Google-Cloud-Verwaltungszugang; Open-Meteo ist nicht in ihrer ausgegebenen HTTP-Zielliste. Diese externen Grenzen offen führen, keinen Ersatzschlüssel/Netzwerk-Bypass verwenden.
+
+Status: R0 abgeschlossen; eigentliche App-Funktionsumsetzung folgt.
 
 ## Original-APK 1.54.3 / Build 92 – Cloud-Abnahme (22.10.2026)
 
