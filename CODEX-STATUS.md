@@ -3,6 +3,14 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Umsetzung96 – zusätzliche AP4-Referenzprüfung nach erstem Kandidaten (22.10.2026)
+
+Erster originalsignierter interner96-Kandidat aus57e1b01:84Release-/AndroidTest-/Lint-Tasks PASS; Paket/Originalzertifikat/komplette Assets/leerem Bootstrap/Commit/Fingerprint geprüft.172native SQLite/MCP/Providerfälle PASS/0FAIL und tatsächlicher WebView PASS. Kein Tag/Drive-Upload/Pixelupdate dieses Zwischenkandidaten.
+
+Zusätzliche Quittungsprüfung fand Serien-/Sammelaktionen mit bestehenden numerischen Unterkennungen request_0/request_1. Ein neuer Test reproduzierte tatsächliches vorzeitiges Freigeben der Elternquittung (ReceiptRetentionRules-Prüfung3 FAIL). Referenzschutz jetzt auf genau diese vorhandene numerische Konvention erweitert, auch für Tombstone-/Backupreferenzen; unspezifische Namen wie request_other/request_1_other zählen nicht.18gezielte Retentionfälle und erneut49JVM-Suiten/1047Paritätsassertions PASS. Native SQLite-Abnahme um diese offenen Unteraktionen/Tombstones erweitert; Java+AndroidTest33Tasks PASS. Aktueller interner Kandidat wird vor Auslieferung aus dem korrigierten Commit neu gebaut;96-Versionsmarke noch nicht gesetzt.
+
+Erste native1.5-Schriftprobe scheiterte mit ungenauer Sammeldiagnose; kein Erfolg behauptet. Testadapter prüft nun die tatsächliche Activity-Konfiguration, gebundene native Lesemethoden und feste nummerierte Prüfphasen; Screenshots bei Fehler. OS-Schrift wurde auf effektiven Normalwert1.0 zurückgesetzt (Android initialisierte zuvor nicht gesetzten Default dabei als1.0; erste strikte Raw-String-Prüfung meldete deshalb fälschlich Restore-Fehler). Semantischen Originalwert künftig zusätzlich explizit vergleichen/protokollieren. Wiederholte native Fontabnahme und abschließender96-Kandidat weiterhin offen.
+
 ## Umsetzung96 – ausdrückliches APK-Voraudit bestanden (22.10.2026)
 
 Jeden AP1–AP7-Unterpunkt vor APK-Erstellung nochmals gegen Quelle, Tests und Grenzen geprüft: [Abnahmeprotokoll](docs/verification/implementation-1.54.7-96.md).54aktuelle Browsersuiten grün(53Gesamtlauf plus korrigierte Planungsrechteck-Prüfung erneut; operative Assets nachweislich unverändert),394Python/0Skips/37explizite QA-Key-Altfallausnahmen,49JVM-Suiten/1047Paritätsassertions,114Syncfehlerprüfungen,55lokale stdio-MCP-,29Kamera-/47Cleanup-Hostfälle PASS. Native Java+AndroidTest+Lint42Tasks PASS,0Fehler/54Warnungen. Pflanzen-/Angebots-/UI-/Privacy-Gates grün. H3/H4kein Entwurfsverlust, H5gemessen/kein spekulativer Umbau. Synthetisches Emulator-Vorledger95 frisch erfasst:3Kunden/1Auftrag/2Arbeiten/1Pending/laufender Timer; nur Counts/Hashes gespeichert.

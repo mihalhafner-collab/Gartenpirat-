@@ -69,16 +69,18 @@ final class Sync96NativeAcceptance {
         }});
         t.probe("96 receipt retention preserves pending backup and both tombstone references",()->{try(OwnerNativeAcceptance.Fixture f=new OwnerNativeAcceptance.Fixture(t.getTargetContext())){
             LocalOwnerRepository repo=new LocalOwnerRepository(f.context,f.store);String fp=PixelMcpWriteTools.hash("qa_retention");
-            for(String request:new String[]{"qa_orphan","qa_pending","qa_backup","qa_tomb","qa_local_tomb"}){
+            for(String request:new String[]{"qa_orphan","qa_pending","qa_backup","qa_tomb","qa_local_tomb","qa_series","qa_batch_tomb"}){
                 repo.runRequest(request,fp,()->new JSONObject().put("client_id",request));JSONObject receipt=new JSONObject(f.store.ownerValue("receipt:"+request,"{}"));receipt.put("created_at","2026-01-01T00:00:00Z");
                 if(request.equals("qa_backup"))receipt.getJSONObject("result").put("deletion_backup_id","qa_backup_file");f.store.putOwnerValue("receipt:"+request,receipt.toString());
             }
+            repo.enqueue("worklog",new JSONObject().put("id","qa_series_work"),"qa_series_0");
             repo.enqueue("worklog",new JSONObject().put("id","qa_pending"),"qa_pending");JSONObject snapshot=new JSONObject(f.store.getState().getJSONObject("master").toString());
             OwnerJournalRules.archives(snapshot).put("customer:qa_tomb",new JSONObject().put("purge_action","qa_tomb"));
+            OwnerJournalRules.archives(snapshot).put("customer:qa_batch_tomb",new JSONObject().put("purge_action","qa_batch_tomb_0"));
             f.store.putOwnerValue("purged_local_test_records_v1",new JSONObject().put("customer:qa_local",new JSONObject().put("purge_action","qa_local_tomb")).toString());
             t.yes(OwnerReceiptRetention.afterConfirmedSync(f.store,snapshot,java.time.Instant.parse("2026-10-22T12:00:00Z").toEpochMilli())==1);
             t.yes(f.store.ownerValue("receipt:qa_orphan","").isEmpty()&&!f.store.ownerValue("receipt_guard:qa_orphan","").isEmpty());
-            for(String request:new String[]{"qa_pending","qa_backup","qa_tomb","qa_local_tomb"})t.yes(!f.store.ownerValue("receipt:"+request,"").isEmpty());
+            for(String request:new String[]{"qa_pending","qa_backup","qa_tomb","qa_local_tomb","qa_series","qa_batch_tomb"})t.yes(!f.store.ownerValue("receipt:"+request,"").isEmpty());
             int[] effects={0};try{repo.runRequest("qa_orphan",fp,()->{effects[0]++;return new JSONObject();});throw new AssertionError("expired request ran");}catch(PixelMcpWriteTools.Rejected e){t.yes(e.code.equals("REQUEST_EXPIRED")&&effects[0]==0);}
             JSONObject summary=new JSONObject(f.store.ownerValue("receipt_retention_summary","{}"));t.yes(summary.getInt("removed")==1&&!summary.toString().contains("qa_orphan"));
         }});

@@ -50,9 +50,12 @@ def main():
             restore = ['shell', 'settings', 'delete', 'system', 'font_scale'] if original in ('null', '') else ['shell', 'settings', 'put', 'system', 'font_scale', original]
             command(args.adb, args.serial, restore)
             restored = command(args.adb, args.serial, ['shell', 'settings', 'get', 'system', 'font_scale'])
+            effective_before = 1.0 if original in ('null', '') else float(original)
+            effective_after = 1.0 if restored in ('null', '') else float(restored)
+            same_font = abs(effective_before - effective_after) < 0.001
             (folder / 'font-scale-results.json').write_text(json.dumps({'classification': 'SYNTHETIC_TEST', 'results': results,
-                    'original_font_scale': original, 'restored_font_scale': restored, 'restored': restored == original}, indent=2) + '\n')
-            if restored != original:
+                    'original_font_scale': original, 'restored_font_scale': restored, 'original_effective_font_scale': effective_before, 'restored_effective_font_scale': effective_after, 'restored': same_font}, indent=2) + '\n')
+            if not same_font:
                 raise RuntimeError('Original emulator font setting could not be confirmed restored.')
 
 
