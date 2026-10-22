@@ -2,7 +2,7 @@
 #home .today-header{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:48px;margin-bottom:8px}
 #home .home-dayline{margin:0;min-width:0;font-size:1rem;font-weight:700;line-height:1.4;overflow-wrap:anywhere}
 #home .today-header .sync-pill{margin:0;min-width:48px;min-height:48px;max-width:48%;padding:8px 10px;justify-content:center;align-items:center;text-align:center;line-height:1.3;font-size:.8rem;overflow-wrap:anywhere}
-#home #workday-timer{margin:0 0 12px;padding:12px;border-radius:16px;box-shadow:none}
+#home #workday-timer{margin:0 0 12px;padding:10px;border-radius:16px;box-shadow:none}
 #home #workday-timer h2,#home #planning-home h2,#home #today-open h2{font-size:1rem;line-height:1.4;margin:0 0 8px}
 #home #field-today-actions{display:flex;flex-wrap:wrap;gap:8px;margin:0}
 #home #field-today-actions>button{flex:1 1 auto;width:auto;min-width:min-content;max-width:100%;min-height:52px;padding:10px;font-size:1rem;line-height:1.3;border-radius:12px;overflow-wrap:normal}
@@ -10,11 +10,11 @@
 #home #field-today-actions>.quick{display:block;background:var(--hg-surface);color:var(--hg-green);border:1px solid var(--hg-line);box-shadow:none}
 #home #field-today-actions>.quick strong{font-size:.9rem}
 #home .timer-location-context{margin:0 0 4px;line-height:1.4;overflow-wrap:anywhere}
-#home .timer-state{padding:0;margin:0 0 8px}
+#home .timer-state{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px;padding:0;margin:0 0 8px}
 #home .timer-state strong{font-size:1.8rem;line-height:1.25}
 #home .timer-state small{font-size:.8rem;line-height:1.4}
-#home .timer-actions{display:flex;flex-wrap:wrap;gap:8px;margin:0}
-#home .timer-actions>button{flex:1 1 6em;min-width:max-content;max-width:100%;min-height:48px;padding:8px;line-height:1.4;overflow-wrap:anywhere}
+#home .timer-actions{display:flex;flex-wrap:wrap;gap:0;margin:0}
+#home .timer-actions>button{margin-right:8px;flex:1 1 6em;min-width:max-content;max-width:100%;min-height:48px;padding:8px;line-height:1.4;overflow-wrap:anywhere}
 #home .timer-actions>button b{font-size:.9rem}
 #home .timer-actions>button span{font-size:1rem}
 #home .today-manual-active{min-height:48px;margin-top:4px;background:transparent;border:0;color:var(--hg-green);font-size:.85rem}
@@ -22,9 +22,9 @@
 #home .today-planning-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:48px}
 #home .today-planning-heading h2{margin:0}
 #home .today-planning-heading button{min-width:48px;min-height:48px;padding:8px;background:transparent;border:0;color:var(--hg-green);font-size:.85rem;text-decoration:underline}
-#home .today-appointment{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;width:100%;min-height:64px;margin:0 0 6px;padding:10px 12px;text-align:left;background:var(--hg-surface);border:1px solid var(--hg-line);border-radius:12px;color:var(--hg-text);line-height:1.35}
-#home .today-time{grid-column:1/-1;grid-row:1;display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;max-width:none;font-size:.85rem;font-weight:700;font-variant-numeric:tabular-nums;white-space:normal;overflow-wrap:anywhere}
-#home .today-time small{display:block;font-size:.75rem;line-height:1.4;font-weight:400;color:var(--hg-muted)}
+#home .today-appointment{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;width:100%;min-height:64px;margin:0 0 6px;padding:8px 12px;text-align:left;background:var(--hg-surface);border:1px solid var(--hg-line);border-radius:12px;color:var(--hg-text);line-height:1.35}
+#home .today-time{grid-column:1/-1;grid-row:1;display:flex;flex-wrap:wrap;align-items:baseline;max-width:none;font-size:.85rem;font-weight:700;font-variant-numeric:tabular-nums;white-space:normal;overflow-wrap:anywhere}
+#home .today-time small{display:block;margin-left:8px;font-size:.75rem;line-height:1.4;font-weight:400;color:var(--hg-muted)}
 #home .today-customer{grid-column:1/-1;grid-row:2;min-width:0;font-size:.95rem;overflow-wrap:anywhere}
 #home .today-place{grid-column:1;grid-row:3;min-width:0;font-size:.8rem;color:var(--hg-muted);overflow-wrap:anywhere}
 #home .today-weather{grid-column:2;grid-row:3;align-self:center;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px;max-width:3em;font-size:1rem}

@@ -3,6 +3,12 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Umsetzung96 – tatsächliche nutzbare Displayhöhe vor endgültigem APK-Build
+
+Native Normalansicht mit korrekt datierten synthetischen Terminen reproduzierte einen knappen Überstand des zweiten Termins unter die Navigation: vom logischen360×640dp-Display bleiben durch die Android-Statusleiste616px WebViewhöhe. Timerstatus und Uhr teilen jetzt bei Normalschrift eine Zeile; Karteninnenabstand geringfügig kompakter, sämtliche Touchziele weiterhin mindestens48dp. Explizite Buttonabstände funktionieren auch im getesteten alten WebView83 ohne Flex-gap. Keine Timer-/Termin-/Speicherlogik geändert. Font-Fixture ergänzt langen Namen der tatsächlich laufenden synthetischen Sitzung und wartet zwei Renderframes vor der Messung.
+
+Erneuter vollständiger Browserlauf mit diesen finalen Assets:54Suiten/0FAIL. Übersicht zusätzlich360×616px:10Fälle/0FAIL. Native Java-/Lint-Vorprüfung42Tasks PASS. Finale APK, tatsächliche native Schrift-/Sichtprüfung und erneute Fach-/Erhaltungsabnahme folgen; bisherige interne96-Artefakte und Quellkopie4625059 sind keine Auslieferung und erhalten keine endgültige Versionsmarke. Die nachfolgenden älteren Chronikeinträge bleiben historische Zwischenstände.
+
 ## Umsetzung96 – nachgewiesener Zeitzonenfehler im synthetischen Font-Fixture (22.10.2026)
 
 Fensterwächter nach WindowManager jetzt tatsächlich PASS, freier Screenshot ohne Systemdialog. Fixture zeigte nach22UTC keinen heutigen Termin: Emulator ist Etc/UTC, Planung/Heute verwendenEurope/Vienna und lagen bereits am Folgetag. Die künstlichen Termine wurden fälschlich mit Geräte-localDate statt dem Tag der Planungsansicht erzeugt. Testdatum nun explizit über dieselbe Europe/Vienna-Tagesgrenze erzeugen; keine Produktionsdatum-/Datenaufrufe geändert. Produktionsfingerprint bleibt exaktf19e1919, originale APK/ad84ec8f aus4625059 unverändert. QA-/Testquellen werden separat sauber gesichert und exportiert, zugehörige Originalinstrumentierung neu gebaut. Versionsmarke bindet weiterhin exakt den tatsächlich eingebetteten App-Quellcommit4625059; abschließender Dokumentations-/QA-Commit wird gesondert angegeben. Kein APKwechsel allein wegen Fixture-/Dokumentationskorrektur, keine erfolgreiche Fontabnahme behauptet, bevor sie tatsächlich läuft.
