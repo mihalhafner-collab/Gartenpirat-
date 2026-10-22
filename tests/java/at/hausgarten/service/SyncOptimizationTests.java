@@ -24,6 +24,8 @@ public final class SyncOptimizationTests {
         cache.remember("qa_a",name,raw);yes(cache.bytes()==raw.length);raw[0]=0;yes(cache.get("qa_a")[0]=='q');byte[] copy=cache.get("qa_a");copy[0]=0;yes(cache.get("qa_a")[0]=='q');cache.remember("qa_bad",name,new byte[]{0});yes(cache.get("qa_bad")==null);
         cache.remember("qa_b",name,copy);yes(cache.get("qa_b")==null);cache.remember("qa_b",name,"qa-bytes".getBytes(StandardCharsets.UTF_8));yes(cache.get("qa_a")==null&&cache.bytes()<=12);cache.clear();yes(cache.bytes()==0&&cache.get("qa_b")==null);
         yes(new SyncIoFailure("REMOTE_MASTER_MISSING").needsAction());yes(!new SyncIoFailure("PROVIDER_READ_FAILED").needsAction());yes(!new SyncIoFailure("PROVIDER_READ_FAILED",new java.io.IOException("qa-private-path")).getMessage().contains("qa-private-path"));
+        for(String phase:new String[]{"RUNNING","PAUSED","STOPPED_PENDING_REVIEW"}){JSONObject active=obj().put("work_session",obj().put("state",phase).put("customer_id","qa_active"));try{ActiveWorkProtection.require(active,"customer","qa_active");throw new AssertionError("active reference deleted");}catch(PixelMcpWriteTools.Rejected e){yes(e.code.equals("ACTIVE_WORK_SESSION"));}ActiveWorkProtection.require(active,"customer","qa_other");}
+        for(String phase:new String[]{"IDLE","FINALIZED","CANCELLED"})ActiveWorkProtection.require(obj().put("work_session",obj().put("state",phase).put("customer_id","qa_active")),"customer","qa_active");
         System.out.println("PASS "+checks+" truthful sync flags, queue actions/counters, semantic serialization and bounded verified cache checks");
     }
 }

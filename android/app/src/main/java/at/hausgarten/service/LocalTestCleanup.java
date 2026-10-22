@@ -32,6 +32,8 @@ final class LocalTestCleanup {
         return false;
     }
     static int compact(PixelLocalStore store)throws Exception {
+        JSONArray initial=store.pendingActions();boolean purge=false;for(int i=0;i<initial.length();i++){JSONObject a=initial.getJSONObject(i);if(a.getJSONObject("payload").optBoolean("_local_only")&&Arrays.asList("purge_v1",TrashPurgeBatch.KIND).contains(a.optString("kind")))purge=true;}
+        if(!purge){cleanupMedia(store);return 0;}
         SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();int removed=0;
         try{
             JSONObject state=store.getState(),raw=new JSONObject(store.snapshotText("{}"));JSONArray pending=store.pendingActions();
@@ -60,6 +62,9 @@ final class LocalTestCleanup {
             for(int i=0;i<pending.length();i++){JSONObject a=pending.getJSONObject(i),p=a.getJSONObject("payload");if(!a.optString("kind").equals(TrashPurgeBatch.KIND)||!p.optBoolean("_local_only"))continue;boolean complete=true;JSONArray entries=p.getJSONArray("entries");for(int j=0;j<entries.length();j++){JSONObject e=entries.getJSONObject(j);if(!receipts.has(e.getString("entity")+":"+e.getString("entity_id")))complete=false;}if(complete)removed+=db.delete("pending","id=?",new String[]{a.getString("client_id")});}
             store.putOwnerValue(KEY,receipts.toString());db.setTransactionSuccessful();
         }finally{db.endTransaction();}
+        cleanupMedia(store);return removed;
+    }
+    private static void cleanupMedia(PixelLocalStore store)throws Exception {
         // Verified local-only originals can be collected without waiting for a Drive upload
         // which is intentionally forbidden. Shared records still require normal sync receipts.
         JSONObject tombstones=new JSONObject(store.ownerValue(KEY,"{}"));
@@ -67,7 +72,6 @@ final class LocalTestCleanup {
             try{if(key.startsWith("photo:")&&receipt.has("media"))store.cleanupPurgedPhoto(key.substring(6),receipt.getJSONObject("media"),marker);else if(receipt.has("document"))store.cleanupPurgedDocument(key,receipt.getJSONObject("document"),marker);}
             catch(Exception pending){store.putOwnerValue("local_test_cleanup_error","MEDIA_CLEANUP_PENDING");}
         }
-        return removed;
     }
     private static void promoteSharedRemoval(PixelLocalStore store,JSONObject raw,JSONArray pending,String entity,String id,JSONObject purge)throws Exception {
         JSONObject record=OwnerJournalRules.findOrNull(raw.optJSONArray(OwnerJournalRules.group(entity)),id),saved=OwnerJournalRules.archives(raw).optJSONObject(entity+":"+id);

@@ -24,6 +24,19 @@ final class OwnerNativeAcceptance {
         try{task.run();}catch(java.io.IOException|IllegalArgumentException expected){test.yes(true);return;}throw new AssertionError("Changed document must be rejected");
     }
     static void run(PixelMcpInstrumentation test)throws Exception{
+        test.probe("active work prevents customer archive and leaves the running session intact",()->{try(Fixture f=new Fixture(test.getTargetContext())){
+            f.store.startWorkSession(SyntheticBusinessData.object().put("request_id","qa-active-cleanup-guard").put("customer_id","qa_c").put("activity","QA active work").put("work_date","2026-10-22"));
+            JSONObject preview=f.call("preview_delete",SyntheticBusinessData.object().put("entity","customer").put("entity_id","qa_c"));
+            try{f.call("delete_entity",request("qa-active-archive").put("entity","customer").put("entity_id","qa_c").put("expected_record_hash",preview.getString("expected_record_hash")));throw new AssertionError("active work customer archived");}catch(PixelMcpWriteTools.Rejected e){test.yes(e.code.equals("ACTIVE_WORK_SESSION"));}
+            test.yes(f.store.getState().getJSONObject("work_session").getString("state").equals("RUNNING"));test.yes(f.store.pendingActions().length()==0);
+        }});
+        test.probe("historically shared synthetic customer removal keeps fresh versioned Drive actions",()->{try(Fixture f=new Fixture(test.getTargetContext())){
+            JSONObject base=new JSONObject(f.store.snapshotText("{}"));base.getJSONArray("customers").put(SyntheticBusinessData.object().put("id","qa_old_shared_test").put("name","[TEST] QA old shared").put("active",0).put("updated_at","qa_t1"));f.store.commitSnapshot(base,new HashSet<>());
+            String id="qa_old_shared_test";JSONObject preview=f.call("preview_delete",SyntheticBusinessData.object().put("entity","customer").put("entity_id",id));f.call("delete_entity",request("qa-old-shared-archive").put("entity","customer").put("entity_id",id).put("expected_record_hash",preview.getString("expected_record_hash")));
+            JSONObject purge=f.call("preview_purge",SyntheticBusinessData.object().put("entity","customer").put("entity_id",id));f.call("purge_entity",request("qa-old-shared-purge").put("entity","customer").put("entity_id",id).put("expected_record_hash",purge.getString("expected_record_hash")).put("confirmed",true));
+            JSONArray outgoing=f.store.pendingActionsForDrive();test.yes(outgoing.length()==2);test.yes(f.store.pendingActions().length()==2);JSONObject replay=new JSONObject(base.toString());DriveJournalRules.apply(replay,outgoing);test.yes(TrashRules.purged(replay,"customer",id));test.yes(OwnerJournalRules.findOrNull(replay.getJSONArray("customers"),id)==null);test.yes(f.store.compactPurgedTestActions()==0);
+        }});
+
         test.probe("purged local test journals compact atomically and never recreate records after restart",()->{try(Fixture f=new Fixture(test.getTargetContext())){
             String real=PixelMcpWriteTools.hash(f.call("get_customer",SyntheticBusinessData.object().put("customer_id","qa_c")));
             String id=f.store.saveCustomer(SyntheticBusinessData.object().put("name","[TEST] QA temporary").put("test_record",true));

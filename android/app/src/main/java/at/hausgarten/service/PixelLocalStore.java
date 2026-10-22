@@ -533,6 +533,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     }
     String removeEntity(String entity, String entityId) throws Exception {
         SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{
+            ActiveWorkProtection.require(getState(),entity,entityId);
             JSONObject all=PixelMcpReadTools.effective(getState()),current=OwnerJournalRules.findOrNull(all.getJSONArray(OwnerJournalRules.group(entity)),entityId);
             if(current==null)throw new IllegalArgumentException("Der Eintrag fehlt.");
             JSONObject payload=DeletionRules.payload(all,entity,entityId,OwnerJournalRules.version(current),isoNow());

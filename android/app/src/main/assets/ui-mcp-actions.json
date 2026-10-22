@@ -2148,7 +2148,7 @@
     "android/app/src/main/assets/workflow-ui.css": "e8e3af705782c2db8286ae064184d3f0767025571ce49fae037cb6ebab8a3920",
     "android/app/src/main/assets/workflow-ui.js": "9a82b8b94a47b6cc8a05eeaae1a55db69a6ad2530e64a7355723870ac34f7aa1",
     "android/app/src/main/java/at/hausgarten/service/MainActivity.java": "a267431b966ea3a1916c82f096632ba83d368c99a2e14503e87c39d67ad79dea",
-    "android/app/src/main/java/at/hausgarten/service/PixelLocalStore.java": "157e1c0574738b678433a3c8c6b83b550aebf995f85a5b2be155de5f04da6171",
+    "android/app/src/main/java/at/hausgarten/service/PixelLocalStore.java": "3f2e8193fc4b08858ac79f8268f25138e7aabc1887f6e4ad294947e4dbb6e620",
     "android/app/src/main/java/at/hausgarten/service/BusinessDataBridge.java": "fd5778b889d762fca620a0339e3a23ea3fcfa7e099340b268c3a969d8e1b9573",
     "android/app/src/main/java/at/hausgarten/service/NativeOwnerQueries.java": "9e2bec53193ebbfc5fe942605b662a53b39bc15aa992a1ad45b649c7f7f970b0",
     "android/app/src/main/java/at/hausgarten/service/PlanningConnectionActivity.java": "b28e7b109a87067ef28742d10226c352b9dac6dd12026b047b8848b18ebe410e",

@@ -3,6 +3,12 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Umsetzung B2/B3 – ergänzter Schutz und fortgesetzte Abnahme (22.10.2026)
+
+38gezielte Sync-/Automatik-/Queue-/Cache-/Aktive-Arbeit-Prüfungen und8State-Referenzfälle PASS. Aktive Timerreferenzen jetzt vor UI-/MCP-Archivierung, Einzelpurge und Sammelpurge gemeinsam geschützt. Bereits lokal purgierte Sammeltestaktionen werden ebenfalls nach geprüftem Backup kompaktiert; sofortige lokale Datei-GC ausschließlich für nie geteilte Tests, weiterhin keine geteilte Medienlöschung ohne normalen Syncbeleg. Neuer nativer Fall prüft geteilten Alt-Testkunden: exakt2frische CAS-/abhängigkeitsgeschützte Drive-Aufräumaktionen, keine lokale Wiederanlage. Voller nativer Nachweis noch offen.
+
+Today-Darstellung priorisiert bewusst auch im Leerlauf Arbeit vor Termin/Summen. Alte Darstellungserwartung in p3-customer-hub entsprechend eng angepasst; laufende Arbeit bleibt weiterhin zuerst. Erster synthetischer Vorupdate-Ledger scheiterte an Instrumentierung nach langsamem Emulatorstart; kein Ledger überschrieben, keine Installation/kein Reset. Dienste danach erneut lesend geprüft. Browsergesamtlauf ansonsten abgeschlossen; erneuter gezielter Lauf der angepassten Präsentation folgt.
+
 ## Umsetzung B2/B3 – gesicherter Implementierungscheckpoint (22.10.2026)
 
 **B2 Sync/Testreste:** Fehlende kurzlebige Provider-State-ID darf ausschließlich durch aktuelle Dateien mit exakt passendem unveränderlichem Namen und tatsächlich geprüften SHA256-Bytes aufgelöst werden. Existierende IDs mit Lese-/Berechtigungs-/Inhaltsfehlern erhalten keinen Fallback. Vollständige Publikations-/Kettenprüfung bleibt danach verpflichtend.8neue JVM-Fälle PASS, übrige44JVM-Suiten PASS. Tatsächliche Live-Fehlerursache bleibt ohne neue Pixel-Laufzeit unbestätigt.
