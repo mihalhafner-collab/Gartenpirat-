@@ -1,6 +1,6 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-22T15:20:43+00:00",
+  "updated_at_utc": "2026-10-22T15:49:38+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/calendar-weather-20261022",
   "development_snapshot": {
@@ -411,5 +411,14 @@
     "calendar_overlap_root_cause": "External Google availability unverified; Build93 does not expose whether optional busy flag is off or cache unusable. Today also discarded external collision projection.",
     "supported_external_scope": "primary calendar only; no new OAuth scopes or hidden consent",
     "left_edge": "API34+ native EDGE_LEFT opens app menu; API29-33 OS exclusion limited to200dp; native account activities remain separate"
+  },
+  "apk_build_task_94": {
+    "status": "IN_PROGRESS; user explicitly requested original APK after source-only UI phase",
+    "version_name": "1.54.5",
+    "version_code": 94,
+    "base_ui_commit": "7d1af30a024c5b07d9d64342e99eb55a254ab504",
+    "original_baseline_build": 93,
+    "no_pixel_installation": true,
+    "original_signer_required": true
   }
 }

@@ -3,6 +3,14 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## APK94 R0 – Originalupdate aus dem geprüften Planungsstand beauftragt (22.10.2026)
+
+Der neue ausdrückliche Nutzerauftrag **Erstelle Apk laut Protokoll** autorisiert jetzt APK-Build, Versionsanhebung und Originalsignierung; die frühere Nur-Quellcode-Grenze des UI-Auftrags bleibt historisch und sperrt diesen Folgeauftrag nicht. Basis **7d1af30a024c5b07d9d64342e99eb55a254ab504** auf dem vorhandenen Branch codex/calendar-weather-20261022, frischer main **e499e745832449ce0202d04d9903495248e8b034** und vier Arbeitsbranches verglichen; keine fremden Änderungen/Resets. Original93 und sämtliche Quellen erhalten. Live-Pixel-MCP liest weiterhin Original1.54.4/93/b7d5fcd, source_dirty=false,117Tools. Keine produktive Geräteaktion.
+
+Ziel **1.54.5/Build94**, Paket at.hausgarten.service, Originalschlüssel und bisherige Rechte/Scopes/DB4/Snapshot2/117Tools/156Aktionen erhalten. Abnahme: saubere exakt auf GitHub gesicherte Buildquelle und unveränderliches Tag; Source-/Workspace-/fertigeAPK-Privacy,0Seeds; tatsächliche Originalsignatur und Vergleich gegen Original93,16KiB-Ausrichtung, Assets und DEX-Commit/Fingerprint/Version prüfen. Aktuelle Hostregressionen und isolierte native Tests;93→94-Datenerhalt ausschließlich im dedizierten qemu=1/GartenpiratCloud mit neuem lesendem Hash-/Relations-/Sitzungsledger, bestehende Baselines nie ersetzen. Fresh-isolated/nativeUI und sichtbare Planungs-/Gestenänderungen soweit tatsächliches Emulator-API erlaubt; physische API37-Gesten separat kennzeichnen.
+
+Originalsignierung ausschließlich tools/sign_original_apk.py; fünf konfigurierte Variablen laut frischer Environment-Readiness bereit, Werte nicht gelesen/ausgegeben und keine Ersatzschlüssel/CI. Nichtsignierende Prozesse erhalten diese Variablen nicht. Nach vollständiger Qualifikation private Drive-APK plus exakt passende Originalquellen/UTF8-Teile/Versionsnachweis, tatsächliches Rücklesen und danach KI-Wegweiser/Standregister aktualisieren. Große APK/ZIP-Streamgrößenbelege ausdrücklich von SHA256-Byteprüfung trennen. Keine automatische Pixelinstallation, Kontofreigabe oder produktiver Testtermin.
+
 ## Planung/Bedienung R-Abschluss – Quellumsetzung geprüft, ohne neue APK (22.10.2026)
 
 P1–P3 sind im bestehenden Branch implementiert und dauerhaft gesichert. App-Quellcheckpoint **6079d94118e7b9ce4bda83fc036a06db650c98af**, Main-/Gradle-Fingerprint **03c45d8eff22a9f66962562de79994516f174f7ec221b14f292ea7e8f83c4f11**; der nachfolgende Dokumentations-/Testcommit erhält exakt denselben App-Fingerprint. Original APK93 bleibt unverändert **source/v1.54.4-build93 / b7d5fcd**. Entwicklungsquelle ist ausdrücklich keine neue93-APK und nicht der installierte Stand. Der Gesamt-/Kalender-UI-Auftrag schließt hier neue APK, Signierung und Versionsänderung aus; keine davon ausgeführt.
