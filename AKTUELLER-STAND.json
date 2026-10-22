@@ -1,6 +1,6 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-22T16:23:51+00:00",
+  "updated_at_utc": "2026-10-22T17:17:30Z",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/calendar-weather-20261022",
   "development_snapshot": {
@@ -15,7 +15,7 @@
     "source_zip_sha256": "d1d580773d470273ea803f9f7a6461ed305c3882c136f3ef60587458c1940dde",
     "drive_folder_id": "1Gq89Ru3bCL-FNw60WAHEPLzsoUTsJnnR",
     "development_export_folder_id": "1lGyhXJtB_QuCex_R8ObLDxphhaq8SkC-",
-    "pixel_installation": "NOT_EXECUTED; read-only MCP confirms original93/b7d5fcd; calendar connected/checked/errors empty; no productive test or sync request",
+    "pixel_installation": "OBSERVED: original1.54.5/94/429dfa11/source_dirty=false via live read-only MCP and user confirmation. NOT INSTALLED BY THIS AUDIT; physical update/data-retention process not witnessed.",
     "status": "CLOUD_VERIFIED_ORIGINAL_CANDIDATE; PHYSICAL_PIXEL_ACCEPTANCE_OPEN",
     "native_cloud_acceptance": {
       "target": "GartenpiratCloud emulator-5554; qemu=1; Android API30",
@@ -42,18 +42,20 @@
     "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB"
   },
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-10-22T16:23:51+00:00",
-    "version_name": "1.54.4",
-    "version_code": 93,
-    "reported_base_git_sha": "b7d5fcd71fd0e376b8750cf9eaacd94e47d72883",
-    "source_sha256": "47e84a4a64d29117d828e49c26f4f700f0f4b75861274c5e15b7d75dbd1014c5",
+    "observed_at_utc": "2026-10-22T17:17:30Z",
+    "version_name": "1.54.5",
+    "version_code": 94,
+    "reported_base_git_sha": "429dfa11c622cd27228a5f572c9c916ccc137e82",
+    "source_sha256": "1d7e7d73b6801705ece1488f79f180c463ba0308083e695583181d9cbc8fab25",
     "source_dirty": false,
-    "evidence": "Read-only Pixel MCP get_capabilities; protocol9,117tools; no Codex installation action",
-    "calendar_live_state": "CONNECTED; fresh read-only Pixel MCP calendar_connected=true/calendar_state=checked/calendar_error_code empty; Cloud remains External/Testing"
+    "evidence": "Current read-only Pixel MCP get_capabilities/integration_health and explicit user confirmation; this audit performed no Pixel installation or production write",
+    "calendar_live_state": "CONNECTED; primary busy verified and calendar checked; Google External/Testing production grant remains outside this audit",
+    "sync_audit": "OPEN: android_provider TRANSFER_FAILED while reading; queue8/review0; stored business counts and integrity hash unchanged across audit reads"
   },
   "handoff": {
-    "reported_workspace": "/workspace/Gartenpirat-apk92",
-    "required_action": "Original1.54.5/94 candidate is privately delivered and cloud qualified, exact source429dfa11/tag source/v1.54.5-build94. Final documentation export separately identified by manifest in candidate94/Aktueller-Entwicklungsquellcode-1.54.5-94. Physical Pixel remains original93; no automatic installation. Left EDGE_LEFT API34+ physical acceptance and durable Google Production authorization remain open; primary-calendar busy permission must be explicit/fresh."
+    "reported_workspace": "/workspace/Gartenpirat-",
+    "required_action": "Original1.54.5/94 is now observed installed on Pixel, exact original source429dfa11/tag source/v1.54.5-build94. Audit is on the separate named branch; no main integration or Pixel changes by this task. Live Drive sync fails in android_provider reading with TRANSFER_FAILED and8pending/0reviews; do not claim fixed or clear any queue. Preserve originals and all pending actions. Google Production authorization, real camera/share and API34+ gesture acceptance remain separate; busy permission must remain explicit/fresh.",
+    "audit_ref": "refs/heads/codex/function-sync-audit-20261022"
   },
   "verified_candidate_source": {
     "version": "1.54.5",
