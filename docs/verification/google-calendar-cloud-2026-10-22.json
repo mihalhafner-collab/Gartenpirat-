@@ -1,7 +1,7 @@
 {
   "format": "hausgarten.google-calendar-cloud-setup.v1",
-  "observed_at_utc": "2026-10-22T12:04:24.033256+00:00",
-  "status": "ANDROID_CLIENT_API_SCOPES_CONFIRMED_BRANDING_COMPLETION_PUBLISHING_AND_PIXEL_GRANT_OPEN",
+  "observed_at_utc": "2026-10-22T13:20:05.700105+00:00",
+  "status": "PIXEL_CALENDAR_CONNECTED_TEST_USER_CONFIRMED_PRODUCTION_OPEN",
   "project_id": "gartenpirat-drive",
   "android_client": {
     "status": "CREATED_AND_READ_BACK",
@@ -37,7 +37,7 @@
   "consent": {
     "publishing_before": "TESTING",
     "publishing_after": "Testing",
-    "google_account_grant": "NOT_VERIFIED",
+    "google_account_grant": "OWNER_CONFIRMED_AND_PIXEL_CONNECTION_CHECKED",
     "audience": "External",
     "publishing_confirmation_completed": false,
     "app_name": "Haus & Garten",
@@ -61,6 +61,29 @@
       "url_fields_marked_required": false,
       "visible_validation_errors": false,
       "evidence_run_id": "8561ba98-2b95-4798-9328-26c9a3e18851"
+    },
+    "test_user_access": {
+      "trigger": "Owner-provided Google OAuth screenshot after a real Pixel authorization attempt",
+      "provider_http_error": 403,
+      "provider_error": "access_denied",
+      "provider_explanation": "Application is being tested; only developer-approved testers can access it",
+      "owner_account_in_test_users_before": false,
+      "test_user_count_before": 0,
+      "first_save_persisted_readback": false,
+      "first_save_evidence_run_id": "e464320a-5696-46be-81bc-22decd87ed9d",
+      "followup_save_clicked": true,
+      "valid_email_chip_confirmed": true,
+      "dialog_closed_after_save": true,
+      "save_success_toast_literal": null,
+      "owner_account_in_test_users_after_fresh_navigation": true,
+      "test_user_count_after": 1,
+      "readback_evidence_run_id": "dcd0ca74-7e50-4285-abdb-ff38a675f664",
+      "readback_method": "Navigate to project Overview and back to Audience; actual exact-owner row present",
+      "publishing_status_after": "Test",
+      "only_owner_account_added": true,
+      "account_identity_omitted_from_source": true,
+      "status": "SAVED_AND_READ_BACK",
+      "pixel_result_after_change": "OWNER_REPORTS_CONNECTED_AND_MCP_CONFIRMS"
     }
   },
   "observed_pixel": {
@@ -69,31 +92,41 @@
     "git_sha": "b7d5fcd71fd0e376b8750cf9eaacd94e47d72883",
     "source_sha256": "47e84a4a64d29117d828e49c26f4f700f0f4b75861274c5e15b7d75dbd1014c5",
     "source_dirty": false,
-    "calendar_connected": false,
-    "calendar_setup_stage": "grant",
-    "calendar_error_code": "CALENDAR_APP_REGISTRATION_REQUIRED",
+    "calendar_connected": true,
+    "calendar_setup_stage": "",
+    "calendar_error_code": "",
     "weather_provider": "open_meteo_non_commercial",
     "weather_use_mode": "non_commercial",
     "weather_requested_forecast_days": 16,
-    "calendar_setup_attempt_at": "2026-10-22T08:24:55.042900Z",
-    "calendar_error_interpretation": "Recorded before this Cloud setup; no post-registration connection attempt observed"
+    "calendar_setup_attempt_at": "2026-10-22T13:16:55.494582Z",
+    "calendar_error_interpretation": "After the saved Test-user entry the owner completed a fresh consent. MCP reports connected=true, configured=true, checked, registration_required=false, empty error fields and last successful Calendar check at 13:18:02Z.",
+    "calendar_setup_failed_at": "",
+    "calendar_setup_error_code": "",
+    "calendar_state": "checked",
+    "calendar_registration_required": false,
+    "calendar_setup_next_action": "sync",
+    "calendar_last_success_at": "2026-10-22T13:18:02.849589Z",
+    "calendar_last_attempt_at": "2026-10-22T13:18:02.325605Z",
+    "calendar_configured": true
   },
   "app_code_changed": false,
   "new_apk_created": false,
   "pixel_installation_performed_by_codex": false,
-  "live_calendar_success_verified": false,
+  "live_calendar_success_verified": true,
   "productive_calendar_test_entries_created": false,
   "billing_enabled_or_trial_started": false,
-  "source_generation_folder_id": "1ujSGAnpVH_nX4uMgYAVh5nkW1KdYAgCe",
+  "source_generation_folder_id": "1aBT1HBB4t5-EEZ08-sA8-B7HGwi0pIfB",
   "limitations": [
-    "External/Testing remains. Google currently blocks publishing with a Branding-completion message despite populated form values; exact setup completion is still under investigation.",
-    "The owner must personally grant the real Google calendar consent on the Pixel after setup; no new post-registration connection attempt is observed.",
-    "Installed build93 observation is not a productive data-preservation acceptance or live weather coverage proof."
+    "Owner Test-user entry saved and independently read back. Owner now confirms Calendar connected; Pixel MCP independently confirms a successful connection and cleared registration error.",
+    "External/Testing remains at the last Cloud read. Calendar grants in this state can expire after seven days; production publishing and durable operation are not yet verified.",
+    "The previous production-publishing attempt was blocked by the Branding-completion helper. A focused fresh check after the successful user consent is pending.",
+    "No productive appointment writes, endurance/restart acceptance or live weather coverage test performed."
   ],
   "source_generation_verification_requirement": "Publish wayfinders only after complete official export and actual readback; exact source commit is defined by its export manifest.",
   "remaining_actions": [
-    "Finish any genuinely incomplete Google Auth Platform/Branding setup, complete In production publishing and read back the stored status.",
-    "Owner opens Pixel More > Calendar & Weather > Reconnect and grants the actual Google Calendar permissions.",
-    "Read back the resulting real app-calendar connection; no productive test appointment is needed."
-  ]
+    "Read fresh Google Auth Platform production gate after successful Test-user save and real Pixel grant; complete genuinely unfinished Branding controls without invented public URLs.",
+    "If enabled, publish In production and independently read back that status.",
+    "Confirm connection remains available after the production-status change; no productive test appointment required."
+  ],
+  "live_calendar_verification_scope": "Owner reports Calendar connected; Pixel MCP independently reports connected/configured=true, state checked, empty errors and successful Calendar check timestamp. No productive appointment writing test or endurance test performed."
 }
