@@ -1,0 +1,320 @@
+{
+  "format": "hausgarten.optimization-verification.v1",
+  "classification": "PUBLIC_SOURCE_AND_SYNTHETIC_TEST_METADATA",
+  "date_utc": "2026-10-22",
+  "result": "IMPLEMENTED_AND_CLOUD_TESTED; PHYSICAL_UPDATE_AND_LIVE_SYNC_VERIFICATION_OPEN",
+  "source": {
+    "repository": "mihalhafner-collab/Gartenpirat-",
+    "branch": "codex/function-sync-audit-20261022",
+    "git_sha": "6972780dc9adbe46e0a91f1f77aa990e303fdaf0",
+    "tree_sha": "c509b6d5885c87e398264dbd715928f39d6a5171",
+    "tag": "source/v1.54.6-build95",
+    "source_sha256": "dfc3cc87f18cb152081a56b25d94a682920d07a880800941db0212ba93544565",
+    "remote_readback": "PASS; exact branch and immutable annotated tag",
+    "post_export_documentation": "Final verification/receipt documentation is separately preserved on the same branch; APK source/tag remain unchanged."
+  },
+  "candidate": {
+    "package": "at.hausgarten.service",
+    "version_name": "1.54.6",
+    "version_code": 95,
+    "bytes": 36208658,
+    "sha256": "d54e6f50b8cab37088768c79caebf6cea0e5038959aeb85063c5b77b4a8db112",
+    "original_certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "signature": "PASS original; no replacement key",
+    "source_dirty": false,
+    "drive_apk_id": "1mNMctVtasftStxWfwZboVv6chkQ_CbXv",
+    "drive_folder_id": "1qV4B9lXj0P35DSsuIzTD9hIMWgx34bef",
+    "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; actual full authenticated stream36208658 bytes; local and installed emulator APK SHA256 equal; no remote byte-hash claim",
+    "release_approved": false
+  },
+  "six_audit_optimizations": [
+    {
+      "id": 1,
+      "change": "Stable nonpersonal SyncIoFailure codes and reading subphases",
+      "result": "PASS targeted JVM/native negative paths"
+    },
+    {
+      "id": 2,
+      "change": "retry_sync for held archive/purge/delete actions before actual transfer; transferred actions retain review",
+      "result": "PASS"
+    },
+    {
+      "id": 3,
+      "change": "Additive saved/local/pending/review/transfer action counts; legacy pending_actions retained",
+      "result": "PASS"
+    },
+    {
+      "id": 4,
+      "change": "Truthful automatic_enabled/manual_requested flags with SyncPolicy",
+      "result": "PASS"
+    },
+    {
+      "id": 5,
+      "change": "Additive catalog-json-v1 semantic hash; existing business/CAS/publication/legacy hashes unchanged",
+      "result": "PASS"
+    },
+    {
+      "id": 6,
+      "change": "4MiB verified immutable read cache and one initial listing; invalidated before writes, fresh parent/content validation retained",
+      "result": "PASS"
+    }
+  ],
+  "additional_implementation": {
+    "sync_reference": "Missing opaque provider state IDs resolve only through exact immutable filename plus verified actual SHA256 bytes. Existing IDs with permission/read/content errors never fall back. Full publication-chain validation remains.",
+    "test_cleanup": "Only already explicitly purged synthetic records, verified deletion backup, active-reference protection and same SQLite transaction. Never-uploaded local test journals/media compacted; minimal tombstones and durable replay receipts retained. Previously shared test records receive fresh CAS-protected archive/purge actions. No old journal IDs rewritten.",
+    "receipt_protection": "Newer cloud purge evidence wins unchanged; changed originals remain visible. Legacy standard/owner/batch request receipts retain isolation, request identity, fingerprint and replay rejection.",
+    "navigation": "Safe local change notifications refresh lists without Drive. Dialogs/forms protected; search and root scroll positions preserved. Vertical-first touch cancels horizontal swipe; nested scrolling does not trigger refresh; click suppression retained.",
+    "planning": "Labelled + Termin, optional tools folded under Weitere Möglichkeiten; editor save/time/retry paths preserved.",
+    "today": "Current work first, next planning then totals; today appointment count; past open appointment labelled; planned legacy orders not duplicated."
+  },
+  "tests": {
+    "python": {
+      "pass": 394,
+      "skip": 0,
+      "explicit_exclusions": 37,
+      "exclusion_reason": "Existing legacy temporary QA-key generation suite; original-signing coverage retained"
+    },
+    "jvm_suites": 45,
+    "ui_mcp_assertions": 1047,
+    "browser_suites": 53,
+    "local_stdio_mcp_scenarios": 55,
+    "native_android_sqlite_mcp": {
+      "pass": 164,
+      "fail": 0
+    },
+    "camera_host_cases": 29,
+    "cleanup_coordinator_host_cases": 47,
+    "android_build": {
+      "result": "PASS",
+      "tasks": 84,
+      "lint_errors": 0,
+      "lint_warnings": 54
+    },
+    "artifact_verification": {
+      "apk_sha256": "d54e6f50b8cab37088768c79caebf6cea0e5038959aeb85063c5b77b4a8db112",
+      "package": "at.hausgarten.service",
+      "version_code": 95,
+      "version_name": "1.54.6",
+      "signature_valid": true,
+      "certificates": [
+        "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8"
+      ],
+      "assets": {
+        "added": [],
+        "removed": [],
+        "changed": [],
+        "unchanged_count": 421,
+        "matches": true,
+        "generated_profiles": {
+          "dexopt/baseline.prof": "7bf1943bb3c202441791ee8d2ab65f69fc68de8d6b950939bd5c8608ccdbbf15",
+          "dexopt/baseline.profm": "02383505b2d0ecd529010ec4cc3359afbe1e4a7359fc784ffc029e913e3b9972"
+        }
+      },
+      "seed": {
+        "all_business_collections_empty": true,
+        "operational_seed_rows": 0
+      },
+      "operative_classes_present": [
+        "BusinessDocumentStore",
+        "DriveAccount",
+        "DriveConnectionActivity",
+        "DriveDirectFiles",
+        "DrivePublication",
+        "DriveRestClient",
+        "DriveSyncCoordinator",
+        "DriveSyncJob",
+        "GardenRules",
+        "InvoiceDraftRules",
+        "LegacyBackupPolicy",
+        "LegacyConflictBackup",
+        "LegacyConflictRules",
+        "MainActivity",
+        "ManualChangeRules",
+        "McpFileTransfer",
+        "McpSchema",
+        "OfferJournalRules",
+        "OfferRules",
+        "OfferTools",
+        "OwnerJournalRules",
+        "PendingWorkPhotoStore",
+        "PhotoAttachmentStore",
+        "PhotoCaptureProvider",
+        "PhotoPolicy",
+        "PhotoThumbnailProvider",
+        "PixelMcpOwnerTools",
+        "PixelOwnerAccess",
+        "SyncActionOrder",
+        "TrashPurgeBatch",
+        "WorkSessionStore"
+      ],
+      "plant_profiles": 181,
+      "plant_images": 362,
+      "catalog_sha256": "46bec4dc380c6b938b368422efb236c831656fe30209bf9fc5998709331837fc",
+      "original_apk_identity_comparison": "PASS",
+      "fresh_install": "NOT_RUN",
+      "in_place_update_data_retention": "NOT_RUN",
+      "pixel_installation": "NOT_PERFORMED",
+      "release_approved": false
+    },
+    "privacy": {
+      "source": "PASS",
+      "workspace_including_ignored_untracked": "PASS",
+      "actual_signed_apk": "PASS",
+      "operational_seed_rows": 0
+    },
+    "native_fresh_isolated": "PASS; empty business data/no credentials/no automatic account or tunnel access",
+    "native_ui": "PASS; actual bundled WebView, work selection/cancel, customer/garden/trash and connection screens",
+    "native_final_preservation": "PASS",
+    "in_place_update": {
+      "path": "original94 -> internal95 -> final6972780/95; install -r, no uninstall/wipe/reset",
+      "result": "PASS",
+      "before": {
+        "classification": "SYNTHETIC_TEST",
+        "version_code": 94,
+        "counts": {
+          "customers": 3,
+          "orders": 1,
+          "worklogs": 2,
+          "invoices": 0,
+          "offers": 0,
+          "photos": 0,
+          "appointments": 0
+        },
+        "pending_count": 1,
+        "business_and_pending_sha256": "4ac2c9f59c310af6a7adfcdf25eff333a437b5c361e8d46644d4e99687c9443f",
+        "complete_master_sha256": "9436aa2dd614cd1512672b8bed6fa0478c3f188858d9f1fb38613da1e3aa4287",
+        "pending_sha256": "829880bed75658edfa938950263220acec870e9222509d5ef40359cbf5a60ba8",
+        "session_persisted_fields_sha256": "4afff5bf8f37ed96d6e778aa084e3f3c2f6ca4b3a638eee33717ac5c7a5cb943",
+        "session_state": "RUNNING",
+        "relations_sha256": "eacbcd804eb160d0f022c32200d3004329764f23a5a6190b15560605d7f6299a"
+      },
+      "after": {
+        "classification": "SYNTHETIC_TEST",
+        "version_code": 95,
+        "counts": {
+          "customers": 3,
+          "orders": 1,
+          "worklogs": 2,
+          "invoices": 0,
+          "offers": 0,
+          "photos": 0,
+          "appointments": 0
+        },
+        "pending_count": 1,
+        "business_and_pending_sha256": "4ac2c9f59c310af6a7adfcdf25eff333a437b5c361e8d46644d4e99687c9443f",
+        "complete_master_sha256": "9436aa2dd614cd1512672b8bed6fa0478c3f188858d9f1fb38613da1e3aa4287",
+        "pending_sha256": "829880bed75658edfa938950263220acec870e9222509d5ef40359cbf5a60ba8",
+        "session_persisted_fields_sha256": "4afff5bf8f37ed96d6e778aa084e3f3c2f6ca4b3a638eee33717ac5c7a5cb943",
+        "session_state": "RUNNING",
+        "relations_sha256": "eacbcd804eb160d0f022c32200d3004329764f23a5a6190b15560605d7f6299a"
+      }
+    }
+  },
+  "contract": {
+    "protocol": 9,
+    "sqlite_schema": 4,
+    "snapshot_schema": 2,
+    "tools": 117,
+    "read_tools": 52,
+    "write_tools": 65,
+    "ui_actions": 156,
+    "original_frozen_baseline": "UNCHANGED",
+    "approved_evolution": "tests/fixtures/sync-optimization-contract-v1.json explicitly pins only DriveJournalRules and qa_case_14 additive change; strict predecessor/scope checks",
+    "current_contract_sha256": "dad97e89dc7142b17d10981717ac39102e50f5c639c156dd0c9a6c2d125053b6"
+  },
+  "live_test_customer_cleanup": {
+    "method": "Only explicitly named synthetic target; fresh CAS archive/purge previews and exact confirmation; no real customers or operative worklogs changed",
+    "targeted_deletion_backup": {
+      "verified_at_capture": true,
+      "bytes": 862,
+      "sha256": "264de056472ba07767a56cff24e935dc22ef0d61905db701a7f0b813ffd45c1d",
+      "customers": 1,
+      "original_files": 0
+    },
+    "final_read_utc": "2026-10-22T19:39:11Z",
+    "customer_search_MCP_count": 0,
+    "customer_search_TEST_count": 0,
+    "customer_archive_count": 0,
+    "protected_evidence": "Deletion backup, minimal tombstones and idempotency receipts intentionally retained; no blanket historical-media erasure.",
+    "full_device_backup": "NOT_ATTESTED; initial full business-backup response unconfirmed, no blind retry"
+  },
+  "live_pixel": {
+    "version_name": "1.54.5",
+    "version_code": 94,
+    "source_git_sha": "429dfa11c622cd27228a5f572c9c916ccc137e82",
+    "source_dirty": false,
+    "sync": "OPEN: action_required, TRANSFER_FAILED/reading, pending8/review0, provider_readback, cloud_confirmed=false",
+    "reason": "Updated95 runtime not yet installed on physical Pixel. Missing mutable opaque state reference is a supported root-cause hypothesis, not a confirmed live fix.",
+    "next_action": "After current backup and physical update to original95, use authorized explicit request_sync and verify readback/action status; preserve all pending business actions. No queue flush or automatic account grant.",
+    "physical_installation": "NOT_PERFORMED; no physical installation capability in available MCP tools"
+  },
+  "emulator_limits": {
+    "target": "Dedicated GartenpiratCloud / emulator-5582, qemu=1, API30 AOSP software emulation",
+    "observed_os_failures": "Cold-boot NetworkStack/system_server failures and SystemUI/Phone ANRs. Preserved data; no reset. Native tests counted only after actual success.",
+    "test_only_configuration": "Own AVD ro.hw_timeout_multiplier=10 set and confirmed via root adbd; Android runtime stop/start. connectivity/always_ratelimit_networkstack_crash=true and min_uptime_before_crash=604800000 set/read back; prior values null. Rejected emulator -prop attempt not claimed effective.",
+    "final_screenshot": "SystemUI Wait dialog independently identified; tapped only verified Wait, reopened app. Final screenshot visually reviewed: readable Today/timer/navigation, no OS dialog.",
+    "not_claimed": [
+      "Pixel performance or API34+ native edge-gesture acceptance",
+      "Real camera/media/account permission acceptance",
+      "Production Google Drive live success on95",
+      "Full physical backup/restore"
+    ]
+  },
+  "source_archive": {
+    "drive_folder_id": "1TSWc869NZxFMfEuvrC-aZyGiK1vaGczw",
+    "drive_zip_id": "1Y8xLj_5d08RZjUeoqmM5f2rWY1D24QWc",
+    "bytes": 68943114,
+    "sha256": "269877afd4fd6aefa4135b51318ef9f44e4465d75d49aac7166c736aa6563c2e",
+    "files": 1262,
+    "utf8_files": 531,
+    "public_binary_files": 731,
+    "readback": "19 complete:18 SHA256_BYTES +1ZIP COMPLETE_STREAM_SIZE_ONLY; helper19reuse/0upload/0duplicates/0unreferenced; source bytes and modes verified locally and exact GitHub source retained",
+    "source_folder_immutable": "Final code6972780 original source; final report/receipts kept separately"
+  },
+  "ephemeral_evidence_sha256": [
+    {
+      "file": "qa-hg-opt95-final-python.log",
+      "sha256": "1e4a96c97c17a07e54131619888c5508812f6f911c786345bc3082c019b3ea58"
+    },
+    {
+      "file": "qa-hg-opt7-java.log",
+      "sha256": "e42ea46d5c9677aa9377950259e7de24a71cae0da6233d271d8427fa9e22b027"
+    },
+    {
+      "file": "qa-hg-opt-browser-complete.log",
+      "sha256": "7c7b26a7245be0d32965812cd15b67b30d83863c4294a91a56ac3804fee77a0d"
+    },
+    {
+      "file": "qa-hg-opt-stdio.log",
+      "sha256": "ebe8bd4cba407cd33993522b79a4c51c93bb4f7757bec061e1bd79f60fdc5a0e"
+    },
+    {
+      "file": "qa-hg-opt95-final-corrected-build.log",
+      "sha256": "2569fe40ce72fd2da6705ec4c5c4347525494d57ef2c53808b977aa5976a4383"
+    },
+    {
+      "file": "qa-hg-opt95-final-native.log",
+      "sha256": "a3cec15d349a503e86efb78668a2a1e15f804894e60c96e9ff5dd2526740565c"
+    },
+    {
+      "file": "qa-hg-opt95-final-fresh.log",
+      "sha256": "adb9620b51a2ae45988dff660cd56c7087b9c438d1f99eea831fe5b816bcba70"
+    },
+    {
+      "file": "qa-hg-opt95-final-ui.log",
+      "sha256": "d66078e3798fe4a5863215771eeabca85b1846df90fdd834eef13d704b67faec"
+    },
+    {
+      "file": "qa-hg-opt95-final-verify.log",
+      "sha256": "16dc871c1e78126b82f5b2e4da11d2d1a6c63669ae5495acf6d2c5116da598da"
+    },
+    {
+      "file": "qa-hg-opt95-final-ledger-retry.log",
+      "sha256": "67acd17da71a01d6b61f1e77608c4f304e62784e1a679a261dec4abca40dd10d"
+    },
+    {
+      "file": "qa-hg-opt95-final-candidate.json",
+      "sha256": "58bd58799298e75f0badac804832b6e957ff74b5a6b8258b6d0dd08dcbb058b1"
+    }
+  ]
+}

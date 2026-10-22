@@ -1,34 +1,32 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-22T17:37:14Z",
+  "updated_at_utc": "2026-10-22T19:39:11Z",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
-  "development_ref": "refs/heads/codex/calendar-weather-20261022",
+  "development_ref": "refs/heads/codex/function-sync-audit-20261022",
   "development_snapshot": {
-    "version_name": "1.54.5",
-    "version_code": 94,
-    "source_git_sha": "429dfa11c622cd27228a5f572c9c916ccc137e82",
-    "source_tag": "source/v1.54.5-build94",
-    "source_sha256": "1d7e7d73b6801705ece1488f79f180c463ba0308083e695583181d9cbc8fab25",
-    "apk_sha256": "975ce32ca7e52338182c0f743044afbd57edeeaa9d376bd31292b1060809cc3c",
-    "drive_apk_id": "1pwo3kz2shKIyPnXYV0KbL9Szyvya5OS8",
-    "source_zip_drive_id": "189LoXjhKV9a0GhsnCYpHfsL_60e5wBpL",
-    "source_zip_sha256": "d1d580773d470273ea803f9f7a6461ed305c3882c136f3ef60587458c1940dde",
-    "drive_folder_id": "1Gq89Ru3bCL-FNw60WAHEPLzsoUTsJnnR",
-    "development_export_folder_id": "1lGyhXJtB_QuCex_R8ObLDxphhaq8SkC-",
-    "pixel_installation": "OBSERVED: original1.54.5/94/429dfa11/source_dirty=false via live read-only MCP and user confirmation. NOT INSTALLED BY THIS AUDIT; physical update/data-retention process not witnessed.",
-    "status": "CLOUD_VERIFIED_ORIGINAL_CANDIDATE; PHYSICAL_PIXEL_ACCEPTANCE_OPEN",
+    "version_name": "1.54.6",
+    "version_code": 95,
+    "source_git_sha": "6972780dc9adbe46e0a91f1f77aa990e303fdaf0",
+    "source_tag": "source/v1.54.6-build95",
+    "source_sha256": "dfc3cc87f18cb152081a56b25d94a682920d07a880800941db0212ba93544565",
+    "apk_sha256": "d54e6f50b8cab37088768c79caebf6cea0e5038959aeb85063c5b77b4a8db112",
+    "drive_apk_id": "1mNMctVtasftStxWfwZboVv6chkQ_CbXv",
+    "source_zip_drive_id": "1Y8xLj_5d08RZjUeoqmM5f2rWY1D24QWc",
+    "source_zip_sha256": "269877afd4fd6aefa4135b51318ef9f44e4465d75d49aac7166c736aa6563c2e",
+    "drive_folder_id": "1qV4B9lXj0P35DSsuIzTD9hIMWgx34bef",
+    "development_export_folder_id": "1jtTBx8h6gmq5U5LyZpv4IGDe_MBEqY3z",
+    "pixel_installation": "NOT_PERFORMED; last live observed original1.54.5/94",
+    "status": "CLOUD_VERIFIED_ORIGINAL_CANDIDATE; PHYSICAL_PIXEL_AND_LIVE_SYNC_ACCEPTANCE_OPEN",
     "native_cloud_acceptance": {
-      "target": "GartenpiratCloud emulator-5554; qemu=1; Android API30",
-      "android_sqlite_mcp_pass": 159,
+      "android_sqlite_mcp_pass": 164,
       "fail": 0,
-      "original_in_place_update": "93 -> 94 PASS; full snapshot/IDs/queue/settings/tunnel/active timer retained",
-      "read_only_ledger": "PASS before/after update and after all native checks; complete master/pending/session/relations digests unchanged",
-      "fresh_isolated": "PASS empty business data/no credentials/no automatic account access",
-      "native_ui": "PASS actual bundled WebView and owner read path; removed swipe option, retained Gartenpirat option, menu open/Back, Today card, calendar_busy_*",
+      "original_in_place_update": "94->95->final95 PASS; full master/relations/pending/settings/tunnel/RUNNING timer retained",
+      "fresh_isolated": "PASS",
+      "native_ui": "PASS actual bundled WebView and connections",
       "final_snapshot": "PASS",
-      "os_warning": "First cold boot lost system_server after NetworkStack failure while original93 was still installed. Framework was recovered by graceful emulator shutdown/restart with existing userdata preserved and 3072MiB memory. No reset/clear/uninstall. All94 native checks ran after complete framework readiness."
+      "os_limits": "Dedicated API30 software AVD; NetworkStack/SystemUI OS failures documented; not Pixel performance/real Google acceptance"
     },
-    "verification_file": "docs/verification/original-apk-1.54.5-94.json"
+    "verification_file": "docs/verification/optimization-1.54.6-95.json"
   },
   "verified_release_source": {
     "version": "1.54.1",
@@ -42,19 +40,19 @@
     "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB"
   },
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-10-22T17:17:30Z",
+    "observed_at_utc": "2026-10-22T19:39:11Z",
     "version_name": "1.54.5",
     "version_code": 94,
     "reported_base_git_sha": "429dfa11c622cd27228a5f572c9c916ccc137e82",
     "source_sha256": "1d7e7d73b6801705ece1488f79f180c463ba0308083e695583181d9cbc8fab25",
     "source_dirty": false,
-    "evidence": "Current read-only Pixel MCP get_capabilities/integration_health and explicit user confirmation; this audit performed no Pixel installation or production write",
+    "evidence": "Live MCP self-test on original94, then final customer/archive reads; no physical installation. Explicitly authorized synthetic legacy test customer archived/purged with verified targeted deletion backup; no real customer/worklog changes.",
     "calendar_live_state": "CONNECTED; primary busy verified and calendar checked; Google External/Testing production grant remains outside this audit",
-    "sync_audit": "OPEN: android_provider TRANSFER_FAILED while reading; queue8/review0; stored business counts and integrity hash unchanged across audit reads"
+    "sync_audit": "OPEN: action_required, TRANSFER_FAILED/reading, pending8/review0, provider_readback, cloud_confirmed=false"
   },
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-",
-    "required_action": "Original1.54.5/94 is now observed installed on Pixel, exact original source429dfa11/tag source/v1.54.5-build94. Audit is on the separate named branch; no main integration or Pixel changes by this task. Live Drive sync fails in android_provider reading with TRANSFER_FAILED and8pending/0reviews; do not claim fixed or clear any queue. Preserve originals and all pending actions. Google Production authorization, real camera/share and API34+ gesture acceptance remain separate; busy permission must remain explicit/fresh.",
+    "required_action": "Original95 code6972780/tag source/v1.54.6-build95 is cloud-tested and available privately; Pixel still original94. Six audit optimizations, safe test cleanup and UX implemented. After current backup and physical update, perform task-authorized request_sync and verify provider/cloud confirmation and remaining actions. No pending-business queue flush, no blind retries on old94, no account grant or main integration. Full-device backup not attested; verified targeted test deletion backup only. Source697 original archive remains immutable; final documentation is separately backed up on the same branch.",
     "audit_ref": "refs/heads/codex/function-sync-audit-20261022",
     "audit_export": {
       "git_sha": "49d112d7b77f32dae5b2c2a71215dd8b1cb405ff",
@@ -66,21 +64,30 @@
       "readback": "19 COMPLETE:18 SHA256_BYTES +1 ZIP COMPLETE_STREAM_SIZE_ONLY;4 existing guide files SHA256_BYTES verified",
       "app_source_changed": false,
       "post_export_metadata": "Subsequent audit receipt documentation is separately preserved on the same GitHub audit branch."
+    },
+    "optimization_report": "docs/verification/optimization-1.54.6-95.json",
+    "optimization_documentation_export": {
+      "folder_id": "1jtTBx8h6gmq5U5LyZpv4IGDe_MBEqY3z",
+      "source": "Final documentation commit pinned by the official immutable export manifest; original APK source6972780/tag remains unchanged",
+      "original_apk_source_folder_id": "1TSWc869NZxFMfEuvrC-aZyGiK1vaGczw"
     }
   },
   "verified_candidate_source": {
-    "version": "1.54.5",
-    "build": 94,
-    "tag": "source/v1.54.5-build94",
-    "git_sha": "429dfa11c622cd27228a5f572c9c916ccc137e82",
-    "source_sha256": "1d7e7d73b6801705ece1488f79f180c463ba0308083e695583181d9cbc8fab25",
-    "original_zip_sha256": "d1d580773d470273ea803f9f7a6461ed305c3882c136f3ef60587458c1940dde",
-    "apk_sha256": "975ce32ca7e52338182c0f743044afbd57edeeaa9d376bd31292b1060809cc3c",
-    "drive_zip_id": "189LoXjhKV9a0GhsnCYpHfsL_60e5wBpL",
-    "drive_apk_id": "1pwo3kz2shKIyPnXYV0KbL9Szyvya5OS8",
-    "drive_folder_id": "1Gq89Ru3bCL-FNw60WAHEPLzsoUTsJnnR",
-    "status": "CLOUD_VERIFIED_ORIGINAL_CANDIDATE; PHYSICAL_PIXEL_ACCEPTANCE_OPEN",
-    "drive_readback": "19 verified receipts;18 SHA256_BYTES +1ZIP COMPLETE_STREAM_SIZE_ONLY;0 pending/duplicates"
+    "version": "1.54.6",
+    "build": 95,
+    "tag": "source/v1.54.6-build95",
+    "git_sha": "6972780dc9adbe46e0a91f1f77aa990e303fdaf0",
+    "source_sha256": "dfc3cc87f18cb152081a56b25d94a682920d07a880800941db0212ba93544565",
+    "original_zip_sha256": "269877afd4fd6aefa4135b51318ef9f44e4465d75d49aac7166c736aa6563c2e",
+    "apk_sha256": "d54e6f50b8cab37088768c79caebf6cea0e5038959aeb85063c5b77b4a8db112",
+    "drive_zip_id": "1Y8xLj_5d08RZjUeoqmM5f2rWY1D24QWc",
+    "drive_apk_id": "1mNMctVtasftStxWfwZboVv6chkQ_CbXv",
+    "drive_folder_id": "1qV4B9lXj0P35DSsuIzTD9hIMWgx34bef",
+    "source_folder_id": "1TSWc869NZxFMfEuvrC-aZyGiK1vaGczw",
+    "status": "CLOUD_VERIFIED_ORIGINAL_CANDIDATE; PHYSICAL_PIXEL_AND_LIVE_SYNC_ACCEPTANCE_OPEN",
+    "drive_readback": "19 complete:18 SHA256_BYTES +1ZIP COMPLETE_STREAM_SIZE_ONLY; helper19reuse/0upload/0duplicates/0unreferenced; source bytes and modes verified locally and exact GitHub source retained; APK COMPLETE_STREAM_SIZE_ONLY",
+    "drive_provenance_id": "1XYk1lHZpQ2fyXLr0ZTxg7sidZyGEhzWU",
+    "drive_verification_id": "1F_vDQOOnO_W84u879Penqi9VWzcmT_kp"
   },
   "calendar_ui_task": {
     "status": "COMPLETED_SOURCE_ONLY; HOST_CHECKS_PASS_WITH_TARGETED_GALLERY_RECHECK; PIXEL_GOOGLE_NOT_EXECUTED",
@@ -496,5 +503,53 @@
     "drive_folder_id": "1RAFAWqhKgzzd633GTJ1FaEPWgh0B7xbS",
     "status": "CLOUD_VERIFIED_ORIGINAL_CANDIDATE; GOOGLE_PROJECT_AND_PHYSICAL_PIXEL_ACCEPTANCE_OPEN",
     "drive_readback": "19 verified receipts;18 SHA256_BYTES +1ZIP COMPLETE_STREAM_SIZE_ONLY;0 pending/duplicates"
+  },
+  "previous_before_optimization_snapshot": {
+    "version_name": "1.54.5",
+    "version_code": 94,
+    "source_git_sha": "429dfa11c622cd27228a5f572c9c916ccc137e82",
+    "source_tag": "source/v1.54.5-build94",
+    "source_sha256": "1d7e7d73b6801705ece1488f79f180c463ba0308083e695583181d9cbc8fab25",
+    "apk_sha256": "975ce32ca7e52338182c0f743044afbd57edeeaa9d376bd31292b1060809cc3c",
+    "drive_apk_id": "1pwo3kz2shKIyPnXYV0KbL9Szyvya5OS8",
+    "source_zip_drive_id": "189LoXjhKV9a0GhsnCYpHfsL_60e5wBpL",
+    "source_zip_sha256": "d1d580773d470273ea803f9f7a6461ed305c3882c136f3ef60587458c1940dde",
+    "drive_folder_id": "1Gq89Ru3bCL-FNw60WAHEPLzsoUTsJnnR",
+    "development_export_folder_id": "1lGyhXJtB_QuCex_R8ObLDxphhaq8SkC-",
+    "pixel_installation": "OBSERVED: original1.54.5/94/429dfa11/source_dirty=false via live read-only MCP and user confirmation. NOT INSTALLED BY THIS AUDIT; physical update/data-retention process not witnessed.",
+    "status": "CLOUD_VERIFIED_ORIGINAL_CANDIDATE; PHYSICAL_PIXEL_ACCEPTANCE_OPEN",
+    "native_cloud_acceptance": {
+      "target": "GartenpiratCloud emulator-5554; qemu=1; Android API30",
+      "android_sqlite_mcp_pass": 159,
+      "fail": 0,
+      "original_in_place_update": "93 -> 94 PASS; full snapshot/IDs/queue/settings/tunnel/active timer retained",
+      "read_only_ledger": "PASS before/after update and after all native checks; complete master/pending/session/relations digests unchanged",
+      "fresh_isolated": "PASS empty business data/no credentials/no automatic account access",
+      "native_ui": "PASS actual bundled WebView and owner read path; removed swipe option, retained Gartenpirat option, menu open/Back, Today card, calendar_busy_*",
+      "final_snapshot": "PASS",
+      "os_warning": "First cold boot lost system_server after NetworkStack failure while original93 was still installed. Framework was recovered by graceful emulator shutdown/restart with existing userdata preserved and 3072MiB memory. No reset/clear/uninstall. All94 native checks ran after complete framework readiness."
+    },
+    "verification_file": "docs/verification/original-apk-1.54.5-94.json"
+  },
+  "previous_verified_candidate_source_94": {
+    "version": "1.54.5",
+    "build": 94,
+    "tag": "source/v1.54.5-build94",
+    "git_sha": "429dfa11c622cd27228a5f572c9c916ccc137e82",
+    "source_sha256": "1d7e7d73b6801705ece1488f79f180c463ba0308083e695583181d9cbc8fab25",
+    "original_zip_sha256": "d1d580773d470273ea803f9f7a6461ed305c3882c136f3ef60587458c1940dde",
+    "apk_sha256": "975ce32ca7e52338182c0f743044afbd57edeeaa9d376bd31292b1060809cc3c",
+    "drive_zip_id": "189LoXjhKV9a0GhsnCYpHfsL_60e5wBpL",
+    "drive_apk_id": "1pwo3kz2shKIyPnXYV0KbL9Szyvya5OS8",
+    "drive_folder_id": "1Gq89Ru3bCL-FNw60WAHEPLzsoUTsJnnR",
+    "status": "CLOUD_VERIFIED_ORIGINAL_CANDIDATE; PHYSICAL_PIXEL_ACCEPTANCE_OPEN",
+    "drive_readback": "19 verified receipts;18 SHA256_BYTES +1ZIP COMPLETE_STREAM_SIZE_ONLY;0 pending/duplicates"
+  },
+  "optimization_task_95": {
+    "implementation": "B1/B2/B3 COMPLETE",
+    "cloud_verification": "B4 PASS",
+    "live_cleanup": "MCP0 / [TEST]0 / customer archive0; protected backup and deletion receipts retained",
+    "live_sync": "OPEN pending physical95 runtime; no live-fix claim",
+    "source_and_artifacts": "Exact GitHub source/tag, original Drive source generation19verified, final signed APK streamed/read back; final report/version proof separate"
   }
 }
