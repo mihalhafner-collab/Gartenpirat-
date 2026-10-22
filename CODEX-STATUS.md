@@ -3,6 +3,12 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Umsetzung96 – finale Fachabnahme und präzisierter Fensterwächter (22.10.2026)
+
+Originalkandidat3044ab5/Produktionsfingerprintf19e19197ec367d3a0b1bb9d8b478efc8943fe9ee4eebeec8fc4040e58679dad:172native Fachprüfungen/0FAIL,95→96-Vollledger, fresh_isolated und tatsächlicher WebView PASS. Alle Masterdaten, Beziehungen, eine offene Aktion und sämtliche persistierten Timerfelder unverändert. Schrift-/Displayrollback nach erster neuer Probe PASS.
+
+Der zusätzliche Accessibility-Root-Wächter lieferte unmittelbar nach Activitystart null; dies ist kein Beleg für ein verdecktes Appfenster. Test liest stattdessen nach tatsächlicher WebView-Bereitschaft die fokussierte MainActivity aus Android WindowManager. Ein SystemUI-/ANR-Dialog besitzt diesen Fokus nicht und bleibt Abbruchgrund. Keine Produktionsquelle geändert; App-Fingerprint bleibt exaktf19e1919. Korrekte Testquelle wird erneut gesichert und ein dazu passendes Artefakt gebaut, bevor Tag/Auslieferung festgelegt werden.
+
 ## Umsetzung96 – abschließende kleine Bildschirm-/Sichtprüfung (22.10.2026)
 
 Die ersten nativen Schriftproben lieferten zwar richtige OS-/TextZoom-/DOMwerte, die tatsächlich zurückgelesenen Screenshots zeigten jedoch einen verdeckenden Android-SystemUI-ANR-Dialog. Diese Bilder ausdrücklich nicht als visuelle Abnahme akzeptiert. Ausschließlich im bewachten eigenen AVD den exakt identifizierten Systemdialog über „Wait“ bestätigt; keine Appdaten/Queue geändert. Native Fontprüfung verlangt künftig zusätzlich fokussiertes Anwendungsfenster und prüft die tatsächliche Sichtbarkeit auf einem temporären360×640dp-Display, bei1.0/1.5/2.0; Font und Display werden zurückgestellt. Kein Schluss auf Pixelperformance aus dem nicht beschleunigten API30-Emulator.

@@ -11,10 +11,9 @@ final class OverviewAccessibilityProbe {
     static void run(Instrumentation runner,Context context)throws Exception{
         Activity activity=runner.startActivitySync(new Intent(context,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         float scale=activity.getResources().getConfiguration().fontScale;trace(runner,"activity_font_scale="+scale);require(Math.abs(scale-1f)<.01f||Math.abs(scale-1.5f)<.01f||Math.abs(scale-2f)<.01f);
-        foreground(runner);
         java.lang.reflect.Field field=MainActivity.class.getDeclaredField("webView");field.setAccessible(true);WebView view=(WebView)field.get(activity);
         long until=SystemClock.elapsedRealtime()+120000;boolean ready=false;
-        while(SystemClock.elapsedRealtime()<until){if("true".equals(ReleaseLifecycleProbe.js(runner,view,"!!window.TodayUI&&!!window.PlanningUI&&document.body.dataset.fieldReady==='true'"))){ready=true;break;}SystemClock.sleep(250);}trace(runner,"ready="+ready);require(ready);
+        while(SystemClock.elapsedRealtime()<until){if("true".equals(ReleaseLifecycleProbe.js(runner,view,"!!window.TodayUI&&!!window.PlanningUI&&document.body.dataset.fieldReady==='true'"))){ready=true;break;}SystemClock.sleep(250);}trace(runner,"ready="+ready);require(ready);foreground(runner);
         int[] zoom={0};runner.runOnMainSync(()->zoom[0]=view.getSettings().getTextZoom());trace(runner,"webview_text_zoom="+zoom[0]);require(zoom[0]==Math.round(scale*100));
         String fixture="(()=>{window.__qaOverviewNative=AndroidData;const native=AndroidData,s=JSON.parse(native.getState());s.master.customers=[{id:'qa_font_customer',name:'QA Musterkunde mit einem langen Namen',active:1}];s.master.orders=[];s.master.appointments=Array.from({length:4},(_,i)=>({id:'qa_font_'+i,customer_id:'qa_font_customer',title:'QA Schriftprüfung '+i,location:'QA Garten '+i,timezone:'Europe/Vienna',status:'tentative',starts_at:localDate()+'T'+String(8+i*2).padStart(2,'0')+':00:00Z',ends_at:localDate()+'T'+String(9+i*2).padStart(2,'0')+':00:00Z'}));const entry=a=>({appointment:a,record_hash:'qa_font_hash',weather:{severity:'unknown',label:'QA Wetter ungeprüft'},calendar:{state:'not_connected'}}),bridge={};Object.keys(native).forEach(name=>{if(typeof native[name]==='function')bridge[name]=(...args)=>native[name](...args);});bridge.getState=()=>JSON.stringify(s);bridge.ownerCall=(name,raw)=>{const a=JSON.parse(raw),rows=s.master.appointments;if(name==='list_appointments')return JSON.stringify({ok:true,data:{appointments:rows.slice(a.offset||0,(a.offset||0)+(a.limit||30)).map(entry),total:rows.length,integration:{calendar_configured:false,weather_configured:false}}});if(name==='get_appointment')return JSON.stringify({ok:true,data:entry(rows.find(x=>x.id===a.appointment_id))});return native.ownerCall(name,raw);};window.AndroidData=bridge;load();openPage('home');TodayUI.invalidate();return document.querySelectorAll('#planning-home [data-appointment-open]').length===3;})()";
         try{
@@ -42,9 +41,15 @@ final class OverviewAccessibilityProbe {
     private static void trace(Instrumentation runner,String value){android.os.Bundle report=new android.os.Bundle();report.putString("stream","FONT_PROBE "+value+"\n");runner.sendStatus(0,report);}
     private static void checkJs(Instrumentation runner,WebView view,String step,String script)throws Exception{String result=ReleaseLifecycleProbe.js(runner,view,script);trace(runner,step+"="+result);if(!"true".equals(result))screenshot(runner,"failed-"+step,view.getResources().getConfiguration().fontScale);require("true".equals(result));}
     private static void foreground(Instrumentation runner)throws Exception{
-        android.view.accessibility.AccessibilityNodeInfo root=runner.getUiAutomation().getRootInActiveWindow();
-        String owner=root==null?"none":String.valueOf(root.getPackageName());trace(runner,"window_package="+owner);
-        require("at.hausgarten.service".equals(owner));if(root!=null)root.recycle();
+        // The accessibility root is temporarily null while UiAutomation attaches.
+        // WindowManager focus is authoritative even before WebView exposes its tree.
+        String windows;
+        try(android.os.ParcelFileDescriptor descriptor=runner.getUiAutomation().executeShellCommand("dumpsys window");java.io.InputStream in=new android.os.ParcelFileDescriptor.AutoCloseInputStream(descriptor);java.io.ByteArrayOutputStream out=new java.io.ByteArrayOutputStream()){
+            byte[] buffer=new byte[4096];int count;while((count=in.read(buffer))!=-1){out.write(buffer,0,count);if(out.size()>1024*1024)throw new java.io.IOException("Window diagnostic limit");}
+            windows=new String(out.toByteArray(),java.nio.charset.StandardCharsets.UTF_8);
+        }
+        boolean own=false;for(String line:windows.split("\\n"))if(line.contains("mCurrentFocus="))own=line.contains("at.hausgarten.service/")&&line.contains("MainActivity");
+        trace(runner,"main_window_focused="+own);require(own);
     }
     private static void screenshot(Instrumentation runner,String page,float scale)throws Exception{
         foreground(runner);
