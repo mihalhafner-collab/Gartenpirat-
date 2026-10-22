@@ -29,7 +29,7 @@ Historischer erster Browserbeleg war transparent zusammengesetzt:53Suiten im vol
 
 ## Hypothesen und Grenzen
 
-H1: native Prüfung eines defekten synthetischen Fremdjournals reproduziert INVALID_REMOTE_DATA;172native Fälle insgesamt PASS. Bestehendes fail-closed-Verhalten nicht geändert. Bei reproduziertem Abbruch wäre eine Quarantäne nur mit sichtbarer Unvollständigkeit und erhaltener Originaldatei vertretbar: sonst könnten fremde Löschungen/Korrekturen/Rechnungsaktionen übergangen und fälschlich ein vollständiger Abgleich bestätigt werden. Vorschlag, keine Implementierung/Protokolländerung.
+H1: native Prüfung eines defekten synthetischen Fremdjournals reproduziert INVALID_REMOTE_DATA;172native Fälle insgesamt PASS. Bestehendes fail-closed-Verhalten nicht geändert. Eine Quarantäne wäre nur mit sichtbarer Unvollständigkeit und erhaltener Originaldatei vertretbar: sonst könnten fremde Löschungen/Korrekturen/Rechnungsaktionen übergangen und fälschlich ein vollständiger Abgleich bestätigt werden. Datenschutz: keine Journalinhalte oder Kunden-/Gerätetexte in Diagnose, Repository oder öffentliche Quarantäne kopieren; private Originalberechtigungen und bestehende Aufbewahrung beibehalten, allenfalls Inhaltshash/Fehlercode lokal protokollieren. Verfügbarkeit einzelner gültiger Journale gegen Vertraulichkeit und unvollständigen fachlichen Abgleich abwägen. Vorschlag, keine Implementierung/Protokolländerung.
 
 H2: Quelle verlangt INTERNET und VALIDATED. Ein realer Validierungsfehler am Pixel ist nicht geprüft/reproduziert. Kein Netzwerkpfad geändert. Ein späterer sachlicher Diagnosehinweis könnte vorhandenes Netz und fehlende Validierung unterscheiden, ohne SSIDs oder Kontodaten auszugeben.
 
