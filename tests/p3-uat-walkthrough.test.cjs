@@ -102,7 +102,7 @@ function fixture(name){
    await p.waitForFunction(()=>['business-settings-card','photo-storage-settings'].every(id=>document.getElementById(id)?.parentElement.id==='settings-page'));
    assert.equal(await p.locator('#settings-sync-local').isVisible(),false);assert.equal(await p.locator('#settings-sync-transfer').isVisible(),false);
    const settings=await p.locator('#settings-page input:not([type=hidden]),#settings-page select,#settings-page textarea').evaluateAll(nodes=>nodes.map(n=>({id:n.id,name:n.name,type:n.type,options:n.options?[...n.options].map(o=>o.value):undefined,label:n.labels?.[0]?.textContent||n.getAttribute('aria-label')||n.name})));
-   assert(settings.length>=2);assert(settings.every(x=>x.id||x.name));const quality=settings.find(s=>s.id==='photo-quality');assert.deepEqual(quality.options,['optimized','high','original']);
+   assert(settings.length>=1);assert(settings.every(x=>x.id||x.name));assert(!settings.some(s=>s.id==='setting-side-swipe'));const quality=settings.find(s=>s.id==='photo-quality');assert.deepEqual(quality.options,['optimized','high','original']);
    fs.writeFileSync(path.join(root,'outputs/p3-uat-settings.json'),JSON.stringify({classification:'SYNTHETIC_TEST',scope:'operative WebView controls; native controls separately compiled/executed',settings},null,2));
    await p.evaluate(()=>{window.driveSettingsOpened=0;AndroidData.connectDrive=()=>driveSettingsOpened++;});await p.locator('#settings-drive').click();assert.equal(await p.evaluate(()=>driveSettingsOpened),1);
    await p.locator('.settings-advanced > summary').click();assert.equal(await p.locator('#settings-sync-local').isVisible(),true);
