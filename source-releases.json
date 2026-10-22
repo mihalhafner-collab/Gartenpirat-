@@ -65,6 +65,24 @@
       "tree_sha": "b67dbfbe5cf2345be0c00983297d9dd7dc3e70c4",
       "remote_readback": "PASS",
       "device_acceptance": "NOT EXECUTED"
+    },
+    {
+      "version": "1.54.3",
+      "build": 92,
+      "tag": "source/v1.54.3-build92",
+      "git_sha": "aff54dbd7cd64437645bba71242688ec5da4c30b",
+      "source_sha256": "17d8be0d257733544896546bf22086d33d157011dfd0ab14db7664d42486ed34",
+      "source_files": 1237,
+      "original_zip_sha256": "17af4375bdcf14352b93fdfcc7a6093ced4b5f7464422cfe9c45533d2dc45040",
+      "apk_sha256": "4f08b012bfd2c38259974c94b3071e218962d330f70ccb332725c77d25ec2814",
+      "drive_zip_id": "10o0nWq_EK2qAF4zQHj_U2jev_4s6C5qT",
+      "drive_apk_id": "1UHmeEkSO6k0-zU3i6DM53gjgyHDL-fwk",
+      "drive_folder_id": "1pzAVZQcxcvYEqbEYYzZXKg7cNm0qllw_",
+      "native_cloud_acceptance": "158 PASS;91->92/fresh_isolated/native_ui/final verify PASS",
+      "pixel_installation": "NOT EXECUTED",
+      "google_live_authorization": "NOT EXECUTED",
+      "release_approved": false,
+      "drive_readback": "18 source files SHA256_BYTES; original ZIP/APK COMPLETE_STREAM_SIZE_ONLY"
     }
   ]
 }
