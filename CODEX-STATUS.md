@@ -3,6 +3,12 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Gesamtabnahme B4 – Zwischenstand (22.10.2026)
+
+Release-/AndroidTest-Build und lintRelease PASS84Tasks aus gesichertem6b55163, noch unsignierter Testbuild.53Browser-Suiten ausgeführt;51PASS und2alte Präsentationserwartungen zunächst FAIL. Beide gezielt korrigiert und erneut tatsächlich PASS: ui-preview14Checks prüft reale Erreichbarkeit statt früherer fester unterer Bildschirmhälfte; p3-customer-hub wartet auf tatsächlich geladenes Field-Stylesheet und bestätigt neue Arbeit-vor-Summen-Reihenfolge. Weiterer vollständiger Schlusslauf folgt.44JVM-Suiten/1047Paritätsassertions,29Kamera-Hostfälle,47Cleanup-Koordinatorfälle und55echte lokale MCP-stdio-Szenarien PASS. Python-Gesamtprüfung noch im Gang.
+
+Emulator-Umgebungsfehler vor Appupdate belegt: am_anr TelephonyDebugService, anschließend system_server IllegalStateException „Lost network stack“, Framework-Neustart. Zweite rein lesende Instrumentierungsprobe meldete Error type2. Keine Appregression daraus abgeleitet; kein Vorupdateledger erfunden. Bestehende AVD-Datenpartition bleibt erhalten, ausschließlich eigenen Emulator ordentlich beenden/neustarten und Softwareemulation stabilisieren. Native Abnahme/94→95-Update noch offen. Keine physische Pixelinstallation oder Kontoänderung.
+
 ## Umsetzung B2/B3 – ergänzter Schutz und fortgesetzte Abnahme (22.10.2026)
 
 38gezielte Sync-/Automatik-/Queue-/Cache-/Aktive-Arbeit-Prüfungen und8State-Referenzfälle PASS. Aktive Timerreferenzen jetzt vor UI-/MCP-Archivierung, Einzelpurge und Sammelpurge gemeinsam geschützt. Bereits lokal purgierte Sammeltestaktionen werden ebenfalls nach geprüftem Backup kompaktiert; sofortige lokale Datei-GC ausschließlich für nie geteilte Tests, weiterhin keine geteilte Medienlöschung ohne normalen Syncbeleg. Neuer nativer Fall prüft geteilten Alt-Testkunden: exakt2frische CAS-/abhängigkeitsgeschützte Drive-Aufräumaktionen, keine lokale Wiederanlage. Voller nativer Nachweis noch offen.
