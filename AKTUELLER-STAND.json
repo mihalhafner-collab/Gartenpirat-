@@ -1,6 +1,6 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-22T13:20:05.700105+00:00",
+  "updated_at_utc": "2026-10-22T13:27:53.979017+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/calendar-weather-20261022",
   "development_snapshot": {
@@ -32,7 +32,7 @@
       "os_warning": "Software-emulator System UI ANR observed; exact Wait button used; no app/data deletion; screenshot retained and subsequent UI/snapshot repeated"
     },
     "pixel_installation": "OBSERVED_INSTALLED_93 via read-only Pixel MCP; not installed by Codex; productive update/data-preservation acceptance not executed",
-    "google_live_authorization": "Owner completed Calendar consent after saved Test-user correction; Pixel MCP connected/configured=true, checked, errors empty, successful check at 13:18:02Z. External/Testing production transition and durability remain open.",
+    "google_live_authorization": "LIVE_PIXEL_CALENDAR_CONNECTED: owner consent and MCP checked; errors empty. Latest Cloud read Test despite Branding Changes saved and persisted values. Production publishing blocked; durable access not verified.",
     "weather_live_provider": "NOT EXECUTED; current executor egress policy excludes api.open-meteo.com",
     "drive_readback": "19 verified receipts;18 SHA256_BYTES +1ZIP COMPLETE_STREAM_SIZE_ONLY;0 pending/duplicates",
     "previous_development_export_folder_id": "1ujSGAnpVH_nX4uMgYAVh5nkW1KdYAgCe",
@@ -253,7 +253,7 @@
     "source_status": "EXACT_ORIGINAL_SOURCE_SECURED_ON_GITHUB_AND_DRIVE"
   },
   "calendar_weather_task": {
-    "status": "APP_IMPLEMENTED_ORIGINAL_SIGNED_AND_CLOUD_VERIFIED; LIVE_PIXEL_CALENDAR_CONNECTED; GOOGLE_PRODUCTION_OPEN",
+    "status": "APP_IMPLEMENTED_ORIGINAL_SIGNED_AND_CLOUD_VERIFIED; LIVE_PIXEL_CALENDAR_CONNECTED; GOOGLE_PRODUCTION_BLOCKED",
     "base_git_sha": "e09b60b6f84ffbb03a8d56ae9180c8fdafa7457c",
     "source_git_sha": "b7d5fcd71fd0e376b8750cf9eaacd94e47d72883",
     "host_tests": {
@@ -290,7 +290,7 @@
     "physical_installation": "NOT EXECUTED"
   },
   "google_calendar_cloud_setup": {
-    "status": "PIXEL_CALENDAR_CONNECTED_TEST_USER_CONFIRMED_PRODUCTION_OPEN",
+    "status": "PIXEL_CALENDAR_CONNECTED_TESTING_PRODUCTION_BLOCKED_AFTER_CONFIRMED_BRANDING_SAVE",
     "project_id": "gartenpirat-drive",
     "android_client": {
       "status": "CREATED_AND_READ_BACK",
@@ -314,17 +314,17 @@
     },
     "consent": {
       "publishing_before": "TESTING",
-      "publishing_after": "Testing",
+      "publishing_after": "Test",
       "google_account_grant": "OWNER_CONFIRMED_AND_PIXEL_CONNECTION_CHECKED",
       "audience": "External",
       "publishing_confirmation_completed": false,
       "app_name": "Haus & Garten",
-      "publishing_evidence_run_id": "9ba50c97-6b91-4704-b6c4-72de5744c189",
+      "publishing_evidence_run_id": "a6744fe4-7e82-44b8-8bdc-9e40de634957",
       "branding_evidence_run_id": "43d65b56-81da-4487-a59b-83cd3780517c",
       "owner_assistance_requested_for_publishing": true,
       "branding_save_reported_by_browser": true,
       "branding_final_save_button_clicked": true,
-      "branding_final_save_acknowledgement_literal": null,
+      "branding_final_save_acknowledgement_literal": "Änderungen gespeichert",
       "branding_field_values_read_back": true,
       "owner_publishing_attempt_reported": "MISSING_OR_BLOCKED",
       "publishing_control_last_observed_disabled": true,
@@ -362,6 +362,22 @@
         "account_identity_omitted_from_source": true,
         "status": "SAVED_AND_READ_BACK",
         "pixel_result_after_change": "OWNER_REPORTS_CONNECTED_AND_MCP_CONFIRMS"
+      },
+      "branding_final_save_evidence_run_id": "a6744fe4-7e82-44b8-8bdc-9e40de634957",
+      "post_connection_production_check": {
+        "run_id": "a6744fe4-7e82-44b8-8bdc-9e40de634957",
+        "publishing_before": "Test",
+        "publishing_after": "Test",
+        "publish_clicked": false,
+        "publish_confirmation_completed": false,
+        "production_confirmed": false,
+        "branding_save_clicked": true,
+        "branding_saved_values_read_back": true,
+        "branding_save_message_literal": "Änderungen gespeichert",
+        "pending_contact_chip_found": false,
+        "support_selection_completed": true,
+        "contact_chip_committed": true,
+        "blocker_literal": "Damit Sie Ihre Anwendung veröffentlichen können, müssen Sie die Konfiguration auf der Seite „Branding“ abschließen."
       }
     },
     "evidence_file": "docs/verification/google-calendar-cloud-2026-10-22.json"

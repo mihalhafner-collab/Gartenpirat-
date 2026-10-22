@@ -3,6 +3,16 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Kalender R7 – Verbindung funktioniert; Google-Produktion trotz bestätigtem Branding-Speichern gesperrt (22.10.2026)
+
+Nach dem echten Pixel-Verbindungserfolg wurde die Produktionsreife gezielt neu geprüft (Run **a6744fe4-7e82-44b8-8bdc-9e40de634957**). Das Branding wurde tatsächlich gespeichert, nun mit der ausdrücklichen Google-Bestätigung **Änderungen gespeichert**; App-Name sowie vorhandene Support-/Entwicklerkontakte wurden gespeichert zurückgelesen. Ein unbestätigter Kontakt-Chip ist damit als konkrete Ursache nicht belegt. Kontoadressen bleiben außerhalb des technischen Nachweises. Keine öffentlichen URLs erfunden, Website veröffentlicht oder Verifizierungsprüfung eingereicht.
+
+Die anschließend unabhängig neu gelesene Zielgruppe bleibt **Test**. **App veröffentlichen** bleibt gesperrt mit dem wörtlichen Google-Hinweis **Damit Sie Ihre Anwendung veröffentlichen können, müssen Sie die Konfiguration auf der Seite Branding abschließen.** Kein Veröffentlichungsklick oder Bestätigungsdialog ausgeführt, kein Produktionsstatus vorgetäuscht. Der genaue verbleibende Google-Konfigurationsmangel ist weiterhin nicht bezeichnet; aus dem allgemeinen Hinweis werden keine fehlenden Pflicht-URLs, Abrechnung oder zwingende Verifizierung für den persönlichen Gebrauch abgeleitet. Weitere blinde Speicher-/Veröffentlichungsversuche unterbleiben.
+
+Die reale Kalenderverbindung ist dagegen **bestätigt**: Eigentümerfreigabe plus unabhängiges Pixel-MCP, verbunden/configured=true, Zustand checked, keine Fehler, erfolgreiche Kalenderprüfung13:18:02Z. Die neue Testnutzerzeile beseitigte die konkrete Google-403-Sperre. Solange Google den externen Testbetrieb führt, können Kalenderfreigaben nach sieben Tagen ablaufen; dauerhafte Erneuerung und Produktion sind **nicht abgenommen**. Keine produktiven Testtermine, Datenänderung durch Codex oder neue APK. Wetter war nicht Gegenstand dieses Nachlaufs.
+
+R6 einschließlich des Live-Verbindungserfolgs ist unter **5cb2831ee7af1f71000055bdd83b376826873ccf** auf dem bestehenden Branch gepusht und exakt zurückgelesen; striktes source_preservation PASS,1245Quell-/3667Workspace-Dateien Privacy PASS. App-Main/Gradle und das unveränderliche APK-Original-b7d5fcd bleiben bytegleich. Der abschließende offizielle Export in den vorbereiteten privaten Ordner https://drive.google.com/drive/folders/1aBT1HBB4t5-EEZ08-sA8-B7HGwi0pIfB sichert den nachfolgenden Dokumentationscommit; Manifest maßgeblich, Wegweiser erst nach vollständigem tatsächlichem Readback umstellen. R5 und alle APK-Originale bleiben erhalten.
+
 ## Kalender R6 – Testnutzer ergänzt und echte Pixel-Kalenderverbindung bestätigt (22.10.2026)
 
 Der neue Nutzerscreenshot zeigt nach einem echten Pixel-Anmeldeversuch **403: access_denied** mit der ausdrücklichen Google-Begründung, dass die App getestet wird und nur vom Entwickler genehmigte Tester Zugriff erhalten. Die zunächst tatsächlich gelesene Testnutzerliste im bestehenden Projekt **gartenpirat-drive** war leer. Die aktuelle Ablehnung ist damit auf die Testnutzerbeschränkung eingegrenzt; sie belegt keinen erneuten Paket-/Signaturfehler und keine zwingende öffentliche App-Verifizierung für den persönlichen Testzugang.

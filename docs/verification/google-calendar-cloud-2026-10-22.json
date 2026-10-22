@@ -1,7 +1,7 @@
 {
   "format": "hausgarten.google-calendar-cloud-setup.v1",
-  "observed_at_utc": "2026-10-22T13:20:05.700105+00:00",
-  "status": "PIXEL_CALENDAR_CONNECTED_TEST_USER_CONFIRMED_PRODUCTION_OPEN",
+  "observed_at_utc": "2026-10-22T13:27:53.979017+00:00",
+  "status": "PIXEL_CALENDAR_CONNECTED_TESTING_PRODUCTION_BLOCKED_AFTER_CONFIRMED_BRANDING_SAVE",
   "project_id": "gartenpirat-drive",
   "android_client": {
     "status": "CREATED_AND_READ_BACK",
@@ -36,17 +36,17 @@
   },
   "consent": {
     "publishing_before": "TESTING",
-    "publishing_after": "Testing",
+    "publishing_after": "Test",
     "google_account_grant": "OWNER_CONFIRMED_AND_PIXEL_CONNECTION_CHECKED",
     "audience": "External",
     "publishing_confirmation_completed": false,
     "app_name": "Haus & Garten",
-    "publishing_evidence_run_id": "9ba50c97-6b91-4704-b6c4-72de5744c189",
+    "publishing_evidence_run_id": "a6744fe4-7e82-44b8-8bdc-9e40de634957",
     "branding_evidence_run_id": "43d65b56-81da-4487-a59b-83cd3780517c",
     "owner_assistance_requested_for_publishing": true,
     "branding_save_reported_by_browser": true,
     "branding_final_save_button_clicked": true,
-    "branding_final_save_acknowledgement_literal": null,
+    "branding_final_save_acknowledgement_literal": "Änderungen gespeichert",
     "branding_field_values_read_back": true,
     "owner_publishing_attempt_reported": "MISSING_OR_BLOCKED",
     "publishing_control_last_observed_disabled": true,
@@ -84,6 +84,22 @@
       "account_identity_omitted_from_source": true,
       "status": "SAVED_AND_READ_BACK",
       "pixel_result_after_change": "OWNER_REPORTS_CONNECTED_AND_MCP_CONFIRMS"
+    },
+    "branding_final_save_evidence_run_id": "a6744fe4-7e82-44b8-8bdc-9e40de634957",
+    "post_connection_production_check": {
+      "run_id": "a6744fe4-7e82-44b8-8bdc-9e40de634957",
+      "publishing_before": "Test",
+      "publishing_after": "Test",
+      "publish_clicked": false,
+      "publish_confirmation_completed": false,
+      "production_confirmed": false,
+      "branding_save_clicked": true,
+      "branding_saved_values_read_back": true,
+      "branding_save_message_literal": "Änderungen gespeichert",
+      "pending_contact_chip_found": false,
+      "support_selection_completed": true,
+      "contact_chip_committed": true,
+      "blocker_literal": "Damit Sie Ihre Anwendung veröffentlichen können, müssen Sie die Konfiguration auf der Seite „Branding“ abschließen."
     }
   },
   "observed_pixel": {
@@ -117,16 +133,16 @@
   "billing_enabled_or_trial_started": false,
   "source_generation_folder_id": "1aBT1HBB4t5-EEZ08-sA8-B7HGwi0pIfB",
   "limitations": [
-    "Owner Test-user entry saved and independently read back. Owner now confirms Calendar connected; Pixel MCP independently confirms a successful connection and cleared registration error.",
-    "External/Testing remains at the last Cloud read. Calendar grants in this state can expire after seven days; production publishing and durable operation are not yet verified.",
-    "The previous production-publishing attempt was blocked by the Branding-completion helper. A focused fresh check after the successful user consent is pending.",
-    "No productive appointment writes, endurance/restart acceptance or live weather coverage test performed."
+    "Real Pixel Calendar connection is confirmed by owner and independent MCP. The saved Test-user entry resolved the observed 403 access restriction.",
+    "Fresh Google publishing check after real user consent still reports Test and a disabled publishing button. Branding Save now has an explicit Changes saved acknowledgement and saved required values were read back, but Google still gives the same generic Branding-completion helper.",
+    "Exact remaining Google publication requirement is not identified. The observed form does not establish mandatory public URLs or verification review for personal use; none was invented/submitted.",
+    "Testing Calendar grants can expire after seven days. In production and long-term durability are NOT verified.",
+    "No productive appointment writing test, restart/endurance acceptance or live weather coverage test performed."
   ],
   "source_generation_verification_requirement": "Publish wayfinders only after complete official export and actual readback; exact source commit is defined by its export manifest.",
   "remaining_actions": [
-    "Read fresh Google Auth Platform production gate after successful Test-user save and real Pixel grant; complete genuinely unfinished Branding controls without invented public URLs.",
-    "If enabled, publish In production and independently read back that status.",
-    "Confirm connection remains available after the production-status change; no productive test appointment required."
+    "Resolve the external Google production-publishing blocker using a concrete missing requirement or support evidence; do not repeat blind Save/Publish attempts or infer mandatory paid verification.",
+    "After a confirmed In production change, verify the real Pixel connection/renewal again. Current working Testing connection remains distinct from permanent access."
   ],
   "live_calendar_verification_scope": "Owner reports Calendar connected; Pixel MCP independently reports connected/configured=true, state checked, empty errors and successful Calendar check timestamp. No productive appointment writing test or endurance test performed."
 }
