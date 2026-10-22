@@ -2131,8 +2131,8 @@
     "android/app/src/main/assets/personal-payment.js": "61578775a2e9951d4b7b4e21f84905bb45c3de69eddc69df245d79e0aef0918d",
     "android/app/src/main/assets/photo-settings.js": "11c3bd7281f061139656b908e46e1d2e669a54ae8df34dbd6428f7fe16ace0ed",
     "android/app/src/main/assets/pixel-tunnel-ui.js": "568bcdd746939dd4a6d55757472de0e0e3d03f737f4304c80c19c40c7c45bc40",
-    "android/app/src/main/assets/planning-ui.css": "4268bc753776532177d4c9a69ef03763c12c5fd41c801c51a3253deb48ac59fc",
-    "android/app/src/main/assets/planning-ui.js": "73eddd01043caad73d1767ff0f76de55307a46502ef8a3666c1f5d936d5cb175",
+    "android/app/src/main/assets/planning-ui.css": "af8870dca29a264066d33ef240f6a0a19c7a9e8deb77f68b537fc41a5d7cd2f9",
+    "android/app/src/main/assets/planning-ui.js": "20f6c7b47e01a49242aa240f3706cbdf2a3fd94da7db9a5a6501c22a07576c9b",
     "android/app/src/main/assets/plant-catalog.js": "af4dcc1df1fc0e746a73faac9d38246bb57f8754427633063ef3b4f51b1c508c",
     "android/app/src/main/assets/pull-refresh.js": "c24e2fcd7ddfae6394e634d5c5e0d1619a4b67acd716d52140581983373f8fa9",
     "android/app/src/main/assets/record-actions.css": "b8f646da0129535c9b3e4489bbe73a07c0c1ee8b6c054305cd8f1e941b600b35",
@@ -2151,9 +2151,10 @@
     "android/app/src/main/java/at/hausgarten/service/PixelLocalStore.java": "59117d8d37afaa76d7ad34c9446d932f11588c6eb1cfe2316b84afd6d0072b4a",
     "android/app/src/main/java/at/hausgarten/service/BusinessDataBridge.java": "fd5778b889d762fca620a0339e3a23ea3fcfa7e099340b268c3a969d8e1b9573",
     "android/app/src/main/java/at/hausgarten/service/NativeOwnerQueries.java": "99c5562493f71e6d9e9c46006fad6b93fe26f4221294310cea91647dbbe61b30",
-    "android/app/src/main/java/at/hausgarten/service/PlanningConnectionActivity.java": "f6b5fd125bde6d3eaceed63baeaa0632328d8caca2e25e6296d78f635ee73d88",
+    "android/app/src/main/java/at/hausgarten/service/PlanningConnectionActivity.java": "26e2a753640dc93f6574d615cfecc30b9cc8d00c160292c42e74b729f6b7ff2f",
     "android/app/src/main/java/at/hausgarten/service/DriveConnectionActivity.java": "bb05c3ae538df25209041b3d6727fc2c4177b08868a08da525a07a2cbd74de5e",
     "android/app/src/main/java/at/hausgarten/service/PixelTunnelActivity.java": "5344f908037dcc9f50549c279e05bff2ed7dc378153bb1a47e3dbefd0fba1b16",
-    "android/app/src/main/java/at/hausgarten/service/NativeUi.java": "d49edfc81f227a1df1e8321b9fc6cea035d0f2c0e8d83e542e281bc559eaa035"
+    "android/app/src/main/java/at/hausgarten/service/NativeUi.java": "d49edfc81f227a1df1e8321b9fc6cea035d0f2c0e8d83e542e281bc559eaa035",
+    "android/app/src/main/java/at/hausgarten/service/CalendarSetupRules.java": "c2049341103fbb0c6aa2a4bc400c8af0dcb2900af3ec224320c336f1013d5755"
   }
 }

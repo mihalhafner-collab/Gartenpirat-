@@ -102,3 +102,5 @@
 .planning-calendar-choices>button{width:100%;min-height:48px}
 .planning-calendar-choices>.sub{margin:0;font-size:var(--hg-fs-caption);line-height:1.4}
 @media(max-width:360px){.planning-compare-grid{grid-template-columns:minmax(0,1fr)}}
+
+.planning-weather[data-severity="clear"][data-forecast-stage="trend"]{background:#edf2f3;color:#263c43}

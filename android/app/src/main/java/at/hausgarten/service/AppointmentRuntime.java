@@ -53,6 +53,8 @@ final class AppointmentRuntime {
         status.put("calendar_last_success_at",store.ownerValue("calendar:last_success_at","")).put("calendar_last_attempt_at",store.ownerValue("calendar:last_attempt_at","")).put("calendar_next_retry_at",p.getString("calendar_retry_at","")).put("calendar_setup_attempt_at",p.getString("calendar_setup_attempt_at","")).put("calendar_setup_failed_at",p.getString("calendar_setup_failed_at",""));
         String setup=p.getString("calendar_setup_code","");status.put("calendar_setup_stage",setup.isEmpty()?"":CalendarAccessRules.phase(p.getString("calendar_setup_stage","grant")));if(p.contains("calendar_setup_result_code"))status.put("calendar_setup_result_code",p.getInt("calendar_setup_result_code",0));
         return status.put("calendar_setup_error_code",CalendarAccessRules.safeCode(p.getString("calendar_setup_code",""))).put("calendar_error_code",CalendarAccessRules.safeCode(PlanningAccount.connected(c)?store.ownerValue("calendar:last_error_code",""):p.getString("calendar_setup_code",""))).put("calendar_connected",PlanningAccount.connected(c)).put("calendar_configured",calendarEnabled(c,store)).put("weather_configured",flag(c,store,"weather_enabled")).put("calendar_state",store.ownerValue("calendar:status",calendarEnabled(c,store)?"pending":"not_connected")).put("weather_state",store.ownerValue("weather:status",flag(c,store,"weather_enabled")?"pending":"not_configured"))
+            .put("calendar_registration_required",setup.equals("CALENDAR_APP_REGISTRATION_REQUIRED")).put("calendar_setup_next_action",setup.equals("CALENDAR_APP_REGISTRATION_REQUIRED")||setup.equals("CALENDAR_API_DISABLED")?"google_project_configuration":!PlanningAccount.connected(c)||store.ownerValue("calendar:status","").equals("authorization_required")?"authorize_on_device":"sync")
+            .put("weather_provider",OpenMeteoWeatherSource.PROVIDER).put("weather_use_mode","non_commercial").put("weather_requested_forecast_days",OpenMeteoWeatherSource.FORECAST_DAYS)
             .put("notification_permission",Build.VERSION.SDK_INT<33||c.checkSelfPermission("android.permission.POST_NOTIFICATIONS")==android.content.pm.PackageManager.PERMISSION_GRANTED).put("notification_state",WeatherNotifications.state(c)).put("weather_notifications_enabled",flag(c,store,"notifications")).put("notifications_available",WeatherNotifications.ready(c)).put("background_best_effort",true).put("credentials_exposed",false);
     }
     static JSONObject weatherLocation(PixelLocalStore store,JSONObject appointment)throws Exception {
@@ -71,6 +73,7 @@ final class AppointmentRuntime {
     private static JSONObject riskAtLocation(PixelLocalStore store,JSONObject a,Instant now)throws Exception {
         JSONObject cache=null;if(a.has("latitude")&&!a.isNull("latitude"))cache=new JSONObject(store.ownerValue("weather:"+WeatherRiskRules.locationKey(a),"{}"));
         JSONObject risk=WeatherRiskRules.evaluate(a,cache==null||cache.length()==0?null:cache,now,settings(store));
+        if(cache==null||cache.optString("forecast_provider").isEmpty())risk.put("source",OpenMeteoWeatherSource.ATTRIBUTION);
         String state=a.optString("weather_location_state","missing");risk.put("location_label",a.optString("weather_location_label",a.optString("location"))).put("location_state",state);
         if(state.equals("locality_resolved"))risk.put("location_precision","locality").put("location_area",a.optString("weather_location_area")).put("location_notice","Ortsvorhersage: Die genaue Hausadresse wurde nicht erkannt. Wetter am Grundstück kann abweichen.");
         if(!WeatherLocationRules.coordinates(a)){
@@ -86,7 +89,12 @@ final class AppointmentRuntime {
         else {
             JSONArray rows=out.getJSONArray("appointments"),risks=new JSONArray();for(int i=0;i<rows.length();i++){JSONObject entry=rows.getJSONObject(i),a=entry.getJSONObject("appointment"),r=riskAtLocation(store,weatherLocation(store,a,master),now);entry.put("weather",r).put("calendar",calendarState(c,store,a)).put("collisions",AppointmentAvailability.assess(a,master.getJSONArray("appointments"),availability));if(!r.optString("severity").equals("clear")&&!r.optString("severity").equals("inactive"))risks.put(new JSONObject().put("appointment_id",a.getString("id")).put("weather",r).put("acknowledged",!r.optString("alert_hash").isEmpty()&&r.optString("alert_hash").equals(store.ownerValue("weather:ack:"+a.getString("id"),""))));}
             out.put("weather_risks",risks);
-            if(name.equals("get_workweek_weather")||name.equals("get_weather_risks"))out.put("forecast_days",14).put("next_workdays",nextWorkdays(store,now)).put("source","GeoSphere Austria · CC BY 4.0");
+            if(name.equals("get_workweek_weather")||name.equals("get_weather_risks")){
+                int actualDays=rows.length()==0?0:OpenMeteoWeatherSource.FORECAST_DAYS,covered=0;boolean complete=rows.length()>0;Set<String> sources=new LinkedHashSet<>();
+                for(int i=0;i<rows.length();i++){JSONObject r=rows.getJSONObject(i).getJSONObject("weather");boolean available=r.optBoolean("forecast_available");if(available){covered++;sources.add(r.optString("source"));}complete&=available&&r.optBoolean("forecast_complete");actualDays=Math.min(actualDays,available?r.optInt("forecast_days"):0);}
+                out.put("forecast_days",actualDays).put("requested_forecast_days",OpenMeteoWeatherSource.FORECAST_DAYS).put("forecast_covered_appointments",covered).put("forecast_coverage_complete",complete)
+                    .put("next_workdays",nextWorkdays(store,now)).put("source",sources.isEmpty()?OpenMeteoWeatherSource.ATTRIBUTION:String.join(" / ",sources)).put("weather_use_mode","non_commercial");
+            }
         }
         return out.put("availability",availability).put("integration",integration(c,store)).put("planning_settings",settings(store));
     }
@@ -296,9 +304,10 @@ final class AppointmentRuntime {
             String loc=site.getKey();JSONObject cache=new JSONObject(store.ownerValue("weather:"+loc,"{}"));
             for(Iterator<String> keys=common.keys();keys.hasNext();){String key=keys.next();cache.put(key,common.get(key));}
             try{
-                FreeWeatherSource.refreshSite(loc,cache,now,site.getValue(),wire);cache.remove("source_unavailable");
+                FreeWeatherSource.refreshNonCommercialSite(loc,cache,now,site.getValue(),wire);cache.remove("source_unavailable");
                 if(site.getValue()<=3*3600){JSONObject assessment=null;for(int i=0;i<all.length();i++){JSONObject a=all.getJSONObject(i);if(loc.equals(WeatherRiskRules.locationKey(a))){assessment=WeatherRiskRules.evaluate(a,cache,now,settings(store));if(!assessment.optString("severity").equals("clear"))break;}}
-                    if(assessment!=null&&!assessment.optString("severity").equals("clear"))FreeWeatherSource.refreshNowcast(loc,cache,now,wire);
+                    if(assessment!=null&&!assessment.optString("severity").equals("clear"))try{FreeWeatherSource.refreshNowcast(loc,cache,now,wire);cache.remove("nowcast_status");}
+                    catch(Exception unavailable){cache.put("nowcast_status","Kurzfristwetter derzeit nicht verfügbar.");if(CalendarRecoveryRules.interrupted(unavailable)||(unavailable instanceof DriveRestClient.Failure&&Arrays.asList("WEATHER_RATE_LIMIT","WEATHER_BATCH_PENDING").contains(((DriveRestClient.Failure)unavailable).code)))throw unavailable;}
                 }
             }catch(Exception unavailable){failure=unavailable;if(unavailable instanceof DriveRestClient.Failure&&((DriveRestClient.Failure)unavailable).userAction)cache.put("source_unavailable",true);}
             finally{

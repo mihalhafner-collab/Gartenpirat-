@@ -1,28 +1,18 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-21",
+  "updated_at_utc": "2026-10-22",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
-  "development_ref": "refs/heads/codex/apk-1.54.3-build92-20261022",
+  "development_ref": "refs/heads/codex/calendar-weather-20261022",
   "development_snapshot": {
-    "status": "CLOUD_VERIFIED_ORIGINAL_UPDATE_CANDIDATE92; PIXEL_GOOGLE_NOT_EXECUTED",
-    "version_name": "1.54.3",
-    "version_code": 92,
-    "source_git_sha": "aff54dbd7cd64437645bba71242688ec5da4c30b",
-    "source_tag": "source/v1.54.3-build92",
-    "source_sha256": "17d8be0d257733544896546bf22086d33d157011dfd0ab14db7664d42486ed34",
-    "main_and_gradle_files": 542,
-    "main_assets": 421,
-    "apk_sha256": "4f08b012bfd2c38259974c94b3071e218962d330f70ccb332725c77d25ec2814",
-    "apk_original_certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-    "apk_drive_id": "1UHmeEkSO6k0-zU3i6DM53gjgyHDL-fwk",
-    "source_zip_drive_id": "10o0nWq_EK2qAF4zQHj_U2jev_4s6C5qT",
-    "source_zip_sha256": "17af4375bdcf14352b93fdfcc7a6093ced4b5f7464422cfe9c45533d2dc45040",
-    "drive_folder_id": "1pzAVZQcxcvYEqbEYYzZXKg7cNm0qllw_",
-    "development_export_folder_id": "12LQGZIMfClGhdKPOikgbU3L_e5pg8rPT",
-    "pixel_installation": "NOT EXECUTED",
-    "native_cloud_acceptance": "158/158;91->92 snapshot;fresh_isolated;native UI;final snapshot PASS",
-    "google_live_authorization": "NOT EXECUTED",
-    "drive_readback": "19 original-source receipts:18 SHA256_BYTES+1 ZIP STREAM_SIZE_ONLY; APK COMPLETE_STREAM_SIZE_ONLY"
+    "status": "IMPLEMENTED; HOST_ACCEPTANCE_IN_PROGRESS; ORIGINAL_SIGNING_READY; GOOGLE_SETUP_BLOCKED",
+    "version_name": "1.54.4",
+    "version_code": 93,
+    "source_location": "https://github.com/mihalhafner-collab/Gartenpirat-/tree/codex/calendar-weather-20261022",
+    "base_git_sha": "e09b60b6f84ffbb03a8d56ae9180c8fdafa7457c",
+    "apk": "PENDING ORIGINAL SIGNED DEVELOPMENT CANDIDATE",
+    "calendar": "observed grants and actionable registration diagnostics; live project registration not performed",
+    "weather": "keyless Open-Meteo non-commercial; requested16days; actual coverage reported",
+    "native_acceptance": "PENDING; current original runtime signing readiness confirmed"
   },
   "verified_release_source": {
     "version": "1.54.1",
@@ -36,17 +26,18 @@
     "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB"
   },
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-10-21",
-    "version_name": "1.54.1",
-    "version_code": 90,
-    "reported_base_git_sha": "72f96919d6a42ef8a2759c14c6da1df7359726d6",
-    "source_sha256": "42c1fd1a43c1e8331b7a34f54cbf7cbb91e0b615d16c64729e62427d689b1052",
-    "source_dirty": true,
-    "source_status": "EXACT_ORIGINAL_SOURCE_SECURED_ON_GITHUB_AND_DRIVE"
+    "observed_at_utc": "2026-10-22",
+    "version_name": "1.54.3",
+    "version_code": 92,
+    "reported_base_git_sha": "aff54dbd7cd64437645bba71242688ec5da4c30b",
+    "source_sha256": "17d8be0d257733544896546bf22086d33d157011dfd0ab14db7664d42486ed34",
+    "source_dirty": false,
+    "evidence": "Pixel MCP get_capabilities read-only; protocol9,117tools",
+    "calendar_live_state": "CALENDAR_APP_REGISTRATION_REQUIRED; not connected"
   },
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-apk92",
-    "required_action": "APK92 original candidate complete; use immutable original tag/source aff54db and candidate Drive folder. Current development docs/source are on the APK branch and linked development export subfolder. Do not install on Pixel, merge main or claim real Google consent without a separate request."
+    "required_action": "Continue calendar/weather branch. Original signing variables currently ready; use official signer only after source_preservation PASS. Preserve original92. Development93 not yet installed or Google-authorized. Google project registration and device consent remain required."
   },
   "verified_candidate_source": {
     "version": "1.54.3",
@@ -206,5 +197,35 @@
     "drive_apk_id": "1aqJIqC4oZXAym0QRYkE9pDFHeA3Yy2Kr",
     "drive_provenance_id": "1YwVTmqP-HFSSU3JYXp8e1h9woNCAzb9s",
     "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; original source bytes and actual APK verified in Cloud"
+  },
+  "previous_apk92_development_snapshot": {
+    "status": "CLOUD_VERIFIED_ORIGINAL_UPDATE_CANDIDATE92; PIXEL_GOOGLE_NOT_EXECUTED",
+    "version_name": "1.54.3",
+    "version_code": 92,
+    "source_git_sha": "aff54dbd7cd64437645bba71242688ec5da4c30b",
+    "source_tag": "source/v1.54.3-build92",
+    "source_sha256": "17d8be0d257733544896546bf22086d33d157011dfd0ab14db7664d42486ed34",
+    "main_and_gradle_files": 542,
+    "main_assets": 421,
+    "apk_sha256": "4f08b012bfd2c38259974c94b3071e218962d330f70ccb332725c77d25ec2814",
+    "apk_original_certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "apk_drive_id": "1UHmeEkSO6k0-zU3i6DM53gjgyHDL-fwk",
+    "source_zip_drive_id": "10o0nWq_EK2qAF4zQHj_U2jev_4s6C5qT",
+    "source_zip_sha256": "17af4375bdcf14352b93fdfcc7a6093ced4b5f7464422cfe9c45533d2dc45040",
+    "drive_folder_id": "1pzAVZQcxcvYEqbEYYzZXKg7cNm0qllw_",
+    "development_export_folder_id": "12LQGZIMfClGhdKPOikgbU3L_e5pg8rPT",
+    "pixel_installation": "NOT EXECUTED",
+    "native_cloud_acceptance": "158/158;91->92 snapshot;fresh_isolated;native UI;final snapshot PASS",
+    "google_live_authorization": "NOT EXECUTED",
+    "drive_readback": "19 original-source receipts:18 SHA256_BYTES+1 ZIP STREAM_SIZE_ONLY; APK COMPLETE_STREAM_SIZE_ONLY"
+  },
+  "previous_observed_installed_build": {
+    "observed_at_utc": "2026-10-21",
+    "version_name": "1.54.1",
+    "version_code": 90,
+    "reported_base_git_sha": "72f96919d6a42ef8a2759c14c6da1df7359726d6",
+    "source_sha256": "42c1fd1a43c1e8331b7a34f54cbf7cbb91e0b615d16c64729e62427d689b1052",
+    "source_dirty": true,
+    "source_status": "EXACT_ORIGINAL_SOURCE_SECURED_ON_GITHUB_AND_DRIVE"
   }
 }

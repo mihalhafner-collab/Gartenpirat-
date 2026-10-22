@@ -40,7 +40,7 @@ final class CalendarAccessRules {
     static String message(String value){switch(safeCode(value)){
         case "CALENDAR_AUTH_REQUIRED":return "Google hat die Kalenderfreigabe nicht bestätigt. Erneut verbinden und die Freigabe am Pixel bestätigen.";
         case "CALENDAR_API_DISABLED":return "Die Google Calendar API ist für die App nicht freigeschaltet. Die App-Einrichtung im Google-Projekt muss korrigiert werden; wiederholtes Antippen hilft hier nicht.";
-        case "CALENDAR_APP_REGISTRATION_REQUIRED":return "Google hat die Anmeldung dieser App abgewiesen. Die App-Freigabe muss im zugehörigen Google-Projekt korrigiert werden; erneutes Bestätigen allein hilft hier nicht.";
+        case "CALENDAR_APP_REGISTRATION_REQUIRED":return "Google hat die Anmeldung dieser App abgewiesen. Das kann bereits vor dem Berechtigungsdialog passieren. Die App-Freigabe muss im zugehörigen Google-Projekt korrigiert werden; erneutes Bestätigen allein hilft hier nicht.";
         case "CALENDAR_GOOGLE_AUTH_ERROR":return "Google konnte die Kalenderanmeldung nicht abschließen. Google-Konto erneut wählen. Erscheint keine Freigabe, muss die App-Einrichtung bei Google geprüft werden.";
         case "CALENDAR_GOOGLE_SERVICES_REQUIRED":return "Die Google-Play-Dienste sind nicht bereit. Am Pixel aktualisieren und die Kalenderfreigabe anschließend erneut starten.";
         case "CALENDAR_SCOPE_UNSUPPORTED":return "Google hat die angefragten Kalenderrechte abgewiesen. Die Kalenderfreigabe der App muss bei Google geprüft werden.";
