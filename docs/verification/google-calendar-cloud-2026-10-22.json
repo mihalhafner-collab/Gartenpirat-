@@ -1,7 +1,7 @@
 {
   "format": "hausgarten.google-calendar-cloud-setup.v1",
-  "observed_at_utc": "2026-10-22",
-  "status": "ANDROID_CLIENT_REGISTERED_API_SCOPES_PRODUCTION_READBACK_OPEN",
+  "observed_at_utc": "2026-10-22T12:04:24.033256+00:00",
+  "status": "ANDROID_CLIENT_API_SCOPES_CONFIRMED_BRANDING_COMPLETION_PUBLISHING_AND_PIXEL_GRANT_OPEN",
   "project_id": "gartenpirat-drive",
   "android_client": {
     "status": "CREATED_AND_READ_BACK",
@@ -16,8 +16,12 @@
     "service": "calendar-json.googleapis.com",
     "before": "DISABLED",
     "enable_action": "TRIGGERED",
-    "enabled_readback": "NOT_CONFIRMED",
-    "evidence_run_id": "8af194fc-96f1-47c2-935b-9f1ab9ddd077"
+    "enabled_readback": "CONFIRMED",
+    "evidence_run_id": "8af194fc-96f1-47c2-935b-9f1ab9ddd077",
+    "enabled": true,
+    "exact_status_text": "API aktiviert",
+    "readback_evidence_run_id": "0ca0ad98-293d-4ccc-aaa7-512fc0a2e5c0",
+    "readback_required_another_enable_click": false
   },
   "requested_scope_declarations": {
     "base": [
@@ -27,12 +31,37 @@
     "optional": [
       "https://www.googleapis.com/auth/calendar.freebusy"
     ],
-    "stored_readback": "IN_PROGRESS_NOT_CONFIRMED"
+    "stored_readback": "ALL_THREE_PRESENT_CONFIRMED",
+    "evidence_run_id": "19896823-dc1a-45ea-a7a3-ee0f5c980a95"
   },
   "consent": {
     "publishing_before": "TESTING",
-    "publishing_after": "NOT_CONFIRMED",
-    "google_account_grant": "NOT_VERIFIED"
+    "publishing_after": "Testing",
+    "google_account_grant": "NOT_VERIFIED",
+    "audience": "External",
+    "publishing_confirmation_completed": false,
+    "app_name": "Haus & Garten",
+    "publishing_evidence_run_id": "9ba50c97-6b91-4704-b6c4-72de5744c189",
+    "branding_evidence_run_id": "43d65b56-81da-4487-a59b-83cd3780517c",
+    "owner_assistance_requested_for_publishing": true,
+    "branding_save_reported_by_browser": true,
+    "branding_final_save_button_clicked": true,
+    "branding_final_save_acknowledgement_literal": null,
+    "branding_field_values_read_back": true,
+    "owner_publishing_attempt_reported": "MISSING_OR_BLOCKED",
+    "publishing_control_last_observed_disabled": true,
+    "publishing_blocker_literal": "Damit Sie Ihre Anwendung veröffentlichen können, müssen Sie die Konfiguration auf der Seite „Branding“ abschließen.",
+    "branding_fields": {
+      "app_name": "Haus & Garten",
+      "support_contact_present": true,
+      "developer_contact_present": true,
+      "homepage_present": false,
+      "privacy_policy_present": false,
+      "terms_present": false,
+      "url_fields_marked_required": false,
+      "visible_validation_errors": false,
+      "evidence_run_id": "8561ba98-2b95-4798-9328-26c9a3e18851"
+    }
   },
   "observed_pixel": {
     "version_name": "1.54.4",
@@ -45,7 +74,9 @@
     "calendar_error_code": "CALENDAR_APP_REGISTRATION_REQUIRED",
     "weather_provider": "open_meteo_non_commercial",
     "weather_use_mode": "non_commercial",
-    "weather_requested_forecast_days": 16
+    "weather_requested_forecast_days": 16,
+    "calendar_setup_attempt_at": "2026-10-22T08:24:55.042900Z",
+    "calendar_error_interpretation": "Recorded before this Cloud setup; no post-registration connection attempt observed"
   },
   "app_code_changed": false,
   "new_apk_created": false,
@@ -54,11 +85,15 @@
   "productive_calendar_test_entries_created": false,
   "billing_enabled_or_trial_started": false,
   "source_generation_folder_id": "1ujSGAnpVH_nX4uMgYAVh5nkW1KdYAgCe",
-  "source_generation_state": "PREPARED_NOT_YET_EXPORTED_OR_READ_BACK",
   "limitations": [
-    "Calendar API activation triggered but not yet verified after a browser-context failure.",
-    "Scope and publishing configuration is running; final stored values remain unconfirmed.",
-    "The owner must personally grant the real Google calendar consent on the Pixel.",
-    "Read-only observation of installed build93 does not establish a productive data-preservation acceptance or live weather forecast coverage."
+    "External/Testing remains. Google currently blocks publishing with a Branding-completion message despite populated form values; exact setup completion is still under investigation.",
+    "The owner must personally grant the real Google calendar consent on the Pixel after setup; no new post-registration connection attempt is observed.",
+    "Installed build93 observation is not a productive data-preservation acceptance or live weather coverage proof."
+  ],
+  "source_generation_verification_requirement": "Publish wayfinders only after complete official export and actual readback; exact source commit is defined by its export manifest.",
+  "remaining_actions": [
+    "Finish any genuinely incomplete Google Auth Platform/Branding setup, complete In production publishing and read back the stored status.",
+    "Owner opens Pixel More > Calendar & Weather > Reconnect and grants the actual Google Calendar permissions.",
+    "Read back the resulting real app-calendar connection; no productive test appointment is needed."
   ]
 }
