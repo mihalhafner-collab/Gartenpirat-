@@ -2,7 +2,7 @@
 from copy import deepcopy
 import json
 import unittest
-from tools.check_refactoring_contract import BASELINE, differences
+from tools.check_refactoring_contract import BASELINE, differences, approved_evolution
 
 
 class RefactoringContractTests(unittest.TestCase):
@@ -32,3 +32,18 @@ class RefactoringContractTests(unittest.TestCase):
         changed = deepcopy(self.contract)
         changed['tools'].reverse()
         self.assertEqual(differences(self.contract, changed), ['tools'])
+
+    def test_explicit_sync_evolution_is_narrow_and_never_refreshes_baseline(self):
+        delta=json.loads((BASELINE.parent/'sync-optimization-contract-v1.json').read_text())
+        updated=deepcopy(self.contract)
+        for c in delta['changes']:
+            updated[c['group']][c['key']]=c['after']
+        self.assertEqual(approved_evolution(self.contract,updated,delta),[])
+        updated['tools'].reverse()
+        self.assertEqual(approved_evolution(self.contract,updated,delta),['tools'])
+        updated=deepcopy(self.contract)
+        self.assertEqual(approved_evolution(self.contract,updated,delta),['contracts','observations'])
+        bad=deepcopy(delta);bad['changes'][0]['key']='TrashRules'
+        with self.assertRaises(ValueError): approved_evolution(self.contract,updated,bad)
+        bad=deepcopy(delta);bad['changes'][0]['before']='unreviewed'
+        with self.assertRaises(ValueError): approved_evolution(self.contract,updated,bad)

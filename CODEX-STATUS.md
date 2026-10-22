@@ -3,6 +3,12 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Umsetzung B1 – sechs Auditoptimierungen implementiert (22.10.2026)
+
+Queueaktion vor tatsächlicher Übergabe korrigiert; additive action_counts unterscheiden gespeicherte/lokale/Upload-/Prüfaktionen; native Statusflags und SyncPolicy berücksichtigen ausgeschaltete Automatik und explizite Anforderungen. Kataloge haben zusätzlich catalog-json-v1 mit unabhängiger JSON-Zeichenkodierung; alte Katalog-/Geschäftshashes sowie CATALOG_CHANGED bleiben erhalten. SAF erhält genaue Leseunterphasen, stabile datensparsame IO-Codes und einen4MiB-Cache verifizierter unveränderlicher Bytes/anfänglicher Inventarliste ausschließlich bis zur Schreibgrenze. Vor Journal-/Snapshotveröffentlichung Cache vollständig verwerfen; frisches Inventar und Originalvergleich bleiben Pflicht. Kein Wechsel des Kontos/Transports.
+
+43JVM-Suiten einschließlich35neuer gezielter Prüfungen PASS;1047UI-MCP-Paritätsassertions PASS;7Python-Vertrags-/Baselineprüfungen PASS. Historische P1-Baseline unverändert. Explizite, eng begrenzte Funktionsevolution sync-optimization-contract-v1 bindet genau DriveJournalRules-Quellhash und qa_case_14-Ausgabehash; übrige Vertragsgruppen bleiben strikt eingefroren. Native Providerfälle ergänzt; deren tatsächliche Ausführung und vollständige Gesamtprüfung stehen noch aus. Keine Produktivdaten in Fixtures oder Checkout. Live-Sync weiterhin offen, bis neue Laufzeit tatsächlich installiert/geprüft ist.
+
 ## Umsetzung des Auditauftrags – Blöcke und Abnahme (22.10.2026)
 
 Ausgang: unveränderte Original-App1.54.5/94, Auditbranch3355a497; main und bestehende Arbeitsbranches frisch verglichen. Nutzerauftrag autorisiert die sechs dokumentierten Optimierungen, gezielte vollständige operative Entfernung der ausdrücklich benannten MCP-Testkunden sowie UX-/Sync-Korrekturen. Keine produktive Testanlage. Historische Originale/Backups und minimale Lösch-/Idempotenzbelege bleiben geschützt.

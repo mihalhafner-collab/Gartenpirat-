@@ -17,6 +17,21 @@ def differences(expected, current):
     return sorted(key for key in expected.keys() | current.keys()
                   if key not in expected or key not in current or digest(expected[key]) != digest(current[key]))
 
+def approved_evolution(expected, current, delta):
+    # Narrow explicit functional evolution. The original P1 baseline stays immutable.
+    import copy
+    if delta.get('version') != 1 or delta.get('baseline_sha256') != hashlib.sha256(BASELINE.read_bytes()).hexdigest():
+        raise ValueError('Invalid versioned functional-contract proof')
+    reviewed = copy.deepcopy(expected)
+    for change in delta['changes']:
+        group, key = change['group'], change['key']
+        if (group, key) not in {('contracts', 'DriveJournalRules'), ('observations', 'qa_case_14')}:
+            raise ValueError('Unapproved functional-contract scope')
+        if reviewed[group][key] != change['before'] or not change.get('reason'):
+            raise ValueError('Functional-contract predecessor changed')
+        reviewed[group][key] = change['after']
+    return differences(reviewed, current)
+
 def observe():
     tools = json.loads((ROOT/'outputs/integration-java/source-tool-catalog.json').read_text())
     ui = json.loads((ROOT/'android/app/src/main/assets/ui-mcp-actions.json').read_text())
@@ -54,7 +69,11 @@ def main():
     expected = json.loads(BASELINE.read_text())['contract']
     changed = differences(expected, current)
     if changed:
-        raise SystemExit('FAIL P1 contract changed: '+', '.join(changed))
+        delta = json.loads((ROOT/'tests/fixtures/sync-optimization-contract-v1.json').read_text())
+        unapproved = approved_evolution(expected, current, delta)
+        if unapproved:
+            raise SystemExit('FAIL unreviewed functional contract changed: '+', '.join(unapproved))
+        print('PASS explicit sync-optimization-contract-v1; original P1 differences: '+', '.join(changed))
     read = sum(t['annotations']['readOnlyHint'] for t in current['tools'])
     print(json.dumps(dict(result='PASS', tools=len(current['tools']), read=read,
                           write=len(current['tools'])-read, ui_actions=len(current['ui_actions']),

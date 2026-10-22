@@ -15,7 +15,7 @@ final class DriveProviderAcceptance {
     static final String AUTHORITY="at.hausgarten.isolated.documents";
     static final String MOBILE="HausGarten-Mobile-qadevice.json";
     static final class MockDrive extends DocumentsProvider{
-        final File directory;final LinkedHashMap<String,String> names=new LinkedHashMap<>(),mimes=new LinkedHashMap<>(),parents=new LinkedHashMap<>();int serial;boolean offlineWrite,badReadback,written,failAfterRename;String renamed="";
+        final File directory;final LinkedHashMap<String,String> names=new LinkedHashMap<>(),mimes=new LinkedHashMap<>(),parents=new LinkedHashMap<>();int serial,queries;boolean nullQuery;boolean offlineWrite,badReadback,written,failAfterRename;String renamed="";
         MockDrive(File directory){this.directory=directory;directory.mkdirs();}
         String add(String name,String data)throws Exception{return add("root","application/json",name,data.getBytes(StandardCharsets.UTF_8));}
         String add(String parent,String mime,String name,byte[] data)throws Exception{String id="qa_doc"+(++serial);names.put(id,name);mimes.put(id,mime);parents.put(id,parent);try(FileOutputStream out=new FileOutputStream(file(id))){out.write(data);}return id;}
@@ -27,7 +27,7 @@ final class DriveProviderAcceptance {
         String[] columns(String[] projection){return projection==null?new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID,DocumentsContract.Document.COLUMN_DISPLAY_NAME,DocumentsContract.Document.COLUMN_MIME_TYPE,DocumentsContract.Document.COLUMN_LAST_MODIFIED}:projection;}
         void row(MatrixCursor cursor,String id){MatrixCursor.RowBuilder row=cursor.newRow();for(String key:cursor.getColumnNames()){switch(key){case DocumentsContract.Document.COLUMN_DOCUMENT_ID:row.add(id);break;case DocumentsContract.Document.COLUMN_DISPLAY_NAME:row.add(id.equals("root")?"Isolated Drive":names.get(id));break;case DocumentsContract.Document.COLUMN_MIME_TYPE:row.add(id.equals("root")?DocumentsContract.Document.MIME_TYPE_DIR:mimes.get(id));break;case DocumentsContract.Document.COLUMN_LAST_MODIFIED:row.add(id.equals("root")?0L:(long)Integer.parseInt(id.replace("qa_doc","")));break;default:row.add(null);}}}
         @Override public Cursor queryDocument(String id,String[] projection){MatrixCursor cursor=new MatrixCursor(columns(projection));row(cursor,id);return cursor;}
-        @Override public Cursor queryChildDocuments(String id,String[] projection,String sort){MatrixCursor cursor=new MatrixCursor(columns(projection));for(String child:names.keySet())if(id.equals(parents.get(child)))row(cursor,child);return cursor;}
+        @Override public Cursor queryChildDocuments(String id,String[] projection,String sort){queries++;if(nullQuery)return null;MatrixCursor cursor=new MatrixCursor(columns(projection));for(String child:names.keySet())if(id.equals(parents.get(child)))row(cursor,child);return cursor;}
         @Override public boolean isChildDocument(String parent,String child){String current=child;while(parents.containsKey(current)){current=parents.get(current);if(parent.equals(current))return true;}return false;}
         @Override public String createDocument(String parent,String mime,String name)throws FileNotFoundException{try{return add(parent,mime,name,new byte[0]);}catch(Exception error){throw new FileNotFoundException("Isolated creation failed");}}
         @Override public String renameDocument(String id,String name)throws FileNotFoundException{if(!names.containsKey(id))throw new FileNotFoundException();names.put(id,name);renamed=id;return id;}
@@ -60,6 +60,20 @@ final class DriveProviderAcceptance {
     static byte[] zipBytes(java.util.zip.ZipFile zip,String name)throws Exception{try(InputStream in=zip.getInputStream(zip.getEntry(name));ByteArrayOutputStream out=new ByteArrayOutputStream()){byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1){if(out.size()+n>21*1024*1024)throw new IOException("Synthetic ZIP bound exceeded");out.write(b,0,n);}return out.toByteArray();}}
     static String pkg(JSONObject action)throws Exception{return SyntheticBusinessData.object().put("format",1).put("actions",new JSONArray().put(action)).toString();}
     static void run(PixelMcpInstrumentation qa)throws Exception{
+        qa.probe("SAF read phase caches inventory and verified bytes but refreshes every write boundary",()->{try(Setup s=new Setup(qa)){
+            String value="qa_verified_bytes",name="HausGarten-Commit-"+DriveRestClient.sha256(value.getBytes(StandardCharsets.UTF_8))+".json",id=s.provider.add(name,value);
+            s.files.beginRead();int before=s.provider.queries;s.files.documents();s.files.documents();qa.yes(s.provider.queries==before+1);
+            DriveSyncCoordinator.Doc doc=null;for(DriveSyncCoordinator.Doc d:s.files.documents())if(d.id.equals(id))doc=d;
+            qa.yes(doc!=null);byte[] first=s.files.readImmutable(doc);s.provider.replace(id,"qa_changed_same_name_and_time".getBytes(StandardCharsets.UTF_8));qa.yes(Arrays.equals(first,s.files.readImmutable(doc)));
+            s.files.endRead();qa.yes(!Arrays.equals(first,s.files.readImmutable(doc)));qa.yes(s.files.documents().size()>0&&s.provider.queries>before+1);
+            s.provider.nullQuery=true;try{s.files.documents();throw new AssertionError("null provider query accepted");}catch(SyncIoFailure e){qa.yes(e.code.equals("PROVIDER_QUERY_FAILED"));}finally{s.provider.nullQuery=false;}
+        }});
+        qa.probe("SAF conflicting duplicate masters produce stable diagnosis without overwrite",()->{try(Setup s=new Setup(qa)){
+            s.provider.add("HausGarten-Laptop.json", "{\"qa_conflict\":true}");String before=s.store.snapshotText("");
+            try{s.sync();throw new AssertionError("different masters accepted");}catch(Exception error){qa.yes(DriveSyncCoordinator.failureCode(error).equals("REMOTE_DUPLICATES_DIFFER"));}
+            qa.yes(before.equals(s.store.snapshotText("")));qa.yes(s.context.getSharedPreferences("haus_garten",0).getBoolean("drive_user_action_required",false));
+        }});
+
         qa.probe("slow Drive read never holds SQLite and concurrent run joins without second network request",()->{try(Setup s=new Setup(qa)){
             java.util.concurrent.CountDownLatch entered=new java.util.concurrent.CountDownLatch(1),release=new java.util.concurrent.CountDownLatch(1);
             java.util.concurrent.atomic.AtomicInteger reads=new java.util.concurrent.atomic.AtomicInteger();
