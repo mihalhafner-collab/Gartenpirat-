@@ -3,6 +3,10 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Umsetzung96 – nachgewiesener Zeitzonenfehler im synthetischen Font-Fixture (22.10.2026)
+
+Fensterwächter nach WindowManager jetzt tatsächlich PASS, freier Screenshot ohne Systemdialog. Fixture zeigte nach22UTC keinen heutigen Termin: Emulator ist Etc/UTC, Planung/Heute verwendenEurope/Vienna und lagen bereits am Folgetag. Die künstlichen Termine wurden fälschlich mit Geräte-localDate statt dem Tag der Planungsansicht erzeugt. Testdatum nun explizit über dieselbe Europe/Vienna-Tagesgrenze erzeugen; keine Produktionsdatum-/Datenaufrufe geändert. Produktionsfingerprint bleibt exaktf19e1919, originale APK/ad84ec8f aus4625059 unverändert. QA-/Testquellen werden separat sauber gesichert und exportiert, zugehörige Originalinstrumentierung neu gebaut. Versionsmarke bindet weiterhin exakt den tatsächlich eingebetteten App-Quellcommit4625059; abschließender Dokumentations-/QA-Commit wird gesondert angegeben. Kein APKwechsel allein wegen Fixture-/Dokumentationskorrektur, keine erfolgreiche Fontabnahme behauptet, bevor sie tatsächlich läuft.
+
 ## Umsetzung96 – finale Fachabnahme und präzisierter Fensterwächter (22.10.2026)
 
 Originalkandidat3044ab5/Produktionsfingerprintf19e19197ec367d3a0b1bb9d8b478efc8943fe9ee4eebeec8fc4040e58679dad:172native Fachprüfungen/0FAIL,95→96-Vollledger, fresh_isolated und tatsächlicher WebView PASS. Alle Masterdaten, Beziehungen, eine offene Aktion und sämtliche persistierten Timerfelder unverändert. Schrift-/Displayrollback nach erster neuer Probe PASS.
