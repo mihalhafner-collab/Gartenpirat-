@@ -3,6 +3,10 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## APK94 R1 – konkrete native Anzeigeabnahme vorbereitet (22.10.2026)
+
+Zusätzlich zur Versionsanhebung erhält die vorhandene native UI-Probe lesende Prüfungen im echten gebündelten WebView: entfernte Hauptseiten-Wischeinstellung/Statuszeile fehlen, Gartenpirat-Option bleibt, Randmenü öffnet und Zurück schließt genau das Menü, Heute-Karte bleibt vorhanden und technische calendar_busy_*-Felder kommen über den echten nativen Owner-Lesepfad. Keine Geschäftsdaten für diese UI-Prüfung erzeugt oder verändert. Die bereits geänderte native Einrichtung wird mit vier sichtbaren Schaltern geprüft. Source-/Host-/Emulator-Abnahme folgt aus genau dem gesicherten Commit; kein physischer Pixelzugriff.
+
 ## APK94 R0 – Originalupdate aus dem geprüften Planungsstand beauftragt (22.10.2026)
 
 Der neue ausdrückliche Nutzerauftrag **Erstelle Apk laut Protokoll** autorisiert jetzt APK-Build, Versionsanhebung und Originalsignierung; die frühere Nur-Quellcode-Grenze des UI-Auftrags bleibt historisch und sperrt diesen Folgeauftrag nicht. Basis **7d1af30a024c5b07d9d64342e99eb55a254ab504** auf dem vorhandenen Branch codex/calendar-weather-20261022, frischer main **e499e745832449ce0202d04d9903495248e8b034** und vier Arbeitsbranches verglichen; keine fremden Änderungen/Resets. Original93 und sämtliche Quellen erhalten. Live-Pixel-MCP liest weiterhin Original1.54.4/93/b7d5fcd, source_dirty=false,117Tools. Keine produktive Geräteaktion.
