@@ -2,7 +2,7 @@
   "format": "gartenpirat.source-location.v1",
   "updated_at_utc": "2026-10-21",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
-  "development_ref": "refs/heads/codex/calendar-ui-overview-20261021",
+  "development_ref": "refs/heads/codex/apk-1.54.3-build92-20261022",
   "development_snapshot": {
     "status": "UI_SOURCE_ONLY_IMPLEMENTED_AND_HOST_TESTED; HOST_CHECKS_PASS_WITH_TARGETED_GALLERY_RECHECK; PIXEL_GOOGLE_NOT_EXECUTED",
     "implementation_checkpoint_git_sha": "97efbbbf9a2abbf7760f5beebbf7ce838291ed00",
@@ -156,5 +156,15 @@
     "drive_apk_id": "1aqJIqC4oZXAym0QRYkE9pDFHeA3Yy2Kr",
     "drive_provenance_id": "1YwVTmqP-HFSSU3JYXp8e1h9woNCAzb9s",
     "pull_request": "https://github.com/mihalhafner-collab/Gartenpirat-/pull/5"
+  },
+  "apk_build_task": {
+    "status": "PREPARING; NOT BUILT OR SIGNED",
+    "version_name": "1.54.3",
+    "version_code": 92,
+    "base_ui_commit": "c693b673c42556c87e6c72ee3f9318790d9de825",
+    "source_sha256": "17d8be0d257733544896546bf22086d33d157011dfd0ab14db7664d42486ed34",
+    "source_only_change": "android/app/build.gradle versionName/versionCode",
+    "pixel_installation": "NOT AUTHORIZED OR EXECUTED",
+    "runtime_account_data_access": "NONE"
   }
 }

@@ -3,6 +3,11 @@
 Stand: 21. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## APK-Auftrag 1.54.3 / Build 92 – Vorbereitung (22.10.2026)
+
+- Neuer ausdrücklicher Auftrag: APK laut bestehendem Protokoll erstellen. Version1.54.3/92 ist nach GitHub-Tags/Branches unbenutzt; operative Paketkennung und Originalschlüssel bleiben. Keine Pixelinstallation, Kontoaktion oder produktive Datenänderung. Quellbasis ist der exakt auf GitHub zurückgelesene UI-Commit c693b673c42556c87e6c72ee3f9318790d9de825. Alte lokale/UI-Historie unverändert erhalten; isolierter Git-Worktree im selben Repository auf codex/apk-1.54.3-build92-20261022. Native/Browser/Python/JVM/MCP- und Artefaktprüfungen müssen tatsächlich nachgewiesen werden; noch kein Build-/Signatur-/Auslieferungs-PASS.
+- Geänderte Appdatei ausschließlich android/app/build.gradle (Version); alle zuvor umgesetzten Sicherheits-/UI-Dateien identisch. Neuer Main-/Gradle-SHA256 17d8be0d257733544896546bf22086d33d157011dfd0ab14db7664d42486ed34. Frühere Originalversionen90/91 und deren Tags/Artefakte erhalten. Git-Transport jetzt lesend verfügbar; ursprünglicher lokaler79c868f ist wegen kanonisch anderem GitHub-Commit erwartungsgemäß nicht als Originalsignierquelle zulässig. Diese Prüfung wird nicht umgangen; der neue Kandidat wird regulär gepusht und am exakten Commit gegengeprüft.
+
 ## Kalender-Übersicht K1–K9 (Basis 1.54.2/91)
 
 **Gesamtauftrag umgesetzt; Quellcode-/Hostabnahme PASS mit getrenntem Galerie-Nachlauf. Keine neue APK oder Gerätefreigabe.** Maßgeblich ist `CODEX-GESAMTAUFTRAG-1.54.2.md` (SHA256 `f408ab0d9875931d033de8d6f46d1b3cc4ddab4ce094f374a8a1562da8e5d783`); dessen äußere Reihenfolge wurde eingehalten: Ausgangslauf → A → C → G1 → G3 → G4 → G5 → G6 → K1–K9 → Abschluss. G2 wird durch K8 ersetzt, B entfällt. Abweichende ältere eingebettete Versions-/Reihenfolgeangaben wurden nicht als neuer Auftrag behandelt.
