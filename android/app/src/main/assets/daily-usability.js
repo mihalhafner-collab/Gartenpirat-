@@ -36,7 +36,6 @@
       if(currentPage===before)return;
       if(previousFocus===document.activeElement&&previousFocus?.matches('input,textarea,select'))previousFocus.blur();
       if(currentPage==='customer-edit'){initialCustomer=formState();customerTouched=false;setTimeout(()=>{if(currentPage==='customer-edit'&&!customerTouched)initialCustomer=formState();},0);}
-      if(before==='customers'||currentPage==='customers'){get('customer-search').value='';get('customer-search').dispatchEvent(new Event('input',{bubbles:true}));}
       if(currentPage==='settings-page'){document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.open==='more-page'));updateSettings();}
     };
     // Modal cancellation uses existing cancel/close handlers, including editor validation.

@@ -62,9 +62,10 @@ public class MainActivity extends Activity implements McpSyncHost {
     private WorkLocationController workLocation;
     private static java.lang.ref.WeakReference<MainActivity> foreground = new java.lang.ref.WeakReference<>(null);
     static void refreshPlanningView(){MainActivity activity=foreground.get();if(activity!=null)activity.runOnUiThread(()->{if(activity.webView!=null)activity.webView.evaluateJavascript("window.PlanningUI&&window.PlanningUI.refresh();window.StatusUI&&window.StatusUI.refresh()",null);});}
+    static void refreshBusinessView(){MainActivity activity=foreground.get();if(activity!=null)activity.runOnUiThread(()->{if(activity.webView!=null)activity.webView.evaluateJavascript("window.onLocalBusinessChanged&&window.onLocalBusinessChanged()",null);});}
     static void requestMcpSync(Context context) {
         if(BuildConfig.UI_PREVIEW)return;
-        MainActivity activity=foreground.get();
+        refreshBusinessView();MainActivity activity=foreground.get();
         if(activity!=null)activity.runOnUiThread(()->activity.requestAutomaticSync(0));
         else DriveSyncCoordinator.request(context,0);
     }
@@ -89,6 +90,7 @@ public class MainActivity extends Activity implements McpSyncHost {
             DriveSyncJob.install(this);
             if(PlanningAccount.connected(this)||PlanningAccount.prefs(this).getBoolean("weather_enabled",false))PlanningJob.install(this);
         }
+        new Thread(()->{try{if(store.compactPurgedTestActions()>0)refreshBusinessView();}catch(Exception failure){runOnUiThread(()->Toast.makeText(this,"Testbereinigung benötigt Prüfung. Bestehende Daten bleiben erhalten.",Toast.LENGTH_LONG).show());}},"test-cleanup").start();
         pendingWorkPhotos = new PendingWorkPhotoStore(this);
         setContentView(buildLayout());
         if (Build.VERSION.SDK_INT >= 30) {

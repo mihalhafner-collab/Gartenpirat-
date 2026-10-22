@@ -23,8 +23,8 @@
     metrics.innerHTML=`<button type="button" class="design-metric" data-design-metric="today"><strong>${esc(hours(todayHours))}</strong><span>Heute erfasst</span></button><button type="button" class="design-metric" data-design-metric="week"><strong>${esc(get('current-week-hours')?.textContent||'0 h')}</strong><span>Diese Woche</span></button><button type="button" class="design-metric" data-design-metric="orders"><strong>${open.length}</strong><span>Offene Aufträge</span></button>`;
     const timer=get('workday-timer');if(timer){const heading=document.querySelector('#home .hero h2');if(heading.nextElementSibling!==timer)heading.after(timer);const anchor=get('planning-home')||timer;if(anchor.nextElementSibling!==metrics)anchor.after(metrics);const start=timer.querySelector('[data-session-action="start"]');if(start)start.querySelector('b').textContent='Arbeit starten';}
     let upcoming=get('design-upcoming');if(!upcoming){upcoming=document.createElement('section');upcoming.id='design-upcoming';upcoming.className='card';get('design-metrics').after(upcoming);}
-    const scheduled=open.filter(x=>x.scheduled_date===today);
-    upcoming.hidden=!scheduled.length;upcoming.innerHTML='<h3>Heute geplant</h3>'+scheduled.map(x=>`<button type="button" class="design-upcoming-row" data-edit-order="${esc(x.id)}"><strong>${esc(x.title)}</strong><small>${esc(customerName(x.customer_id))}${x.location?' · '+esc(x.location):''}</small></button>`).join('');
+    const plannedOrders=new Set(merged('appointments','appointment').filter(a=>!['cancelled','completed','draft'].includes(a.status)).map(a=>a.order_id));const scheduled=open.filter(x=>x.scheduled_date===today&&!plannedOrders.has(x.id));
+    upcoming.hidden=!scheduled.length;upcoming.innerHTML='<h3>Weitere Aufträge heute</h3>'+scheduled.map(x=>`<button type="button" class="design-upcoming-row" data-edit-order="${esc(x.id)}"><strong>${esc(x.title)}</strong><small>${esc(customerName(x.customer_id))}${x.location?' · '+esc(x.location):''}</small></button>`).join('');
     const week=document.querySelector('#home>.week-summary');if(week)week.hidden=true;
   }
   function compactLists(){

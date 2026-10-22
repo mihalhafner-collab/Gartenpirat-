@@ -319,8 +319,13 @@ final class DriveSyncCoordinator {
             return DrivePrimaryState.recover(legacy,device,new DrivePrimaryState.Storage(){
                 public Map<String,String> commits(){Map<String,String> out=new LinkedHashMap<>();for(Doc d:index.values())if(d.name.startsWith("HausGarten-Commit-"))out.put(d.id,d.name);return out;}
                 public byte[] read(String id)throws Exception{Doc d=index.get(id);if(d!=null)return Files.this.readImmutable(d);throw new IOException("Veröffentlichter Gesamtstand fehlt; keine leere Wiederanlage.");}
+                public byte[] readState(JSONObject manifest)throws Exception{return Files.this.readPublishedState(index,manifest);}
                 public void readCommits(Map<String,String> names,DrivePrimaryState.CommitVisitor visitor)throws Exception{Files.this.readCommitFiles(index,names,visitor);}
             },evidenceOnly);
+        }
+        byte[] readPublishedState(Map<String,Doc> index,JSONObject manifest)throws Exception {
+            Map<String,String> names=new LinkedHashMap<>();for(Doc d:index.values())names.put(d.id,d.name);
+            return ImmutableStateReference.read(names,manifest,id->readImmutable(index.get(id)));
         }
         void readCommitFiles(Map<String,Doc> index,Map<String,String> names,DrivePrimaryState.CommitVisitor visitor)throws Exception{
             for(Map.Entry<String,String> entry:names.entrySet()){Doc doc=index.get(entry.getKey());if(doc==null)throw new IOException("Veröffentlichter Beleg fehlt.");visitor.accept(entry.getKey(),entry.getValue(),readImmutable(doc));}

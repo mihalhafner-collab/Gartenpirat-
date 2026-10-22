@@ -10,6 +10,7 @@ final class DrivePrimaryState {
     interface Storage {
         Map<String,String> commits()throws Exception; // immutable document ID -> name
         byte[] read(String id)throws Exception;
+        default byte[] readState(JSONObject manifest)throws Exception{return read(manifest.getString("state_file_id"));}
         default void readCommits(Map<String,String> files,CommitVisitor visitor)throws Exception{for(Map.Entry<String,String> file:files.entrySet())visitor.accept(file.getKey(),file.getValue(),read(file.getKey()));}
     }
     static JSONObject recover(JSONObject legacy,String publisher,Storage storage)throws Exception {
@@ -36,7 +37,7 @@ final class DrivePrimaryState {
         JSONObject head=DrivePublication.head(summaries,publisher),state=new JSONObject(legacy.toString());
         String legacyHash=PixelMcpWriteTools.hash(legacy);
         if(head.length()>0) {
-            JSONObject m=manifests.get(head.getString("id"));byte[] bytes=storage.read(m.getString("state_file_id"));
+            JSONObject m=manifests.get(head.getString("id"));byte[] bytes=storage.readState(m);
             DrivePublication.verify(m,bytes,new JSONArray());state=new JSONObject(new String(bytes,StandardCharsets.UTF_8));
             if(state.has("drive_legacy_base_hash")&&!legacyHash.equals(state.getString("drive_legacy_base_hash"))
                     &&!observedLegacyHash.equals(state.getString("drive_legacy_base_hash"))

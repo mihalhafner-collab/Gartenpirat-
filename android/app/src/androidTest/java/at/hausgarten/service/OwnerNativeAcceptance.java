@@ -24,6 +24,18 @@ final class OwnerNativeAcceptance {
         try{task.run();}catch(java.io.IOException|IllegalArgumentException expected){test.yes(true);return;}throw new AssertionError("Changed document must be rejected");
     }
     static void run(PixelMcpInstrumentation test)throws Exception{
+        test.probe("purged local test journals compact atomically and never recreate records after restart",()->{try(Fixture f=new Fixture(test.getTargetContext())){
+            String real=PixelMcpWriteTools.hash(f.call("get_customer",SyntheticBusinessData.object().put("customer_id","qa_c")));
+            String id=f.store.saveCustomer(SyntheticBusinessData.object().put("name","[TEST] QA temporary").put("test_record",true));
+            JSONObject preview=f.call("preview_delete",SyntheticBusinessData.object().put("entity","customer").put("entity_id",id));
+            f.call("delete_entity",request("qa-test-cleanup-archive").put("entity","customer").put("entity_id",id).put("expected_record_hash",preview.getString("expected_record_hash")));
+            JSONObject purge=f.call("preview_purge",SyntheticBusinessData.object().put("entity","customer").put("entity_id",id));
+            JSONObject args=request("qa-test-cleanup-purge").put("entity","customer").put("entity_id",id).put("expected_record_hash",purge.getString("expected_record_hash")).put("confirmed",true);
+            JSONObject removed=f.call("purge_entity",args);test.yes(f.store.pendingActions().length()==0);test.yes(f.store.pendingActionsForDrive().length()==0);test.yes(f.call("purge_entity",args).getBoolean("replayed"));
+            try(PixelLocalStore reopened=new PixelLocalStore(f.context)){JSONObject all=PixelMcpReadTools.effective(reopened.getState());test.yes(OwnerJournalRules.findOrNull(all.getJSONArray("customers"),id)==null);test.yes(TrashRules.purged(all,"customer",id));test.yes(!OwnerJournalRules.archives(all).getJSONObject("customer:"+id).has("record"));}
+            test.yes(real.equals(PixelMcpWriteTools.hash(f.call("get_customer",SyntheticBusinessData.object().put("customer_id","qa_c")))));test.yes(f.call("inspect_backup",SyntheticBusinessData.object().put("backup_id",removed.getString("deletion_backup_id"))).getInt("protected_records")==1);
+        }});
+
         test.probe("refactored public bridge preserves inherited actions and isolated business writes",()->{try(Fixture f=new Fixture(test.getTargetContext())){
             int inherited=0,business=0;for(java.lang.reflect.Method method:MainActivity.DataBridge.class.getMethods())if(method.isAnnotationPresent(android.webkit.JavascriptInterface.class))inherited++;
             for(java.lang.reflect.Method method:BusinessDataBridge.class.getMethods())if(method.isAnnotationPresent(android.webkit.JavascriptInterface.class))business++;

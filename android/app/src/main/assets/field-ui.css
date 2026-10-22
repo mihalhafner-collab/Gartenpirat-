@@ -110,3 +110,17 @@ body.field-ui{--action:var(--hg-green-btn);--action-soft:var(--hg-sage);--planni
 .field-ui #more-page .more-search{display:flex;align-items:center;gap:12px;background:var(--hg-surface);border:1px solid var(--hg-line);border-radius:var(--hg-radius);text-align:left}
 .field-ui #more-page .more-search strong{font-size:var(--hg-fs-caption);color:var(--hg-green)}
 .field-ui #more-page .more-search small{font-size:var(--hg-fs-body);font-weight:var(--hg-fw-regular);color:var(--hg-muted)}
+
+/* One scrolling document; reserve only the actual footer space once. */
+html{scroll-behavior:auto;overscroll-behavior-y:contain}
+.field-ui .daily-list-page{padding-bottom:72px}
+.field-ui .daily-list-tools{bottom:calc(var(--app-nav-height,80px) + var(--design-keyboard,0px));box-shadow:0 2px 8px #173d2712}
+.field-ui #planning-home{border:1px solid var(--hg-line);box-shadow:none}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Current work stays first; the next appointment and recorded totals follow. */
+.field-ui #home #workday-timer{order:0}
+.field-ui #home #field-today-actions{order:1}
+.field-ui #home #planning-home{order:2}
+.field-ui #home #design-metrics{order:3}
+.field-ui #home #design-upcoming{order:4}

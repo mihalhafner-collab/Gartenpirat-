@@ -6,6 +6,7 @@
  const label=indicator.querySelector('.pull-refresh-text');
  let gesture=null,busy=false,requested=false,hideTimer=0,watchdog=0;
  const blocked=target=>!!target.closest('input,textarea,select,button,a,dialog,nav,aside,.direct-edit-content,[data-swipe-item]');
+ const scrolledAncestor=target=>{for(let node=target;node&&node!==document.body;node=node.parentElement){if(node.scrollTop>0&&node.scrollHeight>node.clientHeight+1&&/auto|scroll/.test(getComputedStyle(node).overflowY))return true;}return false;};
  const safe=()=>!document.querySelector('dialog[open]')&&typeof currentPage!=='undefined'&&['home','customers','orders','worklogs','weeks','invoices','photos','sync','settings'].includes(currentPage);
  function show(text,mode=''){clearTimeout(hideTimer);label.textContent=text;indicator.className='pull-refresh visible'+(mode?' '+mode:'');}
  function hide(delay=0){clearTimeout(hideTimer);hideTimer=setTimeout(()=>{if(!requested)indicator.className='pull-refresh';},delay);}
@@ -22,13 +23,13 @@
  document.addEventListener('touchstart',event=>{
   cancel();
   if(busy&&!requested){try{busy=!!JSON.parse(AndroidData.getSyncStatus()).syncing;}catch{}}
-  if(busy||window.scrollY>0||event.touches.length!==1||blocked(event.target)||!safe())return;
-  const touch=event.touches[0];gesture={id:touch.identifier,x:touch.clientX,y:touch.clientY,distance:0};
+  if(busy||window.scrollY>0||event.touches.length!==1||blocked(event.target)||scrolledAncestor(event.target)||!safe())return;
+  const touch=event.touches[0];gesture={id:touch.identifier,x:touch.clientX,y:touch.clientY,distance:0,target:event.target};
  },{passive:true});
  document.addEventListener('touchmove',event=>{
   if(!gesture)return;
   const touch=event.touches[0];
-  if(event.touches.length!==1||touch.identifier!==gesture.id||window.scrollY>0||!safe()){cancel();return;}
+  if(event.touches.length!==1||touch.identifier!==gesture.id||window.scrollY>0||scrolledAncestor(gesture.target)||!safe()){cancel();return;}
   const dx=touch.clientX-gesture.x,dy=touch.clientY-gesture.y;
   if(dy < -8||(Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy))){cancel();return;}
   gesture.distance=Math.max(0,Math.min(120,dy));

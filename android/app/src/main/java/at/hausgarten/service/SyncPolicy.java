@@ -16,6 +16,7 @@ final class SyncPolicy {
         switch(code) {
             case "NOT_CONNECTED":return "Drive verbinden oder den bestehenden Ordner auswählen. Lokale Daten bleiben erhalten.";
             case "AUTH_REQUIRED":case "PERMISSION_REQUIRED":case "HTTP_401":case "HTTP_403":return "Drive-Freigabe am Gerät prüfen und die Verbindung bestätigen. Lokale Daten bleiben erhalten.";
+            case "REMOTE_STATE_REFERENCE_MISSING":return "Der bestätigte Gesamtstand fehlt im verbundenen Ordner. Originale und lokale Änderungen bleiben erhalten; Drive-Dateien prüfen.";
             case "REMOTE_MASTER_MISSING":return "Der Gesamtstand fehlt im verbundenen Ordner. Bestehenden Datenordner prüfen; kein leerer Ersatz wird angelegt.";
             case "REMOTE_DUPLICATES_DIFFER":return "Gleichnamige Drive-Dateien enthalten verschiedene Stände. Beide Originale bleiben erhalten; Versionen prüfen.";
             case "REMOTE_FILE_TOO_LARGE":return "Eine Drive-Datei überschreitet die sichere Lesegrenze. Original und lokale Daten bleiben erhalten; Datenarchiv prüfen.";

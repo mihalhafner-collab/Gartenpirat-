@@ -30,6 +30,8 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         photoAttachments = new PhotoAttachmentStore(context);
         migrateLegacySnapshotPhotoAttachments();
     }
+    Context appContext(){return context;}
+    int compactPurgedTestActions()throws Exception{return LocalTestCleanup.compact(this);}
     private String readAsset(String name) throws Exception {
         try (InputStream input = context.getAssets().open(name); BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
             StringBuilder out = new StringBuilder(); String line; while ((line = reader.readLine()) != null) out.append(line); return out.toString();
@@ -84,7 +86,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     }
     private JSONObject getStateLocked() {
         JSONObject output = new JSONObject();
-        try { JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));removeSnapshotPhotoBinaries(master);documentReferences(master);PixelDriveState.prepare(master);seedServiceCatalog(master);output.put("master",master); output.put("pending", DriveJournalRules.union(pendingActions(),output.getJSONObject("master").optJSONArray("drive_review_actions"))); output.put("last_drive_sync", preferences.getString("last_drive_sync", ""));output.put("work_session",new WorkSessionStore(getWritableDatabase(),context).current());output.put("sync_queue",DriveJournalRules.queueStatus(output.getJSONObject("master"),output.getJSONArray("pending"))); }
+        try { JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));removeSnapshotPhotoBinaries(master);documentReferences(master);PixelDriveState.prepare(master);seedServiceCatalog(master);LocalTestCleanup.overlay(this,master);output.put("master",master); output.put("pending", DriveJournalRules.union(pendingActions(),output.getJSONObject("master").optJSONArray("drive_review_actions"))); output.put("last_drive_sync", preferences.getString("last_drive_sync", ""));output.put("work_session",new WorkSessionStore(getWritableDatabase(),context).current());output.put("sync_queue",DriveJournalRules.queueStatus(output.getJSONObject("master"),output.getJSONArray("pending"))); }
         catch (Exception error) { try { output.put("error", error.getMessage()); } catch (Exception ignored) {} }
         try{output.put("drive_sync_failed",preferences.getBoolean("drive_sync_failed",false)).put("last_sync_attempt",preferences.getString("last_sync_attempt","")).put("cloud_confirmed",preferences.getBoolean("drive_cloud_confirmed",false)&&output.getJSONObject("sync_queue").getInt("total")==0).put("confirmation_scope",preferences.getString("drive_confirmation_scope","local_only")).put("last_full_sync",preferences.getString("last_full_sync",""));}catch(Exception ignored){}
         try{output.put("sync_status",DriveSyncCoordinator.status(context,output.getJSONObject("sync_queue")));}catch(Exception ignored){}
