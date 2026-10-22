@@ -3,6 +3,18 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Kalender R4 – Google-Projekt gefunden und Android-Client registriert (22.10.2026)
+
+Der Nutzer hat die Umsetzung der Google-Konfiguration und den TinyFish-Zugang ausdrücklich beauftragt. Nach persönlicher Google-Anmeldung ist der Zugriff auf die Cloud Console tatsächlich möglich. Das bestehende Projekt **gartenpirat-drive** wurde gelesen: zunächst keine OAuth-Clients, keine eingetragenen Kalender-Scopes und keine aktivierte Calendar API. Ein nicht sichtbares anderes Projekt wurde nicht als bewiesen angenommen; das vorhandene Gartenpirat-Projekt wird verwendet.
+
+**Android-Registrierung tatsächlich erstellt und zurückgelesen:** Typ Android, Name Haus & Garten Android Original, Paket **at.hausgarten.service**, SHA-1 **16:FC:7A:13:7E:58:CA:31:C7:1D:70:6D:47:2F:29:FB:9F:55:8A:5A**, öffentliche Client-ID **123680727453-1d53mksthignnhiairm2tjuteijavivd.apps.googleusercontent.com**. Ein erster umfassender Konsolenlauf verlor den Browserkontext; der gezielte neue Lauf über das direkte Erstellungsformular war erfolgreich. Keine vorhandenen Clients gelöscht und kein Web-/Server-Client angelegt.
+
+**Noch laufend:** Die Calendar-API-Aktivierung wurde ausgelöst, ihre endgültige Freischaltung ist noch nicht zurückgelesen. Der nachfolgende Lauf bearbeitet die zwei bisherigen Basis-Scopes sowie optional freebusy und den Wechsel vom externen Testbetrieb in Produktion; der gespeicherte Endzustand ist noch nicht bestätigt. Kein dauerhafter Kalenderzugang oder echter Google-Grant behauptet.
+
+Die erneute lesende Pixel-MCP-Prüfung bestätigt inzwischen **1.54.4/93**, Quellcommit **b7d5fcd71fd0e376b8750cf9eaacd94e47d72883**, Main-/Gradle-Fingerprint **47e84a4a64d29117d828e49c26f4f700f0f4b75861274c5e15b7d75dbd1014c5**, SOURCE_DIRTY=false. Die tatsächliche Installation ist damit beobachtet; Codex hat keine Installation ausgeführt und keinen produktiven Datenerhaltstest durchgeführt. Kalender weiterhin verbunden=false, Stufe grant, CALENDAR_APP_REGISTRATION_REQUIRED aus dem gespeicherten Fehlversuch. Wetterkonfiguration tatsächlich open_meteo_non_commercial/non_commercial mit angeforderten16Tagen; dies allein ist kein Live-Prognosenachweis.
+
+Technischer Nachweis ohne Kontoadressen oder Geheimwerte: docs/verification/google-calendar-cloud-2026-10-22.json. Neue private Dokumentationsgeneration vorbereitet unter https://drive.google.com/drive/folders/1ujSGAnpVH_nX4uMgYAVh5nkW1KdYAgCe ; Veröffentlichung der Wegweiser erst nach vollständigem Export und Readback. Bisherige Originale und Exportgenerationen bleiben erhalten. App-Code, APK, Datenmodell, Scopes der App-Anfrage und Original-Tag bleiben unverändert. Keine produktiven Kalender-Testeinträge, Kontoeinwilligung oder zusätzliche Abrechnung eingerichtet.
+
 ## Kalender/Wetter R3 – geprüfter Originalkandidat 1.54.4 / Build 93 (22.10.2026)
 
 **App-Umsetzung, Originalsignierung und Cloud-Abnahme abgeschlossen. Google-Projektfreischaltung und physische Pixel-Abnahme bleiben offen.** Der neue Nutzerauftrag erlaubt Kalender-/Wetterfunktionen und den Entwicklungsbuild. Main und produktive Daten wurden unverändert erhalten.

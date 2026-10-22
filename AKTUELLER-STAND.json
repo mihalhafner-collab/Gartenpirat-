@@ -31,8 +31,8 @@
       "sixteen_day_runtime": "PASS; actual get_workweek_weather/get_appointment T+14 coverage, trend and unknown states",
       "os_warning": "Software-emulator System UI ANR observed; exact Wait button used; no app/data deletion; screenshot retained and subsequent UI/snapshot repeated"
     },
-    "pixel_installation": "NOT EXECUTED; observed installed92 remains separate",
-    "google_live_authorization": "NOT EXECUTED; existing project registration/admin access required",
+    "pixel_installation": "OBSERVED_INSTALLED_93 via read-only Pixel MCP; not installed by Codex; productive update/data-preservation acceptance not executed",
+    "google_live_authorization": "NOT VERIFIED; Google Cloud access now available; Android OAuth client created/read back; API/scopes/production final readback pending",
     "weather_live_provider": "NOT EXECUTED; current executor egress policy excludes api.open-meteo.com",
     "drive_readback": "19 verified receipts;18 SHA256_BYTES +1ZIP COMPLETE_STREAM_SIZE_ONLY;0 pending/duplicates"
   },
@@ -49,17 +49,17 @@
   },
   "last_observed_installed_build": {
     "observed_at_utc": "2026-10-22",
-    "version_name": "1.54.3",
-    "version_code": 92,
-    "reported_base_git_sha": "aff54dbd7cd64437645bba71242688ec5da4c30b",
-    "source_sha256": "17d8be0d257733544896546bf22086d33d157011dfd0ab14db7664d42486ed34",
+    "version_name": "1.54.4",
+    "version_code": 93,
+    "reported_base_git_sha": "b7d5fcd71fd0e376b8750cf9eaacd94e47d72883",
+    "source_sha256": "47e84a4a64d29117d828e49c26f4f700f0f4b75861274c5e15b7d75dbd1014c5",
     "source_dirty": false,
-    "evidence": "Pixel MCP get_capabilities read-only; protocol9,117tools",
+    "evidence": "Read-only Pixel MCP get_capabilities; protocol9,117tools; no Codex installation action",
     "calendar_live_state": "CALENDAR_APP_REGISTRATION_REQUIRED; not connected"
   },
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-apk92",
-    "required_action": "Use immutable source/v1.54.4-build93 and original candidate Drive folder. Latest documentation/source generation is in the linked child folder. Preserve installed92 and earlier originals. Existing Google project needs Android OAuth package/originalSHA1/CalendarAPI and suitable production consent status; then explicit device grant/readback. No Google project admin access available here; do not claim live connection or install automatically."
+    "required_action": "Use immutable source/v1.54.4-build93 for the installed APK and preserve earlier originals. Existing project gartenpirat-drive is now accessible through the signed-in TinyFish profile. Matching Android OAuth client is registered. Verify Calendar API enablement, configured minimal Calendar scopes and production publishing status, then the owner must confirm Google consent on the Pixel and the app must read back its calendar. No automatic device installation, productive test entries or live-success assumption."
   },
   "verified_candidate_source": {
     "version": "1.54.4",
@@ -286,5 +286,31 @@
     "live_google": "NOT EXECUTED",
     "live_weather": "NOT EXECUTED",
     "physical_installation": "NOT EXECUTED"
+  },
+  "google_calendar_cloud_setup": {
+    "status": "ANDROID_CLIENT_REGISTERED_API_SCOPES_PRODUCTION_READBACK_OPEN",
+    "project_id": "gartenpirat-drive",
+    "android_client": {
+      "status": "CREATED_AND_READ_BACK",
+      "name": "Haus & Garten Android Original",
+      "client_id": "123680727453-1d53mksthignnhiairm2tjuteijavivd.apps.googleusercontent.com",
+      "application_type": "Android",
+      "package_name": "at.hausgarten.service",
+      "signing_sha1": "16:FC:7A:13:7E:58:CA:31:C7:1D:70:6D:47:2F:29:FB:9F:55:8A:5A",
+      "evidence_run_id": "8833d209-fffc-4d66-8f21-a3b37552d712"
+    },
+    "calendar_api": {
+      "service": "calendar-json.googleapis.com",
+      "before": "DISABLED",
+      "enable_action": "TRIGGERED",
+      "enabled_readback": "NOT_CONFIRMED",
+      "evidence_run_id": "8af194fc-96f1-47c2-935b-9f1ab9ddd077"
+    },
+    "consent": {
+      "publishing_before": "TESTING",
+      "publishing_after": "NOT_CONFIRMED",
+      "google_account_grant": "NOT_VERIFIED"
+    },
+    "evidence_file": "docs/verification/google-calendar-cloud-2026-10-22.json"
   }
 }
