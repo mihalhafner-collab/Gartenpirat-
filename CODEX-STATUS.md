@@ -3,6 +3,10 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## APK94 R2 – Initialisierungsrennen in Mehr reproduziert und behoben (22.10.2026)
+
+Der erste reine Build68138ef war erfolgreich, blieb unsigniert und wurde nicht bereitgestellt. Der vollständige Browserlauf fand unter paralleler Cloud-Last eine echte Reihenfolgeabweichung: der später fertiggestellte Angebotsbaustein wurde nach Abrechnung/Rechnungen angehängt. Die bestehende eingefrorene Menü-Baseline bleibt unverändert. organizeMenu sortiert nun die vorhandenen Originalknöpfe stabil in der geprüften Reihenfolge, bewahrt Listener/Ziele und bewegt nur tatsächlich falsch stehende Elemente, damit der MutationObserver zur Ruhe kommt. Die vorhandene Regression reproduziert zusätzlich die späte Angebotseinfügung und verlangt danach genau dieselben13 Ziele/Knöpfe ohne Duplikat. Keine neue Funktion, Berechtigung oder Fachaktion. Neuer gesicherter Quellcommit und vollständiger Rebuild vor Originalsignierung erforderlich; Versionscode94 bleibt für den noch nicht ausgelieferten Kandidaten reserviert.
+
 ## APK94 R1 – konkrete native Anzeigeabnahme vorbereitet (22.10.2026)
 
 Zusätzlich zur Versionsanhebung erhält die vorhandene native UI-Probe lesende Prüfungen im echten gebündelten WebView: entfernte Hauptseiten-Wischeinstellung/Statuszeile fehlen, Gartenpirat-Option bleibt, Randmenü öffnet und Zurück schließt genau das Menü, Heute-Karte bleibt vorhanden und technische calendar_busy_*-Felder kommen über den echten nativen Owner-Lesepfad. Keine Geschäftsdaten für diese UI-Prüfung erzeugt oder verändert. Die bereits geänderte native Einrichtung wird mit vier sichtbaren Schaltern geprüft. Source-/Host-/Emulator-Abnahme folgt aus genau dem gesicherten Commit; kein physischer Pixelzugriff.

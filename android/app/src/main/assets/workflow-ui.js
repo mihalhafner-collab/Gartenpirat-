@@ -40,7 +40,15 @@
    const target=nav.querySelector('[data-more-group="'+group+'"]');if(button.parentElement!==target)target.append(button);
    if(destination==='billing-page'){button.querySelector('strong').textContent='Abrechnung vorbereiten';button.querySelector('small').textContent='Arbeiten auswählen · Rechnung erstellen';}
   }
-  for(const group of nav.querySelectorAll('[data-more-group]'))group.hidden=!group.querySelector('button');
+  // Components may finish at different times. Preserve the reviewed menu order
+  // without replacing buttons/listeners or retriggering the observer forever.
+  const order=['settings-page','status-page','trash','planning-page','worklogs','orders','weeks','offers','billing-page','invoices','photos','garden'];
+  const rank=button=>{const key=button.dataset.open||button.dataset.moreDestination||(button.hasAttribute('data-open-garden-menu')?'garden':'');const i=order.indexOf(key);return i<0?order.length:i;};
+  for(const group of nav.querySelectorAll('[data-more-group]')){
+   const buttons=[...group.querySelectorAll(':scope>button')].sort((a,b)=>rank(a)-rank(b));let previous=group.querySelector('h3');
+   for(const button of buttons){if(previous.nextElementSibling!==button)previous.after(button);previous=button;}
+   group.hidden=!buttons.length;
+  }
 
  }
  function refresh(){
