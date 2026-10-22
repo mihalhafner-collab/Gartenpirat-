@@ -1,6 +1,6 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-22T17:17:30Z",
+  "updated_at_utc": "2026-10-22T17:37:14Z",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/calendar-weather-20261022",
   "development_snapshot": {
@@ -55,7 +55,18 @@
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-",
     "required_action": "Original1.54.5/94 is now observed installed on Pixel, exact original source429dfa11/tag source/v1.54.5-build94. Audit is on the separate named branch; no main integration or Pixel changes by this task. Live Drive sync fails in android_provider reading with TRANSFER_FAILED and8pending/0reviews; do not claim fixed or clear any queue. Preserve originals and all pending actions. Google Production authorization, real camera/share and API34+ gesture acceptance remain separate; busy permission must remain explicit/fresh.",
-    "audit_ref": "refs/heads/codex/function-sync-audit-20261022"
+    "audit_ref": "refs/heads/codex/function-sync-audit-20261022",
+    "audit_export": {
+      "git_sha": "49d112d7b77f32dae5b2c2a71215dd8b1cb405ff",
+      "folder_id": "1VKq658WXV87bP_LQkkT0MDl3ZWPALK5A",
+      "original_zip_id": "1iYeJfMDKhMZ-RJCJ22KGfGqG63doFweK",
+      "original_zip_sha256": "7fc8569b1f5cde44f246c8b9ac6471488e3e3f87b5f6a7a5857774c9145b513f",
+      "original_files": 1249,
+      "utf8_files": 518,
+      "readback": "19 COMPLETE:18 SHA256_BYTES +1 ZIP COMPLETE_STREAM_SIZE_ONLY;4 existing guide files SHA256_BYTES verified",
+      "app_source_changed": false,
+      "post_export_metadata": "Subsequent audit receipt documentation is separately preserved on the same GitHub audit branch."
+    }
   },
   "verified_candidate_source": {
     "version": "1.54.5",

@@ -3,6 +3,16 @@
 Stand: 22. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Funktions-/Sync-Audit R3 – dauerhafte Sicherung und Abschluss (22.10.2026,17:37UTC)
+
+Prüf-/Exportcheckpoint **49d112d7b77f32dae5b2c2a71215dd8b1cb405ff** auf codex/function-sync-audit-20261022 committed/gepusht und exakt von GitHub zurückgelesen. Offizieller source_lifecycle-Export PASS: **1249Originaldateien,518UTF8-Dateien vollständig rekonstruierbar,731öffentliche Binärressourcen**, gleicher Appfingerprint1d7e7d73…fab25. Original-ZIP **68.915.847Bytes**,SHA256 **7fc8569b1f5cde44f246c8b9ac6471488e3e3f87b5f6a7a5857774c9145b513f**, Drive-Datei **1iYeJfMDKhMZ-RJCJ22KGfGqG63doFweK** im vorhandenen privaten Entwicklungsbereich/[Auditordner](https://drive.google.com/drive/folders/1VKq658WXV87bP_LQkkT0MDl3ZWPALK5A). Keine neue App-/APK-Auslieferung und keine produktiven Daten exportiert.
+
+Alle **19Quellenartefakte tatsächlich zurückgelesen**,18SHA256_BYTES über authentifizierte Referenz und echte materialisierte Bytes; großes ZIP1COMPLETE_STREAM_SIZE_ONLY wegen32MiB-Materialisierungsgrenze. Seine lokale SHA ist kein zweiter Remote-Bytehash. Frische vollständige Ordnerliste: exakte Namen/IDs/MIME/Größen,alle shared=false,0Duplikate. Offizieller drive_source_transfer-Abschluss mit tatsächlichen Readback-Belegen:19reuse,0upload,0verify_existing,0blocked_duplicates,0unreferenced,0deletions. Früheren guten Generationen/Original94 unverändert erhalten.
+
+Erst danach vier vorhandene, zuvor gelesene und unmittelbar auf unveränderte Metadaten geprüfte KI-/Startwegweiser aktualisiert; bestehende Datei-IDs,Eltern und MIME erhalten. Alle vier erneut heruntergeladen und bytegenau identisch geprüft:4816Bytes,SHA256 **106b6c9369bc917f7b7526cfa4f4dd97cecfab294251bd4a5d1b7558b4bc92e1**. Original94-APK/Quelltag/-archiv bleiben getrennt verlinkt; neu beobachteter Pixel94,Auditbranch und offener Live-Syncfehler ausdrücklich genannt. Keine Freigaben/Konten/Betriebsordner geändert und keine Nachricht an Dritte versandt.
+
+Abschließende echte Emulator-Sichtprüfung zeigt lesbare laufende synthetische Arbeit mit Pause/Beenden/Foto und drei Hauptzielen ohne OS-Dialog. Die zuvor tatsächlich beobachteten OS-ANRs bleiben als Umgebungsgrenze dokumentiert; keine uneingeschränkte Leistungsabnahme. Eigenen dedizierten AVD anschließend ordentlich beendet, Datenpartition erhalten; kein Reset/Uninstall. Der nachfolgende Sicherungs-/Übertragungsnachweis ist eine reine Dokumentationsergänzung nach dem unveränderlichen49d112d-Export. Original-Appcode bleibt bytegleich, GitHub enthält auch diese Ergänzung; keine erneute APK oder unnötige Exportgeneration erzeugt.
+
 ## Funktions-/Sync-Audit R2 – vollständiger Cloud-Prüflauf abgeschlossen, Live-Sync offen (22.10.2026)
 
 **Ergebnis: automatisierter Cloud-Prüfumfang PASS, produktiver Drive-Abgleich FAIL/offen. Keine vollständige uneingeschränkte Geräte-/Google-Abnahme.** Vollständige Schichten-/Funktionsmatrix, sechs priorisierte Optimierungen, technische Beleg-SHA256 und Grenzen: [docs/verification/function-sync-audit-2026-10-22.json](docs/verification/function-sync-audit-2026-10-22.json). Appcode, Daten-/Journalformate, eingefrorene Domainregeln,117Toolverträge und156UI-Aktionen wurden in diesem Audit nicht geändert. Keine spekulative Reparatur, Hashumstellung, produktive Testanlage oder neue APK-Auslieferung.
