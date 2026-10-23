@@ -3,6 +3,86 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Revier Solo –299 native Prüfungen und Backup-Uploadadapter
+
+Exakt gesicherte App-/Testquelle `ab1a0c026a9a8bff15a481b08ab77a713587e070`,
+interner Prüfbau1.55.0/99, API30-x86_64-Cloudemulator:
+**299Android-SQLite-/MCP-Prüfungen PASS,0FAIL**. Vier neue Prüfungen führen
+Android-Keystore-Rückbestätigung/Replay, Recovery nach Löschung ausschließlich des
+isolierten QA-Schlüssels, vollständiges SQLite-Abbild mit großem Unicodewert/BLOB
+und Dataset→verschlüsseltesArchiv→temporärerErsatzbestand tatsächlich aus.
+Journalbelege, IDs, Beträge, offenerTimer, Fotos/PDF, typisierte Einstellungen,
+Browser-/Fotoentwurf, persönliche Markierung samt Migrationsflag und offener
+technischer Job bleiben erhalten; aktive Originale unverändert. Dies ist keine
+produktive Restoreaktivierung, keine echte USB-Prüfung und kein Pixelbeleg.
+
+App-SHA256 `f80d884265f0af9b8424bfd5c733db8305e35d750f3f805baab4f8c4e9ff149f`,
+Test-SHA256 `c6599069d08f14d6f24d4952c86f9998aea99286eb70fac6e38719fb397dbf7b`,
+Originalzertifikat `a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`,
+Quellfingerprint `e6da2cb4843b96e28f60b001137f9c098f7524fcdcc1448247caf1621ccf3a0c`.
+Build/App-/Testsignierung mitsource_preservation PASS aus sauberemRemote-Commit;
+lintRelease0Fehler/53Warnungen. Nativer Log-SHA256
+`c9ba19e09f4866d67e8bf0b91aa5f2bfaf834edc6a643ede1b4d70ec9767ce48`.
+Keine Bereitstellung/Installation amPixel und kein99-Release-Tag.
+
+Originalquellen dieses Prüfschritts extern gesichert:
+[private Entwicklungsgenerationab1](https://drive.google.com/drive/folders/1iuPAdHOThezrpWICnEdX_e0mF4VDPI6j).
+52Text-/Indexdateien bytegleich perSHA256 zurückgelesen, frisches Inventar53Dateien
+eindeutig/privat; anschließend Prüfbeleg ebenfalls bytegleich zurückgelesen
+(`1obg9mWkMmqicmSSU8GFpwWNVqePs4oU8`,SHA256
+`3896c350f9aadd2292cb677d22472bbf209cebc45e4a95892d57a0054d1a30b7`).
+ZIP-SHA256 `049f30f981d06319de1a75e4181129e7c91724ed28cd4015cad31a70edfec1ba`;
+verlustfreierXZ82364352Bytes lokal rundlaufgeprüft und vomDrive-Connector als ganzer
+Stream passender Größe zurückgelesen. Kein Remote-Bytehash fürXZ wegen32MiB-
+Materialisierungsgrenze; Originalbytes inGitHub. Keine betriebliche Datensicherung.
+Die danach beschriebene Uploadadapter-Änderung ist noch nicht in dieser Generation.
+
+Danach: neuer Backup-Uploadadapter verwendet den vorhandenen Drive-Transport und
+Kontozugang, ausschließlich für versiegelte Generationen. Vorab generierte,
+dauerhaft zu speichernde Drive-ID verhindert Dubletten bei unklaren Antworten.
+Resumable-Sitzungen/Serverposition,1MiB-Dateichunks und vollständiges Remote-
+Streamingrücklesen/SHA256 statt RAM-Archiv. Kein Lesen/Anwenden operativer
+Drive-Snapshots, keine Änderung/Löschung bestehender Generationen. Redirect-/Fremd-
+Uploadziele, abweichende Datei/Eltern/Größe/Hash und widersprüchliche Range scheitern.
+Ein vorheriger Erfolg wird bei neuer Prüfung nicht als aktueller Erfolg übernommen.
+
+**56JVM-Suiten PASS** im nachfolgenden Quellstand; neueSuite380Assertions mit48MiB-
+Datei bei64MiB-Heap, tatsächlichem Streaming-HTTP-Hashleser und synthetischem
+Drive-Port. Chunk-/Endantwortverlust, Checkpointabbruch, Neustart, Replaykonflikt,
+verfälschtesRücklesen und fremdesZiel geprüft. Kein Google-Konto/kein produktiver
+Uploadtest. Ein zusätzlicher Vergleich erkennt während der Aufnahme geänderte
+Legacy-Einstellungen und verlangt Wiederholung statt gemischter Sicherung.
+Jobpersistenz/automatischer Android-Scheduler/UI-Anbindung bleiben zu integrieren;
+dieser Adapter allein ist **noch kein automatisches Drive-Backup**.
+Cloud-Neustart ließ Dateien erhalten, beendete aber die anschließenden Android-/
+Python-Läufe. Abgebrochene Läufe sind kein PASS; die anschließende Wiederholung
+besteht:423Python-Prüfungen/0Skip und App-/Instrumentierungskompilierung PASS.
+37QA-Ersatzsigniertests bleiben ausdrücklich ausgeschlossen.
+
+Primärquellenzugriff23.10.2026 jetzt über den vorhandenen Webconnector möglich,
+während direkte Cloud-HTTP-Zugriffe auf die Dokumentationsdomains weiter begrenzt
+sind. Tatsächlich gelesen:
+[Drive-Uploadprotokoll](https://developers.google.com/workspace/drive/api/guides/manage-uploads),
+[vorgegebeneDatei-IDs](https://developers.google.com/workspace/drive/api/guides/create-file),
+[Android-Autobackup](https://developer.android.com/identity/data/autobackup),
+[SAF](https://developer.android.com/training/data-storage/shared/documents-files),
+[TinkStreaming](https://developers.google.com/tink/streaming-aead).
+Diese Quellen stützen Protokoll-/Formatentscheidungen, ersetzen keinen Gerätetest.
+
+[Open-Meteo-Bedingungen](https://open-meteo.com/en/terms): kostenlose API ist auf
+nichtkommerzielle Verwendung beschränkt; keine gewerbliche Freigabe aus CC-BY
+ableiten. Kein Tarif aktiviert und keine bestehende Verbindung abgeschaltet.
+Kommerziell zulässiger kostenfreier Ersatz bleibt optional/offen.
+[Android-Verifizierung](https://developer.android.com/developer-verification):
+regionale Einführung seit30.09.2026, weitere Ausweitung2027; konkrete gewerbliche
+Einzelgeräte-Verteilung vor Produktivinstallation prüfen. Keine neue Registrierung,
+Gebühr oder angenommene Hobby-Ausnahme.
+[USP-Rechnung](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/rechnung.html):
+Pflichtangaben/Empfänger, Leistungszeitraum und Dokumentart weiter prüfen;
+strukturierte Bundesrechnung ist ein eigener Fall. GezielterRIS-Abruf der
+Tagesfassung23.10.2026 war nicht lesbar. Keine vollständige Rechtsabnahme und
+keine Änderung bestätigter Aussteller-/Steuerdaten aus diesen Quellen.
+
 ## Revier Solo – SQLite-/Dateiaufnahme und konkretisierte Drive-Rolle
 
 Nutzerpräzisierung23.10.2026 ist im bestehenden Auftrag konsolidiert:

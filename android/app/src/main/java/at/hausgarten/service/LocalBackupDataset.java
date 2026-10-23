@@ -37,6 +37,9 @@ final class LocalBackupDataset {
         // Keystore/recovery capsules and our own staging trees are deliberately not exported.
         // Existing deletion/conflict backups remain immutable evidence, inside this encryption.
         for(String name:new String[]{"deletion-backups","legacy-conflict-backups"})BackupFilePins.capture(new File(context.getNoBackupFilesDir(),name),freshDirectory,"no_backup/"+name);
+        // A legacy preference-backed snapshot or an editor setting may change independently
+        // of SQLite. Fail/retry instead of certifying a mixed preference capture.
+        if(!PixelMcpWriteTools.hash(preferences).equals(PixelMcpWriteTools.hash(BackupPreferences.capture(context))))throw new IOException("BACKUP_PREFERENCES_CHANGED_RETRY");
         JSONObject inventory,state;
         try(SQLiteDatabase snapshot=SQLiteDatabase.openDatabase(database.getAbsolutePath(),null,SQLiteDatabase.OPEN_READONLY)){
             state=BackupSnapshotState.read(snapshot,BackupPreferences.values(preferences,"haus_garten"),initial,catalog);

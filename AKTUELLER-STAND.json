@@ -1,6 +1,6 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-23T18:32:05.340566+00:00",
+  "updated_at_utc": "2026-10-23T18:53:30.006615+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
@@ -18,20 +18,23 @@
       "consistent_sqlite_all_tables_private_file_capture_prepared_native_probes",
       "typed_settings_and_explicit_browser_draft_capture",
       "shared_live_and_captured_pending_projection",
-      "explicit_android_backup_device_transfer_exclusions"
+      "explicit_android_backup_device_transfer_exclusions",
+      "resumable_backup_only_drive_adapter_with_complete_remote_hash_reader_not_scheduler"
     ],
     "full_revier_acceptance": "NOT COMPLETE",
-    "original_signed_update_candidate": "INTERNAL ORIGINAL-SIGNED TEST BUILD; NATIVE295 PASS; NOT COMPLETE REVIER; NOT DELIVERED",
+    "original_signed_update_candidate": "INTERNAL ORIGINAL-SIGNED TEST BUILD; NATIVE299 PASS; NOT COMPLETE REVIER; NOT DELIVERED",
     "productive_migration": "NOT EXECUTED",
     "installation": "NOT EXECUTED",
     "internal_signed_build": {
-      "app_source_git_sha": "2fb5b8e9a2b243122b2e6039ae5c8161d9a3f9e5",
-      "source_sha256": "95e60d45114193010d42ccf1f5094d2d3624fccc0d96053204bba9e0be45683f",
-      "apk_sha256": "90984624275e55383e39f832d2b7ae46252610128d2cb7c7a14e8d9b498ce6a5",
+      "app_source_git_sha": "ab1a0c026a9a8bff15a481b08ab77a713587e070",
+      "source_sha256": "e6da2cb4843b96e28f60b001137f9c098f7524fcdcc1448247caf1621ccf3a0c",
+      "apk_sha256": "f80d884265f0af9b8424bfd5c733db8305e35d750f3f805baab4f8c4e9ff149f",
+      "qa_apk_sha256": "c6599069d08f14d6f24d4952c86f9998aea99286eb70fac6e38719fb397dbf7b",
       "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-      "native_api30": "295 PASS /0FAIL; test source1b00545c65aadca911547b98e34f5c7656caa444; no Pixel/98-update acceptance",
+      "native_api30": "299 PASS /0FAIL; same app/test source;4 actual Keystore/SQLite/dataset encrypted roundtrips; no Pixel/USB/restore activation acceptance",
+      "native_log_sha256": "c9ba19e09f4866d67e8bf0b91aa5f2bfaf834edc6a643ede1b4d70ec9767ce48",
       "pixel_installation": "NOT EXECUTED",
-      "qa_apk_sha256": "3ab39bfc270e2d10afe55b18f4270e5e256a50bc03394251ee6fb60494503f19"
+      "released": false
     },
     "source_generation_2fb": {
       "folder_id": "1rEQlDxYJu5ykJuIfBVWlQ6TeOPUh0bi-",
@@ -47,16 +50,27 @@
       "python_pass": 423,
       "python_skips": 0,
       "excluded_qa_signing": 37,
-      "jvm_suites_pass": 55,
+      "jvm_suites_pass": 56,
       "archive_fault_checks": 23,
       "archive_payload_MiB": 48,
       "archive_heap_MiB": 64,
-      "app_and_instrumentation_compile": "PASS",
-      "new_native_backup_probes": "4 PREPARED; NOT EXECUTED",
+      "app_and_instrumentation_compile": "PASS after aborted environment-restart run",
+      "new_native_backup_probes": "4 PASS on exact ab1a0c0;299 total native PASS",
       "automatic_drive_backup": "NOT IMPLEMENTED",
-      "restore_activation": "NOT IMPLEMENTED"
+      "restore_activation": "NOT IMPLEMENTED",
+      "backup_upload_adapter": "380 assertions PASS;48MiB at64MiB heap;synthetic port,no account",
+      "python_repeat": "423 PASS 0 SKIP after aborted environment-restart run"
     },
-    "native_font_probe": "Today/Planning 100/150/200% PASS after initial SystemUI ANR; OS settings restored; no Pixel/TalkBack/full-nine-view claim"
+    "native_font_probe": "Today/Planning 100/150/200% PASS after initial SystemUI ANR; OS settings restored; no Pixel/TalkBack/full-nine-view claim",
+    "source_generation_ab1": {
+      "folder_id": "1iuPAdHOThezrpWICnEdX_e0mF4VDPI6j",
+      "git_sha": "ab1a0c026a9a8bff15a481b08ab77a713587e070",
+      "text_readback": "52 SHA256_BYTES receipts; fresh53-file private inventory",
+      "zip_sha256": "049f30f981d06319de1a75e4181129e7c91724ed28cd4015cad31a70edfec1ba",
+      "xz_file_id": "1N93Zp6rMrI-RwEhIYhOyXLzknJEv8lIW",
+      "xz_readback": "COMPLETE_STREAM_SIZE_ONLY;local XZ roundtrip exact ZIP;no remote hash claim",
+      "includes_newer_drive_upload_adapter": false
+    }
   },
   "verified_release_source": {
     "version": "1.54.1",
