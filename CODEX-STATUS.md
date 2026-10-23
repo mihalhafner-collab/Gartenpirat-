@@ -3,6 +3,33 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Fortsetzung98 – Netzwerk erreichbar, tatsächliche Bildvorbereitung läuft
+
+Am23.10.2026 den vom Nutzer genannten gesicherten Stand bdae3646 auf demselben
+Arbeitsbranch wiederaufgenommen; main e499e745 und Bibliotheksbranch7d499b2
+verglichen. Kein Reset, keine ältere Appkopie, keine Pixelinstallation oder
+produktive Syncaktion. Ausgewählte Cloudrichtlinie enthält jetzt die benötigten
+Bildhosts; echte NCSU-/RHS-/S3-/Commons-API-Abrufe gelingen. Commons-Einzelabrufe
+mit429 wurden nicht als Erfolg behandelt; reguläre gebündelte imageinfo-Abfragen
+liefern die individuellen Rechtebelege. Kein Proxy-/TLS-Bypass.
+
+Neues tools/prepare_plant_images.py lädt ausschließlich öffentliche Kandidaten
+in einen externen Prüfbereich, bestätigt frische individuelle Credits, hasht
+Original/Derivat und entfernt Bildmetadaten. Es erteilt keine Sichtfreigabe und
+ändert keinen App-Katalog. Erster Durchgang286vollständige Paare/578Dateien;
+28unvollständige Profile werden mit gebündelten Commons-Belegen nachgearbeitet.
+20bestehende Importertests erneut PASS. Vollständige Sichtprüfung/Import/98Build
+stehen noch aus; frühere HOLD-Nachweise bleiben historisch unverändert.
+
+Die wiederhergestellte Umgebung enthielt21ignorierte Alt-Ausgabedateien ohne
+ausreichenden Privacy-Beleg. Ausschließlich diese Dateien unverändert nach
+/workspace/preserved-preexisting-output-20261023 verschoben, jede per SHA/Größe
+nachgeprüft; keine Inhalte geöffnet, keine Datei gelöscht. Externer Beleg enthält
+nur Pfad-/Dateihashes, Counts und Kategorien. Source1339/Workspace1624Dateien
+danach PASS/0operative Seeds. Alte Build-/SDK-Caches benötigen Nachladen;
+fehlende Cacheabhängigkeiten und Java-CA-Vertrauen werden technisch eingerichtet,
+keine Signatur-/Fachregeln gelockert. Version bleibt97bis zu vollständigen Gates.
+
 ## Auftrag98 – gesicherter Zwischenstand, ausschließlich technische Bildserverfreigabe blockiert
 
 Alle unabhängigen Arbeiten und der tatsächliche Bildsichtungsumfang sind in
