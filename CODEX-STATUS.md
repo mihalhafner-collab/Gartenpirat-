@@ -3,6 +3,12 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Auftrag97 – native Fach-/MCP-Abnahme vollständig grün
+
+Original97-App9cc4e18 mit separat originalsignierter QA-aa44c0b:290native Fach-/JSON-RPC-/SQLite-/SAF-Prüfungen/0FAIL, zusätzlich20gültige MCP-Workflows/SAF-Prüfungen/0FAIL.117Tools tatsächlich per Produktionsrouter erreichbar;113Toolnamen mit erfolgreichen Aufrufen,4nur geschützte Außenfreigabepfade (Legacy-Vollsicherung, Rechnungsabschluss, Mailvorbereitung/-bestätigung), deren negative Guards und isolierte Kerne separat geprüft sind. Alle neuen MCP-Fixtures ohne eigene DB-/Preferences-/Dateireste, einschließlich des zuvor asynchronen Kalenderfalls. Aktuelle Originalquellen19Dateien vollständig privat in1EBtXHhOQxqivTLu7L-DArRBBEwG-d94d gesichert:18Byte-SHA/1ZIPStreamgröße; frischer Plan0Upload/19Reuse/0Duplikate.
+
+fresh_isolated PASS. Nativer UI-Lifecycle-Test stoppte an alter Erwartung Planungsbutton innerhalb planning-home; Button liegt wie beauftragt unten im today-action-dock. Genau diesen Präsentationsselektor aktualisiert, fachliche Assertions erhalten. Keine Produktionsänderung/kein anderer Appkandidat; UI-/Schrift-/Ledgerprüfung folgt mit erneuter originalsignierter QA-Quelle. Erneut lesend Pixel96 bestätigt: REMOTE_STATE_REFERENCE_MISSING,9Pending/0Review,cloud_confirmed=false; keine produktive Aktion.
+
 ## Auftrag97 – vollständiger Routerlauf und zusätzliche gültige MCP-Abläufe
 
 Apporiginal9cc4e18220ff3d4eef8a56877658b397d63d2504, APK-SHA5087632af214da765fc9164681123bc23dbd2645eea612c1289d1e41606d7ce7, Produktionsfingerprint91b50e7d13644cf42565cdd92008be0acd82bdb3525bcc8c87b91fb70c02614d. Voller neuer nativer Lauf289PASS/1FAIL: ausschließlich noch QA-Teardown einer Kalender-Quota-Probe;117echte RPCs tatsächlich abgewickelt. Die eine Preferences-Datei entstand erst nach der Dateiliste aus asynchronem apply(). QA-Isolated erfasst jetzt jede geöffnete Preferences-Datei und wartet deren Writes vor Entfernen; keine fachliche Erwartung gelockert.
