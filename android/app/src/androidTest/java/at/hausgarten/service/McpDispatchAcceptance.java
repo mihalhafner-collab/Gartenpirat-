@@ -25,7 +25,8 @@ final class McpDispatchAcceptance {
     static void remove(File root){boolean link=java.nio.file.Files.isSymbolicLink(root.toPath());if(root.isDirectory()&&!link){File[] children=root.listFiles();if(children!=null)for(File child:children)remove(child);}if((root.exists()||link)&&!root.delete())throw new AssertionError("Disposable MCP test file not removed");}
     static void cleanup(OwnerNativeAcceptance.Fixture f){
         Context base=f.context.getBaseContext();String prefix=f.context.prefix;f.store.close();
-        for(String name:base.databaseList())if(name.startsWith(prefix)&&!base.deleteDatabase(name))throw new AssertionError("Disposable MCP database not removed");
+        // databaseList includes journal/WAL sidecars already removed with their database.
+        for(String name:base.databaseList())if(name.startsWith(prefix)&&base.getDatabasePath(name).exists()&&!base.deleteDatabase(name))throw new AssertionError("Disposable MCP database not removed");
         File prefs=new File(base.getApplicationInfo().dataDir,"shared_prefs");String[] names=prefs.list();if(names!=null)for(String name:names)if(name.startsWith(prefix)&&name.endsWith(".xml")){String n=name.substring(0,name.length()-4);if(!base.getSharedPreferences(n,0).edit().commit())throw new AssertionError("Disposable preference writes not settled");base.deleteSharedPreferences(n);}
         remove(f.context.getFilesDir());remove(f.context.getCacheDir());remove(f.context.getNoBackupFilesDir());
         for(String name:base.databaseList())if(name.startsWith(prefix))throw new AssertionError("Disposable MCP database remains");

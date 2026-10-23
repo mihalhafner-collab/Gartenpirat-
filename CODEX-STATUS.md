@@ -3,6 +3,10 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Auftrag97 – native Bereinigungsprobe zunächst rot
+
+Originaler interner97-Kandidat4a8e554 aus sauber gesichertem Stand gebaut84Tasks, originalsigniert und gegen96-Paket/Zertifikat/424Assets/leerem Bootstrap/DEX-Commit/Fingerprint/Privacy geprüft. Nicht ausgeliefert oder getaggt. Native Ausführung deckte einen Fehler ausschließlich im neuen QA-Teardown auf: Android databaseList liefert DB und Journal/WAL-Sidecars; deleteDatabase entfernt diese gemeinsam, der folgende veraltete Listeneintrag liefertefalse. Bereinigung prüft nun erst Existenz, anschließend unverändert strikt keinen eigenen Datenbank-/Preferencesrest. Fachliche Assertionen nicht gelockert. Neuer vollständiger Quell-/Build-/Signier-/Emulatornachweis folgt; Fingerprint der unveränderten Produktionsdateien bleibt91b50e7d. Vorangegangene Host-Gates bleiben gültig, bisherige native Runde ist FAIL und keine Ersatzfreigabe.
+
 ## Auftrag97 – APK-Voraudit grün, Version1.54.8/97
 
 Finale gesamte54Browsersuiten/0FAIL,12Übersichtsfälle/0FAIL einschließlich abgelaufener und vollständig leerer Terminauswahl. Finale native Java-/AndroidTest-/Lint-Vorprüfung42Tasks PASS,0Fehler/54bestehende Warnungen.395Python/50JVM/1050Paritätsassertions/55stdio-MCP/29Kamera-/47Cleanup-Hostfälle sowie Pflanzen-/Angebots-/Vertrags-/UI-/Source-/Workspace-Gates grün. Jeden aktuellen Auftragspunkt gegen Umsetzung/Tests/Grenzen im Voraudit geprüft. Versionsanhebung jetzt1.54.8/97, anschließend nur sauber gesicherten Commit bauen/originalsignieren. Native117RPC-/Fach-/Schrift-/96→97-Erhaltungs-/Artefakt-/Driveabnahme noch offen; keine produktive Installation oder Syncaktion.
