@@ -167,8 +167,9 @@ final class DriveProviderAcceptance {
             PixelOwnerAccess owner=new PixelOwnerAccess(s.io,s.store);JSONArray entries=preview.getJSONArray("entries");
             JSONObject close=SyntheticBusinessData.object().put("request_id","qa-provider-bulk-close").put("backup_id",meta.getString("backup_id")).put("expected_preview_hash",previewHash).put("confirmed",true);
             qa.rejected(()->owner.execute("close_legacy_conflicts",SyntheticBusinessData.object(close.toString()).put("confirmed",false)));
-            qa.yes(owner.execute("close_legacy_conflicts",close).getJSONObject("data").getInt("decisions_queued")==7);
-            qa.yes(owner.execute("close_legacy_conflicts",close).getJSONObject("data").getBoolean("replayed"));
+            McpAuditTools router=new McpAuditTools(s.store::getState,s.store,owner);
+            qa.yes(McpWorkflowAcceptance.rpc(router,"close_legacy_conflicts",close).getJSONObject("data").getInt("decisions_queued")==7);
+            qa.yes(McpWorkflowAcceptance.rpc(router,"close_legacy_conflicts",close).getJSONObject("data").getBoolean("replayed"));
             s.sync();qa.yes(s.store.pendingActions().length()==0&&before.equals(PixelDriveState.integrity(s.store.getState().getJSONObject("master")).getString("business_state_hash")));
             qa.yes(s.store.getState().getJSONObject("master").getJSONObject("owner_conflict_history").length()==7&&s.files.readActions(MOBILE).length()==15);
             s.sync();qa.yes(s.store.getState().getJSONObject("sync_queue").getInt("total")==0&&!s.prefs.getBoolean("drive_cloud_confirmed",false));

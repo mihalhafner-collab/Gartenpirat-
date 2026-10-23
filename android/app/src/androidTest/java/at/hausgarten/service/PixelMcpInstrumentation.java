@@ -158,13 +158,14 @@ public final class PixelMcpInstrumentation extends Instrumentation {
     static final class Isolated extends ContextWrapper {
         // All billing writes below remain isolated like the existing acceptance suite.
         final String prefix="mcp_qa_"+UUID.randomUUID().toString().replace("-","")+"_";
+        final Set<String> preferenceNames=java.util.concurrent.ConcurrentHashMap.newKeySet();
         Isolated(Context base){super(base);}
         String name(String n){if(!n.matches("[a-zA-Z0-9_.-]+"))throw new IllegalArgumentException("Invalid test path");return prefix+n;}
         @Override public Context getApplicationContext(){return this;}
         @Override public File getFilesDir(){return getBaseContext().getDir(prefix+"files",MODE_PRIVATE);}
         @Override public File getCacheDir(){return getBaseContext().getDir(prefix+"cache",MODE_PRIVATE);}
         @Override public File getNoBackupFilesDir(){return getBaseContext().getDir(prefix+"no_backup",MODE_PRIVATE);}
-        @Override public SharedPreferences getSharedPreferences(String n,int mode){return super.getSharedPreferences(name(n),mode);}
+        @Override public SharedPreferences getSharedPreferences(String n,int mode){String scoped=name(n);preferenceNames.add(scoped);return super.getSharedPreferences(scoped,mode);}
         @Override public File getDatabasePath(String n){return super.getDatabasePath(name(n));}
         @Override public SQLiteDatabase openOrCreateDatabase(String n,int mode,SQLiteDatabase.CursorFactory f){return super.openOrCreateDatabase(name(n),mode,f);}
         @Override public SQLiteDatabase openOrCreateDatabase(String n,int mode,SQLiteDatabase.CursorFactory f,DatabaseErrorHandler h){return super.openOrCreateDatabase(name(n),mode,f,h);}
@@ -257,7 +258,7 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             }
             return;
         }
-        if(releaseMode.equals("estimates")||releaseMode.equals("provider")){Bundle result=new Bundle();try{String before=businessSnapshotHash();if(releaseMode.equals("provider"))DriveProviderAcceptance.run(this);else EstimateNativeAcceptance.run(this);check("business snapshot unchanged after isolated probes",()->yes(before.equals(businessSnapshotHash())));result.putString("stream","RESULT "+passed+" Android SQLite/MCP tests passed; acceptance failures="+acceptanceFailed+"; isolated group only\n");finish(acceptanceFailed==0?-1:0,result);}catch(Throwable error){result.putString("stream","FAILED "+error.getClass().getSimpleName()+"\n");finish(0,result);}return;}
+        if(releaseMode.equals("estimates")||releaseMode.equals("provider")||releaseMode.equals("mcp_workflows")){Bundle result=new Bundle();try{String before=businessSnapshotHash();if(releaseMode.equals("mcp_workflows")){McpWorkflowAcceptance.run(this);DriveProviderAcceptance.run(this);try(OwnerNativeAcceptance.Fixture f=new OwnerNativeAcceptance.Fixture(getTargetContext())){McpAuditTools.report(this,f.tools.tools());}}else if(releaseMode.equals("provider"))DriveProviderAcceptance.run(this);else EstimateNativeAcceptance.run(this);check("business snapshot unchanged after isolated probes",()->yes(before.equals(businessSnapshotHash())));result.putString("stream","RESULT "+passed+" Android SQLite/MCP tests passed; acceptance failures="+acceptanceFailed+"; isolated group only\n");finish(acceptanceFailed==0?-1:0,result);}catch(Throwable error){result.putString("stream","FAILED "+error.getClass().getSimpleName()+"\n");finish(0,result);}return;}
         if(releaseMode.equals("fresh_isolated")){ReleaseLifecycleProbe.run(this,new Isolated(getTargetContext()),"fresh");return;}
         if(!releaseMode.isEmpty()){ReleaseLifecycleProbe.run(this,getTargetContext(),releaseMode);return;}
         if(liveTunnelProbe){PixelTunnelLiveProbe.run(this,getTargetContext());return;}

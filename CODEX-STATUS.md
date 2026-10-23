@@ -3,6 +3,12 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Auftrag97 – vollständiger Routerlauf und zusätzliche gültige MCP-Abläufe
+
+Apporiginal9cc4e18220ff3d4eef8a56877658b397d63d2504, APK-SHA5087632af214da765fc9164681123bc23dbd2645eea612c1289d1e41606d7ce7, Produktionsfingerprint91b50e7d13644cf42565cdd92008be0acd82bdb3525bcc8c87b91fb70c02614d. Voller neuer nativer Lauf289PASS/1FAIL: ausschließlich noch QA-Teardown einer Kalender-Quota-Probe;117echte RPCs tatsächlich abgewickelt. Die eine Preferences-Datei entstand erst nach der Dateiliste aus asynchronem apply(). QA-Isolated erfasst jetzt jede geöffnete Preferences-Datei und wartet deren Writes vor Entfernen; keine fachliche Erwartung gelockert.
+
+Separate zusätzliche QA-Quelle für gültige echte RPC-Abläufe: Auftrags-/Arbeitsänderungen samt Replay, vollständiger Timer/Pause/Fortsetzen/Abschluss, Verwerfen/Wiederherstellen, Leistungsbaustein-/Angebotsbearbeitung. Vorhandener isolierter SAF-Legacyabschluss ebenfalls über RPC. Neue Gruppe mcp_workflows. Noch keine erfolgreiche Abnahme behauptet. Appcode/APK bleiben unverändert9cc4e18, weitere QA-Commits/Test-APK werden separat im Abschlussquellstand gesichert; Original-Tag/ZIP wird den tatsächlich gebauten Appcommit bezeichnen.
+
 ## Auftrag97 – native Bereinigungsprobe zunächst rot
 
 Originaler interner97-Kandidat4a8e554 aus sauber gesichertem Stand gebaut84Tasks, originalsigniert und gegen96-Paket/Zertifikat/424Assets/leerem Bootstrap/DEX-Commit/Fingerprint/Privacy geprüft. Nicht ausgeliefert oder getaggt. Native Ausführung deckte einen Fehler ausschließlich im neuen QA-Teardown auf: Android databaseList liefert DB und Journal/WAL-Sidecars; deleteDatabase entfernt diese gemeinsam, der folgende veraltete Listeneintrag liefertefalse. Bereinigung prüft nun erst Existenz, anschließend unverändert strikt keinen eigenen Datenbank-/Preferencesrest. Fachliche Assertionen nicht gelockert. Neuer vollständiger Quell-/Build-/Signier-/Emulatornachweis folgt; Fingerprint der unveränderten Produktionsdateien bleibt91b50e7d. Vorangegangene Host-Gates bleiben gültig, bisherige native Runde ist FAIL und keine Ersatzfreigabe.
