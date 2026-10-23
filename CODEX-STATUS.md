@@ -1,7 +1,15 @@
 # CODEX-STATUS
 
-Stand: 22. Oktober 2026
+Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
+
+## Auftrag97 – Heute-Rückkehr und konkret reproduzierte Verbesserungen
+
+Original95-Ansicht mit identischem synthetischem115-Termin-Fall tatsächlich im Browser angesehen: sichtbarer Heute-Titel/Datum, einzelne blätterbare Einsatzkarte, zwei Stundenkennzahlen; Logo war dort bereits nur im Menü sichtbar. Diese Struktur in demselben TodayUI-Renderer wiederhergestellt, statt alte konkurrierende Renderer zurückzubringen. Originale Start-/Pause-/Stop-/Foto-/Erfassen-/Planungskommandos in unterer fester Leiste über der Navigation. Dynamische Leistenhöhe und Scrollreserve; bei Tests gefundenes Verdecken von Inhalt und Rückgängig korrigiert. Fachliche Entwurfs-/Timer-/CAS-/Syncregeln und linke Randgeste erhalten. Neue gezielte11Übersichtsprüfungen einschließlich Karussellgrenzen, Hauptaktionen unten, Schrift150/200, Timer/Foto/Entwurf und begrenztem Bridgezugriff PASS. Erste54-Suiten-Regressionsrunde deckte mehrere alte Layout-Erwartungen und die echte Rückgängig-Überdeckung auf; korrigierte gezielte Wiederholung und finaler Gesamtlauf folgen.
+
+Konkrete Leistungsmessung, Host/115synthetische Termine/25Wiederholungen:96-Heute median11ms/p95 26ms,95-Referenz3/4ms. Neuer Einzelkartenpfad und einmaliger Vienna-Datumsformatter2/3ms in erster Nachmessung; abschließende Vergleichsmessung folgt. Nur gewählte Termindetails über Android-Brücke, warme25Heute-Render ohne zusätzlichen get_appointment-Aufruf. Kein Pixel-/Netzleistungsversprechen. MCP-Metadaten bauten denselben117-Tool-Katalog dreimal je Antwort; lokale Wiederverwendung innerhalb derselben Antwort vermeidet diese Mehrarbeit, Folgeresultate bleiben frisch. Zusätzliche Produktionsprüfung für Hashkonsistenz, unveränderliche Folgeresultate und0Schreibzugriffe ergänzt.
+
+MCP-Befund tatsächlich rot reproduziert: update_business_settings bietet invoice_numbering_authority="" an, minLength1 verwarf diesen eigenen Enumwert. Genau dieser Einzelwert nun minLength0; Schutz von request_id, record_hash, Rechte-/Journal-/Rechnungsnummernregeln unverändert. Eingefrorene P1-Baseline nicht überschrieben; gesonderter eng geprüfter Reparaturdelta mit Negativtests gegen weitergehende Schema-/Rechteänderungen.49JVM-Suiten mit1050Paritätsassertions und5gezielte Python-Vertragstests PASS; ursprünglicher Pythonlauf394PASS/0Skips. Vorher-/Nachher-Produktionsschema-Probe bestätigt Fehler/Korrektur und117/117gültige synthetische Aufrufargumente. Neue native echte JSON-RPC-/Negativpfadprüfung aller117Tools samt eigener Datenbank-/Datei-/Preferencesbereinigung vorbereitet; voller Funktions-/Provider-/Performance-/Artefaktnachweis noch offen. Version weiterhin96, kein neuer APK-Kandidat ausgeliefert.
 
 ## Auftrag97 – Heute aus95, Bedienung unten, Fehler-/Leistungs-/MCP-Prüfung (23.10.2026)
 

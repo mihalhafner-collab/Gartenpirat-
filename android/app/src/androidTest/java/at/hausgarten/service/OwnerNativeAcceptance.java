@@ -9,12 +9,12 @@ final class OwnerNativeAcceptance {
     static final class Fixture implements AutoCloseable {
         final PixelMcpInstrumentation.Isolated context;
         final PixelLocalStore store;
-        final PixelMcpReadTools tools;
+        final McpAuditTools tools;
         Fixture(Context base)throws Exception{
             context=new PixelMcpInstrumentation.Isolated(base);
             JSONObject snapshot=SyntheticBusinessData.object("{customers:[{id:'qa_c',name:'QA Eigentümer',active:1,billing_mode:'direct',updated_at:'2026-10-18T08:00:00Z'}],orders:[],worklogs:[{id:'qa_w',customer_id:'qa_c',billing_customer_id:'qa_c',work_date:'2026-10-18',activity:'QA Pflege',hours:2,break_minutes:0,kilometers:0,billed:0,customer_visible:1,notes:'Original',updated_at:'2026-10-18T08:00:00Z'}],invoices:[],photos:[],capabilities:{entity_compare_and_save:true,worklog_compare_and_save:true,customer_custom_fields_compare_and_save:true,invoice_compare_and_save:true,photo_compare_and_save:true,owner_journal_v2:true}}");
             JSONObject config=SyntheticBusinessData.object();for(String key:PixelMcpOwnerTools.BUSINESS_KEYS)config.put(key,"");snapshot.put("business_settings",config);
-            context.getSharedPreferences("haus_garten",0).edit().putString("drive_snapshot",snapshot.toString()).commit();store=new PixelLocalStore(context);tools=new PixelMcpReadTools(store::getState,store,new PixelOwnerAccess(context,store));
+            context.getSharedPreferences("haus_garten",0).edit().putString("drive_snapshot",snapshot.toString()).commit();store=new PixelLocalStore(context);tools=new McpAuditTools(store::getState,store,new PixelOwnerAccess(context,store));
         }
         JSONObject call(String n,JSONObject a)throws Exception{return tools.call(n,a).getJSONObject("data");}
         public void close(){store.close();}

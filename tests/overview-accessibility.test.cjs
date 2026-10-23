@@ -13,43 +13,44 @@ function bridge(){const source=fs.readFileSync(path.join(__dirname,'planning-ui.
    AndroidData.getWorkSession=()=>JSON.stringify(timer);
   });
   await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href);await page.waitForFunction(()=>document.body.dataset.fieldReady==='true'&&document.body.dataset.todayReady==='true');
-  await check('96 Today360x640 shows start and two daily appointments without scrolling',async()=>{
+  await check('97 Today360x640 restores95 carousel and puts work controls above lower navigation',async()=>{
    assert.equal(await page.locator('#home .folder-grid,#home .hero,#home>.brand').count(),0);assert.equal(await page.locator('#app-drawer .brand').count(),1);
-   assert.equal(await page.locator('#planning-home [data-appointment-open]').count(),3);await fits('#workday-timer [data-session-action=start]');await fits('#planning-home [data-appointment-open="qa_overview_1"]');await accessible('#home');await screenshot('qa-96-today-360-100');
+   assert.equal(await page.locator('#planning-home [data-appointment-open]').count(),1);assert.equal(await page.locator('#home .today-header h1').innerText(),'Heute');await fits('#workday-timer [data-session-action=start]');await fits('#field-today-actions .quick');await fits('#planning-home [data-appointment-open="qa_overview_0"]');assert.equal(await page.locator('#design-metrics [data-design-metric]').count(),2);await accessible('#home');await screenshot('qa-97-today-360-100');
   });
-  await check('96 all daily appointments remain reachable with one expand action',async()=>{
-   await page.locator('[data-today-all]').click();assert.equal(await page.locator('#planning-home [data-appointment-open]').count(),4);await page.locator('[data-today-all]').click();assert.equal(await page.locator('#planning-home [data-appointment-open]').count(),3);
+  await check('97 original carousel reaches every upcoming appointment and respects its bounds',async()=>{
+   for(let i=1;i<4;i++){await page.locator('[data-home-browse="1"]').click();assert.equal(await page.locator('#planning-home [data-appointment-open]').getAttribute('data-appointment-open'),'qa_overview_'+i);}
+   assert(await page.locator('[data-home-browse="1"]').isDisabled());for(let i=0;i<3;i++)await page.locator('[data-home-browse="-1"]').click();assert(await page.locator('[data-home-browse="-1"]').isDisabled());
   });
-  await check('96 planning has three control rows and first appointment above navigation',async()=>{
+  await check('97 planning has three control rows and first appointment above navigation',async()=>{
    await page.evaluate(()=>PlanningUI.open());assert.equal(await page.locator('.planning-range,.planning-modebar,.planning-week-strip').count(),3);assert.equal(await page.locator('#planning-tools').evaluate(d=>d.open),false);
-   await fits('#planning-rows [data-appointment-open]');await fits('#planning-new');await accessible('#planning-page');await screenshot('qa-96-planning-360-100');
+   await fits('#planning-rows [data-appointment-open]');await fits('#planning-new');await accessible('#planning-page');await screenshot('qa-97-planning-360-100');
    await page.locator('#planning-tools>summary').click();assert(await page.locator('#planning-suggest').isVisible());assert(await page.locator('#planning-customer-filter').isVisible());assert(await page.locator('.planning-actual-hours').isVisible());await page.locator('#planning-tools>summary').click();
   });
-  await check('96 timer survives Today planning Today using the unchanged session bridge',async()=>{
+  await check('97 timer survives Today planning Today using the unchanged session bridge',async()=>{
    await page.evaluate(()=>openPage('home'));await page.locator('[data-session-action=start]').click();await page.locator('#work-location-customer').selectOption('qa_c');await page.locator('#work-location-start').click();const before=await page.evaluate(()=>({...timer,starts}));assert.equal(before.state,'RUNNING');assert.equal(before.starts,1);
-   await page.evaluate(()=>{timer.worked_ms=150000;PlanningUI.open();});await page.evaluate(()=>openPage('home'));assert.equal(await page.evaluate(()=>timer.id),before.id);assert.equal(await page.evaluate(()=>starts),1);assert.match(await page.locator('.timer-state strong').innerText(),/00:02:30/);assert(await page.locator('[data-session-action=stop]').isVisible());await fits('[data-session-action=stop]');await fits('#planning-home [data-appointment-open="qa_overview_1"]');
+   await page.evaluate(()=>{timer.worked_ms=150000;PlanningUI.open();});await page.evaluate(()=>openPage('home'));assert.equal(await page.evaluate(()=>timer.id),before.id);assert.equal(await page.evaluate(()=>starts),1);assert.match(await page.locator('.timer-state strong').innerText(),/00:02:30/);assert(await page.locator('[data-session-action=stop]').isVisible());await fits('[data-session-action=stop]');await fits('#field-today-actions .quick');assert.equal(await page.locator('#today-action-dock [data-session-action=photo]').count(),1);
   });
-  await check('96 active timer keeps photo and manual capture reachable through its extra menu',async()=>{
+  await check('97 active timer keeps photo and manual capture directly reachable in the lower dock',async()=>{
    await page.evaluate(()=>{window.qaCameraOriginal=window.openCustomerDocumentationCamera;window.qaCameraArgs=null;window.openCustomerDocumentationCamera=(...args)=>{qaCameraArgs=args;return true;};});
-   await page.locator('.today-timer-more>summary').click();await page.locator('[data-session-action=photo]').click();const captured=await page.evaluate(()=>qaCameraArgs);assert.equal(captured[0],'qa_c');assert.equal(captured[1].session_id,await page.evaluate(()=>timer.id));assert.equal(await page.locator('.today-timer-more').evaluate(d=>d.open),false);
-   await page.evaluate(()=>{window.openCustomerDocumentationCamera=qaCameraOriginal;delete window.qaCameraOriginal;});await page.locator('.today-timer-more>summary').click();await page.locator('#field-today-actions .quick').click();assert(await page.locator('#field-quick-entry').isVisible());await page.evaluate(()=>handleAndroidBack());assert.equal(await page.evaluate(()=>timer.state),'RUNNING');assert.equal(await page.evaluate(()=>starts),1);
+   await page.locator('[data-session-action=photo]').click();const captured=await page.evaluate(()=>qaCameraArgs);assert.equal(captured[0],'qa_c');assert.equal(captured[1].session_id,await page.evaluate(()=>timer.id));assert.equal(await page.locator('.today-timer-more').evaluate(d=>d.open),false);
+   await page.evaluate(()=>{window.openCustomerDocumentationCamera=qaCameraOriginal;delete window.qaCameraOriginal;});await page.locator('#field-today-actions .quick').click();assert(await page.locator('#field-quick-entry').isVisible());await page.evaluate(()=>handleAndroidBack());assert.equal(await page.evaluate(()=>timer.state),'RUNNING');assert.equal(await page.evaluate(()=>starts),1);
   });
-  await check('96 customer renaming refreshes Today appointments and the active timer',async()=>{
+  await check('97 customer renaming refreshes Today appointments and the active timer',async()=>{
    const previousName=await page.evaluate(()=>fixture.master.customers.find(c=>c.id==='qa_c').name);await page.evaluate(()=>{fixture.master.customers.find(c=>c.id==='qa_c').name='QA Neuer Anzeigename';load();openPage('home');});
    assert.match(await page.locator('#planning-home .today-customer').first().innerText(),/QA Neuer Anzeigename/);assert.match(await page.locator('.timer-location-context').innerText(),/QA Neuer Anzeigename/);await page.evaluate(name=>{fixture.master.customers.find(c=>c.id==='qa_c').name=name;load();TodayUI.render();},previousName);
   });
-  await check('96 planning draft survives overview changes',async()=>{
+  await check('97 planning draft survives overview changes',async()=>{
    await page.evaluate(()=>PlanningUI.open());await page.locator('#planning-new').click();await page.locator('#appointment-form [name=title]').fill('QA retained overview draft');await page.evaluate(()=>openPage('home'));
    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('hausgarten.planning.draft.v1')).data.title),'QA retained overview draft');
   });
-  await check('96 150 and200percent text preserve touch targets text and horizontal bounds',async()=>{
+  await check('97 150 and200percent text preserve touch targets text and horizontal bounds',async()=>{
    for(const percent of [150,200]){
-    await page.evaluate(percent=>{document.documentElement.style.fontSize=percent+'%';openPage('home');scrollTo(0,0);},percent);await accessible('#home');await page.locator('[data-session-action=stop]').evaluate(e=>e.scrollIntoView({block:'center'}));await fits('[data-session-action=stop]');await screenshot('qa-96-today-360-'+percent);
-    await page.evaluate(()=>PlanningUI.open());await accessible('#planning-page');await fits('#planning-new');await screenshot('qa-96-planning-360-'+percent);
+    await page.evaluate(percent=>{document.documentElement.style.fontSize=percent+'%';openPage('home');scrollTo(0,0);},percent);await accessible('#home');await page.locator('[data-session-action=stop]').evaluate(e=>e.scrollIntoView({block:'center'}));await fits('[data-session-action=stop]');await screenshot('qa-97-today-360-'+percent);
+    await page.evaluate(()=>PlanningUI.open());await accessible('#planning-page');await fits('#planning-new');await screenshot('qa-97-planning-360-'+percent);
     const clipped=await page.locator('#home .today-customer,#home .today-place,#planning-page .planning-customer,#planning-page .planning-what').evaluateAll(nodes=>nodes.filter(e=>e.getBoundingClientRect().width>0&&e.scrollWidth>e.clientWidth+1&&['hidden','clip'].includes(getComputedStyle(e).overflowX)).map(e=>e.textContent));assert.deepEqual(clipped,[]);
    }
   });
-  await check('96 idle start and manual actions remain readable at large fonts',async()=>{
+  await check('97 idle start and manual actions remain readable at large fonts',async()=>{
    const previous=await page.evaluate(()=>({...timer}));
    for(const width of [320,360])for(const scale of [1.5,2]){
     await page.setViewportSize({width,height:640});await page.evaluate(scale=>{document.documentElement.style.fontSize=16*scale+'px';timer={state:'IDLE'};openPage('home');TodayUI.render();},scale);await accessible('#home');
@@ -57,8 +58,14 @@ function bridge(){const source=fs.readFileSync(path.join(__dirname,'planning-ui.
    }
    await page.evaluate(previous=>{timer=previous;TodayUI.render();},previous);
   });
-  await check('96 overview exposes no script errors or duplicate critical IDs',async()=>{assert.deepEqual(errors,[]);for(const id of ['planning-home','workday-timer','sync-status','planning-body'])assert.equal(await page.locator('#'+id).count(),1);});
+  await check('97 Today details are bounded to the selected appointment and warm updates stay responsive',async()=>{
+   await page.setViewportSize({width:360,height:640});await page.evaluate(()=>{document.documentElement.style.fontSize='16px';timer={state:'IDLE'};openPage('home');});
+   const result=await page.evaluate(()=>{const raw=AndroidData.ownerCall,counts={};AndroidData.ownerCall=(name,args)=>{counts[name]=(counts[name]||0)+1;return raw(name,args);};try{PlanningUI.refresh();const cold={...counts};for(const k of Object.keys(counts))delete counts[k];const samples=[];for(let i=0;i<25;i++){const start=performance.now();TodayUI.render();samples.push(performance.now()-start);}samples.sort((a,b)=>a-b);return{classification:'SYNTHETIC_TEST',fixture:'qa_4_today_appointments',cold_calls:cold,warm_calls:counts,samples_ms:samples,p50_ms:samples[12],p95_ms:samples[23],native_latency_measured:false};}finally{AndroidData.ownerCall=raw;}});
+   assert.equal(result.cold_calls.get_appointment,1);assert.equal(result.warm_calls.get_appointment||0,0);assert(result.p95_ms<150);fs.writeFileSync('outputs/qa-97-today-performance.json',JSON.stringify(result,null,2));
+   await page.evaluate(()=>document.querySelector('#design-metrics').scrollIntoView({block:'end'}));await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));const metric=await page.locator('#design-metrics').boundingBox(),dock=await page.locator('#today-action-dock').boundingBox();assert(metric.y+metric.height<=dock.y+1,'bottom content must scroll clear of fixed controls');
+  });
+  await check('97 overview exposes no script errors or duplicate critical IDs',async()=>{assert.deepEqual(errors,[]);for(const id of ['planning-home','workday-timer','sync-status','planning-body'])assert.equal(await page.locator('#'+id).count(),1);});
  }finally{await browser.close();}
- fs.writeFileSync('outputs/qa-96-overview-accessibility.json',JSON.stringify({classification:'SYNTHETIC_TEST',viewport:[360,640],font_percent:[100,150,200],results},null,2));
+ fs.writeFileSync('outputs/qa-97-overview-accessibility.json',JSON.stringify({classification:'SYNTHETIC_TEST',viewport:[360,640],font_percent:[100,150,200],results},null,2));
  console.log(JSON.stringify({checks:results.length,failed:results.filter(r=>r.result==='FAIL').length}));if(results.some(r=>r.result==='FAIL'))process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1;});

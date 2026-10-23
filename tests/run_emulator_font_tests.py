@@ -1,6 +1,6 @@
 """Actual OS font_scale1.5/2.0 acceptance on the explicitly guarded synthetic Cloud AVD.
 
-Requires installed original96 and its original-signed instrumentation. No install,
+Requires installed original97 and its original-signed instrumentation. No install,
 physical device, credentials, business writes or database reset. OS setting restored.
 """
 import argparse
@@ -22,8 +22,8 @@ def main():
     with emulator_lock(args.serial):
         require_emulator(args.adb, args.serial)
         package = command(args.adb, args.serial, ['shell', 'dumpsys', 'package', 'at.hausgarten.service'])
-        if 'versionName=1.54.7' not in package or 'versionCode=96 ' not in package:
-            raise ValueError('This acceptance requires the original1.54.7/96 candidate already installed.')
+        if 'versionName=1.54.8' not in package or 'versionCode=97 ' not in package:
+            raise ValueError('This acceptance requires the original1.54.8/97 candidate already installed.')
         original = command(args.adb, args.serial, ['shell', 'settings', 'get', 'system', 'font_scale'])
         display = command(args.adb, args.serial, ['shell', 'wm', 'size'])
         density = command(args.adb, args.serial, ['shell', 'wm', 'density'])

@@ -125,7 +125,7 @@ final class OwnerToolSchemas {
     private static void updateBusinessSettings(String name, JSONObject p, List<String> required) throws Exception {
         {
                 JSONObject fields=new JSONObject();for(String key:BUSINESS_KEYS)fields.put(key,key.endsWith("_confirmed")?bool():(key.equals("invoice_sevdesk_last_number")||key.equals("invoice_numbering_last_number"))?number(0,1000000000):key.equals("invoice_number_format")?enumeration("own","sevdesk"):text(2000));
-                fields.put("invoice_numbering_authority",enumeration("","pixel_drive")).put("invoice_numbering_device_id",text(200)).put("tax_mode",enumeration("small_business","standard")).put("default_payment_days",number(0,365));
+                fields.put("invoice_numbering_authority",enumeration("","pixel_drive").put("minLength",0)).put("invoice_numbering_device_id",text(200)).put("tax_mode",enumeration("small_business","standard")).put("default_payment_days",number(0,365));
                 fields.put("invoice_prefix",text(20).put("pattern","[A-Za-z][A-Za-z0-9-]{0,19}"));
                 p.put("expected_record_hash",hash()).put("updates",object(fields).put("minProperties",1));required.addAll(Arrays.asList("expected_record_hash","updates"));
             }

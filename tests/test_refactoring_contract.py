@@ -9,6 +9,26 @@ class RefactoringContractTests(unittest.TestCase):
     def setUp(self):
         self.contract = json.loads(BASELINE.read_text())['contract']
 
+    def test_advertised_empty_authority_repair_accepts_only_the_single_constraint(self):
+        delta = json.loads((BASELINE.parent/'sync-optimization-contract-v1.json').read_text())
+        repair = json.loads((BASELINE.parent/'mcp-authority-schema-repair-v1.json').read_text())
+        current = deepcopy(self.contract)
+        for change in delta['changes']:
+            current[change['group']][change['key']] = change['after']
+        tool = next(t for t in current['tools'] if t['name'] == 'update_business_settings')
+        field = tool['inputSchema']['properties']['updates']['properties']['invoice_numbering_authority']
+        self.assertEqual(field['enum'], ['', 'pixel_drive'])
+        self.assertEqual(field['minLength'], 1)
+        field['minLength'] = 0
+        self.assertEqual(approved_evolution(self.contract, current, delta), ['tools'])
+        self.assertEqual(approved_evolution(self.contract, current, delta, repair), [])
+        tool['annotations']['idempotentHint'] = False
+        self.assertEqual(approved_evolution(self.contract, current, delta, repair), ['tools'])
+        unapproved = deepcopy(repair)
+        unapproved['property'] = 'expected_record_hash'
+        with self.assertRaises(ValueError):
+            approved_evolution(self.contract, current, delta, unapproved)
+
     def test_baseline_is_complete(self):
         self.assertEqual(len(self.contract['tools']), 117)
         self.assertEqual(sum(t['annotations']['readOnlyHint'] for t in self.contract['tools']), 52)

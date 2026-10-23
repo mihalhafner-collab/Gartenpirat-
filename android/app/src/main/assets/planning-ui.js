@@ -7,7 +7,8 @@
  let editor=null,view='week',anchor=new Date(),customerFilter='',offset=0,total=0,items=[],locationRequest='',homeKey='',homeSelection='';
  const call=window.HGOwnerClient.create("Vorgang nicht bestätigt.");
  const uuid=()=>crypto.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
- const day=date=>{const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Vienna',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date);return ['year','month','day'].map(k=>parts.find(p=>p.type===k).value).join('-');};
+ const dayFormatter=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Vienna',year:'numeric',month:'2-digit',day:'2-digit'});
+ const day=date=>{const parts=dayFormatter.formatToParts(date);return ['year','month','day'].map(k=>parts.find(p=>p.type===k).value).join('-');};
  const endOpen=a=>a.ends_at==='';
  const durationMinutes=a=>endOpen(a)?null:Math.round((Date.parse(a.ends_at)-Date.parse(a.starts_at))/60000);
  const endLabel=a=>endOpen(a)?'Ende offen':stamp(a.ends_at);
@@ -181,12 +182,12 @@
   }catch(e){message(HGBusinessFeedback.error(e));}}
  function upcoming(){return merged('appointments','appointment').filter(a=>!['cancelled','completed','draft'].includes(a.status)&&(endOpen(a)||Date.parse(a.ends_at)>Date.now())).sort((a,b)=>Date.parse(a.starts_at)-Date.parse(b.starts_at)||a.id.localeCompare(b.id));}
  const homeCache=new Map();
- function homeRows(limit=3,selection=''){
+ function homeRows(limit=3,selection='',carousel=false){
   const today=day(new Date()),all=merged('appointments','appointment').filter(a=>!['draft','cancelled'].includes(a.status)).sort((a,b)=>Date.parse(a.starts_at)-Date.parse(b.starts_at)||a.id.localeCompare(b.id));
   const rows=all.filter(a=>day(new Date(a.starts_at))===today),future=upcoming();
   function entry(a){const key=JSON.stringify([a,Math.floor(Date.now()/60000),state.last_drive_sync]);if(homeCache.has(key))return homeCache.get(key);let details={};try{details=call('get_appointment',{appointment_id:a.id});}catch(_){}const value={appointment:a,weather:details.weather,calendar:details.calendar,collisions:Array.isArray(details.collisions)?details.collisions:details.collisions?.conflicts||collisionReport(a,details.availability||{}).conflicts,availability_unknown:details.integration?.calendar_configured&&!collisionReport(a,details.availability||{}).external_checked};if(homeCache.size>100)homeCache.clear();homeCache.set(key,value);return value;}
   const selected=future.find(a=>a.id===selection)||future.find(a=>day(new Date(a.starts_at))>=today)||future[0];
-  return {entries:rows.slice(0,limit).map(entry),total:rows.length,future,next:!rows.length&&selected?entry(selected):null};
+  return {entries:carousel?[]:rows.slice(0,limit).map(entry),total:rows.length,future,next:(carousel||!rows.length)&&selected?entry(selected):null};
  }
  function init(){const css=document.createElement('link');css.rel='stylesheet';css.href='planning-ui.css';document.head.append(css);const page=document.createElement('section');page.id='planning-page';page.className='page';page.innerHTML='<div class="page-head"><button type="button" class="back">‹</button><h2>Planung</h2></div><div class="planning-controls"><button class="secondary" type="button" id="planning-refresh">Jetzt prüfen</button><button class="secondary" type="button" id="planning-settings">Einrichten</button></div><p id="planning-message" class="planning-message" role="status" aria-live="polite"></p><div id="planning-body"></div>';document.querySelector('main.app').append(page);
   const headActions=page.querySelector(':scope>.planning-controls');headActions.classList.add('planning-head-actions');page.querySelector('.page-head').append(headActions);

@@ -25,7 +25,7 @@ function luminance(hex){const rgb=hex.slice(1).match(/../g).map(v=>parseInt(v,16
    for(const width of [320,360,426])for(const size of [16,24]){await page.setViewportSize({width,height:800});await page.evaluate(size=>{document.documentElement.style.fontSize=size+'px';openPage('home');scrollTo(0,0);},size);
     assert.equal(await page.locator('#field-today-actions').evaluate(d=>getComputedStyle(d).position),'static');assert.equal(await page.locator('#workday-timer #field-today-actions').count(),1);
     for(const button of await page.locator('#field-today-actions button').all()){await button.evaluate(e=>e.scrollIntoView({block:'center'}));const r=await button.boundingBox(),nav=await page.locator('.bottom').boundingBox();assert(r.width>=48&&r.height>=48&&r.y>=0&&r.y+r.height<=nav.y+1);assert(await button.evaluate(b=>document.elementFromPoint(b.getBoundingClientRect().x+b.offsetWidth/2,b.getBoundingClientRect().y+b.offsetHeight/2)?.closest('button')===b));}
-    assert.equal(await page.locator('#workday-timer [data-session-action=start]').innerText(),'Arbeit starten');assert.equal(await page.locator('#home .today-week').evaluate(n=>getComputedStyle(n).borderTopWidth),'1px');
+    assert.equal(await page.locator('#workday-timer [data-session-action=start]').locator('b').innerText(),'Arbeit starten');assert.equal(await page.locator('#home .today-week').evaluate(n=>getComputedStyle(n).borderLeftWidth),'1px');
    }
    await page.setViewportSize({width:360,height:800});await page.evaluate(()=>{document.documentElement.style.fontSize='16px';openPage('home');scrollTo(0,0);});await page.screenshot({path:'outputs/grafik-heute-G3-360.png'});
   });

@@ -39,22 +39,22 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
     });}
     renderTimer(readSession());
   }
+  let dockObserver;
+  function observeDock(){
+    const dock=get('today-action-dock');if(!dock)return;
+    const measure=()=>{const height=Math.ceil(dock.getBoundingClientRect().height);if(height>0&&document.documentElement.style.getPropertyValue('--today-dock-height')!==height+'px')document.documentElement.style.setProperty('--today-dock-height',height+'px');};
+    if(window.ResizeObserver){if(!dockObserver)dockObserver=new ResizeObserver(measure);dockObserver.disconnect();dockObserver.observe(dock);}requestAnimationFrame(measure);
+  }
   function renderTimer(session){
     const panel=get('workday-timer');if(!panel)return;
     const status=session.state||'IDLE',active=status==='RUNNING',paused=status==='PAUSED',stopped=status==='STOPPED_PENDING_REVIEW';
     const signature=JSON.stringify([session.id,status,session.customer_id,session.order_id,session.location,customerName(session.customer_id)]);
     if(panel._sessionView===signature){const clock=panel.querySelector('.timer-state strong');if(clock)clock.textContent=sessionDuration(session.worked_ms);return;}
     panel._sessionView=signature;panel.dataset.sessionState=status;panel.classList.toggle('has-active-session',active||paused||stopped);
-    const manual='<button type="button" class="quick secondary" data-open="work-entry"><strong>Nachtragen</strong></button>';
-    let body;
-    if(['IDLE','FINALIZED','CANCELLED'].includes(status))body='<div id="field-today-actions" aria-label="Arbeit beginnen oder nachtragen"><button type="button" class="timer-main timer-start" data-session-action="start"><b>Arbeit starten</b></button>'+manual+'</div>';
-    else if(['UNAVAILABLE','ERROR'].includes(status))body='<p>Zeiterfassung derzeit nicht verfügbar.</p><div id="field-today-actions">'+manual+'</div>';
-    else{
-      const primary=(active?'<button type="button" class="timer-secondary" data-session-action="pause"><b>Pause</b></button>':'')+(paused?'<button type="button" class="timer-main" data-session-action="resume"><b>Fortsetzen</b></button>':'')+(active||paused?'<button type="button" class="timer-stop" data-session-action="stop"><b>Stoppen</b></button>':'')+(stopped?'<button type="button" class="timer-main" data-session-action="complete"><b>Angaben ergänzen</b></button>':'');
-      const extras='<details class="today-timer-more"><summary aria-label="Weitere Aktionen zur Zeiterfassung">⋯</summary><div class="today-timer-more-panel">'+(active||paused?'<button type="button" class="timer-secondary" data-session-action="photo"><b>Foto</b></button>':'')+'<div id="field-today-actions">'+manual+'</div><button type="button" class="timer-discard" data-session-action="discard">Zeiterfassung löschen</button></div></details>';
-      body='<p class="timer-location-context">'+esc(session.customer_id?customerName(session.customer_id):'Kunde noch zuordnen')+'</p><div class="timer-state"><small>'+esc(active?'Arbeit läuft':paused?'Pausiert':'Einsatz beendet')+'</small><strong aria-label="Erfasste Arbeitszeit">'+sessionDuration(session.worked_ms)+'</strong></div><div class="timer-actions">'+primary+extras+'</div>';
-    }
-    panel.innerHTML='<h2>Jetzt</h2>'+body;
+    const primary=active?'<button type="button" class="timer-secondary" data-session-action="pause"><b>Pause</b></button><button type="button" class="timer-stop" data-session-action="stop"><b>Stoppen</b></button><button type="button" class="timer-secondary" data-session-action="photo"><b>Foto</b></button>':paused?'<button type="button" class="timer-main" data-session-action="resume"><b>Fortsetzen</b></button><button type="button" class="timer-stop" data-session-action="stop"><b>Stoppen</b></button><button type="button" class="timer-secondary" data-session-action="photo"><b>Foto</b></button>':stopped?'<button type="button" class="timer-main" data-session-action="complete"><b>Angaben ergänzen</b></button>':['IDLE','FINALIZED','CANCELLED'].includes(status)?'<button type="button" class="timer-main timer-start" data-session-action="start"><b>Arbeit starten</b><small>Zeit läuft ab jetzt</small></button>':'';
+    const summary=active||paused||stopped?'<div class="today-timer-summary"><p class="timer-location-context">'+esc(session.customer_id?customerName(session.customer_id):'Kunde noch zuordnen')+'</p><div class="timer-state"><small>'+esc(active?'Arbeit läuft':paused?'Pausiert':'Einsatz beendet')+'</small><strong aria-label="Erfasste Arbeitszeit">'+sessionDuration(session.worked_ms)+'</strong></div><details class="today-timer-more"><summary>Weitere Aktionen</summary><button type="button" class="timer-discard" data-session-action="discard">Zeiterfassung löschen</button></details></div>':['UNAVAILABLE','ERROR'].includes(status)?'<p role="status">Zeiterfassung derzeit nicht verfügbar. Du kannst eine Arbeit manuell erfassen.</p>':'';
+    panel.innerHTML=summary+'<div id="today-action-dock" aria-label="Arbeit und Planung"><div class="timer-actions">'+primary+'</div><div id="field-today-actions"><button type="button" class="secondary field-planning" data-open="planning-page">Planung</button><button type="button" class="quick" data-open="work-entry"><strong>Arbeit erfassen</strong></button></div></div>';
+    observeDock();
   }
  function homeGestures(card){
   let touch=null,suppressUntil=0;
@@ -65,7 +65,7 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
   card.addEventListener('click',event=>{if(performance.now()<suppressUntil&&event.detail!==0&&event.sourceCapabilities?.firesTouchEvents!==false){event.preventDefault();event.stopImmediatePropagation();return;}const b=event.target.closest('[data-home-browse]');if(b){event.preventDefault();browseHome(Number(b.dataset.homeBrowse));}},{capture:true});
   card.addEventListener('keydown',event=>{if(event.target!==card||!['ArrowLeft','ArrowRight'].includes(event.key))return;event.preventDefault();browseHome(event.key==='ArrowRight'?1:-1);});
  }
-  let showAll=false,futureSelection='',lastPlanningKey='';
+  let futureSelection='',lastPlanningKey='';
   function syncChip(){
     const pill=get('sync-status');if(!pill)return;
     const labels={not_connected:'Drive verbinden',syncing:'Gleicht ab',action_required:'Hilfe nötig',review_required:'Prüfen',status_warning:'Status prüfen',pending:'Ausstehend',provider_readback:'Übergeben',synced:'Abgeglichen',retry_wait:'Versuch folgt',error:'Abgleich offen'};
@@ -77,25 +77,29 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
     const format=value=>new Date(value).toLocaleTimeString('de-AT',{timeZone:a.timezone||'Europe/Vienna',hour:'2-digit',minute:'2-digit'}),time=format(a.starts_at),end=a.ends_at?format(a.ends_at):'Ende offen',weather=w.label||'Wetter noch ungeprüft';
     const icon=['critical','difficult'].includes(w.severity)?'☂':w.severity==='good'||w.severity==='safe'?'☀':w.severity==='unknown'||!w.severity?'?':'☁';
     const notice=[weather,...(w.reasons||[]),clashes.length?'Terminkollision prüfen':'',entry.availability_unknown?'Google-Belegung ungeprüft':'',entry.calendar?.state==='review_required'?'Kalenderänderung prüfen':''].filter(Boolean).join(' · ');
-    return '<button type="button" class="today-appointment" data-appointment-open="'+esc(a.id)+'" aria-label="'+esc([time,end,customerName(a.customer_id),a.title,a.location||'Einsatzort offen',notice].filter(Boolean).join(' · '))+'"><span class="today-time">'+esc(time)+'<small>'+esc(end)+'</small></span><strong class="today-customer">'+esc(customerName(a.customer_id))+'</strong><span class="today-place">'+esc(a.location||'Einsatzort offen')+'</span><span class="today-weather" title="'+esc(notice)+'"><span role="img" aria-label="'+esc(weather)+'">'+icon+'</span>'+(warning?'<span class="today-warning" role="img" aria-label="Hinweis prüfen">⚠</span>':'')+'</span></button>';
+    return '<button type="button" class="today-appointment" data-appointment-open="'+esc(a.id)+'" aria-label="'+esc([time,end,customerName(a.customer_id),a.title,a.location||'Einsatzort offen',notice].filter(Boolean).join(' · '))+'"><span class="today-time">'+esc(time)+'<small>'+esc(end)+'</small></span><strong class="today-customer">'+esc(customerName(a.customer_id))+'</strong><span class="today-title">'+esc(a.title||'')+'</span><span class="today-place">'+esc(a.location||'Einsatzort offen')+'</span><span class="today-weather" title="'+esc(notice)+'"><span role="img" aria-label="'+esc(weather)+'">'+icon+'</span>'+(warning?'<span class="today-warning" role="img" aria-label="Hinweis prüfen">⚠</span>':'')+'</span><span class="today-weather-label">'+esc(weather)+(clashes.length?' · Terminkollision prüfen':'')+'</span></button>';
   }
   function browseHome(direction){const rows=window.PlanningUI?.upcoming()||[],index=Math.max(0,rows.findIndex(a=>a.id===futureSelection));if(rows[index+direction]){futureSelection=rows[index+direction].id;lastPlanningKey='';renderToday();}}
   function renderToday(){
+    document.documentElement.classList.toggle('today-root',currentPage==='home');
     if(currentPage!=='home')return;
     const date=get('home-dayline');date.textContent=new Date().toLocaleDateString('de-AT',{timeZone:'Europe/Vienna',weekday:'short',day:'numeric',month:'short'});date.setAttribute('aria-label',new Date().toLocaleDateString('de-AT',{timeZone:'Europe/Vienna',dateStyle:'full'}));
     syncChip();workTimer();
-    const data=window.PlanningUI?.homeRows(showAll?Infinity:3,futureSelection)||{entries:[],total:0,future:[]},card=get('planning-home');
-    const key=JSON.stringify([data,showAll,data.entries.map(e=>customerName(e.appointment.customer_id)),data.next?customerName(data.next.appointment.customer_id):'',orders().filter(o=>o.scheduled_date===localDate()).map(o=>[o,customerName(o.customer_id)])]);
+    const data=window.PlanningUI?.homeRows(1,futureSelection,true)||{entries:[],total:0,future:[],next:null},card=get('planning-home');
+    if(data.next)futureSelection=data.next.appointment.id;
+    const key=JSON.stringify([data.next,data.total,data.future.map(a=>a.id),data.next?customerName(data.next.appointment.customer_id):'']);
     if(key!==lastPlanningKey){lastPlanningKey=key;
-      let content='<div class="today-planning-heading"><h2>Heute geplant'+(data.total?' · '+data.total:'')+'</h2><button type="button" class="field-planning" data-open="planning-page">Planung</button></div>';
-      if(data.total){content+=data.entries.map(appointmentRow).join('');if(data.total>3)content+='<button type="button" class="secondary" data-today-all>'+(showAll?'Weniger anzeigen':'Alle anzeigen · '+data.total)+'</button>';}
-      else{content+='<p class="sub">Heute keine Termine.</p>';if(data.next){futureSelection=data.next.appointment.id;const index=data.future.findIndex(a=>a.id===futureSelection);content+='<h3>Nächster Einsatz</h3><div class="planning-home-position"><button type="button" class="secondary" data-home-browse="-1" aria-label="Vorherigen Einsatz anzeigen"'+(index===0?' disabled':'')+'>‹</button><span role="status">'+(index+1)+' von '+data.future.length+' · '+esc(new Date(data.next.appointment.starts_at).toLocaleDateString('de-AT',{day:'numeric',month:'short'}))+'</span><button type="button" class="secondary" data-home-browse="1" aria-label="Nächsten Einsatz anzeigen"'+(index===data.future.length-1?' disabled':'')+'>›</button></div>'+appointmentRow(data.next);}}
-      const planned=new Set(merged('appointments','appointment').filter(a=>!['cancelled','completed','draft'].includes(a.status)).map(a=>a.order_id));
-      const legacy=orders().filter(o=>openStatuses.has(o.status||'')&&o.scheduled_date===localDate()&&!planned.has(o.id));
-      content+='<section id="design-upcoming"'+(legacy.length?'':' hidden')+'><h3>Weitere Aufträge heute</h3>'+legacy.map(o=>'<button type="button" class="design-upcoming-row" data-edit-order="'+esc(o.id)+'"><strong>'+esc(o.title)+'</strong><small>'+esc(customerName(o.customer_id))+'</small></button>').join('')+'</section>';
+      const selected=data.next?.appointment,index=data.future.findIndex(a=>a.id===selected?.id),date=selected?new Date(selected.starts_at).toLocaleDateString('de-AT',{timeZone:'Europe/Vienna',weekday:'short',day:'numeric',month:'numeric'}):'';
+      let content='<div class="planning-home-heading"><h2>'+esc(selected?(date.startsWith(new Date().toLocaleDateString('de-AT',{timeZone:'Europe/Vienna',weekday:'short',day:'numeric',month:'numeric'}))?'Heute geplant':'Nächster Einsatz'):'Nächster Einsatz')+'</h2><span>'+data.total+' '+(data.total===1?'Einsatz heute':'Einsätze heute')+'</span></div>';
+      if(selected)content+='<div class="planning-home-position"><button type="button" class="secondary" data-home-browse="-1" aria-label="Vorherigen Einsatz anzeigen"'+(index===0?' disabled':'')+'>‹</button><span role="status" aria-live="polite" aria-atomic="true">'+(index+1)+' von '+data.future.length+' · '+esc(date)+'</span><button type="button" class="secondary" data-home-browse="1" aria-label="Nächsten Einsatz anzeigen"'+(index===data.future.length-1?' disabled':'')+'>›</button></div>'+appointmentRow(data.next);
+      else content+='<p class="sub">Keine bevorstehenden Termine.</p>';
       card.innerHTML=content;
     }
-    const recent=get('workday-recent'),rows=worklogs().slice().sort((a,b)=>String(b.work_date||'').localeCompare(String(a.work_date||''))||String(b.start_time||'').localeCompare(String(a.start_time||''))).slice(0,3),recentKey=JSON.stringify(rows.map(row=>[row,customerName(row.customer_id)]));
+    const logs=worklogs(),today=localDate(),hours=logs.filter(row=>row.work_date===today).reduce((sum,row)=>sum+Number(row.hours||0),0);
+    get('today-recorded-hours').textContent=hours.toLocaleString('de-AT',{maximumFractionDigits:2})+' h';
+    const openOrders=orders().filter(o=>openStatuses.has(o.status||'')&&o.scheduled_date===today),planned=new Set(merged('appointments','appointment').filter(a=>!['cancelled','completed','draft'].includes(a.status)).map(a=>a.order_id)),legacy=openOrders.filter(o=>!planned.has(o.id)),upcoming=get('design-upcoming'),legacyKey=JSON.stringify(legacy.map(o=>[o,customerName(o.customer_id)]));
+    if(upcoming._rowsKey!==legacyKey){upcoming._rowsKey=legacyKey;upcoming.hidden=!legacy.length;upcoming.innerHTML='<h2>Weitere Aufträge heute</h2>'+legacy.map(o=>'<button type="button" class="design-upcoming-row" data-edit-order="'+esc(o.id)+'"><strong>'+esc(o.title)+'</strong><small>'+esc(customerName(o.customer_id))+'</small></button>').join('');}
+    const recent=get('workday-recent'),rows=logs.slice().sort((a,b)=>String(b.work_date||'').localeCompare(String(a.work_date||''))||String(b.start_time||'').localeCompare(String(a.start_time||''))).slice(0,3),recentKey=JSON.stringify(rows.map(row=>[row,customerName(row.customer_id)]));
     get('today-recent').hidden=!rows.length;
     if(recent._rowsKey!==recentKey){recent._rowsKey=recentKey;recent.innerHTML=rows.map(row=>'<button type="button" class="workday-recent-row" data-edit-worklog="'+esc(row.id)+'"><strong>'+esc(customerName(row.customer_id))+'</strong><span>'+esc(worklogDateLabel(row.work_date))+' · '+esc(String(row.activity||'').slice(0,75))+'</span><b>'+Number(row.hours||0).toLocaleString('de-AT')+' h</b></button>').join('');}
     const review=Number(syncInfo.review??state.sync_queue?.review??0),help=syncInfo.user_action_required||['action_required','error','status_warning'].includes(syncInfo.state),open=get('today-open');open.hidden=!review&&!help;
@@ -103,7 +107,7 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
     document.body.dataset.todayReady='true';
   }
   function init(){
-    const card=get('planning-home');homeGestures(card);card.addEventListener('click',e=>{const all=e.target.closest('[data-today-all]');if(all){showAll=!showAll;lastPlanningKey='';renderToday();}});
+    const card=get('planning-home');homeGestures(card);
     renderToday();setInterval(()=>{if(!document.hidden&&currentPage==='home')workTimer();},1000);
   }
   window.TodayUI=Object.freeze({render:renderToday,syncChip,invalidate(){lastPlanningKey='';renderToday();}});

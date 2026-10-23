@@ -17,7 +17,7 @@ def differences(expected, current):
     return sorted(key for key in expected.keys() | current.keys()
                   if key not in expected or key not in current or digest(expected[key]) != digest(current[key]))
 
-def approved_evolution(expected, current, delta):
+def approved_evolution(expected, current, delta, schema_repair=None):
     # Narrow explicit functional evolution. The original P1 baseline stays immutable.
     import copy
     if delta.get('version') != 1 or delta.get('baseline_sha256') != hashlib.sha256(BASELINE.read_bytes()).hexdigest():
@@ -30,6 +30,20 @@ def approved_evolution(expected, current, delta):
         if reviewed[group][key] != change['before'] or not change.get('reason'):
             raise ValueError('Functional-contract predecessor changed')
         reviewed[group][key] = change['after']
+    # One reproduced advertised-value contradiction. Preserve the original baseline
+    # and every other schema byte; do not permit a general catalog replacement.
+    if schema_repair is not None:
+        repair = schema_repair
+        if (repair.get('version') != 1 or repair.get('tool') != 'update_business_settings'
+                or repair.get('property') != 'invoice_numbering_authority'
+                or repair.get('before_min_length') != 1 or repair.get('after_min_length') != 0
+                or repair.get('enum') != ['', 'pixel_drive'] or not repair.get('reason')):
+            raise ValueError('Unapproved MCP schema repair scope')
+        tool = next(t for t in reviewed['tools'] if t['name'] == repair['tool'])
+        field = tool['inputSchema']['properties']['updates']['properties'][repair['property']]
+        if field.get('minLength') != 1 or field.get('enum') != repair['enum']:
+            raise ValueError('MCP schema predecessor changed')
+        field['minLength'] = 0
     return differences(reviewed, current)
 
 def observe():
@@ -70,7 +84,9 @@ def main():
     changed = differences(expected, current)
     if changed:
         delta = json.loads((ROOT/'tests/fixtures/sync-optimization-contract-v1.json').read_text())
-        unapproved = approved_evolution(expected, current, delta)
+        repair_path = ROOT / 'tests/fixtures/mcp-authority-schema-repair-v1.json'
+        repair = json.loads(repair_path.read_text()) if repair_path.exists() else None
+        unapproved = approved_evolution(expected, current, delta, schema_repair=repair)
         if unapproved:
             raise SystemExit('FAIL unreviewed functional contract changed: '+', '.join(unapproved))
         print('PASS explicit sync-optimization-contract-v1; original P1 differences: '+', '.join(changed))
