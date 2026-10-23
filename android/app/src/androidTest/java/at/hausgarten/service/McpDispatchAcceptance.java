@@ -22,12 +22,14 @@ final class McpDispatchAcceptance {
         String text=key.equals("request_id")?"qa_dispatch_request":key.contains("date")?"2026-10-23":key.contains("base64")?"UUE=":key.equals("mime_type")?"text/plain":key.equals("name")||key.equals("activity")||key.equals("title")?"QA Dispatch probe":"qa_missing";
         while(text.length()<schema.optInt("minLength",0))text+="q";return text.substring(0,Math.min(text.length(),schema.optInt("maxLength",text.length())));
     }
-    static void remove(File root){if(root.isDirectory()){File[] children=root.listFiles();if(children!=null)for(File child:children)remove(child);}if(root.exists()&&!root.delete())throw new AssertionError("Disposable MCP test file not removed");}
+    static void remove(File root){boolean link=java.nio.file.Files.isSymbolicLink(root.toPath());if(root.isDirectory()&&!link){File[] children=root.listFiles();if(children!=null)for(File child:children)remove(child);}if((root.exists()||link)&&!root.delete())throw new AssertionError("Disposable MCP test file not removed");}
     static void cleanup(OwnerNativeAcceptance.Fixture f){
-        Context base=f.context.getBaseContext();String prefix=f.context.prefix;f.close();
+        Context base=f.context.getBaseContext();String prefix=f.context.prefix;f.store.close();
         for(String name:base.databaseList())if(name.startsWith(prefix)&&!base.deleteDatabase(name))throw new AssertionError("Disposable MCP database not removed");
         File prefs=new File(base.getApplicationInfo().dataDir,"shared_prefs");String[] names=prefs.list();if(names!=null)for(String name:names)if(name.startsWith(prefix)&&name.endsWith(".xml")){String n=name.substring(0,name.length()-4);if(!base.getSharedPreferences(n,0).edit().commit())throw new AssertionError("Disposable preference writes not settled");base.deleteSharedPreferences(n);}
         remove(f.context.getFilesDir());remove(f.context.getCacheDir());remove(f.context.getNoBackupFilesDir());
+        for(String name:base.databaseList())if(name.startsWith(prefix))throw new AssertionError("Disposable MCP database remains");
+        names=prefs.list();if(names!=null)for(String name:names)if(name.startsWith(prefix))throw new AssertionError("Disposable MCP preferences remain");
     }
     static void run(PixelMcpInstrumentation test)throws Exception{
         test.probe("advertised empty authority passes guarded native settings update",()->{

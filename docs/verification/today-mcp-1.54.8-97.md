@@ -1,0 +1,25 @@
+# Heute, Performance und MCP – 1.54.8 / Build97
+
+Ausgang: unveränderlicher Originalcode1.54.7/96 `998d71f233f57b68264f771e64f8c576b214b957`, Tag `source/v1.54.7-build96`; Heute-Referenz1.54.6/95 `6972780dc9adbe46e0a91f1f77aa990e303fdaf0`. Bestehender Auditbranch, kein main-Merge/Force-Push. Dieser Abschnitt protokolliert das APK-Voraudit; endgültige Artefakt-/Emulator-/Drive-Belege werden nach tatsächlicher Ausführung ergänzt.
+
+## Umsetzung und APK-Voraudit
+
+| Auftrag | Umsetzung / Beleg | Grenze |
+|---|---|---|
+| Heute der Vorgängerversion | Tatsächlich angezeigte95-Ansicht mit identischen synthetischen115Terminen verglichen: Heute/Datum, einzelne blätterbare Einsatzkarte, Tages-/Wochenstunden, Arbeitsverlauf. Wiederhergestellt innerhalb desselben TodayUI-Renderers. | Alte konkurrierende Rendererschichten nicht wieder eingeführt; Logo war bereits95 im vorhandenen Menü. |
+| Bedienung unten | Start/Pause/Fortsetzen/Stoppen/Foto sowie Planung/Arbeit erfassen als feste Leiste direkt über Navigation. Gemessene dynamische Scrollreserve; Rückgängig bleibt darüber erreichbar. | Linksrandmenü und Zurückgeste unverändert. |
+| Fehlerkorrektur | Ablaufende gewählte Terminkarte übersprang den nächsten gültigen Termin: roter Test tatsächlich reproduziert, Blätterlogik korrigiert. Vollständig abgelaufene Liste wird geleert. | Keine Termin-/Timer-/Journalformate oder Schreibregeln geändert. |
+| Leistung | Einzelkarte fordert nur ihre Details an; warmer Render ohne zusätzliche Bridgeabrufe. Vienna-Datumsformatter wiederverwendet. Metadatenkatalog je Antwort einmal statt dreimal aufgebaut. | Hostmessung ist keine Pixel-/Netzzeitmessung. Keine spekulative Sync-/Tunneländerung. |
+| MCP-Vertrag | `invoice_numbering_authority=""` war angeboten, wurde aber durch minLength1 abgelehnt. Enger Einzelfeld-Fix auf0 mit positiven/negativen Produktionstests und gesondertem geprüftem Vertragsdelta. |117Namen, Rechte, Request-/CAS-/Nummernschutz unverändert. Eingefrorene historische Baselines erhalten. |
+| MCP-Erreichbarkeit | Tatsächliche lesende Live-Metadaten:117registrierte=117verbundene Tools;156eindeutige UI-Aktionen,145fachliche Zuordnungen und11explizite Plattform-/Darstellungsgrenzen. Echte native JSON-RPC-Prüfung aller117Werkzeuge vorbereitet, nicht nur Namenszählung. | Kamera, Android-Einwilligung und externe Google-Freigaben lassen sich nicht durch einen Toolnamen vollständig abnehmen. Negative Schutzpfade sind keine erfolgreichen Providerabläufe. |
+| Synthetische Tests ohne Reste | Jedes neue native MCP-Audit in eigener DB/Preferences/Dateiumgebung, erwartete Validierungsfehler geprüft, anschließend genaue eigene Ressourcen gelöscht und geprüft. Keine Geschäftsdatenargumente im Bericht. | Keine produktiven Testeinträge, keine Pixelinstallation/Queueänderung/Syncanforderung. |
+
+Selbst ausgeführt vor diesem APK:395Python/0Skips (37historische Ersatzschlüssel-Tests ausdrücklich ausgeschlossen),50JVM-Suiten/1050UI-MCP-Paritätsassertions,55lokale synthetische MCP-stdio-Szenarien,29Kamera-/47Cleanup-Hostfälle PASS. Pflanzen181Profile/362Bilder/370Spiegel und Angebotsvertrag PASS. Native Java-/AndroidTest-/Lint-Vorprüfung PASS,0Lintfehler/54bestehende Warnungen. Abschließende54Browser-Suiten und12Übersichtsfälle werden vor Versionsanhebung erneut ausgewertet. Version/Originalsignierung erst nach grünen Implementierungsgates; native Ausführung und tatsächliche APK bleiben nachfolgende eigene Abnahme.
+
+## Lesender produktiver Befund und Grenzen
+
+Live-MCP bestätigt installiertes Original1.54.7/96, Quellfingerprint `8a29c1b793014be4f4e6f53b8feb8ef2744e0d0727541bc374a26bdd54bae336`. Drei reine get_capabilities-Aufrufe benötigten5180/5545/6301ms einschließlich Verbindung/Tunnel. Das ist kein isoliertes Maß der Geräte-CPU und kein Beleg für eine behobene Netzlatenz.
+
+Lesender technischer Syncstatus: `REMOTE_STATE_REFERENCE_MISSING`, `publication_chain`, `action_required`,9ausstehende Änderungen/0Review, Wiederholungszähler1; `cloud_confirmed=false`, `provider_readback`. Keine Rohdatensätze gelesen oder kopiert. Die vorhandene Produktionsklasse ImmutableStateReference gewinnt geänderte Providerkennungen bereits ausschließlich über exakten Namen plus SHA256 zurück;7JVM-Fälle prüfen fehlende/geänderte/unterbrochene/verweigerte Referenzen. Aus technischem Status allein kann kein fehlender unveränderlicher fremder Quellzustand sicher rekonstruiert werden. Kein Schutzumgehen, Zurücksetzen, Löschen, Neuveröffentlichen oder Wiederholen der produktiven Warteschlange.
+
+Die neue APK ist bis zur ausdrücklichen Nutzerinstallation nicht auf dem Pixel. Emulatorerfolg beweist keinen erfolgreichen produktiven Google-Drive-Abgleich. Physische Kamera, produktive Kalender-/Wetter-/Kontofreigaben und echte Syncbestätigung bleiben gesonderte externe Abnahme.

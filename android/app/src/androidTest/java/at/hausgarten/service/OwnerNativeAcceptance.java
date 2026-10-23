@@ -17,7 +17,7 @@ final class OwnerNativeAcceptance {
             context.getSharedPreferences("haus_garten",0).edit().putString("drive_snapshot",snapshot.toString()).commit();store=new PixelLocalStore(context);tools=new McpAuditTools(store::getState,store,new PixelOwnerAccess(context,store));
         }
         JSONObject call(String n,JSONObject a)throws Exception{return tools.call(n,a).getJSONObject("data");}
-        public void close(){store.close();}
+        public void close(){McpDispatchAcceptance.cleanup(this);}
     }
     static JSONObject request(String id)throws Exception{return SyntheticBusinessData.object().put("request_id",id);}
     static void rejectedDocument(PixelMcpInstrumentation test,PixelMcpInstrumentation.Task task)throws Exception{

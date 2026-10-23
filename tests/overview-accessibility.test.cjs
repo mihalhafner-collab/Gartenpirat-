@@ -21,6 +21,11 @@ function bridge(){const source=fs.readFileSync(path.join(__dirname,'planning-ui.
    for(let i=1;i<4;i++){await page.locator('[data-home-browse="1"]').click();assert.equal(await page.locator('#planning-home [data-appointment-open]').getAttribute('data-appointment-open'),'qa_overview_'+i);}
    assert(await page.locator('[data-home-browse="1"]').isDisabled());for(let i=0;i<3;i++)await page.locator('[data-home-browse="-1"]').click();assert(await page.locator('[data-home-browse="-1"]').isDisabled());
   });
+  await check('97 carousel refreshes an expired selection without skipping the next appointment',async()=>{
+   await page.clock.setFixedTime(new Date('2026-10-22T09:30:00Z'));await page.locator('[data-home-browse="1"]').click();assert.equal(await page.locator('#planning-home [data-appointment-open]').getAttribute('data-appointment-open'),'qa_overview_1');
+   await page.clock.setFixedTime(new Date('2026-10-22T20:00:00Z'));await page.locator('[data-home-browse="1"]').click();assert.equal(await page.locator('#planning-home [data-appointment-open]').count(),0);assert.match(await page.locator('#planning-home').innerText(),/Keine bevorstehenden Termine/);
+   await page.clock.setFixedTime(new Date('2026-10-22T07:00:00Z'));await page.evaluate(()=>TodayUI.render());
+  });
   await check('97 planning has three control rows and first appointment above navigation',async()=>{
    await page.evaluate(()=>PlanningUI.open());assert.equal(await page.locator('.planning-range,.planning-modebar,.planning-week-strip').count(),3);assert.equal(await page.locator('#planning-tools').evaluate(d=>d.open),false);
    await fits('#planning-rows [data-appointment-open]');await fits('#planning-new');await accessible('#planning-page');await screenshot('qa-97-planning-360-100');

@@ -3,6 +3,12 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Auftrag97 – zusätzlicher Randfall und APK-Voraudit
+
+Abgelaufene Karussellauswahl übersprang im roten Produktionstest den ersten weiterhin gültigen Termin. browseHome korrigiert; auch vollständig abgelaufene Liste entfernt ihre alte Karte.12gezielte Übersichtsfälle PASS. Beim Rückstellen der künstlichen Testuhr muss die Ansicht vor dem nächsten Klick aktualisiert werden; zuerst alter Fixture-Cleanup statt Produktionsassertion angepasst. Neue gesamte54Browserwiederholung läuft. Native Auditressourcen werden nun tatsächlich geschlossen und nach exaktem eigenen Präfix entfernt, Symlinks nicht verfolgt; sämtliche neuen Owner-Fixtures verwenden dieselbe Bereinigung. Native Audit zählt echte erfolgreiche/abgewiesene Aufrufe getrennt und erfasst Dauer ohne Argumente/Datensätze.
+
+Alle395Python/50JVM/55stdio-MCP/29Kamera-/47Cleanup-Hostfälle PASS. Live-MCP rein technisch gelesen: Original96 installiert;117Tools/156UI-Aktionen. Aktueller produktiver Syncfehler REMOTE_STATE_REFERENCE_MISSING, publication_chain,9Pending/0Review/cloud_confirmed=false; keine Änderung/Sync ausgelöst. Fehlende unveränderliche Referenz darf nicht aus technischen Metadaten geraten werden. Bestehender exakter Name+SHA-Wiedergewinnungspfad und7JVM-Fälle geprüft. [Voraudit und Grenzen](docs/verification/today-mcp-1.54.8-97.md). Noch keine97-APK oder finale native Abnahme.
+
 ## Auftrag97 – Heute-Rückkehr und konkret reproduzierte Verbesserungen
 
 Original95-Ansicht mit identischem synthetischem115-Termin-Fall tatsächlich im Browser angesehen: sichtbarer Heute-Titel/Datum, einzelne blätterbare Einsatzkarte, zwei Stundenkennzahlen; Logo war dort bereits nur im Menü sichtbar. Diese Struktur in demselben TodayUI-Renderer wiederhergestellt, statt alte konkurrierende Renderer zurückzubringen. Originale Start-/Pause-/Stop-/Foto-/Erfassen-/Planungskommandos in unterer fester Leiste über der Navigation. Dynamische Leistenhöhe und Scrollreserve; bei Tests gefundenes Verdecken von Inhalt und Rückgängig korrigiert. Fachliche Entwurfs-/Timer-/CAS-/Syncregeln und linke Randgeste erhalten. Neue gezielte11Übersichtsprüfungen einschließlich Karussellgrenzen, Hauptaktionen unten, Schrift150/200, Timer/Foto/Entwurf und begrenztem Bridgezugriff PASS. Erste54-Suiten-Regressionsrunde deckte mehrere alte Layout-Erwartungen und die echte Rückgängig-Überdeckung auf; korrigierte gezielte Wiederholung und finaler Gesamtlauf folgen.
