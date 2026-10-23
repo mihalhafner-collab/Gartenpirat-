@@ -151,6 +151,15 @@
   return false;
  }
  function neophyteBadge(plant){return plant.neophyte?.unionConcern?'EU-Unionsliste':plant.neophyte?.invasive?'Invasiver Neophyt':plant.neophyte?.isNeophyte?'Neophyt':'';}
+ function regionalLaw(plant){
+  const law=plant.regionalRestrictions;if(!law)return '';
+  const eu=law.EU||{},ch=law.CH||{};
+  const date=value=>/^\d{4}-\d{2}-\d{2}$/.test(value||'')?value.split('-').reverse().join('.'):value||'';
+  const euText=eu.effectiveDate?'<h5>Europäische Union</h5><p>Beschränkungen ab '+escape(date(eu.effectiveDate))+'. '+escape(eu.restrictionsSummary)+'</p>':'';
+  const chText=ch.annex?'<h5>Schweiz · FrSV Anhang '+escape(ch.annex)+'</h5><p>'+escape(ch.notice)+'</p>':'';
+  if(!euText&&!chText)return '';
+  return '<section class="gp-regional-law"><h4>Regionale Rechtsinformationen</h4>'+euText+chText+'<p class="gp-note">Quellenstand '+escape(date(law.checkedAt))+'. '+escape(law.regionalRules)+'</p></section>';
+ }
  function results() {
   const tokens=fold(state.query.trim()).split(/\s+/).filter(Boolean);
   return plants.filter(p=>(!state.category||p.category===state.category)&&(!state.light||(p.light||[]).some(v=>v.startsWith(state.light)))&&matchesNeophyteFilter(p,state.neophyte)&&tokens.every(t=>index.get(p.id).includes(t)));
@@ -174,13 +183,19 @@
   if(!plant)return;
   releasePlantViewer();
   state.view='detail';state.selected=plant.id;state.returnTo=origin;dialog.querySelector('#gp-title').textContent='Pflanzenporträt';
-  const gallery=(plant.images||[]).map((pic,i)=>'<figure><button type="button" class="gp-image-button" data-gp-image="'+i+'" aria-label="'+escape(plant.name)+' – Bild '+(i+1)+' im Vollbild öffnen"><img src="'+escape(imagePath(pic.path))+'" alt="'+escape(plant.name)+' – botanische Aufnahme '+(i+1)+'" width="800" height="600"></button><figcaption>'+escape(pic.author)+' · <a href="'+safeLink(pic.licenseUrl)+'" target="_blank" rel="noopener noreferrer">'+escape(pic.license)+'</a> · <a href="'+safeLink(pic.source)+'" target="_blank" rel="noopener noreferrer">Bildquelle</a><small>'+escape(pic.changes)+'</small></figcaption></figure>').join('');
+  const gallery=(plant.images||[]).map((pic,i)=>'<figure><button type="button" class="gp-image-button" data-gp-image="'+i+'" aria-label="'+escape(plant.name)+' – Bild '+(i+1)+' im Vollbild öffnen"><img src="'+escape(imagePath(pic.path))+'" alt="'+escape(plant.name)+' – botanische Aufnahme '+(i+1)+'" width="800" height="600"></button><figcaption>'+escape(pic.caption||plant.name)+' · '+escape(pic.author)+' · <a href="'+safeLink(pic.licenseUrl)+'" target="_blank" rel="noopener noreferrer">'+escape(pic.license)+'</a> · <a href="'+safeLink(pic.source)+'" target="_blank" rel="noopener noreferrer">Bildquelle</a><small>'+escape(pic.changes)+'</small></figcaption></figure>').join('');
   const neo=plant.neophyte;
   const neophytePanel=neo?'<section class="gp-neophyte-panel"><p class="gp-neophyte-badge">'+escape(neo.unionConcern?'EU-UNIONSLISTE · ÖSTERREICH':'NEOPHYT · ÖSTERREICH')+'</p><h4>Neophyten- und Rechtsinformation</h4><dl class="gp-facts">'+fact('Status in Österreich',neo.austriaStatus)+fact('Einordnung',neo.statusLabel)+fact('Erkennungsmerkmale',neo.recognition)+fact('Ausbreitung',neo.spread)+fact('Ökologische Auswirkungen',neo.impacts)+fact('Kontrolle',neo.control)+fact('Entsorgung',neo.disposal)+fact('Rechtlicher Hinweis',neo.legalNotes)+fact('Datenumfang',neo.dataNote)+'</dl><p class="gp-note">'+escape(catalog.neophyteReference?.notice||'Vor Maßnahmen aktuelle amtliche und örtliche Vorgaben prüfen.')+'</p></section>':'';
-  content.innerHTML='<article class="gp-portrait"><p class="gp-category">'+escape(plant.category)+'</p><h3>'+escape(plant.name)+'</h3><p class="gp-latin">'+escape(plant.scientificName)+' · '+escape(plant.family)+'</p><div class="gp-gallery">'+gallery+'</div>'+
+  const taxonomy=(plant.acceptedName&&plant.acceptedName!==plant.scientificName?'<p class="gp-taxonomy">Akzeptierter botanischer Name: '+escape(plant.acceptedName)+'</p>':'')+
+   (plant.taxonScope==='horticultural_group'?'<p class="gp-note">Gartengruppe · Angaben gelten nicht automatisch für jede einzelne Sorte.</p>':plant.taxonScope==='species_aggregate'?'<p class="gp-note">Artengruppe · Ähnliche Kleinarten sind hier zusammengefasst.</p>':'')+
+   (plant.cultivationScope==='IDENTIFICATION_AND_PREVENTION_REFERENCE_NO_CULTIVATION_ADVICE'?'<p class="gp-note">Zur Identifikation und Prävention. Dieses Profil enthält keine Anbauempfehlung.</p>':'')+
+   (plant.scopeWarnings||[]).map(note=>'<p class="gp-note">'+escape(note)+'</p>').join('');
+  content.innerHTML='<article class="gp-portrait"><p class="gp-category">'+escape(plant.category)+'</p><h3>'+escape(plant.name)+'</h3><p class="gp-latin">'+escape(plant.scientificName)+' · '+escape(plant.family)+'</p>'+taxonomy+'<div class="gp-gallery">'+gallery+'</div>'+
    '<h4>Standort & Wuchs</h4><dl class="gp-facts">'+fact('Licht',plant.light)+fact('Boden',plant.soil)+fact('Bodenfeuchte / Drainage',plant.water)+fact('Boden-pH',plant.ph)+fact('Größe · Richtwerte',plant.dimensions)+fact('Lebensdauer',plant.life)+fact('Laub',plant.foliage)+fact('Wachstum',plant.growth)+'</dl>'+
    '<h4>Blüte & Pflege</h4><dl class="gp-facts">'+fact('Blütezeit · Richtwert',plant.bloom)+fact('Blütenfarben',plant.colors)+fact('Pflanzen & Düngen',plant.planting)+fact('Pflege & Schnitt',plant.care)+fact('Vermehrung',plant.propagation)+fact('Winterhärte · Quellenklassifikation',plant.hardiness)+fact('Herkunft laut Quelle',plant.origin)+'</dl>'+
-   neophytePanel+'<aside class="gp-safety"><h4>Giftigkeit & Umgang</h4><p>Giftigkeit laut Quelle: <strong>'+escape(list(plant.poison))+'</strong>.</p><p>Hautreaktionen laut Quelle: '+escape(list(plant.contact))+'.</p><p>'+escape(catalog.safetyNote)+'</p></aside>'+
+   neophytePanel+regionalLaw(plant)+'<aside class="gp-safety"><h4>Giftigkeit & Umgang</h4><p>Giftigkeit laut Quelle: <strong>'+escape(list(plant.poison))+'</strong>.</p><p>Hautreaktionen laut Quelle: '+escape(list(plant.contact))+'.</p>'+
+   (plant.rhsWarnings?.length?'<p>Zusätzliche Warnhinweise der Quelle: '+escape(list(plant.rhsWarnings))+'</p>':'')+
+   (plant.safetyNotice?'<p>'+escape(plant.safetyNotice)+'</p>':'')+'<p>'+escape(catalog.safetyNote)+'</p></aside>'+
    '<details class="gp-source"><summary>Quellen, Bildrechte & regionale Hinweise</summary><p>'+escape(catalog.climateNote)+'</p>'+plant.sources.map(s=>'<p><a href="'+safeLink(s.url)+'" target="_blank" rel="noopener noreferrer">'+escape(s.title)+'</a> · geprüft '+escape(s.checked)+'</p>').join('')+'<p>Pflegehinweise sind redaktionelle Orientierung. Bei Sorten, Obstgehölzen und örtlichen Schnittvorgaben ist die konkrete Situation maßgeblich.</p></details>'+
    (origin==='menu'?'<button type="button" class="gp-primary" data-gp-action="random">Nächste zufällige Pflanze</button>':'<button type="button" class="gp-primary" data-gp-action="back">Zurück zur Auswahl</button>')+'</article>';
   content.scrollTop=restoreScroll?state.imageScroll:0;
@@ -202,7 +217,7 @@
   state.imageIndex=(Number(indexValue)+pictures.length)%pictures.length;const picture=pictures[state.imageIndex];
   const image=content.querySelector('#gp-full-image');image.src=imagePath(picture.path);image.alt=plant.name+' – botanische Aufnahme '+(state.imageIndex+1);
   content.querySelector('#gp-image-count').textContent='Bild '+(state.imageIndex+1)+' von '+pictures.length;
-  content.querySelector('#gp-image-caption').innerHTML=escape(picture.caption||plant.name)+' · '+escape(picture.author)+' · <a href="'+safeLink(picture.licenseUrl)+'" target="_blank" rel="noopener noreferrer">'+escape(picture.license)+'</a> · <a href="'+safeLink(picture.source)+'" target="_blank" rel="noopener noreferrer">Bildquelle</a>';
+  content.querySelector('#gp-image-caption').innerHTML=escape(picture.caption||plant.name)+' · '+escape(picture.author)+' · <a href="'+safeLink(picture.licenseUrl)+'" target="_blank" rel="noopener noreferrer">'+escape(picture.license)+'</a> · <a href="'+safeLink(picture.source)+'" target="_blank" rel="noopener noreferrer">Bildquelle</a><small>'+escape(picture.changes)+'</small>';
   for(const button of content.querySelectorAll('[data-gp-action="image-prev"],[data-gp-action="image-next"]'))button.hidden=pictures.length<2;
   resetViewerTransform();
  }

@@ -14,6 +14,7 @@ from pathlib import Path
 import re
 import unicodedata
 from urllib.parse import urlparse, unquote
+from historical_baseline import baseline_bytes, BASELINE_COMMIT
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -47,11 +48,14 @@ def license_url_matches(identifier, url):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--report', choices=('initial', 'final'))
+    parser.add_argument('--baseline-commit', default=BASELINE_COMMIT,
+                        help='Pinned historical Git object; a different object must match the library baseline')
     args = parser.parse_args()
     library_path = HERE / 'plant-library.json'
     library = json.loads(library_path.read_text())
     baseline_path = ROOT / 'android/app/src/main/assets/plant-catalog.json'
-    baseline = json.loads(baseline_path.read_text())
+    baseline_raw = baseline_bytes(baseline_path.relative_to(ROOT).as_posix(), root=ROOT, commit=args.baseline_commit)
+    baseline = json.loads(baseline_raw)
     original_images = {'android/app/src/main/assets/' + i['path']: i
                        for p in baseline['plants'] for i in p.get('images', [])}
     evidence = {e['url']: e for e in json.loads((HERE / 'evidence/profiles.json').read_text())}
@@ -71,7 +75,8 @@ def main():
     ids = [p['id'] for p in plants + held]
     if len(set(ids)) != len(ids):
         errors.append('DUPLICATE_IDS')
-    if library['baseline']['catalogSha256'] != digest_bytes(baseline_path):
+    if (library['baseline']['catalogSha256'] != hashlib.sha256(baseline_raw).hexdigest()
+            or library['baseline'].get('repositoryCommit') != args.baseline_commit):
         errors.append('APPLICATION_BASELINE_CHANGED')
     if {p['id'] for p in baseline['plants']} != {p['legacyId'] for p in plants if 'legacyId' in p}:
         errors.append('LEGACY_INVENTORY_MISMATCH')
@@ -185,8 +190,8 @@ def main():
                 if (credit_token(photo.get('reuseLicenseId', '')) != credit_token(photo['license'])
                         or not license_url_matches(photo.get('reuseLicenseId', ''), photo.get('reuseLicenseUrl', ''))):
                     fail('INVALID_LEGACY_REUSE_LICENSE')
-            path = ROOT / photo['path']
-            if not path.is_file() or digest_bytes(path) != photo['sha256']:
+            raw = baseline_bytes(photo['path'], root=ROOT, commit=args.baseline_commit)
+            if hashlib.sha256(raw).hexdigest() != photo['sha256']:
                 fail('LEGACY_PHOTO_BYTES_CHANGED')
             screen = screening.get(photo['path'], {})
             if screen.get('sha256') != photo['sha256'] or photo['visualReview'] != screen.get('status'):
@@ -235,7 +240,7 @@ def main():
         'holds': Counter(b for p in plants for b in p['review']['blockers']),
         'heldCandidateReasons': Counter(b for p in held for b in p['review']['blockers']),
         'errors': errors,
-        'inputs': {str(p.relative_to(ROOT)): digest_bytes(p) for p in (
+        'inputs': {str(p.relative_to(ROOT)): hashlib.sha256(baseline_raw).hexdigest() if p == baseline_path else digest_bytes(p) for p in (
             library_path, HERE / 'evidence/profiles.json', HERE / 'evidence/taxonomy.json',
             HERE / 'review-queue.json', HERE / 'evidence/commons.json',
             HERE / 'evidence/replacements.json', HERE / 'evidence/visual-screening.json',

@@ -17,7 +17,7 @@ NAMES = ['overview-accessibility.test.cjs', 'interaction-continuity.test.cjs', '
          'simple-design.test.cjs', 'worklog-window.test.cjs', 'pixel-tunnel-ui.test.js',
          'work-location.test.cjs', 'timer-completion.test.cjs', 'design-v139.test.cjs',
          'gartenpirat-removal.test.cjs', 'customer-duplicate-ui.test.cjs', 'gartenpirat-plants.test.cjs',
-         'gartenpirat-photo.test.cjs', 'garden-followup.test.cjs', 'customer-photos.test.cjs',
+         'gartenpirat-photo.test.cjs', 'plant-library-integration.test.cjs', 'garden-followup.test.cjs', 'customer-photos.test.cjs',
          'work-entry-photo-failure.test.cjs', 'camera-timer-static.test.cjs', 'personal-payment.test.cjs',
          'access-integrity.test.cjs', 'sync-customer-gallery.test.cjs', 'offers-photo-library.test.cjs', 'sync-trash.test.cjs', 'context-search-storage.test.cjs', 'planning-open-end.test.cjs', 'worklog-batch.test.cjs', 'runtime-compat.test.cjs', 'owner-client-contract.test.cjs']
 

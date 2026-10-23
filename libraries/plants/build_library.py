@@ -14,6 +14,7 @@ from pathlib import Path
 import re
 import unicodedata
 from urllib.parse import unquote
+from historical_baseline import baseline_bytes, BASELINE_COMMIT
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -56,7 +57,8 @@ def accepted_key(taxon):
 
 def main():
     legacy_file = ROOT / 'android/app/src/main/assets/plant-catalog.json'
-    legacy = json.loads(legacy_file.read_text())['plants']
+    legacy_raw = baseline_bytes(legacy_file.relative_to(ROOT).as_posix())
+    legacy = json.loads(legacy_raw)['plants']
     profiles = {e['url']: e for e in read('evidence/profiles.json')}
     taxons = {t['query']: t for t in read('evidence/taxonomy.json')}
     commons = {e['url']: e for e in read('evidence/commons.json')['sources']}
@@ -69,7 +71,7 @@ def main():
     resolutions = {e['plantId']: e for e in read('evidence/taxonomic-resolution.json')['records']}
     selected_ids = set(read('review-scope.json')['selectedIds'])
     # Reuse the established factual vocabulary without executing its network builder.
-    tree = ast.parse((ROOT / 'tools/build_plant_catalog.py').read_text())
+    tree = ast.parse(baseline_bytes('tools/build_plant_catalog.py').decode('utf-8'))
     terms = next(ast.literal_eval(n.value) for n in tree.body if isinstance(n, ast.Assign)
                  and any(isinstance(t, ast.Name) and t.id == 'TERMS' for t in n.targets))
     terms.update({'Low': 'Gering', 'Medium': 'Mittel', 'High': 'Hoch'})
@@ -195,7 +197,7 @@ def main():
                                  and bool(cp.get('fields', {}).get('Author'))
                                  and any(license_key(lic) == license_key(image['license']) for lic in cp.get('licenses', [])))
             assessment = visual.get(str(path.relative_to(ROOT)), {})
-            local = {'path': str(path.relative_to(ROOT)), 'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
+            local = {'path': str(path.relative_to(ROOT)), 'sha256': hashlib.sha256(baseline_bytes(path.relative_to(ROOT).as_posix())).hexdigest(),
                      'status': 'CREDIT_RECONFIRMED' if (matched and matched.get('eligible')) or commons_confirmed else 'REQUIRES_SOURCE_REVIEW',
                      'caption': image['caption'], 'author': image['author'],
                      'license': image['license'], 'source': image['source'],
@@ -351,8 +353,8 @@ def main():
         'purpose': 'Eigenständige redaktionelle Bibliothek zur späteren Implementierung',
         'region': 'DACH-Zielgruppe; Gartenmerkmale überwiegend aus US-/UK-Quellen',
         'applicationAssetsChanged': False,
-        'baseline': {'repositoryCommit': 'e499e745832449ce0202d04d9903495248e8b034',
-                     'catalogSha256': hashlib.sha256(legacy_file.read_bytes()).hexdigest(), 'profiles': len(legacy)},
+        'baseline': {'repositoryCommit': BASELINE_COMMIT,
+                     'catalogSha256': hashlib.sha256(legacy_raw).hexdigest(), 'profiles': len(legacy)},
         'limitations': [
             'Foto-Credits und Taxonzuordnung anhand der Quellen geprüft; keine unabhängige botanische Expertenabnahme.',
             'Neue Fotos sind belegte externe Referenzen; Originaldownload und persönliche Sichtprüfung stehen aus.',

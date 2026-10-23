@@ -4,6 +4,7 @@ after a credit, evidence, identity, approval, or baseline claim is corrupted.
 from copy import deepcopy
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -21,10 +22,20 @@ class LibraryAuditTests(unittest.TestCase):
         self.library.mkdir(parents=True)
         (self.library / 'evidence').mkdir()
         shutil.copyfile(Path(__file__).with_name('audit_library.py'), self.library / 'audit_library.py')
+        shutil.copyfile(Path(__file__).with_name('historical_baseline.py'), self.library / 'historical_baseline.py')
         asset = root / 'android/app/src/main/assets'
         asset.mkdir(parents=True)
         raw = json.dumps({'plants': [{'id': 'qa_legacy_plant'}]}).encode()
         (asset / 'plant-catalog.json').write_bytes(raw)
+        # A real immutable synthetic Git object, independent of the mutable fixture.
+        env = {k: v for k, v in os.environ.items() if not k.startswith('HG_ORIGINAL_')}
+        def git(*args):
+            return subprocess.check_output(['git', *args], cwd=root, env=env, stderr=subprocess.DEVNULL).decode().strip()
+        git('init', '--quiet')
+        git('add', 'android/app/src/main/assets/plant-catalog.json')
+        git('-c', 'user.name=QA Test', '-c', 'user.email=qa@example.invalid',
+            '-c', 'commit.gpgsign=false', 'commit', '--quiet', '--no-verify', '-m', 'QA baseline')
+        self.baseline_commit = git('rev-parse', 'HEAD')
         photos = [{'id': 'qa_photo_' + str(n), 'caption': 'QA plant detail ' + str(n),
                    'author': 'QA Author', 'license': 'CC-BY-4.0',
                    'licenseUrl': 'https://creativecommons.org/licenses/by/4.0/',
@@ -50,7 +61,7 @@ class LibraryAuditTests(unittest.TestCase):
             if not n:
                 p['legacyId'] = p['id']
             return p
-        self.data = {'baseline': {'catalogSha256': hashlib.sha256(raw).hexdigest()},
+        self.data = {'baseline': {'catalogSha256': hashlib.sha256(raw).hexdigest(), 'repositoryCommit': self.baseline_commit},
                      'plants': [entry(0), entry(1)]}
         evidence = [{'url': 'https://example.invalid/qa-plant', 'facts': {'Light': ['Full sun']},
                      'figures': [{'url': p['originalLocator'], 'author': p['author'],
@@ -74,7 +85,7 @@ class LibraryAuditTests(unittest.TestCase):
 
     def run_audit(self):
         (self.library / 'plant-library.json').write_text(json.dumps(self.data))
-        p = subprocess.run([sys.executable, str(self.library / 'audit_library.py')],
+        p = subprocess.run([sys.executable, str(self.library / 'audit_library.py'), '--baseline-commit', self.baseline_commit],
                            capture_output=True, text=True)
         self.assertIn(p.returncode, (0, 1), p.stderr)
         return p.returncode, json.loads(p.stdout)
@@ -123,6 +134,16 @@ class LibraryAuditTests(unittest.TestCase):
 
     def test_wrong_baseline_hash_is_rejected(self):
         self.data['baseline']['catalogSha256'] = '0' * 64
+        self.assert_rejected('APPLICATION_BASELINE_CHANGED')
+
+    def test_current_app_changes_do_not_redefine_historical_baseline(self):
+        (self.library.parents[1] / 'android/app/src/main/assets/plant-catalog.json').write_text('{"plants": []}')
+        rc, report = self.run_audit()
+        self.assertEqual(0, rc)
+        self.assertEqual([], report['errors'])
+
+    def test_different_baseline_identity_is_rejected(self):
+        self.data['baseline']['repositoryCommit'] = '0' * 40
         self.assert_rejected('APPLICATION_BASELINE_CHANGED')
 
     def test_unproven_implementation_approval_is_rejected(self):
