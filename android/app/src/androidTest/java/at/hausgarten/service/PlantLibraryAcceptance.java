@@ -46,12 +46,26 @@ final class PlantLibraryAcceptance {
                 JSONObject old=f.call("search_catalog",new JSONObject().put("query","Pennisetum alopecuroides"));
                 JSONObject accepted=f.call("search_catalog",new JSONObject().put("query","Cenchrus alopecuroides"));
                 t.yes(old.getJSONArray("entries").getJSONObject(0).getString("id").equals(accepted.getJSONArray("entries").getJSONObject(0).getString("id")));
-                JSONObject p=f.call("get_catalog_entry",new JSONObject().put("entry_id","celastrus-orbiculatus")).getJSONObject("entry");
+                JSONObject p=f.call("get_catalog_entry",new JSONObject().put("entry_id","celastrus-orbiculatus"));
                 t.yes(p.getJSONObject("regionalRestrictions").getJSONObject("EU").getString("effectiveDate").equals("2027-08-02"));
                 t.yes(p.getJSONObject("regionalRestrictions").getJSONObject("CH").getString("annex").equals("2.1"));
             }
         });
+        runUi(t);
+    }
+
+    static void runUi(PixelMcpInstrumentation t) throws Exception {
         t.probe("plant98 real WebView navigation search offline images fullscreen and draft preservation", () -> ui(t));
+    }
+
+    static void capture(PixelMcpInstrumentation t,String stage) throws Exception {
+        t.waitForIdleSync();SystemClock.sleep(250);
+        String scale=Float.toString(t.getTargetContext().getResources().getConfiguration().fontScale);
+        try(android.os.ParcelFileDescriptor descriptor=t.getUiAutomation().executeShellCommand(
+                "screencap -p /data/local/tmp/qa-plant98-"+scale+"-"+stage+".png");
+                InputStream stream=new android.os.ParcelFileDescriptor.AutoCloseInputStream(descriptor)) {
+            byte[] buffer=new byte[8192];while(stream.read(buffer)!=-1){}
+        }
     }
 
     static void yes(PixelMcpInstrumentation t,WebView view,String expression)throws Exception {
@@ -73,9 +87,12 @@ final class PlantLibraryAcceptance {
             deadline=SystemClock.elapsedRealtime()+30000;
             while(SystemClock.elapsedRealtime()<deadline&&!"true".equals(ReleaseLifecycleProbe.js(t,view,"window.qaPlant98Images==='PASS'")))SystemClock.sleep(250);
             yes(t,view,"window.qaPlant98Images==='PASS'&&[...document.querySelectorAll('.gp-gallery img')].every(i=>i.complete&&i.naturalWidth>0)");
+            capture(t,"portrait");
             yes(t,view,"(()=>{document.querySelector('[data-gp-image=\"0\"]').click();return document.querySelector('#gp-dialog').classList.contains('gp-image-mode')&&document.querySelector('#gp-image-count').innerText==='Bild 1 von 2'&&document.querySelector('#gp-image-caption').innerText.length>10;})()");
             yes(t,view,"(()=>{document.querySelector('[data-gp-action=image-next]').click();return document.querySelector('#gp-image-count').innerText==='Bild 2 von 2';})()");
+            capture(t,"fullscreen");
             yes(t,view,"(()=>{handleAndroidBack();return !document.querySelector('#gp-dialog').classList.contains('gp-image-mode')&&document.querySelector('.gp-portrait h3').innerText.length>0&&document.documentElement.scrollWidth<=innerWidth+1&&localStorage.getItem('hausgarten.planning.draft.v1')==='qa_plant98_preserved_draft';})()");
+            capture(t,"back");
         } finally {
             ReleaseLifecycleProbe.js(t,view,"(()=>{Gartenpirat.close();const previous="+previous+";if(previous===null)localStorage.removeItem('hausgarten.planning.draft.v1');else localStorage.setItem('hausgarten.planning.draft.v1',previous);delete window.qaPlant98Images;return true;})()");
             t.runOnMainSync(activity::finish);t.waitForIdleSync();

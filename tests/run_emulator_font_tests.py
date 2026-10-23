@@ -44,12 +44,13 @@ def main():
                 if float(observed) != float(scale):
                     raise RuntimeError('Emulator font setting not confirmed.')
                 time.sleep(2)
-                run = subprocess.run([args.adb, '-s', args.serial, 'shell', 'am', 'instrument', '-w', '-e', 'release_lifecycle', args.mode,
+                native_mode='plants_ui' if args.mode=='plants' else args.mode
+                run = subprocess.run([args.adb, '-s', args.serial, 'shell', 'am', 'instrument', '-w', '-e', 'release_lifecycle', native_mode,
                                       'at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation'], env=env,
                                      capture_output=True, text=True, timeout=900, check=True)
                 log = folder / ('font-' + scale + '.log')
                 log.write_text(run.stdout + run.stderr)
-                passed = successful_output(run.stdout + run.stderr, args.mode)
+                passed = successful_output(run.stdout + run.stderr, native_mode)
                 results.append({'font_scale': scale, 'observed': observed, 'result': 'PASS' if passed else 'FAIL',
                                 'scope': 'actual Android WebView/OS fonts with synthetic read responses; no business writes'})
                 print(json.dumps(results[-1]), flush=True)

@@ -3,6 +3,28 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Fortsetzung98 – Original-APK und native Erstprüfung
+
+Originalkandidat aus304d5ee erfolgreich signiert, Paket/Zertifikat, alle690Assets,
+314Profile/628Bilder, eingebetteter Commit/Quellfingerprint und16KiB-Ausrichtung
+PASS.420Python/50JVM/55Browser/55MCP-stdio-Szenarien und Releasebuild/Lint PASS.
+Isolierte Original97-Testbasis0430eaa → erster98Kandidat: Lebenszyklusprüfung
+und vollständiger Counts-/Hashvergleich PASS, alle Daten/Queue/Timer erhalten.
+628Android-Bitmapdekodierungen und echter Pflanzen-WebView einschließlich
+Suche/Offlinebildern/Vollbild/Zurück/Entwurfsschutz PASS. Ein neuer nativer
+Katalogtest erwartete irrtümlich eine zusätzliche entry-Hülle; bestehende
+Pflanzenschnittstelle liefert direkt den Datensatz. Nur Testannahme korrigiert.
+Schriftprüfungen wiederholen die betroffene WebView-Prüfung ohne erneute628fach
+identische Bitmapdekodierung; echte synthetische Bildschirmbelege vorbereitet.
+
+Software-AVD ohneKVM zeigt langsame Paketinstallation/SystemUI-ANR. Timeout
+nicht als Erfolg gewertet; nach tatsächlichem Paket-/Installationsbeleg geprüft.
+Physischer Pixel/produktive Google-Verbindungen unverändert. Noch kein98Tag.
+Originalquell-ZIP161241502Bytes übersteigt100MiB-Connectoruploadgrenze. Verlustfreie
+XZ-Verpackung82322704Bytes, vollständiger Roundtrip byteidentisch und beide
+Privacygates PASS. Vorprüfungsquelle304d5ee plus49TXT-Bytebelege privat gesichert;
+dieser Stand bleibt erhalten, endgültige korrigierte Quelle wird separat exportiert.
+
 ## Fortsetzung98 – Implementierungsgates grün, Version1.54.9/98
 
 Alle55Browser-Regressionssuiten PASS nach korrekter Verwendung des eigentlichen
