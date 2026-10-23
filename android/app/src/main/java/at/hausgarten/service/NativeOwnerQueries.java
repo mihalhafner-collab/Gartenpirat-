@@ -52,23 +52,7 @@ final class NativeOwnerQueries implements PixelMcpOwnerTools.Access {
         JSONObject sync=DriveSyncCoordinator.status(context,store.getState().getJSONObject("sync_queue"));checks.put(new JSONObject().put("name","sync_state").put("status",!sync.optBoolean("configured")?"NOT TESTABLE":sync.optBoolean("drive_sync_failed")||sync.optInt("review")>0?"FAIL":"PASS").put("state",sync.optString("state")));
         File docs=new File(context.getFilesDir(),"business-documents");checks.put(new JSONObject().put("name","private_document_storage").put("status",docs.isDirectory()&&docs.canRead()?"PASS":"NOT TESTABLE"));
         checks.put(new JSONObject().put("name","physical_google_and_delivery").put("status","NOT TESTABLE").put("reason","Separate Kontofreigabe und tatsächlichen Providerbeleg prüfen; Diagnose sendet nichts."));
-        JSONObject migration=LocalMigrationInventory.inspect(store.getState(),(kind,reference)->{
-            JSONObject metadata=reference;File file;
-            if(kind.equals("photo")){
-                JSONObject local=store.photoAttachment(reference.optString("id"));if(local!=null)metadata=local;
-                if(!PhotoAttachmentStore.canonicalName(metadata.optString("storage_name")))return false;
-                file=store.photoAttachmentStore().file(metadata);
-            }else{
-                if(!metadata.optString("pdf_storage_name").matches("[0-9a-f]{64}\\.pdf"))return false;
-                file=new File(new File(context.getFilesDir(),"business-documents"),metadata.getString("pdf_storage_name"));
-            }
-            String expected=metadata.optString(kind.equals("photo")?"content_sha256":"pdf_sha256");
-            long size=metadata.optLong(kind.equals("photo")?"byte_size":"pdf_byte_size",-1);
-            if(!expected.matches("[0-9a-f]{64}")||!file.isFile()||file.length()!=size)return false;
-            java.security.MessageDigest digest=java.security.MessageDigest.getInstance("SHA-256");long read=0;
-            try(InputStream input=new BufferedInputStream(new FileInputStream(file))){byte[] buffer=new byte[32768];int n;while((n=input.read(buffer))!=-1){digest.update(buffer,0,n);read+=n;}}
-            StringBuilder hash=new StringBuilder();for(byte value:digest.digest())hash.append(String.format(Locale.ROOT,"%02x",value&255));return read==size&&expected.equals(hash.toString());
-        });
+        JSONObject migration=LocalMigrationInventory.inspect(store.getState(),new LocalOriginalVerifier(context.getFilesDir(),store::photoAttachment));
         checks.put(new JSONObject().put("name","local_authority_transition").put("status","NOT TESTABLE").put("reason","Inventar ist keine Umstellungsfreigabe; vollständige externe Sicherung und aktueller Beleg-/Schreibernachweis erforderlich."));
         return new JSONObject().put("checks",checks).put("local_migration_inventory",migration).put("build_fingerprint",BuildProvenance.describe()).put("tool_count",catalogue.length()).put("tool_catalog_hash",PixelMcpWriteTools.hash(catalogue)).put("tool_catalog_semantic",CatalogSemanticHash.describe(catalogue)).put("ui_catalog_hash",PixelMcpWriteTools.hash(inventory)).put("ui_catalog_semantic",CatalogSemanticHash.describe(inventory)).put("sync",new JSONObject().put("state",sync.optString("state")).put("pending",sync.optInt("pending")).put("review",sync.optInt("review")).put("confirmation_scope",sync.optString("confirmation_scope")).put("cloud_confirmed",sync.optBoolean("cloud_confirmed"))).put("business_data_changed",false).put("secrets_exposed",false);
     }

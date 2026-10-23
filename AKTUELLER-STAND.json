@@ -1,6 +1,6 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-23T17:37:59.003515+00:00",
+  "updated_at_utc": "2026-10-23T18:32:05.340566+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
@@ -14,7 +14,11 @@
       "persistent_timer_clock_review",
       "manual_time_correction_with_original_events",
       "migration_business_inventory_without_activation",
-      "streaming_encrypted_archive_with_fault_tests_not_full_device_backup"
+      "streaming_encrypted_archive_with_fault_tests_not_full_device_backup",
+      "consistent_sqlite_all_tables_private_file_capture_prepared_native_probes",
+      "typed_settings_and_explicit_browser_draft_capture",
+      "shared_live_and_captured_pending_projection",
+      "explicit_android_backup_device_transfer_exclusions"
     ],
     "full_revier_acceptance": "NOT COMPLETE",
     "original_signed_update_candidate": "INTERNAL ORIGINAL-SIGNED TEST BUILD; NATIVE295 PASS; NOT COMPLETE REVIER; NOT DELIVERED",
@@ -37,7 +41,22 @@
       "xz_file_id": "1cjDaAdK_zqPyXV1p3zPUv-uf_uNbsPWr",
       "xz_readback": "COMPLETE_STREAM_SIZE_ONLY; LOCAL XZ ROUNDTRIP BYTE-VERIFIED; no remote hash claim",
       "includes_latest_streaming_backup_sources": false
-    }
+    },
+    "backup_target_contract": "Pixel/App exclusively owns all business functions and authoritative data; Drive backup-only with regular automatic app upload; no two-way sync after controlled cutover",
+    "latest_host_checks": {
+      "python_pass": 423,
+      "python_skips": 0,
+      "excluded_qa_signing": 37,
+      "jvm_suites_pass": 55,
+      "archive_fault_checks": 23,
+      "archive_payload_MiB": 48,
+      "archive_heap_MiB": 64,
+      "app_and_instrumentation_compile": "PASS",
+      "new_native_backup_probes": "4 PREPARED; NOT EXECUTED",
+      "automatic_drive_backup": "NOT IMPLEMENTED",
+      "restore_activation": "NOT IMPLEMENTED"
+    },
+    "native_font_probe": "Today/Planning 100/150/200% PASS after initial SystemUI ANR; OS settings restored; no Pixel/TalkBack/full-nine-view claim"
   },
   "verified_release_source": {
     "version": "1.54.1",

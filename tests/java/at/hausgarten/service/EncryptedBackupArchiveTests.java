@@ -28,14 +28,16 @@ public final class EncryptedBackupArchiveTests {
             File active=new File(root,"active.txt");Files.write(active.toPath(),"test active store unchanged".getBytes(java.nio.charset.StandardCharsets.UTF_8));String activeHash=EncryptedBackupArchive.sha256(active);
             List<EncryptedBackupArchive.Source> sources=new ArrayList<>();sources.add(new EncryptedBackupArchive.Source("database.sqlite",active));
             for(int i=0;i<25;i++)sources.add(new EncryptedBackupArchive.Source("files/test_photo_"+i+".bin",i==0?media:active));
+            sources.add(new EncryptedBackupArchive.Source("files/qa_ÄÖÜ–☘.bin",active));
             File backup=new File(root,"test_generation.hgb");JSONObject written;
             try(OutputStream out=new FileOutputStream(backup)){written=EncryptedBackupArchive.write(out,recovery,metadata(4),sources);}
-            yes(backup.length()>40L*1024*1024&&written.getJSONArray("files").length()==26);passed++;
+            yes(backup.length()>40L*1024*1024&&written.getJSONArray("files").length()==27);passed++;
             String originalHash=EncryptedBackupArchive.sha256(backup);
             try(EncryptedBackupArchive.Verified restore=EncryptedBackupArchive.verifyAndStage(input(backup),new String(recovery),new File(root,"test_restore"),160L*1024*1024,4)){
                 yes(restore.manifest.getLong("totalBytes")==written.getLong("totalBytes"));
                 yes(EncryptedBackupArchive.sha256(restore.file("files/test_photo_0.bin")).equals(EncryptedBackupArchive.sha256(media)));
                 yes(restore.manifest.getJSONObject("numberState").getInt("next")==12);passed++;
+                yes(EncryptedBackupArchive.sha256(restore.file("files/qa_ÄÖÜ–☘.bin")).equals(activeHash));passed++;
             }
             yes(!new File(root,"test_restore").exists());passed++;
             reject(()->EncryptedBackupArchive.verifyAndStage(input(backup),BackupCrypto.newRecoveryCode(),new File(root,"test_wrong_code"),160L*1024*1024,4));
@@ -51,6 +53,7 @@ public final class EncryptedBackupArchiveTests {
             reject(()->new EncryptedBackupArchive.Source("../active.txt",active));
             reject(()->new EncryptedBackupArchive.Source("files/../../active.txt",active));
             reject(()->new EncryptedBackupArchive.Source("/active.txt",active));
+            reject(()->new EncryptedBackupArchive.Source("files/qa_\u0000.txt",active));
             File interrupted=new File(root,"test_interrupted.hgb");
             try(OutputStream file=new FileOutputStream(interrupted)){
                 OutputStream disconnect=new FilterOutputStream(file){long bytes;@Override public void write(byte[] b,int o,int n)throws IOException {if(bytes+n>2*1024*1024)throw new IOException("test USB disconnect/full provider");out.write(b,o,n);bytes+=n;}@Override public void write(int b)throws IOException{write(new byte[]{(byte)b},0,1);}};

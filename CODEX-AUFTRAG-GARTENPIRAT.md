@@ -10,6 +10,21 @@ Die vollständigen fachlichen Anforderungen stammen aus dem Nutzerauftrag vom
 23.10.2026 in diesem Codex-Task; die folgenden Zuordnungen sind sein Arbeitsindex.
 Keine neue Appidentität, Installation, Datenbank oder Repository.
 
+Präzisierung des Nutzers im laufenden Auftrag am23.10.2026:
+„Nutze für Funktion und Speicher ausschließlich pixel oder App. Drive wird als
+Backupspeicher mit regelmäßigem automatischem Upload von app aus benutzt.“
+Damit liegen sämtliche fachlichen Funktionen, maßgeblichen Geschäftsdaten,
+Nummernvergabe und Dokumenterzeugung ausschließlich in der Pixel-App. Drive ist
+nach kontrollierter Umstellung ausschließlich Sicherungsziel. Die App erstellt
+verschlüsselte vollständige Generationen und lädt sie regelmäßig automatisch hoch;
+kein Zweiwegeabgleich und kein Lesen operativer Geschäftsdaten aus Drive im Zielbetrieb.
+Ein Netz-/Kontingent-/Berechtigungsfehler hält den Sicherungsjob zurück und zeigt
+den letzten tatsächlich extern verifizierten Stand, blockiert aber keine lokale
+Fachaktion. Android entscheidet über den Zeitpunkt aufschiebbarer Hintergrundjobs;
+kein exakter Uploadtermin und keine tägliche Sicherung ohne echten Nachweis.
+USB bleibt ein zusätzlicher, unabhängig wiederherstellbarer Sicherungsweg.
+Der Altbetrieb wird erst nach gesichertem Ausgangsstand/Belegabgleich umgestellt.
+
 Quellen: [Zentrale Regeln](https://chatgpt.com/space/page_6681fd3e333481918de439dae6d27429),
 [Arbeitsübersicht](https://chatgpt.com/space/page_0362d62d27c881918735d88471e798e7),
 [Projektzentrale](https://chatgpt.com/space/page_9b4aa5d6c2108191959fc6410112941b),
@@ -21,7 +36,8 @@ Quellen: [Zentrale Regeln](https://chatgpt.com/space/page_6681fd3e333481918de439
 - Bestehendes Java/WebView/SQLite weiterentwickeln; Oberfläche und MCP verwenden
   gemeinsame fachliche Anwendungsfälle und Repositorytransaktionen. Keine doppelte
   Fachlogik oder parallele operative Datenhaltung. Pixel wird maßgeblicher Schreiber,
-  Drive optionaler Sicherungs-/Exportadapter, Kalender optionaler Terminadapter.
+  Drive ausschließlich Sicherungsadapter mit regelmäßigem automatischem App-Upload,
+  Kalender optionaler Terminadapter. Kein externes Betriebsspeicher-/Rechenmodell.
 - Kernbetrieb offline, ohne Backend, KI, Laptop oder verpflichtende laufende
   App-Servicegebühr. Bestehende Verbindungen erhalten. Alten Webtunnel weder abfragen
   noch reaktivieren. Keine neuen kostenpflichtigen Dienste, Kontorechte oder Tarife.
@@ -67,7 +83,7 @@ Status: **V** vorhanden im Quellstand (kein neuer Ausführungsnachweis), **A** a
 | Zahlungen | Zahlung und Zuordnung, Korrekturprotokoll | Rechnung → Teil-/Sammelzahlung mit request_id | A/N; RS-09 |
 | Lokaler Commit | bestehende owner_state/pending/SnapshotProjection | alle UI-/MCP-Schreibwege | A; RS-01/04/12 |
 | Drive-Übergang | versioniertes Migrationsprotokoll/Epoche/Schreiberstilllegung | Einstellungen → Inventar → Sicherung → Abgleich → Entscheidung | N/O; RS-01/10/12 |
-| Verschlüsselte Vollsicherung | BackupManifest plus alle referenzierten privaten Dateien | Mehr → Sicherung → SAF/USB, Recovery-Code/Keystore | N; RS-11 |
+| Verschlüsselte Vollsicherung | BackupManifest plus alle referenzierten privaten Dateien; dauerhafte Uploadjobs | Mehr → Sicherung → automatisches Drive-Backup/zusätzlich SAF-USB, Recovery-Code/Keystore | N; RS-11/12 |
 | Restore | temporärer Ersatzbestand, Referenzprüfung, atomare Aktivierung | Sicherung → Prüfen → ausdrücklicher Austausch | N/O; RS-10/11 |
 | Suche/Export | vollständiger lokaler Index; CSV/JSON/Originalmanifest | Mehr → Suche/Export | A/N; RS-14 |
 | Adapter/Diagnose/Sperre | bestehende MCP-/Kalender-/Drive-Adapter; private Diagnose | Einstellungen/Status; gleiche fachliche Services | A; RS-12/15 |
@@ -149,7 +165,8 @@ keine produktive Installation, Rechnung, Nachricht, Zahlung oder Umstellung durc
 | Lokaler Appkern/SQLite/PDF/Suche/Timer | Pflicht | keine verpflichtende Servicegebühr | vollständig offline |
 | USB-Medien, Ersatzgerät, Strom | betriebliche Vorsorge | Hardware/Betrieb, keine Nullkostenzusage | vorhandene kompatible Medien/Geräte |
 | Codex/Cloudbuilds | Entwicklung | vorhandener Tarif/Buildkontingent | bei Limit pausieren, keine Nachbuchung; App läuft weiter |
-| Drive/Kalender/MCP/Karten-App | optional | bestehende Anbieter-/Kontingentgrenzen | lokale Planung, USB, manuelle Bedienung |
+| Drive-Backup | beauftragtes Sicherungsziel, keine Kernbetriebsabhängigkeit | vorhandener Speicher/API-Kontingent; keine Tarifaktivierung | lokaler Betrieb läuft; zusätzlich USB-Sicherung und sichtbarer Uploadrückstand |
+| Kalender/MCP/Karten-App | optional | bestehende Anbieter-/Kontingentgrenzen | lokale Planung, manuelle Bedienung |
 | Wetter | optional, kommerzielle Lizenz offen | open_meteo_non_commercial nicht als gewerblich freigegeben ansehen | lokale Planung ohne Wetter; keine stille Abschaltung |
 | Steuer-/Rechtsprüfung Österreich | vor produktiver Nutzung | fachliche Prüfung, Kosten nicht zugesichert | offene Pflichtangaben/Rundung/Dokumentarten/FAGG/E-Rechnung benennen |
 

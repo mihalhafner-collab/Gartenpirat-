@@ -37,6 +37,13 @@ Ausrichtung; kein Wechsel des Java-/WebView-Frameworks.
 Die allgemeinen developer.android.com-/developers.google.com-Seiten waren über
 die konfigurierte Netzpolicy nicht lesbar; kein anderweitiger Gerätebeleg daraus.
 
+Nutzerpräzisierung23.10.2026: Funktionen und maßgeblicher Speicher ausschließlich
+Pixel/App; Drive dient ausschließlich als Sicherungsziel mit regelmäßigem
+automatischem Upload aus der App. Die Umsetzung benötigt dauerhafte Jobzustände,
+begrenzten Backoff und nachgewiesenes Remote-Rücklesen; lokale Übergabe an einen
+Dateianbieter genügt nicht als Cloudnachweis. Offlinebetrieb bleibt unabhängig.
+USB ist zusätzlicher Sicherungsweg. Alt-Sync erst kontrolliert stilllegen.
+
 ## Historischer Stand11.10.2026
 
 Stand: 11.10.2026. Produktive Pixel-App weiterhin Version 1.28.3; der neue Entwicklungsstand wurde noch nicht produktiv installiert.

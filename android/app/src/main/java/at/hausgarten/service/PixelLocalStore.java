@@ -20,13 +20,14 @@ import java.util.UUID;
 
 /** Original SQLite store separated from Activity lifecycle; schema and files unchanged. */
 final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteTools.Sink {
+    static final int SCHEMA_VERSION=4;
     private final Context context;
     private final SharedPreferences preferences;
     private final PhotoAttachmentStore photoAttachments;
     private final WorkSessionStore.Clock clock;
     PixelLocalStore(Context context){this(context,new WorkSessionStore.DeviceClock(context));}
     PixelLocalStore(Context context,WorkSessionStore.Clock clock) {
-        super(context, "haus-garten-mobile.db", null, 4);
+        super(context, "haus-garten-mobile.db", null, SCHEMA_VERSION);
         this.clock=clock;
         this.context = context;
         preferences = context.getSharedPreferences("haus_garten", Context.MODE_PRIVATE);
@@ -50,9 +51,9 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         }catch(Exception ignored){/* Preserve the original snapshot; getState still withholds inline binary. */}
     }
     void documentReferences(JSONObject snapshot)throws Exception{
-        JSONArray invoices=snapshot.optJSONArray("invoices");for(int i=0;invoices!=null&&i<invoices.length();i++){JSONObject invoice=invoices.getJSONObject(i);String inline=invoice.optString("pdf_base64");if(inline.isEmpty())continue;if(inline.length()>28*1024*1024)throw new IOException("Original-PDF ist zu groß.");byte[] raw=android.util.Base64.decode(inline,android.util.Base64.DEFAULT);String hash=PhotoAttachmentStore.sha256(raw);if(!invoice.optString("pdf_sha256").isEmpty()&&!hash.equals(invoice.getString("pdf_sha256")))throw new IOException("Original-PDF hat eine abweichende Prüfsumme.");invoice.put("pdf_sha256",hash).put("pdf_storage_name",hash+".pdf").put("pdf_byte_size",raw.length).put("document_id","invoice:"+invoice.getString("id"));new BusinessDocumentStore(context).store(raw,invoice);invoice.remove("pdf_base64");}
+        JSONArray invoices=snapshot.optJSONArray("invoices");for(int i=0;invoices!=null&&i<invoices.length();i++){JSONObject invoice=invoices.getJSONObject(i);LegacyPdfAttachment.Prepared prepared=LegacyPdfAttachment.describe(invoice);if(prepared!=null){new BusinessDocumentStore(context).store(prepared.bytes,invoice);invoice.remove("pdf_base64");}}
     }
-    private void removeSnapshotPhotoBinaries(JSONObject snapshot){
+    static void removeSnapshotPhotoBinaries(JSONObject snapshot){
         JSONArray photos=snapshot.optJSONArray("photos");for(int i=0;photos!=null&&i<photos.length();i++){JSONObject photo=photos.optJSONObject(i);if(photo!=null){photo.remove("data");photo.remove("full_data");}}
     }
     @Override public void onCreate(SQLiteDatabase database) { database.execSQL("CREATE TABLE pending(id TEXT PRIMARY KEY,kind TEXT NOT NULL,payload TEXT NOT NULL,created_at TEXT NOT NULL)"); WorkSessionStore.createSchema(database); createPhotoAttachmentSchema(database); createOwnerSchema(database); }
@@ -69,7 +70,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         int count;try(Cursor row=getReadableDatabase().rawQuery("SELECT length(value) FROM owner_state WHERE key=?",new String[]{key})){if(!row.moveToFirst())return fallback;count=row.getInt(0);}
         StringBuilder out=new StringBuilder();for(int offset=0;offset<count;offset+=32768)try(Cursor row=getReadableDatabase().rawQuery("SELECT substr(value,?,32768) FROM owner_state WHERE key=?",new String[]{Integer.toString(offset+1),key})){if(!row.moveToFirst())return fallback;out.append(row.getString(0));}return out.toString();
     }
-    void seedServiceCatalog(JSONObject snapshot)throws Exception{if(!snapshot.optBoolean("service_catalog_initialized")&&snapshot.getJSONArray("service_catalog").length()==0)snapshot.put("service_catalog",new JSONArray(readAsset("service-catalog.json")));snapshot.put("service_catalog_initialized",true);}
+    void seedServiceCatalog(JSONObject snapshot)throws Exception{ServiceCatalogBootstrap.seed(snapshot,()->readAsset("service-catalog.json"));}
     void commitSnapshot(JSONObject snapshot,Set<String> confirmed)throws Exception{
         SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{putOwnerValue("snapshot",snapshot.toString());acknowledge(confirmed);db.setTransactionSuccessful();}finally{db.endTransaction();}
     }
@@ -585,22 +586,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         return pendingActions(true);
     }
     private JSONArray pendingActions(boolean forDrive) throws Exception {
-        JSONArray result = new JSONArray();
-        try (Cursor cursor = getReadableDatabase().rawQuery("SELECT id,kind,payload,created_at FROM pending WHERE kind!='mcp_receipt' ORDER BY created_at ASC,rowid ASC", null)) {
-            while (cursor.moveToNext()) {
-                String kind=cursor.getString(1);JSONObject payload=new JSONObject(cursor.getString(2));
-                if(forDrive&&(payload.optBoolean("_local_only")||payload.optBoolean("test_record")))continue;
-                if(forDrive&&("delete".equals(kind)||"archive".equals(kind))&&payload.optLong("_undo_until",0)>System.currentTimeMillis())continue;
-                payload.remove("_undo_until");
-                if(!forDrive&&"photo".equals(kind)){
-                    // WebView/MCP state stays lightweight. Legacy inline data remains only in the
-                    // immutable Drive journal until acknowledged; originals are read on demand.
-                    payload=PhotoJournalRules.forSnapshot(payload,photoAttachment(payload.optString("id")));
-                }
-                JSONObject item=new JSONObject();item.put("client_id",cursor.getString(0));item.put("kind",kind);item.put("payload",payload);item.put("created_at",cursor.getString(3));result.put(item);
-            }
-        }
-        return result;
+        return LocalPendingActions.read(getReadableDatabase(),forDrive,this::photoAttachment,System.currentTimeMillis());
     }
     void acknowledge(Set<String> ids) { SQLiteDatabase database = getWritableDatabase(); for (String id : ids) database.delete("pending", "id=?", new String[]{id}); }
 }

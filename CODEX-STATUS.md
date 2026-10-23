@@ -3,6 +3,59 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Revier Solo – SQLite-/Dateiaufnahme und konkretisierte Drive-Rolle
+
+Nutzerpräzisierung23.10.2026 ist im bestehenden Auftrag konsolidiert:
+Funktionen/maßgebliche Speicherung ausschließlich Pixel/App; Drive ausschließlich
+Sicherung mit regelmäßigem automatischem Upload aus der App. Kein Zweiwegesync
+im Zielbetrieb. Automatischer Upload mit dauerhaftem Job/Remote-Prüfung noch offen;
+Altbetrieb und produktiver Pixel bleiben bis kontrolliertem Übergang unverändert.
+
+Neuer interner Aufnahmepfad (noch ohne produktiven UI-/SAF-Einstieg): SQLite erstellt
+perVACUUM INTO ein konsistentes eigenes Abbild einschließlichWAL. Integrität,
+Fremdschlüssel, alle Tabellen/Schema, Größe/SHA256 werden geprüft. Große Text-/BLOB-
+Zeilen benötigen kein vollständiges CursorWindow. Live- und Sicherungsansicht lesen
+das pending-Journal jetzt über denselben Code: Reihenfolge, getrennte MCP-Belege,
+Undo-Schutz und Foto-Metadaten bleiben erhalten. Katalog-/Legacy-PDF-/Tombstone-Regeln
+sind gemeinsam; kein eigener konkurrierender Fachbestand.
+
+Unveränderliche Originale werden vor der DB-Aufnahme gepinnt, mutable private Dateien
+separat kopiert/gehasht. Die Aufnahme umfasst sämtliche DB-Tabellen, private Dateien,
+ausgewählte Entwurfscaches, bestehende Lösch-/Konfliktsicherungen, typisierte
+App-/Planungs-/Mail-Einstellungen sowie explizit übergebene Browserentwürfe. Unicode-
+Dateinamen bleiben erhalten; Symlinks/Pfadflucht und rekursive Aufnahmeziele scheitern.
+Keystore/Recovery-Kapsel/aktuelle Backupstages werden ausgeschlossen. Bekannte
+Zugangsschlüsselfelder der strukturierten Einstellungen werden ausgelassen;
+historische Sicherungsevidenz bleibt verschlüsselt und darf keine Kontorechte oder
+alten Schreiber aktivieren. Dieser Aufnahmepfad aktiviert keine Wiederherstellung.
+
+Abnahme dieses Sicherungsschritts: unveränderte IDs/Journal/Zeiten/Beträge/Originale,
+erhaltener Timer/b.b./offene Jobs/Entwürfe, echte SQLite-Rundlaufprüfung, Wiederherstellung
+perCode ohne alten Keystore; Fehler lassen aktiven Bestand und gute Generation intakt.
+Host/JVM: **55Suiten PASS**, darunter23Archiv-Fehler-/Grenzprüfungen mit48MiB bei64MiB-
+Heap sowie Pin/Kopie/Unicode/Symlink-/Katalog-Bestandsschutz. **423Python-Prüfungen PASS**,
+0Skip; bestehende37QA-Ersatzsigniertests ausdrücklich ausgeschlossen. App und native
+Testquellen kompilieren. Vier neue echte Android-Keystore-/SQLite-/Dataset-Rundlaufproben
+sind vorbereitet, aber **noch nicht ausgeführt**. Kein nativer PASS für diese neuen
+Klassen aus den älteren295Prüfungen ableiten. Die erste Wiederholung stoppte korrekt
+an veralteten UI-Quellprüfsummen; nach Review sind157Aktionen/118Tools unverändert.
+
+Android-Autobackup bleibt deaktiviert; zusätzlich schließen explizite ExtractionRules
+Cloudbackup und DeviceTransfer für alle privaten Domains aus. Zwei Policytests PASS;
+kein ausgeführter OEM-/Ersatzgeräte-Transfernachweis.
+
+Ergänzung zum älteren ANR-Befund unten: Nach Beenden des tatsächlich angezeigten
+SystemUI-Dialoges wurde derselbe isolierte Accessibility-Lauf erneut ausgeführt:
+Heute und Planung bei100/150/200Prozent Schrift PASS; ursprüngliche Emulator-
+Schriftgröße/Dichte anschließend wiederhergestellt. Synthetische Lesefixture, keine
+Geschäftsschreibaktion. Das ist kein TalkBack-/Pixelbeleg und keine Prüfung aller
+neun noch zu bauenden Revier-Kernansichten. Der initiale Fehlbefund bleibt datiert.
+
+Noch offen: konsistente UI-Draft-Erfassung im echten Ablauf, dauerhafte Sicherungsjobs,
+automatischer Drive-Upload/Remote-Prüfung, SAF/USB-Pilot, vollständige referenzielle
+Restoreprüfung/Aktivierung mit unabhängiger Ausgabesperre, lokale Autorität und PhasenC–F.
+Keine neue APK ausgeliefert, kein99-Tag, keine produktive Installation/Umstellung.
+
 ## Revier Solo – native295-Prüfung und verschlüsselter Archivkern
 
 Originalsignierte Appquelle `2fb5b8e9a2b243122b2e6039ae5c8161d9a3f9e5`,

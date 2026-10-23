@@ -102,7 +102,8 @@ final class EncryptedBackupArchive {
         java.time.Instant.parse(m.getString("capturedAt"));m.getJSONObject("counts");m.getJSONObject("numberState");m.getJSONArray("lastIssuedDocumentIds");
     }
     private static void requirePath(String path)throws IOException {
-        if(path==null||!path.matches("[a-zA-Z0-9_.\u002f-]{1,1024}")||path.startsWith("/")||path.endsWith("/")||path.contains("//"))throw new IOException("BACKUP_PATH_INVALID");
+        if(path==null||path.isEmpty()||path.length()>1024||path.startsWith("/")||path.endsWith("/")||path.contains("//")||path.indexOf('\\')>=0)throw new IOException("BACKUP_PATH_INVALID");
+        for(int i=0;i<path.length();i++)if(path.charAt(i)<32||path.charAt(i)==127)throw new IOException("BACKUP_PATH_INVALID");
         for(String part:path.split("/"))if(part.equals(".")||part.equals(".."))throw new IOException("BACKUP_PATH_INVALID");
     }
     private static long copy(InputStream input,OutputStream output,MessageDigest digest,long maximum)throws IOException {

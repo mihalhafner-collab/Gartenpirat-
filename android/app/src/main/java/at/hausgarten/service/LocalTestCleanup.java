@@ -7,8 +7,12 @@ import java.util.*;
 /** Compact only explicitly purged synthetic records. Business journals and backups stay intact. */
 final class LocalTestCleanup {
     private static final String KEY="purged_local_test_records_v1";
+    interface Values {String get(String key,String fallback)throws Exception;}
     static void overlay(PixelLocalStore store,JSONObject master)throws Exception {
-        JSONObject tombstones=new JSONObject(store.ownerValue(KEY,"{}"));
+        overlay(store::ownerValue,master);
+    }
+    static void overlay(Values values,JSONObject master)throws Exception {
+        JSONObject tombstones=new JSONObject(values.get(KEY,"{}"));
         for(Iterator<String> it=tombstones.keys();it.hasNext();){String key=it.next();LocalTestTombstone.project(master,key,tombstones.getJSONObject(key));}
     }
     static boolean sameTarget(JSONObject event,String entity,String id){
