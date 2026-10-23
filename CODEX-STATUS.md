@@ -3,6 +3,25 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Fortsetzung98 – endgültige Appedf5113, QA-Vorbedingung korrigiert
+
+Endgültige originale98-APK ausedf511343571165987ff72bb8793f2f6222692cb:
+SHA256ecc3d60efecda932baf03f27b38854dd800382db0c7c8af8a803743b1e71267b,
+App-Quellfingerprint19e2efe61d74905485bcee6231c8300599b9679bfe3278aebacedb8628c05cb0.
+4/4native Pflanzenprüfungen sowie leeres isoliertes Android-Datenlager PASS.
+Endgültige98ersetzt den vorläufigen98im selben synthetischen97→98Testlauf;
+vollständiger ursprünglicher97Ledger unverändert, kein Downgrade/Reset.
+
+Die zusätzliche alte allgemeine UI-Prüfung scheiterte an Bedingung12: Ein
+unveränderter neuer Termin wird korrekt nicht als schmutziger Entwurf angeboten.
+Test legt nun explizit eine ungespeicherte synthetische Titeländerung an und prüft
+Fortsetzen; beide lokalen Entwurfsschlüssel werden anschließend exakt restauriert.
+Nur androidTest/Status geändert. Die bereits geprüfte Appedf5113 bleibt unverändert;
+separater originalsignierter Teststand wird gegen genau diese APK ausgeführt.
+App-Originalquellenedf5113 vollständig mit XZ-Roundtrip, Review-TXT-ZIP und
+6privaten Drive-Belegen gesichert:5SHA256_BYTES und1vollständiger Stream/Größe.
+Schrift-/Bildsichtung und abschließende APK-Bereitstellung noch offen.
+
 ## Fortsetzung98 – Original-APK und native Erstprüfung
 
 Originalkandidat aus304d5ee erfolgreich signiert, Paket/Zertifikat, alle690Assets,
