@@ -3,6 +3,10 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Auftrag97 – APK-Voraudit grün, Version1.54.8/97
+
+Finale gesamte54Browsersuiten/0FAIL,12Übersichtsfälle/0FAIL einschließlich abgelaufener und vollständig leerer Terminauswahl. Finale native Java-/AndroidTest-/Lint-Vorprüfung42Tasks PASS,0Fehler/54bestehende Warnungen.395Python/50JVM/1050Paritätsassertions/55stdio-MCP/29Kamera-/47Cleanup-Hostfälle sowie Pflanzen-/Angebots-/Vertrags-/UI-/Source-/Workspace-Gates grün. Jeden aktuellen Auftragspunkt gegen Umsetzung/Tests/Grenzen im Voraudit geprüft. Versionsanhebung jetzt1.54.8/97, anschließend nur sauber gesicherten Commit bauen/originalsignieren. Native117RPC-/Fach-/Schrift-/96→97-Erhaltungs-/Artefakt-/Driveabnahme noch offen; keine produktive Installation oder Syncaktion.
+
 ## Auftrag97 – zusätzlicher Randfall und APK-Voraudit
 
 Abgelaufene Karussellauswahl übersprang im roten Produktionstest den ersten weiterhin gültigen Termin. browseHome korrigiert; auch vollständig abgelaufene Liste entfernt ihre alte Karte.12gezielte Übersichtsfälle PASS. Beim Rückstellen der künstlichen Testuhr muss die Ansicht vor dem nächsten Klick aktualisiert werden; zuerst alter Fixture-Cleanup statt Produktionsassertion angepasst. Neue gesamte54Browserwiederholung läuft. Native Auditressourcen werden nun tatsächlich geschlossen und nach exaktem eigenen Präfix entfernt, Symlinks nicht verfolgt; sämtliche neuen Owner-Fixtures verwenden dieselbe Bereinigung. Native Audit zählt echte erfolgreiche/abgewiesene Aufrufe getrennt und erfasst Dauer ohne Argumente/Datensätze.
