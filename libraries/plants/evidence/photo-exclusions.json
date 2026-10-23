@@ -1,0 +1,109 @@
+{
+  "date": "2026-10-23",
+  "taxonomicBoundarySource": "https://powo.science.kew.org/taxon/urn%3Alsid%3Aipni.org%3Anames%3A1015554-1",
+  "records": [
+    {
+      "plantId": "satureja-montana",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Neuch%C3%A2tel_Herbarium_-_Satureja_montana_-_NEU000100387.jpg",
+      "reason": "Laut konkreter Quelldatei ein Herbarbeleg; kein Ersatz für eine Lebendpflanzenansicht.",
+      "status": "EXCLUDED",
+      "evidence": "evidence/visual-screening.json"
+    },
+    {
+      "plantId": "hyacinthus-orientalis",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Hyacint_(Hyacinthus_orientalis)_Oost-hijacint._Hyacinthus_orientalis._hyacinthe_orientale_(titel_op_object),_RP-T-BR-2017-1-9-47.jpg",
+      "reason": "Botanische Tafel; Illustration gesondert führen, nicht als Pflanzenfoto zählen.",
+      "status": "EXCLUDED",
+      "evidence": "evidence/visual-screening.json"
+    },
+    {
+      "plantId": "rosa",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:001117_15-44-2002-To-grupper-rosa-Qajar-Fliser2.jpg",
+      "reason": "Kachelgestaltung mit stilisierten Blüten; kein Pflanzenfoto.",
+      "status": "EXCLUDED",
+      "evidence": "evidence/visual-screening.json"
+    },
+    {
+      "plantId": "rosa",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Ana_rosa_metro_station,_S%C3%A3o_Paulo,_Brazil.jpg",
+      "reason": "U-Bahn-Szene; Dateiname bezieht sich auf Ana Rosa, nicht auf die Pflanzengattung.",
+      "status": "EXCLUDED",
+      "evidence": "evidence/visual-screening.json"
+    },
+    {
+      "plantId": "ribes-rubrum",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Neuch%C3%A2tel_Herbarium_-_Ribes_rubrum_-_NEU000046532.jpg",
+      "reason": "Herbarbeleg; als ergänzende Belegaufnahme führen, nicht als eines von zwei Lebendpflanzenfotos zählen.",
+      "status": "EXCLUDED",
+      "evidence": "evidence/visual-screening.json"
+    },
+    {
+      "plantId": "ribes-nigrum",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:281_Ribes_nigrum.jpg",
+      "reason": "Historische botanische Tafel; Illustration und landesspezifische Gemeinfreiheit gesondert prüfen.",
+      "status": "EXCLUDED",
+      "evidence": "evidence/visual-screening.json"
+    },
+    {
+      "plantId": "myriophyllum-heterophyllum",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Myriophyllum_heterophyllum_BB-1913.png",
+      "reason": "Historische Strichzeichnung; kein Foto. Public-Domain-Status außerhalb der USA gesondert prüfen.",
+      "status": "EXCLUDED",
+      "evidence": "evidence/visual-screening.json"
+    },
+    {
+      "plantId": "nymphaea-alba",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:(Auch)_Nymphaea_%E2%80%98James_Brydon%E2%80%99_-_Jardin_du_Mus%C3%A9e_des_Am%C3%A9riques_%C3%A0_Auch.jpg",
+      "reason": "Quellseite beschreibt Nymphaea James Brydon, eine benannte Hybridsorte; kein Artbeleg für Nymphaea alba.",
+      "status": "EXCLUDED",
+      "evidence": "evidence/visual-screening.json"
+    },
+    {
+      "plantId": "nymphaea-alba",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:(MHNT)_Nymphaea_alba_f._rosea_-_Les_Martels,_Giroussens_Tarn.jpg",
+      "reason": "Rosa stark gefüllte Garten-Seerose; trotz Quelllabel f. rosea nicht als bestätigter Artbeleg verwenden.",
+      "status": "EXCLUDED",
+      "evidence": "evidence/visual-screening.json"
+    },
+    {
+      "plantId": "hyacinthus-orientalis",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Hyacint_(Hyacinthus_orientalis)_Oost-hijacint._Hyacinthus_orientalis._hyacinthe_orientale_(titel_op_object),_RP-T-BR-2017-1-9-47.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/6/64/Hyacint_%28Hyacinthus_orientalis%29_Oost-hijacint._Hyacinthus_orientalis._hyacinthe_orientale_%28titel_op_object%29%2C_RP-T-BR-2017-1-9-47.jpg",
+      "reason": "Historical artwork; excluded from living-plant photograph selection.",
+      "status": "EXCLUDED",
+      "evidence": "evidence/supplemental-photos.json"
+    },
+    {
+      "plantId": "ludwigia-grandiflora",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Ludwigia_grandiflora_saint-mathurin-sur-loire_49_10082007_1.JPG",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/d/dc/Ludwigia_grandiflora_saint-mathurin-sur-loire_49_10082007_1.JPG",
+      "reason": "Source explicitly depicts L. grandiflora subsp. hexapetala, treated as separate L. hexapetala by Kew; excluded as strict L. grandiflora evidence.",
+      "status": "EXCLUDED",
+      "evidence": "evidence/supplemental-photos.json"
+    },
+    {
+      "plantId": "ludwigia-grandiflora",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Ludwigia_grandiflora_saint-mathurin-sur-loire_49_10082007_4.JPG",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/6/69/Ludwigia_grandiflora_saint-mathurin-sur-loire_49_10082007_4.JPG",
+      "reason": "Source explicitly depicts L. grandiflora subsp. hexapetala, treated as separate L. hexapetala by Kew; excluded as strict L. grandiflora evidence.",
+      "status": "EXCLUDED",
+      "evidence": "evidence/supplemental-photos.json"
+    },
+    {
+      "plantId": "ludwigia-grandiflora",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Ludwigia_grandiflora_saint-mathurin-sur-loire_49_10082007_5.JPG",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/0/0d/Ludwigia_grandiflora_saint-mathurin-sur-loire_49_10082007_5.JPG",
+      "reason": "Source explicitly depicts L. grandiflora subsp. hexapetala, treated as separate L. hexapetala by Kew; excluded as strict L. grandiflora evidence.",
+      "status": "EXCLUDED",
+      "evidence": "evidence/supplemental-photos.json"
+    },
+    {
+      "plantId": "ludwigia-grandiflora",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Ludwigia_grandiflora.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Ludwigia_grandiflora.jpg",
+      "reason": "Source itself reports uncertain identification.",
+      "status": "EXCLUDED",
+      "evidence": "evidence/supplemental-photos.json"
+    }
+  ]
+}

@@ -1,0 +1,736 @@
+{
+  "date": "2026-10-23",
+  "sources": [
+    {
+      "url": "https://www.bfn.de/art-4-unionsliste",
+      "authority": "Bundesamt für Naturschutz",
+      "method": "Complete official union-list table; effective date read per taxon.",
+      "rows": [
+        {
+          "scientificName": "Acacia mearnsii",
+          "germanName": "Schwarze Akazie",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Acacia saligna",
+          "germanName": "Weidenblatt-Akazie",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "15.08.2019"
+        },
+        {
+          "scientificName": "Ailanthus altissima",
+          "germanName": "Götterbaum",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "15.08.2019"
+        },
+        {
+          "scientificName": "Alternanthera philoxeroides",
+          "germanName": "Alligatorkraut",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2017"
+        },
+        {
+          "scientificName": "Andropogon virginicus",
+          "germanName": "Blauständige Besensegge",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "15.08.2019"
+        },
+        {
+          "scientificName": "Asclepias syriaca",
+          "germanName": "Gewöhnliche Seidenpflanze",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "02.08.2017"
+        },
+        {
+          "scientificName": "Baccharis halimifolia",
+          "germanName": "Kreuzstrauch",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Broussonetia papyrifera",
+          "germanName": "Papiermaulbeerbaum",
+          "germanyOccurrence": "Unbeständig*",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Cabomba caroliniana",
+          "germanName": "Karolina-Haarnixe",
+          "germanyOccurrence": "Unbeständig*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Cardiospermum grandiflorum",
+          "germanName": "Ballonwein",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "15.08.2019"
+        },
+        {
+          "scientificName": "Celastrus orbiculatus",
+          "germanName": "Rundblättriger Baumwürger",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "02.08.2027"
+        },
+        {
+          "scientificName": "Cenchrus setaceus",
+          "germanName": "Afrikanisches Lampenputzergras",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2017"
+        },
+        {
+          "scientificName": "Cortaderia jubata",
+          "germanName": "Pampasgras",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "15.08.2019"
+        },
+        {
+          "scientificName": "Crassula helmsii",
+          "germanName": "Nadelkraut",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Delairea odorata",
+          "germanName": "Sommerefeu",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Ehrharta calycina",
+          "germanName": "Steppengras",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "15.08.2019"
+        },
+        {
+          "scientificName": "Elodea nuttallii",
+          "germanName": "Schmalblättrige Wasserpest",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "02.08.2017"
+        },
+        {
+          "scientificName": "Gunnera tinctoria",
+          "germanName": "Chilenischer Riesenrhabarber",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2017"
+        },
+        {
+          "scientificName": "Gymnocoronis spilanthoides",
+          "germanName": "Falscher Wasserfreund",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "15.08.2019"
+        },
+        {
+          "scientificName": "Hakea sericea",
+          "germanName": "Nadelblättriges Nadelkissen",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2022"
+        },
+        {
+          "scientificName": "Heracleum mantegazzianum",
+          "germanName": "Riesenbärenklau",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "02.08.2017"
+        },
+        {
+          "scientificName": "Heracleum persicum",
+          "germanName": "Persischer Bärenklau",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Heracleum sosnowskyi",
+          "germanName": "Sosnowskyi Bärenklau",
+          "germanyOccurrence": "Einzelfunde*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Humulus scandens",
+          "germanName": "Japanischer Hopfen",
+          "germanyOccurrence": "Unbeständig*",
+          "effectiveDate": "15.08.2019"
+        },
+        {
+          "scientificName": "Hydrocotyle ranunculoides",
+          "germanName": "Großer Wassernabel",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Impatiens glandulifera",
+          "germanName": "Drüsiges Springkraut",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "02.08.2017"
+        },
+        {
+          "scientificName": "Koenigia polystachya",
+          "germanName": "Flieder-Knöterich",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "02.08.2022"
+        },
+        {
+          "scientificName": "Lagarosiphon major",
+          "germanName": "Wechselblatt-Wasserpest",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Lespedeza cuneata",
+          "germanName": "Chinesischer Buschklee",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "15.08.2019"
+        },
+        {
+          "scientificName": "Ludwigia grandiflora",
+          "germanName": "Großblütiges Heusenkraut",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Ludwigia peploides",
+          "germanName": "Flutendes Heusenkraut",
+          "germanyOccurrence": "Einzelfunde*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Lygodium japonicum",
+          "germanName": "Japanischer Kletterfarn",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "15.08.2019"
+        },
+        {
+          "scientificName": "Lysichiton americanus",
+          "germanName": "Gelbe Scheincalla",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Microstegium vimineum",
+          "germanName": "Japanisches Stelzengras",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2017"
+        },
+        {
+          "scientificName": "Myriophyllum aquaticum",
+          "germanName": "Brasilianisches Tausendblatt",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Myriophyllum heterophyllum",
+          "germanName": "Verschiedenblättriges Tausendblatt",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "02.08.2017"
+        },
+        {
+          "scientificName": "Nanozostera japonica",
+          "germanName": "Japanisches Seegras",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Parthenium hysterophorus",
+          "germanName": "Karottenkraut",
+          "germanyOccurrence": "Einzelfunde*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Persicaria perfoliata",
+          "germanName": "Durchwachsener Knöterich",
+          "germanyOccurrence": "Einzelfunde*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Pistia stratiotes",
+          "germanName": "Wassersalat",
+          "germanyOccurrence": "Unbeständig",
+          "effectiveDate": "02.08.2024"
+        },
+        {
+          "scientificName": "Pontederia crassipes",
+          "germanName": "Wasserhyazinthe",
+          "germanyOccurrence": "Einzelfunde*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Prosopis juliflora",
+          "germanName": "Mesquitebaum",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "15.08.2019"
+        },
+        {
+          "scientificName": "Pueraria montana var. lobata",
+          "germanName": "Kudzu",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Reynoutria japonica",
+          "germanName": "Japanischer Flügelknöterich",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Reynoutria sachalinensis",
+          "germanName": "Sachalin-Flügelknöterich",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Reynoutria × bohemica",
+          "germanName": "Bastard-Flügelknöterich",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Rugulopteryx okamurae",
+          "germanName": "Okamuras Braunalge",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2022"
+        },
+        {
+          "scientificName": "Salvinia molesta",
+          "germanName": "Schwimmfarn",
+          "germanyOccurrence": "Unbeständig*",
+          "effectiveDate": "15.08.2019"
+        },
+        {
+          "scientificName": "Triadica sebifera",
+          "germanName": "Chinesischer Talgbaum",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "15.08.2019"
+        },
+        {
+          "scientificName": "Arthurdendyus triangulatus",
+          "germanName": "Neuseelandplattwurm",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "15.08.2019"
+        },
+        {
+          "scientificName": "Asterias amurensis",
+          "germanName": "Nordpazifischer Seestern",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Bipalium kewense",
+          "germanName": "Hammerhaiwurm",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Brachyponera chinensis",
+          "germanName": "Asiatische Nadelameise",
+          "germanyOccurrence": "Einzelfunde*",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Cherax destructor",
+          "germanName": "Yabby",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Cipangopaludina chinensis",
+          "germanName": "Chinesische Sumpfdeckelschnecke",
+          "germanyOccurrence": "Unbeständig*",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Eriocheir sinensis",
+          "germanName": "Wollhandkrabbe",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Faxonius immunis",
+          "germanName": "Kalikokrebs",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Faxonius rusticus",
+          "germanName": "Amerikanischer Rostkrebs",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2022"
+        },
+        {
+          "scientificName": "Limnoperna fortunei",
+          "germanName": "Goldene Muschel",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2022"
+        },
+        {
+          "scientificName": "Marisa cornuarietis",
+          "germanName": "Paradiesschnecke",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Mulinia lateralis",
+          "germanName": "Amerikanische Trogmuschel",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Obama nungara",
+          "germanName": "Plattwurm",
+          "germanyOccurrence": "Unbeständig*",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Orconectes limosus",
+          "germanName": "Kamberkrebs",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Orconectes virilis",
+          "germanName": "Viril-Flusskrebs",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Pacifastacus leniusculus",
+          "germanName": "Signalkrebs",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Platydemus manokwari",
+          "germanName": "Neu Guinea Landplanarie",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Procambarus clarkii",
+          "germanName": "Roter Amerikanischer Sumpfkrebs",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Procambarus fallax f. virginalis",
+          "germanName": "Marmorkrebs",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Solenopsis geminata",
+          "germanName": "Tropische Feuerameise",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2022"
+        },
+        {
+          "scientificName": "Solenopsis invicta",
+          "germanName": "Rote Feuerameise",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2022"
+        },
+        {
+          "scientificName": "Solenopsis richteri",
+          "germanName": "Schwarze Feuerameise",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2022"
+        },
+        {
+          "scientificName": "Vespa mandarinia",
+          "germanName": "Asiatische Riesenhornisse",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Vespa velutina nigrithorax",
+          "germanName": "Asiatische Hornisse",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Wasmannia auropunctata",
+          "germanName": "Kleine Feuerameise",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2022"
+        },
+        {
+          "scientificName": "Acridotheres cristatellus",
+          "germanName": "Haubenmaina",
+          "germanyOccurrence": "Einzelfunde*",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Acridotheres tristis",
+          "germanName": "Hirtenmaina",
+          "germanyOccurrence": "Einzelfunde*",
+          "effectiveDate": "15.08.2019"
+        },
+        {
+          "scientificName": "Alopochen aegyptiaca",
+          "germanName": "Nilgans",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "02.08.2017"
+        },
+        {
+          "scientificName": "Ameiurus melas",
+          "germanName": "Schwarzer Zwergwels",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "02.08.2022"
+        },
+        {
+          "scientificName": "Axis axis",
+          "germanName": "Axis-Hirsch",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2022"
+        },
+        {
+          "scientificName": "Callosciurus erythraeus",
+          "germanName": "Pallas-Schönhörnchen",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Callosciurus finlaysonii",
+          "germanName": "Finlayson-Hörnchen",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2022"
+        },
+        {
+          "scientificName": "Castor canadensis",
+          "germanName": "Kanadischer Biber",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "07.08.2027"
+        },
+        {
+          "scientificName": "Cervus nippon",
+          "germanName": "Sikahirsch",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Channa argus",
+          "germanName": "Argus-Schlangenkopffisch",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2022"
+        },
+        {
+          "scientificName": "Corvus splendens",
+          "germanName": "Glanzkrähe",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Fundulus heteroclitus",
+          "germanName": "Zebra-Killifisch",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2024"
+        },
+        {
+          "scientificName": "Gambusia affinis",
+          "germanName": "Westlicher Mosquitofisch",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2022"
+        },
+        {
+          "scientificName": "Gambusia holbrooki",
+          "germanName": "Östlicher Mosquitofisch",
+          "germanyOccurrence": "Einzelfunde*",
+          "effectiveDate": "02.08.2022"
+        },
+        {
+          "scientificName": "Herpestes javanicus",
+          "germanName": "Kleiner Mungo",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Lampropeltis getula",
+          "germanName": "Kettennatter",
+          "germanyOccurrence": "Einzelfunde*",
+          "effectiveDate": "02.08.2022"
+        },
+        {
+          "scientificName": "Lepomis gibbosus",
+          "germanName": "Sonnenbarsch",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "15.08.2019"
+        },
+        {
+          "scientificName": "Lithobates catesbeianus",
+          "germanName": "Amerikanischer Ochsenfrosch",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Misgurnus anguillicaudatus",
+          "germanName": "Asiatischer Schlammpeitzger",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Misgurnus bipartitus",
+          "germanName": "Nordchinesischer Schlammpeitzger",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Morone americana",
+          "germanName": "Amerikanischer Seebarsch",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2022"
+        },
+        {
+          "scientificName": "Muntiacus reevesi",
+          "germanName": "Chinesischer Muntjak",
+          "germanyOccurrence": "Einzelfunde*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Myocastor coypus",
+          "germanName": "Nutria",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Nasua nasua",
+          "germanName": "Roter Nasenbär",
+          "germanyOccurrence": "Einzelfunde*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Neogale vison",
+          "germanName": "Mink",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "07.08.2027"
+        },
+        {
+          "scientificName": "Nyctereutes procyonoides",
+          "germanName": "Marderhund",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "02.02.2019"
+        },
+        {
+          "scientificName": "Ondatra zibethicus",
+          "germanName": "Bisam",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "02.08.2017"
+        },
+        {
+          "scientificName": "Oxyura jamaicensis",
+          "germanName": "Schwarzkopf-Ruderente",
+          "germanyOccurrence": "Unbeständig*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Perccottus glenii",
+          "germanName": "Amurgrundel",
+          "germanyOccurrence": "Unbeständig*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Plotosus lineatus",
+          "germanName": "Gestreifter Korallenwels",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "15.08.2019"
+        },
+        {
+          "scientificName": "Procyon lotor",
+          "germanName": "Waschbär",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Pseudorasbora parva",
+          "germanName": "Blaubandbärbling",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Pycnonotus cafer",
+          "germanName": "Rußbülbül",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2022"
+        },
+        {
+          "scientificName": "Pycnonotus jocosus",
+          "germanName": "Rotohrbülbül",
+          "germanyOccurrence": "Einzelfunde*",
+          "effectiveDate": "07.08.2025"
+        },
+        {
+          "scientificName": "Sciurus carolinensis",
+          "germanName": "Grauhörnchen",
+          "germanyOccurrence": "Einzelfunde*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Sciurus niger",
+          "germanName": "Fuchshörnchen",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Tamias sibiricus",
+          "germanName": "Sibirisches Streifenhörnchen",
+          "germanyOccurrence": "Etabliert",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Threskiornis aethiopicus",
+          "germanName": "Heiliger Ibis",
+          "germanyOccurrence": "Einzelfunde*",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Trachemys scripta",
+          "germanName": "Buchstaben-Schmuckschildkröte",
+          "germanyOccurrence": "Unbeständig",
+          "effectiveDate": "03.08.2016"
+        },
+        {
+          "scientificName": "Xenopus laevis",
+          "germanName": "Krallenfrosch",
+          "germanyOccurrence": "Fehlend*",
+          "effectiveDate": "02.08.2024"
+        }
+      ]
+    },
+    {
+      "url": "https://www.neobiota-austria.at/ias-unionsliste/neophyten",
+      "authority": "Umweltbundesamt Österreich",
+      "method": "Complete official Austrian union-list overview; occurrence and EU listing kept separate."
+    },
+    {
+      "url": "https://www.bafu.admin.ch/de/anderung-im-umgang-mit-invasiven-gebietsfremden-pflanzen",
+      "authority": "Bundesamt für Umwelt Schweiz",
+      "sourceFAQDate": "2026-03-18",
+      "facts": [
+        "Annex 2.1: handling in the environment is prohibited except control measures and lawful exceptions.",
+        "Annex 2.2: circulation/import/distribution is prohibited; existing plants do not generally have to be removed.",
+        "EU listing is not used as the legal basis for Swiss prohibitions."
+      ]
+    },
+    {
+      "url": "https://www.infoflora.ch/de/assets/content/documents/neophyten/neophyten_diverses/fedlex-data-admin-ch-eli-cc-2008-614-20240901-de-pdf-a.pdf",
+      "authority": "Official FrSV text republished by Info Flora",
+      "documentEdition": "2024-09-01",
+      "sections": [
+        "Art. 15",
+        "Annex 2.1 (pp. 40–41)",
+        "Annex 2.2 (pp. 42–43)"
+      ],
+      "note": "Read alongside the currently published BAFU FAQ, not represented as a newly issued 2026 statute."
+    }
+  ],
+  "failedPrimaryRetrievals": [
+    {
+      "url": "https://eur-lex.europa.eu/eli/reg_impl/2025/1422/oj",
+      "status": "BOT_BLOCKED"
+    },
+    {
+      "url": "https://eur-lex.europa.eu/eli/reg/2014/1143/oj",
+      "status": "BOT_BLOCKED"
+    },
+    {
+      "url": "https://www.fedlex.admin.ch/eli/cc/2008/614/de",
+      "status": "JAVASCRIPT_SHELL_ONLY"
+    }
+  ]
+}

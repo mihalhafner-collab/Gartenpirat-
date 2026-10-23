@@ -1,0 +1,92 @@
+{
+  "sources": [
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:Nymphaea_alba_in_Duisburg.jpg",
+      "finalUrl": "https://commons.wikimedia.org/wiki/File:Nymphaea_alba_in_Duisburg.jpg",
+      "title": "File:Nymphaea alba in Duisburg.jpg - Wikimedia Commons",
+      "checkedAt": "2026-10-23",
+      "fields": {
+        "Description": "Deutsch: In Duisburg während des Sommertreffs aufgenommenes Foto. Weiße Seerose (nymphaea alba) . English: Picture taken in Duisburg during summer meetup. nymphaea alba . Français : Un Nénuphar blanc ( Nymphea alba ). Photo prise à Duisbourg le 11 août 2010.",
+        "Date": "11 August 2010",
+        "Source": "Own work",
+        "Author": "DerHexer"
+      },
+      "licenses": [
+        "CC-BY-SA-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/3.0/deed.en",
+        "https://creativecommons.org/licenses/by-sa/2.5/deed.en",
+        "https://creativecommons.org/licenses/by-sa/2.0/deed.en",
+        "https://creativecommons.org/licenses/by-sa/1.0/deed.en",
+        "https://creativecommons.org/publicdomain/zero/1.0/",
+        "https://creativecommons.org/licenses/by-sa/4.0/"
+      ],
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/8/83/Nymphaea_alba_in_Duisburg.jpg",
+      "review": "Source metadata only; local image content not independently determined."
+    },
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:Nymphaea_alba-white_water_lily-Dragoman_marsh.jpg",
+      "finalUrl": "https://commons.wikimedia.org/wiki/File:Nymphaea_alba-white_water_lily-Dragoman_marsh.jpg",
+      "title": "File:Nymphaea alba-white water lily-Dragoman marsh.jpg - Wikimedia Commons",
+      "checkedAt": "2026-10-23",
+      "fields": {
+        "Description": "English: Nymphaea alba-White water lily-Dragoman marsh Български: Бяла водна лилия в Драгоманското блато",
+        "Author": "Нели Иванова - Сдружение за дива природа БАЛКАНИ"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
+        "https://creativecommons.org/publicdomain/zero/1.0/",
+        "https://creativecommons.org/licenses/by-sa/4.0/"
+      ],
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/e/e8/Nymphaea_alba-white_water_lily-Dragoman_marsh.jpg",
+      "review": "Source metadata only; local image content not independently determined."
+    },
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:Rosa_sp.22.jpg",
+      "finalUrl": "https://commons.wikimedia.org/wiki/File:Rosa_sp.22.jpg",
+      "title": "File:Rosa sp.22.jpg - Wikimedia Commons",
+      "checkedAt": "2026-10-23",
+      "fields": {
+        "Description": "Species : Rosa sp. Family : Rosaceae Cultivar: Alec´s Red, 1970 Image No. 23",
+        "Date": "2004",
+        "Author": "Kurt Stüber"
+      },
+      "licenses": [
+        "CC-BY-SA-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/3.0/deed.en",
+        "https://creativecommons.org/publicdomain/zero/1.0/",
+        "https://creativecommons.org/licenses/by-sa/4.0/"
+      ],
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/b/b7/Rosa_sp.22.jpg",
+      "review": "Source metadata only; local image content not independently determined."
+    },
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:Rosa_sp.157.jpg",
+      "finalUrl": "https://commons.wikimedia.org/wiki/File:Rosa_sp.157.jpg",
+      "title": "File:Rosa sp.157.jpg - Wikimedia Commons",
+      "checkedAt": "2026-10-23",
+      "fields": {
+        "Description": "Species : Rosa sp. Family : Rosaceae Cultivar: Kent, Poulsen 1991S Image No. 158",
+        "Date": "2004",
+        "Author": "Kurt Stüber"
+      },
+      "licenses": [
+        "CC-BY-SA-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/3.0/deed.en",
+        "https://creativecommons.org/publicdomain/zero/1.0/",
+        "https://creativecommons.org/licenses/by-sa/4.0/"
+      ],
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Rosa_sp.157.jpg",
+      "review": "Source metadata only; local image content not independently determined."
+    }
+  ],
+  "errors": []
+}

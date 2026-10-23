@@ -1,0 +1,1510 @@
+{
+  "date": "2026-10-23",
+  "sources": [
+    {
+      "plantId": "satureja-montana",
+      "url": "https://commons.wikimedia.org/wiki/File:Satureja_montana_1.JPG",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/e/e6/Satureja_montana_1.JPG",
+      "title": "File:Satureja montana 1.JPG",
+      "fields": {
+        "Author": "Endogen",
+        "Description": "Satureja montana"
+      },
+      "licenses": [
+        "CC-BY-SA-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/3.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Satureja montana|Taken with Casio Exilim EX-Z33|Self-published work"
+    },
+    {
+      "plantId": "satureja-montana",
+      "url": "https://commons.wikimedia.org/wiki/File:Satureja_montana_-_GBA_Viote_09-16.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/6/63/Satureja_montana_-_GBA_Viote_09-16.jpg",
+      "title": "File:Satureja montana - GBA Viote 09-16.jpg",
+      "fields": {
+        "Author": "BelPatty86",
+        "Description": "Satureja montana - Giardino Botanico Alpino delle Viote (Trento) - settembre 2016"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Satureja montana|Self-published work|Plants in Giardino Botanico Alpino Viote|GBA Viote wikigita and editathon - September 2016"
+    },
+    {
+      "plantId": "satureja-montana",
+      "url": "https://commons.wikimedia.org/wiki/File:Satureja_montana_Cz%C4%85ber_g%C3%B3rski_2007-08-11_01.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/7/76/Satureja_montana_Cz%C4%85ber_g%C3%B3rski_2007-08-11_01.jpg",
+      "title": "File:Satureja montana Cząber górski 2007-08-11 01.jpg",
+      "fields": {
+        "Author": "Agnieszka Kwiecień, Nova",
+        "Description": "Satureja montana , plants in flower, cultivated in Wrocław University Botanical Garden, Wrocław, Poland."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Self-published work|Plants in Wrocław University Botanical Garden|Satureja montana (flowers)"
+    },
+    {
+      "plantId": "satureja-montana",
+      "url": "https://commons.wikimedia.org/wiki/File:Satureja_montana_Cz%C4%85ber_g%C3%B3rski_2007-08-11_04.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/4/48/Satureja_montana_Cz%C4%85ber_g%C3%B3rski_2007-08-11_04.jpg",
+      "title": "File:Satureja montana Cząber górski 2007-08-11 04.jpg",
+      "fields": {
+        "Author": "Agnieszka Kwiecień, Nova",
+        "Description": "Satureja montana , plants in flower, cultivated in Wrocław University Botanical Garden, Wrocław, Poland."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Satureja montana|Self-published work|Plants in Wrocław University Botanical Garden"
+    },
+    {
+      "plantId": "satureja-montana",
+      "url": "https://commons.wikimedia.org/wiki/File:Satureja_montana_sl1.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Satureja_montana_sl1.jpg",
+      "title": "File:Satureja montana sl1.jpg",
+      "fields": {
+        "Author": "Stefan.lefnaer",
+        "Description": "Habitus Taxonym: Satureja montana ss Rottensteiner: Exkursionsflora für Istrien ISBN 978-3-85328-067-6 Location: abandones stone pit next to Mirna mouth near Antenal, community Novigrad, Istria, Croatia Habitat: ruderal area"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Satureja montana|Self-published work|Lamiaceae in Croatia|Files with coordinates missing SDC location of creation|Croatia photographs taken on 2018-09-28"
+    },
+    {
+      "plantId": "satureja-montana",
+      "url": "https://commons.wikimedia.org/wiki/File:Satureja_montana_sl4.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/6/6e/Satureja_montana_sl4.jpg",
+      "title": "File:Satureja montana sl4.jpg",
+      "fields": {
+        "Author": "Stefan.lefnaer",
+        "Description": "Inflorescence Taxonym: Satureja montana ss Rottensteiner: Exkursionsflora für Istrien ISBN 978-3-85328-067-6 Location: abandones stone pit next to Mirna mouth near Antenal, community Novigrad, Istria, Croatia Habitat: ruderal area"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Self-published work|Flowers of Croatia|Lamiaceae in Croatia|Files with coordinates missing SDC location of creation|Croatia photographs taken on 2018-09-28|Satureja montana (flowers)|Flowers with blue sky background"
+    },
+    {
+      "plantId": "satureja-montana",
+      "url": "https://commons.wikimedia.org/wiki/File:Satureja_montana,_familija_Lamiaceae_06.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Satureja_montana%2C_familija_Lamiaceae_06.jpg",
+      "title": "File:Satureja montana, familija Lamiaceae 06.jpg",
+      "fields": {
+        "Author": "Milimidragan 92",
+        "Description": "Satureja montana је вишегодишња биљка из фамилије уснатица. Расте у виду жбуна. Цветови су бели. Плод је орашасти. Лековита је биљка. Ендем је Ртња."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Satureja montana|Self-published work|Projekat Biodiverzitet planine Rtanj"
+    },
+    {
+      "plantId": "satureja-montana",
+      "url": "https://commons.wikimedia.org/wiki/File:%E9%A6%99%E8%96%84%E8%8D%B7_Satureja_montana_-%E8%8B%B1%E6%A0%BC%E8%98%AD_Wisley_Gardens,_England-_(9237500329).jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/6/69/%E9%A6%99%E8%96%84%E8%8D%B7_Satureja_montana_-%E8%8B%B1%E6%A0%BC%E8%98%AD_Wisley_Gardens%2C_England-_%289237500329%29.jpg",
+      "title": "File:香薄荷 Satureja montana -英格蘭 Wisley Gardens, England- (9237500329).jpg",
+      "fields": {
+        "Author": "阿橋 HQ",
+        "Description": "Winter savory"
+      },
+      "licenses": [
+        "CC-BY-SA-2.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/2.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "RHS Wisley|Photographs by 阿橋 HQ|United Kingdom photographs taken on 2010-07-12|Flickr images reviewed by FlickreviewR 2|Files with coordinates missing SDC location of creation (51° N, 1° W)|Satureja montana (flowers)"
+    },
+    {
+      "plantId": "satureja-montana",
+      "url": "https://commons.wikimedia.org/wiki/File:Satureja_montana_L._subsp._montana_-_52513180718.png",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Satureja_montana_L._subsp._montana_-_52513180718.png",
+      "title": "File:Satureja montana L. subsp. montana - 52513180718.png",
+      "fields": {
+        "Author": "LIGURIAN VASCULAR FLORA",
+        "Description": "Satureja montana L. subsp. montana - 52513180718.png"
+      },
+      "licenses": [
+        "CC-BY-2.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by/2.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Satureja montana|Flickr images missing SDC creator|Flickr images reviewed by FlickreviewR 2|Flickr images missing SDC published in",
+      "descriptionSha256": "2f1b370020bb5130064ba2380e73d0e1eec8dc24ba8a642124f8bb38daa5fe3d",
+      "descriptionPolicy": "Long source prose omitted; filename used as factual image label."
+    },
+    {
+      "plantId": "satureja-montana",
+      "url": "https://commons.wikimedia.org/wiki/File:Satureja_montana_kz03.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/1/17/Satureja_montana_kz03.jpg",
+      "title": "File:Satureja montana kz03.jpg",
+      "fields": {
+        "Author": "Krzysztof Ziarnek, Kenraiz",
+        "Description": "Satureja montana in the Botanischer Garten, Berlin-Dahlem"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Satureja montana|Self-published work|Lamiaceae in the Botanischer Garten, Berlin-Dahlem"
+    },
+    {
+      "plantId": "larix-decidua",
+      "url": "https://commons.wikimedia.org/wiki/File:Larix_decidua_trunk_Marki_3.JPG",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/6/66/Larix_decidua_trunk_Marki_3.JPG",
+      "title": "File:Larix decidua trunk Marki 3.JPG",
+      "fields": {
+        "Author": "Crusier",
+        "Description": "European Larch ( Larix decidua ) trunk in Marki , Poland."
+      },
+      "licenses": [
+        "CC-BY-SA-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/3.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "GFDL|Taken with Canon EOS 500D|License migration redundant|Self-published work|Trees in Marki|Photographs by Crusier|Larix decidua in Poland|Files with coordinates missing SDC location of creation|Larix trunks|Photographs of Marki by Crusier"
+    },
+    {
+      "plantId": "larix-decidua",
+      "url": "https://commons.wikimedia.org/wiki/File:L%27A_de_Bran,_(1798_m)_Val_d%27Anniviers._Europese_larix_(Larix_decidua)_01.JPG",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/b/bd/L%27A_de_Bran%2C_%281798_m%29_Val_d%27Anniviers._Europese_larix_%28Larix_decidua%29_01.JPG",
+      "title": "File:L'A de Bran, (1798 m) Val d'Anniviers. Europese larix (Larix decidua) 01.JPG",
+      "fields": {
+        "Author": "Dominicus Johannes Bergsma",
+        "Description": "l'A Bran, (1798 m) Val d'Anniviers. European larch ( Larix decidua )."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Larix decidua|Vercorin|Val d'Anniviers|Taken with Canon EOS M|Self-published work|L'A de Bran|Files with coordinates missing SDC location of creation|Switzerland photographs taken on 2014-09-12|Larix decidua (standalone)|Tour of the Val d'Anniviers"
+    },
+    {
+      "plantId": "larix-decidua",
+      "url": "https://commons.wikimedia.org/wiki/File:Europese_larix_(Larix_decidua)_langs_het_voetpad_tussen_Grimentz_en_Vercorin_04.JPG",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/5/5f/Europese_larix_%28Larix_decidua%29_langs_het_voetpad_tussen_Grimentz_en_Vercorin_04.JPG",
+      "title": "File:Europese larix (Larix decidua) langs het voetpad tussen Grimentz en Vercorin 04.JPG",
+      "fields": {
+        "Author": "Dominicus Johannes Bergsma",
+        "Description": "European larch ( Larix decidua ) along the footpath between Grimentz and Vercorin."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Vercorin|Val d'Anniviers|Taken with Canon EOS M|Grimentz|Self-published work|Larix decidua in the canton of Graubünden|Files with coordinates missing SDC location of creation|Clouds and blue sky in Switzerland|Switzerland photographs taken on 2014-09-11|Pinales in Switzerland in September 2014|Tour of the Val d'Anniviers|Clouds in Val d'Anniviers|Larix in the Northern Hemisphere in September 2014"
+    },
+    {
+      "plantId": "larix-decidua",
+      "url": "https://commons.wikimedia.org/wiki/File:Europese_lariks_(Larix_decidua)_langs_het_voetpad_tussen_Grimentz_en_Vercorin.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/5/52/Europese_lariks_%28Larix_decidua%29_langs_het_voetpad_tussen_Grimentz_en_Vercorin.jpg",
+      "title": "File:Europese lariks (Larix decidua) langs het voetpad tussen Grimentz en Vercorin.jpg",
+      "fields": {
+        "Author": "Dominicus Johannes Bergsma",
+        "Description": "European larch ( Larix decidua ) along the footpath between Grimentz and Vercorin."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Vercorin|Taken with Canon EOS M|Grimentz|Self-published work|Files with coordinates missing SDC location of creation|Clouds and blue sky in Switzerland|Larix decidua in summer|Tour of the Val d'Anniviers|Clouds in Val d'Anniviers"
+    },
+    {
+      "plantId": "larix-decidua",
+      "url": "https://commons.wikimedia.org/wiki/File:Bergtocht_van_Gimillan_(1805m.)_naar_Colle_Tsa_S%C3%A8tse_in_Cogne_Valley_(Itali%C3%AB)._Europese_lariks_(Larix_decidua)_langs_het_bergpad_01.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/4/43/Bergtocht_van_Gimillan_%281805m.%29_naar_Colle_Tsa_S%C3%A8tse_in_Cogne_Valley_%28Itali%C3%AB%29._Europese_lariks_%28Larix_decidua%29_langs_het_bergpad_01.jpg",
+      "title": "File:Bergtocht van Gimillan (1805m.) naar Colle Tsa Sètse in Cogne Valley (Italië). Europese lariks (Larix decidua) langs het bergpad 01.jpg",
+      "fields": {
+        "Author": "Dominicus Johannes Bergsma",
+        "Description": "Mountain hike of Gimillan (1805m.) At Colle Tsa Sètse Cogne Valley (Italy). European larch ( Larix decidua ) along the mountain path."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Val di Cogne|Gimillan|Self-published work|Italy photographs taken on 2015-09-14|Larix decidua in Italy|Trees in Aosta Valley|September 2015 in Aosta Valley|Gran Paradiso National Park flora"
+    },
+    {
+      "plantId": "larix-decidua",
+      "url": "https://commons.wikimedia.org/wiki/File:Larix_decidua_Seckau_20151024_02.JPG",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/8/8c/Larix_decidua_Seckau_20151024_02.JPG",
+      "title": "File:Larix decidua Seckau 20151024 02.JPG",
+      "fields": {
+        "Author": "Uoaei1",
+        "Description": "European larch ( Larix decidua ) in autumn near Seckau , Styria, Austria"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Self-published work|Autumn in Styria|Larix decidua in Styria|Austria photographs taken on 2015-10-24|Files with coordinates missing SDC location of creation|All images by Uoaei1|Larix in the Northern Hemisphere in October 2015|Larix decidua in autumn 2015"
+    },
+    {
+      "plantId": "larix-decidua",
+      "url": "https://commons.wikimedia.org/wiki/File:Larix_decidua_Seckau_20151024_03.JPG",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/1/10/Larix_decidua_Seckau_20151024_03.JPG",
+      "title": "File:Larix decidua Seckau 20151024 03.JPG",
+      "fields": {
+        "Author": "Uoaei1",
+        "Description": "European larch ( Larix decidua ) in autumn near Seckau , Styria, Austria"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Self-published work|Autumn in Styria|Larix decidua in Styria|Austria photographs taken on 2015-10-24|Files with coordinates missing SDC location of creation|All images by Uoaei1|Larix in the Northern Hemisphere in October 2015|Larix decidua in autumn 2015"
+    },
+    {
+      "plantId": "larix-decidua",
+      "url": "https://commons.wikimedia.org/wiki/File:Bergtocht_van_Peio_Paese_naar_Lago_Covel_in_het_Nationaal_park_Stelvio_(Itali%C3%AB)._Wond_van_een_afgebroken_tak._Europese_larix_(Larix_decidua)_02.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/1/1a/Bergtocht_van_Peio_Paese_naar_Lago_Covel_in_het_Nationaal_park_Stelvio_%28Itali%C3%AB%29._Wond_van_een_afgebroken_tak._Europese_larix_%28Larix_decidua%29_02.jpg",
+      "title": "File:Bergtocht van Peio Paese naar Lago Covel in het Nationaal park Stelvio (Italië). Wond van een afgebroken tak. Europese larix (Larix decidua) 02.jpg",
+      "fields": {
+        "Author": "Dominicus Johannes Bergsma",
+        "Description": "Mountain walk from Pejo to Lago Covel (1,839 m) in the Stelvio National Park (Italy). Wound from a broken branch. European larch ( Larix decidua )."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Peio|Self-published work|Damaged tree trunks|Featured Images by Famberhorst|Larix decidua in Italy|Files with coordinates missing SDC location of creation|Switzerland photographs taken on 2016-09-19|Larix decidua (bark)|Featured pictures of the Alps in Trentino-South Tyrol|Featured pictures of trees|Featured pictures of Pinales"
+    },
+    {
+      "plantId": "larix-decidua",
+      "url": "https://commons.wikimedia.org/wiki/File:Bergtocht_van_Peio_Paese_naar_Lago_Covel_in_het_Nationaal_park_Stelvio_(Itali%C3%AB)._Wond_van_een_afgebroken_tak._Europese_larix_(Larix_decidua)_01.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/e/e7/Bergtocht_van_Peio_Paese_naar_Lago_Covel_in_het_Nationaal_park_Stelvio_%28Itali%C3%AB%29._Wond_van_een_afgebroken_tak._Europese_larix_%28Larix_decidua%29_01.jpg",
+      "title": "File:Bergtocht van Peio Paese naar Lago Covel in het Nationaal park Stelvio (Italië). Wond van een afgebroken tak. Europese larix (Larix decidua) 01.jpg",
+      "fields": {
+        "Author": "Dominicus Johannes Bergsma",
+        "Description": "Mountain walk from Pejo to Lago Covel (1,839 m) in the Stelvio National Park (Italy). Wound from a broken branch. European larch ( Larix decidua )."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Peio|Self-published work|Larix decidua in Italy|Larix in Italy|Files with coordinates missing SDC location of creation|Italy photographs taken on 2016-09-19|Larix decidua (bark)"
+    },
+    {
+      "plantId": "larix-decidua",
+      "url": "https://commons.wikimedia.org/wiki/File:Bergtocht_van_Peio_Paese_naar_Lago_Covel_in_het_Nationaal_park_Stelvio_(Itali%C3%AB)._Meerstammige_berk_(Betula)_achter_Europese_lariks_(Larix_decidua).jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/0/07/Bergtocht_van_Peio_Paese_naar_Lago_Covel_in_het_Nationaal_park_Stelvio_%28Itali%C3%AB%29._Meerstammige_berk_%28Betula%29_achter_Europese_lariks_%28Larix_decidua%29.jpg",
+      "title": "File:Bergtocht van Peio Paese naar Lago Covel in het Nationaal park Stelvio (Italië). Meerstammige berk (Betula) achter Europese lariks (Larix decidua).jpg",
+      "fields": {
+        "Author": "Dominicus Johannes Bergsma",
+        "Description": "Mountain walk from Pejo to Lago Covel (1,839 m) in the Stelvio National Park (Italy). Multi-stemmed birch ( Betula ) behind European larch ( Larix decidua )."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Lago Covel|Self-published work|Betula in September|Larix decidua in Italy|Larix in Italy|Files with coordinates missing SDC location of creation|Italy photographs taken on 2016-09-19"
+    },
+    {
+      "plantId": "hyacinthus-orientalis",
+      "url": "https://commons.wikimedia.org/wiki/File:P1130471_Hyacinthus_orientalis_Common_hyacinth_(Hyacinthaceae).JPG",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/5/57/P1130471_Hyacinthus_orientalis_Common_hyacinth_%28Hyacinthaceae%29.JPG",
+      "title": "File:P1130471 Hyacinthus orientalis Common hyacinth (Hyacinthaceae).JPG",
+      "fields": {
+        "Author": "Magnus Manske",
+        "Description": "Hyacinthus orientalis , Cambridge University Botanic Garden"
+      },
+      "licenses": [
+        "CC-BY-SA-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/3.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Hyacinthus orientalis|Taken with Panasonic Lumix DMC-FX01|Amaryllidaceae in Cambridge University Botanic Garden"
+    },
+    {
+      "plantId": "hyacinthus-orientalis",
+      "url": "https://commons.wikimedia.org/wiki/File:Hyacinthus_orientalis_%27White_Pearl%27,_Jard%C3%ADn_Bot%C3%A1nico_de_M%C3%BAnich,_Alemania,_2013-05-04,_DD_02.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/b/bf/Hyacinthus_orientalis_%27White_Pearl%27%2C_Jard%C3%ADn_Bot%C3%A1nico_de_M%C3%BAnich%2C_Alemania%2C_2013-05-04%2C_DD_02.jpg",
+      "title": "File:Hyacinthus orientalis 'White Pearl', Jardín Botánico de Múnich, Alemania, 2013-05-04, DD 02.jpg",
+      "fields": {
+        "Author": "Diego Delso",
+        "Description": "Hyacinthus 'White Pearl', Munich Botanical Garden, Germany"
+      },
+      "licenses": [
+        "CC-BY-SA-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/3.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "May 2013 Germany photographs|Images of Germany by User:Poco a poco|Taken with Canon EOS 5D Mark II|Hyacinthus 'White Pearl'|Images by User:Poco a poco|2013 photographs of Munich|Flowers in the Botanischer Garten München-Nymphenburg|Images by User:Poco a poco taken in 2013"
+    },
+    {
+      "plantId": "hyacinthus-orientalis",
+      "url": "https://commons.wikimedia.org/wiki/File:Hyacinthus_orientalis_Bl%C3%BCte_01.JPG",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Hyacinthus_orientalis_Bl%C3%BCte_01.JPG",
+      "title": "File:Hyacinthus orientalis Blüte 01.JPG",
+      "fields": {
+        "Author": "Uoaei1",
+        "Description": "Blossom of a cultivated Hyacinthus orientalis in close-up view"
+      },
+      "licenses": [
+        "CC-BY-SA-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/3.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Taken with Nikon D7100|Self-published work|Unidentified Hyacinthus cultivars|All images by Uoaei1"
+    },
+    {
+      "plantId": "hyacinthus-orientalis",
+      "url": "https://commons.wikimedia.org/wiki/File:Hyacinthus_orientalis_et_apis_melifera.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/4/47/Hyacinthus_orientalis_et_apis_melifera.jpg",
+      "title": "File:Hyacinthus orientalis et apis melifera.jpg",
+      "fields": {
+        "Author": "Dinkum",
+        "Description": "Hyacinthus orientalis et apis melifera"
+      },
+      "licenses": [
+        "CC-BY-SA-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/3.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Self-published work|Unidentified Hyacinthus cultivars|Apis mellifera in flight"
+    },
+    {
+      "plantId": "hyacinthus-orientalis",
+      "url": "https://commons.wikimedia.org/wiki/File:Hyacint_(Hyacinthus_orientalis)_Oost-hijacint._Hyacinthus_orientalis._hyacinthe_orientale_(titel_op_object),_RP-T-BR-2017-1-9-47.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/6/64/Hyacint_%28Hyacinthus_orientalis%29_Oost-hijacint._Hyacinthus_orientalis._hyacinthe_orientale_%28titel_op_object%29%2C_RP-T-BR-2017-1-9-47.jpg",
+      "title": "File:Hyacint (Hyacinthus orientalis) Oost-hijacint. Hyacinthus orientalis. hyacinthe orientale (titel op object), RP-T-BR-2017-1-9-47.jpg",
+      "fields": {
+        "Author": "Rijksmuseum",
+        "Description": "Hyacint (Hyacinthus orientalis) Oost-hijacint. Hyacinthus orientalis. hyacinthe orientale (titel op object), RP-T-BR-2017-1-9-47.jpg"
+      },
+      "licenses": [
+        "CC0-1.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/publicdomain/zero/1.0/deed.en"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "CC-Zero|Elias Verhulst|Historia Naturalis van Rudolf II, T IX|Gouaches of flowers in the Rijksmuseum Amsterdam",
+      "descriptionSha256": "4a4c0170ec416f6e2778b0764c094e1b96f260648a1e168c10031d2397bff1a3",
+      "descriptionPolicy": "Long source prose omitted; filename used as factual image label."
+    },
+    {
+      "plantId": "hyacinthus-orientalis",
+      "url": "https://commons.wikimedia.org/wiki/File:Pink_Hyacinthus_orientalis_in_Ontario.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/3/39/Pink_Hyacinthus_orientalis_in_Ontario.jpg",
+      "title": "File:Pink Hyacinthus orientalis in Ontario.jpg",
+      "fields": {
+        "Author": "Gogerr",
+        "Description": "Pink Hyacinthus orientalis in Ontario"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Hyacinthus orientalis (cultivars)|Self-published work|Files with coordinates missing SDC location of creation|April 2026 in St. Catharines"
+    },
+    {
+      "plantId": "ludwigia-grandiflora",
+      "url": "https://commons.wikimedia.org/wiki/File:Ludwigia_grandiflora_saint-mathurin-sur-loire_49_10082007_1.JPG",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/d/dc/Ludwigia_grandiflora_saint-mathurin-sur-loire_49_10082007_1.JPG",
+      "title": "File:Ludwigia grandiflora saint-mathurin-sur-loire 49 10082007 1.JPG",
+      "fields": {
+        "Author": "Olivier Pichard",
+        "Description": "Ludwigia grandiflora subsp. hexapetala Saint-Mathurin-sur-Loire (Maine-et-Loire), France"
+      },
+      "licenses": [
+        "CC-BY-SA-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/3.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Ludwigia grandiflora|Taken with Nikon Coolpix 4500|Myrtales in Maine-et-Loire|Onagraceae in France|Invasive plants in Maine-et-Loire|France photographs taken on 2007-08-10|Myrtales in France in August 2007|Onagraceae in the Northern Hemisphere in August 2007|Loire River in Saint-Mathurin-sur-Loire"
+    },
+    {
+      "plantId": "ludwigia-grandiflora",
+      "url": "https://commons.wikimedia.org/wiki/File:Ludwigia_grandiflora_saint-mathurin-sur-loire_49_10082007_4.JPG",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/6/69/Ludwigia_grandiflora_saint-mathurin-sur-loire_49_10082007_4.JPG",
+      "title": "File:Ludwigia grandiflora saint-mathurin-sur-loire 49 10082007 4.JPG",
+      "fields": {
+        "Author": "Olivier Pichard",
+        "Description": "Ludwigia grandiflora subsp. hexapetala Saint-Mathurin-sur-Loire (Maine-et-Loire), France"
+      },
+      "licenses": [
+        "CC-BY-SA-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/3.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Ludwigia grandiflora|Taken with Nikon Coolpix 4500|Myrtales in Maine-et-Loire|Onagraceae in France|Invasive plants in Maine-et-Loire|France photographs taken on 2007-08-10|Myrtales in France in August 2007|Onagraceae in the Northern Hemisphere in August 2007"
+    },
+    {
+      "plantId": "ludwigia-grandiflora",
+      "url": "https://commons.wikimedia.org/wiki/File:Ludwigia_grandiflora_saint-mathurin-sur-loire_49_10082007_5.JPG",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/0/0d/Ludwigia_grandiflora_saint-mathurin-sur-loire_49_10082007_5.JPG",
+      "title": "File:Ludwigia grandiflora saint-mathurin-sur-loire 49 10082007 5.JPG",
+      "fields": {
+        "Author": "Olivier Pichard",
+        "Description": "Ludwigia grandiflora subsp. hexapetala Saint-Mathurin-sur-Loire (Maine-et-Loire), France"
+      },
+      "licenses": [
+        "CC-BY-SA-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/3.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Ludwigia grandiflora|Taken with Nikon Coolpix 4500|Myrtales in Maine-et-Loire|Onagraceae in France|Invasive plants in Maine-et-Loire|France photographs taken on 2007-08-10|Myrtales in France in August 2007|Onagraceae in the Northern Hemisphere in August 2007"
+    },
+    {
+      "plantId": "ludwigia-grandiflora",
+      "url": "https://commons.wikimedia.org/wiki/File:Ludwigia_grandiflora_kz2.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Ludwigia_grandiflora_kz2.jpg",
+      "title": "File:Ludwigia grandiflora kz2.jpg",
+      "fields": {
+        "Author": "Krzysztof Ziarnek, Kenraiz",
+        "Description": "Ludwigia grandiflora in Olbrich Botanical Gardens, Madison"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Ludwigia grandiflora|Self-published work|Plants in Olbrich Botanical Gardens"
+    },
+    {
+      "plantId": "ludwigia-grandiflora",
+      "url": "https://commons.wikimedia.org/wiki/File:Ludwigia_grandiflora_kz1.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/e/ee/Ludwigia_grandiflora_kz1.jpg",
+      "title": "File:Ludwigia grandiflora kz1.jpg",
+      "fields": {
+        "Author": "Krzysztof Ziarnek, Kenraiz",
+        "Description": "Ludwigia grandiflora in Olbrich Botanical Gardens, Madison"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Ludwigia grandiflora|Self-published work|Plants in Olbrich Botanical Gardens"
+    },
+    {
+      "plantId": "ludwigia-grandiflora",
+      "url": "https://commons.wikimedia.org/wiki/File:Ludwigia_grandiflora_kz3.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/f/f7/Ludwigia_grandiflora_kz3.jpg",
+      "title": "File:Ludwigia grandiflora kz3.jpg",
+      "fields": {
+        "Author": "Krzysztof Ziarnek, Kenraiz",
+        "Description": "Ludwigia grandiflora in Olbrich Botanical Gardens, Madison"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Ludwigia grandiflora|Self-published work|Plants in Olbrich Botanical Gardens"
+    },
+    {
+      "plantId": "ludwigia-grandiflora",
+      "url": "https://commons.wikimedia.org/wiki/File:Ludwigia_grandiflora_kz4.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/1/16/Ludwigia_grandiflora_kz4.jpg",
+      "title": "File:Ludwigia grandiflora kz4.jpg",
+      "fields": {
+        "Author": "Krzysztof Ziarnek, Kenraiz",
+        "Description": "Ludwigia grandiflora in Olbrich Botanical Gardens, Madison"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Ludwigia grandiflora|Self-published work|Plants in Olbrich Botanical Gardens"
+    },
+    {
+      "plantId": "ludwigia-grandiflora",
+      "url": "https://commons.wikimedia.org/wiki/File:Ludwigia_grandiflora.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Ludwigia_grandiflora.jpg",
+      "title": "File:Ludwigia grandiflora.jpg",
+      "fields": {
+        "Author": "Gspeed0689",
+        "Description": "Flower from the Ludwigia grandiflora found in the Lower Hillsborough Wilderness Preserve along the border Pasco and Hillsborough Counties. Consulted with a professional botanist on the identification of this flower, however I did not have images of the whole plant, so it may be the wrong species."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Ludwigia grandiflora|Self-published work"
+    },
+    {
+      "plantId": "reynoutria-japonica",
+      "url": "https://commons.wikimedia.org/wiki/File:Reynoutria_japonica_kz1.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Reynoutria_japonica_kz1.jpg",
+      "title": "File:Reynoutria japonica kz1.jpg",
+      "fields": {
+        "Author": "Krzysztof Ziarnek, Kenraiz",
+        "Description": "Reynoutria japonica on the beach in Batumi (Black See)"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Self-published work|Armenia & Georgia 2016 by Kenraiz|Reynoutria japonica (non-native)"
+    },
+    {
+      "plantId": "reynoutria-japonica",
+      "url": "https://commons.wikimedia.org/wiki/File:Reynoutria_japonica_%E2%80%93_Luxembourg_City_Toison_d%27Or_2018.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/b/be/Reynoutria_japonica_%E2%80%93_Luxembourg_City_Toison_d%27Or_2018.jpg",
+      "title": "File:Reynoutria japonica – Luxembourg City Toison d'Or 2018.jpg",
+      "fields": {
+        "Author": "Cayambe",
+        "Description": "Reynoutria japonica , the Japanese knotweed, an invasive species growing along two buildings in rue de la Toison-d'Or in Luxembourg City, quarter of Hollerich. These plants are the remains of a large population growing there before the construction in the early 2000s of the building at left."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "October 2018 Luxembourg photographs|Reynoutria japonica in Luxembourg|Rue de la Toison-d'Or (Luxembourg City)|Self-published work"
+    },
+    {
+      "plantId": "reynoutria-japonica",
+      "url": "https://commons.wikimedia.org/wiki/File:Reynoutria_japonica_flower_(14).jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/f/f7/Reynoutria_japonica_flower_%2814%29.jpg",
+      "title": "File:Reynoutria japonica flower (14).jpg",
+      "fields": {
+        "Author": "Leslie J. Mehrhoff, University of Connecticut, Bugwood.org",
+        "Description": "Reynoutria japonica inflorescences"
+      },
+      "licenses": [
+        "CC-BY-3.0-US"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by/3.0/us/deed.en"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Files from external sources with reviewed licenses|Images from Forestry Images|Reynoutria japonica (flowers)"
+    },
+    {
+      "plantId": "reynoutria-japonica",
+      "url": "https://commons.wikimedia.org/wiki/File:Reynoutria_japonica_plant_(73).jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/7/75/Reynoutria_japonica_plant_%2873%29.jpg",
+      "title": "File:Reynoutria japonica plant (73).jpg",
+      "fields": {
+        "Author": "James H. Miller, USDA Forest Service, Bugwood.org",
+        "Description": "Reynoutria japonica plants"
+      },
+      "licenses": [
+        "CC-BY-3.0-US"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by/3.0/us/deed.en"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Reynoutria japonica|Files from external sources with reviewed licenses|Images from Forestry Images|Images from Insect Images"
+    },
+    {
+      "plantId": "reynoutria-japonica",
+      "url": "https://commons.wikimedia.org/wiki/File:Reynoutria_japonica_fruit_(08).jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/a/ae/Reynoutria_japonica_fruit_%2808%29.jpg",
+      "title": "File:Reynoutria japonica fruit (08).jpg",
+      "fields": {
+        "Author": "James H. Miller, USDA Forest Service, Bugwood.org",
+        "Description": "Reynoutria japonica fruits"
+      },
+      "licenses": [
+        "CC-BY-3.0-US"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by/3.0/us/deed.en"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Files from external sources with reviewed licenses|Images from Forestry Images|Images from Insect Images|Reynoutria japonica (fruit)"
+    },
+    {
+      "plantId": "reynoutria-japonica",
+      "url": "https://commons.wikimedia.org/wiki/File:Reynoutria_japonica_plant_(104).jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/4/43/Reynoutria_japonica_plant_%28104%29.jpg",
+      "title": "File:Reynoutria japonica plant (104).jpg",
+      "fields": {
+        "Author": "Jacques Maréchal",
+        "Description": "Reynoutria japonica plants"
+      },
+      "licenses": [
+        "CC-BY-SA-2.0-FR"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/2.0/fr/deed.en"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Reynoutria japonica|Files from external sources with reviewed licenses"
+    },
+    {
+      "plantId": "reynoutria-japonica",
+      "url": "https://commons.wikimedia.org/wiki/File:Reynoutria_japonica_15-p.bot-polygo.cuspi-17.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Reynoutria_japonica_15-p.bot-polygo.cuspi-17.jpg",
+      "title": "File:Reynoutria japonica 15-p.bot-polygo.cuspi-17.jpg",
+      "fields": {
+        "Author": "Ayotte, Gilles, 1948-",
+        "Description": "Nom français : renouée du Japon. Nom anglais : Japanese knotweed. Tiges et feuilles de renouée du Japon, en milieu naturel."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Reynoutria japonica|Uploaded with pattypan|Botanical collection of Université Laval|Reynoutria japonica in Canada"
+    },
+    {
+      "plantId": "reynoutria-japonica",
+      "url": "https://commons.wikimedia.org/wiki/File:Reynoutria_japonica_2024-09-02-4.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/c/c9/Reynoutria_japonica_2024-09-02-4.jpg",
+      "title": "File:Reynoutria japonica 2024-09-02-4.jpg",
+      "fields": {
+        "Author": "Renée Kools",
+        "Description": "Reynoutria japonica (Japanese knotweed) in bloom in the south of the Netherlands"
+      },
+      "licenses": [
+        "CC-BY-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Self-published work|Images by User:ReneeWrites|Photographs by User:ReneeWrites|Uploads by User:ReneeWrites|Reynoutria japonica in Breda, Netherlands|September in Breda, Netherlands|Files with coordinates missing SDC location of creation (51° N, 4° E)|Nature of the Netherlands in September 2024|Reynoutria japonica (non-native, flowers)|Photographs of the Netherlands by User:ReneeWrites|2024 photographs by User:ReneeWrites|Photographs by User:ReneeWrites of plants|Photographs by User:ReneeWrites taken with Canon EOS R50|Breda, Netherlands photographs taken on 2024-09-02"
+    },
+    {
+      "plantId": "reynoutria-japonica",
+      "url": "https://commons.wikimedia.org/wiki/File:Reynoutria_japonica_08.2025_(4).jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/3/32/Reynoutria_japonica_08.2025_%284%29.jpg",
+      "title": "File:Reynoutria japonica 08.2025 (4).jpg",
+      "fields": {
+        "Author": "DidierFy",
+        "Description": "La Renouée du Japon, en fleurs en fin d'été, une aubaine pour de nombreux insectes. Près de Namur, Belgique."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Reynoutria japonica|Self-published work|Files with coordinates missing SDC location of creation (50° N, 4° E)"
+    },
+    {
+      "plantId": "broussonetia-papyrifera",
+      "url": "https://commons.wikimedia.org/wiki/File:Broussonetia_papyrifera_Leaves_3008px.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Broussonetia_papyrifera_Leaves_3008px.jpg",
+      "title": "File:Broussonetia papyrifera Leaves 3008px.jpg",
+      "fields": {
+        "Author": "Photo by and (c)2006 Derek Ramsey ( Ram-Man ). Location credit to the Chanticleer Garden.",
+        "Description": "A picture the leaves of the Broussonetia papyrifera en plant. Photo taken at the Chanticleer Garden where it was identified. Camera and Exposure Details: Camera: Nikon D50 Lens: Nikon Nikkor ED AF-S DX 18-55mm f/3.5-5.6G Exposure: 20mm (30mm in 35mm equivalent ) f/4 @ 1/400 s."
+      },
+      "licenses": [
+        "CC-BY-SA-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/3.0/"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "GFDL|Taken with Nikon D50|License migration completed|Self-published work|Chanticleer Garden Photographs by Derek Ramsey|Files with coordinates missing SDC location of creation|Broussonetia papyrifera leaves"
+    },
+    {
+      "plantId": "broussonetia-papyrifera",
+      "url": "https://commons.wikimedia.org/wiki/File:Broussonetia_papyrifera_-_fleurs_m%C3%A2les.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/e/e5/Broussonetia_papyrifera_-_fleurs_m%C3%A2les.jpg",
+      "title": "File:Broussonetia papyrifera - fleurs mâles.jpg",
+      "fields": {
+        "Author": "Didier Descouens",
+        "Description": "Paper Mulberry - Broussonetia papyrifera - male flowering catkin Locality : Fronton , France."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Supported by Wikimedia France|Taken with Nikon D800E|Catkins|Self-published work|Supported by Projet Phoebus|Media supported by Wikimedia France|Service Bibliothèque et documentation Muséum de Toulouse - Botanique|Images by Archaeodontosaurus Botanique|Broussonetia papyrifera (flowers)"
+    },
+    {
+      "plantId": "broussonetia-papyrifera",
+      "url": "https://commons.wikimedia.org/wiki/File:Broussonetia_papyrifera_MHNT_Texture_of_the_trunk.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Broussonetia_papyrifera_MHNT_Texture_of_the_trunk.jpg",
+      "title": "File:Broussonetia papyrifera MHNT Texture of the trunk.jpg",
+      "fields": {
+        "Author": "Didier Descouens",
+        "Description": "Paper Mulberry - Broussonetia papyrifera - male - Trunk and bark. Locality : L'Espicié, Vallesvilles , France."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Supported by Wikimedia France|Taken with Nikon D800E|Self-published work|Supported by Projet Phoebus|Media supported by Wikimedia France|Service Bibliothèque et documentation Muséum de Toulouse - Botanique|Images by Archaeodontosaurus Botanique|Files with coordinates missing SDC location of creation|Broussonetia papyrifera trunks"
+    },
+    {
+      "plantId": "broussonetia-papyrifera",
+      "url": "https://commons.wikimedia.org/wiki/File:Broussonetia_papyrifera_Brusonecja_chi%C5%84ska_2011-09-11_02.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/4/44/Broussonetia_papyrifera_Brusonecja_chi%C5%84ska_2011-09-11_02.jpg",
+      "title": "File:Broussonetia papyrifera Brusonecja chińska 2011-09-11 02.jpg",
+      "fields": {
+        "Author": "Agnieszka Kwiecień, Nova",
+        "Description": "Brusonecja chińska ( Broussonetia papyrifera ), owoce, okaz uprawiany. Ogród Botaniczny Uniwersytetu Wrocławskiego, Wrocław, Polska."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Self-published work|Broussonetia papyrifera (fruit)|Trees in Wrocław University Botanical Garden"
+    },
+    {
+      "plantId": "broussonetia-papyrifera",
+      "url": "https://commons.wikimedia.org/wiki/File:HK_%E4%B8%8A%E7%92%B0_Sheung_Wan_%E5%B7%AE%E9%A4%A8%E4%B8%8A%E8%A1%97_Upper_Station_Street_green_tree_leaves_%E6%9E%84%E6%A8%B9_Broussonetia_papyrifera_Jan-2018_IX1_01.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/9/9b/HK_%E4%B8%8A%E7%92%B0_Sheung_Wan_%E5%B7%AE%E9%A4%A8%E4%B8%8A%E8%A1%97_Upper_Station_Street_green_tree_leaves_%E6%9E%84%E6%A8%B9_Broussonetia_papyrifera_Jan-2018_IX1_01.jpg",
+      "title": "File:HK 上環 Sheung Wan 差館上街 Upper Station Street green tree leaves 构樹 Broussonetia papyrifera Jan-2018 IX1 01.jpg",
+      "fields": {
+        "Author": "Samisulucool",
+        "Description": "zh:上環 Sheung Wan zh:差館上街 Upper Station Street plants in January 2017"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Self-published work|Hong Kong photographs taken on 2018-01-01|Photographs by Anonymous Hong Kong Photographer 1|Broussonetia papyrifera leaves|Trees in Sheung Wan|Green leaves in Sheung Wan|January 2018 in Upper Station Street"
+    },
+    {
+      "plantId": "broussonetia-papyrifera",
+      "url": "https://commons.wikimedia.org/wiki/File:Broussonetia_papyrifera_fruits.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/0/01/Broussonetia_papyrifera_fruits.jpg",
+      "title": "File:Broussonetia papyrifera fruits.jpg",
+      "fields": {
+        "Author": "Didier Descouens",
+        "Description": "Paper Mulberry ( Broussonetia papyrifera ) - Fruits Locality : Clermont-le-Fort , France"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Supported by Wikimedia France|Self-published work|Supported by Projet Phoebus|Media supported by Wikimedia France|Service Bibliothèque et documentation Muséum de Toulouse - Botanique|Images by Archaeodontosaurus Botanique|Broussonetia papyrifera (fruit)"
+    },
+    {
+      "plantId": "broussonetia-papyrifera",
+      "url": "https://commons.wikimedia.org/wiki/File:Broussonetia_papyrifera_8094.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Broussonetia_papyrifera_8094.jpg",
+      "title": "File:Broussonetia papyrifera 8094.jpg",
+      "fields": {
+        "Author": "Schurdl",
+        "Description": "Junge Borke des Papiermaulbeerbaumes (Broussonetia papyrifera) mit zahlreichen Lentizellen"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Self-published work|Supported by Wikimedia Österreich in 2022|Photographs by Schurdl|Broussonetia papyrifera trunks"
+    },
+    {
+      "plantId": "broussonetia-papyrifera",
+      "url": "https://commons.wikimedia.org/wiki/File:Moraceae-_Broussonetia_papyrifera_(paper_mulberry,_tapa_cloth_tree)_3.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/1/1a/Moraceae-_Broussonetia_papyrifera_%28paper_mulberry%2C_tapa_cloth_tree%29_3.jpg",
+      "title": "File:Moraceae- Broussonetia papyrifera (paper mulberry, tapa cloth tree) 3.jpg",
+      "fields": {
+        "Author": "Kristof Zyskowski & Yulia Bereshpolova",
+        "Description": "China: Beijing, hills N of Botanical Garden Fruit mildly sweet tasting; cooked leaves edible; inner bark (phloem fiber) used for making paper, tapa cloth and rope (hence the plant name)."
+      },
+      "licenses": [
+        "CC-BY-2.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by/2.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Files with coordinates missing SDC location of creation|Flickr images reviewed by FlickreviewR 2|Broussonetia papyrifera leaves|Broussonetia papyrifera (fruit)|Flickr images missing SDC published in"
+    },
+    {
+      "plantId": "ribes-rubrum",
+      "url": "https://commons.wikimedia.org/wiki/File:Ribes_rubrum.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/a/a3/Ribes_rubrum.jpg",
+      "title": "File:Ribes rubrum.jpg",
+      "fields": {
+        "Author": "Agnieszka Kwiecień ( Nova ); Phptpshoped by H20",
+        "Description": "Ribes rubrum"
+      },
+      "licenses": [
+        "CC-BY-SA-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/3.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "GFDL|License migration redundant|Self-published work|Ribes rubrum (fruit)"
+    },
+    {
+      "plantId": "ribes-rubrum",
+      "url": "https://commons.wikimedia.org/wiki/File:Grosello_rojo_(Ribes_rubrum),_M%C3%BAnich,_Alemania,_2012-06-07,_DD_01.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/2/23/Grosello_rojo_%28Ribes_rubrum%29%2C_M%C3%BAnich%2C_Alemania%2C_2012-06-07%2C_DD_01.jpg",
+      "title": "File:Grosello rojo (Ribes rubrum), Múnich, Alemania, 2012-06-07, DD 01.jpg",
+      "fields": {
+        "Author": "Diego Delso",
+        "Description": "Redcurrant ( Ribes rubrum ), Munich, Germany"
+      },
+      "licenses": [
+        "CC-BY-SA-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/3.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Images of Germany by User:Poco a poco|Taken with Canon EOS 5D Mark II|Images by User:Poco a poco|Munich photographs taken on 2012-06-07|Images by User:Poco a poco taken in 2012|Ribes rubrum (fruit)"
+    },
+    {
+      "plantId": "ribes-rubrum",
+      "url": "https://commons.wikimedia.org/wiki/File:Ribes_rubrum,_Armenia.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/7/7f/Ribes_rubrum%2C_Armenia.jpg",
+      "title": "File:Ribes rubrum, Armenia.jpg",
+      "fields": {
+        "Author": "Beko",
+        "Description": "Ribes rubrum in Armenia"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Self-published work|Files uploaded by Beko|Taken with Doogee X5 Max|Ribes rubrum (fruit)"
+    },
+    {
+      "plantId": "ribes-rubrum",
+      "url": "https://commons.wikimedia.org/wiki/File:Ribes_rubrum_-_Rote_Johannisbeere.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/a/a0/Ribes_rubrum_-_Rote_Johannisbeere.jpg",
+      "title": "File:Ribes rubrum - Rote Johannisbeere.jpg",
+      "fields": {
+        "Author": "5snake5",
+        "Description": "Eine Rote Johannisbeere (Ribes rubrum )"
+      },
+      "licenses": [
+        "CC0-1.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/publicdomain/zero/1.0/deed.en"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "CC-Zero|Self-published work|Ribes rubrum (fruit)"
+    },
+    {
+      "plantId": "ribes-rubrum",
+      "url": "https://commons.wikimedia.org/wiki/File:Redcurrant_(Ribes_rubrum)_fruits.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/b/b1/Redcurrant_%28Ribes_rubrum%29_fruits.jpg",
+      "title": "File:Redcurrant (Ribes rubrum) fruits.jpg",
+      "fields": {
+        "Author": "Ivar Leidus",
+        "Description": "Fruits of Redcurrant Prutas kan Aratilis"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Redcurrant|Self-published work|Featured pictures on Wikipedia, English|Featured pictures of fruit|Featured pictures on Wikipedia, Persian|Featured pictures by iifar|Photographs taken on 2020-11-23|Fruits on green background|Focus stacking images of fruits|Uploads by iifar|Focus stacked image"
+    },
+    {
+      "plantId": "ribes-rubrum",
+      "url": "https://commons.wikimedia.org/wiki/File:Ribes_rubrum_in_Aveyron_(2).jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/0/0b/Ribes_rubrum_in_Aveyron_%282%29.jpg",
+      "title": "File:Ribes rubrum in Aveyron (2).jpg",
+      "fields": {
+        "Author": "Krzysztof Golik",
+        "Description": "Ribes rubrum in commune of Le Monastère, Aveyron, France"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Self-published work|2021 in Aveyron|Saxifragales in Aveyron|Files with coordinates missing SDC location of creation|Occitanie photographs taken on 2021-04-05|Ribes rubrum (flowers)"
+    },
+    {
+      "plantId": "celastrus-orbiculatus",
+      "url": "https://commons.wikimedia.org/wiki/File:Celastrus-orbiculatus,_cultivated.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Celastrus-orbiculatus%2C_cultivated.jpg",
+      "title": "File:Celastrus-orbiculatus, cultivated.jpg",
+      "fields": {
+        "Author": "Sten at da.wikipedia",
+        "Description": "Celastrus orbiculatus"
+      },
+      "licenses": [
+        "CC-BY-SA-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/3.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Celastrus orbiculatus|GFDL|CC-BY-SA-3.0,2.5,2.0,1.0|License migration redundant|Self-published work|Images by User:Sten from da.wikipedia"
+    },
+    {
+      "plantId": "celastrus-orbiculatus",
+      "url": "https://commons.wikimedia.org/wiki/File:Celastrus_orbiculatus_01.JPG",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/e/e1/Celastrus_orbiculatus_01.JPG",
+      "title": "File:Celastrus orbiculatus 01.JPG",
+      "fields": {
+        "Author": "Dalgial",
+        "Description": "Celastrus orbiculatus in Bupyeong, Korea"
+      },
+      "licenses": [
+        "CC-BY-SA-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/3.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Celastrus orbiculatus|Taken with Canon EOS 450D|Self-published work"
+    },
+    {
+      "plantId": "celastrus-orbiculatus",
+      "url": "https://commons.wikimedia.org/wiki/File:Celastrus_orbiculatus_(Kowal_garden).JPG",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/0/0d/Celastrus_orbiculatus_%28Kowal_garden%29.JPG",
+      "title": "File:Celastrus orbiculatus (Kowal garden).JPG",
+      "fields": {
+        "Author": "James Steakley",
+        "Description": "Celastrus orbiculatus (Bittersweet) fruits in the garden of botanist Robert R. Kowal in Madison, Wisconsin"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Celastrus orbiculatus|Taken with Panasonic Lumix DMC-LX5|Self-published work|Garden of botanist Robert R. Kowal"
+    },
+    {
+      "plantId": "celastrus-orbiculatus",
+      "url": "https://commons.wikimedia.org/wiki/File:Celastrus_orbiculatus_5501205.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/1/15/Celastrus_orbiculatus_5501205.jpg",
+      "title": "File:Celastrus orbiculatus 5501205.jpg",
+      "fields": {
+        "Author": "Leslie J. Mehrhoff, University of Connecticut, Bugwood.org",
+        "Description": "Celastrus orbiculatus Thunb. - oriental bittersweet - growing up tree trunk - USA"
+      },
+      "licenses": [
+        "CC-BY-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by/3.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Celastrus orbiculatus|Files from external sources with reviewed licenses|Images from Forestry Images|Photographs by Leslie J. Mehrhoff"
+    },
+    {
+      "plantId": "celastrus-orbiculatus",
+      "url": "https://commons.wikimedia.org/wiki/File:Celastrus_orbiculatus_5501230.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/3/30/Celastrus_orbiculatus_5501230.jpg",
+      "title": "File:Celastrus orbiculatus 5501230.jpg",
+      "fields": {
+        "Author": "Leslie J. Mehrhoff, University of Connecticut, Bugwood.org",
+        "Description": "Celastrus orbiculatus Thunb. - oriental bittersweet - Infestation - growing in trees - USA"
+      },
+      "licenses": [
+        "CC-BY-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by/3.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Celastrus orbiculatus|Files from external sources with reviewed licenses|Images from Forestry Images|Photographs by Leslie J. Mehrhoff"
+    },
+    {
+      "plantId": "celastrus-orbiculatus",
+      "url": "https://commons.wikimedia.org/wiki/File:Celastrus_orbiculatus_0016241.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/8/84/Celastrus_orbiculatus_0016241.jpg",
+      "title": "File:Celastrus orbiculatus 0016241.jpg",
+      "fields": {
+        "Author": "James H. Miller, USDA Forest Service, Bugwood.org",
+        "Description": "Celastrus orbiculatus Thunb. - oriental bittersweet - Juvenile vine. twining vine in October - NC Arboretum entrance, North Carolina, United States"
+      },
+      "licenses": [
+        "CC-BY-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by/3.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Celastrus orbiculatus|Files from external sources with reviewed licenses|Images from Forestry Images"
+    },
+    {
+      "plantId": "celastrus-orbiculatus",
+      "url": "https://commons.wikimedia.org/wiki/File:Celastrus_orbiculatus_5487341.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/b/b3/Celastrus_orbiculatus_5487341.jpg",
+      "title": "File:Celastrus orbiculatus 5487341.jpg",
+      "fields": {
+        "Author": "Leslie J. Mehrhoff, University of Connecticut, Bugwood.org",
+        "Description": "Celastrus orbiculatus Thunb. - oriental bittersweet - fruits - United States"
+      },
+      "licenses": [
+        "CC-BY-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by/3.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Celastrus orbiculatus|Files from external sources with reviewed licenses|Images from Forestry Images|Photographs by Leslie J. Mehrhoff"
+    },
+    {
+      "plantId": "celastrus-orbiculatus",
+      "url": "https://commons.wikimedia.org/wiki/File:Celastrus_orbiculatus,_2019-11-11,_South_Side_Slopes,_02.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/b/bc/Celastrus_orbiculatus%2C_2019-11-11%2C_South_Side_Slopes%2C_02.jpg",
+      "title": "File:Celastrus orbiculatus, 2019-11-11, South Side Slopes, 02.jpg",
+      "fields": {
+        "Author": "Cbaile19",
+        "Description": "Asian Bittersweet (Celastrus orbiculatus) fruiting on the South Side Slopes, Pittsburgh"
+      },
+      "licenses": [
+        "CC0-1.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/publicdomain/zero/1.0/deed.en"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Celastrus orbiculatus|CC-Zero|Self-published work"
+    },
+    {
+      "plantId": "celastrus-orbiculatus",
+      "url": "https://commons.wikimedia.org/wiki/File:Celastrus_orbiculatus_(fruits_s2).jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/7/7f/Celastrus_orbiculatus_%28fruits_s2%29.jpg",
+      "title": "File:Celastrus orbiculatus (fruits s2).jpg",
+      "fields": {
+        "Author": "Alpsdake",
+        "Description": "Fruits of Celastrus orbiculatus in Mount Mitsutoge, Fujikawaguchiko, Yamanashi Prefecture, Japan."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Celastrus orbiculatus|Mount Mitsutoge|Self-published work|Japan photographs taken on 2021-12-04"
+    },
+    {
+      "plantId": "celastrus-orbiculatus",
+      "url": "https://commons.wikimedia.org/wiki/File:Celastrus_orbiculatus,_Montour_Trail,_2024-10-31-1.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/1/1a/Celastrus_orbiculatus%2C_Montour_Trail%2C_2024-10-31-1.jpg",
+      "title": "File:Celastrus orbiculatus, Montour Trail, 2024-10-31-1.jpg",
+      "fields": {
+        "Author": "Cbaile19",
+        "Description": "Oriental Bittersweet ( Celastrus orbiculatus ) fruiting along the Montour Trail in Moon Towship, Allegheny County, Pennsylvania"
+      },
+      "licenses": [
+        "CC0-1.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/publicdomain/zero/1.0/deed.en"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Celastrus orbiculatus|CC-Zero|Self-published work"
+    },
+    {
+      "plantId": "ribes-nigrum",
+      "url": "https://commons.wikimedia.org/wiki/File:Zwarte_bes_(Ribes_nigrum).jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/b/be/Zwarte_bes_%28Ribes_nigrum%29.jpg",
+      "title": "File:Zwarte bes (Ribes nigrum).jpg",
+      "fields": {
+        "Author": "Rasbak",
+        "Description": "Ribes nigrum"
+      },
+      "licenses": [
+        "CC-BY-SA-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/3.0/"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Ribes nigrum|GFDL|License migration completed"
+    },
+    {
+      "plantId": "ribes-nigrum",
+      "url": "https://commons.wikimedia.org/wiki/File:Ribes_nigrum_2019-03-21_7621.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/e/e5/Ribes_nigrum_2019-03-21_7621.jpg",
+      "title": "File:Ribes nigrum 2019-03-21 7621.jpg",
+      "fields": {
+        "Author": "Salicyna",
+        "Description": "Ribes nigrum , allotment garden in Szczecin, West Pomeranian Voivodeship, Poland."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Self-published work|Photographs by Salicyna taken in 2019|Ribes nigrum buds"
+    },
+    {
+      "plantId": "ribes-nigrum",
+      "url": "https://commons.wikimedia.org/wiki/File:Ribes_nigrum_2019-03-28_8111.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/d/df/Ribes_nigrum_2019-03-28_8111.jpg",
+      "title": "File:Ribes nigrum 2019-03-28 8111.jpg",
+      "fields": {
+        "Author": "Salicyna",
+        "Description": "Ribes nigrum , allotment garden in Szczecin, West Pomeranian Voivodeship, Poland."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Ribes nigrum|Self-published work|Photographs by Salicyna taken in 2019|Ribes nigrum in Poland"
+    },
+    {
+      "plantId": "ribes-nigrum",
+      "url": "https://commons.wikimedia.org/wiki/File:Ribes_nigrum_2019-04-05_9125.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Ribes_nigrum_2019-04-05_9125.jpg",
+      "title": "File:Ribes nigrum 2019-04-05 9125.jpg",
+      "fields": {
+        "Author": "Salicyna",
+        "Description": "Ribes nigrum , allotment garden in Szczecin, West Pomeranian Voivodeship, Poland."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Ribes nigrum|Self-published work|Photographs by Salicyna taken in 2019|Ribes nigrum in Poland"
+    },
+    {
+      "plantId": "ribes-nigrum",
+      "url": "https://commons.wikimedia.org/wiki/File:Ribes_nigrum_2019-04-11_9509.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/0/09/Ribes_nigrum_2019-04-11_9509.jpg",
+      "title": "File:Ribes nigrum 2019-04-11 9509.jpg",
+      "fields": {
+        "Author": "Salicyna",
+        "Description": "Ribes nigrum , allotment garden in Szczecin, West Pomeranian Voivodeship, Poland."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Self-published work|Photographs by Salicyna taken in 2019|Ribes nigrum in Poland|Ribes nigrum (flowers)"
+    },
+    {
+      "plantId": "ribes-nigrum",
+      "url": "https://commons.wikimedia.org/wiki/File:Ribes_nigrum_2019-04-11_9516.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Ribes_nigrum_2019-04-11_9516.jpg",
+      "title": "File:Ribes nigrum 2019-04-11 9516.jpg",
+      "fields": {
+        "Author": "Salicyna",
+        "Description": "Ribes nigrum , allotment garden in Szczecin, West Pomeranian Voivodeship, Poland."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Ribes nigrum|Self-published work|Photographs by Salicyna taken in 2019|Ribes nigrum in Poland"
+    },
+    {
+      "plantId": "ribes-nigrum",
+      "url": "https://commons.wikimedia.org/wiki/File:Ribes_nigrum_2019-04-11_9548.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Ribes_nigrum_2019-04-11_9548.jpg",
+      "title": "File:Ribes nigrum 2019-04-11 9548.jpg",
+      "fields": {
+        "Author": "Salicyna",
+        "Description": "Ribes nigrum , allotment garden in Szczecin, West Pomeranian Voivodeship, Poland."
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Ribes nigrum|Self-published work|Photographs by Salicyna taken in 2019|Ribes nigrum in Poland"
+    },
+    {
+      "plantId": "ribes-nigrum",
+      "url": "https://commons.wikimedia.org/wiki/File:Ribes_nigrum_kz03.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/d/d7/Ribes_nigrum_kz03.jpg",
+      "title": "File:Ribes nigrum kz03.jpg",
+      "fields": {
+        "Author": "Krzysztof Ziarnek, Kenraiz",
+        "Description": "Ribes nigrum in habitat (alder forest), Karnice, NW Poland"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Ribes nigrum|Self-published work|Ribes nigrum in Poland"
+    },
+    {
+      "plantId": "ribes-nigrum",
+      "url": "https://commons.wikimedia.org/wiki/File:Ribes_nigrum_kz10.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Ribes_nigrum_kz10.jpg",
+      "title": "File:Ribes nigrum kz10.jpg",
+      "fields": {
+        "Author": "Krzysztof Ziarnek, Kenraiz",
+        "Description": "Ribes nigrum in forest SE from Kołobrzeg, NW Poland"
+      },
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by-sa/4.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Ribes nigrum|Self-published work|Shrubs in Poland|Ribes nigrum in Poland"
+    },
+    {
+      "plantId": "myriophyllum-heterophyllum",
+      "url": "https://commons.wikimedia.org/wiki/File:Myriophyllum_heterophyllum_5457830.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Myriophyllum_heterophyllum_5457830.jpg",
+      "title": "File:Myriophyllum heterophyllum 5457830.jpg",
+      "fields": {
+        "Author": "Leslie J. Mehrhoff, University of Connecticut, Bugwood.org",
+        "Description": "twoleaf watermilfoil - Myriophyllum heterophyllum Michx."
+      },
+      "licenses": [
+        "CC-BY-3.0"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by/3.0"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Myriophyllum heterophyllum|Files from external sources with reviewed licenses|Images from Invasive.org|Photographs by Leslie J. Mehrhoff"
+    },
+    {
+      "plantId": "myriophyllum-heterophyllum",
+      "url": "https://commons.wikimedia.org/wiki/File:Myriophyllum_heterophyllum_5457865.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/6/64/Myriophyllum_heterophyllum_5457865.jpg",
+      "title": "File:Myriophyllum heterophyllum 5457865.jpg",
+      "fields": {
+        "Author": "Leslie J. Mehrhoff, University of Connecticut, Bugwood.org",
+        "Description": "twoleaf watermilfoil - Myriophyllum heterophyllum Michx."
+      },
+      "licenses": [
+        "CC-BY-3.0-US"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by/3.0/us/deed.en"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Myriophyllum heterophyllum|Files from external sources with reviewed licenses|Images from Invasive.org|Photographs by Leslie J. Mehrhoff"
+    },
+    {
+      "plantId": "myriophyllum-heterophyllum",
+      "url": "https://commons.wikimedia.org/wiki/File:Myriophyllum_heterophyllum_5457874.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/2/28/Myriophyllum_heterophyllum_5457874.jpg",
+      "title": "File:Myriophyllum heterophyllum 5457874.jpg",
+      "fields": {
+        "Author": "Leslie J. Mehrhoff, University of Connecticut, Bugwood.org",
+        "Description": "twoleaf watermilfoil - Myriophyllum heterophyllum Michx."
+      },
+      "licenses": [
+        "CC-BY-3.0-US"
+      ],
+      "licenseUrls": [
+        "https://creativecommons.org/licenses/by/3.0/us/deed.en"
+      ],
+      "checkedAt": "2026-10-23",
+      "method": "Individual Wikimedia Commons API imageinfo/extmetadata; nonphotographic category/title filter.",
+      "categories": "Myriophyllum heterophyllum|Files from external sources with reviewed licenses|Unknown date|Images from Invasive.org|Incorrect Exif date|Photographs by Leslie J. Mehrhoff"
+    }
+  ]
+}

@@ -3,6 +3,14 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Auftrag98 – neue APK mit erweiterter Pflanzenbibliothek, Umsetzung begonnen
+
+Ausgang ist der vollständig gesicherte97-Abschluss6928ab55ea1a6dc953cb5b00150b3d495cd006ce mit unveränderlicher Original-APK/tag97. Frischen GitHub-main e499e745 und vorhandene Branches verglichen; neue Bibliothek aus7d499b225ed28f501333227e0ce92a54d4c5d542 ausschließlich unter libraries/plants übernommen, keine alte App-/Statuskopie. Kanonische181Profile/362Bildhashes vorab in eigenem technischen Tempnachweis festgehalten. Alle Heute-/MCP-/Synckorrekturen aus97 bleiben Grundlage. Ziel nach vollständiger Abnahme1.54.9/98; Version noch nicht angehoben, keine neue APK behauptet.
+
+Bibliotheksrevision2:314ausgewählte Profile=181Bestand+133Ergänzungen,1140Fotoreferenzen,335eligible Bestandsderivate/27Ausschlüsse. Quellenmetadaten sind kein Bildnachweis; alle314historisch HOLD. Verbindliche Integrationsanweisung vollständig gelesen. Abnahme: eingefrorene historische Baseline e499e745, deterministischer manifestgebundener Import, stabile IDs, genau2belegte geeignete lokale Bilder pro übernommenem Profil samt SHA/Rechten/Sichtprüfung, datierte EU-/CH-Regeln, Warnungen/Synonyme/Quellenklima, Offline-/Such-/Vollbild-/Schrift-/Entwurfsprüfungen und Originalupdate mit Datenerhalt. Keine produktive Installation, Geschäftsdaten, request_sync oder Queueänderung.
+
+Aktuelle Cloudrichtlinie30 ist enforced/observations_current, Originalsignierungsvariablen ready; Bild-/Quellhosts fehlen. Konkrete sieben Hosts zur Konfigurationsfreigabe angefragt, während unabhängige Adapter-/Prüfarbeit weiterläuft. Keine Umgehung, kein Metadaten-HOLD als Fotofreigabe. Aktuelles Source-/Workspace-Privacy vor Übernahme PASS/0operative Seeds;21historische Befunde des anderen Checkouts liegen hier nicht vor. APK-Auslieferung erst nach tatsächlichen vollständigen Gates; produktiver Pixel-/Drive-Sync bleibt gesondert offen.
+
 ## Auftrag97 – abgeschlossen: Original1.54.8/97, tatsächliche Nachweise und externe Grenze
 
 Heute95 innerhalb eines Renderers wiederhergestellt, wichtige Aktionen unten,12 konkurrierende CSS-Orderregeln entfernt. Kompakter Timer, Terminzeit/Kunde bei360×616 auch mit gespeicherten Arbeiten sichtbar. Abgelaufene Auswahl, Scroll-/Rückgängigüberdeckung und enger MCP-Enumfehler korrigiert. Metadatenkatalog je Antwort einmal statt dreimal, Datumsformatierer wiederverwendet, kalte Kartendetails3→1/warm0. Dieser Header ist maßgeblich;9cc4e18war ein nicht ausgelieferter Zwischenkandidat.
