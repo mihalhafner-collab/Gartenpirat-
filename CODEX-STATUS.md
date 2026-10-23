@@ -3,6 +3,23 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Fortsetzung98 – tatsächlichen alten WebView-Layoutfehler behoben
+
+Geometriediagnose auf API30 bestätigt: bisheriges Vollbild außerhalb des sichtbaren
+Bereichs (y1402 bei640px Höhe), Bild-/Stage-Fläche0×0 trotz dekodiertem Foto.
+Älterer WebView ignoriert inset-Shorthand und dynamische dvh-Einheiten. Vorherige
+Appedf5113 deshalb kein ausgelieferter98Kandidat und kein98Tag; Quellen bleiben
+als Vorprüfungsstände erhalten. Kanonisches Garten-CSS erhält explizite vier
+Kanten sowie vh-Fallbacks und feste sichtbare Dialogposition mit begrenzter
+scrollbarer Höhe. Regulärer Spiegelgenerator verwendet; zugehöriger geprüfter
+CSS-Quellhash aktualisiert,117Tools/156Aktionen unverändert.
+
+Gezielte Browserregression entfernt inset/dvh tatsächlich aus geladenen Regeln
+und prüft sichtbare Porträt-/Vollbild-/Zurück-Flächen bei320/360px. Native QA
+verlangt Geometrie und wartet auf WebView-VisualState. Allgemeiner Kalenderpfad
+liefert weiter einen alten UI-Prüffehler; neue rein technische Fehlerdiagnose
+wird mitgebaut, keine Testschwächung oder Geschäfts-/Snapshotänderung.
+
 ## Fortsetzung98 – native Schrift-/Darstellungsdiagnose
 
 Schrift1.0/1.5/2.0 gegen unveränderte Appedf5113 technisch PASS und OS-Werte
