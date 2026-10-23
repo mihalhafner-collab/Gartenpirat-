@@ -1,3 +1,19 @@
+# Aktueller Cloudkandidat:1.54.8 / Build 97
+
+Heute-Struktur aus95 mit Arbeitsaktionen unten.54 Browser-Suiten/13 Übersichtsfälle,50 JVM-/395 Python-Prüfungen und290 native+20 ergänzende MCP-/Providerprüfungen PASS.117 RPC-Werkzeuge erreichbar,113 mit positiven Aufrufen;4 Außenabläufe nur geschützt geprüft. OS-Schrift1.0/1.5/2.0,9 unverdeckte Bilder,96→97-Vollledger und installierter APK-Bytevergleich PASS. Keine produktive Pixelinstallation oder Syncanforderung.
+
+- [Original-APK](https://drive.google.com/file/d/19w2tUJRWlKr_0R37IU5jRkP34sCl6CTc/view)
+- [Versionsnachweis](https://drive.google.com/file/d/1v22KPWGIMqNjtDkYFlvk9nZJn8feqx_r/view), [QA](https://drive.google.com/file/d/1Z3pg6Be03ESDpc6iguHfQ7XrfIr09QvH/view), [Bericht](https://drive.google.com/file/d/13butggb-KowkX0uVrOsB_dO14UYVzrNa/view)
+- [Originalquellen](https://drive.google.com/drive/folders/1dMX0byFIGCzOLSk3N3Cs6U4WVWyfZ3t8), [Original-ZIP](https://drive.google.com/file/d/18z0qPxs27gc_J7JmfFMx-QDZQydeSbqF/view), [Abschlussquellen](https://drive.google.com/drive/folders/1rxp9cbTf2srnopH-X8p9Xar6ZGQViPAn)
+
+Appcode `edd16a44c13dc17a774cff26f91e760efc123848`, Tag `source/v1.54.8-build97`, Quellfingerprint `5bf13d01331b5492c0de05d691aa58e10c31fc744295683948d8adfc23a41595`. APK-SHA256 `7e394a7603d79ffb264e1f113c122c1e1700453a82a3e9be521831a425df4e48`; ZIP-SHA256 `eb2244f707fe620c32a6168a92f2c2bfb0f3f97f9d47bff5f1c54e25cb18da3d`. Dokumentationscommit/ZIP werden separat durch01-MANIFEST.json und Abschlussbeleg im Kandidatenordner gebunden. Kleine Dateien tatsächlich byteweise SHA-geprüft; großeAPK/ZIP vollständiger Stream/Größe, kein Remote-Byte-SHA behauptet.
+
+Letzte lesende Pixelbeobachtung23.10.2026: Original96, REMOTE_STATE_REFERENCE_MISSING mit9Pending/cloud_confirmed=false. Emulatorerfolg beweist keinen produktiven Google-Drive-Abgleich. Vorgänger96 und alle historischen Originale bleiben erhalten; keine Schutzmarkierung entfernt.
+
+---
+
+Die folgenden Abschnitte sind erhaltene Historie.
+
 # Haus & Garten – aktuelle Downloads
 
 Aktueller originalsignierter Kandidat: **[1.54.7 / Build96](https://drive.google.com/file/d/1YOT0voQQZ_ntiA_O9jBWVr3ifR8AnBQ8/view)**. AP1–AP7 umgesetzt: Syncfehler/Commitstatus, echte Produktionstests, sichere Quittungsbegrenzung, Arbeitsentwurf vor Menüwechsel, übersichtliche Heute-/Planungsansichten und kleine Displays/große Schrift. Linke Rand-/Zurückgeste unverändert.

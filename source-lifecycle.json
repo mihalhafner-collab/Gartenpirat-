@@ -28,7 +28,10 @@
     "candidate95": "1qV4B9lXj0P35DSsuIzTD9hIMWgx34bef",
     "candidate96": "1Juu_8VdoAdLC-vkoQVPrx_K2Qs4RDKxG",
     "source96": "1PJqvAyhJlRAG-R2UpTtq4dA1wSjavwYr",
-    "documentation96": "1oMjiRt2OqcR5mKcSbsYjVv1hEGlL7QHD"
+    "documentation96": "1oMjiRt2OqcR5mKcSbsYjVv1hEGlL7QHD",
+    "candidate97": "1ZPwhieYXLRDwqdaSoY_SkqdgPffsN341",
+    "source97": "1dMX0byFIGCzOLSk3N3Cs6U4WVWyfZ3t8",
+    "development97": "1rxp9cbTf2srnopH-X8p9Xar6ZGQViPAn"
   },
   "runtime_folder_ids": [
     "1qR33tKpsKa-VxLeuTbXibjgYGjpyE8__",
@@ -49,7 +52,9 @@
     "1mNMctVtasftStxWfwZboVv6chkQ_CbXv",
     "1Y8xLj_5d08RZjUeoqmM5f2rWY1D24QWc",
     "1YOT0voQQZ_ntiA_O9jBWVr3ifR8AnBQ8",
-    "154LI5YHV11KiD-evgy2OoPwzjcuvfYTU"
+    "154LI5YHV11KiD-evgy2OoPwzjcuvfYTU",
+    "19w2tUJRWlKr_0R37IU5jRkP34sCl6CTc",
+    "18z0qPxs27gc_J7JmfFMx-QDZQydeSbqF"
   ],
   "retention_days": {
     "apk_retired": 0,
@@ -66,7 +71,8 @@
     93,
     94,
     95,
-    96
+    96,
+    97
   ],
   "no_runtime_writes": true,
   "no_history_rewrite": true,
@@ -83,5 +89,5 @@
     "weekly": "6ad8f37b548c8191b18d43b443aae6d3",
     "monthly": "6ad8f37da1d88191b7aa7fbf09473760"
   },
-  "keep_builds_evidence": "Previous89/90/93/94/95 protections retained; add original96 cloud candidate. Pixel observation94 remains historical. No protection removal, retirement clock or deletion without physical acceptance."
+  "keep_builds_evidence": "Prior89/90/93/94/95/96 protections retained; add original97 cloud candidate. Read-only Pixel metadata23Oct2026 observes96. No protection removal, retirement clock or deletion without physical acceptance."
 }

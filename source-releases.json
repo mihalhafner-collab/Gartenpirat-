@@ -173,6 +173,32 @@
       "google_live_authorization": "NOT_EXECUTED; no productive request_sync or queue mutation",
       "release_approved": false,
       "drive_readback": "19 source receipts:18SHA256_BYTES+1ZIP COMPLETE_STREAM_SIZE_ONLY; helper0upload/19reuse/0duplicates; APK COMPLETE_STREAM_SIZE_ONLY; QA/proof SHA256_BYTES"
+    },
+    {
+      "version": "1.54.8",
+      "build": 97,
+      "tag": "source/v1.54.8-build97",
+      "git_sha": "edd16a44c13dc17a774cff26f91e760efc123848",
+      "tree_sha": "830f8c2d181cb22563a5d77abd653e9f71849960",
+      "source_sha256": "5bf13d01331b5492c0de05d691aa58e10c31fc744295683948d8adfc23a41595",
+      "source_files": 1290,
+      "original_zip_sha256": "eb2244f707fe620c32a6168a92f2c2bfb0f3f97f9d47bff5f1c54e25cb18da3d",
+      "apk_sha256": "7e394a7603d79ffb264e1f113c122c1e1700453a82a3e9be521831a425df4e48",
+      "drive_zip_id": "18z0qPxs27gc_J7JmfFMx-QDZQydeSbqF",
+      "drive_apk_id": "19w2tUJRWlKr_0R37IU5jRkP34sCl6CTc",
+      "drive_folder_id": "1ZPwhieYXLRDwqdaSoY_SkqdgPffsN341",
+      "source_folder_id": "1dMX0byFIGCzOLSk3N3Cs6U4WVWyfZ3t8",
+      "development_export_folder_id": "1rxp9cbTf2srnopH-X8p9Xar6ZGQViPAn",
+      "drive_provenance_id": "1v22KPWGIMqNjtDkYFlvk9nZJn8feqx_r",
+      "drive_verification_id": "1Z3pg6Be03ESDpc6iguHfQ7XrfIr09QvH",
+      "drive_report_id": "13butggb-KowkX0uVrOsB_dO14UYVzrNa",
+      "remote_readback": "PASS exact original branch/tag",
+      "native_cloud_acceptance": "290PASS+20additional workflow/providerPASS;0FAIL;117RPC/113positive tools/4guarded paths;96→97full ledger/fresh/nativeUI/fonts1/1.5/2/9reviewed images; restored display/font; installed APK byte-identical",
+      "pixel_installation": "NOT_EXECUTED; read-only metadata23Oct2026 observes original96",
+      "google_live_authorization": "NOT_EXECUTED; REMOTE_STATE_REFERENCE_MISSING/9pending/cloud_confirmed=false; no productive request_sync, queue or runtime-file mutation",
+      "release_approved": false,
+      "drive_readback": "19source receipts:18SHA256_BYTES+1ZIP COMPLETE_STREAM_SIZE_ONLY;0upload/19reuse/0duplicates. APK full stream/size; QA/proof/report actual byte-SHA.",
+      "documentation_provenance": "Final documentation commit/ZIP pinned by01-MANIFEST.json and completion receipt; immutable APK/tag stays edd16a4."
     }
   ]
 }

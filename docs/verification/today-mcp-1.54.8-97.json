@@ -1,0 +1,1878 @@
+{
+  "format": "hausgarten.today-mcp97.verification.v1",
+  "classification": "SYNTHETIC_TEST; separate read-only technical Pixel metadata",
+  "generated_at_utc": "2026-10-23T06:53:39.730888+00:00",
+  "scope": "Restore actual95 Today structure with lower work controls; performance/errors; full MCP reachability and isolated workflows. No main merge/force push, productive installation/write test/request_sync/queue change.",
+  "candidate": {
+    "status": "PASS",
+    "classification": "SYNTHETIC_TEST",
+    "apk_bytes": 36217051,
+    "apk_sha256": "7e394a7603d79ffb264e1f113c122c1e1700453a82a3e9be521831a425df4e48",
+    "packaged_source_assets_equal": 424,
+    "generated_art_profiles": 2,
+    "version_name": "1.54.8",
+    "version_code": 97,
+    "git_sha": "edd16a44c13dc17a774cff26f91e760efc123848",
+    "source_sha256": "5bf13d01331b5492c0de05d691aa58e10c31fc744295683948d8adfc23a41595",
+    "source_dirty": false,
+    "installed_baseline": 77
+  },
+  "original_certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+  "source_tag": "source/v1.54.8-build97",
+  "source_export": {
+    "format": "hausgarten.review-generation.v1",
+    "git_sha": "edd16a44c13dc17a774cff26f91e760efc123848",
+    "source_sha256": "5bf13d01331b5492c0de05d691aa58e10c31fc744295683948d8adfc23a41595",
+    "source_files": 1290,
+    "text_files": 559,
+    "public_binary_files": 731,
+    "zip_name": "Haus-Garten-Quellcode-edd16a44c13d.zip",
+    "zip_sha256": "eb2244f707fe620c32a6168a92f2c2bfb0f3f97f9d47bff5f1c54e25cb18da3d",
+    "text_reconstruction": "PASS",
+    "apk_for_this_commit": "NOT ATTESTED BY SOURCE EXPORT"
+  },
+  "drive_source_folder_id": "1dMX0byFIGCzOLSk3N3Cs6U4WVWyfZ3t8",
+  "drive_source_zip_id": "18z0qPxs27gc_J7JmfFMx-QDZQydeSbqF",
+  "drive_apk_id": "19w2tUJRWlKr_0R37IU5jRkP34sCl6CTc",
+  "drive_candidate_folder_id": "1ZPwhieYXLRDwqdaSoY_SkqdgPffsN341",
+  "drive_documentation_folder_id": "1rxp9cbTf2srnopH-X8p9Xar6ZGQViPAn",
+  "documentation_provenance": "Separate final documentation commit/archive pinned by01-MANIFEST.json and completion receipt; APK/tag stays edd16a4.",
+  "source_transfer": {
+    "counts": {
+      "upload": 0,
+      "reuse": 19,
+      "verify_existing": 0,
+      "blocked_duplicates": 0
+    },
+    "receipts": 19,
+    "byte_sha256_receipts": 18,
+    "large_zip_readback": "COMPLETE_STREAM_SIZE_ONLY; local original/Git SHA verified; no remote SHA claim"
+  },
+  "apk_drive_readback": "Authenticated complete stream and36217051bytes; >32MiB materialization limit, no remote SHA byte claim. Local and installed original SHA verified.",
+  "changed_files": [
+    "AKTUELLER-STAND.json",
+    "CODEX-STATUS.md",
+    "android/app/build.gradle",
+    "android/app/src/androidTest/java/at/hausgarten/service/DriveProviderAcceptance.java",
+    "android/app/src/androidTest/java/at/hausgarten/service/McpAuditTools.java",
+    "android/app/src/androidTest/java/at/hausgarten/service/McpDispatchAcceptance.java",
+    "android/app/src/androidTest/java/at/hausgarten/service/McpWorkflowAcceptance.java",
+    "android/app/src/androidTest/java/at/hausgarten/service/OverviewAccessibilityProbe.java",
+    "android/app/src/androidTest/java/at/hausgarten/service/OwnerNativeAcceptance.java",
+    "android/app/src/androidTest/java/at/hausgarten/service/PixelMcpInstrumentation.java",
+    "android/app/src/androidTest/java/at/hausgarten/service/ReleaseLifecycleProbe.java",
+    "android/app/src/main/assets/field-ui.css",
+    "android/app/src/main/assets/mobile.html",
+    "android/app/src/main/assets/planning-ui.js",
+    "android/app/src/main/assets/today-ui.css",
+    "android/app/src/main/assets/today-ui.js",
+    "android/app/src/main/assets/ui-mcp-actions.json",
+    "android/app/src/main/assets/workday-ui.css",
+    "android/app/src/main/java/at/hausgarten/service/OwnerToolSchemas.java",
+    "android/app/src/main/java/at/hausgarten/service/PixelMcpReadTools.java",
+    "docs/verification/implementation-1.54.7-96.json",
+    "docs/verification/implementation-1.54.7-96.md",
+    "docs/verification/today-mcp-1.54.8-97.md",
+    "downloads/README.md",
+    "source-lifecycle.json",
+    "source-releases.json",
+    "tests/field-ui.test.cjs",
+    "tests/fixtures/mcp-authority-schema-repair-v1.json",
+    "tests/fixtures/overview96-presentation-baseline.json",
+    "tests/java/at/hausgarten/service/McpMetadataTests.java",
+    "tests/java/at/hausgarten/service/OwnerToolsTests.java",
+    "tests/navigation-calendar.test.cjs",
+    "tests/overview-accessibility.test.cjs",
+    "tests/p3-customer-hub.test.cjs",
+    "tests/planning-carousel.test.cjs",
+    "tests/planning-ui.test.cjs",
+    "tests/run_cloud_emulator_tests.py",
+    "tests/run_emulator_font_tests.py",
+    "tests/test_refactoring_contract.py",
+    "tests/ui-preview.test.cjs",
+    "tests/visual-consistency.test.cjs",
+    "tests/work-location.test.cjs",
+    "tools/check_refactoring_contract.py"
+  ],
+  "implementation": {
+    "today": {
+      "files": [
+        "mobile.html",
+        "today-ui.js",
+        "today-ui.css",
+        "planning-ui.js",
+        "field-ui.css",
+        "workday-ui.css"
+      ],
+      "functions": [
+        "TodayUI.render/renderTimer/browseHome",
+        "PlanningUI.homeRows and cached Vienna day formatter"
+      ],
+      "behavior": "95 single appointment carousel/date/two hour figures/history retained in one renderer; start/pause/resume/stop/photo/manual/planning fixed above navigation.12 competing legacy order rules removed; compact48dp extras menu. Conditional checks, personal paid marks, timer/draft/CAS/left-edge menu preserved.",
+      "tests": "54 browser suites,13 overview cases, native UI and9 visually reviewed OS-font screenshots; normal360x616active timer+recent work leaves appointment time/customer visible.",
+      "intentional_change": "Latest user request supersedes96 three-daily-term presentation; restore95 carousel, lower actions. Large font content scrolls vertically; primary actions remain reachable."
+    },
+    "bugs": {
+      "fixed": [
+        "Expired selected appointment skipped first remaining appointment; completely expired list retained old card.",
+        "Lower fixed controls initially covered last content and Undo; dynamic scroll reserve and toast offset fixed.",
+        "Legacy CSS order placed recent work ahead of appointments and active timer obscured essential appointment details.",
+        "Advertised empty invoice_numbering_authority was rejected by minLength1; precise field repair to0."
+      ],
+      "preserved": "117 names,52read/65write, request_id, record_hash, permissions, numbering and journal rules; original frozen contracts retained with narrow explicit schema repair delta."
+    },
+    "mcp_qa": {
+      "files": [
+        "McpAuditTools.java",
+        "McpDispatchAcceptance.java",
+        "McpWorkflowAcceptance.java",
+        "PixelMcpInstrumentation.java",
+        "OwnerNativeAcceptance.java",
+        "DriveProviderAcceptance.java",
+        "ReleaseLifecycleProbe.java",
+        "OverviewAccessibilityProbe.java"
+      ],
+      "behavior": "Real production JSON-RPC/router/SQLite, per-tool positive and negative observations without arguments or records. Disposable stores/preferences/media cleaned and asserted; opened preferences flushed even before apply() creates XML; removed SQLite sidecars recognized. UI probe restores prior planning draft.",
+      "limits": "Native router is real production behavior with synthetic providers; connected Pixel used for technical reads only, not productive write or external-provider acceptance."
+    },
+    "performance": {
+      "files": [
+        "PixelMcpReadTools.java",
+        "planning-ui.js",
+        "today-ui.js"
+      ],
+      "functions": [
+        "get_capabilities/integration_health per-response catalog reuse",
+        "cached Intl.DateTimeFormat",
+        "selected appointment details only"
+      ],
+      "freshness": "No global mutable catalog cache; next response fresh, hashes consistent, zero metadata writes verified by real production JVM tests."
+    }
+  },
+  "tests": {
+    "python_pass": 395,
+    "python_skips": 0,
+    "legacy_replacement_keygen_tests_explicitly_excluded": 37,
+    "jvm_suites_pass": 50,
+    "ui_mcp_parity_assertions": 1050,
+    "parity_after_last_UI_change": "PASS1050",
+    "browser_suites_pass": 54,
+    "overview_cases_pass": 13,
+    "local_compatibility_stdio_mcp_scenarios_pass": 55,
+    "camera_host_checks_pass": 29,
+    "cleanup_host_checks_pass": 47,
+    "native_acceptance_pass": 290,
+    "additional_native_workflow_provider_pass": 20,
+    "native_failures": 0,
+    "additional20_overlap": "Includes15repeated provider cases; not310unique scenarios.",
+    "fresh_isolated": "PASS",
+    "native_webview": "PASS",
+    "native_fonts": {
+      "classification": "SYNTHETIC_TEST",
+      "results": [
+        {
+          "font_scale": "1.0",
+          "observed": "1.0",
+          "result": "PASS",
+          "scope": "actual Android WebView/OS fonts with synthetic read responses; no business writes"
+        },
+        {
+          "font_scale": "1.5",
+          "observed": "1.5",
+          "result": "PASS",
+          "scope": "actual Android WebView/OS fonts with synthetic read responses; no business writes"
+        },
+        {
+          "font_scale": "2.0",
+          "observed": "2.0",
+          "result": "PASS",
+          "scope": "actual Android WebView/OS fonts with synthetic read responses; no business writes"
+        }
+      ],
+      "original_font_scale": "1.0",
+      "restored_font_scale": "1.0",
+      "original_effective_font_scale": 1.0,
+      "restored_effective_font_scale": 1.0,
+      "restored": true,
+      "logical_screen_dp": [
+        360,
+        640
+      ],
+      "original_display_size": "540x960",
+      "tested_display_size": "540x960",
+      "restored_display_size": "540x960"
+    },
+    "settings_restoration": {
+      "classification": "SYNTHETIC_TEST",
+      "original_display_and_font_restored": true,
+      "display_after": "Physical size: 480x960",
+      "density_after": "Physical density: 240",
+      "font_scale_after": "1.0",
+      "runtime_timeout_multiplier": "10; temporary this AVD boot only; emulator shutdown after tests"
+    },
+    "update96to97": {
+      "classification": "SYNTHETIC_TEST",
+      "version_code": 97,
+      "counts": {
+        "customers": 3,
+        "orders": 1,
+        "worklogs": 2,
+        "invoices": 0,
+        "offers": 0,
+        "photos": 0,
+        "appointments": 0
+      },
+      "pending_count": 1,
+      "business_and_pending_sha256": "4ac2c9f59c310af6a7adfcdf25eff333a437b5c361e8d46644d4e99687c9443f",
+      "complete_master_sha256": "9436aa2dd614cd1512672b8bed6fa0478c3f188858d9f1fb38613da1e3aa4287",
+      "pending_sha256": "829880bed75658edfa938950263220acec870e9222509d5ef40359cbf5a60ba8",
+      "session_persisted_fields_sha256": "4afff5bf8f37ed96d6e778aa084e3f3c2f6ca4b3a638eee33717ac5c7a5cb943",
+      "session_state": "RUNNING",
+      "relations_sha256": "eacbcd804eb160d0f022c32200d3004329764f23a5a6190b15560605d7f6299a"
+    },
+    "update_path": "96→unpublished97/4a8e554→unpublished97/9cc4e18→final97/edd16a4; install-r only, no uninstall/wipe; original96before ledger never replaced.",
+    "installed_artifact": {
+      "classification": "SYNTHETIC_TEST",
+      "installed_apk_sha256": "7e394a7603d79ffb264e1f113c122c1e1700453a82a3e9be521831a425df4e48",
+      "matches_original_candidate": true
+    },
+    "gradle": "PASS84release/androidTest/lint tasks;0lint errors,54existing warnings",
+    "privacy": {
+      "stage": "RELEASE_ARTIFACT",
+      "source_privacy": {
+        "status": "PASS",
+        "files": 1290,
+        "operational_seed_rows": 0
+      },
+      "workspace_privacy": {
+        "status": "PASS",
+        "files": 4333,
+        "includes_ignored_untracked": true,
+        "git_history": "SEPARATE_READONLY_AUDIT"
+      },
+      "artifact_privacy": {
+        "status": "PASS",
+        "sha256": "7e394a7603d79ffb264e1f113c122c1e1700453a82a3e9be521831a425df4e48",
+        "operational_seed_rows": 0
+      },
+      "secret_values_printed": false
+    },
+    "plants": "PASS181profiles/362images/370mirrors",
+    "offer_contract": "PASS",
+    "UI_contract_sha256": "7119a0e04814858da78c1da34211395d66ef428777f0c9735a026a3f2275be74",
+    "isolated_AVD_test_resource_cleanup": {
+      "classification": "SYNTHETIC_TEST",
+      "scope": "dedicated qemu AVD only; exact reserved mcp_qa_UUID namespaces; main update fixture retained",
+      "removed_reserved_paths": 4491,
+      "remaining_reserved_paths": 0,
+      "productive_pixel_actions": 0,
+      "main_data_validation": "PASS full original96→97ledger repeated after cleanup; master/pending/timer/relations unchanged"
+    }
+  },
+  "performance": {
+    "comparison": {
+      "classification": "SYNTHETIC_TEST",
+      "native_latency": false,
+      "results": [
+        {
+          "name": "reference95",
+          "errors": [],
+          "refresh": {
+            "p50_ms": 2,
+            "p95_ms": 3,
+            "max_ms": 4
+          },
+          "navigation": {
+            "p50_ms": 3,
+            "p95_ms": 4,
+            "max_ms": 14
+          },
+          "cold_calls": {
+            "get_appointment": 1
+          },
+          "bridge_calls": {},
+          "metadata_rows": 115
+        },
+        {
+          "name": "baseline96",
+          "errors": [],
+          "refresh": {
+            "p50_ms": 8,
+            "p95_ms": 10,
+            "max_ms": 12
+          },
+          "navigation": {
+            "p50_ms": 9,
+            "p95_ms": 12,
+            "max_ms": 13
+          },
+          "cold_calls": {
+            "get_appointment": 3
+          },
+          "bridge_calls": {},
+          "metadata_rows": 115
+        },
+        {
+          "name": "candidate97",
+          "errors": [],
+          "refresh": {
+            "p50_ms": 1,
+            "p95_ms": 2,
+            "max_ms": 2
+          },
+          "navigation": {
+            "p50_ms": 3,
+            "p95_ms": 5,
+            "max_ms": 10
+          },
+          "cold_calls": {
+            "get_appointment": 1
+          },
+          "bridge_calls": {},
+          "metadata_rows": 115
+        }
+      ]
+    },
+    "scope": "Cloud Chromium, identical115synthetic appointments,25iterations per view; not Pixel or network performance.",
+    "metadata_host_cpu_ms": {
+      "samples_each": 15,
+      "get_capabilities_before": {
+        "p50": 17.296405,
+        "p95": 20.341091
+      },
+      "get_capabilities_after": {
+        "p50": 12.684745,
+        "p95": 16.21444
+      },
+      "integration_health_before": {
+        "p50": 9.123963,
+        "p95": 10.221381
+      },
+      "integration_health_after": {
+        "p50": 5.090801,
+        "p95": 9.398531
+      },
+      "scope": "same host JVM production class; illustrative observed timings, no Pixel speed promise"
+    },
+    "read_only_live96_roundtrip_ms": [
+      6301,
+      5180,
+      5545
+    ],
+    "live_roundtrip_scope": "Includes connection/tunnel; no attribution to device CPU and no97live timing claim."
+  },
+  "mcp": {
+    "classification": "SYNTHETIC_TEST",
+    "app_git_sha": "edd16a44c13dc17a774cff26f91e760efc123848",
+    "qa_git_sha": "edd16a44c13dc17a774cff26f91e760efc123848",
+    "native_acceptance": 290,
+    "additional_workflow_provider_checks": 20,
+    "catalog": {
+      "tools": 117,
+      "wire_hash": "6248c7c9c8dd2f45b90b500f1e05eaec609e2aab228c658183c65b36abf4fbf6",
+      "semantic": {
+        "version": "catalog-json-v1",
+        "sha256": "7e3f8d55662b529aaef68ff3d18ddd873257f606912d5919c5e78843618f6d63"
+      }
+    },
+    "registered": 117,
+    "rpc_reachable": 117,
+    "observed_positive_tool_names": 113,
+    "guarded_only": [
+      "prepare_legacy_conflict_backup",
+      "request_invoice_issue",
+      "prepare_offer_delivery",
+      "confirm_offer_delivery"
+    ],
+    "measurement_scope": "API30 TCG isolated router/SQLite; no Pixel/network timing",
+    "rows": [
+      {
+        "tool": "integration_health",
+        "success_calls": 1,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 1035.058464,
+        "max_ms": 1031.129961
+      },
+      {
+        "tool": "search_customers",
+        "success_calls": 1,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 173.811369,
+        "max_ms": 172.044936
+      },
+      {
+        "tool": "get_customer",
+        "success_calls": 6,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 867.832333,
+        "max_ms": 223.461757
+      },
+      {
+        "tool": "search_orders",
+        "success_calls": 1,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 135.160512,
+        "max_ms": 133.579032
+      },
+      {
+        "tool": "get_order",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 237.526702,
+        "max_ms": 146.931889
+      },
+      {
+        "tool": "list_work_records",
+        "success_calls": 1,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 136.079501,
+        "max_ms": 134.480826
+      },
+      {
+        "tool": "get_work_record",
+        "success_calls": 8,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 926.656056,
+        "max_ms": 151.013568
+      },
+      {
+        "tool": "get_open_orders",
+        "success_calls": 1,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 151.881422,
+        "max_ms": 150.066136
+      },
+      {
+        "tool": "list_invoices",
+        "success_calls": 1,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 142.127451,
+        "max_ms": 140.463419
+      },
+      {
+        "tool": "get_invoice",
+        "success_calls": 5,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 559.560366,
+        "max_ms": 149.689379
+      },
+      {
+        "tool": "list_photos",
+        "success_calls": 1,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 144.585352,
+        "max_ms": 143.228835
+      },
+      {
+        "tool": "get_business_summary",
+        "success_calls": 1,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 149.319157,
+        "max_ms": 147.610428
+      },
+      {
+        "tool": "search_business_data",
+        "success_calls": 1,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 135.414027,
+        "max_ms": 133.892456
+      },
+      {
+        "tool": "get_sync_status",
+        "success_calls": 1,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 130.166423,
+        "max_ms": 128.820492
+      },
+      {
+        "tool": "get_customer_work_records",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 277.631391,
+        "max_ms": 141.884466
+      },
+      {
+        "tool": "get_work_record_summary",
+        "success_calls": 1,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 139.429954,
+        "max_ms": 137.966719
+      },
+      {
+        "tool": "get_sync_overview",
+        "success_calls": 1,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 183.696371,
+        "max_ms": 182.138756
+      },
+      {
+        "tool": "get_active_work_session",
+        "success_calls": 1,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 133.895476,
+        "max_ms": 132.6754
+      },
+      {
+        "tool": "create_work_record",
+        "success_calls": 2,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 520.458309,
+        "max_ms": 299.835092
+      },
+      {
+        "tool": "create_customer_work_record",
+        "success_calls": 2,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 522.437693,
+        "max_ms": 329.996389
+      },
+      {
+        "tool": "update_work_record",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 486.366549,
+        "max_ms": 346.666084
+      },
+      {
+        "tool": "create_customer",
+        "success_calls": 3,
+        "guard_rejections": 3,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REPLAY_MISMATCH"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 558.76529,
+        "max_ms": 166.212456
+      },
+      {
+        "tool": "update_customer",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 354.172706,
+        "max_ms": 178.102594
+      },
+      {
+        "tool": "create_order",
+        "success_calls": 2,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 934.8082039999999,
+        "max_ms": 389.111501
+      },
+      {
+        "tool": "update_order",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 430.118901,
+        "max_ms": 288.733257
+      },
+      {
+        "tool": "create_invoice_draft",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 448.697599,
+        "max_ms": 298.515461
+      },
+      {
+        "tool": "update_invoice_draft",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 372.299641,
+        "max_ms": 235.980705
+      },
+      {
+        "tool": "finish_work",
+        "success_calls": 2,
+        "guard_rejections": 3,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "MISSING_FIELD"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 455.582034,
+        "max_ms": 326.211209
+      },
+      {
+        "tool": "start_work",
+        "success_calls": 3,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 716.8653340000001,
+        "max_ms": 227.94788
+      },
+      {
+        "tool": "start_break",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "SESSION_CONFLICT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 180.676242,
+        "max_ms": 106.686788
+      },
+      {
+        "tool": "end_break",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "SESSION_CONFLICT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 208.91979,
+        "max_ms": 140.281234
+      },
+      {
+        "tool": "stop_work",
+        "success_calls": 2,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "SESSION_CONFLICT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 268.237172,
+        "max_ms": 106.663959
+      },
+      {
+        "tool": "complete_work_session",
+        "success_calls": 2,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "SESSION_CONFLICT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 505.522151,
+        "max_ms": 316.371877
+      },
+      {
+        "tool": "continue_work",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "SESSION_CONFLICT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 237.820332,
+        "max_ms": 160.435504
+      },
+      {
+        "tool": "discard_work_session",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "SESSION_CONFLICT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 207.939452,
+        "max_ms": 126.10542
+      },
+      {
+        "tool": "restore_work_session",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 207.48265899999998,
+        "max_ms": 129.269656
+      },
+      {
+        "tool": "run_self_test",
+        "success_calls": 2,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 1092.527354,
+        "max_ms": 583.334116
+      },
+      {
+        "tool": "get_ui_action_catalog",
+        "success_calls": 5,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "CATALOG_CHANGED",
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 2071.904817,
+        "max_ms": 444.954576
+      },
+      {
+        "tool": "inspect_order_review",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 370.62266,
+        "max_ms": 203.932356
+      },
+      {
+        "tool": "get_capabilities",
+        "success_calls": 3,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 3339.041892,
+        "max_ms": 1232.693212
+      },
+      {
+        "tool": "preview_empty_trash",
+        "success_calls": 5,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 2805.160024,
+        "max_ms": 1778.096095
+      },
+      {
+        "tool": "preview_archive_work_records",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 1812.438298,
+        "max_ms": 1668.868523
+      },
+      {
+        "tool": "preview_purge",
+        "success_calls": 4,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 874.804173,
+        "max_ms": 199.6973
+      },
+      {
+        "tool": "preview_delete",
+        "success_calls": 8,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 1193.797633,
+        "max_ms": 193.321086
+      },
+      {
+        "tool": "preview_legacy_conflict_resolution",
+        "success_calls": 1,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 119.110089,
+        "max_ms": 117.155046
+      },
+      {
+        "tool": "get_sync_conflicts",
+        "success_calls": 3,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 201.122639,
+        "max_ms": 123.251271
+      },
+      {
+        "tool": "get_photo",
+        "success_calls": 4,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 529.913561,
+        "max_ms": 139.819556
+      },
+      {
+        "tool": "get_settings",
+        "success_calls": 3,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 187.469559,
+        "max_ms": 110.965063
+      },
+      {
+        "tool": "get_business_settings",
+        "success_calls": 4,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 802.789959,
+        "max_ms": 221.414102
+      },
+      {
+        "tool": "search_catalog",
+        "success_calls": 2,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 1058.489406,
+        "max_ms": 708.604309
+      },
+      {
+        "tool": "get_catalog_entry",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 478.837768,
+        "max_ms": 304.52038
+      },
+      {
+        "tool": "read_file_chunk",
+        "success_calls": 5,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 1633.555845,
+        "max_ms": 380.73408
+      },
+      {
+        "tool": "get_file_metadata",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 312.027152,
+        "max_ms": 180.118541
+      },
+      {
+        "tool": "list_archive",
+        "success_calls": 9,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 3785.249428,
+        "max_ms": 2090.348676
+      },
+      {
+        "tool": "list_backups",
+        "success_calls": 2,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 198.666139,
+        "max_ms": 126.530183
+      },
+      {
+        "tool": "inspect_backup",
+        "success_calls": 3,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 504.809211,
+        "max_ms": 149.119812
+      },
+      {
+        "tool": "save_reviewed_order",
+        "success_calls": 2,
+        "guard_rejections": 3,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "IllegalArgumentException"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 577.332947,
+        "max_ms": 222.903396
+      },
+      {
+        "tool": "empty_trash",
+        "success_calls": 6,
+        "guard_rejections": 4,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "SQLiteConstraintException",
+          "WRITE_CONFLICT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 26143.838931,
+        "max_ms": 12325.241421
+      },
+      {
+        "tool": "archive_work_records",
+        "success_calls": 2,
+        "guard_rejections": 3,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "SQLiteConstraintException"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 20083.181659,
+        "max_ms": 16150.411483
+      },
+      {
+        "tool": "prepare_legacy_conflict_backup",
+        "success_calls": 0,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 98.370609,
+        "max_ms": 96.689632
+      },
+      {
+        "tool": "close_legacy_conflicts",
+        "success_calls": 4,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 8112.447235,
+        "max_ms": 4025.354774
+      },
+      {
+        "tool": "set_work_record_billed",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 270.489624,
+        "max_ms": 148.186556
+      },
+      {
+        "tool": "reassign_work_record",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 374.811813,
+        "max_ms": 202.040993
+      },
+      {
+        "tool": "update_photo",
+        "success_calls": 2,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 415.05111,
+        "max_ms": 186.11905
+      },
+      {
+        "tool": "begin_file_upload",
+        "success_calls": 2,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 309.038675,
+        "max_ms": 168.595647
+      },
+      {
+        "tool": "write_file_chunk",
+        "success_calls": 2,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 257.29376,
+        "max_ms": 165.003388
+      },
+      {
+        "tool": "create_photo",
+        "success_calls": 2,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 372.602118,
+        "max_ms": 179.576179
+      },
+      {
+        "tool": "purge_entity",
+        "success_calls": 7,
+        "guard_rejections": 3,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 3207.97178,
+        "max_ms": 641.799681
+      },
+      {
+        "tool": "delete_entity",
+        "success_calls": 6,
+        "guard_rejections": 4,
+        "guard_codes": [
+          "ACTIVE_WORK_SESSION",
+          "INVALID_INPUT",
+          "WRITE_CONFLICT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 1575.98396,
+        "max_ms": 258.09547
+      },
+      {
+        "tool": "archive_entity",
+        "success_calls": 2,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "WRITE_CONFLICT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 463.664522,
+        "max_ms": 187.028545
+      },
+      {
+        "tool": "restore_entity",
+        "success_calls": 2,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "READ_ERROR"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 451.876296,
+        "max_ms": 163.197636
+      },
+      {
+        "tool": "resolve_sync_conflict",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 359.897312,
+        "max_ms": 199.658924
+      },
+      {
+        "tool": "request_sync",
+        "success_calls": 2,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 246.447611,
+        "max_ms": 148.483344
+      },
+      {
+        "tool": "update_settings",
+        "success_calls": 2,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "WRITE_CONFLICT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 225.924293,
+        "max_ms": 132.302573
+      },
+      {
+        "tool": "update_business_settings",
+        "success_calls": 2,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "WRITE_CONFLICT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 348.17716,
+        "max_ms": 160.664473
+      },
+      {
+        "tool": "set_personal_paid",
+        "success_calls": 1,
+        "guard_rejections": 3,
+        "guard_codes": [
+          "DEVICE_MIGRATION_REQUIRED",
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 370.164944,
+        "max_ms": 170.566369
+      },
+      {
+        "tool": "create_backup",
+        "success_calls": 2,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 432.386997,
+        "max_ms": 234.562907
+      },
+      {
+        "tool": "restore_backup",
+        "success_calls": 1,
+        "guard_rejections": 3,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "WRITE_CONFLICT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 847.844933,
+        "max_ms": 438.605016
+      },
+      {
+        "tool": "request_invoice_issue",
+        "success_calls": 0,
+        "guard_rejections": 3,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "IllegalArgumentException",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 316.661905,
+        "max_ms": 196.758462
+      },
+      {
+        "tool": "prepare_invoice_share",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 308.027054,
+        "max_ms": 195.854394
+      },
+      {
+        "tool": "create_invoice_correction",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 239.005836,
+        "max_ms": 127.012622
+      },
+      {
+        "tool": "update_invoice_payment",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 295.531406,
+        "max_ms": 154.342084
+      },
+      {
+        "tool": "get_offer_contract",
+        "success_calls": 1,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 141.212637,
+        "max_ms": 118.347606
+      },
+      {
+        "tool": "list_offers",
+        "success_calls": 1,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 158.200141,
+        "max_ms": 123.462324
+      },
+      {
+        "tool": "get_offer",
+        "success_calls": 15,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 4058.210405,
+        "max_ms": 387.255329
+      },
+      {
+        "tool": "validate_offer",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 279.490502,
+        "max_ms": 140.845664
+      },
+      {
+        "tool": "search_offer_templates",
+        "success_calls": 1,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 411.393914,
+        "max_ms": 381.354418
+      },
+      {
+        "tool": "get_offer_template",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 219.4389,
+        "max_ms": 122.272794
+      },
+      {
+        "tool": "get_offer_context",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 239.331432,
+        "max_ms": 113.540744
+      },
+      {
+        "tool": "create_and_validate_offer",
+        "success_calls": 8,
+        "guard_rejections": 3,
+        "guard_codes": [
+          "DOCUMENT_VALIDATION_FAILED",
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 2235.873673,
+        "max_ms": 485.83032
+      },
+      {
+        "tool": "validate_offer_draft",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 480.53783,
+        "max_ms": 352.564181
+      },
+      {
+        "tool": "prepare_offer_delivery",
+        "success_calls": 0,
+        "guard_rejections": 6,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND",
+          "TEST_DELIVERY_BLOCKED"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 1432.324265,
+        "max_ms": 388.909367
+      },
+      {
+        "tool": "confirm_offer_delivery",
+        "success_calls": 0,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 140.675292,
+        "max_ms": 138.898433
+      },
+      {
+        "tool": "create_offer_draft",
+        "success_calls": 4,
+        "guard_rejections": 3,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND",
+          "TEST_DATA_ISOLATION"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 616.437455,
+        "max_ms": 153.964645
+      },
+      {
+        "tool": "update_offer_draft",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 362.975075,
+        "max_ms": 232.91581
+      },
+      {
+        "tool": "finalize_offer",
+        "success_calls": 10,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 2257.87601,
+        "max_ms": 475.022409
+      },
+      {
+        "tool": "duplicate_offer",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 523.3942,
+        "max_ms": 358.156044
+      },
+      {
+        "tool": "prepare_offer_share",
+        "success_calls": 4,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 1422.129816,
+        "max_ms": 348.081514
+      },
+      {
+        "tool": "convert_offer_to_order",
+        "success_calls": 3,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 533.265851,
+        "max_ms": 182.925491
+      },
+      {
+        "tool": "create_catalog_entry",
+        "success_calls": 2,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 341.847194,
+        "max_ms": 175.261726
+      },
+      {
+        "tool": "update_catalog_entry",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 271.38100299999996,
+        "max_ms": 144.528032
+      },
+      {
+        "tool": "get_planning_settings",
+        "success_calls": 9,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 825.677598,
+        "max_ms": 160.059457
+      },
+      {
+        "tool": "get_planning_context",
+        "success_calls": 3,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 675.383567,
+        "max_ms": 290.43848
+      },
+      {
+        "tool": "list_appointments",
+        "success_calls": 2,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 390.878841,
+        "max_ms": 201.389835
+      },
+      {
+        "tool": "get_appointment",
+        "success_calls": 4,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 945.222088,
+        "max_ms": 239.284253
+      },
+      {
+        "tool": "suggest_appointment_slots",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 555.164667,
+        "max_ms": 403.027165
+      },
+      {
+        "tool": "get_workweek_weather",
+        "success_calls": 4,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 756.057626,
+        "max_ms": 244.563434
+      },
+      {
+        "tool": "get_weather_risks",
+        "success_calls": 3,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 491.418628,
+        "max_ms": 183.750465
+      },
+      {
+        "tool": "update_planning_settings",
+        "success_calls": 3,
+        "guard_rejections": 5,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "IllegalArgumentException",
+          "WRITE_CONFLICT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 524.565858,
+        "max_ms": 161.434637
+      },
+      {
+        "tool": "request_weather_refresh",
+        "success_calls": 2,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 328.887513,
+        "max_ms": 180.195746
+      },
+      {
+        "tool": "create_appointment",
+        "success_calls": 34,
+        "guard_rejections": 5,
+        "guard_codes": [
+          "CALENDAR_BUSY",
+          "INVALID_INPUT",
+          "REPLAY_MISMATCH",
+          "SQLiteConstraintException"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 8419.186269,
+        "max_ms": 411.553685
+      },
+      {
+        "tool": "create_appointment_series",
+        "success_calls": 2,
+        "guard_rejections": 3,
+        "guard_codes": [
+          "APPOINTMENT_OVERLAP",
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 711.072466,
+        "max_ms": 406.136586
+      },
+      {
+        "tool": "resolve_calendar_conflict",
+        "success_calls": 3,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 734.713696,
+        "max_ms": 216.94176
+      },
+      {
+        "tool": "update_appointment",
+        "success_calls": 2,
+        "guard_rejections": 3,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND",
+          "WRITE_CONFLICT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 575.854488,
+        "max_ms": 160.884763
+      },
+      {
+        "tool": "cancel_appointment",
+        "success_calls": 3,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 847.054463,
+        "max_ms": 259.597067
+      },
+      {
+        "tool": "acknowledge_weather_alert",
+        "success_calls": 1,
+        "guard_rejections": 2,
+        "guard_codes": [
+          "INVALID_INPUT",
+          "REFERENCE_NOT_FOUND"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 725.183255,
+        "max_ms": 554.328159
+      },
+      {
+        "tool": "request_calendar_sync",
+        "success_calls": 2,
+        "guard_rejections": 1,
+        "guard_codes": [
+          "INVALID_INPUT"
+        ],
+        "real_rpc_dispatched": true,
+        "total_ms": 411.939803,
+        "max_ms": 239.692057
+      }
+    ]
+  },
+  "live_pixel_technical_read": {
+    "observed_at_utc": "2026-10-23T06:45:40.251Z",
+    "read_only": true,
+    "app": {
+      "version_name": "1.54.7",
+      "version_code": 96,
+      "build_fingerprint": {
+        "version_name": "1.54.7",
+        "version_code": 96,
+        "git_sha": "998d71f233f57b68264f771e64f8c576b214b957",
+        "source_sha256": "8a29c1b793014be4f4e6f53b8feb8ef2744e0d0727541bc374a26bdd54bae336",
+        "source_dirty": false,
+        "build_type": "release",
+        "mcp_protocol": 9
+      }
+    },
+    "registered_tools": 117,
+    "connected_tool_names": 117,
+    "protocol": 9,
+    "catalog_semantic": {
+      "version": "catalog-json-v1",
+      "sha256": "235f683d99d5170801d1e34c19ad386d9c4acf68b60a6992f72a3e5d2ea14314"
+    },
+    "sync": {
+      "state": "action_required",
+      "last_error_code": "REMOTE_STATE_REFERENCE_MISSING",
+      "read_step": "publication_chain",
+      "pending": 9,
+      "review": 0,
+      "retry_count": 1,
+      "user_action_required": true,
+      "configured": true,
+      "syncing": false,
+      "cloud_confirmed": false,
+      "confirmation_scope": "provider_readback"
+    }
+  },
+  "guarded_paths_not_end_to_end_verified": {
+    "prepare_legacy_conflict_backup": "RPC guard plus production policy and verified isolated SAF backup core tested; complete MCP provider/permission path not accepted on real Drive.",
+    "request_invoice_issue": "Native draft/hash/offline/issuer guards and production rules tested; actual protected Pixel/Drive number reservation/finalization not executed.",
+    "prepare_offer_delivery": "Native synthetic test-document delivery guard tested; no real delivery preparation or send.",
+    "confirm_offer_delivery": "RPC reference/validation paths and production rules tested; no real Gmail SENT message, grant or provider readback."
+  },
+  "screenshots": [
+    {
+      "name": "planning-100",
+      "sha256": "bf78518674455974b778e0fbf85512f4e2c6a1ed0947afe6a33abb0f89b1b63d"
+    },
+    {
+      "name": "today-100",
+      "sha256": "97fac5f0fb98d04903787cb79a70182b22d9b9d639868fd779779a90e64acd53"
+    },
+    {
+      "name": "today-idle-100",
+      "sha256": "3ba387152d2a5364cf4f9c58584beb298d486716461fc92b2f841d5dd0b61e38"
+    },
+    {
+      "name": "planning-150",
+      "sha256": "28f2ff3630919a270b264b5094e49766484f11322ad1be5da9e563bb5ff05934"
+    },
+    {
+      "name": "today-150",
+      "sha256": "6a4ec5f4d138de679a3d9dfbaebf2c44779202465175fa06aa10561bf7da6293"
+    },
+    {
+      "name": "today-idle-150",
+      "sha256": "64b3c1bac30e90e41fb3fe69a386c2cf37a559a12105b4f3a87a2289bbc02436"
+    },
+    {
+      "name": "planning-200",
+      "sha256": "8f3589b2c7f9f72fef141785ae0865fb734bf292865943fb7796463502b00eec"
+    },
+    {
+      "name": "today-200",
+      "sha256": "4f0ef167da2280c78e547e42f8d372666ba3cf5126aebb2bbbee81a492fe555e"
+    },
+    {
+      "name": "today-idle-200",
+      "sha256": "6d761ab6f9b2d1e3f121fdfd6ebdecd2b3f51448d4e9002ac1f8bb30d6710e70"
+    }
+  ],
+  "visual_review": "All9final images manually viewed: no SystemUI overlay; primary actions readable/reachable, no horizontal clipping. At200percent body content requires vertical scrolling.",
+  "emulator_environment": {
+    "api": 30,
+    "webview": 83,
+    "acceleration": "TCG/noKVM",
+    "logical_test_dp": [
+      360,
+      640
+    ],
+    "WebView_css_height": 616,
+    "OS_stabilization": {
+      "classification": "SYNTHETIC_TEST",
+      "target": "dedicated GartenpiratCloud qemu only",
+      "reason": "observed System UI ANR on normal viewport change; guard rejected screenshot",
+      "runtime_timeout_multiplier_before": "",
+      "runtime_timeout_multiplier_after": "10",
+      "scope": "this emulator boot only; no app data reset; no physical device",
+      "performance_acceptance": false
+    },
+    "setup": "Target540x960at240dpi prepared before font loop; exact SystemUI Wait handled. Overlays remained hard failures; no guard weakened. Font/display/density restored afterward. No Pixel performance conclusion.",
+    "shutdown": {
+      "classification": "SYNTHETIC_TEST",
+      "target": "dedicated GartenpiratCloud",
+      "graceful_shutdown_requested": true,
+      "no_snapshot_or_wipe": true,
+      "font_display_density_restored_before_shutdown": true
+    }
+  },
+  "sync_finding": {
+    "code": "REMOTE_STATE_REFERENCE_MISSING",
+    "pending": 9,
+    "state": "action_required",
+    "cloud_confirmed": false,
+    "investigation": "Production ImmutableStateReference already recovers changed provider IDs only by exact name plus SHA;7JVM cases PASS. No safe reconstruction of missing immutable source from status metadata alone.",
+    "action": "No productive file restore/overwrite, queue reset/replay or request_sync. Fail-closed guard retained.",
+    "resolved": false
+  },
+  "not_executed": [
+    "Pixel installation/update backup and data-retention acceptance",
+    "97productive Google Drive sync/cloud confirmation",
+    "Physical camera and physical edge/back gesture",
+    "Real Google calendar/weather/mail provider/account authorization acceptance"
+  ],
+  "test_data": "No productive test records. New MCP writes use disposable stores with DB/preferences/files cleanup verified. Existing synthetic emulator update fixture deliberately retained and hash-identical.",
+  "pre_apk_reaudit": "Every latest user criterion checked before final edd build; native visual finding fixed,13targeted/54complete browser suites and native compilation repeated. Final app/test APK share same preserved source commit.",
+  "release_approved": false,
+  "acceptance_limit": "Cloud candidate accepted; emulator success does not prove successful productive Google Drive synchronization. Pixel installation/request_sync/readback remains user task."
+}
