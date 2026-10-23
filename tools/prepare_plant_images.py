@@ -55,6 +55,11 @@ def prepare(output, workers=4):
     prior_path = output / 'proposal.json'
     prior = {p['id']: p for p in json.loads(prior_path.read_text())} if prior_path.exists() else {}
     commons = json.loads((output / 'commons-batch-index.json').read_text()) if (output / 'commons-batch-index.json').exists() else {}
+    overrides = json.loads((output / 'selection-overrides.json').read_text()) if (output / 'selection-overrides.json').exists() else {}
+    supplemental = {}
+    for path in (ROOT / 'libraries/plants/integration-sources').glob('*.json'):
+        evidence = json.loads(path.read_text())
+        supplemental[evidence['plantId']] = evidence['images']
 
     def fetch(url):
         if urlsplit(url).hostname not in {'plants.ces.ncsu.edu', 'www.rhs.org.uk', 'commons.wikimedia.org', 'upload.wikimedia.org', 'eit-planttoolbox-prod.s3.amazonaws.com'}:
@@ -102,7 +107,9 @@ def prepare(output, workers=4):
         raise ValueError('Unsupported source credit page')
 
     def plant_task(plant):
-        if len(prior.get(plant['id'], {}).get('images', [])) == 2:
+        expected = overrides.get(plant['id'])
+        previous = prior.get(plant['id'], {}).get('images', [])
+        if len(previous) == 2 and (not expected or [i['referenceId'] for i in previous] == expected):
             return prior[plant['id']]
         chosen = []; errors = []; used = set()
         legacy = {p['path']:p for p in plant.get('legacyPhotos', []) if p['editorialDecision'] == 'RETAIN_ELIGIBLE_DERIVATIVE' and p['sha256'] not in excluded}
@@ -115,7 +122,12 @@ def prepare(output, workers=4):
             bad = bool(re.search(r'black racer|\broot[s]?\b|uproot|harvest|dried|drawing|illustration|seed potato|assorted|\bbulb\b|gathering|acorn squash', caption))
             form = bool(re.search(r'\bform\b|\bhabit\b|whole plant|potted|\bplants?\b', caption))
             return (0 if old else 1, 2 if bad else 0 if form else 1)
-        for photo in sorted(plant['images'], key=rank):
+        candidates = plant['images'] + supplemental.get(plant['id'], [])
+        if expected:
+            candidates = [next(p for p in candidates if p['id'] == name) for name in expected]
+        else:
+            candidates = sorted(candidates, key=rank)
+        for photo in candidates:
             if len(chosen) == 2: break
             if photo['originalLocator'] in used: continue
             try:
@@ -139,7 +151,7 @@ def prepare(output, workers=4):
                     image.thumbnail((1200, 1000))
                     buffer = io.BytesIO(); image.save(buffer, 'JPEG', quality=85, optimize=True); raw = buffer.getvalue()
                     choice = {'sourceKind':'downloaded_original','referenceId':photo['id'],'originalPath':original_path}
-                    changes = 'Orientierung gemäß Original; proportional auf höchstens 1200×1000 Pixel verkleinert, JPEG-Neukodierung, EXIF/GPS/XMP entfernt; kein Ausschnitt.'
+                    changes = 'Erstes Originalbild; Orientierung gemäß Original; proportional auf höchstens 1200×1000 Pixel verkleinert, JPEG-Neukodierung, EXIF/GPS/XMP entfernt; kein Ausschnitt.'
                 dimensions = decode(raw, derivative=True)
                 if digest(raw) in excluded: raise ValueError('Excluded legacy image')
                 derivative_path = 'derivatives/' + plant['id'] + '-' + str(number) + '.jpg'

@@ -3,6 +3,30 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Fortsetzung98 – Bildsichtung und abgesicherte Ersatzquellen
+
+Alle628Kandidaten auf79beschrifteten Bildbögen tatsächlich gesichtet.24ungeeignete
+oder doppelte Motive mit Referenz-ID/Dateihashes/Einzelgrund ausgeschlossen;
+Ersatzbilder auf6weiteren Bögen geprüft, letzte Detailersetzungen laufen.
+Importer sperrt ausgeschlossene Referenzidentitäten auch bei neuer Auflösung
+oder Kodierung. Zusätzliche individuelle Fotoquellen separat mit datiertem
+responseSha256/JSON-Beleg gebunden, historische Bibliotheksrevision unverändert.
+25Importertests einschließlich negativer Ersatzquellen-/Motiv-/MPO-Fälle PASS.
+Keine unabhängige botanische Expertenbestätigung behauptet.
+
+415Python/50JVM-Suiten samt unverändertem P1-Vertrag117Tools/156Aktionen PASS.
+Android-Haupt-/Testquellenkompilierung und Release-Lint42Tasks PASS. Die fehlenden
+Google-Abhängigkeiten über regulären Proxy und System-CA geladen; Offlinefehler
+und PKIX-Erstversuch nicht als Erfolg umgedeutet. Eigene synthetische AVD mit
+API30 wird vorbereitet; kein physisches Gerät angeschlossen oder ausgewählt.
+
+Drive-Metadaten des ausgelieferten97Originals lesbar, dessen Rohdownload liefert
+im Connector wiederholt Transport closed. Für den isolierten98-Updatetest deshalb
+ein sauber gesicherter97Testausgang aus dem aktuellen unveränderten Appcode,
+ohne Checkout-Rücksetzung. Dieser eigene Testausgang ersetzt weder das bestehende
+97Quelltag noch dessen ausgelieferte APK; der Unterschied wird im Nachweis erhalten.
+Bild-/Native-/Artefaktabnahme für98 weiterhin offen; produktive Daten unverändert.
+
 ## Fortsetzung98 – Netzwerk erreichbar, tatsächliche Bildvorbereitung läuft
 
 Am23.10.2026 den vom Nutzer genannten gesicherten Stand bdae3646 auf demselben

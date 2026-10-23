@@ -1,0 +1,117 @@
+{
+  "plantId": "rosa-canina",
+  "checkedAt": "2026-10-23",
+  "requestUrl": "https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrsearch=intitle%3A%22rosa+canina%22+filetype%3Abitmap&gsrlimit=12&prop=imageinfo&iiprop=url%7Cextmetadata",
+  "responseSha256": "275857b30c42e00648cda4d3dd41bc99eb96a740065a99151f52183661b9e8c7",
+  "method": "Fresh Commons imageinfo/extmetadata with individual author, license and original URL; no visual approval.",
+  "images": [
+    {
+      "id": "rosa-canina-fresh-152365969",
+      "caption": "Trichius gallicus on Rosa canina",
+      "author": "Didier Descouens",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:(MHNT)_Trichius_gallicus_on_Rosa_canina.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/f/f9/%28MHNT%29_Trichius_gallicus_on_Rosa_canina.jpg"
+    },
+    {
+      "id": "rosa-canina-fresh-195216755",
+      "caption": "Flower of a Rosa canina . Focus stack of 16 photos.",
+      "author": "Agnes Monkelbaan",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Bloem_van_een_Rosa_canina_01-06-2026._(actm.).jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/9/97/Bloem_van_een_Rosa_canina_01-06-2026._%28actm.%29.jpg"
+    },
+    {
+      "id": "rosa-canina-fresh-2638592",
+      "caption": "Wild rose, close to Zwarte Kiezel, De Haan, Belgium",
+      "author": "Hans Hillewaert",
+      "license": "CC-BY-SA-3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Rosa_canina_.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Rosa_canina_.jpg"
+    },
+    {
+      "id": "rosa-canina-fresh-61261479",
+      "caption": "Rosa canina in Saint-Cyprien-sur-Dourdou, Aveyron, France",
+      "author": "Krzysztof Golik",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Rosa_canina_20.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/a/a5/Rosa_canina_20.jpg"
+    },
+    {
+      "id": "rosa-canina-fresh-49481147",
+      "caption": "Dog-rose ( Rosa canina ) at the Buchberg near Neulengbach, Lower Austria",
+      "author": "Uoaei1",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Rosa_canina_Neulengbach_20160611_01.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/6/65/Rosa_canina_Neulengbach_20160611_01.jpg"
+    },
+    {
+      "id": "rosa-canina-fresh-49502600",
+      "caption": "Dog-rose ( Rosa canina ) at the Buchberg near Neulengbach, Lower Austria",
+      "author": "Uoaei1",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Rosa_canina_Neulengbach_20160611_03.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Rosa_canina_Neulengbach_20160611_03.jpg"
+    },
+    {
+      "id": "rosa-canina-fresh-49502598",
+      "caption": "Dog-rose ( Rosa canina ) at the Buchberg near Neulengbach, Lower Austria",
+      "author": "Uoaei1",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Rosa_canina_Neulengbach_20160611_04.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/6/67/Rosa_canina_Neulengbach_20160611_04.jpg"
+    },
+    {
+      "id": "rosa-canina-fresh-79039613",
+      "caption": "Hunds-Rosenblüte an der Deutschen Weinstrasse, Rheinland-Pfalz, Germany",
+      "author": "Fischer.H",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Rosa_canina_P1250095.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/0/09/Rosa_canina_P1250095.jpg"
+    },
+    {
+      "id": "rosa-canina-fresh-118332718",
+      "caption": "Blossom of a dog rose. Stack of 13 frames.",
+      "author": "Ermell",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Rosa_canina_focus_stacked-20220522-RM-123334.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/5/58/Rosa_canina_focus_stacked-20220522-RM-123334.jpg"
+    },
+    {
+      "id": "rosa-canina-fresh-61453256",
+      "caption": "Dog roses ( Rosa canina ) on a shrub in Gåseberg, Lysekil Municipality, Sweden.",
+      "author": "W.carter",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Rosa_canina_in_G%C3%A5seberg_2.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/e/e6/Rosa_canina_in_G%C3%A5seberg_2.jpg"
+    },
+    {
+      "id": "rosa-canina-fresh-199296597",
+      "caption": "Fruits of a Rosa canina . Focus stack of 14 photos",
+      "author": "Agnes Monkelbaan",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Vruchten_van_een_Rosa_canina_07-09-2026._(actm.)_01.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/d/d6/Vruchten_van_een_Rosa_canina_07-09-2026._%28actm.%29_01.jpg"
+    },
+    {
+      "id": "rosa-canina-fresh-132859883",
+      "caption": "White Rosa canina",
+      "author": "Ввласенко",
+      "license": "CC-BY-SA-3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:White_Rosa_canina.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/a/a5/White_Rosa_canina.jpg"
+    }
+  ]
+}

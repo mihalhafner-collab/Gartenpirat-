@@ -196,6 +196,55 @@ class PlantIntegrationTests(unittest.TestCase):
         self.assertEqual([], plant['propagation'])
         self.assertEqual('', plant['care'])
 
+    def test_rejected_reference_cannot_return_as_a_newly_encoded_original(self):
+        path = self.root / 'libraries/plants/integration-photo-exclusions.json'
+        path.write_text(json.dumps({'records': [{'plantId': 'qa-plant', 'referenceId': 'qa-ref-1'}]}))
+        with self.assertRaisesRegex(ValueError, 'reference is excluded'):
+            self.compile()
+
+    def supplemental(self):
+        photo = self.plant['images'].pop(0)
+        path = self.root / 'libraries/plants/integration-sources/qa-plant.json'
+        path.parent.mkdir(parents=True)
+        path.write_text(json.dumps({'plantId': 'qa-plant', 'checkedAt': '2026-10-23',
+            'responseSha256': '2' * 64, 'images': [photo]}))
+        self.decision['additionalPhotoReferences'] = [{'referenceId': photo['id'],
+            'evidencePath': path.relative_to(self.root).as_posix(), 'evidenceSha256': sha(path.read_bytes())}]
+        self.refresh_binding()
+        return path
+
+    def test_supplemental_photo_preserves_frozen_library_and_requires_bound_source(self):
+        self.supplemental()
+        self.assertEqual(2, len(self.compile()[0]['plants'][0]['images']))
+        self.decision['additionalPhotoReferences'][0]['evidenceSha256'] = '0' * 64
+        with self.assertRaisesRegex(ValueError, 'source evidence differs'):
+            self.compile()
+
+    def test_supplemental_source_for_another_profile_is_rejected(self):
+        path = self.supplemental()
+        evidence = json.loads(path.read_text()); evidence['plantId'] = 'qa-other'
+        path.write_text(json.dumps(evidence))
+        self.decision['additionalPhotoReferences'][0]['evidenceSha256'] = sha(path.read_bytes())
+        with self.assertRaisesRegex(ValueError, 'source profile differs'):
+            self.compile()
+
+    def test_supplemental_source_does_not_override_existing_reference(self):
+        path = self.supplemental()
+        evidence = json.loads(path.read_text()); self.plant['images'].append(evidence['images'][0])
+        self.refresh_binding()
+        with self.assertRaisesRegex(ValueError, 'missing or duplicated'):
+            self.compile()
+
+    def test_camera_mpo_is_decoded_but_never_distributed_as_a_derivative(self):
+        from PIL import Image
+        from tools.import_plant_library import decode
+        stream = io.BytesIO()
+        Image.new('RGB', (240, 180), 'green').save(stream, format='MPO', save_all=True,
+            append_images=[Image.new('RGB', (240, 180), 'red')])
+        self.assertEqual(240, decode(stream.getvalue())['width'])
+        with self.assertRaisesRegex(ValueError, 'metadata-free JPEG'):
+            decode(stream.getvalue(), derivative=True)
+
     def test_unknown_safety_cannot_promote_historical_harmlessness(self):
         self.current['plants'][0]['poison'] = ['ungiftig']
         plant = self.compile()[0]['plants'][0]

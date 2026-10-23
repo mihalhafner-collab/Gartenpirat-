@@ -106,7 +106,9 @@ def decode(raw, *, derivative=False):
         width, height = image.size
         if min(width, height) < 120 or width * height > 32_000_000:
             raise ValueError('Image dimensions are invalid')
-        if image.format not in {'JPEG', 'PNG', 'WEBP'}:
+        # Some public camera JPEGs contain a second MPO frame. Only their first
+        # frame is decoded for the app; app derivatives remain plain JPEGs.
+        if image.format not in {'JPEG', 'PNG', 'WEBP', 'MPO'} or getattr(image, 'n_frames', 1) > 10:
             raise ValueError('Unsupported botanical image format')
         if derivative and (image.format != 'JPEG' or max(width, height) > 2048
                            or image.getexif() or image.info.get('xmp')
@@ -116,10 +118,25 @@ def decode(raw, *, derivative=False):
         return {'width': width, 'height': height, 'mime': Image.MIME[image.format]}
 
 
-def selected_images(plant, choices, *, root, photo_root):
+def selected_images(plant, choices, *, root, photo_root, supplemental=()):
     if len(choices) != 2:
         raise ValueError('Exactly two reviewed images are required')
     refs = {p['id']: p for p in plant['images']}
+    for extra in supplemental:
+        rel = extra.get('evidencePath', '')
+        if not rel.startswith('libraries/plants/integration-sources/') or not rel.endswith('.json'):
+            raise ValueError('Supplemental photo source evidence is required')
+        raw = public_file(root, rel).read_bytes()
+        if sha(raw) != extra.get('evidenceSha256'):
+            raise ValueError('Supplemental source evidence differs')
+        evidence = json.loads(raw)
+        checked_date(evidence.get('checkedAt'))
+        if evidence.get('plantId') != plant['id'] or not re.fullmatch('[0-9a-f]{64}', evidence.get('responseSha256', '')):
+            raise ValueError('Supplemental source profile differs')
+        photo = next((p for p in evidence.get('images', []) if p['id'] == extra.get('referenceId')), None)
+        if not photo or photo['id'] in refs:
+            raise ValueError('Supplemental reference is missing or duplicated')
+        refs[photo['id']] = photo
     legacy = {p['path']: p for p in plant.get('legacyPhotos', [])}
     review_path = Path(root) / 'libraries/plants/integration-legacy-review.json'
     excluded = {}
@@ -127,8 +144,15 @@ def selected_images(plant, choices, *, root, photo_root):
         reviewed = json.loads(public_file(root, 'libraries/plants/integration-legacy-review.json').read_text('utf-8'))
         excluded = {r['sha256']: r for r in reviewed['records']
                     if r['decision'] in {'EXCLUDE_FROM_INTEGRATION', 'HOLD_TAXON_REVIEW'}}
+    exclusion_path = Path(root) / 'libraries/plants/integration-photo-exclusions.json'
+    rejected_refs = set()
+    if exclusion_path.is_file():
+        rejected_refs = {r['referenceId'] for r in json.loads(public_file(root,
+            'libraries/plants/integration-photo-exclusions.json').read_text())['records'] if r['plantId'] == plant['id']}
     output, files, identities, hashes = [], {}, set(), set()
     for number, choice in enumerate(choices, 1):
+        if choice.get('referenceId') in rejected_refs:
+            raise ValueError('The reviewed photo reference is excluded, including re-encoded originals')
         review_file(root, choice.get('visualReview', {}), plant['id'])
         checked_date(choice.get('creditReconfirmedAt'))
         kind = choice.get('sourceKind')
@@ -300,7 +324,8 @@ def compile_catalog(library, current, manifest, *, root=ROOT, photo_root=None, r
         if not taxon or taxon in taxons:
             raise ValueError('Duplicate or unresolved accepted taxon')
         taxons[taxon] = plant['id']
-        images, media = selected_images(plant, decision.get('images', []), root=root, photo_root=photo_root)
+        images, media = selected_images(plant, decision.get('images', []), root=root, photo_root=photo_root,
+                                        supplemental=decision.get('additionalPhotoReferences', ()))
         legacy_id = plant.get('legacyId', plant['id'])
         if legacy_id != plant['id']:
             raise ValueError('Existing app identifiers must not be renamed')
