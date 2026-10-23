@@ -1,0 +1,31 @@
+{
+  "format": "gartenpirat.plant-library-network-request.v1",
+  "purpose": "Public source/license rechecks and two actual offline plant photos per314selected profiles",
+  "user_authorization": "netzwerkfreigabe erteilt",
+  "authorization_received": true,
+  "technical_configuration_applied": false,
+  "last_observed_runtime_spec_revision": "37",
+  "runtime_policy_state": "enforced",
+  "required_additional_hosts": [
+    "plants.ces.ncsu.edu",
+    "eit-planttoolbox-prod.s3.amazonaws.com",
+    "commons.wikimedia.org",
+    "upload.wikimedia.org",
+    "thumb.wikimedia.org",
+    "creativecommons.org",
+    "www.rhs.org.uk"
+  ],
+  "preserve_existing_hosts": [
+    "data.hub.geosphere.at",
+    "dataset.api.hub.geosphere.at",
+    "openapi.hub.geosphere.at",
+    "warnungen.zamg.at"
+  ],
+  "preserve_existing_presets": [
+    "package_managers"
+  ],
+  "action": "Add hosts to the active managed cloud environment network configuration and save. A chat approval alone does not change the enforced list. No policy-file edits, direct-route bypass or TLS changes.",
+  "no_new_account_access": true,
+  "no_paid_api_required": true,
+  "last_observed_at_utc": "2026-10-23T10:27:11.924696+00:00"
+}

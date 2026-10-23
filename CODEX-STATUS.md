@@ -3,6 +3,30 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Auftrag98 – gesicherter Zwischenstand, ausschließlich technische Bildserverfreigabe blockiert
+
+Alle unabhängigen Arbeiten und der tatsächliche Bildsichtungsumfang sind in
+[Arbeitsbericht98](docs/verification/plant-library-1.54.9-98.md) und dessen JSON
+festgehalten.20Importer-/21Bibliotheks-/2Parserprüfungen,55Browser-Suiten/8neue
+Fälle,22Lifecycleprüfungen und P1-/Spiegel-/Source-/Workspacegates PASS. Quellstand
+noch Version97, Ziel1.54.9/98erst nach vollständiger628-Bild-/314-Profilabnahme.
+Kein neuer Build, Signierung,98Tag, Pixel- oder Synceingriff. Original97bleibt
+unverändert edd16a4/Tag97/APK7e394a76; tatsächliche Erweiterungen im App-Katalog0.
+
+Aktuellste tatsächlich beobachtete Cloudrevision37/enforced/current enthält
+weiterhin keinen der sieben benötigten Hosts. Nutzerauthorisierung liegt vor;
+nur deren tatsächliche Speicherung/Anwendung in der Umgebungskonfiguration fehlt.
+[Konkreter freigegebener Umfang](libraries/plants/network-access-request.json).
+Keine weitere Erlaubnis angefordert, keine Policy-/Proxy-/TLS-Umgehung.
+
+Dieser vollständige Arbeitsstand wird nach sauberem Commit/Push/Remote-Readback
+im bestehenden privaten Entwicklungsbereich unter
+[Arbeitsstand-Pflanzenintegration98](https://drive.google.com/drive/folders/1AQbc0HfEUU84zgrgSeDmCpzO3HIivIkx)
+gesichert; Manifest/Original-ZIP binden den exakten Commit und Hash, externer
+Transferbeleg dokumentiert tatsächliche Rücklesungen. Es handelt sich um ungebaute
+Originalquellen, ausdrücklich keine neue APK oder vollständige Bibliotheksfreigabe.
+Bei Fortsetzung neuesten Auditbranch erhalten, nicht durch das ältere97Tag ersetzen.
+
 ## Auftrag98 – Import und Oberfläche geprüft, tatsächlicher Bildnachweis noch blockiert
 
 Eigenständiger deterministischer tools/import_plant_library.py mit Vorschau/Check und strikt vollständigem Schreibgate; separates integrationsgebundenes Manifest314HOLD. Identische Bibliotheks-/Profilhashes, genau2tatsächlich dekodierbare JPEGs, Original-/Derivathashes, Rechte/Länderlizenzen, datierte Sichtbelege, keine EXIF/XMP, keine umbenannten/doppelten IDs und erhaltene zusätzliche App-Einträge. Unbelegte Pflegetexte nicht neu übernehmen, USDA kennzeichnen, Warnungen/Synonyme erhalten, EU-Wirksamkeit und CH-Anhang trennen. Erneute Bildausschlüsse können durch alte Metadatenfreigaben nicht überschrieben werden. Schreiben mit allen314offenen Profilen tatsächlich abgewiesen, App-Katalog und362Originalbildbytes unverändert.

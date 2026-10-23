@@ -1,3 +1,16 @@
+## In Vorbereitung: Pflanzenbibliothek für 1.54.9 / Build 98
+
+Noch keine neue APK: Import und Oberfläche sind vorbereitet, alle 55 Browser-Suiten
+bestehen. Für die Bilder fehlt trotz erteilter Zustimmung noch die tatsächlich
+angewendete Hostliste der Cloud-Umgebung. Von 314 vorbereiteten Profilen sind
+133 Ergänzungen; bisher wurde keine davon in den App-Katalog übernommen.
+
+[Arbeitsbericht und konkrete Hostliste](../docs/verification/plant-library-1.54.9-98.md) ·
+[Gesicherter Arbeitsstand](https://drive.google.com/drive/folders/1AQbc0HfEUU84zgrgSeDmCpzO3HIivIkx)
+
+Die folgende 97-APK bleibt die unveränderte vorherige Auslieferung. Sie enthält
+die neue Bibliothek noch nicht.
+
 # Aktueller Cloudkandidat:1.54.8 / Build 97
 
 Heute-Struktur aus95 mit Arbeitsaktionen unten.54 Browser-Suiten/13 Übersichtsfälle,50 JVM-/395 Python-Prüfungen und290 native+20 ergänzende MCP-/Providerprüfungen PASS.117 RPC-Werkzeuge erreichbar,113 mit positiven Aufrufen;4 Außenabläufe nur geschützt geprüft. OS-Schrift1.0/1.5/2.0,9 unverdeckte Bilder,96→97-Vollledger und installierter APK-Bytevergleich PASS. Keine produktive Pixelinstallation oder Syncanforderung.

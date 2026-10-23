@@ -1,6 +1,6 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-23T07:18:27.225857+00:00",
+  "updated_at_utc": "2026-10-23T10:21:54.629667+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/function-sync-audit-20261022",
   "development_snapshot": {
@@ -57,7 +57,7 @@
   },
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-",
-    "required_action": "Restore exact original97 from source/v1.54.8-build97, codeedd16a44c13dc17a774cff26f91e760efc123848. Latest documentation separately pinned by01-MANIFEST.json in Abschlussquellen-1.54.8-build97. Cloud/native accepted;117RPC/113positive/4external paths not end-to-end accepted. User alone backs up/installs Pixel97 and performs request_sync/readback; preserve9pending and missing-state guard. No main merge/force push or productive test records.",
+    "required_action": "For ongoing98plant-library work, restore current audit branch HEAD and read ongoing_development plus plant-library-1.54.9-98 report. Do not replace prepared current code with older97tag. Apply already authorized actual network configuration, complete628image review/import/native/APK gates before version98or release. Original delivered97remains separately immutable at edd16a4/tag97; Pixel last observed96,9pending missing-state guard unchanged. No main merge/force push or productive writes.",
     "audit_ref": "refs/heads/codex/function-sync-audit-20261022",
     "audit_export": {
       "git_sha": "49d112d7b77f32dae5b2c2a71215dd8b1cb405ff",
@@ -642,5 +642,30 @@
     "source_git_sha": "edd16a44c13dc17a774cff26f91e760efc123848",
     "source_tag": "source/v1.54.8-build97",
     "report": "docs/verification/today-mcp-1.54.8-97.json"
+  },
+  "ongoing_development": {
+    "target_version": "1.54.9",
+    "target_build": 98,
+    "version_not_yet_bumped": true,
+    "branch": "codex/function-sync-audit-20261022",
+    "status": "IMPLEMENTATION_PREPARED_IMAGE_ACQUISITION_BLOCKED_NOT_APK_READY",
+    "implementation_checkpoint_git_sha": "ad83d0711bf8db9d00c542456de2831ccba8241b",
+    "verification_file": "docs/verification/plant-library-1.54.9-98.json",
+    "wip_source_folder_id": "1AQbc0HfEUU84zgrgSeDmCpzO3HIivIkx",
+    "source_manifest": "01-MANIFEST.json pins exact current work commit/ZIP; no98APK or version tag",
+    "library_profiles": 314,
+    "app_profiles": 181,
+    "new_profiles_actually_integrated": 0,
+    "network_user_authorized": true,
+    "network_hosts_missing_in_enforced_policy": [
+      "plants.ces.ncsu.edu",
+      "eit-planttoolbox-prod.s3.amazonaws.com",
+      "commons.wikimedia.org",
+      "upload.wikimedia.org",
+      "thumb.wikimedia.org",
+      "creativecommons.org",
+      "www.rhs.org.uk"
+    ],
+    "productive_installation_or_sync": "NOT_EXECUTED"
   }
 }
