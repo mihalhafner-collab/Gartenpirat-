@@ -1,6 +1,6 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-23T18:53:30.006615+00:00",
+  "updated_at_utc": "2026-10-23T19:10:46.368054+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
@@ -19,7 +19,9 @@
       "typed_settings_and_explicit_browser_draft_capture",
       "shared_live_and_captured_pending_projection",
       "explicit_android_backup_device_transfer_exclusions",
-      "resumable_backup_only_drive_adapter_with_complete_remote_hash_reader_not_scheduler"
+      "resumable_backup_only_drive_adapter_with_complete_remote_hash_reader_not_scheduler",
+      "durable_backup_job_repository_and_shared_capture_upload_use_case_native_probes_prepared",
+      "device_restore_epoch_outside_backup_dataset_not_global_invoice_guard"
     ],
     "full_revier_acceptance": "NOT COMPLETE",
     "original_signed_update_candidate": "INTERNAL ORIGINAL-SIGNED TEST BUILD; NATIVE299 PASS; NOT COMPLETE REVIER; NOT DELIVERED",
@@ -59,7 +61,8 @@
       "automatic_drive_backup": "NOT IMPLEMENTED",
       "restore_activation": "NOT IMPLEMENTED",
       "backup_upload_adapter": "380 assertions PASS;48MiB at64MiB heap;synthetic port,no account",
-      "python_repeat": "423 PASS 0 SKIP after aborted environment-restart run"
+      "python_repeat": "423 PASS 0 SKIP after aborted environment-restart run",
+      "backup_jobs_and_shared_service_compile": "PASS;4 additional native probes PREPARED NOT EXECUTED"
     },
     "native_font_probe": "Today/Planning 100/150/200% PASS after initial SystemUI ANR; OS settings restored; no Pixel/TalkBack/full-nine-view claim",
     "source_generation_ab1": {

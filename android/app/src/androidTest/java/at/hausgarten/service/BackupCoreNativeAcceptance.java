@@ -15,7 +15,7 @@ final class BackupCoreNativeAcceptance {
     private static String alias(BackupRecoveryKeyStore keys)throws Exception {
         java.lang.reflect.Field field=BackupRecoveryKeyStore.class.getDeclaredField("alias");field.setAccessible(true);return (String)field.get(keys);
     }
-    private static void deleteQaKey(OwnerNativeAcceptance.Fixture fixture,BackupRecoveryKeyStore keys)throws Exception {
+    static void deleteQaKey(OwnerNativeAcceptance.Fixture fixture,BackupRecoveryKeyStore keys)throws Exception {
         if(!fixture.context.getFilesDir().getName().contains(fixture.context.prefix))throw new AssertionError("QA key scope required");
         KeyStore platform=KeyStore.getInstance("AndroidKeyStore");platform.load(null);platform.deleteEntry(alias(keys));
     }

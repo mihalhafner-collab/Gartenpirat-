@@ -3,6 +3,34 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Revier Solo – gemeinsamer Sicherungsablauf mit dauerhaften Jobs vorbereitet
+
+Nachfolgend zum gesicherten Uploadadapter6f347eb: `BackupJobRepository` speichert
+Job und Requestbeleg atomar in der vorhandenen owner_state-Haltung. Stabile
+request_id, unveränderliche Eingangsbindung, Revisionen und persistente Upload-
+Checkpoints statt Last-write-wins. Separate Device-/Restore-Epoche liegt in
+noBackupFilesDir und wird nicht in die Sicherung aufgenommen. Wiederholung eines
+Epochenschritts ist idempotent; andere Installation/Restore-Epoche hält alte Jobs
+zur Prüfung zurück. Diese Sicherungs-Epoche ersetzt noch nicht die beauftragte
+globale Migrations-/Rechnungsautoritätssperre.
+
+`BackupApplicationService` verbindet denselben lokalen Aufnahmepfad mit den Jobs:
+Browserzustand eindeutig binden → SQLite/Dateien aufnehmen → unveränderliches
+verschlüsseltes Archiv schreiben/fsync → vollständig entschlüsseln und Referenzen
+prüfen → optional über vorhandenen Drive-Transport hochladen/zurücklesen.
+Nur technische Sicherungsjobs werden geschrieben; kein Drive-Geschäftsstand wird
+eingelesen/angewandt. Nach Unterbrechung bleiben Dateistages/Jobcheckpoints erhalten.
+Ein bereits festgeschriebenes fehlendes/verändertes Archiv oder veränderte
+Aufnahmemetadaten wird nicht automatisch neu erzeugt oder mit neuem Hash akzeptiert.
+Schlüsselwerte und Uploadsession-URLs werden nicht in Diagnosen ausgegeben.
+
+App-/Instrumentierungsquellen kompilieren, Source-/Workspace-Privacy PASS.
+Vier neue native Proben für SQL-Rollback/Replay/CAS/Job-Neuöffnung, separate
+Restore-Epoche sowie den gemeinsamen Aufnahme-/Upload-Wiederanlauf sind vorbereitet,
+**noch nicht ausgeführt**. Die299PASS unten gelten exakt fürab1a0c0, nicht als
+Ausführungsnachweis dieser neuen Klassen. UI-Anbindung, täglicher Android-Scheduler,
+SAF und kontrollierte Restoreaktivierung bleiben offen; keine produktive Freigabe.
+
 ## Revier Solo –299 native Prüfungen und Backup-Uploadadapter
 
 Exakt gesicherte App-/Testquelle `ab1a0c026a9a8bff15a481b08ab77a713587e070`,

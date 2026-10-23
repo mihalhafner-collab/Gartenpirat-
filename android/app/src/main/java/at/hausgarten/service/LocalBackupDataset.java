@@ -51,7 +51,7 @@ final class LocalBackupDataset {
             .put("numberState",new JSONObject().put("business_settings",SnapshotProjection.effective(state).optJSONObject("business_settings")).put("external_current_number_proof",false))
             .put("lastIssuedDocumentIds",issued(SnapshotProjection.effective(state))).put("captureScope","database_all_tables_private_files_preferences_browser_storage_and_legacy_backups")
             .put("structured_preference_credentials_excluded",true).put("legacy_backup_evidence_activation","FORBIDDEN").put("external_account_activation","REQUIRES_DEVICE_REAUTHORIZATION").put("local_authority_activated",false).put("invoice_release_after_restore","BLOCKED_UNTIL_CURRENT_EXTERNAL_RECONCILIATION")
-            .put("device_specific_exclusions",new JSONArray().put("Android_Keystore").put("backup_key_protection").put("account_tokens").put("running_backup_staging"));
+            .put("device_specific_exclusions",new JSONArray().put("Android_Keystore").put("backup_key_protection").put("backup_device_guard").put("account_tokens").put("running_backup_staging"));
         return new Captured(freshDirectory,metadata);
     }
     static JSONObject inspectStaged(File directory,JSONObject manifest)throws Exception {

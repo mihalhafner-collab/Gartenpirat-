@@ -44,6 +44,15 @@ begrenzten Backoff und nachgewiesenes Remote-Rücklesen; lokale Übergabe an ein
 Dateianbieter genügt nicht als Cloudnachweis. Offlinebetrieb bleibt unabhängig.
 USB ist zusätzlicher Sicherungsweg. Alt-Sync erst kontrolliert stilllegen.
 
+Nächster integrierter Sicherungsschritt: dauerhafte Jobs in der vorhandenen
+owner_state-Haltung, kein zweiter Geschäftsspeicher. Abnahme: identische
+request_id erzeugt genau einen Job; abweichender Retry/alte Revision wird
+abgewiesen; Job und Requestbeleg committen atomar; Uploadcheckpoint überlebt
+Store-Neuöffnung; Job aus einer anderen Installation wird nach Restore nicht
+automatisch fortgesetzt. Danach UI-Draft-Aufnahme, lokaler Prüf-/SAF-Pfad und
+täglicher Android-Uploadjob aus derselben Anwendungslogik verbinden. Ein reiner
+Transporttest ersetzt diesen vollständigen Bedienablauf nicht.
+
 ## Historischer Stand11.10.2026
 
 Stand: 11.10.2026. Produktive Pixel-App weiterhin Version 1.28.3; der neue Entwicklungsstand wurde noch nicht produktiv installiert.
