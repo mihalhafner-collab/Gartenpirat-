@@ -4,6 +4,12 @@ plugins {
 
 dependencies {
     implementation 'com.google.android.gms:play-services-auth:22.0.0'
+    implementation 'com.google.crypto.tink:tink-android:1.24.0'
+    constraints {
+        implementation('androidx.annotation:annotation:1.8.2') {
+            because 'Align the legacy facade with the annotation-jvm version required by Tink; avoid duplicate classes.'
+        }
+    }
 }
 
 // Mandatory for ALL future builds. Prevent accidental productive seed/config packaging.

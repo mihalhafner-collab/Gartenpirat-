@@ -3,6 +3,67 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Revier Solo – native295-Prüfung und verschlüsselter Archivkern
+
+Originalsignierte Appquelle `2fb5b8e9a2b243122b2e6039ae5c8161d9a3f9e5`,
+Instrumentierungsquelle `1b00545c65aadca911547b98e34f5c7656caa444`:
+**295 native Android-SQLite-/MCP-Prüfungen PASS,0FAIL** auf dem isolierten
+API30-x86_64-Cloudemulator (Softwareemulation ohneKVM). App-SHA unten909846…,
+Test-APK-SHA `3ab39bfc270e2d10afe55b18f4270e5e256a50bc03394251ee6fb60494503f19`;
+beide Originalzertifikat. Die drei zuvor protokollierten Fixturefehler sind
+gezielt behoben; keine Zeit-/Schnittstellenschutzregel wurde abgeschwächt.
+
+Zusätzlich: Leerbootstrap isoliert PASS. Der erste UI-Aufruf verwendete den
+leeren Bestand, obwohl die bestehende Probe gefüllte QA-Datensätze voraussetzt;
+nach expliziter synthetischer Vorbereitung auf99 besteht der native UI-Lauf
+mit Navigation, Arbeitsauswahl, Kundenakte, Planung/Entwurf, Papierkorb und
+Verbindungsansichten. **Kein98→99-Updatebeleg.** Die zusätzliche Accessibility-
+Probe wird durch ein tatsächlich fokussiertes Android-SystemUI-ANR-Fenster
+blockiert; kein PASS daraus ableiten. TalkBack/Pixel und alle neun Revier-
+Zielansichten bleiben offen. Zwischenzeitlicher Cloud-Zugriffsausfall hat die
+Arbeitsdateien erhalten; die Sicherungspunkte aufGitHub waren unabhängig davon.
+
+Neu danach: `BackupCrypto` und `EncryptedBackupArchive` verwenden Tink-Android
+1.24.0 (Apache2.0; Primärquellen/Release-Metadaten am23.10.2026 gelesen).
+AES256-GCM-HKDF-Streaming mit1MiB-Segmenten, frischem Zufallsschlüssel proArchiv;
+Tink verschlüsselt diesen unter einem zufälligen256Bit-Recovery-Schlüssel.
+Kein eigenes Verschlüsselungsverfahren. Recovery-Code mit Tippfehlerprüfsumme;
+keine Passwortableitung, kein Internetdienst und keine laufende Gebühr.
+Manifest und personenbezogene Metadaten sind innerhalb der Verschlüsselung.
+
+Der Leser authentifiziert den gesamten Stream bisEOF vor ZIP-Verarbeitung,
+prüft Version, Datei-/Größen-/Hashinventar und extrahiert ausschließlich in ein
+neu angelegtes temporäres Verzeichnis. Pfadtraversierung, Dubletten, abgebrochene
+Dateien, fehlender Platz und neuere Schemata scheitern ohne Bestandsaustausch.
+Kein festes Gesamtarchivlimit;32MiB gelten nur als technische Manifestobergrenze.
+`BackupRecoveryKeyStore` kapselt den Code lokal per Android-Keystore/AES-GCM in
+noBackupFilesDir, verlangt Rückbestätigung und stabile Setup-Anfragekennung,
+verhindert stilles Überschreiben/Neuerzeugen bei verlorener Kapsel und serialisiert
+konkurrierende Instanzen. **Plattformlauf dieser neuen Keystore-Klasse noch offen.**
+
+Tatsächlich ausgeführt:53JVM-Suiten PASS; darin21Archiv-Grenz-/Fehlerprüfungen
+mit48MiB-Payload und25synthetischen Medienreferenzen bei64MiB-Java-Heap.
+Falscher Code, beschädigter letzter Authentifizierungsblock, Trunkierung,
+simulierter USB-Abzug/volles Ziel, Platzmangel, neueres Schema und ZIP-Pfadflucht
+lassen Originalgeneration und simulierten aktiven Bestand bytegleich. Rücklauf
+benötigt keinen alten Keystore. Das sind **Containerprüfungen**, keine vollständige
+Gerätesicherung: reale SQLite-Aufnahme/Medienreferenzprüfung, UI-Entwürfe, SAF,
+physische USB-Ziele, produktive Restoreaktivierung und Rechnungssperre nachRestore
+sind noch zu integrieren. Der neue Archivpfad ist noch nicht produktiv erreichbar.
+Die frühere Aussage „noch keine Kryptobibliothek integriert“ unten ist damit für
+diesen nachfolgenden Entwicklungsstand ersetzt. Bestehende Sicherungswege bleiben.
+
+Externe Zwischenquellen aus2fb5b8e im bestehenden privaten Entwicklungsordner:
+`https://drive.google.com/drive/folders/1rEQlDxYJu5ykJuIfBVWlQ6TeOPUh0bi-`.
+52Text-/Indexdateien einzeln hochgeladen und bytegleich perSHA256 zurückgelesen;
+OriginalZIP161281003Bytes verlustfrei alsXZ82328264Bytes transportiert.
+Lokaler XZ-Rundlauf ergibt exakt den unten genannten ZIP-Hash; Drive-XZ wurde als
+vollständiger Stream mit passender Größe zurückgelesen, **kein Remote-Bytehash**
+behauptet. Der Connector verweigert Uploads über100MiB, die Dateimaterialisierung
+ist auf32MiB begrenzt. GitHub enthält die vollständigen Originalbytes. Diese
+Generation enthält noch nicht den nach1b00545begonnenen Archivkern; keine neue
+Auslieferung, kein99-Tag und keine Pixelinstallation/Umstellung.
+
 ## Revier Solo – native Erstprüfung und korrigierte gemeinsame Uhrenquelle
 
 Erneuter originalsignierter API30-Cloudlauf aus
