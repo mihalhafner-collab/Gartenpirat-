@@ -107,7 +107,14 @@ final class WorkSessionStore {
                 }
                 return current(id);
             }
-            JSONObject before=current(id);
+            JSONObject before=current(id),originalStorage=new JSONObject();
+            try(Cursor original=db.rawQuery("SELECT * FROM work_sessions WHERE id=?",new String[]{id})){
+                if(!original.moveToFirst())throw new IllegalArgumentException("Sitzung fehlt.");
+                for(int i=0;i<original.getColumnCount();i++){
+                    Object value=original.isNull(i)?JSONObject.NULL:original.getType(i)==Cursor.FIELD_TYPE_INTEGER?original.getLong(i):original.getType(i)==Cursor.FIELD_TYPE_FLOAT?original.getDouble(i):original.getString(i);
+                    originalStorage.put(original.getColumnName(i),value);
+                }
+            }
             if(!before.getString("revision_hash").equals(required(input,"expected_revision_hash")))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Sitzung geändert. Erneut öffnen; Eingaben bleiben erhalten.");
             if(!java.util.Arrays.asList(RUNNING,PAUSED,STOPPED).contains(before.getString("state")))throw new IllegalStateException("Nur offene Sitzungen können geprüft werden.");
             long minutes=new java.math.BigDecimal(input.get("worked_minutes").toString()).longValueExact(), pause=new java.math.BigDecimal(input.get("break_minutes").toString()).longValueExact();
@@ -115,7 +122,7 @@ final class WorkSessionStore {
             if(minutes<=0||minutes>10080||pause<0||pause>10080||!input.optBoolean("confirmed")||(minutes+pause>1440&&!input.optBoolean("allow_overnight")))throw new IllegalArgumentException("Nettozeit, Pause und gegebenenfalls Übernachtarbeit ausdrücklich bestätigen.");
             ContentValues values=new ContentValues();values.put("state",STOPPED);values.put("worked_ms",Math.multiplyExact(minutes,60000L));values.putNull("segment_started_wall_ms");values.putNull("segment_started_elapsed_ms");values.put("updated_at",nowIso());
             db.update("work_sessions",values,"id=?",new String[]{id});
-            event(id,"TIME_REVIEW",request,new JSONObject().put("input_hash",PixelMcpWriteTools.hash(input)).put("original",before).put("worked_minutes",minutes).put("break_minutes",pause).put("reason",reason).put("origin","manual_review").put("no_end_time_inferred",true));
+            event(id,"TIME_REVIEW",request,new JSONObject().put("input_hash",PixelMcpWriteTools.hash(input)).put("original",before).put("original_storage",originalStorage).put("worked_minutes",minutes).put("break_minutes",pause).put("reason",reason).put("origin","manual_review").put("no_end_time_inferred",true));
             db.setTransactionSuccessful();return current(id);
         }finally{db.endTransaction();}
     }

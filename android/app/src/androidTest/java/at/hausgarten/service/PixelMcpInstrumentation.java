@@ -309,6 +309,9 @@ public final class PixelMcpInstrumentation extends Instrumentation {
                 JSONObject input=SyntheticBusinessData.object().put("request_id","qa_timer_review").put("expected_revision_hash",unverified.getString("revision_hash")).put("worked_minutes",5).put("break_minutes",0).put("reason","QA explicitly verified after reboot").put("confirmed",true);
                 input.put("session_id",second.getString("id"));JSONObject checked=first.execute("review_work_session",input).getJSONObject("data").getJSONObject("session");yes(!checked.getBoolean("review_required")&&checked.getLong("worked_ms")==300_000L&&checked.getString("state").equals(WorkSessionStore.STOPPED));
                 yes(first.execute("review_work_session",input).getJSONObject("data").getBoolean("replayed"));
+                try(android.database.Cursor audit=first.getReadableDatabase().rawQuery("SELECT payload FROM work_session_events WHERE session_id=? AND event_type='TIME_REVIEW'",new String[]{second.getString("id")})){
+                    yes(audit.moveToFirst());JSONObject original=new JSONObject(audit.getString(0)).getJSONObject("original_storage");yes(original.getString("state").equals(WorkSessionStore.RUNNING)&&original.getString("boot_marker").equals("boot-a")&&!original.isNull("segment_started_elapsed_ms"));
+                }
                 rejected(()->first.execute("review_work_session",SyntheticBusinessData.object(input.toString()).put("worked_minutes",6)));
                 timer.continueStopped(second.getString("id"),"qa_timer_review_continue");
             });

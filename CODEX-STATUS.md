@@ -16,7 +16,9 @@ synthetischen Uhr. Keine Lockerung der Zeitprüfung. Prüfung wird wiederholt.
 
 Korrigierter Stand:52 JVM-Suiten und App-/Instrumentierungskompilierung PASS.
 11 Zeitregelprüfungen, zusätzlich persistenter Prüfmarker beim direkten Startreplay
-und tatsächlicher MCP-Korrekturpfad in der nativen Fixture. Prüfdialog bewahrt bei
+und tatsächlicher MCP-Korrekturpfad in der nativen Fixture. Der Auditbeleg
+behält zusätzlich die vollständige ursprüngliche SQLite-Sitzungszeile einschließlich
+der alten Segment-/Bootwerte, bevor die Korrektur aktive Segmentfelder schließt. Prüfdialog bewahrt bei
 geänderter Revision die Eingaben und verlangt eine neue Bestätigung;5 Browserfälle
 bei320/360/426px und200Prozent PASS. Kein geschätztes Arbeitsende.
 
