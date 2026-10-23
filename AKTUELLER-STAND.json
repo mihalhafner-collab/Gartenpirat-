@@ -1,6 +1,6 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-23T15:13:40.021243+00:00",
+  "updated_at_utc": "2026-10-23T17:15:55.197677+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
@@ -16,9 +16,17 @@
       "migration_business_inventory_without_activation"
     ],
     "full_revier_acceptance": "NOT COMPLETE",
-    "original_signed_update_candidate": "NOT YET BUILT",
+    "original_signed_update_candidate": "INTERNAL_TEST_BUILD; NATIVE ACCEPTANCE NOT YET PASS; NOT DELIVERED",
     "productive_migration": "NOT EXECUTED",
-    "installation": "NOT EXECUTED"
+    "installation": "NOT EXECUTED",
+    "internal_signed_build": {
+      "app_source_git_sha": "2fb5b8e9a2b243122b2e6039ae5c8161d9a3f9e5",
+      "source_sha256": "95e60d45114193010d42ccf1f5094d2d3624fccc0d96053204bba9e0be45683f",
+      "apk_sha256": "90984624275e55383e39f832d2b7ae46252610128d2cb7c7a14e8d9b498ce6a5",
+      "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+      "native_api30": "292 PASS /3 fixture FAIL; retry after test clock injection pending",
+      "pixel_installation": "NOT EXECUTED"
+    }
   },
   "verified_release_source": {
     "version": "1.54.1",

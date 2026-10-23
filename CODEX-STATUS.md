@@ -5,6 +5,29 @@ Repository: `mihalhafner-collab/Gartenpirat-`
 
 ## Revier Solo – native Erstprüfung und korrigierte gemeinsame Uhrenquelle
 
+Erneuter originalsignierter API30-Cloudlauf aus
+`2fb5b8e9a2b243122b2e6039ae5c8161d9a3f9e5`: Referenztag135/150Minuten,
+idempotenter Zweitstart, persistenter Boot-/Uhrprüfmarker und manuelle MCP-Prüfung
+einschließlich Ursprungszeile tatsächlich ausgeführt und PASS. Nativer Gesamtlauf:292PASS/3FAIL von295Prüfungen; die drei Fehler liegen in
+den unten beschriebenen Testvorbereitungen. Noch keine Gesamtfreigabe. Eine Altprüfung erwartet weiterhin52/35Bridge-Methoden statt
+53/36mit der exakt genehmigten Prüfaktion; zwei weitere isolierte Foto-/Termin-
+Fixtures mischen weiterhin FakeClock mit der Geräteuhr beim Lesen derselben
+offenen Sitzung. Diese Testvorbereitung wird auf die gemeinsame injizierte Uhr
+umgestellt. Keine Produktivregel gelockert; abschließender Wiederholungslauf offen.
+
+Prüfbau2fb5b8e: APK-SHA256
+`90984624275e55383e39f832d2b7ae46252610128d2cb7c7a14e8d9b498ce6a5`,
+Quellfingerprint
+`95e60d45114193010d42ccf1f5094d2d3624fccc0d96053204bba9e0be45683f`;
+Originalzertifikat unten unverändert. Vollständiger Originalquell-ZIP lokal
+bytegeprüft (`9f8878e0c5a0708ca7f4b6a0373891474193e4b6b4e7e8ae7ed94f47dc2be67b`).
+GitHub-Branch exakt zurückgelesen, kein99-Tag und keine Auslieferung/Pixelinstallation.
+
+Primärquellenergänzung: Tink1.24.0 wurde am23.10.2026 über Maven-Central-Metadaten
+und die Maintainerquellen unter `github.com/tink-crypto/tink-java` (Tagv1.24.0)
+lesend geprüft. Die zuvor genannten Dokumentationsdomains bleiben gesperrt.
+Noch keine Kryptobibliothek integriert, kein Backup-/Recovery-Nachweis daraus.
+
 Erster originalsignierter interner Prüfbau99 aus00974518426e1a2bdfcb07c5eba1223071a49ca3:
 Signatur/Privacy bestanden, jedoch keine native Gesamtfreigabe. Der ältere native
 Test mischte FakeClock und Geräteuhr in derselben SQLite-Sitzung; der neue Schutz
