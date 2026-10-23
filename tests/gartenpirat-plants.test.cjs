@@ -17,7 +17,7 @@ const catalog=JSON.parse(fs.readFileSync(path.join(assets,'plant-catalog.json'),
   assert.equal(neophytes.length,21);assert(catalog.neophyteReference?.officialListUrl.startsWith('https://www.neobiota-austria.at/'));
   for(const p of neophytes){
    assert(p.neophyte.isNeophyte&&p.neophyte.invasive&&p.neophyte.austriaOccurrence,p.id);
-   for(const key of ['austriaStatus','establishmentStatus','statusLabel','recognition','spread','impacts','control','disposal','legalNotes','dataNote'])assert(p.neophyte[key]&&p.neophyte[key].length,p.id+' '+key);assert(p.growth.length&&p.care.length,p.id+' practical profile');
+   for(const key of ['austriaStatus','establishmentStatus','statusLabel','recognition','spread','impacts','control','disposal','legalNotes','dataNote'])assert(p.neophyte[key]&&p.neophyte[key].length,p.id+' '+key);assert.equal(p.cultivationScope,'IDENTIFICATION_AND_PREVENTION_REFERENCE_NO_CULTIVATION_ADVICE',p.id);assert.equal(p.care,'');assert.equal(p.planting,'');assert.equal(p.propagation.length,0);
    assert(p.sources.some(s=>s.url.startsWith('https://www.neobiota-austria.at/')),p.id);assert(p.sources.some(s=>s.url.startsWith('https://environment.ec.europa.eu/')),p.id);
    assert.equal(p.images.length,2,p.id);
   }
@@ -27,9 +27,9 @@ const catalog=JSON.parse(fs.readFileSync(path.join(assets,'plant-catalog.json'),
   const sandbox={window:{}};vm.runInNewContext(fs.readFileSync(path.join(assets,'plant-catalog.js'),'utf8'),sandbox);
   assert.deepEqual(JSON.parse(JSON.stringify(sandbox.window.GartenpiratCatalog)),catalog);
   for(const p of catalog.plants){
-   assert(p.family&&p.planting&&p.care,p.id);if(!p.neophyte)assert(p.light.length&&p.water.length,p.id);assert.equal(p.images.length,2,p.id);
-   assert(p.sources.every(s=>/^https:\/\/(plants\.ces\.ncsu\.edu|www\.rhs\.org\.uk|gizbonn\.de|www\.neobiota-austria\.at|environment\.ec\.europa\.eu)\//.test(s.url)),p.id);
-   for(const pic of p.images){const image=fs.readFileSync(path.join(assets,pic.path));assert(pic.author&&pic.source.startsWith('https://')&&pic.licenseUrl.startsWith('https://'));assert(/^(?:CC0|Public domain|Public Domain Mark|CC BY(?:-SA)? [1-4]\.[0-9])/.test(pic.license)&&!/NC|ND/.test(pic.license),pic.license);assert(!image.includes(Buffer.from('Exif\0\0')),pic.path);}
+   assert(p.editorialRevision?.profileSha256&&p.safetyNotice,p.id);assert.equal(typeof p.care,'string');assert.equal(typeof p.planting,'string');if(!p.neophyte)assert(p.light.length&&p.water.length,p.id);assert.equal(p.images.length,2,p.id);
+   assert(p.sources.every(s=>/^https:\/\/(plants\.ces\.ncsu\.edu|www\.rhs\.org\.uk|gizbonn\.de|www\.neobiota-austria\.at|environment\.ec\.europa\.eu|powo\.science\.kew\.org|www\.bfn\.de|lfu\.brandenburg\.de|www\.infoflora\.ch|www\.bafu\.admin\.ch)\//.test(s.url)),p.id);
+   for(const pic of p.images){const image=fs.readFileSync(path.join(assets,pic.path));assert(pic.author&&pic.source.startsWith('https://')&&pic.licenseUrl.startsWith('https://'));assert(/^(?:CC0-1\.0|CC-BY(?:-SA)?-[1-4]\.[0-9](?:-[A-Z]{2})?)$/.test(pic.license)&&!/NC|ND/.test(pic.license),pic.license);assert(!image.includes(Buffer.from('Exif\0\0')),pic.path);}
   }
   for(const file of ['plant-catalog.json','plant-catalog.js'])assert.deepEqual(fs.readFileSync(path.join(root,'static',file)),fs.readFileSync(path.join(assets,file)),file);
   const sw=fs.readFileSync(path.join(root,'static/sw.js'),'utf8');for(const p of catalog.plants)for(const pic of p.images)assert(sw.includes('/'+pic.path),pic.path);
@@ -126,7 +126,7 @@ const catalog=JSON.parse(fs.readFileSync(path.join(assets,'plant-catalog.json'),
    for(const width of [320,360,412,1280]){await page.setViewportSize({width,height:915});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
    assert.deepEqual(external,[]);assert.deepEqual(await page.evaluate(()=>gpWrites),[]);assert.deepEqual(errors,[]);
   });
-  await test('All 362 packaged botanical images decode while offline',async()=>{
+  await test('All628 packaged botanical images decode while offline',async()=>{
    await context.setOffline(true);
    const paths=catalog.plants.flatMap(p=>p.images.map(image=>image.path));
    const failed=await page.evaluate(async paths=>{const failed=[];for(const src of paths){const image=new Image();image.src=src;try{await image.decode();if(!image.naturalWidth||!image.naturalHeight)failed.push(src);}catch(_){failed.push(src);}}return failed;},paths);

@@ -113,11 +113,18 @@ def prepare(output, workers=4):
             return prior[plant['id']]
         chosen = []; errors = []; used = set()
         legacy = {p['path']:p for p in plant.get('legacyPhotos', []) if p['editorialDecision'] == 'RETAIN_ELIGIBLE_DERIVATIVE' and p['sha256'] not in excluded}
+        def historical_ref(photo):
+            explicit = legacy.get(photo.get('existingPath'))
+            if explicit:
+                return explicit
+            matches = [p for p in legacy.values() if clean(p['caption']) == clean(photo['caption'])
+                       and clean(p['author']) == clean(photo['author'])]
+            # Identical captions are common. They cannot bind two distinct
+            # originals to one historical slot; download those originals instead.
+            return matches[0] if len(matches) == 1 else None
         # Eligible published photos first; then living form/details over harvested material.
         def rank(photo):
-            old = legacy.get(photo.get('existingPath'))
-            if not old:
-                old = next((p for p in legacy.values() if clean(p['caption']) == clean(photo['caption']) and clean(p['author']) == clean(photo['author'])), None)
+            old = historical_ref(photo)
             caption = photo['caption'].lower()
             bad = bool(re.search(r'black racer|\broot[s]?\b|uproot|harvest|dried|drawing|illustration|seed potato|assorted|\bbulb\b|gathering|acorn squash', caption))
             form = bool(re.search(r'\bform\b|\bhabit\b|whole plant|potted|\bplants?\b', caption))
@@ -132,9 +139,7 @@ def prepare(output, workers=4):
             if photo['originalLocator'] in used: continue
             try:
                 url, source_sha, method = credit(photo)
-                old = legacy.get(photo.get('existingPath'))
-                if not old:
-                    old = next((p for p in legacy.values() if clean(p['caption']) == clean(photo['caption']) and clean(p['author']) == clean(photo['author'])), None)
+                old = historical_ref(photo)
                 number = len(chosen) + 1
                 if old:
                     raw = (ROOT / old['path']).read_bytes()

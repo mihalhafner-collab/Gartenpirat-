@@ -172,7 +172,13 @@ def selected_images(plant, choices, *, root, photo_root, supplemental=()):
             photo = legacy.get(choice.get('legacyPath'))
             if not photo or photo.get('editorialDecision') != 'RETAIN_ELIGIBLE_DERIVATIVE':
                 raise ValueError('Historical image is excluded from reuse')
-            original = public_file(root, photo['path']).read_bytes()
+            if Path(root).resolve() == ROOT:
+                # Output slots can change during import; legacy provenance always
+                # refers to the preserved pre-integration image, never that slot.
+                from historical_baseline import baseline_bytes
+                original = baseline_bytes(photo['path'])
+            else:
+                original = public_file(root, photo['path']).read_bytes()
             if sha(original) != photo['sha256'] or choice.get('originalSha256') != photo['sha256']:
                 raise ValueError('Historical derivative hash differs')
             if photo['sha256'] in excluded:
@@ -279,7 +285,7 @@ def adapt_profile(plant, old, decision, images):
                 neo['legalNotes'] = [('EU-Beschränkungen gelten ab ' if future else 'EU-Beschränkungen seit ')
                                      + eu['effectiveDate'] + '. ' + eu.get('restrictionsSummary', '')]
                 neo['euEffectiveDate'] = eu['effectiveDate']
-            neo['legalNotes'] = [*neo.get('legalNotes', []), legal.get('regionalRules', '')]
+            neo['legalNotes'] = unique([*neo.get('legalNotes', []), legal.get('regionalRules', '')])
     out['sources'] = list(sources.values())
     out['images'] = images
     out['editorialRevision'] = {'sourceCommit': LIBRARY_COMMIT,

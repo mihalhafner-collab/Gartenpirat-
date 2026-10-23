@@ -193,6 +193,12 @@
       "derivativeSha256": "655131142eeec9aa72532fca0f166ef9f83d66c79ebc80241452114a0e224989",
       "checkedAt": "2026-10-23",
       "reason": "Abgetrennte zubereitete Kolben; wachsende Pflanze wählen."
+    },
+    {
+      "plantId": "papaver-orientale",
+      "referenceId": "papaver-orientale-ref-3",
+      "checkedAt": "2026-10-23",
+      "reason": "Zweites rosafarbenes Mohnmotiv bleibt taxonomisch unklar; eindeutigere orange Blüte mit behaarter Knospe und dunklen Basalflecken gewählt."
     }
   ]
 }

@@ -3,6 +3,31 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Fortsetzung98 – vollständiger Import und erneuter Bytevergleich PASS
+
+314App-Profile/628Offlinebilder tatsächlich integriert,181Bestands-IDs erhalten,
+133Ergänzungen.293Bestandsderivate/335Originaldownloads nach tatsächlichen
+Motiv-/Rechteprüfungen.304frische botanische Seiten/4080Feldgruppen abgeglichen,
+Rosen-Drainage im aktuellen RHS-Fließtext bestätigt.314Einzelberichte binden
+jeweils die beiden gewählten Derivathashes; historische Metadaten-/Rechtsprüfung
+bleibt erhalten. Kein unabhängiger botanischer Expertennachweis behauptet.
+
+Vollständiger Import und erneuter Check identisch: Katalog72f0a25d49740e1093a37bc7c02c059350e0f973e257298fda3965ab6570d710.
+Spiegel636Outputs PASS. Importer bewahrt historische Bildbytes aus eingefrorenem
+Git auch bei gewechselten Ausgabeslots; identische Caption/Autor-Paare werden
+nicht mehr irrtümlich an dasselbe Altbild gebunden.25Importer-/21Bibliotheks-/
+2Parserfälle und Pflanzen-Browserabläufe einschließlich628Offline-Dekodierungen
+PASS. Vollständige Regressionen/Native-Prüfungen laufen, noch keine98APK-Freigabe.
+
+Git-Zugang mit vorhandenem gh-Credential-Helper wiederhergestellt;0430eaa tatsächlich
+gepusht/zurückgelesen, source_preservation PASS. Drive lieferte Original97als
+vollständige Streamreferenz, aber lokaler Transfer>32MiB nicht möglich; blockierten
+Direktabruf nicht umgangen. Eigener originalsignierter97Testausgang aus0430eaa
+für transparenten isolierten Updatetest erhalten, ausgeliefertes97Tag/APK unverändert.
+Neue eigene AVD musste wegen langsamer Softwaredarstellung vor Installation
+auf480×960/Dichte240 umgestellt werden; keine App-/Datenlöschung. Native Resultate
+noch offen. Keine Pixel-/produktiven Syncaktionen.
+
 ## Fortsetzung98 – Bildsichtung und abgesicherte Ersatzquellen
 
 Alle628Kandidaten auf79beschrifteten Bildbögen tatsächlich gesichtet.24ungeeignete

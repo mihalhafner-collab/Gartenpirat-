@@ -1,6 +1,6 @@
 """Actual OS font_scale1.5/2.0 acceptance on the explicitly guarded synthetic Cloud AVD.
 
-Requires installed original97 and its original-signed instrumentation. No install,
+Requires installed original98 and its original-signed instrumentation. No install,
 physical device, credentials, business writes or database reset. OS setting restored.
 """
 import argparse
@@ -17,13 +17,14 @@ from run_cloud_emulator_tests import ROOT, command, emulator_lock, require_emula
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--serial', required=True)
+    parser.add_argument('--mode', choices=['accessibility', 'plants'], default='accessibility')
     parser.add_argument('--adb', default=str(Path(os.environ['ANDROID_HOME']) / 'platform-tools/adb'))
     args = parser.parse_args()
     with emulator_lock(args.serial):
         require_emulator(args.adb, args.serial)
         package = command(args.adb, args.serial, ['shell', 'dumpsys', 'package', 'at.hausgarten.service'])
-        if 'versionName=1.54.8' not in package or 'versionCode=97 ' not in package:
-            raise ValueError('This acceptance requires the original1.54.8/97 candidate already installed.')
+        if 'versionName=1.54.9' not in package or 'versionCode=98 ' not in package:
+            raise ValueError('This acceptance requires the original1.54.9/98 candidate already installed.')
         original = command(args.adb, args.serial, ['shell', 'settings', 'get', 'system', 'font_scale'])
         display = command(args.adb, args.serial, ['shell', 'wm', 'size'])
         density = command(args.adb, args.serial, ['shell', 'wm', 'density'])
@@ -43,12 +44,12 @@ def main():
                 if float(observed) != float(scale):
                     raise RuntimeError('Emulator font setting not confirmed.')
                 time.sleep(2)
-                run = subprocess.run([args.adb, '-s', args.serial, 'shell', 'am', 'instrument', '-w', '-e', 'release_lifecycle', 'accessibility',
+                run = subprocess.run([args.adb, '-s', args.serial, 'shell', 'am', 'instrument', '-w', '-e', 'release_lifecycle', args.mode,
                                       'at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation'], env=env,
                                      capture_output=True, text=True, timeout=900, check=True)
                 log = folder / ('font-' + scale + '.log')
                 log.write_text(run.stdout + run.stderr)
-                passed = successful_output(run.stdout + run.stderr, 'accessibility')
+                passed = successful_output(run.stdout + run.stderr, args.mode)
                 results.append({'font_scale': scale, 'observed': observed, 'result': 'PASS' if passed else 'FAIL',
                                 'scope': 'actual Android WebView/OS fonts with synthetic read responses; no business writes'})
                 print(json.dumps(results[-1]), flush=True)

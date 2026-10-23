@@ -1,3 +1,37 @@
+# Pflanzenbibliothek98 – Integration abgeschlossen, APK-Abnahme läuft
+
+Aktueller Stand der Fortsetzung vom23.10.2026: **314 Profile /628 Offlinebilder**
+im kanonischen Katalog und den regulär generierten Webspiegeln. Alle181Bestands-IDs
+erhalten,133neue Profile. Vollständiger Import und erneuter Check liefern denselben
+Katalog-SHA256 `72f0a25d49740e1093a37bc7c02c059350e0f973e257298fda3965ab6570d710`.
+Keine Pixelinstallation, Geschäfts-/Sync-/Queueänderung oder Zurücksetzung.
+
+304aktuelle botanische Quellseiten /4080Feldgruppen abgeglichen; Rosen-Drainage
+im tatsächlich gelesenen RHS-Leitfadentext bestätigt. Datierte amtliche Rechtsbelege
+vom selben Tag erhalten; künftige EU-Wirksamkeit und Schweizer Anhänge getrennt.
+293Bestandsderivate und335neue Originaldownloads gewählt, jedes App-Derivat tatsächlich
+auf beschrifteten Bildbögen bzw. Ersatz-/Detailansichten angesehen.25 Ausschlüsse
+werden einzeln und ohne Umdeutung früherer Sichtbefunde geführt. Verbindlich sind
+`integration-photo-exclusions.json`,314Einzelberichte und das Integrationsmanifest.
+Keine unabhängige botanische Expertenbestimmung behauptet.
+
+25synthetische Importerprüfungen,21historische Bibliotheksprüfungen und2Parserfälle
+PASS. Sämtliche628Bilder im tatsächlichen Chromium-Offlinepfad dekodiert; Suche,
+Neophytenfilter, Vollbild und Arbeitsentwurfsschutz in der Pflanzen-Browsersuite
+PASS. Vollständige Regressionen, native neue Bitmap-/WebView-Prüfungen und
+Original98-APK-Abnahme laufen noch; Version bis zu den Implementierungsgates97.
+
+Vorhandener CLI-Zugang über Git-Credential-Helper bestätigt, kein neuer Schlüssel
+oder Login. Letzter gesicherter Zwischenstand0430eaa. Rohdownload des97-Drive-APKs
+als vollständiger Stream geliefert, jedoch36MB>32MiB-Transfergrenze; direkter
+Byteabruf durch die Cloudrichtlinie abgewiesen und nicht umgangen. Separater
+originalsignierter97Testausgang aus sauber gesichertem0430eaa/aktueller Vorbereitung
+gebaut (APK-SHA `cfe56ad4ee7d651e878562549ad58a5f82adf175cd778b8151420615db251f9e`).
+Er ersetzt nicht den unveränderten ausgelieferten97Kandidaten/Tag. Native
+Updateabnahme wird diesen transparent bezeichneten synthetischen Ausgang verwenden.
+
+## Historischer Vorbereitungsbericht vor der Netzwerkänderung
+
 # Pflanzenbibliothek und neue APK – Vorbereitung98, noch keine Auslieferung
 
 Der angeforderte nächste Kandidat ist **1.54.9 / Build98**. Die Version wurde noch
