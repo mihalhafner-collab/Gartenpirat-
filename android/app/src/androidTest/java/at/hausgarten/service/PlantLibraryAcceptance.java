@@ -58,8 +58,19 @@ final class PlantLibraryAcceptance {
         t.probe("plant98 real WebView navigation search offline images fullscreen and draft preservation", () -> ui(t));
     }
 
-    static void capture(PixelMcpInstrumentation t,String stage) throws Exception {
-        t.waitForIdleSync();SystemClock.sleep(250);
+    static void capture(PixelMcpInstrumentation t,WebView view,String stage) throws Exception {
+        ReleaseLifecycleProbe.js(t,view,"(()=>{window.qaPlant98Paint=false;requestAnimationFrame(()=>requestAnimationFrame(()=>qaPlant98Paint=true));return true;})()");
+        long deadline=SystemClock.elapsedRealtime()+30000;
+        while(SystemClock.elapsedRealtime()<deadline&&!"true".equals(ReleaseLifecycleProbe.js(t,view,"window.qaPlant98Paint===true")))SystemClock.sleep(100);
+        java.util.concurrent.CountDownLatch drawn=new java.util.concurrent.CountDownLatch(1);
+        t.runOnMainSync(()->view.postVisualStateCallback(98,new WebView.VisualStateCallback(){public void onComplete(long id){drawn.countDown();}}));
+        t.yes(drawn.await(30,java.util.concurrent.TimeUnit.SECONDS));
+        t.waitForIdleSync();SystemClock.sleep(1000);
+        android.os.Bundle geometry=new android.os.Bundle();
+        geometry.putString("stream","LAYOUT "+stage+" "+ReleaseLifecycleProbe.js(t,view,"JSON.stringify({viewport:[innerWidth,innerHeight],open:document.querySelector('#gp-dialog').open,nodes:['#gp-dialog','.gp-content','#gp-full-image','.gp-image-stage','.gp-image-toolbar','#gp-image-caption','.gp-portrait h3'].map(s=>{const e=document.querySelector(s);if(!e)return {selector:s,missing:true};const r=e.getBoundingClientRect();return {selector:s,x:r.x,y:r.y,w:r.width,h:r.height,scrollTop:e.scrollTop,naturalWidth:e.naturalWidth||0,display:getComputedStyle(e).display};})})")+"\n");
+        t.sendStatus(0,geometry);
+        if(stage.equals("fullscreen"))yes(t,view,"(()=>{const i=document.querySelector('#gp-full-image'),r=i.getBoundingClientRect(),bar=document.querySelector('.gp-image-toolbar').getBoundingClientRect();return i.complete&&i.naturalWidth>0&&r.width>100&&r.height>100&&r.bottom>100&&r.top<innerHeight-100&&bar.height>=40;})()");
+        else yes(t,view,"(()=>{const d=document.querySelector('#gp-dialog'),r=document.querySelector('.gp-portrait h3').getBoundingClientRect();return d.open&&r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight;})()");
         String scale=Float.toString(t.getTargetContext().getResources().getConfiguration().fontScale);
         try(android.os.ParcelFileDescriptor descriptor=t.getUiAutomation().executeShellCommand(
                 "screencap -p /data/local/tmp/qa-plant98-"+scale+"-"+stage+".png");
@@ -87,12 +98,12 @@ final class PlantLibraryAcceptance {
             deadline=SystemClock.elapsedRealtime()+30000;
             while(SystemClock.elapsedRealtime()<deadline&&!"true".equals(ReleaseLifecycleProbe.js(t,view,"window.qaPlant98Images==='PASS'")))SystemClock.sleep(250);
             yes(t,view,"window.qaPlant98Images==='PASS'&&[...document.querySelectorAll('.gp-gallery img')].every(i=>i.complete&&i.naturalWidth>0)");
-            capture(t,"portrait");
+            capture(t,view,"portrait");
             yes(t,view,"(()=>{document.querySelector('[data-gp-image=\"0\"]').click();return document.querySelector('#gp-dialog').classList.contains('gp-image-mode')&&document.querySelector('#gp-image-count').innerText==='Bild 1 von 2'&&document.querySelector('#gp-image-caption').innerText.length>10;})()");
             yes(t,view,"(()=>{document.querySelector('[data-gp-action=image-next]').click();return document.querySelector('#gp-image-count').innerText==='Bild 2 von 2';})()");
-            capture(t,"fullscreen");
+            capture(t,view,"fullscreen");
             yes(t,view,"(()=>{handleAndroidBack();return !document.querySelector('#gp-dialog').classList.contains('gp-image-mode')&&document.querySelector('.gp-portrait h3').innerText.length>0&&document.documentElement.scrollWidth<=innerWidth+1&&localStorage.getItem('hausgarten.planning.draft.v1')==='qa_plant98_preserved_draft';})()");
-            capture(t,"back");
+            capture(t,view,"back");
         } finally {
             ReleaseLifecycleProbe.js(t,view,"(()=>{Gartenpirat.close();const previous="+previous+";if(previous===null)localStorage.removeItem('hausgarten.planning.draft.v1');else localStorage.setItem('hausgarten.planning.draft.v1',previous);delete window.qaPlant98Images;return true;})()");
             t.runOnMainSync(activity::finish);t.waitForIdleSync();

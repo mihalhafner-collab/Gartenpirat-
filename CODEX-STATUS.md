@@ -3,6 +3,18 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Fortsetzung98 – native Schrift-/Darstellungsdiagnose
+
+Schrift1.0/1.5/2.0 gegen unveränderte Appedf5113 technisch PASS und OS-Werte
+restauriert. Tatsächlich geöffnete Bildschirmdateien zeigen leeres Vollbild/
+verzögerte Rückkehrdarstellung; deshalb noch keine visuelle Abnahme behauptet.
+Neue QA-Prüfung wartet auf WebView-VisualState/Frames, protokolliert ausschließlich
+öffentliche Layoutgeometrie und verlangt sichtbare Bild-/Porträtflächen.
+Allgemeine alte UI-Bedingung12 erwartete zusätzlich einen inzwischen entfernten
+Arbeitswochen-Link im Kalender. Prüfung nutzt nun die tatsächlichen bestehenden
+Kalenderknöpfe planning-day/planning-week und explizit schmutzigen QA-Entwurf;
+keine operative Oberfläche oder Geschäftslogik dafür geändert.
+
 ## Fortsetzung98 – endgültige Appedf5113, QA-Vorbedingung korrigiert
 
 Endgültige originale98-APK ausedf511343571165987ff72bb8793f2f6222692cb:
