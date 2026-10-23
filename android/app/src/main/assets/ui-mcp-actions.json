@@ -2091,6 +2091,20 @@
       "barrier": "Noch keine gespeicherte Geschäftsaktion; MCP übernimmt Entwurf erst als fachliches Create/Update. Fremde offene UI-Entwürfe werden nie überschrieben.",
       "platform_only": true,
       "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md"
+    },
+    {
+      "id": "zeiterfassung.pruefen",
+      "area": "zeiterfassung",
+      "action": "Sitzung nach Neustart/Uhränderung ausdrücklich prüfen",
+      "source": "today-ui.js",
+      "mcp": [
+        "get_active_work_session",
+        "review_work_session"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+      "platform_only": false
     }
   ],
   "reviewed_sources": {
@@ -2100,7 +2114,7 @@
     "android/app/src/main/assets/business-feedback.js": "56d070942588dca53992385df36721932e7eb457cbe9867eb9f60f9666e35ba6",
     "android/app/src/main/assets/customer-hub.css": "7cfb06a23e32666ee9aa9b43ef2af10a728805db06c7fee4961246e76caf3c75",
     "android/app/src/main/assets/customer-hub.js": "b1e9da98d187296e62579fee6a1dcfbc953bb3196a86e88950bcc1434a22dac9",
-    "android/app/src/main/assets/daily-usability.css": "85ee84112c5eda3ac9426b7046a4f924f8e4bf0cd3d7bed01ad0f7bd5396eab3",
+    "android/app/src/main/assets/daily-usability.css": "bb8c6d9107c374a57a4e6c14f466bd6be0ab6ae04ff4b53ee49be555e61c0edb",
     "android/app/src/main/assets/daily-usability.js": "a119add8f9e5678fe88bfaccba3ae424c5b85c889387e18327e9bca7210045f5",
     "android/app/src/main/assets/data-order.js": "12c646ad5d61d3b6aab3bea91cb33c637df85709cdbb46d4d9d8e9b71ac16a99",
     "android/app/src/main/assets/design-concept.css": "c5f80bd5bb7c01e6cadadf76f17ed1ebd4d1c5f6faacc406907c087d6e1e05fe",
@@ -2141,7 +2155,7 @@
     "android/app/src/main/assets/runtime-compat.js": "04858fa88609733a1fb5bebab59bfd9332819ded0c0aab7fd3766cda76267b6c",
     "android/app/src/main/assets/sync-dashboard.js": "53d40bfc00b1593b77556120df7430be2bb16d5010628d1fbbcddbf96194fa2b",
     "android/app/src/main/assets/today-ui.css": "4657ac3a564f4bb30e42eb7e355aeeac8f5fee00440ee711d3449a8fdc27bc51",
-    "android/app/src/main/assets/today-ui.js": "eb2335af051a544a4c58bb55e9f12bf85846b2ed6e06c75f3d425f573b3eafb5",
+    "android/app/src/main/assets/today-ui.js": "a6132d020eaa2c0ee58de96528d194e1a97d37e03095eb1d5ef8bd0d70348fc8",
     "android/app/src/main/assets/tokens.css": "37a0baaf603d0c3afdb76fe276379f256008f236640a00e442d24fad4a8ec9d4",
     "android/app/src/main/assets/trash-ui.js": "52fe411082d58ced80fc36162c014f9b39a5e62b715cd2d3c52f8693c0e2f82e",
     "android/app/src/main/assets/work-location.css": "0e3eeec20060cca16a493083ca000315f7e5bee4d9a4b4538b8f4647c5a8c36b",
@@ -2151,9 +2165,9 @@
     "android/app/src/main/assets/workflow-ui.css": "e8e3af705782c2db8286ae064184d3f0767025571ce49fae037cb6ebab8a3920",
     "android/app/src/main/assets/workflow-ui.js": "9a82b8b94a47b6cc8a05eeaae1a55db69a6ad2530e64a7355723870ac34f7aa1",
     "android/app/src/main/java/at/hausgarten/service/MainActivity.java": "f8efb6bdd55b4c6e699d22ad9ec216631b5150ec0e059a19161594fd16c79ec9",
-    "android/app/src/main/java/at/hausgarten/service/PixelLocalStore.java": "3f2e8193fc4b08858ac79f8268f25138e7aabc1887f6e4ad294947e4dbb6e620",
-    "android/app/src/main/java/at/hausgarten/service/BusinessDataBridge.java": "fd5778b889d762fca620a0339e3a23ea3fcfa7e099340b268c3a969d8e1b9573",
-    "android/app/src/main/java/at/hausgarten/service/NativeOwnerQueries.java": "9e2bec53193ebbfc5fe942605b662a53b39bc15aa992a1ad45b649c7f7f970b0",
+    "android/app/src/main/java/at/hausgarten/service/PixelLocalStore.java": "279a4386ba5d791955d0d3959fb9c929de41e8b07e734c13f34438d4efa2602e",
+    "android/app/src/main/java/at/hausgarten/service/BusinessDataBridge.java": "cbe91540e9d2f993005fec710a20d794cc413377fa7c471bfb03563aecd30e2e",
+    "android/app/src/main/java/at/hausgarten/service/NativeOwnerQueries.java": "07d4a88f12f536d9c500ad14921be1756f415a531a7bc1008c46bff3bf6945ca",
     "android/app/src/main/java/at/hausgarten/service/PlanningConnectionActivity.java": "b28e7b109a87067ef28742d10226c352b9dac6dd12026b047b8848b18ebe410e",
     "android/app/src/main/java/at/hausgarten/service/DriveConnectionActivity.java": "bb05c3ae538df25209041b3d6727fc2c4177b08868a08da525a07a2cbd74de5e",
     "android/app/src/main/java/at/hausgarten/service/PixelTunnelActivity.java": "5344f908037dcc9f50549c279e05bff2ed7dc378153bb1a47e3dbefd0fba1b16",

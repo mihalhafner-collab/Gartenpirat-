@@ -52,3 +52,5 @@
 @media(prefers-reduced-motion:reduce){#settings-page .sync-pill.busy.is-syncing::before{animation:none}}
 
 #settings-about-title,#settings-sync-summary{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+#timer-review-dialog{width:calc(100% - 24px);max-width:38rem;max-height:calc(100vh - 24px);overflow:auto;padding:16px;color:#33261A;background:#FCFAF7;border:1px solid #8A4B1F;border-radius:16px}#timer-review-dialog h2{font-size:1.4rem}#timer-review-dialog input,#timer-review-dialog textarea{font-size:1rem;min-height:48px}#timer-review-dialog button{min-height:48px}#timer-review-dialog .actions{position:static;margin:16px 0 0;flex-wrap:wrap}#timer-review-dialog [role=alert]{color:#8E2925}#timer-review-dialog :focus-visible{outline:3px solid #8A4B1F;outline-offset:3px}

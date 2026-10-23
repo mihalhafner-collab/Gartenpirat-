@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "authorization": "User Revier Solo request 2026-10-23, RS-05: explicit review instead of guessed post-boot time; preserve all117 existing tools",
+  "baseline_sha256": "a331ea0f3108d513347b04e5572b008292349f15d37e7b57a7647ae83cf7fb93",
+  "added_tool": {
+    "inputSchema": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "reason": {
+          "minLength": 1,
+          "type": "string",
+          "maxLength": 4000
+        },
+        "worked_minutes": {
+          "maximum": 10080,
+          "type": "integer",
+          "minimum": 1
+        },
+        "session_id": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "break_minutes": {
+          "maximum": 10080,
+          "type": "integer",
+          "minimum": 0
+        },
+        "allow_overnight": {
+          "type": "boolean"
+        },
+        "request_id": {
+          "minLength": 8,
+          "type": "string",
+          "maxLength": 128
+        },
+        "confirmed": {
+          "type": "boolean",
+          "enum": [
+            true
+          ]
+        },
+        "expected_revision_hash": {
+          "pattern": "[0-9a-f]{64}",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "session_id",
+        "expected_revision_hash",
+        "worked_minutes",
+        "break_minutes",
+        "reason",
+        "confirmed"
+      ]
+    },
+    "name": "review_work_session",
+    "description": "Bedient die vorhandene dauerhafte Pixel-Zeiterfassung. Vor Änderungen get_active_work_session lesen. request_id bei Wiederholung gleich lassen. start_work verlangt einen echten Kunden; Datum sonst heute in Europe/Vienna. stop_work stoppt nur die Sitzung, erzeugt noch keine Arbeitsaufzeichnung. complete_work_session übernimmt die geprüfte gestoppte Sitzung in den vorhandenen mobilen Abgleich; Nettozeit kommt ausschließlich aus dem Timer. finish_work stoppt und speichert dieselbe echte Sitzung atomar anhand session_id und Tätigkeit; Validierungsfehler erhalten den vorherigen Timerzustand. Keine Rechnungsänderung.",
+    "annotations": {
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "destructiveHint": false,
+      "readOnlyHint": false
+    }
+  },
+  "added_ui_action": {
+    "id": "zeiterfassung.pruefen",
+    "area": "zeiterfassung",
+    "action": "Sitzung nach Neustart/Uhränderung ausdrücklich prüfen",
+    "source": "today-ui.js",
+    "mcp": [
+      "get_active_work_session",
+      "review_work_session"
+    ],
+    "kind": "business",
+    "rights": "owner_write",
+    "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+    "platform_only": false
+  },
+  "added_bridge": "String reviewWorkSession(String sessionId,String input) "
+}

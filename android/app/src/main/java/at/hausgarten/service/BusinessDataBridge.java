@@ -28,6 +28,10 @@ public class BusinessDataBridge {
     try { return new WorkSessionStore(store.getWritableDatabase(),context).current().toString(); }
     catch (Exception error) { return "{\"state\":\"ERROR\",\"message\":"+JSONObject.quote(String.valueOf(error.getMessage()))+"}"; }
 }
+@JavascriptInterface public String reviewWorkSession(String sessionId,String input) {
+    try { return new WorkSessionStore(store.getWritableDatabase(),context).reviewTime(sessionId,new JSONObject(input)).toString(); }
+    catch(Exception error){ return "ERROR: "+error.getMessage(); }
+}
 @JavascriptInterface public String startWorkSession(String value) {
     try { return store.startWorkSession(new JSONObject(value)).toString(); }
     catch (Exception error) { return "ERROR: " + error.getMessage(); }

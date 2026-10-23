@@ -3,6 +3,121 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Revier Solo – tatsächlicher Zwischenstand, 23.10.2026
+
+**Auftrag läuft; Gesamtziel und Phasen B–F sind nicht abgeschlossen.** Kein
+produktiver Autoritätswechsel, keine Installation und keine reale Rechnung,
+Nachricht, Zahlung, Wiederherstellung oder Testanlage auf dem Pixel. Die neue
+Entwicklungsversion1.55.0/99 ist von Original98 und der beobachteten Installation
+getrennt. Ein künftig signierter Prüfbau ist keine vollständige Revier-Abnahme.
+
+### Quellen- und Arbeitsabgleich
+
+- Remote-main beim Einstieg `e499e745832449ce0202d04d9903495248e8b034`;
+  aktueller Quell-/Abschlussbranch `codex/function-sync-audit-20261022` bei
+  `419d0b4bfcbb7108d00296619831a04ddc3273b0`, enthält saubere Original98-Appquelle
+  `dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c`. Main ist dessen Vorfahr. Alle sechs
+  vorhandenen Remote-Arbeitsbranches eingelesen, keine offenen PRs gemeldet.
+- Ursprünglicher Working Tree sauber; keine ungesicherte Arbeit überschrieben.
+  Genau ein begründeter neuer Branch `codex/revier-solo-20261023` auf dem neuesten
+  gesicherten Stand, um vorhandene Arbeitsbranches nicht umzuwidmen. Keine
+  automatische Übernahme nach main. Andere gehostete Cloud-Threads sind über die
+  verfügbaren Werkzeuge nicht direkt inventarisierbar; deren Ausführung ist nicht
+  als beendet attestiert. Vor weiteren Integrationen Remote erneut prüfen.
+- Bestehende zentrale Regeln, Arbeitsübersicht, Projektzentrale und MCP-Dossier
+  gelesen. Konzeptseite erreichbar, liefert Präsentationsmetadaten statt Folien.
+  Vollständiger Nutzerauftrag ist maßgeblich und in bestehendem Auftragsdokument
+  nach Anforderungen, Fachpfaden, RS-Fällen, Kosten und Grenzen konsolidiert.
+- Erneute reine MCP-Lesung im Task bestätigt App1.54.9/98, Paket
+  `at.hausgarten.service`, DB4, MCP9/117Tools, QuellSHA dbe9ed0… und Fingerprint
+  `fd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae`,
+  `source_dirty=false`, pixel_drive_v1/android_provider. Pflichtabschluss weiterhin
+  `pixel_drive_online_compare_required`. Keine APK-/Zertifikatsprüfung des Pixels.
+  Ältere96-Beobachtung in AKTUELLER-STAND.json historisch erhalten.
+
+### Konkrete Implementierung
+
+- Bestehende SQLite-Tabellen und DB-Version4 erhalten. WorkSessionStore speichert
+  für neue unveränderliche Zeitereignisse reale Zeit, monotone Zeit, Bootkennung
+  und Europe/Vienna. Nach Bootwechsel, negativem Intervall, >2min Uhrabweichung
+  oder >24h ununterbrochenem Segment wird keine Dauer aus der Wanduhr geraten.
+  Prüfbedarf bleibt als Ereignis gespeichert, auch wenn die Uhr zurückgestellt wird.
+- Pausen neuer Ereignisse verwenden dieselbe Boot-/Zeitprüfung. Geschlossene alte
+  Ereignisintervalle werden nicht umgeschrieben. Unklare offene Altpause benötigt
+  Prüfung. Referenztag bleibt150min netto/15minPause, um10:30 sind135min erreicht.
+- Zweiter Start führt zur vorhandenen Sitzung, ohne einen zweiten Timer zu erzeugen;
+  direkte Startwiederholungen erhalten einen dauerhaften Ereignisbeleg. Anfrage-ID
+  für andere Zeitaktionen wird zurückgewiesen. Bereits finalisierte Sitzungen
+  können nicht nachträglich über den Prüfpfad geändert werden.
+- Neue gemeinsame Aktion `review_work_session`: aktuelle stabile Revision,
+  ganze Netto-/Pausenminuten, Grund, ausdrückliche Bestätigung und gegebenenfalls
+  Übernachtbestätigung. Atomarer SQLite-Abschluss in STOPPED_PENDING_REVIEW;
+  ursprünglicher Zustand/Ereignisse bleiben erhalten. Retry erzeugt keine zweite
+  Korrektur. Keine erfundene Endzeit in Arbeitsnotizen. Kein automatischer Worklog,
+  keine Abrechnung und kein Versand durch die Korrektur.
+- Heute zeigt „Sitzung prüfen“. Eigener manueller Prüfdialog erhält Eingaben nach
+  Konflikt; Öffnen fokussiert Überschrift statt Tastatur. UI und MCP verwenden
+  denselben WorkSessionStore.118Tools/157semantische UI-Aktionen: alle bisherigen
+ 117Tools erhalten, genau eine fachliche Erweiterung. Original-P1-Baseline bleibt
+  unverändert; enges versioniertes Vertragsdelta prüft ausschließlich diese
+  Ergänzung und weist zusätzliche Altvertragsänderungen weiter ab.
+- LocalMigrationInventory ist ein lesendes Inventar über effektive Geschäfts-
+  und Archivbezüge: Counts, ID-Mengen-/Inhaltshashes, dezimale historische Stunden/
+  Rechnungssummen, verwaiste Beziehungen, ausstehende Aktionen/Konflikte und lokale
+  Originaldateien. Native Originalprüfung streamt32KiB-Blöcke, lädt nichts nach und
+  ändert keine Quelldaten. Über vorhandenes run_self_test für UI/MCP erreichbar.
+  **Kein vollständiges Geräteinventar, keine Sicherung und keine Aktivierung.**
+  Einstellungen/Staging/gesamte SQLite-/Jobinventarisierung bleiben erforderlich.
+
+### Tatsächlich ausgeführte Prüfungen und Grenzen
+
+Cloud: vorhandenes JDK17/Android37.0/Gradle9.3.1, Python3.12, Chromium; ausschließlich
+synthetische vorhandene Factory/Fixtures. Ergebnisse vor dem folgenden
+Quellsicherungspunkt; exakten gebauten/signierten Commit erst beim Prüfbau festhalten.
+
+| Prüfung / Eingabe | Erwartung | Ergebnis / Reichweite |
+| --- | --- | --- |
+| Unveränderter Einstieg, vorhandene Python-Suite | kein Ausgangsregressionsfehler |420Tests PASS; anfängliches Workspace-Gate separat unten |
+| JVM-Ausgang | vorhandene Fachregeln |49Suiten PASS; zusätzlicher Repositorytest benötigte zunächst kompilierten Android-Code |
+| Aktuelle JVM-Regeln/Repository, synthetisch | CAS, Rollback, Replay, Zeit-/Inventarregeln |52Suiten PASS, einschließlich14Prüfungen am tatsächlichen LocalOwnerRepository |
+| Referenztag und Boot/Uhrsprung |150/135min; unsichere Dauer0 bis Prüfung |10neue reine Zeitregelprüfungen PASS; keine Geräteausführung daraus ableiten |
+| Altformatinventar | exakte Dezimalwerte, fehlende Originale/Duplikate/Relationen sichtbar, keine Freigabe |16Inventarprüfungen PASS, synthetischer JVM-Speicher |
+| Prüfdialog, Konflikt/Retry,320/360/426px,200% | Eingaben/ID erhalten,48px-Knöpfe, keine automatische Arbeitsbuchung |4Browserfälle PASS mit synthetischer Bridge |
+| Aktuelle Python-Gesamtsuite | bestehende Regeln plus enger Vertragsnachweis |421Tests PASS |
+| Android App-/Testcode und lintRelease | kompilierbar, keine Lintfehler |PASS;0Fehler/54Warnungen, keine Pixelabnahme |
+| Breite Browserregression | bestehende Abläufe erhalten |56 Suiten PASS; Browser/Bridge, keine Pixelabnahme |
+| Native SQLite/Boot/Prozess/Update/Restore | tatsächliche Android-Ausführung |Instrumentierung erweitert/kompiliert; Ausführung noch offen |
+| Aktuelle Primärquellen Android/Tink/Open-Meteo | Inhalt am Ausführungstag verifiziert |NOT TESTABLE: konfigurierter Proxy verweigert CONNECT mit403; kein Bypass |
+
+Eingangs-Workspace-Gate scheiterte an21ignorierten älteren Ausgabedateien (20nicht
+klassifizierte Bilder, eine Datei mit Roh-ID-Muster). Nur diese betroffenen
+outputs-Dateien unverändert mit SHA-Manifest nach
+`/workspace/revier-preserved-workspace-20261023` außerhalb des Checkouts verschoben,
+privat0700/0600; nichts gelöscht oder neu als sicher klassifiziert. Danach Source-
+und Workspace-Gates PASS. Aktuelle Browservorlagen erzeugen zu synthetischen
+Bildschirmdateien passende Hash-/Fixture-Nachweise. Frühe Prüffehler (fehlende
+JSON-Testabhängigkeit/Proxykonfiguration/Acorn, fehlende Android-Klassen sowie
+strengere Toolzahl) sind im Task nachvollzogen und für folgende Läufe behoben.
+
+### Noch auszuführen – keine Vollabnahme behaupten
+
+RS-01/02/03/04/06/07/08/09/10/11/13/14/15/16 sind für den **Gesamtumbau** offen;
+RS-05/12 haben lediglich die oben genau benannten Teilnachweise. Insbesondere
+fehlen lokaler autoritativer Commit mit versionierter Schreiberumstellung,
+verschlüsselte vollständige SAF-/USB-Sicherung und atomarer geprüfter Ersatzrestore,
+Objekt-/Anfrage-/Pflege-/Tourabläufe, Material-/Gerätebewegungen, lokaler Rechnungs-
+und PDF-Jobpfad, Quellmengen-/Zahlungsledger sowie deren durchgängige UI-Piloten.
+Bisherige Online-Rechnungssperre und bestehende Drive-/Kalenderverbindungen bleiben.
+Keine Restaufwandsschätzung vor beiden beauftragten vollständigen Piloten.
+
+Aktuelle gewerbliche Wetterlizenz, österreichische Rechts-/E-Rechnungsfragen,
+Android-Verifizierung, physischer Pixel/USB, TalkBack, Geräteboot/Flugmodus und
+vollständiger Update-/Restorelauf sind nicht durch Quellcode/JVM/Browser belegt.
+Vor tatsächlicher Umstellung: vollständige extern rückgelesene Sicherung samt
+Recoveryprobe, aktuelle Belege/Reservierungen/Nummern abgleichen, alle Altschreiber
+belegt stilllegen, eine Autorität/Epoche bestätigen; erst dann explizite
+Geräteentscheidung. Kein alter Checkout/Backup darf den neuen Schreiber reaktivieren.
+
 ## Abschluss98 – Original-APK und vollständige Quellen privat ausgeliefert
 
 1.54.9/98 mit314 Profilen / 628 Offlinebildern fertiggestellt. Appquelle

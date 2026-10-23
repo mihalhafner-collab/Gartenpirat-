@@ -6,6 +6,24 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
   function readSession(){try{return JSON.parse(AndroidData.getWorkSession())}catch(_){return {state:'UNAVAILABLE'}}}
   function sessionDuration(value){const seconds=Math.max(0,Math.floor(Number(value||0)/1000));return `${String(Math.floor(seconds/3600)).padStart(2,'0')}:${String(Math.floor(seconds%3600/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;}
   function sessionCall(name,...args){try{const result=AndroidData[name](...args);if(String(result).startsWith('ERROR:'))throw new Error(String(result).slice(6).trim());return JSON.parse(result)}catch(error){window.showUndoToast(error.message||'Die Zeiterfassung konnte nicht geändert werden.');return null;}}
+  function reviewSession(session){
+    let dialog=get('timer-review-dialog');
+    if(!dialog){
+      dialog=document.createElement('dialog');dialog.id='timer-review-dialog';
+      dialog.setAttribute('aria-labelledby','timer-review-title');
+      dialog.innerHTML='<form><h2 id="timer-review-title">Sitzung prüfen</h2><p>Nach Neustart oder Uhränderung wird keine Endzeit geschätzt. Trage die tatsächlich bestätigte Nettoarbeitszeit und Pause ein. Die ursprünglichen Zeitereignisse bleiben erhalten.</p><label for="timer-review-work">Nettoarbeitszeit in Minuten</label><input id="timer-review-work" name="worked_minutes" type="number" inputmode="numeric" min="1" max="10080" required><label for="timer-review-break">Pause in Minuten</label><input id="timer-review-break" name="break_minutes" type="number" inputmode="numeric" min="0" max="10080" required><label for="timer-review-reason">Prüf- oder Korrekturgrund</label><textarea id="timer-review-reason" name="reason" maxlength="4000" required></textarea><label class="check"><input name="allow_overnight" type="checkbox">Arbeit über Nacht ausdrücklich bestätigen</label><label class="check"><input name="confirmed" type="checkbox" required>Diese Zeiten habe ich geprüft. Zeitnahme beenden.</label><p role="alert" class="timer-review-error"></p><div class="actions"><button class="secondary" type="button" data-review-close>Zurück</button><button class="primary" type="submit">Geprüfte Zeiten speichern</button></div></form>';
+      document.body.append(dialog);
+      dialog.querySelector('[data-review-close]').onclick=()=>dialog.close();
+      dialog.querySelector('form').onsubmit=event=>{
+        event.preventDefault();const form=event.currentTarget;
+        const input={request_id:dialog._request,expected_revision_hash:dialog._session.revision_hash,worked_minutes:Number(form.elements.worked_minutes.value),break_minutes:Number(form.elements.break_minutes.value),reason:form.elements.reason.value.trim(),allow_overnight:form.elements.allow_overnight.checked,confirmed:form.elements.confirmed.checked};
+        if(!input.reason||!Number.isInteger(input.worked_minutes)||!Number.isInteger(input.break_minutes))return;
+        try{const response=AndroidData.reviewWorkSession(dialog._session.id,JSON.stringify(input));if(String(response).startsWith('ERROR:'))throw Error(String(response).slice(6));const checked=JSON.parse(response);dialog.close();renderTimer(checked);window.showUndoToast('Geprüfte Zeiten lokal gespeichert. Ursprungswerte bleiben erhalten.');}catch(error){dialog.querySelector('[role=alert]').textContent=error.message||'Prüfung konnte nicht gespeichert werden. Eingaben bleiben erhalten.';}
+      };
+    }
+    if(dialog._session?.revision_hash!==session.revision_hash){dialog.querySelector('form').reset();dialog.querySelector('[role=alert]').textContent='';dialog._request=sessionRequest('review');}
+    dialog._session=session;dialog.showModal();dialog.querySelector('h2').tabIndex=-1;dialog.querySelector('h2').focus();
+  }
   function workTimer(){
     if(!AndroidData?.getWorkSession)return;
     let panel=get('workday-timer');
@@ -13,6 +31,7 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
     if(!panel._bound){panel._bound=true;panel.addEventListener('click',event=>{
       const extra=event.target.closest('.today-timer-more');if(extra&&event.target.closest('button'))extra.open=false;
       const action=event.target.closest('[data-session-action]')?.dataset.sessionAction;if(!action)return;const session=readSession();let next=null;
+      if(action==='review'){reviewSession(session);return;}
       if(action==='photo'){
         const customerId=session.customer_id||get('customer')?.value;
         if(customerId&&typeof window.openCustomerDocumentationCamera==='function'){
@@ -48,12 +67,12 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
   function renderTimer(session){
     const panel=get('workday-timer');if(!panel)return;
     const status=session.state||'IDLE',active=status==='RUNNING',paused=status==='PAUSED',stopped=status==='STOPPED_PENDING_REVIEW';
-    const signature=JSON.stringify([session.id,status,session.customer_id,session.order_id,session.location,customerName(session.customer_id)]);
+    const signature=JSON.stringify([session.id,status,session.review_required,session.revision_hash,session.customer_id,session.order_id,session.location,customerName(session.customer_id)]);
     if(panel._sessionView===signature){const clock=panel.querySelector('.timer-state strong');if(clock)clock.textContent=sessionDuration(session.worked_ms);return;}
     panel._sessionView=signature;panel.dataset.sessionState=status;panel.classList.toggle('has-active-session',active||paused||stopped);
-    const primary=active?'<button type="button" class="timer-secondary" data-session-action="pause"><b>Pause</b></button><button type="button" class="timer-stop" data-session-action="stop"><b>Stoppen</b></button><button type="button" class="timer-secondary" data-session-action="photo"><b>Foto</b></button>':paused?'<button type="button" class="timer-main" data-session-action="resume"><b>Fortsetzen</b></button><button type="button" class="timer-stop" data-session-action="stop"><b>Stoppen</b></button><button type="button" class="timer-secondary" data-session-action="photo"><b>Foto</b></button>':stopped?'<button type="button" class="timer-main" data-session-action="complete"><b>Angaben ergänzen</b></button>':['IDLE','FINALIZED','CANCELLED'].includes(status)?'<button type="button" class="timer-main timer-start" data-session-action="start"><b>Arbeit starten</b><small>Zeit läuft ab jetzt</small></button>':'';
+    const primary=session.review_required?'<button type="button" class="timer-main" data-session-action="review"><b>Sitzung prüfen</b></button>':active?'<button type="button" class="timer-secondary" data-session-action="pause"><b>Pause</b></button><button type="button" class="timer-stop" data-session-action="stop"><b>Stoppen</b></button><button type="button" class="timer-secondary" data-session-action="photo"><b>Foto</b></button>':paused?'<button type="button" class="timer-main" data-session-action="resume"><b>Fortsetzen</b></button><button type="button" class="timer-stop" data-session-action="stop"><b>Stoppen</b></button><button type="button" class="timer-secondary" data-session-action="photo"><b>Foto</b></button>':stopped?'<button type="button" class="timer-main" data-session-action="complete"><b>Angaben ergänzen</b></button>':['IDLE','FINALIZED','CANCELLED'].includes(status)?'<button type="button" class="timer-main timer-start" data-session-action="start"><b>Arbeit starten</b><small>Zeit läuft ab jetzt</small></button>':'';
     const summary=active||paused||stopped?'<div class="today-timer-summary"><p class="timer-location-context">'+esc(session.customer_id?customerName(session.customer_id):'Kunde noch zuordnen')+'</p><div class="timer-state"><small>'+esc(active?'Arbeit läuft':paused?'Pausiert':'Einsatz beendet')+'</small><strong aria-label="Erfasste Arbeitszeit">'+sessionDuration(session.worked_ms)+'</strong></div><details class="today-timer-more"><summary aria-label="Weitere Aktionen" title="Weitere Aktionen">⋯</summary><button type="button" class="timer-discard" data-session-action="discard">Zeiterfassung löschen</button></details></div>':['UNAVAILABLE','ERROR'].includes(status)?'<p role="status">Zeiterfassung derzeit nicht verfügbar. Du kannst eine Arbeit manuell erfassen.</p>':'';
-    panel.innerHTML=summary+'<div id="today-action-dock" aria-label="Arbeit und Planung"><div class="timer-actions">'+primary+'</div><div id="field-today-actions"><button type="button" class="secondary field-planning" data-open="planning-page">Planung</button><button type="button" class="quick" data-open="work-entry"><strong>Arbeit erfassen</strong></button></div></div>';
+    panel.innerHTML=(session.review_required?'<p role="alert">Sitzung prüfen · Geräte-Neustart, Uhränderung oder unplausible Dauer. Angezeigt wird nur bestätigte Zeit.</p>':'')+summary+'<div id="today-action-dock" aria-label="Arbeit und Planung"><div class="timer-actions">'+primary+'</div><div id="field-today-actions"><button type="button" class="secondary field-planning" data-open="planning-page">Planung</button><button type="button" class="quick" data-open="work-entry"><strong>Arbeit erfassen</strong></button></div></div>';
     observeDock();
   }
  function homeGestures(card){

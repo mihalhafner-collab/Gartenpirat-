@@ -1,5 +1,15 @@
 # Haus & Garten App – dauerhafte Projektregeln
 
+## Architekturfolgeauftrag vom 23. Oktober 2026
+
+Der ausdrückliche Nutzerauftrag „Revier Solo“ in `CODEX-AUFTRAG-GARTENPIRAT.md`
+setzt als Ziel einen vollständig offlinefähigen lokalen Pixel-Kern mit optionalem
+Drive. Ältere Regeln unten, die Drive als stets zentrale Daten- oder zwingende
+Rechnungsautorität beschreiben, gelten für den Altbetrieb bis zur kontrollierten
+Umstellung. Sie dürfen den beauftragten Umbau nicht verhindern; keine vorzeitige
+Entfernung der bestehenden Schutzprüfungen oder produktive Aktivierung daraus
+ableiten. Appidentität, Bestandsschutz, Verbindungen und Originalsignierung bleiben.
+
 ## Codex-Cloud-Einstieg
 
 Für den aktuellen Cloud-Auftrag gilt diese Lesereihenfolge verbindlich:

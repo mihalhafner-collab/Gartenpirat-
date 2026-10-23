@@ -28,5 +28,5 @@ for a in m['actions']:
  if a['kind']=='business':
   assert a['mcp'] and all(n in known for n in a['mcp']), 'Missing/unknown MCP mapping: '+a['id']
  else:assert a.get('platform_only') and a.get('barrier'), 'Missing explicit platform exception'
-assert len(m['actions'])==156 and len({a['id'] for a in m['actions']})==156
-print('PASS UI review fingerprints;156 semantic actions')
+assert len(m['actions'])==157 and len({a['id'] for a in m['actions']})==157
+print('PASS UI review fingerprints;157 semantic actions')

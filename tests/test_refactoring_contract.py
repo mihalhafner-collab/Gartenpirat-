@@ -2,12 +2,36 @@
 from copy import deepcopy
 import json
 import unittest
-from tools.check_refactoring_contract import BASELINE, differences, approved_evolution
+from tools.check_refactoring_contract import BASELINE, differences, approved_evolution, approved_revier_timer
 
 
 class RefactoringContractTests(unittest.TestCase):
     def setUp(self):
         self.contract = json.loads(BASELINE.read_text())['contract']
+
+    def test_revier_timer_preserves_every_existing_tool_and_bridge(self):
+        delta=json.loads((BASELINE.parent/'sync-optimization-contract-v1.json').read_text())
+        repair=json.loads((BASELINE.parent/'mcp-authority-schema-repair-v1.json').read_text())
+        evolution=json.loads((BASELINE.parent/'revier-timer-contract-v1.json').read_text())
+        current=deepcopy(self.contract)
+        for change in delta['changes']:
+            current[change['group']][change['key']]=change['after']
+        field=next(t for t in current['tools'] if t['name']=='update_business_settings')['inputSchema']['properties']['updates']['properties']['invoice_numbering_authority']
+        field['minLength']=0
+        current['tools'].append(evolution['added_tool'])
+        current['ui_actions'].append(evolution['added_ui_action'])
+        current['javascript_bridge'].append(evolution['added_bridge']);current['javascript_bridge'].sort()
+        # Tools are in dispatch order: timer additions precede owner tools.
+        current['tools'].remove(evolution['added_tool'])
+        index=next(i for i,t in enumerate(current['tools']) if t['name']=='restore_work_session')+1
+        current['tools'].insert(index,evolution['added_tool'])
+        self.assertEqual(approved_revier_timer(self.contract,current,delta,repair,evolution),[])
+        damaged=deepcopy(current);damaged['tools'][0]['annotations']['readOnlyHint']=False
+        self.assertEqual(approved_revier_timer(self.contract,damaged,delta,repair,evolution),['tools'])
+        damaged=deepcopy(current);damaged['tools'].pop(index)
+        self.assertEqual(approved_revier_timer(self.contract,damaged,delta,repair,evolution),['tools'])
+        damaged=deepcopy(current);damaged['javascript_bridge'].append('String unreviewedWrite() ')
+        self.assertEqual(approved_revier_timer(self.contract,damaged,delta,repair,evolution),['javascript_bridge'])
 
     def test_advertised_empty_authority_repair_accepts_only_the_single_constraint(self):
         delta = json.loads((BASELINE.parent/'sync-optimization-contract-v1.json').read_text())

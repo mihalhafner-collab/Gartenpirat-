@@ -69,6 +69,25 @@ def observe():
                 package='at.hausgarten.service',
                 protocol=int(re.search(r'PROTOCOL_VERSION\s*=\s*(\d+)', (JAVA/'PixelMcpReadTools.java').read_text())[1]))
 
+
+def approved_revier_timer(expected, current, delta, repair, evolution):
+    """Remove only the explicitly reviewed additions, then run the original gate."""
+    import copy
+    if (evolution.get('version') != 1 or not evolution.get('authorization')
+            or evolution.get('baseline_sha256') != hashlib.sha256(BASELINE.read_bytes()).hexdigest()
+            or evolution.get('added_tool', {}).get('name') != 'review_work_session'
+            or evolution.get('added_ui_action', {}).get('id') != 'zeiterfassung.pruefen'
+            or evolution.get('added_bridge') != 'String reviewWorkSession(String sessionId,String input) '):
+        raise ValueError('Unapproved Revier timer contract scope')
+    previous = copy.deepcopy(current)
+    for group, key in [('tools', 'added_tool'), ('ui_actions', 'added_ui_action'),
+                       ('javascript_bridge', 'added_bridge')]:
+        addition = evolution[key]
+        if previous[group].count(addition) != 1:
+            return [group]
+        previous[group].remove(addition)
+    return approved_evolution(expected, previous, delta, schema_repair=repair)
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--record-baseline', action='store_true')
@@ -88,8 +107,11 @@ def main():
         repair = json.loads(repair_path.read_text()) if repair_path.exists() else None
         unapproved = approved_evolution(expected, current, delta, schema_repair=repair)
         if unapproved:
+            evolution = json.loads((ROOT/'tests/fixtures/revier-timer-contract-v1.json').read_text())
+            unapproved = approved_revier_timer(expected, current, delta, repair, evolution)
+        if unapproved:
             raise SystemExit('FAIL unreviewed functional contract changed: '+', '.join(unapproved))
-        print('PASS explicit sync-optimization-contract-v1; original P1 differences: '+', '.join(changed))
+        print('PASS explicitly reviewed contract evolution; original P1 differences: '+', '.join(changed))
     read = sum(t['annotations']['readOnlyHint'] for t in current['tools'])
     print(json.dumps(dict(result='PASS', tools=len(current['tools']), read=read,
                           write=len(current['tools'])-read, ui_actions=len(current['ui_actions']),

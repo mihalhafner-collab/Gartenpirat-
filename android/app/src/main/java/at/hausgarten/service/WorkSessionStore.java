@@ -39,8 +39,15 @@ final class WorkSessionStore {
     JSONObject start(JSONObject input) throws Exception {
         db.beginTransaction();try{
         String request=required(input,"request_id"), existing=sessionForRequest(request);
-        if(!existing.isEmpty()) return current(existing);
-        if(activeId()!=null) throw new IllegalStateException("Es läuft bereits eine Arbeitssitzung.");
+        if(!existing.isEmpty()) {
+            try(Cursor start=db.rawQuery("SELECT event_type,payload FROM work_session_events WHERE request_id=?",new String[]{request})){
+                if(!start.moveToFirst()||!java.util.Arrays.asList("START","START_EXISTING").contains(start.getString(0)))throw new PixelMcpWriteTools.Rejected("REPLAY_MISMATCH","Anfragekennung gehört zu einer anderen Aktion.");
+                JSONObject original=new JSONObject(start.getString(1));original.remove("_clock");
+                if(!PixelMcpWriteTools.hash(original).equals(PixelMcpWriteTools.hash(input)))throw new PixelMcpWriteTools.Rejected("REPLAY_MISMATCH","Anfragekennung enthält andere Startangaben.");
+            }
+            return current(existing);
+        }
+        if(activeId()!=null){String active=activeId();event(active,"START_EXISTING",request,input);db.setTransactionSuccessful();return current(active);}
         String date=input.optString("work_date",LocalDate.now(java.time.ZoneId.of("Europe/Vienna")).toString());
         try{LocalDate.parse(date);}catch(Exception e){throw new IllegalArgumentException("Bitte ein gültiges Arbeitsdatum auswählen.");}
         long wall=clock.wallMillis(), elapsed=clock.elapsedMillis();
@@ -54,7 +61,7 @@ final class WorkSessionStore {
     JSONObject discard(String id,String request)throws Exception{
         db.beginTransaction();try{
             String replay=sessionForRequest(request);
-            if(!replay.isEmpty()){if(!id.equals(replay))throw new IllegalArgumentException("Anfrage gehört zu einer anderen Sitzung.");return current(id);}
+            if(!replay.isEmpty()){if(!id.equals(replay))throw new IllegalArgumentException("Anfrage gehört zu einer anderen Sitzung.");requireEvent(request,"DISCARD");return current(id);}
             JSONObject before=current(id);String state=before.getString("state");
             if(!RUNNING.equals(state)&&!PAUSED.equals(state)&&!STOPPED.equals(state))throw new IllegalStateException("Nur eine noch nicht gespeicherte Zeiterfassung kann verworfen werden.");
             ContentValues values=new ContentValues();values.put("state",CANCELLED);values.put("worked_ms",before.getLong("worked_ms"));values.putNull("segment_started_wall_ms");values.putNull("segment_started_elapsed_ms");values.put("updated_at",nowIso());
@@ -64,7 +71,7 @@ final class WorkSessionStore {
     JSONObject restore(String id,String request)throws Exception{
         db.beginTransaction();try{
             String replay=sessionForRequest(request);
-            if(!replay.isEmpty()){if(!id.equals(replay))throw new IllegalArgumentException("Anfrage gehört zu einer anderen Sitzung.");return current(id);}
+            if(!replay.isEmpty()){if(!id.equals(replay))throw new IllegalArgumentException("Anfrage gehört zu einer anderen Sitzung.");requireEvent(request,"RESTORE");return current(id);}
             if(activeId()!=null)throw new IllegalStateException("Eine andere Zeiterfassung ist aktiv. Bitte diese zuerst abschließen.");
             if(!CANCELLED.equals(current(id).getString("state")))throw new IllegalStateException("Diese Zeiterfassung wurde nicht verworfen.");
             ContentValues values=new ContentValues();values.put("state",PAUSED);values.put("updated_at",nowIso());db.update("work_sessions",values,"id=?",new String[]{id});event(id,"RESTORE",request,new JSONObject());db.setTransactionSuccessful();return current(id);
@@ -74,7 +81,7 @@ final class WorkSessionStore {
     JSONObject continueStopped(String id,String request)throws Exception{return transition(id,request,STOPPED,RUNNING,"CONTINUE",false);}
     JSONObject stop(String id,String request)throws Exception{
         JSONObject current=current(id);String state=current.getString("state");
-        if(STOPPED.equals(state)){ if(id.equals(sessionForRequest(request)))return current; throw new IllegalStateException("Die Arbeit ist bereits gestoppt."); }
+        if(STOPPED.equals(state)){ if(id.equals(sessionForRequest(request))){requireEvent(request,"STOP");return current;} throw new IllegalStateException("Die Arbeit ist bereits gestoppt."); }
         if(!RUNNING.equals(state)&&!PAUSED.equals(state))throw new IllegalStateException("Diese Arbeitssitzung kann nicht gestoppt werden.");
         return transition(id,request,state,STOPPED,"STOP",RUNNING.equals(state));
     }
@@ -82,7 +89,7 @@ final class WorkSessionStore {
         if(worklogId==null||worklogId.trim().isEmpty())throw new IllegalArgumentException("Die Arbeitsaufzeichnung fehlt.");
         JSONObject before=current(id);
         if(FINALIZED.equals(before.getString("state"))){
-            if(worklogId.equals(before.optString("finalized_worklog_id"))&&id.equals(sessionForRequest(request)))return before;
+            if(worklogId.equals(before.optString("finalized_worklog_id"))&&id.equals(sessionForRequest(request))){requireEvent(request,"FINALIZE");return before;}
             throw new IllegalStateException("Diese Arbeitssitzung wurde bereits abgeschlossen.");
         }
         if(!STOPPED.equals(before.getString("state")))throw new IllegalStateException("Bitte die Arbeit zuerst stoppen und prüfen.");
@@ -90,21 +97,57 @@ final class WorkSessionStore {
         transaction(()->{db.update("work_sessions",values,"id=?",new String[]{id});event(id,"FINALIZE",request,new JSONObject().put("worklog_id",worklogId));});
         return current(id);
     }
+    JSONObject reviewTime(String id, JSONObject input) throws Exception {
+        db.beginTransaction();try {
+            String request=required(input,"request_id"), replay=sessionForRequest(request);
+            if(!replay.isEmpty()) {
+                if(!id.equals(replay))throw new IllegalArgumentException("Anfrage gehört zu einer anderen Sitzung.");
+                try(Cursor row=db.rawQuery("SELECT payload FROM work_session_events WHERE request_id=? AND event_type='TIME_REVIEW'",new String[]{request})) {
+                    if(!row.moveToFirst()||!new JSONObject(row.getString(0)).getString("input_hash").equals(PixelMcpWriteTools.hash(input)))throw new PixelMcpWriteTools.Rejected("REPLAY_MISMATCH","Anfragekennung gehört zu anderen Angaben.");
+                }
+                return current(id);
+            }
+            JSONObject before=current(id);
+            if(!before.getString("revision_hash").equals(required(input,"expected_revision_hash")))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Sitzung geändert. Erneut öffnen; Eingaben bleiben erhalten.");
+            if(!java.util.Arrays.asList(RUNNING,PAUSED,STOPPED).contains(before.getString("state")))throw new IllegalStateException("Nur offene Sitzungen können geprüft werden.");
+            long minutes=new java.math.BigDecimal(input.get("worked_minutes").toString()).longValueExact(), pause=new java.math.BigDecimal(input.get("break_minutes").toString()).longValueExact();
+            String reason=required(input,"reason");if(reason.length()>4000)throw new IllegalArgumentException("Korrekturgrund ist zu lang.");
+            if(minutes<=0||minutes>10080||pause<0||pause>10080||!input.optBoolean("confirmed")||(minutes+pause>1440&&!input.optBoolean("allow_overnight")))throw new IllegalArgumentException("Nettozeit, Pause und gegebenenfalls Übernachtarbeit ausdrücklich bestätigen.");
+            ContentValues values=new ContentValues();values.put("state",STOPPED);values.put("worked_ms",Math.multiplyExact(minutes,60000L));values.putNull("segment_started_wall_ms");values.putNull("segment_started_elapsed_ms");values.put("updated_at",nowIso());
+            db.update("work_sessions",values,"id=?",new String[]{id});
+            event(id,"TIME_REVIEW",request,new JSONObject().put("input_hash",PixelMcpWriteTools.hash(input)).put("original",before).put("worked_minutes",minutes).put("break_minutes",pause).put("reason",reason).put("origin","manual_review").put("no_end_time_inferred",true));
+            db.setTransactionSuccessful();return current(id);
+        }finally{db.endTransaction();}
+    }
     JSONObject current()throws Exception{String id=activeId();return id==null?new JSONObject().put("state","IDLE"):current(id);}
     JSONObject current(String id)throws Exception{
         try(Cursor c=db.rawQuery("SELECT id,state,customer_id,order_id,work_date,activity,started_at_ms,segment_started_wall_ms,segment_started_elapsed_ms,boot_marker,worked_ms,finalized_worklog_id,updated_at FROM work_sessions WHERE id=?",new String[]{id})){
             if(!c.moveToFirst())throw new IllegalArgumentException("Arbeitssitzung nicht gefunden.");
             long worked=c.getLong(10);String state=c.getString(1);
+            String revisionEvent="";try(Cursor last=db.rawQuery("SELECT id FROM work_session_events WHERE session_id=? ORDER BY rowid DESC LIMIT 1",new String[]{id})){if(last.moveToFirst())revisionEvent=last.getString(0);}
+            boolean manuallyReviewed=false;String correctionReason="";try(Cursor corrected=db.rawQuery("SELECT payload FROM work_session_events WHERE session_id=? AND event_type='TIME_REVIEW' ORDER BY rowid DESC LIMIT 1",new String[]{id})){if(corrected.moveToFirst()){manuallyReviewed=true;correctionReason=new JSONObject(corrected.getString(0)).optString("reason");}}
+            String review=RUNNING.equals(state)?reviewReason(c.getLong(7),c.getLong(8),c.getString(9)):"";
             if(RUNNING.equals(state))worked+=runningDelta(c.getLong(7),c.getLong(8),c.getString(9));
+            if(PAUSED.equals(state))try(Cursor last=db.rawQuery("SELECT payload FROM work_session_events WHERE session_id=? ORDER BY rowid DESC LIMIT 1",new String[]{id})){if(last.moveToFirst()){JSONObject mark=new JSONObject(last.getString(0)).optJSONObject("_clock");review=mark==null?"LEGACY_PAUSE_REVIEW_REQUIRED":reviewReason(mark.getLong("wall_ms"),mark.getLong("elapsed_ms"),mark.getString("boot_marker"));}}
             String location="",appointment="",billingCustomer=c.getString(2);try(Cursor start=db.rawQuery("SELECT payload FROM work_session_events WHERE session_id=? AND event_type='START' LIMIT 1",new String[]{id})){if(start.moveToFirst()){JSONObject origin=new JSONObject(start.getString(0));location=origin.optString("location");appointment=origin.optString("appointment_id");billingCustomer=origin.optString("billing_customer_id",c.getString(2));}}
-            org.json.JSONArray pauseEvents=new org.json.JSONArray();try(Cursor events=db.rawQuery("SELECT event_type,occurred_at FROM work_session_events WHERE session_id=? ORDER BY rowid ASC",new String[]{id})){while(events.moveToNext())pauseEvents.put(new JSONObject().put("event_type",events.getString(0)).put("occurred_at",events.getString(1)));}JSONObject pauses=WorkSessionPauseRules.calculate(pauseEvents,state,clock.wallMillis());long pauseMs=pauses.getLong("pause_ms");boolean pauseUnverified=pauses.getBoolean("pause_unverified");
-            JSONObject result=new JSONObject().put("id",c.getString(0)).put("state",state).put("customer_id",c.getString(2)).put("order_id",c.getString(3)).put("work_date",c.getString(4)).put("activity",c.getString(5)).put("location",location).put("billing_customer_id",billingCustomer).put("started_at_ms",c.getLong(6)).put("worked_ms",worked).put("hours",Math.round(worked/36000.0)/100.0).put("break_minutes",Math.round(pauseMs/60000.0)).put("pause_unverified",pauseUnverified).put("pause_measurement","event_wall_clock_rounded_minutes").put("finalized_worklog_id",c.getString(11)).put("updated_at",c.getString(12));if(!appointment.isEmpty())result.put("appointment_id",appointment);return result;
+            org.json.JSONArray pauseEvents=new org.json.JSONArray();try(Cursor events=db.rawQuery("SELECT event_type,occurred_at,payload FROM work_session_events WHERE session_id=? ORDER BY rowid ASC",new String[]{id})){while(events.moveToNext())pauseEvents.put(new JSONObject().put("event_type",events.getString(0)).put("occurred_at",events.getString(1)).put("payload",new JSONObject(events.getString(2))));}JSONObject pauses=WorkSessionPauseRules.calculate(pauseEvents,state,clock.wallMillis(),clock.elapsedMillis(),clock.bootMarker());long pauseMs=pauses.getLong("pause_ms");boolean pauseUnverified=pauses.getBoolean("pause_unverified");
+
+            if(pauseUnverified&&review.isEmpty())review="PAUSE_REVIEW_REQUIRED";
+            boolean reviewLatched=false;try(Cursor marker=db.rawQuery("SELECT event_type,payload FROM work_session_events WHERE session_id=? AND event_type IN ('TIME_REVIEW_REQUIRED','TIME_REVIEW') ORDER BY rowid DESC LIMIT 1",new String[]{id})){
+                if(marker.moveToFirst()&&"TIME_REVIEW_REQUIRED".equals(marker.getString(0))){review=new JSONObject(marker.getString(1)).getString("reason");reviewLatched=true;}
+            }
+            if(!review.isEmpty()&&!reviewLatched){
+                ContentValues marker=new ContentValues();marker.put("id","evt_review_"+UUID.randomUUID().toString().replace("-",""));marker.put("session_id",id);marker.put("event_type","TIME_REVIEW_REQUIRED");marker.put("request_id","system-review-"+id+"-"+revisionEvent);marker.put("occurred_at",nowIso());marker.put("payload",new JSONObject().put("reason",review).toString());db.insertWithOnConflict("work_session_events",null,marker,SQLiteDatabase.CONFLICT_IGNORE);
+                try(Cursor last=db.rawQuery("SELECT id FROM work_session_events WHERE session_id=? ORDER BY rowid DESC LIMIT 1",new String[]{id})){if(last.moveToFirst())revisionEvent=last.getString(0);}
+            }
+            if(!review.isEmpty()&&RUNNING.equals(state))worked=c.getLong(10);
+            JSONObject result=new JSONObject().put("id",c.getString(0)).put("state",state).put("customer_id",c.getString(2)).put("order_id",c.getString(3)).put("work_date",c.getString(4)).put("activity",c.getString(5)).put("location",location).put("billing_customer_id",billingCustomer).put("started_at_ms",c.getLong(6)).put("worked_ms",worked).put("hours",Math.round(worked/36000.0)/100.0).put("break_minutes",Math.round(pauseMs/60000.0)).put("pause_unverified",pauseUnverified).put("pause_measurement","persistent_event_boundaries").put("finalized_worklog_id",c.getString(11)).put("updated_at",c.getString(12));result.put("revision_hash",PixelMcpWriteTools.hash(new JSONObject().put("id",id).put("state",state).put("updated_at",c.getString(12)).put("worked_ms",c.getLong(10)).put("last_event",revisionEvent))).put("time_origin",manuallyReviewed?"manual_review":"timer").put("correction_reason",correctionReason).put("timezone","Europe/Vienna").put("review_required",!review.isEmpty()).put("review_reason",review).put("time_measurement","persistent_segments_monotonic");if(!appointment.isEmpty())result.put("appointment_id",appointment);return result;
         }
     }
     private JSONObject transition(String id,String request,String expected,String next,String event,boolean accrue)throws Exception{
         db.beginTransaction();try{
-        String replay=sessionForRequest(request);if(!replay.isEmpty()){if(!replay.equals(id))throw new IllegalArgumentException("Diese Anfragekennung gehört zu einer anderen Sitzung.");return current(id);}
-        JSONObject before=current(id);if(!expected.equals(before.getString("state")))throw new IllegalStateException("Aktion passt nicht zum aktuellen Sitzungszustand.");
+        String replay=sessionForRequest(request);if(!replay.isEmpty()){if(!replay.equals(id))throw new IllegalArgumentException("Diese Anfragekennung gehört zu einer anderen Sitzung.");requireEvent(request,event);return current(id);}
+        JSONObject before=current(id);if(before.optBoolean("review_required"))throw new IllegalStateException("Sitzung prüfen: Geräte-Neustart, Uhränderung oder unplausible Dauer. Es wurde kein Arbeitsende geschätzt.");if(!expected.equals(before.getString("state")))throw new IllegalStateException("Aktion passt nicht zum aktuellen Sitzungszustand.");
         long wall=clock.wallMillis(), elapsed=clock.elapsedMillis(), worked=before.getLong("worked_ms");
         if(accrue)worked=storedWorked(id)+runningDeltaFor(id);
         ContentValues values=new ContentValues();values.put("state",next);values.put("worked_ms",worked);values.put("updated_at",Instant.ofEpochMilli(wall).toString());
@@ -115,10 +158,12 @@ final class WorkSessionStore {
     }
     private long storedWorked(String id){try(Cursor c=db.rawQuery("SELECT worked_ms FROM work_sessions WHERE id=?",new String[]{id})){if(c.moveToFirst())return c.getLong(0);}throw new IllegalArgumentException("Arbeitssitzung nicht gefunden.");}
     private long runningDeltaFor(String id){try(Cursor c=db.rawQuery("SELECT segment_started_wall_ms,segment_started_elapsed_ms,boot_marker FROM work_sessions WHERE id=?",new String[]{id})){if(c.moveToFirst())return runningDelta(c.getLong(0),c.getLong(1),c.getString(2));}throw new IllegalArgumentException("Arbeitssitzung nicht gefunden.");}
-    private long runningDelta(long wall,long elapsed,String boot){long value=clock.bootMarker().equals(boot)?clock.elapsedMillis()-elapsed:clock.wallMillis()-wall;return Math.max(0,value);}
+    private String reviewReason(long wall,long elapsed,String boot){return WorkSessionTimingRules.reviewReason(wall,elapsed,boot,clock.wallMillis(),clock.elapsedMillis(),clock.bootMarker());}
+    private long runningDelta(long wall,long elapsed,String boot){return WorkSessionTimingRules.verifiedDelta(wall,elapsed,boot,clock.wallMillis(),clock.elapsedMillis(),clock.bootMarker());}
     private String activeId(){try(Cursor c=db.rawQuery("SELECT id FROM work_sessions WHERE state IN (?,?,?) ORDER BY updated_at DESC LIMIT 1",new String[]{RUNNING,PAUSED,STOPPED})){return c.moveToFirst()?c.getString(0):null;}}
+    private void requireEvent(String request,String expected)throws Exception{try(Cursor row=db.rawQuery("SELECT event_type FROM work_session_events WHERE request_id=?",new String[]{request})){if(!row.moveToFirst()||!expected.equals(row.getString(0)))throw new PixelMcpWriteTools.Rejected("REPLAY_MISMATCH","Anfragekennung gehört zu einer anderen Zeitaktion.");}}
     private String sessionForRequest(String request){try(Cursor c=db.rawQuery("SELECT session_id FROM work_session_events WHERE request_id=?",new String[]{request})){return c.moveToFirst()?c.getString(0):"";}}
-    private void event(String session,String type,String request,JSONObject payload){if(request==null||request.trim().isEmpty())throw new IllegalArgumentException("Eine eindeutige Anfragekennung fehlt.");ContentValues e=new ContentValues();e.put("id","evt_"+UUID.randomUUID().toString().replace("-",""));e.put("session_id",session);e.put("event_type",type);e.put("request_id",request.trim());e.put("occurred_at",nowIso());e.put("payload",payload.toString());db.insertOrThrow("work_session_events",null,e);}
+    private void event(String session,String type,String request,JSONObject payload)throws Exception{if(request==null||request.trim().isEmpty())throw new IllegalArgumentException("Eine eindeutige Anfragekennung fehlt.");ContentValues e=new ContentValues();e.put("id","evt_"+UUID.randomUUID().toString().replace("-",""));e.put("session_id",session);e.put("event_type",type);e.put("request_id",request.trim());e.put("occurred_at",nowIso());payload=new JSONObject(payload.toString()).put("_clock",new JSONObject().put("wall_ms",clock.wallMillis()).put("elapsed_ms",clock.elapsedMillis()).put("boot_marker",clock.bootMarker()).put("timezone","Europe/Vienna"));e.put("payload",payload.toString());db.insertOrThrow("work_session_events",null,e);}
     private String required(JSONObject value,String name){String result=value.optString(name).trim();if(result.isEmpty())throw new IllegalArgumentException("Eine eindeutige Anfragekennung fehlt.");return result;}
     private String nowIso(){return Instant.ofEpochMilli(clock.wallMillis()).toString();}
     private interface Change{void run()throws Exception;}

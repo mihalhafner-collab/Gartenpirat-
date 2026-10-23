@@ -291,8 +291,25 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             check("native pause total includes pause and continued stop gap",()->yes(stoppedAgain.getDouble("hours")==2.0&&stoppedAgain.getInt("break_minutes")==30&&!stoppedAgain.getBoolean("pause_unverified")));
             JSONObject timerFinal=timer.finalizeSession(sessionId,"qa_worklog_final","timer-finalize");
             check("timer finalizes once with stable worklog reference",()->{yes(timerFinal.getString("state").equals(WorkSessionStore.FINALIZED));yes(timer.finalizeSession(sessionId,"qa_worklog_final","timer-finalize").getString("finalized_worklog_id").equals("qa_worklog_final"));});
+            FakeClock referenceClock=new FakeClock();referenceClock.wall=java.time.Instant.parse("2027-05-18T06:00:00Z").toEpochMilli();
+            WorkSessionStore referenceTimer=new WorkSessionStore(first.getWritableDatabase(),referenceClock);
+            JSONObject reference=referenceTimer.start(SyntheticBusinessData.object().put("request_id","qa_reference_start").put("work_date","2027-05-18"));String referenceId=reference.getString("id");
+            check("second start returns existing persistent session",()->yes(referenceTimer.start(SyntheticBusinessData.object().put("request_id","qa_reference_duplicate")).getString("id").equals(referenceId)));
+            referenceClock.advance(75*60_000L);referenceTimer.pause(referenceId,"qa_reference_pause");referenceClock.advance(15*60_000L);referenceTimer.resume(referenceId,"qa_reference_resume");referenceClock.advance(60*60_000L);
+            check("reference day 10:30 has135 net minutes",()->yes(new WorkSessionStore(first.getWritableDatabase(),referenceClock).current(referenceId).getLong("worked_ms")==135*60_000L));
+            referenceClock.advance(15*60_000L);JSONObject referenceStopped=referenceTimer.stop(referenceId,"qa_reference_stop");
+            check("reference day 10:45 has150 net minutes and15 pause",()->yes(referenceStopped.getLong("worked_ms")==150*60_000L&&referenceStopped.getInt("break_minutes")==15&&!referenceStopped.getBoolean("review_required")));
+            referenceTimer.finalizeSession(referenceId,"qa_reference_worklog","qa_reference_finalize");
             JSONObject second=timer.start(SyntheticBusinessData.object().put("request_id","timer-second"));timerClock.advance(300_000);timerClock.boot="boot-b";timerClock.wall+=300_000;timerClock.elapsed=10_000;
-            check("timer safely falls back to wall time after reboot",()->yes(timer.pause(second.getString("id"),"timer-after-boot").getLong("worked_ms")==600_000L));
+            check("reboot preserves original session and blocks guessed elapsed time",()->{
+                JSONObject unverified=timer.current(second.getString("id"));yes(unverified.getBoolean("review_required")&&unverified.getLong("worked_ms")==0&&unverified.getString("review_reason").equals("DEVICE_RESTART"));
+                try{timer.pause(second.getString("id"),"timer-after-boot");throw new AssertionError("Guessed time accepted");}catch(IllegalStateException expected){}
+                JSONObject input=SyntheticBusinessData.object().put("request_id","qa_timer_review").put("expected_revision_hash",unverified.getString("revision_hash")).put("worked_minutes",5).put("break_minutes",0).put("reason","QA explicitly verified after reboot").put("confirmed",true);
+                JSONObject checked=timer.reviewTime(second.getString("id"),input);yes(!checked.getBoolean("review_required")&&checked.getLong("worked_ms")==300_000L&&checked.getString("state").equals(WorkSessionStore.STOPPED));
+                yes(timer.reviewTime(second.getString("id"),input).getLong("worked_ms")==300_000L);
+                rejected(()->timer.reviewTime(second.getString("id"),SyntheticBusinessData.object(input.toString()).put("worked_minutes",6)));
+                timer.continueStopped(second.getString("id"),"qa_timer_review_continue");
+            });
             final JSONObject created=first.execute("create_customer_work_record",args("qa-request-one"));
             String id=created.getJSONObject("data").getString("work_record_id"),client=created.getJSONObject("data").getJSONObject("sync").getString("client_id");
             check("real SQLite create without order",()->{yes(first.pendingActions().length()==1);yes(PixelMcpReadTools.effective(first.getState()).getJSONArray("worklogs").getJSONObject(0).getString("order_id").isEmpty());});

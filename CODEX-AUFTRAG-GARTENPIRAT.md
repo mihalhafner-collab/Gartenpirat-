@@ -1,5 +1,167 @@
 # CODEX-AUFTRAG-GARTENPIRAT
 
+## Aktueller Folgeauftrag: Konzept 3 „Revier Solo“ (23.10.2026)
+
+Diese Fortschreibung ersetzt die älteren Zielvorgaben „Drive immer zentral“,
+„Rechnungen nur nach Onlineabgleich“ und „drei Hauptbereiche“ als **Zielarchitektur**.
+Bis zur ausdrücklich kontrollierten produktiven Umstellung bleiben deren
+Schutzprüfungen wirksam. Historische Nachweise unten werden nicht umgedeutet.
+Die vollständigen fachlichen Anforderungen stammen aus dem Nutzerauftrag vom
+23.10.2026 in diesem Codex-Task; die folgenden Zuordnungen sind sein Arbeitsindex.
+Keine neue Appidentität, Installation, Datenbank oder Repository.
+
+Quellen: [Zentrale Regeln](https://chatgpt.com/space/page_6681fd3e333481918de439dae6d27429),
+[Arbeitsübersicht](https://chatgpt.com/space/page_0362d62d27c881918735d88471e798e7),
+[Projektzentrale](https://chatgpt.com/space/page_9b4aa5d6c2108191959fc6410112941b),
+[MCP-Testdossier](https://chatgpt.com/space/page_7f18b1e34e808191b3851b6c15ebf582),
+[Konzept 3](https://chatgpt.com/space/page_cdcfa5fa5ae88191907385fad27cf7c2).
+
+### Verbindliche Umsetzung und Grenzen
+
+- Bestehendes Java/WebView/SQLite weiterentwickeln; Oberfläche und MCP verwenden
+  gemeinsame fachliche Anwendungsfälle und Repositorytransaktionen. Keine doppelte
+  Fachlogik oder parallele operative Datenhaltung. Pixel wird maßgeblicher Schreiber,
+  Drive optionaler Sicherungs-/Exportadapter, Kalender optionaler Terminadapter.
+- Kernbetrieb offline, ohne Backend, KI, Laptop oder verpflichtende laufende
+  App-Servicegebühr. Bestehende Verbindungen erhalten. Alten Webtunnel weder abfragen
+  noch reaktivieren. Keine neuen kostenpflichtigen Dienste, Kontorechte oder Tarife.
+- Jede Mutation mit stabiler opId/request_id, CAS/Revision und idempotentem Ergebnis;
+  atomare fachliche Änderungen, wiederaufnehmbare Dateijobs. Kein Last-write-wins
+  für Rechnungen, Zeiten, Kundenbezüge oder Preise. Historische Werte nicht ändern.
+- Geld in kleinsten Einheiten, dezimale Mengen; Instants plus ZoneId, Serien als
+  lokale Kalenderregel, Standard Europe/Vienna. Formate und Schnittstellen versionieren.
+- Kunden, Einsatzobjekte und Rechnungsempfänger unterscheiden; Subunternehmerlogik,
+  auftragslose Arbeiten, Ursprungsdateien, IDs und unabhängiges b.b./bezahlt erhalten.
+  Historische fehlende Objektbezüge und Zeitintervalle nicht erfinden.
+- Vier Hauptbereiche Heute, Objekte, Pflege, Büro; Kunden direkt in Objekte.
+  Material, Geräte, Lexikon/Neophyten, Suche, Export, Sicherung und Einstellungen
+  über konsistenten Mehr-Einstieg. Firmenprofil/Appname erhalten.
+- Farben Text #33261A, Aktion #8A4B1F, Hintergrund #FCFAF7, Karte #F8EFE5,
+  Fehler #8E2925; tatsächlicher Kontrast, 16sp/CSS-Entsprechung, 48dp-Ziele,
+  320/360/426px, 150/200% Schrift, TalkBack/Fokus/Insets/Zurück/Entwurfschutz prüfen.
+  Gespeicherte Einträge zuerst lesend; bewusster Bearbeitungsstart.
+- Echte Pixelaktionen, Installation, Restore und Autoritätswechsel bleiben getrennte
+  Entscheidungen. Fehlender Gerätezugriff blockiert unabhängige Softwarearbeit nicht.
+- Nur synthetische qa_/test_-Daten; keine Geschäftsdaten/Schlüssel in Checkout,
+  Logs, Fixtures oder APK. Vor Originalsignierung source_preservation.py PASS,
+  ausschließlich vorhandener geschützter Originalsignierweg, Remote-Readback.
+
+### Phase A: Anforderungs-/Umsetzungszuordnung und Akzeptanzfälle
+
+Status: **V** vorhanden im Quellstand (kein neuer Ausführungsnachweis), **A** anzupassen,
+**N** neu, **O** entscheidender externer Nachweis offen. Einzelabnahmen im Status.
+
+| Bedarf | Bestehende Entität / Erweiterung | Bedienweg / Anwendungsfall | Ausgang / Abnahme |
+| --- | --- | --- | --- |
+| Kunden, Abrechnungskunde, b.b. | customers, billing_customer_id, owner_state.personal_paid | Objekte → Kunden; vorhandene Entity-/Work-Services | V/A; RS-01/16 |
+| Objektakte | neue Objekte mit stabiler ID und customer_id, keine Ersatzkunden | Objekte → Objekt lesen/bearbeiten; gemeinsames Repository | N; RS-01/02/14 |
+| Anfrage/Besichtigung | Anfrage; vorhandene appointments mit purpose inspection | Büro → Neue Anfrage → Besichtigung | N/A; RS-02/12 |
+| Angebot/Annahme/Ablehnung | offers, Versionen/Positionssnapshots; bestehender OfferApplicationService | Büro → Angebot → dokumentierte Entscheidung → Auftrag | V/A; RS-02/03 |
+| Auftrag/Besuche | orders, appointments, Objekt-/Besuchsreferenz | Objekt/Planung → Einsatz planen/verschieben/absagen | V/A; RS-02/06/16 |
+| Pflege/Serie | Pflegeplan, Regelversion, occurrenceKey; vorhandene Terminlogik | Pflege → Saison/Turnus → begrenzter rollierender Horizont | N/A; RS-06 |
+| Tour | geordnete Stopps und aktive Besuchszuordnung | Heute → Nach oben/unten → bestätigtes Navigationsziel | N; RS-06/14 |
+| Timer/Leistung | work_sessions, work_session_events, worklogs | Heute/Objekt → Beginnen/Pause/Weiter/Stop/Prüfen/Abschließen | V/A; RS-05 |
+| Fotos | photos, photo_attachments, private Originale/Vorschauen | Objekt/Auftrag/Timer/Arbeit → Aufnahme mit fixiertem Kontext | V/A; RS-07/16 |
+| Material/Geräte | Katalog, Bewegungen/Gegenbuchung; Geräte/Wartung/Defekt | Timer/Planung → Verbrauch/Bedarf | N; RS-08 |
+| Rechnung/PDF | invoices, unveränderlicher Snapshot, Quellmengen, Dokumentjob | Büro → Zur Abrechnung → Prüfen → Ausgabe | V/A; RS-09/10 |
+| Zahlungen | Zahlung und Zuordnung, Korrekturprotokoll | Rechnung → Teil-/Sammelzahlung mit request_id | A/N; RS-09 |
+| Lokaler Commit | bestehende owner_state/pending/SnapshotProjection | alle UI-/MCP-Schreibwege | A; RS-01/04/12 |
+| Drive-Übergang | versioniertes Migrationsprotokoll/Epoche/Schreiberstilllegung | Einstellungen → Inventar → Sicherung → Abgleich → Entscheidung | N/O; RS-01/10/12 |
+| Verschlüsselte Vollsicherung | BackupManifest plus alle referenzierten privaten Dateien | Mehr → Sicherung → SAF/USB, Recovery-Code/Keystore | N; RS-11 |
+| Restore | temporärer Ersatzbestand, Referenzprüfung, atomare Aktivierung | Sicherung → Prüfen → ausdrücklicher Austausch | N/O; RS-10/11 |
+| Suche/Export | vollständiger lokaler Index; CSV/JSON/Originalmanifest | Mehr → Suche/Export | A/N; RS-14 |
+| Adapter/Diagnose/Sperre | bestehende MCP-/Kalender-/Drive-Adapter; private Diagnose | Einstellungen/Status; gleiche fachliche Services | A; RS-12/15 |
+| Release/Kosten/Recht | bestehender Lifecycle/Originalsignierung | geprüfter gebündelter Updatekandidat, keine Installation | A/O; RS-15 |
+
+Messbare Piloten vor Aufwandsschätzung: (1) Anfrage bis Rechnung mit 60/88-EUR-
+Teilzahlungen, (2) Pflegebesuch über Tour, segmentierte Arbeit, Fotos/Material bis
+vollständiger Backup-/Restoreprüfung. Einheiten-/Adaptertests ersetzen diese beiden
+durchgängigen UI-Piloten nicht. Noch keine belastbare Restaufwandsschätzung.
+
+### Fachliche und technische Abnahmeverträge
+
+RS-01 erhält bei Update/Abbruch/Retry IDs, Beziehungen, Stunden, Beträge, Medien,
+Dokumente, Einstellungen, b.b., Sitzung und offene Aktionen. RS-02 führt Anfrage →
+Besichtigung → Angebot → Annahme → Auftrag → Besuch → Arbeit → Rechnung → Zahlungen
+über UI und relevante gemeinsame MCP-Pfade. RS-03 bewahrt Ablehnung/Historie und
+verhindert doppelte Aufträge pro angenommener Version.
+
+RS-04 prüft manuellen Kern im Flugmodus; lokale Rechnung erst nach belegter
+Autoritätsumstellung. RS-05: 18.05.2027 08:00–10:45, Pause 09:15–09:30 =150min,
+um10:30 =135min. Prozesskill verliert nichts; Boot/Uhrsprung verlangt Prüfung,
+keine geratene Endzeit; Korrekturen behalten Original und Grund. Ein aktiver Timer.
+
+RS-06: unique(planId, occurrenceKey), Einzelterminausnahme, ausdrücklich zukünftige
+Regeländerung ohne Vergangenheitsänderung, keine historischen Nachholwellen,
+Neustart-erhaltene Tourreihenfolge/Absage/Restarbeit. RS-07: mindestens25Bilder,
+mehrere im Timer, Abbruch/Prozessende/Speichermangel/Hashdublette und Lastbestand;
+keine pauschale10Bilder-/30MB-Kundengrenze. Originale getrennt, Qualitätsprofil
+bewusst wählbar, kein nachträgliches Verkleinern; Entwurfsfotos nicht still löschen.
+
+RS-08: Materialbewegungen/Gegenbuchungen genau einmal; Gerätewarnung unabhängig
+von Zeitspeicherung. RS-09: synthetisch2,5h×52EUR +2×9EUR =148EUR bei fiktiv0%;
+60EUR →88EUR offen; weitere88EUR →bezahlt; Retry keine doppelte Zahlung/Nummer,
+keine doppelte Quellmenge. Ausgabe reserviert Nummer/Snapshot/Quellen/Job atomar;
+PDF aus genau diesem Snapshot, Absturzretry gleiche Nummer. Beleg-/PDFstatus getrennt.
+
+RS-10: Restore sperrt Ausgabe bis aktueller externer Original-/Nummernnachweis;
+Backupzähler reicht nicht. Veraltete Epoche/Clients können nicht zurückschreiben.
+Keine automatische Entscheidung über produktive Konflikte, keine gelöschten Queues.
+Migrationsinventar prüft Counts, IDs, Relationen, Mengen/Beträge/Stunden, Dateihashes,
+offene Aktionen und fehlende Originale. Nur ein Schreiber/Nummernautorität.
+
+RS-11: verschlüsseltes vollständiges Streamingbackup >40MB; Rücklesen,
+Entschlüsselung/Integrität/Referenzen vor geprüftem Erfolg; neutraler Name,
+verschlüsselte personenbezogene Metadaten. Versioniertes Manifest enthält
+formatVersion/schemaVersion/appVersion/backupId/installationId/businessId/capturedAt,
+Counts/Größen/Hashes/Nummernstand/letzteBelegIDs. Etablierte Streaming-AEAD,
+Keystore plus unabhängiger hochentropischer Recovery-Code mit Prüfsumme/Rückbestätigung.
+Kein großes RAM-Archiv, keine pauschale Vollbackupgrenze, keine automatische Bereinigung.
+USB-Abzug/falscherCode/Korruption/fehlenderSpeicher/Commitabbruch erhalten letzten
+guten und aktiven Bestand. Ersatzgerät ohne alten Keystore; zwei reale USB-Medien
+im Pixelpilot. Restore vorher temporär vollständig prüfen und aktuellen Stand
+sichern; keine Bestandsvermischung oder blind aktivierte Tokens/alte Schreiber.
+Android-Backup/Transfer passend begrenzen. Pilotziel bis10GB/60min messen, nicht garantieren.
+
+RS-12: bestehende MCP-Werkzeuge kompatibel oder explizit versionierter Übergang,
+CAS/request_id, optionale Adapterfehler blockieren lokale Speicherung nicht.
+Provider-Rücklesen ist kein unabhängiger Cloud-Uploadnachweis. RS-13: alle9Kernansichten
+(Heute, Kunden, Objekt, Planung, Auftrag, Timer, Fotos, Angebot, Rechnung), gefüllt
+und leer/ladend/fehlerhaft/offline,200%Schrift/TalkBack/Zurück/Tastatur/48dp/Insets.
+RS-14:300Kunden/450Objekte, ganze Suche mit Typ/Status/Zeitraum; p95≤300ms und20Stopps≤1s
+als gemessene Ziele; vollständiger CSV/JSON/Originalexport ohne Secrets.
+RS-15: Leerbootstrap, Source/Workspace/APK-Privacy, Originalzertifikat, Code>98,
+eingebetteter SHA/Fingerprint, Remote-Quellen, synthetisches In-place-Update;
+Pixel/Emulator/Browser/MCP getrennt. RS-16: Lexikon/Neophyten, Fotoeinstiege,
+Einsatzkunde/Empfänger, auftragslose Arbeiten/b.b. und sichtbare Altkonflikte erhalten.
+
+Jeder Abnahmefall nennt Quellcommit, Build, Umgebung, Eingabe, Erwartung, Ergebnis
+und PASS/FAIL/NOT TESTABLE. Kein PASS aus statischem Code oder fehlendem Zugriff.
+Phasen A–F des Nutzerauftrags: Inventar/Baseline → gemeinsamer Kern/Sicherung/Migration
+→ vertikale Tagesabläufe → Angebote/Rechnung/Zahlungen → Adapter/Suche/UX → volle
+Regression/Originalrelease/Update/Restore. Unabhängige Arbeiten weiterführen;
+keine produktive Installation, Rechnung, Nachricht, Zahlung oder Umstellung durch Tests.
+
+### Kosten und externe Prüfgrenzen
+
+| Posten | Pflicht/optional | Einmalig/laufend, Grenze | Ausweichweg |
+| --- | --- | --- | --- |
+| Lokaler Appkern/SQLite/PDF/Suche/Timer | Pflicht | keine verpflichtende Servicegebühr | vollständig offline |
+| USB-Medien, Ersatzgerät, Strom | betriebliche Vorsorge | Hardware/Betrieb, keine Nullkostenzusage | vorhandene kompatible Medien/Geräte |
+| Codex/Cloudbuilds | Entwicklung | vorhandener Tarif/Buildkontingent | bei Limit pausieren, keine Nachbuchung; App läuft weiter |
+| Drive/Kalender/MCP/Karten-App | optional | bestehende Anbieter-/Kontingentgrenzen | lokale Planung, USB, manuelle Bedienung |
+| Wetter | optional, kommerzielle Lizenz offen | open_meteo_non_commercial nicht als gewerblich freigegeben ansehen | lokale Planung ohne Wetter; keine stille Abschaltung |
+| Steuer-/Rechtsprüfung Österreich | vor produktiver Nutzung | fachliche Prüfung, Kosten nicht zugesichert | offene Pflichtangaben/Rundung/Dokumentarten/FAGG/E-Rechnung benennen |
+
+Aktuelle Primärquellen für SAF, Android-Backup, SystemClock, PdfDocument, Biometrie,
+Tink Streaming-AEAD, Signierung/Developer Verification, österreichisches Recht und
+Wetterlizenz am tatsächlichen Ausführungstag prüfen. Quellenzugriff, implementierte
+Regel und erfolgreicher Gerätetest sind verschiedene Nachweise.
+
+---
+
+## Historischer Auftrag und datierte Nachweise bis zum Folgeauftrag
+
 Stand: 20. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 Priorität: P3 – Black-Box-UX und Workflow-Vereinfachung; P0 und P1 bestanden, P2 technisch sicher konsolidiert mit dokumentierten Restgrenzen
