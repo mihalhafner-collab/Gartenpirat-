@@ -1,3 +1,46 @@
+# Pflanzenbibliothek98 – originalsignierte APK fertiggestellt
+
+**[Haus & Garten 1.54.9 / Build 98](https://drive.google.com/file/d/1SXrVaoq_rsGIKo57XeDu0CQDJXB5bepl/view)** mit 314 Pflanzenprofilen und 628
+Offlinebildern. 181 bestehende IDs erhalten, 133 Profile ergänzt. Bestehende
+Heute-/MCP-/Syncfunktionen erhalten; kein Reset und keine Pixelinstallation.
+
+Originalquelle: `dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c`, unveränderliches Tag `source/v1.54.9-build98`.
+App-Fingerprint: `fd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae`.
+APK-SHA256: `ffa7525b85ac47a0ec78cdd352cb5fb327293bd1138a9cd9784fa23f3f0c9997`.
+Original-ZIP-SHA256: `cfaa05c384d2e40ada1de495add2500a1bc590e3fb38879851992a62432a196f`.
+[Vollständige Originalquellen und verlustfreie TXT-Ableitungen](https://drive.google.com/drive/folders/1iOo71s1cmHcVFtBfa3rVOc2bAf-68zbW).
+Das Original-ZIP liegt verlustfrei XZ-komprimiert vor; vollständiger lokaler
+Roundtrip byteidentisch. Review-TXT-ZIP enthält alle Exporttexte und Manifest.
+Großes Archiv/APK: vollständiger authentifizierter Stream und Größenvergleich;
+kleine Belege/Review-ZIP: tatsächlicher SHA256-Bytevergleich. Kein behaupteter
+Remote-SHA256 aus reinen Größen. [Tatsächlicher QA-Nachweis](https://drive.google.com/file/d/1K2Uf6J_xT7bW9ozezC3Fwpp3Cd1M4NyQ/view).
+
+420 Python-Tests (37 Tests zur Erzeugung fremder QA-Signaturen ausdrücklich
+ausgeschlossen), 50 JVM-Suiten, 55 Browser-Suiten und 55 MCP-stdio-Szenarien PASS.
+P1 bleibt 117 Tools / 156 UI-Aktionen. Build/Lint, Asset-/Bootstrap-/Privacyprüfung,
+Originalzertifikat, 16-KiB-Ausrichtung und eingebettete Provenienz PASS.
+Native Prüfung: 314 Profile / 628 Bitmapdekodierungen, Katalogabfragen samt Synonymen
+und EU-/CH-Trennung, echte WebView-Bedienung, leerer isolierter Android-Store,
+allgemeine Navigation und OS-Schriftgrößen 1,0 / 1,5 / 2,0 PASS. 9 Bildschirmbelege tatsächlich
+angesehen; Schrift/Anzeige restauriert. Installierte APK bytegleich.
+Ein einmaliger Navigationsabbruch im Software-AVD bleibt samt bestandenem
+Wiederholungslauf derselben APK ohne Code-/Geschäftsdatenänderung dokumentiert.
+
+Updatenachweis mit eigenem originalsigniertem 97-Testausgang `0430eaa`:
+97 → vorläufige 98-Kandidaten → endgültiger Build 98 ohne Datenreset/Downgrade. Vollständiger ursprünglicher
+97-Ledger nach allen Prüfungen unverändert: Stammdaten, Pending, Beziehungen und
+stabile Timerfelder. Dies ist kein direkter Updatenachweis mit der früher
+ausgelieferten 97-Drive-APK und keine physische Pixel-Abnahme. App- und getrennte
+QA-Quellcommits stehen im JSON; ältere fehlerhafte Testannahmen bleiben dort
+nachvollziehbar. Keine neue produktive Google-Freigabe oder Syncaktion.
+
+304 aktuelle botanische Seiten / 4080 Feldgruppen und individuelle Fotorechte geprüft.
+Alle 628 gewählten Motive gesichtet; 25 ungewisse/ungeeignete Referenzen gesperrt.
+Datierte Rechtsbelege, künftige EU-Wirksamkeit und CH-Anhänge getrennt erhalten.
+Keine unabhängige botanische Expertenbestimmung behauptet.
+
+## Historische Zwischenstände
+
 # Pflanzenbibliothek98 – Integration abgeschlossen, APK-Abnahme läuft
 
 Aktueller Stand der Fortsetzung vom23.10.2026: **314 Profile /628 Offlinebilder**

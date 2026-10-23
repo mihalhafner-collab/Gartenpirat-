@@ -31,7 +31,10 @@
     "documentation96": "1oMjiRt2OqcR5mKcSbsYjVv1hEGlL7QHD",
     "candidate97": "1ZPwhieYXLRDwqdaSoY_SkqdgPffsN341",
     "source97": "1dMX0byFIGCzOLSk3N3Cs6U4WVWyfZ3t8",
-    "development97": "1rxp9cbTf2srnopH-X8p9Xar6ZGQViPAn"
+    "development97": "1rxp9cbTf2srnopH-X8p9Xar6ZGQViPAn",
+    "candidate98": "1k69XGlrCNASSl68dzWwUoaRTJeVc9ohm",
+    "source98": "1iOo71s1cmHcVFtBfa3rVOc2bAf-68zbW",
+    "development98": "1sNafTvi2E2RtlfGpSiR_O3yo5D_IlN4u"
   },
   "runtime_folder_ids": [
     "1qR33tKpsKa-VxLeuTbXibjgYGjpyE8__",
@@ -54,7 +57,17 @@
     "1YOT0voQQZ_ntiA_O9jBWVr3ifR8AnBQ8",
     "154LI5YHV11KiD-evgy2OoPwzjcuvfYTU",
     "19w2tUJRWlKr_0R37IU5jRkP34sCl6CTc",
-    "18z0qPxs27gc_J7JmfFMx-QDZQydeSbqF"
+    "18z0qPxs27gc_J7JmfFMx-QDZQydeSbqF",
+    "1IgSMAJogZFA0rbxQCGG9JbkW4wYljQ-q",
+    "1r6IUFJJ5VlGYJ0oYeDex4mNoD8J8aD38",
+    "1ze3vXj92BShBaBmOhC0GKM5r6qdsTnY5",
+    "12mJqhTm557QN_APSwflSPliy8rlIKitI",
+    "1LW3G8hwT9CgvjqcmLYmmmVuNTJrNnsHl",
+    "1JJANIIRQE0bjlfxr0B_C_6679xFUpwzN",
+    "1SXrVaoq_rsGIKo57XeDu0CQDJXB5bepl",
+    "1p0XemiDV0V5-nvaFsSQCFcib1wtB0uPL",
+    "1K2Uf6J_xT7bW9ozezC3Fwpp3Cd1M4NyQ",
+    "1tGaD36AnVupSplOC7q_nfEWVlHY7vm7O"
   ],
   "retention_days": {
     "apk_retired": 0,
@@ -72,7 +85,8 @@
     94,
     95,
     96,
-    97
+    97,
+    98
   ],
   "no_runtime_writes": true,
   "no_history_rewrite": true,
@@ -89,5 +103,5 @@
     "weekly": "6ad8f37b548c8191b18d43b443aae6d3",
     "monthly": "6ad8f37da1d88191b7aa7fbf09473760"
   },
-  "keep_builds_evidence": "Prior89/90/93/94/95/96 protections retained; add original97 cloud candidate. Read-only Pixel metadata23Oct2026 observes96. No protection removal, retirement clock or deletion without physical acceptance."
+  "keep_builds_evidence": "All prior protections retained; add original98 cloud candidate and complete sources. No physical installation during98 task; last historical Pixel observation96. No retirement clock, protection removal or deletion."
 }

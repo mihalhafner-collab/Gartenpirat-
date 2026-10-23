@@ -1,3 +1,20 @@
+# APK-Download
+
+Aktueller originalsignierter Cloud-Kandidat: **[1.54.9 / Build98](https://drive.google.com/file/d/1SXrVaoq_rsGIKo57XeDu0CQDJXB5bepl/view)**.
+314 Pflanzenprofile, 628 Offlinebilder, 181 Bestands-IDs erhalten und 133 Ergänzungen.
+Cloud-/Native-/Schrift-/Datenerhaltprüfungen bestanden. Keine Pixelinstallation.
+
+- [Vollständige Originalquellen und TXT-Review](https://drive.google.com/drive/folders/1iOo71s1cmHcVFtBfa3rVOc2bAf-68zbW) – Original-ZIP verlustfrei XZ-verpackt.
+- [QA und Versionsnachweis](https://drive.google.com/file/d/1K2Uf6J_xT7bW9ozezC3Fwpp3Cd1M4NyQ/view).
+- Git-Tag `source/v1.54.9-build98`, Commit `dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c`.
+
+APK-SHA256: `ffa7525b85ac47a0ec78cdd352cb5fb327293bd1138a9cd9784fa23f3f0c9997`.
+Original-ZIP-SHA256: `cfaa05c384d2e40ada1de495add2500a1bc590e3fb38879851992a62432a196f`.
+Große Drive-Dateien vollständig gestreamt/größengeprüft; kleine Belege bytegeprüft.
+Updatetest mit eigenem originalsigniertem97Testausgang, physische Abnahme offen.
+
+## Historische Downloadstände und Nachweise
+
 ## In Vorbereitung: Pflanzenbibliothek für 1.54.9 / Build 98
 
 Noch keine neue APK: Import und Oberfläche sind vorbereitet, alle 55 Browser-Suiten
