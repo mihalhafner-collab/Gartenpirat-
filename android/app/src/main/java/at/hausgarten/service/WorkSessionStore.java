@@ -21,7 +21,7 @@ final class WorkSessionStore {
         public long elapsedMillis(){ return SystemClock.elapsedRealtime(); }
         public String bootMarker(){
             if(context!=null){int count=android.provider.Settings.Global.getInt(context.getContentResolver(),android.provider.Settings.Global.BOOT_COUNT,-1);if(count>=0)return "boot:"+count;}
-            return Long.toString(wallMillis()-elapsedMillis());
+            return "unverified_boot";
         }
     }
     private final SQLiteDatabase db;
@@ -45,7 +45,7 @@ final class WorkSessionStore {
                 JSONObject original=new JSONObject(start.getString(1));original.remove("_clock");
                 if(!PixelMcpWriteTools.hash(original).equals(PixelMcpWriteTools.hash(input)))throw new PixelMcpWriteTools.Rejected("REPLAY_MISMATCH","Anfragekennung enthält andere Startangaben.");
             }
-            return current(existing);
+            JSONObject replayed=current(existing);db.setTransactionSuccessful();return replayed;
         }
         if(activeId()!=null){String active=activeId();event(active,"START_EXISTING",request,input);db.setTransactionSuccessful();return current(active);}
         String date=input.optString("work_date",LocalDate.now(java.time.ZoneId.of("Europe/Vienna")).toString());
@@ -61,7 +61,7 @@ final class WorkSessionStore {
     JSONObject discard(String id,String request)throws Exception{
         db.beginTransaction();try{
             String replay=sessionForRequest(request);
-            if(!replay.isEmpty()){if(!id.equals(replay))throw new IllegalArgumentException("Anfrage gehört zu einer anderen Sitzung.");requireEvent(request,"DISCARD");return current(id);}
+            if(!replay.isEmpty()){if(!id.equals(replay))throw new IllegalArgumentException("Anfrage gehört zu einer anderen Sitzung.");requireEvent(request,"DISCARD");JSONObject replayed=current(id);db.setTransactionSuccessful();return replayed;}
             JSONObject before=current(id);String state=before.getString("state");
             if(!RUNNING.equals(state)&&!PAUSED.equals(state)&&!STOPPED.equals(state))throw new IllegalStateException("Nur eine noch nicht gespeicherte Zeiterfassung kann verworfen werden.");
             ContentValues values=new ContentValues();values.put("state",CANCELLED);values.put("worked_ms",before.getLong("worked_ms"));values.putNull("segment_started_wall_ms");values.putNull("segment_started_elapsed_ms");values.put("updated_at",nowIso());
@@ -71,7 +71,7 @@ final class WorkSessionStore {
     JSONObject restore(String id,String request)throws Exception{
         db.beginTransaction();try{
             String replay=sessionForRequest(request);
-            if(!replay.isEmpty()){if(!id.equals(replay))throw new IllegalArgumentException("Anfrage gehört zu einer anderen Sitzung.");requireEvent(request,"RESTORE");return current(id);}
+            if(!replay.isEmpty()){if(!id.equals(replay))throw new IllegalArgumentException("Anfrage gehört zu einer anderen Sitzung.");requireEvent(request,"RESTORE");JSONObject replayed=current(id);db.setTransactionSuccessful();return replayed;}
             if(activeId()!=null)throw new IllegalStateException("Eine andere Zeiterfassung ist aktiv. Bitte diese zuerst abschließen.");
             if(!CANCELLED.equals(current(id).getString("state")))throw new IllegalStateException("Diese Zeiterfassung wurde nicht verworfen.");
             ContentValues values=new ContentValues();values.put("state",PAUSED);values.put("updated_at",nowIso());db.update("work_sessions",values,"id=?",new String[]{id});event(id,"RESTORE",request,new JSONObject());db.setTransactionSuccessful();return current(id);
@@ -146,7 +146,7 @@ final class WorkSessionStore {
     }
     private JSONObject transition(String id,String request,String expected,String next,String event,boolean accrue)throws Exception{
         db.beginTransaction();try{
-        String replay=sessionForRequest(request);if(!replay.isEmpty()){if(!replay.equals(id))throw new IllegalArgumentException("Diese Anfragekennung gehört zu einer anderen Sitzung.");requireEvent(request,event);return current(id);}
+        String replay=sessionForRequest(request);if(!replay.isEmpty()){if(!replay.equals(id))throw new IllegalArgumentException("Diese Anfragekennung gehört zu einer anderen Sitzung.");requireEvent(request,event);JSONObject replayed=current(id);db.setTransactionSuccessful();return replayed;}
         JSONObject before=current(id);if(before.optBoolean("review_required"))throw new IllegalStateException("Sitzung prüfen: Geräte-Neustart, Uhränderung oder unplausible Dauer. Es wurde kein Arbeitsende geschätzt.");if(!expected.equals(before.getString("state")))throw new IllegalStateException("Aktion passt nicht zum aktuellen Sitzungszustand.");
         long wall=clock.wallMillis(), elapsed=clock.elapsedMillis(), worked=before.getLong("worked_ms");
         if(accrue)worked=storedWorked(id)+runningDeltaFor(id);

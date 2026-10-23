@@ -7,6 +7,7 @@ final class WorkSessionTimingRules {
 
     static String reviewReason(long wallStart, long elapsedStart, String bootStart,
                                long wallNow, long elapsedNow, String bootNow) {
+        if ("unverified_boot".equals(bootStart)||"unverified_boot".equals(bootNow)) return "CLOCK_EVIDENCE_UNAVAILABLE";
         if (bootStart == null || bootStart.isEmpty() || !bootStart.equals(bootNow)) return "DEVICE_RESTART";
         long elapsed = elapsedNow - elapsedStart, wall = wallNow - wallStart;
         if (elapsed < 0 || wall < 0) return "CLOCK_REVERSED";

@@ -25,11 +25,11 @@ public class BusinessDataBridge {
 @JavascriptInterface public String getSyncConflict(String id){try{return PixelMcpOwnerTools.conflicts(store.getState(),new JSONObject().put("limit",1).put("client_id",id)).toString();}catch(Exception e){return "ERROR: Konflikt konnte nicht vollständig gelesen werden.";}}
 @JavascriptInterface public String resolveSyncConflict(String request){try{return new PixelOwnerAccess(context,store).execute("resolve_sync_conflict",new JSONObject(request)).toString();}catch(Exception e){return "ERROR: "+e.getMessage();}}
 @JavascriptInterface public String getWorkSession() {
-    try { return new WorkSessionStore(store.getWritableDatabase(),context).current().toString(); }
+    try { return store.workSessions().current().toString(); }
     catch (Exception error) { return "{\"state\":\"ERROR\",\"message\":"+JSONObject.quote(String.valueOf(error.getMessage()))+"}"; }
 }
 @JavascriptInterface public String reviewWorkSession(String sessionId,String input) {
-    try { return new WorkSessionStore(store.getWritableDatabase(),context).reviewTime(sessionId,new JSONObject(input)).toString(); }
+    try { return store.workSessions().reviewTime(sessionId,new JSONObject(input)).toString(); }
     catch(Exception error){ return "ERROR: "+error.getMessage(); }
 }
 @JavascriptInterface public String startWorkSession(String value) {
@@ -37,27 +37,27 @@ public class BusinessDataBridge {
     catch (Exception error) { return "ERROR: " + error.getMessage(); }
 }
 @JavascriptInterface public String pauseWorkSession(String sessionId,String requestId) {
-    try { return new WorkSessionStore(store.getWritableDatabase(),context).pause(sessionId,requestId).toString(); }
+    try { return store.workSessions().pause(sessionId,requestId).toString(); }
     catch (Exception error) { return "ERROR: " + error.getMessage(); }
 }
 @JavascriptInterface public String resumeWorkSession(String sessionId,String requestId) {
-    try { return new WorkSessionStore(store.getWritableDatabase(),context).resume(sessionId,requestId).toString(); }
+    try { return store.workSessions().resume(sessionId,requestId).toString(); }
     catch (Exception error) { return "ERROR: " + error.getMessage(); }
 }
 @JavascriptInterface public String stopWorkSession(String sessionId,String requestId) {
-    try { return new WorkSessionStore(store.getWritableDatabase(),context).stop(sessionId,requestId).toString(); }
+    try { return store.workSessions().stop(sessionId,requestId).toString(); }
     catch (Exception error) { return "ERROR: " + error.getMessage(); }
 }
 @JavascriptInterface public String continueWorkSession(String sessionId,String requestId) {
-    try { return new WorkSessionStore(store.getWritableDatabase(),context).continueStopped(sessionId,requestId).toString(); }
+    try { return store.workSessions().continueStopped(sessionId,requestId).toString(); }
     catch (Exception error) { return "ERROR: " + error.getMessage(); }
 }
 @JavascriptInterface public String discardWorkSession(String sessionId,String requestId) {
-    try { return new WorkSessionStore(store.getWritableDatabase(),context).discard(sessionId,requestId).toString(); }
+    try { return store.workSessions().discard(sessionId,requestId).toString(); }
     catch(Exception error){return "ERROR: "+error.getMessage();}
 }
 @JavascriptInterface public String restoreWorkSession(String sessionId,String requestId) {
-    try { return new WorkSessionStore(store.getWritableDatabase(),context).restore(sessionId,requestId).toString(); }
+    try { return store.workSessions().restore(sessionId,requestId).toString(); }
     catch(Exception error){return "ERROR: "+error.getMessage();}
 }
 @JavascriptInterface public String completeWorkSession(String sessionId,String value,String requestId) {

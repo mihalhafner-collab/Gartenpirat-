@@ -275,8 +275,8 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             check("legacy tunnel preferences stay unchanged without user save",()->{PixelTunnelConfig c=new PixelTunnelConfig(context);yes(c.organization().isEmpty()&&!c.configured());yes(!context.getSharedPreferences("pixel_tunnel_private",0).contains("organization"));});
             check("organization persists separately without changing IDs or credentials",()->{PixelTunnelConfig c=new PixelTunnelConfig(context);String id=c.id();c.organization("org-IsolatedTest1234");PixelTunnelConfig reopenedConfig=new PixelTunnelConfig(context);yes(reopenedConfig.organization().equals("org-IsolatedTest1234")&&reopenedConfig.id().equals(id)&&!reopenedConfig.configured());rejected(()->c.organization("org-unsafe\r\n"));yes(c.organization().equals("org-IsolatedTest1234"));});
             JSONObject master=fixture();yes(prefs.edit().putString("drive_snapshot",master.toString()).commit());
-            store=new PixelLocalStore(context);final PixelLocalStore first=store;
-            FakeClock timerClock=new FakeClock();WorkSessionStore timer=new WorkSessionStore(first.getWritableDatabase(),timerClock);
+            FakeClock timerClock=new FakeClock();store=new PixelLocalStore(context,timerClock);final PixelLocalStore first=store;
+            WorkSessionStore timer=first.workSessions();
             JSONObject timerStarted=timer.start(SyntheticBusinessData.object().put("request_id","timer-start").put("work_date","2026-10-11"));String sessionId=timerStarted.getString("id");
             check("timer starts without customer and persists a running draft",()->{yes(timerStarted.getString("state").equals(WorkSessionStore.RUNNING));yes(timerStarted.getString("customer_id").isEmpty());});
             timerClock.advance(3_600_000);JSONObject timerPaused=timer.pause(sessionId,"timer-pause");
@@ -295,19 +295,21 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             WorkSessionStore referenceTimer=new WorkSessionStore(first.getWritableDatabase(),referenceClock);
             JSONObject reference=referenceTimer.start(SyntheticBusinessData.object().put("request_id","qa_reference_start").put("work_date","2027-05-18"));String referenceId=reference.getString("id");
             check("second start returns existing persistent session",()->yes(referenceTimer.start(SyntheticBusinessData.object().put("request_id","qa_reference_duplicate")).getString("id").equals(referenceId)));
-            referenceClock.advance(75*60_000L);referenceTimer.pause(referenceId,"qa_reference_pause");referenceClock.advance(15*60_000L);referenceTimer.resume(referenceId,"qa_reference_resume");referenceClock.advance(60*60_000L);
+            referenceClock.advance(75*60_000L);referenceTimer.pause(referenceId,"qa_reference_pause");referenceClock.advance(15*60_000L);rejected(()->referenceTimer.resume(referenceId,"qa_reference_pause"));referenceTimer.resume(referenceId,"qa_reference_resume");referenceClock.advance(60*60_000L);
             check("reference day 10:30 has135 net minutes",()->yes(new WorkSessionStore(first.getWritableDatabase(),referenceClock).current(referenceId).getLong("worked_ms")==135*60_000L));
             referenceClock.advance(15*60_000L);JSONObject referenceStopped=referenceTimer.stop(referenceId,"qa_reference_stop");
             check("reference day 10:45 has150 net minutes and15 pause",()->yes(referenceStopped.getLong("worked_ms")==150*60_000L&&referenceStopped.getInt("break_minutes")==15&&!referenceStopped.getBoolean("review_required")));
             referenceTimer.finalizeSession(referenceId,"qa_reference_worklog","qa_reference_finalize");
+            JSONObject latchInput=SyntheticBusinessData.object().put("request_id","qa_latch_start");JSONObject latch=timer.start(latchInput);String latchId=latch.getString("id");timerClock.advance(60_000);timerClock.wall+=300_000;
+            check("direct start replay persists review even after clock is restored",()->{yes(timer.start(latchInput).getBoolean("review_required"));timerClock.wall-=300_000;JSONObject frozen=timer.current(latchId);yes(frozen.getBoolean("review_required")&&frozen.getLong("worked_ms")==0);timer.discard(latchId,"qa_latch_discard");});
             JSONObject second=timer.start(SyntheticBusinessData.object().put("request_id","timer-second"));timerClock.advance(300_000);timerClock.boot="boot-b";timerClock.wall+=300_000;timerClock.elapsed=10_000;
             check("reboot preserves original session and blocks guessed elapsed time",()->{
                 JSONObject unverified=timer.current(second.getString("id"));yes(unverified.getBoolean("review_required")&&unverified.getLong("worked_ms")==0&&unverified.getString("review_reason").equals("DEVICE_RESTART"));
                 try{timer.pause(second.getString("id"),"timer-after-boot");throw new AssertionError("Guessed time accepted");}catch(IllegalStateException expected){}
                 JSONObject input=SyntheticBusinessData.object().put("request_id","qa_timer_review").put("expected_revision_hash",unverified.getString("revision_hash")).put("worked_minutes",5).put("break_minutes",0).put("reason","QA explicitly verified after reboot").put("confirmed",true);
-                JSONObject checked=timer.reviewTime(second.getString("id"),input);yes(!checked.getBoolean("review_required")&&checked.getLong("worked_ms")==300_000L&&checked.getString("state").equals(WorkSessionStore.STOPPED));
-                yes(timer.reviewTime(second.getString("id"),input).getLong("worked_ms")==300_000L);
-                rejected(()->timer.reviewTime(second.getString("id"),SyntheticBusinessData.object(input.toString()).put("worked_minutes",6)));
+                input.put("session_id",second.getString("id"));JSONObject checked=first.execute("review_work_session",input).getJSONObject("data").getJSONObject("session");yes(!checked.getBoolean("review_required")&&checked.getLong("worked_ms")==300_000L&&checked.getString("state").equals(WorkSessionStore.STOPPED));
+                yes(first.execute("review_work_session",input).getJSONObject("data").getBoolean("replayed"));
+                rejected(()->first.execute("review_work_session",SyntheticBusinessData.object(input.toString()).put("worked_minutes",6)));
                 timer.continueStopped(second.getString("id"),"qa_timer_review_continue");
             });
             final JSONObject created=first.execute("create_customer_work_record",args("qa-request-one"));
@@ -320,7 +322,7 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             check("bad reference rollback",()->{rejected(()->first.execute("create_customer_work_record",args("qa-bad-customer").put("customer_id","qa_unknown")));yes(first.pendingActions().length()==1);});
             check("queued is NOT confirmed",()->{JSONObject s=first.status(client,first.getState());yes(s.getString("status").equals("queued")&&!s.getBoolean("confirmed_by_app")&&!s.getBoolean("uploaded_to_drive"));});
             check("transfer distinct from laptop acceptance",()->{first.markUploaded(first.pendingActionsForDrive());JSONObject s=first.status(client,first.getState());yes(s.getString("status").equals("transferred")&&!s.getBoolean("confirmed_by_app"));});
-            store.close();store=new PixelLocalStore(context);final PixelLocalStore reopened=store;WorkSessionStore timerReopened=new WorkSessionStore(reopened.getWritableDatabase(),timerClock);
+            store.close();store=new PixelLocalStore(context,timerClock);final PixelLocalStore reopened=store;WorkSessionStore timerReopened=reopened.workSessions();
             check("replay persists after database reopen",()->{yes(reopened.execute("create_customer_work_record",args("qa-request-one")).getJSONObject("data").getBoolean("replayed"));yes(reopened.pendingActions().length()==1);});
             JSONObject saved=SyntheticBusinessData.object(reopened.pendingActions().getJSONObject(0).getJSONObject("payload").toString());saved.remove("_mcp_create");
             master.getJSONArray("worklogs").put(saved);master.getJSONArray("accepted_ids").put(client);yes(prefs.edit().putString("drive_snapshot",master.toString()).commit());reopened.acknowledge(Collections.singleton(client));

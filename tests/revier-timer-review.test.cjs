@@ -47,5 +47,14 @@ const fixtureSource=require('./ui-fixture-source.cjs');
    assert.equal(calls[0].input.worked_minutes,150);assert.equal(calls[0].input.break_minutes,15);
    assert.equal(await page.evaluate(()=>savedTimerWorks.length),0);assert.equal(await page.evaluate(()=>timerFixture.worked_ms),9000000);
   });
+  await check('Changed session revision preserves correction draft and requires a fresh confirmation',async()=>{
+   await page.evaluate(()=>{timerFixture.review_required=true;timerFixture.revision_hash='c'.repeat(64);TodayUI.render();});
+   await page.locator('[data-session-action="review"]').click();
+   assert.equal(await page.locator('#timer-review-work').inputValue(),'150');
+   assert.equal(await page.locator('#timer-review-reason').inputValue(),'QA überprüfter Referenztag');
+   assert.equal(await page.locator('#timer-review-dialog [name=confirmed]').isChecked(),false);
+   assert((await page.locator('#timer-review-dialog [role=alert]').innerText()).includes('Eingaben bleiben erhalten'));
+   await page.locator('[data-review-close]').click();assert.equal(await page.evaluate(()=>reviewCalls.length),2);
+  });
  }finally{await browser.close();fs.mkdirSync('outputs/integration-ui',{recursive:true});fs.writeFileSync('outputs/integration-ui/revier-timer-review.json',JSON.stringify({environment:'Cloud Chromium with synthetic bridge; no native SQLite or Pixel evidence',results},null,2));}
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -16,6 +16,7 @@ public final class WorkSessionTimingTests {
         yes(WorkSessionTimingRules.reviewReason(100,10,"qa_boot",200,5,"qa_boot").equals("CLOCK_REVERSED"));
         yes(WorkSessionTimingRules.reviewReason(0,0,"qa_boot",90_000_000,90_000_000,"qa_boot").equals("DURATION_REVIEW_REQUIRED"));
         yes(delta(100)==6_000_000L);
+        yes(WorkSessionTimingRules.reviewReason(100,10,"unverified_boot",200,110,"unverified_boot").equals("CLOCK_EVIDENCE_UNAVAILABLE"));
         System.out.println("PASS "+checks+" clock/reference-day rules; native persistence requires Android execution");
     }
 }

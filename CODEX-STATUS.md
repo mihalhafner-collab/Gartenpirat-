@@ -3,6 +3,32 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Revier Solo – native Erstprüfung und korrigierte gemeinsame Uhrenquelle
+
+Erster originalsignierter interner Prüfbau99 aus00974518426e1a2bdfcb07c5eba1223071a49ca3:
+Signatur/Privacy bestanden, jedoch keine native Gesamtfreigabe. Der ältere native
+Test mischte FakeClock und Geräteuhr in derselben SQLite-Sitzung; der neue Schutz
+blockierte korrekt statt nach Bootwechsel zu schätzen. Gemeinsames Repository
+bietet nun eine einheitliche injizierbare Uhrenquelle (Produktivstandard weiter
+Android SystemClock/BOOT_COUNT). Bridge, Store und MCP verwenden dieselbe
+Sitzungsinstanzgrenze; Test öffnet den Store auch nach Neustart mit derselben
+synthetischen Uhr. Keine Lockerung der Zeitprüfung. Prüfung wird wiederholt.
+
+Korrigierter Stand:52 JVM-Suiten und App-/Instrumentierungskompilierung PASS.
+11 Zeitregelprüfungen, zusätzlich persistenter Prüfmarker beim direkten Startreplay
+und tatsächlicher MCP-Korrekturpfad in der nativen Fixture. Prüfdialog bewahrt bei
+geänderter Revision die Eingaben und verlangt eine neue Bestätigung;5 Browserfälle
+bei320/360/426px und200Prozent PASS. Kein geschätztes Arbeitsende.
+
+Zusätzlich bleibt bei direkten Replay-Aufrufen der persistente Uhrprüfmarker
+auch im Transaktionspfad erhalten. Fehlende Bootkennung erzwingt Prüfung statt
+Vergleich eines unzuverlässigen wall-minus-elapsed-Werts. Erstbau99 hat SHA256
+77eec9a4dae8888b2191e77a72d52ec778d34bed025fc0b82def2164c8f33865;
+Originalzertifikat a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8.
+Nicht ausgeliefert, kein99-Tag, keine Pixelinstallation. Exakte0097451-Originalquellen
+als geprüfter ZIP-/TXT-Rundlauf außerhalb des Checkouts erhalten; nachfolgende
+Quelländerung benötigt eigenen sauberen Commit/Remote-Readback und Neubau.
+
 ## Revier Solo – tatsächlicher Zwischenstand, 23.10.2026
 
 **Auftrag läuft; Gesamtziel und Phasen B–F sind nicht abgeschlossen.** Kein
