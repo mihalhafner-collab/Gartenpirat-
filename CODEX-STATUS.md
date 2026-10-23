@@ -3,6 +3,10 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Auftrag97 – endgültiges Voraudit nach Sichtkorrektur grün
+
+Finale gesamte54Browser-Suiten/0FAIL einschließlich13Übersichtsfällen und sichtbarer Terminzeit/Kunde mit aktivem Timer+gespeicherter Arbeit bei360×616. Alte P3-Präsentationserwartung für leeres Idle-Timerelement erlaubt jetzt gleiche y-Koordinate zum folgenden Inhalt; bei aktivem Timer strikte Reihenfolge zusätzlich geprüft, fachliche Tests unverändert. Native Java-/AndroidTest-/Lint-Vorprüfung42Tasks PASS;0Fehler/54bestehende Warnungen. Vertrags-/UI-/Source-/Workspace-Gates PASS; backendunverändert seit50JVM/395Python/55stdio-MCP/29Kamera-/47Cleanup-Prüfungen.13gezielte Fälle sowohl echte Layoutregression rot als auch korrigierte Fassung grün. Alle aktuellen Implementierungspunkte vor erneutem Originalbuild überprüft. Version1.54.8/97 bleibt unpublizierter Kandidat; keine97-Versionsmarke gesetzt. Endgültige App und Test-APK aus demselben neuen gesicherten Commit bauen, komplette native310Prüfungen/UI/Fonts/korrekten96→97-Vergleich und Byte-Provenienz wiederholen.9cc-Quellgeneration erst nach vollständigem Ersatz eindeutig als Zwischenstand kennzeichnen.
+
 ## Auftrag97 – Sichtprüfung deckt alte CSS-Reihenfolge auf
 
 Alle3nativen Schriftgrößen1.0/1.5/2.0 mit tatsächlich fokussierter MainActivity PASS,9Bilder angesehen; SystemUI-ANR zuvor strikt zurückgewiesen und ausschließlich eigenen Software-AVD stabilisiert (temporärer Runtime-Timeout10, Testdisplay vorab eingerichtet, exaktes OS-Wait; keine Appdaten gelöscht). Font/physisches480×960-Display/Dichte240 anschließend tatsächlich restauriert. Keine Pixel-Performancebehauptung.
