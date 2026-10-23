@@ -78,8 +78,6 @@ body.field-ui{--action:var(--hg-green-btn);--action-soft:var(--hg-sage);--planni
 .field-ui #design-metrics .design-metric+.design-metric{border-left:1px solid var(--hg-line)}
 .field-ui #more-page [data-open=planning-page]{background:transparent;color:var(--hg-info-text)}
 .planning-weather-reason{display:block;margin-top:4px;font-size:var(--hg-fs-caption);font-weight:var(--hg-fw-regular)}
-#home #field-today-actions{order:4}
-#home #workday-timer.has-active-session+#field-today-actions{order:0}
 
 /* Main tabs use a title; nested screens keep their existing header Back. */
 .field-ui #customers>.page-head>.back,.field-ui #more-page>.page-head>.back{display:none}
@@ -117,10 +115,3 @@ html{scroll-behavior:auto;overscroll-behavior-y:contain}
 .field-ui .daily-list-tools{bottom:calc(var(--app-nav-height,80px) + var(--design-keyboard,0px));box-shadow:0 2px 8px #173d2712}
 .field-ui #planning-home{border:1px solid var(--hg-line);box-shadow:none}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
-
-/* Current work stays first; the next appointment and recorded totals follow. */
-.field-ui #home #workday-timer{order:0}
-.field-ui #home #field-today-actions{order:1}
-.field-ui #home #planning-home{order:2}
-.field-ui #home #design-metrics{order:3}
-.field-ui #home #design-upcoming{order:4}

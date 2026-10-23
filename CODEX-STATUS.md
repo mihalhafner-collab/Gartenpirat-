@@ -3,6 +3,12 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Auftrag97 – Sichtprüfung deckt alte CSS-Reihenfolge auf
+
+Alle3nativen Schriftgrößen1.0/1.5/2.0 mit tatsächlich fokussierter MainActivity PASS,9Bilder angesehen; SystemUI-ANR zuvor strikt zurückgewiesen und ausschließlich eigenen Software-AVD stabilisiert (temporärer Runtime-Timeout10, Testdisplay vorab eingerichtet, exaktes OS-Wait; keine Appdaten gelöscht). Font/physisches480×960-Display/Dichte240 anschließend tatsächlich restauriert. Keine Pixel-Performancebehauptung.
+
+Bildprüfung fand trotz formaler Touch-/Overflow-Abnahme eine relevante Übersichtsschwäche: alte field-ui.css/workday-ui.css-Orderregeln priorisierten Zuletzt erfasst vor der Terminansicht; aktiver Timerblock zu hoch. Neues13. Browser-Szenario mit gespeicherter Arbeit/aktivem Timer/360×616px tatsächlich rot.12alte Home-order-Regeln entfernt, DOM-Reihenfolge allein maßgeblich; Timerstatus kompakt mit barrierefreiem48dp-Mehr-Menü.13Übersichtsfälle nach Korrektur PASS, native Prüfung ergänzt explizit sichtbare Terminzeit/Kunde oberhalb unterer Aktionen. Erneute54Browser-/native Compile-/Voraudit-Runde läuft. Noch kein finaler97-Tag/APK ausgeliefert;9cc4e18/91b50e7d ist dadurch ein nicht ausgelieferter Zwischenkandidat, seine Quellkopie bleibt bis vollständig gesichertem Ersatz erhalten. Nächster Originalbuild übernimmt auch alle QA-Fixes; App-/Testquellen wieder aus einem gemeinsamen gesicherten Commit.96-Vorledger unverändert; nachher mit explizitem --compare prüfen, keine Baseline ersetzen.
+
 ## Auftrag97 – native Fach-/MCP-Abnahme vollständig grün
 
 Original97-App9cc4e18 mit separat originalsignierter QA-aa44c0b:290native Fach-/JSON-RPC-/SQLite-/SAF-Prüfungen/0FAIL, zusätzlich20gültige MCP-Workflows/SAF-Prüfungen/0FAIL.117Tools tatsächlich per Produktionsrouter erreichbar;113Toolnamen mit erfolgreichen Aufrufen,4nur geschützte Außenfreigabepfade (Legacy-Vollsicherung, Rechnungsabschluss, Mailvorbereitung/-bestätigung), deren negative Guards und isolierte Kerne separat geprüft sind. Alle neuen MCP-Fixtures ohne eigene DB-/Preferences-/Dateireste, einschließlich des zuvor asynchronen Kalenderfalls. Aktuelle Originalquellen19Dateien vollständig privat in1EBtXHhOQxqivTLu7L-DArRBBEwG-d94d gesichert:18Byte-SHA/1ZIPStreamgröße; frischer Plan0Upload/19Reuse/0Duplikate.

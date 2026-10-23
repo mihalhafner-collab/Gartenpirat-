@@ -10,13 +10,15 @@ html.today-root #mobile-toast{bottom:calc(var(--app-nav-height,80px) + var(--tod
 #home .home-dayline{font-size:.88rem;line-height:1.4;margin:0;font-weight:650;overflow-wrap:anywhere}
 #home .today-header .sync-pill{display:flex;align-items:center;justify-content:center;min-width:48px;min-height:48px;max-width:44%;margin:0;padding:8px 10px;line-height:1.3;font-size:.8rem;white-space:normal;overflow-wrap:anywhere;text-align:center}
 #home #workday-timer{padding:0;margin:0;background:transparent;border:0;box-shadow:none}
-#home .today-timer-summary{margin:0 0 12px;padding:12px;border:1px solid var(--hg-line);border-radius:14px;background:var(--hg-surface)}
-#home .timer-location-context{margin:0 0 6px;line-height:1.4;overflow-wrap:anywhere}
-#home .timer-state{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;padding:0;margin:0;gap:8px}
-#home .timer-state strong{font-size:1.8rem;line-height:1.3;font-variant-numeric:tabular-nums}
-#home .timer-state small{font-size:.9rem;line-height:1.4}
-#home .today-timer-more{margin-top:4px}
-#home .today-timer-more>summary{min-width:48px;min-height:48px;padding:12px 0;font-size:.85rem;line-height:1.4;color:var(--hg-green)}
+#home .today-timer-summary{display:grid;grid-template-columns:minmax(0,1fr) 48px;column-gap:8px;margin:0 0 12px;padding:10px;border:1px solid var(--hg-line);border-radius:14px;background:var(--hg-surface)}
+#home .timer-location-context{grid-column:1;grid-row:1;margin:0 0 4px;font-size:.85rem;line-height:1.35;overflow-wrap:anywhere}
+#home .timer-state{grid-column:1;grid-row:2;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;padding:0;margin:0;gap:8px}
+#home .timer-state strong{font-size:1.35rem;line-height:1.3;font-variant-numeric:tabular-nums}
+#home .timer-state small{font-size:.8rem;line-height:1.4}
+#home .today-timer-more{position:relative;grid-column:2;grid-row:1/span 2;align-self:center;margin:0}
+#home .today-timer-more>summary{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:48px;min-height:48px;padding:0;font-size:1.25rem;line-height:1.2;list-style:none;color:var(--hg-green)}
+#home .today-timer-more>summary::-webkit-details-marker{display:none}
+#home .today-timer-more[open]>.timer-discard{position:absolute;right:0;top:100%;z-index:40;width:max-content;max-width:min(280px,calc(100vw - 32px));background:var(--hg-surface);border:1px solid var(--hg-line);border-radius:10px}
 #home .timer-discard{min-width:48px;min-height:48px;max-width:100%;padding:10px;white-space:normal;overflow-wrap:anywhere}
 #home #today-action-dock{position:fixed;left:0;right:0;bottom:var(--app-nav-height,80px);z-index:35;box-sizing:border-box;width:100%;max-width:760px;margin:0 auto;padding:8px 12px 10px;background:var(--hg-bg);border-top:1px solid var(--hg-line);max-height:55vh;overflow:auto;overscroll-behavior:contain}
 #home .timer-actions{display:flex;flex-wrap:wrap;gap:0;margin:0 0 8px}
