@@ -57,7 +57,7 @@ final class EncryptedBackupArchive {
             // Read the AEAD stream to EOF, including the authenticated final segment, before
             // parsing ZIP metadata. ZipInputStream alone could stop before that final tag.
             try(InputStream decrypted=BackupCrypto.decrypt(owned,recovery);FileOutputStream out=new FileOutputStream(plain)){
-                copy(decrypted,out,null,availableBytes);out.getFD().sync();
+                copy(decrypted,BackupStorageBudget.guard(out,newDirectory),null,availableBytes);out.getFD().sync();
             }
             JSONObject manifest;
             try(ZipFile archive=new ZipFile(plain)){
@@ -83,7 +83,7 @@ final class EncryptedBackupArchive {
                     File parent=file.getParentFile();if(!parent.isDirectory()&&!parent.mkdirs())throw new IOException("RESTORE_SPACE_REQUIRED");
                     MessageDigest digest=MessageDigest.getInstance("SHA-256");long size;
                     try(InputStream input=archive.getInputStream(entry);FileOutputStream output=new FileOutputStream(file)){
-                        size=copy(input,output,digest,wanted.getLong("size"));output.getFD().sync();
+                        size=copy(input,BackupStorageBudget.guard(output,newDirectory),digest,wanted.getLong("size"));output.getFD().sync();
                     }
                     if(size!=wanted.getLong("size")||!wanted.getString("sha256").equals(hex(digest.digest())))throw new IOException("BACKUP_FILE_HASH_MISMATCH");
                 }

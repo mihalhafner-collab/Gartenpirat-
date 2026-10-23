@@ -12,9 +12,13 @@ final class DatabaseBackupSnapshot {
         if(source.inTransaction())throw new IOException("BACKUP_SNAPSHOT_REQUIRES_OUTSIDE_TRANSACTION");
         if(freshTarget.exists()||freshTarget.isDirectory())throw new IOException("BACKUP_SNAPSHOT_TARGET_EXISTS");
         File parent=freshTarget.getParentFile();if(!parent.isDirectory()&&!parent.mkdirs())throw new IOException("BACKUP_SNAPSHOT_STORAGE_UNAVAILABLE");
+        EncryptedBackupArchive.checkCancelled();long pages;
+        try(Cursor count=source.rawQuery("PRAGMA page_count",null)){if(!count.moveToFirst())throw new IOException("BACKUP_DATABASE_SIZE_UNAVAILABLE");pages=count.getLong(0);}
+        BackupStorageBudget.require(parent,Math.multiplyExact(Math.multiplyExact(pages,source.getPageSize()),2));
         // SQLite performs a transactional snapshot, including any WAL pages. Do not copy
         // the live main DB file. Unsupported older engines fail without changing source.
         source.execSQL("VACUUM INTO '"+freshTarget.getAbsolutePath().replace("'","''")+"'");
+        EncryptedBackupArchive.checkCancelled();
         try(FileOutputStream sync=new FileOutputStream(freshTarget,true)){sync.getFD().sync();}
         return inspect(freshTarget);
     }

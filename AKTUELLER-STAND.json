@@ -1,6 +1,6 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-23T19:44:58.909027+00:00",
+  "updated_at_utc": "2026-10-23T19:58:31.588799+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
@@ -52,7 +52,7 @@
       "python_pass": 423,
       "python_skips": 0,
       "excluded_qa_signing": 37,
-      "jvm_suites_pass": 57,
+      "jvm_suites_pass": 58,
       "archive_fault_checks": 26,
       "archive_payload_MiB": 48,
       "archive_heap_MiB": 64,
@@ -64,7 +64,9 @@
       "python_repeat": "423 PASS 0 SKIP after aborted environment-restart run",
       "backup_jobs_and_shared_service_compile": "PASS;4 additional native job/epoch/use-case probes PASS on d2ecc05",
       "backup_schedule_rules": "23 JVM policy checks PASS; actual Android scheduler integration pending",
-      "backup_automation": "Settings CAS/browser checkpoints + daily Android JobService implemented;3 new native probes prepared, NOT EXECUTED; not wired to UI or auto-enabled"
+      "backup_automation": "Settings CAS/browser checkpoints + daily Android JobService implemented;3 new native probes prepared, NOT EXECUTED; not wired to UI or auto-enabled",
+      "backup_storage_reserve": "10 capacity-port checks PASS;256MiB reserve,not archive cap;no physical full-disk proof",
+      "backup_scheduler_native_f507": "305 PASS /1FAIL;two new actual workflow checks pass;deadline test assumed Long.MAX_VALUE but API30 actual0;corrected repeat pending"
     },
     "native_font_probe": "Today/Planning 100/150/200% PASS after initial SystemUI ANR; OS settings restored; no Pixel/TalkBack/full-nine-view claim",
     "source_generation_ab1": {

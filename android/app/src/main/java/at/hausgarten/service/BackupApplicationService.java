@@ -60,12 +60,13 @@ final class BackupApplicationService {
             // A partial, uncommitted attempt never overwrites a previously valid generation.
             archive=new JSONObject().put("file","sealed-"+UUID.randomUUID()+".hgb");job=step(job,new JSONObject().put("phase","SEALING").put("archive",archive));sealed=child(root,archive.getString("file"));
             try(FileOutputStream out=new FileOutputStream(sealed)){
-                EncryptedBackupArchive.write(new FilterOutputStream(out){@Override public void close()throws IOException{flush();}},recovery,metadata,BackupFilePins.sources(child(root,capture.getString("directory"))));out.getFD().sync();
+                EncryptedBackupArchive.write(new FilterOutputStream(BackupStorageBudget.guard(out,root)){@Override public void close()throws IOException{flush();}},recovery,metadata,BackupFilePins.sources(child(root,capture.getString("directory"))));out.getFD().sync();
             }
             archive.put("sha256",EncryptedBackupArchive.sha256(sealed)).put("size",sealed.length()).put("capturedAt",metadata.getString("capturedAt"));job=step(job,new JSONObject().put("phase","SEALED_LOCAL").put("archive",archive));
         }
         if(!archive.has("localVerifiedAt")){
-            try(EncryptedBackupArchive.Verified verified=EncryptedBackupArchive.verifyAndStage(new FileInputStream(sealed),recovery,child(root,"verify-"+UUID.randomUUID()),root.getUsableSpace(),PixelLocalStore.SCHEMA_VERSION)){
+            BackupStorageBudget.require(root,0);
+            try(EncryptedBackupArchive.Verified verified=EncryptedBackupArchive.verifyAndStage(new FileInputStream(sealed),recovery,child(root,"verify-"+UUID.randomUUID()),root.getUsableSpace()-BackupStorageBudget.BUSINESS_RESERVE_BYTES,PixelLocalStore.SCHEMA_VERSION)){
                 requireIdentity(verified.manifest,job);LocalBackupDataset.inspectStaged(new File(verified.directory,"data"),verified.manifest);
                 if(!verified.manifest.getJSONObject("database").getString("sha256").equals(metadata.getJSONObject("database").getString("sha256")))throw new IOException("BACKUP_CAPTURE_ARCHIVE_MISMATCH");
             }

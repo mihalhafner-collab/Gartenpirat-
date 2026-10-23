@@ -38,8 +38,9 @@ final class BackupFilePins {
         }
     }
     private static void copy(File source,File target)throws Exception {
+        BackupStorageBudget.require(target.getParentFile(),source.length());
         try(InputStream input=new FileInputStream(source);java.nio.channels.FileChannel output=java.nio.channels.FileChannel.open(target.toPath(),java.nio.file.StandardOpenOption.CREATE_NEW,java.nio.file.StandardOpenOption.WRITE)){
-            EncryptedBackupArchive.copy(input,java.nio.channels.Channels.newOutputStream(output),null,source.length());output.force(true);
+            EncryptedBackupArchive.copy(input,BackupStorageBudget.guard(java.nio.channels.Channels.newOutputStream(output),target.getParentFile()),null,source.length());output.force(true);
         }
     }
     static List<EncryptedBackupArchive.Source> sources(File privateStage)throws Exception {

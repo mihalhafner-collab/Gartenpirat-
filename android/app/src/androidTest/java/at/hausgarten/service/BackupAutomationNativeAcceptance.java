@@ -21,7 +21,11 @@ final class BackupAutomationNativeAcceptance {
                 JSONObject browser=new JSONObject().put("formatVersion",1).put("storage",new JSONObject().put("qa_draft","QA pending draft"));String br=settings.browserRevision();settings.saveBrowser("qa_auto_browser_save",br,browser);test.yes(settings.saveBrowser("qa_auto_browser_save",br,browser).getBoolean("replayed")&&settings.browser().getJSONObject("browser").getJSONObject("storage").getString("qa_draft").equals("QA pending draft"));
                 denied(()->settings.saveBrowser("qa_auto_browser_changed",br,new JSONObject().put("formatVersion",1).put("storage",new JSONObject().put("qa_draft","QA changed"))));
                 denied(()->settings.saveBrowser("qa_auto_browser_invalid",settings.browserRevision(),new JSONObject().put("formatVersion",1).put("storage",new JSONObject().put("qa_number",1))));
-                f.store.close();try(PixelLocalStore reopened=new PixelLocalStore(f.context)){BackupSettingsRepository saved=new BackupSettingsRepository(f.context,reopened);test.yes(saved.read().getBoolean("enabled")&&saved.browser().getJSONObject("browser").getJSONObject("storage").has("qa_draft"));BackupDeviceGuard guard=new BackupDeviceGuard(f.context);guard.advanceForRestore("qa_auto_restore_epoch",guard.current().getString("restoreEpoch"));test.yes(!saved.read().getBoolean("contextMatches"));denied(()->saved.browser());test.yes(new BackupAutomation(f.context,reopened).decision(System.currentTimeMillis()).getString("action").equals("DISABLED"));}
+                f.store.close();try(PixelLocalStore reopened=new PixelLocalStore(f.context)){
+                    BackupSettingsRepository saved=new BackupSettingsRepository(f.context,reopened);test.yes(saved.read().getBoolean("enabled")&&saved.browser().getJSONObject("browser").getJSONObject("storage").has("qa_draft"));BackupDeviceGuard guard=new BackupDeviceGuard(f.context);JSONObject identity=guard.current();
+                    JSONObject newer=new JSONObject().put("formatVersion",2).put("backupId","qa_newer_job").put("installationId",identity.getString("installationId")).put("restoreEpoch",identity.getString("restoreEpoch")).put("createdAt",java.time.Instant.now().toString()).put("phase","qa_newer_phase").put("destination",new JSONObject().put("kind","drive"));reopened.putOwnerValue("backup_job:qa_newer_job",newer.toString());test.yes(new BackupAutomation(f.context,reopened).decision(System.currentTimeMillis()).getString("action").equals("JOB_REVIEW"));
+                    guard.advanceForRestore("qa_auto_restore_epoch",guard.current().getString("restoreEpoch"));test.yes(!saved.read().getBoolean("contextMatches"));denied(()->saved.browser());test.yes(new BackupAutomation(f.context,reopened).decision(System.currentTimeMillis()).getString("action").equals("DISABLED"));
+                }
             }finally{BackupCoreNativeAcceptance.deleteQaKey(f,keys);}
         }});
         test.probe("backup native automatic runner resumes lost upload once with bounded retry and uses data age not new verification time",()->{try(OwnerNativeAcceptance.Fixture f=new OwnerNativeAcceptance.Fixture(test.getTargetContext())){
@@ -34,8 +38,9 @@ final class BackupAutomationNativeAcceptance {
         }});
         test.probe("backup native scheduler specifications are daily persisted and network constrained without exact deadline",()->{
             JobInfo daily=FullBackupJob.specification(test.getTargetContext(),true,true,0),once=FullBackupJob.specification(test.getTargetContext(),false,false,60000);
-            test.yes(daily.isPeriodic()&&daily.isPersisted()&&daily.getIntervalMillis()==BackupScheduleRules.INTERVAL_MS&&daily.getNetworkType()==JobInfo.NETWORK_TYPE_UNMETERED&&daily.getMaxExecutionDelayMillis()==Long.MAX_VALUE);
-            test.yes(!once.isPeriodic()&&once.isPersisted()&&once.getMinLatencyMillis()==60000&&once.getNetworkType()==JobInfo.NETWORK_TYPE_ANY&&once.getMaxExecutionDelayMillis()==Long.MAX_VALUE);
+            // Actual API30 reports zero for an unset override deadline (standalone native probe).
+            test.yes(daily.isPeriodic()&&daily.isPersisted()&&daily.getIntervalMillis()==BackupScheduleRules.INTERVAL_MS&&daily.getNetworkType()==JobInfo.NETWORK_TYPE_UNMETERED&&daily.getMaxExecutionDelayMillis()==0);
+            test.yes(!once.isPeriodic()&&once.isPersisted()&&once.getMinLatencyMillis()==60000&&once.getNetworkType()==JobInfo.NETWORK_TYPE_ANY&&once.getMaxExecutionDelayMillis()==0);
         });
     }
 }

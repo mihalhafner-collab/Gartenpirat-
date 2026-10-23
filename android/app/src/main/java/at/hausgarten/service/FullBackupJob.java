@@ -27,7 +27,7 @@ public final class FullBackupJob extends JobService {
     }
     @Override public boolean onStartJob(JobParameters parameters){
         FutureTask<Void> task=new FutureTask<>(()->{
-            JSONObject result=null;try(PixelLocalStore store=new PixelLocalStore(this)){result=new BackupAutomation(this,store).run(System.currentTimeMillis());}
+            JSONObject result=null;try(PixelLocalStore store=new PixelLocalStore(this)){android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);result=new BackupAutomation(this,store).run(System.currentTimeMillis());}
             catch(Exception failure){
                 // Setup/Keystore failures can precede creation of a generation. Keep a safe status.
                 try(PixelLocalStore store=new PixelLocalStore(this)){store.putOwnerValue("full_backup_scheduler_status",new JSONObject().put("at",java.time.Instant.now().toString()).put("code",SyncFailureRules.failureCode(failure)).put("needsReview",true).toString());}catch(Exception ignored){}

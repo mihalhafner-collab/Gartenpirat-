@@ -67,7 +67,7 @@ final class BackupJobRepository {
         JSONArray jobs=new JSONArray();try(Cursor rows=store.getReadableDatabase().rawQuery("SELECT key FROM owner_state WHERE key LIKE 'backup_job:%' ORDER BY key",null)){
             while(rows.moveToNext()){
                 String id=rows.getString(0).substring("backup_job:".length());String raw=store.ownerValue(key(id),"");JSONObject row=new JSONObject(raw);boolean same=installation.equals(row.optString("installationId")),sameEpoch=epoch.equals(row.optString("restoreEpoch"));
-                jobs.put(new JSONObject().put("backupId",id).put("phase",row.optString("phase")).put("createdAt",row.optString("createdAt")).put("sameInstallation",same).put("sameRestoreEpoch",sameEpoch).put("resumeContextMatches",same&&sameEpoch&&row.optInt("formatVersion")==1).put("destinationKind",row.getJSONObject("destination").optString("kind")));
+                jobs.put(new JSONObject().put("backupId",id).put("formatVersion",row.optInt("formatVersion")).put("phase",row.optString("phase")).put("createdAt",row.optString("createdAt")).put("sameInstallation",same).put("sameRestoreEpoch",sameEpoch).put("resumeContextMatches",same&&sameEpoch&&row.optInt("formatVersion")==1).put("destinationKind",row.getJSONObject("destination").optString("kind")));
             }
         }return jobs;
     }

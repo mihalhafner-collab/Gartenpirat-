@@ -3,6 +3,50 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Revier Solo – Scheduler-Nachprüfung und freier Speicher für den lokalen Betrieb
+
+Interner Originalbuild `f507c77ec3a9c98563d4f95bed9a7c890fea3f4a` (1.55.0/99),
+API30-x86_64-Cloudemulator: **305native Prüfungen PASS,1FAIL**. Zwei neue Prüfungen
+für Einstellungs-/Browser-CAS, Rollback/Replay/Neuöffnung/Restore-Epoche und den
+automatischen Sicherungsablauf nach verlorener Uploadantwort bestehen. Der dritte
+neue Fall scheitert ausschließlich an der erwarteten Deadline-Repräsentation:
+Android30 meldet bei nicht gesetzter Deadline0; der Test hatte Long.MAX_VALUE erwartet.
+Eine eigenständige native JobInfo-Probe ohne Appdatenzugriff bestätigt beide Werte:
+Tagesjob86400000ms/Netz2/persistent, Einzeljob60000ms/Netz1/persistent, maxDelay jeweils0.
+Die Testbedingung ist entsprechend korrigiert; Wiederholung noch ausstehend.
+Der gesamte f507-Lauf ist **kein PASS und keine Releaseabnahme**. Sein unverändert
+gesicherter Log hat SHA256
+`fa7846af353887d3157dbee5de46733e1935dabf3b236cd78e4d8a28dc12ee9c`.
+
+f507-App-SHA256 `d402a37e2cf50e2445988bbea0224f3d534f38addfd12fdc0516af93a1864b99`,
+Test-SHA256 `5c97ae745d27f366a99e1759f4cb92ed88531e9585a6861075b5bd0103974c7c`,
+Quellfingerprint `17f1d8c9d646eb5e809dec69fc0205fd0cc52d932630eafde60ae8b57c69473f`.
+Originalzertifikat wie unten; sauberer Remote-Commit vor Build/Signierung geprüft.
+assembleRelease/assembleReleaseAndroidTest/lintRelease PASS,0Fehler/54Warnungen.
+Keine Pixelinstallation und kein Zugriff auf produktives Drive.
+
+Danach implementiert: `BackupStorageBudget` hält256MiB freien Platz für lokale
+Fachschreibvorgänge zurück. Dies begrenzt freien Arbeitsraum, nicht Archivgröße.
+SQLite-Aufnahme prüft zusätzlichen Platz vor VACUUM, Kopie/Verschlüsselung/Prüf-
+Extraktion prüfen während des Schreibens. Ein abgewiesener neuer Versuch lässt
+Quellen und letzte gute Generation unangetastet. Sicherungsthread erhält Android-
+Hintergrundpriorität. Unbekannte neuere Jobformate derselben Epoche halten den
+Scheduler zur Prüfung zurück, statt unbemerkt eine neue Generation anzulegen.
+**58JVM-Suiten PASS**, darunter10Speicherreserveprüfungen mit isoliertem
+Kapazitätsport (lange Größen, Platzverlust während Schreiben, Abbruch, letzter
+guter Stand). Kein physischer Vollpartition-/USB-Abzugnachweis daraus ableiten.
+Neue App-/Instrumentierungskompilierung PASS nach56s. Die native Wiederholung
+steht noch aus; Software-/Geräteabnahme bleibt offen.
+
+Frische Repositoryabfrage über den vorhandenen GitHub-Connector gelingt, nachdem
+Cloud-GitHub-REST/GraphQL403 lieferten: keine offenen PRs, acht sichtbare Branches.
+main bleibt e499e745. Pflanzenbibliotheksbranch7d499b2 wurde nur gelesen/verglichen:
+Integrationsanweisung, Revision2-Datenpaket und Verteilnachweis stimmen mit der
+bereits übernommenen Kopie überein (49154b5); dortiger operativer Katalog ist älter.
+Kein Zurücksetzen der aktuellen314Profile/628Bilder, keine fremde Arbeit integriert.
+Andere laufende Cloud-Threads und externe operative Schreiber sind damit nicht
+als stillgelegt nachgewiesen.
+
 ## Revier Solo – täglicher Sicherungsauftrag und native Prüffälle vorbereitet
 
 Abnahmekriterien vor Umsetzung: standardmäßig ausgeschaltet; Einrichtung erst nach

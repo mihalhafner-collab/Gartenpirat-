@@ -15,7 +15,9 @@ final class BackupAutomation {
     BackupAutomation(Context context,PixelLocalStore store,BackupApplicationService service,java.util.function.Supplier<String> ids)throws Exception {this.context=context;this.store=store;this.service=service;this.ids=ids;settings=new BackupSettingsRepository(context,store);}
     JSONObject decision(long now)throws Exception {
         JSONArray jobs=new JSONArray(),inventory=service.inventory();for(int i=0;i<inventory.length();i++){
-            JSONObject row=inventory.getJSONObject(i);if(row.getBoolean("resumeContextMatches"))jobs.put(service.status(row.getString("backupId")).put("contextMatches",true));
+            JSONObject row=inventory.getJSONObject(i);
+            if(row.getBoolean("sameInstallation")&&row.getBoolean("sameRestoreEpoch")&&row.optInt("formatVersion")!=1)return new JSONObject().put("action","JOB_REVIEW").put("backupId",row.getString("backupId")).put("nextAttemptAt",0).put("exactExecutionGuaranteed",false);
+            if(row.getBoolean("resumeContextMatches"))jobs.put(service.status(row.getString("backupId")).put("contextMatches",true));
         }return BackupScheduleRules.decide(settings.read(),jobs,now);
     }
     JSONObject run(long now)throws Exception {
