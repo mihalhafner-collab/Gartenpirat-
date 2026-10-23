@@ -73,7 +73,7 @@ final class ReleaseLifecycleProbe {
         connectionUi(runner,context,PixelTunnelActivity.class,1);
         connectionUi(runner,context,PlanningConnectionActivity.class,4);
         }finally{
-            Bundle calendarResult=new Bundle();calendarResult.putString("stream","QA_CALENDAR_RESULT "+js(runner,view,"JSON.stringify(window.qaCalendarResult||{})")+"\n");runner.sendStatus(0,calendarResult);
+            Bundle calendarResult=new Bundle();calendarResult.putString("stream","QA_CALENDAR_RESULT "+js(runner,view,"JSON.stringify({page:currentPage,diagnostics:HGBusinessFeedback.diagnostics(),form:!!document.querySelector('#appointment-form'),customerMatchesQA:document.querySelector('#appointment-form [name=customer_id]')?.value==='qa_site',orderMatchesQA:document.querySelector('#appointment-form [name=order_id]')?.value==='qa_order',discard:!!document.getElementById('planning-discard'),result:window.qaCalendarResult||{}})")+"\n");runner.sendStatus(0,calendarResult);
             require("true".equals(js(runner,view,"(()=>{openPage('home');const previous="+previousPlanningDraft+",others="+previousOtherDrafts+";for(const [key,value]of [['hausgarten.planning.draft.v1',previous],['hausgarten.planning.draft.v1.others',others]]){if(value===null)localStorage.removeItem(key);else localStorage.setItem(key,value);}return localStorage.getItem('hausgarten.planning.draft.v1')===previous&&localStorage.getItem('hausgarten.planning.draft.v1.others')===others;})()")));
         }
     }
@@ -134,7 +134,7 @@ final class ReleaseLifecycleProbe {
                 report.putString("stream","PASS in-place update preserves complete snapshot, IDs, pending records, settings, tunnel configuration and active timer recipient\n");
             }else throw new IllegalArgumentException("Unknown lifecycle mode");
             runner.finish(-1,report);
-        }catch(Throwable failure){report.putString("stream","FAIL lifecycle "+mode+" ["+failure.getClass().getSimpleName()+"] "+(failure instanceof AssertionError?"condition="+conditionIndex+" ":"")+(failure.getStackTrace().length>0?failure.getStackTrace()[0].toString():"no frame")+"\n");runner.finish(0,report);}
+        }catch(Throwable failure){report.putString("stream","FAIL lifecycle "+mode+" ["+failure.getClass().getSimpleName()+"] "+(failure instanceof AssertionError&&String.valueOf(failure.getMessage()).matches("Lifecycle condition [0-9]+ failed")?failure.getMessage()+" ":"")+(failure.getStackTrace().length>0?failure.getStackTrace()[0].toString():"no frame")+"\n");runner.finish(0,report);}
         finally{if(store!=null)store.close();}
     }
 }

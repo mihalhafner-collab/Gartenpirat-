@@ -3,6 +3,20 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Fortsetzung98 – korrigierte native Bildfläche PASS
+
+App67965b6b963f8653fdeaa8e6e1f2f7eeb71d1c86 originalsigniert, voller Build/Lint
+und erneut55Browser-Suiten PASS.4native Pflanzenprüfungen mit echten Geometrien
+PASS: Dialogy14/523px innerhalb568px, Vollbildbild tatsächlich sichtbar und
+Zurück korrekt. Ersten korrigierten Vollbildbeleg selbst geöffnet: Foto, Navigation,
+Motiv-/Autoren-/Lizenz-/Änderungstext sichtbar.628Bitmaps/314Profile und erneuter
+Datenerhalt weiterhin PASS; verstärkte Schrift-/Bildprüfung läuft.
+
+Allgemeiner UI-Prüfbericht zählte eine erfolgreiche Aufräum-Assertion mit und
+zeigte dadurch nicht die ursprünglich fehlgeschlagene Bedingung. Bericht nutzt
+nun den ursprünglichen Assertion-Text und rein technische Kalenderdiagnose.
+Nur Testbericht korrigiert; bisher keine Kalender-/Geschäftslogik verändert.
+
 ## Fortsetzung98 – tatsächlichen alten WebView-Layoutfehler behoben
 
 Geometriediagnose auf API30 bestätigt: bisheriges Vollbild außerhalb des sichtbaren
