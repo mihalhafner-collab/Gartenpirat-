@@ -88,9 +88,13 @@ final class PlantLibraryAcceptance {
         WebView view=(WebView)field.get(activity);
         long deadline=SystemClock.elapsedRealtime()+120000;
         while(SystemClock.elapsedRealtime()<deadline&&!"true".equals(ReleaseLifecycleProbe.js(t,view,"document.body.dataset.fieldReady==='true'&&typeof Gartenpirat==='object'")))SystemClock.sleep(250);
+        // Repair only this probe's exact obsolete marker on the dedicated synthetic AVD.
+        // Arbitrary malformed drafts remain untouched and fail closed in the product.
+        yes(t,view,"(()=>{for(const key of ['hausgarten.planning.draft.v1','hausgarten.planning.draft.v1.others'])if(localStorage.getItem(key)==='qa_plant98_preserved_draft')localStorage.removeItem(key);return true;})()");
         String previous=ReleaseLifecycleProbe.js(t,view,"localStorage.getItem('hausgarten.planning.draft.v1')");
+        String others=ReleaseLifecycleProbe.js(t,view,"localStorage.getItem('hausgarten.planning.draft.v1.others')");
         try {
-            yes(t,view,"(()=>{localStorage.setItem('hausgarten.planning.draft.v1','qa_plant98_preserved_draft');openPage('more-page');document.querySelector('[data-open-garden-menu]').click();document.querySelector('[data-gp-action=lexicon]').click();return document.querySelector('#gp-dialog').open&&GartenpiratCatalog.plants.length===314;})()");
+            yes(t,view,"(()=>{window.qaPlant98ExpectedDraft=JSON.stringify({draftId:'qa_plant98',data:{id:'',title:'QA Pflanzenprüfung',customer_id:'qa_site',order_id:'qa_order',purpose:'work',timezone:'Europe/Vienna',status:'tentative',weather_profile:'general',notes:''},localStart:'2026-10-23T08:00',duration:null,endOpen:true,dirty:true});localStorage.setItem('hausgarten.planning.draft.v1',qaPlant98ExpectedDraft);openPage('more-page');document.querySelector('[data-open-garden-menu]').click();document.querySelector('[data-gp-action=lexicon]').click();return document.querySelector('#gp-dialog').open&&GartenpiratCatalog.plants.length===314;})()");
             for(String query:new String[]{"Pennisetum alopecuroides","Cenchrus alopecuroides","Coreopsis verticillata","Anacis verticillata","Cymbopogon citratus"}) {
                 yes(t,view,"(()=>{const q=document.querySelector('#gp-query');q.value="+JSONObject.quote(query)+";q.dispatchEvent(new Event('input',{bubbles:true}));return document.querySelectorAll('.gp-plant-card').length===1;})()");
             }
@@ -102,10 +106,10 @@ final class PlantLibraryAcceptance {
             yes(t,view,"(()=>{document.querySelector('[data-gp-image=\"0\"]').click();return document.querySelector('#gp-dialog').classList.contains('gp-image-mode')&&document.querySelector('#gp-image-count').innerText==='Bild 1 von 2'&&document.querySelector('#gp-image-caption').innerText.length>10;})()");
             yes(t,view,"(()=>{document.querySelector('[data-gp-action=image-next]').click();return document.querySelector('#gp-image-count').innerText==='Bild 2 von 2';})()");
             capture(t,view,"fullscreen");
-            yes(t,view,"(()=>{handleAndroidBack();return !document.querySelector('#gp-dialog').classList.contains('gp-image-mode')&&document.querySelector('.gp-portrait h3').innerText.length>0&&document.documentElement.scrollWidth<=innerWidth+1&&localStorage.getItem('hausgarten.planning.draft.v1')==='qa_plant98_preserved_draft';})()");
+            yes(t,view,"(()=>{handleAndroidBack();return !document.querySelector('#gp-dialog').classList.contains('gp-image-mode')&&document.querySelector('.gp-portrait h3').innerText.length>0&&document.documentElement.scrollWidth<=innerWidth+1&&localStorage.getItem('hausgarten.planning.draft.v1')===qaPlant98ExpectedDraft;})()");
             capture(t,view,"back");
         } finally {
-            ReleaseLifecycleProbe.js(t,view,"(()=>{Gartenpirat.close();const previous="+previous+";if(previous===null)localStorage.removeItem('hausgarten.planning.draft.v1');else localStorage.setItem('hausgarten.planning.draft.v1',previous);delete window.qaPlant98Images;return true;})()");
+            yes(t,view,"(()=>{try{Gartenpirat.close();}finally{for(const [key,value]of [['hausgarten.planning.draft.v1',"+previous+"],['hausgarten.planning.draft.v1.others',"+others+"]]){if(value===null)localStorage.removeItem(key);else localStorage.setItem(key,value);}delete window.qaPlant98Images;delete window.qaPlant98Paint;delete window.qaPlant98ExpectedDraft;}return localStorage.getItem('hausgarten.planning.draft.v1')==="+previous+"&&localStorage.getItem('hausgarten.planning.draft.v1.others')==="+others+";})()");
             t.runOnMainSync(activity::finish);t.waitForIdleSync();
         }
     }

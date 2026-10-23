@@ -3,6 +3,19 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Fortsetzung98 – eigene QA-Entwurfsfixture korrigiert
+
+Konkrete Kalenderdiagnose: Unexpected token q in JSON at position0. Ursache war
+der eigene ältere Platzhalter qa_plant98_preserved_draft, kein Kalender-/Datenfehler.
+Pflanzenprobe verwendet jetzt einen gültigen synthetischen JSON-Entwurf, bewahrt
+beide Planungsschlüssel und bestätigt ihre bytegenaue Wiederherstellung auch bei
+Fehlern. Nur exakt diesen bekannten alten QA-Marker im eigenen Test-AVD reparieren;
+unbekannte/produktive beschädigte Entwürfe werden nicht gelöscht oder umgedeutet.
+App67965b6 bleibt unverändert. Deren3Schriftskalen/Geometrien und9Bildschirmdateien
+sowie installierteAPK-Bytegleichheit und vollständiger ursprünglicher97Ledger PASS.
+Allgemeiner UI-Pfad wird nach Fixturekorrektur abschließend erneut ausgeführt.
+Original679Quellen in privatem Drive vollständig mit6Belegen gesichert.
+
 ## Fortsetzung98 – korrigierte native Bildfläche PASS
 
 App67965b6b963f8653fdeaa8e6e1f2f7eeb71d1c86 originalsigniert, voller Build/Lint
