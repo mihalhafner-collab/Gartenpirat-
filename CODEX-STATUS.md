@@ -3,6 +3,23 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Fortsetzung98 – Kalenderpfad grün, echte Großschriftkollisionen behoben
+
+Mit gültiger QA-Entwurfsfixture und bestätigter Wiederherstellung bestehen der
+echte allgemeine Android-WebView-/Kalender-/Verbindungsdialogpfad und Pflanzen-
+UI-Prüfung; keinerlei Änderung an Kalender-/Geschäftslogik nötig. Konkrete
+Diagnose leer, schmutziger eigener Titelentwurf fortsetzbar, Tag/Woche vorhanden.
+
+Alle9echten679Bildschirmdateien tatsächlich angesehen. Dabei bei200Prozent
+Titel unter Schließen sowie Gestenhilfe über Bildnachweis erkannt. Deshalb679
+nicht ausliefern. Kanonisches CSS lässt lange Überschriften umbrechen, hält
+Kopfknöpfe frei und stapelt Bildnachweis/Gestenhilfe im natürlichen Flexfluss.
+Native Abnahme prüft jetzt lokale Titelbreite und echte Abstände der Fußtexte.
+Browserregression ohne inset/dvh bei320/360px und100/200Prozent PASS. Spiegel
+regulär erzeugt und ausschließlich zugehörigen CSS-Reviewhash aktualisiert.
+Neue Original-APK wird aus diesem gesicherten Stand geprüft, Version bleibt98;
+kein98Tag/Pixelupdate vor vollständigen abschließenden Bild-/Artefaktgates.
+
 ## Fortsetzung98 – eigene QA-Entwurfsfixture korrigiert
 
 Konkrete Kalenderdiagnose: Unexpected token q in JSON at position0. Ursache war

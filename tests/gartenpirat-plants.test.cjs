@@ -81,14 +81,14 @@ const catalog=JSON.parse(fs.readFileSync(path.join(assets,'plant-catalog.json'),
    const fallback=fs.readFileSync(path.join(assets,'gartenpirat.css'),'utf8').replace(/\binset\s*:[^;{}]+;?/g,'').replace(/[a-z-]+\s*:[^;{}]*dvh\b[^;{}]*;?/gi,'');
    await page.evaluate(css=>{document.querySelector('link[href*="gartenpirat.css"]').disabled=true;const style=document.createElement('style');style.id='qa-old-webview-css';style.textContent=css;document.head.append(style);},fallback);
    try{
-    for(const width of [320,360]){
-     await page.setViewportSize({width,height:640});await page.evaluate(()=>Gartenpirat.close());await launch();await page.locator('[data-gp-action=lexicon]').click();await page.locator('#gp-query').fill('Götterbaum');await page.locator('.gp-plant-card').click();
-     const portrait=await page.locator('#gp-dialog').boundingBox();assert(portrait.y>=0&&portrait.y+portrait.height<=641,JSON.stringify(portrait));
+    for(const [width,font] of [[320,16],[360,16],[320,32],[360,32]]){
+     await page.setViewportSize({width,height:640});await page.evaluate(font=>{document.documentElement.style.fontSize=font+'px';Gartenpirat.close();},font);await launch();await page.locator('[data-gp-action=lexicon]').click();await page.locator('#gp-query').fill('Götterbaum');await page.locator('.gp-plant-card').click();
+     const portrait=await page.locator('#gp-dialog').boundingBox();assert(portrait.y>=0&&portrait.y+portrait.height<=641,JSON.stringify(portrait));assert(await page.locator('#gp-title').evaluate(e=>e.scrollWidth<=e.clientWidth+1));
      await page.locator('[data-gp-image="0"]').click();await page.waitForFunction(()=>{const i=document.querySelector('#gp-full-image');return i.complete&&i.naturalWidth>0;});
-     const image=await page.locator('#gp-full-image').boundingBox();assert(image.width>100&&image.height>100&&image.x>=0&&image.y>=0&&image.x+image.width<=width+1&&image.y+image.height<=641,JSON.stringify(image));
+     const image=await page.locator('#gp-full-image').boundingBox();assert(image.width>100&&image.height>100&&image.x>=0&&image.y>=0&&image.x+image.width<=width+1&&image.y+image.height<=641,JSON.stringify(image));const caption=await page.locator('#gp-image-caption').boundingBox(),help=await page.locator('.gp-image-help').boundingBox();assert(caption.y+caption.height+4<=help.y&&help.y+help.height<=641,JSON.stringify({caption,help}));
      await page.evaluate(()=>handleAndroidBack());const title=await page.locator('.gp-portrait h3').boundingBox();assert(title.y>=0&&title.y+title.height<=641,JSON.stringify(title));assert(await page.locator('#gp-dialog').evaluate(e=>e.open));
     }
-   }finally{await page.evaluate(()=>{document.querySelector('#qa-old-webview-css').remove();document.querySelector('link[href*="gartenpirat.css"]').disabled=false;});await page.setViewportSize({width:412,height:915});}
+   }finally{await page.evaluate(()=>{document.documentElement.style.fontSize='';document.querySelector('#qa-old-webview-css').remove();document.querySelector('link[href*="gartenpirat.css"]').disabled=false;});await page.setViewportSize({width:412,height:915});}
   });
   await test('Lexicon searches scientific and German names, combines filters and handles zero results',async()=>{
    await page.evaluate(()=>Gartenpirat.close());await launch();await page.locator('[data-gp-action=lexicon]').click();await page.locator('#gp-query').fill('Lavandula angustifolia');assert.equal(await page.locator('.gp-plant-card').count(),1);
