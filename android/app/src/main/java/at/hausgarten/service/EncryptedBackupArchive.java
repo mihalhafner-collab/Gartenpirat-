@@ -106,13 +106,15 @@ final class EncryptedBackupArchive {
         for(int i=0;i<path.length();i++)if(path.charAt(i)<32||path.charAt(i)==127)throw new IOException("BACKUP_PATH_INVALID");
         for(String part:path.split("/"))if(part.equals(".")||part.equals(".."))throw new IOException("BACKUP_PATH_INVALID");
     }
-    private static long copy(InputStream input,OutputStream output,MessageDigest digest,long maximum)throws IOException {
+    static void checkCancelled()throws java.io.InterruptedIOException {if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("BACKUP_INTERRUPTED");}
+    static long copy(InputStream input,OutputStream output,MessageDigest digest,long maximum)throws IOException {
+        checkCancelled();
         byte[] buffer=new byte[BUFFER];long count=0;int read;
-        while((read=input.read(buffer))!=-1){if(read==0)continue;if(read>maximum-count)throw new IOException("RESTORE_SPACE_REQUIRED_OR_SOURCE_CHANGED");output.write(buffer,0,read);if(digest!=null)digest.update(buffer,0,read);count+=read;}
+        while((read=input.read(buffer))!=-1){checkCancelled();if(read==0)continue;if(read>maximum-count)throw new IOException("RESTORE_SPACE_REQUIRED_OR_SOURCE_CHANGED");output.write(buffer,0,read);if(digest!=null)digest.update(buffer,0,read);count+=read;}
         return count;
     }
     static String sha256(File file)throws Exception {
-        MessageDigest digest=MessageDigest.getInstance("SHA-256");try(InputStream in=new BufferedInputStream(new FileInputStream(file))){byte[] b=new byte[BUFFER];int n;while((n=in.read(b))!=-1)digest.update(b,0,n);}return hex(digest.digest());
+        checkCancelled();MessageDigest digest=MessageDigest.getInstance("SHA-256");try(InputStream in=new BufferedInputStream(new FileInputStream(file))){byte[] b=new byte[BUFFER];int n;while((n=in.read(b))!=-1){checkCancelled();digest.update(b,0,n);}}return hex(digest.digest());
     }
     private static String hex(byte[] value){StringBuilder result=new StringBuilder();for(byte b:value)result.append(String.format(Locale.ROOT,"%02x",b&255));return result.toString();}
     private static void removeOwned(File directory)throws IOException {

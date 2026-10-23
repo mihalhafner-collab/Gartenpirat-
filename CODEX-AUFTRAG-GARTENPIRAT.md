@@ -94,6 +94,15 @@ Teilzahlungen, (2) Pflegebesuch über Tour, segmentierte Arbeit, Fotos/Material 
 vollständiger Backup-/Restoreprüfung. Einheiten-/Adaptertests ersetzen diese beiden
 durchgängigen UI-Piloten nicht. Noch keine belastbare Restaufwandsschätzung.
 
+Technischer Zwischenstand der Sicherungsanbindung: täglicher, aufschiebbarer
+Android JobScheduler-Auftrag und persistente CAS-/Request-geschützte Einstellungen
+sind implementiert; Einrichtung, UI-/MCP-Anbindung und vollständige Restoreaktivierung
+sind weiter offen. Ohne explizite Einrichtung wird kein neuer Upload gestartet.
+Automatische Wiederaufnahme ist an Installation und Restore-Epoche gebunden;
+standardmäßig nicht getaktetes Netz, höchstens acht Versuche, danach sichtbare Prüfung.
+Das Datenalter der Aufnahme und der Zeitpunkt des externen Hashnachweises bleiben
+getrennt. Kein exakter Android-Hintergrundtermin und keine pauschale Abnahme daraus.
+
 ### Fachliche und technische Abnahmeverträge
 
 RS-01 erhält bei Update/Abbruch/Retry IDs, Beziehungen, Stunden, Beträge, Medien,

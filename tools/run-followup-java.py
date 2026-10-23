@@ -26,7 +26,7 @@ names = ['DeletionBackupStore', 'SnapshotProjection', 'OwnerCommand', 'EntityCon
          'WorklogRelationRules', 'ManualChangeRules', 'GardenRules', 'SyncActionOrder', 'DriveRestClient', 'DrivePublication', 'McpSchema', 'McpFileTransfer', 'InvoiceDraftRules', 'PixelMcpOwnerTools', 'OwnerJournalRules', 'DriveJournalRules', 'OrderReviewRules', 'PixelTunnelConfig',
          'PixelTunnelWire', 'WorkSessionPauseRules']
 names += ['LocalMigrationInventory','WorkSessionTimingRules','SyncCommitRules','OwnerRequestTransactions','ReceiptRetentionRules','SyncFailureRules','LocalTestTombstone','ActiveWorkProtection','ImmutableStateReference','CatalogSemanticHash','SyncQueueCounters','VerifiedSyncCache','SyncIoFailure','CalendarRecoveryRules','OpenMeteoWeatherSource','CalendarSetupRules','PlanningWire']
-names += ['BackupCrypto', 'EncryptedBackupArchive', 'ServiceCatalogBootstrap', 'BackupFilePins', 'DriveBackupUpload']
+names += ['BackupCrypto', 'EncryptedBackupArchive', 'ServiceCatalogBootstrap', 'BackupFilePins', 'DriveBackupUpload', 'BackupScheduleRules']
 tests = sorted((ROOT/'tests/java/at/hausgarten/service').glob('*Tests.java'))
 dependency_cache = Path(os.environ.get('GRADLE_USER_HOME', Path.home()/'.gradle'))/'caches/modules-2/files-2.1'
 crypto_jars = []

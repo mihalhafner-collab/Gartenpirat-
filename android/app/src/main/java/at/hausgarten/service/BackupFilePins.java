@@ -18,6 +18,7 @@ final class BackupFilePins {
         File[] children=sourceRoot.listFiles();if(children==null)throw new IOException("BACKUP_SOURCE_UNREADABLE");
         Arrays.sort(children,Comparator.comparing(File::getName));
         for(File source:children){
+            EncryptedBackupArchive.checkCancelled();
             String path=prefix+"/"+source.getName();new EncryptedBackupArchive.Source(path,source);
             if(Files.isSymbolicLink(source.toPath()))throw new IOException("BACKUP_SOURCE_LINK_REJECTED");
             if(source.isDirectory()){capture(source,privateStage,path,immutable);continue;}
@@ -25,15 +26,20 @@ final class BackupFilePins {
             File target=new File(privateStage,path);if(!target.getCanonicalPath().startsWith(privateStage.getCanonicalPath()+File.separator))throw new IOException("BACKUP_PATH_INVALID");
             if(target.exists())continue;File parent=target.getParentFile();if(!parent.isDirectory()&&!parent.mkdirs())throw new IOException("BACKUP_STAGING_UNAVAILABLE");
             if(!immutable){
-                String hash=EncryptedBackupArchive.sha256(source);Files.copy(source.toPath(),target.toPath());
+                String hash=EncryptedBackupArchive.sha256(source);copy(source,target);
                 if(!hash.equals(EncryptedBackupArchive.sha256(source))||!hash.equals(EncryptedBackupArchive.sha256(target)))throw new IOException("BACKUP_SOURCE_CHANGED");
                 continue;
             }
             try{Files.createLink(target.toPath(),source.toPath());}
             catch(UnsupportedOperationException|java.nio.file.FileSystemException unsupported){
                 // No hardlinks on this private filesystem: copy instead, never move.
-                Files.copy(source.toPath(),target.toPath());
+                copy(source,target);
             }
+        }
+    }
+    private static void copy(File source,File target)throws Exception {
+        try(InputStream input=new FileInputStream(source);java.nio.channels.FileChannel output=java.nio.channels.FileChannel.open(target.toPath(),java.nio.file.StandardOpenOption.CREATE_NEW,java.nio.file.StandardOpenOption.WRITE)){
+            EncryptedBackupArchive.copy(input,java.nio.channels.Channels.newOutputStream(output),null,source.length());output.force(true);
         }
     }
     static List<EncryptedBackupArchive.Source> sources(File privateStage)throws Exception {

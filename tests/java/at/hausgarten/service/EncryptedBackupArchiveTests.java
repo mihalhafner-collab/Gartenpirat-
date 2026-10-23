@@ -67,6 +67,12 @@ public final class EncryptedBackupArchiveTests {
                 zip.putNextEntry(new ZipEntry("manifest.json"));zip.write(m.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));zip.closeEntry();
             }
             reject(()->EncryptedBackupArchive.verifyAndStage(input(unsafe),recovery,new File(root,"test_unsafe"),160L*1024*1024,4));
+            File stopped=new File(root,"test_android_stopped.hgb");
+            try(OutputStream file=new FileOutputStream(stopped)){
+                OutputStream stop=new FilterOutputStream(file){long bytes;@Override public void write(byte[] b,int o,int n)throws IOException{out.write(b,o,n);bytes+=n;if(bytes>1024*1024)Thread.currentThread().interrupt();}@Override public void write(int b)throws IOException{write(new byte[]{(byte)b},0,1);}};
+                try{reject(()->EncryptedBackupArchive.write(stop,recovery,metadata(4),sources));yes(Thread.currentThread().isInterrupted());passed++;}finally{Thread.interrupted();}
+            }
+            reject(()->EncryptedBackupArchive.verifyAndStage(input(stopped),recovery,new File(root,"test_android_stopped"),160L*1024*1024,4));
             yes(EncryptedBackupArchive.sha256(active).equals(activeHash)&&EncryptedBackupArchive.sha256(backup).equals(originalHash));passed++;
             try(InputStream file=input(backup)){byte[] prefix=new byte[4096];int n=file.read(prefix);String plain=new String(prefix,0,n,java.nio.charset.StandardCharsets.ISO_8859_1);yes(!plain.contains("test_business")&&!plain.contains("test_photo_")&&!plain.contains(recovery));passed++;}
             System.out.println("PASS "+passed+" encrypted archive fault checks;48MiB and25 synthetic media;no Keystore;active data unchanged");

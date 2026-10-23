@@ -3,6 +3,67 @@
 Stand: 23. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Revier Solo – täglicher Sicherungsauftrag und native Prüffälle vorbereitet
+
+Abnahmekriterien vor Umsetzung: standardmäßig ausgeschaltet; Einrichtung erst nach
+bestätigtem Recovery-Code und ausdrücklicher Zielwahl; CAS/Request-Replay und atomare
+Einstellungsbelege; Browsercheckpoint und Einstellungen nach SQLite-Neuöffnung;
+Restore-Epoche hält alte Einstellungen/Jobs zurück; bestehende Generation vor neuer
+Aufnahme fortsetzen; höchstens8Versuche und begrenztes Backoff; Geschäftssnapshot bleibt
+unverändert. Keine Kontoerlaubnis oder operative Drive-Synchronisierung im Backupjob.
+
+`BackupSettingsRepository` speichert diese versionierten technischen Einstellungen
+und explizite Browsercheckpoints in der vorhandenen Datenbank. `BackupAutomation`
+verbindet die Tagesregel mit dem bereits geprüften Aufnahme-/Uploaddienst.
+`FullBackupJob` nutzt Android JobScheduler mit täglichem persistentem Auftrag und
+separatem Wiederholungsauftrag, standardmäßig nicht getaktetes Netz. Keine exakte Uhrzeit,
+kein Dauerdienst und kein Polling. Der Scheduler startet noch nicht automatisch:
+Geräteeinrichtung/UI/MCP-Anbindung stehen als nächster Integrationsschritt aus.
+Die neuen drei nativen Prüfungen sind vorbereitet, noch nicht ausgeführt.
+
+Quellenzugriff23.10.2026: [JobInfo.Builder](https://developer.android.com/reference/android/app/job/JobInfo.Builder)
+bestätigt aufschiebbare Periodik und Bootpersistenz mit vorhandener Bootberechtigung.
+Ein erster Instrumentierungskompilierlauf scheiterte an einer nicht öffentlichen
+Testabfrage (`hasLateConstraint`); korrigiert auf die öffentliche Deadline-Abfrage.
+Kein solcher fehlgeschlagener Lauf wird als PASS gezählt. Die anschließende
+App-/Instrumentierungskompilierung besteht.57JVM-Suiten,8 gezielte Python-
+Vertrags-/OS-Backuprichtlinienprüfungen und Source-/Workspace-Privacy PASS.
+Zusätzlich bestehen26Streamingarchiv-Fehlerprüfungen (48MiB bei64MiB-Heap),
+7Dateipinning-/Kopierprüfungen und23Tagesregelprüfungen einschließlich Jobabbruch.
+Noch kein nativer Ausführungsbeleg des neuen Schedulers.
+
+Aktuelle österreichische Quellenprüfung und ersetzte historische Laptop-/PDF-Angaben
+stehen in `RECHNUNGEN-OESTERREICH.md`; RIS-Normfassung nach erstem fehlgeschlagenem
+Tagesabruf erfolgreich gelesen. Keine Änderung produktiver Steuer-/Ausstellerdaten.
+
+## Revier Solo –303 native Prüfungen im exakten Sicherungsjob-Quellstand
+
+Quellcommit `d2ecc05f44efa20bdb6d4ddc3bec50dd93795e05`, interner Original-
+Prüfbau1.55.0/99: **303Android-SQLite-/MCP-Prüfungen PASS,0FAIL** auf API30-x86_64
+in Codex Cloud. Die zuvor nur vorbereiteten vier Job-/Epochenschritte sind jetzt
+ausgeführt: SQL-Rollback/Replay/CAS/Neuöffnung, separate Restore-Epoche und gemeinsamer
+Aufnahme-/Verschlüsselungs-/Uploadpfad nach verlorener Endantwort. Dieselbe Generation
+mit identischem Archivhash und genau einer externen Datei wird wiederaufgenommen.
+Die Gegenstelle war ein isolierter synthetischer Port; kein produktiver Drivezugriff.
+Bestehende Geschäftssnapshots bleiben unverändert. Acht native Sicherungsproben
+insgesamt, keine vollständige RS-11-/Pixel-/USB-/Restoreaktivierungsabnahme.
+
+App-SHA256 `8ea0920138683829831981b6b25d180ea79b7c8800931c38b1ab7656566ce56d`,
+Test-SHA256 `ac5e8c0456650c3a36495beee6bed70899e19d885c6a2c35df064fc921591aa1`,
+Quellfingerprint `2560839827fb0623bc3d591c73b419a833c55c6765471e722f8ba5af33cd44f9`.
+Beide Originalzertifikat wie unten; sauberer gepushter Quellstand/source_preservation
+vor Signierung PASS. assembleRelease/assembleReleaseAndroidTest/lintRelease PASS
+(0Fehler,54Warnungen). Log-SHA256
+`e992a6d78111eb5382a2958975e4cba5222145797f678b2978c158923bf1a92b`.
+Keine Auslieferung/Pixelinstallation/Produktivumstellung; kein99-Release-Tag.
+
+Anschließend57JVM-Suiten PASS, darunter21 neue Regeln für täglichen Sicherungs-
+Rhythmus, maximal8Versuche, begrenztes Backoff, Ziel-/Restorebindung und tatsächliches
+Datenalter. Das ist noch kein Ausführungsnachweis des Android-Schedulers.
+Aktueller Remote-main unverändert e499e745; eigener Branch exakt d2ecc05 zurückgelesen.
+Frische PR-Abfragen über GitHub-GraphQL und REST erhielten403; deshalb keine aktuelle Behauptung
+über offene PRs oder ausgeschlossene fremde Cloud-Arbeit.
+
 ## Revier Solo – gemeinsamer Sicherungsablauf mit dauerhaften Jobs vorbereitet
 
 Nachfolgend zum gesicherten Uploadadapter6f347eb: `BackupJobRepository` speichert

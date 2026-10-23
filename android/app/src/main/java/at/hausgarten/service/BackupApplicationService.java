@@ -62,7 +62,7 @@ final class BackupApplicationService {
             try(FileOutputStream out=new FileOutputStream(sealed)){
                 EncryptedBackupArchive.write(new FilterOutputStream(out){@Override public void close()throws IOException{flush();}},recovery,metadata,BackupFilePins.sources(child(root,capture.getString("directory"))));out.getFD().sync();
             }
-            archive.put("sha256",EncryptedBackupArchive.sha256(sealed)).put("size",sealed.length());job=step(job,new JSONObject().put("phase","SEALED_LOCAL").put("archive",archive));
+            archive.put("sha256",EncryptedBackupArchive.sha256(sealed)).put("size",sealed.length()).put("capturedAt",metadata.getString("capturedAt"));job=step(job,new JSONObject().put("phase","SEALED_LOCAL").put("archive",archive));
         }
         if(!archive.has("localVerifiedAt")){
             try(EncryptedBackupArchive.Verified verified=EncryptedBackupArchive.verifyAndStage(new FileInputStream(sealed),recovery,child(root,"verify-"+UUID.randomUUID()),root.getUsableSpace(),PixelLocalStore.SCHEMA_VERSION)){

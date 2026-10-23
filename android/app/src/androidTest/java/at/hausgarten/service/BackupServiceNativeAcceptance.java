@@ -8,7 +8,7 @@ import java.util.*;
 /** Shared production backup use case with real DB/Keystore/files and an isolated network port. */
 final class BackupServiceNativeAcceptance {
     private static void denied(PixelMcpInstrumentation.Task action)throws Exception{try{action.run();}catch(IOException expected){return;}throw new AssertionError("Expected backup refusal");}
-    private static final class Server implements DriveRestClient.Wire {
+    static final class Server implements DriveRestClient.Wire {
         final File encrypted;JSONObject metadata;int starts,completed,readbacks;long bytes,total;boolean dropFinal=true;
         Server(File encrypted){this.encrypted=encrypted;}
         DriveRestClient.Reply reply(int status,String body,Map<String,String> headers){return new DriveRestClient.Reply(status,body.getBytes(StandardCharsets.UTF_8),headers);}
