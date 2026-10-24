@@ -1,0 +1,51 @@
+package at.hausgarten.service;
+
+import org.json.*;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.util.*;
+
+/** File-backed provider fault port; actual Tink/ZIP streaming at64MiB heap, no USB device claim. */
+public final class BackupDocumentTransferTests {
+    static int checks;interface Task{void run()throws Exception;}
+    static void yes(boolean value){checks++;if(!value)throw new AssertionError("Document transfer check "+checks);}
+    static void refused(Task task)throws Exception{try{task.run();}catch(IOException|java.security.GeneralSecurityException expected){checks++;return;}throw new AssertionError("Expected provider transfer refusal");}
+    static final class Journal implements BackupDocumentTransfer.Checkpoint {
+        final Path file;Journal(Path file,JSONObject initial)throws Exception{this.file=file;if(!Files.exists(file))save(initial);}
+        public JSONObject read()throws Exception{return new JSONObject(Files.readString(file));}
+        public void save(JSONObject value)throws Exception{Path next=file.resolveSibling(file.getFileName()+".new");Files.writeString(next,value.toString());Files.move(next,file,StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.ATOMIC_MOVE);}
+    }
+    static final class Provider implements BackupDocumentTransfer.Documents {
+        final Path root;int creates,opens;long disconnectAfter=-1;boolean corruptReadback,lostCreate;
+        Provider(Path root)throws Exception{this.root=root;Files.createDirectories(root);}
+        public List<String> find(String name)throws Exception{return Files.exists(root.resolve(name))?Collections.singletonList(name):Collections.emptyList();}
+        public String create(String name,String mime)throws Exception{creates++;Files.createFile(root.resolve(name));if(lostCreate){lostCreate=false;throw new IOException("qa lost create response");}return name;}
+        public InputStream read(String id)throws Exception{InputStream input=Files.newInputStream(root.resolve(id));if(!corruptReadback||!id.endsWith(".hgb"))return input;return new FilterInputStream(input){boolean changed;@Override public int read(byte[] b,int o,int n)throws IOException{int count=in.read(b,o,n);if(count>200&&!changed){b[o+100]^=1;changed=true;}return count;}@Override public int read()throws IOException{int value=in.read();if(value>=0&&!changed){changed=true;return value^1;}return value;}};}
+        public OutputStream replaceOwnCandidate(String id)throws Exception{opens++;OutputStream output=Files.newOutputStream(root.resolve(id));return new FilterOutputStream(output){long count;@Override public void write(byte[] b,int o,int n)throws IOException{if(disconnectAfter>=0&&count+n>disconnectAfter)throw new IOException("qa USB removed or provider full");out.write(b,o,n);count+=n;}@Override public void write(int value)throws IOException{write(new byte[]{(byte)value},0,1);}};}
+    }
+    static JSONObject metadata()throws Exception{return new JSONObject().put("schemaVersion",4).put("appVersion","qa_app").put("applicationId","at.hausgarten.service").put("backupId","qa_source_backup").put("installationId","qa_install").put("businessId","qa_business").put("capturedAt","2027-05-18T11:00:00Z").put("counts",new JSONObject().put("photos",25)).put("numberState",new JSONObject().put("next",13)).put("lastIssuedDocumentIds",new JSONArray().put("qa_invoice"));}
+    static JSONObject initial(String id,File archive)throws Exception{return new JSONObject().put("operation_id",id).put("backup_id","qa_source_backup").put("archive_sha256",EncryptedBackupArchive.sha256(archive)).put("byte_size",archive.length()).put("captured_at","2027-05-18T11:00:00Z").put("archive_name",id+".hgb").put("commit_name",id+".hgc").put("phase","NEW");}
+    public static void main(String[] args)throws Exception {
+        Path root=Files.createTempDirectory("qa_document_transfer_");try{
+            String recovery=BackupCrypto.newRecoveryCode();File archive=root.resolve("qa_archive.hgb").toFile();File large=root.resolve("qa_original.bin").toFile();byte[] block=new byte[64*1024];new Random(18).nextBytes(block);try(OutputStream output=new FileOutputStream(large)){for(int i=0;i<768;i++)output.write(block);}
+            List<EncryptedBackupArchive.Source> sources=new ArrayList<>();sources.add(new EncryptedBackupArchive.Source("files/qa_original.bin",large));for(int i=0;i<25;i++){Path photo=root.resolve("qa_photo_"+i);Files.write(photo,new byte[]{(byte)i,2,3});sources.add(new EncryptedBackupArchive.Source("photos/qa_photo_"+i,photo.toFile()));}
+            EncryptedBackupArchive.write(new FileOutputStream(archive),recovery,metadata(),sources);yes(archive.length()>40L*1024*1024);
+            BackupDocumentTransfer.ArchiveVerifier verifier=input->{try(EncryptedBackupArchive.Verified verified=EncryptedBackupArchive.verifyAndStage(input,recovery,root.resolve("qa_verify_"+UUID.randomUUID()).toFile(),200L*1024*1024,4)){yes(verified.manifest.getJSONArray("files").length()==26);}};
+            Provider provider=new Provider(root.resolve("provider"));Path previous=provider.root.resolve("qa_previous_generation.hgb");Files.write(previous,new byte[]{7,8,9});String previousHash=EncryptedBackupArchive.sha256(previous.toFile());
+            Journal journal=new Journal(root.resolve("qa_checkpoint.json"),initial("qa_transfer",archive));provider.disconnectAfter=2L*1024*1024;
+            refused(()->BackupDocumentTransfer.export(archive,root.resolve("qa_commit.hgc").toFile(),recovery,provider,journal,verifier));yes(provider.creates==1&&journal.read().getString("phase").equals("WRITING"));yes(EncryptedBackupArchive.sha256(previous.toFile()).equals(previousHash));
+            provider.disconnectAfter=-1;provider.corruptReadback=true;refused(()->BackupDocumentTransfer.export(archive,root.resolve("qa_commit.hgc").toFile(),recovery,provider,new Journal(journal.file,null),verifier));yes(!Files.exists(provider.root.resolve("qa_transfer.hgc"))&&provider.creates==1);
+            provider.corruptReadback=false;JSONObject result=BackupDocumentTransfer.export(archive,root.resolve("qa_commit.hgc").toFile(),recovery,provider,new Journal(journal.file,null),verifier);yes(result.getString("phase").equals("COMMITTED")&&!result.getBoolean("cloud_confirmed")&&provider.creates==2);
+            int opens=provider.opens;yes(BackupDocumentTransfer.export(archive,root.resolve("qa_commit.hgc").toFile(),recovery,provider,new Journal(journal.file,null),verifier).getString("phase").equals("COMMITTED")&&provider.opens==opens);
+            try(InputStream input=provider.read("qa_transfer.hgc")){JSONObject commit=BackupDocumentTransfer.readCommit(input,recovery);yes(commit.getString("archive_sha256").equals(EncryptedBackupArchive.sha256(archive)));}
+            refused(()->{try(InputStream input=provider.read("qa_transfer.hgc")){BackupDocumentTransfer.readCommit(input,BackupCrypto.newRecoveryCode());}});
+            Provider uncertain=new Provider(root.resolve("uncertain"));uncertain.lostCreate=true;Journal lost=new Journal(root.resolve("qa_lost.json"),initial("qa_lost",archive));refused(()->BackupDocumentTransfer.export(archive,root.resolve("qa_lost_commit.hgc").toFile(),recovery,uncertain,lost,verifier));refused(()->BackupDocumentTransfer.export(archive,root.resolve("qa_lost_commit.hgc").toFile(),recovery,uncertain,new Journal(lost.file,null),verifier));yes(uncertain.creates==1&&Files.size(uncertain.root.resolve("qa_lost.hgb"))==0);
+            Provider collision=new Provider(root.resolve("collision"));Path protectedFile=collision.root.resolve("qa_collision.hgb");Files.write(protectedFile,new byte[]{11,12,13});Journal foreign=new Journal(root.resolve("qa_foreign.json"),initial("qa_collision",archive));refused(()->BackupDocumentTransfer.export(archive,root.resolve("qa_foreign_commit.hgc").toFile(),recovery,collision,foreign,verifier));yes(Arrays.equals(Files.readAllBytes(protectedFile),new byte[]{11,12,13})&&collision.creates==0);
+            yes(EncryptedBackupArchive.sha256(previous.toFile()).equals(previousHash));
+            File portable=root.resolve("qa_portable.zip").toFile();JSONObject portableMeta=metadata().put("database",new JSONObject().put("sha256","a".repeat(64)));try(OutputStream output=new FileOutputStream(portable)){BackupPortableFormat.write(output,new JSONObject().put("customers",new JSONArray().put(new JSONObject().put("id","qa_customer"))),portableMeta,Collections.emptyList(),writer->writer.write("{\"formatVersion\":1,\"entries\":[]}"));}Provider plainProvider=new Provider(root.resolve("portable-provider"));Journal plain=new Journal(root.resolve("qa_plain.json"),initial("qa_plain",portable).put("archive_name","qa_plain.zip").put("commit_name","qa_plain.complete.json").put("commit_kind","hausgarten.portable-export.commit"));
+            JSONObject plainResult=BackupDocumentTransfer.exportPortable(portable,root.resolve("qa_plain.commit").toFile(),plainProvider,plain,input->{Path copy=root.resolve("qa_portable_readback.zip");Files.copy(input,copy,StandardCopyOption.REPLACE_EXISTING);BackupPortableFormat.verify(copy.toFile(),portableMeta);});yes(plainResult.getString("phase").equals("COMMITTED")&&!plainResult.getBoolean("cloud_confirmed"));JSONObject plainCommit=new JSONObject(Files.readString(plainProvider.root.resolve("qa_plain.complete.json")));yes(plainCommit.getString("kind").equals("hausgarten.portable-export.commit")&&plainCommit.getString("archive_sha256").equals(EncryptedBackupArchive.sha256(portable)));int plainOpens=plainProvider.opens;yes(BackupDocumentTransfer.exportPortable(portable,root.resolve("qa_plain.commit").toFile(),plainProvider,new Journal(plain.file,null),input->{throw new AssertionError("Committed plain replay must not reread provider");}).getString("phase").equals("COMMITTED")&&plainProvider.opens==plainOpens);
+            System.out.println("PASS "+checks+" encrypted and conscious plaintext provider generation/48MiB/25media/reopen/readback/corruption/disconnect/uncertain-create/collision/replay checks;synthetic provider,no physical USB or SQLite restore proof");
+        }finally{try(java.util.stream.Stream<Path> paths=Files.walk(root)){for(Path path:(Iterable<Path>)paths.sorted(Comparator.reverseOrder())::iterator)Files.delete(path);}}
+    }
+}

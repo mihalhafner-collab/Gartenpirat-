@@ -1,6 +1,7 @@
 package at.hausgarten.service;
 
 import org.json.JSONObject;
+import org.json.JSONArray;
 import java.io.*;
 import java.security.MessageDigest;
 import java.util.Locale;
@@ -8,9 +9,12 @@ import java.util.Locale;
 /** Shared read-only original checks for live diagnostics and isolated backup snapshots. */
 final class LocalOriginalVerifier implements LocalMigrationInventory.Originals {
     interface PhotoMetadata {JSONObject get(String id)throws Exception;}
+    interface DocumentJobs {JSONObject get(String invoiceId)throws Exception;}
     private final File files;
     private final PhotoMetadata photos;
-    LocalOriginalVerifier(File files,PhotoMetadata photos){this.files=files;this.photos=photos;}
+    private final DocumentJobs documents;
+    LocalOriginalVerifier(File files,PhotoMetadata photos){this(files,photos,null);}
+    LocalOriginalVerifier(File files,PhotoMetadata photos,DocumentJobs documents){this.files=files;this.photos=photos;this.documents=documents;}
     @Override public boolean verified(String kind,JSONObject reference)throws Exception {
         JSONObject metadata=reference;File file;
         if(kind.equals("photo")){
@@ -18,6 +22,7 @@ final class LocalOriginalVerifier implements LocalMigrationInventory.Originals {
             if(!PhotoAttachmentStore.canonicalName(metadata.optString("storage_name")))return false;
             file=new File(new File(files,"customer-photo-originals"),metadata.getString("storage_name"));
         }else{
+            if(reference.optString("pdf_state").equals("PDF_PENDING"))return false;
             if(!metadata.optString("pdf_storage_name").matches("[0-9a-f]{64}\\.pdf"))return false;
             file=new File(new File(files,"business-documents"),metadata.getString("pdf_storage_name"));
         }
@@ -27,5 +32,23 @@ final class LocalOriginalVerifier implements LocalMigrationInventory.Originals {
         MessageDigest digest=MessageDigest.getInstance("SHA-256");long read=0;
         try(InputStream input=new BufferedInputStream(new FileInputStream(file))){byte[] buffer=new byte[32768];int n;while((n=input.read(buffer))!=-1){digest.update(buffer,0,n);read+=n;}}
         StringBuilder hash=new StringBuilder();for(byte value:digest.digest())hash.append(String.format(Locale.ROOT,"%02x",value&255));return read==size&&expected.equals(hash.toString());
+    }
+    @Override public boolean pendingDocument(JSONObject invoice)throws Exception {
+        String id=invoice.optString("id");if(documents==null||id.isEmpty()||!invoice.optString("document_job_id").equals("invoice:"+id)||!invoice.optString("pdf_state").equals("PDF_PENDING")||invoice.optString("invoice_number").trim().isEmpty()||invoice.optString("issued_at").isEmpty())return false;
+        // A missing or damaged previously produced original is never reclassified as a pending job.
+        for(String name:new String[]{"pdf_sha256","pdf_storage_name","pdf_base64"})if(!invoice.optString(name).isEmpty())return false;
+        JSONObject job=documents.get(id);if(job==null||job.optInt("formatVersion")!=1||!job.optString("invoice_id").equals(id)||!job.optString("phase").equals("PDF_PENDING"))return false;
+        JSONObject snapshot=job.optJSONObject("snapshot");String hash=job.optString("snapshot_sha256");if(snapshot==null||!hash.matches("[0-9a-f]{64}")||!PixelMcpWriteTools.hash(snapshot).equals(hash))return false;
+        if(!snapshot.optString("id").equals(id)||!snapshot.optString("invoice_number").equals(invoice.optString("invoice_number"))||!snapshot.optString("issued_at").equals(invoice.optString("issued_at"))||!snapshot.optString("document_job_id").equals("invoice:"+id)||!snapshot.optString("pdf_state").equals("PDF_PENDING"))return false;
+        JSONObject issuer=snapshot.optJSONObject("issuer"),recipient=snapshot.optJSONObject("recipient"),money=snapshot.optJSONObject("money_minor");JSONArray positions=snapshot.optJSONArray("positions");if(issuer==null||recipient==null||money==null||positions==null||positions.length()==0)return false;
+        for(String field:new String[]{"owner_name","business_street","business_postal_code","business_city"})if(issuer.optString(field).trim().isEmpty())return false;
+        for(String field:new String[]{"name","street","postal_code","city"})if(recipient.optString(field).trim().isEmpty())return false;
+        String tax=snapshot.optString("tax_mode");if(!java.util.Arrays.asList("small_business","standard").contains(tax)||tax.equals("small_business")&&issuer.optString("tax_exemption_text").trim().isEmpty()||tax.equals("standard")&&issuer.optString("business_vat_id").trim().isEmpty())return false;
+        java.time.Instant.parse(snapshot.getString("issued_at"));for(String field:new String[]{"invoice_date","service_start","service_end"})java.time.LocalDate.parse(snapshot.getString(field));
+        if(!PixelMcpWriteTools.hash(LocalAuthorityRules.exactTotals(snapshot)).equals(PixelMcpWriteTools.hash(money)))return false;
+        JSONObject original=new JSONObject(snapshot.toString()),current=new JSONObject(invoice.toString());
+        // Payment/cancellation status and document completion are separate from the frozen invoice.
+        for(String mutable:new String[]{"status","updated_at","payment_balance","pdf_state","pdf_sha256","pdf_storage_name","pdf_byte_size","pdf_base64","document_id"}){original.remove(mutable);current.remove(mutable);}
+        return PixelMcpWriteTools.hash(original).equals(PixelMcpWriteTools.hash(current));
     }
 }

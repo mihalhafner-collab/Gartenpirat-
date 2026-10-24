@@ -130,7 +130,7 @@ public final class PhotoCaptureHostTest {
             MainActivity app=fresh();app.cacheError=new IllegalStateException("PRIVATE_EXCEPTION_DETAIL");failure(app,"PREPARE_FAILED");
         });
         test("URI preparation failure also removes already-created target",()->{
-            MainActivity app=fresh();app.alternateCache=Files.createTempDirectory(root,"alternate-").toFile();app.alternateAfter=2;
+            MainActivity app=fresh();app.alternateCache=Files.createTempDirectory(root,"alternate-").toFile();app.alternateAfter=1; // Switch after target creation, before its URI is checked.
             failure(app,"PREPARE_IO");require(app.launchCount==0,"Do not launch with an invalid URI");
         });
         test("missing camera is specific and retry remains possible",()->{
@@ -195,12 +195,21 @@ public final class PhotoCaptureHostTest {
             app.resultForTest(MainActivity.RESULT_OK,new Intent().setData(galleryUri("second")));
             require(next.calls==1&&app.fileCallback==null,"Next callback delivered once");
         });
-        test("stale cleanup is limited to old named capture files",()->{
+        test("old camera drafts survive cleanup startup and later preparation",()->{
             MainActivity app=fresh();File old=PhotoCaptureProvider.createTarget(app),recent=PhotoCaptureProvider.createTarget(app);
             Path unrelated=new File(old.getParentFile(),"synthetic-record.db").toPath();Files.write(unrelated,new byte[]{4});
+            Files.write(old.toPath(),new byte[]{7,8,9});
             require(old.setLastModified(System.currentTimeMillis()-48L*60L*60L*1000L),"Set old synthetic timestamp");
             PhotoCaptureProvider.cleanupStale(app);
-            require(!old.exists()&&recent.exists()&&Files.exists(unrelated),"Only stale captures removed");
+            PhotoCaptureProvider provider=new PhotoCaptureProvider();provider.attachForTest(app);require(provider.onCreate(),"Provider startup remains harmless");PhotoCaptureProvider.createTarget(app);
+            require(old.exists()&&recent.exists()&&Files.exists(unrelated)&&Arrays.equals(Files.readAllBytes(old.toPath()),new byte[]{7,8,9}),"Age alone must not delete a restored or interrupted capture");
+        });
+        test("restore gate blocks camera URI read write metadata and target creation before file access",()->{
+            MainActivity app=fresh();File file=PhotoCaptureProvider.createTarget(app);Files.write(file.toPath(),new byte[]{7,8,9});Uri uri=PhotoCaptureProvider.uri(app,file);PhotoCaptureProvider provider=new PhotoCaptureProvider();provider.attachForTest(app);LocalAuthorityGuard.blocked=app;
+            try{require(provider.onCreate(),"Recovery provider startup stays available");for(String mode:new String[]{"r","w","wt","rw","rwt"}){try{provider.openFile(uri,mode);throw new AssertionError("Restore file mode allowed: "+mode);}catch(IllegalStateException expected){require(expected.getMessage().equals("RESTORE_RESTART_REQUIRED"),"Fixed restore code");}}
+                for(Checked action:new Checked[]{()->PhotoCaptureProvider.createTarget(app),()->PhotoCaptureProvider.uri(app,file),()->provider.query(uri,null,null,null,null),()->provider.getType(uri),()->PhotoCaptureProvider.cleanupStale(app)}){try{action.run();throw new AssertionError("Restore photo operation allowed");}catch(IllegalStateException expected){require(expected.getMessage().equals("RESTORE_RESTART_REQUIRED"),"Fixed restore code");}}
+                require(Arrays.equals(Files.readAllBytes(file.toPath()),new byte[]{7,8,9}),"Blocked modes do not truncate the draft");
+            }finally{LocalAuthorityGuard.blocked=null;}
         });
         System.out.println("PASS "+cases+" host camera/provider cases; Android device tests NOT RUN.");
     }

@@ -3,6 +3,119 @@
 Stand: 24. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Revier Solo – integrierte Fertigstellungsarbeit, 24.10.2026, 03:20 UTC
+
+Auf ausdrücklichen Auftrag „Starte Fertigstellung“ wurde der vorhandene Java-/WebView-/
+SQLite-Kern erweitert. Dieser Abschnitt beschreibt den neuen Arbeitsstand auf
+`codex/revier-solo-20261023`, ausgehend vom gesicherten Commit
+`613875759c2e29d6c8fc9efc18990e3b49763ea1`. Er ist noch kein neuer APK-/Pixelnachweis.
+Die weiter unten belegten306 Androidtests und signierten APKs gehören ausschließlich
+zum älteren da7c16f-Stand. Keine Produktivinstallation, Datenumstellung oder echte
+Rechnung/Zahlung/Nachricht wurde ausgeführt.
+
+### Implementierter gemeinsamer Stand
+
+- Vier Bereiche Heute, Objekte, Pflege, Büro; Kunden bleiben eigene Entitäten unter
+  Objekte. Bestehende Pflanzen-/Neophyten-, Foto-, Auftrags- und Mehr-Einstiege bleiben.
+- Gemeinsame lokale Revier-Anwendungsfälle für Objekt, Anfrage/Besichtigung, versionierte
+  Pflege, Besuch, manuelle Tourreihenfolge, Materialbewegung/Gegenbuchung, Geräte und
+  vollständige Suche. Erweiterungen liegen in derselben vorhandenen SQLite-Datenbank.
+- Explizite versionierte Angebotsannahme/-ablehnung mit Nachweis und Historie;
+  wiederholte Umwandlung derselben angenommenen Fassung erzeugt nur einen Auftrag.
+- Persistenter Timer übernimmt Objekt/Besuch aus dem unveränderlichen START-Ereignis;
+  Abschluss und Fotos behalten diesen Bezug. Historische auftragslose Arbeiten und
+  persönliche b.b.-Markierungen bleiben unabhängig von Abrechnung/Zahlung.
+- Lokale Belegausgabe mit atomarer Nummernreservierung, eingefrorenem Snapshot,
+  expliziten Quellmengen und dauerhaftem PDF-Job. Dokument und PDF haben getrennte
+  Zustände. Dateiquittung vor SQL-Veröffentlichung erhält nach Absturz dieselben Bytes.
+  Teilabrechnung verwendet die geprüfte Restmenge, ohne historische Stunden zu ändern.
+- Manueller Zahlungsledger in Cent mit Teil-/Sammelzahlungen, Guthaben und
+  nachvollziehbarer Gegenbuchung/Korrektur; keine Änderung ursprünglicher Positionen.
+- Vollsicherung über native Einrichtung, Recovery-Code, tägliche aufschiebbare Jobs,
+  Wiederholung, SAF/USB, vollständiges Rücklesen und getrennten tatsächlichen
+  Drive-Servernachweis. `LocalBackupCoordinator` ist der sachgerecht umbenannte
+  frühere Android-Capture-/Upload-Koordinator `BackupApplicationService`; die bestehenden
+  reinen fachlichen ApplicationServices bleiben frei von Android-/SQLite-Abhängigkeiten.
+- Restore wird zunächst vollständig in einem temporären Bestand geprüft und nur nach
+  ausdrücklicher Entscheidung beim nächsten Prozessstart ausgetauscht. Alter Bestand
+  und verschlüsselte Vor-Restore-Sicherung bleiben erhalten; keine automatische Mischung.
+  Recovery funktioniert ohne alten Keystore; dessen bewusste Reparatur prüft zuerst
+  ein bekanntes vollständiges Archiv. Klartext-Portabilitätsexport ist eine eigene Aktion.
+
+Die SQLite-Version steigt von4 auf5 als Schreibsperre gegen alte Appversionen; die
+bestehenden Tabellen, IDs und historischen Werte bleiben erhalten. Neue fachliche
+Namespaces, Revisionen, Requestquittungen und Audit liegen im vorhandenen `owner_state`.
+Die private, nicht aus Backups wiederhergestellte Autoritätsdatei bindet Installation,
+Migrationsepoche, Restore-Epoche und Nummern-Höchststand. Restore sperrt die Ausgabe.
+Ein alter Ledger mit neuer request_id genügt nicht: eine frische ausdrückliche aktuelle
+Original-/Schreiberprüfung muss an das aktuelle Gerät und die Restore-Epoche gebunden sein.
+Die externe Vollständigkeit dieser Originalnachweise bleibt ein bewusster Geräteschritt.
+
+Die kontrollierte Umstellung verlangt ein aktuelles vollständig geprüftes externes
+Vollbackup, Konflikt-/Originalprüfung und Nachweise über stillgelegte externe Schreiber.
+Danach sind alte Drive-Schreib-, Lese-Fallback- und Zweiwege-Sync-Pfade gesperrt;
+Drive dient ausschließlich Sicherung/Export. Laufende Legacyjournale werden weder
+pauschal gelöscht noch durch einen älteren Cloudstand ersetzt. Nach Wiederherstellung
+bleiben Nummernausgabe und alte externe Kontowiederaktivierung gesperrt.
+
+### Bisherige Prüfungen dieses Integrationsstands
+
+| Umgebung / Eingabe | Erwartung | Tatsächlicher Nachweis / Grenze |
+| --- | --- | --- |
+| Vollständige Pythonregression, isolierte Fixtures | Schutzverträge/Privacy/Bestand bestehen |424 PASS,0SKIP;37 vorhandene Ersatzsignier-/QA-Schlüsseltests ausdrücklich ausgeschlossen. Erster Lauf fand den inzwischen durch sachgerechte Koordinatortrennung behobenen Architekturverstoß. |
+| API37/JDK17, Produktions- und AndroidTestquellen | Java-Typen/API-Verbindungen passen zusammen | Gemeinsame javac-Prüfung PASS; kein Gradle-/APK-/Gerätebeweis und nach letzter Härtung erneut zu prüfen. |
+| Tatsächliche gebündelte Assets im Chromium, synthetische Owner-Gegenstelle | Navigation, Geschäftsabläufe, Retry, Rechnung148EUR und60+88EUR |36 neue Pilotfälle PASS; darunter Teilabrechnung und200%Schrift bei320/360/426px. Gemeinsamer nativer UI-/SQLite-Pilot steht noch aus; diese Gegenstelle ist kein Gerätespeichernachweis. |
+| Bestehende Browser-/Node-Regressionsskripte, synthetische Fixtures | Bestehende Geschäfts-/Timer-/Entwurfs-/CASabläufe bleiben |48/48 PASS nach zwei belegten CSSkorrekturen und gezielter Anpassung veralteter Navigations-/Palettenfixtures; Originalfehler erhalten. |
+| Vollbackup-/Export-Dateiports,48MiB bei64MiBHeap | Streaming, Abbruch, fehlende/kaputte Datei, Commit/Replay |20 Transfer-,140 Austausch-/Rollback- und38 Portabilitätsprüfungen PASS; reale USB-/Driveanbieter noch nicht geprüft. |
+| Neue JVM-Fachtests / bestehende Regressionen | Restmengen, Entscheidungen, Kontext, Geld, Schemas, Korruption | Fokussierte Suiten PASS; der komplette Runner benötigt die frischen regulären Android-Klassen und finalen UI-Quellfingerprints. Kein vorgetäuschtes Gesamt-PASS. |
+| Bisher installierter Original-Cloudbuild mit Schema4 | Vorhandener synthetischer Update-Ausgangsbestand bleibt intakt | Bestehende lifecycle-verify-Prüfung PASS vor neuem Update. Erneutes prepare wurde sicher abgewiesen, weil der vorhandene Ausgangsbestand bereits besteht; nichts gelöscht/überschrieben. |
+
+Zusätzliche Sicherheitsbefunde wurden im Code geschlossen: alte Kameraentwürfe werden
+nicht wegen ihres Alters gelöscht; neue Providerzugriffe sind während Restore gesperrt;
+eine allein verbliebene AtomicFile-.bak bleibt lesbar; Tunnel-Dienst/Bootreceiver stoppen
+vor einer während Recovery verbotenen Storeöffnung. Frame-/srcdoc-Schutz und
+vertrauenswürdige native Entwurfcheckpoints sind integriert. Lokale PDF-Teilen-Wege
+verwenden verifizierte Originale und eingefrorene Empfänger.
+
+### Aktuelle externe Quellen und verbleibende Freigabegrenzen
+
+Am24.10. wurden die drei zentralen Pages erneut gelesen. GitHub-Connector meldete keine
+offenen PRs und acht Branches; Remote-main bleibt e499e745, Arbeitsbranch war6138757.
+Andere Cloudthreads sind mangels dauerhafter Thread-Leseschnittstelle nicht als beendet
+nachgewiesen. Dieser fehlende Schreiberstilllegungsnachweis verhindert die produktive
+Umstellung; er verhindert keine unabhängige Implementierung.
+
+Open-Meteo gestattet den freien gehosteten Dienst weiterhin nur nichtkommerziell.
+Der Kandidat kennzeichnet Wetter deshalb ausdrücklich als optionale, gewerblich
+ungeklärte Erweiterung und bestätigt keine Lizenz automatisch. Bestehende Schalter,
+Konten und Abrufe bleiben erhalten; kein Tarif und kein neuer Anbieter wurden aktiviert.
+[Terms](https://open-meteo.com/en/terms). GeoSphere ist kein belegter vollständiger
+Ersatz für die bestehende16-Tage-Prognose.
+
+Die [USP-Rechnungsinformationen](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/rechnung.html),
+[Kleinunternehmerregeln](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/weitere-steuertatbestaende-und-befreiungen/kleinunternehmen.html),
+[Aufbewahrung](https://www.usp.gv.at/themen/steuern-finanzen/steuerliche-gewinnermittlung/weitere-informationen-zur-steuerlichen-gewinnermittlung/betriebliches-rechnungswesen/aufbewahrungspflicht.html)
+und [E-Rechnung](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/vorsteuerabzug-und-rechnung/e-rechnung.html)
+wurden am24.10. gelesen. Kein automatischer Wechsel des persönlichen Steuerprofils und
+keine pauschale Rechtsabnahme. Der direkte Zugriff auf die datierte RIS-Tagesfassung
+§11UStG24.10.2026 scheiterte mit nicht erreichbarer URL/HTTP503; dies bleibt ein fehlender
+Tagesquellnachweis. Rechnungen an den Bund benötigen gegebenenfalls strukturierten
+E-Rechnungsversand; ein PDF allein ist dafür kein vollständiger Weg.
+
+Laut frisch gelesener [Android-Verifizierungs-FAQ](https://developer.android.com/developer-verification/guides/faq)
+betrifft der Start30.09.2026 ausgewählte Stores in vier Startregionen, derzeit keine
+direkten Sideloads in Österreich; weltweiter Ausbau ab2027. Daher keine aktuelle neue
+Registrierungs-/Gebührenpflicht für den erhaltenen direkten Pixel-Updateweg behaupten.
+Keine Registrierung oder Zahlung ausgelöst. Paket und Originalsignatur müssen erhalten
+bleiben; die aktuell neue Gesamt-APK und deren Update-/Datenerhaltstest sind noch offen.
+
+Offen bleiben die neue vollständige Native-/Gradle-/Privacy-/Originalsignaturprüfung,
+der echte gebündelte UI-/SQLite-Pilot, die dokumentierte Softwareabnahme RS01–16 sowie
+die getrennten Geräteschritte: Pixel/TalkBack/Kamera/Biometrie, reale zwei USB-Ziele,
+provider- und serververifizierter Upload, aktuelle Original-/Schreiberprüfung und
+bewusste produktive Entscheidung.10GB/60min ist ein ungemessenes Pilotziel. Keine neue
+Produktivfreigabe aus diesem Zwischenstand ableiten.
+
 ## Revier Solo – geprüfter Zwischenstand am 24. Oktober 2026
 
 Der Wiederholungslauf aus dem exakt gesicherten Quellcommit

@@ -26,7 +26,8 @@ const assert=require('node:assert/strict'),path=require('node:path'),{pathToFile
      if(name==='create_appointment'||name==='create_appointment_series'){const id='qa_created_'+rows.length;rows.push({...a,id,updated_at:'v1',test_record:true});return ok(requests[a.request_id]={appointment_id:id,local_state:'local_saved',cloud_confirmed:false});}
      const row=rows.find(x=>x.id===a.appointment_id);if(!row||row.updated_at!==a.expected_record_hash)return bad('Veraltet');Object.assign(row,name==='cancel_appointment'?{status:'cancelled'}:a.updates,{updated_at:'v2'});return ok(requests[a.request_id]={appointment_id:row.id,local_state:'local_saved',cloud_confirmed:false});
     }
-    if(name==='get_settings')return ok({settings:{},record_hash:'settings'});return bad('Dieser synthetische Pfad wird nicht benötigt');
+    if(name==='get_capabilities')return ok({runtime:{capabilities:{local_payment_ledger_v1:false}}});
+   if(name==='get_settings')return ok({settings:{},record_hash:'settings'});return bad('Dieser synthetische Pfad wird nicht benötigt');
    }};window.AndroidSpeech={start:()=>{}};window.AndroidPhone={dial:()=>{},openMaps:()=>{}};window.AndroidGardenPhotos={setFullscreen:()=>{}};
   });
   page.on('dialog',d=>d.accept());await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href);await page.waitForFunction(()=>document.getElementById('planning-page')&&window.PlanningUI);

@@ -47,12 +47,12 @@ final class ReleaseLifecycleProbe {
         android.app.Activity activity=runner.startActivitySync(new Intent(context,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         java.lang.reflect.Field field=MainActivity.class.getDeclaredField("webView");field.setAccessible(true);android.webkit.WebView view=(android.webkit.WebView)field.get(activity);
         long deadline=SystemClock.elapsedRealtime()+120000;boolean ready=false;
-        while(SystemClock.elapsedRealtime()<deadline){if("true".equals(js(runner,view,"typeof HGBusinessActions==='object'&&typeof HGBusinessFeedback==='object'&&typeof WorklogArchiveUI==='object'&&typeof PhotoLibraryUI==='object'&&typeof openPage==='function'&&document.body.dataset.fieldReady==='true'&&!!document.querySelector('[data-open-garden-menu]')"))){ready=true;break;}SystemClock.sleep(250);}
+        while(SystemClock.elapsedRealtime()<deadline){if("true".equals(js(runner,view,"typeof HGBusinessActions==='object'&&typeof HGBusinessFeedback==='object'&&typeof WorklogArchiveUI==='object'&&typeof PhotoLibraryUI==='object'&&typeof openPage==='function'&&document.body.dataset.fieldReady==='true'&&document.body.dataset.revierReady==='true'&&!!document.querySelector('[data-open-garden-menu]')"))){ready=true;break;}SystemClock.sleep(250);}
         require(ready);
         String previousPlanningDraft=js(runner,view,"localStorage.getItem('hausgarten.planning.draft.v1')");
         String previousOtherDrafts=js(runner,view,"localStorage.getItem('hausgarten.planning.draft.v1.others')");
         try{
-        require("true".equals(js(runner,view,"(()=>{const nav=[...document.querySelectorAll('.bottom-inner [data-open]')].map(x=>x.dataset.open);return nav.join(',')==='home,customers,more-page'&&!!document.querySelector('#today-action-dock [data-open=\"planning-page\"]')&&typeof crypto.randomUUID==='function'&&[1,2].at(-1)===2&&Object.hasOwn({a:1},'a')&&'a-a'.replaceAll('-','')==='aa';})()")));
+        require("true".equals(js(runner,view,"(()=>{const nav=[...document.querySelectorAll('.bottom-inner [data-open]')].map(x=>x.dataset.open);return nav.join(',')==='home,revier-properties,revier-care,revier-office'&&!!document.querySelector('#today-action-dock [data-open=\"planning-page\"]')&&typeof crypto.randomUUID==='function'&&[1,2].at(-1)===2&&Object.hasOwn({a:1},'a')&&'a-a'.replaceAll('-','')==='aa';})()")));
         require("true".equals(js(runner,view,"(()=>{openPage('worklogs');document.querySelector('[data-select-start]').click();document.querySelector('[data-select-visible]').click();const n=document.querySelectorAll('#worklog-list .worklog-selected').length;document.querySelector('[data-select-cancel]').click();return n>0&&document.querySelectorAll('#worklog-list .worklog-entry[aria-pressed]').length===0&&currentPage==='worklogs';})()")));
         require("true".equals(js(runner,view,"(()=>{openPage('more-page');document.querySelector('[data-open-garden-menu]').click();return document.querySelector('#gp-dialog').open;})()")));
         require("true".equals(js(runner,view,"(()=>{Gartenpirat.close();openPage('home');return !!document.querySelector('#workday-timer.has-active-session');})()")));
@@ -81,6 +81,9 @@ final class ReleaseLifecycleProbe {
     static String fingerprint(PixelLocalStore store)throws Exception{
         JSONObject state=store.getState();
         JSONObject master=SyntheticBusinessData.object(state.getJSONObject("master").toString());
+        // These joins are derived from preserved SQLite sidecars, never canonical business rows.
+        // Native backup/relationship probes separately validate their complete source ledgers.
+        for(String key:new String[]{"offer_decisions","offer_revisions","local_billing_sources"})master.remove(key);
         // Only fields introduced AFTER the recorded source release may be absent in its baseline.
         int baseline=Integer.parseInt(store.ownerValue("release_lifecycle_baseline_version","74"));JSONObject capabilities=master.optJSONObject("capabilities");
         if(capabilities!=null){if(baseline<78)capabilities.remove("offer_workflow_v2");if(baseline<75)capabilities.remove("trash_empty_v1");if(baseline<76)capabilities.remove("appointments_v1");}

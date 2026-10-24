@@ -24,12 +24,14 @@ public final class PixelTunnelService extends Service implements McpSyncHost {
     private ConnectivityManager manager;
     private ConnectivityManager.NetworkCallback callback;
     private PixelLocalStore store;
+    private boolean recoveryBlocked;
     private final Handler drivePollHandler=new Handler(Looper.getMainLooper());
     private final Runnable drivePoll=new Runnable(){public void run(){if(running&&!closing.get()&&new PixelTunnelConfig(PixelTunnelService.this).enabled()){DriveSyncCoordinator.poll(PixelTunnelService.this);drivePollHandler.postDelayed(this,SyncWakeup.ACTIVE_POLL_MS);}}};
 
     @Override public void onCreate(){
         super.onCreate();
-        store=new PixelLocalStore(this);
+        if(recoveryStartBlocked(this)){recoveryBlocked=true;stopSelf();return;}
+        try{store=new PixelLocalStore(this);}catch(RuntimeException protectedState){recoveryBlocked=true;stopSelf();return;}
         NotificationChannel channel=new NotificationChannel(CHANNEL,"ChatGPT-Verbindung",NotificationManager.IMPORTANCE_LOW);
         ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).createNotificationChannel(channel);
         startForeground(NOTICE,notice("Verbindung startet"));running=true;closing.set(false);
@@ -41,12 +43,19 @@ public final class PixelTunnelService extends Service implements McpSyncHost {
         manager.registerDefaultNetworkCallback(callback);
     }
     @Override public int onStartCommand(Intent intent,int flags,int startId){
+        if(recoveryBlocked||recoveryStartBlocked(this)){recoveryBlocked=true;stopSelf();return START_NOT_STICKY;}
         if(intent!=null&&STOP.equals(intent.getAction())){new PixelTunnelConfig(this).enabled(false);stopSelf();return START_NOT_STICKY;}
         PixelTunnelConfig config=new PixelTunnelConfig(this);
         if(!config.enabled()||!config.configured()){status("not_configured","Zweiten Tunnel einmalig einrichten.");stopSelf();return START_NOT_STICKY;}
         drivePollHandler.removeCallbacks(drivePoll);drivePollHandler.post(drivePoll);
         if(worker==null||!worker.isAlive()){worker=new Thread(this::runTunnel,"pixel-mcp-tunnel");worker.start();}
         return START_STICKY;
+    }
+    // Shared with boot/update entry: a held or damaged restore must leave recovery UI usable.
+    // This check reads guards only; it never changes user account or tunnel configuration.
+    static boolean recoveryStartBlocked(Context context){
+        if(RevierApplication.recoveryRequired())return true;
+        try{LocalAuthorityGuard.assertStoreMayOpen(context);return false;}catch(RuntimeException held){return true;}
     }
     private boolean online(){Network network=manager.getActiveNetwork();NetworkCapabilities caps=network==null?null:manager.getNetworkCapabilities(network);return caps!=null&&caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);}
     private void runTunnel(){
@@ -117,6 +126,7 @@ public final class PixelTunnelService extends Service implements McpSyncHost {
         drivePollHandler.removeCallbacks(drivePoll);
         closing.set(true);running=false;if(http!=null)http.close();if(worker!=null)worker.interrupt();
         if(manager!=null&&callback!=null)try{manager.unregisterNetworkCallback(callback);}catch(Exception ignored){}
+        if(worker==null&&store!=null){store.close();store=null;}
         SharedPreferences p=getSharedPreferences("pixel_tunnel_status",MODE_PRIVATE);
         if(!"auth_error".equals(p.getString("state","")))p.edit().putString("state","stopped").putString("detail","Verbindung beendet.").apply();
         stopForeground(STOP_FOREGROUND_REMOVE);super.onDestroy();

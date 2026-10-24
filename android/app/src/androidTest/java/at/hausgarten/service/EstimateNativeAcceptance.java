@@ -33,8 +33,8 @@ final class EstimateNativeAcceptance {
   }});
   t.probe("native complete paginated UI catalog and read-only selftest leave store unchanged",()->{try(OwnerNativeAcceptance.Fixture f=new OwnerNativeAcceptance.Fixture(t.getTargetContext())){
    setup(f);String before=PixelMcpWriteTools.hash(f.store.getState());JSONObject first=f.call("get_ui_action_catalog",SyntheticBusinessData.object().put("limit",100));
-   t.yes(first.getInt("total")==157&&first.getJSONArray("actions").length()==100&&first.getInt("next_cursor")==100);JSONObject last=f.call("get_ui_action_catalog",SyntheticBusinessData.object().put("limit",100).put("offset",100).put("expected_catalog_hash",first.getString("catalog_hash")));
-   t.yes(last.getJSONArray("actions").length()==57&&last.isNull("next_cursor"));t.rejected(()->f.call("get_ui_action_catalog",SyntheticBusinessData.object().put("expected_catalog_hash","a".repeat(64))));JSONObject result=f.call("run_self_test",SyntheticBusinessData.object());
+   t.yes(first.getInt("total")==204&&first.getJSONArray("actions").length()==100&&first.getInt("next_cursor")==100);JSONObject last=f.call("get_ui_action_catalog",SyntheticBusinessData.object().put("limit",100).put("offset",100).put("expected_catalog_hash",first.getString("catalog_hash")));
+   t.yes(last.getJSONArray("actions").length()==100&&last.getInt("next_cursor")==200);JSONObject end=f.call("get_ui_action_catalog",SyntheticBusinessData.object().put("limit",100).put("offset",200).put("expected_catalog_hash",first.getString("catalog_hash")));t.yes(end.getJSONArray("actions").length()==4&&end.isNull("next_cursor"));t.rejected(()->f.call("get_ui_action_catalog",SyntheticBusinessData.object().put("expected_catalog_hash","a".repeat(64))));JSONObject result=f.call("run_self_test",SyntheticBusinessData.object());
    t.yes(!result.getBoolean("business_data_changed")&&result.getJSONObject("build_fingerprint").getInt("version_code")==BuildConfig.VERSION_CODE);
    t.yes(PixelMcpWriteTools.hash(f.store.getState()).equals(before));
   }});

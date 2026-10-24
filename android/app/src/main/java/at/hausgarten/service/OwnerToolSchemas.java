@@ -47,6 +47,7 @@ final class OwnerToolSchemas {
         BUILDERS.put("update_invoice_payment", OwnerToolSchemas::updateInvoicePayment);
     }
     static JSONObject schema(String name,boolean writable)throws Exception{
+        if(LocalWorkflowTools.handles(name))return LocalWorkflowTools.schema(name);
         JSONObject p=new JSONObject();List<String> required=new ArrayList<>();
         if(writable){p.put("request_id",text(128).put("minLength",8));required.add("request_id");}
         Fields fields=BUILDERS.get(name);
@@ -54,7 +55,7 @@ final class OwnerToolSchemas {
         if(p.has("expected_record_hash"))p.getJSONObject("expected_record_hash").put("description",Arrays.asList("delete_entity","archive_entity","update_invoice_payment").contains(name)?"entity_hash des zuvor gelesenen Datensatzes.":name.equals("restore_entity")?"record_hash des Eintrags aus list_archive.":"record_hash des zuvor gelesenen Datensatzes.");
         return object(p,required.toArray(new String[0]));
     }
-    private static JSONObject photoFields(JSONObject p)throws Exception{return p.put("session_id",text(500)).put("capture_time",text(80)).put("order_id",text(500)).put("worklog_id",text(500)).put("caption",text(10000)).put("role",enumeration("profile","documentation","before","during","after","damage","other")).put("customer_visible",bool()).put("original_name",text(240));}
+    private static JSONObject photoFields(JSONObject p)throws Exception{return p.put("session_id",text(500)).put("capture_time",text(80)).put("order_id",text(500)).put("worklog_id",text(500)).put("caption",text(10000)).put("role",enumeration("profile","documentation","before","during","after","damage","other")).put("customer_visible",bool()).put("original_name",text(240)).put("property_id",id()).put("visit_id",id());}
     private static void getUiActionCatalog(String name, JSONObject p, List<String> required) throws Exception {
         p.put("expected_catalog_hash",hash()).put("offset",number(0,1000000)).put("limit",number(1,100));
     }

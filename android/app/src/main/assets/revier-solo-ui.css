@@ -1,0 +1,98 @@
+/* Revier Solo presentation. Existing records and native use cases remain authoritative. */
+body.revier-solo{
+  --hg-bg:#FCFAF7;--hg-surface:#F8EFE5;--hg-text:#33261A;--hg-muted:#6B503B;
+  --hg-line:#8B7562;--hg-green:#8A4B1F;--hg-green-btn:#8A4B1F;--hg-sage:#F8EFE5;
+  --hg-danger:#8E2925;--hg-danger-bg:#FBE9E6;--green:#8A4B1F;--green2:#8A4B1F;
+  --sage:#F8EFE5;--muted:#6B503B;--line:#8B7562;--revier-nav-height:76px;
+  color:#33261A;background:#FCFAF7;font-size:1rem;line-height:1.5;
+}
+.revier-solo .app{padding-bottom:calc(var(--revier-nav-height) + 24px)}
+.revier-solo button,.revier-solo input,.revier-solo select,.revier-solo textarea{font:inherit;min-height:48px}
+.revier-solo button{min-width:48px;white-space:normal;overflow-wrap:anywhere;touch-action:manipulation}
+.revier-solo button:focus-visible,.revier-solo input:focus-visible,.revier-solo textarea:focus-visible,.revier-solo select:focus-visible,.revier-solo summary:focus-visible{outline:3px solid #8A4B1F;outline-offset:3px}
+.revier-solo label,.revier-solo .sub,.revier-solo small,.revier-solo .list-detail,.revier-solo summary{font-size:1rem}
+.revier-solo h1,.revier-solo h2,.revier-solo h3{color:#33261A;overflow-wrap:anywhere}
+.revier-solo h1,.revier-solo h2{font-size:1.5rem;line-height:1.25}
+.revier-solo h3{font-size:1.25rem;line-height:1.3}
+.revier-solo .primary{background:#8A4B1F;color:#fff}
+.revier-solo .secondary{background:#F8EFE5;color:#33261A;border:1px solid #8B7562}
+.revier-solo .card{background:#F8EFE5;border-color:#8B7562}
+.revier-solo input,.revier-solo select,.revier-solo textarea{color:#33261A;background:#FCFAF7;border:1px solid #8B7562;max-width:100%;min-width:0}
+.revier-solo .bottom{background:#FCFAF7;border-color:#8B7562;padding:8px 8px max(8px,env(safe-area-inset-bottom));backdrop-filter:none}
+body.revier-solo .bottom .bottom-inner{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+body.revier-solo .bottom .nav{font-size:1rem;line-height:1.3;min-height:56px;padding:8px 2px;color:#33261A;min-width:0;border:2px solid transparent}
+.revier-solo .bottom .nav.active{color:#33261A;background:#F8EFE5;border-color:#8A4B1F;font-weight:700}
+.revier-solo .actions,.revier-solo .today-action-dock,.revier-solo [id^=daily-tools-],.revier-solo .app-context-back{bottom:calc(var(--revier-nav-height) + 8px)}
+.revier-solo .today-action-dock{background:#FCFAF7}
+.revier-globalbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:#FCFAF7;padding:8px 0;border-bottom:1px solid #8B7562;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 12px;min-width:0}
+.revier-globalbar>span{font-weight:700;overflow-wrap:anywhere}
+.revier-globalbar button{flex:none}
+.revier-page .page-head{align-items:flex-start;gap:8px;flex-wrap:wrap}
+.revier-page .page-head h2{flex:1;min-width:0;margin-top:8px}
+.revier-page [role=status]{min-height:1.5em;color:#6B503B;overflow-wrap:anywhere}
+.revier-page [role=alert],.revier-field-error{color:#8E2925;font-weight:700;overflow-wrap:anywhere}
+.revier-page [role=alert]:empty,.revier-field-error:empty{display:none}
+.revier-actions{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px;margin:16px 0}
+.revier-actions>button{flex:1 1 140px;max-width:100%}
+.revier-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:8px 16px}
+.revier-grid>*{min-width:0}
+.revier-field label{margin:8px 0 4px}
+.revier-field input[type=checkbox]{width:24px;height:24px;min-height:24px;flex:none}
+.revier-field .check{min-height:48px;padding:8px 0}
+.revier-search{display:flex;align-items:stretch;gap:8px;margin:12px 0;flex-wrap:wrap}
+.revier-search input{flex:1 1 160px;min-width:0}
+.revier-search button{flex:0 0 auto}
+.revier-list{list-style:none;padding:0;margin:0}
+.revier-list>li{border-top:1px solid #8B7562;padding:12px 0;overflow-wrap:anywhere}
+.revier-list>li:first-child{border-top:0}
+.revier-row{display:block;width:100%;text-align:left;padding:12px;border:1px solid #8B7562;border-radius:12px;background:#FCFAF7;color:#33261A}
+.revier-row strong,.revier-row span{display:block}
+.revier-row span{margin-top:4px}
+.revier-badge{display:inline-block;border:1px solid #8B7562;border-radius:8px;padding:4px 8px;margin:4px 8px 4px 0;font-size:1rem;font-weight:700}
+.revier-warning{padding:12px;border:2px solid #8E2925;border-radius:12px;color:#8E2925;background:#FCFAF7}
+.revier-empty{padding:16px 0;color:#6B503B}
+.revier-detail{display:grid;grid-template-columns:minmax(90px,1fr) minmax(0,2fr);gap:8px 16px;margin:16px 0}
+.revier-detail dt{font-weight:700;overflow-wrap:anywhere}
+.revier-detail dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;min-width:0}
+.revier-sticky-actions{position:sticky;bottom:calc(var(--revier-nav-height) + 8px);padding:8px;background:#FCFAF7;border:1px solid #8B7562;border-radius:12px;z-index:5}
+.revier-page form{min-width:0}
+.revier-page fieldset{min-width:0;margin:16px 0;padding:12px;border:1px solid #8B7562;border-radius:12px}
+.revier-page legend{font-weight:700;padding:0 8px}
+.revier-page .revier-checklist{display:grid;gap:8px}
+.revier-page .revier-checklist label{display:flex;align-items:center;gap:8px;min-height:48px;margin:0}
+.revier-page .revier-checklist input{width:24px;min-height:24px;flex:none}
+.revier-material-need{display:grid;grid-template-columns:minmax(0,2fr) minmax(80px,1fr) 48px;gap:8px;align-items:end;margin:8px 0}
+.revier-material-need button{padding:8px}
+.revier-measurement{display:grid;grid-template-columns:minmax(0,2fr) minmax(80px,1fr) minmax(70px,1fr) 48px;gap:8px;align-items:end;margin:8px 0}
+.revier-measurement>*{min-width:0}
+.revier-compare{width:min(94vw,640px);max-height:90vh;overflow:auto;background:#FCFAF7;color:#33261A;border:2px solid #8A4B1F;border-radius:16px;padding:16px;box-sizing:border-box}
+.revier-compare::backdrop{background:#33261A99}
+.revier-compare .revier-compare-row{border-top:1px solid #8B7562;padding:12px 0;overflow-wrap:anywhere}
+.revier-compare button{font-size:1rem;min-height:48px;min-width:48px;white-space:normal;overflow-wrap:anywhere}
+.revier-compare h2{font-size:1.5rem}
+.revier-compare label{display:flex;align-items:center;gap:8px;min-height:48px}
+.revier-compare input{width:24px;height:24px;flex:none}
+.revier-tour-stop{border:1px solid #8B7562;border-radius:12px;background:#FCFAF7;padding:12px;margin:12px 0}
+.revier-tour-stop>h3{margin:0 0 8px}
+.revier-tour-stop .revier-actions>button{flex:1 1 110px}
+.revier-related{margin-top:24px}
+.revier-solo .revier-today{margin-top:16px}
+.revier-solo .revier-today h2{font-size:1.25rem}
+.revier-solo .revier-backup-time{font-size:1rem;color:#6B503B;overflow-wrap:anywhere}
+.revier-page [aria-invalid=true]{border:2px solid #8E2925}
+.revier-solo .back{height:auto;min-height:48px;min-width:48px;flex:none;color:#33261A;background:#F8EFE5}
+@media(max-width:400px){.revier-detail{grid-template-columns:1fr;gap:4px}.revier-detail dd{margin-bottom:12px}.revier-material-need{grid-template-columns:minmax(0,1fr) 48px}.revier-material-need .revier-field:first-child{grid-column:1/-1}.revier-page .revier-actions>button{flex-basis:100%}.revier-measurement{grid-template-columns:minmax(0,1fr) 48px}.revier-measurement .revier-field{grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){.revier-solo *{scroll-behavior:auto!important;transition:none!important}}
+/* Offer decisions are separate from the frozen document and delivery state. */
+.revier-offer-decision{padding:16px;margin:16px 0;border:1px solid #8B7562;border-radius:12px;background:#FCFAF7;color:#33261A;min-width:0}
+.revier-offer-decision label{display:block;min-width:0;overflow-wrap:anywhere}
+.revier-offer-decision input:not([type=checkbox]),.revier-offer-decision textarea{display:block;width:100%;box-sizing:border-box;min-width:0;max-width:100%;font:inherit;min-height:48px}
+.revier-offer-decision label.check{display:flex;gap:8px;align-items:center;min-height:48px}
+.revier-offer-decision input[type=checkbox]{width:24px;min-height:24px;flex:none}
+.revier-offer-decision fieldset{min-width:0;padding:12px;border:1px solid #8B7562;border-radius:12px}
+.revier-offer-decision legend,.revier-offer-decision p,.revier-offer-decision li{overflow-wrap:anywhere}
+.revier-offer-decision [role=alert]{color:#8E2925;font-weight:700;overflow-wrap:anywhere}
+.revier-offer-decision [role=alert]:empty{display:none}
+.revier-solo p,.revier-solo label,.revier-solo summary{overflow-wrap:anywhere}
+/* Existing compact icon actions keep a full accessible touch area. */
+body.revier-solo button{min-height:48px!important;min-width:48px!important;white-space:normal!important;overflow-wrap:anywhere!important}

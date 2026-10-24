@@ -16,13 +16,16 @@ import java.util.UUID;
 /** Crash-safe handoff for a work photo whose worklog has already been stored. */
 final class PendingWorkPhotoStore {
     private static final long MAX_JSON_BYTES = ((PhotoAttachmentStore.MAX_BYTES + 2L) / 3L) * 4L + 64L * 1024L;
+    private final Context context;
     private final AtomicFile file;
 
     PendingWorkPhotoStore(Context context) {
+        LocalAuthorityGuard.assertStoreMayOpen(context);this.context=context;
         file = new AtomicFile(new File(context.getFilesDir(), "pending-work-photo.json"));
     }
 
     synchronized String stage(String raw) throws Exception {
+        LocalAuthorityGuard.assertStoreMayOpen(context);
         if (raw == null) throw new IllegalArgumentException("Der Foto-Wiederholauftrag fehlt.");
         JSONObject payload = new JSONObject(raw);
         if (payload.optString("id").isEmpty())
@@ -43,14 +46,17 @@ final class PendingWorkPhotoStore {
     }
 
     synchronized String read() throws Exception {
+        LocalAuthorityGuard.assertStoreMayOpen(context);
         File source = file.getBaseFile();
-        if (!source.isFile()) return "";
-        if (source.length() <= 0 || source.length() > MAX_JSON_BYTES)
-            throw new IllegalStateException("Der gespeicherte Foto-Wiederholauftrag ist beschädigt oder zu groß.");
-        ByteArrayOutputStream output = new ByteArrayOutputStream((int) source.length());
+        if (!source.isFile()&&!new File(source+".bak").isFile()) return "";
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
         byte[] block = new byte[8192];
         int count;
         try (FileInputStream input = file.openRead()) {
+            // openRead restores AtomicFile's last valid .bak after an interrupted
+            // write. Checking only the missing base file would hide that draft.
+            if (source.length() <= 0 || source.length() > MAX_JSON_BYTES)
+                throw new IllegalStateException("Der gespeicherte Foto-Wiederholauftrag ist beschädigt oder zu groß.");
             while ((count = input.read(block)) >= 0) {
                 if (output.size() + count > MAX_JSON_BYTES)
                     throw new IllegalStateException("Der gespeicherte Foto-Wiederholauftrag ist zu groß.");
@@ -63,6 +69,7 @@ final class PendingWorkPhotoStore {
     }
 
     synchronized void clear() {
+        LocalAuthorityGuard.assertStoreMayOpen(context);
         file.delete();
     }
 

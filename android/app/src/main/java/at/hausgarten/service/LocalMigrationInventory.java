@@ -6,7 +6,7 @@ import java.util.*;
 
 /** Read-only transition evidence. An inventory never grants local write/number authority. */
 final class LocalMigrationInventory {
-    interface Originals { boolean verified(String kind,JSONObject reference)throws Exception; }
+    interface Originals { boolean verified(String kind,JSONObject reference)throws Exception;default boolean pendingDocument(JSONObject reference)throws Exception{return false;} }
     static final String FORMAT="hausgarten.local-migration-inventory.v1";
     private static final String[] COLLECTIONS={"customers","orders","worklogs","photos","offers","invoices","appointments","service_catalog"};
 
@@ -16,7 +16,7 @@ final class LocalMigrationInventory {
         try{effective=SnapshotProjection.effective(state);}catch(IllegalArgumentException invalid){effective=new JSONObject(master.toString());projectionApplied=false;}
         JSONObject counts=new JSONObject(),ids=new JSONObject(),hashes=new JSONObject();
         JSONArray blockers=new JSONArray();
-        int duplicateIds=0,orphanRelations=0,missingOriginals=0,verifiedOriginals=0;
+        int duplicateIds=0,orphanRelations=0,missingOriginals=0,verifiedOriginals=0,pendingDocuments=0;
         Map<String,Set<String>> known=new HashMap<>();
         for(String key:COLLECTIONS){
             JSONArray rows=effective.optJSONArray(key);if(rows==null)rows=new JSONArray();
@@ -47,7 +47,8 @@ final class LocalMigrationInventory {
                     // No fetch, repair, normalization or deletion is permitted here.
                     boolean present=false;
                     try{present=originals.verified(key.equals("photos")?"photo":"document",new JSONObject(row.toString()));}catch(Exception unavailable){/* Count only; never leak filenames or contents into diagnostics. */}
-                    if(present)verifiedOriginals++;else missingOriginals++;
+                    boolean pendingDocument=false;if(!present&&key.equals("invoices"))try{pendingDocument=originals.pendingDocument(new JSONObject(row.toString()));}catch(Exception invalidJob){}
+                    if(present)verifiedOriginals++;else if(pendingDocument)pendingDocuments++;else missingOriginals++;
                 }
             }
         }
@@ -55,8 +56,8 @@ final class LocalMigrationInventory {
         if(archive!=null)for(Iterator<String> keys=archive.keys();keys.hasNext();){
             JSONObject entry=archive.optJSONObject(keys.next());if(entry==null||entry.optBoolean("purged"))continue;
             JSONObject row=entry.optJSONObject("record");if(row==null)continue;archivedRecords++;
-            String kind=row.has("content_sha256")||row.has("filename")?"photo":row.has("pdf_sha256")||row.has("pdf_storage_name")?"document":"";
-            if(!kind.isEmpty()){boolean present=false;try{present=originals.verified(kind,new JSONObject(row.toString()));}catch(Exception unavailable){}if(present)verifiedOriginals++;else missingOriginals++;}
+            String kind=row.has("content_sha256")||row.has("filename")?"photo":row.has("pdf_sha256")||row.has("pdf_storage_name")||row.has("document_job_id")?"document":"";
+            if(!kind.isEmpty()){boolean present=false,pendingDocument=false;try{present=originals.verified(kind,new JSONObject(row.toString()));if(!present&&kind.equals("document"))pendingDocument=originals.pendingDocument(new JSONObject(row.toString()));}catch(Exception unavailable){}if(present)verifiedOriginals++;else if(pendingDocument)pendingDocuments++;else missingOriginals++;}
         }
         int pending=state.optJSONArray("pending")==null?0:state.getJSONArray("pending").length();
         int reviews=0;for(String key:new String[]{"sync_errors","drive_journal_errors","drive_review_actions"}){JSONArray errors=master.optJSONArray(key);if(errors!=null)reviews+=errors.length();}
@@ -79,7 +80,7 @@ final class LocalMigrationInventory {
                 .put("source_master_sha256",PixelMcpWriteTools.hash(master))
                 .put("pending_sha256",PixelMcpWriteTools.hash(state.optJSONArray("pending")))
                 .put("projection_applied",projectionApplied).put("inventory_scope","effective_business_records_and_archive_references").put("full_device_inventory",false).put("archived_records",archivedRecords).put("pending_actions",pending).put("historical_reviews",reviews).put("duplicate_ids",duplicateIds)
-                .put("orphan_relations",orphanRelations).put("verified_local_originals",verifiedOriginals).put("missing_local_originals",missingOriginals)
+                .put("orphan_relations",orphanRelations).put("verified_local_originals",verifiedOriginals).put("missing_local_originals",missingOriginals).put("pending_document_jobs",pendingDocuments)
                 .put("historical_hours_decimal",hours.toPlainString()).put("historical_invoice_amounts_decimal",invoiceAmounts.toPlainString())
                 .put("session_state",session==null?"UNKNOWN":session.optString("state","UNKNOWN"))
                 .put("session_revision_sha256",session==null?"":session.optString("revision_hash"))

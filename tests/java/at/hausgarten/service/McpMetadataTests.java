@@ -11,13 +11,16 @@ public final class McpMetadataTests {
         JSONObject first=tools.call("get_capabilities",new JSONObject()).getJSONObject("data");
         if(!first.getString("tool_catalog_hash").equals(PixelMcpWriteTools.hash(first.getJSONArray("tools"))))throw new AssertionError("Catalog hash differs from advertised tools");
         first.getJSONArray("tools").remove(0);
-        if(tools.call("get_capabilities",new JSONObject()).getJSONObject("data").getJSONArray("tools").length()!=118)throw new AssertionError("Caller changed subsequent metadata");
+        if(tools.call("get_capabilities",new JSONObject()).getJSONObject("data").getJSONArray("tools").length()!=161)throw new AssertionError("Caller changed subsequent metadata");
         for(String name:new String[]{"get_capabilities","integration_health"}){
             for(int i=0;i<5;i++)tools.call(name,new JSONObject());long[] samples=new long[15];
             for(int i=0;i<samples.length;i++){long start=System.nanoTime();JSONObject data=tools.call(name,new JSONObject()).getJSONObject("data");samples[i]=System.nanoTime()-start;if(data.getString("tool_catalog_hash").isEmpty())throw new AssertionError("Missing hash");}
             Arrays.sort(samples);System.out.println("MCP_METADATA_CPU "+new JSONObject().put("tool",name).put("samples",samples.length).put("p50_ms",samples[7]/1e6).put("p95_ms",samples[14]/1e6).put("native_or_network_measured",false));
         }
         if(writes[0]!=0)throw new AssertionError("Metadata must remain read-only");
+        PixelMcpReadTools local=new PixelMcpReadTools(()->state,sink,(name,arguments)->new JSONObject().put("invoice_finalization","pixel_local_reconciliation_required").put("storage_contract_version",2));
+        JSONObject localCapabilities=local.call("get_capabilities",new JSONObject()).getJSONObject("data");if(!localCapabilities.getString("invoice_finalization").equals("pixel_local_reconciliation_required")||localCapabilities.getInt("storage_contract_version")!=2)throw new AssertionError("Local authority transition status was replaced by legacy online claim");
+        if(!tools.call("get_capabilities",new JSONObject()).getJSONObject("data").getString("invoice_finalization").equals("pixel_drive_online_compare_required"))throw new AssertionError("Legacy numbering guard changed before migration");if(writes[0]!=0)throw new AssertionError("Capability transition performed a business write");
         System.out.println("PASS metadata catalog/hash consistency, fresh results and zero writes; host CPU measurements only");
     }
 }

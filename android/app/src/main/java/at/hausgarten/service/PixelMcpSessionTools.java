@@ -12,6 +12,7 @@ final class PixelMcpSessionTools {
         JSONObject props=new JSONObject().put("request_id",PixelMcpWriteTools.field("request_id").put("minLength",8).put("maxLength",128));JSONArray required=new JSONArray().put("request_id");
         if(name.equals("start_work")){
             for(String key:new String[]{"customer_id","billing_customer_id","order_id","appointment_id","work_date","activity","location"})props.put(key,PixelMcpWriteTools.field(key));required.put("customer_id");
+            props.put("property_id",McpFields.id()).put("visit_id",McpFields.id());
         }else{props.put("session_id",PixelMcpWriteTools.field("session_id"));required.put("session_id");}
         if(name.equals("complete_work_session")||name.equals("finish_work")){
             for(String key:new String[]{"customer_id","billing_customer_id","activity","material","notes","location","kilometers","material_cost"})props.put(key,PixelMcpWriteTools.field(key));required.put("activity");
@@ -52,6 +53,7 @@ final class PixelMcpSessionTools {
             if(current.optBoolean("review_required")||current.optBoolean("pause_unverified"))throw new PixelMcpWriteTools.Rejected("TIME_REVIEW_REQUIRED","Sitzung wegen Neustart oder widersprüchlicher Geräteuhr zuerst prüfen. Kein Arbeitsende geschätzt.");
             String customer=current.optString("customer_id");if(!out.optString("customer_id",customer).equals(customer)&&!customer.isEmpty())throw new PixelMcpWriteTools.Rejected("REFERENCE_MISMATCH","Die Kundenzuordnung der gestarteten Sitzung darf nicht still geändert werden.");
             out.put("customer_id",out.optString("customer_id",customer)).put("order_id",current.optString("order_id")).put("work_date",current.getString("work_date")).put("hours",current.getDouble("hours")).put("break_minutes",current.optInt("break_minutes",0)).put("billed",0).put("customer_visible",1).put("source","ChatGPT Sprache");
+            for(String contextKey:new String[]{"property_id","visit_id"})if(!current.optString(contextKey).isEmpty())out.put(contextKey,current.getString(contextKey));
             if(current.has("started_at_ms")){String origin=Instant.ofEpochMilli(current.getLong("started_at_ms")).atZone(ZoneId.of("Europe/Vienna")).toString();String audit="Zeiterfassung: Beginn "+origin+", Ende "+current.optString("updated_at")+". Nettozeit aus Timer; Pausen in Minuten aus Ereigniszeiten gerundet.";if("manual_review".equals(current.optString("time_origin")))audit="Geprüfte Nettozeit; keine Endzeit rekonstruiert. Grund: "+current.optString("correction_reason");out.put("notes",(out.optString("notes").isEmpty()?"":out.getString("notes")+"\n")+audit);}
             PixelMcpWriteTools.find(PixelMcpReadTools.effective(state).optJSONArray("customers"),out.getString("customer_id"));
             if(!out.has("billing_customer_id")&&!current.optString("billing_customer_id").isEmpty())out.put("billing_customer_id",current.getString("billing_customer_id"));

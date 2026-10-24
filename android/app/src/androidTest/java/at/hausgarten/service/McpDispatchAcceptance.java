@@ -18,7 +18,11 @@ final class McpDispatchAcceptance {
         if(type.equals("boolean"))return false;
         if(type.equals("integer"))return Long.valueOf(Math.max(0,schema.optLong("minimum",0)));
         if(type.equals("number"))return Math.max(0,schema.optDouble("minimum",0));
-        String pattern=schema.optString("pattern");if(pattern.equals("[0-9a-f]{64}"))return PixelMcpWriteTools.hash("qa_dispatch");if(!pattern.isEmpty())return "QA";
+        String pattern=schema.optString("pattern");if(pattern.equals("[0-9a-f]{64}"))return PixelMcpWriteTools.hash("qa_dispatch");
+        if(!pattern.isEmpty()){
+            for(String candidate:new String[]{"2027-05-18","05-18","08:00","1","qa_missing","QA",""})if(candidate.matches(pattern)&&candidate.length()>=schema.optInt("minLength",0)&&candidate.length()<=schema.optInt("maxLength",10000))return candidate;
+            throw new AssertionError("Synthetic dispatch factory needs a reviewed pattern sample");
+        }
         String text=key.equals("request_id")?"qa_dispatch_request":key.contains("date")?"2026-10-23":key.contains("base64")?"UUE=":key.equals("mime_type")?"text/plain":key.equals("name")||key.equals("activity")||key.equals("title")?"QA Dispatch probe":"qa_missing";
         while(text.length()<schema.optInt("minLength",0))text+="q";return text.substring(0,Math.min(text.length(),schema.optInt("maxLength",text.length())));
     }

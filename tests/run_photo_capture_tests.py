@@ -114,6 +114,11 @@ public class Toast {
 }''',
     "at/hausgarten/service/PhotoAttachmentStore.java": '''package at.hausgarten.service;
 final class PhotoAttachmentStore {static final long MAX_BYTES=20L*1024L*1024L;}''',
+    "at/hausgarten/service/LocalAuthorityGuard.java": '''package at.hausgarten.service;
+final class LocalAuthorityGuard {
+ static android.content.Context blocked;
+ static void assertStoreMayOpen(android.content.Context context){if(context==blocked)throw new IllegalStateException("RESTORE_RESTART_REQUIRED");}
+}''',
 }
 
 

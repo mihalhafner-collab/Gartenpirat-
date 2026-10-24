@@ -22,12 +22,17 @@ final class PixelOwnerAccess implements PixelMcpOwnerTools.Access {
         if(AppointmentTools.write(name))McpSchema.validate(args,AppointmentTools.schema(name));else if(OfferTools.write(name))McpSchema.validate(args,OfferTools.schema(name));else PixelMcpOwnerTools.validate(name,args);
         if(name.equals("prepare_legacy_conflict_backup"))return new JSONObject().put("ok",true).put("data",repository.prepareLegacyBackup(args.getString("request_id"),args.optString("expected_preview_hash")));
         String request="mcp_owner_"+PixelMcpWriteTools.hash(args.getString("request_id")),fingerprint=PixelMcpWriteTools.hash(new JSONObject().put("tool",name).put("args",args));
-        JSONObject result=repository.runRequest(request,fingerprint,()->{JSONObject changed=application.perform(name,new JSONObject(args.toString()),request);if(name.equals("create_appointment")||name.equals("create_appointment_series"))AppointmentRuntime.enableWeatherForAppointment(context,store);return changed;});
+        if(LocalWorkflowTools.authorityMutation(name)){JSONObject changed=repository.localInvoiceAction(name,args,request);MainActivity.refreshBusinessView();return new JSONObject().put("ok",true).put("data",changed).put("cloud_confirmed",false);}
+        // Backup controls own context-bound receipts: even a retry must recheck the current restore epoch.
+        JSONObject result=LocalWorkflowTools.backup(name)?application.perform(name,new JSONObject(args.toString()),request):repository.runRequest(request,fingerprint,()->{JSONObject changed=application.perform(name,new JSONObject(args.toString()),request);if(name.equals("create_appointment")||name.equals("create_appointment_series"))AppointmentRuntime.enableWeatherForAppointment(context,store);return changed;});
         if(name.equals("purge_entity")||name.equals("empty_trash"))try{store.compactPurgedTestActions();}catch(Exception pending){store.putOwnerValue("local_test_cleanup_error","JOURNAL_CLEANUP_PENDING");result.put("test_cleanup_state","review_required");}
         MainActivity.refreshBusinessView();
         if(AppointmentTools.write(name))PlanningJob.schedule(context,1000);
+        if(name.equals("plan_inquiry_inspection"))try{PlanningJob.schedule(context,1000);}catch(Exception deferred){result.put("external_scheduling_pending",true);}
+        if(LocalWorkflowTools.backup(name))try{if(!FullBackupJob.schedule(context,0))result.put("background_scheduling_pending",true);}catch(Exception deferred){result.put("background_scheduling_pending",true).put("scheduling_code","BACKUP_SCHEDULING_PENDING");}
+        if(name.equals("request_invoice_issue")||name.equals("retry_invoice_document_job"))try{LocalInvoiceJobs.schedule(context);}catch(Exception deferred){result.put("document_scheduling_pending",true);}
         if(name.equals("request_sync"))result=DriveSyncCoordinator.requestExplicit(context,request);
-        else if(!AppointmentTools.write(name)&&!Arrays.asList("begin_file_upload","write_file_chunk","create_backup","set_personal_paid","update_settings","prepare_invoice_share").contains(name))DriveSyncCoordinator.request(context,1000);
+        else if(!LocalWorkflowTools.handles(name)&&!AppointmentTools.write(name)&&!Arrays.asList("begin_file_upload","write_file_chunk","create_backup","set_personal_paid","update_settings","prepare_invoice_share").contains(name))DriveSyncCoordinator.request(context,1000);
         return new JSONObject().put("ok",true).put("data",result).put("cloud_confirmed",false);
     }
 }

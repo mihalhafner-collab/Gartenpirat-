@@ -35,10 +35,16 @@ final class BackupSettingsRepository {
         }finally{db.endTransaction();}
     }
     JSONObject browser()throws Exception {
+        String error=browserError();if(!error.isEmpty())throw new IOException(error);
         String raw=store.ownerValue("full_backup_browser","");if(raw.isEmpty())throw new IOException("BACKUP_BROWSER_STATE_REQUIRED_OPEN_APP");JSONObject saved=new JSONObject(raw),identity=guard.current();
         if(saved.getInt("formatVersion")!=1||!saved.getString("installationId").equals(identity.getString("installationId"))||!saved.getString("restoreEpoch").equals(identity.getString("restoreEpoch")))throw new IOException("BACKUP_BROWSER_RESTORE_REVIEW_REQUIRED");
         return saved;
     }
+    String browserError(){
+        String raw=store.ownerValue("full_backup_browser_status","");if(raw.isEmpty())return "";
+        try{JSONObject status=new JSONObject(raw);if(status.optBoolean("capturePending"))return "BACKUP_BROWSER_CAPTURE_REQUIRED";String code=status.optString("code");if(code.isEmpty())return "";return java.util.Arrays.asList("BACKUP_BROWSER_CAPTURE_REQUIRED","BACKUP_BROWSER_STATE_TOO_LARGE","BACKUP_BROWSER_WRITE_CONFLICT").contains(code)?code:"BACKUP_BROWSER_CAPTURE_REQUIRED";}catch(Exception invalid){return "BACKUP_BROWSER_CAPTURE_REQUIRED";}
+    }
+    boolean browserCapturePending(){try{return new JSONObject(store.ownerValue("full_backup_browser_status","{}")).optBoolean("capturePending");}catch(Exception invalid){return false;}}
     String browserRevision()throws Exception {return PixelMcpWriteTools.hash(store.ownerValue("full_backup_browser",""));}
     JSONObject saveBrowser(String requestId,String expectedRevision,JSONObject browser)throws Exception {
         if(requestId==null||!requestId.matches("[A-Za-z0-9_-]{8,200}"))throw new IOException("BACKUP_REQUEST_ID_REQUIRED");

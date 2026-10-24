@@ -7,6 +7,7 @@ final class InvoiceApplicationService implements OwnerCommand {
     private final OwnerRepository repository;
     InvoiceApplicationService(OwnerRepository repository){this.repository=repository;}
     @Override public JSONObject perform(String name,JSONObject a,String request)throws Exception{
+        JSONObject local=repository.localInvoiceAction(name,a,request);if(local!=null)return local;
         JSONObject all=repository.effective();String stamp=java.time.Instant.now().toString();
         switch(name){
             case "request_invoice_issue":case "create_invoice_correction":case "update_invoice_payment":{

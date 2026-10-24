@@ -12,7 +12,8 @@ final class BackupJobRepository {
     private final String installation;
     private final String epoch;
     private static final Set<String> PHASES=new HashSet<>(Arrays.asList("CAPTURE_PENDING","CAPTURING","CAPTURED","SEALING","SEALED_LOCAL","LOCAL_VERIFIED","UPLOAD_PENDING","UPLOADING","REMOTE_VERIFY_PENDING","REMOTE_VERIFIED","PROVIDER_WRITING","PROVIDER_VERIFY_PENDING","PROVIDER_VERIFIED","RETRY_PENDING","NEEDS_USER_ACTION","FAILED","CANCELLED"));
-    private static final Set<String> MUTABLE=new HashSet<>(Arrays.asList("phase","capture","archive","upload","provider","attempts","nextAttemptAt","lastErrorCode","lastAttemptAt","verifiedAt"));
+    private static final Set<String> MUTABLE=new HashSet<>(Arrays.asList("phase","capture","archive","upload","provider","attempts","nextAttemptAt","lastErrorCode","lastAttemptAt","verifiedAt","localAttempts","lastLocalAttemptAt","runnerAttemptId","manualRequested"));
+    static boolean validPhase(String phase){return PHASES.contains(phase);}
     BackupJobRepository(PixelLocalStore store,String installation,String epoch){if(installation==null||!installation.matches("[A-Za-z0-9_-]{8,200}")||epoch==null||!epoch.matches("[A-Za-z0-9_-]{8,200}"))throw new IllegalArgumentException("BACKUP_INSTALLATION_AND_EPOCH_REQUIRED");this.store=store;this.installation=installation;this.epoch=epoch;}
     JSONObject create(String requestId,String backupId,JSONObject destination)throws Exception {
         return create(requestId,backupId,destination,new JSONObject());
@@ -42,6 +43,12 @@ final class BackupJobRepository {
         if(expectedRevision==null||!expectedRevision.matches("[0-9a-f]{64}"))throw new IOException("BACKUP_JOB_REVISION_REQUIRED");
         for(Iterator<String> keys=changes.keys();keys.hasNext();)if(!MUTABLE.contains(keys.next()))throw new IOException("BACKUP_JOB_FIELD_IMMUTABLE");
         if(changes.has("phase")&&!PHASES.contains(changes.getString("phase")))throw new IOException("BACKUP_JOB_PHASE_UNSUPPORTED");
+        for(String field:new String[]{"attempts","localAttempts"})if(changes.has(field)){
+            Object count=changes.get(field);if(!(count instanceof Integer||count instanceof Long)||((Number)count).longValue()<0||((Number)count).longValue()>BackupScheduleRules.MAX_ATTEMPTS)throw new IOException("BACKUP_JOB_ATTEMPTS_INVALID");
+        }
+        if(changes.has("nextAttemptAt")&&(!(changes.get("nextAttemptAt") instanceof Number)||changes.getLong("nextAttemptAt")<0))throw new IOException("BACKUP_JOB_RETRY_TIME_INVALID");
+        if(changes.has("manualRequested")&&!(changes.get("manualRequested") instanceof Boolean))throw new IOException("BACKUP_JOB_MANUAL_INTENT_INVALID");
+        if(changes.has("runnerAttemptId")&&!changes.getString("runnerAttemptId").matches("[A-Za-z0-9_-]{0,200}"))throw new IOException("BACKUP_JOB_ATTEMPT_ID_INVALID");
         SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();
         try{
             JSONObject current=load(backupId);String revision=current.getString("revision");current.remove("revision");
@@ -64,12 +71,19 @@ final class BackupJobRepository {
         };
     }
     JSONArray inventory()throws Exception {
-        JSONArray jobs=new JSONArray();try(Cursor rows=store.getReadableDatabase().rawQuery("SELECT key FROM owner_state WHERE key LIKE 'backup_job:%' ORDER BY key",null)){
-            while(rows.moveToNext()){
-                String id=rows.getString(0).substring("backup_job:".length());String raw=store.ownerValue(key(id),"");JSONObject row=new JSONObject(raw);boolean same=installation.equals(row.optString("installationId")),sameEpoch=epoch.equals(row.optString("restoreEpoch"));
-                jobs.put(new JSONObject().put("backupId",id).put("formatVersion",row.optInt("formatVersion")).put("phase",row.optString("phase")).put("createdAt",row.optString("createdAt")).put("sameInstallation",same).put("sameRestoreEpoch",sameEpoch).put("resumeContextMatches",same&&sameEpoch&&row.optInt("formatVersion")==1).put("destinationKind",row.getJSONObject("destination").optString("kind")));
-            }
+        JSONArray jobs=new JSONArray(),records=records();for(int i=0;i<records.length();i++){
+            JSONObject entry=records.getJSONObject(i),row=entry.getJSONObject("job");boolean same=entry.getBoolean("sameInstallation"),sameEpoch=entry.getBoolean("sameRestoreEpoch");
+            jobs.put(new JSONObject().put("backupId",row.getString("backupId")).put("formatVersion",row.optInt("formatVersion")).put("phase",row.optString("phase")).put("createdAt",row.optString("createdAt")).put("sameInstallation",same).put("sameRestoreEpoch",sameEpoch).put("resumeContextMatches",same&&sameEpoch&&row.optInt("formatVersion")==1).put("destinationKind",row.optJSONObject("destination")==null?"":row.getJSONObject("destination").optString("kind")));
         }return jobs;
+    }
+    /** Internal records for reviewed status projection. Never expose these raw through UI/MCP. */
+    JSONArray records()throws Exception {
+        JSONArray records=new JSONArray();try(Cursor rows=store.getReadableDatabase().rawQuery("SELECT key FROM owner_state WHERE key LIKE 'backup_job:%' ORDER BY key",null)){
+            while(rows.moveToNext()){
+                String id=rows.getString(0).substring("backup_job:".length());JSONObject row=new JSONObject(store.ownerValue(key(id),""));if(!id.equals(row.optString("backupId")))throw new IOException("BACKUP_JOB_FORMAT_UNSUPPORTED");
+                records.put(new JSONObject().put("job",view(row)).put("sameInstallation",installation.equals(row.optString("installationId"))).put("sameRestoreEpoch",epoch.equals(row.optString("restoreEpoch"))));
+            }
+        }return records;
     }
     private static String key(String backupId)throws IOException {if(backupId==null||!backupId.matches("[A-Za-z0-9_-]{8,100}"))throw new IOException("BACKUP_JOB_ID_REQUIRED");return "backup_job:"+backupId;}
     private static JSONObject view(JSONObject job)throws Exception {return new JSONObject(job.toString()).put("revision",PixelMcpWriteTools.hash(job));}

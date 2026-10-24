@@ -62,6 +62,32 @@ Quellen: [Zentrale Regeln](https://chatgpt.com/space/page_6681fd3e333481918de439
   Logs, Fixtures oder APK. Vor Originalsignierung source_preservation.py PASS,
   ausschließlich vorhandener geschützter Originalsignierweg, Remote-Readback.
 
+### Integrationsentscheidung vom24.10.2026
+
+Die Fertigstellung erweitert die vorhandene Datenbank auf Schema5 als Schutz gegen
+veraltete Schreiber. Bestehende Tabellen/IDs/Werte bleiben; neue Revier-, Finanz-,
+Audit- und Jobdatensätze liegen in vorhandenen versionierten owner_state-Namespaces.
+UI und MCP verwenden gemeinsame lokale Anwendungsfälle;161Tools/204semantische
+UI-Aktionen sind der neue implementierte Vertrag. Der ursprüngliche117Tool-Vertrag
+bleibt als Regression erhalten. Lokale Autorität pixel_local_v2, Drive backup_only und
+Rechnungsausgabe werden ausschließlich nach den getrennten Sicherungs-/Schreiber-/
+Originalprüfungen aktiviert. Restore sperrt Rechnungen auch bei gültigem altem Backup.
+Eine neue Aktions-ID macht alten Nummernnachweis nicht aktuell: frische ausdrückliche
+Prüfung ist an aktuelle Installation und Restore-Epoche zu binden.
+
+Objekte/Anfragen/Pflege/Besuche/Touren, Material/Geräte, Entscheidungen, lokale
+Rechnungs-/PDF-/Zahlungsjobs und native Backup-/Restore-/Recovery-Bedienwege sind jetzt
+implementiert.36neue Browserpilotfälle bestehen gegen synthetische Gegenstelle;
+regulärer Gesamtbuild, neuer nativer UI-/SQLite-Vollablauf und vollständige RS-Abnahme
+stehen noch aus. Der aktuelle technische Nachweis und seine Grenzen stehen ausschließlich
+in CODEX-STATUS.md. Ältere N/A-Zuordnungen in der folgenden Startmatrix sind datierter
+Ausgangspunkt; „implementiert“ bedeutet ohne konkrete Prüfung nicht „abgenommen“.
+
+Keine neuen kostenpflichtigen Pflichtdienste. Wetter bleibt optional und gewerbliche
+Open-Meteo-API-Nutzung ungeklärt; keine automatische Lizenzbestätigung/Anbieterumstellung.
+Originalsignierung, tatsächlicher Quell-/APK-Nachweis und getrennte Pixelabnahme bleiben
+verbindlich. Keine produktive Umstellung oder Installation durch Entwicklungsprüfungen.
+
 ### Phase A: Anforderungs-/Umsetzungszuordnung und Akzeptanzfälle
 
 Status: **V** vorhanden im Quellstand (kein neuer Ausführungsnachweis), **A** anzupassen,

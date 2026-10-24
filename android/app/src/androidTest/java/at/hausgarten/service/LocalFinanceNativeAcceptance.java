@@ -1,0 +1,116 @@
+package at.hausgarten.service;
+
+import org.json.*;
+import java.time.*;
+import java.util.*;
+
+/** SQLite/owner JSON-RPC proof in a disposable context; never activates a real business. */
+final class LocalFinanceNativeAcceptance {
+    private static JSONObject request(String id)throws Exception{return new JSONObject().put("request_id",id);}
+    private static McpAuditTools tools(OwnerNativeAcceptance.Fixture f,PixelLocalStore store){return new McpAuditTools(store::getState,store,new PixelOwnerAccess(f.context,store));}
+    private static JSONObject response(McpAuditTools tools,String name,JSONObject args)throws Exception {
+        JSONObject result=tools.rpc(new JSONObject().put("jsonrpc","2.0").put("id","qa_finance_rpc").put("method","tools/call").put("params",new JSONObject().put("name",name).put("arguments",args))).getJSONObject("result");
+        JSONObject body=result.getJSONObject("structuredContent");if(result.optBoolean("isError"))throw new AssertionError("QA finance tool failed: "+name+" code="+body.getJSONObject("error").optString("code"));return body;
+    }
+    private static JSONObject rpc(McpAuditTools tools,String name,JSONObject args)throws Exception{return response(tools,name,args).getJSONObject("data");}
+    private static String error(McpAuditTools tools,String name,JSONObject args)throws Exception {
+        JSONObject result=tools.rpc(new JSONObject().put("jsonrpc","2.0").put("id","qa_finance_error").put("method","tools/call").put("params",new JSONObject().put("name",name).put("arguments",args))).getJSONObject("result");
+        if(!result.optBoolean("isError"))throw new AssertionError("QA expected financial rejection: "+name);return result.getJSONObject("structuredContent").getJSONObject("error").getString("code");
+    }
+    /** Explicit test-only authority setup: backup/device migration proof is tested by its own suite. */
+    private static void activateSynthetic(OwnerNativeAcceptance.Fixture f,String today)throws Exception {
+        JSONObject snapshot=f.store.getState().getJSONObject("master"),customer=snapshot.getJSONArray("customers").getJSONObject(0);
+        customer.put("name","QA Betrieb").put("street","QA Testweg 1").put("postal_code","1000").put("city","Wien").put("country","AT");
+        snapshot.getJSONArray("worklogs").getJSONObject(0).put("hours",2.5).put("work_date",today);
+        snapshot.put("business_settings",new JSONObject().put("owner_name","QA Betrieb").put("business_street","QA Testweg 2").put("business_postal_code","1000").put("business_city","Wien").put("invoice_issuer_confirmed","1").put("invoice_numbering_confirmed","1").put("invoice_number_format","own").put("invoice_prefix","QA").put("tax_mode","small_business").put("tax_exemption_text","Synthetisches Nullsteuerprofil; kein produktiver Steuertext"));
+        f.store.commitSnapshot(snapshot,new HashSet<>());
+        JSONObject proof=new JSONObject().put("formatVersion",1).put("external_writers_disabled",true).put("evidence_sha256",PixelMcpWriteTools.hash("qa_synthetic_no_external_writer")).put("evidence_reference","qa_isolated_context_only").put("checked_at",Instant.now().toString());
+        LocalAuthorityGuard guard=new LocalAuthorityGuard(f.context);JSONObject started=guard.beginMigration("qa_finance_migration",guard.current().getString("revision"),proof);
+        JSONObject contract=new JSONObject().put("formatVersion",1).put("migration_epoch",started.getString("migration_epoch"));f.store.putOwnerValue("local_authority_contract",contract.toString());f.store.commitLocalSnapshot(snapshot);guard.finishMigration("qa_finance_migration",contract);
+        f.store.putOwnerValue("local_invoice_counter",new JSONObject().put("last_number",0).toString());guard.reconcileInvoices("qa_finance_reconciled",proof,0);
+    }
+    private static JSONObject line(String title,double quantity,double price,String unit)throws Exception{return new JSONObject().put("title",title).put("quantity",quantity).put("price",price).put("unit",unit).put("tax_rate",0);}
+    private static JSONObject draft(String request,String today,JSONArray positions)throws Exception{return request(request).put("customer_id","qa_c").put("invoice_date",today).put("service_start",today).put("service_end",today).put("tax_mode","small_business").put("domestic_service_confirmed",true).put("positions",positions);}
+    private static JSONObject invoice(McpAuditTools tools,String id)throws Exception{return rpc(tools,"get_invoice",new JSONObject().put("invoice_id",id));}
+    private static String invoiceHash(McpAuditTools tools,String id)throws Exception{return response(tools,"get_invoice",new JSONObject().put("invoice_id",id)).getString("record_hash");}
+    private static JSONObject balance(McpAuditTools tools,String id)throws Exception{return rpc(tools,"get_payment_ledger",new JSONObject().put("invoice_id",id)).getJSONArray("balances").getJSONObject(0);}
+    private static JSONObject payment(McpAuditTools tools,String request,String id,long amount,String today)throws Exception {
+        JSONObject ledger=rpc(tools,"get_payment_ledger",new JSONObject()),row=balance(tools,id);
+        return request(request).put("amount_minor",amount).put("paid_on",today).put("method","bank").put("reference","QA Teilzahlung").put("expected_ledger_hash",ledger.getString("ledger_hash")).put("allocations",new JSONArray().put(new JSONObject().put("invoice_id",id).put("amount_minor",amount).put("expected_record_hash",row.getString("record_hash"))));
+    }
+    static void run(PixelMcpInstrumentation test)throws Exception {
+        test.probe("local finance native RPC 148 EUR immutable issue PDF restart and two exact partial payments",()->{try(OwnerNativeAcceptance.Fixture f=new OwnerNativeAcceptance.Fixture(test.getTargetContext())){
+            String today=LocalDate.now(ZoneId.of("Europe/Vienna")).toString();activateSynthetic(f,today);McpAuditTools api=f.tools;
+            JSONObject capabilities=api.call("get_capabilities",new JSONObject());test.yes(capabilities.toString().contains("pixel_local_v2"));
+            JSONObject property=rpc(api,"create_property",request("qa_finance_property").put("customer_id","qa_c").put("name","QA Abrechnungsobjekt")).getJSONObject("record");
+            JSONObject material=rpc(api,"save_material",request("qa_finance_material").put("name","QA Sack").put("unit","Sack").put("billing_price_minor",900)).getJSONObject("record");
+            JSONObject received=rpc(api,"record_material_movement",request("qa_finance_material_receive").put("material_id",material.getString("id")).put("kind","receive").put("quantity_decimal","2").put("reason","QA Zugang").put("expected_record_hash",material.getString("record_hash")));
+            JSONObject consumed=rpc(api,"record_material_movement",request("qa_finance_material_consume").put("material_id",material.getString("id")).put("kind","consume").put("quantity_decimal","2").put("reason","QA Verbrauch").put("property_id",property.getString("id")).put("expected_record_hash",received.getJSONObject("material").getString("record_hash"))).getJSONObject("record");
+            JSONArray positions=new JSONArray().put(line("QA Pflege",2.5,52,"h").put("worklog_id","qa_w")).put(line("QA Material",2,9,"Sack").put("source_type","material_movement").put("source_id",consumed.getString("id")).put("source_quantity_decimal","2"));
+            String id=rpc(api,"create_invoice_draft",draft("qa_finance_reference_draft",today,positions)).getString("entity_id");JSONObject before=invoice(api,id);
+            JSONObject issue=request("qa_finance_reference_issue").put("invoice_id",id).put("expected_record_hash",invoiceHash(api,id)).put("confirmed",true);JSONObject accepted=rpc(api,"request_invoice_issue",issue);
+            test.yes(accepted.getString("pdf_state").equals("PDF_PENDING")&&!accepted.getBoolean("pdf_release_allowed"));test.yes(rpc(api,"request_invoice_issue",issue).getBoolean("replayed"));
+            JSONObject job=new JSONObject(f.store.ownerValue("local_invoice_job:"+id,"{}"));String number=accepted.getString("invoice_number"),frozen=job.getString("snapshot_sha256");
+            test.yes(job.getJSONObject("snapshot").getJSONObject("money_minor").getLong("gross_minor")==14800&&new JSONObject(f.store.ownerValue("local_invoice_counter","{}")).getInt("last_number")==1);
+            test.yes(LocalFinancialSnapshotValidation.inspect(f.store.getReadableDatabase(),SnapshotProjection.effective(f.store.getState())).getString("status").equals("PASS"));
+            test.yes(error(api,"get_file_metadata",new JSONObject().put("resource_type","invoice").put("resource_id",id)).equals("INVOICE_PDF_NOT_READY"));
+            f.store.getWritableDatabase().execSQL("CREATE TEMP TRIGGER qa_pdf_publish_crash BEFORE INSERT ON owner_state WHEN NEW.key='snapshot' BEGIN SELECT RAISE(ABORT,'qa crash before PDF publish'); END");
+            test.yes(LocalInvoiceJobs.run(f.context,f.store).getInt("failed")==1);f.store.getWritableDatabase().execSQL("DROP TRIGGER qa_pdf_publish_crash");
+            java.io.File receiptFile=new java.io.File(f.context.getFilesDir(),"invoice-document-receipts/"+frozen+".json");JSONObject receipt=new JSONObject(new String(java.nio.file.Files.readAllBytes(receiptFile.toPath()),java.nio.charset.StandardCharsets.UTF_8));String preparedPdfHash=receipt.getJSONObject("document").getString("pdf_sha256");
+            test.yes(new JSONObject(f.store.ownerValue("local_invoice_job:"+id,"{}")).getString("phase").equals("PDF_PENDING"));
+            f.store.close();try(PixelLocalStore reopened=new PixelLocalStore(f.context)){
+                api=tools(f,reopened);test.yes(rpc(api,"request_invoice_issue",issue).getBoolean("replayed"));test.yes(LocalInvoiceJobs.run(f.context,reopened).getInt("completed")==1);
+                JSONObject ready=invoice(api,id);test.yes(ready.getString("invoice_number").equals(number)&&ready.getString("pdf_state").equals("READY"));
+                JSONObject completedJob=new JSONObject(reopened.ownerValue("local_invoice_job:"+id,"{}"));test.yes(completedJob.getString("snapshot_sha256").equals(frozen)&&PixelMcpWriteTools.hash(completedJob.getJSONObject("snapshot")).equals(frozen));
+                byte[] pdf=new BusinessDocumentStore(f.context).read(ready);test.yes(pdf.length>5&&PhotoAttachmentStore.sha256(pdf).equals(ready.getString("pdf_sha256"))&&preparedPdfHash.equals(ready.getString("pdf_sha256")));test.yes(LocalInvoiceJobs.run(f.context,reopened).getInt("completed")==0);test.yes(rpc(api,"get_invoice_document_job",new JSONObject().put("invoice_id",id)).getBoolean("original_verified"));
+                reopened.putOwnerValue("personal_paid_migrated","1");rpc(api,"set_personal_paid",request("qa_finance_personal_mark").put("work_record_id","qa_w").put("paid",true));
+                JSONObject fractional=payment(api,"qa_finance_fractional_allocation",id,6000,today);fractional.getJSONArray("allocations").getJSONObject(0).put("amount_minor",6000.5);
+                try{new LocalInvoiceService(f.context,reopened).performIfLocal("record_payment",fractional,"qa_finance_fractional_direct");throw new AssertionError("Fractional minor units were truncated");}catch(java.io.IOException expected){test.yes(expected.getMessage().equals("PAYMENT_AMOUNT_MINOR_INVALID"));}test.yes(rpc(api,"get_payment_ledger",new JSONObject()).getInt("total")==0);
+                JSONObject first=payment(api,"qa_finance_payment_60",id,6000,today);String firstId=rpc(api,"record_payment",first).getString("payment_id");test.yes(rpc(api,"record_payment",first).getBoolean("replayed"));test.yes(balance(api,id).getLong("remaining_minor")==8800);
+                JSONObject second=payment(api,"qa_finance_payment_88",id,8800,today);rpc(api,"record_payment",second);test.yes(balance(api,id).getLong("remaining_minor")==0&&balance(api,id).getBoolean("paid"));
+                JSONObject ledger=rpc(api,"get_payment_ledger",new JSONObject());test.yes(ledger.getInt("total")==2);JSONObject original=new JSONObject(ledger.getJSONArray("payments").getJSONObject(0).toString());
+                JSONObject correction=payment(api,"qa_finance_payment_correction",id,6000,today).put("payment_id",firstId).put("reason","QA Referenz berichtigt").put("reference","QA korrigierte Referenz");rpc(api,"correct_payment",correction);
+                ledger=rpc(api,"get_payment_ledger",new JSONObject());test.yes(ledger.getInt("total")==4&&PixelMcpWriteTools.hash(ledger.getJSONArray("payments").getJSONObject(0)).equals(PixelMcpWriteTools.hash(original))&&balance(api,id).getLong("remaining_minor")==0);
+                test.yes(LocalFinancialSnapshotValidation.inspect(reopened.getReadableDatabase(),SnapshotProjection.effective(reopened.getState())).getString("status").equals("PASS"));
+                test.yes(rpc(api,"get_settings",new JSONObject()).getJSONArray("personal_paid").getString(0).equals("qa_w"));test.yes(invoice(api,id).getString("invoice_number").equals(number));
+                String duplicate=rpc(api,"create_invoice_draft",draft("qa_finance_duplicate_material_draft",today,new JSONArray().put(line("QA doppelt verboten",2,9,"Sack").put("source_type","material_movement").put("source_id",consumed.getString("id")).put("source_quantity_decimal","2")))).getString("entity_id");
+                test.yes(error(api,"request_invoice_issue",request("qa_finance_duplicate_material_issue").put("invoice_id",duplicate).put("expected_record_hash",invoiceHash(api,duplicate)).put("confirmed",true)).equals("INVOICE_SOURCE_QUANTITY_EXCEEDED"));test.yes(new JSONObject(reopened.ownerValue("local_invoice_counter","{}")).getInt("last_number")==1);
+                new LocalAuthorityGuard(f.context).blockAfterRestore("qa_finance_restore_review",new JSONObject().put("backupId","qa_older_backup"));
+                String blocked=error(api,"request_invoice_issue",request("qa_finance_restore_block").put("invoice_id",duplicate).put("expected_record_hash",invoiceHash(api,duplicate)).put("confirmed",true));test.yes(blocked.equals("INVOICE_AUTHORITY_RECONCILIATION_REQUIRED"));
+                test.yes(error(api,"restore_backup",request("qa_finance_old_restore_block").put("backup_id","qa_old_missing_backup").put("expected_state_hash",PixelMcpWriteTools.hash(reopened.getState()))).equals("RESTORE_FULL_REPLACEMENT_REQUIRED"));
+                LocalInvoiceJobs.schedule(f.context);test.yes(new LocalAuthorityGuard(f.context).current().getString("invoice_authority").equals("LOCKED"));
+                java.io.File originalFile=new java.io.File(f.context.getFilesDir(),"business-documents/"+ready.getString("pdf_storage_name"));byte[] damaged=pdf.clone();damaged[damaged.length-1]^=1;java.nio.file.Files.write(originalFile.toPath(),damaged);
+                JSONObject status=rpc(api,"get_invoice_document_job",new JSONObject().put("invoice_id",id));test.yes(!status.getBoolean("original_verified")&&status.getString("pdf_state").equals("ORIGINAL_REVIEW_REQUIRED"));test.yes(LocalInvoiceJobs.run(f.context,reopened).getInt("failed")==1);test.yes(Arrays.equals(java.nio.file.Files.readAllBytes(originalFile.toPath()),damaged));
+                test.yes(error(api,"retry_invoice_document_job",request("qa_finance_corrupt_pdf_retry").put("invoice_id",id).put("expected_record_hash",status.getString("record_hash"))).equals("INVOICE_DOCUMENT_ORIGINAL_MISSING_OR_CHANGED"));
+            }
+        }});
+        test.probe("local finance native RPC refuses allocations to unknown legacy balances and credit documents",()->{try(OwnerNativeAcceptance.Fixture f=new OwnerNativeAcceptance.Fixture(test.getTargetContext())){
+            String today=LocalDate.now(ZoneId.of("Europe/Vienna")).toString();activateSynthetic(f,today);
+            BusinessDataBridge bridge=new BusinessDataBridge(f.context,f.store,new PendingWorkPhotoStore(f.context),()->{});JSONObject ui=draft("qa_ui_decimal_draft",today,new JSONArray().put(line("QA Dezimalmenge",1.5,0.67,"h").put("quantity","1.5")));ui.remove("request_id");String uiId=bridge.saveInvoice(ui.toString());test.yes(!uiId.startsWith("ERROR:"));JSONObject saved=invoice(f.tools,uiId);test.yes(saved.getJSONObject("money_minor").getLong("gross_minor")==101);
+            String savedHash=PixelMcpWriteTools.hash(saved);JSONObject malformed=new JSONObject().put("id",uiId).put("_edit_base",saved).put("_edit_changes",new JSONObject().put("positions",new JSONArray().put(line("QA ungültige Menge",1.5,0.67,"h").put("quantity","1e2"))));test.yes(bridge.saveInvoice(malformed.toString()).startsWith("ERROR:"));test.yes(PixelMcpWriteTools.hash(invoice(f.tools,uiId)).equals(savedHash));
+            JSONObject snapshot=SnapshotProjection.effective(f.store.getState());
+            snapshot.getJSONArray("invoices").put(new JSONObject().put("id","qa_unknown_legacy").put("customer_id","qa_c").put("invoice_number","QA-OLD-1").put("invoice_date",today).put("issued_at",Instant.now().toString()).put("status","Bezahlt").put("amount",100).put("positions",new JSONArray()));
+            snapshot.getJSONArray("invoices").put(new JSONObject().put("id","qa_credit_document").put("customer_id","qa_c").put("invoice_number","QA-OLD-2").put("invoice_date",today).put("issued_at",Instant.now().toString()).put("status","Gestellt").put("amount",-100).put("positions",new JSONArray()));f.store.commitLocalSnapshot(snapshot);
+            test.yes(!balance(f.tools,"qa_unknown_legacy").getBoolean("balance_known"));
+            test.yes(error(f.tools,"record_payment",payment(f.tools,"qa_unknown_legacy_payment","qa_unknown_legacy",100,today)).equals("PAYMENT_BALANCE_RECONCILIATION_REQUIRED"));
+            test.yes(error(f.tools,"record_payment",payment(f.tools,"qa_credit_document_payment","qa_credit_document",100,today)).equals("PAYMENT_CREDIT_DOCUMENT_ALLOCATION_REQUIRES_REVIEW"));
+            test.yes(rpc(f.tools,"get_payment_ledger",new JSONObject()).getInt("total")==0);
+            snapshot=SnapshotProjection.effective(f.store.getState());snapshot.getJSONArray("invoices").put(new JSONObject().put("id","qa_known_legacy").put("customer_id","qa_c").put("invoice_number","QA-OLD-3").put("invoice_date",today).put("issued_at",Instant.now().toString()).put("status","Gestellt").put("amount",1).put("positions",new JSONArray()));f.store.commitLocalSnapshot(snapshot);rpc(f.tools,"record_payment",payment(f.tools,"qa_known_legacy_payment","qa_known_legacy",100,today));test.yes(balance(f.tools,"qa_known_legacy").getBoolean("balance_known")&&balance(f.tools,"qa_known_legacy").getLong("remaining_minor")==0);
+        }});
+        test.probe("local finance native RPC keeps marked test delivery blocked before reserving any number",()->{try(OwnerNativeAcceptance.Fixture f=new OwnerNativeAcceptance.Fixture(test.getTargetContext())){
+            String today=LocalDate.now(ZoneId.of("Europe/Vienna")).toString();activateSynthetic(f,today);JSONObject snapshot=SnapshotProjection.effective(f.store.getState());snapshot.getJSONArray("customers").getJSONObject(0).put("name","[TEST] QA ausschließlich isoliert");f.store.commitLocalSnapshot(snapshot);
+            String id=rpc(f.tools,"create_invoice_draft",draft("qa_marked_test_draft",today,new JSONArray().put(line("QA Testleistung",1,10,"h")))).getString("entity_id");test.yes(error(f.tools,"request_invoice_issue",request("qa_marked_test_issue").put("invoice_id",id).put("expected_record_hash",invoiceHash(f.tools,id)).put("confirmed",true)).equals("TEST_DELIVERY_BLOCKED"));test.yes(new JSONObject(f.store.ownerValue("local_invoice_counter","{}")).getInt("last_number")==0);
+            test.yes(error(f.tools,"prepare_invoice_share",request("qa_marked_test_share").put("invoice_id",id).put("channel","share")).equals("TEST_DELIVERY_BLOCKED"));
+        }});
+        test.probe("local finance native RPC cancellation preserves original source and clears inherited issue facts",()->{try(OwnerNativeAcceptance.Fixture f=new OwnerNativeAcceptance.Fixture(test.getTargetContext())){
+            String today=LocalDate.now(ZoneId.of("Europe/Vienna")).toString();activateSynthetic(f,today);String originalId=rpc(f.tools,"create_invoice_draft",draft("qa_cancellation_original_draft",today,new JSONArray().put(line("QA ursprüngliche Arbeit",2.5,52,"h").put("source_type","worklog").put("source_id","qa_w").put("source_quantity_decimal","2.5")))).getString("entity_id");
+            rpc(f.tools,"request_invoice_issue",request("qa_cancellation_original_issue").put("invoice_id",originalId).put("expected_record_hash",invoiceHash(f.tools,originalId)).put("confirmed",true));JSONObject original=invoice(f.tools,originalId);String positions=PixelMcpWriteTools.hash(original.getJSONArray("positions"));
+            String cancellationId=rpc(f.tools,"create_invoice_correction",request("qa_cancellation_create").put("invoice_id",originalId).put("expected_record_hash",invoiceHash(f.tools,originalId)).put("correction_type","cancellation").put("reason","QA synthetische Korrektur")).getString("invoice_id");JSONObject cancellation=invoice(f.tools,cancellationId);
+            for(String field:new String[]{"local_issue_request","local_source_allocations","local_material_source_allocations","document_job_id","pdf_state","payment_balance"})test.yes(!cancellation.has(field));test.yes(cancellation.getString("correction_of").equals(originalId));
+            rpc(f.tools,"request_invoice_issue",request("qa_cancellation_issue").put("invoice_id",cancellationId).put("expected_record_hash",invoiceHash(f.tools,cancellationId)).put("confirmed",true));
+            test.yes(invoice(f.tools,cancellationId).getJSONObject("money_minor").getLong("gross_minor")==-13000);test.yes(invoice(f.tools,originalId).getString("status").equals("Storniert")&&PixelMcpWriteTools.hash(invoice(f.tools,originalId).getJSONArray("positions")).equals(positions));
+            test.yes(new JSONObject(f.store.ownerValue("local_invoice_sources:"+originalId,"{}")).getString("qa_w").equals("2.5")&&new JSONObject(f.store.ownerValue("local_invoice_sources:"+cancellationId,"{}")).length()==0);test.yes(LocalFinancialSnapshotValidation.inspect(f.store.getReadableDatabase(),SnapshotProjection.effective(f.store.getState())).getString("status").equals("PASS"));
+        }});
+    }
+    private LocalFinanceNativeAcceptance(){}
+}

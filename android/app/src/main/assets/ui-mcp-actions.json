@@ -2105,12 +2105,616 @@
       "rights": "owner_write",
       "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
       "platform_only": false
+    },
+    {
+      "id": "backup.voll.get_full_backup_status",
+      "area": "sicherung",
+      "action": "Stand der verschlüsselten Vollsicherung lesen",
+      "source": "FullBackupActivity.java",
+      "mcp": [
+        "get_full_backup_status"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.get_revier_overview",
+      "area": "revier",
+      "action": "Heute mit Arbeit, fälligen Besuchen und Tour lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "get_revier_overview"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.list_properties",
+      "area": "revier",
+      "action": "Objekte suchen und vollständig auflisten",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "list_properties"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.get_property",
+      "area": "revier",
+      "action": "Objektakte lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "get_property"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.list_inquiries",
+      "area": "revier",
+      "action": "Anfragen suchen und auflisten",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "list_inquiries"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.get_inquiry",
+      "area": "revier",
+      "action": "Anfrage lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "get_inquiry"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.list_care_plans",
+      "area": "revier",
+      "action": "Pflegepläne auflisten",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "list_care_plans"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.list_visits",
+      "area": "revier",
+      "action": "Besuche und fällige Arbeiten auflisten",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "list_visits"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.get_visit",
+      "area": "revier",
+      "action": "Einsatzdetails lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "get_visit"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.get_day_tour",
+      "area": "revier",
+      "action": "Geplante Tagestour lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "get_day_tour"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.list_materials",
+      "area": "revier",
+      "action": "Material und Bestand lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "list_materials"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.list_equipment",
+      "area": "revier",
+      "action": "Geräte und Zustand lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "list_equipment"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.search_local",
+      "area": "revier",
+      "action": "Vollständigen lokalen Bestand mit Filtern durchsuchen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "search_local"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "backup.voll.request_full_backup",
+      "area": "sicherung",
+      "action": "Verschlüsselte Vollsicherung vormerken",
+      "source": "FullBackupActivity.java",
+      "mcp": [
+        "request_full_backup"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "backup.voll.retry_full_backup",
+      "area": "sicherung",
+      "action": "Vollsicherungsjob ausdrücklich erneut versuchen",
+      "source": "FullBackupActivity.java",
+      "mcp": [
+        "retry_full_backup"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.create_property",
+      "area": "revier",
+      "action": "Objekt zu bestehendem Kunden anlegen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "create_property"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.update_property",
+      "area": "revier",
+      "action": "Objekt bewusst bearbeiten",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "update_property"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.create_inquiry",
+      "area": "revier",
+      "action": "Neue Anfrage lokal speichern",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "create_inquiry"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.update_inquiry",
+      "area": "revier",
+      "action": "Anfrage mit Historie bearbeiten",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "update_inquiry"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.plan_inquiry_inspection",
+      "area": "revier",
+      "action": "Besichtigung aus bestätigter Anfrage planen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "plan_inquiry_inspection"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.create_care_plan",
+      "area": "revier",
+      "action": "Pflegeplan am Objekt anlegen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "create_care_plan"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.update_care_plan",
+      "area": "revier",
+      "action": "Pflegeregel für zukünftige Termine ändern",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "update_care_plan"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.generate_care_visits",
+      "area": "revier",
+      "action": "Fällige Pflegebesuche im begrenzten Horizont erzeugen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "generate_care_visits"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.plan_visit",
+      "area": "revier",
+      "action": "Einzelnen Einsatz planen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "plan_visit"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.update_visit",
+      "area": "revier",
+      "action": "Termin verschieben, absagen oder Teilerledigung festhalten",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "update_visit"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.set_day_tour",
+      "area": "revier",
+      "action": "Besuche ausdrücklich in Tagestour aufnehmen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "set_day_tour"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.move_tour_stop",
+      "area": "revier",
+      "action": "Tourstopp nach oben oder unten verschieben",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "move_tour_stop"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.save_material",
+      "area": "revier",
+      "action": "Materialkatalog bewusst pflegen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "save_material"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.record_material_movement",
+      "area": "revier",
+      "action": "Materialzugang, Verbrauch oder Gegenbuchung erfassen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "record_material_movement"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.save_equipment",
+      "area": "revier",
+      "action": "Gerät, Wartung und Defekt pflegen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "save_equipment"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.record_equipment_usage",
+      "area": "revier",
+      "action": "Gerätenutzung am Einsatz erfassen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "record_equipment_usage"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "platform.recovery_vollbackup",
+      "area": "plattform",
+      "action": "Recovery-Code am Gerät einrichten, separat exportieren und rückbestätigen; Sicherungsziel freigeben",
+      "source": "FullBackupActivity.java",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Recovery-Geheimnis bleibt ausschließlich in geschützter Geräteoberfläche; SAF-/Kontofreigaben sind ausdrückliche Geräteschritte. MCP fordert oder liest keinen Recovery-Code.",
+      "platform_only": true,
+      "test_scope": "Synthetic contract/interaction checks; real device consent and external target readback require separate acceptance."
+    },
+    {
+      "id": "buero.get_payment_ledger",
+      "area": "buero",
+      "action": "Zahlungen, offene Beträge und Guthaben lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "get_payment_ledger"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.get_invoice_document_job",
+      "area": "buero",
+      "action": "Status des unveränderlichen Rechnungs-PDF lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "get_invoice_document_job"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.preview_local_authority",
+      "area": "buero",
+      "action": "Lokalen Übergang und Rechnungssperre prüfen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "preview_local_authority"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.record_payment",
+      "area": "buero",
+      "action": "Teil- oder Sammelzahlung mit Zuordnung erfassen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "record_payment"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.correct_payment",
+      "area": "buero",
+      "action": "Zahlung mit Grund nachvollziehbar korrigieren",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "correct_payment"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.retry_invoice_document_job",
+      "area": "buero",
+      "action": "Denselben Rechnungs-PDF-Job wiederholen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "retry_invoice_document_job"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.activate_local_authority",
+      "area": "buero",
+      "action": "Bestätigten lokalen Bestand nach geprüfter Sicherung aktivieren",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "activate_local_authority"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.reconcile_local_invoice_authority",
+      "area": "buero",
+      "action": "Rechnungsautorität mit externen Originalen und Nummern abgleichen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "reconcile_local_invoice_authority"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.get_offer_decision_history",
+      "area": "buero",
+      "action": "Annahme- und Ablehnungshistorie einer Angebotsversion lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "get_offer_decision_history"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Exact finalized-version decision contract; synthetic executions and physical proof limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.record_offer_acceptance",
+      "area": "buero",
+      "action": "Annahme genau dieser finalen Angebotsversion mit Nachweis festhalten",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "record_offer_acceptance"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Exact finalized-version decision contract; synthetic executions and physical proof limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.decline_offer",
+      "area": "buero",
+      "action": "Angebot mit erhaltener Historie ablehnen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "decline_offer"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Exact finalized-version decision contract; synthetic executions and physical proof limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "backup.voll.get_restore_status",
+      "area": "sicherung",
+      "action": "Nicht geheimen Status des bestätigten Wiederherstellungsjobs lesen",
+      "source": "FullBackupActivity.java",
+      "mcp": [
+        "get_restore_status"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Read-only shared pending job DTO; physical activation and secrets remain device steps.",
+      "platform_only": false
+    },
+    {
+      "id": "platform.vollbackup_saf",
+      "area": "plattform",
+      "action": "USB-/Dateianbieterziel wählen und externe Geräteübergabe prüfen",
+      "source": "FullBackupActivity.java",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Android-SAF-Freigabe und angeschlossenes Medium müssen am Gerät verfügbar sein. Provider-Rücklesen ist kein unabhängiger Cloud-Uploadbeleg; MCP erteilt keine URI-Rechte.",
+      "platform_only": true,
+      "test_scope": "Native device consent/handoff boundary; shared services tested with isolated providers and physical limits reported separately."
+    },
+    {
+      "id": "platform.vollrestore_bestaetigen",
+      "area": "plattform",
+      "action": "Sicherungsdatei und Recovery-Code am Gerät prüfen und vollständigen Bestandsaustausch ausdrücklich bestätigen",
+      "source": "FullBackupActivity.java",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Recovery-Geheimnis, SAF-Dateiwahl und konkrete geprüfte Wiederherstellungsentscheidung bleiben am Gerät. Kein Restore oder Codeversand aus bloßer MCP-Statusabfrage; keine automatische Bestandsvermischung.",
+      "platform_only": true,
+      "test_scope": "Native device consent/handoff boundary; shared services tested with isolated providers and physical limits reported separately."
+    },
+    {
+      "id": "platform.portabilitaet_ziel",
+      "area": "plattform",
+      "action": "Sensiblen Klartextexport bewusst an gewähltes Geräte-/Dateiziel übergeben",
+      "source": "FullBackupActivity.java",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Klartextweitergabe erfordert ausdrückliche Wahl und Bestätigung des SAF-/Sharesheet-Ziels am Gerät. Datenformat und Prüfung verwenden den gemeinsamen Exportdienst; MCP wählt keine fremden Freigaben oder Konten.",
+      "platform_only": true,
+      "test_scope": "Native device consent/handoff boundary; shared services tested with isolated providers and physical limits reported separately."
     }
   ],
   "reviewed_sources": {
+    "android/app/src/main/assets/backup-browser-state.js": "9f9572e50ec1ca73ee77606611f488ae78fbd3c6792fcab675242f231e12d726",
     "android/app/src/main/assets/billing-ui.css": "bf57b082368de2a242e8d7ce4313b03535208c6c0b7e33881b8440f3518478c3",
-    "android/app/src/main/assets/billing-ui.js": "09786004ffaa3a6339d690a5a1c0c06bee948f1121a27faf2abf279b83c8e8de",
-    "android/app/src/main/assets/business-actions-ui.js": "789dae8320bbe97a1e091f9d1d56aae5b8b6ce87c8c2f3944dab394a5cd116c4",
+    "android/app/src/main/assets/billing-ui.js": "84fc933d06e67d5e5d1f1512d298fa63d4eaaae3d1b7a353e4d4670414126a6b",
+    "android/app/src/main/assets/business-actions-ui.js": "cc1000eb90f2ffa7ac89a63ed38ce4cdff3a10f61ec8079e27fa443dcac6c5a7",
     "android/app/src/main/assets/business-feedback.js": "56d070942588dca53992385df36721932e7eb457cbe9867eb9f60f9666e35ba6",
     "android/app/src/main/assets/customer-hub.css": "7cfb06a23e32666ee9aa9b43ef2af10a728805db06c7fee4961246e76caf3c75",
     "android/app/src/main/assets/customer-hub.js": "b1e9da98d187296e62579fee6a1dcfbc953bb3196a86e88950bcc1434a22dac9",
@@ -2121,20 +2725,23 @@
     "android/app/src/main/assets/design-concept.js": "1a84917061a879579219806e306bb89876db97e791ce020ccacb261e08edb996",
     "android/app/src/main/assets/field-ui.css": "227843b50c4d4e7983452cb821915f2748c50250944a50d511202f4be178b875",
     "android/app/src/main/assets/field-ui.js": "2a1dcdbdcd69953eb3ec61a3f43c205a8a2034ed1fbde090a66ed5741b0d5832",
+    "android/app/src/main/assets/frame-guard.js": "bde06673123846bb39ce644229d84bc672db205e3cc13ce75e5c7c4e8e487d75",
     "android/app/src/main/assets/gartenpirat-photo-store.js": "2289636e3f3fb9914485c89a9128b85fe4c08c4b081d753f26cde6e66de1e333",
     "android/app/src/main/assets/gartenpirat.css": "e572dc7dee77e2df54484ae2c586cbbebc3e076aef9777c77b9a14efb2b7d5d8",
     "android/app/src/main/assets/gartenpirat.js": "8a6e11d7542ebfa22afa2955dfffdf7e3de172ad97fa6b647bdc1c08735f8815",
-    "android/app/src/main/assets/invoice-draft.js": "5aa0f97fe5fd2eb7fa58e5a465d6b5426a87cea102138b6c5184d5c8d3ef9323",
+    "android/app/src/main/assets/invoice-draft.js": "66160e670dbd2ed4257d9ad9f0963d91d12095d85aa4029b054e7c61546f8d84",
     "android/app/src/main/assets/invoice-editor.css": "78c94175e1b2e3fa21609e31330a14dbbdf38dc1d87997a77c7a532d7d7ddd60",
-    "android/app/src/main/assets/invoice-editor.js": "f154e18c512b6c66099775a3fa9cc107183b1863ba4c4595194803a94362c04d",
-    "android/app/src/main/assets/invoice-flow.js": "ffd1698ef139f1822f55a111ac91a423b0d9c99614fbcf577ed12392ee6b10e0",
+    "android/app/src/main/assets/invoice-editor.js": "4eddafb6a11a7f23d1d3694b37579db447f04cdece644860de08fe954f84cc24",
+    "android/app/src/main/assets/invoice-flow.js": "1727981d7e8247faa82c3e6c422558e19454730c089a058015dbbe1a855f37d6",
     "android/app/src/main/assets/legacy-conflicts-ui.js": "5678b3aafd8b5b317dd663b0f604e73153487045026d827bbe2d6be2e518158d",
-    "android/app/src/main/assets/mobile.html": "ebb4bce7ba59bec17a7773580a2eeb909fd735427ff7166e46d8ac5cf705a484",
+    "android/app/src/main/assets/local-invoice-ui.css": "7cf2524aec8e0877749c8e7fb490de93f1ccaaf8e369514d7eaaa6e96a6b65e4",
+    "android/app/src/main/assets/local-invoice-ui.js": "b9087b616dd8d8cbcd80eb7eb963a61a6e41815ea8205a7d36713b393607e82e",
+    "android/app/src/main/assets/mobile.html": "8b36aafd499c59d4a46e680c9279fda93187ecc677f1fe3a4b66dc0d760e8fb9",
     "android/app/src/main/assets/navigation-status.js": "05babab76dd439d175c332f244fae1026eacc1828420ead77c828e31874e23d1",
     "android/app/src/main/assets/offer-contract.js": "975068d39128ac6207fc0b5e9835803ca7d5675a9529851c63625631bd668a1f",
     "android/app/src/main/assets/offer-contract.json": "f2fa77c5f92e22f69f46875ba4fc64f15a4d454d47b8339ede853b83ec393971",
     "android/app/src/main/assets/offers-ui.css": "934613e5bfe2073966f8e07ead9c1cfbe1ff9130f305ccf35e3f989d2e15d42a",
-    "android/app/src/main/assets/offers-ui.js": "a61ffa90709ee6db9f4499f64120b0c79eaa3878160dfb39d237aece4c666eb8",
+    "android/app/src/main/assets/offers-ui.js": "dafa8ac90de8f07d2924e8d8f9c24c58e157ef0bafc5ed0daf4622e5cac87a70",
     "android/app/src/main/assets/order-sync-review.css": "a3ee54b10cf7395fdde8b319bddfa4fa0ddfad1c5918fae16d387e784f4d26d8",
     "android/app/src/main/assets/order-sync-review.js": "8103e8d3d2ed6a35a6f45dae199fd1fa4e8c50b158f3bd191cc3749f3819f91b",
     "android/app/src/main/assets/order-window.css": "13c71328e27af09c85429a098a4a85045736bdc5fc861abb56d7e74abcbdf1d3",
@@ -2147,11 +2754,13 @@
     "android/app/src/main/assets/pixel-tunnel-ui.js": "568bcdd746939dd4a6d55757472de0e0e3d03f737f4304c80c19c40c7c45bc40",
     "android/app/src/main/assets/planning-modern.css": "4220759e2b72e2aa330b9e1d7a228473f58d56de881a80a95c93656db7b5adca",
     "android/app/src/main/assets/planning-ui.css": "2478b203c1d8686190a938d1030a97a8db1a8acba5f1fbb16e8d70dbc427fc0c",
-    "android/app/src/main/assets/planning-ui.js": "1c7b721f77c5dd61f97dcab223a6781a9951be06d6e089c5052fe9e423ae71c9",
+    "android/app/src/main/assets/planning-ui.js": "87da78954e884ab1d2a210775224a500a956766b785d9b4e6581138d2d478afa",
     "android/app/src/main/assets/plant-catalog.js": "4b31cc183e99643bd965602cf952533215e70a621f9025209cac480575089bf2",
     "android/app/src/main/assets/pull-refresh.js": "d4ca3d915eddc9b422dfde79dfa9480524fcae26eea7b0c6f3979771709c3883",
     "android/app/src/main/assets/record-actions.css": "b8f646da0129535c9b3e4489bbe73a07c0c1ee8b6c054305cd8f1e941b600b35",
     "android/app/src/main/assets/record-actions.js": "8b9e228c734bbce1fbb205db8c3747aac11c2a1448064e2f9e14adecec0e416c",
+    "android/app/src/main/assets/revier-solo-ui.css": "47ab67f5fe7bfbf19634e622db9d04f949763b0fd4a0d92def1963db14ff1004",
+    "android/app/src/main/assets/revier-solo-ui.js": "d6ee8e1642dfa6f8c6f27ff816c14537b09df50c2595660e49dc248878793e67",
     "android/app/src/main/assets/runtime-compat.js": "04858fa88609733a1fb5bebab59bfd9332819ded0c0aab7fd3766cda76267b6c",
     "android/app/src/main/assets/sync-dashboard.js": "53d40bfc00b1593b77556120df7430be2bb16d5010628d1fbbcddbf96194fa2b",
     "android/app/src/main/assets/today-ui.css": "4657ac3a564f4bb30e42eb7e355aeeac8f5fee00440ee711d3449a8fdc27bc51",
@@ -2164,14 +2773,17 @@
     "android/app/src/main/assets/workday-ui.js": "d4985e72e266df253f3aa610aa8908ee2ceac4ce87ddaa7ca8f25c8247c1e867",
     "android/app/src/main/assets/workflow-ui.css": "e8e3af705782c2db8286ae064184d3f0767025571ce49fae037cb6ebab8a3920",
     "android/app/src/main/assets/workflow-ui.js": "9a82b8b94a47b6cc8a05eeaae1a55db69a6ad2530e64a7355723870ac34f7aa1",
-    "android/app/src/main/java/at/hausgarten/service/MainActivity.java": "f8efb6bdd55b4c6e699d22ad9ec216631b5150ec0e059a19161594fd16c79ec9",
-    "android/app/src/main/java/at/hausgarten/service/PixelLocalStore.java": "f8df5e663749cb74c7ca8af8f7a9cf131094fdf7c848311838a56ea816ea50e3",
+    "android/app/src/main/java/at/hausgarten/service/MainActivity.java": "955b4cdabb31bf9296bf88c6960bbdedf74cd2c474faa73265af3a49f5a15471",
+    "android/app/src/main/java/at/hausgarten/service/PixelLocalStore.java": "bf3578c4e6a6410bf682f0ac6d29498ebf5868bd5fa55b78c22248fd33160bdf",
     "android/app/src/main/java/at/hausgarten/service/BusinessDataBridge.java": "938f8d4c6abe5bf80f74fe95b52caf48ea814d031465611d914216bbf8bace43",
-    "android/app/src/main/java/at/hausgarten/service/NativeOwnerQueries.java": "0d6014729c09b4152f3854d8cf62b522baea2c0c3389c5477b8bfcaf10166623",
-    "android/app/src/main/java/at/hausgarten/service/PlanningConnectionActivity.java": "b28e7b109a87067ef28742d10226c352b9dac6dd12026b047b8848b18ebe410e",
+    "android/app/src/main/java/at/hausgarten/service/NativeOwnerQueries.java": "253300720cc57c208639b50b50cd3fb538dc0291d65b63aae4b4edbd4ae2c938",
+    "android/app/src/main/java/at/hausgarten/service/PlanningConnectionActivity.java": "df0a49b412ea23bffd5b16fc38d29b67dda9f05c1b8b076eab7dad9877cf0875",
     "android/app/src/main/java/at/hausgarten/service/DriveConnectionActivity.java": "bb05c3ae538df25209041b3d6727fc2c4177b08868a08da525a07a2cbd74de5e",
     "android/app/src/main/java/at/hausgarten/service/PixelTunnelActivity.java": "5344f908037dcc9f50549c279e05bff2ed7dc378153bb1a47e3dbefd0fba1b16",
     "android/app/src/main/java/at/hausgarten/service/NativeUi.java": "d49edfc81f227a1df1e8321b9fc6cea035d0f2c0e8d83e542e281bc559eaa035",
-    "android/app/src/main/java/at/hausgarten/service/CalendarSetupRules.java": "c2049341103fbb0c6aa2a4bc400c8af0dcb2900af3ec224320c336f1013d5755"
+    "android/app/src/main/java/at/hausgarten/service/CalendarSetupRules.java": "c2049341103fbb0c6aa2a4bc400c8af0dcb2900af3ec224320c336f1013d5755",
+    "android/app/src/main/java/at/hausgarten/service/FullBackupActivity.java": "5852dc8d38cd7412ec2e8f38b8e070beedab82d1a1a2c5ace7648e44b5000267",
+    "android/app/src/main/java/at/hausgarten/service/RestoreRecoveryActivity.java": "30042050d78f446f93c38ab5c0c18e28d512d47d45513ff68257c9cea2e2bf98",
+    "android/app/src/main/java/at/hausgarten/service/LocalAuthorityActivity.java": "24b69c47baf64ccc9b674a45c5254ea7951e0466166717f0ee27566dec3536c0"
   }
 }

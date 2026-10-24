@@ -39,17 +39,18 @@ final class LocalOwnerRepository implements OwnerRepository {
     byte[] asset(String path)throws Exception{try(InputStream in=context.getAssets().open(path)){ByteArrayOutputStream out=new ByteArrayOutputStream();byte[] buffer=new byte[8192];int n;while((n=in.read(buffer))!=-1){if(out.size()+n>20*1024*1024)throw new IOException("Datei zu groß.");out.write(buffer,0,n);}return out.toByteArray();}}
     JSONArray plants()throws Exception{return new JSONObject(new String(asset("plant-catalog.json"),StandardCharsets.UTF_8)).getJSONArray("plants");}
     JSONObject entry(String id)throws Exception{return PixelMcpWriteTools.find(plants(),id);}
+    private PixelMcpWriteTools.Rejected localOriginalMissing(){return new PixelMcpWriteTools.Rejected("LOCAL_ORIGINAL_MISSING","Das benötigte Original fehlt im lokalen Bestand. Eine geprüfte vollständige Sicherung am Gerät prüfen; nichts geändert.");}
     JSONObject readChunk(JSONObject a)throws Exception{
         if("backup".equals(a.optString("resource_type"))){JSONObject meta=fileMeta(a.getString("resource_id"));if(DeletionBackupStore.SCOPE.equals(meta.optString("scope")))return DeletionBackupStore.chunk(deletionBackupRoot(),meta,a);}
         String type=a.getString("resource_type"),id=a.getString("resource_id"),mime;byte[] bytes;
         switch(type){
             case "photo":{
-                PixelMcpWriteTools.find(effective().getJSONArray("photos"),id);JSONObject m=store.photoAttachment(id);if(m==null)throw new IOException("Original fehlt lokal. Zuerst abgleichen.");
-                // Explicit read may retrieve the referenced, hash-verified original from Drive.
-                try{bytes=store.photoAttachmentStore().read(m);}catch(IOException absent){if(!DriveSyncCoordinator.fetchPhoto(context,m,store.photoAttachmentStore()))throw absent;bytes=store.photoAttachmentStore().read(m);}mime=m.getString("mime_type");break;
+                PixelMcpWriteTools.find(effective().getJSONArray("photos"),id);JSONObject m=store.photoAttachment(id);if(m==null){if(LocalAuthorityGuard.local(context))throw localOriginalMissing();throw new IOException("Original fehlt lokal. Zuerst abgleichen.");}
+                // Only the legacy operating mode may fetch business originals from Drive.
+                try{bytes=store.photoAttachmentStore().read(m);}catch(IOException absent){if(LocalAuthorityGuard.local(context))throw localOriginalMissing();if(!DriveSyncCoordinator.fetchPhoto(context,m,store.photoAttachmentStore()))throw absent;bytes=store.photoAttachmentStore().read(m);}mime=m.getString("mime_type");break;
             }
-            case "offer":{JSONObject offer=PixelMcpWriteTools.find(effective().getJSONArray("offers"),id);try{bytes=new BusinessDocumentStore(context).read(offer);}catch(IOException missing){bytes=DriveSyncCoordinator.fetchDocument(context,offer);new BusinessDocumentStore(context).store(bytes,offer);}mime="application/pdf";break;}
-            case "invoice":{JSONObject invoice=PixelMcpWriteTools.find(effective().getJSONArray("invoices"),id);String data=invoice.optString("pdf_base64");if(data.isEmpty()){try{bytes=new BusinessDocumentStore(context).read(invoice);}catch(IOException absent){bytes=DriveSyncCoordinator.fetchDocument(context,invoice);new BusinessDocumentStore(context).store(bytes,invoice);}mime="application/pdf";break;}if(data.length()>28*1024*1024)throw new IOException("PDF zu groß.");bytes=Base64.getDecoder().decode(data);mime="application/pdf";if(bytes.length<5||!new String(bytes,0,5,StandardCharsets.US_ASCII).equals("%PDF-"))throw new IOException("Original-PDF beschädigt.");if(!invoice.optString("pdf_sha256").isEmpty()&&!digest(bytes).equals(invoice.getString("pdf_sha256")))throw new IOException("Original-PDF stimmt nicht mit dem Archiv überein.");break;}
+            case "offer":{JSONObject offer=PixelMcpWriteTools.find(effective().getJSONArray("offers"),id);if(LocalAuthorityGuard.local(context)&&(offer.optString("pdf_storage_name").isEmpty()||offer.optString("pdf_sha256").isEmpty()))throw localOriginalMissing();try{bytes=new BusinessDocumentStore(context).read(offer);}catch(IOException missing){if(LocalAuthorityGuard.local(context))throw localOriginalMissing();bytes=DriveSyncCoordinator.fetchDocument(context,offer);new BusinessDocumentStore(context).store(bytes,offer);}mime="application/pdf";break;}
+            case "invoice":{JSONObject invoice=PixelMcpWriteTools.find(effective().getJSONArray("invoices"),id);if(LocalAuthorityGuard.local(context)&&!invoice.optString("pdf_state","READY").equals("READY"))throw new PixelMcpWriteTools.Rejected("INVOICE_PDF_NOT_READY","Das lokale Rechnungs-PDF ist noch nicht verifiziert. Dokumentauftrag prüfen oder erneut ausführen.");String data=invoice.optString("pdf_base64");if(data.isEmpty()){if(LocalAuthorityGuard.local(context)&&(invoice.optString("pdf_storage_name").isEmpty()||invoice.optString("pdf_sha256").isEmpty()))throw localOriginalMissing();try{bytes=new BusinessDocumentStore(context).read(invoice);}catch(IOException absent){if(LocalAuthorityGuard.local(context))throw localOriginalMissing();bytes=DriveSyncCoordinator.fetchDocument(context,invoice);new BusinessDocumentStore(context).store(bytes,invoice);}mime="application/pdf";break;}if(data.length()>28*1024*1024)throw new IOException("PDF zu groß.");bytes=Base64.getDecoder().decode(data);mime="application/pdf";if(bytes.length<5||!new String(bytes,0,5,StandardCharsets.US_ASCII).equals("%PDF-"))throw new IOException("Original-PDF beschädigt.");if(!invoice.optString("pdf_sha256").isEmpty()&&!digest(bytes).equals(invoice.getString("pdf_sha256")))throw new IOException("Original-PDF stimmt nicht mit dem Archiv überein.");break;}
             case "catalog":{
                 // Only the exact asset paths named by an existing catalog record are addressable.
                 String[] parts=id.split("#",2);JSONObject p=entry(parts[0]);String path=parts.length==2?parts[1]:"";boolean listed=false;JSONArray images=p.optJSONArray("images");for(int i=0;images!=null&&i<images.length();i++)if(path.equals(images.getJSONObject(i).optString("path")))listed=true;
@@ -62,6 +63,9 @@ final class LocalOwnerRepository implements OwnerRepository {
         return new JSONObject().put("resource_type",type).put("resource_id",id).put("mime_type",mime).put("byte_size",bytes.length).put("sha256",hash).put("offset",offset).put("next_offset",offset+part.length).put("eof",offset+part.length==bytes.length).put("chunk_sha256",digest(part)).put("chunk_base64",Base64.getEncoder().encodeToString(part));
     }
     public JSONObject enqueue(String kind,JSONObject payload,String request)throws Exception{
+        if(Arrays.asList("archive","delete","purge_v1").contains(kind))revier().protectParent(payload.optString("entity"),payload.optString("id"));
+        if(kind.equals("photo")&&payload.optString("role").equals("profile"))revier().protectParent("photo",payload.optString("id"));
+        if(kind.equals(TrashPurgeBatch.KIND)){JSONArray entries=payload.getJSONArray("entries");for(int i=0;i<entries.length();i++){JSONObject entry=entries.getJSONObject(i);revier().protectParent(entry.getString("entity"),entry.getString("entity_id"));}}
         JSONArray predecessors=payload.optJSONArray("_sync_predecessors");if(predecessors==null)predecessors=new JSONArray();JSONArray prior=store.pendingActions();for(int i=0;i<prior.length();i++){JSONObject event=prior.getJSONObject(i);if((!payload.optString("id").isEmpty()&&payload.optString("id").equals(event.getJSONObject("payload").optString("id")))||(kind.equals("business_settings")&&kind.equals(event.getString("kind"))))predecessors.put(event.getString("client_id"));JSONArray linked=payload.optJSONArray("photo_link_ids");for(int j=0;linked!=null&&j<linked.length();j++)if(linked.getJSONObject(j).getString("id").equals(event.getJSONObject("payload").optString("id")))predecessors.put(event.getString("client_id"));}if(predecessors.length()>0)payload.put("_sync_predecessors",predecessors);
         if(kind.equals("appointment")||kind.equals("offer_convert")){JSONObject parentProjection=new JSONObject(state().getJSONObject("master").toString());DriveJournalRules.apply(parentProjection,prior);Set<String> incorporated=DriveJournalRules.ids(parentProjection.optJSONArray("drive_applied_ids"));
         String targetOrder=payload.optString("order_id",payload.optString("existing_order_id"));
@@ -91,9 +95,9 @@ final class LocalOwnerRepository implements OwnerRepository {
     public JSONObject protectDeletion(JSONObject snapshot,JSONArray entries,String request)throws Exception{
         JSONObject result=DeletionBackupStore.capture(deletionBackupRoot(),snapshot,entries,request,(type,record)->{
             if(type.equals("photo")){
-                try{return store.photoAttachmentStore().read(record);}catch(IOException missing){if(!DriveSyncCoordinator.fetchPhoto(context,record,store.photoAttachmentStore()))throw new IOException("Fotooriginal für Löschsicherung nicht verfügbar. Nichts gelöscht; Verbindung prüfen.");return store.photoAttachmentStore().read(record);}
+                try{return store.photoAttachmentStore().read(record);}catch(IOException missing){if(LocalAuthorityGuard.local(context))throw localOriginalMissing();if(!DriveSyncCoordinator.fetchPhoto(context,record,store.photoAttachmentStore()))throw new IOException("Fotooriginal für Löschsicherung nicht verfügbar. Nichts gelöscht; Verbindung prüfen.");return store.photoAttachmentStore().read(record);}
             }
-            try{return new BusinessDocumentStore(context).read(record);}catch(IOException missing){byte[] bytes=DriveSyncCoordinator.fetchDocument(context,record);new BusinessDocumentStore(context).store(bytes,record);return new BusinessDocumentStore(context).read(record);}
+            try{return new BusinessDocumentStore(context).read(record);}catch(IOException missing){if(LocalAuthorityGuard.local(context))throw localOriginalMissing();byte[] bytes=DriveSyncCoordinator.fetchDocument(context,record);new BusinessDocumentStore(context).store(bytes,record);return new BusinessDocumentStore(context).read(record);}
         });
         // Only the small index is transactional SQLite data. ZIP bytes stay private
         // and durable even if a later enqueue/commit fails; originals are never lost.
@@ -101,6 +105,7 @@ final class LocalOwnerRepository implements OwnerRepository {
     }
     JSONObject inspectDeletionBackup(String id,JSONObject meta)throws Exception{return DeletionBackupStore.inspect(deletionBackupRoot(),meta).put("backup_id",id).put("metadata",meta).put("state_hash",PixelMcpWriteTools.hash(state()));}
     public JSONObject restoreBackup(JSONObject a,String request)throws Exception{
+        if(LocalAuthorityGuard.local(context))throw new PixelMcpWriteTools.Rejected("RESTORE_FULL_REPLACEMENT_REQUIRED","Im lokalen Betrieb vollständige verschlüsselte Wiederherstellung am Gerät prüfen und ausdrücklich bestätigen. Alte Teilbestände werden nicht vermischt.");
         if(DeletionBackupStore.SCOPE.equals(fileMeta(a.getString("backup_id")).optString("scope")))throw new IllegalArgumentException("Löschsicherung enthält gezielt gesicherte Originale. Vor einer Wiederherstellung einzeln prüfen; endgültig entfernte IDs werden nicht automatisch wieder angelegt.");
         if(!PixelMcpWriteTools.hash(state()).equals(a.getString("expected_state_hash")))throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","App-Datenstand wurde seit Prüfung geändert.");
         if(state().getJSONArray("pending").length()!=0||!"IDLE".equals(state().getJSONObject("work_session").optString("state")))throw new IllegalArgumentException("Ausstehende Aktionen oder Zeiterfassung zuerst prüfen. Keine Daten ersetzt.");
@@ -136,6 +141,25 @@ final class LocalOwnerRepository implements OwnerRepository {
     @Override public JSONObject acknowledgeWeather(JSONObject args)throws Exception{return AppointmentRuntime.acknowledge(context,store,args);}
     @Override public JSONObject resolveCalendar(JSONObject args)throws Exception{return AppointmentRuntime.resolve(context,store,args);}
     @Override public void checkBusy(JSONObject appointment)throws Exception{AppointmentRuntime.checkBusy(context,store,appointment);}
+    @Override public JSONObject fullBackupStatus(JSONObject args)throws Exception{return new FullBackupController(context,store).status(args);}
+    @Override public JSONObject fullBackupAction(String name,JSONObject args)throws Exception {
+        FullBackupController control=new FullBackupController(context,store);
+        if(name.equals("request_full_backup"))return control.request(args);
+        if(name.equals("retry_full_backup"))return control.retry(args);
+        throw new IllegalArgumentException("Sicherungsaktion fehlt.");
+    }
+    private RevierApplicationService revier()throws Exception{return new RevierApplicationService(new RevierLocalRepository(store,a->new PlanningApplicationService(this).perform("create_appointment",a,"mcp_revier_inspection_"+PixelMcpWriteTools.hash(a.getString("request_id")))));}
+    @Override public JSONObject revierQuery(String name,JSONObject args)throws Exception{return revier().query(name,args);}
+    @Override public JSONObject revierAction(String name,JSONObject args)throws Exception{return revier().execute(name,args);}
+    @Override public JSONObject localInvoiceAction(String name,JSONObject args,String request)throws Exception {
+        if(name.equals("activate_local_authority"))return new LocalAuthorityMigration(context,store).activateFromArgs(args);
+        if(name.equals("reconcile_local_invoice_authority"))return new LocalAuthorityMigration(context,store).reconcile(args);
+        return new LocalInvoiceService(context,store).performIfLocal(name,args,request);
+    }
+    @Override public JSONObject localFinancialQuery(String name,JSONObject args)throws Exception {
+        if(name.equals("preview_local_authority"))return new LocalAuthorityMigration(context,store).preview();
+        return new LocalInvoiceService(context,store).query(name,args);
+    }
     interface Request { JSONObject run() throws Exception; }
     JSONObject runRequest(String request,String fingerprint,Request command)throws Exception{
         return OwnerRequestTransactions.runRequest(requests,request,fingerprint,command::run,java.time.Instant.now().toString());

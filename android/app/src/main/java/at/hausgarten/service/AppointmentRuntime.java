@@ -59,6 +59,7 @@ final class AppointmentRuntime {
         return status.put("calendar_setup_error_code",CalendarAccessRules.safeCode(p.getString("calendar_setup_code",""))).put("calendar_error_code",CalendarAccessRules.safeCode(PlanningAccount.connected(c)?store.ownerValue("calendar:last_error_code",""):p.getString("calendar_setup_code",""))).put("calendar_connected",PlanningAccount.connected(c)).put("calendar_configured",calendarEnabled(c,store)).put("weather_configured",flag(c,store,"weather_enabled")).put("calendar_state",store.ownerValue("calendar:status",calendarEnabled(c,store)?"pending":"not_connected")).put("weather_state",store.ownerValue("weather:status",flag(c,store,"weather_enabled")?"pending":"not_configured"))
             .put("calendar_registration_required",setup.equals("CALENDAR_APP_REGISTRATION_REQUIRED")).put("calendar_setup_next_action",setup.equals("CALENDAR_APP_REGISTRATION_REQUIRED")||setup.equals("CALENDAR_API_DISABLED")?"google_project_configuration":!PlanningAccount.connected(c)||store.ownerValue("calendar:status","").equals("authorization_required")?"authorize_on_device":"sync")
             .put("weather_provider",OpenMeteoWeatherSource.PROVIDER).put("weather_use_mode","non_commercial").put("weather_requested_forecast_days",OpenMeteoWeatherSource.FORECAST_DAYS)
+            .put("weather_optional",true).put("weather_business_use_status","unresolved").put("weather_business_use_confirmed",false).put("weather_terms_url",OpenMeteoWeatherSource.TERMS)
             .put("notification_permission",Build.VERSION.SDK_INT<33||c.checkSelfPermission("android.permission.POST_NOTIFICATIONS")==android.content.pm.PackageManager.PERMISSION_GRANTED).put("notification_state",WeatherNotifications.state(c)).put("weather_notifications_enabled",flag(c,store,"notifications")).put("notifications_available",WeatherNotifications.ready(c)).put("background_best_effort",true).put("credentials_exposed",false);
     }
     static JSONObject weatherLocation(PixelLocalStore store,JSONObject appointment)throws Exception {
@@ -267,7 +268,6 @@ final class AppointmentRuntime {
         // Defaults are transactional with the first appointment, never overrides of an explicit AUS.
         boolean changed=false;
         for(String key:new String[]{"weather_enabled","notifications"})if(!s.has(key)&&!p.contains(key)){s.put(key,true);changed=true;}
-        if(!s.has("weather_license_confirmed")){s.put("weather_license_confirmed",true);changed=true;}
         if(changed)saveSettings(store,s);
     }
     static void refreshWeather(Context c,PixelLocalStore store,Instant now)throws Exception {refreshWeather(c,store,now,new PlanningWire());}

@@ -5,10 +5,11 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
 
-/** Keyless public API for the owner's explicitly requested non-commercial use. */
+/** Retained keyless public endpoint. Commercial API eligibility remains unverified. */
 final class OpenMeteoWeatherSource {
     static final int FORECAST_DAYS=16;
     static final String API="https://api.open-meteo.com/v1/forecast";
+    static final String TERMS="https://open-meteo.com/en/terms";
     static final String PROVIDER="open_meteo_non_commercial";
     static final String ATTRIBUTION="Open-Meteo · CC BY 4.0 · https://open-meteo.com/";
     private static final String[] VARIABLES={"temperature_2m","precipitation","precipitation_probability","wind_gusts_10m","wind_speed_10m","snowfall","weather_code"};

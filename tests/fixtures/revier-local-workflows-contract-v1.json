@@ -1,0 +1,4711 @@
+{
+  "version": 1,
+  "authorization": "Explicit Revier Solo completion request24Oct2026: local-only business core, encrypted app backup setup/shared UI-MCP actions and properties/care/tours/material/equipment. Preserve all original117tools and existing timer addition.",
+  "baseline_sha256": "a331ea0f3108d513347b04e5572b008292349f15d37e7b57a7647ae83cf7fb93",
+  "added_tools": [
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "backup_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "offset": {
+            "maximum": 1000000,
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "maximum": 100,
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": []
+      },
+      "name": "get_full_backup_status",
+      "description": "Liest den versionierten Status verschlüsselter Vollsicherungen: Datenaufnahme, lokale Integritätsprüfung und externes Drive-SHA-Rücklesen getrennt. Keine Recovery-Codes, Sitzungs-URLs oder Browserentwürfe. Alte Geschäftssicherungen bleiben ein separates Format.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "name": "get_restore_status",
+      "description": "Liest ausschließlich den nicht geheimen Zustand einer am Gerät bestätigten vollständigen Wiederherstellung: Phase, Vorschauhash, Neustartbedarf und Rechnungssperre. Kein Recovery-Code, Dateipfad oder Inhalt und keine Aktivierung durch Lesen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          }
+        },
+        "required": []
+      },
+      "name": "get_revier_overview",
+      "description": "Liest den vollständigen lokalen Revier-Bestand mit Typ-/Status-/Zeitraumfiltern und Pagination. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "offset": {
+            "maximum": 1000000,
+            "type": "integer",
+            "minimum": 0
+          },
+          "from_date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "to_date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "include_archived": {
+            "type": "boolean"
+          },
+          "query": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "limit": {
+            "maximum": 100,
+            "type": "integer",
+            "minimum": 1
+          },
+          "customer_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "property_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 80
+          }
+        },
+        "required": []
+      },
+      "name": "list_properties",
+      "description": "Liest den vollständigen lokalen Revier-Bestand mit Typ-/Status-/Zeitraumfiltern und Pagination. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "property_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "property_id"
+        ]
+      },
+      "name": "get_property",
+      "description": "Liest den vollständigen lokalen Revier-Bestand mit Typ-/Status-/Zeitraumfiltern und Pagination. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "offset": {
+            "maximum": 1000000,
+            "type": "integer",
+            "minimum": 0
+          },
+          "from_date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "to_date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "include_archived": {
+            "type": "boolean"
+          },
+          "query": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "limit": {
+            "maximum": 100,
+            "type": "integer",
+            "minimum": 1
+          },
+          "customer_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "property_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 80
+          }
+        },
+        "required": []
+      },
+      "name": "list_inquiries",
+      "description": "Liest den vollständigen lokalen Revier-Bestand mit Typ-/Status-/Zeitraumfiltern und Pagination. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "inquiry_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "inquiry_id"
+        ]
+      },
+      "name": "get_inquiry",
+      "description": "Liest den vollständigen lokalen Revier-Bestand mit Typ-/Status-/Zeitraumfiltern und Pagination. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "offset": {
+            "maximum": 1000000,
+            "type": "integer",
+            "minimum": 0
+          },
+          "from_date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "to_date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "include_archived": {
+            "type": "boolean"
+          },
+          "query": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "limit": {
+            "maximum": 100,
+            "type": "integer",
+            "minimum": 1
+          },
+          "customer_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "care_plan_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "property_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 80
+          }
+        },
+        "required": []
+      },
+      "name": "list_care_plans",
+      "description": "Liest den vollständigen lokalen Revier-Bestand mit Typ-/Status-/Zeitraumfiltern und Pagination. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "offset": {
+            "maximum": 1000000,
+            "type": "integer",
+            "minimum": 0
+          },
+          "from_date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "to_date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "include_archived": {
+            "type": "boolean"
+          },
+          "query": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "limit": {
+            "maximum": 100,
+            "type": "integer",
+            "minimum": 1
+          },
+          "customer_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "property_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 80
+          }
+        },
+        "required": []
+      },
+      "name": "list_visits",
+      "description": "Liest den vollständigen lokalen Revier-Bestand mit Typ-/Status-/Zeitraumfiltern und Pagination. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "visit_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "visit_id"
+        ]
+      },
+      "name": "get_visit",
+      "description": "Liest den vollständigen lokalen Revier-Bestand mit Typ-/Status-/Zeitraumfiltern und Pagination. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          }
+        },
+        "required": [
+          "date"
+        ]
+      },
+      "name": "get_day_tour",
+      "description": "Liest den vollständigen lokalen Revier-Bestand mit Typ-/Status-/Zeitraumfiltern und Pagination. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "offset": {
+            "maximum": 1000000,
+            "type": "integer",
+            "minimum": 0
+          },
+          "from_date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "to_date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "include_archived": {
+            "type": "boolean"
+          },
+          "query": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "limit": {
+            "maximum": 100,
+            "type": "integer",
+            "minimum": 1
+          },
+          "customer_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "property_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 80
+          }
+        },
+        "required": []
+      },
+      "name": "list_materials",
+      "description": "Liest den vollständigen lokalen Revier-Bestand mit Typ-/Status-/Zeitraumfiltern und Pagination. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "offset": {
+            "maximum": 1000000,
+            "type": "integer",
+            "minimum": 0
+          },
+          "from_date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "to_date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "include_archived": {
+            "type": "boolean"
+          },
+          "query": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "limit": {
+            "maximum": 100,
+            "type": "integer",
+            "minimum": 1
+          },
+          "customer_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "property_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 80
+          }
+        },
+        "required": []
+      },
+      "name": "list_equipment",
+      "description": "Liest den vollständigen lokalen Revier-Bestand mit Typ-/Status-/Zeitraumfiltern und Pagination. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "types": {
+            "maxItems": 13,
+            "type": "array",
+            "items": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500,
+              "enum": [
+                "customer",
+                "property",
+                "order",
+                "appointment",
+                "visit",
+                "activity",
+                "note",
+                "offer",
+                "invoice",
+                "inquiry",
+                "care_plan",
+                "material",
+                "equipment"
+              ]
+            }
+          },
+          "offset": {
+            "maximum": 1000000,
+            "type": "integer",
+            "minimum": 0
+          },
+          "from_date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "to_date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "include_archived": {
+            "type": "boolean"
+          },
+          "query": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "limit": {
+            "maximum": 100,
+            "type": "integer",
+            "minimum": 1
+          },
+          "customer_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "property_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 80
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "name": "search_local",
+      "description": "Liest den vollständigen lokalen Revier-Bestand mit Typ-/Status-/Zeitraumfiltern und Pagination. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "offset": {
+            "maximum": 1000000,
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "maximum": 100,
+            "type": "integer",
+            "minimum": 1
+          },
+          "invoice_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": []
+      },
+      "name": "get_payment_ledger",
+      "description": "Liest unveränderliche Zahlungen, Zuordnungen und Korrekturen samt verbleibenden Forderungen/Guthaben und ledger_hash. Persönliches b.b. bleibt unabhängig. Beträge in kleinsten Währungseinheiten.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "invoice_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "invoice_id"
+        ]
+      },
+      "name": "get_invoice_document_job",
+      "description": "Liest den lokalen PDF-Job zum unveränderlichen Rechnungsbeleg; Belegstatus, PDF-Status und verifizierte Dateireferenz bleiben getrennt.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "name": "preview_local_authority",
+      "description": "Liest den versionierten Umstellungs-/Rechnungsautoritätsstand und die aktuelle Vorschau. Keine Umstellung oder Freigabe durch Lesen. Sicherung, offene Aktionen, Originale und externe Schreiber gesondert belegen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "offset": {
+            "maximum": 1000000,
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "maximum": 100,
+            "type": "integer",
+            "minimum": 1
+          },
+          "offer_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "offer_id"
+        ]
+      },
+      "name": "get_offer_decision_history",
+      "description": "Liest Annahme-/Ablehnungshistorie der unveränderlichen Angebotsversion mit Nachweis und Zeitpunkt. Kein Versand-/Zustellbeleg aus bloßem Teilen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "expected_settings_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_settings_hash"
+        ]
+      },
+      "name": "request_full_backup",
+      "description": "Beauftragt eine verschlüsselte vollständige Sicherung im vorhandenen lokalen Jobbestand. Zuerst get_full_backup_status lesen und settings_hash bestätigen. Lokal vorbereiten und extern hochladen sind getrennte aufschiebbare Schritte; kein Upload-/Sicherungserfolg durch die Vormerkung. Recovery-Code und Ziel müssen ausdrücklich am Gerät eingerichtet sein. request_id bei Wiederholung gleich lassen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "backup_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "request_id",
+          "backup_id",
+          "expected_record_hash"
+        ]
+      },
+      "name": "retry_full_backup",
+      "description": "Wiederholt ausdrücklich denselben Vollsicherungsjob anhand seines aktuellen record_hash. Behält Archiv, Sicherungs-ID und bereits vergebene Drive-Datei-ID; keine neue Generation aus einem Retry. Alte Installation/Restore-Epoche und fehlende oder veränderte Originale bleiben gesperrt. request_id bei Wiederholung gleich lassen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "area_decimal": {
+            "pattern": "(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?",
+            "type": "string",
+            "maxLength": 64
+          },
+          "district": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "area_unit": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "latitude": {
+            "maximum": 90,
+            "type": "number",
+            "minimum": -90
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "customer_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "access_notes": {
+            "type": "string",
+            "maxLength": 10000
+          },
+          "longitude": {
+            "maximum": 180,
+            "type": "number",
+            "minimum": -180
+          }
+        },
+        "required": [
+          "request_id",
+          "customer_id",
+          "name"
+        ]
+      },
+      "name": "create_property",
+      "description": "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "updates": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "notes": {
+                "type": "string",
+                "maxLength": 20000
+              },
+              "area_decimal": {
+                "pattern": "(?:(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)?",
+                "type": "string",
+                "maxLength": 64
+              },
+              "district": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "area_unit": {
+                "type": "string",
+                "maxLength": 100
+              },
+              "latitude": {
+                "maximum": 90,
+                "type": "number",
+                "minimum": -90
+              },
+              "name": {
+                "minLength": 1,
+                "type": "string",
+                "maxLength": 500
+              },
+              "active": {
+                "type": "boolean"
+              },
+              "access_notes": {
+                "type": "string",
+                "maxLength": 10000
+              },
+              "longitude": {
+                "maximum": 180,
+                "type": "number",
+                "minimum": -180
+              }
+            },
+            "required": []
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "property_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "request_id",
+          "property_id",
+          "expected_record_hash",
+          "updates"
+        ]
+      },
+      "name": "update_property",
+      "description": "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "wish_until": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "received_at": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 80
+          },
+          "wish_from": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "title": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "customer_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "property_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "concern": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "status": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500,
+            "enum": [
+              "new",
+              "inspection_planned",
+              "offered",
+              "accepted",
+              "declined",
+              "closed"
+            ]
+          }
+        },
+        "required": [
+          "request_id",
+          "customer_id",
+          "title"
+        ]
+      },
+      "name": "create_inquiry",
+      "description": "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "inquiry_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "updates": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "photo_ids": {
+                "maxItems": 200,
+                "type": "array",
+                "items": {
+                  "minLength": 1,
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "wish_until": {
+                "pattern": "(?:[0-9]{4}-[0-9]{2}-[0-9]{2})?",
+                "type": "string",
+                "maxLength": 10
+              },
+              "wish_from": {
+                "pattern": "(?:[0-9]{4}-[0-9]{2}-[0-9]{2})?",
+                "type": "string",
+                "maxLength": 10
+              },
+              "inspection_notes": {
+                "type": "string",
+                "maxLength": 10000
+              },
+              "title": {
+                "minLength": 1,
+                "type": "string",
+                "maxLength": 500
+              },
+              "order_id": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "property_id": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "offer_id": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "concern": {
+                "type": "string",
+                "maxLength": 20000
+              },
+              "status": {
+                "minLength": 1,
+                "type": "string",
+                "maxLength": 500,
+                "enum": [
+                  "new",
+                  "inspection_planned",
+                  "offered",
+                  "accepted",
+                  "declined",
+                  "closed"
+                ]
+              },
+              "measurements": {
+                "maxItems": 200,
+                "type": "array",
+                "items": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "properties": {
+                    "unit": {
+                      "type": "string",
+                      "maxLength": 100
+                    },
+                    "name": {
+                      "minLength": 1,
+                      "type": "string",
+                      "maxLength": 500
+                    },
+                    "value_decimal": {
+                      "pattern": "-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?",
+                      "type": "string",
+                      "maxLength": 64
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "value_decimal"
+                  ]
+                }
+              }
+            },
+            "required": []
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "request_id",
+          "inquiry_id",
+          "expected_record_hash",
+          "updates"
+        ]
+      },
+      "name": "update_inquiry",
+      "description": "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "starts_at": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 80
+          },
+          "inquiry_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "timezone": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "ends_at": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 80
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "request_id",
+          "inquiry_id",
+          "expected_record_hash",
+          "starts_at",
+          "ends_at"
+        ]
+      },
+      "name": "plan_inquiry_inspection",
+      "description": "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "interval_days": {
+            "maximum": 365,
+            "type": "integer",
+            "minimum": 1
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "anchor_date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "material_needs": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "additionalProperties": false,
+              "type": "object",
+              "properties": {
+                "quantity_decimal": {
+                  "pattern": "(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?",
+                  "type": "string",
+                  "maxLength": 64
+                },
+                "material_id": {
+                  "minLength": 1,
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "required": [
+                "material_id",
+                "quantity_decimal"
+              ]
+            }
+          },
+          "season_start": {
+            "pattern": "[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 5
+          },
+          "planned_minutes": {
+            "maximum": 1440,
+            "type": "integer",
+            "minimum": 1
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "title": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "equipment_ids": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "property_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "season_end": {
+            "pattern": "[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 5
+          }
+        },
+        "required": [
+          "request_id",
+          "property_id",
+          "title",
+          "anchor_date",
+          "interval_days",
+          "planned_minutes"
+        ]
+      },
+      "name": "create_care_plan",
+      "description": "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "scope": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500,
+            "enum": [
+              "this_and_future"
+            ]
+          },
+          "updates": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "interval_days": {
+                "maximum": 365,
+                "type": "integer",
+                "minimum": 1
+              },
+              "notes": {
+                "type": "string",
+                "maxLength": 20000
+              },
+              "anchor_date": {
+                "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+                "type": "string",
+                "maxLength": 10
+              },
+              "material_needs": {
+                "maxItems": 100,
+                "type": "array",
+                "items": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "properties": {
+                    "quantity_decimal": {
+                      "pattern": "(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?",
+                      "type": "string",
+                      "maxLength": 64
+                    },
+                    "material_id": {
+                      "minLength": 1,
+                      "type": "string",
+                      "maxLength": 500
+                    }
+                  },
+                  "required": [
+                    "material_id",
+                    "quantity_decimal"
+                  ]
+                }
+              },
+              "season_start": {
+                "pattern": "(?:[0-9]{2}-[0-9]{2})?",
+                "type": "string",
+                "maxLength": 5
+              },
+              "planned_minutes": {
+                "maximum": 1440,
+                "type": "integer",
+                "minimum": 1
+              },
+              "active": {
+                "type": "boolean"
+              },
+              "title": {
+                "minLength": 1,
+                "type": "string",
+                "maxLength": 500
+              },
+              "equipment_ids": {
+                "maxItems": 100,
+                "type": "array",
+                "items": {
+                  "minLength": 1,
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "season_end": {
+                "pattern": "(?:[0-9]{2}-[0-9]{2})?",
+                "type": "string",
+                "maxLength": 5
+              }
+            },
+            "required": []
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "care_plan_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "effective_from": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          }
+        },
+        "required": [
+          "request_id",
+          "care_plan_id",
+          "expected_record_hash",
+          "scope",
+          "effective_from",
+          "updates"
+        ]
+      },
+      "name": "update_care_plan",
+      "description": "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "from_date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "to_date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "care_plan_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "request_id",
+          "from_date",
+          "to_date"
+        ]
+      },
+      "name": "generate_care_visits",
+      "description": "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "window_end": {
+            "pattern": "(?:[01][0-9]|2[0-3]):[0-5][0-9]",
+            "type": "string",
+            "maxLength": 5
+          },
+          "material_needs": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "additionalProperties": false,
+              "type": "object",
+              "properties": {
+                "quantity_decimal": {
+                  "pattern": "(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?",
+                  "type": "string",
+                  "maxLength": 64
+                },
+                "material_id": {
+                  "minLength": 1,
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "required": [
+                "material_id",
+                "quantity_decimal"
+              ]
+            }
+          },
+          "planned_minutes": {
+            "maximum": 1440,
+            "type": "integer",
+            "minimum": 1
+          },
+          "parent_visit_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "window_start": {
+            "pattern": "(?:[01][0-9]|2[0-3]):[0-5][0-9]",
+            "type": "string",
+            "maxLength": 5
+          },
+          "title": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "equipment_ids": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "order_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "property_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "request_id",
+          "property_id",
+          "date",
+          "title",
+          "planned_minutes"
+        ]
+      },
+      "name": "plan_visit",
+      "description": "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "scope": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500,
+            "enum": [
+              "only_this"
+            ]
+          },
+          "visit_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "updates": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "date": {
+                "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+                "type": "string",
+                "maxLength": 10
+              },
+              "remaining_minutes": {
+                "maximum": 1440,
+                "type": "integer",
+                "minimum": 0
+              },
+              "notes": {
+                "type": "string",
+                "maxLength": 20000
+              },
+              "window_end": {
+                "pattern": "(?:(?:[01][0-9]|2[0-3]):[0-5][0-9])?",
+                "type": "string",
+                "maxLength": 5
+              },
+              "material_needs": {
+                "maxItems": 100,
+                "type": "array",
+                "items": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "properties": {
+                    "quantity_decimal": {
+                      "pattern": "(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?",
+                      "type": "string",
+                      "maxLength": 64
+                    },
+                    "material_id": {
+                      "minLength": 1,
+                      "type": "string",
+                      "maxLength": 500
+                    }
+                  },
+                  "required": [
+                    "material_id",
+                    "quantity_decimal"
+                  ]
+                }
+              },
+              "planned_minutes": {
+                "maximum": 1440,
+                "type": "integer",
+                "minimum": 1
+              },
+              "window_start": {
+                "pattern": "(?:(?:[01][0-9]|2[0-3]):[0-5][0-9])?",
+                "type": "string",
+                "maxLength": 5
+              },
+              "title": {
+                "minLength": 1,
+                "type": "string",
+                "maxLength": 500
+              },
+              "equipment_ids": {
+                "maxItems": 100,
+                "type": "array",
+                "items": {
+                  "minLength": 1,
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "status": {
+                "minLength": 1,
+                "type": "string",
+                "maxLength": 500,
+                "enum": [
+                  "planned",
+                  "in_progress",
+                  "completed",
+                  "partial",
+                  "cancelled"
+                ]
+              }
+            },
+            "required": []
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "request_id",
+          "visit_id",
+          "expected_record_hash",
+          "updates"
+        ]
+      },
+      "name": "update_visit",
+      "description": "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "district": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "visit_ids": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "request_id",
+          "date",
+          "visit_ids",
+          "expected_record_hash"
+        ]
+      },
+      "name": "set_day_tour",
+      "description": "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "date": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "visit_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "direction": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500,
+            "enum": [
+              "up",
+              "down"
+            ]
+          }
+        },
+        "required": [
+          "request_id",
+          "date",
+          "visit_id",
+          "direction",
+          "expected_record_hash"
+        ]
+      },
+      "name": "move_tour_stop",
+      "description": "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "unit": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 100
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "purchase_price_minor": {
+            "maximum": 9000000000000000,
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "billing_price_minor": {
+            "maximum": 9000000000000000,
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "material_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "request_id"
+        ]
+      },
+      "name": "save_material",
+      "description": "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "reason": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 4000
+          },
+          "quantity_decimal": {
+            "pattern": "-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?",
+            "type": "string",
+            "maxLength": 64
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "kind": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500,
+            "enum": [
+              "receive",
+              "consume",
+              "adjust",
+              "reversal"
+            ]
+          },
+          "reverses_movement_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "session_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "material_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "visit_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "property_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "request_id",
+          "material_id",
+          "kind",
+          "reason",
+          "expected_record_hash"
+        ]
+      },
+      "name": "record_material_movement",
+      "description": "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "condition": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500,
+            "enum": [
+              "ready",
+              "maintenance",
+              "defective"
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "maintenance_due": {
+            "pattern": "(?:[0-9]{4}-[0-9]{2}-[0-9]{2})?",
+            "type": "string",
+            "maxLength": 10
+          },
+          "equipment_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "request_id"
+        ]
+      },
+      "name": "save_equipment",
+      "description": "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "starts_at": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 80
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "session_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "visit_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "ends_at": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 80
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "property_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "equipment_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "request_id",
+          "equipment_id",
+          "property_id",
+          "expected_record_hash"
+        ]
+      },
+      "name": "record_equipment_usage",
+      "description": "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "reference": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "paid_on": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "method": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500,
+            "enum": [
+              "cash",
+              "bank",
+              "card",
+              "other"
+            ]
+          },
+          "allocations": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "additionalProperties": false,
+              "type": "object",
+              "properties": {
+                "expected_record_hash": {
+                  "pattern": "[0-9a-f]{64}",
+                  "type": "string",
+                  "maxLength": 64
+                },
+                "invoice_id": {
+                  "minLength": 1,
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "amount_minor": {
+                  "maximum": 9000000000000000,
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": [
+                "invoice_id",
+                "amount_minor",
+                "expected_record_hash"
+              ]
+            }
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "amount_minor": {
+            "maximum": 9000000000000000,
+            "type": "integer",
+            "minimum": 1
+          },
+          "expected_ledger_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "request_id",
+          "amount_minor",
+          "paid_on",
+          "method",
+          "allocations",
+          "expected_ledger_hash"
+        ]
+      },
+      "name": "record_payment",
+      "description": "Erfasst die ausdrücklich bestätigte Zahlung beziehungsweise nachvollziehbare Korrektur mit Datum, Zahlungsart, Beträgen in kleinsten Währungseinheiten und versionierten Rechnungszuordnungen. ledger_hash prüfen; request_id bei Retry gleich lassen. Keine Bankbuchung, Nachricht oder Änderung ursprünglicher Rechnungspositionen. Überzahlung bleibt Guthaben/ungeklärte Zuordnung.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": true,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "reference": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "reason": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 4000
+          },
+          "paid_on": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "method": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500,
+            "enum": [
+              "cash",
+              "bank",
+              "card",
+              "other"
+            ]
+          },
+          "allocations": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "additionalProperties": false,
+              "type": "object",
+              "properties": {
+                "expected_record_hash": {
+                  "pattern": "[0-9a-f]{64}",
+                  "type": "string",
+                  "maxLength": 64
+                },
+                "invoice_id": {
+                  "minLength": 1,
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "amount_minor": {
+                  "maximum": 9000000000000000,
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": [
+                "invoice_id",
+                "amount_minor",
+                "expected_record_hash"
+              ]
+            }
+          },
+          "payment_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "amount_minor": {
+            "maximum": 9000000000000000,
+            "type": "integer",
+            "minimum": 1
+          },
+          "expected_ledger_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "request_id",
+          "amount_minor",
+          "paid_on",
+          "method",
+          "allocations",
+          "expected_ledger_hash",
+          "payment_id",
+          "reason"
+        ]
+      },
+      "name": "correct_payment",
+      "description": "Erfasst die ausdrücklich bestätigte Zahlung beziehungsweise nachvollziehbare Korrektur mit Datum, Zahlungsart, Beträgen in kleinsten Währungseinheiten und versionierten Rechnungszuordnungen. ledger_hash prüfen; request_id bei Retry gleich lassen. Keine Bankbuchung, Nachricht oder Änderung ursprünglicher Rechnungspositionen. Überzahlung bleibt Guthaben/ungeklärte Zuordnung.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": true,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "invoice_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "request_id",
+          "invoice_id",
+          "expected_record_hash"
+        ]
+      },
+      "name": "retry_invoice_document_job",
+      "description": "Merkt die Wiederholung desselben lokalen PDF-Jobs anhand seines aktuellen record_hash vor. Verwendet denselben eingefrorenen Snapshot und dieselbe Belegnummer; keine zweite Rechnung, kein Versand.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "expected_preview_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "backup_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "writer_evidence": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "checked_at": {
+                "minLength": 1,
+                "type": "string",
+                "maxLength": 80
+              },
+              "evidence_sha256": {
+                "pattern": "[0-9a-f]{64}",
+                "type": "string",
+                "maxLength": 64
+              },
+              "evidence_reference": {
+                "minLength": 1,
+                "type": "string",
+                "maxLength": 4000
+              },
+              "formatVersion": {
+                "maximum": 1,
+                "type": "integer",
+                "minimum": 1
+              },
+              "external_writers_disabled": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
+              }
+            },
+            "required": [
+              "formatVersion",
+              "external_writers_disabled",
+              "evidence_sha256",
+              "evidence_reference",
+              "checked_at"
+            ]
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_preview_hash",
+          "backup_id",
+          "writer_evidence"
+        ]
+      },
+      "name": "activate_local_authority",
+      "description": "Aktiviert nach ausdrücklicher Umstellungsentscheidung den maßgeblichen lokalen Pixelbestand anhand aktueller Vorschau, serverseitig geprüfter Vollsicherung und dokumentiert ausgeschlossener externer Schreiber. Kein vom Aufrufer erfundener Sicherungsbeleg. request_id bei Wiederholung beibehalten. Die Rechnungsautorität bleibt bis eigenständigem Original-/Nummernabgleich gesperrt.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": true,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "expected_preview_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "ledger": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "checked_at": {
+                "minLength": 1,
+                "type": "string",
+                "maxLength": 80
+              },
+              "reservations": {
+                "maxItems": 10000,
+                "type": "array",
+                "items": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "properties": {
+                    "reservation_id": {
+                      "minLength": 1,
+                      "type": "string",
+                      "maxLength": 500
+                    },
+                    "invoice_id": {
+                      "minLength": 1,
+                      "type": "string",
+                      "maxLength": 500
+                    },
+                    "counter": {
+                      "maximum": 1000000000,
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "state": {
+                      "minLength": 1,
+                      "type": "string",
+                      "maxLength": 500,
+                      "enum": [
+                        "reserved",
+                        "issued",
+                        "cancelled"
+                      ]
+                    },
+                    "invoice_number": {
+                      "minLength": 1,
+                      "type": "string",
+                      "maxLength": 500
+                    }
+                  },
+                  "required": [
+                    "reservation_id",
+                    "invoice_id",
+                    "invoice_number",
+                    "counter",
+                    "state"
+                  ]
+                }
+              },
+              "evidence_sha256": {
+                "pattern": "[0-9a-f]{64}",
+                "type": "string",
+                "maxLength": 64
+              },
+              "evidence_reference": {
+                "minLength": 1,
+                "type": "string",
+                "maxLength": 4000
+              },
+              "last_number": {
+                "maximum": 2147483647,
+                "type": "integer",
+                "minimum": 0
+              },
+              "issued": {
+                "maxItems": 100000,
+                "type": "array",
+                "items": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "properties": {
+                    "invoice_id": {
+                      "minLength": 1,
+                      "type": "string",
+                      "maxLength": 500
+                    },
+                    "pdf_sha256": {
+                      "pattern": "[0-9a-f]{64}",
+                      "type": "string",
+                      "maxLength": 64
+                    },
+                    "invoice_number": {
+                      "minLength": 1,
+                      "type": "string",
+                      "maxLength": 500
+                    },
+                    "pdf_byte_size": {
+                      "maximum": 9223372036854775807,
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "required": [
+                    "invoice_id",
+                    "invoice_number",
+                    "pdf_sha256"
+                  ]
+                }
+              },
+              "current_review": {
+                "additionalProperties": false,
+                "type": "object",
+                "properties": {
+                  "restore_epoch": {
+                    "minLength": 1,
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "reviewed_at": {
+                    "minLength": 1,
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "evidence_sha256": {
+                    "pattern": "[0-9a-f]{64}",
+                    "type": "string",
+                    "maxLength": 64
+                  },
+                  "installation_id": {
+                    "minLength": 1,
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "confirmed": {
+                    "type": "boolean",
+                    "enum": [
+                      true
+                    ]
+                  }
+                },
+                "required": [
+                  "confirmed",
+                  "installation_id",
+                  "restore_epoch",
+                  "reviewed_at",
+                  "evidence_sha256"
+                ]
+              },
+              "formatVersion": {
+                "maximum": 1,
+                "type": "integer",
+                "minimum": 1
+              },
+              "opening_balances": {
+                "maxItems": 100000,
+                "type": "array",
+                "items": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "properties": {
+                    "remaining_minor": {
+                      "maximum": 9000000000000000,
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "invoice_id": {
+                      "minLength": 1,
+                      "type": "string",
+                      "maxLength": 500
+                    }
+                  },
+                  "required": [
+                    "invoice_id",
+                    "remaining_minor"
+                  ]
+                }
+              },
+              "external_writers_disabled": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
+              }
+            },
+            "required": [
+              "formatVersion",
+              "external_writers_disabled",
+              "evidence_sha256",
+              "evidence_reference",
+              "checked_at",
+              "last_number",
+              "issued",
+              "reservations",
+              "current_review"
+            ]
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "request_id",
+          "expected_preview_hash",
+          "ledger"
+        ]
+      },
+      "name": "reconcile_local_invoice_authority",
+      "description": "Gleicht lokale Rechnungsautorität nach Umstellung/Restore mit aktuellem externen Beleg-/Reservierungs-/Nummernnachweis ab. Original-PDF-Hashes/Größen und alle bekannten Belege werden geprüft; Backupzähler allein gibt nichts frei. current_review muss eine ausdrückliche aktuelle Belegprüfung an genau dieser installation_id und restore_epoch bestätigen; eine importierte frühere Bestätigung reicht nicht. Historische Restbeträge nur als ausdrücklich belegte Eröffnungsstände, keine erfundenen Zahlungen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": true,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "evidence": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 10000
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "accepted_at": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 80
+          },
+          "offer_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "request_id",
+          "offer_id",
+          "expected_record_hash",
+          "accepted_at",
+          "evidence"
+        ]
+      },
+      "name": "record_offer_acceptance",
+      "description": "Hält die ausdrücklich bestätigte Annahme genau dieser finalen Angebotsversion mit tatsächlichem Zeitpunkt und nachvollziehbarem Nachweis fest. record_hash prüfen; keine Annahme erfinden und noch keinen zweiten Auftrag erzeugen. request_id bei Retry unverändert lassen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "offer_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "request_id",
+          "offer_id",
+          "expected_record_hash"
+        ]
+      },
+      "name": "decline_offer",
+      "description": "Hält die ausdrückliche Ablehnung genau dieser finalen Angebotsversion samt optionalem Grund nachvollziehbar fest. Dokument und Historie bleiben erhalten; kein Auftrag und keine Rechnung entstehen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    }
+  ],
+  "modified_tools": [
+    {
+      "name": "update_photo",
+      "before": {
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "photo_id": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500
+            },
+            "expected_record_hash": {
+              "pattern": "[0-9a-f]{64}",
+              "description": "record_hash des zuvor gelesenen Datensatzes.",
+              "type": "string",
+              "maxLength": 64
+            },
+            "updates": {
+              "additionalProperties": false,
+              "type": "object",
+              "properties": {
+                "role": {
+                  "minLength": 1,
+                  "type": "string",
+                  "maxLength": 500,
+                  "enum": [
+                    "profile",
+                    "documentation",
+                    "before",
+                    "during",
+                    "after",
+                    "damage",
+                    "other"
+                  ]
+                },
+                "original_name": {
+                  "type": "string",
+                  "maxLength": 240
+                },
+                "session_id": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "caption": {
+                  "type": "string",
+                  "maxLength": 10000
+                },
+                "order_id": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "customer_visible": {
+                  "type": "boolean"
+                },
+                "capture_time": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "worklog_id": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "required": [],
+              "minProperties": 1
+            },
+            "request_id": {
+              "minLength": 8,
+              "type": "string",
+              "maxLength": 128
+            }
+          },
+          "required": [
+            "request_id",
+            "photo_id",
+            "expected_record_hash",
+            "updates"
+          ]
+        },
+        "name": "update_photo",
+        "description": "Verwendet die bestehenden App-Speicher und fachlichen Prüfungen. Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.",
+        "annotations": {
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "destructiveHint": false,
+          "readOnlyHint": false
+        }
+      },
+      "after": {
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "photo_id": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500
+            },
+            "expected_record_hash": {
+              "pattern": "[0-9a-f]{64}",
+              "description": "record_hash des zuvor gelesenen Datensatzes.",
+              "type": "string",
+              "maxLength": 64
+            },
+            "updates": {
+              "additionalProperties": false,
+              "type": "object",
+              "properties": {
+                "role": {
+                  "minLength": 1,
+                  "type": "string",
+                  "maxLength": 500,
+                  "enum": [
+                    "profile",
+                    "documentation",
+                    "before",
+                    "during",
+                    "after",
+                    "damage",
+                    "other"
+                  ]
+                },
+                "original_name": {
+                  "type": "string",
+                  "maxLength": 240
+                },
+                "session_id": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "caption": {
+                  "type": "string",
+                  "maxLength": 10000
+                },
+                "visit_id": {
+                  "minLength": 1,
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "order_id": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "customer_visible": {
+                  "type": "boolean"
+                },
+                "capture_time": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "property_id": {
+                  "minLength": 1,
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "worklog_id": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "required": [],
+              "minProperties": 1
+            },
+            "request_id": {
+              "minLength": 8,
+              "type": "string",
+              "maxLength": 128
+            }
+          },
+          "required": [
+            "request_id",
+            "photo_id",
+            "expected_record_hash",
+            "updates"
+          ]
+        },
+        "name": "update_photo",
+        "description": "Verwendet die bestehenden App-Speicher und fachlichen Prüfungen. Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.",
+        "annotations": {
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "destructiveHint": false,
+          "readOnlyHint": false
+        }
+      },
+      "reason": "Exact versioned local-authority/legacy-backup descriptors and optional stable context/source schemas preserve historical calls and record IDs."
+    },
+    {
+      "name": "create_photo",
+      "before": {
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "upload_id": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500
+            },
+            "role": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500,
+              "enum": [
+                "profile",
+                "documentation",
+                "before",
+                "during",
+                "after",
+                "damage",
+                "other"
+              ]
+            },
+            "original_name": {
+              "type": "string",
+              "maxLength": 240
+            },
+            "session_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "caption": {
+              "type": "string",
+              "maxLength": 10000
+            },
+            "customer_id": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500
+            },
+            "request_id": {
+              "minLength": 8,
+              "type": "string",
+              "maxLength": 128
+            },
+            "order_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "customer_visible": {
+              "type": "boolean"
+            },
+            "capture_time": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "worklog_id": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "required": [
+            "request_id",
+            "upload_id",
+            "customer_id"
+          ]
+        },
+        "name": "create_photo",
+        "description": "Prüft vollständigen Upload, Prüfsumme, Bildtyp und Verknüpfungen; optimiert neue Fotos gemäß dem gespeicherten Qualitätsprofil über denselben Fotospeicher wie die App. Der gespeicherte SHA256 kann vom geprüften Uploadhash abweichen; get_photo liest die endgültigen Metadaten. Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.",
+        "annotations": {
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "destructiveHint": false,
+          "readOnlyHint": false
+        }
+      },
+      "after": {
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "upload_id": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500
+            },
+            "role": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500,
+              "enum": [
+                "profile",
+                "documentation",
+                "before",
+                "during",
+                "after",
+                "damage",
+                "other"
+              ]
+            },
+            "session_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "caption": {
+              "type": "string",
+              "maxLength": 10000
+            },
+            "property_id": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500
+            },
+            "worklog_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "original_name": {
+              "type": "string",
+              "maxLength": 240
+            },
+            "visit_id": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500
+            },
+            "customer_id": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500
+            },
+            "request_id": {
+              "minLength": 8,
+              "type": "string",
+              "maxLength": 128
+            },
+            "order_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "customer_visible": {
+              "type": "boolean"
+            },
+            "capture_time": {
+              "type": "string",
+              "maxLength": 80
+            }
+          },
+          "required": [
+            "request_id",
+            "upload_id",
+            "customer_id"
+          ]
+        },
+        "name": "create_photo",
+        "description": "Prüft vollständigen Upload, Prüfsumme, Bildtyp und Verknüpfungen; optimiert neue Fotos gemäß dem gespeicherten Qualitätsprofil über denselben Fotospeicher wie die App. Der gespeicherte SHA256 kann vom geprüften Uploadhash abweichen; get_photo liest die endgültigen Metadaten. Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.",
+        "annotations": {
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "destructiveHint": false,
+          "readOnlyHint": false
+        }
+      },
+      "reason": "Exact versioned local-authority/legacy-backup descriptors and optional stable context/source schemas preserve historical calls and record IDs."
+    },
+    {
+      "name": "create_backup",
+      "before": {
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "request_id": {
+              "minLength": 8,
+              "type": "string",
+              "maxLength": 128
+            }
+          },
+          "required": [
+            "request_id"
+          ]
+        },
+        "name": "create_backup",
+        "description": "Verwendet die bestehenden App-Speicher und fachlichen Prüfungen. Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.",
+        "annotations": {
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "destructiveHint": false,
+          "readOnlyHint": false
+        }
+      },
+      "after": {
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "request_id": {
+              "minLength": 8,
+              "type": "string",
+              "maxLength": 128
+            }
+          },
+          "required": [
+            "request_id"
+          ]
+        },
+        "name": "create_backup",
+        "description": "Erstellt die bisherige begrenzte Geschäftssicherung im vorhandenen Altformat für Geschäftssnapshot, Journal und lokale Originale. Keine verschlüsselte Vollsicherung und kein vollständiger Restore aller neuen Revier-/Jobdaten. Vollbackup über request_full_backup beziehungsweise die geschützte Geräteoberfläche verwenden. Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.",
+        "annotations": {
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "destructiveHint": false,
+          "readOnlyHint": false
+        }
+      },
+      "reason": "Exact versioned local-authority/legacy-backup descriptors and optional stable context/source schemas preserve historical calls and record IDs."
+    },
+    {
+      "name": "restore_backup",
+      "before": {
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "backup_id": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500
+            },
+            "expected_state_hash": {
+              "pattern": "[0-9a-f]{64}",
+              "type": "string",
+              "maxLength": 64
+            },
+            "request_id": {
+              "minLength": 8,
+              "type": "string",
+              "maxLength": 128
+            }
+          },
+          "required": [
+            "request_id",
+            "backup_id",
+            "expected_state_hash"
+          ]
+        },
+        "name": "restore_backup",
+        "description": "Prüft Sicherung und übernimmt ausschließlich fehlende Datensätze. Abweichende vorhandene Versionen und aktive Warteschlangen stoppen die Übernahme; keine blinde Ersetzung. Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.",
+        "annotations": {
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "destructiveHint": true,
+          "readOnlyHint": false
+        }
+      },
+      "after": {
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "backup_id": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500
+            },
+            "expected_state_hash": {
+              "pattern": "[0-9a-f]{64}",
+              "type": "string",
+              "maxLength": 64
+            },
+            "request_id": {
+              "minLength": 8,
+              "type": "string",
+              "maxLength": 128
+            }
+          },
+          "required": [
+            "request_id",
+            "backup_id",
+            "expected_state_hash"
+          ]
+        },
+        "name": "restore_backup",
+        "description": "Versionierter Altpfad: im Legacybetrieb Sicherung prüfen und ausschließlich fehlende Datensätze übernehmen; Konflikte und aktive Warteschlangen stoppen. Nach lokaler Autoritätsumstellung mit RESTORE_FULL_REPLACEMENT_REQUIRED und Geräteschritt gesperrt: vollständigen verschlüsselten Bestand prüfen und ausdrücklich ersetzen, keine automatische Vermischung. Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.",
+        "annotations": {
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "destructiveHint": true,
+          "readOnlyHint": false
+        }
+      },
+      "reason": "Exact versioned local-authority/legacy-backup descriptors and optional stable context/source schemas preserve historical calls and record IDs."
+    },
+    {
+      "name": "request_invoice_issue",
+      "before": {
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "expected_record_hash": {
+              "pattern": "[0-9a-f]{64}",
+              "description": "record_hash des zuvor gelesenen Datensatzes.",
+              "type": "string",
+              "maxLength": 64
+            },
+            "invoice_id": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500
+            },
+            "request_id": {
+              "minLength": 8,
+              "type": "string",
+              "maxLength": 128
+            },
+            "confirmed": {
+              "type": "boolean",
+              "enum": [
+                true
+              ]
+            }
+          },
+          "required": [
+            "request_id",
+            "invoice_id",
+            "expected_record_hash",
+            "confirmed"
+          ]
+        },
+        "name": "request_invoice_issue",
+        "description": "Beauftragt den Pixel-Rechnungsabschluss nach ausdrücklicher Nutzeranweisung. Online-Nummernreservierung mit Versionsschutz und Original-PDF erforderlich; kein automatischer Versand oder Zahlungsstatus. Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.",
+        "annotations": {
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "destructiveHint": true,
+          "readOnlyHint": false
+        }
+      },
+      "after": {
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "expected_record_hash": {
+              "pattern": "[0-9a-f]{64}",
+              "description": "record_hash des zuvor gelesenen Datensatzes.",
+              "type": "string",
+              "maxLength": 64
+            },
+            "invoice_id": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500
+            },
+            "request_id": {
+              "minLength": 8,
+              "type": "string",
+              "maxLength": 128
+            },
+            "confirmed": {
+              "type": "boolean",
+              "enum": [
+                true
+              ]
+            }
+          },
+          "required": [
+            "request_id",
+            "invoice_id",
+            "expected_record_hash",
+            "confirmed"
+          ]
+        },
+        "name": "request_invoice_issue",
+        "description": "Beauftragt den Pixel-Rechnungsabschluss nach ausdrücklicher Nutzeranweisung. get_capabilities.invoice_finalization legt den versionierten Pfad fest: im Altbetrieb geschützter Onlinevergleich, nach kontrollierter Umstellung atomare lokale Nummernvergabe mit Belegsnapshot und dauerhaftem PDF-Job. Nach Restore bis externem Original-/Nummernabgleich gesperrt. Keine erfolgreiche PDF-Freigabe vor verifiziertem Original; kein automatischer Versand oder Zahlungsstatus. Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.",
+        "annotations": {
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "destructiveHint": true,
+          "readOnlyHint": false
+        }
+      },
+      "reason": "Exact versioned local-authority/legacy-backup descriptors and optional stable context/source schemas preserve historical calls and record IDs."
+    },
+    {
+      "name": "start_work",
+      "before": {
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "work_date": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "activity": {
+              "type": "string",
+              "maxLength": 10000
+            },
+            "appointment_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "billing_customer_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "location": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "customer_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "request_id": {
+              "minLength": 8,
+              "type": "string",
+              "maxLength": 128
+            },
+            "order_id": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "required": [
+            "request_id",
+            "customer_id"
+          ]
+        },
+        "name": "start_work",
+        "description": "Bedient die vorhandene dauerhafte Pixel-Zeiterfassung. Vor Änderungen get_active_work_session lesen. request_id bei Wiederholung gleich lassen. start_work verlangt einen echten Kunden; Datum sonst heute in Europe/Vienna. stop_work stoppt nur die Sitzung, erzeugt noch keine Arbeitsaufzeichnung. complete_work_session übernimmt die geprüfte gestoppte Sitzung in den vorhandenen mobilen Abgleich; Nettozeit kommt ausschließlich aus dem Timer. finish_work stoppt und speichert dieselbe echte Sitzung atomar anhand session_id und Tätigkeit; Validierungsfehler erhalten den vorherigen Timerzustand. Keine Rechnungsänderung.",
+        "annotations": {
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "destructiveHint": false,
+          "readOnlyHint": false
+        }
+      },
+      "after": {
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "work_date": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "activity": {
+              "type": "string",
+              "maxLength": 10000
+            },
+            "appointment_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "billing_customer_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "location": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "visit_id": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500
+            },
+            "customer_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "request_id": {
+              "minLength": 8,
+              "type": "string",
+              "maxLength": 128
+            },
+            "order_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "property_id": {
+              "minLength": 1,
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "required": [
+            "request_id",
+            "customer_id"
+          ]
+        },
+        "name": "start_work",
+        "description": "Bedient die vorhandene dauerhafte Pixel-Zeiterfassung. Vor Änderungen get_active_work_session lesen. request_id bei Wiederholung gleich lassen. start_work verlangt einen echten Kunden; Datum sonst heute in Europe/Vienna. stop_work stoppt nur die Sitzung, erzeugt noch keine Arbeitsaufzeichnung. complete_work_session übernimmt die geprüfte gestoppte Sitzung in den vorhandenen mobilen Abgleich; Nettozeit kommt ausschließlich aus dem Timer. finish_work stoppt und speichert dieselbe echte Sitzung atomar anhand session_id und Tätigkeit; Validierungsfehler erhalten den vorherigen Timerzustand. Keine Rechnungsänderung.",
+        "annotations": {
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "destructiveHint": false,
+          "readOnlyHint": false
+        }
+      },
+      "reason": "Exact versioned local-authority/legacy-backup descriptors and optional stable context/source schemas preserve historical calls and record IDs."
+    },
+    {
+      "name": "create_invoice_draft",
+      "before": {
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "notes": {
+              "type": "string",
+              "maxLength": 10000
+            },
+            "service_end": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "recipient_vat_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "test_record": {
+              "type": "boolean"
+            },
+            "payment_days": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "positions": {
+              "minItems": 1,
+              "maxItems": 200,
+              "type": "array",
+              "items": {
+                "additionalProperties": false,
+                "type": "object",
+                "properties": {
+                  "gross_total": {
+                    "type": "number"
+                  },
+                  "quantity": {
+                    "type": "number"
+                  },
+                  "tax_total": {
+                    "type": "number"
+                  },
+                  "net_total": {
+                    "type": "number"
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 10000
+                  },
+                  "discount": {
+                    "type": "number"
+                  },
+                  "tax": {
+                    "type": "number"
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 10000
+                  },
+                  "tax_rate": {
+                    "type": "number"
+                  },
+                  "worklog_id": {
+                    "type": "string",
+                    "maxLength": 10000
+                  },
+                  "unit": {
+                    "type": "string",
+                    "maxLength": 10000
+                  },
+                  "price": {
+                    "type": "number"
+                  },
+                  "net": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "title",
+                  "quantity",
+                  "price"
+                ]
+              }
+            },
+            "header_text": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "footer_text": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "invoice_date": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "tax_mode": {
+              "type": "string",
+              "maxLength": 30,
+              "enum": [
+                "small_business",
+                "standard"
+              ]
+            },
+            "domestic_service_confirmed": {
+              "type": "boolean"
+            },
+            "recipient_type": {
+              "type": "string",
+              "maxLength": 30,
+              "enum": [
+                "b2b",
+                "consumer",
+                ""
+              ]
+            },
+            "customer_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "request_id": {
+              "minLength": 8,
+              "type": "string",
+              "maxLength": 128
+            },
+            "order_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "service_start": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "required": [
+            "request_id",
+            "customer_id",
+            "invoice_date",
+            "positions"
+          ]
+        },
+        "name": "create_invoice_draft",
+        "description": "Erstellt oder ändert ausschließlich einen lokalen Rechnungsentwurf. Dieses Werkzeug stellt keine Rechnung aus, versendet nichts und markiert nichts als bezahlt. Vorhandene sevDesk-Rechnungen bleiben unverändert. request_id bei Wiederholungen unverändert lassen.",
+        "annotations": {
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "destructiveHint": false,
+          "readOnlyHint": false
+        }
+      },
+      "after": {
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "notes": {
+              "type": "string",
+              "maxLength": 10000
+            },
+            "service_end": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "recipient_vat_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "test_record": {
+              "type": "boolean"
+            },
+            "payment_days": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "positions": {
+              "minItems": 1,
+              "maxItems": 200,
+              "type": "array",
+              "items": {
+                "additionalProperties": false,
+                "type": "object",
+                "properties": {
+                  "gross_total": {
+                    "type": "number"
+                  },
+                  "quantity": {
+                    "type": "number"
+                  },
+                  "tax_total": {
+                    "type": "number"
+                  },
+                  "source_quantity_decimal": {
+                    "pattern": "(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?",
+                    "type": "string",
+                    "maxLength": 64
+                  },
+                  "net_total": {
+                    "type": "number"
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 10000
+                  },
+                  "discount": {
+                    "type": "number"
+                  },
+                  "tax": {
+                    "type": "number"
+                  },
+                  "source_type": {
+                    "minLength": 1,
+                    "type": "string",
+                    "maxLength": 500,
+                    "enum": [
+                      "worklog",
+                      "material_movement",
+                      "manual"
+                    ]
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 10000
+                  },
+                  "tax_rate": {
+                    "type": "number"
+                  },
+                  "worklog_id": {
+                    "type": "string",
+                    "maxLength": 10000
+                  },
+                  "unit": {
+                    "type": "string",
+                    "maxLength": 10000
+                  },
+                  "price": {
+                    "type": "number"
+                  },
+                  "source_id": {
+                    "minLength": 1,
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "net": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "title",
+                  "quantity",
+                  "price"
+                ]
+              }
+            },
+            "header_text": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "footer_text": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "invoice_date": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "tax_mode": {
+              "type": "string",
+              "maxLength": 30,
+              "enum": [
+                "small_business",
+                "standard"
+              ]
+            },
+            "domestic_service_confirmed": {
+              "type": "boolean"
+            },
+            "recipient_type": {
+              "type": "string",
+              "maxLength": 30,
+              "enum": [
+                "b2b",
+                "consumer",
+                ""
+              ]
+            },
+            "customer_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "request_id": {
+              "minLength": 8,
+              "type": "string",
+              "maxLength": 128
+            },
+            "order_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "service_start": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "required": [
+            "request_id",
+            "customer_id",
+            "invoice_date",
+            "positions"
+          ]
+        },
+        "name": "create_invoice_draft",
+        "description": "Erstellt oder ändert ausschließlich einen lokalen Rechnungsentwurf. Dieses Werkzeug stellt keine Rechnung aus, versendet nichts und markiert nichts als bezahlt. Vorhandene sevDesk-Rechnungen bleiben unverändert. request_id bei Wiederholungen unverändert lassen.",
+        "annotations": {
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "destructiveHint": false,
+          "readOnlyHint": false
+        }
+      },
+      "reason": "Exact versioned local-authority/legacy-backup descriptors and optional stable context/source schemas preserve historical calls and record IDs."
+    },
+    {
+      "name": "update_invoice_draft",
+      "before": {
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "expected_record_hash": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "invoice_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "updates": {
+              "additionalProperties": false,
+              "type": "object",
+              "properties": {
+                "notes": {
+                  "type": "string",
+                  "maxLength": 10000
+                },
+                "service_end": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "recipient_vat_id": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "test_record": {
+                  "type": "boolean"
+                },
+                "payment_days": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "positions": {
+                  "minItems": 1,
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "additionalProperties": false,
+                    "type": "object",
+                    "properties": {
+                      "gross_total": {
+                        "type": "number"
+                      },
+                      "quantity": {
+                        "type": "number"
+                      },
+                      "tax_total": {
+                        "type": "number"
+                      },
+                      "net_total": {
+                        "type": "number"
+                      },
+                      "description": {
+                        "type": "string",
+                        "maxLength": 10000
+                      },
+                      "discount": {
+                        "type": "number"
+                      },
+                      "tax": {
+                        "type": "number"
+                      },
+                      "title": {
+                        "type": "string",
+                        "maxLength": 10000
+                      },
+                      "tax_rate": {
+                        "type": "number"
+                      },
+                      "worklog_id": {
+                        "type": "string",
+                        "maxLength": 10000
+                      },
+                      "unit": {
+                        "type": "string",
+                        "maxLength": 10000
+                      },
+                      "price": {
+                        "type": "number"
+                      },
+                      "net": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "quantity",
+                      "price"
+                    ]
+                  }
+                },
+                "header_text": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "footer_text": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "invoice_date": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "tax_mode": {
+                  "type": "string",
+                  "maxLength": 30,
+                  "enum": [
+                    "small_business",
+                    "standard"
+                  ]
+                },
+                "domestic_service_confirmed": {
+                  "type": "boolean"
+                },
+                "recipient_type": {
+                  "type": "string",
+                  "maxLength": 30,
+                  "enum": [
+                    "b2b",
+                    "consumer",
+                    ""
+                  ]
+                },
+                "customer_id": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "order_id": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "service_start": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "minProperties": 1
+            },
+            "request_id": {
+              "minLength": 8,
+              "type": "string",
+              "maxLength": 128
+            }
+          },
+          "required": [
+            "request_id",
+            "invoice_id",
+            "expected_record_hash",
+            "updates"
+          ]
+        },
+        "name": "update_invoice_draft",
+        "description": "Erstellt oder ändert ausschließlich einen lokalen Rechnungsentwurf. Dieses Werkzeug stellt keine Rechnung aus, versendet nichts und markiert nichts als bezahlt. Vorhandene sevDesk-Rechnungen bleiben unverändert. request_id bei Wiederholungen unverändert lassen.",
+        "annotations": {
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "destructiveHint": true,
+          "readOnlyHint": false
+        }
+      },
+      "after": {
+        "inputSchema": {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "expected_record_hash": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "invoice_id": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "updates": {
+              "additionalProperties": false,
+              "type": "object",
+              "properties": {
+                "notes": {
+                  "type": "string",
+                  "maxLength": 10000
+                },
+                "service_end": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "recipient_vat_id": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "test_record": {
+                  "type": "boolean"
+                },
+                "payment_days": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "positions": {
+                  "minItems": 1,
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "additionalProperties": false,
+                    "type": "object",
+                    "properties": {
+                      "gross_total": {
+                        "type": "number"
+                      },
+                      "quantity": {
+                        "type": "number"
+                      },
+                      "tax_total": {
+                        "type": "number"
+                      },
+                      "source_quantity_decimal": {
+                        "pattern": "(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?",
+                        "type": "string",
+                        "maxLength": 64
+                      },
+                      "net_total": {
+                        "type": "number"
+                      },
+                      "description": {
+                        "type": "string",
+                        "maxLength": 10000
+                      },
+                      "discount": {
+                        "type": "number"
+                      },
+                      "tax": {
+                        "type": "number"
+                      },
+                      "source_type": {
+                        "minLength": 1,
+                        "type": "string",
+                        "maxLength": 500,
+                        "enum": [
+                          "worklog",
+                          "material_movement",
+                          "manual"
+                        ]
+                      },
+                      "title": {
+                        "type": "string",
+                        "maxLength": 10000
+                      },
+                      "tax_rate": {
+                        "type": "number"
+                      },
+                      "worklog_id": {
+                        "type": "string",
+                        "maxLength": 10000
+                      },
+                      "unit": {
+                        "type": "string",
+                        "maxLength": 10000
+                      },
+                      "price": {
+                        "type": "number"
+                      },
+                      "source_id": {
+                        "minLength": 1,
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      "net": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "quantity",
+                      "price"
+                    ]
+                  }
+                },
+                "header_text": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "footer_text": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "invoice_date": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "tax_mode": {
+                  "type": "string",
+                  "maxLength": 30,
+                  "enum": [
+                    "small_business",
+                    "standard"
+                  ]
+                },
+                "domestic_service_confirmed": {
+                  "type": "boolean"
+                },
+                "recipient_type": {
+                  "type": "string",
+                  "maxLength": 30,
+                  "enum": [
+                    "b2b",
+                    "consumer",
+                    ""
+                  ]
+                },
+                "customer_id": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "order_id": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "service_start": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "minProperties": 1
+            },
+            "request_id": {
+              "minLength": 8,
+              "type": "string",
+              "maxLength": 128
+            }
+          },
+          "required": [
+            "request_id",
+            "invoice_id",
+            "expected_record_hash",
+            "updates"
+          ]
+        },
+        "name": "update_invoice_draft",
+        "description": "Erstellt oder ändert ausschließlich einen lokalen Rechnungsentwurf. Dieses Werkzeug stellt keine Rechnung aus, versendet nichts und markiert nichts als bezahlt. Vorhandene sevDesk-Rechnungen bleiben unverändert. request_id bei Wiederholungen unverändert lassen.",
+        "annotations": {
+          "idempotentHint": true,
+          "openWorldHint": false,
+          "destructiveHint": true,
+          "readOnlyHint": false
+        }
+      },
+      "reason": "Exact versioned local-authority/legacy-backup descriptors and optional stable context/source schemas preserve historical calls and record IDs."
+    }
+  ],
+  "added_ui_actions": [
+    {
+      "id": "backup.voll.get_full_backup_status",
+      "area": "sicherung",
+      "action": "Stand der verschlüsselten Vollsicherung lesen",
+      "source": "FullBackupActivity.java",
+      "mcp": [
+        "get_full_backup_status"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.get_revier_overview",
+      "area": "revier",
+      "action": "Heute mit Arbeit, fälligen Besuchen und Tour lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "get_revier_overview"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.list_properties",
+      "area": "revier",
+      "action": "Objekte suchen und vollständig auflisten",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "list_properties"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.get_property",
+      "area": "revier",
+      "action": "Objektakte lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "get_property"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.list_inquiries",
+      "area": "revier",
+      "action": "Anfragen suchen und auflisten",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "list_inquiries"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.get_inquiry",
+      "area": "revier",
+      "action": "Anfrage lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "get_inquiry"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.list_care_plans",
+      "area": "revier",
+      "action": "Pflegepläne auflisten",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "list_care_plans"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.list_visits",
+      "area": "revier",
+      "action": "Besuche und fällige Arbeiten auflisten",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "list_visits"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.get_visit",
+      "area": "revier",
+      "action": "Einsatzdetails lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "get_visit"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.get_day_tour",
+      "area": "revier",
+      "action": "Geplante Tagestour lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "get_day_tour"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.list_materials",
+      "area": "revier",
+      "action": "Material und Bestand lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "list_materials"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.list_equipment",
+      "area": "revier",
+      "action": "Geräte und Zustand lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "list_equipment"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.search_local",
+      "area": "revier",
+      "action": "Vollständigen lokalen Bestand mit Filtern durchsuchen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "search_local"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "backup.voll.request_full_backup",
+      "area": "sicherung",
+      "action": "Verschlüsselte Vollsicherung vormerken",
+      "source": "FullBackupActivity.java",
+      "mcp": [
+        "request_full_backup"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "backup.voll.retry_full_backup",
+      "area": "sicherung",
+      "action": "Vollsicherungsjob ausdrücklich erneut versuchen",
+      "source": "FullBackupActivity.java",
+      "mcp": [
+        "retry_full_backup"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.create_property",
+      "area": "revier",
+      "action": "Objekt zu bestehendem Kunden anlegen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "create_property"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.update_property",
+      "area": "revier",
+      "action": "Objekt bewusst bearbeiten",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "update_property"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.create_inquiry",
+      "area": "revier",
+      "action": "Neue Anfrage lokal speichern",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "create_inquiry"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.update_inquiry",
+      "area": "revier",
+      "action": "Anfrage mit Historie bearbeiten",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "update_inquiry"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.plan_inquiry_inspection",
+      "area": "revier",
+      "action": "Besichtigung aus bestätigter Anfrage planen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "plan_inquiry_inspection"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.create_care_plan",
+      "area": "revier",
+      "action": "Pflegeplan am Objekt anlegen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "create_care_plan"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.update_care_plan",
+      "area": "revier",
+      "action": "Pflegeregel für zukünftige Termine ändern",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "update_care_plan"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.generate_care_visits",
+      "area": "revier",
+      "action": "Fällige Pflegebesuche im begrenzten Horizont erzeugen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "generate_care_visits"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.plan_visit",
+      "area": "revier",
+      "action": "Einzelnen Einsatz planen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "plan_visit"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.update_visit",
+      "area": "revier",
+      "action": "Termin verschieben, absagen oder Teilerledigung festhalten",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "update_visit"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.set_day_tour",
+      "area": "revier",
+      "action": "Besuche ausdrücklich in Tagestour aufnehmen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "set_day_tour"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.move_tour_stop",
+      "area": "revier",
+      "action": "Tourstopp nach oben oder unten verschieben",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "move_tour_stop"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.save_material",
+      "area": "revier",
+      "action": "Materialkatalog bewusst pflegen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "save_material"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.record_material_movement",
+      "area": "revier",
+      "action": "Materialzugang, Verbrauch oder Gegenbuchung erfassen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "record_material_movement"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.save_equipment",
+      "area": "revier",
+      "action": "Gerät, Wartung und Defekt pflegen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "save_equipment"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "revier.record_equipment_usage",
+      "area": "revier",
+      "action": "Gerätenutzung am Einsatz erfassen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "record_equipment_usage"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "platform.recovery_vollbackup",
+      "area": "plattform",
+      "action": "Recovery-Code am Gerät einrichten, separat exportieren und rückbestätigen; Sicherungsziel freigeben",
+      "source": "FullBackupActivity.java",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Recovery-Geheimnis bleibt ausschließlich in geschützter Geräteoberfläche; SAF-/Kontofreigaben sind ausdrückliche Geräteschritte. MCP fordert oder liest keinen Recovery-Code.",
+      "platform_only": true,
+      "test_scope": "Synthetic contract/interaction checks; real device consent and external target readback require separate acceptance."
+    },
+    {
+      "id": "buero.get_payment_ledger",
+      "area": "buero",
+      "action": "Zahlungen, offene Beträge und Guthaben lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "get_payment_ledger"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.get_invoice_document_job",
+      "area": "buero",
+      "action": "Status des unveränderlichen Rechnungs-PDF lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "get_invoice_document_job"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.preview_local_authority",
+      "area": "buero",
+      "action": "Lokalen Übergang und Rechnungssperre prüfen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "preview_local_authority"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.record_payment",
+      "area": "buero",
+      "action": "Teil- oder Sammelzahlung mit Zuordnung erfassen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "record_payment"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.correct_payment",
+      "area": "buero",
+      "action": "Zahlung mit Grund nachvollziehbar korrigieren",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "correct_payment"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.retry_invoice_document_job",
+      "area": "buero",
+      "action": "Denselben Rechnungs-PDF-Job wiederholen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "retry_invoice_document_job"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.activate_local_authority",
+      "area": "buero",
+      "action": "Bestätigten lokalen Bestand nach geprüfter Sicherung aktivieren",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "activate_local_authority"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.reconcile_local_invoice_authority",
+      "area": "buero",
+      "action": "Rechnungsautorität mit externen Originalen und Nummern abgleichen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "reconcile_local_invoice_authority"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.get_offer_decision_history",
+      "area": "buero",
+      "action": "Annahme- und Ablehnungshistorie einer Angebotsversion lesen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "get_offer_decision_history"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Exact finalized-version decision contract; synthetic executions and physical proof limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.record_offer_acceptance",
+      "area": "buero",
+      "action": "Annahme genau dieser finalen Angebotsversion mit Nachweis festhalten",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "record_offer_acceptance"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Exact finalized-version decision contract; synthetic executions and physical proof limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "buero.decline_offer",
+      "area": "buero",
+      "action": "Angebot mit erhaltener Historie ablehnen",
+      "source": "revier-solo-ui.js",
+      "mcp": [
+        "decline_offer"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Exact finalized-version decision contract; synthetic executions and physical proof limits are recorded in CODEX-STATUS.md",
+      "platform_only": false
+    },
+    {
+      "id": "backup.voll.get_restore_status",
+      "area": "sicherung",
+      "action": "Nicht geheimen Status des bestätigten Wiederherstellungsjobs lesen",
+      "source": "FullBackupActivity.java",
+      "mcp": [
+        "get_restore_status"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Read-only shared pending job DTO; physical activation and secrets remain device steps.",
+      "platform_only": false
+    },
+    {
+      "id": "platform.vollbackup_saf",
+      "area": "plattform",
+      "action": "USB-/Dateianbieterziel wählen und externe Geräteübergabe prüfen",
+      "source": "FullBackupActivity.java",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Android-SAF-Freigabe und angeschlossenes Medium müssen am Gerät verfügbar sein. Provider-Rücklesen ist kein unabhängiger Cloud-Uploadbeleg; MCP erteilt keine URI-Rechte.",
+      "platform_only": true,
+      "test_scope": "Native device consent/handoff boundary; shared services tested with isolated providers and physical limits reported separately."
+    },
+    {
+      "id": "platform.vollrestore_bestaetigen",
+      "area": "plattform",
+      "action": "Sicherungsdatei und Recovery-Code am Gerät prüfen und vollständigen Bestandsaustausch ausdrücklich bestätigen",
+      "source": "FullBackupActivity.java",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Recovery-Geheimnis, SAF-Dateiwahl und konkrete geprüfte Wiederherstellungsentscheidung bleiben am Gerät. Kein Restore oder Codeversand aus bloßer MCP-Statusabfrage; keine automatische Bestandsvermischung.",
+      "platform_only": true,
+      "test_scope": "Native device consent/handoff boundary; shared services tested with isolated providers and physical limits reported separately."
+    },
+    {
+      "id": "platform.portabilitaet_ziel",
+      "area": "plattform",
+      "action": "Sensiblen Klartextexport bewusst an gewähltes Geräte-/Dateiziel übergeben",
+      "source": "FullBackupActivity.java",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Klartextweitergabe erfordert ausdrückliche Wahl und Bestätigung des SAF-/Sharesheet-Ziels am Gerät. Datenformat und Prüfung verwenden den gemeinsamen Exportdienst; MCP wählt keine fremden Freigaben oder Konten.",
+      "platform_only": true,
+      "test_scope": "Native device consent/handoff boundary; shared services tested with isolated providers and physical limits reported separately."
+    }
+  ],
+  "added_bridges": [
+    "void openFullBackup() ",
+    "void checkpointFullBackup(String snapshot) "
+  ],
+  "modified_contracts": [
+    {
+      "name": "OfferRules",
+      "before": "bd4b880b995d0834fcad015566bba0870586216dd921938daa28f07a6dff011e",
+      "after": "f7fa9a091582e86276294adc3526edf6d5fd16cd4a18f38fdc778fb46e0bb9d0",
+      "reason": "Nach kontrollierter lokaler Umstellung verbindliche Geldberechnung in kleinsten Währungseinheiten; historische und Legacy-Beträge bleiben unverändert."
+    },
+    {
+      "name": "InvoiceDraftRules",
+      "before": "c57d2586fb3f2e8e1f229b4e3919466a4b8c068cc8f7b9edf18eec6c96762943",
+      "after": "6e152cb6d6e5451f7e5c568995fe42cd73a4c383169cfb12bda865ee2b640917",
+      "reason": "Lokale Entwürfe erhalten exakte money_minor-Summen; vorhandener ausdrücklich bestimmter Subunternehmer-Rechnungsempfänger wird über BillingRules.recipient(order) geprüft, statt Einsatzkunde und Rechnungsempfänger gleichzusetzen. Im lokalen Pfad dürfen bekannte Teilmengen nur bis zur verbleibenden geprüften Leistungsmenge in einen neuen Entwurf gelangen."
+    }
+  ]
+}

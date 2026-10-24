@@ -53,8 +53,8 @@ final class OwnerNativeAcceptance {
         test.probe("refactored public bridge preserves inherited actions and isolated business writes",()->{try(Fixture f=new Fixture(test.getTargetContext())){
             int inherited=0,business=0;for(java.lang.reflect.Method method:MainActivity.DataBridge.class.getMethods())if(method.isAnnotationPresent(android.webkit.JavascriptInterface.class))inherited++;
             for(java.lang.reflect.Method method:BusinessDataBridge.class.getMethods())if(method.isAnnotationPresent(android.webkit.JavascriptInterface.class))business++;
-            // Original52/35 methods plus the reviewed time-correction action.
-            test.yes(inherited==53&&business==36);
+            // Original52/35 plus time correction and two reviewed device-backup bridge methods.
+            test.yes(inherited==55&&business==36);
             test.yes(BusinessDataBridge.class.getMethod("reviewWorkSession",String.class,String.class).isAnnotationPresent(android.webkit.JavascriptInterface.class));
             java.util.concurrent.atomic.AtomicInteger sync=new java.util.concurrent.atomic.AtomicInteger();
             BusinessDataBridge bridge=new BusinessDataBridge(f.context,f.store,new PendingWorkPhotoStore(f.context),sync::incrementAndGet);

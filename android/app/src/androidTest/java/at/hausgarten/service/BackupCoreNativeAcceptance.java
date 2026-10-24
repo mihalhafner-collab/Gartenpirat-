@@ -47,7 +47,7 @@ final class BackupCoreNativeAcceptance {
             String large=PixelMcpInstrumentation.repeat("QA Ä☘ ",500000);f.store.putOwnerValue("qa_large_setting",large);f.store.putOwnerValue("qa_number_state","{\"prefix\":\"QA-\",\"next\":12}");
             byte[] blob=new byte[3*1024*1024];new Random(31).nextBytes(blob);new LocalOwnerRepository(f.context,f.store).putFile("qa_snapshot_upload",new JSONObject().put("kind","upload").put("test_record",true),blob);
             String before=PixelMcpWriteTools.hash(f.store.getState().getJSONObject("master")),pending=PixelMcpWriteTools.hash(f.store.pendingActions());
-            File target=new File(f.context.getNoBackupFilesDir(),"qa_snapshot/database.sqlite");JSONObject manifest=DatabaseBackupSnapshot.capture(f.store.getWritableDatabase(),target);test.yes(manifest.getInt("schemaVersion")==4);
+            File target=new File(f.context.getNoBackupFilesDir(),"qa_snapshot/database.sqlite");JSONObject manifest=DatabaseBackupSnapshot.capture(f.store.getWritableDatabase(),target);test.yes(manifest.getInt("schemaVersion")==5);
             try(SQLiteDatabase db=SQLiteDatabase.openDatabase(target.getAbsolutePath(),null,SQLiteDatabase.OPEN_READONLY)){
                 test.yes(DatabaseBackupSnapshot.ownerValue(db,"qa_large_setting","").equals(large));test.yes(DatabaseBackupSnapshot.ownerValue(db,"qa_number_state","").contains("QA-"));
                 try(Cursor row=db.rawQuery("SELECT id,state FROM work_sessions WHERE id=?",new String[]{session.getString("id")})){test.yes(row.moveToFirst()&&row.getString(1).equals(WorkSessionStore.RUNNING));}

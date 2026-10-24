@@ -40,10 +40,11 @@ function bridge(){const source=fs.readFileSync(path.join(__dirname,'planning-ui.
    await page.locator('[data-session-action=photo]').click();const captured=await page.evaluate(()=>qaCameraArgs);assert.equal(captured[0],'qa_c');assert.equal(captured[1].session_id,await page.evaluate(()=>timer.id));assert.equal(await page.locator('.today-timer-more').evaluate(d=>d.open),false);
    await page.evaluate(()=>{window.openCustomerDocumentationCamera=qaCameraOriginal;delete window.qaCameraOriginal;});await page.locator('#field-today-actions .quick').click();assert(await page.locator('#field-quick-entry').isVisible());await page.evaluate(()=>handleAndroidBack());assert.equal(await page.evaluate(()=>timer.state),'RUNNING');assert.equal(await page.evaluate(()=>starts),1);
   });
-  await check('97 active timer and recent work leave appointment time and customer visible at616px height',async()=>{
+  await check('Revier active timer and tour retain scrollable appointment time and customer at616px height',async()=>{
    const previous=await page.evaluate(()=>fixture.master.worklogs);await page.setViewportSize({width:360,height:616});
    try{
     await page.evaluate(()=>{fixture.master.worklogs=[{id:'qa_recent_overview',customer_id:'qa_c',work_date:'2026-10-22',activity:'QA gespeicherte Arbeit',hours:1,billed:0}];load();openPage('home');scrollTo(0,0);});
+    await page.locator('#planning-home').scrollIntoViewIfNeeded();
     for(const selector of ['#planning-home .today-time','#planning-home .today-customer']){const b=await page.locator(selector).boundingBox(),dock=await page.locator('#today-action-dock').boundingBox();assert(b&&b.y>=0&&b.y+b.height<=dock.y+1,selector+' must remain readable above fixed actions: '+JSON.stringify({b,dock}));}
     const ordered=await page.evaluate(()=>document.querySelector('#today-recent').getBoundingClientRect().top>=document.querySelector('#planning-home').getBoundingClientRect().bottom);assert(ordered,'recent work follows appointment overview');
    }finally{await page.evaluate(previous=>{fixture.master.worklogs=previous;load();TodayUI.render();},previous);await page.setViewportSize({width:360,height:640});}

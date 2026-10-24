@@ -23,7 +23,9 @@ final class DriveSyncCoordinator {
     private static volatile boolean running;
     private static final java.util.concurrent.atomic.AtomicBoolean claimed=new java.util.concurrent.atomic.AtomicBoolean();
     static boolean running(){return running||claimed.get();}
+    private static JSONObject backupOnlyState()throws Exception{return new JSONObject().put("ok",true).put("state","local_saved").put("mode","backup_only").put("sync_contract_version",2).put("configured",true).put("automatic_enabled",false).put("syncing",false).put("pending",0).put("review",0).put("cloud_confirmed",false).put("confirmation_scope","local_authoritative").put("processing_engine",LocalAuthorityRules.ENGINE).put("next_action","get_full_backup_status").put("message","Lokal gespeichert. Drive wird ausschließlich für Sicherungen verwendet; der frühere Zweiwegeabgleich ist stillgelegt.");}
     static JSONObject status(Context c,JSONObject queue)throws Exception {
+        if(!LocalAuthorityGuard.legacySyncAllowed(c))return backupOnlyState();
         SharedPreferences p=c.getSharedPreferences("haus_garten",0);
         JSONObject s=new JSONObject().put("configured",DriveAccount.available(c)).put("transport",DriveAccount.configured(c)?"direct_drive":"android_provider")
             .put("automatic_enabled",automaticEnabled(c)).put("manual_requested",p.getBoolean("drive_manual_sync_requested",false)).put("read_step",p.getString("drive_sync_read_step",""))
@@ -40,6 +42,7 @@ final class DriveSyncCoordinator {
         return SyncPolicy.describe(s,queue,running,System.currentTimeMillis());
     }
     static boolean prepareExplicit(Context c,String id)throws Exception {
+        if(!LocalAuthorityGuard.legacySyncAllowed(c))return false;
         SharedPreferences p=c.getSharedPreferences("haus_garten",0);
         if(!DriveAccount.available(c))return false;
         String marker="drive_explicit_request:"+PixelMcpWriteTools.hash(id);
@@ -47,20 +50,22 @@ final class DriveSyncCoordinator {
         return true;
     }
     static JSONObject requestExplicit(Context c,String id)throws Exception {
+        if(!LocalAuthorityGuard.legacySyncAllowed(c))return backupOnlyState();
         if(DriveAccount.available(c)&&!DriveAccount.configured(c)&&!DriveAccount.providerPermission(c))return new JSONObject().put("state","action_required").put("next_action","connect_drive").put("message",SyncPolicy.message("PERMISSION_REQUIRED"));
         if(!prepareExplicit(c,id))return new JSONObject().put("state","not_connected").put("next_action","connect_drive").put("message",SyncPolicy.message("NOT_CONNECTED"));
         request(c,0);return new JSONObject().put("state","requested").put("cloud_confirmed",false).put("message","Abgleich angefordert. Das Ergebnis wird gesondert geprüft.");
     }
     static boolean automaticAllowed(Context c)throws Exception{return (automaticEnabled(c)||c.getSharedPreferences("haus_garten",0).getBoolean("drive_manual_sync_requested",false))&&SyncPolicy.automaticAllowed(status(c,new JSONObject()),System.currentTimeMillis());}
-    static boolean automaticEnabled(Context c){return c.getSharedPreferences("haus_garten",0).getBoolean("drive_automatic_enabled",true);}
+    static boolean automaticEnabled(Context c){return LocalAuthorityGuard.legacySyncAllowed(c)&&c.getSharedPreferences("haus_garten",0).getBoolean("drive_automatic_enabled",true);}
     static boolean hasNetwork(Context c){
         android.net.ConnectivityManager manager=c.getSystemService(android.net.ConnectivityManager.class);if(manager==null)return false;
         android.net.Network network=manager.getActiveNetwork();android.net.NetworkCapabilities caps=network==null?null:manager.getNetworkCapabilities(network);
         return caps!=null&&caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)&&caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED);
     }
     static void noteRequest(){requestedGeneration.incrementAndGet();}
-    static void request(Context context,long delay){noteRequest();scheduleRequest(context,delay);}
+    static void request(Context context,long delay){if(!LocalAuthorityGuard.legacySyncAllowed(context))return;noteRequest();scheduleRequest(context,delay);}
     private static synchronized void scheduleRequest(Context context,long delay){
+        if(!LocalAuthorityGuard.legacySyncAllowed(context))return;
         long now=System.currentTimeMillis(),previous=wakeup.due();
         long due=wakeup.request(now,delay,context.getSharedPreferences("haus_garten",0).getLong("drive_next_retry",0));
         if(scheduled!=null&&!scheduled.isDone()&&previous==due)return;
@@ -74,6 +79,7 @@ final class DriveSyncCoordinator {
     }
     /** Active-use probe only. No service is enabled, no timestamp/receipt is fabricated on unchanged metadata. */
     static void poll(Context context){
+        if(!LocalAuthorityGuard.legacySyncAllowed(context))return;
         if(BuildConfig.UI_PREVIEW||running||!polling.compareAndSet(false,true))return;Context app=context.getApplicationContext();
         EXECUTOR.execute(()->{try(PixelLocalStore store=new PixelLocalStore(app)){
             if(!automaticAllowed(app)||!hasNetwork(app))return;
@@ -88,6 +94,7 @@ final class DriveSyncCoordinator {
     }
     private static long lastAttempt(Context c){try{return Math.max(0,System.currentTimeMillis()-java.time.Instant.parse(c.getSharedPreferences("haus_garten",0).getString("last_sync_attempt","")).toEpochMilli());}catch(Exception absent){return Long.MAX_VALUE;}}
     static JSONObject run(Context context,PixelLocalStore store)throws Exception{
+        if(!LocalAuthorityGuard.legacySyncAllowed(context))return backupOnlyState();
         if(DriveAccount.configured(context))return run(context,store,new DriveDirectFiles(context,DriveAccount.client(context,store)),Settings.Secure.getString(context.getContentResolver(),Settings.Secure.ANDROID_ID));
         SharedPreferences prefs=context.getSharedPreferences("haus_garten",0);
         String tree=prefs.getString("drive_tree_uri","");if(tree.isEmpty()){SyncIoFailure failure=new SyncIoFailure("FOLDER_NOT_SELECTED");recordFailure(context,failure);throw failure;}
@@ -96,6 +103,7 @@ final class DriveSyncCoordinator {
     }
     // Package-private dependency boundary for isolated provider tests, never an MCP/UI endpoint.
     static JSONObject run(Context context,PixelLocalStore store,Files files,String device)throws Exception{
+        if(!LocalAuthorityGuard.legacySyncAllowed(context))return backupOnlyState();
         // Activity, JobScheduler and MCP may request the same run concurrently.
         // Joining must not wait for the network lock and then repeat the entire I/O.
         // This is no acknowledgement: the active run alone checks/commits receipts.
@@ -103,6 +111,7 @@ final class DriveSyncCoordinator {
         long requestAtStart=requestedGeneration.get();
         try{
         synchronized(LOCK){
+            if(!LocalAuthorityGuard.legacySyncAllowed(context))return backupOnlyState();
             running=true;SharedPreferences prefs=context.getSharedPreferences("haus_garten",0);
             try{
                 prefs.edit().putString("drive_sync_phase","reading").putString("last_sync_attempt",java.time.Instant.now().toString()).commit();
@@ -247,6 +256,7 @@ final class DriveSyncCoordinator {
     static String failureCode(Exception error){return SyncFailureRules.failureCode(error);}
     static String friendly(Exception error){return SyncFailureRules.friendly(error);}
     static boolean fetchPhoto(Context context,JSONObject metadata,PhotoAttachmentStore local)throws Exception{
+        if(!LocalAuthorityGuard.legacySyncAllowed(context))throw new IOException("LOCAL_ORIGINAL_MISSING");
         if(DriveAccount.configured(context))try(PixelLocalStore store=new PixelLocalStore(context)){
             byte[] bytes=new DriveDirectFiles(context,DriveAccount.client(context,store)).readPhotoVerified(metadata);
             android.database.sqlite.SQLiteDatabase database=store.getWritableDatabase();database.beginTransaction();
@@ -259,11 +269,13 @@ final class DriveSyncCoordinator {
         synchronized(LOCK){Files files=new Files(context,Uri.parse(tree),prefs);byte[] bytes=files.readPhotoVerified(metadata);local.storeExpected(bytes,metadata);return true;}
     }
     static byte[] fetchDocument(Context context,JSONObject metadata)throws Exception{
+        if(!LocalAuthorityGuard.legacySyncAllowed(context))throw new IOException("LOCAL_ORIGINAL_MISSING");
         if(DriveAccount.configured(context))try(PixelLocalStore store=new PixelLocalStore(context)){return new DriveDirectFiles(context,DriveAccount.client(context,store)).readDocumentVerified(metadata);}
         synchronized(LOCK){
             SharedPreferences p=context.getSharedPreferences("haus_garten",0);String tree=p.getString("drive_tree_uri","");if(tree.isEmpty())throw new IOException("Dokument fehlt lokal und Drive ist nicht verbunden.");return new Files(context,Uri.parse(tree),p).readDocumentVerified(metadata);}
     }
     static byte[] fetchThumbnail(Context c,String name)throws Exception{
+        if(!LocalAuthorityGuard.legacySyncAllowed(c))throw new IOException("LOCAL_ORIGINAL_MISSING");
         if(!name.matches("[0-9a-f]{64}\\.jpg"))throw new IOException("Ungültige Vorschaureferenz.");
         if(DriveAccount.configured(c))try(PixelLocalStore s=new PixelLocalStore(c)){return new DriveDirectFiles(c,DriveAccount.client(c,s)).readThumbnailVerified(name);}
         synchronized(LOCK){

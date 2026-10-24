@@ -1,3 +1,63 @@
+## Vertragsfortschreibung Revier Solo – 24.10.2026
+
+**Aktueller Quellvertrag, keine Installations- oder Geräteabnahme:** Der erweiterte
+Katalog enthält **161 MCP-Werkzeuge und 204 UI-Aktionen**, weiterhin MCP-Protokoll 9,
+`storage_contract_version=2` und `local_workflows_contract=1`. Die SQLite-Version
+ist5; Paketkennung und Appidentität bleiben `at.hausgarten.service` / Haus & Garten.
+Die folgenden älteren Versions-, Tool- und Seitenzahlen sind datierte historische
+Nachweise. Insbesondere ersetzen117 Tools / 156 Aktionen und ein alter
+Online-Abschlussvertrag nicht diesen neuen Quellvertrag. Tatsächlich installierte
+Version, Quellcommit und Releasekandidat stehen getrennt in
+[CODEX-STATUS.md](../CODEX-STATUS.md); hier wird kein neuer Gerätestand behauptet.
+
+Die Navigation Heute, Objekte, Pflege und Büro sowie Mehr verwendet die gemeinsamen
+Fachanwendungsfälle. `PixelOwnerAccess`, `OwnerApplicationService` und die
+Repository-Ports teilen Validierung und lokalen Commit mit der App; native
+Autoritäts-/Sicherungsdialoge verwenden dieselben geschützten Anwendungsfälle.
+`get_ui_action_catalog` liefert bei `limit=100` die Seiten100 + 100 + 4.
+`expected_catalog_hash`, `record_hash` beziehungsweise der im Tool benannte
+Vergleichshash und eine stabile `request_id` schützen Kontext und Wiederholungen.
+Bei Restore werden zusätzlich Installation/Restore-Epoche geprüft; ein alter
+Ergebnisbeleg darf eine neue Autoritätsentscheidung nicht ersetzen.
+
+| Ergänzter Ablauf | Fachliche Schnittstelle | Verbindliche Grenze |
+| --- | --- | --- |
+| Objekte, Anfragen, Pflege, Besuche, Tour, Material/Geräte, Suche | `LocalWorkflowTools` → `RevierApplicationService` | Lokale, versionierte Datensätze; Kunden, Objekte, Einsatz-/Rechnungskunde und Ist-Arbeit bleiben getrennt |
+| Angebotsentscheidung | `record_offer_acceptance`, `decline_offer`, bestehende Auftragsübernahme | Nachweis und Hash genau der finalen Angebotsversion; wiederholte Übernahme erzeugt keinen zweiten Auftrag |
+| Umstellung | `preview_local_authority`, `activate_local_authority` | Aktuelle Vorschau, geprüfte externe Vollsicherung und dokumentiert ausgeschlossene alte Schreiber; anschließend Rechnungsautorität zunächst `LOCKED` |
+| Rechnungsautorität | `reconcile_local_invoice_authority` | Aktuelle externe Original-/Nummern-/Reservierungsliste; `current_review` ausdrücklich an `installation_id`, `restore_epoch`, Zeitpunkt und Nachweis-SHA binden; Backupzähler allein genügt nicht |
+| Lokale Ausgabe/PDF | bestehendes `request_invoice_issue`, `get_invoice_document_job`, `retry_invoice_document_job` | Erst nach Abgleich lokale atomare Ausgabe; unveränderlicher Snapshot und Nummer bleiben bei PDF-Retry gleich; `PDF_PENDING` ist keine verifizierte PDF-Freigabe |
+| Teil-/Sammelzahlungen | `get_payment_ledger`, `record_payment`, `correct_payment` | `expected_ledger_hash`, aktuelle Zuordnungshashes, Beträge in kleinsten Einheiten; Korrekturen nachvollziehbar, Überzahlung als Guthaben/offene Zuordnung; persönliches b.b. bleibt unabhängig |
+| Vollsicherung | `get_full_backup_status`, `request_full_backup`, `retry_full_backup` | `settings_hash`/`expected_settings_hash` beziehungsweise `record_hash`/`expected_record_hash`; Anfrage bestätigt nur lokale Vormerkung, Retry behält Generation und Drive-Datei-ID |
+| Vollständiger Restore | Geräteentscheidung; MCP liest `get_restore_status` | Recovery-Code, SAF-Auswahl, Integritätsprüfung und ausdrückliche Aktivierung bleiben am Gerät; kein Restore durch Statusabfrage |
+
+Nach kontrollierter Umstellung melden Capabilities `processing_engine=pixel_local_v2`
+und `drive_role=backup_only`. Vorher gelten weiterhin
+`legacy_two_way_until_controlled_cutover` und der alte Online-Rechnungsschutz.
+Die lokale Rechnung meldet erst nach freigegebenem Nummernabgleich
+`invoice_finalization=pixel_local_atomic_after_reconciliation`; andernfalls
+`pixel_local_reconciliation_required`. Bestehende Werkzeugnamen werden erhalten.
+Beispielsweise weist der lokale Pfad eine bloße alte Zahlungsstatusänderung mit
+`PAYMENT_AMOUNT_AND_ALLOCATION_REQUIRED` auf Betrag/Zahlungszuordnung hin.
+
+Vollsicherung und kleine bestehende MCP-Geschäftssicherung sind verschiedene
+Formate. Der neue Status trennt Datenstand, lokale Archivprüfung, direktes
+Drive-Server-Rücklesen und positiv identifiziertes entfernbares Medium;
+Provider-Cache-Rücklesen ist kein Cloudnachweis. Er liefert weder Recovery-Code,
+Upload-Sitzungs-URL noch Browserentwurf. Wetter bleibt optional; der bestehende
+Open-Meteo-Endpunkt ist nicht als kostenlos gewerblich freigegeben bestätigt.
+`weather_business_use_status=unresolved` und
+`weather_business_use_confirmed=false` gelten unabhängig von alten gespeicherten
+Lizenzmarkierungen; das Einschalten bestätigt keine Lizenz.
+
+**Prüfgrenze am 24.10.2026:** Quellvertrag und vorbereitete synthetische Prüfungen
+sind keine Ausführung auf Android. Die echte native Regression dieses erweiterten
+Kandidaten, der physische Pixel-Update-/Offline-/Restore-Pilot und die produktive
+Autoritätsumstellung sind **OFFEN**. Historische PASS-Belege unten bleiben auf
+ihren jeweiligen alten Quell-/Buildstand beschränkt.
+
+---
+
 > Aktuelle Implementierung 19.10.2026: **1.51.0 / 79**, Paket `at.hausgarten.service`, internes MCP-Protokoll **9**, **117 Tools** (52 lesend / 65 schreibend), Quellkatalog `235f683d99d5170801d1e34c19ad386d9c4acf68b60a6992f72a3e5d2ea14314`. Der tatsächlich verbundene physische Pixel bleibt **1.50.1 / 77, 111 Tools / Protokoll 8**. Quelle und installierter Stand nicht gleichsetzen; abschließende Abnahme und verbleibende Grenzen stehen in [CODEX-AUFTRAG-GARTENPIRAT.md](../CODEX-AUFTRAG-GARTENPIRAT.md) und [CODEX-STATUS.md](../CODEX-STATUS.md).
 
 ## Gemeinsamer Dokumentvertrag und aktuelle MCP-Ergänzungen

@@ -1,3 +1,104 @@
+## Aktueller Speicher- und Übergangsvertrag Revier Solo – 24.10.2026
+
+Diese Fortschreibung beschreibt den neuen **Quellvertrag**. Sie ersetzt die unten
+historisch beschriebenen Ziele „Drive dauerhaft zentrale Fach-/Nummernautorität“
+und „Web-/Laptop-Prozessor als Voraussetzung“ für den ausdrücklich umgestellten
+Betrieb. Die historischen Abläufe bleiben bis zur kontrollierten Umstellung
+abgesichert. Keine Installation, Betriebsdatenumstellung oder abgeschlossene
+native Geräteabnahme wird aus dieser Dokumentation abgeleitet. Aktueller Auftrag
+und genaue Test-/Releasebelege: [CODEX-AUFTRAG-GARTENPIRAT.md](../CODEX-AUFTRAG-GARTENPIRAT.md)
+und [CODEX-STATUS.md](../CODEX-STATUS.md). Der additive UI-/MCP-Vertrag umfasst
+161 Tools / 204 Aktionen; Einzelheiten im
+[Eigentümerzugriffsvertrag](MCP-EIGENTUEMERZUGRIFF-2026-10-18.md#vertragsfortschreibung-revier-solo--24102026).
+
+### Ein Bestand, lokale Transaktionen und versionierte Grenzen
+
+`PixelLocalStore` führt weiterhin dieselbe Datenbank `haus-garten-mobile.db`.
+**SQLite-Schemaversion5** setzt eine Grenze gegen alte schreibende Appversionen;
+der Schritt 4→5 führt keine zweite Geschäftsdatenbank und keine gleichbedeutenden
+Fachtabellen ein. Neue Revier-Datensätze, Referenzen, Request-Belege, Zahlungs-
+und Dokumentjobs verwenden versionierte Namensräume in der bestehenden
+`owner_state`. Vorhandene `pending`-, Sitzungs-/Ereignis-, Foto- und Uploadtabellen
+bleiben bestehen. IDs, historische Beträge/Zeiten und ungeklärte Zuordnungen
+werden durch diesen Formatwechsel nicht neu erfunden.
+
+Nach ausdrücklicher Aktivierung ist `pixel_local_v2` maßgeblich: UI und MCP lesen
+denselben lokalen Zustand; fachlicher Commit wartet nicht auf Drive. Revisionen,
+Request-Belege und gemeinsame SQLite-Transaktionen verhindern unbemerkte
+Überschreibungen beziehungsweise doppelte Wirkung. Geldberechnung verwendet
+Dezimalarithmetik und kleinste Währungseinheiten, Quellenmengen bleiben explizit
+zugeordnet. Private Originale und unveränderliche PDFs liegen getrennt mit Hash-
+und Größenreferenzen. Ein lokaler Commit ist kein externer Übergabe-/Sicherungsbeleg.
+
+### Lokale Ausgabe und wiederaufnehmbare Dateiarbeit
+
+Eine freigegebene lokale Rechnungsausgabe fixiert Nummer/Zählerreservierung,
+Aussteller-/Empfänger-/Steuer-/Positionssnapshot, Leistungs-/Materialmengen und
+`local_invoice_job:<invoiceId>` atomar. Der Job erzeugt das PDF aus genau diesem
+Snapshot. Ein Absturz nach Geschäftskommit erzeugt beim Wiederholen keine neue
+Nummer/Rechnung. `PDF_PENDING`, `READY` und `ORIGINAL_REVIEW_REQUIRED` bleiben
+unterscheidbar; vorhandene PDF-Originale werden vor Freigabe erneut geprüft.
+Teilzahlungen und Sammelzuordnungen sind eigene dauerhafte Ledger-Einträge;
+Korrekturbezug und Grund bleiben erhalten. Persönliches b.b./bezahlt, billed und
+Rechnungszahlung bleiben verschiedene Sachverhalte.
+
+### Kontrollierte Umstellung und Restore-Sperre
+
+1. `LocalAuthorityActivity` beziehungsweise `preview_local_authority` liest Inventar,
+   offene Aktionen/Konflikte, Originale und den Geschäftshash, ohne umzuschalten.
+2. Vor Aktivierung müssen eine vollständige extern geprüfte Sicherung desselben
+   Geschäftsstands und aktuelle Nachweise über stillgelegte alte Schreiber
+   vorliegen. Direktes Drive-SHA-Rücklesen und verifiziertes entfernbares USB-Medium
+   sind von unbekanntem Dokumentprovider-/Cloudcache-Rücklesen zu unterscheiden.
+3. Die ausdrückliche Aktivierung schreibt den lokalen Schema-/Migrationsvertrag
+   mit `migration_epoch`. Der unabhängige `LocalAuthorityGuard` liegt außerhalb der
+   Sicherungsdaten. Alte Journale/Ausgangsstände bleiben als Nachweis erhalten;
+   alte Drive-Schreibpfade werden abgegrenzt, bestehende Konten nicht entfernt.
+4. Geschäftsbetrieb wird lokal aktiv, Rechnungsautorität bleibt zunächst `LOCKED`.
+   Erst die aktuelle externe Original-/Reservierungs-/Nummernprüfung gibt sie frei.
+   Eine erneute Anfrage ersetzt weder externe Belege noch die bewusste Entscheidung.
+5. Vollständiger Restore erfolgt nach Vorschau, Sicherung des aktuellen Bestands,
+   Integritäts-/Referenzprüfung und Geräteentscheidung über den Neustartpfad.
+   Vor Aktivierung wird `restoreEpoch` erneuert; Rechnungsausgabe bleibt gesperrt.
+   `current_review` muss nach dieser Grenze ausdrücklich am aktuellen Installations-
+   /Restore-Kontext mit Nachweis-SHA bestätigt werden. Alte Receipts, aktivierte
+   Einstellungen und Backupzähler werden nicht als neue Freigabe übernommen.
+
+Ein fehlender Original-/Nummernnachweis bleibt ein konkreter Blocker. Restore
+mischt keine Bestände automatisch. Rollback-Bestand und gültige frühere Sicherung
+bleiben bei Abbruch geschützt; ein Rückfall autorisiert keinen alten Sync-Schreiber.
+
+### Drive als Sicherungsadapter
+
+`FullBackupController` schreibt nur kurze, idempotente Jobabsichten. Der
+`LocalBackupCoordinator` erstellt außerhalb dieser Transaktion einen konsistenten
+SQLite-Snapshot samt privaten Originalen, Einstellungen, Browsercheckpoint,
+Sitzungen und offenen lokalen Jobs. Die verschlüsselte, lokal geprüfte Generation
+hat ein versioniertes Manifest; große Archive werden gestreamt. Android-SAF
+schreibt Archive/Commit-Datei und prüft beide durch Rücklesen. Ein Cloud-Dateianbieter
+beweist damit allein keinen Remote-Upload. Keine pauschale 40-MB-Grenze für die
+Vollsicherung; die kleine alte Geschäftssicherung bleibt ein separater Weg.
+
+Automatischer täglicher Drive-Upload ist ausdrücklich einzurichten. Lokale
+Vorbereitung hat keine Netzbedingung; Upload wartet auf ANY/UNMETERED gemäß
+Einstellung. Manuelle Sicherung funktioniert bei ausgeschalteter Automatik;
+SAF benötigt kein konfiguriertes Drive-Ziel. Android plant aufschiebbar, nicht
+minutengenau; nach Force-Stop ist ein erneuter Appstart erforderlich. Acht
+fehlgeschlagene Versuche führen zu sichtbarer Prüfung/manuellem Retry. Ein
+blockierter älterer Job kann neue automatische Generationen zurückhalten.
+Datenalter, Prüfzeitpunkt und Fehlerstatus bleiben deshalb getrennt sichtbar.
+Nach Restore werden alte Epochen/Jobs nicht automatisch aktiviert; Recovery-Code
+und Keystore-Material erscheinen weder im MCP-Status noch in Standardlogs.
+
+**Native Ausführung noch OFFEN:** Die technische Vorbereitung und isolierte
+Host-/Browsernachweise ersetzen keine neue Android-Gesamtregression. Reales
+Pixel-Update, Flugmodus/Prozessende/Neustart, Hintergrundausführung, zwei USB-Ziele
+und 10-GB-/60-Minuten-Restoreziel sind gesondert auszuführen und zu dokumentieren.
+Die nachfolgenden historischen Abnahmen 68/71/72 und spätere datierte Abschnitte
+bestätigen diese neue Umstellung nicht.
+
+---
+
 > Aktueller Auftrag: [CODEX-STATUS.md](../CODEX-STATUS.md). Der folgende frühere Rollout mit Web-/Laptop-Prozessor ist historisch und aufgehoben. Aktuelle Fortsetzung: [Sync und Papierkorb 1.49.3/72](../CODEX-STATUS.md), Einträge 9–12; installierter Pixel weiterhin 71. Keine Installation ohne Sicherung und ausdrückliche Freigabe.
 
 # Drive-Abgleich und Kundenakte – 1.48.0 / 68

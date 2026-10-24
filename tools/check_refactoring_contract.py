@@ -88,6 +88,116 @@ def approved_revier_timer(expected, current, delta, repair, evolution):
         previous[group].remove(addition)
     return approved_evolution(expected, previous, delta, schema_repair=repair)
 
+
+def approved_revier_local_workflows(expected, current, delta, repair, timer, evolution):
+    """Admit only named new workflows and two optional stable-context properties.
+
+    Exact additions are removed before the original P1/timer gates. Existing
+    schemas, action order, package, SQL, bootstrap and observations remain frozen.
+    """
+    import copy
+    names = {
+        'get_full_backup_status', 'get_restore_status', 'request_full_backup', 'retry_full_backup',
+        'get_revier_overview', 'list_properties', 'get_property', 'create_property',
+        'update_property', 'list_inquiries', 'get_inquiry', 'create_inquiry',
+        'update_inquiry', 'plan_inquiry_inspection', 'list_care_plans',
+        'create_care_plan', 'update_care_plan', 'generate_care_visits', 'list_visits',
+        'get_visit', 'plan_visit', 'update_visit', 'get_day_tour', 'set_day_tour',
+        'move_tour_stop', 'list_materials', 'save_material',
+        'record_material_movement', 'list_equipment', 'save_equipment',
+        'record_equipment_usage', 'search_local',
+        'get_payment_ledger', 'record_payment', 'correct_payment',
+        'get_invoice_document_job', 'retry_invoice_document_job',
+        'preview_local_authority', 'activate_local_authority',
+        'reconcile_local_invoice_authority',
+        'get_offer_decision_history', 'record_offer_acceptance', 'decline_offer',
+    }
+    bridges = {'void openFullBackup() ', 'void checkpointFullBackup(String snapshot) '}
+    additions = evolution.get('added_tools', [])
+    if (evolution.get('version') != 1 or not evolution.get('authorization')
+            or evolution.get('baseline_sha256') != hashlib.sha256(BASELINE.read_bytes()).hexdigest()
+            or len(additions) != 43 or {item.get('name') for item in additions} != names
+            or len(evolution.get('added_bridges', [])) != 2
+            or set(evolution['added_bridges']) != bridges):
+        raise ValueError('Unapproved Revier local-workflow contract scope')
+    actions = evolution.get('added_ui_actions', [])
+    if len(actions) != 47 or len({a.get('id') for a in actions}) != 47:
+        raise ValueError('Unapproved Revier local UI scope')
+    mapped = [a for a in actions if a.get('kind') == 'business']
+    platform = [a for a in actions if a.get('kind') == 'platform_or_presentation']
+    platform_ids = {'platform.recovery_vollbackup', 'platform.vollbackup_saf',
+                    'platform.vollrestore_bestaetigen', 'platform.portabilitaet_ziel'}
+    if (len(mapped) != 43 or {tuple(a.get('mcp', [])) for a in mapped} != {(n,) for n in names}
+            or len(platform) != 4 or {a.get('id') for a in platform} != platform_ids
+            or any(a.get('mcp') != [] or not a.get('barrier') or not a.get('platform_only') for a in platform)):
+        raise ValueError('Unapproved Revier local UI/MCP mapping')
+    previous = copy.deepcopy(current)
+    for group, items in [('tools', additions), ('ui_actions', actions),
+                         ('javascript_bridge', evolution['added_bridges'])]:
+        for item in items:
+            if previous[group].count(item) != 1:
+                return [group]
+            previous[group].remove(item)
+    changes = evolution.get('modified_tools', [])
+    if len(changes) != 8 or {c.get('name') for c in changes} != {'start_work', 'create_photo', 'update_photo', 'create_invoice_draft', 'update_invoice_draft', 'request_invoice_issue', 'create_backup', 'restore_backup'}:
+        raise ValueError('Unapproved stable-context schema scope')
+    originals = {tool['name']: tool for tool in expected['tools']}
+    for change in changes:
+        name = change['name']
+        if not change.get('reason') or change.get('before') != originals[name]:
+            raise ValueError('Stable-context predecessor changed')
+        approved = copy.deepcopy(originals[name])
+        if name in {'request_invoice_issue','create_backup','restore_backup'}:
+            descriptors = {
+                'request_invoice_issue': ('Beauftragt den Pixel-Rechnungsabschluss nach ausdrücklicher Nutzeranweisung. Online-Nummernreservierung mit Versionsschutz und Original-PDF erforderlich; kein automatischer Versand oder Zahlungsstatus.', 'Beauftragt den Pixel-Rechnungsabschluss nach ausdrücklicher Nutzeranweisung. get_capabilities.invoice_finalization legt den versionierten Pfad fest: im Altbetrieb geschützter Onlinevergleich, nach kontrollierter Umstellung atomare lokale Nummernvergabe mit Belegsnapshot und dauerhaftem PDF-Job. Nach Restore bis externem Original-/Nummernabgleich gesperrt. Keine erfolgreiche PDF-Freigabe vor verifiziertem Original; kein automatischer Versand oder Zahlungsstatus.'),
+                'create_backup': ('Verwendet die bestehenden App-Speicher und fachlichen Prüfungen.', 'Erstellt die bisherige begrenzte Geschäftssicherung im vorhandenen Altformat für Geschäftssnapshot, Journal und lokale Originale. Keine verschlüsselte Vollsicherung und kein vollständiger Restore aller neuen Revier-/Jobdaten. Vollbackup über request_full_backup beziehungsweise die geschützte Geräteoberfläche verwenden.'),
+                'restore_backup': ('Prüft Sicherung und übernimmt ausschließlich fehlende Datensätze. Abweichende vorhandene Versionen und aktive Warteschlangen stoppen die Übernahme; keine blinde Ersetzung.', 'Versionierter Altpfad: im Legacybetrieb Sicherung prüfen und ausschließlich fehlende Datensätze übernehmen; Konflikte und aktive Warteschlangen stoppen. Nach lokaler Autoritätsumstellung mit RESTORE_FULL_REPLACEMENT_REQUIRED und Geräteschritt gesperrt: vollständigen verschlüsselten Bestand prüfen und ausdrücklich ersetzen, keine automatische Vermischung.'),
+            }
+            before, after = descriptors[name]
+            if not approved['description'].startswith(before):
+                raise ValueError('Invoice authority descriptor predecessor changed')
+            approved['description'] = approved['description'].replace(before, after, 1)
+        else:
+            properties = approved['inputSchema']['properties']
+            if name in {'update_photo', 'update_invoice_draft'}:
+                properties = properties['updates']['properties']
+            if name in {'create_invoice_draft', 'update_invoice_draft'}:
+                properties = properties['positions']['items']['properties']
+                fields = {
+                    'source_type': {'type':'string', 'maxLength':500, 'minLength':1, 'enum':['worklog','material_movement','manual']},
+                    'source_id': {'type':'string', 'maxLength':500, 'minLength':1},
+                    'source_quantity_decimal': {'type':'string', 'maxLength':64, 'pattern':r'(?:0|[1-9][0-9]*)(?:\.[0-9]+)?'},
+                }
+            else:
+                fields = {key:{'type':'string', 'maxLength':500, 'minLength':1} for key in ('property_id','visit_id')}
+            for key, spec in fields.items():
+                if key in properties:
+                    raise ValueError('Stable context already existed')
+                properties[key] = spec
+        if approved != change.get('after'):
+            raise ValueError('Unapproved change beyond optional property/visit context')
+        matches = [i for i,t in enumerate(previous['tools']) if t['name'] == name]
+        if len(matches) != 1 or previous['tools'][matches[0]] != approved:
+            return ['tools']
+        previous['tools'][matches[0]] = copy.deepcopy(originals[name])
+    # Two reviewed financial corrections; the frozen source hashes remain in P1.
+    contract_changes = evolution.get('modified_contracts', [])
+    reviewed_contracts = {
+        'OfferRules': 'f7fa9a091582e86276294adc3526edf6d5fd16cd4a18f38fdc778fb46e0bb9d0',
+        'InvoiceDraftRules': '6e152cb6d6e5451f7e5c568995fe42cd73a4c383169cfb12bda865ee2b640917',
+    }
+    if len(contract_changes) != 2 or {c.get('name') for c in contract_changes} != set(reviewed_contracts):
+        raise ValueError('Unapproved local financial contract scope')
+    for change in contract_changes:
+        name = change['name']
+        if (change.get('before') != expected['contracts'][name]
+                or change.get('after') != reviewed_contracts[name] or not change.get('reason')):
+            raise ValueError('Local financial contract predecessor or reviewed hash changed')
+        if previous['contracts'].get(name) != change['after']:
+            return ['contracts']
+        previous['contracts'][name] = change['before']
+    return approved_revier_timer(expected, previous, delta, repair, timer)
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--record-baseline', action='store_true')
@@ -109,6 +219,9 @@ def main():
         if unapproved:
             evolution = json.loads((ROOT/'tests/fixtures/revier-timer-contract-v1.json').read_text())
             unapproved = approved_revier_timer(expected, current, delta, repair, evolution)
+        if unapproved:
+            local = json.loads((ROOT/'tests/fixtures/revier-local-workflows-contract-v1.json').read_text())
+            unapproved = approved_revier_local_workflows(expected, current, delta, repair, evolution, local)
         if unapproved:
             raise SystemExit('FAIL unreviewed functional contract changed: '+', '.join(unapproved))
         print('PASS explicitly reviewed contract evolution; original P1 differences: '+', '.join(changed))

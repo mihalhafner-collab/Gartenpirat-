@@ -22,10 +22,11 @@
     original=JSON.parse(JSON.stringify(invoices().find(x=>x.id===id)||preset));
     if(original.id&&(original.status!=='Entwurf'||original.sevdesk_id||original.issued_at)){alert('Abgeschlossene und importierte Rechnungen bleiben unverändert.');return;}
     if(original.id&&state.pending.some(a=>['invoice_issue','owner_invoice_issue','pixel_invoice_issue_v1'].includes(a.kind)&&a.payload.id===original.id)){alert('Abschluss bereits vorgemerkt. Bitte zuerst den Pixel-/Drive-Abgleich abwarten.');return;}
+    let source;try{source=window.HGBillingUI?.sourceContext?.()||null;}catch(error){toast(error.message);return;}
     let priceTemplates=[];try{priceTemplates=HGOwnerClient.create('Preisbausteine nicht verfügbar')('search_offer_templates',{limit:100}).entries.map(x=>x.entry).filter(t=>t.active!==false&&t.price_confirmed===true&&t.default_price!==null&&t.default_price!==undefined);}catch(_){}
     dialog.innerHTML='<form novalidate><div class="dialog-heading"><div><small>RECHNUNG · ENTWURF</small><h2>'+(original.id?'Entwurf bearbeiten':'Rechnung erstellen')+'</h2></div><button type="button" class="secondary" data-cancel aria-label="Entwurf schließen">×</button></div><div data-studio></div><div class="dialog-actions"><button type="button" class="secondary" data-cancel>Abbrechen</button><button type="submit" class="primary">Entwurf speichern</button></div></form>';
     studio=InvoiceStudio.mount(dialog.querySelector('[data-studio]'),{
-      preset:original,priceTemplates,customers:customers(),orders:orders(),worklogs:worklogs(),reservedWorklogIds:new Set(invoices().filter(i=>i.id!==original.id&&!['Storniert','Cancelled','Entfernt'].includes(i.status)).flatMap(i=>[...(i.worklog_ids||[]),...(i.positions||[]).map(p=>p.worklog_id)]).filter(Boolean)),issuer:issuer(),logo:'hafner-logo.png',notify:toast,
+      preset:original,priceTemplates,customers:customers(),orders:orders(),worklogs:source?source.rows:worklogs(),decimalQuantities:!!source,reservedWorklogIds:new Set(invoices().filter(i=>i.id!==original.id&&!['Storniert','Cancelled','Entfernt'].includes(i.status)&&(!source||i.status==='Entwurf'&&!i.issued_at)).flatMap(i=>[...(i.worklog_ids||[]),...(i.positions||[]).map(p=>p.worklog_id)]).filter(Boolean)),issuer:issuer(),logo:'hafner-logo.png',notify:toast,
       onAddCustomer:draft=>{
         customerReturn=draft;dialog.close();
         const form=document.getElementById('customer-form');form.reset();editingCustomer=null;
@@ -45,7 +46,7 @@
         saving=true;studio.setBusy(true);dialog.querySelector('[type="submit"]').disabled=true;
         const result=AndroidData.saveInvoice(JSON.stringify(payload));
         if(String(result).startsWith('ERROR:'))throw Error(String(result).replace(/^ERROR:\s*/,''));
-        dialog.close();load();toast('Entwurf auf diesem Gerät gespeichert. Drive-Abgleich folgt; Arbeitsstunden bleiben offen.');
+        dialog.close();load();toast(source?'Entwurf lokal gespeichert. Belegte Restmengen werden erst bei der Ausgabe zugeordnet.':'Entwurf auf diesem Gerät gespeichert. Drive-Abgleich folgt; Arbeitsstunden bleiben offen.');
       }catch(error){studio.revealInvalid();alert(error.message);}
       finally{saving=false;studio.setBusy(false);dialog.querySelector('[type="submit"]').disabled=false;}
     };
@@ -92,12 +93,13 @@
     const edit=event.target.closest('[data-record-edit]'),sheet=document.getElementById('record-action-dialog');
     if(edit&&sheet?.dataset.actionType==='invoice'){event.preventDefault();event.stopImmediatePropagation();sheet.close();open(sheet.dataset.actionId);return;}
     const fromWorklog=event.target.closest('[data-invoice-worklog]');
-    if(fromWorklog){event.preventDefault();event.stopImmediatePropagation();if(currentPage==='worklog-detail'&&window.saveWorklogDetail?.(false)===false)return;try{open(null,InvoiceFlow.fromWorklogs([worklogs().find(w=>w.id===fromWorklog.dataset.invoiceWorklog)]));}catch(error){alert(error.message);}return;}
+    if(fromWorklog){event.preventDefault();event.stopImmediatePropagation();if(currentPage==='worklog-detail'&&window.saveWorklogDetail?.(false)===false)return;try{const source=window.HGBillingUI?.sourceContext?.()||null,row=(source?source.rows:worklogs()).find(w=>w.id===fromWorklog.dataset.invoiceWorklog);if(!row)throw new Error('Für diese Arbeitsaufzeichnung ist keine eindeutig offene Restmenge belegt. Bitte den aktuellen Abrechnungsstand prüfen.');open(null,InvoiceFlow.fromWorklogs([row]));}catch(error){alert(error.message);}return;}
     const preview=event.target.closest('[data-preview-mobile-invoice]');
     if(preview){event.preventDefault();event.stopImmediatePropagation();showPreview(invoices().find(x=>x.id===preview.dataset.previewMobileInvoice));return;}
     const action=event.target.closest('[data-issue-mobile-invoice],[data-share-mobile-invoice]');
     if(action){event.preventDefault();event.stopImmediatePropagation();const id=action.dataset.issueMobileInvoice||action.dataset.shareMobileInvoice;const invoice=invoices().find(x=>x.id===id);if(!invoice)return;
       if(action.dataset.shareMobileInvoice){if(!invoice.pdf_base64&&!invoice.pdf_storage_name){alert('PDF fehlt noch. Bitte Drive abgleichen, nachdem der Nummernservice die Rechnung abgeschlossen hat.');return;}if(!confirm('Die Zustimmung des Kunden zur elektronischen Rechnung muss vorliegen. PDF jetzt übergeben? Empfänger und tatsächlichen Versand bestätigst du in der Versand-App.'))return;const result=AndroidData.shareInvoiceById?AndroidData.shareInvoiceById(invoice.id,action.dataset.channel||'share'):AndroidData.shareInvoiceVia(JSON.stringify(invoice),action.dataset.channel||'share');if(String(result).startsWith('ERROR:'))alert(result);return;}
+      if(window.LocalInvoiceUI?.ready?.()&&window.LocalInvoiceUI?.issueInvoice){LocalInvoiceUI.issueInvoice(id);return;}
       if(!invoice.domestic_service_confirmed||!invoice.service_start||!invoice.service_end){alert('Bitte Leistungszeitraum und Inlandsbestätigung im Entwurf ergänzen.');return;}
       if(confirm('Rechnung mit '+money(invoice.amount)+' verbindlich abschließen? Pflichtangaben, bestehender Nummernkreis und Verbindung werden geprüft. Nummer und Original-PDF werden verbindlich festgeschrieben. Danach ist nur eine Korrektur möglich. Dies versendet keine Rechnung und erfasst keine Zahlung.')){const result=AndroidData.requestInvoiceIssue(id);if(String(result).startsWith('ERROR:'))alert(result);else{action.disabled=true;action.textContent='Abschluss vorgemerkt';toast('Rechnungsabschluss angefordert. Noch nicht ausgestellt; Ergebnis nach dem Abgleich prüfen.');}}
       return;
