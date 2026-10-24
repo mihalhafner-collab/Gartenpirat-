@@ -40,7 +40,7 @@ final class RevierRules {
     }
     static long minor(JSONObject row,String key)throws Exception {
         String value=row.get(key).toString();if(!value.matches("0|[1-9][0-9]*"))throw error("INVALID_INPUT",key+" in kleinsten Währungseinheiten angeben.");
-        try{long result=new BigInteger(value).longValueExact();if(result>9007199254740991L)throw new ArithmeticException();return result;}catch(ArithmeticException invalid){throw error("INVALID_INPUT",key+" ist zu groß für die gemeinsame JSON-Schnittstelle.");}
+        try{long result=new BigDecimal(value).longValueExact();if(result>9007199254740991L)throw new ArithmeticException();return result;}catch(ArithmeticException invalid){throw error("INVALID_INPUT",key+" ist zu groß für die gemeinsame JSON-Schnittstelle.");}
     }
     static LocalDate date(String value)throws Exception {try{return LocalDate.parse(value);}catch(Exception invalid){throw error("INVALID_INPUT","Datum im Format JJJJ-MM-TT angeben.");}}
     static String date(JSONObject row,String key,boolean required)throws Exception {String value=text(row,key,10,required);if(!value.isEmpty())date(value);return value;}

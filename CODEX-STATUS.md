@@ -68,6 +68,16 @@ sind jetzt vollständig als isolierte Testklassen vorbereitet. Der reguläre Gra
 Compile von App und AndroidTests bestand in59s; neue native Ausführung folgt erst
 nach gesichertem, sauberem Quellstand und Originalbuild. Kein Geräte-PASS daraus.
 
+Releaseprüfung des gesicherten16ee087-Stands: beide APKs wurden assembliert,
+`lintRelease` meldete14ERRORs/109Warnungen; deshalb **keine Signierung**. Die Fehler
+betreffen API28-Heading-Aufrufe beiMinSDK26, zwei BigInteger-Exact-Aufrufe erst abAPI31
+und unklare URI-Grantflags. Gezielte Korrektur: vorhandenes ViewCompat, kompatible
+BigDecimal-Exact-Arithmetik und ausdrückliche geprüfte SAF-Konstanten. Kein Anheben der
+MinSDK, keine Lintunterdrückung. Breite Warnungen sind überwiegend bestehende/neue
+Textressourcen- und synchrone Preferencehinweise; ihr aktueller Gesamtstand wird im
+folgenden regulären Build erneut ausgewiesen. Der gezielte Revier-Fachtest besteht
+nach der numerisch identischen API-Korrektur erneut.
+
 ### Bisherige Prüfungen dieses Integrationsstands
 
 | Umgebung / Eingabe | Erwartung | Tatsächlicher Nachweis / Grenze |
