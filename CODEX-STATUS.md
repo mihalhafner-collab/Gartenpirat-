@@ -1,7 +1,75 @@
 # CODEX-STATUS
 
-Stand: 23. Oktober 2026
+Stand: 24. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
+
+## Revier Solo – geprüfter Zwischenstand am 24. Oktober 2026
+
+Der Wiederholungslauf aus dem exakt gesicherten Quellcommit
+`da7c16f064e677edf56f06bff3958282dab1dd39` ist abgeschlossen:
+**306 Android-SQLite-/MCP-Prüfungen PASS, 0 FAIL**, darunter elf native
+Sicherungsproben. **58 JVM-Suiten PASS**, einschließlich zehn Speicherreserve-
+prüfungen. Der vorherige Deadline-Testfehler in f507 ist korrigiert; die unten
+stehenden ausstehenden/failing Befunde bleiben als datierte Historie erhalten.
+Kein neuer Funktionsumbau oder erneuter Testlauf durch diese Statusfortschreibung.
+
+| Prüfung / Eingabe | Erwartung | Tatsächliches Ergebnis / Grenze |
+| --- | --- | --- |
+| API30-x86_64-Cloudemulator, isolierte qa_-Fixtures, interner Originalbuild1.55.0/99 aus da7c16f | Bestehende Regression und Sicherungs-/Epochenschutz bestehen | 306 PASS,0FAIL; kein Pixel-, USB- oder produktiver Google-Drive-Test |
+| JobInfo-Tagesauftrag und Wiederholungsauftrag | persistent, Netzvorgaben, tägliche aufschiebbare Periodik, keine Deadline | PASS der erzeugten Android-Spezifikationen; keine Messung realer täglicher Hintergrundausführung |
+| Gemeinsamer Sicherungsablauf mit synthetischer Gegenstelle und verlorener Uploadantwort | gleiche Generation/Datei, kein zweiter Uploadabschluss, Neuöffnung erhält Fortschritt | PASS; reale SQLite-/Keystore-/Dateipfade, synthetischer Netzwerkport |
+| 58 JVM-Suiten, einschließlich48MiB-Streamingarchiv bei64MiB-Heap | Regeln/Replay/Backoff/Reserve und letzte gute Generation erhalten | PASS; Speicherverlust über isolierten Kapazitätsport, kein physischer Vollpartitionnachweis |
+| App-/Testbuild, Originalsignierung und Privacy | originaler Schlüssel und exakter sauberer Remote-Quellstand | PASS; assembleRelease/assembleReleaseAndroidTest/lintRelease bestanden,0Fehler/55Warnungen |
+| Physischer Pixelstatus am24.10., nur get_capabilities | Installation und Entwicklung unterscheiden | meldet unverändert1.54.9/98, DB4, MCP9/117Tools, pixel_drive_v1/android_provider; Selbstauskunft, keine unabhängige Pixel-APK-Prüfung |
+
+Gebauter Quellfingerprint
+`b7e7bfa533ab1e4e51d3ec79732e08f3becbb31b369302f25d368884f291cb64`,
+App-SHA256 `8d20b108aaafa10f57e4a912d33727a19fa39ce99dceeec4ee8c3c40a3262195`,
+Test-SHA256 `4d9a3aa5ffa6a485ac3ef8735fbff58dc32292483b5e336a8345360f0f79a87a`,
+Originalzertifikat
+`a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`.
+Log-SHA256 `46611c3fb3b9bc891adfbfc88931a36c57937a5e741477ef1f139512a4f28124`.
+Die Zuordnung beruht auf dem Runneraufruf mit den expliziten Original-APKs,
+BuildConfig mit da7c16f/sauberem Quellstand und den APK-Prüfsummen; der Textlog selbst
+enthält keinen eingebetteten Commit. Am24.10. stimmen die tatsächlich im dedizierten
+Cloudemulator installierten App-/Test-APK-Hashes mit beiden obigen Originalen überein.
+Keine Freigabe, Auslieferung, Pixelinstallation
+oder produktive Autoritäts-/Datenumstellung und kein99-Release-Tag.
+
+### Nutzbarkeit und offene Schritte
+
+Der Timer-Prüfpfad und das lesende Migrationsinventar sind über bestehende UI/MCP-
+Wege erreichbar. Aufnahme, verschlüsseltes Streamingarchiv, Keystore/Recovery,
+dauerhafte Jobs, Upload-Wiederaufnahme und täglicher Android-Scheduler sind
+implementierte Infrastruktur. **Der neue Vollsicherungspfad ist noch nicht über
+UI/MCP einrichtbar und kein eingerichtetes automatisches Vollbackup.** Die bisherigen
+create_backup/restore_backup verwenden weiterhin das ältere begrenzte Format.
+
+Als nächster Integrationsschritt fehlen Geräteeinrichtung, echte Browser-/Formular-
+Entwurferfassung, Statusanzeige und gemeinsame UI-/MCP-Aktionen. Danach bleiben SAF/USB,
+kontrollierter atomarer Restore und globale Rechnungs-/Schreibersperre, vollständige
+lokale Autorität, Objekte/Anfragen/Pflege/Touren, Material/Geräte, lokaler Rechnungs-
+und Zahlungsledger sowie beide vollständigen UI-Piloten offen. Der Pixel meldet
+weiter `pixel_drive_online_compare_required`. Keine vollständige Revier-Abnahme.
+
+### Zusätzliche administrative Quellkopie bleibt unvollständig
+
+GitHub enthält den exakten da7c16f-Quellstand. Im privaten Entwicklungsordner
+[Generation da7](https://drive.google.com/drive/folders/1UXPhal4j-7dN8wkE3xBx1KtzgDDor9lR)
+liegen laut frischer read-only Gegenprüfung am24.10. **24 von53 geplanten Dateien**:
+23Textdateien mit bisherigen SHA256-Bytebelegen und ein82.403.208Byte großes XZ
+mit vollständigem Streamgrößenbeleg, ohne Remote-SHA. Keine Dubletten oder
+unerwarteten Einträge;29Dateien fehlen (26Payloads, zwei Indizes, Startdatei).
+Alle53lokalen Artefakte stimmen in Größe/SHA mit dem Plan überein.
+
+Original-ZIP-SHA256 `5f911ada5c60a5df1781c1bc923f773592b00dab8cfb33449696bca5c9d5b760`,
+lokaler XZ-SHA256 `07e8334d7a56c23b373496b109d93ce2570f51308080ea8b99a812efe3171e6e`;
+verlustfreier lokaler Rundlauf geprüft.32MiB-Downloadmaterialisierungsgrenze verhindert
+einen Remote-Bytehash des XZ. Die flachen JSONL-Belege sind keine bereits normierten,
+metadatengebundenen Wiederverwendungsbelege des Transferhelfers. Vor Fortsetzung
+frisches Inventar/Plan und passende Belege erstellen; keine blinden POST-Retries,
+keine Bereinigung und keine Vollständigkeitsbehauptung. Bisherige gute Generation
+bleibt erhalten. Dies ist Quellcodesicherung, keine betriebliche Datensicherung.
 
 ## Revier Solo – Scheduler-Nachprüfung und freier Speicher für den lokalen Betrieb
 

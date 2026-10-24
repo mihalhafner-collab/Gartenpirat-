@@ -1,6 +1,6 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-23T19:58:31.588799+00:00",
+  "updated_at_utc": "2026-10-24T02:29:38.072112+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
@@ -15,28 +15,31 @@
       "manual_time_correction_with_original_events",
       "migration_business_inventory_without_activation",
       "streaming_encrypted_archive_with_fault_tests_not_full_device_backup",
-      "consistent_sqlite_all_tables_private_file_capture_prepared_native_probes",
+      "consistent_sqlite_all_tables_private_file_capture_native_pass",
       "typed_settings_and_explicit_browser_draft_capture",
       "shared_live_and_captured_pending_projection",
       "explicit_android_backup_device_transfer_exclusions",
-      "resumable_backup_only_drive_adapter_with_complete_remote_hash_reader_not_scheduler",
+      "resumable_backup_only_drive_adapter_with_complete_remote_hash_reader",
       "durable_backup_job_repository_and_shared_capture_upload_use_case_native_pass",
-      "device_restore_epoch_outside_backup_dataset_not_global_invoice_guard"
+      "device_restore_epoch_outside_backup_dataset_not_global_invoice_guard",
+      "daily_backup_scheduler_native_specifications_pass_not_ui_configurable",
+      "backup_storage_reserve_and_bounded_retries"
     ],
     "full_revier_acceptance": "NOT COMPLETE",
-    "original_signed_update_candidate": "INTERNAL ORIGINAL-SIGNED TEST BUILD; NATIVE303 PASS; NOT COMPLETE REVIER; NOT DELIVERED",
+    "original_signed_update_candidate": "INTERNAL ORIGINAL-SIGNED TEST BUILD;NATIVE306 PASS;NOT COMPLETE REVIER;NOT DELIVERED",
     "productive_migration": "NOT EXECUTED",
     "installation": "NOT EXECUTED",
     "internal_signed_build": {
-      "app_source_git_sha": "d2ecc05f44efa20bdb6d4ddc3bec50dd93795e05",
-      "source_sha256": "2560839827fb0623bc3d591c73b419a833c55c6765471e722f8ba5af33cd44f9",
-      "apk_sha256": "8ea0920138683829831981b6b25d180ea79b7c8800931c38b1ab7656566ce56d",
-      "qa_apk_sha256": "ac5e8c0456650c3a36495beee6bed70899e19d885c6a2c35df064fc921591aa1",
+      "app_source_git_sha": "da7c16f064e677edf56f06bff3958282dab1dd39",
+      "source_sha256": "b7e7bfa533ab1e4e51d3ec79732e08f3becbb31b369302f25d368884f291cb64",
+      "apk_sha256": "8d20b108aaafa10f57e4a912d33727a19fa39ce99dceeec4ee8c3c40a3262195",
+      "qa_apk_sha256": "4d9a3aa5ffa6a485ac3ef8735fbff58dc32292483b5e336a8345360f0f79a87a",
       "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-      "native_api30": "303 PASS /0FAIL; exact app/test source;8 Keystore/SQLite/dataset/job/epoch/shared-service probes; synthetic network only, no Pixel/USB/restore activation acceptance",
-      "native_log_sha256": "e992a6d78111eb5382a2958975e4cba5222145797f678b2978c158923bf1a92b",
+      "native_api30": "306 PASS /0FAIL;11 isolated native backup probes;real SQLite/Keystore/files,synthetic network;no physical Pixel/USB/Google-Drive acceptance",
+      "native_log_sha256": "46611c3fb3b9bc891adfbfc88931a36c57937a5e741477ef1f139512a4f28124",
       "pixel_installation": "NOT EXECUTED",
-      "released": false
+      "released": false,
+      "lint": "0 errors /55 warnings"
     },
     "source_generation_2fb": {
       "folder_id": "1rEQlDxYJu5ykJuIfBVWlQ6TeOPUh0bi-",
@@ -57,16 +60,16 @@
       "archive_payload_MiB": 48,
       "archive_heap_MiB": 64,
       "app_and_instrumentation_compile": "PASS after aborted environment-restart run",
-      "new_native_backup_probes": "8 PASS on exact d2ecc05;303 total native PASS",
-      "automatic_drive_backup": "NOT IMPLEMENTED",
+      "new_native_backup_probes": "11 PASS on exact da7c16f;306 total native PASS",
+      "automatic_drive_backup": "INFRASTRUCTURE IMPLEMENTED AND SYNTHETICALLY TESTED;UI/MCP setup not implemented;NOT CONFIGURED",
       "restore_activation": "NOT IMPLEMENTED",
       "backup_upload_adapter": "380 assertions PASS;48MiB at64MiB heap;synthetic port,no account",
       "python_repeat": "423 PASS 0 SKIP after aborted environment-restart run",
       "backup_jobs_and_shared_service_compile": "PASS;4 additional native job/epoch/use-case probes PASS on d2ecc05",
-      "backup_schedule_rules": "23 JVM policy checks PASS; actual Android scheduler integration pending",
-      "backup_automation": "Settings CAS/browser checkpoints + daily Android JobService implemented;3 new native probes prepared, NOT EXECUTED; not wired to UI or auto-enabled",
+      "backup_schedule_rules": "23 JVM policy checks PASS;Android specifications PASS;physical timing NOT TESTED",
+      "backup_automation": "Settings CAS/browser checkpoints and daily JobService implemented;3 new native probes PASS;no UI setup or real periodic execution proof",
       "backup_storage_reserve": "10 capacity-port checks PASS;256MiB reserve,not archive cap;no physical full-disk proof",
-      "backup_scheduler_native_f507": "305 PASS /1FAIL;two new actual workflow checks pass;deadline test assumed Long.MAX_VALUE but API30 actual0;corrected repeat pending"
+      "backup_scheduler_native_f507": "HISTORICAL305 PASS /1FAIL;deadline expectation corrected;da7c16f repeated306 PASS /0FAIL"
     },
     "native_font_probe": "Today/Planning 100/150/200% PASS after initial SystemUI ANR; OS settings restored; no Pixel/TalkBack/full-nine-view claim",
     "source_generation_ab1": {
@@ -77,6 +80,20 @@
       "xz_file_id": "1N93Zp6rMrI-RwEhIYhOyXLzknJEv8lIW",
       "xz_readback": "COMPLETE_STREAM_SIZE_ONLY;local XZ roundtrip exact ZIP;no remote hash claim",
       "includes_newer_drive_upload_adapter": false
+    },
+    "source_generation_da7": {
+      "folder_id": "1UXPhal4j-7dN8wkE3xBx1KtzgDDor9lR",
+      "git_sha": "da7c16f064e677edf56f06bff3958282dab1dd39",
+      "state": "INCOMPLETE",
+      "files_planned": 53,
+      "files_present": 24,
+      "files_missing": 29,
+      "sha256_byte_receipts": 23,
+      "xz_file_id": "1eWriRyURfaEixUlqyaUSJX3vMkXk81eQ",
+      "xz_readback": "COMPLETE_STREAM_SIZE_ONLY;no remote hash;flat receipts not helper-reuse schema",
+      "zip_sha256": "5f911ada5c60a5df1781c1bc923f773592b00dab8cfb33449696bca5c9d5b760",
+      "xz_local_sha256": "07e8334d7a56c23b373496b109d93ce2570f51308080ea8b99a812efe3171e6e",
+      "cleanup_allowed": false
     }
   },
   "verified_release_source": {
@@ -91,13 +108,13 @@
     "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB"
   },
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-10-23T15:13:40.021258+00:00",
+    "observed_at_utc": "2026-10-24T02:29:38.072112+00:00",
     "version_name": "1.54.9",
     "version_code": 98,
     "reported_base_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "source_sha256": "fd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae",
     "source_dirty": false,
-    "evidence": "Read-only get_capabilities during Revier task; MCP9/117tools, DB4, pixel_drive_v1, android_provider. Self-report, no independent installed APK integrity proof.",
+    "evidence": "Read-only get_capabilities24Oct2026;unchanged1.54.9/98,MCP9/117tools,DB4,pixel_drive_v1/android_provider;self-report,no independent Pixel APK integrity proof",
     "invoice_finalization": "pixel_drive_online_compare_required"
   },
   "handoff": {
