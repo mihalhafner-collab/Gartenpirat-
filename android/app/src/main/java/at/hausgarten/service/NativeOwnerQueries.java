@@ -12,6 +12,7 @@ final class NativeOwnerQueries implements PixelMcpOwnerTools.Access {
     private final LocalOwnerRepository repository;
     NativeOwnerQueries(Context context,PixelLocalStore store,LocalOwnerRepository repository){this.context=context;this.store=store;this.repository=repository;}
     @Override public JSONObject query(String name,JSONObject args)throws Exception{
+        if(name.equals("get_invoice_issue_review"))return LocalAuthorityGuard.local(context)?InvoiceIssueReviewSnapshot.capture(store,args.getString("invoice_id")).put("last_drive_sync",context.getSharedPreferences("haus_garten",0).getString("last_drive_sync","")):null;
         if(AppointmentTools.read(name))return AppointmentRuntime.query(context,store,name,args);
         if(name.equals("get_restore_status"))return BackupRestoreService.pendingStatus(context);
         if(LocalWorkflowTools.backup(name))return repository.fullBackupStatus(args);

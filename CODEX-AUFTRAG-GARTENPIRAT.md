@@ -1,5 +1,14 @@
 # CODEX-AUFTRAG-GARTENPIRAT
 
+## Arbeitspause auf Nutzerwunsch (24.10.2026)
+
+Der Nutzer hat „Sichern und vorerst pausieren“ angewiesen. Der aktuelle unvollständig
+integrierte Quellstand wird auf dem vorhandenen privaten Arbeitsbranch gesichert;
+keine weiteren Implementierungs-/Gerätearbeiten bis zur Fortsetzungsanweisung.
+Prüfgrenzen, letzter Originalbuild, partielle Nativefehler und konkrete Wiederaufnahme-
+schritte stehen in CODEX-STATUS.md. Weder Pause noch Quellcodesicherung sind eine
+Release-, Installations- oder produktive Umstellungsfreigabe.
+
 ## Aktueller Folgeauftrag: Konzept 3 „Revier Solo“ (23.10.2026)
 
 Diese Fortschreibung ersetzt die älteren Zielvorgaben „Drive immer zentral“,

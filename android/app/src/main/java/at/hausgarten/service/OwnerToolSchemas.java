@@ -144,7 +144,7 @@ final class OwnerToolSchemas {
         p.put("backup_id",id()).put("expected_state_hash",hash());required.addAll(Arrays.asList("backup_id","expected_state_hash"));
     }
     private static void requestInvoiceIssue(String name, JSONObject p, List<String> required) throws Exception {
-        p.put("invoice_id",id()).put("expected_record_hash",hash()).put("confirmed",bool().put("enum",new JSONArray().put(true)));required.addAll(Arrays.asList("invoice_id","expected_record_hash","confirmed"));
+        p.put("invoice_id",id()).put("expected_record_hash",hash()).put("expected_context_hash",hash()).put("confirmed",bool().put("enum",new JSONArray().put(true)));required.addAll(Arrays.asList("invoice_id","expected_record_hash","confirmed"));
     }
     private static void prepareInvoiceShare(String name, JSONObject p, List<String> required) throws Exception {
         p.put("invoice_id",id()).put("channel",enumeration("share","email","whatsapp"));required.addAll(Arrays.asList("invoice_id","channel"));

@@ -10,7 +10,9 @@ final class McpErrors {
     // messages can contain private text, paths or provider response bodies.
     private static final Set<String> LOCAL_CODES=new HashSet<>(Arrays.asList(
         "REVIER_SCHEMA_UPGRADE_REQUIRED","REVIER_RECORD_INVALID",
-        "LOCAL_AUTHORITY_REQUIRED","LOCAL_MIGRATION_REQUIRED_AFTER_RESTORE",
+        "LOCAL_AUTHORITY_REQUIRED","LOCAL_MIGRATION_REQUIRED_AFTER_RESTORE","LOCAL_STATE_BUILD_FAILED",
+        "INVOICE_ORIGINAL_RECONCILIATION_REQUIRED","INVOICE_REVIEW_CONTEXT_REQUIRED","INVOICE_PDF_NOT_CREATED_REVIEW_REQUIRED",
+        "FINANCIAL_JOB_ORIGIN_INVALID","FINANCIAL_JOB_AUTHORIZATION_INVALID","FINANCIAL_JOB_ADOPTION_INVALID","FINANCIAL_RECOVERY_AUDIT_INVALID",
         "INVOICE_OPENING_BALANCE_CORRECTION_REQUIRED","INVOICE_RECONCILIATION_REVIEW_REQUIRED",
         "LOCAL_AUTHORITY_CURRENT_EVIDENCE_REQUIRED","LOCAL_AUTHORITY_RECEIPT_STALE_AFTER_RESTORE",
         "LEGACY_SYNC_WRITER_DISABLED","LOCAL_DATABASE_CONTRACT_REVIEW_REQUIRED","LOCAL_ORIGINAL_MISSING",
@@ -117,6 +119,9 @@ final class McpErrors {
     ));
     private static String localCode(Exception error){String value=error.getMessage();return value!=null&&LOCAL_CODES.contains(value)?value:null;}
     private static String localMessage(String code){
+        if(code.equals("INVOICE_REVIEW_CONTEXT_REQUIRED"))return "Rechnung samt aktuellem Aussteller, Empfänger und Leistungsquellen neu öffnen, den vollständigen Prüfstand lesen und ausdrücklich bestätigen. Noch keine Nummer vergeben.";
+        if(code.equals("LOCAL_STATE_BUILD_FAILED"))return "Der lokale Datenstand konnte nicht vollständig aufgebaut werden. Lokalen Stand und geprüfte Sicherung am Gerät prüfen; keine automatische Rückspielung starten.";
+        if(code.equals("INVOICE_ORIGINAL_RECONCILIATION_REQUIRED"))return "Nach Wiederherstellung ist der ursprüngliche PDF-Stand ungeklärt. Aktuelles externes Original unverändert binden oder ausdrücklich nachweisen, dass noch kein Original erstellt wurde. Die Belegnummer bleibt erhalten; kein PDF wird automatisch neu erzeugt.";
         if(code.equals("LOCAL_AUTHORITY_CURRENT_EVIDENCE_REQUIRED")||code.equals("LOCAL_AUTHORITY_RECEIPT_STALE_AFTER_RESTORE"))return "Nach Umstellung oder Wiederherstellung aktuellen externen Beleg-/Nummernstand für diese Installation neu prüfen und ausdrücklich bestätigen. Eine frühere Bestätigung gibt nichts frei.";
         if(code.equals("LEGACY_SYNC_WRITER_DISABLED"))return "Der lokale Pixelbestand ist maßgeblich. Alte operative Drive-Schreibwege bleiben gesperrt; Drive dient der Vollsicherung.";
         if(code.equals("LOCAL_ORIGINAL_MISSING")||code.equals("INVOICE_DOCUMENT_ORIGINAL_MISSING_OR_CHANGED")||code.startsWith("FINANCIAL_ORIGINAL_"))return "Ein benötigtes Original fehlt, ist verändert oder konnte nicht vollständig geprüft werden. Geprüfte Sicherung am Gerät prüfen; Originale werden nicht automatisch ersetzt.";

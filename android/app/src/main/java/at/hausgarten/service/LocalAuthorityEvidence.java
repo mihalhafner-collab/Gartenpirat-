@@ -17,18 +17,26 @@ import java.util.*;
 final class LocalAuthorityEvidence {
     static final int MAX_JSON_BYTES=8*1024*1024,MAX_PDF_BYTES=20*1024*1024;
     static final class Loaded {
-        final String sha256,reference,sourceCheckedAt;private final JSONObject source;
-        Loaded(String hash,JSONObject source){this.sha256=hash;reference="sha256:"+hash;this.source=source;sourceCheckedAt=source.optString("checked_at");}
+        final String sha256,reference,sourceCheckedAt;private final JSONObject source,preparedSummary;
+        Loaded(String hash,JSONObject source)throws Exception {this.sha256=hash;reference="sha256:"+hash;this.source=source;sourceCheckedAt=source.optString("checked_at");preparedSummary=buildSummary();}
         JSONObject writer(String checkedAt)throws Exception {Instant.parse(checkedAt);return new JSONObject().put("formatVersion",1).put("external_writers_disabled",true).put("evidence_sha256",sha256).put("evidence_reference",reference).put("checked_at",checkedAt);}
         JSONObject ledger(String checkedAt)throws Exception {
             JSONObject result=normalizeLedger(source);JSONObject evidence=writer(checkedAt);for(Iterator<String> keys=evidence.keys();keys.hasNext();){String key=keys.next();result.put(key,evidence.get(key));}return result;
         }
-        JSONObject reviewedLedger(String reviewedAt,JSONObject authority,boolean explicitlyConfirmed)throws Exception {
+        JSONObject reviewedLedger(String reviewedAt,JSONObject authority,boolean explicitlyConfirmed)throws Exception {return reviewedLedger(reviewedAt,authority,explicitlyConfirmed,false);}
+        JSONObject reviewedLedger(String reviewedAt,JSONObject authority,boolean explicitlyConfirmed,boolean notCreatedExplicitlyConfirmed)throws Exception {
             if(!explicitlyConfirmed||authority==null||authority.optString("installation_id").isEmpty()||authority.optString("restore_epoch").isEmpty())throw new IOException("INVOICE_CURRENT_REVIEW_REQUIRED");
             Instant review=Instant.parse(reviewedAt);if(review.isAfter(Instant.now().plusSeconds(2)))throw new IOException("INVOICE_CURRENT_REVIEW_REQUIRED");for(String key:new String[]{"created_at","blocked_at"})if(!authority.optString(key).isEmpty()&&review.isBefore(Instant.parse(authority.getString(key))))throw new IOException("INVOICE_CURRENT_REVIEW_REQUIRED");
+            if(summary().optInt("pending_not_created_count")>0&&!notCreatedExplicitlyConfirmed)throw new IOException("INVOICE_PDF_NOT_CREATED_REVIEW_REQUIRED");
             return ledger(reviewedAt).put("current_review",new JSONObject().put("confirmed",true).put("installation_id",authority.getString("installation_id")).put("restore_epoch",authority.getString("restore_epoch")).put("reviewed_at",reviewedAt).put("evidence_sha256",sha256));
         }
-        JSONObject summary()throws Exception {JSONObject result=new JSONObject().put("sha256",sha256).put("source_checked_at",sourceCheckedAt);try{JSONObject l=normalizeLedger(source);result.put("ledger_valid",true).put("last_number",l.getInt("last_number")).put("issued_count",l.getJSONArray("issued").length()).put("reservation_count",l.getJSONArray("reservations").length()).put("opening_balance_count",l.optJSONArray("opening_balances")==null?0:l.getJSONArray("opening_balances").length());}catch(Exception invalid){result.put("ledger_valid",false);}return result;}
+        JSONObject summary()throws Exception {return new JSONObject(preparedSummary.toString());}
+        private JSONObject buildSummary()throws Exception {
+            JSONObject result=new JSONObject().put("sha256",sha256).put("source_checked_at",sourceCheckedAt);JSONArray entries=source.optJSONArray("issued");int original=0,notCreated=0,unresolved=0,unbound=0;
+            for(int i=0;entries!=null&&i<entries.length();i++)try{JSONObject row=normalizeIssued(entries.getJSONObject(i));if(row.getString("pdf_resolution").equals("not_created"))notCreated++;else{original++;if(!row.has("snapshot_sha256"))unbound++;}}catch(Exception invalid){unresolved++;}
+            result.put("issued_count",entries==null?0:entries.length()).put("original_reference_count",original).put("pending_not_created_count",notCreated).put("unresolved_pdf_count",unresolved).put("snapshot_binding_missing_count",unbound);
+            try{JSONObject l=normalizeLedger(source);result.put("ledger_valid",true).put("last_number",l.getInt("last_number")).put("reservation_count",l.getJSONArray("reservations").length()).put("opening_balance_count",l.optJSONArray("opening_balances")==null?0:l.getJSONArray("opening_balances").length());}catch(Exception invalid){result.put("ledger_valid",false);}return result;
+        }
     }
     static Loaded read(Context context,Uri uri)throws Exception {
         requireContent(uri);try(InputStream input=context.getContentResolver().openInputStream(uri)){if(input==null)throw new IOException("LOCAL_EVIDENCE_READ_FAILED");return parse(input);}
@@ -49,10 +57,21 @@ final class LocalAuthorityEvidence {
     static JSONObject normalizeLedger(JSONObject source)throws Exception {
         integer(source,"formatVersion",1,1);long last=integer(source,"last_number",0,1000000000);JSONArray input=source.getJSONArray("issued"),reservations=source.getJSONArray("reservations");if(input.length()>100000||reservations.length()>10000)throw new IOException("LOCAL_EVIDENCE_LEDGER_INVALID");
         JSONArray issued=new JSONArray(),reserved=new JSONArray();Set<String> ids=new HashSet<>(),numbers=new HashSet<>(),reservationIds=new HashSet<>();
-        for(int i=0;i<input.length();i++){JSONObject row=input.getJSONObject(i);String id=id(row,"invoice_id"),number=nonempty(row,"invoice_number",500),sha=hash(row,"pdf_sha256");if(!ids.add(id)||!numbers.add(number))throw new IOException("INVOICE_EVIDENCE_DUPLICATE");JSONObject copy=new JSONObject().put("invoice_id",id).put("invoice_number",number).put("pdf_sha256",sha);if(row.has("pdf_byte_size"))copy.put("pdf_byte_size",integer(row,"pdf_byte_size",5,MAX_PDF_BYTES));issued.put(copy);}
+        for(int i=0;i<input.length();i++){JSONObject row=normalizeIssued(input.getJSONObject(i));if(!ids.add(row.getString("invoice_id"))||!numbers.add(row.getString("invoice_number")))throw new IOException("INVOICE_EVIDENCE_DUPLICATE");issued.put(row);}
         for(int i=0;i<reservations.length();i++){JSONObject row=reservations.getJSONObject(i);String id=id(row,"reservation_id"),state=row.getString("state");if(!reservationIds.add(id)||!Arrays.asList("reserved","issued","cancelled").contains(state))throw new IOException("INVOICE_RESERVATION_REVIEW_REQUIRED");reserved.put(new JSONObject().put("reservation_id",id).put("invoice_id",id(row,"invoice_id")).put("invoice_number",nonempty(row,"invoice_number",500)).put("counter",integer(row,"counter",0,last)).put("state",state));}
         JSONObject result=new JSONObject().put("formatVersion",1).put("last_number",last).put("issued",issued).put("reservations",reserved);JSONArray balances=source.optJSONArray("opening_balances");if(source.has("opening_balances")&&balances==null)throw new IOException("LOCAL_EVIDENCE_LEDGER_INVALID");
         if(balances!=null){if(balances.length()>100000)throw new IOException("LOCAL_EVIDENCE_LEDGER_INVALID");JSONArray output=new JSONArray();Set<String> unique=new HashSet<>();for(int i=0;i<balances.length();i++){JSONObject row=balances.getJSONObject(i);String id=id(row,"invoice_id");if(!ids.contains(id)||!unique.add(id))throw new IOException("INVOICE_OPENING_BALANCE_INVALID");output.put(new JSONObject().put("invoice_id",id).put("remaining_minor",integer(row,"remaining_minor",0,Long.MAX_VALUE)));}result.put("opening_balances",output);}return result;
+    }
+    private static JSONObject normalizeIssued(JSONObject row)throws Exception {
+        String resolution=row.has("pdf_resolution")?nonempty(row,"pdf_resolution",20):"original";if(!Arrays.asList("original","not_created").contains(resolution))throw new IOException("LOCAL_EVIDENCE_LEDGER_INVALID");
+        JSONObject copy=new JSONObject().put("invoice_id",id(row,"invoice_id")).put("invoice_number",nonempty(row,"invoice_number",500)).put("pdf_resolution",resolution);if(row.has("snapshot_sha256"))copy.put("snapshot_sha256",hash(row,"snapshot_sha256"));
+        if(resolution.equals("not_created")){
+            if(!Boolean.TRUE.equals(row.opt("not_created_confirmed"))||row.has("pdf_sha256")||row.has("pdf_byte_size")||!copy.has("snapshot_sha256"))throw new IOException("INVOICE_PDF_NOT_CREATED_REVIEW_REQUIRED");
+            copy.put("not_created_confirmed",true).put("not_created_reason",nonempty(row,"not_created_reason",4000));
+        }else{
+            if(row.has("not_created_confirmed")||row.has("not_created_reason"))throw new IOException("LOCAL_EVIDENCE_LEDGER_INVALID");copy.put("pdf_sha256",hash(row,"pdf_sha256"));if(row.has("pdf_byte_size"))copy.put("pdf_byte_size",integer(row,"pdf_byte_size",5,MAX_PDF_BYTES));
+        }
+        return copy;
     }
     static JSONObject importOriginals(Context context,Uri tree,JSONObject ledger,String requestId)throws Exception {
         if(requestId==null||!requestId.matches("[A-Za-z0-9_-]{8,200}"))throw new IOException("LOCAL_AUTHORITY_REQUEST_ID_REQUIRED");
@@ -63,7 +82,7 @@ final class LocalAuthorityEvidence {
         }
     }
     private static JSONObject importOriginalFiles(Context context,Uri tree,JSONObject ledger)throws Exception {
-        requireContent(tree);if(!DocumentsContract.isTreeUri(tree))throw new IOException("DOCUMENT_TREE_REQUIRED");JSONObject normalized=normalizeLedger(ledger);Map<String,Long> wanted=new HashMap<>();JSONArray issued=normalized.getJSONArray("issued");for(int i=0;i<issued.length();i++){JSONObject row=issued.getJSONObject(i);String sha=row.getString("pdf_sha256");long size=row.optLong("pdf_byte_size",-1);Long prior=wanted.get(sha);if(prior!=null&&size!=-1&&prior!=-1&&prior!=size)throw new IOException("INVOICE_EVIDENCE_MISMATCH");wanted.put(sha,prior!=null&&size==-1?prior:size);}
+        requireContent(tree);if(!DocumentsContract.isTreeUri(tree))throw new IOException("DOCUMENT_TREE_REQUIRED");JSONObject normalized=normalizeLedger(ledger);Map<String,Long> wanted=new HashMap<>();JSONArray issued=normalized.getJSONArray("issued");for(int i=0;i<issued.length();i++){JSONObject row=issued.getJSONObject(i);if(row.getString("pdf_resolution").equals("not_created"))continue;String sha=row.getString("pdf_sha256");long size=row.optLong("pdf_byte_size",-1);Long prior=wanted.get(sha);if(prior!=null&&size!=-1&&prior!=-1&&prior!=size)throw new IOException("INVOICE_EVIDENCE_MISMATCH");wanted.put(sha,prior!=null&&size==-1?prior:size);}
         Set<String> found=new HashSet<>();ArrayDeque<Directory> pending=new ArrayDeque<>();pending.add(new Directory(DocumentsContract.getTreeDocumentId(tree),0));Set<String> seen=new HashSet<>();int scanned=0,stored=0,oversized=0;
         while(!pending.isEmpty()){
             if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("LOCAL_EVIDENCE_IMPORT_INTERRUPTED");Directory directory=pending.removeFirst();if(!seen.add(directory.id))continue;if(directory.depth>32||seen.size()>5000)throw new IOException("LOCAL_EVIDENCE_TREE_LIMIT");
@@ -75,7 +94,7 @@ final class LocalAuthorityEvidence {
                 }
             }
         }
-        return new JSONObject().put("matched_unique_originals",stored).put("required_unique_originals",wanted.size()).put("not_found_in_selected_tree",Math.max(0,wanted.size()-found.size())).put("oversized_pdf_files",oversized).put("source_folder_unchanged",true).put("invoice_records_created",0);
+        int notCreated=0;for(int i=0;i<issued.length();i++)if(issued.getJSONObject(i).getString("pdf_resolution").equals("not_created"))notCreated++;return new JSONObject().put("pending_not_created_count",notCreated).put("matched_unique_originals",stored).put("required_unique_originals",wanted.size()).put("not_found_in_selected_tree",Math.max(0,wanted.size()-found.size())).put("oversized_pdf_files",oversized).put("source_folder_unchanged",true).put("invoice_records_created",0);
     }
     private static final class Directory {final String id;final int depth;Directory(String id,int depth){this.id=id;this.depth=depth;}}
     private static byte[] bounded(InputStream input,int maximum)throws Exception {ByteArrayOutputStream bytes=new ByteArrayOutputStream();byte[] block=new byte[32768];int count;while((count=input.read(block))!=-1){if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("LOCAL_EVIDENCE_IMPORT_INTERRUPTED");if(count>maximum-bytes.size())throw new IOException("LOCAL_EVIDENCE_FILE_TOO_LARGE");bytes.write(block,0,count);}return bytes.toByteArray();}

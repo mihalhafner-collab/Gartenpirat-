@@ -7,7 +7,7 @@ import org.json.JSONObject;
 /** Business namespaces outside the historical snapshot are covered by the same backup/CAS proof. */
 final class BusinessStateFingerprint {
     static JSONObject read(SQLiteDatabase database)throws Exception {
-        JSONObject hashes=new JSONObject();try(Cursor keys=database.rawQuery("SELECT key FROM owner_state WHERE key LIKE 'revier:v1:%' OR key LIKE 'offer_decision:v1:%' OR key LIKE 'local_payment:%' OR key LIKE 'local_invoice_sources:%' OR key LIKE 'local_invoice_material_sources:%' OR key LIKE 'invoice_opening_balance:%' OR key LIKE 'local_number_reservation:%' OR key LIKE 'local_invoice_job:%' OR key IN ('local_invoice_counter','local_invoice_external_evidence','personal_paid','personal_paid_migrated','settings') ORDER BY key",null)){
+        JSONObject hashes=new JSONObject();try(Cursor keys=database.rawQuery("SELECT key FROM owner_state WHERE key LIKE 'revier:v1:%' OR key LIKE 'offer_decision:v1:%' OR key LIKE 'local_payment:%' OR key LIKE 'local_invoice_sources:%' OR key LIKE 'local_invoice_material_sources:%' OR key LIKE 'invoice_opening_balance:%' OR key LIKE 'local_number_reservation:%' OR key LIKE 'local_invoice_job:%' OR key LIKE 'local_invoice_document_recovery:%' OR key IN ('local_invoice_counter','local_invoice_external_evidence','personal_paid','personal_paid_migrated','settings') ORDER BY key",null)){
             while(keys.moveToNext()){String key=keys.getString(0);hashes.put(key,PixelMcpWriteTools.hash(DatabaseBackupSnapshot.ownerValue(database,key,"")));}
         }
         for(String table:new String[]{"work_sessions","work_session_events","photo_attachments"}){

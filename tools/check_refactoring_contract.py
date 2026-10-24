@@ -149,7 +149,7 @@ def approved_revier_local_workflows(expected, current, delta, repair, timer, evo
         approved = copy.deepcopy(originals[name])
         if name in {'request_invoice_issue','create_backup','restore_backup'}:
             descriptors = {
-                'request_invoice_issue': ('Beauftragt den Pixel-Rechnungsabschluss nach ausdrücklicher Nutzeranweisung. Online-Nummernreservierung mit Versionsschutz und Original-PDF erforderlich; kein automatischer Versand oder Zahlungsstatus.', 'Beauftragt den Pixel-Rechnungsabschluss nach ausdrücklicher Nutzeranweisung. get_capabilities.invoice_finalization legt den versionierten Pfad fest: im Altbetrieb geschützter Onlinevergleich, nach kontrollierter Umstellung atomare lokale Nummernvergabe mit Belegsnapshot und dauerhaftem PDF-Job. Nach Restore bis externem Original-/Nummernabgleich gesperrt. Keine erfolgreiche PDF-Freigabe vor verifiziertem Original; kein automatischer Versand oder Zahlungsstatus.'),
+                'request_invoice_issue': ('Beauftragt den Pixel-Rechnungsabschluss nach ausdrücklicher Nutzeranweisung. Online-Nummernreservierung mit Versionsschutz und Original-PDF erforderlich; kein automatischer Versand oder Zahlungsstatus.', 'Beauftragt den Pixel-Rechnungsabschluss nach ausdrücklicher Nutzeranweisung. get_capabilities.invoice_finalization legt den versionierten Pfad fest: im Altbetrieb geschützter Onlinevergleich, nach kontrollierter Umstellung atomare lokale Nummernvergabe mit Belegsnapshot und dauerhaftem PDF-Job. Im lokalen Pfad die vollständige get_invoice.issue_review prüfen und deren record_hash sowie context_hash als expected_record_hash und expected_context_hash senden. Nach Restore bis externem Original-/Nummernabgleich gesperrt. Keine erfolgreiche PDF-Freigabe vor verifiziertem Original; kein automatischer Versand oder Zahlungsstatus.'),
                 'create_backup': ('Verwendet die bestehenden App-Speicher und fachlichen Prüfungen.', 'Erstellt die bisherige begrenzte Geschäftssicherung im vorhandenen Altformat für Geschäftssnapshot, Journal und lokale Originale. Keine verschlüsselte Vollsicherung und kein vollständiger Restore aller neuen Revier-/Jobdaten. Vollbackup über request_full_backup beziehungsweise die geschützte Geräteoberfläche verwenden.'),
                 'restore_backup': ('Prüft Sicherung und übernimmt ausschließlich fehlende Datensätze. Abweichende vorhandene Versionen und aktive Warteschlangen stoppen die Übernahme; keine blinde Ersetzung.', 'Versionierter Altpfad: im Legacybetrieb Sicherung prüfen und ausschließlich fehlende Datensätze übernehmen; Konflikte und aktive Warteschlangen stoppen. Nach lokaler Autoritätsumstellung mit RESTORE_FULL_REPLACEMENT_REQUIRED und Geräteschritt gesperrt: vollständigen verschlüsselten Bestand prüfen und ausdrücklich ersetzen, keine automatische Vermischung.'),
             }
@@ -157,6 +157,8 @@ def approved_revier_local_workflows(expected, current, delta, repair, timer, evo
             if not approved['description'].startswith(before):
                 raise ValueError('Invoice authority descriptor predecessor changed')
             approved['description'] = approved['description'].replace(before, after, 1)
+            if name == 'request_invoice_issue':
+                approved['inputSchema']['properties']['expected_context_hash'] = {'type':'string','maxLength':64,'pattern':'[0-9a-f]{64}'}
         else:
             properties = approved['inputSchema']['properties']
             if name in {'update_photo', 'update_invoice_draft'}:

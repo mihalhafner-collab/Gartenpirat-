@@ -3,6 +3,101 @@
 Stand: 24. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Auf Nutzerwunsch pausiert – 24.10.2026
+
+Der Nutzer hat ausdrücklich „Sichern und vorerst pausieren“ angeordnet. Alle Agenten
+haben ihre Quelldateien eingefroren; keine weiteren Implementierungs-, Build-,
+Signier-, Geräte- oder Testaufgaben laufen nach der Sicherung weiter. Der vollständige
+aktuelle WIP wird auf dem vorhandenen privaten Branch `codex/revier-solo-20261023`
+committet, gepusht und der exakte Remote-Commit zurückgelesen. Kein Merge nach main,
+keine Pixelinstallation, produktive Autoritätsumstellung, echte Rechnung/Zahlung
+oder Nachricht wurde ausgeführt. **Der pausierte WIP ist kein geprüfter Release.**
+
+### Letzter gebauter Original-Prüfstand und tatsächlicher Gerätetestumfang
+
+| Nachweis | Ergebnis |
+| --- | --- |
+| Originalbuild aus `cc637c91f7c3f4eee6b59d04c495c0412d3d7525`,1.55.0/99 | assembleRelease/assembleReleaseAndroidTest/lintRelease PASS;0Fehler/109Warnungen. Keine Aussage über den späteren WIP. |
+| Eingebetteter Quellfingerprint | `c3d70c8040cf6752be964e4bc09ff7865a6644835c198ef45ce4438830436ba8`; Commit und Fingerprint in APK-DEX nachgewiesen, SOURCE_DIRTY=false. |
+| Originalsigniertes App-APK | SHA256 `a2cb6a2f5c616101a8c17a728f7c9de924f5635dbdeb3180d5824400091f85da` |
+| Originalsigniertes Test-APK | SHA256 `0039f2ec1b2bb89bc6b4bb2e345e56ea3f1f24fee08789ffdc0600cf13c4544a` |
+| Originalzertifikat beider APKs | SHA256 `a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8` |
+| Vorhandener synthetischer Cloudbestand, In-place-Update Schema4→5 | PASS: vollständiger Snapshot, IDs, Pendingaktionen, Einstellungen, deaktivierte synthetische Tunnelkonfiguration und laufende Sitzung samt Rechnungsempfänger erhalten. Keine Datenlöschung/Neuinstallation. |
+| API30-x86_64-Cloudemulator ohne KVM, Flugmodus1 | Native Gesamtsuite teilweise ausgeführt:264 PASS/9FAIL, danach Host-Zeitlimit900s. Kein RESULT, kein Gesamt-PASS. Flugmodus danach nachweislich auf bisherigen Wert0 zurückgestellt. |
+| Native Leistungsziele, isolierter Cloudemulator |20Tourstopps506,25ms; vollständige Suche300Kunden/450Objekte,3Warmups/25Messungen p95=3597,75ms,300ms-Suchziel NICHT erreicht. Kein Pixel-Leistungsnachweis. |
+| Physischer Pixel, erneut nur get_capabilities | Unverändert1.54.9/98,DB4,Protokoll9/117Tools,pixel_drive_v1/android_provider,invoice_finalization=pixel_drive_online_compare_required; dbe9ed0b/fd0979de. Selbstauskunft, kein unabhängiger Pixel-APK-Hash. |
+
+Der partielle Native-Log liegt außerhalb des Checkout unter
+`/workspace/revier-artifacts/cc637c9-native-partial.log`, SHA256
+`98ff0d621c3cadf2d1affce401f5190f75c0ab8bf0ad80783e6a82b9701cd27d`;
+passende Artefakt-/Umgebungsquittung in `cc637c9-native-partial-receipt.json`.
+Der gescheiterte Gesamtlauf bleibt erhalten. Das signierte cc637-APK ist ein interner
+Fehlersuchbuild und wird nicht als fertiger Revier-Updatekandidat ausgeliefert.
+
+Die neun beobachteten Fehler: unvollständig aufgebautes synthetisches Schema2,
+unvollständiger handgebauter Pending-Rechnungszustand, fehlendes weather_profile im
+Besichtigungsadapter, fünf Finanzfixtures ohne exklusiven Migrationspermit und
+UI-Pilot-Preflight auf dem falschen Thread. Quellenkorrekturen sind im WIP enthalten,
+aber noch nicht mit einem neuen Original-APK nativ wiederholt. Der Besichtigungs-
+Anwendungsfall validiert nun den echten Terminvertrag vor Effekten;99 fokussierte
+JVM-Prüfungen bestanden. Beschädigter lokal gespeicherter Zustand bricht künftig mit
+festem LOCAL_STATE_BUILD_FAILED statt einer teilinitialisierten Sicht/Rohfehlern ab.
+
+### Zusätzlich gesicherte, noch nicht vollständig integrierte Korrekturrunde
+
+- Gespeicherte Angebots-/Rechnungsentwürfe öffnen lesend; bewusstes Bearbeiten,
+  Entwurfsrückkehr und ursprünglicher CAS-Stand bleiben erhalten. Bestätigte CSS-
+  Überläufe behoben; zehn neue Entwurfsfälle und60Layoutfälle ohne Überlauf bestanden.
+- Restore-PDF-Sicherheit: vorhandene exakt verifizierte Dateiquittungen bleiben
+  wiederverwendbar. Neue Bytes unbekannter alter Pendingjobs benötigen passende
+  Ursprungsinstallation/Epoche oder einen ausdrücklich aktuellen, beleggebundenen
+  Nicht-Erstellungsnachweis. Externes OriginalABC wird über den vorhandenen SAF-Import
+  und aktuelle vollständige Ledgerprüfung unverändert übernommen; finanzielle
+  Snapshots, Leistungsquellen und Nummern bleiben fix. Recovery-Audit ist append-only
+  und in Sicherung/Portabilität berücksichtigt. Native Wiederholung steht aus.
+- Die Rechnungsausgabe bindet jetzt den angezeigten versionierten Prüfkontext samt
+  Aussteller, Empfänger, Leistungs-/Materialquellen und Restmengen. WIP umfasst die
+  gemeinsamen InvoiceIssueReviewRules/InvoiceIssueReviewSnapshot, lokale Ausgabe-CAS,
+  additive MCP-Antwort/expected_context_hash sowie UI-Anzeige. Der UI-Fehler entity_hash
+  statt record_hash ist korrigiert. Bestehende15Finanzbrowserfälle bestanden; dedizierte
+  Kontextwechsel-/Layout-/Nativefälle und gemeinsame Integration fehlen noch.
+
+Letzte schmale Rückmeldung vor der Sicherung: sämtliche aktuellen Produktions-Java-
+Quellen kompilieren gegen API37 (javac PASS). Das ersetzt weder Gradle/Lint noch
+Testausführung oder native Abnahme; Helpertests bleiben offen.
+
+Zum Pausieren ausdrücklich offen gelassen: die aktuelle komplette Gradle-/Lint-/
+Native-/MCP-/Privacy-Artefaktregression, endgültiger UI-Fingerprint-/Toolkatalogabgleich
+und signierter Kandidat für DIESEN WIP. `reviewed_sources` und erzeugter Toolkatalog
+sind absichtlich nicht ungeprüft freigegeben. Bei Fortsetzung zunächst die neuen
+Pureklassen `LocalInvoiceCreationRules` und `InvoiceIssueReviewRules` in
+`tools/run-followup-java.py` aufnehmen; neue *Tests.java werden bereits automatisch
+erfasst. Die noch ungeprüften Helpertests und Kontextwechselprüfungen nachholen.
+Der Hostrunner hat vorbereitete getrennte Modi revier_core/revier_ui und1800s für die
+volle Suite; diese Modi sind im cc637-Test-APK noch NICHT enthalten. Erst aus erneut
+sauber gesichertem Quellstand bauen/signieren und diese Gruppen prüfen, anschließend
+volle Regression. Native Runtime/PDF-/Restorefälle sowie Suche-Leistung nachmessen.
+Keine produktive Umstellung ohne aktuelle Original-/Nummern-/Schreiberprüfung.
+
+### Dauerhafte Quellen und historische Datenschutzgrenze
+
+GitHub bleibt maßgebliche Originalquelle. Die zusätzliche ältere administrative
+Drive-Generation da7 wurde inzwischen vollständig abgeschlossen:53/53Dateien,
+0fehlend/0Dubletten/0unerwartet,52TXT/JSON aktuell SHA256-bytegeprüft; das82.403.208Byte
+XZ besitzt weiterhin nur vollständigen Streamgrößenbeleg, keinen Remote-SHA wegen
+32MiB-Materialisierungsgrenze. Payloads→Indizes→00-START eingehalten, ab1 behalten.
+Nachweise außerhalb Checkout: `/workspace/revier-da7-completion-report.json`,
+`revier-da7-helper-receipts.json`, `revier-da7-complete-inventory.json`.
+Diese da7-Kopie ist NICHT die zusätzliche Kopie des neuesten pausierten WIP.
+
+Der aktuelle Quellbaum besteht die Datenschutzprüfung mit0betrieblichen Seedzeilen.
+Ein separates ausschließlich lesendes Historienaudit über zwölf bekannte Bootstrap-/
+Ausstellerobjekte markiert vier historische Objekte als sensibel. Keine Inhalte wurden
+in Ausgaben oder neue Exporte übernommen, kein History-Rewrite/Force-Push ausgeführt.
+Das ist keine vollständige forensische Historienprüfung. Alte sensibel markierte Git-
+Objekte bleiben im privaten Repository erhalten; aktueller Quellbaum/APK und
+historische Objekte sind ausdrücklich getrennte Prüfbereiche.
+
 ## Revier Solo – integrierte Fertigstellungsarbeit, 24.10.2026, 03:20 UTC
 
 Auf ausdrücklichen Auftrag „Starte Fertigstellung“ wurde der vorhandene Java-/WebView-/

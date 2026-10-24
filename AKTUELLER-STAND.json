@@ -1,12 +1,12 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-24T03:34:08.034003+00:00",
+  "updated_at_utc": "2026-10-24T04:16:59.785600+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
     "version_name": "1.55.0",
     "version_code": 99,
-    "status": "REVIER_IMPLEMENTATION_IN_PROGRESS_NOT_RELEASED",
+    "status": "PAUSED_ON_USER_REQUEST_WIP_SOURCE_NOT_RELEASED",
     "base_git_sha": "419d0b4bfcbb7108d00296619831a04ddc3273b0",
     "last_original_app_source_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "main_at_start": "e499e745832449ce0202d04d9903495248e8b034",
@@ -33,21 +33,21 @@
       "frame_guard_and_context_stable_timer_photos",
       "schema5_old_writer_fence_existing_tables_preserved"
     ],
-    "full_revier_acceptance": "INTEGRATION IN PROGRESS; NEW NATIVE/REGULAR BUILD/PIXEL ACCEPTANCE PENDING",
-    "original_signed_update_candidate": "INTERNAL ORIGINAL-SIGNED TEST BUILD;NATIVE306 PASS;NOT COMPLETE REVIER;NOT DELIVERED",
+    "full_revier_acceptance": "NOT COMPLETE;PAUSED WIP;264PASS/9FAIL NATIVE PARTIAL THEN900sTIMEOUT",
+    "original_signed_update_candidate": "LATEST INTERNAL cc637 DEBUGGING BUILD NOT REVIER ACCEPTED;PAUSED SOURCE HAS NEWER UNBUILT FIXES",
     "productive_migration": "NOT EXECUTED",
     "installation": "NOT EXECUTED",
     "internal_signed_build": {
-      "app_source_git_sha": "da7c16f064e677edf56f06bff3958282dab1dd39",
-      "source_sha256": "b7e7bfa533ab1e4e51d3ec79732e08f3becbb31b369302f25d368884f291cb64",
-      "apk_sha256": "8d20b108aaafa10f57e4a912d33727a19fa39ce99dceeec4ee8c3c40a3262195",
-      "qa_apk_sha256": "4d9a3aa5ffa6a485ac3ef8735fbff58dc32292483b5e336a8345360f0f79a87a",
+      "app_source_git_sha": "cc637c91f7c3f4eee6b59d04c495c0412d3d7525",
+      "source_sha256": "c3d70c8040cf6752be964e4bc09ff7865a6644835c198ef45ce4438830436ba8",
+      "apk_sha256": "a2cb6a2f5c616101a8c17a728f7c9de924f5635dbdeb3180d5824400091f85da",
+      "qa_apk_sha256": "0039f2ec1b2bb89bc6b4bb2e345e56ea3f1f24fee08789ffdc0600cf13c4544a",
       "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-      "native_api30": "306 PASS /0FAIL;11 isolated native backup probes;real SQLite/Keystore/files,synthetic network;no physical Pixel/USB/Google-Drive acceptance",
-      "native_log_sha256": "46611c3fb3b9bc891adfbfc88931a36c57937a5e741477ef1f139512a4f28124",
+      "native_api30": "PARTIAL264PASS/9FAIL;900sHOST TIMEOUT;NO FULL ACCEPTANCE",
+      "native_log_sha256": "98ff0d621c3cadf2d1affce401f5190f75c0ab8bf0ad80783e6a82b9701cd27d",
       "pixel_installation": "NOT EXECUTED",
       "released": false,
-      "lint": "0 errors /55 warnings"
+      "lint": "0 errors /109 warnings"
     },
     "source_generation_2fb": {
       "folder_id": "1rEQlDxYJu5ykJuIfBVWlQ6TeOPUh0bi-",
@@ -79,7 +79,8 @@
       "backup_storage_reserve": "10 capacity-port checks PASS;256MiB reserve,not archive cap;no physical full-disk proof",
       "backup_scheduler_native_f507": "HISTORICAL305 PASS /1FAIL;deadline expectation corrected;da7c16f repeated306 PASS /0FAIL",
       "new_browser_pilot_cases_pass": 39,
-      "broad_browser_node_regressions": "48/48 PASS;exact obsolete navigation/palette/explicit-capability fixtures updated;two proven CSS faults fixed"
+      "broad_browser_node_regressions": "48/48 PASS;exact obsolete navigation/palette/explicit-capability fixtures updated;two proven CSS faults fixed",
+      "paused_main_java_feedback": "PASS: all current production Java sources javac API37; not a Gradle build, test execution, lint or native acceptance"
     },
     "native_font_probe": "Today/Planning 100/150/200% PASS after initial SystemUI ANR; OS settings restored; no Pixel/TalkBack/full-nine-view claim",
     "source_generation_ab1": {
@@ -94,16 +95,19 @@
     "source_generation_da7": {
       "folder_id": "1UXPhal4j-7dN8wkE3xBx1KtzgDDor9lR",
       "git_sha": "da7c16f064e677edf56f06bff3958282dab1dd39",
-      "state": "INCOMPLETE",
+      "state": "COMPLETE",
       "files_planned": 53,
-      "files_present": 24,
-      "files_missing": 29,
-      "sha256_byte_receipts": 23,
+      "files_present": 53,
+      "files_missing": 0,
+      "sha256_byte_receipts": 52,
       "xz_file_id": "1eWriRyURfaEixUlqyaUSJX3vMkXk81eQ",
-      "xz_readback": "COMPLETE_STREAM_SIZE_ONLY;no remote hash;flat receipts not helper-reuse schema",
+      "xz_readback": "COMPLETE_STREAM_SIZE_ONLY;NO_REMOTE_SHA_CLAIM",
       "zip_sha256": "5f911ada5c60a5df1781c1bc923f773592b00dab8cfb33449696bca5c9d5b760",
       "xz_local_sha256": "07e8334d7a56c23b373496b109d93ce2570f51308080ea8b99a812efe3171e6e",
-      "cleanup_allowed": false
+      "cleanup_allowed": false,
+      "text_readback": "52TXT/JSON fresh SHA256_BYTES+metadata-bound receipts",
+      "completion_report": "/workspace/revier-da7-completion-report.json",
+      "includes_current_paused_source": false
     },
     "development_database_schema": 5,
     "development_local_engine": "pixel_local_v2",
@@ -111,7 +115,42 @@
     "development_semantic_ui_actions": 204,
     "latest_implementation_base_git_sha": "613875759c2e29d6c8fc9efc18990e3b49763ea1",
     "current_implementation_original_signed": false,
-    "latest_implementation_checkpoint_git_sha": "dde2691a2d0229da33567781d5057ffb309c85f7"
+    "latest_implementation_checkpoint_git_sha": "cc637c91f7c3f4eee6b59d04c495c0412d3d7525",
+    "pause": {
+      "requested": "Sichern und vorerst pausieren",
+      "at_utc": "2026-10-24T04:16:59.785600+00:00",
+      "source_ref": "refs/heads/codex/revier-solo-20261023",
+      "last_built_source_git_sha": "cc637c91f7c3f4eee6b59d04c495c0412d3d7525",
+      "current_source_is_newer_than_last_build": true,
+      "resume_required": [
+        "register two new pure helper classes in JVM runner",
+        "complete issue-review context and layout tests",
+        "review current UI fingerprints and actual tool catalog",
+        "regular build/lint/privacy and original signing from clean saved source",
+        "native revier_core/revier_ui and full regression",
+        "search performance and separate Pixel/USB/authority pilot"
+      ],
+      "productive_installation": "NOT EXECUTED",
+      "productive_migration": "NOT EXECUTED"
+    },
+    "native_measurements": {
+      "environment": "API30x86_64CloudEmulatorWithoutKVM;noPixelClaim",
+      "search_customers": 300,
+      "search_properties": 450,
+      "search_warmups": 3,
+      "search_samples": 25,
+      "search_p95_ms": 3597.746313,
+      "search_target_ms": 300,
+      "search_target_met": false,
+      "tour_stops": 20,
+      "tour_ms": 506.248141
+    },
+    "history_privacy": {
+      "scope": "read-only twelve known bootstrap/issuer objects;not a full forensic audit",
+      "sensitive_flagged_objects": 4,
+      "history_rewritten": false,
+      "current_source_operational_seed_rows": 0
+    }
   },
   "verified_release_source": {
     "version": "1.54.1",

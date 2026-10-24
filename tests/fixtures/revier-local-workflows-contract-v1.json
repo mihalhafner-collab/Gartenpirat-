@@ -1166,7 +1166,7 @@
           },
           "notes": {
             "type": "string",
-            "maxLength": 20000
+            "maxLength": 4000
           },
           "expected_record_hash": {
             "pattern": "[0-9a-f]{64}",
@@ -2488,6 +2488,27 @@
                   "additionalProperties": false,
                   "type": "object",
                   "properties": {
+                    "not_created_confirmed": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "pdf_resolution": {
+                      "default": "original",
+                      "minLength": 1,
+                      "type": "string",
+                      "maxLength": 500,
+                      "enum": [
+                        "original",
+                        "not_created"
+                      ]
+                    },
+                    "snapshot_sha256": {
+                      "pattern": "[0-9a-f]{64}",
+                      "type": "string",
+                      "maxLength": 64
+                    },
                     "invoice_id": {
                       "minLength": 1,
                       "type": "string",
@@ -2507,12 +2528,16 @@
                       "maximum": 9223372036854775807,
                       "type": "integer",
                       "minimum": 1
+                    },
+                    "not_created_reason": {
+                      "minLength": 1,
+                      "type": "string",
+                      "maxLength": 4000
                     }
                   },
                   "required": [
                     "invoice_id",
-                    "invoice_number",
-                    "pdf_sha256"
+                    "invoice_number"
                   ]
                 }
               },
@@ -2616,7 +2641,7 @@
         ]
       },
       "name": "reconcile_local_invoice_authority",
-      "description": "Gleicht lokale Rechnungsautorität nach Umstellung/Restore mit aktuellem externen Beleg-/Reservierungs-/Nummernnachweis ab. Original-PDF-Hashes/Größen und alle bekannten Belege werden geprüft; Backupzähler allein gibt nichts frei. current_review muss eine ausdrückliche aktuelle Belegprüfung an genau dieser installation_id und restore_epoch bestätigen; eine importierte frühere Bestätigung reicht nicht. Historische Restbeträge nur als ausdrücklich belegte Eröffnungsstände, keine erfundenen Zahlungen.",
+      "description": "Gleicht lokale Rechnungsautorität nach Umstellung/Restore mit aktuellem externen Beleg-/Reservierungs-/Nummernnachweis ab. Original-PDF-Hashes/Größen und alle bekannten Belege werden geprüft; Backupzähler allein gibt nichts frei. current_review muss eine ausdrückliche aktuelle Belegprüfung an genau dieser installation_id und restore_epoch bestätigen; eine importierte frühere Bestätigung reicht nicht. Für bekannte PDF_PENDING-Belege kann pdf_resolution=original das externe Original mit snapshot_sha256 und Bytegröße unverändert binden. not_created braucht ausdrücklich bestätigten aktuellen Nichterstellungsnachweis samt Grund und snapshot_sha256; Erzeugung erst nach genau diesem vollständigen Belegabgleich, niemals bei vorhandener Dateiquittung oder Originalreferenz. Historische Restbeträge nur als ausdrücklich belegte Eröffnungsstände, keine erfundenen Zahlungen.",
       "annotations": {
         "idempotentHint": true,
         "openWorldHint": false,
@@ -3265,6 +3290,11 @@
               "type": "string",
               "maxLength": 128
             },
+            "expected_context_hash": {
+              "pattern": "[0-9a-f]{64}",
+              "type": "string",
+              "maxLength": 64
+            },
             "confirmed": {
               "type": "boolean",
               "enum": [
@@ -3280,7 +3310,7 @@
           ]
         },
         "name": "request_invoice_issue",
-        "description": "Beauftragt den Pixel-Rechnungsabschluss nach ausdrücklicher Nutzeranweisung. get_capabilities.invoice_finalization legt den versionierten Pfad fest: im Altbetrieb geschützter Onlinevergleich, nach kontrollierter Umstellung atomare lokale Nummernvergabe mit Belegsnapshot und dauerhaftem PDF-Job. Nach Restore bis externem Original-/Nummernabgleich gesperrt. Keine erfolgreiche PDF-Freigabe vor verifiziertem Original; kein automatischer Versand oder Zahlungsstatus. Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.",
+        "description": "Beauftragt den Pixel-Rechnungsabschluss nach ausdrücklicher Nutzeranweisung. get_capabilities.invoice_finalization legt den versionierten Pfad fest: im Altbetrieb geschützter Onlinevergleich, nach kontrollierter Umstellung atomare lokale Nummernvergabe mit Belegsnapshot und dauerhaftem PDF-Job. Im lokalen Pfad die vollständige get_invoice.issue_review prüfen und deren record_hash sowie context_hash als expected_record_hash und expected_context_hash senden. Nach Restore bis externem Original-/Nummernabgleich gesperrt. Keine erfolgreiche PDF-Freigabe vor verifiziertem Original; kein automatischer Versand oder Zahlungsstatus. Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.",
         "annotations": {
           "idempotentHint": true,
           "openWorldHint": false,
@@ -3288,7 +3318,7 @@
           "readOnlyHint": false
         }
       },
-      "reason": "Exact versioned local-authority/legacy-backup descriptors and optional stable context/source schemas preserve historical calls and record IDs."
+      "reason": "Exact versioned local-authority/legacy-backup descriptors and optional stable context/source schemas preserve historical calls and record IDs. Optionaler expected_context_hash erhält Legacy-Aufrufe; lokaler Abschluss verlangt den atomar gelesenen vollständigen Aussteller-/Empfänger-/Leistungsquellen-Prüfstand und weist veralteten Kontext vor Nummernvergabe ab."
     },
     {
       "name": "start_work",
