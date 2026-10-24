@@ -2260,7 +2260,7 @@
           "amount_minor": {
             "maximum": 9000000000000000,
             "type": "integer",
-            "minimum": 1
+            "minimum": 0
           },
           "expected_ledger_hash": {
             "pattern": "[0-9a-f]{64}",

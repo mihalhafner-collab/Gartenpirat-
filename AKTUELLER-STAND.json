@@ -1,6 +1,6 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-24T03:22:29.490294+00:00",
+  "updated_at_utc": "2026-10-24T03:34:08.034003+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
@@ -63,11 +63,11 @@
       "python_pass": 424,
       "python_skips": 0,
       "excluded_qa_signing": 37,
-      "jvm_suites_pass": 58,
+      "jvm_suites_pass": 72,
       "archive_fault_checks": 26,
       "archive_payload_MiB": 48,
       "archive_heap_MiB": 64,
-      "app_and_instrumentation_compile": "STANDALONE API37 JAVAC PASS BEFORE FINAL HARDENING;REGULAR NEW BUILD PENDING",
+      "app_and_instrumentation_compile": "REGULAR GRADLE COMPILE PASS59s;final imported-invoice/zero-correction snapshot requires frozen-source build",
       "new_native_backup_probes": "11 PASS on exact da7c16f;306 total native PASS",
       "automatic_drive_backup": "IMPLEMENTED;NATIVE UI CONFIGURABLE;NOT CONFIGURED OR TESTED ON PIXEL",
       "restore_activation": "IMPLEMENTED STAGED AND COLD-START EXCHANGE;NEW NATIVE EXECUTION PENDING",
@@ -78,7 +78,8 @@
       "backup_automation": "Settings CAS/browser checkpoints and daily JobService implemented;3 new native probes PASS;no UI setup or real periodic execution proof",
       "backup_storage_reserve": "10 capacity-port checks PASS;256MiB reserve,not archive cap;no physical full-disk proof",
       "backup_scheduler_native_f507": "HISTORICAL305 PASS /1FAIL;deadline expectation corrected;da7c16f repeated306 PASS /0FAIL",
-      "new_browser_pilot_cases_pass": 36
+      "new_browser_pilot_cases_pass": 39,
+      "broad_browser_node_regressions": "48/48 PASS;exact obsolete navigation/palette/explicit-capability fixtures updated;two proven CSS faults fixed"
     },
     "native_font_probe": "Today/Planning 100/150/200% PASS after initial SystemUI ANR; OS settings restored; no Pixel/TalkBack/full-nine-view claim",
     "source_generation_ab1": {
@@ -109,7 +110,8 @@
     "development_tools": 161,
     "development_semantic_ui_actions": 204,
     "latest_implementation_base_git_sha": "613875759c2e29d6c8fc9efc18990e3b49763ea1",
-    "current_implementation_original_signed": false
+    "current_implementation_original_signed": false,
+    "latest_implementation_checkpoint_git_sha": "dde2691a2d0229da33567781d5057ffb309c85f7"
   },
   "verified_release_source": {
     "version": "1.54.1",

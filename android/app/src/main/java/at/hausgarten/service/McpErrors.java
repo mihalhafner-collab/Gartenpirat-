@@ -30,6 +30,7 @@ final class McpErrors {
         "FINANCIAL_RESERVATION_INVALID","FINANCIAL_RESERVATION_MISSING","FINANCIAL_RESERVATION_SNAPSHOT_MISMATCH",
         "FINANCIAL_SOURCE_QUANTITY_EXCEEDED","FINANCIAL_SOURCE_REFERENCE_INVALID","FINANCIAL_SOURCE_SNAPSHOT_MISMATCH",
         "PAYMENT_AMOUNT_MINOR_INVALID","PAYMENT_BALANCE_RECONCILIATION_REQUIRED","PAYMENT_CREDIT_DOCUMENT_ALLOCATION_REQUIRES_REVIEW",
+        "PAYMENT_ZERO_CORRECTION_REQUIRES_EMPTY_ALLOCATIONS",
         "INVOICE_DOCUMENT_ORIGINAL_MISSING_OR_CHANGED","INVOICE_DOCUMENT_RECEIPT_INVALID","INVOICE_DOCUMENT_RECEIPT_STORAGE_UNAVAILABLE",
         "INVOICE_CURRENT_LEDGER_INCOMPLETE","INVOICE_EVIDENCE_DUPLICATE","INVOICE_EVIDENCE_MISMATCH",
         "INVOICE_EXTERNAL_ORIGINAL_MISSING","INVOICE_OPENING_BALANCE_INVALID","INVOICE_ORIGINAL_EVIDENCE_REQUIRED",
@@ -123,6 +124,7 @@ final class McpErrors {
         if(code.contains("WRITE_CONFLICT")||code.contains("EPOCH_CONFLICT")||code.endsWith("CHANGED"))return "Der gespeicherte Stand hat sich geändert. Neu laden; Eingaben bleiben erhalten.";
         if(code.contains("REPLAY_MISMATCH"))return "Die Anfragekennung gehört zu anderen Angaben. Die ursprüngliche Aktion prüfen.";
         if(code.contains("AUTHORITY")||code.contains("RECONCILIATION"))return "Rechnungsausgabe bleibt gesperrt: aktuellen Original-/Nummernstand und den alleinigen Schreiber nachweisen und erneut prüfen.";
+        if(code.equals("PAYMENT_ZERO_CORRECTION_REQUIRES_EMPTY_ALLOCATIONS"))return "Eine Zahlung vollständig zurücknehmen: Betrag 0, keine neuen Rechnungszuordnungen und einen Korrekturgrund angeben. Die ursprüngliche Zahlung bleibt protokolliert; keine Bankbuchung wird ausgelöst.";
         if(code.equals("PAYMENT_AMOUNT_AND_ALLOCATION_REQUIRED"))return "Zahlung mit Betrag, Datum, Zahlungsart und ausdrücklicher Rechnungszuordnung erfassen. Persönliches b.b. bleibt unabhängig.";
         if(code.contains("DECIMAL")||code.startsWith("MONEY_"))return "Beträge und Mengen mit exakten Dezimalwerten beziehungsweise kleinsten Währungseinheiten prüfen.";
         if(code.startsWith("RECOVERY_"))return "Wiederherstellungscode und Geräteeinrichtung prüfen. Gespeicherte Daten bleiben erhalten.";

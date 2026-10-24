@@ -100,7 +100,7 @@ final class LocalBackupDataset {
         return new JSONObject(browser.toString()).put("checkpointCapturedAt",captured.toString());
     }
     private static JSONArray issued(JSONObject effective)throws Exception {
-        TreeSet<String> ids=new TreeSet<>();JSONArray invoices=effective.getJSONArray("invoices");for(int i=0;i<invoices.length();i++){JSONObject row=invoices.getJSONObject(i);if(!row.optString("issued_at").isEmpty())ids.add(row.getString("id"));}return new JSONArray(ids);
+        TreeSet<String> ids=new TreeSet<>();JSONArray invoices=effective.getJSONArray("invoices");for(int i=0;i<invoices.length();i++){JSONObject row=invoices.getJSONObject(i);if(IssuedInvoiceRules.isIssued(row))ids.add(row.getString("id"));}return new JSONArray(ids);
     }
     private static String asset(Context context,String name)throws Exception {try(InputStream in=context.getAssets().open(name);ByteArrayOutputStream out=new ByteArrayOutputStream()){byte[] b=new byte[32768];int n;while((n=in.read(b))!=-1)out.write(b,0,n);return new String(out.toByteArray(),StandardCharsets.UTF_8);}}
     private static String text(File file)throws Exception {return new String(Files.readAllBytes(file.toPath()),StandardCharsets.UTF_8);}

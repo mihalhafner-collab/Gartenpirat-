@@ -42,7 +42,7 @@ final class LocalMigrationInventory {
                 if(key.equals("invoices")){
                     JSONArray links=row.optJSONArray("worklog_ids");for(int j=0;links!=null&&j<links.length();j++)if(!known.get("worklogs").contains(links.getString(j)))orphanRelations++;
                 }
-                boolean document=(key.equals("invoices")&&!row.optString("issued_at").isEmpty())||key.equals("offers")&&!row.optString("finalized_at").isEmpty();
+                boolean document=(key.equals("invoices")&&IssuedInvoiceRules.isIssued(row))||key.equals("offers")&&!row.optString("finalized_at").isEmpty();
                 if(key.equals("photos")||document){
                     // No fetch, repair, normalization or deletion is permitted here.
                     boolean present=false;

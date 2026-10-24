@@ -39,6 +39,8 @@ public final class LocalWorkflowContractsTests {
         JSONObject payment=request().put("amount_minor",6000).put("paid_on","2027-05-18").put("method","bank").put("expected_ledger_hash","b".repeat(64)).put("allocations",new JSONArray().put(new JSONObject().put("invoice_id","qa_invoice").put("amount_minor",6000).put("expected_record_hash","c".repeat(64))));PixelMcpOwnerTools.validate("record_payment",payment);checks++;
         denied("record_payment",new JSONObject(payment.toString()).put("amount_minor",60.5));denied("record_payment",new JSONObject(payment.toString()).put("paid",true));
         JSONObject correction=new JSONObject(payment.toString()).put("payment_id","qa_payment").put("reason","QA explicit correction");PixelMcpOwnerTools.validate("correct_payment",correction);checks++;
+        JSONObject zeroCorrection=new JSONObject(correction.toString()).put("amount_minor",0).put("allocations",new JSONArray());PixelMcpOwnerTools.validate("correct_payment",zeroCorrection);checks++;
+        denied("record_payment",new JSONObject(payment.toString()).put("amount_minor",0).put("allocations",new JSONArray()));denied("correct_payment",new JSONObject(zeroCorrection.toString()).put("amount_minor",-1));
         correction.remove("reason");denied("correct_payment",correction);
         OwnerApplicationService app=new OwnerApplicationService(new OwnerApplicationTests.MemoryRepository());for(String name:LocalWorkflowTools.WRITES)yes(app.handles(name));
         int[] ports={0,0,0};OwnerRepository routed=(OwnerRepository)java.lang.reflect.Proxy.newProxyInstance(OwnerRepository.class.getClassLoader(),new Class<?>[]{OwnerRepository.class},(object,method,values)->{

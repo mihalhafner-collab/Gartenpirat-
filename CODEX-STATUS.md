@@ -58,16 +58,26 @@ Drive dient ausschließlich Sicherung/Export. Laufende Legacyjournale werden wed
 pauschal gelöscht noch durch einen älteren Cloudstand ersetzt. Nach Wiederherstellung
 bleiben Nummernausgabe und alte externe Kontowiederaktivierung gesperrt.
 
+Die anschließende Bestandsschutzprüfung ergänzt belegte Sevdesk-Altbelege auch ohne
+`issued_at`; es wird kein Ausgabedatum erfunden. Eine vollständige Zahlungsrücknahme
+verwendet `correct_payment` mit Betrag0, leeren Zuordnungen, Grund und ausdrücklicher
+Bestätigung. Negative Gegenbuchung und sichtbare Nullquittung erhalten den Verlauf;
+andere Teilzahlungen bleiben bestehen. Neue Zahlungen mit Betrag0 bleiben gesperrt.
+Der echte gebündelte Android-UI-/SQLite-Pilot und25verschiedene native Bitmap-Fotos
+sind jetzt vollständig als isolierte Testklassen vorbereitet. Der reguläre Gradle-
+Compile von App und AndroidTests bestand in59s; neue native Ausführung folgt erst
+nach gesichertem, sauberem Quellstand und Originalbuild. Kein Geräte-PASS daraus.
+
 ### Bisherige Prüfungen dieses Integrationsstands
 
 | Umgebung / Eingabe | Erwartung | Tatsächlicher Nachweis / Grenze |
 | --- | --- | --- |
 | Vollständige Pythonregression, isolierte Fixtures | Schutzverträge/Privacy/Bestand bestehen |424 PASS,0SKIP;37 vorhandene Ersatzsignier-/QA-Schlüsseltests ausdrücklich ausgeschlossen. Erster Lauf fand den inzwischen durch sachgerechte Koordinatortrennung behobenen Architekturverstoß. |
 | API37/JDK17, Produktions- und AndroidTestquellen | Java-Typen/API-Verbindungen passen zusammen | Gemeinsame javac-Prüfung PASS; kein Gradle-/APK-/Gerätebeweis und nach letzter Härtung erneut zu prüfen. |
-| Tatsächliche gebündelte Assets im Chromium, synthetische Owner-Gegenstelle | Navigation, Geschäftsabläufe, Retry, Rechnung148EUR und60+88EUR |36 neue Pilotfälle PASS; darunter Teilabrechnung und200%Schrift bei320/360/426px. Gemeinsamer nativer UI-/SQLite-Pilot steht noch aus; diese Gegenstelle ist kein Gerätespeichernachweis. |
+| Tatsächliche gebündelte Assets im Chromium, synthetische Owner-Gegenstelle | Navigation, Geschäftsabläufe, Retry, Rechnung148EUR und60+88EUR |39 neue Pilotfälle PASS; darunter Teilabrechnung und200%Schrift bei320/360/426px. Gemeinsamer nativer UI-/SQLite-Pilot steht noch aus; diese Gegenstelle ist kein Gerätespeichernachweis. |
 | Bestehende Browser-/Node-Regressionsskripte, synthetische Fixtures | Bestehende Geschäfts-/Timer-/Entwurfs-/CASabläufe bleiben |48/48 PASS nach zwei belegten CSSkorrekturen und gezielter Anpassung veralteter Navigations-/Palettenfixtures; Originalfehler erhalten. |
 | Vollbackup-/Export-Dateiports,48MiB bei64MiBHeap | Streaming, Abbruch, fehlende/kaputte Datei, Commit/Replay |20 Transfer-,140 Austausch-/Rollback- und38 Portabilitätsprüfungen PASS; reale USB-/Driveanbieter noch nicht geprüft. |
-| Neue JVM-Fachtests / bestehende Regressionen | Restmengen, Entscheidungen, Kontext, Geld, Schemas, Korruption | Fokussierte Suiten PASS; der komplette Runner benötigt die frischen regulären Android-Klassen und finalen UI-Quellfingerprints. Kein vorgetäuschtes Gesamt-PASS. |
+| Gesamter JVM-Runner,72Suiten einschließlich tatsächlichem Repositoryadapter | Restmengen, Entscheidungen, Kontext, Geld, Schemas, Korruption und bestehende Regression |72/72 PASS nach regulärer Android-Kompilierung und finalem Vertragsabgleich; native Persistenz separat offen. |
 | Bisher installierter Original-Cloudbuild mit Schema4 | Vorhandener synthetischer Update-Ausgangsbestand bleibt intakt | Bestehende lifecycle-verify-Prüfung PASS vor neuem Update. Erneutes prepare wurde sicher abgewiesen, weil der vorhandene Ausgangsbestand bereits besteht; nichts gelöscht/überschrieben. |
 
 Zusätzliche Sicherheitsbefunde wurden im Code geschlossen: alte Kameraentwürfe werden
