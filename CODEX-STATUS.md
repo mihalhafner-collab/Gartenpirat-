@@ -372,6 +372,29 @@ abgenommen. OS-Prozesskill (statt WebView-/Store-Reopen), beide finalen Gesamtpi
 vollständige Regression und endgültige Lieferung/Pixel-USB-TalkBack bleiben offen.
 Kein produktiver Schalterwechsel und keine Pixelinstallation.
 
+## Native Finanzabnahme c824a22 und UI-Eingrenzung
+
+App/Runner gemeinsam aus c824a22cd11ff62d4659d5518ac922b62b85b5d1 gebaut,
+Originalsignatur/Privacy/Source-Preservation PASS. Mainfingerprint
+b8d751687f4cebce43a4be0a67842b34a5c4a06ec1b01c9a3e285f322587e8a6,
+App-SHA3c96e785ed8ae6422218f57a5f32800e5f7a859dca616e2ac8385b9bc1728efb,
+Runner-SHA491e650683d6b733fd3a7c1f4cde0d9f364b9c05b0463861cfb4a21614fd3c68.
+Vollständiger Cloud-Updateledger PASS, **56/56 Browser-Suiten PASS**.
+Native Finanzgruppe nun **9/9 PASS,0FAIL**, einschließlich aller drei zuvor
+fehlgeschlagenen Fälle; Reihenfolge der Transaktionsabfragen tatsächlich korrigiert.
+
+Gemeinsame UI-Gruppe weiterhin1PASS/2FAIL, keine Endabnahme: erste Besichtigung
+bleibt mit ungeklärter Aktion erhalten (gültiges Formular, pending=true, kein
+nativer Owner-Fehlercode). Zeitbridge allein löste diesen Übergang nicht. Zweiter
+Pilot erzeugt Pflegevorkommen/Tour und speichert das tatsächliche synthetische Foto;
+weiterer veralteter Testselektor traf den bei Timerarbeit bewusst verborgenen
+Zeitabschnitt statt Material. Test jetzt auf sichtbaren Materialabschnitt gerichtet.
+Zusätzliche ausschließlich lesende Fehlerbeobachtung: öffentliche Werkzeugnamen,
+Ausnahmeart und Quellposition; keine Feldwerte/Beleginhalte. Neuer direkter nativer
+Besichtigungsadapter-Probelauf soll Fachcommit und UI-Übergang getrennt belegen.
+Nur Diagnoserunner wird hierfür erneut gebaut, operative App c824 unverändert.
+OS-Prozesskill, finale vollständige Native-/Gesamt-/Pixelabnahme bleiben offen.
+
 ## Entwicklung erneut gestoppt; vollständige Übergabe für später – 25.10.2026
 
 Der Nutzer hat ausdrücklich angewiesen: „Stoppe die Erstellung speichere für späteren
