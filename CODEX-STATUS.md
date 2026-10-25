@@ -49,6 +49,23 @@ HEAD12496-Regeln scheitert reproduzierbar BROWSER_MEDIA_RECORD_INVALID. Nativer
 Pflegepilot muss die Korrektur noch bestätigen. Produktions-/Testcompile204/32 PASS,
 acht Cloudrunner-Sicherheitsprüfungen PASS; keine native Prozessende-Abnahme daraus.
 
+Zusätzlicher tatsächlicher Datenverlust im bisherigen JS-Vorbereitungspfad behoben:
+Arbeits-/Profil-/Auftragsfotos wurden auch bei gewähltem Original vor dem nativen
+Speichern auf1600/JPEG umgerechnet. Gemeinsame Vorbereitung bewahrt nun originale
+Bytes/MIME/Namen; Qualitätswahl wird dauerhaft mit den Argumenten eingefroren.
+Native Speicherung validiert diesen optionalen Qualitätssnapshot und respektiert
+ihn statt einer später geänderten Einstellung. Alte vorbereitete Aktionen bleiben
+unverändert. Auch bestehender Kunden-/Timer-Fotodialog friert seine Qualität ein.
+40/40Browserfälle in drei vorhandenen Suiten PASS: Original3000px, fehlender MIME,
+Default-JPEG1600, Antwortverlust, identischer Retry nach Einstellungswechsel. Native
+Probe mit4000px-Original und geänderter Einstellung vorbereitet; Ausführung offen.
+
+Zwischenbuild445c6f9 und Lint PASS,429Python/78JVM PASS; nicht signiert/ausgeliefert,
+weil die anschließende Fotokorrektur gemeinsam gebaut werden muss. Nach positivem
+Prozessende-Nachweis bereinigt dessen Test ausschließlich die eigene QA-Origin;
+fehlgeschlagene Verifikation bewahrt ihre isolierten Quellen zur Diagnose. Keine
+App-Datenlöschung. Finaler gemeinsamer Build/Native-/Gesamtprüfung weiterhin offen.
+
 ## Aktive Korrekturrunde nach erneutem Nutzerauftrag
 
 Bezugspunkt cb967fe8218d4fb38cfe99bbb4efb6569b80341c: sauberer Arbeitsbaum,

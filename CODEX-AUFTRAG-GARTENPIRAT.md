@@ -33,6 +33,10 @@ Auch die manuelle Arbeitserfassung verwendet eigene gemeinsame Editorsitzungen u
 einen getrennten dauerhaften Fotoauftrag. Ein bestätigter Arbeitsdatensatz bleibt
 bei Foto-/Bereinigungsfehler bestehen; weitere Arbeit bleibt unabhängig möglich.
 Verzögerte Formular-Defaults dürfen wiederaufgenommene Rechnungsempfänger nicht ändern.
+Bewusst gewähltes „Original“ muss auch bei Arbeits-, Profil- und Auftragsfotos bis
+zur bestätigten Medienablage bytegenau erhalten bleiben. Qualitätswahl, tatsächlicher
+MIME-Typ und Dateiname gehören vor dem ersten Fotoaufruf zur eingefrorenen Aktion;
+spätere Einstellungsänderungen dürfen deren Wiederholung nicht verändern.
 
 Die 16 verbindlichen Abnahmefälle dieses Folgeauftrags werden im bestehenden Status
 unter K01–K16 geführt: unberührt; Mehrfachentwurf/Neustart; Abrechnungskunde abbrechen;

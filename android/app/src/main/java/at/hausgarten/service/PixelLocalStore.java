@@ -437,6 +437,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     static String photoMetadataHash(JSONObject original)throws Exception{JSONObject metadata=new JSONObject(original.toString());metadata.remove("data");metadata.remove("thumbnail_data");metadata.remove("_capture_context");return PixelMcpWriteTools.hash(metadata);}
     synchronized String savePhoto(JSONObject payload) throws Exception {
         JSONObject origin=payload.optJSONObject("_capture_context");payload=new JSONObject(payload.toString());payload.remove("_capture_context");
+        if(payload.has("_photo_quality")&&!java.util.Arrays.asList("original","high","optimized").contains(payload.getString("_photo_quality")))throw new IllegalArgumentException("Ungültiges Foto-Qualitätsprofil. Die Auswahl bleibt als Entwurf erhalten.");
         if (payload.optString("customer_id").isEmpty() || payload.optString("data").isEmpty()) throw new IllegalArgumentException("Kunde und Foto sind erforderlich.");
         if(!payload.optString("capture_time").isEmpty())java.time.Instant.parse(payload.getString("capture_time"));
         JSONObject immutableRequest=new JSONObject(payload.toString());immutableRequest.remove("thumbnail_data");String request=payload.optString("_photo_request_id"),fingerprint=PixelMcpWriteTools.hash(immutableRequest);
@@ -457,7 +458,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
             }
             validateRevierContext(payload,false);
             EntityProtectionRules.validatePhoto(payload,effectiveRows(master,"customers","customer"),effectiveRows(master,"orders","order"),effectiveRows(master,"worklogs","worklog"));
-            payload.put("_photo_quality",new JSONObject(ownerValue("settings","{}")).optString("photo_quality","optimized"));
+            if(!payload.has("_photo_quality"))payload.put("_photo_quality",new JSONObject(ownerValue("settings","{}")).optString("photo_quality","optimized"));
             prepared=photoAttachments.prepare(payload);
             prepareManualChange("photo",payload,findById(effectiveRows(master,"photos","photo"),payload.optString("id")));
             for(java.util.Iterator<String> keys=prepared.metadata.keys();keys.hasNext();){String key=keys.next();payload.put(key,prepared.metadata.get(key));}
