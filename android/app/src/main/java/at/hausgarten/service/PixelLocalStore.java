@@ -359,12 +359,12 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     }
 
     String saveEditorRecord(String kind,JSONObject input)throws Exception {
-        JSONObject payload=new JSONObject(input.toString());String request=payload.optString("_request_id");payload.remove("_request_id");
+        JSONObject payload=new JSONObject(input.toString());String request=payload.optString("_request_id");payload.remove("_request_id");if(kind.equals("worklog")&&payload.optString("_session_id").isEmpty())payload.remove("_session_id");
         if(!request.isEmpty()&&!request.matches("[A-Za-z0-9_-]{8,200}"))throw new IllegalArgumentException("Ungültige Aktionskennung.");
         SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{
             String key="editor_commit:"+PixelMcpWriteTools.hash(request),fingerprint=PixelMcpWriteTools.hash(new JSONObject().put("kind",kind).put("payload",payload));
             if(!request.isEmpty()){String raw=ownerValue(key,"");if(!raw.isEmpty()){JSONObject receipt=new JSONObject(raw);if(!fingerprint.equals(receipt.getString("fingerprint")))throw new IllegalArgumentException("REQUEST_ID_REUSED: Ursprüngliche Speicherung unverändert prüfen.");db.setTransactionSuccessful();return receipt.getString("id");}}
-            String id;switch(kind){case "customer":id=saveCustomer(payload);break;case "order":id=saveOrder(payload);break;case "worklog":id=saveWorklog(payload);break;case "invoice":id=saveInvoiceDraft(payload);break;default:throw new IllegalArgumentException("Unbekannter Editor.");}
+            String id;switch(kind){case "customer":id=saveCustomer(payload);break;case "order":id=saveOrder(payload);break;case "worklog":{JSONObject work=new JSONObject(payload.toString());String session=work.optString("_session_id");work.remove("_session_id");if(!session.isEmpty()&&!request.isEmpty()&&WorkSessionStore.FINALIZED.equals(workSessions().current(session).optString("state")))throw new IllegalArgumentException("Diese Arbeitssitzung ist bereits abgeschlossen. Gespeicherte Arbeit öffnen; eine andere Bearbeitung wurde nicht angewendet.");id=session.isEmpty()?saveWorklog(work):completeWorkSession(session,work,"ui-finalize-"+session);break;}case "invoice":id=saveInvoiceDraft(payload);break;default:throw new IllegalArgumentException("Unbekannter Editor.");}
             if(!request.isEmpty())putOwnerValue(key,new JSONObject().put("formatVersion",1).put("fingerprint",fingerprint).put("id",id).toString());db.setTransactionSuccessful();return id;
         }finally{db.endTransaction();}
     }

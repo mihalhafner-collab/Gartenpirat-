@@ -307,6 +307,25 @@ und erneute vollständige native Abnahme weiterhin OFFEN. Kein Produktivschalter
 keine Betriebsdatenänderung, keine Pixelinstallation. Quellcheckpoint ist keine
 Auslieferungsfreigabe.
 
+Anschließend: Rechnungsempfänger-Rückrufregression erneuert PASS. Manuelle und
+Timerabschlüsse erhalten nun ihren exakten Editorbeleg in derselben vorhandenen
+SQLite-Transaktion; Restoreprüfung liest ausschließlich diesen Beleg, kein alter
+Timerrequest wird neu ausgeführt. Ein anderer Abschluss derselben finalisierten
+Sitzung wird abgewiesen. Neue native Prüfung dafür vorbereitet, noch auszuführen.
+Release-Untergrenze aus versionierten Installationsbeobachtungen statt veraltetem
+festem77; aktuell98, Kandidat99. Zwei negative/positive Guardtests PASS.
+
+Breiter Browserlauf ba7fc64:54/56 PASS; zwei veraltete Entwurfs-/Previewerwartungen
+auf neuen gemeinsamen Speicher und vier Revierbereiche angepasst. Beide gezielt
+anschließend PASS; kein allgemeiner 56/56-Nachweis für den späteren Stand daraus.
+425 Pythonfälle PASS, nachlaufender Workspacegate FAIL wegen eigener synthetischer
+Kennung im fehlgeschlagenen Previewtestlog; derselbe Test inzwischen erfolgreich
+neu ausgeführt, kein Filter abgeschwächt. Gradle ba7fc64 stoppte an diesem Gate,
+keine signierte ba7-APK und keine Auslieferung. Beide korrigierten Browserprüfungen erneut PASS. Danach Quellen- und Workspacegate
+PASS (ignorierte/untracked Dateien eingeschlossen), alle78 JVM-Suiten PASS,
+203 Produktions- und32 Instrumentierungsquellen plus BuildConfig vollständig
+mit javac kompiliert. Erneuter gesicherter Gradlebuild und native Abnahme offen.
+
 ## Entwicklung erneut gestoppt; vollständige Übergabe für später – 25.10.2026
 
 Der Nutzer hat ausdrücklich angewiesen: „Stoppe die Erstellung speichere für späteren

@@ -21,7 +21,7 @@ public class BusinessDataBridge {
         try { requestSync.run(); } catch (RuntimeException unavailable) { /* Durable local pending work remains retryable. */ }
     }
     private String editorFailure(String kind,String raw,Exception failure){
-        try{JSONObject payload=new JSONObject(raw);String request=payload.optString("_request_id");if(!request.isEmpty()){payload.remove("_request_id");if(kind.equals("worklog"))payload.remove("_session_id");String saved=store.ownerValue("editor_commit:"+PixelMcpWriteTools.hash(request),"");if(!saved.isEmpty()){JSONObject receipt=new JSONObject(saved);String fingerprint=PixelMcpWriteTools.hash(new JSONObject().put("kind",kind).put("payload",payload));if(fingerprint.equals(receipt.getString("fingerprint")))return receipt.getString("id");return "ERROR: REQUEST_ID_REUSED: Ursprüngliche Aktion unverändert prüfen.";}}}catch(Exception unreadable){return "ERROR: COMMIT_UNKNOWN: Speicherbeleg ist noch nicht lesbar. Dieselbe Aktion erneut prüfen.";}
+        try{JSONObject payload=new JSONObject(raw);String request=payload.optString("_request_id");if(!request.isEmpty()){payload.remove("_request_id");if(kind.equals("worklog")&&payload.optString("_session_id").isEmpty())payload.remove("_session_id");String saved=store.ownerValue("editor_commit:"+PixelMcpWriteTools.hash(request),"");if(!saved.isEmpty()){JSONObject receipt=new JSONObject(saved);String fingerprint=PixelMcpWriteTools.hash(new JSONObject().put("kind",kind).put("payload",payload));if(fingerprint.equals(receipt.getString("fingerprint")))return receipt.getString("id");return "ERROR: REQUEST_ID_REUSED: Ursprüngliche Aktion unverändert prüfen.";}}}catch(Exception unreadable){return "ERROR: COMMIT_UNKNOWN: Speicherbeleg ist noch nicht lesbar. Dieselbe Aktion erneut prüfen.";}
         return failure instanceof IllegalArgumentException||failure instanceof JSONException?"ERROR: "+failure.getMessage():"ERROR: COMMIT_UNKNOWN: Speicherergebnis ist ungeklärt. Dieselbe Aktion erneut prüfen.";
     }
 @JavascriptInterface public String getState() { try{JSONObject state=store.getState();state.put("master",PixelMcpReadTools.effective(state)).put("ui_effective",true);JSONArray photos=state.getJSONObject("master").getJSONArray("photos");for(int i=0;i<photos.length();i++){JSONObject photo=photos.getJSONObject(i);String thumbnail=photo.optString("thumbnail_storage_name");if(thumbnail.matches("[0-9a-f]{64}\\.jpg"))photo.put("thumbnail_data","content://"+context.getPackageName()+".photothumbnails/"+thumbnail);}return state.toString();}catch(Exception e){return store.getState().toString();} }
@@ -74,7 +74,7 @@ public class BusinessDataBridge {
     catch (Exception error) { return "ERROR: " + error.getMessage(); }
 }
 @JavascriptInterface public String saveWorklog(String value) {
-    try { JSONObject payload=new JSONObject(value);String sessionId=payload.optString("_session_id");payload.remove("_session_id");if(!sessionId.isEmpty())payload.remove("_request_id");String id=sessionId.isEmpty()?store.saveEditorRecord("worklog",payload):store.completeWorkSession(sessionId,payload,"ui-finalize-"+sessionId);notifyCommitted();return id; }
+    try {String id=store.saveEditorRecord("worklog",new JSONObject(value));notifyCommitted();return id; }
     catch (Exception error) { return editorFailure("worklog",value,error); }
 }
 @JavascriptInterface public String saveCustomer(String value) {
