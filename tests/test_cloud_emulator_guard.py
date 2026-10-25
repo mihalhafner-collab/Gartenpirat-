@@ -3,6 +3,9 @@ import importlib.util
 from pathlib import Path
 import unittest
 import tempfile
+import contextlib
+import io
+from types import SimpleNamespace
 from unittest import mock
 
 spec = importlib.util.spec_from_file_location('cloud_emulator_runner', Path(__file__).with_name('run_cloud_emulator_tests.py'))
@@ -49,3 +52,31 @@ class CloudEmulatorGuardTests(unittest.TestCase):
         with mock.patch.object(runner, 'command', side_effect=['1', 'GartenpiratCloud\nOK', '1']) as command:
             runner.require_emulator('unused-adb', 'emulator-5580')
             self.assertEqual(command.call_count, 3)
+
+    def test_process_recovery_kills_only_between_confirmed_phases_and_never_clears_data(self):
+        args = SimpleNamespace(adb='unused-adb', serial='emulator-5580')
+        operations = []
+        def invoke(adb, serial, command, **kwargs):
+            self.assertEqual(serial, args.serial)
+            operations.append(command)
+            if command[2] == 'instrument':
+                mode = command[6]
+                phase, fault = mode.removeprefix('process_').split('_', 1)
+                return 'PASS actual process checkpoint ' + ('prepared ' if phase == 'prepare' else 'verified ') + fault
+            self.assertEqual(command, ['shell', 'am', 'force-stop', 'at.hausgarten.service'])
+            return ''
+        with __import__('synthetic_fixtures').temporary_directory() as directory:
+            with mock.patch.object(runner, 'ROOT', Path(directory)), mock.patch.object(runner, 'require_emulator') as guard, mock.patch.object(runner, 'command', side_effect=invoke):
+                with contextlib.redirect_stdout(io.StringIO()):
+                    runner.process_recovery(args)
+            self.assertEqual(guard.call_count, 9)
+        self.assertEqual([operation[2] for operation in operations], ['instrument', 'force-stop', 'instrument'] * 3)
+
+    def test_failed_process_preparation_never_force_stops_or_runs_verification(self):
+        args = SimpleNamespace(adb='unused-adb', serial='emulator-5580')
+        with __import__('synthetic_fixtures').temporary_directory() as directory:
+            with mock.patch.object(runner, 'ROOT', Path(directory)), mock.patch.object(runner, 'require_emulator'), mock.patch.object(runner, 'command', return_value='FAIL preparation') as command:
+                with self.assertRaises(RuntimeError):
+                    runner.process_recovery(args)
+                self.assertEqual(command.call_count, 1)
+                self.assertIn('instrument', command.call_args.args[2])

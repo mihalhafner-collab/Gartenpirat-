@@ -3,6 +3,52 @@
 Stand: 25. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Aktueller Gesamtstatus der Umstellung, 25.10.2026
+
+Fortsetzungsauftrag aktiv; ältere Pause- und Zwischenberichte unten bleiben datierte
+Historie. Remote-Entwicklungsbranch exakt12496d071049e08ab6df9695a5c3f6b1229e8a0a,
+main weiterhin e499e745832449ce0202d04d9903495248e8b034. Eigene anschließende
+Änderungen werden ohne Integration fremder Quellen geprüft/gesichert.
+
+Pixel erneut ausschließlich lesend über vorhandenes get_capabilities erreicht:
+1.54.9/98, DB4, MCP9/117, sauberer Quellcommit dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c,
+Fingerprint fd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae,
+pixel_drive_v1/android_provider und pixel_drive_online_compare_required.
+Dies ist ein aktueller Runtime-Selbstbericht, keine unabhängige APK-Integritätsprüfung.
+Keine produktive Installation, Migration, Rechnungsfreigabe oder Datenmutation.
+
+Entwicklungsstand12496d0: gemeinsamer lokaler Kern, Schema5,166Werkzeuge/209UI-Aktionen;
+tägliche lokale Sicherung und getrennter automatischer Drive-Upload implementiert,
+auf Pixel nicht eingerichtet/abgenommen. Letzter gemeinsamer Original-Prüfbau
+1.55.0/99, Fingerprint3cb299ef866a15a1a33d78542d6e1c11c98a92e496b91ff9ea9eaa75e838e4f5,
+App-SHA0295a02be67b2bb02594feee72c586fa9c1512be9c2af9b8d0d0f4f40c5408f1,
+Runner-SHA8ae97bc08e5e0130d361653c48e0549ec5ddd5459c04cf3494cf47f6fe68ac40.
+Source-Preservation, Originalsignatur, Artefaktprivacy und Cloud-Updateledger PASS;
+427Python/78JVM-Suiten PASS.56Browser-Suiten zuletzt auf c824 PASS; keine automatische
+Übertragung dieses Nachweises auf spätere Änderungen.
+
+Native Finanzgruppe zuletzt9/9PASS. UI12496d0: direkter Besichtigungsadapter und
+Bestandsschutz PASS, beide vollständigen UI-Piloten noch FAIL. Erster Pilot erreicht
+Objekt/Anfrage/Besichtigung; Angebotsbestätigung fehlt. Zweiter erreicht Pflege/Tour,
+Timer/Material/Foto und gespeicherte Arbeit, scheitert danach an
+BROWSER_MEDIA_RECORD_INVALID bei Sicherungsprüfung. Kein grüner Gesamtstatus.
+
+In Arbeit: gezielte Android-JSON-Null-Behandlung bei minimalen Medien-Löschbelegen,
+sichere Bestätigungsdiagnose und echter OS-Prozessende-Nachweis vor erstem Chunk,
+nach Teilchunk und nach Mediencommit. Dafür bleibt die geprüfte AVD exklusiv gesperrt;
+keine Deinstallation/Datenlöschung. Physischer Pixel, USB-Ziele, TalkBack und produktiver
+Autoritäts-/Belegabgleich bleiben gesonderte offene Geräte-/Betriebsschritte.
+
+Medienfehler gezielt reproduziert: Android wandelt explizites JSON.NULL beim
+Stringzugriff in den Text „null“ um. Die Löschbereinigung erzeugte daraus einen
+ungültigen minimalen Hashbeleg. Fehlende/null Referenzen werden nun vor Zugriff
+unterschieden; Integritätsprüfung bleibt unverändert streng. Vorhandene JVM-Suite
+erweitert:78Prüfungen PASS, tatsächlicher Upload/Write/Delete/aufgeschobenes Cleanup,
+abschließend0Blobs und keine null-Hashbelege. Derselbe Test gegen unveränderte
+HEAD12496-Regeln scheitert reproduzierbar BROWSER_MEDIA_RECORD_INVALID. Nativer
+Pflegepilot muss die Korrektur noch bestätigen. Produktions-/Testcompile204/32 PASS,
+acht Cloudrunner-Sicherheitsprüfungen PASS; keine native Prozessende-Abnahme daraus.
+
 ## Aktive Korrekturrunde nach erneutem Nutzerauftrag
 
 Bezugspunkt cb967fe8218d4fb38cfe99bbb4efb6569b80341c: sauberer Arbeitsbaum,

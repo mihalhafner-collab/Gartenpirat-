@@ -73,7 +73,7 @@ def main():
     parser.add_argument('--adb', default=str(Path(os.environ.get('ANDROID_HOME', '')) / 'platform-tools/adb'))
     parser.add_argument('--apk', type=Path)
     parser.add_argument('--instrumentation-apk', type=Path)
-    parser.add_argument('--mode', choices=['acceptance', 'fresh', 'prepare', 'verify', 'ui', 'estimates', 'provider', 'mcp_workflows', 'fresh_isolated', 'accessibility', 'plants', 'plants_ui', 'revier_core', 'revier_ui','revier_finance','revier_recovery'], default='acceptance')
+    parser.add_argument('--mode', choices=['acceptance', 'fresh', 'prepare', 'verify', 'ui', 'estimates', 'provider', 'mcp_workflows', 'fresh_isolated', 'accessibility', 'plants', 'plants_ui', 'revier_core', 'revier_ui','revier_finance','revier_recovery','process_recovery'], default='acceptance')
     args = parser.parse_args()
     with emulator_lock(args.serial):
         run(args)
@@ -88,6 +88,8 @@ def run(args):
             result = command(args.adb, args.serial, ['install', '--no-streaming', '-r', str(apk)], timeout=180)
             if 'Success' not in result:
                 raise RuntimeError('Emulator APK installation was not confirmed.')
+    if args.mode == 'process_recovery':
+        return process_recovery(args)
     flags = [] if args.mode == 'acceptance' else ['-e', 'release_lifecycle', args.mode]
     folder = ROOT / 'outputs' / 'cloud-emulator'
     folder.mkdir(parents=True, exist_ok=True)
@@ -101,6 +103,34 @@ def run(args):
     print(output)
     if not successful_output(output, args.mode):
         raise SystemExit(1)
+
+
+def process_recovery(args):
+    """Force-stop only the locked dedicated AVD; never clear package data.
+
+    Native preparation deliberately keeps SQLite and WebView open. Verification
+    requires another PID and the same original image, draft and native context.
+    """
+    folder = ROOT / 'outputs' / 'cloud-emulator'
+    folder.mkdir(parents=True, exist_ok=True)
+    combined = []
+    for fault in ('before_chunk', 'after_chunk', 'after_commit'):
+        for phase in ('prepare', 'verify'):
+            require_emulator(args.adb, args.serial)
+            mode = 'process_' + phase + '_' + fault
+            output = command(args.adb, args.serial, ['shell', 'am', 'instrument', '-w',
+                             '-e', 'release_lifecycle', mode,
+                             'at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation'], timeout=180)
+            (folder / (mode + '.log')).write_text(output)
+            expected = 'PASS actual process checkpoint ' + ('prepared ' if phase == 'prepare' else 'verified ') + fault
+            if expected not in output or re.search(r'\bFAIL(?:ED)?\b|Process crashed|INSTRUMENTATION_FAILED', output):
+                raise RuntimeError('Actual process recovery failed; see ' + str(folder / (mode + '.log')))
+            combined.append(output)
+            if phase == 'prepare':
+                require_emulator(args.adb, args.serial)
+                command(args.adb, args.serial, ['shell', 'am', 'force-stop', 'at.hausgarten.service'])
+    (folder / 'process_recovery.log').write_text('\n'.join(combined))
+    print('PASS actual OS process recovery before first chunk, after partial chunk and after native commit; original PNG and complete shared draft preserved')
 
 
 if __name__ == '__main__':

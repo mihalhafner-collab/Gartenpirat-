@@ -164,9 +164,10 @@ public final class PixelMcpInstrumentation extends Instrumentation {
     }
     static final class Isolated extends ContextWrapper {
         // All billing writes below remain isolated like the existing acceptance suite.
-        final String prefix="mcp_qa_"+UUID.randomUUID().toString().replace("-","")+"_";
+        final String prefix;
         final Set<String> preferenceNames=java.util.concurrent.ConcurrentHashMap.newKeySet();
-        Isolated(Context base){super(base);}
+        Isolated(Context base){this(base,"mcp_qa_"+UUID.randomUUID().toString().replace("-","")+"_");}
+        Isolated(Context base,String prefix){super(base);if(!prefix.matches("mcp_qa_[a-z0-9_]{8,80}_"))throw new IllegalArgumentException("Invalid isolated test prefix");this.prefix=prefix;}
         String name(String n){if(!n.matches("[a-zA-Z0-9_.-]+"))throw new IllegalArgumentException("Invalid test path");return prefix+n;}
         @Override public Context getApplicationContext(){return this;}
         @Override public void registerComponentCallbacks(android.content.ComponentCallbacks callback){getBaseContext().registerComponentCallbacks(callback);}
@@ -211,6 +212,13 @@ public final class PixelMcpInstrumentation extends Instrumentation {
     }
     JSONObject args(String request)throws Exception{return SyntheticBusinessData.object().put("request_id",request).put("customer_id","qa_c1").put("work_date","2026-10-10").put("activity","QA Heckenschnitt").put("hours",3);}
     @Override public void onStart(){
+        if(releaseMode.matches("process_(prepare|verify)_(before_chunk|after_chunk|after_commit)")){
+            Bundle result=new Bundle();try{
+                String before=businessSnapshotHash();String phase=releaseMode.substring(releaseMode.startsWith("process_prepare_")?16:15);
+                BackupBrowserUiNativeAcceptance.processPhase(this,releaseMode.startsWith("process_prepare_"),phase);
+                yes(before.equals(businessSnapshotHash()));result.putString("stream","PASS actual process checkpoint "+(releaseMode.startsWith("process_prepare_")?"prepared ":"verified ")+phase+"; default business snapshot unchanged\n");finish(-1,result);
+            }catch(Throwable error){result.putString("stream","FAIL actual process checkpoint "+error.getClass().getSimpleName()+"\n");finish(0,result);}return;
+        }
         if(businessCapture){
             // Restricted to the existing business API. No preferences, tokens,
             // credentials, WebView session files or arbitrary file access.

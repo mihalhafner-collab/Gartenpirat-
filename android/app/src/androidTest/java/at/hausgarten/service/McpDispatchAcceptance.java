@@ -28,15 +28,18 @@ final class McpDispatchAcceptance {
     }
     static void remove(File root){boolean link=java.nio.file.Files.isSymbolicLink(root.toPath());if(root.isDirectory()&&!link){File[] children=root.listFiles();if(children!=null)for(File child:children)remove(child);}if((root.exists()||link)&&!root.delete())throw new AssertionError("Disposable MCP test file not removed");}
     static void cleanup(OwnerNativeAcceptance.Fixture f){
-        Context base=f.context.getBaseContext();String prefix=f.context.prefix;f.store.close();
+        cleanup(f.context,f.store);
+    }
+    static void cleanup(PixelMcpInstrumentation.Isolated context,PixelLocalStore store){
+        Context base=context.getBaseContext();String prefix=context.prefix;store.close();
         // databaseList includes journal/WAL sidecars already removed with their database.
         for(String name:base.databaseList())if(name.startsWith(prefix)&&base.getDatabasePath(name).exists()&&!base.deleteDatabase(name))throw new AssertionError("Disposable MCP database not removed");
         File prefs=new File(base.getApplicationInfo().dataDir,"shared_prefs");String[] names=prefs.list();
-        java.util.Set<String> touched=new java.util.HashSet<>(f.context.preferenceNames);
+        java.util.Set<String> touched=new java.util.HashSet<>(context.preferenceNames);
         if(names!=null)for(String name:names)if(name.startsWith(prefix)&&name.matches(".*\\.xml(?:\\.bak)?"))touched.add(name.replaceFirst("\\.xml(?:\\.bak)?$",""));
         // apply() may not have created its XML yet. Flush every opened preference, not just current files.
         for(String name:touched){if(!base.getSharedPreferences(name,0).edit().commit())throw new AssertionError("Disposable preference writes not settled");base.deleteSharedPreferences(name);}
-        remove(f.context.getFilesDir());remove(f.context.getCacheDir());remove(f.context.getNoBackupFilesDir());
+        remove(context.getFilesDir());remove(context.getCacheDir());remove(context.getNoBackupFilesDir());
         for(String name:base.databaseList())if(name.startsWith(prefix))throw new AssertionError("Disposable MCP database remains");
         names=prefs.list();if(names!=null)for(String name:names)if(name.startsWith(prefix))throw new AssertionError("Disposable MCP preferences remain");
     }
