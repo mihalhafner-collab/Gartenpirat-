@@ -99,7 +99,7 @@
  function editorTitle(kind,editing){const names={property:'Objekt',inquiry:'Anfrage',care:'Pflegeplan',visit:'Einsatz',material:'Material',equipment:'Gerät',inspection:'Besichtigung',direct_acceptance:'Direkte Auftragsannahme',generate:'Besuche',movement:'Materialbewegung',equipment_use:'Gerätenutzung'};return (names[kind]||'Eintrag')+(editing?' bearbeiten':kind==='inspection'?' planen':kind==='generate'?' erzeugen':kind==='movement'?' buchen':kind==='equipment_use'?' zuordnen':' anlegen');}
  function openEditor(kind,row=null,context={}){
   drafts();if(state.editor){if(currentPage==='revier-editor'&&!state.editor.pending)state.editor.values=valuesFromForm();saveDraft();}
-  const saved=row&&drafts().find(edit=>edit.kind===kind&&edit.record_id===row.id);
+  const matches=row?drafts().filter(edit=>edit.kind===kind&&edit.record_id===row.id):context.session_id?drafts().filter(edit=>edit.kind===kind&&edit.values?.session_id===context.session_id&&edit.values?.property_id===context.property_id&&edit.values?.visit_id===(context.visit_id||'')):[];const saved=matches.length===1?matches[0]:null;
   if(saved){state.editor={...saved,saving:false};navigate('revier-editor');drawEditor();focusHeading('revier-editor');return;}
   const values=row?clone(row):{};Object.assign(values,context);const root=kind==='inquiry'||kind==='inspection'?'revier-office':kind==='care'||kind==='visit'||kind==='generate'?'revier-care':kind==='material'||kind==='equipment'||kind==='movement'||kind==='equipment_use'?'revier-office':'revier-properties';
   if(context.property_id){const property=state.rows.get('property:'+context.property_id)||getRecord('property',context.property_id).row;if(property){values.customer_id=property.customer_id;values.property_name=property.name;}}

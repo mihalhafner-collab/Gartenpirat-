@@ -138,6 +138,38 @@ Medienunterbrechungen, beide vollständigen Piloten, isolierter Update-/Restorep
 Originalbuild und Signatur-/Provenienz-/Privacy-Abnahme. Kein neuer signierter
 Kandidat, keine produktive Installation oder Migration; K01–K16 noch offen.
 
+## Gemeinsamer Vertrags- und Android-Prüfstand – 25.10.2026
+
+Vorheriger Remote-Nachweis `4bbed693c0b14b7da29e162605e74f95dd4a7f85`.
+Zusätzlich behoben: unbekannte native Speicherfehler behalten die unveränderte
+Aktion; bestätigte ID wird aus dem vorhandenen atomaren Receipt wiedergewonnen.
+Ungeklärte Formulare sperren ihre Felder, während unabhängige Entwürfe erreichbar
+bleiben. Ausdrückliches Entfernen bereinigt auch ohne formularspezifischen Aufruf
+sämtliche zugehörigen aktiven Formularspiegel. V2-Restore-Projektion beachtet
+minimale Verwerfbelege; gespeicherte V1-Auswahlen bleiben unverändert prüfbar.
+Appwechsel bei Arbeitsbearbeitung erhält nur die Bearbeitung. Nachtrag-Übernahme
+startet bewusst eine Sitzung. Timer-Material öffnet denselben eindeutigen offenen
+Sitzungsentwurf mit ursprünglichem CAS statt eine leere zweite Erfassung.
+
+Inventar nach Review:166 Werkzeuge (72 lesend/94 schreibend),209 semantische
+UI-Aktionen. Genau fünf additive Werkzeuge für direkte Annahme, Revier-Archiv,
+Archivierung/Löschung und rein lesende Aktionsprüfung. Optionaler Besichtigungsmodus
+und Terminvergleich ergänzt. Ursprüngliche P1-Baseline unverändert; der bestehende
+versionierte Erweiterungsvertrag prüft exakte Ergänzungen. Additives
+commit_state=not_committed ausschließlich für nachweislich abgewiesene typed
+Fehler; unbekannte Transportantworten bleiben ungeklärt. Vier geänderte Fehler-
+beobachtungen einzeln an Vorher-/Nachherhash gebunden. Vertragsgate PASS.
+
+Vorliegende JVM-Ausführung: 78 Suiten PASS; anschließendes Vertragsgate nach
+einzeln geprüfter Erweiterung ebenfalls PASS. Gemeinsame Browserregression
+läuft; frühere Einzelspeicher-/automatische Zurück-Speicherung-Erwartungen wurden
+auf gemeinsame Sitzungen, tatsächliche bestätigte IDs und explizites Speichern
+umgestellt. IDs/Werte/Beziehungen und Wiederanlauf bleiben Gegenstand der Assertions.
+Noch kein gemeinsamer Androidlauf/PDF-/Update-/Signaturnachweis dieses Commits.
+Die vorbereiteten Androidproben benutzen den tatsächlichen IDB-/Bridge-/SQLitepfad
+mit Unterbrechung vor erstem Chunk, nach Chunk und nach Commit;25 echte native
+Blobs/>40MiB im verschlüsselten Restore. Kein Ersatz durch künstlich leere Medien.
+
 ## Entwicklung erneut gestoppt; vollständige Übergabe für später – 25.10.2026
 
 Der Nutzer hat ausdrücklich angewiesen: „Stoppe die Erstellung speichere für späteren

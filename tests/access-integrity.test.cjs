@@ -25,7 +25,7 @@ const {pathToFileURL}=require('node:url'),{chromium}=require('./browser.cjs');
    await page.evaluate(()=>openWorklogDetail('qa_w0'));await page.locator('[data-work-window-edit]').click();await page.locator('#edit-worklog-activity').fill('Lokaler Entwurf');
    await page.evaluate(()=>{fixture.master.worklogs[0].notes='Remote Nachtrag';fixture.master.worklogs[0].updated_at='t2';load();});
    const before=await page.evaluate(()=>writes.length);await page.locator('[data-work-window-save]').click();assert.equal(await page.evaluate(()=>writes.length),before);assert.equal(await page.locator('#edit-worklog-activity').inputValue(),'Lokaler Entwurf');assert.match(await page.locator('#worklog-detail-status').innerText(),/inzwischen geändert/);
-   await page.evaluate(()=>cancelWorklogDetail());
+   page.once('dialog',dialog=>dialog.accept());await page.evaluate(()=>cancelWorklogDetail());
   });
   await check('Fresh save includes immutable baseline and only changed form fields',async()=>{
    await page.evaluate(()=>openWorklogDetail('qa_w0'));await page.locator('[data-work-window-edit]').click();await page.locator('#edit-worklog-activity').fill('Kontrolliert geändert');await page.locator('[data-work-window-save]').click();const p=await page.evaluate(()=>writes.at(-1));assert.equal(p._edit_base.notes,'Remote Nachtrag');assert.equal(p._edit_changes.activity,'Kontrolliert geändert');assert.equal(Object.hasOwn(p._edit_changes,'notes'),false);

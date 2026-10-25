@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "authorization": "Explicit Revier Solo completion request24Oct2026: local-only business core, encrypted app backup setup/shared UI-MCP actions and properties/care/tours/material/equipment. Preserve all original117tools and existing timer addition. Explicit25Oct2026 continuation: one fixed token/epoch/CAS-bound trusted-asset restore-draft review bridge; no generic tool dispatch, automatic draft import or productive activation. Explicit25Oct2026 media-completeness repair: nine fixed private BrowserMediaBridge v1 methods, top-document token plus restore identity, immutable private blobs and existing owner_state only; no paths/URI/tool dispatch or business-record creation.",
+  "authorization": "Explicit Revier Solo completion request24Oct2026: local-only business core, encrypted app backup setup/shared UI-MCP actions and properties/care/tours/material/equipment. Preserve all original117tools and existing timer addition. Explicit25Oct2026 continuation: one fixed token/epoch/CAS-bound trusted-asset restore-draft review bridge; no generic tool dispatch, automatic draft import or productive activation. Explicit25Oct2026 media-completeness repair: nine fixed private BrowserMediaBridge v1 methods, top-document token plus restore identity, immutable private blobs and existing owner_state only; no paths/URI/tool dispatch or business-record creation.; 25.10.2026 Korrekturauftrag: direkte Annahme, explizite Revier-Archivierung/Löschung und ausschließlich lesende Prüfung restaurierter Aktionen",
   "baseline_sha256": "a331ea0f3108d513347b04e5572b008292349f15d37e7b57a7647ae83cf7fb93",
   "added_tools": [
     {
@@ -66,6 +66,73 @@
       },
       "name": "get_revier_overview",
       "description": "Liest den vollständigen lokalen Revier-Bestand mit Typ-/Status-/Zeitraumfiltern und Pagination. Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "original_args": {
+            "type": "object"
+          },
+          "original_tool": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "original_tool",
+          "original_args"
+        ]
+      },
+      "name": "inspect_edit_action",
+      "description": "Prüft ausschließlich lesend den vorhandenen Beleg einer ursprünglichen Editoraktion mit unveränderten Argumenten. state=confirmed, content_removed oder unknown; keine Wiederholung einer Geschäftsaktion und keine Freigabe allein anhand restaurierter Requests. Unbekanntes Ergebnis separat anhand aktueller Originale klären.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "offset": {
+            "maximum": 1000000,
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "maximum": 100,
+            "type": "integer",
+            "minimum": 1
+          },
+          "entity": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500,
+            "enum": [
+              "property",
+              "inquiry",
+              "care_plan",
+              "visit",
+              "material",
+              "equipment"
+            ]
+          }
+        },
+        "required": []
+      },
+      "name": "list_revier_archive",
+      "description": "Liest archivierte Revier-Einträge mit Eintragsart und Pagination, unveränderten IDs sowie record_hash. Kein Wiederöffnen oder Löschen durch Lesen.",
       "annotations": {
         "idempotentHint": true,
         "openWorldHint": false,
@@ -1154,6 +1221,193 @@
         "additionalProperties": false,
         "type": "object",
         "properties": {
+          "inquiry_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "evidence": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "billing_customer_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "accepted_at": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 80
+          },
+          "confirmed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "request_id",
+          "inquiry_id",
+          "expected_record_hash",
+          "accepted_at",
+          "evidence",
+          "confirmed"
+        ]
+      },
+      "name": "accept_inquiry_direct",
+      "description": "Nimmt eine Anfrage ausdrücklich ohne vorheriges Angebot an: tatsächlichen Annahmezeitpunkt, Nachweis und gegebenenfalls getrennten Rechnungsempfänger angeben. Aktuellen record_hash prüfen. Derselbe request_id erzeugt höchstens einen verknüpften Auftrag; kein Rechnungsversand.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "entity_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "confirmed": {
+            "type": "boolean"
+          },
+          "entity": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500,
+            "enum": [
+              "property",
+              "inquiry",
+              "care_plan",
+              "visit",
+              "material",
+              "equipment"
+            ]
+          }
+        },
+        "required": [
+          "request_id",
+          "entity",
+          "entity_id",
+          "expected_record_hash",
+          "confirmed",
+          "archived"
+        ]
+      },
+      "name": "set_revier_archived",
+      "description": "Archiviert oder öffnet genau einen ausdrücklich bestätigten Revier-Eintrag mit aktuellem record_hash. Aktive Einsätze zuerst gesondert beenden; laufende Arbeit und Abhängigkeiten bleiben geschützt. Stabile request_id bei Wiederholung.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "entity_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "confirmed": {
+            "type": "boolean"
+          },
+          "entity": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500,
+            "enum": [
+              "property",
+              "inquiry",
+              "care_plan",
+              "visit",
+              "material",
+              "equipment"
+            ]
+          }
+        },
+        "required": [
+          "request_id",
+          "entity",
+          "entity_id",
+          "expected_record_hash",
+          "confirmed"
+        ]
+      },
+      "name": "purge_revier_entity",
+      "description": "Entfernt genau einen bereits archivierten Revier-Eintrag nach aktueller Versions- und Abhängigkeitsprüfung und ausdrücklicher Bestätigung. Minimale Lösch-/Request-Belege verhindern Wiederbelebung; historische Vollsicherungen bleiben gesondert erhalten. Keine produktive Löschung durch Tests.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": true,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "mode": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500,
+            "enum": [
+              "first",
+              "reschedule",
+              "additional",
+              "reopen"
+            ]
+          },
           "starts_at": {
             "minLength": 1,
             "type": "string",
@@ -1176,6 +1430,11 @@
           "timezone": {
             "type": "string",
             "maxLength": 100
+          },
+          "expected_appointment_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
           },
           "ends_at": {
             "minLength": 1,
@@ -4718,6 +4977,66 @@
       "barrier": "Klartextweitergabe erfordert ausdrückliche Wahl und Bestätigung des SAF-/Sharesheet-Ziels am Gerät. Datenformat und Prüfung verwenden den gemeinsamen Exportdienst; MCP wählt keine fremden Freigaben oder Konten.",
       "platform_only": true,
       "test_scope": "Native device consent/handoff boundary; shared services tested with isolated providers and physical limits reported separately."
+    },
+    {
+      "id": "revier.accept_inquiry_direct",
+      "area": "revier",
+      "label": "Direkte Auftragsannahme mit Zeitpunkt und Nachweis",
+      "source": "revier-solo-ui.js",
+      "kind": "business",
+      "mcp": [
+        "accept_inquiry_direct"
+      ],
+      "platform_only": false,
+      "test_scope": "Shared production repository/receipt rules, browser fault regressions and isolated Android probes; final execution evidence in CODEX-STATUS.md"
+    },
+    {
+      "id": "revier.list_revier_archive",
+      "area": "revier",
+      "label": "Archivierte Revier-Einträge lesen",
+      "source": "trash-ui.js",
+      "kind": "business",
+      "mcp": [
+        "list_revier_archive"
+      ],
+      "platform_only": false,
+      "test_scope": "Shared production repository/receipt rules, browser fault regressions and isolated Android probes; final execution evidence in CODEX-STATUS.md"
+    },
+    {
+      "id": "revier.set_revier_archived",
+      "area": "revier",
+      "label": "Revier-Eintrag ausdrücklich archivieren oder wieder öffnen",
+      "source": "trash-ui.js",
+      "kind": "business",
+      "mcp": [
+        "set_revier_archived"
+      ],
+      "platform_only": false,
+      "test_scope": "Shared production repository/receipt rules, browser fault regressions and isolated Android probes; final execution evidence in CODEX-STATUS.md"
+    },
+    {
+      "id": "revier.purge_revier_entity",
+      "area": "revier",
+      "label": "Archivierten Revier-Eintrag nach Abhängigkeitsprüfung endgültig entfernen",
+      "source": "trash-ui.js",
+      "kind": "business",
+      "mcp": [
+        "purge_revier_entity"
+      ],
+      "platform_only": false,
+      "test_scope": "Shared production repository/receipt rules, browser fault regressions and isolated Android probes; final execution evidence in CODEX-STATUS.md"
+    },
+    {
+      "id": "revier.inspect_edit_action",
+      "area": "revier",
+      "label": "Restaurierte Speicheraktion ausschließlich anhand ihres vorhandenen Belegs prüfen",
+      "source": "owner-client.js",
+      "kind": "business",
+      "mcp": [
+        "inspect_edit_action"
+      ],
+      "platform_only": false,
+      "test_scope": "Shared production repository/receipt rules, browser fault regressions and isolated Android probes; final execution evidence in CODEX-STATUS.md"
     }
   ],
   "added_bridges": [
@@ -4746,6 +5065,32 @@
       "before": "c57d2586fb3f2e8e1f229b4e3919466a4b8c068cc8f7b9edf18eec6c96762943",
       "after": "6e152cb6d6e5451f7e5c568995fe42cd73a4c383169cfb12bda865ee2b640917",
       "reason": "Lokale Entwürfe erhalten exakte money_minor-Summen; vorhandener ausdrücklich bestimmter Subunternehmer-Rechnungsempfänger wird über BillingRules.recipient(order) geprüft, statt Einsatzkunde und Rechnungsempfänger gleichzusetzen. Im lokalen Pfad dürfen bekannte Teilmengen nur bis zur verbleibenden geprüften Leistungsmenge in einen neuen Entwurf gelangen."
+    }
+  ],
+  "modified_observations": [
+    {
+      "name": "qa_case_18",
+      "before": "f76afa9380340134f14e5641f5392b6d57e17e38cc9c3559296de15f859dd166",
+      "after": "d46c933b08b526a43ccf3955b23289320d035d6e46c1c59803a193a21a550231",
+      "reason": "Additive commit_state=not_committed only for explicit pre-commit typed rejection; unknown I/O and expired/replay-mismatch requests remain unconfirmed."
+    },
+    {
+      "name": "qa_case_19",
+      "before": "f76afa9380340134f14e5641f5392b6d57e17e38cc9c3559296de15f859dd166",
+      "after": "d46c933b08b526a43ccf3955b23289320d035d6e46c1c59803a193a21a550231",
+      "reason": "Additive commit_state=not_committed only for explicit pre-commit typed rejection; unknown I/O and expired/replay-mismatch requests remain unconfirmed."
+    },
+    {
+      "name": "qa_case_20",
+      "before": "f76afa9380340134f14e5641f5392b6d57e17e38cc9c3559296de15f859dd166",
+      "after": "d46c933b08b526a43ccf3955b23289320d035d6e46c1c59803a193a21a550231",
+      "reason": "Additive commit_state=not_committed only for explicit pre-commit typed rejection; unknown I/O and expired/replay-mismatch requests remain unconfirmed."
+    },
+    {
+      "name": "qa_case_21",
+      "before": "03c8556c30db6de64b88cf097e02d944d46dc1be310e70415fb8c88fd10c1c39",
+      "after": "fde883b9bb4ddf2838c04f34904971d50eb3c0f97d00394dc352d8ce88b6d3ed",
+      "reason": "Additive commit_state=not_committed only for explicit pre-commit typed rejection; unknown I/O and expired/replay-mismatch requests remain unconfirmed."
     }
   ]
 }

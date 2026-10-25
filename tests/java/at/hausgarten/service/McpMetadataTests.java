@@ -11,7 +11,7 @@ public final class McpMetadataTests {
         JSONObject first=tools.call("get_capabilities",new JSONObject()).getJSONObject("data");
         if(!first.getString("tool_catalog_hash").equals(PixelMcpWriteTools.hash(first.getJSONArray("tools"))))throw new AssertionError("Catalog hash differs from advertised tools");
         first.getJSONArray("tools").remove(0);
-        if(tools.call("get_capabilities",new JSONObject()).getJSONObject("data").getJSONArray("tools").length()!=161)throw new AssertionError("Caller changed subsequent metadata");
+        if(tools.call("get_capabilities",new JSONObject()).getJSONObject("data").getJSONArray("tools").length()!=166)throw new AssertionError("Caller changed subsequent metadata");
         for(String name:new String[]{"get_capabilities","integration_health"}){
             for(int i=0;i<5;i++)tools.call(name,new JSONObject());long[] samples=new long[15];
             for(int i=0;i<samples.length;i++){long start=System.nanoTime();JSONObject data=tools.call(name,new JSONObject()).getJSONObject("data");samples[i]=System.nanoTime()-start;if(data.getString("tool_catalog_hash").isEmpty())throw new AssertionError("Missing hash");}

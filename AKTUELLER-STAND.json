@@ -1,12 +1,12 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-25T10:17:31.553606+00:00",
+  "updated_at_utc": "2026-10-25T10:31:25.365465+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
     "version_name": "1.55.0",
     "version_code": 99,
-    "status": "CORRECTION_IN_PROGRESS_REQUEST_RECOVERY_LOCAL_CLEANUP_NATIVE_PROBES_PENDING",
+    "status": "CORRECTION_IN_PROGRESS_CONTRACTS_REVIEWED_NATIVE_BUILD_NEXT",
     "base_git_sha": "419d0b4bfcbb7108d00296619831a04ddc3273b0",
     "last_original_app_source_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "main_at_start": "e499e745832449ce0202d04d9903495248e8b034",
@@ -219,7 +219,16 @@
       "K15": "OPEN",
       "K16": "OPEN"
     },
-    "correction_checkpoint": "Revier140/media60/backup26/sync123/posted dispatch21 PASS;archive/delete and read-only restored requests;native probes prepared, not executed;NO RELEASE"
+    "correction_checkpoint": "Remote predecessor4bbed69;166 tools/209 semantic actions exact evolution PASS;JVM 78 suites PASS;browser final regression and native probes pending",
+    "correction_host_contracts": {
+      "jvm_suites_pass": 78,
+      "tools": 166,
+      "read": 72,
+      "write": 94,
+      "ui_actions": 209,
+      "native_fault_probes": "PREPARED_NOT_EXECUTED",
+      "signed_candidate": "NOT_BUILT"
+    }
   },
   "verified_release_source": {
     "version": "1.54.1",

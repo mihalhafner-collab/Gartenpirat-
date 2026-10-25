@@ -434,6 +434,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
             prepareManualChange("invoice",payload,old);String result=saveAction("invoice","inv_mobile_",payload);db.setTransactionSuccessful();return result;
         }finally{db.endTransaction();}
     }
+    static String photoMetadataHash(JSONObject original)throws Exception{JSONObject metadata=new JSONObject(original.toString());metadata.remove("data");metadata.remove("thumbnail_data");return PixelMcpWriteTools.hash(metadata);}
     synchronized String savePhoto(JSONObject payload) throws Exception {
         if (payload.optString("customer_id").isEmpty() || payload.optString("data").isEmpty()) throw new IllegalArgumentException("Kunde und Foto sind erforderlich.");
         if(!payload.optString("capture_time").isEmpty())java.time.Instant.parse(payload.getString("capture_time"));
@@ -462,7 +463,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
             payload.remove("data");payload.remove("_photo_quality");payload.put("sync_state","local_saved");payload.put("filename",prepared.metadata.getString("storage_name"));
             payload.remove("thumbnail_data");
             saveAttachmentMetadata(database,entityId,prepared.metadata,"local");
-            String saved=saveAction("photo", "pho_mobile_", payload);if(!request.isEmpty())putOwnerValue("photo-ui:"+request,new JSONObject().put("hash",fingerprint).put("id",saved).toString());database.setTransactionSuccessful();committed=true;return saved;
+            String saved=saveAction("photo", "pho_mobile_", payload);if(!request.isEmpty())putOwnerValue("photo-ui:"+request,new JSONObject().put("hash",fingerprint).put("metadata_hash",photoMetadataHash(immutableRequest)).put("id",saved).toString());database.setTransactionSuccessful();committed=true;return saved;
         } finally {
             database.endTransaction();
             if(!committed&&prepared!=null&&prepared.created){

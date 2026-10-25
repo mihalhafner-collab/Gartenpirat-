@@ -110,7 +110,7 @@ def approved_revier_local_workflows(expected, current, delta, repair, timer, evo
     import copy
     names = {
         'get_full_backup_status', 'get_restore_status', 'request_full_backup', 'retry_full_backup',
-        'get_revier_overview', 'list_properties', 'get_property', 'create_property',
+        'get_revier_overview', 'accept_inquiry_direct', 'list_revier_archive', 'set_revier_archived', 'purge_revier_entity', 'inspect_edit_action', 'list_properties', 'get_property', 'create_property',
         'update_property', 'list_inquiries', 'get_inquiry', 'create_inquiry',
         'update_inquiry', 'plan_inquiry_inspection', 'list_care_plans',
         'create_care_plan', 'update_care_plan', 'generate_care_visits', 'list_visits',
@@ -134,18 +134,18 @@ def approved_revier_local_workflows(expected, current, delta, repair, timer, evo
     additions = evolution.get('added_tools', [])
     if (evolution.get('version') != 1 or not evolution.get('authorization')
             or evolution.get('baseline_sha256') != hashlib.sha256(BASELINE.read_bytes()).hexdigest()
-            or len(additions) != 43 or {item.get('name') for item in additions} != names
+            or len(additions) != 48 or {item.get('name') for item in additions} != names
             or len(evolution.get('added_bridges', [])) != 12
             or set(evolution['added_bridges']) != bridges):
         raise ValueError('Unapproved Revier local-workflow contract scope')
     actions = evolution.get('added_ui_actions', [])
-    if len(actions) != 47 or len({a.get('id') for a in actions}) != 47:
+    if len(actions) != 52 or len({a.get('id') for a in actions}) != 52:
         raise ValueError('Unapproved Revier local UI scope')
     mapped = [a for a in actions if a.get('kind') == 'business']
     platform = [a for a in actions if a.get('kind') == 'platform_or_presentation']
     platform_ids = {'platform.recovery_vollbackup', 'platform.vollbackup_saf',
                     'platform.vollrestore_bestaetigen', 'platform.portabilitaet_ziel'}
-    if (len(mapped) != 43 or {tuple(a.get('mcp', [])) for a in mapped} != {(n,) for n in names}
+    if (len(mapped) != 48 or {tuple(a.get('mcp', [])) for a in mapped} != {(n,) for n in names}
             or len(platform) != 4 or {a.get('id') for a in platform} != platform_ids
             or any(a.get('mcp') != [] or not a.get('barrier') or not a.get('platform_only') for a in platform)):
         raise ValueError('Unapproved Revier local UI/MCP mapping')
@@ -216,6 +216,21 @@ def approved_revier_local_workflows(expected, current, delta, repair, timer, evo
         if previous['contracts'].get(name) != change['after']:
             return ['contracts']
         previous['contracts'][name] = change['before']
+    observation_hashes = {
+        'qa_case_18':'d46c933b08b526a43ccf3955b23289320d035d6e46c1c59803a193a21a550231',
+        'qa_case_19':'d46c933b08b526a43ccf3955b23289320d035d6e46c1c59803a193a21a550231',
+        'qa_case_20':'d46c933b08b526a43ccf3955b23289320d035d6e46c1c59803a193a21a550231',
+        'qa_case_21':'fde883b9bb4ddf2838c04f34904971d50eb3c0f97d00394dc352d8ce88b6d3ed',
+    }
+    observations=evolution.get('modified_observations',[])
+    if len(observations)!=4 or {c.get('name') for c in observations}!=set(observation_hashes):
+        raise ValueError('Unapproved explicit noncommit error-envelope scope')
+    for change in observations:
+        name=change['name']
+        if change.get('before')!=expected['observations'][name] or change.get('after')!=observation_hashes[name] or not change.get('reason'):
+            raise ValueError('Unapproved explicit noncommit error-envelope hash')
+        if previous['observations'].get(name)!=change['after']:return ['observations']
+        previous['observations'][name]=change['before']
     return approved_revier_timer(expected, previous, delta, repair, timer)
 
 def main():

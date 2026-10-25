@@ -55,7 +55,7 @@ function bridge(){const source=fs.readFileSync(path.join(__dirname,'planning-ui.
   });
   await check('97 planning draft survives overview changes',async()=>{
    await page.evaluate(()=>PlanningUI.open());await page.locator('#planning-new').click();await page.locator('#appointment-form [name=title]').fill('QA retained overview draft');await page.evaluate(()=>openPage('home'));
-   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('hausgarten.planning.draft.v1')).data.title),'QA retained overview draft');
+   assert.equal(await page.evaluate(()=>HGFormDrafts.list('appointment')[0].data.title),'QA retained overview draft');
   });
   await check('97 150 and200percent text preserve touch targets text and horizontal bounds',async()=>{
    for(const percent of [150,200]){

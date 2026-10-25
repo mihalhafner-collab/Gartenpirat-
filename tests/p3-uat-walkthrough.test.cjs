@@ -32,13 +32,13 @@ function fixture(name){
    for(const [key,value]of Object.entries({name:'QA UAT Garten',street:'QA Gartenweg 1',postal_code:'0000',city:'QA Beispielort'}))await p.locator('#customer-form [name='+key+']').fill(value);
    await p.locator('#customer-form button[type=submit]').click();
    assert.equal(await p.evaluate(()=>writes.at(-1).row.phone),'');assert.equal(await p.evaluate(()=>writes.at(-1).row.email),'');
-   await p.locator('#customer-search').fill('QA UAT Garten');await p.locator('[data-customer-open=qa-new]').click();
+   await p.locator('#customer-search').fill('QA UAT Garten');const newId=await p.evaluate(()=>writes.find(x=>x.kind==='customer').row.id);await p.locator('[data-customer-open="'+newId+'"]').click();
    await p.getByRole('button',{name:'Kundendaten bearbeiten',exact:true}).click();
    await p.locator('#customer-form [name=phone]').fill('+430000000');await p.locator('#customer-form button[type=submit]').click();
    assert.equal(await p.evaluate(()=>writes.at(-1).row.phone),'+430000000');
-   await p.evaluate(()=>editCustomer('qa-new'));await p.locator('#customer-form [name=email]').fill('qa-uat@example.invalid');
+   await p.evaluate(id=>editCustomer(id),newId);await p.locator('#customer-form [name=email]').fill('qa-uat@example.invalid');
    await p.locator('#customer-form button[type=submit]').click();assert.equal(await p.evaluate(()=>writes.at(-1).row.email),'qa-uat@example.invalid');
-   await p.evaluate(()=>editCustomer('qa-new'));await p.locator('#customer-form [name=active]').uncheck();await p.locator('#customer-form button[type=submit]').click();
+   await p.evaluate(id=>editCustomer(id),newId);await p.locator('#customer-form [name=active]').uncheck();await p.locator('#customer-form button[type=submit]').click();
    assert.equal(await p.evaluate(()=>writes.at(-1).row.active),0);await p.evaluate(()=>openPage('customers'));
    await p.locator('#customer-search').fill('QA UAT Garten');assert.equal(await p.locator('[data-customer-open=qa-new]').count(),1);
   });

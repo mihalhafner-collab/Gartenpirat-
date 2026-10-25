@@ -20,6 +20,10 @@ public class BusinessDataBridge {
         // failure cannot turn that local commit into a failed save or a second create.
         try { requestSync.run(); } catch (RuntimeException unavailable) { /* Durable local pending work remains retryable. */ }
     }
+    private String editorFailure(String kind,String raw,Exception failure){
+        try{JSONObject payload=new JSONObject(raw);String request=payload.optString("_request_id");if(!request.isEmpty()){payload.remove("_request_id");String saved=store.ownerValue("editor_commit:"+PixelMcpWriteTools.hash(request),"");if(!saved.isEmpty()){JSONObject receipt=new JSONObject(saved);String fingerprint=PixelMcpWriteTools.hash(new JSONObject().put("kind",kind).put("payload",payload));if(fingerprint.equals(receipt.getString("fingerprint")))return receipt.getString("id");return "ERROR: REQUEST_ID_REUSED: Ursprüngliche Aktion unverändert prüfen.";}}}catch(Exception unreadable){return "ERROR: COMMIT_UNKNOWN: Speicherbeleg ist noch nicht lesbar. Dieselbe Aktion erneut prüfen.";}
+        return failure instanceof IllegalArgumentException||failure instanceof JSONException?"ERROR: "+failure.getMessage():"ERROR: COMMIT_UNKNOWN: Speicherergebnis ist ungeklärt. Dieselbe Aktion erneut prüfen.";
+    }
 @JavascriptInterface public String getState() { try{JSONObject state=store.getState();state.put("master",PixelMcpReadTools.effective(state)).put("ui_effective",true);JSONArray photos=state.getJSONObject("master").getJSONArray("photos");for(int i=0;i<photos.length();i++){JSONObject photo=photos.getJSONObject(i);String thumbnail=photo.optString("thumbnail_storage_name");if(thumbnail.matches("[0-9a-f]{64}\\.jpg"))photo.put("thumbnail_data","content://"+context.getPackageName()+".photothumbnails/"+thumbnail);}return state.toString();}catch(Exception e){return store.getState().toString();} }
 @JavascriptInterface public String planningTime(String value,String zone,String offset){try{return AppointmentRules.local(value,zone,offset).toString();}catch(Exception e){return "ERROR: "+e.getMessage();}}
 @JavascriptInterface public String ownerCall(String name,String arguments){
@@ -71,11 +75,11 @@ public class BusinessDataBridge {
 }
 @JavascriptInterface public String saveWorklog(String value) {
     try { JSONObject payload=new JSONObject(value);String sessionId=payload.optString("_session_id");payload.remove("_session_id");String id=sessionId.isEmpty()?store.saveEditorRecord("worklog",payload):store.completeWorkSession(sessionId,payload,"ui-finalize-"+sessionId);notifyCommitted();return id; }
-    catch (Exception error) { return "ERROR: " + error.getMessage(); }
+    catch (Exception error) { return editorFailure("worklog",value,error); }
 }
 @JavascriptInterface public String saveCustomer(String value) {
     try { String id = store.saveEditorRecord("customer",new JSONObject(value)); notifyCommitted(); return id; }
-    catch (Exception error) { return "ERROR: " + error.getMessage(); }
+    catch (Exception error) { return editorFailure("customer",value,error); }
 }
 @JavascriptInterface public String inspectOrder(String id) {
     try{return OrderReviewRules.inspect(store.getState(),id).toString();}
@@ -87,7 +91,7 @@ public class BusinessDataBridge {
 }
 @JavascriptInterface public String saveOrder(String value) {
     try { String id = store.saveEditorRecord("order",new JSONObject(value)); notifyCommitted(); return id; }
-    catch (Exception error) { return "ERROR: " + error.getMessage(); }
+    catch (Exception error) { return editorFailure("order",value,error); }
 }
 @JavascriptInterface public String getPhotoStorageSummary(){try{return store.photoAttachmentStore().storageSummary().toString();}catch(Exception e){return "ERROR: Speicherstatus nicht verfügbar.";}}
 @JavascriptInterface public String getOwnerSettings(){return store.ownerValue("settings","{}");}
@@ -97,7 +101,7 @@ public class BusinessDataBridge {
 @JavascriptInterface public String getInvoiceShareHandoff(){return store.ownerValue("invoice_share_handoff", "{}");}
 @JavascriptInterface public String saveInvoice(String value) {
     try{String id=store.saveEditorRecord("invoice",new JSONObject(value));notifyCommitted();return id;}
-    catch(Exception error){return "ERROR: "+error.getMessage();}
+    catch(Exception error){return editorFailure("invoice",value,error);}
 }
 @JavascriptInterface public String requestInvoiceIssue(String identifier) {
     try{JSONObject all=PixelMcpReadTools.effective(store.getState()),invoice=PixelMcpWriteTools.find(all.getJSONArray("invoices"),identifier);store.execute("request_invoice_issue",new JSONObject().put("request_id","ui-issue-"+UUID.randomUUID()).put("invoice_id",identifier).put("expected_record_hash",PixelMcpWriteTools.hash(PixelMcpEntityWriteTools.recordForHash("invoice",invoice))).put("confirmed",true));return "OK";}catch(Exception e){return "ERROR: "+e.getMessage();}
