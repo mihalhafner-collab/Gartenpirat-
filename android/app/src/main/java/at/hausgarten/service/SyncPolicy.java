@@ -6,7 +6,7 @@ import org.json.*;
 final class SyncPolicy {
     static final int MAX_ATTEMPTS=8;
     static boolean automaticAllowed(JSONObject s,long now) {
-        return s.optBoolean("configured")&&(s.optBoolean("automatic_enabled",true)||s.optBoolean("manual_requested"))&&!s.optBoolean("user_action_required")
+        return s.optBoolean("configured")&&(s.optBoolean("automatic_enabled",true)||s.optBoolean("manual_requested"))&&(!s.optBoolean("user_action_required")||s.optString("last_error_code").equals("REMOTE_STATE_REFERENCE_MISSING")&&s.optInt("retry_count")<MAX_ATTEMPTS&&s.optLong("next_retry")>0)
             &&(s.optInt("retry_count")<MAX_ATTEMPTS||s.optString("last_error_code").equals("NETWORK_UNAVAILABLE"))&&s.optLong("next_retry")<=now;
     }
     static long retryDelay(int attempt,long retryAfter) {

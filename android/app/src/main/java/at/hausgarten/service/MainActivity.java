@@ -128,6 +128,7 @@ public class MainActivity extends Activity implements McpSyncHost {
     @Override protected void onResume() {
         foreground = new java.lang.ref.WeakReference<>(this);
         super.onResume();
+        if(preferences!=null&&preferences.getBoolean("background_work_pending",false))requestAutomaticSync(0);
         refreshPlanningView();
         if(BuildConfig.UI_PREVIEW)return;
         android.net.ConnectivityManager connectivity=getSystemService(android.net.ConnectivityManager.class);
@@ -585,17 +586,30 @@ public class MainActivity extends Activity implements McpSyncHost {
         } else performDriveSync(Uri.parse(saved), true);
     }
 
+    private void backgroundState(boolean pending,String code) {
+        try{preferences.edit().putBoolean("background_work_pending",pending).putString("background_work_error_code",code).commit();}catch(RuntimeException unavailable){/* Local business data and persisted pending actions remain authoritative. */}
+    }
     private void requestAutomaticSync(long delayMs) {
         if(BuildConfig.UI_PREVIEW)return;
-        if(Looper.myLooper()!=Looper.getMainLooper()){syncHandler.post(()->requestAutomaticSync(delayMs));return;}
-        DriveSyncCoordinator.noteRequest();
-        long undoDelay = store == null ? 0 : store.remainingDeleteUndoMs();
-        long now=System.currentTimeMillis(),previous=automaticWakeup.due();
-        long due=automaticWakeup.request(now,delayMs,Math.max(preferences.getLong("drive_next_retry",0),undoDelay>0?now+undoDelay+200:0));
-        if(previous==due)return;
-        syncHandler.removeCallbacks(delayedAutomaticSync);
-        syncHandler.postDelayed(delayedAutomaticSync,Math.max(0,due-now));
-        DriveSyncJob.schedule(this,Math.max(0,due-now)); // Durable fallback if Android terminates the foreground process.
+        backgroundState(true,"");
+        Runnable schedule=()->{
+            try{
+                if(!LocalAuthorityGuard.legacySyncAllowed(this)){
+                    JSONObject config=new BackupSettingsRepository(this,store).read();
+                    if(!config.optBoolean("enabled")||!config.optBoolean("keyConfigured")||!FullBackupController.validTarget(config)){backgroundState(true,"BACKUP_SETUP_REQUIRED");return;}
+                    if(!FullBackupJob.schedule(this,Math.max(0,delayMs))){backgroundState(true,"BACKGROUND_SCHEDULER_UNAVAILABLE");return;}
+                }else{
+                    DriveSyncCoordinator.noteRequest();long undoDelay=store==null?0:store.remainingDeleteUndoMs(),now=System.currentTimeMillis();
+                    long due=automaticWakeup.request(now,delayMs,Math.max(preferences.getLong("drive_next_retry",0),undoDelay>0?now+undoDelay+200:0));
+                    syncHandler.removeCallbacks(delayedAutomaticSync);
+                    if(!syncHandler.postDelayed(delayedAutomaticSync,Math.max(0,due-now)))throw new IllegalStateException();
+                    if(!DriveSyncJob.schedule(this,Math.max(0,due-now)))throw new IllegalStateException();
+                }
+                backgroundState(false,"");
+            }catch(Exception unavailable){backgroundState(true,"BACKGROUND_SCHEDULING_FAILED");}
+        };
+        try{if(Looper.myLooper()==Looper.getMainLooper())schedule.run();else if(!syncHandler.post(schedule))backgroundState(true,"BACKGROUND_HANDLER_UNAVAILABLE");}
+        catch(RuntimeException unavailable){backgroundState(true,"BACKGROUND_HANDLER_UNAVAILABLE");}
     }
 
     private void automaticSyncIfConfigured() {
@@ -635,7 +649,7 @@ public class MainActivity extends Activity implements McpSyncHost {
         try {
             JSONObject current=store.getState(),status=DriveSyncCoordinator.status(this,current.getJSONObject("sync_queue"));
             status=SyncPolicy.describe(status,current.getJSONObject("sync_queue"),syncInProgress.get()||DriveSyncCoordinator.running()||driveFolderPicking,System.currentTimeMillis());
-            int duplicates=preferences.getInt("drive_duplicate_files",0);status.put("duplicate_files",duplicates).put("warning",duplicates>0?"Gleichnamige Dateien prüfen. Originale bleiben erhalten.":"");
+            int duplicates=preferences.getInt("drive_duplicate_files",0);status.put("background_work_pending",preferences.getBoolean("background_work_pending",false)).put("background_work_error_code",preferences.getString("background_work_error_code","")).put("duplicate_files",duplicates).put("warning",duplicates>0?"Gleichnamige Dateien prüfen. Originale bleiben erhalten.":"");
             if(DriveAccount.configured(this)){String progress=store.ownerValue("drive-meta:"+preferences.getString("drive_folder_id","")+":progress","");if(!progress.isEmpty())status.put("transfer_progress",new JSONObject(progress));}
             return status;
         }catch(Exception error){return new JSONObject();}

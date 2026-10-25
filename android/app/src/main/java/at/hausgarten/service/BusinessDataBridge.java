@@ -70,11 +70,11 @@ public class BusinessDataBridge {
     catch (Exception error) { return "ERROR: " + error.getMessage(); }
 }
 @JavascriptInterface public String saveWorklog(String value) {
-    try { JSONObject payload=new JSONObject(value);String sessionId=payload.optString("_session_id");payload.remove("_session_id");String id=sessionId.isEmpty()?store.saveWorklog(payload):store.completeWorkSession(sessionId,payload,"ui-finalize-"+sessionId);notifyCommitted();return id; }
+    try { JSONObject payload=new JSONObject(value);String sessionId=payload.optString("_session_id");payload.remove("_session_id");String id=sessionId.isEmpty()?store.saveEditorRecord("worklog",payload):store.completeWorkSession(sessionId,payload,"ui-finalize-"+sessionId);notifyCommitted();return id; }
     catch (Exception error) { return "ERROR: " + error.getMessage(); }
 }
 @JavascriptInterface public String saveCustomer(String value) {
-    try { String id = store.saveCustomer(new JSONObject(value)); notifyCommitted(); return id; }
+    try { String id = store.saveEditorRecord("customer",new JSONObject(value)); notifyCommitted(); return id; }
     catch (Exception error) { return "ERROR: " + error.getMessage(); }
 }
 @JavascriptInterface public String inspectOrder(String id) {
@@ -86,7 +86,7 @@ public class BusinessDataBridge {
     catch(Exception error){return "ERROR: "+error.getMessage();}
 }
 @JavascriptInterface public String saveOrder(String value) {
-    try { String id = store.saveOrder(new JSONObject(value)); notifyCommitted(); return id; }
+    try { String id = store.saveEditorRecord("order",new JSONObject(value)); notifyCommitted(); return id; }
     catch (Exception error) { return "ERROR: " + error.getMessage(); }
 }
 @JavascriptInterface public String getPhotoStorageSummary(){try{return store.photoAttachmentStore().storageSummary().toString();}catch(Exception e){return "ERROR: Speicherstatus nicht verfügbar.";}}
@@ -96,7 +96,7 @@ public class BusinessDataBridge {
 @JavascriptInterface public String setPersonalPaid(String value){return repository.setPersonalPaid(value);}
 @JavascriptInterface public String getInvoiceShareHandoff(){return store.ownerValue("invoice_share_handoff", "{}");}
 @JavascriptInterface public String saveInvoice(String value) {
-    try{String id=store.saveInvoiceDraft(new JSONObject(value));notifyCommitted();return id;}
+    try{String id=store.saveEditorRecord("invoice",new JSONObject(value));notifyCommitted();return id;}
     catch(Exception error){return "ERROR: "+error.getMessage();}
 }
 @JavascriptInterface public String requestInvoiceIssue(String identifier) {

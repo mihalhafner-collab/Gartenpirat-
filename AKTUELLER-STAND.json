@@ -1,12 +1,12 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-25T07:47:27.411324+00:00",
+  "updated_at_utc": "2026-10-25T08:19:39.213471+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
     "version_name": "1.55.0",
     "version_code": 99,
-    "status": "STOPPED_ON_USER_REQUEST_PAUSED_WIP_NOT_RELEASED",
+    "status": "CORRECTION_REQUEST_ACTIVE_FORM_LOCAL_COMMIT_RESTART_DELETE",
     "base_git_sha": "419d0b4bfcbb7108d00296619831a04ddc3273b0",
     "last_original_app_source_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "main_at_start": "e499e745832449ce0202d04d9903495248e8b034",
@@ -144,7 +144,8 @@
         "status": "PASS",
         "files": 2335,
         "operational_seed_rows": 0
-      }
+      },
+      "resumed_by": "explicit correction request after cb967fe"
     },
     "native_measurements": {
       "environment": "API30x86_64CloudEmulatorWithoutKVM;noPixelClaim",
@@ -198,6 +199,25 @@
       "latest_media_overall": "UNTESTED_WIP;missing APIs may break whole compile",
       "full_original_candidate": "NOT BUILT",
       "physical_pixel_actions": "NONE"
+    },
+    "correction_base_git_sha": "cb967fe8218d4fb38cfe99bbb4efb6569b80341c",
+    "correction_acceptance": {
+      "K01": "OPEN",
+      "K02": "OPEN",
+      "K03": "OPEN",
+      "K04": "OPEN",
+      "K05": "OPEN",
+      "K06": "OPEN",
+      "K07": "OPEN",
+      "K08": "OPEN",
+      "K09": "OPEN",
+      "K10": "OPEN",
+      "K11": "OPEN",
+      "K12": "OPEN",
+      "K13": "OPEN",
+      "K14": "OPEN",
+      "K15": "OPEN",
+      "K16": "OPEN"
     }
   },
   "verified_release_source": {

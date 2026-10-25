@@ -35,6 +35,9 @@ public final class SyncFailureRulesTests {
         // A failed preference write after the snapshot transaction is a status warning, never another transfer attempt.
         JSONObject saved=decision(new SyncIoFailure("STATUS_NOT_SAVED"),7);yes(saved.getInt("retry_count")==0);yes(!saved.getBoolean("drive_sync_failed"));yes(!saved.getBoolean("user_action_required"));
         yes(!saved.getBoolean("schedule_retry"));yes(saved.getLong("next_retry")==0);yes(display(saved).getString("state").equals("status_warning"));yes(display(saved).getString("detail").startsWith("Daten gesichert"));
+        JSONObject missing=decision(new SyncIoFailure("REMOTE_STATE_REFERENCE_MISSING"),0);yes(missing.getBoolean("user_action_required"));yes(missing.getBoolean("schedule_retry"));yes(missing.getLong("retry_delay")==900000);
+        JSONObject ready=new JSONObject(missing.toString()).put("configured",true).put("automatic_enabled",true);yes(!SyncPolicy.automaticAllowed(ready,missing.getLong("next_retry")-1));yes(SyncPolicy.automaticAllowed(ready,missing.getLong("next_retry")));
+        JSONObject exhaustedReference=decision(new SyncIoFailure("REMOTE_STATE_REFERENCE_MISSING"),7);yes(exhaustedReference.getBoolean("user_action_required"));yes(!exhaustedReference.getBoolean("schedule_retry"));yes(exhaustedReference.getLong("next_retry")==0);yes(!SyncPolicy.automaticAllowed(new JSONObject(exhaustedReference.toString()).put("configured",true).put("automatic_enabled",true),Long.MAX_VALUE));
         System.out.println("PASS "+checks+" production sync classification/status/backoff/privacy checks");
     }
 }

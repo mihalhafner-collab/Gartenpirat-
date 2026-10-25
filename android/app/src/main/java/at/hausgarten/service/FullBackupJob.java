@@ -41,10 +41,11 @@ public final class FullBackupJob extends JobService {
                 if(previous==null||previous.getNetworkType()!=JobInfo.NETWORK_TYPE_NONE||!matchesStorageScope(context,previous.getExtras())){if(scheduler.schedule(specification(context,true,settings.optBoolean("unmeteredOnly",true),0))!=JobScheduler.RESULT_SUCCESS)return false;installedNew=true;}
             }else scheduler.cancel(PERIODIC);
             JSONObject pending=new BackupAutomation(context,store).pending(System.currentTimeMillis());
-            if(pending.optBoolean("has_local"))scheduleId(context,LOCAL,pending.optLong("next_local_at"),settings.optBoolean("unmeteredOnly",true));
-            else if(installedNew)scheduleId(context,LOCAL,System.currentTimeMillis(),settings.optBoolean("unmeteredOnly",true));
-            if(pending.optBoolean("has_upload"))scheduleId(context,ONCE,pending.optLong("next_upload_at"),settings.optBoolean("unmeteredOnly",true));
-            return true;
+            boolean accepted=true;
+            if(pending.optBoolean("has_local"))accepted=scheduleId(context,LOCAL,pending.optLong("next_local_at"),settings.optBoolean("unmeteredOnly",true));
+            else if(installedNew)accepted=scheduleId(context,LOCAL,System.currentTimeMillis(),settings.optBoolean("unmeteredOnly",true));
+            if(pending.optBoolean("has_upload"))accepted=scheduleId(context,ONCE,pending.optLong("next_upload_at"),settings.optBoolean("unmeteredOnly",true))&&accepted;
+            return accepted;
         }
     }
     /** Must be called after the controller/owner transaction commits. */

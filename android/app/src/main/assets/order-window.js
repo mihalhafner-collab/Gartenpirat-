@@ -1,11 +1,11 @@
 /* A compact order overview with reachable actions. Existing storage stays unchanged. */
 (() => {
   'use strict';
-  const fieldIds = ['order-edit-select','order-edit-customer','order-edit-title','order-edit-description','order-edit-location','order-edit-date','order-edit-status','order-edit-visible'];
+  const fieldIds = ['order-edit-select','order-edit-customer','order-billing-customer','order-edit-title','order-edit-description','order-edit-location','order-edit-date','order-edit-status','order-edit-visible'];
   let active = null;
   const baseOpen = window.openDirectEditWindow;
   const baseClose = window.closeDirectEditWindow;
-  const snapshot = () => fieldIds.map(id => {const input=document.getElementById(id);return [id,input?.type==='checkbox'?input.checked:input?.value||''];});
+  const snapshot = () => [...new Set([...fieldIds,...[...document.querySelectorAll('#order-management-card input,#order-management-card select,#order-management-card textarea')].map(e=>e.id).filter(Boolean)])].map(id => {const input=document.getElementById(id);return [id,input?.type==='checkbox'?input.checked:input?.value||''];});
   function restore(values) {for(const [id,value] of values){const input=document.getElementById(id);if(input)input.type==='checkbox'?input.checked=value:input.value=value;}}
   function changed(){return active && JSON.stringify(snapshot())!==JSON.stringify(active.initial);}
   function detail(label,value){const item=document.createElement('div'),term=document.createElement('dt'),text=document.createElement('dd');term.textContent=label;text.textContent=String(value??'').trim()||'Noch nicht angegeben';item.append(term,text);return item;}
@@ -16,7 +16,7 @@
     const heading=document.createElement('h3');heading.textContent=document.getElementById('order-edit-title').value||'Auftrag';
     const list=document.createElement('dl');
     const customer=document.getElementById('order-edit-customer');
-    const values=[['Kunde',customer.selectedOptions[0]?.textContent],['Status',document.getElementById('order-edit-status').value],['Termin',document.getElementById('order-edit-date').value?new Date(document.getElementById('order-edit-date').value+'T12:00:00').toLocaleDateString('de-AT'):''],['Einsatzort',document.getElementById('order-edit-location').value],['Beschreibung',document.getElementById('order-edit-description').value]];
+    const values=[['Kunde',customer.selectedOptions[0]?.textContent],['Abrechnung an',document.getElementById('order-billing-customer')?.selectedOptions[0]?.textContent],['Status',document.getElementById('order-edit-status').value],['Termin',document.getElementById('order-edit-date').value?new Date(document.getElementById('order-edit-date').value+'T12:00:00').toLocaleDateString('de-AT'):''],['Einsatzort',document.getElementById('order-edit-location').value],['Beschreibung',document.getElementById('order-edit-description').value]];
     values.forEach(([label,value])=>list.appendChild(detail(label,value)));
     summary.append(heading,list);
     active.mode='overview';card.hidden=true;summary.hidden=false;dialog.querySelector('#direct-edit-title').textContent='Auftrag im Überblick';
@@ -36,16 +36,16 @@
   function cleanup(){
     if(!active)return;
     const {card,summary,footer,dialog,hiddenNodes}=active;
-    card.hidden=false;hiddenNodes.forEach(([node,hidden])=>node.hidden=hidden);summary.remove();footer.remove();dialog.classList.remove('order-window-dialog');active=null;
+    if(active.lockedFields)active.lockedFields.forEach(([e,disabled])=>e.disabled=disabled);card.hidden=false;hiddenNodes.forEach(([node,hidden])=>node.hidden=hidden);summary.remove();footer.remove();dialog.classList.remove('order-window-dialog');active=null;
   }
   function goBack(){
     if(!active)return false;
-    if(active.mode==='edit'&&!active.isNew){if(changed()&&!confirm('Änderungen verwerfen und zur Auftragsübersicht zurückgehen?'))return true;restore(active.initial);showOverview();return true;}
+    if(active.mode==='edit'){if(changed()&&!confirm('Änderungen verwerfen und zur Auftragsübersicht zurückgehen?'))return true;if(active.edit.pending){active.status.textContent='Zuerst dieselbe Speicherung erneut prüfen.';return true;}HGFormDrafts.remove(active.edit,{discard:true,formId:'order-management-card'});restore(active.initial);if(active.isNew){window.closeDirectEditWindow(true);return true;}active.edit=HGFormDrafts.start('order',active.initial,{record_id:document.getElementById('order-edit-select').value,base:window.orderEditBaseline||null});showOverview();return true;}
     window.closeDirectEditWindow();return true;
   }
   window.handleOrderWindowBack=goBack;
   window.openDirectEditWindow=function(cardId,title,options={}){
-    baseOpen(cardId,title);
+    if(baseOpen(cardId,title)===false)return false;
     if(cardId!=='order-management-card')return;
     cleanup();
     const dialog=document.getElementById('direct-edit-dialog'),card=document.getElementById(cardId);
@@ -58,26 +58,33 @@
     fieldIds.slice(1).forEach(id=>{const input=document.getElementById(id),label=input?.closest('label')||input?.previousElementSibling;if(label?.tagName==='LABEL')label.htmlFor=id;});
     dialog.classList.add('order-window-dialog');dialog.querySelector('.direct-edit-content').prepend(summary);dialog.append(footer);
     active={dialog,card,summary,footer,hiddenNodes,initial:snapshot(),isNew:!selected.value,status:footer.querySelector('p'),mode:'overview'};
-    footer.querySelector('[data-order-window-edit]').addEventListener('click',showEditor);
+    const prior=window.resumingOrderEdit||HGFormDrafts.list('order').find(edit=>selected.value&&edit.context?.record_id===selected.value);window.resumingOrderEdit=null;
+    active.edit=prior||HGFormDrafts.start('order',active.initial,{record_id:selected.value,base:window.orderEditBaseline||null});
+    if(prior){active.initial=prior.baseline;window.orderEditBaseline=prior.context.base;if(options.edit||active.isNew)restore(prior.values);}
+    card.dataset.editSession=active.edit.session_id;
+    footer.querySelector('[data-order-window-edit]').addEventListener('click',()=>{restore(active.edit.values);showEditor();});
     footer.querySelector('[data-order-window-back]').addEventListener('click',goBack);
     footer.querySelector('[data-order-window-save]').addEventListener('click',()=>document.getElementById('order-edit-save').click());
     dialog.addEventListener('close',cleanup,{once:true});
-    if(options.edit||active.isNew)showEditor();else showOverview();
+    if(options.edit||active.isNew){showEditor();if(active.edit.pending){active.lockedFields=[...card.querySelectorAll('input,select,textarea')].map(e=>[e,e.disabled]);active.lockedFields.forEach(([e])=>e.disabled=true);active.status.textContent='Speicherergebnis ungeklärt. Dieselbe Aktion über Änderungen speichern prüfen.';}}else showOverview();
   };
+  function retainOrder(){if(!active)return true;try{active.edit.values=snapshot();HGFormDrafts.put(active.edit);return true;}catch(error){active.status.textContent='Entwurf konnte nicht gesichert werden. Eingaben bleiben geöffnet.';return false;}}
+  window.currentOrderEdit=()=>{if(!retainOrder())throw Error('FORM_DRAFT_NOT_SAVED');return active?.edit;};
   window.closeDirectEditWindow=function(force=false){
-    if(active&&changed()&&!force&&!confirm('Ungespeicherte Auftragsänderungen verwerfen?'))return false;
-    const result=baseClose(force);if(result!==false){if(!force&&!window.orderDraftForCustomer)window.workEntryOrderDraft=false;cleanup();}return result;
+    if(active&&!force&&!retainOrder())return false;
+    const result=baseClose(true);if(result!==false){if(!force&&!window.orderDraftForCustomer)window.workEntryOrderDraft=false;cleanup();}return result;
   };
-  window.markOrderWindowSaved=function(){if(active)active.initial=snapshot();};
-  const priorBack=window.handleAndroidBack;window.handleAndroidBack=function(){if(active?.dialog.open)return goBack();return priorBack();};
-  // Creating a customer is a deliberate round trip; the existing handler preserves this draft.
-  document.addEventListener('click',event=>{if(active&&event.target.closest('#order-add-customer'))active.initial=snapshot();},true);
+  window.markOrderWindowSaved=function(){if(active){active.edit.pending=null;HGFormDrafts.remove(active.edit,{formId:'order-management-card'});active.initial=snapshot();}};
+  window.handleOrderWindowBack=()=>{if(!active)return false;return window.closeDirectEditWindow();};
+  const priorBack=window.handleAndroidBack;window.handleAndroidBack=function(){if(active?.dialog.open)return window.handleOrderWindowBack();return priorBack();};
+  document.addEventListener('input',event=>{if(active?.mode==='edit'&&active.card.contains(event.target))retainOrder();});
+  document.addEventListener('change',event=>{if(active?.mode==='edit'&&active.card.contains(event.target))retainOrder();});
   document.addEventListener('click',event=>{
     if(!event.target.closest('#add-order'))return;
     event.preventDefault();event.stopImmediatePropagation();
-    ['order-edit-select','order-edit-customer','order-edit-title','order-edit-description','order-edit-location','order-edit-date'].forEach(id=>document.getElementById(id).value='');
+    ['order-edit-select','order-edit-customer','order-billing-customer','order-edit-title','order-edit-description','order-edit-location','order-edit-date'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('order-edit-status').value='Geplant';document.getElementById('order-edit-visible').checked=true;
-    window.openDirectEditWindow('order-management-card','Auftrag anlegen',{edit:true});
+    window.orderEditBaseline=null;window.openDirectEditWindow('order-management-card','Auftrag anlegen',{edit:true});
   },true);
 })();
 

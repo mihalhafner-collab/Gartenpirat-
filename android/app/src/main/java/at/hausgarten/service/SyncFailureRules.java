@@ -40,8 +40,8 @@ final class SyncFailureRules {
         boolean configuration=code.equals("FOLDER_NOT_SELECTED")||code.equals("DEVICE_ID_MISSING");
         int attempts=statusOnly?0:configuration?1:Math.min(SyncPolicy.MAX_ATTEMPTS,Math.max(0,previous)+1);
         boolean paused=!statusOnly&&(needs||attempts>=SyncPolicy.MAX_ATTEMPTS&&!code.equals("NETWORK_UNAVAILABLE"));
-        long delay=SyncPolicy.retryDelay(attempts,error instanceof DriveRestClient.Failure?((DriveRestClient.Failure)error).retryAfter:0);
-        boolean schedule=!statusOnly&&!paused;
+        long delay=code.equals("REMOTE_STATE_REFERENCE_MISSING")?Math.min(6L*60*60*1000,15L*60*1000*(1L<<Math.min(attempts-1,4))):SyncPolicy.retryDelay(attempts,error instanceof DriveRestClient.Failure?((DriveRestClient.Failure)error).retryAfter:0);
+        boolean schedule=!statusOnly&&(!paused||code.equals("REMOTE_STATE_REFERENCE_MISSING")&&attempts<SyncPolicy.MAX_ATTEMPTS);
         return new JSONObject().put("last_error_code",code).put("last_error",friendly(error)).put("last_error_detail",detail(error))
             .put("drive_sync_failed",!statusOnly).put("cloud_confirmed",false).put("user_action_required",paused).put("retry_count",attempts)
             .put("next_retry",schedule?now+delay:0).put("schedule_retry",schedule).put("retry_delay",schedule?delay:0);

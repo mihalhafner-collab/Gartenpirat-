@@ -80,8 +80,9 @@ final class BackupJobRepository {
     JSONArray records()throws Exception {
         JSONArray records=new JSONArray();try(Cursor rows=store.getReadableDatabase().rawQuery("SELECT key FROM owner_state WHERE key LIKE 'backup_job:%' ORDER BY key",null)){
             while(rows.moveToNext()){
-                String id=rows.getString(0).substring("backup_job:".length());JSONObject row=new JSONObject(store.ownerValue(key(id),""));if(!id.equals(row.optString("backupId")))throw new IOException("BACKUP_JOB_FORMAT_UNSUPPORTED");
+                String id=rows.getString(0).substring("backup_job:".length());try{JSONObject row=new JSONObject(store.ownerValue(key(id),""));if(!id.equals(row.optString("backupId")))throw new IOException("BACKUP_JOB_FORMAT_UNSUPPORTED");
                 records.put(new JSONObject().put("job",view(row)).put("sameInstallation",installation.equals(row.optString("installationId"))).put("sameRestoreEpoch",epoch.equals(row.optString("restoreEpoch"))));
+                }catch(Exception invalid){String safeId=id.matches("[A-Za-z0-9_-]{8,100}")?id:"invalid_"+PixelMcpWriteTools.hash(id).substring(0,32);records.put(new JSONObject().put("job",new JSONObject().put("backupId",safeId).put("formatVersion",0).put("phase","NEEDS_USER_ACTION").put("createdAt","").put("lastErrorCode","BACKUP_JOB_FORMAT_UNSUPPORTED")).put("sameInstallation",false).put("sameRestoreEpoch",false).put("invalid",true));}
             }
         }return records;
     }

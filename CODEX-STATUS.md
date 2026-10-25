@@ -3,6 +3,61 @@
 Stand: 25. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Aktive Korrekturrunde nach erneutem Nutzerauftrag
+
+Bezugspunkt cb967fe8218d4fb38cfe99bbb4efb6569b80341c: sauberer Arbeitsbaum,
+Remote-main e499e745832449ce0202d04d9903495248e8b034 und acht Branches frisch
+abgeglichen, offene PRs0. Keine neue fremde Integration. Cloud-Netzpolicy enforced,
+Originalsignierbindungen ready, keine Geheimwerte gelesen/ausgegeben. Regeln,
+Arbeitsübersicht und E009 erneut gelesen. Ausschließlich Cloud, bestehender Branch.
+Die folgenden Pausenberichte bleiben historische Nachweise.
+
+Baseline: bestehende BrowserMediaRepositoryRulesTests gegen vorhandenen Code neu
+kompiliert/ausgeführt:45 PASS. Fehlende Prepare/Cancel-APIs an der tatsächlichen
+Bridge bestätigt. Korrekturrunde implementiert zunächst diesen durchgängigen Pfad;
+noch keine neue Build-/Gesamtabnahme. Keine produktiven Daten-/Geräteaktionen.
+
+Abnahmetabelle (K01–K16 entsprechen den 16 konkreten Nutzerfällen): alle zunächst
+OFFEN bis zum tatsächlichen gemeinsamen Ablaufnachweis. K09/Medien und K11/Jobs
+bilden die ersten vertikalen Korrekturen; danach K01–K08/K12–K15, abschließend K16.
+
+### Korrekturcheckpoint 25.10.2026 – fortlaufende Implementierung
+
+Keine Gesamt-/Releasefreigabe. Java-Produktionscompile:202 Quellen PASS (JDK17,
+vorhandener Android-Classpath; kein APK-Build). JVM-Suiten bis einschließlich
+TrashWorkflow PASS; UiMcpParity stoppt an noch nicht neu geprüften Quellfingerprints.
+Gezielt: BrowserMediaRepositoryRules48, BackupScheduleRules26 und ergänzte
+SyncFailureRules PASS. Browser: Revier13 und Angebotsfluss6 PASS auf Arbeitsquellen,
+Chromium mit synthetischen Bridge-Ports; keine native SQLite-/Gerätebehauptung.
+Datenschutz: source2335 Dateien/0 Betriebs-Seeds PASS, workspace5917 einschließlich
+ignored/untracked PASS. Laufprotokolle im privaten Workspace, keine Betriebsdaten.
+
+Implementiert: fehlende Prepare/Cancel-Medienintents; offene Schreibvorgänge sperren
+nur vollständige Sicherungsaufnahme, gleiche Schlüsselversionen im Device-Mirror
+bleiben getrennt. Uploadaktionen setzen mit stabiler Kennung/Offset fort. Defekte
+Sicherungsjobs werden einzeln ausgewiesen; tägliche lokale Fälligkeit richtet sich
+nach lokal geprüftem Aufnahmestand statt Uploadende. Tatsächlich gepostete
+Hintergrundplanung ist abgefangen, ausstehender Zustand wird beim Resume wieder
+versucht. Legacy-Veröffentlichung bleibt geschützt; fehlende Referenz erlaubt nur
+begrenzte erneute Leseprüfungen, nach acht Versuchen bewusste Diagnose.
+
+Gemeinsamer Bearbeitungsdienst im vorhandenen owner-client: einzelne stabile
+Sitzungen, vollständige Baseline/Values, eingefrorene Requests, minimale
+Verwerfbelege. Revier-Neuanlagen überschreiben vorhandene Entwürfe auch nach Reload
+nicht. Unberührtes Öffnen/revidierte Eingaben erzeugen keinen Entwurf; Verwerfen
+weist verspätete put-Aufrufe ab. Angebote übernehmen bestätigte ID vor Detailabruf
+und behalten ungeklärte ursprüngliche Anlageaktion. Auftragsbaseline enthält
+Abrechnungsempfänger und dynamische ID-Felder. Kundenrückkehr erfolgt nicht mehr
+über Timer, sondern nur nach bestätigter Speicherung. Native Legacy-Formularwrites
+haben optionalen atomaren Request-Receipt im vorhandenen owner_state.
+
+Weiter offen und in Arbeit: vollständige Kunden-/Auftrags-/Rechnungs-/Termin- und
+Arbeitsformularabnahme; gezielte Medienteilfehler, optionaler Restore-Entwurf ohne
+globale UI-Sperre, aktive Entwurfskopien/Dateibereinigung und Revier-Löschwege,
+Annahme-/Besichtigungsregeln. Danach geprüfte Fingerprints/Inventare, gemeinsame
+native Piloten/Regression, sauber gesicherter Originalbuild mit Signatur/Provenienz.
+K01–K16 bleiben bis zum jeweiligen vollständigen Endstandnachweis OFFEN.
+
 ## Entwicklung erneut gestoppt; vollständige Übergabe für später – 25.10.2026
 
 Der Nutzer hat ausdrücklich angewiesen: „Stoppe die Erstellung speichere für späteren

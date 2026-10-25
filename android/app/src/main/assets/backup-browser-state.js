@@ -8,7 +8,7 @@
  const safe=e=>!e.disabled&&!e.readOnly&&!['password','file','submit','button','reset','image'].includes(String(e.type).toLowerCase())&&!SECRET.test([e.id,e.name,e.autocomplete].join('.'))&&!['current-password','new-password','one-time-code'].includes(e.autocomplete);
  const formKey=(form,index)=>form?.id||form?.getAttribute('name')||'form-'+index;
  function forms(){
-  const found=[...document.forms].filter(f=>visible(f)&&!f.closest('#hg-backup-draft-dialog'));
+  const found=[...document.forms].filter(f=>visible(f)&&!f.closest('#hg-backup-draft-dialog')&&!(f.dataset.editSession&&window.HGFormDrafts?.removed(f.dataset.editSession)));
   return found.map((form,index)=>{
    const fields=[...form.querySelectorAll('input,textarea,select')].filter(e=>safe(e)&&e.type!=='hidden'&&visible(e));
    const identity=[...form.querySelectorAll('input[type=hidden],select')].filter(e=>safe(e)&&/(^id$|_id$|Id$)/.test(e.name||e.id)).map(e=>[e.name||e.id,String(e.value)]).sort((a,b)=>a[0].localeCompare(b[0]));
@@ -25,12 +25,13 @@
  function schedule(){if(timer)clearTimeout(timer);timer=setTimeout(flush,300);}
  function notice(message){let banner=document.getElementById('hg-backup-draft-banner');if(!banner){banner=document.createElement('div');banner.id='hg-backup-draft-banner';banner.setAttribute('role','status');banner.style.cssText='position:relative;box-sizing:border-box;max-width:100%;overflow-wrap:anywhere;margin:8px;padding:12px;background:#F8EFE5;color:#33261A;font:inherit;';document.body.append(banner);}banner.textContent=message;}
  function review(){
-  if(typeof window.AndroidData?.restoredDraftReview==='function'){try{const state=restoreCall('status');if(state.available){restoreCall('open');return;}}catch(_){notice('Erhaltene Wiederherstellungsentwürfe konnten noch nicht geprüft werden. Vorhandene Werte bleiben geschützt.');return;}}
+  if(typeof window.AndroidData?.restoredDraftReview==='function'){try{const state=restoreCall('status');if(state.review_pending){restoreCall('open');return;}}catch(_){notice('Erhaltene Wiederherstellungsentwürfe konnten noch nicht geprüft werden. Andere Formularentwürfe bleiben erreichbar.');}}
   let saved;try{saved=read();}catch(_){notice('Gespeicherte Formularwerte konnten nicht gelesen werden. Vorhandene Daten wurden nicht verändert.');return;}
   let dialog=document.getElementById('hg-backup-draft-dialog');if(!dialog){dialog=document.createElement('dialog');dialog.id='hg-backup-draft-dialog';dialog.style.cssText='max-width:min(90vw,640px);box-sizing:border-box;background:#FCFAF7;color:#33261A;font:inherit;overflow-wrap:anywhere;';document.body.append(dialog);}dialog.replaceChildren();
   const heading=document.createElement('h2');heading.textContent='Gespeicherte Formularentwürfe';heading.tabIndex=-1;dialog.append(heading);
   const note=document.createElement('p');note.textContent='Diese Werte werden erst nach deinem Vergleich in einen geöffneten Editor übernommen. Gespeicherte Geschäftsdaten werden hier nicht geändert.';dialog.append(note);
-  const entries=Object.entries(saved.pages);if(!entries.length){const empty=document.createElement('p');empty.textContent='Keine zusätzlich erfassten Formularwerte vorhanden.';dialog.append(empty);}
+  for(const edit of window.HGFormDrafts?.list()||[]){const section=document.createElement('section'),title=document.createElement('h3');title.textContent=({order:'Auftrag',customer:'Kunde',offer:'Angebot'}[edit.kind]||'Revier-Vorgang')+(edit.pending?' · Speicherergebnis ungeklärt':' · ungespeicherte Bearbeitung');section.append(title);const resume=document.createElement('button');resume.type='button';resume.textContent='Diesen Vorgang fortsetzen';resume.onclick=()=>{dialog.close();if(edit.context?.workflow==='revier')window.RevierUI?.restoreDraft(edit.session_id);else if(edit.kind==='customer')window.resumeCustomerEdit?.(edit);else if(edit.kind==='order')window.resumeOrderEdit?.(edit);else if(edit.kind==='offer')window.OfferUI?.resume?.(edit.session_id);};section.append(resume);dialog.append(section);}
+  const entries=Object.entries(saved.pages);if(!entries.length){const empty=document.createElement('p');empty.textContent='Keine zusätzlichen Formularspiegel vorhanden.';dialog.append(empty);}
   for(const [key,draft]of entries){const section=document.createElement('section'),title=document.createElement('h3');title.textContent=draft.page;section.append(title);
    for(const form of draft.forms||[]){for(const field of form.fields||[]){const p=document.createElement('p');p.textContent=field.label+': '+(['checkbox','radio'].includes(field.type)?(field.checked?'ausgewählt':'nicht ausgewählt'):field.value);section.append(p);}}
    const apply=document.createElement('button');apply.type='button';apply.textContent='Mit geöffnetem Editor vergleichen';apply.style.cssText='min-height:48px;font:inherit;margin:4px;';section.append(apply);

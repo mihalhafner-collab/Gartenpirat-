@@ -1,6 +1,47 @@
 # CODEX-AUFTRAG-GARTENPIRAT
 
-## Aktueller Status: Entwicklung gestoppt und für später gesichert (25.10.2026)
+## Aktueller Korrekturauftrag: Formulare, lokaler Commit, Wiederanlauf und Löschen
+
+Die neue ausdrückliche Nutzeranweisung setzt die Pause fortführend außer Kraft.
+Bezugspunkt cb967fe8218d4fb38cfe99bbb4efb6569b80341c, kein Resetauftrag. Pixel/App
+führt die Geschäftsdaten; Drive bleibt im Zielbetrieb Backupziel. Keine produktive
+Installation, Migration, Driveänderung, Löschung oder Rechnungsautoritätsaktivierung.
+Die vollständigen Anforderungen dieses Folgeauftrags konkretisieren E009; sie
+ersetzen insbesondere frühere UX-Regeln, die Zurück automatisch fachlich speichern
+oder Abbrechen mit verstecktem Behalten gleichsetzen.
+
+Verbindlicher Vertrag für alle bestehenden Editoren: gespeicherter Datensatz,
+ungespeicherte Bearbeitung und abgeschickte Aktion mit unbekanntem Ergebnis sind
+getrennte Zustände. Unberührte Vorbelegung erzeugt keinen Entwurf. Tatsächliche
+Änderungen werden vollständig mit Kontext/ID/Ausgangsversion gesichert; Zurück oder
+Später fortsetzen erhält sie, bewusstes Verwerfen entfernt ausschließlich diese
+Bearbeitung aus allen aktiven Speichern. Ungeklärte Aktionen bleiben mit originaler
+ID und unveränderlichen Argumenten bis zum Beleg/sicheren Retry erhalten.
+Bestätigte IDs werden vor nachfolgendem Lesen übernommen; Fehler bei Sicherung,
+Foto oder Hintergrundplanung ändern einen erfolgreichen lokalen Commit nicht.
+Einzelne Medien/Entwürfe/Jobs blockieren nur tatsächliche Abhängigkeiten; ungeklärte
+Rechnungsnummern sperren deren Ausgabe. Globale Pausen nur bei gemeinsamer Integrität.
+
+Priorisierte gemeinsame Umsetzung: fehlende Media-Prepare/Commit/Cancel-Protokolle
+und dauerhafte Auswahlpuffer; vorhandene Editor-/Formularspiegel vereinheitlichen;
+Auftrags-Abrechnungskunde und verschachtelte Kundenspeicherung; Angebotsanlage bei
+Antwortverlust; abgeschlossene Restoreprüfung und optionale fehlerhafte Entwürfe;
+Anfrage/Besichtigung/direkte und angebotene Annahme; Legacy-Lesediagnose unabhängig
+von Veröffentlichung; Einzeljobs/lokale Fälligkeit/echter asynchroner Schedulerfehler;
+gezieltes Verwerfen/Löschen ohne aktive Inhaltskopien oder Wiederbelebung.
+
+Die 16 verbindlichen Abnahmefälle dieses Folgeauftrags werden im bestehenden Status
+unter K01–K16 geführt: unberührt; Mehrfachentwurf/Neustart; Abrechnungskunde abbrechen;
+Verwerfen aller aktiven Kopien; Kindkunde/Profilefoto; Lostreply vor/nach Commit;
+asynchrone Planung/Detailabruf; stale Editor; Medienkill/Teilfälle; Netzausfall mit
+neuer lokaler Sicherung; defekter Einzeljob; Restore mit defektem optionalen Foto;
+Anfrage/direkte und Angebotannahme/Besichtigungen; Löschen/geteilte Dateien;
+Autorität/Migration mit unabhängigem Betrieb; beide bestehenden nativen Gesamtpiloten.
+Keine neuen konkurrierenden Berichte, Regeldateien oder operative Datenbank.
+Originalsignierung erst aus gesichertem, geprüftem gemeinsamen Stand. Frühere
+Zwischen-PASS gelten ausdrücklich nicht für den weiter geänderten Stand.
+
+## Historischer Status: Entwicklung gestoppt und für später gesichert (25.10.2026)
 
 Nutzeranweisung: „Stoppe die Erstellung speichere für späteren start alle notwendigen
 aktionen“. Bis zu einer neuen ausdrücklichen Fortsetzung keine Entwicklung,Tests,

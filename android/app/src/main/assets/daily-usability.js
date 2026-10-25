@@ -25,18 +25,27 @@
       if(id==='orders'){const back=document.createElement('button');back.type='button';back.className='secondary daily-toolbar-back';back.textContent='‹';back.setAttribute('aria-label','Eine Ansicht zurück');back.onclick=()=>window.handleAndroidBack();toolbar.append(back);}const search=get(searchId),add=get(addId);if(search){search.setAttribute('aria-label',search.placeholder||'Suchen');toolbar.append(search);}if(add){add.className='primary daily-add';add.textContent=label;toolbar.append(add);}get(id).append(toolbar);get(id).classList.add('daily-list-page');
     }
     get('add-worklog').hidden=true;
-    let initialCustomer='',customerTouched=false;
-    for(const event of ['input','change'])get('customer-form').addEventListener(event,()=>{customerTouched=true;});
-    window.customerFormSaved=()=>{initialCustomer=formState();customerTouched=false;};
+    let customerEdit=null;
+    const customerForm=get('customer-form');
+    function customerDraft(){if(!customerEdit)customerEdit=HGFormDrafts.start('customer',HGFormDrafts.fields(customerForm),{base:editingCustomer?HGOwnerClient.clone(editingCustomer):null,parent:window.orderDraftForCustomer||null});customerForm.dataset.editSession=customerEdit.session_id;customerEdit.values=HGFormDrafts.fields(customerForm);HGFormDrafts.put(customerEdit);return customerEdit;}
+    function retainCustomer(){try{customerDraft();return true;}catch(_){window.showUndoToast?.('Kundenentwurf konnte nicht gesichert werden. Eingaben bleiben geöffnet.');return false;}}
+    for(const event of ['input','change'])customerForm.addEventListener(event,retainCustomer);
+    window.currentCustomerEdit=()=>customerDraft();
+    window.customerFormSaved=()=>{if(customerEdit){customerEdit.pending=null;HGFormDrafts.remove(customerEdit,{formId:'customer-form',page:'customer-edit'});}customerEdit=null;};
+    window.resumeCustomerEdit=edit=>{customerEdit=edit;const custom=edit.values.filter(f=>!f.name&&!f.id);get('custom-fields').replaceChildren();for(let i=0;i<custom.length;i+=2)if(custom[i+1])addCustomField(custom[i].value,custom[i+1].value);HGFormDrafts.applyFields(customerForm,edit.values);editingCustomer=HGOwnerClient.clone(edit.context.base);window.orderDraftForCustomer=edit.context.parent;window.openPage('customer-edit');customerForm.dataset.editSession=edit.session_id;};
+    const discard=document.createElement('button');discard.type='button';discard.className='secondary';discard.id='customer-discard';discard.textContent='Änderungen verwerfen';customerForm.append(discard);
+    discard.onclick=()=>{try{const edit=customerDraft();if(edit.pending){window.showUndoToast?.('Zuerst das Ergebnis derselben Kundenspeicherung prüfen.');return;}if(edit.dirty&&!confirm('Nur diese ungespeicherten Kundenänderungen verwerfen? Gespeicherte Kunden bleiben erhalten.'))return;HGFormDrafts.remove(edit,{discard:true,formId:'customer-form',page:'customer-edit'});const base=edit.context.base;customerEdit=null;if(base){openCustomer(base.id);}else window.handleAndroidBack();}catch(_){window.showUndoToast?.('Verwerfen konnte noch nicht bestätigt werden. Eingaben bleiben erhalten.');}};
     const previousOpen=window.openPage;
     window.openPage=function(id,...rest){
       const before=currentPage,previousFocus=document.activeElement;
-      if(id!==before&&before==='customer-edit'&&customerTouched&&initialCustomer!==formState()&&!confirm('Ungespeicherte Kundendaten verwerfen? Mit Abbrechen bleibst du bei deiner Eingabe.'))return;
+      if(id!==before&&before==='customer-edit'&&customerEdit&&!retainCustomer())return false;
       previousOpen(id,...rest);
       if(currentPage===before)return;
       if(previousFocus===document.activeElement&&previousFocus?.matches('input,textarea,select'))previousFocus.blur();
-      if(currentPage==='customer-edit'){initialCustomer=formState();customerTouched=false;setTimeout(()=>{if(currentPage==='customer-edit'&&!customerTouched)initialCustomer=formState();},0);}
+      if(currentPage==='customer-edit'){if(!customerEdit||customerEdit.confirmed)customerEdit=HGFormDrafts.start('customer',HGFormDrafts.fields(customerForm),{base:editingCustomer?HGOwnerClient.clone(editingCustomer):null,parent:window.orderDraftForCustomer||null});customerForm.dataset.editSession=customerEdit.session_id;}
+      else if(before==='customer-edit')customerEdit=null;
       if(currentPage==='settings-page'){document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.open==='more-page'));updateSettings();}
+      return true;
     };
     // Modal cancellation uses existing cancel/close handlers, including editor validation.
     const previousBack=window.handleAndroidBack;

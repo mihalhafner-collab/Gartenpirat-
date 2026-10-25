@@ -11,13 +11,13 @@ public final class DriveSyncJob extends JobService {
     private static int activeOnce;
     private static long followAt=Long.MAX_VALUE;
     static void install(Context c){if(!DriveAccount.available(c))return;JobScheduler jobs=c.getSystemService(JobScheduler.class);if(jobs==null)return;if(!DriveSyncCoordinator.automaticEnabled(c)){jobs.cancel(PERIODIC);return;}JobInfo old=jobs.getPendingJob(PERIODIC);if(old==null)jobs.schedule(new JobInfo.Builder(PERIODIC,new ComponentName(c,DriveSyncJob.class)).setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY).setPersisted(true).setPeriodic(15*60*1000L).build());}
-    static synchronized void schedule(Context c,long delay){
-        if(!DriveAccount.available(c))return;install(c);
+    static synchronized boolean schedule(Context c,long delay){
+        if(!DriveAccount.available(c))return false;install(c);
         long due=System.currentTimeMillis()+Math.max(0,delay);
         // Rescheduling a running job ID invokes onStopJob and would cancel its upload.
-        if(activeOnce>0){followAt=Math.min(followAt,due);return;}
+        if(activeOnce>0){followAt=Math.min(followAt,due);return true;}
         JobScheduler jobs=c.getSystemService(JobScheduler.class);
-        if(jobs!=null)jobs.schedule(new JobInfo.Builder(ONCE,new ComponentName(c,DriveSyncJob.class)).setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY).setPersisted(true).setMinimumLatency(Math.max(0,delay)).setBackoffCriteria(30000,JobInfo.BACKOFF_POLICY_EXPONENTIAL).build());
+        return jobs!=null&&jobs.schedule(new JobInfo.Builder(ONCE,new ComponentName(c,DriveSyncJob.class)).setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY).setPersisted(true).setMinimumLatency(Math.max(0,delay)).setBackoffCriteria(30000,JobInfo.BACKOFF_POLICY_EXPONENTIAL).build())==JobScheduler.RESULT_SUCCESS;
     }
     @Override public boolean onStartJob(JobParameters params){
         if(params.getJobId()==ONCE)synchronized(DriveSyncJob.class){activeOnce++;}
