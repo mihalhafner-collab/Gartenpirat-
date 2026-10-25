@@ -22,10 +22,11 @@ final class BrowserMediaRepository {
     JSONObject prepareRecordWrite(String request,String key,String expected)throws Exception {return run(()->rules.prepareRecordWrite(request,key,expected));}
     JSONObject cancelRecordWrite(String request,String key,String expected,String reason)throws Exception {return run(()->rules.cancelRecordWrite(request,key,expected,reason));}
     JSONObject writeRecord(String request,String key,String expected,JSONObject graph)throws Exception {return run(()->rules.writeRecord(request,key,expected,graph));}
+    JSONObject cleanupFiles()throws Exception{return run(rules::cleanupFiles);}
     JSONObject cleanupDeletedKey(String key,String request)throws Exception {return run(()->rules.cleanupDeletedKey(key,request));}
     JSONObject beginMirror(String request,String source)throws Exception {return run(()->rules.beginMirror(request,source));}
     JSONObject writeMirrorRecord(String request,String source,String key,JSONObject graph)throws Exception {return run(()->rules.writeMirrorRecord(request,source,key,graph));}
-    JSONObject completeMirror(String request,String source,JSONArray keys)throws Exception {return run(()->rules.completeMirror(request,source,keys));}
+    JSONObject completeMirror(String request,String source,JSONArray keys)throws Exception {JSONObject result=run(()->rules.completeMirror(request,source,keys));try{rules.cleanupFiles();}catch(Exception deferred){result.put("cleanup_pending",true);}return result;}
     JSONObject reviewCandidates()throws Exception {return run(rules::reviewCandidates);}
     JSONObject prepareRestoreSelection(String request,String expected,JSONArray selected)throws Exception {return run(()->rules.prepareRestoreSelection(request,expected,selected));}
     JSONObject verifyPreparedRestoreSelection(String request,String expected,JSONArray selected,String selectionHash)throws Exception {return run(()->rules.verifyPreparedRestoreSelection(request,expected,selected,selectionHash));}

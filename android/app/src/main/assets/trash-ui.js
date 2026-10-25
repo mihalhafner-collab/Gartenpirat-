@@ -3,8 +3,12 @@
  'use strict';
  const get=id=>document.getElementById(id),names={appointment:'Termin',customer:'Kunde',order:'Auftrag',worklog:'Arbeit',photo:'Foto',invoice:'Rechnungsentwurf',offer:'Angebotsentwurf',service_template:'Leistungsbaustein'},groups={appointment:'appointments',customer:'customers',order:'orders',worklog:'worklogs',photo:'photos',invoice:'invoices',offer:'offers',service_template:'service_catalog'},requests=new Map();
  let offset=0,entries=[],busy=false,filter='';
+ const cleanupText=()=>syncInfo.mode==='backup_only'?'Nicht mehr benötigte Dateien werden lokal geprüft und bereinigt.':'Dateibereinigung folgt nach dem bestätigten Legacy-Abgleich.';
  const call=window.HGOwnerClient.create("Speicherung nicht bestätigt.");
- function request(key){if(!requests.has(key)){const saved=localStorage.getItem('hausgarten.trash.request.'+key),id=saved||'trash-'+crypto.randomUUID();requests.set(key,id);try{localStorage.setItem('hausgarten.trash.request.'+key,id);}catch(_){}}return requests.get(key);}
+ function request(key){if(!requests.has(key)){const saved=localStorage.getItem('hausgarten.trash.request.'+key),id=saved||'trash-'+crypto.randomUUID();localStorage.setItem('hausgarten.trash.request.'+key,id);if(localStorage.getItem('hausgarten.trash.request.'+key)!==id)throw Error('Aktionskennung konnte nicht gesichert werden.');requests.set(key,id);}return requests.get(key);}
+ function revierAction(entity,id,hash,archived,purge=false){const actionKey=(purge?'purge:':'archive:')+entity+':'+id;let edit=HGFormDrafts.list('revier_archive').find(e=>e.context?.action_key===actionKey);if(!edit){edit=HGFormDrafts.start('revier_archive',{}, {action_key:actionKey});HGFormDrafts.freeze(edit,purge?'purge_revier_entity':'set_revier_archived',{entity,entity_id:id,expected_record_hash:hash,...(purge?{}:{archived}),confirmed:true,request_id:'revier_archive_'+crypto.randomUUID()});}try{const result=edit.restore_review_required?HGFormDrafts.inspectRestored(edit):call(edit.pending.tool,edit.pending.args);edit.pending=null;edit.confirmed=result;try{HGFormDrafts.remove(edit);}catch(_){window.showUndoToast?.('Lokal gespeichert. Technische Entwurfsbereinigung ausstehend.');}try{load();}catch(_){}return true;}catch(error){if(error.rejected){edit.pending=null;HGFormDrafts.put(edit);}window.showUndoToast?.(HGBusinessFeedback.error(error)+' Andere Vorgänge bleiben möglich.');return false;}}
+ function archiveRevier(entity,row){if(!confirm('Diesen Eintrag archivieren? Geschäftsdaten und Beziehungen bleiben erhalten. Ein laufender Einsatz wird dadurch nicht beendet.'))return false;const saved=revierAction(entity,row.id,row.record_hash,true);if(saved)open();return saved;}
+ function renderRevierArchive(start=0,append=false){const body=get('trash-content');if(!body)return;let host=get('revier-trash');if(!host){host=document.createElement('section');host.id='revier-trash';host.className='card';body.append(host);}try{const result=call('list_revier_archive',{offset:start,limit:30});if(!append)host.innerHTML='<h3>Archivierte Revier-Einträge</h3><p>Objekte, Anfragen, Pflege, Besuche, Material und Geräte. Endgültiges Löschen prüft Beziehungen. Historische vollständige Sicherungen bleiben getrennt erhalten.</p>';const rows=Array.isArray(result.items)?result.items:[];if(!rows.length){host.insertAdjacentHTML('beforeend','<p>Keine archivierten Revier-Einträge.</p>');return;}for(const item of rows){const row=item.record,section=document.createElement('article'),title=document.createElement('h4');title.textContent=row.name||row.title||'Revier-Eintrag';section.append(title);for(const [label,purge]of [['Wiederherstellen',false],['Endgültig löschen',true]]){const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent=label;button.onclick=()=>{if(purge&&!confirm('Diesen archivierten Eintrag samt nicht mehr benötigter Inhaltshistorie endgültig entfernen? Verknüpfte Geschäftsdatensätze und gemeinsam verwendete Dateien werden geschützt. Historische Sicherungen bleiben erhalten.'))return;if(revierAction(item.entity,row.id,item.record_hash,false,purge))render();};section.append(button);}host.append(section);}host.querySelector('[data-revier-trash-more]')?.remove();if(result.total>start+rows.length){const more=document.createElement('button');more.type='button';more.className='secondary';more.dataset.revierTrashMore='true';more.textContent='Weitere archivierte Revier-Einträge';more.onclick=()=>renderRevierArchive(start+rows.length,true);host.append(more);}}catch(error){host.textContent=HGBusinessFeedback.error(error)+' Revier-Archiv erneut öffnen.';}}
  function empty(){
   if(busy)return false;
   try{
@@ -13,7 +17,7 @@
    const rest=preview.blocked||[];
    if(!confirm(preview.count+' Einträge aus dem gesamten Papierkorb endgültig löschen?\n\nDiese Einträge werden aus dem Papierkorb entfernt. Eine spätere Übernahme aus der Löschsicherung muss einzeln geprüft werden. Aktive Daten bleiben erhalten. Nicht mehr verwendete Fotodateien werden nach geprüftem Drive-Abgleich entfernt.'+(rest.length?'\n\n'+rest.length+' geschützte Einträge bleiben im Papierkorb.':'')+'\n\nBetroffene Einträge und Originaldateien werden vor dem Löschen auf diesem Gerät gesichert. Historische Sicherungen bleiben separat erhalten.'))return false;
    busy=true;const result=call('empty_trash',{request_id:request('empty:'+preview.preview_hash),expected_preview_hash:preview.preview_hash,confirmed:true});
-   load();render();window.showUndoToast?.(result.deleted+' Einträge endgültig entfernt.'+(rest.length?' '+rest.length+' geschützte Einträge bleiben erhalten.':'')+(result.deletion_backup_id?' Löschsicherung auf diesem Gerät erstellt.':'')+' Drive-Abgleich und Dateibereinigung folgen.');return true;
+   load();render();window.showUndoToast?.(result.deleted+' Einträge endgültig entfernt.'+(rest.length?' '+rest.length+' geschützte Einträge bleiben erhalten.':'')+(result.deletion_backup_id?' Löschsicherung auf diesem Gerät erstellt.':'')+' '+cleanupText());return true;
   }catch(e){window.showUndoToast?.(e.message+' Papierkorb bleibt verfügbar.');return false;}finally{busy=false;}
  }
  function purge(entity,id,expected){
@@ -21,8 +25,8 @@
   try{
    const preview=call('preview_purge',{entity,entity_id:id});if(!preview.allowed)throw new Error(preview.message);
    if(preview.expected_record_hash!==expected)throw new Error('Papierkorb wurde inzwischen geändert. Erneut öffnen und prüfen.');
-   if(!confirm('Diesen Eintrag endgültig löschen? Er kann in der App nicht wiederhergestellt werden. Nicht mehr verwendete Fotodateien werden nach bestätigtem Abgleich entfernt. Vorher wird eine Löschsicherung auf diesem Gerät erstellt. Historische Sicherungen bleiben getrennt erhalten.'))return false;
-   busy=true;const result=call('purge_entity',{request_id:request('purge:'+entity+':'+id+':'+expected),entity,entity_id:id,expected_record_hash:expected,confirmed:true});load();window.showUndoToast?.('Endgültig aus dem Papierkorb entfernt.'+(result.deletion_backup_id?' Löschsicherung auf diesem Gerät erstellt.':'')+' Dateibereinigung folgt nach dem Abgleich.');return true;
+   if(!confirm('Diesen Eintrag aus dem aktiven Bestand und Papierkorb entfernen? Eine vollständige lokale Löschsicherung bleibt nach bestehender Aufbewahrung erhalten. '+cleanupText()+' Historische vollständige Sicherungen bleiben getrennt erhalten.'))return false;
+   busy=true;const result=call('purge_entity',{request_id:request('purge:'+entity+':'+id+':'+expected),entity,entity_id:id,expected_record_hash:expected,confirmed:true});load();window.showUndoToast?.('Endgültig aus dem Papierkorb entfernt.'+(result.deletion_backup_id?' Löschsicherung auf diesem Gerät erstellt.':'')+' '+cleanupText());return true;
   }catch(e){window.showUndoToast?.(HGBusinessFeedback.error(e));return false;}finally{busy=false;}
  }
  function restore(entity,id,expected){
@@ -59,8 +63,8 @@
    get('trash-empty').onclick=empty;
    body.querySelectorAll('[data-trash-restore]').forEach(b=>b.onclick=()=>{const x=entries[Number(b.dataset.trashRestore)],split=x.archive_key.indexOf(':');b.disabled=true;if(restore(x.archive_key.slice(0,split),x.archive_key.slice(split+1),x.record_hash))render();else b.disabled=false;});
    body.querySelectorAll('[data-trash-purge]').forEach(b=>b.onclick=()=>{const x=entries[Number(b.dataset.trashPurge)],split=x.archive_key.indexOf(':');b.disabled=true;if(purge(x.archive_key.slice(0,split),x.archive_key.slice(split+1),x.record_hash))render();else b.disabled=false;});
-   get('trash-more')?.addEventListener('click',()=>render(true));
-  }catch(e){body.textContent=HGBusinessFeedback.error(e)+' Gespeicherte Originale bleiben erhalten. Mit Neu laden erneut versuchen.';}
+   get('trash-more')?.addEventListener('click',()=>render(true));renderRevierArchive();
+  }catch(e){body.textContent=HGBusinessFeedback.error(e)+' Bestehenden Papierkorb erneut lesen. Andere Archivbereiche bleiben erreichbar.';renderRevierArchive();}
  }
  function open(){openPage('trash-page');render();}
  function installWorkSelection(){
@@ -106,5 +110,5 @@
   window.removeRecordWithUndo=remove;
   installWorkSelection();
  },0),{once:true});
- window.TrashUI=Object.freeze({open,remove,restore,purge,empty});
+ window.TrashUI=Object.freeze({archiveRevier,changeRevierArchive:(entity,row,purge)=>{if(!confirm(purge?'Diesen archivierten Eintrag und nicht mehr benötigte Inhaltshistorie endgültig entfernen? Geschützte Beziehungen und historische Sicherungen bleiben erhalten.':'Diesen Eintrag bewusst wiederherstellen?'))return false;const ok=revierAction(entity,row.id,row.record_hash,false,purge);if(ok)open();return ok;},resumeRevierAction:edit=>{const args=edit.pending?.args;if(args){revierAction(args.entity,args.entity_id,args.expected_record_hash,args.archived,edit.pending.tool==='purge_revier_entity');open();}},open,remove,restore,purge,empty});
 })();

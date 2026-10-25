@@ -6,6 +6,10 @@ import java.util.*;
 /** Retryable cleanup after a verified publication and local snapshot commit, never before. */
 final class TrashMediaCleanup {
     interface Files { void deletePhotoFileVerified(String name,String hash)throws Exception; void deleteDocumentFileVerified(JSONObject document)throws Exception; }
+    static JSONObject runLocal(android.content.Context context,PixelLocalStore store)throws Exception {
+        if(!LocalAuthorityGuard.local(context))return new JSONObject().put("pending",0).put("completed",0).put("state","legacy_receipts_required");
+        return run(store,new Files(){public void deletePhotoFileVerified(String name,String hash){}public void deleteDocumentFileVerified(JSONObject document){}},PixelMcpReadTools.effective(store.getState()));
+    }
     static JSONObject run(PixelLocalStore store,Files files,JSONObject committed)throws Exception {
         JSONObject archive=OwnerJournalRules.archives(committed);int pending=0,done=0;String error="";
         for(Iterator<String> it=archive.keys();it.hasNext();){String key=it.next();JSONObject tombstone=archive.getJSONObject(key);

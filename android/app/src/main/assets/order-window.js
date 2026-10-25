@@ -5,8 +5,8 @@
   let active = null;
   const baseOpen = window.openDirectEditWindow;
   const baseClose = window.closeDirectEditWindow;
-  const snapshot = () => [...new Set([...fieldIds,...[...document.querySelectorAll('#order-management-card input,#order-management-card select,#order-management-card textarea')].map(e=>e.id).filter(Boolean)])].map(id => {const input=document.getElementById(id);return [id,input?.type==='checkbox'?input.checked:input?.value||''];});
-  function restore(values) {for(const [id,value] of values){const input=document.getElementById(id);if(input)input.type==='checkbox'?input.checked=value:input.value=value;}}
+  const snapshot = () => HGFormDrafts.fields(document.getElementById('order-management-card'));
+  function restore(values) {if(values[0]&&Array.isArray(values[0])){for(const [id,value] of values){const input=document.getElementById(id);if(input)input.type==='checkbox'?input.checked=value:input.value=value;}return;}HGFormDrafts.applyFields(document.getElementById('order-management-card'),values);}
   function changed(){return active && JSON.stringify(snapshot())!==JSON.stringify(active.initial);}
   function detail(label,value){const item=document.createElement('div'),term=document.createElement('dt'),text=document.createElement('dd');term.textContent=label;text.textContent=String(value??'').trim()||'Noch nicht angegeben';item.append(term,text);return item;}
   function showOverview(){

@@ -97,8 +97,8 @@ public class MainActivity extends Activity implements McpSyncHost {
         preferences = getSharedPreferences("haus_garten", MODE_PRIVATE);
         store = new PixelLocalStore(this);
         if(!BuildConfig.UI_PREVIEW){
-            DriveSyncJob.install(this);
-            if(PlanningAccount.connected(this)||PlanningAccount.prefs(this).getBoolean("weather_enabled",false))PlanningJob.install(this);
+            try{DriveSyncJob.install(this);}catch(RuntimeException unavailable){backgroundState(true,"BACKGROUND_SCHEDULING_FAILED");}
+            try{if(PlanningAccount.connected(this)||PlanningAccount.prefs(this).getBoolean("weather_enabled",false))PlanningJob.install(this);}catch(RuntimeException unavailable){backgroundState(true,"BACKGROUND_SCHEDULING_FAILED");}
         }
         new Thread(()->{try{if(store.compactPurgedTestActions()>0)refreshBusinessView();}catch(Exception failure){runOnUiThread(()->Toast.makeText(this,"Testbereinigung benötigt Prüfung. Bestehende Daten bleiben erhalten.",Toast.LENGTH_LONG).show());}},"test-cleanup").start();
         pendingWorkPhotos = new PendingWorkPhotoStore(this);
@@ -128,7 +128,7 @@ public class MainActivity extends Activity implements McpSyncHost {
     @Override protected void onResume() {
         foreground = new java.lang.ref.WeakReference<>(this);
         super.onResume();
-        if(preferences!=null&&preferences.getBoolean("background_work_pending",false))requestAutomaticSync(0);
+        if(preferences!=null&&(backgroundPending()||localCleanupPending()))requestAutomaticSync(0);
         refreshPlanningView();
         if(BuildConfig.UI_PREVIEW)return;
         android.net.ConnectivityManager connectivity=getSystemService(android.net.ConnectivityManager.class);
@@ -518,7 +518,7 @@ public class MainActivity extends Activity implements McpSyncHost {
                     String expression=script+";window.HGBackupSnapshot.bind("+JSONObject.quote(page)+","+active+");window.HGBackupSnapshot.prepareMedia(false).catch(()=>{});"+((active||explicit)?"JSON.stringify(window.HGBackupSnapshot.capture());":"null;");
                     webView.evaluateJavascript(expression,value->{if(active||explicit){try{Object decoded=new org.json.JSONTokener(value).nextValue();if(!(decoded instanceof String))throw new IOException();enqueueBackupCheckpoint((String)decoded,explicit,after,true);}catch(Exception invalid){recordBackupCaptureFailure("BACKUP_BROWSER_CAPTURE_REQUIRED",explicit,after);}}});
                 });
-                try{FullBackupJob.install(getApplicationContext());}catch(Exception ignored){/* A missing schedule never changes local business data. */}
+                try{if(!FullBackupJob.install(getApplicationContext()))backgroundState(true,"BACKGROUND_SCHEDULER_UNAVAILABLE");}catch(Exception ignored){/* A missing schedule never changes local business data. */}
             }catch(Exception failure){if(explicit)recordBackupCaptureFailure("BACKUP_BROWSER_CAPTURE_REQUIRED",true,after);}
         });
     }
@@ -576,6 +576,7 @@ public class MainActivity extends Activity implements McpSyncHost {
 
     private void synchronize() {
         if(previewConnectionBlocked())return;
+        if(!LocalAuthorityGuard.legacySyncAllowed(this)){requestAutomaticSync(0);Toast.makeText(this,"Lokal gespeichert. Hintergrundsicherung erneut eingeplant; Sicherungsstatus prüfen.",Toast.LENGTH_LONG).show();return;}
         try{DriveSyncCoordinator.prepareExplicit(this,"ui-sync-"+UUID.randomUUID());}catch(Exception ignored){}
         if(DriveAccount.configured(this)){performDriveSync(Uri.EMPTY,true);return;}
         String saved = preferences.getString("drive_tree_uri", "");
@@ -588,30 +589,25 @@ public class MainActivity extends Activity implements McpSyncHost {
         } else performDriveSync(Uri.parse(saved), true);
     }
 
+    private boolean localCleanupPending(){try{return new JSONObject(store.ownerValue("local_media_cleanup","{}")).optBoolean("pending");}catch(Exception invalid){return true;}}
+    private void localCleanupState(boolean pending,String code){try{store.putOwnerValue("local_media_cleanup",new JSONObject().put("formatVersion",1).put("pending",pending).put("code",code).toString());}catch(Exception ignored){}}
+    private void scheduleLocalMaintenance(){localCleanupState(true,"");try{BACKUP_CHECKPOINTS.execute(()->{try(PixelLocalStore local=new PixelLocalStore(getApplicationContext())){JSONObject result=TrashMediaCleanup.runLocal(getApplicationContext(),local);local.putOwnerValue("local_media_cleanup",new JSONObject().put("formatVersion",1).put("pending",result.optInt("pending")>0).put("code",result.optString("error_code")).toString());}catch(Exception deferred){localCleanupState(true,"LOCAL_MEDIA_CLEANUP_PENDING");}});}catch(RuntimeException unavailable){localCleanupState(true,"LOCAL_MEDIA_CLEANUP_SCHEDULER_UNAVAILABLE");}}
     private void backgroundState(boolean pending,String code) {
-        try{preferences.edit().putBoolean("background_work_pending",pending).putString("background_work_error_code",code).commit();}catch(RuntimeException unavailable){/* Local business data and persisted pending actions remain authoritative. */}
+        try{if(store!=null)store.putOwnerValue("background_work_dispatch",new JSONObject().put("formatVersion",1).put("pending",pending).put("code",code).toString());}catch(Exception unavailable){/* Business receipt remains durable independently. */}
+        try{preferences.edit().putBoolean("background_work_pending",pending).putString("background_work_error_code",code).commit();}catch(RuntimeException unavailable){/* The SQLite state is the primary resume marker. */}
     }
+    private boolean backgroundPending(){try{String raw=store.ownerValue("background_work_dispatch","");if(!raw.isEmpty())return new JSONObject(raw).getBoolean("pending");}catch(Exception unavailable){}return preferences.getBoolean("background_work_pending",false);}
+    private String backgroundCode(){try{String raw=store.ownerValue("background_work_dispatch","");if(!raw.isEmpty())return new JSONObject(raw).getString("code");}catch(Exception unavailable){}return preferences.getString("background_work_error_code","");}
     private void requestAutomaticSync(long delayMs) {
         if(BuildConfig.UI_PREVIEW)return;
-        backgroundState(true,"");
-        Runnable schedule=()->{
-            try{
-                if(!LocalAuthorityGuard.legacySyncAllowed(this)){
-                    JSONObject config=new BackupSettingsRepository(this,store).read();
-                    if(!config.optBoolean("enabled")||!config.optBoolean("keyConfigured")||!FullBackupController.validTarget(config)){backgroundState(true,"BACKUP_SETUP_REQUIRED");return;}
-                    if(!FullBackupJob.schedule(this,Math.max(0,delayMs))){backgroundState(true,"BACKGROUND_SCHEDULER_UNAVAILABLE");return;}
-                }else{
-                    DriveSyncCoordinator.noteRequest();long undoDelay=store==null?0:store.remainingDeleteUndoMs(),now=System.currentTimeMillis();
-                    long due=automaticWakeup.request(now,delayMs,Math.max(preferences.getLong("drive_next_retry",0),undoDelay>0?now+undoDelay+200:0));
-                    syncHandler.removeCallbacks(delayedAutomaticSync);
-                    if(!syncHandler.postDelayed(delayedAutomaticSync,Math.max(0,due-now)))throw new IllegalStateException();
-                    if(!DriveSyncJob.schedule(this,Math.max(0,due-now)))throw new IllegalStateException();
-                }
-                backgroundState(false,"");
-            }catch(Exception unavailable){backgroundState(true,"BACKGROUND_SCHEDULING_FAILED");}
-        };
-        try{if(Looper.myLooper()==Looper.getMainLooper())schedule.run();else if(!syncHandler.post(schedule))backgroundState(true,"BACKGROUND_HANDLER_UNAVAILABLE");}
-        catch(RuntimeException unavailable){backgroundState(true,"BACKGROUND_HANDLER_UNAVAILABLE");}
+        BackgroundWorkDispatch.request(delayMs,new BackgroundWorkDispatch.Host(){
+            public void state(boolean pending,String code){backgroundState(pending,code);}
+            public boolean post(Runnable task){return syncHandler.post(task);}
+            public boolean localMode(){boolean local=!LocalAuthorityGuard.legacySyncAllowed(MainActivity.this);if(local)scheduleLocalMaintenance();return local;}
+            public boolean localReady()throws Exception {JSONObject config=new BackupSettingsRepository(MainActivity.this,store).read();return config.optBoolean("enabled")&&config.optBoolean("keyConfigured")&&FullBackupController.validTarget(config);}
+            public boolean local(long delay)throws Exception {return FullBackupJob.schedule(MainActivity.this,delay);}
+            public boolean legacy(long delay){DriveSyncCoordinator.noteRequest();long undoDelay=store==null?0:store.remainingDeleteUndoMs(),now=System.currentTimeMillis();long due=automaticWakeup.request(now,delay,Math.max(preferences.getLong("drive_next_retry",0),undoDelay>0?now+undoDelay+200:0));syncHandler.removeCallbacks(delayedAutomaticSync);return syncHandler.postDelayed(delayedAutomaticSync,Math.max(0,due-now))&&DriveSyncJob.schedule(MainActivity.this,Math.max(0,due-now));}
+        });
     }
 
     private void automaticSyncIfConfigured() {
@@ -651,7 +647,7 @@ public class MainActivity extends Activity implements McpSyncHost {
         try {
             JSONObject current=store.getState(),status=DriveSyncCoordinator.status(this,current.getJSONObject("sync_queue"));
             status=SyncPolicy.describe(status,current.getJSONObject("sync_queue"),syncInProgress.get()||DriveSyncCoordinator.running()||driveFolderPicking,System.currentTimeMillis());
-            int duplicates=preferences.getInt("drive_duplicate_files",0);status.put("background_work_pending",preferences.getBoolean("background_work_pending",false)).put("background_work_error_code",preferences.getString("background_work_error_code","")).put("duplicate_files",duplicates).put("warning",duplicates>0?"Gleichnamige Dateien prüfen. Originale bleiben erhalten.":"");
+            int duplicates=preferences.getInt("drive_duplicate_files",0);status.put("local_cleanup_pending",localCleanupPending()).put("background_work_pending",backgroundPending()).put("background_work_error_code",backgroundCode()).put("duplicate_files",duplicates).put("warning",duplicates>0?"Gleichnamige Dateien prüfen. Originale bleiben erhalten.":"");
             if(DriveAccount.configured(this)){String progress=store.ownerValue("drive-meta:"+preferences.getString("drive_folder_id","")+":progress","");if(!progress.isEmpty())status.put("transfer_progress",new JSONObject(progress));}
             return status;
         }catch(Exception error){return new JSONObject();}

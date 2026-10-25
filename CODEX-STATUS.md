@@ -105,6 +105,39 @@ Abnahme und Inventarpflege. Fingerprints wurden bewusst noch nicht neu gepinnt.
 Danach beide nativen Gesamtpiloten, Regression, Privacy/Quellensicherung,
 Originalbuild/Signatur/Provenienz. K01–K16 weiter keine Gesamtfreigabe.
 
+## Dritter Korrektur-Sicherungspunkt – weiter in Arbeit
+
+Vorheriger exakter Remote-Sicherungspunkt: `ac0a5c9ec30c70475b02249fcbb96ab881bc4393`.
+Neue Revier-Archivierungs-/Löschwege mit Abhängigkeitsprüfung und minimalen
+Löschbelegen; gelöschte Inhalte werden nicht aus alten Request-Ergebnissen
+wiederbelebt. Der gemeinsame Bearbeitungsdienst prüft restaurierte ungeklärte
+Aktionen zunächst ausschließlich lesend gegen vorhandene Commit-Belege.
+Abgeschlossene V1-Restore-Prüfungen bleiben gültig; neue Projektion V2 markiert
+restaurierte Aktionen zur Prüfung. Bestätigte IDs überleben Folgefehler.
+
+Hintergrundplanung behandelt Fehler innerhalb des tatsächlich geposteten Ablaufs,
+ablehnende Scheduler und fehlenden Handler getrennt vom Geschäftscommit; der
+Wiederanlaufzustand liegt dauerhaft in SQLite. Lokaler Medien-Cleanup verwendet
+keinen Legacy-Drive-Abgleich. Medienmirror schützt neuere IDB-Versionen und hält
+minimale Belege für verworfene alte Graphstände vor. Ausstehende Foto-Intents haben
+gezielte Wiederholen-/Verwerfen-Wege. Physisches Löschen wartet auf abgeschlossene
+Geschäftsänderungen und teilt den Capture-Lock mit Vollsicherungen.
+
+Aktuelle Hostnachweise: Revier-Domäne140, Medienrepository60, Backupplan26,
+Syncfehler123, tatsächlich geposteter Dispatcher21 Prüfungen PASS. Browser:
+Revier14, gespeicherte Entwürfe10, Planung25, Arbeitsfenster10 sowie gezielte
+K03/K05-Auftrags-/Kundenregressionen PASS. Keine Pixelbehauptung daraus.
+Javac:203 Produktions- und32 Instrumentierungsquellen PASS, kein APK-Nachweis.
+Neue native Proben für verlorene Antwort mit SQLite/WebView-Neustart, Scheduler-
+Fehler auf Android-Hauptthread sowie vollständigen Restore von25 tatsächlichen
+Medienblobs einschließlich48MiB-Datei sind vorbereitet, noch NICHT ausgeführt.
+
+Inventar/Fingerprints noch bewusst offen; keine Schutzprüfung entfernt.
+Weiter auszuführen: gemeinsame Vertrags-/Regressionsprüfung, echte Android-
+Medienunterbrechungen, beide vollständigen Piloten, isolierter Update-/Restorepfad,
+Originalbuild und Signatur-/Provenienz-/Privacy-Abnahme. Kein neuer signierter
+Kandidat, keine produktive Installation oder Migration; K01–K16 noch offen.
+
 ## Entwicklung erneut gestoppt; vollständige Übergabe für später – 25.10.2026
 
 Der Nutzer hat ausdrücklich angewiesen: „Stoppe die Erstellung speichere für späteren

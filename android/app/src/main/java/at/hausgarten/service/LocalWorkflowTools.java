@@ -8,8 +8,8 @@ import static at.hausgarten.service.McpFields.*;
 final class LocalWorkflowTools {
     static final String[] BACKUP_READS={"get_full_backup_status","get_restore_status"};
     static final String[] BACKUP_WRITES={"request_full_backup","retry_full_backup"};
-    static final String[] REVIER_READS={"get_revier_overview","list_properties","get_property","list_inquiries","get_inquiry","list_care_plans","list_visits","get_visit","get_day_tour","list_materials","list_equipment","search_local"};
-    static final String[] REVIER_WRITES={"create_property","update_property","create_inquiry","update_inquiry","accept_inquiry_direct","plan_inquiry_inspection","create_care_plan","update_care_plan","generate_care_visits","plan_visit","update_visit","set_day_tour","move_tour_stop","save_material","record_material_movement","save_equipment","record_equipment_usage"};
+    static final String[] REVIER_READS={"get_revier_overview","inspect_edit_action","list_revier_archive","list_properties","get_property","list_inquiries","get_inquiry","list_care_plans","list_visits","get_visit","get_day_tour","list_materials","list_equipment","search_local"};
+    static final String[] REVIER_WRITES={"create_property","update_property","create_inquiry","update_inquiry","accept_inquiry_direct","set_revier_archived","purge_revier_entity","plan_inquiry_inspection","create_care_plan","update_care_plan","generate_care_visits","plan_visit","update_visit","set_day_tour","move_tour_stop","save_material","record_material_movement","save_equipment","record_equipment_usage"};
     static final String[] FINANCIAL_READS={"get_payment_ledger","get_invoice_document_job","preview_local_authority"};
     static final String[] FINANCIAL_WRITES={"record_payment","correct_payment","retry_invoice_document_job","activate_local_authority","reconcile_local_invoice_authority"};
     static final String[] OFFER_DECISION_READS={"get_offer_decision_history"};
@@ -20,7 +20,7 @@ final class LocalWorkflowTools {
     static boolean revier(String name){return Arrays.asList(REVIER_READS).contains(name)||Arrays.asList(REVIER_WRITES).contains(name);}
     static boolean financial(String name){return Arrays.asList(FINANCIAL_READS).contains(name)||Arrays.asList(FINANCIAL_WRITES).contains(name);}
     static boolean authorityMutation(String name){return name.equals("activate_local_authority")||name.equals("reconcile_local_invoice_authority");}
-    static boolean critical(String name){return authorityMutation(name)||name.equals("record_payment")||name.equals("correct_payment");}
+    static boolean critical(String name){return authorityMutation(name)||name.equals("purge_revier_entity")||name.equals("record_payment")||name.equals("correct_payment");}
     static boolean offerDecision(String name){return Arrays.asList(OFFER_DECISION_READS).contains(name)||Arrays.asList(OFFER_DECISION_WRITES).contains(name);}
     static boolean handles(String name){return backup(name)||revier(name)||financial(name)||offerDecision(name);}
     static boolean write(String name){return Arrays.asList(WRITES).contains(name);}
@@ -91,6 +91,8 @@ final class LocalWorkflowTools {
             case "get_full_backup_status":p.put("offset",number(0,1000000)).put("limit",number(1,100)).put("backup_id",id());break;
             case "request_full_backup":p.put("expected_settings_hash",hash());required.add("expected_settings_hash");break;
             case "retry_full_backup":p.put("backup_id",id()).put("expected_record_hash",hash());required.addAll(Arrays.asList("backup_id","expected_record_hash"));break;
+            case "inspect_edit_action":p.put("original_tool",text(100)).put("original_args",new JSONObject().put("type","object"));required.addAll(Arrays.asList("original_tool","original_args"));break;
+            case "list_revier_archive":list(p);p.put("entity",enumeration("property","inquiry","care_plan","visit","material","equipment"));break;
             case "get_revier_overview":p.put("date",date());break;
             case "list_properties":case "list_inquiries":case "list_care_plans":case "list_visits":case "list_materials":case "list_equipment":list(p);if(name.equals("list_care_plans"))p.put("care_plan_id",id());break;
             case "get_property":p.put("property_id",id());required.add("property_id");break;
@@ -101,6 +103,7 @@ final class LocalWorkflowTools {
             case "update_property":p.put("property_id",id()).put("expected_record_hash",hash()).put("updates",object(propertyFields(false))).put("reason",text(4000));required.addAll(Arrays.asList("property_id","expected_record_hash","updates"));break;
             case "create_inquiry":p=merge(p,inquiryFields(true));required.addAll(Arrays.asList("customer_id","title"));break;
             case "update_inquiry":p.put("inquiry_id",id()).put("expected_record_hash",hash()).put("updates",object(inquiryFields(false))).put("reason",text(4000));required.addAll(Arrays.asList("inquiry_id","expected_record_hash","updates"));break;
+            case "set_revier_archived":case "purge_revier_entity":p.put("entity",enumeration("property","inquiry","care_plan","visit","material","equipment")).put("entity_id",id()).put("expected_record_hash",hash()).put("reason",text(4000)).put("confirmed",bool());required.addAll(Arrays.asList("entity","entity_id","expected_record_hash","confirmed"));if(name.equals("set_revier_archived")){p.put("archived",bool());required.add("archived");}break;
             case "accept_inquiry_direct":p.put("inquiry_id",id()).put("expected_record_hash",hash()).put("accepted_at",instant()).put("evidence",text(4000)).put("billing_customer_id",id()).put("confirmed",bool());required.addAll(Arrays.asList("inquiry_id","expected_record_hash","accepted_at","evidence","confirmed"));break;
             case "plan_inquiry_inspection":p.put("mode",enumeration("first","reschedule","additional","reopen")).put("expected_appointment_hash",hash()).put("inquiry_id",id()).put("expected_record_hash",hash()).put("starts_at",instant()).put("ends_at",instant()).put("timezone",text(100)).put("notes",text(4000));required.addAll(Arrays.asList("inquiry_id","expected_record_hash","starts_at","ends_at"));break;
             case "create_care_plan":p=merge(p,careFields(true));required.addAll(Arrays.asList("property_id","title","anchor_date","interval_days","planned_minutes"));break;

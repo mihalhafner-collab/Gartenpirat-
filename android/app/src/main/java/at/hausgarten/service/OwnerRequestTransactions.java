@@ -10,7 +10,7 @@ final class OwnerRequestTransactions {
         try{
             String old=store.read("receipt:"+request),guard=store.read("receipt_guard:"+request);
             if(!old.isEmpty()){
-                JSONObject receipt=new JSONObject(old);requireFingerprint(receipt,fingerprint);result=receipt.getJSONObject("result").put("replayed",true);
+                JSONObject receipt=new JSONObject(old);requireFingerprint(receipt,fingerprint);if(receipt.getJSONObject("result").optBoolean("_result_content_removed"))throw new PixelMcpWriteTools.Rejected("REQUEST_EXPIRED","Dieser verarbeitete Vorgang wurde endgültig entfernt. Aktuellen Stand prüfen; keine erneute Ausführung.");result=receipt.getJSONObject("result").put("replayed",true);
             }else if(!guard.isEmpty()){
                 requireFingerprint(new JSONObject(guard),fingerprint);
                 throw new PixelMcpWriteTools.Rejected("REQUEST_EXPIRED","Diese Anfrage wurde bereits verarbeitet. Der Detailbeleg ist abgelaufen. Aktuellen Eintrag prüfen; die Aktion wird nicht erneut ausgeführt.");

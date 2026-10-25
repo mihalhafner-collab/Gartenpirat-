@@ -160,16 +160,19 @@ final class McpErrors {
                 .put("user_action_required", failure.userAction);
         }
         if(local!=null)problem.put("user_action_required",true);
-        return envelope(problem);
+        rejection(problem,error);return envelope(problem);
     }
 
     static JSONObject bridge(Exception error) throws Exception {
         String local=localCode(error);
-        return envelope(new JSONObject().put("code", code(error, "VALIDATION_ERROR"))
+        JSONObject problem=new JSONObject().put("code", code(error, "VALIDATION_ERROR"))
             .put("message", local!=null?localMessage(local):error instanceof IllegalArgumentException ? error.getMessage()
-                : "Vorgang nicht abgeschlossen. Sicherung, Versionen und Berechtigungen prüfen."));
+                : "Vorgang nicht abgeschlossen. Sicherung, Versionen und Berechtigungen prüfen.");rejection(problem,error);return envelope(problem);
     }
 
+    private static void rejection(JSONObject problem,Exception error)throws Exception {
+        String code=problem.optString("code");if(error instanceof PixelMcpWriteTools.Rejected&&!Arrays.asList("REPLAY_MISMATCH","REQUEST_EXPIRED").contains(code))problem.put("commit_state","not_committed");
+    }
     private static JSONObject envelope(JSONObject problem) throws Exception {
         if(problem.optString("code").equals("RESTORE_FULL_REPLACEMENT_REQUIRED"))problem.put("device_step","open_full_backup_restore").put("required_restore_contract","encrypted_full_replacement_v1");
         return new JSONObject().put("ok", false).put("error", problem);

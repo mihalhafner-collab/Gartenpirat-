@@ -570,21 +570,17 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     }
     boolean hasOtherPhotoAttachment(String id,String hash){try(Cursor rows=getReadableDatabase().rawQuery("SELECT 1 FROM photo_attachments WHERE content_sha256=? AND photo_id<>? LIMIT 1",new String[]{hash,id})){return rows.moveToFirst();}}
     void cleanupPurgedDocument(String key,JSONObject document,String marker)throws Exception{
-        SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{
-            JSONObject current=PixelMcpReadTools.effective(getState()),saved=OwnerJournalRules.archives(current).optJSONObject(key);
-            if(saved==null||!saved.optBoolean("purged")||!PixelMcpWriteTools.hash(saved.getJSONObject("document")).equals(PixelMcpWriteTools.hash(document)))throw new IllegalArgumentException("Dokument-Löschbeleg fehlt oder wurde geändert.");
-            if(!TrashRules.referenced(current,pendingActions(),document.optString("pdf_storage_name")))new BusinessDocumentStore(context).deleteVerified(document);
-            putOwnerValue(marker,"done");db.setTransactionSuccessful();
-        }finally{db.endTransaction();}
+        synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK){SQLiteDatabase db=getWritableDatabase();if(db.inTransaction())throw new IOException("MEDIA_CLEANUP_REQUIRES_COMMITTED_STATE");putOwnerValue(marker,"pending");db.beginTransaction();try{
+            JSONObject current=PixelMcpReadTools.effective(getState()),saved=OwnerJournalRules.archives(current).optJSONObject(key);if(saved==null||!saved.optBoolean("purged")||!PixelMcpWriteTools.hash(saved.getJSONObject("document")).equals(PixelMcpWriteTools.hash(document)))throw new IllegalArgumentException("Dokument-Löschbeleg fehlt oder wurde geändert.");
+            if(!TrashRules.referenced(current,pendingActions(),document.optString("pdf_storage_name")))new BusinessDocumentStore(context).deleteVerified(document);putOwnerValue(marker,"done");db.setTransactionSuccessful();
+        }finally{db.endTransaction();}}
     }
     void cleanupPurgedPhoto(String id,JSONObject media,String marker)throws Exception{
-        SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{
-            JSONObject effective=PixelMcpReadTools.effective(getState());JSONArray queued=pendingActions();
-            if(!TrashRules.purged(effective,"photo",id))throw new IllegalArgumentException("Löschbeleg fehlt.");
-            if(!hasOtherPhotoAttachment(id,media.optString("content_sha256"))&&!TrashRules.referenced(effective,queued,media.optString("storage_name")))photoAttachments.discardCreated(media);
-            String thumb=media.optString("thumbnail_storage_name");if(!thumb.isEmpty()&&!TrashRules.referenced(effective,queued,thumb))photoAttachments.deleteThumbnailVerified(thumb);
-            db.delete("photo_attachments","photo_id=?",new String[]{id});putOwnerValue(marker,"done");db.setTransactionSuccessful();
-        }finally{db.endTransaction();}
+        synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK){SQLiteDatabase db=getWritableDatabase();if(db.inTransaction())throw new IOException("MEDIA_CLEANUP_REQUIRES_COMMITTED_STATE");
+            // The row removal commits before file work. A later rollback can only leave a retry marker.
+            db.beginTransaction();try{JSONObject current=PixelMcpReadTools.effective(getState());if(!TrashRules.purged(current,"photo",id))throw new IllegalArgumentException("Löschbeleg fehlt.");db.delete("photo_attachments","photo_id=?",new String[]{id});putOwnerValue(marker,"pending");db.setTransactionSuccessful();}finally{db.endTransaction();}
+            db.beginTransaction();try{JSONObject current=PixelMcpReadTools.effective(getState());JSONArray queued=pendingActions();if(!TrashRules.purged(current,"photo",id))throw new IllegalArgumentException("Löschbeleg wurde geändert.");if(!hasOtherPhotoAttachment(id,media.optString("content_sha256"))&&!TrashRules.referenced(current,queued,media.optString("storage_name")))photoAttachments.discardCreated(media);String thumb=media.optString("thumbnail_storage_name");if(!thumb.isEmpty()&&!TrashRules.referenced(current,queued,thumb))photoAttachments.deleteThumbnailVerified(thumb);putOwnerValue(marker,"done");db.setTransactionSuccessful();}finally{db.endTransaction();}
+        }
     }
     String loadPhotoData(String photoId)throws Exception{
         JSONObject metadata=photoAttachment(photoId);if(metadata==null)throw new IllegalArgumentException("Für dieses Foto ist noch kein dauerhaftes Original hinterlegt.");
