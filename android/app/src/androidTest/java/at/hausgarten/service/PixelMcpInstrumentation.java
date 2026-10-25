@@ -282,10 +282,11 @@ public final class PixelMcpInstrumentation extends Instrumentation {
         if(releaseMode.equals("revier_finance")||releaseMode.equals("revier_recovery")){
             Bundle result=new Bundle();try{String before=businessSnapshotHash();if(releaseMode.equals("revier_finance"))LocalFinanceNativeAcceptance.run(this);else{BackupBrowserUiNativeAcceptance.run(this);BackupJobsNativeAcceptance.run(this);BackupAutomationNativeAcceptance.run(this);FullBackupControlNativeAcceptance.run(this);OwnerNativeAcceptance.run(this);}check("business snapshot unchanged after isolated correction probes",()->yes(before.equals(businessSnapshotHash())));result.putString("stream","RESULT "+passed+" Android SQLite/MCP tests passed; acceptance failures="+acceptanceFailed+"; isolated group="+releaseMode+"\n");finish(acceptanceFailed==0?-1:0,result);}catch(Throwable error){result.putString("stream","FAILED "+error.getClass().getSimpleName()+"\n");finish(0,result);}return;
         }
-        if(releaseMode.equals("revier_core")||releaseMode.equals("revier_ui")){
+        if(releaseMode.equals("revier_core")||releaseMode.equals("revier_ui")||releaseMode.equals("revier_authority")){
             Bundle result=new Bundle();try{
                 String before=businessSnapshotHash();
-                if(releaseMode.equals("revier_ui"))RevierWorkflowUiNativeAcceptance.run(this);
+                if(releaseMode.equals("revier_authority")){LocalAuthorityNativeAcceptance.run(this);LocalAuthorityEvidenceNativeAcceptance.run(this);}
+                else if(releaseMode.equals("revier_ui"))RevierWorkflowUiNativeAcceptance.run(this);
                 else{
                     BackupCoreNativeAcceptance.run(this);BackupJobsNativeAcceptance.run(this);BackupServiceNativeAcceptance.run(this);BackupAutomationNativeAcceptance.run(this);
                     FullBackupControlNativeAcceptance.run(this);BackupBrowserUiNativeAcceptance.run(this);BackupRestoreNativeAcceptance.run(this);

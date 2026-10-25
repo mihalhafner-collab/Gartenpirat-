@@ -1,12 +1,12 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-25T22:13:13.146506+00:00",
+  "updated_at_utc": "2026-10-25T23:19:16.023244+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
     "version_name": "1.55.0",
-    "version_code": 102,
-    "status": "ACTIVE_102_MIGRATION_RESOLUTION_AND_SEARCH_REPAIR_FROZEN_COMMON_QA_PENDING",
+    "version_code": 103,
+    "status": "ACTIVE_103_PROVEN_POST_RESOLUTION_DEPENDENCY_REPAIR_COMMON_ACCEPTANCE_PENDING",
     "base_git_sha": "419d0b4bfcbb7108d00296619831a04ddc3273b0",
     "last_original_app_source_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "main_at_start": "e499e745832449ce0202d04d9903495248e8b034",
@@ -35,8 +35,8 @@
       "native_browser_draft_ack_cas_tombstone_context_epoch_full_backup_integration",
       "final_storage_contract3_backup_only_public_runtime_no_business_drive_network"
     ],
-    "full_revier_acceptance": "OPEN final102; original101184PASS0FAIL interrupted for confirmed migration defect, no complete acceptance",
-    "original_signed_update_candidate": "Prior8edb505 original1.55.0/101 exists INTERNAL only; fullP0/signature/DEX/update PASS; native184PASS0FAIL interrupted; final102 NOT BUILT",
+    "full_revier_acceptance": "102 complete436PASS7FAIL;103 correction and renewed common acceptance pending",
+    "original_signed_update_candidate": "102 original internal proof build1a07554d02cfd06850c5bf42e4478855863745124ab2f11e30cef57028be75fb NOT ACCEPTED;103 not built",
     "productive_migration": "NOT EXECUTED",
     "installation": "NOT EXECUTED",
     "internal_signed_build": {
@@ -68,19 +68,20 @@
     },
     "backup_target_contract": "All business functions and authoritative data exclusively Pixel/App; Drive exclusively encrypted full backup; final storage contract3 retires public legacy business network writers in every authority mode without clearing old data/accounts/queues.",
     "latest_host_checks": {
-      "scope": "frozen102 source worktree after8edb505; final saved commit pending",
+      "scope": "frozen103 common source before saved build;artifact-specific Python privacy used signed102 and will be renewed on103",
       "jvm_suites_pass": 78,
       "browser_suites_pass": 56,
       "python_pass": 430,
       "python_skip": 0,
       "excluded_legacy_qa_key_generation": 37,
       "mcp_stdio_pass": 55,
-      "p1_contract_sha256": "010cc437a56f63e43e08d49753fc14ae9da4080a14afac64369b60cb61c1874a",
-      "source_workspace_privacy": "PASS source2338/workspace6288,0operational seed rows",
-      "native102": "NOT RUN",
+      "p1_contract_sha256": "6f1723ea8be6c25a829c3c628c4a1c58db5864710f301c71b7865b96b406d419",
+      "source_workspace_privacy": "PASS source2338/workspace6107;0operational seed rows",
+      "native102": "436PASS7FAIL;NOT ACCEPTED",
       "production_java_compile": 204,
       "native_test_java_compile": 32,
-      "additional_browser_suites_pass": 9
+      "additional_browser_suites_pass": 9,
+      "native103": "NOT RUN"
     },
     "native_font_probe": "Today/Planning 100/150/200% PASS after initial SystemUI ANR; OS settings restored; no Pixel/TalkBack/full-nine-view claim",
     "source_generation_ab1": {
@@ -552,6 +553,25 @@
       "pixel_installation": "NOT EXECUTED",
       "productive_migration": "NOT EXECUTED",
       "diagnostic_repair": "unverified projection remains readable without current/action hashes or available resolution; direct write attempt no mutation"
+    },
+    "native102_complete": {
+      "app_source_git_sha": "5e3b6d7a3df5029fe34d53caad9cecaa74e818d6",
+      "pass": 436,
+      "fail": 7,
+      "accepted": false,
+      "source_archive_folder_id": "1KPEyl74Vkuxb4Z0Kqbw-NqoIQgeXudAl",
+      "source_zip_sha256": "e08846f742b56d7b87dedd944d4ff8d43e340f4992ed2552b3fcb18fb9b47ba2"
+    },
+    "native_search_performance_102": {
+      "customers": 300,
+      "properties": 450,
+      "warmups": 3,
+      "samples": 25,
+      "p95_ms": 786.415067,
+      "target_ms": 300,
+      "target_met": false,
+      "tour20_ms": 399.586607,
+      "environment": "Cloud software emulator;no Pixel claim"
     }
   },
   "verified_release_source": {

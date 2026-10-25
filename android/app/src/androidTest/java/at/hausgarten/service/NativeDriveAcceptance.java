@@ -23,7 +23,7 @@ final class NativeDriveAcceptance {
                 qa.yes(base.getJSONArray("worklogs").length()==1&&base.getJSONArray("worklogs").getJSONObject(0).getDouble("hours")==3);
             }
         });
-        qa.probe("native journal restart remains usable without laptop and without cloud claim",()->{
+        qa.probe("native serialized legacy journal restart exposes local state and preserves historical transfer proof without cloud claim",()->{
             PixelMcpInstrumentation.Isolated ctx=new PixelMcpInstrumentation.Isolated(qa.getTargetContext());SharedPreferences prefs=ctx.getSharedPreferences("haus_garten",0);
             JSONObject base=qa.fixture().put("photos",new JSONArray());prefs.edit().putString("drive_snapshot",base.toString()).commit();
             String client,id;JSONArray actions;
@@ -42,8 +42,8 @@ final class NativeDriveAcceptance {
             try(PixelLocalStore reopened=new PixelLocalStore(ctx)){
                 qa.yes(reopened.pendingActions().length()==0);
                 qa.yes(PixelMcpWriteTools.find(PixelMcpReadTools.effective(reopened.getState()).getJSONArray("worklogs"),id).getString("customer_id").equals("qa_c1"));
-                JSONObject status=reopened.status(client,reopened.getState());qa.yes(status.getBoolean("applied_on_pixel")&&!status.getBoolean("cloud_confirmed")&&status.getString("status").equals("transferred"));
-                qa.yes(status.getString("sync_state").equals("sync_pending")&&!status.getBoolean("confirmed_by_app"));
+                JSONObject status=reopened.status(client,reopened.getState()),historical=status.getJSONObject("historical_sync_inventory");qa.yes(historical.getBoolean("applied_on_pixel")&&historical.getString("status").equals("transferred")&&historical.getBoolean("provider_readback")&&!historical.getBoolean("cloud_confirmed"));
+                qa.yes(status.getString("status").equals("local_saved")&&status.getString("sync_state").equals("not_applicable")&&status.getString("drive_role").equals("backup_only")&&status.getInt("storage_contract_version")==3&&!status.getBoolean("applied_on_pixel")&&!status.getBoolean("cloud_confirmed")&&!status.getBoolean("uploaded_to_drive")&&!status.getBoolean("confirmed_by_app"));
             }
         });
         qa.probe("native restart replays journals on older snapshot without losing IDs",()->{

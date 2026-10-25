@@ -6414,5 +6414,12 @@
         "reason": "Actual old/new RPC DTO audit: security_notice states authoritative Pixel; case14 additionally explicit backup-only storage contract3, local confirmation scope and notice. Business data and input state unchanged."
       }
     ]
+  },
+  "local_resolution_dependency_repair_v1": {
+    "version": 1,
+    "contract": "DriveJournalRules",
+    "before": "eeb97d79b34351b79b91a52c5fff5f5a7bd89448c966b84cf27f02447cc6a05a",
+    "after": "b844389e750675e20ba3b9c242e781969ba0b76950ef88d0e154099cd6152856",
+    "reason": "Actual replay regression: an exact original action rejected in this replay and subsequently resolved by a guarded owner/order decision must no longer block a later dependent mutation. Only failed.contains(predecessor) and resolved.has(predecessor) jointly satisfy this exception; original/hash/CAS/history validation remains unchanged. Unresolved and unsupported predecessors remain blocked."
   }
 }

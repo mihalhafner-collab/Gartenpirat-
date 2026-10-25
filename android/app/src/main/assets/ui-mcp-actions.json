@@ -2862,6 +2862,7 @@
     "android/app/src/main/assets/workflow-ui.css": "e8e3af705782c2db8286ae064184d3f0767025571ce49fae037cb6ebab8a3920",
     "android/app/src/main/assets/workflow-ui.js": "9a82b8b94a47b6cc8a05eeaae1a55db69a6ad2530e64a7355723870ac34f7aa1",
     "android/app/src/main/java/at/hausgarten/service/MainActivity.java": "ee63f0ffe508e5bbc6f9702e20af85211fe64e2cf6778977616bd6c46021c39d",
+    "android/app/src/main/java/at/hausgarten/service/DriveJournalRules.java": "b844389e750675e20ba3b9c242e781969ba0b76950ef88d0e154099cd6152856",
     "android/app/src/main/java/at/hausgarten/service/DriveRolePolicy.java": "3147d73e21c1e74cdb8dce018df9aed516389c9f9941768ca93ef87c492f7a9a",
     "android/app/src/main/java/at/hausgarten/service/DriveSyncCoordinator.java": "2381028e75330cd1a508d5db31988bb4ca7cbd7901ff42c507ee69a54aa6de6c",
     "android/app/src/main/java/at/hausgarten/service/DriveSyncJob.java": "e57bbc7d803839943c9e2c329cfe36c330096049f6768bd93edebe356e698229",

@@ -4,7 +4,7 @@ import json
 import unittest
 import tempfile
 from pathlib import Path
-from tools.check_refactoring_contract import BASELINE, differences, approved_evolution, approved_revier_timer, approved_revier_local_workflows, approved_backup_only_transition, javascript_bridges
+from tools.check_refactoring_contract import BASELINE, differences, approved_evolution, approved_revier_timer, approved_revier_local_workflows, approved_backup_only_transition, approved_local_resolution_repair, javascript_bridges
 
 
 class RefactoringContractTests(unittest.TestCase):
@@ -100,6 +100,21 @@ class RefactoringContractTests(unittest.TestCase):
         self.assertEqual(final_check(damaged),['bootstrap'])
         invalid=deepcopy(local);invalid['backup_only_transition_v3']['changes'][0]['after']['action']='unreviewed'
         with self.assertRaisesRegex(ValueError,'Unapproved backup-only transition proof'):final_check(final,invalid)
+        repaired=deepcopy(final)
+        proof=local['local_resolution_dependency_repair_v1']
+        self.assertEqual(repaired['contracts']['DriveJournalRules'],proof['before'])
+        repaired['contracts']['DriveJournalRules']=proof['after']
+        repaired_check=lambda value,evolution=local:approved_local_resolution_repair(self.contract,value,delta,repair,timer,evolution)
+        self.assertEqual(repaired_check(repaired),[])
+        for group,key in [('contracts','OwnerJournalRules'),('observations','state_hash')]:
+            damaged=deepcopy(repaired);damaged[group][key]='unreviewed'
+            self.assertEqual(repaired_check(damaged),[group])
+        damaged=deepcopy(repaired);damaged['contracts']['DriveJournalRules']='unreviewed'
+        self.assertEqual(repaired_check(damaged),['contracts'])
+        damaged=deepcopy(repaired);damaged['tools'][0]['annotations']['readOnlyHint']=False
+        self.assertEqual(repaired_check(damaged),['tools'])
+        invalid=deepcopy(local);invalid['local_resolution_dependency_repair_v1']['after']='unreviewed'
+        with self.assertRaisesRegex(ValueError,'Unapproved local resolution dependency repair'):repaired_check(repaired,invalid)
 
     def test_revier_timer_preserves_every_existing_tool_and_bridge(self):
         delta=json.loads((BASELINE.parent/'sync-optimization-contract-v1.json').read_text())

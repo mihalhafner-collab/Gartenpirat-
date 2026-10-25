@@ -3,7 +3,66 @@
 Stand: 25. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
-## Aktueller gemeinsamer Abschlusskandidat 1.55.0/102, 25.10.2026
+## Abschlusskorrektur 1.55.0/103 – gemeinsame Abnahme läuft
+
+Der vollständige originale102-Lauf auf5e3b6d7a3df5029fe34d53caad9cecaa74e818d6
+endete mit436PASS/7FAIL. APK-SHA1a07554d02cfd06850c5bf42e4478855863745124ab2f11e30cef57028be75fb,
+Originalzertifikat a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8.
+Kein102-Release. Der tatsächliche vollständige UI-Ablauf Anfrage/Besichtigung/
+Angebot/Annahme/Auftrag/Besuch/Arbeit/148EUR-PDF/60+88EUR bestand. Die sieben Fehler
+bleiben dokumentiert: Pflegepilot verwendete einen alten unvollständigen manuellen
+Browsercheckpoint; Direktannahme verglich zwei gleichwertige ISO-Zeitdarstellungen
+als Text; vier Legacy-Providerprüfungen erwarteten den abgelösten öffentlichen
+Syncvertrag; die neue Autoritätsprobe setzte eine reguläre Änderung hinter einen
+noch ungeklärten Vorgänger und erzeugte deshalb keinen tatsächlich veralteten CAS.
+
+Die folgende echte Produktkorrektur ist zusätzlich reproduziert: Auch NACH einer
+gültigen geschützten Entscheidung blockierte der im selben Replay fehlgeschlagene
+Vorgänger weiterhin neue abhängige Änderungen.103 korrigiert ausschließlich diese
+frühe Vorgängerprüfung, entsprechend der vorhandenen späteren Prüfung. Original,
+Hash, CAS, History und Entscheidungsbeleg bleiben Voraussetzung; bloße Freigabeflags,
+fehlende Originale und ungeklärte Vorgänger werden nicht übersprungen. Die bestehende
+JVM- und native Prüfung wird um echte Folgeänderungen und negative Belegfälle ergänzt.
+P1 erhält einen separat gepinnten exakten Delta-Nachweis; keine Baseline wird ersetzt.
+
+Die Pflegeprobe verwendet jetzt den unveränderten produktiven Backup-Collector,
+reale native Medien- und Entwurfs-Acknowledgements, denselben Sanitizer und tatsächliche
+SQLite-Prüfung einschließlich Hash-/Replaynachweis. Die Direktannahme prüft denselben
+Instant und alle bisherigen Beziehungen/Belege einzeln. Historische Syncbelege bleiben
+separat nachgewiesen; öffentliche stillgelegte Aufrufe müssen ohne Provider-I/O und
+ohne Queue-/Datenmutation bleiben. Fehlende lokale Originale erfordern gezielte
+Wiederherstellung und werden nicht aus einem alten Geschäfts-Drive nachgeladen.
+
+103 bleibt1.55.0/DB6 mit Speichervertrag3: sämtliche Fachfunktionen und maßgebliche
+Speicherung lokal auf Pixel/App; Drive ausschließlich verschlüsselte Vollsicherung.
+Gemeinsamer eingefrorener103-Hoststand:78JVM-Suiten,56Browser-Suiten,9zusätzliche
+Formular-/Rechnungs-/Vollbackup-UI-Suiten,430Pythonprüfungen/0SKIP und55MCP-Stdiofälle
+PASS.37historische QA-Schlüsselerzeugungstests ausdrücklich ausgeschlossen und
+unverändert erhalten. Source2338/Workspace6107 Privacy PASS/0Betriebszeilen. P1
+166Tools/209Aktionen SHA6f1723ea8be6c25a829c3c628c4a1c58db5864710f301c71b7865b96b406d419.
+17zusätzliche bestehende Emulatorguard-/P1-Prüfungen mit korrektem PYTHONPATH PASS;
+der erste direkte unittest-Aufruf ohne tests-Modulpfad war ein Aufruffehler.
+Native-/Prozess-/Offline-/Originalsignaturprüfung103 noch OFFEN.
+Kein älterer PASS gilt automatisch für103. Ein enger nativer Autoritätsmodus führt
+dieselben vorhandenen Prüfungen isoliert aus; der vollständige gemeinsame Lauf bleibt
+Pflicht. Keine produktive Installation, Migration, Driveänderung oder Nummernfreigabe.
+
+Tatsächliche102-Leistung:300synthetische Kunden/450Objekte,3Warmups/25Messungen,
+Suche p95=786.415067ms verfehlt das300ms-Ziel;20Tourstopps399.586607ms erfüllt1000ms.
+Cloud-Softwareemulator, kein Pixelnachweis.103 wird erneut gemessen. Die vollständige
+102-Originalquelle ist separat extern mit61SHA256-Bytebelegen gesichert:
+https://drive.google.com/drive/folders/1KPEyl74Vkuxb4Z0Kqbw-NqoIQgeXudAl,
+ZIP e08846f742b56d7b87dedd944d4ff8d43e340f4992ed2552b3fcb18fb9b47ba2.
+
+Pixel zuletzt lesend weiterhin1.54.9/98/DB4,dbe9ed0. Vollständige extern geprüfte
+Vor-Update-Sicherung aus98 bleibt OFFEN: dessen kleine40MiB-Medien-/64MiB-JSON-
+Sicherung enthält nicht den gesamten Datenbank-/Entwurfs-/Ereignis-/Einstellungsstand;
+sein konfliktgebundenes privates Archiv ist kein allgemeiner vollständiger Export.
+Der neue Vollbackuppfad ersetzt diesen fehlenden Vor-Update-Nachweis nicht rückwirkend.
+Zwei reale USB-Ziele, Kamera/Biometrie/TalkBack und aktueller Beleg-/Nummernabgleich
+bleiben gesonderte Geräte-/Betriebsschritte. Keine vollständige Produktivabnahme.
+
+## Historischer gemeinsamer Abschlusskandidat 1.55.0/102, 25.10.2026
 
 Version1.55.0 bleibt erhalten; code102/DB6 bündelt eine tatsächlich nachgewiesene
 Migrationskorrektur mit einer verhaltensgleichen Suchoptimierung. Kein produktiver

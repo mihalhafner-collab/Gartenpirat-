@@ -112,7 +112,9 @@ final class DriveJournalRules {
             if(remoteErrors.containsKey(client)&&!PixelDriveState.retryableInfrastructure(remoteErrors.get(client),kind)){seen.remove(client);failed.add(client);errors.put(new JSONObject(remoteErrors.get(client).toString()).put("kind",kind));continue;}
             if(seen.contains(client))continue;
             JSONArray required=action.getJSONObject("payload").optJSONArray("_sync_predecessors");boolean dependencyFailed=false;
-            for(int j=0;required!=null&&j<required.length();j++)if(failed.contains(required.getString(j)))dependencyFailed=true;
+            // failed is built in this replay. A failed action can enter resolved only after
+            // the exact original and an explicit guarded owner/order decision were validated.
+            for(int j=0;required!=null&&j<required.length();j++)if(failed.contains(required.getString(j))&&!resolved.has(required.getString(j)))dependencyFailed=true;
             if(dependencyFailed){failed.add(client);errors.put(new JSONObject().put("client_id",client).put("kind",kind).put("code","DEPENDENCY_BLOCKED").put("error","Vorgängeraktion benötigt Prüfung; keine Folgeänderung angewendet."));continue;}
             if(OwnerJournalRules.handles(kind)||kind.equals("pixel_invoice_issue_v1")){
                 try{JSONObject trial=new JSONObject(snapshot.toString()),trialResolved=new JSONObject(resolved.toString());

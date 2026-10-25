@@ -1,7 +1,7 @@
 # CODEX-AUFTRAG-GARTENPIRAT
 
 
-Aktueller Steuerungsstand25.10.2026: Abschlussauftrag aktiv. Ziel1.55.0/102 als
+Aktueller Steuerungsstand25.10.2026: Abschlussauftrag aktiv. Ziel1.55.0/103 als
 Revier Solo: sämtliche Fachfunktionen und maßgebliche Daten ausschließlich auf
 Pixel/App, Drive ausschließlich verschlüsselte Vollsicherung mit regelmäßiger
 aufschiebbarer App-Planung nach bewusster Geräteeinrichtung. Speichervertrag3
@@ -19,7 +19,7 @@ oder nach der Entscheidung und in beiden Speicher-Engines. Konfliktanzeige und
 Resolver benötigen denselben aktuellen effektiven Vergleichsstand. Inventur muss
 die Entscheidung durch echtes geordnetes Journalreplay und Original-/CAS-/History-
 /Receiptbelege nachweisen; kein Löschen roher Fehler oder manuelles Freigabeflag.
-Build102 bündelt diese echte Korrektur. Suchantworten bleiben bei verzögerter
+Build102 bündelte die Inventur-/Resolverkorrektur. Der vollständige Lauf fand zusätzlich die frühe Vorgängersperre nach gültiger Entscheidung; Build103 schließt diese eng begrenzte Korrektur mit negativen Belegprüfungen und erneuter gemeinsamer Abnahme. Suchantworten bleiben bei verzögerter
 DTO-Erzeugung vollständig gleich; tatsächliche Android-Leistung separat messen.
 
 ## Aktueller Korrekturauftrag: Formulare, lokaler Commit, Wiederanlauf und Löschen
