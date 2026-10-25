@@ -1,12 +1,12 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-25T08:19:39.213471+00:00",
+  "updated_at_utc": "2026-10-25T09:18:19.945854+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
     "version_name": "1.55.0",
     "version_code": 99,
-    "status": "CORRECTION_REQUEST_ACTIVE_FORM_LOCAL_COMMIT_RESTART_DELETE",
+    "status": "CORRECTION_IN_PROGRESS_SHARED_DRAFTS_MEDIA_GC_DOMAIN_CHECKPOINT",
     "base_git_sha": "419d0b4bfcbb7108d00296619831a04ddc3273b0",
     "last_original_app_source_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "main_at_start": "e499e745832449ce0202d04d9903495248e8b034",
@@ -33,8 +33,8 @@
       "frame_guard_and_context_stable_timer_photos",
       "schema5_old_writer_fence_existing_tables_preserved"
     ],
-    "full_revier_acceptance": "NOT COMPLETE;STOPPED;latest media prepare/cancel/pending APIs incomplete;compile/native/full backup roundtrip unverified",
-    "original_signed_update_candidate": "LATEST INTERNAL cc637 DEBUGGING BUILD NOT REVIER ACCEPTED;PAUSED SOURCE HAS NEWER UNBUILT FIXES",
+    "full_revier_acceptance": "NOT COMPLETE;active correction work;Java202 compile PASS;browser and targeted JVM proofs only;native final regression/build pending",
+    "original_signed_update_candidate": "No new candidate;cc637 internal debugging build remains historical and not Revier accepted",
     "productive_migration": "NOT EXECUTED",
     "installation": "NOT EXECUTED",
     "internal_signed_build": {
@@ -218,7 +218,8 @@
       "K14": "OPEN",
       "K15": "OPEN",
       "K16": "OPEN"
-    }
+    },
+    "correction_checkpoint": "Shared form sessions, frozen native receipts, scoped media review and real media cleanup;59 media/122 domain JVM checks;NO RELEASE"
   },
   "verified_release_source": {
     "version": "1.54.1",

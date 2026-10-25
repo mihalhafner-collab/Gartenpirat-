@@ -12,6 +12,8 @@ interface RevierRepository {
     JSONArray rawEntries(String prefix) throws Exception;
     JSONObject transaction(Work work) throws Exception;
     JSONObject planInspection(JSONObject appointmentArgs) throws Exception;
+    default JSONObject changeInspection(String operation,JSONObject args)throws Exception {throw new PixelMcpWriteTools.Rejected("INSPECTION_ADAPTER_UNAVAILABLE","Terminänderung derzeit nicht verfügbar.");}
+    default String createDirectOrder(JSONObject args)throws Exception {throw new PixelMcpWriteTools.Rejected("ORDER_ADAPTER_UNAVAILABLE","Auftragsanlage derzeit nicht verfügbar.");}
     default JSONObject session(String id)throws Exception {return null;}
     default JSONArray sessionContexts()throws Exception {return new JSONArray();}
     default JSONObject currentSession()throws Exception {return new JSONObject();}

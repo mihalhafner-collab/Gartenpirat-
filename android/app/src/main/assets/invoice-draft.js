@@ -2,15 +2,16 @@
 (() => {
   const dialog=document.createElement('dialog');dialog.className='invoice-editor-dialog';document.body.append(dialog);
   const layout=document.createElement('dialog');layout.className='invoice-preview-dialog';document.body.append(layout);
-  let studio=null,original={},customerReturn=null,saving=false,returnToRead=null;
+  let studio=null,original={},customerReturn=null,saving=false,returnToRead=null,editSession=null;
   const invoices=()=>merged('invoices','invoice');
   const money=n=>Number(n).toLocaleString('de-AT',{style:'currency',currency:'EUR'});
   const issuer=()=>({...state.master?.invoice_issuer,...state.master?.business_settings});
   const toast=message=>{let box=document.getElementById('invoice-toast');if(!box){box=document.createElement('p');box.id='invoice-toast';box.style.cssText='position:fixed;bottom:95px;left:14px;right:14px;z-index:100;background:#183c2c;color:white;padding:15px;border-radius:12px;pointer-events:none';box.setAttribute('role','status');document.body.append(box);}box.textContent=message;box.hidden=false;clearTimeout(toast.timer);toast.timer=setTimeout(()=>box.hidden=true,6500);};
-  function close() {
-    if(saving)return false;
-    if(studio?.isDirty()&&!confirm('Ungespeicherte Änderungen am Entwurf verwerfen?'))return false;
-    dialog.close();if(returnToRead){const id=returnToRead;returnToRead=null;window.openInvoiceRecord(id);}return true;
+  function retain(){if(!studio||!editSession)return true;try{editSession.values=studio.read();editSession.context.pane=dialog.querySelector('.invoice-studio')?.dataset.pane;HGFormDrafts.put(editSession);return true;}catch(_){toast('Rechnungsbearbeitung konnte nicht gesichert werden. Eingaben bleiben geöffnet.');return false;}}
+  function close(discard=false) {
+    if(saving)return false;if(!retain())return false;
+    if(discard){if(editSession?.pending){toast('Zuerst dieselbe Speicherung erneut prüfen.');return false;}if(editSession?.dirty&&!confirm('Nur ungespeicherte Rechnungsänderungen verwerfen? Der gespeicherte Rechnungsentwurf bleibt erhalten.'))return false;if(editSession)HGFormDrafts.remove(editSession,{discard:true,formId:'invoice-draft-form'});}
+    dialog.close();editSession=null;if(returnToRead){const id=returnToRead;returnToRead=null;window.openInvoiceRecord(id);}return true;
   }
   dialog.addEventListener('cancel',event=>{event.preventDefault();if(studio?.back())return;close();});
   function showPreview(invoice) {
@@ -19,47 +20,51 @@
     layout.querySelector('button').onclick=()=>layout.close();layout.showModal();
   }
   function open(id,preset={},options={}) {
-    original=JSON.parse(JSON.stringify(invoices().find(x=>x.id===id)||preset));
+    if(dialog.open&&!close())return;const resumed=options.session||null;original=JSON.parse(JSON.stringify(resumed?.context.base||invoices().find(x=>x.id===id)||preset));
     if(original.id&&(original.status!=='Entwurf'||original.sevdesk_id||original.issued_at)){alert('Abgeschlossene und importierte Rechnungen bleiben unverändert.');return;}
     if(original.id&&state.pending.some(a=>['invoice_issue','owner_invoice_issue','pixel_invoice_issue_v1'].includes(a.kind)&&a.payload.id===original.id)){alert('Abschluss bereits vorgemerkt. Bitte zuerst den Pixel-/Drive-Abgleich abwarten.');return;}
     returnToRead=options.returnToRead?id:null;
     let source;try{source=window.HGBillingUI?.sourceContext?.()||null;}catch(error){toast(error.message);return;}
     let priceTemplates=[];try{priceTemplates=HGOwnerClient.create('Preisbausteine nicht verfügbar')('search_offer_templates',{limit:100}).entries.map(x=>x.entry).filter(t=>t.active!==false&&t.price_confirmed===true&&t.default_price!==null&&t.default_price!==undefined);}catch(_){}
-    dialog.innerHTML='<form novalidate><div class="dialog-heading"><div><small>RECHNUNG · ENTWURF</small><h2>'+(original.id?'Entwurf bearbeiten':'Rechnung erstellen')+'</h2></div><button type="button" class="secondary" data-cancel aria-label="Entwurf schließen">×</button></div><div data-studio></div><div class="dialog-actions"><button type="button" class="secondary" data-cancel>Abbrechen</button><button type="submit" class="primary">Entwurf speichern</button></div></form>';
+    dialog.innerHTML='<form id="invoice-draft-form" novalidate><div class="dialog-heading"><div><small>RECHNUNG · ENTWURF</small><h2>'+(original.id?'Entwurf bearbeiten':'Rechnung erstellen')+'</h2></div><button type="button" class="secondary" data-later aria-label="Bearbeitung später fortsetzen">×</button></div><div data-studio></div><div class="dialog-actions"><button type="button" class="secondary" data-cancel>Abbrechen</button><button type="submit" class="primary">Entwurf speichern</button></div></form>';
     studio=InvoiceStudio.mount(dialog.querySelector('[data-studio]'),{
-      preset:original,priceTemplates,customers:customers(),orders:orders(),worklogs:source?source.rows:worklogs(),decimalQuantities:!!source,reservedWorklogIds:new Set(invoices().filter(i=>i.id!==original.id&&!['Storniert','Cancelled','Entfernt'].includes(i.status)&&(!source||i.status==='Entwurf'&&!i.issued_at)).flatMap(i=>[...(i.worklog_ids||[]),...(i.positions||[]).map(p=>p.worklog_id)]).filter(Boolean)),issuer:issuer(),logo:'hafner-logo.png',notify:toast,
+      preset:resumed?.values||original,priceTemplates,customers:customers(),orders:orders(),worklogs:source?source.rows:worklogs(),decimalQuantities:!!source,reservedWorklogIds:new Set(invoices().filter(i=>i.id!==original.id&&!['Storniert','Cancelled','Entfernt'].includes(i.status)&&(!source||i.status==='Entwurf'&&!i.issued_at)).flatMap(i=>[...(i.worklog_ids||[]),...(i.positions||[]).map(p=>p.worklog_id)]).filter(Boolean)),issuer:issuer(),logo:'hafner-logo.png',notify:toast,
       onAddCustomer:draft=>{
-        customerReturn=draft;dialog.close();
+        if(!retain())return;customerReturn=editSession;dialog.close();
         const form=document.getElementById('customer-form');form.reset();editingCustomer=null;
         form.elements.id.value='';form.elements.active.checked=true;
         document.getElementById('custom-fields').innerHTML='';
         openPage('customer-edit');form.elements.name.focus();
       },
     });
-    dialog.querySelectorAll('[data-cancel]').forEach(button=>button.onclick=close);
+    editSession=resumed||HGFormDrafts.start('invoice',studio.read(),{base:original,returnToRead});dialog.querySelector('form').dataset.editSession=editSession.session_id;
+    dialog.querySelector('form').addEventListener('input',retain);dialog.querySelector('form').addEventListener('change',retain);
+    dialog.querySelectorAll('[data-cancel]').forEach(button=>button.onclick=()=>close(true));dialog.querySelector('[data-later]').onclick=()=>close();
+    const later=document.createElement('button');later.type='button';later.className='secondary';later.textContent='Später fortsetzen';later.onclick=()=>close();dialog.querySelector('.dialog-actions').prepend(later);
+    if(resumed?.context.pane)dialog.querySelector('[data-pane="'+CSS.escape(resumed.context.pane)+'"]')?.click();
+    if(editSession.pending){studio.setBusy(true);dialog.querySelectorAll('input,select,textarea,[data-cancel]').forEach(e=>e.disabled=true);dialog.querySelector('[type=submit]').textContent='Dieselbe Speicherung erneut prüfen';}
+
     dialog.querySelector('form').onsubmit=event=>{
       event.preventDefault();if(saving)return;
       try {
-        const payload=studio.validate();
-        if(!event.currentTarget.checkValidity()){studio.revealInvalid();return;}
+        const payload=editSession.pending?HGOwnerClient.clone(editSession.pending.args):studio.validate();
+        if(!editSession.pending&&!event.currentTarget.checkValidity()){studio.revealInvalid();return;}
         if(original.id){payload._edit_base=original;payload._edit_changes=Object.fromEntries(Object.entries(payload).filter(([key,value])=>['customer_id','order_id','invoice_date','service_start','service_end','payment_days','notes','positions','domestic_service_confirmed','header_text','footer_text','tax_mode','recipient_type','recipient_vat_id'].includes(key)&&JSON.stringify(value)!==JSON.stringify(original[key])));}
         if(!payload.invoice_number)payload.invoice_number='Entwurf-Pixel-'+Date.now();
         saving=true;studio.setBusy(true);dialog.querySelector('[type="submit"]').disabled=true;
-        const result=AndroidData.saveInvoice(JSON.stringify(payload));
+        if(!payload.id)payload.id='inv_mobile_'+crypto.randomUUID().replaceAll('-','');if(!retain())return;const result=HGFormDrafts.nativeSave(editSession,'saveInvoice',payload);original.id=result;editSession.pending=null;HGFormDrafts.remove(editSession,{formId:'invoice-draft-form'});editSession=null;
         if(String(result).startsWith('ERROR:'))throw Error(String(result).replace(/^ERROR:\s*/,''));
-        const pane=dialog.querySelector('.invoice-studio')?.dataset.pane,returning=!!returnToRead;dialog.close();load();saving=false;open(String(result),{}, {returnToRead:returning});if(pane)dialog.querySelector('[data-pane="'+pane+'"]')?.click();toast(source?'Entwurf lokal gespeichert. Belegte Restmengen werden erst bei der Ausgabe zugeordnet.':'Entwurf auf diesem Gerät gespeichert. Drive-Abgleich folgt; Arbeitsstunden bleiben offen.');
-      }catch(error){studio.revealInvalid();alert(error.message);}
-      finally{saving=false;studio.setBusy(false);dialog.querySelector('[type="submit"]').disabled=false;}
+        const pane=dialog.querySelector('.invoice-studio')?.dataset.pane,returning=!!returnToRead;dialog.close();try{load();}catch(_){toast('Rechnungsentwurf lokal gespeichert. Übersicht bitte erneut laden.');}saving=false;open(String(result),{}, {returnToRead:returning});if(pane)dialog.querySelector('[data-pane="'+pane+'"]')?.click();toast(source?'Entwurf lokal gespeichert. Belegte Restmengen werden erst bei der Ausgabe zugeordnet.':'Entwurf auf diesem Gerät gespeichert. Drive-Abgleich folgt; Arbeitsstunden bleiben offen.');
+      }catch(error){studio.revealInvalid();if(editSession?.pending){dialog.querySelectorAll('input,select,textarea,[data-cancel]').forEach(e=>e.disabled=true);dialog.querySelector('[type=submit]').textContent='Dieselbe Speicherung erneut prüfen';}alert(error.message);}
+      finally{saving=false;studio.setBusy(!!editSession?.pending);dialog.querySelector('[type="submit"]').disabled=false;}
     };
     dialog.showModal();
   }
   window.onInvoiceCustomerSaved=id=>{
     if(!customerReturn)return false;
-    const draft=customerReturn;customerReturn=null;
-    finishPage('invoices');open(null,{...draft,customer_id:id,order_id:null,
-      positions:(draft.positions||[]).filter(p=>!p.worklog_id),worklog_ids:[]});return true;
+    const edit=customerReturn;customerReturn=null;edit.values={...edit.values,customer_id:id,order_id:null,positions:(edit.values.positions||[]).filter(p=>!p.worklog_id),worklog_ids:[]};HGFormDrafts.put(edit);finishPage('invoices');open(null,{}, {session:edit});return true;
   };
-  window.openInvoiceDraft=open;
+  window.openInvoiceDraft=open;window.resumeInvoiceEdit=edit=>open(edit.context.base?.id||null,{}, {session:edit,returnToRead:edit.context.returnToRead});
   function draftRead(invoice){
     const recipient=customers().find(row=>row.id===invoice.customer_id)||{},facts=[['Rechnungsempfänger',recipient.name||'Zuordnung prüfen'],['Adresse',[recipient.street,[recipient.postal_code,recipient.city].filter(Boolean).join(' ')].filter(Boolean).join(', ')||'Noch ergänzen'],['Status','Entwurf · noch keine ausgestellte Rechnung'],['Datum',worklogDateLabel(invoice.invoice_date)],['Leistungszeitraum',[invoice.service_start,invoice.service_end].filter(Boolean).join(' bis ')||'Noch ergänzen'],['Betrag',invoice.amount==null?'Noch unvollständig':money(invoice.amount)]];
     return '<section class="card invoice-draft-read"><h2 tabindex="-1">Gespeicherter Rechnungsentwurf</h2><dl>'+facts.map(([name,value])=>'<dt>'+esc(name)+'</dt><dd>'+esc(value)+'</dd>').join('')+'</dl><h3>Gespeicherte Positionen</h3><ul>'+((invoice.positions||[]).length?(invoice.positions||[]).map(position=>'<li><strong>'+esc(position.title||'Bezeichnung noch ergänzen')+'</strong>'+(position.description?'<p>'+esc(position.description)+'</p>':'')+'<p>'+esc(String(position.quantity??'Menge fehlt')+' '+(position.unit||'')+' × '+(position.price==null?'Preis fehlt':String(position.price)+' EUR')+' · USt '+String(position.tax_rate??'offen')+' %')+'</p></li>').join(''):'<li>Noch keine Position erfasst.</li>')+'</ul>'+(invoice.notes?'<h3>Interne Notiz</h3><p>'+esc(invoice.notes)+'</p>':'')+'<div class="local-payment-actions"><button type="button" class="primary" data-edit-mobile-invoice="'+esc(invoice.id)+'" data-return-to-read>Bearbeiten</button></div><details><summary>Layoutvorschau des Entwurfs</summary>'+InvoiceStudio.preview(invoice,issuer(),recipient,'hafner-logo.png')+'</details></section>';
@@ -147,7 +152,7 @@
     if(dialog.open){if(studio?.back())return true;close();return true;}
     if(customerReturn&&currentPage==='customer-edit'){
       if(!confirm('Kundenanlage abbrechen und zum Rechnungsentwurf zurückkehren?'))return true;
-      const draft=customerReturn;customerReturn=null;finishPage('invoices');open(null,draft);return true;
+      const draft=customerReturn;customerReturn=null;finishPage('invoices');open(null,{}, {session:draft});return true;
     }
     return previousBack?previousBack():false;
   };

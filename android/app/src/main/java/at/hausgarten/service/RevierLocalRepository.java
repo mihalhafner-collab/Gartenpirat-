@@ -26,6 +26,11 @@ final class RevierLocalRepository implements RevierRepository {
         if(inspections==null)throw new PixelMcpWriteTools.Rejected("INSPECTION_ADAPTER_UNAVAILABLE","Besichtigung kann gerade nicht geplant werden. Eingaben bleiben erhalten.");
         return inspections.plan(appointmentArgs);
     }
+    public JSONObject changeInspection(String operation,JSONObject args)throws Exception {
+        if(!operation.equals("update_appointment"))throw new IllegalArgumentException("Ungültige Terminänderung.");
+        JSONObject routed=new JSONObject(args.toString()).put("_operation",operation);return inspections.plan(routed);
+    }
+    public String createDirectOrder(JSONObject args)throws Exception {return store.saveEditorRecord("order",args);}
     public JSONObject session(String id)throws Exception {return RevierSessionContexts.session(store.getReadableDatabase(),id);}
     public JSONArray sessionContexts()throws Exception {return RevierSessionContexts.all(store.getReadableDatabase());}
     public JSONObject currentSession()throws Exception {return store.workSessions().current();}

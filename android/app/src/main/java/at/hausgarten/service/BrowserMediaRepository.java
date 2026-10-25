@@ -17,17 +17,21 @@ final class BrowserMediaRepository {
     private static IOException safe(Exception failure){String code=failure.getMessage(),prefix="BROWSER_MEDIA_";return new IOException(code!=null&&code.startsWith(prefix)&&SAFE_CODES.contains(code.substring(prefix.length()))?code:prefix+"STATE_INVALID");}
     private JSONObject run(BrowserMediaRepositoryRules.Work work)throws Exception {try{return work.run();}catch(Exception failure){throw safe(failure);}}
     JSONObject status()throws Exception {return run(rules::status);}
+    JSONObject deferRestoreReview(String request)throws Exception {return run(()->rules.deferRestoreReview(request));}
     JSONObject readRecord(String key)throws Exception {return run(()->rules.readRecord(key));}
     JSONObject prepareRecordWrite(String request,String key,String expected)throws Exception {return run(()->rules.prepareRecordWrite(request,key,expected));}
     JSONObject cancelRecordWrite(String request,String key,String expected,String reason)throws Exception {return run(()->rules.cancelRecordWrite(request,key,expected,reason));}
     JSONObject writeRecord(String request,String key,String expected,JSONObject graph)throws Exception {return run(()->rules.writeRecord(request,key,expected,graph));}
+    JSONObject cleanupDeletedKey(String key,String request)throws Exception {return run(()->rules.cleanupDeletedKey(key,request));}
     JSONObject beginMirror(String request,String source)throws Exception {return run(()->rules.beginMirror(request,source));}
     JSONObject writeMirrorRecord(String request,String source,String key,JSONObject graph)throws Exception {return run(()->rules.writeMirrorRecord(request,source,key,graph));}
     JSONObject completeMirror(String request,String source,JSONArray keys)throws Exception {return run(()->rules.completeMirror(request,source,keys));}
     JSONObject reviewCandidates()throws Exception {return run(rules::reviewCandidates);}
     JSONObject prepareRestoreSelection(String request,String expected,JSONArray selected)throws Exception {return run(()->rules.prepareRestoreSelection(request,expected,selected));}
     JSONObject verifyPreparedRestoreSelection(String request,String expected,JSONArray selected,String selectionHash)throws Exception {return run(()->rules.verifyPreparedRestoreSelection(request,expected,selected,selectionHash));}
-    JSONObject activateSelection(String request,String selectionHash)throws Exception {return run(()->rules.activateSelection(request,selectionHash));}
+    JSONObject activateSelection(String request,String selectionHash)throws Exception {
+        JSONObject before=rules.reviewCandidates(),result=run(()->rules.activateSelection("media_activate_"+PixelMcpWriteTools.hash(request),selectionHash));Set<String> keys=new TreeSet<>();JSONArray candidates=before.getJSONArray("candidates");for(int j=0;j<candidates.length();j++)keys.add(candidates.getJSONObject(j).getString("key"));for(String key:keys)try{JSONObject current=rules.readRecord(key);String cleanup="media_selection_cleanup_"+PixelMcpWriteTools.hash(request+":"+key);rules.prepareRecordWrite(cleanup,key,current.getString("record_hash"));rules.writeRecord(cleanup,key,current.getString("record_hash"),current.isNull("record")?null:current.getJSONObject("record"));rules.cleanupDeletedKey(key,cleanup);}catch(Exception deferred){result.put("cleanup_pending",true);}return result;
+    }
     void assertReadableReference(String id,JSONObject ref)throws Exception {try{rules.assertReadableReference(id,ref);}catch(Exception failure){throw safe(failure);}}
     static void installRestored(SQLiteDatabase database,String request,JSONObject identity)throws Exception {try{new BrowserMediaRepositoryRules(new Values(database,()->identity),null).installRestored(request);}catch(Exception failure){throw safe(failure);}}
     static boolean hasCapturedNamespace(SQLiteDatabase database)throws Exception {try(Cursor rows=database.rawQuery("SELECT key FROM owner_state WHERE key>=? AND key<? LIMIT 1",new String[]{"browser_media:","browser_media:\uffff"})){return rows.moveToFirst();}catch(Exception failure){throw safe(failure);}}
@@ -42,5 +46,6 @@ final class BrowserMediaRepository {
         public void remove(String key){database.delete("owner_state","key=?",new String[]{key});}
         public JSONArray entries(String prefix)throws Exception {JSONArray entries=new JSONArray();try(Cursor rows=database.rawQuery("SELECT key FROM owner_state WHERE key>=? AND key<? ORDER BY key",new String[]{prefix,prefix+'\uffff'})){while(rows.moveToNext()){String key=rows.getString(0);entries.put(new JSONObject().put("key",key).put("value",new JSONObject(get(key,"{}"))));}}return entries;}
         public JSONObject transaction(BrowserMediaRepositoryRules.Work work)throws Exception {database.beginTransaction();try{JSONObject result=work.run();database.setTransactionSuccessful();return result;}finally{database.endTransaction();}}
+        public boolean fileDeletionAllowed(){return !database.inTransaction();}
     }
 }

@@ -16,7 +16,8 @@ final class LocalBackupDataset {
         Captured(File directory,JSONObject metadata){this.directory=directory;this.metadata=metadata;}
         List<EncryptedBackupArchive.Source> sources()throws Exception{return BackupFilePins.sources(directory);}
     }
-    static Captured capture(Context context,PixelLocalStore store,File freshDirectory,JSONObject identity,JSONObject browserStorage)throws Exception {
+    static Captured capture(Context context,PixelLocalStore store,File freshDirectory,JSONObject identity,JSONObject browserStorage)throws Exception {synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK){return captureLocked(context,store,freshDirectory,identity,browserStorage);}}
+    private static Captured captureLocked(Context context,PixelLocalStore store,File freshDirectory,JSONObject identity,JSONObject browserStorage)throws Exception {
         if(browserStorage==null||browserStorage.optInt("formatVersion")!=1||browserStorage.optJSONObject("storage")==null)throw new IOException("BACKUP_BROWSER_STATE_REQUIRED");
         JSONObject mediaReadiness=new BrowserMediaRepository(context,store).status();if(!mediaReadiness.optBoolean("mirror_complete")||mediaReadiness.optString("mode").equals("MIRROR_REQUIRED"))throw new IOException("BACKUP_BROWSER_CAPTURE_REQUIRED");
         String stage=freshDirectory.getCanonicalPath();

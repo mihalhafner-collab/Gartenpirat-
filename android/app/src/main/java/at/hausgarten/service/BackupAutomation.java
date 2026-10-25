@@ -20,7 +20,7 @@ final class BackupAutomation {
     JSONObject decision(long now)throws Exception {
         JSONObject config=settings.read();JSONArray rows=currentJobs();boolean anyManual=false;JSONArray candidates=new JSONArray();
         for(int i=0;i<rows.length();i++){
-            JSONObject job=rows.getJSONObject(i);if(job.optInt("formatVersion")!=1)return result("JOB_REVIEW",job.optString("backupId"),0);
+            JSONObject job=rows.getJSONObject(i);
             if(!FullBackupController.targetMatches(job,config))continue;
             if(!config.optBoolean("enabled")&&!manual(job))continue;
             candidates.put(new JSONObject(job.toString()).put("contextMatches",true));if(manual(job)&&!COMPLETE.contains(job.optString("phase")))anyManual=true;

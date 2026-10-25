@@ -148,7 +148,7 @@ final class LocalOwnerRepository implements OwnerRepository {
         if(name.equals("retry_full_backup"))return control.retry(args);
         throw new IllegalArgumentException("Sicherungsaktion fehlt.");
     }
-    private RevierApplicationService revier()throws Exception{return new RevierApplicationService(new RevierLocalRepository(store,a->new PlanningApplicationService(this).perform("create_appointment",a,"mcp_revier_inspection_"+PixelMcpWriteTools.hash(a.getString("request_id")))));}
+    private RevierApplicationService revier()throws Exception{return new RevierApplicationService(new RevierLocalRepository(store,a->{String operation=a.optString("_operation","create_appointment");a.remove("_operation");return new PlanningApplicationService(this).perform(operation,a,"mcp_revier_inspection_"+PixelMcpWriteTools.hash(a.getString("request_id")));}));}
     @Override public JSONObject revierQuery(String name,JSONObject args)throws Exception{return revier().query(name,args);}
     @Override public JSONObject revierAction(String name,JSONObject args)throws Exception{return revier().execute(name,args);}
     @Override public JSONObject localInvoiceAction(String name,JSONObject args,String request)throws Exception {

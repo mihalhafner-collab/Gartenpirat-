@@ -58,6 +58,53 @@ Annahme-/Besichtigungsregeln. Danach geprüfte Fingerprints/Inventare, gemeinsam
 native Piloten/Regression, sauber gesicherter Originalbuild mit Signatur/Provenienz.
 K01–K16 bleiben bis zum jeweiligen vollständigen Endstandnachweis OFFEN.
 
+### Zweiter Korrekturcheckpoint – Formulare und Medienbereinigung, 25.10.2026
+
+Letzter exakt rückgelesener Remote vor diesem Schritt:
+`c5b50085bb26ba6faa0bade397407c9eeab230d7`. Unabhängig davon bleibt main unverändert;
+kein neuer Build, keine Signierung, keine produktive Gerätehandlung.
+
+Erweiterter gemeinsamer Bearbeitungsdienst auch für Kunden, Aufträge, gespeicherte
+Arbeitsaufzeichnungen, Termine und Rechnungsentwürfe. Zurück erhält Bearbeitung,
+explizites Verwerfen entfernt sie; gespeicherte Entwürfe bleiben Geschäftsdaten.
+Native Formularcommits verwenden atomare minimale Request-Receipts. Ein bekanntes
+Commit-Ergebnis bleibt auch bei fehlgeschlagener Entwurfsbereinigung bekannt;
+ursprüngliche ungeklärte Aktionen werden nicht durch neue Argumente ersetzt.
+Optionale Kundenprofilfotos werden mit Dateiinhalten vor Geschäftsübertragung
+gepuffert, besitzen getrennte Wiederholung und übernehmen bestätigte Kunden-ID.
+Diese neue Foto-Integration ist noch nicht gemeinsam nativ abgenommen.
+
+Browserprüfungen: Revier13, Angebote bis Auftrag6 (vor jüngsten Mediendetails),
+gespeicherte Angebots-/Rechnungsentwürfe10, Arbeitsfenster10, Terminplanung25,
+Daily-Usability sowie Vollsicherungs-/Restoredraft-Browserablauf PASS. Produktions-
+Java202 Produktions- und32 Instrumentationsquellen erneut kompiliert PASS; noch kein neuer APK-/Instrumentationslauf.
+JVM-Medien59 PASS: echtes Datei-Purging, gemeinsame Referenzen, aufgeschobenes
+Dateilöschen bei umgebender Transaktion, defekter einzelner Restore-Kandidat,
+weiterlaufender unabhängiger Fotoentwurf und gezieltes Entfernen des Defekts.
+Revier-Domäne122 PASS einschließlich direkter Annahme mit Nachweis, idempotentem
+Auftrag, Verschiebung derselben Besichtigung, zusätzlichem Besuch mit getrennten
+Messwerten, ausdrücklichem Wiederöffnen und Absage bei inaktivem Bezug. JVM-Ports
+sind keine native SQLite-/Pixelbehauptung. Messung Suche p95 rund14ms auf HostJVM,
+300 synthetische Kunden/450 Objekte; kein Pixel-Leistungsnachweis.
+
+Vollständige Medienaufnahme und Medienbereinigung teilen einen Prozesslock;
+Metadaten bleiben in owner_state. Physische Bereinigung erfolgt erst außerhalb
+einer offenen SQLite-Transaktion und ist über minimale Intents wiederaufnehmbar.
+Alte IDB-Schlüssel werden erst nach bestätigtem Native-Commit entfernt. Eine
+abgeschlossene Formular-Restore-Prüfung wird beim Öffnen nicht erneut erzwungen.
+Noch offene Medienprüfung kann getrennt erhalten werden; betroffene Schlüssel
+bleiben geschützt, unabhängige Schlüssel funktionieren. Prepare/Activate eines
+Restore-Workflows benutzen getrennte stabile technische Aktionskennungen.
+
+Weiter offen: gezielte native Prüfung aller neuen Adapter, asynchrone Scheduler-
+Fehler auf tatsächlichem Hauptthread, vollständiger >40MiB-Medien-/Entwurfs-Restore,
+Process-kill vor erstem Chunk/bei Teilcommit, alle aktiven Restore-/Mirrorkopien bei
+Verwerfen, stale/restored Requests, vollständige Kunden-/Auftrags-Fehlerfälle und
+Revier-Löschwege. Neue direkte Annahme/Inspektionsmodi benötigen finale UI-/MCP-
+Abnahme und Inventarpflege. Fingerprints wurden bewusst noch nicht neu gepinnt.
+Danach beide nativen Gesamtpiloten, Regression, Privacy/Quellensicherung,
+Originalbuild/Signatur/Provenienz. K01–K16 weiter keine Gesamtfreigabe.
+
 ## Entwicklung erneut gestoppt; vollständige Übergabe für später – 25.10.2026
 
 Der Nutzer hat ausdrücklich angewiesen: „Stoppe die Erstellung speichere für späteren
