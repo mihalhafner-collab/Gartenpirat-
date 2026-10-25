@@ -17,7 +17,7 @@ final class LocalAuthorityNativeAcceptance {
             try(OwnerNativeAcceptance.Fixture f=new OwnerNativeAcceptance.Fixture(test.getTargetContext())){
                 f.store.saveCustomer(new JSONObject().put("name","[TEST] QA Migration").put("test_record",true));int pending=f.store.pendingActions().length();String hours=PixelMcpReadTools.effective(f.store.getState()).getJSONArray("worklogs").getJSONObject(0).get("hours").toString();
                 JSONObject result=activate(f,"qa_authority_activate");test.yes(result.getString("mode").equals("LOCAL_ACTIVE")&&result.getString("invoice_authority").equals("LOCKED"));test.yes(f.store.pendingActions().length()==pending&&PixelMcpReadTools.effective(f.store.getState()).getJSONArray("customers").length()==2);test.yes(!LocalAuthorityGuard.legacySyncAllowed(f.context));
-                test.yes(PixelMcpReadTools.effective(f.store.getState()).getJSONArray("worklogs").getJSONObject(0).get("hours").toString().equals(hours));test.yes(f.store.getReadableDatabase().getVersion()==5);
+                test.yes(PixelMcpReadTools.effective(f.store.getState()).getJSONArray("worklogs").getJSONObject(0).get("hours").toString().equals(hours));test.yes(f.store.getReadableDatabase().getVersion()==6);
                 try{f.store.commitSnapshot(f.store.getState().getJSONObject("master"),new java.util.HashSet<>());throw new AssertionError("legacy sync wrote local data");}catch(IllegalStateException|java.io.IOException expected){test.yes(true);}
                 rejected(test,"INVOICE_AUTHORITY_RECONCILIATION_REQUIRED",()->new LocalAuthorityGuard(f.context).requireInvoiceAuthority());
             }

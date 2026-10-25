@@ -86,7 +86,7 @@ function customers(){return merged('customers','customer')}function orders(){ret
 function load(){
   let read=false;
   try{const next=JSON.parse(AndroidData.getState());if(!next.master||!Array.isArray(next.master.customers))throw new Error('Datenstand fehlt');state=next;read=true;window.hgHasLoadedState=true;window.hgDataReadError=false;}
-  catch(_){window.hgDataReadError=true;if(!window.hgHasLoadedState)try{const cached=JSON.parse(localStorage.getItem('mobile-state')||'null');if(cached?.master&&Array.isArray(cached.master.customers))state=cached;}catch(_){}}
+  catch(_){window.hgDataReadError=true;if(!window.hgHasLoadedState)try{const cached=JSON.parse(HGDraftStorage.getItem('mobile-state')||'null');if(cached?.master&&Array.isArray(cached.master.customers))state=cached;}catch(_){}}
   try{const status=JSON.parse(AndroidData.getSyncStatus());if(status&&typeof status==='object')syncInfo=status;}catch(_){syncInfo={...syncInfo,cloud_confirmed:false};}
   render();if(!read)window.showUndoToast?.('App-Daten konnten nicht neu gelesen werden. Die bisherige Ansicht bleibt erhalten. Bitte erneut laden.');return read;
 }

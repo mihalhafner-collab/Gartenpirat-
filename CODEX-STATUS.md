@@ -5,6 +5,126 @@ Repository: `mihalhafner-collab/Gartenpirat-`
 
 ## Aktueller Gesamtstatus der Umstellung, 25.10.2026
 
+**Auftrag aktiv, gemeinsame Softwareabnahme offen.** Letzter gesicherter und
+zurückgelesener Entwicklungsstand: `07b8fa1309c715d46c17ce8c1f5c1414f60ca7c1`
+auf `codex/revier-solo-20261023`; main weiterhin
+`e499e745832449ce0202d04d9903495248e8b034`. Darauf folgen aktuelle ungesicherte
+Arbeitsänderungen; sie sind weder vollständig geprüft noch originalsigniert.
+Pixel/App bleibt das Ziel für sämtliche Fachfunktionen und maßgebliche Daten,
+Drive ausschließlich das Sicherungsziel nach kontrollierter Umstellung.
+
+| Stand | Tatsächlicher Nachweis | Grenze |
+| --- | --- | --- |
+| Physischer Pixel | Am 25.10.2026 um 17:16:52 UTC erneut ausschließlich lesend: 1.54.9/98, DB4, MCP9/117, `dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c` | Runtime-Selbstbericht; keine unabhängige APK-Integritätsprüfung, kein Update/Autoritätswechsel |
+| Interner Original-Prüfbau 07b8fa1 | 1.55.0/99, DB5; Host-/Buildnachweise unten, nativer Gesamtlauf 423 PASS / 1 FAIL | Keine vollständige Abnahme, keine Auslieferung/Pixelinstallation |
+| Aktueller Arbeitsstand | VersionCode 100 / DB6 mit nativer Entwurfssicherung und Schutz gegen alte Schreiber implementiert | Kein signierter 100-Prüfbau und kein gemeinsamer Ausführungsnachweis dieses geänderten Standes |
+
+Pixel-Fingerprint weiterhin
+`fd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae`,
+`pixel_drive_v1/android_provider`, Rechnungspfad
+`pixel_drive_online_compare_required`. Produktive Daten, Verbindungen und
+bestehende Online-Ausgabesperre bleiben unverändert. Keine produktive Installation,
+Migration, Wiederherstellung, Rechnung, Zahlung oder sonstige Datenmutation.
+
+### Implementierung und entscheidender offener Fehler
+
+Lokaler Revier-Kern mit Objekten/Anfragen/Pflege/Touren/Material/Geräten, gemeinsame
+UI-/MCP-Anwendungsfälle, lokale Rechnungs-/PDF-/Zahlungsjobs sowie verschlüsselte
+Vollsicherung mit lokaler Prüfung und gesondertem automatischem Drive-Upload sind
+im Entwicklungszweig implementiert. 166 Werkzeuge / 209 semantische UI-Aktionen sind der
+zuletzt geprüfte Softwarevertrag. Das ist keine Aktivierung auf dem Pixel und keine
+vollständige Abnahme der aktuellen 100-/DB6-Änderungen.
+
+**Neu reproduzierter fachlicher Fehler:** In einer isolierten tatsächlichen
+JavaScript-VM-Ausführung mit synthetischer Gegenstelle gehen sowohl der vor dem
+Schreiben eingefrorene localStorage-Zustand als auch die Commitantwort verloren.
+Der Wiederanlauf erzeugt dann zwei Aufträge. Dies ist ein reproduzierter
+Softwarefehler, keine Beobachtung auf dem Pixel oder nach echtem OS-Prozessende;
+die vier bestandenen älteren Prozesspaare decken diesen kombinierten Fall nicht ab.
+
+Die laufende Korrektur verbindet das native `BrowserDraftRepository` mit
+`HGDraftStorage`: dauerhafter nativer Prüfpunkt mit Bestätigung vor Fachschreibaufruf,
+CAS, ausdrückliche Verwerfbelege, Kontext-/Installations-/Restore-Epochenbindung und
+Bindung des Entwurfsdigests an die Sicherung. Fehlende Bestätigung muss den
+Fachschreibaufruf verhindern; Browsercache darf eine bestätigte Aktion nicht unter
+neuer ID wiederbeleben. Die Integration ist implementiert; die gemeinsame native Ausführung steht noch aus.
+Ein fünftes echtes OS-Prozesspaar für Anfrage/Auftrag/Angebot mit verlorener
+Commitantwort und zurückgesetztem Browsercache ist geschrieben, **noch nicht ausgeführt**.
+
+Aktueller Quellenprüfstand vor dem gebündelten 100-Build: 204 Javaquellen einschließlich
+generierter BuildConfig und 32 Androidtestdateien gegen API37/JDK17 kompiliert;
+78 JVM-Suiten einschließlich 56 Restoreprojektionsprüfungen und 161 Revier-Domänenprüfungen
+bestanden. Die versionierte P1-Vertragsprüfung besteht mit166Tools/209Aktionen und
+zwei eng freigegebenen nativen Entwurfsoperationen; Originalbaseline unverändert.
+55 synthetische MCP-Szenarien bestanden. Source-/Workspace-Privacy bestanden;
+das neue100-Artefakt existiert zu diesem Zeitpunkt noch nicht.
+
+Foto-, Garten- und Firmendaten verwenden nun den bestehenden gemeinsamen
+Entwurfsdienst. Ungeklärte Aktionen behalten ihre Argumente; restaurierte Aktionen
+prüfen vorhandene Belege ausschließlich lesend. Firmenänderungen lassen sich nach
+Versionskonflikt bewusst vergleichen, später fortsetzen und gezielt verwerfen.
+Gezielte Browserprüfungen einschließlich28Angebots-/Foto-/Firmendatenfällen,
+23Zahlungsfällen und10nativen Portgrenzen bestanden; keine SQLite-/OS-Behauptung.
+Der Android-Checkpoint erhält jetzt den streng geprüften editor_state und unveränderte
+Formularspiegelbytes. Aufnahme und Staging gleichen diese mit der tatsächlich
+gesicherten SQLite ab. Restore-Auswahlprojektion3 erhält die Belege der Versionen1/2.
+Für K13 werden direkte mündliche Annahme und Besichtigung verschieben/ergänzen/
+wiederöffnen zusätzlich über reale UI-/SQLite-Pfade geprüft; Ausführung noch offen.
+
+### Tatsächlich geprüfter Originalstand 07b8fa1
+
+- 430 Pythonprüfungen, 78 JVM-/56 Browser-/55 synthetische MCP-Suiten und 9 ergänzende
+  Browsersuiten PASS auf 07b8fa1. Original-Gradle-Build und Lint PASS, 0 Fehler / 112 Warnungen.
+  Diese Ergebnisse werden nicht auf die danach geänderten 100-/DB6-Quellen übertragen.
+- Nativer Gesamtlauf auf dem isolierten API30-Cloudemulator: **423 PASS / 1 FAIL**.
+  Die verschlüsselte Pflege-/Backup-/Restoreprüfung besteht; der verbleibende FAIL
+  betrifft die abschließende QA-Bereinigung. Ein noch eingereihter Browsercheckpoint
+  öffnet nach Löschung die isolierte QA-Datenbank erneut. Der Lauf ist insgesamt
+  **kein PASS**. Korrektur des Prüfharness mit Main-Thread-Leerlauf, Executor-Sentinel
+  und geschlossenen Stores ist in Arbeit; keine wiederholten Löschversuche als Ersatz.
+- Beide durchgängigen Offline-UI-Piloten auf a1dd56a PASS; vier echte OS-Prozesspaare
+  auf d99f6dd PASS: vor erstem Medienchunk, nach Teilchunk, nach Mediencommit und echte
+  Anfrage-/Auftragsformulare. Diese getrennten Quellstände bleiben Teilnachweise,
+  kein gemeinsamer Vollnachweis für 07b8fa1 oder den aktuellen Arbeitsstand.
+
+Original-App 07b8fa1 SHA256
+`01235871a2110d39b28496043ef7b4fd698697e1958751a89042a8734e048205`,
+Runner-SHA256
+`7599dacb08563403b6a76cf4ad04720b7a9a35308c60025daeb5640c9e06e36d`.
+Originalzertifikat unverändert
+`a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`.
+Kein 99-Release-Tag, kein Release-APK-Upload und keine Pixelinstallation.
+
+### Quellen und nächste gemeinsame Abnahme
+
+Vollständige private 07b8fa1-Quellkopie im bestehenden Drive:
+https://drive.google.com/drive/folders/1etLfCbGMXiIIhi2Qm7g3heXAv_ifus0u .
+59 physische Dateien einschließlich 3 Transportteilen vollständig zurückgelesen;
+rekonstruiertes OriginalZIP SHA256
+`29edef7bf3389adc09789da0b6cba80d730d74d6f8fced84f38934bef9d9725e`.
+Die frühere geprüfte a1dd56a-Quellkopie bleibt erhalten. Diese administrative
+Quellcodesicherung ist keine operative Geschäftssicherung und enthält die späteren
+ungesicherten Arbeitsänderungen nicht.
+
+Nächster Schritt: native Entwurfssicherung/Bestätigungsgrenze und QA-Abschluss
+fertig integrieren, den kombinierten Antwort-/Browserzustandsverlust gezielt und
+mit der Hostregression prüfen und den gemeinsamen Quellstand sichern. Danach
+Original-100-Prüfbau mit Provenienz-/Privacyprüfung; auf genau diesem Artefakt das
+fünfte OS-Prozesspaar, beide Offline-UI-Piloten, native Gesamtsuite sowie Update-/
+Restorebelege ausführen. Physischer Pixel, zwei reale USB-Ziele, TalkBack und
+produktiver Autoritäts-/Originalbelegabgleich bleiben getrennte offene Abnahmen.
+Kein grüner Gesamtstatus und keine Restaufwandsschätzung aus Teilprüfungen.
+
+## Historische datierte Zwischenstände vor der vorstehenden Konsolidierung
+
+Die folgenden älteren Befunde bleiben unverändert als Nachweis ihres jeweiligen
+Quellstands erhalten. Formulierungen wie „aktuell“, „offen“ oder „nächster Schritt“
+in diesen datierten Abschnitten beschreiben den damaligen Stand; maßgeblich für
+die Fortsetzung sind ausschließlich der aktuelle Kopf und
+`AKTUELLER-STAND.json` → `development_snapshot.correction_current_checkpoint`.
+
+## Historischer Gesamtstatus vor07b8fa1, 25.10.2026
+
 Fortsetzungsauftrag aktiv. Neuester gesicherter Entwicklungsstand vor dieser
 aktuellen Korrekturbündel:52a01f253c42b3a87b3865fe1a3ad5ef9a928b87; main weiterhin
 e499e745832449ce0202d04d9903495248e8b034. Kein produktiver Schalterwechsel.

@@ -20,7 +20,8 @@ import java.util.UUID;
 
 /** Original SQLite store separated from Activity lifecycle; schema and files unchanged. */
 final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteTools.Sink {
-    static final int SCHEMA_VERSION=5;
+    // Contract 6 adds authoritative native editor state; older clients must not write it.
+    static final int SCHEMA_VERSION=6;
     private final Context context;
     private final SharedPreferences preferences;
     private final PhotoAttachmentStore photoAttachments;
@@ -65,7 +66,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         JSONArray photos=snapshot.optJSONArray("photos");for(int i=0;photos!=null&&i<photos.length();i++){JSONObject photo=photos.optJSONObject(i);if(photo!=null){photo.remove("data");photo.remove("full_data");}}
     }
     @Override public void onCreate(SQLiteDatabase database) { database.execSQL("CREATE TABLE pending(id TEXT PRIMARY KEY,kind TEXT NOT NULL,payload TEXT NOT NULL,created_at TEXT NOT NULL)"); WorkSessionStore.createSchema(database); createPhotoAttachmentSchema(database); createOwnerSchema(database); }
-    @Override public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) { if(oldVersion<2) WorkSessionStore.createSchema(database);if(oldVersion<3){createPhotoAttachmentSchema(database);migrateLegacyPendingPhotoAttachments(database);}if(oldVersion<4)createOwnerSchema(database); }
+    @Override public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) { if(oldVersion<2) WorkSessionStore.createSchema(database);if(oldVersion<3){createPhotoAttachmentSchema(database);migrateLegacyPendingPhotoAttachments(database);}if(oldVersion<4)createOwnerSchema(database); /* 5 -> 6 is a writer-contract fence; existing rows remain byte-for-byte unchanged. */ }
     private void createOwnerSchema(SQLiteDatabase database){
         database.execSQL("CREATE TABLE IF NOT EXISTS owner_state(key TEXT PRIMARY KEY,value TEXT NOT NULL)");
         database.execSQL("CREATE TABLE IF NOT EXISTS mcp_uploads(id TEXT PRIMARY KEY,metadata TEXT NOT NULL,data BLOB NOT NULL)");

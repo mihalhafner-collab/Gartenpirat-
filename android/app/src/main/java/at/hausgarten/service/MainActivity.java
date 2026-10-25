@@ -530,7 +530,7 @@ public class MainActivity extends Activity implements McpSyncHost {
         int remaining=Math.max(0,backupPendingCaptures.getOrDefault(page,1)-1);if(remaining==0)backupPendingCaptures.remove(page);else backupPendingCaptures.put(page,remaining);
         if(remaining==0&&page.equals(backupPageToken)&&backupLastSequence>0&&backupLastSequence>=backupReceivedSequence){
             local.putOwnerValue("full_backup_browser_status",new JSONObject().put("code","").put("at",java.time.Instant.now().toString()).toString());boolean wake=backupRecoveryWakeups.remove(page);JSONObject scheduler=new JSONObject(local.ownerValue("full_backup_scheduler_status","{}"));
-            if(java.util.Arrays.asList("BACKUP_BROWSER_CAPTURE_REQUIRED","BACKUP_BROWSER_STATE_REQUIRED_OPEN_APP","BACKUP_BROWSER_WRITE_CONFLICT","BACKUP_BROWSER_STATE_TOO_LARGE").contains(scheduler.optString("code"))){local.putOwnerValue("full_backup_scheduler_status",new JSONObject().put("code","").put("needsReview",false).put("at",java.time.Instant.now().toString()).toString());wake=true;}
+            if(java.util.Arrays.asList("BACKUP_BROWSER_CAPTURE_REQUIRED","BACKUP_BROWSER_STATE_REQUIRED_OPEN_APP","BACKUP_BROWSER_WRITE_CONFLICT","BACKUP_BROWSER_EDITOR_STATE_MISMATCH","BACKUP_BROWSER_STATE_TOO_LARGE").contains(scheduler.optString("code"))){local.putOwnerValue("full_backup_scheduler_status",new JSONObject().put("code","").put("needsReview",false).put("at",java.time.Instant.now().toString()).toString());wake=true;}
             if(wake&&config.optBoolean("enabled"))try{FullBackupJob.schedule(getApplicationContext(),0);}catch(Exception ignored){}
         }
     }
@@ -557,7 +557,15 @@ public class MainActivity extends Activity implements McpSyncHost {
         if(source.optInt("formatVersion")!=1||source.optJSONObject("storage")==null)throw new IOException("BACKUP_BROWSER_CAPTURE_REQUIRED");JSONObject value=new JSONObject().put("formatVersion",1).put("storage",new JSONObject(source.getJSONObject("storage").toString())),storage=value.getJSONObject("storage");
         for(java.util.Iterator<String> keys=storage.keys();keys.hasNext();){String name=keys.next();if(BACKUP_SECRET_NAME.matcher(name).find())keys.remove();else if(!(storage.get(name) instanceof String))throw new IOException("BACKUP_BROWSER_CAPTURE_REQUIRED");}
         Object drafts=source.opt("drafts");if(drafts!=null&&drafts!=JSONObject.NULL)value.put("drafts",sanitizeBackupDraftValue(drafts));
-        String mirror="hausgarten.fullbackup.formdrafts.v1";if(storage.has(mirror))try{storage.put(mirror,sanitizeBackupDraftValue(new JSONObject(storage.getString(mirror))).toString());}catch(org.json.JSONException invalid){throw new IOException("BACKUP_BROWSER_CAPTURE_REQUIRED");}
+        String mirror="hausgarten.fullbackup.formdrafts.v1";if(storage.has(mirror))try{JSONObject original=new JSONObject(storage.getString(mirror));Object sanitized=sanitizeBackupDraftValue(original);if(!PixelMcpWriteTools.hash(original).equals(PixelMcpWriteTools.hash(sanitized)))storage.put(mirror,sanitized.toString());}catch(org.json.JSONException invalid){throw new IOException("BACKUP_BROWSER_CAPTURE_REQUIRED");}
+        // Preserve the native capture binding. Do not normalize opaque editor strings:
+        // their exact bytes are compared with the same captured SQLite generation.
+        if(source.has("editor_state")){
+            JSONObject state=source.optJSONObject("editor_state"),identity=state==null?null:state.optJSONObject("context");
+            if(state==null||state.length()!=4||!(state.opt("formatVersion") instanceof Integer)||state.getInt("formatVersion")!=1||!(state.opt("review_required") instanceof Boolean)||!(state.opt("record_hash") instanceof String)||!state.getString("record_hash").matches("[0-9a-f]{64}")||identity==null||identity.length()!=2)throw new IOException("BACKUP_BROWSER_CAPTURE_REQUIRED");
+            for(String name:new String[]{"installationId","restoreEpoch"})if(!(identity.opt(name) instanceof String)||!identity.getString(name).matches("[0-9a-f-]{36}"))throw new IOException("BACKUP_BROWSER_CAPTURE_REQUIRED");
+            value.put("editor_state",new JSONObject().put("formatVersion",1).put("context",new JSONObject(identity.toString())).put("review_required",state.getBoolean("review_required")).put("record_hash",state.getString("record_hash")));
+        }
         return value;
     }
     private static Object sanitizeBackupDraftValue(Object value)throws Exception {

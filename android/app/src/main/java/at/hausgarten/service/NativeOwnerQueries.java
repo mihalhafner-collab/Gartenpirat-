@@ -30,7 +30,7 @@ final class NativeOwnerQueries implements PixelMcpOwnerTools.Access {
                 JSONObject current=repository.effective(),caps=current.optJSONObject("capabilities");data.put("processing_engine",PixelDriveState.ENGINE).put("primary_device_id",current.optString("drive_publisher_id")).put("capabilities",caps).put("offers_sync_ready",caps!=null&&caps.optBoolean("offers_v1")).put("service_catalog_sync_ready",caps!=null&&caps.optBoolean("service_catalog_v1"));
                 JSONObject authority=new LocalAuthorityGuard(context).current();boolean local=!authority.optString("mode").equals("LEGACY_DRIVE"),invoiceReady=false;
                 if(local)try{new LocalAuthorityGuard(context).requireInvoiceAuthority();invoiceReady=true;}catch(Exception locked){}
-                data.put("capabilities",(caps==null?new JSONObject():new JSONObject(caps.toString())).put("local_payment_ledger_v1",local));
+                data.put("capabilities",(caps==null?new JSONObject():new JSONObject(caps.toString())).put("local_payment_ledger_v1",local).put("native_editor_storage_v1",true));
                 data.put("storage_contract_version",2).put("local_workflows_contract",1).put("drive_role",local?"backup_only":"legacy_two_way_until_controlled_cutover")
                     .put("processing_engine",local?LocalAuthorityRules.ENGINE:PixelDriveState.ENGINE)
                     .put("invoice_finalization",local?(invoiceReady?"pixel_local_atomic_after_reconciliation":"pixel_local_reconciliation_required"):"pixel_drive_online_compare_required")

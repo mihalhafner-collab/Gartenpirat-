@@ -40,7 +40,7 @@ final class McpErrors {
         "INVOICE_MATERIAL_RECIPIENT_MISMATCH","INVOICE_MATERIAL_SOURCE_MISSING","INVOICE_MATERIAL_SOURCE_NOT_AVAILABLE",
         "INVOICE_SOURCE_QUANTITY_REVIEW_REQUIRED","INVOICE_AUTHORITY_CHECKPOINT_PENDING","INVOICE_JOB_SCOPE_UNAVAILABLE",
         "BACKUP_SAF_OWNED_TEMP_CLEANUP_REQUIRED","BACKUP_CAPTURE_METADATA_MISSING","BACKUP_RUNNER_BUSY",
-        "BACKUP_ALREADY_COMPLETE","BACKUP_AUTOMATIC_PAUSED","BACKUP_BROWSER_REPLAY_MISMATCH",
+        "BACKUP_ALREADY_COMPLETE","BACKUP_AUTOMATIC_PAUSED","BACKUP_BROWSER_REPLAY_MISMATCH","BACKUP_BROWSER_EDITOR_STATE_MISMATCH",
         "BACKUP_BROWSER_RESTORE_REVIEW_REQUIRED","BACKUP_BROWSER_REVISION_REQUIRED","BACKUP_BROWSER_STATE_CHANGED",
         "BACKUP_BROWSER_STATE_INVALID","BACKUP_BROWSER_STATE_REQUIRED","BACKUP_BROWSER_STATE_REQUIRED_OPEN_APP",
         "BACKUP_BROWSER_STATE_TOO_LARGE","BACKUP_BROWSER_STORAGE_INVALID","BACKUP_BROWSER_WRITE_CONFLICT",
@@ -127,6 +127,7 @@ final class McpErrors {
         if(code.equals("LOCAL_ORIGINAL_MISSING")||code.equals("INVOICE_DOCUMENT_ORIGINAL_MISSING_OR_CHANGED")||code.startsWith("FINANCIAL_ORIGINAL_"))return "Ein benötigtes Original fehlt, ist verändert oder konnte nicht vollständig geprüft werden. Geprüfte Sicherung am Gerät prüfen; Originale werden nicht automatisch ersetzt.";
         if(code.equals("INVOICE_PDF_NOT_READY"))return "Das Rechnungs-PDF ist noch nicht lokal verifiziert. Dokumentauftrag prüfen oder denselben Auftrag erneut ausführen; Belegnummer bleibt erhalten.";
         if(code.contains("WRITE_CONFLICT")||code.contains("EPOCH_CONFLICT")||code.endsWith("CHANGED"))return "Der gespeicherte Stand hat sich geändert. Neu laden; Eingaben bleiben erhalten.";
+        if(code.equals("BACKUP_BROWSER_EDITOR_STATE_MISMATCH"))return "Formularentwürfe und Sicherungsaufnahme gehören noch nicht zum selben lokalen Stand. Zur App zurückkehren und die Sicherung erneut öffnen; bestätigte Geschäftsdaten bleiben erhalten.";
         if(code.contains("REPLAY_MISMATCH"))return "Die Anfragekennung gehört zu anderen Angaben. Die ursprüngliche Aktion prüfen.";
         if(code.contains("AUTHORITY")||code.contains("RECONCILIATION"))return "Rechnungsausgabe bleibt gesperrt: aktuellen Original-/Nummernstand und den alleinigen Schreiber nachweisen und erneut prüfen.";
         if(code.equals("PAYMENT_ZERO_CORRECTION_REQUIRES_EMPTY_ALLOCATIONS"))return "Eine Zahlung vollständig zurücknehmen: Betrag 0, keine neuen Rechnungszuordnungen und einen Korrekturgrund angeben. Die ursprüngliche Zahlung bleibt protokolliert; keine Bankbuchung wird ausgelöst.";

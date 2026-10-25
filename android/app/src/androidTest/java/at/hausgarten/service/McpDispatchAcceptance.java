@@ -31,7 +31,9 @@ final class McpDispatchAcceptance {
         cleanup(f.context,f.store);
     }
     static void cleanup(PixelMcpInstrumentation.Isolated context,PixelLocalStore store){
-        Context base=context.getBaseContext();String prefix=context.prefix;store.close();
+        Context base=context.getBaseContext();String prefix=context.prefix;if(!prefix.matches("mcp_qa_[a-z0-9_]{8,80}_"))throw new AssertionError("Disposable MCP scope invalid");store.close();
+        // Do not remove a database while an Activity/background owner still holds it.
+        try{PixelLocalStore.assertNoOpenStores(context);}catch(Exception open){throw new AssertionError("Disposable MCP store still open",open);}
         // databaseList includes journal/WAL sidecars already removed with their database.
         for(String name:base.databaseList())if(name.startsWith(prefix)&&base.getDatabasePath(name).exists()&&!base.deleteDatabase(name))throw new AssertionError("Disposable MCP database not removed");
         File prefs=new File(base.getApplicationInfo().dataDir,"shared_prefs");String[] names=prefs.list();
@@ -40,7 +42,7 @@ final class McpDispatchAcceptance {
         // apply() may not have created its XML yet. Flush every opened preference, not just current files.
         for(String name:touched){if(!base.getSharedPreferences(name,0).edit().commit())throw new AssertionError("Disposable preference writes not settled");base.deleteSharedPreferences(name);}
         remove(context.getFilesDir());remove(context.getCacheDir());remove(context.getNoBackupFilesDir());
-        for(String name:base.databaseList())if(name.startsWith(prefix))throw new AssertionError("Disposable MCP database remains");
+        for(String name:base.databaseList())if(name.startsWith(prefix))throw new AssertionError("Disposable MCP database remains: "+new File(name).getName());
         names=prefs.list();if(names!=null)for(String name:names)if(name.startsWith(prefix))throw new AssertionError("Disposable MCP preferences remain");
     }
     static void run(PixelMcpInstrumentation test)throws Exception{

@@ -126,7 +126,7 @@ def process_recovery(args):
     folder = ROOT / 'outputs' / 'cloud-emulator'
     folder.mkdir(parents=True, exist_ok=True)
     combined = []
-    for fault in ('before_chunk', 'after_chunk', 'after_commit', 'editors'):
+    for fault in ('before_chunk', 'after_chunk', 'after_commit', 'editors', 'business'):
         for phase in ('prepare', 'verify'):
             require_emulator(args.adb, args.serial)
             mode = 'process_' + phase + '_' + fault
@@ -142,7 +142,7 @@ def process_recovery(args):
                 require_emulator(args.adb, args.serial)
                 command(args.adb, args.serial, ['shell', 'am', 'force-stop', 'at.hausgarten.service'])
     (folder / 'process_recovery.log').write_text('\n'.join(combined))
-    print('PASS actual OS process recovery before first chunk, after partial chunk and after native commit; original PNG and complete shared draft preserved; production inquiry/order editors resumed after OS death')
+    print('PASS actual OS process recovery before first chunk, after partial chunk and after native commit; original PNG and complete shared draft preserved; production inquiry/order editors and lost inquiry/order/offer commits resumed from native state after OS death')
 
 
 if __name__ == '__main__':

@@ -130,12 +130,13 @@ def approved_revier_local_workflows(expected, current, delta, repair, timer, evo
                'String writeMediaChunk(String raw)', 'String finishMediaUpload(String raw)',
                'String readMediaChunk(String raw)', 'String readMediaRecord(String raw)',
                'String writeMediaRecord(String raw)', 'String beginMediaMirror(String raw)',
-               'String completeMediaMirror(String raw)'}
+               'String completeMediaMirror(String raw)',
+               'String getBrowserDraftState(String raw)', 'String writeBrowserDraftState(String raw)'}
     additions = evolution.get('added_tools', [])
     if (evolution.get('version') != 1 or not evolution.get('authorization')
             or evolution.get('baseline_sha256') != hashlib.sha256(BASELINE.read_bytes()).hexdigest()
             or len(additions) != 48 or {item.get('name') for item in additions} != names
-            or len(evolution.get('added_bridges', [])) != 12
+            or len(evolution.get('added_bridges', [])) != 14
             or set(evolution['added_bridges']) != bridges):
         raise ValueError('Unapproved Revier local-workflow contract scope')
     actions = evolution.get('added_ui_actions', [])

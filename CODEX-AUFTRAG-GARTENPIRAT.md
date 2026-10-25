@@ -57,6 +57,28 @@ Keine neuen konkurrierenden Berichte, Regeldateien oder operative Datenbank.
 Originalsignierung erst aus gesichertem, geprüftem gemeinsamen Stand. Frühere
 Zwischen-PASS gelten ausdrücklich nicht für den weiter geänderten Stand.
 
+Aktuelle Konkretisierung am 25.10.2026: Ein isolierter JavaScript-VM-Nachweis mit
+synthetischer Gegenstelle reproduziert zwei Aufträge nach gleichzeitig verlorenem
+localStorage-Prüfpunkt vor dem Schreiben und verlorener Commitantwort. Das ist
+kein Pixel- oder OS-Prozessnachweis. Vor **jedem** betroffenen Fachschreibaufruf muss
+nun der vollständige eingefrorene Aktionszustand nativ dauerhaft bestätigt sein;
+fehlende Bestätigung verhindert das Schreiben. Nativer CAS-/Kontext-/Epochenvergleich,
+Verwerfbelege und Sicherungs-Digestbindung schützen Wiederaufnahme und Restore.
+Ein zurückgesetzter Browsercache darf weder eine alte Bearbeitung wiederbeleben
+noch eine abgeschickte Aktion mit neuer ID wiederholen. Hierfür werden das vorhandene
+Entwurfsprotokoll, `BrowserDraftRepository` und `HGDraftStorage` gemeinsam integriert;
+keine zweite operative Datenhaltung und keine Behauptung einer bereits fertigen Korrektur.
+
+Der aktuelle Arbeitsstand bereitet VersionCode 100 / DB6 mit Schutz gegen alte Schreiber
+vor. Letzter gesicherter gemeinsamer Prüfbau 07b8fa1 bleibt 99/DB5; sein nativer Lauf
+423 PASS / 1 FAIL ist wegen des QA-Abschlussfehlers keine Gesamtfreigabe. Die beiden
+Offline-UI-Piloten auf a1dd56a und vier OS-Prozesspaare auf d99f6dd bleiben ausdrücklich
+getrennte ältere Teilnachweise. Das fünfte OS-Prozesspaar für Anfrage/Auftrag/Angebot
+mit verlorener Commitantwort und Browsercache-Rücklauf ist vorbereitet, nicht ausgeführt.
+Ein neuer 100-Prüfbau und die gemeinsame aktuelle Abnahme stehen aus. Der konsolidierte
+Iststand mit exakten Quellen, Artefakten, Ergebnissen und Grenzen steht im Kopf von
+`CODEX-STATUS.md`; ältere Integrations- und Startmatrixangaben unten behalten ihr Datum.
+
 ## Historischer Status: Entwicklung gestoppt und für später gesichert (25.10.2026)
 
 Nutzeranweisung: „Stoppe die Erstellung speichere für späteren start alle notwendigen

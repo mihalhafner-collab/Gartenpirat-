@@ -63,6 +63,7 @@ final class BackupSettingsRepository {
                 if(requestId.equals(saved.optString("requestId")))throw new IOException("BACKUP_BROWSER_REPLAY_MISMATCH");
             }
             if(!browserRevision().equals(expectedRevision))throw new IOException("BACKUP_BROWSER_WRITE_CONFLICT");
+            BrowserDraftRepository.validateCaptured(db,identity,browser);
             JSONObject saved=new JSONObject().put("formatVersion",1).put("installationId",identity.getString("installationId")).put("restoreEpoch",identity.getString("restoreEpoch")).put("requestId",requestId).put("capturedAt",java.time.Instant.now().toString()).put("contentSha256",hash).put("browser",new JSONObject(browser.toString()));store.putOwnerValue("full_backup_browser",saved.toString());JSONObject result=new JSONObject().put("contentSha256",hash).put("capturedAt",saved.getString("capturedAt"));store.putOwnerValue(receiptKey,new JSONObject().put("fingerprint",fingerprint).put("result",result).toString());db.setTransactionSuccessful();return result;
         }finally{db.endTransaction();}
     }

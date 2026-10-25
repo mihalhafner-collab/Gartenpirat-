@@ -81,8 +81,8 @@ class CloudEmulatorGuardTests(unittest.TestCase):
             with mock.patch.object(runner, 'ROOT', Path(directory)), mock.patch.object(runner, 'require_emulator') as guard, mock.patch.object(runner, 'command', side_effect=invoke):
                 with contextlib.redirect_stdout(io.StringIO()):
                     runner.process_recovery(args)
-            self.assertEqual(guard.call_count, 12)
-        self.assertEqual([operation[2] for operation in operations], ['instrument', 'force-stop', 'instrument'] * 4)
+            self.assertEqual(guard.call_count, 15)
+        self.assertEqual([operation[2] for operation in operations], ['instrument', 'force-stop', 'instrument'] * 5)
 
     def test_failed_process_preparation_never_force_stops_or_runs_verification(self):
         args = SimpleNamespace(adb='unused-adb', serial='emulator-5580')

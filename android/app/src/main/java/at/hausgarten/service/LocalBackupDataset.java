@@ -36,7 +36,10 @@ final class LocalBackupDataset {
         write(new File(freshDirectory,"bootstrap/initial-data.json"),initial);write(new File(freshDirectory,"bootstrap/service-catalog.json"),catalog);
         File database=new File(freshDirectory,"database.sqlite");JSONObject db=DatabaseBackupSnapshot.capture(store.getWritableDatabase(),database);
         JSONObject capturedBrowser=browserStorage;
-        if(identity.optBoolean("requireDatabaseBrowserCheckpoint"))try(SQLiteDatabase snapshot=SQLiteDatabase.openDatabase(database.getAbsolutePath(),null,SQLiteDatabase.OPEN_READONLY)){capturedBrowser=databaseBrowser(snapshot,identity);}
+        try(SQLiteDatabase snapshot=SQLiteDatabase.openDatabase(database.getAbsolutePath(),null,SQLiteDatabase.OPEN_READONLY)){
+            if(identity.optBoolean("requireDatabaseBrowserCheckpoint"))capturedBrowser=databaseBrowser(snapshot,identity);
+            BrowserDraftRepository.validateCaptured(snapshot,identity,capturedBrowser);
+        }
         write(new File(freshDirectory,"browser-storage.json"),capturedBrowser.toString());
         BackupFilePins.capture(context.getFilesDir(),freshDirectory,"files");
         for(String name:new String[]{"photo-capture","invoice-share"})BackupFilePins.capture(new File(context.getCacheDir(),name),freshDirectory,"cache/"+name);
@@ -76,6 +79,7 @@ final class LocalBackupDataset {
         for(String name:BackupPreferences.GROUPS)BackupPreferences.values(preferences,name);
         if(browser.optInt("formatVersion")!=1||browser.optJSONObject("storage")==null)throw new IOException("BACKUP_BROWSER_STATE_INVALID");
         try(SQLiteDatabase snapshot=SQLiteDatabase.openDatabase(database.getAbsolutePath(),null,SQLiteDatabase.OPEN_READONLY)){
+            BrowserDraftRepository.validateCaptured(snapshot,manifest,browser);
             if(manifest.has("browser_media_inventory")){if(manifest.optInt("browser_media_format_version")!=1)throw new IOException("BACKUP_BROWSER_MEDIA_VERSION_UNSUPPORTED");JSONObject media=BrowserMediaRepository.inspectCaptured(snapshot,new File(directory,"files"));if(!PixelMcpWriteTools.hash(media).equals(PixelMcpWriteTools.hash(manifest.getJSONObject("browser_media_inventory"))))throw new IOException("BACKUP_BROWSER_MEDIA_INVENTORY_MISMATCH");}
             else if(BrowserMediaRepository.hasCapturedNamespace(snapshot))throw new IOException("BACKUP_BROWSER_MEDIA_MANIFEST_REQUIRED");
             if(manifest.optBoolean("requireDatabaseBrowserCheckpoint")&&!PixelMcpWriteTools.hash(databaseBrowser(snapshot,manifest)).equals(PixelMcpWriteTools.hash(browser)))throw new IOException("BACKUP_BROWSER_DATABASE_MISMATCH");
