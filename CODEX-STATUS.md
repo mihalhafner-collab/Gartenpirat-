@@ -73,6 +73,33 @@ und Navigation erreichbar. 78 JVM-Suiten bestanden; Native-Gesamtabnahme und neu
 Original-Prüfbau des zusammengeführten Korrekturbündels stehen noch aus.
 Neun gefüllte Kernansichten×3Breiten×200% bestanden imBrowser; keineTalkBack-/OS-Tastaturbehauptung.
 
+Native Gesamtlauf a1dd56a: 227 protokollierte PASS, drei FAIL und Hosttimeout nach
+1800 Sekunden; kein zusammenfassender PASS. Beide UI-Piloten bestanden auch innerhalb
+dieses Laufs. Die drei FAILs sind nach Quellenreview Testannahmen: Qualität/Abmessungen
+liegen im fachlichen Fotoeintrag, nicht im physischen Attachment-Deskriptor; der native
+Rawbyte-SHA-Vergleich war davor bereits erfolgreich. Zwei Katalogfälle erwarteten noch
+204Aktionen/161Tools statt der unabhängig geprüften 209/166. Korrigiert werden diese
+Zugriffe/Zahlen; alle Datei-, Cursor-, CAS-, Selftest- und Bestandsschutzprüfungen bleiben.
+Der Cloudrunner erhält ein ausdrücklich wählbares begrenztes3600s-Gesamtbudget für die
+angesammelte Suite; native Einzel-/UI-Zeitgrenzen bleiben unverändert. Neun Hostguards
+und vollständiger API37-Compile der Androidtests bestanden; erneuter gemeinsamer
+Original-Prüfbau und native Gesamtausführung stehen aus. Produktionsquellen unverändert.
+
+Aktuelle native Messung a1dd56a auf Software-Emulator API30 ohne KVM:
+20Tourstopps433,799235ms (Ziel1000ms erreicht); Suche300Kunden/450Objekte,
+3Warmups+25Messungen,p95 Stichprobe23=1364,641122ms (Ziel300ms verfehlt).
+Funktionale Vollständigkeit bestanden; kein Pixel-Leistungsnachweis.
+
+Originalquellen a1dd56a vollständig separat in der privaten bestehenden Ablage gesichert:
+https://drive.google.com/drive/folders/1oy85-It02K1D1-kDi61Gl-6BY48YBx0Y .
+52Textpakete,3Transportteile und4Index-/Versionsdateien tatsächlich SHA256-zurückgelesen.
+Aus den Rückleseteilen rekonstruiertes OriginalZIP161943434Bytes,
+SHAdc18f2759abd9087d88ddebf8bd2d725e1b12b7500db37715ca178fffa04d832,
+Privacy0Betriebszeilen PASS. Einzel-XZ zusätzlich nur mit vollständigem Streamumfang
+belegt; der vollständige Bytehashnachweis stammt aus den drei Teilen. Begrenzungen100MiB
+beim Cloud-Upload/32MiB beim Rücklesewerkzeug betreffen ausschließlich diese administrative
+Quellübertragung, nicht die vollständige App-Sicherung. Keine Installation oder Migration.
+
 Medienfehler gezielt reproduziert: Android wandelt explizites JSON.NULL beim
 Stringzugriff in den Text „null“ um. Die Löschbereinigung erzeugte daraus einen
 ungültigen minimalen Hashbeleg. Fehlende/null Referenzen werden nun vor Zugriff

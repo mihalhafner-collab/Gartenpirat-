@@ -67,6 +67,16 @@ def successful_output(output, mode):
     return expected.get(mode, '\0') in output
 
 
+def instrumentation_budget(mode, requested=None):
+    # Host budget for the whole accumulated suite; individual native/UI guards remain unchanged.
+    default = 1800 if mode in ('acceptance', 'revier_core', 'revier_recovery') else 900
+    if requested is None:
+        return default
+    if type(requested) is not int or requested not in (900, 1800, 3600):
+        raise ValueError('Explicit bounded Cloud instrumentation budget required.')
+    return requested
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--serial', required=True)
@@ -74,12 +84,14 @@ def main():
     parser.add_argument('--apk', type=Path)
     parser.add_argument('--instrumentation-apk', type=Path)
     parser.add_argument('--mode', choices=['acceptance', 'fresh', 'prepare', 'verify', 'ui', 'estimates', 'provider', 'mcp_workflows', 'fresh_isolated', 'accessibility', 'plants', 'plants_ui', 'revier_core', 'revier_ui','revier_finance','revier_recovery','process_recovery'], default='acceptance')
+    parser.add_argument('--timeout-seconds', type=int, choices=(900, 1800, 3600), help='Bounded host budget for one accumulated instrumentation suite; native per-case guards are unchanged.')
     args = parser.parse_args()
     with emulator_lock(args.serial):
         run(args)
 
 
 def run(args):
+    timeout = instrumentation_budget(args.mode, getattr(args, 'timeout_seconds', None))
     require_emulator(args.adb, args.serial)
     for apk in [args.apk, args.instrumentation_apk]:
         if apk:
@@ -98,7 +110,7 @@ def run(args):
     with log.open('w') as stream:
         subprocess.run([args.adb, '-s', args.serial, 'shell', 'am', 'instrument', '-w', *flags,
                         'at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation'],
-                       env=env, stdout=stream, stderr=subprocess.STDOUT, timeout=1800 if args.mode in ('acceptance','revier_core','revier_recovery') else 900, check=True)
+                       env=env, stdout=stream, stderr=subprocess.STDOUT, timeout=timeout, check=True)
     output = log.read_text()
     print(output)
     if not successful_output(output, args.mode):

@@ -1,6 +1,6 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-25T16:58:13.228047+00:00",
+  "updated_at_utc": "2026-10-25T18:09:38.245755+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
@@ -33,8 +33,8 @@
       "frame_guard_and_context_stable_timer_photos",
       "schema5_old_writer_fence_existing_tables_preserved"
     ],
-    "full_revier_acceptance": "NOT COMPLETE;52a01f2 UI care backup/restore PASS;invoice148 and immutablePDF PASS;postcommit payment view FAIL;targeted corrections require new common build",
-    "original_signed_update_candidate": "INTERNAL52a01f2 original1.55.0/99;not accepted/released;postcommit payment+offer reply CAS fixes newer;no Pixel install",
+    "full_revier_acceptance": "NOT COMPLETE;a1dd56a both offline UI pilots PASS;fullnative227PASS3stale-test-expectationFAIL+HOST_TIMEOUT1800;corrected expectations and explicit3600budget need common original rebuild",
+    "original_signed_update_candidate": "INTERNALa1dd56a original1.55.0/99;not accepted/released;application fingerprint13b899 unchanged by subsequent QA fixes;no Pixel install",
     "productive_migration": "NOT EXECUTED",
     "installation": "NOT EXECUTED",
     "internal_signed_build": {
@@ -243,12 +243,12 @@
       "physical_pixel": "NOT_TESTED"
     },
     "correction_current_checkpoint": {
-      "source_base": "52a01f253c42b3a87b3865fe1a3ad5ef9a928b87",
+      "source_base": "a1dd56a2783c6a5c7718a4e04d77235b6657b47f",
       "manual_work_edit_and_original_photo_buffer": "IMPLEMENTED;8 browser cases PASS;native current-source execution pending",
       "native_recovery_bb1e044": "54PASS0FAIL",
       "diagnostic_runner_8d546e5_app_bb1e044": "finance6PASS3FAIL;UI1PASS2FAIL;no final acceptance",
       "productive_actions": "NONE",
-      "next": "regress payment postcommit/read-only recovery and offer reply CAS;common original build+both pilots+full native acceptance",
+      "next": "common original rebuild with corrected native expectations;fullnative explicit3600budget;process recovery and remaining device-independent delivery checks",
       "timer_editor_receipt": "ATOMIC_WITH_FINAL_WORK;read_only_restore_lookup;native probe pending",
       "release_minimum": "98 from versioned installation observations;2 guard tests PASS",
       "host_jvm_suites": 78,
@@ -299,7 +299,14 @@
       "billing_reader_bridge": "FIXED get_business_summary explicitly allowed through same registered read path;unknown calls/params remain denied;actual native bridge regression prepared",
       "update_d99": "dedicated AVD99to99 before/after complete ledger PASS;no Pixel98 update proof",
       "python_current_source": "429PASS0SKIP;37 QA-signing generation tests explicitly excluded",
-      "targeted_current_worktree": "payment fault scope and prewrite durable checkpoint fixed;offer confirmed CAS reply;filled9view browser matrix PASS;native repeat pending"
+      "targeted_current_worktree": "payment fault scope and prewrite durable checkpoint fixed;offer confirmed CAS reply;filled9view browser matrix PASS;native repeat pending",
+      "native_common_a1dd56a": "227PASS3FAIL(Harness metadata location and catalogue counts),HOST_TIMEOUT1800;bothUIpilotsPASS;no global acceptance",
+      "source_archive_a1dd56a": {
+        "folder_id": "1oy85-It02K1D1-kDi61Gl-6BY48YBx0Y",
+        "zip_sha256": "dc18f2759abd9087d88ddebf8bd2d725e1b12b7500db37715ca178fffa04d832",
+        "zip_bytes": 161943434,
+        "readback": "52texts+3parts+4indexes SHA256;decodedremoteZIPfullSHA PASS;singleXZonlycompleteStreamSize"
+      }
     },
     "current_evidence_scope": "Current correction_current_checkpoint supersedes historical nested pause/build summaries;no productive cutover",
     "primary_source_review_20261025": {
@@ -330,9 +337,9 @@
     "reported_base_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "source_sha256": "fd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae",
     "source_dirty": false,
-    "evidence": "Live read-only get_capabilities25Oct2026 after resumed status request;unchanged1.54.9/98,MCP9/117,DB4,pixel_drive_v1/android_provider;self-report,no independent Pixel APK integrity proof",
+    "evidence": "Read-only live get_capabilities again completed before17:16:52UTC25Oct2026:still1.54.9/98,MCP9/117,DB4,dbe9ed0/sourcefd0979,legacyPixelDrive;self-report only,no independent APK integrity proof.",
     "invoice_finalization": "pixel_drive_online_compare_required",
-    "evidence_recorded_at_utc": "2026-10-25T14:00:28.637097+00:00"
+    "evidence_recorded_at_utc": "2026-10-25T17:16:52Z"
   },
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-",

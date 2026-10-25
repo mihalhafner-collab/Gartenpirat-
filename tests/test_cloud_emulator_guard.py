@@ -25,6 +25,18 @@ class CloudEmulatorGuardTests(unittest.TestCase):
         self.assertFalse(runner.successful_output('PASS first probe', 'ui'))
         self.assertFalse(runner.successful_output('PASS native WebView boot', 'verify'))
 
+    def test_accumulated_suite_budget_stays_bounded_and_never_bypasses_result_checks(self):
+        self.assertEqual(runner.instrumentation_budget('acceptance'), 1800)
+        self.assertEqual(runner.instrumentation_budget('revier_ui'), 900)
+        self.assertEqual(runner.instrumentation_budget('acceptance', 3600), 3600)
+        for invalid in [0, -1, 3601, float('inf'), 1800.0, True]:
+            with self.subTest(invalid=invalid), mock.patch.object(runner, 'require_emulator') as device:
+                with self.assertRaises(ValueError):
+                    runner.run(SimpleNamespace(mode='acceptance', timeout_seconds=invalid))
+                device.assert_not_called()
+        self.assertFalse(runner.successful_output('PASS first probe', 'acceptance'))
+        self.assertFalse(runner.successful_output('RESULT 200 Android SQLite/MCP tests passed; acceptance failures=1;', 'acceptance'))
+
     def test_same_emulator_cannot_run_concurrent_installs_or_tests(self):
         with __import__("synthetic_fixtures").temporary_directory() as directory:
             folder = Path(directory)
