@@ -3,6 +3,79 @@
 Stand: 25. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Nutzerpause, 2026-10-25T20:45:56.984906+00:00
+
+**Auf ausdrückliches „Stop“ angehalten.** Alle Arbeitsagenten unterbrochen;
+Cloud-Testhost und ausschließlich die Test-App auf GartenpiratCloud/emulator-5554
+beendet. Unterstützter Activity-Prozessdump bestätigt keine laufende Instrumentierung.
+Keine Pixelinstallation, Kontotrennung, produktive Migration oder Rechnungsfreigabe.
+
+Letzter gesicherter Produkt-/Harnessquellstand:
+`8e77d840523e22b6d010da78aef29b7492c7645a` im bestehenden Revier-Branch,
+Remote exakt zurückgelesen; Source-Preservation bestanden. Produktfingerprint
+`a92c75c4d5a2e8b9d3e4955abb986e9cf7b8496a04eb78c46d82cf5d836e72e5`.
+Gemeinsamer Original-Prüfbau1.55.0/100,DB6: Build/Lint bestanden in2m2s,
+0Fehler112Warnungen; App-SHA
+`e5e4412069eb5d4d32d36e25e7d9b96c11a39832bf6fb3f72662b53a56e8d806`,
+Runner-SHA `aca656045e5b9311f5e13f3bf1bcfc29dc9e1da21b978c7dc97468dad3b5fa72`.
+Originalzertifikat unverändert. Diese APKs sind noch nicht gemeinsam nativ abgenommen
+und wurden nicht auf dem Pixel installiert. Kein Release-Tag100.
+
+Nachweise auf vorherigem100-Prüfbau db9748a mit identischem Produktcode:
+430Python/78JVM/56Browser/9ergänzendeBrowser/55MCP und P0-Privacy bestanden;
+synthetisches Emulatorupdate99→100 bestand. Native Recoverygruppe65PASS/0FAIL
+inklusive SQLite-Entwurfsprotokoll, optional beschädigtem Fotoentwurf, unabhängigem
+Sicherungsjob und erneutem Snapshot nach Entwurfsänderung. Vier OS-Prozesspaare
+bestanden. Fünftes Paar nach belegter Übersetzungserwartung im Harness korrigiert,
+noch nicht erneut ausgeführt. Die anschließend gestartete Coregruppe wurde auf
+Nutzerwunsch unterbrochen: 71 protokollierte PASS, 0 FAIL,
+kein abschließendes RESULT; kein Gesamt-PASS.
+Darunter Schema4/5→6 und nichtleerer verschlüsselter Native-Entwurfs-/Medienrundlauf.
+Der vollständige Abbruchbeleg bleibt außerhalb des Checkouts erhalten.
+
+Neueste fachliche Steuerung vor der Pause: **1.55.0 final als Revier Solo;
+Drive-Verbindungen ausschließlich für Backup.** Dafür wurden Aufgaben verteilt,
+aber vor der Unterbrechung keine entsprechenden Produktänderungen geschrieben.
+Der gesicherte Prüfbau enthält noch die kontrollierte Legacy-Übergangslogik und
+ist deshalb keine bereits fertiggestellte Backup-only-Finalversion.
+
+Beim Fortsetzen erforderlich:
+
+1. Remote-main, Branch, Arbeitsbaum und laufende Agenten erneut abgleichen;
+   8e77d84 und die Originalartefakte erhalten, keinen alten Checkout zurückspielen.
+2. Backup-only-Grenze im finalen Runtime-/MCP-/UI-Pfad implementieren: keine
+   gewöhnlichen Drive-Geschäftslese-/Schreibjobs, kein Online-Rechnungszwang;
+   Sicherungsadapter erhalten. Legacy-Daten/Queues/Accounts nicht löschen und
+   keine lokale Rechnungsautorität automatisch aktivieren. Bestehende Altpfade
+   nur explizit versioniert stilllegen; Import-/Migrationsbedarf sichtbar erhalten.
+3. Zuständigkeiten: Core plante DriveRolePolicy/MainActivity/DriveSyncCoordinator/
+   DriveSyncJob/PixelOwnerAccess sowie enge Netzwerkfallbacks inLocalOwnerRepository;
+   Contracts NativeOwnerQueries/PixelLocalStore/Status-/MCP-Verträge; UI vorhandene
+   Drive-Einstiege/Status-/Erfolgstexte und alte Drive-Nummerncheckbox. Keine dieser
+   Änderungen darf ohne aktuellen Quellreview als bereits implementiert gelten.
+4. Danach gemeinsame Regression, Originalbuild/-signatur, fünf OS-Prozesspaare,
+   vollständiger Native-Lauf, Offlinepiloten, Update/Fresh/Pflanzen/Barrierearmut
+   sowie Artefakt-/Provenienzprüfungen auf exakt demselben Kandidaten abschließen.
+   Der alte fehlgeschlagene QA-Scope bleibt erhalten; neue Business-Prozessprobe
+   verwendet Git-gebundene Generation und bewussten UI-Verwerfpfad.
+5. Quellen db9748a sind privat vollständig mit61Dateien per SHA256 zurückgeprüft.
+   8e77d84 ist nur lokal vollständig exportiert (ZIP161990529Bytes,
+   SHA80ae23be28d678ac14714759f88735ecdd8eb4f892b323b69a3a84d5e1ce8910,
+   52Textpakete/5Transportteile); kein neuer Driveordner/Upload vor der Pause.
+   Nach finalen Prüfungen aktuelle Quell-/Releasebelege und Lifecycleeinträge sichern.
+
+**Offene Voraussetzung der tatsächlichen Pixelumstellung:** Quellprüfung des
+installierten98-Commits dbe9ed0b belegt keinen allgemeinen vollständigen extern
+prüfbaren Vor-Update-Export. Einstellungen→Sicherung→Jetzt sichern exportiert die
+begrenzte Geschäftssicherung (40MiB Medien/64MiB JSON), nicht vollständige SQLite/
+owner_state/Timerereignisse/Browserentwürfe/Einstellungen. Der vollständiger
+angelegte Legacykonflikt-Snapshot ist konfliktgebunden, verweigert aktive Timer,
+bleibt privat und hat keine allgemeine externe Ausleitung. allowBackup=false.
+Der alte Windows/run-as-Weg ist kein zulässiger Cloud-/App-Fallback. Vor einer
+produktiven Installation muss ein tatsächlich geeigneter vollständiger98-Export
+extern geprüft werden; dieser Nachweis bleibt OFFEN. Die100-Vollsicherung ersetzt
+keinen fehlenden98-Vor-Update-Nachweis. Keine produktive Aktion daraus ableiten.
+
 ## Aktueller Gesamtstatus der Umstellung, 25.10.2026
 
 **Auftrag aktiv, gemeinsame Softwareabnahme offen.** Letzter gesicherter und

@@ -1,12 +1,12 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-25T20:22:47.644542+00:00",
+  "updated_at_utc": "2026-10-25T20:45:56.984906+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
     "version_name": "1.55.0",
     "version_code": 100,
-    "status": "SIGNED_INTERNAL100_DB6;HOST_GATES_AND_FOUR_OS_PAIRS_PASS;TRANSLATED_NATIVE_DIALOG_HARNESS_CORRECTION_AWAITING_COMMON_REBUILD",
+    "status": "PAUSED_BY_USER_STOP;LATEST_BACKUP_ONLY_FINAL_STEERING_NOT_IMPLEMENTED",
     "base_git_sha": "419d0b4bfcbb7108d00296619831a04ddc3273b0",
     "last_original_app_source_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "main_at_start": "e499e745832449ce0202d04d9903495248e8b034",
@@ -246,14 +246,14 @@
       "physical_pixel": "NOT_TESTED"
     },
     "correction_current_checkpoint": {
-      "last_verified_remote_git_sha": "db9748a9d4a6cab14d588c94028b0be535841e92",
+      "last_verified_remote_git_sha": "8e77d840523e22b6d010da78aef29b7492c7645a",
       "main_git_sha": "e499e745832449ce0202d04d9903495248e8b034",
-      "worktree_status": "ONLY_REVIEWED_NATIVE_HARNESS_CORRECTION_AND_CURRENT_EVIDENCE_DOCS;AWAITING_COMMON_REBUILD",
+      "worktree_status": "PAUSED_NO_NEW_POLICY_CODE;ONLY_PAUSE_EVIDENCE_DOCS",
       "development_version_code": 100,
       "development_database_schema": 6,
       "signed_candidate_version_code": 100,
       "signed_candidate_database_schema": 6,
-      "signed_candidate_git_sha": "db9748a9d4a6cab14d588c94028b0be535841e92",
+      "signed_candidate_git_sha": "8e77d840523e22b6d010da78aef29b7492c7645a",
       "native_common_07b8fa1": "423PASS1FAIL;queued browser checkpoint recreates isolated QA database during cleanup;NO GLOBAL PASS",
       "native_care_encrypted_restore_07b8fa1": "PASS;not the failing cleanup assertion",
       "cleanup_harness_correction": "IN_PROGRESS;main idle+executor sentinel+no open store before cleanup;no blind delete retries;not natively accepted",
@@ -329,6 +329,38 @@
         "original_zip_sha256": "9f9065fc06af98a76c2052613cc7b39f59ad2fadf6ed711b6ab3472fa9c4cb2a",
         "decoded_remote_parts_privacy": "PASS0operationalrows",
         "old_generations": "UNCHANGED"
+      },
+      "current_internal_8e77d84": {
+        "version_name": "1.55.0",
+        "version_code": 100,
+        "database_schema": 6,
+        "product_fingerprint": "a92c75c4d5a2e8b9d3e4955abb986e9cf7b8496a04eb78c46d82cf5d836e72e5",
+        "app_sha256": "e5e4412069eb5d4d32d36e25e7d9b96c11a39832bf6fb3f72662b53a56e8d806",
+        "runner_sha256": "aca656045e5b9311f5e13f3bf1bcfc29dc9e1da21b978c7dc97468dad3b5fa72",
+        "build": "PASS2m2s;lint0errors112warnings;originalsignPASS",
+        "native_common_acceptance": "NOT_RUN",
+        "pixel_installation": "NOT_DONE",
+        "release_tag": "NOT_CREATED"
+      },
+      "pause": {
+        "requested": "Stop",
+        "at_utc": "2026-10-25T20:45:56.984906+00:00",
+        "all_agents": "INTERRUPTED",
+        "cloud_host_test": "STOPPED_SIGINT",
+        "dedicated_emulator_app": "FORCE_STOPPED_NO_CLEAR_NO_UNINSTALL",
+        "active_instrumentation": "NONE_VERIFIED_SUPPORTED_ACTIVITY_PROCESSES_DUMP",
+        "latest_user_target": "1.55.0 final RevierSolo;DrivebackupOnly",
+        "latest_target_implementation": "NOT_STARTED_PRODUCT_FILES_CLEAN_AT_STOP",
+        "resume_actions": "CODEX-STATUS.md pause section",
+        "native_recovery_db9748a": "65PASS0FAIL",
+        "native_core_db9748a": {
+          "status": "STOPPED_BY_USER_NO_OVERALL_PASS",
+          "pass_lines": 71,
+          "fail_lines": 0,
+          "result_lines": []
+        },
+        "pixel98_complete_preupdate_external_backup": "NOT_PROVEN;source98 lacksgeneralcompleteexport;businessbackup40MiB/64MiB notsufficient",
+        "source8e77_export": "LOCAL_ONLY;52TXT+5parts;no newDrivefolder/upload;ZIP80ae23be28d678ac14714759f88735ecdd8eb4f892b323b69a3a84d5e1ce8910"
       }
     },
     "current_evidence_scope": "Current top-level development state and correction_current_checkpoint supersede historical nested pause/build/checkpoint summaries.07b8fa1 is last verified remote source;subsequent100/DB6 worktree is dirty,not fully tested,not signed;no productive cutover.",

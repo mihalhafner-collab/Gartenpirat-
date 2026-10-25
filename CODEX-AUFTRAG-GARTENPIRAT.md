@@ -1,5 +1,14 @@
 # CODEX-AUFTRAG-GARTENPIRAT
 
+
+Aktueller Steuerungsstand25.10.2026: Nutzer verlangt1.55.0 final als Revier Solo
+mit Drive ausschließlich als Backupziel. Die gewöhnlichen Geschäfts-Sync-,
+Original-Nachlade- und Online-Rechnungspfade sind im finalen Kandidaten kontrolliert
+abzugrenzen; bestehende Daten, Konten, Queues und Nummernschutz erhalten. Danach
+hat der Nutzer ausdrücklich „Stop“ angeordnet. Arbeit pausiert; Fortsetzung nur
+auf erneuten Auftrag. Konkreter gesicherter Stand und Wiederanlaufaktionen stehen
+im Pauseabschnitt von CODEX-STATUS.md, keine produktive Umstellung autorisiert.
+
 ## Aktueller Korrekturauftrag: Formulare, lokaler Commit, Wiederanlauf und Löschen
 
 Die neue ausdrückliche Nutzeranweisung setzt die Pause fortführend außer Kraft.
