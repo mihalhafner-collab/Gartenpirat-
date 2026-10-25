@@ -5,39 +5,45 @@ Repository: `mihalhafner-collab/Gartenpirat-`
 
 ## Aktueller Gesamtstatus der Umstellung, 25.10.2026
 
-Fortsetzungsauftrag aktiv; ältere Pause- und Zwischenberichte unten bleiben datierte
-Historie. Remote-Entwicklungsbranch exakt12496d071049e08ab6df9695a5c3f6b1229e8a0a,
-main weiterhin e499e745832449ce0202d04d9903495248e8b034. Eigene anschließende
-Änderungen werden ohne Integration fremder Quellen geprüft/gesichert.
+Fortsetzungsauftrag aktiv. Neuester gesicherter Entwicklungsstand vor dieser
+gezielten Testkorrektur:4e7c4cc803ebe99f39cf26b36f1ac58633691cd6; main weiterhin
+e499e745832449ce0202d04d9903495248e8b034. Kein produktiver Schalterwechsel.
 
-Pixel erneut ausschließlich lesend über vorhandenes get_capabilities erreicht:
-1.54.9/98, DB4, MCP9/117, sauberer Quellcommit dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c,
+Pixel ausschließlich lesend erneut geprüft:1.54.9/98,DB4,MCP9/117,
+Quellcommit dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c,
 Fingerprint fd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae,
 pixel_drive_v1/android_provider und pixel_drive_online_compare_required.
-Dies ist ein aktueller Runtime-Selbstbericht, keine unabhängige APK-Integritätsprüfung.
-Keine produktive Installation, Migration, Rechnungsfreigabe oder Datenmutation.
+Runtime-Selbstbericht; keine unabhängige APK-Integritätsprüfung. Keine Installation,
+Migration, Rechnungsfreigabe oder produktive Datenmutation.
 
-Entwicklungsstand12496d0: gemeinsamer lokaler Kern, Schema5,166Werkzeuge/209UI-Aktionen;
-tägliche lokale Sicherung und getrennter automatischer Drive-Upload implementiert,
-auf Pixel nicht eingerichtet/abgenommen. Letzter gemeinsamer Original-Prüfbau
-1.55.0/99, Fingerprint3cb299ef866a15a1a33d78542d6e1c11c98a92e496b91ff9ea9eaa75e838e4f5,
-App-SHA0295a02be67b2bb02594feee72c586fa9c1512be9c2af9b8d0d0f4f40c5408f1,
-Runner-SHA8ae97bc08e5e0130d361653c48e0549ec5ddd5459c04cf3494cf47f6fe68ac40.
-Source-Preservation, Originalsignatur, Artefaktprivacy und Cloud-Updateledger PASS;
-427Python/78JVM-Suiten PASS.56Browser-Suiten zuletzt auf c824 PASS; keine automatische
-Übertragung dieses Nachweises auf spätere Änderungen.
+Entwicklung:lokaler Kern,Schema5,166Werkzeuge/209UI-Aktionen; tägliche lokal geprüfte
+Sicherung und separater automatischer Drive-Upload implementiert, auf Pixel nicht
+aktiviert/abgenommen. Original-Prüfbau4e7c4cc:1.55.0/99,
+Fingerprint5df55d0538812fe6ae475ed7ee0e48ab96b25ab8dd81eaae123aa5dde8508b3d,
+App-SHA7b6f7f0239a86c32aa2c2893f5adc8c8a28345309ce748b143a572ac4b2707ca,
+Runner-SHA4f8ba77a05210f77e5277af24575a3f432369f609efedb9e64ed8497782e0237.
+Originalzertifikat a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8.
+Source-Preservation,Build/Lint,Originalsignierung,Artefaktprivacy und isoliertes
+Cloud-Updateledger bestanden.429Pythonprüfungen auf4e7c4cc bestanden;
+78JVM-/56Browser-/55MCP-Suiten zuletzt aufd99f6dd bestanden.
 
-Native Finanzgruppe zuletzt9/9PASS. UI12496d0: direkter Besichtigungsadapter und
-Bestandsschutz PASS, beide vollständigen UI-Piloten noch FAIL. Erster Pilot erreicht
-Objekt/Anfrage/Besichtigung; Angebotsbestätigung fehlt. Zweiter erreicht Pflege/Tour,
-Timer/Material/Foto und gespeicherte Arbeit, scheitert danach an
-BROWSER_MEDIA_RECORD_INVALID bei Sicherungsprüfung. Kein grüner Gesamtstatus.
+Realer gebündelter UI-Lauf4e7c4cc bei ausgeschalteten Emulator-Netzadaptern:
+Pflegeplan/Tour/Timer/Material/Foto/Arbeit/verschlüsselte Vollsicherung und vollständige
+Staging-Prüfung bestanden. Erster Pilot erreicht Anfrage/Besichtigung/Angebot/PDF/
+angenommene Version/einen Auftrag/Besuch/150Minuten/Arbeitsabschluss und
+Rechnungsentwurf mit wiederholtem Speichern derselben ID. Danach FAIL bei
+INVOICE_ISSUED; Ausgabeansicht schließt ihren Dialog, entfernt dessen HTML jedoch
+absichtlich nicht. Die Erwartung wird auf keinen offenen Ausgabedialog UND einen
+wirklich ausgestellten Beleg präzisiert; ursprüngliche Bestätigungen und Beleg-/PDF-/
+Zahlungsprüfungen bleiben erhalten. Ergebnis dieses erneuten Laufs noch offen.
 
-In Arbeit: gezielte Android-JSON-Null-Behandlung bei minimalen Medien-Löschbelegen,
-sichere Bestätigungsdiagnose und echter OS-Prozessende-Nachweis vor erstem Chunk,
-nach Teilchunk und nach Mediencommit. Dafür bleibt die geprüfte AVD exklusiv gesperrt;
-keine Deinstallation/Datenlöschung. Physischer Pixel, USB-Ziele, TalkBack und produktiver
-Autoritäts-/Belegabgleich bleiben gesonderte offene Geräte-/Betriebsschritte.
+Vier echte OS-Prozessende-Paare aufd99f6dd bestanden:vor erstem Chunk,nach Teilchunk,
+nach Mediencommit und reale Anfrage-/Auftragsformulare inklusive Rechnungsempfänger,
+Termin,identischer Aktionsbelege und genau einem Datensatz. Kein clear/uninstall.
+Native Finanzgruppe zuletzt9/9PASS auf12496d0; kein Ersatz für gemeinsame Endabnahme.
+Physischer Pixel,zwei reale USB-Ziele,TalkBack und produktiver Autoritäts-/Belegabgleich
+bleiben gesonderte offene Geräte-/Betriebsschritte. Ältere Zwischenstände unten sind
+historische Nachweise und keine aktuellen grünen Gesamtfreigaben.
 
 Medienfehler gezielt reproduziert: Android wandelt explizites JSON.NULL beim
 Stringzugriff in den Text „null“ um. Die Löschbereinigung erzeugte daraus einen
