@@ -250,6 +250,28 @@ Rechnungsfehler konkret reproduzieren und beheben, beide UI-Piloten und gesamte
 Regression auf finalem gesichertem Stand, abschließender Originalkandidat/Provenienz.
 Kein produktiver Schalterwechsel, keine Installation auf Pixel/Betriebsdatenänderung.
 
+## Eingrenzung der nativen Restfehler – 25.10.2026
+
+Remote bb1e0446dc05117336339c233f5f0abc33c34af1 erneut sauber gebaut/signiert:
+Mainfingerprint28de85471ebe32652afae549a03279120fb95920437fcbde73f169784fdf2d43,
+App-SHA9d95bf8dd049bd5986ad93704bdf84a7229d0364a7583884591267e011f4b9c6,
+Runner-SHA0a82142c4cb79c0a69bfc9469f8f4067aa385e06d03a658c11abc55fcb20de45.
+Originalzertifikat unverändert. Nur isolierte Cloudinstallation, kein Pixel.
+Native Finanzgruppe:6PASS/3FAIL, alle drei FehlerREAD_ERROR; Originaldatenbestand
+unverändert PASS. Zur Ursachenbestimmung wird ein fehlgeschlagener ausschließlich
+lesender Aufruf erneut direkt ausgeführt; nur Ausnahmeart und öffentliche Code-
+Position gelangen in Testdiagnosen, keine Argumente oder Beleginhalte.
+
+Erster Revier-Core-Lauf67c11ad endete mit HOST_TIMEOUT900s, keine vollständige
+Gesamtabnahme. Der UI-Pilot desselben Builds scheiterte vor fachlichen Schritten
+an StackOverflowError in der isolierten QA-ContextWrapper-Rückgabe von
+registerComponentCallbacks; kein Beleg für einen produktiven Appfehler daraus.
+Fixture delegiert Android-Komponentencallbacks nun an den Basis-Kontext, hält
+Datenbanken, Dateien und Einstellungen weiterhin vollständig isoliert. Ein
+anschließender diagnostischer Runner ist getrennt von der unveränderten bb1e044-
+App auszuweisen; endgültige Abnahme erst aus gemeinsamem finalen Quellstand.
+Der aktuelle native Recovery-Teillauf mit bb1e044 läuft noch.
+
 ## Entwicklung erneut gestoppt; vollständige Übergabe für später – 25.10.2026
 
 Der Nutzer hat ausdrücklich angewiesen: „Stoppe die Erstellung speichere für späteren

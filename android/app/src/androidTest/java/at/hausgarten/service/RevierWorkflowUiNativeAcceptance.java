@@ -35,6 +35,8 @@ final class RevierWorkflowUiNativeAcceptance {
         volatile WebView view;
         Session(OwnerNativeAcceptance.Fixture fixture,WorkSessionStore.Clock clock){this.fixture=fixture;this.clock=clock;context=new ContextWrapper(fixture.context){
             @Override public Context getApplicationContext(){return this;}
+            @Override public void registerComponentCallbacks(android.content.ComponentCallbacks callback){getBaseContext().registerComponentCallbacks(callback);}
+            @Override public void unregisterComponentCallbacks(android.content.ComponentCallbacks callback){getBaseContext().unregisterComponentCallbacks(callback);}
             @Override public Object getSystemService(String name){if(Context.JOB_SCHEDULER_SERVICE.equals(name)||Context.CONNECTIVITY_SERVICE.equals(name))return null;return super.getSystemService(name);}
         };bridge=new BusinessDataBridge(fixture.context,fixture.store,new PendingWorkPhotoStore(fixture.context),()->{});}
     }
