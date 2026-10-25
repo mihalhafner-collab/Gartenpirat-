@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "authorization": "Explicit Revier Solo completion request24Oct2026: local-only business core, encrypted app backup setup/shared UI-MCP actions and properties/care/tours/material/equipment. Preserve all original117tools and existing timer addition.",
+  "authorization": "Explicit Revier Solo completion request24Oct2026: local-only business core, encrypted app backup setup/shared UI-MCP actions and properties/care/tours/material/equipment. Preserve all original117tools and existing timer addition. Explicit25Oct2026 continuation: one fixed token/epoch/CAS-bound trusted-asset restore-draft review bridge; no generic tool dispatch, automatic draft import or productive activation.",
   "baseline_sha256": "a331ea0f3108d513347b04e5572b008292349f15d37e7b57a7647ae83cf7fb93",
   "added_tools": [
     {
@@ -2179,7 +2179,7 @@
         ]
       },
       "name": "record_payment",
-      "description": "Erfasst die ausdrücklich bestätigte Zahlung beziehungsweise nachvollziehbare Korrektur mit Datum, Zahlungsart, Beträgen in kleinsten Währungseinheiten und versionierten Rechnungszuordnungen. ledger_hash prüfen; request_id bei Retry gleich lassen. Keine Bankbuchung, Nachricht oder Änderung ursprünglicher Rechnungspositionen. Überzahlung bleibt Guthaben/ungeklärte Zuordnung.",
+      "description": "Erfasst die ausdrücklich bestätigte positive Zahlung mit Datum, Zahlungsart, Beträgen in kleinsten Währungseinheiten und versionierten Rechnungszuordnungen. ledger_hash prüfen; request_id bei Retry gleich lassen. Keine Bankbuchung, Nachricht oder Änderung ursprünglicher Rechnungspositionen. Überzahlung bleibt Guthaben/ungeklärte Zuordnung.",
       "annotations": {
         "idempotentHint": true,
         "openWorldHint": false,
@@ -2280,7 +2280,7 @@
         ]
       },
       "name": "correct_payment",
-      "description": "Erfasst die ausdrücklich bestätigte Zahlung beziehungsweise nachvollziehbare Korrektur mit Datum, Zahlungsart, Beträgen in kleinsten Währungseinheiten und versionierten Rechnungszuordnungen. ledger_hash prüfen; request_id bei Retry gleich lassen. Keine Bankbuchung, Nachricht oder Änderung ursprünglicher Rechnungspositionen. Überzahlung bleibt Guthaben/ungeklärte Zuordnung.",
+      "description": "Protokolliert eine ausdrücklich bestätigte Zahlungskorrektur mit Grund, aktuellem ledger_hash und stabiler request_id. Originalzahlung bleibt unverändert; Gegenbuchung und Ersatzquittung bleiben nachvollziehbar. Betrag 0 bedeutet vollständige Rücknahme und verlangt leere allocations sowie ausdrückliche Bestätigung; die sichtbare Nullquittung bleibt im Rechnungsverlauf. Keine Bankbuchung, Nachricht oder Änderung ursprünglicher Rechnungspositionen; persönliches b.b. bleibt unabhängig.",
       "annotations": {
         "idempotentHint": true,
         "openWorldHint": false,
@@ -4722,7 +4722,8 @@
   ],
   "added_bridges": [
     "void openFullBackup() ",
-    "void checkpointFullBackup(String snapshot) "
+    "void checkpointFullBackup(String snapshot) ",
+    "String restoredDraftReview(String raw) "
   ],
   "modified_contracts": [
     {

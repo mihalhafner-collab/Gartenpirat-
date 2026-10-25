@@ -66,7 +66,9 @@ final class LocalAuthorityEvidence {
         String resolution=row.has("pdf_resolution")?nonempty(row,"pdf_resolution",20):"original";if(!Arrays.asList("original","not_created").contains(resolution))throw new IOException("LOCAL_EVIDENCE_LEDGER_INVALID");
         JSONObject copy=new JSONObject().put("invoice_id",id(row,"invoice_id")).put("invoice_number",nonempty(row,"invoice_number",500)).put("pdf_resolution",resolution);if(row.has("snapshot_sha256"))copy.put("snapshot_sha256",hash(row,"snapshot_sha256"));
         if(resolution.equals("not_created")){
-            if(!Boolean.TRUE.equals(row.opt("not_created_confirmed"))||row.has("pdf_sha256")||row.has("pdf_byte_size")||!copy.has("snapshot_sha256"))throw new IOException("INVOICE_PDF_NOT_CREATED_REVIEW_REQUIRED");
+            if(!Boolean.TRUE.equals(row.opt("not_created_confirmed"))||!copy.has("snapshot_sha256"))throw new IOException("INVOICE_PDF_NOT_CREATED_REVIEW_REQUIRED");
+            // A contradictory source is evidence to review, never fields to silently project away.
+            for(String field:new String[]{"pdf_sha256","pdf_byte_size","pdf_storage_name","pdf_base64","document_id","document"})if(row.has(field))throw new IOException("INVOICE_PDF_NOT_CREATED_REVIEW_REQUIRED");
             copy.put("not_created_confirmed",true).put("not_created_reason",nonempty(row,"not_created_reason",4000));
         }else{
             if(row.has("not_created_confirmed")||row.has("not_created_reason"))throw new IOException("LOCAL_EVIDENCE_LEDGER_INVALID");copy.put("pdf_sha256",hash(row,"pdf_sha256"));if(row.has("pdf_byte_size"))copy.put("pdf_byte_size",integer(row,"pdf_byte_size",5,MAX_PDF_BYTES));

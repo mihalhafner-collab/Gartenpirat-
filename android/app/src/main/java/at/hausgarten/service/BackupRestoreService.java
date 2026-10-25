@@ -104,7 +104,7 @@ final class BackupRestoreService {
             try(AutoCloseable exclusive=protection.enterExclusiveStartup()){
                 File work=service.work(state.getString("restore_id"));JSONObject record=read(new File(work,"preview.json"));JSONObject manifest=read(new File(work,"manifest.json"));
                 if(!state.getString("preview_hash").equals(record.getString("preview_hash"))||!EncryptedBackupArchive.sha256(new File(work,"manifest.json")).equals(record.getString("manifest_sha256")))throw new IOException("RESTORE_PREVIEW_CHANGED");
-                JSONObject hookManifest=new JSONObject(manifest.toString()).put("_activation_context",new JSONObject().put("installation_id",record.getString("installation_id")).put("expected_restore_epoch",record.getString("expected_restore_epoch")).put("restore_id",record.getString("restore_id")));
+                JSONObject hookManifest=new JSONObject(manifest.toString()).put("_activation_context",new JSONObject().put("installation_id",record.getString("installation_id")).put("expected_restore_epoch",record.getString("expected_restore_epoch")).put("restore_id",record.getString("restore_id"))).put("_restored_browser_checkpoint",service.activationBrowser(work,record,manifest));
                 final JSONObject[] current={state};BackupDatasetExchange.Journal journal=new BackupDatasetExchange.Journal(){public JSONObject read(){return current[0];}public void save(JSONObject value)throws Exception{write(service.activationFile(),value);current[0]=value;}};
                 try{
                     if(!state.has("targets")){
@@ -124,6 +124,11 @@ final class BackupRestoreService {
                 }
             }
         }
+    }
+    /** This file stays in staging during component moves; recheck its immutable manifest binding on resume. */
+    private JSONObject activationBrowser(File work,JSONObject record,JSONObject manifest)throws Exception {
+        File data=new File(child(work,record.getString("directory")),"data"),browser=new File(data,"browser-storage.json");JSONObject expected=null;JSONArray files=manifest.getJSONArray("files");for(int i=0;i<files.length();i++)if(files.getJSONObject(i).getString("path").equals("browser-storage.json")){if(expected!=null)throw new IOException("RESTORE_STAGED_FILE_CHANGED");expected=files.getJSONObject(i);}
+        if(expected==null||Files.isSymbolicLink(browser.toPath())||!browser.isFile()||browser.length()!=expected.getLong("size")||!EncryptedBackupArchive.sha256(browser).equals(expected.getString("sha256")))throw new IOException("RESTORE_STAGED_FILE_CHANGED");return RestoredBrowserReviewRules.validate(new JSONObject(readText(browser,16*1024*1024)));
     }
     private Map<String,File> prepareTargets(File work,JSONObject record,JSONObject manifest)throws Exception {
         File data=new File(child(work,record.getString("directory")),"data");LinkedHashMap<String,File> targets=new LinkedHashMap<>();targets.put("database",new File(data,"database.sqlite"));

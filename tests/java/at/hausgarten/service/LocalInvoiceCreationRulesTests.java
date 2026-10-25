@@ -24,6 +24,8 @@ public final class LocalInvoiceCreationRulesTests {
         denied(job().put("creation_authorization",permission().put("authorized_at","2027-05-18T17:00:00Z")),identity(),authority(),false);
         denied(job().put("creation_authorization",permission().put("formatVersion",1.9)),identity(),authority(),false);
         denied(authorized,identity().put("restoreEpoch","qa_epoch_after_second_restore"),authority().put("restore_epoch","qa_epoch_after_second_restore"),false);
+        yes(!LocalInvoiceCreationRules.hasDocumentFields(new JSONObject().put("pdf_resolution","not_created")));
+        for(String field:new String[]{"pdf_sha256","pdf_byte_size","pdf_storage_name","pdf_base64","document_id","document"})for(Object value:new Object[]{"",JSONObject.NULL,new JSONObject()})yes(LocalInvoiceCreationRules.hasDocumentFields(new JSONObject().put(field,value)));
         System.out.println("PASS "+checks+" original-context/current-proof/restore/remigration/stale-authorization PDF byte-creation checks; no files or writes");
     }
 }

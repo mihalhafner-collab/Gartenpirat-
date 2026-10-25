@@ -112,12 +112,13 @@ def approved_revier_local_workflows(expected, current, delta, repair, timer, evo
         'reconcile_local_invoice_authority',
         'get_offer_decision_history', 'record_offer_acceptance', 'decline_offer',
     }
-    bridges = {'void openFullBackup() ', 'void checkpointFullBackup(String snapshot) '}
+    bridges = {'void openFullBackup() ', 'void checkpointFullBackup(String snapshot) ',
+               'String restoredDraftReview(String raw) '}
     additions = evolution.get('added_tools', [])
     if (evolution.get('version') != 1 or not evolution.get('authorization')
             or evolution.get('baseline_sha256') != hashlib.sha256(BASELINE.read_bytes()).hexdigest()
             or len(additions) != 43 or {item.get('name') for item in additions} != names
-            or len(evolution.get('added_bridges', [])) != 2
+            or len(evolution.get('added_bridges', [])) != 3
             or set(evolution['added_bridges']) != bridges):
         raise ValueError('Unapproved Revier local-workflow contract scope')
     actions = evolution.get('added_ui_actions', [])

@@ -2,7 +2,7 @@
 from pathlib import Path
 import hashlib,json,sys,re
 ROOT=Path(__file__).resolve().parents[1];target=ROOT/'android/app/src/main/assets/ui-mcp-actions.json';m=json.loads(target.read_text())
-paths=sorted(p for p in (ROOT/'android/app/src/main/assets').glob('*') if p.suffix in ('.js','.css') or p.name in ('mobile.html','offer-contract.json'))
+paths=sorted(p for p in (ROOT/'android/app/src/main/assets').glob('*') if p.suffix in ('.js','.css') or p.name in ('mobile.html','backup-restore-drafts.html','offer-contract.json'))
 paths += [ROOT/f'android/app/src/main/java/at/hausgarten/service/{n}.java' for n in ('MainActivity','PixelLocalStore','BusinessDataBridge','NativeOwnerQueries','PlanningConnectionActivity','DriveConnectionActivity','PixelTunnelActivity','NativeUi','CalendarSetupRules','FullBackupActivity','RestoreRecoveryActivity','LocalAuthorityActivity')]
 observed={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 if '--record-reviewed' in sys.argv:

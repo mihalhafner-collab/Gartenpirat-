@@ -1,12 +1,12 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-24T04:16:59.785600+00:00",
+  "updated_at_utc": "2026-10-25T07:29:58.320512+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
     "version_name": "1.55.0",
     "version_code": 99,
-    "status": "PAUSED_ON_USER_REQUEST_WIP_SOURCE_NOT_RELEASED",
+    "status": "RESUMED_ON_USER_REQUEST_INTEGRATION_AND_ACCEPTANCE_IN_PROGRESS",
     "base_git_sha": "419d0b4bfcbb7108d00296619831a04ddc3273b0",
     "last_original_app_source_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "main_at_start": "e499e745832449ce0202d04d9903495248e8b034",
@@ -33,7 +33,7 @@
       "frame_guard_and_context_stable_timer_photos",
       "schema5_old_writer_fence_existing_tables_preserved"
     ],
-    "full_revier_acceptance": "NOT COMPLETE;PAUSED WIP;264PASS/9FAIL NATIVE PARTIAL THEN900sTIMEOUT",
+    "full_revier_acceptance": "NOT COMPLETE; resumed integration; IndexedDB media backup gap being closed; current native regression pending",
     "original_signed_update_candidate": "LATEST INTERNAL cc637 DEBUGGING BUILD NOT REVIER ACCEPTED;PAUSED SOURCE HAS NEWER UNBUILT FIXES",
     "productive_migration": "NOT EXECUTED",
     "installation": "NOT EXECUTED",
@@ -115,7 +115,7 @@
     "development_semantic_ui_actions": 204,
     "latest_implementation_base_git_sha": "613875759c2e29d6c8fc9efc18990e3b49763ea1",
     "current_implementation_original_signed": false,
-    "latest_implementation_checkpoint_git_sha": "cc637c91f7c3f4eee6b59d04c495c0412d3d7525",
+    "latest_implementation_checkpoint_git_sha": "eef8a48174b50a896c12f0bcc0c7bb2a81ae9bc5",
     "pause": {
       "requested": "Sichern und vorerst pausieren",
       "at_utc": "2026-10-24T04:16:59.785600+00:00",
@@ -131,7 +131,8 @@
         "search performance and separate Pixel/USB/authority pilot"
       ],
       "productive_installation": "NOT EXECUTED",
-      "productive_migration": "NOT EXECUTED"
+      "productive_migration": "NOT EXECUTED",
+      "resumed_on": "2026-10-25"
     },
     "native_measurements": {
       "environment": "API30x86_64CloudEmulatorWithoutKVM;noPixelClaim",
@@ -150,6 +151,31 @@
       "sensitive_flagged_objects": 4,
       "history_rewritten": false,
       "current_source_operational_seed_rows": 0
+    },
+    "resume_checks_20261025": {
+      "python_pass": 424,
+      "python_skip": 0,
+      "excluded_qa_signing": 37,
+      "jvm_pass_before_current_source_review_gate": 69,
+      "invoice_review_pure_checks": 59,
+      "invoice_review_ui_cases": 20,
+      "timer_material_ui_cases": 10,
+      "revier_domain_checks": 113,
+      "order_photo_ui_cases": 14,
+      "work_entry_photo_ui_cases": 3,
+      "browser_broad_initial_pass": 62,
+      "browser_broad_initial_total": 64,
+      "planning_fixture_corrected_repeat": "25PASS",
+      "legacy_gp_web": "NOT TESTABLE without GP_QA_URL synthetic HTTP fixture; no operational web fallback",
+      "current_media_draft_backup": "INCOMPLETE: WebView IndexedDB Blob drafts not yet in full archive; private streamed mirror/restore implementation next",
+      "source_privacy": "PASS;0 operational seed rows",
+      "workspace_privacy": "PASS;includes ignored/untracked",
+      "artifact_privacy": "NOT TESTABLE;no new candidate",
+      "native_new_cases": "PREPARED_NOT_EXECUTED",
+      "regular_gradle": "BLOCKED by active reviewed_sources inventory gate,not bypassed",
+      "narrow_javac": "198production/32instrumentation PASS;compiler feedback only",
+      "cloud_baseline_verify": "PASS after preserved AVD restart;no reinstall/clear",
+      "pixel_metadata": "READONLY1.54.9/98 DB4 MCP9/117;dbe9ed0b/fd0979de clean;online invoice remains"
     }
   },
   "verified_release_source": {

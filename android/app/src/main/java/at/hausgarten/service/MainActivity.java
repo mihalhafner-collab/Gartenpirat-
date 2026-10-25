@@ -62,6 +62,7 @@ public class MainActivity extends Activity implements McpSyncHost {
     private WorkLocationController workLocation;
     private static final java.util.concurrent.ExecutorService BACKUP_CHECKPOINTS=java.util.concurrent.Executors.newSingleThreadExecutor(r->{Thread thread=new Thread(r,"backup-browser-checkpoint");thread.setDaemon(true);return thread;});
     private volatile String backupPageToken=UUID.randomUUID().toString();
+    private volatile String backupDocumentUrl="";
     private volatile long backupLastSequence;
     private volatile long backupReceivedSequence;
     private volatile boolean backupCheckpointActive;
@@ -209,7 +210,7 @@ public class MainActivity extends Activity implements McpSyncHost {
         webView.addJavascriptInterface(new PhoneBridge(), "AndroidPhone");
         webView.addJavascriptInterface(new GardenPhotosBridge(), "AndroidGardenPhotos");
         webView.setWebViewClient(new WebViewClient() {
-            @Override public void onPageStarted(WebView view,String url,android.graphics.Bitmap icon){backupPageToken=UUID.randomUUID().toString();backupLastSequence=0;backupReceivedSequence=0;backupCheckpointActive=false;}
+            @Override public void onPageStarted(WebView view,String url,android.graphics.Bitmap icon){backupDocumentUrl=url==null?"":url;backupPageToken=UUID.randomUUID().toString();backupLastSequence=0;backupReceivedSequence=0;backupCheckpointActive=false;}
             @Override public void onPageCommitVisible(WebView view,String url){if(trustedBackupPage())installBackupCheckpoint(false,null);}
             @Override public void onPageFinished(WebView view,String url){if(trustedBackupPage())installBackupCheckpoint(false,null);}
             private boolean external(String url) {
@@ -363,7 +364,7 @@ public class MainActivity extends Activity implements McpSyncHost {
         }
     }
 
-    private void openMobile() { webView.loadUrl("file:///android_asset/mobile.html"); }
+    private void openMobile() {try{if(new RestoredBrowserCheckpoint(this,store).pending()){webView.loadUrl("file:///android_asset/backup-restore-drafts.html");return;}}catch(Exception held){webView.loadUrl("file:///android_asset/backup-restore-drafts.html");return;}webView.loadUrl("file:///android_asset/mobile.html"); }
 
     public class PhoneBridge {
         @JavascriptInterface public void dial(String number) {
@@ -400,6 +401,18 @@ public class MainActivity extends Activity implements McpSyncHost {
         @JavascriptInterface public void connectDrive(){if(previewConnectionBlocked())return;runOnUiThread(()->startActivity(new Intent(MainActivity.this,DriveConnectionActivity.class)));}
         @JavascriptInterface public void openFullBackup() {if(previewConnectionBlocked())return;runOnUiThread(()->installBackupCheckpoint(true,()->startActivity(new Intent(MainActivity.this,FullBackupActivity.class))));}
         @JavascriptInterface public void checkpointFullBackup(String snapshot) {if(BuildConfig.UI_PREVIEW)return;runOnUiThread(()->{if(trustedBackupPage()&&backupCheckpointActive)installBackupCheckpoint(false,null);});}
+        @JavascriptInterface public String restoredDraftReview(String raw) {
+            try{
+                if(BuildConfig.UI_PREVIEW||!trustedBackupPage()||raw==null||raw.length()>1024*1024)throw new IOException();JSONObject args=new JSONObject(raw);if(!(args.opt("formatVersion") instanceof Integer)||args.getInt("formatVersion")!=1)throw new IOException();String operation=args.getString("op");RestoredBrowserCheckpoint review=new RestoredBrowserCheckpoint(MainActivity.this,store);JSONObject result;
+                switch(operation){
+                    case "status":result=review.status(restoredBrowserGate()&&!backupPageToken.isEmpty()&&backupPageToken.equals(args.optString("page_token")));break;
+                    case "open":if(!review.available())throw new IOException();runOnUiThread(()->openRestoredBrowserReview());result=new JSONObject().put("accepted",true);break;
+                    case "choose":if(!restoredBrowserGate()||!backupPageToken.equals(args.optString("page_token")))throw new IOException();result=review.choose(args);break;
+                    case "complete":if(!restoredBrowserGate()||!backupPageToken.equals(args.optString("page_token")))throw new IOException();result=review.complete(args);runOnUiThread(()->webView.loadUrl("file:///android_asset/mobile.html"));break;
+                    default:throw new IOException();
+                }return new JSONObject().put("ok",true).put("data",result).toString();
+            }catch(Exception held){return "{\"ok\":false,\"error\":{\"code\":\"BACKUP_BROWSER_RESTORE_REVIEW_REQUIRED\",\"message\":\"Die erhaltenen Entwürfe bleiben unverändert. Bitte den aktuellen Prüfstand erneut öffnen.\"}}";}
+        }
         @JavascriptInterface public void retryDrive(){runOnUiThread(()->MainActivity.this.synchronize());}
         @JavascriptInterface public String getPixelTunnelStatus() { return PixelTunnelService.status(MainActivity.this).toString(); }
 
@@ -477,12 +490,22 @@ public class MainActivity extends Activity implements McpSyncHost {
         return new VerifiedInvoiceShare(invoice,new BusinessDocumentStore(context).read(invoice));
     }
 
-    private boolean trustedBackupPage(){return webView!=null&&webView.getUrl()!=null&&webView.getUrl().startsWith("file:///android_asset/");}
+    private boolean trustedBackupPage(){return webView!=null&&backupDocumentUrl.startsWith("file:///android_asset/");}
+    private boolean restoredBrowserGate(){return webView!=null&&"file:///android_asset/backup-restore-drafts.html".equals(backupDocumentUrl);}
+    private void openRestoredBrowserReview(){
+        if(!trustedBackupPage())return;final String page=backupPageToken;
+        webView.evaluateJavascript("window.HGBackupSnapshot?JSON.stringify(window.HGBackupSnapshot.capture()):null",raw->{try{Object decoded=new org.json.JSONTokener(raw).nextValue();if(!(decoded instanceof String))throw new IOException();JSONObject browser=sanitizeBackupCheckpoint(new JSONObject((String)decoded));BACKUP_CHECKPOINTS.execute(()->{try(PixelLocalStore local=new PixelLocalStore(getApplicationContext())){RestoredBrowserCheckpoint review=new RestoredBrowserCheckpoint(getApplicationContext(),local);review.reopen();review.preserveDevice(browser);runOnUiThread(()->{if(!isDestroyed()&&page.equals(backupPageToken))webView.loadUrl("file:///android_asset/backup-restore-drafts.html");});}catch(Exception held){runOnUiThread(()->Toast.makeText(this,"Die bestehenden Entwürfe bleiben erhalten. Die Prüfung konnte noch nicht geöffnet werden.",Toast.LENGTH_LONG).show());}});}catch(Exception held){Toast.makeText(this,"Aktuelle Formularwerte zuerst speichern oder die Ansicht erneut öffnen. Vorhandene Entwürfe bleiben erhalten.",Toast.LENGTH_LONG).show();}});
+    }
+    private void prepareRestoredBrowserReview(String page){
+        try{String script;try(java.io.InputStream input=getAssets().open("backup-browser-state.js");java.io.ByteArrayOutputStream output=new java.io.ByteArrayOutputStream()){byte[] block=new byte[8192];int n;while((n=input.read(block))!=-1)output.write(block,0,n);script=new String(output.toByteArray(),StandardCharsets.UTF_8);}String expression=script+";window.HGBackupSnapshot.bind("+JSONObject.quote(page)+",false);JSON.stringify(window.HGBackupSnapshot.capture());";runOnUiThread(()->{if(isDestroyed()||!restoredBrowserGate()||!page.equals(backupPageToken))return;webView.evaluateJavascript(expression,raw->{try{Object decoded=new org.json.JSONTokener(raw).nextValue();if(!(decoded instanceof String))throw new IOException();JSONObject browser=sanitizeBackupCheckpoint(new JSONObject((String)decoded));BACKUP_CHECKPOINTS.execute(()->{try(PixelLocalStore local=new PixelLocalStore(getApplicationContext())){if(!page.equals(backupPageToken))return;new RestoredBrowserCheckpoint(getApplicationContext(),local).preserveDevice(browser);runOnUiThread(()->{if(!isDestroyed()&&restoredBrowserGate()&&page.equals(backupPageToken))webView.evaluateJavascript("window.HGBackupSnapshot.reviewRestored()",null);});}catch(Exception held){runOnUiThread(()->webView.evaluateJavascript("document.getElementById('restore-draft-status').textContent='Die Entwürfe bleiben geschützt. Bitte die App erneut öffnen; der Prüfstand wird nicht überschrieben.'",null));}});}catch(Exception held){/* The gate remains closed; no checkpoint or browser value was replaced. */}});});}catch(Exception held){/* No writer is enabled by a failed review bootstrap. */}
+    }
     private void installBackupCheckpoint(boolean explicit,Runnable after){
         if(BuildConfig.UI_PREVIEW||!trustedBackupPage()){if(explicit)Toast.makeText(this,"Sicherung kann nur aus der geöffneten App eingerichtet werden.",Toast.LENGTH_LONG).show();return;}
         final String page=backupPageToken;
         BACKUP_CHECKPOINTS.execute(()->{
             try(PixelLocalStore local=new PixelLocalStore(getApplicationContext())){
+                if(restoredBrowserGate()){prepareRestoredBrowserReview(page);return;}
+                if(new RestoredBrowserCheckpoint(getApplicationContext(),local).pending()){runOnUiThread(()->{if(!isDestroyed()&&page.equals(backupPageToken))webView.loadUrl("file:///android_asset/backup-restore-drafts.html");});return;}
                 JSONObject config=new BackupSettingsRepository(getApplicationContext(),local).read();boolean active=config.optBoolean("contextMatches")&&config.optBoolean("keyConfigured")&&!config.optString("folderId").isEmpty();
                 if(active||explicit)markBackupCapturePending(local,page);
                 String script;try(java.io.InputStream input=getAssets().open("backup-browser-state.js");java.io.ByteArrayOutputStream output=new java.io.ByteArrayOutputStream()){byte[] bytes=new byte[8192];int n;while((n=input.read(bytes))!=-1)output.write(bytes,0,n);script=new String(output.toByteArray(),StandardCharsets.UTF_8);}
@@ -672,6 +695,7 @@ public class MainActivity extends Activity implements McpSyncHost {
             @Override public void onBackCancelled() { leftEdge=false; }
             @Override public void onBackInvoked() {
                 boolean openMenu=leftEdge;leftEdge=false;
+                if(restoredBrowserGate()){navigateBack();return;}
                 if(openMenu) { if(webView!=null)webView.evaluateJavascript("window.HGGestures&&window.HGGestures.openMenu()",null); }
                 else navigateBack();
             }

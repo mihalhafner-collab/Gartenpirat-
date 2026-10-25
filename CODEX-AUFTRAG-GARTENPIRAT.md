@@ -1,6 +1,12 @@
 # CODEX-AUFTRAG-GARTENPIRAT
 
-## Arbeitspause auf Nutzerwunsch (24.10.2026)
+## Fortsetzung auf Nutzerwunsch (25.10.2026)
+
+Der Nutzer hat „Fortsetzen“ angewiesen. Die nachfolgend dokumentierte Pause ist
+beendet; der vorhandene Auftrag wird auf dem gesicherten Branch fortgeführt.
+Produktive Installation und Umstellung bleiben gesonderte Entscheidungen.
+
+## Historische Arbeitspause auf Nutzerwunsch (24.10.2026)
 
 Der Nutzer hat „Sichern und vorerst pausieren“ angewiesen. Der aktuelle unvollständig
 integrierte Quellstand wird auf dem vorhandenen privaten Arbeitsbranch gesichert;

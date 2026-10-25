@@ -29,15 +29,22 @@ public final class EncryptedBackupArchiveTests {
             List<EncryptedBackupArchive.Source> sources=new ArrayList<>();sources.add(new EncryptedBackupArchive.Source("database.sqlite",active));
             for(int i=0;i<25;i++)sources.add(new EncryptedBackupArchive.Source("files/test_photo_"+i+".bin",i==0?media:active));
             sources.add(new EncryptedBackupArchive.Source("files/qa_ÄÖÜ–☘.bin",active));
+            byte[] pdfABC="%PDF-1.4\nQA immutable original ABC\n%%EOF\n".getBytes(java.nio.charset.StandardCharsets.US_ASCII);File pdf=new File(root,"qa_original_ABC.pdf");Files.write(pdf.toPath(),pdfABC);String pdfHash=EncryptedBackupArchive.sha256(pdf),frozenHash=PixelMcpWriteTools.hash("qa_frozen_invoice"),proofA=PixelMcpWriteTools.hash("qa_original_receipt_proof_A"),proofB=PixelMcpWriteTools.hash("qa_new_current_review_B");
+            JSONObject document=new JSONObject().put("document_id","invoice:qa_invoice").put("pdf_sha256",pdfHash).put("pdf_storage_name",pdfHash+".pdf").put("pdf_byte_size",pdfABC.length),receipt=new JSONObject().put("formatVersion",1).put("invoice_id","qa_invoice").put("invoice_number","QA-2027-0001").put("snapshot_sha256",frozenHash).put("document",document).put("recovered_from_full_evidence_sha256",proofA),adoption=new JSONObject().put("formatVersion",1).put("snapshot_sha256",frozenHash).put("ledger_proof_sha256",proofB).put("receipt_proof_sha256",proofA);
+            JSONObject recoveryState=new JSONObject().put("original_adoption",adoption).put("audit",new JSONObject().put("resolution","verified_original_adopted").put("invoice_id","qa_invoice").put("snapshot_sha256",frozenHash).put("ledger_proof_sha256",proofB));File receiptFile=new File(root,"qa_receipt_A.json"),recoveryFile=new File(root,"qa_recovery_B.json");Files.writeString(receiptFile.toPath(),receipt.toString());Files.writeString(recoveryFile.toPath(),recoveryState.toString());String receiptHash=EncryptedBackupArchive.sha256(receiptFile),recoveryHash=EncryptedBackupArchive.sha256(recoveryFile);
+            sources.add(new EncryptedBackupArchive.Source("files/business-documents/"+pdfHash+".pdf",pdf));sources.add(new EncryptedBackupArchive.Source("files/invoice-document-receipts/"+frozenHash+".json",receiptFile));sources.add(new EncryptedBackupArchive.Source("qa_captured_recovery_namespace.json",recoveryFile));
             File backup=new File(root,"test_generation.hgb");JSONObject written;
             try(OutputStream out=new FileOutputStream(backup)){written=EncryptedBackupArchive.write(out,recovery,metadata(4),sources);}
-            yes(backup.length()>40L*1024*1024&&written.getJSONArray("files").length()==27);passed++;
+            yes(backup.length()>40L*1024*1024&&written.getJSONArray("files").length()==30);passed++;
             String originalHash=EncryptedBackupArchive.sha256(backup);
             try(EncryptedBackupArchive.Verified restore=EncryptedBackupArchive.verifyAndStage(input(backup),new String(recovery),new File(root,"test_restore"),160L*1024*1024,4)){
                 yes(restore.manifest.getLong("totalBytes")==written.getLong("totalBytes"));
                 yes(EncryptedBackupArchive.sha256(restore.file("files/test_photo_0.bin")).equals(EncryptedBackupArchive.sha256(media)));
                 yes(restore.manifest.getJSONObject("numberState").getInt("next")==12);passed++;
                 yes(EncryptedBackupArchive.sha256(restore.file("files/qa_ÄÖÜ–☘.bin")).equals(activeHash));passed++;
+                yes(Arrays.equals(Files.readAllBytes(restore.file("files/business-documents/"+pdfHash+".pdf").toPath()),pdfABC));passed++;
+                yes(EncryptedBackupArchive.sha256(restore.file("files/invoice-document-receipts/"+frozenHash+".json")).equals(receiptHash)&&EncryptedBackupArchive.sha256(restore.file("qa_captured_recovery_namespace.json")).equals(recoveryHash));passed++;
+                JSONObject restoredReceipt=new JSONObject(Files.readString(restore.file("files/invoice-document-receipts/"+frozenHash+".json").toPath())),restoredRecovery=new JSONObject(Files.readString(restore.file("qa_captured_recovery_namespace.json").toPath()));yes(LocalFinancialOriginals.receiptEvidenceMatches(restoredRecovery.getJSONObject("original_adoption"),restoredReceipt)&&!proofA.equals(proofB));passed++;
             }
             yes(!new File(root,"test_restore").exists());passed++;
             reject(()->EncryptedBackupArchive.verifyAndStage(input(backup),BackupCrypto.newRecoveryCode(),new File(root,"test_wrong_code"),160L*1024*1024,4));

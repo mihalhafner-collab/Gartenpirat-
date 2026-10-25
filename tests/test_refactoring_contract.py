@@ -58,6 +58,8 @@ class RefactoringContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):check(current,invalid)
         invalid=deepcopy(local);invalid['added_tools'][0]['name']='arbitrary_new_tool'
         with self.assertRaises(ValueError):check(current,invalid)
+        invalid=deepcopy(local);invalid['added_bridges'][-1]='String arbitraryDispatch(String raw) '
+        with self.assertRaises(ValueError):check(current,invalid)
         invalid=deepcopy(local);next(c for c in invalid['modified_tools'] if c['name']=='create_photo')['after']['inputSchema']['required'].append('property_id')
         with self.assertRaises(ValueError):check(current,invalid)
 

@@ -39,7 +39,7 @@ final class RevierApplicationService {
     JSONObject query(String name,JSONObject args)throws Exception {
         for(String field:new String[]{"from_date","to_date"})if(!args.optString(field).isEmpty())date(args.getString(field));
         if(!args.optString("from_date").isEmpty()&&!args.optString("to_date").isEmpty()&&args.getString("to_date").compareTo(args.getString("from_date"))<0)throw error("INVALID_INPUT","Zeitraum endet vor seinem Beginn.");
-        JSONObject state=repository.effective();
+        JSONObject state=Arrays.asList("get_property","get_inquiry","search_local","get_revier_overview").contains(name)?repository.effective():null;
         switch(name){
             case "list_properties":return listing("property","properties",args);
             case "get_property":return propertyDetail(id(args,"property_id",true),state);
@@ -202,15 +202,36 @@ final class RevierApplicationService {
         if(old!=null&&!old.getString("unit").equals(row.getString("unit"))){boolean history=new BigDecimal(old.optString("stock_decimal","0")).signum()!=0;JSONArray movements=records("material_movement");for(int i=0;i<movements.length();i++)history|=old.getString("id").equals(movements.getJSONObject(i).optString("material_id"));if(history)throw error("MATERIAL_UNIT_CHANGE_REVIEW_REQUIRED","Einheit bei vorhandener Bewegungshistorie nicht wechseln; neuen Katalogeintrag anlegen.");}for(String price:new String[]{"purchase_price_minor","billing_price_minor"})if(row.has(price)&&!row.isNull(price))row.put(price,minor(row,price));if(old==null)row.put("stock_decimal","0");JSONObject saved=save("material",row,old,request,"Materialkatalog gespeichert");return new JSONObject().put("record",saved).put("material",saved).put("material_id",row.getString("id"));
     }
     private void linkContext(JSONObject row,JSONObject state,boolean propertyRequired)throws Exception {
-        String property=id(row,"property_id",false),visit=id(row,"visit_id",false);if(!visit.isEmpty()){
-            JSONObject source=load("visit",visit);if(!property.isEmpty()&&!property.equals(source.getString("property_id")))throw error("RELATION_MISMATCH","Einsatz und Objekt passen nicht zusammen.");property=source.getString("property_id");row.put("visit_id",visit);
+        // Inherit only immutable START assignments from the explicitly selected session.
+        // A different current screen or omitted visit must never detach a timed movement.
+        String session=id(row,"session_id",false);
+        if(!session.isEmpty()){
+            JSONObject origin=repository.session(session);if(origin==null)throw error("REFERENCE_NOT_FOUND","Arbeitssitzung wurde nicht gefunden.");
+            for(String field:new String[]{"customer_id","property_id","visit_id","order_id"}){
+                String original=origin.optString(field);if(original.isEmpty())continue;
+                String selected=row.optString(field);if(!selected.isEmpty()&&!selected.equals(original))throw error("RELATION_MISMATCH","Arbeitssitzung und ausgewählter Einsatz passen nicht zusammen.");
+                row.put(field,original);
+            }
+        }
+        String property=id(row,"property_id",false),visit=id(row,"visit_id",false);
+        if(!visit.isEmpty()){
+            JSONObject source=load("visit",visit);if(!property.isEmpty()&&!property.equals(source.getString("property_id")))throw error("RELATION_MISMATCH","Einsatz und Objekt passen nicht zusammen.");
+            property=source.getString("property_id");
+            if(!row.optString("customer_id").isEmpty()&&!row.getString("customer_id").equals(source.getString("customer_id")))throw error("RELATION_MISMATCH","Arbeitssitzung und Einsatzkunde passen nicht zusammen.");
+            if(!row.optString("order_id").isEmpty()&&!source.optString("order_id").isEmpty()&&!row.getString("order_id").equals(source.getString("order_id")))throw error("RELATION_MISMATCH","Arbeitssitzung und Auftrag passen nicht zusammen.");
+            String order=source.optString("order_id");
+            if(!order.isEmpty()){
+                JSONObject assigned=canonical(state,"orders",order);
+                if(!source.getString("customer_id").equals(assigned.optString("customer_id")))throw error("RELATION_MISMATCH","Einsatz und zugeordneter Auftrag passen nicht zusammen.");
+                row.put("order_id",order);
+            }
+            row.put("visit_id",visit);
         }
         if(propertyRequired&&property.isEmpty())throw error("PROPERTY_REQUIRED","Für den geführten Einsatz ein Objekt oder einen zugeordneten Besuch wählen.");
-        if(!property.isEmpty()){JSONObject object=load("property",property);customer(state,object.getString("customer_id"),false);row.put("property_id",property).put("customer_id",object.getString("customer_id"));}
-        String session=id(row,"session_id",false);if(!session.isEmpty()){
-            JSONObject active=repository.session(session);if(active==null)throw error("REFERENCE_NOT_FOUND","Arbeitssitzung wurde nicht gefunden.");if(!row.optString("customer_id").isEmpty()&&!row.getString("customer_id").equals(active.optString("customer_id")))throw error("RELATION_MISMATCH","Arbeitssitzung gehört zu einem anderen Kunden.");
-            for(String field:new String[]{"property_id","visit_id"})if(!row.optString(field).isEmpty()&&!active.optString(field).isEmpty()&&!row.getString(field).equals(active.getString(field)))throw error("RELATION_MISMATCH","Arbeitssitzung gehört zu einem anderen Objekt oder Einsatz.");
-            row.put("session_id",session);
+        if(!property.isEmpty()){
+            JSONObject object=load("property",property);customer(state,object.getString("customer_id"),false);
+            if(!row.optString("customer_id").isEmpty()&&!row.getString("customer_id").equals(object.getString("customer_id")))throw error("RELATION_MISMATCH","Arbeitssitzung und Objektkunde passen nicht zusammen.");
+            row.put("property_id",property).put("customer_id",object.getString("customer_id"));
         }
     }
     private JSONObject movement(JSONObject args,JSONObject state,String request)throws Exception {
@@ -230,22 +251,28 @@ final class RevierApplicationService {
     private JSONObject usage(JSONObject args,JSONObject state,String request)throws Exception {
         JSONObject device=load("equipment",id(args,"equipment_id",true));cas(device,args.optString("expected_record_hash"));JSONObject row=base("equipment_usage",newId("usage",request),null).put("equipment_id",device.getString("id")).put("equipment_snapshot",device).put("notes",text(args,"notes",10000,false));for(String field:new String[]{"property_id","visit_id","session_id"})if(args.has(field))row.put(field,args.get(field));linkContext(row,state,true);String start=text(args,"starts_at",80,false),end=text(args,"ends_at",80,false);if(start.isEmpty()!=end.isEmpty())throw error("INVALID_INPUT","Gerätenutzung mit beiden Zeitpunkten oder ohne Zeitangabe erfassen.");if(!start.isEmpty()){start=instant(start);end=instant(end);if(!Instant.parse(end).isAfter(Instant.parse(start)))throw error("INVALID_INPUT","Gerätenutzung benötigt ein positives Zeitintervall.");row.put("starts_at",start).put("ends_at",end);}JSONObject saved=save("equipment_usage",row,null,request,"Gerätenutzung erfasst");return new JSONObject().put("record",saved).put("equipment_usage",saved).put("equipment_warnings",equipmentWarnings(new JSONArray().put(device.getString("id"))));
     }
-    private static String normalize(String value){return java.text.Normalizer.normalize(value.toLowerCase(Locale.GERMAN).replace("ß","ss"),java.text.Normalizer.Form.NFD).replaceAll("\\p{M}+","");}
+    private static final java.util.regex.Pattern SEARCH_MARKS=java.util.regex.Pattern.compile("\\p{M}+");
+    private static String normalize(String value){return SEARCH_MARKS.matcher(java.text.Normalizer.normalize(value.toLowerCase(Locale.GERMAN).replace("ß","ss"),java.text.Normalizer.Form.NFD)).replaceAll("");}
+    private static final class SearchHit {
+        final JSONObject result,record;
+        SearchHit(JSONObject result,JSONObject record){this.result=result;this.record=record;}
+        JSONObject selected()throws Exception {if(record!=null)result.put("record_hash",hash(record));return result;}
+    }
     private JSONObject search(JSONObject args,JSONObject state)throws Exception {
-        String query=text(args,"query",200,true);String[] words=normalize(query).split("\\s+");Set<String> types=new HashSet<>();JSONArray selected=args.optJSONArray("types");if(selected!=null)for(int i=0;i<selected.length();i++)types.add(selected.getString(i));List<JSONObject> found=new ArrayList<>();Set<String> unique=new HashSet<>();
+        String query=text(args,"query",200,true);String[] words=normalize(query).split("\\s+");Set<String> types=new HashSet<>();JSONArray selected=args.optJSONArray("types");if(selected!=null)for(int i=0;i<selected.length();i++)types.add(selected.getString(i));List<SearchHit> found=new ArrayList<>();Set<String> unique=new HashSet<>();
         for(String[] group:new String[][]{{"customers","customer"},{"orders","order"},{"appointments","appointment"},{"worklogs","activity"},{"offers","offer"},{"invoices","invoice"}}){JSONArray rows=state.optJSONArray(group[0]);if(rows==null)continue;for(int i=0;i<rows.length();i++)searchRow(rows.getJSONObject(i),group[1],false,args,words,types,unique,found);}
         for(String[] group:new String[][]{{"property","property"},{"inquiry","inquiry"},{"care_plan","care_plan"},{"visit","visit"},{"material","material"},{"equipment","equipment"}}){JSONArray rows=records(group[0]);for(int i=0;i<rows.length();i++)searchRow(rows.getJSONObject(i),group[1],false,args,words,types,unique,found);}
         if(args.optBoolean("include_archived",false)){JSONObject archive=state.optJSONObject("owner_archive");if(archive!=null)for(Iterator<String> it=archive.keys();it.hasNext();){String key=it.next();JSONObject entry=archive.getJSONObject(key);if(entry.optBoolean("purged")||entry.optJSONObject("record")==null)continue;String type=key.contains(":")?key.substring(0,key.indexOf(':')):"";if(type.equals("worklog"))type="activity";searchRow(entry.getJSONObject("record"),type,true,args,words,types,unique,found);}}
-        found.sort(Comparator.comparing((JSONObject row)->row.optString("title"),String.CASE_INSENSITIVE_ORDER).thenComparing(row->row.optString("type")).thenComparing(row->row.optString("id")));int skip=integer(args,"offset",0,1000000,0),limit=integer(args,"limit",1,100,50);JSONArray items=new JSONArray();for(int i=skip;i<found.size()&&items.length()<limit;i++)items.put(found.get(i));return new JSONObject().put("items",items).put("results",items).put("total",found.size()).put("offset",skip).put("limit",limit).put("index_scope","all_local_records").put("index_rebuild","read_from_canonical_state");
+        found.sort(Comparator.comparing((SearchHit hit)->hit.result.optString("title"),String.CASE_INSENSITIVE_ORDER).thenComparing(hit->hit.result.optString("type")).thenComparing(hit->hit.result.optString("id")));int skip=integer(args,"offset",0,1000000,0),limit=integer(args,"limit",1,100,50);JSONArray items=new JSONArray();for(int i=skip;i<found.size()&&items.length()<limit;i++)items.put(found.get(i).selected());return new JSONObject().put("items",items).put("results",items).put("total",found.size()).put("offset",skip).put("limit",limit).put("index_scope","all_local_records").put("index_rebuild","read_from_canonical_state");
     }
-    private void searchRow(JSONObject row,String type,boolean archived,JSONObject filters,String[] words,Set<String> types,Set<String> unique,List<JSONObject> found)throws Exception {
+    private void searchRow(JSONObject row,String type,boolean archived,JSONObject filters,String[] words,Set<String> types,Set<String> unique,List<SearchHit> found)throws Exception {
         if(!filters.optBoolean("include_archived",false)&&(archived||row.optBoolean("archived")||row.has("active")&&(row.optInt("active",1)==0||Boolean.FALSE.equals(row.opt("active")))))return;
         if(!filters.optString("status").isEmpty()&&!filters.getString("status").equals(row.optString("status")))return;
         String day=row.optString("date",row.optString("work_date",row.optString("starts_at",row.optString("issued_at",row.optString("received_at",row.optString("updated_at"))))));if(day.length()>10)day=day.substring(0,10);
         if(!filters.optString("from_date").isEmpty()&&(day.isEmpty()||day.compareTo(filters.getString("from_date"))<0)||!filters.optString("to_date").isEmpty()&&(day.isEmpty()||day.compareTo(filters.getString("to_date"))>0))return;
-        String targetId=row.optString("id");if(targetId.isEmpty())return;String title=row.optString("name",row.optString("title",row.optString("activity",row.optString("invoice_number",row.optString("number",targetId))))),body=normalize(row.toString());boolean matches=true;for(String word:words)matches&=body.contains(word);
-        if(matches&&(types.isEmpty()||types.contains(type))&&unique.add(type+":"+targetId+(archived?":archive":"")))found.add(new JSONObject().put("type",type).put("id",targetId).put("title",title).put("label",title).put("status",row.optString("status")).put("date",day).put("archived",archived).put("record_hash",hash(row)).put("target",new JSONObject().put("type",type).put("id",targetId).put("customer_id",row.optString("customer_id")).put("property_id",row.optString("property_id"))));
-        String notes=row.optString("notes",row.optString("note",row.optString("concern")));if(!notes.isEmpty()&&(types.isEmpty()||types.contains("note"))){boolean noteMatches=true;String value=normalize(notes);for(String word:words)noteMatches&=value.contains(word);if(noteMatches&&unique.add("note:"+type+":"+targetId+(archived?":archive":"")))found.add(new JSONObject().put("type","note").put("id",targetId).put("title",title).put("label",title).put("snippet",notes.substring(0,Math.min(160,notes.length()))).put("date",day).put("archived",archived).put("target",new JSONObject().put("type",type).put("id",targetId)));}
+        String targetId=row.optString("id");if(targetId.isEmpty())return;String title=row.optString("name",row.optString("title",row.optString("activity",row.optString("invoice_number",row.optString("number",targetId))))),body=types.isEmpty()||types.contains(type)?normalize(row.toString()):"";boolean matches=true;for(String word:words)matches&=body.contains(word);
+        if(matches&&(types.isEmpty()||types.contains(type))&&unique.add(type+":"+targetId+(archived?":archive":"")))found.add(new SearchHit(new JSONObject().put("type",type).put("id",targetId).put("title",title).put("label",title).put("status",row.optString("status")).put("date",day).put("archived",archived).put("target",new JSONObject().put("type",type).put("id",targetId).put("customer_id",row.optString("customer_id")).put("property_id",row.optString("property_id"))),row));
+        String notes=row.optString("notes",row.optString("note",row.optString("concern")));if(!notes.isEmpty()&&(types.isEmpty()||types.contains("note"))){boolean noteMatches=true;String value=normalize(notes);for(String word:words)noteMatches&=value.contains(word);if(noteMatches&&unique.add("note:"+type+":"+targetId+(archived?":archive":"")))found.add(new SearchHit(new JSONObject().put("type","note").put("id",targetId).put("title",title).put("label",title).put("snippet",notes.substring(0,Math.min(160,notes.length()))).put("date",day).put("archived",archived).put("target",new JSONObject().put("type",type).put("id",targetId)),null));}
     }
     private JSONObject overview(JSONObject args,JSONObject state)throws Exception {
         String day=args.optString("date",today().toString());date(day);JSONArray visits=records("visit"),planned=new JSONArray(),due=new JSONArray();for(int i=0;i<visits.length();i++){JSONObject row=visits.getJSONObject(i);if(!activeVisit(row))continue;if(row.getString("date").equals(day))planned.put(view(row));if(row.getString("date").compareTo(day)<=0)due.put(view(row));}

@@ -1,7 +1,96 @@
 # CODEX-STATUS
 
-Stand: 24. Oktober 2026
+Stand: 25. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
+
+## Wiederaufnahme auf Nutzerauftrag – 25.10.2026
+
+Der Nutzer hat „Fortsetzen“ angewiesen. Der zuvor pausierte Stand
+`eef8a48174b50a896c12f0bcc0c7bb2a81ae9bc5` ist auf GitHub bestätigt und war beim
+Wiedereinstieg sauber. Remote-main bleibt `e499e745832449ce0202d04d9903495248e8b034`;
+alle acht Remote-Branches frisch verglichen, offene PRs:0. Keine fremde Arbeit
+integriert oder überschrieben. Aktuelle AGENTS.md vom main und Arbeitsbranch,
+Auftrag, Status, Standort-/Lifecycle-/Originalsignierregeln erneut gelesen.
+Zentrale Regeln, Arbeitsübersicht und Projektzentrale erneut lesend abgeglichen.
+Aktive fremde Cloud-Schreiber sind dadurch nicht als stillgelegt nachgewiesen;
+das bleibt Voraussetzung vor jeder produktiven Autoritätsumstellung.
+
+Akzeptanz dieser Korrekturrunde: frischer atomarer Prüfkontext verhindert eine
+Ausgabe mit zwischenzeitlich geänderten Kunden-/Aussteller-/Leistungsdaten; Retry
+behält eine dauerhaft gespeicherte Anfragekennung; unbekannte Restore-PDF-Jobs
+ersetzen keine bereits existierenden Originalbytes; alle vorhandenen Regressionen
+und native UI-Piloten gegen isolierte synthetische Daten wiederholen. Suchtreffer
+bleiben vollständig und aktuell, Seiten liefern gültige CAS-Hashes; Laufzeiten
+mit unverändertem300/450-Datensatz neu messen. Ein neues Original-APK erst aus
+sauberem, remote gesichertem Quellstand. Kein Pixel-Installationsauftrag und keine
+produktive Migration, echte Rechnung, Zahlung oder Nachricht durch diese Arbeit.
+
+### Geprüfter Zwischenstand der Wiederaufnahme
+
+- Neue Rechnungskontextregeln:59 fokussierte JVM-Prüfungen PASS. Fehlende
+  Einsatzkunden, inkonsistente Materialledger/Einheiten und überallocierte Quellen
+  sperren die Ausgabe; Preise und Originalbezüge bleiben erhalten. UI:20 neue
+  Kontext-/Retry-/Layoutfälle,15 Finanzfälle und10 lesende Entwurfsfälle PASS.
+- Material aus dem Timer übernimmt dessen gespeicherten Startkontext und
+  läuft ohne Unterbrechung. Visit-only-Verbrauch erhält auch den bestätigten
+  Auftrag und dessen getrennten Rechnungsempfänger.113 Domänenprüfungen PASS,
+ 10 neue Timer-Material-UI-Fälle PASS; native Proben sind vorbereitet.
+- PDF-Rettung: widersprüchliche „nie erstellt“-Nachweise werden einschließlich
+  leerer/null Originalfelder und vorhandener document_id/Größen zurückgewiesen.
+ 58 CreationGuard-,64 Recovery-,45 Finanz-,29 verschlüsselte Archiv- und45
+  Portabilitätsprüfungen PASS; Archiv-Rundläufe mit48MiB und getrenntem unverändertem
+  ReceiptProofA/aktuellemProofB. Kein neues Native-PASS daraus abgeleitet.
+- Alte Auftragsfotoauswahl nimmt25Bilder an und bewahrt Request-ID/Payload bei
+  verlorenem Ergebnis und Reload.14 Fotofälle und3 bestehende Arbeitsfotofälle PASS.
+  Pro Datei bleibt die ausdrücklich angezeigte50MiB-Importgrenze; kein Kundenlimit.
+- Restore verlangt einen gültigen vollständigen Browsercheckpoint vor Änderungen
+  am Rückfallbestand. Fehlender/staler/korrupt gehashter Checkpoint erzeugt niemals
+  erfundene leere Entwürfe. Neue synthetische Native-Rundlauf-/Abbruchproben stehen aus.
+  Erhaltene Browserwerte haben jetzt einen epoch-/CAS-gebundenen, bewusst bestätigten
+  Übernahmeweg vor Start gewöhnlicher Editoren. Beide Quellen bleiben getrennt
+  archiviert.27 PureRules und der tatsächliche Browserlauf einschließlich200% PASS;
+  WebView→produktiverSQLite-Adapterprobe vorbereitet, noch nicht ausgeführt.
+- Suche berechnet CAS-Hashes nur für die ausgegebene Seite und lädt für reine
+  Listen/Tour keine unbenötigte Gesamtsicht. Vollständigkeit/Unicode/Archiv/aktuelle
+  Versionen bleiben geprüft. Host-JVM300Kunden/450Objekte p95=17,04ms (25Warmmessungen),
+  kein neuer Emulator- oder Pixel-Leistungsnachweis.
+- Python424PASS/0Skip,37 explizit ausgeschlossene Tests mit Ersatzschlüsselerzeugung.
+  Source-/Workspace-Privacy PASS; kein APK-Artefakt dieser Runde geprüft. Breiter
+  Browser-/Node-Lauf zunächst62/64PASS; Planungstest enthielt alte3erNavigation und
+  dynamischen Sommerzeitwert am25.10.-Zeitwechsel. Fixture auf feste18.05.2027 plus
+ 4Zielbereiche korrigiert, Wiederholung25/25PASS. Der alte GP-Web-Serviceworker-Test
+  benötigt GP_QA_URL und wurde ohne diese gesonderte Webserverfixture nicht ausgeführt;
+  er ist kein manueller Pixel-/Offlinekernnachweis. Ein erster Browser-Start mit
+  fehlendem acorn/falscher Cloud-Asset-Vermittlung bleibt als Umgebungsfehler erhalten;
+  korrigierte Werkzeugumgebung nutzt die bestehende synthetische Assetroute.
+- Synthetischer globaler Cloudbestand nach AVD-Neustart erneut unverändert verifiziert.
+  All-source-javac:198 Produktions-/32 Instrumentierungsquellen PASS zu diesem
+  Integrationszeitpunkt; regulärer Gradle-Lauf wurde durch die bewusst noch offene
+  UI-/MCP-Quellenprüfung blockiert. Kein Schutzgate umgangen, keine Originalsignierung.
+ 69 JVM-Suiten PASS bis zum ebenfalls noch offenen Quellenprüfgate; neue finale
+  gemeinsame Regression folgt nach eingefrorenem Vertragsabgleich.
+- Pixel am25.10. erneut nur get_capabilities:1.54.9/98,DB4,117Tools,Protokoll9,
+  sauberer dbe9ed0b/fd0979de-Quellstand und weiterhin Online-Rechnungsabgleich.
+  Keine Installations-/Daten-/Kontenaktion auf dem echten Gerät.
+
+**Zusätzlicher offener Prüfpunkt dieses Zwischencheckpoints:** Der gespeicherte
+Restore-Auswahlauftrag muss beim Wiederlesen nochmals aus den unveränderten Quellen
+und selected[] abgeleitet werden. Quellenhashes sind bereits geschützt; die noch
+fehlende Bindung von selected_storage/clear_storage wird in der nächsten Korrektur
+gehärtet. Kein Release oder Originalbuild aus diesem unvollständigen Zwischenstand.
+
+**Aktuell konkret unvollständig:** Die Prüfung des vollständigen Sicherungsumfangs
+hat noch nicht an Native übergebene Fotoentwürfe/Blobs im bestehenden WebView-
+IndexedDB gefunden. Dieser Speicher ist nicht durch browser-storage.json oder die
+bisherigen appprivaten Dateiverzeichnisse erfasst. Die Prozess-/Reloadbeständigkeit
+ist dafür kein Ersatzgerät-/Vollbackupnachweis. Ein privater gestreamter Medien-
+Sicherungs-/Wiederherstellungspfad wird als nächste Korrektur umgesetzt; keine
+lebende LevelDB kopieren, keine Base64-Medien in Geschäftssnapshots und keine alten
+Originale löschen. Bis zum geprüften Rundlauf kein vollständiger Revier-Kandidat.
+
+Der folgende Pause-/Prüfbericht bleibt datierter historischer Nachweis. Neue
+Ergebnisse dieser Runde werden hier mit Quellstand und tatsächlichem Prüfumfang
+ergänzt; alte PASS-Zahlen sind keine Abnahme des neueren Arbeitsstands.
 
 ## Auf Nutzerwunsch pausiert – 24.10.2026
 

@@ -47,6 +47,7 @@ final class BackupSettingsRepository {
     boolean browserCapturePending(){try{return new JSONObject(store.ownerValue("full_backup_browser_status","{}")).optBoolean("capturePending");}catch(Exception invalid){return false;}}
     String browserRevision()throws Exception {return PixelMcpWriteTools.hash(store.ownerValue("full_backup_browser",""));}
     JSONObject saveBrowser(String requestId,String expectedRevision,JSONObject browser)throws Exception {
+        new RestoredBrowserCheckpoint(context,store).assertCheckpointAllowed();
         if(requestId==null||!requestId.matches("[A-Za-z0-9_-]{8,200}"))throw new IOException("BACKUP_REQUEST_ID_REQUIRED");
         if(expectedRevision==null||!expectedRevision.matches("[0-9a-f]{64}"))throw new IOException("BACKUP_BROWSER_REVISION_REQUIRED");
         if(browser==null||browser.optInt("formatVersion")!=1||browser.optJSONObject("storage")==null)throw new IOException("BACKUP_BROWSER_STATE_REQUIRED");

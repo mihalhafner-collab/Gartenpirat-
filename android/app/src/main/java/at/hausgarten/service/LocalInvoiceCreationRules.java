@@ -7,6 +7,8 @@ import java.util.Arrays;
 
 /** Missing PDF bytes may be created only in their original context or after exact current review. */
 final class LocalInvoiceCreationRules {
+    /** A not-created declaration cannot carry any original, even an empty/null one. */
+    static boolean hasDocumentFields(JSONObject evidence){for(String field:new String[]{"pdf_sha256","pdf_byte_size","pdf_storage_name","pdf_base64","document_id","document"})if(evidence.has(field))return true;return false;}
     private static IOException blocked(){return new IOException("INVOICE_ORIGINAL_RECONCILIATION_REQUIRED");}
     static void requireAllowed(JSONObject job,JSONObject identity,JSONObject authority,boolean restorePending)throws IOException {
         try{
