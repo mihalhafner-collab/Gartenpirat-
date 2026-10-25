@@ -142,6 +142,45 @@ Anfrage/ein Auftrag mit gleichen Payload-Retries und gelesenen Receipts. Fehlges
 Verifikation bewahrt ihre Quellen. Host-Prozessprotokoll auf vier Paare erweitert;
 acht Sicherheitsprüfungen PASS. Dies ist vorbereitet/kompiliert, noch kein nativer PASS.
 
+### Prozess- und UI-Abnahme d99f6dd; Abrechnungsreader integrieren
+
+Quelle d99f6ddaab272552c01c25be302dc406b9463aeb, Mainfingerprint
+ee156f6cede69d839c39f7af571b4e20c31824f8f035a8935034622ed290d001,
+App-SHAc1e9891aaca37b09547202d58d001f6993fd3bd31a372ab119aa45f1b2f93009,
+Runner-SHAed9b44747b5ab8c2ee7c7fdee590550a651d9404bc68d49f31390dabe37697c4.
+Originalsignierung/Provenienz/Privacy PASS;429Python mit tatsächlichem signiertem APK,
+56/56Browser und55MCP-stdio PASS, davor78JVM. Updateledger vor/nach99→99 PASS.
+Alle vier OS-Prozesspaare PASS: drei Medienunterbrechungen und echte Anfrage-/Auftrags-
+DOM-Wiederaufnahme mit anderem Rechnungsempfänger, zukünftigem Datum, identischen
+Sitzungen/Feldwerten/Baselines/IDs, je1bewusst gespeicherter Anfrage/Auftrag und exakten
+Payload-Retries/Receipts. Kein künstlicher Leerbestand beim Wiederöffnen. Original-PNG
+und gemeinsame Fotozuordnung weiterhin bytegeprüft. Kein physischer Pixelnachweis.
+
+Native Offline-UI d99:3PASS/1FAIL. Erster Pilot jetzt bis inklusive150Minuten netto,
+Pause/Weiter/Stop und eindeutig abgeschlossenem Arbeitsdatensatz PASS; zweiter Pilot
+weiter vollständig einschließlich verifizierter verschlüsselter Sicherung/Restorevorschau
+PASS. Anschließend Abrechnungsübersicht FAIL: BusinessDataBridge.ownerCall erlaubte
+den längst registrierten reinen Leser get_business_summary noch nicht. Gezielt dieser
+eine Leseweg ergänzt; unbekannte Aufrufe und Zusatzparameter bleiben abgewiesen.
+Vorhandene Native-Angebotsregression prüft nun auch diesen tatsächlichen Bridgepfad,
+seine Leistungsgruppen, unveränderte Pendingdaten und die negativen Zugriffsfälle.
+Keine Freigabe weiterer Schreibwege. Neue gemeinsame Native-Ausführung noch offen.
+
+### Primärquellenprüfung25.10.2026 – keine Rechtskonformitätsbehauptung
+
+Vorhandene Hinweise gegen öffentliche Primärquellen gelesen. Direkte Cloud-HTTP-
+Abrufe auf RIS/BMF/USP/Android/Open-Meteo scheiterten am Proxy-CONNECT mit403.
+Inhaltszugriff über die vorhandene öffentliche Web-Leseschnittstelle; kein direkter
+HTTP200-, installierter Geräte- oder individueller Steuerprofilnachweis.
+
+- [USP/BMF Formerfordernisse](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/vorsteuerabzug-und-rechnung/formerfordernisse.html), Stand01.01.2026: Aussteller/Empfänger, Leistung/Zeitraum, Entgelt/Steuer, Datum, einmalige fortlaufende Nummer und gegebenenfalls UID. Empfänger-UID über10000EUR unter dort genannten Bedingungen. [Rechnungsübersicht](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/rechnung.html): vereinfachte inländische Kleinbetragsrechnung bis400EUR; daraus keine pauschale Pflichtfeldbefreiung für alle Dokumentarten ableiten.
+- [Kleinunternehmerregelung](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/weitere-steuertatbestaende-und-befreiungen/kleinunternehmen.html):55000EUR-Grenze mit Vorjahres-/Jahresbedingungen und erläuterten10%-Toleranzregeln. Kein Nachweis für dieses konkrete Nutzerprofil; keine automatische Steueränderung. Gesonderter Steuerausweis kann trotz Befreiung eine Steuerschuld auslösen.
+- [Aufbewahrung](https://www.usp.gv.at/themen/steuern-finanzen/steuerliche-gewinnermittlung/weitere-informationen-zur-steuerlichen-gewinnermittlung/betriebliches-rechnungswesen/aufbewahrungspflicht.html): grundsätzlich7Jahre ab Kalenderjahresende, bei Verfahren länger; besondere Grundstücksunterlagen12/22Jahre. Keine automatische Löschfrist ableiten. Vollständige geordnete Wiedergabe und fachliche Aufbewahrung sind mehr als eine Backupprüfung.
+- [E-Rechnung an den Bund](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/vorsteuerabzug-und-rechnung/e-rechnung-an-die-oeffentliche-verwaltung.html) und [BMF-Portal](https://www.erechnung.gv.at/erb/de_AT/content): strukturierte Einbringung, zusätzliche Lieferantennummer/Auftragsreferenz; PDF allein genügt dafür nicht. Geprüfter strukturierter Export bleibt offen, falls solche Aufträge vorgesehen sind.
+- [RIS Tagesfassung§11](https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=10004873&Paragraf=11&FassungVom=2026-10-25) auch über Connector nicht erreichbar. Allgemeine gesetzliche Pflicht zu HALF_UP je Position statt Rechnungsebene nicht belegt. Konkrete Rundungs-/Steuerregeln für Mischsätze, Rabatte und Korrekturen fachlich bestätigen; keine unbelegte Rechtsnorm behaupten.
+- [Android-Verifizierung](https://developer.android.com/developer-verification) und [FAQ](https://developer.android.com/developer-verification/guides/faq), FAQ30.09.2026: erste regionale Storephase in Brasilien/Indonesien/Singapur/Thailand, Ausweitung ab2027; FAQ nimmt direkte Sideloads von der ersten Phase aus. Full Distribution25USD; kostenfreie Limited Distribution beschreibt persönliche/Testnutzung bis20Geräte. Keine ungeprüfte Gewerbe-/Hobby-Ausnahme; tatsächlichen Pixel-Updateweg prüfen. Keine Registrierung/Zahlung.
+- [Open-Meteo Terms](https://open-meteo.com/en/terms) schließen kommerzielle Nutzung der freien API aus. [CC-BY4.0-Datenlizenz](https://open-meteo.com/en/licence) ersetzt diese Dienstbedingung nicht. Pixel98 non_commercial ist kein gewerblicher Berechtigungsnachweis. Wetter bleibt optional/ungeklärt; kein kostenpflichtiger Tarif, keine neue Quelle und keine produktive Abschaltung durch diese Arbeit.
+
 ## Aktive Korrekturrunde nach erneutem Nutzerauftrag
 
 Bezugspunkt cb967fe8218d4fb38cfe99bbb4efb6569b80341c: sauberer Arbeitsbaum,

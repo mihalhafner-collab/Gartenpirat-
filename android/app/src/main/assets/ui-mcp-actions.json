@@ -2837,7 +2837,7 @@
     "android/app/src/main/java/at/hausgarten/service/MainActivity.java": "8f13892dbf000f48ec1b90fb0eb71ee4316ce427dbcb393d1288ccf67a3fb034",
     "android/app/src/main/java/at/hausgarten/service/PixelLocalStore.java": "f295fd3954c971a073355f563d2580e20332789e7c703d668e5c2e19ce1ef9bf",
     "android/app/src/main/java/at/hausgarten/service/WorkSessionStore.java": "3d5919ebf8152683c403c6c9e72596958189c617018e578fcf2cad1e3d1462e8",
-    "android/app/src/main/java/at/hausgarten/service/BusinessDataBridge.java": "247dd923eda173a8252ab4774fd10a13f78137f183b5f282078c85a6e1367f51",
+    "android/app/src/main/java/at/hausgarten/service/BusinessDataBridge.java": "5b186e3289f47e17bd95841ea525f66bef81c61e6b8a4571dbdc752aff29a4e6",
     "android/app/src/main/java/at/hausgarten/service/BrowserMediaBridge.java": "4a1f36acacd1e680a4c7ec6b9cc3e8d3121e9d286d86ce77fec0fd9dc3e13f96",
     "android/app/src/main/java/at/hausgarten/service/NativeOwnerQueries.java": "ddcb2332fc39804440c7920f2cc1e924af4e089edd02c0f691ed426f6a37715a",
     "android/app/src/main/java/at/hausgarten/service/PlanningConnectionActivity.java": "df0a49b412ea23bffd5b16fc38d29b67dda9f05c1b8b076eab7dad9877cf0875",

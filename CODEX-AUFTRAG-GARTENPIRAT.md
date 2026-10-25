@@ -280,11 +280,22 @@ keine produktive Installation, Rechnung, Nachricht, Zahlung oder Umstellung durc
 | Kalender/MCP/Karten-App | optional | bestehende Anbieter-/Kontingentgrenzen | lokale Planung, manuelle Bedienung |
 | Wetter | optional, kommerzielle Lizenz offen | open_meteo_non_commercial nicht als gewerblich freigegeben ansehen | lokale Planung ohne Wetter; keine stille Abschaltung |
 | Steuer-/Rechtsprüfung Österreich | vor produktiver Nutzung | fachliche Prüfung, Kosten nicht zugesichert | offene Pflichtangaben/Rundung/Dokumentarten/FAGG/E-Rechnung benennen |
+| Android-Verifizierung/Vertrieb | abhängig vom tatsächlichen Installationsweg | offizielle FAQ nennt25USD für Full Distribution, kein Monatsdienst; nichts registriert/bezahlt | aktuellen direkten Pixel-Updateweg prüfen; kostenlose persönliche/Test-Ausnahme nicht ungeprüft auf Gewerbe übertragen |
 
 Aktuelle Primärquellen für SAF, Android-Backup, SystemClock, PdfDocument, Biometrie,
 Tink Streaming-AEAD, Signierung/Developer Verification, österreichisches Recht und
 Wetterlizenz am tatsächlichen Ausführungstag prüfen. Quellenzugriff, implementierte
 Regel und erfolgreicher Gerätetest sind verschiedene Nachweise.
+
+Primärquellenprüfung25.10.2026: USP/BMF zu Rechnungsangaben/Kleinunternehmern,
+Aufbewahrung und strukturierten Bund-Rechnungen, Android-Verifizierungs-FAQ sowie
+Open-Meteo-Bedingungen wurden über die vorhandene öffentliche Quellen-Leseschnittstelle
+gelesen. Direkte Cloud-HTTP-Abrufe scheiterten am Proxy mit403, kein HTTP200 behauptet.
+Tagesfassung RIS§11, konkrete betriebliche Steuer-/Rundungsregeln und gegebenenfalls
+strukturierter Bund-Export bleiben offen. PDF allein ist kein strukturierter Bund-Beleg.
+Die CC-BY-Datenlizenz ersetzt nicht die kommerzielle Berechtigung der freien
+Open-Meteo-API. Keine Profil-/Preis-/Steueränderung, Anmeldung oder Tarifaktivierung.
+Genaue Quellen/Prüfgrenzen im bestehenden technischen Status.
 
 ---
 
