@@ -124,6 +124,21 @@ const {chromium}=require('./browser.cjs');
    assert.equal(await page.evaluate(()=>workWrites.length),2);assert.equal(await page.evaluate(()=>HGFormDrafts.list('work_entry').length),1);
    assert.equal(await page.evaluate(()=>HGFormDrafts.list('work_entry')[0].values.fields.find(f=>f.name==='activity').value),'QA unabhängig');
   });
+  await check('Failed durable photo staging makes no work write; retry preserves the source and the final caption',async()=>{
+   await page.evaluate(()=>openPage('work-entry'));await page.locator('#customer').selectOption('qa_c1');await page.locator('#activity').fill('QA gesicherte Fotoquelle');await page.locator('#entry-hours').fill('1');await page.locator('#entry [data-section="notes"] > summary').click();
+   const before=await page.evaluate(()=>workWrites.length);
+   await page.evaluate(()=>{window.qaStorageSet=Storage.prototype.setItem;window.qaStorageFailure=true;Storage.prototype.setItem=function(key,value){if(window.qaStorageFailure&&key===HGFormDrafts.key)throw new DOMException('QA quota','QuotaExceededError');return qaStorageSet.call(this,key,value);};});
+   await page.locator('#photo').setInputFiles({name:'qa_storage.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO/a00sAAAAASUVORK5CYII=','base64')});
+   await page.locator('#entry button[type="submit"]').click();assert.equal(await page.evaluate(()=>workWrites.length),before);assert.equal(await page.locator('#activity').inputValue(),'QA gesicherte Fotoquelle');assert.equal(await page.locator('#photo').evaluate(input=>input.files.length),1);
+   await page.evaluate(()=>{qaStorageFailure=false;Storage.prototype.setItem=qaStorageSet;});await page.locator('#entry [name=photo_caption]').fill('QA endgültige Beschreibung');
+   await page.locator('#entry button[type="submit"]').click();await page.waitForFunction(()=>currentPage==='home');assert.equal(await page.evaluate(()=>workWrites.length),before+1);assert.equal(await page.evaluate(()=>photoWrites.at(-1).caption),'QA endgültige Beschreibung');assert.equal(await page.evaluate(()=>photoWrites.at(-1).worklog_id),await page.evaluate(()=>workWrites.at(-1).id));
+  });
+  await check('Removing only an unsaved photo keeps the work fields and unrelated edits',async()=>{
+   await page.evaluate(()=>openPage('work-entry'));await page.locator('#customer').selectOption('qa_c1');await page.locator('#activity').fill('QA Arbeit ohne Foto weiter');await page.locator('#entry-hours').fill('1');await page.locator('#entry [data-section="notes"] > summary').click();await page.locator('#photo').setInputFiles({name:'qa_remove.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO/a00sAAAAASUVORK5CYII=','base64')});await page.waitForFunction(()=>HGFormDrafts.list('work_entry').some(e=>e.values.photo_durable));
+   const selected=await page.evaluate(()=>HGFormDrafts.list('work_entry').find(e=>e.values.had_photo).values.media_key),count=await page.evaluate(()=>HGFormDrafts.list('work_entry').length),writes=await page.evaluate(()=>workWrites.length);
+   await page.getByRole('button',{name:'Fotoauswahl entfernen',exact:true}).click();await page.waitForFunction(async key=>await GartenpiratPhotoStore.customerDraft(key)===null,selected);assert.equal(await page.locator('#activity').inputValue(),'QA Arbeit ohne Foto weiter');assert.equal(await page.locator('#photo').evaluate(input=>input.files.length),0);assert.equal(await page.evaluate(()=>HGFormDrafts.list('work_entry').length),count);assert.equal(await page.evaluate(()=>workWrites.length),writes);
+   await page.getByRole('button',{name:'Änderungen verwerfen',exact:true}).click();assert.equal(await page.evaluate(()=>HGFormDrafts.list('work_entry').length),count-1);
+  });
   await check('No runtime errors occurred',()=>assert.deepEqual(errors,[]));
  }finally{await Promise.race([browser.close(),new Promise(resolve=>setTimeout(resolve,5000))]);}
  fs.writeFileSync('outputs/Work-entry-photo-failure-tests.json',JSON.stringify({browser:true,nativeBridge:'isolated synthetic fixture',results},null,2));

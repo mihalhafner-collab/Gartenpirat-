@@ -326,6 +326,52 @@ PASS (ignorierte/untracked Dateien eingeschlossen), alle78 JVM-Suiten PASS,
 203 Produktions- und32 Instrumentierungsquellen plus BuildConfig vollständig
 mit javac kompiliert. Erneuter gesicherter Gradlebuild und native Abnahme offen.
 
+## Gemeinsamer Original-Prüfbau62ab233 und konkrete Restfehler – 25.10.2026
+
+Gesicherter Quellcommit62ab23362948d299179d7b57c704e9c11cc4d02e,
+Mainfingerprintfd346bbcf2dffcb152a8acf8a3c959242f9ddcd375c5bebd0d10518402a61f1f.
+Gradle assembleRelease/assembleReleaseAndroidTest/lintRelease PASS2m9s,
+Lint0Fehler/112bestehendeWarnungen.427Python PASS/0Skip/37QA-Keytests explizit
+weiter ausgeschlossen; Quellen/Workspace inklusive ignorierter/untracked Dateien
+PASS.6zusätzliche Revier-/Sicherungs-/Entwurfs-Browsersuiten PASS.
+55MCP-stdio-Szenarien PASS mit vorhandener Cloud-venv/MCPServer; erster Aufruf
+mit unpassender Host-SDK-Version schlug vor Verbindungsaufbau fehl. Kein Konto/
+Live-Pixel-/Drive-Beleg daraus.78JVM PASS auf vorausgehendem geprüften Quellstand.
+
+Originalsignierte App1.55.0/99:SHA256
+b5eae121a3e37b374a7fb110d7d879e1a911098524e4ba9bbdd1baea2429c430.
+Originalrunner:SHA256d895bd8c9e0ca7a14e2a8b9f7168ec59c97f3a077479c04cffcd76d44d903dba.
+Zertifikata939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8.
+Nur GartenpiratCloud/emulator-5554 install-r ohne Clear/Uninstall, vollständiger
+In-place-Ledger vor und nach Update PASS (99→99-interner Nachweis, kein Pixel98).
+
+Finanzgruppe erneut6PASS/3FAIL; der zusätzliche Fehlerbeleg nennt nun für alle
+record_payment:IllegalStateException in PixelLocalStore.getState. Tatsächliche
+Ursache: lokale Zahlung las ledger() nach setTransactionSuccessful() und begann
+dadurch eine von Android abgewiesene verschachtelte Transaktion. Berechnung des
+Antwortbelegs jetzt innerhalb der noch offenen Transaktion vor der Erfolgsmarke.
+Bestehende vollständige148EUR-/Korrektur-/Importpfade unverändert erneut auszuführen.
+
+UI62:Start der ersten isolierten Oberfläche PASS, dann Besichtigungsübergang FAIL
+ohne Owner-Fehlercode. Revier-Zeitumrechnung nutzt jetzt die vorhandene native
+planningTime-Bridge; Browserfallback vergleicht formatToParts statt sprachabhängiger
+Datumszeichenfolge. Host-Revier-UIsuite PASS, native Wiederholung offen. Zweiter
+Pilot speicherte das tatsächliche synthetische Foto, scheiterte danach am veralteten
+Testklick auf verborgenen Abschlussbutton: Stop öffnet bereits die Prüfansicht.
+Pilot folgt nun diesem bestehenden Weg und prüft den gestoppten Zustand sowie
+unverändert150Minuten/Beziehungen; keine Geschäftsprüfung entfernt.
+
+Foto-Auswahl vor neuem Work-Commit vollständig lesbar sichern; Quoten-/Stagingfehler
+startet keine Geschäftsaktion. Dieselbe Quelle kann nach behobenem Speicherfehler
+gesichert werden. Explizites Entfernen nur der ungespeicherten Fotoauswahl erhält
+Arbeitsfelder/andere Entwürfe; unbekannte Fotoaktionen bleiben geschützt. Letzte
+Bildbeschreibung wird vor dem ersten Foto-Request übernommen.10gezielte Browser-
+Checks PASS einschließlich Quotenfehler, Datei-Retry und getrenntem Verwerfen.
+Aktuelle Änderungen sind neuer als der Original-Prüfbau62 und noch nicht nativ
+abgenommen. OS-Prozesskill (statt WebView-/Store-Reopen), beide finalen Gesamtpiloten,
+vollständige Regression und endgültige Lieferung/Pixel-USB-TalkBack bleiben offen.
+Kein produktiver Schalterwechsel und keine Pixelinstallation.
+
 ## Entwicklung erneut gestoppt; vollständige Übergabe für später – 25.10.2026
 
 Der Nutzer hat ausdrücklich angewiesen: „Stoppe die Erstellung speichere für späteren
