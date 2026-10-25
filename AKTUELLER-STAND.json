@@ -1,6 +1,6 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-25T12:51:22.671651+00:00",
+  "updated_at_utc": "2026-10-25T13:09:04.001255+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
@@ -243,7 +243,7 @@
       "physical_pixel": "NOT_TESTED"
     },
     "correction_current_checkpoint": {
-      "source_base": "c824a22cd11ff62d4659d5518ac922b62b85b5d1",
+      "source_base": "c2146b4034c19ea22f8de406cf6eef6bb76de25c",
       "manual_work_edit_and_original_photo_buffer": "IMPLEMENTED;8 browser cases PASS;native current-source execution pending",
       "native_recovery_bb1e044": "54PASS0FAIL",
       "diagnostic_runner_8d546e5_app_bb1e044": "finance6PASS3FAIL;UI1PASS2FAIL;no final acceptance",
@@ -266,7 +266,10 @@
       "browser_c824": "56PASS0FAIL",
       "native_ui_c824": "1PASS2FAIL;inspection pending;care material selector correction awaiting execution",
       "app_c824_sha256": "3c96e785ed8ae6422218f57a5f32800e5f7a859dca616e2ac8385b9bc1728efb",
-      "test_c824_sha256": "491e650683d6b733fd3a7c1f4cde0d9f364b9c05b0463861cfb4a21614fd3c68"
+      "test_c824_sha256": "491e650683d6b733fd3a7c1f4cde0d9f364b9c05b0463861cfb4a21614fd3c68",
+      "local_planning_fix": "Explicit local backup-only contract2 vs legacy items;4 shared-service regression checks and78 JVM suites PASS;native pending",
+      "ui_test_contract": "active API IDLE after completion;historical session FINALIZED asserted separately;no fake finalization flag",
+      "current_code_native_acceptance": "PENDING;newer than c824 operative app"
     }
   },
   "verified_release_source": {

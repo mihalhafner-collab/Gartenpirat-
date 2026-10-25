@@ -395,6 +395,29 @@ Besichtigungsadapter-Probelauf soll Fachcommit und UI-Übergang getrennt belegen
 Nur Diagnoserunner wird hierfür erneut gebaut, operative App c824 unverändert.
 OS-Prozesskill, finale vollständige Native-/Gesamt-/Pixelabnahme bleiben offen.
 
+## Lokaler Planungskontrakt und Timer-Testabgleich
+
+Der neue direkte native Besichtigungsprobe c2146b4/c824-App bestätigte einen
+JSONException im tatsächlichen Owner-Adapter. PlanningApplicationService verlangte
+sync_queue.items auch im bereits versionierten lokalen backup_only-Kontrakt2,
+der absichtlich keine operative Zweiwege-Warteschlange mehr ausgibt. Lokale Planung
+prüft jetzt ausdrücklich Engine/Modus/Vertrag und verwendet diesen alten
+Konfliktpfad ausschließlich im Legacybetrieb; kein leeres Ersatzobjekt und kein
+Löschen der vorhandenen Legacyinventare. Bestehender Legacykonflikt wird weiter
+abgewiesen, ungültiger lokaler Kontrakt startet keine Terminmutation.
+Vier neue Kontrollen im vorhandenen OwnerApplicationTests-Port PASS; alle78 JVM-
+Suiten und Vertrag166Tools/209Aktionen PASS. Native Wiederholung noch offen.
+PlanningApplicationService/LocalInvoiceService zusätzlich in tatsächliche
+UI-Fachquellenreview aufgenommen, bestehende Gateprüfung nicht abgeschwächt.
+
+Der zweite UI-Pilot erreicht jetzt gespeicherte Arbeit und Home. Seine alte
+Erwartung FINALIZED an getWorkSession() war falsch: diese Schnittstelle liefert
+nur aktive Sitzungen, nach Abschluss IDLE. Test prüft nun IDLE in der Oberfläche
+und FINALIZED über den konkreten historischen Sitzungsdatensatz; gespeicherte
+Arbeitszeit/Material-/Fotoverknüpfungen weiterhin verbindlich. Cloud-Kaltstartbudget
+wie bestehende native Lifecycleprüfung120s; fachliche Wartebedingungen bleiben30s.
+Keine weiteren produktiven Änderungen oder Pixelaktionen.
+
 ## Entwicklung erneut gestoppt; vollständige Übergabe für später – 25.10.2026
 
 Der Nutzer hat ausdrücklich angewiesen: „Stoppe die Erstellung speichere für späteren
