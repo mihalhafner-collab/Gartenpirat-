@@ -66,6 +66,44 @@ Prozessende-Nachweis bereinigt dessen Test ausschließlich die eigene QA-Origin;
 fehlgeschlagene Verifikation bewahrt ihre isolierten Quellen zur Diagnose. Keine
 App-Datenlöschung. Finaler gemeinsamer Build/Native-/Gesamtprüfung weiterhin offen.
 
+### Gemeinsamer Original-Prüfbau85e0d7e, danach zwei Prüfharnesskorrekturen
+
+Quelle85e0d7e6ce846ce2ba36f307899246294c9b3d39, Mainfingerprint
+bf64e1acf4056fc0da620b022e97622437218f41ffe284734b0c11edd4bb9f50,
+App-SHAfed18c9e3be60b36894be4196e5a96c62ddb4ddbcba643b6972896b236efdacd,
+Runner-SHAdd3dd5e35f77aeaf28cf0c2376a18ca014629a8a6b8d8a2e2554599dd4c8ecd2.
+Originalzertifikat unverändert, Source-Preservation/Build/Lint/Privacy PASS;
+429Python einschließlich signiertem Artefakt,78JVM und55synthetische MCP-Szenarien
+PASS. Sechs zusätzliche Revier-/Entwurfs-/Backup-Browsersuiten PASS. Breite Browser-
+Gruppe55/56PASS; isolierte Wiederholung der Verbindungsfreigabe PASS. Deren Fixture
+setzte nur den Browserzustand, während ein normaler Refresh den abweichenden nativen
+Mockstatus las. Nun wird auch der autoritative Mock vor Navigation gesetzt; beide
+bisherigen Anzeigenasserts erhalten, zwei unabhängige Wiederholungen27/27PASS.
+
+Dedizierter Cloudemulator API30: kompletter Updateledger vor/nach99→99 PASS, keine
+Pixel98→99-Behauptung. Echte Prozessbeendigung vor erstem Chunk/nach Teilchunk/nach
+Mediencommit: alle drei PASS, jeweils neuer PID, gleicher originaler PNG-Inhalt,
+volle gemeinsame Formularwerte/Zuordnung/Aktion, ein nativer Blob,0offene Writes/
+Geschäftsaktionen, keine Dublette. Dies prüft den gemeinsamen Entwurfsdienst und
+Medienadapter im neuen Prozess; kein vollständiger physischer Pixel-UI-Nachweis.
+
+Beide Gesamtpiloten85 im nachgewiesenen Flugmodus/WLAN aus/Mobildaten aus versucht:
+2PASS/2FAIL. Erster erreicht Besichtigung, Bestätigungsfenster fehlt; zusätzliche
+Bildschirmaufnahme und dumpsys belegen OS-Dialog „Application Not Responding:
+com.android.systemui“. Ausschließlich dessen visuell und per Fokus geprüfte Wait-
+Aktion gewählt, danach Launcherfokus ohne ANR. Kein App-Reset/Close/Datenverlustfix
+behauptet; Wiederholung erforderlich. Alle ursprünglichen Emulatorfunkeinstellungen
+im finally exakt wiederhergestellt; Pixel unverändert.
+
+Zweiter Pilot erstellt nun die verifizierte verschlüsselte Sicherung: ursprünglicher
+BROWSER_MEDIA_RECORD_INVALID behoben. Anschließender Test fand Arbeits-ID nicht,
+weil er nur den rohen Grundsnapshot statt gespeicherter Journalaktionen las.
+Er verwendet jetzt BackupSnapshotState plus SnapshotProjection aus tatsächlicher
+staged SQLite/Preferences/Bootstrap, identisch zur vorhandenen Restoreprojektion;
+alle Geschäftsasserts bleiben, Foto-/Sitzungs-ID zusätzlich geprüft. Kein leerer
+Ersatzbestand und keine Änderung der Backupdaten. Vollständiger Piloten-/Corelauf
+auf dem nächsten gemeinsamen Quellstand noch offen.
+
 ## Aktive Korrekturrunde nach erneutem Nutzerauftrag
 
 Bezugspunkt cb967fe8218d4fb38cfe99bbb4efb6569b80341c: sauberer Arbeitsbaum,
