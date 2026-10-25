@@ -212,12 +212,12 @@ public final class PixelMcpInstrumentation extends Instrumentation {
     }
     JSONObject args(String request)throws Exception{return SyntheticBusinessData.object().put("request_id",request).put("customer_id","qa_c1").put("work_date","2026-10-10").put("activity","QA Heckenschnitt").put("hours",3);}
     @Override public void onStart(){
-        if(releaseMode.matches("process_(prepare|verify)_(before_chunk|after_chunk|after_commit)")){
+        if(releaseMode.matches("process_(prepare|verify)_(before_chunk|after_chunk|after_commit|editors)")){
             Bundle result=new Bundle();try{
                 String before=businessSnapshotHash();String phase=releaseMode.substring(releaseMode.startsWith("process_prepare_")?16:15);
-                BackupBrowserUiNativeAcceptance.processPhase(this,releaseMode.startsWith("process_prepare_"),phase);
+                if(phase.equals("editors"))RevierWorkflowUiNativeAcceptance.processEditors(this,releaseMode.startsWith("process_prepare_"));else BackupBrowserUiNativeAcceptance.processPhase(this,releaseMode.startsWith("process_prepare_"),phase);
                 yes(before.equals(businessSnapshotHash()));result.putString("stream","PASS actual process checkpoint "+(releaseMode.startsWith("process_prepare_")?"prepared ":"verified ")+phase+"; default business snapshot unchanged\n");finish(-1,result);
-            }catch(Throwable error){result.putString("stream","FAIL actual process checkpoint "+error.getClass().getSimpleName()+"\n");finish(0,result);}return;
+            }catch(Throwable error){String detail=String.valueOf(error.getMessage()).matches("(?:QA_UI|QA_PROCESS)_[A-Z0-9_]+")?" "+error.getMessage():"";for(StackTraceElement frame:error.getStackTrace())if(frame.getClassName().equals("at.hausgarten.service.RevierWorkflowUiNativeAcceptance")&&frame.getMethodName().equals("processEditors")){detail+=" at "+frame.toString();break;}result.putString("stream","FAIL actual process checkpoint "+error.getClass().getSimpleName()+detail+"\n");finish(0,result);}return;
         }
         if(businessCapture){
             // Restricted to the existing business API. No preferences, tokens,

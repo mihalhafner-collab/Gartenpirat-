@@ -104,6 +104,44 @@ alle Geschäftsasserts bleiben, Foto-/Sitzungs-ID zusätzlich geprüft. Kein lee
 Ersatzbestand und keine Änderung der Backupdaten. Vollständiger Piloten-/Corelauf
 auf dem nächsten gemeinsamen Quellstand noch offen.
 
+### Native UI ec5965e und gemeinsame Auftragsprojektion
+
+Gemeinsame Original-App ec5965e41f03668e097d11792589f45e721868ba:
+App-SHAb67b6abbc00e61fa1c8a99d71b432439853b4d4360fe9923b5e0944ec277a4ae,
+Runner-SHAaecca4a333af1b74d47613075e875b24ac58b63f38ad5ef6cb6ef7d1bd5f9ad1;
+Mainfingerprint unverändert bf64e1ac.56/56Browser-Suiten und429Python mit signiertem
+Artefakt PASS, Updateledger vor/nach Update PASS. Keine Pixelinstallation.
+Native Offline-UI-Gruppe nun3PASS/1FAIL: zweiter Gesamtpilot vollständig PASS,
+einschließlich verschlüsselter lokaler Sicherung, Entschlüsselung/Staging, Beziehungen,
+Originalfoto-SHA, unverändertem Livebestand und idempotenter Restorevorschau.
+Keine USB-/Aktivierungsbehauptung. Erster Pilot erreicht nun Angebot/PDF/Annahme und
+genau einen Auftrag; Arbeitsstart aus diesem Auftrag noch FAIL.
+
+Ursache in PixelLocalStore: eigene alte effectiveRows-Teilsicht übernahm nur einfache
+order-Aktionen und übersah den durch offer_convert erzeugten Auftrag. Diese parallele
+Projektion ist entfernt. Kunden-/Auftrags-/Arbeits-/Fotovalidierung und Timerstart
+verwenden jetzt dieselbe validierte effektive Sicht wie Oberfläche und MCP. Keine
+Journale gelöscht oder Rohsnapshots überschrieben. Native Angebotsregression um
+echten Start/identische Wiederholung, manuellen Nachtrag und Foto am erzeugten
+Auftrag ergänzt; Ausführung noch offen.
+
+Startargumente werden zusätzlich vor automatischen Abrechnungsdefaults geklont und
+als Hash im atomaren Startereignis festgehalten. Eine identische erneute Bridgeaktion
+muss dadurch nicht an ergänztem Rechnungsempfänger scheitern; geänderte Argumente
+bleiben REPLAY_MISMATCH. Historische Ereignisse unverändert, bisheriger exakter
+Legacyvergleich bleibt für sie bestehen. WorkSessionStore tatsächlich geprüft und
+in den Quellenreview aufgenommen.204Produktions-/32Instrumentationsquellen javac
+PASS;78JVM-Suiten und Vertragsgate166Tools/209Aktionen PASS.
+
+K02 nun als zusätzliche echte DOM-Prozessprüfung implementiert: Anfrage mit Objekt
+und zukünftigem Wunschzeitraum, separater Auftrag mit anderem Rechnungsempfänger
+und zukünftigem Datum. Benannter QA-Bestand wird streng ohne Neu-Seed geöffnet,
+gleiche Origin/neuer Token/PID, Vorher-/Nachherfelder/ausgewählte Optionen/Baseline/
+Kontext/IDs und unveränderte Fachcounts vor bewusstem Speichern. Danach je eine
+Anfrage/ein Auftrag mit gleichen Payload-Retries und gelesenen Receipts. Fehlgeschlagene
+Verifikation bewahrt ihre Quellen. Host-Prozessprotokoll auf vier Paare erweitert;
+acht Sicherheitsprüfungen PASS. Dies ist vorbereitet/kompiliert, noch kein nativer PASS.
+
 ## Aktive Korrekturrunde nach erneutem Nutzerauftrag
 
 Bezugspunkt cb967fe8218d4fb38cfe99bbb4efb6569b80341c: sauberer Arbeitsbaum,

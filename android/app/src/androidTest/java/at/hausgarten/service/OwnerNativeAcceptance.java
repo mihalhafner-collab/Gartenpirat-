@@ -12,14 +12,28 @@ final class OwnerNativeAcceptance {
         final McpAuditTools tools;
         Fixture(Context base)throws Exception{this(base,null,true);}
         Fixture(Context base,WorkSessionStore.Clock clock)throws Exception{this(base,clock,true);}
-        Fixture(Context base,WorkSessionStore.Clock clock,boolean seedEmptyBrowserMedia)throws Exception{
-            context=new PixelMcpInstrumentation.Isolated(base);
+        Fixture(Context base,WorkSessionStore.Clock clock,boolean seedEmptyBrowserMedia)throws Exception{this(base,clock,seedEmptyBrowserMedia,null,true);}
+        /** Named process probes must choose fresh initialization or strict reopening explicitly. */
+        Fixture(Context base,WorkSessionStore.Clock clock,boolean seedEmptyBrowserMedia,String namedIsolatedPrefix,boolean initialize)throws Exception{
+            context=namedIsolatedPrefix==null?new PixelMcpInstrumentation.Isolated(base):new PixelMcpInstrumentation.Isolated(base,namedIsolatedPrefix);
+            java.io.File database=context.getDatabasePath("haus-garten-mobile.db");
+            if(namedIsolatedPrefix!=null){
+                if(initialize&&database.exists())throw new IllegalStateException("QA_NAMED_FIXTURE_ALREADY_EXISTS");
+                if(!initialize){if(!database.isFile())throw new IllegalStateException("QA_NAMED_FIXTURE_MISSING");try(android.database.sqlite.SQLiteDatabase existing=android.database.sqlite.SQLiteDatabase.openDatabase(database.getAbsolutePath(),null,android.database.sqlite.SQLiteDatabase.OPEN_READONLY)){
+                    if(existing.getVersion()!=PixelLocalStore.SCHEMA_VERSION)throw new IllegalStateException("QA_NAMED_FIXTURE_SCHEMA_CHANGED");
+                    try(android.database.Cursor marker=existing.rawQuery("SELECT value FROM owner_state WHERE key='qa_fixture_seed'",null)){if(!marker.moveToFirst())throw new IllegalStateException("QA_NAMED_FIXTURE_SEED_MISSING");JSONObject proof=new JSONObject(marker.getString(0));if(proof.optInt("formatVersion")!=1||!namedIsolatedPrefix.equals(proof.optString("prefix"))||!proof.optString("source").equals("synthetic_business_factory"))throw new IllegalStateException("QA_NAMED_FIXTURE_SEED_INVALID");}
+                    try(android.database.Cursor snapshot=existing.rawQuery("SELECT value FROM owner_state WHERE key='snapshot'",null)){if(!snapshot.moveToFirst()||new JSONObject(snapshot.getString(0)).optJSONArray("customers")==null)throw new IllegalStateException("QA_NAMED_FIXTURE_SNAPSHOT_MISSING");}
+                }}
+            }else if(!initialize)throw new IllegalArgumentException("QA_REOPEN_REQUIRES_NAMED_FIXTURE");
+            if(initialize){
             JSONObject snapshot=SyntheticBusinessData.object("{customers:[{id:'qa_c',name:'QA Eigentümer',active:1,billing_mode:'direct',updated_at:'2026-10-18T08:00:00Z'}],orders:[],worklogs:[{id:'qa_w',customer_id:'qa_c',billing_customer_id:'qa_c',work_date:'2026-10-18',activity:'QA Pflege',hours:2,break_minutes:0,kilometers:0,billed:0,customer_visible:1,notes:'Original',updated_at:'2026-10-18T08:00:00Z'}],invoices:[],photos:[],capabilities:{entity_compare_and_save:true,worklog_compare_and_save:true,customer_custom_fields_compare_and_save:true,invoice_compare_and_save:true,photo_compare_and_save:true,owner_journal_v2:true}}");
             JSONObject config=SyntheticBusinessData.object();for(String key:PixelMcpOwnerTools.BUSINESS_KEYS)config.put(key,"");snapshot.put("business_settings",config);
-            context.getSharedPreferences("haus_garten",0).edit().putString("drive_snapshot",snapshot.toString()).commit();store=clock==null?new PixelLocalStore(context):new PixelLocalStore(context,clock);tools=new McpAuditTools(store::getState,store,new PixelOwnerAccess(context,store));
+            context.getSharedPreferences("haus_garten",0).edit().putString("drive_snapshot",snapshot.toString()).commit();}
+            store=clock==null?new PixelLocalStore(context):new PixelLocalStore(context,clock);tools=new McpAuditTools(store::getState,store,new PixelOwnerAccess(context,store));
+            if(initialize&&namedIsolatedPrefix!=null)store.putOwnerValue("qa_fixture_seed",new JSONObject().put("formatVersion",1).put("prefix",namedIsolatedPrefix).put("source","synthetic_business_factory").toString());
             // This native-only fixture models an explicitly empty synthetic browser port.
             // Real WebView/legacy-IDB media pilots pass false and inventory their actual source.
-            if(seedEmptyBrowserMedia){BrowserMediaRepository media=new BrowserMediaRepository(context,store);media.beginMirror("qa_browser_media_empty_begin","active");media.completeMirror("qa_browser_media_empty_complete","active",new JSONArray());}
+            if(initialize&&seedEmptyBrowserMedia){BrowserMediaRepository media=new BrowserMediaRepository(context,store);media.beginMirror("qa_browser_media_empty_begin","active");media.completeMirror("qa_browser_media_empty_complete","active",new JSONArray());}
         }
         JSONObject call(String n,JSONObject a)throws Exception{return tools.call(n,a).getJSONObject("data");}
         public void close(){McpDispatchAcceptance.cleanup(this);}

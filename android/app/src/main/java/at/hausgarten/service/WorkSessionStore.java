@@ -43,7 +43,11 @@ final class WorkSessionStore {
             try(Cursor start=db.rawQuery("SELECT event_type,payload FROM work_session_events WHERE request_id=?",new String[]{request})){
                 if(!start.moveToFirst()||!java.util.Arrays.asList("START","START_EXISTING").contains(start.getString(0)))throw new PixelMcpWriteTools.Rejected("REPLAY_MISMATCH","Anfragekennung gehört zu einer anderen Aktion.");
                 JSONObject original=new JSONObject(start.getString(1));original.remove("_clock");
-                if(!PixelMcpWriteTools.hash(original).equals(PixelMcpWriteTools.hash(input)))throw new PixelMcpWriteTools.Rejected("REPLAY_MISMATCH","Anfragekennung enthält andere Startangaben.");
+                if(original.has("_request_input_hash")){
+                    String saved=original.optString("_request_input_hash");if(!saved.matches("[0-9a-f]{64}")||!saved.equals(input.optString("_request_input_hash")))throw new PixelMcpWriteTools.Rejected("REPLAY_MISMATCH","Anfragekennung enthält andere Startangaben.");
+                }else{
+                    JSONObject comparison=new JSONObject(input.toString());comparison.remove("_request_input_hash");if(!PixelMcpWriteTools.hash(original).equals(PixelMcpWriteTools.hash(comparison)))throw new PixelMcpWriteTools.Rejected("REPLAY_MISMATCH","Anfragekennung enthält andere Startangaben.");
+                }
             }
             JSONObject replayed=current(existing);db.setTransactionSuccessful();return replayed;
         }
