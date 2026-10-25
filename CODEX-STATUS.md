@@ -6,7 +6,7 @@ Repository: `mihalhafner-collab/Gartenpirat-`
 ## Aktueller Gesamtstatus der Umstellung, 25.10.2026
 
 Fortsetzungsauftrag aktiv. Neuester gesicherter Entwicklungsstand vor dieser
-gezielten Testkorrektur:4e7c4cc803ebe99f39cf26b36f1ac58633691cd6; main weiterhin
+aktuellen Korrekturbündel:52a01f253c42b3a87b3865fe1a3ad5ef9a928b87; main weiterhin
 e499e745832449ce0202d04d9903495248e8b034. Kein produktiver Schalterwechsel.
 
 Pixel ausschließlich lesend erneut geprüft:1.54.9/98,DB4,MCP9/117,
@@ -44,6 +44,34 @@ Native Finanzgruppe zuletzt9/9PASS auf12496d0; kein Ersatz für gemeinsame Endab
 Physischer Pixel,zwei reale USB-Ziele,TalkBack und produktiver Autoritäts-/Belegabgleich
 bleiben gesonderte offene Geräte-/Betriebsschritte. Ältere Zwischenstände unten sind
 historische Nachweise und keine aktuellen grünen Gesamtfreigaben.
+
+Erneuter gemeinsamer Original-Prüfbau52a01f253c42b3a87b3865fe1a3ad5ef9a928b87:
+App-SHA095be4ddab7fdf3fd032e1941e67c30959cfe68af86df8ca5d0200f8a52eac91,
+Runner-SHA9b944fc7c3190839f7e520370b1f81c2980ee940fcd157234ea599053009fe10,
+Quellfingerprint unverändert5df55d05…, Originalzertifikat unverändert.
+429Python/78JVM/56Browser/55MCP sowie9ergänzendeBrowser-Suiten bestanden;
+Build/Lint0Fehler112Warnungen,Privacy undsynthetischesCloud-Updateledger bestanden.
+Offline-UI52a01f2:Rechnungsausgabe undPDF148EUR bestanden, danach Zahlung bei
+Anzeigeaktualisierung FAIL. ÄltereWebView wirft bei erneutem showModal aufbereits
+offenemRechnungsdialog; der übergreifende Payment-Catch behandelte diesen Fehler
+fälschlich als unbekannte Buchungsantwort. Pflege-/Backup-/Restorevorschau erneutPASS.
+
+Gezieltes Korrekturbündel im anschließenden Arbeitsstand:Dialogöffnung geschützt;
+Zahlungs-ID und bestätigter Zustand vor unabhängiger Anzeige erhalten; lesender
+Wiederanlauf und Vor-Schreib-Prüfpunkt mit Rücklesen; vollständiger Baselinevergleich,
+kein leerer Zahlungsentwurf und bewusster gezielter Verwerfweg. Gemeinsame vorhandene
+Formularspiegel-Bereinigung wiederverwendet. Angebots-Write-Reply enthält den tatsächlichen
+CAS-Hash, bevor Detailabruf und Anzeige erfolgen. Gezielte Browser-Fehlerfälle bestanden;
+22 Zahlungsfälle und 21 Angebotsfälle bestanden im Browser; darunter echte Fehler nach
+Commit, gespeicherte ID/CAS vor Detailabruf, genau ein Beleg/Receipt, nur lesender
+Wiederanlauf, kein Schreiben bei fehlendem Prüfpunkt sowie vollständiges Verwerfen
+und Browser-Neustart ohne Wiederbelebung. Stable edit_id und request_id sind getrennt,
+damit eine eindeutig abgewiesene Aktion innerhalb derselben Bearbeitung korrigierbar
+bleibt. Zwei unabhängige 41er-Ansichtenläufe bestanden nach Korrektur einer veralteten
+Heute-Testannahme: Arbeitsstart zuerst sichtbar, Termin nach normalem Scroll vor Dock
+und Navigation erreichbar. 78 JVM-Suiten bestanden; Native-Gesamtabnahme und neuer
+Original-Prüfbau des zusammengeführten Korrekturbündels stehen noch aus.
+Neun gefüllte Kernansichten×3Breiten×200% bestanden imBrowser; keineTalkBack-/OS-Tastaturbehauptung.
 
 Medienfehler gezielt reproduziert: Android wandelt explizites JSON.NULL beim
 Stringzugriff in den Text „null“ um. Die Löschbereinigung erzeugte daraus einen

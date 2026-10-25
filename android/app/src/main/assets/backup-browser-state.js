@@ -8,7 +8,7 @@
  const safe=e=>!e.disabled&&!e.readOnly&&!['password','file','submit','button','reset','image'].includes(String(e.type).toLowerCase())&&!SECRET.test([e.id,e.name,e.autocomplete].join('.'))&&!['current-password','new-password','one-time-code'].includes(e.autocomplete);
  const formKey=(form,index)=>form?.id||form?.getAttribute('name')||'form-'+index;
  function forms(){
-  const found=[...document.forms].filter(f=>visible(f)&&!f.closest('#hg-backup-draft-dialog')&&!(f.dataset.editSession&&window.HGFormDrafts&&!HGFormDrafts.list().some(e=>e.session_id===f.dataset.editSession)));
+  const found=[...document.forms].filter(f=>visible(f)&&f.dataset.editorUnchanged!=='true'&&!f.closest('#hg-backup-draft-dialog')&&!(f.dataset.editSession&&window.HGFormDrafts&&!HGFormDrafts.list().some(e=>e.session_id===f.dataset.editSession)));
   return found.map((form,index)=>{
    const fields=[...form.querySelectorAll('input,textarea,select')].filter(e=>safe(e)&&e.type!=='hidden'&&visible(e));
    const identity=[...form.querySelectorAll('input[type=hidden],select')].filter(e=>safe(e)&&/(^id$|_id$|Id$)/.test(e.name||e.id)).map(e=>[e.name||e.id,String(e.value)]).sort((a,b)=>a[0].localeCompare(b[0]));

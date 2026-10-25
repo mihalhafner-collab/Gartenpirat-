@@ -53,7 +53,7 @@ public final class OwnerApplicationTests {
   for(String name:OfferTools.WRITES)yes(app.handles(name));for(String name:AppointmentTools.WRITES)yes(app.handles(name));yes(!app.handles("unknown_operation"));
   String customers=PixelMcpWriteTools.hash(repository.state.getJSONObject("master").getJSONArray("customers"));
   JSONObject source=OffersAndPhotosTests.draft(),draft=SyntheticBusinessData.object();JSONObject fields=OfferTools.schema("create_offer_draft").getJSONObject("properties");for(Iterator<String> keys=fields.keys();keys.hasNext();){String key=keys.next();if(source.has(key))draft.put(key,source.get(key));}draft.put("request_id","qa_offer_create");
-  JSONObject created=invoke(app,"create_offer_draft",draft);yes(created.has("offer_id"));yes(repository.pendingActions().length()==1);
+  JSONObject created=invoke(app,"create_offer_draft",draft);yes(created.has("offer_id"));yes(created.getString("record_hash").equals(PixelMcpWriteTools.hash(DriveJournalRules.clean(PixelMcpWriteTools.find(repository.effective().getJSONArray("offers"),created.getString("offer_id"))))));yes(repository.pendingActions().length()==1);
   JSONObject row=PixelMcpWriteTools.find(repository.effective().getJSONArray("offers"),created.getString("offer_id"));
   JSONObject update=SyntheticBusinessData.object().put("request_id","qa_offer_update").put("offer_id",row.getString("id")).put("expected_record_hash",PixelMcpWriteTools.hash(DriveJournalRules.clean(row))).put("updates",SyntheticBusinessData.object().put("title","QA changed"));
   invoke(app,"update_offer_draft",update);yes(repository.pendingActions().length()==2);

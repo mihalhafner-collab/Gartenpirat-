@@ -19,6 +19,14 @@ Bearbeitung aus allen aktiven Speichern. Ungeklärte Aktionen bleiben mit origin
 ID und unveränderlichen Argumenten bis zum Beleg/sicheren Retry erhalten.
 Bestätigte IDs werden vor nachfolgendem Lesen übernommen; Fehler bei Sicherung,
 Foto oder Hintergrundplanung ändern einen erfolgreichen lokalen Commit nicht.
+Ein bestätigter Zahlungscommit erhält seine payment_id vor jeder Anzeigeaktualisierung.
+Fehler beim Nachlesen, Öffnen oder Bereinigen erzeugen ausschließlich einen lesenden
+Wiederanlauf und niemals eine neue Zahlungsaktion. Scheitert der dauerhafte eingefrorene
+Wiederholungszustand vor dem Schreiben, wird keine Zahlung angefordert. Unberührte
+Zahlungsformulare und vollständig zurückgesetzte Eingaben erzeugen keinen leeren
+Entwurf; ausdrückliches Verwerfen entfernt deren aktiven Formularspiegel mit.
+Angebots-Schreibbelege liefern den Vergleichshash des tatsächlich gespeicherten
+Standes; die Oberfläche erhält ihn mit der bestätigten ID vor einem Detailabruf.
 Einzelne Medien/Entwürfe/Jobs blockieren nur tatsächliche Abhängigkeiten; ungeklärte
 Rechnungsnummern sperren deren Ausgabe. Globale Pausen nur bei gemeinsamer Integrität.
 
