@@ -38,6 +38,8 @@ final class LocalAuthorityRules {
     static JSONObject externalBackupProof(JSONObject job,JSONObject manifest,java.time.Instant now)throws Exception {
         JSONObject archive=job.getJSONObject("archive"),destination=job.getJSONObject("destination");String id=job.getString("backupId"),sha=archive.getString("sha256"),verified="",scope="";long size=new BigDecimal(archive.get("size").toString()).longValueExact();
         if(!sha.matches("[0-9a-f]{64}")||size<=0||!id.equals(manifest.getString("backupId")))throw new IllegalArgumentException("LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED");
+        JSONObject media=manifest.optJSONObject("browser_media_inventory"),capture=job.optJSONObject("capture");
+        if(!"1".equals(String.valueOf(manifest.opt("browser_media_format_version")))||media==null||!"1".equals(String.valueOf(media.opt("formatVersion")))||!Boolean.TRUE.equals(media.opt("mirror_complete"))||!media.optString("record_hash").matches("[0-9a-f]{64}")||!"VERIFIED_NATIVE_MIRROR".equals(archive.optString("mediaCoverage"))||!"1".equals(String.valueOf(archive.opt("mediaFormatVersion")))||!PixelMcpWriteTools.hash(media).equals(archive.optString("mediaInventorySha256"))||capture==null||!capture.optString("metadataSha256").matches("[0-9a-f]{64}")||!capture.getString("metadataSha256").equals(archive.optString("captureMetadataSha256")))throw new IllegalArgumentException("LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED");
         JSONObject upload=job.optJSONObject("upload"),provider=job.optJSONObject("provider");
         if(upload!=null&&job.optString("phase").equals("REMOTE_VERIFIED")&&upload.optString("state").equals("REMOTE_VERIFIED")&&destination.optString("kind").equals("drive")){
             String binding=PixelMcpWriteTools.hash(new JSONObject().put("backupId",id).put("folder",destination.getString("folderId")).put("size",size).put("sha256",sha));
@@ -48,7 +50,7 @@ final class LocalAuthorityRules {
         }
         if(verified.isEmpty())throw new IllegalArgumentException("LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED");java.time.Instant checked=java.time.Instant.parse(verified),captured=java.time.Instant.parse(manifest.getString("capturedAt")),local=java.time.Instant.parse(archive.getString("localVerifiedAt"));
         if(checked.isAfter(now)||checked.isBefore(captured)||checked.isBefore(local))throw new IllegalArgumentException("LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED");
-        return new JSONObject().put("formatVersion",1).put("verified",true).put("external_verified",true).put("backup_id",id).put("archive_sha256",sha).put("business_snapshot_sha256",manifest.getString("business_snapshot_sha256")).put("captured_at",captured.toString()).put("verified_at",checked.toString()).put("verification_scope",scope);
+        return new JSONObject().put("formatVersion",1).put("verified",true).put("external_verified",true).put("backup_id",id).put("archive_sha256",sha).put("business_snapshot_sha256",manifest.getString("business_snapshot_sha256")).put("captured_at",captured.toString()).put("verified_at",checked.toString()).put("verification_scope",scope).put("media_coverage","VERIFIED_NATIVE_MIRROR").put("browser_media_format_version",1).put("browser_media_inventory_sha256",archive.getString("mediaInventorySha256"));
     }
     private LocalAuthorityRules(){}
 }

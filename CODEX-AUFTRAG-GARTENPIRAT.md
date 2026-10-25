@@ -1,6 +1,18 @@
 # CODEX-AUFTRAG-GARTENPIRAT
 
-## Fortsetzung auf Nutzerwunsch (25.10.2026)
+## Aktueller Status: Entwicklung gestoppt und für später gesichert (25.10.2026)
+
+Nutzeranweisung: „Stoppe die Erstellung speichere für späteren start alle notwendigen
+aktionen“. Bis zu einer neuen ausdrücklichen Fortsetzung keine Entwicklung,Tests,
+Builds,Signierung oder Gerätehandlungen. Vollständiger WIP und die zehn konkreten
+Wiederaufnahmeaktionen stehen in CODEX-STATUS.md; keine zweite Aufgaben-/Regeldatei.
+Offen sind insbesondere die dauerhaft vorbereiteten Medien-Schreibaktionen,
+Sicherungssperre bei ungeklärten Puffern,Quellenwahl und gemeinsame Native-/Release-
+Prüfung. Dieser Quellstand ist kein freigegebenes Update. App/Pixel und Betriebsdaten
+bleiben unverändert. Die folgenden Fortsetzungs-/Pauseabschnitte sind historische
+Auftragschronik; der vollständige Revier-Auftrag bleibt für den späteren Start erhalten.
+
+## Historische Fortsetzung auf Nutzerwunsch (25.10.2026)
 
 Der Nutzer hat „Fortsetzen“ angewiesen. Die nachfolgend dokumentierte Pause ist
 beendet; der vorhandene Auftrag wird auf dem gesicherten Branch fortgeführt.

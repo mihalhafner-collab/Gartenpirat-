@@ -15,6 +15,11 @@ public class BusinessDataBridge {
         this.context=context;this.store=store;this.pendingWorkPhotos=pendingWorkPhotos;this.requestSync=requestSync;
         repository=new LocalOwnerRepository(context,store);
     }
+    private void notifyCommitted() {
+        // The business transaction already succeeded. A deferrable adapter/scheduler
+        // failure cannot turn that local commit into a failed save or a second create.
+        try { requestSync.run(); } catch (RuntimeException unavailable) { /* Durable local pending work remains retryable. */ }
+    }
 @JavascriptInterface public String getState() { try{JSONObject state=store.getState();state.put("master",PixelMcpReadTools.effective(state)).put("ui_effective",true);JSONArray photos=state.getJSONObject("master").getJSONArray("photos");for(int i=0;i<photos.length();i++){JSONObject photo=photos.getJSONObject(i);String thumbnail=photo.optString("thumbnail_storage_name");if(thumbnail.matches("[0-9a-f]{64}\\.jpg"))photo.put("thumbnail_data","content://"+context.getPackageName()+".photothumbnails/"+thumbnail);}return state.toString();}catch(Exception e){return store.getState().toString();} }
 @JavascriptInterface public String planningTime(String value,String zone,String offset){try{return AppointmentRules.local(value,zone,offset).toString();}catch(Exception e){return "ERROR: "+e.getMessage();}}
 @JavascriptInterface public String ownerCall(String name,String arguments){
@@ -61,15 +66,15 @@ public class BusinessDataBridge {
     catch(Exception error){return "ERROR: "+error.getMessage();}
 }
 @JavascriptInterface public String completeWorkSession(String sessionId,String value,String requestId) {
-    try { String id=store.completeWorkSession(sessionId,new JSONObject(value),requestId);requestSync.run();return id; }
+    try { String id=store.completeWorkSession(sessionId,new JSONObject(value),requestId);notifyCommitted();return id; }
     catch (Exception error) { return "ERROR: " + error.getMessage(); }
 }
 @JavascriptInterface public String saveWorklog(String value) {
-    try { JSONObject payload=new JSONObject(value);String sessionId=payload.optString("_session_id");payload.remove("_session_id");String id=sessionId.isEmpty()?store.saveWorklog(payload):store.completeWorkSession(sessionId,payload,"ui-finalize-"+sessionId);requestSync.run();return id; }
+    try { JSONObject payload=new JSONObject(value);String sessionId=payload.optString("_session_id");payload.remove("_session_id");String id=sessionId.isEmpty()?store.saveWorklog(payload):store.completeWorkSession(sessionId,payload,"ui-finalize-"+sessionId);notifyCommitted();return id; }
     catch (Exception error) { return "ERROR: " + error.getMessage(); }
 }
 @JavascriptInterface public String saveCustomer(String value) {
-    try { String id = store.saveCustomer(new JSONObject(value)); requestSync.run(); return id; }
+    try { String id = store.saveCustomer(new JSONObject(value)); notifyCommitted(); return id; }
     catch (Exception error) { return "ERROR: " + error.getMessage(); }
 }
 @JavascriptInterface public String inspectOrder(String id) {
@@ -77,11 +82,11 @@ public class BusinessDataBridge {
     catch(Exception error){return "ERROR: "+error.getMessage();}
 }
 @JavascriptInterface public String saveReviewedOrder(String value) {
-    try{String id=store.saveReviewedOrder(new JSONObject(value));requestSync.run();return new JSONObject().put("id",id).put("saved",true).toString();}
+    try{String id=store.saveReviewedOrder(new JSONObject(value));notifyCommitted();return new JSONObject().put("id",id).put("saved",true).toString();}
     catch(Exception error){return "ERROR: "+error.getMessage();}
 }
 @JavascriptInterface public String saveOrder(String value) {
-    try { String id = store.saveOrder(new JSONObject(value)); requestSync.run(); return id; }
+    try { String id = store.saveOrder(new JSONObject(value)); notifyCommitted(); return id; }
     catch (Exception error) { return "ERROR: " + error.getMessage(); }
 }
 @JavascriptInterface public String getPhotoStorageSummary(){try{return store.photoAttachmentStore().storageSummary().toString();}catch(Exception e){return "ERROR: Speicherstatus nicht verfügbar.";}}
@@ -91,14 +96,14 @@ public class BusinessDataBridge {
 @JavascriptInterface public String setPersonalPaid(String value){return repository.setPersonalPaid(value);}
 @JavascriptInterface public String getInvoiceShareHandoff(){return store.ownerValue("invoice_share_handoff", "{}");}
 @JavascriptInterface public String saveInvoice(String value) {
-    try{String id=store.saveInvoiceDraft(new JSONObject(value));requestSync.run();return id;}
+    try{String id=store.saveInvoiceDraft(new JSONObject(value));notifyCommitted();return id;}
     catch(Exception error){return "ERROR: "+error.getMessage();}
 }
 @JavascriptInterface public String requestInvoiceIssue(String identifier) {
     try{JSONObject all=PixelMcpReadTools.effective(store.getState()),invoice=PixelMcpWriteTools.find(all.getJSONArray("invoices"),identifier);store.execute("request_invoice_issue",new JSONObject().put("request_id","ui-issue-"+UUID.randomUUID()).put("invoice_id",identifier).put("expected_record_hash",PixelMcpWriteTools.hash(PixelMcpEntityWriteTools.recordForHash("invoice",invoice))).put("confirmed",true));return "OK";}catch(Exception e){return "ERROR: "+e.getMessage();}
 }
 @JavascriptInterface public String savePhoto(String value) {
-    try { String id = store.savePhoto(new JSONObject(value)); requestSync.run(); return id; }
+    try { String id = store.savePhoto(new JSONObject(value)); notifyCommitted(); return id; }
     catch (Exception error) { return "ERROR: " + error.getMessage(); }
 }
 @JavascriptInterface public String stagePendingWorkPhoto(String value) {
@@ -118,11 +123,11 @@ public class BusinessDataBridge {
     catch (Exception error) { return "ERROR: " + error.getMessage(); }
 }
 @JavascriptInterface public String removeEntity(String entity, String id) {
-    try { String actionId = store.removeEntity(entity, id); requestSync.run(); return actionId; }
+    try { String actionId = store.removeEntity(entity, id); notifyCommitted(); return actionId; }
     catch (Exception error) { return "ERROR: " + error.getMessage(); }
 }
 @JavascriptInterface public String undoRemoveEntity(String entity, String id) {
-    try { String result = store.undoRemoveEntity(entity, id); requestSync.run(); return result; }
+    try { String result = store.undoRemoveEntity(entity, id); notifyCommitted(); return result; }
     catch (Exception error) { return "ERROR: " + error.getMessage(); }
 }
 }

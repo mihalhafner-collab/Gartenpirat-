@@ -1,12 +1,12 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-25T07:29:58.320512+00:00",
+  "updated_at_utc": "2026-10-25T07:47:27.411324+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
     "version_name": "1.55.0",
     "version_code": 99,
-    "status": "RESUMED_ON_USER_REQUEST_INTEGRATION_AND_ACCEPTANCE_IN_PROGRESS",
+    "status": "STOPPED_ON_USER_REQUEST_PAUSED_WIP_NOT_RELEASED",
     "base_git_sha": "419d0b4bfcbb7108d00296619831a04ddc3273b0",
     "last_original_app_source_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "main_at_start": "e499e745832449ce0202d04d9903495248e8b034",
@@ -33,7 +33,7 @@
       "frame_guard_and_context_stable_timer_photos",
       "schema5_old_writer_fence_existing_tables_preserved"
     ],
-    "full_revier_acceptance": "NOT COMPLETE; resumed integration; IndexedDB media backup gap being closed; current native regression pending",
+    "full_revier_acceptance": "NOT COMPLETE;STOPPED;latest media prepare/cancel/pending APIs incomplete;compile/native/full backup roundtrip unverified",
     "original_signed_update_candidate": "LATEST INTERNAL cc637 DEBUGGING BUILD NOT REVIER ACCEPTED;PAUSED SOURCE HAS NEWER UNBUILT FIXES",
     "productive_migration": "NOT EXECUTED",
     "installation": "NOT EXECUTED",
@@ -115,24 +115,36 @@
     "development_semantic_ui_actions": 204,
     "latest_implementation_base_git_sha": "613875759c2e29d6c8fc9efc18990e3b49763ea1",
     "current_implementation_original_signed": false,
-    "latest_implementation_checkpoint_git_sha": "eef8a48174b50a896c12f0bcc0c7bb2a81ae9bc5",
+    "latest_implementation_checkpoint_git_sha": "80223176d48ae6f576c9e677d272a059913f21f7",
     "pause": {
-      "requested": "Sichern und vorerst pausieren",
-      "at_utc": "2026-10-24T04:16:59.785600+00:00",
+      "requested": "Stoppe die Erstellung speichere für späteren start alle notwendigen aktionen",
+      "at_utc": "2026-10-25T07:47:27.411324+00:00",
       "source_ref": "refs/heads/codex/revier-solo-20261023",
+      "previous_verified_checkpoint_git_sha": "80223176d48ae6f576c9e677d272a059913f21f7",
       "last_built_source_git_sha": "cc637c91f7c3f4eee6b59d04c495c0412d3d7525",
       "current_source_is_newer_than_last_build": true,
+      "resume_instructions": "CODEX-STATUS.md: Entwicklung erneut gestoppt; zehn konkrete offene Aktionen",
+      "agents_frozen": true,
+      "cloud_emulator": "dedicated GartenpiratCloud stopped cleanly without uninstall/data clear",
+      "productive_actions": "NONE",
       "resume_required": [
-        "register two new pure helper classes in JVM runner",
-        "complete issue-review context and layout tests",
-        "review current UI fingerprints and actual tool catalog",
-        "regular build/lint/privacy and original signing from clean saved source",
-        "native revier_core/revier_ui and full regression",
-        "search performance and separate Pixel/USB/authority pilot"
+        "read fresh remote rules/state/branches/PRs and preserve existing work",
+        "implement missing BrowserMediaRepository prepareRecordWrite/cancelRecordWrite/commit intents and pending_write_count/capture fence",
+        "durable IDB native-write-buffer before first chunk; exact restart/retry with source/epoch binding",
+        "preserve multiple device candidates for same key without mixing business stores",
+        "finish media mirror/restore review and manifest/archive provenance; legacy gap explicit",
+        "complete portability media graph/original export",
+        "review current JS bridge protocols and source fingerprints; no blind whitelist",
+        "compile current whole tree then host/browser/MCP/native regressions and two real UI pilots",
+        "commit/push/readback+source_preservation before original build/signature/provenance/privacy/update/restore proof",
+        "prepare separate physical Pixel/USB/TalkBack/number/writer transition checklist; no automatic installation"
       ],
-      "productive_installation": "NOT EXECUTED",
-      "productive_migration": "NOT EXECUTED",
-      "resumed_on": "2026-10-25"
+      "saved_source_identity": "Exact development_ref HEAD containing this pause record; previous_verified_checkpoint is the earlier base, not the new pause commit",
+      "source_privacy": {
+        "status": "PASS",
+        "files": 2335,
+        "operational_seed_rows": 0
+      }
     },
     "native_measurements": {
       "environment": "API30x86_64CloudEmulatorWithoutKVM;noPixelClaim",
@@ -176,6 +188,16 @@
       "narrow_javac": "198production/32instrumentation PASS;compiler feedback only",
       "cloud_baseline_verify": "PASS after preserved AVD restart;no reinstall/clear",
       "pixel_metadata": "READONLY1.54.9/98 DB4 MCP9/117;dbe9ed0b/fd0979de clean;online invoice remains"
+    },
+    "paused_media_partial_checks": {
+      "file_stream_checks": "22PASS48MiB64MiBheap before latest buffer changes",
+      "repository_rules": "45PASS host real private files;Android untested",
+      "restore_form_rules": "34PASS",
+      "authority_proof_rules": "31PASS",
+      "contract_python": "8PASS;70 signatures exact inventory only",
+      "latest_media_overall": "UNTESTED_WIP;missing APIs may break whole compile",
+      "full_original_candidate": "NOT BUILT",
+      "physical_pixel_actions": "NONE"
     }
   },
   "verified_release_source": {
@@ -190,14 +212,15 @@
     "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB"
   },
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-10-24T02:29:38.072112+00:00",
+    "observed_at_utc": "2026-10-25",
     "version_name": "1.54.9",
     "version_code": 98,
     "reported_base_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "source_sha256": "fd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae",
     "source_dirty": false,
-    "evidence": "Read-only get_capabilities24Oct2026;unchanged1.54.9/98,MCP9/117tools,DB4,pixel_drive_v1/android_provider;self-report,no independent Pixel APK integrity proof",
-    "invoice_finalization": "pixel_drive_online_compare_required"
+    "evidence": "Read-only get_capabilities25Oct2026;unchanged1.54.9/98,MCP9/117tools,DB4,pixel_drive_v1/android_provider;self-report,no independent Pixel APK integrity proof",
+    "invoice_finalization": "pixel_drive_online_compare_required",
+    "evidence_recorded_at_utc": "2026-10-25T07:37:39.305604+00:00"
   },
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-",
@@ -763,6 +786,16 @@
       "evidence": "Live MCP self-test on original94, then final customer/archive reads; no physical installation. Explicitly authorized synthetic legacy test customer archived/purged with verified targeted deletion backup; no real customer/worklog changes.",
       "calendar_live_state": "CONNECTED; primary busy verified and calendar checked; Google External/Testing production grant remains outside this audit",
       "sync_audit": "OPEN: action_required, TRANSFER_FAILED/reading, pending8/review0, provider_readback, cloud_confirmed=false"
+    },
+    {
+      "observed_at_utc": "2026-10-24T02:29:38.072112+00:00",
+      "version_name": "1.54.9",
+      "version_code": 98,
+      "reported_base_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
+      "source_sha256": "fd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae",
+      "source_dirty": false,
+      "evidence": "Read-only get_capabilities24Oct2026;unchanged1.54.9/98,MCP9/117tools,DB4,pixel_drive_v1/android_provider;self-report,no independent Pixel APK integrity proof",
+      "invoice_finalization": "pixel_drive_online_compare_required"
     }
   ],
   "today_mcp_audit": {

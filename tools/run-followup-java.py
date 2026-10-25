@@ -28,7 +28,7 @@ names = ['DeletionBackupStore', 'SnapshotProjection', 'OwnerCommand', 'EntityCon
 names += ['LocalMigrationInventory','WorkSessionTimingRules','SyncCommitRules','OwnerRequestTransactions','ReceiptRetentionRules','SyncFailureRules','LocalTestTombstone','ActiveWorkProtection','ImmutableStateReference','CatalogSemanticHash','SyncQueueCounters','VerifiedSyncCache','SyncIoFailure','CalendarRecoveryRules','OpenMeteoWeatherSource','CalendarSetupRules','PlanningWire']
 names += ['BackupCrypto', 'EncryptedBackupArchive', 'ServiceCatalogBootstrap', 'BackupFilePins', 'DriveBackupUpload', 'BackupScheduleRules', 'BackupStorageBudget']
 names += ['LocalAuthorityRules','LocalWorkflowTools','LocalWorkflowApplicationService','RevierRepository','RevierRules','RevierApplicationService','OfferDecisionRules','OfferDecisionService','BackupDocumentTransfer','BackupDatasetExchange','BackupPortableFormat','LocalBillingRules','OfferDecisionValidation','LocalFinancialValidation','LocalFinancialOriginals','IssuedInvoiceRules']
-names += ['LocalInvoiceCreationRules', 'InvoiceIssueReviewRules', 'RestoredBrowserReviewRules']
+names += ['LocalInvoiceCreationRules', 'InvoiceIssueReviewRules', 'RestoredBrowserReviewRules', 'BrowserMediaFiles', 'BrowserMediaRepositoryRules']
 tests = sorted((ROOT/'tests/java/at/hausgarten/service').glob('*Tests.java'))
 dependency_cache = Path(os.environ.get('GRADLE_USER_HOME', Path.home()/'.gradle'))/'caches/modules-2/files-2.1'
 crypto_jars = []
@@ -53,7 +53,7 @@ results = []
 for test in tests:
     # Execute real Tink on the host JCE without Android stub classes. The heap is
     # smaller than the complete encrypted/archive/restored dataset on disk.
-    crypto = test.stem in ('EncryptedBackupArchiveTests','DriveBackupUploadTests','BackupDocumentTransferTests','BackupPortableFormatTests','LocalFinancialOriginalsTests')
+    crypto = test.stem in ('EncryptedBackupArchiveTests','DriveBackupUploadTests','BackupDocumentTransferTests','BackupPortableFormatTests','LocalFinancialOriginalsTests','BrowserMediaFilesTests')
     runtime_cp = os.pathsep.join(map(str, [classes, jar, *crypto_jars])) if crypto else cp
     output = run([shutil.which('java'), *(['-Xmx64m'] if crypto else []), '-Dfile.encoding=UTF-8', '-cp', runtime_cp, 'at.hausgarten.service.'+test.stem])
     (classes.parent/(test.stem+'.log')).write_text(output)

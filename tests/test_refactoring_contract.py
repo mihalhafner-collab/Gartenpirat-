@@ -2,12 +2,25 @@
 from copy import deepcopy
 import json
 import unittest
-from tools.check_refactoring_contract import BASELINE, differences, approved_evolution, approved_revier_timer, approved_revier_local_workflows
+import tempfile
+from pathlib import Path
+from tools.check_refactoring_contract import BASELINE, differences, approved_evolution, approved_revier_timer, approved_revier_local_workflows, javascript_bridges
 
 
 class RefactoringContractTests(unittest.TestCase):
     def setUp(self):
         self.contract = json.loads(BASELINE.read_text())['contract']
+
+    def test_separate_annotated_bridge_cannot_bypass_the_inventory(self):
+        with tempfile.TemporaryDirectory(prefix='qa_bridge_inventory_') as temporary:
+            root=Path(temporary)
+            (root/'MainActivity.java').write_text('@JavascriptInterface public String original(String raw) { return raw; }')
+            self.assertEqual(javascript_bridges(root),['String original(String raw) '])
+            (root/'QaSeparateBridge.java').write_text('@android.webkit.JavascriptInterface public String dispatch(String raw) { return raw; }')
+            with self.assertRaisesRegex(ValueError,'Unreviewed Javascript bridge source: QaSeparateBridge.java'):
+                javascript_bridges(root)
+            self.assertEqual(javascript_bridges(root,{'MainActivity.java','QaSeparateBridge.java'}),
+                             ['String dispatch(String raw) ','String original(String raw) '])
 
     def test_local_workflows_are_exact_additions_and_only_optional_context_extensions(self):
         delta=json.loads((BASELINE.parent/'sync-optimization-contract-v1.json').read_text())

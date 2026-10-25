@@ -35,5 +35,9 @@ final class RestoredBrowserReviewRules {
         JSONObject backup=drafts(restored),current=drafts(device),result=new JSONObject();if(selected.length()>10000)throw invalid();Set<String> seen=new HashSet<>();
         for(int i=0;i<selected.length();i++){JSONObject choice=selected.getJSONObject(i);String origin=choice.getString("source"),key=choice.getString("key");if(!Arrays.asList("backup","device").contains(origin)||!selectable(key)||!seen.add(key))throw invalid();JSONObject source=origin.equals("backup")?backup:current;if(!source.has(key))throw invalid();result.put(key,source.getString(key));}return result;
     }
+    static void validateSelection(JSONObject restored,JSONObject device,JSONObject saved)throws Exception {
+        if(!saved.optString("request_id").matches("[A-Za-z0-9_-]{8,200}")||saved.optJSONArray("selected")==null||saved.optJSONObject("selected_storage")==null||saved.optJSONObject("clear_storage")==null)throw invalid();JSONObject expected=selection(restored,device,saved.getJSONArray("selected"));String hash=PixelMcpWriteTools.hash(expected);
+        if(!hash.equals(saved.optString("selection_hash"))||!hash.equals(PixelMcpWriteTools.hash(saved.getJSONObject("selected_storage")))||!PixelMcpWriteTools.hash(validate(device).getJSONObject("storage")).equals(PixelMcpWriteTools.hash(saved.getJSONObject("clear_storage"))))throw invalid();
+    }
     private RestoredBrowserReviewRules(){}
 }

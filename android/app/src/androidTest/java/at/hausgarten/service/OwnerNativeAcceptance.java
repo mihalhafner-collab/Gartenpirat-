@@ -10,12 +10,16 @@ final class OwnerNativeAcceptance {
         final PixelMcpInstrumentation.Isolated context;
         final PixelLocalStore store;
         final McpAuditTools tools;
-        Fixture(Context base)throws Exception{this(base,null);}
-        Fixture(Context base,WorkSessionStore.Clock clock)throws Exception{
+        Fixture(Context base)throws Exception{this(base,null,true);}
+        Fixture(Context base,WorkSessionStore.Clock clock)throws Exception{this(base,clock,true);}
+        Fixture(Context base,WorkSessionStore.Clock clock,boolean seedEmptyBrowserMedia)throws Exception{
             context=new PixelMcpInstrumentation.Isolated(base);
             JSONObject snapshot=SyntheticBusinessData.object("{customers:[{id:'qa_c',name:'QA Eigentümer',active:1,billing_mode:'direct',updated_at:'2026-10-18T08:00:00Z'}],orders:[],worklogs:[{id:'qa_w',customer_id:'qa_c',billing_customer_id:'qa_c',work_date:'2026-10-18',activity:'QA Pflege',hours:2,break_minutes:0,kilometers:0,billed:0,customer_visible:1,notes:'Original',updated_at:'2026-10-18T08:00:00Z'}],invoices:[],photos:[],capabilities:{entity_compare_and_save:true,worklog_compare_and_save:true,customer_custom_fields_compare_and_save:true,invoice_compare_and_save:true,photo_compare_and_save:true,owner_journal_v2:true}}");
             JSONObject config=SyntheticBusinessData.object();for(String key:PixelMcpOwnerTools.BUSINESS_KEYS)config.put(key,"");snapshot.put("business_settings",config);
             context.getSharedPreferences("haus_garten",0).edit().putString("drive_snapshot",snapshot.toString()).commit();store=clock==null?new PixelLocalStore(context):new PixelLocalStore(context,clock);tools=new McpAuditTools(store::getState,store,new PixelOwnerAccess(context,store));
+            // This native-only fixture models an explicitly empty synthetic browser port.
+            // Real WebView/legacy-IDB media pilots pass false and inventory their actual source.
+            if(seedEmptyBrowserMedia){BrowserMediaRepository media=new BrowserMediaRepository(context,store);media.beginMirror("qa_browser_media_empty_begin","active");media.completeMirror("qa_browser_media_empty_complete","active",new JSONArray());}
         }
         JSONObject call(String n,JSONObject a)throws Exception{return tools.call(n,a).getJSONObject("data");}
         public void close(){McpDispatchAcceptance.cleanup(this);}
@@ -25,6 +29,15 @@ final class OwnerNativeAcceptance {
         try{task.run();}catch(java.io.IOException|IllegalArgumentException expected){test.yes(true);return;}throw new AssertionError("Changed document must be rejected");
     }
     static void run(PixelMcpInstrumentation test)throws Exception{
+        test.probe("business bridge acknowledges committed customer and work despite failed deferrable adapter scheduling",()->{try(Fixture f=new Fixture(test.getTargetContext())){
+            BusinessDataBridge bridge=new BusinessDataBridge(f.context,f.store,new PendingWorkPhotoStore(f.context),()->{throw new IllegalStateException("qa_synthetic_adapter_unavailable");});
+            String customer=bridge.saveCustomer(new JSONObject().put("id","qa_committed_adapter_customer").put("name","[TEST] QA committed adapter customer").put("test_record",true).toString());test.yes(!customer.startsWith("ERROR:")&&!customer.isEmpty());
+            JSONObject saved=f.call("get_customer",new JSONObject().put("customer_id",customer));test.yes(saved.toString().contains("QA committed adapter customer"));
+            String work=bridge.saveWorklog(new JSONObject().put("id","qa_committed_adapter_work").put("customer_id",customer).put("work_date","2026-10-18").put("activity","QA committed work").put("hours","1.25").put("test_record",true).toString());test.yes(!work.startsWith("ERROR:")&&!work.isEmpty());
+            JSONObject actual=PixelMcpWriteTools.find(PixelMcpReadTools.effective(f.store.getState()).getJSONArray("worklogs"),work);test.yes(actual.getString("customer_id").equals(customer)&&new java.math.BigDecimal(actual.get("hours").toString()).compareTo(new java.math.BigDecimal("1.25"))==0);
+            test.yes(new JSONObject(bridge.getState()).getJSONObject("master").getJSONArray("worklogs").length()==2);
+        }});
+
         test.probe("active work prevents customer archive and leaves the running session intact",()->{try(Fixture f=new Fixture(test.getTargetContext())){
             f.store.startWorkSession(SyntheticBusinessData.object().put("request_id","qa-active-cleanup-guard").put("customer_id","qa_c").put("activity","QA active work").put("work_date","2026-10-22"));
             JSONObject preview=f.call("preview_delete",SyntheticBusinessData.object().put("entity","customer").put("entity_id","qa_c"));
@@ -57,6 +70,7 @@ final class OwnerNativeAcceptance {
             test.yes(inherited==56&&business==36);
             test.yes(BusinessDataBridge.class.getMethod("reviewWorkSession",String.class,String.class).isAnnotationPresent(android.webkit.JavascriptInterface.class));
             java.lang.reflect.Method restoreReview=MainActivity.DataBridge.class.getMethod("restoredDraftReview",String.class);test.yes(restoreReview.getReturnType()==String.class&&restoreReview.isAnnotationPresent(android.webkit.JavascriptInterface.class));
+            Set<String> expectedMedia=new HashSet<>(Arrays.asList("mediaStatus","beginMediaUpload","writeMediaChunk","finishMediaUpload","readMediaChunk","readMediaRecord","writeMediaRecord","beginMediaMirror","completeMediaMirror")),observedMedia=new HashSet<>();for(java.lang.reflect.Method method:BrowserMediaBridge.class.getDeclaredMethods())if(method.isAnnotationPresent(android.webkit.JavascriptInterface.class)){test.yes(java.lang.reflect.Modifier.isPublic(method.getModifiers())&&method.getReturnType()==String.class&&Arrays.equals(method.getParameterTypes(),new Class<?>[]{String.class}));test.yes(observedMedia.add(method.getName()));}test.yes(observedMedia.equals(expectedMedia));
             java.util.concurrent.atomic.AtomicInteger sync=new java.util.concurrent.atomic.AtomicInteger();
             BusinessDataBridge bridge=new BusinessDataBridge(f.context,f.store,new PendingWorkPhotoStore(f.context),sync::incrementAndGet);
             test.yes(new JSONObject(bridge.getState()).getBoolean("ui_effective"));

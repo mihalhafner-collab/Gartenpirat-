@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "authorization": "Explicit Revier Solo completion request24Oct2026: local-only business core, encrypted app backup setup/shared UI-MCP actions and properties/care/tours/material/equipment. Preserve all original117tools and existing timer addition. Explicit25Oct2026 continuation: one fixed token/epoch/CAS-bound trusted-asset restore-draft review bridge; no generic tool dispatch, automatic draft import or productive activation.",
+  "authorization": "Explicit Revier Solo completion request24Oct2026: local-only business core, encrypted app backup setup/shared UI-MCP actions and properties/care/tours/material/equipment. Preserve all original117tools and existing timer addition. Explicit25Oct2026 continuation: one fixed token/epoch/CAS-bound trusted-asset restore-draft review bridge; no generic tool dispatch, automatic draft import or productive activation. Explicit25Oct2026 media-completeness repair: nine fixed private BrowserMediaBridge v1 methods, top-document token plus restore identity, immutable private blobs and existing owner_state only; no paths/URI/tool dispatch or business-record creation.",
   "baseline_sha256": "a331ea0f3108d513347b04e5572b008292349f15d37e7b57a7647ae83cf7fb93",
   "added_tools": [
     {
@@ -4723,7 +4723,16 @@
   "added_bridges": [
     "void openFullBackup() ",
     "void checkpointFullBackup(String snapshot) ",
-    "String restoredDraftReview(String raw) "
+    "String restoredDraftReview(String raw) ",
+    "String mediaStatus(String raw)",
+    "String beginMediaUpload(String raw)",
+    "String writeMediaChunk(String raw)",
+    "String finishMediaUpload(String raw)",
+    "String readMediaChunk(String raw)",
+    "String readMediaRecord(String raw)",
+    "String writeMediaRecord(String raw)",
+    "String beginMediaMirror(String raw)",
+    "String completeMediaMirror(String raw)"
   ],
   "modified_contracts": [
     {

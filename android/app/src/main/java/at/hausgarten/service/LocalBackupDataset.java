@@ -18,6 +18,7 @@ final class LocalBackupDataset {
     }
     static Captured capture(Context context,PixelLocalStore store,File freshDirectory,JSONObject identity,JSONObject browserStorage)throws Exception {
         if(browserStorage==null||browserStorage.optInt("formatVersion")!=1||browserStorage.optJSONObject("storage")==null)throw new IOException("BACKUP_BROWSER_STATE_REQUIRED");
+        JSONObject mediaReadiness=new BrowserMediaRepository(context,store).status();if(!mediaReadiness.optBoolean("mirror_complete")||mediaReadiness.optString("mode").equals("MIRROR_REQUIRED"))throw new IOException("BACKUP_BROWSER_CAPTURE_REQUIRED");
         String stage=freshDirectory.getCanonicalPath();
         for(File source:new File[]{context.getFilesDir(),context.getCacheDir(),new File(context.getNoBackupFilesDir(),"deletion-backups"),new File(context.getNoBackupFilesDir(),"legacy-conflict-backups")})if(stage.equals(source.getCanonicalPath())||stage.startsWith(source.getCanonicalPath()+File.separator))throw new IOException("BACKUP_CAPTURE_RECURSIVE_TARGET_REJECTED");
         if(freshDirectory.exists()||!freshDirectory.mkdirs())throw new IOException("BACKUP_CAPTURE_TARGET_EXISTS_OR_UNAVAILABLE");
@@ -28,6 +29,7 @@ final class LocalBackupDataset {
         JSONObject current=PixelMcpReadTools.effective(store.getState());store.recordSnapshotPhotoAttachments(current);store.documentReferences(current);
         BackupFilePins.pinImmutable(new File(context.getFilesDir(),"customer-photo-originals"),freshDirectory,"files/customer-photo-originals");
         BackupFilePins.pinImmutable(new File(context.getFilesDir(),"business-documents"),freshDirectory,"files/business-documents");
+        BackupFilePins.pinImmutable(new File(context.getFilesDir(),"browser-media"),freshDirectory,"files/browser-media");
         JSONObject preferences=BackupPreferences.capture(context);
         write(new File(freshDirectory,"preferences.json"),preferences.toString());
         write(new File(freshDirectory,"bootstrap/initial-data.json"),initial);write(new File(freshDirectory,"bootstrap/service-catalog.json"),catalog);
@@ -43,7 +45,7 @@ final class LocalBackupDataset {
         // A legacy preference-backed snapshot or an editor setting may change independently
         // of SQLite. Fail/retry instead of certifying a mixed preference capture.
         if(!PixelMcpWriteTools.hash(preferences).equals(PixelMcpWriteTools.hash(BackupPreferences.capture(context))))throw new IOException("BACKUP_PREFERENCES_CHANGED_RETRY");
-        JSONObject inventory,state,revier,numberState,financial,financialOriginals;
+        JSONObject inventory,state,revier,numberState,financial,financialOriginals,browserMedia;
         try(SQLiteDatabase snapshot=SQLiteDatabase.openDatabase(database.getAbsolutePath(),null,SQLiteDatabase.OPEN_READONLY)){
             state=BackupSnapshotState.read(snapshot,BackupPreferences.values(preferences,"haus_garten"),initial,catalog);
             state.put("extended_business_fingerprint",BusinessStateFingerprint.read(snapshot));
@@ -51,6 +53,7 @@ final class LocalBackupDataset {
             revier=new RevierApplicationService(new RevierSnapshotRepository(snapshot,SnapshotProjection.effective(state))).validateRelationships();
             financial=LocalFinancialSnapshotValidation.inspect(snapshot,SnapshotProjection.effective(state));
             financialOriginals=LocalFinancialOriginals.inspect(new File(freshDirectory,"files"),new JSONObject(DatabaseBackupSnapshot.ownerValue(snapshot,"local_invoice_external_evidence","{}")));
+            browserMedia=BrowserMediaRepository.inspectCaptured(snapshot,new File(freshDirectory,"files"));
             numberState=numberState(snapshot,state);
         }
         if(inventory.getInt("missing_local_originals")!=0)throw new IOException("BACKUP_LOCAL_ORIGINALS_INCOMPLETE");
@@ -58,6 +61,7 @@ final class LocalBackupDataset {
             .put("captureStartedAt",started).put("capturedAt",java.time.Instant.now().toString()).put("counts",inventory.getJSONObject("counts")).put("database",db).put("inventory",inventory).put("revier_inventory",revier).put("financial_inventory",financial).put("financial_originals",financialOriginals).put("business_snapshot_sha256",LocalAuthorityMigration.businessHash(state)).put("business_snapshot_hash_version",1)
             .put("browser_checkpoint_source",identity.optBoolean("requireDatabaseBrowserCheckpoint")?"captured_database":"legacy_explicit_argument").put("browser_checkpoint_captured_at",capturedBrowser.optString("checkpointCapturedAt")).put("browser_checkpoint_sha256",PixelMcpWriteTools.hash(capturedBrowser))
             .put("numberState",numberState)
+            .put("browser_media_format_version",1).put("browser_media_inventory",browserMedia).put("media_coverage","VERIFIED_NATIVE_MIRROR")
             .put("lastIssuedDocumentIds",issued(SnapshotProjection.effective(state))).put("captureScope","database_all_tables_private_files_preferences_browser_storage_and_legacy_backups")
             .put("structured_preference_credentials_excluded",true).put("legacy_backup_evidence_activation","FORBIDDEN").put("external_account_activation","REQUIRES_DEVICE_REAUTHORIZATION").put("local_authority_activated",false).put("invoice_release_after_restore","BLOCKED_UNTIL_CURRENT_EXTERNAL_RECONCILIATION")
             .put("device_specific_exclusions",new JSONArray().put("Android_Keystore").put("backup_key_protection").put("backup_device_guard").put("local_authority_guard").put("full_restore_staging").put("full_backup_saf_staging").put("scoped_restore_capsules").put("account_tokens").put("running_backup_staging"));
@@ -71,6 +75,8 @@ final class LocalBackupDataset {
         for(String name:BackupPreferences.GROUPS)BackupPreferences.values(preferences,name);
         if(browser.optInt("formatVersion")!=1||browser.optJSONObject("storage")==null)throw new IOException("BACKUP_BROWSER_STATE_INVALID");
         try(SQLiteDatabase snapshot=SQLiteDatabase.openDatabase(database.getAbsolutePath(),null,SQLiteDatabase.OPEN_READONLY)){
+            if(manifest.has("browser_media_inventory")){if(manifest.optInt("browser_media_format_version")!=1)throw new IOException("BACKUP_BROWSER_MEDIA_VERSION_UNSUPPORTED");JSONObject media=BrowserMediaRepository.inspectCaptured(snapshot,new File(directory,"files"));if(!PixelMcpWriteTools.hash(media).equals(PixelMcpWriteTools.hash(manifest.getJSONObject("browser_media_inventory"))))throw new IOException("BACKUP_BROWSER_MEDIA_INVENTORY_MISMATCH");}
+            else if(BrowserMediaRepository.hasCapturedNamespace(snapshot))throw new IOException("BACKUP_BROWSER_MEDIA_MANIFEST_REQUIRED");
             if(manifest.optBoolean("requireDatabaseBrowserCheckpoint")&&!PixelMcpWriteTools.hash(databaseBrowser(snapshot,manifest)).equals(PixelMcpWriteTools.hash(browser)))throw new IOException("BACKUP_BROWSER_DATABASE_MISMATCH");
             if(manifest.has("browser_checkpoint_sha256")&&!manifest.getString("browser_checkpoint_sha256").equals(PixelMcpWriteTools.hash(browser)))throw new IOException("BACKUP_BROWSER_MANIFEST_MISMATCH");
             JSONObject state=BackupSnapshotState.read(snapshot,BackupPreferences.values(preferences,"haus_garten"),text(new File(directory,"bootstrap/initial-data.json")),text(new File(directory,"bootstrap/service-catalog.json")));

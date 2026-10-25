@@ -3,6 +3,167 @@
 Stand: 25. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Entwicklung erneut gestoppt; vollständige Übergabe für später – 25.10.2026
+
+Der Nutzer hat ausdrücklich angewiesen: „Stoppe die Erstellung speichere für späteren
+start alle notwendigen aktionen“. Alle Entwicklungsagenten wurden angehalten und
+haben ihre Dateien eingefroren. Keine weiteren Implementierungs-, Test-, Build-,
+Signier- oder Pixelaktionen bis zu einer neuen Fortsetzungsanweisung. Der dedizierte
+Cloudemulator GartenpiratCloud wurde geordnet beendet; keine Deinstallation oder
+Datenlöschung. Der gesamte nachfolgend beschriebene WIP wird nach Source-Privacy-
+Prüfung auf demselben Branch `codex/revier-solo-20261023` committet/gepusht und exakt
+vom Remote zurückgelesen. Dessen HEAD ist der neue Pausecommit; vorheriger vollständig
+gesicherter Zwischenstand: `80223176d48ae6f576c9e677d272a059913f21f7`.
+
+**Status: unvollständiger Entwicklungsstand, kein Releasekandidat.** Seit dem
+cc637c9-Prüfbuild wurde keine neue APK gebaut, signiert oder ausgeliefert. Der echte
+Pixel wurde nicht installiert, migriert oder mit Testdaten verändert. Letzter rein
+lesender Pixelnachweis25.10.:1.54.9/98,DB4,MCP9/117,dbe9ed0b/fd0979de; weiterhin
+pixel_drive_v1/android_provider und Online-Rechnungsabgleich. Diese Selbstauskunft
+ist kein unabhängiger APK-/Geräteabnahmenachweis.
+
+### Genau eingefrorene aktuelle Ergänzungen
+
+- BrowserMediaFiles.java: private unveränderliche SHA-Dateien,64KiB-Chunks,
+  wiederaufnehmbare Uploads und Speicherprüfung. BrowserMediaBridge.java: neun
+  eng begrenzte String-DTO-Methoden,formatVersion1,Seitentoken und Installations-/
+  Restore-Epoche. GartenpiratPhotoStore-JS migriert bestehende IDB-Quellen in einen
+  nativen Medienpfad; alte Originale bleiben erhalten. Letzte Bridge-/Buffer-
+  Erweiterungen sind noch NICHT gemeinsam kompiliert/getestet.
+- BrowserMediaRepository.java/BrowserMediaRepositoryRules.java: dieselbe vorhandene
+  SQLite-owner_state-Datenhaltung,Graph-CAS/idempotente Receipts und getrennte
+  Backup-/Devicekandidaten. Neue Record-/Intent-Härtung unten ist ausdrücklich offen.
+- Restore-Formularreview: gespeicherte Auswahl wird inzwischen an Quellen/Receipt
+  gebunden; getrennte Quellwahl,unterbrochenes ACK,Token/CSP/Threadguard gehärtet.
+  Medienreview-/Capture-/Provenienzhooks stehen im WIP in MainActivity,
+  RestoredBrowserCheckpoint,BackupSettingsRepository,BackupRestoreService,
+  RestoreStartupProtection,LocalBackupDataset/Coordinator,FullBackupController,
+  FullBackupActivity,LocalAuthorityActivity und der bestehenden Browser-Gateseite.
+- Neue Sicherungen sollen erst mit verifiziertem Native-Medienmirror als vollständige
+  externe Sicherung zählen. Alt-V1-Archive werden LEGACY_NOT_PROVEN; Preview und
+  bewusster Restore bleiben mit zusätzlicher ausdrücklich ungesetzter Bestätigung
+  erhalten. Keine nachträgliche Vollständigkeitsbehauptung und keine Umdeutung der
+  alten externen Byteprüfung. Noch nativ zu prüfen.
+- LocalAuthorityRules.externalBackupProof bindet Cutover an Mediaformat1,vollständige
+  Inventur und exakten Inventur-/Capture-Metadatenhash. Alte Teilbelege reichen nicht.
+- BusinessDataBridge bestätigt den bereits erfolgreichen lokalen Commit auch dann,
+  wenn ein nachgelagerter aufschiebbarer Adaptercallback eine RuntimeException wirft.
+  Neue echte SQLite-/Bridgeprobe in OwnerNativeAcceptance vorbereitet, noch nicht
+  ausgeführt. Keine Signatur-/Methodenzahländerung durch diesen privaten Helper.
+- Vertragsprüfung erfasst nun ausdrücklich jede annotierte Javaquelle; erlaubt sind
+  MainActivity,BusinessDataBridge und die neue BrowserMediaBridge. Ursprüngliche
+ 117Tools/156Actions bleiben gepinnt; implementierter öffentlicher Umfang161/204.
+  Zwölf explizite Revier-JS-Erweiterungen:3 bisherige Mainmethoden+9 Medienmethoden.
+  Neue Quellenfingerprints wurden noch NICHT pauschal freigegeben.
+
+### Tatsächlich belegte Teilprüfungen und klare Grenzen
+
+- BrowserMediaFiles:22 Streamingprüfungen mit48MiB bei64MiB-Heap PASS; Fortsetzen nach
+  Instanzneustart,Chunk-Replay,Hash,Quota/Korruption/Graphreferenzen. Vier Medienklassen
+  API37-javac PASS,VOR den letzten DurableBuffer-/Prepare-Erweiterungen.
+- BrowserMediaRepositoryRules:45 Hostprüfungen PASS für25Fotos,echte private
+  Hashdateien,CAS/Replay/Rollback,alte Blobs,getrennte Quellen/Auswahl/Epochen.
+  Kein Android-/SQLite-/Gesamt-Mediennachweis.
+- Core: letzter enger Compile16Produktions-/3Instrumentierungsdateien PASS,
+ 34 RestoredBrowserReviewRules-Prüfungen PASS und tatsächlicher Formular-Gate-
+  Browserlauf PASS. Dieser Browserlauf prüft Formularauswahl mit Port; er beweist
+  keine Medienblob-Parität auf Android und keine reale USB-Wiederherstellung.
+- LocalAuthorityRules:31 fokussierte Proof-/Geldprüfungen PASS, einschließlich alter
+  unvollständiger Belege,veränderter Inventur/Capturehashes und unbekannter Version.
+- Contracts:8 Python-Gateregressionen und exakter70Annotierungs-Abgleich PASS.
+  Aktuelle QA-Leermirror-Factory und9-Methoden-Reflexion sind noch nicht gemeinsam
+  kompiliert/nativ ausgeführt. Vollständiger Quellen-/Refactoringgate aktuell offen.
+- Die unten datierten424Python-,69JVM- und Browserzahlen gelten für frühere
+  Integrationspunkte. Sie sind KEIN Gesamt-PASS des hier eingefrorenen Medien-WIP.
+  Kein neuer vollständiger Gradle-/Lint-/Native-/MCP-/APK-Privacy-/Releasepass.
+
+Teilbelege außerhalb Checkout (können bei VM-Ersatz fehlen; Quellen/Tests sind in Git):
+`/workspace/qa-browser-media-files-tests.log`,
+`/workspace/qa-browser-media-repository-results.log`,
+`/tmp/qa_backup_review_20261025/`,
+`/workspace/revier-resume-*.log` und passende Browserunterordner.
+
+### Verbindliche offene Aktionen beim nächsten ausdrücklich beauftragten Start
+
+1. AGENTS.md vom tatsächlichen Remote-main,Auftrag,Status,AKTUELLER-STAND.json,
+   Originalsignierung und Lifecycle erneut lesen; Cloud-Runtime-/Netz-/Credential-
+   Status prüfen,keine Werte ausgeben. Exakten Pausecommit/Branch,frischen main,
+   Branches,PRs und andere Cloudarbeit abgleichen. Arbeitsbaum zuerst sichern;
+   keine Resets,History-Rewrites,neuen Repositories oder konkurrierenden Datenbanken.
+2. **Zuerst die bekannte Compile-/Sicherheitslücke schließen:**
+   BrowserMediaRepository hat prepareRecordWrite/cancelRecordWrite und den
+   Commit-Intent-Lifecycle NOCH NICHT implementiert. status hat noch KEIN
+   pending_write_count; Capture sperrt daher vorbereitete Upload-/Write-Intents
+   noch nicht. Die letzten Bridge-/JS-Aufrufe können den Gesamtcompile brechen.
+   Diese APIs im bestehenden owner_state ergänzen; neue Auswahl vor erstem Chunk
+   dauerhaft im bestehenden IDB als technischer native-write-buffer:<key> erhalten,
+   exakte Aktion/Quelle nach Kill fortsetzen. Vollbackup bei ungeklärtem Buffer
+   fail-closed. Keine neue Fachautorität in IDB und kein stilles Verwerfen.
+3. Device-Mirror darf alten Record A und neueren Uploadpuffer B desselben Schlüssels
+   nicht überschreiben. Getrennte explizit auswählbare Kandidaten/Referenzen,
+   aktuelle Installation/Epoche,Prepared-/Commit-/Cancel-Receipts und Captureprüfung
+   gemeinsam fertigstellen. Restore niemals alte Pendingaktionen automatisch aktivieren.
+   Frühere IDB-Gerätequelle ausdrücklich als früheren Browserspeicher kennzeichnen;
+   neuerer nativer Zustand vor Restore bleibt im vollständig geprüften Rückfallbestand,
+   zugänglich über den bestehenden bewussten Rückfallweg. Kein automatischer Bestandsmerge.
+4. Gemeinsames Protokoll fixieren: stabile getrennte deterministische Request-IDs
+   für Mirror-Record/Complete,einheitliche Requestsyntax,echte Integer-Version und
+   Booleanfelder,explizites record-Feld,exakte Graph-/Receipt-/Auswahlbindung und
+   endliche fehlerwertfreie Bridge-Codes. mediaStatus/Mutationen brauchen aktuellen
+   Seitentoken; sensible Aufrufe zusätzlich Installations-/Restore-Epoche. Unbekannte
+   Fehler redigieren,keine privaten Texte/Causes loggen.
+5. Main-/Dataset-/Gateintegration und Backup-/Portabilität vollständig schließen:
+   browser_media_format_version=1,browser_media_inventory und alle geschützten
+   Graph-/Blobdateien konsistent prüfen/pinnen. job.archive.mediaCoverage nur nach
+   tatsächlichem AEAD-/SQL-/Datei-Rücklesen VERIFIED_NATIVE_MIRROR;
+   mediaFormatVersion=1,mediaInventorySha256=Hash(Manifestinventur),
+   captureMetadataSha256=job.capture.metadataSha256. Diese Felder/Cutoverbindung
+   nativ prüfen. Alte Jobs bleiben sichtbar LEGACY_NOT_PROVEN. Gefilterten JSON-/
+   CSV-Mediengraph- und Originaldateiexport einschließlich History/IDs fertig prüfen.
+6. Konkrete noch offene Integrationen: PhotoStore.mirrorLegacyForReview bei bereits
+   ACTIVE braucht lesende Rückgabe statt erneutem Device-Mirror; vorbereitete
+   Media-Gate-Candidates/activateSelection samt Reopen/Retry/Captureproof prüfen.
+   Separate Legacy-Abdeckungsbestätigung in bestehender Restore-UI/API/Receipt ist
+   implementiert; dafür fehlende native Probe ergänzen. Zentraler QA-Fixture-
+   Leermirror ist ausschließlich explizite isolierte Testquelle; echte Legacy-IDB-/
+   WebView-Piloten müssen seedEmptyBrowserMedia=false verwenden.
+7. Erst danach aktuelle Java-/JS-Syntax und sinnvolle Host-/Browserregressionen
+   durchführen:mehrere Legacykeys,25Fotos,48MiB,Quota/Korruption,Kill vor/mittendrin/
+   nach Nativecommit,Lostreply,identischer Retry,RESTORE-Review beider Quellen,
+   keine Geschäftsdatenerzeugung durch Medienschreiben. PostCommit-Callbackprobe,
+   Quelle-/Restmengen-/PDF-/Nummern-/Zahlungsfälle erneut gemeinsam ausführen.
+   Beide echten UI-Piloten mit MediaAdapter verbinden. Der vorbereitete zweite
+   Pflege/Tour/Timer/Material/Foto/Backup-Pilot enthält eine echte verschlüsselte
+   Vorschau/Stagingprüfung,KEINE behauptete Coldstart-Aktivierung/Kamera-/USBabnahme.
+8. Geänderte Quellen/Bridgeinventare tatsächlich reviewen; exakte Fingerprints und
+   generierten Katalog erst dann aktualisieren. Vollständige JVM/Python/Browser/MCP-
+   Regression und Source-/Workspace-Privacy bestehen lassen. Alte ursprüngliche
+  117Tool-Baseline erhalten,keine pauschalen Whitelists oder Gate-Skip-Schalter.
+9. Nur aus danach sauberem,auf GitHub exakt gesichertem Commit Originalbuild/Lint/
+   Signierung ausführen; vorher source_preservation.py PASS. Dedizierten Cloud-AVD
+   GartenpiratCloud erhalten starten,keine Daten löschen; globalen synthetischen
+   Baselinebestand vor/nach Update prüfen. revier_core/revier_ui getrennt,dann volle
+   Native-Suite inklusive Offline und API-/PDF-/Restore-Fehlern. Neuen Such-/Tour-
+   Leistungsmesswert erfassen; physisches Pixelziel daraus nicht behaupten.
+10. Abschließend Originalzertifikat,APK-SHA/eingebetteten Commit/Fingerprint,
+    Leerbootstrap/APK-Privacy,synthetisches Update/Restore und Lifecycle-Quellenexport
+    prüfen. Erst geprüften gebündelten Kandidaten mit eindeutiger Provenienz liefern.
+    Pixel-/zwei-USB-/TalkBack-/Konten-/Nummern-/Schreiberprüfliste und produktive
+    Umstellung bleiben getrennte Geräteentscheidungen; keine automatische Installation,
+    echte Rechnung/Zahlung/Nachricht oder Betriebsdatenmigration.
+
+Werkzeugweg nach erneutem Environmentcheck:
+`source /workspace/cloud-setup/activate.sh`; JVM:
+`HG_JSON_JAR=/workspace/cloud-setup/tools/json.jar python3 tools/run-followup-java.py`;
+Python:`python3 tests/run_quality_suite.py --exclude-qa-signing`.
+Neue pure Klassen BrowserMediaFiles/BrowserMediaRepositoryRules sind im Runner
+registriert,FilesTests mit64MiB-Heap; *Tests.java werden automatisch entdeckt.
+Browser nutzt vorhandenes tests/browser.cjs mit NODE_PATH und HG_PLAYWRIGHT_MODULE
+auf `/workspace/cloud-setup/js/node_modules`,HG_BROWSER_EXECUTABLE_PATH=/usr/bin/chromium
+und HG_TEST_LOCAL_ASSETS=1. Kein operativer Desktop-/Laptop-Webprozessor.
+Reguläres Gradle verwendet vorhandenes SDK37.0/JDK17/Gradle9.3.1 und die konfigurierte
+Proxy-/CA-Anbindung; keine Versionserhöhung als Ersatz für Umsetzung.
+
 ## Wiederaufnahme auf Nutzerauftrag – 25.10.2026
 
 Der Nutzer hat „Fortsetzen“ angewiesen. Der zuvor pausierte Stand

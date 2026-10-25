@@ -8,6 +8,21 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 BASELINE = ROOT / 'tests/fixtures/refactoring-baseline.json'
 JAVA = ROOT / 'android/app/src/main/java/at/hausgarten/service'
+BRIDGE_SOURCES = {'MainActivity.java', 'BusinessDataBridge.java', 'BrowserMediaBridge.java'}
+
+def javascript_bridges(directory=JAVA, reviewed_sources=None):
+    """Inventory every annotated source; a new bridge file cannot evade P1."""
+    reviewed = BRIDGE_SOURCES if reviewed_sources is None else set(reviewed_sources)
+    signatures = []
+    for path in sorted(directory.rglob('*.java')):
+        source = path.read_text()
+        if not re.search(r'@(?:android\.webkit\.)?JavascriptInterface\b', source):
+            continue
+        name = path.relative_to(directory).as_posix()
+        if name not in reviewed:
+            raise ValueError('Unreviewed Javascript bridge source: '+name)
+        signatures.extend(re.findall(r'@(?:android\.webkit\.)?JavascriptInterface\s+public\s+([^\{]+)\{', source))
+    return sorted(signatures)
 
 def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False,
@@ -56,10 +71,7 @@ def observe():
                  'ManualChangeRules', 'TrashRules', 'LegacyBackupPolicy', 'PixelDriveState'):
         contracts[name] = hashlib.sha256((JAVA/(name+'.java')).read_bytes()).hexdigest()
     store = JAVA/('PixelLocalStore.java' if (JAVA/'PixelLocalStore.java').exists() else 'MainActivity.java')
-    bridge_sources = (JAVA/'MainActivity.java').read_text()
-    if (JAVA/'BusinessDataBridge.java').exists():
-        bridge_sources += (JAVA/'BusinessDataBridge.java').read_text()
-    bridge = sorted(re.findall(r'@JavascriptInterface\s+public\s+([^\{]+)\{', bridge_sources))
+    bridge = javascript_bridges()
     return dict(tools=tools, ui_actions=ui['actions'], observations=observations,
                 contracts=contracts,
                 sqlite_schema=re.findall(r'"(CREATE (?:TABLE|INDEX)[^"]+)"', store.read_text()),
@@ -113,12 +125,17 @@ def approved_revier_local_workflows(expected, current, delta, repair, timer, evo
         'get_offer_decision_history', 'record_offer_acceptance', 'decline_offer',
     }
     bridges = {'void openFullBackup() ', 'void checkpointFullBackup(String snapshot) ',
-               'String restoredDraftReview(String raw) '}
+               'String restoredDraftReview(String raw) ',
+               'String mediaStatus(String raw)', 'String beginMediaUpload(String raw)',
+               'String writeMediaChunk(String raw)', 'String finishMediaUpload(String raw)',
+               'String readMediaChunk(String raw)', 'String readMediaRecord(String raw)',
+               'String writeMediaRecord(String raw)', 'String beginMediaMirror(String raw)',
+               'String completeMediaMirror(String raw)'}
     additions = evolution.get('added_tools', [])
     if (evolution.get('version') != 1 or not evolution.get('authorization')
             or evolution.get('baseline_sha256') != hashlib.sha256(BASELINE.read_bytes()).hexdigest()
             or len(additions) != 43 or {item.get('name') for item in additions} != names
-            or len(evolution.get('added_bridges', [])) != 3
+            or len(evolution.get('added_bridges', [])) != 12
             or set(evolution['added_bridges']) != bridges):
         raise ValueError('Unapproved Revier local-workflow contract scope')
     actions = evolution.get('added_ui_actions', [])

@@ -91,6 +91,7 @@ final class LocalBackupCoordinator {
             try(EncryptedBackupArchive.Verified verified=EncryptedBackupArchive.verifyAndStage(new FileInputStream(sealed),recovery,child(root,"verify-"+UUID.randomUUID()),root.getUsableSpace()-BackupStorageBudget.BUSINESS_RESERVE_BYTES,PixelLocalStore.SCHEMA_VERSION)){
                 requireIdentity(verified.manifest,job);LocalBackupDataset.inspectStaged(new File(verified.directory,"data"),verified.manifest);
                 if(!verified.manifest.getJSONObject("database").getString("sha256").equals(metadata.getJSONObject("database").getString("sha256")))throw new IOException("BACKUP_CAPTURE_ARCHIVE_MISMATCH");
+                if(metadata.has("browser_media_inventory")){if(metadata.optInt("browser_media_format_version")!=1||verified.manifest.optInt("browser_media_format_version")!=1||!PixelMcpWriteTools.hash(metadata.getJSONObject("browser_media_inventory")).equals(PixelMcpWriteTools.hash(verified.manifest.getJSONObject("browser_media_inventory"))))throw new IOException("BACKUP_BROWSER_MEDIA_INVENTORY_MISMATCH");archive.put("mediaCoverage","VERIFIED_NATIVE_MIRROR").put("mediaFormatVersion",1).put("mediaInventorySha256",PixelMcpWriteTools.hash(verified.manifest.getJSONObject("browser_media_inventory"))).put("captureMetadataSha256",capture.getString("metadataSha256"));}
             }
             archive.put("localVerifiedAt",java.time.Instant.now().toString());job=step(job,new JSONObject().put("phase","LOCAL_VERIFIED").put("archive",archive));
         }
