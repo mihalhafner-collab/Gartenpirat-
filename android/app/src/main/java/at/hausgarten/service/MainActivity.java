@@ -76,6 +76,7 @@ public class MainActivity extends Activity implements McpSyncHost {
         if(BuildConfig.UI_PREVIEW)return;
         refreshBusinessView();MainActivity activity=foreground.get();
         if(activity!=null)activity.runOnUiThread(()->activity.requestAutomaticSync(0));
+        else if(!DriveRolePolicy.businessSyncAllowed()){try{FullBackupJob.install(context);}catch(Exception unavailable){/* Existing opted-in backup jobs remain retryable. */}}
         else DriveSyncCoordinator.request(context,0);
     }
     private final Handler syncHandler = new Handler(Looper.getMainLooper());
@@ -86,6 +87,7 @@ public class MainActivity extends Activity implements McpSyncHost {
     private final Runnable delayedAutomaticSync = ()->{automaticWakeup.clear();automaticSyncIfConfigured();};
     private final Runnable periodicAutomaticSync = new Runnable() {
         @Override public void run() {
+            if(!DriveRolePolicy.businessSyncAllowed())return;
             DriveSyncCoordinator.poll(MainActivity.this);
             syncHandler.postDelayed(this, PERIODIC_SYNC_INTERVAL_MS);
         }
@@ -98,6 +100,7 @@ public class MainActivity extends Activity implements McpSyncHost {
         store = new PixelLocalStore(this);
         if(!BuildConfig.UI_PREVIEW){
             try{DriveSyncJob.install(this);}catch(RuntimeException unavailable){backgroundState(true,"BACKGROUND_SCHEDULING_FAILED");}
+            try{FullBackupJob.install(this);}catch(Exception unavailable){backgroundState(true,"BACKUP_SCHEDULING_PENDING");}
             try{if(PlanningAccount.connected(this)||PlanningAccount.prefs(this).getBoolean("weather_enabled",false))PlanningJob.install(this);}catch(RuntimeException unavailable){backgroundState(true,"BACKGROUND_SCHEDULING_FAILED");}
         }
         new Thread(()->{try{if(store.compactPurgedTestActions()>0)refreshBusinessView();}catch(Exception failure){runOnUiThread(()->Toast.makeText(this,"Testbereinigung benötigt Prüfung. Bestehende Daten bleiben erhalten.",Toast.LENGTH_LONG).show());}},"test-cleanup").start();
@@ -149,7 +152,7 @@ public class MainActivity extends Activity implements McpSyncHost {
         }
         syncHandler.removeCallbacks(periodicAutomaticSync);
         requestAutomaticSync(AUTO_SYNC_DELAY_MS);
-        syncHandler.postDelayed(periodicAutomaticSync, PERIODIC_SYNC_INTERVAL_MS);
+        if(DriveRolePolicy.businessSyncAllowed())syncHandler.postDelayed(periodicAutomaticSync, PERIODIC_SYNC_INTERVAL_MS);
         installBackupCheckpoint(false,null);
     }
 
@@ -160,7 +163,7 @@ public class MainActivity extends Activity implements McpSyncHost {
         automaticWakeup.clear();
         syncHandler.removeCallbacks(periodicAutomaticSync);
         if(syncNetworkCallback!=null){try{getSystemService(android.net.ConnectivityManager.class).unregisterNetworkCallback(syncNetworkCallback);}catch(RuntimeException ignored){}syncNetworkCallback=null;}
-        try { if(!BuildConfig.UI_PREVIEW&&DriveAccount.available(this)&&store.pendingActions().length()>0)
+        try { if(DriveRolePolicy.businessSyncAllowed()&&!BuildConfig.UI_PREVIEW&&DriveAccount.available(this)&&store.pendingActions().length()>0)
             DriveSyncCoordinator.request(this,Math.max(AUTO_SYNC_DELAY_MS,store.remainingDeleteUndoMs()+200)); } catch(Exception ignored) {}
         super.onPause();
     }
@@ -400,7 +403,7 @@ public class MainActivity extends Activity implements McpSyncHost {
 
         @JavascriptInterface public String getSyncStatus() { return syncStatus().toString(); }
 
-        @JavascriptInterface public void connectDrive(){if(previewConnectionBlocked())return;runOnUiThread(()->startActivity(new Intent(MainActivity.this,DriveConnectionActivity.class)));}
+        @JavascriptInterface public void connectDrive(){if(previewConnectionBlocked())return;if(!DriveRolePolicy.businessSyncAllowed()){openFullBackup();return;}runOnUiThread(()->startActivity(new Intent(MainActivity.this,DriveConnectionActivity.class)));}
         @JavascriptInterface public void openFullBackup() {if(previewConnectionBlocked())return;runOnUiThread(()->installBackupCheckpoint(true,()->startActivity(new Intent(MainActivity.this,FullBackupActivity.class))));}
         @JavascriptInterface public void checkpointFullBackup(String snapshot) {if(BuildConfig.UI_PREVIEW)return;runOnUiThread(()->{if(trustedBackupPage()&&backupCheckpointActive)installBackupCheckpoint(false,null);});}
         @JavascriptInterface public String restoredDraftReview(String raw) {
@@ -443,9 +446,9 @@ public class MainActivity extends Activity implements McpSyncHost {
         }
 
         @JavascriptInterface public void shareOffer(String id){
-            new Thread(()->{try{JSONObject offer=PixelMcpWriteTools.find(PixelMcpReadTools.effective(store.getState()).getJSONArray("offers"),id);if(LocalAuthorityGuard.local(MainActivity.this)&&offer.optString("finalized_at").isEmpty())throw new IOException("Nur finalisierte Originalangebote teilen.");TestDataRules.noDelivery(offer,PixelMcpReadTools.effective(store.getState()));byte[] bytes;try{bytes=new BusinessDocumentStore(MainActivity.this).read(offer);}catch(Exception missing){if(LocalAuthorityGuard.local(MainActivity.this))throw new IOException("Lokales Original-PDF fehlt oder wurde verändert.");bytes=DriveSyncCoordinator.fetchDocument(MainActivity.this,offer);new BusinessDocumentStore(MainActivity.this).store(bytes,offer);}File dir=new File(getCacheDir(),"invoice-share");if(!dir.isDirectory()&&!dir.mkdirs())throw new IOException("Freigabeordner fehlt.");File target=new File(dir,"Angebot-"+UUID.randomUUID()+".pdf");try(java.io.FileOutputStream out=new java.io.FileOutputStream(target)){out.write(bytes);}Uri uri=Uri.parse("content://"+getPackageName()+".invoicefiles/"+target.getName());Intent send=new Intent(Intent.ACTION_SEND).setType("application/pdf").putExtra(Intent.EXTRA_STREAM,uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);send.setClipData(android.content.ClipData.newRawUri("Angebot",uri));runOnUiThread(()->startActivity(Intent.createChooser(send,"Angebots-PDF teilen")));}catch(Exception error){runOnUiThread(()->Toast.makeText(MainActivity.this,LocalAuthorityGuard.local(MainActivity.this)?"Lokales Original-PDF fehlt oder wurde verändert. Dokumentjob prüfen; keine Übergabe vorbereitet.":"PDF noch nicht verfügbar. Dokument und Drive-Abgleich prüfen.",Toast.LENGTH_LONG).show());}}).start();
+            new Thread(()->{try{JSONObject offer=PixelMcpWriteTools.find(PixelMcpReadTools.effective(store.getState()).getJSONArray("offers"),id);if(LocalAuthorityGuard.local(MainActivity.this)&&offer.optString("finalized_at").isEmpty())throw new IOException("Nur finalisierte Originalangebote teilen.");TestDataRules.noDelivery(offer,PixelMcpReadTools.effective(store.getState()));byte[] bytes;try{bytes=new BusinessDocumentStore(MainActivity.this).read(offer);}catch(Exception missing){if(!DriveRolePolicy.businessSyncAllowed()||LocalAuthorityGuard.local(MainActivity.this))throw new IOException("Lokales Original-PDF fehlt oder wurde verändert. Gezielten Originalimport oder geprüfte Wiederherstellung verwenden.");bytes=DriveSyncCoordinator.fetchDocument(MainActivity.this,offer);new BusinessDocumentStore(MainActivity.this).store(bytes,offer);}File dir=new File(getCacheDir(),"invoice-share");if(!dir.isDirectory()&&!dir.mkdirs())throw new IOException("Freigabeordner fehlt.");File target=new File(dir,"Angebot-"+UUID.randomUUID()+".pdf");try(java.io.FileOutputStream out=new java.io.FileOutputStream(target)){out.write(bytes);}Uri uri=Uri.parse("content://"+getPackageName()+".invoicefiles/"+target.getName());Intent send=new Intent(Intent.ACTION_SEND).setType("application/pdf").putExtra(Intent.EXTRA_STREAM,uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);send.setClipData(android.content.ClipData.newRawUri("Angebot",uri));runOnUiThread(()->startActivity(Intent.createChooser(send,"Angebots-PDF teilen")));}catch(Exception error){runOnUiThread(()->Toast.makeText(MainActivity.this,(!DriveRolePolicy.businessSyncAllowed()||LocalAuthorityGuard.local(MainActivity.this))?"Lokales Original-PDF fehlt oder wurde verändert. Originalimport oder geprüfte Wiederherstellung verwenden; keine Übergabe vorbereitet.":"PDF noch nicht verfügbar. Dokument und Drive-Abgleich prüfen.",Toast.LENGTH_LONG).show());}}).start();
         }
-        @JavascriptInterface public String shareInvoiceById(String id,String channel){try{JSONObject invoice=PixelMcpWriteTools.find(PixelMcpReadTools.effective(store.getState()).getJSONArray("invoices"),id);if(LocalAuthorityGuard.local(MainActivity.this)?!IssuedInvoiceRules.isIssued(invoice):invoice.optString("issued_at").isEmpty())throw new IllegalArgumentException("Nur ausgestellte Originalbelege teilen.");byte[] bytes;try{bytes=new BusinessDocumentStore(MainActivity.this).read(invoice);}catch(IOException absent){if(LocalAuthorityGuard.local(MainActivity.this))throw new IOException("Lokales Original-PDF fehlt oder wurde verändert.");bytes=DriveSyncCoordinator.fetchDocument(MainActivity.this,invoice);new BusinessDocumentStore(MainActivity.this).store(bytes,invoice);}invoice.put("pdf_base64",android.util.Base64.encodeToString(bytes,android.util.Base64.NO_WRAP));return shareInvoiceVia(invoice.toString(),channel);}catch(Exception e){return LocalAuthorityGuard.local(MainActivity.this)?"ERROR: Lokales Original-PDF fehlt oder wurde verändert. Dokumentjob prüfen; keine Übergabe vorbereitet.":"ERROR: Original-PDF ist noch nicht vollständig verfügbar. Drive abgleichen.";}}
+        @JavascriptInterface public String shareInvoiceById(String id,String channel){try{JSONObject invoice=PixelMcpWriteTools.find(PixelMcpReadTools.effective(store.getState()).getJSONArray("invoices"),id);if((!DriveRolePolicy.businessSyncAllowed()||LocalAuthorityGuard.local(MainActivity.this))?!IssuedInvoiceRules.isIssued(invoice):invoice.optString("issued_at").isEmpty())throw new IllegalArgumentException("Nur ausgestellte Originalbelege teilen.");byte[] bytes;try{bytes=new BusinessDocumentStore(MainActivity.this).read(invoice);}catch(IOException absent){if(!DriveRolePolicy.businessSyncAllowed()||LocalAuthorityGuard.local(MainActivity.this))throw new IOException("Lokales Original-PDF fehlt oder wurde verändert. Gezielten Originalimport oder geprüfte Wiederherstellung verwenden.");bytes=DriveSyncCoordinator.fetchDocument(MainActivity.this,invoice);new BusinessDocumentStore(MainActivity.this).store(bytes,invoice);}invoice.put("pdf_base64",android.util.Base64.encodeToString(bytes,android.util.Base64.NO_WRAP));return shareInvoiceVia(invoice.toString(),channel);}catch(Exception e){return (!DriveRolePolicy.businessSyncAllowed()||LocalAuthorityGuard.local(MainActivity.this))?"ERROR: Lokales Original-PDF fehlt oder wurde verändert. Originalimport oder geprüfte Wiederherstellung verwenden; keine Übergabe vorbereitet.":"ERROR: Original-PDF ist noch nicht vollständig verfügbar. Drive abgleichen.";}}
         @JavascriptInterface public String shareInvoice(String value) {
             return shareInvoiceVia(value,"share");
         }
@@ -584,6 +587,7 @@ public class MainActivity extends Activity implements McpSyncHost {
 
     private void synchronize() {
         if(previewConnectionBlocked())return;
+        if(!DriveRolePolicy.businessSyncAllowed()){retiredSyncNotice(true);return;}
         if(!LocalAuthorityGuard.legacySyncAllowed(this)){requestAutomaticSync(0);Toast.makeText(this,"Lokal gespeichert. Hintergrundsicherung erneut eingeplant; Sicherungsstatus prüfen.",Toast.LENGTH_LONG).show();return;}
         try{DriveSyncCoordinator.prepareExplicit(this,"ui-sync-"+UUID.randomUUID());}catch(Exception ignored){}
         if(DriveAccount.configured(this)){performDriveSync(Uri.EMPTY,true);return;}
@@ -596,6 +600,8 @@ public class MainActivity extends Activity implements McpSyncHost {
             catch(ActivityNotFoundException|SecurityException error){driveFolderPicking=false;finishDriveSelection(false,"Ordnerauswahl nicht verfügbar. Lokale Daten bleiben erhalten.");}
         } else performDriveSync(Uri.parse(saved), true);
     }
+
+    private void retiredSyncNotice(boolean showToast){try{JSONObject result=DriveRolePolicy.retiredResponse().put("ok",true).put("sync",syncStatus());callback("window.onDriveSync",result);}catch(Exception unavailable){/* No business or backup action was requested. */}if(showToast)Toast.makeText(this,"Der Geschäftsabgleich ist stillgelegt. Vollsicherung öffnen und Sicherungsstatus gesondert prüfen.",Toast.LENGTH_LONG).show();}
 
     private boolean localCleanupPending(){try{return new JSONObject(store.ownerValue("local_media_cleanup","{}")).optBoolean("pending");}catch(Exception invalid){return true;}}
     private void localCleanupState(boolean pending,String code){try{store.putOwnerValue("local_media_cleanup",new JSONObject().put("formatVersion",1).put("pending",pending).put("code",code).toString());}catch(Exception ignored){}}
@@ -611,15 +617,16 @@ public class MainActivity extends Activity implements McpSyncHost {
         BackgroundWorkDispatch.request(delayMs,new BackgroundWorkDispatch.Host(){
             public void state(boolean pending,String code){backgroundState(pending,code);}
             public boolean post(Runnable task){return syncHandler.post(task);}
-            public boolean localMode(){boolean local=!LocalAuthorityGuard.legacySyncAllowed(MainActivity.this);if(local)scheduleLocalMaintenance();return local;}
-            public boolean localReady()throws Exception {JSONObject config=new BackupSettingsRepository(MainActivity.this,store).read();return config.optBoolean("enabled")&&config.optBoolean("keyConfigured")&&FullBackupController.validTarget(config);}
+            public boolean localMode(){boolean local=!DriveRolePolicy.businessSyncAllowed()||!LocalAuthorityGuard.legacySyncAllowed(MainActivity.this);if(LocalAuthorityGuard.local(MainActivity.this))scheduleLocalMaintenance();return local;}
+            public boolean localReady()throws Exception {JSONObject config=new BackupSettingsRepository(MainActivity.this,store).read();return config.optBoolean("contextMatches")&&config.optBoolean("enabled")&&config.optBoolean("keyConfigured")&&FullBackupController.validTarget(config);}
             public boolean local(long delay)throws Exception {return FullBackupJob.schedule(MainActivity.this,delay);}
-            public boolean legacy(long delay){DriveSyncCoordinator.noteRequest();long undoDelay=store==null?0:store.remainingDeleteUndoMs(),now=System.currentTimeMillis();long due=automaticWakeup.request(now,delay,Math.max(preferences.getLong("drive_next_retry",0),undoDelay>0?now+undoDelay+200:0));syncHandler.removeCallbacks(delayedAutomaticSync);return syncHandler.postDelayed(delayedAutomaticSync,Math.max(0,due-now))&&DriveSyncJob.schedule(MainActivity.this,Math.max(0,due-now));}
+            public boolean legacy(long delay){if(!DriveRolePolicy.businessSyncAllowed())return false;DriveSyncCoordinator.noteRequest();long undoDelay=store==null?0:store.remainingDeleteUndoMs(),now=System.currentTimeMillis();long due=automaticWakeup.request(now,delay,Math.max(preferences.getLong("drive_next_retry",0),undoDelay>0?now+undoDelay+200:0));syncHandler.removeCallbacks(delayedAutomaticSync);return syncHandler.postDelayed(delayedAutomaticSync,Math.max(0,due-now))&&DriveSyncJob.schedule(MainActivity.this,Math.max(0,due-now));}
         });
     }
 
     private void automaticSyncIfConfigured() {
         if(BuildConfig.UI_PREVIEW)return;
+        if(!DriveRolePolicy.businessSyncAllowed()){requestAutomaticSync(0);return;}
         try{if(!DriveSyncCoordinator.automaticAllowed(this)||!DriveSyncCoordinator.hasNetwork(this))return;}catch(Exception invalid){return;}
         if(DriveAccount.configured(this)){performDriveSync(Uri.EMPTY,false);return;}
         String saved = preferences.getString("drive_tree_uri", "");
@@ -628,6 +635,7 @@ public class MainActivity extends Activity implements McpSyncHost {
 
     private void performDriveSync(Uri treeUri, boolean showToast) {
         if(BuildConfig.UI_PREVIEW)return;
+        if(!DriveRolePolicy.businessSyncAllowed()){retiredSyncNotice(showToast);return;}
         if (!syncInProgress.compareAndSet(false, true)) { syncAgain.set(true); return; }
         if (showToast) Toast.makeText(this, "Drive-Abgleich läuft …", Toast.LENGTH_SHORT).show();
         new Thread(() -> {
@@ -654,9 +662,9 @@ public class MainActivity extends Activity implements McpSyncHost {
     private JSONObject syncStatus() {
         try {
             JSONObject current=store.getState(),status=DriveSyncCoordinator.status(this,current.getJSONObject("sync_queue"));
-            status=SyncPolicy.describe(status,current.getJSONObject("sync_queue"),syncInProgress.get()||DriveSyncCoordinator.running()||driveFolderPicking,System.currentTimeMillis());
+            if(DriveRolePolicy.businessSyncAllowed())status=SyncPolicy.describe(status,current.getJSONObject("sync_queue"),syncInProgress.get()||DriveSyncCoordinator.running()||driveFolderPicking,System.currentTimeMillis());
             int duplicates=preferences.getInt("drive_duplicate_files",0);status.put("local_cleanup_pending",localCleanupPending()).put("background_work_pending",backgroundPending()).put("background_work_error_code",backgroundCode()).put("duplicate_files",duplicates).put("warning",duplicates>0?"Gleichnamige Dateien prüfen. Originale bleiben erhalten.":"");
-            if(DriveAccount.configured(this)){String progress=store.ownerValue("drive-meta:"+preferences.getString("drive_folder_id","")+":progress","");if(!progress.isEmpty())status.put("transfer_progress",new JSONObject(progress));}
+            if(DriveRolePolicy.businessSyncAllowed()&&DriveAccount.configured(this)){String progress=store.ownerValue("drive-meta:"+preferences.getString("drive_folder_id","")+":progress","");if(!progress.isEmpty())status.put("transfer_progress",new JSONObject(progress));}
             return status;
         }catch(Exception error){return new JSONObject();}
     }
@@ -674,6 +682,7 @@ public class MainActivity extends Activity implements McpSyncHost {
             if(resultCode!=RESULT_OK||data==null||data.getData()==null){finishDriveSelection(true,"Ordnerauswahl abgebrochen. Deine Daten bleiben lokal gespeichert.");return;}
         }
         if (requestCode == DRIVE_FOLDER_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            if(!DriveRolePolicy.businessSyncAllowed()){driveFolderPicking=false;retiredSyncNotice(true);return;}
             Uri treeUri = data.getData();
             try {
                 int permissions = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;

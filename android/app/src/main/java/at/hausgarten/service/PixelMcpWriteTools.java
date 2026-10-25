@@ -42,7 +42,7 @@ final class PixelMcpWriteTools {
         JSONArray result = new JSONArray();
         for (String name : NAMES) result.put(new JSONObject().put("name",name).put("inputSchema",schema(name))
             .put("description",name.equals("update_work_record") ? "Korrigiert eine Arbeitsaufzeichnung. Zuerst get_work_record aufrufen und record_hash als expected_record_hash übernehmen. Keine Änderung von Kunden-ID, Abrechnung oder Rechnungen."
-                : "Legt eine Arbeitsaufzeichnung mit tatsächlichen Kunden-/Auftrags-IDs an. request_id bei Wiederholung unverändert lassen. Erst lokal gesichert und im mobilen Drive-Abgleich vorgemerkt; get_sync_status prüft den Pixel-/Drive-Beleg.")
+                : "Legt eine Arbeitsaufzeichnung mit tatsächlichen Kunden-/Auftrags-IDs dauerhaft auf dem Pixel an. request_id bei Wiederholung unverändert lassen. storage_contract_version 3: kein operativer Drive-Abgleich; get_sync_status liest den lokalen Aktionsbeleg, get_full_backup_status den getrennten Vollsicherungsstand.")
             .put("annotations",new JSONObject().put("readOnlyHint",false).put("destructiveHint",false).put("idempotentHint",true).put("openWorldHint",false)));
         return result;
     }

@@ -4,7 +4,7 @@ import json
 import unittest
 import tempfile
 from pathlib import Path
-from tools.check_refactoring_contract import BASELINE, differences, approved_evolution, approved_revier_timer, approved_revier_local_workflows, javascript_bridges
+from tools.check_refactoring_contract import BASELINE, differences, approved_evolution, approved_revier_timer, approved_revier_local_workflows, approved_backup_only_transition, javascript_bridges
 
 
 class RefactoringContractTests(unittest.TestCase):
@@ -77,6 +77,29 @@ class RefactoringContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):check(current,invalid)
         invalid=deepcopy(local);next(c for c in invalid['modified_tools'] if c['name']=='create_photo')['after']['inputSchema']['required'].append('property_id')
         with self.assertRaises(ValueError):check(current,invalid)
+        final=deepcopy(current)
+        for change in local['backup_only_transition_v3']['changes']:
+            group,key=change['group'],change['id']
+            if group=='observations':
+                self.assertEqual(final[group][key],change['before'])
+                final[group][key]=deepcopy(change['after'])
+            else:
+                field='name' if group=='tools' else 'id'
+                index=next(i for i,item in enumerate(final[group]) if item[field]==key)
+                self.assertEqual(final[group][index],change['before'])
+                final[group][index]=deepcopy(change['after'])
+        final_check=lambda value,evolution=local:approved_backup_only_transition(self.contract,value,delta,repair,timer,evolution)
+        self.assertEqual(final_check(final),[])
+        damaged=deepcopy(final);next(t for t in damaged['tools'] if t['name']=='request_sync')['annotations']['idempotentHint']=False
+        self.assertEqual(final_check(damaged),['tools'])
+        damaged=deepcopy(final);next(t for t in damaged['tools'] if t['name']=='request_invoice_issue')['inputSchema']['required'].append('unreviewed')
+        self.assertEqual(final_check(damaged),['tools'])
+        damaged=deepcopy(final);damaged['observations']['state_hash']='changed business state'
+        self.assertEqual(final_check(damaged),['observations'])
+        damaged=deepcopy(final);damaged['bootstrap']['customers']=[{'id':'qa_unreviewed'}]
+        self.assertEqual(final_check(damaged),['bootstrap'])
+        invalid=deepcopy(local);invalid['backup_only_transition_v3']['changes'][0]['after']['action']='unreviewed'
+        with self.assertRaisesRegex(ValueError,'Unapproved backup-only transition proof'):final_check(final,invalid)
 
     def test_revier_timer_preserves_every_existing_tool_and_bridge(self):
         delta=json.loads((BASELINE.parent/'sync-optimization-contract-v1.json').read_text())

@@ -42,7 +42,7 @@
     const sender = [issuer.owner_name, issuer.business_street, [issuer.business_postal_code,issuer.business_city].filter(Boolean).join(' ')].filter(Boolean);
     const missing = [];
     if (!recipient.name || !recipient.street || !recipient.postal_code || !recipient.city) missing.push('Kunde / Rechnungsadresse');
-    if (!issuer.owner_name || !issuer.business_street || !issuer.business_postal_code || !issuer.business_city) missing.push('Ausstellerdaten (Drive-Abgleich / Einstellungen)');
+    if (!issuer.owner_name || !issuer.business_street || !issuer.business_postal_code || !issuer.business_city) missing.push('Ausstellerdaten unter Unternehmen und Rechnungen');
     if (!invoice.invoice_date) missing.push('Rechnungsdatum');
     if (!invoice.service_start || !invoice.service_end) missing.push('Leistungszeitraum');
     if (invoice.service_start && invoice.service_end && invoice.service_end < invoice.service_start) missing.push('Leistungsende liegt vor Beginn');

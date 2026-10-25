@@ -10,12 +10,12 @@ final class McpErrors {
     // messages can contain private text, paths or provider response bodies.
     private static final Set<String> LOCAL_CODES=new HashSet<>(Arrays.asList(
         "REVIER_SCHEMA_UPGRADE_REQUIRED","REVIER_RECORD_INVALID",
-        "LOCAL_AUTHORITY_REQUIRED","LOCAL_MIGRATION_REQUIRED_AFTER_RESTORE","LOCAL_STATE_BUILD_FAILED",
+        "LOCAL_AUTHORITY_REQUIRED","LOCAL_MIGRATION_REQUIRED_AFTER_RESTORE","LOCAL_STATE_BUILD_FAILED","LOCAL_BOOTSTRAP_INVALID",
         "INVOICE_ORIGINAL_RECONCILIATION_REQUIRED","INVOICE_REVIEW_CONTEXT_REQUIRED","INVOICE_PDF_NOT_CREATED_REVIEW_REQUIRED",
         "FINANCIAL_JOB_ORIGIN_INVALID","FINANCIAL_JOB_AUTHORIZATION_INVALID","FINANCIAL_JOB_ADOPTION_INVALID","FINANCIAL_RECOVERY_AUDIT_INVALID",
         "INVOICE_OPENING_BALANCE_CORRECTION_REQUIRED","INVOICE_RECONCILIATION_REVIEW_REQUIRED",
         "LOCAL_AUTHORITY_CURRENT_EVIDENCE_REQUIRED","LOCAL_AUTHORITY_RECEIPT_STALE_AFTER_RESTORE",
-        "LEGACY_SYNC_WRITER_DISABLED","LOCAL_DATABASE_CONTRACT_REVIEW_REQUIRED","LOCAL_ORIGINAL_MISSING",
+        "LEGACY_SYNC_WRITER_DISABLED","LEGACY_SYNC_RETIRED","LOCAL_DATABASE_CONTRACT_REVIEW_REQUIRED","LOCAL_ORIGINAL_MISSING",
         "LOCAL_STATE_CONTRACT_INVALID","LOCAL_STATE_METADATA_UNREADABLE","LOCAL_STORE_PATH_INVALID","RESTORE_DATABASE_STILL_OPEN",
         "FINANCIAL_NUMBER_EVIDENCE_INVALID",
         "FINANCIAL_ORIGINAL_EVIDENCE_INVALID","FINANCIAL_ORIGINAL_PATH_REJECTED","FINANCIAL_ORIGINAL_MISSING",
@@ -124,6 +124,8 @@ final class McpErrors {
         if(code.equals("INVOICE_ORIGINAL_RECONCILIATION_REQUIRED"))return "Nach Wiederherstellung ist der ursprüngliche PDF-Stand ungeklärt. Aktuelles externes Original unverändert binden oder ausdrücklich nachweisen, dass noch kein Original erstellt wurde. Die Belegnummer bleibt erhalten; kein PDF wird automatisch neu erzeugt.";
         if(code.equals("LOCAL_AUTHORITY_CURRENT_EVIDENCE_REQUIRED")||code.equals("LOCAL_AUTHORITY_RECEIPT_STALE_AFTER_RESTORE"))return "Nach Umstellung oder Wiederherstellung aktuellen externen Beleg-/Nummernstand für diese Installation neu prüfen und ausdrücklich bestätigen. Eine frühere Bestätigung gibt nichts frei.";
         if(code.equals("LEGACY_SYNC_WRITER_DISABLED"))return "Der lokale Pixelbestand ist maßgeblich. Alte operative Drive-Schreibwege bleiben gesperrt; Drive dient der Vollsicherung.";
+        if(code.equals("LEGACY_SYNC_RETIRED"))return "Der frühere Drive-Geschäftsabgleich ist stillgelegt. Lokale Daten und Aktionen bleiben erhalten. Vollsicherung in der App einrichten oder get_full_backup_status lesen; es wurde keine Sicherung gestartet.";
+        if(code.equals("LOCAL_BOOTSTRAP_INVALID"))return "Der leere lokale App-Ausgangsstand konnte nicht geprüft werden. App-Version und Sicherungsstand prüfen; keine automatische Übernahme externer Daten und keine Änderung ausgeführt.";
         if(code.equals("LOCAL_ORIGINAL_MISSING")||code.equals("INVOICE_DOCUMENT_ORIGINAL_MISSING_OR_CHANGED")||code.startsWith("FINANCIAL_ORIGINAL_"))return "Ein benötigtes Original fehlt, ist verändert oder konnte nicht vollständig geprüft werden. Geprüfte Sicherung am Gerät prüfen; Originale werden nicht automatisch ersetzt.";
         if(code.equals("INVOICE_PDF_NOT_READY"))return "Das Rechnungs-PDF ist noch nicht lokal verifiziert. Dokumentauftrag prüfen oder denselben Auftrag erneut ausführen; Belegnummer bleibt erhalten.";
         if(code.contains("WRITE_CONFLICT")||code.contains("EPOCH_CONFLICT")||code.endsWith("CHANGED"))return "Der gespeicherte Stand hat sich geändert. Neu laden; Eingaben bleiben erhalten.";

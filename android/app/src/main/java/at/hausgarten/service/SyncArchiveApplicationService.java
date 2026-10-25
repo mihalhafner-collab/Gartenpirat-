@@ -40,7 +40,7 @@ final class SyncArchiveApplicationService implements OwnerCommand {
                 }
                 return new JSONObject().put("decisions_queued",entries.length()).put("resolution","keep_current").put("business_data_changed",false).put("backup_id",a.getString("backup_id")).put("history_state","sync_pending");
             }
-            case "request_sync":return new JSONObject().put("state","requested").put("cloud_confirmed",false);
+            case "request_sync":return DriveRolePolicy.retiredResponse();
             case "purge_entity":{
                 requireInactiveSession(a.getString("entity"),a.getString("entity_id"));
                 String kind="purge_v1";JSONObject p=new JSONObject().put("id",a.getString("entity_id")).put("expected_record_hash",a.getString("expected_record_hash")).put("updated_at",stamp);

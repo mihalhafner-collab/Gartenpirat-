@@ -234,6 +234,43 @@ def approved_revier_local_workflows(expected, current, delta, repair, timer, evo
         previous['observations'][name]=change['before']
     return approved_revier_timer(expected, previous, delta, repair, timer)
 
+def approved_backup_only_transition(expected, current, delta, repair, timer, local):
+    """Reverse only reviewed backup-only metadata; keep every original gate intact."""
+    import copy
+    transition = local.get('backup_only_transition_v3', {})
+    # This pins the actually reviewed descriptions, UI transitions and RPC hashes.
+    # No catalog regeneration or arbitrary versioned replacement is accepted.
+    if (transition.get('version') != 3
+            or digest(transition) != '57ebcb8e3b3e30132f2f35e7d09b9b1815c3de00a0fbe2cb17c306cabcf83486'):
+        raise ValueError('Unapproved backup-only transition proof')
+    allowed = {('tools', name) for name in (
+        'create_work_record', 'create_customer_work_record', 'prepare_legacy_conflict_backup',
+        'close_legacy_conflicts', 'delete_entity', 'request_sync', 'request_invoice_issue')}
+    allowed |= {('ui_actions', name) for name in (
+        'sicherung.93', 'sicherung.94', 'sicherung.95', 'sicherung.96', 'sicherung.97',
+        'synchronisierung.105', 'synchronisierung.106', 'synchronisierung.107',
+        'synchronisierung.111', 'synchronisierung.112', 'synchronisierung.113',
+        'einstellungen.119')}
+    allowed |= {('observations', 'qa_case_'+str(i)) for i in range(16)}
+    changes = transition['changes']
+    if len(changes) != len(allowed) or {(c['group'], c['id']) for c in changes} != allowed:
+        raise ValueError('Unapproved backup-only transition scope')
+    previous = copy.deepcopy(current)
+    for change in changes:
+        group, key = change['group'], change['id']
+        if group == 'observations':
+            if previous[group].get(key) != change['after']:
+                return [group]
+            previous[group][key] = change['before']
+        else:
+            field = 'name' if group == 'tools' else 'id'
+            matches = [i for i, item in enumerate(previous[group]) if item[field] == key]
+            if len(matches) != 1 or previous[group][matches[0]] != change['after']:
+                return [group]
+            previous[group][matches[0]] = copy.deepcopy(change['before'])
+    return approved_revier_local_workflows(expected, previous, delta, repair, timer, local)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--record-baseline', action='store_true')
@@ -258,6 +295,8 @@ def main():
         if unapproved:
             local = json.loads((ROOT/'tests/fixtures/revier-local-workflows-contract-v1.json').read_text())
             unapproved = approved_revier_local_workflows(expected, current, delta, repair, evolution, local)
+        if unapproved:
+            unapproved = approved_backup_only_transition(expected, current, delta, repair, evolution, local)
         if unapproved:
             raise SystemExit('FAIL unreviewed functional contract changed: '+', '.join(unapproved))
         print('PASS explicitly reviewed contract evolution; original P1 differences: '+', '.join(changed))

@@ -1,13 +1,17 @@
 # CODEX-AUFTRAG-GARTENPIRAT
 
 
-Aktueller Steuerungsstand25.10.2026: Nutzer verlangt1.55.0 final als Revier Solo
-mit Drive ausschließlich als Backupziel. Die gewöhnlichen Geschäfts-Sync-,
-Original-Nachlade- und Online-Rechnungspfade sind im finalen Kandidaten kontrolliert
-abzugrenzen; bestehende Daten, Konten, Queues und Nummernschutz erhalten. Danach
-hat der Nutzer ausdrücklich „Stop“ angeordnet. Arbeit pausiert; Fortsetzung nur
-auf erneuten Auftrag. Konkreter gesicherter Stand und Wiederanlaufaktionen stehen
-im Pauseabschnitt von CODEX-STATUS.md, keine produktive Umstellung autorisiert.
+Aktueller Steuerungsstand25.10.2026: Abschlussauftrag aktiv. Ziel1.55.0/101 als
+Revier Solo: sämtliche Fachfunktionen und maßgebliche Daten ausschließlich auf
+Pixel/App, Drive ausschließlich verschlüsselte Vollsicherung mit regelmäßiger
+aufschiebbarer App-Planung nach bewusster Geräteeinrichtung. Speichervertrag3
+stellt die öffentlichen alten Geschäfts-Sync-/Originalnachlade-/Online-Ausgabepfade
+in allen Autoritätsmodi still; Queues, Konten, Originale und Nummernschutz bleiben.
+Historische Ziele für verpflichtenden Zweiwegeabgleich sind für diesen Kandidaten
+ersetzt. Bestehende geschützte lokale Migration/Rechnungsautorität weiterhin
+belegen; keine manuellen Freigabeflags. Umsetzung integriert, gemeinsame
+Softwareabnahme/Originalkandidat werden abgeschlossen. Aktuelle und historische
+Nachweise getrennt in CODEX-STATUS.md; keine produktive Umstellung autorisiert.
 
 ## Aktueller Korrekturauftrag: Formulare, lokaler Commit, Wiederanlauf und Löschen
 

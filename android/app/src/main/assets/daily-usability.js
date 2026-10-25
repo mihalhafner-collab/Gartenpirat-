@@ -9,14 +9,15 @@
     page.innerHTML='<div class="page-head"><button type="button" class="back" aria-label="Zurück">‹</button><h2>Einstellungen</h2></div>'+
       '<section class="card settings-section" aria-labelledby="settings-operation-title"><h3 id="settings-operation-title">Bedienung</h3></section>'+
       '<section class="card settings-section"><h3>Kalender & Wetter</h3><p id="settings-planning-state" class="sub" role="status">Verbindung beim Öffnen prüfen.</p><button type="button" class="secondary" id="settings-planning">Kalender & Wetter einrichten</button></section>'+
-      '<section class="card settings-section" aria-labelledby="settings-data-title"><h3 id="settings-data-title">Google Drive</h3><div id="settings-sync-state" class="settings-state" role="status" aria-live="polite"><strong id="settings-sync-summary">Drive wird geprüft</strong><span id="settings-sync-detail">Der lokale und der übertragene Stand werden getrennt angezeigt.</span></div><details class="settings-advanced"><summary>Erweitert / Diagnose</summary><dl class="settings-diagnostics"><div><dt>Lokale Änderungen</dt><dd id="settings-sync-local">Wird geprüft</dd></div><div><dt>Übertragungsstand</dt><dd id="settings-sync-transfer">Wird geprüft</dd></div><div><dt>Letzter erfolgreicher Stand</dt><dd id="settings-sync-last">Wird geprüft</dd></div></dl></details><button type="button" class="secondary" id="settings-drive">Google Drive EIN / AUS</button><button type="button" class="secondary" data-open="sync-page">Synchronisierung öffnen</button><p class="sub">Die Synchronisierung gleicht deine Arbeit ab. Eine vollständige Sicherung findest du separat unter Sicherung.</p></section>'+
+      '<section class="card settings-section" aria-labelledby="settings-data-title"><h3 id="settings-data-title">Lokale Daten und Sicherung</h3><div id="settings-sync-state" class="settings-state" role="status" aria-live="polite"><strong id="settings-sync-summary">Lokal gespeichert</strong><span id="settings-sync-detail">Sicherungsstatus beim Öffnen prüfen.</span></div><p class="sub">Die App arbeitet vollständig auf diesem Gerät. Drive wird nur als Sicherungsziel verwendet. Automatische Uploads und USB-Sicherung werden in der Vollsicherung eingerichtet.</p><details class="settings-advanced"><summary>Erweitert / Diagnose</summary><dl class="settings-diagnostics"><div><dt>Geschäftsdaten</dt><dd id="settings-sync-local">Auf diesem Gerät</dd></div><div><dt>Sicherungszustand</dt><dd id="settings-sync-transfer">Wird geprüft</dd></div><div><dt>Letzte extern geprüfte Sicherung</dt><dd id="settings-sync-last">Wird geprüft</dd></div></dl></details></section>'+
       '<section class="card settings-section" aria-labelledby="settings-connection-title"><h3 id="settings-connection-title">ChatGPT-Steuerung</h3><p id="settings-connection-state" class="sub" role="status" aria-live="polite">Verbindungsstatus wird geprüft.</p><button type="button" class="secondary" id="settings-connection">ChatGPT EIN / AUS</button><p class="sub">Die Freigabe und das Ein- oder Ausschalten erfolgen in der bestehenden Verbindung.</p></section>'+
       '<footer class="settings-section settings-about" aria-labelledby="settings-about-title"><span id="settings-about-title">App-Information</span><p id="settings-version" class="sub">Versionsangabe wird geprüft.</p></footer>';
     document.querySelector('main.app').append(page);
     const more=document.createElement('button');more.type='button';more.dataset.open='settings-page';more.innerHTML='<span><strong>Einstellungen</strong><small>Bedienung, Daten und Verbindung</small></span><b aria-hidden="true">›</b>';get('more-page').querySelector('.more-destinations').append(more);
     const shortcut=document.createElement('button');shortcut.type='button';shortcut.className='daily-settings';shortcut.dataset.open='settings-page';shortcut.setAttribute('aria-label','Einstellungen öffnen');shortcut.textContent='⚙';document.querySelector('.brand').append(shortcut);
     const diagnosis=page.querySelector('.settings-advanced');diagnosis.insertAdjacentHTML('beforeend','<h4>Fehlermeldungen</h4><pre class="settings-error-details"></pre>');diagnosis.ontoggle=()=>{if(diagnosis.open)diagnosis.querySelector('pre.settings-error-details').textContent=HGBusinessFeedback.diagnostics().join('\n\n')||'Keine technischen Fehlermeldungen in dieser Sitzung.';};
-    get('settings-drive').onclick=()=>{if(typeof AndroidData.connectDrive==='function')AndroidData.connectDrive();else window.showUndoToast?.('Bitte die App aktualisieren, um die Google-Drive-Verbindung einzurichten.');};
+    window.openFullBackupSettings=()=>{try{if(typeof AndroidData.openFullBackup!=='function')throw Error('Die Vollsicherung ist in der Android-App verfügbar. Keine externe Sicherung bestätigt.');const result=AndroidData.openFullBackup();if(String(result||'').startsWith('ERROR:'))throw Error(String(result).slice(6));return true;}catch(error){window.showUndoToast?.(error.message);return false;}};
+    document.addEventListener('click',event=>{if(event.target.closest('[data-open-full-backup]')){event.preventDefault();window.openFullBackupSettings();}});
     get('settings-planning').onclick=()=>AndroidData.connectPlanning?.();
     get('settings-connection').onclick=()=>get('pixel-tunnel-setup')?.click();
     // Move, never duplicate, the existing inputs and handlers into reachable toolbars.
@@ -63,32 +64,15 @@
     };
     document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!document.querySelector('dialog[open]')){event.preventDefault();window.handleAndroidBack();}});
     function updateSettings(){
-      const pending=Math.max(0,Number(syncInfo.pending??state.sync_queue?.pending_upload??state.pending?.length??0)||0),review=Math.max(0,Number(syncInfo.review??state.sync_queue?.review??0)||0),local=Math.max(pending+review,Number(syncInfo.pending_total??state.pending?.length??0)||0);
-      const sourceTitle=get('sync-title')?.textContent||get('sync-status')?.textContent||'Drive wird geprüft',sourceDetail=get('sync-detail')?.textContent||'Noch keine Statusdetails verfügbar.';
-      get('settings-sync-summary').textContent=sourceTitle;get('settings-sync-detail').textContent=sourceDetail+(syncInfo.background_work_pending?' Lokale Geschäftsdaten bleiben gespeichert. Hintergrundarbeit ausstehend; Sicherung öffnen oder erneut versuchen.':'');
-      const syncState=get('settings-sync-state');syncState.className='settings-state';
-      if(syncInfo.last_error)syncState.classList.add('is-error');else if(review||syncInfo.user_action_required||syncInfo.state==='action_required')syncState.classList.add('is-pending');else if(syncInfo.syncing||pending||!syncInfo.configured)syncState.classList.add('is-busy');else if(syncInfo.last_sync)syncState.classList.add('is-ok');
-      get('settings-sync-local').textContent=local?local+' lokale Änderung'+(local===1?'':'en')+' · '+pending+' zur Übertragung · '+review+' zur Prüfung':'Keine lokalen Änderungen in der Warteschlange';
-      let transfer='Drive noch nicht eingerichtet';
-      if(syncInfo.last_error)transfer='Fehler · lokal gespeicherte Daten bleiben erhalten';
-      else if(syncInfo.syncing)transfer='Abgleich läuft';
-      else if(review)transfer=review+' Änderung'+(review===1?'':'en')+' benötigt Prüfung';
-      else if(pending)transfer=pending+' Änderung'+(pending===1?' wartet':'en warten')+' auf Drive';
-      else if(syncInfo.cloud_confirmed)transfer='Online in Google Drive bestätigt';
-      else if(syncInfo.last_sync&&syncInfo.confirmation_scope==='provider_readback')transfer='An Drive-App übergeben und zurückgelesen';
-      else if(syncInfo.last_sync)transfer='Drive-Abgleich von der App bestätigt';
-      else if(syncInfo.configured)transfer='Eingerichtet · erster Abgleich ausstehend';
-      get('settings-sync-transfer').textContent=transfer;
-      let last='Noch kein erfolgreicher Abgleich';
-      if(syncInfo.last_sync){const date=new Date(syncInfo.last_sync);last=Number.isNaN(date.getTime())?'Erfolgreicher Zeitpunkt nicht lesbar':date.toLocaleString('de-AT',{dateStyle:'medium',timeStyle:'short'});}
-      get('settings-sync-last').textContent=last;
+      const syncState=get('settings-sync-state');syncState.className='settings-state';let backup=null;try{const response=JSON.parse(AndroidData.ownerCall('get_full_backup_status',JSON.stringify({offset:0,limit:1})));if(response.ok){backup=response.data;syncInfo.full_backup=backup;}}catch(_){}
+      const shown=HGBusinessFeedback.sync(syncInfo);get('settings-sync-summary').textContent='Auf diesem Gerät gespeichert';get('settings-sync-detail').textContent=shown.detail;const checked=backup?.last_external_verified_at,captured=backup?.last_external_captured_at;get('settings-sync-local').textContent='Pixel/App ist der maßgebliche Geschäftsspeicher. Kein Drive-Geschäftsabgleich.';get('settings-sync-transfer').textContent=checked?'Extern vollständig zurückgelesen · Datenstand '+HGBusinessFeedback.time(captured):backup?'Noch keine extern vollständig geprüfte Vollsicherung bestätigt.':'Sicherungsstatus derzeit nicht lesbar. Lokal gespeicherte Daten bleiben erhalten.';get('settings-sync-last').textContent=checked?HGBusinessFeedback.time(checked):'Noch nicht bestätigt';syncState.classList.add(checked?'is-ok':'is-pending');
       if(currentPage==='settings-page')try{const result=JSON.parse(AndroidData.ownerCall('get_planning_settings','{}'));if(result.ok){const info=result.data.integration||{},s=result.data.settings||{};get('settings-planning-state').textContent=(info.calendar_configured?'Google Kalender aktiv':info.calendar_connected?'Google Kalender pausiert':'Google Kalender nicht verbunden')+' · Wetter '+(s.weather_enabled?'EIN':'AUS');}}catch(_){}
       let connection=get('pixel-tunnel-state')?.textContent||'Verbindung noch nicht eingerichtet.';
       try{const info=JSON.parse(AndroidData.getPixelTunnelStatus());connection=HGBusinessFeedback.connection(info);}catch(_){}
       get('settings-connection-state').textContent=connection;
       try{const info=JSON.parse(AndroidData.getAppInfo());get('settings-version').textContent='Haus & Garten App · Version '+(info.versionName||'unbekannt')+(info.versionCode?' · Build '+info.versionCode:'');}catch(_){get('settings-version').textContent='Versionsangabe derzeit nicht verfügbar.';}
     }
-    // Background service may finish a sync without an Activity callback. Refresh safe root screens only.
+    // Read local status on visibility/focus; native business-change callbacks refresh the local records.
     let lastRefresh='',lastBusinessRefresh=JSON.stringify([syncInfo.last_sync||'',syncInfo.pending||0,syncInfo.review||0,syncInfo.pending_total||0]);
     function refresh(){
       if(document.hidden)return;
@@ -97,7 +81,7 @@
         else if(currentPage==='settings-page')updateSettings();
       }catch(_){}
     }
-    document.addEventListener('visibilitychange',refresh);setInterval(refresh,5000);
+    document.addEventListener('visibilitychange',refresh);window.addEventListener('focus',refresh);
     document.body.dataset.usabilityVersion='1.41';updateSettings();
   }
   document.addEventListener('DOMContentLoaded',()=>setTimeout(install,120),{once:true});

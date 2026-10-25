@@ -94,9 +94,8 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
   let futureSelection='',lastPlanningKey='';
   function syncChip(){
     const pill=get('sync-status');if(!pill)return;
-    const labels={not_connected:'Drive verbinden',syncing:'Gleicht ab',action_required:'Hilfe nötig',review_required:'Prüfen',status_warning:'Status prüfen',pending:'Ausstehend',provider_readback:'Übergeben',synced:'Abgeglichen',retry_wait:'Versuch folgt',error:'Abgleich offen'};
-    const shown=HGBusinessFeedback.sync(syncInfo),label=syncInfo.syncing?'Gleicht ab':Number(syncInfo.review)>0?'Prüfung nötig':syncInfo.configured===false?'Drive verbinden':labels[syncInfo.state]||(syncInfo.last_error?'Abgleich offen':shown.title);
-    pill.textContent=label;pill.title=shown.title+'. '+shown.detail;pill.setAttribute('aria-label','Status öffnen: '+shown.title);pill.dataset.open='status-page';
+    const shown=HGBusinessFeedback.sync(syncInfo);if(HGBusinessFeedback.backupOnly(syncInfo)){pill.textContent=shown.title;pill.title=shown.detail;pill.setAttribute('aria-label','Vollsicherung öffnen: '+shown.title);delete pill.dataset.open;pill.dataset.openFullBackup='';const jobs=syncInfo.full_backup?.jobs||[];pill.classList.toggle('is-syncing',jobs.some(job=>job.context_matches===true&&job.target_matches===true&&['UPLOADING','REMOTE_VERIFY_PENDING'].includes(job.phase)));return;}
+    pill.textContent=shown.title;pill.title=shown.detail;pill.setAttribute('aria-label','Vollsicherung öffnen: '+shown.title);delete pill.dataset.open;pill.dataset.openFullBackup='';
   }
   function appointmentRow(entry){
     const a=entry.appointment,w=entry.weather||{},clashes=entry.collisions||[],warning=['critical','difficult','unknown'].includes(w.severity)||clashes.length||entry.availability_unknown||entry.calendar?.state==='review_required';
@@ -128,8 +127,8 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
     const recent=get('workday-recent'),rows=logs.slice().sort((a,b)=>String(b.work_date||'').localeCompare(String(a.work_date||''))||String(b.start_time||'').localeCompare(String(a.start_time||''))).slice(0,3),recentKey=JSON.stringify(rows.map(row=>[row,customerName(row.customer_id)]));
     get('today-recent').hidden=!rows.length;
     if(recent._rowsKey!==recentKey){recent._rowsKey=recentKey;recent.innerHTML=rows.map(row=>'<button type="button" class="workday-recent-row" data-edit-worklog="'+esc(row.id)+'"><strong>'+esc(customerName(row.customer_id))+'</strong><span>'+esc(worklogDateLabel(row.work_date))+' · '+esc(String(row.activity||'').slice(0,75))+'</span><b>'+Number(row.hours||0).toLocaleString('de-AT')+' h</b></button>').join('');}
-    const review=Number(syncInfo.review??state.sync_queue?.review??0),help=syncInfo.user_action_required||['action_required','error','status_warning'].includes(syncInfo.state),open=get('today-open');open.hidden=!review&&!help;
-    open.innerHTML='<h2>Offen</h2><div class="today-open-chips">'+(review?'<button type="button" data-open="sync-page">'+review+' Änderungen prüfen</button>':'')+(help?'<button type="button" data-open="status-page">'+(syncInfo.state==='status_warning'?'Status prüfen':'Abgleich braucht Hilfe')+'</button>':'')+'</div>';
+    const review=Number(syncInfo.review??state.sync_queue?.review??0),backup=syncInfo.full_backup,needsBackup=!backup?.last_external_verified_at||backup?.requires_setup||backup?.clock_review_required,open=get('today-open');open.hidden=!review&&!needsBackup;
+    open.innerHTML='<h2>Prüfen</h2><div class="today-open-chips">'+(review?'<button type="button" data-open="sync-page">Historische Vorgänge prüfen</button>':'')+(needsBackup?'<button type="button" data-open-full-backup>Sicherung prüfen</button>':'')+'</div>';
     document.body.dataset.todayReady='true';
   }
   function init(){

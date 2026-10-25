@@ -38,6 +38,33 @@ final class ReleaseLifecycleProbe {
         runner.waitForIdleSync();
         if(failure[0] instanceof Error)throw (Error)failure[0];if(failure[0] instanceof Exception)throw (Exception)failure[0];
     }
+    static void retiredDriveUi(Instrumentation runner,Context context)throws Exception{
+        Instrumentation.ActivityMonitor monitor=runner.addMonitor(FullBackupActivity.class.getName(),null,false);
+        android.app.Activity retired=null,backup=null;
+        try{
+            retired=runner.startActivitySync(new Intent(context,DriveConnectionActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            backup=monitor.waitForActivityWithTimeout(10000);require(backup instanceof FullBackupActivity);
+            runner.waitForIdleSync();final android.app.Activity screen=backup;Throwable[] failure={null};
+            runner.runOnMainSync(()->{try{
+                require(screen.getTitle().toString().equals("Vollsicherung"));
+                java.util.List<android.view.View> views=new java.util.ArrayList<>();collectViews(screen.getWindow().getDecorView(),views);
+                boolean full=false,target=false,automatic=false;
+                for(android.view.View item:views)if(item instanceof android.widget.TextView){
+                    String text=((android.widget.TextView)item).getText().toString();
+                    if(text.equals("Verschlüsselte Vollsicherung"))full=true;
+                    if(text.equals("Drive-Sicherungsziel"))target=true;
+                    if(text.startsWith("Täglich automatisch sichern"))automatic=true;
+                    require(!text.equals("Google-Drive-Abgleich automatisch · EIN / AUS"));
+                }
+                require(full&&target&&automatic);
+            }catch(Throwable error){failure[0]=error;}});
+            if(failure[0] instanceof Error)throw (Error)failure[0];if(failure[0] instanceof Exception)throw (Exception)failure[0];
+        }finally{
+            final android.app.Activity closeBackup=backup,closeRetired=retired;
+            runner.runOnMainSync(()->{if(closeBackup!=null)closeBackup.finish();if(closeRetired!=null)closeRetired.finish();});
+            runner.removeMonitor(monitor);runner.waitForIdleSync();
+        }
+    }
     static String js(Instrumentation runner,android.webkit.WebView view,String script)throws Exception{
         java.util.concurrent.CountDownLatch done=new java.util.concurrent.CountDownLatch(1);String[] result={null};
         runner.runOnMainSync(()->view.evaluateJavascript(script,value->{result[0]=value;done.countDown();}));
@@ -69,7 +96,7 @@ final class ReleaseLifecycleProbe {
         require("true".equals(js(runner,view,"(()=>{openPage('settings-page');return !document.getElementById('setting-side-swipe')&&!document.getElementById('settings-preference-state')&&!!document.getElementById('setting-garden-shortcut');})()")));
         require("true".equals(js(runner,view,"(()=>{openPage('home');const before=currentPage;HGGestures.openMenu();const shown=document.getElementById('app-drawer').open;handleAndroidBack();return shown&&!document.getElementById('app-drawer').open&&currentPage===before&&!!document.getElementById('planning-home');})()")));
         require("true".equals(js(runner,view,"(()=>{const r=JSON.parse(AndroidData.ownerCall('get_planning_settings','{}'));return r.ok&&typeof r.data.integration.calendar_busy_enabled==='boolean'&&r.data.integration.calendar_busy_scope==='primary'&&r.data.integration.credentials_exposed===false;})()")));
-        connectionUi(runner,context,DriveConnectionActivity.class,1);
+        retiredDriveUi(runner,context);
         connectionUi(runner,context,PixelTunnelActivity.class,1);
         connectionUi(runner,context,PlanningConnectionActivity.class,4);
         }finally{

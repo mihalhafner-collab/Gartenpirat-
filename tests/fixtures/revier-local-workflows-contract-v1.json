@@ -5094,5 +5094,1325 @@
       "after": "fde883b9bb4ddf2838c04f34904971d50eb3c0f97d00394dc352d8ce88b6d3ed",
       "reason": "Additive commit_state=not_committed only for explicit pre-commit typed rejection; unknown I/O and expired/replay-mismatch requests remain unconfirmed."
     }
-  ]
+  ],
+  "backup_only_transition_v3": {
+    "version": 3,
+    "authorization": "Explicit user final1.55.0 Revier Solo: business functions and authoritative data exclusively Pixel/App, Drive backup only; reviewed25Oct2026 against actual generated catalog and synthetic RPC DTOs.",
+    "changes": [
+      {
+        "group": "ui_actions",
+        "id": "sicherung.93",
+        "before": {
+          "id": "sicherung.93",
+          "area": "sicherung",
+          "action": "Geschäftssicherung erstellen",
+          "source": "owner-ui.js",
+          "mcp": [
+            "create_backup"
+          ],
+          "kind": "business",
+          "rights": "owner_write",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false
+        },
+        "after": {
+          "id": "sicherung.93",
+          "area": "sicherung",
+          "action": "Geschäftssicherung erstellen",
+          "source": "owner-ui.js",
+          "mcp": [
+            "create_backup"
+          ],
+          "kind": "business",
+          "rights": "owner_write",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false,
+          "availability": "legacy_api_only",
+          "replacement_action_id": "platform.vollbackup_saf",
+          "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die verschlüsselte Vollsicherung."
+        },
+        "reason": "Explicit final Revier Solo backup-only request; truthful retired/historical UI availability, preserve legacy tool registration."
+      },
+      {
+        "group": "ui_actions",
+        "id": "sicherung.94",
+        "before": {
+          "id": "sicherung.94",
+          "area": "sicherung",
+          "action": "Sicherungen auflisten",
+          "source": "owner-ui.js",
+          "mcp": [
+            "list_backups"
+          ],
+          "kind": "business",
+          "rights": "owner_read",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false
+        },
+        "after": {
+          "id": "sicherung.94",
+          "area": "sicherung",
+          "action": "Sicherungen auflisten",
+          "source": "owner-ui.js",
+          "mcp": [
+            "list_backups"
+          ],
+          "kind": "business",
+          "rights": "owner_read",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false,
+          "availability": "legacy_api_only",
+          "replacement_action_id": "platform.vollbackup_saf",
+          "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die verschlüsselte Vollsicherung."
+        },
+        "reason": "Explicit final Revier Solo backup-only request; truthful retired/historical UI availability, preserve legacy tool registration."
+      },
+      {
+        "group": "ui_actions",
+        "id": "sicherung.95",
+        "before": {
+          "id": "sicherung.95",
+          "area": "sicherung",
+          "action": "Sicherung prüfen",
+          "source": "owner-ui.js",
+          "mcp": [
+            "inspect_backup"
+          ],
+          "kind": "business",
+          "rights": "owner_read",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false
+        },
+        "after": {
+          "id": "sicherung.95",
+          "area": "sicherung",
+          "action": "Sicherung prüfen",
+          "source": "owner-ui.js",
+          "mcp": [
+            "inspect_backup"
+          ],
+          "kind": "business",
+          "rights": "owner_read",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false,
+          "availability": "legacy_api_only",
+          "replacement_action_id": "platform.vollbackup_saf",
+          "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die verschlüsselte Vollsicherung."
+        },
+        "reason": "Explicit final Revier Solo backup-only request; truthful retired/historical UI availability, preserve legacy tool registration."
+      },
+      {
+        "group": "ui_actions",
+        "id": "sicherung.96",
+        "before": {
+          "id": "sicherung.96",
+          "area": "sicherung",
+          "action": "Sicherung übertragen",
+          "source": "owner-ui.js",
+          "mcp": [
+            "get_file_metadata",
+            "read_file_chunk"
+          ],
+          "kind": "business",
+          "rights": "owner_read",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false
+        },
+        "after": {
+          "id": "sicherung.96",
+          "area": "sicherung",
+          "action": "Sicherung übertragen",
+          "source": "owner-ui.js",
+          "mcp": [
+            "get_file_metadata",
+            "read_file_chunk"
+          ],
+          "kind": "business",
+          "rights": "owner_read",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false,
+          "availability": "legacy_api_only",
+          "replacement_action_id": "platform.vollbackup_saf",
+          "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die verschlüsselte Vollsicherung."
+        },
+        "reason": "Explicit final Revier Solo backup-only request; truthful retired/historical UI availability, preserve legacy tool registration."
+      },
+      {
+        "group": "ui_actions",
+        "id": "sicherung.97",
+        "before": {
+          "id": "sicherung.97",
+          "area": "sicherung",
+          "action": "Fehlende Daten geschützt wiederherstellen",
+          "source": "owner-ui.js",
+          "mcp": [
+            "inspect_backup",
+            "restore_backup"
+          ],
+          "kind": "business",
+          "rights": "owner_write",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false
+        },
+        "after": {
+          "id": "sicherung.97",
+          "area": "sicherung",
+          "action": "Fehlende Daten geschützt wiederherstellen",
+          "source": "owner-ui.js",
+          "mcp": [
+            "inspect_backup",
+            "restore_backup"
+          ],
+          "kind": "business",
+          "rights": "owner_write",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false,
+          "availability": "legacy_api_only",
+          "replacement_action_id": "platform.vollbackup_saf",
+          "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die verschlüsselte Vollsicherung."
+        },
+        "reason": "Explicit final Revier Solo backup-only request; truthful retired/historical UI availability, preserve legacy tool registration."
+      },
+      {
+        "group": "ui_actions",
+        "id": "synchronisierung.105",
+        "before": {
+          "id": "synchronisierung.105",
+          "area": "synchronisierung",
+          "action": "Status / Queue / Fehler lesen",
+          "source": "sync-dashboard.js",
+          "mcp": [
+            "get_sync_overview"
+          ],
+          "kind": "business",
+          "rights": "owner_read",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false
+        },
+        "after": {
+          "id": "synchronisierung.105",
+          "area": "synchronisierung",
+          "action": "Status / Queue / Fehler lesen",
+          "source": "sync-dashboard.js",
+          "mcp": [
+            "get_sync_overview"
+          ],
+          "kind": "business",
+          "rights": "owner_read",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false,
+          "availability": "historical_read_only",
+          "transition": "Lokale historische Aktionsbelege und Warteschlangen, kein laufender Drive-Geschäftsabgleich."
+        },
+        "reason": "Explicit final Revier Solo backup-only request; truthful retired/historical UI availability, preserve legacy tool registration."
+      },
+      {
+        "group": "ui_actions",
+        "id": "synchronisierung.106",
+        "before": {
+          "id": "synchronisierung.106",
+          "area": "synchronisierung",
+          "action": "Einzelaktionsstatus",
+          "source": "sync-dashboard.js",
+          "mcp": [
+            "get_sync_status"
+          ],
+          "kind": "business",
+          "rights": "owner_read",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false
+        },
+        "after": {
+          "id": "synchronisierung.106",
+          "area": "synchronisierung",
+          "action": "Einzelaktionsstatus",
+          "source": "sync-dashboard.js",
+          "mcp": [
+            "get_sync_status"
+          ],
+          "kind": "business",
+          "rights": "owner_read",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false,
+          "availability": "historical_read_only",
+          "transition": "Lokale historische Aktionsbelege und Warteschlangen, kein laufender Drive-Geschäftsabgleich."
+        },
+        "reason": "Explicit final Revier Solo backup-only request; truthful retired/historical UI availability, preserve legacy tool registration."
+      },
+      {
+        "group": "ui_actions",
+        "id": "synchronisierung.107",
+        "before": {
+          "id": "synchronisierung.107",
+          "area": "synchronisierung",
+          "action": "Synchronisieren / erneut versuchen",
+          "source": "sync-dashboard.js",
+          "mcp": [
+            "request_sync"
+          ],
+          "kind": "business",
+          "rights": "owner_write",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false
+        },
+        "after": {
+          "id": "synchronisierung.107",
+          "area": "synchronisierung",
+          "action": "Synchronisieren / erneut versuchen",
+          "source": "sync-dashboard.js",
+          "mcp": [
+            "request_sync"
+          ],
+          "kind": "business",
+          "rights": "owner_write",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false,
+          "availability": "retired",
+          "replacement_action_id": "platform.vollbackup_saf",
+          "transition": "Geschäftlicher Drive-Abgleich stillgelegt; request_sync meldet den versionierten Übergang und startet kein Backup."
+        },
+        "reason": "Explicit final Revier Solo backup-only request; truthful retired/historical UI availability, preserve legacy tool registration."
+      },
+      {
+        "group": "ui_actions",
+        "id": "synchronisierung.111",
+        "before": {
+          "id": "synchronisierung.111",
+          "area": "synchronisierung",
+          "action": "Historische Siebener-Vorschau",
+          "source": "sync-dashboard.js",
+          "mcp": [
+            "preview_legacy_conflict_resolution"
+          ],
+          "kind": "business",
+          "rights": "owner_read",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false
+        },
+        "after": {
+          "id": "synchronisierung.111",
+          "area": "synchronisierung",
+          "action": "Historische Siebener-Vorschau",
+          "source": "legacy-conflicts-ui.js",
+          "mcp": [
+            "preview_legacy_conflict_resolution"
+          ],
+          "kind": "business",
+          "rights": "owner_read",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false,
+          "transition": "Historische Vorgänge bleiben sichtbar; alte netzabhängige Aktionen liefern einen expliziten Übergangszustand."
+        },
+        "reason": "Explicit final Revier Solo backup-only request; truthful retired/historical UI availability, preserve legacy tool registration."
+      },
+      {
+        "group": "ui_actions",
+        "id": "synchronisierung.112",
+        "before": {
+          "id": "synchronisierung.112",
+          "area": "synchronisierung",
+          "action": "Historische Sicherung mit Vorschauhash",
+          "source": "sync-dashboard.js",
+          "mcp": [
+            "prepare_legacy_conflict_backup"
+          ],
+          "kind": "business",
+          "rights": "owner_write",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false
+        },
+        "after": {
+          "id": "synchronisierung.112",
+          "area": "synchronisierung",
+          "action": "Historische Sicherung mit Vorschauhash",
+          "source": "legacy-conflicts-ui.js",
+          "mcp": [
+            "prepare_legacy_conflict_backup"
+          ],
+          "kind": "business",
+          "rights": "owner_write",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false,
+          "transition": "Historische Vorgänge bleiben sichtbar; alte netzabhängige Aktionen liefern einen expliziten Übergangszustand."
+        },
+        "reason": "Explicit final Revier Solo backup-only request; truthful retired/historical UI availability, preserve legacy tool registration."
+      },
+      {
+        "group": "ui_actions",
+        "id": "synchronisierung.113",
+        "before": {
+          "id": "synchronisierung.113",
+          "area": "synchronisierung",
+          "action": "Alle historischen Konflikte keep_current abschließen",
+          "source": "sync-dashboard.js",
+          "mcp": [
+            "close_legacy_conflicts"
+          ],
+          "kind": "business",
+          "rights": "owner_write",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false
+        },
+        "after": {
+          "id": "synchronisierung.113",
+          "area": "synchronisierung",
+          "action": "Alle historischen Konflikte keep_current abschließen",
+          "source": "legacy-conflicts-ui.js",
+          "mcp": [
+            "close_legacy_conflicts"
+          ],
+          "kind": "business",
+          "rights": "owner_write",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false,
+          "transition": "Historische Vorgänge bleiben sichtbar; alte netzabhängige Aktionen liefern einen expliziten Übergangszustand."
+        },
+        "reason": "Explicit final Revier Solo backup-only request; truthful retired/historical UI availability, preserve legacy tool registration."
+      },
+      {
+        "group": "ui_actions",
+        "id": "einstellungen.119",
+        "before": {
+          "id": "einstellungen.119",
+          "area": "einstellungen",
+          "action": "Nummernkreis und Aussteller bewusst bestätigen",
+          "source": "owner-ui.js",
+          "mcp": [
+            "get_business_settings",
+            "update_business_settings"
+          ],
+          "kind": "business",
+          "rights": "owner_write",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false
+        },
+        "after": {
+          "id": "einstellungen.119",
+          "area": "einstellungen",
+          "action": "Gespeicherte Nummernangaben lesen und geschützte Umstellung öffnen",
+          "source": "owner-ui.js",
+          "mcp": [
+            "get_business_settings"
+          ],
+          "kind": "business",
+          "rights": "owner_read",
+          "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+          "platform_only": false,
+          "availability": "read_only",
+          "replacement_action_id": "platform.vollbackup_saf",
+          "transition": "Keine Nummernautorität durch Checkboxen. Geschützter lokaler Autoritätsabgleich im vorhandenen Umstellungsdialog."
+        },
+        "reason": "Explicit final Revier Solo backup-only request; truthful retired/historical UI availability, preserve legacy tool registration."
+      },
+      {
+        "group": "tools",
+        "id": "create_work_record",
+        "before": {
+          "inputSchema": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "hours": {
+                "type": "number",
+                "minimum": 0
+              },
+              "notes": {
+                "type": "string",
+                "maxLength": 10000
+              },
+              "work_date": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "activity": {
+                "type": "string",
+                "maxLength": 10000
+              },
+              "end_time": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "billing_customer_id": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "break_minutes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "allow_overnight": {
+                "type": "boolean"
+              },
+              "start_time": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "material": {
+                "type": "string",
+                "maxLength": 10000
+              },
+              "kilometers": {
+                "type": "number",
+                "minimum": 0
+              },
+              "location": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "customer_id": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "request_id": {
+                "minLength": 8,
+                "type": "string",
+                "maxLength": 128
+              },
+              "order_id": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "customer_visible": {
+                "type": "boolean"
+              },
+              "material_cost": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "request_id",
+              "order_id",
+              "work_date",
+              "activity"
+            ]
+          },
+          "name": "create_work_record",
+          "description": "Legt eine Arbeitsaufzeichnung mit tatsächlichen Kunden-/Auftrags-IDs an. request_id bei Wiederholung unverändert lassen. Erst lokal gesichert und im mobilen Drive-Abgleich vorgemerkt; get_sync_status prüft den Pixel-/Drive-Beleg.",
+          "annotations": {
+            "idempotentHint": true,
+            "openWorldHint": false,
+            "destructiveHint": false,
+            "readOnlyHint": false
+          }
+        },
+        "after": {
+          "inputSchema": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "hours": {
+                "type": "number",
+                "minimum": 0
+              },
+              "notes": {
+                "type": "string",
+                "maxLength": 10000
+              },
+              "work_date": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "activity": {
+                "type": "string",
+                "maxLength": 10000
+              },
+              "end_time": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "billing_customer_id": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "break_minutes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "allow_overnight": {
+                "type": "boolean"
+              },
+              "start_time": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "material": {
+                "type": "string",
+                "maxLength": 10000
+              },
+              "kilometers": {
+                "type": "number",
+                "minimum": 0
+              },
+              "location": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "customer_id": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "request_id": {
+                "minLength": 8,
+                "type": "string",
+                "maxLength": 128
+              },
+              "order_id": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "customer_visible": {
+                "type": "boolean"
+              },
+              "material_cost": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "request_id",
+              "order_id",
+              "work_date",
+              "activity"
+            ]
+          },
+          "name": "create_work_record",
+          "description": "Legt eine Arbeitsaufzeichnung mit tatsächlichen Kunden-/Auftrags-IDs dauerhaft auf dem Pixel an. request_id bei Wiederholung unverändert lassen. storage_contract_version 3: kein operativer Drive-Abgleich; get_sync_status liest den lokalen Aktionsbeleg, get_full_backup_status den getrennten Vollsicherungsstand.",
+          "annotations": {
+            "idempotentHint": true,
+            "openWorldHint": false,
+            "destructiveHint": false,
+            "readOnlyHint": false
+          }
+        },
+        "reason": "Explicit final Revier Solo backup-only contract3: description only; unchanged input schema, annotations and tool identity."
+      },
+      {
+        "group": "tools",
+        "id": "create_customer_work_record",
+        "before": {
+          "inputSchema": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "hours": {
+                "type": "number",
+                "minimum": 0
+              },
+              "notes": {
+                "type": "string",
+                "maxLength": 10000
+              },
+              "work_date": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "activity": {
+                "type": "string",
+                "maxLength": 10000
+              },
+              "end_time": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "billing_customer_id": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "break_minutes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "allow_overnight": {
+                "type": "boolean"
+              },
+              "start_time": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "material": {
+                "type": "string",
+                "maxLength": 10000
+              },
+              "kilometers": {
+                "type": "number",
+                "minimum": 0
+              },
+              "location": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "customer_id": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "request_id": {
+                "minLength": 8,
+                "type": "string",
+                "maxLength": 128
+              },
+              "order_id": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "customer_visible": {
+                "type": "boolean"
+              },
+              "material_cost": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "request_id",
+              "customer_id",
+              "work_date",
+              "activity"
+            ]
+          },
+          "name": "create_customer_work_record",
+          "description": "Legt eine Arbeitsaufzeichnung mit tatsächlichen Kunden-/Auftrags-IDs an. request_id bei Wiederholung unverändert lassen. Erst lokal gesichert und im mobilen Drive-Abgleich vorgemerkt; get_sync_status prüft den Pixel-/Drive-Beleg.",
+          "annotations": {
+            "idempotentHint": true,
+            "openWorldHint": false,
+            "destructiveHint": false,
+            "readOnlyHint": false
+          }
+        },
+        "after": {
+          "inputSchema": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "hours": {
+                "type": "number",
+                "minimum": 0
+              },
+              "notes": {
+                "type": "string",
+                "maxLength": 10000
+              },
+              "work_date": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "activity": {
+                "type": "string",
+                "maxLength": 10000
+              },
+              "end_time": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "billing_customer_id": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "break_minutes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "allow_overnight": {
+                "type": "boolean"
+              },
+              "start_time": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "material": {
+                "type": "string",
+                "maxLength": 10000
+              },
+              "kilometers": {
+                "type": "number",
+                "minimum": 0
+              },
+              "location": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "customer_id": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "request_id": {
+                "minLength": 8,
+                "type": "string",
+                "maxLength": 128
+              },
+              "order_id": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "customer_visible": {
+                "type": "boolean"
+              },
+              "material_cost": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "request_id",
+              "customer_id",
+              "work_date",
+              "activity"
+            ]
+          },
+          "name": "create_customer_work_record",
+          "description": "Legt eine Arbeitsaufzeichnung mit tatsächlichen Kunden-/Auftrags-IDs dauerhaft auf dem Pixel an. request_id bei Wiederholung unverändert lassen. storage_contract_version 3: kein operativer Drive-Abgleich; get_sync_status liest den lokalen Aktionsbeleg, get_full_backup_status den getrennten Vollsicherungsstand.",
+          "annotations": {
+            "idempotentHint": true,
+            "openWorldHint": false,
+            "destructiveHint": false,
+            "readOnlyHint": false
+          }
+        },
+        "reason": "Explicit final Revier Solo backup-only contract3: description only; unchanged input schema, annotations and tool identity."
+      },
+      {
+        "group": "tools",
+        "id": "prepare_legacy_conflict_backup",
+        "before": {
+          "inputSchema": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "expected_preview_hash": {
+                "pattern": "[0-9a-f]{64}",
+                "type": "string",
+                "maxLength": 64
+              },
+              "request_id": {
+                "minLength": 8,
+                "type": "string",
+                "maxLength": 128
+              }
+            },
+            "required": [
+              "request_id"
+            ]
+          },
+          "name": "prepare_legacy_conflict_backup",
+          "description": "Erstellt eine vollständig geprüfte private Geschäftssicherung mit Originalen, Queue und beiden Drive-Ständen. Bei LEGACY_SOURCE_CHANGED zwingend expected_preview_hash der frisch gelesenen Siebener-Vorschau angeben. Kein laufender Sync, keine automatische Übernahme abweichender Geschäftsdaten.",
+          "annotations": {
+            "idempotentHint": true,
+            "openWorldHint": false,
+            "destructiveHint": false,
+            "readOnlyHint": false
+          }
+        },
+        "after": {
+          "inputSchema": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "expected_preview_hash": {
+                "pattern": "[0-9a-f]{64}",
+                "type": "string",
+                "maxLength": 64
+              },
+              "request_id": {
+                "minLength": 8,
+                "type": "string",
+                "maxLength": 128
+              }
+            },
+            "required": [
+              "request_id"
+            ]
+          },
+          "name": "prepare_legacy_conflict_backup",
+          "description": "Versioniert stillgelegter Online-Vorbereitungspfad unter storage_contract_version 3: liefert LEGACY_SYNC_RETIRED ohne Drive-Geschäftszugriff und ohne implizite Sicherung. Historische Aktionen und Konflikte bleiben erhalten. get_full_backup_status und preview_local_authority lesen; vollständige Sicherung und kontrollierte Umstellung am Gerät prüfen. Keine automatische Konfliktentscheidung.",
+          "annotations": {
+            "idempotentHint": true,
+            "openWorldHint": false,
+            "destructiveHint": false,
+            "readOnlyHint": false
+          }
+        },
+        "reason": "Explicit final Revier Solo backup-only contract3: description only; unchanged input schema, annotations and tool identity."
+      },
+      {
+        "group": "tools",
+        "id": "close_legacy_conflicts",
+        "before": {
+          "inputSchema": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "expected_preview_hash": {
+                "pattern": "[0-9a-f]{64}",
+                "type": "string",
+                "maxLength": 64
+              },
+              "backup_id": {
+                "minLength": 1,
+                "type": "string",
+                "maxLength": 500
+              },
+              "request_id": {
+                "minLength": 8,
+                "type": "string",
+                "maxLength": 128
+              },
+              "confirmed": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
+              }
+            },
+            "required": [
+              "request_id",
+              "backup_id",
+              "expected_preview_hash",
+              "confirmed"
+            ]
+          },
+          "name": "close_legacy_conflicts",
+          "description": "Verwendet die bestehenden App-Speicher und fachlichen Prüfungen. Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.",
+          "annotations": {
+            "idempotentHint": true,
+            "openWorldHint": false,
+            "destructiveHint": false,
+            "readOnlyHint": false
+          }
+        },
+        "after": {
+          "inputSchema": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "expected_preview_hash": {
+                "pattern": "[0-9a-f]{64}",
+                "type": "string",
+                "maxLength": 64
+              },
+              "backup_id": {
+                "minLength": 1,
+                "type": "string",
+                "maxLength": 500
+              },
+              "request_id": {
+                "minLength": 8,
+                "type": "string",
+                "maxLength": 128
+              },
+              "confirmed": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
+              }
+            },
+            "required": [
+              "request_id",
+              "backup_id",
+              "expected_preview_hash",
+              "confirmed"
+            ]
+          },
+          "name": "close_legacy_conflicts",
+          "description": "Versioniert stillgelegter Abschluss des früheren Drive-Konfliktpfads unter storage_contract_version 3: liefert LEGACY_SYNC_RETIRED ohne Entscheidung, Queue-Löschung, Geschäftsübertragung oder implizite Sicherung. Historische Konflikte und Originalaktionen bleiben zur ausdrücklichen lokalen Prüfung erhalten; preview_legacy_conflict_resolution und preview_local_authority lesen.",
+          "annotations": {
+            "idempotentHint": true,
+            "openWorldHint": false,
+            "destructiveHint": false,
+            "readOnlyHint": false
+          }
+        },
+        "reason": "Explicit final Revier Solo backup-only contract3: description only; unchanged input schema, annotations and tool identity."
+      },
+      {
+        "group": "tools",
+        "id": "delete_entity",
+        "before": {
+          "inputSchema": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "expected_record_hash": {
+                "pattern": "[0-9a-f]{64}",
+                "description": "entity_hash des zuvor gelesenen Datensatzes.",
+                "type": "string",
+                "maxLength": 64
+              },
+              "expected_photo_links_hash": {
+                "pattern": "[0-9a-f]{64}",
+                "type": "string",
+                "maxLength": 64
+              },
+              "entity_id": {
+                "minLength": 1,
+                "type": "string",
+                "maxLength": 500
+              },
+              "request_id": {
+                "minLength": 8,
+                "type": "string",
+                "maxLength": 128
+              },
+              "entity": {
+                "minLength": 1,
+                "type": "string",
+                "maxLength": 500,
+                "enum": [
+                  "customer",
+                  "order",
+                  "worklog",
+                  "photo",
+                  "invoice",
+                  "offer",
+                  "service_template",
+                  "appointment"
+                ]
+              }
+            },
+            "required": [
+              "request_id",
+              "entity",
+              "entity_id",
+              "expected_record_hash"
+            ]
+          },
+          "name": "delete_entity",
+          "description": "Entfernt einen zulässigen Eintrag versionsgeschützt in den bestehenden Papierkorb. Automatischer Drive-Abgleich; keine physische Löschung und keine Kaskade. Bei betroffenen Fotos expected_photo_links_hash aus preview_delete erforderlich.  Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.",
+          "annotations": {
+            "idempotentHint": true,
+            "openWorldHint": false,
+            "destructiveHint": true,
+            "readOnlyHint": false
+          }
+        },
+        "after": {
+          "inputSchema": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "expected_record_hash": {
+                "pattern": "[0-9a-f]{64}",
+                "description": "entity_hash des zuvor gelesenen Datensatzes.",
+                "type": "string",
+                "maxLength": 64
+              },
+              "expected_photo_links_hash": {
+                "pattern": "[0-9a-f]{64}",
+                "type": "string",
+                "maxLength": 64
+              },
+              "entity_id": {
+                "minLength": 1,
+                "type": "string",
+                "maxLength": 500
+              },
+              "request_id": {
+                "minLength": 8,
+                "type": "string",
+                "maxLength": 128
+              },
+              "entity": {
+                "minLength": 1,
+                "type": "string",
+                "maxLength": 500,
+                "enum": [
+                  "customer",
+                  "order",
+                  "worklog",
+                  "photo",
+                  "invoice",
+                  "offer",
+                  "service_template",
+                  "appointment"
+                ]
+              }
+            },
+            "required": [
+              "request_id",
+              "entity",
+              "entity_id",
+              "expected_record_hash"
+            ]
+          },
+          "name": "delete_entity",
+          "description": "Entfernt einen zulässigen Eintrag versionsgeschützt in den bestehenden lokalen Papierkorb. Keine operative Drive-Synchronisierung, keine physische Löschung und keine Kaskade. Bei betroffenen Fotos expected_photo_links_hash aus preview_delete erforderlich.  Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.",
+          "annotations": {
+            "idempotentHint": true,
+            "openWorldHint": false,
+            "destructiveHint": true,
+            "readOnlyHint": false
+          }
+        },
+        "reason": "Explicit final Revier Solo backup-only contract3: description only; unchanged input schema, annotations and tool identity."
+      },
+      {
+        "group": "tools",
+        "id": "request_sync",
+        "before": {
+          "inputSchema": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "request_id": {
+                "minLength": 8,
+                "type": "string",
+                "maxLength": 128
+              }
+            },
+            "required": [
+              "request_id"
+            ]
+          },
+          "name": "request_sync",
+          "description": "Verwendet die bestehenden App-Speicher und fachlichen Prüfungen. Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.",
+          "annotations": {
+            "idempotentHint": true,
+            "openWorldHint": false,
+            "destructiveHint": false,
+            "readOnlyHint": false
+          }
+        },
+        "after": {
+          "inputSchema": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "request_id": {
+                "minLength": 8,
+                "type": "string",
+                "maxLength": 128
+              }
+            },
+            "required": [
+              "request_id"
+            ]
+          },
+          "name": "request_sync",
+          "description": "Versioniert stillgelegter früherer Drive-Geschäftsabgleich: liefert LEGACY_SYNC_RETIRED, drive_role backup_only und storage_contract_version 3. Keine Geschäftsübertragung und keine implizite Sicherung; get_full_backup_status lesen und eine Vollsicherung bei Bedarf bewusst über request_full_backup anfordern. Bestehende lokale Daten, Aktionen und Kontofreigaben bleiben erhalten. request_id bleibt für kompatible Aufrufe erforderlich.",
+          "annotations": {
+            "idempotentHint": true,
+            "openWorldHint": false,
+            "destructiveHint": false,
+            "readOnlyHint": false
+          }
+        },
+        "reason": "Explicit final Revier Solo backup-only contract3: description only; unchanged input schema, annotations and tool identity."
+      },
+      {
+        "group": "tools",
+        "id": "request_invoice_issue",
+        "before": {
+          "inputSchema": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "expected_record_hash": {
+                "pattern": "[0-9a-f]{64}",
+                "description": "record_hash des zuvor gelesenen Datensatzes.",
+                "type": "string",
+                "maxLength": 64
+              },
+              "invoice_id": {
+                "minLength": 1,
+                "type": "string",
+                "maxLength": 500
+              },
+              "request_id": {
+                "minLength": 8,
+                "type": "string",
+                "maxLength": 128
+              },
+              "expected_context_hash": {
+                "pattern": "[0-9a-f]{64}",
+                "type": "string",
+                "maxLength": 64
+              },
+              "confirmed": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
+              }
+            },
+            "required": [
+              "request_id",
+              "invoice_id",
+              "expected_record_hash",
+              "confirmed"
+            ]
+          },
+          "name": "request_invoice_issue",
+          "description": "Beauftragt den Pixel-Rechnungsabschluss nach ausdrücklicher Nutzeranweisung. get_capabilities.invoice_finalization legt den versionierten Pfad fest: im Altbetrieb geschützter Onlinevergleich, nach kontrollierter Umstellung atomare lokale Nummernvergabe mit Belegsnapshot und dauerhaftem PDF-Job. Im lokalen Pfad die vollständige get_invoice.issue_review prüfen und deren record_hash sowie context_hash als expected_record_hash und expected_context_hash senden. Nach Restore bis externem Original-/Nummernabgleich gesperrt. Keine erfolgreiche PDF-Freigabe vor verifiziertem Original; kein automatischer Versand oder Zahlungsstatus. Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.",
+          "annotations": {
+            "idempotentHint": true,
+            "openWorldHint": false,
+            "destructiveHint": true,
+            "readOnlyHint": false
+          }
+        },
+        "after": {
+          "inputSchema": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "expected_record_hash": {
+                "pattern": "[0-9a-f]{64}",
+                "description": "record_hash des zuvor gelesenen Datensatzes.",
+                "type": "string",
+                "maxLength": 64
+              },
+              "invoice_id": {
+                "minLength": 1,
+                "type": "string",
+                "maxLength": 500
+              },
+              "request_id": {
+                "minLength": 8,
+                "type": "string",
+                "maxLength": 128
+              },
+              "expected_context_hash": {
+                "pattern": "[0-9a-f]{64}",
+                "type": "string",
+                "maxLength": 64
+              },
+              "confirmed": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
+              }
+            },
+            "required": [
+              "request_id",
+              "invoice_id",
+              "expected_record_hash",
+              "confirmed"
+            ]
+          },
+          "name": "request_invoice_issue",
+          "description": "Beauftragt den lokalen Pixel-Rechnungsabschluss nach ausdrücklicher Nutzeranweisung. storage_contract_version 3: Drive ist ausschließlich Sicherungsziel; vor geprüfter lokaler Autoritätsumstellung bleibt die Ausgabe gesperrt. Danach atomare lokale Nummernvergabe mit Belegsnapshot und dauerhaftem PDF-Job. Die vollständige get_invoice.issue_review prüfen und deren record_hash sowie context_hash als expected_record_hash und expected_context_hash senden. Nach Restore bis externem Original-/Nummernabgleich gesperrt. Keine erfolgreiche PDF-Freigabe vor verifiziertem Original; kein automatischer Versand oder Zahlungsstatus. Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden.",
+          "annotations": {
+            "idempotentHint": true,
+            "openWorldHint": false,
+            "destructiveHint": true,
+            "readOnlyHint": false
+          }
+        },
+        "reason": "Explicit final Revier Solo backup-only contract3: description only; unchanged input schema, annotations and tool identity."
+      },
+      {
+        "group": "observations",
+        "id": "qa_case_0",
+        "before": "4cc8f153cbd00195679a069bbe638c83ca43c26af56cfcde760fa5700f4c1719",
+        "after": "e978e8f8864f574d45ee4a5647f2b57b69b37e63b05f81fa4d43ec2530535dae",
+        "reason": "Actual old/new RPC DTO audit: security_notice states authoritative Pixel; case14 additionally explicit backup-only storage contract3, local confirmation scope and notice. Business data and input state unchanged."
+      },
+      {
+        "group": "observations",
+        "id": "qa_case_1",
+        "before": "29064b693e78bb5ae1d236115264a86f6a1e8207eb106eb8efde86d6aebedb25",
+        "after": "12326c89fca9c80035338333dd8972a42c897906dcf3b653853f26e76fc05156",
+        "reason": "Actual old/new RPC DTO audit: security_notice states authoritative Pixel; case14 additionally explicit backup-only storage contract3, local confirmation scope and notice. Business data and input state unchanged."
+      },
+      {
+        "group": "observations",
+        "id": "qa_case_2",
+        "before": "a535d7b1ad41ebce8410968f7be0c397f5e765a5e350b30624531a30f15d0a44",
+        "after": "f50f074d457512d40bb9b44afe908a4cedf0897c0ab458ebb8f65b6e96c22160",
+        "reason": "Actual old/new RPC DTO audit: security_notice states authoritative Pixel; case14 additionally explicit backup-only storage contract3, local confirmation scope and notice. Business data and input state unchanged."
+      },
+      {
+        "group": "observations",
+        "id": "qa_case_3",
+        "before": "5c41126428d3dccd6422c1dd2da99c0767ff30565ab3e22828773033d367fa7f",
+        "after": "3a12c0e85736d3857e58116f34e3dbaca35774c8cb269b659a9cf922c637fb2a",
+        "reason": "Actual old/new RPC DTO audit: security_notice states authoritative Pixel; case14 additionally explicit backup-only storage contract3, local confirmation scope and notice. Business data and input state unchanged."
+      },
+      {
+        "group": "observations",
+        "id": "qa_case_4",
+        "before": "24a7fe08ad645a1968e3573841d2ebc1b982ccf755f1020780c8f48133c770a2",
+        "after": "8b13a9a5563fe2cc6886a0a61165c4bc32de8680d455734ebada8f30a96a472b",
+        "reason": "Actual old/new RPC DTO audit: security_notice states authoritative Pixel; case14 additionally explicit backup-only storage contract3, local confirmation scope and notice. Business data and input state unchanged."
+      },
+      {
+        "group": "observations",
+        "id": "qa_case_5",
+        "before": "0ba4f88463c1aa598ffdda3123c2a862d2881d73a7d2a944f0e0e0fe5a6e9963",
+        "after": "55f55e4383c1edee8b134ad4eee89150c34bbdd7b9cacaf9c64bcea7122a994a",
+        "reason": "Actual old/new RPC DTO audit: security_notice states authoritative Pixel; case14 additionally explicit backup-only storage contract3, local confirmation scope and notice. Business data and input state unchanged."
+      },
+      {
+        "group": "observations",
+        "id": "qa_case_6",
+        "before": "bc592347dc8ef54779a6b6185de371f7b487d3d716814e1e945b635bc6709b20",
+        "after": "040abc68829db1a6251a8faa85af714c51e499539edf53b652beef25f6cb2ecd",
+        "reason": "Actual old/new RPC DTO audit: security_notice states authoritative Pixel; case14 additionally explicit backup-only storage contract3, local confirmation scope and notice. Business data and input state unchanged."
+      },
+      {
+        "group": "observations",
+        "id": "qa_case_7",
+        "before": "5298994bc0f05a1d4d3e8e35de988040fa8a107ee53bbcf5216acfa0edcb2de6",
+        "after": "d677f941b1e189651a0808224700143f331b099315cc095134e972cc62e0321e",
+        "reason": "Actual old/new RPC DTO audit: security_notice states authoritative Pixel; case14 additionally explicit backup-only storage contract3, local confirmation scope and notice. Business data and input state unchanged."
+      },
+      {
+        "group": "observations",
+        "id": "qa_case_8",
+        "before": "dec22c0605a9cade0d48589a77ecb029b2bbfcc005c3bc1d4e8266b6c1763d35",
+        "after": "fc94c2a7fd6486fbf3969dd1776fd92b2d68e7cb42582bb2b5819ec50a5426c7",
+        "reason": "Actual old/new RPC DTO audit: security_notice states authoritative Pixel; case14 additionally explicit backup-only storage contract3, local confirmation scope and notice. Business data and input state unchanged."
+      },
+      {
+        "group": "observations",
+        "id": "qa_case_9",
+        "before": "545184e16f06842a940b2482f6e96bbf4e2ac329ef017a73c87b71df2dd2c16b",
+        "after": "66dae9318a3ca3f9bf88035636487791bf9785a956fa4ccb8649342f6c990d3a",
+        "reason": "Actual old/new RPC DTO audit: security_notice states authoritative Pixel; case14 additionally explicit backup-only storage contract3, local confirmation scope and notice. Business data and input state unchanged."
+      },
+      {
+        "group": "observations",
+        "id": "qa_case_10",
+        "before": "dd0693ffb5b12a7a30e28e4aaeab9dce9bde0a969825e6a0872f9a1334610206",
+        "after": "1ab205444126aeb216237875c3b94fdbe044ba3b6c2ab2790b699c218f100c20",
+        "reason": "Actual old/new RPC DTO audit: security_notice states authoritative Pixel; case14 additionally explicit backup-only storage contract3, local confirmation scope and notice. Business data and input state unchanged."
+      },
+      {
+        "group": "observations",
+        "id": "qa_case_11",
+        "before": "67289a1f6edbd7aa495ae1aa05ba8a3dc8233adbc1eceb01f7f6e504c9bcd407",
+        "after": "58b22def8052dab959a8286970b29b32a0bab86c8bbdecaedf40a664d27ceddf",
+        "reason": "Actual old/new RPC DTO audit: security_notice states authoritative Pixel; case14 additionally explicit backup-only storage contract3, local confirmation scope and notice. Business data and input state unchanged."
+      },
+      {
+        "group": "observations",
+        "id": "qa_case_12",
+        "before": "f402f8eb8121c93fcb1999a79adb9679c3dfb1166a5cc6f5691db98f4ea3e484",
+        "after": "6666a361fae4ccf1610a1f18028c38722cf621e951e88f010addaddf5153cb91",
+        "reason": "Actual old/new RPC DTO audit: security_notice states authoritative Pixel; case14 additionally explicit backup-only storage contract3, local confirmation scope and notice. Business data and input state unchanged."
+      },
+      {
+        "group": "observations",
+        "id": "qa_case_13",
+        "before": "3fe1dd98c911c10c08e8018470c0dbc14b27a447b376772c2d9d41c325f994fe",
+        "after": "58f5fc96db559a59802dcd72b5adeac8e89e17d56db4edd19b506d56cb683482",
+        "reason": "Actual old/new RPC DTO audit: security_notice states authoritative Pixel; case14 additionally explicit backup-only storage contract3, local confirmation scope and notice. Business data and input state unchanged."
+      },
+      {
+        "group": "observations",
+        "id": "qa_case_14",
+        "before": "54edf47eec3214815fb1be744928d6d0c471dadce576aace34b58ad3f4d15c9b",
+        "after": "a49aec7cdb5077854e12cccddf83fdc41b13ed3c29f8a9cfafaf45c40fb5a1fd",
+        "reason": "Actual old/new RPC DTO audit: security_notice states authoritative Pixel; case14 additionally explicit backup-only storage contract3, local confirmation scope and notice. Business data and input state unchanged."
+      },
+      {
+        "group": "observations",
+        "id": "qa_case_15",
+        "before": "b56bf6f04b0dbe331a52e8addd3ae68527a4fa92c1e5fb201639e34acb1cc5dd",
+        "after": "e1e218c1f3d52b753e19e38253bbe8d86c6213dab1a569804ce64c899779aab1",
+        "reason": "Actual old/new RPC DTO audit: security_notice states authoritative Pixel; case14 additionally explicit backup-only storage contract3, local confirmation scope and notice. Business data and input state unchanged."
+      }
+    ]
+  }
 }

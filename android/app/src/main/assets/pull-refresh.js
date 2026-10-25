@@ -14,8 +14,7 @@
  function finish(result){
   const visible=requested;requested=false;busy=!!result?.sync?.syncing;clearTimeout(watchdog);
   if(!visible)return;
-  if(result?.cancelled)show('Ordnerauswahl abgebrochen · lokal gespeicherte Daten bleiben erhalten');
-  else if(result?.ok)show(result.confirmation_scope==='provider_readback'?'Drive-App aktualisiert · Cloud-Upload separat':'Abgleich abgeschlossen','ready');
+  if(result?.ok)show('Lokale Ansicht aktualisiert','ready');
   else if(result?.journal_errors?.length)show('Abgleich beendet · offene Änderungen bitte prüfen');
   else show('Aktualisierung nicht abgeschlossen · lokale Daten bleiben erhalten');
   hide(result?.ok?2200:3600);
@@ -45,13 +44,7 @@
   const distance=gesture.distance;cancel();
   if(event.touches.length||distance<72||busy||!safe())return;
   requested=true;busy=true;show('Daten werden aktualisiert …','syncing');
-  try{AndroidData.synchronize();}
-  catch{finish({ok:false});return;}
-  watchdog=setTimeout(()=>{
-   if(!requested)return;
-   try{const status=JSON.parse(AndroidData.getSyncStatus());if(!status.syncing){finish({ok:false,cancelled:!status.configured,sync:status});return;}}catch{}
-   show('Der Abgleich dauert länger. Du kannst weiterarbeiten.','syncing');
-  },90000);
+  try{load();finish({ok:true,local_refresh:true});}catch{finish({ok:false});}
  },{passive:true});
  const started=window.onDriveSyncStarted,finished=window.onDriveSync;
  window.onDriveSyncStarted=function(status){busy=true;cancel();if(typeof started==='function')started.apply(this,arguments);if(requested)show('Daten werden aktualisiert …','syncing');};

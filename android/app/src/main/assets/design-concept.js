@@ -5,6 +5,8 @@
   let profileId='',documentationFilter='all',documentationLimit=50,photoLimit=30,photoAddDialog=null,photoViewer=null,viewerRows=[],viewerIndex=0,viewerScale=1,viewerX=0,viewerY=0,viewerLoadToken=0;
   const moreLists=new Map();let moreId=0;
   const viewerOriginals=new Map();
+  const localPhotoSource=value=>{const source=String(value||'');if(source.startsWith('data:image/')||/^content:\/\/at\.hausgarten\.service\.photothumbnails\/[0-9a-f]{64}\.jpg$/.test(source))return source;if(source.startsWith('blob:'))try{if(new URL(source).origin===location.origin)return source;}catch(_){}return '';};
+
   function cacheViewerOriginal(picture,data){picture.full_data=data;viewerOriginals.delete(picture.id);viewerOriginals.set(picture.id,picture);while(viewerOriginals.size>2){const [id,old]=viewerOriginals.entries().next().value;if(old.full_data===old._viewerOriginal)delete old.full_data;delete old._viewerOriginal;viewerOriginals.delete(id);}picture._viewerOriginal=data;}
   function releaseViewerOriginals(){for(const row of viewerOriginals.values()){if(row.full_data===row._viewerOriginal)delete row.full_data;delete row._viewerOriginal;}viewerOriginals.clear();}
   const hours=value=>Number(value||0).toLocaleString('de-AT',{maximumFractionDigits:2})+' h';
@@ -13,7 +15,7 @@
     const id=String(++moreId);moreLists.set(id,{rows,at:limit,renderRow,label});return rows.slice(0,limit).map(renderRow).join('')+(rows.length>limit?`<button type="button" class="secondary" data-profile-more="${id}">${esc(label)} · ${rows.length-limit}</button>`:'');
   }
   function photoRows(rows){
-    const grid=items=>'<div class="design-photo-grid">'+items.map(p=>{const src=p.thumbnail_data||p.data||p.full_data,profile=p.role==='profile'||/^(profilbild|profil|profile)$/i.test(String(p.caption||'').trim());return '<button type="button" data-design-action="photo" data-id="'+esc(p.id)+'" aria-label="'+esc((p.caption||'Kundenfoto')+' öffnen')+'">'+(src&&(String(src).startsWith('data:image/')||/^content:\/\/at\.hausgarten\.service\.photothumbnails\/[0-9a-f]{64}\.jpg$/.test(String(src)))?'<img src="'+esc(src)+'" alt="'+esc(p.caption||'Kundenfoto')+'" loading="lazy">':'<small>Original nach Drive-Abgleich laden</small>')+(profile?'<span class="design-photo-role">Profil</span>':'')+'</button>';}).join('')+'</div>';
+    const grid=items=>'<div class="design-photo-grid">'+items.map(p=>{const src=[p.thumbnail_data,p.data,p.full_data].map(localPhotoSource).find(Boolean)||'',profile=p.role==='profile'||/^(profilbild|profil|profile)$/i.test(String(p.caption||'').trim());return '<button type="button" data-design-action="photo" data-id="'+esc(p.id)+'" aria-label="'+esc((p.caption||'Kundenfoto')+' öffnen')+'">'+(!!src?'<img src="'+esc(src)+'" alt="'+esc(p.caption||'Kundenfoto')+'" loading="lazy">':'<small>Original nicht lokal verfügbar</small>')+(profile?'<span class="design-photo-role">Profil</span>':'')+'</button>';}).join('')+'</div>';
     return rows.length?grid(rows.slice(0,photoLimit))+(rows.length>photoLimit?'<button type="button" class="secondary" data-profile-photos-more>Weitere Fotos · '+(rows.length-photoLimit)+'</button>':''):'<p class="sub">Noch keine Fotos zugeordnet.</p>';
   }
   function compactLists(){
@@ -35,7 +37,7 @@
     if(button.dataset.designMetric==='week'){openPage('weeks');get('week-period').value='current';get('week-customer').value='all';renderWeeks(worklogs());}
     if(button.dataset.designMetric==='orders'){openPage('orders');get('order-search').value='';get('design-order-status').value='open';render();}
   }
-  function avatar(customer){const picture=photos().filter(p=>p.customer_id===customer.id&&(p.role==='profile'||/^(profilbild|profil|profile)$/i.test(String(p.caption||'')))).sort((a,b)=>String(b.updated_at||b.created_at||'').localeCompare(String(a.updated_at||a.created_at||'')))[0],src=picture?.thumbnail_data||picture?.data||picture?.full_data;return src&&(String(src).startsWith('data:image/')||/^content:\/\/at\.hausgarten\.service\.photothumbnails\/[0-9a-f]{64}\.jpg$/.test(String(src)))?`<img class="customer-avatar" src="${esc(src)}" alt="Profilbild">`:`<span class="customer-avatar">${esc(String(customer.name||'K').split(/\s+/).slice(0,2).map(x=>x[0]||'').join(''))}</span>`;}
+  function avatar(customer){const picture=photos().filter(p=>p.customer_id===customer.id&&(p.role==='profile'||/^(profilbild|profil|profile)$/i.test(String(p.caption||'')))).sort((a,b)=>String(b.updated_at||b.created_at||'').localeCompare(String(a.updated_at||a.created_at||'')))[0],src=[picture?.thumbnail_data,picture?.data,picture?.full_data].map(localPhotoSource).find(Boolean)||'';return !!src?`<img class="customer-avatar" src="${esc(src)}" alt="Profilbild">`:`<span class="customer-avatar">${esc(String(customer.name||'K').split(/\s+/).slice(0,2).map(x=>x[0]||'').join(''))}</span>`;}
   function profileContent(){
     const page=get('customer-profile-page'),customer=customers().find(x=>x.id===profileId);if(!page||!customer)return;
     if(window.CustomerHub?.protect(profileId))return;
@@ -91,7 +93,7 @@
       for(const item of [...batch.items]){try{const p=item.prepared_payload?null:await original(item.file),result=await GartenpiratPhotoStore.commitPhoto(customerId,batch,item,item.prepared_payload||{...item.payload,data:p.data,mime_type:p.mime,thumbnail_data:p.thumbnail,_photo_quality:p.quality});if(!result||String(result).startsWith('ERROR:'))throw new Error(String(result||'Speicherung nicht bestätigt').replace(/^ERROR:\s*/,''));batch.items=batch.items.filter(x=>x.payload._photo_request_id!==item.payload._photo_request_id);await GartenpiratPhotoStore.customerDraft(customerId,batch.items.length?batch:null);saved++;}catch(e){failures.push((item.payload.original_name||'Foto')+': '+e.message);}}
       photoAddDialog.querySelectorAll('button').forEach(b=>b.disabled=false);retry.hidden=!batch.items.length;photoAddDialog.renderDrafts(customerId,batch);
       if(saved){load();if(currentPage==='customer-profile-page')profileContent();}
-      status.textContent=saved+' Foto(s) auf diesem Gerät gespeichert.'+(failures.length?' '+failures.length+' Entwurf/Entwürfe bleiben erhalten: '+failures.slice(0,2).join(' · '):' Drive-Bestätigung erfolgt beim Abgleich.');
+      status.textContent=saved+' Foto(s) auf diesem Gerät gespeichert.'+(failures.length?' '+failures.length+' Entwurf/Entwürfe bleiben erhalten: '+failures.slice(0,2).join(' · '):' Externe Sicherung ausstehend.');
       if(saved&&!batch.items.length)setTimeout(()=>{if(photoAddDialog.open&&photoAddDialog.dataset.customerId===customerId)photoAddDialog.close();},500);
     }
     async function selected(input){
@@ -119,10 +121,10 @@
     const show=()=>{
       const picture=viewerRows[viewerIndex];if(!picture)return;
       image.dataset.recordType='photo';image.dataset.recordId=picture.id;
-      const token=++viewerLoadToken,status=photoViewer.querySelector('[data-photo-status]'),preview=picture.thumbnail_data,embedded=picture.full_data||picture.data,linked=!!(picture.worklog_id||picture.order_id),linkedNote=linked?' Foto ist einem Arbeitseinsatz oder Auftrag zugeordnet.':'';
+      const token=++viewerLoadToken,status=photoViewer.querySelector('[data-photo-status]'),preview=localPhotoSource(picture.thumbnail_data),embedded=[picture.full_data,picture.data].map(localPhotoSource).find(Boolean)||'',linked=!!(picture.worklog_id||picture.order_id),linkedNote=linked?' Foto ist einem Arbeitseinsatz oder Auftrag zugeordnet.':'';
       const source=embedded||preview||'';
       status.textContent=(embedded?'Original ist offline verfügbar.':preview?'Vorschau wird angezeigt. Original wird geladen …':'Original wird geladen …')+linkedNote;
-      if(source&&String(source).startsWith('data:image/'))image.src=source;else image.removeAttribute('src');
+      if(source)image.src=source;else image.removeAttribute('src');
       image.alt=picture.caption||'Kundenfoto';photoViewer.querySelector('[data-photo-caption]').textContent=picture.caption||picture.original_name||'Kundenfoto';photoViewer.querySelector('[data-photo-counter]').textContent=(viewerIndex+1)+' / '+viewerRows.length;photoViewer.querySelector('[data-photo-previous]').disabled=viewerRows.length<2;photoViewer.querySelector('[data-photo-next]').disabled=viewerRows.length<2;const remove=photoViewer.querySelector('.design-photo-delete');remove.disabled=false;remove.title='In den Papierkorb verschieben';photoViewer.querySelector('.photo-more').open=false;reset();
       if(embedded)return;
       if(typeof window.AndroidData?.getPhotoData!=='function'){status.textContent=(preview?'Vorschau wird angezeigt; Original ist auf diesem Gerät noch nicht verfügbar.':'Kein Bildinhalt auf diesem Gerät verfügbar.')+linkedNote;return;}
@@ -132,7 +134,7 @@
           const loaded=window.AndroidData.getPhotoData(picture.id);
           if(token!==viewerLoadToken||!photoViewer.open)return;
           if(String(loaded).startsWith('data:image/')){cacheViewerOriginal(picture,loaded);image.src=loaded;status.textContent='Original ist offline verfügbar.'+linkedNote;}
-          else status.textContent='Original derzeit nicht verfügbar: '+String(loaded||'kein lokaler oder verbundener Drive-Inhalt').replace(/^ERROR:\s*/,'')+linkedNote;
+          else status.textContent='Original nicht lokal verfügbar. Originalbestand oder eine geprüfte Sicherung über den Wiederherstellungsweg prüfen.'+linkedNote;
         }catch(error){if(token===viewerLoadToken&&photoViewer.open)status.textContent='Original derzeit nicht verfügbar: '+String(error.message||error)+linkedNote;}
       },0));
     };
@@ -158,9 +160,9 @@
     return photoViewer;
   }
   function openPhotoViewer(id,rows=null){
-    viewerRows=rows||photos().filter(row=>row.customer_id===profileId);viewerIndex=Math.max(0,viewerRows.findIndex(row=>row.id===id));const picture=viewerRows[viewerIndex],source=picture?.full_data||picture?.data||picture?.thumbnail_data;
+    viewerRows=rows||photos().filter(row=>row.customer_id===profileId);viewerIndex=Math.max(0,viewerRows.findIndex(row=>row.id===id));const picture=viewerRows[viewerIndex],source=[picture?.full_data,picture?.data,picture?.thumbnail_data].map(localPhotoSource).find(Boolean)||'';
     const canLoadOriginal=typeof window.AndroidData?.getPhotoData==='function'&&Boolean(picture?.id&&picture?.storage_name);
-    if((!source||!String(source).startsWith('data:image/'))&&!canLoadOriginal){window.showUndoToast('Das Original ist noch nicht lokal verfügbar. Bitte Drive abgleichen.');return;}
+    if(!source&&!canLoadOriginal){window.showUndoToast('Das Original ist nicht lokal verfügbar. Den Originalbestand oder eine geprüfte Sicherung über den Wiederherstellungsweg prüfen.');return;}
     const dialog=ensurePhotoViewer();dialog.showModal();dialog._show();setPhotoFullscreen(true);dialog.querySelector('.design-photo-close').focus({preventScroll:true});
   }
   function profileActions(event){

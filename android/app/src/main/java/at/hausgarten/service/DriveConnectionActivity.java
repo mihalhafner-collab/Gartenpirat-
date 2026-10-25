@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 public final class DriveConnectionActivity extends Activity {
     private EditText folder;private TextView status,accountLabel;private Button connect;private String account="";
     private Button button(int kind){return NativeUi.style(new Button(this),kind);}
-    @Override public void onCreate(Bundle state){super.onCreate(state);setTitle("Google Drive verbinden");
+    @Override public void onCreate(Bundle state){super.onCreate(state);if(!DriveRolePolicy.businessSyncAllowed()){Toast.makeText(this,"Drive dient ausschließlich der Vollsicherung. Vorhandene Kontofreigaben bleiben erhalten.",Toast.LENGTH_LONG).show();startActivity(new Intent(this,FullBackupActivity.class));finish();return;}setTitle("Google Drive verbinden");
         LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setPadding(NativeUi.dp(this,16),NativeUi.dp(this,16),NativeUi.dp(this,16),NativeUi.dp(this,16));root.setBackgroundColor(NativeUi.BG);root.setFitsSystemWindows(true);ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.addView(root);setContentView(scroll);TextView heading=NativeUi.heading(NativeUi.text(NativeUi.text(new TextView(this))));heading.setText("Google Drive");root.addView(heading);
         Switch automatic=NativeUi.toggle(new Switch(this));automatic.setText("Google-Drive-Abgleich automatisch · EIN / AUS");automatic.setChecked(DriveSyncCoordinator.automaticEnabled(this));root.addView(automatic);
         final boolean[] reverting={false};automatic.setOnCheckedChangeListener((button,enabled)->{if(reverting[0])return;if(!getSharedPreferences("haus_garten",0).edit().putBoolean("drive_automatic_enabled",enabled).commit()){reverting[0]=true;button.setChecked(!enabled);reverting[0]=false;Toast.makeText(this,"Nicht gespeichert. Bisherige Einstellung bleibt erhalten.",Toast.LENGTH_LONG).show();return;}DriveSyncJob.install(this);if(enabled)DriveSyncCoordinator.request(this,500);});
@@ -28,6 +28,7 @@ public final class DriveConnectionActivity extends Activity {
         connect.setOnClickListener(v->validate());Button close=button(1);close.setText(R.string.drive_connection_6);root.addView(close);close.setOnClickListener(v->finish());
     }
     private void validate(){
+        if(!DriveRolePolicy.businessSyncAllowed()){finish();return;}
         final String id;try{if(account.isEmpty())throw new IllegalArgumentException("Bitte zuerst ein Google-Konto auswählen.");id=DriveRestClient.folderId(folder.getText().toString());}catch(Exception e){status.setText(e.getMessage());return;}
         connect.setEnabled(false);status.setText(R.string.drive_connection_7);final String selected=account;
         new Thread(()->{try(PixelLocalStore store=new PixelLocalStore(this)){
@@ -42,5 +43,5 @@ public final class DriveConnectionActivity extends Activity {
             DriveSyncJob.install(this);DriveSyncCoordinator.request(this,500);runOnUiThread(()->{status.setText(R.string.drive_connection_8);connect.setEnabled(true);});
         }catch(Exception e){runOnUiThread(()->{status.setText(e instanceof DriveRestClient.Failure?e.getMessage():e instanceof IllegalArgumentException?e.getMessage():"Google-Verbindung konnte nicht bestätigt werden. Konto-, App- und Ordnerfreigabe prüfen. Bestehende Daten und Verbindung bleiben erhalten.");connect.setEnabled(true);});}}).start();
     }
-    @Override protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);if(request==1&&result==RESULT_OK&&data!=null){account=data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);if(account==null)account="";accountLabel.setText(account);}}
+    @Override protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);if(!DriveRolePolicy.businessSyncAllowed())return;if(request==1&&result==RESULT_OK&&data!=null){account=data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);if(account==null)account="";accountLabel.setText(account);}}
 }

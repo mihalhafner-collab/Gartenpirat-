@@ -1,12 +1,12 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-25T20:45:56.984906+00:00",
+  "updated_at_utc": "2026-10-25T21:19:25.686379+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
     "version_name": "1.55.0",
-    "version_code": 100,
-    "status": "PAUSED_BY_USER_STOP;LATEST_BACKUP_ONLY_FINAL_STEERING_NOT_IMPLEMENTED",
+    "version_code": 101,
+    "status": "ACTIVE_FINAL_BACKUP_ONLY_CONTRACT3_HOST_CHECKS_PASS_NATIVE_RELEASE_PENDING",
     "base_git_sha": "419d0b4bfcbb7108d00296619831a04ddc3273b0",
     "last_original_app_source_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "main_at_start": "e499e745832449ce0202d04d9903495248e8b034",
@@ -31,11 +31,12 @@
       "append_only_partial_and_group_payment_ledger",
       "native_full_backup_recovery_saf_restore_portable_export_controls",
       "frame_guard_and_context_stable_timer_photos",
-      "schema5_signed_source_preserves_existing_tables_schema6_old_writer_fence_in_progress",
-      "native_browser_draft_ack_cas_tombstones_context_epoch_backup_digest_integration_in_progress_not_accepted"
+      "schema6_old_writer_fence_preserves_existing_tables",
+      "native_browser_draft_ack_cas_tombstone_context_epoch_full_backup_integration",
+      "final_storage_contract3_backup_only_public_runtime_no_business_drive_network"
     ],
-    "full_revier_acceptance": "NOT COMPLETE;production100/DB6 integrated;78JVM/56browser/9extra/55MCP+P1 and Java204/Androidtests32 compile PASS;original100 build and common native/full process/offline acceptance pending",
-    "original_signed_update_candidate": "INTERNAL07b8fa1 original1.55.0/99 DB5;NOT_ACCEPTED;no99 release tag/no release APK upload/no Pixel install;no signed100 candidate",
+    "full_revier_acceptance": "OPEN final101 native/common release acceptance; frozen host JVM78/P1/MCP55 and Java204/native32 compile PASS; not productive acceptance",
+    "original_signed_update_candidate": "Prior8e77d84 original1.55.0/100 exists as INTERNAL unaccepted intermediate; final101 NOT BUILT YET",
     "productive_migration": "NOT EXECUTED",
     "installation": "NOT EXECUTED",
     "internal_signed_build": {
@@ -65,18 +66,21 @@
       "xz_readback": "COMPLETE_STREAM_SIZE_ONLY; LOCAL XZ ROUNDTRIP BYTE-VERIFIED; no remote hash claim",
       "includes_latest_streaming_backup_sources": false
     },
-    "backup_target_contract": "Pixel/App exclusively owns all business functions and authoritative data; Drive backup-only with regular automatic app upload; no two-way sync after controlled cutover",
+    "backup_target_contract": "All business functions and authoritative data exclusively Pixel/App; Drive exclusively encrypted full backup; final storage contract3 retires public legacy business network writers in every authority mode without clearing old data/accounts/queues.",
     "latest_host_checks": {
-      "git_sha": "07b8fa1309c715d46c17ce8c1f5c1414f60ca7c1",
-      "python_pass": 430,
+      "scope": "frozen final101 worktree after1627500; exact new source commit pending",
       "jvm_suites_pass": 78,
-      "browser_suites_pass": 56,
       "mcp_suites_pass": 55,
-      "additional_browser_suites_pass": 9,
-      "gradle_original_build": "PASS",
-      "lint": "0 errors /112 warnings",
-      "environment": "isolated synthetic Cloud checks;no productive Pixel/provider mutation",
-      "current_100_db6_worktree": "NOT FULLY TESTED;do not transfer07b8fa1 results to later changes"
+      "p1_contract_sha256": "010cc437a56f63e43e08d49753fc14ae9da4080a14afac64369b60cb61c1874a",
+      "production_java_compile": 204,
+      "android_test_java_compile": 32,
+      "browser": "48 prior unaffected +8 targeted corrections PASS; final common56 rerun running",
+      "privacy": "source2338/workspace6010 PASS; actual101 artifact pending",
+      "native101": "NOT RUN",
+      "environment": "isolated synthetic Cloud; no productive mutation",
+      "python_pass": 430,
+      "python_skip": 0,
+      "excluded_legacy_qa_key_generation_tests": 37
     },
     "native_font_probe": "Today/Planning 100/150/200% PASS after initial SystemUI ANR; OS settings restored; no Pixel/TalkBack/full-nine-view claim",
     "source_generation_ab1": {
@@ -111,7 +115,7 @@
     "development_semantic_ui_actions": 209,
     "latest_implementation_base_git_sha": "07b8fa1309c715d46c17ce8c1f5c1414f60ca7c1",
     "current_implementation_original_signed": false,
-    "latest_implementation_checkpoint_git_sha": "07b8fa1309c715d46c17ce8c1f5c1414f60ca7c1",
+    "latest_implementation_checkpoint_git_sha": "162750085f4994bbae05afc4c22fc6f9937252e7",
     "pause": {
       "requested": "Stoppe die Erstellung speichere für späteren start alle notwendigen aktionen",
       "at_utc": "2026-10-25T07:47:27.411324+00:00",
@@ -361,9 +365,15 @@
         },
         "pixel98_complete_preupdate_external_backup": "NOT_PROVEN;source98 lacksgeneralcompleteexport;businessbackup40MiB/64MiB notsufficient",
         "source8e77_export": "LOCAL_ONLY;52TXT+5parts;no newDrivefolder/upload;ZIP80ae23be28d678ac14714759f88735ecdd8eb4f892b323b69a3a84d5e1ce8910"
+      },
+      "resume": {
+        "at_utc": "2026-10-25T20:53:40.410919+00:00",
+        "source_git_sha": "162750085f4994bbae05afc4c22fc6f9937252e7",
+        "target": "1.55.0 RevierSolo;DrivebackupOnly",
+        "productive_actions": "NOT_AUTHORIZED_INSTALL_OR_MIGRATION"
       }
     },
-    "current_evidence_scope": "Current top-level development state and correction_current_checkpoint supersede historical nested pause/build/checkpoint summaries.07b8fa1 is last verified remote source;subsequent100/DB6 worktree is dirty,not fully tested,not signed;no productive cutover.",
+    "current_evidence_scope": "Current101 worktree frozen for common checks; prior8e77d84 code100 OS process-recovery5pairs and in-place update PASS; final101 repeat pending",
     "primary_source_review_20261025": {
       "access": "Public Webconnector content read; direct Cloud HTTP CONNECT403;no HTTP200 claim",
       "austrian_invoice_fields": "USP/BMF reviewed;actual tax profile not changed or certified",
@@ -500,6 +510,17 @@
         "tour_ms": 506.248141
       },
       "correction_checkpoint": "ca87838 predecessor;78 JVM suites+exact contract gate PASS;targeted browser repeats PASS;final native candidate not built"
+    },
+    "final_101_completion": {
+      "storage_contract_version": 3,
+      "drive_role": "backup_only",
+      "public_legacy_network_writers": "retired all authority modes; inventories and permissions preserved",
+      "invoice_authority": "guarded; no productive activation",
+      "last_installed_device_observation": "1.54.9/98 DB4 dbe9ed0; read only",
+      "preupdate98_full_external_backup": "OPEN; old limited JSON backup is not complete",
+      "release": "NOT RELEASED",
+      "device_installation": "NOT EXECUTED",
+      "productive_migration": "NOT EXECUTED"
     }
   },
   "verified_release_source": {

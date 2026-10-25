@@ -20,6 +20,8 @@ final class PixelOwnerAccess implements PixelMcpOwnerTools.Access {
     @Override public JSONObject query(String name,JSONObject args)throws Exception{return queries.query(name,args);}
     JSONObject execute(String name,JSONObject args)throws Exception{
         if(AppointmentTools.write(name))McpSchema.validate(args,AppointmentTools.schema(name));else if(OfferTools.write(name))McpSchema.validate(args,OfferTools.schema(name));else PixelMcpOwnerTools.validate(name,args);
+        if((name.equals("request_sync")||name.equals("prepare_legacy_conflict_backup")||name.equals("close_legacy_conflicts"))&&!DriveRolePolicy.businessSyncAllowed())return new JSONObject().put("ok",true).put("data",DriveRolePolicy.retiredResponse()).put("cloud_confirmed",false);
+        if(name.equals("request_invoice_issue")&&!DriveRolePolicy.businessSyncAllowed()&&!LocalAuthorityGuard.local(context))throw new PixelMcpWriteTools.Rejected("LOCAL_AUTHORITY_REQUIRED","Die Rechnungsausgabe ist bis zur kontrollierten lokalen Umstellung und zum aktuellen Beleg- und Nummernabgleich gesperrt. Es wurde kein Onlineabschluss angefordert.");
         if(name.equals("prepare_legacy_conflict_backup"))return new JSONObject().put("ok",true).put("data",repository.prepareLegacyBackup(args.getString("request_id"),args.optString("expected_preview_hash")));
         String request="mcp_owner_"+PixelMcpWriteTools.hash(args.getString("request_id")),fingerprint=PixelMcpWriteTools.hash(new JSONObject().put("tool",name).put("args",args));
         if(LocalWorkflowTools.authorityMutation(name)){JSONObject changed=repository.localInvoiceAction(name,args,request);MainActivity.refreshBusinessView();return new JSONObject().put("ok",true).put("data",changed).put("cloud_confirmed",false);}
@@ -32,7 +34,10 @@ final class PixelOwnerAccess implements PixelMcpOwnerTools.Access {
         if(LocalWorkflowTools.backup(name))try{if(!FullBackupJob.schedule(context,0))result.put("background_scheduling_pending",true);}catch(Exception deferred){result.put("background_scheduling_pending",true).put("scheduling_code","BACKUP_SCHEDULING_PENDING");}
         if(name.equals("request_invoice_issue")||name.equals("retry_invoice_document_job"))try{LocalInvoiceJobs.schedule(context);}catch(Exception deferred){result.put("document_scheduling_pending",true);}
         if(name.equals("request_sync"))result=DriveSyncCoordinator.requestExplicit(context,request);
-        else if(!LocalWorkflowTools.handles(name)&&!AppointmentTools.write(name)&&!Arrays.asList("begin_file_upload","write_file_chunk","create_backup","set_personal_paid","update_settings","prepare_invoice_share").contains(name))DriveSyncCoordinator.request(context,1000);
+        else if(!LocalWorkflowTools.handles(name)&&!AppointmentTools.write(name)&&!Arrays.asList("begin_file_upload","write_file_chunk","create_backup","set_personal_paid","update_settings","prepare_invoice_share").contains(name)){
+            if(DriveRolePolicy.businessSyncAllowed())DriveSyncCoordinator.request(context,1000);
+            else try{FullBackupJob.install(context);}catch(Exception deferred){result.put("background_scheduling_pending",true).put("scheduling_code","BACKUP_SCHEDULING_PENDING");}
+        }
         return new JSONObject().put("ok",true).put("data",result).put("cloud_confirmed",false);
     }
 }

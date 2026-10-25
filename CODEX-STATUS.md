@@ -3,7 +3,71 @@
 Stand: 25. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
-## Nutzerpause, 2026-10-25T20:45:56.984906+00:00
+## Gemeinsamer Backup-only-Abschlussstand 1.55.0/101, 25.10.2026
+
+Der aktuelle Produktstand folgt dem ausdrücklichen Auftrag: sämtliche Fachfunktionen
+und maßgebliche Speicherung auf dem Pixel, Drive ausschließlich verschlüsselte
+Vollsicherung. `DriveRolePolicy` setzt Speichervertrag3 für jeden Autoritätszustand.
+Öffentliche Sync-, Job-, Ordner-, Original-Nachlade- und Online-Ausgabeeinstiege
+sind vor Provider-/Konto-/Netzwerkzugriff stillgelegt. Alte Daten, Queues, Konto-
+und Freigabewerte bleiben unverändert. Historische Konflikte bleiben sichtbar;
+keine automatische Konfliktentscheidung oder Autoritätsfreigabe. Der isolierte
+Legacy-Verarbeitungskern mit ausdrücklich übergebenem Dateiadapter bleibt für
+bestehende Regressionen erhalten; kein App-/MCP-Einstieg ruft ihn direkt auf.
+
+Startup/Resume/nach lokalem Commit verwenden ausschließlich die bestehende
+opt-in Vollsicherungsplanung. Automatische Sicherung wird nicht ohne Geräteeinrichtung
+aktiviert. Lokale Sicherungsgeneration, Upload und externer Hashbeleg bleiben
+getrennt. Wiederherstellungskontext muss zur gesicherten Konfiguration passen.
+Die öffentliche Statussicht enthält das unveränderte Legacyinventar separat;
+eine leere aktive Syncqueue ist kein Sicherungsbeleg. Fehlende lokale Originale
+verlangen gezielten Import oder geprüfte Wiederherstellung statt Drive-Nachladen.
+Neue leere Installationen können den ersten Kunden lokal atomar anlegen; nur ein
+wirklich fehlender Snapshot darf den strikt geprüften leeren Bootstrap verwenden.
+Nichtleere beschädigte Zustände fallen niemals auf einen Leerbestand zurück.
+
+Vier Hauptbereiche und Facheditoren bleiben erhalten. Alle regulären Sicherungs-
+einstiege öffnen dieselbe Vollsicherungsoberfläche. Frühere Nummernfreigaben sind
+historische Leseangaben; neue Ausgabe erst nach geschütztem lokalem Beleg-/Nummern-
+abgleich. Private Bildansichten laden keine Drive-/Googleusercontent-URLs.
+
+Vorliegende gemeinsame Hostnachweise auf diesem eingefrorenen Arbeitsstand nach
+1627500: 78 JVM-Suiten einschließlich echtem Repositoryadapter PASS; 166 Tools,
+209 UI-Aktionen und P1-Vertrag PASS. Genau sieben Beschreibungen geändert,
+Schemas/Annotationen unverändert. 12 benannte UI-Übergänge und 16 Read-DTO-Hashes
+explizit geprüft/versioniert; Ausgangsfixture und fachlicher Inputhash unverändert.
+Negative P1-Prüfungen weisen zusätzliche Schema-/Rechte-/Datenänderungen ab.
+Alle 204 produktiven Javaquellen und 32 androidTest-Quellen mit API37/JDK17
+kompiliert PASS. MCP-Stdio55 PASS. Python430 PASS/0SKIP; die37 alten QA-Schlüsselerzeugungstests sind ausdrücklich ausgeschlossen, unverändert erhalten. Source2338/Workspace6010 Privacy PASS, keine Betriebsdaten; tatsächliche101-APK-Privacy noch offen. Breite Browserprüfung fand sieben überholte Sync-Erwartungen und einen echten Preview-Nullzugriff; alle acht gezielten Wiederholungen nach Korrektur PASS, Rechnungsvorschaumirror bytegleich. Erneuter vollständiger56-Suiten-Lauf läuft.
+Android-Gesamtlauf, Originalbuild101, Signatur/Provenienz, tatsächliche Prozess-
+abbrüche und Offlinepiloten auf101 sind noch OFFEN. Keine Ergebnisse älterer
+Kandidaten als vollständige aktuelle Abnahme übernehmen.
+
+Zusätzlicher tatsächlicher Zwischenbeleg: Auf original signiertem8e77d84/100
+bestehen alle fünf OS-Prozessabbruchpaare einschließlich gespeicherter Anfrage,
+Auftrag und Angebot bei verlorener Antwort und absichtlich veraltetem Browsercache.
+Das normale In-place-Update bewahrt Snapshot/IDs/Beziehungen/Timer/Settings/Queues.
+Diese Belege sind datiert und ersetzen nicht die noch folgende101-Wiederholung.
+
+Produktiver Pixel weiterhin zuletzt lesend1.54.9/98,DB4,dbe9ed0. Keine Installation,
+keine produktive Migration/Driveänderung/Löschung/Rechnung. Vollständige extern
+geprüfte Vor-Update-Sicherung aus98 bleibt ausdrücklich ungeklärt: dessen kleine
+MCP-Sicherung ist begrenzt und enthält nicht den gesamten neuen Vollbackupumfang.
+Zwei physische USB-Ziele, Pixel/TalkBack, reale Kontofreigaben und Belegautoritäts-
+umstellung bleiben Geräte-/Betriebsabnahme; keine pauschale Produktivfreigabe.
+
+## Fortsetzung und Abschlussauftrag, 2026-10-25T20:53:40.410919+00:00
+
+Nutzerauftrag „Schließe Umbau laut Konzept Revier solo ab“ hebt die Pause auf.
+Gesicherter Einstieg162750085f4994bbae05afc4c22fc6f9937252e7, sauberer Arbeitsbaum
+und unveränderte Remote-main-/Branchreferenzen geprüft. Ziel1.55.0: sämtliche
+Fachfunktionen und maßgebliche Speicherung lokal auf dem Pixel; Drive ausschließlich
+für die vorhandene verschlüsselte Sicherung. Runtime-, MCP- und UI-Grenzen werden
+zusammengeführt, keine Daten/Queues/Accountfreigaben gelöscht oder Rechnungsautorität
+automatisch aktiviert. Historische Pause-/Zwischenbefunde unten gelten nur datiert.
+Keine produktive Installation oder Migration aus diesem Abschlussauftrag ableiten.
+
+## Historische Nutzerpause, 2026-10-25T20:45:56.984906+00:00
 
 **Auf ausdrückliches „Stop“ angehalten.** Alle Arbeitsagenten unterbrochen;
 Cloud-Testhost und ausschließlich die Test-App auf GartenpiratCloud/emulator-5554
@@ -76,7 +140,7 @@ produktiven Installation muss ein tatsächlich geeigneter vollständiger98-Expor
 extern geprüft werden; dieser Nachweis bleibt OFFEN. Die100-Vollsicherung ersetzt
 keinen fehlenden98-Vor-Update-Nachweis. Keine produktive Aktion daraus ableiten.
 
-## Aktueller Gesamtstatus der Umstellung, 25.10.2026
+## Historischer Gesamtstatus vor den 100-/101-Korrekturen, 25.10.2026
 
 **Auftrag aktiv, gemeinsame Softwareabnahme offen.** Letzter gesicherter und
 zurückgelesener Entwicklungsstand: `07b8fa1309c715d46c17ce8c1f5c1414f60ca7c1`
@@ -99,7 +163,7 @@ Pixel-Fingerprint weiterhin
 bestehende Online-Ausgabesperre bleiben unverändert. Keine produktive Installation,
 Migration, Wiederherstellung, Rechnung, Zahlung oder sonstige Datenmutation.
 
-### Implementierung und entscheidender offener Fehler
+### Historische Implementierung und damals offener Fehler
 
 Lokaler Revier-Kern mit Objekten/Anfragen/Pflege/Touren/Material/Geräten, gemeinsame
 UI-/MCP-Anwendungsfälle, lokale Rechnungs-/PDF-/Zahlungsjobs sowie verschlüsselte
