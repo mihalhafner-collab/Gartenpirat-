@@ -71,6 +71,45 @@ gesicherten SQLite ab. Restore-Auswahlprojektion3 erhält die Belege der Version
 Für K13 werden direkte mündliche Annahme und Besichtigung verschieben/ergänzen/
 wiederöffnen zusätzlich über reale UI-/SQLite-Pfade geprüft; Ausführung noch offen.
 
+### Original-Prüfbau 100 aus db9748a, 25.10.2026
+
+Quelle `db9748a9d4a6cab14d588c94028b0be535841e92`, Produktfingerprint
+`a92c75c4d5a2e8b9d3e4955abb986e9cf7b8496a04eb78c46d82cf5d836e72e5`.
+Vorheriger eigener Prüfpunkt5467ca1 ist gesichert; main e499e74 wurde mit identischem
+Dateibaum integriert. Exakter Remote-Commit und Source-Preservation bestanden.
+Build/Lint bestanden in2m19s,0Fehler112Warnungen. Originalsignatur unverändert.
+App1.55.0/100 SHA `8aca59a06f9cf8f595068a7a4fe0d52874f0c099b3975ddade518749f0512d3e`;
+Testpaket tatsächliche Version2/1 SHA
+`956d7709f3d6ce70d69b47f4073276e16956a59c572ce22fdde45ebcdd02f806`.
+430Pythonprüfungen bestanden,0SKIP;37historische Schlüsselerzeugungstests bewusst
+ausgeschlossen. Source2337/Workspace6155/Artefaktprivacy bestanden,0Betriebszeilen.
+78JVM-,56Browser-,9ergänzendeBrowser- und55MCP-Suiten bestanden am identischen
+Produktquellinhalt. Synthetisches Emulatorupdate99/DB5→100/DB6 erhält IDs, Pending,
+Einstellungen und aktive Sitzung; kein physischer98→100-Updatebeleg.
+
+Vier echte OS-Prozesspaare auf diesen APKs bestanden. Das fünfte Paar brach am
+Androiddialog ab: Der Test erwartete den Rohfehlertext, business-feedback.js zeigt
+jedoch bewusst dessen übersetzte Fassung. Rein lesende Forensik ausschließlich im
+validierten QA-Scope belegt genau einen Auftragsjournal-Commit, einen Editorbeleg
+und dieselbe ursprüngliche Pending-Aktion samt Kunde/Rechnungsempfänger/Feldern.
+Kein belegter Produktfehler in diesem Dialogfall. Der Harness prüft nun den exakten
+angezeigten Text sowie einen neu hinzugekommenen Originaldiagnoseeintrag; alle
+Geschäfts-/CAS-/Wiederholungsprüfungen bleiben erhalten. Neue QA-Generation bindet
+Git-SHA und Produktfingerprint; der alte Fehlerbestand bleibt erhalten. Der
+unabhängige synthetische Entwurf wird erst nach seinem Erhaltnachweis über den
+wirklichen bestätigten UI-Verwerfweg bereinigt. Keine globale Speicherleerung.
+Diese reine Harnesskorrektur verändert keinen Produktcode; ein neuer gemeinsamer
+Prüfbau und die vollständige native Abnahme stehen aus. Native Recoverygruppe auf
+db9748a läuft separat; kein zusammenfassender PASS behauptet.
+
+Quellenkopie db9748a vollständig in
+https://drive.google.com/drive/folders/11PPpysSRqK0xuKdl6ymK80LpUvRMH2A6 :
+52Textpakete+5Transportteile+4Indexdateien einzeln SHA256-zurückgelesen.
+Aus Rückleseteilen dekodiertes OriginalZIP161988067Bytes,
+SHA `9f9065fc06af98a76c2052613cc7b39f59ad2fadf6ed711b6ab3472fa9c4cb2a`,
+Privacy bestanden. Alle älteren Generationen unverändert. Kein Release-Tag100,
+keine APK-Veröffentlichung, Pixelinstallation, produktive Migration oder Freigabe.
+
 ### Tatsächlich geprüfter Originalstand 07b8fa1
 
 - 430 Pythonprüfungen, 78 JVM-/56 Browser-/55 synthetische MCP-Suiten und 9 ergänzende
