@@ -55,7 +55,7 @@ def emulator_lock(serial, folder=None):
 def successful_output(output, mode):
     if re.search(r'\bFAIL(?:ED)?\b|INSTRUMENTATION_FAILED|Process crashed|acceptance failures=[1-9]', output):
         return False
-    if mode in ('acceptance','estimates','provider','mcp_workflows','revier_core','revier_ui'):
+    if mode in ('acceptance','estimates','provider','mcp_workflows','revier_core','revier_ui','revier_finance','revier_recovery'):
         return bool(re.search(r'RESULT [0-9]+ Android SQLite/MCP tests passed; acceptance failures=0;', output))
     if mode in ('plants','plants_ui'):
         count=4 if mode=='plants' else 2
@@ -73,7 +73,7 @@ def main():
     parser.add_argument('--adb', default=str(Path(os.environ.get('ANDROID_HOME', '')) / 'platform-tools/adb'))
     parser.add_argument('--apk', type=Path)
     parser.add_argument('--instrumentation-apk', type=Path)
-    parser.add_argument('--mode', choices=['acceptance', 'fresh', 'prepare', 'verify', 'ui', 'estimates', 'provider', 'mcp_workflows', 'fresh_isolated', 'accessibility', 'plants', 'plants_ui', 'revier_core', 'revier_ui'], default='acceptance')
+    parser.add_argument('--mode', choices=['acceptance', 'fresh', 'prepare', 'verify', 'ui', 'estimates', 'provider', 'mcp_workflows', 'fresh_isolated', 'accessibility', 'plants', 'plants_ui', 'revier_core', 'revier_ui','revier_finance','revier_recovery'], default='acceptance')
     args = parser.parse_args()
     with emulator_lock(args.serial):
         run(args)
@@ -96,7 +96,7 @@ def run(args):
     with log.open('w') as stream:
         subprocess.run([args.adb, '-s', args.serial, 'shell', 'am', 'instrument', '-w', *flags,
                         'at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation'],
-                       env=env, stdout=stream, stderr=subprocess.STDOUT, timeout=1800 if args.mode=='acceptance' else 900, check=True)
+                       env=env, stdout=stream, stderr=subprocess.STDOUT, timeout=1800 if args.mode in ('acceptance','revier_core','revier_recovery') else 900, check=True)
     output = log.read_text()
     print(output)
     if not successful_output(output, args.mode):

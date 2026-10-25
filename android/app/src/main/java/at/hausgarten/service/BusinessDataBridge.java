@@ -108,7 +108,7 @@ public class BusinessDataBridge {
 }
 @JavascriptInterface public String savePhoto(String value) {
     try { String id = store.savePhoto(new JSONObject(value)); notifyCommitted(); return id; }
-    catch (Exception error) { return "ERROR: " + error.getMessage(); }
+    catch (Exception error) {try{JSONObject original=new JSONObject(value);original.remove("thumbnail_data");original.remove("_capture_context");String request=original.optString("_photo_request_id"),saved=request.isEmpty()?"":store.ownerValue("photo-ui:"+request,"");if(!saved.isEmpty()){JSONObject receipt=new JSONObject(saved);if(receipt.getString("hash").equals(PixelMcpWriteTools.hash(original)))return receipt.getString("id");return "ERROR: COMMIT_UNKNOWN: Ursprüngliche Fotoangaben unverändert prüfen.";}}catch(Exception unreadable){return "ERROR: COMMIT_UNKNOWN: Fotobeleg noch nicht lesbar.";}return error instanceof IllegalArgumentException||error instanceof JSONException?"ERROR: NOT_COMMITTED: "+error.getMessage():"ERROR: COMMIT_UNKNOWN: Fotoergebnis ungeklärt; ursprüngliche Aktion erneut prüfen.";}
 }
 @JavascriptInterface public String stagePendingWorkPhoto(String value) {
     try { return pendingWorkPhotos.stage(value); }

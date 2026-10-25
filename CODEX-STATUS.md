@@ -195,6 +195,61 @@ Fehlerreports mit generierten IDs an. Die verursachenden UI-Erwartungen wurden
 korrigiert und Reports durch echte bestandene Wiederholungen neu erzeugt; kein
 Privacy-Filter gelockert und kein produktiver Inhalt übernommen.
 
+## Originaler interner Prüfbuild und weitere Foto-Härtung – 25.10.2026
+
+Sauberer Remote-Quellcommit des Prüfbaues: `67c11ade40a4eb79bef1f1e85380ed029ec6021e`.
+Main-Quellfingerprint `95e177241ba228858b716abaf2f4ca5ff9071d82d7185d2c618bef59ead4d939`.
+Gradle assembleRelease/assembleReleaseAndroidTest/lintRelease PASS2m44s,
+Lint0Fehler/112Warnungen. 425Python/0Skips/37 ausgeschlossene Ersatzschlüsseltests,
+78JVM-Suiten und exakter Erweiterungsvertrag PASS. Breiter Browserlauf63/64PASS;
+letzte alte Drei-Tab-Erwartung anschließend gegen die vier Revier-Hauptziele
+korrigiert und betroffener Sicherheitsbrowserlauf PASS. Keine CSP-Lockerung.
+
+Original-App-APK SHA256 `67dc2700c340c2e30a5ad2e87c564c8a2a52371b199fb600ea5b651151d4c681`;
+Runner SHA256 `7f0b7e65b48a1aec87fab1a704f4b3dc383bf2be1b8b77ad3b506485da9757fe`;
+beide mit Originalzertifikat `a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`,
+Signier-/Quellensicherungs-/Artefaktprivacy-Gates PASS. Ein vorheriger Runneraufruf
+mit nicht vorhandenem Dateinamen erzeugte kein Artefakt; korrektes Gradle-Artefakt
+anschließend über denselben geschützten Weg signiert. Nur interner Prüfbuild,
+kein abgenommener Updatekandidat. In-place-Verify im dedizierten Cloudemulator vor
+und nach Appupdate PASS. Kein Pixel-/98→99-Hardwareupdate-Nachweis daraus.
+
+Native Zwischenbelege dieses Builds: tatsächlich gepostete Schedulerfehler,
+ablehnende Planung und Wiederanlauf mit einem Geschäftscommit PASS; neue fällige
+lokale Sicherung neben defektem Job/älterem Upload bei null Netzaufrufen PASS.
+Kalte Wiederherstellung von25 nativen Browseroriginalen/>40MiB einschließlich
+vollständiger Hashprüfung und Timerreview PASS. Revier-Objekt/Anfrage/Besichtigung,
+Serien/Tour, Materialkontext, lokale Suche300/450 und genaue Angebotsannahme mit
+wiederholter Auftragserzeugung PASS. Keine vollständige native Gesamtfreigabe:
+noch Fehler bei Epochen-/manuellem Jobstatus, isolierten Medien-WebViews und
+Rechnungs-RPC-Abläufen; laufenden Endstand der Logdatei ausweisen.
+
+Danach implementierter, noch NICHT neu gebauter Stand: Fotoaktionen halten
+vorbereitete Bilddaten unverändert im bestehenden dauerhaften Medienpuffer und
+bestätigte Foto-ID vor Bereinigung. Ein Qualitäts-/Ansichtswechsel ändert keine
+bereits abgesendeten Argumente. Restore-ausgewählte Medien tragen eine erhaltene
+Aktionsprüfpflicht; alte Aktionen werden ausschließlich lesend über vorhandene
+Metadatenbelege geprüft. Native Aufnahme-Kontexte weisen unbelegte Aktionen aus
+alter Installation/Epoche zurück, während bestätigte alte Receipts ihre ID
+zurückgeben. Fotos mit ungeklärtem Ergebnis sind gegen einfaches Verwerfen geschützt.
+Native vorbereitete Arbeitsfotos erhalten denselben Kontext. Cache-Referenzen
+werden vor Wiederverwendung auf noch geschützte Originale geprüft.
+
+Die Restore-Seite lädt nun dieselben vorhandenen WebView-Kompatibilitätshilfen wie
+die App. Auch isolierte WebView-Proben laden diese Produktionsquelle; keine
+Sicherungs-/Medienintegration wird durch leere Ersatzwerte umgangen. Ein nach
+Epochenwechsel veralteter Medienstand wird im Sicherungstest bewusst abgewiesen,
+statt seine Schutzprüfung zu überspringen. Manuell angeforderter ausgeschöpfter
+Job zeigt gezielten JOB_REVIEW; automatische neue Generationen bleiben unabhängig.
+Neue native Foto-Kontextprobe und präzise geheimwertfreie Fehlercodes vorbereitet.
+
+Weiter offen: aktuelle Änderungen nativ ausführen, neue manuelle Arbeitserfassung
+und deren optionales Foto ebenfalls auf gemeinsame Entwurfs-/Aktionsregeln führen
+(aktuell noch alter globaler Entry-Spiegel/Legacy-Fotowiederholspeicher), verbleibende
+Rechnungsfehler konkret reproduzieren und beheben, beide UI-Piloten und gesamte
+Regression auf finalem gesichertem Stand, abschließender Originalkandidat/Provenienz.
+Kein produktiver Schalterwechsel, keine Installation auf Pixel/Betriebsdatenänderung.
+
 ## Entwicklung erneut gestoppt; vollständige Übergabe für später – 25.10.2026
 
 Der Nutzer hat ausdrücklich angewiesen: „Stoppe die Erstellung speichere für späteren

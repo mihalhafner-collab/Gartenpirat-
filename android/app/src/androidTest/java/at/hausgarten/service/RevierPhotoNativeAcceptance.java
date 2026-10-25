@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.util.Base64;
 import org.json.*;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
 
@@ -44,6 +45,9 @@ final class RevierPhotoNativeAcceptance {
     private static void context(PixelMcpInstrumentation test,JSONObject row,ContextIds expected)throws Exception {test.yes(row.getString("customer_id").equals("qa_c")&&row.getString("property_id").equals(expected.property)&&row.getString("visit_id").equals(expected.visit)&&row.getString("session_id").equals(expected.session));}
     private static void rejected(PixelMcpInstrumentation.Task operation)throws Exception {try{operation.run();}catch(IllegalArgumentException expected){return;}throw new AssertionError("Changed photo action/context was accepted");}
     static void run(PixelMcpInstrumentation test)throws Exception {
+        test.probe("photo capture context survives lost result and refuses an unproven restored action without blocking a fresh photo",()->{Clock clock=new Clock();try(OwnerNativeAcceptance.Fixture f=new OwnerNativeAcceptance.Fixture(test.getTargetContext(),clock)){
+            ContextIds ids=start(f,"origin");BackupDeviceGuard guard=new BackupDeviceGuard(f.context);JSONObject identity=guard.current(),origin=new JSONObject().put("formatVersion",1).put("installation_id",identity.getString("installationId")).put("restore_epoch",identity.getString("restoreEpoch"));JSONObject original=photo("qa_origin_photo","qa_origin_photo_action",png(91),"before",ids,clock).put("_capture_context",origin);test.yes(f.store.savePhoto(copy(original)).equals("qa_origin_photo"));guard.advanceForRestore("qa_origin_restore",identity.getString("restoreEpoch"));test.yes(f.store.savePhoto(copy(original)).equals("qa_origin_photo"));JSONObject stale=copy(original).put("id","qa_unproven_restored_photo").put("_photo_request_id","qa_unproven_restored_action");try{f.store.savePhoto(stale);throw new AssertionError("QA stale photo action was written");}catch(IOException expected){test.yes(expected.getMessage().equals("PHOTO_RESTORE_ACTION_REVIEW_REQUIRED"));}test.yes(PixelMcpReadTools.effective(f.store.getState()).getJSONArray("photos").length()==1);JSONObject current=guard.current();stale.put("_capture_context",new JSONObject().put("formatVersion",1).put("installation_id",current.getString("installationId")).put("restore_epoch",current.getString("restoreEpoch")));test.yes(f.store.savePhoto(stale).equals("qa_unproven_restored_photo"));test.yes(PixelMcpReadTools.effective(f.store.getState()).getJSONArray("photos").length()==2);test.yes(!find(f.store,"qa_origin_photo").has("_capture_context"));
+        }});
         test.probe("Revier native25 distinct PNG originals retain immutable session context roles pagination and one active timer through reopen",()->{
             Clock clock=new Clock();try(OwnerNativeAcceptance.Fixture fixture=new OwnerNativeAcceptance.Fixture(test.getTargetContext(),clock)){
                 ContextIds ids=start(fixture,"many");String timerRevision=fixture.store.workSessions().current(ids.session).getString("revision_hash"),worklogs=PixelMcpWriteTools.hash(PixelMcpReadTools.effective(fixture.store.getState()).getJSONArray("worklogs"));int pending=fixture.store.pendingActions().length();

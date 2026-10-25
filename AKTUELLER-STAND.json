@@ -1,12 +1,12 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-25T10:39:19.050941+00:00",
+  "updated_at_utc": "2026-10-25T11:07:45.756073+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
     "version_name": "1.55.0",
     "version_code": 99,
-    "status": "CORRECTION_IN_PROGRESS_CONTRACTS_REVIEWED_NATIVE_BUILD_NEXT",
+    "status": "CORRECTION_IN_PROGRESS_NATIVE_FAILURES_AND_PHOTO_RECOVERY",
     "base_git_sha": "419d0b4bfcbb7108d00296619831a04ddc3273b0",
     "last_original_app_source_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "main_at_start": "e499e745832449ce0202d04d9903495248e8b034",
@@ -226,9 +226,21 @@
       "read": 72,
       "write": 94,
       "ui_actions": 209,
-      "native_fault_probes": "PREPARED_NOT_EXECUTED",
-      "signed_candidate": "NOT_BUILT",
-      "preupdate_cloud_verify": "PASS;GartenpiratCloud emulator-5554;synthetic preserved data"
+      "native_fault_probes": "PARTIAL_PASS_WITH_FAILURES;67c11ad;latest photo hardening not executed",
+      "signed_candidate": "INTERNAL67c11ad_NOT_ACCEPTED",
+      "preupdate_cloud_verify": "PASS;GartenpiratCloud emulator-5554;synthetic preserved data",
+      "python_pass": 425,
+      "excluded_qa_signing": 37
+    },
+    "correction_internal_build": {
+      "git_sha": "67c11ade40a4eb79bef1f1e85380ed029ec6021e",
+      "source_sha256": "95e177241ba228858b716abaf2f4ca5ff9071d82d7185d2c618bef59ead4d939",
+      "apk_sha256": "67dc2700c340c2e30a5ad2e87c564c8a2a52371b199fb600ea5b651151d4c681",
+      "instrumentation_sha256": "7f0b7e65b48a1aec87fab1a704f4b3dc383bf2be1b8b77ad3b506485da9757fe",
+      "accepted": false,
+      "cloud_update_verify": "PASS",
+      "native_media_restore_25_over40MiB": "PASS",
+      "physical_pixel": "NOT_TESTED"
     }
   },
   "verified_release_source": {

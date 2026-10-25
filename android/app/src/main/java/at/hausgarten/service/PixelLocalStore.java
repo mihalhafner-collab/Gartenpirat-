@@ -434,13 +434,15 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
             prepareManualChange("invoice",payload,old);String result=saveAction("invoice","inv_mobile_",payload);db.setTransactionSuccessful();return result;
         }finally{db.endTransaction();}
     }
-    static String photoMetadataHash(JSONObject original)throws Exception{JSONObject metadata=new JSONObject(original.toString());metadata.remove("data");metadata.remove("thumbnail_data");return PixelMcpWriteTools.hash(metadata);}
+    static String photoMetadataHash(JSONObject original)throws Exception{JSONObject metadata=new JSONObject(original.toString());metadata.remove("data");metadata.remove("thumbnail_data");metadata.remove("_capture_context");return PixelMcpWriteTools.hash(metadata);}
     synchronized String savePhoto(JSONObject payload) throws Exception {
+        JSONObject origin=payload.optJSONObject("_capture_context");payload=new JSONObject(payload.toString());payload.remove("_capture_context");
         if (payload.optString("customer_id").isEmpty() || payload.optString("data").isEmpty()) throw new IllegalArgumentException("Kunde und Foto sind erforderlich.");
         if(!payload.optString("capture_time").isEmpty())java.time.Instant.parse(payload.getString("capture_time"));
         JSONObject immutableRequest=new JSONObject(payload.toString());immutableRequest.remove("thumbnail_data");String request=payload.optString("_photo_request_id"),fingerprint=PixelMcpWriteTools.hash(immutableRequest);
         if(!request.isEmpty()&&!request.matches("[A-Za-z0-9_-]{8,128}"))throw new IllegalArgumentException("Ungültige Foto-Anfragekennung.");
         if(!request.isEmpty()){String saved=ownerValue("photo-ui:"+request,"");if(!saved.isEmpty()){JSONObject receipt=new JSONObject(saved);if(!fingerprint.equals(receipt.getString("hash")))throw new IllegalArgumentException("Die Foto-Anfragekennung enthält andere Angaben.");return receipt.getString("id");}}
+        if(origin!=null){JSONObject identity=new BackupDeviceGuard(context).current();if(origin.optInt("formatVersion")!=1||origin.optBoolean("unknown_restore")||!identity.getString("installationId").equals(origin.optString("installation_id"))||!identity.getString("restoreEpoch").equals(origin.optString("restore_epoch")))throw new IOException("PHOTO_RESTORE_ACTION_REVIEW_REQUIRED");}
         String entityId=payload.optString("id");if(entityId.isEmpty())entityId="pho_mobile_"+UUID.randomUUID().toString().replace("-","");payload.put("id",entityId);
         PhotoAttachmentStore.Prepared prepared=null;boolean committed=false;
         SQLiteDatabase database=getWritableDatabase();database.beginTransaction();

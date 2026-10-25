@@ -30,6 +30,7 @@ final class PendingWorkPhotoStore {
         JSONObject payload = new JSONObject(raw);
         if (payload.optString("id").isEmpty())
             payload.put("id", "pho_mobile_" + UUID.randomUUID().toString().replace("-", ""));
+        if(!payload.has("_capture_context")){JSONObject identity=new BackupDeviceGuard(context).current();payload.put("_capture_context",new JSONObject().put("formatVersion",1).put("installation_id",identity.getString("installationId")).put("restore_epoch",identity.getString("restoreEpoch")));}
         validate(payload);
         byte[] bytes = payload.toString().getBytes(StandardCharsets.UTF_8);
         if (bytes.length > MAX_JSON_BYTES) throw new IllegalArgumentException("Der Foto-Wiederholauftrag ist zu groß.");
@@ -65,6 +66,7 @@ final class PendingWorkPhotoStore {
         }
         JSONObject payload = new JSONObject(new String(output.toByteArray(), StandardCharsets.UTF_8));
         validate(payload);
+        if(!payload.has("_capture_context")&&!new BackupDeviceGuard(context).current().optString("lastRestoreRequest").isEmpty())payload.put("_capture_context",new JSONObject().put("formatVersion",1).put("unknown_restore",true));
         return payload.toString();
     }
 

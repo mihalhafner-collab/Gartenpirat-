@@ -27,7 +27,7 @@ final class BackupAutomation {
         }
         if(!ready(config)||!config.optBoolean("enabled")&&!anyManual)return result("DISABLED",null,0);
         JSONObject policy=BackupScheduleRules.decide(new JSONObject(config.toString()).put("enabled",true),candidates,now);
-        if(!config.optBoolean("enabled")&&policy.getString("action").equals("CREATE"))return result("DISABLED",null,0);
+        if(!config.optBoolean("enabled")&&policy.getString("action").equals("CREATE"))return policy.optBoolean("review_required")?result("JOB_REVIEW",null,0).put("review_jobs",policy.getJSONArray("review_jobs")):result("DISABLED",null,0);
         return policy;
     }
 
