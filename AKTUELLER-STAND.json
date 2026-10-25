@@ -1,6 +1,6 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-25T11:07:45.756073+00:00",
+  "updated_at_utc": "2026-10-25T12:01:44.737222+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
@@ -111,8 +111,8 @@
     },
     "development_database_schema": 5,
     "development_local_engine": "pixel_local_v2",
-    "development_tools": 161,
-    "development_semantic_ui_actions": 204,
+    "development_tools": 166,
+    "development_semantic_ui_actions": 209,
     "latest_implementation_base_git_sha": "613875759c2e29d6c8fc9efc18990e3b49763ea1",
     "current_implementation_original_signed": false,
     "latest_implementation_checkpoint_git_sha": "80223176d48ae6f576c9e677d272a059913f21f7",
@@ -241,6 +241,14 @@
       "cloud_update_verify": "PASS",
       "native_media_restore_25_over40MiB": "PASS",
       "physical_pixel": "NOT_TESTED"
+    },
+    "correction_current_checkpoint": {
+      "source_base": "8d546e5e1f91605e997b9784e17ca786e6f54119",
+      "manual_work_edit_and_original_photo_buffer": "IMPLEMENTED;8 browser cases PASS;native current-source execution pending",
+      "native_recovery_bb1e044": "54PASS0FAIL",
+      "diagnostic_runner_8d546e5_app_bb1e044": "finance6PASS3FAIL;UI1PASS2FAIL;no final acceptance",
+      "productive_actions": "NONE",
+      "next": "finish native error causes;common final regression/build/original signature and source preservation"
     }
   },
   "verified_release_source": {

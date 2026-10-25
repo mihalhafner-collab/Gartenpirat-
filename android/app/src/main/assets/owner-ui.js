@@ -41,6 +41,6 @@
   setTimeout(()=>setTimeout(businessSettings,0),0);
   get('entry')?.addEventListener('reset',()=>setTimeout(defaults,0));
   const render=window.render;window.render=function(...args){const r=render.apply(this,args);if(currentPage==='invoices')handoff();return r;};
-  if(!localStorage.getItem('hausgarten.entry.draft.v1'))defaults();
+  if(!HGFormDrafts.list('work_entry').length&&!localStorage.getItem('hausgarten.entry.draft.v1'))defaults();
  },{once:true});
 })();

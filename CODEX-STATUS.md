@@ -272,6 +272,41 @@ anschließender diagnostischer Runner ist getrennt von der unveränderten bb1e04
 App auszuweisen; endgültige Abnahme erst aus gemeinsamem finalen Quellstand.
 Der aktuelle native Recovery-Teillauf mit bb1e044 läuft noch.
 
+
+## Gemeinsame Arbeitserfassung und native Eingrenzung – 25.10.2026
+
+Recovery-Gruppe am Original-Prüfbau bb1e044 und dessen originalem Runner:
+**54 native PASS, 0 FAIL**. Tatsächliche WebView-/SQLite-/Medienpfade, Foto-
+Unterbrechungen, optionale beschädigte Restoreentwürfe, >40MiB-Vollsicherung,
+asynchrone Handlerfehler und unabhängige Sicherungsjobs; keine Pixelabnahme.
+Diagnoserunner8d546e5 mit unveränderter bb1-App: Finanzgruppe6PASS/3READ_ERROR,
+beide UI-Piloten fachlich noch FAIL; Context-Callback-Rekursion behoben. Der
+öffentliche Fehlercode allein nennt die Ursache nicht. Testadapter beobachtet
+jetzt die ursprüngliche Ausnahme ohne Wiederholung eines Schreibaufrufs; nur
+Werkzeugname, Ausnahmeklasse und öffentliche Quellposition werden ausgegeben.
+
+Manuelle Arbeitserfassung auf bestehenden gemeinsamen HGFormDrafts-Dienst
+geführt: vollständige generische Felder einschließlich Rechnungsempfänger,
+eigene Identität pro Vorgang, kein leerer Defaultentwurf, getrennte bestätigte
+Arbeit/optionaler Fotoauftrag, unveränderliche Speicheraktion vor Bridgeaufruf.
+Original-Blob, eingefrorene Zuordnung und Fotoaktion liegen vor erster Übertragung
+im vorhandenen Medienpuffer; neue unabhängige Arbeit bleibt möglich. Abbrechen
+verwendet denselben gezielten Verwerfweg mit Entfernung aktiver Spiegel und
+Tombstone gegen verspätete Rückrufe. Wiederaufnahme wartet auf echte dynamische
+Abrechnungsfelder; verzögerte Default-Rückrufe dürfen den Empfänger nicht ersetzen.
+Legacy-Einzelpuffer darf keinen zweiten Fotoauftrag überschreiben; öffentliche
+Bereinigung verlangt einen minimalen bestätigten/abgewiesenen Aktionsbeleg.
+Gespeicherte Arbeit oder erfolgreich angelegter Kunde wird dadurch nicht gelöscht.
+
+Gezielte Browserabnahme:8/8 Arbeit-/Foto-/Entwurfsfälle PASS, einschließlich zwei
+Vorgängen mit dynamischem Feld/Rechnungsempfänger, Originalbytes nach Reload vor
+Speichern, gezieltem Verwerfen/Spiegelbereinigung, Antwortverlust nach Commit und
+unabhängigem neuem Entwurf. Browser-Reload ist kein OS-Prozesskillnachweis.
+Weitere vorhandene UI-/JVM-Regressionen laufen; finaler gemeinsamer Androidbuild
+und erneute vollständige native Abnahme weiterhin OFFEN. Kein Produktivschalter,
+keine Betriebsdatenänderung, keine Pixelinstallation. Quellcheckpoint ist keine
+Auslieferungsfreigabe.
+
 ## Entwicklung erneut gestoppt; vollständige Übergabe für später – 25.10.2026
 
 Der Nutzer hat ausdrücklich angewiesen: „Stoppe die Erstellung speichere für späteren

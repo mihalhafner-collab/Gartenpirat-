@@ -34,8 +34,8 @@ const {chromium}=require('./browser.cjs');
   await test('Individual draft recipient survives render and reload without a write',async()=>{
     await page.evaluate(()=>{openPage('work-entry');document.getElementById('customer').value='qa_site';ordersForCustomer();document.getElementById('entry-billing-customer').value='qa_site';document.getElementById('entry-billing-customer').dispatchEvent(new Event('change',{bubbles:true}));document.getElementById('activity').value='QA Entwurf';document.getElementById('entry-hours').value='2';document.getElementById('activity').dispatchEvent(new Event('input',{bubbles:true}));render();});
     assert.equal(await page.locator('#entry-billing-customer').inputValue(),'qa_site');
-    await page.waitForFunction(()=>JSON.parse(localStorage.getItem('hausgarten.entry.draft.v1')).activity==='QA Entwurf');
-    await page.reload();await page.waitForSelector('#billing-page',{state:'attached'});
+    await page.waitForFunction(()=>HGFormDrafts.list('work_entry').some(edit=>edit.values.fields.some(field=>field.name==='activity'&&field.value==='QA Entwurf')));
+    await page.reload();await page.waitForSelector('#billing-page',{state:'attached'});await page.waitForFunction(()=>document.getElementById('activity').value==='QA Entwurf');
     assert.equal(await page.locator('#entry-billing-customer').inputValue(),'qa_site');assert.equal(await page.evaluate(()=>writes.length),0);
     await page.evaluate(()=>document.getElementById('entry').reset());
   });

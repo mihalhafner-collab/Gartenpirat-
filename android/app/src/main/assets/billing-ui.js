@@ -93,9 +93,9 @@
     const o=field('order-billing-customer','Abrechnung an · optional','',get('order-edit-customer'),true);
     get('customer').addEventListener('change',()=>entryDefault(true));get('order').addEventListener('change',()=>entryDefault(true));
     const ordersBase=window.ordersForCustomer;window.ordersForCustomer=function(...args){ordersBase(...args);entryDefault();};
-    const orderSaved=window.onWorkEntryOrderSaved;window.onWorkEntryOrderSaved=function(...args){const result=orderSaved?.(...args);if(result)entryDefault(true);return result;};
+    const orderSaved=window.onWorkEntryOrderSaved;window.onWorkEntryOrderSaved=function(...args){const result=orderSaved?.(...args);if(result){entryDefault(true);window.retainWorkEntryDraft?.();}return result;};
     e.addEventListener('change',()=>e.dataset.userOverride='1');
-    get('entry').addEventListener('reset',()=>setTimeout(()=>entryDefault(true),0));
+    get('entry').addEventListener('reset',()=>{const form=get('entry');if(form.dataset.restoringEntry==='true')return;const session=form.dataset.editSession;setTimeout(()=>{if(form.dataset.editSession===session)entryDefault(true);},0);});
     document.addEventListener('click',event=>{if(event.target.closest('[data-session-action="complete"]'))setTimeout(()=>{
       try{const session=JSON.parse(AndroidData.getWorkSession());if(session.id===get('work-session-id')?.value&&session.customer_id){get('customer').value=session.customer_id;ordersForCustomer();get('order').value=session.order_id||'';}}catch(_){}
       entryDefault(true);
@@ -110,14 +110,14 @@
     const link=document.createElement('button');link.type='button';link.dataset.open='billing-page';link.innerHTML='<span><strong>Offene Leistungen</strong><small>Nach Rechnungsempfänger · mit Einsatzorten</small></span><b>›</b>';get('more-page').querySelector('[data-open="invoices"]').before(link);
     document.addEventListener('click',event=>{const prepare=event.target.closest('[data-prepare-billing]');if(prepare)prepareInvoice({recipient:prepare.dataset.prepareBilling});if(event.target.closest('#billing-load-more')){billingLimit+=50;groups();}});
     const renderBase=window.render;window.render=function(){renderBase();groups();profile();invoiceReadiness();};
-    const pageBase=window.openPage;window.openPage=function(...args){pageBase(...args);if(currentPage==='work-entry')entryDefault();if(currentPage==='customer-edit'&&!form.elements.id.value)customerEdit('');if(currentPage==='customer-profile-page')profile();if(currentPage==='billing-page')groups();if(currentPage==='invoices')invoiceReadiness();};
+    const pageBase=window.openPage;window.openPage=function(...args){const result=pageBase(...args);if(result===false)return false;if(currentPage==='work-entry')entryDefault();if(currentPage==='customer-edit'&&!form.elements.id.value)customerEdit('');if(currentPage==='customer-profile-page')profile();if(currentPage==='billing-page')groups();if(currentPage==='invoices')invoiceReadiness();return result;};
     const detail=window.openWorklogDetail;window.openWorklogDetail=function(id){detail(id);const row=worklogs().find(w=>w.id===id);if(row){fill(w,recipient(row));window.captureWorklogBaseline?.();const info=get('worklog-detail-subtitle');if(info&&recipient(row)!==row.customer_id)info.textContent+=' · Abrechnung über: '+named(recipient(row));}};
     // Add a compact recipient line without replacing existing record rows/handlers.
     function decorate(){document.querySelectorAll('.worklog-entry[data-edit-worklog]').forEach(node=>{const row=worklogs().find(w=>w.id===node.dataset.editWorklog);if(row&&recipient(row)!==row.customer_id&&!node.querySelector('.billing-line')){const span=document.createElement('small');span.className='billing-line';span.textContent='Abrechnung über: '+named(recipient(row));node.append(span);}});}
     const after=window.render;window.render=function(){after();decorate();};
     customerEdit('');entryDefault();fill(w,'');fill(o,'','',true);
-    try{const draft=JSON.parse(localStorage.getItem('hausgarten.entry.draft.v1')||'null');if(draft?.customer_id===get('customer').value&&customers().some(c=>c.id===draft.billing_customer_id)){fill(e,draft.billing_customer_id);e.dataset.userOverride='1';}}catch(_){/* An unreadable browser draft is never imported as business data. */}
-    render();
+
+    render();document.dispatchEvent(new Event('work-entry-fields-ready'));
   }
   function ready(){if(!get('more-page')||!get('entry-location')){setTimeout(ready,40);return;}init();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(ready,160),{once:true});else ready();

@@ -32,6 +32,7 @@ final class PendingWorkPhotoStore {
             payload.put("id", "pho_mobile_" + UUID.randomUUID().toString().replace("-", ""));
         if(!payload.has("_capture_context")){JSONObject identity=new BackupDeviceGuard(context).current();payload.put("_capture_context",new JSONObject().put("formatVersion",1).put("installation_id",identity.getString("installationId")).put("restore_epoch",identity.getString("restoreEpoch")));}
         validate(payload);
+        String existing=read();if(!existing.isEmpty()){JSONObject before=new JSONObject(existing);if(!PixelMcpWriteTools.hash(before).equals(PixelMcpWriteTools.hash(payload)))throw new IllegalStateException("Ein anderer Fotoauftrag wartet noch auf Prüfung. Neue Fotoentwürfe über die getrennte Arbeitserfassung anlegen.");return existing;}
         byte[] bytes = payload.toString().getBytes(StandardCharsets.UTF_8);
         if (bytes.length > MAX_JSON_BYTES) throw new IllegalArgumentException("Der Foto-Wiederholauftrag ist zu groß.");
         FileOutputStream output = null;

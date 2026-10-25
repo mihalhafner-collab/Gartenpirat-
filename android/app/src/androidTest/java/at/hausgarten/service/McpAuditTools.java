@@ -8,11 +8,13 @@ import java.util.*;
 /** Test-only observation of the real production router. Never logs arguments or records. */
 final class McpAuditTools {
     private final PixelMcpReadTools actual;
+    private Exception lastNativeFailure;
+    Exception lastNativeFailure(){return lastNativeFailure;}
     private static final Map<String,int[]> COUNTS=new TreeMap<>();
     private static final Set<String> RPC=new HashSet<>();
     private static final Map<String,Set<String>> CODES=new TreeMap<>();
     private static final Map<String,long[]> TIMES=new TreeMap<>();
-    McpAuditTools(PixelMcpReadTools.Source source,PixelMcpWriteTools.Sink writer,PixelMcpOwnerTools.Access access){actual=new PixelMcpReadTools(source,writer,access);}
+    McpAuditTools(PixelMcpReadTools.Source source,PixelMcpWriteTools.Sink writer,PixelMcpOwnerTools.Access access){actual=new PixelMcpReadTools(source,writer==null?null:new PixelMcpWriteTools.Sink(){public boolean writable(){return writer.writable();}public JSONObject execute(String name,JSONObject args)throws Exception{try{return writer.execute(name,args);}catch(Exception error){lastNativeFailure=error;throw error;}}public JSONObject status(String id,JSONObject state)throws Exception{return writer.status(id,state);}},access==null?null:(name,args)->{try{return access.query(name,args);}catch(Exception error){lastNativeFailure=error;throw error;}});}
     McpAuditTools(PixelMcpReadTools.Source source,PixelMcpWriteTools.Sink writer){this(source,writer,null);}
     JSONArray tools()throws Exception{return actual.tools();}
     static void count(String name,boolean success){int[] c=COUNTS.computeIfAbsent(name,k->new int[2]);c[success?0:1]++;}
@@ -25,7 +27,7 @@ final class McpAuditTools {
     }
     JSONObject rpc(JSONObject request)throws Exception{
         long started=System.nanoTime();
-        JSONObject result=actual.rpc(request);
+        lastNativeFailure=null;JSONObject result=actual.rpc(request);
         if(request.optString("method").equals("tools/call")){
             String name=request.getJSONObject("params").getString("name");JSONObject body=result.getJSONObject("result");
             boolean success=!body.optBoolean("isError");count(name,success);RPC.add(name);

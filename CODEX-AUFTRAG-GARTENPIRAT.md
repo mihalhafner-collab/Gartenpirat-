@@ -29,6 +29,10 @@ Antwortverlust; abgeschlossene Restoreprüfung und optionale fehlerhafte Entwür
 Anfrage/Besichtigung/direkte und angebotene Annahme; Legacy-Lesediagnose unabhängig
 von Veröffentlichung; Einzeljobs/lokale Fälligkeit/echter asynchroner Schedulerfehler;
 gezieltes Verwerfen/Löschen ohne aktive Inhaltskopien oder Wiederbelebung.
+Auch die manuelle Arbeitserfassung verwendet eigene gemeinsame Editorsitzungen und
+einen getrennten dauerhaften Fotoauftrag. Ein bestätigter Arbeitsdatensatz bleibt
+bei Foto-/Bereinigungsfehler bestehen; weitere Arbeit bleibt unabhängig möglich.
+Verzögerte Formular-Defaults dürfen wiederaufgenommene Rechnungsempfänger nicht ändern.
 
 Die 16 verbindlichen Abnahmefälle dieses Folgeauftrags werden im bestehenden Status
 unter K01–K16 geführt: unberührt; Mehrfachentwurf/Neustart; Abrechnungskunde abbrechen;
