@@ -3,7 +3,71 @@
 Stand: 25. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
-## Gemeinsamer Backup-only-Abschlussstand 1.55.0/101, 25.10.2026
+## Aktueller gemeinsamer Abschlusskandidat 1.55.0/102, 25.10.2026
+
+Version1.55.0 bleibt erhalten; code102/DB6 bündelt eine tatsächlich nachgewiesene
+Migrationskorrektur mit einer verhaltensgleichen Suchoptimierung. Kein produktiver
+Pixelwechsel. Der vorherige Original-Prüfbau101 aus8edb505 war mit184nativen
+PASS/0fachlichenFAIL noch unvollständig, als er zur Korrektur bewusst beendet wurde.
+Dessen erster vollständiger Produktions-UI-Pilot bestand Anfrage/Besichtigung/
+Angebot/Annahme/Auftrag/Besuch/Timer/148EUR-PDF/60+88EUR-Zahlungen. Kein vollständiger
+101-PASS und kein101-Release/Tag/APKupload werden daraus abgeleitet. Upgrade100→101,
+Signatur, tatsächlicher APK-DEX-Quellbezug und P0 waren PASS; vollständige externe
+Quellenkopie8edb505 mit61SHA256-Bytebelegen und ZIP983f3cdf290dd4038994614b8a12fb49665f2893bf2e81c360d6312312fcb6e9
+unter https://drive.google.com/drive/folders/1Fq9h67igrGc4RVsFcaBsQeMTxX0Gft49.
+
+Korrigierter tatsächlicher Fehler: Ein ausdrücklich gültig lokal entschiedener
+Altkonflikt blieb allein wegen roher historischer Zähler migrationssperrend.
+Zusätzlich las der Resolver einen veralteten Raw-CAS trotz schon bestätigter lokaler
+Änderung. Anzeige und Resolver verwenden jetzt denselben effektiven lokalen Stand.
+Die Inventur prüft Originalaktion, ursprünglichen Aktionshash, tatsächliche geordnete
+Journalposition, Owner-CAS sowie finale History/Receipt/Resolvedhash erneut auf
+isolierten Kopien. Nur diese konkrete belegte Entscheidung erfüllt ihre Prüfpflicht.
+Rohbestand, Warteschlange, historische Fehler und Originalaktionen bleiben erhalten.
+Fehlende Originale, Infrastrukturfehler, falsche Hashes/CAS, bloße Flags und unbearbeitete
+Konflikte bleiben blockiert. Beide unterstützten Engines werden gleich geprüft,
+auch nach Wiederherstellung. Rechnungsausgabe bleibt bis zum eigenen aktuellen
+Original-/Nummernbelegabgleich gesperrt.
+
+Enge tatsächliche Gegenproben: alter Inventurcode scheitert an der gültigen
+Entscheidung; alter Resolver scheitert an aktuellem/stalem CAS. Aktuell154Inventur-,
+132OwnerApplication-,16OrderReview-,326OwnerTools-Prüfungen PASS; neue native RPC→
+Entscheidung→Inventur→verschlüsseltes Archiv→geschützte Aktivierungsprobe nur
+kompiliert, Ausführung auf102 noch OFFEN. Keine Freigabeflags und keine reale
+Umstellung für Tests.
+
+Suchoptimierung erzeugt DTO/Zielobjekt/Snippet erst für die ausgelieferte Seite.
+Matching, vollständige Trefferzahl, Sortierung, Seitengrenzen, Archivfilter und
+aktuelle Vergleichshashes bleiben gleich; kein Cache, Schemawechsel oder Nebenbestand.
+228tatsächliche alte/neue Antworten:203759Bytes exakt identisch,
+SHA428f60805e739f972e222b7d0cd113bbbfff7d971be32895ec7931df20fc7444;
+184bestehende/ergänzte Domainprüfungen PASS. Die tatsächliche101-Emulatormessung
+mit300Kunden/450Objekten/3Warmups/25Samples war p95=1258.99344ms gegenüber Ziel300ms;
+20Tourstopps462.010222ms gegenüber Ziel1000ms. Kein Pixel-Leistungsnachweis,
+keine300ms-Behauptung.102 wird neu gemessen; ein grüner Funktionstest allein erfüllt
+das Leistungsziel nicht.
+
+Die zusätzliche breite Regression fand den bisherigen Diagnoseweg bei
+ACTION_ID_CONFLICT: eine unverifizierbare Projektion verhindert nun keine lesende
+Konfliktanzeige. Sie liefert feste Diagnosedaten, ausdrücklich keinen current-/
+Aktionsvergleichshash und keine freigegebene Entscheidung. Direkter Resolveversuch
+bleibt ohne Mutation. Der ursprüngliche OffersAndPhotos-Test bleibt unverändert
+und besteht94Prüfungen.
+
+Gemeinsamer Hoststand nach sämtlichen Korrekturen:78JVM-Suiten/P1 PASS,
+166Tools/209UI-Aktionen, P1SHA010cc437a56f63e43e08d49753fc14ae9da4080a14afac64369b60cb61c1874a;
+56Browser-Suiten PASS;430Pythonprüfungen/0SKIP PASS (37historische QA-Schlüsselerzeugungstests
+explizit ausgeschlossen und erhalten); MCP-Stdio55 PASS. Zusätzliche9UI-Suiten PASS; Source2338/Workspace6288 Privacy PASS/0Betriebszeilen.
+Originalkandidat102 und tatsächliche Artefakt-/Nativeabnahme bleiben bis Abschluss
+separat offen. Alle204Produktiv-/32Native-Testquellen kompiliert;
+der finale Gradlebuild kompiliert sie erneut aus dem gesicherten Quellstand.
+
+Nach Freeze aller Änderungen folgt jetzt die gemeinsame Host-/Quellen-/P0-Prüfung,
+Commit/Push/Readback, Originalbuild/Signatur102 und vollständige native Regression
+mit fünf echten OS-Prozessabbruchpaaren und Offlinepiloten. Diese102-Nachweise sind
+noch OFFEN. Frühere Ergebnisse bleiben datiert; keine automatische Installation.
+
+## Historischer Backup-only-Zwischenstand 1.55.0/101, 25.10.2026
 
 Der aktuelle Produktstand folgt dem ausdrücklichen Auftrag: sämtliche Fachfunktionen
 und maßgebliche Speicherung auf dem Pixel, Drive ausschließlich verschlüsselte

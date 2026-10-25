@@ -66,7 +66,13 @@ final class PixelMcpOwnerTools {
         return "delete".equals(kind)||!DriveJournalRules.collection(kind).isEmpty();
     }
     static JSONObject conflicts(JSONObject state,JSONObject args)throws Exception{
-        JSONObject master=state.getJSONObject("master"),resolved=master.optJSONObject("drive_resolved_actions");Map<String,JSONObject> failures=new LinkedHashMap<>();
+        JSONObject master=state.getJSONObject("master"),currentSnapshot=null,resolved=master.optJSONObject("drive_resolved_actions");String projectionError="";
+        try{currentSnapshot=SnapshotProjection.effective(state);}catch(Exception invalid){
+            // Diagnostics must remain readable when the journal itself is inconsistent. This
+            // path never supplies a writable current state or a comparison hash for a decision.
+            projectionError=invalid instanceof PixelMcpWriteTools.Rejected&&Arrays.asList("ACTION_ID_CONFLICT","DEPENDENCY_CYCLE").contains(((PixelMcpWriteTools.Rejected)invalid).code)?((PixelMcpWriteTools.Rejected)invalid).code:"PENDING_PROJECTION_REVIEW_REQUIRED";
+        }
+        Map<String,JSONObject> failures=new LinkedHashMap<>();
         for(String key:new String[]{"sync_errors","drive_journal_errors"}){JSONArray a=master.optJSONArray(key);for(int i=0;a!=null&&i<a.length();i++){JSONObject e=a.getJSONObject(i);if(resolved==null||!resolved.has(e.optString("client_id")))failures.put(e.optString("client_id"),e);}}
         // A decision is bound to the exact action hash, never merely to its ID.
         JSONArray pendingActions=state.optJSONArray("pending");for(int i=0;resolved!=null&&pendingActions!=null&&i<pendingActions.length();i++){JSONObject action=pendingActions.getJSONObject(i);String id=action.optString("client_id");if(resolved.has(id)&&!OrderReviewRules.actionHash(action).equals(resolved.optString(id)))failures.put(id,new JSONObject().put("client_id",id).put("code","ACTION_ID_CONFLICT").put("error","Eine historisch geprüfte Aktion wurde verändert. Erneute manuelle Prüfung erforderlich; alte Entscheidung gilt nicht für diesen Hash."));}
@@ -75,17 +81,18 @@ final class PixelMcpOwnerTools {
             if(aHasClient(args,e))continue;
             if(at++<offset||out.length()>=limit)continue;JSONObject action=null;JSONArray pending=state.optJSONArray("pending");for(int i=0;pending!=null&&i<pending.length();i++)if(e.optString("client_id").equals(pending.getJSONObject(i).optString("client_id")))action=pending.getJSONObject(i);
             boolean legacy=DriveJournalRules.ids(master.optJSONArray("drive_legacy_photo_review_ids")).contains(e.optString("client_id"));
-            boolean resolutionAvailable=manualResolutionAvailable(e,action,legacy);
-            JSONObject row=new JSONObject(e.toString()).put("resolution_available",resolutionAvailable);if(resolutionAvailable&&action!=null&&Arrays.asList("archive","purge_v1","purge_trash_v1").contains(action.optString("kind")))row.put("allowed_resolutions",new JSONArray().put("keep_current"));
+            boolean resolutionAvailable=currentSnapshot!=null&&manualResolutionAvailable(e,action,legacy);
+            JSONObject row=new JSONObject(e.toString()).put("resolution_available",resolutionAvailable).put("current_projection_verified",currentSnapshot!=null);if(resolutionAvailable&&action!=null&&Arrays.asList("archive","purge_v1","purge_trash_v1").contains(action.optString("kind")))row.put("allowed_resolutions",new JSONArray().put("keep_current"));
             if(legacy){row.put("review_reason","legacy_inline_photo_requires_original_review");out.put(row);continue;}
+            if(currentSnapshot==null){row.put("review_reason","current_projection_unverified").put("projection_error_code",projectionError);if(action!=null)row.put("action",action);out.put(row);continue;}
             if("SYNC_COMPONENT_UPDATE_REQUIRED".equals(e.optString("code")))row.put("review_reason","sync_component_update_required").put("recommended_action","update_sync_component");
             else if(action!=null&&!resolutionAvailable)row.put("review_reason","control_or_infrastructure_action_not_manually_resolvable");
-            if(action!=null){String kind=action.optString("kind");if(kind.equals("delete")||kind.equals("archive")||kind.equals("purge_v1"))kind=action.getJSONObject("payload").optString("entity");String group=DriveJournalRules.collection(kind);JSONObject current=null;JSONArray data=master.optJSONArray(group);for(int i=0;data!=null&&i<data.length();i++)if(action.getJSONObject("payload").optString("id").equals(data.getJSONObject(i).optString("id")))current=data.getJSONObject(i);
-                if("purge_v1".equals(action.optString("kind")))current=OwnerJournalRules.archives(master).optJSONObject(kind+":"+action.getJSONObject("payload").optString("id"));
-                if(TrashPurgeBatch.KIND.equals(action.optString("kind")))current=TrashPurgeBatch.currentGuard(master);
+            if(action!=null){String kind=action.optString("kind");if(kind.equals("delete")||kind.equals("archive")||kind.equals("purge_v1"))kind=action.getJSONObject("payload").optString("entity");String group=DriveJournalRules.collection(kind);JSONObject current=null;JSONArray data=currentSnapshot.optJSONArray(group);for(int i=0;data!=null&&i<data.length();i++)if(action.getJSONObject("payload").optString("id").equals(data.getJSONObject(i).optString("id")))current=data.getJSONObject(i);
+                if("purge_v1".equals(action.optString("kind")))current=OwnerJournalRules.archives(currentSnapshot).optJSONObject(kind+":"+action.getJSONObject("payload").optString("id"));
+                if(TrashPurgeBatch.KIND.equals(action.optString("kind")))current=TrashPurgeBatch.currentGuard(currentSnapshot);
                 row.put("action",action).put("action_hash",OrderReviewRules.actionHash(action)).put("current",current==null?JSONObject.NULL:current).put("current_hash",OwnerJournalRules.version(current));}
             out.put(row);
         }
-        JSONObject result=new JSONObject().put("conflicts",out).put("total",failures.size());JSONObject history=master.optJSONObject("owner_conflict_history");result.put("history_count",history==null?0:history.length());if(args.optBoolean("include_history")){JSONArray archived=new JSONArray();int atHistory=0;for(Iterator<String> keys=history==null?new JSONObject().keys():history.keys();keys.hasNext();){String id=keys.next();if(atHistory++<offset||archived.length()>=limit)continue;archived.put(new JSONObject().put("client_id",id).put("decision",history.getJSONObject(id)));}result.put("history",archived);}return result;
+        JSONObject result=new JSONObject().put("conflicts",out).put("total",failures.size()).put("current_projection_verified",currentSnapshot!=null);if(currentSnapshot==null)result.put("projection_error_code",projectionError);JSONObject history=master.optJSONObject("owner_conflict_history");result.put("history_count",history==null?0:history.length());if(args.optBoolean("include_history")){JSONArray archived=new JSONArray();int atHistory=0;for(Iterator<String> keys=history==null?new JSONObject().keys():history.keys();keys.hasNext();){String id=keys.next();if(atHistory++<offset||archived.length()>=limit)continue;archived.put(new JSONObject().put("client_id",id).put("decision",history.getJSONObject(id)));}result.put("history",archived);}return result;
     }
 }

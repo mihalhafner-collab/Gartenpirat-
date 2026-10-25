@@ -10,7 +10,7 @@ final class LocalAuthorityNativeAcceptance {
         LocalAuthorityMigration migration=new LocalAuthorityMigration(f.context,f.store);JSONObject preview=migration.preview();JSONObject backup=new JSONObject().put("formatVersion",1).put("verified",true).put("external_verified",true).put("archive_sha256",PixelMcpWriteTools.hash("qa_synthetic_archive_proof")).put("business_snapshot_sha256",preview.getString("state_sha256")).put("captured_at","2026-10-24T00:00:00Z").put("verified_at","2026-10-24T00:01:00Z");return migration.activate(request,preview.getString("preview_hash"),backup,evidence());
     }
     private static void rejected(PixelMcpInstrumentation test,String code,PixelMcpInstrumentation.Task task)throws Exception {
-        try{task.run();throw new AssertionError("Expected "+code);}catch(java.io.IOException expected){test.yes(expected.getMessage().equals(code));}
+        try{task.run();throw new AssertionError("Expected "+code);}catch(java.io.IOException|IllegalArgumentException expected){test.yes(expected.getMessage().equals(code));}
     }
     static void run(PixelMcpInstrumentation test)throws Exception {
         test.probe("local authority cutover preserves journal and business data and fences legacy sync",()->{
@@ -34,6 +34,47 @@ final class LocalAuthorityNativeAcceptance {
         test.probe("interrupted local authority migration remains locked and repeated startup keeps same business state",()->{
             try(OwnerNativeAcceptance.Fixture f=new OwnerNativeAcceptance.Fixture(test.getTargetContext())){
                 LocalAuthorityGuard guard=new LocalAuthorityGuard(f.context);JSONObject staged=guard.beginMigration("qa_authority_interrupted",guard.current().getString("revision"),evidence());guard.recoverInterruptedMigration();test.yes(guard.current().getString("mode").equals("RESTORE_REVIEW"));guard.recoverInterruptedMigration();test.yes(guard.current().getString("migration_epoch").equals(staged.getString("migration_epoch"))&&!LocalAuthorityGuard.legacySyncAllowed(f.context));test.yes(f.store.pendingActions().length()==0&&PixelMcpReadTools.effective(f.store.getState()).getJSONArray("worklogs").length()==1);rejected(test,"INVOICE_AUTHORITY_RECONCILIATION_REQUIRED",guard::requireInvoiceAuthority);
+            }
+        });
+        test.probe("locally reviewed conflict permits explicit cutover only after verified archive and current writer proof while preserving original queue",()->{
+            try(OwnerNativeAcceptance.Fixture f=new OwnerNativeAcceptance.Fixture(test.getTargetContext())){
+                BackupRecoveryKeyStore keys=new BackupRecoveryKeyStore(f.context);
+                try{
+                    // Produce the same real SQLite conflict as the existing owner regression.
+                    f.store.saveAction("customer","qa_",new JSONObject().put("id","qa_c").put("name","QA proposed duplicate").put("_mcp_create",true));
+                    JSONObject master=f.store.getState().getJSONObject("master");JSONArray errors=DriveJournalRules.apply(master,f.store.pendingActions());test.yes(errors.length()==1&&errors.getJSONObject(0).getString("code").equals("WRITE_CONFLICT"));
+                    master.put("sync_errors",new JSONArray(errors.toString())).put("drive_review_actions",DriveJournalRules.reviewActions(master,f.store.pendingActions()));f.store.commitSnapshot(master,new java.util.HashSet<>());
+                    LocalAuthorityMigration migration=new LocalAuthorityMigration(f.context,f.store);test.yes(migration.preview().getJSONObject("inventory").getInt("historical_reviews")==4);
+                    rejected(test,"LOCAL_MIGRATION_DATA_REVIEW_REQUIRED",()->activate(f,"qa_unresolved_must_block"));
+                    JSONObject staleConflict=f.call("get_sync_conflicts",new JSONObject()).getJSONArray("conflicts").getJSONObject(0),customer=f.tools.call("get_customer",new JSONObject().put("customer_id","qa_c"));
+                    f.call("update_customer",new JSONObject().put("request_id","qa_migration_before_decision").put("customer_id","qa_c").put("expected_record_hash",customer.getString("record_hash")).put("updates",new JSONObject().put("notes","QA pending before conflict decision")));
+                    try{f.call("resolve_sync_conflict",new JSONObject().put("request_id","qa_migration_stale_decision").put("client_id",staleConflict.getString("client_id")).put("expected_action_hash",staleConflict.getString("action_hash")).put("expected_current_hash",staleConflict.getString("current_hash")).put("resolution","keep_current"));throw new AssertionError("QA stale effective conflict CAS accepted");}catch(PixelMcpWriteTools.Rejected expected){test.yes(expected.code.equals("WRITE_CONFLICT")&&f.store.pendingActions().length()==2);}
+                    JSONObject conflict=f.call("get_sync_conflicts",new JSONObject()).getJSONArray("conflicts").getJSONObject(0);test.yes(conflict.getJSONObject("current").getString("notes").equals("QA pending before conflict decision")&&!conflict.getString("current_hash").equals(staleConflict.getString("current_hash")));
+                    JSONObject decision=new JSONObject().put("request_id","qa_migration_explicit_resolution").put("client_id",conflict.getString("client_id")).put("expected_action_hash",conflict.getString("action_hash")).put("expected_current_hash",conflict.getString("current_hash")).put("resolution","keep_current");
+                    f.call("resolve_sync_conflict",decision);f.call("resolve_sync_conflict",decision);test.yes(f.store.pendingActions().length()==3);
+                    JSONObject reviewed=f.tools.call("get_customer",new JSONObject().put("customer_id","qa_c")),later=new JSONObject().put("request_id","qa_migration_after_decision").put("customer_id","qa_c").put("expected_record_hash",reviewed.getString("record_hash")).put("updates",new JSONObject().put("notes","QA pending after conflict decision"));f.call("update_customer",later);f.call("update_customer",later);test.yes(f.store.pendingActions().length()==4);
+                    String raw=f.store.snapshotText(""),pending=PixelMcpWriteTools.hash(f.store.pendingActions()),business=PixelMcpWriteTools.hash(SnapshotProjection.effective(f.store.getState()).getJSONArray("customers"));
+                    JSONObject preview=migration.preview();test.yes(preview.getJSONObject("inventory").getInt("historical_reviews")==0&&raw.equals(f.store.snapshotText(""))&&pending.equals(PixelMcpWriteTools.hash(f.store.pendingActions())));
+                    JSONObject incomplete=new JSONObject().put("formatVersion",1).put("verified",true).put("external_verified",false).put("archive_sha256",PixelMcpWriteTools.hash("qa_incomplete_archive")).put("business_snapshot_sha256",preview.getString("state_sha256"));
+                    rejected(test,"LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED",()->migration.activate("qa_missing_external_archive",preview.getString("preview_hash"),incomplete,evidence()));
+                    String code=BackupCrypto.newRecoveryCode();keys.confirmAndStore("qa_migration_key",code,code);JSONObject browser=new JSONObject().put("formatVersion",1).put("storage",new JSONObject());
+                    BackupSettingsRepository settings=new BackupSettingsRepository(f.context,f.store);settings.saveBrowser("qa_migration_browser",settings.browserRevision(),browser);
+                    LocalBackupCoordinator backups=new LocalBackupCoordinator(f.context,f.store);String backupId="qa_resolved_migration_archive";
+                    backups.createWithIntent("qa_migration_archive_request",backupId,new JSONObject().put("kind","saf").put("treeUri","content://qa.synthetic.documents/tree/qa_migration"),browser,"manual");backups.prepareLocal(backupId);
+                    JSONObject args=new JSONObject().put("request_id","qa_resolved_migration_activate").put("expected_preview_hash",migration.preview().getString("preview_hash")).put("backup_id",backupId).put("writer_evidence",evidence());
+                    // A sealed local file is not external protection. This is still blocked.
+                    rejected(test,"LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED",()->migration.activateFromArgs(args));
+                    JSONObject archive=backups.status(backupId).getJSONObject("archive"),provider=new JSONObject().put("backup_id",backupId).put("archive_sha256",archive.getString("sha256")).put("byte_size",archive.getLong("size")).put("verified_at",java.time.Instant.now().toString()).put("verification_scope","DOCUMENT_PROVIDER_READBACK").put("destination_location","REMOVABLE_STORAGE_VOLUME").put("external_storage_verified",true).put("cloud_confirmed",false);
+                    // Explicit synthetic provider evidence; no USB/provider/device claim.
+                    backups.recordProviderProof(backupId,provider);test.yes(backups.verifiedArchive(backupId).isFile());
+                    JSONObject invalidWriter=new JSONObject(args.toString()).put("writer_evidence",new JSONObject(args.getJSONObject("writer_evidence").toString()).put("external_writers_disabled",false));
+                    try{migration.activateFromArgs(invalidWriter);throw new AssertionError("QA invalid writer proof accepted");}catch(IllegalArgumentException expected){test.yes(expected.getMessage().equals("LOCAL_AUTHORITY_EVIDENCE_REQUIRED"));}
+                    test.yes(new LocalAuthorityGuard(f.context).current().getString("mode").equals("LEGACY_DRIVE")&&raw.equals(f.store.snapshotText(""))&&pending.equals(PixelMcpWriteTools.hash(f.store.pendingActions())));
+                    JSONObject result=migration.activateFromArgs(args);test.yes(result.getString("mode").equals("LOCAL_ACTIVE")&&result.getString("invoice_authority").equals("LOCKED")&&migration.activateFromArgs(args).getBoolean("replayed"));
+                    test.yes(raw.equals(f.store.ownerValue("legacy_snapshot_before_local:qa_resolved_migration_activate",""))&&pending.equals(PixelMcpWriteTools.hash(f.store.pendingActions()))&&business.equals(PixelMcpWriteTools.hash(SnapshotProjection.effective(f.store.getState()).getJSONArray("customers"))));
+                    JSONObject canonical=f.store.getState().getJSONObject("master"),history=canonical.getJSONObject("owner_conflict_history").getJSONObject(conflict.getString("client_id"));test.yes(history.getString("action_hash").equals(conflict.getString("action_hash"))&&history.getString("resolution").equals("keep_current")&&history.getJSONObject("previous").getString("notes").equals("QA pending before conflict decision")&&f.call("get_customer",new JSONObject().put("customer_id","qa_c")).getString("notes").equals("QA pending after conflict decision"));
+                    rejected(test,"INVOICE_AUTHORITY_RECONCILIATION_REQUIRED",()->new LocalAuthorityGuard(f.context).requireInvoiceAuthority());
+                }finally{BackupCoreNativeAcceptance.deleteQaKey(f,keys);}
             }
         });
     }

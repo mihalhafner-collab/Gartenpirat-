@@ -1,12 +1,12 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-25T21:19:25.686379+00:00",
+  "updated_at_utc": "2026-10-25T22:13:13.146506+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
     "version_name": "1.55.0",
-    "version_code": 101,
-    "status": "ACTIVE_FINAL_BACKUP_ONLY_CONTRACT3_HOST_CHECKS_PASS_NATIVE_RELEASE_PENDING",
+    "version_code": 102,
+    "status": "ACTIVE_102_MIGRATION_RESOLUTION_AND_SEARCH_REPAIR_FROZEN_COMMON_QA_PENDING",
     "base_git_sha": "419d0b4bfcbb7108d00296619831a04ddc3273b0",
     "last_original_app_source_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "main_at_start": "e499e745832449ce0202d04d9903495248e8b034",
@@ -35,8 +35,8 @@
       "native_browser_draft_ack_cas_tombstone_context_epoch_full_backup_integration",
       "final_storage_contract3_backup_only_public_runtime_no_business_drive_network"
     ],
-    "full_revier_acceptance": "OPEN final101 native/common release acceptance; frozen host JVM78/P1/MCP55 and Java204/native32 compile PASS; not productive acceptance",
-    "original_signed_update_candidate": "Prior8e77d84 original1.55.0/100 exists as INTERNAL unaccepted intermediate; final101 NOT BUILT YET",
+    "full_revier_acceptance": "OPEN final102; original101184PASS0FAIL interrupted for confirmed migration defect, no complete acceptance",
+    "original_signed_update_candidate": "Prior8edb505 original1.55.0/101 exists INTERNAL only; fullP0/signature/DEX/update PASS; native184PASS0FAIL interrupted; final102 NOT BUILT",
     "productive_migration": "NOT EXECUTED",
     "installation": "NOT EXECUTED",
     "internal_signed_build": {
@@ -68,19 +68,19 @@
     },
     "backup_target_contract": "All business functions and authoritative data exclusively Pixel/App; Drive exclusively encrypted full backup; final storage contract3 retires public legacy business network writers in every authority mode without clearing old data/accounts/queues.",
     "latest_host_checks": {
-      "scope": "frozen final101 worktree after1627500; exact new source commit pending",
+      "scope": "frozen102 source worktree after8edb505; final saved commit pending",
       "jvm_suites_pass": 78,
-      "mcp_suites_pass": 55,
-      "p1_contract_sha256": "010cc437a56f63e43e08d49753fc14ae9da4080a14afac64369b60cb61c1874a",
-      "production_java_compile": 204,
-      "android_test_java_compile": 32,
-      "browser": "48 prior unaffected +8 targeted corrections PASS; final common56 rerun running",
-      "privacy": "source2338/workspace6010 PASS; actual101 artifact pending",
-      "native101": "NOT RUN",
-      "environment": "isolated synthetic Cloud; no productive mutation",
+      "browser_suites_pass": 56,
       "python_pass": 430,
       "python_skip": 0,
-      "excluded_legacy_qa_key_generation_tests": 37
+      "excluded_legacy_qa_key_generation": 37,
+      "mcp_stdio_pass": 55,
+      "p1_contract_sha256": "010cc437a56f63e43e08d49753fc14ae9da4080a14afac64369b60cb61c1874a",
+      "source_workspace_privacy": "PASS source2338/workspace6288,0operational seed rows",
+      "native102": "NOT RUN",
+      "production_java_compile": 204,
+      "native_test_java_compile": 32,
+      "additional_browser_suites_pass": 9
     },
     "native_font_probe": "Today/Planning 100/150/200% PASS after initial SystemUI ANR; OS settings restored; no Pixel/TalkBack/full-nine-view claim",
     "source_generation_ab1": {
@@ -115,7 +115,7 @@
     "development_semantic_ui_actions": 209,
     "latest_implementation_base_git_sha": "07b8fa1309c715d46c17ce8c1f5c1414f60ca7c1",
     "current_implementation_original_signed": false,
-    "latest_implementation_checkpoint_git_sha": "162750085f4994bbae05afc4c22fc6f9937252e7",
+    "latest_implementation_checkpoint_git_sha": "8edb505b4c7ff5bcdd125c9466709f16acf221e4",
     "pause": {
       "requested": "Stoppe die Erstellung speichere für späteren start alle notwendigen aktionen",
       "at_utc": "2026-10-25T07:47:27.411324+00:00",
@@ -161,7 +161,24 @@
       "tour_ms": 433.799235,
       "tour_target_ms": 1000,
       "tour_target_met": true,
-      "current_100_db6_source": "NOT MEASURED"
+      "current_100_db6_source": "NOT MEASURED",
+      "latest_101_search": {
+        "source": "8edb505b4c7ff5bcdd125c9466709f16acf221e4",
+        "customers": 300,
+        "properties": 450,
+        "warmup": 3,
+        "samples": 25,
+        "p95_ms": 1258.99344,
+        "target_ms": 300,
+        "target_met": false,
+        "environment": "isolated Cloud emulator; no Pixel performance claim"
+      },
+      "latest_101_tour": {
+        "stops": 20,
+        "ms": 462.010222,
+        "target_ms": 1000,
+        "target_met": true
+      }
     },
     "history_privacy": {
       "scope": "read-only twelve known bootstrap/issuer objects;not a full forensic audit",
@@ -373,7 +390,7 @@
         "productive_actions": "NOT_AUTHORIZED_INSTALL_OR_MIGRATION"
       }
     },
-    "current_evidence_scope": "Current101 worktree frozen for common checks; prior8e77d84 code100 OS process-recovery5pairs and in-place update PASS; final101 repeat pending",
+    "current_evidence_scope": "Frozen102 worktree after8edb505; 101 source ZIP+61 remote bytehash receipts complete, exactapp069e116... and runner2f044319... preserved; no101release",
     "primary_source_review_20261025": {
       "access": "Public Webconnector content read; direct Cloud HTTP CONNECT403;no HTTP200 claim",
       "austrian_invoice_fields": "USP/BMF reviewed;actual tax profile not changed or certified",
@@ -520,7 +537,21 @@
       "preupdate98_full_external_backup": "OPEN; old limited JSON backup is not complete",
       "release": "NOT RELEASED",
       "device_installation": "NOT EXECUTED",
-      "productive_migration": "NOT EXECUTED"
+      "productive_migration": "NOT EXECUTED",
+      "status": "SUPERSEDED_BY_102_MIGRATION_REPAIR_NOT_RELEASED"
+    },
+    "final_102_completion": {
+      "storage_contract_version": 3,
+      "database_schema": 6,
+      "migration_repair": "strict original/CAS/ordered-prefix/replay/history/receipt proofs; raw state/queue retained; both supported engines",
+      "resolver_repair": "current and validator share effective local state; no schema or descriptor changes",
+      "search_repair": "deferred page DTOs;228actual responses203759bytes byte-identical; no cache",
+      "host_common": "PASS 78JVM/56Browser/9extra/430Python/55MCP/P1; actual APK/native pending",
+      "build": "PENDING",
+      "native": "PENDING",
+      "pixel_installation": "NOT EXECUTED",
+      "productive_migration": "NOT EXECUTED",
+      "diagnostic_repair": "unverified projection remains readable without current/action hashes or available resolution; direct write attempt no mutation"
     }
   },
   "verified_release_source": {
@@ -541,13 +572,13 @@
     "reported_base_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "source_sha256": "fd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae",
     "source_dirty": false,
-    "evidence": "Read-only live get_capabilities again completed before17:16:52UTC25Oct2026:still1.54.9/98,MCP9/117,DB4,dbe9ed0/sourcefd0979,legacyPixelDrive;self-report only,no independent APK integrity proof.",
+    "evidence": "Read-only live get_capabilities25Oct2026 still1.54.9/98 DB4 MCP9/117,dbe9ed0/sourcefd0979; self-report only, no independent installedAPK integrity proof and no update/migration.",
     "invoice_finalization": "pixel_drive_online_compare_required",
-    "evidence_recorded_at_utc": "2026-10-25T17:16:52Z"
+    "evidence_recorded_at_utc": "2026-10-25T22:06:57.964900+00:00"
   },
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-",
-    "required_action": "Continue current native-draft ACK/CAS correction on existing branch;07b8fa1 is last verified remote source,100/DB6 worktree is dirty and not fully tested/signed. Native07b423PASS1FAIL;new JS-VM duplicate-order fault and fifth OS-process pair remain to qualify. Preserve Pixel98;no productive activation,installation,restore,invoice or business mutation. Current authority: CODEX-STATUS.md top and development_snapshot.correction_current_checkpoint."
+    "required_action": "Complete final102 common QA/build/original signing/native/process/offline checks on current branch; previous101 native184PASS0FAIL intentionally interrupted for proven migration defect. Preserve physical Pixel98 and separately establish complete preupdate backup; no productive changes authorized. Current authority CODEX-STATUS.md top and development_snapshot.final_102_completion."
   },
   "verified_candidate_source": {
     "version": "1.54.9",

@@ -60,10 +60,14 @@ final class LocalMigrationInventory {
             if(!kind.isEmpty()){boolean present=false,pendingDocument=false;try{present=originals.verified(kind,new JSONObject(row.toString()));if(!present&&kind.equals("document"))pendingDocument=originals.pendingDocument(new JSONObject(row.toString()));}catch(Exception unavailable){}if(present)verifiedOriginals++;else if(pendingDocument)pendingDocuments++;else missingOriginals++;}
         }
         int pending=state.optJSONArray("pending")==null?0:state.getJSONArray("pending").length();
-        int reviews=0;for(String key:new String[]{"sync_errors","drive_journal_errors","drive_review_actions"}){JSONArray errors=master.optJSONArray(key);if(errors!=null)reviews+=errors.length();}
+        int reviews=remainingHistoricalReviews(master,Collections.emptyMap());
         if(!projectionApplied)blockers.put("PENDING_PROJECTION_REVIEW_REQUIRED");
-        if(PixelDriveState.ENGINE.equals(master.optString("processing_engine"))){
-            try{reviews+=DriveJournalRules.apply(new JSONObject(master.toString()),state.optJSONArray("pending")==null?new JSONArray():state.getJSONArray("pending")).length();}catch(IllegalArgumentException invalid){blockers.put("PENDING_PROJECTION_REVIEW_REQUIRED");}
+        if(PixelDriveState.ENGINE.equals(master.optString("processing_engine"))||LocalAuthorityRules.ENGINE.equals(master.optString("processing_engine"))){
+            try{
+                JSONArray actions=DriveJournalRules.union(state.optJSONArray("pending")==null?new JSONArray():state.getJSONArray("pending"));
+                JSONObject replay=new JSONObject(master.toString());JSONArray errors=DriveJournalRules.apply(replay,actions);
+                reviews=remainingHistoricalReviews(master,validatedLocalResolutions(master,actions,replay,errors))+errors.length();
+            }catch(IllegalArgumentException invalid){blockers.put("PENDING_PROJECTION_REVIEW_REQUIRED");reviews++;}
         }
         if(master.optInt("schema_version",1)>2)blockers.put("SCHEMA_NOT_SUPPORTED");
         if(duplicateIds>0)blockers.put("DUPLICATE_IDS");
@@ -88,6 +92,57 @@ final class LocalMigrationInventory {
                 .put("state_changed",false).put("external_backup_verified",false).put("remote_upload_verified",false);
         if(!originalHash.equals(PixelMcpWriteTools.hash(state)))throw new IllegalStateException("Migrationsinventar darf den Ausgangsstand nicht verändern.");
         return result;
+    }
+    /** Historical failures are obligations, not an upload queue. Missing actions must never erase them. */
+    private static int remainingHistoricalReviews(JSONObject master,Map<String,JSONObject> verified)throws Exception{
+        int remaining=0;
+        for(String key:new String[]{"sync_errors","drive_journal_errors","drive_review_actions"}){
+            JSONArray entries=master.optJSONArray(key);
+            for(int i=0;entries!=null&&i<entries.length();i++){
+                JSONObject entry=entries.optJSONObject(i),original=entry==null?null:verified.get(entry.optString("client_id"));
+                boolean fulfilled=original!=null;
+                if(fulfilled&&key.equals("drive_review_actions"))fulfilled=OrderReviewRules.actionHash(original).equals(OrderReviewRules.actionHash(entry));
+                else if(fulfilled&&entry.has("kind"))fulfilled=original.getString("kind").equals(entry.optString("kind"));
+                if(!fulfilled)remaining++;
+            }
+        }
+        return remaining;
+    }
+    /**
+     * Recheck the explicit owner decision as well as its complete journal replay. Existing resolved
+     * flags/receipts alone cannot discharge a failure, and this method never edits the source state.
+     */
+    private static Map<String,JSONObject> validatedLocalResolutions(JSONObject master,JSONArray actions,JSONObject replay,JSONArray errors)throws Exception{
+        Map<String,JSONObject> all=new HashMap<>(),verified=new HashMap<>();Set<String> failed=new HashSet<>();
+        for(int i=0;i<actions.length();i++){JSONObject action=actions.getJSONObject(i);all.put(action.getString("client_id"),action);}
+        for(int i=0;i<errors.length();i++)failed.add(errors.getJSONObject(i).optString("client_id"));
+        JSONObject history=replay.optJSONObject("owner_conflict_history"),resolved=replay.optJSONObject("drive_resolved_actions"),receipts=replay.optJSONObject("drive_action_receipts");
+        if(history==null||resolved==null||receipts==null)return verified;
+        JSONArray ordered=SyncActionOrder.order(actions),prefix=new JSONArray();
+        for(int i=0;i<ordered.length();i++){
+            JSONObject action=ordered.getJSONObject(i);prefix.put(action);if(!"conflict_resolution".equals(action.optString("kind")))continue;
+            String request=action.getString("client_id"),target=action.getJSONObject("payload").optString("client_id");
+            if(target.isEmpty()||failed.contains(target)||failed.contains(request))continue;
+            try{
+                // Validate at the decision's actual journal position, before later valid edits.
+                // A prefix replay may clear an orphan historical error; restore those original
+                // obligations for the owner's infrastructure checks rather than trusting that loss.
+                JSONArray before=new JSONArray();for(int j=0;j<prefix.length()-1;j++)before.put(prefix.get(j));
+                JSONObject checked=new JSONObject(master.toString());DriveJournalRules.apply(checked,before);
+                for(String key:new String[]{"sync_errors","drive_journal_errors"})if(master.has(key))checked.put(key,new JSONArray(master.getJSONArray(key).toString()));
+                OwnerJournalRules.apply(checked,action,all,new JSONObject(checked.getJSONObject("drive_resolved_actions").toString()));
+                JSONObject proof=checked.getJSONObject("owner_conflict_history").getJSONObject(target),original=proof.getJSONObject("original_action");
+                String hash=OrderReviewRules.actionHash(original);JSONObject applied=history.getJSONObject(target),receipt=receipts.getJSONObject(request);
+                if(!hash.equals(resolved.optString(target))||!request.equals(applied.optString("resolution_action"))||!hash.equals(applied.optString("action_hash"))
+                    ||!hash.equals(OrderReviewRules.actionHash(applied.getJSONObject("original_action")))
+                    ||!OwnerJournalRules.version(proof.optJSONObject("previous")).equals(OwnerJournalRules.version(applied.optJSONObject("previous")))
+                    ||!proof.getString("resolution").equals(applied.optString("resolution"))||!proof.getString("reason").equals(applied.optString("reason"))||!proof.getString("resolved_at").equals(applied.optString("resolved_at"))
+                    ||!"conflict_resolution".equals(receipt.optString("kind"))||!"applied".equals(receipt.optString("state"))
+                    ||!PixelMcpWriteTools.hash(action).equals(receipt.optString("action_sha256"))||!OrderReviewRules.actionHash(action).equals(receipt.optString("review_sha256")))continue;
+                verified.put(target,original);
+            }catch(Exception unproven){/* Keep every historical obligation when any proof is incomplete. */}
+        }
+        return verified;
     }
     private static BigDecimal decimal(JSONObject row,String key){
         Object value=row.opt(key);if(value==null||value==JSONObject.NULL||value.toString().isEmpty())return BigDecimal.ZERO;
