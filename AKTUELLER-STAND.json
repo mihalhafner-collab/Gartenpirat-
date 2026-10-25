@@ -1,6 +1,6 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-25T10:31:25.365465+00:00",
+  "updated_at_utc": "2026-10-25T10:39:19.050941+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
@@ -219,7 +219,7 @@
       "K15": "OPEN",
       "K16": "OPEN"
     },
-    "correction_checkpoint": "Remote predecessor4bbed69;166 tools/209 semantic actions exact evolution PASS;JVM 78 suites PASS;browser final regression and native probes pending",
+    "correction_checkpoint": "ca87838 predecessor;78 JVM suites+exact contract gate PASS;targeted browser repeats PASS;final native candidate not built",
     "correction_host_contracts": {
       "jvm_suites_pass": 78,
       "tools": 166,
@@ -227,7 +227,8 @@
       "write": 94,
       "ui_actions": 209,
       "native_fault_probes": "PREPARED_NOT_EXECUTED",
-      "signed_candidate": "NOT_BUILT"
+      "signed_candidate": "NOT_BUILT",
+      "preupdate_cloud_verify": "PASS;GartenpiratCloud emulator-5554;synthetic preserved data"
     }
   },
   "verified_release_source": {

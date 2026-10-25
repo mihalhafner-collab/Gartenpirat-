@@ -170,6 +170,31 @@ Die vorbereiteten Androidproben benutzen den tatsächlichen IDB-/Bridge-/SQLitep
 mit Unterbrechung vor erstem Chunk, nach Chunk und nach Commit;25 echte native
 Blobs/>40MiB im verschlüsselten Restore. Kein Ersatz durch künstlich leere Medien.
 
+## Stand vor gemeinsamem Android-Prüfbau – 25.10.2026
+
+Remote-Vorgänger `ca878388af2eff29317324dce87126ded736451e` exakt bestätigt.
+Gezielte Wiederholungen: Angebote/Kunden-UAT, gespeicherte Entwürfe, Abrechnung/
+Auftrag, Formularspiegel, Terminübersicht, GPS-optional und Arbeitsfenster nach
+Korrekturen PASS. Terminoptionen lesen den gemeinsamen Entwurf; originaler
+Zeit-/Feldcapture und Golden-API-Argumente bleiben erhalten. Die geänderten
+Save-/Retry-/Kalenderfunktionen sind im bestehenden Baseline-Nachweis als eng
+begründete Erweiterung mit erhaltenen ursprünglichen Hashes dokumentiert.
+
+Vorupdate am dedizierten Cloud-Android emulator-5554/GartenpiratCloud:
+`verify` PASS – vollständiger synthetischer Snapshot, IDs, Pending, Einstellungen,
+Tunnelkonfiguration und aktive Timerzuordnung erhalten. Keine produktive Pixel-
+Handlung. Beide UI-Piloten werden nun mit tatsächlichem nativen Medienadapter und
+wirklicher JS-IDB-Inventur ausgeführt; keine künstlich leere Medienersatzaufnahme.
+Zusätzlicher nativer Fall prüft gezielt beschädigten optionalen Restore-Fotoentwurf,
+separate spätere Medienprüfung sowie weiter nutzbaren Geschäfts-/Medienbereich.
+
+Noch vor Gesamtabnahme: letzter gemeinsamer Browser-/Python-/JVM-Lauf, signierter
+interner Prüfbuild aus sauber gesichertem Commit und Android-Gesamtläufe. Der
+vorige Pythonversuch hielt korrekt bei Privacy-Fund in eigenen synthetischen
+Fehlerreports mit generierten IDs an. Die verursachenden UI-Erwartungen wurden
+korrigiert und Reports durch echte bestandene Wiederholungen neu erzeugt; kein
+Privacy-Filter gelockert und kein produktiver Inhalt übernommen.
+
 ## Entwicklung erneut gestoppt; vollständige Übergabe für später – 25.10.2026
 
 Der Nutzer hat ausdrücklich angewiesen: „Stoppe die Erstellung speichere für späteren

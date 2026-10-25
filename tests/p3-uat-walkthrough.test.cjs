@@ -40,7 +40,7 @@ function fixture(name){
    await p.locator('#customer-form button[type=submit]').click();assert.equal(await p.evaluate(()=>writes.at(-1).row.email),'qa-uat@example.invalid');
    await p.evaluate(id=>editCustomer(id),newId);await p.locator('#customer-form [name=active]').uncheck();await p.locator('#customer-form button[type=submit]').click();
    assert.equal(await p.evaluate(()=>writes.at(-1).row.active),0);await p.evaluate(()=>openPage('customers'));
-   await p.locator('#customer-search').fill('QA UAT Garten');assert.equal(await p.locator('[data-customer-open=qa-new]').count(),1);
+   await p.locator('#customer-search').fill('QA UAT Garten');assert.equal(await p.locator('[data-customer-open="'+newId+'"]').count(),1);
   });
   await scene('UAT 20–29: manual start without GPS, pause/resume, explicit completion with optional fields','work-location.test.cjs',async p=>{
    await p.locator('[data-session-action=start]').click();assert.equal(await p.evaluate(()=>locationRequests.length),0);
