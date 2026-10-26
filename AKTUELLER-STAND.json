@@ -1,12 +1,12 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-26T00:07:26.537545+00:00",
+  "updated_at_utc": "2026-10-26T01:53:09.802649+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
     "version_name": "1.55.0",
     "version_code": 104,
-    "status": "ACTIVE_104_VIENNA_BUSINESS_DATE_REPAIR_AND_NATIVE_CONFIRM_DIAG_COMMON_ACCEPTANCE_PENDING",
+    "status": "APP104_CORE443_OFFLINE_PROCESS_PASS_PLANT_FONT_QA_RECHECK_PENDING",
     "base_git_sha": "419d0b4bfcbb7108d00296619831a04ddc3273b0",
     "last_original_app_source_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "main_at_start": "e499e745832449ce0202d04d9903495248e8b034",
@@ -598,7 +598,22 @@
       "immutable_action_instant_to_vienna_correction_date",
       "same_vienna_calendar_day_for_inquiry_and_search_filters_without_mutating_legacy",
       "redacted_native_confirm_window_diagnostics_no_assertion_or_dialog_bypass"
-    ]
+    ],
+    "app104_current_evidence": {
+      "source_git_sha": "b6fd5d0fc8face099eca4c616acf5f733f534cf3",
+      "source_fingerprint": "6450c720c0f7b92bcf5b8990e7be3c9a065975fda0b833a4b00a12ff7aa5b4cd",
+      "apk_sha256": "3c476b0025ff6ae1e15033d14024117798cf0b840a0d09c83925e3aea412b27b",
+      "core_runner_sha256": "f1c734bd05922ba0b6433957024f30b7eefd5622ed30d2558e2f15d17f64eca9",
+      "native_cases": 443,
+      "native_failures": 0,
+      "actual_process_pairs": 5,
+      "actual_airplane_ui_cases": 5,
+      "plant_font_status": "ORIGINAL_FAIL_PRESERVED_QA_HELPER_ONLY_RECHECK_PENDING",
+      "productive_installation": "NOT_EXECUTED",
+      "productive_migration": "NOT_EXECUTED",
+      "source_archive_folder": "13y1ZAxotU6psQ2p7d19sDjqHk3Y1m9iW",
+      "source_zip_sha256": "de0120251ad126afedac6485ebeb68ff34874f136fc130192d79fc06bf1bce83"
+    }
   },
   "verified_release_source": {
     "version": "1.54.1",

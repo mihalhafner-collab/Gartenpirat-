@@ -3,7 +3,52 @@
 Stand: 26. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
-## Aktive Abschlusskorrektur 1.55.0/104, 26.10.2026
+## Gemeinsamer104-Prüfstand und gezielte QA-Nachprüfung, 26.10.2026
+
+Unveränderter Appquellcommit b6fd5d0fc8face099eca4c616acf5f733f534cf3,
+Fingerprint6450c720c0f7b92bcf5b8990e7be3c9a065975fda0b833a4b00a12ff7aa5b4cd.
+Originalsignierte1.55.0/104/DB6-App:
+SHA3c476b0025ff6ae1e15033d14024117798cf0b840a0d09c83925e3aea412b27b,
+82898941Bytes; Originalzertifikat a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8.
+Originaler gemeinsamer QA-Runner f1c734bd05922ba0b6433957024f30b7eefd5622ed30d2558e2f15d17f64eca9.
+Build/Lint PASS,0Fehler/112Warnungen; tatsächliche DEX-Provenienz und vom Cloud-Emulator
+zurückgelesene installierte APK bytegleich/Signatur PASS. In-place103→104 erhält den
+bestehenden synthetischen Bestand und die offene Sitzung. Keine Pixelinstallation.
+
+Tatsächlicher gemeinsamer nativer Gesamtlauf443PASS/0FAIL. Finanzpfad9PASS;
+UI-Piloten5PASS einschließlich Anfrage→Besichtigung→Angebot→Annahme→Auftrag→Besuch→
+Arbeit→148EUR-PDF→60+88EUR, Pflege/Tour/Timer/Material/Foto/Vollbackupcollector/
+Restorevorschau und direkter mündlicher Annahme mit getrenntem Rechnungsempfänger.
+Alle drei Piloten auch unter tatsächlichem OS-Flugmodus5PASS; Originalnetzwerte
+anschließend exakt wiederhergestellt. Fünf tatsächliche OS-Prozessabbruch-/Neustart-
+Paare PASS, einschließlich vor erstem Fotochunk, Teilübertragung, Mediencommit,
+vollständiger Formulare und verlorener Anfrage-/Auftrags-/Angebotsantworten.
+Fresh-Isolated und allgemeine WebViewprüfung PASS. Host78JVM-/56Browser-Suiten,
+430Pythonprüfungen/0SKIP und55MCP-Stdiofälle PASS bleiben auf diesem Appstand belegt.
+
+Zusatzprüfungen Pflanzen/Schrift zunächst FAIL, nicht aus der Historie entfernt.
+Die Pflanzenprobe wartete nur auf den alten Teilstart und schrieb ausschließlich
+einen abgelösten localStorage-Schlüssel. Sie prüft jetzt vollständige Bereitschaft,
+echten HGFormDrafts/native ACK, ganzen Entwurf/Hash/Kontext und gezieltes Verwerfen.
+Alle314Profile/628Android-Bilddekodierungen und bisherigen Such-/Vollbildprüfungen
+bleiben erhalten. Die Schriftprobe muss nach der vorrangigen laufenden Arbeit regulär
+zum Termin scrollen; ursprüngliche Viewport-/Dock-/48dp-/Überlaufprüfungen bleiben.
+Nur zwei Android-Testhelfer werden geändert; Appquellen und App104 bleiben unverändert.
+Enge Javac-/JS-Syntaxprüfung PASS; erneute tatsächliche Pflanzen-/Fontausführung mit
+separat originalsigniertem QA-Runner noch OFFEN. Keine Zusatzprüfung als PASS vorwegnehmen.
+
+104-Leistung auf Cloud-Softwareemulator:300Kunden/450Objekte,3Warmups/25Samples;
+Such-p95=770.244266ms verfehlt300ms,20Tourstopps363.589341ms erfüllt1000ms.
+Pixel-Leistung offen. Vollständige104-Originalquellen extern gesichert:
+https://drive.google.com/drive/folders/13y1ZAxotU6psQ2p7d19sDjqHk3Y1m9iW,
+61vollständigeSHA256-Bytebelege; aus Remote-Teilen rekonstruiertes OriginalZIP
+162035003Bytes/SHAde0120251ad126afedac6485ebeb68ff34874f136fc130192d79fc06bf1bce83.
+Keine104-APK-Auslieferung/Versionsmarke bisher. Produktive Umstellung, vollständige
+externe Vor-Update-Sicherung98, zwei realeUSB-Ziele, TalkBack/Kamera/Biometrie,
+10GB-Restore und aktuelle gesperrte Primärquellen bleiben ausdrücklich offen.
+
+## Historischer Vorbereitungsstand104 vor Originalbuild
+
 
 Der vollständige original signierte103-Gesamtlauf auf
 71fff9c9dc4b03a5293f120c1471c9491cc4c010 endete mit441PASS/2FAIL. Alle sieben zu den
