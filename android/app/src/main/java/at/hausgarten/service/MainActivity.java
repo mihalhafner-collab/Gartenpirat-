@@ -206,7 +206,10 @@ public class MainActivity extends Activity implements McpSyncHost {
         settings.setAllowFileAccessFromFileURLs(false);
         settings.setAllowUniversalAccessFromFileURLs(false);
         settings.setAllowContentAccess(true); // Existing private photo providers.
-        settings.setBlockNetworkLoads(true);settings.setBlockNetworkImage(true); // Network adapters are native; bridged renderer loads only bundled/private content.
+        // Native adapters own networking. Keep the renderer network fence and
+        // leave image decoding enabled for bundled/private content; CSP also
+        // rejects external image sources before any renderer request.
+        settings.setBlockNetworkLoads(true);settings.setBlockNetworkImage(false);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         CookieManager.getInstance().setAcceptCookie(true); CookieManager.getInstance().setAcceptThirdPartyCookies(webView, false);
         webView.addJavascriptInterface(new SpeechBridge(), "AndroidSpeech");

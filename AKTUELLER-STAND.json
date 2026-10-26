@@ -1,12 +1,12 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-26T01:53:09.802649+00:00",
+  "updated_at_utc": "2026-10-26T04:25:55.877843+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
     "version_name": "1.55.0",
-    "version_code": 104,
-    "status": "APP104_CORE443_OFFLINE_PROCESS_PASS_PLANT_FONT_QA_RECHECK_PENDING",
+    "version_code": 105,
+    "status": "ACTIVE105_LOCAL_IMAGE_RENDERING_REPAIR_NATIVE_FONT_REVIEW_STATE_COMMON_ACCEPTANCE_PENDING",
     "base_git_sha": "419d0b4bfcbb7108d00296619831a04ddc3273b0",
     "last_original_app_source_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "main_at_start": "e499e745832449ce0202d04d9903495248e8b034",
@@ -35,8 +35,8 @@
       "native_browser_draft_ack_cas_tombstone_context_epoch_full_backup_integration",
       "final_storage_contract3_backup_only_public_runtime_no_business_drive_network"
     ],
-    "full_revier_acceptance": "103 complete441PASS2FAIL;all102sevenfailures repaired;104 date repairs and renewed actualnative acceptance pending",
-    "original_signed_update_candidate": "103 original internal4cd5ff31d84ec32e15e4b68fa932215923ca59f48350e80ad5176fc80c703f2d NOT ACCEPTED;104 not built",
+    "full_revier_acceptance": "104 core443PASS0FAIL but plant WebView failure;105 renewed complete acceptance required",
+    "original_signed_update_candidate": "104 original3c476b0025ff6ae1e15033d14024117798cf0b840a0d09c83925e3aea412b27b NOT_ACCEPTED;105 notbuilt",
     "productive_migration": "NOT EXECUTED",
     "installation": "NOT EXECUTED",
     "internal_signed_build": {
@@ -613,6 +613,14 @@
       "productive_migration": "NOT_EXECUTED",
       "source_archive_folder": "13y1ZAxotU6psQ2p7d19sDjqHk3Y1m9iW",
       "source_zip_sha256": "de0120251ad126afedac6485ebeb68ff34874f136fc130192d79fc06bf1bce83"
+    },
+    "active105_repairs": {
+      "local_image_decoding": "enable bundled/private images while unconditional renderer network loads and CSP remainblocked",
+      "font_probe": "preserved review-required timer uses actual review action and unchanged originalsession proof",
+      "full_browser_runner_existing_suites": 65,
+      "native_status": "NOT_EXECUTED",
+      "productive_installation": "NOT_EXECUTED",
+      "productive_migration": "NOT_EXECUTED"
     }
   },
   "verified_release_source": {
@@ -639,7 +647,7 @@
   },
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-",
-    "required_action": "Complete final102 common QA/build/original signing/native/process/offline checks on current branch; previous101 native184PASS0FAIL intentionally interrupted for proven migration defect. Preserve physical Pixel98 and separately establish complete preupdate backup; no productive changes authorized. Current authority CODEX-STATUS.md top and development_snapshot.final_102_completion."
+    "required_action": "Finish actual105 host/build/originalsignature/localimages/nativefonts then full native/process/offline/restore acceptance.104 notdeliverable due provenlocalimagefailure. Keep physical Pixel98 unchanged; full externalpreupdatebackup unresolved."
   },
   "verified_candidate_source": {
     "version": "1.54.9",

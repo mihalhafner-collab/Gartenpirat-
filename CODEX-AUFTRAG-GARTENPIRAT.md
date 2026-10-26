@@ -1,7 +1,7 @@
 # CODEX-AUFTRAG-GARTENPIRAT
 
 
-Aktueller Steuerungsstand26.10.2026: Abschlussauftrag aktiv. Ziel1.55.0/104 als
+Aktueller Steuerungsstand26.10.2026: Abschlussauftrag aktiv. Ziel1.55.0/105 als
 Revier Solo: sämtliche Fachfunktionen und maßgebliche Daten ausschließlich auf
 Pixel/App, Drive ausschließlich verschlüsselte Vollsicherung mit regelmäßiger
 aufschiebbarer App-Planung nach bewusster Geräteeinrichtung. Speichervertrag3
@@ -28,6 +28,14 @@ keinen UTC-Substring und keine neue Zeit beiReplay. Originale und unklare histor
 Datumstexte unverändert erhalten.104 bündelt die Korrekturen mit Grenztests.103 ist
 mit441PASS/2FAIL nichtfreigegeben; echte native Bestätigungen weiterhin vollständig
 prüfen, keine Dialog-/Zeit-/Assertumgehung. Aktuelle Ergebnisse im bestehenden Status.
+
+
+Zusätzlicher belegter Abschlussfehler26.10.2026:104-Pflanzenbilddekodierung in der
+gehärteten WebView scheitert trotz vollständiger nativer Originale.105 trennt lokale
+Bilddekodierung von der unveränderten Renderer-Netzwerksperre. Echte Bild-/Vollbild-/
+Entwurfs- und Fontprüfung sowie gemeinsame Abnahme erneut ausführen. Die Fontprobe
+muss die fachlich korrekte Prüfaktion einer nach Neustart erhaltenen Sitzung prüfen,
+keine Stop/Start-Schaltfläche erzwingen. Offene Befunde nicht als Testkosmetik verdecken.
 
 ## Aktueller Korrekturauftrag: Formulare, lokaler Commit, Wiederanlauf und Löschen
 

@@ -3,7 +3,48 @@
 Stand: 26. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
-## Gemeinsamer104-Prüfstand und gezielte QA-Nachprüfung, 26.10.2026
+## Aktive Abschlusskorrektur 1.55.0/105, 26.10.2026
+
+104 bleibt trotz443nativen Kern-PASS,5UI-Pilotfällen,5OS-Prozesspaaren,Flugmodus,
+78JVM-/56+9Browser-Suiten/430Python/55MCP-PASS NICHT GESAMTFREIGEGEBEN.
+Zusatzabnahme mit originalem QA-Runner ausf77d525 (SHA87cb4fa9dc59e55428558635cb0788b0905c958af1e15094b66a15996dc4d434)
+findet wiederholt0dekodierte Pflanzenbilder in der echten WebView. Alle314Profile
+und628native Bitmapdekodierungen bestehen. Der erste Versuch war zusätzlich von
+SystemUI-ANR verdeckt; der identische zweite Versuch scheitert auch nach dessen
+visuell geprüftem Warten, mit normalem Launcher-Fokus. Deshalb kein104-Tag/APKupload.
+App104/Quellen/erste und zweite Fehlbelege unverändert erhalten.
+
+105 korrigiert die WebView-Bildladesperre: Bilddekodierung für gebündelte/private
+Quellen zulassen; setBlockNetworkLoads(true), CSP ohne HTTP/HTTPS-Bildquellen,
+allgemeine/cross-origin-Dateisperren und private Providerbegrenzung bleiben erhalten.
+Die vorhandene Hardening-Suite prüft zusätzlich tatsächliche lokale Bilddekodierung
+und die unveränderte Netzwerksperre; bestehende externe CSP-Negativfälle bleiben.
+Native Pflanzen-/Fotoprüfung105 muss den Nutzen erst tatsächlich nachweisen.
+
+Die Fontnachprüfung104 erreicht regulär durch Scrollen die unverändert geprüften
+Termin-/Planungsgrenzen und48dp. Danach fehlt der alte Stop/Start-Selektor, weil die
+nach echtem Neustart korrekt erhaltene Sitzung ausschließlich „Sitzung prüfen“ anbietet.
+Der Helfer wählt jetzt ausschließlich die fachlich passende Timeraktion aus dem
+aktuellen Sitzungszustand. Kein gespeicherter Timer wird zum Testen freigegeben,
+beendet oder verändert; Originalsession/Revision wird zusätzlich verglichen.
+100/150/200%-Android-Ausführung105 bleibt offen. Originalfont/Displaygröße nach
+104-FAIL exakt wiederhergestellt. Keine Assertion-/Zeitgrenzenlockerung.
+
+Der bestehende gemeinsame Browserrunner führt künftig auch die9bereits vorhandenen
+Korrektursuiten aus (65statt56); keine neuen Ersatztests. Nach Review wird ausschließlich
+der tatsächlich geänderte MainActivity-Fingerprint nachgeführt; UI-Aktionen/Bridges/
+MCP-Verträge und ursprüngliche P1-Baseline bleiben unverändert.105-Host-/Originalbuild- /
+native Gesamtprüfung noch OFFEN; kein104-PASS wird automatisch als105-PASS gezählt.
+
+Primärquellenzugriff26.10.2026 erneut tatsächlich via curl/Cloudproxy geprüft:
+Android Developer Verification,Open-Meteo-Bedingungen,USP/BMF-Rechnungen alle
+CONNECT403/kein HTTP-Inhalt. Kein Bypass/neue Berechtigung und keine inhaltliche
+Rechts-/Lizenzfreigabe. Produktiver Pixel weiterhin zuletzt1.54.9/98; vollständige
+externe Vor-Update-Sicherung98, echteUSB-/Pixel-/Nummernabnahme offen. Keine Installation,
+produktive Migration, Kontotrennung, Geschäftslöschung oder Belegausgabe.
+
+## Historischer104-Prüfstand vor verbleibendem WebView-Bildfehler
+
 
 Unveränderter Appquellcommit b6fd5d0fc8face099eca4c616acf5f733f534cf3,
 Fingerprint6450c720c0f7b92bcf5b8990e7be3c9a065975fda0b833a4b00a12ff7aa5b4cd.

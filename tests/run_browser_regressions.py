@@ -19,7 +19,8 @@ NAMES = ['revier-timer-review.test.cjs', 'overview-accessibility.test.cjs', 'int
          'gartenpirat-removal.test.cjs', 'customer-duplicate-ui.test.cjs', 'gartenpirat-plants.test.cjs',
          'gartenpirat-photo.test.cjs', 'plant-library-integration.test.cjs', 'garden-followup.test.cjs', 'customer-photos.test.cjs',
          'work-entry-photo-failure.test.cjs', 'camera-timer-static.test.cjs', 'personal-payment.test.cjs',
-         'access-integrity.test.cjs', 'sync-customer-gallery.test.cjs', 'offers-photo-library.test.cjs', 'sync-trash.test.cjs', 'context-search-storage.test.cjs', 'planning-open-end.test.cjs', 'worklog-batch.test.cjs', 'runtime-compat.test.cjs', 'owner-client-contract.test.cjs']
+         'access-integrity.test.cjs', 'sync-customer-gallery.test.cjs', 'offers-photo-library.test.cjs', 'sync-trash.test.cjs', 'context-search-storage.test.cjs', 'planning-open-end.test.cjs', 'worklog-batch.test.cjs', 'runtime-compat.test.cjs', 'owner-client-contract.test.cjs',
+         'local-invoice-ui.test.cjs', 'invoice-issue-review-ui.test.cjs', 'revier-partial-billing-ui.test.cjs', 'revier-solo-ui.test.cjs', 'revier-offer-flow.test.cjs', 'timer-material-context-ui.test.cjs', 'full-backup-entry.test.cjs', 'full-backup-drafts.test.cjs', 'saved-drafts-read-first.test.cjs']
 
 
 if __name__ == '__main__':

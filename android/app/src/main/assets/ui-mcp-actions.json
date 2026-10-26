@@ -2861,7 +2861,7 @@
     "android/app/src/main/assets/workday-ui.js": "e8d76a4fc10e1b38a868cbe661b31eac89bf47048e62de172f4b859da0e7fb5f",
     "android/app/src/main/assets/workflow-ui.css": "e8e3af705782c2db8286ae064184d3f0767025571ce49fae037cb6ebab8a3920",
     "android/app/src/main/assets/workflow-ui.js": "9a82b8b94a47b6cc8a05eeaae1a55db69a6ad2530e64a7355723870ac34f7aa1",
-    "android/app/src/main/java/at/hausgarten/service/MainActivity.java": "ee63f0ffe508e5bbc6f9702e20af85211fe64e2cf6778977616bd6c46021c39d",
+    "android/app/src/main/java/at/hausgarten/service/MainActivity.java": "1a53690c0c459703fd1e49a1d1c3f38c896b717e438dcbe2d266a9fff37bcacf",
     "android/app/src/main/java/at/hausgarten/service/DriveJournalRules.java": "b844389e750675e20ba3b9c242e781969ba0b76950ef88d0e154099cd6152856",
     "android/app/src/main/java/at/hausgarten/service/InvoiceIssueRules.java": "46a18e1c59987804194eb7ebe29070f65510e005bde3a8b20c72dfff47e7c34f",
     "android/app/src/main/java/at/hausgarten/service/DriveRolePolicy.java": "3147d73e21c1e74cdb8dce018df9aed516389c9f9941768ca93ef87c492f7a9a",
