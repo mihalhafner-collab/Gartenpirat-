@@ -1,5 +1,10 @@
 # Originalsignierung im erhaltenen Cloud-Stand
 
+Entwicklungsanweisungen und Quellsicherung ausschließlich nach [AGENTS.md](AGENTS.md).
+Die späteren datierten Kandidaten-/Abnahmeabschnitte sind historische Evidenz,
+keine aktuelle Versions- oder Installationsfreigabe. Aktueller Quell-/Gerätestand:
+[CODEX-STATUS.md](CODEX-STATUS.md). Die nachstehenden Signierschutzgates gelten weiter.
+
 Der ausdrückliche Nutzerauftrag vom20.10.2026 erlaubt zusätzlich die isolierte
 UI-Test-App `at.hausgarten.service.preview` mit dem Namen „Haus & Garten Test“.
 Nur dafür ist `tools/sign_original_apk.py --ui-preview` vorgesehen. Der vorhandene

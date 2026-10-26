@@ -339,5 +339,116 @@
       "previous_prompt_sha256": "8e68ecfaf2acba381ab9448e5a90506e85040b39dddad63d4f78b1723214a79f",
       "current_prompt_sha256": "6de094205c304feaf57243436eb98d1209c67f3d3ad3c56b4e4f753f43b87869"
     }
-  ]
+  ],
+  "main_integration": {
+    "pull_request": 7,
+    "url": "https://github.com/mihalhafner-collab/Gartenpirat-/pull/7",
+    "reviewed_head": "0050d1089af6866d12ec0fc8e89662a4929438a9",
+    "merge_commit": "6092fa1d40b295453df28ef9e9300f94a60d7e33",
+    "remote_main_readback": "6092fa1d40b295453df28ef9e9300f94a60d7e33",
+    "ancestry_preserved": true,
+    "build106_android_tree_unchanged": true
+  },
+  "obsolete_merged_branch_cleanup": {
+    "status": "DELETED_REMOTE_READBACK_VERIFIED",
+    "main_commit": "6092fa1d40b295453df28ef9e9300f94a60d7e33",
+    "branches": [
+      {
+        "ref": "refs/heads/codex/apk-1.54.3-build92-20261022",
+        "original_sha": "e09b60b6f84ffbb03a8d56ae9180c8fdafa7457c",
+        "unique_commits_vs_main": 0,
+        "classification": "OBSOLETE_FULLY_MERGED_BRANCH_REFERENCE",
+        "content_retained_in_main_history": true,
+        "remote_readback": "ABSENT",
+        "deletion": "ATOMIC_ORDINARY_REF_DELETION_NO_FORCE_NO_HISTORY_REWRITE"
+      },
+      {
+        "ref": "refs/heads/codex/calendar-permanent-20261021",
+        "original_sha": "d45c72544533fbb4420513d454b03a9043cac99f",
+        "unique_commits_vs_main": 0,
+        "classification": "OBSOLETE_FULLY_MERGED_BRANCH_REFERENCE",
+        "content_retained_in_main_history": true,
+        "remote_readback": "ABSENT",
+        "deletion": "ATOMIC_ORDINARY_REF_DELETION_NO_FORCE_NO_HISTORY_REWRITE"
+      },
+      {
+        "ref": "refs/heads/codex/calendar-ui-overview-20261021",
+        "original_sha": "c693b673c42556c87e6c72ee3f9318790d9de825",
+        "unique_commits_vs_main": 0,
+        "classification": "OBSOLETE_FULLY_MERGED_BRANCH_REFERENCE",
+        "content_retained_in_main_history": true,
+        "remote_readback": "ABSENT",
+        "deletion": "ATOMIC_ORDINARY_REF_DELETION_NO_FORCE_NO_HISTORY_REWRITE"
+      },
+      {
+        "ref": "refs/heads/codex/calendar-weather-20261022",
+        "original_sha": "7f734dd1e6cde876f5268e125fb302abb75756a8",
+        "unique_commits_vs_main": 0,
+        "classification": "OBSOLETE_FULLY_MERGED_BRANCH_REFERENCE",
+        "content_retained_in_main_history": true,
+        "remote_readback": "ABSENT",
+        "deletion": "ATOMIC_ORDINARY_REF_DELETION_NO_FORCE_NO_HISTORY_REWRITE"
+      },
+      {
+        "ref": "refs/heads/codex/function-sync-audit-20261022",
+        "original_sha": "419d0b4bfcbb7108d00296619831a04ddc3273b0",
+        "unique_commits_vs_main": 0,
+        "classification": "OBSOLETE_FULLY_MERGED_BRANCH_REFERENCE",
+        "content_retained_in_main_history": true,
+        "remote_readback": "ABSENT",
+        "deletion": "ATOMIC_ORDINARY_REF_DELETION_NO_FORCE_NO_HISTORY_REWRITE"
+      }
+    ],
+    "recovery": "Recreate the exact recorded ref from original_sha in this repository only if requested. No history rewrite or force push.",
+    "scope": "Only five redundant working-branch references. All source version tags unchanged pending user clarification.",
+    "recovery_evidence_pushed_before_deletion_commit": "3f9e41ceb99b44ee1cc8f1f1fd1cad79e6e232dc",
+    "remote_readback_at_utc": "2026-10-26T21:25:45.565194+00:00",
+    "remote_heads_at_deletion_readback": {
+      "refs/heads/codex/pflanzenbibliothek-20261023": "7d499b225ed28f501333227e0ce92a54d4c5d542",
+      "refs/heads/codex/revier-solo-20261023": "3f9e41ceb99b44ee1cc8f1f1fd1cad79e6e232dc",
+      "refs/heads/main": "6092fa1d40b295453df28ef9e9300f94a60d7e33"
+    }
+  },
+  "historical_protocol_boundaries": {
+    "historical_only": [
+      "docs/SYNC-DRIVE-KUNDENAKTE-1.48.md",
+      "docs/MCP-EIGENTUEMERZUGRIFF-2026-10-18.md",
+      "docs/SYNC-KUNDENAKTE-ABNAHME.md",
+      "INTEGRATIONSNACHWEIS-2026-10-18.md"
+    ],
+    "signing_guards_preserved": [
+      "ORIGINAL-SIGNIERUNG-CLOUD.md",
+      "QA-SIGNIERUNG.md"
+    ],
+    "meaning": "Dated historical contracts do not override current GitHub AGENTS/status or reactivate retired Drive/laptop paths. Current original signing gates preserved."
+  },
+  "version_reference_readback": {
+    "source_tags_unchanged": 13,
+    "status": "NO_VERSION_TAG_DELETION_PENDING_USER_CLARIFICATION",
+    "refs": {
+      "refs/tags/source/v1.53.1-build88": "cf3698165e6d5d17932fe09a45f42d1060192b40",
+      "refs/tags/source/v1.53.1-build88^{}": "dc394b5796fbcb268533a8d8951fe05a829956df",
+      "refs/tags/source/v1.54.0-build89": "51125fbcbe3e6b4bd0784d667eb583a0e976691a",
+      "refs/tags/source/v1.54.0-build89^{}": "68a19c5d49ddc77e94d299eee2cadf1652f9c92a",
+      "refs/tags/source/v1.54.1-build90": "1aa194900ab25dfd21cccd138fdd93cd3adf6759",
+      "refs/tags/source/v1.54.1-build90^{}": "5bf4e521bd1faab7a0095360faafaf7255d0d4d2",
+      "refs/tags/source/v1.54.2-build91": "d1ab00902a05a3feafb8e06d4405d51903e0bda1",
+      "refs/tags/source/v1.54.2-build91^{}": "50b518a1af9cee59763c4103d847f5016fb84fd9",
+      "refs/tags/source/v1.54.3-build92": "b6acdc4da46b9812c3df6a335e5b8d32bedb5ea4",
+      "refs/tags/source/v1.54.3-build92^{}": "aff54dbd7cd64437645bba71242688ec5da4c30b",
+      "refs/tags/source/v1.54.4-build93": "b7d5fcd71fd0e376b8750cf9eaacd94e47d72883",
+      "refs/tags/source/v1.54.5-build94": "429dfa11c622cd27228a5f572c9c916ccc137e82",
+      "refs/tags/source/v1.54.6-build95": "a3da53c7af9ca02ac0e06a32a0c63e6acc30cf91",
+      "refs/tags/source/v1.54.6-build95^{}": "6972780dc9adbe46e0a91f1f77aa990e303fdaf0",
+      "refs/tags/source/v1.54.7-build96": "ca6b1910f924251d4b8141d3f9b45d0c7e02ecdb",
+      "refs/tags/source/v1.54.7-build96^{}": "998d71f233f57b68264f771e64f8c576b214b957",
+      "refs/tags/source/v1.54.8-build97": "92160b27ffede6b1f1e787a5bd8f8010ec724b30",
+      "refs/tags/source/v1.54.8-build97^{}": "edd16a44c13dc17a774cff26f91e760efc123848",
+      "refs/tags/source/v1.54.9-build98": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
+      "refs/tags/source/v1.55.0-build105": "193286f4e00f419e0c31cb9937bbbb01ed9aa330",
+      "refs/tags/source/v1.55.0-build105^{}": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
+      "refs/tags/source/v1.55.1-build106": "f40992a7a18c61e160c356982c5a86ef06567a9d",
+      "refs/tags/source/v1.55.1-build106^{}": "99ab63afbdfdb9fd32dac70134f9461b1ba15b17"
+    }
+  }
 }

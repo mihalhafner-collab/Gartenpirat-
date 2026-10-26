@@ -1,3 +1,10 @@
+> Historisches Quell-/Abnahmeprotokoll früherer Versionen; keine heutige
+> Arbeitsanweisung oder Freigabe. Damalige „aktuell“-/„verbindlich“-Angaben
+> gelten ausschließlich für ihren datierten Abschnitt. Heutige Regeln:
+> [AGENTS.md](AGENTS.md); tatsächlicher Stand und offene Gates:
+> [CODEX-STATUS.md](CODEX-STATUS.md). Veraltete Drive-Geschäftswege
+> und alte Auslieferungs-/Laptopabläufe daraus nicht reaktivieren.
+
 # Zusammenführung der bestehenden Haus- und Garten-App
 
 ## Ausgangsvergleich
