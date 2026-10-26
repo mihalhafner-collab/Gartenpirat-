@@ -1,6 +1,6 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-26T05:02:48.687197+00:00",
+  "updated_at_utc": "2026-10-26T05:13:12.901112+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
@@ -678,6 +678,21 @@
       "productive_installation": "NOT_EXECUTED",
       "productive_migration": "NOT_EXECUTED",
       "preupdate98_full_external_backup": "OPEN"
+    },
+    "productive_backup_readonly_20261026": {
+      "observed_at_utc": "2026-10-26T05:06:37.306205Z",
+      "installed_version": "1.54.9/98",
+      "source": "Pixel MCP get_capabilities,list_backups,inspect_backup; read-only technical metadata only",
+      "latest_general_backup_at": "2026-10-20T04:37:53.318523Z",
+      "latest_general_scope": "business_snapshot_pending_local_photos_and_documents",
+      "latest_general_restore_mode": "add_missing_without_overwrite",
+      "latest_deletion_archive_at": "2026-10-24T04:22:24.450724Z",
+      "last_reported_drive_sync": "2026-10-22T15:24:09.338096Z",
+      "cloud_confirmed": false,
+      "complete_current_external_backup": "NOT_PROVEN",
+      "new_productive_backup_created": false,
+      "business_data_changed": false,
+      "preupdate_installation_gate": "OPEN_REQUIRES_COMPLETE_VERIFIED_BACKUP; new105backupdoesnotretroactivelyprove98preupdatebackup"
     }
   },
   "verified_release_source": {
@@ -692,15 +707,15 @@
     "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB"
   },
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-10-25T14:00:28.637097+00:00",
+    "observed_at_utc": "2026-10-26T05:06:37.306205Z",
     "version_name": "1.54.9",
     "version_code": 98,
     "reported_base_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "source_sha256": "fd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae",
     "source_dirty": false,
-    "evidence": "Read-only live get_capabilities25Oct2026 still1.54.9/98 DB4 MCP9/117,dbe9ed0/sourcefd0979; self-report only, no independent installedAPK integrity proof and no update/migration.",
+    "evidence": "Read-only live PixelMCP26Oct2026 still1.54.9/98 DB4 MCP9/117 dbe9ed0/fd0979; capabilities selfreport only. No Pixelinstall or independent installedAPK byteproof.",
     "invoice_finalization": "pixel_drive_online_compare_required",
-    "evidence_recorded_at_utc": "2026-10-25T22:06:57.964900+00:00"
+    "evidence_recorded_at_utc": "2026-10-26T05:13:12.901096+00:00"
   },
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-",
@@ -1280,6 +1295,17 @@
       "source_dirty": false,
       "evidence": "Read-only get_capabilities24Oct2026;unchanged1.54.9/98,MCP9/117tools,DB4,pixel_drive_v1/android_provider;self-report,no independent Pixel APK integrity proof",
       "invoice_finalization": "pixel_drive_online_compare_required"
+    },
+    {
+      "observed_at_utc": "2026-10-25T14:00:28.637097+00:00",
+      "version_name": "1.54.9",
+      "version_code": 98,
+      "reported_base_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
+      "source_sha256": "fd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae",
+      "source_dirty": false,
+      "evidence": "Read-only live get_capabilities25Oct2026 still1.54.9/98 DB4 MCP9/117,dbe9ed0/sourcefd0979; self-report only, no independent installedAPK integrity proof and no update/migration.",
+      "invoice_finalization": "pixel_drive_online_compare_required",
+      "evidence_recorded_at_utc": "2026-10-25T22:06:57.964900+00:00"
     }
   ],
   "today_mcp_audit": {

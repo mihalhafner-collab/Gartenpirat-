@@ -3,6 +3,28 @@
 Stand: 26. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Aktuelle Betriebsdaten-Sicherungsfrage: rein lesender Pixelbefund26.10.2026
+
+Live Pixel-MCP um05:06UTC bestätigt weiterhin1.54.9/98/DB4/MCP9/117,dbe9ed0/sourcefd0979;
+Selbstauskunft, keine unabhängige Prüfung der installierten APK-Bytes. Get_capabilities,
+list_backups und inspect_backup wurden ausschließlich lesend benutzt. Die neueste
+allgemeine Geschäftssicherung stammt vom20.10.2026,04:37:53UTC, mit begrenztem Scope
+business_snapshot_pending_local_photos_and_documents und Restoremodus
+add_missing_without_overwrite. Neuere Archive bis24.10.2026,04:22:24UTC dienen
+abgesonderten Löschvorgängen; sie ersetzen keine aktuelle Vollsicherung. Gemeldeter
+letzter Drive-Abgleich22.10.2026,15:24:09UTC und cloud_confirmed=false sind ebenfalls
+kein vollständiger externer Wiederherstellungsnachweis. Eine zusätzliche
+aktionsbezogene Syncabfrage ohne zugeordneten historischen Request liefert
+statusunknown; das ist ausdrücklich kein weiterer globaler Upload-Fehlernachweis.
+
+**Vollständige aktuelle externe Betriebsdatensicherung NICHT NACHGEWIESEN.**
+Quell-/APK-Sicherungen des Projekts sind davon getrennt. Keine neue produktive
+Sicherung, Daten-/Kontenänderung, Installation oder Umstellung vorgenommen. Der
+Nutzer wurde ausdrücklich informiert, den bereitgestellten105-Prüfkandidaten vor
+Klärung dieser Vor-Update-Sicherungslücke nicht zu installieren. Unabhängige105-
+Code-/Emulatorprüfung läuft weiter; synthetische Restore-PASS sichern keine echten
+Pixel-Betriebsdaten. Keine Rohdaten/Backupinhalte/IDs/Kundentexte im Checkout übernommen.
+
 ## Bereitgestellter Prüfstand 1.55.0/105, 26.10.2026
 
 [Originalsignierte APK105](https://drive.google.com/file/d/1-og34FtoQUX4lqZ-qMWvGew8YevuB4Eo/view?usp=drivesdk) ·
