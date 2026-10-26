@@ -3,6 +3,57 @@
 Stand: 26. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+
+## Drive-Ablage gegen GitHub bereinigt am26.10.2026
+
+Ausdrücklicher Nutzerauftrag: entbehrliche App-Ordner und GitHub-identische
+Drive-Daten löschen; Sicherungsordner behalten. Zentrale Regeln/Arbeitsübersicht
+vollständig gelesen; aktuelle Regelpräzisierung in der bestehenden Zentrale
+fortgeschrieben. Keine neue Regel-/Architekturdatei oder Appfunktion.
+
+- GitHub-main278edc9, bestehende Arbeitsbranches und unveränderte Original-Tags
+  erneut gelesen;329 remote-erreichbare Commits als Vergleichsraum. Appquelle106
+  bleibt99ab63a, Tag source/v1.55.1-build106;keine neue APK/Installation.
+- Tatsächlich61 administrative Ordner und1.216 Dateien mit2.256.778.662Bytes
+  endgültig entfernt.1.151 längencodierte Textpakete und9 direkte Git-Blobs
+  bytegenau verglichen;52 Archivteile zu elf vollständigen Quellarchiven
+  rekonstruiert und alle enthaltenen Originaldateien gegen Git geprüft.
+- Vier weitere Review-ZIPs nach vollständiger Mitgliedsprüfung entfernt:
+  Quelltexte in GitHub, vorhandene Metadaten unter erhaltenen Datei-IDs;
+  jeweils einziges eigenständiges START-Metadatum vor Löschung im vorhandenen
+  technischen Register wort-/bytegetreu erhalten und zurückgelesen.
+-220 Objekte zunächst mit identischer Datei-ID in bestehende Prüfprotokoll-/APK-
+  Ablage überführt;vier später nachgewiesene redundante Review-ZIPs daraus
+  entfernt.216 verbleibende Originalobjekte mit ID/Name/MIME/Größe/privatem Zugriff
+  zurückgelesen.1472 ursprüngliche Verwaltungsdateien →256 verbleibende Dateien.
+- Abwesenheit aller1216 Ziel-IDs und aller61 Ordner aus vollständiger verbleibender
+  App-Ablage geprüft;Ordnerlöschungen zusätzlich NOT_FOUND.15 unterbrochene
+  Einzelantworten anhand ursprünglicher IDs lesend geklärt;keine blinden Retries.
+- Haus-Garten enthält jetzt ausschließlich20-APK,40-PIXEL-BACKUPS und
+  90-PRÜFPROTOKOLLE. Aktuelle105/106-APKs und106-APK-Teile/Provenienz bleiben
+  vorhanden. Backupordner40 und beide älteren Sicherungsordner unverändert privat
+  mit gleichem Elternordner/Owner zurückgelesen;40 weiterhin leer. Produktive
+  Betriebsordner/Journale/Fotos/Belege unverändert,keine Migration/Freigabe.
+- Gefundener Wiederbelebungspfad: aktivierte tägliche Automatik erzeugte bei
+  Änderungen erneut Drive-Quellgenerationen. Ausschließlich diesen Lauf pausiert
+  und is_enabled=false zurückgelesen;App-Backup davon unabhängig. Host-Policy
+  verwaltet gelöschte Ordner nicht mehr und schützt alle Backupordner sowie die
+  erhaltenen Originalobjekte zusätzlich. Schutzflags nicht zum Löschen aufgehoben.
+- Offen:36 große einzelne Altarchive nicht bytegenau abrufbar (32MiB-Downloadgrenze;
+  vollständiger69MB-Inlineabruf zweimal Transport closed). Deshalb erhalten.
+  Drei kleinere Archive enthalten eigenständige alte Quellen/QA-/Bildnachweise und
+  bleiben. Kein pauschaler Vollabschluss sämtlicher Altarchive und kein Abschluss
+  der weiterhin gesperrten produktiven Datenautoritätsmigration behauptet.
+
+Validierung:22 bestehende Source-Lifecycle-Regressionen PASS;Source-Privacy
+2349Dateien/0Betriebs-Seedzeilen PASS;Workspace-Privacy einschließlich ignored/untracked
+6026Dateien im sauberen Quellworktree PASS. Release-Identitäten/Abnahmesperren
+unverändert;keine Schutzflags entfernt. Vollständiger Register-Readback SHA256
+`ffb807b658ccdd269da7112770c66f9c6649d9b00e0aebb21b10ffee117cc780`.
+
+Vollständige ID-/Hash-/Git-/Lösch-/Verschiebe- und Rücklesebelege im bestehenden
+Drive-Register1lxLiMzK4NT7-ueLJvpsDU1gwbaxx610C;keine Betriebsdaten als Tests.
+
 ## Backup-Bedienung für den noch unveröffentlichten Build106 vereinfachen
 
 Nutzerauftrag26.10.: vorhandene Backupfunktion radikal vereinfachen. Kein Zugriff

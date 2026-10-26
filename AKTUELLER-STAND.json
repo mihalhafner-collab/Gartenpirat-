@@ -2307,5 +2307,54 @@
     "documentation_provenance": "Final branch documentation/export is separate from immutable APK/tag; completion receipt pins exact documentation ZIP.",
     "drive_provenance_id": "1tGaD36AnVupSplOC7q_nfEWVlHY7vm7O",
     "drive_verification_id": "1K2Uf6J_xT7bW9ozezC3Fwpp3Cd1M4NyQ"
+  },
+  "drive_cleanup": {
+    "at": "2026-10-26T20:37:06.297Z",
+    "status": "VERIFIED_DUPLICATES_REMOVED;36_LARGE_SINGLE_ARCHIVE_BYTE_COMPARISONS_OPEN",
+    "removed_files": 1216,
+    "removed_folders": 61,
+    "removed_bytes": 2256778662,
+    "initial_admin_files_including_external_ai_folder": 1472,
+    "final_admin_files": 256,
+    "moved_original_objects": 220,
+    "retained_moved_objects": 216,
+    "reports_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
+    "source_authority": "GITHUB",
+    "source_repository": "mihalhafner-collab/Gartenpirat-",
+    "app_source_tag": "source/v1.55.1-build106",
+    "app_source_commit": "99ab63afbdfdb9fd32dac70134f9461b1ba15b17",
+    "registry_file_id": "1lxLiMzK4NT7-ueLJvpsDU1gwbaxx610C",
+    "backups_untouched": [
+      "1aCQukc40aG5zD0PTgPQf1N_Oz-0XOf9L",
+      "1CA4SiFKmM1l6_xzfBs-MWHtKsr9kRyKv",
+      "1Zl3l25QTpVTMyM0VBRAOQKbwWCgZ896l"
+    ],
+    "daily_source_export_paused": {
+      "automation_id": "6ad8f3798fc081919a261c5eb3981ad1",
+      "is_enabled": false,
+      "readback_confirmed": true
+    },
+    "archive_limit": "Streamed downloads into workspace limited to32MiB;complete69MB inline fetch failed twice with Transport closed;no large archive byte equality inferred from metadata. Three smaller archives contain unique QA/older source members and remain.",
+    "preservation": "216 retained moved objects verified under same IDs/private access;four review ZIPs later proved redundant after their unique START metadata was preserved byte for byte in existing registry.",
+    "scope": "Administrative source/QA folders only;no app code/build/install/runtime data migration/invoice authority changes. Physical transition acceptance remains open.",
+    "validation": {
+      "source_lifecycle_regressions": {
+        "passed": 22,
+        "failed": 0
+      },
+      "source_privacy": {
+        "status": "PASS",
+        "files": 2349,
+        "operational_seed_rows": 0
+      },
+      "source_worktree_privacy": {
+        "status": "PASS",
+        "files": 6026,
+        "includes_ignored_untracked": true
+      },
+      "registry_readback_sha256": "ffb807b658ccdd269da7112770c66f9c6649d9b00e0aebb21b10ffee117cc780",
+      "release_identity_and_acceptance_unchanged": true,
+      "protection_flags_removed": 0
+    }
   }
 }

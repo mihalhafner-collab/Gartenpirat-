@@ -1,5 +1,17 @@
 # Haus & Garten App – dauerhafte Projektregeln
 
+## Präzisierung zur Drive-Ablage vom 26. Oktober 2026
+
+Für die Quellablage gilt die aktuelle Nutzerpräzisierung in den
+[zentralen Regeln](https://chatgpt.com/space/page_6681fd3e333481918de439dae6d27429):
+nachgewiesene GitHub-Quellkopien aus Drive entfernen und nicht automatisch erneut
+hochladen. Die älteren Pflichten unten zur zusätzlichen Drive-Quellgeneration
+gelten insoweit nicht mehr. GitHub und die unveränderlichen Original-Tags erhalten.
+Eigenständige APKs, einzigartige Originalnachweise und sämtliche Sicherungsordner
+bleiben geschützt. Die frühere tägliche Drive-Quellkopien-Automatik ist pausiert;
+dies betrifft keine App-Backups. Aktuelle Ablage und tatsächliche Löschbelege stehen
+im bestehenden source-lifecycle.json, CODEX-STATUS.md und technischen Drive-Register.
+
 ## Architekturfolgeauftrag vom 23. Oktober 2026
 
 Der ausdrückliche Nutzerauftrag „Revier Solo“ in `CODEX-AUFTRAG-GARTENPIRAT.md`
