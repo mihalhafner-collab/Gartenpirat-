@@ -1,0 +1,144 @@
+{
+  "plantId": "cucurbita-moschata",
+  "checkedAt": "2026-10-23",
+  "sourcePage": "https://plants.ces.ncsu.edu/plants/cucurbita-moschata/",
+  "responseSha256": "d68a5566f84ed5054130f02a3c5923da48ee28fcd6484c0da99bec0cc4777ee9",
+  "method": "Fresh individual img data-attrib/data-license/data-downloadurl attributes; no visual approval.",
+  "images": [
+    {
+      "id": "cucurbita-moschata-fresh-1",
+      "caption": "Butternut squash",
+      "author": "George Chernilevsky",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourcePage": "https://plants.ces.ncsu.edu/plants/cucurbita-moschata/",
+      "originalLocator": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Cucurbita_moschata_B_5jyGZMTDfeqr.jpg"
+    },
+    {
+      "id": "cucurbita-moschata-fresh-2",
+      "caption": "Plant in bloom",
+      "author": "Dinesh Valke",
+      "license": "CC-BY-SA-2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+      "sourcePage": "https://plants.ces.ncsu.edu/plants/cucurbita-moschata/",
+      "originalLocator": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Cucurbita_moschata_D_hS8Obs9wf9ay.jpg"
+    },
+    {
+      "id": "cucurbita-moschata-fresh-3",
+      "caption": "Acorn squash plant",
+      "author": "K. Andre",
+      "license": "CC-BY-2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0/legalcode",
+      "sourcePage": "https://plants.ces.ncsu.edu/plants/cucurbita-moschata/",
+      "originalLocator": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Acorn_squash_plant_k_FBIH6HuX3JaR.jpg"
+    },
+    {
+      "id": "cucurbita-moschata-fresh-4",
+      "caption": "Acorn squash",
+      "author": "Spedona",
+      "license": "CC-BY-SA-3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/deed.en",
+      "sourcePage": "https://plants.ces.ncsu.edu/plants/cucurbita-moschata/",
+      "originalLocator": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Cucurbita_moschata_a_knFyXPtAbwBh.jpg"
+    },
+    {
+      "id": "cucurbita-moschata-fresh-5",
+      "caption": "Long Island cheese squash",
+      "author": "Badagnani",
+      "license": "CC-BY-SA-3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/deed.en",
+      "sourcePage": "https://plants.ces.ncsu.edu/plants/cucurbita-moschata/",
+      "originalLocator": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Cucurbita_moschata_L_bbY5uqI1nV0u.jpg"
+    },
+    {
+      "id": "cucurbita-moschata-fresh-6",
+      "caption": "Dissected Fruit",
+      "author": "Girish Bhatt",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/legalcode",
+      "sourcePage": "https://plants.ces.ncsu.edu/plants/cucurbita-moschata/",
+      "originalLocator": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Cr_Section_Cucurbita_pMUPzxzbMPVo.jpe"
+    },
+    {
+      "id": "cucurbita-moschata-fresh-7",
+      "caption": "Female Flower (Durham County,NC)",
+      "author": "Girish Bhatt",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/legalcode",
+      "sourcePage": "https://plants.ces.ncsu.edu/plants/cucurbita-moschata/",
+      "originalLocator": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Female_Flower_Cucurb_FkD0kBJDkhmb.jpeg"
+    },
+    {
+      "id": "cucurbita-moschata-fresh-8",
+      "caption": "Flower Length (Durham County,NC)",
+      "author": "Girish Bhatt",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/legalcode",
+      "sourcePage": "https://plants.ces.ncsu.edu/plants/cucurbita-moschata/",
+      "originalLocator": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Flower_Cucurbita_mos_CT2yjfkA3Vh4.jpe"
+    },
+    {
+      "id": "cucurbita-moschata-fresh-9",
+      "caption": "Leaf Length (Durham County,NC)",
+      "author": "Girish Bhatt",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/legalcode",
+      "sourcePage": "https://plants.ces.ncsu.edu/plants/cucurbita-moschata/",
+      "originalLocator": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Leaf1_Cucurbita_mosc_30InywcZUTZe.jpe"
+    },
+    {
+      "id": "cucurbita-moschata-fresh-10",
+      "caption": "Male Flower (Durham County,NC)",
+      "author": "Girish Bhatt",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/legalcode",
+      "sourcePage": "https://plants.ces.ncsu.edu/plants/cucurbita-moschata/",
+      "originalLocator": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Male_Flowers_Cucurbi_4v9zjHJSFD8N.jpeg"
+    },
+    {
+      "id": "cucurbita-moschata-fresh-11",
+      "caption": "Fruit Length (Durham County, NC)",
+      "author": "Girish Bhatt",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/legalcode",
+      "sourcePage": "https://plants.ces.ncsu.edu/plants/cucurbita-moschata/",
+      "originalLocator": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Mature_Cucurbita_mos_RDNbggUyNgFm.jpe"
+    },
+    {
+      "id": "cucurbita-moschata-fresh-12",
+      "caption": "Pollinator Close-up (Durham County,NC)",
+      "author": "Girish Bhatt",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/legalcode",
+      "sourcePage": "https://plants.ces.ncsu.edu/plants/cucurbita-moschata/",
+      "originalLocator": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Pollinator2_Cucurbit_mPMcOOMQqsXY.jpeg"
+    },
+    {
+      "id": "cucurbita-moschata-fresh-13",
+      "caption": "Stem (Durham County,NC)",
+      "author": "Girish Bhatt",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/legalcode",
+      "sourcePage": "https://plants.ces.ncsu.edu/plants/cucurbita-moschata/",
+      "originalLocator": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Stem_Cucurbita_mosch_3RYjsoU0BvW9.jpe"
+    },
+    {
+      "id": "cucurbita-moschata-fresh-15",
+      "caption": "Seedlings with Leaves - Durham County, NC",
+      "author": "Girish Bhatt",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/legalcode",
+      "sourcePage": "https://plants.ces.ncsu.edu/plants/cucurbita-moschata/",
+      "originalLocator": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Seedlings_Cucurbita__o4LBY0QDsWJ9.jpeg"
+    },
+    {
+      "id": "cucurbita-moschata-fresh-16",
+      "caption": "Butternut squash",
+      "author": "George Chernilevsky",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourcePage": "https://plants.ces.ncsu.edu/plants/cucurbita-moschata/",
+      "originalLocator": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Cucurbita_moschata_B_5jyGZMTDfeqr.jpg"
+    }
+  ]
+}

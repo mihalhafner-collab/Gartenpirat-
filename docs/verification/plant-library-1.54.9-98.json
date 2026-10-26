@@ -1,0 +1,868 @@
+{
+  "format": "hausgarten.plant-library-delivery.v1",
+  "recorded_at_utc": "2026-10-23T14:00:12.740725+00:00",
+  "status": "COMPLETED_CLOUD_VERIFIED_ORIGINAL_APK_PRIVATE_DELIVERED",
+  "target_version": "1.54.9",
+  "target_build": 98,
+  "release": {
+    "version": "1.54.9",
+    "build": 98,
+    "status": "CLOUD_VERIFIED_ORIGINAL_CANDIDATE; PIXEL_NOT_INSTALLED",
+    "tag": "source/v1.54.9-build98",
+    "git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
+    "source_sha256": "fd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae",
+    "source_files": 2196,
+    "original_zip_sha256": "cfaa05c384d2e40ada1de495add2500a1bc590e3fb38879851992a62432a196f",
+    "original_zip_name": "Haus-Garten-Quellcode-dbe9ed0b4d8a.zip",
+    "original_zip_bytes": 161246742,
+    "original_zip_transport_encoding": "XZ",
+    "original_zip_transport_sha256": "280975b70a0f050572b9a4871c3cbe37c39777547de3c106714b92b20e67c783",
+    "original_zip_transport_bytes": 82326296,
+    "apk_sha256": "ffa7525b85ac47a0ec78cdd352cb5fb327293bd1138a9cd9784fa23f3f0c9997",
+    "apk_bytes": 81419579,
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "drive_zip_id": "1IgSMAJogZFA0rbxQCGG9JbkW4wYljQ-q",
+    "drive_review_zip_id": "1r6IUFJJ5VlGYJ0oYeDex4mNoD8J8aD38",
+    "drive_apk_id": "1SXrVaoq_rsGIKo57XeDu0CQDJXB5bepl",
+    "drive_visuals_id": "1p0XemiDV0V5-nvaFsSQCFcib1wtB0uPL",
+    "drive_folder_id": "1k69XGlrCNASSl68dzWwUoaRTJeVc9ohm",
+    "source_folder_id": "1iOo71s1cmHcVFtBfa3rVOc2bAf-68zbW",
+    "development_export_folder_id": "1sNafTvi2E2RtlfGpSiR_O3yo5D_IlN4u",
+    "qa_source_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
+    "qa_apk_sha256": "8e54d2dcf02f3c2503588e63664d0ba753686b6c335eaa4384ca952b05cb175a",
+    "remote_readback": "PASS exact source branch and immutable tag",
+    "native_cloud_acceptance": "4 native plant probes, update/fresh_isolated/UI, fonts1/1.5/2,9 reviewed images, installed APK byte-identical, original97 complete ledger unchanged; initial UI navigation failure followed by PASS unchanged-APK recheck",
+    "pixel_installation": "NOT_EXECUTED; historical last observed96 unchanged",
+    "google_live_authorization": "NOT_EXECUTED; no productive request_sync, queue or runtime-file mutation",
+    "release_approved": false,
+    "drive_readback": "Source6 receipts:5SHA256_BYTES+1XZ COMPLETE_STREAM_SIZE_ONLY; APK COMPLETE_STREAM_SIZE_ONLY;9-image QA ZIP SHA256_BYTES",
+    "documentation_provenance": "Final branch documentation/export is separate from immutable APK/tag; completion receipt pins exact documentation ZIP.",
+    "drive_provenance_id": "1tGaD36AnVupSplOC7q_nfEWVlHY7vm7O",
+    "drive_verification_id": "1K2Uf6J_xT7bW9ozezC3Fwpp3Cd1M4NyQ"
+  },
+  "acceptance": {
+    "classification": "SYNTHETIC_TEST",
+    "app_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
+    "qa_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
+    "native_results": {
+      "plants": 0,
+      "ui": 0,
+      "fresh_isolated": 0,
+      "verify": 0
+    },
+    "native_ui_first_attempt": "FAIL lifecycle condition5; no JS diagnostic captured",
+    "native_ui_recheck": "PASS same APK without source/business change; retained initial log",
+    "fonts": {
+      "classification": "SYNTHETIC_TEST",
+      "results": [
+        {
+          "font_scale": "1.0",
+          "observed": "1.0",
+          "result": "PASS",
+          "scope": "actual Android WebView/OS fonts with synthetic read responses; no business writes"
+        },
+        {
+          "font_scale": "1.5",
+          "observed": "1.5",
+          "result": "PASS",
+          "scope": "actual Android WebView/OS fonts with synthetic read responses; no business writes"
+        },
+        {
+          "font_scale": "2.0",
+          "observed": "2.0",
+          "result": "PASS",
+          "scope": "actual Android WebView/OS fonts with synthetic read responses; no business writes"
+        }
+      ],
+      "original_font_scale": "1.0",
+      "restored_font_scale": "1.0",
+      "original_effective_font_scale": 1.0,
+      "restored_effective_font_scale": 1.0,
+      "restored": true,
+      "logical_screen_dp": [
+        360,
+        640
+      ],
+      "original_display_size": "480x960",
+      "tested_display_size": "540x960",
+      "restored_display_size": "480x960"
+    },
+    "font_scales": [
+      1,
+      1.5,
+      2
+    ],
+    "fonts_restored": true,
+    "captured_visuals": 9,
+    "visuals_directory": "/workspace/plant98-final-visuals-dbe9ed0b4d8a",
+    "visuals_reviewed": 9,
+    "installed_apk_byte_identical": true,
+    "installed_apk_sha256": "ffa7525b85ac47a0ec78cdd352cb5fb327293bd1138a9cd9784fa23f3f0c9997",
+    "complete_ledger": "PASS",
+    "update_scope": "Own signed97 fixture -> preliminary98 candidates -> final98; no reset/downgrade; not the formerly delivered97 APK.",
+    "visual_assessment": "PASS all9 actually viewed: visible photos; complete wrapped titles; separate caption/help; long transformations scroll inside the credit panel.",
+    "host_python": {
+      "passed": 420,
+      "excluded_qa_key_generation_tests": 37,
+      "scope": "Full run before final CSS and test-only changes; operative Python unchanged"
+    },
+    "host_jvm": {
+      "suites_passed": 50,
+      "scope": "Operative business Java unchanged since full run"
+    },
+    "host_browser": {
+      "suites_passed": 55,
+      "failed": 0,
+      "source_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c"
+    },
+    "mcp_stdio_scenarios_passed": 55,
+    "ui_contract": {
+      "tools": 117,
+      "read": 52,
+      "write": 65,
+      "ui_actions": 156,
+      "contract_sha256": "7119a0e04814858da78c1da34211395d66ef428777f0c9735a026a3f2275be74"
+    },
+    "catalog_sha256": "72f0a25d49740e1093a37bc7c02c059350e0f973e257298fda3965ab6570d710",
+    "privacy": "PASS source,workspace,original signed artifact;0 operational seeds",
+    "sixteen_kib_alignment": "PASS",
+    "emulator_restoration": {
+      "classification": "SYNTHETIC_TEST",
+      "verifier_settings_restored": {
+        "verifier_verify_adb_installs": "0",
+        "package_verifier_enable": "null"
+      },
+      "effective_font_scale": 1.0,
+      "display": "Physical size: 480x960",
+      "own_emulator_stopped": true,
+      "physical_device_touched": false
+    },
+    "fresh_scope": "Isolated empty Android store/bootstrap; no data reset and no physical fresh installation"
+  },
+  "delivery": {
+    "source_receipts": {
+      "folder_id": "1iOo71s1cmHcVFtBfa3rVOc2bAf-68zbW",
+      "complete": true,
+      "receipts": [
+        {
+          "id": "1IgSMAJogZFA0rbxQCGG9JbkW4wYljQ-q",
+          "name": "Haus-Garten-Quellcode-dbe9ed0b4d8a.zip.xz",
+          "bytes": 82326296,
+          "mime_type": "application/x-xz",
+          "local_sha256": "280975b70a0f050572b9a4871c3cbe37c39777547de3c106714b92b20e67c783",
+          "verification": "COMPLETE_STREAM_SIZE_ONLY",
+          "modified_time": "2026-10-23T13:49:12.234Z",
+          "observed": {
+            "folder_id": "1iOo71s1cmHcVFtBfa3rVOc2bAf-68zbW",
+            "id": "1IgSMAJogZFA0rbxQCGG9JbkW4wYljQ-q",
+            "name": "Haus-Garten-Quellcode-dbe9ed0b4d8a.zip.xz",
+            "bytes": "82326296",
+            "mime_type": "application/x-xz",
+            "modified_time": "2026-10-23T13:49:12.234Z",
+            "shared": false
+          }
+        },
+        {
+          "id": "1r6IUFJJ5VlGYJ0oYeDex4mNoD8J8aD38",
+          "name": "Haus-Garten-Review-TXT-dbe9ed0b4d8a.zip",
+          "bytes": 3935153,
+          "mime_type": "application/zip",
+          "local_sha256": "4553dbfab30934682f1018be53e61f47948359690107efd86ba3c8d73f436746",
+          "verification": "SHA256_BYTES",
+          "modified_time": "2026-10-23T13:49:19.312Z",
+          "observed": {
+            "folder_id": "1iOo71s1cmHcVFtBfa3rVOc2bAf-68zbW",
+            "id": "1r6IUFJJ5VlGYJ0oYeDex4mNoD8J8aD38",
+            "name": "Haus-Garten-Review-TXT-dbe9ed0b4d8a.zip",
+            "bytes": "3935153",
+            "mime_type": "application/zip",
+            "modified_time": "2026-10-23T13:49:19.312Z",
+            "shared": false
+          }
+        },
+        {
+          "id": "1ze3vXj92BShBaBmOhC0GKM5r6qdsTnY5",
+          "name": "99-ORIGINAL-SHA256SUMS.txt",
+          "bytes": 4795,
+          "mime_type": "text/plain",
+          "local_sha256": "de1be556f156bbc3aa8d40e7374c036ba452200c760821b2050d7fe2e14535d2",
+          "verification": "SHA256_BYTES",
+          "modified_time": "2026-10-23T13:49:41.422Z",
+          "observed": {
+            "folder_id": "1iOo71s1cmHcVFtBfa3rVOc2bAf-68zbW",
+            "id": "1ze3vXj92BShBaBmOhC0GKM5r6qdsTnY5",
+            "name": "99-ORIGINAL-SHA256SUMS.txt",
+            "bytes": "4795",
+            "mime_type": "text/plain",
+            "modified_time": "2026-10-23T13:49:41.422Z",
+            "shared": false
+          }
+        },
+        {
+          "id": "12mJqhTm557QN_APSwflSPliy8rlIKitI",
+          "name": "01-MANIFEST.json",
+          "bytes": 477419,
+          "mime_type": "application/json",
+          "local_sha256": "48ed5a42c6ac7f6368abb878805313c1bdf4505960f4d55972fdce05d3747d6f",
+          "verification": "SHA256_BYTES",
+          "modified_time": "2026-10-23T13:49:37.866Z",
+          "observed": {
+            "folder_id": "1iOo71s1cmHcVFtBfa3rVOc2bAf-68zbW",
+            "id": "12mJqhTm557QN_APSwflSPliy8rlIKitI",
+            "name": "01-MANIFEST.json",
+            "bytes": "477419",
+            "mime_type": "application/json",
+            "modified_time": "2026-10-23T13:49:37.866Z",
+            "shared": false
+          }
+        },
+        {
+          "id": "1LW3G8hwT9CgvjqcmLYmmmVuNTJrNnsHl",
+          "name": "99-TRANSPORT.json",
+          "bytes": 1305,
+          "mime_type": "application/json",
+          "local_sha256": "3aefd0682f54c90c8d55642add04abaa881e96173a8fb473fce036d23a592c8b",
+          "verification": "SHA256_BYTES",
+          "modified_time": "2026-10-23T13:49:43.819Z",
+          "observed": {
+            "folder_id": "1iOo71s1cmHcVFtBfa3rVOc2bAf-68zbW",
+            "id": "1LW3G8hwT9CgvjqcmLYmmmVuNTJrNnsHl",
+            "name": "99-TRANSPORT.json",
+            "bytes": "1305",
+            "mime_type": "application/json",
+            "modified_time": "2026-10-23T13:49:43.819Z",
+            "shared": false
+          }
+        },
+        {
+          "id": "1JJANIIRQE0bjlfxr0B_C_6679xFUpwzN",
+          "name": "00-START.txt",
+          "bytes": 1491,
+          "mime_type": "text/plain",
+          "local_sha256": "aaa064e506f09fbf21156c47f89c9019bff431aab404e726ed602c6821ee94df",
+          "verification": "SHA256_BYTES",
+          "modified_time": "2026-10-23T13:49:49.669Z",
+          "observed": {
+            "folder_id": "1iOo71s1cmHcVFtBfa3rVOc2bAf-68zbW",
+            "id": "1JJANIIRQE0bjlfxr0B_C_6679xFUpwzN",
+            "name": "00-START.txt",
+            "bytes": "1491",
+            "mime_type": "text/plain",
+            "modified_time": "2026-10-23T13:49:49.669Z",
+            "shared": false
+          }
+        }
+      ]
+    },
+    "candidate_payload_receipts": {
+      "folder_id": "1k69XGlrCNASSl68dzWwUoaRTJeVc9ohm",
+      "complete": true,
+      "receipts": [
+        {
+          "id": "1SXrVaoq_rsGIKo57XeDu0CQDJXB5bepl",
+          "name": "Haus-Garten-1.54.9-98-original-update.apk",
+          "bytes": 81419579,
+          "mime_type": "application/vnd.android.package-archive",
+          "local_sha256": "ffa7525b85ac47a0ec78cdd352cb5fb327293bd1138a9cd9784fa23f3f0c9997",
+          "verification": "COMPLETE_STREAM_SIZE_ONLY",
+          "modified_time": "2026-10-23T13:55:50.084Z",
+          "observed": {
+            "folder_id": "1k69XGlrCNASSl68dzWwUoaRTJeVc9ohm",
+            "id": "1SXrVaoq_rsGIKo57XeDu0CQDJXB5bepl",
+            "name": "Haus-Garten-1.54.9-98-original-update.apk",
+            "bytes": "81419579",
+            "mime_type": "application/vnd.android.package-archive",
+            "modified_time": "2026-10-23T13:55:50.084Z",
+            "shared": false
+          }
+        },
+        {
+          "id": "1p0XemiDV0V5-nvaFsSQCFcib1wtB0uPL",
+          "name": "QA-Bildbelege-1.54.9-98.zip",
+          "bytes": 4922493,
+          "mime_type": "application/zip",
+          "local_sha256": "d1ae0038e736a89fb3723024415315bce9e4f53bdfd73a9faa5377320693d2ff",
+          "verification": "SHA256_BYTES",
+          "modified_time": "2026-10-23T13:55:54.871Z",
+          "observed": {
+            "folder_id": "1k69XGlrCNASSl68dzWwUoaRTJeVc9ohm",
+            "id": "1p0XemiDV0V5-nvaFsSQCFcib1wtB0uPL",
+            "name": "QA-Bildbelege-1.54.9-98.zip",
+            "bytes": "4922493",
+            "mime_type": "application/zip",
+            "modified_time": "2026-10-23T13:55:54.871Z",
+            "shared": false
+          }
+        }
+      ]
+    },
+    "source_transport": {
+      "format": "hausgarten.lossless-source-delivery.v1",
+      "git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
+      "source_sha256": "fd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae",
+      "original_zip": {
+        "name": "Haus-Garten-Quellcode-dbe9ed0b4d8a.zip",
+        "bytes": 161246742,
+        "sha256": "cfaa05c384d2e40ada1de495add2500a1bc590e3fb38879851992a62432a196f"
+      },
+      "transport": {
+        "name": "Haus-Garten-Quellcode-dbe9ed0b4d8a.zip.xz",
+        "bytes": 82326296,
+        "sha256": "280975b70a0f050572b9a4871c3cbe37c39777547de3c106714b92b20e67c783",
+        "encoding": "XZ",
+        "roundtrip": "BYTE_IDENTICAL",
+        "privacy": {
+          "status": "PASS",
+          "sha256": "280975b70a0f050572b9a4871c3cbe37c39777547de3c106714b92b20e67c783",
+          "operational_seed_rows": 0
+        }
+      },
+      "review_bundle": {
+        "name": "Haus-Garten-Review-TXT-dbe9ed0b4d8a.zip",
+        "bytes": 3935153,
+        "sha256": "4553dbfab30934682f1018be53e61f47948359690107efd86ba3c8d73f436746",
+        "files": 52,
+        "privacy": {
+          "status": "PASS",
+          "sha256": "4553dbfab30934682f1018be53e61f47948359690107efd86ba3c8d73f436746",
+          "operational_seed_rows": 0
+        }
+      },
+      "source_export_text_reconstruction": "PASS",
+      "remote_verification": "See separate actual Drive receipts; no remote SHA claim from stream size."
+    },
+    "tag": {
+      "tag": "source/v1.54.9-build98",
+      "git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
+      "remote_readback": "PASS"
+    },
+    "candidate_index_receipts": {
+      "folder_id": "1k69XGlrCNASSl68dzWwUoaRTJeVc9ohm",
+      "complete": true,
+      "receipts": [
+        {
+          "id": "1K2Uf6J_xT7bW9ozezC3Fwpp3Cd1M4NyQ",
+          "name": "99-QA-NACHWEIS-1.54.9-98.json",
+          "bytes": 14111,
+          "mime_type": "application/json",
+          "local_sha256": "4308b825e5e910df70b96c14ebfceea8a7a214ead03c9184ff289c5d924bac38",
+          "verification": "SHA256_BYTES",
+          "modified_time": "2026-10-23T13:58:51.884Z",
+          "observed": {
+            "folder_id": "1k69XGlrCNASSl68dzWwUoaRTJeVc9ohm",
+            "id": "1K2Uf6J_xT7bW9ozezC3Fwpp3Cd1M4NyQ",
+            "name": "99-QA-NACHWEIS-1.54.9-98.json",
+            "bytes": "14111",
+            "mime_type": "application/json",
+            "modified_time": "2026-10-23T13:58:51.884Z",
+            "shared": false
+          }
+        },
+        {
+          "id": "1tGaD36AnVupSplOC7q_nfEWVlHY7vm7O",
+          "name": "VERSIONSNACHWEIS.json",
+          "bytes": 4110,
+          "mime_type": "application/json",
+          "local_sha256": "49029b3e9560dbef28f998c60c1c9883fd3c3c6b3786f8ad53ec2abb4ef5faab",
+          "verification": "SHA256_BYTES",
+          "modified_time": "2026-10-23T13:58:54.721Z",
+          "observed": {
+            "folder_id": "1k69XGlrCNASSl68dzWwUoaRTJeVc9ohm",
+            "id": "1tGaD36AnVupSplOC7q_nfEWVlHY7vm7O",
+            "name": "VERSIONSNACHWEIS.json",
+            "bytes": "4110",
+            "mime_type": "application/json",
+            "modified_time": "2026-10-23T13:58:54.721Z",
+            "shared": false
+          }
+        }
+      ]
+    }
+  },
+  "botanical_review": {
+    "profiles": 314,
+    "offline_images": 628,
+    "preserved_ids": 181,
+    "added_profiles": 133,
+    "fresh_source_pages": 304,
+    "field_groups": 4080,
+    "legacy_derivatives": 293,
+    "downloaded_originals": 335,
+    "rejected_references": 25,
+    "scope": "Source-based fact, motif and individual-rights review; no independent expert botanical determination claimed."
+  },
+  "productive_changes": false,
+  "pixel_installation": "NOT_PERFORMED",
+  "historical_preparation": {
+    "format": "gartenpirat.plant-integration-progress.v1",
+    "recorded_at_utc": "2026-10-23T10:21:54.629667+00:00",
+    "status": "IMPLEMENTATION_PREPARED_IMAGE_ACQUISITION_BLOCKED_NOT_APK_READY",
+    "target_version": "1.54.9",
+    "target_build": 98,
+    "actual_source_version": "1.54.8",
+    "actual_source_build": 97,
+    "version_bumped": false,
+    "new_apk_built": false,
+    "new_apk_original_signed": false,
+    "new_tag_created": false,
+    "new_native_acceptance_executed": false,
+    "base_documentation_commit": "6928ab55ea1a6dc953cb5b00150b3d495cd006ce",
+    "implementation_checkpoint_git_sha": "ad83d0711bf8db9d00c542456de2831ccba8241b",
+    "library_branch_head": "7d499b225ed28f501333227e0ce92a54d4c5d542",
+    "library_data_commit": "78e0204cd7155799c61c4a88f98150baffeb9ffd",
+    "historical_baseline": "e499e745832449ce0202d04d9903495248e8b034",
+    "library": {
+      "selected_profiles": 314,
+      "legacy_profiles": 181,
+      "new_profiles": 133,
+      "candidate_references": 1140,
+      "required_selected_offline_images": 628,
+      "historical_eligible_derivatives": 335,
+      "actual_derivatives_viewed": 335,
+      "labeled_sheets_viewed": 42,
+      "extra_detail_views": 6,
+      "new_integration_exclusions": 8,
+      "new_taxon_holds": 4,
+      "new_originals_downloaded": 0,
+      "new_originals_visually_viewed": 0,
+      "integration_approved_profiles": 0,
+      "integrated_extension_profiles": 0,
+      "actual_app_profiles": 181,
+      "actual_app_images": 362,
+      "original_app_catalog_sha256": "46bec4dc380c6b938b368422efb236c831656fe30209bf9fc5998709331837fc"
+    },
+    "executed_tests": {
+      "importer_unit_tests": 20,
+      "historical_library_unit_tests": 21,
+      "dom_parser_tests": 2,
+      "browser_suites": [
+        {
+          "suite": "overview-accessibility.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "interaction-continuity.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "webview-syntax.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "webview-hardening.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "visual-consistency.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "navigation-calendar.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "status-collisions-gestures.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "calendar-authorization-ui.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "ui-preview.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "field-ui.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "sync-responsiveness.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "p3-ux-comparison.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "p3-uat-walkthrough.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "p3-search-planning.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "p3-documents.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "p3-customer-hub.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "p3-business-actions.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "business-feedback.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "current-data-ui-smoke.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "planning-ui.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "planning-carousel.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "planning-overview.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "weather-forecast-ui.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "invoice-editor.test.js",
+          "exit_code": 0
+        },
+        {
+          "suite": "invoice-flow.test.js",
+          "exit_code": 0
+        },
+        {
+          "suite": "billing-ui.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "architecture-workflow.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "daily-usability.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "settings-cleanup.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "design-concept.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "simple-design.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "worklog-window.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "pixel-tunnel-ui.test.js",
+          "exit_code": 0
+        },
+        {
+          "suite": "work-location.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "timer-completion.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "design-v139.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "gartenpirat-removal.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "customer-duplicate-ui.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "gartenpirat-plants.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "gartenpirat-photo.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "plant-library-integration.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "garden-followup.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "customer-photos.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "work-entry-photo-failure.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "camera-timer-static.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "personal-payment.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "access-integrity.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "sync-customer-gallery.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "offers-photo-library.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "sync-trash.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "context-search-storage.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "planning-open-end.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "worklog-batch.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "runtime-compat.test.cjs",
+          "exit_code": 0
+        },
+        {
+          "suite": "owner-client-contract.test.cjs",
+          "exit_code": 0
+        }
+      ],
+      "new_browser_cases": {
+        "classification": "SYNTHETIC_TEST",
+        "scope": "Source Chromium with synthetic editorial metadata; no native APK or real photo review claim",
+        "results": [
+          {
+            "name": "Accepted and historical botanical names resolve to the same stable entry",
+            "result": "PASS"
+          },
+          {
+            "name": "Aggregate, climate, identification-only scope and missing care are visible",
+            "result": "PASS"
+          },
+          {
+            "name": "EU effective date and Swiss annex2.2 remain visibly separate",
+            "result": "PASS"
+          },
+          {
+            "name": "Unknown toxicity and source warnings are preserved and escaped",
+            "result": "PASS"
+          },
+          {
+            "name": "Preview has motif, author, exact license, source and transformation",
+            "result": "PASS"
+          },
+          {
+            "name": "360x640 with150 and200percent text has no horizontal portrait overflow",
+            "result": "PASS"
+          },
+          {
+            "name": "Fullscreen retains transformation and48px controls with200percent text",
+            "result": "PASS"
+          },
+          {
+            "name": "Offline catalogue and image return keep the same entry without business or external calls",
+            "result": "PASS"
+          }
+        ]
+      },
+      "historical_audit": {
+        "format": "gartenpirat.plant-library-audit.v1",
+        "pass": "read-only",
+        "status": "PASS_WITH_DOCUMENTED_HOLDS",
+        "counts": {
+          "profiles": 314,
+          "legacyProfiles": 181,
+          "newProfiles": 133,
+          "heldCandidatesAudited": 80,
+          "totalRecordsAudited": 394,
+          "photoReferences": 1140,
+          "heldCandidatePhotoReferences": 45,
+          "localPhotosByteChecked": 362,
+          "newPhotosDownloaded": 0,
+          "newPhotoVisualReviews": 0,
+          "legacyImagesScreened": 362,
+          "legacyImagesFlagged": 9,
+          "botanicalExpertApprovals": 0,
+          "legacyCreditsReconfirmed": 341,
+          "legacyImagesEligibleForReuse": 335,
+          "legacyImagesExcludedFromReuse": 27,
+          "officialLegalReviews": 26,
+          "taxonomyAuthorityResolutions": 2,
+          "taxonomyExact": 313,
+          "factsChecked": 303
+        },
+        "categories": {
+          "Gehölze und Hecken": 62,
+          "Gemüse": 26,
+          "Obst": 19,
+          "Zwiebeln und Knollen": 14,
+          "Stauden": 69,
+          "Kräuter": 26,
+          "Sommerblumen": 17,
+          "Kletterpflanzen": 14,
+          "Rosen": 3,
+          "Zimmerpflanzen": 10,
+          "Gräser und Farne": 16,
+          "Teichpflanzen": 17,
+          "Wildpflanzen": 6,
+          "Kübelpflanzen": 13,
+          "Sukkulenten": 2
+        },
+        "holds": {
+          "photo_visual_review_and_original_download_pending": 314
+        },
+        "heldCandidateReasons": {
+          "cultivation_evidence_incomplete": 59,
+          "fewer_than_two_reconfirmed_photo_references": 69,
+          "photo_visual_review_and_original_download_pending": 80,
+          "profile_identity_requires_review": 3
+        },
+        "errors": [],
+        "inputs": {
+          "libraries/plants/plant-library.json": "bbd7b1890df08e670f3ee105fc4737a2bf1f82510e62f65c548ef168e3afe455",
+          "libraries/plants/evidence/profiles.json": "b66ae5986c2f6a17ab2d8056111e3008290b7ba73cbc27851aabb5a6193bc64a",
+          "libraries/plants/evidence/taxonomy.json": "7ec2c913753a4e01b06c565a051f744f46a0c4bbf0dde02c5babf0f2b2666500",
+          "libraries/plants/review-queue.json": "be893c5dc113f812e4ec9b5051beba62a04a2e58297ae8d3ab0bddf44c1e89cd",
+          "libraries/plants/evidence/commons.json": "c425672648b18b09c09db346fc9a4f3723711dececcd03b44beb20c22ae23ee0",
+          "libraries/plants/evidence/replacements.json": "4fe663c92e450677d017f9de8b124b3e2b25c397667858b71ad1353d437ed415",
+          "libraries/plants/evidence/visual-screening.json": "8e906a821be433916124d62bfa5aa5e5a93656935b86d986ef2667627e78ab6e",
+          "libraries/plants/evidence/official-context.json": "0a01f86485c25812e37bbecdbecc24f53d40be91b645cefbf1a94f5d21c0d032",
+          "libraries/plants/evidence/commons-api.json": "0b7e23b5bd1542c099b3e9671c74b65b67f1864cfc20a6b8eeb229ffbb914678",
+          "libraries/plants/evidence/supplemental-photos.json": "3e0c9b20e0c3465e1e636e89b2c101dfeb347c13d8391b8ae8a91fa57a56c296",
+          "libraries/plants/evidence/taxonomic-resolution.json": "b82867b2d684570e719997a55b5e1e7ea4892e65a90ca8974d08e36d5e2808d6",
+          "libraries/plants/evidence/legal-review.json": "51ff6b67fbe4779568903dc4a40672bdfeb4ed1f91f9c88e16a01342e051de7c",
+          "libraries/plants/evidence/legal-sources.json": "0bc83a1e3b527d8400fe160421d520afc72c6a808c1d343b7d3d4f5e7caeb261",
+          "libraries/plants/evidence/photo-exclusions.json": "91f6b8f88ceb9757af58cc9a00b41336bb52fe2bb69fe5504bbc30db9993171c",
+          "libraries/plants/evidence/eu-restrictions.json": "532cc018e4d6c413e37c9b331614ff75b6aaa18b856b3dbc7029e7c3066982a4",
+          "libraries/plants/review-scope.json": "61dd3c1c4275f22dfef226e5e16942a94833e3ba897a856de67d521466b78aa5",
+          "android/app/src/main/assets/plant-catalog.json": "46bec4dc380c6b938b368422efb236c831656fe30209bf9fc5998709331837fc"
+        },
+        "scope": "Full record/field/credit/baseline audit; no independent botanical expert or remote image visual inspection."
+      },
+      "complete_write_gate": {
+        "status": "BLOCKED",
+        "reason": "Integration blocked: 314 selected profiles lack actual image approval"
+      },
+      "complete_write_gate_expected_exit": 1,
+      "actual_write_gate_app_change": false,
+      "prebuild_privacy": {
+        "stage": "PREBUILD_ONLY",
+        "source_privacy": {
+          "status": "PASS",
+          "files": 1339,
+          "operational_seed_rows": 0
+        },
+        "workspace_privacy": {
+          "status": "PASS",
+          "files": 4390,
+          "includes_ignored_untracked": true,
+          "git_history": "SEPARATE_READONLY_AUDIT"
+        },
+        "artifact_privacy": "NOT_TESTABLE",
+        "secret_values_printed": false
+      },
+      "ui_mcp_inventory": "PASS156semantic actions,117tools, unchanged rights and contract7119a0e04814858da78c1da34211395d66ef428777f0c9735a026a3f2275be74",
+      "plant_mirrors": "PASS181/362/370",
+      "source_lifecycle_tests_pass": 22
+    },
+    "network": {
+      "format": "gartenpirat.plant-library-network-request.v1",
+      "purpose": "Public source/license rechecks and two actual offline plant photos per314selected profiles",
+      "user_authorization": "netzwerkfreigabe erteilt",
+      "authorization_received": true,
+      "technical_configuration_applied": false,
+      "last_observed_runtime_spec_revision": "37",
+      "runtime_policy_state": "enforced",
+      "required_additional_hosts": [
+        "plants.ces.ncsu.edu",
+        "eit-planttoolbox-prod.s3.amazonaws.com",
+        "commons.wikimedia.org",
+        "upload.wikimedia.org",
+        "thumb.wikimedia.org",
+        "creativecommons.org",
+        "www.rhs.org.uk"
+      ],
+      "preserve_existing_hosts": [
+        "data.hub.geosphere.at",
+        "dataset.api.hub.geosphere.at",
+        "openapi.hub.geosphere.at",
+        "warnungen.zamg.at"
+      ],
+      "preserve_existing_presets": [
+        "package_managers"
+      ],
+      "action": "Add hosts to the active managed cloud environment network configuration and save. A chat approval alone does not change the enforced list. No policy-file edits, direct-route bypass or TLS changes.",
+      "no_new_account_access": true,
+      "no_paid_api_required": true,
+      "last_observed_at_utc": "2026-10-23T10:27:11.924696+00:00"
+    },
+    "preserved_original97": {
+      "app_git_sha": "edd16a44c13dc17a774cff26f91e760efc123848",
+      "tag": "source/v1.54.8-build97",
+      "apk_sha256": "7e394a7603d79ffb264e1f113c122c1e1700453a82a3e9be521831a425df4e48",
+      "apk_drive_id": "19w2tUJRWlKr_0R37IU5jRkP34sCl6CTc"
+    },
+    "wip_source_folder_id": "1AQbc0HfEUU84zgrgSeDmCpzO3HIivIkx",
+    "exact_wip_commit_and_zip": "Pinned by01-MANIFEST.json and external actual transfer receipt after clean pushed commit; no APK for this source",
+    "productive_changes": "NONE; no Pixel install/read, request_sync, queue or operative Drive mutation in98work",
+    "last_pixel_observation": "Prior97task technical read2026-10-23T06:45:40.251Z:96/REMOTE_STATE_REFERENCE_MISSING/9pending/cloud_confirmed=false. Not refreshed in98work.",
+    "remaining": [
+      "Apply the already authorized host list in the actual environment configuration and verify observed enforced readiness.",
+      "Resolve fresh photo URLs and reconfirm exact current credits; acquire missing original bytes.",
+      "Replace excluded/unclear photos and actually visually review every selected image; retain historical library HOLDs.",
+      "Approve only evidenced profiles with2local images, import314once, regenerate mirrors and adapt honest source/rights/care tests.",
+      "Re-run final relevant gates; only then raise1.54.9/98, preserve source, build/original sign, execute native/update/artifact acceptance, tag and publish with readback."
+    ],
+    "work_source_fingerprint_unbuilt": "8895b1fad93899b388361a0acb7b827e3ae09830db243bebaf416c339c2a6fea",
+    "continuation20261023": {
+      "status": "CATALOG_INTEGRATED_NATIVE_AND_APK_GATES_PENDING",
+      "profiles": 314,
+      "images": 628,
+      "preservedExistingIds": 181,
+      "addedProfiles": 133,
+      "legacyDerivatives": 293,
+      "downloadedOriginals": 335,
+      "catalogSha256": "72f0a25d49740e1093a37bc7c02c059350e0f973e257298fda3965ab6570d710",
+      "freshSourcePages": 304,
+      "verifiedFieldGroups": 4080,
+      "rejectedReferenceCount": 25,
+      "visualScope": "All628 candidates on79 sheets; six replacement sheets plus individual details and final Melissa pair; source-based motif review, not independent expert determination.",
+      "importAndRepeatedCheck": "PASS_IDENTICAL_OUTPUT",
+      "sourceReview": "libraries/plants/integration-source-review.json",
+      "manifest": "libraries/plants/integration-manifest.json",
+      "pixelInstallation": "NOT_PERFORMED",
+      "productiveWrites": 0,
+      "nativeAcceptance": "PENDING"
+    }
+  }
+}

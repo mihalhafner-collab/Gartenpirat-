@@ -21,26 +21,26 @@ function fixture(name){
   try{
    await page.addInitScript({content:'('+fixture(source)+')('+(arg?JSON.stringify(arg):'')+');'});
    await page.goto(pathToFileURL(path.join(root,'android/app/src/main/assets/mobile.html')).href);
-   await page.waitForFunction(()=>document.body.dataset.usabilityVersion==='1.41');
+   await page.waitForFunction(()=>document.body.dataset.usabilityVersion==='1.41'&&document.body.dataset.revierReady==='true');
    await run(page);assert.deepEqual(errors,[]);results.push({name,result:'PASS',fixture:source});
   }catch(error){results.push({name,result:'FAIL',error:error.stack,fixture:source});}
   finally{await page.waitForTimeout(400);await page.close();console.log(results.at(-1));}
  }
  try{
   await scene('UAT 7–12,17–19: name/address, deferred contact, exact customer, inactive remains findable','daily-usability.test.cjs',async p=>{
-   await p.locator('.bottom-inner [data-open=customers]').click();await p.locator('#add-customer').click();
+   await p.locator('.bottom-inner [data-open=revier-properties]').click();await p.locator('#revier-properties [data-open=customers]').click();await p.locator('#add-customer').click();
    for(const [key,value]of Object.entries({name:'QA UAT Garten',street:'QA Gartenweg 1',postal_code:'0000',city:'QA Beispielort'}))await p.locator('#customer-form [name='+key+']').fill(value);
    await p.locator('#customer-form button[type=submit]').click();
    assert.equal(await p.evaluate(()=>writes.at(-1).row.phone),'');assert.equal(await p.evaluate(()=>writes.at(-1).row.email),'');
-   await p.locator('#customer-search').fill('QA UAT Garten');await p.locator('[data-customer-open=qa-new]').click();
+   await p.locator('#customer-search').fill('QA UAT Garten');const newId=await p.evaluate(()=>writes.find(x=>x.kind==='customer').row.id);await p.locator('[data-customer-open="'+newId+'"]').click();
    await p.getByRole('button',{name:'Kundendaten bearbeiten',exact:true}).click();
    await p.locator('#customer-form [name=phone]').fill('+430000000');await p.locator('#customer-form button[type=submit]').click();
    assert.equal(await p.evaluate(()=>writes.at(-1).row.phone),'+430000000');
-   await p.evaluate(()=>editCustomer('qa-new'));await p.locator('#customer-form [name=email]').fill('qa-uat@example.invalid');
+   await p.evaluate(id=>editCustomer(id),newId);await p.locator('#customer-form [name=email]').fill('qa-uat@example.invalid');
    await p.locator('#customer-form button[type=submit]').click();assert.equal(await p.evaluate(()=>writes.at(-1).row.email),'qa-uat@example.invalid');
-   await p.evaluate(()=>editCustomer('qa-new'));await p.locator('#customer-form [name=active]').uncheck();await p.locator('#customer-form button[type=submit]').click();
+   await p.evaluate(id=>editCustomer(id),newId);await p.locator('#customer-form [name=active]').uncheck();await p.locator('#customer-form button[type=submit]').click();
    assert.equal(await p.evaluate(()=>writes.at(-1).row.active),0);await p.evaluate(()=>openPage('customers'));
-   await p.locator('#customer-search').fill('QA UAT Garten');assert.equal(await p.locator('[data-customer-open=qa-new]').count(),1);
+   await p.locator('#customer-search').fill('QA UAT Garten');assert.equal(await p.locator('[data-customer-open="'+newId+'"]').count(),1);
   });
   await scene('UAT 20–29: manual start without GPS, pause/resume, explicit completion with optional fields','work-location.test.cjs',async p=>{
    await p.locator('[data-session-action=start]').click();assert.equal(await p.evaluate(()=>locationRequests.length),0);
@@ -96,15 +96,15 @@ function fixture(name){
    assert.equal(await p.evaluate(()=>calls.filter(c=>c.name==='finalize_offer'||/share|send/.test(c.name)).length),0);
   });
   await scene('UAT 110: all web settings, advanced information hidden and three deliberate photo qualities','p3-business-actions.test.cjs',async p=>{
-   await p.locator('#business-backup-card').waitFor({state:'attached'});await p.evaluate(()=>openPage('settings-page'));await p.locator('#business-backup-card').waitFor({state:'visible'});
+   await p.locator('#full-backup-card').waitFor({state:'attached'});await p.evaluate(()=>openPage('settings-page'));await p.locator('#full-backup-card').waitFor({state:'visible'});
    await p.locator('#settings-page #photo-quality').waitFor({state:'attached'});
    await p.evaluate(()=>{const more=document.getElementById('more-page');for(const id of ['business-settings-card','photo-storage-settings'])more.append(document.getElementById(id));});
    await p.waitForFunction(()=>['business-settings-card','photo-storage-settings'].every(id=>document.getElementById(id)?.parentElement.id==='settings-page'));
    assert.equal(await p.locator('#settings-sync-local').isVisible(),false);assert.equal(await p.locator('#settings-sync-transfer').isVisible(),false);
    const settings=await p.locator('#settings-page input:not([type=hidden]),#settings-page select,#settings-page textarea').evaluateAll(nodes=>nodes.map(n=>({id:n.id,name:n.name,type:n.type,options:n.options?[...n.options].map(o=>o.value):undefined,label:n.labels?.[0]?.textContent||n.getAttribute('aria-label')||n.name})));
-   assert(settings.length>=2);assert(settings.every(x=>x.id||x.name));const quality=settings.find(s=>s.id==='photo-quality');assert.deepEqual(quality.options,['optimized','high','original']);
+   assert(settings.length>=1);assert(settings.every(x=>x.id||x.name));assert(!settings.some(s=>s.id==='setting-side-swipe'));const quality=settings.find(s=>s.id==='photo-quality');assert.deepEqual(quality.options,['optimized','high','original']);
    fs.writeFileSync(path.join(root,'outputs/p3-uat-settings.json'),JSON.stringify({classification:'SYNTHETIC_TEST',scope:'operative WebView controls; native controls separately compiled/executed',settings},null,2));
-   await p.evaluate(()=>{window.driveSettingsOpened=0;AndroidData.connectDrive=()=>driveSettingsOpened++;});await p.locator('#settings-drive').click();assert.equal(await p.evaluate(()=>driveSettingsOpened),1);
+   await p.evaluate(()=>{window.fullBackupOpened=0;AndroidData.openFullBackup=()=>fullBackupOpened++;});assert.equal(await p.locator('#settings-drive,#sync-direct-connect,[data-backup-restore]').count(),0);await p.locator('#full-backup-card [data-open-full-backup]').click();assert.equal(await p.evaluate(()=>fullBackupOpened),1);
    await p.locator('.settings-advanced > summary').click();assert.equal(await p.locator('#settings-sync-local').isVisible(),true);
   });
  }finally{await browser.close();}

@@ -11,7 +11,7 @@ const {chromium}=require('./browser.cjs');
   page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(master=>{const state={master,pending:[]};window.AndroidData={getState:()=>JSON.stringify(state),getSyncStatus:()=>JSON.stringify({configured:false}),getAppInfo:()=>JSON.stringify({versionName:'1.33.0'}),getWorkSession:()=>JSON.stringify({state:'IDLE'})};window.AndroidSpeech={start:()=>{}};},master);
   await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href);
-  await page.waitForSelector('#design-metrics',{timeout:30000});
+  await page.waitForFunction(()=>document.body.dataset.fieldReady==='true'&&document.body.dataset.todayReady==='true');
   const first=master.customers.find(c=>c.id);assert(first);
   await page.evaluate(id=>openCustomer(id),first.id);assert.equal(await page.evaluate(()=>currentPage),'customer-profile-page');
   await page.evaluate(()=>openPage('worklogs'));assert(await page.locator('.worklog-entry').count()>0);

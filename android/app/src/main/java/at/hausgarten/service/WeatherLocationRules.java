@@ -7,7 +7,7 @@ import java.util.regex.*;
 
 /** Derives weather context without changing an appointment or guessing another customer's site. */
 final class WeatherLocationRules {
-    static final int RESOLVER_VERSION=2;
+    static final int RESOLVER_VERSION=3;
     interface Lookup {JSONArray find(String query)throws Exception;}
     static String normalized(String value){return Normalizer.normalize(value,Normalizer.Form.NFKD).replaceAll("\\p{M}","").toLowerCase(Locale.ROOT).replace("ß","ss").replaceAll("strasse\\b","str").replaceAll("[^\\p{L}\\p{N}]+"," ").trim().replaceAll(" +"," ");}
     static String address(JSONObject customer){String street=customer.optString("street").trim(),town=(customer.optString("postal_code")+" "+customer.optString("city")).trim();return street.isEmpty()?town:town.isEmpty()?street:street+", "+town;}
@@ -33,7 +33,8 @@ final class WeatherLocationRules {
         if(coordinates(cache))a.put("latitude",cache.getDouble("latitude")).put("longitude",cache.getDouble("longitude")).put("weather_location_state",cache.optString("state").equals("locality_resolved")?"locality_resolved":"address_resolved").put("weather_location_area",cache.optString("area_label")).put("weather_location_precision",cache.optString("precision","address"));
         else if(cache.has("state"))a.put("weather_location_state",cache.getString("state"));return a;
     }
-    private static String matchText(String value){return normalized(value).replaceAll("(\\p{L})\\s+str\\b","$1str");}
+    private static String matchText(String value){return normalized(value).replaceAll("\\bst\\b","sankt").replaceAll("(\\p{L})\\s+str\\b","$1str");}
+    static String geocoderQuery(String value){return value.replaceAll("(?iu)(?<!\\p{L})st(?:\\.(?=\\p{L}|\\s)|(?=\\s))\\s*","Sankt ");}
     static boolean matches(String query,String returnedAddress){
         String wanted=matchText(query),actual=" "+matchText(returnedAddress)+" ";if(wanted.length()<3)return false;
         for(String word:wanted.split(" "))if(!actual.contains(" "+word+" "))return false;return true;
@@ -60,7 +61,7 @@ final class WeatherLocationRules {
         JSONObject chosen=choose(query,towns);if(coordinates(chosen))chosen.put("state","locality_resolved").put("precision","locality").put("area_label",query);return chosen;
     }
     private static JSONObject find(String query,Lookup lookup,boolean locality)throws Exception {
-        try{JSONArray rows=lookup.find(query);return rows==null?new JSONObject().put("state","pending"):locality?chooseLocality(query,rows):choose(query,rows);}
+        try{JSONArray rows=lookup.find(geocoderQuery(query));return rows==null?new JSONObject().put("state","pending"):locality?chooseLocality(query,rows):choose(query,rows);}
         catch(java.io.InterruptedIOException stopped){throw stopped;}
         catch(InterruptedException stopped){Thread.currentThread().interrupt();throw new java.io.InterruptedIOException();}
         catch(Exception unavailable){return new JSONObject().put("state","unavailable");}

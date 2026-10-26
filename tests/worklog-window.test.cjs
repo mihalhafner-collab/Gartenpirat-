@@ -19,10 +19,10 @@ async function main(){
    window.AndroidSpeech={start:()=>{}};
   });
   await page.goto(pathToFileURL(path.resolve(__dirname,'../android/app/src/main/assets/mobile.html')).href);
-  await page.waitForFunction(()=>typeof openWorklogDetail==='function');
+  await page.waitForFunction(()=>typeof openWorklogDetail==='function'&&document.body.dataset.revierReady==='true');
   async function check(name,fn){try{await fn();results.push({name,result:'PASS'});}catch(e){results.push({name,result:'FAIL',error:e.message});}console.log(results.at(-1).result+' '+name+(results.at(-1).error?' '+results.at(-1).error:''));}
   await check('Deferred script initialises after dynamically created worklog page',async()=>{
-   await page.locator('.bottom [data-open="more-page"]').click();await page.locator('#more-page [data-open="worklogs"]').click();
+   await page.locator('.revier-globalbar [data-open="more-page"]').click();await page.locator('#more-page [data-open="worklogs"]').click();
    await page.locator('#worklog-list [data-edit-worklog="qa_wrk_test"]').first().click();
    assert.equal(await page.locator('#worklog-detail').getAttribute('data-work-mode'),'overview');
    assert.equal(await page.locator('.worklog-window-summary dl > div').count(),12);
@@ -43,10 +43,10 @@ async function main(){
    assert.equal(data.id,'qa_wrk_test');assert.equal(data.customer_id,'qa_cus_test');assert.equal(data.activity,'Testnachtrag');
    assert((await page.locator('.worklog-window-summary').innerText()).includes('Testnachtrag'));
   });
-  await check('Back saves through the existing channel without committing while typing',async()=>{
+  await check('Back retains a separate edit without changing the business record',async()=>{
    await page.locator('[data-work-window-edit]').click();await page.locator('#edit-worklog-activity').fill('Automatisch gesichert');
    await page.evaluate(()=>handleAndroidBack());assert.equal(await page.locator('#worklog-detail').getAttribute('data-work-mode'),'overview');
-   assert.equal(await page.evaluate(()=>JSON.parse(AndroidData.getState()).pending.at(-1).payload.activity),'Automatisch gesichert');
+   assert.equal(await page.evaluate(()=>JSON.parse(AndroidData.getState()).pending.at(-1).payload.activity),'Testnachtrag');assert((await page.evaluate(()=>JSON.stringify(HGFormDrafts.list('worklog')))).includes('Automatisch gesichert'));
   });
   await check('Invalid input prevents leaving edit mode and displays useful error',async()=>{
    await page.locator('[data-work-window-edit]').click();const writes=await page.evaluate(()=>testWrites);
@@ -72,6 +72,18 @@ async function main(){
    assert.equal(last.id,'qa_wrk_second');assert.equal(last.activity,'Zweiter Testnachtrag');
    const bad=await page.evaluate(()=>JSON.parse(AndroidData.getState()).pending.some(a=>a.payload.id==='qa_wrk_test'&&a.payload.activity==='Rasen pflegen'));
    assert.equal(bad,false,'Record selection must not overwrite another worklog ID');
+  });
+  await check('Menu retains worklog edits without a business commit and reopening resumes them',async()=>{
+   await page.waitForFunction(()=>window.HGGestures&&window.flushWorklogDetail);
+   await page.evaluate(()=>openWorklogDetail('qa_wrk_second'));await page.locator('[data-work-window-edit]').click();
+   await page.locator('#edit-worklog-activity').fill('QA menu flush retained');const before=await page.evaluate(()=>testWrites);
+   await page.evaluate(()=>HGGestures.openMenu());await page.locator('[data-drawer-open="customers"]').click();
+   assert.equal(await page.evaluate(()=>currentPage),'customers');assert.equal(await page.evaluate(()=>testWrites),before);
+   assert.equal(await page.evaluate(()=>JSON.parse(AndroidData.getState()).pending.at(-1).payload.activity),'Zweiter Testnachtrag');assert((await page.evaluate(()=>JSON.stringify(HGFormDrafts.list('worklog')))).includes('QA menu flush retained'));
+   await page.evaluate(()=>openWorklogDetail('qa_wrk_second'));await page.locator('[data-work-window-edit]').click();assert.equal(await page.locator('#edit-worklog-activity').inputValue(),'QA menu flush retained');
+  });
+  await check('Incomplete worklog can be left and resumed; discard clears its active edit only',async()=>{
+   await page.locator('#edit-worklog-activity').fill('QA invalid draft retained');await page.locator('#edit-worklog-customer').evaluate(select=>{select.value='';select.dispatchEvent(new Event('change',{bubbles:true}));});assert.equal(await page.evaluate(()=>flushWorklogDetail()),true);const before=await page.evaluate(()=>testWrites);await page.evaluate(()=>HGGestures.openMenu());await page.locator('[data-drawer-open="customers"]').click();assert.equal(await page.evaluate(()=>currentPage),'customers');assert.equal(await page.evaluate(()=>testWrites),before);await page.evaluate(()=>{openWorklogDetail('qa_wrk_second');beginWorklogEdit();});assert.equal(await page.locator('#edit-worklog-activity').inputValue(),'QA invalid draft retained');assert.equal(await page.locator('#edit-worklog-customer').inputValue(),'');page.once('dialog',d=>d.accept());await page.locator('[data-work-window-cancel]').click();assert.equal(await page.evaluate(()=>HGFormDrafts.list('worklog').filter(e=>e.context.record_id==='qa_wrk_second').length),0);assert.equal(await page.evaluate(()=>testWrites),before);
   });
   fs.writeFileSync(path.resolve(__dirname,'../outputs/Worklog-Window-Tests.json'),JSON.stringify({actualBrowser:true,nativeBridge:'isolated in-memory fixture',results},null,2));
  }finally{await browser.close();}

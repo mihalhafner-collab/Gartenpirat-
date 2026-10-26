@@ -52,7 +52,7 @@ final class LegacyConflictBackup {
         try {
             // SQLite creates a consistent database image, including WAL contents. Older
             // SQLite engines fail closed; copying a live database file is not a fallback.
-            store.getWritableDatabase().execSQL("VACUUM INTO '"+dbCopy.getAbsolutePath().replace("'","''")+"'");
+            DatabaseBackupSnapshot.capture(store.getWritableDatabase(),dbCopy);
             if(drive==null)throw new IOException("Drive-Snapshot ist für die Sicherung nicht lesbar.");
             String raw=drive.read("HausGarten-Laptop.json");if(raw==null)throw new IOException("Drive-Snapshot fehlt; nichts abgeschlossen.");DriveJournalRules.validateSnapshot(new JSONObject(raw));
             String device=state.getJSONObject("master").getString("drive_publisher_id");

@@ -32,7 +32,13 @@ final class EntityContract {
         for(int i=0;i<positions.length();i++){
             JSONObject p=positions.optJSONObject(i);
             if(p==null||p.optString("title").trim().isEmpty())throw new PixelMcpWriteTools.Rejected("INVALID_INPUT","Jede Rechnungsposition benötigt eine Bezeichnung.");
-            for(Iterator<String> keys=p.keys();keys.hasNext();)if(!Arrays.asList("title","description","quantity","price","unit","tax_rate","discount","worklog_id","net","tax","net_total","tax_total","gross_total").contains(keys.next()))throw new PixelMcpWriteTools.Rejected("INVALID_INPUT","Unbekannte Angabe in Rechnungsposition.");
+            for(Iterator<String> keys=p.keys();keys.hasNext();)if(!Arrays.asList("title","description","quantity","price","unit","tax_rate","discount","worklog_id","source_type","source_id","source_quantity_decimal","net","tax","net_total","tax_total","gross_total").contains(keys.next()))throw new PixelMcpWriteTools.Rejected("INVALID_INPUT","Unbekannte Angabe in Rechnungsposition.");
+            if(p.has("source_type")){
+                String type=p.getString("source_type");if(!Arrays.asList("manual","worklog","material_movement").contains(type))throw new PixelMcpWriteTools.Rejected("INVALID_INPUT","Leistungsquelle ist ungültig.");
+                if(!type.equals("manual")&&p.optString("source_id").trim().isEmpty())throw new PixelMcpWriteTools.Rejected("INVALID_INPUT","Eindeutige Leistungsquelle fehlt.");
+                if(p.has("source_quantity_decimal")&&(!p.getString("source_quantity_decimal").matches("(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,12})?")||new java.math.BigDecimal(p.getString("source_quantity_decimal")).signum()<=0))throw new PixelMcpWriteTools.Rejected("INVALID_INPUT","Quellmenge muss eine positive Dezimalzahl sein.");
+                if(type.equals("worklog")){if(!p.optString("worklog_id").isEmpty()&&!p.getString("worklog_id").equals(p.getString("source_id")))throw new PixelMcpWriteTools.Rejected("REFERENCE_MISMATCH","Leistungsquellen passen nicht zusammen.");p.put("worklog_id",p.getString("source_id"));}
+            }
             for(String key:new String[]{"quantity","price","discount","tax_rate"})if(p.has(key)&&!(p.opt(key) instanceof Number))throw new PixelMcpWriteTools.Rejected("INVALID_INPUT","Menge, Preis, Rabatt und Steuer müssen Zahlen sein.");
             double quantity=p.optDouble("quantity",Double.NaN),price=p.optDouble("price",Double.NaN),discount=p.optDouble("discount",0);
             if(!Double.isFinite(quantity)||quantity<=0||!Double.isFinite(price)||price<0||!Double.isFinite(discount)||discount<0||discount>100||!Double.isFinite(p.optDouble("tax_rate",0))||p.optDouble("tax_rate",0)<0||p.optDouble("tax_rate",0)>100)throw new PixelMcpWriteTools.Rejected("INVALID_INPUT","Bitte Menge, Preis, Rabatt und Steuersatz prüfen.");

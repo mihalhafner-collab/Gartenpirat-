@@ -73,7 +73,7 @@ final class DriveJournalRules {
             else if(error!=null){review++;phase=error.optString("code").contains("CONFLICT")?"sync_conflict":"sync_failed";message="Prüfung erforderlich: "+(error.optString("code").contains("CONFLICT")?"Widersprüchliche Änderungen; vorhandene Daten wurden nicht überschrieben.":"Die Änderung konnte nicht übernommen werden.");}
             else if(held&&transferred){review++;phase="review_required";message=kind.equals("delete")?"An die Drive-App übergeben · Löschauftrag bleibt bis zur gesonderten Prüfung zurückgehalten.":"An die Drive-App übergeben · geschützter Vorgang benötigt Prüfung.";}
             else{upload++;phase="sync_pending";message="Lokal gespeichert · Übertragung ausstehend.";}
-            String code=error==null?"":error.optString("code"),next=code.equals("SYNC_COMPONENT_UPDATE_REQUIRED")?"update_sync_component":(code.contains("CONFLICT")||code.equals("DELETE_REVIEW_REQUIRED"))?"compare_versions":code.equals("AUTH_REQUIRED")||code.equals("PERMISSION_REQUIRED")?"connect_drive":code.equals("PHOTO_ORIGINAL_REQUIRED")?"open_photo":code.equals("MEDIA_TRANSFER_PENDING")?"retry_media":kind.equals("archive")&&Arrays.asList("WRITE_CONFLICT","INVALID_ACTION","DEPENDENCY_BLOCKED").contains(code)?"compare_versions":held?"review_action":"retry_sync";
+            String code=error==null?"":error.optString("code"),next=code.equals("SYNC_COMPONENT_UPDATE_REQUIRED")?"update_sync_component":(code.contains("CONFLICT")||code.equals("DELETE_REVIEW_REQUIRED"))?"compare_versions":code.equals("AUTH_REQUIRED")||code.equals("PERMISSION_REQUIRED")?"connect_drive":code.equals("PHOTO_ORIGINAL_REQUIRED")?"open_photo":code.equals("MEDIA_TRANSFER_PENDING")?"retry_media":kind.equals("archive")&&Arrays.asList("WRITE_CONFLICT","INVALID_ACTION","DEPENDENCY_BLOCKED").contains(code)?"compare_versions":held&&(transferred||error!=null)?"review_action":"retry_sync";
             JSONObject item=new JSONObject().put("client_id",id).put("state",phase).put("provider_readback",transferred).put("cloud_confirmed",false).put("kind",kind).put("entity_id",action.getJSONObject("payload").optString("id")).put("created_at",action.optString("created_at")).put("error",error==null?"":error.optString("error")).put("code",code).put("next_action",next).put("message",message);
             DrivePublication.evidence(item,new JSONObject().put("master",snapshot).put("pending",new JSONArray().put(action)));items.put(item);
         }
@@ -112,7 +112,9 @@ final class DriveJournalRules {
             if(remoteErrors.containsKey(client)&&!PixelDriveState.retryableInfrastructure(remoteErrors.get(client),kind)){seen.remove(client);failed.add(client);errors.put(new JSONObject(remoteErrors.get(client).toString()).put("kind",kind));continue;}
             if(seen.contains(client))continue;
             JSONArray required=action.getJSONObject("payload").optJSONArray("_sync_predecessors");boolean dependencyFailed=false;
-            for(int j=0;required!=null&&j<required.length();j++)if(failed.contains(required.getString(j)))dependencyFailed=true;
+            // failed is built in this replay. A failed action can enter resolved only after
+            // the exact original and an explicit guarded owner/order decision were validated.
+            for(int j=0;required!=null&&j<required.length();j++)if(failed.contains(required.getString(j))&&!resolved.has(required.getString(j)))dependencyFailed=true;
             if(dependencyFailed){failed.add(client);errors.put(new JSONObject().put("client_id",client).put("kind",kind).put("code","DEPENDENCY_BLOCKED").put("error","Vorgängeraktion benötigt Prüfung; keine Folgeänderung angewendet."));continue;}
             if(OwnerJournalRules.handles(kind)||kind.equals("pixel_invoice_issue_v1")){
                 try{JSONObject trial=new JSONObject(snapshot.toString()),trialResolved=new JSONObject(resolved.toString());

@@ -1,5 +1,47 @@
 # Österreichische Kleinunternehmerrechnungen
 
+## Fortschreibung vom 23. Oktober 2026
+
+Der historische Abschnitt vom 8. Oktober bleibt als datierter Nachweis erhalten.
+Seine Laptop-Pflicht ist ersetzt: Der aktuelle Pixelstand verlangt einen direkten
+Pixel-/Drive-Onlinevergleich (`pixel_drive_online_compare_required`). Der beauftragte
+Zielbetrieb vergibt Nummern und erstellt PDFs ausschließlich lokal in der App;
+Drive dient dann nur verschlüsselten Sicherungen. Die bestehende Ausgabesperre bleibt
+bis zur kontrollierten Umstellung mit aktuellem Beleg-/Reservierungs-/Nummernnachweis
+und Ausschluss anderer Schreiber bestehen. Ein Backupzähler oder der historische
+sevDesk-Abruf unten reichen dafür nicht aus. Noch keine produktive Offlinefreigabe.
+
+Am 23.10.2026 erneut tatsächlich gelesen:
+
+- [RIS: §11 UStG, geltende Normfassung](https://www.ris.bka.gv.at/eli/bgbl/1994/663/P11/NOR40273699):
+  elektronische Rechnung mit Empfängerzustimmung; Herkunft, Inhaltsintegrität und
+  Lesbarkeit während der Aufbewahrung. Grundsätzlich sieben Jahre; Nachweise und
+  längere Sonderfristen beachten.
+- [USP/BMF: vereinfachte Rechnungen](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/vorsteuerabzug-und-rechnung/kleinbetragsrechnungen.html),
+  Stand 01.01.2026: Vereinfachungen bei Gesamtbetrag bis400EUR oder tatsächlich
+  anwendbarer Kleinunternehmerbefreiung; EU-/Versandhandelsausnahmen. Ausführlichere
+  Angaben bleiben möglich. Die Anwendung der Befreiung wird nicht aus Testdaten
+  abgeleitet und kein bestätigtes Aussteller-/Steuerprofil automatisch geändert.
+- [USP: Rechnung](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/rechnung.html):
+  Pflichtangaben und konkrete Dokumentart bleiben Teil der Ausgabekontrolle;
+  strukturierte Bundesrechnungen sind gesondert zu behandeln.
+
+Der erste gezielte RIS-Tagesabruf in diesem Task scheiterte; die obige kanonische
+Normfassung wurde danach erfolgreich gelesen. Das ist Quellenprüfung, keine
+vollständige steuerliche Abnahme. Die148EUR-Probe mit fiktiv0Prozent ist ausschließlich
+synthetische Rechenprüfung, keine Kleinunternehmer- oder Steuerentscheidung.
+
+Die Android-App besitzt inzwischen einen lokalen `PdfDocument`-Pfad. Die historische
+ReportLab-Angabe unten beschreibt den älteren Hostpfad und keine Betriebsabhängigkeit.
+PDF-Erstellung allein beweist weder sichere lokale Nummernvergabe noch erfolgreiche
+Übergabe/Zustellung. Unveränderliche Snapshots, Quellmengen, Wiederanlauf und die
+Restore-Ausgabesperre sind vor Freigabe gesondert zu prüfen. Vorhandene Korrektur-/
+Stornobeziehungen erhalten; die ältere pauschale Aussage fehlender Korrekturen unten
+ist keine aktuelle Bestandsbeschreibung.
+
+## Historischer Stand vom 8. Oktober 2026
+
+
 Recherche und Umsetzung: 8. Oktober 2026. Geltungsbereich: gewöhnliche österreichische Inlandsleistungen eines umsatzsteuerbefreiten Kleinunternehmers. Kein rechtliches Zertifikat und keine vollständige Steuerberatung.
 
 ## Grundlage

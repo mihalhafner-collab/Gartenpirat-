@@ -1,0 +1,338 @@
+{
+  "checkedAt": "2026-10-23",
+  "plannedProfileUrls": 376,
+  "profileResults": 322,
+  "unavailableProfiles": [
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/anemone-nemorosa/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/anemone-sylvestris/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/centaurea-macrocephala/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/centaurea-jacea/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/eremurus-robustus/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/eupatorium-cannabinum/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/geranium-pratense/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/scabiosa-ochroleuca/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/scabiosa-columbaria/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/camassia-quamash/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/lilium-martagon/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/lilium-candidum/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/paeonia-lactiflora/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/paeonia-officinalis/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/astrantia-major/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/veronica-longifolia/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/epimedium-grandiflorum/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/polygonatum-multiflorum/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/asarum-europaeum/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/ranunculus-repens/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/tussilago-farfara/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/aloysia-citrodora/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/beta-vulgaris/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/lotus-tetragonolobus/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/amelanchier-lamarckii/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/amelanchier-ovalis/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/sorbus-torminalis/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/crataegus-monogyna/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/crataegus-laevigata/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/prunus-spinosa/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/cydonia-oblonga/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/mespilus-germanica/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/ribes-uva-crispa/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/vaccinium-myrtillus/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/vaccinium-vitis-idaea/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/hippophae-rhamnoides/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/campanula-rotundifolia/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/campanula-poscharskyana/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/trisetum-flavescens/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/carex-sylvatica/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/asplenium-scolopendrium/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/hippuris-vulgaris/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/mentha-aquatica/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/veronica-beccabunga/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/butomus-umbellatus/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/clematis-vitalba/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/clematis-alpina/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/lonicera-caprifolium/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/rosa-gallica/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/rosa-rubiginosa/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/spathiphyllum-wallisii/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/mammillaria-elongata/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/citrus-limon/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/brugmansia-suaveolens/",
+      "lastObservedStatus": 404,
+      "lastObservedError": "page_not_found",
+      "checkedAt": "2026-10-23"
+    }
+  ],
+  "transientRateLimits": "Initial rate-limited batches were retried; final unresolved URLs are listed individually.",
+  "commonsSourcePages": 108,
+  "commonsRetriedTimeouts": 1,
+  "replacementPages": 4,
+  "taxonomicQueries": 401,
+  "officialContextPages": 25,
+  "acquisitionMethod": "Connected TinyFish public-page search and extraction; no direct image-server downloads; no authenticated private data."
+}

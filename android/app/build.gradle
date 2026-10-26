@@ -4,6 +4,12 @@ plugins {
 
 dependencies {
     implementation 'com.google.android.gms:play-services-auth:22.0.0'
+    implementation 'com.google.crypto.tink:tink-android:1.24.0'
+    constraints {
+        implementation('androidx.annotation:annotation:1.8.2') {
+            because 'Align the legacy facade with the annotation-jvm version required by Tink; avoid duplicate classes.'
+        }
+    }
 }
 
 // Mandatory for ALL future builds. Prevent accidental productive seed/config packaging.
@@ -60,8 +66,8 @@ android {
         buildConfigField 'boolean', 'SOURCE_DIRTY', releaseFingerprint.source_dirty.toString()
         minSdk 26
         targetSdk 37
-        versionCode 91
-        versionName '1.54.2'
+        versionCode 105
+        versionName '1.55.0'
         testInstrumentationRunner 'at.hausgarten.service.PixelMcpInstrumentation'
     }
 
@@ -98,7 +104,7 @@ def previewAssets = tasks.register('generatePreviewUiAssets', Exec) {
     workingDir rootProject.projectDir.parentFile
     commandLine 'python3', 'tools/build_ui_preview_assets.py', '--output',
         layout.buildDirectory.dir('generated/preview-assets').get().asFile.absolutePath
-    inputs.files(fileTree('src/main/assets') { include 'mobile.html', '*.js' }, fileTree('src/preview/assets'))
+    inputs.files(fileTree('src/main/assets') { include 'mobile.html', '*.js', '*.css' }, fileTree('src/preview/assets'))
     inputs.file rootProject.file('../tools/build_ui_preview_assets.py')
     outputs.dir layout.buildDirectory.dir('generated/preview-assets')
 }

@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-23",
+  "authority": "Royal Botanic Gardens, Kew · Plants of the World Online",
+  "records": [
+    {
+      "plantId": "pennisetum-alopecuroides",
+      "legacyName": "Pennisetum alopecuroides",
+      "acceptedName": "Cenchrus alopecuroides",
+      "acceptedAuthorship": "(L.) Thunb.",
+      "status": "SYNONYM_RELATION_CONFIRMED",
+      "sourceUrls": [
+        "https://powo.science.kew.org/taxon/urn%3Alsid%3Aipni.org%3Anames%3A414920-1",
+        "https://powo.science.kew.org/taxon/urn%3Alsid%3Aipni.org%3Anames%3A395190-1"
+      ],
+      "facts": [
+        "Pennisetum alopecuroides (L.) Spreng. is treated as a synonym of Cenchrus alopecuroides (L.) Thunb.",
+        "Existing catalog ID is retained; the higher-rank GBIF match is retained as historical evidence, not species confirmation."
+      ]
+    },
+    {
+      "plantId": "coreopsis-verticillata",
+      "legacyName": "Coreopsis verticillata",
+      "sourceName": "Anacis verticillata",
+      "acceptedName": "Anacis verticillata",
+      "acceptedAuthorship": "(L.) Z.H.Feng, Z.J.Huang & Su Liu",
+      "status": "SYNONYM_RELATION_CONFIRMED",
+      "sourceUrls": [
+        "https://powo.science.kew.org/taxon/urn%3Alsid%3Aipni.org%3Anames%3A77340008-1",
+        "https://powo.science.kew.org/taxon/65944-2"
+      ],
+      "facts": [
+        "Kew accepts Anacis verticillata and lists Coreopsis verticillata L. as a homotypic synonym.",
+        "Different source names refer to the same taxon under the cited taxonomic treatment."
+      ]
+    }
+  ]
+}

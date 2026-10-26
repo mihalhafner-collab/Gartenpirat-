@@ -129,15 +129,6 @@
     for(const id of ['start','end'])get(id).disabled=false;
     const form=get('entry'),times=form.querySelector('[data-section="time"]');if(times)times.hidden=false;form.querySelector('button[type="submit"]').textContent='Speichern';if(get('new-work-cancel'))get('new-work-cancel').hidden=false;
   }
-  function decorate(){
-    const panel=get('workday-timer');if(!panel)return;
-    let session;try{session=JSON.parse(AndroidData.getWorkSession());}catch(_){return;}
-    const active=['RUNNING','PAUSED','STOPPED_PENDING_REVIEW'].includes(session.state);
-    if(active&&!panel.querySelector('[data-session-action="discard"]')){
-      const button=document.createElement('button');button.type='button';button.className='timer-discard';button.dataset.sessionAction='discard';button.textContent='Zeiterfassung löschen';panel.append(button);
-      if(panel.querySelector('.timer-location-context'))return;const context=document.createElement('p');context.className='timer-location-context';context.textContent=(session.customer_id?customerName(session.customer_id):'Kunde noch nicht zugeordnet')+(session.location?' · '+session.location:'');panel.prepend(context);
-    }
-  }
   function init(){
     const form=get('entry');
     document.addEventListener('click',event=>{
@@ -159,7 +150,6 @@
     window.onTimerCustomerSaved=function(id){if(!newCustomer)return false;const draft=newCustomer;newCustomer=null;start(id,draft.location);return true;};
     const open=window.openPage;window.openPage=function(...args){const wasNew=currentPage==='customer-edit'&&newCustomer;open(...args);if(wasNew&&currentPage!=='customer-edit')newCustomer=null;};
     const back=window.handleAndroidBack;window.handleAndroidBack=function(){if(dialog?.open){closeDialog();return true;}const wasNew=currentPage==='customer-edit'&&newCustomer,result=back();if(wasNew&&currentPage!=='customer-edit')newCustomer=null;return result;};
-    const panel=get('workday-timer');if(panel)new MutationObserver(decorate).observe(panel,{childList:true});decorate();
     form.addEventListener('reset',clearCompletion);
     form.addEventListener('change',event=>{if(!['customer','entry-location'].includes(event.target.id)||!get('work-session-id'))return;const session=JSON.parse(AndroidData.getWorkSession());if(session.state==='STOPPED_PENDING_REVIEW')showCompletion(session);});
     const submit=event=>{if(event.target!==form||!get('work-session-id'))return;const session=JSON.parse(AndroidData.getWorkSession());if(session.id!==get('work-session-id').value||session.state!=='STOPPED_PENDING_REVIEW'){event.preventDefault();event.stopImmediatePropagation();window.showUndoToast('Bitte die aktuelle Zeiterfassung zuerst stoppen. Es wurde nichts gebucht.');return;}if(session.pause_unverified){event.preventDefault();event.stopImmediatePropagation();window.showUndoToast('Pausenzeiten wegen geänderter Geräteuhr bitte prüfen. Es wurde nichts gebucht.');return;}get('entry-hours').value=Number(session.hours||0).toFixed(2);get('pause').value=Number(session.break_minutes||0);};document.addEventListener('submit',submit,true);

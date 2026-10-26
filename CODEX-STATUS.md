@@ -1,7 +1,3431 @@
 # CODEX-STATUS
 
-Stand: 21. Oktober 2026
+Stand: 26. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
+
+## Aktuelle Betriebsdaten-Sicherungsfrage: rein lesender Pixelbefund26.10.2026
+
+Live Pixel-MCP um05:06UTC bestätigt weiterhin1.54.9/98/DB4/MCP9/117,dbe9ed0/sourcefd0979;
+Selbstauskunft, keine unabhängige Prüfung der installierten APK-Bytes. Get_capabilities,
+list_backups und inspect_backup wurden ausschließlich lesend benutzt. Die neueste
+allgemeine Geschäftssicherung stammt vom20.10.2026,04:37:53UTC, mit begrenztem Scope
+business_snapshot_pending_local_photos_and_documents und Restoremodus
+add_missing_without_overwrite. Neuere Archive bis24.10.2026,04:22:24UTC dienen
+abgesonderten Löschvorgängen; sie ersetzen keine aktuelle Vollsicherung. Gemeldeter
+letzter Drive-Abgleich22.10.2026,15:24:09UTC und cloud_confirmed=false sind ebenfalls
+kein vollständiger externer Wiederherstellungsnachweis. Eine zusätzliche
+aktionsbezogene Syncabfrage ohne zugeordneten historischen Request liefert
+statusunknown; das ist ausdrücklich kein weiterer globaler Upload-Fehlernachweis.
+
+**Vollständige aktuelle externe Betriebsdatensicherung NICHT NACHGEWIESEN.**
+Quell-/APK-Sicherungen des Projekts sind davon getrennt. Keine neue produktive
+Sicherung, Daten-/Kontenänderung, Installation oder Umstellung vorgenommen. Der
+Nutzer wurde ausdrücklich informiert, den bereitgestellten105-Prüfkandidaten vor
+Klärung dieser Vor-Update-Sicherungslücke nicht zu installieren. Unabhängige105-
+Code-/Emulatorprüfung läuft weiter; synthetische Restore-PASS sichern keine echten
+Pixel-Betriebsdaten. Keine Rohdaten/Backupinhalte/IDs/Kundentexte im Checkout übernommen.
+
+## Autorisierte Sicherungsfortsetzung26.10.2026
+
+Nach dem oben datierten rein lesenden Befund beauftragte der Nutzer ausdrücklich
+auch die tatsächliche Sicherung und erlaubte Space als Zwischenablage. Die vorhandene
+native create_backup-Aktion blieb nach Zeitlimit ohne geklärten Commitbeleg; ihre
+ursprüngliche request_id ist privat gesichert. Keine Ersatz-ID, Queuebereinigung,
+produktive Wiederherstellung oder Geschäftsänderung daraus ausgeführt.
+
+Eine neue verschlüsselte Kopie der aktuell per App/MCP zugänglichen Geschäftsdatensätze
+ist inzwischen in einer getrennten privaten Drive-Sicherungsgeneration vollständig
+zurückgelesen, byteweise SHA256-geprüft, entschlüsselt und mit sämtlichen22Archiv-
+mitgliedern gegen das Manifest geprüft. Der hochentropische Recoverycode liegt
+getrennt in der privaten Dateiablage der vorhandenen Projektzentrale; kein Schlüssel
+oder Betriebsinhalt im Checkout, Chattext oder Quell-/APK-Archiv. Sicherungsdaten
+werden ausschließlich außerhalb des Checkout verarbeitet. Dies ist ein begrenzter
+aktueller Datensatzexport, **keine vollständige Datenbank-/Gerätesicherung**.
+Originalmedien werden gesondert gegen die aktuellen Referenzhashes erfasst; fehlende
+Originale und nicht exportierbare interne Zustände bleiben ausdrücklich offen.
+Die Umstellung/Installation wird dadurch nicht freigegeben. Der ältere05:06UTC-
+Befund oben bleibt als zeitlich abgegrenzte Ausgangsbeobachtung erhalten.
+
+## Abgeschlossener Cloud-Funktionsnachweis 1.55.0/105, 26.10.2026
+
+[Originalsignierter Prüfkandidat105](https://drive.google.com/file/d/1-og34FtoQUX4lqZ-qMWvGew8YevuB4Eo/view?usp=drivesdk) ·
+[unveränderliche Originalquelle](https://github.com/mihalhafner-collab/Gartenpirat-/tree/source/v1.55.0-build105) ·
+[extern geprüfte Originalquellen](https://drive.google.com/drive/folders/15nuOA815cOg54nhlCZq9U3ROCQiy7lea).
+
+App und Originalrunner wurden gemeinsam aus Commit
+`4087d8b5b83294d75dba6d9fc87e2d6472d3be28` gebaut; Version1.55.0/code105/DB6,
+applicationId`at.hausgarten.service`, Speichervertrag3. Quellfingerprint:
+`06f99ce068bfcb4e36640df70290b7edddcc8532fa27119ce2332b352a835469`.
+App-SHA256:`abbb207e329284d96e7c943eb0fa504a82cce8322181cf82f17cf5843a698bb9`,
+82898941Bytes. Runner-SHA256:
+`be770540ddcd898b28d54ad03dd7a91aca2398920131393ec930dfad93317204`.
+Originalzertifikat-SHA256:
+`a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`;
+ein Signer, v2/v3 geprüft. Unveränderlicher Tag`source/v1.55.0-build105`,
+Originalquellcommit und tatsächlicher Remote-Peel stimmen überein.
+Dokumentations-/Integrationsstände nach diesem Commit verändern diese APK nicht.
+
+**Die funktionale Cloud-Softwareprüfung ist abgeschlossen. Geräte- und
+Produktivabnahme bleiben offen.** Auf genau105 bestanden78JVM-Suiten,
+65Browser-Suiten,430Pythonprüfungen/0SKIP mit tatsächlicher105APK/P0nullSeed,
+55MCP-Stdiofälle und die vollständige gemeinsame native Regression mit
+**443PASS/0FAIL**.37historische Tests mit echter QA-Schlüsselerzeugung wurden
+vorab ausdrücklich ausgeschlossen und unverändert erhalten. P1 bleibt bei166Tools/
+209UI-Aktionen, VertragSHA
+`fd7784c84086ce158f7a19754c62c46f3d06a2d5f91c2a9c6d561d8233ef68f0`.
+Originalbuild2m24s und Lint0Fehler/112Warnungen; tatsächliche signierte DEX-Provenienz, Source-/Workspace-/APK-
+Privacy sowie erneut vom Cloud-Emulator zurückgelesene APK-Bytes/Originalsignatur
+PASS. Synthetisches In-place104→105-Update erhält Bestand und offene Sitzung;
+keine Deinstallation oder Appdatenlöschung.
+
+Fünf tatsächliche OS-Prozessabbruch-/Neustartpaare bestehen auf105: vor erstem
+Fotochunk, nach Teilchunk, nach Mediencommit, vollständige mehrere Formularentwürfe
+sowie verlorene Anfrage-/Auftrags-/Angebotscommitantworten mit altem Browsercache.
+Alle zehn vorbereiteten/verifizierten Phasen bestanden mit neuem Prozess und den
+ursprünglichen IDs/Aktionen/Dateien; anschließend APK-Identität erneut PASS. Das
+ist ein eigener105-Nachweis und keine Übertragung der104-Ergebnisse.
+Technische Logbindung: Gesamtlauf-SHA256`eb0778d3107328741ce0af7cafd167b13812512b665ccb9a141d88d54321e748`;
+Prozesspaar-SHA256`32fcd0ef617892992d51cf0da785a1938e46be493b8c6aa4cf22a88a5b363a3f`.
+
+Alle drei UI-Piloten auch unter tatsächlichem OS-Flugmodus5PASS:
+Anfrage→Besichtigung→Angebot→Annahme→Auftrag→Besuch→Timer→148EUR-PDF→60+88EUR;
+Pflegeplan/Tour/Material/Foto/produktiver Vollbackupcollector/verschlüsselte
+Restorevorschau; direkte mündliche Annahme mit getrenntem Rechnungsempfänger und
+exaktem Retry. Die Originalnetzwerte wurden anschließend exakt wiederhergestellt.
+Finanz-RPC9PASS, Autoritätsprüfungen9PASS, Fresh-Isolated und allgemeine tatsächliche
+WebView-/Navigationsprüfung PASS. Synthetische Dateieingabe ist kein Kamera-/
+Fotoauswahl-/Berechtigungsnachweis auf einem physischen Pixel.
+
+Der105-Pflanzenpfad besteht mit4PASS und separater UI-Wiederholung2PASS:
+314Profile/628tatsächliche Android-Bitmapdekodierungen, Suche/Bilder/Vollbild/Zurück
+und vollständiger nativer Entwurf mit Hash/Kontext/ACK/gezieltem Verwerfen.
+Der echte104-WebView-Bildfehler ist behoben; Netzwerk-/CSP-/Dateigrenzen bleiben.
+Tatsächliche Android-Fontskalierung100/150/200% PASS, Originalsession und Revision
+unverändert,48dp-/Dock-/Viewportkontrollen erhalten; OS-Font/Displaygröße exakt
+wiederhergestellt. Browserseitig neun gefüllte Kernansichten bei320/360/426px und
+200% geprüft:27Beobachtungen PASS. Physisches TalkBack, Systemleisten/Tastatur,
+Einhandbedienung und Lesbarkeit im Freien wurden damit nicht abgenommen.
+
+### Umgesetztes Verhalten und Architektur
+
+Die vorhandene Java-/WebView-/SQLite-App bleibt eine Installation und eine
+operative Datenhaltung. Heute/Objekte/Pflege/Büro und der Mehr-Einstieg erhalten
+Bestandsfunktionen. UI und MCP verwenden dieselben lokalen Fachfälle/Repositories,
+Transaktionen, Vergleichshashes und idempotenten request_ids. Kundenobjekt,
+Einsatzkunde, Auftrag/Besuch und Rechnungsempfänger bleiben getrennt; auftragslose
+Arbeit und persönliches b.b. bleiben unabhängig von Leistungsabrechnung/Zahlungen.
+
+Geschäftssatz, ungespeicherte Bearbeitung und ungeklärte abgeschickte Aktion bleiben
+getrennt. Vor dem ersten Fachschreiben wird der eingefrorene Aktionszustand nativ
+bestätigt; fehlt die Bestätigung, erfolgt kein Schreiben. Mehrere Entwürfe behalten
+vollständige Werte/Zuordnungen. Bekannte Commit-IDs werden vor dem Detailabruf
+übernommen. Verwerfen entfernt genau die eigene ungespeicherte Bearbeitung samt
+aktiven Spiegeln; es löscht keinen bereits gespeicherten Geschäftssatz. CAS-Konflikte,
+verlorene Antworten und Restore-Epochen führen weder zu stiller Überschreibung noch
+zu automatischer Neuanlage oder unbewiesenem Request-Replay.
+
+Medien verwenden prepare/commit/cancel und dauerhafte Original-/Kontextpuffer.
+Teilbestätigte Foto-IDs bleiben beim Retry erhalten. Die Vollsicherung erfasst echte
+Dateiinhalte konsistent; ein defekter optionaler Fotoentwurf bleibt getrennt
+fortsetz-/verwerfbar. Ein erfolgreicher lokaler Commit bleibt bei anschließendem
+Foto-, Sicherungs-, Detailabruf- oder tatsächlich gepostetem Schedulerfehler erfolgreich.
+Defekte Einzeljobs und ausstehende Uploads verhindern keine neue fällige lokale
+Sicherung; Fälligkeit folgt dem letzten vollständig lokal geprüften Datenstand.
+
+Pixel/App führen den Geschäftszustand. Drive dient ausschließlich als optionales
+verschlüsseltes Sicherungsziel mit aufschiebbarer regelmäßiger App-Planung nach
+bewusster Geräteeinrichtung. Öffentliche alte Geschäfts-Sync-/Originalnachlade-/
+Online-Rechnungspfade sind mit Speichervertrag3 in allen Autoritätsmodi stillgelegt,
+bevor Provider-/Konto-I/O erfolgt. Bestehende Daten/Queues/Konten bleiben erhalten;
+keine produktive Umstellung oder Kontotrennung wurde daraus automatisch ausgeführt.
+Kalender/MCP bleiben abgegrenzte optionale Adapter. Lokal gespeichert, lokal
+geprüfte Sicherung, Providerübergabe und extern nachgewiesene Sicherung sind
+unterschiedliche Zustände; der Kern benötigt keine verpflichtende laufende Dienstgebühr.
+
+Lokale Rechnungsausgabe bindet Nummer, unveränderliche Aussteller-/Empfänger-/
+Steuer-/Positionssnapshots, Quellenmengen und dauerhaften PDF-Job atomar. PDFstatus
+und Belegstatus bleiben getrennt; Retry behält Nummer/Snapshot. Teilzahlungen und
+Korrekturen bleiben nachvollziehbar. Nach Restore bleibt die Ausgabe bis zum aktuellen
+extern belegten Beleg-/Nummernabgleich gesperrt. Die Wiener Geschäftstagskorrekturen
+für Originalaktions-Instants ändern keine historischen Beträge/Zeitwerte/IDs.
+
+### Abnahmematrix K01–K16 und RS-01–RS-16
+
+Für alle folgenden Fälle gelten derselbe oben genannte App-/Runnercommit,Build105
+und dieselbe Original-APK. Umgebung: isolierter Cloud-Softwareemulator Android11/
+API30 mit tatsächlicher SQLite/WebView sowie Chromium mit echten gebündelten Assets
+und synthetischen Gegenstellen, soweit ausdrücklich beschrieben. Eingaben sind
+isoliert synthetisch; keine produktiven Testobjekte. PASS bezeichnet die geprüfte
+Softwaregrenze. NOT TESTABLE bezeichnet hier die nicht ausgeführte physische Geräte-/
+Produktivabnahme.31Softwarefälle bestehen; RS-14 trennt funktionales PASS vom
+verfehlten tatsächlich gemessenen Cloud-Suchziel.298exakte aktuelle105-Logreferenzen
+und bestehende Testpfade wurden gegen die32Fälle geprüft; keine fehlende Referenz.
+Pfadkürzel: B=`tests/` (Browser), J=`tests/java/at/hausgarten/service/`,
+N=`android/app/src/androidTest/java/at/hausgarten/service/`,
+Q=`tests/` (Python), G=`tools/`. Die benannten vorhandenen Suiten prüfen die
+produktiven Codepfade; native Dateieingaben/Providerfehler bleiben ausdrücklich synthetisch.
+
+| Fall | Eingabe → Erwartung | Tatsächlich | Vorhandene Prüfpfade | Software / Gerätegrenze |
+|---|---|---|---|---|
+| K01 | Unberührte Neuformulare; Zurück/Schließen/Android-Back-Handler → Kein Geschäftssatz/Leerentwurf, anderer Entwurf bleibt | Browser-Navigation und native Null-/Strengvalidierung; physischer Android-Back separat offen. | `B:revier-solo-ui.test.cjs`, `B:billing-ui.test.cjs`, `B:saved-drafts-read-first.test.cjs`, `B:work-entry-photo-failure.test.cjs` | PASS / NOT TESTABLE |
+| K02 | Mehrere Entwürfe mit Rechnungsempfänger/Bezug/Zukunftstermin; OS-Prozessende → Alle Felder und ursprünglichen Aktionen bleiben getrennt fortsetzbar | Native SQLite-/Batch-/Großwertprüfung und tatsächliches OS-Editorpaar mit neuem PID. | `B:work-entry-photo-failure.test.cjs`, `B:billing-ui.test.cjs`, `N:RevierWorkflowUiNativeAcceptance.java:processEditors`, `N:OwnerNativeAcceptance.java` | PASS / NOT TESTABLE |
+| K03 | Nur Abrechnung an ändern; abbrechen; später anderes Feld speichern → Ursprünglicher Rechnungsempfänger bleibt | Gezielte Browserregression und native direkte/Subunternehmer-/Override-/Offlinebezüge; keine behauptete physische UI-Prüfung. | `B:billing-ui.test.cjs` | PASS / NOT TESTABLE |
+| K04 | Geänderten Entwurf bewusst verwerfen; späterer Callback/Restore/Neustart → Nur dessen aktive Kopien verschwinden, kein Wiederauftauchen | Browser-Mirror/Tombstone und native CAS/Epoche/optionaler Restore-Entwurf; andere Entwürfe bleiben. | `B:saved-drafts-read-first.test.cjs`, `B:work-entry-photo-failure.test.cjs`, `B:revier-solo-ui.test.cjs`, `N:OwnerNativeAcceptance.java`, `N:BackupBrowserUiNativeAcceptance.java` | PASS / NOT TESTABLE |
+| K05 | Kindkunde im Auftrag; Fehler/Dublette/Abbruch/optionales Profilfoto → Elternentwurf bleibt; ID erst nach Commit; nur Foto wiederholen | Detaillierte verschachtelte Browsersequenz plus native Dubletten-/CAS-/Originalretryprüfungen; keine echte Kamera. | `B:billing-ui.test.cjs`, `B:customer-duplicate-ui.test.cjs`, `B:work-entry-photo-failure.test.cjs` | PASS / NOT TESTABLE |
+| K06 | Anfrage/Auftrag/Angebot; Commitantwort verloren und Cache zurückgesetzt → Originalaktion/ID bleiben; genau ein Datensatz pro Vorgang | Native Commit-/Detailbelege und tatsächliches OS-Businesspaar mit drei IDs/exaktem Retry. | `B:offers-photo-library.test.cjs`, `B:revier-solo-ui.test.cjs`, `B:saved-drafts-read-first.test.cjs`, `N:RevierWorkflowUiNativeAcceptance.java:processBusinessCommitLoss` | PASS / NOT TESTABLE |
+| K07 | Commit erfolgreich; Detailabruf oder geposteter Scheduler scheitert → Commit bleibt; separater dauerhafter Hintergrundretry | Echter geposteter Hauptthreadfehler und Schedulerablehnung nativ; Detailabrufe browserseitig. | `B:local-invoice-ui.test.cjs`, `B:offers-photo-library.test.cjs`, `N:BackupAutomationNativeAcceptance.java` | PASS / NOT TESTABLE |
+| K08 | Editor öffnen; Datensatz zweiten zulässigen Weg ändern → Stale-CAS abgewiesen; eigene Eingaben erhalten | Native Kunden-/Revier-/Batch-CAS und Browser-Ausgangsstände; keine Last-write-wins-Regel. | `B:billing-ui.test.cjs`, `B:saved-drafts-read-first.test.cjs`, `B:local-invoice-ui.test.cjs`, `J:ManualChangeTests.java`, `N:OwnerNativeAcceptance.java` | PASS / NOT TESTABLE |
+| K09 | Mehrere Fotoauswahlen; Abbruch/Teilantwort; OS-Ende vor Chunk/Teilchunk/nach Commit → Originalbytes/Aktion/Zuordnung erhalten; keine Dubletten | Drei tatsächliche OS-Paare und native25Originale; Dateieingabe synthetisch, echte Kamera/Berechtigungen offen. | `B:work-entry-photo-failure.test.cjs`, `N:BackupBrowserUiNativeAcceptance.java`, `N:RevierPhotoNativeAcceptance.java`, `N:RevierWorkflowUiNativeAcceptance.java` | PASS / NOT TESTABLE |
+| K10 | Offline arbeiten; alter Upload offen; neue lokale Sicherung fällig → Neue lokal geprüfte Generation; Upload retry derselben Generation | Native Offline-/Datenalter-/Backoffports und separate tatsächliche Flugmodus-Piloten; kein produktiver Driveupload. | `N:BackupAutomationNativeAcceptance.java`, `N:FullBackupControlNativeAcceptance.java`, `J:DriveBackupUploadTests.java` | PASS / NOT TESTABLE |
+| K11 | Defekter/ausgeschöpfter Job neben gültigem Job → Unabhängige Jobs und neue lokale Sicherung laufen | Native Runner/Scheduler und Host-Budget-/Fälligkeitsprüfungen; realer USB-/Diskfull-Pilot offen. | `N:BackupAutomationNativeAcceptance.java`, `J:BackupStorageBudgetTests.java`, `J:BackupScheduleRulesTests.java` | PASS / NOT TESTABLE |
+| K12 | Vollrestore und separat beschädigter optionaler Fotoentwurf → Geschäftsdaten intakt; nur Entwurf gezielt fortsetzen/verwerfen | Zwei getrennte native Szenarien: >40MiB/25Originale-Restore sowie defekter Checkpoint bei nutzbarem Geschäftskern. | `N:BackupRestoreNativeAcceptance.java`, `N:BackupBrowserUiNativeAcceptance.java` | PASS / NOT TESTABLE |
+| K13 | Direkt mündlich/anhand genauer Angebotsversion annehmen; Besichtigung verschieben/ergänzen → Genau ein Auftrag; richtiger Rechnungsempfänger und Besuchsnachweis | Echter UI-Direktpfad und Angebots-Gesamtpilot; RPC-Verschieben/weitere Besichtigung/Wiederöffnen mit SQLite-Reopen. | `B:revier-offer-flow.test.cjs`, `N:RevierWorkflowUiNativeAcceptance.java`, `N:OfferDecisionNativeAcceptance.java` | PASS / NOT TESTABLE |
+| K14 | Entwurf verwerfen; Geschäftssatz archivieren/löschen; geteilte Datei → Nur beabsichtigte Inhalte weg; Beziehungen und fremde Referenzen bleiben | Native gezieltes Original-/Journal-/Papierkorbverhalten und Browser-Revieraktionen; keine produktive Löschung. | `B:revier-solo-ui.test.cjs`, `B:saved-drafts-read-first.test.cjs`, `J:TrashWorkflowTests.java`, `N:OwnerNativeAcceptance.java` | PASS / NOT TESTABLE |
+| K15 | Migration/Nummernautorität ungeklärt; andere lokale Arbeit → Keine Flag-Freigabe; gesicherte Entscheidung und unabhängiger Kern | Native Cutover-/Restore-/Highwater-/Konfliktbelege; keine produktive Autorität aktiviert. | `N:LocalAuthorityNativeAcceptance.java`, `N:LocalAuthorityEvidenceNativeAcceptance.java`, `J:LocalMigrationInventoryTests.java`, `J:ManualChangeTests.java` | PASS / NOT TESTABLE |
+| K16 | Gemeinsame App-, UI-, MCP-, Offline-, Update- und Restorepfade → Beide vertikalen Piloten und Regression auf gemeinsamem Appstand | 443native0FAIL,3UI-Piloten5Fälle,5OS-Paare und tatsächlicher Flugmodus; Zusatzprüfungen separat ausweisen. | `Q:run_cloud_emulator_tests.py`, `N:RevierWorkflowUiNativeAcceptance.java`, `Q:run_browser_regressions.py`, `G:run-followup-java.py` | PASS / NOT TESTABLE |
+| RS-01 | Alt-Schema4/5; IDs/Beziehungen/Beträge/Zeiten/Dateien/Settings/Sitzung/Queue → Migration zu6 erhält Werte; alter Schreiber abgewiesen | Native Schema4→6/5→6 und konsistenter SQLite-Capture; zusätzlich echtes Cloud-Update104→105. Produktive98-Migration offen. | `N:OwnerNativeAcceptance.java`, `Q:run_cloud_emulator_tests.py`, `J:BackupDatasetExchangeTests.java` | PASS / NOT TESTABLE |
+| RS-02 | Anfrage→Besichtigung→Angebot→Annahme→Auftrag→Besuch→Arbeit→Rechnung→60+88 → Durchgängige UI-/RPC-Ergebnisse;148EUR, Rest88, dann bezahlt | Tatsächlicher gebündelter UI-Pilot, immutable lokale PDF und gemeinsame SQLite-RPCs; native Bestätigungen wirklich bedient. | `N:RevierWorkflowUiNativeAcceptance.java`, `N:LocalWorkflowNativeAcceptance.java`, `N:LocalFinanceNativeAcceptance.java` | PASS / NOT TESTABLE |
+| RS-03 | Angebot ablehnen; andere genaue Version annehmen und Umwandlung wiederholen → Historie bleibt; abgelehnt kein Auftrag; akzeptiert maximal einer | Native immutable PDF-/Versionsbindung, Ablehnung/Revision und Conversion nach SQLite-Reopen. | `B:revier-offer-flow.test.cjs`, `N:OfferDecisionNativeAcceptance.java` | PASS / NOT TESTABLE |
+| RS-04 | OS-Flugmodus; lokaler Ablauf; externe Adapter nicht verfügbar → Voller Kern ohne Drive-Geschäfts-I/O; externe Schritte getrennt | Drei UI-Piloten mit tatsächlichem Flugmodus5PASS; Legacy/Locked Backup-only-Grenzen und Offlinebackupports nativ. | `N:RevierWorkflowUiNativeAcceptance.java`, `N:DriveProviderAcceptance.java`, `N:FullBackupControlNativeAcceptance.java` | PASS / NOT TESTABLE |
+| RS-05 | 18.05.2027 08:00–10:45; Pause09:15–09:30; reboot/Uhrsprung → 10:30=135min,10:45=150min; Prüfung statt geratenem Ende | Fester Referenztag im gemeinsamen nativen Zeitmodell; UI-Pilot separater relativer150min-Fall, keine falsche Datumsidentität. | `N:PixelMcpInstrumentation.java`, `N:LocalSessionContextNativeAcceptance.java`, `J:WorkSessionTimingTests.java` | PASS / NOT TESTABLE |
+| RS-06 | Pflegeserie; einzelner Termin/future Regel;20Stopps und Neustart → Keine Dubletten/Rückänderung; Tourreihenfolge erhalten | Native occurrence/exception/future/Reopen und echter Pflege-UI-Pilot; Tourlaufzeit: aktuelle105-Messung separat. Tatsächliche105-Tourmessung20Stopps=376.463853ms(TCG-Cloud;keinPixelnachweis). | `N:RevierNativeAcceptance.java`, `N:RevierWorkflowUiNativeAcceptance.java` | PASS / NOT TESTABLE |
+| RS-07 | 25verschiedeneOriginale; Timer; Abbruch/Teilcommit/Hashduplikat/Restart → Stabile Sitzungs-/Objektzuordnung; Originale getrennt, keine Dubletten | Native25PNG-/Paged-/Hash-/Timerprüfungen, drei OS-Fotopaare und großer Vollbackuprestore; echte Kamera/Speichermedium offen. | `N:RevierPhotoNativeAcceptance.java`, `N:BackupBrowserUiNativeAcceptance.java`, `N:BackupRestoreNativeAcceptance.java`, `B:offers-photo-library.test.cjs` | PASS / NOT TESTABLE |
+| RS-08 | Material zweimal retry/korrigieren; defektes Gerät → Ein Verbrauch/Gegenbuchung; Warnung ohne Timerblockade | Exakte Dezimal-/Audit-/Sitzungs-/Abrechnungskundenwerte nativ und tatsächlicher Pflege-UI-Pilot. | `N:RevierNativeAcceptance.java`, `N:LocalWorkflowNativeAcceptance.java`, `N:RevierWorkflowUiNativeAcceptance.java` | PASS / NOT TESTABLE |
+| RS-09 | 2.5h×52+2×9 bei fiktiv0%; Ausgabeabsturz;60+88; Retry → 148EUR,88Rest,bezahlt; ein Beleg/Nummer/PDF-/Zahlungsnachweis | Native Finanzpfade und echter vollständiger UI-Pilot; gefrorene Quellen/Empfänger und PDFstatus getrennt. | `N:LocalFinanceNativeAcceptance.java`, `N:RevierWorkflowUiNativeAcceptance.java`, `B:revier-partial-billing-ui.test.cjs`, `B:local-invoice-ui.test.cjs` | PASS / NOT TESTABLE |
+| RS-10 | Backup vor späterem Beleg wiederherstellen; alter Client/Receipt → Ausgabe gesperrt bis aktuelle Originalbelege; alte Schreiber bleiben gesperrt | Native Restore-/Highwater-/Nummernbelege und DB6-Schreiberfence; keine reale Nummernkreisfreigabe. | `N:LocalAuthorityNativeAcceptance.java`, `N:LocalAuthorityEvidenceNativeAcceptance.java`, `N:OwnerNativeAcceptance.java` | PASS / NOT TESTABLE |
+| RS-11 | >40MiB inklusive25Originalen; unabhängiger Recoverycode; Defekt/Abbruch → Voller Restore ohne alten Keystore; aktiver/letzter guter Stand bleibt | Echte isolierte verschlüsselte SQLite-/Medienwiederherstellung; simulierte Providerfehler. Zwei realeUSB/10GB≤60min offen. | `N:BackupRestoreNativeAcceptance.java`, `N:BackupCoreNativeAcceptance.java`, `J:EncryptedBackupArchiveTests.java`, `J:BackupDocumentTransferTests.java` | PASS / NOT TESTABLE |
+| RS-12 | 166MCP-Tools/209UI-Aktionen; Stalehash/gleicheRequestID; Adapterausfall → Explizite versionierte Übergänge; keine doppelte Mutation; lokaler Kern frei | 166echte native RPC-Dispatch/isolierte Cleanupfälle plus Hostvertrag und55Stdiofälle; externer Uploadstatus nicht hochgestuft. | `N:DriveProviderAcceptance.java`, `N:McpDispatchAcceptance.java`, `Q:mcp_stdio_e2e.py`, `G:check_refactoring_contract.py` | PASS / NOT TESTABLE |
+| RS-13 | Neun gefüllte Ansichten;320/360/426px;200%; Fehler/Leer/Offline/Zurück → Lesbare begrenzte Flächen,48px und sichtbarer Fokus; kein Entwurfsverlust | Browsermatrix27gefüllte Beobachtungen; native tatsächliche OS-Font100/150/200%-Prüfung PASS, Originalsession unverändert. Physischer TalkBack/Insets/Tastatur/Einhand offen. | `B:overview-accessibility.test.cjs:filledCoreViews`, `B:revier-solo-ui.test.cjs`, `B:saved-drafts-read-first.test.cjs`, `B:full-backup-drafts.test.cjs`, `N:OverviewAccessibilityProbe.java` | PASS / NOT TESTABLE |
+| RS-14 | 300Kunden/450Objekte;3Warmups/25Suchen;20Stopps; Export → Vollständige Ergebnisse/IDs/Originale; p95≤300ms/Tour≤1s als Messziele | Funktionale Suche bis letztem Datensatz/Export PASS; tatsächliche105-TCG-Cloudmessung300Kunden/450Objekte,3Warmups/25Samples: Such-p95=772.582006ms,300ms-Ziel FAIL;20Stopps=376.463853ms,1000ms-Ziel PASS. Pixelmessung NOT TESTABLE. | `N:RevierNativeAcceptance.java`, `N:BackupRestoreNativeAcceptance.java`, `J:RevierDomainTests.java` | FAIL / NOT TESTABLE |
+| RS-15 | Leerbootstrap; gesicherter Source; originalsignierte tatsächlicheAPK → Paket/Version/SHA/Fingerprint/Originalzertifikat und Privacy stimmen | Original App105/DEX/Emulatorpull/Privacy/61Remote-Quellreadbacks belegt; Pixelinstallationsnachweis offen. | `Q:apk_privacy_guard.py`, `G:source_preservation.py`, `G:sign_original_apk.py`, `Q:run_cloud_emulator_tests.py` | PASS / NOT TESTABLE |
+| RS-16 | Lexikon/Neophyten; Fotos; getrennter Rechnungsempfänger; auftragslos; b.b. → Bestandsschutz; unabhängige Markierungen; Konflikte sichtbar | Native auftragslos/billing/personal/Vollrestore PASS; Pflanzen314/628 samt echtem WebView-Bild-/Vollbild-/Entwurfspfad4+2PASS. | `B:personal-payment.test.cjs`, `B:plant-library-integration.test.cjs`, `N:PlantLibraryAcceptance.java`, `N:OwnerNativeAcceptance.java` | PASS / NOT TESTABLE |
+
+Suchleistung105:300Kunden/450Objekte,3Warmups/25Messungen, tatsächlicher Native-PID6035
+im TCG-Cloud-Softwareemulator. Such-p95=772.582006ms verfehlt300ms (**FAIL**);
+20Tourstopps376.463853ms erfüllt1000ms (**PASS**). Vollständige Suche/Export bestehen
+funktional. Der Cloud-Messwert ist kein Pixel-Leistungsnachweis; dortiges Ziel
+bleibt ungemessen. Funktionale Abnahme bedeutet keine pauschale Erfüllung dieses
+Leistungsziels und keine vollständige produktive Gesamtfreigabe.
+
+
+### Quellen-, Auslieferungs- und Dokumentationssicherung
+
+Originalquellen61/61 tatsächliche SHA256-Readbacks, frische eindeutige Privatablage;
+aus fünf echten Remote-Teilen rekonstruierte OriginalZIP162041200Bytes,
+SHA256`4a47818b2293b9226c6aba07d81ec0a56700a676c869bd25c077ab611eda103e`,P0nullSeed.
+Drei APK-Remote-Teile wurden vollständig SHA-geprüft und zum signierten Original
+mit oben genanntem SHA/Zertifikat/Paket/Version/P0 rekonstruiert. Für das separate
+große Raw-APK-Objekt liegt ausschließlich ein vollständiger Connector-Streamgrößenbeleg
+vor, **kein Raw-Remote-SHA-Nachweis**. Frisch sieben private Dateien, keine Dubletten;
+sechs SHA-Bytebelege und ein Rawgrößenbeleg.
+[Provenienzdatei](https://drive.google.com/file/d/1ky3lcSzFw5_Q5OtA72Y-V-pgPnXKjcqu/view).
+Bisherige Schutzmengen bleiben erhalten;105APK/Teile/Originalquellen zusätzlich
+schützen. Keine Bereinigung, öffentliche Freigabe oder produktive Drive-Dateiänderung.
+
+Ziel der abschließenden konsolidierten Dokumentations-/Quellgeneration:
+https://drive.google.com/drive/folders/1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5.
+**Noch ausstehend:** finale Dokumentationsänderungen committen/pushen, exakten
+Remote-Commit zurücklesen, Source-Preservation/Privacy prüfen, vollständigen Export
+hochladen und tatsächlich zurücklesen. Diese Zieladresse allein beweist keine
+vollständige neue Generation; die bereits geprüfte105-Originalquelle bleibt getrennt
+erhalten. Der spätere Dokumentationscommit wird nicht als eingebetteter APK-Commit ausgegeben.
+
+### Noch erforderliche Geräte-/Umstellungsschritte
+
+Die im Kopf dokumentierte aktuelle Sicherungslücke des echten Altstands98 bleibt
+bestehen. Eine derzeit vorbereitete/ausgelesene reale Sicherung ist noch kein
+vollständig extern geprüfter Wiederherstellungsnachweis. Keine Rohbestände, privaten
+Backup-IDs oder Inhalte daraus im Quell-/QA-Nachweis übernehmen. Synthetische
+Restore-PASS und Projektquellarchive sichern die echten Pixel-Betriebsdaten nicht.
+
+1. Vor Installation vollständigen aktuellen Altbestand98 einschließlich Medien,
+   PDFs, offener Sitzung, Aktionen, Einstellungen und Nummernstand extern sichern
+   und vollständig zurücklesen/prüfen. Die begrenzte20.10.-Geschäftssicherung und
+   spätere Löscharchive reichen als Ersatz nicht aus. Ohne diesen Nachweis und
+   konkrete Geräteentscheidung keine Installation oder produktive Migration.
+2. Bestehende Belege, Reservierungen, Stornos, offene Ausgabeaktionen und letzten
+   Nummernstand anhand aktueller Originalnachweise abgleichen; genau einen aktiven
+   Schreiber und eine zuständige Nummernautorität nachweisen. Lokale Ausgabe bis
+   dahin gesperrt lassen; unabhängige geprüfte lokale Arbeiten bleiben möglich.
+3. Erst nach ausdrücklicher Entscheidung geschütztes In-place-Update mit identischer
+   App-ID/Originalsignatur und kontrolliertem Migrationsdialog durchführen. Counts,
+   IDs, Beziehungen, Beträge, Zeiten, Dateihashes und offene Vorgänge vergleichen;
+   keine manuellen Freigabeflags, Deinstallation oder Appdatenlöschung.
+4. Auf dem Pixel Offlinepiloten, echte Kamera/Fotoauswahl/Berechtigungen, TalkBack,
+   Android-Zurück, Tastatur/Systemleisten/200%-Schrift und Leistung prüfen. Vollbackup
+   mit separat rückbestätigtem Recoverycode auf zwei realen USB-Zielen und auf
+   isoliertem kompatiblem Ersatzgerät prüfen;10GB in60Minuten bleibt ein zu messendes
+   Pilotziel. Drive-Backupziel und automatische App-Planung bewusst einrichten.
+5. Rückfall ausschließlich über vollständig geprüften Sicherungsstand und geschützte
+   temporäre Restoreprüfung mit ausdrücklicher Aktivierung. Kein blindes Drive-
+   Zurückspielen, Zusammenmischen oder Downgrade eines DB6-Bestands mit altem Schreiber.
+   Nach Restore Timer prüfen und Rechnungsautorität bis zum aktuellen externen
+   Originalbelegabgleich sperren; Kontotokens nicht blind reaktivieren.
+
+Aktuelle österreichische Rechts-/Steuer-/Aufbewahrungs-/E-Rechnungsprüfung,
+Open-Meteo-Lizenz für kommerzielle Nutzung und Android-Entwicklerverifizierung
+bleiben inhaltlich offen: tatsächlicher Primärquellenzugriff26.10.2026 via Cloudproxy
+CONNECT403. Keine pauschale Rechtskonformität, kommerziell kostenfreie Wetterlizenz,
+neue Registrierung, zusätzlicher Kontozugriff oder kostenpflichtiger Dienst aktiviert.
+Keine produktive Installation, Datenmigration, Rechnung, Zahlung oder Autoritätsfreigabe.
+
+## Historischer105-Vorbereitungsstand vor Build und geprüfter Teilabnahme
+
+
+104 bleibt trotz443nativen Kern-PASS,5UI-Pilotfällen,5OS-Prozesspaaren,Flugmodus,
+78JVM-/56+9Browser-Suiten/430Python/55MCP-PASS NICHT GESAMTFREIGEGEBEN.
+Zusatzabnahme mit originalem QA-Runner ausf77d525 (SHA87cb4fa9dc59e55428558635cb0788b0905c958af1e15094b66a15996dc4d434)
+findet wiederholt0dekodierte Pflanzenbilder in der echten WebView. Alle314Profile
+und628native Bitmapdekodierungen bestehen. Der erste Versuch war zusätzlich von
+SystemUI-ANR verdeckt; der identische zweite Versuch scheitert auch nach dessen
+visuell geprüftem Warten, mit normalem Launcher-Fokus. Deshalb kein104-Tag/APKupload.
+App104/Quellen/erste und zweite Fehlbelege unverändert erhalten.
+
+105 korrigiert die WebView-Bildladesperre: Bilddekodierung für gebündelte/private
+Quellen zulassen; setBlockNetworkLoads(true), CSP ohne HTTP/HTTPS-Bildquellen,
+allgemeine/cross-origin-Dateisperren und private Providerbegrenzung bleiben erhalten.
+Die vorhandene Hardening-Suite prüft zusätzlich tatsächliche lokale Bilddekodierung
+und die unveränderte Netzwerksperre; bestehende externe CSP-Negativfälle bleiben.
+Native Pflanzen-/Fotoprüfung105 muss den Nutzen erst tatsächlich nachweisen.
+
+Die Fontnachprüfung104 erreicht regulär durch Scrollen die unverändert geprüften
+Termin-/Planungsgrenzen und48dp. Danach fehlt der alte Stop/Start-Selektor, weil die
+nach echtem Neustart korrekt erhaltene Sitzung ausschließlich „Sitzung prüfen“ anbietet.
+Der Helfer wählt jetzt ausschließlich die fachlich passende Timeraktion aus dem
+aktuellen Sitzungszustand. Kein gespeicherter Timer wird zum Testen freigegeben,
+beendet oder verändert; Originalsession/Revision wird zusätzlich verglichen.
+100/150/200%-Android-Ausführung105 bleibt offen. Originalfont/Displaygröße nach
+104-FAIL exakt wiederhergestellt. Keine Assertion-/Zeitgrenzenlockerung.
+
+Der bestehende gemeinsame Browserrunner führt künftig auch die9bereits vorhandenen
+Korrektursuiten aus (65statt56); keine neuen Ersatztests. Nach Review wird ausschließlich
+der tatsächlich geänderte MainActivity-Fingerprint nachgeführt; UI-Aktionen/Bridges/
+MCP-Verträge und ursprüngliche P1-Baseline bleiben unverändert.105-Host-/Originalbuild- /
+native Gesamtprüfung noch OFFEN; kein104-PASS wird automatisch als105-PASS gezählt.
+
+Primärquellenzugriff26.10.2026 erneut tatsächlich via curl/Cloudproxy geprüft:
+Android Developer Verification,Open-Meteo-Bedingungen,USP/BMF-Rechnungen alle
+CONNECT403/kein HTTP-Inhalt. Kein Bypass/neue Berechtigung und keine inhaltliche
+Rechts-/Lizenzfreigabe. Produktiver Pixel weiterhin zuletzt1.54.9/98; vollständige
+externe Vor-Update-Sicherung98, echteUSB-/Pixel-/Nummernabnahme offen. Keine Installation,
+produktive Migration, Kontotrennung, Geschäftslöschung oder Belegausgabe.
+
+## Historischer104-Prüfstand vor verbleibendem WebView-Bildfehler
+
+
+Unveränderter Appquellcommit b6fd5d0fc8face099eca4c616acf5f733f534cf3,
+Fingerprint6450c720c0f7b92bcf5b8990e7be3c9a065975fda0b833a4b00a12ff7aa5b4cd.
+Originalsignierte1.55.0/104/DB6-App:
+SHA3c476b0025ff6ae1e15033d14024117798cf0b840a0d09c83925e3aea412b27b,
+82898941Bytes; Originalzertifikat a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8.
+Originaler gemeinsamer QA-Runner f1c734bd05922ba0b6433957024f30b7eefd5622ed30d2558e2f15d17f64eca9.
+Build/Lint PASS,0Fehler/112Warnungen; tatsächliche DEX-Provenienz und vom Cloud-Emulator
+zurückgelesene installierte APK bytegleich/Signatur PASS. In-place103→104 erhält den
+bestehenden synthetischen Bestand und die offene Sitzung. Keine Pixelinstallation.
+
+Tatsächlicher gemeinsamer nativer Gesamtlauf443PASS/0FAIL. Finanzpfad9PASS;
+UI-Piloten5PASS einschließlich Anfrage→Besichtigung→Angebot→Annahme→Auftrag→Besuch→
+Arbeit→148EUR-PDF→60+88EUR, Pflege/Tour/Timer/Material/Foto/Vollbackupcollector/
+Restorevorschau und direkter mündlicher Annahme mit getrenntem Rechnungsempfänger.
+Alle drei Piloten auch unter tatsächlichem OS-Flugmodus5PASS; Originalnetzwerte
+anschließend exakt wiederhergestellt. Fünf tatsächliche OS-Prozessabbruch-/Neustart-
+Paare PASS, einschließlich vor erstem Fotochunk, Teilübertragung, Mediencommit,
+vollständiger Formulare und verlorener Anfrage-/Auftrags-/Angebotsantworten.
+Fresh-Isolated und allgemeine WebViewprüfung PASS. Host78JVM-/56Browser-Suiten,
+430Pythonprüfungen/0SKIP und55MCP-Stdiofälle PASS bleiben auf diesem Appstand belegt.
+
+Zusatzprüfungen Pflanzen/Schrift zunächst FAIL, nicht aus der Historie entfernt.
+Die Pflanzenprobe wartete nur auf den alten Teilstart und schrieb ausschließlich
+einen abgelösten localStorage-Schlüssel. Sie prüft jetzt vollständige Bereitschaft,
+echten HGFormDrafts/native ACK, ganzen Entwurf/Hash/Kontext und gezieltes Verwerfen.
+Alle314Profile/628Android-Bilddekodierungen und bisherigen Such-/Vollbildprüfungen
+bleiben erhalten. Die Schriftprobe muss nach der vorrangigen laufenden Arbeit regulär
+zum Termin scrollen; ursprüngliche Viewport-/Dock-/48dp-/Überlaufprüfungen bleiben.
+Nur zwei Android-Testhelfer werden geändert; Appquellen und App104 bleiben unverändert.
+Enge Javac-/JS-Syntaxprüfung PASS; erneute tatsächliche Pflanzen-/Fontausführung mit
+separat originalsigniertem QA-Runner noch OFFEN. Keine Zusatzprüfung als PASS vorwegnehmen.
+
+104-Leistung auf Cloud-Softwareemulator:300Kunden/450Objekte,3Warmups/25Samples;
+Such-p95=770.244266ms verfehlt300ms,20Tourstopps363.589341ms erfüllt1000ms.
+Pixel-Leistung offen. Vollständige104-Originalquellen extern gesichert:
+https://drive.google.com/drive/folders/13y1ZAxotU6psQ2p7d19sDjqHk3Y1m9iW,
+61vollständigeSHA256-Bytebelege; aus Remote-Teilen rekonstruiertes OriginalZIP
+162035003Bytes/SHAde0120251ad126afedac6485ebeb68ff34874f136fc130192d79fc06bf1bce83.
+Keine104-APK-Auslieferung/Versionsmarke bisher. Produktive Umstellung, vollständige
+externe Vor-Update-Sicherung98, zwei realeUSB-Ziele, TalkBack/Kamera/Biometrie,
+10GB-Restore und aktuelle gesperrte Primärquellen bleiben ausdrücklich offen.
+
+## Historischer Vorbereitungsstand104 vor Originalbuild
+
+
+Der vollständige original signierte103-Gesamtlauf auf
+71fff9c9dc4b03a5293f120c1471c9491cc4c010 endete mit441PASS/2FAIL. Alle sieben zu den
+ursprünglichen102-Fehlern gehörenden Prüfungen bestehen jetzt.103 bleibt trotzdem NICHT FREIGEGEBEN;
+kein103-Tag/APKupload. App-SHA4cd5ff31d84ec32e15e4b68fa932215923ca59f48350e80ad5176fc80c703f2d,
+Runner2c2d24bbda3fe0a3c65b524387f2871c1257b1dabc18785c27f02124f3ee75a5.
+Originalzertifikat a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8.
+Build2m26s, Lint0Fehler/112Warnungen, tatsächliche signierte DEX-Provenienz und
+installierte Emulator-APK bytegleich/Signatur geprüft PASS. Update102→103 bewahrt
+unverändert den vollständigen bisherigen synthetischen Bestand; Schema4→6/5→6-
+Datenerhalt und alte Schreibersperre nativ PASS. Kein produktives Pixelupdate.
+
+Neuer echter Fehler nach Mitternacht: Die Korrektur-/Stornoanlage schnitt das UTC-
+Aktionsdatum ab, während die lokale Ausgabe den Wiener Geschäftstag prüft. Deshalb
+wurde nachts ein Vortagsentwurf erzeugt und die Ausgabe korrekt verweigert.104 leitet
+das Datum aus dem unveränderlichen ursprünglichen Action-Instant inEurope/Vienna
+ab, nie aus dem Zeitpunkt einer Wiederholung. Originalbeleg, Timestamp, Betrag,
+Nummer und Bezug bleiben unverändert.18echte Journal-/Korrektur-/Replaygrenzen für
+Storno/Ersatz, Winter/Sommer/DST/Offsets;222PixelDriveState-Prüfungen PASS. Alter Code
+scheitert reproduzierbar; Ausgabe eines tatsächlich veralteten Entwurfs bleibt gesperrt.
+
+Derselbe belegte UTC-Abschneidefehler in Anfrage-/Suchdatumsfiltern wird mit derselben
+Wiener Geschäftszone korrigiert.328Revier-Prüfungen einschließlich12Grenzfällen,
+From/To-Endpunkten, Ziel-/Notiz-IDs und unveränderten Originalhashes/Store/Writes PASS.
+Unklare historische Datumswerte behalten ihre bisherige Anzeige; keine Umschreibung
+oder erfundene Zeitzone. Ohne Datumsfilter erfolgt die Umrechnung erst für die
+angezeigte Suchseite; kein Cache/Index oder Schemawechsel.
+
+Zweiter103-FAIL: Die native WebViewbestätigung blieb verdeckt. In der unveränderten
+isolierten103-Wiederholung zeigte der tatsächliche WindowManager-Fokus
+Application Not Responding:com.android.systemui; ein ausschließlich synthetischer
+Screenshot belegt den SystemUI-ANR-Dialog über der laufenden App. Die Schlafhypothese
+ist widerlegt:Awake/StayOntrue/LastSleep0/ScreenTimeout2147483647. Ausschließlich die
+Testsystemmeldung wird nach expliziter Emulator-/Fensterprüfung geschlossen; kein
+Appdialog wird ersetzt.104 ergänzt technische native Fenster-/Keyguard-/Fokus-/
+Accessibilityzustände und Selektorhashes. Keine Dialog-/Kundentexte, keine gelockerte
+Zeitgrenze/Assertion. Der103-FAIL bleibt historisch FAIL; aktuelle104-UI-Prüfung und
+vollständige gemeinsame Abnahme weiterhin OFFEN.
+
+103-Pflegepilot mit Tour/Timer/Material/lokalemFoto und echtem produktivem
+Backupcollector/verschlüsselter Restorevorschau PASS; direkte mündliche Annahme mit
+getrenntem Rechnungsempfänger/einemAuftrag/exaktemRetry PASS. Native9Autoritätsprüfungen
+PASS; zudem tatsächlicher >40MiB-Kaltstartrestore mit25Originalen, optional defekter
+Fotoentwurf getrennt fortsetz-/verwerfbar, Tagesbackup trotz altem Upload/defektemJob,
+echter geposteter Schedulerfehler und alle vier Backup-only-Legacyübergänge PASS.
+Der vollständige148EUR-UI-Pilot103 bleibt wegen der Bestätigung FAIL; seine frühere
+102-Ausführung wird nicht als103-/104-Nachweis verwendet.103-Finanz-RPC148/PDF/60+88 PASS.
+
+Eingefrorener104-Hoststand:78JVM-Suiten,56Browser-Suiten,430Pythonprüfungen/0SKIP und
+55MCP-Stdiofälle PASS;37historische QA-Schlüsselerzeugungstests explizit ausgeschlossen
+und erhalten. P1=166Tools/209Aktionen,
+SHAfd7784c84086ce158f7a19754c62c46f3d06a2d5f91c2a9c6d561d8233ef68f0.
+Exakt gepinnter zusätzlicher InvoiceIssueRules-Deltabeleg; ursprüngliche Baseline und
+alle bisherigen Gates bleiben erhalten. Native Diagnoseänderung eng API37 kompiliert;
+noch kein104-Build/Signatur/Native-PASS. Gemeinsame aktuelle Ausführung folgt.
+
+103-Suche300Kunden/450Objekte/3Warmups/25Samples:p95=885.32715ms verfehlt300ms;
+Tour20Stopps456.833949ms erfüllt1000ms. Reiner Cloud-Softwareemulator, Pixelziel offen.
+103-Originalquellen vollständig mit61SHA256-Bytebelegen und aus echten Remote-Teilen
+rekonstruiertemZIP gesichert:
+https://drive.google.com/drive/folders/15NJotizGYEnyCLBEenbgYQ2gBL3MOrY8,
+162029178Bytes/SHAcdc1552871d54481e1a93fffec1bb3e839d004ef4d627f9c4b90d976854462ad.
+Die103-Quellengeneration bleibt unverändert mit SoftwareabnahmeOPEN.
+
+Aktueller Quellbaum/APK/Quellarchive bestehen P0 mit0Betriebszeilen. Separates nur
+lesendes Historienaudit:12bekannteObjekte/4bereits bekannte sensible Altobjekte;
+keine Inhalte exportiert und keinHistoryRewrite. Kein forensischer Gesamtbefund.
+Aktuelle Primärquellen Android-Verifizierung/OpenMeteo/USP/BMF am25.10.23:34UTC über
+Cloud-Proxy403gesperrt: inhaltliche Rechts-/Lizenz-/Registrierungsprüfung offen,
+keine kommerzielleGratiswetter-/Rechtskonformitätsbehauptung oder neue Kosten.
+Produktiver Pixel zuletzt lesend1.54.9/98/DB4,dbe9ed0; vollständige extern geprüfte
+Vor-Update-Sicherung98 weiterhin offen. Kleine Geschäftssicherung ist kein Ersatz.
+Keine Installation/Migration/Drivegeschäftsänderung/Löschung/Rechnung/Freigabe.
+
+## Historische Abschlusskorrektur 1.55.0/103 – gemeinsame Abnahme läuft
+
+Der vollständige originale102-Lauf auf5e3b6d7a3df5029fe34d53caad9cecaa74e818d6
+endete mit436PASS/7FAIL. APK-SHA1a07554d02cfd06850c5bf42e4478855863745124ab2f11e30cef57028be75fb,
+Originalzertifikat a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8.
+Kein102-Release. Der tatsächliche vollständige UI-Ablauf Anfrage/Besichtigung/
+Angebot/Annahme/Auftrag/Besuch/Arbeit/148EUR-PDF/60+88EUR bestand. Die sieben Fehler
+bleiben dokumentiert: Pflegepilot verwendete einen alten unvollständigen manuellen
+Browsercheckpoint; Direktannahme verglich zwei gleichwertige ISO-Zeitdarstellungen
+als Text; vier Legacy-Providerprüfungen erwarteten den abgelösten öffentlichen
+Syncvertrag; die neue Autoritätsprobe setzte eine reguläre Änderung hinter einen
+noch ungeklärten Vorgänger und erzeugte deshalb keinen tatsächlich veralteten CAS.
+
+Die folgende echte Produktkorrektur ist zusätzlich reproduziert: Auch NACH einer
+gültigen geschützten Entscheidung blockierte der im selben Replay fehlgeschlagene
+Vorgänger weiterhin neue abhängige Änderungen.103 korrigiert ausschließlich diese
+frühe Vorgängerprüfung, entsprechend der vorhandenen späteren Prüfung. Original,
+Hash, CAS, History und Entscheidungsbeleg bleiben Voraussetzung; bloße Freigabeflags,
+fehlende Originale und ungeklärte Vorgänger werden nicht übersprungen. Die bestehende
+JVM- und native Prüfung wird um echte Folgeänderungen und negative Belegfälle ergänzt.
+P1 erhält einen separat gepinnten exakten Delta-Nachweis; keine Baseline wird ersetzt.
+
+Die Pflegeprobe verwendet jetzt den unveränderten produktiven Backup-Collector,
+reale native Medien- und Entwurfs-Acknowledgements, denselben Sanitizer und tatsächliche
+SQLite-Prüfung einschließlich Hash-/Replaynachweis. Die Direktannahme prüft denselben
+Instant und alle bisherigen Beziehungen/Belege einzeln. Historische Syncbelege bleiben
+separat nachgewiesen; öffentliche stillgelegte Aufrufe müssen ohne Provider-I/O und
+ohne Queue-/Datenmutation bleiben. Fehlende lokale Originale erfordern gezielte
+Wiederherstellung und werden nicht aus einem alten Geschäfts-Drive nachgeladen.
+
+103 bleibt1.55.0/DB6 mit Speichervertrag3: sämtliche Fachfunktionen und maßgebliche
+Speicherung lokal auf Pixel/App; Drive ausschließlich verschlüsselte Vollsicherung.
+Gemeinsamer eingefrorener103-Hoststand:78JVM-Suiten,56Browser-Suiten,9zusätzliche
+Formular-/Rechnungs-/Vollbackup-UI-Suiten,430Pythonprüfungen/0SKIP und55MCP-Stdiofälle
+PASS.37historische QA-Schlüsselerzeugungstests ausdrücklich ausgeschlossen und
+unverändert erhalten. Source2338/Workspace6107 Privacy PASS/0Betriebszeilen. P1
+166Tools/209Aktionen SHA6f1723ea8be6c25a829c3c628c4a1c58db5864710f301c71b7865b96b406d419.
+17zusätzliche bestehende Emulatorguard-/P1-Prüfungen mit korrektem PYTHONPATH PASS;
+der erste direkte unittest-Aufruf ohne tests-Modulpfad war ein Aufruffehler.
+Native-/Prozess-/Offline-/Originalsignaturprüfung103 noch OFFEN.
+Kein älterer PASS gilt automatisch für103. Ein enger nativer Autoritätsmodus führt
+dieselben vorhandenen Prüfungen isoliert aus; der vollständige gemeinsame Lauf bleibt
+Pflicht. Keine produktive Installation, Migration, Driveänderung oder Nummernfreigabe.
+
+Tatsächliche102-Leistung:300synthetische Kunden/450Objekte,3Warmups/25Messungen,
+Suche p95=786.415067ms verfehlt das300ms-Ziel;20Tourstopps399.586607ms erfüllt1000ms.
+Cloud-Softwareemulator, kein Pixelnachweis.103 wird erneut gemessen. Die vollständige
+102-Originalquelle ist separat extern mit61SHA256-Bytebelegen gesichert:
+https://drive.google.com/drive/folders/1KPEyl74Vkuxb4Z0Kqbw-NqoIQgeXudAl,
+ZIP e08846f742b56d7b87dedd944d4ff8d43e340f4992ed2552b3fcb18fb9b47ba2.
+
+Pixel zuletzt lesend weiterhin1.54.9/98/DB4,dbe9ed0. Vollständige extern geprüfte
+Vor-Update-Sicherung aus98 bleibt OFFEN: dessen kleine40MiB-Medien-/64MiB-JSON-
+Sicherung enthält nicht den gesamten Datenbank-/Entwurfs-/Ereignis-/Einstellungsstand;
+sein konfliktgebundenes privates Archiv ist kein allgemeiner vollständiger Export.
+Der neue Vollbackuppfad ersetzt diesen fehlenden Vor-Update-Nachweis nicht rückwirkend.
+Zwei reale USB-Ziele, Kamera/Biometrie/TalkBack und aktueller Beleg-/Nummernabgleich
+bleiben gesonderte Geräte-/Betriebsschritte. Keine vollständige Produktivabnahme.
+
+## Historischer gemeinsamer Abschlusskandidat 1.55.0/102, 25.10.2026
+
+Version1.55.0 bleibt erhalten; code102/DB6 bündelt eine tatsächlich nachgewiesene
+Migrationskorrektur mit einer verhaltensgleichen Suchoptimierung. Kein produktiver
+Pixelwechsel. Der vorherige Original-Prüfbau101 aus8edb505 war mit184nativen
+PASS/0fachlichenFAIL noch unvollständig, als er zur Korrektur bewusst beendet wurde.
+Dessen erster vollständiger Produktions-UI-Pilot bestand Anfrage/Besichtigung/
+Angebot/Annahme/Auftrag/Besuch/Timer/148EUR-PDF/60+88EUR-Zahlungen. Kein vollständiger
+101-PASS und kein101-Release/Tag/APKupload werden daraus abgeleitet. Upgrade100→101,
+Signatur, tatsächlicher APK-DEX-Quellbezug und P0 waren PASS; vollständige externe
+Quellenkopie8edb505 mit61SHA256-Bytebelegen und ZIP983f3cdf290dd4038994614b8a12fb49665f2893bf2e81c360d6312312fcb6e9
+unter https://drive.google.com/drive/folders/1Fq9h67igrGc4RVsFcaBsQeMTxX0Gft49.
+
+Korrigierter tatsächlicher Fehler: Ein ausdrücklich gültig lokal entschiedener
+Altkonflikt blieb allein wegen roher historischer Zähler migrationssperrend.
+Zusätzlich las der Resolver einen veralteten Raw-CAS trotz schon bestätigter lokaler
+Änderung. Anzeige und Resolver verwenden jetzt denselben effektiven lokalen Stand.
+Die Inventur prüft Originalaktion, ursprünglichen Aktionshash, tatsächliche geordnete
+Journalposition, Owner-CAS sowie finale History/Receipt/Resolvedhash erneut auf
+isolierten Kopien. Nur diese konkrete belegte Entscheidung erfüllt ihre Prüfpflicht.
+Rohbestand, Warteschlange, historische Fehler und Originalaktionen bleiben erhalten.
+Fehlende Originale, Infrastrukturfehler, falsche Hashes/CAS, bloße Flags und unbearbeitete
+Konflikte bleiben blockiert. Beide unterstützten Engines werden gleich geprüft,
+auch nach Wiederherstellung. Rechnungsausgabe bleibt bis zum eigenen aktuellen
+Original-/Nummernbelegabgleich gesperrt.
+
+Enge tatsächliche Gegenproben: alter Inventurcode scheitert an der gültigen
+Entscheidung; alter Resolver scheitert an aktuellem/stalem CAS. Aktuell154Inventur-,
+132OwnerApplication-,16OrderReview-,326OwnerTools-Prüfungen PASS; neue native RPC→
+Entscheidung→Inventur→verschlüsseltes Archiv→geschützte Aktivierungsprobe nur
+kompiliert, Ausführung auf102 noch OFFEN. Keine Freigabeflags und keine reale
+Umstellung für Tests.
+
+Suchoptimierung erzeugt DTO/Zielobjekt/Snippet erst für die ausgelieferte Seite.
+Matching, vollständige Trefferzahl, Sortierung, Seitengrenzen, Archivfilter und
+aktuelle Vergleichshashes bleiben gleich; kein Cache, Schemawechsel oder Nebenbestand.
+228tatsächliche alte/neue Antworten:203759Bytes exakt identisch,
+SHA428f60805e739f972e222b7d0cd113bbbfff7d971be32895ec7931df20fc7444;
+184bestehende/ergänzte Domainprüfungen PASS. Die tatsächliche101-Emulatormessung
+mit300Kunden/450Objekten/3Warmups/25Samples war p95=1258.99344ms gegenüber Ziel300ms;
+20Tourstopps462.010222ms gegenüber Ziel1000ms. Kein Pixel-Leistungsnachweis,
+keine300ms-Behauptung.102 wird neu gemessen; ein grüner Funktionstest allein erfüllt
+das Leistungsziel nicht.
+
+Die zusätzliche breite Regression fand den bisherigen Diagnoseweg bei
+ACTION_ID_CONFLICT: eine unverifizierbare Projektion verhindert nun keine lesende
+Konfliktanzeige. Sie liefert feste Diagnosedaten, ausdrücklich keinen current-/
+Aktionsvergleichshash und keine freigegebene Entscheidung. Direkter Resolveversuch
+bleibt ohne Mutation. Der ursprüngliche OffersAndPhotos-Test bleibt unverändert
+und besteht94Prüfungen.
+
+Gemeinsamer Hoststand nach sämtlichen Korrekturen:78JVM-Suiten/P1 PASS,
+166Tools/209UI-Aktionen, P1SHA010cc437a56f63e43e08d49753fc14ae9da4080a14afac64369b60cb61c1874a;
+56Browser-Suiten PASS;430Pythonprüfungen/0SKIP PASS (37historische QA-Schlüsselerzeugungstests
+explizit ausgeschlossen und erhalten); MCP-Stdio55 PASS. Zusätzliche9UI-Suiten PASS; Source2338/Workspace6288 Privacy PASS/0Betriebszeilen.
+Originalkandidat102 und tatsächliche Artefakt-/Nativeabnahme bleiben bis Abschluss
+separat offen. Alle204Produktiv-/32Native-Testquellen kompiliert;
+der finale Gradlebuild kompiliert sie erneut aus dem gesicherten Quellstand.
+
+Nach Freeze aller Änderungen folgt jetzt die gemeinsame Host-/Quellen-/P0-Prüfung,
+Commit/Push/Readback, Originalbuild/Signatur102 und vollständige native Regression
+mit fünf echten OS-Prozessabbruchpaaren und Offlinepiloten. Diese102-Nachweise sind
+noch OFFEN. Frühere Ergebnisse bleiben datiert; keine automatische Installation.
+
+## Historischer Backup-only-Zwischenstand 1.55.0/101, 25.10.2026
+
+Der aktuelle Produktstand folgt dem ausdrücklichen Auftrag: sämtliche Fachfunktionen
+und maßgebliche Speicherung auf dem Pixel, Drive ausschließlich verschlüsselte
+Vollsicherung. `DriveRolePolicy` setzt Speichervertrag3 für jeden Autoritätszustand.
+Öffentliche Sync-, Job-, Ordner-, Original-Nachlade- und Online-Ausgabeeinstiege
+sind vor Provider-/Konto-/Netzwerkzugriff stillgelegt. Alte Daten, Queues, Konto-
+und Freigabewerte bleiben unverändert. Historische Konflikte bleiben sichtbar;
+keine automatische Konfliktentscheidung oder Autoritätsfreigabe. Der isolierte
+Legacy-Verarbeitungskern mit ausdrücklich übergebenem Dateiadapter bleibt für
+bestehende Regressionen erhalten; kein App-/MCP-Einstieg ruft ihn direkt auf.
+
+Startup/Resume/nach lokalem Commit verwenden ausschließlich die bestehende
+opt-in Vollsicherungsplanung. Automatische Sicherung wird nicht ohne Geräteeinrichtung
+aktiviert. Lokale Sicherungsgeneration, Upload und externer Hashbeleg bleiben
+getrennt. Wiederherstellungskontext muss zur gesicherten Konfiguration passen.
+Die öffentliche Statussicht enthält das unveränderte Legacyinventar separat;
+eine leere aktive Syncqueue ist kein Sicherungsbeleg. Fehlende lokale Originale
+verlangen gezielten Import oder geprüfte Wiederherstellung statt Drive-Nachladen.
+Neue leere Installationen können den ersten Kunden lokal atomar anlegen; nur ein
+wirklich fehlender Snapshot darf den strikt geprüften leeren Bootstrap verwenden.
+Nichtleere beschädigte Zustände fallen niemals auf einen Leerbestand zurück.
+
+Vier Hauptbereiche und Facheditoren bleiben erhalten. Alle regulären Sicherungs-
+einstiege öffnen dieselbe Vollsicherungsoberfläche. Frühere Nummernfreigaben sind
+historische Leseangaben; neue Ausgabe erst nach geschütztem lokalem Beleg-/Nummern-
+abgleich. Private Bildansichten laden keine Drive-/Googleusercontent-URLs.
+
+Vorliegende gemeinsame Hostnachweise auf diesem eingefrorenen Arbeitsstand nach
+1627500: 78 JVM-Suiten einschließlich echtem Repositoryadapter PASS; 166 Tools,
+209 UI-Aktionen und P1-Vertrag PASS. Genau sieben Beschreibungen geändert,
+Schemas/Annotationen unverändert. 12 benannte UI-Übergänge und 16 Read-DTO-Hashes
+explizit geprüft/versioniert; Ausgangsfixture und fachlicher Inputhash unverändert.
+Negative P1-Prüfungen weisen zusätzliche Schema-/Rechte-/Datenänderungen ab.
+Alle 204 produktiven Javaquellen und 32 androidTest-Quellen mit API37/JDK17
+kompiliert PASS. MCP-Stdio55 PASS. Python430 PASS/0SKIP; die37 alten QA-Schlüsselerzeugungstests sind ausdrücklich ausgeschlossen, unverändert erhalten. Source2338/Workspace6010 Privacy PASS, keine Betriebsdaten; tatsächliche101-APK-Privacy noch offen. Breite Browserprüfung fand sieben überholte Sync-Erwartungen und einen echten Preview-Nullzugriff; alle acht gezielten Wiederholungen nach Korrektur PASS, Rechnungsvorschaumirror bytegleich. Erneuter vollständiger56-Suiten-Lauf läuft.
+Android-Gesamtlauf, Originalbuild101, Signatur/Provenienz, tatsächliche Prozess-
+abbrüche und Offlinepiloten auf101 sind noch OFFEN. Keine Ergebnisse älterer
+Kandidaten als vollständige aktuelle Abnahme übernehmen.
+
+Zusätzlicher tatsächlicher Zwischenbeleg: Auf original signiertem8e77d84/100
+bestehen alle fünf OS-Prozessabbruchpaare einschließlich gespeicherter Anfrage,
+Auftrag und Angebot bei verlorener Antwort und absichtlich veraltetem Browsercache.
+Das normale In-place-Update bewahrt Snapshot/IDs/Beziehungen/Timer/Settings/Queues.
+Diese Belege sind datiert und ersetzen nicht die noch folgende101-Wiederholung.
+
+Produktiver Pixel weiterhin zuletzt lesend1.54.9/98,DB4,dbe9ed0. Keine Installation,
+keine produktive Migration/Driveänderung/Löschung/Rechnung. Vollständige extern
+geprüfte Vor-Update-Sicherung aus98 bleibt ausdrücklich ungeklärt: dessen kleine
+MCP-Sicherung ist begrenzt und enthält nicht den gesamten neuen Vollbackupumfang.
+Zwei physische USB-Ziele, Pixel/TalkBack, reale Kontofreigaben und Belegautoritäts-
+umstellung bleiben Geräte-/Betriebsabnahme; keine pauschale Produktivfreigabe.
+
+## Fortsetzung und Abschlussauftrag, 2026-10-25T20:53:40.410919+00:00
+
+Nutzerauftrag „Schließe Umbau laut Konzept Revier solo ab“ hebt die Pause auf.
+Gesicherter Einstieg162750085f4994bbae05afc4c22fc6f9937252e7, sauberer Arbeitsbaum
+und unveränderte Remote-main-/Branchreferenzen geprüft. Ziel1.55.0: sämtliche
+Fachfunktionen und maßgebliche Speicherung lokal auf dem Pixel; Drive ausschließlich
+für die vorhandene verschlüsselte Sicherung. Runtime-, MCP- und UI-Grenzen werden
+zusammengeführt, keine Daten/Queues/Accountfreigaben gelöscht oder Rechnungsautorität
+automatisch aktiviert. Historische Pause-/Zwischenbefunde unten gelten nur datiert.
+Keine produktive Installation oder Migration aus diesem Abschlussauftrag ableiten.
+
+## Historische Nutzerpause, 2026-10-25T20:45:56.984906+00:00
+
+**Auf ausdrückliches „Stop“ angehalten.** Alle Arbeitsagenten unterbrochen;
+Cloud-Testhost und ausschließlich die Test-App auf GartenpiratCloud/emulator-5554
+beendet. Unterstützter Activity-Prozessdump bestätigt keine laufende Instrumentierung.
+Keine Pixelinstallation, Kontotrennung, produktive Migration oder Rechnungsfreigabe.
+
+Letzter gesicherter Produkt-/Harnessquellstand:
+`8e77d840523e22b6d010da78aef29b7492c7645a` im bestehenden Revier-Branch,
+Remote exakt zurückgelesen; Source-Preservation bestanden. Produktfingerprint
+`a92c75c4d5a2e8b9d3e4955abb986e9cf7b8496a04eb78c46d82cf5d836e72e5`.
+Gemeinsamer Original-Prüfbau1.55.0/100,DB6: Build/Lint bestanden in2m2s,
+0Fehler112Warnungen; App-SHA
+`e5e4412069eb5d4d32d36e25e7d9b96c11a39832bf6fb3f72662b53a56e8d806`,
+Runner-SHA `aca656045e5b9311f5e13f3bf1bcfc29dc9e1da21b978c7dc97468dad3b5fa72`.
+Originalzertifikat unverändert. Diese APKs sind noch nicht gemeinsam nativ abgenommen
+und wurden nicht auf dem Pixel installiert. Kein Release-Tag100.
+
+Nachweise auf vorherigem100-Prüfbau db9748a mit identischem Produktcode:
+430Python/78JVM/56Browser/9ergänzendeBrowser/55MCP und P0-Privacy bestanden;
+synthetisches Emulatorupdate99→100 bestand. Native Recoverygruppe65PASS/0FAIL
+inklusive SQLite-Entwurfsprotokoll, optional beschädigtem Fotoentwurf, unabhängigem
+Sicherungsjob und erneutem Snapshot nach Entwurfsänderung. Vier OS-Prozesspaare
+bestanden. Fünftes Paar nach belegter Übersetzungserwartung im Harness korrigiert,
+noch nicht erneut ausgeführt. Die anschließend gestartete Coregruppe wurde auf
+Nutzerwunsch unterbrochen: 71 protokollierte PASS, 0 FAIL,
+kein abschließendes RESULT; kein Gesamt-PASS.
+Darunter Schema4/5→6 und nichtleerer verschlüsselter Native-Entwurfs-/Medienrundlauf.
+Der vollständige Abbruchbeleg bleibt außerhalb des Checkouts erhalten.
+
+Neueste fachliche Steuerung vor der Pause: **1.55.0 final als Revier Solo;
+Drive-Verbindungen ausschließlich für Backup.** Dafür wurden Aufgaben verteilt,
+aber vor der Unterbrechung keine entsprechenden Produktänderungen geschrieben.
+Der gesicherte Prüfbau enthält noch die kontrollierte Legacy-Übergangslogik und
+ist deshalb keine bereits fertiggestellte Backup-only-Finalversion.
+
+Beim Fortsetzen erforderlich:
+
+1. Remote-main, Branch, Arbeitsbaum und laufende Agenten erneut abgleichen;
+   8e77d84 und die Originalartefakte erhalten, keinen alten Checkout zurückspielen.
+2. Backup-only-Grenze im finalen Runtime-/MCP-/UI-Pfad implementieren: keine
+   gewöhnlichen Drive-Geschäftslese-/Schreibjobs, kein Online-Rechnungszwang;
+   Sicherungsadapter erhalten. Legacy-Daten/Queues/Accounts nicht löschen und
+   keine lokale Rechnungsautorität automatisch aktivieren. Bestehende Altpfade
+   nur explizit versioniert stilllegen; Import-/Migrationsbedarf sichtbar erhalten.
+3. Zuständigkeiten: Core plante DriveRolePolicy/MainActivity/DriveSyncCoordinator/
+   DriveSyncJob/PixelOwnerAccess sowie enge Netzwerkfallbacks inLocalOwnerRepository;
+   Contracts NativeOwnerQueries/PixelLocalStore/Status-/MCP-Verträge; UI vorhandene
+   Drive-Einstiege/Status-/Erfolgstexte und alte Drive-Nummerncheckbox. Keine dieser
+   Änderungen darf ohne aktuellen Quellreview als bereits implementiert gelten.
+4. Danach gemeinsame Regression, Originalbuild/-signatur, fünf OS-Prozesspaare,
+   vollständiger Native-Lauf, Offlinepiloten, Update/Fresh/Pflanzen/Barrierearmut
+   sowie Artefakt-/Provenienzprüfungen auf exakt demselben Kandidaten abschließen.
+   Der alte fehlgeschlagene QA-Scope bleibt erhalten; neue Business-Prozessprobe
+   verwendet Git-gebundene Generation und bewussten UI-Verwerfpfad.
+5. Quellen db9748a sind privat vollständig mit61Dateien per SHA256 zurückgeprüft.
+   8e77d84 ist nur lokal vollständig exportiert (ZIP161990529Bytes,
+   SHA80ae23be28d678ac14714759f88735ecdd8eb4f892b323b69a3a84d5e1ce8910,
+   52Textpakete/5Transportteile); kein neuer Driveordner/Upload vor der Pause.
+   Nach finalen Prüfungen aktuelle Quell-/Releasebelege und Lifecycleeinträge sichern.
+
+**Offene Voraussetzung der tatsächlichen Pixelumstellung:** Quellprüfung des
+installierten98-Commits dbe9ed0b belegt keinen allgemeinen vollständigen extern
+prüfbaren Vor-Update-Export. Einstellungen→Sicherung→Jetzt sichern exportiert die
+begrenzte Geschäftssicherung (40MiB Medien/64MiB JSON), nicht vollständige SQLite/
+owner_state/Timerereignisse/Browserentwürfe/Einstellungen. Der vollständiger
+angelegte Legacykonflikt-Snapshot ist konfliktgebunden, verweigert aktive Timer,
+bleibt privat und hat keine allgemeine externe Ausleitung. allowBackup=false.
+Der alte Windows/run-as-Weg ist kein zulässiger Cloud-/App-Fallback. Vor einer
+produktiven Installation muss ein tatsächlich geeigneter vollständiger98-Export
+extern geprüft werden; dieser Nachweis bleibt OFFEN. Die100-Vollsicherung ersetzt
+keinen fehlenden98-Vor-Update-Nachweis. Keine produktive Aktion daraus ableiten.
+
+## Historischer Gesamtstatus vor den 100-/101-Korrekturen, 25.10.2026
+
+**Auftrag aktiv, gemeinsame Softwareabnahme offen.** Letzter gesicherter und
+zurückgelesener Entwicklungsstand: `07b8fa1309c715d46c17ce8c1f5c1414f60ca7c1`
+auf `codex/revier-solo-20261023`; main weiterhin
+`e499e745832449ce0202d04d9903495248e8b034`. Darauf folgen aktuelle ungesicherte
+Arbeitsänderungen; sie sind weder vollständig geprüft noch originalsigniert.
+Pixel/App bleibt das Ziel für sämtliche Fachfunktionen und maßgebliche Daten,
+Drive ausschließlich das Sicherungsziel nach kontrollierter Umstellung.
+
+| Stand | Tatsächlicher Nachweis | Grenze |
+| --- | --- | --- |
+| Physischer Pixel | Am 25.10.2026 um 17:16:52 UTC erneut ausschließlich lesend: 1.54.9/98, DB4, MCP9/117, `dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c` | Runtime-Selbstbericht; keine unabhängige APK-Integritätsprüfung, kein Update/Autoritätswechsel |
+| Interner Original-Prüfbau 07b8fa1 | 1.55.0/99, DB5; Host-/Buildnachweise unten, nativer Gesamtlauf 423 PASS / 1 FAIL | Keine vollständige Abnahme, keine Auslieferung/Pixelinstallation |
+| Aktueller Arbeitsstand | VersionCode 100 / DB6 mit nativer Entwurfssicherung und Schutz gegen alte Schreiber implementiert | Kein signierter 100-Prüfbau und kein gemeinsamer Ausführungsnachweis dieses geänderten Standes |
+
+Pixel-Fingerprint weiterhin
+`fd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae`,
+`pixel_drive_v1/android_provider`, Rechnungspfad
+`pixel_drive_online_compare_required`. Produktive Daten, Verbindungen und
+bestehende Online-Ausgabesperre bleiben unverändert. Keine produktive Installation,
+Migration, Wiederherstellung, Rechnung, Zahlung oder sonstige Datenmutation.
+
+### Historische Implementierung und damals offener Fehler
+
+Lokaler Revier-Kern mit Objekten/Anfragen/Pflege/Touren/Material/Geräten, gemeinsame
+UI-/MCP-Anwendungsfälle, lokale Rechnungs-/PDF-/Zahlungsjobs sowie verschlüsselte
+Vollsicherung mit lokaler Prüfung und gesondertem automatischem Drive-Upload sind
+im Entwicklungszweig implementiert. 166 Werkzeuge / 209 semantische UI-Aktionen sind der
+zuletzt geprüfte Softwarevertrag. Das ist keine Aktivierung auf dem Pixel und keine
+vollständige Abnahme der aktuellen 100-/DB6-Änderungen.
+
+**Neu reproduzierter fachlicher Fehler:** In einer isolierten tatsächlichen
+JavaScript-VM-Ausführung mit synthetischer Gegenstelle gehen sowohl der vor dem
+Schreiben eingefrorene localStorage-Zustand als auch die Commitantwort verloren.
+Der Wiederanlauf erzeugt dann zwei Aufträge. Dies ist ein reproduzierter
+Softwarefehler, keine Beobachtung auf dem Pixel oder nach echtem OS-Prozessende;
+die vier bestandenen älteren Prozesspaare decken diesen kombinierten Fall nicht ab.
+
+Die laufende Korrektur verbindet das native `BrowserDraftRepository` mit
+`HGDraftStorage`: dauerhafter nativer Prüfpunkt mit Bestätigung vor Fachschreibaufruf,
+CAS, ausdrückliche Verwerfbelege, Kontext-/Installations-/Restore-Epochenbindung und
+Bindung des Entwurfsdigests an die Sicherung. Fehlende Bestätigung muss den
+Fachschreibaufruf verhindern; Browsercache darf eine bestätigte Aktion nicht unter
+neuer ID wiederbeleben. Die Integration ist implementiert; die gemeinsame native Ausführung steht noch aus.
+Ein fünftes echtes OS-Prozesspaar für Anfrage/Auftrag/Angebot mit verlorener
+Commitantwort und zurückgesetztem Browsercache ist geschrieben, **noch nicht ausgeführt**.
+
+Aktueller Quellenprüfstand vor dem gebündelten 100-Build: 204 Javaquellen einschließlich
+generierter BuildConfig und 32 Androidtestdateien gegen API37/JDK17 kompiliert;
+78 JVM-Suiten einschließlich 56 Restoreprojektionsprüfungen und 161 Revier-Domänenprüfungen
+bestanden. Die versionierte P1-Vertragsprüfung besteht mit166Tools/209Aktionen und
+zwei eng freigegebenen nativen Entwurfsoperationen; Originalbaseline unverändert.
+55 synthetische MCP-Szenarien bestanden. Source-/Workspace-Privacy bestanden;
+das neue100-Artefakt existiert zu diesem Zeitpunkt noch nicht.
+
+Foto-, Garten- und Firmendaten verwenden nun den bestehenden gemeinsamen
+Entwurfsdienst. Ungeklärte Aktionen behalten ihre Argumente; restaurierte Aktionen
+prüfen vorhandene Belege ausschließlich lesend. Firmenänderungen lassen sich nach
+Versionskonflikt bewusst vergleichen, später fortsetzen und gezielt verwerfen.
+Gezielte Browserprüfungen einschließlich28Angebots-/Foto-/Firmendatenfällen,
+23Zahlungsfällen und10nativen Portgrenzen bestanden; keine SQLite-/OS-Behauptung.
+Der Android-Checkpoint erhält jetzt den streng geprüften editor_state und unveränderte
+Formularspiegelbytes. Aufnahme und Staging gleichen diese mit der tatsächlich
+gesicherten SQLite ab. Restore-Auswahlprojektion3 erhält die Belege der Versionen1/2.
+Für K13 werden direkte mündliche Annahme und Besichtigung verschieben/ergänzen/
+wiederöffnen zusätzlich über reale UI-/SQLite-Pfade geprüft; Ausführung noch offen.
+
+### Original-Prüfbau 100 aus db9748a, 25.10.2026
+
+Quelle `db9748a9d4a6cab14d588c94028b0be535841e92`, Produktfingerprint
+`a92c75c4d5a2e8b9d3e4955abb986e9cf7b8496a04eb78c46d82cf5d836e72e5`.
+Vorheriger eigener Prüfpunkt5467ca1 ist gesichert; main e499e74 wurde mit identischem
+Dateibaum integriert. Exakter Remote-Commit und Source-Preservation bestanden.
+Build/Lint bestanden in2m19s,0Fehler112Warnungen. Originalsignatur unverändert.
+App1.55.0/100 SHA `8aca59a06f9cf8f595068a7a4fe0d52874f0c099b3975ddade518749f0512d3e`;
+Testpaket tatsächliche Version2/1 SHA
+`956d7709f3d6ce70d69b47f4073276e16956a59c572ce22fdde45ebcdd02f806`.
+430Pythonprüfungen bestanden,0SKIP;37historische Schlüsselerzeugungstests bewusst
+ausgeschlossen. Source2337/Workspace6155/Artefaktprivacy bestanden,0Betriebszeilen.
+78JVM-,56Browser-,9ergänzendeBrowser- und55MCP-Suiten bestanden am identischen
+Produktquellinhalt. Synthetisches Emulatorupdate99/DB5→100/DB6 erhält IDs, Pending,
+Einstellungen und aktive Sitzung; kein physischer98→100-Updatebeleg.
+
+Vier echte OS-Prozesspaare auf diesen APKs bestanden. Das fünfte Paar brach am
+Androiddialog ab: Der Test erwartete den Rohfehlertext, business-feedback.js zeigt
+jedoch bewusst dessen übersetzte Fassung. Rein lesende Forensik ausschließlich im
+validierten QA-Scope belegt genau einen Auftragsjournal-Commit, einen Editorbeleg
+und dieselbe ursprüngliche Pending-Aktion samt Kunde/Rechnungsempfänger/Feldern.
+Kein belegter Produktfehler in diesem Dialogfall. Der Harness prüft nun den exakten
+angezeigten Text sowie einen neu hinzugekommenen Originaldiagnoseeintrag; alle
+Geschäfts-/CAS-/Wiederholungsprüfungen bleiben erhalten. Neue QA-Generation bindet
+Git-SHA und Produktfingerprint; der alte Fehlerbestand bleibt erhalten. Der
+unabhängige synthetische Entwurf wird erst nach seinem Erhaltnachweis über den
+wirklichen bestätigten UI-Verwerfweg bereinigt. Keine globale Speicherleerung.
+Diese reine Harnesskorrektur verändert keinen Produktcode; ein neuer gemeinsamer
+Prüfbau und die vollständige native Abnahme stehen aus. Native Recoverygruppe auf
+db9748a läuft separat; kein zusammenfassender PASS behauptet.
+
+Quellenkopie db9748a vollständig in
+https://drive.google.com/drive/folders/11PPpysSRqK0xuKdl6ymK80LpUvRMH2A6 :
+52Textpakete+5Transportteile+4Indexdateien einzeln SHA256-zurückgelesen.
+Aus Rückleseteilen dekodiertes OriginalZIP161988067Bytes,
+SHA `9f9065fc06af98a76c2052613cc7b39f59ad2fadf6ed711b6ab3472fa9c4cb2a`,
+Privacy bestanden. Alle älteren Generationen unverändert. Kein Release-Tag100,
+keine APK-Veröffentlichung, Pixelinstallation, produktive Migration oder Freigabe.
+
+### Tatsächlich geprüfter Originalstand 07b8fa1
+
+- 430 Pythonprüfungen, 78 JVM-/56 Browser-/55 synthetische MCP-Suiten und 9 ergänzende
+  Browsersuiten PASS auf 07b8fa1. Original-Gradle-Build und Lint PASS, 0 Fehler / 112 Warnungen.
+  Diese Ergebnisse werden nicht auf die danach geänderten 100-/DB6-Quellen übertragen.
+- Nativer Gesamtlauf auf dem isolierten API30-Cloudemulator: **423 PASS / 1 FAIL**.
+  Die verschlüsselte Pflege-/Backup-/Restoreprüfung besteht; der verbleibende FAIL
+  betrifft die abschließende QA-Bereinigung. Ein noch eingereihter Browsercheckpoint
+  öffnet nach Löschung die isolierte QA-Datenbank erneut. Der Lauf ist insgesamt
+  **kein PASS**. Korrektur des Prüfharness mit Main-Thread-Leerlauf, Executor-Sentinel
+  und geschlossenen Stores ist in Arbeit; keine wiederholten Löschversuche als Ersatz.
+- Beide durchgängigen Offline-UI-Piloten auf a1dd56a PASS; vier echte OS-Prozesspaare
+  auf d99f6dd PASS: vor erstem Medienchunk, nach Teilchunk, nach Mediencommit und echte
+  Anfrage-/Auftragsformulare. Diese getrennten Quellstände bleiben Teilnachweise,
+  kein gemeinsamer Vollnachweis für 07b8fa1 oder den aktuellen Arbeitsstand.
+
+Original-App 07b8fa1 SHA256
+`01235871a2110d39b28496043ef7b4fd698697e1958751a89042a8734e048205`,
+Runner-SHA256
+`7599dacb08563403b6a76cf4ad04720b7a9a35308c60025daeb5640c9e06e36d`.
+Originalzertifikat unverändert
+`a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`.
+Kein 99-Release-Tag, kein Release-APK-Upload und keine Pixelinstallation.
+
+### Quellen und nächste gemeinsame Abnahme
+
+Vollständige private 07b8fa1-Quellkopie im bestehenden Drive:
+https://drive.google.com/drive/folders/1etLfCbGMXiIIhi2Qm7g3heXAv_ifus0u .
+59 physische Dateien einschließlich 3 Transportteilen vollständig zurückgelesen;
+rekonstruiertes OriginalZIP SHA256
+`29edef7bf3389adc09789da0b6cba80d730d74d6f8fced84f38934bef9d9725e`.
+Die frühere geprüfte a1dd56a-Quellkopie bleibt erhalten. Diese administrative
+Quellcodesicherung ist keine operative Geschäftssicherung und enthält die späteren
+ungesicherten Arbeitsänderungen nicht.
+
+Nächster Schritt: native Entwurfssicherung/Bestätigungsgrenze und QA-Abschluss
+fertig integrieren, den kombinierten Antwort-/Browserzustandsverlust gezielt und
+mit der Hostregression prüfen und den gemeinsamen Quellstand sichern. Danach
+Original-100-Prüfbau mit Provenienz-/Privacyprüfung; auf genau diesem Artefakt das
+fünfte OS-Prozesspaar, beide Offline-UI-Piloten, native Gesamtsuite sowie Update-/
+Restorebelege ausführen. Physischer Pixel, zwei reale USB-Ziele, TalkBack und
+produktiver Autoritäts-/Originalbelegabgleich bleiben getrennte offene Abnahmen.
+Kein grüner Gesamtstatus und keine Restaufwandsschätzung aus Teilprüfungen.
+
+## Historische datierte Zwischenstände vor der vorstehenden Konsolidierung
+
+Die folgenden älteren Befunde bleiben unverändert als Nachweis ihres jeweiligen
+Quellstands erhalten. Formulierungen wie „aktuell“, „offen“ oder „nächster Schritt“
+in diesen datierten Abschnitten beschreiben den damaligen Stand; maßgeblich für
+die Fortsetzung sind ausschließlich der aktuelle Kopf und
+`AKTUELLER-STAND.json` → `development_snapshot.correction_current_checkpoint`.
+
+## Historischer Gesamtstatus vor07b8fa1, 25.10.2026
+
+Fortsetzungsauftrag aktiv. Neuester gesicherter Entwicklungsstand vor dieser
+aktuellen Korrekturbündel:52a01f253c42b3a87b3865fe1a3ad5ef9a928b87; main weiterhin
+e499e745832449ce0202d04d9903495248e8b034. Kein produktiver Schalterwechsel.
+
+Pixel ausschließlich lesend erneut geprüft:1.54.9/98,DB4,MCP9/117,
+Quellcommit dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c,
+Fingerprint fd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae,
+pixel_drive_v1/android_provider und pixel_drive_online_compare_required.
+Runtime-Selbstbericht; keine unabhängige APK-Integritätsprüfung. Keine Installation,
+Migration, Rechnungsfreigabe oder produktive Datenmutation.
+
+Entwicklung:lokaler Kern,Schema5,166Werkzeuge/209UI-Aktionen; tägliche lokal geprüfte
+Sicherung und separater automatischer Drive-Upload implementiert, auf Pixel nicht
+aktiviert/abgenommen. Original-Prüfbau4e7c4cc:1.55.0/99,
+Fingerprint5df55d0538812fe6ae475ed7ee0e48ab96b25ab8dd81eaae123aa5dde8508b3d,
+App-SHA7b6f7f0239a86c32aa2c2893f5adc8c8a28345309ce748b143a572ac4b2707ca,
+Runner-SHA4f8ba77a05210f77e5277af24575a3f432369f609efedb9e64ed8497782e0237.
+Originalzertifikat a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8.
+Source-Preservation,Build/Lint,Originalsignierung,Artefaktprivacy und isoliertes
+Cloud-Updateledger bestanden.429Pythonprüfungen auf4e7c4cc bestanden;
+78JVM-/56Browser-/55MCP-Suiten zuletzt aufd99f6dd bestanden.
+
+Realer gebündelter UI-Lauf4e7c4cc bei ausgeschalteten Emulator-Netzadaptern:
+Pflegeplan/Tour/Timer/Material/Foto/Arbeit/verschlüsselte Vollsicherung und vollständige
+Staging-Prüfung bestanden. Erster Pilot erreicht Anfrage/Besichtigung/Angebot/PDF/
+angenommene Version/einen Auftrag/Besuch/150Minuten/Arbeitsabschluss und
+Rechnungsentwurf mit wiederholtem Speichern derselben ID. Danach FAIL bei
+INVOICE_ISSUED; Ausgabeansicht schließt ihren Dialog, entfernt dessen HTML jedoch
+absichtlich nicht. Die Erwartung wird auf keinen offenen Ausgabedialog UND einen
+wirklich ausgestellten Beleg präzisiert; ursprüngliche Bestätigungen und Beleg-/PDF-/
+Zahlungsprüfungen bleiben erhalten. Ergebnis dieses erneuten Laufs noch offen.
+
+Vier echte OS-Prozessende-Paare aufd99f6dd bestanden:vor erstem Chunk,nach Teilchunk,
+nach Mediencommit und reale Anfrage-/Auftragsformulare inklusive Rechnungsempfänger,
+Termin,identischer Aktionsbelege und genau einem Datensatz. Kein clear/uninstall.
+Native Finanzgruppe zuletzt9/9PASS auf12496d0; kein Ersatz für gemeinsame Endabnahme.
+Physischer Pixel,zwei reale USB-Ziele,TalkBack und produktiver Autoritäts-/Belegabgleich
+bleiben gesonderte offene Geräte-/Betriebsschritte. Ältere Zwischenstände unten sind
+historische Nachweise und keine aktuellen grünen Gesamtfreigaben.
+
+Erneuter gemeinsamer Original-Prüfbau52a01f253c42b3a87b3865fe1a3ad5ef9a928b87:
+App-SHA095be4ddab7fdf3fd032e1941e67c30959cfe68af86df8ca5d0200f8a52eac91,
+Runner-SHA9b944fc7c3190839f7e520370b1f81c2980ee940fcd157234ea599053009fe10,
+Quellfingerprint unverändert5df55d05…, Originalzertifikat unverändert.
+429Python/78JVM/56Browser/55MCP sowie9ergänzendeBrowser-Suiten bestanden;
+Build/Lint0Fehler112Warnungen,Privacy undsynthetischesCloud-Updateledger bestanden.
+Offline-UI52a01f2:Rechnungsausgabe undPDF148EUR bestanden, danach Zahlung bei
+Anzeigeaktualisierung FAIL. ÄltereWebView wirft bei erneutem showModal aufbereits
+offenemRechnungsdialog; der übergreifende Payment-Catch behandelte diesen Fehler
+fälschlich als unbekannte Buchungsantwort. Pflege-/Backup-/Restorevorschau erneutPASS.
+
+Gezieltes Korrekturbündel im anschließenden Arbeitsstand:Dialogöffnung geschützt;
+Zahlungs-ID und bestätigter Zustand vor unabhängiger Anzeige erhalten; lesender
+Wiederanlauf und Vor-Schreib-Prüfpunkt mit Rücklesen; vollständiger Baselinevergleich,
+kein leerer Zahlungsentwurf und bewusster gezielter Verwerfweg. Gemeinsame vorhandene
+Formularspiegel-Bereinigung wiederverwendet. Angebots-Write-Reply enthält den tatsächlichen
+CAS-Hash, bevor Detailabruf und Anzeige erfolgen. Gezielte Browser-Fehlerfälle bestanden;
+22 Zahlungsfälle und 21 Angebotsfälle bestanden im Browser; darunter echte Fehler nach
+Commit, gespeicherte ID/CAS vor Detailabruf, genau ein Beleg/Receipt, nur lesender
+Wiederanlauf, kein Schreiben bei fehlendem Prüfpunkt sowie vollständiges Verwerfen
+und Browser-Neustart ohne Wiederbelebung. Stable edit_id und request_id sind getrennt,
+damit eine eindeutig abgewiesene Aktion innerhalb derselben Bearbeitung korrigierbar
+bleibt. Zwei unabhängige 41er-Ansichtenläufe bestanden nach Korrektur einer veralteten
+Heute-Testannahme: Arbeitsstart zuerst sichtbar, Termin nach normalem Scroll vor Dock
+und Navigation erreichbar. 78 JVM-Suiten bestanden; Native-Gesamtabnahme und neuer
+Original-Prüfbau des zusammengeführten Korrekturbündels stehen noch aus.
+Neun gefüllte Kernansichten×3Breiten×200% bestanden imBrowser; keineTalkBack-/OS-Tastaturbehauptung.
+
+Native Gesamtlauf a1dd56a: 227 protokollierte PASS, drei FAIL und Hosttimeout nach
+1800 Sekunden; kein zusammenfassender PASS. Beide UI-Piloten bestanden auch innerhalb
+dieses Laufs. Die drei FAILs sind nach Quellenreview Testannahmen: Qualität/Abmessungen
+liegen im fachlichen Fotoeintrag, nicht im physischen Attachment-Deskriptor; der native
+Rawbyte-SHA-Vergleich war davor bereits erfolgreich. Zwei Katalogfälle erwarteten noch
+204Aktionen/161Tools statt der unabhängig geprüften 209/166. Korrigiert werden diese
+Zugriffe/Zahlen; alle Datei-, Cursor-, CAS-, Selftest- und Bestandsschutzprüfungen bleiben.
+Der Cloudrunner erhält ein ausdrücklich wählbares begrenztes3600s-Gesamtbudget für die
+angesammelte Suite; native Einzel-/UI-Zeitgrenzen bleiben unverändert. Neun Hostguards
+und vollständiger API37-Compile der Androidtests bestanden; erneuter gemeinsamer
+Original-Prüfbau und native Gesamtausführung stehen aus. Produktionsquellen unverändert.
+
+Aktuelle native Messung a1dd56a auf Software-Emulator API30 ohne KVM:
+20Tourstopps433,799235ms (Ziel1000ms erreicht); Suche300Kunden/450Objekte,
+3Warmups+25Messungen,p95 Stichprobe23=1364,641122ms (Ziel300ms verfehlt).
+Funktionale Vollständigkeit bestanden; kein Pixel-Leistungsnachweis.
+
+Originalquellen a1dd56a vollständig separat in der privaten bestehenden Ablage gesichert:
+https://drive.google.com/drive/folders/1oy85-It02K1D1-kDi61Gl-6BY48YBx0Y .
+52Textpakete,3Transportteile und4Index-/Versionsdateien tatsächlich SHA256-zurückgelesen.
+Aus den Rückleseteilen rekonstruiertes OriginalZIP161943434Bytes,
+SHAdc18f2759abd9087d88ddebf8bd2d725e1b12b7500db37715ca178fffa04d832,
+Privacy0Betriebszeilen PASS. Einzel-XZ zusätzlich nur mit vollständigem Streamumfang
+belegt; der vollständige Bytehashnachweis stammt aus den drei Teilen. Begrenzungen100MiB
+beim Cloud-Upload/32MiB beim Rücklesewerkzeug betreffen ausschließlich diese administrative
+Quellübertragung, nicht die vollständige App-Sicherung. Keine Installation oder Migration.
+
+Medienfehler gezielt reproduziert: Android wandelt explizites JSON.NULL beim
+Stringzugriff in den Text „null“ um. Die Löschbereinigung erzeugte daraus einen
+ungültigen minimalen Hashbeleg. Fehlende/null Referenzen werden nun vor Zugriff
+unterschieden; Integritätsprüfung bleibt unverändert streng. Vorhandene JVM-Suite
+erweitert:78Prüfungen PASS, tatsächlicher Upload/Write/Delete/aufgeschobenes Cleanup,
+abschließend0Blobs und keine null-Hashbelege. Derselbe Test gegen unveränderte
+HEAD12496-Regeln scheitert reproduzierbar BROWSER_MEDIA_RECORD_INVALID. Nativer
+Pflegepilot muss die Korrektur noch bestätigen. Produktions-/Testcompile204/32 PASS,
+acht Cloudrunner-Sicherheitsprüfungen PASS; keine native Prozessende-Abnahme daraus.
+
+Zusätzlicher tatsächlicher Datenverlust im bisherigen JS-Vorbereitungspfad behoben:
+Arbeits-/Profil-/Auftragsfotos wurden auch bei gewähltem Original vor dem nativen
+Speichern auf1600/JPEG umgerechnet. Gemeinsame Vorbereitung bewahrt nun originale
+Bytes/MIME/Namen; Qualitätswahl wird dauerhaft mit den Argumenten eingefroren.
+Native Speicherung validiert diesen optionalen Qualitätssnapshot und respektiert
+ihn statt einer später geänderten Einstellung. Alte vorbereitete Aktionen bleiben
+unverändert. Auch bestehender Kunden-/Timer-Fotodialog friert seine Qualität ein.
+40/40Browserfälle in drei vorhandenen Suiten PASS: Original3000px, fehlender MIME,
+Default-JPEG1600, Antwortverlust, identischer Retry nach Einstellungswechsel. Native
+Probe mit4000px-Original und geänderter Einstellung vorbereitet; Ausführung offen.
+
+Zwischenbuild445c6f9 und Lint PASS,429Python/78JVM PASS; nicht signiert/ausgeliefert,
+weil die anschließende Fotokorrektur gemeinsam gebaut werden muss. Nach positivem
+Prozessende-Nachweis bereinigt dessen Test ausschließlich die eigene QA-Origin;
+fehlgeschlagene Verifikation bewahrt ihre isolierten Quellen zur Diagnose. Keine
+App-Datenlöschung. Finaler gemeinsamer Build/Native-/Gesamtprüfung weiterhin offen.
+
+### Gemeinsamer Original-Prüfbau85e0d7e, danach zwei Prüfharnesskorrekturen
+
+Quelle85e0d7e6ce846ce2ba36f307899246294c9b3d39, Mainfingerprint
+bf64e1acf4056fc0da620b022e97622437218f41ffe284734b0c11edd4bb9f50,
+App-SHAfed18c9e3be60b36894be4196e5a96c62ddb4ddbcba643b6972896b236efdacd,
+Runner-SHAdd3dd5e35f77aeaf28cf0c2376a18ca014629a8a6b8d8a2e2554599dd4c8ecd2.
+Originalzertifikat unverändert, Source-Preservation/Build/Lint/Privacy PASS;
+429Python einschließlich signiertem Artefakt,78JVM und55synthetische MCP-Szenarien
+PASS. Sechs zusätzliche Revier-/Entwurfs-/Backup-Browsersuiten PASS. Breite Browser-
+Gruppe55/56PASS; isolierte Wiederholung der Verbindungsfreigabe PASS. Deren Fixture
+setzte nur den Browserzustand, während ein normaler Refresh den abweichenden nativen
+Mockstatus las. Nun wird auch der autoritative Mock vor Navigation gesetzt; beide
+bisherigen Anzeigenasserts erhalten, zwei unabhängige Wiederholungen27/27PASS.
+
+Dedizierter Cloudemulator API30: kompletter Updateledger vor/nach99→99 PASS, keine
+Pixel98→99-Behauptung. Echte Prozessbeendigung vor erstem Chunk/nach Teilchunk/nach
+Mediencommit: alle drei PASS, jeweils neuer PID, gleicher originaler PNG-Inhalt,
+volle gemeinsame Formularwerte/Zuordnung/Aktion, ein nativer Blob,0offene Writes/
+Geschäftsaktionen, keine Dublette. Dies prüft den gemeinsamen Entwurfsdienst und
+Medienadapter im neuen Prozess; kein vollständiger physischer Pixel-UI-Nachweis.
+
+Beide Gesamtpiloten85 im nachgewiesenen Flugmodus/WLAN aus/Mobildaten aus versucht:
+2PASS/2FAIL. Erster erreicht Besichtigung, Bestätigungsfenster fehlt; zusätzliche
+Bildschirmaufnahme und dumpsys belegen OS-Dialog „Application Not Responding:
+com.android.systemui“. Ausschließlich dessen visuell und per Fokus geprüfte Wait-
+Aktion gewählt, danach Launcherfokus ohne ANR. Kein App-Reset/Close/Datenverlustfix
+behauptet; Wiederholung erforderlich. Alle ursprünglichen Emulatorfunkeinstellungen
+im finally exakt wiederhergestellt; Pixel unverändert.
+
+Zweiter Pilot erstellt nun die verifizierte verschlüsselte Sicherung: ursprünglicher
+BROWSER_MEDIA_RECORD_INVALID behoben. Anschließender Test fand Arbeits-ID nicht,
+weil er nur den rohen Grundsnapshot statt gespeicherter Journalaktionen las.
+Er verwendet jetzt BackupSnapshotState plus SnapshotProjection aus tatsächlicher
+staged SQLite/Preferences/Bootstrap, identisch zur vorhandenen Restoreprojektion;
+alle Geschäftsasserts bleiben, Foto-/Sitzungs-ID zusätzlich geprüft. Kein leerer
+Ersatzbestand und keine Änderung der Backupdaten. Vollständiger Piloten-/Corelauf
+auf dem nächsten gemeinsamen Quellstand noch offen.
+
+### Native UI ec5965e und gemeinsame Auftragsprojektion
+
+Gemeinsame Original-App ec5965e41f03668e097d11792589f45e721868ba:
+App-SHAb67b6abbc00e61fa1c8a99d71b432439853b4d4360fe9923b5e0944ec277a4ae,
+Runner-SHAaecca4a333af1b74d47613075e875b24ac58b63f38ad5ef6cb6ef7d1bd5f9ad1;
+Mainfingerprint unverändert bf64e1ac.56/56Browser-Suiten und429Python mit signiertem
+Artefakt PASS, Updateledger vor/nach Update PASS. Keine Pixelinstallation.
+Native Offline-UI-Gruppe nun3PASS/1FAIL: zweiter Gesamtpilot vollständig PASS,
+einschließlich verschlüsselter lokaler Sicherung, Entschlüsselung/Staging, Beziehungen,
+Originalfoto-SHA, unverändertem Livebestand und idempotenter Restorevorschau.
+Keine USB-/Aktivierungsbehauptung. Erster Pilot erreicht nun Angebot/PDF/Annahme und
+genau einen Auftrag; Arbeitsstart aus diesem Auftrag noch FAIL.
+
+Ursache in PixelLocalStore: eigene alte effectiveRows-Teilsicht übernahm nur einfache
+order-Aktionen und übersah den durch offer_convert erzeugten Auftrag. Diese parallele
+Projektion ist entfernt. Kunden-/Auftrags-/Arbeits-/Fotovalidierung und Timerstart
+verwenden jetzt dieselbe validierte effektive Sicht wie Oberfläche und MCP. Keine
+Journale gelöscht oder Rohsnapshots überschrieben. Native Angebotsregression um
+echten Start/identische Wiederholung, manuellen Nachtrag und Foto am erzeugten
+Auftrag ergänzt; Ausführung noch offen.
+
+Startargumente werden zusätzlich vor automatischen Abrechnungsdefaults geklont und
+als Hash im atomaren Startereignis festgehalten. Eine identische erneute Bridgeaktion
+muss dadurch nicht an ergänztem Rechnungsempfänger scheitern; geänderte Argumente
+bleiben REPLAY_MISMATCH. Historische Ereignisse unverändert, bisheriger exakter
+Legacyvergleich bleibt für sie bestehen. WorkSessionStore tatsächlich geprüft und
+in den Quellenreview aufgenommen.204Produktions-/32Instrumentationsquellen javac
+PASS;78JVM-Suiten und Vertragsgate166Tools/209Aktionen PASS.
+
+K02 nun als zusätzliche echte DOM-Prozessprüfung implementiert: Anfrage mit Objekt
+und zukünftigem Wunschzeitraum, separater Auftrag mit anderem Rechnungsempfänger
+und zukünftigem Datum. Benannter QA-Bestand wird streng ohne Neu-Seed geöffnet,
+gleiche Origin/neuer Token/PID, Vorher-/Nachherfelder/ausgewählte Optionen/Baseline/
+Kontext/IDs und unveränderte Fachcounts vor bewusstem Speichern. Danach je eine
+Anfrage/ein Auftrag mit gleichen Payload-Retries und gelesenen Receipts. Fehlgeschlagene
+Verifikation bewahrt ihre Quellen. Host-Prozessprotokoll auf vier Paare erweitert;
+acht Sicherheitsprüfungen PASS. Dies ist vorbereitet/kompiliert, noch kein nativer PASS.
+
+### Prozess- und UI-Abnahme d99f6dd; Abrechnungsreader integrieren
+
+Quelle d99f6ddaab272552c01c25be302dc406b9463aeb, Mainfingerprint
+ee156f6cede69d839c39f7af571b4e20c31824f8f035a8935034622ed290d001,
+App-SHAc1e9891aaca37b09547202d58d001f6993fd3bd31a372ab119aa45f1b2f93009,
+Runner-SHAed9b44747b5ab8c2ee7c7fdee590550a651d9404bc68d49f31390dabe37697c4.
+Originalsignierung/Provenienz/Privacy PASS;429Python mit tatsächlichem signiertem APK,
+56/56Browser und55MCP-stdio PASS, davor78JVM. Updateledger vor/nach99→99 PASS.
+Alle vier OS-Prozesspaare PASS: drei Medienunterbrechungen und echte Anfrage-/Auftrags-
+DOM-Wiederaufnahme mit anderem Rechnungsempfänger, zukünftigem Datum, identischen
+Sitzungen/Feldwerten/Baselines/IDs, je1bewusst gespeicherter Anfrage/Auftrag und exakten
+Payload-Retries/Receipts. Kein künstlicher Leerbestand beim Wiederöffnen. Original-PNG
+und gemeinsame Fotozuordnung weiterhin bytegeprüft. Kein physischer Pixelnachweis.
+
+Native Offline-UI d99:3PASS/1FAIL. Erster Pilot jetzt bis inklusive150Minuten netto,
+Pause/Weiter/Stop und eindeutig abgeschlossenem Arbeitsdatensatz PASS; zweiter Pilot
+weiter vollständig einschließlich verifizierter verschlüsselter Sicherung/Restorevorschau
+PASS. Anschließend Abrechnungsübersicht FAIL: BusinessDataBridge.ownerCall erlaubte
+den längst registrierten reinen Leser get_business_summary noch nicht. Gezielt dieser
+eine Leseweg ergänzt; unbekannte Aufrufe und Zusatzparameter bleiben abgewiesen.
+Vorhandene Native-Angebotsregression prüft nun auch diesen tatsächlichen Bridgepfad,
+seine Leistungsgruppen, unveränderte Pendingdaten und die negativen Zugriffsfälle.
+Keine Freigabe weiterer Schreibwege. Neue gemeinsame Native-Ausführung noch offen.
+
+### Primärquellenprüfung25.10.2026 – keine Rechtskonformitätsbehauptung
+
+Vorhandene Hinweise gegen öffentliche Primärquellen gelesen. Direkte Cloud-HTTP-
+Abrufe auf RIS/BMF/USP/Android/Open-Meteo scheiterten am Proxy-CONNECT mit403.
+Inhaltszugriff über die vorhandene öffentliche Web-Leseschnittstelle; kein direkter
+HTTP200-, installierter Geräte- oder individueller Steuerprofilnachweis.
+
+- [USP/BMF Formerfordernisse](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/vorsteuerabzug-und-rechnung/formerfordernisse.html), Stand01.01.2026: Aussteller/Empfänger, Leistung/Zeitraum, Entgelt/Steuer, Datum, einmalige fortlaufende Nummer und gegebenenfalls UID. Empfänger-UID über10000EUR unter dort genannten Bedingungen. [Rechnungsübersicht](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/rechnung.html): vereinfachte inländische Kleinbetragsrechnung bis400EUR; daraus keine pauschale Pflichtfeldbefreiung für alle Dokumentarten ableiten.
+- [Kleinunternehmerregelung](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/weitere-steuertatbestaende-und-befreiungen/kleinunternehmen.html):55000EUR-Grenze mit Vorjahres-/Jahresbedingungen und erläuterten10%-Toleranzregeln. Kein Nachweis für dieses konkrete Nutzerprofil; keine automatische Steueränderung. Gesonderter Steuerausweis kann trotz Befreiung eine Steuerschuld auslösen.
+- [Aufbewahrung](https://www.usp.gv.at/themen/steuern-finanzen/steuerliche-gewinnermittlung/weitere-informationen-zur-steuerlichen-gewinnermittlung/betriebliches-rechnungswesen/aufbewahrungspflicht.html): grundsätzlich7Jahre ab Kalenderjahresende, bei Verfahren länger; besondere Grundstücksunterlagen12/22Jahre. Keine automatische Löschfrist ableiten. Vollständige geordnete Wiedergabe und fachliche Aufbewahrung sind mehr als eine Backupprüfung.
+- [E-Rechnung an den Bund](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/vorsteuerabzug-und-rechnung/e-rechnung-an-die-oeffentliche-verwaltung.html) und [BMF-Portal](https://www.erechnung.gv.at/erb/de_AT/content): strukturierte Einbringung, zusätzliche Lieferantennummer/Auftragsreferenz; PDF allein genügt dafür nicht. Geprüfter strukturierter Export bleibt offen, falls solche Aufträge vorgesehen sind.
+- [RIS Tagesfassung§11](https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=10004873&Paragraf=11&FassungVom=2026-10-25) auch über Connector nicht erreichbar. Allgemeine gesetzliche Pflicht zu HALF_UP je Position statt Rechnungsebene nicht belegt. Konkrete Rundungs-/Steuerregeln für Mischsätze, Rabatte und Korrekturen fachlich bestätigen; keine unbelegte Rechtsnorm behaupten.
+- [Android-Verifizierung](https://developer.android.com/developer-verification) und [FAQ](https://developer.android.com/developer-verification/guides/faq), FAQ30.09.2026: erste regionale Storephase in Brasilien/Indonesien/Singapur/Thailand, Ausweitung ab2027; FAQ nimmt direkte Sideloads von der ersten Phase aus. Full Distribution25USD; kostenfreie Limited Distribution beschreibt persönliche/Testnutzung bis20Geräte. Keine ungeprüfte Gewerbe-/Hobby-Ausnahme; tatsächlichen Pixel-Updateweg prüfen. Keine Registrierung/Zahlung.
+- [Open-Meteo Terms](https://open-meteo.com/en/terms) schließen kommerzielle Nutzung der freien API aus. [CC-BY4.0-Datenlizenz](https://open-meteo.com/en/licence) ersetzt diese Dienstbedingung nicht. Pixel98 non_commercial ist kein gewerblicher Berechtigungsnachweis. Wetter bleibt optional/ungeklärt; kein kostenpflichtiger Tarif, keine neue Quelle und keine produktive Abschaltung durch diese Arbeit.
+
+## Aktive Korrekturrunde nach erneutem Nutzerauftrag
+
+Bezugspunkt cb967fe8218d4fb38cfe99bbb4efb6569b80341c: sauberer Arbeitsbaum,
+Remote-main e499e745832449ce0202d04d9903495248e8b034 und acht Branches frisch
+abgeglichen, offene PRs0. Keine neue fremde Integration. Cloud-Netzpolicy enforced,
+Originalsignierbindungen ready, keine Geheimwerte gelesen/ausgegeben. Regeln,
+Arbeitsübersicht und E009 erneut gelesen. Ausschließlich Cloud, bestehender Branch.
+Die folgenden Pausenberichte bleiben historische Nachweise.
+
+Baseline: bestehende BrowserMediaRepositoryRulesTests gegen vorhandenen Code neu
+kompiliert/ausgeführt:45 PASS. Fehlende Prepare/Cancel-APIs an der tatsächlichen
+Bridge bestätigt. Korrekturrunde implementiert zunächst diesen durchgängigen Pfad;
+noch keine neue Build-/Gesamtabnahme. Keine produktiven Daten-/Geräteaktionen.
+
+Abnahmetabelle (K01–K16 entsprechen den 16 konkreten Nutzerfällen): alle zunächst
+OFFEN bis zum tatsächlichen gemeinsamen Ablaufnachweis. K09/Medien und K11/Jobs
+bilden die ersten vertikalen Korrekturen; danach K01–K08/K12–K15, abschließend K16.
+
+### Korrekturcheckpoint 25.10.2026 – fortlaufende Implementierung
+
+Keine Gesamt-/Releasefreigabe. Java-Produktionscompile:202 Quellen PASS (JDK17,
+vorhandener Android-Classpath; kein APK-Build). JVM-Suiten bis einschließlich
+TrashWorkflow PASS; UiMcpParity stoppt an noch nicht neu geprüften Quellfingerprints.
+Gezielt: BrowserMediaRepositoryRules48, BackupScheduleRules26 und ergänzte
+SyncFailureRules PASS. Browser: Revier13 und Angebotsfluss6 PASS auf Arbeitsquellen,
+Chromium mit synthetischen Bridge-Ports; keine native SQLite-/Gerätebehauptung.
+Datenschutz: source2335 Dateien/0 Betriebs-Seeds PASS, workspace5917 einschließlich
+ignored/untracked PASS. Laufprotokolle im privaten Workspace, keine Betriebsdaten.
+
+Implementiert: fehlende Prepare/Cancel-Medienintents; offene Schreibvorgänge sperren
+nur vollständige Sicherungsaufnahme, gleiche Schlüsselversionen im Device-Mirror
+bleiben getrennt. Uploadaktionen setzen mit stabiler Kennung/Offset fort. Defekte
+Sicherungsjobs werden einzeln ausgewiesen; tägliche lokale Fälligkeit richtet sich
+nach lokal geprüftem Aufnahmestand statt Uploadende. Tatsächlich gepostete
+Hintergrundplanung ist abgefangen, ausstehender Zustand wird beim Resume wieder
+versucht. Legacy-Veröffentlichung bleibt geschützt; fehlende Referenz erlaubt nur
+begrenzte erneute Leseprüfungen, nach acht Versuchen bewusste Diagnose.
+
+Gemeinsamer Bearbeitungsdienst im vorhandenen owner-client: einzelne stabile
+Sitzungen, vollständige Baseline/Values, eingefrorene Requests, minimale
+Verwerfbelege. Revier-Neuanlagen überschreiben vorhandene Entwürfe auch nach Reload
+nicht. Unberührtes Öffnen/revidierte Eingaben erzeugen keinen Entwurf; Verwerfen
+weist verspätete put-Aufrufe ab. Angebote übernehmen bestätigte ID vor Detailabruf
+und behalten ungeklärte ursprüngliche Anlageaktion. Auftragsbaseline enthält
+Abrechnungsempfänger und dynamische ID-Felder. Kundenrückkehr erfolgt nicht mehr
+über Timer, sondern nur nach bestätigter Speicherung. Native Legacy-Formularwrites
+haben optionalen atomaren Request-Receipt im vorhandenen owner_state.
+
+Weiter offen und in Arbeit: vollständige Kunden-/Auftrags-/Rechnungs-/Termin- und
+Arbeitsformularabnahme; gezielte Medienteilfehler, optionaler Restore-Entwurf ohne
+globale UI-Sperre, aktive Entwurfskopien/Dateibereinigung und Revier-Löschwege,
+Annahme-/Besichtigungsregeln. Danach geprüfte Fingerprints/Inventare, gemeinsame
+native Piloten/Regression, sauber gesicherter Originalbuild mit Signatur/Provenienz.
+K01–K16 bleiben bis zum jeweiligen vollständigen Endstandnachweis OFFEN.
+
+### Zweiter Korrekturcheckpoint – Formulare und Medienbereinigung, 25.10.2026
+
+Letzter exakt rückgelesener Remote vor diesem Schritt:
+`c5b50085bb26ba6faa0bade397407c9eeab230d7`. Unabhängig davon bleibt main unverändert;
+kein neuer Build, keine Signierung, keine produktive Gerätehandlung.
+
+Erweiterter gemeinsamer Bearbeitungsdienst auch für Kunden, Aufträge, gespeicherte
+Arbeitsaufzeichnungen, Termine und Rechnungsentwürfe. Zurück erhält Bearbeitung,
+explizites Verwerfen entfernt sie; gespeicherte Entwürfe bleiben Geschäftsdaten.
+Native Formularcommits verwenden atomare minimale Request-Receipts. Ein bekanntes
+Commit-Ergebnis bleibt auch bei fehlgeschlagener Entwurfsbereinigung bekannt;
+ursprüngliche ungeklärte Aktionen werden nicht durch neue Argumente ersetzt.
+Optionale Kundenprofilfotos werden mit Dateiinhalten vor Geschäftsübertragung
+gepuffert, besitzen getrennte Wiederholung und übernehmen bestätigte Kunden-ID.
+Diese neue Foto-Integration ist noch nicht gemeinsam nativ abgenommen.
+
+Browserprüfungen: Revier13, Angebote bis Auftrag6 (vor jüngsten Mediendetails),
+gespeicherte Angebots-/Rechnungsentwürfe10, Arbeitsfenster10, Terminplanung25,
+Daily-Usability sowie Vollsicherungs-/Restoredraft-Browserablauf PASS. Produktions-
+Java202 Produktions- und32 Instrumentationsquellen erneut kompiliert PASS; noch kein neuer APK-/Instrumentationslauf.
+JVM-Medien59 PASS: echtes Datei-Purging, gemeinsame Referenzen, aufgeschobenes
+Dateilöschen bei umgebender Transaktion, defekter einzelner Restore-Kandidat,
+weiterlaufender unabhängiger Fotoentwurf und gezieltes Entfernen des Defekts.
+Revier-Domäne122 PASS einschließlich direkter Annahme mit Nachweis, idempotentem
+Auftrag, Verschiebung derselben Besichtigung, zusätzlichem Besuch mit getrennten
+Messwerten, ausdrücklichem Wiederöffnen und Absage bei inaktivem Bezug. JVM-Ports
+sind keine native SQLite-/Pixelbehauptung. Messung Suche p95 rund14ms auf HostJVM,
+300 synthetische Kunden/450 Objekte; kein Pixel-Leistungsnachweis.
+
+Vollständige Medienaufnahme und Medienbereinigung teilen einen Prozesslock;
+Metadaten bleiben in owner_state. Physische Bereinigung erfolgt erst außerhalb
+einer offenen SQLite-Transaktion und ist über minimale Intents wiederaufnehmbar.
+Alte IDB-Schlüssel werden erst nach bestätigtem Native-Commit entfernt. Eine
+abgeschlossene Formular-Restore-Prüfung wird beim Öffnen nicht erneut erzwungen.
+Noch offene Medienprüfung kann getrennt erhalten werden; betroffene Schlüssel
+bleiben geschützt, unabhängige Schlüssel funktionieren. Prepare/Activate eines
+Restore-Workflows benutzen getrennte stabile technische Aktionskennungen.
+
+Weiter offen: gezielte native Prüfung aller neuen Adapter, asynchrone Scheduler-
+Fehler auf tatsächlichem Hauptthread, vollständiger >40MiB-Medien-/Entwurfs-Restore,
+Process-kill vor erstem Chunk/bei Teilcommit, alle aktiven Restore-/Mirrorkopien bei
+Verwerfen, stale/restored Requests, vollständige Kunden-/Auftrags-Fehlerfälle und
+Revier-Löschwege. Neue direkte Annahme/Inspektionsmodi benötigen finale UI-/MCP-
+Abnahme und Inventarpflege. Fingerprints wurden bewusst noch nicht neu gepinnt.
+Danach beide nativen Gesamtpiloten, Regression, Privacy/Quellensicherung,
+Originalbuild/Signatur/Provenienz. K01–K16 weiter keine Gesamtfreigabe.
+
+## Dritter Korrektur-Sicherungspunkt – weiter in Arbeit
+
+Vorheriger exakter Remote-Sicherungspunkt: `ac0a5c9ec30c70475b02249fcbb96ab881bc4393`.
+Neue Revier-Archivierungs-/Löschwege mit Abhängigkeitsprüfung und minimalen
+Löschbelegen; gelöschte Inhalte werden nicht aus alten Request-Ergebnissen
+wiederbelebt. Der gemeinsame Bearbeitungsdienst prüft restaurierte ungeklärte
+Aktionen zunächst ausschließlich lesend gegen vorhandene Commit-Belege.
+Abgeschlossene V1-Restore-Prüfungen bleiben gültig; neue Projektion V2 markiert
+restaurierte Aktionen zur Prüfung. Bestätigte IDs überleben Folgefehler.
+
+Hintergrundplanung behandelt Fehler innerhalb des tatsächlich geposteten Ablaufs,
+ablehnende Scheduler und fehlenden Handler getrennt vom Geschäftscommit; der
+Wiederanlaufzustand liegt dauerhaft in SQLite. Lokaler Medien-Cleanup verwendet
+keinen Legacy-Drive-Abgleich. Medienmirror schützt neuere IDB-Versionen und hält
+minimale Belege für verworfene alte Graphstände vor. Ausstehende Foto-Intents haben
+gezielte Wiederholen-/Verwerfen-Wege. Physisches Löschen wartet auf abgeschlossene
+Geschäftsänderungen und teilt den Capture-Lock mit Vollsicherungen.
+
+Aktuelle Hostnachweise: Revier-Domäne140, Medienrepository60, Backupplan26,
+Syncfehler123, tatsächlich geposteter Dispatcher21 Prüfungen PASS. Browser:
+Revier14, gespeicherte Entwürfe10, Planung25, Arbeitsfenster10 sowie gezielte
+K03/K05-Auftrags-/Kundenregressionen PASS. Keine Pixelbehauptung daraus.
+Javac:203 Produktions- und32 Instrumentierungsquellen PASS, kein APK-Nachweis.
+Neue native Proben für verlorene Antwort mit SQLite/WebView-Neustart, Scheduler-
+Fehler auf Android-Hauptthread sowie vollständigen Restore von25 tatsächlichen
+Medienblobs einschließlich48MiB-Datei sind vorbereitet, noch NICHT ausgeführt.
+
+Inventar/Fingerprints noch bewusst offen; keine Schutzprüfung entfernt.
+Weiter auszuführen: gemeinsame Vertrags-/Regressionsprüfung, echte Android-
+Medienunterbrechungen, beide vollständigen Piloten, isolierter Update-/Restorepfad,
+Originalbuild und Signatur-/Provenienz-/Privacy-Abnahme. Kein neuer signierter
+Kandidat, keine produktive Installation oder Migration; K01–K16 noch offen.
+
+## Gemeinsamer Vertrags- und Android-Prüfstand – 25.10.2026
+
+Vorheriger Remote-Nachweis `4bbed693c0b14b7da29e162605e74f95dd4a7f85`.
+Zusätzlich behoben: unbekannte native Speicherfehler behalten die unveränderte
+Aktion; bestätigte ID wird aus dem vorhandenen atomaren Receipt wiedergewonnen.
+Ungeklärte Formulare sperren ihre Felder, während unabhängige Entwürfe erreichbar
+bleiben. Ausdrückliches Entfernen bereinigt auch ohne formularspezifischen Aufruf
+sämtliche zugehörigen aktiven Formularspiegel. V2-Restore-Projektion beachtet
+minimale Verwerfbelege; gespeicherte V1-Auswahlen bleiben unverändert prüfbar.
+Appwechsel bei Arbeitsbearbeitung erhält nur die Bearbeitung. Nachtrag-Übernahme
+startet bewusst eine Sitzung. Timer-Material öffnet denselben eindeutigen offenen
+Sitzungsentwurf mit ursprünglichem CAS statt eine leere zweite Erfassung.
+
+Inventar nach Review:166 Werkzeuge (72 lesend/94 schreibend),209 semantische
+UI-Aktionen. Genau fünf additive Werkzeuge für direkte Annahme, Revier-Archiv,
+Archivierung/Löschung und rein lesende Aktionsprüfung. Optionaler Besichtigungsmodus
+und Terminvergleich ergänzt. Ursprüngliche P1-Baseline unverändert; der bestehende
+versionierte Erweiterungsvertrag prüft exakte Ergänzungen. Additives
+commit_state=not_committed ausschließlich für nachweislich abgewiesene typed
+Fehler; unbekannte Transportantworten bleiben ungeklärt. Vier geänderte Fehler-
+beobachtungen einzeln an Vorher-/Nachherhash gebunden. Vertragsgate PASS.
+
+Vorliegende JVM-Ausführung: 78 Suiten PASS; anschließendes Vertragsgate nach
+einzeln geprüfter Erweiterung ebenfalls PASS. Gemeinsame Browserregression
+läuft; frühere Einzelspeicher-/automatische Zurück-Speicherung-Erwartungen wurden
+auf gemeinsame Sitzungen, tatsächliche bestätigte IDs und explizites Speichern
+umgestellt. IDs/Werte/Beziehungen und Wiederanlauf bleiben Gegenstand der Assertions.
+Noch kein gemeinsamer Androidlauf/PDF-/Update-/Signaturnachweis dieses Commits.
+Die vorbereiteten Androidproben benutzen den tatsächlichen IDB-/Bridge-/SQLitepfad
+mit Unterbrechung vor erstem Chunk, nach Chunk und nach Commit;25 echte native
+Blobs/>40MiB im verschlüsselten Restore. Kein Ersatz durch künstlich leere Medien.
+
+## Stand vor gemeinsamem Android-Prüfbau – 25.10.2026
+
+Remote-Vorgänger `ca878388af2eff29317324dce87126ded736451e` exakt bestätigt.
+Gezielte Wiederholungen: Angebote/Kunden-UAT, gespeicherte Entwürfe, Abrechnung/
+Auftrag, Formularspiegel, Terminübersicht, GPS-optional und Arbeitsfenster nach
+Korrekturen PASS. Terminoptionen lesen den gemeinsamen Entwurf; originaler
+Zeit-/Feldcapture und Golden-API-Argumente bleiben erhalten. Die geänderten
+Save-/Retry-/Kalenderfunktionen sind im bestehenden Baseline-Nachweis als eng
+begründete Erweiterung mit erhaltenen ursprünglichen Hashes dokumentiert.
+
+Vorupdate am dedizierten Cloud-Android emulator-5554/GartenpiratCloud:
+`verify` PASS – vollständiger synthetischer Snapshot, IDs, Pending, Einstellungen,
+Tunnelkonfiguration und aktive Timerzuordnung erhalten. Keine produktive Pixel-
+Handlung. Beide UI-Piloten werden nun mit tatsächlichem nativen Medienadapter und
+wirklicher JS-IDB-Inventur ausgeführt; keine künstlich leere Medienersatzaufnahme.
+Zusätzlicher nativer Fall prüft gezielt beschädigten optionalen Restore-Fotoentwurf,
+separate spätere Medienprüfung sowie weiter nutzbaren Geschäfts-/Medienbereich.
+
+Noch vor Gesamtabnahme: letzter gemeinsamer Browser-/Python-/JVM-Lauf, signierter
+interner Prüfbuild aus sauber gesichertem Commit und Android-Gesamtläufe. Der
+vorige Pythonversuch hielt korrekt bei Privacy-Fund in eigenen synthetischen
+Fehlerreports mit generierten IDs an. Die verursachenden UI-Erwartungen wurden
+korrigiert und Reports durch echte bestandene Wiederholungen neu erzeugt; kein
+Privacy-Filter gelockert und kein produktiver Inhalt übernommen.
+
+## Originaler interner Prüfbuild und weitere Foto-Härtung – 25.10.2026
+
+Sauberer Remote-Quellcommit des Prüfbaues: `67c11ade40a4eb79bef1f1e85380ed029ec6021e`.
+Main-Quellfingerprint `95e177241ba228858b716abaf2f4ca5ff9071d82d7185d2c618bef59ead4d939`.
+Gradle assembleRelease/assembleReleaseAndroidTest/lintRelease PASS2m44s,
+Lint0Fehler/112Warnungen. 425Python/0Skips/37 ausgeschlossene Ersatzschlüsseltests,
+78JVM-Suiten und exakter Erweiterungsvertrag PASS. Breiter Browserlauf63/64PASS;
+letzte alte Drei-Tab-Erwartung anschließend gegen die vier Revier-Hauptziele
+korrigiert und betroffener Sicherheitsbrowserlauf PASS. Keine CSP-Lockerung.
+
+Original-App-APK SHA256 `67dc2700c340c2e30a5ad2e87c564c8a2a52371b199fb600ea5b651151d4c681`;
+Runner SHA256 `7f0b7e65b48a1aec87fab1a704f4b3dc383bf2be1b8b77ad3b506485da9757fe`;
+beide mit Originalzertifikat `a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`,
+Signier-/Quellensicherungs-/Artefaktprivacy-Gates PASS. Ein vorheriger Runneraufruf
+mit nicht vorhandenem Dateinamen erzeugte kein Artefakt; korrektes Gradle-Artefakt
+anschließend über denselben geschützten Weg signiert. Nur interner Prüfbuild,
+kein abgenommener Updatekandidat. In-place-Verify im dedizierten Cloudemulator vor
+und nach Appupdate PASS. Kein Pixel-/98→99-Hardwareupdate-Nachweis daraus.
+
+Native Zwischenbelege dieses Builds: tatsächlich gepostete Schedulerfehler,
+ablehnende Planung und Wiederanlauf mit einem Geschäftscommit PASS; neue fällige
+lokale Sicherung neben defektem Job/älterem Upload bei null Netzaufrufen PASS.
+Kalte Wiederherstellung von25 nativen Browseroriginalen/>40MiB einschließlich
+vollständiger Hashprüfung und Timerreview PASS. Revier-Objekt/Anfrage/Besichtigung,
+Serien/Tour, Materialkontext, lokale Suche300/450 und genaue Angebotsannahme mit
+wiederholter Auftragserzeugung PASS. Keine vollständige native Gesamtfreigabe:
+noch Fehler bei Epochen-/manuellem Jobstatus, isolierten Medien-WebViews und
+Rechnungs-RPC-Abläufen; laufenden Endstand der Logdatei ausweisen.
+
+Danach implementierter, noch NICHT neu gebauter Stand: Fotoaktionen halten
+vorbereitete Bilddaten unverändert im bestehenden dauerhaften Medienpuffer und
+bestätigte Foto-ID vor Bereinigung. Ein Qualitäts-/Ansichtswechsel ändert keine
+bereits abgesendeten Argumente. Restore-ausgewählte Medien tragen eine erhaltene
+Aktionsprüfpflicht; alte Aktionen werden ausschließlich lesend über vorhandene
+Metadatenbelege geprüft. Native Aufnahme-Kontexte weisen unbelegte Aktionen aus
+alter Installation/Epoche zurück, während bestätigte alte Receipts ihre ID
+zurückgeben. Fotos mit ungeklärtem Ergebnis sind gegen einfaches Verwerfen geschützt.
+Native vorbereitete Arbeitsfotos erhalten denselben Kontext. Cache-Referenzen
+werden vor Wiederverwendung auf noch geschützte Originale geprüft.
+
+Die Restore-Seite lädt nun dieselben vorhandenen WebView-Kompatibilitätshilfen wie
+die App. Auch isolierte WebView-Proben laden diese Produktionsquelle; keine
+Sicherungs-/Medienintegration wird durch leere Ersatzwerte umgangen. Ein nach
+Epochenwechsel veralteter Medienstand wird im Sicherungstest bewusst abgewiesen,
+statt seine Schutzprüfung zu überspringen. Manuell angeforderter ausgeschöpfter
+Job zeigt gezielten JOB_REVIEW; automatische neue Generationen bleiben unabhängig.
+Neue native Foto-Kontextprobe und präzise geheimwertfreie Fehlercodes vorbereitet.
+
+Weiter offen: aktuelle Änderungen nativ ausführen, neue manuelle Arbeitserfassung
+und deren optionales Foto ebenfalls auf gemeinsame Entwurfs-/Aktionsregeln führen
+(aktuell noch alter globaler Entry-Spiegel/Legacy-Fotowiederholspeicher), verbleibende
+Rechnungsfehler konkret reproduzieren und beheben, beide UI-Piloten und gesamte
+Regression auf finalem gesichertem Stand, abschließender Originalkandidat/Provenienz.
+Kein produktiver Schalterwechsel, keine Installation auf Pixel/Betriebsdatenänderung.
+
+## Eingrenzung der nativen Restfehler – 25.10.2026
+
+Remote bb1e0446dc05117336339c233f5f0abc33c34af1 erneut sauber gebaut/signiert:
+Mainfingerprint28de85471ebe32652afae549a03279120fb95920437fcbde73f169784fdf2d43,
+App-SHA9d95bf8dd049bd5986ad93704bdf84a7229d0364a7583884591267e011f4b9c6,
+Runner-SHA0a82142c4cb79c0a69bfc9469f8f4067aa385e06d03a658c11abc55fcb20de45.
+Originalzertifikat unverändert. Nur isolierte Cloudinstallation, kein Pixel.
+Native Finanzgruppe:6PASS/3FAIL, alle drei FehlerREAD_ERROR; Originaldatenbestand
+unverändert PASS. Zur Ursachenbestimmung wird ein fehlgeschlagener ausschließlich
+lesender Aufruf erneut direkt ausgeführt; nur Ausnahmeart und öffentliche Code-
+Position gelangen in Testdiagnosen, keine Argumente oder Beleginhalte.
+
+Erster Revier-Core-Lauf67c11ad endete mit HOST_TIMEOUT900s, keine vollständige
+Gesamtabnahme. Der UI-Pilot desselben Builds scheiterte vor fachlichen Schritten
+an StackOverflowError in der isolierten QA-ContextWrapper-Rückgabe von
+registerComponentCallbacks; kein Beleg für einen produktiven Appfehler daraus.
+Fixture delegiert Android-Komponentencallbacks nun an den Basis-Kontext, hält
+Datenbanken, Dateien und Einstellungen weiterhin vollständig isoliert. Ein
+anschließender diagnostischer Runner ist getrennt von der unveränderten bb1e044-
+App auszuweisen; endgültige Abnahme erst aus gemeinsamem finalen Quellstand.
+Der aktuelle native Recovery-Teillauf mit bb1e044 läuft noch.
+
+
+## Gemeinsame Arbeitserfassung und native Eingrenzung – 25.10.2026
+
+Recovery-Gruppe am Original-Prüfbau bb1e044 und dessen originalem Runner:
+**54 native PASS, 0 FAIL**. Tatsächliche WebView-/SQLite-/Medienpfade, Foto-
+Unterbrechungen, optionale beschädigte Restoreentwürfe, >40MiB-Vollsicherung,
+asynchrone Handlerfehler und unabhängige Sicherungsjobs; keine Pixelabnahme.
+Diagnoserunner8d546e5 mit unveränderter bb1-App: Finanzgruppe6PASS/3READ_ERROR,
+beide UI-Piloten fachlich noch FAIL; Context-Callback-Rekursion behoben. Der
+öffentliche Fehlercode allein nennt die Ursache nicht. Testadapter beobachtet
+jetzt die ursprüngliche Ausnahme ohne Wiederholung eines Schreibaufrufs; nur
+Werkzeugname, Ausnahmeklasse und öffentliche Quellposition werden ausgegeben.
+
+Manuelle Arbeitserfassung auf bestehenden gemeinsamen HGFormDrafts-Dienst
+geführt: vollständige generische Felder einschließlich Rechnungsempfänger,
+eigene Identität pro Vorgang, kein leerer Defaultentwurf, getrennte bestätigte
+Arbeit/optionaler Fotoauftrag, unveränderliche Speicheraktion vor Bridgeaufruf.
+Original-Blob, eingefrorene Zuordnung und Fotoaktion liegen vor erster Übertragung
+im vorhandenen Medienpuffer; neue unabhängige Arbeit bleibt möglich. Abbrechen
+verwendet denselben gezielten Verwerfweg mit Entfernung aktiver Spiegel und
+Tombstone gegen verspätete Rückrufe. Wiederaufnahme wartet auf echte dynamische
+Abrechnungsfelder; verzögerte Default-Rückrufe dürfen den Empfänger nicht ersetzen.
+Legacy-Einzelpuffer darf keinen zweiten Fotoauftrag überschreiben; öffentliche
+Bereinigung verlangt einen minimalen bestätigten/abgewiesenen Aktionsbeleg.
+Gespeicherte Arbeit oder erfolgreich angelegter Kunde wird dadurch nicht gelöscht.
+
+Gezielte Browserabnahme:8/8 Arbeit-/Foto-/Entwurfsfälle PASS, einschließlich zwei
+Vorgängen mit dynamischem Feld/Rechnungsempfänger, Originalbytes nach Reload vor
+Speichern, gezieltem Verwerfen/Spiegelbereinigung, Antwortverlust nach Commit und
+unabhängigem neuem Entwurf. Browser-Reload ist kein OS-Prozesskillnachweis.
+Weitere vorhandene UI-/JVM-Regressionen laufen; finaler gemeinsamer Androidbuild
+und erneute vollständige native Abnahme weiterhin OFFEN. Kein Produktivschalter,
+keine Betriebsdatenänderung, keine Pixelinstallation. Quellcheckpoint ist keine
+Auslieferungsfreigabe.
+
+Anschließend: Rechnungsempfänger-Rückrufregression erneuert PASS. Manuelle und
+Timerabschlüsse erhalten nun ihren exakten Editorbeleg in derselben vorhandenen
+SQLite-Transaktion; Restoreprüfung liest ausschließlich diesen Beleg, kein alter
+Timerrequest wird neu ausgeführt. Ein anderer Abschluss derselben finalisierten
+Sitzung wird abgewiesen. Neue native Prüfung dafür vorbereitet, noch auszuführen.
+Release-Untergrenze aus versionierten Installationsbeobachtungen statt veraltetem
+festem77; aktuell98, Kandidat99. Zwei negative/positive Guardtests PASS.
+
+Breiter Browserlauf ba7fc64:54/56 PASS; zwei veraltete Entwurfs-/Previewerwartungen
+auf neuen gemeinsamen Speicher und vier Revierbereiche angepasst. Beide gezielt
+anschließend PASS; kein allgemeiner 56/56-Nachweis für den späteren Stand daraus.
+425 Pythonfälle PASS, nachlaufender Workspacegate FAIL wegen eigener synthetischer
+Kennung im fehlgeschlagenen Previewtestlog; derselbe Test inzwischen erfolgreich
+neu ausgeführt, kein Filter abgeschwächt. Gradle ba7fc64 stoppte an diesem Gate,
+keine signierte ba7-APK und keine Auslieferung. Beide korrigierten Browserprüfungen erneut PASS. Danach Quellen- und Workspacegate
+PASS (ignorierte/untracked Dateien eingeschlossen), alle78 JVM-Suiten PASS,
+203 Produktions- und32 Instrumentierungsquellen plus BuildConfig vollständig
+mit javac kompiliert. Erneuter gesicherter Gradlebuild und native Abnahme offen.
+
+## Gemeinsamer Original-Prüfbau62ab233 und konkrete Restfehler – 25.10.2026
+
+Gesicherter Quellcommit62ab23362948d299179d7b57c704e9c11cc4d02e,
+Mainfingerprintfd346bbcf2dffcb152a8acf8a3c959242f9ddcd375c5bebd0d10518402a61f1f.
+Gradle assembleRelease/assembleReleaseAndroidTest/lintRelease PASS2m9s,
+Lint0Fehler/112bestehendeWarnungen.427Python PASS/0Skip/37QA-Keytests explizit
+weiter ausgeschlossen; Quellen/Workspace inklusive ignorierter/untracked Dateien
+PASS.6zusätzliche Revier-/Sicherungs-/Entwurfs-Browsersuiten PASS.
+55MCP-stdio-Szenarien PASS mit vorhandener Cloud-venv/MCPServer; erster Aufruf
+mit unpassender Host-SDK-Version schlug vor Verbindungsaufbau fehl. Kein Konto/
+Live-Pixel-/Drive-Beleg daraus.78JVM PASS auf vorausgehendem geprüften Quellstand.
+
+Originalsignierte App1.55.0/99:SHA256
+b5eae121a3e37b374a7fb110d7d879e1a911098524e4ba9bbdd1baea2429c430.
+Originalrunner:SHA256d895bd8c9e0ca7a14e2a8b9f7168ec59c97f3a077479c04cffcd76d44d903dba.
+Zertifikata939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8.
+Nur GartenpiratCloud/emulator-5554 install-r ohne Clear/Uninstall, vollständiger
+In-place-Ledger vor und nach Update PASS (99→99-interner Nachweis, kein Pixel98).
+
+Finanzgruppe erneut6PASS/3FAIL; der zusätzliche Fehlerbeleg nennt nun für alle
+record_payment:IllegalStateException in PixelLocalStore.getState. Tatsächliche
+Ursache: lokale Zahlung las ledger() nach setTransactionSuccessful() und begann
+dadurch eine von Android abgewiesene verschachtelte Transaktion. Berechnung des
+Antwortbelegs jetzt innerhalb der noch offenen Transaktion vor der Erfolgsmarke.
+Bestehende vollständige148EUR-/Korrektur-/Importpfade unverändert erneut auszuführen.
+
+UI62:Start der ersten isolierten Oberfläche PASS, dann Besichtigungsübergang FAIL
+ohne Owner-Fehlercode. Revier-Zeitumrechnung nutzt jetzt die vorhandene native
+planningTime-Bridge; Browserfallback vergleicht formatToParts statt sprachabhängiger
+Datumszeichenfolge. Host-Revier-UIsuite PASS, native Wiederholung offen. Zweiter
+Pilot speicherte das tatsächliche synthetische Foto, scheiterte danach am veralteten
+Testklick auf verborgenen Abschlussbutton: Stop öffnet bereits die Prüfansicht.
+Pilot folgt nun diesem bestehenden Weg und prüft den gestoppten Zustand sowie
+unverändert150Minuten/Beziehungen; keine Geschäftsprüfung entfernt.
+
+Foto-Auswahl vor neuem Work-Commit vollständig lesbar sichern; Quoten-/Stagingfehler
+startet keine Geschäftsaktion. Dieselbe Quelle kann nach behobenem Speicherfehler
+gesichert werden. Explizites Entfernen nur der ungespeicherten Fotoauswahl erhält
+Arbeitsfelder/andere Entwürfe; unbekannte Fotoaktionen bleiben geschützt. Letzte
+Bildbeschreibung wird vor dem ersten Foto-Request übernommen.10gezielte Browser-
+Checks PASS einschließlich Quotenfehler, Datei-Retry und getrenntem Verwerfen.
+Aktuelle Änderungen sind neuer als der Original-Prüfbau62 und noch nicht nativ
+abgenommen. OS-Prozesskill (statt WebView-/Store-Reopen), beide finalen Gesamtpiloten,
+vollständige Regression und endgültige Lieferung/Pixel-USB-TalkBack bleiben offen.
+Kein produktiver Schalterwechsel und keine Pixelinstallation.
+
+## Native Finanzabnahme c824a22 und UI-Eingrenzung
+
+App/Runner gemeinsam aus c824a22cd11ff62d4659d5518ac922b62b85b5d1 gebaut,
+Originalsignatur/Privacy/Source-Preservation PASS. Mainfingerprint
+b8d751687f4cebce43a4be0a67842b34a5c4a06ec1b01c9a3e285f322587e8a6,
+App-SHA3c96e785ed8ae6422218f57a5f32800e5f7a859dca616e2ac8385b9bc1728efb,
+Runner-SHA491e650683d6b733fd3a7c1f4cde0d9f364b9c05b0463861cfb4a21614fd3c68.
+Vollständiger Cloud-Updateledger PASS, **56/56 Browser-Suiten PASS**.
+Native Finanzgruppe nun **9/9 PASS,0FAIL**, einschließlich aller drei zuvor
+fehlgeschlagenen Fälle; Reihenfolge der Transaktionsabfragen tatsächlich korrigiert.
+
+Gemeinsame UI-Gruppe weiterhin1PASS/2FAIL, keine Endabnahme: erste Besichtigung
+bleibt mit ungeklärter Aktion erhalten (gültiges Formular, pending=true, kein
+nativer Owner-Fehlercode). Zeitbridge allein löste diesen Übergang nicht. Zweiter
+Pilot erzeugt Pflegevorkommen/Tour und speichert das tatsächliche synthetische Foto;
+weiterer veralteter Testselektor traf den bei Timerarbeit bewusst verborgenen
+Zeitabschnitt statt Material. Test jetzt auf sichtbaren Materialabschnitt gerichtet.
+Zusätzliche ausschließlich lesende Fehlerbeobachtung: öffentliche Werkzeugnamen,
+Ausnahmeart und Quellposition; keine Feldwerte/Beleginhalte. Neuer direkter nativer
+Besichtigungsadapter-Probelauf soll Fachcommit und UI-Übergang getrennt belegen.
+Nur Diagnoserunner wird hierfür erneut gebaut, operative App c824 unverändert.
+OS-Prozesskill, finale vollständige Native-/Gesamt-/Pixelabnahme bleiben offen.
+
+## Lokaler Planungskontrakt und Timer-Testabgleich
+
+Der neue direkte native Besichtigungsprobe c2146b4/c824-App bestätigte einen
+JSONException im tatsächlichen Owner-Adapter. PlanningApplicationService verlangte
+sync_queue.items auch im bereits versionierten lokalen backup_only-Kontrakt2,
+der absichtlich keine operative Zweiwege-Warteschlange mehr ausgibt. Lokale Planung
+prüft jetzt ausdrücklich Engine/Modus/Vertrag und verwendet diesen alten
+Konfliktpfad ausschließlich im Legacybetrieb; kein leeres Ersatzobjekt und kein
+Löschen der vorhandenen Legacyinventare. Bestehender Legacykonflikt wird weiter
+abgewiesen, ungültiger lokaler Kontrakt startet keine Terminmutation.
+Vier neue Kontrollen im vorhandenen OwnerApplicationTests-Port PASS; alle78 JVM-
+Suiten und Vertrag166Tools/209Aktionen PASS. Native Wiederholung noch offen.
+PlanningApplicationService/LocalInvoiceService zusätzlich in tatsächliche
+UI-Fachquellenreview aufgenommen, bestehende Gateprüfung nicht abgeschwächt.
+
+Der zweite UI-Pilot erreicht jetzt gespeicherte Arbeit und Home. Seine alte
+Erwartung FINALIZED an getWorkSession() war falsch: diese Schnittstelle liefert
+nur aktive Sitzungen, nach Abschluss IDLE. Test prüft nun IDLE in der Oberfläche
+und FINALIZED über den konkreten historischen Sitzungsdatensatz; gespeicherte
+Arbeitszeit/Material-/Fotoverknüpfungen weiterhin verbindlich. Cloud-Kaltstartbudget
+wie bestehende native Lifecycleprüfung120s; fachliche Wartebedingungen bleiben30s.
+Keine weiteren produktiven Änderungen oder Pixelaktionen.
+
+## Entwicklung erneut gestoppt; vollständige Übergabe für später – 25.10.2026
+
+Der Nutzer hat ausdrücklich angewiesen: „Stoppe die Erstellung speichere für späteren
+start alle notwendigen aktionen“. Alle Entwicklungsagenten wurden angehalten und
+haben ihre Dateien eingefroren. Keine weiteren Implementierungs-, Test-, Build-,
+Signier- oder Pixelaktionen bis zu einer neuen Fortsetzungsanweisung. Der dedizierte
+Cloudemulator GartenpiratCloud wurde geordnet beendet; keine Deinstallation oder
+Datenlöschung. Der gesamte nachfolgend beschriebene WIP wird nach Source-Privacy-
+Prüfung auf demselben Branch `codex/revier-solo-20261023` committet/gepusht und exakt
+vom Remote zurückgelesen. Dessen HEAD ist der neue Pausecommit; vorheriger vollständig
+gesicherter Zwischenstand: `80223176d48ae6f576c9e677d272a059913f21f7`.
+
+**Status: unvollständiger Entwicklungsstand, kein Releasekandidat.** Seit dem
+cc637c9-Prüfbuild wurde keine neue APK gebaut, signiert oder ausgeliefert. Der echte
+Pixel wurde nicht installiert, migriert oder mit Testdaten verändert. Letzter rein
+lesender Pixelnachweis25.10.:1.54.9/98,DB4,MCP9/117,dbe9ed0b/fd0979de; weiterhin
+pixel_drive_v1/android_provider und Online-Rechnungsabgleich. Diese Selbstauskunft
+ist kein unabhängiger APK-/Geräteabnahmenachweis.
+
+### Genau eingefrorene aktuelle Ergänzungen
+
+- BrowserMediaFiles.java: private unveränderliche SHA-Dateien,64KiB-Chunks,
+  wiederaufnehmbare Uploads und Speicherprüfung. BrowserMediaBridge.java: neun
+  eng begrenzte String-DTO-Methoden,formatVersion1,Seitentoken und Installations-/
+  Restore-Epoche. GartenpiratPhotoStore-JS migriert bestehende IDB-Quellen in einen
+  nativen Medienpfad; alte Originale bleiben erhalten. Letzte Bridge-/Buffer-
+  Erweiterungen sind noch NICHT gemeinsam kompiliert/getestet.
+- BrowserMediaRepository.java/BrowserMediaRepositoryRules.java: dieselbe vorhandene
+  SQLite-owner_state-Datenhaltung,Graph-CAS/idempotente Receipts und getrennte
+  Backup-/Devicekandidaten. Neue Record-/Intent-Härtung unten ist ausdrücklich offen.
+- Restore-Formularreview: gespeicherte Auswahl wird inzwischen an Quellen/Receipt
+  gebunden; getrennte Quellwahl,unterbrochenes ACK,Token/CSP/Threadguard gehärtet.
+  Medienreview-/Capture-/Provenienzhooks stehen im WIP in MainActivity,
+  RestoredBrowserCheckpoint,BackupSettingsRepository,BackupRestoreService,
+  RestoreStartupProtection,LocalBackupDataset/Coordinator,FullBackupController,
+  FullBackupActivity,LocalAuthorityActivity und der bestehenden Browser-Gateseite.
+- Neue Sicherungen sollen erst mit verifiziertem Native-Medienmirror als vollständige
+  externe Sicherung zählen. Alt-V1-Archive werden LEGACY_NOT_PROVEN; Preview und
+  bewusster Restore bleiben mit zusätzlicher ausdrücklich ungesetzter Bestätigung
+  erhalten. Keine nachträgliche Vollständigkeitsbehauptung und keine Umdeutung der
+  alten externen Byteprüfung. Noch nativ zu prüfen.
+- LocalAuthorityRules.externalBackupProof bindet Cutover an Mediaformat1,vollständige
+  Inventur und exakten Inventur-/Capture-Metadatenhash. Alte Teilbelege reichen nicht.
+- BusinessDataBridge bestätigt den bereits erfolgreichen lokalen Commit auch dann,
+  wenn ein nachgelagerter aufschiebbarer Adaptercallback eine RuntimeException wirft.
+  Neue echte SQLite-/Bridgeprobe in OwnerNativeAcceptance vorbereitet, noch nicht
+  ausgeführt. Keine Signatur-/Methodenzahländerung durch diesen privaten Helper.
+- Vertragsprüfung erfasst nun ausdrücklich jede annotierte Javaquelle; erlaubt sind
+  MainActivity,BusinessDataBridge und die neue BrowserMediaBridge. Ursprüngliche
+ 117Tools/156Actions bleiben gepinnt; implementierter öffentlicher Umfang161/204.
+  Zwölf explizite Revier-JS-Erweiterungen:3 bisherige Mainmethoden+9 Medienmethoden.
+  Neue Quellenfingerprints wurden noch NICHT pauschal freigegeben.
+
+### Tatsächlich belegte Teilprüfungen und klare Grenzen
+
+- BrowserMediaFiles:22 Streamingprüfungen mit48MiB bei64MiB-Heap PASS; Fortsetzen nach
+  Instanzneustart,Chunk-Replay,Hash,Quota/Korruption/Graphreferenzen. Vier Medienklassen
+  API37-javac PASS,VOR den letzten DurableBuffer-/Prepare-Erweiterungen.
+- BrowserMediaRepositoryRules:45 Hostprüfungen PASS für25Fotos,echte private
+  Hashdateien,CAS/Replay/Rollback,alte Blobs,getrennte Quellen/Auswahl/Epochen.
+  Kein Android-/SQLite-/Gesamt-Mediennachweis.
+- Core: letzter enger Compile16Produktions-/3Instrumentierungsdateien PASS,
+ 34 RestoredBrowserReviewRules-Prüfungen PASS und tatsächlicher Formular-Gate-
+  Browserlauf PASS. Dieser Browserlauf prüft Formularauswahl mit Port; er beweist
+  keine Medienblob-Parität auf Android und keine reale USB-Wiederherstellung.
+- LocalAuthorityRules:31 fokussierte Proof-/Geldprüfungen PASS, einschließlich alter
+  unvollständiger Belege,veränderter Inventur/Capturehashes und unbekannter Version.
+- Contracts:8 Python-Gateregressionen und exakter70Annotierungs-Abgleich PASS.
+  Aktuelle QA-Leermirror-Factory und9-Methoden-Reflexion sind noch nicht gemeinsam
+  kompiliert/nativ ausgeführt. Vollständiger Quellen-/Refactoringgate aktuell offen.
+- Die unten datierten424Python-,69JVM- und Browserzahlen gelten für frühere
+  Integrationspunkte. Sie sind KEIN Gesamt-PASS des hier eingefrorenen Medien-WIP.
+  Kein neuer vollständiger Gradle-/Lint-/Native-/MCP-/APK-Privacy-/Releasepass.
+
+Teilbelege außerhalb Checkout (können bei VM-Ersatz fehlen; Quellen/Tests sind in Git):
+`/workspace/qa-browser-media-files-tests.log`,
+`/workspace/qa-browser-media-repository-results.log`,
+`/tmp/qa_backup_review_20261025/`,
+`/workspace/revier-resume-*.log` und passende Browserunterordner.
+
+### Verbindliche offene Aktionen beim nächsten ausdrücklich beauftragten Start
+
+1. AGENTS.md vom tatsächlichen Remote-main,Auftrag,Status,AKTUELLER-STAND.json,
+   Originalsignierung und Lifecycle erneut lesen; Cloud-Runtime-/Netz-/Credential-
+   Status prüfen,keine Werte ausgeben. Exakten Pausecommit/Branch,frischen main,
+   Branches,PRs und andere Cloudarbeit abgleichen. Arbeitsbaum zuerst sichern;
+   keine Resets,History-Rewrites,neuen Repositories oder konkurrierenden Datenbanken.
+2. **Zuerst die bekannte Compile-/Sicherheitslücke schließen:**
+   BrowserMediaRepository hat prepareRecordWrite/cancelRecordWrite und den
+   Commit-Intent-Lifecycle NOCH NICHT implementiert. status hat noch KEIN
+   pending_write_count; Capture sperrt daher vorbereitete Upload-/Write-Intents
+   noch nicht. Die letzten Bridge-/JS-Aufrufe können den Gesamtcompile brechen.
+   Diese APIs im bestehenden owner_state ergänzen; neue Auswahl vor erstem Chunk
+   dauerhaft im bestehenden IDB als technischer native-write-buffer:<key> erhalten,
+   exakte Aktion/Quelle nach Kill fortsetzen. Vollbackup bei ungeklärtem Buffer
+   fail-closed. Keine neue Fachautorität in IDB und kein stilles Verwerfen.
+3. Device-Mirror darf alten Record A und neueren Uploadpuffer B desselben Schlüssels
+   nicht überschreiben. Getrennte explizit auswählbare Kandidaten/Referenzen,
+   aktuelle Installation/Epoche,Prepared-/Commit-/Cancel-Receipts und Captureprüfung
+   gemeinsam fertigstellen. Restore niemals alte Pendingaktionen automatisch aktivieren.
+   Frühere IDB-Gerätequelle ausdrücklich als früheren Browserspeicher kennzeichnen;
+   neuerer nativer Zustand vor Restore bleibt im vollständig geprüften Rückfallbestand,
+   zugänglich über den bestehenden bewussten Rückfallweg. Kein automatischer Bestandsmerge.
+4. Gemeinsames Protokoll fixieren: stabile getrennte deterministische Request-IDs
+   für Mirror-Record/Complete,einheitliche Requestsyntax,echte Integer-Version und
+   Booleanfelder,explizites record-Feld,exakte Graph-/Receipt-/Auswahlbindung und
+   endliche fehlerwertfreie Bridge-Codes. mediaStatus/Mutationen brauchen aktuellen
+   Seitentoken; sensible Aufrufe zusätzlich Installations-/Restore-Epoche. Unbekannte
+   Fehler redigieren,keine privaten Texte/Causes loggen.
+5. Main-/Dataset-/Gateintegration und Backup-/Portabilität vollständig schließen:
+   browser_media_format_version=1,browser_media_inventory und alle geschützten
+   Graph-/Blobdateien konsistent prüfen/pinnen. job.archive.mediaCoverage nur nach
+   tatsächlichem AEAD-/SQL-/Datei-Rücklesen VERIFIED_NATIVE_MIRROR;
+   mediaFormatVersion=1,mediaInventorySha256=Hash(Manifestinventur),
+   captureMetadataSha256=job.capture.metadataSha256. Diese Felder/Cutoverbindung
+   nativ prüfen. Alte Jobs bleiben sichtbar LEGACY_NOT_PROVEN. Gefilterten JSON-/
+   CSV-Mediengraph- und Originaldateiexport einschließlich History/IDs fertig prüfen.
+6. Konkrete noch offene Integrationen: PhotoStore.mirrorLegacyForReview bei bereits
+   ACTIVE braucht lesende Rückgabe statt erneutem Device-Mirror; vorbereitete
+   Media-Gate-Candidates/activateSelection samt Reopen/Retry/Captureproof prüfen.
+   Separate Legacy-Abdeckungsbestätigung in bestehender Restore-UI/API/Receipt ist
+   implementiert; dafür fehlende native Probe ergänzen. Zentraler QA-Fixture-
+   Leermirror ist ausschließlich explizite isolierte Testquelle; echte Legacy-IDB-/
+   WebView-Piloten müssen seedEmptyBrowserMedia=false verwenden.
+7. Erst danach aktuelle Java-/JS-Syntax und sinnvolle Host-/Browserregressionen
+   durchführen:mehrere Legacykeys,25Fotos,48MiB,Quota/Korruption,Kill vor/mittendrin/
+   nach Nativecommit,Lostreply,identischer Retry,RESTORE-Review beider Quellen,
+   keine Geschäftsdatenerzeugung durch Medienschreiben. PostCommit-Callbackprobe,
+   Quelle-/Restmengen-/PDF-/Nummern-/Zahlungsfälle erneut gemeinsam ausführen.
+   Beide echten UI-Piloten mit MediaAdapter verbinden. Der vorbereitete zweite
+   Pflege/Tour/Timer/Material/Foto/Backup-Pilot enthält eine echte verschlüsselte
+   Vorschau/Stagingprüfung,KEINE behauptete Coldstart-Aktivierung/Kamera-/USBabnahme.
+8. Geänderte Quellen/Bridgeinventare tatsächlich reviewen; exakte Fingerprints und
+   generierten Katalog erst dann aktualisieren. Vollständige JVM/Python/Browser/MCP-
+   Regression und Source-/Workspace-Privacy bestehen lassen. Alte ursprüngliche
+  117Tool-Baseline erhalten,keine pauschalen Whitelists oder Gate-Skip-Schalter.
+9. Nur aus danach sauberem,auf GitHub exakt gesichertem Commit Originalbuild/Lint/
+   Signierung ausführen; vorher source_preservation.py PASS. Dedizierten Cloud-AVD
+   GartenpiratCloud erhalten starten,keine Daten löschen; globalen synthetischen
+   Baselinebestand vor/nach Update prüfen. revier_core/revier_ui getrennt,dann volle
+   Native-Suite inklusive Offline und API-/PDF-/Restore-Fehlern. Neuen Such-/Tour-
+   Leistungsmesswert erfassen; physisches Pixelziel daraus nicht behaupten.
+10. Abschließend Originalzertifikat,APK-SHA/eingebetteten Commit/Fingerprint,
+    Leerbootstrap/APK-Privacy,synthetisches Update/Restore und Lifecycle-Quellenexport
+    prüfen. Erst geprüften gebündelten Kandidaten mit eindeutiger Provenienz liefern.
+    Pixel-/zwei-USB-/TalkBack-/Konten-/Nummern-/Schreiberprüfliste und produktive
+    Umstellung bleiben getrennte Geräteentscheidungen; keine automatische Installation,
+    echte Rechnung/Zahlung/Nachricht oder Betriebsdatenmigration.
+
+Werkzeugweg nach erneutem Environmentcheck:
+`source /workspace/cloud-setup/activate.sh`; JVM:
+`HG_JSON_JAR=/workspace/cloud-setup/tools/json.jar python3 tools/run-followup-java.py`;
+Python:`python3 tests/run_quality_suite.py --exclude-qa-signing`.
+Neue pure Klassen BrowserMediaFiles/BrowserMediaRepositoryRules sind im Runner
+registriert,FilesTests mit64MiB-Heap; *Tests.java werden automatisch entdeckt.
+Browser nutzt vorhandenes tests/browser.cjs mit NODE_PATH und HG_PLAYWRIGHT_MODULE
+auf `/workspace/cloud-setup/js/node_modules`,HG_BROWSER_EXECUTABLE_PATH=/usr/bin/chromium
+und HG_TEST_LOCAL_ASSETS=1. Kein operativer Desktop-/Laptop-Webprozessor.
+Reguläres Gradle verwendet vorhandenes SDK37.0/JDK17/Gradle9.3.1 und die konfigurierte
+Proxy-/CA-Anbindung; keine Versionserhöhung als Ersatz für Umsetzung.
+
+## Wiederaufnahme auf Nutzerauftrag – 25.10.2026
+
+Der Nutzer hat „Fortsetzen“ angewiesen. Der zuvor pausierte Stand
+`eef8a48174b50a896c12f0bcc0c7bb2a81ae9bc5` ist auf GitHub bestätigt und war beim
+Wiedereinstieg sauber. Remote-main bleibt `e499e745832449ce0202d04d9903495248e8b034`;
+alle acht Remote-Branches frisch verglichen, offene PRs:0. Keine fremde Arbeit
+integriert oder überschrieben. Aktuelle AGENTS.md vom main und Arbeitsbranch,
+Auftrag, Status, Standort-/Lifecycle-/Originalsignierregeln erneut gelesen.
+Zentrale Regeln, Arbeitsübersicht und Projektzentrale erneut lesend abgeglichen.
+Aktive fremde Cloud-Schreiber sind dadurch nicht als stillgelegt nachgewiesen;
+das bleibt Voraussetzung vor jeder produktiven Autoritätsumstellung.
+
+Akzeptanz dieser Korrekturrunde: frischer atomarer Prüfkontext verhindert eine
+Ausgabe mit zwischenzeitlich geänderten Kunden-/Aussteller-/Leistungsdaten; Retry
+behält eine dauerhaft gespeicherte Anfragekennung; unbekannte Restore-PDF-Jobs
+ersetzen keine bereits existierenden Originalbytes; alle vorhandenen Regressionen
+und native UI-Piloten gegen isolierte synthetische Daten wiederholen. Suchtreffer
+bleiben vollständig und aktuell, Seiten liefern gültige CAS-Hashes; Laufzeiten
+mit unverändertem300/450-Datensatz neu messen. Ein neues Original-APK erst aus
+sauberem, remote gesichertem Quellstand. Kein Pixel-Installationsauftrag und keine
+produktive Migration, echte Rechnung, Zahlung oder Nachricht durch diese Arbeit.
+
+### Geprüfter Zwischenstand der Wiederaufnahme
+
+- Neue Rechnungskontextregeln:59 fokussierte JVM-Prüfungen PASS. Fehlende
+  Einsatzkunden, inkonsistente Materialledger/Einheiten und überallocierte Quellen
+  sperren die Ausgabe; Preise und Originalbezüge bleiben erhalten. UI:20 neue
+  Kontext-/Retry-/Layoutfälle,15 Finanzfälle und10 lesende Entwurfsfälle PASS.
+- Material aus dem Timer übernimmt dessen gespeicherten Startkontext und
+  läuft ohne Unterbrechung. Visit-only-Verbrauch erhält auch den bestätigten
+  Auftrag und dessen getrennten Rechnungsempfänger.113 Domänenprüfungen PASS,
+ 10 neue Timer-Material-UI-Fälle PASS; native Proben sind vorbereitet.
+- PDF-Rettung: widersprüchliche „nie erstellt“-Nachweise werden einschließlich
+  leerer/null Originalfelder und vorhandener document_id/Größen zurückgewiesen.
+ 58 CreationGuard-,64 Recovery-,45 Finanz-,29 verschlüsselte Archiv- und45
+  Portabilitätsprüfungen PASS; Archiv-Rundläufe mit48MiB und getrenntem unverändertem
+  ReceiptProofA/aktuellemProofB. Kein neues Native-PASS daraus abgeleitet.
+- Alte Auftragsfotoauswahl nimmt25Bilder an und bewahrt Request-ID/Payload bei
+  verlorenem Ergebnis und Reload.14 Fotofälle und3 bestehende Arbeitsfotofälle PASS.
+  Pro Datei bleibt die ausdrücklich angezeigte50MiB-Importgrenze; kein Kundenlimit.
+- Restore verlangt einen gültigen vollständigen Browsercheckpoint vor Änderungen
+  am Rückfallbestand. Fehlender/staler/korrupt gehashter Checkpoint erzeugt niemals
+  erfundene leere Entwürfe. Neue synthetische Native-Rundlauf-/Abbruchproben stehen aus.
+  Erhaltene Browserwerte haben jetzt einen epoch-/CAS-gebundenen, bewusst bestätigten
+  Übernahmeweg vor Start gewöhnlicher Editoren. Beide Quellen bleiben getrennt
+  archiviert.27 PureRules und der tatsächliche Browserlauf einschließlich200% PASS;
+  WebView→produktiverSQLite-Adapterprobe vorbereitet, noch nicht ausgeführt.
+- Suche berechnet CAS-Hashes nur für die ausgegebene Seite und lädt für reine
+  Listen/Tour keine unbenötigte Gesamtsicht. Vollständigkeit/Unicode/Archiv/aktuelle
+  Versionen bleiben geprüft. Host-JVM300Kunden/450Objekte p95=17,04ms (25Warmmessungen),
+  kein neuer Emulator- oder Pixel-Leistungsnachweis.
+- Python424PASS/0Skip,37 explizit ausgeschlossene Tests mit Ersatzschlüsselerzeugung.
+  Source-/Workspace-Privacy PASS; kein APK-Artefakt dieser Runde geprüft. Breiter
+  Browser-/Node-Lauf zunächst62/64PASS; Planungstest enthielt alte3erNavigation und
+  dynamischen Sommerzeitwert am25.10.-Zeitwechsel. Fixture auf feste18.05.2027 plus
+ 4Zielbereiche korrigiert, Wiederholung25/25PASS. Der alte GP-Web-Serviceworker-Test
+  benötigt GP_QA_URL und wurde ohne diese gesonderte Webserverfixture nicht ausgeführt;
+  er ist kein manueller Pixel-/Offlinekernnachweis. Ein erster Browser-Start mit
+  fehlendem acorn/falscher Cloud-Asset-Vermittlung bleibt als Umgebungsfehler erhalten;
+  korrigierte Werkzeugumgebung nutzt die bestehende synthetische Assetroute.
+- Synthetischer globaler Cloudbestand nach AVD-Neustart erneut unverändert verifiziert.
+  All-source-javac:198 Produktions-/32 Instrumentierungsquellen PASS zu diesem
+  Integrationszeitpunkt; regulärer Gradle-Lauf wurde durch die bewusst noch offene
+  UI-/MCP-Quellenprüfung blockiert. Kein Schutzgate umgangen, keine Originalsignierung.
+ 69 JVM-Suiten PASS bis zum ebenfalls noch offenen Quellenprüfgate; neue finale
+  gemeinsame Regression folgt nach eingefrorenem Vertragsabgleich.
+- Pixel am25.10. erneut nur get_capabilities:1.54.9/98,DB4,117Tools,Protokoll9,
+  sauberer dbe9ed0b/fd0979de-Quellstand und weiterhin Online-Rechnungsabgleich.
+  Keine Installations-/Daten-/Kontenaktion auf dem echten Gerät.
+
+**Zusätzlicher offener Prüfpunkt dieses Zwischencheckpoints:** Der gespeicherte
+Restore-Auswahlauftrag muss beim Wiederlesen nochmals aus den unveränderten Quellen
+und selected[] abgeleitet werden. Quellenhashes sind bereits geschützt; die noch
+fehlende Bindung von selected_storage/clear_storage wird in der nächsten Korrektur
+gehärtet. Kein Release oder Originalbuild aus diesem unvollständigen Zwischenstand.
+
+**Aktuell konkret unvollständig:** Die Prüfung des vollständigen Sicherungsumfangs
+hat noch nicht an Native übergebene Fotoentwürfe/Blobs im bestehenden WebView-
+IndexedDB gefunden. Dieser Speicher ist nicht durch browser-storage.json oder die
+bisherigen appprivaten Dateiverzeichnisse erfasst. Die Prozess-/Reloadbeständigkeit
+ist dafür kein Ersatzgerät-/Vollbackupnachweis. Ein privater gestreamter Medien-
+Sicherungs-/Wiederherstellungspfad wird als nächste Korrektur umgesetzt; keine
+lebende LevelDB kopieren, keine Base64-Medien in Geschäftssnapshots und keine alten
+Originale löschen. Bis zum geprüften Rundlauf kein vollständiger Revier-Kandidat.
+
+Der folgende Pause-/Prüfbericht bleibt datierter historischer Nachweis. Neue
+Ergebnisse dieser Runde werden hier mit Quellstand und tatsächlichem Prüfumfang
+ergänzt; alte PASS-Zahlen sind keine Abnahme des neueren Arbeitsstands.
+
+## Auf Nutzerwunsch pausiert – 24.10.2026
+
+Der Nutzer hat ausdrücklich „Sichern und vorerst pausieren“ angeordnet. Alle Agenten
+haben ihre Quelldateien eingefroren; keine weiteren Implementierungs-, Build-,
+Signier-, Geräte- oder Testaufgaben laufen nach der Sicherung weiter. Der vollständige
+aktuelle WIP wird auf dem vorhandenen privaten Branch `codex/revier-solo-20261023`
+committet, gepusht und der exakte Remote-Commit zurückgelesen. Kein Merge nach main,
+keine Pixelinstallation, produktive Autoritätsumstellung, echte Rechnung/Zahlung
+oder Nachricht wurde ausgeführt. **Der pausierte WIP ist kein geprüfter Release.**
+
+### Letzter gebauter Original-Prüfstand und tatsächlicher Gerätetestumfang
+
+| Nachweis | Ergebnis |
+| --- | --- |
+| Originalbuild aus `cc637c91f7c3f4eee6b59d04c495c0412d3d7525`,1.55.0/99 | assembleRelease/assembleReleaseAndroidTest/lintRelease PASS;0Fehler/109Warnungen. Keine Aussage über den späteren WIP. |
+| Eingebetteter Quellfingerprint | `c3d70c8040cf6752be964e4bc09ff7865a6644835c198ef45ce4438830436ba8`; Commit und Fingerprint in APK-DEX nachgewiesen, SOURCE_DIRTY=false. |
+| Originalsigniertes App-APK | SHA256 `a2cb6a2f5c616101a8c17a728f7c9de924f5635dbdeb3180d5824400091f85da` |
+| Originalsigniertes Test-APK | SHA256 `0039f2ec1b2bb89bc6b4bb2e345e56ea3f1f24fee08789ffdc0600cf13c4544a` |
+| Originalzertifikat beider APKs | SHA256 `a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8` |
+| Vorhandener synthetischer Cloudbestand, In-place-Update Schema4→5 | PASS: vollständiger Snapshot, IDs, Pendingaktionen, Einstellungen, deaktivierte synthetische Tunnelkonfiguration und laufende Sitzung samt Rechnungsempfänger erhalten. Keine Datenlöschung/Neuinstallation. |
+| API30-x86_64-Cloudemulator ohne KVM, Flugmodus1 | Native Gesamtsuite teilweise ausgeführt:264 PASS/9FAIL, danach Host-Zeitlimit900s. Kein RESULT, kein Gesamt-PASS. Flugmodus danach nachweislich auf bisherigen Wert0 zurückgestellt. |
+| Native Leistungsziele, isolierter Cloudemulator |20Tourstopps506,25ms; vollständige Suche300Kunden/450Objekte,3Warmups/25Messungen p95=3597,75ms,300ms-Suchziel NICHT erreicht. Kein Pixel-Leistungsnachweis. |
+| Physischer Pixel, erneut nur get_capabilities | Unverändert1.54.9/98,DB4,Protokoll9/117Tools,pixel_drive_v1/android_provider,invoice_finalization=pixel_drive_online_compare_required; dbe9ed0b/fd0979de. Selbstauskunft, kein unabhängiger Pixel-APK-Hash. |
+
+Der partielle Native-Log liegt außerhalb des Checkout unter
+`/workspace/revier-artifacts/cc637c9-native-partial.log`, SHA256
+`98ff0d621c3cadf2d1affce401f5190f75c0ab8bf0ad80783e6a82b9701cd27d`;
+passende Artefakt-/Umgebungsquittung in `cc637c9-native-partial-receipt.json`.
+Der gescheiterte Gesamtlauf bleibt erhalten. Das signierte cc637-APK ist ein interner
+Fehlersuchbuild und wird nicht als fertiger Revier-Updatekandidat ausgeliefert.
+
+Die neun beobachteten Fehler: unvollständig aufgebautes synthetisches Schema2,
+unvollständiger handgebauter Pending-Rechnungszustand, fehlendes weather_profile im
+Besichtigungsadapter, fünf Finanzfixtures ohne exklusiven Migrationspermit und
+UI-Pilot-Preflight auf dem falschen Thread. Quellenkorrekturen sind im WIP enthalten,
+aber noch nicht mit einem neuen Original-APK nativ wiederholt. Der Besichtigungs-
+Anwendungsfall validiert nun den echten Terminvertrag vor Effekten;99 fokussierte
+JVM-Prüfungen bestanden. Beschädigter lokal gespeicherter Zustand bricht künftig mit
+festem LOCAL_STATE_BUILD_FAILED statt einer teilinitialisierten Sicht/Rohfehlern ab.
+
+### Zusätzlich gesicherte, noch nicht vollständig integrierte Korrekturrunde
+
+- Gespeicherte Angebots-/Rechnungsentwürfe öffnen lesend; bewusstes Bearbeiten,
+  Entwurfsrückkehr und ursprünglicher CAS-Stand bleiben erhalten. Bestätigte CSS-
+  Überläufe behoben; zehn neue Entwurfsfälle und60Layoutfälle ohne Überlauf bestanden.
+- Restore-PDF-Sicherheit: vorhandene exakt verifizierte Dateiquittungen bleiben
+  wiederverwendbar. Neue Bytes unbekannter alter Pendingjobs benötigen passende
+  Ursprungsinstallation/Epoche oder einen ausdrücklich aktuellen, beleggebundenen
+  Nicht-Erstellungsnachweis. Externes OriginalABC wird über den vorhandenen SAF-Import
+  und aktuelle vollständige Ledgerprüfung unverändert übernommen; finanzielle
+  Snapshots, Leistungsquellen und Nummern bleiben fix. Recovery-Audit ist append-only
+  und in Sicherung/Portabilität berücksichtigt. Native Wiederholung steht aus.
+- Die Rechnungsausgabe bindet jetzt den angezeigten versionierten Prüfkontext samt
+  Aussteller, Empfänger, Leistungs-/Materialquellen und Restmengen. WIP umfasst die
+  gemeinsamen InvoiceIssueReviewRules/InvoiceIssueReviewSnapshot, lokale Ausgabe-CAS,
+  additive MCP-Antwort/expected_context_hash sowie UI-Anzeige. Der UI-Fehler entity_hash
+  statt record_hash ist korrigiert. Bestehende15Finanzbrowserfälle bestanden; dedizierte
+  Kontextwechsel-/Layout-/Nativefälle und gemeinsame Integration fehlen noch.
+
+Letzte schmale Rückmeldung vor der Sicherung: sämtliche aktuellen Produktions-Java-
+Quellen kompilieren gegen API37 (javac PASS). Das ersetzt weder Gradle/Lint noch
+Testausführung oder native Abnahme; Helpertests bleiben offen.
+
+Zum Pausieren ausdrücklich offen gelassen: die aktuelle komplette Gradle-/Lint-/
+Native-/MCP-/Privacy-Artefaktregression, endgültiger UI-Fingerprint-/Toolkatalogabgleich
+und signierter Kandidat für DIESEN WIP. `reviewed_sources` und erzeugter Toolkatalog
+sind absichtlich nicht ungeprüft freigegeben. Bei Fortsetzung zunächst die neuen
+Pureklassen `LocalInvoiceCreationRules` und `InvoiceIssueReviewRules` in
+`tools/run-followup-java.py` aufnehmen; neue *Tests.java werden bereits automatisch
+erfasst. Die noch ungeprüften Helpertests und Kontextwechselprüfungen nachholen.
+Der Hostrunner hat vorbereitete getrennte Modi revier_core/revier_ui und1800s für die
+volle Suite; diese Modi sind im cc637-Test-APK noch NICHT enthalten. Erst aus erneut
+sauber gesichertem Quellstand bauen/signieren und diese Gruppen prüfen, anschließend
+volle Regression. Native Runtime/PDF-/Restorefälle sowie Suche-Leistung nachmessen.
+Keine produktive Umstellung ohne aktuelle Original-/Nummern-/Schreiberprüfung.
+
+### Dauerhafte Quellen und historische Datenschutzgrenze
+
+GitHub bleibt maßgebliche Originalquelle. Die zusätzliche ältere administrative
+Drive-Generation da7 wurde inzwischen vollständig abgeschlossen:53/53Dateien,
+0fehlend/0Dubletten/0unerwartet,52TXT/JSON aktuell SHA256-bytegeprüft; das82.403.208Byte
+XZ besitzt weiterhin nur vollständigen Streamgrößenbeleg, keinen Remote-SHA wegen
+32MiB-Materialisierungsgrenze. Payloads→Indizes→00-START eingehalten, ab1 behalten.
+Nachweise außerhalb Checkout: `/workspace/revier-da7-completion-report.json`,
+`revier-da7-helper-receipts.json`, `revier-da7-complete-inventory.json`.
+Diese da7-Kopie ist NICHT die zusätzliche Kopie des neuesten pausierten WIP.
+
+Der aktuelle Quellbaum besteht die Datenschutzprüfung mit0betrieblichen Seedzeilen.
+Ein separates ausschließlich lesendes Historienaudit über zwölf bekannte Bootstrap-/
+Ausstellerobjekte markiert vier historische Objekte als sensibel. Keine Inhalte wurden
+in Ausgaben oder neue Exporte übernommen, kein History-Rewrite/Force-Push ausgeführt.
+Das ist keine vollständige forensische Historienprüfung. Alte sensibel markierte Git-
+Objekte bleiben im privaten Repository erhalten; aktueller Quellbaum/APK und
+historische Objekte sind ausdrücklich getrennte Prüfbereiche.
+
+## Revier Solo – integrierte Fertigstellungsarbeit, 24.10.2026, 03:20 UTC
+
+Auf ausdrücklichen Auftrag „Starte Fertigstellung“ wurde der vorhandene Java-/WebView-/
+SQLite-Kern erweitert. Dieser Abschnitt beschreibt den neuen Arbeitsstand auf
+`codex/revier-solo-20261023`, ausgehend vom gesicherten Commit
+`613875759c2e29d6c8fc9efc18990e3b49763ea1`. Er ist noch kein neuer APK-/Pixelnachweis.
+Die weiter unten belegten306 Androidtests und signierten APKs gehören ausschließlich
+zum älteren da7c16f-Stand. Keine Produktivinstallation, Datenumstellung oder echte
+Rechnung/Zahlung/Nachricht wurde ausgeführt.
+
+### Implementierter gemeinsamer Stand
+
+- Vier Bereiche Heute, Objekte, Pflege, Büro; Kunden bleiben eigene Entitäten unter
+  Objekte. Bestehende Pflanzen-/Neophyten-, Foto-, Auftrags- und Mehr-Einstiege bleiben.
+- Gemeinsame lokale Revier-Anwendungsfälle für Objekt, Anfrage/Besichtigung, versionierte
+  Pflege, Besuch, manuelle Tourreihenfolge, Materialbewegung/Gegenbuchung, Geräte und
+  vollständige Suche. Erweiterungen liegen in derselben vorhandenen SQLite-Datenbank.
+- Explizite versionierte Angebotsannahme/-ablehnung mit Nachweis und Historie;
+  wiederholte Umwandlung derselben angenommenen Fassung erzeugt nur einen Auftrag.
+- Persistenter Timer übernimmt Objekt/Besuch aus dem unveränderlichen START-Ereignis;
+  Abschluss und Fotos behalten diesen Bezug. Historische auftragslose Arbeiten und
+  persönliche b.b.-Markierungen bleiben unabhängig von Abrechnung/Zahlung.
+- Lokale Belegausgabe mit atomarer Nummernreservierung, eingefrorenem Snapshot,
+  expliziten Quellmengen und dauerhaftem PDF-Job. Dokument und PDF haben getrennte
+  Zustände. Dateiquittung vor SQL-Veröffentlichung erhält nach Absturz dieselben Bytes.
+  Teilabrechnung verwendet die geprüfte Restmenge, ohne historische Stunden zu ändern.
+- Manueller Zahlungsledger in Cent mit Teil-/Sammelzahlungen, Guthaben und
+  nachvollziehbarer Gegenbuchung/Korrektur; keine Änderung ursprünglicher Positionen.
+- Vollsicherung über native Einrichtung, Recovery-Code, tägliche aufschiebbare Jobs,
+  Wiederholung, SAF/USB, vollständiges Rücklesen und getrennten tatsächlichen
+  Drive-Servernachweis. `LocalBackupCoordinator` ist der sachgerecht umbenannte
+  frühere Android-Capture-/Upload-Koordinator `BackupApplicationService`; die bestehenden
+  reinen fachlichen ApplicationServices bleiben frei von Android-/SQLite-Abhängigkeiten.
+- Restore wird zunächst vollständig in einem temporären Bestand geprüft und nur nach
+  ausdrücklicher Entscheidung beim nächsten Prozessstart ausgetauscht. Alter Bestand
+  und verschlüsselte Vor-Restore-Sicherung bleiben erhalten; keine automatische Mischung.
+  Recovery funktioniert ohne alten Keystore; dessen bewusste Reparatur prüft zuerst
+  ein bekanntes vollständiges Archiv. Klartext-Portabilitätsexport ist eine eigene Aktion.
+
+Die SQLite-Version steigt von4 auf5 als Schreibsperre gegen alte Appversionen; die
+bestehenden Tabellen, IDs und historischen Werte bleiben erhalten. Neue fachliche
+Namespaces, Revisionen, Requestquittungen und Audit liegen im vorhandenen `owner_state`.
+Die private, nicht aus Backups wiederhergestellte Autoritätsdatei bindet Installation,
+Migrationsepoche, Restore-Epoche und Nummern-Höchststand. Restore sperrt die Ausgabe.
+Ein alter Ledger mit neuer request_id genügt nicht: eine frische ausdrückliche aktuelle
+Original-/Schreiberprüfung muss an das aktuelle Gerät und die Restore-Epoche gebunden sein.
+Die externe Vollständigkeit dieser Originalnachweise bleibt ein bewusster Geräteschritt.
+
+Die kontrollierte Umstellung verlangt ein aktuelles vollständig geprüftes externes
+Vollbackup, Konflikt-/Originalprüfung und Nachweise über stillgelegte externe Schreiber.
+Danach sind alte Drive-Schreib-, Lese-Fallback- und Zweiwege-Sync-Pfade gesperrt;
+Drive dient ausschließlich Sicherung/Export. Laufende Legacyjournale werden weder
+pauschal gelöscht noch durch einen älteren Cloudstand ersetzt. Nach Wiederherstellung
+bleiben Nummernausgabe und alte externe Kontowiederaktivierung gesperrt.
+
+Die anschließende Bestandsschutzprüfung ergänzt belegte Sevdesk-Altbelege auch ohne
+`issued_at`; es wird kein Ausgabedatum erfunden. Eine vollständige Zahlungsrücknahme
+verwendet `correct_payment` mit Betrag0, leeren Zuordnungen, Grund und ausdrücklicher
+Bestätigung. Negative Gegenbuchung und sichtbare Nullquittung erhalten den Verlauf;
+andere Teilzahlungen bleiben bestehen. Neue Zahlungen mit Betrag0 bleiben gesperrt.
+Der echte gebündelte Android-UI-/SQLite-Pilot und25verschiedene native Bitmap-Fotos
+sind jetzt vollständig als isolierte Testklassen vorbereitet. Der reguläre Gradle-
+Compile von App und AndroidTests bestand in59s; neue native Ausführung folgt erst
+nach gesichertem, sauberem Quellstand und Originalbuild. Kein Geräte-PASS daraus.
+
+Releaseprüfung des gesicherten16ee087-Stands: beide APKs wurden assembliert,
+`lintRelease` meldete14ERRORs/109Warnungen; deshalb **keine Signierung**. Die Fehler
+betreffen API28-Heading-Aufrufe beiMinSDK26, zwei BigInteger-Exact-Aufrufe erst abAPI31
+und unklare URI-Grantflags. Gezielte Korrektur: vorhandenes ViewCompat, kompatible
+BigDecimal-Exact-Arithmetik und ausdrückliche geprüfte SAF-Konstanten. Kein Anheben der
+MinSDK, keine Lintunterdrückung. Breite Warnungen sind überwiegend bestehende/neue
+Textressourcen- und synchrone Preferencehinweise; ihr aktueller Gesamtstand wird im
+folgenden regulären Build erneut ausgewiesen. Der gezielte Revier-Fachtest besteht
+nach der numerisch identischen API-Korrektur erneut.
+
+### Bisherige Prüfungen dieses Integrationsstands
+
+| Umgebung / Eingabe | Erwartung | Tatsächlicher Nachweis / Grenze |
+| --- | --- | --- |
+| Vollständige Pythonregression, isolierte Fixtures | Schutzverträge/Privacy/Bestand bestehen |424 PASS,0SKIP;37 vorhandene Ersatzsignier-/QA-Schlüsseltests ausdrücklich ausgeschlossen. Erster Lauf fand den inzwischen durch sachgerechte Koordinatortrennung behobenen Architekturverstoß. |
+| API37/JDK17, Produktions- und AndroidTestquellen | Java-Typen/API-Verbindungen passen zusammen | Gemeinsame javac-Prüfung PASS; kein Gradle-/APK-/Gerätebeweis und nach letzter Härtung erneut zu prüfen. |
+| Tatsächliche gebündelte Assets im Chromium, synthetische Owner-Gegenstelle | Navigation, Geschäftsabläufe, Retry, Rechnung148EUR und60+88EUR |39 neue Pilotfälle PASS; darunter Teilabrechnung und200%Schrift bei320/360/426px. Gemeinsamer nativer UI-/SQLite-Pilot steht noch aus; diese Gegenstelle ist kein Gerätespeichernachweis. |
+| Bestehende Browser-/Node-Regressionsskripte, synthetische Fixtures | Bestehende Geschäfts-/Timer-/Entwurfs-/CASabläufe bleiben |48/48 PASS nach zwei belegten CSSkorrekturen und gezielter Anpassung veralteter Navigations-/Palettenfixtures; Originalfehler erhalten. |
+| Vollbackup-/Export-Dateiports,48MiB bei64MiBHeap | Streaming, Abbruch, fehlende/kaputte Datei, Commit/Replay |20 Transfer-,140 Austausch-/Rollback- und38 Portabilitätsprüfungen PASS; reale USB-/Driveanbieter noch nicht geprüft. |
+| Gesamter JVM-Runner,72Suiten einschließlich tatsächlichem Repositoryadapter | Restmengen, Entscheidungen, Kontext, Geld, Schemas, Korruption und bestehende Regression |72/72 PASS nach regulärer Android-Kompilierung und finalem Vertragsabgleich; native Persistenz separat offen. |
+| Bisher installierter Original-Cloudbuild mit Schema4 | Vorhandener synthetischer Update-Ausgangsbestand bleibt intakt | Bestehende lifecycle-verify-Prüfung PASS vor neuem Update. Erneutes prepare wurde sicher abgewiesen, weil der vorhandene Ausgangsbestand bereits besteht; nichts gelöscht/überschrieben. |
+
+Zusätzliche Sicherheitsbefunde wurden im Code geschlossen: alte Kameraentwürfe werden
+nicht wegen ihres Alters gelöscht; neue Providerzugriffe sind während Restore gesperrt;
+eine allein verbliebene AtomicFile-.bak bleibt lesbar; Tunnel-Dienst/Bootreceiver stoppen
+vor einer während Recovery verbotenen Storeöffnung. Frame-/srcdoc-Schutz und
+vertrauenswürdige native Entwurfcheckpoints sind integriert. Lokale PDF-Teilen-Wege
+verwenden verifizierte Originale und eingefrorene Empfänger.
+
+### Aktuelle externe Quellen und verbleibende Freigabegrenzen
+
+Am24.10. wurden die drei zentralen Pages erneut gelesen. GitHub-Connector meldete keine
+offenen PRs und acht Branches; Remote-main bleibt e499e745, Arbeitsbranch war6138757.
+Andere Cloudthreads sind mangels dauerhafter Thread-Leseschnittstelle nicht als beendet
+nachgewiesen. Dieser fehlende Schreiberstilllegungsnachweis verhindert die produktive
+Umstellung; er verhindert keine unabhängige Implementierung.
+
+Open-Meteo gestattet den freien gehosteten Dienst weiterhin nur nichtkommerziell.
+Der Kandidat kennzeichnet Wetter deshalb ausdrücklich als optionale, gewerblich
+ungeklärte Erweiterung und bestätigt keine Lizenz automatisch. Bestehende Schalter,
+Konten und Abrufe bleiben erhalten; kein Tarif und kein neuer Anbieter wurden aktiviert.
+[Terms](https://open-meteo.com/en/terms). GeoSphere ist kein belegter vollständiger
+Ersatz für die bestehende16-Tage-Prognose.
+
+Die [USP-Rechnungsinformationen](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/rechnung.html),
+[Kleinunternehmerregeln](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/weitere-steuertatbestaende-und-befreiungen/kleinunternehmen.html),
+[Aufbewahrung](https://www.usp.gv.at/themen/steuern-finanzen/steuerliche-gewinnermittlung/weitere-informationen-zur-steuerlichen-gewinnermittlung/betriebliches-rechnungswesen/aufbewahrungspflicht.html)
+und [E-Rechnung](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/vorsteuerabzug-und-rechnung/e-rechnung.html)
+wurden am24.10. gelesen. Kein automatischer Wechsel des persönlichen Steuerprofils und
+keine pauschale Rechtsabnahme. Der direkte Zugriff auf die datierte RIS-Tagesfassung
+§11UStG24.10.2026 scheiterte mit nicht erreichbarer URL/HTTP503; dies bleibt ein fehlender
+Tagesquellnachweis. Rechnungen an den Bund benötigen gegebenenfalls strukturierten
+E-Rechnungsversand; ein PDF allein ist dafür kein vollständiger Weg.
+
+Laut frisch gelesener [Android-Verifizierungs-FAQ](https://developer.android.com/developer-verification/guides/faq)
+betrifft der Start30.09.2026 ausgewählte Stores in vier Startregionen, derzeit keine
+direkten Sideloads in Österreich; weltweiter Ausbau ab2027. Daher keine aktuelle neue
+Registrierungs-/Gebührenpflicht für den erhaltenen direkten Pixel-Updateweg behaupten.
+Keine Registrierung oder Zahlung ausgelöst. Paket und Originalsignatur müssen erhalten
+bleiben; die aktuell neue Gesamt-APK und deren Update-/Datenerhaltstest sind noch offen.
+
+Offen bleiben die neue vollständige Native-/Gradle-/Privacy-/Originalsignaturprüfung,
+der echte gebündelte UI-/SQLite-Pilot, die dokumentierte Softwareabnahme RS01–16 sowie
+die getrennten Geräteschritte: Pixel/TalkBack/Kamera/Biometrie, reale zwei USB-Ziele,
+provider- und serververifizierter Upload, aktuelle Original-/Schreiberprüfung und
+bewusste produktive Entscheidung.10GB/60min ist ein ungemessenes Pilotziel. Keine neue
+Produktivfreigabe aus diesem Zwischenstand ableiten.
+
+## Revier Solo – geprüfter Zwischenstand am 24. Oktober 2026
+
+Der Wiederholungslauf aus dem exakt gesicherten Quellcommit
+`da7c16f064e677edf56f06bff3958282dab1dd39` ist abgeschlossen:
+**306 Android-SQLite-/MCP-Prüfungen PASS, 0 FAIL**, darunter elf native
+Sicherungsproben. **58 JVM-Suiten PASS**, einschließlich zehn Speicherreserve-
+prüfungen. Der vorherige Deadline-Testfehler in f507 ist korrigiert; die unten
+stehenden ausstehenden/failing Befunde bleiben als datierte Historie erhalten.
+Kein neuer Funktionsumbau oder erneuter Testlauf durch diese Statusfortschreibung.
+
+| Prüfung / Eingabe | Erwartung | Tatsächliches Ergebnis / Grenze |
+| --- | --- | --- |
+| API30-x86_64-Cloudemulator, isolierte qa_-Fixtures, interner Originalbuild1.55.0/99 aus da7c16f | Bestehende Regression und Sicherungs-/Epochenschutz bestehen | 306 PASS,0FAIL; kein Pixel-, USB- oder produktiver Google-Drive-Test |
+| JobInfo-Tagesauftrag und Wiederholungsauftrag | persistent, Netzvorgaben, tägliche aufschiebbare Periodik, keine Deadline | PASS der erzeugten Android-Spezifikationen; keine Messung realer täglicher Hintergrundausführung |
+| Gemeinsamer Sicherungsablauf mit synthetischer Gegenstelle und verlorener Uploadantwort | gleiche Generation/Datei, kein zweiter Uploadabschluss, Neuöffnung erhält Fortschritt | PASS; reale SQLite-/Keystore-/Dateipfade, synthetischer Netzwerkport |
+| 58 JVM-Suiten, einschließlich48MiB-Streamingarchiv bei64MiB-Heap | Regeln/Replay/Backoff/Reserve und letzte gute Generation erhalten | PASS; Speicherverlust über isolierten Kapazitätsport, kein physischer Vollpartitionnachweis |
+| App-/Testbuild, Originalsignierung und Privacy | originaler Schlüssel und exakter sauberer Remote-Quellstand | PASS; assembleRelease/assembleReleaseAndroidTest/lintRelease bestanden,0Fehler/55Warnungen |
+| Physischer Pixelstatus am24.10., nur get_capabilities | Installation und Entwicklung unterscheiden | meldet unverändert1.54.9/98, DB4, MCP9/117Tools, pixel_drive_v1/android_provider; Selbstauskunft, keine unabhängige Pixel-APK-Prüfung |
+
+Gebauter Quellfingerprint
+`b7e7bfa533ab1e4e51d3ec79732e08f3becbb31b369302f25d368884f291cb64`,
+App-SHA256 `8d20b108aaafa10f57e4a912d33727a19fa39ce99dceeec4ee8c3c40a3262195`,
+Test-SHA256 `4d9a3aa5ffa6a485ac3ef8735fbff58dc32292483b5e336a8345360f0f79a87a`,
+Originalzertifikat
+`a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`.
+Log-SHA256 `46611c3fb3b9bc891adfbfc88931a36c57937a5e741477ef1f139512a4f28124`.
+Die Zuordnung beruht auf dem Runneraufruf mit den expliziten Original-APKs,
+BuildConfig mit da7c16f/sauberem Quellstand und den APK-Prüfsummen; der Textlog selbst
+enthält keinen eingebetteten Commit. Am24.10. stimmen die tatsächlich im dedizierten
+Cloudemulator installierten App-/Test-APK-Hashes mit beiden obigen Originalen überein.
+Keine Freigabe, Auslieferung, Pixelinstallation
+oder produktive Autoritäts-/Datenumstellung und kein99-Release-Tag.
+
+### Nutzbarkeit und offene Schritte
+
+Der Timer-Prüfpfad und das lesende Migrationsinventar sind über bestehende UI/MCP-
+Wege erreichbar. Aufnahme, verschlüsseltes Streamingarchiv, Keystore/Recovery,
+dauerhafte Jobs, Upload-Wiederaufnahme und täglicher Android-Scheduler sind
+implementierte Infrastruktur. **Der neue Vollsicherungspfad ist noch nicht über
+UI/MCP einrichtbar und kein eingerichtetes automatisches Vollbackup.** Die bisherigen
+create_backup/restore_backup verwenden weiterhin das ältere begrenzte Format.
+
+Als nächster Integrationsschritt fehlen Geräteeinrichtung, echte Browser-/Formular-
+Entwurferfassung, Statusanzeige und gemeinsame UI-/MCP-Aktionen. Danach bleiben SAF/USB,
+kontrollierter atomarer Restore und globale Rechnungs-/Schreibersperre, vollständige
+lokale Autorität, Objekte/Anfragen/Pflege/Touren, Material/Geräte, lokaler Rechnungs-
+und Zahlungsledger sowie beide vollständigen UI-Piloten offen. Der Pixel meldet
+weiter `pixel_drive_online_compare_required`. Keine vollständige Revier-Abnahme.
+
+### Zusätzliche administrative Quellkopie bleibt unvollständig
+
+GitHub enthält den exakten da7c16f-Quellstand. Im privaten Entwicklungsordner
+[Generation da7](https://drive.google.com/drive/folders/1UXPhal4j-7dN8wkE3xBx1KtzgDDor9lR)
+liegen laut frischer read-only Gegenprüfung am24.10. **24 von53 geplanten Dateien**:
+23Textdateien mit bisherigen SHA256-Bytebelegen und ein82.403.208Byte großes XZ
+mit vollständigem Streamgrößenbeleg, ohne Remote-SHA. Keine Dubletten oder
+unerwarteten Einträge;29Dateien fehlen (26Payloads, zwei Indizes, Startdatei).
+Alle53lokalen Artefakte stimmen in Größe/SHA mit dem Plan überein.
+
+Original-ZIP-SHA256 `5f911ada5c60a5df1781c1bc923f773592b00dab8cfb33449696bca5c9d5b760`,
+lokaler XZ-SHA256 `07e8334d7a56c23b373496b109d93ce2570f51308080ea8b99a812efe3171e6e`;
+verlustfreier lokaler Rundlauf geprüft.32MiB-Downloadmaterialisierungsgrenze verhindert
+einen Remote-Bytehash des XZ. Die flachen JSONL-Belege sind keine bereits normierten,
+metadatengebundenen Wiederverwendungsbelege des Transferhelfers. Vor Fortsetzung
+frisches Inventar/Plan und passende Belege erstellen; keine blinden POST-Retries,
+keine Bereinigung und keine Vollständigkeitsbehauptung. Bisherige gute Generation
+bleibt erhalten. Dies ist Quellcodesicherung, keine betriebliche Datensicherung.
+
+## Revier Solo – Scheduler-Nachprüfung und freier Speicher für den lokalen Betrieb
+
+Interner Originalbuild `f507c77ec3a9c98563d4f95bed9a7c890fea3f4a` (1.55.0/99),
+API30-x86_64-Cloudemulator: **305native Prüfungen PASS,1FAIL**. Zwei neue Prüfungen
+für Einstellungs-/Browser-CAS, Rollback/Replay/Neuöffnung/Restore-Epoche und den
+automatischen Sicherungsablauf nach verlorener Uploadantwort bestehen. Der dritte
+neue Fall scheitert ausschließlich an der erwarteten Deadline-Repräsentation:
+Android30 meldet bei nicht gesetzter Deadline0; der Test hatte Long.MAX_VALUE erwartet.
+Eine eigenständige native JobInfo-Probe ohne Appdatenzugriff bestätigt beide Werte:
+Tagesjob86400000ms/Netz2/persistent, Einzeljob60000ms/Netz1/persistent, maxDelay jeweils0.
+Die Testbedingung ist entsprechend korrigiert; Wiederholung noch ausstehend.
+Der gesamte f507-Lauf ist **kein PASS und keine Releaseabnahme**. Sein unverändert
+gesicherter Log hat SHA256
+`fa7846af353887d3157dbee5de46733e1935dabf3b236cd78e4d8a28dc12ee9c`.
+
+f507-App-SHA256 `d402a37e2cf50e2445988bbea0224f3d534f38addfd12fdc0516af93a1864b99`,
+Test-SHA256 `5c97ae745d27f366a99e1759f4cb92ed88531e9585a6861075b5bd0103974c7c`,
+Quellfingerprint `17f1d8c9d646eb5e809dec69fc0205fd0cc52d932630eafde60ae8b57c69473f`.
+Originalzertifikat wie unten; sauberer Remote-Commit vor Build/Signierung geprüft.
+assembleRelease/assembleReleaseAndroidTest/lintRelease PASS,0Fehler/54Warnungen.
+Keine Pixelinstallation und kein Zugriff auf produktives Drive.
+
+Danach implementiert: `BackupStorageBudget` hält256MiB freien Platz für lokale
+Fachschreibvorgänge zurück. Dies begrenzt freien Arbeitsraum, nicht Archivgröße.
+SQLite-Aufnahme prüft zusätzlichen Platz vor VACUUM, Kopie/Verschlüsselung/Prüf-
+Extraktion prüfen während des Schreibens. Ein abgewiesener neuer Versuch lässt
+Quellen und letzte gute Generation unangetastet. Sicherungsthread erhält Android-
+Hintergrundpriorität. Unbekannte neuere Jobformate derselben Epoche halten den
+Scheduler zur Prüfung zurück, statt unbemerkt eine neue Generation anzulegen.
+**58JVM-Suiten PASS**, darunter10Speicherreserveprüfungen mit isoliertem
+Kapazitätsport (lange Größen, Platzverlust während Schreiben, Abbruch, letzter
+guter Stand). Kein physischer Vollpartition-/USB-Abzugnachweis daraus ableiten.
+Neue App-/Instrumentierungskompilierung PASS nach56s. Die native Wiederholung
+steht noch aus; Software-/Geräteabnahme bleibt offen.
+
+Frische Repositoryabfrage über den vorhandenen GitHub-Connector gelingt, nachdem
+Cloud-GitHub-REST/GraphQL403 lieferten: keine offenen PRs, acht sichtbare Branches.
+main bleibt e499e745. Pflanzenbibliotheksbranch7d499b2 wurde nur gelesen/verglichen:
+Integrationsanweisung, Revision2-Datenpaket und Verteilnachweis stimmen mit der
+bereits übernommenen Kopie überein (49154b5); dortiger operativer Katalog ist älter.
+Kein Zurücksetzen der aktuellen314Profile/628Bilder, keine fremde Arbeit integriert.
+Andere laufende Cloud-Threads und externe operative Schreiber sind damit nicht
+als stillgelegt nachgewiesen.
+
+## Revier Solo – täglicher Sicherungsauftrag und native Prüffälle vorbereitet
+
+Abnahmekriterien vor Umsetzung: standardmäßig ausgeschaltet; Einrichtung erst nach
+bestätigtem Recovery-Code und ausdrücklicher Zielwahl; CAS/Request-Replay und atomare
+Einstellungsbelege; Browsercheckpoint und Einstellungen nach SQLite-Neuöffnung;
+Restore-Epoche hält alte Einstellungen/Jobs zurück; bestehende Generation vor neuer
+Aufnahme fortsetzen; höchstens8Versuche und begrenztes Backoff; Geschäftssnapshot bleibt
+unverändert. Keine Kontoerlaubnis oder operative Drive-Synchronisierung im Backupjob.
+
+`BackupSettingsRepository` speichert diese versionierten technischen Einstellungen
+und explizite Browsercheckpoints in der vorhandenen Datenbank. `BackupAutomation`
+verbindet die Tagesregel mit dem bereits geprüften Aufnahme-/Uploaddienst.
+`FullBackupJob` nutzt Android JobScheduler mit täglichem persistentem Auftrag und
+separatem Wiederholungsauftrag, standardmäßig nicht getaktetes Netz. Keine exakte Uhrzeit,
+kein Dauerdienst und kein Polling. Der Scheduler startet noch nicht automatisch:
+Geräteeinrichtung/UI/MCP-Anbindung stehen als nächster Integrationsschritt aus.
+Die neuen drei nativen Prüfungen sind vorbereitet, noch nicht ausgeführt.
+
+Quellenzugriff23.10.2026: [JobInfo.Builder](https://developer.android.com/reference/android/app/job/JobInfo.Builder)
+bestätigt aufschiebbare Periodik und Bootpersistenz mit vorhandener Bootberechtigung.
+Ein erster Instrumentierungskompilierlauf scheiterte an einer nicht öffentlichen
+Testabfrage (`hasLateConstraint`); korrigiert auf die öffentliche Deadline-Abfrage.
+Kein solcher fehlgeschlagener Lauf wird als PASS gezählt. Die anschließende
+App-/Instrumentierungskompilierung besteht.57JVM-Suiten,8 gezielte Python-
+Vertrags-/OS-Backuprichtlinienprüfungen und Source-/Workspace-Privacy PASS.
+Zusätzlich bestehen26Streamingarchiv-Fehlerprüfungen (48MiB bei64MiB-Heap),
+7Dateipinning-/Kopierprüfungen und23Tagesregelprüfungen einschließlich Jobabbruch.
+Noch kein nativer Ausführungsbeleg des neuen Schedulers.
+
+Aktuelle österreichische Quellenprüfung und ersetzte historische Laptop-/PDF-Angaben
+stehen in `RECHNUNGEN-OESTERREICH.md`; RIS-Normfassung nach erstem fehlgeschlagenem
+Tagesabruf erfolgreich gelesen. Keine Änderung produktiver Steuer-/Ausstellerdaten.
+
+## Revier Solo –303 native Prüfungen im exakten Sicherungsjob-Quellstand
+
+Quellcommit `d2ecc05f44efa20bdb6d4ddc3bec50dd93795e05`, interner Original-
+Prüfbau1.55.0/99: **303Android-SQLite-/MCP-Prüfungen PASS,0FAIL** auf API30-x86_64
+in Codex Cloud. Die zuvor nur vorbereiteten vier Job-/Epochenschritte sind jetzt
+ausgeführt: SQL-Rollback/Replay/CAS/Neuöffnung, separate Restore-Epoche und gemeinsamer
+Aufnahme-/Verschlüsselungs-/Uploadpfad nach verlorener Endantwort. Dieselbe Generation
+mit identischem Archivhash und genau einer externen Datei wird wiederaufgenommen.
+Die Gegenstelle war ein isolierter synthetischer Port; kein produktiver Drivezugriff.
+Bestehende Geschäftssnapshots bleiben unverändert. Acht native Sicherungsproben
+insgesamt, keine vollständige RS-11-/Pixel-/USB-/Restoreaktivierungsabnahme.
+
+App-SHA256 `8ea0920138683829831981b6b25d180ea79b7c8800931c38b1ab7656566ce56d`,
+Test-SHA256 `ac5e8c0456650c3a36495beee6bed70899e19d885c6a2c35df064fc921591aa1`,
+Quellfingerprint `2560839827fb0623bc3d591c73b419a833c55c6765471e722f8ba5af33cd44f9`.
+Beide Originalzertifikat wie unten; sauberer gepushter Quellstand/source_preservation
+vor Signierung PASS. assembleRelease/assembleReleaseAndroidTest/lintRelease PASS
+(0Fehler,54Warnungen). Log-SHA256
+`e992a6d78111eb5382a2958975e4cba5222145797f678b2978c158923bf1a92b`.
+Keine Auslieferung/Pixelinstallation/Produktivumstellung; kein99-Release-Tag.
+
+Anschließend57JVM-Suiten PASS, darunter21 neue Regeln für täglichen Sicherungs-
+Rhythmus, maximal8Versuche, begrenztes Backoff, Ziel-/Restorebindung und tatsächliches
+Datenalter. Das ist noch kein Ausführungsnachweis des Android-Schedulers.
+Aktueller Remote-main unverändert e499e745; eigener Branch exakt d2ecc05 zurückgelesen.
+Frische PR-Abfragen über GitHub-GraphQL und REST erhielten403; deshalb keine aktuelle Behauptung
+über offene PRs oder ausgeschlossene fremde Cloud-Arbeit.
+
+## Revier Solo – gemeinsamer Sicherungsablauf mit dauerhaften Jobs vorbereitet
+
+Nachfolgend zum gesicherten Uploadadapter6f347eb: `BackupJobRepository` speichert
+Job und Requestbeleg atomar in der vorhandenen owner_state-Haltung. Stabile
+request_id, unveränderliche Eingangsbindung, Revisionen und persistente Upload-
+Checkpoints statt Last-write-wins. Separate Device-/Restore-Epoche liegt in
+noBackupFilesDir und wird nicht in die Sicherung aufgenommen. Wiederholung eines
+Epochenschritts ist idempotent; andere Installation/Restore-Epoche hält alte Jobs
+zur Prüfung zurück. Diese Sicherungs-Epoche ersetzt noch nicht die beauftragte
+globale Migrations-/Rechnungsautoritätssperre.
+
+`BackupApplicationService` verbindet denselben lokalen Aufnahmepfad mit den Jobs:
+Browserzustand eindeutig binden → SQLite/Dateien aufnehmen → unveränderliches
+verschlüsseltes Archiv schreiben/fsync → vollständig entschlüsseln und Referenzen
+prüfen → optional über vorhandenen Drive-Transport hochladen/zurücklesen.
+Nur technische Sicherungsjobs werden geschrieben; kein Drive-Geschäftsstand wird
+eingelesen/angewandt. Nach Unterbrechung bleiben Dateistages/Jobcheckpoints erhalten.
+Ein bereits festgeschriebenes fehlendes/verändertes Archiv oder veränderte
+Aufnahmemetadaten wird nicht automatisch neu erzeugt oder mit neuem Hash akzeptiert.
+Schlüsselwerte und Uploadsession-URLs werden nicht in Diagnosen ausgegeben.
+
+App-/Instrumentierungsquellen kompilieren, Source-/Workspace-Privacy PASS.
+Vier neue native Proben für SQL-Rollback/Replay/CAS/Job-Neuöffnung, separate
+Restore-Epoche sowie den gemeinsamen Aufnahme-/Upload-Wiederanlauf sind vorbereitet,
+**noch nicht ausgeführt**. Die299PASS unten gelten exakt fürab1a0c0, nicht als
+Ausführungsnachweis dieser neuen Klassen. UI-Anbindung, täglicher Android-Scheduler,
+SAF und kontrollierte Restoreaktivierung bleiben offen; keine produktive Freigabe.
+
+## Revier Solo –299 native Prüfungen und Backup-Uploadadapter
+
+Exakt gesicherte App-/Testquelle `ab1a0c026a9a8bff15a481b08ab77a713587e070`,
+interner Prüfbau1.55.0/99, API30-x86_64-Cloudemulator:
+**299Android-SQLite-/MCP-Prüfungen PASS,0FAIL**. Vier neue Prüfungen führen
+Android-Keystore-Rückbestätigung/Replay, Recovery nach Löschung ausschließlich des
+isolierten QA-Schlüssels, vollständiges SQLite-Abbild mit großem Unicodewert/BLOB
+und Dataset→verschlüsseltesArchiv→temporärerErsatzbestand tatsächlich aus.
+Journalbelege, IDs, Beträge, offenerTimer, Fotos/PDF, typisierte Einstellungen,
+Browser-/Fotoentwurf, persönliche Markierung samt Migrationsflag und offener
+technischer Job bleiben erhalten; aktive Originale unverändert. Dies ist keine
+produktive Restoreaktivierung, keine echte USB-Prüfung und kein Pixelbeleg.
+
+App-SHA256 `f80d884265f0af9b8424bfd5c733db8305e35d750f3f805baab4f8c4e9ff149f`,
+Test-SHA256 `c6599069d08f14d6f24d4952c86f9998aea99286eb70fac6e38719fb397dbf7b`,
+Originalzertifikat `a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`,
+Quellfingerprint `e6da2cb4843b96e28f60b001137f9c098f7524fcdcc1448247caf1621ccf3a0c`.
+Build/App-/Testsignierung mitsource_preservation PASS aus sauberemRemote-Commit;
+lintRelease0Fehler/53Warnungen. Nativer Log-SHA256
+`c9ba19e09f4866d67e8bf0b91aa5f2bfaf834edc6a643ede1b4d70ec9767ce48`.
+Keine Bereitstellung/Installation amPixel und kein99-Release-Tag.
+
+Originalquellen dieses Prüfschritts extern gesichert:
+[private Entwicklungsgenerationab1](https://drive.google.com/drive/folders/1iuPAdHOThezrpWICnEdX_e0mF4VDPI6j).
+52Text-/Indexdateien bytegleich perSHA256 zurückgelesen, frisches Inventar53Dateien
+eindeutig/privat; anschließend Prüfbeleg ebenfalls bytegleich zurückgelesen
+(`1obg9mWkMmqicmSSU8GFpwWNVqePs4oU8`,SHA256
+`3896c350f9aadd2292cb677d22472bbf209cebc45e4a95892d57a0054d1a30b7`).
+ZIP-SHA256 `049f30f981d06319de1a75e4181129e7c91724ed28cd4015cad31a70edfec1ba`;
+verlustfreierXZ82364352Bytes lokal rundlaufgeprüft und vomDrive-Connector als ganzer
+Stream passender Größe zurückgelesen. Kein Remote-Bytehash fürXZ wegen32MiB-
+Materialisierungsgrenze; Originalbytes inGitHub. Keine betriebliche Datensicherung.
+Die danach beschriebene Uploadadapter-Änderung ist noch nicht in dieser Generation.
+
+Danach: neuer Backup-Uploadadapter verwendet den vorhandenen Drive-Transport und
+Kontozugang, ausschließlich für versiegelte Generationen. Vorab generierte,
+dauerhaft zu speichernde Drive-ID verhindert Dubletten bei unklaren Antworten.
+Resumable-Sitzungen/Serverposition,1MiB-Dateichunks und vollständiges Remote-
+Streamingrücklesen/SHA256 statt RAM-Archiv. Kein Lesen/Anwenden operativer
+Drive-Snapshots, keine Änderung/Löschung bestehender Generationen. Redirect-/Fremd-
+Uploadziele, abweichende Datei/Eltern/Größe/Hash und widersprüchliche Range scheitern.
+Ein vorheriger Erfolg wird bei neuer Prüfung nicht als aktueller Erfolg übernommen.
+
+**56JVM-Suiten PASS** im nachfolgenden Quellstand; neueSuite380Assertions mit48MiB-
+Datei bei64MiB-Heap, tatsächlichem Streaming-HTTP-Hashleser und synthetischem
+Drive-Port. Chunk-/Endantwortverlust, Checkpointabbruch, Neustart, Replaykonflikt,
+verfälschtesRücklesen und fremdesZiel geprüft. Kein Google-Konto/kein produktiver
+Uploadtest. Ein zusätzlicher Vergleich erkennt während der Aufnahme geänderte
+Legacy-Einstellungen und verlangt Wiederholung statt gemischter Sicherung.
+Jobpersistenz/automatischer Android-Scheduler/UI-Anbindung bleiben zu integrieren;
+dieser Adapter allein ist **noch kein automatisches Drive-Backup**.
+Cloud-Neustart ließ Dateien erhalten, beendete aber die anschließenden Android-/
+Python-Läufe. Abgebrochene Läufe sind kein PASS; die anschließende Wiederholung
+besteht:423Python-Prüfungen/0Skip und App-/Instrumentierungskompilierung PASS.
+37QA-Ersatzsigniertests bleiben ausdrücklich ausgeschlossen.
+
+Primärquellenzugriff23.10.2026 jetzt über den vorhandenen Webconnector möglich,
+während direkte Cloud-HTTP-Zugriffe auf die Dokumentationsdomains weiter begrenzt
+sind. Tatsächlich gelesen:
+[Drive-Uploadprotokoll](https://developers.google.com/workspace/drive/api/guides/manage-uploads),
+[vorgegebeneDatei-IDs](https://developers.google.com/workspace/drive/api/guides/create-file),
+[Android-Autobackup](https://developer.android.com/identity/data/autobackup),
+[SAF](https://developer.android.com/training/data-storage/shared/documents-files),
+[TinkStreaming](https://developers.google.com/tink/streaming-aead).
+Diese Quellen stützen Protokoll-/Formatentscheidungen, ersetzen keinen Gerätetest.
+
+[Open-Meteo-Bedingungen](https://open-meteo.com/en/terms): kostenlose API ist auf
+nichtkommerzielle Verwendung beschränkt; keine gewerbliche Freigabe aus CC-BY
+ableiten. Kein Tarif aktiviert und keine bestehende Verbindung abgeschaltet.
+Kommerziell zulässiger kostenfreier Ersatz bleibt optional/offen.
+[Android-Verifizierung](https://developer.android.com/developer-verification):
+regionale Einführung seit30.09.2026, weitere Ausweitung2027; konkrete gewerbliche
+Einzelgeräte-Verteilung vor Produktivinstallation prüfen. Keine neue Registrierung,
+Gebühr oder angenommene Hobby-Ausnahme.
+[USP-Rechnung](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/rechnung.html):
+Pflichtangaben/Empfänger, Leistungszeitraum und Dokumentart weiter prüfen;
+strukturierte Bundesrechnung ist ein eigener Fall. GezielterRIS-Abruf der
+Tagesfassung23.10.2026 war nicht lesbar. Keine vollständige Rechtsabnahme und
+keine Änderung bestätigter Aussteller-/Steuerdaten aus diesen Quellen.
+
+## Revier Solo – SQLite-/Dateiaufnahme und konkretisierte Drive-Rolle
+
+Nutzerpräzisierung23.10.2026 ist im bestehenden Auftrag konsolidiert:
+Funktionen/maßgebliche Speicherung ausschließlich Pixel/App; Drive ausschließlich
+Sicherung mit regelmäßigem automatischem Upload aus der App. Kein Zweiwegesync
+im Zielbetrieb. Automatischer Upload mit dauerhaftem Job/Remote-Prüfung noch offen;
+Altbetrieb und produktiver Pixel bleiben bis kontrolliertem Übergang unverändert.
+
+Neuer interner Aufnahmepfad (noch ohne produktiven UI-/SAF-Einstieg): SQLite erstellt
+perVACUUM INTO ein konsistentes eigenes Abbild einschließlichWAL. Integrität,
+Fremdschlüssel, alle Tabellen/Schema, Größe/SHA256 werden geprüft. Große Text-/BLOB-
+Zeilen benötigen kein vollständiges CursorWindow. Live- und Sicherungsansicht lesen
+das pending-Journal jetzt über denselben Code: Reihenfolge, getrennte MCP-Belege,
+Undo-Schutz und Foto-Metadaten bleiben erhalten. Katalog-/Legacy-PDF-/Tombstone-Regeln
+sind gemeinsam; kein eigener konkurrierender Fachbestand.
+
+Unveränderliche Originale werden vor der DB-Aufnahme gepinnt, mutable private Dateien
+separat kopiert/gehasht. Die Aufnahme umfasst sämtliche DB-Tabellen, private Dateien,
+ausgewählte Entwurfscaches, bestehende Lösch-/Konfliktsicherungen, typisierte
+App-/Planungs-/Mail-Einstellungen sowie explizit übergebene Browserentwürfe. Unicode-
+Dateinamen bleiben erhalten; Symlinks/Pfadflucht und rekursive Aufnahmeziele scheitern.
+Keystore/Recovery-Kapsel/aktuelle Backupstages werden ausgeschlossen. Bekannte
+Zugangsschlüsselfelder der strukturierten Einstellungen werden ausgelassen;
+historische Sicherungsevidenz bleibt verschlüsselt und darf keine Kontorechte oder
+alten Schreiber aktivieren. Dieser Aufnahmepfad aktiviert keine Wiederherstellung.
+
+Abnahme dieses Sicherungsschritts: unveränderte IDs/Journal/Zeiten/Beträge/Originale,
+erhaltener Timer/b.b./offene Jobs/Entwürfe, echte SQLite-Rundlaufprüfung, Wiederherstellung
+perCode ohne alten Keystore; Fehler lassen aktiven Bestand und gute Generation intakt.
+Host/JVM: **55Suiten PASS**, darunter23Archiv-Fehler-/Grenzprüfungen mit48MiB bei64MiB-
+Heap sowie Pin/Kopie/Unicode/Symlink-/Katalog-Bestandsschutz. **423Python-Prüfungen PASS**,
+0Skip; bestehende37QA-Ersatzsigniertests ausdrücklich ausgeschlossen. App und native
+Testquellen kompilieren. Vier neue echte Android-Keystore-/SQLite-/Dataset-Rundlaufproben
+sind vorbereitet, aber **noch nicht ausgeführt**. Kein nativer PASS für diese neuen
+Klassen aus den älteren295Prüfungen ableiten. Die erste Wiederholung stoppte korrekt
+an veralteten UI-Quellprüfsummen; nach Review sind157Aktionen/118Tools unverändert.
+
+Android-Autobackup bleibt deaktiviert; zusätzlich schließen explizite ExtractionRules
+Cloudbackup und DeviceTransfer für alle privaten Domains aus. Zwei Policytests PASS;
+kein ausgeführter OEM-/Ersatzgeräte-Transfernachweis.
+
+Ergänzung zum älteren ANR-Befund unten: Nach Beenden des tatsächlich angezeigten
+SystemUI-Dialoges wurde derselbe isolierte Accessibility-Lauf erneut ausgeführt:
+Heute und Planung bei100/150/200Prozent Schrift PASS; ursprüngliche Emulator-
+Schriftgröße/Dichte anschließend wiederhergestellt. Synthetische Lesefixture, keine
+Geschäftsschreibaktion. Das ist kein TalkBack-/Pixelbeleg und keine Prüfung aller
+neun noch zu bauenden Revier-Kernansichten. Der initiale Fehlbefund bleibt datiert.
+
+Noch offen: konsistente UI-Draft-Erfassung im echten Ablauf, dauerhafte Sicherungsjobs,
+automatischer Drive-Upload/Remote-Prüfung, SAF/USB-Pilot, vollständige referenzielle
+Restoreprüfung/Aktivierung mit unabhängiger Ausgabesperre, lokale Autorität und PhasenC–F.
+Keine neue APK ausgeliefert, kein99-Tag, keine produktive Installation/Umstellung.
+
+## Revier Solo – native295-Prüfung und verschlüsselter Archivkern
+
+Originalsignierte Appquelle `2fb5b8e9a2b243122b2e6039ae5c8161d9a3f9e5`,
+Instrumentierungsquelle `1b00545c65aadca911547b98e34f5c7656caa444`:
+**295 native Android-SQLite-/MCP-Prüfungen PASS,0FAIL** auf dem isolierten
+API30-x86_64-Cloudemulator (Softwareemulation ohneKVM). App-SHA unten909846…,
+Test-APK-SHA `3ab39bfc270e2d10afe55b18f4270e5e256a50bc03394251ee6fb60494503f19`;
+beide Originalzertifikat. Die drei zuvor protokollierten Fixturefehler sind
+gezielt behoben; keine Zeit-/Schnittstellenschutzregel wurde abgeschwächt.
+
+Zusätzlich: Leerbootstrap isoliert PASS. Der erste UI-Aufruf verwendete den
+leeren Bestand, obwohl die bestehende Probe gefüllte QA-Datensätze voraussetzt;
+nach expliziter synthetischer Vorbereitung auf99 besteht der native UI-Lauf
+mit Navigation, Arbeitsauswahl, Kundenakte, Planung/Entwurf, Papierkorb und
+Verbindungsansichten. **Kein98→99-Updatebeleg.** Die zusätzliche Accessibility-
+Probe wird durch ein tatsächlich fokussiertes Android-SystemUI-ANR-Fenster
+blockiert; kein PASS daraus ableiten. TalkBack/Pixel und alle neun Revier-
+Zielansichten bleiben offen. Zwischenzeitlicher Cloud-Zugriffsausfall hat die
+Arbeitsdateien erhalten; die Sicherungspunkte aufGitHub waren unabhängig davon.
+
+Neu danach: `BackupCrypto` und `EncryptedBackupArchive` verwenden Tink-Android
+1.24.0 (Apache2.0; Primärquellen/Release-Metadaten am23.10.2026 gelesen).
+AES256-GCM-HKDF-Streaming mit1MiB-Segmenten, frischem Zufallsschlüssel proArchiv;
+Tink verschlüsselt diesen unter einem zufälligen256Bit-Recovery-Schlüssel.
+Kein eigenes Verschlüsselungsverfahren. Recovery-Code mit Tippfehlerprüfsumme;
+keine Passwortableitung, kein Internetdienst und keine laufende Gebühr.
+Manifest und personenbezogene Metadaten sind innerhalb der Verschlüsselung.
+
+Der Leser authentifiziert den gesamten Stream bisEOF vor ZIP-Verarbeitung,
+prüft Version, Datei-/Größen-/Hashinventar und extrahiert ausschließlich in ein
+neu angelegtes temporäres Verzeichnis. Pfadtraversierung, Dubletten, abgebrochene
+Dateien, fehlender Platz und neuere Schemata scheitern ohne Bestandsaustausch.
+Kein festes Gesamtarchivlimit;32MiB gelten nur als technische Manifestobergrenze.
+`BackupRecoveryKeyStore` kapselt den Code lokal per Android-Keystore/AES-GCM in
+noBackupFilesDir, verlangt Rückbestätigung und stabile Setup-Anfragekennung,
+verhindert stilles Überschreiben/Neuerzeugen bei verlorener Kapsel und serialisiert
+konkurrierende Instanzen. **Plattformlauf dieser neuen Keystore-Klasse noch offen.**
+
+Tatsächlich ausgeführt:53JVM-Suiten PASS; darin21Archiv-Grenz-/Fehlerprüfungen
+mit48MiB-Payload und25synthetischen Medienreferenzen bei64MiB-Java-Heap.
+Falscher Code, beschädigter letzter Authentifizierungsblock, Trunkierung,
+simulierter USB-Abzug/volles Ziel, Platzmangel, neueres Schema und ZIP-Pfadflucht
+lassen Originalgeneration und simulierten aktiven Bestand bytegleich. Rücklauf
+benötigt keinen alten Keystore. Das sind **Containerprüfungen**, keine vollständige
+Gerätesicherung: reale SQLite-Aufnahme/Medienreferenzprüfung, UI-Entwürfe, SAF,
+physische USB-Ziele, produktive Restoreaktivierung und Rechnungssperre nachRestore
+sind noch zu integrieren. Der neue Archivpfad ist noch nicht produktiv erreichbar.
+Die frühere Aussage „noch keine Kryptobibliothek integriert“ unten ist damit für
+diesen nachfolgenden Entwicklungsstand ersetzt. Bestehende Sicherungswege bleiben.
+
+Externe Zwischenquellen aus2fb5b8e im bestehenden privaten Entwicklungsordner:
+`https://drive.google.com/drive/folders/1rEQlDxYJu5ykJuIfBVWlQ6TeOPUh0bi-`.
+52Text-/Indexdateien einzeln hochgeladen und bytegleich perSHA256 zurückgelesen;
+OriginalZIP161281003Bytes verlustfrei alsXZ82328264Bytes transportiert.
+Lokaler XZ-Rundlauf ergibt exakt den unten genannten ZIP-Hash; Drive-XZ wurde als
+vollständiger Stream mit passender Größe zurückgelesen, **kein Remote-Bytehash**
+behauptet. Der Connector verweigert Uploads über100MiB, die Dateimaterialisierung
+ist auf32MiB begrenzt. GitHub enthält die vollständigen Originalbytes. Diese
+Generation enthält noch nicht den nach1b00545begonnenen Archivkern; keine neue
+Auslieferung, kein99-Tag und keine Pixelinstallation/Umstellung.
+
+## Revier Solo – native Erstprüfung und korrigierte gemeinsame Uhrenquelle
+
+Erneuter originalsignierter API30-Cloudlauf aus
+`2fb5b8e9a2b243122b2e6039ae5c8161d9a3f9e5`: Referenztag135/150Minuten,
+idempotenter Zweitstart, persistenter Boot-/Uhrprüfmarker und manuelle MCP-Prüfung
+einschließlich Ursprungszeile tatsächlich ausgeführt und PASS. Nativer Gesamtlauf:292PASS/3FAIL von295Prüfungen; die drei Fehler liegen in
+den unten beschriebenen Testvorbereitungen. Noch keine Gesamtfreigabe. Eine Altprüfung erwartet weiterhin52/35Bridge-Methoden statt
+53/36mit der exakt genehmigten Prüfaktion; zwei weitere isolierte Foto-/Termin-
+Fixtures mischen weiterhin FakeClock mit der Geräteuhr beim Lesen derselben
+offenen Sitzung. Diese Testvorbereitung wird auf die gemeinsame injizierte Uhr
+umgestellt. Keine Produktivregel gelockert; abschließender Wiederholungslauf offen.
+
+Prüfbau2fb5b8e: APK-SHA256
+`90984624275e55383e39f832d2b7ae46252610128d2cb7c7a14e8d9b498ce6a5`,
+Quellfingerprint
+`95e60d45114193010d42ccf1f5094d2d3624fccc0d96053204bba9e0be45683f`;
+Originalzertifikat unten unverändert. Vollständiger Originalquell-ZIP lokal
+bytegeprüft (`9f8878e0c5a0708ca7f4b6a0373891474193e4b6b4e7e8ae7ed94f47dc2be67b`).
+GitHub-Branch exakt zurückgelesen, kein99-Tag und keine Auslieferung/Pixelinstallation.
+
+Primärquellenergänzung: Tink1.24.0 wurde am23.10.2026 über Maven-Central-Metadaten
+und die Maintainerquellen unter `github.com/tink-crypto/tink-java` (Tagv1.24.0)
+lesend geprüft. Die zuvor genannten Dokumentationsdomains bleiben gesperrt.
+Noch keine Kryptobibliothek integriert, kein Backup-/Recovery-Nachweis daraus.
+
+Erster originalsignierter interner Prüfbau99 aus00974518426e1a2bdfcb07c5eba1223071a49ca3:
+Signatur/Privacy bestanden, jedoch keine native Gesamtfreigabe. Der ältere native
+Test mischte FakeClock und Geräteuhr in derselben SQLite-Sitzung; der neue Schutz
+blockierte korrekt statt nach Bootwechsel zu schätzen. Gemeinsames Repository
+bietet nun eine einheitliche injizierbare Uhrenquelle (Produktivstandard weiter
+Android SystemClock/BOOT_COUNT). Bridge, Store und MCP verwenden dieselbe
+Sitzungsinstanzgrenze; Test öffnet den Store auch nach Neustart mit derselben
+synthetischen Uhr. Keine Lockerung der Zeitprüfung. Prüfung wird wiederholt.
+
+Korrigierter Stand:52 JVM-Suiten und App-/Instrumentierungskompilierung PASS.
+11 Zeitregelprüfungen, zusätzlich persistenter Prüfmarker beim direkten Startreplay
+und tatsächlicher MCP-Korrekturpfad in der nativen Fixture. Der Auditbeleg
+behält zusätzlich die vollständige ursprüngliche SQLite-Sitzungszeile einschließlich
+der alten Segment-/Bootwerte, bevor die Korrektur aktive Segmentfelder schließt. Prüfdialog bewahrt bei
+geänderter Revision die Eingaben und verlangt eine neue Bestätigung;5 Browserfälle
+bei320/360/426px und200Prozent PASS. Kein geschätztes Arbeitsende.
+
+Zusätzlich bleibt bei direkten Replay-Aufrufen der persistente Uhrprüfmarker
+auch im Transaktionspfad erhalten. Fehlende Bootkennung erzwingt Prüfung statt
+Vergleich eines unzuverlässigen wall-minus-elapsed-Werts. Erstbau99 hat SHA256
+77eec9a4dae8888b2191e77a72d52ec778d34bed025fc0b82def2164c8f33865;
+Originalzertifikat a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8.
+Nicht ausgeliefert, kein99-Tag, keine Pixelinstallation. Exakte0097451-Originalquellen
+als geprüfter ZIP-/TXT-Rundlauf außerhalb des Checkouts erhalten; nachfolgende
+Quelländerung benötigt eigenen sauberen Commit/Remote-Readback und Neubau.
+
+## Revier Solo – tatsächlicher Zwischenstand, 23.10.2026
+
+**Auftrag läuft; Gesamtziel und Phasen B–F sind nicht abgeschlossen.** Kein
+produktiver Autoritätswechsel, keine Installation und keine reale Rechnung,
+Nachricht, Zahlung, Wiederherstellung oder Testanlage auf dem Pixel. Die neue
+Entwicklungsversion1.55.0/99 ist von Original98 und der beobachteten Installation
+getrennt. Ein künftig signierter Prüfbau ist keine vollständige Revier-Abnahme.
+
+### Quellen- und Arbeitsabgleich
+
+- Remote-main beim Einstieg `e499e745832449ce0202d04d9903495248e8b034`;
+  aktueller Quell-/Abschlussbranch `codex/function-sync-audit-20261022` bei
+  `419d0b4bfcbb7108d00296619831a04ddc3273b0`, enthält saubere Original98-Appquelle
+  `dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c`. Main ist dessen Vorfahr. Alle sechs
+  vorhandenen Remote-Arbeitsbranches eingelesen, keine offenen PRs gemeldet.
+- Ursprünglicher Working Tree sauber; keine ungesicherte Arbeit überschrieben.
+  Genau ein begründeter neuer Branch `codex/revier-solo-20261023` auf dem neuesten
+  gesicherten Stand, um vorhandene Arbeitsbranches nicht umzuwidmen. Keine
+  automatische Übernahme nach main. Andere gehostete Cloud-Threads sind über die
+  verfügbaren Werkzeuge nicht direkt inventarisierbar; deren Ausführung ist nicht
+  als beendet attestiert. Vor weiteren Integrationen Remote erneut prüfen.
+- Bestehende zentrale Regeln, Arbeitsübersicht, Projektzentrale und MCP-Dossier
+  gelesen. Konzeptseite erreichbar, liefert Präsentationsmetadaten statt Folien.
+  Vollständiger Nutzerauftrag ist maßgeblich und in bestehendem Auftragsdokument
+  nach Anforderungen, Fachpfaden, RS-Fällen, Kosten und Grenzen konsolidiert.
+- Erneute reine MCP-Lesung im Task bestätigt App1.54.9/98, Paket
+  `at.hausgarten.service`, DB4, MCP9/117Tools, QuellSHA dbe9ed0… und Fingerprint
+  `fd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae`,
+  `source_dirty=false`, pixel_drive_v1/android_provider. Pflichtabschluss weiterhin
+  `pixel_drive_online_compare_required`. Keine APK-/Zertifikatsprüfung des Pixels.
+  Ältere96-Beobachtung in AKTUELLER-STAND.json historisch erhalten.
+
+### Konkrete Implementierung
+
+- Bestehende SQLite-Tabellen und DB-Version4 erhalten. WorkSessionStore speichert
+  für neue unveränderliche Zeitereignisse reale Zeit, monotone Zeit, Bootkennung
+  und Europe/Vienna. Nach Bootwechsel, negativem Intervall, >2min Uhrabweichung
+  oder >24h ununterbrochenem Segment wird keine Dauer aus der Wanduhr geraten.
+  Prüfbedarf bleibt als Ereignis gespeichert, auch wenn die Uhr zurückgestellt wird.
+- Pausen neuer Ereignisse verwenden dieselbe Boot-/Zeitprüfung. Geschlossene alte
+  Ereignisintervalle werden nicht umgeschrieben. Unklare offene Altpause benötigt
+  Prüfung. Referenztag bleibt150min netto/15minPause, um10:30 sind135min erreicht.
+- Zweiter Start führt zur vorhandenen Sitzung, ohne einen zweiten Timer zu erzeugen;
+  direkte Startwiederholungen erhalten einen dauerhaften Ereignisbeleg. Anfrage-ID
+  für andere Zeitaktionen wird zurückgewiesen. Bereits finalisierte Sitzungen
+  können nicht nachträglich über den Prüfpfad geändert werden.
+- Neue gemeinsame Aktion `review_work_session`: aktuelle stabile Revision,
+  ganze Netto-/Pausenminuten, Grund, ausdrückliche Bestätigung und gegebenenfalls
+  Übernachtbestätigung. Atomarer SQLite-Abschluss in STOPPED_PENDING_REVIEW;
+  ursprünglicher Zustand/Ereignisse bleiben erhalten. Retry erzeugt keine zweite
+  Korrektur. Keine erfundene Endzeit in Arbeitsnotizen. Kein automatischer Worklog,
+  keine Abrechnung und kein Versand durch die Korrektur.
+- Heute zeigt „Sitzung prüfen“. Eigener manueller Prüfdialog erhält Eingaben nach
+  Konflikt; Öffnen fokussiert Überschrift statt Tastatur. UI und MCP verwenden
+  denselben WorkSessionStore.118Tools/157semantische UI-Aktionen: alle bisherigen
+ 117Tools erhalten, genau eine fachliche Erweiterung. Original-P1-Baseline bleibt
+  unverändert; enges versioniertes Vertragsdelta prüft ausschließlich diese
+  Ergänzung und weist zusätzliche Altvertragsänderungen weiter ab.
+- LocalMigrationInventory ist ein lesendes Inventar über effektive Geschäfts-
+  und Archivbezüge: Counts, ID-Mengen-/Inhaltshashes, dezimale historische Stunden/
+  Rechnungssummen, verwaiste Beziehungen, ausstehende Aktionen/Konflikte und lokale
+  Originaldateien. Native Originalprüfung streamt32KiB-Blöcke, lädt nichts nach und
+  ändert keine Quelldaten. Über vorhandenes run_self_test für UI/MCP erreichbar.
+  **Kein vollständiges Geräteinventar, keine Sicherung und keine Aktivierung.**
+  Einstellungen/Staging/gesamte SQLite-/Jobinventarisierung bleiben erforderlich.
+
+### Tatsächlich ausgeführte Prüfungen und Grenzen
+
+Cloud: vorhandenes JDK17/Android37.0/Gradle9.3.1, Python3.12, Chromium; ausschließlich
+synthetische vorhandene Factory/Fixtures. Ergebnisse vor dem folgenden
+Quellsicherungspunkt; exakten gebauten/signierten Commit erst beim Prüfbau festhalten.
+
+| Prüfung / Eingabe | Erwartung | Ergebnis / Reichweite |
+| --- | --- | --- |
+| Unveränderter Einstieg, vorhandene Python-Suite | kein Ausgangsregressionsfehler |420Tests PASS; anfängliches Workspace-Gate separat unten |
+| JVM-Ausgang | vorhandene Fachregeln |49Suiten PASS; zusätzlicher Repositorytest benötigte zunächst kompilierten Android-Code |
+| Aktuelle JVM-Regeln/Repository, synthetisch | CAS, Rollback, Replay, Zeit-/Inventarregeln |52Suiten PASS, einschließlich14Prüfungen am tatsächlichen LocalOwnerRepository |
+| Referenztag und Boot/Uhrsprung |150/135min; unsichere Dauer0 bis Prüfung |10neue reine Zeitregelprüfungen PASS; keine Geräteausführung daraus ableiten |
+| Altformatinventar | exakte Dezimalwerte, fehlende Originale/Duplikate/Relationen sichtbar, keine Freigabe |16Inventarprüfungen PASS, synthetischer JVM-Speicher |
+| Prüfdialog, Konflikt/Retry,320/360/426px,200% | Eingaben/ID erhalten,48px-Knöpfe, keine automatische Arbeitsbuchung |4Browserfälle PASS mit synthetischer Bridge |
+| Aktuelle Python-Gesamtsuite | bestehende Regeln plus enger Vertragsnachweis |421Tests PASS |
+| Android App-/Testcode und lintRelease | kompilierbar, keine Lintfehler |PASS;0Fehler/54Warnungen, keine Pixelabnahme |
+| Breite Browserregression | bestehende Abläufe erhalten |56 Suiten PASS; Browser/Bridge, keine Pixelabnahme |
+| Native SQLite/Boot/Prozess/Update/Restore | tatsächliche Android-Ausführung |Instrumentierung erweitert/kompiliert; Ausführung noch offen |
+| Aktuelle Primärquellen Android/Tink/Open-Meteo | Inhalt am Ausführungstag verifiziert |NOT TESTABLE: konfigurierter Proxy verweigert CONNECT mit403; kein Bypass |
+
+Eingangs-Workspace-Gate scheiterte an21ignorierten älteren Ausgabedateien (20nicht
+klassifizierte Bilder, eine Datei mit Roh-ID-Muster). Nur diese betroffenen
+outputs-Dateien unverändert mit SHA-Manifest nach
+`/workspace/revier-preserved-workspace-20261023` außerhalb des Checkouts verschoben,
+privat0700/0600; nichts gelöscht oder neu als sicher klassifiziert. Danach Source-
+und Workspace-Gates PASS. Aktuelle Browservorlagen erzeugen zu synthetischen
+Bildschirmdateien passende Hash-/Fixture-Nachweise. Frühe Prüffehler (fehlende
+JSON-Testabhängigkeit/Proxykonfiguration/Acorn, fehlende Android-Klassen sowie
+strengere Toolzahl) sind im Task nachvollzogen und für folgende Läufe behoben.
+
+### Noch auszuführen – keine Vollabnahme behaupten
+
+RS-01/02/03/04/06/07/08/09/10/11/13/14/15/16 sind für den **Gesamtumbau** offen;
+RS-05/12 haben lediglich die oben genau benannten Teilnachweise. Insbesondere
+fehlen lokaler autoritativer Commit mit versionierter Schreiberumstellung,
+verschlüsselte vollständige SAF-/USB-Sicherung und atomarer geprüfter Ersatzrestore,
+Objekt-/Anfrage-/Pflege-/Tourabläufe, Material-/Gerätebewegungen, lokaler Rechnungs-
+und PDF-Jobpfad, Quellmengen-/Zahlungsledger sowie deren durchgängige UI-Piloten.
+Bisherige Online-Rechnungssperre und bestehende Drive-/Kalenderverbindungen bleiben.
+Keine Restaufwandsschätzung vor beiden beauftragten vollständigen Piloten.
+
+Aktuelle gewerbliche Wetterlizenz, österreichische Rechts-/E-Rechnungsfragen,
+Android-Verifizierung, physischer Pixel/USB, TalkBack, Geräteboot/Flugmodus und
+vollständiger Update-/Restorelauf sind nicht durch Quellcode/JVM/Browser belegt.
+Vor tatsächlicher Umstellung: vollständige extern rückgelesene Sicherung samt
+Recoveryprobe, aktuelle Belege/Reservierungen/Nummern abgleichen, alle Altschreiber
+belegt stilllegen, eine Autorität/Epoche bestätigen; erst dann explizite
+Geräteentscheidung. Kein alter Checkout/Backup darf den neuen Schreiber reaktivieren.
+
+## Abschluss98 – Original-APK und vollständige Quellen privat ausgeliefert
+
+1.54.9/98 mit314 Profilen / 628 Offlinebildern fertiggestellt. Appquelle
+dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c / `source/v1.54.9-build98`; QA-Quelledbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c separat.
+APKffa7525b85ac47a0ec78cdd352cb5fb327293bd1138a9cd9784fa23f3f0c9997; App-Fingerprintfd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae.
+420 Python/50 JVM/55 Browser/55 MCP-stdio, betroffene native Pflanzen-/UI-/Bootstrap-
+Prüfungen und Schrift1/1.5/2 PASS. 9tatsächlich gesichtete Bildschirmbelege,
+restaurierte OS-Werte und installierte APK byteidentisch. Vollständiger
+ursprünglicher synthetischer97-Ledger auch nach endgültigem98 unverändert.
+Eigener Original97Testausgang, kein direkter Test mit ausgeliefertem97APK.
+Fehlgeschlagene Testannahmen/erste Renderbelege historisch erhalten und behoben.
+Native API30 inset/dvh fallbacks, wrapped large titles and non-overlapping credit/help layout; valid isolated QA draft and verified restoration. Initial transient UI interruption retained with passed same-APK recheck.
+
+Private APK: https://drive.google.com/file/d/1SXrVaoq_rsGIKo57XeDu0CQDJXB5bepl/view
+Originalquellen/TXT: https://drive.google.com/drive/folders/1iOo71s1cmHcVFtBfa3rVOc2bAf-68zbW
+QA: https://drive.google.com/file/d/1K2Uf6J_xT7bW9ozezC3Fwpp3Cd1M4NyQ/view
+Original-ZIPcfaa05c384d2e40ada1de495add2500a1bc590e3fb38879851992a62432a196f; vollständige verlustfreie XZ-Verpackung
+und Review-TXT-ZIP. Große Drive-Dateien vollständiger Stream/Größe, kleine echte
+Byte-SHAs. Unveränderliches App-Tag, Abschlussdokumentation gesondert gesichert.
+Alle älteren Schutzmengen erhalten, keine Löschung, kein Reset, kein Main-Merge.
+Pixel nicht installiert; historische letzte Beobachtung 96 unangetastet.
+Keine produktive Google-/Sync-/Queueaktion. Nächster Task kann allein aus GitHub-
+Branch, App-Tag und privaten Originalarchiven exakt fortsetzen.
+
+## Fortsetzung98 – Kalenderpfad grün, echte Großschriftkollisionen behoben
+
+Mit gültiger QA-Entwurfsfixture und bestätigter Wiederherstellung bestehen der
+echte allgemeine Android-WebView-/Kalender-/Verbindungsdialogpfad und Pflanzen-
+UI-Prüfung; keinerlei Änderung an Kalender-/Geschäftslogik nötig. Konkrete
+Diagnose leer, schmutziger eigener Titelentwurf fortsetzbar, Tag/Woche vorhanden.
+
+Alle9echten679Bildschirmdateien tatsächlich angesehen. Dabei bei200Prozent
+Titel unter Schließen sowie Gestenhilfe über Bildnachweis erkannt. Deshalb679
+nicht ausliefern. Kanonisches CSS lässt lange Überschriften umbrechen, hält
+Kopfknöpfe frei und stapelt Bildnachweis/Gestenhilfe im natürlichen Flexfluss.
+Native Abnahme prüft jetzt lokale Titelbreite und echte Abstände der Fußtexte.
+Browserregression ohne inset/dvh bei320/360px und100/200Prozent PASS. Spiegel
+regulär erzeugt und ausschließlich zugehörigen CSS-Reviewhash aktualisiert.
+Neue Original-APK wird aus diesem gesicherten Stand geprüft, Version bleibt98;
+kein98Tag/Pixelupdate vor vollständigen abschließenden Bild-/Artefaktgates.
+
+## Fortsetzung98 – eigene QA-Entwurfsfixture korrigiert
+
+Konkrete Kalenderdiagnose: Unexpected token q in JSON at position0. Ursache war
+der eigene ältere Platzhalter qa_plant98_preserved_draft, kein Kalender-/Datenfehler.
+Pflanzenprobe verwendet jetzt einen gültigen synthetischen JSON-Entwurf, bewahrt
+beide Planungsschlüssel und bestätigt ihre bytegenaue Wiederherstellung auch bei
+Fehlern. Nur exakt diesen bekannten alten QA-Marker im eigenen Test-AVD reparieren;
+unbekannte/produktive beschädigte Entwürfe werden nicht gelöscht oder umgedeutet.
+App67965b6 bleibt unverändert. Deren3Schriftskalen/Geometrien und9Bildschirmdateien
+sowie installierteAPK-Bytegleichheit und vollständiger ursprünglicher97Ledger PASS.
+Allgemeiner UI-Pfad wird nach Fixturekorrektur abschließend erneut ausgeführt.
+Original679Quellen in privatem Drive vollständig mit6Belegen gesichert.
+
+## Fortsetzung98 – korrigierte native Bildfläche PASS
+
+App67965b6b963f8653fdeaa8e6e1f2f7eeb71d1c86 originalsigniert, voller Build/Lint
+und erneut55Browser-Suiten PASS.4native Pflanzenprüfungen mit echten Geometrien
+PASS: Dialogy14/523px innerhalb568px, Vollbildbild tatsächlich sichtbar und
+Zurück korrekt. Ersten korrigierten Vollbildbeleg selbst geöffnet: Foto, Navigation,
+Motiv-/Autoren-/Lizenz-/Änderungstext sichtbar.628Bitmaps/314Profile und erneuter
+Datenerhalt weiterhin PASS; verstärkte Schrift-/Bildprüfung läuft.
+
+Allgemeiner UI-Prüfbericht zählte eine erfolgreiche Aufräum-Assertion mit und
+zeigte dadurch nicht die ursprünglich fehlgeschlagene Bedingung. Bericht nutzt
+nun den ursprünglichen Assertion-Text und rein technische Kalenderdiagnose.
+Nur Testbericht korrigiert; bisher keine Kalender-/Geschäftslogik verändert.
+
+## Fortsetzung98 – tatsächlichen alten WebView-Layoutfehler behoben
+
+Geometriediagnose auf API30 bestätigt: bisheriges Vollbild außerhalb des sichtbaren
+Bereichs (y1402 bei640px Höhe), Bild-/Stage-Fläche0×0 trotz dekodiertem Foto.
+Älterer WebView ignoriert inset-Shorthand und dynamische dvh-Einheiten. Vorherige
+Appedf5113 deshalb kein ausgelieferter98Kandidat und kein98Tag; Quellen bleiben
+als Vorprüfungsstände erhalten. Kanonisches Garten-CSS erhält explizite vier
+Kanten sowie vh-Fallbacks und feste sichtbare Dialogposition mit begrenzter
+scrollbarer Höhe. Regulärer Spiegelgenerator verwendet; zugehöriger geprüfter
+CSS-Quellhash aktualisiert,117Tools/156Aktionen unverändert.
+
+Gezielte Browserregression entfernt inset/dvh tatsächlich aus geladenen Regeln
+und prüft sichtbare Porträt-/Vollbild-/Zurück-Flächen bei320/360px. Native QA
+verlangt Geometrie und wartet auf WebView-VisualState. Allgemeiner Kalenderpfad
+liefert weiter einen alten UI-Prüffehler; neue rein technische Fehlerdiagnose
+wird mitgebaut, keine Testschwächung oder Geschäfts-/Snapshotänderung.
+
+## Fortsetzung98 – native Schrift-/Darstellungsdiagnose
+
+Schrift1.0/1.5/2.0 gegen unveränderte Appedf5113 technisch PASS und OS-Werte
+restauriert. Tatsächlich geöffnete Bildschirmdateien zeigen leeres Vollbild/
+verzögerte Rückkehrdarstellung; deshalb noch keine visuelle Abnahme behauptet.
+Neue QA-Prüfung wartet auf WebView-VisualState/Frames, protokolliert ausschließlich
+öffentliche Layoutgeometrie und verlangt sichtbare Bild-/Porträtflächen.
+Allgemeine alte UI-Bedingung12 erwartete zusätzlich einen inzwischen entfernten
+Arbeitswochen-Link im Kalender. Prüfung nutzt nun die tatsächlichen bestehenden
+Kalenderknöpfe planning-day/planning-week und explizit schmutzigen QA-Entwurf;
+keine operative Oberfläche oder Geschäftslogik dafür geändert.
+
+## Fortsetzung98 – endgültige Appedf5113, QA-Vorbedingung korrigiert
+
+Endgültige originale98-APK ausedf511343571165987ff72bb8793f2f6222692cb:
+SHA256ecc3d60efecda932baf03f27b38854dd800382db0c7c8af8a803743b1e71267b,
+App-Quellfingerprint19e2efe61d74905485bcee6231c8300599b9679bfe3278aebacedb8628c05cb0.
+4/4native Pflanzenprüfungen sowie leeres isoliertes Android-Datenlager PASS.
+Endgültige98ersetzt den vorläufigen98im selben synthetischen97→98Testlauf;
+vollständiger ursprünglicher97Ledger unverändert, kein Downgrade/Reset.
+
+Die zusätzliche alte allgemeine UI-Prüfung scheiterte an Bedingung12: Ein
+unveränderter neuer Termin wird korrekt nicht als schmutziger Entwurf angeboten.
+Test legt nun explizit eine ungespeicherte synthetische Titeländerung an und prüft
+Fortsetzen; beide lokalen Entwurfsschlüssel werden anschließend exakt restauriert.
+Nur androidTest/Status geändert. Die bereits geprüfte Appedf5113 bleibt unverändert;
+separater originalsignierter Teststand wird gegen genau diese APK ausgeführt.
+App-Originalquellenedf5113 vollständig mit XZ-Roundtrip, Review-TXT-ZIP und
+6privaten Drive-Belegen gesichert:5SHA256_BYTES und1vollständiger Stream/Größe.
+Schrift-/Bildsichtung und abschließende APK-Bereitstellung noch offen.
+
+## Fortsetzung98 – Original-APK und native Erstprüfung
+
+Originalkandidat aus304d5ee erfolgreich signiert, Paket/Zertifikat, alle690Assets,
+314Profile/628Bilder, eingebetteter Commit/Quellfingerprint und16KiB-Ausrichtung
+PASS.420Python/50JVM/55Browser/55MCP-stdio-Szenarien und Releasebuild/Lint PASS.
+Isolierte Original97-Testbasis0430eaa → erster98Kandidat: Lebenszyklusprüfung
+und vollständiger Counts-/Hashvergleich PASS, alle Daten/Queue/Timer erhalten.
+628Android-Bitmapdekodierungen und echter Pflanzen-WebView einschließlich
+Suche/Offlinebildern/Vollbild/Zurück/Entwurfsschutz PASS. Ein neuer nativer
+Katalogtest erwartete irrtümlich eine zusätzliche entry-Hülle; bestehende
+Pflanzenschnittstelle liefert direkt den Datensatz. Nur Testannahme korrigiert.
+Schriftprüfungen wiederholen die betroffene WebView-Prüfung ohne erneute628fach
+identische Bitmapdekodierung; echte synthetische Bildschirmbelege vorbereitet.
+
+Software-AVD ohneKVM zeigt langsame Paketinstallation/SystemUI-ANR. Timeout
+nicht als Erfolg gewertet; nach tatsächlichem Paket-/Installationsbeleg geprüft.
+Physischer Pixel/produktive Google-Verbindungen unverändert. Noch kein98Tag.
+Originalquell-ZIP161241502Bytes übersteigt100MiB-Connectoruploadgrenze. Verlustfreie
+XZ-Verpackung82322704Bytes, vollständiger Roundtrip byteidentisch und beide
+Privacygates PASS. Vorprüfungsquelle304d5ee plus49TXT-Bytebelege privat gesichert;
+dieser Stand bleibt erhalten, endgültige korrigierte Quelle wird separat exportiert.
+
+## Fortsetzung98 – Implementierungsgates grün, Version1.54.9/98
+
+Alle55Browser-Regressionssuiten PASS nach korrekter Verwendung des eigentlichen
+Playwright-Moduls und installiertem acorn. Vorherige Adapter-/Abhängigkeitsfehler
+sind keine Produkt-Fixes. Integrierte Android-Haupt-/Testquellen und Release-Lint
+42Tasks PASS; ein geänderter geprüfter Hash betrifft ausschließlich den generierten
+plant-catalog.js-Adapter,117Tools/156Aktionen unverändert. Gesamtkatalogstand
+ceb7c2f66ad975775e0b7c52101e1730de9ce649 exakt auf GitHub bestätigt.
+
+Source2196/Workspace2657Dateien PASS/0operative Seeds nach unveränderter externer
+Aufbewahrung des vollständigen alten97Buildcaches. Keine Privacy-Ausnahme.
+Version jetzt1.54.9/98; Originalbuild/Signierung erst aus sauber gesichertem Commit.
+Native Bild-/WebView-/Schrift-/isolierter97→98Erhaltungsnachweis und finale
+Artefakt-/Drive-Prüfungen noch offen. Eigene AVD nach Root-/Qemu-/Namenprüfung
+mit temporärem ro.hw_timeout_multiplier10 ohne App-/Datenreset neu gestartet,
+keine Änderung des physischen Pixels oder produktiver Google-Verbindungen.
+
+## Fortsetzung98 – vollständiger Import und erneuter Bytevergleich PASS
+
+314App-Profile/628Offlinebilder tatsächlich integriert,181Bestands-IDs erhalten,
+133Ergänzungen.293Bestandsderivate/335Originaldownloads nach tatsächlichen
+Motiv-/Rechteprüfungen.304frische botanische Seiten/4080Feldgruppen abgeglichen,
+Rosen-Drainage im aktuellen RHS-Fließtext bestätigt.314Einzelberichte binden
+jeweils die beiden gewählten Derivathashes; historische Metadaten-/Rechtsprüfung
+bleibt erhalten. Kein unabhängiger botanischer Expertennachweis behauptet.
+
+Vollständiger Import und erneuter Check identisch: Katalog72f0a25d49740e1093a37bc7c02c059350e0f973e257298fda3965ab6570d710.
+Spiegel636Outputs PASS. Importer bewahrt historische Bildbytes aus eingefrorenem
+Git auch bei gewechselten Ausgabeslots; identische Caption/Autor-Paare werden
+nicht mehr irrtümlich an dasselbe Altbild gebunden.25Importer-/21Bibliotheks-/
+2Parserfälle und Pflanzen-Browserabläufe einschließlich628Offline-Dekodierungen
+PASS. Vollständige Regressionen/Native-Prüfungen laufen, noch keine98APK-Freigabe.
+
+Git-Zugang mit vorhandenem gh-Credential-Helper wiederhergestellt;0430eaa tatsächlich
+gepusht/zurückgelesen, source_preservation PASS. Drive lieferte Original97als
+vollständige Streamreferenz, aber lokaler Transfer>32MiB nicht möglich; blockierten
+Direktabruf nicht umgangen. Eigener originalsignierter97Testausgang aus0430eaa
+für transparenten isolierten Updatetest erhalten, ausgeliefertes97Tag/APK unverändert.
+Neue eigene AVD musste wegen langsamer Softwaredarstellung vor Installation
+auf480×960/Dichte240 umgestellt werden; keine App-/Datenlöschung. Native Resultate
+noch offen. Keine Pixel-/produktiven Syncaktionen.
+
+## Fortsetzung98 – Bildsichtung und abgesicherte Ersatzquellen
+
+Alle628Kandidaten auf79beschrifteten Bildbögen tatsächlich gesichtet.24ungeeignete
+oder doppelte Motive mit Referenz-ID/Dateihashes/Einzelgrund ausgeschlossen;
+Ersatzbilder auf6weiteren Bögen geprüft, letzte Detailersetzungen laufen.
+Importer sperrt ausgeschlossene Referenzidentitäten auch bei neuer Auflösung
+oder Kodierung. Zusätzliche individuelle Fotoquellen separat mit datiertem
+responseSha256/JSON-Beleg gebunden, historische Bibliotheksrevision unverändert.
+25Importertests einschließlich negativer Ersatzquellen-/Motiv-/MPO-Fälle PASS.
+Keine unabhängige botanische Expertenbestätigung behauptet.
+
+415Python/50JVM-Suiten samt unverändertem P1-Vertrag117Tools/156Aktionen PASS.
+Android-Haupt-/Testquellenkompilierung und Release-Lint42Tasks PASS. Die fehlenden
+Google-Abhängigkeiten über regulären Proxy und System-CA geladen; Offlinefehler
+und PKIX-Erstversuch nicht als Erfolg umgedeutet. Eigene synthetische AVD mit
+API30 wird vorbereitet; kein physisches Gerät angeschlossen oder ausgewählt.
+
+Drive-Metadaten des ausgelieferten97Originals lesbar, dessen Rohdownload liefert
+im Connector wiederholt Transport closed. Für den isolierten98-Updatetest deshalb
+ein sauber gesicherter97Testausgang aus dem aktuellen unveränderten Appcode,
+ohne Checkout-Rücksetzung. Dieser eigene Testausgang ersetzt weder das bestehende
+97Quelltag noch dessen ausgelieferte APK; der Unterschied wird im Nachweis erhalten.
+Bild-/Native-/Artefaktabnahme für98 weiterhin offen; produktive Daten unverändert.
+
+## Fortsetzung98 – Netzwerk erreichbar, tatsächliche Bildvorbereitung läuft
+
+Am23.10.2026 den vom Nutzer genannten gesicherten Stand bdae3646 auf demselben
+Arbeitsbranch wiederaufgenommen; main e499e745 und Bibliotheksbranch7d499b2
+verglichen. Kein Reset, keine ältere Appkopie, keine Pixelinstallation oder
+produktive Syncaktion. Ausgewählte Cloudrichtlinie enthält jetzt die benötigten
+Bildhosts; echte NCSU-/RHS-/S3-/Commons-API-Abrufe gelingen. Commons-Einzelabrufe
+mit429 wurden nicht als Erfolg behandelt; reguläre gebündelte imageinfo-Abfragen
+liefern die individuellen Rechtebelege. Kein Proxy-/TLS-Bypass.
+
+Neues tools/prepare_plant_images.py lädt ausschließlich öffentliche Kandidaten
+in einen externen Prüfbereich, bestätigt frische individuelle Credits, hasht
+Original/Derivat und entfernt Bildmetadaten. Es erteilt keine Sichtfreigabe und
+ändert keinen App-Katalog. Erster Durchgang286vollständige Paare/578Dateien;
+28unvollständige Profile werden mit gebündelten Commons-Belegen nachgearbeitet.
+20bestehende Importertests erneut PASS. Vollständige Sichtprüfung/Import/98Build
+stehen noch aus; frühere HOLD-Nachweise bleiben historisch unverändert.
+
+Die wiederhergestellte Umgebung enthielt21ignorierte Alt-Ausgabedateien ohne
+ausreichenden Privacy-Beleg. Ausschließlich diese Dateien unverändert nach
+/workspace/preserved-preexisting-output-20261023 verschoben, jede per SHA/Größe
+nachgeprüft; keine Inhalte geöffnet, keine Datei gelöscht. Externer Beleg enthält
+nur Pfad-/Dateihashes, Counts und Kategorien. Source1339/Workspace1624Dateien
+danach PASS/0operative Seeds. Alte Build-/SDK-Caches benötigen Nachladen;
+fehlende Cacheabhängigkeiten und Java-CA-Vertrauen werden technisch eingerichtet,
+keine Signatur-/Fachregeln gelockert. Version bleibt97bis zu vollständigen Gates.
+
+## Auftrag98 – gesicherter Zwischenstand, ausschließlich technische Bildserverfreigabe blockiert
+
+Alle unabhängigen Arbeiten und der tatsächliche Bildsichtungsumfang sind in
+[Arbeitsbericht98](docs/verification/plant-library-1.54.9-98.md) und dessen JSON
+festgehalten.20Importer-/21Bibliotheks-/2Parserprüfungen,55Browser-Suiten/8neue
+Fälle,22Lifecycleprüfungen und P1-/Spiegel-/Source-/Workspacegates PASS. Quellstand
+noch Version97, Ziel1.54.9/98erst nach vollständiger628-Bild-/314-Profilabnahme.
+Kein neuer Build, Signierung,98Tag, Pixel- oder Synceingriff. Original97bleibt
+unverändert edd16a4/Tag97/APK7e394a76; tatsächliche Erweiterungen im App-Katalog0.
+
+Aktuellste tatsächlich beobachtete Cloudrevision37/enforced/current enthält
+weiterhin keinen der sieben benötigten Hosts. Nutzerauthorisierung liegt vor;
+nur deren tatsächliche Speicherung/Anwendung in der Umgebungskonfiguration fehlt.
+[Konkreter freigegebener Umfang](libraries/plants/network-access-request.json).
+Keine weitere Erlaubnis angefordert, keine Policy-/Proxy-/TLS-Umgehung.
+
+Dieser vollständige Arbeitsstand wird nach sauberem Commit/Push/Remote-Readback
+im bestehenden privaten Entwicklungsbereich unter
+[Arbeitsstand-Pflanzenintegration98](https://drive.google.com/drive/folders/1AQbc0HfEUU84zgrgSeDmCpzO3HIivIkx)
+gesichert; Manifest/Original-ZIP binden den exakten Commit und Hash, externer
+Transferbeleg dokumentiert tatsächliche Rücklesungen. Es handelt sich um ungebaute
+Originalquellen, ausdrücklich keine neue APK oder vollständige Bibliotheksfreigabe.
+Bei Fortsetzung neuesten Auditbranch erhalten, nicht durch das ältere97Tag ersetzen.
+
+## Auftrag98 – Import und Oberfläche geprüft, tatsächlicher Bildnachweis noch blockiert
+
+Eigenständiger deterministischer tools/import_plant_library.py mit Vorschau/Check und strikt vollständigem Schreibgate; separates integrationsgebundenes Manifest314HOLD. Identische Bibliotheks-/Profilhashes, genau2tatsächlich dekodierbare JPEGs, Original-/Derivathashes, Rechte/Länderlizenzen, datierte Sichtbelege, keine EXIF/XMP, keine umbenannten/doppelten IDs und erhaltene zusätzliche App-Einträge. Unbelegte Pflegetexte nicht neu übernehmen, USDA kennzeichnen, Warnungen/Synonyme erhalten, EU-Wirksamkeit und CH-Anhang trennen. Erneute Bildausschlüsse können durch alte Metadatenfreigaben nicht überschrieben werden. Schreiben mit allen314offenen Profilen tatsächlich abgewiesen, App-Katalog und362Originalbildbytes unverändert.
+
+Builder/Auditor lesen historische Katalog-/Bild-/Vokabularbytes jetzt aus eingefrorenem Git e499e745, nicht aus künftigen App-Assets. Revisions2-Daten nach Wiederholungsbau bytegleich.21Bibliotheks-/20neue echte Importer-Unitprüfungen,2Parserprüfungen PASS.55vollständige Browser-Suiten/0FAIL, darin8neue Fälle mit synthetischen Erweiterungsmetadaten: beide botanischen Namen finden dieselbe ID; Warnungen/Gruppe/fehlende Pflege/datiertes EU-/CH-Recht; Credits samt Änderungen in Vorschau/Vollbild;360×640/150/200Prozent,48pxBedienelemente, Offline/0Geschäftsschreib-/Außenabrufe. Diese Browsernachweise sind keine native98-APK-Abnahme. P1 bleibt117Tools/156Aktionen/Hash7119a0e0; keine fachlichen Rechte-/Request-/Syncänderungen. Nur zwei geprüfte UI-Dateihashes aktualisiert, historische Baselines erhalten; Spiegel regulär generiert.
+
+335wiederverwendbar vorgesehene Bestandsdateien auf42beschrifteten Bögen tatsächlich angesehen,6Detaildateien zusätzlich geöffnet. Neuer integration-legacy-review.json dokumentiert8Motivausschlüsse und4Taxon-Holds, getrennt vom historischen335erMetadatenbestand. Anfängliche Übersichtszweifel bei Dryopteris331/Calendula234 nach Detailansicht ausdrücklich korrigiert; keine ungeprüfte Fremdartbehauptung. Keine unabhängige botanische Expertenabnahme. Neue externe Originaldownloads/Sichtungen/Freigaben weiterhin0, deshalb0neue Profile in der App. Pflicht ist628geeignete lokale Bilder für alle314Profile, nicht1140bloße Referenzen.
+
+Nutzer hat Netzwerkfreigabe ausdrücklich erteilt; keine erneute Zustimmungsanforderung. Technisch beobachtete aktive Revision33 meldet weiterhin nurGeoSphere-/Paketmanagerziele, keine sieben Bild-/Quellhosts; konkrete direkte Proben schlagen fehl. Technische Speicherung dieser Hostliste in der Umgebungskonfiguration noch angefragt, keine Umgehung oder Politikdateiänderung. Source-/Workspace-Privacy nach Code/Review PASS1336/4387Dateien,0operative Seeds. Ziel98/1.54.9noch nicht angehoben, kein neuer Build/Originalsignierung/Tag oder Pixel-/Sync-/Queueeingriff.97-APK/tag edd16a4 bleibt unverändert verfügbar, weitere native-/Update-/APK-Gates folgen erst nach echter Bildfreigabe.
+
+## Auftrag98 – neue APK mit erweiterter Pflanzenbibliothek, Umsetzung begonnen
+
+Ausgang ist der vollständig gesicherte97-Abschluss6928ab55ea1a6dc953cb5b00150b3d495cd006ce mit unveränderlicher Original-APK/tag97. Frischen GitHub-main e499e745 und vorhandene Branches verglichen; neue Bibliothek aus7d499b225ed28f501333227e0ce92a54d4c5d542 ausschließlich unter libraries/plants übernommen, keine alte App-/Statuskopie. Kanonische181Profile/362Bildhashes vorab in eigenem technischen Tempnachweis festgehalten. Alle Heute-/MCP-/Synckorrekturen aus97 bleiben Grundlage. Ziel nach vollständiger Abnahme1.54.9/98; Version noch nicht angehoben, keine neue APK behauptet.
+
+Bibliotheksrevision2:314ausgewählte Profile=181Bestand+133Ergänzungen,1140Fotoreferenzen,335eligible Bestandsderivate/27Ausschlüsse. Quellenmetadaten sind kein Bildnachweis; alle314historisch HOLD. Verbindliche Integrationsanweisung vollständig gelesen. Abnahme: eingefrorene historische Baseline e499e745, deterministischer manifestgebundener Import, stabile IDs, genau2belegte geeignete lokale Bilder pro übernommenem Profil samt SHA/Rechten/Sichtprüfung, datierte EU-/CH-Regeln, Warnungen/Synonyme/Quellenklima, Offline-/Such-/Vollbild-/Schrift-/Entwurfsprüfungen und Originalupdate mit Datenerhalt. Keine produktive Installation, Geschäftsdaten, request_sync oder Queueänderung.
+
+Aktuelle Cloudrichtlinie30 ist enforced/observations_current, Originalsignierungsvariablen ready; Bild-/Quellhosts fehlen. Konkrete sieben Hosts zur Konfigurationsfreigabe angefragt, während unabhängige Adapter-/Prüfarbeit weiterläuft. Keine Umgehung, kein Metadaten-HOLD als Fotofreigabe. Aktuelles Source-/Workspace-Privacy vor Übernahme PASS/0operative Seeds;21historische Befunde des anderen Checkouts liegen hier nicht vor. APK-Auslieferung erst nach tatsächlichen vollständigen Gates; produktiver Pixel-/Drive-Sync bleibt gesondert offen.
+
+## Auftrag97 – abgeschlossen: Original1.54.8/97, tatsächliche Nachweise und externe Grenze
+
+Heute95 innerhalb eines Renderers wiederhergestellt, wichtige Aktionen unten,12 konkurrierende CSS-Orderregeln entfernt. Kompakter Timer, Terminzeit/Kunde bei360×616 auch mit gespeicherten Arbeiten sichtbar. Abgelaufene Auswahl, Scroll-/Rückgängigüberdeckung und enger MCP-Enumfehler korrigiert. Metadatenkatalog je Antwort einmal statt dreimal, Datumsformatierer wiederverwendet, kalte Kartendetails3→1/warm0. Dieser Header ist maßgeblich;9cc4e18war ein nicht ausgelieferter Zwischenkandidat.
+
+Finaler gemeinsamer App-/Testquellcommit `edd16a44c13dc17a774cff26f91e760efc123848`, unveränderliches Tag `source/v1.54.8-build97`, Fingerprint `5bf13d01331b5492c0de05d691aa58e10c31fc744295683948d8adfc23a41595`. Original-APK-SHA256 `7e394a7603d79ffb264e1f113c122c1e1700453a82a3e9be521831a425df4e48`,36.217.051Bytes, Originalzertifikat erhalten. [APK](https://drive.google.com/file/d/19w2tUJRWlKr_0R37IU5jRkP34sCl6CTc/view), [QA](https://drive.google.com/file/d/1Z3pg6Be03ESDpc6iguHfQ7XrfIr09QvH/view), [Versionsnachweis](https://drive.google.com/file/d/1v22KPWGIMqNjtDkYFlvk9nZJn8feqx_r/view), [Bericht](docs/verification/today-mcp-1.54.8-97.md). [Originalquellen](https://drive.google.com/drive/folders/1dMX0byFIGCzOLSk3N3Cs6U4WVWyfZ3t8)1290Dateien/559UTF8/731öffentliche Binärressourcen, ZIP-SHA256 `eb2244f707fe620c32a6168a92f2c2bfb0f3f97f9d47bff5f1c54e25cb18da3d`.19Belege:18Byte-SHA+1ZIPStreamgröße, frischer Plan0Upload/19Reuse/0Duplikate. GroßeAPK ebenfalls vollständig gestreamt/Größe, kein Remote-SHA behauptet.
+
+395 Python/0Skips/37 ausdrücklich ausgeschlossene Ersatzschlüssel-Altfälle,50 JVM/1050 Paritätsassertions,54 vollständige Browser-Suiten/13 Übersichtsfälle,55 synthetische stdio-,29 Kamera-/47 Cleanup-Hostfälle PASS. Finales APK:290 native+20 ergänzende Workflow-/Providerchecks/0FAIL; fresh_isolated/nativeUI und tatsächliche Fonts1.0/1.5/2.0 PASS.9Bilder angesehen, keine OS-Überdeckung. Originalfont1.0/480×960/Dichte240 restauriert, eigener AVD beendet. Nur dort reservierte QA-Namespaces bereinigt;0Reste, erneuter96→97-Master-/Pending-/Timer-/Relationsledger unverändert. Installierter APK-SHA exakt. P0 Source/Workspace/signedAPK PASS,0operative Seeds.
+
+117 MCP-Tools über echte RPCs erreichbar,113 mit erfolgreichen Aufrufen,4 nur Guard-/Außenpfade;145 fachliche UI-Aktionen plus11 Plattform-/Darstellungsausnahmen. Keine vollständige Außenprovider-Abnahme behauptet. Letzter technischer Live-Read23.10.2026 06:45UTC: Pixel weiterhin96/998d71f/8a29c1b7; REMOTE_STATE_REFERENCE_MISSING, publication_chain,9Pending/0Review,cloud_confirmed=false. Kein produktiver Schreibtest, keine Pixelinstallation, kein request_sync/Queue-/Drive-Runtime-Eingriff. Produktive Pixel-/Drive-Abnahme bleibt offen und Aufgabe des Nutzers. Linkes Randmenü unverändert.
+
+Finaldokumentation/QA-Stand wird in [Abschlussquellen97](https://drive.google.com/drive/folders/1rxp9cbTf2srnopH-X8p9Xar6ZGQViPAn) mit eigenem Commit/Manifest/ZIP vollständig gesichert; dies verändert weder APK noch97-Tag. Der externe Abschlussbeleg im Kandidatenordner bindet beide Quellgenerationen und die zurückgelesenen Wegweiser. Keine Altgeneration/Schutzmenge gelöscht, kein main-Merge/Force-Push.
+
+## Auftrag97 – endgültiges Voraudit nach Sichtkorrektur grün
+
+Finale gesamte54Browser-Suiten/0FAIL einschließlich13Übersichtsfällen und sichtbarer Terminzeit/Kunde mit aktivem Timer+gespeicherter Arbeit bei360×616. Alte P3-Präsentationserwartung für leeres Idle-Timerelement erlaubt jetzt gleiche y-Koordinate zum folgenden Inhalt; bei aktivem Timer strikte Reihenfolge zusätzlich geprüft, fachliche Tests unverändert. Native Java-/AndroidTest-/Lint-Vorprüfung42Tasks PASS;0Fehler/54bestehende Warnungen. Vertrags-/UI-/Source-/Workspace-Gates PASS; backendunverändert seit50JVM/395Python/55stdio-MCP/29Kamera-/47Cleanup-Prüfungen.13gezielte Fälle sowohl echte Layoutregression rot als auch korrigierte Fassung grün. Alle aktuellen Implementierungspunkte vor erneutem Originalbuild überprüft. Version1.54.8/97 bleibt unpublizierter Kandidat; keine97-Versionsmarke gesetzt. Endgültige App und Test-APK aus demselben neuen gesicherten Commit bauen, komplette native310Prüfungen/UI/Fonts/korrekten96→97-Vergleich und Byte-Provenienz wiederholen.9cc-Quellgeneration erst nach vollständigem Ersatz eindeutig als Zwischenstand kennzeichnen.
+
+## Auftrag97 – Sichtprüfung deckt alte CSS-Reihenfolge auf
+
+Alle3nativen Schriftgrößen1.0/1.5/2.0 mit tatsächlich fokussierter MainActivity PASS,9Bilder angesehen; SystemUI-ANR zuvor strikt zurückgewiesen und ausschließlich eigenen Software-AVD stabilisiert (temporärer Runtime-Timeout10, Testdisplay vorab eingerichtet, exaktes OS-Wait; keine Appdaten gelöscht). Font/physisches480×960-Display/Dichte240 anschließend tatsächlich restauriert. Keine Pixel-Performancebehauptung.
+
+Bildprüfung fand trotz formaler Touch-/Overflow-Abnahme eine relevante Übersichtsschwäche: alte field-ui.css/workday-ui.css-Orderregeln priorisierten Zuletzt erfasst vor der Terminansicht; aktiver Timerblock zu hoch. Neues13. Browser-Szenario mit gespeicherter Arbeit/aktivem Timer/360×616px tatsächlich rot.12alte Home-order-Regeln entfernt, DOM-Reihenfolge allein maßgeblich; Timerstatus kompakt mit barrierefreiem48dp-Mehr-Menü.13Übersichtsfälle nach Korrektur PASS, native Prüfung ergänzt explizit sichtbare Terminzeit/Kunde oberhalb unterer Aktionen. Erneute54Browser-/native Compile-/Voraudit-Runde läuft. Noch kein finaler97-Tag/APK ausgeliefert;9cc4e18/91b50e7d ist dadurch ein nicht ausgelieferter Zwischenkandidat, seine Quellkopie bleibt bis vollständig gesichertem Ersatz erhalten. Nächster Originalbuild übernimmt auch alle QA-Fixes; App-/Testquellen wieder aus einem gemeinsamen gesicherten Commit.96-Vorledger unverändert; nachher mit explizitem --compare prüfen, keine Baseline ersetzen.
+
+## Auftrag97 – native Fach-/MCP-Abnahme vollständig grün
+
+Original97-App9cc4e18 mit separat originalsignierter QA-aa44c0b:290native Fach-/JSON-RPC-/SQLite-/SAF-Prüfungen/0FAIL, zusätzlich20gültige MCP-Workflows/SAF-Prüfungen/0FAIL.117Tools tatsächlich per Produktionsrouter erreichbar;113Toolnamen mit erfolgreichen Aufrufen,4nur geschützte Außenfreigabepfade (Legacy-Vollsicherung, Rechnungsabschluss, Mailvorbereitung/-bestätigung), deren negative Guards und isolierte Kerne separat geprüft sind. Alle neuen MCP-Fixtures ohne eigene DB-/Preferences-/Dateireste, einschließlich des zuvor asynchronen Kalenderfalls. Aktuelle Originalquellen19Dateien vollständig privat in1EBtXHhOQxqivTLu7L-DArRBBEwG-d94d gesichert:18Byte-SHA/1ZIPStreamgröße; frischer Plan0Upload/19Reuse/0Duplikate.
+
+fresh_isolated PASS. Nativer UI-Lifecycle-Test stoppte an alter Erwartung Planungsbutton innerhalb planning-home; Button liegt wie beauftragt unten im today-action-dock. Genau diesen Präsentationsselektor aktualisiert, fachliche Assertions erhalten. Keine Produktionsänderung/kein anderer Appkandidat; UI-/Schrift-/Ledgerprüfung folgt mit erneuter originalsignierter QA-Quelle. Erneut lesend Pixel96 bestätigt: REMOTE_STATE_REFERENCE_MISSING,9Pending/0Review,cloud_confirmed=false; keine produktive Aktion.
+
+## Auftrag97 – vollständiger Routerlauf und zusätzliche gültige MCP-Abläufe
+
+Apporiginal9cc4e18220ff3d4eef8a56877658b397d63d2504, APK-SHA5087632af214da765fc9164681123bc23dbd2645eea612c1289d1e41606d7ce7, Produktionsfingerprint91b50e7d13644cf42565cdd92008be0acd82bdb3525bcc8c87b91fb70c02614d. Voller neuer nativer Lauf289PASS/1FAIL: ausschließlich noch QA-Teardown einer Kalender-Quota-Probe;117echte RPCs tatsächlich abgewickelt. Die eine Preferences-Datei entstand erst nach der Dateiliste aus asynchronem apply(). QA-Isolated erfasst jetzt jede geöffnete Preferences-Datei und wartet deren Writes vor Entfernen; keine fachliche Erwartung gelockert.
+
+Separate zusätzliche QA-Quelle für gültige echte RPC-Abläufe: Auftrags-/Arbeitsänderungen samt Replay, vollständiger Timer/Pause/Fortsetzen/Abschluss, Verwerfen/Wiederherstellen, Leistungsbaustein-/Angebotsbearbeitung. Vorhandener isolierter SAF-Legacyabschluss ebenfalls über RPC. Neue Gruppe mcp_workflows. Noch keine erfolgreiche Abnahme behauptet. Appcode/APK bleiben unverändert9cc4e18, weitere QA-Commits/Test-APK werden separat im Abschlussquellstand gesichert; Original-Tag/ZIP wird den tatsächlich gebauten Appcommit bezeichnen.
+
+## Auftrag97 – native Bereinigungsprobe zunächst rot
+
+Originaler interner97-Kandidat4a8e554 aus sauber gesichertem Stand gebaut84Tasks, originalsigniert und gegen96-Paket/Zertifikat/424Assets/leerem Bootstrap/DEX-Commit/Fingerprint/Privacy geprüft. Nicht ausgeliefert oder getaggt. Native Ausführung deckte einen Fehler ausschließlich im neuen QA-Teardown auf: Android databaseList liefert DB und Journal/WAL-Sidecars; deleteDatabase entfernt diese gemeinsam, der folgende veraltete Listeneintrag liefertefalse. Bereinigung prüft nun erst Existenz, anschließend unverändert strikt keinen eigenen Datenbank-/Preferencesrest. Fachliche Assertionen nicht gelockert. Neuer vollständiger Quell-/Build-/Signier-/Emulatornachweis folgt; Fingerprint der unveränderten Produktionsdateien bleibt91b50e7d. Vorangegangene Host-Gates bleiben gültig, bisherige native Runde ist FAIL und keine Ersatzfreigabe.
+
+## Auftrag97 – APK-Voraudit grün, Version1.54.8/97
+
+Finale gesamte54Browsersuiten/0FAIL,12Übersichtsfälle/0FAIL einschließlich abgelaufener und vollständig leerer Terminauswahl. Finale native Java-/AndroidTest-/Lint-Vorprüfung42Tasks PASS,0Fehler/54bestehende Warnungen.395Python/50JVM/1050Paritätsassertions/55stdio-MCP/29Kamera-/47Cleanup-Hostfälle sowie Pflanzen-/Angebots-/Vertrags-/UI-/Source-/Workspace-Gates grün. Jeden aktuellen Auftragspunkt gegen Umsetzung/Tests/Grenzen im Voraudit geprüft. Versionsanhebung jetzt1.54.8/97, anschließend nur sauber gesicherten Commit bauen/originalsignieren. Native117RPC-/Fach-/Schrift-/96→97-Erhaltungs-/Artefakt-/Driveabnahme noch offen; keine produktive Installation oder Syncaktion.
+
+## Auftrag97 – zusätzlicher Randfall und APK-Voraudit
+
+Abgelaufene Karussellauswahl übersprang im roten Produktionstest den ersten weiterhin gültigen Termin. browseHome korrigiert; auch vollständig abgelaufene Liste entfernt ihre alte Karte.12gezielte Übersichtsfälle PASS. Beim Rückstellen der künstlichen Testuhr muss die Ansicht vor dem nächsten Klick aktualisiert werden; zuerst alter Fixture-Cleanup statt Produktionsassertion angepasst. Neue gesamte54Browserwiederholung läuft. Native Auditressourcen werden nun tatsächlich geschlossen und nach exaktem eigenen Präfix entfernt, Symlinks nicht verfolgt; sämtliche neuen Owner-Fixtures verwenden dieselbe Bereinigung. Native Audit zählt echte erfolgreiche/abgewiesene Aufrufe getrennt und erfasst Dauer ohne Argumente/Datensätze.
+
+Alle395Python/50JVM/55stdio-MCP/29Kamera-/47Cleanup-Hostfälle PASS. Live-MCP rein technisch gelesen: Original96 installiert;117Tools/156UI-Aktionen. Aktueller produktiver Syncfehler REMOTE_STATE_REFERENCE_MISSING, publication_chain,9Pending/0Review/cloud_confirmed=false; keine Änderung/Sync ausgelöst. Fehlende unveränderliche Referenz darf nicht aus technischen Metadaten geraten werden. Bestehender exakter Name+SHA-Wiedergewinnungspfad und7JVM-Fälle geprüft. [Voraudit und Grenzen](docs/verification/today-mcp-1.54.8-97.md). Noch keine97-APK oder finale native Abnahme.
+
+## Auftrag97 – Heute-Rückkehr und konkret reproduzierte Verbesserungen
+
+Original95-Ansicht mit identischem synthetischem115-Termin-Fall tatsächlich im Browser angesehen: sichtbarer Heute-Titel/Datum, einzelne blätterbare Einsatzkarte, zwei Stundenkennzahlen; Logo war dort bereits nur im Menü sichtbar. Diese Struktur in demselben TodayUI-Renderer wiederhergestellt, statt alte konkurrierende Renderer zurückzubringen. Originale Start-/Pause-/Stop-/Foto-/Erfassen-/Planungskommandos in unterer fester Leiste über der Navigation. Dynamische Leistenhöhe und Scrollreserve; bei Tests gefundenes Verdecken von Inhalt und Rückgängig korrigiert. Fachliche Entwurfs-/Timer-/CAS-/Syncregeln und linke Randgeste erhalten. Neue gezielte11Übersichtsprüfungen einschließlich Karussellgrenzen, Hauptaktionen unten, Schrift150/200, Timer/Foto/Entwurf und begrenztem Bridgezugriff PASS. Erste54-Suiten-Regressionsrunde deckte mehrere alte Layout-Erwartungen und die echte Rückgängig-Überdeckung auf; korrigierte gezielte Wiederholung und finaler Gesamtlauf folgen.
+
+Konkrete Leistungsmessung, Host/115synthetische Termine/25Wiederholungen:96-Heute median11ms/p95 26ms,95-Referenz3/4ms. Neuer Einzelkartenpfad und einmaliger Vienna-Datumsformatter2/3ms in erster Nachmessung; abschließende Vergleichsmessung folgt. Nur gewählte Termindetails über Android-Brücke, warme25Heute-Render ohne zusätzlichen get_appointment-Aufruf. Kein Pixel-/Netzleistungsversprechen. MCP-Metadaten bauten denselben117-Tool-Katalog dreimal je Antwort; lokale Wiederverwendung innerhalb derselben Antwort vermeidet diese Mehrarbeit, Folgeresultate bleiben frisch. Zusätzliche Produktionsprüfung für Hashkonsistenz, unveränderliche Folgeresultate und0Schreibzugriffe ergänzt.
+
+MCP-Befund tatsächlich rot reproduziert: update_business_settings bietet invoice_numbering_authority="" an, minLength1 verwarf diesen eigenen Enumwert. Genau dieser Einzelwert nun minLength0; Schutz von request_id, record_hash, Rechte-/Journal-/Rechnungsnummernregeln unverändert. Eingefrorene P1-Baseline nicht überschrieben; gesonderter eng geprüfter Reparaturdelta mit Negativtests gegen weitergehende Schema-/Rechteänderungen.49JVM-Suiten mit1050Paritätsassertions und5gezielte Python-Vertragstests PASS; ursprünglicher Pythonlauf394PASS/0Skips. Vorher-/Nachher-Produktionsschema-Probe bestätigt Fehler/Korrektur und117/117gültige synthetische Aufrufargumente. Neue native echte JSON-RPC-/Negativpfadprüfung aller117Tools samt eigener Datenbank-/Datei-/Preferencesbereinigung vorbereitet; voller Funktions-/Provider-/Performance-/Artefaktnachweis noch offen. Version weiterhin96, kein neuer APK-Kandidat ausgeliefert.
+
+## Auftrag97 – Heute aus95, Bedienung unten, Fehler-/Leistungs-/MCP-Prüfung (23.10.2026)
+
+Neuer Nutzerauftrag: aktuellen96-Stand auf Fehler/Performance prüfen; Heute aus1.54.6/95 zurückbringen, wichtige Bedienung am unteren Rand. Ausgang App998d71f/Tag96, Dokumentatione6b67cb, sauberer bestehender Auditbranch. Frischen main e499e745 und alle Remote-Branches verglichen; AGENTS identisch zu frischem main. Kein main-Merge/Force-Push. Lesende Live-MCP-Metadaten bestätigen tatsächlich installiertes Original1.54.7/96 mit passendem Fingerprint8a29c1b7,117registrierten und117verbundenen Tools; vollständige156-Aktionsmatrix100+56/hashgebunden gelesen. Keine Geschäftsdatensätze/Testeinträge/Queue/Sync verändert.
+
+Abnahme vor Umsetzung: Heute übernimmt95-Elemente(Arbeitstag/Logo, Terminblätterung, Heute-/Wochen-/Auftragskennzahlen, Arbeitsverlauf) in einem zuständigen Renderer. Arbeit erfassen/Planung und Timeraktionen unten oberhalb vorhandener Navigation,48dp, kein Überdecken des letzten Inhalts;360×640/616 sowie150/200Prozent prüfen. Linke Rand-/Zurückgeste, Daten-/Sync-/Request-/Entwurfsschutz und96-Fehlerkorrekturen erhalten. Performance vor/nach mit denselben synthetischen Daten und echten Hauptthread-/Bridgezählungen messen; keine Pixel-Leistungsbehauptung aus Host/Software-AVD. Alle117Werkzeuge und145fachlich abgedeckten Aktionen gegen tatsächliche Dispatcher/Workflows prüfen;11Plattform-/Darstellungsgrenzen gesondert ausweisen, Registrierung nicht als Funktionsbeweis ausgeben. Schreibprüfungen ausschließlich isoliert/synthetisch, keine produktive Installation oder automatischer Sync. Version bis grünen Implementierungsgates96; nächster Originalkandidat1.54.8/97, anschließend vollständige Regression, originalsigniertes Emulatorupdate/Datenerhalt, Quellen/Tag/Drive nach AGENTS. Kein Ersatzschlüssel/QA-Key.
+
+## Umsetzung96 – AP1–AP7 abgeschlossen, Originalkandidat und finale Belege
+
+Alle autorisierten Implementierungspunkte und sorgfältiges APK-Voraudit abgeschlossen. [Abschlussbericht je AP](docs/verification/implementation-1.54.7-96.md), [strukturierte Tests/Abweichungen/Grenzen](docs/verification/implementation-1.54.7-96.json).394Python/49JVM/54Browser/55lokale synthetische MCP/172native Prüfungen PASS;0native FAIL. Echte360×640dp-/WebView616px-Prüfung bei100/150/200Prozent,9unverdeckte Bilder visuell geprüft, Display/Font restauriert. Original95→96 vollständiger Ledger/fresh_isolated/nativeWebView PASS: Master/Pending/Relationen/RUNNING-Sitzung unverändert. Installierte APK byteidentisch. Source/Workspace/signierteAPK Privacy PASS,0operative Seeds. Linkes Rand-/Zurückmenü unverändert.
+
+Endgültiger Originalcode `998d71f233f57b68264f771e64f8c576b214b957`, unveränderliches Tag `source/v1.54.7-build96`, Fingerprint `8a29c1b793014be4f4e6f53b8feb8ef2744e0d0727541bc374a26bdd54bae336`. APK1.54.7/96,36.217.051Bytes,SHA256 `e4cc718fc51ed7b8f47f089ea582da52961c09d413267c7fcf8df06e836a2a25`, Originalzertifikat identisch. [APK](https://drive.google.com/file/d/1YOT0voQQZ_ntiA_O9jBWVr3ifR8AnBQ8/view), [Versionsnachweis](https://drive.google.com/file/d/1fthY3Q6T0qLdb2sfi2GWrAAUHzaNZa8_/view), [QA](https://drive.google.com/file/d/1UZJh4BhsZGZWez1hiLRo2w_X9skKKZZf/view). [Originalquellen](https://drive.google.com/drive/folders/1PJqvAyhJlRAG-R2UpTtq4dA1wSjavwYr)1282Dateien/551UTF8/731öffentliche Binärressourcen; ZIP-SHA256 `ff8c5708a71a1566b89cc8e6dfe40434a6cf63c98463fb12f6be4df9e3ebfdfd`.19Transferbelege/19Reuse/0Upload/0Duplikate,18Byte-SHA+1ZIPStreamgröße. GroßeAPK ebenfalls vollständiger Stream/Größe, kein Remote-SHA behauptet. Finaldokumentation nachfolgend gesondert gesichert/exportiert, unveränderlicher Appcode bleibt998d71f. Keine Altartefakte/Schutzmengen entfernt, kein main-Merge/Force-Push.
+
+**Offen ausschließlich externe Abnahme:** Pixel und produktives Google Drive ausdrücklich nicht aufgerufen; historische94-Beobachtung nicht aktualisiert. Nutzer übernimmt Sicherung/Installation/request_sync/Rücklesen. Emulatorerfolg beweist keinen produktiven Abgleich. Ältere folgende Chronik beschreibt Zwischenstände, nicht den endgültigen Kandidaten.
+
+## Umsetzung96 – tatsächliche nutzbare Displayhöhe vor endgültigem APK-Build
+
+Native Normalansicht mit korrekt datierten synthetischen Terminen reproduzierte einen knappen Überstand des zweiten Termins unter die Navigation: vom logischen360×640dp-Display bleiben durch die Android-Statusleiste616px WebViewhöhe. Timerstatus und Uhr teilen jetzt bei Normalschrift eine Zeile; Karteninnenabstand geringfügig kompakter, sämtliche Touchziele weiterhin mindestens48dp. Explizite Buttonabstände funktionieren auch im getesteten alten WebView83 ohne Flex-gap. Keine Timer-/Termin-/Speicherlogik geändert. Font-Fixture ergänzt langen Namen der tatsächlich laufenden synthetischen Sitzung und wartet zwei Renderframes vor der Messung.
+
+Erneuter vollständiger Browserlauf mit diesen finalen Assets:54Suiten/0FAIL. Übersicht zusätzlich360×616px:10Fälle/0FAIL. Native Java-/Lint-Vorprüfung42Tasks PASS. Finale APK, tatsächliche native Schrift-/Sichtprüfung und erneute Fach-/Erhaltungsabnahme folgen; bisherige interne96-Artefakte und Quellkopie4625059 sind keine Auslieferung und erhalten keine endgültige Versionsmarke. Die nachfolgenden älteren Chronikeinträge bleiben historische Zwischenstände.
+
+## Umsetzung96 – nachgewiesener Zeitzonenfehler im synthetischen Font-Fixture (22.10.2026)
+
+Fensterwächter nach WindowManager jetzt tatsächlich PASS, freier Screenshot ohne Systemdialog. Fixture zeigte nach22UTC keinen heutigen Termin: Emulator ist Etc/UTC, Planung/Heute verwendenEurope/Vienna und lagen bereits am Folgetag. Die künstlichen Termine wurden fälschlich mit Geräte-localDate statt dem Tag der Planungsansicht erzeugt. Testdatum nun explizit über dieselbe Europe/Vienna-Tagesgrenze erzeugen; keine Produktionsdatum-/Datenaufrufe geändert. Produktionsfingerprint bleibt exaktf19e1919, originale APK/ad84ec8f aus4625059 unverändert. QA-/Testquellen werden separat sauber gesichert und exportiert, zugehörige Originalinstrumentierung neu gebaut. Versionsmarke bindet weiterhin exakt den tatsächlich eingebetteten App-Quellcommit4625059; abschließender Dokumentations-/QA-Commit wird gesondert angegeben. Kein APKwechsel allein wegen Fixture-/Dokumentationskorrektur, keine erfolgreiche Fontabnahme behauptet, bevor sie tatsächlich läuft.
+
+## Umsetzung96 – finale Fachabnahme und präzisierter Fensterwächter (22.10.2026)
+
+Originalkandidat3044ab5/Produktionsfingerprintf19e19197ec367d3a0b1bb9d8b478efc8943fe9ee4eebeec8fc4040e58679dad:172native Fachprüfungen/0FAIL,95→96-Vollledger, fresh_isolated und tatsächlicher WebView PASS. Alle Masterdaten, Beziehungen, eine offene Aktion und sämtliche persistierten Timerfelder unverändert. Schrift-/Displayrollback nach erster neuer Probe PASS.
+
+Der zusätzliche Accessibility-Root-Wächter lieferte unmittelbar nach Activitystart null; dies ist kein Beleg für ein verdecktes Appfenster. Test liest stattdessen nach tatsächlicher WebView-Bereitschaft die fokussierte MainActivity aus Android WindowManager. Ein SystemUI-/ANR-Dialog besitzt diesen Fokus nicht und bleibt Abbruchgrund. Keine Produktionsquelle geändert; App-Fingerprint bleibt exaktf19e1919. Korrekte Testquelle wird erneut gesichert und ein dazu passendes Artefakt gebaut, bevor Tag/Auslieferung festgelegt werden.
+
+## Umsetzung96 – abschließende kleine Bildschirm-/Sichtprüfung (22.10.2026)
+
+Die ersten nativen Schriftproben lieferten zwar richtige OS-/TextZoom-/DOMwerte, die tatsächlich zurückgelesenen Screenshots zeigten jedoch einen verdeckenden Android-SystemUI-ANR-Dialog. Diese Bilder ausdrücklich nicht als visuelle Abnahme akzeptiert. Ausschließlich im bewachten eigenen AVD den exakt identifizierten Systemdialog über „Wait“ bestätigt; keine Appdaten/Queue geändert. Native Fontprüfung verlangt künftig zusätzlich fokussiertes Anwendungsfenster und prüft die tatsächliche Sichtbarkeit auf einem temporären360×640dp-Display, bei1.0/1.5/2.0; Font und Display werden zurückgestellt. Kein Schluss auf Pixelperformance aus dem nicht beschleunigten API30-Emulator.
+
+Zwei weitere konkrete UI-Regressionsfälle erst rot, dann behoben: bei laufender Sitzung lag der zweite heutige Termin unter der Navigation; nach Kundenumbenennung blieben Namen in Today-Rendercaches alt. Timer-Jetzt nun kompakt mit Pause/Fortsetzen und Stoppen/Ergänzen, Foto/Nachtragen/Löschen über vorhandene Aktionen im ⋯-Zusatzmenü. Keine Timer-/Foto-/Speicherkontrakte geändert. Renderer-Schlüssel berücksichtigen tatsächlich angezeigte Kundennamen;1s-Takt ersetzt weiterhin nur die Uhr bei unverändertem Kontext. Zeitraum darf bei großer Schrift ganze Datumswörter in zusätzliche Zeile legen; Timer-/Startbeschriftungen werden nicht mitten im Wort getrennt.
+
+Erneuter vollständiger54-Suiten-Browserlauf mit finalen operativen Assets:54PASS/0FAIL, keine zusammengesetzte Ersatzfreigabe mehr erforderlich. Neu10gezielte Übersichtsfälle einschließlich aktivem Timer+2Terminen, Kameraaufruf mit identischer Session/Kunde, Nachtragen ohne Timerneustart, umbenanntem Kunden, langen Namen und großen Idle-Startbeschriftungen.394Python erneut PASS/0Skips;49JVM-Suiten/1047Paritätsassertions sowie18Retentionfälle weiter grün. Finale native Java-/Lintprüfung und original96-Artefakt-/Emulatorwiederholung vor Auslieferung stehen noch an. Linke Rand-/Zurückgeste unverändert.
+
+## Umsetzung96 – zusätzliche AP4-Referenzprüfung nach erstem Kandidaten (22.10.2026)
+
+Erster originalsignierter interner96-Kandidat aus57e1b01:84Release-/AndroidTest-/Lint-Tasks PASS; Paket/Originalzertifikat/komplette Assets/leerem Bootstrap/Commit/Fingerprint geprüft.172native SQLite/MCP/Providerfälle PASS/0FAIL und tatsächlicher WebView PASS. Kein Tag/Drive-Upload/Pixelupdate dieses Zwischenkandidaten.
+
+Zusätzliche Quittungsprüfung fand Serien-/Sammelaktionen mit bestehenden numerischen Unterkennungen request_0/request_1. Ein neuer Test reproduzierte tatsächliches vorzeitiges Freigeben der Elternquittung (ReceiptRetentionRules-Prüfung3 FAIL). Referenzschutz jetzt auf genau diese vorhandene numerische Konvention erweitert, auch für Tombstone-/Backupreferenzen; unspezifische Namen wie request_other/request_1_other zählen nicht.18gezielte Retentionfälle und erneut49JVM-Suiten/1047Paritätsassertions PASS. Native SQLite-Abnahme um diese offenen Unteraktionen/Tombstones erweitert; Java+AndroidTest33Tasks PASS. Aktueller interner Kandidat wird vor Auslieferung aus dem korrigierten Commit neu gebaut;96-Versionsmarke noch nicht gesetzt.
+
+Erste native1.5-Schriftprobe scheiterte mit ungenauer Sammeldiagnose; kein Erfolg behauptet. Testadapter prüft nun die tatsächliche Activity-Konfiguration, gebundene native Lesemethoden und feste nummerierte Prüfphasen; Screenshots bei Fehler. OS-Schrift wurde auf effektiven Normalwert1.0 zurückgesetzt (Android initialisierte zuvor nicht gesetzten Default dabei als1.0; erste strikte Raw-String-Prüfung meldete deshalb fälschlich Restore-Fehler). Semantischen Originalwert künftig zusätzlich explizit vergleichen/protokollieren. Wiederholte native Fontabnahme und abschließender96-Kandidat weiterhin offen.
+
+## Umsetzung96 – ausdrückliches APK-Voraudit bestanden (22.10.2026)
+
+Jeden AP1–AP7-Unterpunkt vor APK-Erstellung nochmals gegen Quelle, Tests und Grenzen geprüft: [Abnahmeprotokoll](docs/verification/implementation-1.54.7-96.md).54aktuelle Browsersuiten grün(53Gesamtlauf plus korrigierte Planungsrechteck-Prüfung erneut; operative Assets nachweislich unverändert),394Python/0Skips/37explizite QA-Key-Altfallausnahmen,49JVM-Suiten/1047Paritätsassertions,114Syncfehlerprüfungen,55lokale stdio-MCP-,29Kamera-/47Cleanup-Hostfälle PASS. Native Java+AndroidTest+Lint42Tasks PASS,0Fehler/54Warnungen. Pflanzen-/Angebots-/UI-/Privacy-Gates grün. H3/H4kein Entwurfsverlust, H5gemessen/kein spekulativer Umbau. Synthetisches Emulator-Vorledger95 frisch erfasst:3Kunden/1Auftrag/2Arbeiten/1Pending/laufender Timer; nur Counts/Hashes gespeichert.
+
+Implementierungsnacharbeiten abgeschlossen. Version darf jetzt1.54.7/96 werden; danach sauber gesicherten Commit bauen/originalsignieren. Native Ausführung der96-Tests, OS-Großschrift, Artefakt- und Driveabnahme sind weiterhin separate nachfolgende Gates. Keine vollständige96-Freigabe vor diesen Nachweisen; kein Pixel-/Produktivsync.
+
+## Umsetzung96 – Regressionsprüfung und Großschriftkorrekturen (22.10.2026)
+
+Vorhandene Positionstests bewusst auf die neue Heute-/Planungsstruktur umgestellt: echte Readiness statt entfernter Metrikkacheln, sichtbare aktive Terminkarte statt zusätzlichem versteckten Heute-Treffer, neues ⋯-Menü vor Zusatzaktionen öffnen. Fachliche CAS-/Request-/Timer-/Abrechnungs-/Kameraerwartungen nicht gelockert. Tatsächlich gefunden und behoben: Arbeitsdetail-Aktionsmenü war von einer entfernten Heute-Arbeitszeile abhängig; ruft jetzt denselben bestehenden Action-Sheet-Einstieg direkt mit Datensatz-ID auf. Offene Terminenden auf Heute wieder sichtbar. Persönliche bezahlt-Markierung einschließlich lokaler Persistenz/Fehlerfall über eingeklappten Arbeitsverlauf erhalten, Wochenstunden bleiben letzte Kennzahl.
+
+Sichtprüfung100/200Prozent fand trotz rechnerisch korrekter Begrenzung zu schmale Kundenspalten. Heute und Planung geben dem vollständigen Kundennamen nun eine eigene Kartenzeile; Timeraktionen dürfen bei großer Schrift umbrechen. Geerbten zusätzlichen Pfeil im ⋯-Summary entfernt. Native Java/Main+AndroidTest erneut33Tasks PASS.49JVM-Suiten/1047Paritätsassertions PASS vor abschließender Netz-Backoff-Präzisierung; erneuter Gesamtlauf folgt. AP1 präzisiert: reine Netzfehler bleiben ohne Nutzeraktion im gedeckelten Backoff, auch ab Versuch8; Retryzähler bleibt begrenzt. Die vorhandene Grenze aller anderen Fehler unverändert. Diese bisherige Retrylimit-Verzweigung hätte sonst den ausdrücklich verlangten Netzwerkfall wieder zur Nutzeraktion gemacht.
+
+Neue Diagnosedarstellungsfälle prüfen tatsächliches sync-dashboard und business-feedback: Klasse/Meldung und read_step in Diagnose, vier neue Codes mit verständlichen Haupttexten; gezielter Sync-trash-Lauf PASS. Neue H3/H4-Fokus-/Entwurfsproben sowie H5-Bridge-/Hauptthreadmessung laufen, keine vorweggenommene Erfolgsbehauptung. Eigener Emulator bewahrt95-Datenpartition; noch keine96-APK/Installation, kein produktiver Pixel-/Drive-Abgleich. Vollständige abschließende Browser-/Python-/Native-Abnahme und Quellen-/Artefaktbelege weiterhin offen.
+
+## Umsetzung96 – AP5 und erster AP6/AP7-Browsernachweis (22.10.2026)
+
+AP5: vorhandenen Leave-Guard erhalten, flushWorklogDetail ergänzt und Verwerfungsfrage auf eindeutigen Auftragstext gestellt. Tatsächlicher linker Menüpfad speichert gültige Änderung vor Wechsel; fehlender Kunde liefert false, Bestätigung erscheint und Abbrechen lässt Seite/Entwurf unverändert.10Worklog-Window-Browserfälle einschließlich2neuer Menüfälle PASS. Kein Warten auf einen Zeitgeber; keine pauschale zusätzliche Wrapperlage.
+
+AP6: today-ui.js besitzt Heute-Struktur und ursprüngliche Timerkommandos; alte Heute-Renderer aus workday/design/planning/field entfernt, work-location behält Erfassung/Validierung und verändert die Heute-Struktur nicht mehr. Logo im vorhandenen Seitenmenü, Datum/Statuschip oben, Jetzt mit Start/Nachtragen oder laufender Arbeit/Stoppen, drei heutige Termine mit Alle anzeigen, bedarfsabhängige Offen-Chips und kleine Wochenkennzahl. Optionale bevorstehende Terminblätterung samt bisheriger Richtungs-/Klicksperre bleibt als Zusatz ohne heutige Termine. Versteckte Ordnerbuttons aus Markup entfernt; bestehende Ziele unter Mehr erhalten. Linke Rand-/Zurückgeste unverändert; nur das beauftragte Logo ergänzt.
+
+Planung: drei Bedienzeilen(Zeitraum/Ansicht/Wochenstreifen), Terminliste unmittelbar danach, fester beschrifteter +Termin-Knopf. Zusatzwerkzeuge/Kundenfilter/Status/Einrichtung im ⋯-Menü, verbindungsbezogener Chip bei Problem; bestehende Request-/Editor-/Zeitkonvertierungs-/Kalenderentscheidungswege erhalten. Planning-Listenaufrufe und Pagination unverändert, Heute liest erforderliche Detailmetadaten über denselben vorhandenen get_appointment-Pfad.
+
+AP7: neue feste Browser-Suite mit360×640 und100/150/200Prozent.7konkrete Fälle PASS: Start+2Termine initial sichtbar,3/Alle-Anzeige, erster Planungstermin und max3Bedienzeilen, mindestens48px-Touchziele, Timer-ID/Arbeitsdauer beim Hin-/Rückwechsel, erhaltener Planungsentwurf, horizontale Grenzen/umgebrochener Text und keine Browserfehler. Sichtprüfung der synthetischen100%-Heuteansicht erfolgt;150/200%- und Planungsbilder folgen. Neue Tests fanden44px-Alt-Summary, korrigiert; Timerstart bewusst über bestehende Kundenauswahl getestet, kein fiktiver Direktstart. Gesamter54-Suiten-Browserlauf läuft noch; alte Positionserwartung in visual-consistency meldet erwarteten Darstellungsdiff(Heute-Aktionen nun innerhalb Jetzt statt darunter), noch gezielt zu aktualisieren. Keine Baseline voreilig neu freigegeben.
+
+AP1–AP4: korrigierte Android-Main- und AndroidTest-Javakompilierung tatsächlich PASS33Tasks. Native Ausführung weiterhin ausstehend. Eigene AVD mit bestehender95-Datenpartition gestartet, qemu/Name geprüft, root nur dort; Timeoutmultiplikator10 gesetzt/zurückgelesen und Framework ohne Datenreset neu gestartet. Native große Schrift und Datenerhalt noch offen. Version bleibt95, keine neue APK, keine Pixel-/Drive-Betriebsaktion.
+
+## Umsetzung96 – AP1–AP4 Implementierungscheckpoint (22.10.2026)
+
+AP1: gemeinsame reine SyncFailureRules,108gezielte Produktionsprüfungen PASS; Konfigurationsfehler Versuch1/Nutzeraktion ohne Planung, Netzfehler eigener Backoffcode. Bisherige Retryzählung anderer Fehler erhalten. Diagnose erhält Klasse/auf120Zeichen begrenzte datensparsame Meldung und read_step. Beliebige Provider-/Logikmeldungen können Geschäftstexte enthalten: ausschließlich exakt bekannte harmlose Plattformmeldungen übernehmen, sonst Inhalt ausblenden; keine scheinbar sichere Regex-Redaktion.
+
+AP2: SyncCommitRules bestätigt accepted/applied/rejected_invoice/resolved gemeinsam mit Snapshot über bestehende SQLite-Transaktion. Späteres false oder Exception der Statuspersistenz wird STATUS_NOT_SAVED/Retry0 und kein erneuter Übertragungsfehlversuch.17gezielte JVM-Commit-/Reihenfolge-/Preferencesfehlerfälle PASS, native SQLite-Prüfung vorbereitet.
+
+AP3: echte LocalOwnerRepository.runRequest-Methode im bestehenden JVM-Lauf frisch aus Produktionsquelle kompiliert und mit benanntem Transaktionsport ausgeführt:14Rollback-/Replay-/Mismatch-/Expiryprüfungen PASS. Keine Produktionsklasse als Testdouble. CleanupSyncStub implementiert schmalen I/O-Port, tatsächliche Fehlerklassifikation aus Produktionsklasse;47Hostfälle PASS.49JVM-Suiten/1047Paritätsassertions und bisheriger eingefrorener Vertrag PASS. Android-Main-Javakompilierung PASS; erste neue Testadapterkompilierungen fanden fehlende public-/throws-Deklarationen, korrigiert, erneute native Testkompilierung/Abnahme noch offen.
+
+AP4: bestätigte/entfernte pending-Zeile plus entfernte Quittung im tatsächlichen Repository reproduziert: derselbe Request wirkt erneut; PK allein genügt nicht. Daher nur volle Ergebnisquittungen älter90Tage ohne offene Action/Backup/Tombstone entfernen, in derselben Transaktion dauerhaften minimalen Fingerprint-Sperrbeleg behalten. Gleiche abgelaufene Anfrage liefert REQUEST_EXPIRED statt zweiter Aktion; abweichender Fingerprint bleibt REPLAY_MISMATCH.13reine Alters-/Referenzprüfungen PASS. Alte Quittungen ohne verlässliches Datum bekommen erst ein Beobachtungsdatum; keine sofortige Altersvermutung. Automatische Bereinigung ausschließlich nach serververifizierter Publikation und erfolgreicher lokaler Statuspersistenz; Provider-Rücklesen genügt nicht. Protokoll nur Anzahl/Zeit. Tatsächliche native SQLite-/Providernegativfälle vorbereitet, noch nicht ausgeführt.
+
+Version bleibt95 bis sämtliche Implementierungsgates und UI-Abnahme grün. Keine APK erstellt, kein produktiver Pixel-/Syncaufruf, keine Randmenüänderung. AP5–AP7 und Hypothesenprüfung folgen.
+
+## Umsetzung96 – Auftrag und Abnahmekriterien festgelegt (22.10.2026)
+
+Neuer Nutzerauftrag AP1–AP7: [CODEX-UMSETZUNG-1.54.7.md](CODEX-UMSETZUNG-1.54.7.md). Ausgang sauber d279945/Original95, Remote-Arbeitsbranch exakt identisch; frischer main e499e745 und alle bestehenden Branches verglichen, kein Reset/Merge. Aktuelle main-Regeln und Issue1 lesend über Connector geprüft; gh-GraphQL war gesperrt, kein fehlender Inhalt als gelesen behauptet. Cloudnetz eingeschränkt/enforced, erforderliche Originalsignierungsvariablen nur als bereit gemeldet, keine Werte ausgegeben. Noch keine Versionserhöhung, Codeänderung oder neue APK.
+
+AP1/AP2 tatsächlich in Quelle bestätigt. AP5 enthält bereits einen Leave-Guard im mobile.html; tatsächlichen Menüpfad prüfen und gezielt ergänzen. AP4 muss auch Wiederholung nach bereits bestätigter/entfernter pending-Zeile schützen; Primary Key allein ist dann kein dauerhafter Replay-Beleg. Diese Randfälle vor Implementierung isoliert belegen. Sämtliche produktiven Pixel-/Sync-Aktionen ausgeschlossen, linkes Randmenü unverändert. Fortschritt und Schlussaudit je AP folgen; vorhandene95-Nachweise sind keine96-Abnahme.
+
+## Abschluss B1–B4 – Optimierungen und Originalkandidat95 (22.10.2026)
+
+**Umsetzung und Cloud-Abnahme abgeschlossen; physisches Pixelupdate und produktive Sync95-Bestätigung offen.** Alle sechs Auditoptimierungen sowie die beauftragten Sync-/Testreste-/Bedienkorrekturen sind implementiert. Vollständiger schichtenspezifischer Nachweis: [docs/verification/optimization-1.54.6-95.json](docs/verification/optimization-1.54.6-95.json). Die untenstehenden Zwischenstände und tatsächlich gefundenen Fehler bleiben als Historie erhalten.
+
+- **B1 Sync:** präzise datensparsame Fehler/Unterphasen, korrekte nächste Queueaktion, getrennte Aktionszähler, wahrheitsgemäße Automatik-/Manuellflags, zusätzlicher plattformneutraler Kataloghash und begrenzter verifizierter Lesecache. Historische Geschäfts-/CAS-/Publikationshashes erhalten. Fehlende kurzlebige State-Provider-ID ausschließlich durch exakten unveränderlichen Dateinamen plus tatsächlich geprüfte SHA256-Bytes auflösen; existierende fehlerhafte IDs erhalten keinen Fallback. Publikationskettenprüfung und frische Schreibgrenzen unverändert geschützt.
+- **B2 Testreste:** ausdrücklich benannter synthetischer Altkunde nach aktueller Vorschau/CAS endgültig entfernt; gezielte Löschsicherung862Bytes/SHA256264de056472ba07767a56cff24e935dc22ef0d61905db701a7f0b813ffd45c1d tatsächlich geprüft. Abschließende Live-Suche MCP0, [TEST]0, Kundenarchiv0. Keine echten Kunden/Arbeitsnachweise geändert. Neue95-Laufzeit kompaktiert bereits ausdrücklich purgierte lokale Testjournale transaktional nach Sicherungsbeleg und Referenzschutz; lokal-only-Tests nie hochladen, zuvor geteilte Tests über neue geschützte Archiv-/Purge-Aktionen entfernen. Minimale Tombstones und haltbare Standard-/Owner-/Batch-Idempotenzquittungen bleiben gegen Wiederanlage erhalten. Veränderte Originale und neuere Cloud-Löschbelege geschützt. Vollständiges Gerätebackup nicht nachgewiesen; unbestätigten ersten Vollbackupaufruf nicht als Erfolg gezählt.
+- **B3 Bedienung:** lokale Listenaktualisierung ohne Drive-Abhängigkeit, Such-/Scrollpositionen erhalten, offene Entwürfe/Dialogs geschützt; vertikal begonnene Gesten bleiben vertikal, verschachteltes Scrollen löst kein Pull-Refresh aus. Planung mit beschriftetem +Termin und eingeklappten optionalen Werkzeugen; Heute priorisiert Arbeit, nächsten Einsatz, danach Summen. Keine geplanten Aufträge doppelt anzeigen.156semantische UI-Aktionen und alle117MCP-Werkzeuge erhalten.
+- **B4 finale Prüfungen:**394Python PASS/0Skips (37alte QA-Schlüsselerzeugungsfälle ausdrücklich ausgeschlossen),45JVM-Suiten,1047UI–MCP-Assertions,53Browser-Suiten,55lokale synthetische stdio-MCP-Szenarien,29Kamera- und47Cleanup-Hostfälle PASS. Release/AndroidTest/lint84Tasks PASS,0Lintfehler/54Warnungen. **164 tatsächlich native SQLite/MCP/Provider-Prüfungen PASS/0FAIL**; Altquittungsfehler korrigiert und erneut mit unveränderter Erwartung geprüft. Original94→95→final95 ohne Wipe/Uninstall PASS, vollständiger Master/Pending/Relationen/Einstellungen/Tunnel und RUNNING-Timer unverändert. Fresh-isolated, tatsächlicher gebündelter WebView/Verbindungen und finaler Erhaltungsledger PASS.421Quellassets exakt plus2belegte generierte ART-Profile,181Pflanzen/362Bilder. Source/Workspace/tatsächliche signierte APK Privacy PASS,0operative Seeds.
+
+**Unveränderliche Appquelle:** `6972780dc9adbe46e0a91f1f77aa990e303fdaf0`, Tag `source/v1.54.6-build95`, Fingerprint `dfc3cc87f18cb152081a56b25d94a682920d07a880800941db0212ba93544565`. Originalschlüssel/Paket erhalten; tatsächliche APK1.54.6/95,36.208.658Bytes,SHA256 `d54e6f50b8cab37088768c79caebf6cea0e5038959aeb85063c5b77b4a8db112`. Emulatorinstallationsbytes identisch. APK: https://drive.google.com/file/d/1mNMctVtasftStxWfwZboVv6chkQ_CbXv/view . Versionsnachweis/QA separat im privaten Kandidatenordner https://drive.google.com/drive/folders/1qV4B9lXj0P35DSsuIzTD9hIMWgx34bef . Appcode/Tag werden durch die nachfolgende Abschlussdokumentation nicht umgeschrieben.
+
+**Originalquellsicherung:** GitHub-Branch/Tag exakt zurückgelesen; offizieller sauberer Export1262Dateien/531UTF8/731öffentliche Binärressourcen. Original-ZIP68.943.114Bytes,SHA256 `269877afd4fd6aefa4135b51318ef9f44e4465d75d49aac7166c736aa6563c2e`: https://drive.google.com/file/d/1Y8xLj_5d08RZjUeoqmM5f2rWY1D24QWc/view .19Quellartefakte tatsächlich zurückgelesen:18SHA256_BYTES +1ZIP COMPLETE_STREAM_SIZE_ONLY; Transferhelper19Reuse/0Upload/0Duplikate/0Unreferenziert. APK ebenfalls vollständiger authentifizierter Stream mit exakter Größe; wegen32MiB-Materialisierungsgrenze kein behaupteter Remote-SHA-Bytevergleich dieser beiden großen Dateien. Lokale Originalbytes/Hashes und Git-Quellen tatsächlich geprüft. Bestehende89/90/93/94-Originale/Schutzmengen erhalten. Abschließende Protokoll-/Registerdateien separat auf demselben Branch gesichert und offiziell exportiert; Manifest des Dokumentationsexports maßgeblich.
+
+**Abnahmegrenzen:** API30-Software-AVD mit dokumentierten NetworkStack-/SystemUI-OS-Ausfällen und ausschließlich testlokaler Frameworkkonfiguration; keine Pixel-Leistungsmessung. Eindeutig identifizierten SystemUI-Wait-Dialog verlassen und finale Heute-/Timeransicht sichtbar geprüft; kein Appdatenreset. Physische API34+-Randgesten, echte Kamera-/Kontorechte und produktiver Google-Abgleich95 bleiben offen. Pixel meldet weiterhin Original1.54.5/94, Sync action_required/8pending/0review/provider_readback/cloud_confirmed=false. Die fehlende Provider-State-Referenz ist eine beleggestützte Reparaturhypothese, kein bereits bestätigter Live-Fix. Nach aktueller Sicherung und physischem Update95 den vom Auftrag autorisierten expliziten Sync mit echtem Readback prüfen; keine fachliche Queue löschen, keine blinden Alt94-Retries oder stillen Kontofreigaben. Kein main-Merge und keine automatische Pixelinstallation.
+
+## Native Abnahme B4 – Altquittung korrigiert (22.10.2026)
+
+Tatsächliches Original-In-place-Update94→085913e/95 PASS; vollständiger synthetischer Master, IDs/Relationen, Pending, Einstellungen/Tunnel und RUNNING-Timer per unverändertem Vor-/Nachledger erhalten. Native Gesamtprüfung:163PASS/1FAIL. Echter neuer Kompatibilitätsfehler im vorhandenen EstimateNativeAcceptance-Altquittungstest: Nach Test-GC fehlte bei einer alten MCP-Quittung ohne test_local_only ihr zuvor nur im Journal belegter Isolationsstatus. Datensätze blieben entfernt und es erfolgte kein Testupload; Status war falsch. Keine Anpassung dieser Abnahmeerwartung.
+
+Korrektur: Vor dem Entfernen jedes eindeutig lokalen Testjournals passende alte Standard-/Ownerquittung in derselben Transaktion mit dauerhaftem Test-/Purge-Kennzeichen ergänzen. Request-ID, Fingerprint und fachliche Bezüge erhalten; keine neuen Quittungen erzeugen. Native Regression zusätzlich für alte Ownerquittung sowie veränderten Replay-Request/0verbleibende Fachjournale erweitert.085-Kandidat nicht ausgeliefert; neue Abnahme nach neuem gesicherten Build erforderlich.
+
+Emulator nach AOSP-Ursachenprüfung stabilisiert: im ausschließlich eigenen synthetischen AVD DeviceConfig connectivity/always_ratelimit_networkstack_crash=true und min_uptime_before_crash=604800000 (vorher beide null) tatsächlich gesetzt/zurückgelesen. Diese Debug-OS-Konfiguration verhindert NetworkStack-bedingte Framework-Bootschleifen; daraus folgt keine Abnahme echter Google-/Netzverbindungen. Kein Produktivgerät/Systemkonto verändert und keine Appdaten gelöscht. Danach erstmals Vorupdateledger und echtes Update erfolgreich; vorherige Fehlversuche nicht als Abnahme gezählt.
+
+## Datenintegrität B4 – Löschbelegpräzedenz korrigiert (22.10.2026)
+
+Zusätzlicher Review fand einen Randfall im neu eingeführten Test-GC: ein alter lokaler Tombstone durfte den späteren geteilten Purge-Beleg nicht überschreiben. Neuer reiner Projektor bevorzugt existierende serverseitige Purge-Belege byte-/hashgleich; private Provenienzfelder bleiben außerhalb des projizierten Fachbelegs. Seit dem bestätigten Löschen geänderte Originale/Archive werden nicht durch den alten lokalen Beleg versteckt.16gezielte reine JVM-Prüfungen einschließlich unverändertem Eingabehash im Konfliktfall PASS;45JVM-Suiten insgesamt PASS. Native SQLite-Integration um tatsächlichen Belegvergleich nach Bestätigung ergänzt. Keine Geschäfts-/Publikationshashes geändert. Vorbereiteter6f4c4f6-Kandidat/Quellstand dadurch überholt und nicht ausgeliefert; aktueller Kandidat wird aus neu gesichertem Stand neu gebaut/signiert/exportiert.
+
+Software-AVD: Emulatoroption ro.hw_timeout_multiplier wurde vom Emulator abgewiesen (nur qemu.* unterstützt), daher keine Wirksamkeit behauptet. Danach ausschließlich im nachgewiesenen dedizierten qemu-AVD adbd alsroot neu gestartet, ro.hw_timeout_multiplier=10 tatsächlich gesetzt/zurückgelesen und Android-Runtime ordentlich stop/start durchgeführt. Datenpartition/APKs unverändert erhalten; kein Wipe/Uninstall. Physischer Pixel blieb unberührt. Native Tests weiterhin erst nach tatsächlichem Erfolg PASS.
+
+## Gesamtabnahme B4 – Zwischenstand (22.10.2026)
+
+Release-/AndroidTest-Build und lintRelease PASS84Tasks aus gesichertem6b55163, noch unsignierter Testbuild.53Browser-Suiten ausgeführt;51PASS und2alte Präsentationserwartungen zunächst FAIL. Beide gezielt korrigiert und erneut tatsächlich PASS: ui-preview14Checks prüft reale Erreichbarkeit statt früherer fester unterer Bildschirmhälfte; p3-customer-hub wartet auf tatsächlich geladenes Field-Stylesheet und bestätigt neue Arbeit-vor-Summen-Reihenfolge. Weiterer vollständiger Schlusslauf folgt.44JVM-Suiten/1047Paritätsassertions,29Kamera-Hostfälle,47Cleanup-Koordinatorfälle und55echte lokale MCP-stdio-Szenarien PASS. Python-Gesamtprüfung noch im Gang.
+
+Emulator-Umgebungsfehler vor Appupdate belegt: am_anr TelephonyDebugService, anschließend system_server IllegalStateException „Lost network stack“, Framework-Neustart. Zweite rein lesende Instrumentierungsprobe meldete Error type2. Keine Appregression daraus abgeleitet; kein Vorupdateledger erfunden. Bestehende AVD-Datenpartition bleibt erhalten, ausschließlich eigenen Emulator ordentlich beenden/neustarten und Softwareemulation stabilisieren. Native Abnahme/94→95-Update noch offen. Keine physische Pixelinstallation oder Kontoänderung.
+
+## Umsetzung B2/B3 – ergänzter Schutz und fortgesetzte Abnahme (22.10.2026)
+
+38gezielte Sync-/Automatik-/Queue-/Cache-/Aktive-Arbeit-Prüfungen und8State-Referenzfälle PASS. Aktive Timerreferenzen jetzt vor UI-/MCP-Archivierung, Einzelpurge und Sammelpurge gemeinsam geschützt. Bereits lokal purgierte Sammeltestaktionen werden ebenfalls nach geprüftem Backup kompaktiert; sofortige lokale Datei-GC ausschließlich für nie geteilte Tests, weiterhin keine geteilte Medienlöschung ohne normalen Syncbeleg. Neuer nativer Fall prüft geteilten Alt-Testkunden: exakt2frische CAS-/abhängigkeitsgeschützte Drive-Aufräumaktionen, keine lokale Wiederanlage. Voller nativer Nachweis noch offen.
+
+Today-Darstellung priorisiert bewusst auch im Leerlauf Arbeit vor Termin/Summen. Alte Darstellungserwartung in p3-customer-hub entsprechend eng angepasst; laufende Arbeit bleibt weiterhin zuerst. Erster synthetischer Vorupdate-Ledger scheiterte an Instrumentierung nach langsamem Emulatorstart; kein Ledger überschrieben, keine Installation/kein Reset. Dienste danach erneut lesend geprüft. Browsergesamtlauf ansonsten abgeschlossen; erneuter gezielter Lauf der angepassten Präsentation folgt.
+
+## Umsetzung B2/B3 – gesicherter Implementierungscheckpoint (22.10.2026)
+
+**B2 Sync/Testreste:** Fehlende kurzlebige Provider-State-ID darf ausschließlich durch aktuelle Dateien mit exakt passendem unveränderlichem Namen und tatsächlich geprüften SHA256-Bytes aufgelöst werden. Existierende IDs mit Lese-/Berechtigungs-/Inhaltsfehlern erhalten keinen Fallback. Vollständige Publikations-/Kettenprüfung bleibt danach verpflichtend.8neue JVM-Fälle PASS, übrige44JVM-Suiten PASS. Tatsächliche Live-Fehlerursache bleibt ohne neue Pixel-Laufzeit unbestätigt.
+
+Eindeutiger alter MCP-Testkunde per aktuellem Hash archiviert, erneute Purge-Vorschau zulässig, endgültig entfernt. Automatisch erzeugte gezielte Löschsicherung mit1Kunde/0Originaldateien tatsächlich inspiziert:862Bytes, SHA256264de056…c1d, verified_at_capture=true. Frische MCP-Suche nachMCP:0Treffer; zuvor separat gelesene [TEST]-Suche ebenfalls0 und Kundenarchiv0. Screenshotreste und tatsächlicher MCP-Lesestand unterscheiden sich; alte UI kann bei externen Änderungen bis zum nächsten Neuladen veraltet bleiben. Keine echten Kunden geändert. Keine Produktivdaten/IDs in Checkout oder Tests übernommen. Ein zunächst angeforderter Vollbackup-Aufruf hatte keine bestätigte Antwort; kein Vollbackup-Erfolg behauptet und keine blinde Wiederholung. Gezielte Löschsicherung unabhängig davon bestätigt.
+
+Neue Laufzeit kompaktiert ausschließlich bereits ausdrücklich endgültig entfernte lokale Testjournale nach geprüftem Löschbackup, in derselben SQLite-Datenbank/Transaktion. Minimale Tombstones und Idempotenzquittungen bleiben. Lokal neu erzeugte Tests werden nie hochgeladen; bereits im geteilten Snapshot vorhandene entfernte Testoriginale bekommen separate versionsgeschützte Archiv-/Purge-Aktionen für Drive, keine Änderung alter Journal-IDs. Aktive Sitzung/Referenzen stoppen Bereinigung. Lokal-only-Testmedien erst nach geschütztem Tombstone und erneuter Referenzprüfung sammeln; geteilte Medien bleiben im normalen Belegpfad. Native Neustart-/Replay-/Datenerhaltfälle ergänzt, Ausführung noch ausstehend.
+
+**B3 Bedienung:** Neue lokale Änderungsbenachrichtigung aktualisiert Listen ohne erfolgreichen Drive-Abgleich; offene Formulare/Dialogs bleiben geschützt. Filter und Hauptmenü-Scrollposition bleiben erhalten. Vertikal zuerst begonnene Bewegung bleibt Scrollen; verschachtelte gescrollte Listen lösen kein Pull-Refresh aus. Planung mit beschriftetem +Termin und optionaler Werkzeuggruppe; Heute priorisiert Arbeit, nächsten Einsatz, danach Summen, und vermeidet Doppelanzeige bereits terminierter Aufträge.8neue konkrete Browserinteraktionen PASS, bestehende Navigations-/Gesten-/Timer-/Formularsuiten PASS. Gezielt geänderte alte Darstellungserwartungen dokumentieren neuen Filtererhalt/benannte Primäraktion/eingeklappte Werkzeuge; unveränderte Editor-Speicher-/Retry-Funktionen weiterhin eingefroren geprüft. Kompletter53-Suiten-Browserlauf noch im Gang.
+
+Android-Release-/AndroidTest-Javakompilierung PASS33Tasks. Vorheriger Versuch stoppte korrekt am Quellreview-Gate während laufender UI-Änderungen; nach Review erneut erfolgreich. Kandidatenversion1.54.6/95 reserviert, Original94 unverändert. Noch keine95-APK signiert/ausgeliefert/installiert. Weitere Gesamt-, Privacy- und native Abnahme folgen.
+
+## Umsetzung B1 – sechs Auditoptimierungen implementiert (22.10.2026)
+
+Queueaktion vor tatsächlicher Übergabe korrigiert; additive action_counts unterscheiden gespeicherte/lokale/Upload-/Prüfaktionen; native Statusflags und SyncPolicy berücksichtigen ausgeschaltete Automatik und explizite Anforderungen. Kataloge haben zusätzlich catalog-json-v1 mit unabhängiger JSON-Zeichenkodierung; alte Katalog-/Geschäftshashes sowie CATALOG_CHANGED bleiben erhalten. SAF erhält genaue Leseunterphasen, stabile datensparsame IO-Codes und einen4MiB-Cache verifizierter unveränderlicher Bytes/anfänglicher Inventarliste ausschließlich bis zur Schreibgrenze. Vor Journal-/Snapshotveröffentlichung Cache vollständig verwerfen; frisches Inventar und Originalvergleich bleiben Pflicht. Kein Wechsel des Kontos/Transports.
+
+43JVM-Suiten einschließlich35neuer gezielter Prüfungen PASS;1047UI-MCP-Paritätsassertions PASS;7Python-Vertrags-/Baselineprüfungen PASS. Historische P1-Baseline unverändert. Explizite, eng begrenzte Funktionsevolution sync-optimization-contract-v1 bindet genau DriveJournalRules-Quellhash und qa_case_14-Ausgabehash; übrige Vertragsgruppen bleiben strikt eingefroren. Native Providerfälle ergänzt; deren tatsächliche Ausführung und vollständige Gesamtprüfung stehen noch aus. Keine Produktivdaten in Fixtures oder Checkout. Live-Sync weiterhin offen, bis neue Laufzeit tatsächlich installiert/geprüft ist.
+
+## Umsetzung des Auditauftrags – Blöcke und Abnahme (22.10.2026)
+
+Ausgang: unveränderte Original-App1.54.5/94, Auditbranch3355a497; main und bestehende Arbeitsbranches frisch verglichen. Nutzerauftrag autorisiert die sechs dokumentierten Optimierungen, gezielte vollständige operative Entfernung der ausdrücklich benannten MCP-Testkunden sowie UX-/Sync-Korrekturen. Keine produktive Testanlage. Historische Originale/Backups und minimale Lösch-/Idempotenzbelege bleiben geschützt.
+
+1. **Sync und Verträge:** genaue nicht personenbezogene Leseunterphasen/IO-Codes; korrekte nächste Queueaktion; getrennte Roh-/Lokal-/Upload-/Prüfzähler; wahrheitsgemäßer Automatikstatus; zusätzlicher plattformneutraler Kataloghash; begrenzter laufbezogener Cache ausschließlich verifizierter unveränderlicher Inhalte. Alte Geschäfts-/CAS-/Publikationshashes und öffentliche Tool-/UI-Schemas bleiben erhalten. Vor Schreibvorgängen weiter frische Inventar-/Inhaltsprüfung. Abnahme: gezielte Fehler-, Paralleländerungs-, Hash-, Queue- und Statusfälle plus bestehende Vertrags-/Fachtests. Etwaige beauftragte additive Ausgabedeltas explizit gegen unveränderte historische Baseline dokumentieren.
+2. **Testreste:** vorhandene Zielkunden und Verknüpfungen lesen, Sicherung verifizieren, aktuellen Hash und Lösch-/Purge-Vorschau anwenden; ausschließlich eindeutig synthetische abhängige Datensätze entfernen. Lokale Testjournale dürfen weder in Drive gelangen noch entfernte Testdaten wiederherstellen. Abnahme: Wiederholung, Wiederöffnung, laufende Sitzung und echte Referenzen geschützt; Live-Nachlesen getrennt vom Emulator belegen.
+3. **Bedienung:** verlässliche Gestenrichtung, verschachteltes Scrollen, sichere Menüwechsel/Entwürfe; Planung und Heute mit klarer Priorität und weniger gleichzeitig sichtbaren Optionen. Funktionen, persönliche bezahlt-Markierung, Timer und156UI-Aktionen erhalten. Abnahme: echte Browserinteraktionen bei schmaler Ansicht/großer Schrift und gebündelter Emulator-WebView.
+4. **Gesamtabnahme und Sicherung:** passende vollständige Regression, Privacy, nativer Erhaltungsledger und Originalkandidat aus gesichertem Quellstand; private Quellkopie und belegte Übergabe. Physische Pixelinstallation bleibt gemäß AGENTS.md bis Sicherung und ausdrücklicher Installationsfreigabe offen. Produktiver Sync gilt erst nach tatsächlich erfolgreichem Rücklesen als gelöst.
+
+Status: Umsetzung begonnen; noch kein Block als PASS abgeschlossen, keine neue App installiert.
+
+## Funktions-/Sync-Audit R3 – dauerhafte Sicherung und Abschluss (22.10.2026,17:37UTC)
+
+Prüf-/Exportcheckpoint **49d112d7b77f32dae5b2c2a71215dd8b1cb405ff** auf codex/function-sync-audit-20261022 committed/gepusht und exakt von GitHub zurückgelesen. Offizieller source_lifecycle-Export PASS: **1249Originaldateien,518UTF8-Dateien vollständig rekonstruierbar,731öffentliche Binärressourcen**, gleicher Appfingerprint1d7e7d73…fab25. Original-ZIP **68.915.847Bytes**,SHA256 **7fc8569b1f5cde44f246c8b9ac6471488e3e3f87b5f6a7a5857774c9145b513f**, Drive-Datei **1iYeJfMDKhMZ-RJCJ22KGfGqG63doFweK** im vorhandenen privaten Entwicklungsbereich/[Auditordner](https://drive.google.com/drive/folders/1VKq658WXV87bP_LQkkT0MDl3ZWPALK5A). Keine neue App-/APK-Auslieferung und keine produktiven Daten exportiert.
+
+Alle **19Quellenartefakte tatsächlich zurückgelesen**,18SHA256_BYTES über authentifizierte Referenz und echte materialisierte Bytes; großes ZIP1COMPLETE_STREAM_SIZE_ONLY wegen32MiB-Materialisierungsgrenze. Seine lokale SHA ist kein zweiter Remote-Bytehash. Frische vollständige Ordnerliste: exakte Namen/IDs/MIME/Größen,alle shared=false,0Duplikate. Offizieller drive_source_transfer-Abschluss mit tatsächlichen Readback-Belegen:19reuse,0upload,0verify_existing,0blocked_duplicates,0unreferenced,0deletions. Früheren guten Generationen/Original94 unverändert erhalten.
+
+Erst danach vier vorhandene, zuvor gelesene und unmittelbar auf unveränderte Metadaten geprüfte KI-/Startwegweiser aktualisiert; bestehende Datei-IDs,Eltern und MIME erhalten. Alle vier erneut heruntergeladen und bytegenau identisch geprüft:4816Bytes,SHA256 **106b6c9369bc917f7b7526cfa4f4dd97cecfab294251bd4a5d1b7558b4bc92e1**. Original94-APK/Quelltag/-archiv bleiben getrennt verlinkt; neu beobachteter Pixel94,Auditbranch und offener Live-Syncfehler ausdrücklich genannt. Keine Freigaben/Konten/Betriebsordner geändert und keine Nachricht an Dritte versandt.
+
+Abschließende echte Emulator-Sichtprüfung zeigt lesbare laufende synthetische Arbeit mit Pause/Beenden/Foto und drei Hauptzielen ohne OS-Dialog. Die zuvor tatsächlich beobachteten OS-ANRs bleiben als Umgebungsgrenze dokumentiert; keine uneingeschränkte Leistungsabnahme. Eigenen dedizierten AVD anschließend ordentlich beendet, Datenpartition erhalten; kein Reset/Uninstall. Der nachfolgende Sicherungs-/Übertragungsnachweis ist eine reine Dokumentationsergänzung nach dem unveränderlichen49d112d-Export. Original-Appcode bleibt bytegleich, GitHub enthält auch diese Ergänzung; keine erneute APK oder unnötige Exportgeneration erzeugt.
+
+## Funktions-/Sync-Audit R2 – vollständiger Cloud-Prüflauf abgeschlossen, Live-Sync offen (22.10.2026)
+
+**Ergebnis: automatisierter Cloud-Prüfumfang PASS, produktiver Drive-Abgleich FAIL/offen. Keine vollständige uneingeschränkte Geräte-/Google-Abnahme.** Vollständige Schichten-/Funktionsmatrix, sechs priorisierte Optimierungen, technische Beleg-SHA256 und Grenzen: [docs/verification/function-sync-audit-2026-10-22.json](docs/verification/function-sync-audit-2026-10-22.json). Appcode, Daten-/Journalformate, eingefrorene Domainregeln,117Toolverträge und156UI-Aktionen wurden in diesem Audit nicht geändert. Keine spekulative Reparatur, Hashumstellung, produktive Testanlage oder neue APK-Auslieferung.
+
+**Tatsächlich ausgeführt und bestanden:**393Python/0Skips (37historische Schlüsselerzeugungstests ausdrücklich ausgeschlossen),42JVM-Suiten/1047Paritätsassertions,52Browser-Suiten,55synthetischeMCP-stdio-Szenarien,29Kamera-Hostfälle,47Cleanup-Koordinatorfälle und **159native Android-/SQLite-/MCP-Prüfungen,0Fehler**. Native Providerfälle schließen falschen Readback, Duplikatnamen, Schreibfehler/Retry,7-fache Konfliktwiederholung, Original-vor-Metadaten, Rename-/Readback-Unterbrechung und Foto-Lazy-Restore ein. Alle Fachgruppen laut Matrix geprüft: Kunde/Auftrag, Arbeit/Timer, persönliche Markierung/Zahlung, Foto/Datei, Rechnung/Angebot/KV, Archiv/Papierkorb/Backup, Planung/Kalender/Wetter, Pflanzen und Navigation.117Verträge sind vollständig geprüft; daraus folgt keine117-fache produktive Positivausführung.
+
+**Zusätzliche aktuelle Emulatorabnahme PASS:** echter frischer leerer Appbestand sowie fresh_isolated ohne Credentials/automatischen Kontozugriff; synthetische Updatefixture; normale **94→94-In-place-Reinstallation**, kein Wipe/Uninstall; vollständiger Master/IDs/Pending/Settings/Tunnelkonfiguration/aktiver Timer erhalten; echter gebündelter WebView mit Navigation, Planung, Kundenakte, Papierkorb, Menü/Zurück und drei nativen Verbindungsmasken; abschließender erneuter vollständiger Verify PASS. Kein neu ausgeführtes93→94-Versionsupgrade behauptet. Vorbestehende historische Updatebelege bleiben getrennt erhalten.
+
+**Umgebungsgrenze:** Software-AVD ohne KVM hatte echte OS-Dialoge „Process system isn't responding“ und anschließend „System UI isn't responding“. Beide tatsächlich visuell identifiziert und nur ihren Wait-Button gewählt; keine Appdaten/Installation gelöscht. UI-Endlauf meldet danach selbstständig PASS, finaler Datenerhalt-Verify ebenfalls PASS. Diese OS-ANRs bleiben eine Grenze für Geräte-/Leistungsbehauptungen. Kein App-/Pixel-ANR-Fix aus der Dialogbedienung abgeleitet. Native Lifecycle-Logs und deren SHA256 im Audit; drei synthetische Browseransichten zusätzlich visuell geprüft, OS-Grenze bei native Screenshots ausdrücklich dokumentiert.
+
+**Artefakt-/Schutzabschluss PASS:** offizieller Originalsignierweg, ein unverändertes Originalzertifikat/v2/v3/16KiB,421Mainassets plus2exakt geprüfte Compiler-ART-Profile,31operative DEX-Klassen,181Pflanzenprofile/362Bilder und0operative Seeds. Source/gesamter Workspace/tatsächliche signierte PrüfAPK PASS; P1-Vertrag exakt899906c246f9cb8256666c32a89435aa5f792eede3d3407b1c846380900aa813. Gradle84Tasks/Lint0Fehler/54vorbestehende Warnungen. Interne PrüfAPK b1eb35d0…e74eb aus7f734dd hat gleichen Appfingerprint wie Original94/429dfa11, ist aber ausdrücklich ein anderer Prüfbau und kein Ersatzdownload. Original94 und alle Quellen/Tags unverändert erhalten.
+
+**Live-Endbefund:**8Uploads/0Reviews, rohe pending_actions58, TRANSFER_FAILED während reading, letzter erfolgreicher Abgleich15:24:09UTC, provider_readback und cloud_confirmed=false. Queue-JSON, gespeicherte Collection-Counts und Geschäftsintegritätshash gegenüber erster eigener Lesung identisch; dieser Hash schließt Pending-Overlay nicht ein. Kalender/primäre Belegung zuletzt geprüft; dauerhafte Google-Production-Freigabe, Kamera/GPS/Share/Mail, echte Serverbestätigung, physisches Update/Restore und Android34+-Gesten bleiben gesondert.49Backup-Metadaten sind kein49-facher Restorebeleg. Ursache des echten Transferfehlers bleibt unbestimmt; **kein request_sync und kein fachlicher/administrativer Pixel-Schreibaufruf in diesem Audit**.
+
+Standregister führt nun die tatsächlich beobachtete Pixelversion94, ursprüngliche Appquelle und Auditbranch getrennt. Originalquellen dauerhaft im bestehenden privaten GitHub; nach diesem Prüfcheckpoint offizieller verlustfreier Export in den privat bestätigten Entwicklungsordner [Funktions-Sync-Audit](https://drive.google.com/drive/folders/1VKq658WXV87bP_LQkkT0MDl3ZWPALK5A). Erst erfolgreicher Upload/Readback zählt als Drive-Sicherung; Beleg dazu folgt getrennt, kein leerer Ordner als Sicherung ausgegeben.
+
+## Funktions-/Sync-Audit R1 – reproduzierte Optimierungen und aktuelle Installation (22.10.2026)
+
+Standregister aktualisiert: ursprüngliche94 ist jetzt auf dem echten Pixel beobachtet, zusätzlich vom Nutzer bestätigt. Das ist kein durch diesen Task ausgeführtes Pixelupdate und kein nachträglich erfundener Datenerhalt-/Kamera-/Share-Test. Zweite Live-Übersicht weiterhin TRANSFER_FAILED/reading/retry_wait,6Versuche,8Uploads/0Reviews; gespeicherter Geschäftshash und Collection-Counts gegenüber erster Lesung unverändert. Der in AGENTS verlinkte MCP-Testbericht wurde lesend berücksichtigt: unabhängiger früherer94-Lauf beschreibt denselben Transferfehler. Dessen produktive Tests/Schreibaufrufe sind keine eigenen Auditaktionen und werden nicht als eigene Ausführung gezählt.
+
+Priorisierte Verbesserungen, **in diesem Prüfauftrag nicht als produktiver Fix umgesetzt oder abgenommen**:
+
+1. **P1 – reale Syncursache eingrenzen:** reading in Ordnerinventar/Legacy-Gesamtstand/Veröffentlichungskette/Mobile-Journale unterteilen und einen nicht geheimen, stabilen Fehlergrund liefern. Aktuell maskiert TRANSFER_FAILED die konkrete I/O-Ursache. Gespeicherte Ordnerberechtigung beweist keine aktuelle Lesbarkeit beim Speicheranbieter. Kein Kontowechsel, Retry-Schreiben, Dateiersatz oder Queue-Cleanup aus diesem Befund ableiten. Direkter Drive-REST-Pfad ist bereits vorhanden, Original-Rechnungsabschluss benötigt ihn; eine Umstellung braucht den bestehenden Ordnervergleich und bewusste Gerätefreigabe.
+2. **P2 – passende nächste Aktion:** synthetischer Original-JVM-Aufruf bestätigt bei archive und purge_v1 jeweils pending_upload=1/review=0/state=sync_pending, aber next_action=review_action. Vor tatsächlicher Übertragung ohne Konflikt sollte die Rückmeldung retry_sync empfehlen. Übertragene geschützte Altlöschungen und echte Konflikte weiterhin zurückhalten. Änderung der eingefrorenen Domainregel separat und ausdrücklich regressionsprüfen.
+3. **P2 – Zähler klar trennen:** echter Readback pending_actions58 gegenüber queue.total8. Reine synthetische Gegenprobe2gespeicherte Aktionen, davon1_local_only → pending_actions2/queue1. Rohaktionen, lokale Testbelege, Uploads und Reviews explizit benennen; die alten Felder nicht inkompatibel umdeuten und keine Belege löschen.
+4. **P2 – Automatikstatus wahrheitsgetreu:** SyncPolicy.describe mit konfiguriertem Drive, pending_upload1 und automatic_enabled=false verspricht weiterhin automatischen Abgleich. Aktueller nativer Status transportiert die beiden Automatik-/manuellen Anforderungsflags nicht. Flags rein lesend ergänzen, abgeschaltete Automatik und expliziten manuellen Auftrag getrennt anzeigen; Offline-Speicherung/Retry und Schalter unverändert erhalten.
+5. **P2 – plattformfeste Katalogprüfung:** alle117Live-Werkzeugdefinitionen sind semantisch identisch, beide unterschiedlichen Kataloghashes durch `/`-Escaping exakt reproduziert. Diagnose/Buildtools um deklarierte Serialisierungsvariante bzw. zusätzlichen versionierten semantischen Kataloghash ergänzen. Geschäfts-, Request-, CAS- und Publikationshashes nicht still neu kanonisieren; CATALOG_CHANGED bleibt geschützt. Eine neue Operation/Schemaänderung darf durch den Vergleich nicht verschwinden.
+6. **P3 – SAF-I/O messen und bündeln:** aktive Runtime verwendet android_provider, während vorhandene parallele Übertragung und starke Metadaten-/Immutable-Caches vor allem direct_drive optimieren. Vollständige Veröffentlichungsprüfung und frische Vergleiche vor Schreiben erhalten; wiederholte Ordner-/Commitlesungen pro Lauf instrumentieren und nur bereits hashgeprüfte unveränderliche Bytes begrenzt wiederverwenden. Kein unsicheres Überspringen anhand eines Dateinamens oder unzuverlässiger Änderungszeit und keine ungemessene Pixelbeschleunigung behaupten.
+
+Weitere echte reine Leseprüfungen PASS: veralteter UI-Kataloghash liefert CATALOG_CHANGED; unbekannte synthetische Aktionskennung bleibt unknown/cloud_confirmed=false; gemeinsamer Angebotsvertrag erreichbar; Pflanzenkatalog181Einträge; Backupverzeichnis49Einträge. Letzteres ist keine49-fache Integritäts-/Restoreprüfung. Keine produktiven Kunden-/Arbeits-/Dokumentdaten für diese Prüfungen angelegt, geändert oder exportiert.
+
+Interner Original94-Prüfbau aus7f734dd, gleicher Mainfingerprint1d7e7d73…fab25,421Assets bytegleich,0Seeds, Originalzertifikat a939a34e…f37bff8/v2/v3/16KiB PASS. SHA256 **b1eb35d05209d102f92c0d1ce6866a17a97a082974e90a09824255e1a92e74eb**, Runner **65a07eb4ba022de0eb73aa5dea362d9e433f356f0ebdbc48f83e25d61b567d65**. Diese Bytes ersetzen nicht die ausgelieferte94. Im dedizierten neuen AVD überschritt die erste35-MiB-Installation180sRückmeldefrist; anschließend tatsächliche installierteAPK vollständig per SHA256 gegen diese Bytes bestätigt, kein blindes Wiederholen. Nur fehlenden kleinen Runner danach installiert. Native Gesamtabnahme läuft noch; Host-Schlusslauf393/0Skips mit tatsächlich signiertem Prüfartefakt und allen drei Privacy-Gates PASS.
+
+## Funktions-/Sync-Audit R0 – aktuelle Pixelbasis und Hostregression (22.10.2026)
+
+Nutzerauftrag: alle erreichbaren Funktionen per Emulator und MCP prüfen und Verbesserungen an Funktionalität/Synchronisierung ermitteln. Abnahme: aktuelle Appquelle eindeutig zuordnen; vorhandene Fach-, Fehler-, Offline-/Retry-/Replay-/Neustartprüfungen ausführen; alle117 Werkzeugverträge und156 UI-Aktionen abgleichen; native SQLite/Provider/WebView tatsächlich ausführen; echte Pixel-/Google-Grenzen getrennt ausweisen. Keine produktiven Testschreibvorgänge oder neue APK-Auslieferung aus diesem Audit ableiten.
+
+Frischer GitHub-main e499e745832449ce0202d04d9903495248e8b034 und alle vier vorhandenen Arbeitsbranches gelesen. Aktueller Pixel **1.54.5/94**, Original-Appquelle **429dfa11c622cd27228a5f572c9c916ccc137e82**, SOURCE_DIRTY=false; vom Nutzer zusätzlich bestätigt. Der zunächst wiederhergestellte91-Checkout war daher keine aktuelle Testbasis. Dessen abgeschlossene JVM-/stdio-Läufe bleiben getrennt; sämtliche berichteten Endläufe wurden anschließend auf **7f734dd1e6cde876f5268e125fb302abb75756a8** erneut ausgeführt. Genau ein eigener Auditbranch codex/function-sync-audit-20261022 aus diesem neuesten vorhandenen Arbeitsstand; keine fremde Arbeit überschrieben oder nach main übernommen. Main-/Gradle-Fingerprint **1d7e7d73b6801705ece1488f79f180c463ba0308083e695583181d9cbc8fab25**, identisch zur installierten94.
+
+Tatsächlich abgeschlossen: **393 Python PASS/0Skips**,37 historische QA-Schlüsselerzeugungstests ausdrücklich ausgeschlossen; **42 JVM-Suiten/1047 UI-MCP-Paritätschecks,52 Browser-Suiten,55 synthetische MCP-stdio-Szenarien,29 Kamera-Hostfälle und47 Cleanup-Koordinatorprüfungen PASS**. Android Release/AndroidTest/Lint84Tasks PASS. Kein physischer Kamera-/Providerbeleg aus Host-Doubles abgeleitet. Source/Workspace/unsignedAPK-Privacy PASS, Bootstrap0Seeds,181 Pflanzenprofile/362 Offlinebilder und P1-Vertrag unverändert. Restore-Setup korrigiert: fehlendes acorn nur außerhalb Repository installiert;20 unversionierte alte Screenshots ohne Provenienz verlustfrei außerhalb Checkout verwahrt, keine falschen synthetischen Belege erzeugt. Anfangs fehlende Google-Auth-Buildabhängigkeit über denselben offiziellen Google-Mavenbestand auf erlaubtem dl.google.com mit vorhandener Proxy-/CA-Konfiguration bezogen; kein geänderter App-Buildvertrag.
+
+Live-MCP ausschließlich lesend:117Tools=52Lesen/65Schreiben/17destruktiv annotiert;156 eindeutige UI-Aktionen vollständig100+56/hashgebunden,145 fachlich abgedeckt/11 Plattformgruppen. Alle117 vollständigen Werkzeugdefinitionen semantisch exakt gleich zur kompilierten Quelle. **Wichtiger Auditbefund:** JVM/Python-Kataloghash235f683d…14314 und Android8780ff5f…39aa unterscheiden sich ausschließlich durch Androids zusätzliches Escaping von `/`. Ersetzen dieser Escapevariante reproduziert den Livehash exakt; ebenso UI177e00aa…3670 → c9ac7931…62e3. Kein veralteter Connector aus diesem Hashunterschied ableiten; bestehende Record-/Request-/Publikationshashes keinesfalls still ändern.
+
+Live-Selbsttest:7PASS,1FAIL(sync_state),2NOT TESTABLE. **Realer offener Befund:** android_provider, persisted_tree_permission=true, phase=reading, TRANSFER_FAILED, retry_wait/5Versuche,8Übertragungen ausstehend/0Reviews; letzter erfolgreicher Abgleich15:24:09Z. Kalender/primäre Belegung und Wetter zuletzt checked/verified. Keine Ursache wie OAuth-/Dateischaden/-dubletten aus dem generischen Transfercode behauptet; kein produktiver Retry oder Kontowechsel als Test. Rohdatensätze, Geschäftstexte und Queue-IDs werden nicht in den Audit übernommen.
+
+Nächster Schritt: dedizierten leeren GartenpiratCloud-Softwareemulator fertig starten, gleiche Original94-Appquelle und bestehenden originalsignierten Runner nativ prüfen; danach priorisierte Optimierungsliste und tatsächliche Restgrenzen ergänzen. Der neu signierte interne Prüfbau hat denselben Appfingerprint, aber einen anderen Dokumentationscommit/APK-Hash als die ausgelieferte94; er ist kein neuer Download oder Pixelupdate. Betrieblichen Syncfehler erst nach echtem Readback als behoben bezeichnen.
+
+## APK94 R-Abschluss – Original1.54.5/94 gebaut und nativ qualifiziert (22.10.2026)
+
+Exakte unveränderte APK-Quelle **429dfa11c622cd27228a5f572c9c916ccc137e82**, unveränderliches **source/v1.54.5-build94**, Main-/Gradle-Fingerprint **1d7e7d73b6801705ece1488f79f180c463ba0308083e695583181d9cbc8fab25**. Regulärer Branch-/Tag-Push und exaktes GitHub-Readback PASS; finales Protokoll/Standregister in einem getrennten Dokumentationscommit mit demselben App-Fingerprint. Die frühere Nur-Quellcode-Grenze ist durch den ausdrücklichen APK-Folgeauftrag für diese94 aufgehoben. Original93 bleibt erhalten.
+
+Tatsächlich ausgeführt: **393 Python PASS/0Skips** (37 QA-Schlüsselerzeugungstests ausgeschlossen), **42 JVM-Suiten,52/52 vollständige Browser-Suiten,55 synthetische MCP-Szenarien,1047 UI/MCP-Paritätschecks PASS**. Gradle Release/AndroidTest/Lint84Tasks PASS,0Fehler/54Warnungen. Die initiale Browserabweichung in Mehr war ein echter Initialisierungsfehler; vorhandene13-Menü-Baseline unverändert, gezielte Späteinfüge-Regression und anschließend vollständiger52er-Lauf bestanden. Erster unsignierter Zwischenbuild nie ausgeliefert.
+
+**Originalsignierung und tatsächliche APK:** ausschließlich offizieller Cloud-Signer, kein Ersatzschlüssel/CI. Paket at.hausgarten.service; ein bestehender Originalsigner, Zertifikat a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8; v2/v3,16KiB-Ausrichtung, tatsächliche DEX-Commit/Version/Fingerprint/DEBUG=false/UI_PREVIEW=false/SOURCE_DIRTY=false PASS.421 Originalassets bytegleich,2 erzeugte ART-Profile geprüft,181 Pflanzenprofile/362 Bilder,0 operative Seeds. Source/Workspace/tatsächlicheAPK-Privacy PASS.
+
+**Dedizierter Cloud-Emulator API30:** qemu=1 und GartenpiratCloud vor Zugriff geprüft, Original93→94 ausschließlich install-r ohne Löschen/Reset/Deinstallation. Bestehende historische Baseline erhalten; zusätzlich neues lesendes93→94-Ledger vor Update/nach Update/nach allen Prüfungen: vollständiger Master, IDs/Beziehungen, Pendingqueue und persistierte laufende Sitzung hashgleich. Fresh-isolated leer/ohne Zugangsdaten,159 Android-SQLite/MCP-Tests ohne Fehler, echter gebündelter WebView mit neuen Anzeige-/Menü-/calendar_busy_*-Lesebefunden sowie finaler Snapshot PASS. Erster Coldboot verlor den Android-Systemdienst nach NetworkStack-Fehler bereits auf Original93; ordentlicher Emulatorneustart ohne Datenänderung mit3072MiB und vollständiger Framework-Readiness stellte die QA-Umgebung wieder her. Kein Appfehler oder Datenreset als Lösung behauptet.
+
+**Grenzen:** Pixel unverändert Original1.54.4/93; frischer technischer MCP-Read bestätigt verbundenen Kalender/checked/Fehler leer. Keine produktiven Schreib-/Synchronisierungs-/Termintests. API34+ EDGE_LEFT-/physische Android37-Gesten nicht mit API30 emulierbar, API29–33 weiterhin OS-Grenze200dp; Kontomasken bleiben separate Aktivitäten. Nur Hauptkalender-Belegung mit ausdrücklicher und aktueller Freigabe. Google-Projekt External/Testing, private Homepage-/Datenschutzentwürfe unveröffentlicht; dauerhafte Google-Freigabe nicht abgenommen. Live-Open-Meteo-Abruf aus dieser Egress-Policy nicht ausgeführt; vorhandene synthetische T+14-Nativregression erneut bestanden.
+
+**Private Bereitstellung:** APK **1pwo3kz2shKIyPnXYV0KbL9Szyvya5OS8**,36200466Bytes,SHA256 **975ce32ca7e52338182c0f743044afbd57edeeaa9d376bd31292b1060809cc3c**. Original-ZIP **189LoXjhKV9a0GhsnCYpHfsL_60e5wBpL**,68897322Bytes,SHA256 **d1d580773d470273ea803f9f7a6461ed305c3882c136f3ef60587458c1940dde**,1247Originaldateien,516UTF8 vollständig rekonstruierbar.19Quellenartefakte tatsächlich zurückgelesen:18SHA256_BYTES+1ZIP COMPLETE_STREAM_SIZE_ONLY;0offen/dupliziert. Auch APK vollständig authentifiziert gestreamt/Größe bestätigt;32MiB-Materialisierungsgrenze bedeutet ausdrücklich keinen Remote-SHA-Bytevergleich. Ordner **1Gq89Ru3bCL-FNw60WAHEPLzsoUTsJnnR** privat/Eigentümer, keine Freigabeänderung. Versionsnachweis `docs/verification/original-apk-1.54.5-94.json` und privater Drive-Beleg **1QKvtz_IY9N-vg3WYoOAmdSqpjy20X1lY**, tatsächlicher SHA256-Bytevergleich PASS. Nach gesichertem Dokumentationscommit offizieller neuer Gesamtexport in **1lGyhXJtB_QuCex_R8ObLDxphhaq8SkC-**, alle Payloads/Indizes zurücklesen, erst dann vorhandene KI-Wegweiser aktualisieren; frühere gute Generationen und Originale erhalten. Keine Bereinigung oder Pixelinstallation.
+
+## APK94 R2 – Initialisierungsrennen in Mehr reproduziert und behoben (22.10.2026)
+
+Der erste reine Build68138ef war erfolgreich, blieb unsigniert und wurde nicht bereitgestellt. Der vollständige Browserlauf fand unter paralleler Cloud-Last eine echte Reihenfolgeabweichung: der später fertiggestellte Angebotsbaustein wurde nach Abrechnung/Rechnungen angehängt. Die bestehende eingefrorene Menü-Baseline bleibt unverändert. organizeMenu sortiert nun die vorhandenen Originalknöpfe stabil in der geprüften Reihenfolge, bewahrt Listener/Ziele und bewegt nur tatsächlich falsch stehende Elemente, damit der MutationObserver zur Ruhe kommt. Die vorhandene Regression reproduziert zusätzlich die späte Angebotseinfügung und verlangt danach genau dieselben13 Ziele/Knöpfe ohne Duplikat. Keine neue Funktion, Berechtigung oder Fachaktion. Neuer gesicherter Quellcommit und vollständiger Rebuild vor Originalsignierung erforderlich; Versionscode94 bleibt für den noch nicht ausgelieferten Kandidaten reserviert.
+
+## APK94 R1 – konkrete native Anzeigeabnahme vorbereitet (22.10.2026)
+
+Zusätzlich zur Versionsanhebung erhält die vorhandene native UI-Probe lesende Prüfungen im echten gebündelten WebView: entfernte Hauptseiten-Wischeinstellung/Statuszeile fehlen, Gartenpirat-Option bleibt, Randmenü öffnet und Zurück schließt genau das Menü, Heute-Karte bleibt vorhanden und technische calendar_busy_*-Felder kommen über den echten nativen Owner-Lesepfad. Keine Geschäftsdaten für diese UI-Prüfung erzeugt oder verändert. Die bereits geänderte native Einrichtung wird mit vier sichtbaren Schaltern geprüft. Source-/Host-/Emulator-Abnahme folgt aus genau dem gesicherten Commit; kein physischer Pixelzugriff.
+
+## APK94 R0 – Originalupdate aus dem geprüften Planungsstand beauftragt (22.10.2026)
+
+Der neue ausdrückliche Nutzerauftrag **Erstelle Apk laut Protokoll** autorisiert jetzt APK-Build, Versionsanhebung und Originalsignierung; die frühere Nur-Quellcode-Grenze des UI-Auftrags bleibt historisch und sperrt diesen Folgeauftrag nicht. Basis **7d1af30a024c5b07d9d64342e99eb55a254ab504** auf dem vorhandenen Branch codex/calendar-weather-20261022, frischer main **e499e745832449ce0202d04d9903495248e8b034** und vier Arbeitsbranches verglichen; keine fremden Änderungen/Resets. Original93 und sämtliche Quellen erhalten. Live-Pixel-MCP liest weiterhin Original1.54.4/93/b7d5fcd, source_dirty=false,117Tools. Keine produktive Geräteaktion.
+
+Ziel **1.54.5/Build94**, Paket at.hausgarten.service, Originalschlüssel und bisherige Rechte/Scopes/DB4/Snapshot2/117Tools/156Aktionen erhalten. Abnahme: saubere exakt auf GitHub gesicherte Buildquelle und unveränderliches Tag; Source-/Workspace-/fertigeAPK-Privacy,0Seeds; tatsächliche Originalsignatur und Vergleich gegen Original93,16KiB-Ausrichtung, Assets und DEX-Commit/Fingerprint/Version prüfen. Aktuelle Hostregressionen und isolierte native Tests;93→94-Datenerhalt ausschließlich im dedizierten qemu=1/GartenpiratCloud mit neuem lesendem Hash-/Relations-/Sitzungsledger, bestehende Baselines nie ersetzen. Fresh-isolated/nativeUI und sichtbare Planungs-/Gestenänderungen soweit tatsächliches Emulator-API erlaubt; physische API37-Gesten separat kennzeichnen.
+
+Originalsignierung ausschließlich tools/sign_original_apk.py; fünf konfigurierte Variablen laut frischer Environment-Readiness bereit, Werte nicht gelesen/ausgegeben und keine Ersatzschlüssel/CI. Nichtsignierende Prozesse erhalten diese Variablen nicht. Nach vollständiger Qualifikation private Drive-APK plus exakt passende Originalquellen/UTF8-Teile/Versionsnachweis, tatsächliches Rücklesen und danach KI-Wegweiser/Standregister aktualisieren. Große APK/ZIP-Streamgrößenbelege ausdrücklich von SHA256-Byteprüfung trennen. Keine automatische Pixelinstallation, Kontofreigabe oder produktiver Testtermin.
+
+## Planung/Bedienung R-Abschluss – Quellumsetzung geprüft, ohne neue APK (22.10.2026)
+
+P1–P3 sind im bestehenden Branch implementiert und dauerhaft gesichert. App-Quellcheckpoint **6079d94118e7b9ce4bda83fc036a06db650c98af**, Main-/Gradle-Fingerprint **03c45d8eff22a9f66962562de79994516f174f7ec221b14f292ea7e8f83c4f11**; der nachfolgende Dokumentations-/Testcommit erhält exakt denselben App-Fingerprint. Original APK93 bleibt unverändert **source/v1.54.4-build93 / b7d5fcd**. Entwicklungsquelle ist ausdrücklich keine neue93-APK und nicht der installierte Stand. Der Gesamt-/Kalender-UI-Auftrag schließt hier neue APK, Signierung und Versionsänderung aus; keine davon ausgeführt.
+
+Tatsächliche Abnahme: **393 Python PASS,0 Skips** (37 ältere QA-Schlüsselerzeugungstests explizit ausgeschlossen), **42 JVM-Suiten PASS**, eingefrorener Vertrag unverändert **899906c246f9cb8256666c32a89435aa5f792eede3d3407b1c846380900aa813**, **55 synthetische MCP-stdio-Szenarien PASS**, **117 Tools/156 UI-Aktionen**, abschließende1047 Paritätschecks PASS. Browser-Gesamtlauf52 Suiten:51 sofort PASS; UAT110 zählte noch den beauftragt entfernten Schalter. Erwartung auf vorhandene Fotowahl plus ausdrücklich fehlenden Schalter korrigiert, gezielte UAT-Wiederholung PASS. Alle anderen Suiten unverändert bestanden.
+
+Aktuelle neue Carousel-Abnahme **10/10 PASS**: reale Chromium-Touchfolge blättert exakt einen Termin, erzeugt keinen versehentlichen Klick und vertikale Touchbewegung scrollt wirklich die Seite; Pfeile/Tastatur, Auswahl nach Refresh/Absage, leer/einzeln, schmale Ansichten/große Schrift, ungeprüfte externe Belegung und Gartenpirat-Scrollverhalten. Ein Folgecheck wartete zunächst nicht auf das asynchrone Gartenpirat-close-Ereignis und kollidierte mit dessen korrekter Fokusrückgabe; nun wird dieses Ereignis tatsächlich abgewartet. Keine unnötige Autofokus-Umgehung im App-Code. Gesten-/Kollisionen11/11, native Quellschutztests4/4 und unveränderte Speicherhandler/Preference-Fingerprints PASS. 320/360/426 sowie vergrößerte Schrift ohne horizontales Überlaufen; synthetische Browseraufnahmen gesichtet.
+
+**Android-Kompilierung und Lint PASS:** stabile API37, JDK17/Gradle9.3.1,42 Tasks,0 Fehler/54 Warnungen; Main- und AndroidTest-Java kompiliert, keine APK erzeugt oder signiert. Die native UI-Prüfquelle erwartet nun die vier ausdrücklich sichtbaren Planungsschalter. Neue native Bildschirm-/API34/37-Gestenabnahme auf Emulator/Pixel **NOT EXECUTED**; Browser-Touch ist kein physischer Pixel-Test. API29–33 können nur200dp OS-Rand reservieren; eigene native Kontomasken bleiben separate Aktivitäten. Hauptkalender-Belegung muss aktuell und persönlich freigegeben sein; zusätzliche Google-Kalender werden nicht geprüft.
+
+Source-/Workspace-Privacy erneut PASS,0 operative Seeds; keine Nutzerscreenshots, Kundendatensätze, Kontoadressen oder Geheimnisse ins Repository übernommen. Eigene Quellcommits regulär gepusht und exakt auf GitHub zurückgelesen, kein main-Push/Reset/History-Rewrite. Offizieller abschließender Export wird über striktes source_preservation aus dem sauberen exakten Remote-Commit in den neuen privaten Ordner **Planung-Bedienung-2026-10-22-Quellcode** (https://drive.google.com/drive/folders/1bh6Q4Uu2RgwYBFcB22JWs14X7qGp3IY0) erstellt. Manifest definiert den genauen finalen Commit; Wegweiser erst nach allen tatsächlichen Readbacks umstellen. Frühere gute Generationen und APK-Originale bleiben erhalten. Transferbelege außerhalb der Quellgeneration, SHA256-Byteprüfung und große ZIP-Streamgrößenprüfung getrennt; Abschlussbeleg im Chat.
+
+Technischer Sammelnachweis: docs/verification/planning-gestures-2026-10-22.json. Google-Kalender ist live verbunden, aber weiterhin im externen Testbetrieb; Homepage-/Datenschutzentwürfe aus dem vorausgehenden Auftrag bleiben privat/unveröffentlicht. Keine permanente Google-Freigabe oder produktive Kollisions-/Installationsabnahme behauptet.
+
+## Planung/Bedienung P1–P3 – Umsetzung und gezielte Reproduktion (22.10.2026)
+
+**P1:** Die Liste unterscheidet jetzt überprüfte Hauptkalender-Belegung von ausgeschalteter, pausierter oder ungeprüfter Belegung. Die Warnung steht vor den Terminen; ein eigener Knopf öffnet die vorhandene Einrichtung. Native Belegtzeitoption und ausdrücklicher Google-Freigabeknopf stehen sichtbar im Kalenderbereich. Andere Google-Kalender werden ausdrücklich als nicht geprüft bezeichnet. Neue ausschließlich technische integration.calendar_busy_*-Felder liefern Freigabeschalter, Zustand und bestätigten Zeitraum ohne Konten/Kalender-IDs. Kein stilles Einschalten, keine neuen Scopes oder Requests. Tageskopf zeigt das Datum einmal, Diagnose folgt nach den eigentlichen Aufgaben. Originale Speicher-/CAS-/Kalenderwahl-Handler und Preference-Write-Fingerprints bleiben unverändert.
+
+**P2:** Im vorhandenen Nächster-Einsatz-Fenster blättern beide Wischrichtungen, Pfeile oder fokussierte Tastaturpfeile über aktive bevorstehende App-Termine. Zähler, feste Grenzen und stabile Zeit-/ID-Sortierung; Auswahl über Refresh erhalten, abgesagte/entfernte Auswahl sicher ersetzt. Die Karte verwendet jetzt auch entry.collisions und availability; die bisher verworfenen externen Kollisionshinweise erscheinen. Tappen öffnet genau den angezeigten Termin. Vertikale Bewegung navigiert nicht; ein Wischende löst keinen versehentlichen Termin-Klick aus. Laufender Timer/Entwürfe und alle Schreibhandler erhalten.
+
+**P3:** Globale Hauptseiten-Wischfunktion, Einstellungsfeld, Texte und Listener aus operativer App und historischem Webspiegel entfernt. Gartenpirat-Schalter und Lexikon-/Foto-/Verschiebefunktion bleiben. Scrollen setzt den Knopf nicht mehr immer auf die Ausgangsposition zurück; aktuelle Position wird begrenzt und bei Bedarf für sichtbare Bedienelemente geräumt. Linker Rand: Web-Menügeste ab äußerstem Rand, geringere eindeutige horizontale Schwelle; Formulare werden beim bloßen Menüöffnen nicht verlassen. API34+ differenziert BackEvent.EDGE_LEFT und öffnet das Menü über die volle native Randhöhe, während Hardware/rechte Zurück-Aktion die ursprüngliche Ein-Schritt-Navigation nutzt. API29–33 können nur200dp native Gesture-Exclusion erhalten; volle OS-Randhöhe dort nicht zugesagt. Native Kontomasken bleiben eigene Systemaktivitäten. Keine Manifestrechte oder globale Android-Zurück-Abschaltung.
+
+Vor Umsetzung bestand die ursprüngliche Gesten-/Kollisionssuite11/11. Nach Umsetzung tatsächlich: neue Carousel-/Warnungs-/Gartenpirat-Suite8/8, geänderte Gesten-/Kollisionssuite11/11, bestehende Kalenderübersicht und Daily-Usability gezielt PASS. Die früheren Opt-in-Wischtests wurden durch den ausdrücklich beauftragten Nicht-mehr-vorhanden-/Alte-Preference-wirkungslos-Nachweis ersetzt. Native Quelltests4/4 PASS, einschließlich unveränderter sechs geschützter Handler und aller Preference-Schreibfingerprints. Source-/Workspace-Privacy PASS,0 operative Seeds; öffentliche Pflanzen-/Webspiegel über offiziellen Generator,156 UI-Aktionsmappings erhalten. Breiter Python-/JVM-/Browserlauf läuft; Android-Kompilierung/Lint folgt. Keine neue APK, Version oder Pixelinstallation; native API34/37-Gesten und neue native Bildschirmdarstellung noch NOT EXECUTED.
+
+## Planung/Bedienung R0 – Nutzerauftrag vom 22.10.2026, Ausgang und Abnahme
+
+Aktiver Ausgang: 24ebe65a09a81bb58b7b23ac33d741dd9560ff56 auf codex/calendar-weather-20261022; frischer main e499e745832449ce0202d04d9903495248e8b034 und alle vier Arbeitsbranches lesend verglichen. Neuere App-/Kalender-/Wetterfunktionen bleiben erhalten. AGENTS, Zentralauftrag, Status, Gesamt-/Kalender-UI-Auftrag, Reparatur-, Signier-, MCP-/Sync-Regeln und Issue1 gelesen. Kein Reset, neuer Branch oder produktiver Schreibtest. Die MD-Vorgabe für UI-Arbeit bleibt maßgeblich: Quellcode/Tests; kein neuer APK-Build, keine Signierung, Versionserhöhung oder Pixelinstallation in diesem UI-Schritt.
+
+Lesender Pixel-MCP-Befund: Kalender verbunden/configured/checked, letzte erfolgreiche Prüfung14:43:56Z; für den im Nutzerbild gezeigten Tag genau ein App-Termin, availability.verified=false, external_checked=false,0 bekannte Konflikte. Die Bilder zeigen einen zusätzlichen externen Google-Termin. Dessen konkrete Überschneidung kann ohne verifizierte Belegtzeiten nicht erkannt werden. Ob die optionale Belegtzeitfreigabe aus oder der Cache unbrauchbar ist, exponiert Build93 nicht; keine Vermutung als Tatsache. Der Code liest bei freigegebenen Belegtzeiten ausschließlich den Hauptkalender. Die Heute-Karte verwirft zusätzlich bereits gelieferte externe Kollisionsdaten. Screenshots und Geschäftsdatensätze bleiben außerhalb des Checkouts; Tests verwenden qa_-Daten.
+
+Abnahmekriterien / Blöcke:
+
+1. **P1 Belegung und Planungsmenü:** Ungeprüfte externe Belegung deutlich über der Liste, eigener Einrichtungszugang, Grund/Prüfzeitraum ohne Kontodaten im MCP-Status; bekannte lokale/externe Kollisionen sichtbar, stale/disabled bleibt unbekannt. Belegtzeitoption in der nativen Einrichtung auffindbar, zusätzliche Google-Zustimmung ausdrücklich am Gerät. Keine neue Berechtigung, kein Scope-/Datenmodell-/Speicherhandlerwechsel. Tagesdatum ohne doppelten Bereich, Diagnose in nachrangigen Bereich; alle Fachaktionen weiter erreichbar.
+2. **P2 Heute-Karte:** alle bevorstehenden aktiven App-Termine stabil nach Zeit/ID, im vorhandenen Fenster links/rechts wischbar, explizite Pfeile und Zähler als Alternative, Grenzen ohne Umlauf. Auswahl bei Neuladen erhalten; geloeschte/abgesagte Auswahl sicher ersetzen. Anzeigen/Blaettern/Scrollen schreibt nichts; Tippen öffnet exakt den sichtbaren Termin, Wetter/Kollisionen gehören dazu. Timer bleibt vorrangig.
+3. **P3 Bedienung/Gesten:** roten globalen Hauptseiten-Wischbereich samt Preference/Listenern entfernen, Gartenpirat-Option und Funktion erhalten. Linker Rand öffnet Menü, niemals App-Zurück; API34+ unterscheidet native linke Geste und Hardware-/rechte Zurück-Aktion. Ältere Android-Versionen respektieren die OS-Grenze der Gesture-Exclusion. Horizontale Karten-/Tageswische und vertikales Scrollen konkurrieren nicht; Editoren/Entwürfe geschützt. Gartenpirat beim Scrollen nicht springend oder über Bedienknöpfen, Lexikon-/Bildfunktion erhalten.
+4. **R-Abschluss:** gezielte Reproduktion vor/nach Änderung; Browser schmal/große Schrift und echte Touchfolge, Python/JVM/Android-Kompilierung/Lint, Privacy und unveränderter117/156-Vertrag; jeden Block commit/push/exakt zurücklesen. Abschließend offizieller privater Drive-Quellcodeexport für KI-Prüfung und erst danach Wegweiser. Tatsächliche Pixel-/OS-Endabnahme separat, keine Erfolgserfindung.
+
+## Kalender R7 – Verbindung funktioniert; Google-Produktion trotz bestätigtem Branding-Speichern gesperrt (22.10.2026)
+
+Nach dem echten Pixel-Verbindungserfolg wurde die Produktionsreife gezielt neu geprüft (Run **a6744fe4-7e82-44b8-8bdc-9e40de634957**). Das Branding wurde tatsächlich gespeichert, nun mit der ausdrücklichen Google-Bestätigung **Änderungen gespeichert**; App-Name sowie vorhandene Support-/Entwicklerkontakte wurden gespeichert zurückgelesen. Ein unbestätigter Kontakt-Chip ist damit als konkrete Ursache nicht belegt. Kontoadressen bleiben außerhalb des technischen Nachweises. Keine öffentlichen URLs erfunden, Website veröffentlicht oder Verifizierungsprüfung eingereicht.
+
+Die anschließend unabhängig neu gelesene Zielgruppe bleibt **Test**. **App veröffentlichen** bleibt gesperrt mit dem wörtlichen Google-Hinweis **Damit Sie Ihre Anwendung veröffentlichen können, müssen Sie die Konfiguration auf der Seite Branding abschließen.** Kein Veröffentlichungsklick oder Bestätigungsdialog ausgeführt, kein Produktionsstatus vorgetäuscht. Der genaue verbleibende Google-Konfigurationsmangel ist weiterhin nicht bezeichnet; aus dem allgemeinen Hinweis werden keine fehlenden Pflicht-URLs, Abrechnung oder zwingende Verifizierung für den persönlichen Gebrauch abgeleitet. Weitere blinde Speicher-/Veröffentlichungsversuche unterbleiben.
+
+Die reale Kalenderverbindung ist dagegen **bestätigt**: Eigentümerfreigabe plus unabhängiges Pixel-MCP, verbunden/configured=true, Zustand checked, keine Fehler, erfolgreiche Kalenderprüfung13:18:02Z. Die neue Testnutzerzeile beseitigte die konkrete Google-403-Sperre. Solange Google den externen Testbetrieb führt, können Kalenderfreigaben nach sieben Tagen ablaufen; dauerhafte Erneuerung und Produktion sind **nicht abgenommen**. Keine produktiven Testtermine, Datenänderung durch Codex oder neue APK. Wetter war nicht Gegenstand dieses Nachlaufs.
+
+R6 einschließlich des Live-Verbindungserfolgs ist unter **5cb2831ee7af1f71000055bdd83b376826873ccf** auf dem bestehenden Branch gepusht und exakt zurückgelesen; striktes source_preservation PASS,1245Quell-/3667Workspace-Dateien Privacy PASS. App-Main/Gradle und das unveränderliche APK-Original-b7d5fcd bleiben bytegleich. Der abschließende offizielle Export in den vorbereiteten privaten Ordner https://drive.google.com/drive/folders/1aBT1HBB4t5-EEZ08-sA8-B7HGwi0pIfB sichert den nachfolgenden Dokumentationscommit; Manifest maßgeblich, Wegweiser erst nach vollständigem tatsächlichem Readback umstellen. R5 und alle APK-Originale bleiben erhalten.
+
+## Kalender R6 – Testnutzer ergänzt und echte Pixel-Kalenderverbindung bestätigt (22.10.2026)
+
+Der neue Nutzerscreenshot zeigt nach einem echten Pixel-Anmeldeversuch **403: access_denied** mit der ausdrücklichen Google-Begründung, dass die App getestet wird und nur vom Entwickler genehmigte Tester Zugriff erhalten. Die zunächst tatsächlich gelesene Testnutzerliste im bestehenden Projekt **gartenpirat-drive** war leer. Die aktuelle Ablehnung ist damit auf die Testnutzerbeschränkung eingegrenzt; sie belegt keinen erneuten Paket-/Signaturfehler und keine zwingende öffentliche App-Verifizierung für den persönlichen Testzugang.
+
+**Eigentümerkonto tatsächlich ergänzt und gespeichert:** Der erste Versuch zeigte nach erneutem Laden weiterhin keinen Eintrag und wurde ausdrücklich nicht als gespeichert gewertet (Run e464320a-5696-46be-81bc-22decd87ed9d). Beim gezielten Folgeschritt wurde die Eingabe als gültiger Chip bestätigt und der aktivierte Dialog-Speichern-Button betätigt. Nach Navigation zur Projektübersicht und zurück zur Zielgruppe war die tatsächliche Zeile des exakten Eigentümerkontos vorhanden; Anzahl **1 Testnutzer** (Run dcd0ca74-7e50-4285-abdb-ff38a675f664). Keine ausdrückliche Erfolgs-Toastmeldung erfasst; der Erfolg beruht auf dem unabhängig neu gelesenen Listeneintrag. Keine anderen Nutzer verändert. Kontoadresse und Original-Screenshot bleiben außerhalb von Repository, Protokollexport und Quell-ZIP.
+
+**Live-Verbindung bestätigt:** Nach dem gespeicherten Testnutzer meldet der Nutzer **Kalender verbunden**. Die anschließende unabhängige Pixel-MCP-Lesung bestätigt connected=true, configured=true, state=checked, registration_required=false, leere Fehlerfelder und eine erfolgreiche Kalenderprüfung um **13:18:02Z** (15:18Uhr Österreich). Frischer Einrichtungsversuch13:16:55Z; alter Fehlerzeitpunkt und Fehlerfelder sind nun geleert. Damit ist der reale Verbindungserfolg belegt; keine produktive Termin-Schreibprobe oder Langzeit-/Neustartabnahme daraus abgeleitet.
+
+**Offen:** Veröffentlichungsstatus beim letzten Cloud-Readback weiterhin **Test**. Der neue Testnutzer und die persönliche Freigabe beheben die konkrete Zugangsbeschränkung; dauerhafter Zugang ist weiterhin nicht belegt. Im externen Testbetrieb können Kalenderfreigaben nach sieben Tagen ablaufen. Die zuvor von Google gesperrte Produktionsumschaltung wegen Branding ist durch diesen Schritt nicht gelöst; kein fehlendes URL-Feld oder kostenpflichtiger Verifizierungsbedarf daraus abgeleitet. Der Nutzer hat die persönliche Freigabe erteilt und die Verbindung ist geprüft. Eine frische gezielte Produktions-/Brandingprüfung nach diesem tatsächlichen Erfolg folgt; keine produktiven Testtermine.
+
+Vor der Korrektur zeigte die erste frische Pixel-MCP-Lesung **1.54.4/93**, Original-b7d5fcd, SOURCE_DIRTY=false, verbunden=false, einen neuen Einrichtungsversuch um **13:05:23Z**, jedoch noch den alten Fehlerzeitpunkt **08:24:56Z**. Die Ablehnung wurde deshalb aus dem Screenshot beurteilt. Die spätere oben dokumentierte Live-Verbindung löst diese Fehlerlage tatsächlich ab. Keine Änderung von App-Code, Gradle, APK, Kalender-Scopes oder Manifestrechten; für die Testnutzerkorrektur ist kein neuer Build erforderlich.
+
+Die vorausgehende R5-Generation **28d83a08e09563116a74c91862619e3b4357f81e** ist vollständig gesichert:19Quellartefakte,18tatsächliche SHA256-Byte-Readbacks und1vollständiger ZIP-Streamgrößenbeleg,0offeneUploads/0Duplikate;5vorhandene KI-Wegweiser ebenfalls SHA256-bytegleich zurückgelesen. Diese Generation und die APK-Originalquelle **source/v1.54.4-build93 / b7d5fcd71fd0e376b8750cf9eaacd94e47d72883** bleiben unverändert. Der folgende offizielle Dokumentationsexport wird im privaten Ordner https://drive.google.com/drive/folders/1aBT1HBB4t5-EEZ08-sA8-B7HGwi0pIfB gesichert; Wegweiser erst nach dessen vollständigem Readback umstellen. Exakter Dokumentationscommit im Manifest, Transferbelege außerhalb der Exportgeneration. Kein automatisches Pixelupdate, keine Datenänderung, keine neue Abrechnung oder Verifizierungseinreichung.
+
+## Kalender R5 – Cloud-Grundlage bestätigt, Produktionsumschaltung und Pixel-Freigabe offen (22.10.2026)
+
+Im bestehenden Projekt **gartenpirat-drive** sind nun der Android-OAuth-Client für **at.hausgarten.service** mit der Original-SHA-1 und die aktivierte **Google Calendar API** tatsächlich bestätigt. Die abschließende direkte API-Statusprüfung zeigt wörtlich **API aktiviert**; dabei war kein erneuter Aktivierungsklick nötig. Die drei vorhandenen Kalender-Scope-Deklarationen app.created, calendarlist.readonly und optional freebusy wurden gelesen. Die App selbst fordert weiterhin nur die zwei bisherigen Basis-Scopes und freebusy ausschließlich bei eingeschalteter Belegtzeitprüfung an.
+
+Die neu geladene Brandingseite zeigt **Haus & Garten** sowie vorhandene Support-/Kontaktangaben. Diese Kontaktwerte wurden ausschließlich innerhalb der Google-Konsole verwendet und nicht ins Repository oder die Exportberichte übernommen. Öffentliche Homepage-/Datenschutz-/Nutzungsbedingungen-URLs sind im tatsächlich geprüften Formular optional; sichtbare Validierungsfehler fehlen. Speichern wurde zuletzt tatsächlich angeklickt, eine ausdrückliche Erfolgsmeldung jedoch nicht erfasst. Aus sichtbaren Formularwerten allein wird deshalb kein vollständiger Einrichtungsabschluss abgeleitet; keine URL erfunden oder Website veröffentlicht.
+
+**Nicht abgeschlossen:** Die Zielgruppe ist External, der zuletzt gelesene Veröffentlichungsstatus weiterhin **Test**. Der Nutzer meldet den Veröffentlichungsweg ebenfalls als fehlend/gesperrt. Die neueste direkte Prüfung bestätigt einen gesperrten Button mit Googles Hinweis **Damit Sie Ihre Anwendung veröffentlichen können, müssen Sie die Konfiguration auf der Seite Branding abschließen.** Eine Produktionsumschaltung ist nicht belegt. Der tatsächliche Abschlussstatus der Google-Auth-Platform-Einrichtung wird weiter geprüft; fehlende öffentliche URLs oder eine zwingende Verifizierung sind damit noch nicht bewiesen. Solange Google den externen Testbetrieb führt, ist ein dauerhaft nutzbarer Grant ohne den möglichen Sieben-Tage-Ablauf nicht nachgewiesen. Anschließend ist die persönliche Kalenderfreigabe in der Pixel-App samt echtem Kalender-Readback erforderlich.
+
+Die erneute Pixel-MCP-Lesung bestätigt **1.54.4/93/b7d5fcd**, SOURCE_DIRTY=false, Kalender verbunden=false. Der gespeicherte Fehler CALENDAR_APP_REGISTRATION_REQUIRED stammt weiterhin vom Versuch **08:24:55Z vor dieser Cloud-Einrichtung**; es wurde kein neuer erfolgloser Verbindungsversuch nach der Registrierung beobachtet. Die Cloud-Einrichtung darf deshalb weder als vollständiger Verbindungserfolg noch anhand dieser alten Meldung als erneut gescheitert bezeichnet werden. Kein produktiver Testtermin und kein automatisches Pixelupdate.
+
+R4 ist unter **c9ceeb5085a3466de0487e8d1f34d1d74a703b85** auf dem vorhandenen Branch gepusht und exakt zurückgelesen: Source-Privacy1245Dateien/0Seeds, Workspace-Privacy3667Dateien inklusive ignorierter/unversionierter Dateien PASS, App-Main und Gradle gegenüber dem Original-b7d5fcd unverändert, striktes source_preservation PASS. Der vorhandene Drive-Versionsnachweis von Build93 wurde zusätzlich vollständig heruntergeladen und gegen die Repositorybytes geprüft:4031Bytes, SHA256 **d27473b38dda9aae4401bc1c470f6c9c53e658410636284893760adc3010cbfc**.
+
+Der nachfolgende offizielle Export sichert diesen Dokumentationsstand im bereits privat geprüften Ordner https://drive.google.com/drive/folders/1ujSGAnpVH_nX4uMgYAVh5nkW1KdYAgCe . Sein Manifest definiert den exakten Dokumentationscommit; die unveränderliche APK-Originalquelle bleibt **source/v1.54.4-build93 / b7d5fcd71fd0e376b8750cf9eaacd94e47d72883**. Transferbelege außerhalb der Exportgeneration, tatsächliche Byteprüfung und reine ZIP-Streamgrößenprüfung unterscheiden; Wegweiser erst nach vollständigem Readback aktualisieren. Frühere Originale und Generationen bleiben erhalten. Keine neue APK oder Änderung des App-Funktionscodes für diese Google-Konfiguration.
+
+## Kalender R4 – Google-Projekt gefunden und Android-Client registriert (22.10.2026)
+
+Der Nutzer hat die Umsetzung der Google-Konfiguration und den TinyFish-Zugang ausdrücklich beauftragt. Nach persönlicher Google-Anmeldung ist der Zugriff auf die Cloud Console tatsächlich möglich. Das bestehende Projekt **gartenpirat-drive** wurde gelesen: zunächst keine OAuth-Clients, keine eingetragenen Kalender-Scopes und keine aktivierte Calendar API. Ein nicht sichtbares anderes Projekt wurde nicht als bewiesen angenommen; das vorhandene Gartenpirat-Projekt wird verwendet.
+
+**Android-Registrierung tatsächlich erstellt und zurückgelesen:** Typ Android, Name Haus & Garten Android Original, Paket **at.hausgarten.service**, SHA-1 **16:FC:7A:13:7E:58:CA:31:C7:1D:70:6D:47:2F:29:FB:9F:55:8A:5A**, öffentliche Client-ID **123680727453-1d53mksthignnhiairm2tjuteijavivd.apps.googleusercontent.com**. Ein erster umfassender Konsolenlauf verlor den Browserkontext; der gezielte neue Lauf über das direkte Erstellungsformular war erfolgreich. Keine vorhandenen Clients gelöscht und kein Web-/Server-Client angelegt.
+
+**Noch laufend:** Die Calendar-API-Aktivierung wurde ausgelöst, ihre endgültige Freischaltung ist noch nicht zurückgelesen. Der nachfolgende Lauf bearbeitet die zwei bisherigen Basis-Scopes sowie optional freebusy und den Wechsel vom externen Testbetrieb in Produktion; der gespeicherte Endzustand ist noch nicht bestätigt. Kein dauerhafter Kalenderzugang oder echter Google-Grant behauptet.
+
+Die erneute lesende Pixel-MCP-Prüfung bestätigt inzwischen **1.54.4/93**, Quellcommit **b7d5fcd71fd0e376b8750cf9eaacd94e47d72883**, Main-/Gradle-Fingerprint **47e84a4a64d29117d828e49c26f4f700f0f4b75861274c5e15b7d75dbd1014c5**, SOURCE_DIRTY=false. Die tatsächliche Installation ist damit beobachtet; Codex hat keine Installation ausgeführt und keinen produktiven Datenerhaltstest durchgeführt. Kalender weiterhin verbunden=false, Stufe grant, CALENDAR_APP_REGISTRATION_REQUIRED aus dem gespeicherten Fehlversuch. Wetterkonfiguration tatsächlich open_meteo_non_commercial/non_commercial mit angeforderten16Tagen; dies allein ist kein Live-Prognosenachweis.
+
+Technischer Nachweis ohne Kontoadressen oder Geheimwerte: docs/verification/google-calendar-cloud-2026-10-22.json. Neue private Dokumentationsgeneration vorbereitet unter https://drive.google.com/drive/folders/1ujSGAnpVH_nX4uMgYAVh5nkW1KdYAgCe ; Veröffentlichung der Wegweiser erst nach vollständigem Export und Readback. Bisherige Originale und Exportgenerationen bleiben erhalten. App-Code, APK, Datenmodell, Scopes der App-Anfrage und Original-Tag bleiben unverändert. Keine produktiven Kalender-Testeinträge, Kontoeinwilligung oder zusätzliche Abrechnung eingerichtet.
+
+## Kalender/Wetter R3 – geprüfter Originalkandidat 1.54.4 / Build 93 (22.10.2026)
+
+**App-Umsetzung, Originalsignierung und Cloud-Abnahme abgeschlossen. Google-Projektfreischaltung und physische Pixel-Abnahme bleiben offen.** Der neue Nutzerauftrag erlaubt Kalender-/Wetterfunktionen und den Entwicklungsbuild. Main und produktive Daten wurden unverändert erhalten.
+
+Die App nutzt den kostenlosen öffentlichen Open-Meteo-Zugang für die vom Nutzer erklärte nichtkommerzielle Verwendung: ohne Konto, API-Schlüssel oder Abo, mit bis zu 16 Tagen Vorschau. Vollständige Arbeitsstunden eines Termins 14 Tage voraus sind im nativen App-/MCP-Pfad nachgewiesen. Tatsächliches Datenende, Aktualität, fehlende Werte und kurzfristiger GeoSphere-Ersatz werden offengelegt. Klare Fernprognosen erscheinen als unsicherer, neutral dargestellter Wettertrend. GeoSphere-Warnungen und Nowcast ergänzen die Hauptprognose. St./Sankt-Ortsvarianten werden erkannt; Originaladressen und Kundenbeziehungen bleiben erhalten.
+
+Die Kalendereinrichtung unterscheidet Kontoauswahl, beobachtete Google-Freigabe und bestätigten Kalender. Die Registrierungshilfe nennt ausschließlich öffentliche Paket-/Zertifikatsdaten. Vorhandene minimale Scopes, Google-Tokenverwaltung, 401-Behandlung, Wiederaufnahme, Kalender-Readback, ETags und Idempotenz bleiben erhalten. Alle sechs geschützten nativen Handler und Preference-Write-Fingerprints sind unverändert. Keine neuen Manifestrechte, SDKs oder MCP-Werkzeuge.
+
+| Tatsächlich ausgeführte Prüfung | Ergebnis |
+|---|---|
+| Python | 393 PASS, 0 Skips; 37 alte QA-Schlüsselerzeugungstests ausgeschlossen |
+| JVM / vollständiger Browserlauf / MCP | 42 Suiten / 51 Suiten / 55 Szenarien PASS |
+| Release, AndroidTest und Lint | 84 Tasks PASS; 0 Fehler, 53 Warnungen |
+| Android SQLite/MCP | 159 PASS, 0 FAIL; einschließlich T+14-Coverage und Cache nach Wiederöffnung |
+| Cloud-Updates | 92→erster93 und erster93→finaler93 PASS; vollständiger Snapshot, IDs, Queue, Einstellungen, Tunnel und aktiver Timer erhalten |
+| Frisch isoliert / native UI / letzter Snapshot | PASS; UI und Snapshot nach System-UI-Wait zusätzlich wiederholt |
+| Original-APK | Originalzertifikat, ein Signer, v2/v3, 16KiB, Assets, leere Seeds, Privacy und DEX-Provenienz PASS |
+
+Der dedizierte Softwareemulator GartenpiratCloud / emulator-5554 wurde vor jedem Gerätezugriff mit qemu=1 geprüft. Die Sichtprüfung fand einen System-UI-ANR; die ursprüngliche Aufnahme blieb erhalten. Ausschließlich der exakt identifizierte Wait-Knopf wurde betätigt. Danach bestanden native UI und vollständiger Snapshot erneut. Eine unmittelbar beim App-Start erstellte Ladeaufnahme wurde separat erhalten und die Ansicht nach dem Laden erneut aufgenommen. Keine App-Datenlöschung, kein behaupteter App-ANR-Fix oder physischer Pixel-Leistungsnachweis.
+
+Die abschließende Workspace-Prüfung hielt zunächst drei neue Emulatoraufnahmen als UNCLASSIFIED_IMAGE zurück; der Exporter stoppte deshalb vor der Archivveröffentlichung. Nach tatsächlicher Sichtprüfung und belegter Grenze GartenpiratCloud/emulator-5554/qemu=1 wurden SHA256-gebundene SYNTHETIC_TEST-Herkunftsbelege ergänzt. Danach Source-, Workspace- und tatsächliche Original-APK-Privacy vollständig PASS. Bilder und Gates wurden unverändert erhalten; der gestoppte Export blieb außerhalb des Checkouts und wird durch eine neue vollständige Generation ersetzt.
+
+117 MCP-Werkzeuge, 156 UI-Aktionen, DB4/Snapshot2 und Vertrag 899906c246f9cb8256666c32a89435aa5f792eede3d3407b1c846380900aa813 bleiben erhalten. 62 UI-Quellen wurden geprüft; fachliche Aktionsmappings sind bytegleich zur Ausgangsbasis. Abschließend 1047 UI-/MCP-Paritätsprüfungen PASS. Die letzte Änderung gegenüber 1cd2222 betrifft ausschließlich Android-Testanbieter und Protokoll; der Main-/Gradle-Fingerprint ist identisch. Build und Originalsignierung wurden dennoch mit dem neuen sauberen Commit wiederholt.
+
+Originalquelle: **b7d5fcd71fd0e376b8750cf9eaacd94e47d72883**, unveränderliches Tag **source/v1.54.4-build93**, Branch codex/calendar-weather-20261022. Commit und Tag regulär gepusht und exakt auf GitHub zurückgelesen. Striktes source_preservation vor Build, Signierung und Export PASS. Main-/Gradle-SHA256 **47e84a4a64d29117d828e49c26f4f700f0f4b75861274c5e15b7d75dbd1014c5** für 544 Dateien; tatsächliche DEX bestätigt denselben Hash, Commit, Version 1.54.4/93, SOURCE_DIRTY=false, DEBUG=false und UI_PREVIEW=false sowie beide neuen Klassen. 421 Mainassets entsprechen exakt den Quellbytes; zwei Compilerprofile ebenfalls geprüft. 181 Pflanzenprofile und 362 Bilder. Null Betriebsseedzeilen; Source-/Workspace-/fertige APK-Privacy PASS.
+
+APK **Haus-Garten-1.54.4-93-original-update.apk**, **36196370 Bytes**, SHA256 **16c7ed9dcbcc801002055d9646238398551ec69d8c797a039aa52eea50faa99d**. Originalzertifikat **a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8**. Original-ZIP **Haus-Garten-Quellcode-b7d5fcd71fd0.zip**, SHA256 **e4b80e526d57aace9193c20fa16d7e0c8b87c7abf54dc2f80a850091e2246383**, 1243 Originaldateien und 512 verlustlos rekonstruierte UTF-8-Dateien. Vollständiger maschinenlesbarer Nachweis: docs/verification/original-apk-1.54.4-93.json.
+
+Privater Ordner **1.54.4-build93-Kalender-Wetter-b7d5fcd**: https://drive.google.com/drive/folders/1RAFAWqhKgzzd633GTJ1FaEPWgh0B7xbS . APK: https://drive.google.com/file/d/17Pts6yNjNHiKyRqhJHaqAGarWJPZBnfA/view . Original-ZIP: https://drive.google.com/file/d/1lB4r1dg6zrB8pvTSXcIJ7s1HDecda3Bd/view . 19 tatsächliche Quell-Readbacks: 18 SHA256-Bytevergleiche und ein vollständig authentifizierter ZIP-Stream mit exakter Größe. APK ebenso vollständig gestreamt und mit frischen privaten Metadaten geprüft. Für APK/ZIP wegen der 32MiB-Materialisierungsgrenze ausdrücklich kein Remote-SHA256-Bytevergleich; lokale Originalhashes vollständig geprüft. Offizieller Transferplan: 0 Uploads, 19 Reuse, 0 Duplikate. Payloads vor Indizes, START zuletzt, höchstens drei unabhängige Ketten.
+
+Nach diesem Dokumentationscommit wird dessen vollständiger aktueller Quellstand mit dem offiziellen Exporter im privaten Unterordner https://drive.google.com/drive/folders/1kE3pqZns1XOrPSM7SZ2V7sMVAEIdFOjv gesichert. Manifest und START benennen den separaten exakten Dokumentationscommit; b7d5fcd bleibt die unveränderliche APK-Originalquelle. Readback-Belege liegen außerhalb der Exporte. Frühere Originale, tatsächlich installierter Stand 92 und Zwischenstand 1cd2222 bleiben erhalten. Keine Löschung, Retentionsverkürzung oder Mainübernahme.
+
+**Offene externe Abnahme:** Die aktuelle lesende Pixelprüfung zeigt 1.54.3/92/aff54db, CALENDAR_APP_REGISTRATION_REQUIRED, Stufe grant, verbunden=false. Für das bestehende Google-Projekt fehlen hier Verwaltungszugang und eine belegte Projekt-ID. Calendar API, Android-OAuth-Client für at.hausgarten.service mit Original-SHA1 und geeigneter Veröffentlichungs-/Verifizierungsstatus müssen stimmen; anschließend einmal ausdrücklich am Pixel Google-Zugriff gewähren und Kalender zurücklesen. Keine Projektkonfiguration oder Einwilligung vorgetäuscht. Physische Installation/Update92→93 und Live-Open-Meteo-Probe sind nicht ausgeführt; der Executor-Zielkatalog enthält api.open-meteo.com nicht. Dieser Kandidat ist kein vollständig live abgenommener Produktivrelease. Keine echten Kunden-/Adressdaten in Quellen, Fixtures oder Reports und keine produktiven Kalender-/Drive-Schreibtests.
+
+## Kalender/Wetter R2 – Originalkandidat und Android-Rückmeldung (22.10.2026)
+
+Gesicherter Implementierungscommit1cd2222b66546edecccab387394400b60a4988ab:393Python/42JVM/55MCP und nach isolierter Wiederholung vollständige51/51Browser PASS. Erster kompletter Browserlauf50/51: unveränderter Menü-Reihenfolgetest fluktuierte; unmittelbare isolierte und vollständige Wiederholung PASS, keine Assertions oder Menüs geändert. Der abschließende kleine Anzeigeattribut-Fix für neutrale Trends wurde vor dem vollständigen Wiederholungslauf geprüft.
+
+Originalsignierung tatsächlich möglich: Alle fünf Laufzeitbindungen ready; offizieller Signer und striktes source_preservation PASS.1.54.4/93 aus sauberem1cd2222, Main/Gradle47e84a4a64d29117d828e49c26f4f700f0f4b75861274c5e15b7d75dbd1014c5.84Release-/AndroidTest-/Linttasks PASS,0Lintfehler/53Warnungen. Originalzertifikat,16KiB, tatsächlicheAPK-Privacy, leereSeeds undDEX BuildConfig PASS. Noch nicht ausgeliefertes erstes Prüfartefakt bleibt außerhalb des Repos erhalten. Originalquellkopie1cd2222 mit1243Originaldateien/512verlustlosenUTF8-Dateien erzeugt;19privateDrive-Rücklesebelege (18SHA256_BYTES,1ZIPvollständigeStreamgröße), offiziellerTransferplan0Uploads/19Reuse/0Duplikate. Dieser Zwischenstand ist kein abgenommener Release.
+
+Dedizierter GartenpiratCloud-Emulator: ausschließlich explizites emulator-5554/qemu=1. Alte verwaiste Lockdateien nach Prüfung fehlender lebender Emulatorprozesse erhalten/verschoben; keine userdata-/App-Daten entfernt. Ein erster Archivierungsversuch per Rename über Dateisystemgrenze wurde abgewiesen; danach innerhalb desselben Dateisystems außerhalb des AVD gesichert. Vollstart ca254Sekunden. Vorheriger92-Snapshot, In-place92→93 samtIDs/Queue/Einstellungen/Tunnel/Timer und frisch isolierterLeerzustand PASS. Android-Laufzeittest der neuen vollständigenT+14-Vorschau einschließlich wahrheitsgemäßemMCP-Coverage/Unknown PASS.
+
+Erster Gesamt-Androidlauf158PASS/1FAIL: bestehender Same-Site-Cachetest lieferte ausschließlich GeoSphere-JSON an den neuen Open-Meteo-Hauptadapter und erwartete dessen alte vier HTTP-Abfragen. Testanbieter auf korrektes synthetisches Open-Meteo-Stunden-/Einheitenformat umgestellt; erwartete drei echten Requests sind Prognose+Lizenz+Warnungen. Cache nachWiederöffnung, Abbruch/entfernte/fehlendeOrte ohne zusätzlicheRequests und unveränderteGeschäftsdaten bleiben vollständig geprüft; neue Assertions für schlüssellosesGET und tatsächlichenProvider hinzugefügt. App-Funktionscode und Main/Gradle-Fingerprint unverändert. Testkorrektur erfordert neuen sauberen Quellcommit, erneutenBuild/Originalsignierung und vollständigeAndroid-Abnahme; erfolgt vor Auslieferung.
+
+Echter Pixel weiterhin lesend1.54.3/92, CALENDAR_APP_REGISTRATION_REQUIRED/Stufegrant, keinKalenderverbund. Drive-Suche nach administrativenOAuth-/GoogleCloud-Dokumentnamen ohne passendenProjektbeleg. KeinGoogleCloud-Verwaltungstool/keineOutboundIdentity verfügbar. KeineKontofreigabe, produktiverKalendereintrag, Pixelinstallation oderOpenMeteo-Live-Netzprobe ausgeführt.
+
+## Kalender/Wetter R1 – Implementierung (22.10.2026)
+
+Entwicklung 1.54.4/93 auf codex/calendar-weather-20261022, aus dem belegten Original92-Quellstand, keine neue Auslieferung. R0-Sicherung bfda9d56945d7fe330a60bcec7b41b039e76113b auf GitHub exakt zurückgelesen. Neue native OpenMeteoWeatherSource: öffentlicher nichtkommerzieller Schlüssel-freier16Tage-Endpunkt, validierte UTC-Stunden/metrische Einheiten/Koordinaten, atomare Cache-Veröffentlichung, echte Datenabdeckung statt pauschaler14Tage. Vorhandene GeoSphere-Kurzfristquelle und amtliche Warnungen erhalten; zusätzliche Warn-/Nowcastfehler kennzeichnen den Teilstatus. Drosselung/Retry-After bleiben getrennt. Kein Abo/Secret/SDK/Manifestrecht hinzugefügt.
+
+Ortsauflösung St./Sankt ergänzt, Resolver-Version3 für erneute negative Cacheprüfung; Adressen und Kundenbeziehungen bleiben unverändert. Frühe klare Wettertrends erscheinen neutral und unsicher; Detailansicht nennt tatsächliche Quelle, Datenende und kurzfristigen Ersatz. KalenderSetupRules zeigt Konto, beobachtete Berechtigung und bestätigten Kalender getrennt, Registrierungshilfe nennt ausschließlich öffentliche Paket-/Zertifikatsdaten. Sechs geschützte native Kalenderhandlers und alle gesicherten Preference-Writes unverändert; Minimal-Scopes, Token-Erneuerung/401, Restart, IDs/ETag/Readback unverändert.
+
+Fokussiert:42JVM-Suiten inkl. neuer Kalender- und16Tage-Quelle PASS;66Orts-/Wetterworkflowprüfungen PASS;4native UI-Schutzprüfungen PASS;4neue Browser-Prognoseszenarien PASS, einschließlich Tag14-Anzeige,320/360/426px und16/24px-Schrift, Quelle/Ende/Ersatz/Unknown/Escaping/keine Schreibaktionen. Ein neuer Browserlauf hatte zunächst einen ungenauen Testselektor für zwei identische Home-/Planungsbuttons; auf die sichtbare Planung eingeschränkt, keine Assertion entfernt. Ein neuer nativer Laufzeittest für tatsächliche MCP-Coverage angelegt, Ausführung mangels Originalsignierung NICHT erfolgt. Vollständige Regression, Release-Kompilierung/Lint und Artefakt-Privacy folgen.
+
+117MCP-Tools/156UI-Aktionen und eingefrorener Vertrag erhalten.62UI-Quellen geprüft und Fingerprints erneuert, keine fachlichen Aktionsmappings verändert. User-Auftrag erlaubt neue Funktionen und den Entwicklungsbuild; ursprüngliche Layout-/Daten-/Installationsschutzregeln bleiben. Aktualisierte Umgebungsbeobachtung nach der fokussierten Phase: spec_revision32/observations_current meldet fünf HG_ORIGINAL-Laufzeitvariablen ready. Die frühere Schlussfolgerung aus secrets=[] allein war unvollständig; deshalb Originalsignierung und isolierte native Cloud-Abnahme jetzt möglich und als nächste Phase vorgesehen. Keine Variablenwerte gelesen/geloggt oder an Tests/Build weitergegeben. Google-Projektzugriff, tatsächliche Gerätefreigabe und Live-Open-Meteo-Probe weiterhin offen, kein entsprechender Erfolg behauptet.
+
+## Kalenderzugang und nichtkommerzielle 16-Tage-Wettervorschau – 22.10.2026 / R0
+
+Aktueller ausdrücklicher Nutzerauftrag: neues Kalenderkonzept umsetzen, Wetter für die vom Nutzer erklärte nichtkommerzielle Nutzung umstellen, Ausführung nach Projektprotokoll. Dieser Folgeauftrag autorisiert die dafür nötigen Kalender-/Wetter-Funktionsänderungen; die Layoutaufträge 1.54.2 bleiben als erledigte historische Abnahme erhalten. Datenschutz-, Originalsignierungs-, Installations-, Konto- und Scope-Schutz gelten weiter. Keine neue kostenpflichtige Nutzung, keine produktiven Testtermine.
+
+Ausgang: GitHub-main e499e745832449ce0202d04d9903495248e8b034, APK92-Branch e09b60b6f84ffbb03a8d56ae9180c8fdafa7457c, unveränderliche Original-APK-Quelle aff54dbd7cd64437645bba71242688ec5da4c30b. Neues einziges Arbeitsbranch codex/calendar-weather-20261022 im vorhandenen Git-Worktree; ältere Branches/Tags/Quellen erhalten. Aktuelle AGENTS.md vom GitHub-main gelesen; keine main-Übernahme. Technische Pixel-MCP-Lesung bestätigt tatsächlich 1.54.3/92, denselben aff54db-Quellfingerprint, MCP9 und117Werkzeuge; keine Betriebsinhalte übernommen. Kalender weiterhin CALENDAR_APP_REGISTRATION_REQUIRED, verbunden=false.
+
+Baseline vor App-Funktionsänderungen:393Python/0Skips (37alte QA-Schlüsselerzeugungstests ausgeschlossen),40JVM-Suiten,55MCP-Szenarien, Vertrags-/UI-Review-/Pflanzengates PASS. Zwei vollständige unveränderte Browserläufe jeweils49/50PASS: gartenpirat-photo wartete beim Wiederwählen auf die bereits bekannte Bildbreite des alten Bildes, bevor die asynchrone Dekodierung das neue Blobbild eingesetzt hatte. Originalfehlberichte außerhalb des Checkouts erhalten. Ausschließlich Test-Synchronisation korrigiert: Beim Wiederwählen wird zusätzlich die neue Bild-URL abgewartet. Alle bestehenden Assertions, Bildidentitätswechsel, Abbruch-/Entwurf-/Ressourcenschutz und App-Code erhalten. Danach gezielte Fotosuite und vollständiger50/50Browserlauf PASS. Keine Assertions/Gates entfernt oder Qualitätsausnahme eingeführt.
+
+Messbare Abnahme für die folgende Umsetzung:
+1. Native kostenlose Open-Meteo-Abfrage ohne Konto/API-Schlüssel, forecast_days=16, HTTPS/UTC/metrische Einheiten; gültige stündliche Werte decken einen vollständigen synthetischen Termin mindestens14Tage voraus. Keine Statistik als Modellprognose, Null-/veraltete/fehlende Werte bleiben unbekannt.
+2. Provider, tatsächlicher Datenzeitraum und Aktualität im vorhandenen Wetter-/MCP-Pfad korrekt; keine pauschale14Tage-Erfolgsangabe ohne Datennachweis. GeoSphere-Warnungen/Nowcast ergänzend, deren Ausfall darf eine vorhandene gültige Hauptprognose nicht vernichten.
+3. St./Sankt-Ortsvarianten und eindeutige Ortsauflösung synthetisch prüfen; mehrdeutige Orte ablehnen, Originaladressen/Termine/Koordinaten nicht überschreiben.
+4. Kalender-Kontoauswahl, tatsächliche Google-Freigabe und bestätigte Kalenderbindung wahrheitsgemäß unterscheiden; vorhandenen AuthorizationClient-/Readback-/Idempotenz-/ETag-/401-/Neustartschutz erhalten. Registrierungshinweise ohne Tokens, Konten oder neue Scopes.
+5.117MCP-Werkzeuge/156UI-Aktionen, DB4/Snapshot2, IDs/Relationen/Journalformate, Originalpaket und Manifest-Berechtigungen erhalten. Relevante neue positive/negative Tests sowie vollständige Regression/Release/Lint/Privacy und verifizierte Quellsicherung.
+6. Kein Pixelupdate, keine Konten-/Google-Projektänderung oder produktive Schreibprobe ohne die dafür erforderliche reale Freigabe. Aktuelle Umgebung meldet keine bereiten Originalsignierungsbindungen und keinen Google-Cloud-Verwaltungszugang; Open-Meteo ist nicht in ihrer ausgegebenen HTTP-Zielliste. Diese externen Grenzen offen führen, keinen Ersatzschlüssel/Netzwerk-Bypass verwenden.
+
+Status: R0 abgeschlossen; eigentliche App-Funktionsumsetzung folgt.
+
+## Original-APK 1.54.3 / Build 92 – Cloud-Abnahme (22.10.2026)
+
+**Beauftragte APK erstellt, originalsigniert und als privater Update-Kandidat geprüft. Keine Pixelinstallation oder produktive Google-Freigabe.** Der neue APK-Auftrag ersetzt für diesen Build das frühere Verbot von APK/Signierung/Versionserhöhung im abgeschlossenen UI-Auftrag; Daten-/Konto-/Installationsschutz bleibt. Paket `at.hausgarten.service`, Version **1.54.3 / 92**. Gegenüber dem vollständig gesicherten UI-Stand c693b673c42556c87e6c72ee3f9318790d9de825 änderte sich ausschließlich die Versionsangabe in android/app/build.gradle. Frühere lokale/UI-Historie und Original91 unverändert erhalten; isolierter Git-Worktree desselben Repositorys, kein zweites Repository.
+
+- Branch `codex/apk-1.54.3-build92-20261022`, exakter APK-Quellcommit **`aff54dbd7cd64437645bba71242688ec5da4c30b`**, unveränderliches Tag **`source/v1.54.3-build92`** regulär gepusht und zurückgelesen. source_preservation PASS am exakten sauberen Commit; kein Skip/Dirty/Offline-Weg. Main bleibt unberührt.
+- APK **Haus-Garten-1.54.3-92-original-update.apk**, **36192274 Bytes**, SHA256 **`4f08b012bfd2c38259974c94b3071e218962d330f70ccb332725c77d25ec2814`**. Originalzertifikat tatsächlich geprüft: `a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`; genau ein Signer, v2/v3 und16KiB-Ausrichtung PASS. Signierung ausschließlich über tools/sign_original_apk.py in persönlicher Cloud; Originalwerte weder geloggt noch nach CI/Git übertragen, kein Ersatzschlüssel.
+- Main-/Gradle-SHA256 **`17d8be0d257733544896546bf22086d33d157011dfd0ab14db7664d42486ed34`**,542Dateien,421Mainassets plus zwei exakt bytegleiche Compiler-ART-Profile.181Pflanzenprofile/362Bilder. DEX bestätigt aff54db, denselben Quellhash,1.54.3/92, SOURCE_DIRTY=false, DEBUG=false, UI_PREVIEW=false und die neuen nativen UI-Klassen. Null operative Seedzeilen; Source-/Workspace-/fertige signierte APK-Privacy PASS.
+
+| Tatsächlich ausgeführte Prüfung | Ergebnis |
+|---|---|
+| Python | **393PASS,0Skips**;37alte schlüsselerzeugende QA-Tests ausdrücklich ausgeschlossen |
+| JVM | **40Suiten PASS** |
+| Browser | **50/50Suiten im vollständigen Lauf PASS**, einschließlich Foto/Galerie/Kalender/Einstellungen |
+| MCP-stdio, synthetischer Temp-Drive | **55/55Szenarien PASS** |
+| Release-/Instrumentierungs-Build und Lint | **84Tasks PASS;0Fehler/56Warnungen** (bekannte Übersetzungshinweise) |
+| Vertrag/UI-Review/Pflanzen | PASS; **117Tools/156Aktionen**, Vertrag899906c246f9cb8256666c32a89435aa5f792eede3d3407b1c846380900aa813 unverändert |
+| Native Android-SQLite/MCP | **158PASS,0FAIL**; isolierte synthetische Stores, Hauptsnapshot unverändert |
+| Cloud-In-place-Update91→92 | **PASS**: vollständiger Snapshot, IDs, ausstehende Aktionen, Einstellungen, Tunnelkonfiguration und laufender Timer erhalten; keine Deinstallation/Datenlöschung |
+| Fresh-isolated / Native WebView und Verbindungsscreens / abschließender Snapshot | **PASS/PASS/PASS**; UI und Snapshot zusätzlich nach System-UI-Wait wiederholt |
+| Fertige APK | Signatur/Original91-Zertifikatsvergleich/Version/Assets/Seed/Privacy/16KiB/DEX-Provenienz **PASS** |
+
+Nur der dedizierte `GartenpiratCloud`-Emulator mit qemu=1 und expliziter Seriennummer emulator-5554 wurde benutzt. Beim Start wurden nach Nachweis fehlender Emulatorprozesse ausschließlich verwaiste OS-Lockdateien erhalten/verschoben; keine AVD-/App-Daten entfernt. Die Sichtprüfung fand einen tatsächlichen **System UI isn't responding**-Dialog des Software-AVD. Ausschließlich dessen exakt identifizierter **Wait**-Button wurde betätigt; danach native UI und kompletter Snapshot erneut PASS. Finale synthetische Aufnahme outputs/apk92-native-ui.png tatsächlich ohne OS-Dialog gesichtet; ursprüngliches ANR-Bild samt Privacy-Beleg erhalten. Kein App-ANR-Fix oder Pixel-Leistungsnachweis daraus abgeleitet.
+
+Infrastrukturvorläufe getrennt: Im frischen Worktree fehlte der Ausgabepfad des ersten Pythonreports; dessen393Assertions waren grün, nach Einrichtung nochmals kompletter393er-Lauf mit Bericht/Privacy PASS. Der externe DEX-Textleser traf auf MUTF-8 außerhalb BuildConfig; Decoder korrigiert und sämtliche ausgewählten unveränderten ASCII-Provenienzwerte exakt geprüft. Kurz nach Emulatorstart waren Android-Systemdienste noch nicht bereit; bestehender91-Snapshot anschließend lesend erfolgreich verifiziert. Keine Testassertion oder Qualitäts-/Signier-/Privacy-/Vertragsprüfung abgeschwächt, keine App-Funktionsänderung.
+
+Originalquellen: **Haus-Garten-Quellcode-aff54dbd7cd6.zip**, SHA256 **`17af4375bdcf14352b93fdfcc7a6093ced4b5f7464422cfe9c45533d2dc45040`**,1237Originaldateien;506UTF-8-Dateien verlustlos rekonstruiert. Offizieller source_lifecycle-Exporter mit strikter Quellsicherung/Privacy benutzt. Privater Buildordner **1.54.3-build92-Original-APK-und-Quellcode-aff54db**: https://drive.google.com/drive/folders/1pzAVZQcxcvYEqbEYYzZXKg7cNm0qllw_ . APK: https://drive.google.com/file/d/1UHmeEkSO6k0-zU3i6DM53gjgyHDL-fwk/view . Original-ZIP: https://drive.google.com/file/d/10o0nWq_EK2qAF4zQHj_U2jev_4s6C5qT/view .19Quell-Transferbelege:18Dateien tatsächlich heruntergeladen und SHA256-bytegleich, ZIP vollständig authentifiziert gestreamt mit exakter Größe;0offeneÜbertragungen/0Duplikate. APK ebenfalls vollständiger36.192.274-Byte-Streamingbeleg und private Metadaten; wegen32MiB-Materialisierungsgrenze **kein Remote-SHA256-Bytevergleich für APK/ZIP behauptet**. Lokale Original-APK-/ZIP-Hashes separat vollständig geprüft. Payloads vor Manifest/Prüfsummen, Startdatei zuletzt; bestehende gute Generationen erhalten.
+
+Abschluss-Entwicklungsquellen nach dem Dokumentationscommit zusätzlich über denselben offiziellen Exporter im privaten Unterordner https://drive.google.com/drive/folders/12LQGZIMfClGhdKPOikgbU3L_e5pg8rPT ; dessen Manifest/00-START nennen den tatsächlichen separaten Dokumentationscommit. Dieser aktuelle Entwicklungsstand ist kein anderer APK-Quellcommit: aff54db bleibt unverändert und über das Originaltag abrufbar. Nur Protokoll-/Entwicklungs-/Kandidatenmetadaten werden nach der APK-Erstellung ergänzt; Artefaktbytes und App-/Gradle-Fingerprint bleiben unverändert. Geänderte Metadaten: CODEX-STATUS.md, AKTUELLER-STAND.json, source-lifecycle.json, source-releases.json und docs/verification/original-apk-1.54.3-92.json. Verifizierte Auslieferung90, vorheriger Kandidat91 und zuletzt beobachteter Pixel90 bleiben separat erhalten; keine Retentions-/Löschfreigabe abgeleitet.
+
+**NOT EXECUTED:** physische Pixelinstallation, echtes Update90→92 auf dem Pixel, Kamera-/Konten-/Live-Google-Freigabe und Google-Cloud-Consent-Konfiguration. Cloud91→92 ersetzt diese Abnahmen nicht. Keine automatische Installation, kein produktiver Testtermin, keine Konten-/Scope-/Daten-/Syncänderung, kein Push/Merge auf main, keine neue Freigabe oder Löschung in Drive. Der Kandidat ist kein behaupteter vollständig live abgenommener Produktivrelease.
+
+## Kalender-Übersicht K1–K9 (Basis 1.54.2/91)
+
+**Gesamtauftrag umgesetzt; Quellcode-/Hostabnahme PASS mit getrenntem Galerie-Nachlauf. Keine neue APK oder Gerätefreigabe.** Maßgeblich ist `CODEX-GESAMTAUFTRAG-1.54.2.md` (SHA256 `f408ab0d9875931d033de8d6f46d1b3cc4ddab4ce094f374a8a1562da8e5d783`); dessen äußere Reihenfolge wurde eingehalten: Ausgangslauf → A → C → G1 → G3 → G4 → G5 → G6 → K1–K9 → Abschluss. G2 wird durch K8 ersetzt, B entfällt. Abweichende ältere eingebettete Versions-/Reihenfolgeangaben wurden nicht als neuer Auftrag behandelt.
+
+Arbeitsbranch: [codex/calendar-ui-overview-20261021](https://github.com/mihalhafner-collab/Gartenpirat-/tree/codex/calendar-ui-overview-20261021), Basis `d45c72544533fbb4420513d454b03a9043cac99f`. Dauerhaft bestätigter vollständiger Implementierungsstand: [97efbbbf9a2abbf7760f5beebbf7ce838291ed00](https://github.com/mihalhafner-collab/Gartenpirat-/commit/97efbbbf9a2abbf7760f5beebbf7ce838291ed00), Tree `aebf6ec2602d60f6aaacefcdc8a4a3e131a95aa6`. Die bestätigten Testkorrekturen liegen auf [dda5de58172fa48589f47801fa979f7126a17d58](https://github.com/mihalhafner-collab/Gartenpirat-/commit/dda5de58172fa48589f47801fa979f7126a17d58), Tree `dd550c783c82b7858df966d50d86cf0b4cef8fa1`; der App-Fingerprint bleibt identisch. Die abschließende Galerie-Fixturekorrektur liegt auf [220f452914b50b6f0de9292eb984be4aabd41224](https://github.com/mihalhafner-collab/Gartenpirat-/commit/220f452914b50b6f0de9292eb984be4aabd41224), Tree `c49e8bb8bd35a937bb9909ad34092b86a473f9c3`; weiterhin identische Appbytes. Weitere Abschlussänderungen betreffen ausschließlich diesen Bericht und Entwicklungsmetadaten. Der unten folgende historische native91-PASS gehört zum ursprünglichen Kandidaten, **nicht** zu diesem neuen UI-Stand.
+
+### Umsetzung und Dateien pro Paket
+
+| Paket | Umsetzung | GitHub-Commit |
+|---|---|---|
+| A | Klartext ausschließlich für exakt 127.0.0.1, localhost und 10.0.2.2; allgemeines Manifest-Attribut entfernt. | [1123ac6c](https://github.com/mihalhafner-collab/Gartenpirat-/commit/1123ac6c05a1382124b340231b54178e1da105ba) |
+| C | WebView-Dateizugriffe gesperrt; CSP vor Skripten. connect/object/frame/base/form gesperrt, Android-Asset-Origin und Foto-Provider erhalten. | [87a533ac](https://github.com/mihalhafner-collab/Gartenpirat-/commit/87a533ac62db0e77425878cc031e366bc4a36760) |
+| G1 | Gemeinsame tokens.css, lokale Schriftfamilien, Token-Aliase und Preview-CSS-Inventar. | [4fec5113](https://github.com/mihalhafner-collab/Gartenpirat-/commit/4fec511366dddc64a8282333154cfc7e6472dc66) |
+| G3 | Heute-Aktionen im Fluss direkt nach Timer; Wetterursachen aus bestehenden Daten. | [e4db3e2d](https://github.com/mihalhafner-collab/Gartenpirat-/commit/e4db3e2d553fec2ee20cde1eab7f8c17397ccc5e) |
+| G4 | Ein Zurück-Bedienelement je Unterseite; Hauptreiter ohne Zurück, originale Gesten/Entwürfe erhalten. | [3dae5839](https://github.com/mihalhafner-collab/Gartenpirat-/commit/3dae58391bdd587abc4b94bb0a9297525c5ae89b) |
+| G5 | Punkt-/Text-Chips; Kalenderfehler, Wetter und Pixel-Meldungen getrennt. | [a3193f8d](https://github.com/mihalhafner-collab/Gartenpirat-/commit/a3193f8d0f3808bda8888d438389d7bc11932be3) |
+| G6 | 24px-Linienicons im Mehr-Menü und Suche in Feldoptik; sämtliche13 Ziele/Reihenfolge/Handler erhalten. | [e4d5f7ed](https://github.com/mihalhafner-collab/Gartenpirat-/commit/e4d5f7ed10e294793346f90ba3e86c52f081d018) |
+| K1 | Heute-Sprung, sieben gezählte Tage, chronologische Tagesköpfe; Wochen-/Tagesladen mit expliziter Teilmengenanzeige. | [a4eff80e](https://github.com/mihalhafner-collab/Gartenpirat-/commit/a4eff80e80ed38d992bffc7246d6c30fac028f10) |
+| K2 | Zwei Textzeilen je Terminkarte plus umbrechende Warnchips; Originalklassifizierungen und Warntexte erhalten. | [4575dd99](https://github.com/mihalhafner-collab/Gartenpirat-/commit/4575dd99deeabd63f88fc33ffb2eb71051e36536) |
+| K3 | Nur Tag/Woche als Segmente; Ist-Stunden, Kundenfilter und originale Kopfaktionen separat. | [b8091090](https://github.com/mihalhafner-collab/Gartenpirat-/commit/b809109084b82e82e9099cc44b9402fd923e052e) |
+| K4 | 56px-Termin-FAB über Navigation; Freie Zeit finden im Fluss, letzte Karte/Weitere-Button scrollbar erreichbar. | [0f2f7439](https://github.com/mihalhafner-collab/Gartenpirat-/commit/0f2f7439231745e68790dc469d131048b3952f75) |
+| K5 | Genau ein priorisierter Verbindungschip, ursprünglicher Einrichten-Handler; Diagnose bleibt geschlossen. | [46463da7](https://github.com/mihalhafner-collab/Gartenpirat-/commit/46463da78324acdee6656c512610e29098da393a) |
+| K6 | Kurzformular und Mehr Optionen aus Originalfeldern; 1/2/4-Stunden-/Ende-offen-Chips, identische Speicherargumente. | [c6e1e79f](https://github.com/mihalhafner-collab/Gartenpirat-/commit/c6e1e79f0e624d240537f8a5247dc43763c861e9) |
+| K7 | App-/Google-Vergleich mit markierten Unterschieden, bis360px gestapelt; Auswahlwerte und Bestätigungen unverändert. | [6763d29e](https://github.com/mihalhafner-collab/Gartenpirat-/commit/6763d29ecf359cfe0018f8b80e2b731b7f1cb43e) |
+| K8 | NativeUi für drei Verbindungsseiten; ein Kalenderstatus, eine konkrete Fehlerbox, geschlossene technische Details, Gefahrstil für Trennen. | [d6c71ef6](https://github.com/mihalhafner-collab/Gartenpirat-/commit/d6c71ef622b821136caa45ced1088f490b4c785e) |
+| K9 | Ein Diagnose-Aufklapper mit allen ursprünglichen Inhalten, neutraler Sync-Chip in Drive, Versionsfußzeile und deutliche Wiederherstellung. | [97efbbbf](https://github.com/mihalhafner-collab/Gartenpirat-/commit/97efbbbf9a2abbf7760f5beebbf7ce838291ed00) |
+
+In jedem Paket außerdem `CODEX-STATUS.md` und `AKTUELLER-STAND.json`; bei UI-Quelländerungen wurde `android/app/src/main/assets/ui-mcp-actions.json` erst nach Quellreview neu erfasst. Weitere konkrete Dateien:
+
+- **A:** `android/app/src/main/AndroidManifest.xml`, `android/app/src/main/res/xml/network_security_config.xml`, `tests/test_network_security_policy.py`.
+- **C:** `.github/workflows/qa-apk.yml`, `android/app/src/main/assets/mobile.html`, `android/app/src/main/java/at/hausgarten/service/MainActivity.java`, `tests/run_browser_regressions.py`, `tests/ui-fixture-source.cjs`, `tests/webview-hardening.test.cjs`, `tools/build_ui_preview_assets.py`.
+- **G1:** `android/app/build.gradle`, `android/app/src/main/assets/design-concept.css`, `android/app/src/main/assets/field-ui.css`, `android/app/src/main/assets/mobile.html`, `android/app/src/main/assets/tokens.css`, `android/app/src/main/assets/workday-ui.css`, `tests/run_browser_regressions.py`, `tests/visual-consistency.test.cjs`.
+- **G3:** `android/app/src/main/assets/field-ui.css`, `android/app/src/main/assets/field-ui.js`, `android/app/src/main/assets/planning-ui.js`, `android/app/src/main/assets/workday-ui.js`, `tests/field-ui.test.cjs`, `tests/visual-consistency.test.cjs`.
+- **G4:** `android/app/src/main/assets/field-ui.css`, `android/app/src/main/assets/workday-ui.js`, `tests/navigation-calendar.test.cjs`, `tests/visual-consistency.test.cjs`.
+- **G5:** `android/app/src/main/assets/field-ui.css`, `android/app/src/main/assets/navigation-status.js`, `tests/planning-ui.test.cjs`, `tests/status-collisions-gestures.test.cjs`, `tests/visual-consistency.test.cjs`.
+- **G6:** `android/app/src/main/assets/field-ui.css`, `android/app/src/main/assets/workflow-ui.js`, `tests/fixtures/menu-presentation-baseline.json`, `tests/visual-consistency.test.cjs`.
+- **K1:** `android/app/src/main/assets/planning-ui.css`, `android/app/src/main/assets/planning-ui.js`, `tests/planning-overview.test.cjs`, `tests/planning-ui.test.cjs`, `tests/run_browser_regressions.py`.
+- **K2:** `android/app/src/main/assets/planning-ui.css`, `android/app/src/main/assets/planning-ui.js`, `tests/planning-overview.test.cjs`, `tests/planning-ui.test.cjs`.
+- **K3:** `android/app/src/main/assets/planning-ui.css`, `android/app/src/main/assets/planning-ui.js`, `tests/planning-overview.test.cjs`.
+- **K4:** `android/app/src/main/assets/planning-ui.css`, `android/app/src/main/assets/planning-ui.js`, `tests/navigation-calendar.test.cjs`, `tests/planning-overview.test.cjs`.
+- **K5:** `android/app/src/main/assets/planning-ui.css`, `android/app/src/main/assets/planning-ui.js`, `tests/planning-overview.test.cjs`.
+- **K6:** `android/app/src/main/assets/planning-ui.css`, `android/app/src/main/assets/planning-ui.js`, `tests/fixtures/planning-editor-baseline.json`, `tests/p3-search-planning.test.cjs`, `tests/planning-open-end.test.cjs`, `tests/planning-overview.test.cjs`, `tests/planning-ui.test.cjs`.
+- **K7:** `android/app/src/main/assets/planning-ui.css`, `android/app/src/main/assets/planning-ui.js`, `tests/fixtures/planning-calendar-choice-baseline.json`, `tests/planning-overview.test.cjs`.
+- **K8:** `android/app/src/androidTest/java/at/hausgarten/service/ReleaseLifecycleProbe.java`, `android/app/src/main/java/at/hausgarten/service/DriveConnectionActivity.java`, `android/app/src/main/java/at/hausgarten/service/NativeUi.java`, `android/app/src/main/java/at/hausgarten/service/PixelTunnelActivity.java`, `android/app/src/main/java/at/hausgarten/service/PlanningConnectionActivity.java`, `tests/fixtures/native-calendar-presentation-baseline.json`, `tests/test_native_calendar_ui.py`, `tests/test_native_ui_consistency.py`, `tools/verify_ui_mcp_inventory.py`.
+- **K9:** `android/app/src/main/assets/business-actions-ui.js`, `android/app/src/main/assets/daily-usability.css`, `android/app/src/main/assets/daily-usability.js`, `android/app/src/main/assets/field-ui.css`, `android/app/src/main/assets/field-ui.js`, `android/app/src/main/assets/mobile.html`, `tests/fixtures/settings-presentation-baseline.json`, `tests/run_browser_regressions.py`, `tests/settings-cleanup.test.cjs`.
+
+Die beiden hochgeladenen Aufträge liegen unverändert als `CODEX-GESAMTAUFTRAG-1.54.2.md` und `CODEX-AUFTRAG-KALENDER-UI-1.54.2.md` vor. Browser- und Python-Suiten sind im gemeinsamen Runner bzw. per unittest-Discovery registriert; der ausschließlich manuelle `.github/workflows/qa-apk.yml` verwendet dieselben Runner. Workflow nicht gestartet; keine neue App-Abhängigkeit.
+
+### Tatsächlich ausgeführte Prüfungen
+
+| Prüfung | Ausgangslauf | Endnachweis |
+|---|---|---|
+| Python, ohne historische QA-Schlüsselgenerierung |383PASS,0Skips;37 ausdrücklich ausgeschlossen|**393PASS,0Skips; dieselben37 ausgeschlossen**|
+| JVM |40Suiten PASS|**40Suiten PASS**, einschließlich Kalender/Autorisierung/Recovery/Planung/Wetter und Vertrag|
+| Vollständiger Browserrunner |45/46Suiten PASS; Foto8/9Checks|**49/50Suiten PASS im vollständigen Nachlauf; Galerie anschließend14/14Checks separat PASS. Damit PASS-Nachweise für alle50Suiten; kein weiterer50/50-Voll-Lauf behauptet**|
+| Neue Browserchecks |nicht vorhanden|WebView6/6, Visual9/9, Planung19/19, Einstellungen6/6 PASS|
+| Neue statische Pythonchecks |nicht vorhanden|Netzwerk3/3 und native Darstellung7/7 PASS; im393er-Lauf enthalten|
+| MCP-stdio |historische55 nicht als neuer Ausgangslauf ausgegeben|**55/55Szenarien PASS**, isolierter synthetischer Temp-Drive, kein Pixel-Gerät|
+| Release-Java + Instrumentierungs-Java + Lint |0Fehler/50Warnungen|**42Gradle-Tasks PASS;0Fehler/56Warnungen**; nur Compile/Lint, kein assemble/package/sign|
+| Vertrag / UI-Review |117Tools/156Aktionen, eingefrorener Vertrag|PASS; **sämtliche156 Action-Objekte inhaltlich identisch**|
+| Pflanzenmirror |370öffentliche Assets PASS|370PASS; Katalog/Bilder unverändert|
+| Source-/Workspace-Privacy |PASS|PASS, einschließlich ignorierter/unversionierter Dateien; kein neuer APK-Privacy-PASS behauptet|
+| Versions-/Berechtigungs-/Quellvergleich |1.54.2/91, bestehende Berechtigungen|PASS; Application-ID, Version, Berechtigungen und geschützte Geschäftsdateien unverändert|
+| Vorhandene APKs |zwei im Checkout und originalsignierter91 außerhalb|SHA256/Bytezahlen unverändert; keine weitere APK/AAB entstanden|
+| Preview/Release-Artefakt |Original91 nur lesend gegen Originalquelle geprüft|Preview-Quell-/Browserprüfung PASS; neues UI-Artefakt **NOT TESTABLE**, keines erzeugt|
+
+Der unveränderte Foto-Test besteht im letzten vollständigen Lauf. Der intermittierende Ausgangsfehler wurde nicht repariert; frühere Fehlversuche bleiben als solche dokumentiert.
+
+Erster vollständiger End-Browserlauf: 47/50Suiten PASS, FAIL: `status-collisions-gestures.test.cjs`, `settings-cleanup.test.cjs`, `gartenpirat-photo.test.cjs`. Der neue Einstellungs-Test wartete zunächst nicht auf das asynchrone toggle-Ereignis; er wartet jetzt ausdrücklich auf den unveränderten Diagnoseinhalt und behält seine Assertion. Nach22:00UTC lag Wien bereits im nächsten Tag: der vorhandene Kollisions-Test kombinierte eine Wiener Tages-Fixture mit UTC-Daten. Ausschließlich seine Testvorbereitung erhält jetzt eine feste Uhr `2026-10-21T10:00:00Z`; sämtliche11 ursprünglichen Schutzprüfungen bestehen. Der anschließende vollständige50er-Browserlauf erreichte49/50; dessen einzige fehlgeschlagene Suite war sync-customer-gallery. Die Galerie-Testbrücke lieferte beim einsekündigen Statuspoll keinen Upload, obwohl der Test direkt einen Upload-Fortschritt in der UI setzte. Ihre synthetische Statusantwort liefert jetzt denselben kontrollierten Fortschritt; alle14ursprünglichen Assertions bestehen im gezielten Nachlauf. Das ist ein separater PASS-Nachweis, kein50/50-Gesamtlauf. Die ersten und zweiten vollständigen FAIL-Nachweise bleiben erhalten. Keine Kalender-Appfunktion dafür geändert. Zusätzliche Lint-Warnungen betreffen SetTextI18n bei neuen nativen Anzeigetexten; keine neue Fehler-, Cleartext- oder Sicherheitswarnung.
+
+Reproduzierbare Befehle: `python tests/run_quality_suite.py --exclude-qa-signing`, `python tests/run_browser_regressions.py`, `python tools/run-followup-java.py`, `python tests/mcp_stdio_e2e.py`, `python tools/check_refactoring_contract.py`, `python tools/verify_ui_mcp_inventory.py`, `python tools/sync_plant_assets.py`, `python tests/apk_privacy_guard.py --prebuild`; im Android-Verzeichnis `gradle --no-daemon --no-configuration-cache --no-build-cache :app:compileReleaseJavaWithJavac :app:compileReleaseAndroidTestJavaWithJavac :app:lintRelease`. Browserumgebung verwendet vorhandenes Playwright/Acorn und Chromium mit synthetischer Asset-Route. `HG_ORIGINAL_*` aus allen Prüfsubprozessen entfernt, keine Werte gelesen oder protokolliert.
+
+Cloudlokale Nachweise: `outputs/QA-Python-results.json`, `outputs/integration-ui/results.json` plus Suite-Logs, `outputs/integration-java/results.json`, `outputs/QA-MCP-E2E.json`; erste End-Browserlogs separat `/tmp/calendar-ui-final-initial-browser/`, vollständige Abschlusslogs `/tmp/calendar-ui-final-*.log` und `/tmp/calendar-ui-final-browser-repeat.log`; zweite vollständige Suite-Logs separat `/tmp/calendar-ui-final-repeat-browser/`, Galerie-Nachlauf `/tmp/calendar-ui-final-gallery-corrected.log` und `outputs/sync-customer-gallery-results.json`. Screenshots/Testartefakte bleiben synthetisch mit SHA-gebundenen Privacy-Sidecars; keine Ablage in Drive, Space oder einem neuen Dienst.
+
+### Bewusste Anpassungen und erhaltene Schutzassertions
+
+- G3/G4: Heute-Aktionen auf Scroll-Erreichbarkeit statt feste Bildschirm-Y-Koordinate geprüft; Unterseiten verwenden den tatsächlichen Kopf-Zurück. Entwurfs-, Back-/Gesten-, Speicher-, Timer- und Fotoassertions erhalten; echte Modal-/Seiten-Rückkehr zusätzlich geprüft.
+- G5: Zwei genaue Wettertext-Erwartungen an „Wetterwarnungen: EIN/AUS“ angepasst; Zustände und Daten gleich.
+- K1: Wochen-Metadaten berücksichtigen115 geladene Testtermine; ursprünglicher30→60-Nachladecheck zusätzlich unverändert im Tagesmodus. Neuer Schutz für höchstens vier100er-Wochenaufrufe und400/501-Teilmenge.
+- K2: Mindestbreite>180 am vollständigen Kartenknopf statt an der nun geteilten Kundenzeile gemessen; ursprüngliche Höhenobergrenze erhalten und echte Einzeiligkeit ergänzt.
+- K4: Zwei Geometriemessungen prüfen denselben Abstand an `#planning-new` statt am entfallenen festen Leistenlayout; DOM-Klasse und Handler bleiben.
+- K6: In bestehenden planning-ui/planning-open-end/p3-search-planning-Tests nur „Mehr Optionen“ vor verschobenen Notizen/Serien/Verwerfen geöffnet. Sämtliche Ende-offen-/Dauer-/Werte-/Serien-/Entwurfsassertions bleiben; insbesondere bleibt das ursprüngliche Dauerfeld bei Ende offen verborgen/deaktiviert. `capture`, `save`, `stable`, `editorTimes` sowie collisionReport/overlapKind exakt wie vor Änderung; vollständige tatsächliche Golden-Argumentobjekte für Einzel- und Serienspeicherung identisch.
+- K7/K9: Vollständige ursprüngliche Kalender-Auswahl-/Restore-Handler und Sync-Klassifikation per SHA geschützt; Abbruch, CAS-/Konflikthashes, stabile Request-ID, Entwurfssperre und HTML-Maskierung zusätzlich geprüft. Neue Tests korrigierten nur ihre eigenen Mess-/Aufklapper-/Fixture-Vorbereitungen; ursprüngliche Fehlversuche nicht als PASS umetikettiert.
+- K8: Native Instrumentierung zählt Framework-Schalter über CompoundButton und öffnet den neuen technischen Aufklapper. Vorhandene Diagnose-/Verborgenheits-/Konto-/SHA1-Assertions erhalten und erweitert; ausschließlich kompiliert. `calendarPrimary`, `openCalendarApp`, `notificationSettings`, `chooseAccount`, `requestGoogleConsent`, `onActivityResult` bytegleich zur Basis. Sämtliche Preference-Schreibaufrufe der drei Activities unverändert.
+- Abschluss: feste Uhr nur im bestehenden Kollisions-Test, explizites Warten auf das Diagnose-toggle im neuen Einstellungs-Test und konsistente Fortschrittsdaten in der synthetischen sync-customer-gallery-Brücke, wie oben begründet. Die drei Abschluss-Testdateien sind tests/status-collisions-gestures.test.cjs, tests/settings-cleanup.test.cjs und tests/sync-customer-gallery.test.cjs; ihre bisherigen Assertions bleiben unverändert. Der Foto-Test bleibt vollständig unverändert. **Keine Schutzassertion und kein Privacy-/Signier-/Fingerprint-/Vertragsgate entfernt oder abgeschwächt.** NativeUi als zusätzliche Quelle in den verpflichtenden Review aufgenommen.
+
+### K1-Datenmenge, Fingerprints und Quellschutz
+
+Das unveränderte Tool-Schema erlaubt `limit`1–100. Woche lädt100 pro Aufruf und höchstens vier Seiten je Ladevorgang; weitere100 bleiben ausdrücklich abrufbar. Zähler/Tagesköpfe nennen bei Teilmengen „geladen“, damit400/501 nicht als vollständig erscheinen. Tag behält30/60/Weitere30. Geplante Stunden verwenden die bestehende Minuten-minus-Pause-Formel nur bei bestimmten Enden; keine falschen0h bei offenem Ende. Wiener Kalendertage und UTC-Mittagsarithmetik schützen Datum/Heute am Tageswechsel.
+
+- Main-/Gradle-Dateien: **540→542**, Mainassets **420→421** (neue tokens.css). Die417-Angabe im Auftragsmuster war für diese Basis veraltet; Gates enumerieren weiterhin sämtliche Pfade und Bytes exakt.
+- Ursprünglicher Quell-SHA256: `747762839020b4ffb0491ac360c3cc054c455245eb4126b0c1e6d4e8882b0c3c`.
+- Neuer Main-/Gradle-SHA256: **`ca1123916fb41090faa6d3c9a6c87a72cebdf8ea3d057f70f57d4e724b7250d9`**.
+- UI-Review: **61Quellen**, SHA256 der kanonisch nach Schlüsseln sortierten reviewed_sources-JSON ohne Leerzeichen: `727d1d0689a78a9aa48ac1105ad2b14bf5007ea74f0df006418beee028ebe94d`. Katalogdatei-SHA256: `f6a0974fd8c420c73b2aa4c6e7f81ceeb10738738726dea75a6ff83046269a04`.
+- Vertrag unverändert **`899906c246f9cb8256666c32a89435aa5f792eede3d3407b1c846380900aa813`**,117Tools/156Aktionen. Katalog-/Schema-/Storage-/Scopes-/ETag-/CAS-/Dedup-/Retry-/Recovery-Code unverändert.
+- Sicherheits-Musterdiff gezielt ergänzt: CSP enthält `self` für das vorhandene Cloud-Asset-Testmodell und ausschließlich den eigenen Thumbnail-Provider in img-src; Preview schreibt nur dessen Paketkennung um. Externe Requests bleiben gesperrt, connect-src bleibt none. Keine Origin-/localStorage-Migration und kein erneutes AllowFileAccess(true).
+
+### Sichtprüfung und Grenzen
+
+Vorher: `outputs/grafik-vorher-{heute,mehr,status,kunden,arbeit}-360.png` (tatsächlich vor G1 aufgenommen) und `outputs/kalender-vorher-{woche,tag,leer,formular,abgleich,verbindung}-360.png` aus dem gesicherten G6-Stand vor K1.
+
+Nachher: `outputs/grafik-{heute,mehr,status,kunden,arbeit,erfassung}-{320,360,426}-{16,24}.png`, außerdem `grafik-heute-G3-360.png`, `grafik-status-freigabe-360.png`, `grafik-mehr-G6-360.png`; Kalender `kalender-{woche,tag,leer,karten,steuerung,fab,verbindungschip,formular,abgleich}-360.png`; Einstellungen `einstellungen-sync-360.png`, `einstellungen-sicherung-360.png`. Tatsächlich gesichtet: alle sechs Web-Hauptansichten bei360/100%, Vorherbilder, Tag/Woche/Leer, Karten, FAB, Verbindungsstatus, fertiges Formular, Vergleich und beide Einstellungsansichten. Automatische Geometrie-/Overflow-Proben zusätzlich bei320/360/426 und150% Schrift. Letzte Karte/Nachladebutton über FAB/Tab-Leiste erreichbar; Formular-Pflichtfelder und Speichern bei360×800 ohne Scrollen sichtbar.
+
+Selbstkritik: Mehrere wichtige Warnchips brauchen zusätzliche Zeilen; damit bleibt der Hinweisbereich länger als die zwei normalen Karten-Textzeilen. Im geöffneten Wetter-/Kalendervergleich bleibt durch vorhandene Support-/Wetterinformationen mehr Scrollweg. Native Kalender-/Zeitpicker und Systemschrift können anders aussehen als Chromium. Native Stile sind nur statisch und durch Kompilierung bestätigt; ihre tatsächliche Darstellung, Tastatur-/Systemleistenabstände und Touchbedienung auf dem Pixel wurden nicht geprüft. Die neuen nativen Texte erzeugen zusätzliche Übersetzungswarnungen. Keine Behauptung, dass das UI-Paket eine reale Google-Cloud-Konfiguration repariert oder eine dauerhafte Live-Verbindung nachweist.
+
+**NOT EXECUTED:** Pixel-/WebView-/Kamera-Abnahme, native Instrumentierung158/native_ui auf Gerät, echte Google-Freigabe, Google-Cloud-Projekt-/Consent-Konfiguration, Update90→91 und neue APK-/Preview-Artefaktabnahme. Für diesen Auftrag keine Installation, kein Emulatorstart und keine Konto-/Kalender-/Token-/Betriebsdatenzugriffe.
+
+### Dauerhafte Sicherung und unveränderte Auslieferung
+
+Jedes der16Pakete hat einen eigenen lokalen Commit und einen bestätigten kanonischen Commit im bestehenden privaten GitHub-Repository. Nach fehlender CLI-Git-Anmeldung wurde der vollständige identische Git-Tree über den vorhandenen GitHub-Connector gesichert; Branch-Updates nur mit erwartetem vorherigem SHA und ohne Force, danach genauer Ref-Readback. Lokale Prüfcheckpoints und kanonische Remote-Historie bleiben beide erhalten; kein Reset/Rebase/History-Rewrite. Der lokale K9-Prüfcheckpoint `ee0ab3317ec729ad17788094f3919809a7de0161` und kanonische K9-Commit `97efbbbf9a2abbf7760f5beebbf7ce838291ed00` haben denselben vollständigen Tree. Daraus wird kein bestandener Freigabegate für spätere Signierung/Originalexport abgeleitet; dessen vorhandene strikte Prüfungen bleiben erforderlich.
+
+`main` unverändert auf `e499e745832449ce0202d04d9903495248e8b034` zurückgelesen. **Keine APK/Signierung/Versionserhöhung, keine Berechtigungs-/Daten-/Scope-/Sync-Änderung, keine Kontodaten in Testartefakten, kein Push/Merge auf main, kein neues Repository und keine Drive-/Space-Ablage.** `server.py`, `static/`, `db.py`, `mcp_integration/` und Lifecycle-/Release-Register unangetastet. Gradle-Änderung ausschließlich Preview-CSS-Inputs, keine Abhängigkeiten. Keine neuen App-Schriften/Bilder/Netz-APIs.
+
+Original91 bleibt separat: unverändertes Tag `source/v1.54.2-build91` auf `50b518a1af9cee59763c4103d847f5016fb84fd9`, APK-SHA256 `874908a246f75a3c91f7399cf2e314364b9469f80843644ea340cf8c543b80c1`. Das vorhandene Original91-APK enthält diese neuen UI-Änderungen nicht. Verifizierte Auslieferung90, ursprünglicher Kandidat91 und zuletzt beobachtete Installation90 werden in `AKTUELLER-STAND.json` getrennt von dieser neuen Quellcodeentwicklung geführt.
+
 
 ## Kalenderauftrag – App-seitig abgeschlossen, Originalkandidat91 (21.10.2026, 19:21 UTC)
 

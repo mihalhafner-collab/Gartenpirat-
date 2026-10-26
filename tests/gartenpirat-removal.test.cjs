@@ -10,8 +10,8 @@ const {chromium}=require('./browser.cjs');
   page.on('pageerror',error=>errors.push(error.message));
   await page.addInitScript(()=>{
    const master={customers:[{id:'qa_c1',name:'Kunde Muster',city:'QA Beispielort',active:1}],orders:[],invoices:[],photos:[],worklogs:[]};
-   window.removalFixture={master,pending:[]};window.speechCalls=0;window.syncCalls=0;window.writeCalls=0;
-   window.AndroidData={getState:()=>JSON.stringify(removalFixture),getSyncStatus:()=>JSON.stringify({configured:true,pending:0}),getAppInfo:()=>JSON.stringify({versionName:'1.38.1'}),getWorkSession:()=>JSON.stringify({state:'IDLE'}),synchronize:()=>{syncCalls++;},saveWorklog:()=>{writeCalls++;throw new Error('No write permitted in removal smoke test');}};
+   window.removalFixture={master,pending:[]};window.speechCalls=0;window.syncCalls=0;window.backupCalls=0;window.writeCalls=0;
+   window.AndroidData={openFullBackup:()=>backupCalls++,getState:()=>JSON.stringify(removalFixture),getSyncStatus:()=>JSON.stringify({drive_role:'backup_only',storage_contract_version:3,configured:false,pending:0}),getAppInfo:()=>JSON.stringify({versionName:'1.38.1'}),getWorkSession:()=>JSON.stringify({state:'IDLE'}),synchronize:()=>{syncCalls++;},saveWorklog:()=>{writeCalls++;throw new Error('No write permitted in removal smoke test');}};
    window.AndroidSpeech={start:()=>{speechCalls++;}};
   });
   await check('Legacy voice shortcut stays retired; the requested botanical mascot is packaged',async()=>{
@@ -21,10 +21,10 @@ const {chromium}=require('./browser.cjs');
    assert(fs.existsSync('android/app/src/main/assets/hafner-logo.png'));
   });
   await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href);
-  await page.waitForSelector('#design-metrics');
+  await page.waitForFunction(()=>document.body.dataset.fieldReady==='true'&&document.body.dataset.todayReady==='true'&&document.body.dataset.revierReady==='true');
   await check('App initializes fully without removed-element event listener failures',async()=>{
    assert.deepEqual(errors,[]);assert.equal(await page.locator('.pirate,#pirate-speak').count(),0);
-   assert.deepEqual(await page.locator('.bottom .nav').allTextContents(),['Heute','Kunden & Gärten','Mehr']);
+   assert.deepEqual(await page.locator('.bottom .nav').allTextContents(),['Heute','Objekte','Pflege','Büro']);
    assert.equal(await page.evaluate(()=>typeof window.onDriveSync),'function');
    assert.equal(await page.evaluate(()=>typeof window.acceptNativeSpeech),'function');
   });
@@ -41,11 +41,11 @@ const {chromium}=require('./browser.cjs');
    assert.equal(await page.locator('#pause').inputValue(),'30');assert.equal(await page.evaluate(()=>calculateHours()),3.5);
    assert.equal(await page.locator('#entry-kilometers').inputValue(),'15');assert.match(await page.locator('#activity').inputValue(),/Hecke schneiden/);
   });
-  await check('Drive button and success callback remain bound after shortcut removal',async()=>{
+  await check('Full-backup entry and compatibility callback remain safe after shortcut removal',async()=>{
    await page.evaluate(()=>openPage('sync-page'));await page.locator('#sync').click();
-   assert.equal(await page.evaluate(()=>syncCalls),1);
+   assert.equal(await page.evaluate(()=>syncCalls),0);assert.equal(await page.evaluate(()=>backupCalls),1);
    await page.evaluate(()=>onDriveSync({ok:true,state:removalFixture,sync:{configured:true,pending:0,last_sync:'2026-10-12T18:00:00+02:00'}}));
-assert.match(await page.locator('#sync-status').textContent(),/Abgleich geprüft/);
+assert.match(await page.locator('#sync-status').textContent(),/Sicherungsstatus offen/);assert.match(await page.locator('#sync-detail').textContent(),/nicht bestätigt/);
    assert.deepEqual(errors,[]);assert.equal(await page.evaluate(()=>writeCalls),0);
   });
   await check('Home remains clear at 360 and 412 pixels; current release screenshot captured',async()=>{

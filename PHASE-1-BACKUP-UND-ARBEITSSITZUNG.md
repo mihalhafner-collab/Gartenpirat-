@@ -1,5 +1,60 @@
 # Phase 1 – Sicherung und persistente Arbeitssitzung
 
+## Folgeauftrag Revier Solo,23.10.2026
+
+Der nachstehende Stand vom11.10.2026 ist historischer Nachweis. Das lokale
+Pixel-Ziel ersetzt die frühere Laptop-/Drive-Pflicht erst nach kontrollierter
+Umstellung; kein alter Wiederanlauf darf eine zweite Schreibautorität aktivieren.
+
+Aktuelle Implementierung/Nachweise stehen oben in `CODEX-STATUS.md` und im
+konsolidierten `CODEX-AUFTRAG-GARTENPIRAT.md`. Der neue verschlüsselte Archivkern
+ist noch keine vollständige integrierte Gerätesicherung oder Restorefreigabe.
+Tink1.24.0 ersetzt kein vorhandenes Speichermodell; die lokale SQLite-Datei wird
+nicht zwischen Geräten synchronisiert. Der Recovery-Code wird separat benötigt;
+ohne alten Keystore und ohne separat aufbewahrten Code sind verschlüsselte
+Sicherungen nicht rekonstruierbar. Niemals Code/Schlüssel in Logs oder Quellcode.
+
+Containerformat1: neutrale Versionskennung und Tink-verschlüsselter Dateischlüssel
+im Header; die gesamten ZIP-Dateien einschließlichManifest folgen als Streaming-
+AEAD. Authentifizierte Headerbindung,1MiB-Kryptosegmente,64KiB-I/O-Puffer.
+Manifestfelder: formatVersion/schemaVersion/appVersion/applicationId/backupId/
+installationId/businessId/capturedAt/counts/numberState/lastIssuedDocumentIds,
+vollständige Dateiübersicht mit Größe/SHA256, Gesamtbytezahl und Abschlussmarker.
+Version/Hashes/Pfade/Dateimengen werden vor jeder möglichen Aktivierung geprüft;
+die derzeitige Klasse aktiviert keinen Bestand. Eine gültige alte Sicherung ist
+weiterhin **kein** aktueller Rechnungs-/Nummernnachweis. Nach tatsächlichem Restore
+muss eine unabhängige persistente Ausgabesperre gelten; Integration noch offen.
+
+Primärnachweise für die Bibliothek (gelesen23.10.2026):
+https://repo.maven.apache.org/maven2/com/google/crypto/tink/tink-android/maven-metadata.xml
+und https://github.com/tink-crypto/tink-java/tree/v1.24.0 ; insbesondere
+StreamingAeadConfig2026, TinkJsonProtoKeysetFormat und AesGcmHkdfStreamingParameters.
+Die Annotation-Fassade ist gezielt auf1.8.2 ausgerichtet, weil Tink annotation-jvm
+1.8.2 benötigt und die bisherige1.2.0-Fassade sonst doppelte Klassen erzeugt.
+Duplicate-Class-Prüfung und lintRelease bestehen nach dieser eng begrenzten
+Ausrichtung; kein Wechsel des Java-/WebView-Frameworks.
+
+Die allgemeinen developer.android.com-/developers.google.com-Seiten waren über
+die konfigurierte Netzpolicy nicht lesbar; kein anderweitiger Gerätebeleg daraus.
+
+Nutzerpräzisierung23.10.2026: Funktionen und maßgeblicher Speicher ausschließlich
+Pixel/App; Drive dient ausschließlich als Sicherungsziel mit regelmäßigem
+automatischem Upload aus der App. Die Umsetzung benötigt dauerhafte Jobzustände,
+begrenzten Backoff und nachgewiesenes Remote-Rücklesen; lokale Übergabe an einen
+Dateianbieter genügt nicht als Cloudnachweis. Offlinebetrieb bleibt unabhängig.
+USB ist zusätzlicher Sicherungsweg. Alt-Sync erst kontrolliert stilllegen.
+
+Nächster integrierter Sicherungsschritt: dauerhafte Jobs in der vorhandenen
+owner_state-Haltung, kein zweiter Geschäftsspeicher. Abnahme: identische
+request_id erzeugt genau einen Job; abweichender Retry/alte Revision wird
+abgewiesen; Job und Requestbeleg committen atomar; Uploadcheckpoint überlebt
+Store-Neuöffnung; Job aus einer anderen Installation wird nach Restore nicht
+automatisch fortgesetzt. Danach UI-Draft-Aufnahme, lokaler Prüf-/SAF-Pfad und
+täglicher Android-Uploadjob aus derselben Anwendungslogik verbinden. Ein reiner
+Transporttest ersetzt diesen vollständigen Bedienablauf nicht.
+
+## Historischer Stand11.10.2026
+
 Stand: 11.10.2026. Produktive Pixel-App weiterhin Version 1.28.3; der neue Entwicklungsstand wurde noch nicht produktiv installiert.
 
 ## Verifizierte Sicherungen

@@ -20,20 +20,44 @@ import java.util.UUID;
 
 /** Original SQLite store separated from Activity lifecycle; schema and files unchanged. */
 final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteTools.Sink {
+    // Contract 6 adds authoritative native editor state; older clients must not write it.
+    static final int SCHEMA_VERSION=6;
     private final Context context;
     private final SharedPreferences preferences;
     private final PhotoAttachmentStore photoAttachments;
-    PixelLocalStore(Context context) {
-        super(context, "haus-garten-mobile.db", null, 4);
+    private final WorkSessionStore.Clock clock;
+    private static final java.util.concurrent.ConcurrentHashMap<String,java.util.concurrent.atomic.AtomicInteger> OPEN_STORES=new java.util.concurrent.ConcurrentHashMap<>();
+    private boolean registeredOpen;
+    PixelLocalStore(Context context){this(context,new WorkSessionStore.DeviceClock(context));}
+    PixelLocalStore(Context context,WorkSessionStore.Clock clock) {
+        super(context, "haus-garten-mobile.db", null, SCHEMA_VERSION);
+        LocalAuthorityGuard.assertStoreMayOpen(context);
+        this.clock=clock;
         this.context = context;
         preferences = context.getSharedPreferences("haus_garten", Context.MODE_PRIVATE);
         photoAttachments = new PhotoAttachmentStore(context);
         migrateLegacySnapshotPhotoAttachments();
     }
+    @Override public synchronized SQLiteDatabase getWritableDatabase(){LocalAuthorityGuard.assertStoreMayOpen(context);return super.getWritableDatabase();}
+    @Override public synchronized SQLiteDatabase getReadableDatabase(){LocalAuthorityGuard.assertStoreMayOpen(context);return super.getReadableDatabase();}
+    @Override public void onOpen(SQLiteDatabase database){super.onOpen(database);try{LocalAuthorityGuard.verifyDatabaseContract(context,database);if(!registeredOpen){OPEN_STORES.computeIfAbsent(context.getDatabasePath("haus-garten-mobile.db").getCanonicalPath(),key->new java.util.concurrent.atomic.AtomicInteger()).incrementAndGet();registeredOpen=true;}}catch(Exception invalid){throw new IllegalStateException("LOCAL_DATABASE_CONTRACT_REVIEW_REQUIRED",invalid);}}
+    @Override public synchronized void close(){super.close();if(registeredOpen){try{java.util.concurrent.atomic.AtomicInteger count=OPEN_STORES.get(context.getDatabasePath("haus-garten-mobile.db").getCanonicalPath());if(count!=null)count.decrementAndGet();}catch(IOException invalid){throw new IllegalStateException("LOCAL_STORE_PATH_INVALID",invalid);}finally{registeredOpen=false;}}}
+    static void assertNoOpenStores(Context context)throws Exception {java.util.concurrent.atomic.AtomicInteger count=OPEN_STORES.get(context.getDatabasePath("haus-garten-mobile.db").getCanonicalPath());if(count!=null&&count.get()!=0)throw new IOException("RESTORE_DATABASE_STILL_OPEN");}
+    Context appContext(){return context;}
+    WorkSessionStore workSessions(){return new WorkSessionStore(getWritableDatabase(),clock);}
+    int compactPurgedTestActions()throws Exception{return LocalTestCleanup.compact(this);}
     private String readAsset(String name) throws Exception {
         try (InputStream input = context.getAssets().open(name); BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
             StringBuilder out = new StringBuilder(); String line; while ((line = reader.readLine()) != null) out.append(line); return out.toString();
         }
+    }
+    private JSONObject emptyBootstrap()throws IOException {
+        try{
+            JSONObject value=new JSONObject(readAsset("initial-data.json"));Set<String> keys=new HashSet<>(java.util.Arrays.asList("format","schema_version","accepted_ids","sync_errors","capabilities","customers","orders","worklogs","invoices","photos","offers","appointments","service_catalog"));
+            if(value.length()!=keys.size()||value.getInt("format")!=1||value.getInt("schema_version")!=2)throw new IllegalArgumentException();for(Iterator<String> names=value.keys();names.hasNext();)if(!keys.contains(names.next()))throw new IllegalArgumentException();
+            for(String key:new String[]{"accepted_ids","sync_errors","customers","orders","worklogs","invoices","photos","offers","appointments","service_catalog"})if(value.getJSONArray(key).length()!=0)throw new IllegalArgumentException();
+            JSONObject capabilities=value.getJSONObject("capabilities");String[] supported={"worklog_compare_and_save","entity_compare_and_save","customer_custom_fields_compare_and_save","billing_relations"};if(capabilities.length()!=supported.length)throw new IllegalArgumentException();for(String key:supported)if(!Boolean.TRUE.equals(capabilities.get(key)))throw new IllegalArgumentException();return value;
+        }catch(Exception invalid){throw new IOException("LOCAL_BOOTSTRAP_INVALID");}
     }
     private String isoNow() { return java.time.Instant.now().toString(); }
     private void migrateLegacySnapshotPhotoAttachments(){
@@ -44,13 +68,13 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         }catch(Exception ignored){/* Preserve the original snapshot; getState still withholds inline binary. */}
     }
     void documentReferences(JSONObject snapshot)throws Exception{
-        JSONArray invoices=snapshot.optJSONArray("invoices");for(int i=0;invoices!=null&&i<invoices.length();i++){JSONObject invoice=invoices.getJSONObject(i);String inline=invoice.optString("pdf_base64");if(inline.isEmpty())continue;if(inline.length()>28*1024*1024)throw new IOException("Original-PDF ist zu groß.");byte[] raw=android.util.Base64.decode(inline,android.util.Base64.DEFAULT);String hash=PhotoAttachmentStore.sha256(raw);if(!invoice.optString("pdf_sha256").isEmpty()&&!hash.equals(invoice.getString("pdf_sha256")))throw new IOException("Original-PDF hat eine abweichende Prüfsumme.");invoice.put("pdf_sha256",hash).put("pdf_storage_name",hash+".pdf").put("pdf_byte_size",raw.length).put("document_id","invoice:"+invoice.getString("id"));new BusinessDocumentStore(context).store(raw,invoice);invoice.remove("pdf_base64");}
+        JSONArray invoices=snapshot.optJSONArray("invoices");for(int i=0;invoices!=null&&i<invoices.length();i++){JSONObject invoice=invoices.getJSONObject(i);LegacyPdfAttachment.Prepared prepared=LegacyPdfAttachment.describe(invoice);if(prepared!=null){new BusinessDocumentStore(context).store(prepared.bytes,invoice);invoice.remove("pdf_base64");}}
     }
-    private void removeSnapshotPhotoBinaries(JSONObject snapshot){
+    static void removeSnapshotPhotoBinaries(JSONObject snapshot){
         JSONArray photos=snapshot.optJSONArray("photos");for(int i=0;photos!=null&&i<photos.length();i++){JSONObject photo=photos.optJSONObject(i);if(photo!=null){photo.remove("data");photo.remove("full_data");}}
     }
     @Override public void onCreate(SQLiteDatabase database) { database.execSQL("CREATE TABLE pending(id TEXT PRIMARY KEY,kind TEXT NOT NULL,payload TEXT NOT NULL,created_at TEXT NOT NULL)"); WorkSessionStore.createSchema(database); createPhotoAttachmentSchema(database); createOwnerSchema(database); }
-    @Override public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) { if(oldVersion<2) WorkSessionStore.createSchema(database);if(oldVersion<3){createPhotoAttachmentSchema(database);migrateLegacyPendingPhotoAttachments(database);}if(oldVersion<4)createOwnerSchema(database); }
+    @Override public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) { if(oldVersion<2) WorkSessionStore.createSchema(database);if(oldVersion<3){createPhotoAttachmentSchema(database);migrateLegacyPendingPhotoAttachments(database);}if(oldVersion<4)createOwnerSchema(database); /* 5 -> 6 is a writer-contract fence; existing rows remain byte-for-byte unchanged. */ }
     private void createOwnerSchema(SQLiteDatabase database){
         database.execSQL("CREATE TABLE IF NOT EXISTS owner_state(key TEXT PRIMARY KEY,value TEXT NOT NULL)");
         database.execSQL("CREATE TABLE IF NOT EXISTS mcp_uploads(id TEXT PRIMARY KEY,metadata TEXT NOT NULL,data BLOB NOT NULL)");
@@ -63,9 +87,19 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         int count;try(Cursor row=getReadableDatabase().rawQuery("SELECT length(value) FROM owner_state WHERE key=?",new String[]{key})){if(!row.moveToFirst())return fallback;count=row.getInt(0);}
         StringBuilder out=new StringBuilder();for(int offset=0;offset<count;offset+=32768)try(Cursor row=getReadableDatabase().rawQuery("SELECT substr(value,?,32768) FROM owner_state WHERE key=?",new String[]{Integer.toString(offset+1),key})){if(!row.moveToFirst())return fallback;out.append(row.getString(0));}return out.toString();
     }
-    void seedServiceCatalog(JSONObject snapshot)throws Exception{if(!snapshot.optBoolean("service_catalog_initialized")&&snapshot.getJSONArray("service_catalog").length()==0)snapshot.put("service_catalog",new JSONArray(readAsset("service-catalog.json")));snapshot.put("service_catalog_initialized",true);}
+    void seedServiceCatalog(JSONObject snapshot)throws Exception{ServiceCatalogBootstrap.seed(snapshot,()->readAsset("service-catalog.json"));}
     void commitSnapshot(JSONObject snapshot,Set<String> confirmed)throws Exception{
-        SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{putOwnerValue("snapshot",snapshot.toString());acknowledge(confirmed);db.setTransactionSuccessful();}finally{db.endTransaction();}
+        if(!LocalAuthorityGuard.legacySyncAllowed(context))throw new IOException("LEGACY_SYNC_WRITER_DISABLED");
+        SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{
+            JSONArray remaining=new JSONArray(),actions=pendingActions();for(int i=0;i<actions.length();i++)if(!confirmed.contains(actions.getJSONObject(i).getString("client_id")))remaining.put(actions.getJSONObject(i));
+            JSONObject future=SnapshotProjection.effective(new JSONObject().put("master",new JSONObject(snapshot.toString())).put("pending",remaining));new RevierApplicationService(new RevierSnapshotRepository(db,future)).validateRelationships();
+            putOwnerValue("snapshot",snapshot.toString());acknowledge(confirmed);db.setTransactionSuccessful();
+        }finally{db.endTransaction();}
+    }
+    void commitLocalSnapshot(JSONObject snapshot)throws Exception {
+        if(!LocalAuthorityGuard.local(context))throw new IOException("LOCAL_AUTHORITY_REQUIRED");
+        snapshot.put("processing_engine",LocalAuthorityRules.ENGINE).put("local_contract_version",LocalAuthorityRules.CONTRACT);
+        putOwnerValue("snapshot",snapshot.toString());
     }
     private void createPhotoAttachmentSchema(SQLiteDatabase database){
         database.execSQL("CREATE TABLE IF NOT EXISTS photo_attachments(photo_id TEXT PRIMARY KEY,content_sha256 TEXT NOT NULL,mime_type TEXT NOT NULL,byte_size INTEGER NOT NULL,storage_name TEXT NOT NULL,role TEXT NOT NULL DEFAULT 'documentation',transfer_state TEXT NOT NULL DEFAULT 'local',created_at TEXT NOT NULL)");
@@ -84,10 +118,11 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     }
     private JSONObject getStateLocked() {
         JSONObject output = new JSONObject();
-        try { JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));removeSnapshotPhotoBinaries(master);documentReferences(master);PixelDriveState.prepare(master);seedServiceCatalog(master);output.put("master",master); output.put("pending", DriveJournalRules.union(pendingActions(),output.getJSONObject("master").optJSONArray("drive_review_actions"))); output.put("last_drive_sync", preferences.getString("last_drive_sync", ""));output.put("work_session",new WorkSessionStore(getWritableDatabase(),context).current());output.put("sync_queue",DriveJournalRules.queueStatus(output.getJSONObject("master"),output.getJSONArray("pending"))); }
-        catch (Exception error) { try { output.put("error", error.getMessage()); } catch (Exception ignored) {} }
+        try { JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));removeSnapshotPhotoBinaries(master);documentReferences(master);PixelDriveState.prepare(master);seedServiceCatalog(master);LocalTestCleanup.overlay(this,master);if(LocalAuthorityGuard.local(context))master.put("processing_engine",LocalAuthorityRules.ENGINE).put("local_contract_version",LocalAuthorityRules.CONTRACT);output.put("master",master); output.put("pending", DriveJournalRules.union(pendingActions(),output.getJSONObject("master").optJSONArray("drive_review_actions"))); output.put("last_drive_sync", preferences.getString("last_drive_sync", ""));output.put("work_session",workSessions().current());output.put("sync_queue",DriveJournalRules.queueStatus(output.getJSONObject("master"),output.getJSONArray("pending"))); }
+        catch (Exception error) { throw new IllegalStateException("LOCAL_STATE_BUILD_FAILED"); }
         try{output.put("drive_sync_failed",preferences.getBoolean("drive_sync_failed",false)).put("last_sync_attempt",preferences.getString("last_sync_attempt","")).put("cloud_confirmed",preferences.getBoolean("drive_cloud_confirmed",false)&&output.getJSONObject("sync_queue").getInt("total")==0).put("confirmation_scope",preferences.getString("drive_confirmation_scope","local_only")).put("last_full_sync",preferences.getString("last_full_sync",""));}catch(Exception ignored){}
-        try{output.put("sync_status",DriveSyncCoordinator.status(context,output.getJSONObject("sync_queue")));}catch(Exception ignored){}
+        try{JSONObject old=output.getJSONObject("sync_queue");output.put("legacy_queue_inventory",old).put("sync_queue",new JSONObject().put("contract_version",DriveRolePolicy.contractVersion()).put("mode",DriveRolePolicy.role()).put("total",0).put("pending",0).put("review",old.optInt("review")).put("locally_committed",output.getJSONArray("pending").length())).put("storage_contract_version",DriveRolePolicy.contractVersion()).put("drive_role",DriveRolePolicy.role()).put("processing_engine",LocalAuthorityRules.ENGINE).put("inventory_processing_engine",output.getJSONObject("master").optString("processing_engine")).put("business_sync_allowed",false).put("cloud_confirmed",false).put("drive_sync_failed",false).put("confirmation_scope","local_only").put("local_authority",new LocalAuthorityGuard(context).current());}catch(Exception invalid){throw new IllegalStateException("LOCAL_STATE_CONTRACT_INVALID",invalid);}
+        try{OfferDecisionProjection.apply(this,output.getJSONObject("master"));LocalBillingProjection.apply(this,output.getJSONObject("master"));output.put("sync_status",DriveSyncCoordinator.status(context,output.getJSONObject("sync_queue")));}catch(Exception invalid){throw new IllegalStateException("LOCAL_STATE_METADATA_UNREADABLE",invalid);}
         return output;
     }
     String saveWorklog(JSONObject payload) throws Exception {
@@ -103,9 +138,9 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         boolean isNew = payload.optString("id").isEmpty();
         boolean requireOrder = payload.optBoolean("_require_order", false) || payload.optBoolean("require_order", false);
         String orderId = payload.isNull("order_id") ? "" : payload.optString("order_id").trim();
-        JSONObject master = new JSONObject(snapshotText(readAsset("initial-data.json")));
-        JSONArray customers = effectiveRows(master, "customers", "customer"), orders = effectiveRows(master, "orders", "order");
-        JSONObject previous=findById(effectiveRows(master,"worklogs","worklog"),payload.optString("id"));
+        JSONObject master = current;
+        JSONArray customers = master.getJSONArray("customers"), orders = master.getJSONArray("orders");
+        JSONObject previous=findById(master.getJSONArray("worklogs"),payload.optString("id"));
         isNew=previous==null;
         if (!containsId(customers, customerId)) throw new IllegalArgumentException("Der ausgewählte Kunde existiert nicht.");
         if (isNew && requireOrder && orderId.isEmpty()) throw new IllegalArgumentException("Bitte zuerst einen Auftrag auswählen oder anlegen.");
@@ -117,8 +152,9 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         }
         BillingRules.work(payload,previous,new JSONObject().put("customers",customers).put("orders",orders));
         AppointmentRules.worklog(payload,previous,current);
+        validateRevierContext(payload,false);
         WorklogRules.validate(payload, isNew);
-        WorklogRelationRules.validate(payload,previous,effectiveRows(master,"photos","photo"),effectiveRows(master,"invoices","invoice"));
+        WorklogRelationRules.validate(payload,previous,master.getJSONArray("photos"),master.getJSONArray("invoices"));
         String entityId = payload.optString("id");
         if (entityId.isEmpty()) entityId = "wrk_mobile_" + UUID.randomUUID().toString().replace("-", "");
         payload.put("id", entityId);
@@ -133,30 +169,32 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         } finally { database.endTransaction(); }
         return entityId;
     }
-    JSONObject startWorkSession(JSONObject payload)throws Exception{SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{JSONObject result=startWorkSessionLocked(payload);db.setTransactionSuccessful();return result;}finally{db.endTransaction();}}
+    JSONObject startWorkSession(JSONObject payload)throws Exception{JSONObject request=new JSONObject(payload.toString());request.remove("_request_input_hash");String inputHash=PixelMcpWriteTools.hash(request);request.put("_request_input_hash",inputHash);SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{JSONObject result=startWorkSessionLocked(request);db.setTransactionSuccessful();return result;}finally{db.endTransaction();}}
     private JSONObject startWorkSessionLocked(JSONObject payload)throws Exception{
-        JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));
+        JSONObject active=workSessions().current();if(!"IDLE".equals(active.optString("state")))return workSessions().start(payload);
+        JSONObject master=PixelMcpReadTools.effective(getState());
         String customer=payload.optString("customer_id").trim(),order=payload.optString("order_id").trim();
-        if(!customer.isEmpty()&&!containsId(effectiveRows(master,"customers","customer"),customer))throw new IllegalArgumentException("Der ausgewählte Kunde existiert nicht.");
-        if(!customer.isEmpty())BillingRules.work(payload,null,new JSONObject().put("customers",effectiveRows(master,"customers","customer")).put("orders",effectiveRows(master,"orders","order")));
+        if(!customer.isEmpty()&&!containsId(master.getJSONArray("customers"),customer))throw new IllegalArgumentException("Der ausgewählte Kunde existiert nicht.");
+        if(!customer.isEmpty())BillingRules.work(payload,null,new JSONObject().put("customers",master.getJSONArray("customers")).put("orders",master.getJSONArray("orders")));
         if(!order.isEmpty()){
-            JSONObject row=findById(effectiveRows(master,"orders","order"),order);
+            JSONObject row=findById(master.getJSONArray("orders"),order);
             if(row==null||!customer.equals(row.optString("customer_id")))throw new IllegalArgumentException("Kunde und Auftrag passen nicht zusammen.");
         }
         if(!payload.optString("appointment_id").isEmpty()){JSONObject appointment=PixelMcpWriteTools.find(PixelMcpReadTools.effective(getState()).getJSONArray("appointments"),payload.getString("appointment_id"));if(!AppointmentRules.active(appointment)||appointment.optString("status").equals("draft")||!customer.equals(appointment.optString("customer_id"))||!order.equals(appointment.optString("order_id")))throw new IllegalArgumentException("Termin, Kunde und Auftrag passen nicht zu einer aktiven Arbeit.");}
-        return new WorkSessionStore(getWritableDatabase(),context).start(payload);
+        validateRevierContext(payload,true);
+        return workSessions().start(payload);
     }
     String completeWorkSession(String sessionId,JSONObject payload,String requestId)throws Exception{
         SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
         try{
-        WorkSessionStore sessions=new WorkSessionStore(getWritableDatabase(),context);JSONObject session=sessions.current(sessionId);
+        WorkSessionStore sessions=workSessions();JSONObject session=sessions.current(sessionId);
         if(!WorkSessionStore.STOPPED.equals(session.optString("state"))&&!WorkSessionStore.FINALIZED.equals(session.optString("state")))throw new IllegalStateException("Bitte die laufende Arbeit zuerst stoppen.");
         String stableId="wrk_session_"+sessionId.replace("ses_pixel_","");
         if(WorkSessionStore.FINALIZED.equals(session.optString("state"))){if(stableId.equals(session.optString("finalized_worklog_id")))return stableId;throw new IllegalStateException("Diese Arbeitssitzung ist bereits abgeschlossen.");}
         payload.remove("_require_order");payload.remove("require_order");payload.put("id",stableId).put("work_date",session.getString("work_date")).put("hours",session.getDouble("hours"));
-        if(session.optBoolean("pause_unverified"))throw new IllegalArgumentException("Pausenzeiten wegen widersprüchlicher Geräteuhr bitte prüfen.");
+        if(session.optBoolean("review_required")||session.optBoolean("pause_unverified"))throw new IllegalArgumentException("Pausenzeiten wegen widersprüchlicher Geräteuhr bitte prüfen.");
         payload.put("break_minutes",session.optInt("break_minutes",0));payload.remove("start_time");payload.remove("end_time");
-        java.time.format.DateTimeFormatter timerStamp=java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss").withZone(java.time.ZoneId.of("Europe/Vienna"));String timing="Timer-Nachweis (Europe/Vienna): "+timerStamp.format(java.time.Instant.ofEpochMilli(session.getLong("started_at_ms")))+" bis "+timerStamp.format(java.time.Instant.parse(session.getString("updated_at")))+"; "+session.getDouble("hours")+" h netto, "+session.optInt("break_minutes",0)+" min Pause.";if(!payload.optString("notes").contains(timing))payload.put("notes",(payload.optString("notes").isEmpty()?"":payload.getString("notes")+"\n")+timing);
+        java.time.format.DateTimeFormatter timerStamp=java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss").withZone(java.time.ZoneId.of("Europe/Vienna"));String timing="Timer-Nachweis (Europe/Vienna): "+timerStamp.format(java.time.Instant.ofEpochMilli(session.getLong("started_at_ms")))+" bis "+timerStamp.format(java.time.Instant.parse(session.getString("updated_at")))+"; "+session.getDouble("hours")+" h netto, "+session.optInt("break_minutes",0)+" min Pause.";if("manual_review".equals(session.optString("time_origin")))timing="Geprüfte Timerzeit: "+session.getDouble("hours")+" h netto, "+session.optInt("break_minutes",0)+" min Pause. Keine Endzeit rekonstruiert. Grund: "+session.optString("correction_reason");if(!payload.optString("notes").contains(timing))payload.put("notes",(payload.optString("notes").isEmpty()?"":payload.getString("notes")+"\n")+timing);
         if(payload.optString("customer_id").trim().isEmpty())payload.put("customer_id",session.optString("customer_id"));
         if(!payload.has("order_id"))payload.put("order_id",session.optString("order_id"));
         if(!session.optString("order_id").isEmpty()&&!session.optString("order_id").equals(payload.optString("order_id")))throw new IllegalArgumentException("Der Auftrag der gestarteten Sitzung bleibt erhalten.");
@@ -164,12 +202,31 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         if(!payload.has("billing_customer_id")&&!session.optString("billing_customer_id").isEmpty())payload.put("billing_customer_id",session.getString("billing_customer_id"));
         if(payload.optString("location").trim().isEmpty()&&payload.optString("customer_id").equals(session.optString("customer_id")))payload.put("location",session.optString("location"));
         if(!session.optString("appointment_id").isEmpty())payload.put("appointment_id",session.getString("appointment_id"));
+        retainSessionContext(payload,session);
         String saved=saveWorklog(payload);
         JSONObject photos=PixelMcpReadTools.effective(getState());JSONArray sessionPhotos=photos.getJSONArray("photos");
         for(int i=0;i<sessionPhotos.length();i++){JSONObject old=sessionPhotos.getJSONObject(i);if(!sessionId.equals(old.optString("session_id"))||!old.optString("worklog_id").isEmpty())continue;
             JSONObject linked=DriveJournalRules.clean(old);linked.put("worklog_id",saved);prepareManualChange("photo",linked,old);saveAction("photo","pho_mobile_",linked);}
         sessions.finalizeSession(sessionId,saved,requestId);database.setTransactionSuccessful();return saved;
         }finally{database.endTransaction();}
+    }
+    private void validateRevierContext(JSONObject payload,boolean starting)throws Exception {
+        String property=payload.optString("property_id"),visit=payload.optString("visit_id");
+        if(!visit.isEmpty()){
+            String raw=ownerValue("revier:v1:entity:visit:"+visit,"");if(raw.isEmpty())throw new IllegalArgumentException("Der ausgewählte Besuch existiert nicht.");JSONObject row=new JSONObject(raw);RevierRules.version(row);
+            if(!property.equals(row.getString("property_id"))||!payload.optString("customer_id").equals(row.getString("customer_id"))||!payload.optString("order_id").equals(row.optString("order_id")))throw new IllegalArgumentException("Besuch, Objekt, Kunde und Auftrag passen nicht zusammen.");
+            if(starting&&!RevierRules.activeVisit(row))throw new IllegalArgumentException("Dieser Besuch ist abgesagt oder abgeschlossen. Zuerst den Besuch prüfen.");
+        }
+        if(!property.isEmpty()){
+            String raw=ownerValue("revier:v1:entity:property:"+property,"");if(raw.isEmpty())throw new IllegalArgumentException("Das ausgewählte Objekt existiert nicht.");JSONObject row=new JSONObject(raw);RevierRules.version(row);
+            if(!payload.optString("customer_id").equals(row.getString("customer_id"))||starting&&!row.optBoolean("active",true))throw new IllegalArgumentException("Objekt und Einsatzkunde passen nicht zu einer neuen Arbeit.");
+        }
+    }
+    private static void retainSessionContext(JSONObject payload,JSONObject session)throws Exception {
+        for(String field:new String[]{"property_id","visit_id"}){
+            String value=session.optString(field);if(payload.has(field)&&!payload.optString(field).equals(value))throw new IllegalArgumentException("Der Objekt-/Besuchsbezug der gestarteten Sitzung bleibt erhalten.");
+            if(!value.isEmpty())payload.put(field,value);
+        }
     }
     // Business action and replay receipt commit together in the existing database.
     // Receipts are internal metadata, never exported as Drive actions.
@@ -189,7 +246,9 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
                 if (!fingerprint.equals(receipt.optString("fingerprint"))) throw new PixelMcpWriteTools.Rejected("REPLAY_MISMATCH","Diese Anfragekennung wurde bereits für andere Angaben verwendet. Bitte die ursprüngliche Anfrage prüfen.");
                 result = new JSONObject().put("entity_type",receipt.optString("entity_type","worklog")).put("entity_id",receipt.optString("entity_id",receipt.optString("work_record_id"))).put("replayed",true).put("sync",status(clientId,getState()));
             } else {
-                if (snapshotText("").isEmpty()) throw new PixelMcpWriteTools.Rejected("NO_DATA","Bitte zuerst einen Drive-Abgleich durchführen.");
+                // Only an absent snapshot may use the existing, strictly empty
+                // packaged bootstrap. Corrupt nonempty business state never falls back.
+                if(snapshotText("").isEmpty())putOwnerValue("snapshot",emptyBootstrap().toString());
                 JSONObject prepared=PixelMcpWriteTools.handles(tool)?new JSONObject().put("entity_type","worklog").put("payload",PixelMcpWriteTools.prepare(tool,args,getState(),clientId)):PixelMcpEntityWriteTools.prepare(tool,args,getState(),clientId);
                 String entityType=prepared.getString("entity_type");JSONObject payload=prepared.getJSONObject("payload");
                 String source = payload.optString("source","ChatGPT Sprache");
@@ -217,7 +276,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         if (context instanceof McpSyncHost) ((McpSyncHost)context).requestMcpSync();
         if("worklog".equals(result.optString("entity_type")))result.put("work_record_id",result.getString("entity_id"));
         result.put("sync",PixelMcpBusinessTools.sync(result.getJSONObject("sync"),getState())).put("local_state","local_saved").put("sync_state",result.getJSONObject("sync").optString("sync_state"));
-        return new JSONObject().put("ok",true).put("data",result).put("message","Auf dem Pixel gesichert. Der mobile Drive-Abgleich und die App-Bestätigung werden getrennt geprüft.");
+        return new JSONObject().put("ok",true).put("data",result).put("message","Auf dem Pixel gespeichert. Drive dient ausschließlich der getrennt geprüften Vollsicherung.");
     }
     private JSONObject receipt(String clientId) throws Exception {
         try(Cursor row=getReadableDatabase().rawQuery("SELECT payload FROM pending WHERE id=? AND kind='mcp_receipt'",new String[]{"receipt_"+clientId})) { return row.moveToFirst()?new JSONObject(row.getString(0)):null; }
@@ -229,10 +288,10 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         try{
             JSONObject existing=receipt(clientId);if(existing!=null){if(!fingerprint.equals(existing.optString("fingerprint")))throw new PixelMcpWriteTools.Rejected("REPLAY_MISMATCH","Anfragekennung wurde für andere Angaben verwendet.");result=new JSONObject(existing.getJSONObject("result").toString()).put("replayed",true);}
             else{
-                WorkSessionStore timer=new WorkSessionStore(database,context);String id=args.optString("session_id"),request="mcp-session-"+clientId;
+                WorkSessionStore timer=workSessions();String id=args.optString("session_id"),request="mcp-session-"+clientId;
                 if(tool.equals("finish_work")){JSONObject current=timer.current(id);if(java.util.Arrays.asList("RUNNING","PAUSED").contains(current.optString("state")))timer.stop(id,request+"-stop");}
                 JSONObject payload=PixelMcpSessionTools.prepare(tool,args,getState()),session;
-                switch(tool){case "start_work":payload.put("request_id",request);session=startWorkSession(payload);break;case "start_break":session=timer.pause(id,request);break;case "end_break":session=timer.resume(id,request);break;case "stop_work":session=timer.stop(id,request);break;case "continue_work":session=timer.continueStopped(id,request);break;case "discard_work_session":session=timer.discard(id,request);break;case "restore_work_session":session=timer.restore(id,request);break;default:
+                switch(tool){case "review_work_session":payload.put("request_id",request);session=timer.reviewTime(id,payload);break;case "start_work":payload.put("request_id",request);session=startWorkSession(payload);break;case "start_break":session=timer.pause(id,request);break;case "end_break":session=timer.resume(id,request);break;case "stop_work":session=timer.stop(id,request);break;case "continue_work":session=timer.continueStopped(id,request);break;case "discard_work_session":session=timer.discard(id,request);break;case "restore_work_session":session=timer.restore(id,request);break;default:
                     payload.remove("request_id");payload.remove("session_id");String saved=completeWorkSession(id,payload,request);payload.put("id",saved).put("_mcp_create",true);if(testLocalOnly("worklog",payload))payload.put("_local_only",true);
                     try(Cursor rows=database.rawQuery("SELECT id,payload FROM pending WHERE kind='worklog'",null)){while(rows.moveToNext())if(saved.equals(new JSONObject(rows.getString(1)).optString("id")))database.delete("pending","id=?",new String[]{rows.getString(0)});}
                     ContentValues action=new ContentValues();action.put("id",clientId);action.put("kind","worklog");action.put("payload",payload.toString());action.put("created_at",isoNow());database.insertOrThrow("pending",null,action);session=timer.current(id);
@@ -244,7 +303,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
             database.setTransactionSuccessful();
         }finally{database.endTransaction();}
         if((tool.equals("complete_work_session")||tool.equals("finish_work"))){if(context instanceof McpSyncHost)((McpSyncHost)context).requestMcpSync();JSONObject sync=status(clientId,getState());result.put("sync",sync).put("sync_state",sync.optString("sync_state"));}
-        return new JSONObject().put("ok",true).put("data",result).put("message",tool.equals("stop_work")?"Zeiterfassung lokal gestoppt. Tätigkeit prüfen und mit complete_work_session als Arbeitsaufzeichnung abschließen.":"Aktion dauerhaft auf dem Pixel gesichert. Nur Arbeitsaufzeichnungen werden über Drive übertragen; Timerstatus ist lokal.");
+        return new JSONObject().put("ok",true).put("data",result).put("message",tool.equals("stop_work")?"Zeiterfassung lokal gestoppt. Tätigkeit prüfen und mit complete_work_session als Arbeitsaufzeichnung abschließen.":"Aktion dauerhaft auf dem Pixel gespeichert. Timer und Arbeitsaufzeichnungen bleiben lokal; Drive dient ausschließlich der Vollsicherung.");
     }
     @Override public JSONObject status(String clientId,JSONObject state) throws Exception {
         JSONObject master=state.getJSONObject("master"),metadata=receipt(clientId);String ownerReceipt=ownerValue("receipt:"+clientId,"");boolean ownerSaved=!ownerReceipt.isEmpty(),providerReadback=DriveJournalRules.ids(master.optJSONArray("drive_delivered_ids")).contains(clientId)||(metadata!=null&&metadata.optBoolean("uploaded"));JSONObject ownerResult=ownerSaved?new JSONObject(ownerReceipt).optJSONObject("result"):null;
@@ -283,39 +342,22 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     }
     private boolean containsId(JSONArray rows, String id) throws Exception { return findById(rows, id) != null; }
 
-    // Validate against the same local snapshot + pending overlay displayed in the UI.
-    // This allows a customer/order created offline to be used before the next Drive sync.
-    private JSONArray effectiveRows(JSONObject master, String collection, String kind) throws Exception {
-        java.util.LinkedHashMap<String, JSONObject> rows = new java.util.LinkedHashMap<>();
-        JSONArray base = master.optJSONArray(collection);
-        if (base != null) for (int i = 0; i < base.length(); i++) {
-            JSONObject row = base.optJSONObject(i);
-            if (row != null) rows.put(row.optString("id"), new JSONObject(row.toString()));
-        }
-        JSONArray actions = pendingActions();
-        for (int i = 0; i < actions.length(); i++) {
-            JSONObject action = actions.getJSONObject(i), payload = action.optJSONObject("payload");
-            if (payload == null) continue;
-            String id = payload.optString("id");
-            if (kind.equals(action.optString("kind"))) {
-                JSONObject row = rows.containsKey(id) ? rows.get(id) : new JSONObject();
-                java.util.Iterator<String> keys = payload.keys();
-                while (keys.hasNext()) { String key = keys.next(); row.put(key, payload.get(key)); }
-                rows.put(id, row);
-            }
-        }
-        // Historical delete proposals cannot hide originals from editors.
-        JSONArray result = new JSONArray();
-        for (JSONObject row : rows.values()) result.put(row);
-        return result;
+    String saveEditorRecord(String kind,JSONObject input)throws Exception {
+        JSONObject payload=new JSONObject(input.toString());String request=payload.optString("_request_id");payload.remove("_request_id");if(kind.equals("worklog")&&payload.optString("_session_id").isEmpty())payload.remove("_session_id");
+        if(!request.isEmpty()&&!request.matches("[A-Za-z0-9_-]{8,200}"))throw new IllegalArgumentException("Ungültige Aktionskennung.");
+        SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{
+            String key="editor_commit:"+PixelMcpWriteTools.hash(request),fingerprint=PixelMcpWriteTools.hash(new JSONObject().put("kind",kind).put("payload",payload));
+            if(!request.isEmpty()){String raw=ownerValue(key,"");if(!raw.isEmpty()){JSONObject receipt=new JSONObject(raw);if(!fingerprint.equals(receipt.getString("fingerprint")))throw new IllegalArgumentException("REQUEST_ID_REUSED: Ursprüngliche Speicherung unverändert prüfen.");db.setTransactionSuccessful();return receipt.getString("id");}}
+            String id;switch(kind){case "customer":id=saveCustomer(payload);break;case "order":id=saveOrder(payload);break;case "worklog":{JSONObject work=new JSONObject(payload.toString());String session=work.optString("_session_id");work.remove("_session_id");if(!session.isEmpty()&&!request.isEmpty()&&WorkSessionStore.FINALIZED.equals(workSessions().current(session).optString("state")))throw new IllegalArgumentException("Diese Arbeitssitzung ist bereits abgeschlossen. Gespeicherte Arbeit öffnen; eine andere Bearbeitung wurde nicht angewendet.");id=session.isEmpty()?saveWorklog(work):completeWorkSession(session,work,"ui-finalize-"+session);break;}case "invoice":id=saveInvoiceDraft(payload);break;default:throw new IllegalArgumentException("Unbekannter Editor.");}
+            if(!request.isEmpty())putOwnerValue(key,new JSONObject().put("formatVersion",1).put("fingerprint",fingerprint).put("id",id).toString());db.setTransactionSuccessful();return id;
+        }finally{db.endTransaction();}
     }
-
     String saveCustomer(JSONObject payload) throws Exception {
         if (payload.optString("name").trim().isEmpty()) throw new IllegalArgumentException("Der Kundenname fehlt.");
         SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
         try {
-        JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));
-        JSONArray customers=effectiveRows(master,"customers","customer");
+        JSONObject master=PixelMcpReadTools.effective(getState());
+        JSONArray customers=master.getJSONArray("customers");
         payload=ManualChangeRules.editor(payload,findById(customers,payload.optString("id")),"customer");
         TestDataRules.customerChange(payload,findById(customers,payload.optString("id")));
         GardenRules.normalize(payload);
@@ -346,16 +388,16 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         if (payload.optString("customer_id").isEmpty() || payload.optString("title").trim().isEmpty()) throw new IllegalArgumentException("Kunde und Auftragsbezeichnung sind erforderlich.");
         SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
         try {
-        JSONObject master = new JSONObject(snapshotText(readAsset("initial-data.json")));
-        if (!containsId(effectiveRows(master,"customers","customer"), payload.optString("customer_id"))) throw new IllegalArgumentException("Der ausgewählte Kunde existiert nicht.");
+        JSONObject master=PixelMcpReadTools.effective(getState());
+        if (!containsId(master.getJSONArray("customers"), payload.optString("customer_id"))) throw new IllegalArgumentException("Der ausgewählte Kunde existiert nicht.");
         if (!payload.optString("scheduled_date").isEmpty() && !payload.isNull("scheduled_date")) {
             try { java.time.LocalDate.parse(payload.optString("scheduled_date")); } catch (Exception error) { throw new IllegalArgumentException("Bitte ein gültiges Auftragsdatum auswählen."); }
         }
         String entityId = payload.optString("id");
-        EntityProtectionRules.validateOrderChange(payload,findById(effectiveRows(master,"orders","order"),entityId),effectiveRows(master,"worklogs","worklog"),effectiveRows(master,"invoices","invoice"),effectiveRows(master,"photos","photo"));
+        EntityProtectionRules.validateOrderChange(payload,findById(master.getJSONArray("orders"),entityId),master.getJSONArray("worklogs"),master.getJSONArray("invoices"),master.getJSONArray("photos"));
         if (entityId.isEmpty()) entityId = "ord_mobile_" + UUID.randomUUID().toString().replace("-", "");
         payload.put("id", entityId); payload.put("source", "Pixel offline");
-        prepareManualChange("order",payload,findById(effectiveRows(master,"orders","order"),entityId));
+        prepareManualChange("order",payload,findById(master.getJSONArray("orders"),entityId));
         String saved=saveAction("order", "ord_mobile_", payload);database.setTransactionSuccessful();return saved;
         } finally { database.endTransaction(); }
     }
@@ -364,37 +406,51 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         try{JSONObject all=PixelMcpReadTools.effective(getState());String id=payload.optString("id");if(id.isEmpty())id="inv_mobile_"+UUID.randomUUID().toString().replace("-","");payload.put("id",id);
             JSONObject old=findById(all.getJSONArray("invoices"),id);payload=ManualChangeRules.editor(payload,old,"invoice");
             for(int i=0;i<getState().getJSONArray("pending").length();i++){JSONObject a=getState().getJSONArray("pending").getJSONObject(i);if(java.util.Arrays.asList("invoice_issue","owner_invoice_issue","pixel_invoice_issue_v1").contains(a.optString("kind"))&&id.equals(a.getJSONObject("payload").optString("id")))throw new IllegalArgumentException("Rechnungsabschluss ist bereits vorgemerkt.");}
+            if(LocalAuthorityGuard.local(context)){
+                JSONArray positions=payload.optJSONArray("positions");for(int i=0;positions!=null&&i<positions.length();i++){
+                    JSONObject position=positions.getJSONObject(i);Object quantity=position.opt("quantity");if(quantity instanceof String){
+                        String text=(String)quantity;if(!text.matches("(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,8})?"))throw new IllegalArgumentException("Positionsmenge als positive Dezimalzahl mit höchstens acht Nachkommastellen angeben.");
+                        java.math.BigDecimal decimal=new java.math.BigDecimal(text);if(decimal.signum()<=0||decimal.precision()>12)throw new IllegalArgumentException("Positionsmenge benötigt höchstens zwölf Ziffern und muss positiv sein.");position.put("quantity",decimal);
+                    }
+                }
+            }
             InvoiceDraftRules.normalize(payload,old,all);if(payload.optString("invoice_number").isEmpty())payload.put("invoice_number","Entwurf-"+id);
             prepareManualChange("invoice",payload,old);String result=saveAction("invoice","inv_mobile_",payload);db.setTransactionSuccessful();return result;
         }finally{db.endTransaction();}
     }
+    static String photoMetadataHash(JSONObject original)throws Exception{JSONObject metadata=new JSONObject(original.toString());metadata.remove("data");metadata.remove("thumbnail_data");metadata.remove("_capture_context");return PixelMcpWriteTools.hash(metadata);}
     synchronized String savePhoto(JSONObject payload) throws Exception {
+        JSONObject origin=payload.optJSONObject("_capture_context");payload=new JSONObject(payload.toString());payload.remove("_capture_context");
+        if(payload.has("_photo_quality")&&!java.util.Arrays.asList("original","high","optimized").contains(payload.getString("_photo_quality")))throw new IllegalArgumentException("Ungültiges Foto-Qualitätsprofil. Die Auswahl bleibt als Entwurf erhalten.");
         if (payload.optString("customer_id").isEmpty() || payload.optString("data").isEmpty()) throw new IllegalArgumentException("Kunde und Foto sind erforderlich.");
         if(!payload.optString("capture_time").isEmpty())java.time.Instant.parse(payload.getString("capture_time"));
         JSONObject immutableRequest=new JSONObject(payload.toString());immutableRequest.remove("thumbnail_data");String request=payload.optString("_photo_request_id"),fingerprint=PixelMcpWriteTools.hash(immutableRequest);
         if(!request.isEmpty()&&!request.matches("[A-Za-z0-9_-]{8,128}"))throw new IllegalArgumentException("Ungültige Foto-Anfragekennung.");
         if(!request.isEmpty()){String saved=ownerValue("photo-ui:"+request,"");if(!saved.isEmpty()){JSONObject receipt=new JSONObject(saved);if(!fingerprint.equals(receipt.getString("hash")))throw new IllegalArgumentException("Die Foto-Anfragekennung enthält andere Angaben.");return receipt.getString("id");}}
+        if(origin!=null){JSONObject identity=new BackupDeviceGuard(context).current();if(origin.optInt("formatVersion")!=1||origin.optBoolean("unknown_restore")||!identity.getString("installationId").equals(origin.optString("installation_id"))||!identity.getString("restoreEpoch").equals(origin.optString("restore_epoch")))throw new IOException("PHOTO_RESTORE_ACTION_REVIEW_REQUIRED");}
         String entityId=payload.optString("id");if(entityId.isEmpty())entityId="pho_mobile_"+UUID.randomUUID().toString().replace("-","");payload.put("id",entityId);
         PhotoAttachmentStore.Prepared prepared=null;boolean committed=false;
         SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
         try {
             if(!request.isEmpty()){String saved=ownerValue("photo-ui:"+request,"");if(!saved.isEmpty()){JSONObject receipt=new JSONObject(saved);if(!fingerprint.equals(receipt.getString("hash")))throw new IllegalArgumentException("Die Foto-Anfragekennung enthält andere Angaben.");database.setTransactionSuccessful();committed=true;return receipt.getString("id");}}
-            JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));
+            JSONObject master=PixelMcpReadTools.effective(getState());
             if(!payload.optString("session_id").isEmpty()){
-                JSONObject session=new WorkSessionStore(database,context).current(payload.getString("session_id"));
+                JSONObject session=workSessions().current(payload.getString("session_id"));
                 if(!payload.getString("customer_id").equals(session.optString("customer_id"))||!payload.optString("order_id").equals(session.optString("order_id")))throw new IllegalArgumentException("Foto und gestartete Sitzung gehören nicht zum selben Kunden/Auftrag.");
+                retainSessionContext(payload,session);
                 if(!session.optString("finalized_worklog_id").isEmpty())payload.put("worklog_id",session.getString("finalized_worklog_id"));
             }
-            EntityProtectionRules.validatePhoto(payload,effectiveRows(master,"customers","customer"),effectiveRows(master,"orders","order"),effectiveRows(master,"worklogs","worklog"));
-            payload.put("_photo_quality",new JSONObject(ownerValue("settings","{}")).optString("photo_quality","optimized"));
+            validateRevierContext(payload,false);
+            EntityProtectionRules.validatePhoto(payload,master.getJSONArray("customers"),master.getJSONArray("orders"),master.getJSONArray("worklogs"));
+            if(!payload.has("_photo_quality"))payload.put("_photo_quality",new JSONObject(ownerValue("settings","{}")).optString("photo_quality","optimized"));
             prepared=photoAttachments.prepare(payload);
-            prepareManualChange("photo",payload,findById(effectiveRows(master,"photos","photo"),payload.optString("id")));
+            prepareManualChange("photo",payload,findById(master.getJSONArray("photos"),payload.optString("id")));
             for(java.util.Iterator<String> keys=prepared.metadata.keys();keys.hasNext();){String key=keys.next();payload.put(key,prepared.metadata.get(key));}
             String original=payload.optString("original_name","foto.jpg").replace('\\','/');int slash=original.lastIndexOf('/');if(slash>=0)original=original.substring(slash+1);if(original.length()>240)original=original.substring(0,240);payload.put("original_name",original);
             payload.remove("data");payload.remove("_photo_quality");payload.put("sync_state","local_saved");payload.put("filename",prepared.metadata.getString("storage_name"));
             payload.remove("thumbnail_data");
             saveAttachmentMetadata(database,entityId,prepared.metadata,"local");
-            String saved=saveAction("photo", "pho_mobile_", payload);if(!request.isEmpty())putOwnerValue("photo-ui:"+request,new JSONObject().put("hash",fingerprint).put("id",saved).toString());database.setTransactionSuccessful();committed=true;return saved;
+            String saved=saveAction("photo", "pho_mobile_", payload);if(!request.isEmpty())putOwnerValue("photo-ui:"+request,new JSONObject().put("hash",fingerprint).put("metadata_hash",photoMetadataHash(immutableRequest)).put("id",saved).toString());database.setTransactionSuccessful();committed=true;return saved;
         } finally {
             database.endTransaction();
             if(!committed&&prepared!=null&&prepared.created){
@@ -502,25 +558,21 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     }
     boolean hasOtherPhotoAttachment(String id,String hash){try(Cursor rows=getReadableDatabase().rawQuery("SELECT 1 FROM photo_attachments WHERE content_sha256=? AND photo_id<>? LIMIT 1",new String[]{hash,id})){return rows.moveToFirst();}}
     void cleanupPurgedDocument(String key,JSONObject document,String marker)throws Exception{
-        SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{
-            JSONObject current=PixelMcpReadTools.effective(getState()),saved=OwnerJournalRules.archives(current).optJSONObject(key);
-            if(saved==null||!saved.optBoolean("purged")||!PixelMcpWriteTools.hash(saved.getJSONObject("document")).equals(PixelMcpWriteTools.hash(document)))throw new IllegalArgumentException("Dokument-Löschbeleg fehlt oder wurde geändert.");
-            if(!TrashRules.referenced(current,pendingActions(),document.optString("pdf_storage_name")))new BusinessDocumentStore(context).deleteVerified(document);
-            putOwnerValue(marker,"done");db.setTransactionSuccessful();
-        }finally{db.endTransaction();}
+        synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK){SQLiteDatabase db=getWritableDatabase();if(db.inTransaction())throw new IOException("MEDIA_CLEANUP_REQUIRES_COMMITTED_STATE");putOwnerValue(marker,"pending");db.beginTransaction();try{
+            JSONObject current=PixelMcpReadTools.effective(getState()),saved=OwnerJournalRules.archives(current).optJSONObject(key);if(saved==null||!saved.optBoolean("purged")||!PixelMcpWriteTools.hash(saved.getJSONObject("document")).equals(PixelMcpWriteTools.hash(document)))throw new IllegalArgumentException("Dokument-Löschbeleg fehlt oder wurde geändert.");
+            if(!TrashRules.referenced(current,pendingActions(),document.optString("pdf_storage_name")))new BusinessDocumentStore(context).deleteVerified(document);putOwnerValue(marker,"done");db.setTransactionSuccessful();
+        }finally{db.endTransaction();}}
     }
     void cleanupPurgedPhoto(String id,JSONObject media,String marker)throws Exception{
-        SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{
-            JSONObject effective=PixelMcpReadTools.effective(getState());JSONArray queued=pendingActions();
-            if(!TrashRules.purged(effective,"photo",id))throw new IllegalArgumentException("Löschbeleg fehlt.");
-            if(!hasOtherPhotoAttachment(id,media.optString("content_sha256"))&&!TrashRules.referenced(effective,queued,media.optString("storage_name")))photoAttachments.discardCreated(media);
-            String thumb=media.optString("thumbnail_storage_name");if(!thumb.isEmpty()&&!TrashRules.referenced(effective,queued,thumb))photoAttachments.deleteThumbnailVerified(thumb);
-            db.delete("photo_attachments","photo_id=?",new String[]{id});putOwnerValue(marker,"done");db.setTransactionSuccessful();
-        }finally{db.endTransaction();}
+        synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK){SQLiteDatabase db=getWritableDatabase();if(db.inTransaction())throw new IOException("MEDIA_CLEANUP_REQUIRES_COMMITTED_STATE");
+            // The row removal commits before file work. A later rollback can only leave a retry marker.
+            db.beginTransaction();try{JSONObject current=PixelMcpReadTools.effective(getState());if(!TrashRules.purged(current,"photo",id))throw new IllegalArgumentException("Löschbeleg fehlt.");db.delete("photo_attachments","photo_id=?",new String[]{id});putOwnerValue(marker,"pending");db.setTransactionSuccessful();}finally{db.endTransaction();}
+            db.beginTransaction();try{JSONObject current=PixelMcpReadTools.effective(getState());JSONArray queued=pendingActions();if(!TrashRules.purged(current,"photo",id))throw new IllegalArgumentException("Löschbeleg wurde geändert.");if(!hasOtherPhotoAttachment(id,media.optString("content_sha256"))&&!TrashRules.referenced(current,queued,media.optString("storage_name")))photoAttachments.discardCreated(media);String thumb=media.optString("thumbnail_storage_name");if(!thumb.isEmpty()&&!TrashRules.referenced(current,queued,thumb))photoAttachments.deleteThumbnailVerified(thumb);putOwnerValue(marker,"done");db.setTransactionSuccessful();}finally{db.endTransaction();}
+        }
     }
     String loadPhotoData(String photoId)throws Exception{
         JSONObject metadata=photoAttachment(photoId);if(metadata==null)throw new IllegalArgumentException("Für dieses Foto ist noch kein dauerhaftes Original hinterlegt.");
-        try{return photoAttachments.dataUri(metadata);}catch(Exception missing){if(!DriveSyncCoordinator.fetchPhoto(context,metadata,photoAttachments))throw missing;return photoAttachments.dataUri(metadata);}
+        try{return photoAttachments.dataUri(metadata);}catch(Exception missing){if(LocalAuthorityGuard.local(context))throw new IOException("LOCAL_ORIGINAL_MISSING");if(!DriveSyncCoordinator.fetchPhoto(context,metadata,photoAttachments))throw missing;return photoAttachments.dataUri(metadata);}
     }
     private void prepareManualChange(String kind,JSONObject payload,JSONObject previous)throws Exception{
         ManualChangeRules.prepare(kind,payload,previous,isoNow());
@@ -531,6 +583,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     }
     String removeEntity(String entity, String entityId) throws Exception {
         SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{
+            ActiveWorkProtection.require(getState(),entity,entityId);
             JSONObject all=PixelMcpReadTools.effective(getState()),current=OwnerJournalRules.findOrNull(all.getJSONArray(OwnerJournalRules.group(entity)),entityId);
             if(current==null)throw new IllegalArgumentException("Der Eintrag fehlt.");
             JSONObject payload=DeletionRules.payload(all,entity,entityId,OwnerJournalRules.version(current),isoNow());
@@ -574,25 +627,11 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         return pendingActions(false);
     }
     JSONArray pendingActionsForDrive() throws Exception {
+        if(!LocalAuthorityGuard.legacySyncAllowed(context))return new JSONArray();
         return pendingActions(true);
     }
     private JSONArray pendingActions(boolean forDrive) throws Exception {
-        JSONArray result = new JSONArray();
-        try (Cursor cursor = getReadableDatabase().rawQuery("SELECT id,kind,payload,created_at FROM pending WHERE kind!='mcp_receipt' ORDER BY created_at ASC,rowid ASC", null)) {
-            while (cursor.moveToNext()) {
-                String kind=cursor.getString(1);JSONObject payload=new JSONObject(cursor.getString(2));
-                if(forDrive&&(payload.optBoolean("_local_only")||payload.optBoolean("test_record")))continue;
-                if(forDrive&&("delete".equals(kind)||"archive".equals(kind))&&payload.optLong("_undo_until",0)>System.currentTimeMillis())continue;
-                payload.remove("_undo_until");
-                if(!forDrive&&"photo".equals(kind)){
-                    // WebView/MCP state stays lightweight. Legacy inline data remains only in the
-                    // immutable Drive journal until acknowledged; originals are read on demand.
-                    payload=PhotoJournalRules.forSnapshot(payload,photoAttachment(payload.optString("id")));
-                }
-                JSONObject item=new JSONObject();item.put("client_id",cursor.getString(0));item.put("kind",kind);item.put("payload",payload);item.put("created_at",cursor.getString(3));result.put(item);
-            }
-        }
-        return result;
+        return LocalPendingActions.read(getReadableDatabase(),forDrive,this::photoAttachment,System.currentTimeMillis());
     }
     void acknowledge(Set<String> ids) { SQLiteDatabase database = getWritableDatabase(); for (String id : ids) database.delete("pending", "id=?", new String[]{id}); }
 }

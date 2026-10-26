@@ -9,7 +9,7 @@ import java.util.*;
 
 /** Fixed, keyless GeoSphere adapters. Unknown format/unit/licence fails closed. */
 final class FreeWeatherSource {
-    static final long HOUR=3600L, DAY=24*HOUR, MONITOR_WINDOW=14*DAY;
+    static final long HOUR=3600L, DAY=24*HOUR, MONITOR_WINDOW=16*DAY;
     static final String API="https://dataset.api.hub.geosphere.at/v1/timeseries/forecast/";
     static final String LICENCE="https://dataset.api.hub.geosphere.at/v1/docs/index.html";
     static final String ATTRIBUTION="GeoSphere Austria · CC BY 4.0 · https://data.hub.geosphere.at";
@@ -42,7 +42,7 @@ final class FreeWeatherSource {
         if(reply.status==429||reply.status>=500){
             long delay=30000;String retry=reply.header("Retry-After");
             try{delay=Math.max(delay,Long.parseLong(retry)*1000);}catch(Exception numeric){try{delay=Math.max(delay,Duration.between(now,ZonedDateTime.parse(retry,DateTimeFormatter.RFC_1123_DATE_TIME).toInstant()).toMillis());}catch(Exception ignored){}}
-            throw new DriveRestClient.Failure("WEATHER_RETRY","Wetterdaten derzeit nicht verfügbar.",Math.min(24*HOUR*1000,delay),false);
+            throw new DriveRestClient.Failure(reply.status==429?"WEATHER_RATE_LIMIT":"WEATHER_RETRY","Wetterdaten derzeit nicht verfügbar.",Math.min(24*HOUR*1000,delay),false);
         }
         if(reply.status!=200)throw new DriveRestClient.Failure("WEATHER_UNAVAILABLE","Wetterdaten derzeit nicht verfügbar.",0,reply.status==401||reply.status==403);
         return reply;
@@ -84,8 +84,8 @@ final class FreeWeatherSource {
     }
     static JSONObject refreshSite(String loc,JSONObject cache,Instant now,long untilStart,DriveRestClient.Wire wire)throws Exception{
         long cadence=intervalSeconds(untilStart);
-        cache.put("monitoring",new JSONObject().put("active",untilStart<=MONITOR_WINDOW).put("first_check_days_before",14).put("next_interval_seconds",cadence).put("source",ATTRIBUTION));
-        if(untilStart>MONITOR_WINDOW)return cache; // No request before T-14.
+        cache.put("monitoring",new JSONObject().put("active",untilStart<=MONITOR_WINDOW).put("first_check_days_before",16).put("next_interval_seconds",cadence).put("source",ATTRIBUTION));
+        if(untilStart>MONITOR_WINDOW)return cache;
         coords(loc);requireLicence(cache,now,wire);
         JSONObject meta=metadata("nwp-v2-1h-1km",cache,now,wire);
         cache.put("availability_checked_at",now.toString()).put("source",ATTRIBUTION);
@@ -104,6 +104,37 @@ final class FreeWeatherSource {
             cache.put("forecast",normalizeGeoSphere(raw)).put("fetched_at",now.toString()).put("forecast_provider","geosphere_nwp_v2");
         }
         return cache;
+    }
+    static JSONObject refreshNonCommercialSite(String loc,JSONObject cache,Instant now,long untilStart,DriveRestClient.Wire wire)throws Exception {
+        cache.put("monitoring",new JSONObject().put("active",untilStart<=MONITOR_WINDOW).put("first_check_days_before",16)
+            .put("minimum_forecast_lead_days",14).put("next_interval_seconds",intervalSeconds(untilStart)).put("source",OpenMeteoWeatherSource.ATTRIBUTION));
+        if(untilStart>MONITOR_WINDOW)return cache;
+        try{OpenMeteoWeatherSource.refreshSite(loc,cache,now,untilStart,wire);}
+        catch(Exception primary){
+            if(CalendarRecoveryRules.interrupted(primary))throw primary;
+            if(primary instanceof DriveRestClient.Failure&&Arrays.asList("WEATHER_RATE_LIMIT","WEATHER_BATCH_PENDING").contains(((DriveRestClient.Failure)primary).code))throw primary;
+            // Preserve the public short-range adapter as a real fallback; never claim it covers 14 days.
+            if(untilStart<=60*HOUR)try{
+                JSONObject fallback=new JSONObject(cache.toString());fallback.remove("fetched_at");refreshSite(loc,fallback,now,untilStart,wire);
+                if("geosphere_nwp_v2".equals(fallback.optString("forecast_provider"))&&now.toString().equals(fallback.optString("fetched_at"))){
+                    for(Iterator<String> keys=fallback.keys();keys.hasNext();){String key=keys.next();cache.put(key,fallback.get(key));}
+                    cache.put("forecast_source",ATTRIBUTION).put("forecast_notice","Kurzfristige Ersatzvorhersage: Open-Meteo derzeit nicht verfügbar.");cache.remove("source_unavailable");return cache;
+                }
+            }catch(Exception secondary){if(CalendarRecoveryRules.interrupted(secondary))throw secondary;}
+            throw primary;
+        }
+        if(untilStart<=4*DAY)try{refreshWarnings(loc,cache,now,untilStart,wire);}
+        catch(Exception unavailable){
+            cache.put("warning_status","Amtliche Warnungen derzeit nicht verfügbar.");
+            if(CalendarRecoveryRules.interrupted(unavailable)||(unavailable instanceof DriveRestClient.Failure&&Arrays.asList("WEATHER_RATE_LIMIT","WEATHER_BATCH_PENDING").contains(((DriveRestClient.Failure)unavailable).code)))throw unavailable;
+        }
+        return cache;
+    }
+    static void refreshWarnings(String loc,JSONObject cache,Instant now,long untilStart,DriveRestClient.Wire wire)throws Exception {
+        if(untilStart>4*DAY||!due(cache,"warnings_fetched_at",now,Math.min(3*HOUR,intervalSeconds(untilStart))))return;
+        double[] point=coords(loc);requireLicence(cache,now,wire);
+        JSONObject warnings=fetch(wire,"https://warnungen.zamg.at/wsapp/api/getWarningsForCoords?lat="+point[0]+"&lon="+point[1]+"&lang=de",512*1024,now).json();
+        cache.put("warnings",WeatherRiskRules.parseWarnings(warnings)).put("warnings_fetched_at",now.toString());cache.remove("warning_status");
     }
     static void refreshNowcast(String loc,JSONObject cache,Instant now,DriveRestClient.Wire wire)throws Exception{
         if(!due(cache,"nowcast_fetched_at",now,HOUR))return;

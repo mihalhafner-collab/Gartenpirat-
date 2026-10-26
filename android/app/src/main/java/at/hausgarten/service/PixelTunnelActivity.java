@@ -17,17 +17,17 @@ import android.widget.*;
 /** Native setup screen: credentials never cross the JavaScript bridge. */
 public final class PixelTunnelActivity extends Activity {
     private TextView status,battery,diagnosis;
-    private CheckBox enabled;private boolean refreshingToggle;
+    private Switch enabled;private boolean refreshingToggle;
     private EditText id,key,organization;
-    private CheckBox write;
+    private Switch write;
     private final Handler handler=new Handler(Looper.getMainLooper());
     private final Runnable refresh=new Runnable(){public void run(){refreshStatus();handler.postDelayed(this,2000);}};
     private PixelTunnelConfig config;
     @Override public void onCreate(Bundle saved){
         super.onCreate(saved);config=new PixelTunnelConfig(this);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
-        ScrollView scroll=new ScrollView(this);LinearLayout view=new LinearLayout(this);view.setOrientation(LinearLayout.VERTICAL);
-        int pad=(int)(20*getResources().getDisplayMetrics().density);view.setPadding(pad,pad,pad,pad);scroll.addView(view);setContentView(scroll);
+        ScrollView scroll=new ScrollView(this);LinearLayout view=new LinearLayout(this);view.setOrientation(LinearLayout.VERTICAL);view.setBackgroundColor(NativeUi.BG);
+        int pad=NativeUi.dp(this,16);view.setPadding(pad,pad,pad,pad);scroll.addView(view);setContentView(scroll);
         if(Build.VERSION.SDK_INT>=30){getWindow().setDecorFitsSystemWindows(false);getWindow().setStatusBarColor(Color.TRANSPARENT);getWindow().setNavigationBarColor(Color.TRANSPARENT);getWindow().getInsetsController().setSystemBarsAppearance(android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS|android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS|android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);}
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         scroll.setOnApplyWindowInsetsListener((v,insets)->{
@@ -40,8 +40,8 @@ public final class PixelTunnelActivity extends Activity {
         heading(view,"ChatGPT auf dem Pixel");
         text(view,"Mit deiner Freigabe kann ChatGPT die fachlichen Funktionen dieser App bedienen. Ausschalten beendet die Verbindung; deine Daten bleiben erhalten.");
         status=text(view,"Status wird geprüft …");battery=text(view,"");
-        enabled=new CheckBox(this);enabled.setText("ChatGPT-Steuerung · EIN / AUS");enabled.setChecked(config.enabled());view.addView(enabled);
-        LinearLayout advanced=new LinearLayout(this);advanced.setOrientation(LinearLayout.VERTICAL);advanced.setVisibility(android.view.View.GONE);
+        enabled=NativeUi.toggle(new Switch(this));enabled.setText("ChatGPT-Steuerung · EIN / AUS");enabled.setChecked(config.enabled());view.addView(enabled);
+        LinearLayout advanced=new LinearLayout(this);advanced.setOrientation(LinearLayout.VERTICAL);advanced.setPadding(NativeUi.dp(this,16),NativeUi.dp(this,16),NativeUi.dp(this,16),NativeUi.dp(this,16));advanced.setBackground(NativeUi.shape(this,NativeUi.SURFACE,NativeUi.LINE,18));advanced.setVisibility(android.view.View.GONE);
         button(view,"Erweitert / Diagnose · Einrichtung und Rechte",()->advanced.setVisibility(advanced.getVisibility()==android.view.View.VISIBLE?android.view.View.GONE:android.view.View.VISIBLE));view.addView(advanced);
         view.removeView(battery);advanced.addView(battery);diagnosis=text(advanced,"");
         heading(advanced,"Einmalig einrichten");
@@ -52,10 +52,10 @@ public final class PixelTunnelActivity extends Activity {
         organization.setHint("org-…");advanced.addView(organization);
         text(advanced,"Tunnel und Schlüssel müssen zur selben OpenAI-Organisation gehören. Die vorbelegte Angabe wird erst mit Verbindung starten gespeichert. Ein gültiger Schlüssel aus einem anderen Konto funktioniert hier nicht.");
         text(advanced,"Runtime-Schlüssel");key=new EditText(this);key.setSingleLine(true);key.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);key.setSaveEnabled(false);key.setImportantForAutofill(android.view.View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);key.setHint(config.configured()?"Bereits gespeichert · leer lassen":"Schlüssel hier einfügen");advanced.addView(key);
-        write=new CheckBox(this);write.setText("ChatGPT darf fachliche Eigentümerfunktionen lesen und schreiben");write.setChecked(config.writeEnabled());advanced.addView(write);
+        write=NativeUi.toggle(new Switch(this));write.setText("ChatGPT darf fachliche Eigentümerfunktionen lesen und schreiben");write.setChecked(config.writeEnabled());advanced.addView(write);
         text(advanced,"Freigabe für Kunden, Aufträge, Arbeitszeiten, Fotos, Entwürfe, Konfliktprüfung, Archiv und Sicherungen. Originalbelege bleiben unveränderlich; Abschluss und Korrekturen benötigen den geschützten Pixel-/Drive-Nummernkreis. Kontozugänge und Android-Rechte werden hier nicht erweitert. Änderungen werden lokal gespeichert und mit Drive abgeglichen. Die Freigabe gilt nach Verbindung starten.");
-        button(advanced,"Verbindung starten",()->startConnection());
-        button(advanced,"Verbindung beenden",()->{config.enabled(false);stopService(new Intent(this,PixelTunnelService.class));refreshStatus();});
+        button(advanced,"Verbindung starten",0,()->startConnection());
+        button(advanced,"Verbindung beenden",2,()->{config.enabled(false);stopService(new Intent(this,PixelTunnelService.class));refreshStatus();});
         heading(advanced,"Hintergrundbetrieb");
         text(advanced,"Damit Android die Verbindung seltener unterbricht, Hintergrundnutzung zulassen und diese App vom extremen Energiesparen ausnehmen. Eine sichtbare Statusmeldung bleibt aktiv.");
         button(advanced,"Akku-Einstellungen öffnen",()->open(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS,null));
@@ -64,9 +64,10 @@ public final class PixelTunnelActivity extends Activity {
         enabled.setOnCheckedChangeListener((button,on)->{if(refreshingToggle)return;if(on){if(!config.configured()){advanced.setVisibility(android.view.View.VISIBLE);button.setChecked(false);Toast.makeText(this,"Bitte die Verbindung einmalig einrichten.",Toast.LENGTH_LONG).show();return;}startConnection();button.setChecked(config.enabled());}else{config.enabled(false);stopService(new Intent(this,PixelTunnelService.class));refreshStatus();}});
         button(view,"Zurück zur Haus & Garten App",this::finish);
     }
-    private TextView text(LinearLayout view,String value){TextView label=new TextView(this);label.setText(value);label.setTextSize(16);label.setTextColor(Color.rgb(30,60,43));label.setPadding(0,12,0,12);view.addView(label);return label;}
-    private void heading(LinearLayout view,String value){TextView label=text(view,value);label.setTextSize(23);label.setTypeface(null,Typeface.BOLD);}
-    private void button(LinearLayout view,String title,Runnable action){Button button=new Button(this);button.setAllCaps(false);button.setText(title);button.setMinHeight((int)(52*getResources().getDisplayMetrics().density));view.addView(button);button.setOnClickListener(v->action.run());}
+    private TextView text(LinearLayout view,String value){TextView label=NativeUi.text(new TextView(this));label.setText(value);view.addView(label);return label;}
+    private void heading(LinearLayout view,String value){TextView label=text(view,value);NativeUi.heading(label);}
+    private void button(LinearLayout view,String title,Runnable action){button(view,title,1,action);}
+    private void button(LinearLayout view,String title,int kind,Runnable action){Button button=NativeUi.style(new Button(this),kind);button.setText(title);view.addView(button);button.setOnClickListener(v->action.run());}
     private void open(String action,Uri uri){try{Intent intent=new Intent(action);if(uri!=null)intent.setData(uri);startActivity(intent);}catch(ActivityNotFoundException error){Toast.makeText(this,"Diese Einstellung ist auf dem Gerät nicht verfügbar.",Toast.LENGTH_LONG).show();}}
     private void startConnection(){
         try{

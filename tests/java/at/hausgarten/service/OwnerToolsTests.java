@@ -10,6 +10,12 @@ public final class OwnerToolsTests {
     static JSONObject snapshot()throws Exception{return SyntheticBusinessData.object("{customers:[{id:'qa_c',name:'Synthetischer Kunde',active:1,billing_mode:'direct',updated_at:'t1'}],orders:[],worklogs:[],invoices:[],photos:[]}");}
     static JSONObject action(String id,String kind,JSONObject p)throws Exception{return SyntheticBusinessData.object().put("client_id",id).put("kind",kind).put("payload",p).put("created_at","2026-10-18T12:00:00Z");}
     public static void main(String[] args)throws Exception{ SyntheticBusinessData.verify();
+        JSONObject authority=PixelMcpOwnerTools.schema("update_business_settings").getJSONObject("properties").getJSONObject("updates").getJSONObject("properties").getJSONObject("invoice_numbering_authority");
+        McpSchema.validate("",authority);yes(true);McpSchema.validate("pixel_drive",authority);yes(true);
+        bad(()->McpSchema.validate("unverified_other_authority",authority));
+        JSONObject clearAuthority=new JSONObject().put("request_id","qa_clear_authority").put("expected_record_hash","a".repeat(64)).put("updates",new JSONObject().put("invoice_numbering_authority",""));
+        PixelMcpOwnerTools.validate("update_business_settings",clearAuthority);yes(true);
+        bad(()->PixelMcpOwnerTools.validate("update_business_settings",new JSONObject(clearAuthority.toString()).put("expected_record_hash","invalid")));
         PixelMcpReadTools readOnly=new PixelMcpReadTools(()->SyntheticBusinessData.object().put("master",snapshot()).put("pending",new JSONArray()));
         Set<String> names=new HashSet<>();JSONArray advertised=readOnly.tools();for(int i=0;i<advertised.length();i++){JSONObject t=advertised.getJSONObject(i);yes(names.add(t.getString("name")));yes(t.getJSONObject("annotations").getBoolean("readOnlyHint"));}
         for(String name:PixelMcpOwnerTools.WRITES){bad(()->readOnly.call(name,SyntheticBusinessData.object()));bad(()->PixelMcpOwnerTools.validate(name,SyntheticBusinessData.object().put("request_id","valid-request").put("arbitrary_sql","delete")));}

@@ -13,6 +13,7 @@ final class OwnerApplicationService {
         register(new SettingsApplicationService(repository),new String[]{"update_business_settings","update_settings"});
         register(new InvoiceApplicationService(repository),new String[]{"request_invoice_issue","create_invoice_correction","update_invoice_payment","prepare_invoice_share"});
         register(new PlanningApplicationService(repository),AppointmentTools.WRITES);
+        register(new LocalWorkflowApplicationService(repository),LocalWorkflowTools.WRITES);
     }
     private void register(OwnerCommand command,String[] names){
         for(String name:names)if(commands.put(name,command)!=null)throw new IllegalStateException("Duplicate owner operation");

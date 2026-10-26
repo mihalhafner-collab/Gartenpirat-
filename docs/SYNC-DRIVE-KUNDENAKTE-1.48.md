@@ -1,3 +1,104 @@
+## Aktueller Speicher- und Übergangsvertrag Revier Solo – 24.10.2026
+
+Diese Fortschreibung beschreibt den neuen **Quellvertrag**. Sie ersetzt die unten
+historisch beschriebenen Ziele „Drive dauerhaft zentrale Fach-/Nummernautorität“
+und „Web-/Laptop-Prozessor als Voraussetzung“ für den ausdrücklich umgestellten
+Betrieb. Die historischen Abläufe bleiben bis zur kontrollierten Umstellung
+abgesichert. Keine Installation, Betriebsdatenumstellung oder abgeschlossene
+native Geräteabnahme wird aus dieser Dokumentation abgeleitet. Aktueller Auftrag
+und genaue Test-/Releasebelege: [CODEX-AUFTRAG-GARTENPIRAT.md](../CODEX-AUFTRAG-GARTENPIRAT.md)
+und [CODEX-STATUS.md](../CODEX-STATUS.md). Der additive UI-/MCP-Vertrag umfasst
+161 Tools / 204 Aktionen; Einzelheiten im
+[Eigentümerzugriffsvertrag](MCP-EIGENTUEMERZUGRIFF-2026-10-18.md#vertragsfortschreibung-revier-solo--24102026).
+
+### Ein Bestand, lokale Transaktionen und versionierte Grenzen
+
+`PixelLocalStore` führt weiterhin dieselbe Datenbank `haus-garten-mobile.db`.
+**SQLite-Schemaversion5** setzt eine Grenze gegen alte schreibende Appversionen;
+der Schritt 4→5 führt keine zweite Geschäftsdatenbank und keine gleichbedeutenden
+Fachtabellen ein. Neue Revier-Datensätze, Referenzen, Request-Belege, Zahlungs-
+und Dokumentjobs verwenden versionierte Namensräume in der bestehenden
+`owner_state`. Vorhandene `pending`-, Sitzungs-/Ereignis-, Foto- und Uploadtabellen
+bleiben bestehen. IDs, historische Beträge/Zeiten und ungeklärte Zuordnungen
+werden durch diesen Formatwechsel nicht neu erfunden.
+
+Nach ausdrücklicher Aktivierung ist `pixel_local_v2` maßgeblich: UI und MCP lesen
+denselben lokalen Zustand; fachlicher Commit wartet nicht auf Drive. Revisionen,
+Request-Belege und gemeinsame SQLite-Transaktionen verhindern unbemerkte
+Überschreibungen beziehungsweise doppelte Wirkung. Geldberechnung verwendet
+Dezimalarithmetik und kleinste Währungseinheiten, Quellenmengen bleiben explizit
+zugeordnet. Private Originale und unveränderliche PDFs liegen getrennt mit Hash-
+und Größenreferenzen. Ein lokaler Commit ist kein externer Übergabe-/Sicherungsbeleg.
+
+### Lokale Ausgabe und wiederaufnehmbare Dateiarbeit
+
+Eine freigegebene lokale Rechnungsausgabe fixiert Nummer/Zählerreservierung,
+Aussteller-/Empfänger-/Steuer-/Positionssnapshot, Leistungs-/Materialmengen und
+`local_invoice_job:<invoiceId>` atomar. Der Job erzeugt das PDF aus genau diesem
+Snapshot. Ein Absturz nach Geschäftskommit erzeugt beim Wiederholen keine neue
+Nummer/Rechnung. `PDF_PENDING`, `READY` und `ORIGINAL_REVIEW_REQUIRED` bleiben
+unterscheidbar; vorhandene PDF-Originale werden vor Freigabe erneut geprüft.
+Teilzahlungen und Sammelzuordnungen sind eigene dauerhafte Ledger-Einträge;
+Korrekturbezug und Grund bleiben erhalten. Persönliches b.b./bezahlt, billed und
+Rechnungszahlung bleiben verschiedene Sachverhalte.
+
+### Kontrollierte Umstellung und Restore-Sperre
+
+1. `LocalAuthorityActivity` beziehungsweise `preview_local_authority` liest Inventar,
+   offene Aktionen/Konflikte, Originale und den Geschäftshash, ohne umzuschalten.
+2. Vor Aktivierung müssen eine vollständige extern geprüfte Sicherung desselben
+   Geschäftsstands und aktuelle Nachweise über stillgelegte alte Schreiber
+   vorliegen. Direktes Drive-SHA-Rücklesen und verifiziertes entfernbares USB-Medium
+   sind von unbekanntem Dokumentprovider-/Cloudcache-Rücklesen zu unterscheiden.
+3. Die ausdrückliche Aktivierung schreibt den lokalen Schema-/Migrationsvertrag
+   mit `migration_epoch`. Der unabhängige `LocalAuthorityGuard` liegt außerhalb der
+   Sicherungsdaten. Alte Journale/Ausgangsstände bleiben als Nachweis erhalten;
+   alte Drive-Schreibpfade werden abgegrenzt, bestehende Konten nicht entfernt.
+4. Geschäftsbetrieb wird lokal aktiv, Rechnungsautorität bleibt zunächst `LOCKED`.
+   Erst die aktuelle externe Original-/Reservierungs-/Nummernprüfung gibt sie frei.
+   Eine erneute Anfrage ersetzt weder externe Belege noch die bewusste Entscheidung.
+5. Vollständiger Restore erfolgt nach Vorschau, Sicherung des aktuellen Bestands,
+   Integritäts-/Referenzprüfung und Geräteentscheidung über den Neustartpfad.
+   Vor Aktivierung wird `restoreEpoch` erneuert; Rechnungsausgabe bleibt gesperrt.
+   `current_review` muss nach dieser Grenze ausdrücklich am aktuellen Installations-
+   /Restore-Kontext mit Nachweis-SHA bestätigt werden. Alte Receipts, aktivierte
+   Einstellungen und Backupzähler werden nicht als neue Freigabe übernommen.
+
+Ein fehlender Original-/Nummernnachweis bleibt ein konkreter Blocker. Restore
+mischt keine Bestände automatisch. Rollback-Bestand und gültige frühere Sicherung
+bleiben bei Abbruch geschützt; ein Rückfall autorisiert keinen alten Sync-Schreiber.
+
+### Drive als Sicherungsadapter
+
+`FullBackupController` schreibt nur kurze, idempotente Jobabsichten. Der
+`LocalBackupCoordinator` erstellt außerhalb dieser Transaktion einen konsistenten
+SQLite-Snapshot samt privaten Originalen, Einstellungen, Browsercheckpoint,
+Sitzungen und offenen lokalen Jobs. Die verschlüsselte, lokal geprüfte Generation
+hat ein versioniertes Manifest; große Archive werden gestreamt. Android-SAF
+schreibt Archive/Commit-Datei und prüft beide durch Rücklesen. Ein Cloud-Dateianbieter
+beweist damit allein keinen Remote-Upload. Keine pauschale 40-MB-Grenze für die
+Vollsicherung; die kleine alte Geschäftssicherung bleibt ein separater Weg.
+
+Automatischer täglicher Drive-Upload ist ausdrücklich einzurichten. Lokale
+Vorbereitung hat keine Netzbedingung; Upload wartet auf ANY/UNMETERED gemäß
+Einstellung. Manuelle Sicherung funktioniert bei ausgeschalteter Automatik;
+SAF benötigt kein konfiguriertes Drive-Ziel. Android plant aufschiebbar, nicht
+minutengenau; nach Force-Stop ist ein erneuter Appstart erforderlich. Acht
+fehlgeschlagene Versuche führen zu sichtbarer Prüfung/manuellem Retry. Ein
+blockierter älterer Job kann neue automatische Generationen zurückhalten.
+Datenalter, Prüfzeitpunkt und Fehlerstatus bleiben deshalb getrennt sichtbar.
+Nach Restore werden alte Epochen/Jobs nicht automatisch aktiviert; Recovery-Code
+und Keystore-Material erscheinen weder im MCP-Status noch in Standardlogs.
+
+**Native Ausführung noch OFFEN:** Die technische Vorbereitung und isolierte
+Host-/Browsernachweise ersetzen keine neue Android-Gesamtregression. Reales
+Pixel-Update, Flugmodus/Prozessende/Neustart, Hintergrundausführung, zwei USB-Ziele
+und 10-GB-/60-Minuten-Restoreziel sind gesondert auszuführen und zu dokumentieren.
+Die nachfolgenden historischen Abnahmen 68/71/72 und spätere datierte Abschnitte
+bestätigen diese neue Umstellung nicht.
+
+---
+
 > Aktueller Auftrag: [CODEX-STATUS.md](../CODEX-STATUS.md). Der folgende frühere Rollout mit Web-/Laptop-Prozessor ist historisch und aufgehoben. Aktuelle Fortsetzung: [Sync und Papierkorb 1.49.3/72](../CODEX-STATUS.md), Einträge 9–12; installierter Pixel weiterhin 71. Keine Installation ohne Sicherung und ausdrückliche Freigabe.
 
 # Drive-Abgleich und Kundenakte – 1.48.0 / 68
@@ -553,14 +654,14 @@ Nach gesicherter und ausdrücklich freigegebener Originalaktualisierung:
 
 1. Planung → **Einrichten**. Google-Konto bewusst auswählen; vorhandenen App-Kalender verwenden oder einmalig „Haus & Garten – Einsätze“ erstellen. Google-Projekt benötigt Calendar API und passende Android-OAuth-/Originalzertifikats-/Consent-Freigabe. Erst danach sind Scope-Erteilung und Erreichbarkeit am echten Gerät nachgewiesen. Vorhandene Drive-Freigabe unverändert lassen.
 2. Standard scopes calendar.app.created und calendar.calendarlist.readonly; die Liste ist für Wiederaufnahme einer unbestätigten Kalenderanlage erforderlich. Optional calendar.freebusy für Belegtzeiten des eigenen Hauptkalenders. Kein pauschaler Kalender-Vollzugriff, keine automatische Kundeneinladung. Kalenderwechsel/-trennung ist eine bewusste Gerätehandlung, keine versteckte Kontomigration.
-3. Gewünschte Arbeitstage/-zeiten und Anfahrtpuffer einstellen. Wetteroptional: **bereits gewerblich freigegebenen Open-Meteo-Kundenzugang** ausschließlich im nativen Geräteformular hinterlegen. Kein Vertrag wird abgeschlossen und kein Schlüssel im Chat abgefragt. Schlüssel liegt AES-GCM-geschützt in privaten Geräteeinstellungen; kein Schlüssel im APK/JavaScript/Geschäftssnapshot/MCP/Anfrageprotokoll. Ohne Zugang bleiben manuelle Termine vollständig nutzbar.
+3. Gewünschte Arbeitstage/-zeiten und Anfahrtpuffer einstellen. Wetteroptional: Gemäß Nutzerauftrag vom 22.10.2026 verwendet die App für die erklärte nichtkommerzielle Nutzung den kostenlosen öffentlichen Open-Meteo-Zugang ohne Konto, Vertrag oder API-Schlüssel. Keine kostenpflichtige Subscription; kein Schlüssel wird abgefragt oder übertragen. Die Nutzungserklärung ersetzt keine abweichenden Anbieterbedingungen: https://open-meteo.com/en/terms. Manuelle Termine bleiben auch bei Wetterausfall nutzbar.
 4. Wetterbenachrichtigungen einschalten und nötige Android-Laufzeitfreigabe bestätigen. Ruhezeit21–6Uhr; bei identischen Hinweisen keine neue Meldung. Einzelhinweis bietet Termine ansehen/Alternative suchen/Geprüft, letzteres nur für den exakt aktuellen Risikohash. Eine erhebliche neue Wetterlage bleibt erneut prüfbar. Verweigerte Rechte und veraltete Vorhersage werden sichtbar, keine Dauerverfügbarkeit zugesichert.
 
 CalendarClient/CalendarRules arbeiten mit deterministischer Event-ID, privater Terminreferenz, ETag/If-Match und vollständigem Seiten-/Synctoken-Abgleich. Antwortverlust führt zum Nachlesen derselben ID.410 setzt nur den Kalender-Abgleich zurück; fachliche Daten/Queue bleiben erhalten. Fremde Termine werden keine Aufträge. Externe Zeit-/Ortsänderung wird über denselben App-Journalweg geprüft; Konflikte behalten App- und Google-Variante. resolve_calendar_conflict bietet hashgebundene Entscheidungen App verwenden/Google übernehmen/ohne Kalender behalten; vor Übernahme wird der externe Stand erneut gelesen. Extern entfernte Events und nicht unterstützte Google-Serien/ganztägige Umformungen bleiben zur Prüfung stehen, keine stille Neuanlage. Wiederherstellung eines App-Termins ist kein automatisch bestätigter Wiederaufbau eines bei Google endgültig entfernten Events.
 
 Kalender-/Wetterjobs besitzen getrennte Wiederholungszähler/-fristen und blockieren weder einander noch Drive. Unveränderte Termine werden nicht wiederholt als Gesamtsnapshot projiziert; eigene bereits bestätigte Google-Echos erzeugen keinen dauerhaften Restabgleich. Neue Aufgaben bleiben dauerhaft aus lokalem Terminstand und privater bestätigter Kalenderbasis ableitbar. Übertragung ist pro Gerät wiederaufnehmbar, keine verteilte Atomarität oder Google-Reservierung fremder Kalender behaupten.
 
-Wetter abrufen:14Tage mit stündlichen UTC-Zeitwerten, metrischen Einheiten und pro Ort gebündeltem Cache. Bewertung für tatsächliche Arbeitsstunden, Niederschlagswahrscheinlichkeit/-menge, Böen, Frost, Hitze und Modellgewitter. Amtliche GeoSphere-Warnungen werden getrennt räumlich/zeitlich bewertet; eine frische Warnung bleibt auch bei unbekannter Modellprognose sichtbar. Fehlende/veraltete/ungültige Werte bedeuten unbekannt. Betriebs-Schwellen editierbar; weder Maschinen-/Arbeitsschutzfreigabe noch automatische Absage. Live-Vertrag/Erreichbarkeit und tatsächliche Antwortformate der Wetterdienste benötigen die gesonderte Geräte-/Providerabnahme; synthetische Adaptertests ersetzen diese nicht.
+Wetter abrufen: bis zu16Tage über https://api.open-meteo.com/v1/forecast mit forecast_days=16, stündlichen UTC-Zeitwerten, metrischen Einheiten und pro Ort gebündeltem Cache. Bewertung für tatsächliche Arbeitsstunden, Niederschlagswahrscheinlichkeit/-menge, Böen, Frost, Hitze und Modellgewitter. Amtliche GeoSphere-Warnungen werden getrennt räumlich/zeitlich bewertet; eine frische Warnung bleibt auch bei unbekannter Modellprognose sichtbar. Fehlende/veraltete/ungültige Werte bedeuten unbekannt. Betriebs-Schwellen editierbar; weder Maschinen-/Arbeitsschutzfreigabe noch automatische Absage. Live-Vertrag/Erreichbarkeit und tatsächliche Antwortformate der Wetterdienste benötigen die gesonderte Geräte-/Providerabnahme; synthetische Adaptertests ersetzen diese nicht.
 
 ### Tatsächlich implementierte MCP-Erweiterung
 
@@ -578,3 +679,13 @@ Die aktuelle Implementierung verwendet Googles AuthorizationClient und dieselben
 - Die letzte erfolgreiche Kalenderprüfung ist getrennt vom allgemeinen Planungs-/Wettercheck lesbar. Fehlende/veraltete Zeitpunkte bleiben sichtbar. Ein gespeichertes Konto ist kein Nachweis aktueller Google-Erreichbarkeit oder vollständig übertragener Termine. Android kann Hintergrundarbeit verzögern; ein ausgeschaltetes Gerät überträgt erst nach Wiederaufnahme.
 
 Externe Einrichtung weiterhin tatsächlich prüfen: Calendar API im bestehenden Google-Projekt, Android-OAuth-Client für at.hausgarten.service mit SHA-1 des tatsächlich installierten Originalsignierzertifikats, Zielkonto/Consent/optionale Hauptkalenderrechte und Veröffentlichungs-/Organisationsregeln. Der öffentliche tatsächliche Zertifikatsfingerprint wird am Gerät unter Konto und Freigaben angezeigt. Die Projekt-ID lässt sich aus Paketname oder SHA-1 nicht eindeutig ableiten; keine neue Projektzuordnung erfinden. Google-Projektzugriff und reale Zustimmung werden nicht durch Code oder eine bestehende Drive-/ChatGPT-Freigabe erteilt. Aktuelle Test-/Auslieferungsnachweise ausschließlich in CODEX-STATUS.md.
+
+### Kalender-/Wetterumsetzung vom 22.10.2026 (Entwicklung, Geräteabnahme offen)
+
+Die native Wetterabfrage verwendet ausschließlich den festen HTTPS-Host api.open-meteo.com, GET ohne Authorization/Cookie und ohne Schlüssel. Weltweite Modellabdeckung ist angefragt; tatsächlich nutzbare Abdeckung ergibt sich aus gültigen Stundenwerten am erkannten Einsatzort. Ein früher Trend ab14Tage ist bei vollständiger Antwort verfügbar, keine garantierte lokale Genauigkeit. GeoSphere bleibt österreichische/regionale Kurzfristquelle und amtlicher Warnungsanbieter. Ein Ausfall ergänzender Warnungen/Nowcasts vernichtet keine gültige Hauptprognose. Bei kurzfristigem GeoSphere-Ersatz werden Quelle und kürzeres Ende offengelegt. Nullwerte, Lücken, falsche Einheiten, Rate-Limits und veraltete Daten ergeben keinen grünen Prognosenachweis. Freie Vorhersagen erscheinen jenseits von fünf Tagen als unsicherer Wettertrend. MCP meldet angefragte16Tage getrennt von tatsächlichem Datenhorizont und abgedeckten Terminen. Hintergrundcadence unverändert täglich/12h/6h/3h/1h, Beobachtungsfenster auf16Tage erweitert.
+
+Ortsabgleich erweitert ausschließlich Such-/Vergleichstext um St./Sankt. Eindeutiger Ort und Postleitzahl bleiben Pflicht; Ortsvorhersagen werden gekennzeichnet. Negative Suchcaches der älteren Resolver-Version werden erneut prüfbar, gespeicherte Adressen/Termine bleiben unverändert.
+
+Google: Kontoauswahl ist keine Kalenderfreigabe. Die vorhandene native AuthorizationClient-Kette und ihre minimalen Scopes, Wiederaufnahme, Token-Erneuerung/401-Behandlung, Kalender-Readback, deterministische IDs und ETags bleiben erhalten. Die neue Einrichtung zeigt Konto, beobachtete Freigabe und bestätigten Kalender getrennt. CALENDAR_APP_REGISTRATION_REQUIRED kann schon vor dem Google-Dialog auftreten. Im bestehenden Google-Cloud-Projekt sind Calendar API, Android-OAuth-Client für at.hausgarten.service mit Original-SHA1 16:FC:7A:13:7E:58:CA:31:C7:1D:70:6D:47:2F:29:FB:9F:55:8A:5A sowie passender Veröffentlichungs-/Verifizierungsstatus erforderlich. Externer OAuth-Testbetrieb mit siebentägigen Freigaben genügt nicht für dauerhafte Nutzung. Anschließend einmal ausdrücklich auf dem Pixel verbinden und Google-Zugriff gewähren; erst erfolgreiche Kalender-Rücklesung bestätigt die Bindung. Ein bereits angemeldetes Pixel-Konto erfordert nicht zwingend erneute Passworteingabe. Widerrufene Rechte und ausgeschaltete Geräte verhindern weiterhin Übertragung.
+
+Cloud-Test und echte Inbetriebnahme sind getrennt: Die aktuelle Umgebung hat keinen Google-Projekt-Verwaltungszugang; ihr ausgegebener HTTP-Zielkatalog enthält Open-Meteo nicht. Die erneute aktuelle Readiness-Prüfung meldet inzwischen alle fünf Originalsignierungsvariablen bereit; Originalsignierung ausschließlich durch den offiziellen geheimwertfreien Signieraufruf. Kein Netzwerk-Bypass, kein Ersatzschlüssel, keine behauptete Live-Verbindung. Host-Tests und Release-Kompilierung ersetzen keine installierte Original-APK oder Konto-Einwilligung.

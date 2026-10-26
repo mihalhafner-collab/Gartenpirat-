@@ -1,0 +1,16 @@
+# Tatsächliche Bildsichtung · melissa-officinalis
+
+23.10.2026. Initialbogen78 und finaler gesonderter Zweierbogen tatsächlich geöffnet.
+Die zunächst doppelt gebundene Bestandsdatei wurde verworfen. Jetzt zwei frisch heruntergeladene Aufnahmen: wachsender Bestand und deutliches Blatt-/Triebdetail. Gekerbte gegenständige Blätter sichtbar; quellenbezogene Motivprüfung, keine unabhängige botanische Expertenbestimmung.
+
+melissa-officinalis-ref-1
+Melissa officinalis
+App-JPEG SHA256: 7be817a1d0a0f22b778ec89eedb2cacd53e5cba915600bc503127768c30da51a
+Original SHA256: e142617d79a2e301c6c80c34e7f5b901b490dbe8e50a077bc2feaad4b47237a2
+Quellenbeleg SHA256: 4c4723d62568ea221fc5361ab63ee85fc983581b1a3365384ffbaae5c6d13bdb
+
+melissa-officinalis-ref-2
+Melissa officinalis
+App-JPEG SHA256: bfe13ef7986a4c5cee4becea73a2b55e85e7475078076cb1bfaae1c4054dfc19
+Original SHA256: 5e73105742ec1b48b98029fb12865e3447dccf5c6ed451d491c68787c9e280ef
+Quellenbeleg SHA256: 4c4723d62568ea221fc5361ab63ee85fc983581b1a3365384ffbaae5c6d13bdb

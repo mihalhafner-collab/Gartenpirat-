@@ -17,7 +17,7 @@ const catalog=JSON.parse(fs.readFileSync(path.join(assets,'plant-catalog.json'),
   assert.equal(neophytes.length,21);assert(catalog.neophyteReference?.officialListUrl.startsWith('https://www.neobiota-austria.at/'));
   for(const p of neophytes){
    assert(p.neophyte.isNeophyte&&p.neophyte.invasive&&p.neophyte.austriaOccurrence,p.id);
-   for(const key of ['austriaStatus','establishmentStatus','statusLabel','recognition','spread','impacts','control','disposal','legalNotes','dataNote'])assert(p.neophyte[key]&&p.neophyte[key].length,p.id+' '+key);assert(p.growth.length&&p.care.length,p.id+' practical profile');
+   for(const key of ['austriaStatus','establishmentStatus','statusLabel','recognition','spread','impacts','control','disposal','legalNotes','dataNote'])assert(p.neophyte[key]&&p.neophyte[key].length,p.id+' '+key);assert.equal(p.cultivationScope,'IDENTIFICATION_AND_PREVENTION_REFERENCE_NO_CULTIVATION_ADVICE',p.id);assert.equal(p.care,'');assert.equal(p.planting,'');assert.equal(p.propagation.length,0);
    assert(p.sources.some(s=>s.url.startsWith('https://www.neobiota-austria.at/')),p.id);assert(p.sources.some(s=>s.url.startsWith('https://environment.ec.europa.eu/')),p.id);
    assert.equal(p.images.length,2,p.id);
   }
@@ -27,9 +27,9 @@ const catalog=JSON.parse(fs.readFileSync(path.join(assets,'plant-catalog.json'),
   const sandbox={window:{}};vm.runInNewContext(fs.readFileSync(path.join(assets,'plant-catalog.js'),'utf8'),sandbox);
   assert.deepEqual(JSON.parse(JSON.stringify(sandbox.window.GartenpiratCatalog)),catalog);
   for(const p of catalog.plants){
-   assert(p.family&&p.planting&&p.care,p.id);if(!p.neophyte)assert(p.light.length&&p.water.length,p.id);assert.equal(p.images.length,2,p.id);
-   assert(p.sources.every(s=>/^https:\/\/(plants\.ces\.ncsu\.edu|www\.rhs\.org\.uk|gizbonn\.de|www\.neobiota-austria\.at|environment\.ec\.europa\.eu)\//.test(s.url)),p.id);
-   for(const pic of p.images){const image=fs.readFileSync(path.join(assets,pic.path));assert(pic.author&&pic.source.startsWith('https://')&&pic.licenseUrl.startsWith('https://'));assert(/^(?:CC0|Public domain|Public Domain Mark|CC BY(?:-SA)? [1-4]\.[0-9])/.test(pic.license)&&!/NC|ND/.test(pic.license),pic.license);assert(!image.includes(Buffer.from('Exif\0\0')),pic.path);}
+   assert(p.editorialRevision?.profileSha256&&p.safetyNotice,p.id);assert.equal(typeof p.care,'string');assert.equal(typeof p.planting,'string');if(!p.neophyte)assert(p.light.length&&p.water.length,p.id);assert.equal(p.images.length,2,p.id);
+   assert(p.sources.every(s=>/^https:\/\/(plants\.ces\.ncsu\.edu|www\.rhs\.org\.uk|gizbonn\.de|www\.neobiota-austria\.at|environment\.ec\.europa\.eu|powo\.science\.kew\.org|www\.bfn\.de|lfu\.brandenburg\.de|www\.infoflora\.ch|www\.bafu\.admin\.ch)\//.test(s.url)),p.id);
+   for(const pic of p.images){const image=fs.readFileSync(path.join(assets,pic.path));assert(pic.author&&pic.source.startsWith('https://')&&pic.licenseUrl.startsWith('https://'));assert(/^(?:CC0-1\.0|CC-BY(?:-SA)?-[1-4]\.[0-9](?:-[A-Z]{2})?)$/.test(pic.license)&&!/NC|ND/.test(pic.license),pic.license);assert(!image.includes(Buffer.from('Exif\0\0')),pic.path);}
   }
   for(const file of ['plant-catalog.json','plant-catalog.js'])assert.deepEqual(fs.readFileSync(path.join(root,'static',file)),fs.readFileSync(path.join(assets,file)),file);
   const sw=fs.readFileSync(path.join(root,'static/sw.js'),'utf8');for(const p of catalog.plants)for(const pic of p.images)assert(sw.includes('/'+pic.path),pic.path);
@@ -76,6 +76,19 @@ const catalog=JSON.parse(fs.readFileSync(path.join(assets,'plant-catalog.json'),
    await page.locator('[data-gp-action=image-next]').click();assert.equal(await page.locator('#gp-image-count').innerText(),'Bild 2 von 2');
    await page.evaluate(()=>handleAndroidBack());assert.equal(await page.locator('.gp-portrait h3').innerText(),'Götterbaum');assert.equal(await page.locator('#gp-dialog').evaluate(node=>node.classList.contains('gp-image-mode')),false);
    await page.locator('.gp-back').click();
+  });
+  await test('Older WebView CSS keeps portraits and fullscreen images inside the viewport without inset or dvh',async()=>{
+   const fallback=fs.readFileSync(path.join(assets,'gartenpirat.css'),'utf8').replace(/\binset\s*:[^;{}]+;?/g,'').replace(/[a-z-]+\s*:[^;{}]*dvh\b[^;{}]*;?/gi,'');
+   await page.evaluate(css=>{document.querySelector('link[href*="gartenpirat.css"]').disabled=true;const style=document.createElement('style');style.id='qa-old-webview-css';style.textContent=css;document.head.append(style);},fallback);
+   try{
+    for(const [width,font] of [[320,16],[360,16],[320,32],[360,32]]){
+     await page.setViewportSize({width,height:640});await page.evaluate(font=>{document.documentElement.style.fontSize=font+'px';Gartenpirat.close();},font);await launch();await page.locator('[data-gp-action=lexicon]').click();await page.locator('#gp-query').fill('Götterbaum');await page.locator('.gp-plant-card').click();
+     const portrait=await page.locator('#gp-dialog').boundingBox();assert(portrait.y>=0&&portrait.y+portrait.height<=641,JSON.stringify(portrait));assert(await page.locator('#gp-title').evaluate(e=>e.scrollWidth<=e.clientWidth+1));
+     await page.locator('[data-gp-image="0"]').click();await page.waitForFunction(()=>{const i=document.querySelector('#gp-full-image');return i.complete&&i.naturalWidth>0;});
+     const image=await page.locator('#gp-full-image').boundingBox();assert(image.width>100&&image.height>100&&image.x>=0&&image.y>=0&&image.x+image.width<=width+1&&image.y+image.height<=641,JSON.stringify(image));const caption=await page.locator('#gp-image-caption').boundingBox(),help=await page.locator('.gp-image-help').boundingBox();assert(caption.y+caption.height+4<=help.y&&help.y+help.height<=641,JSON.stringify({caption,help}));
+     await page.evaluate(()=>handleAndroidBack());const title=await page.locator('.gp-portrait h3').boundingBox();assert(title.y>=0&&title.y+title.height<=641,JSON.stringify(title));assert(await page.locator('#gp-dialog').evaluate(e=>e.open));
+    }
+   }finally{await page.evaluate(()=>{document.documentElement.style.fontSize='';document.querySelector('#qa-old-webview-css').remove();document.querySelector('link[href*="gartenpirat.css"]').disabled=false;});await page.setViewportSize({width:412,height:915});}
   });
   await test('Lexicon searches scientific and German names, combines filters and handles zero results',async()=>{
    await page.evaluate(()=>Gartenpirat.close());await launch();await page.locator('[data-gp-action=lexicon]').click();await page.locator('#gp-query').fill('Lavandula angustifolia');assert.equal(await page.locator('.gp-plant-card').count(),1);
@@ -126,7 +139,7 @@ const catalog=JSON.parse(fs.readFileSync(path.join(assets,'plant-catalog.json'),
    for(const width of [320,360,412,1280]){await page.setViewportSize({width,height:915});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
    assert.deepEqual(external,[]);assert.deepEqual(await page.evaluate(()=>gpWrites),[]);assert.deepEqual(errors,[]);
   });
-  await test('All 362 packaged botanical images decode while offline',async()=>{
+  await test('All628 packaged botanical images decode while offline',async()=>{
    await context.setOffline(true);
    const paths=catalog.plants.flatMap(p=>p.images.map(image=>image.path));
    const failed=await page.evaluate(async paths=>{const failed=[];for(const src of paths){const image=new Image();image.src=src;try{await image.decode();if(!image.naturalWidth||!image.naturalHeight)failed.push(src);}catch(_){failed.push(src);}}return failed;},paths);

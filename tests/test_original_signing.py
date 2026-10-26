@@ -24,6 +24,24 @@ sys.path.insert(0, str(ROOT))
 from tools import sign_original_apk as signing
 
 
+class ObservedReleaseBaselineTests(unittest.TestCase):
+    def test_current_observation_blocks_same_or_older_release(self):
+        from tools.check_release_baseline import require_newer_version
+        state=json.loads((ROOT/'AKTUELLER-STAND.json').read_text())
+        self.assertEqual(require_newer_version(99,state),98)
+        for candidate in (77,97,98):
+            with self.subTest(candidate=candidate),self.assertRaises(ValueError):require_newer_version(candidate,state)
+
+    def test_incomplete_observations_fail_closed_and_newer_observation_wins(self):
+        from tools.check_release_baseline import require_newer_version
+        state=json.loads((ROOT/'AKTUELLER-STAND.json').read_text())
+        for observations in ([],[{'version_code':98}],[{'version_code':True,'observed_at_utc':'qa','reported_base_git_sha':'0'*40,'source_sha256':'0'*64}]):
+            with self.subTest(observations=observations),self.assertRaises(ValueError):require_newer_version(99,{'observed_installation_history':observations})
+        state['observed_installation_history'].insert(0,{**state['observed_installation_history'][-1],'version_code':100})
+        with self.assertRaises(ValueError):require_newer_version(99,state)
+        self.assertEqual(require_newer_version(101,state),100)
+
+
 class OriginalSigningTests(unittest.TestCase):
     def setUp(self):
         # These tests isolate signing; the source handoff guard has its own real

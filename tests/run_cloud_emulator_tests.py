@@ -55,13 +55,26 @@ def emulator_lock(serial, folder=None):
 def successful_output(output, mode):
     if re.search(r'\bFAIL(?:ED)?\b|INSTRUMENTATION_FAILED|Process crashed|acceptance failures=[1-9]', output):
         return False
-    if mode in ('acceptance','estimates','provider'):
+    if mode in ('acceptance','estimates','provider','mcp_workflows','revier_core','revier_ui','revier_authority','revier_finance','revier_recovery'):
         return bool(re.search(r'RESULT [0-9]+ Android SQLite/MCP tests passed; acceptance failures=0;', output))
+    if mode in ('plants','plants_ui'):
+        count=4 if mode=='plants' else 2
+        return bool(re.search(r'RESULT '+str(count)+r' Android plant98 tests passed; acceptance failures=0', output))
     expected = {'verify': 'PASS in-place update preserves complete snapshot',
                 'fresh': 'PASS fresh empty business data', 'fresh_isolated': 'PASS fresh empty business data',
                 'prepare': 'PASS synthetic upgrade fixture prepared',
-                'ui': 'PASS native WebView boot'}
+                'accessibility': 'PASS native overview accessibility', 'ui': 'PASS native WebView boot'}
     return expected.get(mode, '\0') in output
+
+
+def instrumentation_budget(mode, requested=None):
+    # Host budget for the whole accumulated suite; individual native/UI guards remain unchanged.
+    default = 1800 if mode in ('acceptance', 'revier_core', 'revier_recovery') else 900
+    if requested is None:
+        return default
+    if type(requested) is not int or requested not in (900, 1800, 3600):
+        raise ValueError('Explicit bounded Cloud instrumentation budget required.')
+    return requested
 
 
 def main():
@@ -70,13 +83,15 @@ def main():
     parser.add_argument('--adb', default=str(Path(os.environ.get('ANDROID_HOME', '')) / 'platform-tools/adb'))
     parser.add_argument('--apk', type=Path)
     parser.add_argument('--instrumentation-apk', type=Path)
-    parser.add_argument('--mode', choices=['acceptance', 'fresh', 'prepare', 'verify', 'ui', 'estimates', 'provider', 'fresh_isolated'], default='acceptance')
+    parser.add_argument('--mode', choices=['acceptance', 'fresh', 'prepare', 'verify', 'ui', 'estimates', 'provider', 'mcp_workflows', 'fresh_isolated', 'accessibility', 'plants', 'plants_ui', 'revier_core', 'revier_ui','revier_authority','revier_finance','revier_recovery','process_recovery'], default='acceptance')
+    parser.add_argument('--timeout-seconds', type=int, choices=(900, 1800, 3600), help='Bounded host budget for one accumulated instrumentation suite; native per-case guards are unchanged.')
     args = parser.parse_args()
     with emulator_lock(args.serial):
         run(args)
 
 
 def run(args):
+    timeout = instrumentation_budget(args.mode, getattr(args, 'timeout_seconds', None))
     require_emulator(args.adb, args.serial)
     for apk in [args.apk, args.instrumentation_apk]:
         if apk:
@@ -85,6 +100,8 @@ def run(args):
             result = command(args.adb, args.serial, ['install', '--no-streaming', '-r', str(apk)], timeout=180)
             if 'Success' not in result:
                 raise RuntimeError('Emulator APK installation was not confirmed.')
+    if args.mode == 'process_recovery':
+        return process_recovery(args)
     flags = [] if args.mode == 'acceptance' else ['-e', 'release_lifecycle', args.mode]
     folder = ROOT / 'outputs' / 'cloud-emulator'
     folder.mkdir(parents=True, exist_ok=True)
@@ -93,11 +110,39 @@ def run(args):
     with log.open('w') as stream:
         subprocess.run([args.adb, '-s', args.serial, 'shell', 'am', 'instrument', '-w', *flags,
                         'at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation'],
-                       env=env, stdout=stream, stderr=subprocess.STDOUT, timeout=900, check=True)
+                       env=env, stdout=stream, stderr=subprocess.STDOUT, timeout=timeout, check=True)
     output = log.read_text()
     print(output)
     if not successful_output(output, args.mode):
         raise SystemExit(1)
+
+
+def process_recovery(args):
+    """Force-stop only the locked dedicated AVD; never clear package data.
+
+    Native preparation deliberately keeps SQLite and WebView open. Verification
+    requires another PID and the same original image, draft and native context.
+    """
+    folder = ROOT / 'outputs' / 'cloud-emulator'
+    folder.mkdir(parents=True, exist_ok=True)
+    combined = []
+    for fault in ('before_chunk', 'after_chunk', 'after_commit', 'editors', 'business'):
+        for phase in ('prepare', 'verify'):
+            require_emulator(args.adb, args.serial)
+            mode = 'process_' + phase + '_' + fault
+            output = command(args.adb, args.serial, ['shell', 'am', 'instrument', '-w',
+                             '-e', 'release_lifecycle', mode,
+                             'at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation'], timeout=180)
+            (folder / (mode + '.log')).write_text(output)
+            expected = 'PASS actual process checkpoint ' + ('prepared ' if phase == 'prepare' else 'verified ') + fault
+            if expected not in output or re.search(r'\bFAIL(?:ED)?\b|Process crashed|INSTRUMENTATION_FAILED', output):
+                raise RuntimeError('Actual process recovery failed; see ' + str(folder / (mode + '.log')))
+            combined.append(output)
+            if phase == 'prepare':
+                require_emulator(args.adb, args.serial)
+                command(args.adb, args.serial, ['shell', 'am', 'force-stop', 'at.hausgarten.service'])
+    (folder / 'process_recovery.log').write_text('\n'.join(combined))
+    print('PASS actual OS process recovery before first chunk, after partial chunk and after native commit; original PNG and complete shared draft preserved; production inquiry/order editors and lost inquiry/order/offer commits resumed from native state after OS death')
 
 
 if __name__ == '__main__':

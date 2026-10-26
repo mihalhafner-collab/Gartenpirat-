@@ -16,18 +16,23 @@ import java.util.UUID;
 /** Crash-safe handoff for a work photo whose worklog has already been stored. */
 final class PendingWorkPhotoStore {
     private static final long MAX_JSON_BYTES = ((PhotoAttachmentStore.MAX_BYTES + 2L) / 3L) * 4L + 64L * 1024L;
+    private final Context context;
     private final AtomicFile file;
 
     PendingWorkPhotoStore(Context context) {
+        LocalAuthorityGuard.assertStoreMayOpen(context);this.context=context;
         file = new AtomicFile(new File(context.getFilesDir(), "pending-work-photo.json"));
     }
 
     synchronized String stage(String raw) throws Exception {
+        LocalAuthorityGuard.assertStoreMayOpen(context);
         if (raw == null) throw new IllegalArgumentException("Der Foto-Wiederholauftrag fehlt.");
         JSONObject payload = new JSONObject(raw);
         if (payload.optString("id").isEmpty())
             payload.put("id", "pho_mobile_" + UUID.randomUUID().toString().replace("-", ""));
+        if(!payload.has("_capture_context")){JSONObject identity=new BackupDeviceGuard(context).current();payload.put("_capture_context",new JSONObject().put("formatVersion",1).put("installation_id",identity.getString("installationId")).put("restore_epoch",identity.getString("restoreEpoch")));}
         validate(payload);
+        String existing=read();if(!existing.isEmpty()){JSONObject before=new JSONObject(existing);if(!PixelMcpWriteTools.hash(before).equals(PixelMcpWriteTools.hash(payload)))throw new IllegalStateException("Ein anderer Fotoauftrag wartet noch auf Prüfung. Neue Fotoentwürfe über die getrennte Arbeitserfassung anlegen.");return existing;}
         byte[] bytes = payload.toString().getBytes(StandardCharsets.UTF_8);
         if (bytes.length > MAX_JSON_BYTES) throw new IllegalArgumentException("Der Foto-Wiederholauftrag ist zu groß.");
         FileOutputStream output = null;
@@ -43,14 +48,17 @@ final class PendingWorkPhotoStore {
     }
 
     synchronized String read() throws Exception {
+        LocalAuthorityGuard.assertStoreMayOpen(context);
         File source = file.getBaseFile();
-        if (!source.isFile()) return "";
-        if (source.length() <= 0 || source.length() > MAX_JSON_BYTES)
-            throw new IllegalStateException("Der gespeicherte Foto-Wiederholauftrag ist beschädigt oder zu groß.");
-        ByteArrayOutputStream output = new ByteArrayOutputStream((int) source.length());
+        if (!source.isFile()&&!new File(source+".bak").isFile()) return "";
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
         byte[] block = new byte[8192];
         int count;
         try (FileInputStream input = file.openRead()) {
+            // openRead restores AtomicFile's last valid .bak after an interrupted
+            // write. Checking only the missing base file would hide that draft.
+            if (source.length() <= 0 || source.length() > MAX_JSON_BYTES)
+                throw new IllegalStateException("Der gespeicherte Foto-Wiederholauftrag ist beschädigt oder zu groß.");
             while ((count = input.read(block)) >= 0) {
                 if (output.size() + count > MAX_JSON_BYTES)
                     throw new IllegalStateException("Der gespeicherte Foto-Wiederholauftrag ist zu groß.");
@@ -59,10 +67,12 @@ final class PendingWorkPhotoStore {
         }
         JSONObject payload = new JSONObject(new String(output.toByteArray(), StandardCharsets.UTF_8));
         validate(payload);
+        if(!payload.has("_capture_context")&&!new BackupDeviceGuard(context).current().optString("lastRestoreRequest").isEmpty())payload.put("_capture_context",new JSONObject().put("formatVersion",1).put("unknown_restore",true));
         return payload.toString();
     }
 
     synchronized void clear() {
+        LocalAuthorityGuard.assertStoreMayOpen(context);
         file.delete();
     }
 

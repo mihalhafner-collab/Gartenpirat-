@@ -1,0 +1,7 @@
+{
+  "classification": "SYNTHETIC_TEST",
+  "baseline_git_sha": "d45c72544533fbb4420513d454b03a9043cac99f",
+  "handler_sha256": "5204950e82fb2e0e2b006a01c473b23bef3c1c109fb56b92402c3c8b5a79476c",
+  "approved_handler_sha256": "217e374fddfe1325005bd2da07951e659619923ec2f5cffe459048a034528043",
+  "approved_change": "25.10.2026: shared durable action envelope, explicit post-confirmation draft cleanup; minimal completed action preserves identical retry ID. Original hash retained; confirmation, CAS fields and dirty-form guards stay runtime-tested."
+}

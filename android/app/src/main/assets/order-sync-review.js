@@ -14,9 +14,9 @@
    const anchor=document.getElementById(target);if(!anchor)continue;
    let section=document.getElementById(id);if(!section){section=document.createElement('section');section.id=id;section.className='sr-queue';anchor.after(section);}
    section.hidden=!ids.length;
-   section.innerHTML=ids.length?'<h3>Nicht synchronisierte Aufträge</h3><p>Prüfe die Angaben und entscheide anschließend, was gespeichert wird.</p>'+ids.map(orderId=>{
+   section.innerHTML=ids.length?'<h3>Historische Auftragsvorgänge</h3><p>Prüfe die Angaben und entscheide anschließend, was gespeichert wird.</p>'+ids.map(orderId=>{
     const actions=pending.filter(a=>a.payload.id===orderId),last=actions.at(-1).payload,issues=actions.map(a=>queue.get(a.client_id)).filter(q=>q&&['sync_conflict','sync_failed'].includes(q.state));
-    const message=issues.length?(issues[0].error||issues[0].message):'Auf diesem Gerät gespeichert · Abgleich ausstehend';
+    const message=issues.length?(issues[0].error||issues[0].message):'Historischer Vorgang lokal erhalten · Prüfung ausstehend';
     return '<div class="sr-row"><strong>'+esc(last.title||'Auftrag ohne Bezeichnung')+'</strong><small>'+esc(message)+'</small><button type="button" data-review-order="'+esc(orderId)+'">Prüfen und bearbeiten</button></div>';
    }).join(''):'';
   }
@@ -28,7 +28,7 @@
    dialog.innerHTML='<header><h2 id="sr-title">Auftrag prüfen</h2><button type="button" data-sr-close aria-label="Prüfung schließen">×</button></header><div class="sr-body">'+
     '<p>Die Prüfung verändert keine Daten. Deine Entscheidung wird erst mit „Ergebnis speichern“ übernommen.</p>'+
     '<ul class="sr-checks">'+inspection.checks.map(c=>'<li class="'+(c.ok?'sr-ok':'sr-error')+'"><strong>'+esc(c.label)+': '+(c.ok?'In Ordnung':'Bitte korrigieren')+'</strong><span>'+esc(c.message)+'</span></li>').join('')+'</ul>'+
-    (inspection.reasons?.length?'<aside class="sr-reasons"><strong>Warum der Abgleich offen ist</strong>'+inspection.reasons.map(r=>'<p>'+esc(r)+'</p>').join('')+'</aside>':'<p>Bislang kein fachlicher Fehler erkannt. Eine ausstehende Übertragung kann an Verbindung oder Drive-Zugriff liegen.</p>')+
+    (inspection.reasons?.length?'<aside class="sr-reasons"><strong>Warum der historische Vorgang offen ist</strong>'+inspection.reasons.map(r=>'<p>'+esc(r)+'</p>').join('')+'</aside>':'<p>Bislang kein fachlicher Fehler erkannt. Historische offene Vorgänge werden nicht mehr an Drive übertragen; den lokalen Ausgangsstand kontrolliert prüfen.</p>')+
     '<form id="sr-form"><fieldset><legend>Was soll gespeichert werden?</legend><label><input type="radio" name="decision" value="save" checked> Die unten angezeigten Angaben übernehmen</label>'+
     (inspection.current&&inspection.reasons?.length?'<label><input type="radio" name="decision" value="keep"> Den bereits übernommenen Stand behalten</label><details><summary>Bereits übernommener Stand</summary><p>'+esc(inspection.current.title)+' · '+esc(customers.find(c=>c.id===inspection.current.customer_id)?.name||inspection.current.customer_id)+' · '+esc(inspection.current.status)+'</p><p>'+esc(inspection.current.description||'Keine Beschreibung')+'</p><p>'+esc(inspection.current.location||'Kein Ort')+' · '+esc(inspection.current.scheduled_date||'Kein Termin')+'</p></details>':'')+
     '</fieldset><fieldset id="sr-fields"><legend>Auftragsangaben bearbeiten</legend><label>Bezeichnung<input name="title" required maxlength="500" value="'+esc(row.title)+'"></label><label>Kunde<select name="customer_id" required>'+opts(row.customer_id)+'</select></label><label>Rechnungsempfänger<select name="billing_customer_id">'+opts(row.billing_customer_id,true)+'</select></label><label>Beschreibung<textarea name="description">'+esc(row.description)+'</textarea></label><label>Ort<input name="location" value="'+esc(row.location)+'"></label><label>Termin · optional<input type="date" name="scheduled_date" value="'+esc(row.scheduled_date)+'"></label><label>Status<select name="status">'+statusOptions(row.status||'Geplant')+'</select></label><label><input name="customer_visible" type="checkbox" '+(Number(row.customer_visible??1)?'checked':'')+'> Für Kunden sichtbar</label></fieldset>'+
@@ -50,7 +50,7 @@
   saving=true;const button=form.querySelector('[type=submit]');button.disabled=true;
   try{
    api('saveReviewedOrder',JSON.stringify(request));close(true);
-   if(typeof load==='function')load();refresh();window.showUndoToast?.('Prüfergebnis lokal gespeichert. Der Drive-Abgleich folgt automatisch.');
+   if(typeof load==='function')load();refresh();window.showUndoToast?.('Prüfergebnis lokal gespeichert. Externe Sicherung ausstehend.');
   }catch(error){dialog.querySelector('#sr-message').textContent=error.message;}
   finally{saving=false;button.disabled=false;}
  });

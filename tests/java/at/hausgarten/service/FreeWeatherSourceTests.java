@@ -18,8 +18,8 @@ public final class FreeWeatherSourceTests {
  public static void main(String[] args)throws Exception{
   SyntheticBusinessData.verify();long h=3600,d=24*h;long[][] cadence={{15*d,d},{14*d,d},{8*d,d},{7*d,12*h},{4*d,12*h},{72*h,6*h},{25*h,6*h},{24*h,3*h},{7*h,3*h},{6*h,h},{3*h,h},{0,h}};
   for(long[] c:cadence)yes(FreeWeatherSource.intervalSeconds(c[0])==c[1]);
-  Instant now=Instant.parse("2026-10-20T00:00:00Z");final int[] calls={0};DriveRestClient.Wire never=(m,u,headers,b,max)->{calls[0]++;throw new AssertionError("No network before T-14");};
-  JSONObject cache=new JSONObject();FreeWeatherSource.refreshSite("48.2,16.3",cache,now,15*d,never);yes(calls[0]==0&&!cache.getJSONObject("monitoring").getBoolean("active"));
+  Instant now=Instant.parse("2026-10-20T00:00:00Z");final int[] calls={0};DriveRestClient.Wire never=(m,u,headers,b,max)->{calls[0]++;throw new AssertionError("No network before T-16");};
+  JSONObject cache=new JSONObject();FreeWeatherSource.refreshSite("48.2,16.3",cache,now,17*d,never);yes(calls[0]==0&&!cache.getJSONObject("monitoring").getBoolean("active"));
   rejects(()->FreeWeatherSource.coords("91,16"));rejects(()->FreeWeatherSource.coords("NaN,16"));rejects(()->FreeWeatherSource.coords("48,16,1"));
   JSONObject raw=data(),hourly=FreeWeatherSource.normalizeGeoSphere(raw).getJSONObject("hourly");yes(Math.abs(hourly.getJSONArray("temperature_2m").getDouble(0)-10)<.001);yes(hourly.getJSONArray("precipitation").isNull(0));yes(hourly.getJSONArray("precipitation").getDouble(1)==2);
   JSONObject p=raw.getJSONArray("features").getJSONObject(0).getJSONObject("properties").getJSONObject("parameters");p.getJSONObject("rain_acc").getJSONArray("data").put(1,JSONObject.NULL);yes(FreeWeatherSource.normalizeGeoSphere(raw).getJSONObject("hourly").getJSONArray("precipitation").isNull(2));

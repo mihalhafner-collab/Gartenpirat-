@@ -24,14 +24,14 @@ import java.util.UUID;
 public final class PhotoCaptureProvider extends ContentProvider {
     private static final String PREFIX = "capture-";
     private static final String SUFFIX = ".jpg";
-    private static final long STALE_MS = 24L * 60L * 60L * 1000L;
-
     @Override public boolean onCreate() {
-        Context context=getContext();if(context!=null)cleanupStale(context);
+        // Providers start even while recovery is held. Never touch draft files here:
+        // the recovery screen must remain reachable before any business handle opens.
         return true;
     }
 
     static File createTarget(Context context) throws IOException {
+        LocalAuthorityGuard.assertStoreMayOpen(context);
         File directory=directory(context);
         if(!directory.isDirectory()&&!directory.mkdirs())throw new IOException("Kamera-Zwischenspeicher ist nicht verfügbar.");
         cleanupStale(context);
@@ -41,6 +41,7 @@ public final class PhotoCaptureProvider extends ContentProvider {
     }
 
     static Uri uri(Context context,File file) throws FileNotFoundException {
+        LocalAuthorityGuard.assertStoreMayOpen(context);
         if(file==null)throw new FileNotFoundException("Die vorbereitete Kameradatei fehlt.");
         File checked=checked(context,file.getName());
         try{
@@ -56,14 +57,16 @@ public final class PhotoCaptureProvider extends ContentProvider {
     }
 
     static void cleanupStale(Context context) {
-        File[] files=directory(context).listFiles();if(files==null)return;
-        long cutoff=System.currentTimeMillis()-STALE_MS;
-        for(File file:files)if(validName(file.getName())&&file.isFile()&&file.lastModified()<cutoff)file.delete();
+        LocalAuthorityGuard.assertStoreMayOpen(context);
+        // Age does not establish that a capture is unreferenced: it may be an
+        // interrupted camera handoff or a restored draft. Preserve every file until
+        // its owning operation explicitly releases it; there is no automatic purge.
     }
 
     private static File directory(Context context){return new File(context.getCacheDir(),"photo-capture");}
     private static boolean validName(String name){return name!=null&&name.matches("capture-[0-9a-f]{32}\\.jpg");}
     private static File checked(Context context,String name)throws FileNotFoundException{
+        LocalAuthorityGuard.assertStoreMayOpen(context);
         if(!validName(name))throw new FileNotFoundException();
         try{
             File directory=directory(context).getCanonicalFile(),file=new File(directory,name).getCanonicalFile();
@@ -75,11 +78,11 @@ public final class PhotoCaptureProvider extends ContentProvider {
         }
     }
     private File file(Uri uri)throws FileNotFoundException{
-        Context context=getContext();if(context==null||uri==null||!"content".equals(uri.getScheme())||!(context.getPackageName()+".photocapture").equals(uri.getAuthority())||uri.getPathSegments().size()!=1)throw new FileNotFoundException();
+        Context context=getContext();if(context==null)throw new FileNotFoundException();LocalAuthorityGuard.assertStoreMayOpen(context);if(uri==null||!"content".equals(uri.getScheme())||!(context.getPackageName()+".photocapture").equals(uri.getAuthority())||uri.getPathSegments().size()!=1)throw new FileNotFoundException();
         File file=checked(context,uri.getLastPathSegment());if(!file.isFile())throw new FileNotFoundException();return file;
     }
 
-    @Override public String getType(Uri uri){return "image/jpeg";}
+    @Override public String getType(Uri uri){try{file(uri);return "image/jpeg";}catch(FileNotFoundException invalid){return null;}}
     @Override public ParcelFileDescriptor openFile(Uri uri,String mode)throws FileNotFoundException{
         File target=file(uri);
         if("r".equals(mode))return ParcelFileDescriptor.open(target,ParcelFileDescriptor.MODE_READ_ONLY);

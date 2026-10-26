@@ -18,7 +18,7 @@ public final class TrashMediaCleanupTests {
     }
     static PixelLocalStore store()throws Exception {return new PixelLocalStore();}
     static JSONObject archive(PixelLocalStore store)throws Exception {return OwnerJournalRules.archives(store.master);}
-    static void retainAll(PixelLocalStore store,DriveSyncCoordinator.Files files)throws Exception {
+    static void retainAll(PixelLocalStore store,CleanupSyncStub files)throws Exception {
         JSONObject before=SyntheticBusinessData.object(store.master.toString());
         JSONObject result=TrashMediaCleanup.run(store,files,store.master);
         yes(result.getInt("pending")==0,"shared cleanup completes without removing shared files");
@@ -28,7 +28,7 @@ public final class TrashMediaCleanupTests {
     }
     public static void main(String[] ignored)throws Exception {
         SyntheticBusinessData.verify();
-        PixelLocalStore regular=store();DriveSyncCoordinator.Files files=new DriveSyncCoordinator.Files();
+        PixelLocalStore regular=store();CleanupSyncStub files=new CleanupSyncStub();
         JSONObject p=photo("qa_photo",1,true);archive(regular).put("photo:qa_photo",p);
         JSONObject result=TrashMediaCleanup.run(regular,files,regular.master);
         yes(result.getInt("completed")==1&&result.getInt("pending")==0,"one photo finishes");
@@ -36,7 +36,7 @@ public final class TrashMediaCleanupTests {
         int calls=files.calls;yes(TrashMediaCleanup.run(regular,files,regular.master).getInt("completed")==0,"completed receipt survives another pass");
         yes(files.calls==calls,"completed receipt does no further I/O");
         PixelLocalStore notPurged=store();archive(notPurged).put("photo:qa_archived",SyntheticBusinessData.object().put("record",TrashWorkflowTests.photo("qa_archived")));
-        DriveSyncCoordinator.Files untouched=new DriveSyncCoordinator.Files();TrashMediaCleanup.run(notPurged,untouched,notPurged.master);
+        CleanupSyncStub untouched=new CleanupSyncStub();TrashMediaCleanup.run(notPurged,untouched,notPurged.master);
         yes(untouched.calls==0&&notPurged.markers.isEmpty(),"recoverable trash retains every byte");
         // Live, archived and queued references each protect originals and thumbnails.
         for(int mode=0;mode<3;mode++){
@@ -45,13 +45,13 @@ public final class TrashMediaCleanupTests {
             if(mode==0)shared.master.getJSONArray("photos").put(reference);
             if(mode==1)archive(shared).put("photo:qa_reference",SyntheticBusinessData.object().put("record",reference));
             if(mode==2)shared.pending.put(OffersAndPhotosTests.event("qa_queued_reference","qa_unsupported_proposal",SyntheticBusinessData.object().put("nested",reference)));
-            retainAll(shared,new DriveSyncCoordinator.Files());
+            retainAll(shared,new CleanupSyncStub());
         }
         PixelLocalStore attachment=store();JSONObject shared=photo("qa_attachment",3,false);archive(attachment).put("photo:qa_attachment",shared);
-        attachment.otherAttachments.add(shared.getJSONObject("media").getString("content_sha256"));retainAll(attachment,new DriveSyncCoordinator.Files());
+        attachment.otherAttachments.add(shared.getJSONObject("media").getString("content_sha256"));retainAll(attachment,new CleanupSyncStub());
         // Provider permission/CAS failures preserve local bytes and the retry marker.
         for(String failure:new String[]{"PERMISSION_REQUIRED","WRITE_CONFLICT"}){
-            PixelLocalStore retry=store();archive(retry).put("photo:qa_retry",photo("qa_retry",4,true));DriveSyncCoordinator.Files remote=new DriveSyncCoordinator.Files();remote.failure=failure;
+            PixelLocalStore retry=store();archive(retry).put("photo:qa_retry",photo("qa_retry",4,true));CleanupSyncStub remote=new CleanupSyncStub();remote.failure=failure;
             JSONObject failed=TrashMediaCleanup.run(retry,remote,retry.master);
             yes(failed.getInt("pending")==1&&failed.getInt("completed")==0,"failed cleanup remains pending");
             yes(failed.getString("error_code").equals(failure),"failure stays distinguishable");
@@ -61,19 +61,19 @@ public final class TrashMediaCleanupTests {
         }
         // A crash after remote deletion but before the local marker is safely repeatable.
         PixelLocalStore restart=store();archive(restart).put("photo:qa_restart",photo("qa_restart",5,true));restart.failLocal=true;
-        DriveSyncCoordinator.Files remote=new DriveSyncCoordinator.Files();
+        CleanupSyncStub remote=new CleanupSyncStub();
         yes(TrashMediaCleanup.run(restart,remote,restart.master).getInt("pending")==1,"local commit failure remains pending");
         yes(restart.markers.isEmpty()&&restart.deletedLocal.isEmpty(),"failed local commit writes no marker");
         restart.failLocal=false;yes(TrashMediaCleanup.run(restart,remote,restart.master).getInt("pending")==0,"restart resumes cleanup");
         yes(remote.deleted.size()==2,"verified remote delete is idempotent");
         // Snapshot/read errors fail closed before any remote/local file deletion.
         PixelLocalStore unreadable=store();archive(unreadable).put("photo:qa_read_error",photo("qa_read_error",6,true));unreadable.failRead=true;
-        DriveSyncCoordinator.Files noRead=new DriveSyncCoordinator.Files();
+        CleanupSyncStub noRead=new CleanupSyncStub();
         yes(TrashMediaCleanup.run(unreadable,noRead,unreadable.master).getInt("pending")==1,"unreadable current state remains pending");
         yes(noRead.calls==0&&unreadable.markers.isEmpty(),"read failure cannot remove files");
         // Four completed records per pass; remaining tombstones are never lost.
         PixelLocalStore bounded=store();for(int i=0;i<9;i++)archive(bounded).put("photo:qa_bound_"+i,photo("qa_bound_"+i,10+i,false));
-        DriveSyncCoordinator.Files batch=new DriveSyncCoordinator.Files();
+        CleanupSyncStub batch=new CleanupSyncStub();
         for(int remaining:new int[]{5,1,0}){
             JSONObject pass=TrashMediaCleanup.run(bounded,batch,bounded.master);
             yes(pass.getInt("completed")<=4&&pass.getInt("pending")==remaining,"bounded pass reports the remaining count");
@@ -85,7 +85,7 @@ public final class TrashMediaCleanupTests {
             JSONObject document=SyntheticBusinessData.object().put("pdf_storage_name",name).put("pdf_sha256","a".repeat(64));
             archive(documents).put("offer:qa_pdf",SyntheticBusinessData.object().put("purged",true).put("purge_action","qa_pdf_purge").put("document",document));
             if(referenced)documents.master.getJSONArray("invoices").put(SyntheticBusinessData.object().put("id","qa_kept_pdf").put("pdf_storage_name",name));
-            DriveSyncCoordinator.Files pdfs=new DriveSyncCoordinator.Files();
+            CleanupSyncStub pdfs=new CleanupSyncStub();
             yes(TrashMediaCleanup.run(documents,pdfs,documents.master).getInt("completed")==1,"PDF cleanup receipt completes");
             yes(pdfs.deleted.contains(name)==!referenced&&documents.deletedLocal.contains(name)==!referenced,"shared PDF is preserved");
             yes(TrashMediaCleanup.run(documents,pdfs,documents.master).getInt("completed")==0,"PDF cleanup marker is idempotent");
@@ -117,12 +117,9 @@ final class PixelLocalStore {
     }
 }
 
-/** No network, credentials, Android provider or filesystem deletion. */
-final class DriveSyncCoordinator {
-    static String failureCode(Exception error){String message=error.getMessage();return Arrays.asList("PERMISSION_REQUIRED","WRITE_CONFLICT").contains(message)?message:"TRANSFER_FAILED";}
-    static final class Files {
-        final Set<String> deleted=new HashSet<>();String failure="";int calls;
-        void deletePhotoFileVerified(String name,String hash)throws Exception{calls++;if(!failure.isEmpty())throw new IOException(failure);deleted.add(name);}
-        void deleteDocumentFileVerified(JSONObject document)throws Exception{deletePhotoFileVerified(document.getString("pdf_storage_name"),document.getString("pdf_sha256"));}
-    }
+/** Named I/O stub; failure classification is the actual production SyncFailureRules. */
+final class CleanupSyncStub implements TrashMediaCleanup.Files {
+    final Set<String> deleted=new HashSet<>();String failure="";int calls;
+    public void deletePhotoFileVerified(String name,String hash)throws Exception{calls++;if(!failure.isEmpty())throw new SyncIoFailure(failure);deleted.add(name);}
+    public void deleteDocumentFileVerified(JSONObject document)throws Exception{deletePhotoFileVerified(document.getString("pdf_storage_name"),document.getString("pdf_sha256"));}
 }

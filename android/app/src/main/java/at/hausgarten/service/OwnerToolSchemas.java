@@ -47,6 +47,7 @@ final class OwnerToolSchemas {
         BUILDERS.put("update_invoice_payment", OwnerToolSchemas::updateInvoicePayment);
     }
     static JSONObject schema(String name,boolean writable)throws Exception{
+        if(LocalWorkflowTools.handles(name))return LocalWorkflowTools.schema(name);
         JSONObject p=new JSONObject();List<String> required=new ArrayList<>();
         if(writable){p.put("request_id",text(128).put("minLength",8));required.add("request_id");}
         Fields fields=BUILDERS.get(name);
@@ -54,7 +55,7 @@ final class OwnerToolSchemas {
         if(p.has("expected_record_hash"))p.getJSONObject("expected_record_hash").put("description",Arrays.asList("delete_entity","archive_entity","update_invoice_payment").contains(name)?"entity_hash des zuvor gelesenen Datensatzes.":name.equals("restore_entity")?"record_hash des Eintrags aus list_archive.":"record_hash des zuvor gelesenen Datensatzes.");
         return object(p,required.toArray(new String[0]));
     }
-    private static JSONObject photoFields(JSONObject p)throws Exception{return p.put("session_id",text(500)).put("capture_time",text(80)).put("order_id",text(500)).put("worklog_id",text(500)).put("caption",text(10000)).put("role",enumeration("profile","documentation","before","during","after","damage","other")).put("customer_visible",bool()).put("original_name",text(240));}
+    private static JSONObject photoFields(JSONObject p)throws Exception{return p.put("session_id",text(500)).put("capture_time",text(80)).put("order_id",text(500)).put("worklog_id",text(500)).put("caption",text(10000)).put("role",enumeration("profile","documentation","before","during","after","damage","other")).put("customer_visible",bool()).put("original_name",text(240)).put("property_id",id()).put("visit_id",id());}
     private static void getUiActionCatalog(String name, JSONObject p, List<String> required) throws Exception {
         p.put("expected_catalog_hash",hash()).put("offset",number(0,1000000)).put("limit",number(1,100));
     }
@@ -125,7 +126,7 @@ final class OwnerToolSchemas {
     private static void updateBusinessSettings(String name, JSONObject p, List<String> required) throws Exception {
         {
                 JSONObject fields=new JSONObject();for(String key:BUSINESS_KEYS)fields.put(key,key.endsWith("_confirmed")?bool():(key.equals("invoice_sevdesk_last_number")||key.equals("invoice_numbering_last_number"))?number(0,1000000000):key.equals("invoice_number_format")?enumeration("own","sevdesk"):text(2000));
-                fields.put("invoice_numbering_authority",enumeration("","pixel_drive")).put("invoice_numbering_device_id",text(200)).put("tax_mode",enumeration("small_business","standard")).put("default_payment_days",number(0,365));
+                fields.put("invoice_numbering_authority",enumeration("","pixel_drive").put("minLength",0)).put("invoice_numbering_device_id",text(200)).put("tax_mode",enumeration("small_business","standard")).put("default_payment_days",number(0,365));
                 fields.put("invoice_prefix",text(20).put("pattern","[A-Za-z][A-Za-z0-9-]{0,19}"));
                 p.put("expected_record_hash",hash()).put("updates",object(fields).put("minProperties",1));required.addAll(Arrays.asList("expected_record_hash","updates"));
             }
@@ -143,7 +144,7 @@ final class OwnerToolSchemas {
         p.put("backup_id",id()).put("expected_state_hash",hash());required.addAll(Arrays.asList("backup_id","expected_state_hash"));
     }
     private static void requestInvoiceIssue(String name, JSONObject p, List<String> required) throws Exception {
-        p.put("invoice_id",id()).put("expected_record_hash",hash()).put("confirmed",bool().put("enum",new JSONArray().put(true)));required.addAll(Arrays.asList("invoice_id","expected_record_hash","confirmed"));
+        p.put("invoice_id",id()).put("expected_record_hash",hash()).put("expected_context_hash",hash()).put("confirmed",bool().put("enum",new JSONArray().put(true)));required.addAll(Arrays.asList("invoice_id","expected_record_hash","confirmed"));
     }
     private static void prepareInvoiceShare(String name, JSONObject p, List<String> required) throws Exception {
         p.put("invoice_id",id()).put("channel",enumeration("share","email","whatsapp"));required.addAll(Arrays.asList("invoice_id","channel"));

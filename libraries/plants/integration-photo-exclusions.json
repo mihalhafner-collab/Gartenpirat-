@@ -1,0 +1,204 @@
+{
+  "checkedAt": "2026-10-23",
+  "scope": "Actual contact-sheet review of all 628 candidates; these identities stay excluded even after re-encoding.",
+  "records": [
+    {
+      "plantId": "allium-sativum",
+      "referenceId": "allium-sativum-ref-1",
+      "originalSha256": "543fd24d261b51869b8a41e74f625eb95258035d58cba24da571ae5e1d3bfae8",
+      "derivativeSha256": "573134a0b7036d4634b1bc5d4c1917be7977060bf6296f0f3198908141da4433",
+      "checkedAt": "2026-10-23",
+      "reason": "Geerntete Knoblauchknollen; wachsende Pflanze wählen."
+    },
+    {
+      "plantId": "anthriscus-cerefolium",
+      "referenceId": "anthriscus-cerefolium-ref-3",
+      "originalSha256": "d2a61d4e27be4e46230144276bd27479841b69408c113f59ac4bbc3f09e45a94",
+      "derivativeSha256": "7ac8c941376700784d2fbda51b5bf2940ea57b46d33cc4a6b3bc20e46e27d75b",
+      "checkedAt": "2026-10-23",
+      "reason": "Isolierter trockener Samen; Blüte oder lebende Blätter wählen."
+    },
+    {
+      "plantId": "apium-graveolens",
+      "referenceId": "apium-graveolens-ref-1",
+      "originalSha256": "fc504277dfe9324a22b48ed1153412fe135e069df2d63b2b38e258db8ae858cf",
+      "derivativeSha256": "eaf58cca7db36ee0c4684d8304b51d496cabb3dc1ddb718818211779e8c01ccf",
+      "checkedAt": "2026-10-23",
+      "reason": "Gebündelte Verkaufsware; wachsende Pflanze wählen."
+    },
+    {
+      "plantId": "artemisia-dracunculus",
+      "referenceId": "artemisia-dracunculus-ref-1",
+      "originalSha256": "e513db13e3b7ea73509cb7623702a5369356da37397a20e575407c389d46f04f",
+      "derivativeSha256": "e24f723406bf680d6d46808e4195599341cc4fb9c51795a04b19794a991a5865",
+      "checkedAt": "2026-10-23",
+      "reason": "Bereits zurückgestelltes breitblättriges Motiv; schmale ganze Estragonblätter erforderlich."
+    },
+    {
+      "plantId": "borago-officinalis",
+      "referenceId": "borago-officinalis-ref-2",
+      "originalSha256": "2edde8af3d6391095406a77534523ad90dacc03db2d73a9286c502e555bc8367",
+      "derivativeSha256": "df353501fff08c8d13f925c86c474bf177aa00c1e6ad9dbbde876e99620f31f1",
+      "checkedAt": "2026-10-23",
+      "reason": "Sehr kleines unscharfes Blütenmotiv; klarere Blüte wählen."
+    },
+    {
+      "plantId": "carex-morrowii",
+      "referenceId": "carex-morrowii-ref-4",
+      "originalSha256": "4026ca32f52a4b0def5c886d03ee0658c821703d782c11e9ce4e6d3fb8b2caac",
+      "derivativeSha256": "4026ca32f52a4b0def5c886d03ee0658c821703d782c11e9ce4e6d3fb8b2caac",
+      "checkedAt": "2026-10-23",
+      "reason": "Gleiche Aufnahme wie erstes Foto; anderes Motiv erforderlich."
+    },
+    {
+      "plantId": "crassula-helmsii",
+      "referenceId": "crassula-helmsii-existing-2",
+      "originalSha256": "93acc409245d4c9f520c46c8bc39ffaf3ac4aaca0b317af9d745e83792ecfad1",
+      "derivativeSha256": "344b8437b5cf47b0351446a58f37aff4ea7869c07a3c0ffdb2b47287db10b09c",
+      "checkedAt": "2026-10-23",
+      "reason": "Bereits ausgeschlossenes von Gras überdecktes Motiv."
+    },
+    {
+      "plantId": "cucurbita-moschata",
+      "referenceId": "cucurbita-moschata-ref-1",
+      "originalSha256": "7c2d85a0813452fc620536719d8e55dbe620fec824af8362cdaaaac9a94652c2",
+      "derivativeSha256": "401cc597cd19e57bf686d8adaee401250124e87cad9cb2df2fe195597a4eb1e1",
+      "checkedAt": "2026-10-23",
+      "reason": "Aufgeschnittene Erntefrüchte; wachsende Pflanze wählen."
+    },
+    {
+      "plantId": "cucurbita-pepo",
+      "referenceId": "cucurbita-pepo-ref-1",
+      "originalSha256": "a34f7aa858513bb1b1f7793f3a7cebba3ae348c8bf227ecb1cbe8710d972ce97",
+      "derivativeSha256": "a34f7aa858513bb1b1f7793f3a7cebba3ae348c8bf227ecb1cbe8710d972ce97",
+      "checkedAt": "2026-10-23",
+      "reason": "Geerntete Fruchtsammlung; Blüte oder wachsende Pflanze wählen."
+    },
+    {
+      "plantId": "dahlia",
+      "referenceId": "dahlia-ref-2",
+      "originalSha256": "4af593e6fa40a96c2f0574dc4d879574b01d68b18fb8d60fda8905b66df7ebf1",
+      "derivativeSha256": "4af593e6fa40a96c2f0574dc4d879574b01d68b18fb8d60fda8905b66df7ebf1",
+      "checkedAt": "2026-10-23",
+      "reason": "Beide Bilder zeigen dieselbe Aufnahme; anderes Blattmotiv wählen."
+    },
+    {
+      "plantId": "hosta-plantaginea",
+      "referenceId": "hosta-plantaginea-existing-2",
+      "originalSha256": "d2f19683652f7187e7f2ba727d601508855cea910a23327a2f5c6de8a50e3137",
+      "derivativeSha256": "d348124f9f8ce9557563efb8782095b1e9d199e37693407ea9f8daf03ae76f59",
+      "checkedAt": "2026-10-23",
+      "reason": "Bereits beanstandetes lilafarbenes Motiv; weiße Blüte oder Wuchsbild erforderlich."
+    },
+    {
+      "plantId": "lagarosiphon-major",
+      "referenceId": "lagarosiphon-major-existing-2",
+      "originalSha256": "6bf1f37b5d472ce2660d902c2a1d66f09b73550154550373e2b7d9b050fb90cb",
+      "derivativeSha256": "56032a98a141ea87d937eb18bf0fc6d66a861d4306ef56e6b8749988aa3e9d36",
+      "checkedAt": "2026-10-23",
+      "reason": "Bereits ausgeschlossene ausgelegte alte Probe; lebendes Unterwassermotiv erforderlich."
+    },
+    {
+      "plantId": "myriophyllum-heterophyllum",
+      "referenceId": "myriophyllum-heterophyllum-supplement-2",
+      "originalSha256": "92706b918f4a5a18d5d8c76039f6eba0bcea8743fb7b06fb3d1ae72af266e34d",
+      "derivativeSha256": "cd45cf323894ce7cd0395c1e25f2fdf3b9e0c2b09c185ec71e910f60cec7cbe5",
+      "checkedAt": "2026-10-23",
+      "reason": "Seerosen dominieren die Wasserfläche; Zielpflanze nicht klar erkennbar."
+    },
+    {
+      "plantId": "papaver-orientale",
+      "referenceId": "papaver-orientale-ref-2",
+      "originalSha256": "532c5d4d2cad9511c34c8ab66e44cd451944842ab577b0405511d1bb0b32debb",
+      "derivativeSha256": "cfc53d86fc08b1148bb9e043eef5fa78aa90207e30292ac05f9cc7652151a42d",
+      "checkedAt": "2026-10-23",
+      "reason": "Bereits zurückgestelltes rosa Mohnmotiv mit unklarer Taxonzuordnung."
+    },
+    {
+      "plantId": "pisum-sativum",
+      "referenceId": "pisum-sativum-ref-1",
+      "originalSha256": "4b72494fca1244c0d8ddb5b564642cbcec79229309baa39ce61a9ae756eac976",
+      "derivativeSha256": "4b72494fca1244c0d8ddb5b564642cbcec79229309baa39ce61a9ae756eac976",
+      "checkedAt": "2026-10-23",
+      "reason": "Geöffnete geerntete Hülse; Blüte oder wachsende Pflanze wählen."
+    },
+    {
+      "plantId": "raphanus-sativus",
+      "referenceId": "raphanus-sativus-ref-1",
+      "originalSha256": "caec3bf1b57d6e699af0f23c5fdae8b7f341a46d6d21dcd0084344bbeab31eee",
+      "derivativeSha256": "caec3bf1b57d6e699af0f23c5fdae8b7f341a46d6d21dcd0084344bbeab31eee",
+      "checkedAt": "2026-10-23",
+      "reason": "Geerntete Wurzeln; Blüte oder lebendes Laub wählen."
+    },
+    {
+      "plantId": "reynoutria-japonica",
+      "referenceId": "reynoutria-japonica-existing-5",
+      "originalSha256": "9a177ff7144562a8997a060731c1b9a482a102f64d846aa054b6eac9d8245115",
+      "derivativeSha256": "a179c84d6ea5d52caf12e50406cd8cc89efddcb8caff2e703f94a95f4ab0be42",
+      "checkedAt": "2026-10-23",
+      "reason": "Bereits ausgeschlossene entfernte Straßenansicht; klares Pflanzenmotiv erforderlich."
+    },
+    {
+      "plantId": "ribes-nigrum",
+      "referenceId": "ribes-nigrum-existing-1",
+      "originalSha256": "553e30bea089527c3936776e752783bb7d0a8ca536656dd941df475e7499b376",
+      "derivativeSha256": "553e30bea089527c3936776e752783bb7d0a8ca536656dd941df475e7499b376",
+      "checkedAt": "2026-10-23",
+      "reason": "Geschädigtes braunes Blatt statt repräsentativem lebendem Laub."
+    },
+    {
+      "plantId": "rosa-canina",
+      "referenceId": "rosa-canina-existing-1",
+      "originalSha256": "91d4d50177634236cecb4e1b846d53ade2e6d088576556ded41c573c041fa222",
+      "derivativeSha256": "91d4d50177634236cecb4e1b846d53ade2e6d088576556ded41c573c041fa222",
+      "checkedAt": "2026-10-23",
+      "reason": "Insektenaufnahme dominiert; Rose nicht ausreichend als Pflanzenmotiv belegt."
+    },
+    {
+      "plantId": "salvinia-molesta",
+      "referenceId": "salvinia-molesta-existing-4",
+      "originalSha256": "54a7ac47328d3221338373050ab6a49e081fe8e7ba00fd8894a3da3ff3bc8a33",
+      "derivativeSha256": "c1405d994aa27a4b66753cb2c8d8501cf8ee955f6dcfe64fd8993998ca3fde04",
+      "checkedAt": "2026-10-23",
+      "reason": "Bereits ausgeschlossenes Mischmotiv mit Wasserhyazinthe im Vordergrund."
+    },
+    {
+      "plantId": "solanum-tuberosum",
+      "referenceId": "solanum-tuberosum-ref-1",
+      "originalSha256": "0070d74d413a6bd176928f102d36dc289f3429b0319ee9c67a55fa47cddc4261",
+      "derivativeSha256": "7dca4652709543529e7dbb1cfa4e399df4ecbaec540cc4421a0c02ae52de2db1",
+      "checkedAt": "2026-10-23",
+      "reason": "Erntekisten; wachsende Pflanze wählen."
+    },
+    {
+      "plantId": "thuja-occidentalis",
+      "referenceId": "thuja-occidentalis-ref-2",
+      "originalSha256": "5245e331eb81aa39d5f0f1ccbf281499ed5b0a044df1a136ac66a879f6c669a4",
+      "derivativeSha256": "5245e331eb81aa39d5f0f1ccbf281499ed5b0a044df1a136ac66a879f6c669a4",
+      "checkedAt": "2026-10-23",
+      "reason": "Schlange dominiert das zweite Motiv; Wuchsbild wählen."
+    },
+    {
+      "plantId": "weigela-florida",
+      "referenceId": "weigela-florida-ref-4",
+      "originalSha256": "80b8d5d31d58ae6010ce5f4e5eb7c8fbf15caed2b7218d62767c5aa6308f8aff",
+      "derivativeSha256": "e797459357085a242cc640cd91e8e7befc22d3a1c24bed9b228bd1809504ce79",
+      "checkedAt": "2026-10-23",
+      "reason": "Quelle nennt im Bildtitel Wisteria floribunda; eindeutigen Weigela-Beleg wählen."
+    },
+    {
+      "plantId": "zea-mays",
+      "referenceId": "zea-mays-ref-1",
+      "originalSha256": "6b895bf3a257b3961b061ebd05aae230676a9e976b3db9889245d744a550badb",
+      "derivativeSha256": "655131142eeec9aa72532fca0f166ef9f83d66c79ebc80241452114a0e224989",
+      "checkedAt": "2026-10-23",
+      "reason": "Abgetrennte zubereitete Kolben; wachsende Pflanze wählen."
+    },
+    {
+      "plantId": "papaver-orientale",
+      "referenceId": "papaver-orientale-ref-3",
+      "checkedAt": "2026-10-23",
+      "reason": "Zweites rosafarbenes Mohnmotiv bleibt taxonomisch unklar; eindeutigere orange Blüte mit behaarter Knospe und dunklen Basalflecken gewählt."
+    }
+  ]
+}

@@ -1,5 +1,13 @@
 /* Shared offline-safe draft preparation. Does not save, issue, price or send an invoice. */
 (function(root) {
+  function quantityFor(row) {
+    const detail=row.billing_quantity,remaining=row.quantity_remaining_decimal;
+    if(detail===undefined&&remaining===undefined)return null;
+    const decimal=value=>{const text=String(value??'');if(!/^\d+(?:\.\d{1,8})?$/.test(text))throw new Error('Die offene Leistungsmenge ist nicht exakt belegt. Bitte den Abrechnungsstand neu lesen.');const [whole,fraction='']=text.split('.');return BigInt(whole+fraction.padEnd(8,'0'));};
+    if(detail?.formatVersion!==1||typeof remaining!=='string'||decimal(remaining)!==decimal(detail.remaining_decimal)||decimal(detail.quantity_decimal)!==decimal(detail.allocated_decimal)+decimal(remaining)||decimal(remaining)<=0n)throw new Error('Die offene Leistungsmenge ist nicht eindeutig belegt. Bitte diesen Leistungsbezug prüfen.');
+    return remaining;
+  }
+  function quantityLabel(row) {const remaining=quantityFor(row);return remaining===null?Number(row.hours||0).toLocaleString('de-AT')+' h':'Offen: '+remaining.replace('.',',')+' h · tatsächlich: '+String(row.hours).replace('.',',')+' h';}
   function fromWorklogs(rows, existing = []) {
     if (!rows.length) throw new Error('Bitte mindestens eine Arbeitsaufzeichnung auswählen.');
     const recipient = w => w.billing_customer_id || w.customer_id;
@@ -14,7 +22,8 @@
       seen.add(w.id);
       const date = w.work_date.split('-').reverse().join('.');
       const site = w.customer_id !== customer ? (w.work_customer_name || w.customer_name || w.location || w.customer_id) : '';
-      positions.push({title:w.activity.trim(),description:[date,site,w.order_title,w.location].filter(Boolean).join(' · '),quantity:Number(w.hours),unit:'Std.',price:null,tax_rate:0,discount:0,worklog_id:w.id});
+      const remaining=quantityFor(w);
+      positions.push({title:w.activity.trim(),description:[date,site,w.order_title,w.location].filter(Boolean).join(' · '),quantity:remaining===null?Number(w.hours):remaining,unit:'Std.',price:null,tax_rate:0,discount:0,worklog_id:w.id});
       if (w.material?.trim()) positions.push({title:w.material.trim(),description:'Materialmenge und Preis vor Abschluss prüfen.',quantity:null,unit:'pauschal',price:null,tax_rate:0,discount:0,worklog_id:''});
       if (Number(w.kilometers) > 0) positions.push({title:'Fahrtkosten',description:date,quantity:Number(w.kilometers),unit:'km',price:null,tax_rate:0,discount:0,worklog_id:''});
     });
@@ -25,5 +34,5 @@
     if(positions.some(p=>p.price===null||p.price===undefined||p.price===''||p.quantity===null||p.quantity===undefined||p.quantity===''))throw new Error('Menge und Preis bitte ausdrücklich ergänzen.');
     return positions.reduce((sum,p) => sum + Math.round((Number(p.quantity)*Number(p.price)*(1-Number(p.discount||0)/100)+Number.EPSILON)*100),0)/100;
   }
-  root.InvoiceFlow = {fromWorklogs,total};
+  root.InvoiceFlow = {fromWorklogs,total,quantityFor,quantityLabel};
 })(typeof globalThis !== 'undefined' ? globalThis : window);

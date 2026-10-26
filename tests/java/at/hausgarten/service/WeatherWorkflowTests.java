@@ -35,6 +35,16 @@ public final class WeatherWorkflowTests {
   JSONObject pending=WeatherLocationRules.search(query,q->q.equals(query)?new JSONArray():null);yes(pending.getString("state").equals("pending"));
   yes(WeatherLocationRules.search(query,q->{throw new java.io.IOException("Synthetic unavailable");}).getString("state").equals("unavailable"));
   for(String state:new String[]{"not_found","ambiguous","unavailable","pending"})yes(WeatherLocationRules.retryable(state));yes(!WeatherLocationRules.retryable("address_resolved")&&!WeatherLocationRules.retryable("locality_resolved"));
+  // Abbreviations change only provider queries, never saved addresses or customer isolation.
+  String saint="QA Musterstraße 7, 9999 St. QA Musterort",expanded="QA Musterstraße 7, 9999 Sankt QA Musterort";
+  yes(WeatherLocationRules.matches(saint,expanded));yes(WeatherLocationRules.matches(expanded,saint));
+  yes(WeatherLocationRules.geocoderQuery(saint).equals(expanded));yes(WeatherLocationRules.geocoderQuery("9999 St.QA Musterort").equals("9999 Sankt QA Musterort"));
+  yes(!WeatherLocationRules.matches(saint,"QA Musterstraße 17, 9999 Sankt QA Musterort"));yes(!WeatherLocationRules.matches(saint,"QA Musterstraße 7, 9998 Sankt QA Musterort"));
+  searches.clear();JSONObject saintArea=WeatherLocationRules.search(saint,q->{searches.add(q);return q.equals(expanded)?new JSONArray():new JSONArray().put(candidate("9999 Sankt QA Musterort, Österreich",48.2));});
+  yes(searches.size()==2&&searches.get(1).equals("9999 Sankt QA Musterort"));yes(saintArea.optString("state").equals("locality_resolved")&&saintArea.getString("area_label").equals("9999 St. QA Musterort"));
+  yes(WeatherLocationRules.chooseLocality("9999 St. QA Musterort",new JSONArray().put(candidate("9999 Sankt QA Musterort",48.2)).put(candidate("9999 Sankt QA Musterort",47.2))).optString("state").equals("ambiguous"));
+  JSONObject saintContext=new JSONObject().put("customer_id","qa_c1").put("weather_location_label",saint);String originalSaint=saintContext.toString(),firstKey=WeatherLocationRules.cacheKey(saintContext);
+  WeatherLocationRules.cached(saintContext,saintArea);yes(originalSaint.equals(saintContext.toString()));yes(!firstKey.equals(WeatherLocationRules.cacheKey(new JSONObject(saintContext.toString()).put("customer_id","qa_c2"))));yes(WeatherLocationRules.RESOLVER_VERSION==3);
   Instant now=Instant.parse("2026-10-20T10:00:00Z");JSONObject appointment=new JSONObject().put("id","qa_a").put("title","QA Hecke schneiden").put("starts_at","2026-10-21T06:00:00Z").put("ends_at","2026-10-21T08:00:00Z").put("status","confirmed"),risk=new JSONObject().put("severity","critical").put("alert_hash","a".repeat(64)).put("reasons",new JSONArray().put("Starke Böen: Tätigkeit prüfen."));
   yes(WeatherAlertRules.shouldNotify(appointment,risk,now,"",""));yes(!WeatherAlertRules.shouldNotify(appointment,risk,now,"a".repeat(64),""));yes(!WeatherAlertRules.shouldNotify(appointment,risk,now,"","a".repeat(64)));risk.put("alert_hash","b".repeat(64));yes(WeatherAlertRules.shouldNotify(appointment,risk,now,"","a".repeat(64)));
   Instant night=Instant.parse("2026-10-20T21:00:00Z");yes(!WeatherAlertRules.shouldNotify(appointment,risk,night,"",""));risk.put("critical_official_warning",true);yes(WeatherAlertRules.shouldNotify(appointment,risk,night,"",""));

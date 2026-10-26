@@ -31,4 +31,10 @@ interface OwnerRepository {
     JSONObject acknowledgeWeather(JSONObject args) throws Exception;
     JSONObject resolveCalendar(JSONObject args) throws Exception;
     void checkBusy(JSONObject appointment) throws Exception;
+    default JSONObject fullBackupStatus(JSONObject args)throws Exception {throw new UnsupportedOperationException("Native full backup required");}
+    default JSONObject fullBackupAction(String name,JSONObject args)throws Exception {throw new UnsupportedOperationException("Native full backup required");}
+    default JSONObject revierQuery(String name,JSONObject args)throws Exception {throw new UnsupportedOperationException("Native Revier store required");}
+    default JSONObject revierAction(String name,JSONObject args)throws Exception {throw new UnsupportedOperationException("Native Revier store required");}
+    default JSONObject localInvoiceAction(String name,JSONObject args,String request)throws Exception {return null;}
+    default JSONObject localFinancialQuery(String name,JSONObject args)throws Exception {throw new UnsupportedOperationException("Native local financial store required");}
 }

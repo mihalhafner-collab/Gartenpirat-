@@ -12,9 +12,9 @@ const root=path.resolve(__dirname,'..'),url=pathToFileURL(path.join(root,'androi
    const order={id:'qa_qa-order',customer_id:'qa_qa-customer',billing_customer_id:'qa_qa-customer',title:'Testauftrag',status:'Geplant',customer_visible:1,description:'Test'};
    const master={customers:[{id:'qa_qa-customer',name:'QA Kunde',active:1}],orders:[order],worklogs:[],invoices:[],photos:[]};
    const pending=[{client_id:'qa-failed',kind:'order',payload:{...order,title:'Offen'}}];
-   window.qaCalls=[];window.qaSaved=[];window.qaBlockSave=false;window.qaSync=0;
+   window.qaCalls=[];window.qaSaved=[];window.qaBlockSave=false;window.qaSync=0;window.qaLocalReads=0;
    const state=()=>({master,pending,sync_queue:{total:1,pending_upload:0,review:1,items:[{client_id:'qa-failed',state:'sync_conflict',error:'Parallel geändert; bitte prüfen.'}]}});
-   window.AndroidData={getState:()=>JSON.stringify(state()),getSyncStatus:()=>JSON.stringify({configured:true,syncing:false,review:1,pending:0}),getWorkSession:()=>JSON.stringify({state:'IDLE'}),getAppInfo:()=>JSON.stringify({versionName:'1.45.0'}),
+   window.AndroidData={getState:()=>{qaLocalReads++;return JSON.stringify(state());},getSyncStatus:()=>JSON.stringify({configured:true,syncing:false,review:1,pending:0}),getWorkSession:()=>JSON.stringify({state:'IDLE'}),getAppInfo:()=>JSON.stringify({versionName:'1.45.0'}),
     synchronize:()=>{qaSync++;},savePhoto:()=>qaCalls.push('business-photo'),saveOrder:()=>qaCalls.push('normal-order'),
     inspectOrder:id=>JSON.stringify({id,token:'test-token',order:{...order,title:'Offen'},current:order,customers:master.customers,checks:[{label:'Auftragsbezeichnung',ok:true,message:'In Ordnung'},{label:'Kundenzuordnung',ok:true,message:'In Ordnung'}],reasons:['Parallel geändert; bitte prüfen.']}),
     saveReviewedOrder:raw=>{const request=JSON.parse(raw);if(qaBlockSave)return 'ERROR: Der Datenstand hat sich geändert. Bitte erneut prüfen.';qaSaved.push(request);return JSON.stringify({id:request.id,saved:true});}
@@ -76,10 +76,10 @@ const root=path.resolve(__dirname,'..'),url=pathToFileURL(path.join(root,'androi
    },{points,cancel,multi,target});
   }
   const finish=()=>page.evaluate(()=>onDriveSync({ok:false,error:'Isolierter Test',sync:{syncing:false,configured:true}}));
-  await check('One deliberate downward pull triggers one sync; repeated pull while busy is ignored',async()=>{
-   await page.evaluate(()=>{openPage('home');window.scrollTo(0,0);});await page.waitForTimeout(100);
-   await gesture([[160,100],[162,145],[164,195]]);assert.equal(await page.evaluate(()=>qaSync),1);
-   await gesture([[160,100],[162,195]]);assert.equal(await page.evaluate(()=>qaSync),1);await finish();
+  await check('A deliberate pull refreshes the local view once and never contacts Drive',async()=>{
+   await page.evaluate(()=>{openPage('home');window.scrollTo(0,0);});await page.waitForTimeout(100);const before=await page.evaluate(()=>qaLocalReads);
+   await gesture([[160,100],[162,145],[164,195]]);assert.equal(await page.evaluate(()=>qaLocalReads),before+1);assert.equal(await page.evaluate(()=>qaSync),0);assert.match(await page.locator('#pull-refresh').innerText(),/Lokale Ansicht aktualisiert/);
+   await gesture([[160,100],[162,195]]);assert.equal(await page.evaluate(()=>qaLocalReads),before+2);assert.equal(await page.evaluate(()=>qaSync),0);
   });
   await check('Horizontal, short, multitouch and cancelled gestures never synchronize',async()=>{
    const before=await page.evaluate(()=>qaSync);
@@ -92,18 +92,8 @@ const root=path.resolve(__dirname,'..'),url=pathToFileURL(path.join(root,'androi
    await page.locator('#order-sync-review [data-sr-close]').first().click();await page.evaluate(()=>{openPage('work-entry');document.getElementById('activity').value='Entwurf behalten';window.scrollTo(0,0);});
    await gesture([[160,100],[160,200]]);assert.equal(await page.evaluate(()=>qaSync),before);assert.equal(await page.locator('#activity').inputValue(),'Entwurf behalten');
   });
-  await check('Cancellation resets gesture and status; retry remains possible',async()=>{
-   await page.evaluate(()=>{openPage('home');window.scrollTo(0,0);});await page.waitForTimeout(80);const before=await page.evaluate(()=>qaSync);
-   await gesture([[160,100],[160,200]]);assert.equal(await page.evaluate(()=>qaSync),before+1);
-   await page.evaluate(()=>onDriveSync({ok:false,cancelled:true,error:'Auswahl abgebrochen',sync:{configured:false,syncing:false}}));
-   assert(await page.locator('#pull-refresh').innerText().then(t=>t.includes('abgebrochen')));
-   await gesture([[160,100],[160,200]]);assert.equal(await page.evaluate(()=>qaSync),before+2);await finish();
-  });
-  await check('Pull refresh recovers after a background synchronization finishes without a foreground callback',async()=>{
-   await page.evaluate(()=>{openPage('home');window.scrollTo(0,0);onDriveSyncStarted({syncing:true});});
-   const before=await page.evaluate(()=>qaSync);
-   await gesture([[160,100],[160,200]]);assert.equal(await page.evaluate(()=>qaSync),before+1);await finish();
-  });
+  await check('Cancellation performs no local read; next deliberate refresh remains possible without a folder dialog',async()=>{await page.evaluate(()=>{openPage('home');window.scrollTo(0,0);});await page.waitForTimeout(80);const before=await page.evaluate(()=>qaLocalReads);await gesture([[160,100],[160,200]],{cancel:true});assert.equal(await page.evaluate(()=>qaLocalReads),before);await gesture([[160,100],[160,200]]);assert.equal(await page.evaluate(()=>qaLocalReads),before+1);assert.equal(await page.evaluate(()=>qaSync),0);assert.match(await page.locator('#pull-refresh').innerText(),/Lokale Ansicht aktualisiert/);});
+  await check('A retired business-sync callback cannot keep local pull refresh locked',async()=>{await page.evaluate(()=>{openPage('home');window.scrollTo(0,0);onDriveSyncStarted({syncing:true});});const before=await page.evaluate(()=>qaLocalReads);await gesture([[160,100],[160,200]]);assert.equal(await page.evaluate(()=>qaLocalReads),before+1);assert.equal(await page.evaluate(()=>qaSync),0);});
   await check('Gartenpirat photo and order review are independent and make no hidden business writes',async()=>{
    assert.deepEqual(await page.evaluate(()=>qaCalls),[]);assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
   });

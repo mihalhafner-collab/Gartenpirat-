@@ -19,17 +19,17 @@ final class ReleaseLifecycleProbe {
             try{
             java.util.List<android.view.View> views=new java.util.ArrayList<>();collectViews(activity.getWindow().getDecorView(),views);
             boolean planning=type==PlanningConnectionActivity.class;
-            int shownSwitches=0,shownInputs=0;android.widget.Button reveal=null,accountDetails=null;android.widget.TextView diagnostics=null;
+            int shownSwitches=0,shownInputs=0;android.widget.Button reveal=null,accountDetails=null,technicalDetails=null;android.widget.TextView diagnostics=null;
             for(android.view.View v:views){
-                if(v.isShown()&&v instanceof android.widget.CheckBox)shownSwitches++;
+                if(v.isShown()&&v instanceof android.widget.CompoundButton)shownSwitches++;
                 if(v.isShown()&&v instanceof android.widget.EditText)shownInputs++;
-                if(v instanceof android.widget.Button){String label=((android.widget.Button)v).getText().toString();if(planning?label.equals("Arbeitszeiten und Wettergrenzen"):label.startsWith("Erweitert / Diagnose"))reveal=(android.widget.Button)v;if(planning&&label.equals("Konto und Freigaben"))accountDetails=(android.widget.Button)v;}
+                if(v instanceof android.widget.Button){String label=((android.widget.Button)v).getText().toString();if(planning?label.equals("Arbeitszeiten und Wettergrenzen"):label.startsWith("Erweitert / Diagnose"))reveal=(android.widget.Button)v;if(planning&&label.equals("Konto und Freigaben"))accountDetails=(android.widget.Button)v;if(planning&&label.equals("Technische Details"))technicalDetails=(android.widget.Button)v;}
                 if(planning&&v instanceof android.widget.TextView&&((android.widget.TextView)v).getText().toString().contains("Android-OAuth-Paket:"))diagnostics=(android.widget.TextView)v;
             }
             require(shownSwitches==normalSwitches&&shownInputs==0&&reveal!=null);
             reveal.performClick();int revealed=0;for(android.view.View v:views)if(v.isShown()&&v instanceof android.widget.EditText)revealed++;
             require(revealed>0);reveal.performClick();for(android.view.View v:views)if(v instanceof android.widget.EditText)require(!v.isShown());
-            if(planning){require(accountDetails!=null&&diagnostics!=null&&!diagnostics.isShown());accountDetails.performClick();require(diagnostics.isShown()&&diagnostics.getText().toString().contains(context.getPackageName())&&diagnostics.getText().toString().contains(CalendarAuthorization.signingSha1(context)));accountDetails.performClick();require(!diagnostics.isShown());}
+            if(planning){require(accountDetails!=null&&technicalDetails!=null&&diagnostics!=null&&!diagnostics.isShown());accountDetails.performClick();require(!diagnostics.isShown());accountDetails.performClick();technicalDetails.performClick();require(diagnostics.isShown()&&diagnostics.getText().toString().contains(context.getPackageName())&&diagnostics.getText().toString().contains(CalendarAuthorization.signingSha1(context)));technicalDetails.performClick();require(!diagnostics.isShown());}
             }catch(Throwable caught){failure[0]=caught;}
             finally{
             activity.finish();
@@ -37,6 +37,33 @@ final class ReleaseLifecycleProbe {
         });
         runner.waitForIdleSync();
         if(failure[0] instanceof Error)throw (Error)failure[0];if(failure[0] instanceof Exception)throw (Exception)failure[0];
+    }
+    static void retiredDriveUi(Instrumentation runner,Context context)throws Exception{
+        Instrumentation.ActivityMonitor monitor=runner.addMonitor(FullBackupActivity.class.getName(),null,false);
+        android.app.Activity retired=null,backup=null;
+        try{
+            retired=runner.startActivitySync(new Intent(context,DriveConnectionActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            backup=monitor.waitForActivityWithTimeout(10000);require(backup instanceof FullBackupActivity);
+            runner.waitForIdleSync();final android.app.Activity screen=backup;Throwable[] failure={null};
+            runner.runOnMainSync(()->{try{
+                require(screen.getTitle().toString().equals("Vollsicherung"));
+                java.util.List<android.view.View> views=new java.util.ArrayList<>();collectViews(screen.getWindow().getDecorView(),views);
+                boolean full=false,target=false,automatic=false;
+                for(android.view.View item:views)if(item instanceof android.widget.TextView){
+                    String text=((android.widget.TextView)item).getText().toString();
+                    if(text.equals("Verschlüsselte Vollsicherung"))full=true;
+                    if(text.equals("Drive-Sicherungsziel"))target=true;
+                    if(text.startsWith("Täglich automatisch sichern"))automatic=true;
+                    require(!text.equals("Google-Drive-Abgleich automatisch · EIN / AUS"));
+                }
+                require(full&&target&&automatic);
+            }catch(Throwable error){failure[0]=error;}});
+            if(failure[0] instanceof Error)throw (Error)failure[0];if(failure[0] instanceof Exception)throw (Exception)failure[0];
+        }finally{
+            final android.app.Activity closeBackup=backup,closeRetired=retired;
+            runner.runOnMainSync(()->{if(closeBackup!=null)closeBackup.finish();if(closeRetired!=null)closeRetired.finish();});
+            runner.removeMonitor(monitor);runner.waitForIdleSync();
+        }
     }
     static String js(Instrumentation runner,android.webkit.WebView view,String script)throws Exception{
         java.util.concurrent.CountDownLatch done=new java.util.concurrent.CountDownLatch(1);String[] result={null};
@@ -47,9 +74,12 @@ final class ReleaseLifecycleProbe {
         android.app.Activity activity=runner.startActivitySync(new Intent(context,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         java.lang.reflect.Field field=MainActivity.class.getDeclaredField("webView");field.setAccessible(true);android.webkit.WebView view=(android.webkit.WebView)field.get(activity);
         long deadline=SystemClock.elapsedRealtime()+120000;boolean ready=false;
-        while(SystemClock.elapsedRealtime()<deadline){if("true".equals(js(runner,view,"typeof HGBusinessActions==='object'&&typeof HGBusinessFeedback==='object'&&typeof WorklogArchiveUI==='object'&&typeof PhotoLibraryUI==='object'&&typeof openPage==='function'&&document.body.dataset.fieldReady==='true'&&!!document.querySelector('[data-open-garden-menu]')"))){ready=true;break;}SystemClock.sleep(250);}
+        while(SystemClock.elapsedRealtime()<deadline){if("true".equals(js(runner,view,"typeof HGBusinessActions==='object'&&typeof HGBusinessFeedback==='object'&&typeof WorklogArchiveUI==='object'&&typeof PhotoLibraryUI==='object'&&typeof openPage==='function'&&document.body.dataset.fieldReady==='true'&&document.body.dataset.revierReady==='true'&&!!document.querySelector('[data-open-garden-menu]')"))){ready=true;break;}SystemClock.sleep(250);}
         require(ready);
-        require("true".equals(js(runner,view,"(()=>{const nav=[...document.querySelectorAll('.bottom-inner [data-open]')].map(x=>x.dataset.open);return nav.join(',')==='home,customers,more-page'&&!!document.querySelector('#field-today-actions [data-open=\"planning-page\"]')&&typeof crypto.randomUUID==='function'&&[1,2].at(-1)===2&&Object.hasOwn({a:1},'a')&&'a-a'.replaceAll('-','')==='aa';})()")));
+        String previousPlanningDraft=js(runner,view,"localStorage.getItem('hausgarten.planning.draft.v1')");
+        String previousOtherDrafts=js(runner,view,"localStorage.getItem('hausgarten.planning.draft.v1.others')");
+        try{
+        require("true".equals(js(runner,view,"(()=>{const nav=[...document.querySelectorAll('.bottom-inner [data-open]')].map(x=>x.dataset.open);return nav.join(',')==='home,revier-properties,revier-care,revier-office'&&!!document.querySelector('#today-action-dock [data-open=\"planning-page\"]')&&typeof crypto.randomUUID==='function'&&[1,2].at(-1)===2&&Object.hasOwn({a:1},'a')&&'a-a'.replaceAll('-','')==='aa';})()")));
         require("true".equals(js(runner,view,"(()=>{openPage('worklogs');document.querySelector('[data-select-start]').click();document.querySelector('[data-select-visible]').click();const n=document.querySelectorAll('#worklog-list .worklog-selected').length;document.querySelector('[data-select-cancel]').click();return n>0&&document.querySelectorAll('#worklog-list .worklog-entry[aria-pressed]').length===0&&currentPage==='worklogs';})()")));
         require("true".equals(js(runner,view,"(()=>{openPage('more-page');document.querySelector('[data-open-garden-menu]').click();return document.querySelector('#gp-dialog').open;})()")));
         require("true".equals(js(runner,view,"(()=>{Gartenpirat.close();openPage('home');return !!document.querySelector('#workday-timer.has-active-session');})()")));
@@ -60,15 +90,27 @@ final class ReleaseLifecycleProbe {
         require("true".equals(js(runner,view,"(()=>{TrashUI.open();return currentPage==='trash-page'&&document.getElementById('trash-content').innerText.length>0&&!!document.getElementById('trash-empty');})()")));
         require("true".equals(js(runner,view,"(()=>{openPage('more-page');if(document.querySelectorAll('#more-page [data-more-group]').length!==4||document.querySelectorAll('#more-page [data-open-trash]').length!==0)return false;document.querySelector('#more-page [data-open=\"settings-page\"]').click();return currentPage==='settings-page'&&document.querySelectorAll('#settings-page [data-open-trash]').length===1;})()")));
         require("true".equals(js(runner,view,"(()=>{const site=customers().find(x=>x.name==='QA Einsatzort'),order=orders().find(x=>site&&x.customer_id===site.id&&x.title==='QA Pflege');if(!order)return false;PlanningUI.openForOrder(order.id);return currentPage==='planning-page'&&document.querySelector('#appointment-form [name=customer_id]').value===site.id&&document.querySelector('#appointment-form [name=order_id]').value===order.id&&!!document.getElementById('planning-discard');})()")));
-        require("true".equals(js(runner,view,"(()=>{document.getElementById('planning-back').click();return !!document.querySelector('[data-planning-resume]')&&!!document.querySelector('#planning-page [data-open=weeks]');})()")));
-        connectionUi(runner,context,DriveConnectionActivity.class,1);
+        Bundle diagnostic=new Bundle();diagnostic.putString("stream","QA_CALENDAR_BEFORE "+js(runner,view,"JSON.stringify({diagnostics:HGBusinessFeedback.diagnostics(),dirty:JSON.parse(localStorage.getItem('hausgarten.planning.draft.v1')||'{}').dirty})")+"\n");runner.sendStatus(0,diagnostic);
+        require("true".equals(js(runner,view,"(()=>{const title=document.querySelector('#appointment-form [name=title]');title.value='QA nativer ungespeicherter Entwurf';title.dispatchEvent(new Event('input',{bubbles:true}));document.getElementById('planning-back').click();window.qaCalendarResult={resume:document.querySelectorAll('[data-planning-resume]').length,day:!!document.querySelector('#planning-day'),week:!!document.querySelector('#planning-week'),diagnostics:HGBusinessFeedback.diagnostics()};return [...document.querySelectorAll('[data-planning-resume]')].some(b=>b.innerText.includes('QA nativer ungespeicherter Entwurf'))&&!!document.querySelector('#planning-week')&&!!document.querySelector('#planning-day');})()")));
+        // Actual bundled WebView/read-only owner projection; no synthetic business writes.
+        require("true".equals(js(runner,view,"(()=>{openPage('settings-page');return !document.getElementById('setting-side-swipe')&&!document.getElementById('settings-preference-state')&&!!document.getElementById('setting-garden-shortcut');})()")));
+        require("true".equals(js(runner,view,"(()=>{openPage('home');const before=currentPage;HGGestures.openMenu();const shown=document.getElementById('app-drawer').open;handleAndroidBack();return shown&&!document.getElementById('app-drawer').open&&currentPage===before&&!!document.getElementById('planning-home');})()")));
+        require("true".equals(js(runner,view,"(()=>{const r=JSON.parse(AndroidData.ownerCall('get_planning_settings','{}'));return r.ok&&typeof r.data.integration.calendar_busy_enabled==='boolean'&&r.data.integration.calendar_busy_scope==='primary'&&r.data.integration.credentials_exposed===false;})()")));
+        retiredDriveUi(runner,context);
         connectionUi(runner,context,PixelTunnelActivity.class,1);
-        connectionUi(runner,context,PlanningConnectionActivity.class,3);
+        connectionUi(runner,context,PlanningConnectionActivity.class,4);
+        }finally{
+            Bundle calendarResult=new Bundle();calendarResult.putString("stream","QA_CALENDAR_RESULT "+js(runner,view,"JSON.stringify({page:currentPage,diagnostics:HGBusinessFeedback.diagnostics(),form:!!document.querySelector('#appointment-form'),customerMatchesQA:document.querySelector('#appointment-form [name=customer_id]')?.value==='qa_site',orderMatchesQA:document.querySelector('#appointment-form [name=order_id]')?.value==='qa_order',discard:!!document.getElementById('planning-discard'),result:window.qaCalendarResult||{}})")+"\n");runner.sendStatus(0,calendarResult);
+            require("true".equals(js(runner,view,"(()=>{openPage('home');const previous="+previousPlanningDraft+",others="+previousOtherDrafts+";for(const [key,value]of [['hausgarten.planning.draft.v1',previous],['hausgarten.planning.draft.v1.others',others]]){if(value===null)localStorage.removeItem(key);else localStorage.setItem(key,value);}return localStorage.getItem('hausgarten.planning.draft.v1')===previous&&localStorage.getItem('hausgarten.planning.draft.v1.others')===others;})()")));
+        }
     }
     static void require(boolean value){conditionIndex++;if(!value)throw new AssertionError("Lifecycle condition "+conditionIndex+" failed");}
     static String fingerprint(PixelLocalStore store)throws Exception{
         JSONObject state=store.getState();
         JSONObject master=SyntheticBusinessData.object(state.getJSONObject("master").toString());
+        // These joins are derived from preserved SQLite sidecars, never canonical business rows.
+        // Native backup/relationship probes separately validate their complete source ledgers.
+        for(String key:new String[]{"offer_decisions","offer_revisions","local_billing_sources"})master.remove(key);
         // Only fields introduced AFTER the recorded source release may be absent in its baseline.
         int baseline=Integer.parseInt(store.ownerValue("release_lifecycle_baseline_version","74"));JSONObject capabilities=master.optJSONObject("capabilities");
         if(capabilities!=null){if(baseline<78)capabilities.remove("offer_workflow_v2");if(baseline<75)capabilities.remove("trash_empty_v1");if(baseline<76)capabilities.remove("appointments_v1");}
@@ -81,7 +123,9 @@ final class ReleaseLifecycleProbe {
             require(Build.FINGERPRINT.startsWith("google/sdk_gphone")||Build.FINGERPRINT.contains("generic")||Build.MODEL.startsWith("sdk_"));
             SharedPreferences prefs=context.getSharedPreferences("haus_garten",0);
             store=new PixelLocalStore(context);
-            if(mode.equals("ui")){
+            if(mode.equals("accessibility")){
+                OverviewAccessibilityProbe.run(runner,context);report.putString("stream","PASS native overview accessibility font_scale="+context.getResources().getConfiguration().fontScale+"; synthetic in-memory read responses; no business writes\n");
+            }else if(mode.equals("ui")){
                 ui(runner,context);report.putString("stream","PASS native WebView boot, compatible JavaScript, complete navigation, work selection/cancel, customer garden and trash on isolated emulator\n");
             }else if(mode.equals("fresh")){
                 JSONObject state=store.getState(),master=state.getJSONObject("master");
@@ -120,7 +164,7 @@ final class ReleaseLifecycleProbe {
                 report.putString("stream","PASS in-place update preserves complete snapshot, IDs, pending records, settings, tunnel configuration and active timer recipient\n");
             }else throw new IllegalArgumentException("Unknown lifecycle mode");
             runner.finish(-1,report);
-        }catch(Throwable failure){report.putString("stream","FAIL lifecycle "+mode+" ["+failure.getClass().getSimpleName()+"] "+(failure instanceof AssertionError?"condition="+conditionIndex+" ":"")+(failure.getStackTrace().length>0?failure.getStackTrace()[0].toString():"no frame")+"\n");runner.finish(0,report);}
+        }catch(Throwable failure){report.putString("stream","FAIL lifecycle "+mode+" ["+failure.getClass().getSimpleName()+"] "+(failure instanceof AssertionError&&String.valueOf(failure.getMessage()).matches("Lifecycle condition [0-9]+ failed")?failure.getMessage()+" ":"")+(failure.getStackTrace().length>0?failure.getStackTrace()[0].toString():"no frame")+"\n");runner.finish(0,report);}
         finally{if(store!=null)store.close();}
     }
 }

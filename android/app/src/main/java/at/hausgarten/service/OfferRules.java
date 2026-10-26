@@ -54,6 +54,8 @@ final class OfferRules {
         }
         if(net.add(tax).compareTo(new BigDecimal("1000000000"))>0)throw new IllegalArgumentException("Angebot überschreitet die sichere Betragsgrenze von einer Milliarde EUR.");
         p.put("positions",lines).put("net_total",complete?net.doubleValue():JSONObject.NULL).put("tax_total",complete?tax.doubleValue():JSONObject.NULL).put("gross_total",complete?net.add(tax).doubleValue():JSONObject.NULL).put("status","draft");
+        // New local records carry authoritative integer money; compatibility fields stay intact.
+        if(LocalAuthorityRules.ENGINE.equals(snapshot.optString("processing_engine"))){if(complete)p.put("money_minor",LocalAuthorityRules.exactTotals(p));else p.remove("money_minor");}
         if(!p.has("created_at"))p.put("created_at",java.time.Instant.now().toString());
         return p;
     }

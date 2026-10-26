@@ -1,0 +1,3364 @@
+{
+  "edition": "2026-10-23-r2",
+  "allRequestedReviewsComplete": false,
+  "status": "BLOCKED_NETWORK_ALLOWLIST",
+  "metadataReview": "COMPLETED_WITH_EXPLICIT_EXCLUSIONS",
+  "newOriginalFilesDownloaded": 0,
+  "newOriginalFilesVisuallyReviewed": 0,
+  "requiredHosts": [
+    "eit-planttoolbox-prod.s3.amazonaws.com",
+    "upload.wikimedia.org",
+    "thumb.wikimedia.org",
+    "commons.wikimedia.org"
+  ],
+  "minimumChosenImagesPerProfile": 2,
+  "minimumImagesAcrossSelectedProfiles": 628,
+  "candidateReferences": 1140,
+  "steps": [
+    "Resolve fresh source download links and reconfirm exact license and author.",
+    "Download at least two suitable distinct motifs per profile; record original SHA-256 and MIME/dimensions.",
+    "Actually open image bytes; check living-plant motif, taxon, cultivar and confusion risks.",
+    "Exclude failed candidates; record reviewer evidence and all crop/resize/format changes.",
+    "Re-run the complete library audit before any separately commissioned app integration."
+  ],
+  "entries": [
+    {
+      "plantId": "thuja-occidentalis",
+      "candidateImageIds": [
+        "thuja-occidentalis-ref-1",
+        "thuja-occidentalis-ref-2",
+        "thuja-occidentalis-ref-3",
+        "thuja-occidentalis-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "vicia-faba",
+      "candidateImageIds": [
+        "vicia-faba-ref-1",
+        "vicia-faba-ref-2",
+        "vicia-faba-ref-3",
+        "vicia-faba-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "malus-domestica",
+      "candidateImageIds": [
+        "malus-domestica-ref-1",
+        "malus-domestica-ref-2",
+        "malus-domestica-ref-3",
+        "malus-domestica-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "muscari-armeniacum",
+      "candidateImageIds": [
+        "muscari-armeniacum-ref-1",
+        "muscari-armeniacum-ref-2",
+        "muscari-armeniacum-ref-3",
+        "muscari-armeniacum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "solanum-melongena",
+      "candidateImageIds": [
+        "solanum-melongena-ref-1",
+        "solanum-melongena-ref-2",
+        "solanum-melongena-ref-3",
+        "solanum-melongena-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "geranium-macrorrhizum",
+      "candidateImageIds": [
+        "geranium-macrorrhizum-existing-1",
+        "geranium-macrorrhizum-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "platycodon-grandiflorus",
+      "candidateImageIds": [
+        "platycodon-grandiflorus-ref-1",
+        "platycodon-grandiflorus-ref-2",
+        "platycodon-grandiflorus-ref-3",
+        "platycodon-grandiflorus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "iris-germanica",
+      "candidateImageIds": [
+        "iris-germanica-ref-1",
+        "iris-germanica-ref-2",
+        "iris-germanica-ref-3",
+        "iris-germanica-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "ocimum-basilicum",
+      "candidateImageIds": [
+        "ocimum-basilicum-ref-1",
+        "ocimum-basilicum-ref-2",
+        "ocimum-basilicum-ref-3",
+        "ocimum-basilicum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "hydrangea-macrophylla",
+      "candidateImageIds": [
+        "hydrangea-macrophylla-ref-1",
+        "hydrangea-macrophylla-ref-2",
+        "hydrangea-macrophylla-ref-3",
+        "hydrangea-macrophylla-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "philadelphus-coronarius",
+      "candidateImageIds": [
+        "philadelphus-coronarius-ref-1",
+        "philadelphus-coronarius-ref-2",
+        "philadelphus-coronarius-ref-3",
+        "philadelphus-coronarius-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "malva-trimestris",
+      "candidateImageIds": [
+        "malva-trimestris-ref-1",
+        "malva-trimestris-ref-2",
+        "malva-trimestris-ref-3",
+        "malva-trimestris-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "acer-pseudoplatanus",
+      "candidateImageIds": [
+        "acer-pseudoplatanus-ref-1",
+        "acer-pseudoplatanus-ref-2",
+        "acer-pseudoplatanus-ref-3",
+        "acer-pseudoplatanus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "satureja-montana",
+      "candidateImageIds": [
+        "satureja-montana-ref-1",
+        "satureja-montana-supplement-2",
+        "satureja-montana-supplement-3",
+        "satureja-montana-supplement-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "pinus-mugo",
+      "candidateImageIds": [
+        "pinus-mugo-ref-1",
+        "pinus-mugo-ref-2",
+        "pinus-mugo-ref-3",
+        "pinus-mugo-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "clematis-montana",
+      "candidateImageIds": [
+        "clematis-montana-ref-1",
+        "clematis-montana-ref-2",
+        "clematis-montana-ref-3",
+        "clematis-montana-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "bergenia-cordifolia",
+      "candidateImageIds": [
+        "bergenia-cordifolia-ref-1",
+        "bergenia-cordifolia-ref-2",
+        "bergenia-cordifolia-ref-3",
+        "bergenia-cordifolia-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "rosa-spinosissima",
+      "candidateImageIds": [
+        "rosa-spinosissima-ref-1",
+        "rosa-spinosissima-ref-2",
+        "rosa-spinosissima-ref-3",
+        "rosa-spinosissima-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "ficus-benjamina",
+      "candidateImageIds": [
+        "ficus-benjamina-ref-1",
+        "ficus-benjamina-ref-2",
+        "ficus-benjamina-ref-3",
+        "ficus-benjamina-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "pyrus-communis",
+      "candidateImageIds": [
+        "pyrus-communis-ref-1",
+        "pyrus-communis-ref-2",
+        "pyrus-communis-ref-3",
+        "pyrus-communis-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "festuca-glauca",
+      "candidateImageIds": [
+        "festuca-glauca-existing-1",
+        "festuca-glauca-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "passiflora-caerulea",
+      "candidateImageIds": [
+        "passiflora-caerulea-ref-1",
+        "passiflora-caerulea-ref-2",
+        "passiflora-caerulea-ref-3",
+        "passiflora-caerulea-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "aconitum-napellus",
+      "candidateImageIds": [
+        "aconitum-napellus-existing-1",
+        "aconitum-napellus-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "wisteria-floribunda",
+      "candidateImageIds": [
+        "wisteria-floribunda-ref-1",
+        "wisteria-floribunda-ref-2",
+        "wisteria-floribunda-ref-3",
+        "wisteria-floribunda-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "geranium-sanguineum",
+      "candidateImageIds": [
+        "geranium-sanguineum-ref-1",
+        "geranium-sanguineum-ref-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "lythrum-salicaria",
+      "candidateImageIds": [
+        "lythrum-salicaria-existing-1",
+        "lythrum-salicaria-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "eutrochium-purpureum",
+      "candidateImageIds": [
+        "eutrochium-purpureum-ref-1",
+        "eutrochium-purpureum-ref-2",
+        "eutrochium-purpureum-ref-3",
+        "eutrochium-purpureum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "dracaena-trifasciata",
+      "candidateImageIds": [
+        "dracaena-trifasciata-ref-1",
+        "dracaena-trifasciata-ref-2",
+        "dracaena-trifasciata-ref-3",
+        "dracaena-trifasciata-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "borago-officinalis",
+      "candidateImageIds": [
+        "borago-officinalis-ref-1",
+        "borago-officinalis-ref-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "myriophyllum-aquaticum",
+      "candidateImageIds": [
+        "myriophyllum-aquaticum-ref-1",
+        "myriophyllum-aquaticum-ref-2",
+        "myriophyllum-aquaticum-ref-3",
+        "myriophyllum-aquaticum-ref-4",
+        "myriophyllum-aquaticum-existing-5",
+        "myriophyllum-aquaticum-existing-6"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "typha-latifolia",
+      "candidateImageIds": [
+        "typha-latifolia-ref-1",
+        "typha-latifolia-ref-2",
+        "typha-latifolia-ref-3",
+        "typha-latifolia-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "plantago-major",
+      "candidateImageIds": [
+        "plantago-major-ref-1",
+        "plantago-major-ref-2",
+        "plantago-major-ref-3",
+        "plantago-major-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "rubus-fruticosus",
+      "candidateImageIds": [
+        "rubus-fruticosus-existing-1",
+        "rubus-fruticosus-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "buxus-sempervirens",
+      "candidateImageIds": [
+        "buxus-sempervirens-ref-1",
+        "buxus-sempervirens-ref-2",
+        "buxus-sempervirens-ref-3",
+        "buxus-sempervirens-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "coleus-scutellarioides",
+      "candidateImageIds": [
+        "coleus-scutellarioides-ref-1",
+        "coleus-scutellarioides-ref-2",
+        "coleus-scutellarioides-ref-3",
+        "coleus-scutellarioides-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "reynoutria-x-bohemica",
+      "candidateImageIds": [
+        "reynoutria-x-bohemica-existing-1",
+        "reynoutria-x-bohemica-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "salvinia-molesta",
+      "candidateImageIds": [
+        "salvinia-molesta-ref-1",
+        "salvinia-molesta-ref-2",
+        "salvinia-molesta-existing-3",
+        "salvinia-molesta-existing-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "miscanthus-sinensis",
+      "candidateImageIds": [
+        "miscanthus-sinensis-ref-1",
+        "miscanthus-sinensis-ref-2",
+        "miscanthus-sinensis-ref-3",
+        "miscanthus-sinensis-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "trachycarpus-fortunei",
+      "candidateImageIds": [
+        "trachycarpus-fortunei-ref-1",
+        "trachycarpus-fortunei-ref-2",
+        "trachycarpus-fortunei-ref-3",
+        "trachycarpus-fortunei-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "astilbe-chinensis",
+      "candidateImageIds": [
+        "astilbe-chinensis-existing-1",
+        "astilbe-chinensis-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "wisteria-sinensis",
+      "candidateImageIds": [
+        "wisteria-sinensis-ref-1",
+        "wisteria-sinensis-ref-2",
+        "wisteria-sinensis-ref-3",
+        "wisteria-sinensis-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "hibiscus-rosa-sinensis",
+      "candidateImageIds": [
+        "hibiscus-rosa-sinensis-ref-1",
+        "hibiscus-rosa-sinensis-ref-2",
+        "hibiscus-rosa-sinensis-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "helleborus-niger",
+      "candidateImageIds": [
+        "helleborus-niger-existing-1",
+        "helleborus-niger-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "sempervivum-tectorum",
+      "candidateImageIds": [
+        "sempervivum-tectorum-ref-1",
+        "sempervivum-tectorum-ref-2",
+        "sempervivum-tectorum-ref-3",
+        "sempervivum-tectorum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "dahlia",
+      "candidateImageIds": [
+        "dahlia-ref-1",
+        "dahlia-ref-2",
+        "dahlia-ref-3",
+        "dahlia-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "anethum-graveolens",
+      "candidateImageIds": [
+        "anethum-graveolens-ref-1",
+        "anethum-graveolens-ref-2",
+        "anethum-graveolens-ref-3",
+        "anethum-graveolens-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "pseudotsuga-menziesii",
+      "candidateImageIds": [
+        "pseudotsuga-menziesii-ref-1",
+        "pseudotsuga-menziesii-ref-2",
+        "pseudotsuga-menziesii-ref-3",
+        "pseudotsuga-menziesii-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "impatiens-glandulifera",
+      "candidateImageIds": [
+        "impatiens-glandulifera-existing-1",
+        "impatiens-glandulifera-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "agastache-foeniculum",
+      "candidateImageIds": [
+        "agastache-foeniculum-ref-1",
+        "agastache-foeniculum-ref-2",
+        "agastache-foeniculum-ref-3",
+        "agastache-foeniculum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "lobularia-maritima",
+      "candidateImageIds": [
+        "lobularia-maritima-ref-1",
+        "lobularia-maritima-ref-2",
+        "lobularia-maritima-ref-3",
+        "lobularia-maritima-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "echeveria-elegans",
+      "candidateImageIds": [
+        "echeveria-elegans-ref-1",
+        "echeveria-elegans-ref-2",
+        "echeveria-elegans-ref-3",
+        "echeveria-elegans-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "aloe-vera",
+      "candidateImageIds": [
+        "aloe-vera-ref-1",
+        "aloe-vera-ref-2",
+        "aloe-vera-ref-3",
+        "aloe-vera-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "matricaria-chamomilla",
+      "candidateImageIds": [
+        "matricaria-chamomilla-ref-1",
+        "matricaria-chamomilla-ref-2",
+        "matricaria-chamomilla-ref-3",
+        "matricaria-chamomilla-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "nepeta-cataria",
+      "candidateImageIds": [
+        "nepeta-cataria-ref-1",
+        "nepeta-cataria-ref-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "lavandula-angustifolia",
+      "candidateImageIds": [
+        "lavandula-angustifolia-ref-1",
+        "lavandula-angustifolia-ref-2",
+        "lavandula-angustifolia-ref-3",
+        "lavandula-angustifolia-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "laurus-nobilis",
+      "candidateImageIds": [
+        "laurus-nobilis-ref-1",
+        "laurus-nobilis-ref-2",
+        "laurus-nobilis-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "salvia-officinalis",
+      "candidateImageIds": [
+        "salvia-officinalis-ref-1",
+        "salvia-officinalis-ref-2",
+        "salvia-officinalis-ref-3",
+        "salvia-officinalis-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "thymus-vulgaris",
+      "candidateImageIds": [
+        "thymus-vulgaris-ref-1",
+        "thymus-vulgaris-ref-2",
+        "thymus-vulgaris-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "castanea-sativa",
+      "candidateImageIds": [
+        "castanea-sativa-ref-1",
+        "castanea-sativa-ref-2",
+        "castanea-sativa-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "hedera-helix",
+      "candidateImageIds": [
+        "hedera-helix-ref-1",
+        "hedera-helix-ref-2",
+        "hedera-helix-ref-3",
+        "hedera-helix-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "epipremnum-aureum",
+      "candidateImageIds": [
+        "epipremnum-aureum-ref-1",
+        "epipremnum-aureum-ref-2",
+        "epipremnum-aureum-ref-3",
+        "epipremnum-aureum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "pisum-sativum",
+      "candidateImageIds": [
+        "pisum-sativum-ref-1",
+        "pisum-sativum-ref-2",
+        "pisum-sativum-ref-3",
+        "pisum-sativum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "artemisia-dracunculus",
+      "candidateImageIds": [
+        "artemisia-dracunculus-ref-1",
+        "artemisia-dracunculus-ref-2",
+        "artemisia-dracunculus-ref-3",
+        "artemisia-dracunculus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "taxus-baccata",
+      "candidateImageIds": [
+        "taxus-baccata-ref-1",
+        "taxus-baccata-ref-2",
+        "taxus-baccata-ref-3",
+        "taxus-baccata-ref-4",
+        "taxus-baccata-existing-5",
+        "taxus-baccata-existing-6"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "larix-decidua",
+      "candidateImageIds": [
+        "larix-decidua-ref-1",
+        "larix-decidua-supplement-2",
+        "larix-decidua-supplement-3",
+        "larix-decidua-supplement-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "ilex-aquifolium",
+      "candidateImageIds": [
+        "ilex-aquifolium-existing-1",
+        "ilex-aquifolium-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "ficus-carica",
+      "candidateImageIds": [
+        "ficus-carica-ref-1",
+        "ficus-carica-ref-2",
+        "ficus-carica-ref-3",
+        "ficus-carica-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "acer-campestre",
+      "candidateImageIds": [
+        "acer-campestre-ref-1",
+        "acer-campestre-ref-2",
+        "acer-campestre-ref-3",
+        "acer-campestre-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "foeniculum-vulgare",
+      "candidateImageIds": [
+        "foeniculum-vulgare-ref-1",
+        "foeniculum-vulgare-ref-2",
+        "foeniculum-vulgare-ref-3",
+        "foeniculum-vulgare-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "monstera-deliciosa",
+      "candidateImageIds": [
+        "monstera-deliciosa-ref-1",
+        "monstera-deliciosa-ref-2",
+        "monstera-deliciosa-ref-3",
+        "monstera-deliciosa-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "salvia-splendens",
+      "candidateImageIds": [
+        "salvia-splendens-ref-1",
+        "salvia-splendens-ref-2",
+        "salvia-splendens-ref-3",
+        "salvia-splendens-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "phaseolus-coccineus",
+      "candidateImageIds": [
+        "phaseolus-coccineus-ref-1",
+        "phaseolus-coccineus-ref-2",
+        "phaseolus-coccineus-ref-3",
+        "phaseolus-coccineus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "pyracantha-coccinea",
+      "candidateImageIds": [
+        "pyracantha-coccinea-ref-1",
+        "pyracantha-coccinea-ref-2",
+        "pyracantha-coccinea-ref-3",
+        "pyracantha-coccinea-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "potentilla-fruticosa",
+      "candidateImageIds": [
+        "potentilla-fruticosa-ref-1",
+        "potentilla-fruticosa-ref-2",
+        "potentilla-fruticosa-ref-3",
+        "potentilla-fruticosa-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "kalanchoe-blossfeldiana",
+      "candidateImageIds": [
+        "kalanchoe-blossfeldiana-ref-1",
+        "kalanchoe-blossfeldiana-ref-2",
+        "kalanchoe-blossfeldiana-ref-3",
+        "kalanchoe-blossfeldiana-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "euonymus-alatus",
+      "candidateImageIds": [
+        "euonymus-alatus-ref-1",
+        "euonymus-alatus-ref-2",
+        "euonymus-alatus-ref-3",
+        "euonymus-alatus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "forsythia-x-intermedia",
+      "candidateImageIds": [
+        "forsythia-x-intermedia-ref-1",
+        "forsythia-x-intermedia-ref-2",
+        "forsythia-x-intermedia-ref-3",
+        "forsythia-x-intermedia-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "adiantum-pedatum",
+      "candidateImageIds": [
+        "adiantum-pedatum-ref-1",
+        "adiantum-pedatum-ref-2",
+        "adiantum-pedatum-ref-3",
+        "adiantum-pedatum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "alchemilla-mollis",
+      "candidateImageIds": [
+        "alchemilla-mollis-ref-1",
+        "alchemilla-mollis-ref-2",
+        "alchemilla-mollis-ref-3",
+        "alchemilla-mollis-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "crocus-vernus",
+      "candidateImageIds": [
+        "crocus-vernus-existing-1",
+        "crocus-vernus-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "acer-palmatum",
+      "candidateImageIds": [
+        "acer-palmatum-ref-1",
+        "acer-palmatum-ref-2",
+        "acer-palmatum-ref-3",
+        "acer-palmatum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "baptisia-australis",
+      "candidateImageIds": [
+        "baptisia-australis-ref-1",
+        "baptisia-australis-ref-2",
+        "baptisia-australis-ref-3",
+        "baptisia-australis-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "hibiscus-syriacus",
+      "candidateImageIds": [
+        "hibiscus-syriacus-ref-1",
+        "hibiscus-syriacus-ref-2",
+        "hibiscus-syriacus-ref-3",
+        "hibiscus-syriacus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "fragaria-x-ananassa",
+      "candidateImageIds": [
+        "fragaria-x-ananassa-ref-1",
+        "fragaria-x-ananassa-ref-2",
+        "fragaria-x-ananassa-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "hyacinthus-orientalis",
+      "candidateImageIds": [
+        "hyacinthus-orientalis-ref-1",
+        "hyacinthus-orientalis-supplement-2",
+        "hyacinthus-orientalis-supplement-3",
+        "hyacinthus-orientalis-supplement-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "calamagrostis-x-acutiflora",
+      "candidateImageIds": [
+        "calamagrostis-x-acutiflora-ref-1",
+        "calamagrostis-x-acutiflora-ref-2",
+        "calamagrostis-x-acutiflora-ref-3",
+        "calamagrostis-x-acutiflora-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "lactuca-sativa",
+      "candidateImageIds": [
+        "lactuca-sativa-ref-1",
+        "lactuca-sativa-ref-2",
+        "lactuca-sativa-ref-3",
+        "lactuca-sativa-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "eruca-vesicaria",
+      "candidateImageIds": [
+        "eruca-vesicaria-ref-1",
+        "eruca-vesicaria-ref-2",
+        "eruca-vesicaria-ref-3",
+        "eruca-vesicaria-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "asparagus-officinalis",
+      "candidateImageIds": [
+        "asparagus-officinalis-ref-1",
+        "asparagus-officinalis-ref-2",
+        "asparagus-officinalis-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "tulipa-gesneriana",
+      "candidateImageIds": [
+        "tulipa-gesneriana-existing-1",
+        "tulipa-gesneriana-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "phaseolus-vulgaris",
+      "candidateImageIds": [
+        "phaseolus-vulgaris-ref-1",
+        "phaseolus-vulgaris-ref-2",
+        "phaseolus-vulgaris-ref-3",
+        "phaseolus-vulgaris-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "rosa",
+      "candidateImageIds": [
+        "rosa-ref-1",
+        "rosa-ref-2",
+        "rosa-ref-3",
+        "rosa-ref-4",
+        "rosa-replacement-5",
+        "rosa-replacement-6"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "lamium-maculatum",
+      "candidateImageIds": [
+        "lamium-maculatum-ref-1",
+        "lamium-maculatum-ref-2",
+        "lamium-maculatum-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "pulmonaria-officinalis",
+      "candidateImageIds": [
+        "pulmonaria-officinalis-ref-1",
+        "pulmonaria-officinalis-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "narcissus-pseudonarcissus",
+      "candidateImageIds": [
+        "narcissus-pseudonarcissus-ref-1",
+        "narcissus-pseudonarcissus-ref-2",
+        "narcissus-pseudonarcissus-existing-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "lysichiton-americanus",
+      "candidateImageIds": [
+        "lysichiton-americanus-existing-1",
+        "lysichiton-americanus-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "crassula-ovata",
+      "candidateImageIds": [
+        "crassula-ovata-ref-1",
+        "crassula-ovata-ref-2",
+        "crassula-ovata-ref-3",
+        "crassula-ovata-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "aquilegia-vulgaris",
+      "candidateImageIds": [
+        "aquilegia-vulgaris-existing-1",
+        "aquilegia-vulgaris-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "picea-abies",
+      "candidateImageIds": [
+        "picea-abies-ref-1",
+        "picea-abies-ref-2",
+        "picea-abies-ref-3",
+        "picea-abies-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "achillea-millefolium",
+      "candidateImageIds": [
+        "achillea-millefolium-ref-1",
+        "achillea-millefolium-ref-2",
+        "achillea-millefolium-ref-3",
+        "achillea-millefolium-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "syringa-vulgaris",
+      "candidateImageIds": [
+        "syringa-vulgaris-ref-1",
+        "syringa-vulgaris-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "ligustrum-vulgare",
+      "candidateImageIds": [
+        "ligustrum-vulgare-ref-1",
+        "ligustrum-vulgare-ref-2",
+        "ligustrum-vulgare-existing-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "viburnum-opulus",
+      "candidateImageIds": [
+        "viburnum-opulus-ref-1",
+        "viburnum-opulus-ref-2",
+        "viburnum-opulus-ref-3",
+        "viburnum-opulus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "juniperus-communis",
+      "candidateImageIds": [
+        "juniperus-communis-existing-1",
+        "juniperus-communis-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "berberis-vulgaris",
+      "candidateImageIds": [
+        "berberis-vulgaris-ref-1",
+        "berberis-vulgaris-ref-2",
+        "berberis-vulgaris-ref-3",
+        "berberis-vulgaris-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "asclepias-syriaca",
+      "candidateImageIds": [
+        "asclepias-syriaca-ref-1",
+        "asclepias-syriaca-ref-2",
+        "asclepias-syriaca-ref-3",
+        "asclepias-syriaca-ref-4",
+        "asclepias-syriaca-existing-5",
+        "asclepias-syriaca-existing-6"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "artemisia-vulgaris",
+      "candidateImageIds": [
+        "artemisia-vulgaris-ref-1",
+        "artemisia-vulgaris-ref-2",
+        "artemisia-vulgaris-ref-3",
+        "artemisia-vulgaris-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "rhamnus-cathartica",
+      "candidateImageIds": [
+        "rhamnus-cathartica-ref-1",
+        "rhamnus-cathartica-ref-2",
+        "rhamnus-cathartica-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "aegopodium-podagraria",
+      "candidateImageIds": [
+        "aegopodium-podagraria-ref-1",
+        "aegopodium-podagraria-ref-2",
+        "aegopodium-podagraria-ref-3",
+        "aegopodium-podagraria-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "ginkgo-biloba",
+      "candidateImageIds": [
+        "ginkgo-biloba-ref-1",
+        "ginkgo-biloba-ref-2",
+        "ginkgo-biloba-ref-3",
+        "ginkgo-biloba-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "zamioculcas-zamiifolia",
+      "candidateImageIds": [
+        "zamioculcas-zamiifolia-ref-1",
+        "zamioculcas-zamiifolia-ref-2",
+        "zamioculcas-zamiifolia-ref-3",
+        "zamioculcas-zamiifolia-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "lysimachia-punctata",
+      "candidateImageIds": [
+        "lysimachia-punctata-ref-1",
+        "lysimachia-punctata-ref-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "achillea-filipendulina",
+      "candidateImageIds": [
+        "achillea-filipendulina-ref-1",
+        "achillea-filipendulina-ref-2",
+        "achillea-filipendulina-ref-3",
+        "achillea-filipendulina-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "monarda-didyma",
+      "candidateImageIds": [
+        "monarda-didyma-ref-1",
+        "monarda-didyma-ref-2",
+        "monarda-didyma-ref-3",
+        "monarda-didyma-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "ludwigia-grandiflora",
+      "candidateImageIds": [
+        "ludwigia-grandiflora-existing-1",
+        "ludwigia-grandiflora-supplement-2",
+        "ludwigia-grandiflora-supplement-3",
+        "ludwigia-grandiflora-supplement-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "urtica-dioica",
+      "candidateImageIds": [
+        "urtica-dioica-ref-1",
+        "urtica-dioica-ref-2",
+        "urtica-dioica-ref-3",
+        "urtica-dioica-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "vinca-major",
+      "candidateImageIds": [
+        "vinca-major-ref-1",
+        "vinca-major-ref-2",
+        "vinca-major-ref-3",
+        "vinca-major-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "mentha-spicata",
+      "candidateImageIds": [
+        "mentha-spicata-ref-1",
+        "mentha-spicata-ref-2",
+        "mentha-spicata-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "chlorophytum-comosum",
+      "candidateImageIds": [
+        "chlorophytum-comosum-ref-1",
+        "chlorophytum-comosum-ref-2",
+        "chlorophytum-comosum-ref-3",
+        "chlorophytum-comosum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "ficus-elastica",
+      "candidateImageIds": [
+        "ficus-elastica-ref-1",
+        "ficus-elastica-ref-2",
+        "ficus-elastica-ref-3",
+        "ficus-elastica-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "glechoma-hederacea",
+      "candidateImageIds": [
+        "glechoma-hederacea-ref-1",
+        "glechoma-hederacea-ref-2",
+        "glechoma-hederacea-ref-3",
+        "glechoma-hederacea-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "cucumis-sativus",
+      "candidateImageIds": [
+        "cucumis-sativus-ref-1",
+        "cucumis-sativus-ref-2",
+        "cucumis-sativus-ref-3",
+        "cucumis-sativus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "bellis-perennis",
+      "candidateImageIds": [
+        "bellis-perennis-ref-1",
+        "bellis-perennis-ref-2",
+        "bellis-perennis-ref-3",
+        "bellis-perennis-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "ailanthus-altissima",
+      "candidateImageIds": [
+        "ailanthus-altissima-ref-1",
+        "ailanthus-altissima-ref-2",
+        "ailanthus-altissima-ref-3",
+        "ailanthus-altissima-ref-4",
+        "ailanthus-altissima-existing-5",
+        "ailanthus-altissima-existing-6"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "carpinus-betulus",
+      "candidateImageIds": [
+        "carpinus-betulus-ref-1",
+        "carpinus-betulus-ref-2",
+        "carpinus-betulus-ref-3",
+        "carpinus-betulus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "corylus-avellana",
+      "candidateImageIds": [
+        "corylus-avellana-ref-1",
+        "corylus-avellana-ref-2",
+        "corylus-avellana-ref-3",
+        "corylus-avellana-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "cyclamen-hederifolium",
+      "candidateImageIds": [
+        "cyclamen-hederifolium-ref-1",
+        "cyclamen-hederifolium-ref-2",
+        "cyclamen-hederifolium-ref-3",
+        "cyclamen-hederifolium-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "anemone-hupehensis",
+      "candidateImageIds": [
+        "anemone-hupehensis-existing-1",
+        "anemone-hupehensis-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "colchicum-autumnale",
+      "candidateImageIds": [
+        "colchicum-autumnale-existing-1",
+        "colchicum-autumnale-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "rubus-idaeus",
+      "candidateImageIds": [
+        "rubus-idaeus-ref-1",
+        "rubus-idaeus-ref-2",
+        "rubus-idaeus-ref-3",
+        "rubus-idaeus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "hylotelephium-spectabile",
+      "candidateImageIds": [
+        "hylotelephium-spectabile-ref-1",
+        "hylotelephium-spectabile-ref-2",
+        "hylotelephium-spectabile-ref-3",
+        "hylotelephium-spectabile-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "delphinium-elatum",
+      "candidateImageIds": [
+        "delphinium-elatum-existing-1",
+        "delphinium-elatum-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "phlox-paniculata",
+      "candidateImageIds": [
+        "phlox-paniculata-ref-1",
+        "phlox-paniculata-ref-2",
+        "phlox-paniculata-ref-3",
+        "phlox-paniculata-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "cucurbita-maxima",
+      "candidateImageIds": [
+        "cucurbita-maxima-ref-1",
+        "cucurbita-maxima-ref-2",
+        "cucurbita-maxima-ref-3",
+        "cucurbita-maxima-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "humulus-lupulus",
+      "candidateImageIds": [
+        "humulus-lupulus-ref-1",
+        "humulus-lupulus-ref-2",
+        "humulus-lupulus-ref-3",
+        "humulus-lupulus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "cerastium-tomentosum",
+      "candidateImageIds": [
+        "cerastium-tomentosum-ref-1",
+        "cerastium-tomentosum-ref-2",
+        "cerastium-tomentosum-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "rosa-canina",
+      "candidateImageIds": [
+        "rosa-canina-existing-1",
+        "rosa-canina-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "betula-pendula",
+      "candidateImageIds": [
+        "betula-pendula-ref-1",
+        "betula-pendula-ref-2",
+        "betula-pendula-ref-3",
+        "betula-pendula-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "clematis-viticella",
+      "candidateImageIds": [
+        "clematis-viticella-ref-1",
+        "clematis-viticella-ref-2",
+        "clematis-viticella-ref-3",
+        "clematis-viticella-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "carex-morrowii",
+      "candidateImageIds": [
+        "carex-morrowii-ref-1",
+        "carex-morrowii-ref-2",
+        "carex-morrowii-ref-3",
+        "carex-morrowii-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "musa-basjoo",
+      "candidateImageIds": [
+        "musa-basjoo-ref-1",
+        "musa-basjoo-ref-2",
+        "musa-basjoo-ref-3",
+        "musa-basjoo-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "ilex-crenata",
+      "candidateImageIds": [
+        "ilex-crenata-ref-1",
+        "ilex-crenata-ref-2",
+        "ilex-crenata-ref-3",
+        "ilex-crenata-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "humulus-scandens",
+      "candidateImageIds": [
+        "humulus-scandens-existing-1",
+        "humulus-scandens-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "athyrium-niponicum",
+      "candidateImageIds": [
+        "athyrium-niponicum-ref-1",
+        "athyrium-niponicum-ref-2",
+        "athyrium-niponicum-ref-3",
+        "athyrium-niponicum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "spiraea-japonica",
+      "candidateImageIds": [
+        "spiraea-japonica-ref-1",
+        "spiraea-japonica-ref-2",
+        "spiraea-japonica-ref-3",
+        "spiraea-japonica-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "reynoutria-japonica",
+      "candidateImageIds": [
+        "reynoutria-japonica-ref-1",
+        "reynoutria-japonica-ref-2",
+        "reynoutria-japonica-ref-3",
+        "reynoutria-japonica-ref-4",
+        "reynoutria-japonica-existing-5"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "hakonechloa-macra",
+      "candidateImageIds": [
+        "hakonechloa-macra-ref-1",
+        "hakonechloa-macra-ref-2",
+        "hakonechloa-macra-ref-3",
+        "hakonechloa-macra-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "nigella-damascena",
+      "candidateImageIds": [
+        "nigella-damascena-ref-1",
+        "nigella-damascena-ref-2",
+        "nigella-damascena-ref-3",
+        "nigella-damascena-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "bougainvillea-glabra",
+      "candidateImageIds": [
+        "bougainvillea-glabra-ref-1",
+        "bougainvillea-glabra-ref-2",
+        "bougainvillea-glabra-ref-3",
+        "bougainvillea-glabra-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "eschscholzia-californica",
+      "candidateImageIds": [
+        "eschscholzia-californica-ref-1",
+        "eschscholzia-californica-ref-2",
+        "eschscholzia-californica-ref-3",
+        "eschscholzia-californica-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "phoenix-canariensis",
+      "candidateImageIds": [
+        "phoenix-canariensis-ref-1",
+        "phoenix-canariensis-ref-2",
+        "phoenix-canariensis-ref-3",
+        "phoenix-canariensis-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "veronicastrum-virginicum",
+      "candidateImageIds": [
+        "veronicastrum-virginicum-ref-1",
+        "veronicastrum-virginicum-ref-2",
+        "veronicastrum-virginicum-ref-3",
+        "veronicastrum-virginicum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "delairea-odorata",
+      "candidateImageIds": [
+        "delairea-odorata-existing-1",
+        "delairea-odorata-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "tropaeolum-majus",
+      "candidateImageIds": [
+        "tropaeolum-majus-ref-1",
+        "tropaeolum-majus-ref-2",
+        "tropaeolum-majus-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "daucus-carota",
+      "candidateImageIds": [
+        "daucus-carota-ref-1",
+        "daucus-carota-ref-2",
+        "daucus-carota-ref-3",
+        "daucus-carota-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "solanum-tuberosum",
+      "candidateImageIds": [
+        "solanum-tuberosum-ref-1",
+        "solanum-tuberosum-ref-2",
+        "solanum-tuberosum-ref-3",
+        "solanum-tuberosum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "nepeta-x-faassenii",
+      "candidateImageIds": [
+        "nepeta-x-faassenii-ref-1",
+        "nepeta-x-faassenii-ref-2",
+        "nepeta-x-faassenii-ref-3",
+        "nepeta-x-faassenii-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "brunnera-macrophylla",
+      "candidateImageIds": [
+        "brunnera-macrophylla-ref-1",
+        "brunnera-macrophylla-ref-2",
+        "brunnera-macrophylla-ref-3",
+        "brunnera-macrophylla-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "anthriscus-cerefolium",
+      "candidateImageIds": [
+        "anthriscus-cerefolium-ref-1",
+        "anthriscus-cerefolium-ref-2",
+        "anthriscus-cerefolium-ref-3",
+        "anthriscus-cerefolium-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "prunus-laurocerasus",
+      "candidateImageIds": [
+        "prunus-laurocerasus-ref-1",
+        "prunus-laurocerasus-ref-2",
+        "prunus-laurocerasus-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "papaver-rhoeas",
+      "candidateImageIds": [
+        "papaver-rhoeas-ref-1",
+        "papaver-rhoeas-ref-2",
+        "papaver-rhoeas-ref-3",
+        "papaver-rhoeas-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "vinca-minor",
+      "candidateImageIds": [
+        "vinca-minor-ref-1",
+        "vinca-minor-ref-2",
+        "vinca-minor-ref-3",
+        "vinca-minor-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "hydrangea-petiolaris",
+      "candidateImageIds": [
+        "hydrangea-petiolaris-ref-1",
+        "hydrangea-petiolaris-ref-2",
+        "hydrangea-petiolaris-existing-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "allium-sativum",
+      "candidateImageIds": [
+        "allium-sativum-ref-1",
+        "allium-sativum-ref-2",
+        "allium-sativum-ref-3",
+        "allium-sativum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "apium-graveolens",
+      "candidateImageIds": [
+        "apium-graveolens-ref-1",
+        "apium-graveolens-ref-2",
+        "apium-graveolens-ref-3",
+        "apium-graveolens-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "brassica-oleracea",
+      "candidateImageIds": [
+        "brassica-oleracea-ref-1",
+        "brassica-oleracea-ref-2",
+        "brassica-oleracea-ref-3",
+        "brassica-oleracea-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "viburnum-carlesii",
+      "candidateImageIds": [
+        "viburnum-carlesii-ref-1",
+        "viburnum-carlesii-ref-2",
+        "viburnum-carlesii-ref-3",
+        "viburnum-carlesii-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "coriandrum-sativum",
+      "candidateImageIds": [
+        "coriandrum-sativum-ref-1",
+        "coriandrum-sativum-ref-2",
+        "coriandrum-sativum-ref-3",
+        "coriandrum-sativum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "centaurea-cyanus",
+      "candidateImageIds": [
+        "centaurea-cyanus-ref-1",
+        "centaurea-cyanus-ref-2",
+        "centaurea-cyanus-ref-3",
+        "centaurea-cyanus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "cornus-mas",
+      "candidateImageIds": [
+        "cornus-mas-ref-1",
+        "cornus-mas-ref-2",
+        "cornus-mas-ref-3",
+        "cornus-mas-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "agrostemma-githago",
+      "candidateImageIds": [
+        "agrostemma-githago-ref-1",
+        "agrostemma-githago-ref-2",
+        "agrostemma-githago-ref-3",
+        "agrostemma-githago-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "ajuga-reptans",
+      "candidateImageIds": [
+        "ajuga-reptans-ref-1",
+        "ajuga-reptans-ref-2",
+        "ajuga-reptans-ref-3",
+        "ajuga-reptans-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "euonymus-fortunei",
+      "candidateImageIds": [
+        "euonymus-fortunei-ref-1",
+        "euonymus-fortunei-ref-2",
+        "euonymus-fortunei-ref-3",
+        "euonymus-fortunei-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "allium-sphaerocephalon",
+      "candidateImageIds": [
+        "allium-sphaerocephalon-ref-1",
+        "allium-sphaerocephalon-ref-2",
+        "allium-sphaerocephalon-ref-3",
+        "allium-sphaerocephalon-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "vaccinium-corymbosum",
+      "candidateImageIds": [
+        "vaccinium-corymbosum-ref-1",
+        "vaccinium-corymbosum-ref-2",
+        "vaccinium-corymbosum-ref-3",
+        "vaccinium-corymbosum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "cucurbita-pepo",
+      "candidateImageIds": [
+        "cucurbita-pepo-ref-1",
+        "cucurbita-pepo-ref-2",
+        "cucurbita-pepo-ref-3",
+        "cucurbita-pepo-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "pennisetum-alopecuroides",
+      "candidateImageIds": [
+        "pennisetum-alopecuroides-ref-1",
+        "pennisetum-alopecuroides-ref-2",
+        "pennisetum-alopecuroides-ref-3",
+        "pennisetum-alopecuroides-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "levisticum-officinale",
+      "candidateImageIds": [
+        "levisticum-officinale-ref-1",
+        "levisticum-officinale-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "hosta-plantaginea",
+      "candidateImageIds": [
+        "hosta-plantaginea-ref-1",
+        "hosta-plantaginea-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "viburnum-tinus",
+      "candidateImageIds": [
+        "viburnum-tinus-ref-1",
+        "viburnum-tinus-ref-2",
+        "viburnum-tinus-ref-3",
+        "viburnum-tinus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "convallaria-majalis",
+      "candidateImageIds": [
+        "convallaria-majalis-ref-1",
+        "convallaria-majalis-ref-2",
+        "convallaria-majalis-ref-3",
+        "convallaria-majalis-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "prunus-armeniaca",
+      "candidateImageIds": [
+        "prunus-armeniaca-ref-1",
+        "prunus-armeniaca-ref-2",
+        "prunus-armeniaca-ref-3",
+        "prunus-armeniaca-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "salvia-farinacea",
+      "candidateImageIds": [
+        "salvia-farinacea-ref-1",
+        "salvia-farinacea-ref-2",
+        "salvia-farinacea-ref-3",
+        "salvia-farinacea-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "nassella-tenuissima",
+      "candidateImageIds": [
+        "nassella-tenuissima-ref-1",
+        "nassella-tenuissima-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "euphorbia-characias",
+      "candidateImageIds": [
+        "euphorbia-characias-existing-1",
+        "euphorbia-characias-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "cucurbita-moschata",
+      "candidateImageIds": [
+        "cucurbita-moschata-ref-1",
+        "cucurbita-moschata-ref-2",
+        "cucurbita-moschata-ref-3",
+        "cucurbita-moschata-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "coreopsis-verticillata",
+      "candidateImageIds": [
+        "coreopsis-verticillata-ref-1",
+        "coreopsis-verticillata-ref-2",
+        "coreopsis-verticillata-ref-3",
+        "coreopsis-verticillata-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "crassula-helmsii",
+      "candidateImageIds": [
+        "crassula-helmsii-existing-1",
+        "crassula-helmsii-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "symphyotrichum-novi-belgii",
+      "candidateImageIds": [
+        "symphyotrichum-novi-belgii-ref-1",
+        "symphyotrichum-novi-belgii-ref-2",
+        "symphyotrichum-novi-belgii-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "tagetes-patula",
+      "candidateImageIds": [
+        "tagetes-patula-ref-1",
+        "tagetes-patula-ref-2",
+        "tagetes-patula-ref-3",
+        "tagetes-patula-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "nerium-oleander",
+      "candidateImageIds": [
+        "nerium-oleander-ref-1",
+        "nerium-oleander-ref-2",
+        "nerium-oleander-ref-3",
+        "nerium-oleander-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "olea-europaea",
+      "candidateImageIds": [
+        "olea-europaea-ref-1",
+        "olea-europaea-ref-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "origanum-vulgare",
+      "candidateImageIds": [
+        "origanum-vulgare-ref-1",
+        "origanum-vulgare-ref-2",
+        "origanum-vulgare-ref-3",
+        "origanum-vulgare-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "helleborus-orientalis",
+      "candidateImageIds": [
+        "helleborus-orientalis-ref-1",
+        "helleborus-orientalis-ref-2",
+        "helleborus-orientalis-ref-3",
+        "helleborus-orientalis-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "broussonetia-papyrifera",
+      "candidateImageIds": [
+        "broussonetia-papyrifera-existing-1",
+        "broussonetia-papyrifera-supplement-2",
+        "broussonetia-papyrifera-supplement-3",
+        "broussonetia-papyrifera-supplement-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "capsicum-annuum",
+      "candidateImageIds": [
+        "capsicum-annuum-ref-1",
+        "capsicum-annuum-ref-2",
+        "capsicum-annuum-ref-3",
+        "capsicum-annuum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "pastinaca-sativa",
+      "candidateImageIds": [
+        "pastinaca-sativa-ref-1",
+        "pastinaca-sativa-ref-2",
+        "pastinaca-sativa-ref-3",
+        "pastinaca-sativa-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "verbena-bonariensis",
+      "candidateImageIds": [
+        "verbena-bonariensis-ref-1",
+        "verbena-bonariensis-ref-2",
+        "verbena-bonariensis-ref-3",
+        "verbena-bonariensis-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "cotinus-coggygria",
+      "candidateImageIds": [
+        "cotinus-coggygria-ref-1",
+        "cotinus-coggygria-ref-2",
+        "cotinus-coggygria-ref-3",
+        "cotinus-coggygria-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "petroselinum-crispum",
+      "candidateImageIds": [
+        "petroselinum-crispum-ref-1",
+        "petroselinum-crispum-ref-2",
+        "petroselinum-crispum-ref-3",
+        "petroselinum-crispum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "euonymus-europaeus",
+      "candidateImageIds": [
+        "euonymus-europaeus-ref-1",
+        "euonymus-europaeus-ref-2",
+        "euonymus-europaeus-ref-3",
+        "euonymus-europaeus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "mentha-x-piperita",
+      "candidateImageIds": [
+        "mentha-x-piperita-ref-1",
+        "mentha-x-piperita-ref-2",
+        "mentha-x-piperita-ref-3",
+        "mentha-x-piperita-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "molinia-caerulea",
+      "candidateImageIds": [
+        "molinia-caerulea-existing-1",
+        "molinia-caerulea-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "lysimachia-nummularia",
+      "candidateImageIds": [
+        "lysimachia-nummularia-ref-1",
+        "lysimachia-nummularia-ref-2",
+        "lysimachia-nummularia-ref-3",
+        "lysimachia-nummularia-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "prunus-persica",
+      "candidateImageIds": [
+        "prunus-persica-ref-1",
+        "prunus-persica-ref-2",
+        "prunus-persica-ref-3",
+        "prunus-persica-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "campanula-persicifolia",
+      "candidateImageIds": [
+        "campanula-persicifolia-ref-1",
+        "campanula-persicifolia-ref-2",
+        "campanula-persicifolia-ref-3",
+        "campanula-persicifolia-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "prunus-domestica",
+      "candidateImageIds": [
+        "prunus-domestica-ref-1",
+        "prunus-domestica-ref-2",
+        "prunus-domestica-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "allium-ampeloprasum",
+      "candidateImageIds": [
+        "allium-ampeloprasum-ref-1",
+        "allium-ampeloprasum-ref-2",
+        "allium-ampeloprasum-ref-3",
+        "allium-ampeloprasum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "spiraea-x-vanhouttei",
+      "candidateImageIds": [
+        "spiraea-x-vanhouttei-ref-1",
+        "spiraea-x-vanhouttei-ref-2",
+        "spiraea-x-vanhouttei-ref-3",
+        "spiraea-x-vanhouttei-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "gaura-lindheimeri",
+      "candidateImageIds": [
+        "gaura-lindheimeri-ref-1",
+        "gaura-lindheimeri-ref-2",
+        "gaura-lindheimeri-ref-3",
+        "gaura-lindheimeri-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "liatris-spicata",
+      "candidateImageIds": [
+        "liatris-spicata-ref-1",
+        "liatris-spicata-ref-2",
+        "liatris-spicata-ref-3",
+        "liatris-spicata-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "echinacea-purpurea",
+      "candidateImageIds": [
+        "echinacea-purpurea-ref-1",
+        "echinacea-purpurea-ref-2",
+        "echinacea-purpurea-ref-3",
+        "echinacea-purpurea-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "heuchera-sanguinea",
+      "candidateImageIds": [
+        "heuchera-sanguinea-ref-1",
+        "heuchera-sanguinea-ref-2",
+        "heuchera-sanguinea-existing-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "rudbeckia-hirta",
+      "candidateImageIds": [
+        "rudbeckia-hirta-ref-1",
+        "rudbeckia-hirta-ref-2",
+        "rudbeckia-hirta-ref-3",
+        "rudbeckia-hirta-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "raphanus-sativus",
+      "candidateImageIds": [
+        "raphanus-sativus-ref-1",
+        "raphanus-sativus-ref-2",
+        "raphanus-sativus-ref-3",
+        "raphanus-sativus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "rhododendron-catawbiense",
+      "candidateImageIds": [
+        "rhododendron-catawbiense-ref-1",
+        "rhododendron-catawbiense-ref-2",
+        "rhododendron-catawbiense-ref-3",
+        "rhododendron-catawbiense-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "heracleum-mantegazzianum",
+      "candidateImageIds": [
+        "heracleum-mantegazzianum-existing-1",
+        "heracleum-mantegazzianum-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "allium-giganteum",
+      "candidateImageIds": [
+        "allium-giganteum-ref-1",
+        "allium-giganteum-ref-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "calendula-officinalis",
+      "candidateImageIds": [
+        "calendula-officinalis-ref-1",
+        "calendula-officinalis-ref-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "hydrangea-paniculata",
+      "candidateImageIds": [
+        "hydrangea-paniculata-ref-1",
+        "hydrangea-paniculata-ref-2",
+        "hydrangea-paniculata-ref-3",
+        "hydrangea-paniculata-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "salvia-rosmarinus",
+      "candidateImageIds": [
+        "salvia-rosmarinus-ref-1",
+        "salvia-rosmarinus-ref-2",
+        "salvia-rosmarinus-ref-3",
+        "salvia-rosmarinus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "fagus-sylvatica",
+      "candidateImageIds": [
+        "fagus-sylvatica-ref-1",
+        "fagus-sylvatica-ref-2",
+        "fagus-sylvatica-ref-3",
+        "fagus-sylvatica-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "photinia-x-fraseri",
+      "candidateImageIds": [
+        "photinia-x-fraseri-ref-1",
+        "photinia-x-fraseri-ref-2",
+        "photinia-x-fraseri-ref-3",
+        "photinia-x-fraseri-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "ribes-rubrum",
+      "candidateImageIds": [
+        "ribes-rubrum-existing-1",
+        "ribes-rubrum-supplement-2",
+        "ribes-rubrum-supplement-3",
+        "ribes-rubrum-supplement-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "digitalis-purpurea",
+      "candidateImageIds": [
+        "digitalis-purpurea-ref-1",
+        "digitalis-purpurea-ref-2",
+        "digitalis-purpurea-ref-3",
+        "digitalis-purpurea-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "cornus-sanguinea",
+      "candidateImageIds": [
+        "cornus-sanguinea-ref-1",
+        "cornus-sanguinea-ref-2",
+        "cornus-sanguinea-ref-3",
+        "cornus-sanguinea-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "celastrus-orbiculatus",
+      "candidateImageIds": [
+        "celastrus-orbiculatus-ref-1",
+        "celastrus-orbiculatus-ref-2",
+        "celastrus-orbiculatus-existing-3",
+        "celastrus-orbiculatus-supplement-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "panicum-virgatum",
+      "candidateImageIds": [
+        "panicum-virgatum-ref-1",
+        "panicum-virgatum-ref-2",
+        "panicum-virgatum-ref-3",
+        "panicum-virgatum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "echinops-ritro",
+      "candidateImageIds": [
+        "echinops-ritro-ref-1",
+        "echinops-ritro-ref-2",
+        "echinops-ritro-ref-3",
+        "echinops-ritro-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "chamaemelum-nobile",
+      "candidateImageIds": [
+        "chamaemelum-nobile-ref-1",
+        "chamaemelum-nobile-ref-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "reynoutria-sachalinensis",
+      "candidateImageIds": [
+        "reynoutria-sachalinensis-existing-1",
+        "reynoutria-sachalinensis-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "prunus-cerasus",
+      "candidateImageIds": [
+        "prunus-cerasus-ref-1",
+        "prunus-cerasus-ref-2",
+        "prunus-cerasus-ref-3",
+        "prunus-cerasus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "sedum-acre",
+      "candidateImageIds": [
+        "sedum-acre-ref-1",
+        "sedum-acre-ref-2",
+        "sedum-acre-ref-3",
+        "sedum-acre-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "fuchsia-magellanica",
+      "candidateImageIds": [
+        "fuchsia-magellanica-ref-1",
+        "fuchsia-magellanica-ref-2",
+        "fuchsia-magellanica-ref-3",
+        "fuchsia-magellanica-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "polystichum-setiferum",
+      "candidateImageIds": [
+        "polystichum-setiferum-ref-1",
+        "polystichum-setiferum-ref-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "iberis-sempervirens",
+      "candidateImageIds": [
+        "iberis-sempervirens-ref-1",
+        "iberis-sempervirens-ref-2",
+        "iberis-sempervirens-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "elodea-nuttallii",
+      "candidateImageIds": [
+        "elodea-nuttallii-existing-1",
+        "elodea-nuttallii-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "cosmos-bipinnatus",
+      "candidateImageIds": [
+        "cosmos-bipinnatus-ref-1",
+        "cosmos-bipinnatus-ref-2",
+        "cosmos-bipinnatus-ref-3",
+        "cosmos-bipinnatus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "cosmos-sulphureus",
+      "candidateImageIds": [
+        "cosmos-sulphureus-ref-1",
+        "cosmos-sulphureus-ref-2",
+        "cosmos-sulphureus-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "hydrangea-arborescens",
+      "candidateImageIds": [
+        "hydrangea-arborescens-ref-1",
+        "hydrangea-arborescens-ref-2",
+        "hydrangea-arborescens-ref-3",
+        "hydrangea-arborescens-existing-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "scilla-luciliae",
+      "candidateImageIds": [
+        "scilla-luciliae-ref-1",
+        "scilla-luciliae-ref-2",
+        "scilla-luciliae-ref-3",
+        "scilla-luciliae-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "galanthus-nivalis",
+      "candidateImageIds": [
+        "galanthus-nivalis-ref-1",
+        "galanthus-nivalis-ref-2",
+        "galanthus-nivalis-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "allium-schoenoprasum",
+      "candidateImageIds": [
+        "allium-schoenoprasum-ref-1",
+        "allium-schoenoprasum-ref-2",
+        "allium-schoenoprasum-ref-3",
+        "allium-schoenoprasum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "butomus-umbellatus",
+      "candidateImageIds": [
+        "butomus-umbellatus-existing-1",
+        "butomus-umbellatus-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "alnus-glutinosa",
+      "candidateImageIds": [
+        "alnus-glutinosa-ref-1",
+        "alnus-glutinosa-ref-2",
+        "alnus-glutinosa-ref-3",
+        "alnus-glutinosa-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "aronia-melanocarpa",
+      "candidateImageIds": [
+        "aronia-melanocarpa-ref-1",
+        "aronia-melanocarpa-ref-2",
+        "aronia-melanocarpa-ref-3",
+        "aronia-melanocarpa-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "ribes-nigrum",
+      "candidateImageIds": [
+        "ribes-nigrum-existing-1",
+        "ribes-nigrum-supplement-2",
+        "ribes-nigrum-supplement-3",
+        "ribes-nigrum-supplement-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "sambucus-nigra",
+      "candidateImageIds": [
+        "sambucus-nigra-ref-1",
+        "sambucus-nigra-ref-2",
+        "sambucus-nigra-ref-3",
+        "sambucus-nigra-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "iris-sibirica",
+      "candidateImageIds": [
+        "iris-sibirica-ref-1",
+        "iris-sibirica-ref-2",
+        "iris-sibirica-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "leucojum-aestivum",
+      "candidateImageIds": [
+        "leucojum-aestivum-ref-1",
+        "leucojum-aestivum-ref-2",
+        "leucojum-aestivum-ref-3",
+        "leucojum-aestivum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "tilia-platyphyllos",
+      "candidateImageIds": [
+        "tilia-platyphyllos-ref-1",
+        "tilia-platyphyllos-ref-2",
+        "tilia-platyphyllos-ref-3",
+        "tilia-platyphyllos-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "buddleja-davidii",
+      "candidateImageIds": [
+        "buddleja-davidii-ref-1",
+        "buddleja-davidii-ref-2",
+        "buddleja-davidii-ref-3",
+        "buddleja-davidii-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "heliopsis-helianthoides",
+      "candidateImageIds": [
+        "heliopsis-helianthoides-ref-1",
+        "heliopsis-helianthoides-ref-2",
+        "heliopsis-helianthoides-ref-3",
+        "heliopsis-helianthoides-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "helianthus-annuus",
+      "candidateImageIds": [
+        "helianthus-annuus-ref-1",
+        "helianthus-annuus-ref-2",
+        "helianthus-annuus-ref-3",
+        "helianthus-annuus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "helenium-autumnale",
+      "candidateImageIds": [
+        "helenium-autumnale-ref-1",
+        "helenium-autumnale-ref-2",
+        "helenium-autumnale-ref-3",
+        "helenium-autumnale-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "rudbeckia-fulgida",
+      "candidateImageIds": [
+        "rudbeckia-fulgida-ref-1",
+        "rudbeckia-fulgida-ref-2",
+        "rudbeckia-fulgida-ref-3",
+        "rudbeckia-fulgida-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "allium-cepa",
+      "candidateImageIds": [
+        "allium-cepa-ref-1",
+        "allium-cepa-ref-2",
+        "allium-cepa-ref-3",
+        "allium-cepa-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "spinacia-oleracea",
+      "candidateImageIds": [
+        "spinacia-oleracea-ref-1",
+        "spinacia-oleracea-ref-2",
+        "spinacia-oleracea-ref-3",
+        "spinacia-oleracea-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "acer-platanoides",
+      "candidateImageIds": [
+        "acer-platanoides-ref-1",
+        "acer-platanoides-ref-2",
+        "acer-platanoides-existing-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "plantago-lanceolata",
+      "candidateImageIds": [
+        "plantago-lanceolata-ref-1",
+        "plantago-lanceolata-ref-2",
+        "plantago-lanceolata-ref-3",
+        "plantago-lanceolata-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "picea-pungens",
+      "candidateImageIds": [
+        "picea-pungens-ref-1",
+        "picea-pungens-ref-2",
+        "picea-pungens-ref-3",
+        "picea-pungens-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "salvia-nemorosa",
+      "candidateImageIds": [
+        "salvia-nemorosa-ref-1",
+        "salvia-nemorosa-ref-2",
+        "salvia-nemorosa-ref-3",
+        "salvia-nemorosa-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "deutzia-gracilis",
+      "candidateImageIds": [
+        "deutzia-gracilis-ref-1",
+        "deutzia-gracilis-ref-2",
+        "deutzia-gracilis-ref-3",
+        "deutzia-gracilis-ref-4",
+        "deutzia-gracilis-existing-5"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "quercus-robur",
+      "candidateImageIds": [
+        "quercus-robur-ref-1",
+        "quercus-robur-ref-2",
+        "quercus-robur-ref-3",
+        "quercus-robur-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "alcea-rosea",
+      "candidateImageIds": [
+        "alcea-rosea-ref-1",
+        "alcea-rosea-ref-2",
+        "alcea-rosea-ref-3",
+        "alcea-rosea-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "matteuccia-struthiopteris",
+      "candidateImageIds": [
+        "matteuccia-struthiopteris-ref-1",
+        "matteuccia-struthiopteris-ref-2",
+        "matteuccia-struthiopteris-ref-3",
+        "matteuccia-struthiopteris-ref-4",
+        "matteuccia-struthiopteris-existing-5"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "caltha-palustris",
+      "candidateImageIds": [
+        "caltha-palustris-ref-1",
+        "caltha-palustris-ref-2",
+        "caltha-palustris-ref-3",
+        "caltha-palustris-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "iris-pseudacorus",
+      "candidateImageIds": [
+        "iris-pseudacorus-ref-1",
+        "iris-pseudacorus-ref-2",
+        "iris-pseudacorus-ref-3",
+        "iris-pseudacorus-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "iris-ensata",
+      "candidateImageIds": [
+        "iris-ensata-ref-1",
+        "iris-ensata-ref-2",
+        "iris-ensata-ref-3",
+        "iris-ensata-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "myosotis-scorpioides",
+      "candidateImageIds": [
+        "myosotis-scorpioides-ref-1",
+        "myosotis-scorpioides-ref-2",
+        "myosotis-scorpioides-ref-3",
+        "myosotis-scorpioides-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "ipomoea-batatas",
+      "candidateImageIds": [
+        "ipomoea-batatas-ref-1",
+        "ipomoea-batatas-ref-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "prunus-avium",
+      "candidateImageIds": [
+        "prunus-avium-existing-1",
+        "prunus-avium-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "hemerocallis-fulva",
+      "candidateImageIds": [
+        "hemerocallis-fulva-ref-1",
+        "hemerocallis-fulva-ref-2",
+        "hemerocallis-fulva-ref-3",
+        "hemerocallis-fulva-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "cotoneaster-dammeri",
+      "candidateImageIds": [
+        "cotoneaster-dammeri-ref-1",
+        "cotoneaster-dammeri-ref-2",
+        "cotoneaster-dammeri-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "berberis-thunbergii",
+      "candidateImageIds": [
+        "berberis-thunbergii-ref-1",
+        "berberis-thunbergii-ref-2",
+        "berberis-thunbergii-ref-3",
+        "berberis-thunbergii-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "solanum-lycopersicum",
+      "candidateImageIds": [
+        "solanum-lycopersicum-ref-1",
+        "solanum-lycopersicum-ref-2",
+        "solanum-lycopersicum-ref-3",
+        "solanum-lycopersicum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "quercus-petraea",
+      "candidateImageIds": [
+        "quercus-petraea-ref-1",
+        "quercus-petraea-ref-2",
+        "quercus-petraea-ref-3",
+        "quercus-petraea-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "campsis-radicans",
+      "candidateImageIds": [
+        "campsis-radicans-ref-1",
+        "campsis-radicans-ref-2",
+        "campsis-radicans-ref-3",
+        "campsis-radicans-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "lamprocapnos-spectabilis",
+      "candidateImageIds": [
+        "lamprocapnos-spectabilis-ref-1",
+        "lamprocapnos-spectabilis-ref-2",
+        "lamprocapnos-spectabilis-ref-3",
+        "lamprocapnos-spectabilis-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "papaver-orientale",
+      "candidateImageIds": [
+        "papaver-orientale-ref-1",
+        "papaver-orientale-ref-2",
+        "papaver-orientale-ref-3",
+        "papaver-orientale-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "pilea-peperomioides",
+      "candidateImageIds": [
+        "pilea-peperomioides-ref-1",
+        "pilea-peperomioides-ref-2",
+        "pilea-peperomioides-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "heliotropium-arborescens",
+      "candidateImageIds": [
+        "heliotropium-arborescens-ref-1",
+        "heliotropium-arborescens-ref-2",
+        "heliotropium-arborescens-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "myriophyllum-heterophyllum",
+      "candidateImageIds": [
+        "myriophyllum-heterophyllum-existing-1",
+        "myriophyllum-heterophyllum-supplement-2",
+        "myriophyllum-heterophyllum-supplement-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "koenigia-polystachya",
+      "candidateImageIds": [
+        "koenigia-polystachya-existing-1",
+        "koenigia-polystachya-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "sorbus-aucuparia",
+      "candidateImageIds": [
+        "sorbus-aucuparia-ref-1",
+        "sorbus-aucuparia-ref-2",
+        "sorbus-aucuparia-ref-3",
+        "sorbus-aucuparia-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "athyrium-filix-femina",
+      "candidateImageIds": [
+        "athyrium-filix-femina-ref-1",
+        "athyrium-filix-femina-ref-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "lonicera-periclymenum",
+      "candidateImageIds": [
+        "lonicera-periclymenum-ref-1",
+        "lonicera-periclymenum-ref-2",
+        "lonicera-periclymenum-ref-3",
+        "lonicera-periclymenum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "pinus-sylvestris",
+      "candidateImageIds": [
+        "pinus-sylvestris-ref-1",
+        "pinus-sylvestris-ref-2",
+        "pinus-sylvestris-ref-3",
+        "pinus-sylvestris-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "deschampsia-cespitosa",
+      "candidateImageIds": [
+        "deschampsia-cespitosa-ref-1",
+        "deschampsia-cespitosa-ref-2",
+        "deschampsia-cespitosa-ref-3",
+        "deschampsia-cespitosa-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "galium-odoratum",
+      "candidateImageIds": [
+        "galium-odoratum-ref-1",
+        "galium-odoratum-ref-2",
+        "galium-odoratum-ref-3",
+        "galium-odoratum-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "juglans-regia",
+      "candidateImageIds": [
+        "juglans-regia-ref-1",
+        "juglans-regia-ref-2",
+        "juglans-regia-ref-3",
+        "juglans-regia-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "pistia-stratiotes",
+      "candidateImageIds": [
+        "pistia-stratiotes-ref-1",
+        "pistia-stratiotes-ref-2",
+        "pistia-stratiotes-ref-3",
+        "pistia-stratiotes-ref-4",
+        "pistia-stratiotes-existing-5",
+        "pistia-stratiotes-existing-6"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "lagarosiphon-major",
+      "candidateImageIds": [
+        "lagarosiphon-major-existing-1",
+        "lagarosiphon-major-existing-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "weigela-florida",
+      "candidateImageIds": [
+        "weigela-florida-ref-1",
+        "weigela-florida-ref-2",
+        "weigela-florida-ref-3",
+        "weigela-florida-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "vitis-vinifera",
+      "candidateImageIds": [
+        "vitis-vinifera-ref-1",
+        "vitis-vinifera-ref-2",
+        "vitis-vinifera-ref-3",
+        "vitis-vinifera-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "abies-alba",
+      "candidateImageIds": [
+        "abies-alba-ref-1",
+        "abies-alba-ref-2",
+        "abies-alba-ref-3",
+        "abies-alba-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "nymphaea-alba",
+      "candidateImageIds": [
+        "nymphaea-alba-replacement-1",
+        "nymphaea-alba-replacement-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "cornus-alba",
+      "candidateImageIds": [
+        "cornus-alba-ref-1",
+        "cornus-alba-ref-2",
+        "cornus-alba-ref-3",
+        "cornus-alba-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "artemisia-absinthium",
+      "candidateImageIds": [
+        "artemisia-absinthium-ref-1",
+        "artemisia-absinthium-ref-2",
+        "artemisia-absinthium-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "leucanthemum-vulgare",
+      "candidateImageIds": [
+        "leucanthemum-vulgare-ref-1",
+        "leucanthemum-vulgare-ref-2",
+        "leucanthemum-vulgare-existing-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "monarda-fistulosa",
+      "candidateImageIds": [
+        "monarda-fistulosa-ref-1",
+        "monarda-fistulosa-ref-2",
+        "monarda-fistulosa-ref-3",
+        "monarda-fistulosa-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "parthenocissus-quinquefolia",
+      "candidateImageIds": [
+        "parthenocissus-quinquefolia-ref-1",
+        "parthenocissus-quinquefolia-ref-2",
+        "parthenocissus-quinquefolia-ref-3",
+        "parthenocissus-quinquefolia-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "tilia-cordata",
+      "candidateImageIds": [
+        "tilia-cordata-ref-1",
+        "tilia-cordata-ref-2",
+        "tilia-cordata-ref-3",
+        "tilia-cordata-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "eranthis-hyemalis",
+      "candidateImageIds": [
+        "eranthis-hyemalis-ref-1",
+        "eranthis-hyemalis-ref-2",
+        "eranthis-hyemalis-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "stachys-byzantina",
+      "candidateImageIds": [
+        "stachys-byzantina-ref-1",
+        "stachys-byzantina-ref-2",
+        "stachys-byzantina-ref-3",
+        "stachys-byzantina-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "ricinus-communis",
+      "candidateImageIds": [
+        "ricinus-communis-ref-1",
+        "ricinus-communis-ref-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "dryopteris-filix-mas",
+      "candidateImageIds": [
+        "dryopteris-filix-mas-ref-1",
+        "dryopteris-filix-mas-ref-2",
+        "dryopteris-filix-mas-ref-3",
+        "dryopteris-filix-mas-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "hyssopus-officinalis",
+      "candidateImageIds": [
+        "hyssopus-officinalis-ref-1",
+        "hyssopus-officinalis-ref-2"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "zinnia-elegans",
+      "candidateImageIds": [
+        "zinnia-elegans-ref-1",
+        "zinnia-elegans-ref-2",
+        "zinnia-elegans-ref-3",
+        "zinnia-elegans-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "cymbopogon-citratus",
+      "candidateImageIds": [
+        "cymbopogon-citratus-ref-1",
+        "cymbopogon-citratus-ref-2",
+        "cymbopogon-citratus-ref-3"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "melissa-officinalis",
+      "candidateImageIds": [
+        "melissa-officinalis-ref-1",
+        "melissa-officinalis-ref-2",
+        "melissa-officinalis-ref-3",
+        "melissa-officinalis-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "zea-mays",
+      "candidateImageIds": [
+        "zea-mays-ref-1",
+        "zea-mays-ref-2",
+        "zea-mays-ref-3",
+        "zea-mays-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "chamaerops-humilis",
+      "candidateImageIds": [
+        "chamaerops-humilis-ref-1",
+        "chamaerops-humilis-ref-2",
+        "chamaerops-humilis-ref-3",
+        "chamaerops-humilis-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    },
+    {
+      "plantId": "veronica-spicata",
+      "candidateImageIds": [
+        "veronica-spicata-ref-1",
+        "veronica-spicata-ref-2",
+        "veronica-spicata-ref-3",
+        "veronica-spicata-ref-4"
+      ],
+      "minimumChosenImages": 2,
+      "status": "DOWNLOAD_AND_VISUAL_REVIEW_PENDING"
+    }
+  ]
+}

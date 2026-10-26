@@ -1,0 +1,6 @@
+{
+  "classification": "SYNTHETIC_TEST",
+  "baseline": "AP1/AP2 known actionable, network and committed-status warnings; historical restore handler remains unchanged",
+  "previous_sync_classifier_sha256": "5d81e34370a8754ea75f80d533c6b7ba768156a3b9621639464f133931566a3c",
+  "sync_classifier_sha256": "cf3e18bb7288a8af7db98e4a6b6e4c9aa8d9bb20b281c91bffeecf4eaf561fb3"
+}

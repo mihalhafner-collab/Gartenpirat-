@@ -11,6 +11,7 @@ final class SyncArchiveApplicationService implements OwnerCommand {
         switch(name){
             case "empty_trash":{
                 JSONObject payload=TrashPurgeBatch.payload(all,a.getString("expected_preview_hash"),a.getBoolean("confirmed"));if(TestDataRules.localOnly(new JSONObject().put("kind",TrashPurgeBatch.KIND).put("payload",payload),all))payload.put("_local_only",true);
+                JSONArray targets=payload.getJSONArray("entries");for(int i=0;i<targets.length();i++){JSONObject target=targets.getJSONObject(i);requireInactiveSession(target.getString("entity"),target.getString("entity_id"));}
                 JSONArray prior=repository.pendingActions(),shared=new JSONArray(),predecessors=new JSONArray();
                 for(int i=0;i<prior.length();i++){JSONObject event=prior.getJSONObject(i),p=event.getJSONObject("payload");
                     if(payload.optBoolean("_local_only")||!p.optBoolean("_local_only")&&!p.optBoolean("test_record"))shared.put(event);}
@@ -39,8 +40,9 @@ final class SyncArchiveApplicationService implements OwnerCommand {
                 }
                 return new JSONObject().put("decisions_queued",entries.length()).put("resolution","keep_current").put("business_data_changed",false).put("backup_id",a.getString("backup_id")).put("history_state","sync_pending");
             }
-            case "request_sync":return new JSONObject().put("state","requested").put("cloud_confirmed",false);
+            case "request_sync":return DriveRolePolicy.retiredResponse();
             case "purge_entity":{
+                requireInactiveSession(a.getString("entity"),a.getString("entity_id"));
                 String kind="purge_v1";JSONObject p=new JSONObject().put("id",a.getString("entity_id")).put("expected_record_hash",a.getString("expected_record_hash")).put("updated_at",stamp);
                 if(name.equals("purge_entity"))p.put("entity",a.getString("entity")).put("confirmed",a.getBoolean("confirmed"));
                 OwnerJournalRules.apply(new JSONObject(all.toString()),new JSONObject().put("kind",kind).put("payload",p).put("client_id",request).put("created_at",stamp),new HashMap<>(),new JSONObject());
@@ -53,21 +55,25 @@ final class SyncArchiveApplicationService implements OwnerCommand {
                 OwnerJournalRules.apply(new JSONObject(all.toString()),new JSONObject().put("client_id",request).put("kind","restore").put("payload",p).put("created_at",stamp),new HashMap<>(),new JSONObject());return repository.enqueue("restore",p,request);
             }
             case "resolve_sync_conflict":{
-                JSONObject conflicts=PixelMcpOwnerTools.conflicts(repository.state(),new JSONObject().put("limit",1).put("client_id",a.getString("client_id")));JSONObject found=null;JSONArray list=conflicts.getJSONArray("conflicts");for(int i=0;i<list.length();i++)if(a.getString("client_id").equals(list.getJSONObject(i).optString("client_id")))found=list.getJSONObject(i);
+                JSONObject resolutionState=repository.state();JSONObject conflicts=PixelMcpOwnerTools.conflicts(resolutionState,new JSONObject().put("limit",1).put("client_id",a.getString("client_id")));JSONObject found=null;JSONArray list=conflicts.getJSONArray("conflicts");for(int i=0;i<list.length();i++)if(a.getString("client_id").equals(list.getJSONObject(i).optString("client_id")))found=list.getJSONObject(i);
                 if(found!=null&&!found.optBoolean("resolution_available",false)){
                     String code=found.optString("code");
                     if("SYNC_COMPONENT_UPDATE_REQUIRED".equals(code))throw new PixelMcpWriteTools.Rejected(code,"Dieser Vorgang ist kein Datenkonflikt. Zuerst Pixel-Verarbeitung aktualisieren und erneut synchronisieren; keine Konfliktentscheidung wurde erzeugt.");
                     if("ACTION_ID_CONFLICT".equals(code))throw new PixelMcpWriteTools.Rejected(code,"Die Kontrollaktion selbst ist widersprüchlich und darf nicht durch eine weitere Konfliktentscheidung verändert werden.");
                     if("legacy_inline_photo_requires_original_review".equals(found.optString("review_reason")))throw new PixelMcpWriteTools.Rejected("LEGACY_PHOTO_REVIEW_REQUIRED","Älteres Fotojournal benötigt Prüfung des Originals. Keine Aktion verworfen oder verändert.");
                     throw new PixelMcpWriteTools.Rejected("CONFLICT_RESOLUTION_NOT_AVAILABLE","Dieser technische oder geschützte Vorgang kann nicht als normaler Datenkonflikt aufgelöst werden.");
-                }if(found==null||!found.has("action"))throw new IllegalArgumentException("Konfliktaktion nicht vollständig verfügbar; nichts geändert.");JSONObject p=new JSONObject(a.toString());p.remove("request_id");JSONObject original=found.getJSONObject("action");p.put("_original_action",original);JSONObject current=found.optJSONObject("current");p.put("_current_base",current==null?JSONObject.NULL:("purge_v1".equals(original.getString("kind"))||TrashPurgeBatch.KIND.equals(original.getString("kind")))?DriveJournalRules.clean(current):DriveJournalRules.guard(current,"delete".equals(original.getString("kind"))?original.getJSONObject("payload").getString("entity"):original.getString("kind")));Map<String,JSONObject> actions=new HashMap<>();actions.put(a.getString("client_id"),found.getJSONObject("action"));OwnerJournalRules.apply(new JSONObject(repository.state().getJSONObject("master").toString()),new JSONObject().put("kind","conflict_resolution").put("client_id",request).put("payload",p),actions,new JSONObject());return repository.enqueue("conflict_resolution",p,request);
+                }if(found==null||!found.has("action"))throw new IllegalArgumentException("Konfliktaktion nicht vollständig verfügbar; nichts geändert.");JSONObject p=new JSONObject(a.toString());p.remove("request_id");JSONObject original=found.getJSONObject("action");p.put("_original_action",original);JSONObject current=found.optJSONObject("current");p.put("_current_base",current==null?JSONObject.NULL:("purge_v1".equals(original.getString("kind"))||TrashPurgeBatch.KIND.equals(original.getString("kind")))?DriveJournalRules.clean(current):DriveJournalRules.guard(current,"delete".equals(original.getString("kind"))?original.getJSONObject("payload").getString("entity"):original.getString("kind")));Map<String,JSONObject> actions=new HashMap<>();actions.put(a.getString("client_id"),found.getJSONObject("action"));OwnerJournalRules.apply(SnapshotProjection.effective(resolutionState),new JSONObject().put("kind","conflict_resolution").put("client_id",request).put("payload",p),actions,new JSONObject());return repository.enqueue("conflict_resolution",p,request);
             }
             case "create_backup":return repository.createBackup(request);
             case "restore_backup":return repository.restoreBackup(a,request);
             default:throw new IllegalArgumentException("Eigentümerfunktion fehlt.");
         }
     }
+    private void requireInactiveSession(String entity,String id)throws Exception {
+        ActiveWorkProtection.require(repository.state(),entity,id);
+    }
     private JSONObject archiveOne(JSONObject all,JSONObject args,String request,String stamp)throws Exception {
+        requireInactiveSession(args.getString("entity"),args.getString("entity_id"));
         if(args.getString("entity").equals("appointment")){JSONObject session=repository.state().getJSONObject("work_session");if(args.getString("entity_id").equals(session.optString("appointment_id"))&&!Arrays.asList("IDLE","FINALIZED","CANCELLED").contains(session.optString("state")))throw new IllegalArgumentException("Zeiterfassung dieses Termins zuerst abschließen oder bewusst verwerfen. Nichts archiviert.");}
         JSONObject p=DeletionRules.payload(all,args.getString("entity"),args.getString("entity_id"),args.getString("expected_record_hash"),stamp);
         if(p.getJSONArray("photo_link_ids").length()>0&&!args.has("expected_photo_links_hash"))throw new PixelMcpWriteTools.Rejected("PREVIEW_REQUIRED","Fotozuordnungen zuerst mit preview_delete prüfen.");

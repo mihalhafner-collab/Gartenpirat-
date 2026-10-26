@@ -9,7 +9,7 @@ final class SnapshotProjection {
         for(String key:new String[]{"offers","service_catalog","appointments"})if(!master.has(key))master.put(key,new JSONArray());
         JSONArray pending=state.optJSONArray("pending");
         if(pending==null)pending=new JSONArray();
-        if(PixelDriveState.ENGINE.equals(master.optString("processing_engine"))){
+        if(PixelDriveState.ENGINE.equals(master.optString("processing_engine"))||LocalAuthorityRules.ENGINE.equals(master.optString("processing_engine"))){
             // Local presentation uses exactly the same validation as Drive replay.
             // Never project receipts or pretend a queued financial request is issued.
             JSONObject projected=new JSONObject(master.toString());DriveJournalRules.apply(projected,pending);

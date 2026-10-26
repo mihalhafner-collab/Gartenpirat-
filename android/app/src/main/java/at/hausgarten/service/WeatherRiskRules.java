@@ -17,7 +17,9 @@ final class WeatherRiskRules {
         if(cache.optBoolean("source_unavailable"))return unknown("Wetterdaten derzeit nicht verfügbar.");
         if(cache.optJSONObject("forecast")==null)return unknown("Noch keine belastbare Vorhersage verfügbar.");
         Instant fetched;try{fetched=Instant.parse(cache.getString("fetched_at"));}catch(Exception e){return unknown("Aktualisierungszeit fehlt.");}
-        if(fetched.isAfter(now.plusSeconds(300))||fetched.isBefore(now.minusSeconds(AppointmentRules.instant(a.getString("starts_at")).isAfter(now.plusSeconds(2*86400))?18*3600:6*3600)))return unknown("Vorhersage veraltet oder Gerätezeit widersprüchlich.").put("checked_at",fetched.toString());
+        long untilStart=Duration.between(now,AppointmentRules.instant(a.getString("starts_at"))).getSeconds();
+        long maximumAge=OpenMeteoWeatherSource.PROVIDER.equals(cache.optString("forecast_provider"))?OpenMeteoWeatherSource.maximumAge(untilStart):untilStart>2*86400?18*3600:6*3600;
+        if(fetched.isAfter(now.plusSeconds(300))||fetched.isBefore(now.minusSeconds(maximumAge)))return unknown("Vorhersage veraltet oder Gerätezeit widersprüchlich.").put("checked_at",fetched.toString());
         JSONObject data=cache.optJSONObject("forecast"),hourly=data==null?null:data.optJSONObject("hourly");if(hourly==null){JSONObject early=cache.optJSONObject("early_outlook");if(early!=null&&early.optBoolean("available"))return unknown("Langfristiger 15-Tage-Ausblick geprüft; belastbare Arbeitsbewertung folgt näher am Termin.").put("checked_at",early.optString("checked_at")).put("early_outlook_available",true);return unknown("Noch keine belastbare Vorhersage für diesen Einsatzort verfügbar.");}
         JSONArray times=hourly.optJSONArray("time");if(times==null||times.length()<2||times.length()>500)return unknown("Stundenwerte fehlen oder sind unzulässig.");
         Instant start=AppointmentRules.weatherStart(a,now),end=AppointmentRules.weatherEnd(a,now);String profile=a.optString("weather_profile","general");
@@ -45,7 +47,18 @@ final class WeatherRiskRules {
         result.put("alert_hash",PixelMcpWriteTools.hash(new JSONObject().put("appointment_id",a.getString("id")).put("location_key",locationKey(a)).put("weather_profile",a.optString("weather_profile")).put("starts_at",a.getString("starts_at")).put("ends_at",a.getString("ends_at")).put("weather_profile",a.optString("weather_profile")).put("severity",level).put("risk_band",new JSONArray().put((int)(peakRain/5)).put((int)(peakGust/20)).put((int)(minTemp/10)).put((int)(maxTemp/10))).put("reasons",new JSONArray(reasons))));return result;
     }
     static JSONObject evaluate(JSONObject a,JSONObject cache,Instant now,JSONObject settings)throws Exception {
-        JSONObject result=model(a,cache,now,settings);if(AppointmentRules.openEnd(a)&&AppointmentRules.active(a)){result.put("duration_unknown",true).put("time_scope","start_only");result.getJSONArray("reasons").put("Ende offen: Wetterhinweise beziehen sich nur auf den Beginn bzw. aktuellen Zeitpunkt.");}if(!AppointmentRules.active(a))return result;
+        JSONObject result=model(a,cache,now,settings);
+        if(cache!=null&&!cache.optString("forecast_provider").isEmpty()){
+            JSONObject coverage=OpenMeteoWeatherSource.coverage(cache,now);for(Iterator<String> keys=coverage.keys();keys.hasNext();){String key=keys.next();result.put(key,coverage.get(key));}
+            boolean available=!Arrays.asList("unknown","inactive").contains(result.optString("severity"))&&!a.optString("weather_profile").equals("indoor");
+            result.put("forecast_provider",cache.optString("forecast_provider")).put("source",cache.optString("forecast_source",FreeWeatherSource.ATTRIBUTION)).put("forecast_available",available);
+            if(!available)result.put("forecast_days",0).put("forecast_complete",false);
+            if(cache.has("forecast_notice"))result.put("forecast_notice",cache.getString("forecast_notice"));
+            if(available&&result.optBoolean("uncertain_long_range")){
+                result.put("forecast_stage","trend").put("label",result.optString("severity").equals("clear")?"Wettertrend – noch unsicher":"Wettertrend – Einsatz prüfen");
+            }
+        }
+        if(AppointmentRules.openEnd(a)&&AppointmentRules.active(a)){result.put("duration_unknown",true).put("time_scope","start_only");result.getJSONArray("reasons").put("Ende offen: Wetterhinweise beziehen sich nur auf den Beginn bzw. aktuellen Zeitpunkt.");}if(!AppointmentRules.active(a))return result;
         supplementNowcast(a,cache,now,settings,result);
         boolean fresh=false;try{fresh=cache!=null&&!cache.has("warning_status")&&a.has("latitude")&&!a.isNull("latitude")&&Instant.parse(cache.getString("warnings_fetched_at")).isAfter(now.minusSeconds(3*3600))&&!Instant.parse(cache.getString("warnings_fetched_at")).isAfter(now.plusSeconds(300));}catch(Exception ignored){}
         result.put("official_warnings_current",fresh);if(!fresh)return result.put("warning_status","Amtliche Warnungen nicht aktuell geprüft.");

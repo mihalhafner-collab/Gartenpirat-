@@ -1,6 +1,7 @@
 package at.hausgarten.service;
 import org.json.*;
 import java.util.*;
+import java.math.BigDecimal;
 
 /** Explicit recipient IDs; customer_id remains the actual work site. No historical reassignment. */
 final class BillingRules {
@@ -46,12 +47,12 @@ final class BillingRules {
         ArrayList<JSONObject> sorted=new ArrayList<>();for(int i=0;logs!=null&&i<logs.length();i++)sorted.add(logs.getJSONObject(i));
         sorted.sort(Comparator.comparing((JSONObject row)->row.optString("work_date")).reversed().thenComparing(row->row.optString("id")));
         for(JSONObject row:sorted){
-            if(row.optInt("billed",0)!=0||"proven_invoiced".equals(PixelMcpBusinessTools.billing(row,master.optJSONArray("invoices"))))continue;
+            JSONObject quantity=LocalBillingRules.state(row,master.optJSONArray("invoices"),master);String evidence=PixelMcpBusinessTools.billing(row,master.optJSONArray("invoices"),master);if(row.optInt("billed",0)!=0||"proven_invoiced".equals(evidence))continue;
             String recipient=recipient(row);JSONObject group=groups.get(recipient);
             if(group==null){JSONObject detail=assignment(row,master,true);group=new JSONObject().put("billing_customer_id",recipient).put("billing_customer_name",detail.optString("billing_customer_name","Zuordnung prüfen")).put("valid",detail.getBoolean("valid")).put("hours",0).put("work_records",new JSONArray()).put("billing_status","marked_open_not_proven");groups.put(recipient,group);}
-            JSONObject copy=new JSONObject(row.toString()).put("billing_customer_id",recipient).put("billing_evidence",PixelMcpBusinessTools.billing(row,master.optJSONArray("invoices")));
+            JSONObject copy=new JSONObject(row.toString()).put("billing_customer_id",recipient).put("billing_evidence",evidence);if(quantity!=null)copy.put("billing_quantity",quantity).put("quantity_remaining_decimal",quantity.getString("remaining_decimal"));
             try{copy.put("work_customer_name",customer(master.optJSONArray("customers"),text(row,"customer_id")).optString("name"));}catch(Exception missing){copy.put("work_customer_name","Einsatzkunde fehlt");group.put("valid",false);}
-            group.getJSONArray("work_records").put(copy);group.put("hours",group.getDouble("hours")+row.optDouble("hours",0));
+            group.getJSONArray("work_records").put(copy);if(master.optJSONObject("local_billing_sources")==null)group.put("hours",group.getDouble("hours")+row.optDouble("hours",0));else{BigDecimal remaining=quantity==null?new BigDecimal(row.optString("hours","0")):new BigDecimal(quantity.getString("remaining_decimal")),total=new BigDecimal(group.optString("hours_decimal","0")).add(remaining);group.put("hours_decimal",total.stripTrailingZeros().toPlainString()).put("hours",total.doubleValue());}
         }
         JSONArray result=new JSONArray();for(JSONObject group:groups.values()){group.put("hours",Math.round(group.getDouble("hours")*100)/100.0);result.put(group);}return result;
     }

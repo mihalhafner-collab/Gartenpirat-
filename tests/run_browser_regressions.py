@@ -12,14 +12,15 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 LOGS = ROOT/'outputs/integration-ui'
-NAMES = ['webview-syntax.test.cjs', 'navigation-calendar.test.cjs', 'status-collisions-gestures.test.cjs', 'calendar-authorization-ui.test.cjs', 'ui-preview.test.cjs', 'field-ui.test.cjs', 'sync-responsiveness.test.cjs', 'p3-ux-comparison.test.cjs', 'p3-uat-walkthrough.test.cjs', 'p3-search-planning.test.cjs', 'p3-documents.test.cjs', 'p3-customer-hub.test.cjs', 'p3-business-actions.test.cjs', 'business-feedback.test.cjs', 'current-data-ui-smoke.cjs', 'planning-ui.test.cjs', 'invoice-editor.test.js', 'invoice-flow.test.js', 'billing-ui.test.cjs',
-         'architecture-workflow.test.cjs', 'daily-usability.test.cjs', 'design-concept.test.cjs',
+NAMES = ['revier-timer-review.test.cjs', 'overview-accessibility.test.cjs', 'interaction-continuity.test.cjs', 'webview-syntax.test.cjs', 'webview-hardening.test.cjs', 'visual-consistency.test.cjs', 'navigation-calendar.test.cjs', 'status-collisions-gestures.test.cjs', 'calendar-authorization-ui.test.cjs', 'ui-preview.test.cjs', 'field-ui.test.cjs', 'sync-responsiveness.test.cjs', 'p3-ux-comparison.test.cjs', 'p3-uat-walkthrough.test.cjs', 'p3-search-planning.test.cjs', 'p3-documents.test.cjs', 'p3-customer-hub.test.cjs', 'p3-business-actions.test.cjs', 'business-feedback.test.cjs', 'current-data-ui-smoke.cjs', 'planning-ui.test.cjs', 'planning-carousel.test.cjs', 'planning-overview.test.cjs', 'weather-forecast-ui.test.cjs', 'invoice-editor.test.js', 'invoice-flow.test.js', 'billing-ui.test.cjs',
+         'architecture-workflow.test.cjs', 'daily-usability.test.cjs', 'settings-cleanup.test.cjs', 'design-concept.test.cjs',
          'simple-design.test.cjs', 'worklog-window.test.cjs', 'pixel-tunnel-ui.test.js',
          'work-location.test.cjs', 'timer-completion.test.cjs', 'design-v139.test.cjs',
          'gartenpirat-removal.test.cjs', 'customer-duplicate-ui.test.cjs', 'gartenpirat-plants.test.cjs',
-         'gartenpirat-photo.test.cjs', 'garden-followup.test.cjs', 'customer-photos.test.cjs',
+         'gartenpirat-photo.test.cjs', 'plant-library-integration.test.cjs', 'garden-followup.test.cjs', 'customer-photos.test.cjs',
          'work-entry-photo-failure.test.cjs', 'camera-timer-static.test.cjs', 'personal-payment.test.cjs',
-         'access-integrity.test.cjs', 'sync-customer-gallery.test.cjs', 'offers-photo-library.test.cjs', 'sync-trash.test.cjs', 'context-search-storage.test.cjs', 'planning-open-end.test.cjs', 'worklog-batch.test.cjs', 'runtime-compat.test.cjs', 'owner-client-contract.test.cjs']
+         'access-integrity.test.cjs', 'sync-customer-gallery.test.cjs', 'offers-photo-library.test.cjs', 'sync-trash.test.cjs', 'context-search-storage.test.cjs', 'planning-open-end.test.cjs', 'worklog-batch.test.cjs', 'runtime-compat.test.cjs', 'owner-client-contract.test.cjs',
+         'local-invoice-ui.test.cjs', 'invoice-issue-review-ui.test.cjs', 'revier-partial-billing-ui.test.cjs', 'revier-solo-ui.test.cjs', 'revier-offer-flow.test.cjs', 'timer-material-context-ui.test.cjs', 'full-backup-entry.test.cjs', 'full-backup-drafts.test.cjs', 'saved-drafts-read-first.test.cjs']
 
 
 if __name__ == '__main__':
