@@ -3,6 +3,139 @@
 Stand: 26. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Transition-Abschlussprüfung 26.10.2026 – ABBRUCH IN PHASE A
+
+**Nicht abgeschlossen. Keine Implementierung oder produktive Umstellung.**
+Der aktuelle ausdrückliche Transition-Auftrag ist maßgeblich; historische
+Featureaufträge und frühere PASS-Berichte sind keine neue Freigabe. Beide
+Steuerungsseiten `00 Zentrale Regeln` und `Arbeitsübersicht` wurden vollständig
+gelesen. Untersuchung ausschließlich über bestehende Codex Cloud, GitHub und
+Pixel-MCP; kein Laptop, kein neuer Tunnel, kein APKbuild oder Geräteupdate.
+
+### Frisch geprüfte Quellen und Abbruchgrund
+
+- GitHub-main und bestehender Arbeitsbranch `codex/revier-solo-20261023` standen
+  beim erneuten Fetch beide auf `278edc9d7683ab98bb65570dc39872c785486d2f`;
+  sauberer Checkout. App-Produktionsquellen unter `android/app/src/main` und
+  `ui-mcp-actions.json` unterscheiden sich dort nicht vom Appquellcommit
+  `4087d8b5b83294d75dba6d9fc87e2d6472d3be28`.
+- Live-Leseaufrufe am 26.10.2026 um ca. 15:50–15:59 UTC:
+  `get_capabilities`, `integration_health`, `get_sync_overview`,
+  `get_business_summary`, `run_self_test`. App 1.55.0/105, DB6, MCP9,
+  Fingerprint `06f99ce068bfcb4e36640df70290b7edddcc8532fa27119ce2332b352a835469`,
+  `source_dirty=false`, `processing_engine=pixel_local_v2`, Speichervertrag3,
+  `drive_role=backup_only`, `business_sync_allowed=false`.
+- Gleichzeitig `local_authority.mode=LEGACY_DRIVE`,
+  `invoice_authority=LEGACY_ONLINE`, `migration_required=true`,
+  `invoice_issue_ready=false`; Inventarengine `pixel_drive_v1`.
+- Frisches Migrationsinventar: **130 ungeklärte Relationsreferenzen,
+  107 nicht lokal verifizierte Originale, 4 historische Prüfkonflikte**,
+  0 doppelte IDs, 28 verifizierte Originale, 0 offene Dokumentjobs,
+  93 Pending-Aktionen. Diese Zähler belegen Prüfbedarf, keine abschließend
+  festgestellte Beschädigung oder einen endgültigen Verlust von Originalen.
+  Vollständige externe Sicherung und aktueller Nummern-/Schreibernachweis
+  sind nicht nachgewiesen; Autoritätsaktivierung und Rechnungsfreigabe false.
+- Backupvertrag: target/key/automatic/context jeweils false. Ein früherer
+  begrenzter Export ist weiterhin kein Nachweis einer nativen Vollsicherung.
+
+Damit greift die ausdrücklich vorgegebene Abbruchbedingung
+**„Datenintegrität nicht eindeutig bestimmbar“**. Umsetzung in Phase A gestoppt;
+keine Schutzgates umgehen, keine Freigabeflags setzen und keinen Journalbestand
+als erledigt erklären. Rechnungsnummern-/Belegautorität ist zusätzlich noch
+nicht sicher abgeglichen. Phase A ist nur teilweise durchgeführt; Phase B
+enthält deshalb keinen freigegebenen Änderungsplan, Phasen C/D wurden nicht
+ausgeführt. Die folgenden Befunde dokumentieren die bis zum Stopp gelesenen
+Aufrufketten, keine vollständige Prüfung sämtlicher Gegenpfade.
+
+### Nachgewiesene Hauptursachen und vorläufige Abhängigkeitskarte
+
+| Bereich / tatsächlicher Pfad | Einstufung und Wirkung |
+| --- | --- |
+| `DriveRolePolicy.businessSyncAllowed()`; öffentliche Einstiegspunkte von `DriveSyncCoordinator` und `DriveSyncJob` | **NOCH NOTWENDIG**: harter false-Vertrag und Netzwerk-/Jobgates. Normaler Geschäfts-Drive-Transport ist stillgelegt; nicht sämtliche internen Gegenpfade neu getestet. |
+| `LocalAuthorityGuard.current()/local()` | **AKTIV / NOCH NOTWENDIG**: fehlender gerätegebundener Autoritätsbeleg ergibt LEGACY_DRIVE/LEGACY_ONLINE. Getrennte MIGRATING-/Restore-/Rechnungsgates schützen weiterhin. Vertrag3 aktiviert diesen Beleg nicht. |
+| `PixelLocalStore.getStateLocked()` | **DIAGNOSE, teilweise überholte Semantik**: setzt nachträglich Engine/Vertrag3, projiziert aktive Syncqueue auf 0 und nennt alle Pending-Aktionen `locally_committed`. Dies materialisiert weder den fachlichen Snapshot noch klassifiziert es die einzelnen Aktionen. |
+| UI-Saver → `PixelLocalStore.saveAction()`; MCP → gemeinsame Saver → `commit()` | **AKTIV**: beide schreiben weiter in SQLite `pending`. MCP ersetzt die gerade angelegte Aktion durch die stabile Request-ID und erhält einen Receipt. Dies ist ein lokaler Journalcommit, kein Nachweis, dass die Fachwirkung bereits im Basissnapshot liegt. |
+| `LocalPendingActions.read()` → `SnapshotProjection.effective()` → `DriveJournalRules.apply()` | **AKTIV**, keine reine Historie: alte und neue Aktionen werden für den fachlichen Zustand erneut projiziert. Der globale false-Transportvertrag beendet diese lokale Zustandsmaschine nicht. |
+| `legacy_queue_inventory` und `PixelMcpBusinessTools.sync()` | **DIAGNOSE / AKTIVER EINFLUSS**: globaler Status retired und aktionsbezogenes not_applicable stehen neben Legacy-Inventar mit sync_pending/retry_sync. Keine Queuebereinigung durch Umbenennung zulässig. |
+| `LocalAuthorityMigration.preview()/activate()` | **NOCH NOTWENDIG**: prüft Beziehungen, Originale, Konflikte, Backup und Schreibernachweis; erst danach wird Pending in einen lokalen Snapshot übernommen und ein gerätegebundener Vertrag geschrieben. Rechnungen bleiben danach ausdrücklich LOCKED. Aktuell keine sichere Ausführungsgrundlage. |
+| `LocalOwnerRepository.restoreBackup()` | **GEFÄHRLICHER RÜCKWEG, bedingt**: Sperre richtet sich nach `LocalAuthorityGuard.local()`, nicht unmittelbar nach Vertrag3. Im beobachteten LEGACY_DRIVE-Modus kann der alte Add-missing-Pfad nach seinen weiteren Prüfungen prinzipiell erreichbar bleiben und Aktionen einreihen. Aktuell verhindern 93 Pending-Aktionen diesen Restore; kein Restore auf dem Pixel ausgeführt. Hash-/Konflikt-/Purge-/Dokumentgates bestehen und dürfen nicht entfernt werden. |
+| `LocalAuthorityGuard.requireInvoiceAuthority()` und Migration/Reconciliation | **NOCH NOTWENDIG**: getrennte Nummern-/Beleg-/Restorebindung, keine allgemeine automatische Rechnungsfreigabe. |
+| `LocalOwnerRepository` Originalzugriff | **NOCH NOTWENDIG**: fehlendes Original wird unter Backup-only abgewiesen; kein normaler Drive-Fallback. Originalvollständigkeit bleibt ungeklärt. |
+| Historische Publisher-/Provider-/Cloudbelege | **NUR HISTORISCH / DIAGNOSE**, soweit nur Belegfelder. Diese Einstufung gilt nicht pauschal für alle gleichnamigen Klassen oder Journalaktionen. |
+
+Die zentrale Frage ist damit teilweise kausal beantwortet: **Speichervertrag3
+hat den Transport stillgelegt und Statusantworten angepasst, aber Journalprojektion,
+Schreibmodell und gerätegebundene Autoritätsmigration nicht abgeschlossen.**
+LEGACY_DRIVE ist weder Beweis eines heute laufenden Drivewriters noch allein ein
+harmloses Label. Das Pending-Journal enthält weiterhin operative Fachwirkung.
+
+Live meldet die aktive Queueprojektion total/pending/review=0; daneben stehen
+93 gespeicherte Aktionen, 56 als local-only gezählte Aktionen und 37 Legacy-
+Inventareinträge mit sync_pending/retry_sync. Auch eine am 26.10. um15:39UTC
+erstellte Arbeitsaktion erscheint in diesem Legacy-Inventar; **kein eigener
+produktiver Schreibtest**. Gespeicherte Basiskollektionen und effektive Projektion
+unterscheiden sich: Kunden55/57, Aufträge3/1, Arbeiten29/34, Rechnungen95/96.
+Diese verschieden definierten Ansichten dürfen nicht als Datenverlust ausgelegt
+werden; sie zeigen, warum das Journal nicht pauschal als Historie entfernbar ist.
+
+Vorläufige Queue-Typen: customer/worklog/invoice/appointment können notwendige
+lokale Fachänderungen enthalten; archive/purge_v1 tragen Lösch-/Archivwirkung;
+mcp_receipt ist Wiederholungs-/Commitnachweis; historische Konfliktbelege sind
+Prüfevidenz. Einträge können mehrere Rollen haben. **Keine vollständige
+Einzelklassifikation A–E, kein fachlicher Erledigungsnachweis und keine Freigabe
+zum Löschen/Überführen** aus diesen Typnamen oder Zählern ableiten.
+
+### Katalogbefund, Prüfgrenzen und notwendige Fortsetzung
+
+Die aktuelle Serverantwort enthält166 eindeutige Werkzeugnamen;
+`integration_health` meldet166 und denselben Hash
+`67098cd8b234186d19dd3c6cb88e69d79ae8a6dc298fde71f7b2792dfc17cf86`
+wie `get_capabilities`. Im tatsächlich gebundenen Sitzungskatalog existieren117:
+alle117 sind in den166 enthalten,49 fehlen (20lesend/29schreibend), darunter
+`preview_local_authority` und Vollbackupstatus. Kein fehlendes Werkzeug neu
+implementiert oder durch andere Aktionen ersetzt. Der Befund passt zu einem
+älteren gebundenen Connector-Katalog; eine unabhängige tools/list-/Registrierungs-
+oder Cacheprüfung des Connectorbackends ist hier nicht verfügbar. Externe
+Refreshgrenze ist belegt, die genaue backendinterne Ursache bleibt offen.
+
+Neu tatsächlich ausgeführt: rein lesender Pixel-Selbsttest **7PASS/4NOT TESTABLE**,
+`business_data_changed=false`, `state_changed=false`; Versions-/Hash-/Gitabgleich
+und genannte Quellleseprüfung. Frühere443native/78JVM/65Browser/430Python-
+Nachweise wurden **nicht erneut ausgeführt** und sind keine Abnahme dieses
+Transition-Abschlussauftrags. Keine produktiven Testobjekte, Löschungen,
+Rechnungen, Drive-Replays oder Autoritätsänderungen.
+
+Dokumentationssicherung: neuer Source-Privacy-Lauf PASS, 2338Dateien,
+0operativeSeedzeilen. Workspace-Privacy dagegen **FAIL**, 21Befunde:
+20UNCLASSIFIED_IMAGE und1RAW_OPERATIONAL_IDENTIFIER im bereits vorhandenen
+Workspacebestand. In dieser Sitzung wurden keine Bild-/Betriebsdateien angelegt,
+fachlich ausgewertet, entfernt oder hochgeladen. Die betroffenen Altdateien bleiben erhalten;
+keine zusätzliche P0-/Releaseabnahme und kein Quellexport aus dem Workspace.
+Der ausschließlich dokumentarische Commit enthält nur die geprüfte Statusdatei.
+
+Nicht abgeschlossen geprüft: vollständige UI-/Java-/Owner-/MCP-Schreibmatrix,
+jede einzelne historische Aktion, volle Backup-/Restorekaskade einschließlich
+Entwurftombstones, Formulare/Reload/Callbacks, Timer/Prozessabbruch, Foto-/Medien-
+und Angebotswege, Planung, Löschschattenkopien, Neustart, alte Request-IDs,
+Testfixtures und neue isolierte Gegenpfadtests. Keine dieser Ebenen ist allein
+durch den Transportstatus oder den Selbsttest als bestanden anzusehen.
+
+Vor jeder Implementierungsfortsetzung müssen die ungeklärten Beziehungen und
+Originalreferenzen einzeln nachgewiesen/klassifiziert, aktuelle native Vollsicherung
+und Schreibernachweise geprüft und die geschützte Rechnungsabstimmung getrennt
+behandelt werden. Danach Phase A vervollständigen und pro minimaler Änderung
+Datei/Funktion/Ursache/Risiko/Abhängigkeit/Test/Readback/Recovery vollständig
+festlegen. Insbesondere Pending-Fachwirkung und Receipts vor einer historischen
+Abtrennung verlustfrei belegen; den Teilrestore-Gegenpfad ausdrücklich aufnehmen.
+
+Nur am physischen Pixel können hier die tatsächlichen OS-/Kontozustimmungen,
+die bewusste Backupziel-/Schlüsseleinrichtung und die spätere physische
+Offline-/Neustart-/UI-/Wiederherstellungsabnahme erbracht werden. Die Prüfung
+lokaler Originale und gerätegebundener Schutzstände bleibt gesondert offen;
+erreichbare Metadaten-/Originalprüfungen können auch über vorhandenes MCP erfolgen.
+Die genaue Relations-/Belegklärung benötigt Originalquellen; keine geratene
+Zuordnung. Kein Laptop-Fallback. Kein automatisches Installieren oder Migrieren.
+
 ## Live-MCP-Prüfung105 vom26.10.2026 nach beobachtetem Appupdate
 
 Die bestehende Pixelverbindung meldet jetzt1.55.0/105/DB6, unverändert Appquellcommit
