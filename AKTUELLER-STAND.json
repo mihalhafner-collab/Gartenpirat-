@@ -171,7 +171,7 @@
       "evidence_recorded_at_utc": "2026-10-25T22:06:57.964900+00:00"
     }
   ],
-  "updated_at_utc": "2026-10-26T21:05:40.581094+00:00",
+  "updated_at_utc": "2026-10-26T21:23:22.402152+00:00",
   "development_snapshot": {
     "version_name": "1.55.1",
     "version_code": 106,
@@ -377,6 +377,13 @@
       "current_markdown_links": "PASS",
       "original106_app_fingerprint_unchanged": true,
       "version_reference_deletion": "NOT_EXECUTED_AWAITING_CLARIFICATION"
-    }
+    },
+    "main_integration": {
+      "pull_request": 7,
+      "merge_commit": "6092fa1d40b295453df28ef9e9300f94a60d7e33",
+      "remote_readback_verified": true,
+      "source_snapshot": "0050d1089af6866d12ec0fc8e89662a4929438a9"
+    },
+    "obsolete_merged_branch_cleanup": "PREPARED;5fully_merged_refs;0unique_commits;all_version_tags_unchanged"
   }
 }

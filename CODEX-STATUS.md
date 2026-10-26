@@ -110,8 +110,9 @@ Legacy-Fixtures bleiben erhalten. Es gibt keinen separaten Quellcodeordner pro
 alter Appversion; diese Stände liegen in Git-Commits/Referenzen. Gespiegelte
 Pflanzenassets sind benötigte Laufzeitpfade, keine entbehrlichen Altkopien.
 
-Fünf ältere Arbeitsbranches sind Vorfahren des aktuellen Standes und haben keine
-einzigartigen Commits. Branch `codex/pflanzenbibliothek-20261023` dagegen hat sieben
+Fünf ältere Arbeitsbranches sind nach frischem Remotevergleich vollständig in
+`main` enthalten (jeweils null einzigartige Commits). Ihre Namen und Original-SHAs
+sind vor der Referenzlöschung im Strukturprüfbeleg gesichert. Branch `codex/pflanzenbibliothek-20261023` dagegen hat sieben
 nicht integrierte Commits, letzter Stand
 `7d499b225ed28f501333227e0ce92a54d4c5d542`. Öffentliche Pflanzenquellen und
 redaktionelle Nachweise darin nicht als erledigte Kopie löschen oder ungeprüft
@@ -130,6 +131,8 @@ mit Pfad/Hash/festem Git-Commit im Strukturprüfbeleg nachgewiesen. Die drei
 Administrationsautomationen auf reine GitHub-Bootstraps umgestellt und zurückgelesen;
 Zeitpläne/Aktivzustände unverändert (täglich pausiert, wöchentlich/monatlich aktiv).
 
-GitHub-Zwischensicherung dieses abgeschlossenen Schritts wird vor weiterem
-Referenz-Cleanup durchgeführt. Keine neue App-Abnahme oder veröffentlichte
-Umgebungskonfiguration daraus ableiten.
+GitHub-Zwischensicherung `0050d1089af6866d12ec0fc8e89662a4929438a9`
+exakt zurückgelesen. PR #7 ohne History-Rewrite nach `main` integriert:
+`6092fa1d40b295453df28ef9e9300f94a60d7e33`, Remote-Read-back bestanden.
+Die Android-Appdateien entsprechen unverändert dem Originalquelltag106.
+Keine neue App-Abnahme oder veröffentlichte Umgebungskonfiguration daraus ableiten.

@@ -1,3 +1,10 @@
+> Historisches Quell-/Abnahmeprotokoll früherer Versionen; keine heutige
+> Arbeitsanweisung oder Freigabe. Damalige „aktuell“-/„verbindlich“-Angaben
+> gelten ausschließlich für ihren datierten Abschnitt. Heutige Regeln:
+> [AGENTS.md](../AGENTS.md); tatsächlicher Stand und offene Gates:
+> [CODEX-STATUS.md](../CODEX-STATUS.md). Veraltete Drive-Geschäftswege
+> und alte Auslieferungs-/Laptopabläufe daraus nicht reaktivieren.
+
 # Abnahme: Drive-Abgleich, Kundenakte und Pflanzenbilder
 
 Ausgang: `codex/original-signing-cloud-setup-20261018`, HEAD `5e1ca93`;
