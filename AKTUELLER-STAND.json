@@ -171,7 +171,7 @@
       "evidence_recorded_at_utc": "2026-10-25T22:06:57.964900+00:00"
     }
   ],
-  "updated_at_utc": "2026-10-26T21:23:22.402152+00:00",
+  "updated_at_utc": "2026-10-26T21:25:46.235954+00:00",
   "development_snapshot": {
     "version_name": "1.55.1",
     "version_code": 106,
@@ -384,6 +384,13 @@
       "remote_readback_verified": true,
       "source_snapshot": "0050d1089af6866d12ec0fc8e89662a4929438a9"
     },
-    "obsolete_merged_branch_cleanup": "PREPARED;5fully_merged_refs;0unique_commits;all_version_tags_unchanged"
+    "obsolete_merged_branch_cleanup": {
+      "status": "DELETED_REMOTE_READBACK_VERIFIED",
+      "deleted_fully_merged_branch_refs": 5,
+      "unique_commits_deleted": 0,
+      "git_history_preserved": true,
+      "predeletion_evidence_commit": "3f9e41ceb99b44ee1cc8f1f1fd1cad79e6e232dc",
+      "all_13_source_tags_unchanged": true
+    }
   }
 }

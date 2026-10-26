@@ -111,8 +111,11 @@ alter Appversion; diese Stände liegen in Git-Commits/Referenzen. Gespiegelte
 Pflanzenassets sind benötigte Laufzeitpfade, keine entbehrlichen Altkopien.
 
 Fünf ältere Arbeitsbranches sind nach frischem Remotevergleich vollständig in
-`main` enthalten (jeweils null einzigartige Commits). Ihre Namen und Original-SHAs
-sind vor der Referenzlöschung im Strukturprüfbeleg gesichert. Branch `codex/pflanzenbibliothek-20261023` dagegen hat sieben
+`main` enthalten (jeweils null einzigartige Commits) und wurden atomar gelöscht.
+Remote-Read-back: alle fünf Referenzen fehlen, `main`, aktueller Arbeitsbranch
+und Pflanzenbranch unverändert. Namen/Original-SHAs waren vorher in GitHub-Commit
+`3f9e41ceb99b44ee1cc8f1f1fd1cad79e6e232dc` gesichert; die vollständige Historie
+bleibt erhalten. Alle13 Versions-Tags bleiben bis zur Nutzerklärung unverändert. Branch `codex/pflanzenbibliothek-20261023` dagegen hat sieben
 nicht integrierte Commits, letzter Stand
 `7d499b225ed28f501333227e0ce92a54d4c5d542`. Öffentliche Pflanzenquellen und
 redaktionelle Nachweise darin nicht als erledigte Kopie löschen oder ungeprüft
@@ -130,6 +133,8 @@ Installation-/Quelltrennung geprüft; alte CLI-Einstiege weisen vor Dateizugriff
 mit Pfad/Hash/festem Git-Commit im Strukturprüfbeleg nachgewiesen. Die drei
 Administrationsautomationen auf reine GitHub-Bootstraps umgestellt und zurückgelesen;
 Zeitpläne/Aktivzustände unverändert (täglich pausiert, wöchentlich/monatlich aktiv).
+Drei ältere technische Vertrags-/Abnahmeprotokolle und der Integrationsbericht
+sind ausdrücklich historisch gekennzeichnet; die aktiven Signierschutzgates bleiben.
 
 GitHub-Zwischensicherung `0050d1089af6866d12ec0fc8e89662a4929438a9`
 exakt zurückgelesen. PR #7 ohne History-Rewrite nach `main` integriert:
