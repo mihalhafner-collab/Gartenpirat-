@@ -1,5 +1,20 @@
 # CODEX-AUFTRAG-GARTENPIRAT
 
+Aktuelle Ergänzung26.10.2026 nach Live-MCP-Prüfung: Installiert gemeldet ist jetzt
+1.55.0/105/DB6 aus unveränderlichem Appstand4087d8b; kein Codexinstallationsnachweis.
+Drivegeschäftszugriff ist tatsächlich deaktiviert. Die Verbindung stellt jedoch nur
+117der166Appwerkzeuge bereit:20neue Lese-/29Schreibfunktionen fehlen im verbundenen
+Katalog.48positive Lesewege, ein reiner Validierungsnegativpfad und drei mangels Daten
+nicht testbare Lesewege;209UI-Aktionen und unveränderte Bestände/Queues geprüft.
+Verbindungsaktualisierung,130Beziehungsprüfungen/107fehlende lokale Originalnachweise,
+App-Vollsicherungseinrichtung, Kalenderfehler und lokale Nummernautorität bleiben
+konkrete offene Schritte. Keine Umgehung durch Freigabeflags oder produktive Tests.
+Die aktuelle native Vollsicherung105 bleibt einzurichten; die frühere fehlende
+Vorupdatesicherung98 wird nicht nachträglich als bestanden behauptet.
+Aktuelle und historische Befunde getrennt in CODEX-STATUS.md. Bestehende APK105
+nicht bloß für diese Metadatenprüfung neu bauen; Originalquelle/Signatur erhalten.
+
+
 
 Aktueller Steuerungsstand26.10.2026: Der beauftragte Revier-Solo-Umbau ist als
 funktional geprüfter Cloud-Kandidat1.55.0/105 integriert. Die vollständige gemeinsame
@@ -23,10 +38,10 @@ Rechnungsautorität weiterhin anhand realer Voraussetzungen belegen; keine manue
 Freigabeflags oder automatische Umstellung. Gemeinsam geprüfte Abläufe,32Abnahmefälle,
 exakte Quellen/Artefakte und Prüfgrenzen stehen konsolidiert in CODEX-STATUS.md.
 
-Abschließende Dokumentations-/Quellgeneration vorgesehen unter
-https://drive.google.com/drive/folders/1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5;
-Commit/Remote-Readback/Exportupload und vollständiger Readback dieses Abschlussstands
-sind noch ausstehend. Die extern geprüfte immutable105-Appquelle ist davon getrennt.
+Abgeschlossene Dokumentations-/Quellgeneration des vorherigen main9f26e96 unter
+https://drive.google.com/drive/folders/1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5:
+61vollständigeSHA-Readbacks/Remote-ZIP/P0PASS. Die neue Live-MCP-Prüfung ergänzt diesen
+datierten Nachweis; die immutable105-Appquelle bleibt davon getrennt.
 Eine laufende reale Sicherungsextraktion ist kein bereits geprüfter vollständiger
 Betriebsdatenbackup; vor Geräteentscheidung die aktuelle98-Sicherungslücke schließen.
 

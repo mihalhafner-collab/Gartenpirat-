@@ -28,18 +28,21 @@ class ObservedReleaseBaselineTests(unittest.TestCase):
     def test_current_observation_blocks_same_or_older_release(self):
         from tools.check_release_baseline import require_newer_version
         state=json.loads((ROOT/'AKTUELLER-STAND.json').read_text())
-        self.assertEqual(require_newer_version(99,state),98)
-        for candidate in (77,97,98):
+        baseline=state['last_observed_installed_build']['version_code']
+        self.assertEqual(require_newer_version(baseline+1,state),baseline)
+        for candidate in (77,97,98,baseline-1,baseline):
             with self.subTest(candidate=candidate),self.assertRaises(ValueError):require_newer_version(candidate,state)
 
     def test_incomplete_observations_fail_closed_and_newer_observation_wins(self):
         from tools.check_release_baseline import require_newer_version
         state=json.loads((ROOT/'AKTUELLER-STAND.json').read_text())
+        baseline=state['last_observed_installed_build']['version_code']
         for observations in ([],[{'version_code':98}],[{'version_code':True,'observed_at_utc':'qa','reported_base_git_sha':'0'*40,'source_sha256':'0'*64}]):
             with self.subTest(observations=observations),self.assertRaises(ValueError):require_newer_version(99,{'observed_installation_history':observations})
-        state['observed_installation_history'].insert(0,{**state['observed_installation_history'][-1],'version_code':100})
-        with self.assertRaises(ValueError):require_newer_version(99,state)
-        self.assertEqual(require_newer_version(101,state),100)
+        newer=baseline+2
+        state['observed_installation_history'].insert(0,{**state['observed_installation_history'][-1],'version_code':newer})
+        with self.assertRaises(ValueError):require_newer_version(baseline+1,state)
+        self.assertEqual(require_newer_version(newer+1,state),newer)
 
 
 class OriginalSigningTests(unittest.TestCase):

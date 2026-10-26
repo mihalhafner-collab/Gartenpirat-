@@ -1,6 +1,6 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-26T06:48:52.921908+00:00",
+  "updated_at_utc": "2026-10-26T11:29:59.234207+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
@@ -38,7 +38,7 @@
     "full_revier_acceptance": "105 common functional Cloud PASS443/0FAIL,5actualOSpairs,5airplaneUIcases,allhost suites;RS14search performance target FAIL Cloud;physical/productive acceptance NOT_EXECUTED",
     "original_signed_update_candidate": "1.55.0/105 original abbb207e329284d96e7c943eb0fa504a82cce8322181cf82f17cf5843a698bb9 provided; fully functional Cloud tested, no productive release approval",
     "productive_migration": "NOT EXECUTED",
-    "installation": "NOT EXECUTED",
+    "installation": "OBSERVED105_VIA_LIVE_READONLY_MCP;not performed by Codex;physicalUI/installedbytes notverified",
     "internal_signed_build": {
       "app_source_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
       "version_name": "1.55.0",
@@ -53,7 +53,7 @@
       "release_tag": "source/v1.55.0-build105",
       "released": false,
       "download_provided": true,
-      "pixel_installation": "NOT_EXECUTED"
+      "pixel_installation": "OBSERVED105_VIA_LIVE_READONLY_MCP;not performed by Codex;physicalUI/installedbytes notverified"
     },
     "source_generation_2fb": {
       "folder_id": "1rEQlDxYJu5ykJuIfBVWlQ6TeOPUh0bi-",
@@ -713,8 +713,10 @@
       "documentation_export": {
         "folder_id": "1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5",
         "folder_url": "https://drive.google.com/drive/folders/1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5",
-        "source_commit": null,
-        "status": "AWAITING_EXACT_FINAL_MAIN_GO_NO_EXPORT_YET"
+        "source_commit": "9f26e9653bbdc6f3f23b9e5a5445f8c502937e33",
+        "status": "PASS61FULL_SHA_READBACKS_REMOTE_RECONSTRUCTED_ZIP_PRIVACY",
+        "original_zip_sha256": "99f69fbc1956ebfac8119d45e99c04fb13f53c14a4a830822ffb6fb4fcec82b9",
+        "scope": "Historical completed105 main documentation export before this liveMCP test;immutable App source remains4087d8b"
       }
     },
     "productive_backup_readonly_20261026": {
@@ -844,19 +846,561 @@
       "documentation_export": {
         "folder_id": "1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5",
         "folder_url": "https://drive.google.com/drive/folders/1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5",
-        "source_commit": null,
-        "status": "AWAITING_EXACT_FINAL_MAIN_GO_NO_EXPORT_YET"
+        "source_commit": "9f26e9653bbdc6f3f23b9e5a5445f8c502937e33",
+        "status": "PASS61FULL_SHA_READBACKS_REMOTE_RECONSTRUCTED_ZIP_PRIVACY",
+        "original_zip_sha256": "99f69fbc1956ebfac8119d45e99c04fb13f53c14a4a830822ffb6fb4fcec82b9",
+        "scope": "Historical completed105 main documentation export before this liveMCP test;immutable App source remains4087d8b"
       }
     },
     "productive_backup_followup_20261026": {
       "user_authorized": true,
-      "accessible_record_checkpoint": "VERIFIED_ENCRYPTED_EXTERNAL_COPY;full remoteSHA,decrypt,22memberhashesPASS",
+      "accessible_record_checkpoint": "VERIFIED_ENCRYPTED_EXTERNAL_ACCESSIBLE_RECORD_EXPORT_PLUS28REFERENCEDPHOTOORIGINALS;3remote parts reconstructed,decrypted,all79memberhashesPASS",
       "recovery": "separateprivateProjectPageFiles;no keyinrepo/chat/source/adminarchives",
-      "scope": "Accessible effective business records ONLY;not fullDB/device restore;originalmedia collection ongoing",
+      "scope": "50privateJSONcaptures+28photooriginals+manifest;12historicalphotooriginals andinvoicePDFs unavailable;notfullDB/device restore",
       "native_create_backup": "same originalrequest_id retainedprivately;timeouts,outcomeunconfirmed;no replacementID",
       "complete_preupdate_device_backup": "NOT_PROVEN",
       "installation_authorization": "NOT_GRANTED",
-      "business_record_changes": "NONE"
+      "business_record_changes": "NONE",
+      "app_automatic_backup_setup": "NOT_CONFIGURED according to live105capabilities;external export does not configure App fullbackup"
+    },
+    "live105_mcp_review": {
+      "appTools": 166,
+      "appVersion": "1.55.0",
+      "backupContract": {
+        "automatic_enabled": false,
+        "context_matches": false,
+        "daily_deferrable": true,
+        "encrypted_streaming": true,
+        "format_version": 1,
+        "key_configured": false,
+        "remote_readback_sha256": true,
+        "setup_requires_device": true,
+        "target_configured": false
+      },
+      "build": 105,
+      "businessSyncAllowed": false,
+      "calendar": {
+        "availabilityVerified": false,
+        "connected": true,
+        "errorCode": "CALENDAR_NETWORK",
+        "lastSuccessAt": "2026-10-24T04:38:05.469774Z",
+        "state": "retry_pending"
+      },
+      "cases": [
+        {
+          "status": "PASS",
+          "tool": "get_capabilities"
+        },
+        {
+          "status": "PASS",
+          "tool": "run_self_test"
+        },
+        {
+          "status": "PASS",
+          "tool": "integration_health"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_ui_action_catalog"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_sync_overview"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_planning_context"
+        },
+        {
+          "status": "PASS",
+          "tool": "search_customers"
+        },
+        {
+          "status": "PASS",
+          "tool": "search_orders"
+        },
+        {
+          "status": "PASS",
+          "tool": "list_work_records"
+        },
+        {
+          "status": "PASS",
+          "tool": "list_photos"
+        },
+        {
+          "status": "PASS",
+          "tool": "list_offers"
+        },
+        {
+          "status": "PASS",
+          "tool": "list_archive"
+        },
+        {
+          "status": "PASS",
+          "tool": "list_backups"
+        },
+        {
+          "status": "PASS",
+          "tool": "search_offer_templates"
+        },
+        {
+          "status": "PASS",
+          "tool": "search_catalog"
+        },
+        {
+          "status": "PASS",
+          "tool": "list_appointments"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_settings"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_business_settings"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_active_work_session"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_offer_contract"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_planning_settings"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_sync_conflicts"
+        },
+        {
+          "firstAttempt": "TRANSPORT_TIMEOUT",
+          "status": "PASS_WITH_RETRY",
+          "tool": "list_invoices"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_file_metadata"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_business_summary"
+        },
+        {
+          "reason": "No offer available; no productive test offer created",
+          "status": "NOT_TESTABLE",
+          "tool": "get_offer"
+        },
+        {
+          "reason": "No offer available; no productive test offer created",
+          "status": "NOT_TESTABLE",
+          "tool": "validate_offer"
+        },
+        {
+          "reason": "No archived record available; no productive test record created",
+          "status": "NOT_TESTABLE",
+          "tool": "preview_purge"
+        },
+        {
+          "positiveCase": "NOT_TESTABLE_WITHOUT_VERIFIED_EXISTING_DURATION_CUSTOMER_PAIR",
+          "status": "PASS_NEGATIVE_ONLY",
+          "tool": "suggest_appointment_slots"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_customer"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_order"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_work_record"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_invoice"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_open_orders"
+        },
+        {
+          "status": "PASS",
+          "tool": "search_business_data"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_sync_status"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_customer_work_records"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_work_record_summary"
+        },
+        {
+          "status": "PASS",
+          "tool": "inspect_order_review"
+        },
+        {
+          "status": "PASS",
+          "tool": "preview_empty_trash"
+        },
+        {
+          "status": "PASS",
+          "tool": "preview_archive_work_records"
+        },
+        {
+          "status": "PASS",
+          "tool": "preview_delete"
+        },
+        {
+          "status": "PASS",
+          "tool": "preview_legacy_conflict_resolution"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_photo"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_catalog_entry"
+        },
+        {
+          "status": "PASS",
+          "tool": "read_file_chunk"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_offer_template"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_offer_context"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_appointment"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_workweek_weather"
+        },
+        {
+          "status": "PASS",
+          "tool": "get_weather_risks"
+        },
+        {
+          "status": "PASS",
+          "tool": "inspect_backup"
+        }
+      ],
+      "classification": "TECHNICAL_REDACTED_NO_BUSINESS_CONTENT",
+      "connectionRefresh": "No refresh action available in connected tools;existing connection exposes117 despite app tools/list166",
+      "connectionTools": 117,
+      "database": 6,
+      "driveRole": "backup_only",
+      "evidenceType": "Actual live Pixel MCP selfreport and read calls;no physical APK byte or certificate proof",
+      "existingCloudWriteRegression": {
+        "native443": "PASS previously executed on identical immutable source;not reclassified as live Pixel write test",
+        "source": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28"
+      },
+      "format": "hausgarten.live-mcp-interface-review.v1",
+      "integrity": {
+        "allCollectionsUnchanged": true,
+        "businessStateUnchanged": true,
+        "duplicateIds": 0,
+        "missingLocalOriginals": 107,
+        "pendingUnchanged": true,
+        "personalPaidUnchanged": true,
+        "relationshipReview": 130,
+        "selfTestSaysChanged": false,
+        "settingsUnchanged": true,
+        "sourceMasterUnchanged": true
+      },
+      "invoiceFinalization": "pixel_local_migration_required",
+      "liveDeletes": "NOT_EXECUTED",
+      "livePushDelivery": "NOT_EXECUTED",
+      "liveRestore": "NOT_EXECUTED",
+      "liveWrites": "NOT_EXECUTED",
+      "missingConnectionTools": [
+        {
+          "name": "review_work_session",
+          "readOnly": false
+        },
+        {
+          "name": "get_full_backup_status",
+          "readOnly": true
+        },
+        {
+          "name": "get_restore_status",
+          "readOnly": true
+        },
+        {
+          "name": "get_revier_overview",
+          "readOnly": true
+        },
+        {
+          "name": "inspect_edit_action",
+          "readOnly": true
+        },
+        {
+          "name": "list_revier_archive",
+          "readOnly": true
+        },
+        {
+          "name": "list_properties",
+          "readOnly": true
+        },
+        {
+          "name": "get_property",
+          "readOnly": true
+        },
+        {
+          "name": "list_inquiries",
+          "readOnly": true
+        },
+        {
+          "name": "get_inquiry",
+          "readOnly": true
+        },
+        {
+          "name": "list_care_plans",
+          "readOnly": true
+        },
+        {
+          "name": "list_visits",
+          "readOnly": true
+        },
+        {
+          "name": "get_visit",
+          "readOnly": true
+        },
+        {
+          "name": "get_day_tour",
+          "readOnly": true
+        },
+        {
+          "name": "list_materials",
+          "readOnly": true
+        },
+        {
+          "name": "list_equipment",
+          "readOnly": true
+        },
+        {
+          "name": "search_local",
+          "readOnly": true
+        },
+        {
+          "name": "get_payment_ledger",
+          "readOnly": true
+        },
+        {
+          "name": "get_invoice_document_job",
+          "readOnly": true
+        },
+        {
+          "name": "preview_local_authority",
+          "readOnly": true
+        },
+        {
+          "name": "get_offer_decision_history",
+          "readOnly": true
+        },
+        {
+          "name": "request_full_backup",
+          "readOnly": false
+        },
+        {
+          "name": "retry_full_backup",
+          "readOnly": false
+        },
+        {
+          "name": "create_property",
+          "readOnly": false
+        },
+        {
+          "name": "update_property",
+          "readOnly": false
+        },
+        {
+          "name": "create_inquiry",
+          "readOnly": false
+        },
+        {
+          "name": "update_inquiry",
+          "readOnly": false
+        },
+        {
+          "name": "accept_inquiry_direct",
+          "readOnly": false
+        },
+        {
+          "name": "set_revier_archived",
+          "readOnly": false
+        },
+        {
+          "name": "purge_revier_entity",
+          "readOnly": false
+        },
+        {
+          "name": "plan_inquiry_inspection",
+          "readOnly": false
+        },
+        {
+          "name": "create_care_plan",
+          "readOnly": false
+        },
+        {
+          "name": "update_care_plan",
+          "readOnly": false
+        },
+        {
+          "name": "generate_care_visits",
+          "readOnly": false
+        },
+        {
+          "name": "plan_visit",
+          "readOnly": false
+        },
+        {
+          "name": "update_visit",
+          "readOnly": false
+        },
+        {
+          "name": "set_day_tour",
+          "readOnly": false
+        },
+        {
+          "name": "move_tour_stop",
+          "readOnly": false
+        },
+        {
+          "name": "save_material",
+          "readOnly": false
+        },
+        {
+          "name": "record_material_movement",
+          "readOnly": false
+        },
+        {
+          "name": "save_equipment",
+          "readOnly": false
+        },
+        {
+          "name": "record_equipment_usage",
+          "readOnly": false
+        },
+        {
+          "name": "record_payment",
+          "readOnly": false
+        },
+        {
+          "name": "correct_payment",
+          "readOnly": false
+        },
+        {
+          "name": "retry_invoice_document_job",
+          "readOnly": false
+        },
+        {
+          "name": "activate_local_authority",
+          "readOnly": false
+        },
+        {
+          "name": "reconcile_local_invoice_authority",
+          "readOnly": false
+        },
+        {
+          "name": "record_offer_acceptance",
+          "readOnly": false
+        },
+        {
+          "name": "decline_offer",
+          "readOnly": false
+        }
+      ],
+      "negativeOnlyReadTools": 1,
+      "negativeTests": {
+        "invalidSlotDuration": "REJECTED_INVALID_ARGUMENT",
+        "wrongFileChecksum": "REJECTED_INVALID_ARGUMENT"
+      },
+      "newAPKCreated": false,
+      "notTestableReadTools": 3,
+      "positiveReadTools": 48,
+      "recordedAt": "2026-10-26T11:28:03.362Z",
+      "registeredReadTools": 52,
+      "reportedAppSource": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
+      "reportedSourceFingerprint": "06f99ce068bfcb4e36640df70290b7edddcc8532fa27119ce2332b352a835469",
+      "selfTest": [
+        {
+          "name": "build_and_protocol",
+          "status": "PASS"
+        },
+        {
+          "name": "catalog_unique",
+          "status": "PASS"
+        },
+        {
+          "name": "write_gate",
+          "status": "PASS"
+        },
+        {
+          "name": "business_settings_complete",
+          "status": "PASS"
+        },
+        {
+          "name": "drive_configuration",
+          "scope": "optional_encrypted_backup_setup_only",
+          "status": "NOT TESTABLE"
+        },
+        {
+          "name": "offers_and_catalog",
+          "status": "PASS"
+        },
+        {
+          "name": "ui_mcp_parity",
+          "status": "PASS"
+        },
+        {
+          "name": "sync_state",
+          "scope": "business_drive_writer_retirement",
+          "status": "PASS"
+        },
+        {
+          "name": "private_document_storage",
+          "status": "NOT TESTABLE"
+        },
+        {
+          "name": "physical_google_and_delivery",
+          "status": "NOT TESTABLE"
+        },
+        {
+          "name": "local_authority_transition",
+          "status": "NOT TESTABLE"
+        }
+      ],
+      "transportRetries": [
+        {
+          "boundedSameArgumentsRetry": "PASS",
+          "firstAttempt": "TIMEOUT",
+          "tool": "list_invoices"
+        }
+      ],
+      "uiPagination": {
+        "constantCatalogHash": true,
+        "uiCatalogReceived": 209,
+        "uiCatalogTotal": 209,
+        "uniqueActions": 209
+      },
+      "fileChunkIndependentHashVerified": true
     }
   },
   "verified_release_source": {
@@ -871,19 +1415,20 @@
     "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB"
   },
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-10-26T05:06:37.306205Z",
-    "version_name": "1.54.9",
-    "version_code": 98,
-    "reported_base_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
-    "source_sha256": "fd0979de4da7c090beef01ec6e584ddfa5a999d79f138c870d40956e5aa4c1ae",
+    "observed_at_utc": "2026-10-26T11:10:26.060785+00:00",
+    "version_name": "1.55.0",
+    "version_code": 105,
+    "reported_base_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
+    "source_sha256": "06f99ce068bfcb4e36640df70290b7edddcc8532fa27119ce2332b352a835469",
     "source_dirty": false,
-    "evidence": "Read-only live PixelMCP26Oct2026 still1.54.9/98 DB4 MCP9/117 dbe9ed0/fd0979; capabilities selfreport only. No Pixelinstall or independent installedAPK byteproof.",
-    "invoice_finalization": "pixel_drive_online_compare_required",
-    "evidence_recorded_at_utc": "2026-10-26T05:13:12.901096+00:00"
+    "database_version": 6,
+    "evidence": "Actual live PixelMCP selfreport26Oct2026;source405/fingerprint06 matched original105. Read-only interface tests;no independent installed APK/certificate byteproof;installation not performed by Codex.",
+    "invoice_finalization": "pixel_local_migration_required",
+    "evidence_recorded_at_utc": "2026-10-26T11:29:59.234207+00:00"
   },
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-",
-    "required_action": "Preserve completed105 functional evidence; finish independently authorized real business backup, final documentation/source/main integration. No automatic Pixelinstall/migration/authority. Full98device backup, physicalUSB/Pixel/legal boundaries explicit."
+    "required_action": "Existing105App is observed via liveMCP;no newAPK or installation byCodex. Connection exposes117of166 tools;reload existing ChatGPT toolcatalog is external outstanding action. Controlled relation/original/backup/writer/number reconciliation remains;no automatic productive migration or invoice authority activation."
   },
   "verified_candidate_source": {
     "version": "1.55.0",
@@ -918,7 +1463,7 @@
     "remote_readback": "PASS exact source branch and immutable peeled tag",
     "drive_readback": "Source61actualSHA256_BYTES,remote reconstructedZIP/P0 PASS;APK3actualremote parts exactSHA/originalsignature/P0 PASS;fresh8privatefiles=7actualSHAbyteproofs+1rawStreamSizeOnly;separate rawAPK remoteSHA NOT_VERIFIED",
     "native_cloud_acceptance": "PASS443native0FAIL;5actualOSprocesspairs;5actualairplaneUIcases;allhost suites;plants/fonts/update/installedbytes/signature/provenance. RS14CloudsearchtargetFAIL; physical/productive NOT_EXECUTED",
-    "pixel_installation": "NOT_EXECUTED; last observed1.54.9/98selfreport",
+    "pixel_installation": "OBSERVED105_VIA_LIVE_READONLY_MCP;not performed by Codex;physicalUI/installedbytes notverified",
     "productive_migration": "NOT_EXECUTED",
     "productive_invoice_authority": "NOT_ACTIVATED",
     "release_approved": false,
@@ -948,8 +1493,10 @@
     "documentation_export": {
       "folder_id": "1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5",
       "folder_url": "https://drive.google.com/drive/folders/1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5",
-      "source_commit": null,
-      "status": "AWAITING_EXACT_FINAL_MAIN_GO_NO_EXPORT_YET"
+      "source_commit": "9f26e9653bbdc6f3f23b9e5a5445f8c502937e33",
+      "status": "PASS61FULL_SHA_READBACKS_REMOTE_RECONSTRUCTED_ZIP_PRIVACY",
+      "original_zip_sha256": "99f69fbc1956ebfac8119d45e99c04fb13f53c14a4a830822ffb6fb4fcec82b9",
+      "scope": "Historical completed105 main documentation export before this liveMCP test;immutable App source remains4087d8b"
     },
     "performance": {
       "source_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
@@ -967,6 +1514,20 @@
       "tour_target_ms": 1000,
       "tour_target_met": true,
       "physical_pixel": "NOT_MEASURED"
+    },
+    "live_readonly_mcp_review": {
+      "app_tools": 166,
+      "connection_tools": 117,
+      "missing_read_tools": 20,
+      "missing_write_tools": 29,
+      "positive_read_tools": 48,
+      "negative_only_read_tools": 1,
+      "not_testable_read_tools": 3,
+      "ui_actions": 209,
+      "business_queue_settings_unchanged": true,
+      "physical_ui": "NOT_EXECUTED",
+      "productive_write_tests": "NOT_EXECUTED",
+      "release_approved": false
     }
   },
   "calendar_ui_task": {
@@ -1483,6 +2044,18 @@
     }
   ],
   "observed_installation_history": [
+    {
+      "observed_at_utc": "2026-10-26T11:10:26.060785+00:00",
+      "version_name": "1.55.0",
+      "version_code": 105,
+      "reported_base_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
+      "source_sha256": "06f99ce068bfcb4e36640df70290b7edddcc8532fa27119ce2332b352a835469",
+      "source_dirty": false,
+      "database_version": 6,
+      "evidence": "Actual live PixelMCP selfreport26Oct2026;source405/fingerprint06 matched original105. Read-only interface tests;no independent installed APK/certificate byteproof;installation not performed by Codex.",
+      "invoice_finalization": "pixel_local_migration_required",
+      "evidence_recorded_at_utc": "2026-10-26T11:29:59.234207+00:00"
+    },
     {
       "observed_at_utc": "2026-10-22T19:39:11Z",
       "version_name": "1.54.5",

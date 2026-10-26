@@ -3,7 +3,70 @@
 Stand: 26. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
-## Aktuelle Betriebsdaten-Sicherungsfrage: rein lesender Pixelbefund26.10.2026
+## Live-MCP-Prüfung105 vom26.10.2026 nach beobachtetem Appupdate
+
+Die bestehende Pixelverbindung meldet jetzt1.55.0/105/DB6, unverändert Appquellcommit
+`4087d8b5b83294d75dba6d9fc87e2d6472d3be28` und Fingerprint
+`06f99ce068bfcb4e36640df70290b7edddcc8532fa27119ce2332b352a835469`.
+Das ist eine tatsächliche Live-MCP-Selbstauskunft und Leseprüfung, kein unabhängiger
+APK-/Zertifikatbytes- oder physischer UI-Abnahmenachweis. Codex hat keine Installation
+ausgeführt. Die älteren98-/Nichtinstalliert-Beobachtungen unten bleiben datierte
+Ausgangsstände und sind durch diesen aktuellen Versionsbefund überholt.
+
+Drive ausschließlich als Sicherungsziel bestätigt: `drive_role=backup_only`,
+Speichervertrag3, `business_sync_allowed=false`. Der identische105-Cloudnachweis
+prüft zusätzlich öffentliche Legacy-/lokalgesperrte Pfade ohne Konto-/Provider-I/O.
+Drei bestehende UI-Regressionssuiten erneut PASS: business-feedback, full-backup-entry,
+settings-cleanup. APK-SHA erneut unverändert; kein neuer Appcode oder APKbuild.
+
+**Verbindungskatalog unvollständig:** Die App registriert166Werkzeuge; diese
+ChatGPT-Verbindung bindet117.49fehlen:20lesende und29schreibende neue Funktionen,
+darunter Vollsicherungsstatus, Revierobjekte/Pflege/Tour, Zahlungsledger und lokale
+Autoritätsvorschau. Kein fehlender App-Toolname durch einen anderen umgedeutet.
+Über die verfügbaren verbundenen Werkzeuge gibt es keine Katalog-Refreshaktion;
+die vorhandene ChatGPT-Verbindung muss ihren Werkzeugkatalog neu einlesen.
+Kein neuer Tunnel, kein Kontoentzug, keine zusätzliche Berechtigung eingerichtet.
+
+52gebundene Lese-Werkzeuge erfasst:48mit regulären vorhandenen Daten PASS,
+Termin-Vorschläge ausschließlich mit bewusst ungültiger Dauer als Negativpfad PASS;
+die positive Vorschlagsprüfung mit verifizierter bestehender Dauer/Kundenpaarung
+bleibt offen. get_offer/validate_offer mangels Angebot und preview_purge mangels
+Papierkorbeintrag NOT TESTABLE; keine produktiven Testobjekte angelegt.
+Ein erster list_invoices-Aufruf endete mit Transporttimeout; begrenztes erneutes
+Lesen mit identischen Argumenten PASS. Fehler wurde weder als Geschäftsschreibfehler
+noch als dauerhafter Schnittstellenfehler gewertet.
+
+209UI-Aktionen vollständig paginiert,209eindeutigeIDs/gleichbleibender Kataloghash.
+Vorhandenes Fotooriginal in256Byte-Block gelesen und Chunk-SHA unabhängig geprüft;
+falsche Dateiprüfsumme ausdrücklich INVALID_ARGUMENT. Ungültige Vorschlagsdauer
+ebenfalls INVALID_ARGUMENT. Vergleich vor/nach: Geschäftszustand, alle acht
+Fachkollektionen, Ausgangsmaster, pending-Journal, Einstellungen und persönliches
+b.b. nach identischen Vergleichshashes/unverändert. Selbsttest7PASS/4NOT TESTABLE;
+`business_data_changed=false`. Keine Schreib-/Lösch-/Restore-/Pushzustellungstests
+mit Betriebsdaten. Die früheren443synthetischen nativen Fälle des identischen
+Appquellstands bleiben getrennte Cloudbelege, keine Live-Schreibabnahme.
+
+Weiter beobachtet:0doppelteIDs,130prüfbedürftigeBeziehungen,107nicht lokal
+nachgewiesene Originale. Keine automatische Neuzuordnung, Normalisierung, Löschung
+oder Nachladung aus Drive. Kalender weiterhin verbunden mit CALENDAR_NETWORK;
+letzter Erfolgsstand24.10.2026, externe Kollisionen nicht als verifiziert frei gewertet.
+Lokale Rechnungsfreigabe bleibt mit pixel_local_migration_required gesperrt.
+Automatische App-Vollsicherung ist nicht eingerichtet: target/automatic/key/context
+jeweilsfalse. Der separat extern geprüfte verschlüsselte Export enthält erreichbare
+Geschäftsdatensätze plus28aktuelleFotooriginale; vollständiges Rücklesen seiner drei
+Teile, Entschlüsselung und79Manifestmitglieder PASS.12historischeFotooriginale,
+Rechnungs-PDFs und interne DB-/Nummern-/Queue-/Entwurfszustände bleiben ausgenommen;
+dieser Export ist keine native Vollsicherung/kein automatischer App-Restore.
+Recoverycode separat in der privaten bestehenden Projektzentrale; keine Inhalte,
+Schlüssel oder operativen IDs in Checkout/Quell-/APK-Archiv übernommen.
+
+Die vorhandenen zwei Release-Baseline-Tests richten ihren erwarteten Höchststand
+jetzt nach der tatsächlich beobachteten Installation statt nach fest98. Gleichalte/
+ältere Releases und ungültige Beobachtungen bleiben abgewiesen; eine zukünftige
+Original-Neuerstellung muss einen höheren versionCode als105 verwenden. Diese
+Metadaten-/Testpflege verändert nicht den originalen bestehenden105-Kandidaten.
+
+## Historischer rein lesender Pixelbefund26.10.2026 um05:06UTC
 
 Live Pixel-MCP um05:06UTC bestätigt weiterhin1.54.9/98/DB4/MCP9/117,dbe9ed0/sourcefd0979;
 Selbstauskunft, keine unabhängige Prüfung der installierten APK-Bytes. Get_capabilities,
