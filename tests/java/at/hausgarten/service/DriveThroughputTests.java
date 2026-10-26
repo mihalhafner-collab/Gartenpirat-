@@ -14,7 +14,7 @@ public final class DriveThroughputTests {
     static int passed;static void yes(boolean value){if(!value)throw new AssertionError();}
     static void check(String name,Case test)throws Exception{test.run();passed++;System.out.println("PASS "+name);}
     static final String ROOT="qa_drive_root_001",PHOTOS="qa_photo_folder_001";
-    static final class Memory implements DriveRestClient.Checkpoints{
+    static final class Memory implements LegacyDriveRestFixture.Checkpoints{
         final ConcurrentHashMap<String,String> values=new ConcurrentHashMap<>();
         public String get(String key){return values.getOrDefault(key,"");}public void put(String key,String value){values.put(key,value);}
     }
@@ -22,14 +22,14 @@ public final class DriveThroughputTests {
         final String id,name;final ByteArrayOutputStream bytes=new ByteArrayOutputStream();
         Upload(String id,String name){this.id=id;this.name=name;}
     }
-    static final class Remote implements DriveRestClient.Wire {
+    static final class Remote implements LegacyDriveRestFixture.Wire {
         final Map<String,Upload> sessions=new ConcurrentHashMap<>(),stored=new ConcurrentHashMap<>();
         final Set<String> originalNames=ConcurrentHashMap.newKeySet(),corrupt=ConcurrentHashMap.newKeySet();
         final AtomicInteger directoryPosts=new AtomicInteger(),starts=new AtomicInteger(),reads=new AtomicInteger(),
             originalReads=new AtomicInteger(),active=new AtomicInteger(),maximum=new AtomicInteger();
         volatile boolean directory=true;CountDownLatch overlap;int expectedOriginals;
-        DriveRestClient client(Memory state){return new DriveRestClient(ROOT,()->"qa_synthetic_token",this,state);}
-        public DriveRestClient.Reply send(String method,String url,Map<String,String> headers,byte[] body,int max)throws Exception{
+        LegacyDriveRestFixture client(Memory state){return new LegacyDriveRestFixture(ROOT,()->"qa_synthetic_token",this,state);}
+        public LegacyDriveRestFixture.Reply send(String method,String url,Map<String,String> headers,byte[] body,int max)throws Exception{
             if(method.equals("GET")&&url.contains("files?q=")){
                 String query=URLDecoder.decode(url.substring(url.indexOf("q=")+2).split("&",2)[0],"UTF-8");JSONArray files=new JSONArray();
                 if(query.contains("'"+ROOT+"'")&&directory)files.put(new JSONObject().put("id",PHOTOS).put("name","HausGarten-Fotos").put("mimeType","application/vnd.google-apps.folder").put("version","1"));
@@ -41,24 +41,24 @@ public final class DriveThroughputTests {
                 String name=new JSONObject(new String(body,StandardCharsets.UTF_8)).getString("name");
                 if(!originalNames.contains(name))yes(originalReads.get()>=expectedOriginals);
                 String id="qa_upload_file_"+starts.incrementAndGet();Upload upload=new Upload(id,name);sessions.put(id,upload);
-                return new DriveRestClient.Reply(200,new byte[0],Collections.singletonMap("Location","https://www.googleapis.com/upload/drive/v3/files?upload_id="+id));
+                return new LegacyDriveRestFixture.Reply(200,new byte[0],Collections.singletonMap("Location","https://www.googleapis.com/upload/drive/v3/files?upload_id="+id));
             }
             if(method.equals("PUT")){
                 Upload upload=sessions.get(url.substring(url.indexOf("upload_id=")+10));yes(upload!=null);
-                if(body.length==0)return new DriveRestClient.Reply(308,new byte[0],upload.bytes.size()==0?Collections.emptyMap():Collections.singletonMap("Range","bytes=0-"+(upload.bytes.size()-1)));
+                if(body.length==0)return new LegacyDriveRestFixture.Reply(308,new byte[0],upload.bytes.size()==0?Collections.emptyMap():Collections.singletonMap("Range","bytes=0-"+(upload.bytes.size()-1)));
                 int count=active.incrementAndGet();maximum.accumulateAndGet(count,Math::max);
                 try{
                     if(overlap!=null&&originalNames.contains(upload.name)){overlap.countDown();yes(overlap.await(3,TimeUnit.SECONDS));}
                     Thread.sleep(15);upload.bytes.write(body);String range=headers.get("Content-Range");int total=Integer.parseInt(range.substring(range.lastIndexOf('/')+1));
                     if(upload.bytes.size()==total){stored.put(upload.id,upload);return DriveTransportTests.reply(200,new JSONObject().put("id",upload.id).put("name",upload.name).toString());}
-                    return new DriveRestClient.Reply(308,new byte[0],Collections.singletonMap("Range","bytes=0-"+(upload.bytes.size()-1)));
+                    return new LegacyDriveRestFixture.Reply(308,new byte[0],Collections.singletonMap("Range","bytes=0-"+(upload.bytes.size()-1)));
                 }finally{active.decrementAndGet();}
             }
             if(method.equals("GET")){
                 String id=url.substring(url.lastIndexOf('/')+1).split("\\?",2)[0];Upload upload=stored.get(id);yes(upload!=null);reads.incrementAndGet();
                 byte[] raw=upload.bytes.toByteArray();yes(raw.length<=max);if(originalNames.contains(upload.name))originalReads.incrementAndGet();
                 if(corrupt.contains(upload.name))raw[0]^=1;
-                return new DriveRestClient.Reply(200,raw,Collections.emptyMap());
+                return new LegacyDriveRestFixture.Reply(200,raw,Collections.emptyMap());
             }
             throw new AssertionError("Unexpected synthetic transport call");
         }
@@ -66,13 +66,13 @@ public final class DriveThroughputTests {
     static final class Source implements DriveMediaBatch.Source {
         final Map<String,byte[]> bytes=new HashMap<>();final AtomicInteger originalReads=new AtomicInteger();
         JSONObject photo(Remote remote,String id,int value,boolean thumb)throws Exception{
-            byte[] raw=new byte[256*1024];Arrays.fill(raw,(byte)value);String hash=DriveRestClient.sha256(raw),name=hash+".jpg";bytes.put(name,raw);remote.originalNames.add(name);
+            byte[] raw=new byte[256*1024];Arrays.fill(raw,(byte)value);String hash=LegacyDriveRestFixture.sha256(raw),name=hash+".jpg";bytes.put(name,raw);remote.originalNames.add(name);
             JSONObject metadata=new JSONObject().put("photo_id",id).put("content_sha256",hash).put("storage_name",name).put("byte_size",raw.length).put("mime_type","image/jpeg");
-            if(thumb){byte[] preview="qa_shared_thumbnail".getBytes(StandardCharsets.UTF_8);String thumbnail=DriveRestClient.sha256(preview)+".jpg";bytes.put(thumbnail,preview);metadata.put("thumbnail_storage_name",thumbnail);}
+            if(thumb){byte[] preview="qa_shared_thumbnail".getBytes(StandardCharsets.UTF_8);String thumbnail=LegacyDriveRestFixture.sha256(preview)+".jpg";bytes.put(thumbnail,preview);metadata.put("thumbnail_storage_name",thumbnail);}
             return metadata;
         }
         public byte[] original(JSONObject metadata){originalReads.incrementAndGet();return bytes.get(metadata.optString("storage_name")).clone();}
-        public void verify(byte[] raw,JSONObject metadata)throws Exception{if(raw.length!=metadata.getLong("byte_size")||!DriveRestClient.sha256(raw).equals(metadata.getString("content_sha256")))throw new IOException("Synthetic metadata mismatch");}
+        public void verify(byte[] raw,JSONObject metadata)throws Exception{if(raw.length!=metadata.getLong("byte_size")||!LegacyDriveRestFixture.sha256(raw).equals(metadata.getString("content_sha256")))throw new IOException("Synthetic metadata mismatch");}
         public byte[] thumbnail(String name){return bytes.get(name).clone();}
     }
     public static void main(String[] args)throws Exception{
@@ -111,8 +111,8 @@ public final class DriveThroughputTests {
         check("cancel actual resumable batch closes only its active requests and retains all checkpoints",()->{
             Remote remote=new Remote();Source source=new Source();JSONArray batch=new JSONArray();for(int i=0;i<6;i++)batch.put(source.photo(remote,"qa_cancel_photo_"+i,i,false));
             CountDownLatch started=new CountDownLatch(3);ConcurrentHashMap<Thread,CountDownLatch> gates=new ConcurrentHashMap<>();AtomicInteger closed=new AtomicInteger();
-            DriveRestClient.Wire wire=new DriveRestClient.Wire(){
-                public DriveRestClient.Reply send(String method,String url,Map<String,String> h,byte[] b,int max)throws Exception{
+            LegacyDriveRestFixture.Wire wire=new LegacyDriveRestFixture.Wire(){
+                public LegacyDriveRestFixture.Reply send(String method,String url,Map<String,String> h,byte[] b,int max)throws Exception{
                     if(method.equals("PUT")&&b.length>0){CountDownLatch gate=new CountDownLatch(1);gates.put(Thread.currentThread(),gate);started.countDown();
                         try{boolean released=false;while(!released)try{released=gate.await(3,TimeUnit.SECONDS);if(!released)throw new IOException("Synthetic cancellation timeout");}catch(InterruptedException stopped){/* Model a socket requiring disconnect, not Thread.interrupt alone. */}
                             throw new InterruptedIOException("Synthetic socket closed");
@@ -121,7 +121,7 @@ public final class DriveThroughputTests {
                 }
                 public void cancel(Thread thread){CountDownLatch gate=gates.get(thread);if(gate!=null){closed.incrementAndGet();gate.countDown();}}
             };
-            Memory memory=new Memory();DriveRestClient client=new DriveRestClient(ROOT,()->"qa_token",wire,memory);AtomicBoolean aborted=new AtomicBoolean();
+            Memory memory=new Memory();LegacyDriveRestFixture client=new LegacyDriveRestFixture(ROOT,()->"qa_token",wire,memory);AtomicBoolean aborted=new AtomicBoolean();
             Thread caller=new Thread(()->{try{DriveMediaBatch.transfer(client,batch,source);}catch(InterruptedIOException stopped){aborted.set(Thread.currentThread().isInterrupted());}catch(Exception failed){throw new RuntimeException(failed);}});
             caller.start();yes(started.await(3,TimeUnit.SECONDS));caller.interrupt();caller.join(5000);
             yes(!caller.isAlive()&&aborted.get()&&closed.get()==3&&gates.isEmpty()&&remote.reads.get()==0&&remote.starts.get()==3);
@@ -129,23 +129,23 @@ public final class DriveThroughputTests {
         });
         check("global HTTP bound admits six independent requests, never more",()->{
             AtomicInteger active=new AtomicInteger(),max=new AtomicInteger();CountDownLatch firstSix=new CountDownLatch(6);ExecutorService callers=Executors.newFixedThreadPool(10);List<Future<?>> futures=new ArrayList<>();
-            DriveRestClient.Wire wire=(m,u,h,b,limit)->{int live=active.incrementAndGet();max.accumulateAndGet(live,Math::max);try{firstSix.countDown();yes(firstSix.await(3,TimeUnit.SECONDS));Thread.sleep(10);return new DriveRestClient.Reply(200,new byte[]{1},Collections.emptyMap());}finally{active.decrementAndGet();}};
-            try{for(int i=0;i<10;i++)futures.add(callers.submit(()->{try{new DriveRestClient(ROOT,()->"qa_token",wire,new Memory()).read("qa_read_file_001",10);}catch(Exception error){throw new RuntimeException(error);}}));for(Future<?> future:futures)future.get(5,TimeUnit.SECONDS);yes(max.get()==6&&active.get()==0);}finally{callers.shutdownNow();}
+            LegacyDriveRestFixture.Wire wire=(m,u,h,b,limit)->{int live=active.incrementAndGet();max.accumulateAndGet(live,Math::max);try{firstSix.countDown();yes(firstSix.await(3,TimeUnit.SECONDS));Thread.sleep(10);return new LegacyDriveRestFixture.Reply(200,new byte[]{1},Collections.emptyMap());}finally{active.decrementAndGet();}};
+            try{for(int i=0;i<10;i++)futures.add(callers.submit(()->{try{new LegacyDriveRestFixture(ROOT,()->"qa_token",wire,new Memory()).read("qa_read_file_001",10);}catch(Exception error){throw new RuntimeException(error);}}));for(Future<?> future:futures)future.get(5,TimeUnit.SECONDS);yes(max.get()==6&&active.get()==0);}finally{callers.shutdownNow();}
         });
         check("Retry-After stops queued siblings without another wire request",()->{
-            AtomicInteger calls=new AtomicInteger();DriveRestClient parent=new DriveRestClient(ROOT,()->"qa_token",(m,u,h,b,limit)->{calls.incrementAndGet();return new DriveRestClient.Reply(429,new byte[0],Collections.singletonMap("Retry-After","60"));},new Memory());
-            DriveRestClient child=parent.fork(PHOTOS,new JSONArray());
-            for(DriveRestClient client:Arrays.asList(child,parent))try{client.read("qa_read_file_001",10);throw new AssertionError();}catch(DriveRestClient.Failure failure){yes(failure.code.equals("TEMPORARY_UNAVAILABLE")&&failure.retryAfter>59000);}
+            AtomicInteger calls=new AtomicInteger();LegacyDriveRestFixture parent=new LegacyDriveRestFixture(ROOT,()->"qa_token",(m,u,h,b,limit)->{calls.incrementAndGet();return new LegacyDriveRestFixture.Reply(429,new byte[0],Collections.singletonMap("Retry-After","60"));},new Memory());
+            LegacyDriveRestFixture child=parent.fork(PHOTOS,new JSONArray());
+            for(LegacyDriveRestFixture client:Arrays.asList(child,parent))try{client.read("qa_read_file_001",10);throw new AssertionError();}catch(LegacyDriveRestFixture.Failure failure){yes(failure.code.equals("TEMPORARY_UNAVAILABLE")&&failure.retryAfter>59000);}
             yes(calls.get()==1);
         });
         check("worker cache refresh/mutation cannot corrupt the parent inventory",()->{
             JSONArray rows=new JSONArray().put(new JSONObject().put("id","qa_file_id_001").put("name","qa-name").put("version","1"));
-            DriveRestClient parent=new DriveRestClient(ROOT,()->"qa_token",(m,u,h,b,max)->DriveTransportTests.reply(200,new JSONObject().put("files",rows).toString()),new Memory());parent.list(PHOTOS);
-            DriveRestClient child=parent.fork(PHOTOS,rows);child.unique(PHOTOS,"qa-name").put("version","2");child.refresh();yes(parent.unique(PHOTOS,"qa-name").getString("version").equals("1"));
+            LegacyDriveRestFixture parent=new LegacyDriveRestFixture(ROOT,()->"qa_token",(m,u,h,b,max)->DriveTransportTests.reply(200,new JSONObject().put("files",rows).toString()),new Memory());parent.list(PHOTOS);
+            LegacyDriveRestFixture child=parent.fork(PHOTOS,rows);child.unique(PHOTOS,"qa-name").put("version","2");child.refresh();yes(parent.unique(PHOTOS,"qa-name").getString("version").equals("1"));
         });
         check("inventory fingerprints are order-independent and observe modifications/removals",()->{
             AtomicReference<JSONArray> listing=new AtomicReference<>(new JSONArray().put(new JSONObject().put("id","qa_file_a").put("name","qa, = :\n").put("version","1")).put(new JSONObject().put("id","qa_file_b").put("name","qa-b").put("version","2")));
-            DriveRestClient c=new DriveRestClient(ROOT,()->"qa_token",(m,u,h,b,max)->DriveTransportTests.reply(200,new JSONObject().put("files",listing.get()).toString()),new Memory());String first=c.inventoryFingerprint();
+            LegacyDriveRestFixture c=new LegacyDriveRestFixture(ROOT,()->"qa_token",(m,u,h,b,max)->DriveTransportTests.reply(200,new JSONObject().put("files",listing.get()).toString()),new Memory());String first=c.inventoryFingerprint();
             JSONArray previous=listing.get();listing.set(new JSONArray().put(previous.getJSONObject(1)).put(previous.getJSONObject(0)));c.refresh();yes(first.equals(c.inventoryFingerprint()));
             listing.get().getJSONObject(0).put("version","3");c.refresh();yes(!first.equals(c.inventoryFingerprint()));listing.get().getJSONObject(0).remove("version");c.refresh();yes(c.inventoryFingerprint().isEmpty());
         });
@@ -164,16 +164,16 @@ public final class DriveThroughputTests {
         });
         check("cold commit recovery overlaps three reads, validates the complete chain before use",()->{
             JSONObject legacy=PixelDriveStateTests.state();PixelDriveStateTests.Memory memory=new PixelDriveStateTests.Memory();JSONObject initial=DrivePrimaryState.recover(legacy,"pixel-test",memory);
-            String parent="",previous="";for(int i=1;i<=3;i++){String id="qa_commit_chain_00"+i;memory.publish(initial,new JSONArray(),id,i,parent,previous);parent=id;previous=DriveRestClient.sha256(memory.data.get("state-"+id));}
-            JSONArray listing=new JSONArray();for(Map.Entry<String,byte[]> file:memory.data.entrySet()){String name=memory.names.getOrDefault(file.getKey(),"HausGarten-State-"+DriveRestClient.sha256(file.getValue())+".json");listing.put(new JSONObject().put("id",file.getKey()).put("name",name).put("size",file.getValue().length).put("version","1").put("md5Checksum","a".repeat(32)));}
+            String parent="",previous="";for(int i=1;i<=3;i++){String id="qa_commit_chain_00"+i;memory.publish(initial,new JSONArray(),id,i,parent,previous);parent=id;previous=LegacyDriveRestFixture.sha256(memory.data.get("state-"+id));}
+            JSONArray listing=new JSONArray();for(Map.Entry<String,byte[]> file:memory.data.entrySet()){String name=memory.names.getOrDefault(file.getKey(),"HausGarten-State-"+LegacyDriveRestFixture.sha256(file.getValue())+".json");listing.put(new JSONObject().put("id",file.getKey()).put("name",name).put("size",file.getValue().length).put("version","1").put("md5Checksum","a".repeat(32)));}
             CountDownLatch three=new CountDownLatch(3);AtomicInteger active=new AtomicInteger(),maximum=new AtomicInteger(),reads=new AtomicInteger();
-            DriveRestClient c=new DriveRestClient(ROOT,()->"qa_token",(m,u,h,b,max)->{
+            LegacyDriveRestFixture c=new LegacyDriveRestFixture(ROOT,()->"qa_token",(m,u,h,b,max)->{
                 if(u.contains("files?q="))return DriveTransportTests.reply(200,new JSONObject().put("files",listing).toString());
                 String id=u.substring(u.lastIndexOf('/')+1).split("\\?",2)[0];reads.incrementAndGet();
                 if(memory.names.containsKey(id)){int n=active.incrementAndGet();maximum.accumulateAndGet(n,Math::max);try{three.countDown();yes(three.await(3,TimeUnit.SECONDS));Thread.sleep(10);}finally{active.decrementAndGet();}}
-                return new DriveRestClient.Reply(200,memory.data.get(id),Collections.emptyMap());
+                return new LegacyDriveRestFixture.Reply(200,memory.data.get(id),Collections.emptyMap());
             },new Memory());
-            DrivePrimaryState.Storage storage=new DrivePrimaryState.Storage(){public Map<String,String> commits(){return memory.names;}public byte[] read(String id)throws Exception{return c.readRoot(id,DriveRestClient.MAX_JSON);}public void readCommits(Map<String,String> names,DrivePrimaryState.CommitVisitor visitor)throws Exception{c.readCommitFiles(names,visitor);}};
+            DrivePrimaryState.Storage storage=new DrivePrimaryState.Storage(){public Map<String,String> commits(){return memory.names;}public byte[] read(String id)throws Exception{return c.readRoot(id,LegacyDriveRestFixture.MAX_JSON);}public void readCommits(Map<String,String> names,DrivePrimaryState.CommitVisitor visitor)throws Exception{c.readCommitFiles(names,visitor);}};
             yes(DrivePrimaryState.recover(legacy,"pixel-test",storage).getInt("drive_parent_sequence")==3);yes(maximum.get()==3&&reads.get()==4&&active.get()==0);
             c.refresh();yes(DrivePrimaryState.recover(legacy,"pixel-test",storage).getInt("drive_parent_sequence")==3);yes(reads.get()==4);
             memory.data.get("qa_commit_chain_002")[0]^=1;for(int i=0;i<listing.length();i++)if(listing.getJSONObject(i).getString("id").equals("qa_commit_chain_002"))listing.getJSONObject(i).put("version","2");c.refresh();
@@ -197,7 +197,7 @@ public final class DriveThroughputTests {
         });
         check("fully drained HTTP streams permit keep-alive; bounded-read failure still disconnects",()->{
             AtomicBoolean disconnected=new AtomicBoolean(),streamClosed=new AtomicBoolean();
-            AtomicInteger opens=new AtomicInteger();DriveRestClient.HttpWire wire=new DriveRestClient.HttpWire(url->{opens.incrementAndGet();return new java.net.HttpURLConnection(url){
+            AtomicInteger opens=new AtomicInteger();LegacyDriveRestFixture.HttpWire wire=new LegacyDriveRestFixture.HttpWire(url->{opens.incrementAndGet();return new java.net.HttpURLConnection(url){
                     public void connect(){}public void disconnect(){disconnected.set(true);}public boolean usingProxy(){return false;}
                     public int getResponseCode(){return 200;}public Map<String,List<String>> getHeaderFields(){return Collections.emptyMap();}
                     public InputStream getInputStream(){return new ByteArrayInputStream(new byte[]{1,2,3}){public void close()throws IOException{streamClosed.set(true);super.close();}};}
@@ -205,7 +205,7 @@ public final class DriveThroughputTests {
             });
             yes(wire.send("GET","https://www.googleapis.com/drive/v3/files/qa_keepalive",Collections.emptyMap(),null,10).body.length==3);
             yes(streamClosed.get()&&!disconnected.get());streamClosed.set(false);
-            boolean rejected=false;try{wire.send("GET","https://www.googleapis.com/drive/v3/files/qa_keepalive",Collections.emptyMap(),null,1);}catch(DriveRestClient.Failure limited){rejected=limited.code.equals("PAYLOAD_LIMIT");}
+            boolean rejected=false;try{wire.send("GET","https://www.googleapis.com/drive/v3/files/qa_keepalive",Collections.emptyMap(),null,1);}catch(LegacyDriveRestFixture.Failure limited){rejected=limited.code.equals("PAYLOAD_LIMIT");}
             yes(rejected&&streamClosed.get()&&disconnected.get());
             boolean untrusted=false;try{wire.send("GET","https://qa.example.invalid/",Collections.emptyMap(),null,10);}catch(SecurityException expected){untrusted=true;}yes(untrusted&&opens.get()==2);
         });

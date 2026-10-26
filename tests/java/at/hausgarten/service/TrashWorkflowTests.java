@@ -61,14 +61,14 @@ public final class TrashWorkflowTests {
         JSONObject parallel=SyntheticBusinessData.object().put("configured",true).put("drive_sync_failed",true).put("last_error_code","LEGACY_SOURCE_CHANGED").put("user_action_required",true);yes(SyncPolicy.describe(parallel,SyntheticBusinessData.object(),false,0).getString("next_action").equals("compare_versions"));
         // Direct Drive cleanup uses the observed version; permission/CAS failures retain bytes.
         for(int mode=0;mode<4;mode++){
-            final int scenario=mode;final int[] deletes={0};final boolean[] exists={true};byte[] data="synthetic media".getBytes(java.nio.charset.StandardCharsets.UTF_8);String sha=DriveRestClient.sha256(data);
-            DriveRestClient.Wire wire=(method,url,headers,body,max)->{
+            final int scenario=mode;final int[] deletes={0};final boolean[] exists={true};byte[] data="synthetic media".getBytes(java.nio.charset.StandardCharsets.UTF_8);String sha=LegacyDriveRestFixture.sha256(data);
+            LegacyDriveRestFixture.Wire wire=(method,url,headers,body,max)->{
                 if(url.contains("files?q="))return DriveTransportTests.reply(200,SyntheticBusinessData.object().put("files",exists[0]?new JSONArray().put(SyntheticBusinessData.object().put("id","qa_synthetic_file").put("name",sha+".jpg").put("version","1")):new JSONArray()).toString());
-                if(method.equals("GET"))return new DriveRestClient.Reply(200,data,scenario==1?Collections.emptyMap():Collections.singletonMap("ETag","synthetic-v1"));
+                if(method.equals("GET"))return new LegacyDriveRestFixture.Reply(200,data,scenario==1?Collections.emptyMap():Collections.singletonMap("ETag","synthetic-v1"));
                 if(method.equals("DELETE")){yes(headers.get("If-Match").equals("synthetic-v1"));deletes[0]++;if(scenario==2)return DriveTransportTests.reply(412,"");if(scenario==3)return DriveTransportTests.reply(403,"");exists[0]=false;return DriveTransportTests.reply(204,"");}
                 throw new AssertionError("Unexpected synthetic request");
             };
-            DriveRestClient client=new DriveRestClient("synthetic_folder",()->"synthetic-token",wire,new DriveTransportTests.Memory());
+            LegacyDriveRestFixture client=new LegacyDriveRestFixture("synthetic_folder",()->"synthetic-token",wire,new DriveTransportTests.Memory());
             if(mode==0){client.deleteVerified("synthetic_folder",sha+".jpg",sha);yes(!exists[0]);client.deleteVerified("synthetic_folder",sha+".jpg",sha);yes(deletes[0]==1);}else{no(()->client.deleteVerified("synthetic_folder",sha+".jpg",sha));yes(exists[0]);yes(deletes[0]==(mode==1?0:1));}
         }
         System.out.println("PASS "+count+" trash, relationship, purge, replay, stale-form and shared-media checks (synthetic JVM)");

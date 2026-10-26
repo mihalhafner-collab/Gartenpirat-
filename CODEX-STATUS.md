@@ -3,6 +3,60 @@
 Stand: 26. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Drive-Verbindungen aus dem Build entfernen – Quellcodeauftrag 26.10.2026
+
+Ausdrückliche Fortsetzung: ausschließlich geprüfter Quellcode, leerer Bootstrap
+und isolierte synthetische Tests; keine produktiven MCP-/Drive-Datenabrufe.
+Die vorangegangene Sperre für produktive Migration/Rechnungsfreigabe bleibt bestehen.
+Beide aktuellen Steuerungsseiten erneut vollständig gelesen (Regeln Sequenz3,
+Arbeitsübersicht Sequenz20). GitHub-main278edc9 und Arbeitsbranchb7c74af abgeglichen.
+Eine saubere verknüpfte Arbeitskopie desselben Repositorys enthält ausschließlich
+versionierte Dateien; Source-Privacy PASS2338/0Seed und Workspace-Privacy PASS2341.
+Die ungeklärten Dateien des bisherigen Workspace wurden nicht übernommen/verändert.
+
+### Analyse und minimaler Änderungsplan vor Implementierung
+
+Endzustand dieses engeren Auftrags: Im operativen APK existiert kein ausführbarer
+Drive-Geschäftstransport, kein alter Provider-/Nummern-/Medienadapter, kein
+Drive-Syncjob und kein UI-/MCP-/Tunnel-/Neustartauslöser dafür. Drive-Netzwerkzugriff
+bleibt ausschließlich im vorhandenen verschlüsselten Vollbackup-Upload und dessen
+bewusster Kontozustimmung/Ordnerprüfung. Lokales Journal, historische Belege,
+IDs, Löschschutz, Entwurfzustände und Rechnungsautorität bleiben unangetastet.
+
+| Datei / Funktion | Ursache → Änderung; Risiko / Abhängigkeit | Test / Read-back / Recovery |
+| --- | --- | --- |
+| DriveSyncCoordinator.run(...Files...) und verschachtelte Providerports; DriveDirectFiles, DriveNumbering, DriveMediaBatch | **GEFÄHRLICHER RÜCKWEG**: interner injizierbarer Einstieg umgeht den finalen false-Transportvertrag. Geschäftsengine/Adapter aus main entfernen; historische synthetische Engine in androidTest erhalten. Risiko: Verlust alter Testabdeckung, deshalb getrennte Testfixture und Kompilierung prüfen. | Alte synthetische Regressionen gegen ausschließlich testseitige Engine; produktive Retirement-/APK-Ausschlussprüfung. Kein Daten-Recovery erforderlich; Rollback nur Quellcommit, keine Installation. |
+| DriveRestClient; DriveAccount | **OBSOLET**: allgemeine Business-Datei-/CAS-/Upload-/Kontofabrik noch enthalten. Auf vorhandene Backup-HTTP-/Hash-/Ordnerprüfung und Backup-Tokenpfad reduzieren. Gemeinsame HTTP-Werttypen für Kalender/Wetter erhalten; diese sind keine Drive-Verbindung. | Bestehende Backup-/Kalender-/Wettertests, erlaubte Produktionsaufrufer und DEX prüfen. Backup-Resume-/Hashvertrag unverändert. |
+| DriveSyncJob; AndroidManifest; MainActivity; PixelTunnelService; PixelOwnerAccess | **OBSOLET**: tote Scheduler-/Polling-/Picker-/Legacyzweige enthalten Reaktivierungswege. Entfernen; stabile alte Job-IDs ausschließlich abbrechen, ohne Konten/Queue anzufassen. Alte Activity höchstens als reiner Vollbackup-Redirect. | Start/Netzwechsel/Retry/Callback-Verträge und Manifest prüfen; kein neuer Legacyjob oder Drive-Geschäftsaufrufer. Backupjob und Planung bleiben getrennt. |
+| PhotoThumbnailProvider; PixelLocalStore.media; LocalOwnerRepository; MainActivity Dokumentfreigabe | **OBSOLET**: automatische Original-/Thumbnail-Nachladung. Nur vorhandene lokale Originale verwenden und fehlende Originale ausdrücklich abweisen. | Synthetische Fehl-/Hash-/Löschtests; kein Netzwerk bei fehlendem Original. Keine Dateien/Daten automatisch löschen oder nachladen. |
+| LegacyConflictBackup; LocalOwnerRepository.restoreBackup; PixelMcpOwnerTools Beschreibung | **GEFÄHRLICHER RÜCKWEG**: alte Remote-Sicherung und Add-missing-Teilrestore hängen am alten Autoritätsmodus. Remote-Erstellung aus Produktion entfernen, lokale historische Verifikation erhalten; Teilrestore vor jeglichem Datenzugriff abweisen und auf geprüften Vollrestore verweisen. | Ablehnung in LEGACY_DRIVE/RESTORE_REVIEW/LOCAL_ACTIVE; keine Änderung des Bestands. Vorhandener bewusster verschlüsselter Vollrestore bleibt erhalten. |
+| BackgroundWorkDispatch; UI-Inventar; Buildversion | **AKTIV**: Dispatch enthält noch Legacy-Abzweig. Nur bestehenden Backupdispatch verwenden; alle geänderten UI-Pfade konkret nachprüfen, danach Fingerprints fortschreiben. Neuer Kandidat106 statt unveränderlichem105. | JVM-/Browser-/MCP-/Python-/Android-Compile und Privacy; exakten Quellcommit sichern. Keine produktive Abnahme oder Installation daraus ableiten. |
+
+Gegenpfade des Plans: explizites request_sync, direkter interner Syncaufruf,
+persistierte Jobs, Lifecycle-/Netz-/Tunnelpolling, alte Ordnercallbackantwort,
+Original-/Vorschaunachladung, Remote-Legacysicherung, alter Teilrestore,
+Invoice-CAS-/Publisheradapter und Backupfehlerrückfall. Keiner dieser Pfade darf
+auf die historische Testengine verweisen. Historische Pure-Java-Projektion und
+Geräte-/Rechnungsschutz sind keine Netzwerkverbindung und bleiben erhalten.
+Dies ersetzt weder die noch offene produktive Datenklärung noch den gesamten
+ursprünglichen Transition-Abschluss.
+
+Implementierungscheckpoint: alte Geschäftsengine, Provider-/REST-Businessadapter,
+Nummern-/Medienübertragung und Remote-Legacysicherung liegen nur noch in den
+bestehenden androidTest-Quellen; ihre Standard-Netz-/Kontozugriffe sind zusätzlich
+hart gesperrt. Im produktiven Code bleiben reine Retirementantworten und die
+Abmeldung der alten Job-IDs. Main-/Tunnel-Auslöser, Ordnerpicker, Originalfallbacks
+und Teilrestore entfernt; Backupdispatch besitzt keinen Legacyzweig mehr.
+Backupclient-/Token-Konstruktion ist auf LocalBackupCoordinator/FullBackupActivity
+begrenzt. Kein Autoritätsflag, Journal oder Schema migriert. Kandidat1.55.1/106.
+
+Neu ausgeführt: sieben Buildgrenzen-Regressionsprüfungen PASS; produktive Java-
+und Instrumentation-Kompilierung PASS; Source-Privacy PASS2344/0operativeSeedzeilen,
+Workspace-Privacy PASS3464 einschließlich ignorierter/unversionierter Dateien.
+Erster Kompilierungsanlauf benötigte korrekten Cloud-JDK-/Proxy-/CA-Pfad; danach
+bestand die echte Gradle-Kompilierung. Vollständige Host-/Browser-/APK-/native
+Gegenprüfung noch laufend; kein fertiger Release und keine Geräteabnahme.
+
 ## Transition-Abschlussprüfung 26.10.2026 – ABBRUCH IN PHASE A
 
 **Nicht abgeschlossen. Keine Implementierung oder produktive Umstellung.**

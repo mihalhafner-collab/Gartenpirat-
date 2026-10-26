@@ -55,7 +55,7 @@ def emulator_lock(serial, folder=None):
 def successful_output(output, mode):
     if re.search(r'\bFAIL(?:ED)?\b|INSTRUMENTATION_FAILED|Process crashed|acceptance failures=[1-9]', output):
         return False
-    if mode in ('acceptance','estimates','provider','mcp_workflows','revier_core','revier_ui','revier_authority','revier_finance','revier_recovery'):
+    if mode in ('acceptance','estimates','provider','mcp_workflows','revier_core','revier_ui','revier_authority','revier_finance','revier_recovery','drive_backup_only'):
         return bool(re.search(r'RESULT [0-9]+ Android SQLite/MCP tests passed; acceptance failures=0;', output))
     if mode in ('plants','plants_ui'):
         count=4 if mode=='plants' else 2
@@ -83,7 +83,7 @@ def main():
     parser.add_argument('--adb', default=str(Path(os.environ.get('ANDROID_HOME', '')) / 'platform-tools/adb'))
     parser.add_argument('--apk', type=Path)
     parser.add_argument('--instrumentation-apk', type=Path)
-    parser.add_argument('--mode', choices=['acceptance', 'fresh', 'prepare', 'verify', 'ui', 'estimates', 'provider', 'mcp_workflows', 'fresh_isolated', 'accessibility', 'plants', 'plants_ui', 'revier_core', 'revier_ui','revier_authority','revier_finance','revier_recovery','process_recovery'], default='acceptance')
+    parser.add_argument('--mode', choices=['acceptance', 'fresh', 'prepare', 'verify', 'ui', 'estimates', 'provider', 'mcp_workflows', 'fresh_isolated', 'accessibility', 'plants', 'plants_ui', 'revier_core', 'revier_ui','revier_authority','revier_finance','revier_recovery','drive_backup_only','process_recovery'], default='acceptance')
     parser.add_argument('--timeout-seconds', type=int, choices=(900, 1800, 3600), help='Bounded host budget for one accumulated instrumentation suite; native per-case guards are unchanged.')
     args = parser.parse_args()
     with emulator_lock(args.serial):

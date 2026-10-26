@@ -17,7 +17,7 @@ final class DriveNumbering {
         Instant.parse(s.getString("invoice_numbering_checked_at"));
         return new JSONObject().put("authority","pixel_drive").put("device",s.getString("invoice_numbering_device_id")).put("format",format).put("prefix",prefix).put("baseline",last).put("checked_at",s.getString("invoice_numbering_checked_at"));
     }
-    static JSONObject reserve(DriveRestClient client,JSONObject snapshot,JSONObject action)throws Exception {
+    static JSONObject reserve(LegacyDriveRestFixture client,JSONObject snapshot,JSONObject action)throws Exception {
         JSONObject config=config(snapshot);client.verifyConditionalWrites();String scope=PixelMcpWriteTools.hash(config),name="HausGarten-Nummernkreis-"+scope+".json";
         JSONObject file=client.unique(client.folder,name);
         if(file==null) {
@@ -27,7 +27,7 @@ final class DriveNumbering {
             file=client.put(client.folder,name,"application/json",PixelMcpWriteTools.canonical(initial).getBytes(StandardCharsets.UTF_8));
             client.refresh();JSONObject unique=client.unique(client.folder,name);if(unique==null||!file.getString("id").equals(unique.getString("id")))throw new PixelMcpWriteTools.Rejected("NUMBERING_REVIEW_REQUIRED","Nummernkreis ist nicht eindeutig; keine Nummer vergeben.");
         }
-        DriveRestClient.Reply read=client.readConditional(file.getString("id"));JSONObject current=read.json();
+        LegacyDriveRestFixture.Reply read=client.readConditional(file.getString("id"));JSONObject current=read.json();
         if(!"hausgarten.numbering.v1".equals(current.optString("format"))||!scope.equals(PixelMcpWriteTools.hash(current.getJSONObject("config"))))throw new IllegalArgumentException("Nummernhoheit wurde verändert; keine Nummer vergeben.");
         JSONObject reservations=current.getJSONObject("reservations");Set<String> allocated=new HashSet<>();int ceiling=current.getInt("last_number");
         for(Iterator<String> keys=reservations.keys();keys.hasNext();){JSONObject r=reservations.getJSONObject(keys.next());if(!r.optString("action_sha256").matches("[0-9a-f]{64}")||!scope.equals(r.optString("authority"))||r.getInt("counter")>ceiling||r.getInt("counter")<=config.getInt("baseline")||!allocated.add(r.getString("invoice_number")))throw new PixelMcpWriteTools.Rejected("NUMBERING_REVIEW_REQUIRED","Nummernreservierungen widersprechen sich; keine Nummer vergeben.");}

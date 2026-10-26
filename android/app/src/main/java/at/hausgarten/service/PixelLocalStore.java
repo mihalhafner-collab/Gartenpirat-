@@ -572,7 +572,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     }
     String loadPhotoData(String photoId)throws Exception{
         JSONObject metadata=photoAttachment(photoId);if(metadata==null)throw new IllegalArgumentException("Für dieses Foto ist noch kein dauerhaftes Original hinterlegt.");
-        try{return photoAttachments.dataUri(metadata);}catch(Exception missing){if(LocalAuthorityGuard.local(context))throw new IOException("LOCAL_ORIGINAL_MISSING");if(!DriveSyncCoordinator.fetchPhoto(context,metadata,photoAttachments))throw missing;return photoAttachments.dataUri(metadata);}
+        try{return photoAttachments.dataUri(metadata);}catch(Exception missing){throw new IOException("LOCAL_ORIGINAL_MISSING",missing);}
     }
     private void prepareManualChange(String kind,JSONObject payload,JSONObject previous)throws Exception{
         ManualChangeRules.prepare(kind,payload,previous,isoNow());
