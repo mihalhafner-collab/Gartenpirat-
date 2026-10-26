@@ -239,7 +239,7 @@
     {
       "version": "1.55.0",
       "build": 105,
-      "status": "PRUEFKANDIDAT_AFFECTED_PASS_FULL_REGRESSION_RUNNING_PIXEL_NOT_INSTALLED",
+      "status": "SOFTWARE_FUNCTIONAL_CLOUD_PASS_PRODUCTIVE_NOT_APPROVED",
       "tag": "source/v1.55.0-build105",
       "git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
       "tree_sha": "8b738b7d88544244630f40bc440d72f313903669",
@@ -267,14 +267,58 @@
       "qa_source_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
       "qa_apk_sha256": "be770540ddcd898b28d54ad03dd7a91aca2398920131393ec930dfad93317204",
       "remote_readback": "PASS exact source branch and immutable peeled tag",
-      "drive_readback": "Source61 SHA256_BYTES and remote reconstructed ZIP/P0 PASS; APK3actualremote parts reconstructed SHA256/originalsignature/P0 PASS; separate raw APK COMPLETE_CONNECTOR_STREAM_SIZE_ONLY, rawremoteSHA notverified",
-      "native_cloud_acceptance": "Affected PASS: plants4/UI2, actual fonts1/1.5/2 and originalsessionunchanged, complete3offlineUIpilots5cases, finance9,authority9,fresh_isolated/UI, update104→105 and installedAPKbyte/signature/provenance. Full443/commonOS5pairs RUNNING, notinferredPASS",
+      "drive_readback": "Source61actualSHA256_BYTES,remote reconstructedZIP/P0 PASS;APK3actualremote parts exactSHA/originalsignature/P0 PASS;fresh8privatefiles=7actualSHAbyteproofs+1rawStreamSizeOnly;separate rawAPK remoteSHA NOT_VERIFIED",
+      "native_cloud_acceptance": "PASS443native0FAIL;5actualOSprocesspairs;5actualairplaneUIcases;allhost suites;plants/fonts/update/installedbytes/signature/provenance. RS14CloudsearchtargetFAIL; physical/productive NOT_EXECUTED",
       "pixel_installation": "NOT_EXECUTED; last observed1.54.9/98selfreport",
       "productive_migration": "NOT_EXECUTED",
       "productive_invoice_authority": "NOT_ACTIVATED",
       "release_approved": false,
       "candidate_download_published_at_utc": "2026-10-26T05:02:48.687197+00:00",
-      "documentation_provenance": "Current consolidated documentation evolves separately; immutable original APK/tag/source remain4087d8b. Final acceptance still pending."
+      "documentation_provenance": "Original App/runner/tag/source immutable4087d8b. Final software acceptance and subsequent documentation captured separately; no productive acceptance.",
+      "qa_evidence_zip": {
+        "format": "hausgarten.synthetic-qa-evidence-remote-proof.v1",
+        "status": "PASS",
+        "file_id": "18UW8FO-9mwkjY2YE2oZMsrkhrqk5H81z",
+        "name": "Haus-Garten-1.55.0-105-4087d8b-QA-Nachweise.zip",
+        "bytes": 77207,
+        "sha256": "b8211c27190d5ab11b6e76335a9e25bdb9d6fef01cd15e21f6d30a6352dbd1a4",
+        "verification": "SHA256_BYTES_FULL_REMOTE_ZIP_AND_ALL46MEMBERS",
+        "input_files": 45,
+        "total_members": 46,
+        "missing_names": [],
+        "privacy": {
+          "status": "PASS",
+          "sha256": "b8211c27190d5ab11b6e76335a9e25bdb9d6fef01cd15e21f6d30a6352dbd1a4",
+          "operational_seed_rows": 0
+        },
+        "raw_productive_mcp_responses_included": false,
+        "business_backups_included": false,
+        "source_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
+        "url": "https://drive.google.com/file/d/18UW8FO-9mwkjY2YE2oZMsrkhrqk5H81z/view?usp=drivesdk"
+      },
+      "documentation_export": {
+        "folder_id": "1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5",
+        "folder_url": "https://drive.google.com/drive/folders/1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5",
+        "source_commit": null,
+        "status": "AWAITING_EXACT_FINAL_MAIN_GO_NO_EXPORT_YET"
+      },
+      "performance": {
+        "source_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
+        "build": "1.55.0/105",
+        "environment": "actual isolated Cloud software emulator API30 x86_64 without KVM;no physical Pixel claim",
+        "search_customers": 300,
+        "search_properties": 450,
+        "search_warmups": 3,
+        "search_samples": 25,
+        "search_p95_ms": 772.582006,
+        "search_target_ms": 300,
+        "search_target_met": false,
+        "tour_stops": 20,
+        "tour_ms": 376.463853,
+        "tour_target_ms": 1000,
+        "tour_target_met": true,
+        "physical_pixel": "NOT_MEASURED"
+      }
     }
   ]
 }

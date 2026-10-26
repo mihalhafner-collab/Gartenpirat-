@@ -36,7 +36,8 @@
     "source98": "1iOo71s1cmHcVFtBfa3rVOc2bAf-68zbW",
     "development98": "1sNafTvi2E2RtlfGpSiR_O3yo5D_IlN4u",
     "candidate105": "1WfoTQQuOafgq_el0-EaY3Lz-GULaq2g3",
-    "source105": "15nuOA815cOg54nhlCZq9U3ROCQiy7lea"
+    "source105": "15nuOA815cOg54nhlCZq9U3ROCQiy7lea",
+    "documentation105": "1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5"
   },
   "runtime_folder_ids": [
     "1qR33tKpsKa-VxLeuTbXibjgYGjpyE8__",
@@ -137,7 +138,8 @@
     "1cn1V5qFQRMG6yyICIfmstrB3wX4ZkcWd",
     "1ky3lcSzFw5_Q5OtA72Y-V-pgPnXKjcqu",
     "11_Cf2ucL_nJoMquXXarVjS6DsxWzUo2P",
-    "1D0OnN_4CcwAnA2rLoBU1JDjma1nSCr06"
+    "1D0OnN_4CcwAnA2rLoBU1JDjma1nSCr06",
+    "18UW8FO-9mwkjY2YE2oZMsrkhrqk5H81z"
   ],
   "retention_days": {
     "apk_retired": 0,
@@ -174,5 +176,5 @@
     "weekly": "6ad8f37b548c8191b18d43b443aae6d3",
     "monthly": "6ad8f37da1d88191b7aa7fbf09473760"
   },
-  "keep_builds_evidence": "All prior protections retained; original105 affected-tested candidate and full source protected. Full regression running; Pixel lastobserved98 remainsprotected; no retirement/deletion/protectionremoval authorized or performed."
+  "keep_builds_evidence": "All prior protections retained; immutable original105APK/source and synthetic finalQA evidence protected. Common functional Cloud acceptance complete, RS14CloudsearchtargetFAIL and physical/productive open; installed98 remainsprotected. No cleanup/deletion/protectionremoval performed."
 }

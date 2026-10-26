@@ -1,12 +1,12 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-26T05:13:12.901112+00:00",
+  "updated_at_utc": "2026-10-26T06:48:52.921908+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
     "version_name": "1.55.0",
     "version_code": 105,
-    "status": "PRUEFKANDIDAT_AFFECTED_PASS_FULL_REGRESSION_RUNNING_PIXEL_NOT_INSTALLED",
+    "status": "SOFTWARE_FUNCTIONAL_CLOUD_PASS_PRODUCTIVE_NOT_APPROVED",
     "base_git_sha": "419d0b4bfcbb7108d00296619831a04ddc3273b0",
     "last_original_app_source_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
     "main_at_start": "e499e745832449ce0202d04d9903495248e8b034",
@@ -35,8 +35,8 @@
       "native_browser_draft_ack_cas_tombstone_context_epoch_full_backup_integration",
       "final_storage_contract3_backup_only_public_runtime_no_business_drive_network"
     ],
-    "full_revier_acceptance": "105 affected/nativeUI/offline/hostPASS; full common native regression RUNNING; physical and productive acceptance NOT_EXECUTED",
-    "original_signed_update_candidate": "1.55.0/105 original abbb207e329284d96e7c943eb0fa504a82cce8322181cf82f17cf5843a698bb9 provided as affected-tested PRUEFKANDIDAT; not productive release",
+    "full_revier_acceptance": "105 common functional Cloud PASS443/0FAIL,5actualOSpairs,5airplaneUIcases,allhost suites;RS14search performance target FAIL Cloud;physical/productive acceptance NOT_EXECUTED",
+    "original_signed_update_candidate": "1.55.0/105 original abbb207e329284d96e7c943eb0fa504a82cce8322181cf82f17cf5843a698bb9 provided; fully functional Cloud tested, no productive release approval",
     "productive_migration": "NOT EXECUTED",
     "installation": "NOT EXECUTED",
     "internal_signed_build": {
@@ -47,8 +47,8 @@
       "apk_sha256": "abbb207e329284d96e7c943eb0fa504a82cce8322181cf82f17cf5843a698bb9",
       "qa_apk_sha256": "be770540ddcd898b28d54ad03dd7a91aca2398920131393ec930dfad93317204",
       "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-      "native_common_status": "RUNNING",
-      "native_pass_count_at_snapshot": 126,
+      "native_common_status": "PASS443FAIL0",
+      "native_pass_count_at_snapshot": 443,
       "native_fail_count_at_snapshot": 0,
       "release_tag": "source/v1.55.0-build105",
       "released": false,
@@ -66,20 +66,14 @@
     },
     "backup_target_contract": "All business functions and authoritative data exclusively Pixel/App; Drive exclusively encrypted full backup; final storage contract3 retires public legacy business network writers in every authority mode without clearing old data/accounts/queues.",
     "latest_host_checks": {
-      "scope": "frozen104 source;artifact-specificPython privacy used signed103 and will be renewed on104",
       "jvm_suites_pass": 78,
-      "browser_suites_pass": 56,
+      "browser_suites_pass": 65,
       "python_pass": 430,
       "python_skip": 0,
-      "excluded_legacy_qa_key_generation": 37,
+      "excluded_legacy_key_generation_tests": 37,
       "mcp_stdio_pass": 55,
       "p1_contract_sha256": "fd7784c84086ce158f7a19754c62c46f3d06a2d5f91c2a9c6d561d8233ef68f0",
-      "source_workspace_privacy": "PASS source2338/workspace6107;0operational seed rows",
-      "native102": "436PASS7FAIL;NOT ACCEPTED",
-      "production_java_compile": 204,
-      "native_test_java_compile": 32,
-      "native103": "441PASS2FAIL;NOT ACCEPTED",
-      "native104": "NOT RUN"
+      "scope": "immutable App105 and runner4087d8b;Python includes actual original105APK/P0"
     },
     "native_font_probe": {
       "source": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
@@ -124,7 +118,7 @@
     "development_tools": 166,
     "development_semantic_ui_actions": 209,
     "latest_implementation_base_git_sha": "07b8fa1309c715d46c17ce8c1f5c1414f60ca7c1",
-    "current_implementation_original_signed": false,
+    "current_implementation_original_signed": true,
     "latest_implementation_checkpoint_git_sha": "8edb505b4c7ff5bcdd125c9466709f16acf221e4",
     "pause": {
       "requested": "Stoppe die Erstellung speichere für späteren start alle notwendigen aktionen",
@@ -155,40 +149,25 @@
         "files": 2335,
         "operational_seed_rows": 0
       },
-      "resumed_by": "explicit correction request after cb967fe"
+      "resumed_by": "explicit correction request after cb967fe",
+      "historical_scope": "SUPERSEDED_BY_FINAL105_FUNCTIONAL_EVIDENCE; retained dated history, not current pending work"
     },
     "native_measurements": {
-      "source_git_sha": "a1dd56a2783c6a5c7718a4e04d77235b6657b47f",
-      "environment": "API30x86_64CloudEmulatorWithoutKVM;noPixelClaim",
+      "source_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
+      "build": "1.55.0/105",
+      "environment": "actual isolated Cloud software emulator API30 x86_64 without KVM;no physical Pixel claim",
       "search_customers": 300,
       "search_properties": 450,
       "search_warmups": 3,
       "search_samples": 25,
-      "search_p95_ms": 1364.641122,
+      "search_p95_ms": 772.582006,
       "search_target_ms": 300,
       "search_target_met": false,
       "tour_stops": 20,
-      "tour_ms": 433.799235,
+      "tour_ms": 376.463853,
       "tour_target_ms": 1000,
       "tour_target_met": true,
-      "current_100_db6_source": "NOT MEASURED",
-      "latest_101_search": {
-        "source": "8edb505b4c7ff5bcdd125c9466709f16acf221e4",
-        "customers": 300,
-        "properties": 450,
-        "warmup": 3,
-        "samples": 25,
-        "p95_ms": 1258.99344,
-        "target_ms": 300,
-        "target_met": false,
-        "environment": "isolated Cloud emulator; no Pixel performance claim"
-      },
-      "latest_101_tour": {
-        "stops": 20,
-        "ms": 462.010222,
-        "target_ms": 1000,
-        "target_met": true
-      }
+      "physical_pixel": "NOT_MEASURED"
     },
     "history_privacy": {
       "scope": "read-only twelve known bootstrap/issuer objects;not a full forensic audit",
@@ -219,7 +198,8 @@
       "regular_gradle": "BLOCKED by active reviewed_sources inventory gate,not bypassed",
       "narrow_javac": "198production/32instrumentation PASS;compiler feedback only",
       "cloud_baseline_verify": "PASS after preserved AVD restart;no reinstall/clear",
-      "pixel_metadata": "READONLY1.54.9/98 DB4 MCP9/117;dbe9ed0b/fd0979de clean;online invoice remains"
+      "pixel_metadata": "READONLY1.54.9/98 DB4 MCP9/117;dbe9ed0b/fd0979de clean;online invoice remains",
+      "historical_scope": "SUPERSEDED_BY_FINAL105_FUNCTIONAL_EVIDENCE; retained dated history, not current pending work"
     },
     "paused_media_partial_checks": {
       "file_stream_checks": "22PASS48MiB64MiBheap before latest buffer changes",
@@ -229,28 +209,29 @@
       "contract_python": "8PASS;70 signatures exact inventory only",
       "latest_media_overall": "UNTESTED_WIP;missing APIs may break whole compile",
       "full_original_candidate": "NOT BUILT",
-      "physical_pixel_actions": "NONE"
+      "physical_pixel_actions": "NONE",
+      "historical_scope": "SUPERSEDED_BY_FINAL105_FUNCTIONAL_EVIDENCE; retained dated history, not current pending work"
     },
     "correction_base_git_sha": "cb967fe8218d4fb38cfe99bbb4efb6569b80341c",
     "correction_acceptance": {
-      "K01": "OPEN",
-      "K02": "OPEN",
-      "K03": "OPEN",
-      "K04": "OPEN",
-      "K05": "OPEN",
-      "K06": "OPEN",
-      "K07": "OPEN",
-      "K08": "OPEN",
-      "K09": "OPEN",
-      "K10": "OPEN",
-      "K11": "OPEN",
-      "K12": "OPEN",
-      "K13": "OPEN",
-      "K14": "OPEN",
-      "K15": "OPEN",
-      "K16": "OPEN"
+      "K01": "PASS",
+      "K02": "PASS",
+      "K03": "PASS",
+      "K04": "PASS",
+      "K05": "PASS",
+      "K06": "PASS",
+      "K07": "PASS",
+      "K08": "PASS",
+      "K09": "PASS",
+      "K10": "PASS",
+      "K11": "PASS",
+      "K12": "PASS",
+      "K13": "PASS",
+      "K14": "PASS",
+      "K15": "PASS",
+      "K16": "PASS"
     },
-    "correction_checkpoint": "Last verified remote07b8fa1309c715d46c17ce8c1f5c1414f60ca7c1;subsequent100/DB6 native draft integration dirty/not fully tested/not signed",
+    "correction_checkpoint": "Current functional App/runner source4087d8b; original105APK; historical paused checkpoints below superseded, preserved as dated evidence",
     "correction_host_contracts": {
       "git_sha": "07b8fa1309c715d46c17ce8c1f5c1414f60ca7c1",
       "tools": 166,
@@ -264,7 +245,8 @@
       "additional_browser_suites_pass": 9,
       "native_fault_probes": "423PASS1FAIL;no final acceptance",
       "signed_candidate": "INTERNAL07b8fa1_99_DB5_NOT_ACCEPTED",
-      "current_100_db6_source": "IN_PROGRESS;common contract/native acceptance pending"
+      "current_100_db6_source": "IN_PROGRESS;common contract/native acceptance pending",
+      "historical_scope": "SUPERSEDED_BY_FINAL105_FUNCTIONAL_EVIDENCE; retained dated history, not current pending work"
     },
     "correction_internal_build": {
       "git_sha": "67c11ade40a4eb79bef1f1e85380ed029ec6021e",
@@ -274,7 +256,8 @@
       "accepted": false,
       "cloud_update_verify": "PASS",
       "native_media_restore_25_over40MiB": "PASS",
-      "physical_pixel": "NOT_TESTED"
+      "physical_pixel": "NOT_TESTED",
+      "historical_scope": "SUPERSEDED_BY_FINAL105_FUNCTIONAL_EVIDENCE; retained dated history, not current pending work"
     },
     "correction_current_checkpoint": {
       "last_verified_remote_git_sha": "8e77d840523e22b6d010da78aef29b7492c7645a",
@@ -398,9 +381,10 @@
         "source_git_sha": "162750085f4994bbae05afc4c22fc6f9937252e7",
         "target": "1.55.0 RevierSolo;DrivebackupOnly",
         "productive_actions": "NOT_AUTHORIZED_INSTALL_OR_MIGRATION"
-      }
+      },
+      "historical_scope": "SUPERSEDED_BY_FINAL105_FUNCTIONAL_EVIDENCE; retained dated history, not current pending work"
     },
-    "current_evidence_scope": "App/runner105 immutable4087d8b, all current host and affected native checks PASS; full regression running; historical104/103 remain separate",
+    "current_evidence_scope": "App/runner105 immutable4087d8b all current common functional host/native/OS/offline checks completed; Cloud search target failure and physical/productive boundaries explicit",
     "primary_source_review_20261025": {
       "access": "Public Webconnector content read; direct Cloud HTTP CONNECT403;no HTTP200 claim",
       "austrian_invoice_fields": "USP/BMF reviewed;actual tax profile not changed or certified",
@@ -629,7 +613,8 @@
       "full_browser_runner_existing_suites": 65,
       "native_status": "NOT_EXECUTED",
       "productive_installation": "NOT_EXECUTED",
-      "productive_migration": "NOT_EXECUTED"
+      "productive_migration": "NOT_EXECUTED",
+      "historical_scope": "SUPERSEDED_BY_FINAL105_FUNCTIONAL_EVIDENCE; retained dated history, not current pending work"
     },
     "historical_internal_signed_build99": {
       "app_source_git_sha": "07b8fa1309c715d46c17ce8c1f5c1414f60ca7c1",
@@ -650,34 +635,87 @@
       "covers_current_100_db6_worktree": false
     },
     "final_105_candidate": {
-      "source_archive": "https://drive.google.com/drive/folders/15nuOA815cOg54nhlCZq9U3ROCQiy7lea",
-      "apk_download": "https://drive.google.com/file/d/1-og34FtoQUX4lqZ-qMWvGew8YevuB4Eo/view?usp=drivesdk",
-      "source_tag": "source/v1.55.0-build105",
-      "source_preserved": "PASS",
-      "source_zip_sha256": "4a47818b2293b9226c6aba07d81ec0a56700a676c869bd25c077ab611eda103e",
-      "host": {
-        "source": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
-        "source_fingerprint": "06f99ce068bfcb4e36640df70290b7edddcc8532fa27119ce2332b352a835469",
-        "result": "PASS_HOST_ONLY",
-        "jvm_suites": 78,
-        "browser_suites": 65,
-        "python_executions": 430,
-        "python_skips": 0,
-        "explicit_legacy_key_generation_exclusions": 37,
-        "mcp_stdio_cases": 55,
-        "actual_apk_privacy": {
+      "app_source_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
+      "runner_source_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
+      "version": "1.55.0/105",
+      "result": "SOFTWARE_FUNCTIONAL_CLOUD_PASS_PRODUCTIVE_NOT_APPROVED",
+      "native_common_pass": 443,
+      "native_common_fail": 0,
+      "actual_os_process_pairs": 5,
+      "actual_airplane_ui_cases": 5,
+      "jvm_suites_pass": 78,
+      "browser_suites_pass": 65,
+      "python_pass": 430,
+      "python_skip": 0,
+      "excluded_legacy_key_generation_tests": 37,
+      "mcp_stdio_pass": 55,
+      "p1_contract_sha256": "fd7784c84086ce158f7a19754c62c46f3d06a2d5f91c2a9c6d561d8233ef68f0",
+      "qa_evidence_zip": {
+        "format": "hausgarten.synthetic-qa-evidence-remote-proof.v1",
+        "status": "PASS",
+        "file_id": "18UW8FO-9mwkjY2YE2oZMsrkhrqk5H81z",
+        "name": "Haus-Garten-1.55.0-105-4087d8b-QA-Nachweise.zip",
+        "bytes": 77207,
+        "sha256": "b8211c27190d5ab11b6e76335a9e25bdb9d6fef01cd15e21f6d30a6352dbd1a4",
+        "verification": "SHA256_BYTES_FULL_REMOTE_ZIP_AND_ALL46MEMBERS",
+        "input_files": 45,
+        "total_members": 46,
+        "missing_names": [],
+        "privacy": {
           "status": "PASS",
-          "sha256": "abbb207e329284d96e7c943eb0fa504a82cce8322181cf82f17cf5843a698bb9",
+          "sha256": "b8211c27190d5ab11b6e76335a9e25bdb9d6fef01cd15e21f6d30a6352dbd1a4",
           "operational_seed_rows": 0
         },
-        "p1": "fd7784c84086ce158f7a19754c62c46f3d06a2d5f91c2a9c6d561d8233ef68f0",
-        "app_apk_sha256": "abbb207e329284d96e7c943eb0fa504a82cce8322181cf82f17cf5843a698bb9"
+        "raw_productive_mcp_responses_included": false,
+        "business_backups_included": false,
+        "source_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
+        "url": "https://drive.google.com/file/d/18UW8FO-9mwkjY2YE2oZMsrkhrqk5H81z/view?usp=drivesdk"
       },
-      "affected_native": "PASS",
-      "full_native": "RUNNING",
+      "acceptance_cases": {
+        "K01": "PASS",
+        "K02": "PASS",
+        "K03": "PASS",
+        "K04": "PASS",
+        "K05": "PASS",
+        "K06": "PASS",
+        "K07": "PASS",
+        "K08": "PASS",
+        "K09": "PASS",
+        "K10": "PASS",
+        "K11": "PASS",
+        "K12": "PASS",
+        "K13": "PASS",
+        "K14": "PASS",
+        "K15": "PASS",
+        "K16": "PASS",
+        "RS-01": "PASS",
+        "RS-02": "PASS",
+        "RS-03": "PASS",
+        "RS-04": "PASS",
+        "RS-05": "PASS",
+        "RS-06": "PASS",
+        "RS-07": "PASS",
+        "RS-08": "PASS",
+        "RS-09": "PASS",
+        "RS-10": "PASS",
+        "RS-11": "PASS",
+        "RS-12": "PASS",
+        "RS-13": "PASS",
+        "RS-14": "FAIL",
+        "RS-15": "PASS",
+        "RS-16": "PASS"
+      },
+      "physical_pixel": "NOT_EXECUTED",
       "productive_installation": "NOT_EXECUTED",
       "productive_migration": "NOT_EXECUTED",
-      "preupdate98_full_external_backup": "OPEN"
+      "productive_invoice_authority": "NOT_ACTIVATED",
+      "original_source_indexes": "Immutable original source capture recorded acceptance OPEN; later final software evidence separate, no overwrite",
+      "documentation_export": {
+        "folder_id": "1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5",
+        "folder_url": "https://drive.google.com/drive/folders/1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5",
+        "source_commit": null,
+        "status": "AWAITING_EXACT_FINAL_MAIN_GO_NO_EXPORT_YET"
+      }
     },
     "productive_backup_readonly_20261026": {
       "observed_at_utc": "2026-10-26T05:06:37.306205Z",
@@ -693,6 +731,132 @@
       "new_productive_backup_created": false,
       "business_data_changed": false,
       "preupdate_installation_gate": "OPEN_REQUIRES_COMPLETE_VERIFIED_BACKUP; new105backupdoesnotretroactivelyprove98preupdatebackup"
+    },
+    "native_measurements_before105": {
+      "source_git_sha": "a1dd56a2783c6a5c7718a4e04d77235b6657b47f",
+      "environment": "API30x86_64CloudEmulatorWithoutKVM;noPixelClaim",
+      "search_customers": 300,
+      "search_properties": 450,
+      "search_warmups": 3,
+      "search_samples": 25,
+      "search_p95_ms": 1364.641122,
+      "search_target_ms": 300,
+      "search_target_met": false,
+      "tour_stops": 20,
+      "tour_ms": 433.799235,
+      "tour_target_ms": 1000,
+      "tour_target_met": true,
+      "current_100_db6_source": "NOT MEASURED",
+      "latest_101_search": {
+        "source": "8edb505b4c7ff5bcdd125c9466709f16acf221e4",
+        "customers": 300,
+        "properties": 450,
+        "warmup": 3,
+        "samples": 25,
+        "p95_ms": 1258.99344,
+        "target_ms": 300,
+        "target_met": false,
+        "environment": "isolated Cloud emulator; no Pixel performance claim"
+      },
+      "latest_101_tour": {
+        "stops": 20,
+        "ms": 462.010222,
+        "target_ms": 1000,
+        "target_met": true
+      }
+    },
+    "final105_functional_evidence": {
+      "app_source_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
+      "runner_source_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
+      "version": "1.55.0/105",
+      "result": "SOFTWARE_FUNCTIONAL_CLOUD_PASS_PRODUCTIVE_NOT_APPROVED",
+      "native_common_pass": 443,
+      "native_common_fail": 0,
+      "actual_os_process_pairs": 5,
+      "actual_airplane_ui_cases": 5,
+      "jvm_suites_pass": 78,
+      "browser_suites_pass": 65,
+      "python_pass": 430,
+      "python_skip": 0,
+      "excluded_legacy_key_generation_tests": 37,
+      "mcp_stdio_pass": 55,
+      "p1_contract_sha256": "fd7784c84086ce158f7a19754c62c46f3d06a2d5f91c2a9c6d561d8233ef68f0",
+      "qa_evidence_zip": {
+        "format": "hausgarten.synthetic-qa-evidence-remote-proof.v1",
+        "status": "PASS",
+        "file_id": "18UW8FO-9mwkjY2YE2oZMsrkhrqk5H81z",
+        "name": "Haus-Garten-1.55.0-105-4087d8b-QA-Nachweise.zip",
+        "bytes": 77207,
+        "sha256": "b8211c27190d5ab11b6e76335a9e25bdb9d6fef01cd15e21f6d30a6352dbd1a4",
+        "verification": "SHA256_BYTES_FULL_REMOTE_ZIP_AND_ALL46MEMBERS",
+        "input_files": 45,
+        "total_members": 46,
+        "missing_names": [],
+        "privacy": {
+          "status": "PASS",
+          "sha256": "b8211c27190d5ab11b6e76335a9e25bdb9d6fef01cd15e21f6d30a6352dbd1a4",
+          "operational_seed_rows": 0
+        },
+        "raw_productive_mcp_responses_included": false,
+        "business_backups_included": false,
+        "source_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
+        "url": "https://drive.google.com/file/d/18UW8FO-9mwkjY2YE2oZMsrkhrqk5H81z/view?usp=drivesdk"
+      },
+      "acceptance_cases": {
+        "K01": "PASS",
+        "K02": "PASS",
+        "K03": "PASS",
+        "K04": "PASS",
+        "K05": "PASS",
+        "K06": "PASS",
+        "K07": "PASS",
+        "K08": "PASS",
+        "K09": "PASS",
+        "K10": "PASS",
+        "K11": "PASS",
+        "K12": "PASS",
+        "K13": "PASS",
+        "K14": "PASS",
+        "K15": "PASS",
+        "K16": "PASS",
+        "RS-01": "PASS",
+        "RS-02": "PASS",
+        "RS-03": "PASS",
+        "RS-04": "PASS",
+        "RS-05": "PASS",
+        "RS-06": "PASS",
+        "RS-07": "PASS",
+        "RS-08": "PASS",
+        "RS-09": "PASS",
+        "RS-10": "PASS",
+        "RS-11": "PASS",
+        "RS-12": "PASS",
+        "RS-13": "PASS",
+        "RS-14": "FAIL",
+        "RS-15": "PASS",
+        "RS-16": "PASS"
+      },
+      "physical_pixel": "NOT_EXECUTED",
+      "productive_installation": "NOT_EXECUTED",
+      "productive_migration": "NOT_EXECUTED",
+      "productive_invoice_authority": "NOT_ACTIVATED",
+      "original_source_indexes": "Immutable original source capture recorded acceptance OPEN; later final software evidence separate, no overwrite",
+      "documentation_export": {
+        "folder_id": "1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5",
+        "folder_url": "https://drive.google.com/drive/folders/1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5",
+        "source_commit": null,
+        "status": "AWAITING_EXACT_FINAL_MAIN_GO_NO_EXPORT_YET"
+      }
+    },
+    "productive_backup_followup_20261026": {
+      "user_authorized": true,
+      "accessible_record_checkpoint": "VERIFIED_ENCRYPTED_EXTERNAL_COPY;full remoteSHA,decrypt,22memberhashesPASS",
+      "recovery": "separateprivateProjectPageFiles;no keyinrepo/chat/source/adminarchives",
+      "scope": "Accessible effective business records ONLY;not fullDB/device restore;originalmedia collection ongoing",
+      "native_create_backup": "same originalrequest_id retainedprivately;timeouts,outcomeunconfirmed;no replacementID",
+      "complete_preupdate_device_backup": "NOT_PROVEN",
+      "installation_authorization": "NOT_GRANTED",
+      "business_record_changes": "NONE"
     }
   },
   "verified_release_source": {
@@ -719,12 +883,12 @@
   },
   "handoff": {
     "reported_workspace": "/workspace/Gartenpirat-",
-    "required_action": "Finish actual105 full common native443 suite and5OSprocesspairs, then final provenance/cases/docs/mainintegration. APK105 affected-tested candidate alreadyprovided; no actualPixelinstall/migration. Current rawdownload+source immutabletag inverified_candidate_source. Keep full98preupdatebackup/USB/Pixel/authority/legalchecks explicitlyopen."
+    "required_action": "Preserve completed105 functional evidence; finish independently authorized real business backup, final documentation/source/main integration. No automatic Pixelinstall/migration/authority. Full98device backup, physicalUSB/Pixel/legal boundaries explicit."
   },
   "verified_candidate_source": {
     "version": "1.55.0",
     "build": 105,
-    "status": "PRUEFKANDIDAT_AFFECTED_PASS_FULL_REGRESSION_RUNNING_PIXEL_NOT_INSTALLED",
+    "status": "SOFTWARE_FUNCTIONAL_CLOUD_PASS_PRODUCTIVE_NOT_APPROVED",
     "tag": "source/v1.55.0-build105",
     "git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
     "tree_sha": "8b738b7d88544244630f40bc440d72f313903669",
@@ -752,14 +916,58 @@
     "qa_source_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
     "qa_apk_sha256": "be770540ddcd898b28d54ad03dd7a91aca2398920131393ec930dfad93317204",
     "remote_readback": "PASS exact source branch and immutable peeled tag",
-    "drive_readback": "Source61 SHA256_BYTES and remote reconstructed ZIP/P0 PASS; APK3actualremote parts reconstructed SHA256/originalsignature/P0 PASS; separate raw APK COMPLETE_CONNECTOR_STREAM_SIZE_ONLY, rawremoteSHA notverified",
-    "native_cloud_acceptance": "Affected PASS: plants4/UI2, actual fonts1/1.5/2 and originalsessionunchanged, complete3offlineUIpilots5cases, finance9,authority9,fresh_isolated/UI, update104→105 and installedAPKbyte/signature/provenance. Full443/commonOS5pairs RUNNING, notinferredPASS",
+    "drive_readback": "Source61actualSHA256_BYTES,remote reconstructedZIP/P0 PASS;APK3actualremote parts exactSHA/originalsignature/P0 PASS;fresh8privatefiles=7actualSHAbyteproofs+1rawStreamSizeOnly;separate rawAPK remoteSHA NOT_VERIFIED",
+    "native_cloud_acceptance": "PASS443native0FAIL;5actualOSprocesspairs;5actualairplaneUIcases;allhost suites;plants/fonts/update/installedbytes/signature/provenance. RS14CloudsearchtargetFAIL; physical/productive NOT_EXECUTED",
     "pixel_installation": "NOT_EXECUTED; last observed1.54.9/98selfreport",
     "productive_migration": "NOT_EXECUTED",
     "productive_invoice_authority": "NOT_ACTIVATED",
     "release_approved": false,
     "candidate_download_published_at_utc": "2026-10-26T05:02:48.687197+00:00",
-    "documentation_provenance": "Current consolidated documentation evolves separately; immutable original APK/tag/source remain4087d8b. Final acceptance still pending."
+    "documentation_provenance": "Original App/runner/tag/source immutable4087d8b. Final software acceptance and subsequent documentation captured separately; no productive acceptance.",
+    "qa_evidence_zip": {
+      "format": "hausgarten.synthetic-qa-evidence-remote-proof.v1",
+      "status": "PASS",
+      "file_id": "18UW8FO-9mwkjY2YE2oZMsrkhrqk5H81z",
+      "name": "Haus-Garten-1.55.0-105-4087d8b-QA-Nachweise.zip",
+      "bytes": 77207,
+      "sha256": "b8211c27190d5ab11b6e76335a9e25bdb9d6fef01cd15e21f6d30a6352dbd1a4",
+      "verification": "SHA256_BYTES_FULL_REMOTE_ZIP_AND_ALL46MEMBERS",
+      "input_files": 45,
+      "total_members": 46,
+      "missing_names": [],
+      "privacy": {
+        "status": "PASS",
+        "sha256": "b8211c27190d5ab11b6e76335a9e25bdb9d6fef01cd15e21f6d30a6352dbd1a4",
+        "operational_seed_rows": 0
+      },
+      "raw_productive_mcp_responses_included": false,
+      "business_backups_included": false,
+      "source_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
+      "url": "https://drive.google.com/file/d/18UW8FO-9mwkjY2YE2oZMsrkhrqk5H81z/view?usp=drivesdk"
+    },
+    "documentation_export": {
+      "folder_id": "1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5",
+      "folder_url": "https://drive.google.com/drive/folders/1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5",
+      "source_commit": null,
+      "status": "AWAITING_EXACT_FINAL_MAIN_GO_NO_EXPORT_YET"
+    },
+    "performance": {
+      "source_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
+      "build": "1.55.0/105",
+      "environment": "actual isolated Cloud software emulator API30 x86_64 without KVM;no physical Pixel claim",
+      "search_customers": 300,
+      "search_properties": 450,
+      "search_warmups": 3,
+      "search_samples": 25,
+      "search_p95_ms": 772.582006,
+      "search_target_ms": 300,
+      "search_target_met": false,
+      "tour_stops": 20,
+      "tour_ms": 376.463853,
+      "tour_target_ms": 1000,
+      "tour_target_met": true,
+      "physical_pixel": "NOT_MEASURED"
+    }
   },
   "calendar_ui_task": {
     "status": "COMPLETED_SOURCE_ONLY; HOST_CHECKS_PASS_WITH_TARGETED_GALLERY_RECHECK; PIXEL_GOOGLE_NOT_EXECUTED",

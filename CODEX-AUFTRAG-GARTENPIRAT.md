@@ -1,19 +1,34 @@
 # CODEX-AUFTRAG-GARTENPIRAT
 
 
-Aktueller Steuerungsstand26.10.2026: Abschlussauftrag aktiv. Original105-Prüfkandidat
-mit bestandener betroffener Teilabnahme bereitgestellt; vollständige gemeinsame
-Regression läuft weiter. APKbereitstellung ist keine Pixelinstallation/Produktivfreigabe. Ziel1.55.0/105 als
-Revier Solo: sämtliche Fachfunktionen und maßgebliche Daten ausschließlich auf
-Pixel/App, Drive ausschließlich verschlüsselte Vollsicherung mit regelmäßiger
-aufschiebbarer App-Planung nach bewusster Geräteeinrichtung. Speichervertrag3
-stellt die öffentlichen alten Geschäfts-Sync-/Originalnachlade-/Online-Ausgabepfade
-in allen Autoritätsmodi still; Queues, Konten, Originale und Nummernschutz bleiben.
-Historische Ziele für verpflichtenden Zweiwegeabgleich sind für diesen Kandidaten
-ersetzt. Bestehende geschützte lokale Migration/Rechnungsautorität weiterhin
-belegen; keine manuellen Freigabeflags. Umsetzung integriert, gemeinsame
-Softwareabnahme/Originalkandidat werden abgeschlossen. Aktuelle und historische
-Nachweise getrennt in CODEX-STATUS.md; keine produktive Umstellung autorisiert.
+Aktueller Steuerungsstand26.10.2026: Der beauftragte Revier-Solo-Umbau ist als
+funktional geprüfter Cloud-Kandidat1.55.0/105 integriert. Die vollständige gemeinsame
+Softwareprüfung besteht:443native Fälle/0FAIL, fünf tatsächliche OS-Prozesspaare,
+78JVM-/65Browser-Suiten,430Pythonprüfungen/0SKIP und55MCP-Stdiofälle; Pflanzenpfad,
+100/150/200%-Androidschrift und drei UI-Piloten im OS-Flugmodus separat PASS.
+Die gemessene Cloud-Suche verfehlt mitp95772.582006ms das300ms-Ziel; Pixelmessung,
+Geräte-/Betriebsabnahme und vollständige externe Vorupdatesicherung98 bleiben offen.
+APKbereitstellung ist keine Pixelinstallation, Migration oder Produktivfreigabe.
+
+Maßgeblicher App-/Runnerquellcommit4087d8b5b83294d75dba6d9fc87e2d6472d3be28,
+Fingerprint06f99ce068bfcb4e36640df70290b7edddcc8532fa27119ce2332b352a835469;
+Originaltag`source/v1.55.0-build105`. Sämtliche Fachfunktionen und maßgebliche Daten
+liegen ausschließlich auf Pixel/App. Drive dient ausschließlich als verschlüsseltes
+Sicherungsziel mit regelmäßiger aufschiebbarer App-Planung nach bewusster Einrichtung.
+Speichervertrag3 stellt öffentliche alte Geschäfts-Sync-/Originalnachlade-/
+Online-Ausgabepfade in allen Autoritätsmodi still; Daten, Queues, Konten, Originale
+und Nummernschutz bleiben erhalten. Historische Ziele zum verpflichtenden
+Zweiwegeabgleich sind für diesen Kandidaten ersetzt. Geschützte lokale Migration/
+Rechnungsautorität weiterhin anhand realer Voraussetzungen belegen; keine manuellen
+Freigabeflags oder automatische Umstellung. Gemeinsam geprüfte Abläufe,32Abnahmefälle,
+exakte Quellen/Artefakte und Prüfgrenzen stehen konsolidiert in CODEX-STATUS.md.
+
+Abschließende Dokumentations-/Quellgeneration vorgesehen unter
+https://drive.google.com/drive/folders/1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5;
+Commit/Remote-Readback/Exportupload und vollständiger Readback dieses Abschlussstands
+sind noch ausstehend. Die extern geprüfte immutable105-Appquelle ist davon getrennt.
+Eine laufende reale Sicherungsextraktion ist kein bereits geprüfter vollständiger
+Betriebsdatenbackup; vor Geräteentscheidung die aktuelle98-Sicherungslücke schließen.
 
 Zusätzlicher belegter Abschlussfall25.10.2026: eine gültige lokale Entscheidung
 muss ihre historische Prüfpflicht erfüllen können, auch mit lokaler Änderung vor
@@ -96,7 +111,8 @@ Keine neuen konkurrierenden Berichte, Regeldateien oder operative Datenbank.
 Originalsignierung erst aus gesichertem, geprüftem gemeinsamen Stand. Frühere
 Zwischen-PASS gelten ausdrücklich nicht für den weiter geänderten Stand.
 
-Aktuelle Konkretisierung am 25.10.2026: Ein isolierter JavaScript-VM-Nachweis mit
+Historische Konkretisierung vom25.10.2026; ihre Korrektur ist im105-Stand geprüft:
+Ein isolierter JavaScript-VM-Nachweis mit
 synthetischer Gegenstelle reproduziert zwei Aufträge nach gleichzeitig verlorenem
 localStorage-Prüfpunkt vor dem Schreiben und verlorener Commitantwort. Das ist
 kein Pixel- oder OS-Prozessnachweis. Vor **jedem** betroffenen Fachschreibaufruf muss
@@ -108,8 +124,8 @@ noch eine abgeschickte Aktion mit neuer ID wiederholen. Hierfür werden das vorh
 Entwurfsprotokoll, `BrowserDraftRepository` und `HGDraftStorage` gemeinsam integriert;
 keine zweite operative Datenhaltung und keine Behauptung einer bereits fertigen Korrektur.
 
-Der aktuelle Arbeitsstand bereitet VersionCode 100 / DB6 mit Schutz gegen alte Schreiber
-vor. Letzter gesicherter gemeinsamer Prüfbau 07b8fa1 bleibt 99/DB5; sein nativer Lauf
+Historischer Zwischenstand vom25.10.2026: Der damalige Arbeitsstand bereitete
+VersionCode100/DB6 mit Schutz gegen alte Schreiber vor. Letzter gesicherter gemeinsamer Prüfbau 07b8fa1 bleibt 99/DB5; sein nativer Lauf
 423 PASS / 1 FAIL ist wegen des QA-Abschlussfehlers keine Gesamtfreigabe. Die beiden
 Offline-UI-Piloten auf a1dd56a und vier OS-Prozesspaare auf d99f6dd bleiben ausdrücklich
 getrennte ältere Teilnachweise. Das fünfte OS-Prozesspaar für Anfrage/Auftrag/Angebot
