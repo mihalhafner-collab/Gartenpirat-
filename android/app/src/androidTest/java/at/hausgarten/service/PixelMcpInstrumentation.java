@@ -278,6 +278,9 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             }
             return;
         }
+        if(releaseMode.equals("backup_setup")){
+            Bundle result=new Bundle();try{BackupSetupNativeAcceptance.run(this);result.putString("stream","RESULT "+passed+" Android SQLite/MCP tests passed; acceptance failures="+acceptanceFailed+"; native backup setup\n");finish(acceptanceFailed==0?-1:0,result);}catch(Throwable error){result.putString("stream","FAILED "+error.getClass().getSimpleName()+"\n");finish(0,result);}return;
+        }
         if(releaseMode.equals("drive_backup_only")){
             Bundle result=new Bundle();try{DriveBackupOnlyNativeAcceptance.run(this);BackupAutomationNativeAcceptance.run(this);FullBackupControlNativeAcceptance.run(this);result.putString("stream","RESULT "+passed+" Android SQLite/MCP tests passed; acceptance failures="+acceptanceFailed+"; backup-only production boundary\n");finish(acceptanceFailed==0?-1:0,result);}catch(Throwable error){result.putString("stream","FAILED "+error.getClass().getSimpleName()+"\n");finish(0,result);}return;
         }

@@ -82,6 +82,8 @@ class DriveRestClient {
     String checkpoint(String key){return checkpoints.get("drive-meta:"+folder+":"+key);}
     void checkpoint(String key,String value){checkpoints.put("drive-meta:"+folder+":"+key,value);}
     DriveRestClient(String folder,Token token,Wire wire,Checkpoints checkpoints){if(!validId(folder))throw new IllegalArgumentException("Ungültige Drive-Ordnerkennung.");this.folder=folder;this.token=token;this.wire=wire;this.checkpoints=checkpoints;}
+    /** Metadata-only setup client. A backup upload still requires a bound destination. */
+    DriveRestClient(Token token,Wire wire){this.folder="";this.token=token;this.wire=wire;this.checkpoints=new Checkpoints(){public String get(String key){return "";}public void put(String key,String value){}};}
     void cancelActiveTransfers(){for(Thread thread:activeRequests)wire.cancel(thread);}
     static boolean validId(String id){return id!=null&&id.matches("[A-Za-z0-9_-]{10,200}");}
     static String folderId(String input){String value=input.trim();if(value.startsWith("https://drive.google.com/drive/folders/"))value=value.substring("https://drive.google.com/drive/folders/".length()).split("[?#/]",2)[0];if(!validId(value))throw new IllegalArgumentException("Bitte einen gültigen Drive-Ordnerlink verwenden.");return value;}
@@ -118,6 +120,23 @@ class DriveRestClient {
     JSONObject validateFolder()throws Exception{
         JSONObject info=get("files/"+folder+"?fields=id,mimeType,trashed,capabilities(canAddChildren)&supportsAllDrives=true");
         if(!"application/vnd.google-apps.folder".equals(info.optString("mimeType"))||info.optBoolean("trashed")||info.optJSONObject("capabilities")==null||!info.getJSONObject("capabilities").optBoolean("canAddChildren"))throw new Failure("PERMISSION_REQUIRED","Der gewählte Drive-Ordner benötigt Lese- und Schreibzugriff.",0,true);return info;
+    }
+    JSONObject backupFolder(String id)throws Exception{
+        if(!validId(id))throw new IOException("BACKUP_FOLDER_INVALID");
+        JSONObject value=get("files/"+id+"?fields=id,name,mimeType,trashed,capabilities(canAddChildren)&supportsAllDrives=true");
+        if(!id.equals(value.optString("id"))||!"application/vnd.google-apps.folder".equals(value.optString("mimeType"))||value.optBoolean("trashed")||value.optJSONObject("capabilities")==null||!value.getJSONObject("capabilities").optBoolean("canAddChildren"))throw new Failure("PERMISSION_REQUIRED","In diesem Ordner kann keine Sicherung angelegt werden.",0,true);
+        return value;
+    }
+    JSONObject backupFolderPage(String parent,String pageToken)throws Exception{
+        if(!"root".equals(parent)&&!validId(parent))throw new IOException("BACKUP_FOLDER_INVALID");
+        if(pageToken==null||pageToken.length()>2048)throw new IOException("BACKUP_FOLDER_PAGE_INVALID");
+        String query="'"+parent+"' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+        String path="files?q="+enc(query)+"&pageSize=100&orderBy=name&fields=nextPageToken,files(id,name,mimeType,trashed)&supportsAllDrives=true&includeItemsFromAllDrives=true";
+        if(!pageToken.isEmpty())path+="&pageToken="+enc(pageToken);
+        JSONObject page=get(path);JSONArray files=page.getJSONArray("files");
+        if(files.length()>100||page.optString("nextPageToken").length()>2048)throw new IOException("BACKUP_FOLDER_PAGE_INVALID");
+        for(int i=0;i<files.length();i++){JSONObject item=files.getJSONObject(i);if(!validId(item.optString("id"))||!item.has("name")||!"application/vnd.google-apps.folder".equals(item.optString("mimeType"))||item.optBoolean("trashed"))throw new IOException("BACKUP_FOLDER_INVALID");}
+        return page;
     }
     static String sha256(byte[] bytes)throws Exception{StringBuilder s=new StringBuilder();for(byte b:java.security.MessageDigest.getInstance("SHA-256").digest(bytes))s.append(String.format(Locale.ROOT,"%02x",b&255));return s.toString();}
 }

@@ -3,6 +3,40 @@
 Stand: 26. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
+## Backup-Bedienung für den noch unveröffentlichten Build106 vereinfachen
+
+Nutzerauftrag26.10.: vorhandene Backupfunktion radikal vereinfachen. Kein Zugriff
+auf Betriebsdaten, keine Geräteinstallation. Regeln Sequenz3/Arbeitsübersicht21
+erneut gelesen; Ausgangsquelle2e5f674. Version106 bleibt interner Kandidat.
+
+Analyse: FullBackupActivity zeigt Einrichtung, Codebestätigung, Reparatur, USB,
+Klartextexport, Restore und technische Generationen gleichzeitig. Ordner-ID und
+separate Zugriffskontrolle sowie erneutes Abtippen des Codes sind UI-Hürden;
+Backup-/Keystore-/Restore-Dienste und deren Schutzprüfungen sind bereits vorhanden.
+
+Minimalplan vor Umsetzung:
+
+- FullBackupActivity: normaler Ablauf Konto/Ordner wählen, Notfallschlüssel als
+  Datei sichern, ausdrücklich einschalten; übersichtlicher Sicherungsstatus.
+  Zusätzliche Funktionen in aufklappbare Bereiche. Vorhandene Einstellungen und
+  laufende Request-IDs erhalten; kein stilles Aktivieren beim Start/Restore.
+- BackupFolderPicker und DriveRestClient: ausschließlich Backup-Ordner-Metadaten
+  mit Pagination lesen; Auswahl prüft Ordner-/Schreibrecht automatisch. Keine
+  Medien-/Geschäftsdaten lesen, keine Ordner automatisch erraten/erzeugen.
+  Auswahlabbruch, Kontowechsel und verspätete Callbackantwort dürfen nichts speichern.
+- Code-Datei: tatsächliches Schreiben und Byte-Readback bestätigen statt erneut
+  abzutippen. Erst explizite getrennte Aufbewahrung und erfolgreicher Readback
+  dürfen den vorhandenen confirmAndStore-Pfad verwenden. Bestehende gesunde
+  Schlüssel niemals ersetzen; fehlerhafte Kapseln weiter über geprüfte Reparatur.
+- Gegenpfade: Exportabbruch/Fehler/Prozessende ohne RAM-Code, falscher Readback,
+  laufender Job, Offlinebetrieb, veraltete Settingsrevision, verlorene Antwort und
+  Kontowechsel prüfen. DB-Schema, Geschäftsschreiber, Rechnungs-/Restoregates und
+  verschlüsselte Archive bleiben unverändert. Rollback nur Quellcommit.
+- Prüfung: synthetische JVM-Tests für Ordnerabfragen/Pagination/Schreibschutz und
+  Code-Readback, bestehende Backup-/Retirement-/UI-/P1-Regressionen, Androidcompile,
+  Lint und tatsächliches APK-Privacy/DEX-Readback. Native/UI- und Updateprüfung
+  getrennt ausweisen; kein alter PASS als neuer Laufzeitnachweis.
+
 ## Drive-Verbindungen aus dem Build entfernen – Quellcodeauftrag 26.10.2026
 
 Ausdrückliche Fortsetzung: ausschließlich geprüfter Quellcode, leerer Bootstrap
