@@ -297,6 +297,26 @@ def approved_invoice_business_date_repair(expected, current, delta, repair, time
     return approved_local_resolution_repair(expected, previous, delta, repair, timer, local)
 
 
+def approved_drive_transport_removal(expected, current, delta, repair, timer, local):
+    """Only the explicitly retired partial-restore description may change here."""
+    import copy
+    old = 'Prüft Sicherung und übernimmt ausschließlich fehlende Datensätze. Abweichende vorhandene Versionen und aktive Warteschlangen stoppen die Übernahme; keine blinde Ersetzung.'
+    legacy = 'Versionierter Altpfad: im Legacybetrieb Sicherung prüfen und ausschließlich fehlende Datensätze übernehmen; Konflikte und aktive Warteschlangen stoppen. Nach lokaler Autoritätsumstellung mit RESTORE_FULL_REPLACEMENT_REQUIRED und Geräteschritt gesperrt: vollständigen verschlüsselten Bestand prüfen und ausdrücklich ersetzen, keine automatische Vermischung.'
+    retired = 'Stillgelegter Teilrestore: in jedem Autoritätsmodus mit RESTORE_FULL_REPLACEMENT_REQUIRED gesperrt. Vollständigen verschlüsselten Bestand am Gerät prüfen und ausdrücklich ersetzen; keine automatische Vermischung.'
+    original = copy.deepcopy(next(t for t in expected['tools'] if t['name'] == 'restore_backup'))
+    if not original['description'].startswith(old):
+        raise ValueError('Partial restore descriptor predecessor changed')
+    approved = copy.deepcopy(original)
+    approved['description'] = approved['description'].replace(old, retired, 1)
+    previous = copy.deepcopy(current)
+    matches = [i for i, tool in enumerate(previous['tools']) if tool['name'] == 'restore_backup']
+    if len(matches) != 1 or previous['tools'][matches[0]] != approved:
+        return ['tools']
+    original['description'] = original['description'].replace(old, legacy, 1)
+    previous['tools'][matches[0]] = original
+    return approved_invoice_business_date_repair(expected, previous, delta, repair, timer, local)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--record-baseline', action='store_true')
@@ -327,6 +347,8 @@ def main():
             unapproved = approved_local_resolution_repair(expected, current, delta, repair, evolution, local)
         if unapproved:
             unapproved = approved_invoice_business_date_repair(expected, current, delta, repair, evolution, local)
+        if unapproved:
+            unapproved = approved_drive_transport_removal(expected, current, delta, repair, evolution, local)
         if unapproved:
             raise SystemExit('FAIL unreviewed functional contract changed: '+', '.join(unapproved))
         print('PASS explicitly reviewed contract evolution; original P1 differences: '+', '.join(changed))
