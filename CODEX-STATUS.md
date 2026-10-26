@@ -50,13 +50,6 @@ und Teilrestore entfernt; Backupdispatch besitzt keinen Legacyzweig mehr.
 Backupclient-/Token-Konstruktion ist auf LocalBackupCoordinator/FullBackupActivity
 begrenzt. Kein Autoritätsflag, Journal oder Schema migriert. Kandidat1.55.1/106.
 
-Neu ausgeführt: sieben Buildgrenzen-Regressionsprüfungen PASS; produktive Java-
-und Instrumentation-Kompilierung PASS; Source-Privacy PASS2344/0operativeSeedzeilen,
-Workspace-Privacy PASS3464 einschließlich ignorierter/unversionierter Dateien.
-Erster Kompilierungsanlauf benötigte korrekten Cloud-JDK-/Proxy-/CA-Pfad; danach
-bestand die echte Gradle-Kompilierung. Vollständige Host-/Browser-/APK-/native
-Gegenprüfung noch laufend; kein fertiger Release und keine Geräteabnahme.
-
 Gegenprüfung: Zusätzlich führte BackupPortableExport über den generischen SAF-
 Provider einen Klartextexport an beliebige Cloudziele aus. Dieser Gegenpfad wird
 vor Berechtigungsübernahme, Erfassung und Export auf den lokalen Android-
@@ -68,10 +61,71 @@ statt der festen Ablehnung auffällt; lokale Zielsyntax bleibt zugelassen.
 Ein vorhandener nativer Test für identischen Teilrestore erwartet jetzt ebenfalls
 Ablehnung und vergleicht unveränderten Zustand; die Backupinspektion bleibt geprüft.
 
+### Ergebnis des engeren Quellcodeauftrags
+
+Quell-/Buildstand: `e61eef39791082f0b3976c8b9b705df450c93ba4`,
+1.55.1/106, DB6, MCP9, Speichervertrag3. Auf bestehendem Arbeitsbranch gepusht
+und exakt zurückgelesen; kein Merge nach main und keine Installation.
+Operativer Quellfingerprint:
+`b841088c4b88019f82c6260bc48adcfe7cb56af426807a7d9efaa7323e1ba329`.
+Endgültige unsignierte interne APK:
+`f4b622aa6e37581238ef273ed825c4c5188c81a5e866584c1d1a7523b1d7f093`.
+Im tatsächlichen DEX ist der genaue Quellcommit eingebettet; acht entfernte
+Geschäfts-/Testklassen beziehungsweise Providerports fehlen, sechs erwartete
+Backup-/Lokalkomponenten sind vorhanden. Zusammengeführtes Release-Manifest:
+kein DriveSyncJob, FullBackupJob erhalten. Alte Klassennamen als reine
+Retirementantworten oder historische Diagnosen sind keine Drive-Verbindung.
+
+Tatsächlich ausgeführte Gegenprüfungen:
+
+- Gradle `:app:assembleRelease :app:assembleReleaseAndroidTest :app:lintRelease`
+  PASS; produktive und native Testquellen kompiliert. Lint: 0 Fehler,102 Warnungen.
+- 78 JVM-Suites,65 Browser-Suites und438 Python-Tests PASS,0Skip.
+  37 historische Ersatzschlüssel-Generierungstests ausdrücklich ausgeschlossen.
+  Browser nach Beenden konkurrierender Emulator-/Buildlast gezielt wiederholt;
+  keine Zeitlimits gelockert. Acht neue Produktionsgrenzen-Tests PASS.
+- 55 vollständig synthetische historische MCP-stdio-Szenarien PASS. Dies ist kein
+  Nachweis des produktiven Connectors oder nativer UI/MCP-Parität dieses APKs.
+- P1 PASS:166 Werkzeuge,72Read/94Write,209UI-Aktionen. Nur die Beschreibung des
+  stillgelegten Teilrestores ausdrücklich überprüft; Frozen-Baseline, Schemas,
+  Rechte und übrige Schutzprüfungen unverändert. Vertrag:
+  `f52575a018e741adc7b7f2af154ba0b496472a360ded638958bd2b9242087f58`.
+- Source-Privacy PASS2344/0operativeSeedzeilen; Workspace-Privacy PASS5990
+  einschließlich ignorierter/unversionierter Dateien; tatsächliche endgültige
+  APK-Privacy PASS/0operativeSeedzeilen und Hash wie oben.
+
+**Native Laufzeitabnahme: NOT EXECUTED.** Ausschließlich neuer leerer Cloud-AVD
+GartenpiratCloud/emulator-5582, keine produktiven Daten oder Konten. Ohne /dev/kvm
+erreichte der erste Softwarestart nach mehr als30Minuten kein boot_completed=1;
+Activity-Service fehlte. Ein reduzierter erneuter Start blieb offline beziehungsweise
+lief in ADB-Zeitlimits. Readiness-Gate nicht umgangen; keine APK installiert,
+kein Test als bestanden gewertet. Eigene Emulatorprozesse anschließend beendet.
+Die neue native Suite für Retirement, lokale UI/MCP-Schreibpfade/Reopen und
+Klartextexport-Gegenpfade sowie vorhandene Backup-/Restore-Laufzeitregressionen
+müssen in einem vollständig gestarteten Cloud-Emulator noch ausgeführt werden.
+
+Bewusst erhalten: historische Journal-/Queueinformationen und synthetische
+Alttransport-Fixtures, lokale Beziehungen/IDs, Entwurf-/Löschschutz sowie separate
+Migrations- und Rechnungsautorität. Keine Queue gelöscht, kein Freigabeflag gesetzt,
+kein fachlicher Datensatz geändert. Fehlende lokale Foto-/PDF-Originale werden
+ausdrücklich abgewiesen und nicht mehr automatisch aus Drive nachgeladen.
+Der bestehende verschlüsselte Vollbackup-/Upload-/Readback-/bewusste Restorepfad
+bleibt erhalten; Klartextexport ist auf Gerät/USB begrenzt.
+
+Offen bleiben native Laufzeitabnahme, physische Pixel-/Update-/Datenerhaltprüfung,
+Backup-Kontofreigabe und tatsächlicher Upload auf dem Gerät sowie externer
+Connector-Refresh. Kein neuer produktiver Zugriff für diesen Quellcodeauftrag.
+Die frühere produktive Integritäts-/Migrationssperre bleibt bestehen. Dies ist
+kein Abschluss des ursprünglichen vollständigen Transition-/Datenauftrags und
+keine Release-, Installations- oder Rechnungsfreigabe. Recovery: gesicherter
+Quellcommit; kein produktiver Zustand wurde migriert oder zurückgesetzt.
+
 ## Transition-Abschlussprüfung 26.10.2026 – ABBRUCH IN PHASE A
 
-**Nicht abgeschlossen. Keine Implementierung oder produktive Umstellung.**
-Der aktuelle ausdrückliche Transition-Auftrag ist maßgeblich; historische
+**Produktiver Gesamtauftrag nicht abgeschlossen.** Dieser Abschnitt dokumentiert
+den früheren Abbruch in Phase A vor dem oben belegten engeren Quellcodeauftrag;
+damals keine Implementierung und weiterhin keine produktive Umstellung.
+Der ausdrückliche Transition-Auftrag ist maßgeblich; historische
 Featureaufträge und frühere PASS-Berichte sind keine neue Freigabe. Beide
 Steuerungsseiten `00 Zentrale Regeln` und `Arbeitsübersicht` wurden vollständig
 gelesen. Untersuchung ausschließlich über bestehende Codex Cloud, GitHub und

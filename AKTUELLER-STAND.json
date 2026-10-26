@@ -1,13 +1,13 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-26T11:29:59.234207+00:00",
+  "updated_at_utc": "2026-10-26T17:26:32.469153+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
-    "version_name": "1.55.0",
-    "version_code": 105,
-    "status": "SOFTWARE_FUNCTIONAL_CLOUD_PASS_PRODUCTIVE_NOT_APPROVED",
-    "base_git_sha": "419d0b4bfcbb7108d00296619831a04ddc3273b0",
+    "version_name": "1.55.1",
+    "version_code": 106,
+    "status": "SOURCE_DRIVE_BACKUP_ONLY_HOST_PASS_NATIVE_NOT_EXECUTED",
+    "base_git_sha": "e61eef39791082f0b3976c8b9b705df450c93ba4",
     "last_original_app_source_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
     "main_at_start": "e499e745832449ce0202d04d9903495248e8b034",
     "implemented_scope": [
@@ -64,16 +64,16 @@
       "xz_readback": "COMPLETE_STREAM_SIZE_ONLY; LOCAL XZ ROUNDTRIP BYTE-VERIFIED; no remote hash claim",
       "includes_latest_streaming_backup_sources": false
     },
-    "backup_target_contract": "All business functions and authoritative data exclusively Pixel/App; Drive exclusively encrypted full backup; final storage contract3 retires public legacy business network writers in every authority mode without clearing old data/accounts/queues.",
+    "backup_target_contract": "Production APK106 contains no business Drive transport or sync job;Drive clients/tokens only for existing encrypted full backup setup/upload/readback;historical local journal and authority/invoice gates preserved;native runtime and productive migration not approved.",
     "latest_host_checks": {
       "jvm_suites_pass": 78,
       "browser_suites_pass": 65,
-      "python_pass": 430,
+      "python_pass": 438,
       "python_skip": 0,
       "excluded_legacy_key_generation_tests": 37,
       "mcp_stdio_pass": 55,
-      "p1_contract_sha256": "fd7784c84086ce158f7a19754c62c46f3d06a2d5f91c2a9c6d561d8233ef68f0",
-      "scope": "immutable App105 and runner4087d8b;Python includes actual original105APK/P0"
+      "p1_contract_sha256": "f52575a018e741adc7b7f2af154ba0b496472a360ded638958bd2b9242087f58",
+      "scope": "Build106 sourcee61eef3;78JVM,65browser,438Python,55historical synthetic stdio;actual unsigned106APK privacy PASS;native runtime NOT_EXECUTED"
     },
     "native_font_probe": {
       "source": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
@@ -1401,6 +1401,19 @@
         "uniqueActions": 209
       },
       "fileChunkIndependentHashVerified": true
+    },
+    "drive_transport_removal_build": {
+      "app_source_git_sha": "e61eef39791082f0b3976c8b9b705df450c93ba4",
+      "version_name": "1.55.1",
+      "version_code": 106,
+      "source_sha256": "b841088c4b88019f82c6260bc48adcfe7cb56af426807a7d9efaa7323e1ba329",
+      "unsigned_apk_sha256": "f4b622aa6e37581238ef273ed825c4c5188c81a5e866584c1d1a7523b1d7f093",
+      "production_dex_boundary": "PASS;business transports and historical test engines absent;backup retained",
+      "gradle_build_and_lint": "PASS;0errors102warnings",
+      "native_runtime": "NOT_EXECUTED;dedicated empty Cloud emulator never reached readiness;no APK installed",
+      "pixel_installation": "NOT_EXECUTED",
+      "released": false,
+      "scope": "source_only;no productive data access, migration, authority activation or invoice approval"
     }
   },
   "verified_release_source": {
