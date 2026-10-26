@@ -37,6 +37,58 @@ Minimalplan vor Umsetzung:
   Lint und tatsächliches APK-Privacy/DEX-Readback. Native/UI- und Updateprüfung
   getrennt ausweisen; kein alter PASS als neuer Laufzeitnachweis.
 
+Ergebnis: Originalsignierter Prüfkandidat1.55.1/106 aus dem unveränderten,
+gesicherten Commit `99ab63afbdfdb9fd32dac70134f9461b1ba15b17`. Der Nutzer hat
+den APK-Bau nach einer kurzen Zurückstellung ausdrücklich wieder beauftragt.
+Neue Bedienung: Konto/Ordner auswählen → Notfallschlüssel als Datei speichern
+und getrennte Aufbewahrung bestätigen → Backup einschalten. Keine Ordner-ID,
+kein separater Zugriffsknopf, kein Abtippen nach erfolgreichem Datei-Readback.
+Manuelle Schlüsselaufbewahrung bleibt eine bewusst geöffnete Alternative.
+USB/Export/Restore/Reparatur/Historie bleiben unter „Weitere Möglichkeiten“.
+
+Ausgeführt und PASS:79JVM-Suites einschließlich30neuer Setup-Prüfungen,
+441Python-Tests/0Skip (37historische Ersatzsignierschlüsseltests ausdrücklich
+ausgeschlossen),22gezielte Schutzprüfungen sowie beide betroffenen Browser-
+Suiten full-backup-entry und full-backup-drafts. Android- und Testquellen
+kompiliert; endgültiges assembleRelease/assembleReleaseAndroidTest/lintRelease
+PASS. Lint0Fehler/103Warnungen; zusätzliche Warnung betrifft Darstellungstext,
+keine Sicherheitsabschaltung. P1 unverändert166Tools/209UI-Aktionen.
+Source-Privacy PASS2349/0operativeSeeds; Workspace einschließlich ignorierter
+Dateien PASS; tatsächlich erzeugte und signierte APK ebenfalls Privacy PASS.
+
+Quellfingerprint `6da86aad5019a93520c50794b72f53b45b5847b7dd30dfb650f290fe99e22928`;
+APK-SHA256 `4b6bf5656dadfcb4a6b76baabe661c8d9f75f0a2d8c78431a4354f66a8192e3c`;
+Originalzertifikat `a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`.
+Paket at.hausgarten.service, DB6, MCP9. Tatsächlicher DEX enthält neue Setup-
+Komponenten und den exakten sauberen Quellstand; entfernte Geschäftsadapter
+und historische Testengine fehlen weiterhin. Kein Geschäftssync reaktiviert.
+
+Unveränderlicher, exakt zurückgelesener Git-Tag `source/v1.55.1-build106` zeigt
+auf99ab63a. Original-ZIP:2349Dateien,162086805Bytes,
+SHA256 `8babbceb30ed0b62f38a3924f8b3c14144da75891ad87070d79af3285ff1fc6b`.
+Die [Originalquellen](https://drive.google.com/drive/folders/1ZRL0poCxcagmVMN3-TJLoW0F4_fjVDZi)
+besitzen63tatsächliche SHA256_BYTES-Readbacks; sechs extern zurückgelesene
+Binärteile wurden zum vollständigen Original-ZIP rekonstruiert, ZIP-SHA und
+operativer Quellfingerprint erneut geprüft. Die UTF-8-Spiegel sind verlustfrei.
+
+[Original-APK106](https://drive.google.com/file/d/1S1QA408WtB-D0vNGy1trIhVXO7OpI9z6/view?usp=drivesdk),
+82866173Bytes, privat im bestehenden20-APK/Test. Drei zusätzlich extern
+zurückgelesene APK-Teile ergeben bytegenau dieselbe APK; Originalsignatur am
+rekonstruierten Artefakt erneut PASS. Die separate große rohe APK-Datei wurde
+mit Metadaten und vollständiger Streamgröße bestätigt; kein unabhängiger
+SHA-Nachweis genau dieser rohen Datei-ID behauptet. Die Connector-Materialisierung
+ist auf32MiB begrenzt; zulässige28MiB-Teile statt einer Umgehung verwendet.
+Provenienz und Prüfsummen ebenfalls extern bytegenau zurückgelesen.
+
+Native Laufzeitabnahme bleibt NOT EXECUTED: neuer leerer Cloud-AVD/API29 ohne
+Konten erreichte boot_completed=1, verlor danach aber den Android-Paketmanager.
+Testinstallation endete255, Read-back meldete „Can't find service: package“;
+Installationsausgang im AVD nicht bestätigt. Keine Probe als PASS gewertet,
+keine Schutzprüfung abgeschaltet. Neue native UI-Proben sind vorbereitet und
+kompiliert. Eigenen Emulator beendet. Physische Google-/Pixel-Bedienung und
+105→106-Update-/Datenerhaltprüfung bleiben offen. Keine produktive Installation,
+Betriebsdatenverwendung, Migrationsaktivierung oder Rechnungsfreigabe.
+
 ## Drive-Verbindungen aus dem Build entfernen – Quellcodeauftrag 26.10.2026
 
 Ausdrückliche Fortsetzung: ausschließlich geprüfter Quellcode, leerer Bootstrap

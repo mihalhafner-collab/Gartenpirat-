@@ -335,6 +335,48 @@
         "productive_write_tests": "NOT_EXECUTED",
         "release_approved": false
       }
+    },
+    {
+      "version": "1.55.1",
+      "build": 106,
+      "status": "ORIGINAL_SIGNED_HOST_PASS_NATIVE_UI_OPEN_PRODUCTIVE_NOT_APPROVED",
+      "tag": "source/v1.55.1-build106",
+      "git_sha": "99ab63afbdfdb9fd32dac70134f9461b1ba15b17",
+      "tree_sha": "105689f42c907ef0efcee750157d4003b7661bae",
+      "source_sha256": "6da86aad5019a93520c50794b72f53b45b5847b7dd30dfb650f290fe99e22928",
+      "source_files": 2349,
+      "original_zip_sha256": "8babbceb30ed0b62f38a3924f8b3c14144da75891ad87070d79af3285ff1fc6b",
+      "original_zip_bytes": 162086805,
+      "original_zip_transport_encoding": "RAW_CONCAT_PARTS",
+      "drive_zip_part_ids": [
+        "1SdGeaB2ZGjjwYvqehXbTzBwWewtvhqNe",
+        "1_n_DMUvnrJ4iHjM1x37rT3PZdWJVHQCE",
+        "1cONk0lJVzUdDTn3-1HWak-KvQFMAZ3W9",
+        "1Zo0obHoXd8q2qxMsfQNdCh_q-W8BE0qr",
+        "1l2qJYj7wRO6FkpuHy8LfMJ-FG5ncBq0P",
+        "1pMA4oeUblsRCl27ahFUSPYfOOQ7p58TP"
+      ],
+      "apk_sha256": "4b6bf5656dadfcb4a6b76baabe661c8d9f75f0a2d8c78431a4354f66a8192e3c",
+      "apk_bytes": 82866173,
+      "qa_apk_sha256": "1c7506c45c33dff8acb3b1675093a1eec6c67c529677ee6efc8da839df0452b0",
+      "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+      "source_folder_id": "1ZRL0poCxcagmVMN3-TJLoW0F4_fjVDZi",
+      "drive_folder_id": "1KMvN_g456vA0Z1VHh2RH4P5Jlgg4-LSH",
+      "drive_apk_id": "1S1QA408WtB-D0vNGy1trIhVXO7OpI9z6",
+      "drive_apk_url": "https://drive.google.com/file/d/1S1QA408WtB-D0vNGy1trIhVXO7OpI9z6/view?usp=drivesdk",
+      "drive_apk_part_ids": [
+        "1-3hvr--LnVsvW2Byi7W3yVW_F5XkC0c3",
+        "1rLjmgSiVyUZyNqAr_j-SbFw679snL1LO",
+        "1DcPU2AoMBlPWRjC3xgL-wWtycJVD64Sj"
+      ],
+      "drive_provenance_id": "1syhzr0OWgu0tJDNAbesQrb0msGDC0bvc",
+      "drive_sha256_id": "1losJ_9iilVpyS-z9yedaxZT0Ey2jpG4x",
+      "remote_readback": "PASS exact source branch and peeled immutable tag",
+      "drive_readback": "PASS three actual remote parts reconstructed; exact SHA256 and original signature;PASS 63 actual SHA256_BYTES receipts; full ZIP reconstructed and source fingerprint verified;METADATA_AND_COMPLETE_STREAM_SIZE_ONLY;no independent raw-id SHA claim",
+      "native_cloud_acceptance": "NOT_EXECUTED_EMULATOR_PACKAGE_MANAGER_UNAVAILABLE",
+      "device_acceptance": "NOT_EXECUTED",
+      "released": false,
+      "download_provided": true
     }
   ]
 }

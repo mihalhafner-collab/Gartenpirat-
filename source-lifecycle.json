@@ -37,7 +37,9 @@
     "development98": "1sNafTvi2E2RtlfGpSiR_O3yo5D_IlN4u",
     "candidate105": "1WfoTQQuOafgq_el0-EaY3Lz-GULaq2g3",
     "source105": "15nuOA815cOg54nhlCZq9U3ROCQiy7lea",
-    "documentation105": "1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5"
+    "documentation105": "1In8_tg6QFXbGGQ9c-EfPDqjPYpG-lJw5",
+    "candidate106": "1KMvN_g456vA0Z1VHh2RH4P5Jlgg4-LSH",
+    "source106": "1ZRL0poCxcagmVMN3-TJLoW0F4_fjVDZi"
   },
   "runtime_folder_ids": [
     "1qR33tKpsKa-VxLeuTbXibjgYGjpyE8__",
@@ -159,7 +161,8 @@
     96,
     97,
     98,
-    105
+    105,
+    106
   ],
   "no_runtime_writes": true,
   "no_history_rewrite": true,
@@ -176,5 +179,5 @@
     "weekly": "6ad8f37b548c8191b18d43b443aae6d3",
     "monthly": "6ad8f37da1d88191b7aa7fbf09473760"
   },
-  "keep_builds_evidence": "All prior protections retained; immutable original105APK/source and synthetic finalQA evidence protected. Common functional Cloud acceptance complete, RS14CloudsearchtargetFAIL and physical/productive open; installed98 remainsprotected. No cleanup/deletion/protectionremoval performed."
+  "keep_builds_evidence": "All prior protections retained; immutable original105APK/source and synthetic finalQA evidence protected. Common functional Cloud acceptance complete, RS14CloudsearchtargetFAIL and physical/productive open; installed98 remainsprotected. No cleanup/deletion/protectionremoval performed. Original106APK/source99ab63a additionally protected;host PASS,native UI and physical update OPEN;no cleanup or deletion."
 }
