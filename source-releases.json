@@ -14,7 +14,9 @@
       "tree_sha": "9bdfa2e52e9bba49a2d902f73301f706b52b7847",
       "remote_readback": "PASS",
       "drive_zip_id": "14PwvVo4DGTa9r7zh-OYxKucKzjuWxqsh",
-      "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB"
+      "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB",
+      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
     },
     {
       "version": "1.54.1",
@@ -29,7 +31,9 @@
       "tree_sha": "cd302e37120641df9eb6d453ef662be0cf10461e",
       "remote_readback": "PASS",
       "drive_zip_id": "1C945yeV6Z0SgQQMBqK-GFtJS2a0zrIFW",
-      "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB"
+      "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB",
+      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
     },
     {
       "version": "1.53.1",
@@ -44,7 +48,9 @@
       "drive_zip_id": "1Ewa2fhsDPZAzGEFG8hTZawcI_RsGjeJy",
       "drive_readback": "HISTORICAL_EXPORT_RECEIPT; SOURCE_BYTES_VERIFIED_IN_GIT",
       "git_sha": "dc394b5796fbcb268533a8d8951fe05a829956df",
-      "remote_readback": "PASS"
+      "remote_readback": "PASS",
+      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
     }
   ],
   "candidates": [
@@ -64,7 +70,10 @@
       "source_files": 1220,
       "tree_sha": "b67dbfbe5cf2345be0c00983297d9dd7dc3e70c4",
       "remote_readback": "PASS",
-      "device_acceptance": "NOT EXECUTED"
+      "device_acceptance": "NOT EXECUTED",
+      "drive_folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
     },
     {
       "version": "1.54.3",
@@ -77,12 +86,16 @@
       "apk_sha256": "4f08b012bfd2c38259974c94b3071e218962d330f70ccb332725c77d25ec2814",
       "drive_zip_id": "10o0nWq_EK2qAF4zQHj_U2jev_4s6C5qT",
       "drive_apk_id": "1UHmeEkSO6k0-zU3i6DM53gjgyHDL-fwk",
-      "drive_folder_id": "1pzAVZQcxcvYEqbEYYzZXKg7cNm0qllw_",
+      "drive_folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
       "native_cloud_acceptance": "158 PASS;91->92/fresh_isolated/native_ui/final verify PASS",
       "pixel_installation": "NOT EXECUTED",
       "google_live_authorization": "NOT EXECUTED",
       "release_approved": false,
-      "drive_readback": "18 source files SHA256_BYTES; original ZIP/APK COMPLETE_STREAM_SIZE_ONLY"
+      "drive_readback": "18 source files SHA256_BYTES; original ZIP/APK COMPLETE_STREAM_SIZE_ONLY",
+      "historical_drive_folder_id": "1pzAVZQcxcvYEqbEYYzZXKg7cNm0qllw_",
+      "drive_folder_id_availability": "AVAILABLE_PRIVATE_APK_PARENT_AFTER_CONSOLIDATION;HISTORICAL_PARENT_REMOVED",
+      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
     },
     {
       "version": "1.54.4",
@@ -95,14 +108,20 @@
       "apk_sha256": "16c7ed9dcbcc801002055d9646238398551ec69d8c797a039aa52eea50faa99d",
       "drive_zip_id": "1lB4r1dg6zrB8pvTSXcIJ7s1HDecda3Bd",
       "drive_apk_id": "17Pts6yNjNHiKyRqhJHaqAGarWJPZBnfA",
-      "drive_folder_id": "1RAFAWqhKgzzd633GTJ1FaEPWgh0B7xbS",
-      "development_export_folder_id": "1kE3pqZns1XOrPSM7SZ2V7sMVAEIdFOjv",
+      "drive_folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+      "development_export_folder_id": null,
       "native_cloud_acceptance": "159PASS; T+14 runtime; update/fresh/UI/final snapshot PASS",
       "pixel_installation": "NOT EXECUTED; last observed92",
       "google_live_authorization": "NOT EXECUTED",
       "weather_live_provider": "NOT EXECUTED",
       "release_approved": false,
-      "drive_readback": "19 verified receipts;18 SHA256_BYTES +1ZIP COMPLETE_STREAM_SIZE_ONLY;0 pending/duplicates"
+      "drive_readback": "19 verified receipts;18 SHA256_BYTES +1ZIP COMPLETE_STREAM_SIZE_ONLY;0 pending/duplicates",
+      "historical_drive_folder_id": "1RAFAWqhKgzzd633GTJ1FaEPWgh0B7xbS",
+      "drive_folder_id_availability": "AVAILABLE_PRIVATE_APK_PARENT_AFTER_CONSOLIDATION;HISTORICAL_PARENT_REMOVED",
+      "historical_development_export_folder_id": "1kE3pqZns1XOrPSM7SZ2V7sMVAEIdFOjv",
+      "development_export_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
+      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
     },
     {
       "version": "1.54.5",
@@ -116,8 +135,8 @@
       "apk_sha256": "975ce32ca7e52338182c0f743044afbd57edeeaa9d376bd31292b1060809cc3c",
       "drive_zip_id": "189LoXjhKV9a0GhsnCYpHfsL_60e5wBpL",
       "drive_apk_id": "1pwo3kz2shKIyPnXYV0KbL9Szyvya5OS8",
-      "drive_folder_id": "1Gq89Ru3bCL-FNw60WAHEPLzsoUTsJnnR",
-      "development_export_folder_id": "1lGyhXJtB_QuCex_R8ObLDxphhaq8SkC-",
+      "drive_folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+      "development_export_folder_id": null,
       "remote_readback": "PASS exact source branch and immutable tag",
       "native_cloud_acceptance": "159PASS; original93->94/read-only ledger/fresh_isolated/nativeWebView/final snapshot PASS",
       "pixel_installation": "NOT_EXECUTED; fresh read-only Pixel MCP remains original93",
@@ -125,7 +144,15 @@
       "weather_live_provider": "NOT_EXECUTED",
       "release_approved": false,
       "drive_readback": "19 verified receipts;18 SHA256_BYTES +1ZIP COMPLETE_STREAM_SIZE_ONLY;0 pending/duplicates; APK COMPLETE_STREAM_SIZE_ONLY",
-      "drive_provenance_id": "1QKvtz_IY9N-vg3WYoOAmdSqpjy20X1lY"
+      "drive_provenance_id": null,
+      "historical_drive_folder_id": "1Gq89Ru3bCL-FNw60WAHEPLzsoUTsJnnR",
+      "drive_folder_id_availability": "AVAILABLE_PRIVATE_APK_PARENT_AFTER_CONSOLIDATION;HISTORICAL_PARENT_REMOVED",
+      "historical_development_export_folder_id": "1lGyhXJtB_QuCex_R8ObLDxphhaq8SkC-",
+      "development_export_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
+      "historical_drive_provenance_id": "1QKvtz_IY9N-vg3WYoOAmdSqpjy20X1lY",
+      "drive_provenance_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
+      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
     },
     {
       "version": "1.54.6",
@@ -140,7 +167,7 @@
       "drive_zip_id": "1Y8xLj_5d08RZjUeoqmM5f2rWY1D24QWc",
       "drive_apk_id": "1mNMctVtasftStxWfwZboVv6chkQ_CbXv",
       "drive_folder_id": "1qV4B9lXj0P35DSsuIzTD9hIMWgx34bef",
-      "development_export_folder_id": "1jtTBx8h6gmq5U5LyZpv4IGDe_MBEqY3z",
+      "development_export_folder_id": null,
       "remote_readback": "PASS exact original branch/tag",
       "native_cloud_acceptance": "164PASS; original94->95/full ledger/fresh_isolated/nativeWebView/final snapshot PASS",
       "pixel_installation": "NOT_EXECUTED; last observed94",
@@ -148,7 +175,13 @@
       "release_approved": false,
       "drive_readback": "19 source receipts:18 SHA256_BYTES+1ZIP COMPLETE_STREAM_SIZE_ONLY; APK COMPLETE_STREAM_SIZE_ONLY; small version/QA receipts separately verified",
       "drive_provenance_id": "1XYk1lHZpQ2fyXLr0ZTxg7sidZyGEhzWU",
-      "drive_verification_id": "1F_vDQOOnO_W84u879Penqi9VWzcmT_kp"
+      "drive_verification_id": null,
+      "historical_development_export_folder_id": "1jtTBx8h6gmq5U5LyZpv4IGDe_MBEqY3z",
+      "development_export_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
+      "historical_drive_verification_id": "1F_vDQOOnO_W84u879Penqi9VWzcmT_kp",
+      "drive_verification_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
+      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
     },
     {
       "version": "1.54.7",
@@ -163,16 +196,24 @@
       "drive_zip_id": "154LI5YHV11KiD-evgy2OoPwzjcuvfYTU",
       "drive_apk_id": "1YOT0voQQZ_ntiA_O9jBWVr3ifR8AnBQ8",
       "drive_folder_id": "1Juu_8VdoAdLC-vkoQVPrx_K2Qs4RDKxG",
-      "source_folder_id": "1PJqvAyhJlRAG-R2UpTtq4dA1wSjavwYr",
-      "development_export_folder_id": "1oMjiRt2OqcR5mKcSbsYjVv1hEGlL7QHD",
+      "source_folder_id": null,
+      "development_export_folder_id": null,
       "drive_provenance_id": "1fthY3Q6T0qLdb2sfi2GWrAAUHzaNZa8_",
-      "drive_verification_id": "1UZJh4BhsZGZWez1hiLRo2w_X9skKKZZf",
+      "drive_verification_id": null,
       "remote_readback": "PASS exact original branch/tag",
       "native_cloud_acceptance": "172PASS/0FAIL; original95→96 full ledger/fresh_isolated/nativeWebView/font1.0/1.5/2.0/9reviewed screenshots PASS; OS font/display restored",
       "pixel_installation": "NOT_EXECUTED; historical last observation94, not queried during96 work",
       "google_live_authorization": "NOT_EXECUTED; no productive request_sync or queue mutation",
       "release_approved": false,
-      "drive_readback": "19 source receipts:18SHA256_BYTES+1ZIP COMPLETE_STREAM_SIZE_ONLY; helper0upload/19reuse/0duplicates; APK COMPLETE_STREAM_SIZE_ONLY; QA/proof SHA256_BYTES"
+      "drive_readback": "19 source receipts:18SHA256_BYTES+1ZIP COMPLETE_STREAM_SIZE_ONLY; helper0upload/19reuse/0duplicates; APK COMPLETE_STREAM_SIZE_ONLY; QA/proof SHA256_BYTES",
+      "historical_source_folder_id": "1PJqvAyhJlRAG-R2UpTtq4dA1wSjavwYr",
+      "source_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
+      "historical_development_export_folder_id": "1oMjiRt2OqcR5mKcSbsYjVv1hEGlL7QHD",
+      "development_export_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
+      "historical_drive_verification_id": "1UZJh4BhsZGZWez1hiLRo2w_X9skKKZZf",
+      "drive_verification_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
+      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
     },
     {
       "version": "1.54.8",
@@ -187,18 +228,28 @@
       "drive_zip_id": "18z0qPxs27gc_J7JmfFMx-QDZQydeSbqF",
       "drive_apk_id": "19w2tUJRWlKr_0R37IU5jRkP34sCl6CTc",
       "drive_folder_id": "1ZPwhieYXLRDwqdaSoY_SkqdgPffsN341",
-      "source_folder_id": "1dMX0byFIGCzOLSk3N3Cs6U4WVWyfZ3t8",
-      "development_export_folder_id": "1rxp9cbTf2srnopH-X8p9Xar6ZGQViPAn",
+      "source_folder_id": null,
+      "development_export_folder_id": null,
       "drive_provenance_id": "1v22KPWGIMqNjtDkYFlvk9nZJn8feqx_r",
-      "drive_verification_id": "1Z3pg6Be03ESDpc6iguHfQ7XrfIr09QvH",
-      "drive_report_id": "13butggb-KowkX0uVrOsB_dO14UYVzrNa",
+      "drive_verification_id": null,
+      "drive_report_id": null,
       "remote_readback": "PASS exact original branch/tag",
       "native_cloud_acceptance": "290PASS+20additional workflow/providerPASS;0FAIL;117RPC/113positive tools/4guarded paths;96→97full ledger/fresh/nativeUI/fonts1/1.5/2/9reviewed images; restored display/font; installed APK byte-identical",
       "pixel_installation": "NOT_EXECUTED; read-only metadata23Oct2026 observes original96",
       "google_live_authorization": "NOT_EXECUTED; REMOTE_STATE_REFERENCE_MISSING/9pending/cloud_confirmed=false; no productive request_sync, queue or runtime-file mutation",
       "release_approved": false,
       "drive_readback": "19source receipts:18SHA256_BYTES+1ZIP COMPLETE_STREAM_SIZE_ONLY;0upload/19reuse/0duplicates. APK full stream/size; QA/proof/report actual byte-SHA.",
-      "documentation_provenance": "Final documentation commit/ZIP pinned by01-MANIFEST.json and completion receipt; immutable APK/tag stays edd16a4."
+      "documentation_provenance": "Final documentation commit/ZIP pinned by01-MANIFEST.json and completion receipt; immutable APK/tag stays edd16a4.",
+      "historical_source_folder_id": "1dMX0byFIGCzOLSk3N3Cs6U4WVWyfZ3t8",
+      "source_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
+      "historical_development_export_folder_id": "1rxp9cbTf2srnopH-X8p9Xar6ZGQViPAn",
+      "development_export_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
+      "historical_drive_verification_id": "1Z3pg6Be03ESDpc6iguHfQ7XrfIr09QvH",
+      "drive_verification_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
+      "historical_drive_report_id": "13butggb-KowkX0uVrOsB_dO14UYVzrNa",
+      "drive_report_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
+      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
     },
     {
       "version": "1.54.9",
@@ -218,12 +269,12 @@
       "apk_bytes": 81419579,
       "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
       "drive_zip_id": "1IgSMAJogZFA0rbxQCGG9JbkW4wYljQ-q",
-      "drive_review_zip_id": "1r6IUFJJ5VlGYJ0oYeDex4mNoD8J8aD38",
+      "drive_review_zip_id": null,
       "drive_apk_id": "1SXrVaoq_rsGIKo57XeDu0CQDJXB5bepl",
       "drive_visuals_id": "1p0XemiDV0V5-nvaFsSQCFcib1wtB0uPL",
       "drive_folder_id": "1k69XGlrCNASSl68dzWwUoaRTJeVc9ohm",
-      "source_folder_id": "1iOo71s1cmHcVFtBfa3rVOc2bAf-68zbW",
-      "development_export_folder_id": "1sNafTvi2E2RtlfGpSiR_O3yo5D_IlN4u",
+      "source_folder_id": null,
+      "development_export_folder_id": null,
       "qa_source_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
       "qa_apk_sha256": "8e54d2dcf02f3c2503588e63664d0ba753686b6c335eaa4384ca952b05cb175a",
       "remote_readback": "PASS exact source branch and immutable tag",
@@ -234,7 +285,15 @@
       "drive_readback": "Source6 receipts:5SHA256_BYTES+1XZ COMPLETE_STREAM_SIZE_ONLY; APK COMPLETE_STREAM_SIZE_ONLY;9-image QA ZIP SHA256_BYTES",
       "documentation_provenance": "Final branch documentation/export is separate from immutable APK/tag; completion receipt pins exact documentation ZIP.",
       "drive_provenance_id": "1tGaD36AnVupSplOC7q_nfEWVlHY7vm7O",
-      "drive_verification_id": "1K2Uf6J_xT7bW9ozezC3Fwpp3Cd1M4NyQ"
+      "drive_verification_id": "1K2Uf6J_xT7bW9ozezC3Fwpp3Cd1M4NyQ",
+      "historical_drive_review_zip_id": "1r6IUFJJ5VlGYJ0oYeDex4mNoD8J8aD38",
+      "drive_review_zip_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
+      "historical_source_folder_id": "1iOo71s1cmHcVFtBfa3rVOc2bAf-68zbW",
+      "source_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
+      "historical_development_export_folder_id": "1sNafTvi2E2RtlfGpSiR_O3yo5D_IlN4u",
+      "development_export_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
+      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
     },
     {
       "version": "1.55.0",
@@ -252,7 +311,7 @@
       "apk_sha256": "abbb207e329284d96e7c943eb0fa504a82cce8322181cf82f17cf5843a698bb9",
       "apk_bytes": 82898941,
       "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-      "source_folder_id": "15nuOA815cOg54nhlCZq9U3ROCQiy7lea",
+      "source_folder_id": null,
       "drive_folder_id": "1WfoTQQuOafgq_el0-EaY3Lz-GULaq2g3",
       "drive_apk_id": "1-og34FtoQUX4lqZ-qMWvGew8YevuB4Eo",
       "drive_apk_url": "https://drive.google.com/file/d/1-og34FtoQUX4lqZ-qMWvGew8YevuB4Eo/view?usp=drivesdk",
@@ -334,7 +393,108 @@
         "physical_ui": "NOT_EXECUTED",
         "productive_write_tests": "NOT_EXECUTED",
         "release_approved": false
-      }
+      },
+      "historical_source_folder_id": "15nuOA815cOg54nhlCZq9U3ROCQiy7lea",
+      "source_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
+      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
+    },
+    {
+      "version": "1.55.1",
+      "build": 106,
+      "status": "ORIGINAL_SIGNED_HOST_PASS_NATIVE_UI_OPEN_PRODUCTIVE_NOT_APPROVED",
+      "tag": "source/v1.55.1-build106",
+      "git_sha": "99ab63afbdfdb9fd32dac70134f9461b1ba15b17",
+      "tree_sha": "105689f42c907ef0efcee750157d4003b7661bae",
+      "source_sha256": "6da86aad5019a93520c50794b72f53b45b5847b7dd30dfb650f290fe99e22928",
+      "source_files": 2349,
+      "original_zip_sha256": "8babbceb30ed0b62f38a3924f8b3c14144da75891ad87070d79af3285ff1fc6b",
+      "original_zip_bytes": 162086805,
+      "original_zip_transport_encoding": "RAW_CONCAT_PARTS",
+      "drive_zip_part_ids": [],
+      "apk_sha256": "4b6bf5656dadfcb4a6b76baabe661c8d9f75f0a2d8c78431a4354f66a8192e3c",
+      "apk_bytes": 82866173,
+      "qa_apk_sha256": "1c7506c45c33dff8acb3b1675093a1eec6c67c529677ee6efc8da839df0452b0",
+      "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+      "source_folder_id": null,
+      "drive_folder_id": "1KMvN_g456vA0Z1VHh2RH4P5Jlgg4-LSH",
+      "drive_apk_id": "1S1QA408WtB-D0vNGy1trIhVXO7OpI9z6",
+      "drive_apk_url": "https://drive.google.com/file/d/1S1QA408WtB-D0vNGy1trIhVXO7OpI9z6/view?usp=drivesdk",
+      "drive_apk_part_ids": [
+        "1-3hvr--LnVsvW2Byi7W3yVW_F5XkC0c3",
+        "1rLjmgSiVyUZyNqAr_j-SbFw679snL1LO",
+        "1DcPU2AoMBlPWRjC3xgL-wWtycJVD64Sj"
+      ],
+      "drive_provenance_id": "1syhzr0OWgu0tJDNAbesQrb0msGDC0bvc",
+      "drive_sha256_id": "1losJ_9iilVpyS-z9yedaxZT0Ey2jpG4x",
+      "remote_readback": "PASS exact source branch and peeled immutable tag",
+      "drive_readback": "PASS three actual remote parts reconstructed; exact SHA256 and original signature;PASS 63 actual SHA256_BYTES receipts; full ZIP reconstructed and source fingerprint verified;METADATA_AND_COMPLETE_STREAM_SIZE_ONLY;no independent raw-id SHA claim",
+      "native_cloud_acceptance": "NOT_EXECUTED_EMULATOR_PACKAGE_MANAGER_UNAVAILABLE",
+      "device_acceptance": "NOT_EXECUTED",
+      "released": false,
+      "download_provided": true,
+      "historical_drive_zip_part_ids": [
+        "1SdGeaB2ZGjjwYvqehXbTzBwWewtvhqNe",
+        "1_n_DMUvnrJ4iHjM1x37rT3PZdWJVHQCE",
+        "1cONk0lJVzUdDTn3-1HWak-KvQFMAZ3W9",
+        "1Zo0obHoXd8q2qxMsfQNdCh_q-W8BE0qr",
+        "1l2qJYj7wRO6FkpuHy8LfMJ-FG5ncBq0P",
+        "1pMA4oeUblsRCl27ahFUSPYfOOQ7p58TP"
+      ],
+      "drive_zip_part_ids_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
+      "historical_source_folder_id": "1ZRL0poCxcagmVMN3-TJLoW0F4_fjVDZi",
+      "source_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
+      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
     }
-  ]
+  ],
+  "last_drive_cleanup": {
+    "at": "2026-10-26T20:37:06.297Z",
+    "status": "VERIFIED_DUPLICATES_REMOVED;36_LARGE_SINGLE_ARCHIVE_BYTE_COMPARISONS_OPEN",
+    "removed_files": 1216,
+    "removed_folders": 61,
+    "removed_bytes": 2256778662,
+    "initial_admin_files_including_external_ai_folder": 1472,
+    "final_admin_files": 256,
+    "moved_original_objects": 220,
+    "retained_moved_objects": 216,
+    "reports_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
+    "source_authority": "GITHUB",
+    "source_repository": "mihalhafner-collab/Gartenpirat-",
+    "app_source_tag": "source/v1.55.1-build106",
+    "app_source_commit": "99ab63afbdfdb9fd32dac70134f9461b1ba15b17",
+    "registry_file_id": "1lxLiMzK4NT7-ueLJvpsDU1gwbaxx610C",
+    "backups_untouched": [
+      "1aCQukc40aG5zD0PTgPQf1N_Oz-0XOf9L",
+      "1CA4SiFKmM1l6_xzfBs-MWHtKsr9kRyKv",
+      "1Zl3l25QTpVTMyM0VBRAOQKbwWCgZ896l"
+    ],
+    "daily_source_export_paused": {
+      "automation_id": "6ad8f3798fc081919a261c5eb3981ad1",
+      "is_enabled": false,
+      "readback_confirmed": true
+    },
+    "archive_limit": "Streamed downloads into workspace limited to32MiB;complete69MB inline fetch failed twice with Transport closed;no large archive byte equality inferred from metadata. Three smaller archives contain unique QA/older source members and remain.",
+    "preservation": "216 retained moved objects verified under same IDs/private access;four review ZIPs later proved redundant after their unique START metadata was preserved byte for byte in existing registry.",
+    "scope": "Administrative source/QA folders only;no app code/build/install/runtime data migration/invoice authority changes. Physical transition acceptance remains open.",
+    "validation": {
+      "source_lifecycle_regressions": {
+        "passed": 22,
+        "failed": 0
+      },
+      "source_privacy": {
+        "status": "PASS",
+        "files": 2349,
+        "operational_seed_rows": 0
+      },
+      "source_worktree_privacy": {
+        "status": "PASS",
+        "files": 6026,
+        "includes_ignored_untracked": true
+      },
+      "registry_readback_sha256": "ffb807b658ccdd269da7112770c66f9c6649d9b00e0aebb21b10ffee117cc780",
+      "release_identity_and_acceptance_unchanged": true,
+      "protection_flags_removed": 0
+    }
+  }
 }

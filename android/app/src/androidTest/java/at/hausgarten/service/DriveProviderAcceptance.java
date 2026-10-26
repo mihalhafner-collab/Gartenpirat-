@@ -40,7 +40,7 @@ final class DriveProviderAcceptance {
         }
     }
     static final class Setup implements AutoCloseable{
-        final PixelMcpInstrumentation.Isolated context;final Context io;final SharedPreferences prefs;final MockDrive provider;final PixelLocalStore store;final DriveSyncCoordinator.Files files;
+        final PixelMcpInstrumentation.Isolated context;final Context io;final SharedPreferences prefs;final MockDrive provider;final PixelLocalStore store;final LegacyDriveSyncFixture.Files files;
         Setup(PixelMcpInstrumentation qa)throws Exception{
             context=new PixelMcpInstrumentation.Isolated(qa.getTargetContext());prefs=context.getSharedPreferences("haus_garten",0);
             provider=new MockDrive(new File(context.getFilesDir(),context.prefix+"provider"));
@@ -51,9 +51,9 @@ final class DriveProviderAcceptance {
             io=new ContextWrapper(context){@Override public ContentResolver getContentResolver(){return resolver;}@Override public File getFilesDir(){File folder=new File(super.getFilesDir(),context.prefix+"backups");folder.mkdirs();return folder;}};
             Uri tree=DocumentsContract.buildTreeDocumentUri(AUTHORITY,"root");JSONObject base=qa.fixture().put("photos",new JSONArray());
             provider.add("HausGarten-Laptop.json",base.toString());prefs.edit().putString("drive_tree_uri",tree.toString()).putString("drive_snapshot",base.toString()).commit();
-            files=new DriveSyncCoordinator.Files(io,tree,prefs);store=new PixelLocalStore(io);
+            files=new LegacyDriveSyncFixture.Files(io,tree,prefs);store=new PixelLocalStore(io);
         }
-        JSONObject sync()throws Exception{return DriveSyncCoordinator.run(context,store,files,"qadevice");}
+        JSONObject sync()throws Exception{return LegacyDriveSyncFixture.run(context,store,files,"qadevice");}
         @Override public void close(){store.close();}
     }
     static JSONObject action(String client,String id)throws Exception{return SyntheticBusinessData.object().put("client_id",client).put("kind","worklog").put("payload",SyntheticBusinessData.object().put("id",id).put("customer_id","qa_c1").put("work_date","2026-10-12").put("activity","QA "+id).put("hours",1));}
@@ -61,32 +61,32 @@ final class DriveProviderAcceptance {
     static String pkg(JSONObject action)throws Exception{return SyntheticBusinessData.object().put("format",1).put("actions",new JSONArray().put(action)).toString();}
     static void run(PixelMcpInstrumentation qa)throws Exception{
         qa.probe("SAF read phase caches inventory and verified bytes but refreshes every write boundary",()->{try(Setup s=new Setup(qa)){
-            String value="qa_verified_bytes",name="HausGarten-Commit-"+DriveRestClient.sha256(value.getBytes(StandardCharsets.UTF_8))+".json",id=s.provider.add(name,value);
+            String value="qa_verified_bytes",name="HausGarten-Commit-"+LegacyDriveRestFixture.sha256(value.getBytes(StandardCharsets.UTF_8))+".json",id=s.provider.add(name,value);
             s.files.beginRead();int before=s.provider.queries;s.files.documents();s.files.documents();qa.yes(s.provider.queries==before+1);
-            DriveSyncCoordinator.Doc doc=null;for(DriveSyncCoordinator.Doc d:s.files.documents())if(d.id.equals(id))doc=d;
+            LegacyDriveSyncFixture.Doc doc=null;for(LegacyDriveSyncFixture.Doc d:s.files.documents())if(d.id.equals(id))doc=d;
             qa.yes(doc!=null);byte[] first=s.files.readImmutable(doc);s.provider.replace(id,"qa_changed_same_name_and_time".getBytes(StandardCharsets.UTF_8));qa.yes(Arrays.equals(first,s.files.readImmutable(doc)));
             s.files.endRead();qa.yes(!Arrays.equals(first,s.files.readImmutable(doc)));qa.yes(s.files.documents().size()>0&&s.provider.queries>before+1);
             s.provider.nullQuery=true;try{s.files.documents();throw new AssertionError("null provider query accepted");}catch(SyncIoFailure e){qa.yes(e.code.equals("PROVIDER_QUERY_FAILED"));}finally{s.provider.nullQuery=false;}
         }});
         qa.probe("SAF conflicting duplicate masters produce stable diagnosis without overwrite",()->{try(Setup s=new Setup(qa)){
             s.provider.add("HausGarten-Laptop.json", "{\"qa_conflict\":true}");String before=s.store.snapshotText("");
-            try{s.sync();throw new AssertionError("different masters accepted");}catch(Exception error){qa.yes(DriveSyncCoordinator.failureCode(error).equals("REMOTE_DUPLICATES_DIFFER"));}
+            try{s.sync();throw new AssertionError("different masters accepted");}catch(Exception error){qa.yes(LegacyDriveSyncFixture.failureCode(error).equals("REMOTE_DUPLICATES_DIFFER"));}
             qa.yes(before.equals(s.store.snapshotText("")));qa.yes(s.context.getSharedPreferences("haus_garten",0).getBoolean("drive_user_action_required",false));
         }});
 
         qa.probe("slow Drive read never holds SQLite and concurrent run joins without second network request",()->{try(Setup s=new Setup(qa)){
             java.util.concurrent.CountDownLatch entered=new java.util.concurrent.CountDownLatch(1),release=new java.util.concurrent.CountDownLatch(1);
             java.util.concurrent.atomic.AtomicInteger reads=new java.util.concurrent.atomic.AtomicInteger();
-            DriveSyncCoordinator.Files slow=new DriveSyncCoordinator.Files(s.io,Uri.parse(s.prefs.getString("drive_tree_uri","")),s.prefs){
+            LegacyDriveSyncFixture.Files slow=new LegacyDriveSyncFixture.Files(s.io,Uri.parse(s.prefs.getString("drive_tree_uri","")),s.prefs){
                 @Override String read(String name)throws Exception{if(reads.incrementAndGet()==1){entered.countDown();if(!release.await(30,java.util.concurrent.TimeUnit.SECONDS))throw new IOException("QA slow provider timeout");}return super.read(name);}
             };
             java.util.concurrent.ExecutorService workers=java.util.concurrent.Executors.newFixedThreadPool(2);
-            java.util.concurrent.Future<JSONObject> first=workers.submit(()->DriveSyncCoordinator.run(s.context,s.store,slow,"qadevice"));
+            java.util.concurrent.Future<JSONObject> first=workers.submit(()->LegacyDriveSyncFixture.run(s.context,s.store,slow,"qadevice"));
             try{
                 qa.yes(entered.await(10,java.util.concurrent.TimeUnit.SECONDS));
                 java.util.concurrent.Future<JSONObject> local=workers.submit(()->{JSONObject saved=s.store.execute("create_customer_work_record",qa.args("qa-during-slow-provider"));qa.yes(s.store.getState().getJSONArray("pending").length()==1);return saved;});
                 qa.yes(local.get(10,java.util.concurrent.TimeUnit.SECONDS).getBoolean("ok"));
-                JSONObject joined=DriveSyncCoordinator.run(s.context,s.store,s.files,"qadevice");qa.yes(joined.getBoolean("coalesced")&&!joined.getBoolean("cloud_confirmed")&&reads.get()==1);
+                JSONObject joined=LegacyDriveSyncFixture.run(s.context,s.store,s.files,"qadevice");qa.yes(joined.getBoolean("coalesced")&&!joined.getBoolean("cloud_confirmed")&&reads.get()==1);
             }finally{release.countDown();workers.shutdown();}
             qa.yes(first.get(120,java.util.concurrent.TimeUnit.SECONDS).getBoolean("ok"));
             qa.yes(s.store.getState().getJSONObject("master").getJSONArray("worklogs").length()==1&&s.store.pendingActions().length()==0);
@@ -153,19 +153,19 @@ final class DriveProviderAcceptance {
             // This explicit standalone compatibility validator receives the same
             // original legacy queue, not the final app's zero-active-sync projection.
             JSONObject historicalState=SyntheticBusinessData.object(s.store.getState().toString());historicalState.put("sync_queue",new JSONObject(historicalState.getJSONObject("legacy_queue_inventory").toString()));LegacyBackupPolicy.require(historicalState,true,true,true,false,"provider_readback","LEGACY_SOURCE_CHANGED",previewHash);
-            qa.rejected(()->LegacyConflictBackup.createVerified(s.io,s.store,"qa-provider-stale-backup",s.files,"0".repeat(64)));
-            DriveSyncCoordinator.Files drifting=new DriveSyncCoordinator.Files(s.io,Uri.parse(s.prefs.getString("drive_tree_uri","")),s.prefs){int reads;@Override String read(String name)throws Exception{String raw=super.read(name);if(name.equals("HausGarten-Laptop.json")&&++reads==2)return SyntheticBusinessData.object(raw).put("concurrent_evidence","changed").toString();return raw;}};
-            boolean driftRejected=false;try{LegacyConflictBackup.createVerified(s.io,s.store,"qa-provider-drifting-backup",drifting,previewHash);}catch(IOException changed){driftRejected=changed.getMessage().contains("Drive-Quelle während der Sicherung geändert");}qa.yes(driftRejected);qa.yes(s.store.ownerValue("legacy-backup-request:"+PixelMcpWriteTools.hash("qa-provider-drifting-backup"),"").isEmpty());
+            qa.rejected(()->LegacyConflictBackupFixture.createVerified(s.io,s.store,"qa-provider-stale-backup",s.files,"0".repeat(64)));
+            LegacyDriveSyncFixture.Files drifting=new LegacyDriveSyncFixture.Files(s.io,Uri.parse(s.prefs.getString("drive_tree_uri","")),s.prefs){int reads;@Override String read(String name)throws Exception{String raw=super.read(name);if(name.equals("HausGarten-Laptop.json")&&++reads==2)return SyntheticBusinessData.object(raw).put("concurrent_evidence","changed").toString();return raw;}};
+            boolean driftRejected=false;try{LegacyConflictBackupFixture.createVerified(s.io,s.store,"qa-provider-drifting-backup",drifting,previewHash);}catch(IOException changed){driftRejected=changed.getMessage().contains("Drive-Quelle während der Sicherung geändert");}qa.yes(driftRejected);qa.yes(s.store.ownerValue("legacy-backup-request:"+PixelMcpWriteTools.hash("qa-provider-drifting-backup"),"").isEmpty());
             qa.rejected(()->s.files.readLegacyPhoto(SyntheticBusinessData.object(legacyPhoto.toString()).put("filename","../outside.gif")));
             qa.rejected(()->s.files.readLegacyPhoto(SyntheticBusinessData.object(legacyPhoto.toString()).put("filename","https://outside.invalid/x.gif")));
-            s.provider.names.put(legacyFile,"temporarily-missing.gif");boolean missingLegacy=false;try{LegacyConflictBackup.createVerified(s.io,s.store,"qa-provider-missing-legacy",s.files,previewHash);}catch(IOException absent){missingLegacy=true;}qa.yes(missingLegacy);s.provider.names.put(legacyFile,legacyPhoto.getString("filename"));
-            DriveSyncCoordinator.Files photoDrift=new DriveSyncCoordinator.Files(s.io,Uri.parse(s.prefs.getString("drive_tree_uri","")),s.prefs){int reads;@Override byte[] readLegacyPhoto(JSONObject photo)throws Exception{byte[] raw=super.readLegacyPhoto(photo);if(++reads==2)raw[raw.length-1]^=1;return raw;}};
-            boolean mediaDrift=false;try{LegacyConflictBackup.createVerified(s.io,s.store,"qa-provider-legacy-drift",photoDrift,previewHash);}catch(IOException changed){mediaDrift=changed.getMessage().contains("Legacy-Foto während");}qa.yes(mediaDrift&&s.store.ownerValue("legacy-backup-request:"+PixelMcpWriteTools.hash("qa-provider-legacy-drift"),"").isEmpty());
-            JSONObject backup=LegacyConflictBackup.createVerified(s.io,s.store,"qa-provider-seven-backup",s.files,previewHash),meta=backup.getJSONObject("backup"),preview=backup.getJSONObject("preview");
+            s.provider.names.put(legacyFile,"temporarily-missing.gif");boolean missingLegacy=false;try{LegacyConflictBackupFixture.createVerified(s.io,s.store,"qa-provider-missing-legacy",s.files,previewHash);}catch(IOException absent){missingLegacy=true;}qa.yes(missingLegacy);s.provider.names.put(legacyFile,legacyPhoto.getString("filename"));
+            LegacyDriveSyncFixture.Files photoDrift=new LegacyDriveSyncFixture.Files(s.io,Uri.parse(s.prefs.getString("drive_tree_uri","")),s.prefs){int reads;@Override byte[] readLegacyPhoto(JSONObject photo)throws Exception{byte[] raw=super.readLegacyPhoto(photo);if(++reads==2)raw[raw.length-1]^=1;return raw;}};
+            boolean mediaDrift=false;try{LegacyConflictBackupFixture.createVerified(s.io,s.store,"qa-provider-legacy-drift",photoDrift,previewHash);}catch(IOException changed){mediaDrift=changed.getMessage().contains("Legacy-Foto während");}qa.yes(mediaDrift&&s.store.ownerValue("legacy-backup-request:"+PixelMcpWriteTools.hash("qa-provider-legacy-drift"),"").isEmpty());
+            JSONObject backup=LegacyConflictBackupFixture.createVerified(s.io,s.store,"qa-provider-seven-backup",s.files,previewHash),meta=backup.getJSONObject("backup"),preview=backup.getJSONObject("preview");
             qa.yes(meta.getBoolean("complete")&&meta.getString("confirmation_scope").equals("provider_readback")&&!meta.getBoolean("cloud_confirmed")&&meta.getInt("legacy_photo_originals")==1);
             File zipFile=new File(new File(new File(s.io.getNoBackupFilesDir(),"legacy-conflict-backups"),meta.getString("backup_id")),"backup.zip");try(java.util.zip.ZipFile zip=new java.util.zip.ZipFile(zipFile)){JSONArray index=new JSONArray(new String(zipBytes(zip,"legacy-photo-index.json"),StandardCharsets.UTF_8));JSONObject item=index.getJSONObject(0);qa.yes(index.length()==1&&item.getString("photo_id").equals(legacyPhoto.getString("id"))&&item.getString("observed_sha256").equals(PhotoAttachmentStore.sha256(legacyBytes)));qa.yes(Arrays.equals(legacyBytes,zipBytes(zip,item.getString("archive_path"))));}
             qa.yes(s.store.photoAttachmentStore().read(media).length==media.getInt("byte_size"));
-            LegacyConflictBackup.verify(s.io,s.store,meta.getString("backup_id"),preview.getString("preview_hash"));
+            LegacyConflictBackupFixture.verify(s.io,s.store,meta.getString("backup_id"),preview.getString("preview_hash"));
             PixelOwnerAccess owner=new PixelOwnerAccess(s.io,s.store);JSONArray entries=preview.getJSONArray("entries");
             JSONObject close=SyntheticBusinessData.object().put("request_id","qa-provider-bulk-close").put("backup_id",meta.getString("backup_id")).put("expected_preview_hash",previewHash).put("confirmed",true);
             String queueBefore=PixelMcpWriteTools.hash(s.store.pendingActions()),wireBefore=PixelMcpWriteTools.hash(s.files.readActions(MOBILE)),historyBefore=PixelMcpWriteTools.hash(state.getJSONObject("master").optJSONObject("owner_conflict_history")),receipt="receipt:mcp_owner_"+PixelMcpWriteTools.hash(close.getString("request_id"));int providerBefore=s.provider.ioCalls;qa.yes(entries.length()==7&&s.store.ownerValue(receipt,"").isEmpty());
@@ -177,7 +177,7 @@ final class DriveProviderAcceptance {
             // the seven retired decisions or consume their original action IDs.
             s.sync();qa.yes(s.store.pendingActions().length()==7&&queueBefore.equals(PixelMcpWriteTools.hash(s.store.pendingActions()))&&before.equals(PixelDriveState.integrity(s.store.getState().getJSONObject("master")).getString("business_state_hash")));
             qa.yes(historyBefore.equals(PixelMcpWriteTools.hash(s.store.getState().getJSONObject("master").optJSONObject("owner_conflict_history")))&&s.files.readActions(MOBILE).length()==8&&wireBefore.equals(PixelMcpWriteTools.hash(s.files.readActions(MOBILE))));
-            s.sync();qa.yes(s.store.getState().getJSONObject("legacy_queue_inventory").getInt("total")==7&&s.store.getState().getJSONObject("sync_queue").getInt("total")==0&&!s.prefs.getBoolean("drive_cloud_confirmed",false));LegacyConflictBackup.verify(s.io,s.store,meta.getString("backup_id"),preview.getString("preview_hash"));
+            s.sync();qa.yes(s.store.getState().getJSONObject("legacy_queue_inventory").getInt("total")==7&&s.store.getState().getJSONObject("sync_queue").getInt("total")==0&&!s.prefs.getBoolean("drive_cloud_confirmed",false));LegacyConflictBackupFixture.verify(s.io,s.store,meta.getString("backup_id"),preview.getString("preview_hash"));
         }});
         qa.probe("Android provider wrong readback never acknowledges local action",()->{try(Setup s=new Setup(qa)){
             s.store.execute("create_customer_work_record",qa.args("qa-provider-bad-read"));s.provider.badReadback=true;
@@ -202,7 +202,7 @@ final class DriveProviderAcceptance {
             String before=s.store.snapshotText(""),pending=PixelMcpWriteTools.hash(s.store.pendingActions()),attachment=PixelMcpWriteTools.hash(metadata),record=PixelMcpWriteTools.hash(PixelMcpWriteTools.find(PixelMcpReadTools.effective(s.store.getState()).getJSONArray("photos"),"qa_remote_photo"));int providerBefore=s.provider.ioCalls;boolean writtenBefore=s.provider.written;
             try{s.store.loadPhotoData("qa_remote_photo");throw new AssertionError("QA_PUBLIC_PHOTO_FETCH_REACTIVATED");}catch(IOException missing){qa.yes(missing.getMessage().equals("LOCAL_ORIGINAL_MISSING"));}
             PixelMcpReadTools publicTools=new PixelMcpReadTools(s.store::getState,s.store,new PixelOwnerAccess(s.io,s.store));try{publicTools.call("get_file_metadata",new JSONObject().put("resource_type","photo").put("resource_id","qa_remote_photo"));throw new AssertionError("QA_PUBLIC_ORIGINAL_READ_REACTIVATED");}catch(PixelMcpWriteTools.Rejected missing){qa.yes(missing.code.equals("LOCAL_ORIGINAL_MISSING"));}
-            try{DriveSyncCoordinator.fetchPhoto(s.io,metadata,s.store.photoAttachmentStore());throw new AssertionError("QA_PUBLIC_NETWORK_FALLBACK_REACTIVATED");}catch(IOException missing){qa.yes(missing.getMessage().equals("LOCAL_ORIGINAL_MISSING"));}
+            try{LegacyDriveSyncFixture.fetchPhoto(s.io,metadata,s.store.photoAttachmentStore());throw new AssertionError("QA_PUBLIC_NETWORK_FALLBACK_REACTIVATED");}catch(IOException missing){qa.yes(missing.getMessage().equals("LOCAL_ORIGINAL_MISSING"));}
             qa.yes(s.provider.ioCalls==providerBefore&&s.provider.written==writtenBefore&&before.equals(s.store.snapshotText(""))&&pending.equals(PixelMcpWriteTools.hash(s.store.pendingActions()))&&attachment.equals(PixelMcpWriteTools.hash(s.store.photoAttachment("qa_remote_photo")))&&record.equals(PixelMcpWriteTools.hash(PixelMcpWriteTools.find(PixelMcpReadTools.effective(s.store.getState()).getJSONArray("photos"),"qa_remote_photo"))));
             qa.yes(s.store.pendingActions().length()==0&&s.store.getState().getInt("storage_contract_version")==3&&s.store.getState().getString("drive_role").equals("backup_only")&&PhotoAttachmentStore.sha256(java.nio.file.Files.readAllBytes(s.provider.file(original).toPath())).equals(hash));try{s.store.photoAttachmentStore().read(metadata);throw new AssertionError("QA_MISSING_ORIGINAL_WAS_SILENTLY_IMPORTED");}catch(IOException expected){}
         }});

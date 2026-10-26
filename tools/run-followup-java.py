@@ -26,7 +26,7 @@ names = ['DeletionBackupStore', 'SnapshotProjection', 'OwnerCommand', 'EntityCon
          'WorklogRelationRules', 'ManualChangeRules', 'GardenRules', 'SyncActionOrder', 'DriveRestClient', 'DrivePublication', 'McpSchema', 'McpFileTransfer', 'InvoiceDraftRules', 'PixelMcpOwnerTools', 'OwnerJournalRules', 'DriveJournalRules', 'OrderReviewRules', 'PixelTunnelConfig',
          'PixelTunnelWire', 'WorkSessionPauseRules']
 names += ['DriveRolePolicy','BackgroundWorkDispatch','LocalMigrationInventory','WorkSessionTimingRules','SyncCommitRules','OwnerRequestTransactions','ReceiptRetentionRules','SyncFailureRules','LocalTestTombstone','ActiveWorkProtection','ImmutableStateReference','CatalogSemanticHash','SyncQueueCounters','VerifiedSyncCache','SyncIoFailure','CalendarRecoveryRules','OpenMeteoWeatherSource','CalendarSetupRules','PlanningWire']
-names += ['BackupCrypto', 'EncryptedBackupArchive', 'ServiceCatalogBootstrap', 'BackupFilePins', 'DriveBackupUpload', 'BackupScheduleRules', 'BackupStorageBudget']
+names += ['BackupCrypto', 'BackupRecoveryExport', 'EncryptedBackupArchive', 'ServiceCatalogBootstrap', 'BackupFilePins', 'DriveBackupUpload', 'BackupScheduleRules', 'BackupStorageBudget']
 names += ['LocalAuthorityRules','LocalWorkflowTools','LocalWorkflowApplicationService','RevierRepository','RevierRules','RevierApplicationService','OfferDecisionRules','OfferDecisionService','BackupDocumentTransfer','BackupDatasetExchange','BackupPortableFormat','LocalBillingRules','OfferDecisionValidation','LocalFinancialValidation','LocalFinancialOriginals','IssuedInvoiceRules']
 names += ['LocalInvoiceCreationRules', 'InvoiceIssueReviewRules', 'RestoredBrowserReviewRules', 'BrowserMediaFiles', 'BrowserMediaRepositoryRules']
 tests = sorted((ROOT/'tests/java/at/hausgarten/service').glob('*Tests.java'))
@@ -48,7 +48,7 @@ def run(command):
     return result.stdout
 
 run([shutil.which('javac'), '-encoding', 'UTF-8', '-cp', cp, '-d', str(classes),
-     *[str(src/(name+'.java')) for name in names], str(ROOT/'tests/java/at/hausgarten/service/SyntheticBusinessData.java'), *map(str, tests)])
+     *[str((src if (src/(name+'.java')).exists() else ROOT/'android/app/src/androidTest/java/at/hausgarten/service')/(name+'.java')) for name in names], str(ROOT/'android/app/src/androidTest/java/at/hausgarten/service/LegacyDriveRestFixture.java'), str(ROOT/'tests/java/at/hausgarten/service/SyntheticBusinessData.java'), *map(str, tests)])
 results = []
 for test in tests:
     # Execute real Tink on the host JCE without Android stub classes. The heap is

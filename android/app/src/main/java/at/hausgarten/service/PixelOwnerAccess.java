@@ -35,8 +35,7 @@ final class PixelOwnerAccess implements PixelMcpOwnerTools.Access {
         if(name.equals("request_invoice_issue")||name.equals("retry_invoice_document_job"))try{LocalInvoiceJobs.schedule(context);}catch(Exception deferred){result.put("document_scheduling_pending",true);}
         if(name.equals("request_sync"))result=DriveSyncCoordinator.requestExplicit(context,request);
         else if(!LocalWorkflowTools.handles(name)&&!AppointmentTools.write(name)&&!Arrays.asList("begin_file_upload","write_file_chunk","create_backup","set_personal_paid","update_settings","prepare_invoice_share").contains(name)){
-            if(DriveRolePolicy.businessSyncAllowed())DriveSyncCoordinator.request(context,1000);
-            else try{FullBackupJob.install(context);}catch(Exception deferred){result.put("background_scheduling_pending",true).put("scheduling_code","BACKUP_SCHEDULING_PENDING");}
+            try{FullBackupJob.install(context);}catch(Exception deferred){result.put("background_scheduling_pending",true).put("scheduling_code","BACKUP_SCHEDULING_PENDING");}
         }
         return new JSONObject().put("ok",true).put("data",result).put("cloud_confirmed",false);
     }

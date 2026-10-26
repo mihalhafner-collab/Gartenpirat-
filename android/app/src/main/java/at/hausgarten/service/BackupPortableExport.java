@@ -17,15 +17,18 @@ final class BackupPortableExport {
     private static final ReentrantLock RUNNING=new ReentrantLock();
     private final Context context;private final PixelLocalStore store;
     BackupPortableExport(Context context,PixelLocalStore store){this.context=context;this.store=store;}
+    static void requireLocalDestination(Uri uri)throws IOException {
+        if(uri==null||!"content".equals(uri.getScheme())||!"com.android.externalstorage.documents".equals(uri.getAuthority())||!android.provider.DocumentsContract.isTreeUri(uri))throw new IOException("PORTABLE_LOCAL_DESTINATION_REQUIRED");
+    }
     JSONObject createAndExport(String requestId,Uri treeUri,boolean plaintextConfirmed)throws Exception {
-        if(!plaintextConfirmed)throw new IOException("PORTABLE_PLAINTEXT_CONFIRMATION_REQUIRED");request(requestId);BackupSafService.requireTree(context,treeUri);
+        if(!plaintextConfirmed)throw new IOException("PORTABLE_PLAINTEXT_CONFIRMATION_REQUIRED");request(requestId);requireLocalDestination(treeUri);BackupSafService.requireTree(context,treeUri);
         String backupId="portable_"+PixelMcpWriteTools.hash(requestId).substring(0,32);LocalBackupCoordinator service=new LocalBackupCoordinator(context,store);boolean exists=false;
         try{JSONObject job=service.status(backupId);if(!job.getString("requestId").equals(requestId)||!job.getJSONObject("destination").optString("kind").equals("saf")||!job.getJSONObject("destination").optString("purpose").equals("portable_export")||!job.getJSONObject("destination").optString("treeUri").equals(treeUri.toString()))throw new IOException("PORTABLE_REPLAY_MISMATCH");exists=true;}catch(IOException absent){if(!"BACKUP_JOB_NOT_FOUND".equals(absent.getMessage()))throw absent;}
         if(!exists){JSONObject checkpoint=new BackupSettingsRepository(context,store).browser();service.createWithIntent(requestId,backupId,new JSONObject().put("kind","saf").put("treeUri",treeUri.toString()).put("purpose","portable_export"),checkpoint.getJSONObject("browser"),"manual");}
         return exportBackup(requestId,backupId,treeUri,true);
     }
     JSONObject exportBackup(String requestId,String backupId,Uri treeUri,boolean plaintextConfirmed)throws Exception {
-        if(!plaintextConfirmed)throw new IOException("PORTABLE_PLAINTEXT_CONFIRMATION_REQUIRED");request(requestId);BackupSafService.requireTree(context,treeUri);if(store.getWritableDatabase().inTransaction())throw new IOException("PORTABLE_REQUIRES_OUTSIDE_TRANSACTION");if(!RUNNING.tryLock())throw new IOException("PORTABLE_RUNNER_BUSY");
+        if(!plaintextConfirmed)throw new IOException("PORTABLE_PLAINTEXT_CONFIRMATION_REQUIRED");request(requestId);requireLocalDestination(treeUri);BackupSafService.requireTree(context,treeUri);if(store.getWritableDatabase().inTransaction())throw new IOException("PORTABLE_REQUIRES_OUTSIDE_TRANSACTION");if(!RUNNING.tryLock())throw new IOException("PORTABLE_RUNNER_BUSY");
         try{
             LocalBackupCoordinator service=new LocalBackupCoordinator(context,store);LocalBackupDataset.Captured captured=service.captureForPortable(backupId);JSONObject identity=new BackupDeviceGuard(context).current();String operation=PixelMcpWriteTools.hash(new JSONObject().put("request_id",requestId).put("identity",identity)).substring(0,40),key="portable_export:"+PixelMcpWriteTools.hash(requestId);
             String fingerprint=PixelMcpWriteTools.hash(new JSONObject().put("request_id",requestId).put("backup_id",backupId).put("tree_uri",treeUri.toString()).put("database_sha256",captured.metadata.getJSONObject("database").getString("sha256")).put("identity",identity).put("plaintext_confirmed",true));

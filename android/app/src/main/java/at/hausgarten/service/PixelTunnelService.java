@@ -25,9 +25,6 @@ public final class PixelTunnelService extends Service implements McpSyncHost {
     private ConnectivityManager.NetworkCallback callback;
     private PixelLocalStore store;
     private boolean recoveryBlocked;
-    private final Handler drivePollHandler=new Handler(Looper.getMainLooper());
-    private final Runnable drivePoll=new Runnable(){public void run(){if(running&&!closing.get()&&new PixelTunnelConfig(PixelTunnelService.this).enabled()){DriveSyncCoordinator.poll(PixelTunnelService.this);drivePollHandler.postDelayed(this,SyncWakeup.ACTIVE_POLL_MS);}}};
-
     @Override public void onCreate(){
         super.onCreate();
         if(recoveryStartBlocked(this)){recoveryBlocked=true;stopSelf();return;}
@@ -38,7 +35,7 @@ public final class PixelTunnelService extends Service implements McpSyncHost {
         manager=(ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);
         callback=new ConnectivityManager.NetworkCallback(){private Network ready;
             @Override public void onLost(Network network){if(network.equals(ready))ready=null;if(http!=null)http.close();}
-            @Override public void onCapabilitiesChanged(Network network,NetworkCapabilities caps){if(caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)){if(!network.equals(ready)){ready=network;if(running&&!closing.get())DriveSyncCoordinator.request(PixelTunnelService.this,0);}}else if(network.equals(ready))ready=null;}
+            @Override public void onCapabilitiesChanged(Network network,NetworkCapabilities caps){if(caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)){if(!network.equals(ready)){ready=network;}}else if(network.equals(ready))ready=null;}
         };
         manager.registerDefaultNetworkCallback(callback);
     }
@@ -47,7 +44,6 @@ public final class PixelTunnelService extends Service implements McpSyncHost {
         if(intent!=null&&STOP.equals(intent.getAction())){new PixelTunnelConfig(this).enabled(false);stopSelf();return START_NOT_STICKY;}
         PixelTunnelConfig config=new PixelTunnelConfig(this);
         if(!config.enabled()||!config.configured()){status("not_configured","Zweiten Tunnel einmalig einrichten.");stopSelf();return START_NOT_STICKY;}
-        drivePollHandler.removeCallbacks(drivePoll);drivePollHandler.post(drivePoll);
         if(worker==null||!worker.isAlive()){worker=new Thread(this::runTunnel,"pixel-mcp-tunnel");worker.start();}
         return START_STICKY;
     }
@@ -64,7 +60,7 @@ public final class PixelTunnelService extends Service implements McpSyncHost {
             try{
                 PixelTunnelConfig config=new PixelTunnelConfig(this);if(!config.enabled())break;
                 if(!online()){status("offline","Kein Internet. Verbindung wird automatisch erneut versucht.");Thread.sleep(5000);continue;}
-                readState(); // Don't expose bundled/stale seed data when Drive has never been configured.
+                readState(); // Validate the local state before exposing the existing MCP connection.
                 http=new PixelTunnelWire.HttpTransport(config.secret(),config.organization());
                 PixelMcpWriteTools.Sink allowed=config.writeEnabled()?new PixelMcpWriteTools.Sink(){
                     public boolean writable(){return new PixelTunnelConfig(PixelTunnelService.this).writeEnabled();}
@@ -86,7 +82,7 @@ public final class PixelTunnelService extends Service implements McpSyncHost {
             }catch(PixelTunnelWire.AccessError denied){status("auth_error",denied.userMessage());new PixelTunnelConfig(this).enabled(false);break;}
             catch(InterruptedException stopped){Thread.currentThread().interrupt();break;}
             catch(Exception failed){
-                failures++;status("reconnecting","Verbindung oder gespeicherten Drive-Stand prüfen. Neuer Versuch folgt.");
+                failures++;status("reconnecting","Verbindung oder lokalen Datenstand prüfen. Neuer Versuch folgt.");
                 try{Thread.sleep(Math.min(60000,1000L << Math.min(failures,6)));}catch(InterruptedException stopped){Thread.currentThread().interrupt();break;}
             }finally{if(http!=null)http.close();}
         }
@@ -94,10 +90,7 @@ public final class PixelTunnelService extends Service implements McpSyncHost {
         store.close();
     }
     private JSONObject readState() throws Exception {
-        SharedPreferences p=getSharedPreferences("haus_garten",MODE_PRIVATE);
-        String snapshot=store.snapshotText("");
-        if(snapshot.isEmpty())throw new IOException("Zuerst Drive-Abgleich in der App ausführen.");
-        JSONObject state=store.getState();if(state.has("error"))throw new IOException("Gespeicherten Drive-Stand prüfen.");return state;
+        JSONObject state=store.getState();if(state.has("error"))throw new IOException("Gespeicherten lokalen Datenstand prüfen.");return state;
     }
     private Notification notice(String detail){
         PendingIntent open=PendingIntent.getActivity(this,0,new Intent(this,PixelTunnelActivity.class),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
@@ -123,7 +116,6 @@ public final class PixelTunnelService extends Service implements McpSyncHost {
         return result;
     }
     @Override public void onDestroy(){
-        drivePollHandler.removeCallbacks(drivePoll);
         closing.set(true);running=false;if(http!=null)http.close();if(worker!=null)worker.interrupt();
         if(manager!=null&&callback!=null)try{manager.unregisterNetworkCallback(callback);}catch(Exception ignored){}
         if(worker==null&&store!=null){store.close();store=null;}

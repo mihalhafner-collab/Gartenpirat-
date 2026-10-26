@@ -14,6 +14,7 @@ final class DriveBackupUpload {
     DriveBackupUpload(DriveRestClient client){this.client=client;}
 
     JSONObject upload(File sealed,String backupId,String expectedSha256,Checkpoint checkpoint)throws Exception {
+        if(!DriveRestClient.validId(client.folder))throw new IOException("BACKUP_DRIVE_DESTINATION_REQUIRED");
         if(backupId==null||!backupId.matches("[A-Za-z0-9_-]{8,100}")||!expectedSha256.matches("[0-9a-f]{64}")||!sealed.isFile()||java.nio.file.Files.isSymbolicLink(sealed.toPath())||sealed.length()<1)throw new IOException("BACKUP_UPLOAD_SOURCE_INVALID");
         long size=sealed.length();if(!expectedSha256.equals(EncryptedBackupArchive.sha256(sealed)))throw new IOException("BACKUP_UPLOAD_SOURCE_CHANGED");
         String binding=PixelMcpWriteTools.hash(new JSONObject().put("backupId",backupId).put("folder",client.folder).put("size",size).put("sha256",expectedSha256));

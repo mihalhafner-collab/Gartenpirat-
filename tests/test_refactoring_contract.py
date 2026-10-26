@@ -4,7 +4,7 @@ import json
 import unittest
 import tempfile
 from pathlib import Path
-from tools.check_refactoring_contract import BASELINE, differences, approved_evolution, approved_revier_timer, approved_revier_local_workflows, approved_backup_only_transition, approved_local_resolution_repair, approved_invoice_business_date_repair, javascript_bridges
+from tools.check_refactoring_contract import BASELINE, differences, approved_evolution, approved_revier_timer, approved_revier_local_workflows, approved_backup_only_transition, approved_local_resolution_repair, approved_invoice_business_date_repair, approved_drive_transport_removal, javascript_bridges
 
 
 class RefactoringContractTests(unittest.TestCase):
@@ -127,6 +127,20 @@ class RefactoringContractTests(unittest.TestCase):
         self.assertEqual(dated_check(damaged),['tools'])
         invalid=deepcopy(local);invalid['invoice_business_date_repair_v1']['after']='unreviewed'
         with self.assertRaisesRegex(ValueError,'Unapproved invoice business date repair'):dated_check(dated,invalid)
+        retired=deepcopy(dated)
+        tool=next(t for t in retired['tools'] if t['name']=='restore_backup')
+        prefix=tool['description'].split(' Private Eigentümerfunktion.',1)[0]
+        replacement='Stillgelegter Teilrestore: in jedem Autoritätsmodus mit RESTORE_FULL_REPLACEMENT_REQUIRED gesperrt. Vollständigen verschlüsselten Bestand am Gerät prüfen und ausdrücklich ersetzen; keine automatische Vermischung.'
+        tool['description']=tool['description'].replace(prefix,replacement,1)
+        retirement_check=lambda value:approved_drive_transport_removal(self.contract,value,delta,repair,timer,local)
+        self.assertEqual(retirement_check(retired),[])
+        for field,value in [('description','Unreviewed restore'),('inputSchema',{}),('annotations',{})]:
+            damaged=deepcopy(retired);next(t for t in damaged['tools'] if t['name']=='restore_backup')[field]=value
+            self.assertEqual(retirement_check(damaged),['tools'])
+        damaged=deepcopy(retired);damaged['bootstrap']['customers']=[{'id':'qa_unreviewed'}]
+        self.assertEqual(retirement_check(damaged),['bootstrap'])
+        damaged=deepcopy(retired);damaged['tools'][0]['annotations']['readOnlyHint']=False
+        self.assertEqual(retirement_check(damaged),['tools'])
 
     def test_revier_timer_preserves_every_existing_tool_and_bridge(self):
         delta=json.loads((BASELINE.parent/'sync-optimization-contract-v1.json').read_text())
