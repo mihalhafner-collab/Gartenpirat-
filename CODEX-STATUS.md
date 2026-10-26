@@ -57,6 +57,17 @@ Erster Kompilierungsanlauf benötigte korrekten Cloud-JDK-/Proxy-/CA-Pfad; danac
 bestand die echte Gradle-Kompilierung. Vollständige Host-/Browser-/APK-/native
 Gegenprüfung noch laufend; kein fertiger Release und keine Geräteabnahme.
 
+Gegenprüfung: Zusätzlich führte BackupPortableExport über den generischen SAF-
+Provider einen Klartextexport an beliebige Cloudziele aus. Dieser Gegenpfad wird
+vor Berechtigungsübernahme, Erfassung und Export auf den lokalen Android-
+Speicherprovider (Gerät/USB) beschränkt; verschlüsselter SAF-Backup bleibt
+providerfähig. Beide Service-Einstiege und der UI-Einstieg prüfen das Ziel erneut;
+auch ein alter Exportauftrag kann kein Cloudziel fortsetzen. Native Negativprobe
+verwendet absichtlich null für Kontext/Store, damit jede vorgezogene Nutzung
+statt der festen Ablehnung auffällt; lokale Zielsyntax bleibt zugelassen.
+Ein vorhandener nativer Test für identischen Teilrestore erwartet jetzt ebenfalls
+Ablehnung und vergleicht unveränderten Zustand; die Backupinspektion bleibt geprüft.
+
 ## Transition-Abschlussprüfung 26.10.2026 – ABBRUCH IN PHASE A
 
 **Nicht abgeschlossen. Keine Implementierung oder produktive Umstellung.**

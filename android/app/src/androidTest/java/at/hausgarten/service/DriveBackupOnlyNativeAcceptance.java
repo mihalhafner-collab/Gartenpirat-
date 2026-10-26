@@ -7,6 +7,16 @@ import java.io.IOException;
 /** Exercises the actual retired production boundary; all records live in isolated QA stores. */
 final class DriveBackupOnlyNativeAcceptance {
     static void run(PixelMcpInstrumentation test)throws Exception {
+        test.probe("plaintext exports reject Drive and unknown cloud providers before any store or permission access",()->{
+            for(String target:new String[]{"content://com.google.android.apps.docs.storage/tree/qa_cloud","content://qa_cloud_provider/tree/qa_cloud","file:///qa_export","content://com.android.externalstorage.documents/document/qa_file"}){
+                android.net.Uri uri=android.net.Uri.parse(target);
+                for(PixelMcpInstrumentation.Task action:new PixelMcpInstrumentation.Task[]{()->new BackupPortableExport(null,null).createAndExport("qa_cloud_export",uri,true),()->new BackupPortableExport(null,null).exportBackup("qa_cloud_retry","qa_old_backup",uri,true)}){
+                    try{action.run();throw new AssertionError("Plaintext cloud target became active");}
+                    catch(IOException expected){test.yes(expected.getMessage().equals("PORTABLE_LOCAL_DESTINATION_REQUIRED"));}
+                }
+            }
+            for(String volume:new String[]{"primary","1234-ABCD"})BackupPortableExport.requireLocalDestination(android.net.Uri.parse("content://com.android.externalstorage.documents/tree/"+volume+"%3Aqa_export"));
+        });
         for(boolean restoreReview:new boolean[]{false,true})test.probe("removed Drive engine cannot execute in "+(restoreReview?"restore review":"legacy authority"),()->{
             PixelMcpInstrumentation.Isolated context=new PixelMcpInstrumentation.Isolated(test.getTargetContext());
             context.getSharedPreferences("haus_garten",0).edit().putString("drive_snapshot",test.fixture().toString()).putString("drive_account","qa_retired@example.invalid").putString("drive_folder_id","qa_retired_folder_123456").putString("drive_tree_uri","content://qa_retired/tree/legacy").putBoolean("drive_automatic_enabled",true).putBoolean("drive_manual_sync_requested",true).commit();

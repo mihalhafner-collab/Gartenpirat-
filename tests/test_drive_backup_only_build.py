@@ -72,6 +72,16 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         self.assertNotIn('AccountManager.get(', account)
         self.assertIn('QA_LIVE_DRIVE_ACCOUNT_FORBIDDEN', account)
 
+    def test_plaintext_exports_cannot_use_the_generic_cloud_document_provider(self):
+        source = (MAIN / 'BackupPortableExport.java').read_text()
+        self.assertIn('"com.android.externalstorage.documents".equals(uri.getAuthority())', source)
+        for entry, next_step in [('createAndExport', 'LocalBackupCoordinator'),
+                                 ('exportBackup', 'store.getWritableDatabase()')]:
+            body = source.split('JSONObject ' + entry + '(', 1)[1]
+            self.assertLess(body.index('requireLocalDestination(treeUri)'), body.index(next_step))
+        encrypted = (MAIN / 'BackupSafService.java').read_text()
+        self.assertNotIn('requireLocalDestination', encrypted)
+
 
 if __name__ == '__main__':
     unittest.main()
