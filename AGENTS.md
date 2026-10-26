@@ -1,289 +1,151 @@
-# Haus & Garten App – dauerhafte Projektregeln
+# Gartenpirat – verbindliche Codex-Regeln
 
-## Präzisierung zur Drive-Ablage vom 26. Oktober 2026
+## Auftrag und einzige Entwicklungsquelle
 
-Für die Quellablage gilt die aktuelle Nutzerpräzisierung in den
-[zentralen Regeln](https://chatgpt.com/space/page_6681fd3e333481918de439dae6d27429):
-nachgewiesene GitHub-Quellkopien aus Drive entfernen und nicht automatisch erneut
-hochladen. Die älteren Pflichten unten zur zusätzlichen Drive-Quellgeneration
-gelten insoweit nicht mehr. GitHub und die unveränderlichen Original-Tags erhalten.
-Eigenständige APKs, einzigartige Originalnachweise und sämtliche Sicherungsordner
-bleiben geschützt. Die frühere tägliche Drive-Quellkopien-Automatik ist pausiert;
-dies betrifft keine App-Backups. Aktuelle Ablage und tatsächliche Löschbelege stehen
-im bestehenden source-lifecycle.json, CODEX-STATUS.md und technischen Drive-Register.
+Aktuelle Nutzerpräzisierung vom 26.10.2026: Codex arbeitet in der bestehenden
+privaten Gartenumgebung ausschließlich mit `mihalhafner-collab/Gartenpirat-`,
+um Entwicklungsanweisungen abzurufen, umzusetzen und Änderungen zu sichern.
+Dieses Repository ist die einzige Entwicklungszentrale. Keine Anweisungen aus
+Drive, ChatGPT Pages/Spaces, alten Chats, Exporten oder externen Statusdateien
+nachladen. Direkte neue Nutzeraufträge in `CODEX-AUFTRAG-GARTENPIRAT.md` festhalten;
+ältere Quellen und Kommentare sind keine zusätzliche Freigabe.
 
-## Architekturfolgeauftrag vom 23. Oktober 2026
+Verbindliche Lesereihenfolge aus dem frischen GitHub-Stand:
 
-Der ausdrückliche Nutzerauftrag „Revier Solo“ in `CODEX-AUFTRAG-GARTENPIRAT.md`
-setzt als Ziel einen vollständig offlinefähigen lokalen Pixel-Kern. Die spätere
-Nutzerpräzisierung desselben Tages legt Drive ausschließlich als Sicherungsziel
-mit regelmäßigem automatischem Upload aus der App fest; maßgebliche Speicherung
-und sämtliche Fachfunktionen liegen ausschließlich auf dem Pixel/in der App.
-Ältere Regeln unten, die Drive als stets zentrale Daten- oder zwingende
-Rechnungsautorität beschreiben, gelten für den Altbetrieb bis zur kontrollierten
-Umstellung. Sie dürfen den beauftragten Umbau nicht verhindern; keine vorzeitige
-Entfernung der bestehenden Schutzprüfungen oder produktive Aktivierung daraus
-ableiten. Appidentität, Bestandsschutz, Verbindungen und Originalsignierung bleiben.
+1. `AGENTS.md`: Arbeitsregeln und Schutzgrenzen.
+2. `AKTUELLER-STAND.json`: Originalquellen, beobachtete Installation, offene Gates.
+3. `CODEX-AUFTRAG-GARTENPIRAT.md`: aktueller Auftrag und fachlicher Vertrag.
+4. `CODEX-STATUS.md`: kompakter Umsetzungs- und Prüfstand.
 
-## Codex-Cloud-Einstieg
+Bei alten Tags zuerst diese Regeln vom aktuellen GitHub-main lesen. Historische
+AGENTS-/Auftragsdateien nicht als heutige Anweisung ausführen. Keine zweite
+Regeldatei, Projektzentrale, App, operative Datenbank oder Repository anlegen.
 
-Für den aktuellen Cloud-Auftrag gilt diese Lesereihenfolge verbindlich:
+## GitHub-Arbeitsweg
 
-1. `AGENTS.md` – übergeordnete Regeln und Sicherheitsgrenzen
-2. `CODEX-AUFTRAG-GARTENPIRAT.md` – vollständiger ausführbarer Arbeitsauftrag
-3. `CODEX-STATUS.md` – fortlaufender technischer Arbeitsnachweis
+- Vor Änderungen main, vorhandene Arbeitsbranches, Status und Historie frisch
+  vergleichen. Den tatsächlichen Checkout prüfen; alte Versionsnummern nicht
+  auf einen neuen Stand umetikettieren. Laufende fremde Änderungen erhalten.
+- Im vorhandenen passenden Branch arbeiten. Nur falls wirklich erforderlich
+  einen weiteren Arbeitsbranch im selben Repository verwenden. Der Laptop ist
+  weder Arbeitsumgebung noch Fallback. Keine zweite lokale Entwicklung.
+- Nach einem abgeschlossenen Schritt, vor Builds, Übergaben und Unterbrechungen:
+  Privacy prüfen, nur eigene geprüfte Dateien gezielt committen, nach GitHub
+  pushen und den exakten Remote-Commit zurücklesen. Keine pauschalen Git-adds.
+- Bei fehlgeschlagenem Push: Sicherung offen melden und Auslieferung anhalten.
+  Keine Ersatzsicherung in Drive oder einem anderen Dienst anlegen.
+- Vor Originalsignierung muss `python3 tools/source_preservation.py` PASS liefern:
+  sauberer Quellcheckout, richtiges Repository, genauer Commit auf GitHub.
+  Keine Dirty-/Offline-/Skip-Abkürzung. Auslieferung nur aus unverändertem Commit.
+- Änderungen/Prüfbelege im Repository sichern. Regeln gehören hierher, Aufgaben
+  in den bestehenden Auftrag, aktuelle Ergebnisse in den bestehenden Status;
+  maschinenlesbare technische Evidenz nach `docs/verification/`.
 
-Codex Cloud soll den Auftrag aus `CODEX-AUFTRAG-GARTENPIRAT.md` selbstständig phasenweise abarbeiten und `CODEX-STATUS.md` nach jeder abgeschlossenen Phase aktualisieren. Historische Dokumentation dient nur als Referenz und darf den dort festgelegten Cloud-only-/Pixel-Drive-Zielpfad nicht wieder durch eine Laptop-/Desktop-Abhängigkeit ersetzen.
+## Drive-Grenze
 
-## Dauerhafte Quellcodesicherung in Codex Cloud (21. Oktober 2026)
+Codex legt keine Quellcode-ZIPs, TXT-Exporte, Dokumentationsgenerationen,
+Entwicklungsbackups, Arbeitsanweisungen oder Statusregister in Drive ab.
+Keine Automatik für solche Kopien erstellen oder wieder einschalten.
 
-Diese Regel gilt für alle künftigen Arbeiten in diesem Repository, einschließlich
-laufender Aufgaben, sobald sie die aktualisierten Regeln lesen. GitHub ist die
-verbindliche dauerhafte Originalquelle; ein Cloud-Arbeitsordner, ein Chatbericht
-oder eine fertige APK ist kein Ersatz für einen extern gesicherten Quellstand.
+Einzige Codex-Ausnahme: Nach einem tatsächlich beauftragten und geprüften APK-Bau
+darf das originale Installationspaket im bestehenden privaten APK-Bereich
+bereitgestellt und zurückgelesen werden. Nur unmittelbar erforderliche Prüfsumme
+und Installationsprovenienz ergänzen; Quellen und Entwicklungsberichte bleiben
+in GitHub. Kein APK-Bau allein wegen einer Dokumentationsänderung.
 
-- Beim Einstieg `AKTUELLER-STAND.json`, den tatsächlichen GitHub-main und bestehende
-  Arbeitsbranches lesen. Freigegebene Version, zuletzt beobachtete Installation
-  und laufende Entwicklung getrennt halten. Bei Abweichungen den ursprünglichen
-  Arbeitsstand erhalten; niemals einen alten Checkout nur auf eine neuere
-  Versionsnummer umbenennen oder ungesicherte Arbeit durch Reset/Pull überschreiben.
-- Nach jedem abgeschlossenen Änderungsschritt, vor Builds zur Auslieferung,
-  Aufgabenwechsel, Unterbrechung und Abschluss: relevante Originaldateien nach
-  Datenschutzprüfung committen, in das bestehende private Repository pushen und
-  den genauen Commit auf GitHub zurücklesen. Diese Sicherung ist für beauftragte
-  Änderungen ausdrücklich autorisiert. Nur die eigenen geprüften Änderungen
-  aufnehmen; kein pauschales `git add .`, kein Force-Push und kein History-Rewrite.
-- Unfertige Arbeit auf einem bestehenden passenden Arbeitsbranch sichern; falls
-  erforderlich genau einen nachvollziehbaren Sicherungsbranch im selben Repository
-  anlegen. Eine solche Sicherung ist keine Freigabe oder automatische Übernahme
-  nach main. Während längerer Arbeit zusätzliche kleine Sicherungspunkte erstellen.
-- Ein fehlgeschlagener Push oder unklarer Remote-Beleg bleibt **SICHERUNG OFFEN**.
-  Vor dem Abschluss eine zulässige externe Quellkopie anlegen, soweit erreichbar,
-  und den tatsächlichen Sicherungsort/Commit samt Einschränkung nennen. Ohne
-  erfolgreichen Nachweis weder „gesichert“ behaupten noch eine APK bereitstellen.
-- Vor Originalsignierung und Original-Quellcodeexport muss
-  `python3 tools/source_preservation.py` PASS melden. Der offizielle Signieraufruf
-  und der Exporter führen diese Prüfung selbst aus: sauberer versionierter
-  Arbeitsstand, korrektes Repository und ein tatsächlich erreichbarer GitHub-
-  Branch/Tag auf genau diesem Commit. Kein Offline-, Dirty- oder Skip-Schalter.
-  Diese Prüfung ersetzt nicht die Prüfung der tatsächlichen APK-Provenienz.
-- Nur aus dem gesicherten, während des Builds unveränderten Commit ausliefern.
-  Version/Buildnummer, eingebetteter Git-Commit und Quellfingerprint müssen mit
-  dem Kandidaten und dem vollständigen Originalquellcode übereinstimmen. Alle
-  benötigten Quellen, Builddateien, öffentlichen Assets, Verträge und Tests sichern.
-  Produktivdaten und Schlüssel bleiben ausgeschlossen; alle Privacy-Gates gelten.
-- Jede ausgelieferte Version erhält eine eindeutige, anschließend unveränderte
-  Git-Versionsmarke und einen Versionsnachweis mit Quellcommit, Quellfingerprint,
-  APK-SHA-256 sowie Original-Quellarchiv und dessen SHA-256. Kopie im bestehenden
-  privaten Drive ablegen und zurücklesen; Originalquellen je Version als unveränderliche
-  Git-Tags erhalten, Drive-Artefakte nach `source-lifecycle.json` aufbewahren. TXT-Dateien
-  für ChatGPT/Perplexity ausschließlich daraus ableiten. Die Originalsignierung
-  bleibt in der geschützten persönlichen Cloud-Umgebung, nicht in GitHub Actions.
-- `AKTUELLER-STAND.json` nach belegter Auslieferung aktualisieren. Unbestätigte
-  Installation oder fehlender Originalcode bleiben ausdrücklich unbestätigt.
-  Abschlussbericht: Repository-/Commitlink und ggf. Branch, Versionsmarke und
-  Drive-Originalarchiv nennen. Ein frischer Task muss den exakten Quellstand allein
-  anhand dieser Angaben ohne die vorherige VM abrufen können.
-- Bestehende Tasks erhalten neue Regeln nicht automatisch. Bei Fortsetzung die
-  aktuelle `AGENTS.md` vom GitHub-main lesen und die eigene Arbeit zuerst sichern;
-  die Regelaktualisierung autorisiert kein Überschreiben anderer Arbeitsstände.
+Davon getrennt bleibt die vorhandene verschlüsselte **App-Betriebsdatensicherung**
+nach Drive bestehen. Codex aktiviert sie nicht eigenständig und benutzt weder
+sie noch produktive Dateien als Entwicklungs- oder Testmaterial. Backup ist kein
+Geschäftssync. Bestehende Sicherungsordner und einzigartige Originalbelege schützen.
 
-## Ablage, Aktualisierung und regelmäßige Bereinigung (21. Oktober 2026)
+## Lokaler Betrieb und Schutz des Bestands
 
-Der Nutzer hat das Ablage-/Aufbewahrungskonzept vollständig zur autonomen Umsetzung
-freigegeben, einschließlich geprüfter PR-Übernahme nach main und endgültiger
-Löschung eindeutig ersetzter administrativer Artefakte. Maßgeblich sind
-`source-lifecycle.json`, `source-releases.json` und `tools/source_lifecycle.py`.
-Keine pauschale Löschung nach Dateiname oder Alter und keine Git-Historienumschreibung.
+Pixel/App ist die einzige operative Geschäftsdatenautorität. UI und MCP verwenden
+dieselben lokalen Fachpfade. Drive-Geschäftssync und alte Schreiber nicht
+reaktivieren. Historische Queue-/Journalbelege dürfen keine neuen Retries erzeugen
+oder durch Neustart/Restore wieder aktiv werden. Backupfehler blockieren keinen
+lokalen Geschäftsvorgang. Die offene produktive Integritäts-/Migrationsprüfung
+bleibt ein eigenes Gate; keine manuell gesetzten Freigabeflags.
 
-- GitHub-main ist der geprüfte integrierte Stand; laufende Arbeit auf einem
-  passenden Branch sichern. Originalquellen ausgelieferter Versionen anhand
-  unveränderlicher `source/v<Version>-build<Nummer>`-Tags und Quell-/APK-/ZIP-Hashes
-  abrufbar halten. Installierter Stand und neuere Entwicklung bleiben getrennt.
-- Bei Arbeitsbeginn `AKTUELLER-STAND.json`, frischen main und offene Branches
-  vergleichen. Bei Abschluss nach Tests/Privacy Commit, Push und exakten Remote-
-  Readback durchführen; danach `python3 tools/source_lifecycle.py export --output
-  <neuer-externer-Exportordner>` verwenden. Derselbe verifizierte Export versorgt
-  Gemini und Perplexity. Neue Generation vollständig hochladen und zurücklesen,
-  erst danach Wegweiser aktualisieren. Vorhandene gute Generation bis dahin erhalten.
-- Drive-Ordner-IDs und private Freigaben aus der Policy erhalten. Produktiven
-  Datenordner ausschließlich verlinken; Journale, Fotos, Rechnungen, Nummern,
-  Datenbankschemata und operative Sync-Referenzen nicht umräumen oder bereinigen.
-- Behalten: aktuelle und vorherige ausgelieferte APK samt Originalquellen, zusätzlich
-  jede davon abweichende tatsächlich installierte Version. Aktive/unklare Dateien
-  und einzige ungesicherte Originalquellen schützen. Exporte nach 7 Tagen,
-  erledigte Test-APKs nach 14 Tagen, Buildausgaben nach 7 Tagen und Logs nach
-  30 Tagen ersetzen/löschen. SDK-/Abhängigkeitscaches gezielt bei Platzbedarf erhalten.
-- Bei einer tatsächlich geprüften neuen Auslieferung Schutzmengen in Policy und
-  Register anhand der neuesten zwei Auslieferungen und belegten Installation
-  fortschreiben; Original-Tags erhalten. Alte Schutzkennzeichen erst nach diesen
-  Nachweisen aufheben und die vollständige Frist ab bestätigter Ersetzung beginnen.
-- Die freigegebene Aufräumautomatik darf ausschließlich explizit registrierte,
-  unveränderte Dateien in verwalteten administrativen Ordnern endgültig löschen.
-  Frische vollständige Liste, bestätigter Ersatz, Frist, Originalschutz und
-  unmittelbar erneute Einzelmetadatenprüfung sind Pflicht. Fehlende Belege oder
-  Konflikte zurückhalten; keine blinden Upload-/Löschwiederholungen. Jede Löschung
-  mit ID/Hash/Bytezählung protokollieren, ohne Betriebsinhalte zu übernehmen.
-- Dauerhafter Scheduler: tägliche Bestands-/Aktualitätsprüfung, wöchentliche
-  Bereinigung, monatliche Wiederherstellungsprobe. Tatsächliche Ausführung und
-  eingerichtete Zeitpläne getrennt nachweisen. Fehlender Zugriff bleibt sichtbar.
+Lokale Datenautorität erteilt keine Rechnungs-/Belegnummernfreigabe. Kunden,
+Einsatzobjekt und Rechnungsempfänger unterscheiden; auftragslose Arbeit und
+persönliches b.b./bezahlt getrennt vom Rechnungsstatus erhalten. Keine erfundenen
+Kunden, Zeiten, Preise, Beziehungen oder Belegnummern.
 
+Unberührtes Formular: kein Draft. Bearbeitet: Draft. Bestätigtes Speichern:
+Geschäftssatz. Verwerfen entfernt den Draft vollständig; Abbruch erzeugt keinen
+versteckten Geschäftssatz. Delete ist kein Archive, Inactive oder Hidden. Fachliche
+Aufbewahrung und referenzierte Belege trotzdem prüfen. Unklare Commitantwort:
+ursprüngliche ID/Argumente erhalten und zuerst lesen, keine neue ID erzeugen.
+Bestätigte Commits durch Foto-, UI- oder Backupfolgefehler nicht zurückrollen.
 
-## Verbindlicher Cloud-only-Arbeitsweg (Auftrag vom 18. Oktober 2026)
+Keine produktiven Testkunden/-aufträge/-rechnungen, keine Löschung zum Testen,
+keine automatische Migration, Installation, Deinstallation oder App-Datenlöschung.
+Restore ist bewusst, getrennt und fail-closed. Gesetzliche Dokumentenschutzgates
+und Originalidentität `at.hausgarten.service` bleiben unverändert.
 
-- **Entwicklung, Codeänderungen, Builds, Tests, Originalsignierung und Releasevorbereitung ausschließlich in Codex Cloud.**
-- Ausschließlich das bestehende Repository `mihalhafner-collab/Gartenpirat-` verwenden. Keine zweite operative App, kein zusätzliches Repository und kein paralleler Desktop-/Laptop-Quellstand.
-- **Laptop/Desktop ist kein Bestandteil der aktiven Arbeitsweise, keine Voraussetzung und kein Fallback.** Alte Laptop-/Web-Pfade dürfen für historische Kompatibilität im Repository verbleiben, aber nicht erneut als notwendiger Betriebs-, Entwicklungs-, Sync-, Rechnungs- oder Releasepfad eingeführt werden.
-- Operativer Zielpfad: **Pixel-App ↔ Google Drive direkt**. Entwicklungs-/Releasepfad: **Codex Cloud ↔ GitHub**. Funktionen, die technisch noch einen lokalen Web-/Laptop-Prozessor voraussetzen, gelten als nicht fertig migriert und müssen vor Freigabe auf Pixel/Drive-direkte Verarbeitung umgestellt werden.
-- Keine Anweisung darf künftig verlangen, einen Laptop einzuschalten, eine Desktop-App zu starten, lokal zu bauen, lokal zu signieren oder einen lokalen Webserver für den produktiven Ablauf zu betreiben.
-- Historische Dateinamen wie `HausGarten-Laptop.json` dürfen zur Wahrung der Datenkompatibilität zunächst unverändert bleiben. Der Name begründet keine Laptop-Abhängigkeit. Umbenennungen nur mit verlustfreier Migration und Rückwärtskompatibilität.
-- Originalsignierung ausschließlich über die geschützte persönliche Gartenpirat-Codex-Cloud-Umgebung nach `ORIGINAL-SIGNIERUNG-CLOUD.md`; niemals GitHub Actions, Debug-/QA-Schlüssel oder lokale Ersatzschlüssel verwenden.
-- Produktive Geräteaktionen auf dem Pixel bleiben gesondert geschützt: keine Deinstallation, keine App-Datenlöschung, keine automatische Installation ohne Sicherung und Freigabe.
+## Quellcode ohne Betriebsdaten
 
-## Verbindliche gemeinsame Codebasis
+Im Quellcheckout ausschließlich PUBLIC_SOURCE und SYNTHETIC_TEST. Auch ignorierte,
+unversionierte Dateien und Buildausgaben prüfen; .gitignore genügt nicht.
+PRIVATE_RUNTIME und SECRET bleiben außerhalb. Keine produktiven Datensätze,
+Fotos, Datenbanken, Snapshots, Rohbackups oder Kontowerte für Tests abrufen.
+Bestehende ungeklärte Workspace-Funde weder übernehmen noch pauschal löschen.
 
-- Vor Änderungen den aktuellen Stand von `main`, vorhandene Cloud-Branches und die Git-Historie vergleichen. Neuere Funktionen und Schutzkorrekturen erhalten; kein lokaler Desktop-Stand ist maßgeblich.
-- Pflanzenlexikon und Neophytenbereich nutzen den vorhandenen Katalog unter `android/app/src/main/assets/plant-catalog.json`. Adapter, Webspiegel und Bildauslieferung mit `python3 tools/sync_plant_assets.py --write` erzeugen; `python3 tools/sync_plant_assets.py` muss vor Builds bestehen. Generierte Spiegel niemals unabhängig redigieren.
-- Integration im tatsächlichen operativen APK und in der bestehenden Navigation nachweisen, einschließlich Bilder, Suche, Vollbild und Offline-Verhalten. Technische Struktur-/Lizenzmetadatenprüfungen sind keine vollständige botanische Verifikation.
-- Persönliches `b.b.` ist ausschließlich eine Geräteübersicht bei gespeicherten Arbeitsaufzeichnungen; unter Heute erscheint `bezahlt`. Keine Verbindung zu `billed`, Rechnungen oder Rechnungserstellung herstellen.
-- Parallelcode erst nach vollständiger Übernahme, Abhängigkeitsprüfung, geprüftem gemeinsamen Build und gesicherter Git-Historie entfernen. Tests, Datenschutzprüfungen und synthetische Fixtures erhalten; keine pauschale Löschung nach Dateinamen.
-- Operative Paketkennung und verifizierten Originalschlüssel erhalten; versionCode erhöhen. Kein Ersatzschlüssel und kein QA-Build als Update-Nachweis. Pixel-Installation erst nach Sicherung und ausdrücklicher Freigabe; keine Deinstallation oder App-Datenlöschung.
-- Übernahmen, Erreichbarkeit, tatsächliche Prüfungen, entfernten Code und ausstehende Geräte-/Update-Nachweise dokumentieren. Aktueller Nachweis: `INTEGRATIONSNACHWEIS-2026-10-18.md`.
+`initial-data.json` bleibt der exakt leere Vertrag aus `bootstrap_contract.py`;
+nur `tools/empty_bootstrap.py --write` darf ihn aus Konstanten erzeugen.
+Host-Betriebszugriffe ausschließlich über `runtime_paths.py` und ausdrücklich
+externes `HG_PRIVATE_DATA_ROOT`; kein Fallback ins Repository. Tests verwenden
+die synthetische Factory und eigene temporäre Stores. Quelle, gesamter
+Quellworktree und auszulieferndes Artefakt müssen ihre Privacy-Gates bestehen.
+Alte Git-Objekte nur lesend behandeln; kein automatisches History-Rewrite.
 
-## Selbstständige Verbesserung
+Originalsignierung ausschließlich nach `ORIGINAL-SIGNIERUNG-CLOUD.md` mit den
+bestehenden geschützten persönlichen Cloud-Werten. Keine Schlüsselwerte in Git,
+Logs oder Artefakten, kein Ersatzschlüssel, keine Signierung in GitHub Actions.
+Der öffentliche geprüfte Zertifikat-Fingerprint ist Provenienz, kein Secret.
 
-Setze bessere, einfachere und funktionellere Lösungen innerhalb des beauftragten
-Bereichs selbstständig um. Bevorzuge kleine, reversible Änderungen an der
-bestehenden Anwendung. Prüfe die Änderungen mit passenden Tests und dokumentiere
-das Ergebnis. Keine Rückfrage für eindeutig sinnvolle, risikoarme technische
-Details; keine zusätzlichen Funktionen ohne praktischen Nutzen.
+## Änderungen und Nachweis
 
-Frage vorher bei Risiken für produktive Betriebsdaten, bestehende Schnittstellen
-oder Kontoverbindungen, bei neuen Kosten, zusätzlichen Berechtigungen und
-irreversiblen Änderungen. Diese Arbeitsregel ersetzt keine Sicherheitsfreigaben
-und erweitert nicht den Umfang des jeweiligen Auftrags.
+Keine neuen Features vor abgeschlossenem Transition-Auftrag. Vor jeder Änderung
+Endzustand und realistische Gegenpfade bestimmen, Ursache im Code/Datenmodell
+prüfen, minimal korrigieren und durch reproduzierbaren Test oder Read-back
+gegenprüfen. UI/native/SQLite/Owner-Stores/MCP/Journale/Queue/Backup/Restore sowie
+Drafts, Timer, Medien, Planung, Angebote, Rechnungen und Löschpfade einschließen,
+soweit betroffen. Tests und Fixtures dürfen ausgemusterte Pfade nicht aktivieren.
 
-## Design darf selbstständig verbessert werden
+Aktive Schutz-/Test-/Host-Legacykomponenten nicht nach Dateiname oder Alter löschen.
+Pflanzendaten und Webspiegel weiter über `tools/sync_plant_assets.py` führen;
+generierte Spiegel nicht unabhängig ändern. Bestehende Fachverträge erhalten.
+Nur relevante bestehende Prüfungen ausführen; fehlende native/physische oder
+externe Nachweise ausdrücklich offen lassen. Ein Build ist keine Geräteabnahme.
 
-Das aktuelle Design ist keine dauerhafte oder unveränderliche Vorgabe.
-Eigenständige Anpassungen von Gestaltung, Navigation und Bedienabläufen sind
-jederzeit ausdrücklich erwünscht, wenn sie Übersichtlichkeit, Effizienz,
-Barrierefreiheit oder Bedienbarkeit verbessern. Bestehende Funktionen und
-fachliche Schutzregeln erhalten; Entwürfe, Daten und laufende Vorgänge schützen.
-Die betroffenen Abläufe, schmale Ansichten und vergrößerte Schrift prüfen und
-Änderungen im zentralen Status dokumentieren. Für solche Verbesserungen innerhalb
-des beauftragten Bereichs ist keine erneute Designfreigabe erforderlich.
+Bei uneindeutiger Datenintegrität, drohendem Verlust einzigartiger Arbeit,
+unklarer Belegautorität oder notwendiger Gateumgehung den betroffenen Schritt
+anhalten. Andere eindeutig ausführbare Schritte fortsetzen. Aktuelle und
+beobachtete installierte Versionen nicht mit historischen Ständen verwechseln.
+Versionsbereinigung nach bestätigter Aufbewahrungsgrenze in `source-lifecycle.json`;
+keine Annahme bei mehrdeutiger Versionsangabe. Git-Historie zur Nachvollziehbarkeit
+erhalten; nie Force-Push oder unangekündigtes Umschreiben.
 
-## Neue Arbeitsaufzeichnungen
+## Starttext für die bestehende Gartenumgebung
 
-Neue operative Arbeitsaufzeichnungen werden künftig über die bestehende
-Haus-&-Garten-App angelegt. Ohne einen späteren ausdrücklichen abweichenden
-Nutzerauftrag keine neuen operativen Arbeitsaufzeichnungen per MCP, Import oder
-externem Editor erzeugen. Bestehende MCP-Funktionen und synthetische
-Regressionstests erhalten; Lesen und ausdrücklich beauftragtes Bearbeiten oder
-Aufräumen bestehender Einträge bleiben möglich.
+Dieser kurze Bootstrap ist für die veröffentlichte Umgebung vorgesehen. Seine
+Übernahme dort ist separat im aktuellen Status nachzuweisen; eine Git-Änderung
+allein ändert keine Cloud-Konfiguration.
 
-Der spätere ausdrückliche Auftrag zur vollständigen UI–MCP-Parität und
-Sprachsteuerung autorisiert die vorhandenen fachlichen Erfassungswerkzeuge,
-insbesondere den Abschluss tatsächlich gemessener Timerarbeit per MCP.
-Echte Kunden, Tätigkeiten, Zeiten und Preise müssen dabei feststehen; bei
-Mehrdeutigkeit nachfragen. Diese fachliche Freigabe autorisiert keine produktiven
-Testeinträge, erfundenen Arbeitsnachweise oder automatische Datenerzeugung ohne
-konkreten Betriebsauftrag. Schreibtests bleiben vollständig isoliert.
-
-## Bestehende App erhalten
-
-- Keine neue App und keine parallele betriebliche Datenbank aufbauen.
-- Vor einer Änderung den betroffenen Ablauf, das Datenmodell und seine Schnittstellen verstehen; nicht jedes Mal unnötig das gesamte Projekt analysieren.
-- Bestehende IDs, Beziehungen, Offline-Daten, Drive-Dateiformate und MCP-Werkzeuge erhalten. Erweiterungen rückwärtskompatibel ausführen.
-- Pixel ist die primäre und einzige operative Arbeits-App. Drive bleibt der zentrale Datenabgleich. Ein lokaler Web-/Laptop-Prozessor darf nicht Voraussetzung für neue oder bestehende Kernfunktionen sein.
-- Einsatzkunde und Rechnungsempfänger getrennt halten. Arbeitsaufzeichnungen ohne Auftrag bleiben gültig. Historische Zuordnungen nicht erraten.
-- Keine produktiven Daten löschen, zusammenführen, überschreiben oder als Testdaten verwenden. Keine automatische Massenmigration oder ID-Neuvergabe.
-- Keine Secrets, Signaturschlüssel, Betriebsdaten oder private Drive-Inhalte in Quellcode, Testfixtures, Logs, APKs oder Repository-Uploads einbetten.
-- Originalsignierung: ausschließlich temporäre Nutzung der fünf `HG_ORIGINAL_*`-Variablen in der ausgewählten persönlichen Gartenpirat-Codex-Cloud-Umgebung gemäß `ORIGINAL-SIGNIERUNG-CLOUD.md`. Keystore nur im privaten OS-Temp außerhalb des Repositorys; keine Werte in Git, Logs, Artefakten, CI oder anderen Umgebungen. Kein Ersatzschlüssel, keine automatische Installation oder Update-Freigabe.
-
-## Alltagstauglichkeit
-
-Aktueller Nutzerauftrag vom 20.10.2026: Das
-[MCP-Testdossier](https://chatgpt.com/space/page_7f18b1e34e808191b3851b6c15ebf582)
-bei Folgearbeiten berücksichtigen. MCP übernimmt voraussichtlich die meisten
-Eingaben; die App priorisiert deshalb lesbare Übersichten. Gespeicherte Einträge
-zuerst lesend öffnen, manuelle Editoren erst ausdrücklich. Bekannten, eindeutig
-zugeordneten Kontext übernehmen und sichtbar machen; keine Kunden, Zeiten oder
-Preise erraten. Alle bisherigen Funktionen und die vollständige Bedienbarkeit
-ohne MCP erhalten. Laufende oder noch abzuschließende Arbeit bleibt vorrangig.
-
-Die App bleibt vollständig ohne KI bedienbar. Prioritäten: Datenintegrität,
-Zuverlässigkeit, Übersichtlichkeit und einfache, schnelle Bedienung.
-Wichtige Aktionen für kleine Hände gut erreichbar machen, eindeutige Beschriftungen
-verwenden und unnötige Navigation, Doppeleingaben und technische Hinweise vermeiden.
-Zurück geht genau einen Schritt; Entwürfe und laufende Zeiterfassung schützen.
-Keine versteckten automatischen Datenänderungen und keine dekorative Komplexität.
-
-## Prüfung und Freigabe
-
-- Vor jeder Umsetzung kurze, messbare Abnahmekriterien festlegen. Für jeden betroffenen Benutzerablauf konkrete Eingaben, erwartete Ergebnisse und Fehlerfälle definieren.
-- Arbeitspriorität: zuerst Datenintegrität und Synchronisierung, danach Bedienbarkeit und Geschwindigkeit, erst dann Zusatzfunktionen.
-- Vorhandene Tests weiterverwenden und bei konkreten Fehlern gezielt ergänzen. Tests ausschließlich mit isolierten, synthetischen Daten ausführen.
-- Python-, Java-, UI-, MCP- und Android-Prüfungen in Codex Cloud ausführen. Keine lokale Desktop-/Laptop-Testumgebung als Freigabevoraussetzung.
-- Zwischen statisch geprüft, automatisiert getestet, tatsächlich ausgeführt, End-to-End getestet und nicht testbar ausdrücklich unterscheiden.
-- Lokale Pixel-Speicherung, Drive-Übergabe und bestätigte Synchronisierung nicht gleichsetzen; Konflikte und ausstehende Aktionen sichtbar erhalten.
-- Android-Releases: gleiche Application ID und vorhandenen Signing Key erhalten, versionCode erhöhen. Vor Freigabe Fresh-Install-/In-place-Update- und Datenerhalt-Nachweise soweit technisch möglich; fehlende Geräteabnahme ausdrücklich kennzeichnen.
-- Vor jeder APK-Bereitstellung die betroffenen Regressionstests, Offline-/Sync-Abläufe und das fertige Artefakt prüfen. Ein erfolgreicher Build allein ist keine Abnahme.
-- Änderungen, Tests, Ergebnisse und offene Einschränkungen verständlich berichten. Keine Erfolgsbehauptung ohne tatsächlich vorliegenden Nachweis.
-
-## Fachliche MCP-Eigentümerfunktionen
-
-Aktueller Umfang und technische Grenzen: `docs/MCP-EIGENTUEMERZUGRIFF-2026-10-18.md`.
-Eigentümerfunktionen einschließlich Rechnungsentwurf, Korrektur/Storno, Archiv,
-Dateitransfer und nicht geheimer Rechnungskonfiguration sind Produktfunktionen.
-Konkrete Betriebsdatenaktionen benötigen den jeweiligen Benutzerauftrag.
-Schreibschalter, Vergleichsstände, Belege und externe Konto-/Gerätefreigaben erhalten.
-
-Für die Einführung gilt ab jetzt: Der gemeinsame Sync-/Nummern-/Angebotspfad muss
-**Pixel/Drive-direkt** funktionieren. Kein alter Laptop-/Web-Importer darf als
-Pflichtkomponente oder unsicherer Fallback verwendet werden. Unbekannte neue
-Journaltypen fail-closed zurückhalten. Eine Geschäfts-MCP-Sicherung ersetzt keine
-vollständige Gerätesicherung.
-
-## Drive-Abgleich und Kundenakte
-
-Für ausdrücklich beauftragte Codex-Quellcode-/Dateiübertragungen nach Drive:
-`tools/drive_source_transfer.py` mit dem vorbereiteten öffentlichen ZIP-/UTF-8-TXT-Export,
-einer frischen vollständigen Ordnerliste und vorhandenen tatsächlichen Readback-Belegen
-verwenden. Eine Ordnerliste ersetzt Einzel-Metadatenabfragen. Nur geänderte/fehlende
-Dateien hochladen; neue/veränderte Dateien weiterhin zurücklesen. Bei unklarer
-Uploadantwort vor Wiederholung frisch auflisten und abgleichen, doppelte Namen
-zurückhalten. SHA256-Byteprüfung und reine Streamgrößenprüfung ausdrücklich
-unterscheiden. Keine Kontozugriffe oder Löschungen aus dem Plan ableiten;
-bestehende Nutzerautorisierung und Privacy-Gates bleiben maßgeblich. Quell-ZIPs
-über `tests/package_source_copy.py` deterministisch erzeugen; `--reuse-existing`
-prüft Originalbytes/Inventar/Dateimodi/Privacy vor Wiederverwendung. Prüfbelege
-außerhalb des Exportordners führen; technische Evidenz im zentralen Status.
-Für Durchsatz/Latenz bis zu drei unabhängige Artefaktketten aus dem Transferplan
-überlappend ausführen (Upload → tatsächliches Rücklesen → Beleg), nächste Datei
-sofort bei freiem Platz starten. Innerhalb der Payload-Phase größte Dateien zuerst;
-Inventar/Prüfsummen erst nach verifizierten Payloads, Startdatei zuletzt.
-Erst nach der Verifikationsbarriere Abschluss
-melden bzw. ausdrücklich autorisierte Altdateibereinigung ausführen. Keine
-parallelen konkurrierenden Änderungen derselben Datei, keine blinden POST-Retries.
-Datenvolumen ist auf ausdrücklichen Nutzerwunsch kein Optimierungsziel; Grenzen
-dienen RAM, Zuverlässigkeit, Anbieterlimits und zeitnahen Veröffentlichungen.
-
-Direkter Drive-Serverbeleg und Android-Provider-Rücklesen bleiben unterschiedliche
-Zustände. Bestehende Journal-IDs, Veröffentlichungsfolgen und Originaldateien
-erhalten; keine Cloud-Bestätigung aus einer lokalen Kopie ableiten. Neue
-UI-Entfernungen archivieren mit Versionsschutz. Alte Löschaufträge benötigen
-eine ausdrückliche, nachvollziehbare Entscheidung. Kunden-Fotoentwürfe behalten
-Originalbytes und Request-ID. Google-/Tunnel-Freigaben werden nicht durch Code
-erteilt. Fachliche Betriebsdatenaktionen benötigen den jeweiligen Benutzerauftrag.
-
-## Dauerhafte Trennung von Quellcode und Betriebsdaten (P0)
-
-Im Repository-Workspace sind ausschließlich PUBLIC_SOURCE (Quellcode/öffentliche Katalog- und Markendaten/leerer Bootstrap) und SYNTHETIC_TEST (klar synthetische Fixtures/technische QA-Artefakte) zulässig. PRIVATE_RUNTIME (Kunden, Aufträge, Zeiten, Angebote, Rechnungen, Fotos, Drive-Snapshots, Rohbackups) und SECRET gehören ausschließlich außerhalb des Checkouts; .gitignore ersetzt diese Trennung nicht. Auch ignorierte/untracked Dateien und Archive prüfen. Keine produktiven Daten für Tests importieren, kopieren, verändern oder als Fixtures verwenden.
-
-Host-Betriebsdatenpfade ausschließlich über `runtime_paths.py` und ausdrücklich gesetztes externes `HG_PRIVATE_DATA_ROOT`; fehlt der Root oder zeigt er direkt/per Symlink ins Repository, vor Zugriff fail-closed abbrechen. Kein Fallback auf data/outputs/tmp/assets. Tests verwenden die zentrale synthetische Factory und eigene OS-Tempstores, niemals den privaten Root. Neue Fixtures nur qa_/test_-IDs, künstliche Adressen, example.invalid, keine echten Aussteller-/Kunden-/Bank-/sevDesk-Werte. Sonderfälle alter Datenformate ausschließlich explizit synthetisch isoliert testen.
-
-`initial-data.json` bleibt exakt der leere Vertrag aus `bootstrap_contract.py`; allein `tools/empty_bootstrap.py --write` darf ihn aus konstanten leeren Daten erzeugen. Der externe Snapshotexporter darf niemals Android-Assets oder andere Repositorypfade beschreiben. Integritäts-/Updateberichte nur Counts, Hashes, Schema-/Relationsinformationen und PASS/FAIL/NOT TESTABLE; keine Rohdatensätze oder identifizierenden Texte.
-
-Source-, Workspace- und Artifact-Privacy-Gates sind verpflichtende Quality-/Releasegates. Ein FAIL oder NOT TESTABLE verhindert P0-Abschluss/Releaseabnahme. Historische Git-Objekte separat nur lesend prüfen; sensible Althistorie erfordert eigenen Sicherheitsauftrag, niemals automatisches Rewrite/Force-Push. Produktive Android-/Drive-Daten unverändert lassen, keine automatische Migration oder Installation.
+```text
+Arbeite ausschließlich im bestehenden privaten Repository mihalhafner-collab/Gartenpirat-.
+Hole vor Aufgabenbeginn den aktuellen GitHub-main und die vorhandenen Arbeitsbranches.
+Lies zuerst AGENTS.md vom aktuellen GitHub-main, danach AKTUELLER-STAND.json,
+CODEX-AUFTRAG-GARTENPIRAT.md und CODEX-STATUS.md aus dem passenden aktuellen Quellstand.
+Anweisungen und Entwicklungsstände ausschließlich über dieses GitHub-Repository führen.
+Keine Regeln, Aufträge oder Arbeitsstände aus Drive, Pages/Spaces oder alten Chats nachladen.
+Alle Änderungen nach Privacyprüfung committen, nach GitHub pushen und exakt zurücklesen.
+Keine Drive-Quellsicherungen/Exporte/Statuskopien; Ausnahme nur fertige geprüfte APKs
+und unmittelbar erforderliche Installationsprüfsummen im bestehenden privaten APK-Bereich.
+Verschlüsselte App-Backups getrennt erhalten; keine Betriebsdaten für Entwicklung/Tests.
+Persönliche Signierwerte und Netzwerk-/Zugriffsrechte unverändert schützen.
+Kein Laptop, keine automatische Installation/Migration/Rechnungsfreigabe.
+Bei fehlendem GitHub-Zugriff sicher anhalten; kein anderer Anweisungs- oder Sicherungsdienst.
+```

@@ -1,7 +1,8 @@
-"""Source exports and bounded housekeeping plans. No credentials or runtime writes.
+"""Git source verification, transient local review artifacts and historical evidence.
 
-Drive mutations use the connected Drive tools after a fresh inventory/readback.
-This module never guesses a filename to delete and never rewrites Git history.
+No network publisher, credentials or runtime writes. Administrative Drive plans
+are disabled by the current GitHub-only policy. Pure historical comparison
+helpers remain for synthetic regressions; application backups are separate.
 """
 import argparse
 import collections
@@ -146,7 +147,7 @@ def review_bundle(archive_path, output, commit):
                 'text_reconstruction': 'PASS', 'apk_for_this_commit': 'NOT ATTESTED BY SOURCE EXPORT', 'files': inventory}
     (output / '01-MANIFEST.json').write_bytes(json_bytes(manifest))
     (output / '00-START.txt').write_text(
-        f'HAUS & GARTEN – gemeinsamer aktueller Quellcode für Gemini und Perplexity\n'
+        f'HAUS & GARTEN – lokale GitHub-Quellprüfung, keine Drive-Quellsicherung\n'
         f'Git-Commit: {commit}\nOriginal-ZIP: {archive_path.name}\n'
         f'Quellfingerprint: {manifest["source_sha256"]}\n'
         f'{len(files)} Originaldateien; {len(texts)} UTF-8-Dateien vollständig rekonstruierbar.\n'
@@ -340,6 +341,8 @@ def main():
             result['exports'] = cleanup_export_cache(registry['export_cache'], registry.get('local_exports', []), apply=args.apply)
         print(json.dumps(result))
     elif args.command == 'plan':
+        if policy.get('administrative_drive_access_enabled') is False:
+            parser.error('Administrative Drive workflow retired; maintain sources and evidence in GitHub.')
         if not args.inventory or not args.registry:
             parser.error('Fresh inventory and explicit registry required')
         print(json.dumps(cleanup_plan(policy, json.loads(args.registry.read_text()), json.loads(args.inventory.read_text()))))

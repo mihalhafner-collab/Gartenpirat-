@@ -1,13 +1,12 @@
-"""Prepare safe, incremental Codex -> Drive source transfers; no credentials or network.
+"""Local archive verification and historical transfer-evidence compatibility.
 
-Use one freshly read folder inventory, then upload only ``upload`` actions. Verify
-new bytes before recording a receipt. Re-run the plan after an ambiguous upload;
-``verify_existing``/``blocked_duplicates`` must never trigger a blind second POST.
-This module never deletes files, changes sharing, or marks stream-size proof as SHA.
+The former Drive-source command is retired. Sources and development evidence
+belong in GitHub. Pure byte/metadata helpers remain for source verification and
+synthetic regressions; they perform no network calls or mutations and grant no
+permission for new Drive uploads. APK delivery is a separate explicit workflow.
 """
 from __future__ import annotations
 
-import argparse
 import hashlib
 import json
 from pathlib import Path, PurePosixPath
@@ -179,12 +178,7 @@ def plan_transfer(artifacts, inventory, previous=None):
 
 
 def transfer_schedule(actions, concurrency=3):
-    """Independent artifact pipelines overlap; verification and cleanup stay ordered.
-
-    The connector is invoked by Codex, not by a credential-bearing local client.
-    Start the next task as a slot becomes free. Each upload is followed immediately
-    by its own readback; never publish a complete-export claim before the barrier.
-    """
+    """Decode historical schedule evidence; no execution or upload authorization."""
     if not 1 <= concurrency <= 3:
         raise ValueError('Source transfer concurrency must be between one and three')
     tasks = []
@@ -210,21 +204,9 @@ def transfer_schedule(actions, concurrency=3):
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--exports', type=Path, required=True)
-    parser.add_argument('--inventory', type=Path, required=True, help='Fresh {folder_id,complete:true,files} JSON from full Drive folder listing')
-    parser.add_argument('--verified-state', type=Path, help='Previous {folder_id,receipts} from actual readback')
-    parser.add_argument('--output', type=Path, required=True)
-    args = parser.parse_args()
-    if args.output.resolve().is_relative_to(args.exports.resolve()):
-        parser.error('Transfer state must remain outside the export folder')
-    artifacts = local_artifacts(args.exports)
-    inventory = json.loads(args.inventory.read_text(encoding='utf-8'))
-    previous = json.loads(args.verified_state.read_text(encoding='utf-8')) if args.verified_state else None
-    plan = plan_transfer(artifacts, inventory, previous)
-    args.output.write_text(json.dumps(plan, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
-    print(json.dumps({'status': 'PLANNED', 'counts': plan['counts'], 'upload_bytes': plan['upload_bytes']}))
+    print('Drive source-transfer CLI retired: preserve sources and development evidence in GitHub.', file=sys.stderr)
+    return 2
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

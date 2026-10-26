@@ -2,20 +2,7 @@
   "format": "hausgarten.source-lifecycle.v1",
   "repository": "mihalhafner-collab/Gartenpirat-",
   "timezone": "Europe/Vienna",
-  "folders": {
-    "root": "1-fLRbUEbGK4jQqRyHN07sd26zG-dQ_P0",
-    "apk": "1_ylUbbIe_0Nh8c5XN_sBrKAXvvj3O38R",
-    "reports": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
-    "fallback": "1nBpr9JeqBzYx2GQXZ59gN3A53USxJsmq",
-    "test": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
-    "current_apk": "1K4WB9L6ZKlW-33o8uPK3zTfqgAOVOE8u",
-    "candidate95": "1qV4B9lXj0P35DSsuIzTD9hIMWgx34bef",
-    "candidate96": "1Juu_8VdoAdLC-vkoQVPrx_K2Qs4RDKxG",
-    "candidate97": "1ZPwhieYXLRDwqdaSoY_SkqdgPffsN341",
-    "candidate98": "1k69XGlrCNASSl68dzWwUoaRTJeVc9ohm",
-    "candidate105": "1WfoTQQuOafgq_el0-EaY3Lz-GULaq2g3",
-    "candidate106": "1KMvN_g456vA0Z1VHh2RH4P5Jlgg4-LSH"
-  },
+  "folders": {},
   "runtime_folder_ids": [
     "1qR33tKpsKa-VxLeuTbXibjgYGjpyE8__",
     "17EhPSYr6L8SigSBJKbciJItwNGMcIFoE",
@@ -347,7 +334,6 @@
     "cleanup": "weekly",
     "restore_check": "monthly"
   },
-  "registry_file_id": "1lxLiMzK4NT7-ueLJvpsDU1gwbaxx610C",
   "automations": {
     "daily": "6ad8f3798fc081919a261c5eb3981ad1",
     "weekly": "6ad8f37b548c8191b18d43b443aae6d3",
@@ -478,6 +464,54 @@
     },
     "monthly": {
       "unchanged": true
+    }
+  },
+  "development_authority": "GITHUB_ONLY",
+  "instruction_sources": [
+    "AGENTS.md",
+    "AKTUELLER-STAND.json",
+    "CODEX-AUFTRAG-GARTENPIRAT.md",
+    "CODEX-STATUS.md"
+  ],
+  "codex_drive_write_policy": {
+    "allowed": "APK_INSTALLATION_ARTIFACTS_ONLY_AFTER_AUTHORIZED_BUILD",
+    "forbidden": [
+      "SOURCE_ARCHIVE",
+      "SOURCE_TXT",
+      "DEVELOPMENT_BACKUP",
+      "WORK_INSTRUCTIONS",
+      "STATUS_REGISTRY",
+      "QA_EXPORT"
+    ],
+    "app_encrypted_backups": "UNCHANGED"
+  },
+  "administrative_drive_access_enabled": false,
+  "registry_file_id_historical": "1lxLiMzK4NT7-ueLJvpsDU1gwbaxx610C",
+  "github_evidence": "docs/verification/drive-cleanup-2026-10-26.json",
+  "version_retention_decision": {
+    "status": "AWAITING_USER_CLARIFICATION",
+    "wording": "Lösche Ältere codes bis zur derzeit 2ältesten version.",
+    "question": "Keep latest105/106 or literally oldest versions?",
+    "delete_version_refs_allowed": false
+  },
+  "automation_tasks": {
+    "daily": {
+      "task": "Read-only GitHub source and version check",
+      "state": "PAUSED;do not reactivate automatically",
+      "source": "Current GitHub-main AGENTS.md and current state",
+      "forbidden": "No Drive export, external instruction/status lookup, build or installation"
+    },
+    "weekly": {
+      "task": "Audit GitHub structure, merged branches and explicitly approved retention",
+      "source": "Current AGENTS.md, AKTUELLER-STAND.json, source-lifecycle.json, source-releases.json",
+      "writes": "Only GitHub; preserve unique/unmerged work and history",
+      "deletion_gate": "No version deletion while version_retention_decision.delete_version_refs_allowed is false"
+    },
+    "monthly": {
+      "task": "Verify recoverability of currently retained original sources from GitHub",
+      "source": "Current GitHub AGENTS and version/retention records",
+      "method": "Read remote refs;reconstruct only approved source trees in temporary source-only paths;verify inventory,CRC,privacy and fingerprint;remove own temporary copies",
+      "forbidden": "No productive restore,app launch,Drive artifact/source lookup,build,installation or invoice authority action"
     }
   }
 }

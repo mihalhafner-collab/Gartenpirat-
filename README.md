@@ -1,73 +1,60 @@
-# Haus & Gartenservice / Gartenpirat
+# Gartenpirat
 
-Verbindliche Quellstandsuche: [AKTUELLER-STAND.json](AKTUELLER-STAND.json).
-Freigegebenen Originalcode, zuletzt beobachtete Installation und laufende Arbeit
-nach der [dauerhaften Sicherungsregel](AGENTS.md) unterscheiden. Ältere Versions-
-und Abnahmeangaben unten ersetzen diesen aktuellen Sicherungsnachweis nicht.
+Private Android-App `at.hausgarten.service`. Pixel/App führt die Geschäftsdaten;
+MCP verwendet denselben lokalen Kern. Drive dient der verschlüsselten
+App-Sicherung. Der aktuelle Quellkandidat ist **1.55.1 / Build 106**; zuletzt wurde
+**1.55.0 / Build 105** vom Pixel gemeldet. Native UI-/Updateabnahme von 106 und
+die produktive Integritäts-/Migrationsprüfung bleiben offen.
 
-Private Eigentümer-App für Kunden, Aufträge, Arbeitszeit, Fotos, Rechnungen,
-Angebote/Kostenvoranschläge und Einsatzplanung. Operative Android-App:
-**at.hausgarten.service**, Quellstand **1.52.0 / Build 82**, MCP **9 / 117 Werkzeuge**.
-Pflanzenbibliothek und Neophytenbereich bleiben Bestandteil derselben App.
-Originalsignierter P3-Kandidat: Cloud-Abnahme bestanden, physische Pixel-Abnahme offen.
+## Einstieg für Codex
 
-[APK und geprüfte Originalsignatur](downloads/README.md) · [Aktueller Auftrag](CODEX-AUFTRAG-GARTENPIRAT.md) · [Abnahme und offene Grenzen](CODEX-STATUS.md)
+Nur GitHub ist Entwicklungs- und Anweisungsquelle. Zuerst [AGENTS.md](AGENTS.md),
+dann [Quell-/Gerätestand](AKTUELLER-STAND.json), [aktuellen Auftrag](CODEX-AUFTRAG-GARTENPIRAT.md)
+und [Ergebnisse und offene Punkte](CODEX-STATUS.md) lesen. Historische Aufträge
+werden nicht automatisch wieder aufgenommen. Keine externen Pages-/Drive-Regeln.
 
-## Verbindlicher Arbeitsweg
+Entwicklung, Tests und Originalsignierung laufen in der bestehenden persönlichen
+Gartenumgebung. Änderungen ausschließlich in diesem Repository committen, pushen
+und zurücklesen. Keine Quellcode-/Statussicherungen in Drive; nach einem beauftragten
+APK-Bau ist nur die [Bereitstellung des Installationspakets](downloads/README.md)
+mit erforderlicher Installationsprovenienz erlaubt. Keine automatische Installation.
 
-Entwicklung, Tests, Build und Originalsignierung ausschließlich in der privaten
-Codex-Cloud-Umgebung Gartenpirat-. GitHub main ist die dauerhafte Codequelle;
-Pixel ↔ Google Drive direkt ist der operative Datenweg. Kein Laptop, zweiter
-Tunnel, paralleler Datastore oder zweite operative App als Voraussetzung/Fallback.
-Historische Dateinamen bleiben kompatibel, ohne eine alte Runtime vorauszusetzen.
+## Ordner und Zuständigkeiten
 
-P0-Datentrennung und P1-Vertragsbaseline gelten dauerhaft. Im Workspace nur
-Quellcode, öffentliche Katalog-/Markendaten, leerer Bootstrap und synthetische QA.
-Host-Betriebsdaten ausschließlich über runtime_paths.py und einen ausdrücklich
-konfigurierten externen HG_PRIVATE_DATA_ROOT; ohne ihn fail-closed. Keine privaten
-Rohdaten/Backups, Fotos oder Secrets in Quellcode, Tests, Logs oder Artefakten.
+| Pfad | Zweck |
+|---|---|
+| `android/` | Operative App, native Fachpfade und Androidtests |
+| `static/`, `assets/` | Gemeinsame Web-/Testoberfläche und öffentliche Assets |
+| `libraries/plants/` | Pflanzenquellen, redaktionelle Nachweise und Datenwerkzeuge |
+| `tests/` | Synthetische Regressionen, unveränderliche Baselines und Fixtures |
+| `tools/` | Prüf-, Signier-, Quellnachweis- und Assetwerkzeuge |
+| `docs/verification/` | Maschinenlesbare bzw. datierte technische Nachweise |
+| `downloads/` | Hinweise zum vorhandenen Installationspaket, keine Quellkopien |
+| Pythonmodule im Root und `mcp_integration/` | Von Tests/Kompatibilitätsprüfungen benötigte Hostkomponenten; kein zweiter produktiver Betrieb |
 
-## Bedienung und Schutzregeln
+Die Spiegel der Pflanzenassets sind absichtlich getrennte Laufzeitpfade. Nur
+`tools/sync_plant_assets.py` erzeugt sie; keine unabhängige Bearbeitung oder
+Löschung als vermeintlich alte Kopie. Gleiches gilt für benötigte Legacy-Fixtures.
 
-Heute, Kunden, Arbeiten und Mehr bilden die bestehende Navigation. Zurück geht
-schrittweise; Entwürfe und laufende Zeiterfassung bleiben geschützt. Aufträge
-sind bei Arbeitsaufzeichnungen optional. Persönliches b.b. ist vom Rechnungs- und
-Abrechnungsstatus getrennt. Kundenakte, Fotobibliothek, Pflanzen, Planung und
-Sync-Zentrale bleiben über die vorhandenen Menüs erreichbar.
+## Prüfung
 
-Rechnung/Angebot/Kostenvoranschlag: Entwurf, Validierung, Finalisierung, Teilen,
-tatsächlicher Versand und Zahlung sind getrennte Vorgänge. Keine erfundenen
-Preise oder Rechnungsnummern. Bestätigte Unternehmensdaten bleiben zentrale
-Quelle; finale Dokumente behalten eingefrorene Angaben und Original-PDF-Hash.
-Papierkorb ist kein automatischer Purge; geschützte Dokumente und Beziehungen
-bleiben erhalten. Aktuelle Hashes, stabile Request-IDs, Vorschauen, Bestätigungen,
-Backups und Konfliktbelege sind verbindlich.
+- `python3 -B tools/source_preservation.py`: sauberer Commit auf GitHub.
+- `python3 -B -c 'import privacy_guard as p; print(p.source_gate()); print(p.workspace_gate())'`
+- `python3 -B -m unittest discover -s tests -p test_source_lifecycle.py`
+- Für Appänderungen die passenden bestehenden Python-/JVM-/Browser-/Android-
+  Regressionen gemäß Auftrag und Status; keine alten PASS als neue Prüfung ausgeben.
+- [Originalsignierung](ORIGINAL-SIGNIERUNG-CLOUD.md) und APK-Privacy vor Auslieferung.
 
-## Reproduzierbare Prüfung in Codex Cloud
+Nur leerer Bootstrap und klar synthetische Stores. Produktive Daten, Rohbackups,
+Fotos, Schlüssel und Kontowerte gehören nicht in Quellcheckout, Tests oder Git.
 
-- `python3 tests/run_quality_suite.py --exclude-qa-signing --artifact <Original-APK>`
-- `python3 tools/run-followup-java.py` mit dem eingerichteten HG_JSON_JAR
-- `python3 tests/run_browser_regressions.py` mit dem eingerichteten Chromium/Playwright
-- `python3 tests/mcp_stdio_e2e.py`
-- `python3 tools/check_refactoring_contract.py`
-- `python3 tests/apk_privacy_guard.py --apk <Original-APK>`
+## Herkunft und Historie
 
-Alle Schreibtests ausschließlich in kurzlebigen synthetischen Stores. Die
-historischen Python-/Web-/Migrationskomponenten einschließlich db.py, server.py
-und mcp_integration/ werden von Regressionen tatsächlich verwendet und bleiben
-erhalten; sie sind keine produktive Betriebsanleitung. Produktive Import- oder
-Reparaturskripte niemals als Tests starten.
+Originalquellen sind durch Git-Commits und die aufbewahrten Versionsreferenzen in
+[source-releases.json](source-releases.json) nachweisbar. Aufbewahrungsgrenze und
+Workflow stehen in [source-lifecycle.json](source-lifecycle.json). Ein Entfernen
+überholter Arbeitskopien oder Referenzen schreibt die Git-Historie nicht um.
 
-## Freigaben und technische Grenzen
-
-Originalsignierung ausschließlich nach ORIGINAL-SIGNIERUNG-CLOUD.md mit der
-bestehenden Identität. Kein Ersatzschlüssel und keine QA-App als Updatebeleg.
-Pixel-Updates nur mit Sicherung und ausdrücklicher Freigabe, ohne Deinstallation
-oder Datenlöschung. Google-/Android-/Tunnelrechte und physische Kamera,
-Hintergrundbetrieb, Hardware-Zurück und externe Share-Apps bleiben gesonderte
-Geräte-/Providerprüfungen. Ein Build oder Provider-Readback beweist keine
-vollständige Cloud-, Hardware- oder Datenerhaltabnahme.
-
-P2-Archiv-/Backup-/Medienklassifikation und verbleibende Grenzen stehen im
-aktuellen CODEX-STATUS.md. Historische Integrationsnachweise bleiben unter
-INTEGRATIONSNACHWEIS-2026-10-18.md; verbindliche Regeln unter AGENTS.md.
+Die vollständige frühere Dokumentation liegt im festen
+[Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/tree/a41fc67f9e2d74fb3912c688b0f57cf7476ec598).
+Sie ist Quellenmaterial, keine konkurrierende aktuelle Arbeitsanweisung.

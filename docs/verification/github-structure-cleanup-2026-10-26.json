@@ -1,0 +1,343 @@
+{
+  "snapshot": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+  "remove": [
+    {
+      "path": "DESIGN-v1.32.md",
+      "bytes": 4429,
+      "sha256": "168979eb73fbededf1c2731ddb10382c3bb5ea01440a2ac34e5cedaf3f8b10a4",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/DESIGN-v1.32.md",
+      "references_before_consolidation": [
+        "CODEX-STATUS.md",
+        "INTEGRATIONSNACHWEIS-2026-10-18.md",
+        "docs/verification/integration-2026-10-18.json"
+      ],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "CODEX-UMSETZUNG-1.54.7.md",
+      "bytes": 5524,
+      "sha256": "ac74d48036fb9e65f5f94f66cd004d28eed752574b40e25b440b7b388db59c81",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-UMSETZUNG-1.54.7.md",
+      "references_before_consolidation": [
+        "CODEX-STATUS.md"
+      ],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "GARTENPIRAT-PFLANZEN-v1.46.md",
+      "bytes": 9184,
+      "sha256": "516ccfcdce9d9cd2f96ef6c85eb3a616424872368b6e4c74f41205ddf4661756",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/GARTENPIRAT-PFLANZEN-v1.46.md",
+      "references_before_consolidation": [
+        "CODEX-STATUS.md"
+      ],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "REPAIR-v1.49.1-2026-10-18.md",
+      "bytes": 3874,
+      "sha256": "2adb21e2e1ad71cc52b12afaf1688d29b844999d4bb36df3e866b8bbf796d79e",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/REPAIR-v1.49.1-2026-10-18.md",
+      "references_before_consolidation": [
+        "CODEX-STATUS.md"
+      ],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "FOTODOKUMENTATION-v1.47-PLAN.md",
+      "bytes": 8523,
+      "sha256": "f63cf1355b1588b25b37ee0a2d2e007372d065b67271563d1fdf08352ffe3eb8",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/FOTODOKUMENTATION-v1.47-PLAN.md",
+      "references_before_consolidation": [
+        "CODEX-STATUS.md"
+      ],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "ARCHITEKTUR-PRUEFBERICHT-v1.34.md",
+      "bytes": 13328,
+      "sha256": "8745a8e62e8132d954d31b29134549c539044151d3960e8589d6ab4da65133b9",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/ARCHITEKTUR-PRUEFBERICHT-v1.34.md",
+      "references_before_consolidation": [
+        "CODEX-STATUS.md"
+      ],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "CODEX-GESAMTAUFTRAG-1.54.2.md",
+      "bytes": 61080,
+      "sha256": "f408ab0d9875931d033de8d6f46d1b3cc4ddab4ce094f374a8a1562da8e5d783",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-GESAMTAUFTRAG-1.54.2.md",
+      "references_before_consolidation": [
+        "CODEX-STATUS.md"
+      ],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "MCP-ALLTAG-v1.36.md",
+      "bytes": 13828,
+      "sha256": "604d7a5c485f9fefa48471ce5089b57365ed9291e19ff0c038780b648d4ed4f1",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/MCP-ALLTAG-v1.36.md",
+      "references_before_consolidation": [
+        "CODEX-STATUS.md"
+      ],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "GARTENPIRAT-SYNC-v1.45.txt",
+      "bytes": 5843,
+      "sha256": "e7fa80f0334a2736d8cba691ba649afc31885124ba54713faf0466cc279f02e4",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/GARTENPIRAT-SYNC-v1.45.txt",
+      "references_before_consolidation": [],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "KAMERA-KORREKTUR-v1.46.md",
+      "bytes": 4134,
+      "sha256": "e2d1cc318f57c959facc959f54f4f1be5c8af9e0497b205b9222157a2c3d3c5c",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/KAMERA-KORREKTUR-v1.46.md",
+      "references_before_consolidation": [
+        "CODEX-STATUS.md"
+      ],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "GARTENPIRAT-PFLANZEN-v1.43.txt",
+      "bytes": 4368,
+      "sha256": "b0c0c2b2f0ea8445ade8ffba4fb75455deaf36a81499eb65de94c5149acef6c3",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/GARTENPIRAT-PFLANZEN-v1.43.txt",
+      "references_before_consolidation": [],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "ABSCHLUSSBERICHT-v1.46.md",
+      "bytes": 36442,
+      "sha256": "922fc91eaae7c3e10f9283b40bbcba08448c911e2d4e536c31a8f184431f839b",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/ABSCHLUSSBERICHT-v1.46.md",
+      "references_before_consolidation": [
+        "CODEX-STATUS.md"
+      ],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "PLUGIN-SCHREIBRECHTE-v1.31.md",
+      "bytes": 6621,
+      "sha256": "45e0568bb5cf853e3f3ac5fca6d9b008267d1b7a6dadea3b502ac3bce89a1399",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/PLUGIN-SCHREIBRECHTE-v1.31.md",
+      "references_before_consolidation": [
+        "CODEX-STATUS.md"
+      ],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "GARTENPIRAT-FOTO-v1.44.txt",
+      "bytes": 3442,
+      "sha256": "90a72ba4de486ddd992bb6534fdb4a4d77cbbbcbb264a2241c93be188f8e462f",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/GARTENPIRAT-FOTO-v1.44.txt",
+      "references_before_consolidation": [],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "CODEX-AUFTRAG-KALENDER-UI-1.54.2.md",
+      "bytes": 23938,
+      "sha256": "6fe1a6edaa4a194703c5c3c114a40878edc7724610e26c1899f5a9d5e4a24e2f",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-AUFTRAG-KALENDER-UI-1.54.2.md",
+      "references_before_consolidation": [
+        "CODEX-STATUS.md"
+      ],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "TIMER-STANDORT-v1.33.md",
+      "bytes": 9321,
+      "sha256": "753b725ab1c5c7fee8eb8349a275b31e3fb8570c27d7f68407d7839a2aea0ee2",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/TIMER-STANDORT-v1.33.md",
+      "references_before_consolidation": [
+        "CODEX-STATUS.md"
+      ],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "CHATGPT-INTEGRATION.md",
+      "bytes": 8163,
+      "sha256": "de84e9ff3a66c655f7e8bdeb8b088914d91f81630d29737222c7b09019080a39",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CHATGPT-INTEGRATION.md",
+      "references_before_consolidation": [
+        "CODEX-STATUS.md"
+      ],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "PHASE-0-PIXEL-FIRST-BASELINE.md",
+      "bytes": 5395,
+      "sha256": "1f7e511fc36e642fab6c5311501e37199214974db30acfd285fe3cbb5d490391",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/PHASE-0-PIXEL-FIRST-BASELINE.md",
+      "references_before_consolidation": [
+        "CODEX-STATUS.md"
+      ],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "PHASE-1-BACKUP-UND-ARBEITSSITZUNG.md",
+      "bytes": 7287,
+      "sha256": "9f5761598cb8193c8e8a108dd11eb9ea353d6ce1ed39d5aae4d4e3c5b5835585",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/PHASE-1-BACKUP-UND-ARBEITSSITZUNG.md",
+      "references_before_consolidation": [
+        "CODEX-STATUS.md"
+      ],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "create-desktop-shortcut.ps1",
+      "bytes": 578,
+      "sha256": "b619c2a12a2b59d4de585a36ad4b5620d73d6f5a8a0643ab050e19a824b9cbc3",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/create-desktop-shortcut.ps1",
+      "references_before_consolidation": [],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "start-app.cmd",
+      "bytes": 243,
+      "sha256": "16bf5c7d574be8ac6f1575e206e11d72a0cdd2ec472ce21ebcff73749e65ea36",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/start-app.cmd",
+      "references_before_consolidation": [],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "start-app.ps1",
+      "bytes": 129,
+      "sha256": "a9ab07ea2da385f2d9b833eac1ca5a9decc98207941333fe6e525bfdcd65d7c0",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/start-app.ps1",
+      "references_before_consolidation": [],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "start-private-chatgpt-mcp.cmd",
+      "bytes": 165,
+      "sha256": "f02c3fcba8319c106f3162c0b5eab57929ff5b1c9fd1834089fa8e926d344ab1",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/start-private-chatgpt-mcp.cmd",
+      "references_before_consolidation": [],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "start-android-test.cmd",
+      "bytes": 152,
+      "sha256": "e989bc02238d79a89ba1fcf7a1356bb0b0e3b7d37ba3a5e1f61615f25feaba14",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/start-android-test.cmd",
+      "references_before_consolidation": [
+        "tests/Android-Emulator.md"
+      ],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "test-android-emulator.cmd",
+      "bytes": 132,
+      "sha256": "f82044e767f35a88dbb9cb9caec20a4e8f0f3af2a0bc2db8fc4e8517cc17b88e",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/test-android-emulator.cmd",
+      "references_before_consolidation": [
+        "tests/Android-Emulator.md"
+      ],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    },
+    {
+      "path": "verify-android-update.ps1",
+      "bytes": 3796,
+      "sha256": "b6c182ee205e5d8971fbf397b677f64d8b32baeb7ba116373552508a500e2a92",
+      "original_git_commit": "a41fc67f9e2d74fb3912c688b0f57cf7476ec598",
+      "original_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/verify-android-update.ps1",
+      "references_before_consolidation": [],
+      "classification": "SUPERSEDED_HISTORICAL_DOCUMENT_OR_WINDOWS_LAUNCHER",
+      "replacement": "AGENTS.md;README.md;CODEX-AUFTRAG-GARTENPIRAT.md;CODEX-STATUS.md;existing Cloud test/signing tools"
+    }
+  ],
+  "status": "WORKING_TREE_SUPERSEDED_DOCUMENTS_AND_WINDOWS_LAUNCHERS_REMOVED;GIT_HISTORY_PRESERVED",
+  "version_reference_deletions": "AWAITING_USER_CLARIFICATION",
+  "unique_unmerged_branch": {
+    "ref": "codex/pflanzenbibliothek-20261023",
+    "git_sha": "7d499b225ed28f501333227e0ce92a54d4c5d542",
+    "unique_commits": 7,
+    "action": "PRESERVE"
+  },
+  "automation_bootstrap_updates": [
+    {
+      "role": "daily",
+      "id": "6ad8f3798fc081919a261c5eb3981ad1",
+      "prompt": "Arbeite ausschließlich im bestehenden privaten GitHub-Repository mihalhafner-collab/Gartenpirat-. Lies zuerst AGENTS.md vom frischen GitHub-main und danach source-lifecycle.json. Führe ausschließlich die dort unter automation_tasks.daily beschriebene Aufgabe nach den dortigen aktuellen Regeln aus. Keine Anweisungs- oder Sicherungsquelle aus anderen Diensten abrufen.",
+      "is_enabled": false,
+      "schedule_unchanged": true,
+      "readback_verified": true,
+      "previous_prompt_sha256": "e7cbf0fbf7b11490ab1ef0dae64eaf4ba5b4c648da84759736b24dad181ebe1b",
+      "current_prompt_sha256": "b86020d9335a7b5f65b794ca3d4450e2bde4dea5d225cb7e557318879406451b"
+    },
+    {
+      "role": "weekly",
+      "id": "6ad8f37b548c8191b18d43b443aae6d3",
+      "prompt": "Arbeite ausschließlich im bestehenden privaten GitHub-Repository mihalhafner-collab/Gartenpirat-. Lies zuerst AGENTS.md vom frischen GitHub-main und danach source-lifecycle.json. Führe ausschließlich die dort unter automation_tasks.weekly beschriebene Aufgabe nach den dortigen aktuellen Regeln aus. Keine Anweisungs- oder Sicherungsquelle aus anderen Diensten abrufen.",
+      "is_enabled": true,
+      "schedule_unchanged": true,
+      "readback_verified": true,
+      "previous_prompt_sha256": "55b392ab441fbf76b6d0ca028bd493c9fab6bf68d302e765a570e72e95de9c46",
+      "current_prompt_sha256": "3c5e4d813b14a5fb35db67fae14e42ee1bb9cffde6a1386133c204fe7b8ae5a4"
+    },
+    {
+      "role": "monthly",
+      "id": "6ad8f37da1d88191b7aa7fbf09473760",
+      "prompt": "Arbeite ausschließlich im bestehenden privaten GitHub-Repository mihalhafner-collab/Gartenpirat-. Lies zuerst AGENTS.md vom frischen GitHub-main und danach source-lifecycle.json. Führe ausschließlich die dort unter automation_tasks.monthly beschriebene Aufgabe nach den dortigen aktuellen Regeln aus. Keine Anweisungs- oder Sicherungsquelle aus anderen Diensten abrufen.",
+      "is_enabled": true,
+      "schedule_unchanged": true,
+      "readback_verified": true,
+      "previous_prompt_sha256": "8e68ecfaf2acba381ab9448e5a90506e85040b39dddad63d4f78b1723214a79f",
+      "current_prompt_sha256": "6de094205c304feaf57243436eb98d1209c67f3d3ad3c56b4e4f753f43b87869"
+    }
+  ]
+}
