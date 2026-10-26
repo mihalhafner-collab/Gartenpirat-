@@ -3,7 +3,63 @@
 Stand: 26. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
-## Aktive Abschlusskorrektur 1.55.0/105, 26.10.2026
+## Bereitgestellter Prüfstand 1.55.0/105, 26.10.2026
+
+[Originalsignierte APK105](https://drive.google.com/file/d/1-og34FtoQUX4lqZ-qMWvGew8YevuB4Eo/view?usp=drivesdk) ·
+[unveränderliche Originalquelle](https://github.com/mihalhafner-collab/Gartenpirat-/tree/source/v1.55.0-build105) ·
+[externe Originalquellen](https://drive.google.com/drive/folders/15nuOA815cOg54nhlCZq9U3ROCQiy7lea).
+App und Originalrunner aus4087d8b5b83294d75dba6d9fc87e2d6472d3be28;
+Fingerprint06f99ce068bfcb4e36640df70290b7edddcc8532fa27119ce2332b352a835469.
+App-SHAabbb207e329284d96e7c943eb0fa504a82cce8322181cf82f17cf5843a698bb9;82898941Bytes;
+Originalzertifikata939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8;v2/v3 geprüft.
+Runner-SHAbe770540ddcd898b28d54ad03dd7a91aca2398920131393ec930dfad93317204. Tagoriginale/Remotepeel PASS.
+
+**Prüfkandidat, keine vollständige Produktivabnahme.** Tatsächlich auf105 bestanden:
+78JVM-/65Browser-Suiten,430Pythonprüfungen/0SKIP mit tatsächlicher105APK/P0nullSeed,
+55MCP-Stdiofälle;37schlüsselerzeugende Altprüfungen ausdrücklich ausgeschlossen und
+unverändert erhalten. P1 weiter166Tools/209Aktionen/SHAfd7784c84086ce158f7a19754c62c46f3d06a2d5f91c2a9c6d561d8233ef68f0.
+Originalbuild2m24s; tatsächliche signierteDEX-Provenienz und vom Cloud-Emulator
+zurückgelesene installierte APK bytegleich/Originalsignatur PASS. Synthetischer
+In-place104→105-Updatebeleg vor/nach Update PASS; keine Appdatenlöschung.
+
+Echter105-Pflanzenpfad4PASS plus getrennteUI-Wiederholung2PASS:314Profile/628native
+Bitmapdekodierungen, Suche/Bilder/Vollbild/Zurück und vollständiger nativer Entwurf
+mit Hash/Kontext/ACK/gezieltem Verwerfen. Das behebt den wiederholt beobachteten104-
+Bildfehler bei unveränderten Netzwerk-/CSP-/Dateigrenzen. Tatsächliche Android-
+Fontskalierung100/150/200% PASS; ursprüngliche Sitzung/Revision unverändert,48dp-/
+Dock-/Viewportkontrollen erhalten, OS-Font/Displaygröße exakt wiederhergestellt.
+
+Alle3echten UI-Piloten unter tatsächlichem OS-Flugmodus5PASS: Anfrage/Besichtigung/
+Angebot/Annahme/Auftrag/Besuch/Timer/148EUR-PDF/60+88EUR; Pflege/Tour/Material/Foto/
+produktiverVollbackupcollector/verschlüsselteRestorevorschau; direkte mündliche
+Annahme mit getrenntem Rechnungsempfänger und exaktemRetry. Originalnetzwerte danach
+exakt hergestellt. Finanz-RPC9PASS, Autoritätsprüfungen9PASS, Fresh-Isolated und
+allgemeine echte WebView-/Navigationsprüfung PASS. Keine reale Kamera/Pixelbehauptung.
+
+Gemeinsame vollständige native Regression105 läuft noch (Momentaufnahme 126PASS/
+0FAIL; kein Gesamt-PASS). Danach fünf tatsächliche OS-Prozesspaare und erneute
+installierte APK-Prüfung; kein104-PASS wird automatisch als105-Abnahme verwendet.
+Aktuelle Leistungsziele separat auf105 messen;104Cloud-p95770ms ist kein105-/Pixel-PASS.
+
+Originalquellen61/61 tatsächliche SHA256-Readbacks, frische eindeutige Privatablage;
+aus echten5Remote-Teilen rekonstruierte OriginalZIP162041200Bytes,
+SHA4a47818b2293b9226c6aba07d81ec0a56700a676c869bd25c077ab611eda103e,P0nullSeed.
+APK3Remote-Teile vollständig SHA-geprüft und zum signiertenOriginal mit obigem SHA/
+Zertifikat/Paket/Version/P0 rekonstruiert. Separates großes Raw-APK-Objekt ausschließlich
+vollständiger Connector-Streamgrößenbeleg, **kein Raw-Remote-SHA-Nachweis**. Frisch7
+private Dateien, keineDubletten;6SHA-Bytebelege+1Rawgrößenbeleg. Provenienzdatei:
+https://drive.google.com/file/d/1ky3lcSzFw5_Q5OtA72Y-V-pgPnXKjcqu/view.
+Alle bisherigen Schutzmengen bleiben;105APK/Teile/Originalquellen zusätzlich geschützt.
+Keine Bereinigung, öffentliche Freigabe oder Änderung produktiver Drive-Dateien.
+
+Vor Installation bleibt die vollständige extern geprüfte Sicherung des installierten
+Altstands98 offen; seine kleine MCP-Sicherung reicht nicht. Physische Pixelprüfung,
+zwei echteUSB-Medien/10GB-Restoreziel, aktueller Beleg-/Nummern-/Einzelschreibernachweis
+und aktuelle Rechts-/Lizenz-/Androidverifizierungsinhalte (Proxy403) bleiben offen.
+Keine Installation, produktive Migration, Rechnung, Zahlung oder Autoritätsfreigabe.
+
+## Historischer105-Vorbereitungsstand vor Build und geprüfter Teilabnahme
+
 
 104 bleibt trotz443nativen Kern-PASS,5UI-Pilotfällen,5OS-Prozesspaaren,Flugmodus,
 78JVM-/56+9Browser-Suiten/430Python/55MCP-PASS NICHT GESAMTFREIGEGEBEN.

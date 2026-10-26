@@ -235,6 +235,46 @@
       "documentation_provenance": "Final branch documentation/export is separate from immutable APK/tag; completion receipt pins exact documentation ZIP.",
       "drive_provenance_id": "1tGaD36AnVupSplOC7q_nfEWVlHY7vm7O",
       "drive_verification_id": "1K2Uf6J_xT7bW9ozezC3Fwpp3Cd1M4NyQ"
+    },
+    {
+      "version": "1.55.0",
+      "build": 105,
+      "status": "PRUEFKANDIDAT_AFFECTED_PASS_FULL_REGRESSION_RUNNING_PIXEL_NOT_INSTALLED",
+      "tag": "source/v1.55.0-build105",
+      "git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
+      "tree_sha": "8b738b7d88544244630f40bc440d72f313903669",
+      "source_sha256": "06f99ce068bfcb4e36640df70290b7edddcc8532fa27119ce2332b352a835469",
+      "source_files": 2338,
+      "original_zip_sha256": "4a47818b2293b9226c6aba07d81ec0a56700a676c869bd25c077ab611eda103e",
+      "original_zip_bytes": 162041200,
+      "original_zip_transport_encoding": "XZ_PARTS",
+      "original_zip_transport_sha256": "5868f50ba7688a67f4f411e4fb4b2ba6a803eb79d0d7dee10ce0a3eb9afc3f5a",
+      "apk_sha256": "abbb207e329284d96e7c943eb0fa504a82cce8322181cf82f17cf5843a698bb9",
+      "apk_bytes": 82898941,
+      "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+      "source_folder_id": "15nuOA815cOg54nhlCZq9U3ROCQiy7lea",
+      "drive_folder_id": "1WfoTQQuOafgq_el0-EaY3Lz-GULaq2g3",
+      "drive_apk_id": "1-og34FtoQUX4lqZ-qMWvGew8YevuB4Eo",
+      "drive_apk_url": "https://drive.google.com/file/d/1-og34FtoQUX4lqZ-qMWvGew8YevuB4Eo/view?usp=drivesdk",
+      "drive_provenance_id": "1ky3lcSzFw5_Q5OtA72Y-V-pgPnXKjcqu",
+      "drive_sha256_id": "11_Cf2ucL_nJoMquXXarVjS6DsxWzUo2P",
+      "drive_start_id": "1D0OnN_4CcwAnA2rLoBU1JDjma1nSCr06",
+      "drive_apk_part_ids": [
+        "1YzeLrDK9XvYDiM0SFE2L9yORIZVRHpOe",
+        "19YFnZgU2arwjSQDlUT5UeFnOC2agYOZT",
+        "1cn1V5qFQRMG6yyICIfmstrB3wX4ZkcWd"
+      ],
+      "qa_source_git_sha": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
+      "qa_apk_sha256": "be770540ddcd898b28d54ad03dd7a91aca2398920131393ec930dfad93317204",
+      "remote_readback": "PASS exact source branch and immutable peeled tag",
+      "drive_readback": "Source61 SHA256_BYTES and remote reconstructed ZIP/P0 PASS; APK3actualremote parts reconstructed SHA256/originalsignature/P0 PASS; separate raw APK COMPLETE_CONNECTOR_STREAM_SIZE_ONLY, rawremoteSHA notverified",
+      "native_cloud_acceptance": "Affected PASS: plants4/UI2, actual fonts1/1.5/2 and originalsessionunchanged, complete3offlineUIpilots5cases, finance9,authority9,fresh_isolated/UI, update104→105 and installedAPKbyte/signature/provenance. Full443/commonOS5pairs RUNNING, notinferredPASS",
+      "pixel_installation": "NOT_EXECUTED; last observed1.54.9/98selfreport",
+      "productive_migration": "NOT_EXECUTED",
+      "productive_invoice_authority": "NOT_ACTIVATED",
+      "release_approved": false,
+      "candidate_download_published_at_utc": "2026-10-26T05:02:48.687197+00:00",
+      "documentation_provenance": "Current consolidated documentation evolves separately; immutable original APK/tag/source remain4087d8b. Final acceptance still pending."
     }
   ]
 }

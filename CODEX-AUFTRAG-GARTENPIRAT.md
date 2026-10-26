@@ -1,7 +1,9 @@
 # CODEX-AUFTRAG-GARTENPIRAT
 
 
-Aktueller Steuerungsstand26.10.2026: Abschlussauftrag aktiv. Ziel1.55.0/105 als
+Aktueller Steuerungsstand26.10.2026: Abschlussauftrag aktiv. Original105-Prüfkandidat
+mit bestandener betroffener Teilabnahme bereitgestellt; vollständige gemeinsame
+Regression läuft weiter. APKbereitstellung ist keine Pixelinstallation/Produktivfreigabe. Ziel1.55.0/105 als
 Revier Solo: sämtliche Fachfunktionen und maßgebliche Daten ausschließlich auf
 Pixel/App, Drive ausschließlich verschlüsselte Vollsicherung mit regelmäßiger
 aufschiebbarer App-Planung nach bewusster Geräteeinrichtung. Speichervertrag3
