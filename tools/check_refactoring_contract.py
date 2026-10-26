@@ -284,6 +284,19 @@ def approved_local_resolution_repair(expected, current, delta, repair, timer, lo
     return approved_backup_only_transition(expected, previous, delta, repair, timer, local)
 
 
+def approved_invoice_business_date_repair(expected, current, delta, repair, timer, local):
+    """Reverse only the exact reviewed correction-date rule, retaining prior gates."""
+    import copy
+    proof = local.get('invoice_business_date_repair_v1', {})
+    if digest(proof) != '23bab16b461ba18379c905aaea903ee56d9f0437c851123e0fc25d1bf46e7ded':
+        raise ValueError('Unapproved invoice business date repair')
+    previous = copy.deepcopy(current)
+    if previous['contracts'].get('InvoiceIssueRules') != proof['after']:
+        return ['contracts']
+    previous['contracts']['InvoiceIssueRules'] = proof['before']
+    return approved_local_resolution_repair(expected, previous, delta, repair, timer, local)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--record-baseline', action='store_true')
@@ -312,6 +325,8 @@ def main():
             unapproved = approved_backup_only_transition(expected, current, delta, repair, evolution, local)
         if unapproved:
             unapproved = approved_local_resolution_repair(expected, current, delta, repair, evolution, local)
+        if unapproved:
+            unapproved = approved_invoice_business_date_repair(expected, current, delta, repair, evolution, local)
         if unapproved:
             raise SystemExit('FAIL unreviewed functional contract changed: '+', '.join(unapproved))
         print('PASS explicitly reviewed contract evolution; original P1 differences: '+', '.join(changed))

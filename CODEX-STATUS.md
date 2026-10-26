@@ -1,9 +1,84 @@
 # CODEX-STATUS
 
-Stand: 25. Oktober 2026
+Stand: 26. Oktober 2026
 Repository: `mihalhafner-collab/Gartenpirat-`
 
-## Abschlusskorrektur 1.55.0/103 – gemeinsame Abnahme läuft
+## Aktive Abschlusskorrektur 1.55.0/104, 26.10.2026
+
+Der vollständige original signierte103-Gesamtlauf auf
+71fff9c9dc4b03a5293f120c1471c9491cc4c010 endete mit441PASS/2FAIL. Alle sieben zu den
+ursprünglichen102-Fehlern gehörenden Prüfungen bestehen jetzt.103 bleibt trotzdem NICHT FREIGEGEBEN;
+kein103-Tag/APKupload. App-SHA4cd5ff31d84ec32e15e4b68fa932215923ca59f48350e80ad5176fc80c703f2d,
+Runner2c2d24bbda3fe0a3c65b524387f2871c1257b1dabc18785c27f02124f3ee75a5.
+Originalzertifikat a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8.
+Build2m26s, Lint0Fehler/112Warnungen, tatsächliche signierte DEX-Provenienz und
+installierte Emulator-APK bytegleich/Signatur geprüft PASS. Update102→103 bewahrt
+unverändert den vollständigen bisherigen synthetischen Bestand; Schema4→6/5→6-
+Datenerhalt und alte Schreibersperre nativ PASS. Kein produktives Pixelupdate.
+
+Neuer echter Fehler nach Mitternacht: Die Korrektur-/Stornoanlage schnitt das UTC-
+Aktionsdatum ab, während die lokale Ausgabe den Wiener Geschäftstag prüft. Deshalb
+wurde nachts ein Vortagsentwurf erzeugt und die Ausgabe korrekt verweigert.104 leitet
+das Datum aus dem unveränderlichen ursprünglichen Action-Instant inEurope/Vienna
+ab, nie aus dem Zeitpunkt einer Wiederholung. Originalbeleg, Timestamp, Betrag,
+Nummer und Bezug bleiben unverändert.18echte Journal-/Korrektur-/Replaygrenzen für
+Storno/Ersatz, Winter/Sommer/DST/Offsets;222PixelDriveState-Prüfungen PASS. Alter Code
+scheitert reproduzierbar; Ausgabe eines tatsächlich veralteten Entwurfs bleibt gesperrt.
+
+Derselbe belegte UTC-Abschneidefehler in Anfrage-/Suchdatumsfiltern wird mit derselben
+Wiener Geschäftszone korrigiert.328Revier-Prüfungen einschließlich12Grenzfällen,
+From/To-Endpunkten, Ziel-/Notiz-IDs und unveränderten Originalhashes/Store/Writes PASS.
+Unklare historische Datumswerte behalten ihre bisherige Anzeige; keine Umschreibung
+oder erfundene Zeitzone. Ohne Datumsfilter erfolgt die Umrechnung erst für die
+angezeigte Suchseite; kein Cache/Index oder Schemawechsel.
+
+Zweiter103-FAIL: Die native WebViewbestätigung blieb verdeckt. In der unveränderten
+isolierten103-Wiederholung zeigte der tatsächliche WindowManager-Fokus
+Application Not Responding:com.android.systemui; ein ausschließlich synthetischer
+Screenshot belegt den SystemUI-ANR-Dialog über der laufenden App. Die Schlafhypothese
+ist widerlegt:Awake/StayOntrue/LastSleep0/ScreenTimeout2147483647. Ausschließlich die
+Testsystemmeldung wird nach expliziter Emulator-/Fensterprüfung geschlossen; kein
+Appdialog wird ersetzt.104 ergänzt technische native Fenster-/Keyguard-/Fokus-/
+Accessibilityzustände und Selektorhashes. Keine Dialog-/Kundentexte, keine gelockerte
+Zeitgrenze/Assertion. Der103-FAIL bleibt historisch FAIL; aktuelle104-UI-Prüfung und
+vollständige gemeinsame Abnahme weiterhin OFFEN.
+
+103-Pflegepilot mit Tour/Timer/Material/lokalemFoto und echtem produktivem
+Backupcollector/verschlüsselter Restorevorschau PASS; direkte mündliche Annahme mit
+getrenntem Rechnungsempfänger/einemAuftrag/exaktemRetry PASS. Native9Autoritätsprüfungen
+PASS; zudem tatsächlicher >40MiB-Kaltstartrestore mit25Originalen, optional defekter
+Fotoentwurf getrennt fortsetz-/verwerfbar, Tagesbackup trotz altem Upload/defektemJob,
+echter geposteter Schedulerfehler und alle vier Backup-only-Legacyübergänge PASS.
+Der vollständige148EUR-UI-Pilot103 bleibt wegen der Bestätigung FAIL; seine frühere
+102-Ausführung wird nicht als103-/104-Nachweis verwendet.103-Finanz-RPC148/PDF/60+88 PASS.
+
+Eingefrorener104-Hoststand:78JVM-Suiten,56Browser-Suiten,430Pythonprüfungen/0SKIP und
+55MCP-Stdiofälle PASS;37historische QA-Schlüsselerzeugungstests explizit ausgeschlossen
+und erhalten. P1=166Tools/209Aktionen,
+SHAfd7784c84086ce158f7a19754c62c46f3d06a2d5f91c2a9c6d561d8233ef68f0.
+Exakt gepinnter zusätzlicher InvoiceIssueRules-Deltabeleg; ursprüngliche Baseline und
+alle bisherigen Gates bleiben erhalten. Native Diagnoseänderung eng API37 kompiliert;
+noch kein104-Build/Signatur/Native-PASS. Gemeinsame aktuelle Ausführung folgt.
+
+103-Suche300Kunden/450Objekte/3Warmups/25Samples:p95=885.32715ms verfehlt300ms;
+Tour20Stopps456.833949ms erfüllt1000ms. Reiner Cloud-Softwareemulator, Pixelziel offen.
+103-Originalquellen vollständig mit61SHA256-Bytebelegen und aus echten Remote-Teilen
+rekonstruiertemZIP gesichert:
+https://drive.google.com/drive/folders/15NJotizGYEnyCLBEenbgYQ2gBL3MOrY8,
+162029178Bytes/SHAcdc1552871d54481e1a93fffec1bb3e839d004ef4d627f9c4b90d976854462ad.
+Die103-Quellengeneration bleibt unverändert mit SoftwareabnahmeOPEN.
+
+Aktueller Quellbaum/APK/Quellarchive bestehen P0 mit0Betriebszeilen. Separates nur
+lesendes Historienaudit:12bekannteObjekte/4bereits bekannte sensible Altobjekte;
+keine Inhalte exportiert und keinHistoryRewrite. Kein forensischer Gesamtbefund.
+Aktuelle Primärquellen Android-Verifizierung/OpenMeteo/USP/BMF am25.10.23:34UTC über
+Cloud-Proxy403gesperrt: inhaltliche Rechts-/Lizenz-/Registrierungsprüfung offen,
+keine kommerzielleGratiswetter-/Rechtskonformitätsbehauptung oder neue Kosten.
+Produktiver Pixel zuletzt lesend1.54.9/98/DB4,dbe9ed0; vollständige extern geprüfte
+Vor-Update-Sicherung98 weiterhin offen. Kleine Geschäftssicherung ist kein Ersatz.
+Keine Installation/Migration/Drivegeschäftsänderung/Löschung/Rechnung/Freigabe.
+
+## Historische Abschlusskorrektur 1.55.0/103 – gemeinsame Abnahme läuft
 
 Der vollständige originale102-Lauf auf5e3b6d7a3df5029fe34d53caad9cecaa74e818d6
 endete mit436PASS/7FAIL. APK-SHA1a07554d02cfd06850c5bf42e4478855863745124ab2f11e30cef57028be75fb,

@@ -9,11 +9,19 @@ import static at.hausgarten.service.RevierRules.*;
 
 /** Common offline application cases for objects, care, visits, tours and operating resources. */
 final class RevierApplicationService {
+    private static final ZoneId BUSINESS_ZONE=ZoneId.of("Europe/Vienna");
     private final RevierRepository repository;private final Clock clock;
     RevierApplicationService(RevierRepository repository){this(repository,Clock.systemUTC());}
     RevierApplicationService(RevierRepository repository,Clock clock){this.repository=repository;this.clock=clock;}
     private String stamp(){return clock.instant().toString();}
-    private LocalDate today(){return clock.instant().atZone(ZoneId.of("Europe/Vienna")).toLocalDate();}
+    private LocalDate today(){return clock.instant().atZone(BUSINESS_ZONE).toLocalDate();}
+    private static String calendarDay(String value){
+        if(value.length()<=10)return value;
+        try{return Instant.parse(value).atZone(BUSINESS_ZONE).toLocalDate().toString();}
+        // Unzoned historical values remain their original displayed calendar day;
+        // reading must neither invent their timezone nor rewrite stored evidence.
+        catch(DateTimeException unverifiedLegacy){return value.substring(0,10);}
+    }
     private static String key(String type,String id){return ROOT+"entity:"+type+":"+id;}
     private JSONArray records(String type)throws Exception {JSONArray stored=repository.list(ROOT+"entity:"+type+":"),rows=new JSONArray();for(int i=0;i<stored.length();i++){JSONObject row=stored.getJSONObject(i);version(row);if(!row.optBoolean("deleted"))rows.put(row);}return rows;}
     private JSONObject load(String type,String id)throws Exception {String value=repository.get(key(type,id),"");if(value.isEmpty())throw error("REFERENCE_NOT_FOUND","Der verknüpfte Eintrag wurde nicht gefunden.");JSONObject row=new JSONObject(value);version(row);if(row.optBoolean("deleted"))throw error("ENTITY_DELETED","Dieser Eintrag wurde endgültig gelöscht. Eine alte Aktion legt ihn nicht erneut an.");if(!id.equals(row.getString("id")))throw error("REVIER_RECORD_INVALID","Eintrag und Kennung stimmen nicht überein.");return row;}
@@ -80,7 +88,8 @@ final class RevierApplicationService {
     private boolean matches(JSONObject row,JSONObject filters)throws Exception {
         if(!filters.optBoolean("include_archived",false)&&(!row.optBoolean("active",true)||row.optBoolean("archived")))return false;
         for(String field:new String[]{"customer_id","property_id","status","district","care_plan_id"})if(!filters.optString(field).isEmpty()&&!filters.getString(field).equals(row.optString(field)))return false;
-        String date=row.optString("date",row.optString("received_at",row.optString("updated_at")));if(date.length()>=10)date=date.substring(0,10);
+        String date=row.optString("date",row.optString("received_at",row.optString("updated_at")));
+        if(!filters.optString("from_date").isEmpty()||!filters.optString("to_date").isEmpty())date=calendarDay(date);
         if(!filters.optString("from_date").isEmpty()&&(date.isEmpty()||date.compareTo(filters.getString("from_date"))<0))return false;
         if(!filters.optString("to_date").isEmpty()&&(date.isEmpty()||date.compareTo(filters.getString("to_date"))>0))return false;
         return filters.optString("query").isEmpty()||normalize(row.toString()).contains(normalize(filters.getString("query")));
@@ -306,7 +315,7 @@ final class RevierApplicationService {
         JSONObject selected()throws Exception {
             JSONObject result=new JSONObject().put("type",type).put("id",id).put("title",title).put("label",title),target=new JSONObject().put("type",targetType).put("id",id);
             if(record!=null){result.put("status",status);target.put("customer_id",customerId).put("property_id",propertyId);}else result.put("snippet",notes.substring(0,Math.min(160,notes.length())));
-            result.put("date",date).put("archived",archived).put("target",target);if(record!=null)result.put("record_hash",hash(record));return result;
+            result.put("date",calendarDay(date)).put("archived",archived).put("target",target);if(record!=null)result.put("record_hash",hash(record));return result;
         }
     }
     private JSONObject search(JSONObject args,JSONObject state)throws Exception {
@@ -319,7 +328,10 @@ final class RevierApplicationService {
     private void searchRow(JSONObject row,String type,boolean archived,JSONObject filters,String[] words,Set<String> types,Set<String> unique,List<SearchHit> found)throws Exception {
         if(!filters.optBoolean("include_archived",false)&&(archived||row.optBoolean("archived")||row.has("active")&&(row.optInt("active",1)==0||Boolean.FALSE.equals(row.opt("active")))))return;
         if(!filters.optString("status").isEmpty()&&!filters.getString("status").equals(row.optString("status")))return;
-        String day=row.optString("date",row.optString("work_date",row.optString("starts_at",row.optString("issued_at",row.optString("received_at",row.optString("updated_at"))))));if(day.length()>10)day=day.substring(0,10);
+        String day=row.optString("date",row.optString("work_date",row.optString("starts_at",row.optString("issued_at",row.optString("received_at",row.optString("updated_at"))))));
+        // Date filters need the business day before matching; otherwise only the
+        // delivered page converts it, preserving the existing lazy DTO path.
+        if(!filters.optString("from_date").isEmpty()||!filters.optString("to_date").isEmpty())day=calendarDay(day);
         if(!filters.optString("from_date").isEmpty()&&(day.isEmpty()||day.compareTo(filters.getString("from_date"))<0)||!filters.optString("to_date").isEmpty()&&(day.isEmpty()||day.compareTo(filters.getString("to_date"))>0))return;
         String targetId=row.optString("id");if(targetId.isEmpty())return;String title=row.optString("name",row.optString("title",row.optString("activity",row.optString("invoice_number",row.optString("number",targetId))))),body=types.isEmpty()||types.contains(type)?normalize(row.toString()):"";boolean matches=true;for(String word:words)matches&=body.contains(word);
         if(matches&&(types.isEmpty()||types.contains(type))&&unique.add(type+":"+targetId+(archived?":archive":"")))found.add(new SearchHit(row,type,targetId,title,day,archived,null));

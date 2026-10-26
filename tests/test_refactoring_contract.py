@@ -4,7 +4,7 @@ import json
 import unittest
 import tempfile
 from pathlib import Path
-from tools.check_refactoring_contract import BASELINE, differences, approved_evolution, approved_revier_timer, approved_revier_local_workflows, approved_backup_only_transition, approved_local_resolution_repair, javascript_bridges
+from tools.check_refactoring_contract import BASELINE, differences, approved_evolution, approved_revier_timer, approved_revier_local_workflows, approved_backup_only_transition, approved_local_resolution_repair, approved_invoice_business_date_repair, javascript_bridges
 
 
 class RefactoringContractTests(unittest.TestCase):
@@ -115,6 +115,18 @@ class RefactoringContractTests(unittest.TestCase):
         self.assertEqual(repaired_check(damaged),['tools'])
         invalid=deepcopy(local);invalid['local_resolution_dependency_repair_v1']['after']='unreviewed'
         with self.assertRaisesRegex(ValueError,'Unapproved local resolution dependency repair'):repaired_check(repaired,invalid)
+        dated=deepcopy(repaired);proof=local['invoice_business_date_repair_v1']
+        self.assertEqual(dated['contracts']['InvoiceIssueRules'],proof['before'])
+        dated['contracts']['InvoiceIssueRules']=proof['after']
+        dated_check=lambda value,evolution=local:approved_invoice_business_date_repair(self.contract,value,delta,repair,timer,evolution)
+        self.assertEqual(dated_check(dated),[])
+        for group,key in [('contracts','InvoiceIssueRules'),('contracts','OwnerJournalRules'),('observations','state_hash')]:
+            damaged=deepcopy(dated);damaged[group][key]='unreviewed'
+            self.assertEqual(dated_check(damaged),[group])
+        damaged=deepcopy(dated);damaged['tools'][0]['annotations']['readOnlyHint']=False
+        self.assertEqual(dated_check(damaged),['tools'])
+        invalid=deepcopy(local);invalid['invoice_business_date_repair_v1']['after']='unreviewed'
+        with self.assertRaisesRegex(ValueError,'Unapproved invoice business date repair'):dated_check(dated,invalid)
 
     def test_revier_timer_preserves_every_existing_tool_and_bridge(self):
         delta=json.loads((BASELINE.parent/'sync-optimization-contract-v1.json').read_text())

@@ -56,7 +56,9 @@ final class InvoiceIssueRules {
         String type=p.getString("correction_type");if(original.optString("issued_at").isEmpty()||!Arrays.asList("replacement","cancellation").contains(type)||p.optString("reason").trim().isEmpty()||type.equals("cancellation")&&original.optString("status").equals("Storniert"))throw new IllegalArgumentException("Originalbezug, Korrekturart und Grund prüfen.");
         String id="inv_correction_"+PixelMcpWriteTools.hash(a.getString("client_id")).substring(0,32);if(OwnerJournalRules.findOrNull(s.getJSONArray("invoices"),id)!=null)throw new PixelMcpWriteTools.Rejected("WRITE_CONFLICT","Korrektur-ID bereits belegt.");
         JSONObject next=new JSONObject(original.toString());for(String key:new String[]{"issuer","recipient","pdf_sha256","pdf_storage_name","pdf_byte_size","pdf_base64","numbering_receipt","document_id"})next.remove(key);
-        next.put("id",id).put("invoice_number","Entwurf-"+id).put("invoice_date",a.getString("created_at").substring(0,10)).put("status","Entwurf").put("issued_at","").put("sevdesk_id","")
+        // Business dates use Vienna; derive once from the original action, never from replay time.
+        String correctionDate=Instant.parse(a.getString("created_at")).atZone(ZoneId.of("Europe/Vienna")).toLocalDate().toString();
+        next.put("id",id).put("invoice_number","Entwurf-"+id).put("invoice_date",correctionDate).put("status","Entwurf").put("issued_at","").put("sevdesk_id","")
             .put("document_type",type).put("correction_of",original.getString("id")).put("correction_reason",p.getString("reason")).put("created_at",a.getString("created_at")).put("updated_at",a.getString("created_at"));
         JSONArray positions=next.getJSONArray("positions");for(int i=0;i<positions.length();i++)positions.getJSONObject(i).put("worklog_id","");
         InvoiceDraftRules.normalize(next,null,s);OwnerJournalRules.replace(s,"invoices",id,next);

@@ -1,12 +1,12 @@
 {
   "format": "gartenpirat.source-location.v1",
-  "updated_at_utc": "2026-10-25T23:19:16.023244+00:00",
+  "updated_at_utc": "2026-10-26T00:07:26.537545+00:00",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
   "development_ref": "refs/heads/codex/revier-solo-20261023",
   "development_snapshot": {
     "version_name": "1.55.0",
-    "version_code": 103,
-    "status": "ACTIVE_103_PROVEN_POST_RESOLUTION_DEPENDENCY_REPAIR_COMMON_ACCEPTANCE_PENDING",
+    "version_code": 104,
+    "status": "ACTIVE_104_VIENNA_BUSINESS_DATE_REPAIR_AND_NATIVE_CONFIRM_DIAG_COMMON_ACCEPTANCE_PENDING",
     "base_git_sha": "419d0b4bfcbb7108d00296619831a04ddc3273b0",
     "last_original_app_source_git_sha": "dbe9ed0b4d8a0a60aee4c4c0a578c3fe4f40ae4c",
     "main_at_start": "e499e745832449ce0202d04d9903495248e8b034",
@@ -35,8 +35,8 @@
       "native_browser_draft_ack_cas_tombstone_context_epoch_full_backup_integration",
       "final_storage_contract3_backup_only_public_runtime_no_business_drive_network"
     ],
-    "full_revier_acceptance": "102 complete436PASS7FAIL;103 correction and renewed common acceptance pending",
-    "original_signed_update_candidate": "102 original internal proof build1a07554d02cfd06850c5bf42e4478855863745124ab2f11e30cef57028be75fb NOT ACCEPTED;103 not built",
+    "full_revier_acceptance": "103 complete441PASS2FAIL;all102sevenfailures repaired;104 date repairs and renewed actualnative acceptance pending",
+    "original_signed_update_candidate": "103 original internal4cd5ff31d84ec32e15e4b68fa932215923ca59f48350e80ad5176fc80c703f2d NOT ACCEPTED;104 not built",
     "productive_migration": "NOT EXECUTED",
     "installation": "NOT EXECUTED",
     "internal_signed_build": {
@@ -68,20 +68,20 @@
     },
     "backup_target_contract": "All business functions and authoritative data exclusively Pixel/App; Drive exclusively encrypted full backup; final storage contract3 retires public legacy business network writers in every authority mode without clearing old data/accounts/queues.",
     "latest_host_checks": {
-      "scope": "frozen103 common source before saved build;artifact-specific Python privacy used signed102 and will be renewed on103",
+      "scope": "frozen104 source;artifact-specificPython privacy used signed103 and will be renewed on104",
       "jvm_suites_pass": 78,
       "browser_suites_pass": 56,
       "python_pass": 430,
       "python_skip": 0,
       "excluded_legacy_qa_key_generation": 37,
       "mcp_stdio_pass": 55,
-      "p1_contract_sha256": "6f1723ea8be6c25a829c3c628c4a1c58db5864710f301c71b7865b96b406d419",
+      "p1_contract_sha256": "fd7784c84086ce158f7a19754c62c46f3d06a2d5f91c2a9c6d561d8233ef68f0",
       "source_workspace_privacy": "PASS source2338/workspace6107;0operational seed rows",
       "native102": "436PASS7FAIL;NOT ACCEPTED",
       "production_java_compile": 204,
       "native_test_java_compile": 32,
-      "additional_browser_suites_pass": 9,
-      "native103": "NOT RUN"
+      "native103": "441PASS2FAIL;NOT ACCEPTED",
+      "native104": "NOT RUN"
     },
     "native_font_probe": "Today/Planning 100/150/200% PASS after initial SystemUI ANR; OS settings restored; no Pixel/TalkBack/full-nine-view claim",
     "source_generation_ab1": {
@@ -572,7 +572,33 @@
       "target_met": false,
       "tour20_ms": 399.586607,
       "environment": "Cloud software emulator;no Pixel claim"
-    }
+    },
+    "native103_complete": {
+      "app_source_git_sha": "71fff9c9dc4b03a5293f120c1471c9491cc4c010",
+      "pass": 441,
+      "fail": 2,
+      "accepted": false,
+      "app_apk_sha256": "4cd5ff31d84ec32e15e4b68fa932215923ca59f48350e80ad5176fc80c703f2d",
+      "source_folder_id": "15NJotizGYEnyCLBEenbgYQ2gBL3MOrY8",
+      "source_zip_sha256": "cdc1552871d54481e1a93fffec1bb3e839d004ef4d627f9c4b90d976854462ad",
+      "source_receipts": 61
+    },
+    "native_search_performance_103": {
+      "customers": 300,
+      "properties": 450,
+      "warmups": 3,
+      "samples": 25,
+      "p95_ms": 885.32715,
+      "target_ms": 300,
+      "target_met": false,
+      "tour20_ms": 456.833949,
+      "environment": "actual Cloud software emulator;no Pixel claim"
+    },
+    "active_104_repairs": [
+      "immutable_action_instant_to_vienna_correction_date",
+      "same_vienna_calendar_day_for_inquiry_and_search_filters_without_mutating_legacy",
+      "redacted_native_confirm_window_diagnostics_no_assertion_or_dialog_bypass"
+    ]
   },
   "verified_release_source": {
     "version": "1.54.1",

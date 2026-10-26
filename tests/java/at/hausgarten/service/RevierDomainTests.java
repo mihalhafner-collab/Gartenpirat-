@@ -166,5 +166,46 @@ public final class RevierDomainTests {
         rejected("INVALID_INPUT",()->inspectOwnerEdit(app,"update_settings",settings));rejected("INVALID_INPUT",()->inspectOwnerEdit(app,"create_photo",photo));
         yes(rowsBefore.equals(store.values.toString()));yes(snapshotHash.equals(PixelMcpWriteTools.hash(store.snapshot)));yes(store.writes==writesBefore);
     }
-    public static void main(String[] ignored)throws Exception {SyntheticBusinessData.verify();workflow();inspectionContractLimit();acceptanceAndInspectionCorrections();archiveDeletion();restoredActionInspection();restoredOwnerActionInspection();seriesAndTours();resources();timedMovementContext();searchResponseContract();searchScale();System.out.println("PASS "+assertions+" Revier domain workflow/CAS/rollback/inspection/series/tour/resources/search checks;synthetic transaction port,no device/provider acceptance");}
+    static void calendarDayFilters()throws Exception {
+        String[][] cases={
+            {"winter_midnight","2026-12-31T23:30:00Z","2027-01-01"},
+            {"winter_same_day","2026-12-31T00:30:00Z","2026-12-31"},
+            {"summer_midnight","2026-07-01T22:30:00Z","2026-07-02"},
+            {"summer_same_day","2026-07-01T00:30:00Z","2026-07-01"},
+            {"spring_before","2026-03-28T23:30:00Z","2026-03-29"},
+            {"spring_after","2026-03-29T22:30:00Z","2026-03-30"},
+            {"fall_before","2026-10-24T22:30:00Z","2026-10-25"},
+            {"fall_after","2026-10-25T23:30:00Z","2026-10-26"},
+            {"offset","2026-10-26T00:30:00+01:00","2026-10-26"},
+            {"offset_same_instant","2026-10-26T09:30:00+10:00","2026-10-26"},
+            {"legacy_date","2026-10-25T23:30:00Z","2026-10-25"},
+            {"legacy_unzoned","2026-10-25T23:30:00Z","2026-10-25"}
+        };
+        for(String[] sample:cases){
+            Memory store=new Memory();RevierApplicationService app=new RevierApplicationService(store,CLOCK);
+            JSONObject created=app.execute("create_inquiry",args("qa_calendar_"+sample[0]).put("customer_id","qa_customer_1").put("title","QA Kalenderanfrage").put("concern","QA Kalenderhinweis").put("received_at",sample[1])).getJSONObject("record");
+            String id=created.getString("id"),key=RevierRules.ROOT+"entity:inquiry:"+id;
+            if(sample[0].startsWith("offset")){JSONObject legacy=new JSONObject(store.values.get(key)).put("received_at",sample[1]);store.values.put(key,legacy.toString());}
+            if(sample[0].equals("legacy_date")){JSONObject legacy=new JSONObject(store.values.get(key)).put("date",sample[2]);store.values.put(key,legacy.toString());}
+            if(sample[0].equals("legacy_unzoned")){JSONObject legacy=new JSONObject(store.values.get(key)).put("received_at","2026-10-25 23:30:00");store.values.put(key,legacy.toString());}
+            JSONObject original=new JSONObject(store.values.get(key));String recordsBefore=store.values.toString(),stateBefore=PixelMcpWriteTools.hash(store.snapshot);int writesBefore=store.writes;
+            String previous=LocalDate.parse(sample[2]).minusDays(1).toString(),following=LocalDate.parse(sample[2]).plusDays(1).toString();
+            JSONObject exact=object().put("from_date",sample[2]).put("to_date",sample[2]),listed=app.query("list_inquiries",exact);
+            if(listed.getInt("total")!=1)throw new AssertionError("QA_CALENDAR_LIST_DAY_"+sample[0]);yes(listed.getJSONArray("items").getJSONObject(0).getString("id").equals(id));
+            yes(app.query("list_inquiries",object().put("to_date",previous)).getInt("total")==0);
+            yes(app.query("list_inquiries",object().put("from_date",following)).getInt("total")==0);
+            yes(app.query("list_inquiries",object().put("from_date",sample[2])).getInt("total")==1);
+            yes(app.query("list_inquiries",object().put("to_date",sample[2])).getInt("total")==1);
+            JSONObject query=new JSONObject(exact.toString()).put("query","Kalender").put("types",new JSONArray().put("inquiry"));
+            JSONObject found=app.query("search_local",query);if(found.getInt("total")!=1)throw new AssertionError("QA_CALENDAR_SEARCH_DAY_"+sample[0]);
+            JSONObject hit=found.getJSONArray("items").getJSONObject(0);yes(hit.getString("date").equals(sample[2])&&hit.getString("id").equals(id)&&hit.getJSONObject("target").getString("type").equals("inquiry")&&hit.getJSONObject("target").getString("id").equals(id));
+            JSONObject unfiltered=app.query("search_local",object().put("query","Kalender").put("types",new JSONArray().put("inquiry"))).getJSONArray("items").getJSONObject(0);yes(unfiltered.getString("date").equals(sample[2])&&unfiltered.getString("id").equals(id));
+            yes(hit.getString("record_hash").equals(RevierRules.hash(original))&&listed.getJSONArray("items").getJSONObject(0).getString("record_hash").equals(RevierRules.hash(original)));
+            JSONObject notes=app.query("search_local",new JSONObject(query.toString()).put("types",new JSONArray().put("note")));yes(notes.getInt("total")==1&&notes.getJSONArray("items").getJSONObject(0).getString("date").equals(sample[2])&&notes.getJSONArray("items").getJSONObject(0).getJSONObject("target").getString("id").equals(id));
+            yes(app.query("search_local",new JSONObject(query.toString()).put("from_date",previous).put("to_date",previous)).getInt("total")==0);
+            yes(app.query("search_local",new JSONObject(query.toString()).put("from_date",following).put("to_date",following)).getInt("total")==0);
+            yes(recordsBefore.equals(store.values.toString())&&stateBefore.equals(PixelMcpWriteTools.hash(store.snapshot))&&writesBefore==store.writes);
+        }
+    }
+    public static void main(String[] ignored)throws Exception {SyntheticBusinessData.verify();calendarDayFilters();workflow();inspectionContractLimit();acceptanceAndInspectionCorrections();archiveDeletion();restoredActionInspection();restoredOwnerActionInspection();seriesAndTours();resources();timedMovementContext();searchResponseContract();searchScale();System.out.println("PASS "+assertions+" Revier domain workflow/CAS/rollback/inspection/series/tour/resources/search checks;synthetic transaction port,no device/provider acceptance");}
 }

@@ -115,12 +115,38 @@ final class RevierWorkflowUiNativeAcceptance {
     private static void fill(PixelMcpInstrumentation test,WebView view,String selector,String value)throws Exception {action(test,view,"FIELD","const target=document.querySelector("+JSONObject.quote(selector)+");if(!target||target.disabled)throw Error('QA_UI_FIELD_UNAVAILABLE');target.value="+JSONObject.quote(value)+";target.dispatchEvent(new Event('input',{bubbles:true}));target.dispatchEvent(new Event('change',{bubbles:true}));");}
     private static void check(PixelMcpInstrumentation test,WebView view,String selector)throws Exception {action(test,view,"CONFIRM_FIELD","const target=document.querySelector("+JSONObject.quote(selector)+");if(!target||target.disabled)throw Error('QA_UI_CONFIRM_UNAVAILABLE');if(!target.checked)target.click();");}
     private static void submit(PixelMcpInstrumentation test,WebView view,String selector)throws Exception {click(test,view,selector+" [type=submit]");}
+    /** Window/service metadata only: never capture dialog text, customer fields or URLs. */
+    private static void nativeConfirmDiagnostics(PixelMcpInstrumentation test,WebView view,String selector,String expectedText,String phase)throws Exception {
+        JSONObject diagnostic=new JSONObject().put("phase",phase).put("selector_sha256",PixelMcpWriteTools.hash(selector)).put("expected_text_sha256",PixelMcpWriteTools.hash(expectedText));
+        AtomicReference<JSONObject> window=new AtomicReference<>(new JSONObject());
+        test.runOnMainSync(()->{
+            JSONObject observed=new JSONObject();
+            try{
+                PowerManager power=(PowerManager)view.getContext().getSystemService(Context.POWER_SERVICE);
+                android.app.KeyguardManager keyguard=(android.app.KeyguardManager)view.getContext().getSystemService(Context.KEYGUARD_SERVICE);
+                observed.put("interactive",power==null?JSONObject.NULL:power.isInteractive()).put("keyguard_locked",keyguard==null?JSONObject.NULL:keyguard.isKeyguardLocked()).put("keyguard_secure",keyguard==null?JSONObject.NULL:keyguard.isKeyguardSecure())
+                    .put("view_attached",view.isAttachedToWindow()).put("view_shown",view.isShown()).put("view_window_focus",view.hasWindowFocus()).put("root_window_focus",view.getRootView().hasWindowFocus()).put("window_visibility",view.getWindowVisibility());
+            }catch(Exception unavailable){try{observed.put("read_error_class",unavailable.getClass().getSimpleName());}catch(JSONException ignored){}}
+            window.set(observed);
+        });
+        diagnostic.put("window",window.get());
+        AccessibilityNodeInfo root=null;
+        try{
+            root=test.getUiAutomation().getRootInActiveWindow();diagnostic.put("accessibility_root_present",root!=null);
+            if(root!=null)diagnostic.put("root_package",root.getPackageName()==null?JSONObject.NULL:root.getPackageName().toString()).put("root_class",root.getClassName()==null?JSONObject.NULL:root.getClassName().toString()).put("root_window_id",root.getWindowId())
+                .put("expected_text_matches",root.findAccessibilityNodeInfosByText(expectedText).size()).put("positive_buttons",root.findAccessibilityNodeInfosByViewId("android:id/button1").size());
+        }catch(RuntimeException unavailable){diagnostic.put("accessibility_read_error_class",unavailable.getClass().getSimpleName());}
+        finally{if(root!=null)root.recycle();}
+        Bundle report=new Bundle();report.putString("stream","QA_CONFIRM_NATIVE_DIAGNOSTIC "+diagnostic+"\n");test.sendStatus(0,report);
+    }
     private static void nativeConfirm(PixelMcpInstrumentation test,WebView view,String selector,String expectedText)throws Exception {
         android.accessibilityservice.AccessibilityServiceInfo service=test.getUiAutomation().getServiceInfo();int originalFlags=service.flags;service.flags|=android.accessibilityservice.AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS;test.getUiAutomation().setServiceInfo(service);
         try{
+        nativeConfirmDiagnostics(test,view,selector,expectedText,"before_trigger");
         CountDownLatch complete=new CountDownLatch(1);AtomicReference<String> answer=new AtomicReference<>();test.runOnMainSync(()->view.evaluateJavascript("(()=>{"+clickScript(selector)+"return true;})()",value->{answer.set(value);complete.countDown();}));
         long until=SystemClock.elapsedRealtime()+20000;boolean accepted=false;while(SystemClock.elapsedRealtime()<until&&!accepted){AccessibilityNodeInfo root=test.getUiAutomation().getRootInActiveWindow();if(root!=null&&!root.findAccessibilityNodeInfosByText(expectedText).isEmpty()){for(AccessibilityNodeInfo button:root.findAccessibilityNodeInfosByViewId("android:id/button1"))if(button.isEnabled()&&button.performAction(AccessibilityNodeInfo.ACTION_CLICK)){accepted=true;break;}}if(!accepted)SystemClock.sleep(100);}if(!accepted||!complete.await(20,TimeUnit.SECONDS)||!"true".equals(answer.get())){
             AccessibilityNodeInfo root=test.getUiAutomation().getRootInActiveWindow();Bundle report=new Bundle();report.putString("stream","QA_CONFIRM_STATE accepted="+accepted+" callback="+(complete.getCount()==0)+" expected="+(root!=null&&!root.findAccessibilityNodeInfosByText(expectedText).isEmpty())+" positive_buttons="+(root==null?0:root.findAccessibilityNodeInfosByViewId("android:id/button1").size())+"\n");test.sendStatus(0,report);
+            nativeConfirmDiagnostics(test,view,selector,expectedText,"failure");
             if(complete.getCount()==0){String diagnostic=js(test,view,"JSON.stringify({page:typeof currentPage==='string'&&/^[a-z-]+$/.test(currentPage)?currentPage:'unknown',handled:window.qaLastHandled,calls:(window.qaBusinessCalls||[]).slice(-5),runtimeErrors:window.qaRuntimeErrors,offerEditor:!!document.querySelector('#offer-form')})");report.putString("stream","QA_CONFIRM_JS "+diagnostic+"\n");test.sendStatus(0,report);}
             throw new AssertionError("QA_UI_NATIVE_CONFIRMATION_MISSING");
         }

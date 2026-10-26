@@ -49,7 +49,45 @@ public final class PixelDriveStateTests {
         }
         DriveRestClient client(){Map<String,String> checkpoints=new HashMap<>();return new DriveRestClient("folder_test_123",()->"synthetic-token",this,new DriveRestClient.Checkpoints(){public String get(String k){return checkpoints.get(k);}public void put(String k,String v){checkpoints.put(k,v);}});}
     }
+    static void correctionBusinessDates()throws Exception {
+        String[][] cases={
+            {"2026-10-25T23:30:00Z","2026-10-26"},
+            {"2026-01-15T23:30:00Z","2026-01-16"},
+            {"2026-01-15T00:30:00Z","2026-01-15"},
+            {"2026-07-15T22:30:00Z","2026-07-16"},
+            {"2026-07-16T00:30:00+02:00","2026-07-16"},
+            {"2026-03-28T23:30:00Z","2026-03-29"},
+            {"2026-03-29T01:30:00Z","2026-03-29"},
+            {"2026-10-25T00:30:00Z","2026-10-25"},
+            {"2026-10-25T01:30:00Z","2026-10-25"}
+        };
+        for(String type:new String[]{"cancellation","replacement"})for(int i=0;i<cases.length;i++){
+            String stamp=cases[i][0];LocalDate businessDate=LocalDate.parse(cases[i][1]);
+            JSONObject snapshot=financialState(),original=invoice(snapshot);String serviceDate=businessDate.minusDays(1).toString();
+            original.put("invoice_date",serviceDate).put("service_start",serviceDate).put("service_end",serviceDate)
+                .put("status","Gestellt").put("invoice_number","QA-2026-0081").put("issued_at",Instant.parse(stamp).minusSeconds(86400).toString());
+            snapshot.getJSONArray("worklogs").getJSONObject(0).put("work_date",serviceDate).put("billed",1);
+            String originalHash=PixelMcpWriteTools.hash(original),positionsHash=PixelMcpWriteTools.hash(original.getJSONArray("positions"));
+            JSONObject action=event("qa_correction_business_date_"+type+"_"+i,"invoice_correction",new JSONObject()
+                .put("id",original.getString("id")).put("_expected_invoice",DriveJournalRules.guard(original,"invoice"))
+                .put("correction_type",type).put("reason","QA ausdrückliche Korrektur")).put("created_at",stamp);
+            JSONArray actions=new JSONArray().put(action);yes(DriveJournalRules.apply(snapshot,actions).length()==0);
+            String id="inv_correction_"+PixelMcpWriteTools.hash(action.getString("client_id")).substring(0,32);
+            JSONObject correction=PixelMcpWriteTools.find(snapshot.getJSONArray("invoices"),id);
+            yes(correction.getString("invoice_date").equals(businessDate.toString()));
+            yes(correction.getString("created_at").equals(stamp)&&correction.getString("updated_at").equals(stamp));
+            yes(correction.getString("correction_of").equals(original.getString("id"))&&correction.getString("service_start").equals(serviceDate)&&correction.getString("service_end").equals(serviceDate));
+            yes(originalHash.equals(PixelMcpWriteTools.hash(PixelMcpWriteTools.find(snapshot.getJSONArray("invoices"),original.getString("id"))))&&positionsHash.equals(PixelMcpWriteTools.hash(original.getJSONArray("positions"))));
+            JSONObject issuing=issue(snapshot,correction,"qa_issue_business_date_"+type+"_"+i);issuing.getJSONObject("payload").put("_expected_worklogs",new JSONObject());
+            JSONObject prepared=InvoiceIssueRules.prepare(snapshot,issuing,businessDate);
+            yes(prepared.getString("invoice_date").equals(businessDate.toString())&&prepared.getDouble("gross_total")==("cancellation".equals(type)?-100:100));
+            String savedHash=PixelMcpWriteTools.hash(snapshot);yes(DriveJournalRules.apply(snapshot,actions).length()==0&&savedHash.equals(PixelMcpWriteTools.hash(snapshot))&&snapshot.getJSONArray("invoices").length()==2);
+            try{InvoiceIssueRules.prepare(snapshot,issuing,businessDate.plusDays(1));throw new AssertionError("stale correction date accepted");}
+            catch(IllegalArgumentException expected){yes(expected.getMessage().equals("Rechnungsdatum und Leistungszeitraum erneut prüfen.")&&savedHash.equals(PixelMcpWriteTools.hash(snapshot)));}
+        }
+    }
     public static void main(String[] args)throws Exception { SyntheticBusinessData.verify();
+        correctionBusinessDates();
         JSONObject old=state();old.remove("business_settings");old.put("invoice_issuer",SyntheticBusinessData.object().put("owner_name","Bekannter Wert"));PixelDriveState.prepare(old);yes(old.getJSONObject("business_settings").length()==1);yes(!old.getJSONObject("business_settings").has("tax_mode"));yes(old.getInt("schema_version")==2);for(String c:PixelDriveState.CAPABILITIES)yes(old.getJSONObject("capabilities").getBoolean(c));
         JSONObject missing=state();missing.remove("business_settings");PixelDriveState.prepare(missing);yes(missing.getJSONObject("business_settings").length()==0);
         JSONObject settings=state(),before=SyntheticBusinessData.object(settings.getJSONObject("business_settings").toString());before.put("future_unknown","preserve");settings.put("business_settings",before);

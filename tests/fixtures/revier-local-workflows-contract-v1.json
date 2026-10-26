@@ -6421,5 +6421,12 @@
     "before": "eeb97d79b34351b79b91a52c5fff5f5a7bd89448c966b84cf27f02447cc6a05a",
     "after": "b844389e750675e20ba3b9c242e781969ba0b76950ef88d0e154099cd6152856",
     "reason": "Actual replay regression: an exact original action rejected in this replay and subsequently resolved by a guarded owner/order decision must no longer block a later dependent mutation. Only failed.contains(predecessor) and resolved.has(predecessor) jointly satisfy this exception; original/hash/CAS/history validation remains unchanged. Unresolved and unsupported predecessors remain blocked."
+  },
+  "invoice_business_date_repair_v1": {
+    "version": 1,
+    "contract": "InvoiceIssueRules",
+    "before": "16c5a0ea765485a610f264e3a13c27bf6fa844690e6b0e4eaa13a15f0adc6ab5",
+    "after": "46a18e1c59987804194eb7ebe29070f65510e005bde3a8b20c72dfff47e7c34f",
+    "reason": "Actual native midnight failure: correction invoice_date must derive from the immutable original action Instant in Europe/Vienna, not its UTC substring or replay wall clock. Winter/summer/DST/offset journal replay regressions preserve original timestamps, amounts, IDs and next-day issue rejection."
   }
 }
