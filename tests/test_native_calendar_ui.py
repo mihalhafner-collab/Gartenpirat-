@@ -50,9 +50,16 @@ class NativeCalendarUiTests(unittest.TestCase):
         literals=re.findall(r'"(?:\\.|[^"\\])*"',method(s,'updateCalendarStatus'))
         for literal in literals:
             self.assertNotRegex(literal,r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}|Bearer |Authorization:|ya29\.')
-    def test_preference_writes_are_exactly_unchanged_in_all_three_screens(self):
+    def test_active_screen_preferences_remain_frozen_and_drive_redirect_cannot_write(self):
         pattern=r'\.(?:putString|putBoolean|putInt|putLong|remove|putOwnerValue)\([^;\n]*?\)'
         for name,digests in PROOF['preference_write_sha256'].items():
             source=(JAVA/(name+'.java')).read_text()
             actual=sorted(hashlib.sha256(x.encode()).hexdigest() for x in re.findall(pattern,source))
-            self.assertEqual(actual,digests,name)
+            if name=='DriveConnectionActivity':
+                self.assertEqual(actual,[],name)
+                self.assertIn('startActivity(new Intent(this,FullBackupActivity.class));',source)
+                self.assertIn('finish();',source)
+                for retired in ['getSharedPreferences(','.edit(', 'DriveRestClient', 'DriveAccount', 'ACTION_OPEN_DOCUMENT_TREE']:
+                    self.assertNotIn(retired,source)
+            else:
+                self.assertEqual(actual,digests,name)
