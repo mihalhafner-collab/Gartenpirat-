@@ -1,0 +1,2250 @@
+{
+  "format": "hausgarten.equipment-maintenance-texts.v1",
+  "content_class": "PUBLIC_SOURCE",
+  "language": "de",
+  "researched_on": "2026-10-27",
+  "integration_status": "PREPARED_NOT_CONNECTED_TO_UI_OR_WRITES",
+  "scope": "Gerätetypen und auswählbare Tätigkeitstexte für Gartenpflege. Keine vollständige Markt- oder Besitzliste und keine Empfehlung, jedes Gerät anzuschaffen.",
+  "usage": {
+    "purpose": "Texte zur bewussten Auswahl für tatsächlich erledigte Arbeiten; Auswahl allein speichert keine Wartung.",
+    "device_creation": "Katalogeinträge sind Vorlagen, keine angelegten Geräte und kein Startbestand.",
+    "applicability": "Gerätetyp und Antrieb allein bestätigen keine Ausstattung. Optionale Merkmale erst nach Modellanleitung oder bewusster Prüfung bestätigen; bei unbekannter Ausstattung nur allgemeine Texte anbieten.",
+    "model_precedence": "Ein gewähltes Modellprofil begrenzt die Texte ausdrücklich; generische Typvorschläge nicht zusätzlich ungeprüft hinzufügen.",
+    "schedules": "Keine automatischen Intervalle oder Fälligkeiten aus diesen Texten erzeugen. Modellhinweise sind Information, keine gestarteten Erinnerungen.",
+    "outcomes": "Eine dokumentierte Prüfung erklärt ein Gerät nicht automatisch für mängelfrei oder einsatzbereit.",
+    "safety": "Tätigkeitsbezeichnungen sind keine Reparaturanleitung. Für Durchführung, Sicherung des Geräts und zulässige Eigenarbeiten gilt die konkrete Modellanleitung.",
+    "free_text": "Eigene Tätigkeit ergänzen; keine Tätigkeit, Zeit, Kosten oder Durchführung vorausfüllen oder automatisch bestätigen.",
+    "photos": "Fotos dienen dem Wiedererkennen; keine Hersteller- oder Modellerkennung."
+  },
+  "groups": [
+    {
+      "id": "cutting",
+      "label": "Schneiden und Sägen"
+    },
+    {
+      "id": "lawn_soil",
+      "label": "Rasen und Boden"
+    },
+    {
+      "id": "cleaning_water",
+      "label": "Reinigung und Wasser"
+    },
+    {
+      "id": "hand_tools_accessories",
+      "label": "Handgeräte und Zubehör"
+    }
+  ],
+  "drives": {
+    "manual": "Handgerät",
+    "battery": "Akku",
+    "mains": "Netzstrom",
+    "petrol_2_stroke": "Benzin-Zweitakt",
+    "petrol_4_stroke": "Benzin-Viertakt"
+  },
+  "features": {
+    "blades": "Schneidklingen",
+    "sharpenable_blade": "Laut Modellanleitung nachschärfbare Klinge",
+    "replaceable_blade": "Laut Modellanleitung wechselbare Klinge",
+    "blade_lubrication": "Schmierbare Schneidklingen",
+    "blade_clearance": "Einstellbares Klingenspiel",
+    "saw_chain": "Sägekette",
+    "chain_oil_tank": "Eigener Kettenöltank",
+    "manual_chain_oiling": "Manuelle Kettenschmierung",
+    "chain_brake": "Kettenbremse",
+    "serviceable_gear": "Laut Modellanleitung nachschmierbares Getriebe",
+    "engine_air_filter": "Wechselbarer Motor-Luftfilter",
+    "spark_plug": "Zündkerze",
+    "engine_oil_sump": "Eigener Motorölkreislauf mit vorgeschriebenem Ölwechsel",
+    "cutting_line": "Mähfaden",
+    "plastic_cutters": "Wechselbare Kunststoffmesser",
+    "metal_cutter": "Metall-Schneidwerkzeug",
+    "collection_container": "Fangkorb oder Sammelbehälter",
+    "water_filter": "Reinigbares Wassersieb oder Wasserfilter",
+    "dust_filter": "Wechselbarer Staubfilter",
+    "dust_bag": "Wechselbarer Filtersack",
+    "hose": "Schlauch oder zugängliche Schlauchanschlüsse",
+    "spray_nozzle": "Reinigbare Sprühdüse",
+    "pressure_relief": "Sicherheitsüberdruckventil",
+    "drainable_water_system": "Laut Modellanleitung entleerbares Wassersystem",
+    "replaceable_handle": "Wechselbarer Stiel oder Griff",
+    "pneumatic_tyre": "Luftbereifung",
+    "greaseable_wheel_bearing": "Laut Anleitung schmierbares Radlager",
+    "battery_contacts": "Zugängliche Akkukontakte",
+    "mains_cable": "Netzanschlussleitung",
+    "cutting_tines": "Vertikutiermesser oder Lüfterzinken",
+    "coupling": "Wechselwerkzeug-Kupplung",
+    "replaceable_counterblade": "Laut Modellanleitung wechselbare Gegenklinge",
+    "tilling_stars": "Hacksterne"
+  },
+  "sources": [
+    {
+      "id": "stihl-range",
+      "title": "STIHL: Geräte und Werkzeuge",
+      "url": "https://www.stihl.at/de/geraete-werkzeuge",
+      "scope": "Gerätegruppen, keine Aussage über notwendigen Besitz",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "stihl-asa20",
+      "title": "STIHL ASA 20.0: Gebrauchsanleitung, Kapitel 14–16",
+      "url": "https://ssc.stihl.com/tsa/techdoc-documents/DVS_STIHL%2FZBA%2FZBA%2F0458-059-9601-A_ZBA_06_01.pdf",
+      "scope": "Modellbezogene Reinigung, Schmierung, Klingenspiel und Klingenwechsel",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "stihl-mower",
+      "title": "STIHL: Rasenmäher reinigen",
+      "url": "https://www.stihl.de/de/ratgeber-projekte/arbeitstechnik-geraetepflege/rasenmaeher-tipps/rasenmaeher-reinigen",
+      "scope": "Mähwerk, Fangkorb, Messer, Luftfilter und Zündkerze",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "stihl-mower-winter",
+      "title": "STIHL: Rasenmäher winterfest machen",
+      "url": "https://www.stihl.de/de/ratgeber-projekte/arbeitstechnik-geraetepflege/rasenmaeher-tipps/rasenmaeher-winterfest-machen",
+      "scope": "Antriebsabhängige Pflege und Motoröl",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "stihl-hedge",
+      "title": "STIHL: Heckenscheren warten",
+      "url": "https://www.stihl.de/de/ratgeber-projekte/arbeitstechnik-geraetepflege/heckenschere-tipps/heckenschere-wartung",
+      "scope": "Schneidmesser, zugängliche Befestigungen und modellabhängige Getriebepflege",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "stihl-chain",
+      "title": "STIHL: Wartung einer Kettensäge",
+      "url": "https://www.stihl.de/de/ratgeber-projekte/arbeitstechnik-geraetepflege/kettensaege-tipps/kettensaege-wartung",
+      "scope": "Sägekette, Schiene, Kettenbremse und antriebsabhängige Pflege",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "stihl-small-chain",
+      "title": "STIHL Support: Gehölzschneider reinigen",
+      "url": "https://support.stihl.com/de-CH/knowledgeArticlesDetails/?knowledgeArticleId=KA-06951",
+      "scope": "Reinigung und manuelles Ölen bei entsprechend ausgestatteten Gehölzschneidern",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "stihl-brushcutter",
+      "title": "STIHL: Wartung einer Motorsense",
+      "url": "https://www.stihl.de/de/ratgeber-projekte/arbeitstechnik-geraetepflege/motorsense-tipps/motorsense-wartung",
+      "scope": "Mähfaden, Schneidwerkzeug, Schutz und Getriebe",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "stihl-blower",
+      "title": "STIHL Support: Laubbläser aufbewahren",
+      "url": "https://support.stihl.com/de-de/knowledgeArticlesDetails/?knowledgeArticleId=KA-06941",
+      "scope": "Reinigung und antriebsabhängige Einlagerung",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "gardena-shears",
+      "title": "GARDENA: Schneidgeräte für den Saisonstart vorbereiten",
+      "url": "https://www.gardena.com/de/c/entdecke/garteninspiration/gartenmagazin/schneidgeraete-fuer-den-saisonstart-vorbereiten",
+      "scope": "Handscheren reinigen, pflegen und modellabhängige Klingen ersetzen",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "hand-tools",
+      "title": "Landwirtschaftskammer NRW: Gartengeräte pflegen",
+      "url": "https://www.landwirtschaftskammer.de/presse/archiv/2009/aa-2009-44-05.htm",
+      "scope": "Handgeräte, Stiele und Schubkarren; nur zeitstabile Pflegetexte übernommen",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "karcher-pressure",
+      "title": "Kärcher K 2: Originalbetriebsanleitung, Pflege und Frostschutz",
+      "url": "https://s1.kaercher-media.com/documents/manuals/html/BTA-5777505-000-01/DE.html",
+      "scope": "Zulaufsieb und Frostschutz; keine pauschale Pumpenölwechsel-Empfehlung",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "gardena-pump",
+      "title": "GARDENA Gartenpumpe: Betriebsanleitung Art. 01434/01438",
+      "url": "https://content.tdr.dss.husqvarnagroup.net/pub000040816/doc000074689",
+      "scope": "Reinigung, Anschlüsse und Aufbewahrung",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "gardena-sprayer",
+      "title": "GARDENA Drucksprüher 5L Comfort: Betriebsanleitung",
+      "url": "https://content.tdr.dss.husqvarnagroup.net/pub000081228/doc000148114",
+      "scope": "Behälter, Düse, Filter, Dichtungen und Druckentlastung",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "stihl-vacuum",
+      "title": "STIHL SEA 100.0 L: Gebrauchsanleitung",
+      "url": "https://ssc.stihl.com/tsa/techdoc-documents/DVS_STIHL%2FZBA%2FZBA%2F0458-053-9601-A_ZBA_04_01.pdf",
+      "scope": "Filter, Filtersack und Behälter",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "stihl-verticutter",
+      "title": "STIHL Vertikutierer: Gebrauchsanleitung, Wartung",
+      "url": "https://ssc.stihl.com/tsa/techdoc-documents/TIROL%2FArchiv%2FFCTTIMPUBLIC%2FPublikationen%2FDAT0037%2F00312526.pdf",
+      "scope": "Reinigung und modellbezogene Kontrolle der Vertikutiereinheit",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "gardena-spreader",
+      "title": "GARDENA Streuwagen L",
+      "url": "https://www.gardena.com/de/produkte/rasenpflege/streuwagen/streuwagen-l/970630901.html",
+      "scope": "Streuwagen und Reinigung",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "gardena-irrigation",
+      "title": "GARDENA: Winterquartier für das Bewässerungssystem",
+      "url": "https://www.gardena.com/ch-de/c/entdecke/garteninspiration/gartenmagazin/winterquartier-fuer-das-bewaesserungssystem",
+      "scope": "Bewässerungsgeräte reinigen, entleeren und einlagern",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "stihl-tiller",
+      "title": "STIHL MH 445/560/585/685: Gebrauchsanleitung",
+      "url": "https://ssc.stihl.com/tsa/techdoc-documents/DVS_STIHL%2FZBA%2FZBA%2F0478-403-9906-B_ZBA_01_01.pdf",
+      "scope": "Hacksterne, Reinigung und modellabhängige Wartung",
+      "checked_on": "2026-10-27"
+    },
+    {
+      "id": "stihl-shredder",
+      "title": "STIHL GHE 150/250/260: Hersteller-Gebrauchsanleitung beim Fachhändler",
+      "url": "https://www.endress-shop.de/media/6b/d3/0d/1721132201/STIHL_GHE150_GHE250_GHE250S_GHE260_GHE260S_Bedienungsanleitung.pdf?ts=1721132201",
+      "scope": "Häckslermesser, Verschleiß und fachgerechte Wartung; Dokumentautor STIHL",
+      "checked_on": "2026-10-27"
+    }
+  ],
+  "actions": [
+    {
+      "id": "cleaned",
+      "label": "Gereinigt",
+      "text": "Gerät gereinigt.",
+      "source_ids": [
+        "hand-tools",
+        "stihl-mower",
+        "stihl-asa20"
+      ],
+      "requires_features": []
+    },
+    {
+      "id": "visual_checked",
+      "label": "Zustand geprüft",
+      "text": "Sichtprüfung durchgeführt.",
+      "source_ids": [
+        "stihl-chain",
+        "stihl-hedge"
+      ],
+      "requires_features": []
+    },
+    {
+      "id": "blade_cleaned",
+      "label": "Klingen gereinigt",
+      "text": "Schneidklingen gereinigt.",
+      "source_ids": [
+        "gardena-shears",
+        "stihl-asa20",
+        "stihl-hedge"
+      ],
+      "requires_features": [
+        "blades"
+      ]
+    },
+    {
+      "id": "blade_lubricated",
+      "label": "Klingen geschmiert",
+      "text": "Schneidklingen geschmiert.",
+      "source_ids": [
+        "gardena-shears",
+        "stihl-asa20",
+        "stihl-hedge"
+      ],
+      "requires_features": [
+        "blades",
+        "blade_lubrication"
+      ]
+    },
+    {
+      "id": "blade_checked",
+      "label": "Klingen geprüft",
+      "text": "Schneidklingen auf Verschleiß und Schäden geprüft.",
+      "source_ids": [
+        "stihl-asa20",
+        "stihl-mower",
+        "stihl-shredder"
+      ],
+      "requires_features": [
+        "blades"
+      ]
+    },
+    {
+      "id": "blade_sharpened",
+      "label": "Klinge geschärft",
+      "text": "Klinge nachgeschärft.",
+      "source_ids": [
+        "gardena-shears"
+      ],
+      "requires_features": [
+        "blades"
+      ],
+      "recording_only": true,
+      "manufacturer_approval_implied": false
+    },
+    {
+      "id": "blade_replaced",
+      "label": "Klinge gewechselt",
+      "text": "Klinge ersetzt.",
+      "source_ids": [
+        "gardena-shears",
+        "stihl-asa20",
+        "stihl-shredder"
+      ],
+      "requires_features": [
+        "replaceable_blade"
+      ]
+    },
+    {
+      "id": "counterblade_replaced",
+      "label": "Gegenklinge gewechselt",
+      "text": "Gegenklinge ersetzt.",
+      "source_ids": [
+        "stihl-asa20"
+      ],
+      "requires_features": [
+        "replaceable_counterblade"
+      ]
+    },
+    {
+      "id": "blade_clearance_set",
+      "label": "Klingenspiel eingestellt",
+      "text": "Spiel zwischen Klinge und Gegenklinge eingestellt.",
+      "source_ids": [
+        "stihl-asa20"
+      ],
+      "requires_features": [
+        "blade_clearance"
+      ]
+    },
+    {
+      "id": "mower_deck_cleaned",
+      "label": "Mähwerk gereinigt",
+      "text": "Mähwerk von Grasresten befreit.",
+      "source_ids": [
+        "stihl-mower"
+      ],
+      "requires_features": [
+        "blades"
+      ]
+    },
+    {
+      "id": "mower_blade_checked",
+      "label": "Mähmesser geprüft",
+      "text": "Mähmesser auf Verschleiß und Schäden geprüft.",
+      "source_ids": [
+        "stihl-mower"
+      ],
+      "requires_features": [
+        "blades"
+      ]
+    },
+    {
+      "id": "mower_blade_sharpened",
+      "label": "Mähmesser geschärft und ausgewuchtet",
+      "text": "Mähmesser geschärft und ausgewuchtet.",
+      "source_ids": [
+        "stihl-mower"
+      ],
+      "requires_features": [
+        "sharpenable_blade"
+      ]
+    },
+    {
+      "id": "mower_blade_replaced",
+      "label": "Mähmesser gewechselt",
+      "text": "Mähmesser ersetzt.",
+      "source_ids": [
+        "stihl-mower"
+      ],
+      "requires_features": [
+        "replaceable_blade"
+      ]
+    },
+    {
+      "id": "chain_checked",
+      "label": "Kette geprüft",
+      "text": "Zustand und Spannung der Sägekette geprüft.",
+      "source_ids": [
+        "stihl-chain"
+      ],
+      "requires_features": [
+        "saw_chain"
+      ]
+    },
+    {
+      "id": "chain_tensioned",
+      "label": "Kette gespannt",
+      "text": "Sägekette nachgespannt.",
+      "source_ids": [
+        "stihl-chain"
+      ],
+      "requires_features": [
+        "saw_chain"
+      ]
+    },
+    {
+      "id": "chain_sharpened",
+      "label": "Kette geschärft",
+      "text": "Sägekette geschärft.",
+      "source_ids": [
+        "stihl-chain"
+      ],
+      "requires_features": [
+        "saw_chain"
+      ]
+    },
+    {
+      "id": "chain_replaced",
+      "label": "Kette gewechselt",
+      "text": "Sägekette ersetzt.",
+      "source_ids": [
+        "stihl-chain"
+      ],
+      "requires_features": [
+        "saw_chain"
+      ]
+    },
+    {
+      "id": "guide_bar_cleaned",
+      "label": "Schiene gereinigt",
+      "text": "Führungsschiene und Schienennut gereinigt.",
+      "source_ids": [
+        "stihl-chain",
+        "stihl-small-chain"
+      ],
+      "requires_features": [
+        "saw_chain"
+      ]
+    },
+    {
+      "id": "chain_lubrication_checked",
+      "label": "Kettenschmierung geprüft",
+      "text": "Kettenschmierung geprüft.",
+      "source_ids": [
+        "stihl-chain"
+      ],
+      "requires_features": [
+        "saw_chain"
+      ]
+    },
+    {
+      "id": "chain_oil_added",
+      "label": "Kettenöl nachgefüllt",
+      "text": "Kettenhaftöl nachgefüllt.",
+      "source_ids": [
+        "stihl-chain"
+      ],
+      "requires_features": [
+        "saw_chain",
+        "chain_oil_tank"
+      ]
+    },
+    {
+      "id": "chain_manually_oiled",
+      "label": "Kette geölt",
+      "text": "Sägekette manuell geschmiert.",
+      "source_ids": [
+        "stihl-small-chain"
+      ],
+      "requires_features": [
+        "saw_chain",
+        "manual_chain_oiling"
+      ]
+    },
+    {
+      "id": "chain_brake_checked",
+      "label": "Kettenbremse geprüft",
+      "text": "Funktion der Kettenbremse geprüft.",
+      "source_ids": [
+        "stihl-chain"
+      ],
+      "requires_features": [
+        "chain_brake"
+      ]
+    },
+    {
+      "id": "cutting_line_refilled",
+      "label": "Mähfaden erneuert",
+      "text": "Mähfaden erneuert.",
+      "source_ids": [
+        "stihl-brushcutter"
+      ],
+      "requires_features": [
+        "cutting_line"
+      ]
+    },
+    {
+      "id": "plastic_cutters_replaced",
+      "label": "Kunststoffmesser gewechselt",
+      "text": "Kunststoffmesser als vollständigen Satz ersetzt.",
+      "source_ids": [
+        "stihl-brushcutter"
+      ],
+      "requires_features": [
+        "plastic_cutters"
+      ]
+    },
+    {
+      "id": "metal_cutter_checked",
+      "label": "Schneidwerkzeug geprüft",
+      "text": "Metall-Schneidwerkzeug auf Schäden geprüft.",
+      "source_ids": [
+        "stihl-brushcutter"
+      ],
+      "requires_features": [
+        "metal_cutter"
+      ]
+    },
+    {
+      "id": "metal_cutter_sharpened",
+      "label": "Schneidwerkzeug geschärft",
+      "text": "Metall-Schneidwerkzeug nachgeschärft.",
+      "source_ids": [
+        "stihl-brushcutter"
+      ],
+      "requires_features": [
+        "metal_cutter",
+        "sharpenable_blade"
+      ]
+    },
+    {
+      "id": "metal_cutter_replaced",
+      "label": "Schneidwerkzeug gewechselt",
+      "text": "Metall-Schneidwerkzeug ersetzt.",
+      "source_ids": [
+        "stihl-brushcutter"
+      ],
+      "requires_features": [
+        "metal_cutter",
+        "replaceable_blade"
+      ]
+    },
+    {
+      "id": "guard_checked",
+      "label": "Schutz geprüft",
+      "text": "Zustand und Befestigung des Schneidwerkzeugschutzes geprüft.",
+      "source_ids": [
+        "stihl-brushcutter"
+      ],
+      "requires_features": [
+        "metal_cutter"
+      ]
+    },
+    {
+      "id": "gear_greased",
+      "label": "Getriebe nachgefettet",
+      "text": "Getriebeschmierung gemäß Modellanleitung ergänzt.",
+      "source_ids": [
+        "stihl-brushcutter",
+        "stihl-hedge"
+      ],
+      "requires_features": [
+        "serviceable_gear"
+      ]
+    },
+    {
+      "id": "air_filter_cleaned",
+      "label": "Luftfilter gereinigt",
+      "text": "Motor-Luftfilter gemäß Modellanleitung gereinigt.",
+      "source_ids": [
+        "stihl-mower",
+        "stihl-chain"
+      ],
+      "requires_features": [
+        "engine_air_filter"
+      ],
+      "allowed_drives": [
+        "petrol_2_stroke",
+        "petrol_4_stroke"
+      ]
+    },
+    {
+      "id": "air_filter_replaced",
+      "label": "Luftfilter gewechselt",
+      "text": "Motor-Luftfilter ersetzt.",
+      "source_ids": [
+        "stihl-mower",
+        "stihl-brushcutter"
+      ],
+      "requires_features": [
+        "engine_air_filter"
+      ],
+      "allowed_drives": [
+        "petrol_2_stroke",
+        "petrol_4_stroke"
+      ]
+    },
+    {
+      "id": "spark_plug_checked",
+      "label": "Zündkerze geprüft",
+      "text": "Zündkerze geprüft.",
+      "source_ids": [
+        "stihl-mower",
+        "stihl-chain"
+      ],
+      "requires_features": [
+        "spark_plug"
+      ],
+      "allowed_drives": [
+        "petrol_2_stroke",
+        "petrol_4_stroke"
+      ]
+    },
+    {
+      "id": "spark_plug_replaced",
+      "label": "Zündkerze gewechselt",
+      "text": "Zündkerze ersetzt.",
+      "source_ids": [
+        "stihl-mower",
+        "stihl-brushcutter"
+      ],
+      "requires_features": [
+        "spark_plug"
+      ],
+      "allowed_drives": [
+        "petrol_2_stroke",
+        "petrol_4_stroke"
+      ]
+    },
+    {
+      "id": "engine_oil_checked",
+      "label": "Motorölstand geprüft",
+      "text": "Motorölstand geprüft.",
+      "source_ids": [
+        "stihl-mower-winter"
+      ],
+      "requires_features": [
+        "engine_oil_sump"
+      ],
+      "allowed_drives": [
+        "petrol_4_stroke"
+      ]
+    },
+    {
+      "id": "engine_oil_changed",
+      "label": "Motoröl gewechselt",
+      "text": "Motoröl gemäß Motoranleitung gewechselt.",
+      "source_ids": [
+        "stihl-mower-winter"
+      ],
+      "requires_features": [
+        "engine_oil_sump"
+      ],
+      "allowed_drives": [
+        "petrol_4_stroke"
+      ]
+    },
+    {
+      "id": "container_cleaned",
+      "label": "Fangbehälter gereinigt",
+      "text": "Fangkorb oder Sammelbehälter entleert und gereinigt.",
+      "source_ids": [
+        "stihl-mower",
+        "stihl-vacuum",
+        "gardena-spreader"
+      ],
+      "requires_features": [
+        "collection_container"
+      ]
+    },
+    {
+      "id": "water_filter_cleaned",
+      "label": "Wasserfilter gereinigt",
+      "text": "Wassersieb oder Wasserfilter gereinigt.",
+      "source_ids": [
+        "karcher-pressure",
+        "gardena-sprayer"
+      ],
+      "requires_features": [
+        "water_filter"
+      ]
+    },
+    {
+      "id": "hose_checked",
+      "label": "Schlauch geprüft",
+      "text": "Schlauch und zugängliche Anschlüsse auf Schäden und Undichtigkeiten geprüft.",
+      "source_ids": [
+        "gardena-pump",
+        "gardena-sprayer"
+      ],
+      "requires_features": [
+        "hose"
+      ]
+    },
+    {
+      "id": "spray_nozzle_cleaned",
+      "label": "Düse gereinigt",
+      "text": "Sprühdüse gereinigt.",
+      "source_ids": [
+        "gardena-sprayer"
+      ],
+      "requires_features": [
+        "spray_nozzle"
+      ]
+    },
+    {
+      "id": "pressure_relief_checked",
+      "label": "Überdruckventil geprüft",
+      "text": "Sicherheitsüberdruckventil nach Modellanleitung geprüft.",
+      "source_ids": [
+        "gardena-sprayer"
+      ],
+      "requires_features": [
+        "pressure_relief"
+      ]
+    },
+    {
+      "id": "water_drained",
+      "label": "Entleert",
+      "text": "Gerät und wasserführendes Zubehör gemäß Modellanleitung entleert.",
+      "source_ids": [
+        "karcher-pressure",
+        "gardena-pump",
+        "gardena-irrigation"
+      ],
+      "requires_features": [
+        "drainable_water_system"
+      ]
+    },
+    {
+      "id": "dust_filter_cleaned",
+      "label": "Staubfilter gereinigt",
+      "text": "Staubfilter gemäß Modellanleitung gereinigt.",
+      "source_ids": [
+        "stihl-vacuum"
+      ],
+      "requires_features": [
+        "dust_filter"
+      ]
+    },
+    {
+      "id": "dust_filter_replaced",
+      "label": "Staubfilter gewechselt",
+      "text": "Staubfilter ersetzt.",
+      "source_ids": [
+        "stihl-vacuum"
+      ],
+      "requires_features": [
+        "dust_filter"
+      ]
+    },
+    {
+      "id": "dust_bag_replaced",
+      "label": "Filtersack gewechselt",
+      "text": "Filtersack ersetzt.",
+      "source_ids": [
+        "stihl-vacuum"
+      ],
+      "requires_features": [
+        "dust_bag"
+      ]
+    },
+    {
+      "id": "handle_checked",
+      "label": "Stiel und Griff geprüft",
+      "text": "Stiel, Griff und deren Befestigung geprüft.",
+      "source_ids": [
+        "hand-tools"
+      ],
+      "requires_features": [
+        "replaceable_handle"
+      ]
+    },
+    {
+      "id": "handle_replaced",
+      "label": "Stiel oder Griff gewechselt",
+      "text": "Stiel oder Griff ersetzt.",
+      "source_ids": [
+        "hand-tools"
+      ],
+      "requires_features": [
+        "replaceable_handle"
+      ]
+    },
+    {
+      "id": "rust_removed",
+      "label": "Rost entfernt",
+      "text": "Metallteile entrostet.",
+      "source_ids": [
+        "hand-tools"
+      ],
+      "requires_features": []
+    },
+    {
+      "id": "metal_protected",
+      "label": "Metallteile gepflegt",
+      "text": "Geeignete Metallteile gegen Korrosion gepflegt.",
+      "source_ids": [
+        "hand-tools"
+      ],
+      "requires_features": []
+    },
+    {
+      "id": "tyre_pressure_checked",
+      "label": "Reifendruck geprüft",
+      "text": "Reifendruck geprüft und bei Bedarf nach Herstellerangabe angepasst.",
+      "source_ids": [
+        "hand-tools"
+      ],
+      "requires_features": [
+        "pneumatic_tyre"
+      ]
+    },
+    {
+      "id": "wheel_bearing_greased",
+      "label": "Radlager geschmiert",
+      "text": "Radlager nach Modellanleitung geschmiert.",
+      "source_ids": [
+        "hand-tools"
+      ],
+      "requires_features": [
+        "greaseable_wheel_bearing"
+      ]
+    },
+    {
+      "id": "battery_contacts_cleaned",
+      "label": "Akkukontakte gereinigt",
+      "text": "Zugängliche Akkukontakte gemäß Modellanleitung gereinigt.",
+      "source_ids": [
+        "stihl-chain"
+      ],
+      "requires_features": [
+        "battery_contacts"
+      ],
+      "allowed_drives": [
+        "battery"
+      ]
+    },
+    {
+      "id": "battery_checked",
+      "label": "Akku geprüft",
+      "text": "Akku äußerlich auf Schäden geprüft.",
+      "source_ids": [
+        "stihl-asa20"
+      ],
+      "requires_features": [],
+      "allowed_drives": [
+        "battery"
+      ]
+    },
+    {
+      "id": "charger_cleaned",
+      "label": "Ladegerät gereinigt",
+      "text": "Ladegerät und zugängliche Kontakte nach Modellanleitung gereinigt.",
+      "source_ids": [
+        "stihl-asa20"
+      ],
+      "requires_features": [
+        "mains_cable"
+      ],
+      "allowed_drives": [
+        "mains"
+      ]
+    },
+    {
+      "id": "cable_checked",
+      "label": "Kabel geprüft",
+      "text": "Netzleitung äußerlich auf Schäden geprüft.",
+      "source_ids": [
+        "stihl-vacuum"
+      ],
+      "requires_features": [
+        "mains_cable"
+      ],
+      "allowed_drives": [
+        "mains"
+      ]
+    },
+    {
+      "id": "tines_checked",
+      "label": "Messer oder Zinken geprüft",
+      "text": "Vertikutiermesser oder Lüfterzinken auf Verschleiß und Schäden geprüft.",
+      "source_ids": [
+        "stihl-verticutter"
+      ],
+      "requires_features": [
+        "cutting_tines"
+      ]
+    },
+    {
+      "id": "stored",
+      "label": "Eingelagert",
+      "text": "Gerät gemäß Modellanleitung gereinigt und eingelagert.",
+      "source_ids": [
+        "stihl-mower-winter",
+        "stihl-blower"
+      ],
+      "requires_features": []
+    },
+    {
+      "id": "tilling_stars_checked",
+      "label": "Hacksterne geprüft",
+      "text": "Hacksterne und Befestigung auf Verschleiß und Schäden geprüft.",
+      "source_ids": [
+        "stihl-tiller"
+      ],
+      "requires_features": [
+        "tilling_stars"
+      ]
+    }
+  ],
+  "equipment_types": [
+    {
+      "id": "battery_pruning_shear",
+      "label": "Akku-Gartenschere",
+      "group": "cutting",
+      "aliases": [
+        "Akku-Astschere"
+      ],
+      "supported_drives": [
+        "battery"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "stihl-asa20"
+      ],
+      "optional_features": [
+        "blades",
+        "sharpenable_blade",
+        "replaceable_blade",
+        "blade_lubrication",
+        "blade_clearance",
+        "battery_contacts",
+        "replaceable_counterblade"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "blade_cleaned",
+        "blade_checked",
+        "blade_lubricated",
+        "blade_sharpened",
+        "blade_replaced",
+        "blade_clearance_set",
+        "counterblade_replaced",
+        "battery_contacts_cleaned",
+        "stored"
+      ]
+    },
+    {
+      "id": "secateurs",
+      "label": "Gartenschere",
+      "group": "cutting",
+      "aliases": [
+        "Rebschere",
+        "Rosenschere"
+      ],
+      "supported_drives": [
+        "manual"
+      ],
+      "source_ids": [
+        "gardena-shears"
+      ],
+      "optional_features": [
+        "blades",
+        "sharpenable_blade",
+        "replaceable_blade",
+        "blade_lubrication",
+        "blade_clearance"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "blade_cleaned",
+        "blade_checked",
+        "blade_lubricated",
+        "blade_sharpened",
+        "blade_replaced",
+        "blade_clearance_set",
+        "stored"
+      ]
+    },
+    {
+      "id": "loppers",
+      "label": "Astschere",
+      "group": "cutting",
+      "aliases": [
+        "Baumschere",
+        "Teleskop-Astschere"
+      ],
+      "supported_drives": [
+        "manual"
+      ],
+      "source_ids": [
+        "gardena-shears",
+        "hand-tools"
+      ],
+      "optional_features": [
+        "blades",
+        "sharpenable_blade",
+        "replaceable_blade",
+        "blade_lubrication",
+        "blade_clearance"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "blade_cleaned",
+        "blade_checked",
+        "blade_lubricated",
+        "blade_sharpened",
+        "blade_replaced",
+        "blade_clearance_set",
+        "stored"
+      ]
+    },
+    {
+      "id": "manual_hedge_shears",
+      "label": "Hand-Heckenschere",
+      "group": "cutting",
+      "aliases": [],
+      "supported_drives": [
+        "manual"
+      ],
+      "source_ids": [
+        "gardena-shears"
+      ],
+      "optional_features": [
+        "blades",
+        "sharpenable_blade",
+        "replaceable_blade",
+        "blade_lubrication",
+        "blade_clearance"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "blade_cleaned",
+        "blade_checked",
+        "blade_lubricated",
+        "blade_sharpened",
+        "blade_replaced",
+        "blade_clearance_set",
+        "stored"
+      ]
+    },
+    {
+      "id": "powered_hedge_trimmer",
+      "label": "Heckenschere",
+      "group": "cutting",
+      "aliases": [],
+      "supported_drives": [
+        "battery",
+        "mains",
+        "petrol_2_stroke",
+        "petrol_4_stroke"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "stihl-hedge"
+      ],
+      "optional_features": [
+        "blades",
+        "sharpenable_blade",
+        "replaceable_blade",
+        "blade_lubrication",
+        "blade_clearance",
+        "serviceable_gear",
+        "engine_air_filter",
+        "spark_plug",
+        "engine_oil_sump",
+        "battery_contacts",
+        "mains_cable"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "blade_cleaned",
+        "blade_checked",
+        "blade_lubricated",
+        "blade_sharpened",
+        "blade_replaced",
+        "blade_clearance_set",
+        "gear_greased",
+        "air_filter_cleaned",
+        "air_filter_replaced",
+        "spark_plug_checked",
+        "spark_plug_replaced",
+        "engine_oil_checked",
+        "engine_oil_changed",
+        "battery_contacts_cleaned",
+        "cable_checked",
+        "stored"
+      ]
+    },
+    {
+      "id": "long_reach_hedge_trimmer",
+      "label": "Hochheckenschere",
+      "group": "cutting",
+      "aliases": [
+        "Heckenschneider",
+        "Teleskop-Heckenschere"
+      ],
+      "supported_drives": [
+        "battery",
+        "mains",
+        "petrol_2_stroke",
+        "petrol_4_stroke"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "stihl-hedge"
+      ],
+      "optional_features": [
+        "blades",
+        "sharpenable_blade",
+        "replaceable_blade",
+        "blade_lubrication",
+        "blade_clearance",
+        "serviceable_gear",
+        "engine_air_filter",
+        "spark_plug",
+        "engine_oil_sump",
+        "battery_contacts",
+        "mains_cable"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "blade_cleaned",
+        "blade_checked",
+        "blade_lubricated",
+        "blade_sharpened",
+        "blade_replaced",
+        "blade_clearance_set",
+        "gear_greased",
+        "air_filter_cleaned",
+        "air_filter_replaced",
+        "spark_plug_checked",
+        "spark_plug_replaced",
+        "engine_oil_checked",
+        "engine_oil_changed",
+        "battery_contacts_cleaned",
+        "cable_checked",
+        "stored"
+      ]
+    },
+    {
+      "id": "grass_shears",
+      "label": "Grasschere",
+      "group": "cutting",
+      "aliases": [
+        "Strauchschere"
+      ],
+      "supported_drives": [
+        "manual",
+        "battery"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "gardena-shears"
+      ],
+      "optional_features": [
+        "blades",
+        "sharpenable_blade",
+        "replaceable_blade",
+        "blade_lubrication",
+        "blade_clearance",
+        "battery_contacts"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "blade_cleaned",
+        "blade_checked",
+        "blade_lubricated",
+        "blade_sharpened",
+        "blade_replaced",
+        "blade_clearance_set",
+        "battery_contacts_cleaned",
+        "stored"
+      ]
+    },
+    {
+      "id": "chainsaw",
+      "label": "Kettensäge",
+      "group": "cutting",
+      "aliases": [
+        "Motorsäge"
+      ],
+      "supported_drives": [
+        "battery",
+        "mains",
+        "petrol_2_stroke",
+        "petrol_4_stroke"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "stihl-chain"
+      ],
+      "optional_features": [
+        "saw_chain",
+        "chain_oil_tank",
+        "manual_chain_oiling",
+        "chain_brake",
+        "engine_air_filter",
+        "spark_plug",
+        "engine_oil_sump",
+        "battery_contacts",
+        "mains_cable"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "chain_checked",
+        "chain_tensioned",
+        "chain_sharpened",
+        "chain_replaced",
+        "guide_bar_cleaned",
+        "chain_lubrication_checked",
+        "chain_oil_added",
+        "chain_manually_oiled",
+        "chain_brake_checked",
+        "air_filter_cleaned",
+        "air_filter_replaced",
+        "spark_plug_checked",
+        "spark_plug_replaced",
+        "engine_oil_checked",
+        "engine_oil_changed",
+        "battery_contacts_cleaned",
+        "cable_checked",
+        "stored"
+      ]
+    },
+    {
+      "id": "pruning_chainsaw",
+      "label": "Gehölzschneider",
+      "group": "cutting",
+      "aliases": [],
+      "supported_drives": [
+        "battery"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "stihl-small-chain"
+      ],
+      "optional_features": [
+        "saw_chain",
+        "chain_oil_tank",
+        "manual_chain_oiling",
+        "battery_contacts"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "chain_checked",
+        "chain_tensioned",
+        "chain_sharpened",
+        "chain_replaced",
+        "guide_bar_cleaned",
+        "chain_lubrication_checked",
+        "chain_oil_added",
+        "chain_manually_oiled",
+        "battery_contacts_cleaned",
+        "stored"
+      ]
+    },
+    {
+      "id": "pole_pruner",
+      "label": "Hochentaster",
+      "group": "cutting",
+      "aliases": [],
+      "supported_drives": [
+        "battery",
+        "mains",
+        "petrol_2_stroke",
+        "petrol_4_stroke"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "stihl-chain"
+      ],
+      "optional_features": [
+        "saw_chain",
+        "chain_oil_tank",
+        "manual_chain_oiling",
+        "chain_brake",
+        "engine_air_filter",
+        "spark_plug",
+        "engine_oil_sump",
+        "battery_contacts",
+        "mains_cable"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "chain_checked",
+        "chain_tensioned",
+        "chain_sharpened",
+        "chain_replaced",
+        "guide_bar_cleaned",
+        "chain_lubrication_checked",
+        "chain_oil_added",
+        "chain_manually_oiled",
+        "chain_brake_checked",
+        "air_filter_cleaned",
+        "air_filter_replaced",
+        "spark_plug_checked",
+        "spark_plug_replaced",
+        "engine_oil_checked",
+        "engine_oil_changed",
+        "battery_contacts_cleaned",
+        "cable_checked",
+        "stored"
+      ]
+    },
+    {
+      "id": "pruning_saw",
+      "label": "Astsäge",
+      "group": "cutting",
+      "aliases": [
+        "Baumsäge",
+        "Klappsäge",
+        "Teleskopsäge"
+      ],
+      "supported_drives": [
+        "manual"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "hand-tools"
+      ],
+      "optional_features": [
+        "blades",
+        "replaceable_blade",
+        "replaceable_handle"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "blade_checked",
+        "blade_replaced",
+        "handle_checked",
+        "handle_replaced",
+        "rust_removed",
+        "stored"
+      ]
+    },
+    {
+      "id": "lawn_mower",
+      "label": "Rasenmäher",
+      "group": "lawn_soil",
+      "aliases": [
+        "Mulchmäher",
+        "Spindelmäher"
+      ],
+      "supported_drives": [
+        "manual",
+        "battery",
+        "mains",
+        "petrol_2_stroke",
+        "petrol_4_stroke"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "stihl-mower",
+        "stihl-mower-winter"
+      ],
+      "optional_features": [
+        "blades",
+        "sharpenable_blade",
+        "replaceable_blade",
+        "collection_container",
+        "pneumatic_tyre",
+        "engine_air_filter",
+        "spark_plug",
+        "engine_oil_sump",
+        "battery_contacts",
+        "mains_cable"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "mower_deck_cleaned",
+        "mower_blade_checked",
+        "mower_blade_sharpened",
+        "mower_blade_replaced",
+        "container_cleaned",
+        "air_filter_cleaned",
+        "air_filter_replaced",
+        "spark_plug_checked",
+        "spark_plug_replaced",
+        "engine_oil_checked",
+        "engine_oil_changed",
+        "tyre_pressure_checked",
+        "battery_contacts_cleaned",
+        "cable_checked",
+        "stored"
+      ]
+    },
+    {
+      "id": "ride_on_mower",
+      "label": "Aufsitzmäher",
+      "group": "lawn_soil",
+      "aliases": [
+        "Rasentraktor"
+      ],
+      "supported_drives": [
+        "battery",
+        "petrol_4_stroke"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "stihl-mower",
+        "stihl-mower-winter"
+      ],
+      "optional_features": [
+        "blades",
+        "sharpenable_blade",
+        "replaceable_blade",
+        "collection_container",
+        "pneumatic_tyre",
+        "engine_air_filter",
+        "spark_plug",
+        "engine_oil_sump",
+        "battery_contacts"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "mower_deck_cleaned",
+        "mower_blade_checked",
+        "mower_blade_sharpened",
+        "mower_blade_replaced",
+        "container_cleaned",
+        "air_filter_cleaned",
+        "air_filter_replaced",
+        "spark_plug_checked",
+        "spark_plug_replaced",
+        "engine_oil_checked",
+        "engine_oil_changed",
+        "tyre_pressure_checked",
+        "battery_contacts_cleaned",
+        "stored"
+      ]
+    },
+    {
+      "id": "robot_mower",
+      "label": "Mähroboter",
+      "group": "lawn_soil",
+      "aliases": [],
+      "supported_drives": [
+        "battery"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "stihl-mower"
+      ],
+      "optional_features": [
+        "blades",
+        "replaceable_blade",
+        "battery_contacts"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "mower_deck_cleaned",
+        "mower_blade_checked",
+        "mower_blade_replaced",
+        "battery_contacts_cleaned",
+        "stored"
+      ]
+    },
+    {
+      "id": "grass_trimmer",
+      "label": "Rasentrimmer",
+      "group": "lawn_soil",
+      "aliases": [],
+      "supported_drives": [
+        "battery",
+        "mains",
+        "petrol_2_stroke",
+        "petrol_4_stroke"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "stihl-brushcutter"
+      ],
+      "optional_features": [
+        "cutting_line",
+        "plastic_cutters",
+        "metal_cutter",
+        "replaceable_blade",
+        "sharpenable_blade",
+        "serviceable_gear",
+        "engine_air_filter",
+        "spark_plug",
+        "engine_oil_sump",
+        "battery_contacts",
+        "mains_cable"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "cutting_line_refilled",
+        "plastic_cutters_replaced",
+        "metal_cutter_checked",
+        "metal_cutter_sharpened",
+        "metal_cutter_replaced",
+        "guard_checked",
+        "gear_greased",
+        "air_filter_cleaned",
+        "air_filter_replaced",
+        "spark_plug_checked",
+        "spark_plug_replaced",
+        "engine_oil_checked",
+        "engine_oil_changed",
+        "battery_contacts_cleaned",
+        "cable_checked",
+        "stored"
+      ]
+    },
+    {
+      "id": "brushcutter",
+      "label": "Motorsense und Freischneider",
+      "group": "lawn_soil",
+      "aliases": [],
+      "supported_drives": [
+        "battery",
+        "mains",
+        "petrol_2_stroke",
+        "petrol_4_stroke"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "stihl-brushcutter"
+      ],
+      "optional_features": [
+        "cutting_line",
+        "plastic_cutters",
+        "metal_cutter",
+        "replaceable_blade",
+        "sharpenable_blade",
+        "serviceable_gear",
+        "engine_air_filter",
+        "spark_plug",
+        "engine_oil_sump",
+        "battery_contacts",
+        "mains_cable"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "cutting_line_refilled",
+        "plastic_cutters_replaced",
+        "metal_cutter_checked",
+        "metal_cutter_sharpened",
+        "metal_cutter_replaced",
+        "guard_checked",
+        "gear_greased",
+        "air_filter_cleaned",
+        "air_filter_replaced",
+        "spark_plug_checked",
+        "spark_plug_replaced",
+        "engine_oil_checked",
+        "engine_oil_changed",
+        "battery_contacts_cleaned",
+        "cable_checked",
+        "stored"
+      ]
+    },
+    {
+      "id": "scarifier",
+      "label": "Vertikutierer",
+      "group": "lawn_soil",
+      "aliases": [],
+      "supported_drives": [
+        "battery",
+        "mains",
+        "petrol_2_stroke",
+        "petrol_4_stroke"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "stihl-verticutter"
+      ],
+      "optional_features": [
+        "cutting_tines",
+        "collection_container",
+        "engine_air_filter",
+        "spark_plug",
+        "engine_oil_sump",
+        "battery_contacts",
+        "mains_cable"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "tines_checked",
+        "container_cleaned",
+        "air_filter_cleaned",
+        "air_filter_replaced",
+        "spark_plug_checked",
+        "spark_plug_replaced",
+        "engine_oil_checked",
+        "engine_oil_changed",
+        "battery_contacts_cleaned",
+        "cable_checked",
+        "stored"
+      ]
+    },
+    {
+      "id": "lawn_aerator",
+      "label": "Rasenlüfter",
+      "group": "lawn_soil",
+      "aliases": [],
+      "supported_drives": [
+        "manual",
+        "battery",
+        "mains",
+        "petrol_2_stroke",
+        "petrol_4_stroke"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "stihl-verticutter"
+      ],
+      "optional_features": [
+        "cutting_tines",
+        "collection_container",
+        "engine_air_filter",
+        "spark_plug",
+        "engine_oil_sump",
+        "battery_contacts",
+        "mains_cable"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "tines_checked",
+        "container_cleaned",
+        "air_filter_cleaned",
+        "air_filter_replaced",
+        "spark_plug_checked",
+        "spark_plug_replaced",
+        "engine_oil_checked",
+        "engine_oil_changed",
+        "battery_contacts_cleaned",
+        "cable_checked",
+        "stored"
+      ]
+    },
+    {
+      "id": "garden_tiller",
+      "label": "Motorhacke und Gartenfräse",
+      "group": "lawn_soil",
+      "aliases": [],
+      "supported_drives": [
+        "battery",
+        "mains",
+        "petrol_2_stroke",
+        "petrol_4_stroke"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "stihl-tiller"
+      ],
+      "optional_features": [
+        "engine_air_filter",
+        "spark_plug",
+        "engine_oil_sump",
+        "battery_contacts",
+        "mains_cable",
+        "tilling_stars"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "tilling_stars_checked",
+        "air_filter_cleaned",
+        "air_filter_replaced",
+        "spark_plug_checked",
+        "spark_plug_replaced",
+        "engine_oil_checked",
+        "engine_oil_changed",
+        "battery_contacts_cleaned",
+        "cable_checked",
+        "stored"
+      ]
+    },
+    {
+      "id": "spreader",
+      "label": "Streuwagen und Handstreuer",
+      "group": "lawn_soil",
+      "aliases": [],
+      "supported_drives": [
+        "manual",
+        "battery"
+      ],
+      "source_ids": [
+        "gardena-spreader",
+        "hand-tools"
+      ],
+      "optional_features": [
+        "collection_container",
+        "replaceable_handle"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "container_cleaned",
+        "handle_checked",
+        "stored"
+      ]
+    },
+    {
+      "id": "leaf_blower",
+      "label": "Laubbläser",
+      "group": "cleaning_water",
+      "aliases": [],
+      "supported_drives": [
+        "battery",
+        "mains",
+        "petrol_2_stroke",
+        "petrol_4_stroke"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "stihl-blower"
+      ],
+      "optional_features": [
+        "engine_air_filter",
+        "spark_plug",
+        "engine_oil_sump",
+        "battery_contacts",
+        "mains_cable"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "air_filter_cleaned",
+        "air_filter_replaced",
+        "spark_plug_checked",
+        "spark_plug_replaced",
+        "engine_oil_checked",
+        "engine_oil_changed",
+        "battery_contacts_cleaned",
+        "cable_checked",
+        "stored"
+      ]
+    },
+    {
+      "id": "leaf_vacuum",
+      "label": "Laubsauger und Saughäcksler",
+      "group": "cleaning_water",
+      "aliases": [],
+      "supported_drives": [
+        "battery",
+        "mains",
+        "petrol_2_stroke",
+        "petrol_4_stroke"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "stihl-blower"
+      ],
+      "optional_features": [
+        "collection_container",
+        "engine_air_filter",
+        "spark_plug",
+        "engine_oil_sump",
+        "battery_contacts",
+        "mains_cable"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "container_cleaned",
+        "air_filter_cleaned",
+        "air_filter_replaced",
+        "spark_plug_checked",
+        "spark_plug_replaced",
+        "engine_oil_checked",
+        "engine_oil_changed",
+        "battery_contacts_cleaned",
+        "cable_checked",
+        "stored"
+      ]
+    },
+    {
+      "id": "garden_shredder",
+      "label": "Gartenhäcksler",
+      "group": "cleaning_water",
+      "aliases": [],
+      "supported_drives": [
+        "battery",
+        "mains",
+        "petrol_2_stroke",
+        "petrol_4_stroke"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "stihl-shredder"
+      ],
+      "optional_features": [
+        "engine_air_filter",
+        "spark_plug",
+        "engine_oil_sump",
+        "mains_cable",
+        "battery_contacts",
+        "blades",
+        "replaceable_blade"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "blade_checked",
+        "blade_replaced",
+        "air_filter_cleaned",
+        "air_filter_replaced",
+        "spark_plug_checked",
+        "spark_plug_replaced",
+        "engine_oil_checked",
+        "engine_oil_changed",
+        "cable_checked",
+        "battery_contacts_cleaned",
+        "stored"
+      ]
+    },
+    {
+      "id": "combination_tool",
+      "label": "Kombigerät mit Wechselaufsätzen",
+      "group": "lawn_soil",
+      "aliases": [
+        "Kombisystem",
+        "Multisystem"
+      ],
+      "supported_drives": [
+        "battery",
+        "mains",
+        "petrol_2_stroke",
+        "petrol_4_stroke"
+      ],
+      "source_ids": [
+        "stihl-range"
+      ],
+      "optional_features": [
+        "engine_air_filter",
+        "spark_plug",
+        "engine_oil_sump",
+        "battery_contacts",
+        "mains_cable"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "air_filter_cleaned",
+        "air_filter_replaced",
+        "spark_plug_checked",
+        "spark_plug_replaced",
+        "engine_oil_checked",
+        "engine_oil_changed",
+        "battery_contacts_cleaned",
+        "cable_checked",
+        "stored"
+      ]
+    },
+    {
+      "id": "pressure_washer",
+      "label": "Hochdruckreiniger",
+      "group": "cleaning_water",
+      "aliases": [],
+      "supported_drives": [
+        "battery",
+        "mains"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "karcher-pressure"
+      ],
+      "optional_features": [
+        "water_filter",
+        "hose",
+        "drainable_water_system",
+        "mains_cable",
+        "battery_contacts"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "water_filter_cleaned",
+        "hose_checked",
+        "water_drained",
+        "cable_checked",
+        "battery_contacts_cleaned",
+        "stored"
+      ]
+    },
+    {
+      "id": "wet_dry_vacuum",
+      "label": "Nass- und Trockensauger",
+      "group": "cleaning_water",
+      "aliases": [],
+      "supported_drives": [
+        "battery",
+        "mains"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "stihl-vacuum"
+      ],
+      "optional_features": [
+        "collection_container",
+        "dust_filter",
+        "dust_bag",
+        "hose",
+        "battery_contacts",
+        "mains_cable"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "container_cleaned",
+        "dust_filter_cleaned",
+        "dust_filter_replaced",
+        "dust_bag_replaced",
+        "hose_checked",
+        "battery_contacts_cleaned",
+        "cable_checked",
+        "stored"
+      ]
+    },
+    {
+      "id": "sweeper",
+      "label": "Kehrgerät",
+      "group": "cleaning_water",
+      "aliases": [
+        "Kehrmaschine"
+      ],
+      "supported_drives": [
+        "manual",
+        "battery"
+      ],
+      "source_ids": [
+        "stihl-range"
+      ],
+      "optional_features": [
+        "collection_container",
+        "battery_contacts"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "container_cleaned",
+        "battery_contacts_cleaned",
+        "stored"
+      ]
+    },
+    {
+      "id": "garden_pump",
+      "label": "Garten- und Tauchpumpe",
+      "group": "cleaning_water",
+      "aliases": [],
+      "supported_drives": [
+        "battery",
+        "mains",
+        "petrol_4_stroke"
+      ],
+      "source_ids": [
+        "stihl-range",
+        "gardena-pump"
+      ],
+      "optional_features": [
+        "water_filter",
+        "hose",
+        "drainable_water_system",
+        "engine_air_filter",
+        "spark_plug",
+        "engine_oil_sump",
+        "mains_cable",
+        "battery_contacts"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "water_filter_cleaned",
+        "hose_checked",
+        "water_drained",
+        "air_filter_cleaned",
+        "air_filter_replaced",
+        "spark_plug_checked",
+        "spark_plug_replaced",
+        "engine_oil_checked",
+        "engine_oil_changed",
+        "cable_checked",
+        "battery_contacts_cleaned",
+        "stored"
+      ]
+    },
+    {
+      "id": "pressure_sprayer",
+      "label": "Drucksprüher",
+      "group": "cleaning_water",
+      "aliases": [
+        "Rückenspritze"
+      ],
+      "supported_drives": [
+        "manual",
+        "battery"
+      ],
+      "source_ids": [
+        "gardena-sprayer"
+      ],
+      "optional_features": [
+        "water_filter",
+        "hose",
+        "spray_nozzle",
+        "pressure_relief",
+        "collection_container",
+        "battery_contacts"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "container_cleaned",
+        "water_filter_cleaned",
+        "hose_checked",
+        "spray_nozzle_cleaned",
+        "pressure_relief_checked",
+        "battery_contacts_cleaned",
+        "stored"
+      ]
+    },
+    {
+      "id": "irrigation",
+      "label": "Bewässerungsgerät",
+      "group": "cleaning_water",
+      "aliases": [
+        "Gartenschlauch",
+        "Regner",
+        "Bewässerungsventil"
+      ],
+      "supported_drives": [
+        "manual",
+        "battery",
+        "mains"
+      ],
+      "source_ids": [
+        "gardena-irrigation"
+      ],
+      "optional_features": [
+        "water_filter",
+        "hose",
+        "spray_nozzle",
+        "drainable_water_system",
+        "mains_cable"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "water_filter_cleaned",
+        "hose_checked",
+        "spray_nozzle_cleaned",
+        "water_drained",
+        "cable_checked",
+        "stored"
+      ]
+    },
+    {
+      "id": "soil_hand_tools",
+      "label": "Spaten, Schaufel und Grabegabel",
+      "group": "hand_tools_accessories",
+      "aliases": [],
+      "supported_drives": [
+        "manual"
+      ],
+      "source_ids": [
+        "hand-tools"
+      ],
+      "optional_features": [
+        "replaceable_handle"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "handle_checked",
+        "handle_replaced",
+        "rust_removed",
+        "metal_protected",
+        "stored"
+      ]
+    },
+    {
+      "id": "weeding_hand_tools",
+      "label": "Hacke und Unkrautstecher",
+      "group": "hand_tools_accessories",
+      "aliases": [
+        "Grubber",
+        "Fugenkratzer"
+      ],
+      "supported_drives": [
+        "manual"
+      ],
+      "source_ids": [
+        "hand-tools"
+      ],
+      "optional_features": [
+        "replaceable_handle"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "handle_checked",
+        "handle_replaced",
+        "rust_removed",
+        "metal_protected",
+        "stored"
+      ]
+    },
+    {
+      "id": "rake_broom",
+      "label": "Rechen, Laubbesen und Gartenbesen",
+      "group": "hand_tools_accessories",
+      "aliases": [
+        "Harke"
+      ],
+      "supported_drives": [
+        "manual"
+      ],
+      "source_ids": [
+        "hand-tools"
+      ],
+      "optional_features": [
+        "replaceable_handle"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "handle_checked",
+        "handle_replaced",
+        "rust_removed",
+        "metal_protected",
+        "stored"
+      ]
+    },
+    {
+      "id": "wheelbarrow",
+      "label": "Schubkarre und Gartenwagen",
+      "group": "hand_tools_accessories",
+      "aliases": [],
+      "supported_drives": [
+        "manual"
+      ],
+      "source_ids": [
+        "hand-tools"
+      ],
+      "optional_features": [
+        "replaceable_handle",
+        "pneumatic_tyre",
+        "greaseable_wheel_bearing"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "handle_checked",
+        "handle_replaced",
+        "tyre_pressure_checked",
+        "wheel_bearing_greased",
+        "rust_removed",
+        "metal_protected",
+        "stored"
+      ]
+    },
+    {
+      "id": "battery",
+      "label": "Geräteakku",
+      "group": "hand_tools_accessories",
+      "aliases": [],
+      "supported_drives": [
+        "battery"
+      ],
+      "source_ids": [
+        "stihl-asa20",
+        "stihl-chain"
+      ],
+      "optional_features": [
+        "battery_contacts"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "battery_checked",
+        "battery_contacts_cleaned",
+        "stored"
+      ]
+    },
+    {
+      "id": "charger",
+      "label": "Ladegerät",
+      "group": "hand_tools_accessories",
+      "aliases": [],
+      "supported_drives": [
+        "mains"
+      ],
+      "source_ids": [
+        "stihl-asa20"
+      ],
+      "optional_features": [
+        "mains_cable"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "charger_cleaned",
+        "cable_checked",
+        "stored"
+      ]
+    }
+  ],
+  "model_templates": [
+    {
+      "id": "stihl_asa20",
+      "label": "STIHL ASA 20",
+      "equipment_type_id": "battery_pruning_shear",
+      "manufacturer": "STIHL",
+      "model": "ASA 20",
+      "drive": "battery",
+      "source_ids": [
+        "stihl-asa20"
+      ],
+      "confirmed_features": [
+        "blades",
+        "replaceable_blade",
+        "blade_lubrication",
+        "blade_clearance",
+        "battery_contacts",
+        "replaceable_counterblade"
+      ],
+      "action_ids": [
+        "cleaned",
+        "visual_checked",
+        "blade_cleaned",
+        "blade_checked",
+        "blade_lubricated",
+        "blade_clearance_set",
+        "blade_sharpened",
+        "blade_replaced",
+        "counterblade_replaced",
+        "battery_contacts_cleaned",
+        "stored"
+      ],
+      "model_notes": [
+        "Die Anleitung nennt bei stumpfer Klinge den Ersatz. Schärfen bleibt auf ausdrücklichen Nutzerwunsch als Text zur Dokumentation einer tatsächlich ausgeführten Arbeit auswählbar; daraus folgt keine Herstellerempfehlung oder Reparaturanleitung.",
+        "Schmierung laut dieser Ausgabe nach jeweils 4000 Schnitten; jährliche Prüfung durch den Fachhandel. Kein Schnittzähler und keine Erinnerung werden dadurch angelegt.",
+        "Hersteller-/Modellvorlage zur bewussten Auswahl, kein angelegtes persönliches Gerät."
+      ]
+    }
+  ]
+}

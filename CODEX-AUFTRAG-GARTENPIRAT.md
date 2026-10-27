@@ -10,6 +10,20 @@ Geräteverwaltung oder technische Einrichtung für den Nutzer. Nutzerklärung:
 Foto ausschließlich zur visuellen Identifikation des Geräts; keine Hersteller-
 oder Modellsuche. Einfache Wartungstätigkeiten stehen im Mittelpunkt.
 
+Weiterer direkter Auftrag: gängige Gartengeräte recherchieren und passende
+Textbausteine anlegen, ausdrücklich mit Akku-Gartenschere STIHL ASA20 als Beispiel.
+Umsetzung dieses Teils: öffentlicher statischer Textkatalog im vorhandenen
+App-Quellbaum; keine Anlage tatsächlicher Geräte oder Wartungen. Tätigkeiten
+nach Gerät/Antrieb und bestätigter Ausstattung trennen; „Motoröl gewechselt“
+nicht bei Akku-/Zweitaktgeräten und nicht mit Kettenöl auffüllen vermischen.
+ASA20 nach eigener Herstelleranleitung behandeln. Neueste Nutzerpräzisierung:
+„Schärfen darf auch erlaubt sein.“ Deshalb „Klinge geschärft“ auch bei ASA20
+als Dokumentation einer tatsächlich ausgeführten Tätigkeit auswählbar erhalten;
+nicht als Herstellerempfehlung ausgeben. Gegenprüfung: Quellenbezüge,
+eindeutige IDs, passende Gerätetexte, keine automatischen Fälligkeiten oder
+Schreibpfade und keine Änderung des leeren Startbestands. Datei entfernen
+rollt nur Vorschlagstexte zurück, niemals Geschäftsdaten.
+
 Vor einer Umsetzung den vorhandenen Gerätepfad, lokale Fotozuordnung und echte
 Wartungsereignisse prüfen. Gerätenutzung ist keine Wartung; Wartungen nicht als
 Kundeneinsatz oder bloßes Überschreiben der letzten Notiz behandeln. Entwürfe,

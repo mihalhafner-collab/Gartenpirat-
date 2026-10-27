@@ -8,7 +8,30 @@ erhalten und gelten nicht als neue Arbeitsanweisung.
 
 ## Aktuell: Heute-Ansicht vereinfacht, noch nicht gebaut
 
-Nächster Nutzerpunkt Gerätewartung27.10.: Quellprüfung bestätigt vorhandene
+Gerätewartungs-Texte27.10. angelegt:36 Gerätetypen,57 auswählbare Tätigkeitstexte,
+20 öffentliche Quellen und eine eigene Vorlage STIHL ASA20. Katalog:
+`android/app/src/main/assets/equipment-maintenance-texts.json`. Enthält
+Scheren/Sägen, Mäher/Trimmer, Bodenbearbeitung, Laub-/Reinigungsgeräte, Pumpen,
+Bewässerung, Handgeräte und Akkuzubehör. Eine Grundauswahl, keine Behauptung,
+dass jedes Gerät notwendig oder tatsächlich vorhanden sei.
+
+Quellen- und Zuordnungsprüfung PASS: eindeutige IDs, gültige Quellen-/Geräte-/
+Tätigkeitsbezüge; Motorölwechsel getrennt von Kettenöl und nur bei bestätigtem
+eigenem Motorölkreislauf. Akku, Netz, Hand und Zweitakt ausgeschlossen. Eigene
+ASA20-Auswahl enthält Reinigung, Schmierung, Klingenspiel und Klingenwechsel;
+auf neuesten ausdrücklichen Nutzerwunsch auch „Klinge geschärft“ als
+Dokumentation tatsächlicher Arbeit, keine pauschale Hersteller-Schärfempfehlung.
+Kettenarbeit und Motorölwechsel bleiben ausgeschlossen. Das sind
+statische Inhalts-/Anwendbarkeitsprüfungen, noch keine implementierte UI-Filterung.
+Beleg: `docs/verification/equipment-maintenance-catalog-2026-10-27.json`.
+
+Nur öffentliche Vorschlagstexte, keine tatsächlichen Geräte/Wartungen angelegt,
+keine Datums-/Stunden-/Kostenannahmen oder automatischen Fälligkeiten. Leerer
+Startbestand bytegleich. Katalog noch nicht an UI oder Schreibpfade angebunden;
+keine neue APK oder native/physische Abnahme. Ausbau der Geräteansicht und des
+gemeinsamen lokalen Wartungs-/Fotopfads bleibt offen.
+
+Nutzerpunkt Gerätewartung27.10.: Quellprüfung bestätigt vorhandene
 Geräteanlage mit Name, Zustand, Wartungsdatum und Notizen
 (`RevierApplicationService.equipment`, `LocalWorkflowTools.save_equipment`,
 `revier-solo-ui.js`). Der Gerätevertrag enthält noch kein Gerätebild und keine
