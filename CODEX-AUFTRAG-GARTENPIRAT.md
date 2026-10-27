@@ -1,5 +1,35 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Neueste Priorität: MCP-Katalog geprüft und166er-Übernahme nachgewiesen
+
+Nutzer beauftragt nach eigener Werkzeugaktualisierung und erneutem Chat die
+Prüfung von Registrierung und Definitionen: installierte App106 meldet166,
+gebundener ChatGPT-Katalog enthält117 Werkzeuge. Keine weitere Chatumschaltung
+als nachgewiesene Lösung darstellen. Keine APK, Betriebsdatenänderung oder
+Erweiterung von Berechtigungen aus diesem Diagnoseauftrag ableiten.
+
+Ergebnis dieses Auftrags: Nach weiterer Nutzeraktualisierung wurden hier alle166
+Werkzeuge sichtbar. Kein fehlender/zusätzlicher Name, neuer lesender Statusaufruf
+erfolgreich. Keine Produktions-/Paket-/Berechtigungsänderung erforderlich; den
+folgenden Diagnoseplan als durchgeführten Prüfumfang erhalten.169er-Quellstand
+weiter von installierter106 trennen. Nachweise im bestehenden Status.
+
+Prüfplan: tatsächliche Capability-Metadaten, Gesundheitsmeldung und sichtbare
+Werkzeugnamen gegeneinander vergleichen; alle fehlenden Lese-/Schreibfälle
+klassifizieren. Den originalen106-Kataloggenerator und den aktuellen169er-
+Quellstand mit JSON-RPC tools/list, Initialisierung, Schreibgate und Tunnel-
+Serialisierung prüfen. JSON-Schemata vollständig validieren; Quelle und installierte
+Selbstauskunft unterscheiden. Kein produktiver Schreibtest und keine Rohantwort
+mit Geschäftsdaten/privater Konfiguration ins Repository übernehmen.
+
+Bestehende Plugin-Identität und Paketdateien lesend prüfen. Bei App-verwalteter
+Registrierung weder zweite Verbindung bauen noch durch bloßes Versionsbumping
+oder neue Berechtigungen einen Refresh vortäuschen. Nur einen belegten Fehler
+am zuständigen Ursprung korrigieren; sonst die externe Aktualisierungsgrenze
+präzise dokumentieren. Tests, Metadatenvergleich und aktuellen Stand in den
+vorhandenen Projektständen/GitHub sichern. Rollback einer Diagnose ändert keine
+Geschäftsdaten, Rechnungsautorität, Backup- oder Tunnelkonfiguration.
+
 ## Neueste Priorität: App-Start beschleunigen und Vergleichsrecherche
 
 Nutzer beauftragt den bereits untersuchten Startablauf jetzt ausdrücklich zur

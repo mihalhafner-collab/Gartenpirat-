@@ -6,6 +6,52 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Aktuell: MCP-Katalog der installierten App abgeglichen
+
+Nach der vom Nutzer gemeldeten Aktualisierung ist die neue Bereitstellung jetzt
+auch in dieser laufenden Verbindung sichtbar: installierte App1.55.1/106 und
+ChatGPT enthalten jeweils166 Werkzeuge. Keine fehlenden oder zusätzlichen Namen.
+Das zuvor fehlende rein lesende `get_restore_status` erfolgreich aufgerufen;
+Phase NONE, keine Wiederherstellung ausgelöst. Aktuelle169er-Entwicklungsquelle
+und ihre drei zusätzlichen Wartungswerkzeuge bleiben getrennt und uninstalliert.
+
+Vor der Übernahme enthielt die Verbindung117 Werkzeuge, deren Namensmenge exakt
+den Deklarationen des früheren Builds98 entsprach. Fehlend waren20 lokale Reads,
+28 lokale Writes und zusätzlich `review_work_session`. Nutzeraktualisierung und
+neuer Chat waren zunächst noch ohne sichtbaren Effekt; während dieser Prüfung
+meldete der Nutzer166 und der anschließende echte Werkzeugvergleich bestätigte166.
+Interne Scan-/Refreshzeitpunkte sind nicht einsehbar. Kein weiterer Chatwechsel
+oder wiederholtes Aktualisieren für diesen166er-Stand erforderlich.
+
+Original106 erzeugt in der isolierten Prüfung exakt dieselben166 Definitionen
+wie die Live-Capabilities, einschließlich semantischem Hash. tools/list, vier
+Protokollversionen und serialisierte Tunnelantwort behalten die komplette Liste.
+Auch bei deaktivierten Writes bleiben lokale Reads sichtbar. Alle166 Schemata
+nach JSON Schema2020-12 gültig; aktuelle169er-Quelle separat bestätigt. Kein
+belegter Fehler an Produktionsquelle oder Schemata; keine Änderung an listChanged,
+Version, Berechtigungen, Geschäfts-/Autoritätsgates oder Pluginpaket erforderlich.
+Allgemeine Pixel-App-Berechtigung „Allow all actions“ und Schreibgate vorhanden;
+produktive Writes wurden nicht getestet und Rechnungsfreigabe bleibt gesperrt.
+
+Bestehendes privates App-Plugin lesend identifiziert: Paket mit App-Verweis und
+Präsentationsmanifest, ohne eigene MCP-Liste. Pluginidentität, Paketversion und
+Release blieben bei erfolgreicher Metadatenübernahme unverändert. Die verfügbare
+Paketverwaltung ist kein Aktions-Refresh-Endpunkt. Keine zweite Verbindung erstellt.
+OpenAI unterscheidet [Metadaten-Refresh](https://developers.openai.com/plugins/deploy/connect-chatgpt)
+von gesonderten [Aktionsfreigaben für Workspace-Apps](https://help.openai.com/en/articles/12584461-connecting-custom-mcp-servers-in-chatgpt).
+Die vormals offene Frage zur sichtbaren Verwaltungsanzahl ist durch den echten
+166er-Read-back überholt. Ein unabhängiger roher Live-Scanlog bleibt unzugänglich;
+Quell-/Tunnelreproduktion und tatsächlich gebundener Katalog sind unterschieden.
+
+Gezielte Nachweise PASS: neuer Discovery-Test auf Original106 und aktueller
+Quelle, McpMetadataTests,65 Tunnel-Vertragsfälle und1399 UI/MCP-Paritätschecks;
+Originalverträge/Quellfingerprints PASS. Normative Schema-Prüfung PASS. Discovery
+rein synthetisch mit0 fachlichen Schreibaufrufen. Betriebsdatensätze, Backupinhalte
+und private Laufzeitkonfiguration nicht in Prüfbelege übernommen. Privacy: Quelle
+2361Dateien und gesamter Worktree6220Dateien PASS; finale geänderte Quelldateien
+anschließend separat geprüft. Keine neue APK, Installation, Migration oder
+Rechnungsfreigabe. Beleg: `docs/verification/mcp-catalog-diagnosis-2026-10-27.json`.
+
 ## Aktuell: Startkorrektur und Vergleichsrecherche
 
 Startablauf im Quellcode korrigiert: feste Erststartpausen von50–700ms entfernt,
@@ -360,8 +406,9 @@ Beziehungsreferenzen,107 nicht lokal nachgewiesene Originale und vier historisch
 Konflikte. Der produktive Gesamtauftrag bleibt deshalb in der Integritätsklärung;
 keine Migration, Queueleerung, Rechnungsfreigabe oder manuelle Freigabeflags.
 
-App-/Serverkatalog damals166 Werkzeuge, gebundene ChatGPT-Verbindung117;
-20 Lese-/29 Schreibwerkzeuge fehlen dort. Externer Connector-Refresh offen.
+Der vorherige117er-Connectorstand ist überholt: Nach aktueller Metadatenübernahme
+stehen alle166 Werkzeuge der installierten App bereit. Namenvergleich und neuer
+Read-Aufruf erfolgreich; technischer Nachweis steht oben.
 Kalender war verbunden, zeigte aber `CALENDAR_NETWORK`/Retry; kein heutiger
 Live-Endnachweis. Aktuelle Bereinigung verwendet keine produktiven Tests.
 
