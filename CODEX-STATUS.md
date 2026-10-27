@@ -20,15 +20,21 @@ bleibt erhalten. Tourbearbeitung und vollständige Besuchsliste bleiben über
 bestehende Ziele erreichbar. Weitere Termine bleiben sichtbar; eine zusätzliche
 leere Terminkarte entfällt nach erfolgreichem Lesen der Einsatzübersicht.
 
+Weitere Nutzerpräzisierung umgesetzt: unten nur Heute/Büro. Objekte und Pflege
+stehen im vorhandenen Mehr-Menü in Arbeit & Planung. Die Menü-Gruppierung kannte
+die Revier-Ziele bisher nicht und ordnete sie fälschlich Status & Einstellungen
+zu; diese Zuordnung ist korrigiert. Zurückwege und Fach-/Entwurfskontext bleiben
+erhalten, der Menübereich wird aktiv kenntlich gemacht.
+
 Kennzahlen, frühere Arbeiten und Sicherungsdetails sind aufklappbar. Laufende
 Arbeit und vorhandene Arbeitsaktionen bleiben direkt erreichbar. Lesefehler
 behalten die letzte Übersicht mit sichtbarem Hinweis und Wiederholung; keine
 Schreiboperation beim Aufruf der Übersicht. Fachregeln, Timer, Entwürfe, Backup,
 Rechnungsautorität und Geschäftsdaten werden durch diese Darstellung nicht geändert.
 
-17 Revier-UI- und41 Übersichts-/Zugänglichkeitsprüfungen PASS; zusätzlich der
-bestehende Sicherungszugang mit Tastatur-/Größen-/Fehlerfällen PASS. Quelle2329
-Dateien und gesamter Worktree6008Dateien einschließlich ignorierter Dateien
+18 Revier-UI- und41 Übersichts-/Zugänglichkeitsprüfungen PASS; zusätzlich der
+bestehende Sicherungszugang mit Tastatur-/Größen-/Fehlerfällen PASS. Quelle2333
+Dateien und gesamter Worktree6013Dateien einschließlich ignorierter Dateien
 bestehen die Privacy-Gates. Keine neue native oder physische Abnahme.
 Prüfbeleg: `docs/verification/today-overview-2026-10-27.json`.
 Vorschau ausschließlich synthetische Browserdaten. Keine APK gebaut, keine
@@ -36,6 +42,29 @@ Installation oder produktive Geräteprüfung. Der unveränderte106-Release-Tag
 bleibt die letzte geprüfte Paketquelle; diese Quellüberarbeitung ist kein
 neuer freigegebener Build. Ruckelige Übergänge und zunächst alte Startoberfläche
 sind noch keine nachgewiesen behobenen Gerätefehler.
+
+### Bedienungsprüfung und Bildvorschau
+
+Quell-/Browserprüfung mit synthetischen Bridges: Arbeit erfassen5 sichtbare
+Hauptfelder, Termin planen4, Einsatz bearbeiten10. Die Arbeitsmaske hat bereits
+Textvorschläge aus bis zu drei früheren Tätigkeiten; die Terminplanung hat
+Dauerknöpfe1h/2h/halber Tag. Diese sind keine neu eingebauten Hilfen. Datum/Zeit
+verwenden vorhandene native Eingabetypen; ihre praktische Picker-Bedienung auf
+dem Pixel ist hier nicht geprüft. Während dieser drei Maskenaufrufe keine
+Revier-Schreibvorgänge oder Scriptfehler.
+
+Priorisierte offene Vereinfachungen: Text gezielt übernehmen statt eine ganze
+Arbeit mit Stunden duplizieren; Datum-/Uhrzeitwahl über die Masken vereinheitlichen;
+Einsatzbearbeitung auf Kerneingaben konzentrieren. Exakte freie Eingaben,
+Änderungsgrund, Gerätemängel, Drafts und ausdrückliches Speichern bleiben notwendig.
+Weitere Formularänderungen auf Nutzerwunsch zunächst zurückgestellt: zuerst
+Bilder der tatsächlich gerenderten neuen Heute-/Menüansicht liefern.
+
+Bilder mit Testdaten: `docs/verification/today-overview-360.png`,
+`more-menu-360.png` und `more-menu-sections-360.png` im selben Ordner.
+Elf betroffene Browser-Prüfgruppen (162 Einzelprüfungen) PASS; nach Menüzuordnung
+Revier-, Menü-/Kalender- und einfache Designregression erneut PASS. Native
+Navigationsfixture angepasst, aber keine neue APK oder native Abnahme.
 
 ## Zurückgestellte Ablagebereinigung
 

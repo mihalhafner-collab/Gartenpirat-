@@ -1,6 +1,6 @@
 {
   "format": "hausgarten.today-overview.v1",
-  "observed_at_utc": "2026-10-27T08:33:19.257504+00:00",
+  "observed_at_utc": "2026-10-27T09:53:22.048960+00:00",
   "status": "SOURCE_UI_BROWSER_PASS_NOT_BUILT",
   "classification": "SYNTHETIC_TEST",
   "branch": "codex/heute-uebersicht-20261027",
@@ -11,18 +11,23 @@
     "Existing tour, visit detail and full list remain reachable",
     "Collapsed recorded-work metrics, recent work and backup status; existing backup chip retained",
     "Keep real future appointments; omit duplicate empty appointment card only after successful visit overview read",
-    "Read failure retains previous rows, visible alert and read-only retry"
+    "Read failure retains previous rows, visible alert and read-only retry",
+    "Bottom navigation now Today and Office; Objects/Care use existing More entries",
+    "Menu grouping explicitly assigns operational Revier destinations to Work/Planning; Office to billing",
+    "Menu paths keep Back stack and active-area indication; existing editor business context unchanged"
   ],
   "source_sha256": {
     "android/app/src/main/assets/mobile.html": "54c758ced63a07f60f02cbf62a26f4782b752e67c0524197b287a019c8643580",
     "android/app/src/main/assets/today-ui.js": "86d9522da38c7d4a1dcdef85162a175c647efdf34d0301812e31d6b90b1c37a7",
     "android/app/src/main/assets/today-ui.css": "4aa4eea32b134b5c861cdeafa86da1a19b1e3691bb42545d4f775c1942b80701",
-    "android/app/src/main/assets/revier-solo-ui.js": "d50f93a2dc8991092074be786ca1852c0ed753e43cc9135b48fdfa14bde369cc",
-    "android/app/src/main/assets/business-actions-ui.js": "35405f2801b9764599c55b4c3a3dfc5cdce72b6516ec62544453e207dca5c468"
+    "android/app/src/main/assets/revier-solo-ui.js": "c236c7bf4c9328aad2754ac3d27bd889eee50bb75ade75d161640dc869375f69",
+    "android/app/src/main/assets/business-actions-ui.js": "35405f2801b9764599c55b4c3a3dfc5cdce72b6516ec62544453e207dca5c468",
+    "android/app/src/main/assets/revier-solo-ui.css": "cee10003991f796e112bdc4ba89231017334037405869f99650e3946046356cb",
+    "android/app/src/main/assets/workflow-ui.js": "b05c0060e483110bfd067fdb1638e81845b7e39a5e80a222df2d0cca7fba4e68"
   },
   "tests": {
     "revier_ui": {
-      "pass": 17,
+      "pass": 18,
       "fail": 0
     },
     "overview_accessibility": {
@@ -30,7 +35,21 @@
       "fail": 0
     },
     "full_backup_entry": "PASS existing entry/readback/keyboard/responsive scenario; source and data writes unchanged",
-    "syntax_and_diff": "PASS"
+    "syntax_and_diff": "PASS",
+    "navigation_revision": {
+      "revier": 18,
+      "field": 18,
+      "navigation_calendar": 8,
+      "overview_accessibility": 41,
+      "simple_design": 7,
+      "design_concept": 11,
+      "botanical_entry": 6,
+      "p3_walkthrough": 6,
+      "preview_overlay": 14,
+      "planning": 25,
+      "webview_hardening": 8,
+      "all_results": "PASS; source native nav expectation updated, native Java string/JS syntax checked, no native execution"
+    }
   },
   "warm_today_browser_render": {
     "p50_ms": 1,
@@ -50,7 +69,7 @@
   ],
   "screenshot": {
     "path": "docs/verification/today-overview-360.png",
-    "sha256": "8b9a62be2a7fe3d377951f371fc0a79d4cb2c17eda0e9bb4c7c4310543feef82",
+    "sha256": "b2613b842eba8cd447044c42e53646f39ba27dc0c2183914ab03d2af50745f72",
     "fixture": "qa_browser_fixture",
     "business_data": false
   },
@@ -66,14 +85,222 @@
     "stage": "PREBUILD_ONLY",
     "source": {
       "status": "PASS",
-      "files": 2329,
+      "files": 2333,
       "operational_seed_rows": 0
     },
     "workspace": {
       "status": "PASS",
-      "files": 6008,
+      "files": 6013,
       "includes_ignored_untracked": true
     },
     "artifact": "NO_NEW_APK"
+  },
+  "additional_images": [
+    {
+      "path": "docs/verification/more-menu-360.png",
+      "sha256": "ba1a966f5b2be85b120218c097c527d449f56e07ef10cf29ee758150753d918f",
+      "classification": "SYNTHETIC_TEST",
+      "viewport": [
+        360,
+        800
+      ]
+    },
+    {
+      "path": "docs/verification/more-menu-sections-360.png",
+      "sha256": "c24e28c2400d7a12839af82aebae2f1113adcabadfff0fbb307f9bc13a11495f",
+      "classification": "SYNTHETIC_TEST",
+      "viewport": [
+        360,
+        800
+      ]
+    }
+  ],
+  "ui_simplification_review": {
+    "method": "Current rendered source with existing synthetic bridges; no physical picker behavior measured",
+    "observations": {
+      "classification": "SYNTHETIC_TEST",
+      "fixture": "qa_existing_revier_and_daily_bridges",
+      "environment": "Cloud Chromium;not physical Android",
+      "views": [
+        {
+          "view": "Arbeit erfassen",
+          "visible_fields": [
+            {
+              "name": "customer_id",
+              "type": "select-one",
+              "required": true,
+              "label": ""
+            },
+            {
+              "name": "work_date",
+              "type": "date",
+              "required": true,
+              "label": "Datum"
+            },
+            {
+              "name": "hours",
+              "type": "number",
+              "required": false,
+              "label": "Netto-Stunden"
+            },
+            {
+              "name": "activity",
+              "type": "textarea",
+              "required": true,
+              "label": "Was wurde erledigt?*"
+            },
+            {
+              "name": "notes",
+              "type": "textarea",
+              "required": false,
+              "label": "Notiz · optional"
+            }
+          ],
+          "closed_groups": [
+            "+ Zeit und PauseBei Bedarf ergänzen",
+            "+ Material und KilometerBei Bedarf ergänzen",
+            "Fotos & SpracheingabeBei Bedarf ergänzen",
+            "Auftrag, Abrechnung & OrtBei Bedarf ergänzen"
+          ],
+          "visible_buttons": [
+            "Kunde auswählen ⌄",
+            "Dauer",
+            "Uhrzeiten",
+            "Hecke pflegen",
+            "Später weiter",
+            "Speichern",
+            "Neue Arbeitserfassung",
+            "Änderungen verwerfen"
+          ]
+        },
+        {
+          "view": "Termin planen",
+          "visible_fields": [
+            {
+              "name": "customer_id",
+              "type": "select-one",
+              "required": true,
+              "label": "KundeBitte wählenQA Musterkundin mit einem langen Namen"
+            },
+            {
+              "name": "local_start",
+              "type": "datetime-local",
+              "required": true,
+              "label": "Datum und Startzeit"
+            },
+            {
+              "name": "end_open",
+              "type": "checkbox",
+              "required": false,
+              "label": "Ende offenStartzeit steht fest, Dauer noch ungeklärt."
+            },
+            {
+              "name": "title",
+              "type": "text",
+              "required": true,
+              "label": "Titel"
+            }
+          ],
+          "closed_groups": [
+            "Mehr Optionen",
+            "Termin wiederholen (optional)",
+            "Ort, Anfahrt und Pause"
+          ],
+          "visible_buttons": [
+            "1 Std",
+            "2 Std",
+            "Halber Tag",
+            "Freie Zeit suchen",
+            "Termin speichern",
+            "Zur Planung"
+          ]
+        },
+        {
+          "view": "Einsatz bearbeiten",
+          "visible_fields": [
+            {
+              "name": "title",
+              "type": "text",
+              "required": true,
+              "label": "Tätigkeit / Einsatz *"
+            },
+            {
+              "name": "date",
+              "type": "date",
+              "required": true,
+              "label": "Datum *"
+            },
+            {
+              "name": "planned_minutes",
+              "type": "number",
+              "required": true,
+              "label": "Geplante Dauer in Minuten *"
+            },
+            {
+              "name": "window_start",
+              "type": "time",
+              "required": false,
+              "label": "Zeitfenster ab"
+            },
+            {
+              "name": "window_end",
+              "type": "time",
+              "required": false,
+              "label": "Zeitfenster bis"
+            },
+            {
+              "name": "notes",
+              "type": "textarea",
+              "required": false,
+              "label": "Hinweise"
+            },
+            {
+              "name": "equipment_ids",
+              "type": "checkbox",
+              "required": false,
+              "label": "QA Heckenschere · Defekt – prüfen"
+            },
+            {
+              "name": "status",
+              "type": "select-one",
+              "required": false,
+              "label": "Ergebnis / Status"
+            },
+            {
+              "name": "reason",
+              "type": "textarea",
+              "required": true,
+              "label": "Grund für Änderung / Absage *"
+            },
+            {
+              "name": "remaining_minutes",
+              "type": "number",
+              "required": false,
+              "label": "Offener Rest in Minuten"
+            }
+          ],
+          "closed_groups": [],
+          "visible_buttons": [
+            "Später fortsetzen",
+            "Änderungen verwerfen",
+            "Lokal speichern"
+          ]
+        }
+      ],
+      "revier_native_writes": 0,
+      "script_errors": []
+    },
+    "existing_helpers": [
+      "3 text-only suggestions from recent worklogs; not a fixed predefined starter catalogue",
+      "Planning duration buttons1h/2h/half-day",
+      "Native date/time/datetime input types",
+      "Existing grouped optional work/planning fields"
+    ],
+    "next_candidates_not_implemented": [
+      "Consistent date shortcuts and explicit time choices, retaining arbitrary exact input",
+      "Extend/reuse text-only selection without copying hours/customer/prices",
+      "Reduce10-field visit editor; keep required change reasons and defective-equipment warnings visible when relevant"
+    ],
+    "further_form_changes": "PAUSED_USER_REQUESTS_IMAGES_FIRST"
   }
 }

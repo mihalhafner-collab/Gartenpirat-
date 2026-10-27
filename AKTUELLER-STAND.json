@@ -305,7 +305,7 @@
       "branch": "codex/heute-uebersicht-20261027",
       "base_main": "05eac2d5769bed55a42317ed542be9baccda0e77",
       "status": "UNBUILT_TODAY_SIMPLIFICATION",
-      "scope": "Existing Today display only; synthetic browser checks; no business model or productive data mutation",
+      "scope": "Existing Today display and two-root navigation; Objects/Care in More; synthetic UI review/images; no business model mutation",
       "release_source_106_unchanged": true,
       "new_apk_built": false,
       "physical_installation": false,

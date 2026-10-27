@@ -8,6 +8,30 @@ müssen sichtbar bleiben. Emulator, ADB-Protokoll, GitHub-Konsolidierung und wei
 Leistungsanalyse sind vorerst zurückgestellt. Bereits gemeldete träge Übergänge
 und zunächst alte Startoberfläche sind damit noch nicht als behoben erklärt.
 
+Weitere Nutzerpräzisierung: „Objekte“ und „Pflege“ aus der unteren Hauptnavigation
+nehmen und im bestehenden Mehr-Menü führen. Unten bleiben Heute und Büro. Vor
+Änderung: sichtbare Wurzeln, aktive Menüanzeige, Rückweg aus Liste/Detail/Entwurf,
+vorhandene Direktziele sowie Browser-/native Navigationsfixtures gegeneinander
+prüfen. ROOTS/Navdarstellung und Spaltenzahl gemeinsam ändern; Fach-/Editor-Kontext
+nicht in einen anderen Fachbereich umdeuten. Mehr → Bereich → Detail → Zurück
+muss wieder über den Bereich ins Menü führen; laufende Sitzung und Entwürfe
+bleiben erhalten. Bereits vorhandene Menüeinträge verwenden, keine zweite Funktion.
+Die vorhandene Gruppenzuordnung in `workflow-ui.js` muss die Revier-Ziele kennen:
+Objekte/Pflege/Tour/Material/Geräte/Suche zu Arbeit & Planung, Büro zu Belegen;
+keinen Fallback nach Status & Einstellungen als fachliche Zuordnung stehen lassen.
+Zuerst Bilder der aktuellen Heute-/Menüansichten mit synthetischen Daten liefern;
+weitere Formularänderungen dafür zurückstellen.
+
+Weitere Nutzersteuerung: Funktionsumfang erhalten, Bedienung massiv vereinfachen.
+App soweit ohne produktive Daten möglich im Code und mit synthetischen Masken
+prüfen: vorbereitete Texte, einfache Datums-/Uhrzeitwahl, weniger Eingaben und
+Rückfragen. Vorhandene Vorschläge und Dauerknöpfe zuerst erfassen; keine zweite
+Vorlagen-Datenhaltung oder unbewiesene Funktionslücke erfinden. Datums-/Zeithilfen
+dürfen Eingaben nur bewusst setzen, nie tatsächliche Zeiten runden oder fachliche
+Bestätigung, Änderungsgrund, Commit-ID und Rechnungs-/Backupgates überspringen.
+Der derzeitige Zusatzauftrag umfasst die konkrete Bedienungsprüfung und
+Vereinfachungspunkte; neue Eingabehilfen sind dadurch noch nicht als eingebaut erklärt.
+
 Minimaler Änderungsplan vor Umsetzung:
 
 - `android/app/src/main/assets/revier-solo-ui.js`, `refreshToday`: statt vollständiger

@@ -79,7 +79,7 @@ async function filledCoreViews(browser,check){
   startup.before_full_ui_ready=await page.evaluate(startupState);
   // fieldReady precedes Revier's navigation/layout installation. Wait for that
   // actual module and its ResizeObserver measurement, never for the fit assertion.
-  await page.waitForFunction(()=>{const dock=document.getElementById('today-action-dock');return document.body.dataset.revierReady==='true'&&document.body.classList.contains('revier-solo')&&document.querySelectorAll('.bottom .nav').length===4&&dock&&document.documentElement.style.getPropertyValue('--today-dock-height')===Math.ceil(dock.getBoundingClientRect().height)+'px';});
+  await page.waitForFunction(()=>{const dock=document.getElementById('today-action-dock');return document.body.dataset.revierReady==='true'&&document.body.classList.contains('revier-solo')&&document.querySelectorAll('.bottom .nav').length===2&&dock&&document.documentElement.style.getPropertyValue('--today-dock-height')===Math.ceil(dock.getBoundingClientRect().height)+'px';});
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));startup.after_full_ui_ready=await page.evaluate(startupState);console.log('OVERVIEW_STARTUP '+JSON.stringify(startup));
   await check('97 Today360x640 keeps work controls above navigation and the populated carousel reachable by scrolling',async()=>{
    assert.equal(await page.locator('#home .folder-grid,#home .hero,#home>.brand').count(),0);assert.equal(await page.locator('#app-drawer .brand').count(),1);

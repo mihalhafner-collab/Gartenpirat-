@@ -24,7 +24,7 @@ const {chromium}=require('./browser.cjs');
   await page.waitForFunction(()=>document.body.dataset.fieldReady==='true'&&document.body.dataset.todayReady==='true'&&document.body.dataset.revierReady==='true');
   await check('App initializes fully without removed-element event listener failures',async()=>{
    assert.deepEqual(errors,[]);assert.equal(await page.locator('.pirate,#pirate-speak').count(),0);
-   assert.deepEqual(await page.locator('.bottom .nav').allTextContents(),['Heute','Objekte','Pflege','Büro']);
+   assert.deepEqual(await page.locator('.bottom .nav').allTextContents(),['Heute','Büro']);
    assert.equal(await page.evaluate(()=>typeof window.onDriveSync),'function');
    assert.equal(await page.evaluate(()=>typeof window.acceptNativeSpeech),'function');
   });

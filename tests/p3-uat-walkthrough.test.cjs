@@ -28,7 +28,7 @@ function fixture(name){
  }
  try{
   await scene('UAT 7–12,17–19: name/address, deferred contact, exact customer, inactive remains findable','daily-usability.test.cjs',async p=>{
-   await p.locator('.bottom-inner [data-open=revier-properties]').click();await p.locator('#revier-properties [data-open=customers]').click();await p.locator('#add-customer').click();
+   await p.locator('.revier-globalbar [data-open=more-page]').click();await p.locator('#more-page [data-open=revier-properties]').click();await p.locator('#revier-properties [data-open=customers]').click();await p.locator('#add-customer').click();
    for(const [key,value]of Object.entries({name:'QA UAT Garten',street:'QA Gartenweg 1',postal_code:'0000',city:'QA Beispielort'}))await p.locator('#customer-form [name='+key+']').fill(value);
    await p.locator('#customer-form button[type=submit]').click();
    assert.equal(await p.evaluate(()=>writes.at(-1).row.phone),'');assert.equal(await p.evaluate(()=>writes.at(-1).row.email),'');
