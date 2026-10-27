@@ -8,6 +8,31 @@ erhalten und gelten nicht als neue Arbeitsanweisung.
 
 ## Aktuell: Heute-Ansicht vereinfacht, noch nicht gebaut
 
+Bedienungsrecherche27.10.: offizielle Anleitungen von Todoist, Google Kalender,
+Google Maps, Google Keep und Clockify verglichen, keine installierten Fremd-Apps
+getestet. Nutzerpräzisierung: bestehende Menüstruktur beibehalten; einzelne Abläufe
+vereinfachen. Wiederkehrendes Muster: kurzer häufiger Eingabeweg, bekannte
+Auswahl weiterverwenden, Zusatzoptionen im jeweiligen Zusammenhang anbieten.
+
+- [Todoist](https://www.todoist.com/help/todoist/features/use-task-quick-add-in-todoist-va4Lhpzz):
+  Schnellerfassung verbindet Aufgabentext mit Datum/Zeit; weitere Angaben optional.
+- [Google Kalender](https://support.google.com/calendar/answer/72143?co=GENIE.Platform%3DAndroid&hl=de):
+  freie Zeitfläche antippen, Dauer direkt ändern; zusätzliche Angaben aufklappen.
+- [Google Maps](https://support.google.com/maps/answer/3273406?co=GENIE.Platform%3DAndroid&hl=de):
+  Ziel wählen und Navigation starten; Zusatzoptionen über die Informationskarte.
+- [Google Keep](https://support.google.com/keep/answer/2888246?co=GENIE.Platform%3DAndroid&hl=de):
+  direkter Textnotiz-Einstieg konfigurierbar; weitere Notizarten bleiben erreichbar.
+- [Clockify](https://clockify.me/help/apps/android-app): Dauerknöpfe und
+  Beschreibungsvorschläge verringern Tippen; Zusatzaktionen am einzelnen Eintrag.
+
+Ableitung, noch keine Umsetzung: Einsatzkontext nutzen, Tätigkeitstext gezielt
+übernehmen, Datum/Zeit einfacher wählen; freie genaue Eingaben und ausdrückliches
+Speichern erhalten. Vorhandene Textvorschläge/Dauerknöpfe zuerst konsolidieren.
+Keine geratenen Kunden/Zeiten; Keep-Autospeichern beim Zurückgehen nicht auf
+Geschäftssätze übertragen. Offline-Kalenderänderungen als ausstehend gewünscht;
+kein neuer Kalenderabgleich eingebaut. Nur bestehende Auftrags-/Statusdateien
+ergänzt, keine App-Änderung, keine APK, keine produktiven Datenzugriffe.
+
 Nutzerpriorität27.10.: Heute soll der zentrale, übersichtliche Einstieg sein;
 bevorstehende Arbeitseinsätze müssen sichtbar bleiben. Emulator, ADB-Protokoll,
 GitHub-Konsolidierung und weitere Leistungsanalyse ruhen. Ihr letzter Stand ist

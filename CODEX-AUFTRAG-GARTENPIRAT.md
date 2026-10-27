@@ -2,6 +2,17 @@
 
 ## Aktuell: Heute als übersichtlicher Einstieg
 
+Neueste Präzisierung zur Bedienung: Die Menüstruktur ist in Ordnung; die Abläufe
+innerhalb der Menüs sind zu aufwendig. Eine breite Auswahl anderer Apps anhand
+offizieller Bedienungsanleitungen vergleichen, nicht nur Haus-/Garten-Apps.
+Funktionen erhalten, häufige Eingaben vereinfachen, Zusatzoptionen bei Bedarf.
+Die Recherche ist keine Freigabe für neue Funktionen oder weitere Menüumbauten.
+Kalenderpräzisierung: Termine bleiben in der App bearbeitbar; Änderungen sollen
+zeitnah mit Google Kalender abgeglichen werden. Offline kalenderbezogene
+Änderungen als „ausstehend“ behandeln und bei Verbindung übertragen; übriger
+Geschäftsbetrieb bleibt lokal. Keine Speichersperre bis zur Cloudbestätigung
+ableiten und keinen Drive-Geschäftssync reaktivieren. Hier noch nicht implementiert.
+
 Neueste Nutzersteuerung27.10.: Heute zuerst überarbeiten; die neue Oberfläche ist
 zu komplex und die Übersicht verloren gegangen. Bevorstehende Arbeitseinsätze
 müssen sichtbar bleiben. Emulator, ADB-Protokoll, GitHub-Konsolidierung und weitere
