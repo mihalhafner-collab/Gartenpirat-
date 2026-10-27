@@ -24,21 +24,24 @@ Dateibaum. Alle alten Original-Commits über main erreichbar; kein History-Rewri
 APKs105/106 und ihre vorhandenen Teile, App-Backups sowie einzigartige
 Pflanzenarbeit bleiben erhalten. Keine neue Release-/Migrationsfreigabe.
 
-**Cloud-Starttext weiterhin offen:** Nutzerbild zeigt jetzt eindeutig die richtige
-Konfigurationsansicht: `Skripte → Start-Skill` mit Stift, getrennt vom ausführbaren
-`Installationsskript`; Abschluss über `Veröffentlichen`. Das Bild selbst und
-private Inhalte werden nicht im Repository abgelegt.
+**Cloud-Starttext vom Nutzer veröffentlicht:** Nach dem gezeigten Start-Skill-
+Änderungsvergleich und der Anleitung Speichern → Veröffentlichen bestätigt der
+Nutzer ausdrücklich „Veröffentlicht“. Die manuelle Veröffentlichung ist damit als
+Nutzerbestätigung festgehalten; keine erneute Veröffentlichung angefordert.
+Der zuletzt direkt kopierbar übergebene Text steht jetzt wortgleich im vorhandenen
+Starttextblock von `AGENTS.md`; Inhalt und Schutzgrenzen unverändert.
 
-Der bereitgestellte lokale Seitenlink leitete im Cloudbrowser auf die ChatGPT-
-Startseite um. Ein weiterer Browserlauf mit den konkreten UI-Bezeichnungen fand
-die Konfigurationsansicht auch über verfügbare Verwaltungs-/Pluginwege nicht.
-Angemeldete Sitzung vorhanden, Ursache der Zugriffsdifferenz nicht bestimmt;
-keine Tarif-/Kontobehauptung. Kein Start-Skill geändert, kein Entwurf gespeichert,
-keine Veröffentlichung. Exakter vorbereiteter Text weiterhin in `AGENTS.md`;
-manuelle Übernahme im bereits geöffneten richtigen Editor möglich.
-Browserläufe `4cd1fc8b-0216-4ced-a6f9-09e6bde90f84` und
-`bf600a4c-1ea2-40d3-aa12-8d3150d19270` beendet; Setupskript, Variablen,
-Signierwerte, Netzwerk und Betriebsdaten durch Codex unverändert.
+Technische Nachweisgrenze: kein vollständiges Rücklesen des veröffentlichten
+Start-Skills und keine neue Laufzeit durch Codex. Der aktuelle Umgebungsstatus
+meldet weiterhin die bereits laufende Instanz aus Konfigurationsrevision16.
+Dieser Wert beschreibt nicht den neuesten veröffentlichten Stand und widerlegt
+die Nutzerbestätigung nicht. Neue veröffentlichte Revision unbekannt; Übernahme
+beim nächsten tatsächlichen Umgebungsstart noch nicht technisch geprüft.
+
+Die vorigen rein lesenden Browserläufe konnten den Editor im gespeicherten Profil
+nicht erreichen und bleiben historische Zugriffsevidenz. Screenshots/Privatinhalte
+nicht im Repository abgelegt. Kein APK-Bau, keine Installation, Betriebsdaten-,
+Setupskript-, Signierwert- oder Netzänderung durch Codex in diesem Schritt.
 
 ## Quellkandidat und beobachtete Installation
 

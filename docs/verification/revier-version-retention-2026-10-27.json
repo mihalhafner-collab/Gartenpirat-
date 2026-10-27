@@ -1,6 +1,6 @@
 {
   "format": "hausgarten.revier-retention.v1",
-  "status": "APK_AND_VERSION_REF_DELETION_READBACK_VERIFIED;CLOUD_STARTTEXT_BLOCKED",
+  "status": "APK_AND_VERSION_REF_DELETION_VERIFIED;CLOUD_START_SKILL_PUBLICATION_USER_CONFIRMED;NEW_RUNTIME_UNVERIFIED",
   "user_instruction": "Ab umstellung revier solo apk behalten. Rest Löschen. Vloud starttext einfügen",
   "minimum_build_inclusive": 99,
   "boundary": {
@@ -329,9 +329,9 @@
     "github_path": "AGENTS.md#starttext-für-die-bestehende-gartenumgebung",
     "configuration_id": "e12633f2-083b-4373-bec4-15f54f592001~cecfg_6acf33fe75d08195a929c819804e82d1",
     "observed_spec_revision": "16",
-    "status": "NOT_APPLIED_START_SKILL_IDENTIFIED_IN_USER_SCREENSHOT;EDITOR_INACCESSIBLE_IN_BROWSER_PROFILE",
+    "status": "USER_CONFIRMED_MANUAL_PUBLICATION;PUBLISHED_TEXT_READBACK_AND_NEW_RUNTIME_ACCEPTANCE_UNVERIFIED",
     "sensitive_values_must_remain_unchanged": true,
-    "manual_fallback": "Prepared text remains in GitHub AGENTS. Direct configuration access is required; no local START file can stand in for publishing.",
+    "manual_fallback": "User completed the manual publication according to direct confirmation. Exact final copyable text is retained in existing GitHub AGENTS; prior browser access limits remain historical evidence.",
     "previous_blocker": "User previously reported TinyFish login not possible; subsequent saved Default profile was authenticated in read-only browser inspection.",
     "browser_inspection": {
       "at_utc": "2026-10-27T04:45:38.088279+00:00",
@@ -346,7 +346,7 @@
       "existing_bootstrap_sha256_utf8_no_trailing_newline": "3dbb03cf74eabd71d5576a4974fae736f6874bee4d099feb17dd23f0974529ed",
       "scope_limits": "No account/plan entitlement inferred; no app business data, secrets, environment settings or setup script changed. Runtime context reports existing configuration revision16, not an editable draft."
     },
-    "next_required_input": "User can paste exact prepared AGENTS bootstrap into the Start-Skill instruction body in the already open correct editor and publish, or provide access to that exact editor. Publishing/readback remains unverified until actual evidence.",
+    "next_required_input": "No further publication request: user explicitly confirmed publication. Published-text readback and verification at a future fresh environment start remain separate evidence, not prerequisites to repeat the user action.",
     "followup_inspections": [
       {
         "at_utc": "2026-10-27T05:02:28.424335+00:00",
@@ -372,6 +372,27 @@
       "publication_control": "Veröffentlichen",
       "repository": "mihalhafner-collab/Gartenpirat-",
       "raw_screenshot_retained": false
+    },
+    "manual_publication": {
+      "reported_at_utc": "2026-10-27T05:21:49.483127+00:00",
+      "evidence_type": "USER_CONFIRMATION_AFTER_EDITOR_SCREENSHOT",
+      "user_statement": "Veröffentlicht",
+      "field": "Skripte → Start-Skill",
+      "performed_by": "USER_MANUAL_UI",
+      "expected_text_source": "Last copyable text supplied in this conversation, now identically in AGENTS.md startup block",
+      "expected_text_sha256_utf8_no_trailing_newline": "d53cc1051fb81526289dab00ef873e9920c40872df32647258017d3ef774eafe",
+      "published_text_readback_verified": false,
+      "published_revision": null,
+      "new_runtime_acceptance_verified": false,
+      "bound_runtime_observation": {
+        "source_config_id": "e12633f2-083b-4373-bec4-15f54f592001~cecfg_6acf33fe75d08195a929c819804e82d1",
+        "source_config_version_id": "e12633f2-083b-4373-bec4-15f54f592001~cecfgver_6adb43f2c0ec819593c02d7399c064f6",
+        "spec_revision": "16",
+        "observed_spec_revision": "16",
+        "observations_current": true,
+        "scope": "Already-running attached instance only; not the latest published configuration or editable draft"
+      },
+      "scope_limits": "No browser publication/readback or new runtime start by Codex. No setup-script, signing, network, app-data or APK operation."
     }
   },
   "risks_and_recovery": {
