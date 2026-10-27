@@ -12,7 +12,7 @@
     "apk_sha256": "5c767f48884d02df463aec7a08a2094383e5dda023077268b5cc2ad46329f178",
     "historical_drive_zip_id": "1C945yeV6Z0SgQQMBqK-GFtJS2a0zrIFW",
     "historical_drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB",
-    "source_ref_availability": "HISTORICAL_PRE_REVIER_SOLO_TAG_RETIREMENT_PLANNED"
+    "source_ref_availability": "HISTORICAL_PRE_REVIER_SOLO_TAG_REMOVED_ORIGINAL_COMMIT_IN_MAIN_HISTORY"
   },
   "last_observed_installed_build": {
     "observed_at_utc": "2026-10-26T11:10:26.060785+00:00",
@@ -172,7 +172,7 @@
       "evidence_recorded_at_utc": "2026-10-25T22:06:57.964900+00:00"
     }
   ],
-  "updated_at_utc": "2026-10-27T04:30:13.978984+00:00",
+  "updated_at_utc": "2026-10-27T04:36:17.527155+00:00",
   "development_snapshot": {
     "version_name": "1.55.1",
     "version_code": 106,
@@ -334,12 +334,12 @@
     "changes_saved_only_to": "GITHUB",
     "codex_drive_writes": "APK_INSTALLATION_ARTIFACTS_ONLY_AFTER_AUTHORIZED_BUILD",
     "app_encrypted_drive_backup": "UNCHANGED_SEPARATE_RUNTIME_FEATURE",
-    "version_retention": "USER_CLARIFIED_REVIER_SOLO_FROM_BUILD99_INCLUSIVE",
+    "version_retention": "REVIER_SOLO_FROM99;16OLDER_APKS_AND11OLD_TAGS_REMOVED;READBACK_PASS",
     "environment_bootstrap": {
       "configuration_id": "e12633f2-083b-4373-bec4-15f54f592001~cecfg_6acf33fe75d08195a929c819804e82d1",
       "observed_spec_revision": "16",
       "prepared_in": "AGENTS.md#starttext-für-die-bestehende-gartenumgebung",
-      "published_change": "NOT_APPLIED_USER_AUTHORIZED_SIGNIN_HANDOFF_WAITING_FOR_SAVED_PROFILE"
+      "published_change": "NOT_APPLIED_USER_REPORTS_TINYFISH_LOGIN_NOT_POSSIBLE;CONFIGURATION_CONNECTOR_READ_ONLY"
     },
     "unmerged_unique_branch": {
       "ref": "codex/pflanzenbibliothek-20261023",
@@ -377,7 +377,7 @@
       "source_worktree_privacy": "PASS;6002files;includes ignored/untracked",
       "current_markdown_links": "PASS",
       "original106_app_fingerprint_unchanged": true,
-      "version_reference_deletion": "PLANNED11PRE99_TAGS_AFTER_HISTORY_PRESERVATION"
+      "version_reference_deletion": "11PRE99_TAGS_REMOVED;105106EXACT_REFS_RETAINED;ALL_ORIGINAL_COMMITS_IN_MAIN_HISTORY"
     },
     "main_integration": {
       "pull_request": 7,
@@ -393,6 +393,17 @@
       "predeletion_evidence_commit": "3f9e41ceb99b44ee1cc8f1f1fd1cad79e6e232dc",
       "all_13_source_tags_unchanged": true
     },
-    "version_retention_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
+    "version_retention_evidence": "docs/verification/revier-version-retention-2026-10-27.json",
+    "retention_validation_2026_10_27": {
+      "source_regressions_pass": 51,
+      "original_signing_regressions_pass": 45,
+      "retained_source_restore_checks_pass": [
+        105,
+        106
+      ],
+      "source_privacy_files": 2326,
+      "worktree_privacy_files": 6003,
+      "business_data_or_backup_mutations": false
+    }
   }
 }

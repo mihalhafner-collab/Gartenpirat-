@@ -1,6 +1,6 @@
 {
   "format": "hausgarten.revier-retention.v1",
-  "status": "PLAN_SAVED_BEFORE_ANY_DELETION",
+  "status": "APK_AND_VERSION_REF_DELETION_READBACK_VERIFIED;CLOUD_STARTTEXT_BLOCKED",
   "user_instruction": "Ab umstellung revier solo apk behalten. Rest Löschen. Vloud starttext einfügen",
   "minimum_build_inclusive": 99,
   "boundary": {
@@ -329,8 +329,9 @@
     "github_path": "AGENTS.md#starttext-für-die-bestehende-gartenumgebung",
     "configuration_id": "e12633f2-083b-4373-bec4-15f54f592001~cecfg_6acf33fe75d08195a929c819804e82d1",
     "observed_spec_revision": "16",
-    "status": "USER_AUTHORIZED_PROFILE_SIGNIN_HANDOFF_WAITING_FOR_SAVED_PROFILE",
-    "sensitive_values_must_remain_unchanged": true
+    "status": "NOT_APPLIED_USER_REPORTS_TINYFISH_LOGIN_NOT_POSSIBLE;CONFIGURATION_CONNECTOR_READ_ONLY",
+    "sensitive_values_must_remain_unchanged": true,
+    "manual_fallback": "Paste the exact prepared GitHub AGENTS starttext into the existing garden environment configuration; preserve all secret/network/repository values. No local START file can stand in for publishing."
   },
   "risks_and_recovery": {
     "apk_deletion": "Permanent, explicitly requested retirement. No restoration or rebuilding of retired APKs; exact IDs/names/sizes and existing hashes recorded in GitHub.",
@@ -345,7 +346,8 @@
       "build": 88,
       "action": "DELETE_REFERENCE_ONLY",
       "not_in_main_commits_before": 1,
-      "tag_object_text": "object dc394b5796fbcb268533a8d8951fe05a829956df\ntype commit\ntag source/v1.53.1-build88\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1792602945 +0000\n\n{\"version\": \"1.53.1\", \"build\": 88, \"source_sha256\": \"1dec4e6146dbb5decdba3d8775664b777f1cbe7cd27f44964aae4de4824f935f\", \"source_files\": 1176, \"original_zip_sha256\": \"3342188e78ae8b70ef4d12a7c4a974f2017673a3f169aa55b151f374e053ff30\", \"apk_sha256\": \"a37fb5bbb9972c2f6afd5eb0b4fade01841d034cbc2358aee9d2473606420238\", \"device_acceptance\": \"NOT EXECUTED\", \"tag\": \"source/v1.53.1-build88\", \"tree_sha\": \"112adcab3dc22454e11237955cd2eed96e43da29\", \"drive_zip_id\": \"1Ewa2fhsDPZAzGEFG8hTZawcI_RsGjeJy\", \"drive_readback\": \"HISTORICAL_EXPORT_RECEIPT; SOURCE_BYTES_VERIFIED_IN_GIT\", \"git_sha\": \"dc394b5796fbcb268533a8d8951fe05a829956df\"}\n"
+      "tag_object_text": "object dc394b5796fbcb268533a8d8951fe05a829956df\ntype commit\ntag source/v1.53.1-build88\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1792602945 +0000\n\n{\"version\": \"1.53.1\", \"build\": 88, \"source_sha256\": \"1dec4e6146dbb5decdba3d8775664b777f1cbe7cd27f44964aae4de4824f935f\", \"source_files\": 1176, \"original_zip_sha256\": \"3342188e78ae8b70ef4d12a7c4a974f2017673a3f169aa55b151f374e053ff30\", \"apk_sha256\": \"a37fb5bbb9972c2f6afd5eb0b4fade01841d034cbc2358aee9d2473606420238\", \"device_acceptance\": \"NOT EXECUTED\", \"tag\": \"source/v1.53.1-build88\", \"tree_sha\": \"112adcab3dc22454e11237955cd2eed96e43da29\", \"drive_zip_id\": \"1Ewa2fhsDPZAzGEFG8hTZawcI_RsGjeJy\", \"drive_readback\": \"HISTORICAL_EXPORT_RECEIPT; SOURCE_BYTES_VERIFIED_IN_GIT\", \"git_sha\": \"dc394b5796fbcb268533a8d8951fe05a829956df\"}\n",
+      "remote_readback": "ABSENT"
     },
     {
       "ref": "refs/tags/source/v1.54.0-build89",
@@ -354,7 +356,8 @@
       "build": 89,
       "action": "DELETE_REFERENCE_ONLY",
       "not_in_main_commits_before": 1,
-      "tag_object_text": "object 68a19c5d49ddc77e94d299eee2cadf1652f9c92a\ntype commit\ntag source/v1.54.0-build89\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1792601454 +0000\n\n{\"version\": \"1.54.0\", \"build\": 89, \"source_sha256\": \"b05723a29302dfc98e8ac6a3aefcbaffd6cb5c0b1c5632fd6889df5761774aa1\", \"source_files\": 1189, \"original_zip_sha256\": \"0215daf6bf2ed5a61c1e7b3d5c83758542284982e2680a27faa4f033001413a1\", \"apk_sha256\": \"8464cb9e314e76979edbee6b6bc5ddde8ef8fa5a453c2cec7bd12baadcf8adea\", \"device_acceptance\": \"NOT EXECUTED\"}\n"
+      "tag_object_text": "object 68a19c5d49ddc77e94d299eee2cadf1652f9c92a\ntype commit\ntag source/v1.54.0-build89\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1792601454 +0000\n\n{\"version\": \"1.54.0\", \"build\": 89, \"source_sha256\": \"b05723a29302dfc98e8ac6a3aefcbaffd6cb5c0b1c5632fd6889df5761774aa1\", \"source_files\": 1189, \"original_zip_sha256\": \"0215daf6bf2ed5a61c1e7b3d5c83758542284982e2680a27faa4f033001413a1\", \"apk_sha256\": \"8464cb9e314e76979edbee6b6bc5ddde8ef8fa5a453c2cec7bd12baadcf8adea\", \"device_acceptance\": \"NOT EXECUTED\"}\n",
+      "remote_readback": "ABSENT"
     },
     {
       "ref": "refs/tags/source/v1.54.1-build90",
@@ -363,7 +366,8 @@
       "build": 90,
       "action": "DELETE_REFERENCE_ONLY",
       "not_in_main_commits_before": 1,
-      "tag_object_text": "object 5bf4e521bd1faab7a0095360faafaf7255d0d4d2\ntype commit\ntag source/v1.54.1-build90\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1792601469 +0000\n\n{\"version\": \"1.54.1\", \"build\": 90, \"source_sha256\": \"42c1fd1a43c1e8331b7a34f54cbf7cbb91e0b615d16c64729e62427d689b1052\", \"source_files\": 1203, \"original_zip_sha256\": \"a66f521e07e2cd243ac469d17ef0c307b82e1efec0e095a1a81fea5183977981\", \"apk_sha256\": \"5c767f48884d02df463aec7a08a2094383e5dda023077268b5cc2ad46329f178\", \"device_acceptance\": \"NOT EXECUTED\"}\n"
+      "tag_object_text": "object 5bf4e521bd1faab7a0095360faafaf7255d0d4d2\ntype commit\ntag source/v1.54.1-build90\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1792601469 +0000\n\n{\"version\": \"1.54.1\", \"build\": 90, \"source_sha256\": \"42c1fd1a43c1e8331b7a34f54cbf7cbb91e0b615d16c64729e62427d689b1052\", \"source_files\": 1203, \"original_zip_sha256\": \"a66f521e07e2cd243ac469d17ef0c307b82e1efec0e095a1a81fea5183977981\", \"apk_sha256\": \"5c767f48884d02df463aec7a08a2094383e5dda023077268b5cc2ad46329f178\", \"device_acceptance\": \"NOT EXECUTED\"}\n",
+      "remote_readback": "ABSENT"
     },
     {
       "ref": "refs/tags/source/v1.54.2-build91",
@@ -372,7 +376,8 @@
       "build": 91,
       "action": "DELETE_REFERENCE_ONLY",
       "not_in_main_commits_before": 0,
-      "tag_object_text": "object 50b518a1af9cee59763c4103d847f5016fb84fd9\ntype commit\ntag source/v1.54.2-build91\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1792610048 +0000\n\nOriginal source of Haus & Garten 1.54.2 build 91; APK SHA256 874908a246f75a3c91f7399cf2e314364b9469f80843644ea340cf8c543b80c1; physical Pixel and Google provider acceptance not executed\n"
+      "tag_object_text": "object 50b518a1af9cee59763c4103d847f5016fb84fd9\ntype commit\ntag source/v1.54.2-build91\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1792610048 +0000\n\nOriginal source of Haus & Garten 1.54.2 build 91; APK SHA256 874908a246f75a3c91f7399cf2e314364b9469f80843644ea340cf8c543b80c1; physical Pixel and Google provider acceptance not executed\n",
+      "remote_readback": "ABSENT"
     },
     {
       "ref": "refs/tags/source/v1.54.3-build92",
@@ -381,7 +386,8 @@
       "build": 92,
       "action": "DELETE_REFERENCE_ONLY",
       "not_in_main_commits_before": 0,
-      "tag_object_text": "object aff54dbd7cd64437645bba71242688ec5da4c30b\ntype commit\ntag source/v1.54.3-build92\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1792632920 +0000\n\nOriginal signed cloud-verified source for Haus & Garten 1.54.3 / build 92\n"
+      "tag_object_text": "object aff54dbd7cd64437645bba71242688ec5da4c30b\ntype commit\ntag source/v1.54.3-build92\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1792632920 +0000\n\nOriginal signed cloud-verified source for Haus & Garten 1.54.3 / build 92\n",
+      "remote_readback": "ABSENT"
     },
     {
       "ref": "refs/tags/source/v1.54.4-build93",
@@ -390,7 +396,8 @@
       "build": 93,
       "action": "DELETE_REFERENCE_ONLY",
       "not_in_main_commits_before": 0,
-      "tag_object_text": null
+      "tag_object_text": null,
+      "remote_readback": "ABSENT"
     },
     {
       "ref": "refs/tags/source/v1.54.5-build94",
@@ -399,7 +406,8 @@
       "build": 94,
       "action": "DELETE_REFERENCE_ONLY",
       "not_in_main_commits_before": 0,
-      "tag_object_text": null
+      "tag_object_text": null,
+      "remote_readback": "ABSENT"
     },
     {
       "ref": "refs/tags/source/v1.54.6-build95",
@@ -408,7 +416,8 @@
       "build": 95,
       "action": "DELETE_REFERENCE_ONLY",
       "not_in_main_commits_before": 0,
-      "tag_object_text": "object 6972780dc9adbe46e0a91f1f77aa990e303fdaf0\ntype commit\ntag source/v1.54.6-build95\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1792697358 +0000\n\nOriginal 1.54.6 build95 sources; cloud acceptance verified; physical Pixel acceptance remains open. APK SHA256 d54e6f50b8cab37088768c79caebf6cea0e5038959aeb85063c5b77b4a8db112\n"
+      "tag_object_text": "object 6972780dc9adbe46e0a91f1f77aa990e303fdaf0\ntype commit\ntag source/v1.54.6-build95\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1792697358 +0000\n\nOriginal 1.54.6 build95 sources; cloud acceptance verified; physical Pixel acceptance remains open. APK SHA256 d54e6f50b8cab37088768c79caebf6cea0e5038959aeb85063c5b77b4a8db112\n",
+      "remote_readback": "ABSENT"
     },
     {
       "ref": "refs/tags/source/v1.54.7-build96",
@@ -417,7 +426,8 @@
       "build": 96,
       "action": "DELETE_REFERENCE_ONLY",
       "not_in_main_commits_before": 0,
-      "tag_object_text": "object 998d71f233f57b68264f771e64f8c576b214b957\ntype commit\ntag source/v1.54.7-build96\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1792711272 +0000\n\nOriginal 1.54.7 build96; AP1-AP7 cloud/native acceptance; Pixel/live Drive pending\n"
+      "tag_object_text": "object 998d71f233f57b68264f771e64f8c576b214b957\ntype commit\ntag source/v1.54.7-build96\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1792711272 +0000\n\nOriginal 1.54.7 build96; AP1-AP7 cloud/native acceptance; Pixel/live Drive pending\n",
+      "remote_readback": "ABSENT"
     },
     {
       "ref": "refs/tags/source/v1.54.8-build97",
@@ -426,7 +436,8 @@
       "build": 97,
       "action": "DELETE_REFERENCE_ONLY",
       "not_in_main_commits_before": 0,
-      "tag_object_text": "object edd16a44c13dc17a774cff26f91e760efc123848\ntype commit\ntag source/v1.54.8-build97\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1792737614 +0000\n\nOriginal1.54.8 build97: Today95 lower controls, verified MCP and update retention\n"
+      "tag_object_text": "object edd16a44c13dc17a774cff26f91e760efc123848\ntype commit\ntag source/v1.54.8-build97\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1792737614 +0000\n\nOriginal1.54.8 build97: Today95 lower controls, verified MCP and update retention\n",
+      "remote_readback": "ABSENT"
     },
     {
       "ref": "refs/tags/source/v1.54.9-build98",
@@ -435,7 +446,8 @@
       "build": 98,
       "action": "DELETE_REFERENCE_ONLY",
       "not_in_main_commits_before": 0,
-      "tag_object_text": null
+      "tag_object_text": null,
+      "remote_readback": "ABSENT"
     },
     {
       "ref": "refs/tags/source/v1.55.0-build105",
@@ -444,7 +456,8 @@
       "build": 105,
       "action": "KEEP",
       "not_in_main_commits_before": 0,
-      "tag_object_text": "object 4087d8b5b83294d75dba6d9fc87e2d6472d3be28\ntype commit\ntag source/v1.55.0-build105\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1792990668 +0000\n\nOriginal source 1.55.0/105. App SHA256 abbb207e329284d96e7c943eb0fa504a82cce8322181cf82f17cf5843a698bb9. Source fingerprint 06f99ce068bfcb4e36640df70290b7edddcc8532fa27119ce2332b352a835469. Original source ZIP SHA256 4a47818b2293b9226c6aba07d81ec0a56700a676c869bd25c077ab611eda103e. Immutable provenance mark; acceptance status is recorded separately. No productive installation or migration.\n"
+      "tag_object_text": "object 4087d8b5b83294d75dba6d9fc87e2d6472d3be28\ntype commit\ntag source/v1.55.0-build105\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1792990668 +0000\n\nOriginal source 1.55.0/105. App SHA256 abbb207e329284d96e7c943eb0fa504a82cce8322181cf82f17cf5843a698bb9. Source fingerprint 06f99ce068bfcb4e36640df70290b7edddcc8532fa27119ce2332b352a835469. Original source ZIP SHA256 4a47818b2293b9226c6aba07d81ec0a56700a676c869bd25c077ab611eda103e. Immutable provenance mark; acceptance status is recorded separately. No productive installation or migration.\n",
+      "remote_readback": "EXACT_ORIGINAL_OBJECT_AND_COMMIT_RETAINED"
     },
     {
       "ref": "refs/tags/source/v1.55.1-build106",
@@ -453,17 +466,22 @@
       "build": 106,
       "action": "KEEP",
       "not_in_main_commits_before": 0,
-      "tag_object_text": "object 99ab63afbdfdb9fd32dac70134f9461b1ba15b17\ntype commit\ntag source/v1.55.1-build106\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1793041326 +0000\n\nOriginal source for 1.55.1 build106; APK SHA256 4b6bf5656dadfcb4a6b76baabe661c8d9f75f0a2d8c78431a4354f66a8192e3c; native UI and productive acceptance remain open\n"
+      "tag_object_text": "object 99ab63afbdfdb9fd32dac70134f9461b1ba15b17\ntype commit\ntag source/v1.55.1-build106\ntagger Michael Hafner <g7mf99znjq@privaterelay.appleid.com> 1793041326 +0000\n\nOriginal source for 1.55.1 build106; APK SHA256 4b6bf5656dadfcb4a6b76baabe661c8d9f75f0a2d8c78431a4354f66a8192e3c; native UI and productive acceptance remain open\n",
+      "remote_readback": "EXACT_ORIGINAL_OBJECT_AND_COMMIT_RETAINED"
     }
   ],
   "historical_reachability": {
-    "status": "HISTORY_ONLY_MERGE_REQUIRED_BEFORE_TAG_DELETION",
+    "status": "PRESERVED_BEFORE_ALL_TAG_DELETIONS",
     "archive_commits": [
       "dc394b5796fbcb268533a8d8951fe05a829956df",
       "68a19c5d49ddc77e94d299eee2cadf1652f9c92a",
       "5bf4e521bd1faab7a0095360faafaf7255d0d4d2"
     ],
-    "method": "Ordinary ours-strategy history merge, unchanged current source tree, no old app code activated; verify all original commits are main ancestors before deleting11 tags."
+    "method": "Ordinary ours-strategy history merge, unchanged current source tree, no old app code activated; verify all original commits are main ancestors before deleting11 tags.",
+    "history_only_merge": "2813cd0972d6fb649cccd328ad93eb3feee83365",
+    "current_tree_identical_to_parent": true,
+    "merged_to_main_pr": 9,
+    "main_readback_before_deletion": "00cc32c20153be9742033581971684bc87875888"
   },
   "validation_before_deletion": {
     "source_regressions_pass": 51,
@@ -487,5 +505,231 @@
     "source_privacy": "PASS2326files0operationalSeedRows",
     "source_worktree_privacy": "PASS6003filesIncludingIgnoredUntracked",
     "github_release_assets": "No GitHub releases; connector REST read returned empty list"
+  },
+  "completed_at_utc": "2026-10-27T04:36:17.509698+00:00",
+  "tag_deletion_readback": {
+    "at_utc": "2026-10-27T04:33:52.354653+00:00",
+    "deleted_version_tags": 11,
+    "remaining_version_tags": 2,
+    "all_original_commits_remain_reachable_from_main": true,
+    "remote_tags_after": {
+      "refs/tags/source/v1.55.0-build105": "193286f4e00f419e0c31cb9937bbbb01ed9aa330",
+      "refs/tags/source/v1.55.0-build105^{}": "4087d8b5b83294d75dba6d9fc87e2d6472d3be28",
+      "refs/tags/source/v1.55.1-build106": "f40992a7a18c61e160c356982c5a86ef06567a9d",
+      "refs/tags/source/v1.55.1-build106^{}": "99ab63afbdfdb9fd32dac70134f9461b1ba15b17"
+    },
+    "predeletion_main": "00cc32c20153be9742033581971684bc87875888",
+    "history_only_merge": "2813cd0972d6fb649cccd328ad93eb3feee83365"
+  },
+  "apk_deletion_readback": {
+    "apk_deletions": [
+      {
+        "id": "1UHmeEkSO6k0-zU3i6DM53gjgyHDL-fwk",
+        "name": "Haus-Garten-1.54.3-92-original-update.apk",
+        "size_bytes": 36192274,
+        "folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+        "delete_success": true,
+        "negative_readback": "NOT_FOUND"
+      },
+      {
+        "id": "17Pts6yNjNHiKyRqhJHaqAGarWJPZBnfA",
+        "name": "Haus-Garten-1.54.4-93-original-update.apk",
+        "size_bytes": 36196370,
+        "folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+        "delete_success": true,
+        "negative_readback": "NOT_FOUND"
+      },
+      {
+        "id": "1pwo3kz2shKIyPnXYV0KbL9Szyvya5OS8",
+        "name": "Haus-Garten-1.54.5-94-original-update.apk",
+        "size_bytes": 36200466,
+        "folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+        "delete_success": true,
+        "negative_readback": "NOT_FOUND"
+      },
+      {
+        "id": "1aqJIqC4oZXAym0QRYkE9pDFHeA3Yy2Kr",
+        "name": "Haus-Garten-1.54.2-91-original-update.apk",
+        "size_bytes": 36184019,
+        "folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+        "delete_success": true,
+        "negative_readback": "NOT_FOUND"
+      },
+      {
+        "id": "1htZ2Hn1Lxq-o1AuacJsA7veVsq4TB1Ck",
+        "name": "Haus-Garten-Test-1.53.1-preview1-88.apk",
+        "size_bytes": 34570771,
+        "folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+        "delete_success": true,
+        "negative_readback": "NOT_FOUND"
+      },
+      {
+        "id": "1Z2DBm6lC-puB1rbrJIIOQSUXPZrKh362",
+        "name": "Haus-und-Gartenservice-Pixel-v1.45.0-Test.apk",
+        "size_bytes": 30018753,
+        "folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+        "delete_success": true,
+        "negative_readback": "NOT_FOUND"
+      },
+      {
+        "id": "1o9nxnWewuXjKEqX9UpHRSHIvqu49nalq",
+        "name": "Haus-und-Gartenservice-Pixel-v1.44.0-Test.apk",
+        "size_bytes": 30006171,
+        "folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+        "delete_success": true,
+        "negative_readback": "NOT_FOUND"
+      },
+      {
+        "id": "1T5oxz9IaldchGD2Fwre4oxH0QbPRUcSO",
+        "name": "Haus-und-Gartenservice-Pixel-v1.43.0-Test.apk",
+        "size_bytes": 30002075,
+        "folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+        "delete_success": true,
+        "negative_readback": "NOT_FOUND"
+      },
+      {
+        "id": "1P81bvKoOUM_n9p9n0bBwNoCzAvbGxRFt",
+        "name": "Haus-und-Gartenservice-Pixel-v1.28.1-Android17-Tunnel-Test.apk",
+        "size_bytes": 2816171,
+        "folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+        "delete_success": true,
+        "negative_readback": "NOT_FOUND"
+      },
+      {
+        "id": "1OyW1TS9Xxac2bxvUN-pBbgT7V_77unwZ",
+        "name": "Haus-und-Gartenservice-Pixel-v1.28.0-Tunnel-Test.apk",
+        "size_bytes": 2024311,
+        "folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+        "delete_success": true,
+        "negative_readback": "NOT_FOUND"
+      },
+      {
+        "id": "1mNMctVtasftStxWfwZboVv6chkQ_CbXv",
+        "name": "Haus-Garten-1.54.6-95-original-update.apk",
+        "size_bytes": 36208658,
+        "folder_id": "1qV4B9lXj0P35DSsuIzTD9hIMWgx34bef",
+        "delete_success": true,
+        "negative_readback": "NOT_FOUND"
+      },
+      {
+        "id": "1YOT0voQQZ_ntiA_O9jBWVr3ifR8AnBQ8",
+        "name": "Haus-Garten-1.54.7-96-original-kandidat.apk",
+        "size_bytes": 36217051,
+        "folder_id": "1Juu_8VdoAdLC-vkoQVPrx_K2Qs4RDKxG",
+        "delete_success": true,
+        "negative_readback": "NOT_FOUND"
+      },
+      {
+        "id": "19w2tUJRWlKr_0R37IU5jRkP34sCl6CTc",
+        "name": "Haus-Garten-1.54.8-97-original-kandidat.apk",
+        "size_bytes": 36217051,
+        "folder_id": "1ZPwhieYXLRDwqdaSoY_SkqdgPffsN341",
+        "delete_success": true,
+        "negative_readback": "NOT_FOUND"
+      },
+      {
+        "id": "1SXrVaoq_rsGIKo57XeDu0CQDJXB5bepl",
+        "name": "Haus-Garten-1.54.9-98-original-update.apk",
+        "size_bytes": 81419579,
+        "folder_id": "1k69XGlrCNASSl68dzWwUoaRTJeVc9ohm",
+        "delete_success": true,
+        "negative_readback": "NOT_FOUND"
+      },
+      {
+        "id": "1yp-i450bx9MIrn_t6-O1Srhwe7yGlFSg",
+        "name": "Haus-Garten-1.54.1-90-original-update.apk",
+        "size_bytes": 36171731,
+        "folder_id": "1K4WB9L6ZKlW-33o8uPK3zTfqgAOVOE8u",
+        "delete_success": true,
+        "negative_readback": "NOT_FOUND"
+      },
+      {
+        "id": "1hHgCQSG64R3jYN3TsdZlbMa0ibxI9OgQ",
+        "name": "Haus-Garten-1.54.0-89-original-update.apk",
+        "size_bytes": 36155140,
+        "folder_id": "1nBpr9JeqBzYx2GQXZ59gN3A53USxJsmq",
+        "delete_success": true,
+        "negative_readback": "NOT_FOUND"
+      }
+    ],
+    "folder_readbacks": [
+      {
+        "folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+        "items": 7,
+        "retired_apks_absent": true
+      },
+      {
+        "folder_id": "1qV4B9lXj0P35DSsuIzTD9hIMWgx34bef",
+        "items": 2,
+        "retired_apks_absent": true
+      },
+      {
+        "folder_id": "1Juu_8VdoAdLC-vkoQVPrx_K2Qs4RDKxG",
+        "items": 2,
+        "retired_apks_absent": true
+      },
+      {
+        "folder_id": "1ZPwhieYXLRDwqdaSoY_SkqdgPffsN341",
+        "items": 2,
+        "retired_apks_absent": true
+      },
+      {
+        "folder_id": "1k69XGlrCNASSl68dzWwUoaRTJeVc9ohm",
+        "items": 4,
+        "retired_apks_absent": true
+      },
+      {
+        "folder_id": "1K4WB9L6ZKlW-33o8uPK3zTfqgAOVOE8u",
+        "items": 0,
+        "retired_apks_absent": true
+      },
+      {
+        "folder_id": "1nBpr9JeqBzYx2GQXZ59gN3A53USxJsmq",
+        "items": 0,
+        "retired_apks_absent": true
+      },
+      {
+        "folder_id": "1WfoTQQuOafgq_el0-EaY3Lz-GULaq2g3",
+        "items": 8,
+        "retained_inventory_identical": true,
+        "retired_apks_absent": true
+      },
+      {
+        "folder_id": "1KMvN_g456vA0Z1VHh2RH4P5Jlgg4-LSH",
+        "items": 6,
+        "retained_inventory_identical": true,
+        "retired_apks_absent": true
+      }
+    ],
+    "backup_presence": [
+      {
+        "id": "1aCQukc40aG5zD0PTgPQf1N_Oz-0XOf9L",
+        "present": true,
+        "no_write_performed": true
+      },
+      {
+        "id": "1CA4SiFKmM1l6_xzfBs-MWHtKsr9kRyKv",
+        "present": true,
+        "no_write_performed": true
+      },
+      {
+        "id": "1Zl3l25QTpVTMyM0VBRAOQKbwWCgZ896l",
+        "present": true,
+        "no_write_performed": true
+      }
+    ]
+  },
+  "validation_after_deletion": {
+    "source_regressions_pass": 51,
+    "original_signing_regressions_pass": 45,
+    "retained_source_restore_check": "PASS1052338files/1062349files;full privacy and original fingerprints",
+    "changed_file_privacy": "PASS5files0operationalSeedRows",
+    "json_and_current_markdown_links": "PASS",
+    "local_source_tags_remaining": [
+      "source/v1.55.0-build105",
+      "source/v1.55.1-build106"
+    ],
+    "all_original_source_commits_reachable_from_main": true,
+    "original106_android_tree_unchanged": true
   }
 }
