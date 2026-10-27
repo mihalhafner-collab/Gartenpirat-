@@ -87,7 +87,12 @@ erfasst; ZIP-CRC PASS. Erster Start vor dem Booten abgewiesen: übernommene
 10GiB-Datenpartition verlangt12GiB freien Platz, nur9,6GiB verfügbar. Noch
 uninitialisiertes neues Profil auf6GiB dimensioniert und erneut gestartet;
 keine alten Datenpartitionen verkleinert oder Profile/Buildcaches gelöscht.
-Der Emulator erhöht angeforderte3GiB Gast-RAM automatisch auf4GiB. Die App106 kompiliert und
+Der Emulator erhöht angeforderte3GiB Gast-RAM automatisch auf4GiB.
+Der kontrollierte API37-Lauf endet nach789,4Sekunden ohne vollständigen Start
+und ohne gesunde Stichprobe; ADB-Shell antwortet zeitweise nicht. Keine App
+installiert, keine native106-Abnahme. Direkte Ursache dieses37er-Verhaltens
+noch nicht belegt, kein OOM-Kill. Eigener Emulator kontrolliert gestoppt.
+Weitere Anpassungsproben ruhen während des nun priorisierten GitHub-Abgleichs. Die App106 kompiliert und
 zielt auf37 bei minSdk26; Build-SDK und Test-Betriebssystem bleiben getrennt.
 Vorhandene SDK-/AVD-Daten bleiben erhalten. Keine App installiert.
 Noch keine neue native App-Abnahme und keine stabile Konfiguration behauptet.
@@ -96,6 +101,36 @@ Vollprivacy Quelle2327Dateien/Worktree6004Dateien einschließlich ignorierter
 Dateien PASS. Appcode und106-Fingerprint unverändert.
 Technische Evidenz und minimaler Prüfschrittplan:
 `docs/verification/cloud-emulator-diagnosis-2026-10-27.json`.
+
+## Frischer GitHub-Strukturabgleich27.10.
+
+Connector-Readback: `main` weiterhin05eac2d; genau drei Remote-Branches:
+main, aktueller Revier-Arbeitsbranch1c949c6 und Pflanzenbibliothek7d499b2.
+Die Pflanzenarbeit enthält sieben noch nicht integrierte eigenständige Commits.
+Nur die unveränderten Quelltags105/106 bestehen. Alte lokal sichtbare
+Remote-Tracking-Refs sind kein Nachweis weiter bestehender GitHub-Branches.
+
+Main enthält2326Dateien: operative App in `android/`, Tests in `tests/`,
+Werkzeuge in `tools/`, Pflanzenquelle in `libraries/plants/`, bewusste Webspiegel
+in `static/`/Appassets und technische Belege in `docs/verification/`.38Dateien
+liegen im Root. Ältere Python-/Host-/Kompatibilitätsmodule bestehen weiterhin;
+Dateiname oder Alter beweisen keine sichere Entfernbarkeit. Dies ist ein
+Strukturabgleich, kein vollständiger neuer Abhängigkeits-/Legacy-Abschlussaudit.
+
+PR14 ist ein offener Entwurf für die Emulator-Schutzprüfung und aktuellen
+Regel-/Diagnosepräzisierungen; noch nicht in main integriert. Der Appcode106
+ist dabei unverändert. Keine erneute Ordner-, Branch- oder Versionslöschung
+in diesem Abgleich. Aktuelle Quell-/Workspace-Privacy wurde zuvor bestanden;
+eine vollständige historische Git-Objektprüfung ist davon getrennt.
+
+Nutzer stellt ADB-Vorbereitung und Leistungsanalyse zugunsten dieser Bestandsaufnahme
+zurück. Laptop laut Nutzer online, Smartphone noch nicht verbunden; kein eigener
+Geräte-Readback. Berichtete träge Übergänge und zunächst alte Oberfläche beim
+Erststart sind offene Messpunkte, kein belegter Ursachenbefund. Noch kein neues
+ADB-Protokoll ausgeliefert, keine produktive Geräteprüfung ausgeführt.
+Auch die weitere GitHub-Konsolidierung wurde anschließend vom Nutzer verschoben.
+Jetzt bestehende App priorisiert; konkreter Korrekturpunkt angefragt. Cloud-/
+ADB-/Bereinigungsarbeiten bleiben pausiert, keine Appänderung daraus abgeleitet.
 
 ## Quellkandidat und beobachtete Installation
 

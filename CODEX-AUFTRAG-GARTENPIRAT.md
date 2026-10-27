@@ -25,6 +25,19 @@ Produktive Testdatensätze, Löschung zum Testen und automatische Installation
 bleiben gesperrt; die ADB-Erreichbarkeit des physischen Geräts aus der Cloud
 ist gesondert nachzuweisen und folgt nicht aus einer MCP-Verbindung.
 
+Aktuelle Nutzerpriorität: Ordnung und offenen Konsolidierungsstand in GitHub
+frisch prüfen und verständlich berichten; ADB-Protokoll und Leistungsanalyse
+vorerst zurückgestellt. Nutzer meldet träge Übergänge und alte Oberfläche beim
+Erststart; Ursache noch nicht gemessen. Daraus folgt kein Auftrag zu einer
+neuen allgemeinen Architektur- oder Funktionsänderung.
+
+Neueste Nutzersteuerung: Auch die weitere GitHub-Konsolidierung zurückstellen;
+jetzt an der bestehenden produktiven App weiterarbeiten. Konkreter nächster
+Appkorrekturpunkt ist angefragt. Bereits gemeldet: ruckelige Übergänge und beim
+Erststart zunächst alte Oberfläche. Entwicklung bleibt source-only in Cloud/GitHub;
+keine Betriebsdatenübernahme, automatische Installation oder neue Appfunktion
+allein aus dieser noch unkonkreten Priorisierung ableiten.
+
 ## Nutzerauftrag vom 26. Oktober 2026
 
 Die bestehende Codex-Gartenumgebung soll Entwicklungsanweisungen ausschließlich

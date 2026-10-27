@@ -1,6 +1,6 @@
 {
   "format": "hausgarten.cloud-emulator-diagnosis.v1",
-  "status": "API28_SINGLE_BOOT_HEALTH_PASS;OFFICIAL_API37_CONTROLLED_BOOT_RUNNING",
+  "status": "NO_RELIABLE_NATIVE_APP_TEST_ENVIRONMENT_ESTABLISHED;PAUSED_FOR_USER_GITHUB_REVIEW",
   "observed_at_utc": "2026-10-27T06:04:01.153560+00:00",
   "scope": "Existing dedicated synthetic Cloud AVD only; no Pixel, app install/build, account, wipe, timeout-suppression or operational-data use",
   "user_authorization": {
@@ -908,7 +908,7 @@
     "owned_emulator_shutdown": true,
     "host_oom_kills_after": "0"
   },
-  "updated_at_utc": "2026-10-27T07:50:11.424095+00:00",
+  "updated_at_utc": "2026-10-27T08:08:11.630589+00:00",
   "live_guard_readback": {
     "status": "HOST_TIMEOUT45SECONDS_NO_PASS",
     "app_actions": 0,
@@ -2639,7 +2639,7 @@
   "fresh_userdata_comparison": "fscrypt policy warnings also appear with freshly created isolated userdata; not proof of corruption in the preserved older AVD",
   "active_probe": {
     "id": "api37-current37-aosp-disk6",
-    "status": "IN_PROGRESS",
+    "status": "COMPLETED_NO_FULL_BOOT",
     "api": "37.0",
     "abi": "x86_64",
     "emulator_version": "37.2.12",
@@ -2794,5 +2794,80 @@
     "failure": "Not enough space to create userdata partition. Available9784.48MB; needed12288MB with copied10GiB data partition.",
     "cause": "Oversized inherited fresh-profile data partition for currently available disk; not an Android/app crash",
     "sdk_profile_ram_observation": "Emulator automatically raises requested3072MiB to4096MiB"
+  },
+  "api37_completed_result": {
+    "avd_home": "/workspace/cloud-setup/qa-emulator37-api37-avd",
+    "serial": "emulator-5582",
+    "command": [
+      "/workspace/cloud-setup/tools/sdk/emulator/emulator",
+      "-avd",
+      "GartenpiratCloud",
+      "-port",
+      "5582",
+      "-no-window",
+      "-no-audio",
+      "-no-snapshot",
+      "-no-boot-anim",
+      "-show-kernel",
+      "-accel",
+      "off",
+      "-gpu",
+      "swiftshader",
+      "-memory",
+      "3072",
+      "-cores",
+      "2",
+      "-skin",
+      "540x960"
+    ],
+    "app_installations": 0,
+    "app_data_reset": false,
+    "snapshots_disabled": true,
+    "healthy_sample_threshold_met": false,
+    "duration_s": 789.4,
+    "host_exit_after_owned_shutdown": -11,
+    "owned_emulator_shutdown": true,
+    "api": 37,
+    "abi": "x86_64",
+    "emulator_version": "37.2.12",
+    "requested_guest_ram_mib": 3072,
+    "effective_guest_ram_mib": 4096,
+    "data_partition_gib": 6,
+    "boot_completed_observed": false,
+    "healthy_samples": 0,
+    "system_server_pids": [
+      "740"
+    ],
+    "critical_system_failure_observed": false,
+    "host_oom_kills_after": "0",
+    "raw_result_sha256": "de6422631128eab167756231210cb1cc6d88292c66e14df0030d385978618f2e",
+    "claim_limits": "No completed boot within780s plus bounded probe overhead; intermittent ADB shell timeouts. Captured evidence does not establish a specific Android17 graphics crash or direct root cause. No original app installed or run.",
+    "last_sample": {
+      "elapsed_s": 736.2,
+      "host_exit": null,
+      "adb_state": "device",
+      "avd_name": "GartenpiratCloud",
+      "qemu": "1",
+      "identity_probe_returncodes": [
+        0,
+        0
+      ],
+      "boot_completed": "",
+      "package_service": "Service package: found",
+      "activity_service": "Service activity: found",
+      "system_server_pid": "HOST_PROBE_TIMEOUT",
+      "api": "HOST_PROBE_TIMEOUT",
+      "abi": "x86_64",
+      "android_package_path": "package:/system/framework/framework-res.apk",
+      "consecutive_healthy_samples": 0,
+      "critical_graphics_or_system_crash": false
+    }
+  },
+  "followup_status": {
+    "cloud_tests": "Open; no additional probe launched after user prioritized GitHub structure review",
+    "api28_repeat_native": "Prepared transiently but not executed; user prioritized Android17",
+    "mttcg_comparison": "Possible followup only; not executed, no performance improvement claimed",
+    "adb_protocol": "User deferred; no laptop or physical device connection verified",
+    "performance": "User reports slow transitions and initial old interface; unmeasured, no app-source change"
   }
 }

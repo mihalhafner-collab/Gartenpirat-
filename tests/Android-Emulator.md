@@ -39,7 +39,11 @@ beschädigten Altdaten. Der Kreuzvergleich32.1.15 mit AOSP29/x86 scheitert an ei
 aufeinanderfolgenden Gesundheitsstichproben, aber noch keinen Wiederholungs-
 oder nativen Appnachweis. Daraus folgt keine Abnahme auf aktuellem Pixel-Android.
 Auf Nutzerwunsch wird ein separates offizielles API37.0/AOSP/x86_64-Profil
-kontrolliert gestartet; Mindestemulator37.2.11 ist mit37.2.12 erfüllt.
+kontrolliert geprüft; Mindestemulator37.2.11 ist mit37.2.12 erfüllt.
+Mit6GiB frischer Datenpartition startet der Emulatorprozess, Android erreicht
+innerhalb des780s-Budgets plus Probeaufwand keinen vollständigen Boot. Keine App
+installiert; eine verlässliche native Testumgebung ist weiterhin nicht belegt.
+Weitere Vergleiche sind während der priorisierten GitHub-Bestandsaufnahme pausiert.
 Aktuelle kontrollierte Gegenproben und Grenzen:
 [technischer Prüfbeleg](../docs/verification/cloud-emulator-diagnosis-2026-10-27.json).
 
