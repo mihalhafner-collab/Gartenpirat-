@@ -8,6 +8,27 @@ erhalten und gelten nicht als neue Arbeitsanweisung.
 
 ## Aktuell: Heute-Ansicht vereinfacht, noch nicht gebaut
 
+### Kurzes Testblatt für die Bedienung
+
+Vorbereitet, noch nicht durchgeführt. Start jeweils auf Heute; nur synthetischen
+Einsatz verwenden, vor jedem Weg denselben Vorschau-Ausgangszustand herstellen.
+Die folgenden Wege sind Prüfszenarien, keine Behauptung eingebauter Schaltflächen.
+
+| Aufgabe ohne Bedienhinweis | Woran wir das Ergebnis erkennen |
+| --- | --- |
+| Starte die Arbeit beim nächsten Einsatz. | Richtiger Einsatz erkennbar, Arbeitsaufnahme bewusst ausgelöst, laufende Zeit sichtbar; kein zweiter Timer durch erneutes Tippen. |
+| Verschiebe einen Termin auf morgen um9Uhr. | Datum/Zeit leicht wählbar, Änderung bewusst gespeichert, neuer Termin sichtbar. Online-Kalenderbestätigung und offline „ausstehend“ getrennt; fehlenden Abgleich nicht als Erfolg darstellen. |
+| Zeige die Anfahrt zum nächsten Einsatz. | Zieladresse stimmt; vorhandene Karten-/Routenansicht ohne erneutes Adressentippen erreichbar. Fehlende Adresse klar melden, kein geratenes Ziel. |
+
+Pro Weg festhalten: Tippen bis zur Hauptaktion / Tippen insgesamt / benötigte
+Zeit / Zurückwege oder Suchstellen / Ergebnis korrekt ja-nein / Hilfe nötig.
+Zwei Klicks bis zur Hauptaktion dienen nur dem Vergleich; Datenwahl, Eingabe
+und notwendige Bestätigung zusätzlich zählen. Bei einer späteren Variante
+gleiche Aufgaben und Testdaten verwenden; schneller allein genügt nicht,
+Ergebnis und Verständlichkeit müssen stimmen. Keine produktiven Änderungen,
+keine echte Kalenderübertragung oder Navigation aus dieser Vorbereitung.
+Noch keine Nutzungsprüfung oder neue interaktive Vorschau durchgeführt.
+
 Bedienungsrecherche27.10.: offizielle Anleitungen von Todoist, Google Kalender,
 Google Maps, Google Keep und Clockify verglichen, keine installierten Fremd-Apps
 getestet. Nutzerpräzisierung: bestehende Menüstruktur beibehalten; einzelne Abläufe

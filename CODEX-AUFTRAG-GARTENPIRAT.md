@@ -7,6 +7,11 @@ innerhalb der Menüs sind zu aufwendig. Eine breite Auswahl anderer Apps anhand
 offizieller Bedienungsanleitungen vergleichen, nicht nur Haus-/Garten-Apps.
 Funktionen erhalten, häufige Eingaben vereinfachen, Zusatzoptionen bei Bedarf.
 Die Recherche ist keine Freigabe für neue Funktionen oder weitere Menüumbauten.
+Anschließend ausdrücklich beauftragt: ein kurzes Testblatt für Arbeit starten,
+Termin verschieben und Anfahrt sehen erstellen. Als Vorschau mit synthetischen
+Einsätzen erproben; Schritte, Verständlichkeit und Ergebnis erfassen. Zwei
+Klicks bis zur Hauptaktion sind ein Vergleichsziel, keine neue feste Menüregel
+und keine Erlaubnis, Eingaben oder notwendige Bestätigungen zu überspringen.
 Kalenderpräzisierung: Termine bleiben in der App bearbeitbar; Änderungen sollen
 zeitnah mit Google Kalender abgeglichen werden. Offline kalenderbezogene
 Änderungen als „ausstehend“ behandeln und bei Verbindung übertragen; übriger
