@@ -75,8 +75,16 @@ Profil und beweisen keine beschädigten Altdaten. Kein OOM-Kill festgestellt.
 Auch der Kreuzvergleich32.1.15/AOSP29/x86 scheitert: fataler Systemfehler bei
 der Rechteinitialisierung (`PermissionControllerManager`-Timeout). Keine neue
 `gl2Encoder`-Ursache in diesem Lauf behauptet. Als weiterer Vergleich ist AOSP28
-gestartet: innerhalb minSdk26, vor dem Android10-Rollenmechanismus. Ein Erfolg
-würde zunächst nur diese ältere unterstützte Androidversion abdecken.
+geprüft: vollständiger Start mit acht aufeinanderfolgenden gesunden Stichproben
+und konstantem Systemprozess, kein erfasster Zwischenabsturz. Nur ein Kaltstart,
+noch keine wiederholte oder native App-Abnahme. Dieser ältere Vergleich belegt
+keinen Betrieb unter Android17.
+
+Neue Nutzerfrage Android17: offizielles API37.0/AOSP/x86_64-Abbild verfügbar
+(Revision6, Mindestemulator37.2.11); vorhandener37.2.12 erfüllt die Abhängigkeit.
+907.680.404Bytes vollständig gegen offiziellen SHA1 geprüft, SHA256 zusätzlich
+erfasst; ZIP-CRC PASS. Separates synthetisches API37-Profil ist gestartet. Die App106 kompiliert und
+zielt auf37 bei minSdk26; Build-SDK und Test-Betriebssystem bleiben getrennt.
 Vorhandene SDK-/AVD-Daten bleiben erhalten. Keine App installiert.
 Noch keine neue native App-Abnahme und keine stabile Konfiguration behauptet.
 Erneute13 Schutztests und51 Source-/Lifecycle-/Privacy-Regeltests PASS;

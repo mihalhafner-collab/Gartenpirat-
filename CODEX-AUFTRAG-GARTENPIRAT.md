@@ -14,6 +14,9 @@ Erneute ausdrückliche Nutzersteuerung: Cloudlösung weiter etablieren; nicht
 automatisch auf physisches Gerät wechseln. Emulator mit vorhandenen offiziellen
 Komponenten kontrolliert konfigurieren; eigener Emulator-Quellbau ist bislang
 nicht als notwendige Ursachekorrektur begründet.
+Weitere Nutzersteuerung: Android17-Emulator prüfen/einrichten. Offizielles
+API37-Abbild und tatsächliche Mindestemulator-Abhängigkeit prüfen; ältere
+Android-Bootproben nicht als Nachweis des API37-Zielverhaltens ausgeben.
 
 Nutzerpräzisierung zur physischen Testung:4-GB-Windows-Laptop ausschließlich für
 ADB-Verbindung und technische Protokolle; Quelländerungen und Builds nur in der

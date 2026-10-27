@@ -1,6 +1,6 @@
 {
   "format": "hausgarten.cloud-emulator-diagnosis.v1",
-  "status": "API29_PERMISSION_TIMEOUT_AND_API30_WATCHDOG;API28_SUPPORTED_BASELINE_RUNNING",
+  "status": "API28_SINGLE_BOOT_HEALTH_PASS;OFFICIAL_API37_CONTROLLED_BOOT_RUNNING",
   "observed_at_utc": "2026-10-27T06:04:01.153560+00:00",
   "scope": "Existing dedicated synthetic Cloud AVD only; no Pixel, app install/build, account, wipe, timeout-suppression or operational-data use",
   "user_authorization": {
@@ -908,7 +908,7 @@
     "owned_emulator_shutdown": true,
     "host_oom_kills_after": "0"
   },
-  "updated_at_utc": "2026-10-27T07:33:13.173941+00:00",
+  "updated_at_utc": "2026-10-27T07:47:11.934520+00:00",
   "live_guard_readback": {
     "status": "HOST_TIMEOUT45SECONDS_NO_PASS",
     "app_actions": 0,
@@ -2638,12 +2638,16 @@
   },
   "fresh_userdata_comparison": "fscrypt policy warnings also appear with freshly created isolated userdata; not proof of corruption in the preserved older AVD",
   "active_probe": {
-    "id": "api28-legacy32-aosp",
+    "id": "api37-aosp",
     "status": "IN_PROGRESS",
-    "api": 28,
-    "abi": "x86",
-    "emulator_version": "32.1.15",
-    "graphics": "swiftshader_indirect",
+    "api": "37.0",
+    "abi": "x86_64",
+    "emulator_version": "37.2.12",
+    "minimum_emulator": "37.2.11",
+    "reason": "Explicit user asks Android17 emulator; original106 compile/target37, min26. Test OS must be recorded separately from app compilation SDK.",
+    "scope": "New isolated synthetic AVD; no existing userdata or SDK overwrite; no productive device",
+    "native_app_tests": "NOT_EXECUTED",
+    "availability_evidence": "Official Android system-image manifest default x86_64 revision6",
     "guest_ram_mib": 3072,
     "guest_cores": 2,
     "display_pixels": [
@@ -2651,11 +2655,12 @@
       960
     ],
     "density_dpi": 240,
-    "reason": "App minSdk26 supports API28. Controlled older-OS baseline before Android10 permission/roles initialization; checks unchanged, not a current-Pixel acceptance substitute.",
-    "data": "new isolated profile; no operating data, account or existing userdata copied",
+    "graphics": "swiftshader",
+    "acceleration": "off",
+    "snapshots_disabled": true,
     "maximum_observation_seconds": 780,
-    "required_health": "8 consecutive healthy samples; boot1, services, package path, stable single system PID; fail on intermediate system crash/restart",
-    "driver_sha256": "9c05d274a67d03bdd2ddfebaec2e71a423c69e26e14186ab73da96479642be07"
+    "app_installations": 0,
+    "driver_sha256": "a10bf4102074ad58bdcc24b472c0365f744a4302573cdf8a9492808008a2c616"
   },
   "api29_legacy32_counterprobe": {
     "avd_home": "/workspace/cloud-setup/qa-emulator32-aosp29-avd",
@@ -2711,6 +2716,69 @@
     "revision": 4,
     "api": 28,
     "abi": "x86",
+    "existing_sdk_changed": false
+  },
+  "api28_baseline_result": {
+    "avd_home": "/workspace/cloud-setup/qa-emulator32-aosp28-avd",
+    "serial": "emulator-5582",
+    "command": [
+      "/workspace/cloud-setup/tools/emulator32-diagnostic-20261027/emulator/emulator",
+      "-avd",
+      "GartenpiratCloud",
+      "-port",
+      "5582",
+      "-no-window",
+      "-no-audio",
+      "-no-snapshot",
+      "-no-boot-anim",
+      "-show-kernel",
+      "-accel",
+      "off",
+      "-gpu",
+      "swiftshader_indirect",
+      "-memory",
+      "3072",
+      "-cores",
+      "2",
+      "-skin",
+      "540x960"
+    ],
+    "app_installations": 0,
+    "app_data_reset": false,
+    "snapshots_disabled": true,
+    "healthy_sample_threshold_met": true,
+    "duration_s": 654.6,
+    "host_exit_after_owned_shutdown": -10,
+    "owned_emulator_shutdown": true,
+    "emulator_version": "32.1.15",
+    "api": 28,
+    "abi": "x86",
+    "linux_kernel": "4.4.124+",
+    "healthy_samples": 8,
+    "first_healthy_sample_elapsed_s": 486.5,
+    "last_sample_elapsed_s": 651.1,
+    "system_server_pids": [
+      "1861"
+    ],
+    "intermediate_system_failure_observed": false,
+    "raw_result_sha256": "07740abf49d95bbf4e4b9814f01fa0810f83019dedec6e535bc72e0efcc3a0cf",
+    "claim_limits": "One controlled cold boot and health window only; no repeat-boot/native app test yet. Does not prove current Android17/Pixel acceptance."
+  },
+  "api37_package": {
+    "url": "https://dl.google.com/android/repository/sys-img/android/x86_64-37.0_r06.zip",
+    "bytes": 907680404,
+    "sha1": "8842a57a6b146423debb46c1496a9c0986aa1b9e",
+    "sha256": "a80ad9f0f8b487df146df1c1412ee4744ba95dde471b601843b8039616be28d2",
+    "official_manifest_sha1_match": true,
+    "archive_crc": "PASS",
+    "revision": 6,
+    "api": "37.0",
+    "abi": "x86_64",
+    "minimum_emulator": {
+      "major": "37",
+      "minor": "2",
+      "micro": "11"
+    },
     "existing_sdk_changed": false
   }
 }

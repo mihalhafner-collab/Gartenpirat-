@@ -35,8 +35,11 @@ den Systemprozess während einer blockierten Rollenvergabe. Das ist ein anderer
 belegter Fehlerpfad als der29er-Grafikabsturz; keine gemeinsame Ursache behaupten.
 Verschlüsselungswarnungen erscheinen auch mit frischem Profil und beweisen keine
 beschädigten Altdaten. Der Kreuzvergleich32.1.15 mit AOSP29/x86 scheitert an einem
-`PermissionControllerManager`-Timeout. API28 ist als unterstützter älterer
-Vergleich vorbereitet; daraus folgt keine Abnahme auf aktuellem Pixel-Android.
+`PermissionControllerManager`-Timeout. API28 besteht einen vollständigen Kaltstart mit acht
+aufeinanderfolgenden Gesundheitsstichproben, aber noch keinen Wiederholungs-
+oder nativen Appnachweis. Daraus folgt keine Abnahme auf aktuellem Pixel-Android.
+Auf Nutzerwunsch wird ein separates offizielles API37.0/AOSP/x86_64-Profil
+kontrolliert gestartet; Mindestemulator37.2.11 ist mit37.2.12 erfüllt.
 Aktuelle kontrollierte Gegenproben und Grenzen:
 [technischer Prüfbeleg](../docs/verification/cloud-emulator-diagnosis-2026-10-27.json).
 
