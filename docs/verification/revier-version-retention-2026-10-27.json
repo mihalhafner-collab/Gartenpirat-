@@ -329,7 +329,7 @@
     "github_path": "AGENTS.md#starttext-für-die-bestehende-gartenumgebung",
     "configuration_id": "e12633f2-083b-4373-bec4-15f54f592001~cecfg_6acf33fe75d08195a929c819804e82d1",
     "observed_spec_revision": "16",
-    "status": "NOT_APPLIED_AUTHENTICATED_BROWSER_CANNOT_LOCATE_TARGET_CONFIGURATION;DIRECT_CONFIGURATION_URL_REQUESTED",
+    "status": "NOT_APPLIED_START_SKILL_IDENTIFIED_IN_USER_SCREENSHOT;EDITOR_INACCESSIBLE_IN_BROWSER_PROFILE",
     "sensitive_values_must_remain_unchanged": true,
     "manual_fallback": "Prepared text remains in GitHub AGENTS. Direct configuration access is required; no local START file can stand in for publishing.",
     "previous_blocker": "User previously reported TinyFish login not possible; subsequent saved Default profile was authenticated in read-only browser inspection.",
@@ -346,7 +346,33 @@
       "existing_bootstrap_sha256_utf8_no_trailing_newline": "3dbb03cf74eabd71d5576a4974fae736f6874bee4d099feb17dd23f0974529ed",
       "scope_limits": "No account/plan entitlement inferred; no app business data, secrets, environment settings or setup script changed. Runtime context reports existing configuration revision16, not an editable draft."
     },
-    "next_required_input": "Direct existing garden environment configuration URL; user requested via text question. No password or further generic login request."
+    "next_required_input": "User can paste exact prepared AGENTS bootstrap into the Start-Skill instruction body in the already open correct editor and publish, or provide access to that exact editor. Publishing/readback remains unverified until actual evidence.",
+    "followup_inspections": [
+      {
+        "at_utc": "2026-10-27T05:02:28.424335+00:00",
+        "run_id": "4cd1fc8b-0216-4ced-a6f9-09e6bde90f84",
+        "status": "completed",
+        "scope": "Read-only inspection of user-provided /local/<task>?hostId=local URL",
+        "observed_result": "Redirected to https://chatgpt.com/; environment editor not shown. No local-host or laptop agent used."
+      },
+      {
+        "at_utc": "2026-10-27T05:02:28.424335+00:00",
+        "run_id": "bf600a4c-1ea2-40d3-aa12-8d3150d19270",
+        "status": "completed",
+        "scope": "Target existing environment editor using screenshot labels and available management/plugin controls",
+        "observed_result": "Existing configuration editor and Start-Skill not accessible through authenticated browser profile. No edit, save or publish performed. No account, tier or feature-entitlement cause established."
+      }
+    ],
+    "confirmed_ui_field": {
+      "source": "User screenshot",
+      "section": "Skripte",
+      "label": "Start-Skill",
+      "edit_control": "pencil",
+      "separate_executable_script": "Installationsskript",
+      "publication_control": "Veröffentlichen",
+      "repository": "mihalhafner-collab/Gartenpirat-",
+      "raw_screenshot_retained": false
+    }
   },
   "risks_and_recovery": {
     "apk_deletion": "Permanent, explicitly requested retirement. No restoration or rebuilding of retired APKs; exact IDs/names/sizes and existing hashes recorded in GitHub.",

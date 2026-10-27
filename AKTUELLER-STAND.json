@@ -172,7 +172,7 @@
       "evidence_recorded_at_utc": "2026-10-25T22:06:57.964900+00:00"
     }
   ],
-  "updated_at_utc": "2026-10-27T04:45:38.088279+00:00",
+  "updated_at_utc": "2026-10-27T05:02:28.424335+00:00",
   "development_snapshot": {
     "version_name": "1.55.1",
     "version_code": 106,
@@ -339,7 +339,7 @@
       "configuration_id": "e12633f2-083b-4373-bec4-15f54f592001~cecfg_6acf33fe75d08195a929c819804e82d1",
       "observed_spec_revision": "16",
       "prepared_in": "AGENTS.md#starttext-für-die-bestehende-gartenumgebung",
-      "published_change": "NOT_APPLIED_AUTHENTICATED_BROWSER_CANNOT_LOCATE_TARGET_CONFIGURATION;DIRECT_CONFIGURATION_URL_REQUESTED",
+      "published_change": "NOT_APPLIED_START_SKILL_IDENTIFIED_IN_USER_SCREENSHOT;EDITOR_INACCESSIBLE_IN_BROWSER_PROFILE",
       "browser_check": {
         "at_utc": "2026-10-27T04:45:38.088279+00:00",
         "run_id": "45c23e19-4fa4-4cad-9c67-cdd6b309e206",
@@ -349,6 +349,20 @@
         "startup_field_observed": false,
         "configuration_changes": false,
         "bootstrap_sha256_utf8_no_trailing_newline": "3dbb03cf74eabd71d5576a4974fae736f6874bee4d099feb17dd23f0974529ed"
+      },
+      "confirmed_ui_field": {
+        "section": "Skripte",
+        "label": "Start-Skill",
+        "edit_control": "pencil",
+        "publish_control": "Veröffentlichen",
+        "identity_evidence": "User screenshot displays existing Gartenpirat repository and separate installation script. No screenshot file or secret values copied to repository."
+      },
+      "browser_followup": {
+        "run_id": "bf600a4c-1ea2-40d3-aa12-8d3150d19270",
+        "terminal_status": "completed",
+        "editor_accessible": false,
+        "configuration_mutated": false,
+        "no_account_or_plan_cause_inferred": true
       }
     },
     "unmerged_unique_branch": {
