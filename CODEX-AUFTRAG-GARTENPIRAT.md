@@ -10,6 +10,10 @@ Keine neue Appfunktion, kein neues APK allein für diese Diagnose.
 Weitere Nutzersteuerung: Emulator erneut kontrolliert anpassen; Cloudtestung
 bleibt bevorzugt, wenn Zuverlässigkeit reproduzierbar nachgewiesen wird.
 Keine stabile Konfiguration allein aufgrund unbelegter Zwischenmeldungen führen.
+Erneute ausdrückliche Nutzersteuerung: Cloudlösung weiter etablieren; nicht
+automatisch auf physisches Gerät wechseln. Emulator mit vorhandenen offiziellen
+Komponenten kontrolliert konfigurieren; eigener Emulator-Quellbau ist bislang
+nicht als notwendige Ursachekorrektur begründet.
 
 Nutzerpräzisierung zur physischen Testung:4-GB-Windows-Laptop ausschließlich für
 ADB-Verbindung und technische Protokolle; Quelländerungen und Builds nur in der

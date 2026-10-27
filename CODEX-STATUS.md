@@ -64,8 +64,17 @@ Die Testvorprüfung verlangt jetzt zusätzlich Paket-/Aktivitätsdienst und eine
 funktionierenden Android-Paketpfad; expliziter späterer Dienstausfall wird ohne
 rohe Geräteausgabe eingeordnet.13 Schutzregressionen und51 Sourceprüfungen PASS.
 
-Nutzer wünscht weiterhin Cloudtests, sobald zuverlässig: erneute Anpassungsprobe
-mit vorhandenem API30/x86_64-Image läuft, ohne Wipe oder Appinstallation.
+Nutzer beauftragt weiterhin die Cloudlösung. Vier API30/x86_64-Gegenproben
+(Emulator37,1/2CPU,2/3GiB, vorhandene/frische synthetische Userdata sowie
+Emulator32.1.15) erreichen keinen vollständigen stabilen Start. Im letzten Lauf
+ist jetzt der direkte Auslöser sichtbar: Android-Watchdog beendet den Systemprozess,
+dessen Hauptthread in der Standard-Rollenvergabe wartet. Die Ursache dieses
+Wartens ist noch ungeklärt; Verschlüsselungswarnungen erscheinen auch im frischen
+Profil und beweisen keine beschädigten Altdaten. Kein OOM-Kill festgestellt.
+
+Als gezielter Kreuzvergleich läuft jetzt Emulator32.1.15 mit dem schlankeren
+AOSP-API29/x86-Abbild, klassischem SwiftShader und separatem frischem Testprofil.
+Vorhandene SDK-/AVD-Daten bleiben erhalten. Keine App installiert.
 Noch keine neue native App-Abnahme und keine stabile Konfiguration behauptet.
 Technische Evidenz und minimaler Prüfschrittplan:
 `docs/verification/cloud-emulator-diagnosis-2026-10-27.json`.

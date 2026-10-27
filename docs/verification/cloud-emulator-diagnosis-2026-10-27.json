@@ -1,12 +1,12 @@
 {
   "format": "hausgarten.cloud-emulator-diagnosis.v1",
-  "status": "GRAPHICS_SYSTEM_CRASH_REPRODUCED;RENDERER_COUNTERPROBE_IN_PROGRESS",
+  "status": "API29_GRAPHICS_CRASH_AND_API30_WATCHDOG_CONFIRMED;LEGACY32_AOSP29_COUNTERPROBE_RUNNING",
   "observed_at_utc": "2026-10-27T06:04:01.153560+00:00",
   "scope": "Existing dedicated synthetic Cloud AVD only; no Pixel, app install/build, account, wipe, timeout-suppression or operational-data use",
   "user_authorization": {
     "task": "Find why Cloud emulator is unreliable; continue controlled tests",
     "laptop_exception": "Laptop only ADB connection and technical logging; development and builds remain Cloud/GitHub",
-    "preferred_test_location": "Cloud emulator if reproducibly reliable; continue controlled adaptation, physical ADB only as separately scoped alternative"
+    "preferred_test_location": "Continue establishing Cloud emulator solution; no automatic switch to physical device"
   },
   "host": {
     "kvm_device_present": false,
@@ -488,7 +488,8 @@
     "after_readiness_failure": "Classify explicit missing package/activity service from captured ADB error without dumping raw device output; unrelated errors retain their failure type",
     "tests_passed": 13,
     "acceptance_result_gates_unchanged": true,
-    "no_timeout_or_crash_suppression": true
+    "no_timeout_or_crash_suppression": true,
+    "positive_test_count_required": true
   },
   "counterprobe": {
     "status": "COMPLETED_FAILED_STABILITY_THRESHOLD",
@@ -907,14 +908,14 @@
     "owned_emulator_shutdown": true,
     "host_oom_kills_after": "0"
   },
-  "updated_at_utc": "2026-10-27T06:20:57.172519+00:00",
+  "updated_at_utc": "2026-10-27T07:25:57.479161+00:00",
   "live_guard_readback": {
     "status": "HOST_TIMEOUT45SECONDS_NO_PASS",
     "app_actions": 0,
     "meaning": "The current unhealthy OS did not finish the read-only preflight within the bounded outer diagnostic call; no installation or instrumentation attempted."
   },
   "api30_adaptation": {
-    "status": "IN_PROGRESS",
+    "status": "COMPLETED_FAILED_STABILITY_THRESHOLD",
     "avd_home": "Existing qa-drive-closure-avd",
     "api": 30,
     "abi": "x86_64",
@@ -937,5 +938,1707 @@
     "source_regressions": 51,
     "release_baseline": "PASS106>observed105; native source fingerprint unchanged",
     "app_code_changed": false
+  },
+  "api30_completed_trials": [
+    {
+      "id": "api30-baseline",
+      "emulator_version": "37.2.12",
+      "api": 30,
+      "abi": "x86_64",
+      "guest_ram_mib": 2048,
+      "guest_cores": 1,
+      "graphics": "swiftshader",
+      "display_pixels": [
+        720,
+        1280
+      ],
+      "userdata": "existing isolated synthetic profile",
+      "launch_command": [
+        "/workspace/cloud-setup/tools/sdk/emulator/emulator",
+        "-avd",
+        "GartenpiratCloud",
+        "-port",
+        "5582",
+        "-no-window",
+        "-no-audio",
+        "-no-snapshot",
+        "-no-boot-anim",
+        "-accel",
+        "off",
+        "-gpu",
+        "swiftshader",
+        "-memory",
+        "2048",
+        "-cores",
+        "1",
+        "-skin",
+        "720x1280"
+      ],
+      "duration_s": 801.3,
+      "healthy_sample_threshold_met": false,
+      "app_installations": 0,
+      "owned_emulator_shutdown": true,
+      "result_sha256": "c04bb25867e16ab036b2c6e997102c099e21c0ef58662bffaaca167d769f06e3",
+      "system_server_pids": [
+        "1530",
+        "540"
+      ],
+      "boot_completed_observed": false,
+      "host_oom_kills_after": "0",
+      "sample_count": 24,
+      "samples": [
+        {
+          "elapsed_s": 0.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 15.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 30.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 45.1,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 60.1,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 75.1,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 90.1,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 131.6,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 161.8,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "540",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 200.4,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "540",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 230.9,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "540",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 262.8,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "540",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 308.6,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "540",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 335.8,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "HOST_PROBE_TIMEOUT",
+          "api": "HOST_PROBE_TIMEOUT",
+          "abi": "HOST_PROBE_TIMEOUT",
+          "android_package_path": "HOST_PROBE_TIMEOUT",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 400.0,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "HOST_PROBE_TIMEOUT",
+          "api": "HOST_PROBE_TIMEOUT",
+          "abi": "HOST_PROBE_TIMEOUT",
+          "android_package_path": "HOST_PROBE_TIMEOUT",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 463.9,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "HOST_PROBE_TIMEOUT",
+          "package_service": "HOST_PROBE_TIMEOUT",
+          "activity_service": "HOST_PROBE_TIMEOUT",
+          "system_server_pid": "HOST_PROBE_TIMEOUT",
+          "api": "HOST_PROBE_TIMEOUT",
+          "abi": "HOST_PROBE_TIMEOUT",
+          "android_package_path": "HOST_PROBE_TIMEOUT",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 541.3,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "HOST_PROBE_TIMEOUT",
+          "identity_probe_returncodes": [
+            0,
+            124
+          ],
+          "identity_not_ready": true
+        },
+        {
+          "elapsed_s": 568.3,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "HOST_PROBE_TIMEOUT",
+          "identity_probe_returncodes": [
+            0,
+            124
+          ],
+          "identity_not_ready": true
+        },
+        {
+          "elapsed_s": 596.1,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "HOST_PROBE_TIMEOUT",
+          "identity_probe_returncodes": [
+            0,
+            124
+          ],
+          "identity_not_ready": true
+        },
+        {
+          "elapsed_s": 623.1,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 647.8,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "1530",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 686.0,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "1530",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 723.8,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "1530",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 751.7,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "1530",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0
+        }
+      ],
+      "root_limits": "No full boot; system PID restart observed in baseline/fresh. Direct trigger not established by these captured logs."
+    },
+    {
+      "id": "api30-resources",
+      "emulator_version": "37.2.12",
+      "api": 30,
+      "abi": "x86_64",
+      "guest_ram_mib": 3072,
+      "guest_cores": 2,
+      "graphics": "swiftshader",
+      "display_pixels": [
+        720,
+        1280
+      ],
+      "userdata": "same isolated synthetic profile; no wipe",
+      "launch_command": [
+        "/workspace/cloud-setup/tools/sdk/emulator/emulator",
+        "-avd",
+        "GartenpiratCloud",
+        "-port",
+        "5582",
+        "-no-window",
+        "-no-audio",
+        "-no-snapshot",
+        "-no-boot-anim",
+        "-show-kernel",
+        "-accel",
+        "off",
+        "-gpu",
+        "swiftshader",
+        "-memory",
+        "3072",
+        "-cores",
+        "2",
+        "-skin",
+        "720x1280"
+      ],
+      "duration_s": 788.7,
+      "healthy_sample_threshold_met": false,
+      "app_installations": 0,
+      "owned_emulator_shutdown": true,
+      "result_sha256": "c401e0edb8b28c85ee7c34c4f6da04b85d9b2687d684dd31290629ee4c04cb58",
+      "system_server_pids": [
+        "535"
+      ],
+      "boot_completed_observed": false,
+      "host_oom_kills_after": "0",
+      "sample_count": 26,
+      "samples": [
+        {
+          "elapsed_s": 0.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 15.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 30.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 45.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 60.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 75.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 90.1,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 105.1,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "HOST_PROBE_TIMEOUT",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 150.4,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "535",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 173.9,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "535",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 212.2,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "535",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 236.6,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "535",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 269.2,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "535",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 309.0,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "535",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 358.1,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "HOST_PROBE_TIMEOUT",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 398.6,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "HOST_PROBE_TIMEOUT",
+          "package_service": "HOST_PROBE_TIMEOUT",
+          "activity_service": "HOST_PROBE_TIMEOUT",
+          "system_server_pid": "HOST_PROBE_TIMEOUT",
+          "api": "HOST_PROBE_TIMEOUT",
+          "abi": "HOST_PROBE_TIMEOUT",
+          "android_package_path": "HOST_PROBE_TIMEOUT",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 468.5,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "HOST_PROBE_TIMEOUT",
+          "package_service": "HOST_PROBE_TIMEOUT",
+          "activity_service": "HOST_PROBE_TIMEOUT",
+          "system_server_pid": "HOST_PROBE_TIMEOUT",
+          "api": "HOST_PROBE_TIMEOUT",
+          "abi": "HOST_PROBE_TIMEOUT",
+          "android_package_path": "HOST_PROBE_TIMEOUT",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 544.1,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "HOST_PROBE_TIMEOUT",
+          "identity_probe_returncodes": [
+            0,
+            124
+          ],
+          "identity_not_ready": true
+        },
+        {
+          "elapsed_s": 571.1,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "HOST_PROBE_TIMEOUT",
+          "identity_probe_returncodes": [
+            0,
+            124
+          ],
+          "identity_not_ready": true
+        },
+        {
+          "elapsed_s": 598.1,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "HOST_PROBE_TIMEOUT",
+          "identity_probe_returncodes": [
+            0,
+            124
+          ],
+          "identity_not_ready": true
+        },
+        {
+          "elapsed_s": 625.3,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "HOST_PROBE_TIMEOUT",
+          "identity_probe_returncodes": [
+            0,
+            124
+          ],
+          "identity_not_ready": true
+        },
+        {
+          "elapsed_s": 652.6,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "HOST_PROBE_TIMEOUT",
+          "identity_probe_returncodes": [
+            0,
+            124
+          ],
+          "identity_not_ready": true
+        },
+        {
+          "elapsed_s": 680.0,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "HOST_PROBE_TIMEOUT",
+          "identity_probe_returncodes": [
+            0,
+            124
+          ],
+          "identity_not_ready": true
+        },
+        {
+          "elapsed_s": 707.6,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "HOST_PROBE_TIMEOUT",
+          "identity_probe_returncodes": [
+            0,
+            124
+          ],
+          "identity_not_ready": true
+        },
+        {
+          "elapsed_s": 734.6,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "HOST_PROBE_TIMEOUT",
+          "identity_probe_returncodes": [
+            0,
+            124
+          ],
+          "identity_not_ready": true
+        },
+        {
+          "elapsed_s": 761.7,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "HOST_PROBE_TIMEOUT",
+          "identity_probe_returncodes": [
+            0,
+            124
+          ],
+          "identity_not_ready": true
+        }
+      ],
+      "root_limits": "No full boot; system PID restart observed in baseline/fresh. Direct trigger not established by these captured logs."
+    },
+    {
+      "id": "api30-fresh",
+      "emulator_version": "37.2.12",
+      "api": 30,
+      "abi": "x86_64",
+      "guest_ram_mib": 3072,
+      "guest_cores": 2,
+      "graphics": "swiftshader",
+      "display_pixels": [
+        720,
+        1280
+      ],
+      "userdata": "new isolated configuration only; no old userdata copied",
+      "launch_command": [
+        "/workspace/cloud-setup/tools/sdk/emulator/emulator",
+        "-avd",
+        "GartenpiratCloud",
+        "-port",
+        "5582",
+        "-no-window",
+        "-no-audio",
+        "-no-snapshot",
+        "-no-boot-anim",
+        "-show-kernel",
+        "-accel",
+        "off",
+        "-gpu",
+        "swiftshader",
+        "-memory",
+        "3072",
+        "-cores",
+        "2",
+        "-skin",
+        "720x1280"
+      ],
+      "duration_s": 708.9,
+      "healthy_sample_threshold_met": false,
+      "app_installations": 0,
+      "owned_emulator_shutdown": true,
+      "result_sha256": "89bce1d48cec2d2723164cc1aa5938a8196cbcebb20e0f73a52241fb40124e10",
+      "system_server_pids": [
+        "1770",
+        "563"
+      ],
+      "boot_completed_observed": false,
+      "host_oom_kills_after": "0",
+      "sample_count": 25,
+      "samples": [
+        {
+          "elapsed_s": 0.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 15.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 30.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 45.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 60.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 75.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 90.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 105.1,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 120.1,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 162.2,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 187.4,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 213.1,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 237.0,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 279.0,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 304.7,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "HOST_PROBE_TIMEOUT",
+          "api": "HOST_PROBE_TIMEOUT",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 345.6,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "HOST_PROBE_TIMEOUT",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 396.7,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 421.7,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 448.7,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 471.8,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 495.2,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 530.5,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "HOST_PROBE_TIMEOUT",
+          "system_server_pid": "HOST_PROBE_TIMEOUT",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 586.0,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 636.8,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "HOST_PROBE_TIMEOUT",
+          "api": "HOST_PROBE_TIMEOUT",
+          "abi": "HOST_PROBE_TIMEOUT",
+          "android_package_path": "HOST_PROBE_TIMEOUT",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 695.4,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "1770",
+          "critical_system_restart": true,
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        }
+      ],
+      "root_limits": "No full boot; system PID restart observed in baseline/fresh. Direct trigger not established by these captured logs."
+    },
+    {
+      "id": "api30-legacy32",
+      "emulator_version": "32.1.15",
+      "api": 30,
+      "abi": "x86_64",
+      "guest_ram_mib": 3072,
+      "guest_cores": 2,
+      "graphics": "swiftshader_indirect",
+      "display_pixels": [
+        540,
+        960
+      ],
+      "userdata": "new isolated configuration only; no old userdata copied",
+      "launch_command": [
+        "/workspace/cloud-setup/tools/emulator32-diagnostic-20261027/emulator/emulator",
+        "-avd",
+        "GartenpiratCloud",
+        "-port",
+        "5582",
+        "-no-window",
+        "-no-audio",
+        "-no-snapshot",
+        "-no-boot-anim",
+        "-show-kernel",
+        "-accel",
+        "off",
+        "-gpu",
+        "swiftshader_indirect",
+        "-memory",
+        "3072",
+        "-cores",
+        "2",
+        "-skin",
+        "540x960"
+      ],
+      "duration_s": 792.5,
+      "healthy_sample_threshold_met": false,
+      "app_installations": 0,
+      "owned_emulator_shutdown": true,
+      "result_sha256": "8e041e2c8a58ac3afcf7c7a36953f198ecfa5caf47347b9454eea0ce8d7e5196",
+      "system_server_pids": [
+        "1652",
+        "563"
+      ],
+      "boot_completed_observed": false,
+      "host_oom_kills_after": "0",
+      "sample_count": 28,
+      "samples": [
+        {
+          "elapsed_s": 0.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 15.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 30.0,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 45.1,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 60.1,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 75.1,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 90.1,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 105.1,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 120.1,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 135.1,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 150.2,
+          "host_exit": null,
+          "adb_state": "NOT_READY"
+        },
+        {
+          "elapsed_s": 165.2,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 206.2,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 228.6,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 258.3,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 284.4,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 325.5,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 361.0,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 401.9,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 440.2,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 472.6,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 497.0,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 521.3,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 549.3,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: found",
+          "activity_service": "HOST_PROBE_TIMEOUT",
+          "system_server_pid": "HOST_PROBE_TIMEOUT",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "package:/system/framework/framework-res.apk",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 602.1,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "HOST_PROBE_TIMEOUT",
+          "package_service": "HOST_PROBE_TIMEOUT",
+          "activity_service": "Service activity: found",
+          "system_server_pid": "563",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "HOST_PROBE_TIMEOUT",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 666.7,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "HOST_PROBE_TIMEOUT",
+          "system_server_pid": "HOST_PROBE_TIMEOUT",
+          "api": "HOST_PROBE_TIMEOUT",
+          "abi": "HOST_PROBE_TIMEOUT",
+          "android_package_path": "HOST_PROBE_TIMEOUT",
+          "consecutive_healthy_samples": 0
+        },
+        {
+          "elapsed_s": 730.5,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "",
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        },
+        {
+          "elapsed_s": 767.4,
+          "host_exit": null,
+          "adb_state": "device",
+          "avd_name": "GartenpiratCloud",
+          "qemu": "1",
+          "identity_probe_returncodes": [
+            0,
+            0
+          ],
+          "boot_completed": "",
+          "package_service": "Service package: not found",
+          "activity_service": "Service activity: not found",
+          "system_server_pid": "1652",
+          "critical_system_restart": true,
+          "api": "30",
+          "abi": "x86_64",
+          "android_package_path": "",
+          "consecutive_healthy_samples": 0,
+          "critical_graphics_or_system_crash": false
+        }
+      ],
+      "root_failure": "Android Watchdog kills system_server: main thread blocked in RoleManagerService.maybeGrantDefaultRolesSync/CompletableFuture.get during user startup",
+      "root_excerpt": [
+        "10-27 07:18:04.006   563   640 W Watchdog: *** WATCHDOG KILLING SYSTEM PROCESS: Blocked in handler on main thread (main)",
+        "10-27 07:18:05.048   563   640 W Watchdog:     at com.android.server.role.RoleManagerService.maybeGrantDefaultRolesSync(RoleManagerService.java:228)",
+        "10-27 07:18:05.048   563   640 W Watchdog:     at com.android.server.role.RoleManagerService.onStartUser(RoleManagerService.java:221)",
+        "10-27 07:18:05.141   563   640 W Watchdog: *** GOODBYE!"
+      ],
+      "root_limits": "Observed blocked wait; exact reason the role controller did not complete remains unproven. fscrypt warnings alone do not establish damaged data."
+    }
+  ],
+  "emulator32_package": {
+    "official_url": "https://dl.google.com/android/repository/emulator-linux_x64-10696886.zip",
+    "bytes": 270191252,
+    "sha256": "284954ab33259e0125757623132e7e36982d968fb6c22495145bb1b37861e6ef",
+    "archive_crc": "PASS",
+    "revision": "32.1.15",
+    "version_exit": 0,
+    "version_first_line": "INFO    | Storing crashdata in: /tmp/android-agent/emu-crash.db, detection is enabled",
+    "current_sdk_overwritten": false,
+    "app_apks_built_or_installed": false,
+    "selection_reason": "Official parallel compatibility control; minimum emulator dependency30.8.0 satisfied; existing SDK unchanged"
+  },
+  "fresh_userdata_comparison": "fscrypt policy warnings also appear with freshly created isolated userdata; not proof of corruption in the preserved older AVD",
+  "active_probe": {
+    "id": "api29-legacy32-aosp",
+    "emulator_version": "32.1.15",
+    "api": 29,
+    "abi": "x86",
+    "guest_ram_mib": 3072,
+    "guest_cores": 2,
+    "graphics": "swiftshader_indirect",
+    "display_pixels": [
+      540,
+      960
+    ],
+    "density_dpi": 240,
+    "status": "IN_PROGRESS",
+    "reason": "Complete cross-check using lighter AOSP/x86 guest with classic renderer after API30/google guest watchdog failure",
+    "userdata": "new isolated configuration only; no existing userdata reset/copied",
+    "maximum_observation_seconds": 780,
+    "required_health": "8 consecutive healthy samples, stable single system_server PID, package/activity services, boot1 and android package path; reject any intermediate system crash/restart",
+    "driver_sha256": "405b707df3866524037aff192cccc81520e6ba6f3710c13acad5b915b557ba5c"
   }
 }

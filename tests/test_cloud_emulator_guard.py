@@ -16,6 +16,7 @@ spec.loader.exec_module(runner)
 class CloudEmulatorGuardTests(unittest.TestCase):
     def test_partial_passes_and_process_crashes_are_never_success(self):
         for output in ['PASS first probe\n', 'PASS first probe\nINSTRUMENTATION_RESULT: shortMsg=Process crashed.',
+                       'RESULT 0 Android SQLite/MCP tests passed; acceptance failures=0;',
                        'RESULT 100 Android SQLite/MCP tests passed; acceptance failures=1;']:
             self.assertFalse(runner.successful_output(output, 'acceptance'))
 

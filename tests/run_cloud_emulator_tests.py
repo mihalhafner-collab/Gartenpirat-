@@ -71,7 +71,7 @@ def successful_output(output, mode):
     if re.search(r'\bFAIL(?:ED)?\b|INSTRUMENTATION_FAILED|Process crashed|acceptance failures=[1-9]', output):
         return False
     if mode in ('acceptance','estimates','provider','mcp_workflows','revier_core','revier_ui','revier_authority','revier_finance','revier_recovery','drive_backup_only','backup_setup'):
-        return bool(re.search(r'RESULT [0-9]+ Android SQLite/MCP tests passed; acceptance failures=0;', output))
+        return bool(re.search(r'RESULT [1-9][0-9]* Android SQLite/MCP tests passed; acceptance failures=0;', output))
     if mode in ('plants','plants_ui'):
         count=4 if mode=='plants' else 2
         return bool(re.search(r'RESULT '+str(count)+r' Android plant98 tests passed; acceptance failures=0', output))
