@@ -24,15 +24,21 @@ Dateibaum. Alle alten Original-Commits über main erreichbar; kein History-Rewri
 APKs105/106 und ihre vorhandenen Teile, App-Backups sowie einzigartige
 Pflanzenarbeit bleiben erhalten. Keine neue Release-/Migrationsfreigabe.
 
-**Cloud-Starttext weiterhin offen:** Nutzer meldet inzwischen gespeichertes
-TinyFish-Profil „Default“. Der anschließende rein lesende Browserlauf bestätigt
-eine angemeldete ChatGPT-Sitzung, findet aber die konkrete Gartenkonfiguration
-und ihr Starttextfeld nicht. Der beobachtete Cloud-Link führt zur ChatGPT-Startseite.
-Der direkte Link zur bestehenden Konfigurationsseite wurde angefragt; keine
-Berechtigungs-/Tarifursache unterstellt. Umgebungs-Connector weiterhin nur lesend,
-beobachtete Laufzeitrevision16. Starttext in `AGENTS.md` vorbereitet, aber NICHT
-in der veröffentlichten Konfiguration geändert; kein Setupscript-/Secret-Eingriff.
-Browserlauf: `45c23e19-4fa4-4cad-9c67-cdd6b309e206` (completed, read-only).
+**Cloud-Starttext weiterhin offen:** Nutzerbild zeigt jetzt eindeutig die richtige
+Konfigurationsansicht: `Skripte → Start-Skill` mit Stift, getrennt vom ausführbaren
+`Installationsskript`; Abschluss über `Veröffentlichen`. Das Bild selbst und
+private Inhalte werden nicht im Repository abgelegt.
+
+Der bereitgestellte lokale Seitenlink leitete im Cloudbrowser auf die ChatGPT-
+Startseite um. Ein weiterer Browserlauf mit den konkreten UI-Bezeichnungen fand
+die Konfigurationsansicht auch über verfügbare Verwaltungs-/Pluginwege nicht.
+Angemeldete Sitzung vorhanden, Ursache der Zugriffsdifferenz nicht bestimmt;
+keine Tarif-/Kontobehauptung. Kein Start-Skill geändert, kein Entwurf gespeichert,
+keine Veröffentlichung. Exakter vorbereiteter Text weiterhin in `AGENTS.md`;
+manuelle Übernahme im bereits geöffneten richtigen Editor möglich.
+Browserläufe `4cd1fc8b-0216-4ced-a6f9-09e6bde90f84` und
+`bf600a4c-1ea2-40d3-aa12-8d3150d19270` beendet; Setupskript, Variablen,
+Signierwerte, Netzwerk und Betriebsdaten durch Codex unverändert.
 
 ## Quellkandidat und beobachtete Installation
 
