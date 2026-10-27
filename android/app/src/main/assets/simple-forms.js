@@ -120,7 +120,7 @@
  }
  function reveal(field){for(let n=field?.parentElement;n;n=n.parentElement)if(n.tagName==='DETAILS')n.open=true;}
  function install(){
-  if(document.body.dataset.revierReady!=='true'){setTimeout(install,40);return;}
+  if(document.body.dataset.revierReady!=='true'){document.addEventListener('hg:revier-ready',install,{once:true});return;}
   document.body.classList.add('simple-ui');let scheduled=false;const pending=new Set();
   const observer=new MutationObserver(records=>{
    for(const record of records){

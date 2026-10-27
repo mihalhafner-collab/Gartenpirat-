@@ -1,0 +1,597 @@
+{
+  "format": "hausgarten.startup-verification.v1",
+  "classification": "SYNTHETIC_TEST",
+  "date": "2026-10-27",
+  "base_source_commit": "9f3112ec8ade7796b442840ec169606ac83619bc",
+  "scope": "Bundled-page Cloud Chromium; no physical Pixel/native cold-start timing; no APK/signing/installation/business data",
+  "source_sha256": {
+    "mobile.html": "38c4b55d866337e050ba03f25920e6954a10c6ec2304fcbfdf24bd1250401ccd",
+    "startup-ui.js": "0d397c1fa47ee84f5e5344b4525b1d1df794489608f5c6c70baa240751b97993",
+    "design-concept.js": "1b19b27b043dfa9089453be8ec9283b8ae71ceaae07d7cf70b7047e3c07ae356",
+    "daily-usability.js": "76837329ebc33930fde69491c07b64474d7d1e848d9b85d5f1eb3b23bfb1d087",
+    "billing-ui.js": "77aa4fe446371148eb713c1591a557f47dbb01ae24a52a8b9ec5887b3fe128dc",
+    "workflow-ui.js": "1a9af36253e80f8b1b0b82098e3dbdeb394ec59555c6663a2a3cf4826e840a58",
+    "planning-ui.js": "37f218102a34e9e92f9469d10d77f47016e1ecbafa8e75f4f76490f05abe043a",
+    "navigation-status.js": "3ef50d8432db09e6b686d7a2d3b4f8afadcbfff136d10956b960f2ea50ec815b",
+    "field-ui.js": "132aee01f207f2cde432caaa00516a9e74af7012a8ab88bed81a7922841c6b83",
+    "revier-solo-ui.js": "fdc888567a7b025f73485775f9b07fba14cff2be56a71690599f1282e6eb518d",
+    "simple-forms.js": "40f6a12c7daa574fc89e731c61211759740db7642d946d0da8d9fdbb47a6afd3",
+    "record-actions.js": "fc81ac89b178d0e89f32e864601e17f79003c713e746e04d161a0f06b54e7554",
+    "local-invoice-ui.js": "4b28f780ef9f6964077422593c23db6dbc7d3db9bea88a8776e9f600610c4e8a",
+    "ui-mcp-actions.json": "92b4b9d89a3eaeb707f52137cfd525488e1fcb1e9bf5835a2111becf7b1b52dd"
+  },
+  "metrics": {
+    "before_navigation_median_ms": 1000.5,
+    "after_navigation_median_ms": 693.7000000029802,
+    "before_dom_median_ms": 555.4000000059605,
+    "after_dom_median_ms": 222.5,
+    "before_visible_unready_frames": [
+      32,
+      32,
+      32,
+      32,
+      32
+    ],
+    "after_visible_unready_frames": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "after": {
+    "classification": "SYNTHETIC_TEST",
+    "scope": "Cloud Chromium bundled-page timing only; no native/Pixel measurement",
+    "base_source_commit": "9f3112ec8ade7796b442840ec169606ac83619bc",
+    "mode": "after",
+    "samples": [
+      {
+        "navigation_to_ready_ms": 755.7000000029802,
+        "dom_to_ready_ms": 223.1000000089407,
+        "visible_unready_frames": [],
+        "first_visible_frame": {
+          "at": 755.5999999940395,
+          "complete": true,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Büro"
+          ]
+        },
+        "writes": 0,
+        "drafts": 0,
+        "styles": [
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/tokens.css",
+          "inline",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/invoice-editor.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-window.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/work-location.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/daily-usability.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/billing-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/gartenpirat.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/simple-forms.css",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-sync-review.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/personal-payment.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/customer-hub.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/offers-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/record-actions.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workflow-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/today-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-modern.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/revier-solo-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/local-invoice-ui.css",
+          "inline",
+          "inline",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workday-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/design-concept.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/field-ui.css",
+          "inline"
+        ]
+      },
+      {
+        "navigation_to_ready_ms": 663,
+        "dom_to_ready_ms": 222.5,
+        "visible_unready_frames": [],
+        "first_visible_frame": {
+          "at": 662.8999999910593,
+          "complete": true,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Büro"
+          ]
+        },
+        "writes": 0,
+        "drafts": 0,
+        "styles": [
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/tokens.css",
+          "inline",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/invoice-editor.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-window.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/work-location.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/daily-usability.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/billing-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/gartenpirat.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/simple-forms.css",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-sync-review.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/personal-payment.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/customer-hub.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/offers-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/record-actions.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workflow-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/today-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-modern.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/revier-solo-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/local-invoice-ui.css",
+          "inline",
+          "inline",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workday-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/design-concept.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/field-ui.css",
+          "inline"
+        ]
+      },
+      {
+        "navigation_to_ready_ms": 714.1999999880791,
+        "dom_to_ready_ms": 196.59999999403954,
+        "visible_unready_frames": [],
+        "first_visible_frame": {
+          "at": 714.0999999940395,
+          "complete": true,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Büro"
+          ]
+        },
+        "writes": 0,
+        "drafts": 0,
+        "styles": [
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/tokens.css",
+          "inline",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/invoice-editor.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-window.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/work-location.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/daily-usability.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/billing-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/gartenpirat.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/simple-forms.css",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-sync-review.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/personal-payment.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/customer-hub.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/offers-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/record-actions.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workflow-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/today-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-modern.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/revier-solo-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/local-invoice-ui.css",
+          "inline",
+          "inline",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workday-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/design-concept.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/field-ui.css",
+          "inline"
+        ]
+      },
+      {
+        "navigation_to_ready_ms": 693.7000000029802,
+        "dom_to_ready_ms": 219.90000000596046,
+        "visible_unready_frames": [],
+        "first_visible_frame": {
+          "at": 693.5999999940395,
+          "complete": true,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Büro"
+          ]
+        },
+        "writes": 0,
+        "drafts": 0,
+        "styles": [
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/tokens.css",
+          "inline",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/invoice-editor.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-window.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/work-location.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/daily-usability.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/billing-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/gartenpirat.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/simple-forms.css",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-sync-review.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/personal-payment.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/customer-hub.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/offers-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/record-actions.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workflow-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/today-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-modern.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/revier-solo-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/local-invoice-ui.css",
+          "inline",
+          "inline",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workday-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/design-concept.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/field-ui.css",
+          "inline"
+        ]
+      },
+      {
+        "navigation_to_ready_ms": 668.7000000029802,
+        "dom_to_ready_ms": 243.40000000596046,
+        "visible_unready_frames": [],
+        "first_visible_frame": {
+          "at": 668.6000000089407,
+          "complete": true,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Büro"
+          ]
+        },
+        "writes": 0,
+        "drafts": 0,
+        "styles": [
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/tokens.css",
+          "inline",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/invoice-editor.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-window.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/work-location.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/daily-usability.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/billing-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/gartenpirat.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/simple-forms.css",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-sync-review.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/personal-payment.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/customer-hub.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/offers-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/record-actions.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workflow-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/today-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-modern.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/revier-solo-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/local-invoice-ui.css",
+          "inline",
+          "inline",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workday-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/design-concept.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-ui.css",
+          "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/field-ui.css",
+          "inline"
+        ]
+      }
+    ],
+    "results": [
+      {
+        "name": "Five cold bundled-page starts use the same synthetic fixture and record every visible intermediate frame",
+        "result": "PASS"
+      },
+      {
+        "name": "Offline operation and missing backup configuration do not block presentation or write business rows",
+        "result": "PASS"
+      },
+      {
+        "name": "A local read error remains visible in the finished UI without becoming a startup or Drive gate",
+        "result": "PASS"
+      },
+      {
+        "name": "A retained work draft survives restart and conscious recovery from a stylesheet error with the same edit ID",
+        "result": "PASS"
+      },
+      {
+        "name": "An initial modal remains operable and no partially initialized page is exposed while waiting for it",
+        "result": "PASS"
+      },
+      {
+        "name": "A delayed module can finish after the slow-start notice without reload, fallback or business writes",
+        "result": "PASS"
+      },
+      {
+        "name": "Missing simple-forms.js keeps the legacy view inaccessible and offers conscious recovery",
+        "result": "PASS"
+      },
+      {
+        "name": "Missing field-ui.css keeps the legacy view inaccessible and offers conscious recovery",
+        "result": "PASS"
+      },
+      {
+        "name": "Missing startup-ui.js keeps the legacy view inaccessible and offers conscious recovery",
+        "result": "PASS"
+      },
+      {
+        "name": "A critical initializer exception fails visibly without showing the old controls",
+        "result": "PASS"
+      }
+    ],
+    "errors": [
+      "QA expected startup initializer failure"
+    ]
+  },
+  "existing_browser_suites": [
+    {
+      "suite": "architecture-workflow",
+      "result": "PASS",
+      "log_sha256": "233e005077e66e236eb1d653bc27ef11d2f7b9933d3bae0aef65b0cbdbda1d3c"
+    },
+    {
+      "suite": "billing-ui",
+      "result": "PASS",
+      "log_sha256": "81354ab12d82c6ad0d3ab9af7a3a26418069d06645ca1d17a4bebbe3cb83a587"
+    },
+    {
+      "suite": "daily-usability",
+      "result": "PASS",
+      "log_sha256": "6c670390633d4a043828779e73efe87b012480126c440f6c64eceb7b7a6b73e7"
+    },
+    {
+      "suite": "design-concept",
+      "result": "PASS",
+      "log_sha256": "605f82aaf877347c2b80d2ba48d0f74983bd74ea008a6d59cf5c360d90cc9863"
+    },
+    {
+      "suite": "design-v139",
+      "result": "PASS",
+      "log_sha256": "952e3ce249b190618ec84e61538462f6ba881d22506a66430277f055cfc5c4b0"
+    },
+    {
+      "suite": "equipment-maintenance-ui",
+      "result": "PASS",
+      "log_sha256": "d6002580aea3c982fd867708f57007e00b1e740fcff8085f1b579ff17983eacf"
+    },
+    {
+      "suite": "field-ui",
+      "result": "PASS",
+      "log_sha256": "dd60dad4b87fe6e7805a6c858c1fd324e055719f5172cec61c595f8f713e43f5"
+    },
+    {
+      "suite": "full-backup-drafts",
+      "result": "PASS",
+      "log_sha256": "d807bfc31ea9418a37d478c265881faea530451e39d7ab70cab10153948b27ac"
+    },
+    {
+      "suite": "full-backup-entry",
+      "result": "PASS",
+      "log_sha256": "65a2c979c44ac6e792f29f2616fc5f402e2399672bcb7556c757d157c29ca6a8"
+    },
+    {
+      "suite": "interaction-continuity",
+      "result": "PASS",
+      "log_sha256": "6827312164de2846a04584b35119060899dc75954d2641447b79b87d973d424c"
+    },
+    {
+      "suite": "invoice-issue-review-ui",
+      "result": "PASS",
+      "log_sha256": "34a0d65a6a4973d249d3d84f61ca026989c06f8794f35583a48fcffd602ec7cf"
+    },
+    {
+      "suite": "local-invoice-ui",
+      "result": "PASS",
+      "log_sha256": "c4424be118bb553ac9f171b47ec86115af96ee674d955452b5e68bacd2027c17"
+    },
+    {
+      "suite": "navigation-calendar",
+      "result": "PASS",
+      "log_sha256": "17a732e90caec8c307dbc28f1f3d38d84fb781f8ff89a2d3c05a507f34cee3ba"
+    },
+    {
+      "suite": "offers-photo-library",
+      "result": "PASS",
+      "log_sha256": "079c6bbe63b3a12dfc32408b1fa127d576de05a129848fa212adfe34df73684b"
+    },
+    {
+      "suite": "p3-documents",
+      "result": "PASS",
+      "log_sha256": "99238a22b46b0a256b8ecc98d9f737fb42d0961e867360519865b8e546b3a332"
+    },
+    {
+      "suite": "planning-carousel",
+      "result": "PASS",
+      "log_sha256": "892640eed9cb410819ab724f6b8b0a1d475b4de9056af12521a5259e3a9a27bd"
+    },
+    {
+      "suite": "planning-open-end",
+      "result": "PASS",
+      "log_sha256": "b9fe89035d86be7dcd4ef66f2762a68940c487638dd35691b7b1908557c6a186"
+    },
+    {
+      "suite": "planning-overview",
+      "result": "PASS",
+      "log_sha256": "76ae63e42fe930e85a79761ad6ddc614b9218f3ea4a7a3cd15d4a18a7411a289"
+    },
+    {
+      "suite": "planning-ui",
+      "result": "PASS",
+      "log_sha256": "0c6b3e6fa9d705f1421f323c932f239b7d9b8e7e0710231dbda11c84d5ee9f08"
+    },
+    {
+      "suite": "plant-library-integration",
+      "result": "PASS",
+      "log_sha256": "28e3825d3fcfb12506267d5e294905ca46e81532d937848fe4ef0ef272891e1a"
+    },
+    {
+      "suite": "revier-offer-flow",
+      "result": "PASS",
+      "log_sha256": "885589b9fd57fd93d700a298f628082cf2ba95b3efedfd18b844192152060dff"
+    },
+    {
+      "suite": "revier-solo-ui",
+      "result": "PASS",
+      "log_sha256": "05e33a60e5c8c3c320106c817f05e3ef92e545bb821acd2d9a1a44412c22ec5d"
+    },
+    {
+      "suite": "revier-timer-review",
+      "result": "PASS",
+      "log_sha256": "7bd173eaab2096ffd72ad9da953efb45c44bfed57c7aff7d82bc49dc64a8622d"
+    },
+    {
+      "suite": "saved-drafts-read-first",
+      "result": "PASS",
+      "log_sha256": "f60685f1760a80954dc22aeb099c6804d244063e0aba3fc3b78c77df2c532cea"
+    },
+    {
+      "suite": "settings-cleanup",
+      "result": "PASS",
+      "log_sha256": "d6f8efd1833da886de51afd326aebfa93e754a94591df5fb02314bae2f1e9f79"
+    },
+    {
+      "suite": "simple-design",
+      "result": "PASS",
+      "log_sha256": "bc27f98b048038d4637ae6a61e868965d95c1e144702ce04ff10bfe7214e7d05"
+    },
+    {
+      "suite": "simple-forms",
+      "result": "PASS",
+      "log_sha256": "893fa0460ffc8c9a7bf11cc0007403571064bd8a277d2a5cd4d897eed63e1272"
+    },
+    {
+      "suite": "timer-completion",
+      "result": "PASS",
+      "log_sha256": "1cfdcdf841a930aefe5f732c3942a47982409518ff8fda0a54af3daebe8b3843"
+    },
+    {
+      "suite": "timer-material-context-ui",
+      "result": "PASS",
+      "log_sha256": "a92cb6dd6bb2f7a8b3f1fe56f941bdd96b2757f8c7d8ceb9db56ab746f46acc4"
+    },
+    {
+      "suite": "ui-preview",
+      "result": "PASS",
+      "log_sha256": "f5268234b7d0f04f0ce8a8f18a991cd163fcf87dc679d044721c4322f6ed4884"
+    },
+    {
+      "suite": "visual-consistency",
+      "result": "PASS",
+      "log_sha256": "32c668838d6331fd7d22c6971a20da866320845c2578be3cb3a8c01d3e09c7ad"
+    },
+    {
+      "suite": "webview-hardening",
+      "result": "PASS",
+      "log_sha256": "46ad64b9cd28984036d555a884540b81257c51527f8a3d7bfeacabb919840aba"
+    },
+    {
+      "suite": "webview-syntax",
+      "result": "PASS",
+      "log_sha256": "edc99f1dce8994f72cb752abcbfa34851c121835a678c7c18b8ff927ea54d997"
+    },
+    {
+      "suite": "work-entry-photo-failure",
+      "result": "PASS",
+      "log_sha256": "621128f32e5812b4bd66bce18713beb6f9f1561a89ca687a0ed643a11c7bb883"
+    },
+    {
+      "suite": "work-location",
+      "result": "PASS",
+      "log_sha256": "e0822f901ff95b334ac2fd96e62ebf7c98f35838e62e30cd7c87fec373f4ed9b"
+    },
+    {
+      "suite": "worklog-window",
+      "result": "PASS",
+      "log_sha256": "27a724dfaf13204f810d93b8a792ccc92ac1575835772a1d32f9fbb343e6d5f3"
+    }
+  ],
+  "total_browser_suites": 37,
+  "ui_catalog": {
+    "tools": 169,
+    "actions": 212,
+    "new_business_tools": 0,
+    "parity_result": "PASS 1399 parity checks; semantic UI actions=212, MCP-covered=197, explicit platform/presentation groups=15, source tools=169",
+    "original_contract": "PASS"
+  },
+  "causes": [
+    "Fixed first-start waits50/120/180/240/260/280/500/700ms and conditional160ms",
+    "Styles originally inserted after initial rendering",
+    "Deferred billing code treated interactive as fully initialized and entered40ms retries",
+    "Moving a loaded stylesheet can temporarily remove CSSOM without another load event"
+  ],
+  "closure": [
+    "Actual prerequisites and dialogs remain guarded",
+    "Three final stylesheet positions match the original cascade",
+    "Revier ready after route rendering; simple forms notified by explicit readiness event",
+    "No automatic reload, business write or fallback to a legacy first view",
+    "Missing bootstrap retains static safe presentation and conscious reopen link",
+    "Initial modal remains operable; recovery refuses to interrupt an open editor",
+    "Stored draft survives CSS failure and user-confirmed reload with same session ID",
+    "Normal offline/no-backup/local-read-error still reaches UI readiness"
+  ],
+  "test_readiness_change": "Existing interactive tests wait for complete application readiness rather than one module flag; business assertions unchanged. Browser navigation deadline kept separate from interaction deadlines.",
+  "research": [
+    {
+      "app": "Signal Android",
+      "kind": "production app source, no installed-app benchmark",
+      "revision": "6e9dddc01f1b26e608ac683807c51e139c141ed2",
+      "urls": [
+        "https://github.com/signalapp/Signal-Android/blob/6e9dddc01f1b26e608ac683807c51e139c141ed2/app/src/main/java/org/thoughtcrime/securesms/util/AppStartup.java",
+        "https://github.com/signalapp/Signal-Android/blob/6e9dddc01f1b26e608ac683807c51e139c141ed2/benchmark/src/main/java/org/thoughtcrime/benchmark/StartupBenchmarks.kt"
+      ],
+      "observed": "Separate blocking, bounded-executor nonblocking, and post-render tasks; repeated cold-start benchmarks.500ms is a post-render background-start fallback, not a universal UI minimum."
+    },
+    {
+      "app": "AntennaPod",
+      "kind": "production app source, no installed-app benchmark",
+      "revision": "d3e41c6cb37c8e1a060b142686f818999de89859",
+      "urls": [
+        "https://github.com/AntennaPod/AntennaPod/blob/d3e41c6cb37c8e1a060b142686f818999de89859/app/src/main/java/de/danoeh/antennapod/ClientConfigurator.java"
+      ],
+      "observed": "Synchronized initialized guard and explicit registration of existing service interfaces; no claim that all initialization is asynchronous."
+    },
+    {
+      "app": "Now in Android",
+      "kind": "Google reference app, not a measured production comparison",
+      "revision": "2982e63cb691ad49cd009aab43dc206fee6699c2",
+      "urls": [
+        "https://github.com/android/nowinandroid/blob/2982e63cb691ad49cd009aab43dc206fee6699c2/app/src/main/kotlin/com/google/samples/apps/nowinandroid/MainActivity.kt",
+        "https://github.com/android/nowinandroid/blob/2982e63cb691ad49cd009aab43dc206fee6699c2/docs/ArchitectureLearningJourney.md"
+      ],
+      "observed": "Splash lifetime driven by UI state, lifecycle-aware collection and distinctUntilChanged, local repositories as display source."
+    }
+  ],
+  "research_application": "Applied readiness-based presentation and ordered existing initialization. Selective view updates/background image work/native profiling are further measurement candidates; no framework or business synchronization imported.",
+  "limits": [
+    "Android native window and Java/SQLite cold-start costs not measured",
+    "Physical Pixel UI/latency not tested",
+    "No APK delivery or productive acceptance",
+    "Business authority, invoice protection and restore gates unchanged"
+  ],
+  "privacy": {
+    "stage": "PREBUILD_ONLY",
+    "source_privacy": {
+      "status": "PASS",
+      "files": 2359,
+      "operational_seed_rows": 0
+    },
+    "workspace_privacy": {
+      "status": "PASS",
+      "files": 6178,
+      "includes_ignored_untracked": true,
+      "git_history": "SEPARATE_READONLY_AUDIT"
+    },
+    "artifact_privacy": "NOT_TESTABLE",
+    "secret_values_printed": false
+  }
+}

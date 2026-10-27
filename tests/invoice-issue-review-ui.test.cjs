@@ -37,7 +37,7 @@ const issueKey='hausgarten.invoice.issue.action.v1',form='#local-invoice-issue-f
     return original(name,raw);
    };
   });
-  await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href);await page.waitForFunction(()=>document.body.dataset.fieldReady==='true'&&window.LocalInvoiceUI&&window.RevierUI);
+  await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href);await page.waitForFunction(()=>document.documentElement.dataset.startup==='ready'&&document.body.dataset.fieldReady==='true'&&window.LocalInvoiceUI&&window.RevierUI);
   await page.evaluate(()=>{openPage('invoices');});
  }
  const check=async(name,action)=>{await fresh();await action();results.push({name,input:'Isolated qa_ snapshot/owner port and bundled WebView source assets',expected:name,actual:'Assertions passed',status:'PASS'});console.log('PASS '+name);};

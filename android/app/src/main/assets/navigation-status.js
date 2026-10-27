@@ -49,5 +49,5 @@
   document.addEventListener('touchend',e=>{const start=gesture;gesture=null;if(!start||e.changedTouches.length!==1||performance.now()-start.time>900)return;const t=e.changedTouches[0],dx=t.clientX-start.x,dy=t.clientY-start.y;if(Math.abs(dx)<48||Math.abs(dx)<Math.abs(dy)*1.6)return;suppressClickUntil=performance.now()+400;if(start.kind==='open'&&dx>0&&start.page===currentPage){e.stopImmediatePropagation();show();}else if(start.kind==='close'&&dx<0){e.stopImmediatePropagation();drawer.close();}else if(start.kind==='tabs'&&start.page===currentPage){const tabs=[...document.querySelectorAll('.customer-hub-tabs [data-customer-tab]')],index=tabs.findIndex(b=>b.getAttribute('aria-pressed')==='true'),next=tabs[index+(dx<0?1:-1)];if(next){e.stopImmediatePropagation();next.click();}}},{capture:true,passive:true});
   document.addEventListener('touchcancel',()=>gesture=null,{capture:true,passive:true});
  }
- window.StatusUI=Object.freeze({refresh:update});document.addEventListener('DOMContentLoaded',()=>setTimeout(init,260),{once:true});
+ window.StatusUI=Object.freeze({refresh:update});document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});
 })();

@@ -1,0 +1,1855 @@
+{
+  "classification": "SYNTHETIC_TEST",
+  "scope": "Cloud Chromium bundled-page timing only; no native/Pixel measurement",
+  "base_source_commit": "9f3112ec8ade7796b442840ec169606ac83619bc",
+  "mode": "before",
+  "samples": [
+    {
+      "navigation_to_ready_ms": 1187.2000000029802,
+      "dom_to_ready_ms": 574.2999999970198,
+      "visible_unready_frames": [
+        {
+          "at": 448.70000000298023,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 519.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 526.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 545.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 573.4000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 657.6000000089407,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 739,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 779.6000000089407,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 786.2999999970198,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 808.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 832.7000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 836.7999999970198,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 852.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 869,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 888,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 902.2999999970198,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 918.7000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 935.4000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 952.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 968.7999999970198,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 985.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 1002.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 1018.7999999970198,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 1035.7000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 1052.1000000089407,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 1068.9000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 1085.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 1102.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 1118.9000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 1135.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 1158,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Büro"
+          ]
+        },
+        {
+          "at": 1169.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Büro"
+          ]
+        }
+      ],
+      "first_visible_frame": {
+        "at": 448.70000000298023,
+        "complete": false,
+        "visible": true,
+        "labels": [
+          "Heute",
+          "Kunden & Gärten",
+          "Mehr"
+        ]
+      },
+      "writes": 0,
+      "drafts": 0,
+      "styles": [
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/tokens.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/invoice-editor.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-window.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/work-location.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/daily-usability.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/billing-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/gartenpirat.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/simple-forms.css",
+        "inline",
+        "inline",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-sync-review.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/personal-payment.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/customer-hub.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/offers-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/record-actions.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workflow-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/today-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-modern.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/revier-solo-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/local-invoice-ui.css",
+        "inline",
+        "inline",
+        "inline",
+        "inline",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workday-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/design-concept.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/field-ui.css",
+        "inline"
+      ]
+    },
+    {
+      "navigation_to_ready_ms": 1000.5,
+      "dom_to_ready_ms": 549.5,
+      "visible_unready_frames": [
+        {
+          "at": 328.59999999403954,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 386.40000000596046,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 392.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 404.70000000298023,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 422,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 485.29999999701977,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 534,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 574.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 584.4000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 614.4000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 619.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 636.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 650,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 666.7999999970198,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 683.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 700.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 716.5999999940395,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 736,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 750.0999999940395,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 767.2999999970198,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 783.4000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 800.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 816.7999999970198,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 833.5999999940395,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 850.2999999970198,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 867,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 883.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 900,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 916.7999999970198,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 933.5999999940395,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 950.4000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 966.7999999970198,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        }
+      ],
+      "first_visible_frame": {
+        "at": 328.59999999403954,
+        "complete": false,
+        "visible": true,
+        "labels": [
+          "Heute",
+          "Kunden & Gärten",
+          "Mehr"
+        ]
+      },
+      "writes": 0,
+      "drafts": 0,
+      "styles": [
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/tokens.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/invoice-editor.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-window.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/work-location.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/daily-usability.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/billing-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/gartenpirat.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/simple-forms.css",
+        "inline",
+        "inline",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-sync-review.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/personal-payment.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/customer-hub.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/offers-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/record-actions.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workflow-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/today-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-modern.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/revier-solo-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/local-invoice-ui.css",
+        "inline",
+        "inline",
+        "inline",
+        "inline",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workday-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/design-concept.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/field-ui.css",
+        "inline"
+      ]
+    },
+    {
+      "navigation_to_ready_ms": 991.2000000029802,
+      "dom_to_ready_ms": 560.2000000029802,
+      "visible_unready_frames": [
+        {
+          "at": 309.79999999701977,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 347.40000000596046,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 352.70000000298023,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 358.70000000298023,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 379.20000000298023,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 395.40000000596046,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 468.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 546,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 585,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 602.2999999970198,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 637.4000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 641.6000000089407,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 656.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 673.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 690.1000000089407,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 706.7000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 723,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 739.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 756.4000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 773.1000000089407,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 789.7000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 806.6000000089407,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 823,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 839.7000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 858.2999999970198,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 873.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 889.7999999970198,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 906.6000000089407,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 923.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 939.7999999970198,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 956.6000000089407,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 973,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Büro"
+          ]
+        }
+      ],
+      "first_visible_frame": {
+        "at": 309.79999999701977,
+        "complete": false,
+        "visible": true,
+        "labels": [
+          "Heute",
+          "Kunden & Gärten",
+          "Mehr"
+        ]
+      },
+      "writes": 0,
+      "drafts": 0,
+      "styles": [
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/tokens.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/invoice-editor.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-window.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/work-location.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/daily-usability.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/billing-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/gartenpirat.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/simple-forms.css",
+        "inline",
+        "inline",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-sync-review.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/personal-payment.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/customer-hub.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/offers-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/record-actions.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workflow-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/today-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-modern.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/revier-solo-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/local-invoice-ui.css",
+        "inline",
+        "inline",
+        "inline",
+        "inline",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workday-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/design-concept.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/field-ui.css",
+        "inline"
+      ]
+    },
+    {
+      "navigation_to_ready_ms": 994.3000000119209,
+      "dom_to_ready_ms": 555.4000000059605,
+      "visible_unready_frames": [
+        {
+          "at": 317.40000000596046,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 360.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 368.20000000298023,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 374.1000000089407,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 392.20000000298023,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 475.20000000298023,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 553.3000000119209,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 580.1000000089407,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 597.8000000119209,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 618.8000000119209,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 627.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 640.9000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 657.6000000089407,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 674.3000000119209,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 691.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 707.8000000119209,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 724.3000000119209,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 740.9000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 757.7000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 774.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 791.3000000119209,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 808.1000000089407,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 824.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 841.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 857.8000000119209,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 874.4000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 891.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 907.6000000089407,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 924.3000000119209,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 941,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 957.6000000089407,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 975.9000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Büro"
+          ]
+        }
+      ],
+      "first_visible_frame": {
+        "at": 317.40000000596046,
+        "complete": false,
+        "visible": true,
+        "labels": [
+          "Heute",
+          "Kunden & Gärten",
+          "Mehr"
+        ]
+      },
+      "writes": 0,
+      "drafts": 0,
+      "styles": [
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/tokens.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/invoice-editor.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-window.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/work-location.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/daily-usability.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/billing-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/gartenpirat.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/simple-forms.css",
+        "inline",
+        "inline",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-sync-review.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/personal-payment.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/customer-hub.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/offers-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/record-actions.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workflow-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/today-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-modern.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/revier-solo-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/local-invoice-ui.css",
+        "inline",
+        "inline",
+        "inline",
+        "inline",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workday-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/design-concept.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/field-ui.css",
+        "inline"
+      ]
+    },
+    {
+      "navigation_to_ready_ms": 1009.3000000119209,
+      "dom_to_ready_ms": 554.9000000059605,
+      "visible_unready_frames": [
+        {
+          "at": 304.30000001192093,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 366,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 375.20000000298023,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 389.80000001192093,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 414,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 415.70000000298023,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 502.40000000596046,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 601.3000000119209,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 624.4000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 629.3000000119209,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 632.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 654.8000000119209,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 665.6000000089407,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 682.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 699,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 715.7000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 732.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 749.1000000089407,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 766.4000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 783.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 799.3000000119209,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 815.7000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 832.5,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 849.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 865.9000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 882.4000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 899.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 915.9000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 932.6000000089407,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 949.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 965.9000000059605,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden & Gärten",
+            "Mehr"
+          ]
+        },
+        {
+          "at": 994.2000000029802,
+          "complete": false,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Büro"
+          ]
+        }
+      ],
+      "first_visible_frame": {
+        "at": 304.30000001192093,
+        "complete": false,
+        "visible": true,
+        "labels": [
+          "Heute",
+          "Kunden & Gärten",
+          "Mehr"
+        ]
+      },
+      "writes": 0,
+      "drafts": 0,
+      "styles": [
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/tokens.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/invoice-editor.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-window.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/work-location.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/daily-usability.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/billing-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/gartenpirat.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/simple-forms.css",
+        "inline",
+        "inline",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/order-sync-review.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/personal-payment.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/customer-hub.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/offers-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/record-actions.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workflow-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/today-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-modern.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/revier-solo-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/local-invoice-ui.css",
+        "inline",
+        "inline",
+        "inline",
+        "inline",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/workday-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/design-concept.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/planning-ui.css",
+        "http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/field-ui.css",
+        "inline"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "name": "Five cold bundled-page starts use the same synthetic fixture and record every visible intermediate frame",
+      "result": "PASS"
+    }
+  ],
+  "errors": []
+}

@@ -24,7 +24,7 @@ const root=path.resolve(__dirname,'..'),assets=path.join(root,'android/app/src/m
    }});
   });
   await page.goto(pathToFileURL(path.join(assets,'mobile.html')).href);
-  await page.waitForFunction(()=>document.body.dataset.fieldReady==='true');
+  await page.waitForFunction(()=>document.documentElement.dataset.startup==='ready'&&document.body.dataset.fieldReady==='true');
   await page.evaluate(()=>{openPage('settings-page');});
   await page.locator('#setting-garden-shortcut').check();
   await page.evaluate(()=>openPage('home'));

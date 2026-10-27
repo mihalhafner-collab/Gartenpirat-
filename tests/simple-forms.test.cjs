@@ -7,7 +7,7 @@ const {chromium}=require('./browser.cjs'),fixtureSource=require('./ui-fixture-so
  async function check(name,task){try{await task();results.push({name,result:'PASS'});}catch(e){results.push({name,result:'FAIL',error:e.stack});}console.log(results.at(-1));}
  try{
   await page.addInitScript({content:fixtureSource('daily-usability.test.cjs')});await page.addInitScript({content:fixtureSource('revier-solo-ui.test.cjs')});
-  await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href);await page.waitForFunction(()=>document.body.dataset.simpleReady==='true');
+  await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href);await page.waitForFunction(()=>document.documentElement.dataset.startup==='ready'&&document.body.dataset.simpleReady==='true');
   await check('Installing and repeatedly enhancing the whole UI never writes or creates a draft',async()=>{
    assert.equal(await page.evaluate(()=>writes.length+qaRevier.writes.length),0);assert.equal(await page.evaluate(()=>HGFormDrafts.list().length),0);
    const identity=await page.evaluate(()=>{const fields=[...document.querySelectorAll('input,select,textarea')];HGSimpleForms.enhance();HGSimpleForms.enhance();return fields.every(f=>f.isConnected&&[...document.querySelectorAll('input,select,textarea')].includes(f));});assert(identity);
@@ -53,7 +53,7 @@ const {chromium}=require('./browser.cjs'),fixtureSource=require('./ui-fixture-so
    await page.setViewportSize({width:360,height:840});await page.evaluate(()=>document.documentElement.style.fontSize='16px');await page.screenshot({path:'docs/verification/simple-visit-form-360.png'});
   });
   await check('Explicit discard removes the retained visit draft, including after reload',async()=>{
-   await page.locator('[data-revier-editor-discard]').click();assert.equal(await page.evaluate(()=>HGFormDrafts.list().filter(d=>d.kind==='visit').length),0);await page.reload();await page.waitForFunction(()=>document.body.dataset.simpleReady==='true');assert.equal(await page.evaluate(()=>HGFormDrafts.list().filter(d=>d.kind==='visit').length),0);assert.deepEqual(errors,[]);
+   await page.locator('[data-revier-editor-discard]').click();assert.equal(await page.evaluate(()=>HGFormDrafts.list().filter(d=>d.kind==='visit').length),0);await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.startup==='ready'&&document.body.dataset.simpleReady==='true');assert.equal(await page.evaluate(()=>HGFormDrafts.list().filter(d=>d.kind==='visit').length),0);assert.deepEqual(errors,[]);
   });
  }finally{await browser.close();}
  fs.writeFileSync('outputs/simple-forms-results.json',JSON.stringify({scope:'synthetic Cloud Chromium, not physical Pixel',results},null,2));if(results.some(r=>r.result==='FAIL'))process.exitCode=1;

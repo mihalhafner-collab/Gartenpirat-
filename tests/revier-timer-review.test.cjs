@@ -17,7 +17,7 @@ const fixtureSource=require('./ui-fixture-source.cjs');
    };
   });
   await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href);
-  await page.waitForFunction(()=>document.body.dataset.todayReady==='true');
+  await page.waitForFunction(()=>document.documentElement.dataset.startup==='ready'&&document.body.dataset.todayReady==='true');
   const check=async(name,run)=>{await run();results.push({name,result:'PASS'});console.log('PASS '+name);};
   await check('Unverified session shows review instead of pause/stop and opens without keyboard focus',async()=>{
    assert.equal(await page.locator('#workday-timer [data-session-action="pause"]').count(),0);

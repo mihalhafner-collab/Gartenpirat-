@@ -19,7 +19,7 @@ async function main(){
    window.AndroidSpeech={start:()=>{}};
   });
   await page.goto(pathToFileURL(path.resolve(__dirname,'../android/app/src/main/assets/mobile.html')).href);
-  await page.waitForFunction(()=>typeof openWorklogDetail==='function'&&document.body.dataset.revierReady==='true');
+  await page.waitForFunction(()=>typeof openWorklogDetail==='function'&&document.documentElement.dataset.startup==='ready'&&document.body.dataset.revierReady==='true');
   async function check(name,fn){try{await fn();results.push({name,result:'PASS'});}catch(e){results.push({name,result:'FAIL',error:e.message});}console.log(results.at(-1).result+' '+name+(results.at(-1).error?' '+results.at(-1).error:''));}
   await check('Deferred script initialises after dynamically created worklog page',async()=>{
    await page.locator('.revier-globalbar [data-open="more-page"]').click();await page.locator('#more-page [data-open="worklogs"]').click();

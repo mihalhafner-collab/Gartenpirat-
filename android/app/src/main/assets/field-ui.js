@@ -3,8 +3,7 @@
   'use strict';
   const get=id=>document.getElementById(id);
   function init(){
-    if(!get('settings-page')||!window.StatusUI||!get('entry')?.querySelector('.simple-primary')||document.querySelector('dialog[open]')){setTimeout(init,40);return;}
-    const style=document.createElement('link');style.rel='stylesheet';style.href='field-ui.css';style.onload=()=>{document.body.dataset.fieldReady='true';};document.head.append(style);
+    if(!get('settings-page')||!window.StatusUI||!get('entry')?.querySelector('.simple-primary')||!get('entry-billing-customer')||document.querySelector('dialog[open]')){setTimeout(init,40);return;}
     document.body.classList.add('field-ui');
     const gardenKey='hausgarten.ui.garden_shortcut.v1';let gardenShortcut=false;
     try{gardenShortcut=localStorage.getItem(gardenKey)==='true';}catch(_){/* A quiet overview is the default. */}
@@ -94,7 +93,7 @@
     const open=window.openPage;window.openPage=function(...args){const result=open(...args);projection();return result;};
     const render=window.render;window.render=function(...args){const result=render(...args);projection();return result;};
     const update=window.HGNavigation.update;window.HGNavigation=Object.freeze({update(){update();projection();}});
-    projection();
+    projection();document.body.dataset.fieldReady='true';
   }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(init,280),{once:true});
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});
 })();

@@ -120,6 +120,8 @@
     render();document.dispatchEvent(new Event('work-entry-fields-ready'));
   }
   function ready(){if(!get('more-page')||!get('entry-location')){setTimeout(ready,40);return;}init();}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(ready,160),{once:true});else ready();
+  // Deferred scripts run while readyState is already interactive, before the
+  // inline window initializer has run. Join the ordered DOM-ready tasks.
+  if(document.readyState!=='complete')document.addEventListener('DOMContentLoaded',()=>setTimeout(ready,0),{once:true});else ready();
   window.BillingUI={recipient,standard};
 })();

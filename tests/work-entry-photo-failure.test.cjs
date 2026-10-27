@@ -27,7 +27,7 @@ const {chromium}=require('./browser.cjs');
    window.AndroidSpeech={start:()=>{}};window.AndroidPhone={dial:()=>{},openMaps:()=>{}};
   });
   await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href,{waitUntil:'domcontentloaded',timeout:30000});
-  await page.waitForFunction(()=>document.body.dataset.fieldReady==='true'&&document.body.dataset.todayReady==='true');
+  await page.waitForFunction(()=>document.documentElement.dataset.startup==='ready'&&document.body.dataset.fieldReady==='true'&&document.documentElement.dataset.startup==='ready'&&document.body.dataset.todayReady==='true');
   await check('A photo failure after a successful work save preserves a retry without duplicating the work record',async()=>{
    await page.evaluate(()=>openPage('work-entry'));
    await page.locator('#customer').selectOption('qa_c1');

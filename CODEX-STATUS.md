@@ -6,6 +6,63 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Aktuell: Startkorrektur und Vergleichsrecherche
+
+Startablauf im Quellcode korrigiert: feste Erststartpausen von50–700ms entfernt,
+Abrechnungsfelder ausdrücklich hinter DOMContentLoaded eingeordnet, fertige
+Formulardarstellung an den Revier-Aufbau gebunden. Echte Abhängigkeits-/Dialog-
+prüfungen, Eingabe-/Foto-/Retryfristen und Fachgates bleiben erhalten. Die drei
+Produktionsstile laden früh; ihre bisherige endgültige Kaskadenreihenfolge bleibt
+erhalten. Sichtbar wird die fertige Bedienung mit Heute/Büro/Mehr. Ein kleiner
+Startzustand überbrückt den Aufbau. Das ist keine fachliche Freigabe und keine
+Abhängigkeit von Drive, Backup oder erfolgreichem Geschäftsdatensync.
+
+Langer Start darf später fertig werden. Fehlende Skripte/Stile oder ein kritischer
+Initialisierungsfehler zeigen eine verständliche Wiederöffnungsmöglichkeit;
+kein automatisches Reload oder Rückfall auf die alte Oberfläche. Auch ein fehlendes
+Startskript bleibt durch den statischen Startzustand geschützt. Vor bewusster
+Wiederöffnung muss ein offener Dialog abgeschlossen werden. Gesicherte Entwürfe
+und ihre IDs bleiben über Fehler und Reload erhalten. Fehler in späteren Abläufen
+reaktivieren keine Startsperre. Wiederherstellungsprüfung bleibt getrennt.
+
+Vergleich auf identischer synthetischer Fixture, je fünf frische Browserseiten:
+Median ab Navigation1000,5→693,7ms; ab DOMContentLoaded555,4→222,5ms.
+Sichtbare unfertige Zwischenframes32→0 je Lauf. Die externe Stilreihenfolge
+entspricht im Test exakt dem Ausgangsstand. Das sind Cloud-Chromium-Werte,
+keine Android-/Pixel-Kaltstartmessung. Native Startfenster, Java-/SQLite-Kosten
+und der tatsächliche Gewinn auf dem Pixel bleiben ungemessen.
+
+37 betroffene Browser-Prüfgruppen PASS, darunter die neue Startprüfung mit10
+Gegenfällen/Messfällen. Katalogparität und ursprüngliche Fachverträge PASS;
+unverändert169Tools und212semantische UI-Aktionen. Java-Fachregeln und native
+Quellen wurden in diesem Schritt nicht geändert. Die80 Java-Prüfgruppen des
+vorherigen Bedienungsstands bleiben dessen separat dokumentierter Nachweis.
+
+Aktuelle Privacy-Prüfung: Quelle2359Dateien und gesamter Worktree6178Dateien
+PASS, einschließlich ignorierter/unversionierter Dateien;0 Betriebsdaten-
+Startzeilen. Kein APK-Artefakt erzeugt oder abgenommen.
+
+Zehn neue Startprüffälle einschließlich fünf Messwiederholungen: normal, offline/
+Backup nicht eingerichtet, lokaler Lesefehler, offener Dialog, langsames Skript
+über acht Sekunden, fehlende Kernskripte/CSS/Startskript, Initialisierungsfehler
+und bewusste Wiederöffnung mit demselben erhaltenen Entwurf. Keine fachlichen
+Schreibvorgänge aus diesen Prüfungen. Betroffene Bedienungsregressionen sind
+gegen den tatsächlich fertigen UI-Zustand geprüft. Keine APK erstellt/signiert/
+installiert; keine Betriebsdaten oder produktive Geräteaktionen verwendet.
+
+Originalquellenvergleich, ausschließlich als Recherchematerial:
+
+| App / Quelle | Beobachteter Mechanismus | Bedeutung für unsere App |
+| --- | --- | --- |
+| [Signal – AppStartup](https://github.com/signalapp/Signal-Android/blob/6e9dddc01f1b26e608ac683807c51e139c141ed2/app/src/main/java/org/thoughtcrime/securesms/util/AppStartup.java) und [Startbenchmarks](https://github.com/signalapp/Signal-Android/blob/6e9dddc01f1b26e608ac683807c51e139c141ed2/benchmark/src/main/java/org/thoughtcrime/benchmark/StartupBenchmarks.kt) | Getrennte Pflicht-, Hintergrund- und nach dem Rendern ausgeführte Aufgaben; wiederholte echte Kaltstartmessungen. Die500ms-Frist betrifft nachgelagerte Aufgaben beim Hintergrundstart. | Fertigstellung an tatsächliche Voraussetzungen binden; Darstellung und native Kaltstartkosten getrennt messen. Native Profile erst nach Pixelmessung bewerten. |
+| [AntennaPod – ClientConfigurator](https://github.com/AntennaPod/AntennaPod/blob/d3e41c6cb37c8e1a060b142686f818999de89859/app/src/main/java/de/danoeh/antennapod/ClientConfigurator.java) | Zentraler, synchronisierter und gegen doppelte Ausführung geschützter Aufbau; Dienste werden über ihre bestehenden Schnittstellen registriert. | Klare Initialisierungsreihenfolge und einmaliger Abschluss. Keine neuen Dienste oder Synchronisationspfade übernehmen. |
+| [Now in Android – MainActivity](https://github.com/android/nowinandroid/blob/2982e63cb691ad49cd009aab43dc206fee6699c2/app/src/main/kotlin/com/google/samples/apps/nowinandroid/MainActivity.kt) und [Architektur](https://github.com/android/nowinandroid/blob/2982e63cb691ad49cd009aab43dc206fee6699c2/docs/ArchitectureLearningJourney.md), Google-Referenzapp | Startfenster richtet sich nach UI-Zustand; unveränderte Werte werden gefiltert; lokale Repositorydaten bestimmen die Anzeige. | Startdarstellung bis zur fertigen Oberfläche. Gezielte statt vollständiger Ansichtsaktualisierung bleibt ein nächster Messpunkt. |
+
+Keine Fremd-App installiert oder auf Geschwindigkeit verglichen, kein fremdes
+Framework integriert. Der vorhandene lokale Fach-/Datenaufbau bleibt erhalten.
+Quellbelege und Messdaten: `docs/verification/startup-before-2026-10-27.json`
+und `docs/verification/startup-2026-10-27.json`.
+
 ## Aktuell: einheitliche Bedienung im Quellcode
 
 Nach der gezeigten Beispielmaske wurde die appweite Umsetzung ausdrücklich
@@ -59,12 +116,11 @@ Pixel-Abnahme bleibt offen. Keine neue APK, Signierung, Installation oder
 produktive Datenprüfung. Der frühere statische Bildschirm ist als Entwurf erhalten,
 die neuen Browserbilder zeigen die echte geänderte Oberfläche mit Testdaten.
 
-Startverzögerung bislang nur untersucht, nicht behoben: feste Startpausen und
-nachgeladene Stile lassen die alte Oberfläche sichtbar. Drei synthetische
-Browserläufe benötigen539/540/563ms ab DOMContentLoaded bis Revier-Ready;
-29–33 sichtbare Zwischenframes. Der konkrete Änderungsplan steht im bestehenden
-Auftrag. Keine native oder physische Pixel-Zeitmessung und noch keine
-Beschleunigung im App-Code vorgenommen.
+Die zuvor nur untersuchte Startverzögerung ist im aktuellen Quellstand korrigiert;
+Messung, Gegenfälle und Grenzen stehen im vorangestellten Startabschnitt.
+Die früheren539/540/563ms ab DOMContentLoaded waren ein historischer Vorlauf
+vor der appweiten Bedienungsvereinheitlichung; der neue Vergleich nutzt denselben
+jüngeren Ausgangsstand9f3112e und dieselbe Fixture vor/nach der Startkorrektur.
 
 ## Aktuell: Gerätewartung und Heute-Ansicht – noch nicht gebaut
 

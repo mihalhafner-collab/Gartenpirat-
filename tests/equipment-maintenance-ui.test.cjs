@@ -45,7 +45,7 @@ const {chromium}=require('./browser.cjs'),fixtureSource=require('./ui-fixture-so
     return good(result);
    };
   });
-  const ready=async()=>page.waitForFunction(()=>document.body.dataset.revierReady==='true');
+  const ready=async()=>page.waitForFunction(()=>document.documentElement.dataset.startup==='ready'&&document.body.dataset.revierReady==='true');
   const gear=async()=>{await page.evaluate(()=>openPage('revier-equipment'));await page.locator('#revier-equipment [data-revier-detail=equipment]').click();};
   const check=async(name,run)=>{try{await run();results.push({name,result:'PASS'});console.log('PASS '+name);}catch(error){console.error('UI_STATE '+JSON.stringify(await page.evaluate(()=>({currentPage,visible:[...document.querySelectorAll('.page')].filter(n=>getComputedStyle(n).display!=='none').map(n=>n.id),drafts:HGFormDrafts.list().map(d=>({kind:d.kind,pending:!!d.pending})),alert:document.querySelector('#revier-editor [role=alert]')?.textContent,ancestors:(()=>{const out=[];let n=document.querySelector('[data-revier-editor-discard]');while(n){const css=getComputedStyle(n),r=n.getBoundingClientRect();out.push({tag:n.tagName,id:n.id,cls:n.className,display:css.display,visibility:css.visibility,width:r.width,height:r.height});n=n.parentElement;}return out;})()}))));throw error;}};
   const submit=async()=>{await page.locator('#revier-form [type=submit]').click();await page.waitForFunction(()=>currentPage==='revier-equipment-detail');};

@@ -181,7 +181,6 @@
     if(action==='photo'){openPhotoViewer(id);return;}
   }
   function init(){
-    const css=document.createElement('link');css.rel='stylesheet';css.href='design-concept.css';document.head.append(css);
     window.openStoredPhoto=(id,ids)=>{const rows=new Map(photos().map(p=>[p.id,p]));openPhotoViewer(id,ids?ids.map(id=>rows.get(id)).filter(Boolean):[...rows.values()]);};
     const page=document.createElement('section');page.id='customer-profile-page';page.className='page';page.innerHTML='<div class="page-head"><button type="button" class="back" aria-label="Zurück zur Kundenliste">‹</button><h2>Kundenakte</h2></div><div id="design-profile-content"></div><footer class="design-profile-footer"><button type="button" class="primary" data-design-action="edit">Kundendaten bearbeiten</button></footer>';document.querySelector('main.app').append(page);
     document.addEventListener('change',event=>{if(event.target.id==='design-documentation-filter'&&currentPage==='customer-profile-page'){documentationFilter=event.target.value;profileContent();}});
@@ -435,5 +434,5 @@
     document.body.dataset.designVersion='1.39';
     render();
   }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(init,50),{once:true});
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});
 })();

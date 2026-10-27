@@ -74,5 +74,5 @@
   const back=window.handleAndroidBack;window.handleAndroidBack=()=>{if(document.getElementById('record-action-dialog')?.open){close();return true;}return back();};
  }
  window.HGRecordActions=Object.freeze({show,reference});
- document.addEventListener('DOMContentLoaded',()=>setTimeout(init,240),{once:true});
+ document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});
 })();

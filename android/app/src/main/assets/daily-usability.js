@@ -84,5 +84,5 @@
     document.addEventListener('visibilitychange',refresh);window.addEventListener('focus',refresh);
     document.body.dataset.usabilityVersion='1.41';updateSettings();
   }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(install,120),{once:true});
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(install,0),{once:true});
 })();

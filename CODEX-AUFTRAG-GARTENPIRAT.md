@@ -1,5 +1,50 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Neueste Priorität: App-Start beschleunigen und Vergleichsrecherche
+
+Nutzer beauftragt den bereits untersuchten Startablauf jetzt ausdrücklich zur
+Umsetzung; parallel belegte Ansätze anderer Apps für flüssige Bedienung recherchieren.
+Vorher/nachher am aktuellen Quellstand mit denselben synthetischen Daten messen.
+Cloud-Browserwerte sind keine Pixel-/Android-Kaltstartmessung. Keine APK oder
+Installation aus diesem Auftrag ableiten. Bestehende vereinfachte Bedienung erhalten.
+
+Ergänzter Ursachen-/Gegenpfadplan: Auch die160ms der Abrechnungsfelder,240ms
+der Datensatzaktionen und700ms der lokalen Rechnungsdarstellung prüfen. Nur deren
+feste Erststartpausen auf den nächsten Ereignisumlauf verkürzen; echte Voraussetzungen,
+Draft-/Medien-/Retryfristen und Autoritätsgates behalten. Abrechnungsfelder müssen
+vor der Arbeitsmaske vorhanden sein. Die frühere doppelte0ms-Initialisierung von
+Angeboten/Unternehmenseinstellungen darf vollständig fertig werden.
+
+`startup-ui.js` mit kleinem statischem Startzustand in `mobile.html`: erst die
+fertige Bedienoberfläche zeigen; Initialisierungs-/Gestaltungsfehler sichtbar
+behandeln. Stile früh laden und ihre bisherige endgültige Reihenfolge erhalten,
+auch gegenüber nachträglichen Inline-Stilen. Bereits vorhandene Startdialoge bleiben
+bedienbar; keine Dialogschutzprüfung überspringen. Langer Start darf später
+erfolgreich enden. Bewusstes erneutes Öffnen führt keinen Geschäftsvorgang aus
+und verwirft keine Daten automatisch. Datenlesefehler, fehlendes Backup und
+nicht erreichbares Drive dürfen keine neue fachliche Startsperre werden.
+
+Zusätzlich gefundene Ursache: ein defer-Skript sieht bereits readyState
+„interactive“, obwohl die Window-Initialisierung noch aussteht. Abrechnungsfelder
+deshalb ausdrücklich hinter DOMContentLoaded einordnen statt früh in den40ms-
+Wiederholungsweg zu fallen. Nach dem Umordnen bereits geladener Stil-Links kann
+deren CSSOM kurz fehlen, ohne ein weiteres Load-Ereignis; echte Verfügbarkeit
+bis zur Bereitschaft weiter beobachten. Kein zeitgesteuertes Freigeben.
+
+Fertigstellung der vereinfachten Formulare an die tatsächliche fertige Revier-
+Darstellung binden. Startbereitschaft ist nur ein Präsentationszustand, keine
+fachliche Freigabe. Restore-/Beleg-/Migrationsschutz bleibt unverändert.
+Gegenprüfung: Normalstart, Neustart, verzögerte/fehlende Skripte und CSS,
+Startdialog, Lesefehler, offline/kein Backup, Draft-Erhalt, keine Writes,
+erste sichtbare Ansicht und bisherige Darstellung/Kataloge. Relevante bestehende
+Browser-/Vertragsregressionen, Privacy und exakten GitHub-Read-back ausführen.
+Rollback betrifft nur Start-/Präsentationsquellen, keine Geschäftsdaten.
+
+Vergleichsrecherche ist Quellenmaterial: öffentliche Originalquellen mit festem
+Quellstand nennen, beobachteten Mechanismus und übertragbare Idee unterscheiden.
+Keine fremde Architektur oder deren Geschäftssynchronisation übernehmen und keine
+unbelegte Geschwindigkeitsbehauptung über Fremd-Apps oder den Pixel formulieren.
+
 ## Neueste Priorität: appweit einheitliche, einfache Bedienung umsetzen
 
 Nach gezeigter Beispielmaske ausdrücklich beauftragt: den vereinfachten

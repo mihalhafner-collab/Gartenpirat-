@@ -93,5 +93,5 @@
   document.addEventListener('toggle',event=>{const target=event.target;if(!target.matches?.('details.workflow-options,details.photo-more')||!target.open)return;const scope=target.closest('.page,dialog');scope?.querySelectorAll('details.workflow-options[open],details.photo-more[open]').forEach(d=>{if(d!==target)d.open=false;});},true);
  }
  window.PhotoLibraryUI=Object.freeze({refresh,open:id=>window.openStoredPhoto?.(id,visible.map(p=>p.id))});
- document.addEventListener('DOMContentLoaded',()=>setTimeout(init,120),{once:true});
+ document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});
 })();
