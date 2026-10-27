@@ -15,10 +15,11 @@
       "remote_readback": "PASS",
       "drive_zip_id": "14PwvVo4DGTa9r7zh-OYxKucKzjuWxqsh",
       "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB",
-      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_REACHABLE_FROM_MAIN",
       "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
-      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
-      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
+      "version_reference_status": "REMOVED_PRE_REVIER_SOLO_ORIGINAL_COMMIT_PRESERVED",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json",
+      "version_tag_readback": "NOT_FOUND_AFTER_USER_AUTHORIZED_RETIREMENT"
     },
     {
       "version": "1.54.1",
@@ -34,10 +35,11 @@
       "remote_readback": "PASS",
       "drive_zip_id": "1C945yeV6Z0SgQQMBqK-GFtJS2a0zrIFW",
       "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB",
-      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_REACHABLE_FROM_MAIN",
       "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
-      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
-      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
+      "version_reference_status": "REMOVED_PRE_REVIER_SOLO_ORIGINAL_COMMIT_PRESERVED",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json",
+      "version_tag_readback": "NOT_FOUND_AFTER_USER_AUTHORIZED_RETIREMENT"
     },
     {
       "version": "1.53.1",
@@ -53,10 +55,11 @@
       "drive_readback": "HISTORICAL_EXPORT_RECEIPT; SOURCE_BYTES_VERIFIED_IN_GIT",
       "git_sha": "dc394b5796fbcb268533a8d8951fe05a829956df",
       "remote_readback": "PASS",
-      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_REACHABLE_FROM_MAIN",
       "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
-      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
-      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
+      "version_reference_status": "REMOVED_PRE_REVIER_SOLO_ORIGINAL_COMMIT_PRESERVED",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json",
+      "version_tag_readback": "NOT_FOUND_AFTER_USER_AUTHORIZED_RETIREMENT"
     }
   ],
   "candidates": [
@@ -70,7 +73,6 @@
       "original_zip_sha256": "99fba5a127d16211cbb7b62ffdac229321f35c21883aaec1dd63cf008e3b5e18",
       "apk_sha256": "874908a246f75a3c91f7399cf2e314364b9469f80843644ea340cf8c543b80c1",
       "drive_zip_id": "1GZMxQpfGHwOF385_I5yyzyN0z5NQqFXh",
-      "drive_apk_id": "1aqJIqC4oZXAym0QRYkE9pDFHeA3Yy2Kr",
       "drive_provenance_id": "1YwVTmqP-HFSSU3JYXp8e1h9woNCAzb9s",
       "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; original source bytes and actual APK verified in Cloud",
       "source_files": 1220,
@@ -78,10 +80,13 @@
       "remote_readback": "PASS",
       "device_acceptance": "NOT EXECUTED",
       "drive_folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
-      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_REACHABLE_FROM_MAIN",
       "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
-      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
-      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
+      "version_reference_status": "REMOVED_PRE_REVIER_SOLO_ORIGINAL_COMMIT_PRESERVED",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json",
+      "version_tag_readback": "NOT_FOUND_AFTER_USER_AUTHORIZED_RETIREMENT",
+      "historical_drive_apk_id": "1aqJIqC4oZXAym0QRYkE9pDFHeA3Yy2Kr",
+      "drive_apk_availability": "PERMANENTLY_REMOVED_USER_AUTHORIZED_PRE_REVIER_RETIREMENT"
     },
     {
       "version": "1.54.3",
@@ -93,7 +98,6 @@
       "original_zip_sha256": "17af4375bdcf14352b93fdfcc7a6093ced4b5f7464422cfe9c45533d2dc45040",
       "apk_sha256": "4f08b012bfd2c38259974c94b3071e218962d330f70ccb332725c77d25ec2814",
       "drive_zip_id": "10o0nWq_EK2qAF4zQHj_U2jev_4s6C5qT",
-      "drive_apk_id": "1UHmeEkSO6k0-zU3i6DM53gjgyHDL-fwk",
       "drive_folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
       "native_cloud_acceptance": "158 PASS;91->92/fresh_isolated/native_ui/final verify PASS",
       "pixel_installation": "NOT EXECUTED",
@@ -102,10 +106,13 @@
       "drive_readback": "18 source files SHA256_BYTES; original ZIP/APK COMPLETE_STREAM_SIZE_ONLY",
       "historical_drive_folder_id": "1pzAVZQcxcvYEqbEYYzZXKg7cNm0qllw_",
       "drive_folder_id_availability": "AVAILABLE_PRIVATE_APK_PARENT_AFTER_CONSOLIDATION;HISTORICAL_PARENT_REMOVED",
-      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_REACHABLE_FROM_MAIN",
       "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
-      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
-      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
+      "version_reference_status": "REMOVED_PRE_REVIER_SOLO_ORIGINAL_COMMIT_PRESERVED",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json",
+      "version_tag_readback": "NOT_FOUND_AFTER_USER_AUTHORIZED_RETIREMENT",
+      "historical_drive_apk_id": "1UHmeEkSO6k0-zU3i6DM53gjgyHDL-fwk",
+      "drive_apk_availability": "PERMANENTLY_REMOVED_USER_AUTHORIZED_PRE_REVIER_RETIREMENT"
     },
     {
       "version": "1.54.4",
@@ -117,7 +124,6 @@
       "original_zip_sha256": "e4b80e526d57aace9193c20fa16d7e0c8b87c7abf54dc2f80a850091e2246383",
       "apk_sha256": "16c7ed9dcbcc801002055d9646238398551ec69d8c797a039aa52eea50faa99d",
       "drive_zip_id": "1lB4r1dg6zrB8pvTSXcIJ7s1HDecda3Bd",
-      "drive_apk_id": "17Pts6yNjNHiKyRqhJHaqAGarWJPZBnfA",
       "drive_folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
       "development_export_folder_id": null,
       "native_cloud_acceptance": "159PASS; T+14 runtime; update/fresh/UI/final snapshot PASS",
@@ -130,10 +136,13 @@
       "drive_folder_id_availability": "AVAILABLE_PRIVATE_APK_PARENT_AFTER_CONSOLIDATION;HISTORICAL_PARENT_REMOVED",
       "historical_development_export_folder_id": "1kE3pqZns1XOrPSM7SZ2V7sMVAEIdFOjv",
       "development_export_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
-      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_REACHABLE_FROM_MAIN",
       "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
-      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
-      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
+      "version_reference_status": "REMOVED_PRE_REVIER_SOLO_ORIGINAL_COMMIT_PRESERVED",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json",
+      "version_tag_readback": "NOT_FOUND_AFTER_USER_AUTHORIZED_RETIREMENT",
+      "historical_drive_apk_id": "17Pts6yNjNHiKyRqhJHaqAGarWJPZBnfA",
+      "drive_apk_availability": "PERMANENTLY_REMOVED_USER_AUTHORIZED_PRE_REVIER_RETIREMENT"
     },
     {
       "version": "1.54.5",
@@ -146,7 +155,6 @@
       "original_zip_sha256": "d1d580773d470273ea803f9f7a6461ed305c3882c136f3ef60587458c1940dde",
       "apk_sha256": "975ce32ca7e52338182c0f743044afbd57edeeaa9d376bd31292b1060809cc3c",
       "drive_zip_id": "189LoXjhKV9a0GhsnCYpHfsL_60e5wBpL",
-      "drive_apk_id": "1pwo3kz2shKIyPnXYV0KbL9Szyvya5OS8",
       "drive_folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
       "development_export_folder_id": null,
       "remote_readback": "PASS exact source branch and immutable tag",
@@ -163,10 +171,13 @@
       "development_export_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
       "historical_drive_provenance_id": "1QKvtz_IY9N-vg3WYoOAmdSqpjy20X1lY",
       "drive_provenance_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
-      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_REACHABLE_FROM_MAIN",
       "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
-      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
-      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
+      "version_reference_status": "REMOVED_PRE_REVIER_SOLO_ORIGINAL_COMMIT_PRESERVED",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json",
+      "version_tag_readback": "NOT_FOUND_AFTER_USER_AUTHORIZED_RETIREMENT",
+      "historical_drive_apk_id": "1pwo3kz2shKIyPnXYV0KbL9Szyvya5OS8",
+      "drive_apk_availability": "PERMANENTLY_REMOVED_USER_AUTHORIZED_PRE_REVIER_RETIREMENT"
     },
     {
       "version": "1.54.6",
@@ -179,7 +190,6 @@
       "original_zip_sha256": "269877afd4fd6aefa4135b51318ef9f44e4465d75d49aac7166c736aa6563c2e",
       "apk_sha256": "d54e6f50b8cab37088768c79caebf6cea0e5038959aeb85063c5b77b4a8db112",
       "drive_zip_id": "1Y8xLj_5d08RZjUeoqmM5f2rWY1D24QWc",
-      "drive_apk_id": "1mNMctVtasftStxWfwZboVv6chkQ_CbXv",
       "drive_folder_id": "1qV4B9lXj0P35DSsuIzTD9hIMWgx34bef",
       "development_export_folder_id": null,
       "remote_readback": "PASS exact original branch/tag",
@@ -194,10 +204,13 @@
       "development_export_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
       "historical_drive_verification_id": "1F_vDQOOnO_W84u879Penqi9VWzcmT_kp",
       "drive_verification_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
-      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_REACHABLE_FROM_MAIN",
       "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
-      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
-      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
+      "version_reference_status": "REMOVED_PRE_REVIER_SOLO_ORIGINAL_COMMIT_PRESERVED",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json",
+      "version_tag_readback": "NOT_FOUND_AFTER_USER_AUTHORIZED_RETIREMENT",
+      "historical_drive_apk_id": "1mNMctVtasftStxWfwZboVv6chkQ_CbXv",
+      "drive_apk_availability": "PERMANENTLY_REMOVED_USER_AUTHORIZED_PRE_REVIER_RETIREMENT"
     },
     {
       "version": "1.54.7",
@@ -210,7 +223,6 @@
       "original_zip_sha256": "ff8c5708a71a1566b89cc8e6dfe40434a6cf63c98463fb12f6be4df9e3ebfdfd",
       "apk_sha256": "e4cc718fc51ed7b8f47f089ea582da52961c09d413267c7fcf8df06e836a2a25",
       "drive_zip_id": "154LI5YHV11KiD-evgy2OoPwzjcuvfYTU",
-      "drive_apk_id": "1YOT0voQQZ_ntiA_O9jBWVr3ifR8AnBQ8",
       "drive_folder_id": "1Juu_8VdoAdLC-vkoQVPrx_K2Qs4RDKxG",
       "source_folder_id": null,
       "development_export_folder_id": null,
@@ -228,10 +240,13 @@
       "development_export_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
       "historical_drive_verification_id": "1UZJh4BhsZGZWez1hiLRo2w_X9skKKZZf",
       "drive_verification_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
-      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_REACHABLE_FROM_MAIN",
       "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
-      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
-      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
+      "version_reference_status": "REMOVED_PRE_REVIER_SOLO_ORIGINAL_COMMIT_PRESERVED",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json",
+      "version_tag_readback": "NOT_FOUND_AFTER_USER_AUTHORIZED_RETIREMENT",
+      "historical_drive_apk_id": "1YOT0voQQZ_ntiA_O9jBWVr3ifR8AnBQ8",
+      "drive_apk_availability": "PERMANENTLY_REMOVED_USER_AUTHORIZED_PRE_REVIER_RETIREMENT"
     },
     {
       "version": "1.54.8",
@@ -244,7 +259,6 @@
       "original_zip_sha256": "eb2244f707fe620c32a6168a92f2c2bfb0f3f97f9d47bff5f1c54e25cb18da3d",
       "apk_sha256": "7e394a7603d79ffb264e1f113c122c1e1700453a82a3e9be521831a425df4e48",
       "drive_zip_id": "18z0qPxs27gc_J7JmfFMx-QDZQydeSbqF",
-      "drive_apk_id": "19w2tUJRWlKr_0R37IU5jRkP34sCl6CTc",
       "drive_folder_id": "1ZPwhieYXLRDwqdaSoY_SkqdgPffsN341",
       "source_folder_id": null,
       "development_export_folder_id": null,
@@ -266,10 +280,13 @@
       "drive_verification_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
       "historical_drive_report_id": "13butggb-KowkX0uVrOsB_dO14UYVzrNa",
       "drive_report_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
-      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_REACHABLE_FROM_MAIN",
       "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
-      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
-      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
+      "version_reference_status": "REMOVED_PRE_REVIER_SOLO_ORIGINAL_COMMIT_PRESERVED",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json",
+      "version_tag_readback": "NOT_FOUND_AFTER_USER_AUTHORIZED_RETIREMENT",
+      "historical_drive_apk_id": "19w2tUJRWlKr_0R37IU5jRkP34sCl6CTc",
+      "drive_apk_availability": "PERMANENTLY_REMOVED_USER_AUTHORIZED_PRE_REVIER_RETIREMENT"
     },
     {
       "version": "1.54.9",
@@ -290,7 +307,6 @@
       "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
       "drive_zip_id": "1IgSMAJogZFA0rbxQCGG9JbkW4wYljQ-q",
       "drive_review_zip_id": null,
-      "drive_apk_id": "1SXrVaoq_rsGIKo57XeDu0CQDJXB5bepl",
       "drive_visuals_id": "1p0XemiDV0V5-nvaFsSQCFcib1wtB0uPL",
       "drive_folder_id": "1k69XGlrCNASSl68dzWwUoaRTJeVc9ohm",
       "source_folder_id": null,
@@ -312,10 +328,13 @@
       "source_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
       "historical_development_export_folder_id": "1sNafTvi2E2RtlfGpSiR_O3yo5D_IlN4u",
       "development_export_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
-      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_REACHABLE_FROM_MAIN",
       "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
-      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
-      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
+      "version_reference_status": "REMOVED_PRE_REVIER_SOLO_ORIGINAL_COMMIT_PRESERVED",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json",
+      "version_tag_readback": "NOT_FOUND_AFTER_USER_AUTHORIZED_RETIREMENT",
+      "historical_drive_apk_id": "1SXrVaoq_rsGIKo57XeDu0CQDJXB5bepl",
+      "drive_apk_availability": "PERMANENTLY_REMOVED_USER_AUTHORIZED_PRE_REVIER_RETIREMENT"
     },
     {
       "version": "1.55.0",
@@ -420,7 +439,7 @@
       "source_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
       "current_source_storage": "GITHUB_IMMUTABLE_TAG",
       "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
-      "version_reference_status": "RETAIN"
+      "version_reference_status": "RETAINED_ORIGINAL_REMOTE_READBACK_VERIFIED"
     },
     {
       "version": "1.55.1",
@@ -469,7 +488,7 @@
       "source_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
       "current_source_storage": "GITHUB_IMMUTABLE_TAG",
       "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
-      "version_reference_status": "RETAIN"
+      "version_reference_status": "RETAINED_ORIGINAL_REMOTE_READBACK_VERIFIED"
     }
   ],
   "last_drive_cleanup": {
@@ -523,8 +542,13 @@
   },
   "version_retention": {
     "minimum_build_inclusive": 99,
-    "status": "PRE99_TAG_RETIREMENT_PLANNED_ORIGINAL_METADATA_PRESERVED",
+    "status": "PRE99_TAGS_REMOVED_SOURCE_COMMITS_REACHABLE_FROM_MAIN",
     "evidence": "docs/verification/revier-version-retention-2026-10-27.json",
-    "release_approval_unchanged": true
+    "release_approval_unchanged": true,
+    "deleted_tags": 11,
+    "retained_original_tags": [
+      "source/v1.55.0-build105",
+      "source/v1.55.1-build106"
+    ]
   }
 }

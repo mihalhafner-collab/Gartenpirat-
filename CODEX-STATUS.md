@@ -15,16 +15,21 @@ Baum entfernt. Aktuelle Quellen, Installation und offene Gates bleiben getrennt.
 
 **Nutzerklärung27.10.:** APKs ab Revier Solo behalten. Grenze:1.55.0/Build99
 (`00974518426e1a2bdfcb07c5eba1223071a49ca3`).16 ältere administrative APKs
-(536.600.591Bytes) und elf Versions-Tags88–98 sind zur Entfernung klassifiziert.
-Vor Taglöschung werden drei eigenständige Originalarchiv-Commits88–90 durch
-einen reinen Historienmerge erhalten; der aktuelle Dateibaum bleibt unverändert.
+(536.600.591Bytes) endgültig gelöscht: jede ursprüngliche ID liefert NOT_FOUND;
+keine Ziel-ID mehr in den geprüften APK-Ordnern. Elf Versions-Tags88–98 lokal
+und auf GitHub entfernt;105/106 samt ursprünglichen Tagobjekten unverändert.
+Drei eigenständige Originalarchiv-Commits88–90 vorab durch reinen Historienmerge
+`2813cd0972d6fb649cccd328ad93eb3feee83365` erhalten, identischer aktueller
+Dateibaum. Alle alten Original-Commits über main erreichbar; kein History-Rewrite.
 APKs105/106 und ihre vorhandenen Teile, App-Backups sowie einzigartige
 Pflanzenarbeit bleiben erhalten. Keine neue Release-/Migrationsfreigabe.
 
-**Cloud-Starttext offen:** Nutzer hat die sichere ChatGPT-Anmeldung im Cloudbrowser
-beauftragt; Anmeldeseite bereitgestellt, gespeichertes Profil noch ausstehend.
-Der Umgebungs-Connector ist weiterhin nur lesend. Der fertige Starttext steht
-in `AGENTS.md`; eine tatsächliche Veröffentlichung wird getrennt nachgewiesen.
+**Cloud-Starttext blockiert:** Anmeldeseite auf Nutzerwunsch bereitgestellt.
+Nutzer meldet: „anmelden über tinyfish nicht möglich“. Keine bestätigte ChatGPT-
+Anmeldung; Umgebungs-Connector weiterhin nur lesend. Starttext in `AGENTS.md`
+vorbereitet, aber NICHT in der veröffentlichten Cloud-Konfiguration geändert.
+Übernahme erfordert einen funktionierenden Konfigurationszugriff oder manuelles
+Einfügen dieses Texts in die bestehende Gartenumgebung; Secret-/Netzwerte erhalten.
 
 ## Quellkandidat und beobachtete Installation
 
@@ -166,3 +171,15 @@ Quellprivacy2326 Dateien/0 operative Seedzeilen und Worktree-Privacy6003 Dateien
 einschließlich ignored/untracked PASS. Auf GitHub sind keine Releases/Release-Assets
 vorhanden; ältere Installationsdateien werden im bestehenden privaten APK-Bereich
 bereinigt. Rohbetriebsdaten wurden dafür weder gelesen noch geändert.
+
+Löschumfang/Einzel-IDs, frische Identitätsprüfungen,16 NOT_FOUND-Readbacks,
+elf ursprüngliche Tagobjekte und Historienerhalt:
+`docs/verification/revier-version-retention-2026-10-27.json`. PR #9 vor Löschung
+nach main integriert und exakt zurückgelesen (`00cc32c20153be9742033581971684bc87875888`).
+Die14 vorhandenen Installations-/Begleitobjekte105/106 in beiden Ordnern
+bytegrößen-/namens-/ID-gleich vorhanden; keine neue Byteprüfung behauptet.
+Alle drei Backupordner per Metadaten erreichbar; kein Backupinhalt gelesen oder
+verändert. Alte technische Nachweise sind erhalten; keine pauschale Drive-Löschung.
+Nach tatsächlicher Löschung erneut96 relevante Regressionen und vollständige
+Quell-Wiederherstellung105/106 PASS; JSON, aktuelle Links und Privacy aller fünf
+geänderten Beleg-/Statusdateien PASS. Android-Appbaum gegenüber106 unverändert.
