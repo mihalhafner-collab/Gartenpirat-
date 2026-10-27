@@ -8,6 +8,18 @@ erhalten und gelten nicht als neue Arbeitsanweisung.
 
 ## Aktuell: Heute-Ansicht vereinfacht, noch nicht gebaut
 
+Nächster Nutzerpunkt Gerätewartung27.10.: Quellprüfung bestätigt vorhandene
+Geräteanlage mit Name, Zustand, Wartungsdatum und Notizen
+(`RevierApplicationService.equipment`, `LocalWorkflowTools.save_equipment`,
+`revier-solo-ui.js`). Der Gerätevertrag enthält noch kein Gerätebild und keine
+einzelnen Wartungsereignisse. Die bestehende Nutzungserfassung hat einen
+Objektbezug und ist kein Wartungsprotokoll. Zielbild zur weiteren Prüfung:
+Gerät einfach anlegen, über Foto wiederfinden, Wartungsarbeit auswählen,
+Datum prüfen und ausdrücklich speichern; bisherige Wartungen beim Gerät sehen.
+Fotobedeutung separat nachgefragt (Erkennungsbild oder Modellvorschlag).
+Nur Anforderung und Quellbefund festgehalten; keine Geräte-/Medien-/MCP-Änderung,
+keine neue Vorschau, APK oder produktive Datenprüfung aus diesem Schritt.
+
 ### Kurzes Testblatt für die Bedienung
 
 Vorbereitet, noch nicht durchgeführt. Start jeweils auf Heute; nur synthetischen

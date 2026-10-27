@@ -1,5 +1,22 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Nächster Arbeitspunkt: einfache Gerätewartung
+
+Direkter Nutzerauftrag27.10.: Geräte überwiegend selbst warten; den vorhandenen
+Gerätebereich zu einem verständlichen Menüpunkt Gerätewartung ausbauen. Einfache
+Geräteanlage, möglichst mit Foto, und direkt auswählbare Arbeiten wie „Kette
+gewechselt“ und „Öl gewechselt“. Bestehende Geräte weiterverwenden, keine zweite
+Geräteverwaltung oder technische Einrichtung für den Nutzer. Die Bedeutung des
+Fotos ist noch gefragt: Erkennungsbild für den Nutzer oder automatische Vorschläge
+zu Hersteller/Modell. Keine automatische Erkennung als bereits vorhanden zusagen.
+
+Vor einer Umsetzung den vorhandenen Gerätepfad, lokale Fotozuordnung und echte
+Wartungsereignisse prüfen. Gerätenutzung ist keine Wartung; Wartungen nicht als
+Kundeneinsatz oder bloßes Überschreiben der letzten Notiz behandeln. Entwürfe,
+Speichern, Wiederholung, Löschen, Restore und gemeinsame UI-/MCP-Fachpfade
+einschließen. Ein Wartungseintrag darf den Gerätezustand nicht ungeprüft freigeben
+oder automatisch erfundene Fälligkeiten setzen. Noch keine APK beauftragt.
+
 ## Aktuell: Heute als übersichtlicher Einstieg
 
 Neueste Präzisierung zur Bedienung: Die Menüstruktur ist in Ordnung; die Abläufe
