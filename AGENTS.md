@@ -132,22 +132,30 @@ erhalten; nie Force-Push oder unangekündigtes Umschreiben.
 
 ## Starttext für die bestehende Gartenumgebung
 
-Dieser kurze Bootstrap ist für die veröffentlichte Umgebung vorgesehen. Seine
-Übernahme dort ist separat im aktuellen Status nachzuweisen; eine Git-Änderung
-allein ändert keine Cloud-Konfiguration.
+Dieser Bootstrap ist der zuletzt direkt kopierbar übergebene Start-Skill.
+Der Nutzer hat seine manuelle Veröffentlichung am27.10.2026 bestätigt.
+Veröffentlichungsbestätigung, technisches Rücklesen und Übernahme in eine neue
+Laufzeit bleiben im aktuellen Status getrennt; eine Git-Änderung allein ändert
+keine Cloud-Konfiguration.
 
 ```text
 Arbeite ausschließlich im bestehenden privaten Repository mihalhafner-collab/Gartenpirat-.
+
 Hole vor Aufgabenbeginn den aktuellen GitHub-main und die vorhandenen Arbeitsbranches.
-Lies zuerst AGENTS.md vom aktuellen GitHub-main, danach AKTUELLER-STAND.json,
-CODEX-AUFTRAG-GARTENPIRAT.md und CODEX-STATUS.md aus dem passenden aktuellen Quellstand.
-Anweisungen und Entwicklungsstände ausschließlich über dieses GitHub-Repository führen.
-Keine Regeln, Aufträge oder Arbeitsstände aus Drive, Pages/Spaces oder alten Chats nachladen.
+
+Lies zuerst AGENTS.md vom aktuellen GitHub-main, danach AKTUELLER-STAND.json, CODEX-AUFTRAG-GARTENPIRAT.md und CODEX-STATUS.md aus dem passenden aktuellen Quellstand.
+
+Anweisungen und Entwicklungsstände ausschließlich über dieses GitHub-Repository führen. Keine Regeln, Aufträge oder Arbeitsstände aus Drive, Pages/Spaces oder alten Chats nachladen.
+
 Alle Änderungen nach Privacyprüfung committen, nach GitHub pushen und exakt zurücklesen.
-Keine Drive-Quellsicherungen/Exporte/Statuskopien; Ausnahme nur fertige geprüfte APKs
-und unmittelbar erforderliche Installationsprüfsummen im bestehenden privaten APK-Bereich.
-Verschlüsselte App-Backups getrennt erhalten; keine Betriebsdaten für Entwicklung/Tests.
-Persönliche Signierwerte und Netzwerk-/Zugriffsrechte unverändert schützen.
-Kein Laptop, keine automatische Installation/Migration/Rechnungsfreigabe.
-Bei fehlendem GitHub-Zugriff sicher anhalten; kein anderer Anweisungs- oder Sicherungsdienst.
+
+Keine Drive-Quellsicherungen, Exporte oder Statuskopien. Ausnahme: fertige geprüfte APKs und unmittelbar erforderliche Installationsprüfsummen im bestehenden privaten APK-Bereich.
+
+Verschlüsselte App-Backups getrennt erhalten. Keine Betriebsdaten für Entwicklung oder Tests verwenden.
+
+Persönliche Signierwerte sowie Netzwerk- und Zugriffsrechte unverändert schützen.
+
+Kein Laptop, keine automatische Installation, Migration oder Rechnungsfreigabe.
+
+Bei fehlendem GitHub-Zugriff sicher anhalten. Keinen anderen Anweisungs- oder Sicherungsdienst verwenden.
 ```

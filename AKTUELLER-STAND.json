@@ -172,7 +172,7 @@
       "evidence_recorded_at_utc": "2026-10-25T22:06:57.964900+00:00"
     }
   ],
-  "updated_at_utc": "2026-10-27T05:02:28.424335+00:00",
+  "updated_at_utc": "2026-10-27T05:21:49.483127+00:00",
   "development_snapshot": {
     "version_name": "1.55.1",
     "version_code": 106,
@@ -339,7 +339,7 @@
       "configuration_id": "e12633f2-083b-4373-bec4-15f54f592001~cecfg_6acf33fe75d08195a929c819804e82d1",
       "observed_spec_revision": "16",
       "prepared_in": "AGENTS.md#starttext-für-die-bestehende-gartenumgebung",
-      "published_change": "NOT_APPLIED_START_SKILL_IDENTIFIED_IN_USER_SCREENSHOT;EDITOR_INACCESSIBLE_IN_BROWSER_PROFILE",
+      "published_change": "USER_CONFIRMED_MANUAL_PUBLICATION;PUBLISHED_TEXT_READBACK_AND_NEW_RUNTIME_ACCEPTANCE_UNVERIFIED",
       "browser_check": {
         "at_utc": "2026-10-27T04:45:38.088279+00:00",
         "run_id": "45c23e19-4fa4-4cad-9c67-cdd6b309e206",
@@ -363,6 +363,27 @@
         "editor_accessible": false,
         "configuration_mutated": false,
         "no_account_or_plan_cause_inferred": true
+      },
+      "manual_publication": {
+        "reported_at_utc": "2026-10-27T05:21:49.483127+00:00",
+        "evidence_type": "USER_CONFIRMATION_AFTER_EDITOR_SCREENSHOT",
+        "user_statement": "Veröffentlicht",
+        "field": "Skripte → Start-Skill",
+        "performed_by": "USER_MANUAL_UI",
+        "expected_text_source": "Last copyable text supplied in this conversation, now identically in AGENTS.md startup block",
+        "expected_text_sha256_utf8_no_trailing_newline": "d53cc1051fb81526289dab00ef873e9920c40872df32647258017d3ef774eafe",
+        "published_text_readback_verified": false,
+        "published_revision": null,
+        "new_runtime_acceptance_verified": false,
+        "bound_runtime_observation": {
+          "source_config_id": "e12633f2-083b-4373-bec4-15f54f592001~cecfg_6acf33fe75d08195a929c819804e82d1",
+          "source_config_version_id": "e12633f2-083b-4373-bec4-15f54f592001~cecfgver_6adb43f2c0ec819593c02d7399c064f6",
+          "spec_revision": "16",
+          "observed_spec_revision": "16",
+          "observations_current": true,
+          "scope": "Already-running attached instance only; not the latest published configuration or editable draft"
+        },
+        "scope_limits": "No browser publication/readback or new runtime start by Codex. No setup-script, signing, network, app-data or APK operation."
       }
     },
     "unmerged_unique_branch": {
