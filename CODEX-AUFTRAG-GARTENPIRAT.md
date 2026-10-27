@@ -1,5 +1,25 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Neuester Auftrag: geprüfte APK jetzt erstellen
+
+Nutzer beauftragt ausdrücklich den APK-Bau des aktuellen geprüften Quellstands.
+Da die installierte App inzwischen106 meldet, nächste Version1.55.2/107 verwenden;
+Originalpaket/Originalzertifikat und leeren Bootstrap behalten. Keine zusätzlichen
+Fachfunktionen, keine Installation, produktive Migration oder Rechnungsfreigabe.
+
+Vor Bau: aktuellen Stand gezielt sichern und exakt von GitHub zurücklesen,
+source_preservation PASS, Version über beobachteter106, Quell-/Worktree-Privacy.
+Bestehende Build-/Lint-/Vertragsgates ausführen; Originalsignierung ausschließlich
+über den vorhandenen geschützten Cloud-Befehl. Fertiges Paket erneut auf Signatur,
+Identität, Version, 16-KiB-Ausrichtung, Quellassets/Fingerprint und Privacy prüfen.
+Vorherige37 Browser-Prüfgruppen und Fachprüfungen eindeutig vom neuen Buildnachweis
+trennen; nur bei neuem Befund gezielt wiederholen. Installationspaket nach Prüfung
+im bestehenden privaten APK-Bereich bereitstellen, keine Quellen/Entwicklungs-
+sicherungen nach Drive. Resultate/Prüfsumme/Provenienz in vorhandenen GitHub-Ständen
+festhalten. Geräteseitiger Datenerhalt, Startzeit und Bedienungsabnahme bleiben
+ohne ausdrücklich beauftragte physische Prüfung offen. Bei Gatefehler sicher
+anhalten; keine Freigabeflags, Ersatzsignatur oder automatische Rückmigration.
+
 ## Neueste Priorität: MCP-Katalog geprüft und166er-Übernahme nachgewiesen
 
 Nutzer beauftragt nach eigener Werkzeugaktualisierung und erneutem Chat die

@@ -6,6 +6,15 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Aktuell: APK1.55.2/107 beauftragt, Bau noch offen
+
+Expliziter neuer Nutzerauftrag: aktuellen geprüften Stand als APK erstellen.
+Version über tatsächlich beobachteter106 auf1.55.2/107 gesetzt. Originalpaket und
+Signierweg bleiben erhalten. Erst nach gesichertem Quellcommit und tatsächlichen
+Build-/Signatur-/Artefakt-/Privacyprüfungen als fertig melden. Keine Installation,
+produktive Migration oder Rechnungsfreigabe. Vorbereiteter107-Stand ist noch kein
+gebautes oder abgenommenes Paket; installierte App bleibt beobachtete106.
+
 ## Aktuell: MCP-Katalog der installierten App abgeglichen
 
 Nach der vom Nutzer gemeldeten Aktualisierung ist die neue Bereitstellung jetzt
