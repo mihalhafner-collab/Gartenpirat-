@@ -72,10 +72,16 @@ dessen Hauptthread in der Standard-Rollenvergabe wartet. Die Ursache dieses
 Wartens ist noch ungeklärt; Verschlüsselungswarnungen erscheinen auch im frischen
 Profil und beweisen keine beschädigten Altdaten. Kein OOM-Kill festgestellt.
 
-Als gezielter Kreuzvergleich läuft jetzt Emulator32.1.15 mit dem schlankeren
-AOSP-API29/x86-Abbild, klassischem SwiftShader und separatem frischem Testprofil.
+Auch der Kreuzvergleich32.1.15/AOSP29/x86 scheitert: fataler Systemfehler bei
+der Rechteinitialisierung (`PermissionControllerManager`-Timeout). Keine neue
+`gl2Encoder`-Ursache in diesem Lauf behauptet. Als weiterer Vergleich ist AOSP28
+gestartet: innerhalb minSdk26, vor dem Android10-Rollenmechanismus. Ein Erfolg
+würde zunächst nur diese ältere unterstützte Androidversion abdecken.
 Vorhandene SDK-/AVD-Daten bleiben erhalten. Keine App installiert.
 Noch keine neue native App-Abnahme und keine stabile Konfiguration behauptet.
+Erneute13 Schutztests und51 Source-/Lifecycle-/Privacy-Regeltests PASS;
+Vollprivacy Quelle2327Dateien/Worktree6004Dateien einschließlich ignorierter
+Dateien PASS. Appcode und106-Fingerprint unverändert.
 Technische Evidenz und minimaler Prüfschrittplan:
 `docs/verification/cloud-emulator-diagnosis-2026-10-27.json`.
 

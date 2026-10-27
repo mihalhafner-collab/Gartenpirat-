@@ -34,7 +34,9 @@ Emulator32.1.15 keinen stabilen Vollstart. Im32er-Lauf beendet Androids Watchdog
 den Systemprozess während einer blockierten Rollenvergabe. Das ist ein anderer
 belegter Fehlerpfad als der29er-Grafikabsturz; keine gemeinsame Ursache behaupten.
 Verschlüsselungswarnungen erscheinen auch mit frischem Profil und beweisen keine
-beschädigten Altdaten. Der Kreuzvergleich32.1.15 mit AOSP29/x86 läuft noch.
+beschädigten Altdaten. Der Kreuzvergleich32.1.15 mit AOSP29/x86 scheitert an einem
+`PermissionControllerManager`-Timeout. API28 ist als unterstützter älterer
+Vergleich vorbereitet; daraus folgt keine Abnahme auf aktuellem Pixel-Android.
 Aktuelle kontrollierte Gegenproben und Grenzen:
 [technischer Prüfbeleg](../docs/verification/cloud-emulator-diagnosis-2026-10-27.json).
 

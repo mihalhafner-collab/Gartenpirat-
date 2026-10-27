@@ -1,6 +1,6 @@
 {
   "format": "hausgarten.cloud-emulator-diagnosis.v1",
-  "status": "API29_GRAPHICS_CRASH_AND_API30_WATCHDOG_CONFIRMED;LEGACY32_AOSP29_COUNTERPROBE_RUNNING",
+  "status": "API29_PERMISSION_TIMEOUT_AND_API30_WATCHDOG;API28_SUPPORTED_BASELINE_RUNNING",
   "observed_at_utc": "2026-10-27T06:04:01.153560+00:00",
   "scope": "Existing dedicated synthetic Cloud AVD only; no Pixel, app install/build, account, wipe, timeout-suppression or operational-data use",
   "user_authorization": {
@@ -487,9 +487,9 @@
     "readiness": "After qemu/name/boot check require package/activity services and working android package-path readback",
     "after_readiness_failure": "Classify explicit missing package/activity service from captured ADB error without dumping raw device output; unrelated errors retain their failure type",
     "tests_passed": 13,
-    "acceptance_result_gates_unchanged": true,
     "no_timeout_or_crash_suppression": true,
-    "positive_test_count_required": true
+    "positive_test_count_required": true,
+    "acceptance_failure_gates_preserved": true
   },
   "counterprobe": {
     "status": "COMPLETED_FAILED_STABILITY_THRESHOLD",
@@ -908,7 +908,7 @@
     "owned_emulator_shutdown": true,
     "host_oom_kills_after": "0"
   },
-  "updated_at_utc": "2026-10-27T07:25:57.479161+00:00",
+  "updated_at_utc": "2026-10-27T07:33:13.173941+00:00",
   "live_guard_readback": {
     "status": "HOST_TIMEOUT45SECONDS_NO_PASS",
     "app_actions": 0,
@@ -937,7 +937,23 @@
     "cloud_guard_tests": 13,
     "source_regressions": 51,
     "release_baseline": "PASS106>observed105; native source fingerprint unchanged",
-    "app_code_changed": false
+    "app_code_changed": false,
+    "last_source_regression_rerun": "51PASS",
+    "last_cloud_guard_rerun": "13PASS",
+    "privacy": {
+      "stage": "PREBUILD_ONLY",
+      "source": {
+        "status": "PASS",
+        "files": 2327,
+        "operational_seed_rows": 0
+      },
+      "workspace": {
+        "status": "PASS",
+        "files": 6004,
+        "includes_ignored_untracked": true
+      },
+      "new_artifact": "NOT_BUILT_OR_CLAIMED"
+    }
   },
   "api30_completed_trials": [
     {
@@ -2622,23 +2638,79 @@
   },
   "fresh_userdata_comparison": "fscrypt policy warnings also appear with freshly created isolated userdata; not proof of corruption in the preserved older AVD",
   "active_probe": {
-    "id": "api29-legacy32-aosp",
-    "emulator_version": "32.1.15",
-    "api": 29,
+    "id": "api28-legacy32-aosp",
+    "status": "IN_PROGRESS",
+    "api": 28,
     "abi": "x86",
+    "emulator_version": "32.1.15",
+    "graphics": "swiftshader_indirect",
     "guest_ram_mib": 3072,
     "guest_cores": 2,
-    "graphics": "swiftshader_indirect",
     "display_pixels": [
       540,
       960
     ],
     "density_dpi": 240,
-    "status": "IN_PROGRESS",
-    "reason": "Complete cross-check using lighter AOSP/x86 guest with classic renderer after API30/google guest watchdog failure",
-    "userdata": "new isolated configuration only; no existing userdata reset/copied",
+    "reason": "App minSdk26 supports API28. Controlled older-OS baseline before Android10 permission/roles initialization; checks unchanged, not a current-Pixel acceptance substitute.",
+    "data": "new isolated profile; no operating data, account or existing userdata copied",
     "maximum_observation_seconds": 780,
-    "required_health": "8 consecutive healthy samples, stable single system_server PID, package/activity services, boot1 and android package path; reject any intermediate system crash/restart",
-    "driver_sha256": "405b707df3866524037aff192cccc81520e6ba6f3710c13acad5b915b557ba5c"
+    "required_health": "8 consecutive healthy samples; boot1, services, package path, stable single system PID; fail on intermediate system crash/restart",
+    "driver_sha256": "9c05d274a67d03bdd2ddfebaec2e71a423c69e26e14186ab73da96479642be07"
+  },
+  "api29_legacy32_counterprobe": {
+    "avd_home": "/workspace/cloud-setup/qa-emulator32-aosp29-avd",
+    "serial": "emulator-5582",
+    "command": [
+      "/workspace/cloud-setup/tools/emulator32-diagnostic-20261027/emulator/emulator",
+      "-avd",
+      "GartenpiratCloud",
+      "-port",
+      "5582",
+      "-no-window",
+      "-no-audio",
+      "-no-snapshot",
+      "-no-boot-anim",
+      "-show-kernel",
+      "-accel",
+      "off",
+      "-gpu",
+      "swiftshader_indirect",
+      "-memory",
+      "3072",
+      "-cores",
+      "2",
+      "-skin",
+      "540x960"
+    ],
+    "app_installations": 0,
+    "app_data_reset": false,
+    "snapshots_disabled": true,
+    "healthy_sample_threshold_met": false,
+    "duration_s": 276.9,
+    "host_exit_after_owned_shutdown": -10,
+    "owned_emulator_shutdown": true,
+    "emulator_version": "32.1.15",
+    "api": 29,
+    "abi": "x86",
+    "root_failure": "Fatal exception in system_server android.fg: Error granting/upgrading runtime permissions; PermissionControllerManager PendingGrantOrUpgradeDefaultRuntimePermissionsRequest.onTimeout",
+    "root_excerpt": [
+      "10-27 07:28:26.982  1808  1921 E AndroidRuntime: *** FATAL EXCEPTION IN SYSTEM PROCESS: android.fg",
+      "10-27 07:28:26.982  1808  1921 E AndroidRuntime: java.lang.IllegalStateException: Error granting/upgrading runtime permissions",
+      "10-27 07:28:26.982  1808  1921 E AndroidRuntime: \tat android.permission.PermissionControllerManager$PendingGrantOrUpgradeDefaultRuntimePermissionsRequest.onTimeout(PermissionControllerManager.java:1212)",
+      "10-27 07:28:26.982  1808  1921 E AndroidRuntime: \tat android.permission.PermissionControllerManager$PendingGrantOrUpgradeDefaultRuntimePermissionsRequest.onTimeout(PermissionControllerManager.java:1185)"
+    ],
+    "claim_limits": "Same image with older renderer did not establish stable boot. This run failed permissions initialization, not the earlier reproduced gl2Encoder SIGSEGV. No app installed."
+  },
+  "api28_package": {
+    "url": "https://dl.google.com/android/repository/sys-img/android/x86-28_r04.zip",
+    "bytes": 437320152,
+    "sha1": "ce03c42d80c0fc6dc47f6455dbee7aa275d02780",
+    "sha256": "7c3615c55b64713fe56842a12fe6827d6792cb27a9f95f9fa3aee1ff1be47f16",
+    "official_manifest_sha1_match": true,
+    "archive_crc": "PASS",
+    "revision": 4,
+    "api": 28,
+    "abi": "x86",
+    "existing_sdk_changed": false
   }
 }

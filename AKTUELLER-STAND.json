@@ -302,7 +302,7 @@
       "connector_refresh": "EXTERNAL_OPEN_NOT_RETESTED"
     },
     "emulator_diagnosis": {
-      "status": "API29_GRAPHICS_CRASH;API30_WATCHDOG;LEGACY32_AOSP29_COUNTERPROBE_RUNNING",
+      "status": "API29_PERMISSION_TIMEOUT;API30_WATCHDOG;API28_COUNTERPROBE_RUNNING",
       "evidence": "docs/verification/cloud-emulator-diagnosis-2026-10-27.json",
       "app_native106_acceptance_unchanged": true,
       "new_app_installations": 0,
