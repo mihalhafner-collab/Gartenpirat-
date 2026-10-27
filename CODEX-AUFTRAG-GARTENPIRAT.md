@@ -37,6 +37,9 @@ Geprüfter Änderungsplan für diese Umsetzung:
   „Früher warten“; Datum korrigierbar, Intervall nur bewusst ändern. Vorhandenen
   Editor-/Draft-/Commitpfad verwenden. Tätigkeitstexte bleiben Vorschläge, eigene
   Angaben möglich; keine versteckte Erledigung durch Öffnen, Abbruch oder Verwerfen.
+  Ergänzende Gegenprüfung: vor einer verzögerten Speicherantwort kann ein anderer
+  Editor offen sein. Bereinigung, Fehler und Bestätigung müssen an der ursprünglichen
+  Editiersitzung bleiben; keine neue Maske löschen, entsperren oder umleiten.
 - Regressionen: Kalendergrenzen, einmalig/dauerhaft, Rückdatierung, wiederholte
   Requests, Konflikt, Transaktionsfehler, Neustart/Restore, Referenzschutz, UI/MCP-
   Ergebnis, Draftverwerfen und unklare Commitantwort. Nur synthetische Daten.

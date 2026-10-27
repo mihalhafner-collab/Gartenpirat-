@@ -10,11 +10,11 @@
     "android/app/src/main/java/at/hausgarten/service/EquipmentMaintenanceRules.java": "6371ae29114247694392f02bd2b972462fcf2fdb226f22a77e169f3a1d74c2ea",
     "android/app/src/main/java/at/hausgarten/service/RevierApplicationService.java": "6ec873b6d50441cacb6592a1b3d16b2e5eaef49a59ebe7ce66339c5bd65890ec",
     "android/app/src/main/java/at/hausgarten/service/LocalWorkflowTools.java": "fb3dcb8464380dd0d02c15d0ddf653d1a42b70abd7e2b06a95e9874a3cba8936",
-    "android/app/src/main/assets/revier-solo-ui.js": "b8491e9edb05bc779407fc049c153f9a0993a3b08cba13e66e570d37e1f0cdca",
+    "android/app/src/main/assets/revier-solo-ui.js": "7e6aff26855f67d8f271c96af4cfdd14d692fc79678e4f645a912e21718011a7",
     "android/app/src/main/assets/revier-solo-ui.css": "ee22ecee1bdfa9b518df908662131cd5c3a16f6d9162900933698b8bb7cf6cb5",
     "android/app/src/main/assets/equipment-maintenance-texts.json": "5c59d4a6ea4a063c14988bef6db0cb63c6abeee6cb12dd4a478bd0ab49d25b95",
     "android/app/src/main/assets/equipment-maintenance-texts.js": "f602a62ce5259643436ba796901c3fbb758d50e1e5950f233a74c1e21e344c12",
-    "android/app/src/main/assets/ui-mcp-actions.json": "4af3f735b318c8a363cecb439914ceebecc35f76f1498233c7b5c72628a97806"
+    "android/app/src/main/assets/ui-mcp-actions.json": "d726acf0ffbbbabd02bb3a5237b3772fe8e749a1c0b241aef00877ecb180a360"
   },
   "scope": "Current production Java rules compiled and run on host JVM over synthetic transaction ports; current bundled assets in Cloud Chromium with synthetic native bridges. No physical Pixel, native SQLite swap, installed app/catalog, APK or Google account acceptance.",
   "domain_checks": {
@@ -468,6 +468,14 @@
         "result": "PASS"
       },
       {
+        "name": "A delayed successful commit cannot erase or close a newer editor draft",
+        "result": "PASS"
+      },
+      {
+        "name": "A delayed rejected commit preserves both the original and a newer draft",
+        "result": "PASS"
+      },
+      {
         "name": "An unknown restored action stays read-only and cannot replay automatically",
         "result": "PASS"
       }
@@ -561,5 +569,7 @@
       "includes_ignored_untracked": true
     },
     "artifact_privacy": "NOT_TESTABLE_NO_APK_BUILT"
-  }
+  },
+  "followup_base_commit": "97870e7c81850827a60f2e70c2d8a994f7e5b6b4",
+  "late_callback_boundary": "Captured edit-session cleanup and feedback only; success/rejection cannot close, erase or unlock another current draft. Inputs lock immediately while pending."
 }

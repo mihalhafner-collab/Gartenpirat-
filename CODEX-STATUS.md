@@ -17,6 +17,9 @@ und die57 recherchierten Wartungstexte erleichtern Eingaben; eigene Texte bleibe
 möglich. Das sind Aufzeichnungen eigener Arbeiten, keine Herstellerempfehlungen
 oder automatische Modell-/Ausstattungserkennung. Öffnen und Abbruch speichern
 keine erledigte Wartung; Verwerfen entfernt den jeweiligen Entwurf.
+Speicherantworten und Fehler bleiben an ihrer ursprünglichen Editiersitzung.
+Ein schneller Formularwechsel darf einen neueren Entwurf weder löschen noch
+schließen; Eingaben werden bereits beim Absenden vor Änderungen geschützt.
 
 Pläne liegen am vorhandenen Gerät, erledigte Wartungen separat im gleichen lokalen
 Owner-Bestand. UI und MCP verwenden dieselben Fachregeln, CAS, Transaktion,
@@ -41,7 +44,7 @@ Connector-Katalogs. Dafür wäre eine gesonderte APK-/Connectoraktualisierung n�
 Keine neue APK, Signierung, Installation oder produktive Datenprüfung durchgeführt.
 Gerätefoto-Zuordnung und physische Pixel-Abnahme bleiben offen.
 
-91 gezielte Fachprüfungen und alle80 Java-Prüfgruppen PASS. Elf neue Browser-
+91 gezielte Fachprüfungen und alle80 Java-Prüfgruppen PASS. Dreizehn neue Browser-
 prüfungen sowie18 Revier-,18 Field-,8 Navigations-,41 Übersichts- und7 Design-
 prüfungen PASS. Quelle2343Dateien und gesamter Worktree6033Dateien einschließlich
 ignorierter/unversionierter Dateien bestehen die Privacy-Gates;0 Betriebsdaten-
