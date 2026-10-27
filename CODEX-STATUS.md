@@ -6,21 +6,58 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
-## Aktuell: einheitliche Bedienung – Beispiel zur Ansicht
+## Aktuell: einheitliche Bedienung im Quellcode
 
-Nutzerauftrag: sämtliche Menüs und Masken einheitlich vereinfachen. Zunächst
-nur ein konkretes Beispiel, noch keine appweite Umsetzung. „Arbeit erfassen“
-zeigt bekannten Einsatz, Datum, Beginn/Ende und Tätigkeit; Textvorschläge,
-aufklappbare Zusatzangaben und feste Verwerfen-/Speichern-Positionen.
-Heute/Büro mit Mehr bleibt erhalten. Das statische Beispiel verwendet nur
-synthetische Werte, keine App-Bridge und keine Speicherung. Schaltflächen und
-Auswahlfelder zeigen die Gestaltung, ihre Fachaktionen sind nicht angebunden.
+Nach der gezeigten Beispielmaske wurde die appweite Umsetzung ausdrücklich
+beauftragt. Die gemeinsame Präsentation gilt für bestehende Seiten, Formulare
+und dynamische Dialoge: gleiche Bedienelementgrößen, Rückwege und Aktionsleisten,
+kurze Kernformulare, direkte Datums-/Uhrzeitauswahl und aufklappbare Zusatzangaben.
+Heute/Büro und Mehr bleiben bestehen. Es gibt keinen zweiten Facheditor oder
+neuen Speicherweg. Vorhandene Felder und Listener werden erhalten.
 
-Vorschau: `docs/verification/simple-work-entry-example-360.png`;
-reproduzierbare HTML-Vorlage: `docs/verification/simple-work-entry-example-2026-10-27.html`.
-Bei360×840px kein horizontaler Überlauf; Hauptfelder und Speicheraktionen
-sichtbar. Keine neue APK, Installation oder produktive Datenprüfung.
-Die appweite Übernahme und Gerätefoto-Zuordnung bleiben offen.
+Arbeitsaufnahme: Beginn/Ende direkt sichtbar, Dauer ohne Uhrzeiten weiterhin
+wählbar, Notizen/Fotos optional, Zurück im Kopf und Verwerfen neben Speichern.
+Objekte, Anfragen, Pflege/Einsätze, Material/Geräte und Wartung verwenden dasselbe
+Muster. Tätigkeit/Dauer und Heute/Morgen sind bewusste Auswahlen im Originalfeld;
+Öffnen oder Gestalten erzeugt keine Geschäftssätze oder Entwürfe. Vorhandene
+Zusatzwerte und Hinweise auf defekte Geräte bleiben sichtbar auffindbar.
+Pflicht-/Fachfehler öffnen den betroffenen Zusatzbereich. Gesperrte Felder
+sperren ihre Helfer; auch verspätete Knopfereignisse dürfen sie nicht verändern.
+
+Kunden/Aufträge/Arbeit, Planung, Angebots-/Rechnungsdialoge und Unternehmensdaten
+verwenden die gemeinsame Darstellung. Finanzbestätigungen und Aktionen wie
+Ausstellen, Archivieren und endgültiges Löschen behalten ihre eindeutige Bedeutung.
+Die vorhandene native Sicherung erhält einen Zurück-Knopf über ihren bisherigen
+Unterbrechungs-/Entwurfsschutz. Wiederherstellungsprüfung und Android-Systemauswahl
+bleiben getrennt. Keine Änderung an Fachregeln, Datenbank, Owner-/MCP-Schreibern,
+Legacy-Queue, Backup-/Restoregates oder Rechnungsfreigabe.
+
+Zurück verlässt Formularansichten auch bei aufgeklappten Zusatzangaben und
+behält den Entwurf. Fortsetzbare Revier-Entwürfe werden nach der Rückkehr in die
+Liste aktualisiert. Verwerfen nutzt die bisherigen vollständigen Entwurfslöschpfade.
+Unklare Commitantworten behalten Originalkennung/Argumente und die vorhandene
+lesende Prüfung. Erfolgreiche Commits werden nicht wegen Anzeige-/Fotofehlern
+wiederholt. Gerätefoto-Zuordnung bleibt ein gesonderter offener Arbeitspunkt.
+
+36 betroffene Browser-Prüfgruppen einschließlich8 neuer appweiter Bedienfälle
+PASS. Alle80 Java-Prüfgruppen einschließlich des tatsächlichen lokalen Repository-
+Adapters PASS; Quellparität1398Checks mit unverändert169Tools/212Aktionen PASS.
+Android-Java vollständig mit `:app:compileReleaseJavaWithJavac` kompiliert;
+kein APK erzeugt. Quelle2355Dateien und gesamter Worktree6128Dateien
+(einschließlich ignorierter/unversionierter Dateien) bestehen die Privacy-Gates;
+0 Betriebsdaten-Startzeilen. Kein auszulieferndes APK-Artefakt geprüft.
+Kaltstartnavigation der Browserprüfung wird getrennt von
+Interaktionsfristen gewertet; kurze Cloud-Ladezeitüberschreitungen wurden
+kontrolliert erneut geprüft. Bisherige fachliche Assertions bleiben erhalten.
+
+Prüfbeleg: `docs/verification/simple-forms-2026-10-27.json`;
+Browserbilder: `docs/verification/simple-work-capture-360.png` und
+`docs/verification/simple-visit-form-360.png`.
+
+Prüfbelege und tatsächliche Browseransichten stehen in `docs/verification/`;
+Pixel-Abnahme bleibt offen. Keine neue APK, Signierung, Installation oder
+produktive Datenprüfung. Der frühere statische Bildschirm ist als Entwurf erhalten,
+die neuen Browserbilder zeigen die echte geänderte Oberfläche mit Testdaten.
 
 Startverzögerung bislang nur untersucht, nicht behoben: feste Startpausen und
 nachgeladene Stile lassen die alte Oberfläche sichtbar. Drei synthetische

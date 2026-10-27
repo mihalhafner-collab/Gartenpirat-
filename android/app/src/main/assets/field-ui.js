@@ -25,7 +25,7 @@
     sheet.innerHTML='<header class="field-sheet-heading"><h2 id="field-quick-title" tabindex="-1">Arbeit erfassen</h2><p>Zeit, Leistung & Notiz</p></header><div class="field-sheet-content"></div>';
     document.body.append(sheet);
     const notes=form.elements.notes,label=notes.previousElementSibling;
-    if(label?.tagName==='LABEL'){label.textContent='Notiz · optional';get('activity').after(label,notes);}
+    if(label?.tagName==='LABEL')label.textContent='Notiz · optional';
     notes.rows=2;get('activity').rows=2;get('entry-hours').placeholder='z. B. 2,5';
     const extras=form.querySelector('details[data-section="order"]');
     if(extras){
@@ -33,14 +33,21 @@
       const billing=get('entry-billing-customer')?.closest('.billing-field');if(billing)extras.querySelector('.more-fields').append(billing);
       const add=get('work-entry-add-customer');if(add)extras.querySelector('.more-fields').append(add);
     }
+    const times=form.querySelector('details[data-section="time"]');
+    const timeGrid=get('start').closest('.form-grid');
+    timeGrid.classList.add('simple-times');
+    const dateGrid=form.querySelector('.simple-date-hours');
+    dateGrid.after(timeGrid);
+    const duration=get('entry-hours').parentElement;
+    if(times){times.querySelector('summary').textContent='Dauer ohne Uhrzeiten und Pause';times.querySelector('.more-fields').prepend(duration);const modes=form.querySelector('.design-time-mode');if(modes)times.querySelector('.more-fields').append(modes);}
     const photo=form.querySelector('details[data-section="notes"]');
-    if(photo){photo.querySelector('summary').textContent='Fotos & Spracheingabe';photo.querySelector('.more-fields').prepend(get('speak'));}
+    if(photo){photo.querySelector('summary').textContent='Fotos, Notizen & Spracheingabe';photo.querySelector('.more-fields').prepend(get('speak'));}
     // A different invoice recipient is important context even with extras closed.
     const billingContext=document.createElement('p');billingContext.id='field-billing-context';billingContext.className='field-context';billingContext.hidden=true;
     get('customer').closest('.select-search-wrap').after(billingContext);
-    const discard=get('new-work-cancel');if(discard&&extras){discard.textContent='Eingabe verwerfen';discard.classList.add('field-danger');extras.querySelector('.more-fields').append(discard);}
-    const later=document.createElement('button');later.type='button';later.className='secondary';later.id='field-entry-later';later.textContent='Später weiter';
-    form.querySelector('button[type="submit"]').closest('.actions').prepend(later);
+    const discard=get('new-work-cancel');if(discard){discard.textContent='Verwerfen';discard.classList.add('field-danger');form.querySelector('button[type="submit"]').closest('.actions').prepend(discard);}
+    const later=document.createElement('button');later.type='button';later.className='secondary';later.id='field-entry-later';later.textContent='‹';later.setAttribute('aria-label','Zurück · Entwurf behalten');
+    sheet.querySelector('.field-sheet-heading').prepend(later);
     const previousBack=window.handleAndroidBack;
     let moving=false;
     function closeSheet(){
@@ -74,6 +81,7 @@
       if(moving)return;
       document.body.classList.toggle('field-home',currentPage==='home');
       const completing=entry.classList.contains('timer-completion-page');
+      if(times&&get('entry-hours').value&&!get('start').value&&!get('end').value)times.open=true;
       get('field-quick-title').textContent=completing?'Arbeit abschließen':'Arbeit erfassen';
       later.hidden=completing;
       const customer=get('customer').value,billing=get('entry-billing-customer');

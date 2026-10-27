@@ -1,6 +1,52 @@
 # Aktueller Gartenpirat-Auftrag
 
-## Neueste Priorität: appweit einheitliche, einfache Bedienung – zuerst Beispiel
+## Neueste Priorität: appweit einheitliche, einfache Bedienung umsetzen
+
+Nach gezeigter Beispielmaske ausdrücklich beauftragt: den vereinfachten
+Bedienungsablauf überall implementieren. Keine erneute Grundsatzfreigabe nötig.
+Endzustand: bestehende Bereiche und Fachfunktionen bleiben erreichbar; gleiche
+Zurück-/Verwerfen-/Speichern-Semantik, gleich platzierte Aktionen, direkte
+Datums-/Uhrzeitauswahl, kurze Kernformulare und aufklappbare Zusatzangaben.
+
+Geprüfter Umsetzungsplan:
+
+- `simple-forms.js/.css` und `mobile.html`: eine gemeinsame Darstellung für
+  vorhandene Formulare, Karten, Dialoge und Rückwege. Bekannte optionale Felder
+  gezielt gruppieren; ursprüngliche Elemente, IDs, Formzugehörigkeit und
+  Listener erhalten. Keine generische Geschäftslogik, kein zweiter Editor.
+  Dynamisch aufgebaute Masken ebenfalls erfassen, eigene DOM-Änderungen nicht
+  wiederholt beobachten. Pflichtfelder und Finanzbestätigungen nicht ausblenden.
+- `field-ui.js`: Arbeitsaufnahme an das Beispiel angleichen: Zeiten direkt,
+  Notizen optional, Verwerfen neben Speichern, Zurück im Kopf. Dauer ohne
+  Uhrzeiten bleibt möglich, Timer-Abschluss und Foto-Nachbearbeitung bleiben
+  getrennte bestehende Abläufe. Keine unverlangte Zeitberechnung/Vorbelegung.
+- `revier-solo-ui.js`, Planung, Kunde/Auftrag/Arbeit, Unternehmensdaten sowie
+  Angebots-/Rechnungsdialoge: vorhandene Speicher-/Verwerfenknöpfe vereinheitlichen,
+  Zusatzfelder über explizite Zuordnung gruppieren. Bedarfsweise Helfer ändern
+  ausschließlich das Originalfeld und lösen dessen bestehendes Eingabeereignis
+  aus. Keine automatische Speicherung, Erledigung, Nummernvergabe oder Freigabe.
+- Alle Menüziele einschließlich Fotos/Pflanzen, Archiv/Status/Einstellungen
+  auf Erreichbarkeit prüfen. Native Sicherung und Wiederherstellungsprüfung
+  getrennt beachten; bewusste Auswahl, Klartextwarnungen, Autoritätsschutz und
+  Restore-Gates erhalten. Android-Systemauswahlen nicht als App-Editor umbauen.
+
+Gegenpfade: dynamischer Neuaufbau, ausgefüllte Zusatzfelder, Pflicht-/Fachfehler
+im zugeklappten Bereich, Tastatur/schmale Darstellung, Timer-Abschluss, schwebende
+Foto-Speicherung, verzögerte oder unklare Commitantwort und restaurierte Entwürfe.
+Neue Helfer bei gesperrten Originalfeldern ebenfalls sperren und vor jeder Aktion
+nochmals prüfen. Keine Eingabeereignisse allein durch Öffnen/Gestaltung erzeugen.
+Zurück erhält den Entwurf, Verwerfen verwendet nur vorhandene echte Löschpfade.
+Rechnungsfinalisierung, Ausgabe, Archiv und Purge behalten eindeutige Aktionsnamen.
+
+Risiko/Ursache: mehrere Präsentationsmodule erzeugen unterschiedliche Feldgruppen
+und Aktionspositionen. Eine gemeinsame Präsentationsschicht konsolidiert diese;
+Fachregeln, SQLite/Owner-/MCP-Schreiber, Queue, Backup und Restore unverändert.
+Tests: neue appweite Browserprüfung mit vorhandenen synthetischen Bridges,
+Feld-/Formidentität, keine Writes beim Öffnen, Helfer/Draft/Verwerfen/Fehler,
+alle Menüziele und schmale Breiten; bestehende betroffene Regressionen und
+Quellkatalog/Privacy. Read-back über vorhandene Formwerte/Quittungen und exakten
+GitHub-Commit. Rollback nur Darstellung vor APK-Auslieferung; kein Datenrollback.
+Noch kein APK-Bau und keine Installation oder produktive Datenprüfung.
 
 Nutzer verlangt ausdrücklich alle Menüstrukturen und Masken der gesamten App
 einzubeziehen. Gleiche Begriffe, gleiche Platzierung und gleiche Bedeutung von
@@ -11,14 +57,11 @@ Betroffene Bereiche umfassen Heute, Kunden/Objekte, Pflege/Einsätze/Planung,
 Arbeit/Timer, Anfragen/Aufträge, Angebote/Rechnungen/Zahlungen, Material/Geräte,
 Fotos/Pflanzen sowie Einstellungen/Sicherung/Archiv/Status.
 
-Nächster ausdrücklich gewünschter Schritt: Beispiel an einer Maske zeigen,
-bevor die appweite Übernahme beginnt. Dazu eine klar als Entwurf markierte
-Ansicht „Arbeit erfassen“ mit ausschließlich synthetischen Werten erstellen.
-Datums-/Uhrzeitfelder, Tätigkeitstexte, optionale Zusatzangaben und feste
-Verwerfen-/Speichern-Positionen zeigen; keine Geschäftslogik, automatische
-Kundenwahl oder Erledigung aus dieser Gestaltung ableiten. Beispiel ist keine
-fertige appweite Umstellung. Startanalyse und bereits gesicherte Gerätewartung
-bleiben erhalten; noch keine APK oder produktive Geräteprüfung.
+Die zuvor ausdrücklich gewünschte Beispielmaske „Arbeit erfassen“ ist erstellt
+und wurde gezeigt; danach wurde die appweite Umsetzung ausdrücklich beauftragt.
+Die Beispielwerte sind ausschließlich synthetisch. Keine automatische Kundenwahl
+oder Erledigung aus der Gestaltung ableiten. Startanalyse und bereits gesicherte
+Gerätewartung bleiben erhalten; kein APK-Bau oder produktive Geräteprüfung.
 
 ## Aktuell: verzögerter App-Start und sichtbare alte Oberfläche
 
@@ -62,7 +105,7 @@ Fehler durch zeitgesteuertes Freigeben der alten Oberfläche verbergen. Rollback
 betrifft ausschließlich diese Präsentations-/Startänderungen; Fachdatensätze,
 Entwürfe und die zuvor gespeicherte Wartungsimplementierung werden nicht verändert.
 
-## Nächster Arbeitspunkt: einfache Gerätewartung
+## Bereits umgesetzt: einfache Gerätewartung
 
 Neuester ausdrücklicher Implementierungsauftrag: eigene Wartungsintervalle pro
 Gerät/Tätigkeit und „Heute erledigt“, einschließlich kürzerer Abstände bei
@@ -70,7 +113,7 @@ Fehlschnitten oder erneut nötig gewordenem Nachschärfen. Das sind eigene
 Planungsentscheidungen, keine übernommenen Herstellerintervalle. Einmaliges
 Vorziehen und dauerhaftes Verkürzen bewusst unterscheiden; keine automatische
 Erledigung oder stille Gerätefreigabe. Dieser konkrete Gerätewartungsauftrag
-ist die aktuelle Nutzerpriorität; keine sonstigen neuen Funktionen daraus ableiten.
+ist bereits im Quellstand umgesetzt; keine sonstigen neuen Funktionen daraus ableiten.
 
 Geprüfter Änderungsplan für diese Umsetzung:
 

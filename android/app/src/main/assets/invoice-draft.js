@@ -40,7 +40,7 @@
     editSession=resumed||HGFormDrafts.start('invoice',studio.read(),{base:original,returnToRead});dialog.querySelector('form').dataset.editSession=editSession.session_id;
     dialog.querySelector('form').addEventListener('input',retain);dialog.querySelector('form').addEventListener('change',retain);
     dialog.querySelectorAll('[data-cancel]').forEach(button=>button.onclick=()=>close(true));dialog.querySelector('[data-later]').onclick=()=>close();
-    const later=document.createElement('button');later.type='button';later.className='secondary';later.textContent='Später fortsetzen';later.onclick=()=>close();dialog.querySelector('.dialog-actions').prepend(later);
+    const later=dialog.querySelector('[data-later]');later.textContent='‹';later.setAttribute('aria-label','Zurück · Entwurf behalten');
     if(resumed?.context.pane)dialog.querySelector('[data-pane="'+CSS.escape(resumed.context.pane)+'"]')?.click();
     if(editSession.pending){studio.setBusy(true);dialog.querySelectorAll('input,select,textarea,[data-cancel]').forEach(e=>e.disabled=true);dialog.querySelector('[type=submit]').textContent='Dieselbe Speicherung erneut prüfen';}
 

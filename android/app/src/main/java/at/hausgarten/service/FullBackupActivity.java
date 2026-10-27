@@ -54,6 +54,7 @@ public final class FullBackupActivity extends Activity {
         if(Build.VERSION.SDK_INT>=26)getWindow().getDecorView().setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);
         root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setPadding(dp(16),dp(16),dp(16),dp(24));root.setBackgroundColor(BG);root.setFocusableInTouchMode(true);
         ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.addView(root);scroll.setFitsSystemWindows(true);setContentView(scroll);
+        button(root,"‹ Zurück",false).setOnClickListener(v->leave());
         TextView heading=text(root,"Backup",24);heading.setTypeface(null,Typeface.BOLD);ViewCompat.setAccessibilityHeading(heading,true);heading.setFocusable(true);heading.setFocusableInTouchMode(true);heading.requestFocus();
         text(root,"Deine Daten bleiben auf dem Pixel. Eine verschlüsselte Kopie auf Drive schützt sie zusätzlich.",16);
         LinearLayout summary=card(root);overall=text(summary,"Sicherungsstand wird lokal gelesen …",16);overall.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);button(summary,"Status prüfen",false).setOnClickListener(v->refresh(false));

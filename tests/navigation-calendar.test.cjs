@@ -5,7 +5,7 @@ const acorn=require(process.env.HG_ACORN_MODULE||'acorn');
 function existingBridge(){const source=fs.readFileSync(path.join(__dirname,'planning-ui.test.cjs'),'utf8'),ast=acorn.parse(source,{ecmaVersion:2022}),found=[];function visit(node){if(!node||typeof node!=='object')return;if(node.type==='CallExpression'&&node.callee?.property?.name==='addInitScript')found.push(node.arguments[0]);for(const value of Object.values(node)){if(Array.isArray(value))value.forEach(visit);else if(value&&typeof value==='object')visit(value);}}visit(ast);assert.equal(found.length,1);return '('+source.slice(found[0].start,found[0].end)+')();';}
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']}),results=[];
- const page=await browser.newPage({viewport:{width:360,height:900},hasTouch:true}),errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(8000);
+ const page=await browser.newPage({viewport:{width:360,height:900},hasTouch:true}),errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(8000);page.setDefaultNavigationTimeout(30000);
  async function check(name,run){try{await run();results.push({name,result:'PASS'});}catch(e){results.push({name,result:'FAIL',error:e.stack});}console.log(results.at(-1));}
  try{
   await page.addInitScript({content:existingBridge()});await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href);await page.waitForFunction(()=>!!window.PlanningUI&&!!document.getElementById('settings-data-tools')&&document.body.dataset.fieldReady==='true'&&document.body.dataset.revierReady==='true');

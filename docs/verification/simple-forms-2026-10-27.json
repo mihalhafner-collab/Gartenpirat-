@@ -1,0 +1,666 @@
+{
+  "format": "hausgarten.simple-forms-verification.v1",
+  "classification": "SYNTHETIC_TEST",
+  "date": "2026-10-27",
+  "base_commit": "45a50613fde21cbf61e52b97c9f0b9e1d652f3fe",
+  "scope": "Source-only, synthetic Cloud Chromium and JVM; Android Java compilation; no APK, signing, installation or productive data access",
+  "source_sha256": {
+    "android/app/src/main/assets/simple-forms.js": "3e9efdbe0a96d628515a2fb719b2adcfa3efa5e95b1984285c59ac9052ac38cb",
+    "android/app/src/main/assets/simple-forms.css": "e9f343d9e292a9761a013ee64ca4f8125b6e5fba319188f54f18349ec8ec7a2f",
+    "android/app/src/main/assets/field-ui.js": "0de10ee674808a5fb96ec2aa141a1315f8905a3d6f01da886c685058515f82a7",
+    "android/app/src/main/assets/design-concept.js": "9be4da9881dbf751bc1e1dac230d03baed2c4a0da43867ab5c1bee0f8af26078",
+    "android/app/src/main/assets/mobile.html": "8b6009b6555164eb65210afd3c5fbcd4972153c27d2f1d2c0825b55252254662",
+    "android/app/src/main/assets/revier-solo-ui.js": "fdc23217a402e6ab9b85ef1dee6462944d6b6c821fa15fb43104952b8e50e3be",
+    "android/app/src/main/assets/order-window.js": "445981b60691499d020f66abc7dd187126383d34eb28460123203962e1c5e11b",
+    "android/app/src/main/assets/invoice-draft.js": "68ffe14e29986c8de87e7b0639549374fa7ab97b8ef85131a8090fa8732e7582",
+    "android/app/src/main/assets/ui-mcp-actions.json": "3d6fb4504294a98e6ae6cc8cc45d1ba2d9c0372d6fe27f1ffa9b848ed81f74e1",
+    "android/app/src/main/java/at/hausgarten/service/FullBackupActivity.java": "f6a86de57c6f545040fb09e7fe4128e774b0fe5a91d068084a3396ad8f893c58"
+  },
+  "browser_suites": [
+    {
+      "suite": "architecture-workflow",
+      "result": "PASS",
+      "log_sha256": "233e005077e66e236eb1d653bc27ef11d2f7b9933d3bae0aef65b0cbdbda1d3c"
+    },
+    {
+      "suite": "billing-ui",
+      "result": "PASS",
+      "log_sha256": "81354ab12d82c6ad0d3ab9af7a3a26418069d06645ca1d17a4bebbe3cb83a587"
+    },
+    {
+      "suite": "daily-usability",
+      "result": "PASS",
+      "log_sha256": "6c670390633d4a043828779e73efe87b012480126c440f6c64eceb7b7a6b73e7"
+    },
+    {
+      "suite": "design-concept",
+      "result": "PASS",
+      "log_sha256": "605f82aaf877347c2b80d2ba48d0f74983bd74ea008a6d59cf5c360d90cc9863"
+    },
+    {
+      "suite": "design-v139",
+      "result": "PASS",
+      "log_sha256": "952e3ce249b190618ec84e61538462f6ba881d22506a66430277f055cfc5c4b0"
+    },
+    {
+      "suite": "equipment-maintenance-ui",
+      "result": "PASS",
+      "log_sha256": "d6002580aea3c982fd867708f57007e00b1e740fcff8085f1b579ff17983eacf"
+    },
+    {
+      "suite": "field-ui",
+      "result": "PASS",
+      "log_sha256": "dd60dad4b87fe6e7805a6c858c1fd324e055719f5172cec61c595f8f713e43f5"
+    },
+    {
+      "suite": "full-backup-drafts",
+      "result": "PASS",
+      "log_sha256": "d807bfc31ea9418a37d478c265881faea530451e39d7ab70cab10153948b27ac"
+    },
+    {
+      "suite": "full-backup-entry",
+      "result": "PASS",
+      "log_sha256": "65a2c979c44ac6e792f29f2616fc5f402e2399672bcb7556c757d157c29ca6a8"
+    },
+    {
+      "suite": "interaction-continuity",
+      "result": "PASS",
+      "log_sha256": "6827312164de2846a04584b35119060899dc75954d2641447b79b87d973d424c"
+    },
+    {
+      "suite": "invoice-issue-review-ui",
+      "result": "PASS",
+      "log_sha256": "34a0d65a6a4973d249d3d84f61ca026989c06f8794f35583a48fcffd602ec7cf"
+    },
+    {
+      "suite": "local-invoice-ui",
+      "result": "PASS",
+      "log_sha256": "c4424be118bb553ac9f171b47ec86115af96ee674d955452b5e68bacd2027c17"
+    },
+    {
+      "suite": "navigation-calendar",
+      "result": "PASS",
+      "log_sha256": "17a732e90caec8c307dbc28f1f3d38d84fb781f8ff89a2d3c05a507f34cee3ba"
+    },
+    {
+      "suite": "offers-photo-library",
+      "result": "PASS",
+      "log_sha256": "079c6bbe63b3a12dfc32408b1fa127d576de05a129848fa212adfe34df73684b"
+    },
+    {
+      "suite": "p3-documents",
+      "result": "PASS",
+      "log_sha256": "99238a22b46b0a256b8ecc98d9f737fb42d0961e867360519865b8e546b3a332"
+    },
+    {
+      "suite": "planning-carousel",
+      "result": "PASS",
+      "log_sha256": "892640eed9cb410819ab724f6b8b0a1d475b4de9056af12521a5259e3a9a27bd"
+    },
+    {
+      "suite": "planning-open-end",
+      "result": "PASS",
+      "log_sha256": "b9fe89035d86be7dcd4ef66f2762a68940c487638dd35691b7b1908557c6a186"
+    },
+    {
+      "suite": "planning-overview",
+      "result": "PASS",
+      "log_sha256": "76ae63e42fe930e85a79761ad6ddc614b9218f3ea4a7a3cd15d4a18a7411a289"
+    },
+    {
+      "suite": "planning-ui",
+      "result": "PASS",
+      "log_sha256": "0c6b3e6fa9d705f1421f323c932f239b7d9b8e7e0710231dbda11c84d5ee9f08"
+    },
+    {
+      "suite": "plant-library-integration",
+      "result": "PASS",
+      "log_sha256": "28e3825d3fcfb12506267d5e294905ca46e81532d937848fe4ef0ef272891e1a"
+    },
+    {
+      "suite": "revier-offer-flow",
+      "result": "PASS",
+      "log_sha256": "885589b9fd57fd93d700a298f628082cf2ba95b3efedfd18b844192152060dff"
+    },
+    {
+      "suite": "revier-solo-ui",
+      "result": "PASS",
+      "log_sha256": "05e33a60e5c8c3c320106c817f05e3ef92e545bb821acd2d9a1a44412c22ec5d"
+    },
+    {
+      "suite": "revier-timer-review",
+      "result": "PASS",
+      "log_sha256": "7bd173eaab2096ffd72ad9da953efb45c44bfed57c7aff7d82bc49dc64a8622d"
+    },
+    {
+      "suite": "saved-drafts-read-first",
+      "result": "PASS",
+      "log_sha256": "f60685f1760a80954dc22aeb099c6804d244063e0aba3fc3b78c77df2c532cea"
+    },
+    {
+      "suite": "settings-cleanup",
+      "result": "PASS",
+      "log_sha256": "d6f8efd1833da886de51afd326aebfa93e754a94591df5fb02314bae2f1e9f79"
+    },
+    {
+      "suite": "simple-design",
+      "result": "PASS",
+      "log_sha256": "bc27f98b048038d4637ae6a61e868965d95c1e144702ce04ff10bfe7214e7d05"
+    },
+    {
+      "suite": "simple-forms",
+      "result": "PASS",
+      "log_sha256": "893fa0460ffc8c9a7bf11cc0007403571064bd8a277d2a5cd4d897eed63e1272"
+    },
+    {
+      "suite": "timer-completion",
+      "result": "PASS",
+      "log_sha256": "1cfdcdf841a930aefe5f732c3942a47982409518ff8fda0a54af3daebe8b3843"
+    },
+    {
+      "suite": "timer-material-context-ui",
+      "result": "PASS",
+      "log_sha256": "a92cb6dd6bb2f7a8b3f1fe56f941bdd96b2757f8c7d8ceb9db56ab746f46acc4"
+    },
+    {
+      "suite": "ui-preview",
+      "result": "PASS",
+      "log_sha256": "f5268234b7d0f04f0ce8a8f18a991cd163fcf87dc679d044721c4322f6ed4884"
+    },
+    {
+      "suite": "visual-consistency",
+      "result": "PASS",
+      "log_sha256": "32c668838d6331fd7d22c6971a20da866320845c2578be3cb3a8c01d3e09c7ad"
+    },
+    {
+      "suite": "webview-hardening",
+      "result": "PASS",
+      "log_sha256": "46ad64b9cd28984036d555a884540b81257c51527f8a3d7bfeacabb919840aba"
+    },
+    {
+      "suite": "webview-syntax",
+      "result": "PASS",
+      "log_sha256": "23ebdd90bea1755adf29b153c4e38dc3eaca79651fc8a03273e49f61aaf17e5e"
+    },
+    {
+      "suite": "work-entry-photo-failure",
+      "result": "PASS",
+      "log_sha256": "621128f32e5812b4bd66bce18713beb6f9f1561a89ca687a0ed643a11c7bb883"
+    },
+    {
+      "suite": "work-location",
+      "result": "PASS",
+      "log_sha256": "e0822f901ff95b334ac2fd96e62ebf7c98f35838e62e30cd7c87fec373f4ed9b"
+    },
+    {
+      "suite": "worklog-window",
+      "result": "PASS",
+      "log_sha256": "27a724dfaf13204f810d93b8a792ccc92ac1575835772a1d32f9fbb343e6d5f3"
+    }
+  ],
+  "new_behavior_checks": 8,
+  "java_groups": [
+    {
+      "suite": "AppointmentAvailabilityTests",
+      "result": "PASS",
+      "log_sha256": "8958c461d918cd40a3bf612e942202b7dcd5ed94f50d55886183db2c9fc6d44a"
+    },
+    {
+      "suite": "BackupDatasetExchangeTests",
+      "result": "PASS",
+      "log_sha256": "2bd7c83d3b56dec6112e5b8c025533fd7d03fad8edb01323acf99089bf39120b"
+    },
+    {
+      "suite": "BackupDocumentTransferTests",
+      "result": "PASS",
+      "log_sha256": "78ef6f029a03966bbc367191b21e9ec7ad67d6faefb57e2e6ad31da480f46e13"
+    },
+    {
+      "suite": "BackupFilePinsTests",
+      "result": "PASS",
+      "log_sha256": "d0bbb7143cdd5ec02ed3fefaca0a9e37601c6014477ba4b47f1e540b47ba2956"
+    },
+    {
+      "suite": "BackupPortableFormatTests",
+      "result": "PASS",
+      "log_sha256": "da235c85c3197933e36994cd794f2a10a2483bc8dc0486fb1f7946cd52f3fa58"
+    },
+    {
+      "suite": "BackupScheduleRulesTests",
+      "result": "PASS",
+      "log_sha256": "b398a22ad7ec0459992f250cef3379102a7063eb1432385af4f726e32a774865"
+    },
+    {
+      "suite": "BackupSetupTests",
+      "result": "PASS",
+      "log_sha256": "c7e8cd92167cf92e22247efb05bef13f722b26a5942961facebfcc68611e058c"
+    },
+    {
+      "suite": "BackupStorageBudgetTests",
+      "result": "PASS",
+      "log_sha256": "e8f7863955d1984a5c938fdc184794601ca5858359d3a00851374d291f14cf56"
+    },
+    {
+      "suite": "BillingTests",
+      "result": "PASS",
+      "log_sha256": "e33aae2e21917c3633ccee8627a78ef984d8fe45e91035c659788154bd282b9a"
+    },
+    {
+      "suite": "BrowserMediaFilesTests",
+      "result": "PASS",
+      "log_sha256": "cf48401edb522a89037f263d82f0d264de7b798f97c635eb71b4287dbbe1b981"
+    },
+    {
+      "suite": "BrowserMediaRepositoryRulesTests",
+      "result": "PASS",
+      "log_sha256": "f2309f751a81e29ecc0c2ae12e1ec6b91101ec8edd1bf7978077b72916f2da54"
+    },
+    {
+      "suite": "CalendarAccessTests",
+      "result": "PASS",
+      "log_sha256": "c061e6beb00334ea279930ca1aa71acb398a94ddcbf66d864b9ff591d897180d"
+    },
+    {
+      "suite": "CalendarAuthorizationTests",
+      "result": "PASS",
+      "log_sha256": "dbd93e3d2f108b2557d41ae1ff27151c1aed6e964269455b8890175a30001a7f"
+    },
+    {
+      "suite": "CalendarRecoveryTests",
+      "result": "PASS",
+      "log_sha256": "c8014883718d9f2a5f7fcc68db1eda49392e7c2931b9cbe11facaf5c9a43a35a"
+    },
+    {
+      "suite": "CalendarSetupProgressTests",
+      "result": "PASS",
+      "log_sha256": "74ef447bce4003a7a3be0baf2d7b22669ba286cfbff40aa47994aa44094d7271"
+    },
+    {
+      "suite": "CalendarSetupTests",
+      "result": "PASS",
+      "log_sha256": "18c460271c5e7fadb800044fe80d22f6e5d8f6434f597f3ae53d477e7d6cfeb6"
+    },
+    {
+      "suite": "DeletionBackupTests",
+      "result": "PASS",
+      "log_sha256": "2a910124f62683eaf4ccbab6f9a8f97fe490a199a0fbd3e8a05d3c65df4ce2b4"
+    },
+    {
+      "suite": "DriveBackupUploadTests",
+      "result": "PASS",
+      "log_sha256": "746190b4b84cc1f93c490a56071f5ef2b44875ee0758b5e85827a7491fd46fbb"
+    },
+    {
+      "suite": "DriveJournalTests",
+      "result": "PASS",
+      "log_sha256": "2d8474ccad3e85465faddf94aec181693e280672bce235a2a8e38c41ea50d380"
+    },
+    {
+      "suite": "DriveLegacyNormalizationTests",
+      "result": "PASS",
+      "log_sha256": "f999c98c2b90bec53a62158bbf973ea32d8bda10d89ebfd1c0b23522bf0c59f6"
+    },
+    {
+      "suite": "DrivePerformanceTests",
+      "result": "PASS",
+      "log_sha256": "09ec80b8323d30e847071bf4fae54b43d24030f670a2f8de47081b81af41e90d"
+    },
+    {
+      "suite": "DriveThroughputTests",
+      "result": "PASS",
+      "log_sha256": "2bede9bf3b69d53e287b65b70ef5fc9abb893597d22435d026e067dbfa468a08"
+    },
+    {
+      "suite": "DriveTransportTests",
+      "result": "PASS",
+      "log_sha256": "b3db07085af9630b52ba12833b967233c2e9aaf7f81ead3f723c994c2a8a520b"
+    },
+    {
+      "suite": "EncryptedBackupArchiveTests",
+      "result": "PASS",
+      "log_sha256": "064565ac9f4b7bebcd14e2db3720a01efc4f06f8796690d1b8f50714437b6674"
+    },
+    {
+      "suite": "EntityProtectionTests",
+      "result": "PASS",
+      "log_sha256": "21140c9781b32b48cee8aa28d78a6637b4698bcc400925f8b5e646a0964b1e2a"
+    },
+    {
+      "suite": "EquipmentMaintenanceTests",
+      "result": "PASS",
+      "log_sha256": "9c5b455523024cf5b2b6aef8890e812d25be56118e33b13ae5d1506b515ca142"
+    },
+    {
+      "suite": "EstimateContractTests",
+      "result": "PASS",
+      "log_sha256": "ceebe944b8c1fd70153a3e48e0d107bb3f99b8fd044aab8e1b74ce9e889eb133"
+    },
+    {
+      "suite": "FreeWeatherSourceTests",
+      "result": "PASS",
+      "log_sha256": "4e0537c215fbbbc3afbd978ca96e54a480ea0fa33ad44cdcbbaa2fb975be51d0"
+    },
+    {
+      "suite": "ImmutableStateReferenceTests",
+      "result": "PASS",
+      "log_sha256": "a7d6a8d35b9fa98a7aa2c92181b9aa050bcb32e32525b25ae4780201419a09a5"
+    },
+    {
+      "suite": "InvoiceDraftUnknownSettingsTests",
+      "result": "PASS",
+      "log_sha256": "6d7d7dd59df5777a966dfba8efe8caded3cce2372e6e711e5290e686893050d0"
+    },
+    {
+      "suite": "InvoiceIssueReviewRulesTests",
+      "result": "PASS",
+      "log_sha256": "0fc462566d430c0b9c44926fcc0ca84815e07ac9998ad64be8409a139105b214"
+    },
+    {
+      "suite": "IssuedInvoiceRulesTests",
+      "result": "PASS",
+      "log_sha256": "50ef0201d219f85f056662114251e792dfdf5e2178499d97392ee3189482ca69"
+    },
+    {
+      "suite": "LocalAuthorityRulesTests",
+      "result": "PASS",
+      "log_sha256": "dfb071dbc91affcb710d7f9bf50aaec34dcf5e857c6a46c23a7f39bca5634972"
+    },
+    {
+      "suite": "LocalBillingQuantityTests",
+      "result": "PASS",
+      "log_sha256": "070ac327ea0174dce64ae811f77e37e273d5b5f7394e64efa9caf054316b9f85"
+    },
+    {
+      "suite": "LocalFinancialOriginalsTests",
+      "result": "PASS",
+      "log_sha256": "e898c3960acf8b3e4fb0a2fa3354a7419ee6958ddd3a13dc5354e9e2a846b88e"
+    },
+    {
+      "suite": "LocalFinancialRestoreRecoveryTests",
+      "result": "PASS",
+      "log_sha256": "dac3d991b2de21b1b223918db4094ba56a10b08975b300d1798d3e5d35430c35"
+    },
+    {
+      "suite": "LocalFinancialValidationTests",
+      "result": "PASS",
+      "log_sha256": "c8f9672612581f8541ce9cc2331a2212a7c96ecef9499338bdcf51fda76c0d86"
+    },
+    {
+      "suite": "LocalInvoiceCreationRulesTests",
+      "result": "PASS",
+      "log_sha256": "97d11be425581d98632d8a262c163d3998410a6b7fe9d5c710a52aa54086a0ea"
+    },
+    {
+      "suite": "LocalMigrationInventoryTests",
+      "result": "PASS",
+      "log_sha256": "a0dc39b8b5e8def5ec229a956090dcd9df311c0785baded4ad86fa2e9ad50114"
+    },
+    {
+      "suite": "LocalMoneyCompatibilityTests",
+      "result": "PASS",
+      "log_sha256": "86af0493a626a6d6641cf80a3cf2f1889e6985a61095f65b2c4e5536bcb9700d"
+    },
+    {
+      "suite": "LocalTestTombstoneTests",
+      "result": "PASS",
+      "log_sha256": "1dc9dd8eca4d4150a5cfcc09b3fe08d6c2700c13f4e8a4592988aa088c1b8907"
+    },
+    {
+      "suite": "LocalWorkflowContractsTests",
+      "result": "PASS",
+      "log_sha256": "159cf889a69d89c69be0a0097b00dd3ef9d437e76322c946a3605fffba832ca3"
+    },
+    {
+      "suite": "ManualChangeTests",
+      "result": "PASS",
+      "log_sha256": "edbccbcd0f90b4520dbdb9623b50a8583b49807341a9f154dda01b363c0c2c38"
+    },
+    {
+      "suite": "McpErrorsTests",
+      "result": "PASS",
+      "log_sha256": "9f052f06c60215d5a6973ac346cf1918e430826f97f857976db1e65d60c85cc0"
+    },
+    {
+      "suite": "McpMetadataTests",
+      "result": "PASS",
+      "log_sha256": "c495ffe6213a5f4aac22f5ed66c817c1fe8023e5da655163070ac451546f7227"
+    },
+    {
+      "suite": "OfferDecisionBoundaryTests",
+      "result": "PASS",
+      "log_sha256": "7f03ae1621858fdd6f5df0194f20e364ddf5ffa6af053873c3cfb3c82b94caf5"
+    },
+    {
+      "suite": "OfferDecisionTests",
+      "result": "PASS",
+      "log_sha256": "cb0bdea0644148837dbc8b771fef69e872f8335d46aafab3d8fa27b1e7912bfb"
+    },
+    {
+      "suite": "OffersAndPhotosTests",
+      "result": "PASS",
+      "log_sha256": "b0b8f65ec761fae23cbc074a57aaa44b984c8b97e3e862dd4597a8846ea3b401"
+    },
+    {
+      "suite": "OpenEndPlanningTests",
+      "result": "PASS",
+      "log_sha256": "d0dbdd1f70a89e771bf9446e3d51fafab29b46306fe72ad006dc4be3205392cb"
+    },
+    {
+      "suite": "OpenMeteoWeatherTests",
+      "result": "PASS",
+      "log_sha256": "2d8fc0642429dc1bbe953fe7fa04ef0353549437bedcb69aa91fb0ba516d04da"
+    },
+    {
+      "suite": "OrderReviewTests",
+      "result": "PASS",
+      "log_sha256": "81f0e93c6ece9adb799902d4c11523b566805688af462dd5c6c1bb5d7f3e2321"
+    },
+    {
+      "suite": "OwnerApplicationTests",
+      "result": "PASS",
+      "log_sha256": "73270ca141c743bf53d8a4cd1a498c37584d498fa65006a84ec6ed56549c2725"
+    },
+    {
+      "suite": "OwnerToolsTests",
+      "result": "PASS",
+      "log_sha256": "0260bffab46f0c67e05d2520e756b6af7d2971dd5f54cb1207b40f43395c4887"
+    },
+    {
+      "suite": "PixelDriveStateTests",
+      "result": "PASS",
+      "log_sha256": "039b0b9318c3f97cad2a84f1f495009e31baf170b7738f4b8fcfd25b217e2fb4"
+    },
+    {
+      "suite": "PixelMcpDailyTests",
+      "result": "PASS",
+      "log_sha256": "42d43cf0199ef0b2fdeb5a028b2cce96840967bd535332f3f7674bc44412cc35"
+    },
+    {
+      "suite": "PixelMcpEntityWriteTests",
+      "result": "PASS",
+      "log_sha256": "7d135b96465d65cec42f16b7bd969659d1bb3721cad4be23cbb8e693340e4447"
+    },
+    {
+      "suite": "PixelMcpWriteTests",
+      "result": "PASS",
+      "log_sha256": "2eca06512a4e3ab4d7fe0e33cd3134651d03a58461768392a7f6181f8e0ee7d3"
+    },
+    {
+      "suite": "PixelTunnelContractTests",
+      "result": "PASS",
+      "log_sha256": "0a45b88d2336a563dd0921bd713fd2c93a2640ce743f3dcae3e24ddc512c5cbc"
+    },
+    {
+      "suite": "PlanningTests",
+      "result": "PASS",
+      "log_sha256": "0344c913d562ec03d86412553e9847946980e699cf98807942d40c87bc892579"
+    },
+    {
+      "suite": "ReceiptRetentionRulesTests",
+      "result": "PASS",
+      "log_sha256": "9ac0acfd407fea52f5121433ef21e39560d4b395717364e5f4b378e1cbb5c8d5"
+    },
+    {
+      "suite": "RefactoringCharacterizationTests",
+      "result": "PASS",
+      "log_sha256": "49c0024ce5718f71762cb5f6da07f65fe86dbc2478068fe2afad85e74fdddc24"
+    },
+    {
+      "suite": "RestoredBrowserReviewRulesTests",
+      "result": "PASS",
+      "log_sha256": "8483b453117c79aa0c6ed55b0b41722ede96f5ab66ac4abcd2823df2974df12e"
+    },
+    {
+      "suite": "RevierContextBoundaryTests",
+      "result": "PASS",
+      "log_sha256": "1803b5b6a2161977f28eda804ebd5fbf7d4ee109f4a37d82f7814eacd38ffd45"
+    },
+    {
+      "suite": "RevierDomainTests",
+      "result": "PASS",
+      "log_sha256": "507a6b2f3db2dad36588c27ef359e48550aa252df4d2b936be910abe8ba7b9c7"
+    },
+    {
+      "suite": "SearchOrderingTests",
+      "result": "PASS",
+      "log_sha256": "8552760cf69681955d07d2322206173de32386de276c61dad2c3f111693c207c"
+    },
+    {
+      "suite": "ServiceCatalogBootstrapTests",
+      "result": "PASS",
+      "log_sha256": "7e5c3e8b1d686a4314cdc41a834305259321c64c695e93b246f06ff33c02d651"
+    },
+    {
+      "suite": "SyncCommitRulesTests",
+      "result": "PASS",
+      "log_sha256": "90663d431378f090433b982f065ee022469678de75e8eb1c45ae6105547b56eb"
+    },
+    {
+      "suite": "SyncDeletionTests",
+      "result": "PASS",
+      "log_sha256": "2ef11f627f06df7aad4a21867176018322c4b21ca9e440738f2213130a09b8d8"
+    },
+    {
+      "suite": "SyncFailureRulesTests",
+      "result": "PASS",
+      "log_sha256": "4fee6e224376ebce07143469e96d07a5f3cb452cf339dfae9763dc6e0e16cc2e"
+    },
+    {
+      "suite": "SyncOptimizationTests",
+      "result": "PASS",
+      "log_sha256": "b43293b1877a2d0019391ecdafcaead7a21dd238fc384da95336dd7f6c72a0bc"
+    },
+    {
+      "suite": "TrashBoundaryTests",
+      "result": "PASS",
+      "log_sha256": "ce5f9fe127f8ae9e2f0077d600c969f85091d3ca9baaa5a1ee1592b194ed33fb"
+    },
+    {
+      "suite": "TrashPurgeBatchTests",
+      "result": "PASS",
+      "log_sha256": "45e0afff267ed15fe720d3a32ef82e7c9bec3bd93960f7f74aa1ce9075cfd554"
+    },
+    {
+      "suite": "TrashWorkflowTests",
+      "result": "PASS",
+      "log_sha256": "052c6f0b2a55e5e5c8ab7c89423567425a3deec3a616c4df60e4c7292c474051"
+    },
+    {
+      "suite": "UiMcpParityTests",
+      "result": "PASS",
+      "log_sha256": "a98c7210e4b5e9894254f58c55cc6acb74ed895d9ebd219790e464852c9dce09"
+    },
+    {
+      "suite": "WeatherWorkflowTests",
+      "result": "PASS",
+      "log_sha256": "c0d1f1d258fe5abe2655f2aa3d3d666c8e4512849c5cc1f1da377aadd33dc3a7"
+    },
+    {
+      "suite": "WorkSessionPauseTests",
+      "result": "PASS",
+      "log_sha256": "17d18b51f7a1c30bd48858a409588648a6040c7c498a0b85ed93c9c5bc103033"
+    },
+    {
+      "suite": "WorkSessionTimingTests",
+      "result": "PASS",
+      "log_sha256": "69d40d4d6551354733f8e9f704b2a24bfccd4bddcd85291e686518d589b1bf0a"
+    },
+    {
+      "suite": "WorklogArchiveBatchTests",
+      "result": "PASS",
+      "log_sha256": "423d7a3845914bab09e6b0df5338a645690a585cd10a8c06d771ce90093652ef"
+    },
+    {
+      "suite": "WorklogRelationTests",
+      "result": "PASS",
+      "log_sha256": "8e9649d09cb572994bb0eb574d824b0d4bf31565c8b2da34457172f27d9a995a"
+    },
+    {
+      "suite": "LocalOwnerRepositoryTests",
+      "result": "PASS",
+      "log_sha256": "ccd855069d2c4fdab445aea94756d118f0bf7cadf6ea6fb1857ba1e0f642aa37"
+    }
+  ],
+  "android_java_compile": {
+    "task": ":app:compileReleaseJavaWithJavac",
+    "result": "PASS",
+    "log_sha256": "5b35064ee62289b2849d6cbb00b02094a0987f4241e977f9918398650ef08422",
+    "apk_created": false
+  },
+  "catalog": {
+    "tools": 169,
+    "ui_actions": 212,
+    "business_actions": 197,
+    "platform_groups": 15,
+    "new_business_tools": 0,
+    "parity": "PASS 1398 checks",
+    "connector_refresh": "NOT_PERFORMED_NO_APK"
+  },
+  "negative_checks": [
+    "Opening and repeated enhancement create no business writes or drafts",
+    "Original controls and form ownership retained",
+    "Back retains original draft; discard removes it including after reload",
+    "Readonly and disabled controls reject stale choice callbacks",
+    "Native and semantic field errors reveal collapsed extras",
+    "No horizontal overflow at320/360/412px and enlarged text; capture Save/Discard inside viewport",
+    "Original request IDs and immutable retry arguments retained by existing save paths",
+    "Invoice authority, restore selection and backup gates not released"
+  ],
+  "coverage": [
+    "Heute/Büro/Mehr and menu destinations",
+    "Customers/properties/inquiries/care/visits/tours",
+    "Work capture, timer, manual durations and breaks",
+    "Planning, repeated appointments and calendar boundaries",
+    "Material/equipment/maintenance",
+    "Offers/invoices/payments/business settings",
+    "Photos/plants/search",
+    "Backup entry, restore drafts and archive/purge"
+  ],
+  "test_adjustments": "Optional fields are opened through their real disclosure before use; obsolete root-tab assumptions now use Heute/Büro; cold browser navigation has a separate30second deadline in three suites, interactive deadlines unchanged. Initial failures were investigated and affected suites rerun. No business assertions removed.",
+  "screenshots": [
+    "simple-work-capture-360.png",
+    "simple-visit-form-360.png"
+  ],
+  "limits": [
+    "Physical Pixel UI and native backup Back not executed",
+    "No live Google Calendar or Drive operation",
+    "Startup delay/legacy first frame remains separately documented and unresolved",
+    "Equipment photo assignment remains open"
+  ],
+  "privacy": {
+    "stage": "PREBUILD_ONLY",
+    "source_privacy": {
+      "status": "PASS",
+      "files": 2355,
+      "operational_seed_rows": 0
+    },
+    "workspace_privacy": {
+      "status": "PASS",
+      "files": 6128,
+      "includes_ignored_untracked": true,
+      "git_history": "SEPARATE_READONLY_AUDIT"
+    },
+    "artifact_privacy": "NOT_TESTABLE",
+    "secret_values_printed": false
+  }
+}

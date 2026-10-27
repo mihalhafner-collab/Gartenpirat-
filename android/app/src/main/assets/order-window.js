@@ -29,7 +29,7 @@
     if(!active)return;
     active.mode='edit';active.card.hidden=false;active.summary.hidden=true;active.dialog.querySelector('#direct-edit-title').textContent=active.isNew?'Auftrag anlegen':'Auftrag bearbeiten';
     active.footer.querySelector('[data-order-window-edit]').hidden=true;active.footer.querySelector('[data-order-window-save]').hidden=false;
-    active.footer.querySelector('[data-order-window-back]').textContent='Abbrechen';
+    active.footer.querySelector('[data-order-window-back]').textContent='Verwerfen';
     active.status.textContent='Änderungen anschließend unten speichern.';
     active.dialog.querySelector('.direct-edit-content').scrollTop=0;
   }
@@ -103,7 +103,7 @@
   const updateActive=()=>document.body.classList.toggle('worklog-window-open',page.classList.contains('active'));
   new MutationObserver(updateActive).observe(page,{attributes:true,attributeFilter:['class']});updateActive();
   const summary=document.createElement('section');summary.className='card worklog-window-summary';summary.setAttribute('aria-label','Arbeitsaufzeichnung im Überblick');
-  const footer=document.createElement('footer');footer.className='worklog-window-actions';footer.innerHTML='<p>Details ansehen oder unten bearbeiten.</p><div><button type="button" class="secondary" data-work-window-back>Zurück</button><button type="button" class="primary" data-work-window-edit>Bearbeiten</button><button type="button" class="primary" data-work-window-save hidden>Speichern</button><button type="button" class="secondary" data-work-window-cancel hidden>Abbrechen</button><button type="button" class="secondary" data-work-window-more>Weitere Aktionen</button></div>';
+  const footer=document.createElement('footer');footer.className='worklog-window-actions';footer.innerHTML='<p>Details ansehen oder unten bearbeiten.</p><div><button type="button" class="secondary" data-work-window-back>Zurück</button><button type="button" class="primary" data-work-window-edit>Bearbeiten</button><button type="button" class="primary" data-work-window-save hidden>Speichern</button><button type="button" class="secondary" data-work-window-cancel hidden>Verwerfen</button><button type="button" class="secondary" data-work-window-more>Weitere Aktionen</button></div>';
   page.querySelector('#worklog-detail-form-slot').before(summary);page.append(footer);page.classList.add('worklog-window-page');
   const value=id=>document.getElementById(id)?.value||'';
   const selected=id=>document.getElementById(id)?.selectedOptions[0]?.textContent||'';
@@ -116,7 +116,7 @@
     page.querySelector('.page-head h2').textContent='Arbeitsaufzeichnung';footer.querySelector('[data-work-window-cancel]').hidden=true;footer.querySelector('[data-work-window-more]').hidden=false;
     page.dataset.workMode='overview';footer.querySelector('[data-work-window-edit]').hidden=false;footer.querySelector('[data-work-window-save]').hidden=true;footer.querySelector('[data-work-window-back]').textContent='Zurück';footer.querySelector('[data-work-window-back]').hidden=false;page.querySelector('.page-head .back')?.setAttribute('aria-label','Zurück');footer.querySelector('p').textContent='Zum Ändern unten auf „Bearbeiten“ tippen.';
   }
-  function showEditor(){window.beginWorklogDraft?.();mode='edit';page.dataset.workMode='edit';page.querySelector('.page-head h2').textContent='Arbeit bearbeiten';footer.querySelector('[data-work-window-edit]').hidden=true;footer.querySelector('[data-work-window-save]').hidden=false;footer.querySelector('[data-work-window-back]').textContent='Später fortsetzen';footer.querySelector('[data-work-window-back]').hidden=true;page.querySelector('.page-head .back')?.setAttribute('aria-label','Bearbeitung erhalten und zurück zur Übersicht');footer.querySelector('[data-work-window-cancel]').hidden=false;footer.querySelector('[data-work-window-more]').hidden=true;footer.querySelector('p').textContent='Speichern bestätigt Änderungen am Datensatz. Zurück erhält die Bearbeitung zum Fortsetzen; Abbrechen verwirft sie.';window.scrollTo({top:0,behavior:'auto'});}
+  function showEditor(){window.beginWorklogDraft?.();mode='edit';page.dataset.workMode='edit';page.querySelector('.page-head h2').textContent='Arbeit bearbeiten';footer.querySelector('[data-work-window-edit]').hidden=true;footer.querySelector('[data-work-window-save]').hidden=false;footer.querySelector('[data-work-window-back]').textContent='Später fortsetzen';footer.querySelector('[data-work-window-back]').hidden=true;page.querySelector('.page-head .back')?.setAttribute('aria-label','Bearbeitung erhalten und zurück zur Übersicht');footer.querySelector('[data-work-window-cancel]').hidden=false;footer.querySelector('[data-work-window-more]').hidden=true;footer.querySelector('p').textContent='Speichern bestätigt Änderungen am Datensatz. Zurück erhält die Bearbeitung zum Fortsetzen; Verwerfen entfernt sie.';window.scrollTo({top:0,behavior:'auto'});}
   function finishEditing(){if(!window.saveWorklogDetail(true))return false;showOverview();window.scrollTo({top:0,behavior:'auto'});return true;}
   window.beginWorklogEdit=showEditor;
   const oldOpen=window.openWorklogDetail;window.openWorklogDetail=function(id){oldOpen(id);if(currentPage==='worklog-detail')showOverview();};
