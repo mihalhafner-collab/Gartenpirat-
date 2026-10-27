@@ -908,7 +908,7 @@
     "owned_emulator_shutdown": true,
     "host_oom_kills_after": "0"
   },
-  "updated_at_utc": "2026-10-27T07:47:11.934520+00:00",
+  "updated_at_utc": "2026-10-27T07:50:11.424095+00:00",
   "live_guard_readback": {
     "status": "HOST_TIMEOUT45SECONDS_NO_PASS",
     "app_actions": 0,
@@ -2638,7 +2638,7 @@
   },
   "fresh_userdata_comparison": "fscrypt policy warnings also appear with freshly created isolated userdata; not proof of corruption in the preserved older AVD",
   "active_probe": {
-    "id": "api37-aosp",
+    "id": "api37-current37-aosp-disk6",
     "status": "IN_PROGRESS",
     "api": "37.0",
     "abi": "x86_64",
@@ -2648,7 +2648,6 @@
     "scope": "New isolated synthetic AVD; no existing userdata or SDK overwrite; no productive device",
     "native_app_tests": "NOT_EXECUTED",
     "availability_evidence": "Official Android system-image manifest default x86_64 revision6",
-    "guest_ram_mib": 3072,
     "guest_cores": 2,
     "display_pixels": [
       540,
@@ -2660,7 +2659,13 @@
     "snapshots_disabled": true,
     "maximum_observation_seconds": 780,
     "app_installations": 0,
-    "driver_sha256": "a10bf4102074ad58bdcc24b472c0365f744a4302573cdf8a9492808008a2c616"
+    "driver_sha256": "a73b07c0f1aa53bf3de8da4286d746d831dfc0793b515210a5f9fd5bc4b20032",
+    "data_partition_gib": 6,
+    "previous_data_partition_gib": 10,
+    "initialized_data_resized": false,
+    "existing_profiles_or_caches_deleted": false,
+    "requested_guest_ram_mib": 3072,
+    "effective_guest_ram_mib": 4096
   },
   "api29_legacy32_counterprobe": {
     "avd_home": "/workspace/cloud-setup/qa-emulator32-aosp29-avd",
@@ -2780,5 +2785,14 @@
       "micro": "11"
     },
     "existing_sdk_changed": false
+  },
+  "api37_first_launch": {
+    "duration_s": 15.0,
+    "host_exit": 1,
+    "app_installations": 0,
+    "android_boot_attempted": false,
+    "failure": "Not enough space to create userdata partition. Available9784.48MB; needed12288MB with copied10GiB data partition.",
+    "cause": "Oversized inherited fresh-profile data partition for currently available disk; not an Android/app crash",
+    "sdk_profile_ram_observation": "Emulator automatically raises requested3072MiB to4096MiB"
   }
 }

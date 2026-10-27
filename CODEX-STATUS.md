@@ -83,7 +83,11 @@ keinen Betrieb unter Android17.
 Neue Nutzerfrage Android17: offizielles API37.0/AOSP/x86_64-Abbild verfügbar
 (Revision6, Mindestemulator37.2.11); vorhandener37.2.12 erfüllt die Abhängigkeit.
 907.680.404Bytes vollständig gegen offiziellen SHA1 geprüft, SHA256 zusätzlich
-erfasst; ZIP-CRC PASS. Separates synthetisches API37-Profil ist gestartet. Die App106 kompiliert und
+erfasst; ZIP-CRC PASS. Erster Start vor dem Booten abgewiesen: übernommene
+10GiB-Datenpartition verlangt12GiB freien Platz, nur9,6GiB verfügbar. Noch
+uninitialisiertes neues Profil auf6GiB dimensioniert und erneut gestartet;
+keine alten Datenpartitionen verkleinert oder Profile/Buildcaches gelöscht.
+Der Emulator erhöht angeforderte3GiB Gast-RAM automatisch auf4GiB. Die App106 kompiliert und
 zielt auf37 bei minSdk26; Build-SDK und Test-Betriebssystem bleiben getrennt.
 Vorhandene SDK-/AVD-Daten bleiben erhalten. Keine App installiert.
 Noch keine neue native App-Abnahme und keine stabile Konfiguration behauptet.
