@@ -1,0 +1,394 @@
+{
+  "classification": "SYNTHETIC_TEST",
+  "fixture": "qa_customer_navigation",
+  "source_commit": "d67b082b9a5758b216bbaa63acb5abfa0f7e1c38",
+  "scope": "Bundled-page Cloud Chromium; no Pixel/native performance assertion; no productive data",
+  "assets": {
+    "revier-solo-ui.js": "fdc888567a7b025f73485775f9b07fba14cff2be56a71690599f1282e6eb518d",
+    "revier-solo-ui.css": "ee22ecee1bdfa9b518df908662131cd5c3a16f6d9162900933698b8bb7cf6cb5",
+    "mobile.html": "38c4b55d866337e050ba03f25920e6954a10c6ec2304fcbfdf24bd1250401ccd",
+    "navigation-status.js": "3ef50d8432db09e6b686d7a2d3b4f8afadcbfff136d10956b960f2ea50ec815b"
+  },
+  "profile_top": [
+    {
+      "function": "(program)",
+      "url": "",
+      "line": 0,
+      "samples": 192
+    },
+    {
+      "function": "set innerHTML",
+      "url": "",
+      "line": 0,
+      "samples": 137
+    },
+    {
+      "function": "(idle)",
+      "url": "",
+      "line": 0,
+      "samples": 112
+    },
+    {
+      "function": "scrollTo",
+      "url": "",
+      "line": 0,
+      "samples": 92
+    },
+    {
+      "function": "set innerHTML",
+      "url": "",
+      "line": 0,
+      "samples": 91
+    },
+    {
+      "function": "(garbage collector)",
+      "url": "",
+      "line": 0,
+      "samples": 46
+    },
+    {
+      "function": "querySelectorAll",
+      "url": "",
+      "line": 0,
+      "samples": 44
+    },
+    {
+      "function": "querySelectorAll",
+      "url": "",
+      "line": 0,
+      "samples": 37
+    },
+    {
+      "function": "getClientRects",
+      "url": "",
+      "line": 0,
+      "samples": 31
+    },
+    {
+      "function": "set innerHTML",
+      "url": "",
+      "line": 0,
+      "samples": 29
+    },
+    {
+      "function": "clean",
+      "url": "frame-guard.js",
+      "line": 9,
+      "samples": 29
+    },
+    {
+      "function": "set innerHTML",
+      "url": "",
+      "line": 0,
+      "samples": 27
+    }
+  ],
+  "samples": [
+    {
+      "target": "revier-office",
+      "handler_ms": 60.099999994039536,
+      "to_frame_ms": 99,
+      "reads": [
+        "get_revier_overview"
+      ],
+      "active": "revier-office",
+      "writes": 0
+    },
+    {
+      "target": "home",
+      "handler_ms": 52.5,
+      "to_frame_ms": 95.29999999701977,
+      "reads": [
+        "get_revier_overview",
+        "get_day_tour",
+        "get_full_backup_status"
+      ],
+      "active": "home",
+      "writes": 0
+    },
+    {
+      "target": "revier-office",
+      "handler_ms": 31.899999991059303,
+      "to_frame_ms": 46.20000000298023,
+      "reads": [
+        "get_revier_overview"
+      ],
+      "active": "revier-office",
+      "writes": 0
+    },
+    {
+      "target": "home",
+      "handler_ms": 30.299999997019768,
+      "to_frame_ms": 56.400000005960464,
+      "reads": [
+        "get_revier_overview",
+        "get_day_tour",
+        "get_full_backup_status"
+      ],
+      "active": "home",
+      "writes": 0
+    },
+    {
+      "target": "revier-office",
+      "handler_ms": 27.200000002980232,
+      "to_frame_ms": 40.900000005960464,
+      "reads": [
+        "get_revier_overview"
+      ],
+      "active": "revier-office",
+      "writes": 0
+    },
+    {
+      "target": "home",
+      "handler_ms": 31.100000008940697,
+      "to_frame_ms": 54.5,
+      "reads": [
+        "get_revier_overview",
+        "get_day_tour",
+        "get_full_backup_status"
+      ],
+      "active": "home",
+      "writes": 0
+    },
+    {
+      "target": "revier-office",
+      "handler_ms": 48.5,
+      "to_frame_ms": 77.29999999701977,
+      "reads": [
+        "get_revier_overview"
+      ],
+      "active": "revier-office",
+      "writes": 0
+    },
+    {
+      "target": "home",
+      "handler_ms": 38.6000000089407,
+      "to_frame_ms": 59.30000001192093,
+      "reads": [
+        "get_revier_overview",
+        "get_day_tour",
+        "get_full_backup_status"
+      ],
+      "active": "home",
+      "writes": 0
+    },
+    {
+      "target": "revier-office",
+      "handler_ms": 23.100000008940697,
+      "to_frame_ms": 36.70000000298023,
+      "reads": [
+        "get_revier_overview"
+      ],
+      "active": "revier-office",
+      "writes": 0
+    },
+    {
+      "target": "home",
+      "handler_ms": 30.69999998807907,
+      "to_frame_ms": 52.8999999910593,
+      "reads": [
+        "get_revier_overview",
+        "get_day_tour",
+        "get_full_backup_status"
+      ],
+      "active": "home",
+      "writes": 0
+    },
+    {
+      "target": "revier-office",
+      "handler_ms": 26.900000005960464,
+      "to_frame_ms": 39.900000005960464,
+      "reads": [
+        "get_revier_overview"
+      ],
+      "active": "revier-office",
+      "writes": 0
+    },
+    {
+      "target": "home",
+      "handler_ms": 35.1000000089407,
+      "to_frame_ms": 57.29999999701977,
+      "reads": [
+        "get_revier_overview",
+        "get_day_tour",
+        "get_full_backup_status"
+      ],
+      "active": "home",
+      "writes": 0
+    },
+    {
+      "target": "revier-office",
+      "handler_ms": 24.399999991059303,
+      "to_frame_ms": 40,
+      "reads": [
+        "get_revier_overview"
+      ],
+      "active": "revier-office",
+      "writes": 0
+    },
+    {
+      "target": "home",
+      "handler_ms": 40.70000000298023,
+      "to_frame_ms": 70.29999999701977,
+      "reads": [
+        "get_revier_overview",
+        "get_day_tour",
+        "get_full_backup_status"
+      ],
+      "active": "home",
+      "writes": 0
+    },
+    {
+      "target": "revier-office",
+      "handler_ms": 32,
+      "to_frame_ms": 51.79999999701977,
+      "reads": [
+        "get_revier_overview"
+      ],
+      "active": "revier-office",
+      "writes": 0
+    },
+    {
+      "target": "home",
+      "handler_ms": 31.399999991059303,
+      "to_frame_ms": 55.20000000298023,
+      "reads": [
+        "get_revier_overview",
+        "get_day_tour",
+        "get_full_backup_status"
+      ],
+      "active": "home",
+      "writes": 0
+    },
+    {
+      "target": "revier-office",
+      "handler_ms": 30.400000005960464,
+      "to_frame_ms": 49.79999999701977,
+      "reads": [
+        "get_revier_overview"
+      ],
+      "active": "revier-office",
+      "writes": 0
+    },
+    {
+      "target": "home",
+      "handler_ms": 24.799999997019768,
+      "to_frame_ms": 43,
+      "reads": [
+        "get_revier_overview",
+        "get_day_tour",
+        "get_full_backup_status"
+      ],
+      "active": "home",
+      "writes": 0
+    },
+    {
+      "target": "revier-office",
+      "handler_ms": 27.299999997019768,
+      "to_frame_ms": 44.20000000298023,
+      "reads": [
+        "get_revier_overview"
+      ],
+      "active": "revier-office",
+      "writes": 0
+    },
+    {
+      "target": "home",
+      "handler_ms": 33,
+      "to_frame_ms": 55.6000000089407,
+      "reads": [
+        "get_revier_overview",
+        "get_day_tour",
+        "get_full_backup_status"
+      ],
+      "active": "home",
+      "writes": 0
+    },
+    {
+      "target": "revier-office",
+      "handler_ms": 31.5,
+      "to_frame_ms": 48.6000000089407,
+      "reads": [
+        "get_revier_overview"
+      ],
+      "active": "revier-office",
+      "writes": 0
+    },
+    {
+      "target": "home",
+      "handler_ms": 27.299999997019768,
+      "to_frame_ms": 48.3999999910593,
+      "reads": [
+        "get_revier_overview",
+        "get_day_tour",
+        "get_full_backup_status"
+      ],
+      "active": "home",
+      "writes": 0
+    },
+    {
+      "target": "revier-office",
+      "handler_ms": 31.599999994039536,
+      "to_frame_ms": 46.400000005960464,
+      "reads": [
+        "get_revier_overview"
+      ],
+      "active": "revier-office",
+      "writes": 0
+    },
+    {
+      "target": "home",
+      "handler_ms": 31.899999991059303,
+      "to_frame_ms": 54.20000000298023,
+      "reads": [
+        "get_revier_overview",
+        "get_day_tour",
+        "get_full_backup_status"
+      ],
+      "active": "home",
+      "writes": 0
+    }
+  ],
+  "checks": [],
+  "errors": [],
+  "summary": {
+    "today": {
+      "samples": 12,
+      "median_to_frame_ms": 55.6000000089407,
+      "p95_to_frame_ms": 95.29999999701977,
+      "owner_reads_per_visit": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    "office": {
+      "samples": 12,
+      "median_to_frame_ms": 46.400000005960464,
+      "p95_to_frame_ms": 99,
+      "owner_reads_per_visit": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    }
+  }
+}

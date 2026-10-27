@@ -1,0 +1,1153 @@
+{
+  "classification": "SYNTHETIC_TEST",
+  "fixture": "qa_customer_design",
+  "recorded_at_utc": "2026-10-27T19:42:27.338651+00:00",
+  "repository": "mihalhafner-collab/Gartenpirat-",
+  "branch": "codex/heute-uebersicht-20261027",
+  "source_base_commit": "d67b082b9a5758b216bbaa63acb5abfa0f7e1c38",
+  "scope": "Third customer root and minimal navigation-read/DOM reuse corrections implemented. Visual directions and integrated customer dossier are interactive synthetic design studies; not a complete live theme rollout.",
+  "operating_data_used": false,
+  "new_apk_built": false,
+  "installation_performed": false,
+  "released_apk107_and_tag_unchanged": true,
+  "requirements_cascade": [
+    {
+      "request": "Investigate roughly1s Today/Office change",
+      "result": "CAUSES_INSPECTED_MINIMAL_SOURCE_CORRECTIONS_PIXEL_VALIDATION_OPEN",
+      "evidence": "Synchronous redundant tour/overview reads, repeated select innerHTML and duplicate already-consumed change timer; CPUprofile in navigation evidence. No measured overall speedup claimed."
+    },
+    {
+      "request": "Third bottom destination customer file",
+      "result": "IMPLEMENTED_SOURCE",
+      "evidence": "Heute/Kunden/Büro; existing customer routes; explicit root and contextual Back tested; search and drafts preserved."
+    },
+    {
+      "request": "Practical customer architecture and important information",
+      "result": "DESIGN_MAPPED_TO_EXISTING_PATHS",
+      "evidence": "CODEX-STATUS table. Search/name/place -> contact/next visit/explicit properties -> work/photos/documents; no second store, no invoice-address inference."
+    },
+    {
+      "request": "Personal and potentially unusual design",
+      "result": "TWO_RENDERED_INTERACTIVE_DIRECTIONS",
+      "evidence": "Recommended Revierbuch, alternative Abendgruen; warm editorial type, green/gold, restrained lists, large actions, optional details. Not yet a fully wired productive dossier/theme."
+    },
+    {
+      "request": "Progress updates and images",
+      "result": "DELIVERED",
+      "evidence": "User updates and actual rendered paper/detail/night boards; five synthetic PNGs and standalone HTML."
+    },
+    {
+      "request": "Code and interaction patterns from different app categories",
+      "result": "THREE_OPEN_SOURCE_CATEGORIES_TWO_ADDITIONAL_OFFICIAL_UX_SOURCES",
+      "evidence": "Public contact/tasks/media code pinned to commit/file, Google Contacts/Todoist UX separately identified; no source or framework imported, no foreign app performance claim."
+    },
+    {
+      "request": "Autonomous work and cascade before completion",
+      "result": "PASS_WITH_EXPLICIT_LIMITS",
+      "evidence": "Root/detail/context/changed-data/old response/error/large-font/empty/multi-property/draft/selected-visit/general planning counterpaths tested;41 existing groups and23 new cases; native timing not accepted."
+    }
+  ],
+  "changed_components": {
+    "revier-solo-ui.js/css": "Three roots; explicit bottom flag retains contextual customer return; overview reuses complete tour, absent old field falls back locally and malformed/date-mismatch errors remain visible; optional Office count read removed.",
+    "mobile.html": "Only identical customer/order option DOM is reused; fresh choices and full customer-context/display key determine replacement. No state/TTL cache.",
+    "navigation-status.js": "Office is root; already-consumed local-change signal does not trigger duplicate timer refresh; focused input/dialog/read-error guards retained.",
+    "ui-mcp-actions.json": "Reviewed presentation source fingerprints only;212 actions and169 source tools unchanged.",
+    "backend": "No Java/SQLite/owner-store/schema/business-write changes."
+  },
+  "layer_review": [
+    {
+      "layer": "UI/form navigation",
+      "status": "CHANGED_AND_TESTED",
+      "evidence": "12 source navigation cases,41 regressions and11 preview cases; startup first visible frame has three roots."
+    },
+    {
+      "layer": "Java/native and owner stores",
+      "status": "READ_CONTRACT_INSPECTED_UNCHANGED",
+      "evidence": "RevierApplicationService.overview already returns tour(day); list_properties/get_property/list_visits support explicit customer/property filters. Current writes and storage unchanged."
+    },
+    {
+      "layer": "SQLite/MCP read/write/journals/queue",
+      "status": "UNCHANGED_BOUNDARIES_CHECKED",
+      "evidence": "1399 current UI/MCP checks,169-tool discovery/four protocols and zero writes; navigation fixture rejects unexpected owner writes."
+    },
+    {
+      "layer": "drafts/timer/commit IDs/process ambiguity",
+      "status": "RELEVANT_EXISTING_BROWSER_REGRESSIONS_PASS",
+      "evidence": "saved-drafts-read-first,interaction-continuity,full-backup-drafts,timer-completion,work-entry-photo-failure,simple-forms,field-ui; no new commits from opening pages."
+    },
+    {
+      "layer": "backup/restore/deletion/financial protection",
+      "status": "UNCHANGED_GATES_RELEVANT_BROWSER_CHECKS_PASS",
+      "evidence": "full-backup-entry/full-backup-drafts, billing/local-invoice/invoice-issue-review and parity gates. No productive restore/backup/delete/financial mutation; not a full native revalidation."
+    },
+    {
+      "layer": "media/offers/planning",
+      "status": "RELEVANT_EXISTING_BROWSER_REGRESSIONS_PASS",
+      "evidence": "customer-photos/offers-photo-library/revier-offer-flow and planning suites. Lazy photo previews remain existing path."
+    },
+    {
+      "layer": "tests and fixtures",
+      "status": "SYNTHETIC_ONLY",
+      "evidence": "150 synthetic customers/600 worklogs for navigation;3 clearly marked design contacts,3 objects and2 visits. Only direct navigation expectations updated in existing tests."
+    }
+  ],
+  "research": [
+    {
+      "product": "Fossify Contacts",
+      "category": "Contacts",
+      "repo": "FossifyOrg/Contacts",
+      "commit": "f7da0edc53aea5a11edd1927f3b9e10f8d34150d",
+      "path": "app/src/main/kotlin/org/fossify/contacts/fragments/ContactsFragment.kt",
+      "lines": "46-80",
+      "observed": "ContactsFragment.setupContactsAdapter reuses existing adapter or constructs when absent/forced; else updateItems.",
+      "transfer": "Reuse identical customer/order option nodes; derive choices from fresh local data.",
+      "url": "https://github.com/FossifyOrg/Contacts/blob/f7da0edc53aea5a11edd1927f3b9e10f8d34150d/app/src/main/kotlin/org/fossify/contacts/fragments/ContactsFragment.kt"
+    },
+    {
+      "product": "AntennaPod",
+      "category": "Media/podcasts",
+      "repo": "AntennaPod/AntennaPod",
+      "commit": "d3e41c6cb37c8e1a060b142686f818999de89859",
+      "path": "app/src/main/java/de/danoeh/antennapod/activity/MainActivity.java",
+      "lines": "389,468-520",
+      "observed": "Separate main/player/drawer containers; replaces main fragments, hides/adds details using back stack.",
+      "transfer": "Stable roots with explicit contextual-detail Back. No assertion that it caches main fragments.",
+      "url": "https://github.com/AntennaPod/AntennaPod/blob/d3e41c6cb37c8e1a060b142686f818999de89859/app/src/main/java/de/danoeh/antennapod/activity/MainActivity.java"
+    },
+    {
+      "product": "Tasks.org",
+      "category": "Tasks",
+      "repo": "tasks/tasks",
+      "commit": "5483d1b49ecc19fbba9c0ffcb33c1a0d4690dc46",
+      "path": "app/src/main/java/org/tasks/ui/TaskListViewModel.kt",
+      "lines": "93,157",
+      "observed": "Android wrapper delegates refresh flow; asynchronous database work on Dispatchers.IO.",
+      "transfer": "Presentation state kept distinct from business changes; no new framework imported.",
+      "url": "https://github.com/tasks/tasks/blob/5483d1b49ecc19fbba9c0ffcb33c1a0d4690dc46/app/src/main/java/org/tasks/ui/TaskListViewModel.kt"
+    },
+    {
+      "product": "Tasks.org shared viewmodel",
+      "category": "Tasks",
+      "repo": "tasks/tasks",
+      "commit": "5483d1b49ecc19fbba9c0ffcb33c1a0d4690dc46",
+      "path": "kmp/src/commonMain/kotlin/org/tasks/viewmodel/TaskListViewModel.kt",
+      "lines": "166-185",
+      "observed": "Observable refresh and distinctUntilChanged/throttleLatest.",
+      "transfer": "Consume change signal once if navigation already processed it; do not import333ms throttle.",
+      "url": "https://github.com/tasks/tasks/blob/5483d1b49ecc19fbba9c0ffcb33c1a0d4690dc46/kmp/src/commonMain/kotlin/org/tasks/viewmodel/TaskListViewModel.kt"
+    },
+    {
+      "product": "Google Contacts",
+      "category": "Contacts UX",
+      "url": "https://support.google.com/contacts/answer/30970?co=GENIE.Platform%3DAndroid&hl=en",
+      "scope": "Official UX docs only, no Google code analysis",
+      "transfer": "Search/list -> contact -> available contact actions."
+    },
+    {
+      "product": "Todoist",
+      "category": "Task capture UX",
+      "url": "https://www.todoist.com/help/todoist/features/use-task-quick-add-in-todoist-va4Lhpzz",
+      "scope": "Official UX docs only, no Todoist code analysis",
+      "transfer": "Short capture and optional contextual details."
+    }
+  ],
+  "measurement": {
+    "method": "12 pairs with same synthetic150 customers/600 worklogs; click handler +two requestAnimationFrame; fake native bridge has no device I/O latency; Cloud Chromium, not Android WebView/Pixel.",
+    "before": {
+      "today": {
+        "samples": 12,
+        "median_to_frame_ms": 55.6000000089407,
+        "p95_to_frame_ms": 95.29999999701977,
+        "owner_reads_per_visit": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ]
+      },
+      "office": {
+        "samples": 12,
+        "median_to_frame_ms": 46.400000005960464,
+        "p95_to_frame_ms": 99,
+        "owner_reads_per_visit": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    "after": {
+      "today": {
+        "samples": 12,
+        "median_to_frame_ms": 55.3999999910593,
+        "p95_to_frame_ms": 72.40000000596046,
+        "owner_reads_per_visit": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      "office": {
+        "samples": 12,
+        "median_to_frame_ms": 47.69999998807907,
+        "p95_to_frame_ms": 76.5,
+        "owner_reads_per_visit": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "conclusion": "Owner reads Today3->2 and Office1->0. Medians55.6->55.4ms and46.4->47.7ms respectively: no demonstrated overall improvement. Max observed frame latency changes are small-sample browser evidence, not Pixel proof."
+  },
+  "navigation_after": {
+    "classification": "SYNTHETIC_TEST",
+    "fixture": "qa_customer_navigation",
+    "source_commit": "d67b082b9a5758b216bbaa63acb5abfa0f7e1c38",
+    "scope": "Bundled-page Cloud Chromium; no Pixel/native performance assertion; no productive data",
+    "assets": {
+      "revier-solo-ui.js": "67da422253a90f8a8e895a2defa1be0bad60ea987d91b22b70cafd2172da44ca",
+      "revier-solo-ui.css": "e45b4460a31217df5f0fe9a5d0b694dfa4dbb7c5fd081774f981f5c73a62da9b",
+      "mobile.html": "3ad9c3bac7e8133a8b1eeca54bfdbf09df7dee305639a8c53673db2ed4fda8fb",
+      "navigation-status.js": "863f4cd34ac071c75ecc6dd06db10cb96ac5f92df824248cc1bbe2c46d51a355"
+    },
+    "profile_top": [
+      {
+        "function": "(program)",
+        "url": "",
+        "line": 0,
+        "samples": 191
+      },
+      {
+        "function": "set innerHTML",
+        "url": "",
+        "line": 0,
+        "samples": 157
+      },
+      {
+        "function": "scrollTo",
+        "url": "",
+        "line": 0,
+        "samples": 115
+      },
+      {
+        "function": "set innerHTML",
+        "url": "",
+        "line": 0,
+        "samples": 104
+      },
+      {
+        "function": "(garbage collector)",
+        "url": "",
+        "line": 0,
+        "samples": 48
+      },
+      {
+        "function": "set innerHTML",
+        "url": "",
+        "line": 0,
+        "samples": 38
+      },
+      {
+        "function": "(idle)",
+        "url": "",
+        "line": 0,
+        "samples": 32
+      },
+      {
+        "function": "",
+        "url": "gartenpirat.js",
+        "line": 348,
+        "samples": 30
+      },
+      {
+        "function": "getClientRects",
+        "url": "",
+        "line": 0,
+        "samples": 30
+      },
+      {
+        "function": "enhance",
+        "url": "simple-forms.js",
+        "line": 114,
+        "samples": 26
+      },
+      {
+        "function": "querySelectorAll",
+        "url": "",
+        "line": 0,
+        "samples": 26
+      },
+      {
+        "function": "clean",
+        "url": "frame-guard.js",
+        "line": 9,
+        "samples": 25
+      }
+    ],
+    "samples": [
+      {
+        "target": "revier-office",
+        "handler_ms": 40.29999999701977,
+        "to_frame_ms": 58.099999994039536,
+        "reads": [],
+        "active": "revier-office",
+        "writes": 0
+      },
+      {
+        "target": "home",
+        "handler_ms": 40.900000005960464,
+        "to_frame_ms": 66.09999999403954,
+        "reads": [
+          "get_revier_overview",
+          "get_full_backup_status"
+        ],
+        "active": "home",
+        "writes": 0
+      },
+      {
+        "target": "revier-office",
+        "handler_ms": 32.599999994039536,
+        "to_frame_ms": 56.29999999701977,
+        "reads": [],
+        "active": "revier-office",
+        "writes": 0
+      },
+      {
+        "target": "home",
+        "handler_ms": 39.29999999701977,
+        "to_frame_ms": 63.599999994039536,
+        "reads": [
+          "get_revier_overview",
+          "get_full_backup_status"
+        ],
+        "active": "home",
+        "writes": 0
+      },
+      {
+        "target": "revier-office",
+        "handler_ms": 28.299999997019768,
+        "to_frame_ms": 53.79999999701977,
+        "reads": [],
+        "active": "revier-office",
+        "writes": 0
+      },
+      {
+        "target": "home",
+        "handler_ms": 29.5,
+        "to_frame_ms": 49,
+        "reads": [
+          "get_revier_overview",
+          "get_full_backup_status"
+        ],
+        "active": "home",
+        "writes": 0
+      },
+      {
+        "target": "revier-office",
+        "handler_ms": 32.099999994039536,
+        "to_frame_ms": 47.69999998807907,
+        "reads": [],
+        "active": "revier-office",
+        "writes": 0
+      },
+      {
+        "target": "home",
+        "handler_ms": 34.69999998807907,
+        "to_frame_ms": 54.19999998807907,
+        "reads": [
+          "get_revier_overview",
+          "get_full_backup_status"
+        ],
+        "active": "home",
+        "writes": 0
+      },
+      {
+        "target": "revier-office",
+        "handler_ms": 34.5,
+        "to_frame_ms": 48.1000000089407,
+        "reads": [],
+        "active": "revier-office",
+        "writes": 0
+      },
+      {
+        "target": "home",
+        "handler_ms": 29.799999997019768,
+        "to_frame_ms": 51,
+        "reads": [
+          "get_revier_overview",
+          "get_full_backup_status"
+        ],
+        "active": "home",
+        "writes": 0
+      },
+      {
+        "target": "revier-office",
+        "handler_ms": 25.600000008940697,
+        "to_frame_ms": 39.20000000298023,
+        "reads": [],
+        "active": "revier-office",
+        "writes": 0
+      },
+      {
+        "target": "home",
+        "handler_ms": 30.399999991059303,
+        "to_frame_ms": 54.8999999910593,
+        "reads": [
+          "get_revier_overview",
+          "get_full_backup_status"
+        ],
+        "active": "home",
+        "writes": 0
+      },
+      {
+        "target": "revier-office",
+        "handler_ms": 29.600000008940697,
+        "to_frame_ms": 41.79999999701977,
+        "reads": [],
+        "active": "revier-office",
+        "writes": 0
+      },
+      {
+        "target": "home",
+        "handler_ms": 43.79999999701977,
+        "to_frame_ms": 72.40000000596046,
+        "reads": [
+          "get_revier_overview",
+          "get_full_backup_status"
+        ],
+        "active": "home",
+        "writes": 0
+      },
+      {
+        "target": "revier-office",
+        "handler_ms": 30.30000001192093,
+        "to_frame_ms": 44.80000001192093,
+        "reads": [],
+        "active": "revier-office",
+        "writes": 0
+      },
+      {
+        "target": "home",
+        "handler_ms": 28.899999991059303,
+        "to_frame_ms": 58.8999999910593,
+        "reads": [
+          "get_revier_overview",
+          "get_full_backup_status"
+        ],
+        "active": "home",
+        "writes": 0
+      },
+      {
+        "target": "revier-office",
+        "handler_ms": 25.599999994039536,
+        "to_frame_ms": 38.599999994039536,
+        "reads": [],
+        "active": "revier-office",
+        "writes": 0
+      },
+      {
+        "target": "home",
+        "handler_ms": 31.5,
+        "to_frame_ms": 51.400000005960464,
+        "reads": [
+          "get_revier_overview",
+          "get_full_backup_status"
+        ],
+        "active": "home",
+        "writes": 0
+      },
+      {
+        "target": "revier-office",
+        "handler_ms": 27.400000005960464,
+        "to_frame_ms": 40.5,
+        "reads": [],
+        "active": "revier-office",
+        "writes": 0
+      },
+      {
+        "target": "home",
+        "handler_ms": 31,
+        "to_frame_ms": 49.79999999701977,
+        "reads": [
+          "get_revier_overview",
+          "get_full_backup_status"
+        ],
+        "active": "home",
+        "writes": 0
+      },
+      {
+        "target": "revier-office",
+        "handler_ms": 27.30000001192093,
+        "to_frame_ms": 42.1000000089407,
+        "reads": [],
+        "active": "revier-office",
+        "writes": 0
+      },
+      {
+        "target": "home",
+        "handler_ms": 38.099999994039536,
+        "to_frame_ms": 58.3999999910593,
+        "reads": [
+          "get_revier_overview",
+          "get_full_backup_status"
+        ],
+        "active": "home",
+        "writes": 0
+      },
+      {
+        "target": "revier-office",
+        "handler_ms": 46.900000005960464,
+        "to_frame_ms": 76.5,
+        "reads": [],
+        "active": "revier-office",
+        "writes": 0
+      },
+      {
+        "target": "home",
+        "handler_ms": 35.8999999910593,
+        "to_frame_ms": 55.3999999910593,
+        "reads": [
+          "get_revier_overview",
+          "get_full_backup_status"
+        ],
+        "active": "home",
+        "writes": 0
+      }
+    ],
+    "checks": [
+      {
+        "name": "Three root destinations and one current tab",
+        "result": "PASS"
+      },
+      {
+        "name": "Identical choices preserve option nodes and selections; actual new data refreshes them",
+        "result": "PASS"
+      },
+      {
+        "name": "Customer search, profile and Back preserve list context without writes",
+        "result": "PASS"
+      },
+      {
+        "name": "Root Back returns to Today without a tab loop",
+        "result": "PASS"
+      },
+      {
+        "name": "Contextual customer selection retains its property return path",
+        "result": "PASS"
+      },
+      {
+        "name": "Office navigation does not fetch the unrelated tour overview",
+        "result": "PASS"
+      },
+      {
+        "name": "Today reuses the tour in the same complete overview response",
+        "result": "PASS"
+      },
+      {
+        "name": "Absent older tour response falls back to the existing local read",
+        "result": "PASS"
+      },
+      {
+        "name": "Malformed present tour is a visible read error, not an empty success",
+        "result": "PASS"
+      },
+      {
+        "name": "A present tour from another date is rejected rather than mixed into Today",
+        "result": "PASS"
+      },
+      {
+        "name": "A signalled business change is read once when navigation already consumes it",
+        "result": "PASS"
+      },
+      {
+        "name": "Narrow and enlarged navigation remains readable and reachable",
+        "result": "PASS"
+      }
+    ],
+    "errors": [],
+    "summary": {
+      "today": {
+        "samples": 12,
+        "median_to_frame_ms": 55.3999999910593,
+        "p95_to_frame_ms": 72.40000000596046,
+        "owner_reads_per_visit": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      "office": {
+        "samples": 12,
+        "median_to_frame_ms": 47.69999998807907,
+        "p95_to_frame_ms": 76.5,
+        "owner_reads_per_visit": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    }
+  },
+  "design_interactions": [
+    {
+      "name": "Two objects retain the explicitly selected place and address",
+      "result": "PASS"
+    },
+    {
+      "name": "Empty search and switching tabs preserve search without creating a customer",
+      "result": "PASS"
+    },
+    {
+      "name": "Missing contacts, no appointment and no objects are honest empty states",
+      "result": "PASS"
+    },
+    {
+      "name": "Upcoming work opens its own customer and place, never the previous one",
+      "result": "PASS"
+    },
+    {
+      "name": "Prototype Back retains input, explicit Discard removes it",
+      "result": "PASS"
+    },
+    {
+      "name": "A generic work start never reuses an implicit previous customer or object",
+      "result": "PASS"
+    },
+    {
+      "name": "Returning to a generic draft restores the explicitly chosen customer and enabled action",
+      "result": "PASS"
+    },
+    {
+      "name": "Edit from an object preserves the explicit object; it never opens customer-address editing",
+      "result": "PASS"
+    },
+    {
+      "name": "General planning lists visits; changing a time uses only the explicitly selected visit",
+      "result": "PASS"
+    },
+    {
+      "name": "320/360/426px, real doubled font sizes, no horizontal page overflow, 48px navigation",
+      "result": "PASS"
+    },
+    {
+      "name": "No business bridge, network requests, writes or page errors",
+      "result": "PASS"
+    }
+  ],
+  "browser_suites": [
+    {
+      "suite": "architecture-workflow",
+      "result": "PASS",
+      "seconds": 8.2,
+      "log_sha256": "233e005077e66e236eb1d653bc27ef11d2f7b9933d3bae0aef65b0cbdbda1d3c",
+      "tail": ""
+    },
+    {
+      "suite": "billing-ui",
+      "result": "PASS",
+      "seconds": 13.1,
+      "log_sha256": "81354ab12d82c6ad0d3ab9af7a3a26418069d06645ca1d17a4bebbe3cb83a587",
+      "tail": ""
+    },
+    {
+      "suite": "customer-duplicate-ui",
+      "result": "PASS",
+      "seconds": 5.5,
+      "log_sha256": "a8cc25da5174f2843d534cf5c8df00752c6233e55f61eb3581aba2026289550e",
+      "tail": ""
+    },
+    {
+      "suite": "customer-photos",
+      "result": "PASS",
+      "seconds": 14.4,
+      "log_sha256": "c2a326d1eb9e7c071305a5bc1cffd5ad82529b5cfc55e80c6586b6eb4f7642c6",
+      "tail": ""
+    },
+    {
+      "suite": "daily-usability",
+      "result": "PASS",
+      "seconds": 10.9,
+      "log_sha256": "6c670390633d4a043828779e73efe87b012480126c440f6c64eceb7b7a6b73e7",
+      "tail": ""
+    },
+    {
+      "suite": "design-concept",
+      "result": "PASS",
+      "seconds": 7.5,
+      "log_sha256": "e0b3567b2cf444acae337b1f2f08fc33b197a1233bff63ca79103942ff6ced6e",
+      "tail": ""
+    },
+    {
+      "suite": "design-v139",
+      "result": "PASS",
+      "seconds": 10.2,
+      "log_sha256": "952e3ce249b190618ec84e61538462f6ba881d22506a66430277f055cfc5c4b0",
+      "tail": ""
+    },
+    {
+      "suite": "equipment-maintenance-ui",
+      "result": "PASS",
+      "seconds": 19.0,
+      "log_sha256": "d6002580aea3c982fd867708f57007e00b1e740fcff8085f1b579ff17983eacf",
+      "tail": ""
+    },
+    {
+      "suite": "field-ui",
+      "result": "PASS",
+      "seconds": 14.6,
+      "log_sha256": "a3d12ace507d11964c2e482c308682209e62e718231a72e977e7d9d9f908d4e3",
+      "first_attempt": {
+        "suite": "field-ui",
+        "result": "FAIL",
+        "seconds": 17.4,
+        "log_sha256": "2fea4c31b4c42c78e623bbd545bf0c6dded1e20c8c6996c9d8a8f0423aef4725",
+        "tail": "session ID',\n  result: 'PASS'\n}\n{\n  name: 'A nested picker created earlier in the DOM still closes before the capture sheet',\n  result: 'PASS'\n}\n{\n  name: 'Inline customer creation returns to the same capture and retains its draft',\n  result: 'PASS'\n}\n{\n  name: 'Small screens and enlarged fonts retain lower reachable controls',\n  result: 'PASS'\n}\n{\n  name: 'Leaving a focused, changed field retains the draft without reentrant moves',\n  result: 'PASS'\n}\n{\n  name: 'Production colors have readable contrast and no preview restrictions',\n  result: 'PASS'\n}\n{\n  name: 'Botanical tools remain reachable with a quiet home and an optional shortcut',\n  result: 'PASS'\n}\n{\n  name: 'Planning and work subpages return to the menu that opened them',\n  result: 'PASS'\n}\n{\n  name: 'Later closes expanded capture in one step and retains the draft',\n  result: 'PASS'\n}\n{\"suite\":\"field-ui\",\"checks\":18,\"failed\":1}\n"
+      },
+      "reason": "Updated explicit customer-root expectation for field-ui/ui-preview; unchanged failed timeout suites rerun sequentially",
+      "tail": ""
+    },
+    {
+      "suite": "full-backup-drafts",
+      "result": "PASS",
+      "seconds": 4.1,
+      "log_sha256": "d807bfc31ea9418a37d478c265881faea530451e39d7ab70cab10153948b27ac",
+      "tail": ""
+    },
+    {
+      "suite": "full-backup-entry",
+      "result": "PASS",
+      "seconds": 3.1,
+      "log_sha256": "65a2c979c44ac6e792f29f2616fc5f402e2399672bcb7556c757d157c29ca6a8",
+      "tail": ""
+    },
+    {
+      "suite": "gartenpirat-removal",
+      "result": "PASS",
+      "seconds": 4.6,
+      "log_sha256": "9ac1141e59158dff804bb4de4b63937ba1c9902ee5ed363dee9c18688acb4d87",
+      "tail": ""
+    },
+    {
+      "suite": "interaction-continuity",
+      "result": "PASS",
+      "seconds": 18.6,
+      "log_sha256": "6827312164de2846a04584b35119060899dc75954d2641447b79b87d973d424c",
+      "tail": ""
+    },
+    {
+      "suite": "invoice-issue-review-ui",
+      "result": "PASS",
+      "seconds": 32.8,
+      "log_sha256": "34a0d65a6a4973d249d3d84f61ca026989c06f8794f35583a48fcffd602ec7cf",
+      "first_attempt": {
+        "suite": "invoice-issue-review-ui",
+        "result": "FAIL",
+        "seconds": 52.5,
+        "log_sha256": "6eefc8c6d84bd7a968b9c23b4f125cf2afa2e81af6a049bcd3e0cda913b6adf5",
+        "tail": "n\u001b[22m\n\n    at submit (/workspace/gartenpirat-source-only/tests/invoice-issue-review-ui.test.cjs:45:120)\n    at async /workspace/gartenpirat-source-only/tests/invoice-issue-review-ui.test.cjs:53:1184\n    at async check (/workspace/gartenpirat-source-only/tests/invoice-issue-review-ui.test.cjs:43:49)\n    at async /workspace/gartenpirat-source-only/tests/invoice-issue-review-ui.test.cjs:52:83 {\n  log: [\n    \"  - waiting for locator('#local-invoice-issue-form [type=submit]')\",\n    '    - locator resolved to <button type=\"submit\" class=\"primary simple-save\">Rechnung lokal verbindlich ausstellen</button>',\n    '  - attempting click action',\n    '    - waiting for element to be visible, enabled and stable',\n    '    - element is visible, enabled and stable',\n    '    - scrolling into view if needed',\n    '    - done scrolling',\n    '    - performing click action'\n  ],\n  name: 'TimeoutError'\n}\n"
+      },
+      "reason": "Updated explicit customer-root expectation for field-ui/ui-preview; unchanged failed timeout suites rerun sequentially",
+      "tail": ""
+    },
+    {
+      "suite": "local-invoice-ui",
+      "result": "PASS",
+      "seconds": 15.3,
+      "log_sha256": "c4424be118bb553ac9f171b47ec86115af96ee674d955452b5e68bacd2027c17",
+      "first_attempt": {
+        "suite": "local-invoice-ui",
+        "result": "FAIL",
+        "seconds": 51.6,
+        "log_sha256": "b1e0d51b0f6a1bc3cc50d54ece1ab0ea123d21c182b42f33a01cc009caad751f",
+        "tail": "\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - performing click action\u001b[22m\n\n    at /workspace/gartenpirat-source-only/tests/local-invoice-ui.test.cjs:54:1357\n    at async check (/workspace/gartenpirat-source-only/tests/local-invoice-ui.test.cjs:41:37)\n    at async /workspace/gartenpirat-source-only/tests/local-invoice-ui.test.cjs:54:3 {\n  log: [\n    \"  - waiting for locator('#local-payment-form [name=withdrawal_confirmed]')\",\n    '    - locator resolved to <input type=\"checkbox\" name=\"withdrawal_confirmed\"/>',\n    '  - attempting click action',\n    '    - waiting for element to be visible, enabled and stable',\n    '    - element is visible, enabled and stable',\n    '    - scrolling into view if needed',\n    '    - done scrolling',\n    '    - performing click action'\n  ],\n  name: 'TimeoutError'\n}\n"
+      },
+      "reason": "Updated explicit customer-root expectation for field-ui/ui-preview; unchanged failed timeout suites rerun sequentially",
+      "tail": ""
+    },
+    {
+      "suite": "navigation-calendar",
+      "result": "PASS",
+      "seconds": 6.6,
+      "log_sha256": "008a109c98b1e5bed1075d15f0709fcbb4493fe544e81b01c800c5099dfbddf8",
+      "first_attempt": {
+        "suite": "navigation-calendar",
+        "result": "FAIL",
+        "seconds": 37.6,
+        "log_sha256": "5fa3fe0d1450864c6f76d2b2e4eff17b9b5e4819eab5b88c4a86300a216c2af8",
+        "tail": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/mobile.html\", waiting until \"load\"\u001b[22m\n\n    at page.goto (/workspace/cloud-setup/playwright.cjs:3:82)\n    at page.goto (/workspace/gartenpirat-source-only/tests/browser.cjs:27:60)\n    at page.goto (/workspace/cloud-setup/playwright.cjs:3:82)\n    at /workspace/gartenpirat-source-only/tests/navigation-calendar.test.cjs:11:67 {\n  log: [\n    '  - navigating to \"http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/mobile.html\", waiting until \"load\"'\n  ],\n  name: 'TimeoutError'\n}\n"
+      },
+      "reason": "Updated explicit customer-root expectation for field-ui/ui-preview; unchanged failed timeout suites rerun sequentially",
+      "tail": "",
+      "earlier_attempt": {
+        "suite": "navigation-calendar",
+        "result": "FAIL",
+        "seconds": 6.6,
+        "log_sha256": "383c69dd9043c8e5af3b05298f55f47e6524a9f73d711a77f8472d66921a7e88",
+        "first_attempt": {
+          "suite": "navigation-calendar",
+          "result": "FAIL",
+          "seconds": 37.6,
+          "log_sha256": "5fa3fe0d1450864c6f76d2b2e4eff17b9b5e4819eab5b88c4a86300a216c2af8",
+          "tail": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/mobile.html\", waiting until \"load\"\u001b[22m\n\n    at page.goto (/workspace/cloud-setup/playwright.cjs:3:82)\n    at page.goto (/workspace/gartenpirat-source-only/tests/browser.cjs:27:60)\n    at page.goto (/workspace/cloud-setup/playwright.cjs:3:82)\n    at /workspace/gartenpirat-source-only/tests/navigation-calendar.test.cjs:11:67 {\n  log: [\n    '  - navigating to \"http://127.0.0.1:18766/workspace/gartenpirat-source-only/android/app/src/main/assets/mobile.html\", waiting until \"load\"'\n  ],\n  name: 'TimeoutError'\n}\n"
+        },
+        "reason": "Updated explicit customer-root expectation for field-ui/ui-preview; unchanged failed timeout suites rerun sequentially",
+        "tail": "{\n  name: 'Three main destinations retain work and planning through the daily menu',\n  result: 'FAIL',\n  error: 'AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\\n' +\n    '+ actual - expected\\n' +\n    '\\n' +\n    '  [\\n' +\n    \"    'home',\\n\" +\n    \"+   'customers',\\n\" +\n    \"    'revier-office'\\n\" +\n    '  ]\\n' +\n    '\\n' +\n    '    at /workspace/gartenpirat-source-only/tests/navigation-calendar.test.cjs:12:203\\n' +\n    '    at async check (/workspace/gartenpirat-source-only/tests/navigation-calendar.test.cjs:9:37)\\n' +\n    '    at async /workspace/gartenpirat-source-only/tests/navigation-calendar.test.cjs:12:3'\n}\n{\n  name: 'Menu has consistent groups and keeps one full-backup entry plus trash in Settings',\n  result: 'PASS'\n}\n{\n  name: 'Calendar and weather setup reuse the native consent boundary and perform no writes',\n  result: 'PASS'\n}\n{\n  name: 'Header Back returns one level; modal Back closes only the dialog and lower Back stays hidden',\n  result: 'PASS'\n}\n{\n  name: 'Plan actions stay above the lower navigation; editor save is reachable and Back retains draft',\n  result: 'PASS'\n}\n{\n  name: 'Saved appointment Back stays in planning and does not open manual fields',\n  result: 'PASS'\n}\n{\n  name: 'Thumb controls meet 48px and remain visible at 320/360/426px and enlarged text',\n  result: 'PASS'\n}\n{\n  name: 'Opening navigation never writes and has no JavaScript errors',\n  result: 'PASS'\n}\n{\"suite\":\"navigation-calendar\",\"checks\":8,\"failed\":1}\n"
+      },
+      "recheck_reason": "Correct three-root IDs in navigation-calendar; customer selection expectation in ui-preview; unchanged offer-flow rerun completed without timeout."
+    },
+    {
+      "suite": "offers-photo-library",
+      "result": "PASS",
+      "seconds": 78.0,
+      "log_sha256": "079c6bbe63b3a12dfc32408b1fa127d576de05a129848fa212adfe34df73684b",
+      "tail": ""
+    },
+    {
+      "suite": "p3-customer-hub",
+      "result": "PASS",
+      "seconds": 13.8,
+      "log_sha256": "37d6abfd84db8fd1bd7e6b73bdbc5e31362c2762e2a2dfbd1b2036cc70459636",
+      "tail": ""
+    },
+    {
+      "suite": "p3-documents",
+      "result": "PASS",
+      "seconds": 16.7,
+      "log_sha256": "99238a22b46b0a256b8ecc98d9f737fb42d0961e867360519865b8e546b3a332",
+      "tail": ""
+    },
+    {
+      "suite": "planning-carousel",
+      "result": "PASS",
+      "seconds": 19.8,
+      "log_sha256": "892640eed9cb410819ab724f6b8b0a1d475b4de9056af12521a5259e3a9a27bd",
+      "tail": ""
+    },
+    {
+      "suite": "planning-open-end",
+      "result": "PASS",
+      "seconds": 11.6,
+      "log_sha256": "b9fe89035d86be7dcd4ef66f2762a68940c487638dd35691b7b1908557c6a186",
+      "tail": ""
+    },
+    {
+      "suite": "planning-overview",
+      "result": "PASS",
+      "seconds": 93.8,
+      "log_sha256": "76ae63e42fe930e85a79761ad6ddc614b9218f3ea4a7a3cd15d4a18a7411a289",
+      "tail": ""
+    },
+    {
+      "suite": "planning-ui",
+      "result": "PASS",
+      "seconds": 16.7,
+      "log_sha256": "0c6b3e6fa9d705f1421f323c932f239b7d9b8e7e0710231dbda11c84d5ee9f08",
+      "tail": ""
+    },
+    {
+      "suite": "plant-library-integration",
+      "result": "PASS",
+      "seconds": 5.3,
+      "log_sha256": "28e3825d3fcfb12506267d5e294905ca46e81532d937848fe4ef0ef272891e1a",
+      "tail": ""
+    },
+    {
+      "suite": "revier-offer-flow",
+      "result": "PASS",
+      "seconds": 26.4,
+      "log_sha256": "885589b9fd57fd93d700a298f628082cf2ba95b3efedfd18b844192152060dff",
+      "tail": "",
+      "earlier_attempt": {
+        "suite": "revier-offer-flow",
+        "result": "FAIL",
+        "seconds": 26.4,
+        "log_sha256": "6792fa57b6821e441bc00ce4fab0d31e3b004ea17a0a5a397b9fe421a512ed7f",
+        "tail": "enabled and stable',\n    '      - scrolling into view if needed',\n    '      - done scrolling',\n    '      - <div id=\"mobile-toast\">…</div> intercepts pointer events',\n    '  - retrying click action',\n    '    - waiting 500ms',\n    '    - waiting for element to be visible, enabled and stable',\n    '    - element is visible, enabled and stable',\n    '    - scrolling into view if needed',\n    '    - done scrolling',\n    '    - <span class=\"undo-toast-copy\">Gespeichertes Angebot der Anfrage zugeordnet.</span> from <div id=\"mobile-toast\">…</div> subtree intercepts pointer events',\n    '  - retrying click action',\n    '    - waiting 500ms',\n    '    - waiting for element to be visible, enabled and stable',\n    '    - element is visible, enabled and stable',\n    '    - scrolling into view if needed',\n    '    - done scrolling',\n    '    - performing click action'\n  ],\n  name: 'TimeoutError'\n}\n"
+      },
+      "recheck_reason": "Correct three-root IDs in navigation-calendar; customer selection expectation in ui-preview; unchanged offer-flow rerun completed without timeout."
+    },
+    {
+      "suite": "revier-solo-ui",
+      "result": "PASS",
+      "seconds": 24.9,
+      "log_sha256": "b9b91769346673f0f38e80d2a274dfc37a78c76c4d466446d20ccb4e7a1e4a03",
+      "tail": ""
+    },
+    {
+      "suite": "revier-timer-review",
+      "result": "PASS",
+      "seconds": 6.8,
+      "log_sha256": "7bd173eaab2096ffd72ad9da953efb45c44bfed57c7aff7d82bc49dc64a8622d",
+      "tail": ""
+    },
+    {
+      "suite": "saved-drafts-read-first",
+      "result": "PASS",
+      "seconds": 8.9,
+      "log_sha256": "f60685f1760a80954dc22aeb099c6804d244063e0aba3fc3b78c77df2c532cea",
+      "tail": ""
+    },
+    {
+      "suite": "settings-cleanup",
+      "result": "PASS",
+      "seconds": 3.6,
+      "log_sha256": "d6f8efd1833da886de51afd326aebfa93e754a94591df5fb02314bae2f1e9f79",
+      "tail": ""
+    },
+    {
+      "suite": "simple-design",
+      "result": "PASS",
+      "seconds": 7.7,
+      "log_sha256": "b750b71bf5a4dfe8883796a8d56adf2487f67f427d61cd68f11eaf8afb6c4347",
+      "tail": ""
+    },
+    {
+      "suite": "simple-forms",
+      "result": "PASS",
+      "seconds": 10.0,
+      "log_sha256": "893fa0460ffc8c9a7bf11cc0007403571064bd8a277d2a5cd4d897eed63e1272",
+      "tail": ""
+    },
+    {
+      "suite": "startup-ui",
+      "result": "PASS",
+      "seconds": 33.1,
+      "log_sha256": "229dc1344cea43bff61b23ddcec9e4cb07f5d453a02844029175dd67cf0ac104",
+      "tail": ""
+    },
+    {
+      "suite": "timer-completion",
+      "result": "PASS",
+      "seconds": 5.6,
+      "log_sha256": "1cfdcdf841a930aefe5f732c3942a47982409518ff8fda0a54af3daebe8b3843",
+      "tail": ""
+    },
+    {
+      "suite": "timer-material-context-ui",
+      "result": "PASS",
+      "seconds": 19.5,
+      "log_sha256": "a92cb6dd6bb2f7a8b3f1fe56f941bdd96b2757f8c7d8ceb9db56ab746f46acc4",
+      "tail": ""
+    },
+    {
+      "suite": "ui-preview",
+      "result": "PASS",
+      "seconds": 18.5,
+      "log_sha256": "86154d6348236dfb3c49820ff2982ca16f183523f34a1cf4d8ff731668b4c946",
+      "tail": "",
+      "earlier_attempt": {
+        "suite": "ui-preview",
+        "result": "FAIL",
+        "seconds": 18.5,
+        "log_sha256": "194bec95ea2091848e4565831302d385621fdd45114458751788fd8b1b50883e",
+        "tail": "and draft',\n  result: 'PASS'\n}\n{\n  name: 'Later and reopen preserve time, notes and customer without saving',\n  result: 'PASS'\n}\n{\n  name: 'Save failure leaves dialog, fields and notes available for retry',\n  result: 'PASS'\n}\n{\n  name: 'Successful retry invokes existing native save exactly once',\n  result: 'PASS'\n}\n{\n  name: 'Completed timer opens the same quick capture with measured hours and session ID',\n  result: 'PASS'\n}\n{\n  name: 'A nested picker created earlier in the DOM still closes before the capture sheet',\n  result: 'PASS'\n}\n{\n  name: 'Inline customer creation returns to the same capture and retains its draft',\n  result: 'PASS'\n}\n{\n  name: 'Small screens and enlarged fonts retain lower reachable controls',\n  result: 'PASS'\n}\n{\n  name: 'All preview modules parse for supported WebView and no runtime error occurs',\n  result: 'PASS'\n}\n{\"suite\":\"ui-preview\",\"checks\":14,\"failed\":1}\n"
+      },
+      "recheck_reason": "Correct three-root IDs in navigation-calendar; customer selection expectation in ui-preview; unchanged offer-flow rerun completed without timeout."
+    },
+    {
+      "suite": "visual-consistency",
+      "result": "PASS",
+      "seconds": 27.7,
+      "log_sha256": "32c668838d6331fd7d22c6971a20da866320845c2578be3cb3a8c01d3e09c7ad",
+      "tail": ""
+    },
+    {
+      "suite": "webview-hardening",
+      "result": "PASS",
+      "seconds": 4.0,
+      "log_sha256": "46ad64b9cd28984036d555a884540b81257c51527f8a3d7bfeacabb919840aba",
+      "tail": ""
+    },
+    {
+      "suite": "webview-syntax",
+      "result": "PASS",
+      "seconds": 0.4,
+      "log_sha256": "edc99f1dce8994f72cb752abcbfa34851c121835a678c7c18b8ff927ea54d997",
+      "tail": ""
+    },
+    {
+      "suite": "work-entry-photo-failure",
+      "result": "PASS",
+      "seconds": 15.0,
+      "log_sha256": "621128f32e5812b4bd66bce18713beb6f9f1561a89ca687a0ed643a11c7bb883",
+      "tail": ""
+    },
+    {
+      "suite": "work-location",
+      "result": "PASS",
+      "seconds": 11.6,
+      "log_sha256": "e0822f901ff95b334ac2fd96e62ebf7c98f35838e62e30cd7c87fec373f4ed9b",
+      "tail": ""
+    },
+    {
+      "suite": "worklog-window",
+      "result": "PASS",
+      "seconds": 5.5,
+      "log_sha256": "27a724dfaf13204f810d93b8a792ccc92ac1575835772a1d32f9fbb343e6d5f3",
+      "tail": ""
+    }
+  ],
+  "native_contract_checks": {
+    "ui_mcp_parity": {
+      "result": "PASS",
+      "checks": 1399,
+      "semantic_actions": 212,
+      "source_tools": 169,
+      "log_sha256": "6753611a6e804b7a46f1c6d90df09f8d5861b1ee50d1e87ecd2fc31ce83c3dc5"
+    },
+    "mcp_discovery": {
+      "result": "PASS",
+      "protocol_versions": 4,
+      "business_writes": 0,
+      "log_sha256": "add740db65f3b34b63af4bf67488e23b2822313e7368d683fffa7c4388bab29a"
+    }
+  },
+  "source_sha256": {
+    "android/app/src/main/assets/mobile.html": "3ad9c3bac7e8133a8b1eeca54bfdbf09df7dee305639a8c53673db2ed4fda8fb",
+    "android/app/src/main/assets/revier-solo-ui.js": "67da422253a90f8a8e895a2defa1be0bad60ea987d91b22b70cafd2172da44ca",
+    "android/app/src/main/assets/revier-solo-ui.css": "e45b4460a31217df5f0fe9a5d0b694dfa4dbb7c5fd081774f981f5c73a62da9b",
+    "android/app/src/main/assets/navigation-status.js": "863f4cd34ac071c75ecc6dd06db10cb96ac5f92df824248cc1bbe2c46d51a355",
+    "android/app/src/main/assets/ui-mcp-actions.json": "d2961e17fcb5dffa4058e25c7462183b0ee1ed1f541883a92585fc7f54049bc2"
+  },
+  "preview": {
+    "html": "docs/verification/customer-design-2026-10-27.html",
+    "html_sha256": "cf408fd449e8e44b5b1db62da9620a00158daa12064ff7d7a8566dc900a19c5e",
+    "business_bridge": "NONE",
+    "external_resource_requests": 0,
+    "persistence": "NONE; in-memory synthetic UI drafts only",
+    "screens": "Heute,Kunden,Buero,customer dossier,explicit property,work,planning and explicit visit edit; other existing sections explicitly marked placeholders",
+    "responsive_widths": [
+      320,
+      360,
+      426
+    ],
+    "font_scale": [
+      1,
+      2
+    ],
+    "tap_targets": "Main/secondary actions and bottom nav at least48px; narrow/enlarged main content checked for horizontal overflow",
+    "images": [
+      {
+        "path": "docs/verification/customer-design-directory-390.png",
+        "sha256": "4cb33d47011a1e3d20b8c4f098379caf788f2c3af8df7980dfcc2948a620bd38",
+        "privacy": {
+          "classification": "SYNTHETIC_TEST",
+          "fixture": "qa_browser_fixture",
+          "sha256": "4cb33d47011a1e3d20b8c4f098379caf788f2c3af8df7980dfcc2948a620bd38"
+        }
+      },
+      {
+        "path": "docs/verification/customer-design-dossier-board.png",
+        "sha256": "5ffc06c9b07cee8d54ca29fe3eb812747fe91db122905e062607282710d756bc",
+        "privacy": {
+          "classification": "SYNTHETIC_TEST",
+          "fixture": "qa_browser_fixture",
+          "sha256": "5ffc06c9b07cee8d54ca29fe3eb812747fe91db122905e062607282710d756bc"
+        }
+      },
+      {
+        "path": "docs/verification/customer-design-night-board.png",
+        "sha256": "383ce32b77fa55ab8af143b76cb2113e60108d90104e6493addd09e96ec800a5",
+        "privacy": {
+          "classification": "SYNTHETIC_TEST",
+          "fixture": "qa_browser_fixture",
+          "sha256": "383ce32b77fa55ab8af143b76cb2113e60108d90104e6493addd09e96ec800a5"
+        }
+      },
+      {
+        "path": "docs/verification/customer-design-paper-board.png",
+        "sha256": "a0d7c1197ad87964655cb0846dab2c70e6108f2d2678d7579d9d1af23c0dbeb6",
+        "privacy": {
+          "classification": "SYNTHETIC_TEST",
+          "fixture": "qa_browser_fixture",
+          "sha256": "a0d7c1197ad87964655cb0846dab2c70e6108f2d2678d7579d9d1af23c0dbeb6"
+        }
+      },
+      {
+        "path": "docs/verification/customer-design-profile-390.png",
+        "sha256": "f44c6f9042b6ed72a2c6090d01053d68925203ed5553c5349bcaef36e1cca6c2",
+        "privacy": {
+          "classification": "SYNTHETIC_TEST",
+          "fixture": "qa_browser_fixture",
+          "sha256": "f44c6f9042b6ed72a2c6090d01053d68925203ed5553c5349bcaef36e1cca6c2"
+        }
+      }
+    ]
+  },
+  "remaining_limits": [
+    "Native Pixel transition latency around1s not measured or accepted; global render wrappers still consume CPU and may need a later narrowly measured change.",
+    "Selected integrated customer overview design uses existing feasible read paths but is not yet fully wired into live CustomerHub.",
+    "Only synthetic Cloud browser checks, not native accessibility/keyboard/sunlight/touch acceptance.",
+    "No new APK or installation; released107 remains from immutable earlier source.",
+    "No productive data-integrity approval, invoice release or full backup/restore proof from this presentation task."
+  ],
+  "recovery": "Source-only presentation/read-path changes can be reverted as a source commit; no DB migration, business data conversion, destructive cleanup or released107 artifact/tag mutation. Do not perform a device downgrade or restore.",
+  "privacy": {
+    "source": {
+      "status": "PASS",
+      "files": 2377,
+      "operational_seed_rows": 0
+    },
+    "workspace": {
+      "status": "PASS",
+      "files": 6287,
+      "includes_ignored_untracked": true,
+      "git_history": "SEPARATE_READONLY_AUDIT"
+    },
+    "scope_note": "Full source and worktree gates before GitHub handoff; final added numeric gate metadata and status scanned separately; no other production or prototype changes afterward."
+  }
+}

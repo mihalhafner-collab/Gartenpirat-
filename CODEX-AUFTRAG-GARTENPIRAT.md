@@ -1,5 +1,63 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Neuester Auftrag: Kunden als dritter Hauptpunkt, Design und kurze Wechselwege
+
+Nutzer meldet ungefähr1s zwischen Heute/Büro und beauftragt ausdrücklich einen
+dritten Bottompunkt für eine übersichtliche Kundendatei. Navigation jetzt
+Heute/Kunden/Büro; die frühere Vorgabe zweier Punkte ist damit für diese Quelle
+überholt. Selbstständig praktische Informations-/Bedienarchitektur entwickeln,
+Bedienung und Originalcode anderer App-Kategorien vergleichen, Zwischenstände
+und Bildvorschläge liefern, danach alle Anforderungen mit Gegenpfaden prüfen.
+Designarbeit/Quelländerungen sind keine weitere APK-/Installationsfreigabe.
+
+Gewünschter Endzustand: vorhandene Kundenliste/Kundenakte direkt erreichbar,
+Suche und Rückweg behalten ihren Zustand; keine neue Kundendatenhaltung oder
+Fachfunktion. Kundenidentität, Einsatzobjekt und Rechnungsempfänger unterscheiden.
+Nächste Arbeit/Kontakt vor technischen Details; weitere Arbeiten, Fotos und Belege
+über vorhandene Fachziele. Leere/fehlende Angaben und mehrere Objekte bewusst
+darstellen; nie Rechnungsadresse als Einsatzadresse voraussetzen.
+
+Ursachen-/Änderungsplan vor Umsetzung:
+
+- `revier-solo-ui.js/.css`: bestehende ROOTS/Nav auf3 erweitern; Kundenliste,
+  Profil und Bearbeitung dem Kundenpunkt zuordnen. Aktiven Punkt, Historie,
+  Zurück, Suchtext/Scrollzustand und Navigation aus Entwürfen prüfen. Mehr bleibt
+  vorhandener Zugang zu weiteren Bereichen, keine neue Menühierarchie erzeugen.
+- Heute nutzt die bereits vorhandene vollständige tour-Antwort innerhalb von
+  get_revier_overview, statt dieselbe Tour ein zweites Mal synchron zu lesen.
+  Fehlender alter Antwortteil darf den vorhandenen lokalen Read nutzen;
+  widersprüchliche/vorhandene ungültige Daten müssen als Lesefehler sichtbar bleiben.
+  Kein TTL-Cache, kein Verstecken oder zeitgesteuertes Freigeben alter Geschäftsdaten.
+- Büro benötigt den vollständigen Revier-/Tour-Read nur für eine optionale
+  Anfrageanzahl. Diesen unnötigen Read entfernen; Anfragen bleiben über ihren
+  vorhandenen Listenpfad vollständig und frisch erreichbar. Formulare und
+  Geschäfts-/Rechnungs-/Backupgates unverändert. Keine Abfrage durch Blind-Caching
+  ersetzen und keine Geschäftsaktion auf Navigation auslösen.
+- CPU-Profil zeigt außerdem wiederholtes Ersetzen identischer Select-Optionen.
+  Kunden-/Auftragsoptionen nur bei verändertem vollständigem Optioneninhalt
+  ersetzen; Schlüssel umfasst alle verwendeten IDs/Anzeigen/Status und Kunden-
+  kontext. Das ist DOM-Wiederverwendung, kein Daten-/TTL-Cache: aktuelle Daten
+  weiterhin bei jedem Render ableiten. Neue/geänderte Kunden, Kontextwechsel,
+  Auswahl, Timer/Draft und unveränderte Knotenidentität gesondert testen.
+- Gleiches synthetisches Vorher/Nachher-Profil für Seitenwechsel, Native-Read-
+  Anzahl und sichtbare Darstellung. Cloud-Browserwerte sind keine Pixelmessung.
+  Bei weiterem belegten Engpass gezielt Ursache untersuchen, kein allgemeines
+  Render-/Native-Refactoring aus diesem Designauftrag ableiten.
+- Bild-/Interaktionsstudie in `docs/verification/`: zwei optische Richtungen,
+  empfohlen warmes klares Revierbuch mit Waldgrün und großen Bedienelementen.
+  Tatsächliche HTML-Darstellung mit Beispieldaten, keine als Pixelaufnahme
+  ausgegebenen Bilder. Kundenliste/Akte/Heute/Büro, schmaler Bildschirm, große
+  Schrift, leere Suche, fehlender Kontakt, mehrere Objekte und Lesefehler prüfen.
+  Entwürfe sind keine zweite produktive App; ausschließlich synthetische Daten.
+
+Originalquellen als Recherchematerial festhalten, Mechanismus/Übertragbarkeit
+von ungetesteten Fremd-App-Geschwindigkeitsbehauptungen trennen. Kein Fremdcode
+oder Frameworkimport. Abschließende Kaskade: Pflichtpunkte einzeln auf Evidenz
+abbilden; Navigation/Profil/Formulare/Drafts/Timer/Commit-ID/Finanz-/Löschschutz
+und Katalog/Privacy gegenprüfen. Nur bestehende zentrale Projektstände ändern,
+Nachweise und Bilder in GitHub sichern. Rücknahme betrifft Präsentation und
+redundante Reads; keine Geschäfts-/Backupdaten oder ausgelieferte107 verändern.
+
 ## Neuester Auftrag: Original-APK1.55.2/107 erstellt
 
 Ergebnis: Original-APK1.55.2/107 gebaut, signiert, lokal vollständig geprüft und

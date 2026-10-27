@@ -14,7 +14,7 @@ const {chromium}=require('./browser.cjs'),fixtureSource=require('./ui-fixture-so
    await page.waitForTimeout(100);assert.equal(await page.evaluate(()=>writes.length+qaRevier.writes.length),0);assert.equal(await page.evaluate(()=>HGFormDrafts.list().length),0);
   });
   await check('All existing menu destinations remain reachable, with the two established bottom tabs',async()=>{
-   assert.deepEqual(await page.locator('.bottom .nav').allTextContents(),['Heute','Büro']);
+   assert.deepEqual(await page.locator('.bottom .nav').allTextContents(),['Heute','Kunden','Büro']);
    const ids=await page.locator('#more-page [data-open]').evaluateAll(nodes=>[...new Set(nodes.map(n=>n.dataset.open))]);
    for(const id of ids){await page.evaluate(id=>openPage(id),id);assert.equal(await page.evaluate(()=>currentPage),id,id);}
    assert.equal(await page.evaluate(()=>writes.length+qaRevier.writes.length),0);await page.evaluate(()=>openPage('home'));

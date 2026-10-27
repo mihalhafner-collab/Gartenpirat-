@@ -6,6 +6,77 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Aktuell: Kundenpunkt und Designstudie nach APK107
+
+Neuer Nutzerauftrag: unten Heute/Kunden/Büro, übersichtliche Kundendatei und
+persönliches einfaches Design; gemeldete Wechselverzögerung von etwa1s untersuchen.
+Der dritte Kundenpunkt ist in der Entwicklungsquelle umgesetzt. Kundenliste,
+Akte und Bearbeitung gehören zum Kundenpunkt. Explizite Bottomwechsel und
+kontextuelle Kundenauswahl haben unterschiedliche, geprüfte Rückwege; Suche,
+Formulare und ursprüngliche Commitkennungen bleiben erhalten.
+
+Zwei klickbare, rein synthetische Entwürfe: empfohlen **Revierbuch** (warmes
+Papier/Waldgrün), alternativ **Abendgrün** (dunkles Grün/warmes Gelb). Große
+Bedienziele, ruhige Listen, eine Hauptaktion je Ansicht; Zusatzangaben bei Bedarf.
+Keine zusätzliche Produkt-App, Datenbank, Backendanbindung oder Fremdframework.
+Die neue Bildsprache und die zusammengeführte Kundenübersicht sind Designstudie,
+noch nicht vollständig auf die produktiven Masken übertragen. Der echte neue
+Bottompunkt öffnet die bereits vorhandene Kundenliste und Kundenakte.
+
+Praktischer Aufbau der Kundendatei; vorhandene Fachpfade weiterverwenden:
+
+| Ansicht | Sofort sichtbar | Vorhandener Daten-/Bedienpfad |
+| --- | --- | --- |
+| Kundenliste | Name, Ort, Suche; Neu | `customers()`/HGDataOrder und bestehende Kundenanlage; keine Detailabfragen pro Listenzeile |
+| Kundenakte | Kontakt, nächster Einsatz, Objekte | bestehender `openCustomer`/CustomerHub; Kontakte nur bei vorhandenen Angaben anbieten |
+| Einsatzobjekt | Name, bestätigte Einsatzadresse, Zugangshinweise | `list_properties(customer_id)` und `get_property(property_id)`; Auswahl anhand der ID |
+| Nächster Einsatz | Tätigkeit, Tag/Zeit, konkretes Objekt | `list_visits(customer_id,from_date)` mit Paging und Statusprüfung; bestehende Kalendertermine separat erkennen, keine Namens-/Datums-Deduplizierung |
+| Arbeiten/Fotos/Dokumente | erst beim Öffnen der jeweiligen Rubrik | vorhandene Kundenakte, lokale Arbeitsdaten, Fotovorschauen und Dokumentpfade; Finanzgates beibehalten |
+| Arbeit starten | bewusst gewählter Kunde; Objekt nur bei bekanntem Kontext | vorhandener WorkStart; auftragslose/allgemeine Arbeit weiterhin möglich; kein Start allein durch Öffnen |
+
+Keine zweite Kundenkopie. Objektanzahl in der späteren Liste nur aus bereits
+geladenen Daten ableiten, sonst weglassen. Nächster Einsatz und Objektabschnitt
+der Studie müssen noch an diese vorhandenen Reads angeschlossen werden;
+der aktuelle CustomerHub zeigt teilweise Kalender-/Garteninformationen.
+Kontaktadresse, Einsatzobjekt und Rechnungsempfänger bleiben verschieden.
+Bei mehreren Objekten keine erste Adresse als Einsatzort voraussetzen. Echte
+leere Zustände ohne Kontakt/Objekt/Termin bleiben bedienbar und ehrlich.
+
+Gezielte Korrekturen am Wechselweg: Heute verwendet die bereits vollständige
+Tour aus `get_revier_overview`; nur ältere Antworten ohne dieses Feld verwenden
+den bestehenden lokalen Tour-Read. Vorhandene widersprüchliche Tourdaten bleiben
+sichtbare Lesefehler. Büro liest keinen kompletten Revier-/Tourbestand mehr nur
+für eine optionale Anfrageanzahl. Frische unveränderte Kunden-/Auftragsoptionen
+behalten ihre DOM-Knoten; tatsächliche Änderungen erneuern sie. Ein beim Wechsel
+bereits verarbeitetes Änderungssignal löst keine zweite Timeraktualisierung aus.
+Kein Geschäftsdaten-/TTL-Cache und keine ausgeblendeten fachlichen Fehler.
+
+Recherche an tatsächlichem öffentlichen Quellcode aus drei Kategorien:
+Fossify Contacts (bestehenden Listenadapter aktualisieren), Tasks.org (getrennte
+Ansichtszustände und Änderungen gezielt verarbeiten) und AntennaPod (globale
+Navigation sowie Haupt-/Detailansicht mit explizitem Rückweg). AntennaPod ersetzt
+seine Hauptfragmente; daraus wird keine allgemeine Wiederverwendung behauptet.
+Zusätzlich offizielle Google-Contacts- und Todoist-Bedienhilfen: Kontakt direkt
+öffnen, kurze Erfassung mit optionalen Details. Keine fremde App ausgeführt oder
+deren Geschwindigkeit gemessen; keine fremden Frameworks/Verzögerungen übernommen.
+Exakte Commit-/Dateiverweise und Übertragung im technischen Nachweis.
+
+41 bestehende Browser-Prüfgruppen,12 neue Navigationsfälle und11 Designfälle
+PASS;1399 aktuelle UI/MCP-Paritätschecks und169er-Discovery mit vier Protokollen
+PASS. Zwei alte Kundennavigations-Erwartungen und eine Root-ID-Liste an den
+expliziten dritten Punkt angepasst; ursprüngliche Timeoutversuche dokumentiert,
+betroffene Suiten danach erfolgreich erneut geprüft. Cloud-Mediane Heute55,6→55,4ms
+und Büro46,4→47,7ms: kein belegter Gesamtgewinn. Owner-Reads pro Wechsel Heute3→2,
+Büro1→0. Kaskade: `docs/verification/customer-design-2026-10-27.json`.
+HTML und gerenderte Bilder liegen daneben. Nur Beispieldaten, keine Pixelaufnahme.
+Privacy: Quelle2377Dateien und gesamter Worktree6287Dateien PASS, einschließlich
+ignorierter/unversionierter Dateien; ergänzte numerische Prüfmetadaten separat
+geprüft.0 operative Startzeilen.
+Pixel-Wechselzeit und native Bedienung sind weiterhin offen; Browsermessungen
+belegen keine Behebung der gemeldeten1s. Keine neue APK, Versionserhöhung oder
+Installation aus diesem Auftrag. Das bereits ausgelieferte Originalpaket107
+und sein unveränderter Quelltag enthalten diese späteren Änderungen nicht.
+
 ## Aktuell: Original-APK1.55.2/107 erstellt
 
 Explizit beauftragter Release-Bau aus sauberem, auf GitHub nachgewiesenem

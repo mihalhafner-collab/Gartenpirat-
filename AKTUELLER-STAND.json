@@ -184,7 +184,7 @@
       "evidence_recorded_at_utc": "2026-10-25T22:06:57.964900+00:00"
     }
   ],
-  "updated_at_utc": "2026-10-27T18:37:27.419604+00:00",
+  "updated_at_utc": "2026-10-27T19:37:46.942944+00:00",
   "development_snapshot": {
     "version_name": "1.55.1",
     "version_code": 106,
@@ -325,12 +325,20 @@
     "ui_work_in_progress": {
       "branch": "codex/heute-uebersicht-20261027",
       "base_main": "05eac2d5769bed55a42317ed542be9baccda0e77",
-      "status": "UNBUILT_TODAY_SIMPLIFICATION",
-      "scope": "Existing Today display and two-root navigation; Objects/Care in More; synthetic UI review/images; no business model mutation",
-      "release_source_106_unchanged": true,
-      "new_apk_built": false,
+      "status": "POST_107_UNBUILT_CUSTOMER_NAVIGATION_AND_DESIGN_STUDY",
+      "scope": "Implemented Today/Customers/Office navigation and redundant-read/DOM reuse corrections. Revierbuch/Abendgruen visual directions and integrated customer dossier are synthetic interactive design studies, not fully wired productive layouts.",
+      "bottom_roots": [
+        "Heute",
+        "Kunden",
+        "Büro"
+      ],
+      "last_built_apk": 107,
+      "released_107_source_tag_unchanged": true,
+      "new_apk_built_for_this_task": false,
       "physical_installation": false,
-      "evidence": "docs/verification/today-overview-2026-10-27.json"
+      "pixel_performance_acceptance": "NOT_EXECUTED",
+      "operating_data_used": false,
+      "evidence": "docs/verification/customer-design-2026-10-27.json"
     }
   },
   "historical_snapshot": {
