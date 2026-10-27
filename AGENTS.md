@@ -124,8 +124,10 @@ Bei uneindeutiger Datenintegrität, drohendem Verlust einzigartiger Arbeit,
 unklarer Belegautorität oder notwendiger Gateumgehung den betroffenen Schritt
 anhalten. Andere eindeutig ausführbare Schritte fortsetzen. Aktuelle und
 beobachtete installierte Versionen nicht mit historischen Ständen verwechseln.
-Versionsbereinigung nach bestätigter Aufbewahrungsgrenze in `source-lifecycle.json`;
-keine Annahme bei mehrdeutiger Versionsangabe. Git-Historie zur Nachvollziehbarkeit
+Versionsaufbewahrung nach Nutzerklärung vom27.10.: APKs ab Revier Solo
+(1.55.0/Build99) behalten, ältere administrative APKs und Versionsreferenzen
+entfernen. Die genaue Grenze und Nachweise stehen in `source-lifecycle.json`;
+kein automatisches späteres Verschieben auf „nur zwei Versionen“. Git-Historie zur Nachvollziehbarkeit
 erhalten; nie Force-Push oder unangekündigtes Umschreiben.
 
 ## Starttext für die bestehende Gartenumgebung

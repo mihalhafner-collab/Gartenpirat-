@@ -11,7 +11,8 @@
     "original_zip_sha256": "a66f521e07e2cd243ac469d17ef0c307b82e1efec0e095a1a81fea5183977981",
     "apk_sha256": "5c767f48884d02df463aec7a08a2094383e5dda023077268b5cc2ad46329f178",
     "historical_drive_zip_id": "1C945yeV6Z0SgQQMBqK-GFtJS2a0zrIFW",
-    "historical_drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB"
+    "historical_drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB",
+    "source_ref_availability": "HISTORICAL_PRE_REVIER_SOLO_TAG_RETIREMENT_PLANNED"
   },
   "last_observed_installed_build": {
     "observed_at_utc": "2026-10-26T11:10:26.060785+00:00",
@@ -171,7 +172,7 @@
       "evidence_recorded_at_utc": "2026-10-25T22:06:57.964900+00:00"
     }
   ],
-  "updated_at_utc": "2026-10-26T21:25:46.235954+00:00",
+  "updated_at_utc": "2026-10-27T04:30:13.978984+00:00",
   "development_snapshot": {
     "version_name": "1.55.1",
     "version_code": 106,
@@ -333,12 +334,12 @@
     "changes_saved_only_to": "GITHUB",
     "codex_drive_writes": "APK_INSTALLATION_ARTIFACTS_ONLY_AFTER_AUTHORIZED_BUILD",
     "app_encrypted_drive_backup": "UNCHANGED_SEPARATE_RUNTIME_FEATURE",
-    "version_retention": "AWAITING_USER_CLARIFICATION",
+    "version_retention": "USER_CLARIFIED_REVIER_SOLO_FROM_BUILD99_INCLUSIVE",
     "environment_bootstrap": {
       "configuration_id": "e12633f2-083b-4373-bec4-15f54f592001~cecfg_6acf33fe75d08195a929c819804e82d1",
       "observed_spec_revision": "16",
       "prepared_in": "AGENTS.md#starttext-für-die-bestehende-gartenumgebung",
-      "published_change": "NOT_APPLIED_CURRENT_TOOLS_READ_ONLY_AND_NO_CHATGPT_BROWSER_SIGNIN"
+      "published_change": "NOT_APPLIED_USER_AUTHORIZED_SIGNIN_HANDOFF_WAITING_FOR_SAVED_PROFILE"
     },
     "unmerged_unique_branch": {
       "ref": "codex/pflanzenbibliothek-20261023",
@@ -376,7 +377,7 @@
       "source_worktree_privacy": "PASS;6002files;includes ignored/untracked",
       "current_markdown_links": "PASS",
       "original106_app_fingerprint_unchanged": true,
-      "version_reference_deletion": "NOT_EXECUTED_AWAITING_CLARIFICATION"
+      "version_reference_deletion": "PLANNED11PRE99_TAGS_AFTER_HISTORY_PRESERVATION"
     },
     "main_integration": {
       "pull_request": 7,
@@ -391,6 +392,7 @@
       "git_history_preserved": true,
       "predeletion_evidence_commit": "3f9e41ceb99b44ee1cc8f1f1fd1cad79e6e232dc",
       "all_13_source_tags_unchanged": true
-    }
+    },
+    "version_retention_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
   }
 }

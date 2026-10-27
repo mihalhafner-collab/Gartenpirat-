@@ -1,6 +1,6 @@
 # Gartenpirat Arbeitsstand
 
-Stand: 26. Oktober 2026. Repository: `mihalhafner-collab/Gartenpirat-`.
+Stand: 27. Oktober 2026. Repository: `mihalhafner-collab/Gartenpirat-`.
 Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 `AGENTS.md`. Vollständige frühere Berichte sind im festen
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
@@ -13,11 +13,18 @@ Regel-/Statusabrufe. Widersprüchliche aktuelle Anweisungen werden ersetzt,
 überholte Dokumente/Windows-Launcher nach Abhängigkeitsprüfung aus dem aktiven
 Baum entfernt. Aktuelle Quellen, Installation und offene Gates bleiben getrennt.
 
-**Noch offen:** Die Aufbewahrungsangabe „2älteste Version“ wurde zur Klärung
-vorgelegt. Keine Versions-/Taglöschung aufgrund einer angenommenen Bedeutung.
-Die tatsächliche Startkonfiguration der Gartenumgebung ist noch nicht geändert:
-verfügbare Umgebungsschnittstelle nur lesend, kein angemeldeter ChatGPT-Cloudbrowser.
-Der genaue neue Starttext steht in `AGENTS.md` bereit.
+**Nutzerklärung27.10.:** APKs ab Revier Solo behalten. Grenze:1.55.0/Build99
+(`00974518426e1a2bdfcb07c5eba1223071a49ca3`).16 ältere administrative APKs
+(536.600.591Bytes) und elf Versions-Tags88–98 sind zur Entfernung klassifiziert.
+Vor Taglöschung werden drei eigenständige Originalarchiv-Commits88–90 durch
+einen reinen Historienmerge erhalten; der aktuelle Dateibaum bleibt unverändert.
+APKs105/106 und ihre vorhandenen Teile, App-Backups sowie einzigartige
+Pflanzenarbeit bleiben erhalten. Keine neue Release-/Migrationsfreigabe.
+
+**Cloud-Starttext offen:** Nutzer hat die sichere ChatGPT-Anmeldung im Cloudbrowser
+beauftragt; Anmeldeseite bereitgestellt, gespeichertes Profil noch ausstehend.
+Der Umgebungs-Connector ist weiterhin nur lesend. Der fertige Starttext steht
+in `AGENTS.md`; eine tatsächliche Veröffentlichung wird getrennt nachgewiesen.
 
 ## Quellkandidat und beobachtete Installation
 
@@ -115,7 +122,8 @@ Fünf ältere Arbeitsbranches sind nach frischem Remotevergleich vollständig in
 Remote-Read-back: alle fünf Referenzen fehlen, `main`, aktueller Arbeitsbranch
 und Pflanzenbranch unverändert. Namen/Original-SHAs waren vorher in GitHub-Commit
 `3f9e41ceb99b44ee1cc8f1f1fd1cad79e6e232dc` gesichert; die vollständige Historie
-bleibt erhalten. Alle13 Versions-Tags bleiben bis zur Nutzerklärung unverändert. Branch `codex/pflanzenbibliothek-20261023` dagegen hat sieben
+bleibt erhalten. Beim damaligen Read-back waren alle13 Versions-Tags unverändert;
+die jetzt geklärte Bereinigung steht oben. Branch `codex/pflanzenbibliothek-20261023` dagegen hat sieben
 nicht integrierte Commits, letzter Stand
 `7d499b225ed28f501333227e0ce92a54d4c5d542`. Öffentliche Pflanzenquellen und
 redaktionelle Nachweise darin nicht als erledigte Kopie löschen oder ungeprüft
@@ -141,3 +149,20 @@ exakt zurückgelesen. PR #7 ohne History-Rewrite nach `main` integriert:
 `6092fa1d40b295453df28ef9e9300f94a60d7e33`, Remote-Read-back bestanden.
 Die Android-Appdateien entsprechen unverändert dem Originalquelltag106.
 Keine neue App-Abnahme oder veröffentlichte Umgebungskonfiguration daraus ableiten.
+
+## Aufbewahrungsprüfung27.10.
+
+51 Source-/Lifecycle-/Privacy-Regressionen und45 Originalsignierbaseline-Prüfungen
+bestanden:96 PASS/0 FAIL. Neue synthetische Gegenproben: alte Quellen werden nicht
+für aktuelle Quell-Wiederherstellung gewählt, Kandidaten dadurch nicht freigegeben,
+fehlende Grenze wird abgewiesen; lokale APKs99 und107 bleiben auch bei registrierter
+Retirement-Anfrage erhalten, synthetisches98 wird tatsächlich entfernt.
+
+Quell-Wiederherstellung105/106 tatsächlich aus Git rekonstruiert:2338/2349 Dateien,
+Privacy und jeweiliger Originalfingerprint PASS. Kein App-/Betriebsdatenrestore.
+Der CLI-Pfad wählt jetzt die aufbewahrten Originalkandidaten statt stillgelegter
+88–90-Tags. Keine Appcodeänderung und kein neuer APK-Bau.
+Quellprivacy2326 Dateien/0 operative Seedzeilen und Worktree-Privacy6003 Dateien
+einschließlich ignored/untracked PASS. Auf GitHub sind keine Releases/Release-Assets
+vorhanden; ältere Installationsdateien werden im bestehenden privaten APK-Bereich
+bereinigt. Rohbetriebsdaten wurden dafür weder gelesen noch geändert.

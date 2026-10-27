@@ -11,21 +11,12 @@
     "1CA4SiFKmM1l6_xzfBs-MWHtKsr9kRyKv"
   ],
   "protected_file_ids": [
-    "1yp-i450bx9MIrn_t6-O1Srhwe7yGlFSg",
-    "1hHgCQSG64R3jYN3TsdZlbMa0ibxI9OgQ",
-    "1aqJIqC4oZXAym0QRYkE9pDFHeA3Yy2Kr",
     "1GZMxQpfGHwOF385_I5yyzyN0z5NQqFXh",
-    "1UHmeEkSO6k0-zU3i6DM53gjgyHDL-fwk",
     "10o0nWq_EK2qAF4zQHj_U2jev_4s6C5qT",
-    "17Pts6yNjNHiKyRqhJHaqAGarWJPZBnfA",
     "1lB4r1dg6zrB8pvTSXcIJ7s1HDecda3Bd",
-    "1pwo3kz2shKIyPnXYV0KbL9Szyvya5OS8",
     "189LoXjhKV9a0GhsnCYpHfsL_60e5wBpL",
-    "1mNMctVtasftStxWfwZboVv6chkQ_CbXv",
     "1Y8xLj_5d08RZjUeoqmM5f2rWY1D24QWc",
-    "1YOT0voQQZ_ntiA_O9jBWVr3ifR8AnBQ8",
     "154LI5YHV11KiD-evgy2OoPwzjcuvfYTU",
-    "19w2tUJRWlKr_0R37IU5jRkP34sCl6CTc",
     "18z0qPxs27gc_J7JmfFMx-QDZQydeSbqF",
     "1IgSMAJogZFA0rbxQCGG9JbkW4wYljQ-q",
     "1r6IUFJJ5VlGYJ0oYeDex4mNoD8J8aD38",
@@ -33,7 +24,6 @@
     "12mJqhTm557QN_APSwflSPliy8rlIKitI",
     "1LW3G8hwT9CgvjqcmLYmmmVuNTJrNnsHl",
     "1JJANIIRQE0bjlfxr0B_C_6679xFUpwzN",
-    "1SXrVaoq_rsGIKo57XeDu0CQDJXB5bepl",
     "1p0XemiDV0V5-nvaFsSQCFcib1wtB0uPL",
     "1K2Uf6J_xT7bW9ozezC3Fwpp3Cd1M4NyQ",
     "1tGaD36AnVupSplOC7q_nfEWVlHY7vm7O",
@@ -312,16 +302,14 @@
     "build_output": 7,
     "log": 30
   },
-  "keep_release_count": 2,
+  "keep_release_count": null,
   "keep_builds": [
-    89,
-    90,
-    93,
-    94,
-    95,
-    96,
-    97,
-    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
     105,
     106
   ],
@@ -339,7 +327,7 @@
     "weekly": "6ad8f37b548c8191b18d43b443aae6d3",
     "monthly": "6ad8f37da1d88191b7aa7fbf09473760"
   },
-  "keep_builds_evidence": "All prior protections retained; immutable original105APK/source and synthetic finalQA evidence protected. Common functional Cloud acceptance complete, RS14CloudsearchtargetFAIL and physical/productive open; installed98 remainsprotected. No cleanup/deletion/protectionremoval performed. Original106APK/source99ab63a additionally protected;host PASS,native UI and physical update OPEN;no cleanup or deletion.",
+  "keep_builds_evidence": "User clarification27Oct2026: retain all Revier Solo APKs from1.55.0/build99 inclusive, not a rolling two-version limit. Existing published105/106 preserved; runtime backup protections unchanged.",
   "drive_source_exports_enabled": false,
   "source_authority": "GITHUB",
   "last_drive_cleanup": {
@@ -489,10 +477,14 @@
   "registry_file_id_historical": "1lxLiMzK4NT7-ueLJvpsDU1gwbaxx610C",
   "github_evidence": "docs/verification/drive-cleanup-2026-10-26.json",
   "version_retention_decision": {
-    "status": "AWAITING_USER_CLARIFICATION",
-    "wording": "Lösche Ältere codes bis zur derzeit 2ältesten version.",
-    "question": "Keep latest105/106 or literally oldest versions?",
-    "delete_version_refs_allowed": false
+    "status": "USER_CLARIFIED_REVIER_SOLO_BOUNDARY",
+    "wording": "Ab umstellung revier solo apk behalten. Rest Löschen. Vloud starttext einfügen",
+    "minimum_build_inclusive": 99,
+    "minimum_version_name": "1.55.0",
+    "boundary_source_git_sha": "00974518426e1a2bdfcb07c5eba1223071a49ca3",
+    "delete_version_refs_allowed": true,
+    "scope": "One-time removal of pre99 source tags and administrative APKs. Retain main history and all existing APKs from99, including future builds. No business-data, backup or signing changes.",
+    "evidence": "docs/verification/revier-version-retention-2026-10-27.json"
   },
   "automation_tasks": {
     "daily": {
@@ -513,5 +505,23 @@
       "method": "Read remote refs;reconstruct only approved source trees in temporary source-only paths;verify inventory,CRC,privacy and fingerprint;remove own temporary copies",
       "forbidden": "No productive restore,app launch,Drive artifact/source lookup,build,installation or invoice authority action"
     }
-  }
+  },
+  "retired_apk_file_ids_by_explicit_user_instruction": [
+    "17Pts6yNjNHiKyRqhJHaqAGarWJPZBnfA",
+    "19w2tUJRWlKr_0R37IU5jRkP34sCl6CTc",
+    "1OyW1TS9Xxac2bxvUN-pBbgT7V_77unwZ",
+    "1P81bvKoOUM_n9p9n0bBwNoCzAvbGxRFt",
+    "1SXrVaoq_rsGIKo57XeDu0CQDJXB5bepl",
+    "1T5oxz9IaldchGD2Fwre4oxH0QbPRUcSO",
+    "1UHmeEkSO6k0-zU3i6DM53gjgyHDL-fwk",
+    "1YOT0voQQZ_ntiA_O9jBWVr3ifR8AnBQ8",
+    "1Z2DBm6lC-puB1rbrJIIOQSUXPZrKh362",
+    "1aqJIqC4oZXAym0QRYkE9pDFHeA3Yy2Kr",
+    "1hHgCQSG64R3jYN3TsdZlbMa0ibxI9OgQ",
+    "1htZ2Hn1Lxq-o1AuacJsA7veVsq4TB1Ck",
+    "1mNMctVtasftStxWfwZboVv6chkQ_CbXv",
+    "1o9nxnWewuXjKEqX9UpHRSHIvqu49nalq",
+    "1pwo3kz2shKIyPnXYV0KbL9Szyvya5OS8",
+    "1yp-i450bx9MIrn_t6-O1Srhwe7yGlFSg"
+  ]
 }
