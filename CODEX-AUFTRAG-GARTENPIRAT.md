@@ -1,5 +1,67 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Neueste Priorität: appweit einheitliche, einfache Bedienung – zuerst Beispiel
+
+Nutzer verlangt ausdrücklich alle Menüstrukturen und Masken der gesamten App
+einzubeziehen. Gleiche Begriffe, gleiche Platzierung und gleiche Bedeutung von
+Zurück, Speichern und Verwerfen; Datum/Zeit und Texte konsistent auswählbar.
+Funktionsumfang und Schutzregeln erhalten. Keine neue untere Navigation aus
+einem bloßen Gesprächsvorschlag ableiten: derzeit Heute/Büro mit Mehr beibehalten.
+Betroffene Bereiche umfassen Heute, Kunden/Objekte, Pflege/Einsätze/Planung,
+Arbeit/Timer, Anfragen/Aufträge, Angebote/Rechnungen/Zahlungen, Material/Geräte,
+Fotos/Pflanzen sowie Einstellungen/Sicherung/Archiv/Status.
+
+Nächster ausdrücklich gewünschter Schritt: Beispiel an einer Maske zeigen,
+bevor die appweite Übernahme beginnt. Dazu eine klar als Entwurf markierte
+Ansicht „Arbeit erfassen“ mit ausschließlich synthetischen Werten erstellen.
+Datums-/Uhrzeitfelder, Tätigkeitstexte, optionale Zusatzangaben und feste
+Verwerfen-/Speichern-Positionen zeigen; keine Geschäftslogik, automatische
+Kundenwahl oder Erledigung aus dieser Gestaltung ableiten. Beispiel ist keine
+fertige appweite Umstellung. Startanalyse und bereits gesicherte Gerätewartung
+bleiben erhalten; noch keine APK oder produktive Geräteprüfung.
+
+## Aktuell: verzögerter App-Start und sichtbare alte Oberfläche
+
+Neue Nutzerbeschreibung: Beim Start erscheint zuerst eine andere/alte Oberfläche,
+danach die neue Ansicht mit Verzögerung. Bestehenden Startablauf untersuchen und
+minimal korrigieren; keine neue Navigation oder Fachfunktion daraus ableiten.
+Quellbefund vor Änderung: mehrere DOMContentLoaded-Starts warten pauschal50/120/
+180/260/280/500ms, drei Gestaltungsdateien kommen erst dynamisch hinzu. Die alte
+HTML-Oberfläche ist bis zum Revier-Aufbau sichtbar. Drei synthetische Cloudläufe
+zeigen539/540/563ms von DOMContentLoaded bis Revier-Ready und29–33 sichtbare
+Zwischenframes mit Heute/Kunden/Mehr. Keine native oder Pixel-Zeitmessung.
+
+Änderungsplan und Gegenpfade:
+
+- `mobile.html`: die drei vorhandenen Gestaltungsdateien in gleicher endgültiger
+  Reihenfolge fest laden. Ein kleiner statischer Startzustand gibt erst die fertig
+  initialisierte Oberfläche frei. Bei fehlenden Skripten/Stilen sichtbare Meldung
+  und bewusstes erneutes Öffnen, kein Rückfall auf die alte Bedienoberfläche.
+  Längerer Start bleibt beobachtet und darf später fertig werden; kein automatisches
+  Reload, Löschen, Zurücksetzen, Backup oder erneutes fachliches Speichern.
+- `design-concept.js`, `daily-usability.js`, `workflow-ui.js`, `planning-ui.js`,
+  `navigation-status.js`, `field-ui.js`, `revier-solo-ui.js`: nur feste Startpausen
+  auf den bestehenden nächsten Ereignisumlauf verkürzen; Registrierungsreihenfolge
+  und tatsächliche Abhängigkeitsprüfungen erhalten. Inline-Window-Initialisierung
+  muss vor diesen Aufgaben abgeschlossen sein. Eingabe-, Speicher-, Gesten-,
+  Timer- und Retry-Fristen nicht pauschal ändern. Feld-Ready erst nach vollständigem
+  Aufbau, statische Stile nicht noch einmal dynamisch anhängen.
+- Geöffnete Startdialoge bleiben bedienbar; deren Schutz nicht entfernen. Fehlender
+  Geschäftsdaten-Read und nicht eingerichtetes Backup sind keine neue Startsperre.
+  Native Android-Startfenster/Bridge-/SQLite-Latenzen bleiben getrennt und ungemessen.
+- Vorher/nachher mit denselben synthetischen Browserdaten prüfen: erstes sichtbares
+  Bild, keine interaktive Zwischenoberfläche, Skript-/CSS-Fehler, langsamer Start,
+  Dialog, Read-Fehler, keine Geschäftsschreibvorgänge und erhaltene Entwürfe.
+  Bestehende betroffene UI-, Navigations-, Wartungs- und Katalogprüfungen erneut.
+  Native Fachpfade unverändert. Read-back: Originalaktionen/P1-Verträge, Privacy,
+  vorhandener GitHub-Entwurf15 und exakter Remote-Commit. Kein APK-Bau/Pixelzugriff.
+
+Risiko: falsche Initialisierungsreihenfolge oder dauerhaft verdeckte Bedienung.
+Deshalb keine Abhängigkeit durch bloße Bereitschaftsflags überspringen und keinen
+Fehler durch zeitgesteuertes Freigeben der alten Oberfläche verbergen. Rollback
+betrifft ausschließlich diese Präsentations-/Startänderungen; Fachdatensätze,
+Entwürfe und die zuvor gespeicherte Wartungsimplementierung werden nicht verändert.
+
 ## Nächster Arbeitspunkt: einfache Gerätewartung
 
 Neuester ausdrücklicher Implementierungsauftrag: eigene Wartungsintervalle pro

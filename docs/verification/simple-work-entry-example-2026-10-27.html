@@ -1,0 +1,36 @@
+<!doctype html>
+<!-- SYNTHETIC_TEST: static design example, no application bridge or persistence. -->
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'none'; form-action 'none'; object-src 'none'">
+<title>Entwurf: Arbeit erfassen</title>
+<link rel="stylesheet" href="../../android/app/src/main/assets/tokens.css">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#fcfaf7;color:#392c20;font-family:var(--hg-font,system-ui,sans-serif);font-size:15px;line-height:1.35}
+.example-label{text-align:center;padding:5px 8px;background:#e9ded0;font-size:11px;font-weight:700;letter-spacing:.05em}
+.topbar{height:58px;display:flex;align-items:center;justify-content:space-between;padding:7px 16px;border-bottom:1px solid #d7c9ba;background:#fcfaf7}
+button,input,textarea{font:inherit;color:inherit}button{min-height:48px;border:1px solid #9a7f68;border-radius:13px;background:#f8f0e5;padding:10px 14px;cursor:pointer}
+.topbar button{padding:8px 14px}.topbar strong{font-size:16px}
+main{padding:10px 16px 156px;max-width:480px;margin:auto}.heading{display:flex;align-items:center;gap:11px;margin-bottom:10px}.heading button{width:48px;padding:8px;background:transparent}.heading h1{font-size:22px;margin:0}
+.context{padding:12px 14px;background:#f3ebdf;border:1px solid #d7c9ba;border-radius:14px;margin-bottom:12px}.context strong{display:block;font-size:16px}.context span{font-size:13px;color:#665442}
+label,.field-label{font-size:14px;font-weight:700;display:block;margin:0 0 5px}input,textarea{display:block;width:100%;min-width:0;min-height:48px;border:1px solid #9a7f68;border-radius:12px;background:#fffdfa;padding:11px 12px;font-size:16px}textarea{resize:none;height:64px}
+.picker{width:100%;min-height:48px;display:flex;align-items:center;justify-content:space-between;background:#fffdfa;font-size:16px}.picker span{font-size:19px}.field{margin-bottom:12px}.time-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.time-summary{display:flex;justify-content:space-between;align-items:center;margin-top:5px;font-size:13px}.time-summary button{min-height:32px;padding:4px 0;background:transparent;border:0;color:#78451f;text-decoration:underline;text-underline-offset:3px}.time-summary strong{color:#5c3c23}
+.suggestions{display:grid;grid-template-columns:1fr 1fr 64px;gap:6px;margin-top:7px}.suggestions button{font-size:12px;padding:7px 6px;min-height:48px;background:#f5ecdf;border-color:#c7b19a}.suggestions .selected{border-color:#8b4b20;background:#ecdbc6;font-weight:700}
+details{border-top:1px solid #d7c9ba;margin-top:6px}summary{min-height:48px;display:flex;align-items:center;justify-content:space-between;list-style:none;font-weight:700;cursor:pointer}summary::-webkit-details-marker{display:none}summary:after{content:'＋';font-size:21px;font-weight:400}.extra-hint{margin:-3px 0 0;color:#665442;font-size:12px}.extras{padding-top:12px}
+.savebar{position:fixed;bottom:62px;left:0;right:0;display:grid;grid-template-columns:1fr 1.35fr;gap:10px;padding:10px 16px;background:#fcfaf7;border-top:1px solid #d7c9ba}.savebar button{min-height:52px;font-weight:700}.savebar .primary{background:#8b4b20;border-color:#8b4b20;color:#fffdfa}
+.bottom{position:fixed;left:0;right:0;bottom:0;height:62px;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:5px 16px;background:#fcfaf7;border-top:1px solid #d7c9ba}.bottom button{border:0;background:transparent;font-size:14px}.bottom .active{background:#f3ebdf;color:#78451f;font-weight:700}
+button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #392c20;outline-offset:3px}
+</style></head><body>
+<div class="example-label">ENTWURF · NUR TESTDATEN</div>
+<header class="topbar"><strong>Haus &amp; Garten</strong><button type="button">Mehr</button></header>
+<main>
+ <div class="heading"><button type="button" aria-label="Zurück">‹</button><h1>Arbeit erfassen</h1></div>
+ <section class="context" aria-label="Ausgewählter Einsatz"><strong>QA Beispielkunde</strong><span>QA Garten · Einsatz: Hecke schneiden</span></section>
+ <div class="field"><span class="field-label" id="date-label">Datum</span><button type="button" class="picker" aria-label="Datum auswählen: 27.10.2026">27.10.2026 <span aria-hidden="true">▦</span></button></div>
+ <div class="field"><span class="field-label">Arbeitszeit</span><div class="time-grid"><div><span class="field-label">Von</span><button type="button" class="picker" aria-label="Beginn auswählen: 09:00">09:00 <span aria-hidden="true">◷</span></button></div><div><span class="field-label">Bis</span><button type="button" class="picker" aria-label="Ende auswählen: 11:00">11:00 <span aria-hidden="true">◷</span></button></div></div><div class="time-summary"><button type="button">Pause ergänzen</button><strong>2 Stunden</strong></div></div>
+ <div class="field"><label for="example-activity">Tätigkeit</label><textarea id="example-activity">Hecke geschnitten</textarea><div class="suggestions" aria-label="Textvorschläge"><button type="button" class="selected">Hecke geschnitten</button><button type="button">Rasen gemäht</button><button type="button">Weitere</button></div></div>
+ <details><summary>Weitere Angaben</summary><div class="extras"><label for="example-notes">Notizen</label><textarea id="example-notes"></textarea></div></details><p class="extra-hint">Material, Fahrt, Fotos und Notizen</p>
+</main>
+<div class="savebar" aria-label="Formularaktionen"><button type="button">Verwerfen</button><button type="button" class="primary">Speichern</button></div>
+<nav class="bottom" aria-label="Hauptnavigation"><button type="button" class="active">Heute</button><button type="button">Büro</button></nav>
+</body></html>

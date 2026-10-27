@@ -6,6 +6,29 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Aktuell: einheitliche Bedienung – Beispiel zur Ansicht
+
+Nutzerauftrag: sämtliche Menüs und Masken einheitlich vereinfachen. Zunächst
+nur ein konkretes Beispiel, noch keine appweite Umsetzung. „Arbeit erfassen“
+zeigt bekannten Einsatz, Datum, Beginn/Ende und Tätigkeit; Textvorschläge,
+aufklappbare Zusatzangaben und feste Verwerfen-/Speichern-Positionen.
+Heute/Büro mit Mehr bleibt erhalten. Das statische Beispiel verwendet nur
+synthetische Werte, keine App-Bridge und keine Speicherung. Schaltflächen und
+Auswahlfelder zeigen die Gestaltung, ihre Fachaktionen sind nicht angebunden.
+
+Vorschau: `docs/verification/simple-work-entry-example-360.png`;
+reproduzierbare HTML-Vorlage: `docs/verification/simple-work-entry-example-2026-10-27.html`.
+Bei360×840px kein horizontaler Überlauf; Hauptfelder und Speicheraktionen
+sichtbar. Keine neue APK, Installation oder produktive Datenprüfung.
+Die appweite Übernahme und Gerätefoto-Zuordnung bleiben offen.
+
+Startverzögerung bislang nur untersucht, nicht behoben: feste Startpausen und
+nachgeladene Stile lassen die alte Oberfläche sichtbar. Drei synthetische
+Browserläufe benötigen539/540/563ms ab DOMContentLoaded bis Revier-Ready;
+29–33 sichtbare Zwischenframes. Der konkrete Änderungsplan steht im bestehenden
+Auftrag. Keine native oder physische Pixel-Zeitmessung und noch keine
+Beschleunigung im App-Code vorgenommen.
+
 ## Aktuell: Gerätewartung und Heute-Ansicht – noch nicht gebaut
 
 Gerätewartung im Quellcode umgesetzt: eigene Intervalle pro Gerät und Tätigkeit
