@@ -16,7 +16,8 @@ einzelnen Wartungsereignisse. Die bestehende Nutzungserfassung hat einen
 Objektbezug und ist kein Wartungsprotokoll. Zielbild zur weiteren Prüfung:
 Gerät einfach anlegen, über Foto wiederfinden, Wartungsarbeit auswählen,
 Datum prüfen und ausdrücklich speichern; bisherige Wartungen beim Gerät sehen.
-Fotobedeutung separat nachgefragt (Erkennungsbild oder Modellvorschlag).
+Fotobedeutung vom Nutzer geklärt: Bild zum Wiedererkennen; keine Hersteller-
+oder Modellsuche. Einfache Wartungstätigkeiten haben Vorrang.
 Nur Anforderung und Quellbefund festgehalten; keine Geräte-/Medien-/MCP-Änderung,
 keine neue Vorschau, APK oder produktive Datenprüfung aus diesem Schritt.
 

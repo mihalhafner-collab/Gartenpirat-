@@ -6,9 +6,9 @@ Direkter Nutzerauftrag27.10.: Geräte überwiegend selbst warten; den vorhandene
 Gerätebereich zu einem verständlichen Menüpunkt Gerätewartung ausbauen. Einfache
 Geräteanlage, möglichst mit Foto, und direkt auswählbare Arbeiten wie „Kette
 gewechselt“ und „Öl gewechselt“. Bestehende Geräte weiterverwenden, keine zweite
-Geräteverwaltung oder technische Einrichtung für den Nutzer. Die Bedeutung des
-Fotos ist noch gefragt: Erkennungsbild für den Nutzer oder automatische Vorschläge
-zu Hersteller/Modell. Keine automatische Erkennung als bereits vorhanden zusagen.
+Geräteverwaltung oder technische Einrichtung für den Nutzer. Nutzerklärung:
+Foto ausschließlich zur visuellen Identifikation des Geräts; keine Hersteller-
+oder Modellsuche. Einfache Wartungstätigkeiten stehen im Mittelpunkt.
 
 Vor einer Umsetzung den vorhandenen Gerätepfad, lokale Fotozuordnung und echte
 Wartungsereignisse prüfen. Gerätenutzung ist keine Wartung; Wartungen nicht als
