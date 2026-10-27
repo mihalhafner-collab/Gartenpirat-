@@ -47,8 +47,8 @@ class RefactoringContractTests(unittest.TestCase):
             current['observations'][change['name']]=change['after']
         current['ui_actions'].extend(local['added_ui_actions'])
         current['javascript_bridge'].extend(local['added_bridges']);current['javascript_bridge'].sort()
-        self.assertEqual(len(current['tools']),166)
-        self.assertEqual(len(current['ui_actions']),209)
+        self.assertEqual(len(current['tools']),169)
+        self.assertEqual(len(current['ui_actions']),212)
         check=lambda value,evolution=local:approved_revier_local_workflows(self.contract,value,delta,repair,timer,evolution)
         self.assertEqual(check(current),[])
         damaged=deepcopy(current);damaged['tools'][0]['annotations']['readOnlyHint']=False

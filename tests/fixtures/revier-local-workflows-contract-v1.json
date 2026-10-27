@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "authorization": "Explicit Revier Solo completion request24Oct2026: local-only business core, encrypted app backup setup/shared UI-MCP actions and properties/care/tours/material/equipment. Preserve all original117tools and existing timer addition. Explicit25Oct2026 continuation: one fixed token/epoch/CAS-bound trusted-asset restore-draft review bridge; no generic tool dispatch, automatic draft import or productive activation. Explicit25Oct2026 media-completeness repair: nine fixed private BrowserMediaBridge v1 methods, top-document token plus restore identity, immutable private blobs and existing owner_state only; no paths/URI/tool dispatch or business-record creation.; 25.10.2026 Korrekturauftrag: direkte Annahme, explizite Revier-Archivierung/Löschung und ausschließlich lesende Prüfung restaurierter Aktionen; 25.10.2026 Korrekturauftrag: zwei feste native EditorState-v1-Bridgeoperationen für get/list und atomare CAS-Batches vor fachlichem Schreiben, bestehende owner_state-Datenhaltung, Installations-/Restorekontext, explizite Restoreprüfung und minimaler Replaybeleg; kein generischer Dispatcher oder Dateizugriff.",
+  "authorization": "Explicit Revier Solo completion request24Oct2026: local-only business core, encrypted app backup setup/shared UI-MCP actions and properties/care/tours/material/equipment. Preserve all original117tools and existing timer addition. Explicit25Oct2026 continuation: one fixed token/epoch/CAS-bound trusted-asset restore-draft review bridge; no generic tool dispatch, automatic draft import or productive activation. Explicit25Oct2026 media-completeness repair: nine fixed private BrowserMediaBridge v1 methods, top-document token plus restore identity, immutable private blobs and existing owner_state only; no paths/URI/tool dispatch or business-record creation.; 25.10.2026 Korrekturauftrag: direkte Annahme, explizite Revier-Archivierung/Löschung und ausschließlich lesende Prüfung restaurierter Aktionen; 25.10.2026 Korrekturauftrag: zwei feste native EditorState-v1-Bridgeoperationen für get/list und atomare CAS-Batches vor fachlichem Schreiben, bestehende owner_state-Datenhaltung, Installations-/Restorekontext, explizite Restoreprüfung und minimaler Replaybeleg; kein generischer Dispatcher oder Dateizugriff.; Nutzerauftrag27Oct2026: eigene Gerätewartungsintervalle, Heute erledigt, einmaliges Vorziehen und dauerhaft kürzer bei Fehlschnitten/Nachschärfen; exakt drei zusätzliche lokale Fachfälle, keine Änderung bisheriger Tooldefinitionen.",
   "baseline_sha256": "a331ea0f3108d513347b04e5572b008292349f15d37e7b57a7647ae83cf7fb93",
   "added_tools": [
     {
@@ -2995,6 +2995,198 @@
         "destructiveHint": false,
         "readOnlyHint": false
       }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "offset": {
+            "maximum": 1000000,
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "maximum": 100,
+            "type": "integer",
+            "minimum": 1
+          },
+          "equipment_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "equipment_id"
+        ]
+      },
+      "name": "get_equipment_maintenance",
+      "description": "Liest eigene Wartungspläne und paginierten erledigten Wartungsverlauf genau eines lokalen Geräts, einschließlich nächster Fälligkeit und record_hash. Kein Schreiben, keine Gerätefreigabe, keine Herstellerintervalle oder automatische Erledigung.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "interval_unit": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500,
+            "enum": [
+              "days",
+              "weeks",
+              "months",
+              "years"
+            ]
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "next_due_on": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "operation": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500,
+            "enum": [
+              "configure",
+              "bring_forward",
+              "shorten"
+            ]
+          },
+          "plan_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "interval_value": {
+            "maximum": 3650,
+            "type": "integer",
+            "minimum": 1
+          },
+          "starts_on": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "equipment_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "request_id",
+          "equipment_id",
+          "expected_record_hash",
+          "operation"
+        ]
+      },
+      "name": "save_equipment_maintenance_plan",
+      "description": "Speichert einen ausdrücklich gewählten eigenen Wartungsplan am vorhandenen Gerät. configure benötigt Tätigkeit, Kalenderintervall und starts_on; Änderungen benötigen Grund und aktuellen Gerätehash. bring_forward zieht nur den nächsten Termin vor; shorten verkürzt das Intervall dauerhaft. Keine erledigte Wartung, Zustandsfreigabe, Herstellerempfehlung oder Drive-Arbeit. request_id bei unklarer Antwort erhalten und zuerst lesend prüfen.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "expected_record_hash": {
+            "pattern": "[0-9a-f]{64}",
+            "type": "string",
+            "maxLength": 64
+          },
+          "shorter_interval_value": {
+            "maximum": 3650,
+            "type": "integer",
+            "minimum": 1
+          },
+          "shorter_interval_unit": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500,
+            "enum": [
+              "days",
+              "weeks",
+              "months",
+              "years"
+            ]
+          },
+          "performed_on": {
+            "pattern": "[0-9]{4}-[0-9]{2}-[0-9]{2}",
+            "type": "string",
+            "maxLength": 10
+          },
+          "request_id": {
+            "minLength": 8,
+            "type": "string",
+            "maxLength": 128
+          },
+          "plan_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          },
+          "equipment_id": {
+            "minLength": 1,
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "request_id",
+          "equipment_id",
+          "expected_record_hash",
+          "plan_id",
+          "performed_on"
+        ]
+      },
+      "name": "record_equipment_maintenance",
+      "description": "Erfasst eine tatsächlich erledigte Wartung am vorhandenen Plan mit explizitem performed_on, aktuellem Gerätehash und stabiler request_id. Kein Zukunftsdatum. Ein älterer Nachtrag verdrängt keine neuere Erledigung. Optionale kürzere Intervalle nur mit Grund, etwa Fehlschnitten oder erneutem Nachschärfen. Historie bleibt erhalten; Gerätezustand und Backup bleiben unabhängig.",
+      "annotations": {
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false,
+        "readOnlyHint": false
+      }
     }
   ],
   "modified_tools": [
@@ -5037,6 +5229,42 @@
       ],
       "platform_only": false,
       "test_scope": "Shared production repository/receipt rules, browser fault regressions and isolated Android probes; final execution evidence in CODEX-STATUS.md"
+    },
+    {
+      "id": "revier.get_equipment_maintenance",
+      "area": "revier",
+      "label": "Wartungspläne und erledigte Wartungen eines Geräts lesen",
+      "source": "revier-solo-ui.js",
+      "kind": "business",
+      "mcp": [
+        "get_equipment_maintenance"
+      ],
+      "platform_only": false,
+      "test_scope": "Shared local production rules over synthetic JVM transaction ports and browser draft/commit checks; no native or physical acceptance claimed"
+    },
+    {
+      "id": "revier.save_equipment_maintenance_plan",
+      "area": "revier",
+      "label": "Eigene Wartungsintervalle einrichten oder bewusst früher planen",
+      "source": "revier-solo-ui.js",
+      "kind": "business",
+      "mcp": [
+        "save_equipment_maintenance_plan"
+      ],
+      "platform_only": false,
+      "test_scope": "Shared local production rules over synthetic JVM transaction ports and browser draft/commit checks; no native or physical acceptance claimed"
+    },
+    {
+      "id": "revier.record_equipment_maintenance",
+      "area": "revier",
+      "label": "Tatsächlich erledigte Wartung mit Datum dokumentieren",
+      "source": "revier-solo-ui.js",
+      "kind": "business",
+      "mcp": [
+        "record_equipment_maintenance"
+      ],
+      "platform_only": false,
+      "test_scope": "Shared local production rules over synthetic JVM transaction ports and browser draft/commit checks; no native or physical acceptance claimed"
     }
   ],
   "added_bridges": [

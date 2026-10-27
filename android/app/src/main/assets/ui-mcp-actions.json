@@ -2795,6 +2795,42 @@
       ],
       "platform_only": false,
       "test_scope": "Shared production repository/receipt rules, browser fault regressions and isolated Android probes; final execution evidence in CODEX-STATUS.md"
+    },
+    {
+      "id": "revier.get_equipment_maintenance",
+      "area": "revier",
+      "label": "Wartungspläne und erledigte Wartungen eines Geräts lesen",
+      "source": "revier-solo-ui.js",
+      "kind": "business",
+      "mcp": [
+        "get_equipment_maintenance"
+      ],
+      "platform_only": false,
+      "test_scope": "Shared local production rules over synthetic JVM transaction ports and browser draft/commit checks; no native or physical acceptance claimed"
+    },
+    {
+      "id": "revier.save_equipment_maintenance_plan",
+      "area": "revier",
+      "label": "Eigene Wartungsintervalle einrichten oder bewusst früher planen",
+      "source": "revier-solo-ui.js",
+      "kind": "business",
+      "mcp": [
+        "save_equipment_maintenance_plan"
+      ],
+      "platform_only": false,
+      "test_scope": "Shared local production rules over synthetic JVM transaction ports and browser draft/commit checks; no native or physical acceptance claimed"
+    },
+    {
+      "id": "revier.record_equipment_maintenance",
+      "area": "revier",
+      "label": "Tatsächlich erledigte Wartung mit Datum dokumentieren",
+      "source": "revier-solo-ui.js",
+      "kind": "business",
+      "mcp": [
+        "record_equipment_maintenance"
+      ],
+      "platform_only": false,
+      "test_scope": "Shared local production rules over synthetic JVM transaction ports and browser draft/commit checks; no native or physical acceptance claimed"
     }
   ],
   "reviewed_sources": {
@@ -2802,7 +2838,7 @@
     "android/app/src/main/assets/backup-restore-drafts.html": "4f180ff1a92910d923fbeb434262bb3b91af5258f336a2dc80c8d0b581398d7f",
     "android/app/src/main/assets/billing-ui.css": "bf57b082368de2a242e8d7ce4313b03535208c6c0b7e33881b8440f3518478c3",
     "android/app/src/main/assets/billing-ui.js": "af80c0211bee8529d25a0c79e18309b0b84d48e91a1e9bee0e30c36ae00ca810",
-    "android/app/src/main/assets/business-actions-ui.js": "77d8d52c3a3655234d8107e29090fb9311686608faed2320930bbea7aed8cc87",
+    "android/app/src/main/assets/business-actions-ui.js": "35405f2801b9764599c55b4c3a3dfc5cdce72b6516ec62544453e207dca5c468",
     "android/app/src/main/assets/business-feedback.js": "25ca63d7aec62c05bc926ef042894b47f4c55d9269b3c011ff4fdd286051ce5a",
     "android/app/src/main/assets/customer-hub.css": "7cfb06a23e32666ee9aa9b43ef2af10a728805db06c7fee4961246e76caf3c75",
     "android/app/src/main/assets/customer-hub.js": "4c1d3e7fcf689c160a9b3aa4e1bb47171b3afd90796608db9194d279e630995c",
@@ -2811,6 +2847,7 @@
     "android/app/src/main/assets/data-order.js": "12c646ad5d61d3b6aab3bea91cb33c637df85709cdbb46d4d9d8e9b71ac16a99",
     "android/app/src/main/assets/design-concept.css": "c5f80bd5bb7c01e6cadadf76f17ed1ebd4d1c5f6faacc406907c087d6e1e05fe",
     "android/app/src/main/assets/design-concept.js": "89301e1224f5fd0636889bd37ff64b5608d9472812d77684c11ab24258afe1ae",
+    "android/app/src/main/assets/equipment-maintenance-texts.js": "f602a62ce5259643436ba796901c3fbb758d50e1e5950f233a74c1e21e344c12",
     "android/app/src/main/assets/field-ui.css": "227843b50c4d4e7983452cb821915f2748c50250944a50d511202f4be178b875",
     "android/app/src/main/assets/field-ui.js": "2a1dcdbdcd69953eb3ec61a3f43c205a8a2034ed1fbde090a66ed5741b0d5832",
     "android/app/src/main/assets/frame-guard.js": "bde06673123846bb39ce644229d84bc672db205e3cc13ce75e5c7c4e8e487d75",
@@ -2824,7 +2861,7 @@
     "android/app/src/main/assets/legacy-conflicts-ui.js": "97a07315a4d65488571c53a846ab8a8644434a71cc36acc597850e967170d00e",
     "android/app/src/main/assets/local-invoice-ui.css": "7cf2524aec8e0877749c8e7fb490de93f1ccaaf8e369514d7eaaa6e96a6b65e4",
     "android/app/src/main/assets/local-invoice-ui.js": "1c605e7e4d6c1ab9c6b2f257e9196f168c46cdd91bd61313c19d8fcdd00b0a78",
-    "android/app/src/main/assets/mobile.html": "eaa90b103ca78a116257591e2dc80aea6805c3c1be5d3721b2b5a055b811ae0b",
+    "android/app/src/main/assets/mobile.html": "5a631999e0006800dcf08a86bfaf3d3c4248febd33afa866b531c7b0c8dc7f0d",
     "android/app/src/main/assets/navigation-status.js": "52b43327a1d3d6b2b5465b975d1c2f7eefcd08a7b865502a22306dfe08e1b0ac",
     "android/app/src/main/assets/offer-contract.js": "975068d39128ac6207fc0b5e9835803ca7d5675a9529851c63625631bd668a1f",
     "android/app/src/main/assets/offer-contract.json": "f2fa77c5f92e22f69f46875ba4fc64f15a4d454d47b8339ede853b83ec393971",
@@ -2847,12 +2884,12 @@
     "android/app/src/main/assets/pull-refresh.js": "da9ed8149b144c33184c635e6e4b31c6a4da2eaf69901627c38e7602da96faf8",
     "android/app/src/main/assets/record-actions.css": "b8f646da0129535c9b3e4489bbe73a07c0c1ee8b6c054305cd8f1e941b600b35",
     "android/app/src/main/assets/record-actions.js": "8b9e228c734bbce1fbb205db8c3747aac11c2a1448064e2f9e14adecec0e416c",
-    "android/app/src/main/assets/revier-solo-ui.css": "47ab67f5fe7bfbf19634e622db9d04f949763b0fd4a0d92def1963db14ff1004",
-    "android/app/src/main/assets/revier-solo-ui.js": "8b8e5adfe0dfa7711e1c42839213870f488b7b8db49b83a7e6ee8c8c222eb1b6",
+    "android/app/src/main/assets/revier-solo-ui.css": "ee22ecee1bdfa9b518df908662131cd5c3a16f6d9162900933698b8bb7cf6cb5",
+    "android/app/src/main/assets/revier-solo-ui.js": "b8491e9edb05bc779407fc049c153f9a0993a3b08cba13e66e570d37e1f0cdca",
     "android/app/src/main/assets/runtime-compat.js": "0c94af35ae06b524a9a4c045715c61d1e82592471abd417443c3724f0f5a1caf",
     "android/app/src/main/assets/sync-dashboard.js": "8264006325d94d84103be80fe758bf11b13d8a6390cdb279e4eed00655c1f0d0",
-    "android/app/src/main/assets/today-ui.css": "4657ac3a564f4bb30e42eb7e355aeeac8f5fee00440ee711d3449a8fdc27bc51",
-    "android/app/src/main/assets/today-ui.js": "130dc7cc733d85bb3d465bd657dac06348b1c649ca77ac34e438c4ebecd8b7a5",
+    "android/app/src/main/assets/today-ui.css": "4aa4eea32b134b5c861cdeafa86da1a19b1e3691bb42545d4f775c1942b80701",
+    "android/app/src/main/assets/today-ui.js": "86d9522da38c7d4a1dcdef85162a175c647efdf34d0301812e31d6b90b1c37a7",
     "android/app/src/main/assets/tokens.css": "37a0baaf603d0c3afdb76fe276379f256008f236640a00e442d24fad4a8ec9d4",
     "android/app/src/main/assets/trash-ui.js": "1938a6967deb6528ae5a685b38c7d7e5428c3f66535d0244574c8fd716a16f55",
     "android/app/src/main/assets/work-location.css": "0e3eeec20060cca16a493083ca000315f7e5bee4d9a4b4538b8f4647c5a8c36b",
@@ -2860,7 +2897,7 @@
     "android/app/src/main/assets/workday-ui.css": "8295740c259864cce72c9747ad4c65ca7abe83ee088195e55c09cdb699060e95",
     "android/app/src/main/assets/workday-ui.js": "e8d76a4fc10e1b38a868cbe661b31eac89bf47048e62de172f4b859da0e7fb5f",
     "android/app/src/main/assets/workflow-ui.css": "e8e3af705782c2db8286ae064184d3f0767025571ce49fae037cb6ebab8a3920",
-    "android/app/src/main/assets/workflow-ui.js": "9a82b8b94a47b6cc8a05eeaae1a55db69a6ad2530e64a7355723870ac34f7aa1",
+    "android/app/src/main/assets/workflow-ui.js": "b05c0060e483110bfd067fdb1638e81845b7e39a5e80a222df2d0cca7fba4e68",
     "android/app/src/main/java/at/hausgarten/service/MainActivity.java": "0a053fbf103cef53b842bf7c9cfb246168798a1fc6cace2dfad41feed1aa31b6",
     "android/app/src/main/java/at/hausgarten/service/DriveJournalRules.java": "b844389e750675e20ba3b9c242e781969ba0b76950ef88d0e154099cd6152856",
     "android/app/src/main/java/at/hausgarten/service/InvoiceIssueRules.java": "46a18e1c59987804194eb7ebe29070f65510e005bde3a8b20c72dfff47e7c34f",
@@ -2895,8 +2932,10 @@
     "android/app/src/main/java/at/hausgarten/service/BrowserMediaRepositoryRules.java": "4e57b10108e8f5121b61ee46b3f430899bba22b0a7d3317a0bc728a1664fa156",
     "android/app/src/main/java/at/hausgarten/service/RestoredBrowserCheckpoint.java": "51d58129ee55ba43eee590a73390034d65645c401ad58af5494b77bc57221e5d",
     "android/app/src/main/java/at/hausgarten/service/RestoredBrowserReviewRules.java": "6c3e13a65271f6bb8e0b69af47c376a5facd2ed3bee33374314b0ae4bc36311b",
-    "android/app/src/main/java/at/hausgarten/service/RevierApplicationService.java": "861207f3a817dd88dc0fc542007de209507d12721a81c4a16506fe91b8d082ae",
-    "android/app/src/main/java/at/hausgarten/service/LocalWorkflowTools.java": "7298d91dd96d9763233e3a622bbd85a2a7f9fce14c2790747da428f99f06be81",
+    "android/app/src/main/java/at/hausgarten/service/RevierApplicationService.java": "6ec873b6d50441cacb6592a1b3d16b2e5eaef49a59ebe7ce66339c5bd65890ec",
+    "android/app/src/main/java/at/hausgarten/service/RevierRules.java": "4468dfac94877b20258739084efae232bc02407cdd05040a4330642e237ddadd",
+    "android/app/src/main/java/at/hausgarten/service/EquipmentMaintenanceRules.java": "6371ae29114247694392f02bd2b972462fcf2fdb226f22a77e169f3a1d74c2ea",
+    "android/app/src/main/java/at/hausgarten/service/LocalWorkflowTools.java": "fb3dcb8464380dd0d02c15d0ddf653d1a42b70abd7e2b06a95e9874a3cba8936",
     "android/app/src/main/java/at/hausgarten/service/PlanningApplicationService.java": "976da88729a0071c509a03864bd2e57d6c3504a3b46a8b2fd145fd2b0d83880a",
     "android/app/src/main/java/at/hausgarten/service/OfferApplicationService.java": "df37f6468e85d4d008537d61f25a446f6f75e117ac8045e5c92860c6b176af62",
     "android/app/src/main/java/at/hausgarten/service/LocalInvoiceService.java": "43a00dfae72a7dd88749becbaf9eeec50b16c9645303e4b025cbbee7821cdd3c",

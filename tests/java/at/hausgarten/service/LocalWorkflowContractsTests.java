@@ -10,10 +10,10 @@ public final class LocalWorkflowContractsTests {
     private static void denied(String name,JSONObject args)throws Exception {try{PixelMcpOwnerTools.validate(name,args);}catch(PixelMcpWriteTools.Rejected expected){yes(expected.code.equals("INVALID_INPUT"));return;}throw new AssertionError("Expected invalid local schema "+name);}
     private static JSONObject request()throws Exception{return new JSONObject().put("request_id","qa_local_contract_request");}
     public static void main(String[] unused)throws Exception {
-        SyntheticBusinessData.verify();yes(LocalWorkflowTools.READS.length==20&&LocalWorkflowTools.WRITES.length==28);
+        SyntheticBusinessData.verify();yes(LocalWorkflowTools.READS.length==21&&LocalWorkflowTools.WRITES.length==30);
         Set<String> names=new HashSet<>();for(String name:LocalWorkflowTools.READS){yes(names.add(name)&&PixelMcpOwnerTools.read(name)&&!PixelMcpOwnerTools.write(name));denied(name,new JSONObject().put("qa_unknown_input",true));}
         for(String name:LocalWorkflowTools.WRITES){yes(names.add(name)&&PixelMcpOwnerTools.write(name)&&!PixelMcpOwnerTools.read(name));JSONArray required=PixelMcpOwnerTools.schema(name).getJSONArray("required");yes(required.toList().contains("request_id"));denied(name,new JSONObject());}
-        yes(names.size()==48);
+        yes(names.size()==51);
         JSONObject create=request().put("customer_id","qa_c").put("name","QA Objekt");PixelMcpOwnerTools.validate("create_property",create);checks++;
         denied("create_property",new JSONObject(create.toString()).put("area_decimal",1.25));
         PixelMcpOwnerTools.validate("create_property",new JSONObject(create.toString()).put("area_decimal","1.25"));checks++;
@@ -50,7 +50,7 @@ public final class LocalWorkflowContractsTests {
         int[] ports={0,0,0};OwnerRepository routed=(OwnerRepository)java.lang.reflect.Proxy.newProxyInstance(OwnerRepository.class.getClassLoader(),new Class<?>[]{OwnerRepository.class},(object,method,values)->{
             int index=method.getName().equals("fullBackupAction")?0:method.getName().equals("revierAction")?1:method.getName().equals("localInvoiceAction")?2:-1;if(index<0)throw new AssertionError("Unexpected local effect port "+method.getName());ports[index]++;return new JSONObject().put("operation",values[0]).put("request_id",((JSONObject)values[1]).getString("request_id"));
         });
-        OwnerApplicationService dispatch=new OwnerApplicationService(routed);for(String name:LocalWorkflowTools.WRITES){if(LocalWorkflowTools.offerDecision(name))continue;JSONObject result=dispatch.perform(name,request(),"qa_routed_request");yes(result.getString("operation").equals(name)&&result.getString("request_id").equals("qa_local_contract_request"));}yes(ports[0]==2&&ports[1]==19&&ports[2]==5);
+        OwnerApplicationService dispatch=new OwnerApplicationService(routed);for(String name:LocalWorkflowTools.WRITES){if(LocalWorkflowTools.offerDecision(name))continue;JSONObject result=dispatch.perform(name,request(),"qa_routed_request");yes(result.getString("operation").equals(name)&&result.getString("request_id").equals("qa_local_contract_request"));}yes(ports[0]==2&&ports[1]==21&&ports[2]==5);
         System.out.println("PASS "+checks+" additive local schemas/shared dispatch/decimal and explicit-clear/secret-field rejection checks;native persistence tested separately");
     }
 }

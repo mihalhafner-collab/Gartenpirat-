@@ -61,6 +61,7 @@ final class RevierApplicationService {
             case "get_day_tour":return tour(date(args,"date",true));
             case "list_materials":return listing("material","materials",args);
             case "list_equipment":return listing("equipment","equipment",args);
+            case "get_equipment_maintenance":return equipmentMaintenanceHistory(args);
             case "search_local":return search(args,state);
             case "get_revier_overview":return overview(args,state);
             default:throw error("UNKNOWN_TOOL","Unbekannte Revier-Lesefunktion.");
@@ -81,6 +82,8 @@ final class RevierApplicationService {
             case "record_material_movement":return movement(args,state,request);
             case "save_equipment":return equipment(args,request);
             case "record_equipment_usage":return usage(args,state,request);
+            case "save_equipment_maintenance_plan":return equipmentMaintenancePlan(args,request);
+            case "record_equipment_maintenance":return equipmentMaintenanceDone(args,request);
             default:throw error("UNKNOWN_TOOL","Unbekannte Revier-Schreibfunktion.");
         }
     }
@@ -99,7 +102,7 @@ final class RevierApplicationService {
         for(int i=0;i<rows.length();i++){JSONObject row=rows.getJSONObject(i);if(matches(row,filters))selected.add(row);}
         selected.sort(Comparator.comparing((JSONObject r)->r.optString("date",r.optString("name",r.optString("title")))).thenComparing(r->r.optString("id")));
         JSONArray items=new JSONArray(),related=type.equals("material")?records("material_movement"):type.equals("equipment")?records("equipment_usage"):new JSONArray();for(int i=offset;i<selected.size()&&items.length()<limit;i++){
-            JSONObject row=view(selected.get(i));if(type.equals("material")||type.equals("equipment")){JSONArray history=new JSONArray();String field=type.equals("material")?"material_id":"equipment_id";for(int j=0;j<related.length();j++)if(row.getString("id").equals(related.getJSONObject(j).optString(field)))history.put(view(related.getJSONObject(j)));row.put(type.equals("material")?"movements":"usages",last(history,20)).put("history_total",history.length());}items.put(row);
+            JSONObject row=view(selected.get(i));if(type.equals("equipment"))row.put("next_maintenance_due_on",EquipmentMaintenanceRules.nextDue(row));if(type.equals("material")||type.equals("equipment")){JSONArray history=new JSONArray();String field=type.equals("material")?"material_id":"equipment_id";for(int j=0;j<related.length();j++)if(row.getString("id").equals(related.getJSONObject(j).optString(field)))history.put(view(related.getJSONObject(j)));row.put(type.equals("material")?"movements":"usages",last(history,20)).put("history_total",history.length());}items.put(row);
         }
         return new JSONObject().put("items",items).put(alias,items).put("total",selected.size()).put("offset",offset).put("limit",limit);
     }
@@ -302,6 +305,82 @@ final class RevierApplicationService {
     private JSONObject usage(JSONObject args,JSONObject state,String request)throws Exception {
         JSONObject device=load("equipment",id(args,"equipment_id",true));cas(device,args.optString("expected_record_hash"));JSONObject row=base("equipment_usage",newId("usage",request),null).put("equipment_id",device.getString("id")).put("equipment_snapshot",device).put("notes",text(args,"notes",10000,false));for(String field:new String[]{"property_id","visit_id","session_id"})if(args.has(field))row.put(field,args.get(field));linkContext(row,state,true);String start=text(args,"starts_at",80,false),end=text(args,"ends_at",80,false);if(start.isEmpty()!=end.isEmpty())throw error("INVALID_INPUT","Gerätenutzung mit beiden Zeitpunkten oder ohne Zeitangabe erfassen.");if(!start.isEmpty()){start=instant(start);end=instant(end);if(!Instant.parse(end).isAfter(Instant.parse(start)))throw error("INVALID_INPUT","Gerätenutzung benötigt ein positives Zeitintervall.");row.put("starts_at",start).put("ends_at",end);}JSONObject saved=save("equipment_usage",row,null,request,"Gerätenutzung erfasst");return new JSONObject().put("record",saved).put("equipment_usage",saved).put("equipment_warnings",equipmentWarnings(new JSONArray().put(device.getString("id"))));
     }
+    private JSONObject maintenanceDevice(JSONObject args)throws Exception {
+        JSONObject old=load("equipment",id(args,"equipment_id",true));cas(old,args.optString("expected_record_hash"));
+        if(old.optBoolean("archived")||!old.optBoolean("active",true))throw error("EQUIPMENT_INACTIVE","Archiviertes oder inaktives Gerät zuerst bewusst prüfen.");
+        EquipmentMaintenanceRules.plans(old);return old;
+    }
+    private JSONObject equipmentMaintenancePlan(JSONObject args,String request)throws Exception {
+        JSONObject old=maintenanceDevice(args),row=copy(old);JSONArray plans=EquipmentMaintenanceRules.plans(row);
+        String planId=id(args,"plan_id",false),operation=text(args,"operation",30,true),reason=text(args,"reason",2000,false);JSONObject plan;
+        if(planId.isEmpty()){
+            if(!operation.equals("configure"))throw error("INVALID_INPUT","Zuerst einen Wartungsplan anlegen.");
+            if(args.has("next_due_on"))throw error("INVALID_INPUT","Erstes Intervall mit Beginn und Länge festlegen; Einzeltermine anschließend bewusst vorziehen.");
+            if(plans.length()>=EquipmentMaintenanceRules.MAX_PLANS)throw error("INVALID_INPUT","An diesem Gerät sind bereits zu viele Wartungspläne vorhanden.");
+            plan=new JSONObject().put("id",newId("maintenance_plan",request)).put("title",text(args,"title",240,true))
+                .put("interval_value",integer(args,"interval_value",1,3650,-1)).put("interval_unit",text(args,"interval_unit",12,true))
+                .put("anchor_on",date(args,"starts_on",true)).put("created_at",stamp());
+            EquipmentMaintenanceRules.recalculate(plan);plans.put(plan);
+        }else{
+            plan=EquipmentMaintenanceRules.find(plans,planId);
+            if(reason.isEmpty())throw error("INVALID_INPUT","Grund für die Planänderung angeben.");
+            if(!operation.equals("configure")&&args.has("title"))throw error("INVALID_INPUT","Eine Terminvorziehung ändert nicht die Tätigkeit.");
+            if(args.has("starts_on"))throw error("INVALID_INPUT","Eine Planänderung setzt vergangene Wartungen nicht zurück.");
+            if(operation.equals("bring_forward")){
+                if(args.has("interval_value")||args.has("interval_unit"))throw error("INVALID_INPUT","Einmaliges Vorziehen verändert das Intervall nicht.");
+                String due=date(args,"next_due_on",true);
+                if(due.compareTo(today().toString())<0||due.compareTo(plan.getString("next_due_on"))>=0)throw error("INVALID_INPUT","Einen früheren Termin ab heute wählen.");
+                plan.put("one_off_due_on",due);EquipmentMaintenanceRules.recalculate(plan);
+            }else if(operation.equals("shorten")){
+                if(args.has("next_due_on"))throw error("INVALID_INPUT","Für ein kürzeres Intervall Länge und Einheit wählen.");
+                EquipmentMaintenanceRules.shorten(plan,copy(args),reason);
+            }else if(operation.equals("configure")){
+                if(args.has("next_due_on"))throw error("INVALID_INPUT","Einzeltermin über Früher warten ändern.");
+                if(args.has("title"))plan.put("title",text(args,"title",240,true));
+                plan.put("interval_value",integer(args,"interval_value",1,3650,-1)).put("interval_unit",text(args,"interval_unit",12,true));
+                EquipmentMaintenanceRules.recalculate(plan);
+            }else throw error("INVALID_INPUT","Unbekannte Wartungsplanänderung.");
+            plan.put("last_change_reason",reason);
+        }
+        plan.put("updated_at",stamp());row.put("format_version",2).put("maintenance_plans",plans);EquipmentMaintenanceRules.plans(row);
+        JSONObject saved=save("equipment",row,old,request,reason.isEmpty()?"Eigener Wartungsplan angelegt":reason);
+        return new JSONObject().put("record",saved).put("equipment",saved).put("plan",copy(plan)).put("equipment_id",row.getString("id"));
+    }
+    private JSONObject equipmentMaintenanceDone(JSONObject args,String request)throws Exception {
+        JSONObject old=maintenanceDevice(args),row=copy(old);JSONArray plans=EquipmentMaintenanceRules.plans(row);
+        JSONObject plan=EquipmentMaintenanceRules.find(plans,id(args,"plan_id",true)),before=copy(plan);
+        String performed=date(args,"performed_on",true),reason=text(args,"reason",2000,false),notes=text(args,"notes",4000,false);
+        if(performed.compareTo(today().toString())>0)throw error("INVALID_INPUT","Eine erledigte Wartung darf nicht in der Zukunft liegen.");
+        boolean shorter=args.has("shorter_interval_value")||args.has("shorter_interval_unit");
+        boolean newest=performed.compareTo(plan.getString("anchor_on"))>=0;
+        if(shorter&&!newest)throw error("INVALID_INPUT","Ein älterer Nachtrag verändert das aktuelle Intervall nicht. Plan separat prüfen.");
+        String eventId=newId("equipment_maintenance",request);
+        if(newest){
+            plan.put("anchor_on",performed).put("last_completed_on",performed).put("last_event_id",eventId).remove("one_off_due_on");
+            if(shorter){JSONObject interval=new JSONObject().put("interval_value",integer(args,"shorter_interval_value",1,3650,-1)).put("interval_unit",text(args,"shorter_interval_unit",12,true));EquipmentMaintenanceRules.shorten(plan,interval,reason);plan.put("last_change_reason",reason);}
+            EquipmentMaintenanceRules.recalculate(plan);plan.put("updated_at",stamp());
+        }
+        JSONObject event=base("equipment_maintenance",eventId,null).put("format_version",2).put("equipment_id",row.getString("id"))
+            .put("plan_id",plan.getString("id")).put("title",plan.getString("title")).put("performed_on",performed)
+            .put("date",performed).put("reason",reason).put("notes",notes).put("schedule_applied",newest).put("plan_before",before).put("plan_after",copy(plan));
+        JSONObject savedEvent=save("equipment_maintenance",event,null,request,reason.isEmpty()?"Wartung ausdrücklich als erledigt erfasst":reason);
+        row.put("maintenance_plans",plans);EquipmentMaintenanceRules.plans(row);
+        JSONObject saved=save("equipment",row,old,request,"Wartung erfasst"+(reason.isEmpty()?"":": "+reason));
+        return new JSONObject().put("record",saved).put("equipment",saved).put("maintenance",savedEvent).put("equipment_id",row.getString("id")).put("event_id",eventId);
+    }
+    private JSONObject equipmentMaintenanceHistory(JSONObject args)throws Exception {
+        JSONObject device=load("equipment",id(args,"equipment_id",true));EquipmentMaintenanceRules.plans(device);
+        List<JSONObject> events=new ArrayList<>();JSONArray all=records("equipment_maintenance");
+        for(int i=0;i<all.length();i++)if(device.getString("id").equals(all.getJSONObject(i).optString("equipment_id")))events.add(all.getJSONObject(i));
+        events.sort(Comparator.comparing((JSONObject e)->e.optString("performed_on")).reversed().thenComparing(e->e.optString("created_at"),Comparator.reverseOrder()).thenComparing(e->e.optString("id")));
+        int offset=integer(args,"offset",0,1000000,0),limit=integer(args,"limit",1,100,20);JSONArray page=new JSONArray();
+        for(int i=offset;i<events.size()&&page.length()<limit;i++)page.put(view(events.get(i)));
+        JSONObject record=view(device);
+        return new JSONObject().put("record",record).put("equipment",record).put("plans",EquipmentMaintenanceRules.plans(device))
+            .put("items",page).put("maintenance",page).put("total",events.size()).put("offset",offset).put("limit",limit)
+            .put("next_due_on",EquipmentMaintenanceRules.nextDue(device)).put("local_only",true);
+    }
+
     private static final java.util.regex.Pattern SEARCH_MARKS=java.util.regex.Pattern.compile("\\p{M}+");
     private static String normalize(String value){return SEARCH_MARKS.matcher(java.text.Normalizer.normalize(value.toLowerCase(Locale.GERMAN).replace("ß","ss"),java.text.Normalizer.Form.NFD)).replaceAll("");}
     private static final class SearchHit {
@@ -364,6 +443,37 @@ final class RevierApplicationService {
         for(int i=0;i<groups.get("equipment_usage").length();i++){JSONObject usage=groups.get("equipment_usage").getJSONObject(i);load("equipment",usage.getString("equipment_id"));validateStoredContext(usage,state);}
         for(String collection:new String[]{"worklogs","photos"}){JSONArray values=state.optJSONArray(collection);for(int i=0;values!=null&&i<values.length();i++){JSONObject value=values.getJSONObject(i);validateStoredContext(value,state);if(collection.equals("photos")&&(!value.optString("property_id").isEmpty()||!value.optString("visit_id").isEmpty())){if(value.optString("role").equals("profile"))throw error("REVIER_RELATION_INVALID","Profilbild und Einsatzdokumentation benötigen getrennte Zuordnungen.");if(!value.optString("worklog_id").isEmpty()){JSONObject work=canonical(state,"worklogs",value.getString("worklog_id"));for(String field:new String[]{"property_id","visit_id"})if(!value.optString(field).isEmpty()&&!work.optString(field).isEmpty()&&!value.getString(field).equals(work.getString(field)))throw error("REVIER_RELATION_INVALID","Foto und Arbeitsaufzeichnung gehören zu verschiedenen Einsätzen.");}}}}
         JSONArray sessions=repository.sessionContexts();for(int i=0;i<sessions.length();i++){JSONObject session=sessions.getJSONObject(i);validateStoredContext(session,state);if(!session.optString("property_id").isEmpty()||!session.optString("visit_id").isEmpty()){if(session.has("_start_customer_id")&&!session.optString("customer_id").equals(session.optString("_start_customer_id"))||session.has("_start_order_id")&&!session.optString("order_id").equals(session.optString("_start_order_id")))throw error("REVIER_RELATION_INVALID","Sitzung und ursprünglicher Einsatzbezug widersprechen sich.");}}
+        JSONArray equipment=groups.get("equipment"),maintenance=records("equipment_maintenance");counts.put("equipment_maintenance",maintenance.length());
+        Map<String,JSONObject> events=new HashMap<>();Map<String,String> latest=new HashMap<>();
+        for(int i=0;i<maintenance.length();i++){
+            JSONObject event=maintenance.getJSONObject(i);String eventId=id(event,"id",true),equipmentId=id(event,"equipment_id",true),planId=id(event,"plan_id",true);
+            if(!event.optString("kind").equals("equipment_maintenance")||events.put(eventId,event)!=null)throw error("REVIER_RELATION_INVALID","Ungültiger Wartungsbeleg.");
+            JSONObject device=load("equipment",equipmentId);EquipmentMaintenanceRules.find(EquipmentMaintenanceRules.plans(device),planId);
+            String performed=date(event,"performed_on",true);if(!performed.equals(event.optString("date")))throw error("REVIER_RELATION_INVALID","Wartungsdatum und Historie widersprechen sich.");
+            text(event,"title",240,true);String relation=equipmentId+":"+planId;
+            if(!(event.opt("schedule_applied") instanceof Boolean))throw error("REVIER_RELATION_INVALID","Planwirkung des Wartungsbelegs fehlt.");
+            boolean applied=event.getBoolean("schedule_applied");
+            if(applied&&(!latest.containsKey(relation)||performed.compareTo(latest.get(relation))>0))latest.put(relation,performed);
+            for(String snapshot:new String[]{"plan_before","plan_after"}){
+                JSONObject historical=event.getJSONObject(snapshot);
+                if(!planId.equals(historical.optString("id")))throw error("REVIER_RELATION_INVALID","Wartungsbeleg verweist auf einen anderen Plan.");
+                EquipmentMaintenanceRules.plans(new JSONObject().put("maintenance_plans",new JSONArray().put(historical)));
+            }
+            JSONObject before=event.getJSONObject("plan_before"),after=event.getJSONObject("plan_after");
+            if(applied!=(performed.compareTo(before.getString("anchor_on"))>=0)||applied&&(!eventId.equals(after.optString("last_event_id"))||!performed.equals(after.optString("last_completed_on")))||!applied&&!hash(before).equals(hash(after)))throw error("REVIER_RELATION_INVALID","Wartungsbeleg und Planwirkung widersprechen sich.");
+        }
+        hashes.put("equipment_maintenance",PixelMcpWriteTools.hash(new JSONArray(new TreeSet<>(events.keySet()))));
+        for(int i=0;i<equipment.length();i++){
+            JSONObject device=equipment.getJSONObject(i);JSONArray plans=EquipmentMaintenanceRules.plans(device);
+            for(int j=0;j<plans.length();j++){
+                JSONObject plan=plans.getJSONObject(j);String done=plan.optString("last_completed_on"),relation=device.getString("id")+":"+plan.getString("id");
+                if(!done.equals(latest.getOrDefault(relation,"")))throw error("REVIER_RELATION_INVALID","Letzte Wartung und Verlauf sind nicht vollständig.");
+                if(!done.isEmpty()){
+                    JSONObject event=events.get(plan.optString("last_event_id"));
+                    if(event==null||!device.getString("id").equals(event.optString("equipment_id"))||!plan.getString("id").equals(event.optString("plan_id"))||!done.equals(event.optString("performed_on")))throw error("REVIER_RELATION_INVALID","Letzter Wartungsbeleg fehlt oder gehört zu einem anderen Gerät.");
+                }
+            }
+        }
         JSONObject decisions=OfferDecisionValidation.validate(repository,state);return new JSONObject().put("format_version",1).put("status","PASS").put("counts",counts).put("id_set_hashes",hashes).put("offer_decisions",decisions).put("business_data_changed",false);
     }
     private void checkResourceReferences(JSONObject row)throws Exception {JSONArray materials=row.optJSONArray("material_needs");for(int i=0;materials!=null&&i<materials.length();i++)load("material",materials.getJSONObject(i).getString("material_id"));JSONArray equipment=row.optJSONArray("equipment_ids");for(int i=0;equipment!=null&&i<equipment.length();i++)load("equipment",equipment.getString(i));}

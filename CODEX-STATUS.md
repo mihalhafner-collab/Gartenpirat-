@@ -6,43 +6,53 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
-## Aktuell: Heute-Ansicht vereinfacht, noch nicht gebaut
+## Aktuell: Gerätewartung und Heute-Ansicht – noch nicht gebaut
 
-Gerätewartungs-Texte27.10. angelegt:36 Gerätetypen,57 auswählbare Tätigkeitstexte,
-20 öffentliche Quellen und eine eigene Vorlage STIHL ASA20. Katalog:
-`android/app/src/main/assets/equipment-maintenance-texts.json`. Enthält
-Scheren/Sägen, Mäher/Trimmer, Bodenbearbeitung, Laub-/Reinigungsgeräte, Pumpen,
-Bewässerung, Handgeräte und Akkuzubehör. Eine Grundauswahl, keine Behauptung,
-dass jedes Gerät notwendig oder tatsächlich vorhanden sei.
+Gerätewartung im Quellcode umgesetzt: eigene Intervalle pro Gerät und Tätigkeit
+in Tagen, Wochen, Monaten und Jahren; „Heute erledigt“ mit änderbarem Datum,
+einmaliges Vorziehen sowie dauerhaftes Verkürzen bei Fehlschnitten oder erneutem
+Nachschärfen. Antippen der Tätigkeit öffnet die Intervallbearbeitung. Änderungen
+benötigen einen Grund; alte Wartungen bleiben unverändert. Vorschläge für Gründe
+und die57 recherchierten Wartungstexte erleichtern Eingaben; eigene Texte bleiben
+möglich. Das sind Aufzeichnungen eigener Arbeiten, keine Herstellerempfehlungen
+oder automatische Modell-/Ausstattungserkennung. Öffnen und Abbruch speichern
+keine erledigte Wartung; Verwerfen entfernt den jeweiligen Entwurf.
 
-Quellen- und Zuordnungsprüfung PASS: eindeutige IDs, gültige Quellen-/Geräte-/
-Tätigkeitsbezüge; Motorölwechsel getrennt von Kettenöl und nur bei bestätigtem
-eigenem Motorölkreislauf. Akku, Netz, Hand und Zweitakt ausgeschlossen. Eigene
-ASA20-Auswahl enthält Reinigung, Schmierung, Klingenspiel und Klingenwechsel;
-auf neuesten ausdrücklichen Nutzerwunsch auch „Klinge geschärft“ als
-Dokumentation tatsächlicher Arbeit, keine pauschale Hersteller-Schärfempfehlung.
-Kettenarbeit und Motorölwechsel bleiben ausgeschlossen. Das sind
-statische Inhalts-/Anwendbarkeitsprüfungen, noch keine implementierte UI-Filterung.
-Beleg: `docs/verification/equipment-maintenance-catalog-2026-10-27.json`.
+Pläne liegen am vorhandenen Gerät, erledigte Wartungen separat im gleichen lokalen
+Owner-Bestand. UI und MCP verwenden dieselben Fachregeln, CAS, Transaktion,
+Audit und Requestquittung. Bei verlorener Antwort zuerst lesend prüfen; bestätigt
+bedeutet kein zweiter Schreibvorgang, unbekannt erlaubt nur den ausdrücklich
+wiederholten ursprünglichen Request. Ein restaurierter unbekannter Request bleibt
+gesperrt. Rückdatierte Nachträge verdrängen keine neuere Planbasis/Erledigung.
+Monatsende und Schaltjahr verwenden Kalenderarithmetik. Manuell vorgemerkte
+Wartungsdaten bleiben getrennt, ein Wartungseintrag gibt kein defektes Gerät frei.
+Kein Drive-, Backup- oder Kalenderaufruf im Wartungsschreibpfad.
 
-Nur öffentliche Vorschlagstexte, keine tatsächlichen Geräte/Wartungen angelegt,
-keine Datums-/Stunden-/Kostenannahmen oder automatischen Fälligkeiten. Leerer
-Startbestand bytegleich. Katalog noch nicht an UI oder Schreibpfade angebunden;
-keine neue APK oder native/physische Abnahme. Ausbau der Geräteansicht und des
-gemeinsamen lokalen Wartungs-/Fotopfads bleibt offen.
+Geräte mit Wartungsplänen und Wartungsbelege verwenden gezielt Datensatzformat2;
+bestehende Geräte bleiben1. Der tatsächliche Vorgänger-Leser vom6cd9ff2 lehnt
+Format2 bereits in der Restore-Beziehungsprüfung ab; aktueller Leser akzeptiert
+dieselben synthetischen Daten. Keine Datenbankmigration und kein neues Backupformat.
+Rechnungsautorität und produktive Umstellungs-/Integritätsgates bleiben separat.
 
-Nutzerpunkt Gerätewartung27.10.: Quellprüfung bestätigt vorhandene
-Geräteanlage mit Name, Zustand, Wartungsdatum und Notizen
-(`RevierApplicationService.equipment`, `LocalWorkflowTools.save_equipment`,
-`revier-solo-ui.js`). Der Gerätevertrag enthält noch kein Gerätebild und keine
-einzelnen Wartungsereignisse. Die bestehende Nutzungserfassung hat einen
-Objektbezug und ist kein Wartungsprotokoll. Zielbild zur weiteren Prüfung:
-Gerät einfach anlegen, über Foto wiederfinden, Wartungsarbeit auswählen,
-Datum prüfen und ausdrücklich speichern; bisherige Wartungen beim Gerät sehen.
-Fotobedeutung vom Nutzer geklärt: Bild zum Wiedererkennen; keine Hersteller-
-oder Modellsuche. Einfache Wartungstätigkeiten haben Vorrang.
-Nur Anforderung und Quellbefund festgehalten; keine Geräte-/Medien-/MCP-Änderung,
-keine neue Vorschau, APK oder produktive Datenprüfung aus diesem Schritt.
+Quellkatalog jetzt169 MCP-Werkzeuge und212 UI-Aktionen: genau drei zusätzliche
+Wartungsfälle, bisherige Tooldefinitionen und originale P1-Baseline unverändert.
+Das ist kein Nachweis eines aktualisierten installierten Pixel- oder gebundenen
+Connector-Katalogs. Dafür wäre eine gesonderte APK-/Connectoraktualisierung nötig.
+Keine neue APK, Signierung, Installation oder produktive Datenprüfung durchgeführt.
+Gerätefoto-Zuordnung und physische Pixel-Abnahme bleiben offen.
+
+91 gezielte Fachprüfungen und alle80 Java-Prüfgruppen PASS. Elf neue Browser-
+prüfungen sowie18 Revier-,18 Field-,8 Navigations-,41 Übersichts- und7 Design-
+prüfungen PASS. Quelle2343Dateien und gesamter Worktree6033Dateien einschließlich
+ignorierter/unversionierter Dateien bestehen die Privacy-Gates;0 Betriebsdaten-
+Startzeilen. Kein APK-Artefakt geprüft.
+
+Prüfbeleg: `docs/verification/equipment-maintenance-2026-10-27.json`;
+synthetische Browseransicht: `docs/verification/equipment-maintenance-360.png`.
+Der Katalog umfasst36 Gerätetypen,57 Texte und20 Quellen, einschließlich STIHL
+ASA20 mit ausdrücklich gewünschter Dokumentationsoption „Klinge geschärft“.
+Der frühere reine Katalogprüfbeleg im6cd9ff2 bleibt historische Vorstufe;
+Modellprofile sind weiterhin Referenzdaten, keine automatisch angelegten Geräte.
 
 ### Kurzes Testblatt für die Bedienung
 

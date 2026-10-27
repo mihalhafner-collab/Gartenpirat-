@@ -48,7 +48,16 @@ final class RevierRules {
     static String instant(String value)throws Exception {try{return OffsetDateTime.parse(value).toInstant().toString();}catch(Exception invalid){throw error("INVALID_INPUT","Zeitpunkt mit Datum, Uhrzeit und Zeitzonenoffset angeben.");}}
     static void fields(JSONObject args,String... allowed)throws Exception {Set<String> names=new HashSet<>(Arrays.asList(allowed));for(Iterator<String> it=args.keys();it.hasNext();)if(!names.contains(it.next()))throw error("INVALID_INPUT","Unbekanntes Feld; Eingaben unverändert prüfen.");}
     static void bounded(JSONObject row)throws Exception {if(row.toString().getBytes(StandardCharsets.UTF_8).length>ROW_BYTES)throw error("RECORD_TOO_LARGE","Dieser technische Eintrag ist zu groß. Notizen kürzen oder mehrere getrennte Einträge verwenden.");}
-    static void version(JSONObject row)throws Exception {Object version=row.opt("format_version");if(!(version instanceof Number)||!version.toString().equals("1"))throw error("REVIER_SCHEMA_UPGRADE_REQUIRED","Ein neues oder unbekanntes Datenformat benötigt eine passende Appversion. Keine Änderung vorgenommen.");}
+    static void version(JSONObject row)throws Exception {
+        Object version=row.opt("format_version");String kind=row.optString("kind");
+        boolean maintenanceKind=kind.equals("equipment")||kind.equals("equipment_maintenance");
+        if(version instanceof Number&&(version.toString().equals("1")||version.toString().equals("2")&&maintenanceKind)){
+            if(version.toString().equals("1")&&(kind.equals("equipment_maintenance")||kind.equals("equipment")&&row.optJSONArray("maintenance_plans")!=null&&row.optJSONArray("maintenance_plans").length()>0))
+                throw error("REVIER_SCHEMA_UPGRADE_REQUIRED","Wartungsdaten benötigen ihren geprüften Datensatzvertrag. Keine automatische Migration.");
+            return;
+        }
+        throw error("REVIER_SCHEMA_UPGRADE_REQUIRED","Ein neues oder unbekanntes Datenformat benötigt eine passende Appversion. Keine Änderung vorgenommen.");
+    }
     static boolean activeVisit(JSONObject row){return Arrays.asList("planned","in_progress","partial").contains(row.optString("status"));}
     static boolean season(JSONObject rule,LocalDate date)throws Exception {
         MonthDay day=MonthDay.from(date),start=MonthDay.parse("--"+rule.optString("season_start","01-01")),end=MonthDay.parse("--"+rule.optString("season_end","12-31"));

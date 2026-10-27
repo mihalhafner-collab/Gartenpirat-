@@ -2,6 +2,54 @@
 
 ## Nächster Arbeitspunkt: einfache Gerätewartung
 
+Neuester ausdrücklicher Implementierungsauftrag: eigene Wartungsintervalle pro
+Gerät/Tätigkeit und „Heute erledigt“, einschließlich kürzerer Abstände bei
+Fehlschnitten oder erneut nötig gewordenem Nachschärfen. Das sind eigene
+Planungsentscheidungen, keine übernommenen Herstellerintervalle. Einmaliges
+Vorziehen und dauerhaftes Verkürzen bewusst unterscheiden; keine automatische
+Erledigung oder stille Gerätefreigabe. Dieser konkrete Gerätewartungsauftrag
+ist die aktuelle Nutzerpriorität; keine sonstigen neuen Funktionen daraus ableiten.
+
+Geprüfter Änderungsplan für diese Umsetzung:
+
+- `EquipmentMaintenanceRules.java` (neu, reine Fachregeln): Tage/Wochen/Monate/
+  Jahre mit Kalenderarithmetik, positive begrenzte Intervalle, eindeutige Plan-IDs,
+  abgeschlossene Arbeiten mit tatsächlichem Datum. Monatsende/Schaltjahr und
+  vorgezogene Einzeltermine getrennt prüfen; keine geschätzten Schnittzähler.
+- `RevierApplicationService`: Pläne im vorhandenen Gerätesatz, einzelne
+  Wartungen als getrennte lokale Owner-Einträge im bestehenden Revier-Bestand.
+  CAS, Transaktion, Audit und stabile Requestquittung gemeinsam nutzen. Rückdatierte
+  Einträge dürfen neuere Erledigungen/Fälligkeiten nicht überschreiben; archivierte
+  Geräte nicht beschreiben; Referenz-/Restoreprüfung um Wartungsbezüge ergänzen.
+  Kein neuer Store, keine Datenbankmigration, kein Drive-/Backupaufruf im Fachpfad.
+- `RevierRules.version`: Geräte mit neuen Wartungsplänen und deren Wartungsbelege
+  erhalten gezielt Datensatzformat2. Alte Geräte behalten Format1. Der bisherige
+  Leser lehnt Format2 bereits ab und kann neue Wartungsdaten dadurch nicht als
+  vollständig geprüft restaurieren. Neuer Leser akzeptiert2 ausschließlich für
+  diese zwei Eintragsarten; kein allgemeines Freischalten unbekannter Formate und
+  kein neues Backupformat. Erst die bewusste Plananlage erzeugt den neuen Vertrag.
+- `LocalWorkflowTools` und vorhandener UI-/MCP-Aktionskatalog: zwei benannte
+  Schreibfälle (Plan/Anpassung und Erledigung) und ein lesender Wartungsverlauf,
+  identische Fachpfade für UI/MCP. Neue Quellverträge präzise in bestehender Fixture
+  ergänzen; bisherige Tooldefinitionen unverändert. Installierter Katalog bleibt
+  bis zu einer gesonderten APK-/Connectoraktualisierung der alte Stand.
+- `revier-solo-ui.js`: auf der vorhandenen Geräteseite Pläne, „Heute erledigt“ und
+  „Früher warten“; Datum korrigierbar, Intervall nur bewusst ändern. Vorhandenen
+  Editor-/Draft-/Commitpfad verwenden. Tätigkeitstexte bleiben Vorschläge, eigene
+  Angaben möglich; keine versteckte Erledigung durch Öffnen, Abbruch oder Verwerfen.
+- Regressionen: Kalendergrenzen, einmalig/dauerhaft, Rückdatierung, wiederholte
+  Requests, Konflikt, Transaktionsfehler, Neustart/Restore, Referenzschutz, UI/MCP-
+  Ergebnis, Draftverwerfen und unklare Commitantwort. Nur synthetische Daten.
+  Read-back über gespeichertes Gerät und Wartungsverlauf, nach GitHub exakten Commit
+  lesen. Kein APK-Bau, keine Installation oder produktive Migration in diesem Schritt.
+
+Risiko: vorhandene Fälligkeit nicht mit erledigter Wartung verwechseln, keine
+verwaisten Wartungsbezüge und keine doppelte Erledigung bei verlorener Antwort.
+Recovery verwendet dieselbe Request-ID und zuerst lesende Prüfung. Bestehende
+manuelle Wartungsdaten bleiben erhalten. Rollback erfordert Quellrücknahme vor
+Auslieferung; nach gespeicherten Wartungen keinen alten Leser als vollständige
+Wiederherstellungsprüfung ausgeben. Historische Ereignisse nicht automatisch löschen.
+
 Direkter Nutzerauftrag27.10.: Geräte überwiegend selbst warten; den vorhandenen
 Gerätebereich zu einem verständlichen Menüpunkt Gerätewartung ausbauen. Einfache
 Geräteanlage, möglichst mit Foto, und direkt auswählbare Arbeiten wie „Kette

@@ -117,7 +117,8 @@ def approved_revier_local_workflows(expected, current, delta, repair, timer, evo
         'get_visit', 'plan_visit', 'update_visit', 'get_day_tour', 'set_day_tour',
         'move_tour_stop', 'list_materials', 'save_material',
         'record_material_movement', 'list_equipment', 'save_equipment',
-        'record_equipment_usage', 'search_local',
+        'record_equipment_usage', 'search_local', 'get_equipment_maintenance',
+        'save_equipment_maintenance_plan', 'record_equipment_maintenance',
         'get_payment_ledger', 'record_payment', 'correct_payment',
         'get_invoice_document_job', 'retry_invoice_document_job',
         'preview_local_authority', 'activate_local_authority',
@@ -135,18 +136,18 @@ def approved_revier_local_workflows(expected, current, delta, repair, timer, evo
     additions = evolution.get('added_tools', [])
     if (evolution.get('version') != 1 or not evolution.get('authorization')
             or evolution.get('baseline_sha256') != hashlib.sha256(BASELINE.read_bytes()).hexdigest()
-            or len(additions) != 48 or {item.get('name') for item in additions} != names
+            or len(additions) != 51 or {item.get('name') for item in additions} != names
             or len(evolution.get('added_bridges', [])) != 14
             or set(evolution['added_bridges']) != bridges):
         raise ValueError('Unapproved Revier local-workflow contract scope')
     actions = evolution.get('added_ui_actions', [])
-    if len(actions) != 52 or len({a.get('id') for a in actions}) != 52:
+    if len(actions) != 55 or len({a.get('id') for a in actions}) != 55:
         raise ValueError('Unapproved Revier local UI scope')
     mapped = [a for a in actions if a.get('kind') == 'business']
     platform = [a for a in actions if a.get('kind') == 'platform_or_presentation']
     platform_ids = {'platform.recovery_vollbackup', 'platform.vollbackup_saf',
                     'platform.vollrestore_bestaetigen', 'platform.portabilitaet_ziel'}
-    if (len(mapped) != 48 or {tuple(a.get('mcp', [])) for a in mapped} != {(n,) for n in names}
+    if (len(mapped) != 51 or {tuple(a.get('mcp', [])) for a in mapped} != {(n,) for n in names}
             or len(platform) != 4 or {a.get('id') for a in platform} != platform_ids
             or any(a.get('mcp') != [] or not a.get('barrier') or not a.get('platform_only') for a in platform)):
         raise ValueError('Unapproved Revier local UI/MCP mapping')
