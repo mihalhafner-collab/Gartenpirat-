@@ -300,6 +300,16 @@
       "missing_write_tools": 29,
       "ui_actions": 209,
       "connector_refresh": "EXTERNAL_OPEN_NOT_RETESTED"
+    },
+    "ui_work_in_progress": {
+      "branch": "codex/heute-uebersicht-20261027",
+      "base_main": "05eac2d5769bed55a42317ed542be9baccda0e77",
+      "status": "UNBUILT_TODAY_SIMPLIFICATION",
+      "scope": "Existing Today display only; synthetic browser checks; no business model or productive data mutation",
+      "release_source_106_unchanged": true,
+      "new_apk_built": false,
+      "physical_installation": false,
+      "evidence": "docs/verification/today-overview-2026-10-27.json"
     }
   },
   "historical_snapshot": {

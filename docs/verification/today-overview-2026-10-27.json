@@ -1,0 +1,79 @@
+{
+  "format": "hausgarten.today-overview.v1",
+  "observed_at_utc": "2026-10-27T08:33:19.257504+00:00",
+  "status": "SOURCE_UI_BROWSER_PASS_NOT_BUILT",
+  "classification": "SYNTHETIC_TEST",
+  "branch": "codex/heute-uebersicht-20261027",
+  "base_main": "05eac2d5769bed55a42317ed542be9baccda0e77",
+  "scope": "Existing UI rearrangement only. No native writer, business store, authority, restore, timer or draft contract changed.",
+  "changes": [
+    "Up to3 distinct today/due visit rows in stored tour order; same visit ID displayed once",
+    "Existing tour, visit detail and full list remain reachable",
+    "Collapsed recorded-work metrics, recent work and backup status; existing backup chip retained",
+    "Keep real future appointments; omit duplicate empty appointment card only after successful visit overview read",
+    "Read failure retains previous rows, visible alert and read-only retry"
+  ],
+  "source_sha256": {
+    "android/app/src/main/assets/mobile.html": "54c758ced63a07f60f02cbf62a26f4782b752e67c0524197b287a019c8643580",
+    "android/app/src/main/assets/today-ui.js": "86d9522da38c7d4a1dcdef85162a175c647efdf34d0301812e31d6b90b1c37a7",
+    "android/app/src/main/assets/today-ui.css": "4aa4eea32b134b5c861cdeafa86da1a19b1e3691bb42545d4f775c1942b80701",
+    "android/app/src/main/assets/revier-solo-ui.js": "d50f93a2dc8991092074be786ca1852c0ed753e43cc9135b48fdfa14bde369cc",
+    "android/app/src/main/assets/business-actions-ui.js": "35405f2801b9764599c55b4c3a3dfc5cdce72b6516ec62544453e207dca5c468"
+  },
+  "tests": {
+    "revier_ui": {
+      "pass": 17,
+      "fail": 0
+    },
+    "overview_accessibility": {
+      "pass": 41,
+      "fail": 0
+    },
+    "full_backup_entry": "PASS existing entry/readback/keyboard/responsive scenario; source and data writes unchanged",
+    "syntax_and_diff": "PASS"
+  },
+  "warm_today_browser_render": {
+    "p50_ms": 1,
+    "p95_ms": 1,
+    "samples": 25,
+    "native_latency_measured": false
+  },
+  "coverage": [
+    "empty/success/failure distinction",
+    "error after successful read preserves original rows",
+    "same-ID duplicate, tour order, bounded list and full-list access",
+    "completed/cancelled visits not in upcoming overview",
+    "future calendar appointment remains visible",
+    "no writes during Today navigation/readback",
+    "timer pause/stop/photo/manual entry and retained draft regression",
+    "320/360/426px;100/150/200percent;48px controls;focus/contrast"
+  ],
+  "screenshot": {
+    "path": "docs/verification/today-overview-360.png",
+    "sha256": "8b9a62be2a7fe3d377951f371fc0a79d4cb2c17eda0e9bb4c7c4310543feef82",
+    "fixture": "qa_browser_fixture",
+    "business_data": false
+  },
+  "limits": [
+    "Cloud Chromium uses existing synthetic native bridge, not Android WebView acceptance",
+    "No APK built or installed; no productive Pixel access",
+    "Productive transition/invoice/restore gates remain open as before",
+    "Today/due visits and calendar appointments keep existing separate business sources; no new future-visit query",
+    "No claim that initial old interface flash or physical UI latency is fixed"
+  ],
+  "recovery": "Revert these UI assets and their matching tests; no data/schema migration or private-state rollback",
+  "privacy": {
+    "stage": "PREBUILD_ONLY",
+    "source": {
+      "status": "PASS",
+      "files": 2329,
+      "operational_seed_rows": 0
+    },
+    "workspace": {
+      "status": "PASS",
+      "files": 6008,
+      "includes_ignored_untracked": true
+    },
+    "artifact": "NO_NEW_APK"
+  }
+}

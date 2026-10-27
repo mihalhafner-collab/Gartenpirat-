@@ -6,7 +6,38 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
-## Aktueller Auftrag
+## Aktuell: Heute-Ansicht vereinfacht, noch nicht gebaut
+
+Nutzerpriorität27.10.: Heute soll der zentrale, übersichtliche Einstieg sein;
+bevorstehende Arbeitseinsätze müssen sichtbar bleiben. Emulator, ADB-Protokoll,
+GitHub-Konsolidierung und weitere Leistungsanalyse ruhen. Ihr letzter Stand ist
+im separaten [Entwurf14](https://github.com/mihalhafner-collab/Gartenpirat-/pull/14)
+gesichert und wird durch diese UI-Arbeit nicht als abgeschlossen erklärt.
+
+Quelländerung im Branch `codex/heute-uebersicht-20261027`, auf aktuellem main:
+kompakte heutige/fällige Einsätze, je Besuchs-ID nur einmal, vorhandene Tourreihenfolge
+bleibt erhalten. Tourbearbeitung und vollständige Besuchsliste bleiben über
+bestehende Ziele erreichbar. Weitere Termine bleiben sichtbar; eine zusätzliche
+leere Terminkarte entfällt nach erfolgreichem Lesen der Einsatzübersicht.
+
+Kennzahlen, frühere Arbeiten und Sicherungsdetails sind aufklappbar. Laufende
+Arbeit und vorhandene Arbeitsaktionen bleiben direkt erreichbar. Lesefehler
+behalten die letzte Übersicht mit sichtbarem Hinweis und Wiederholung; keine
+Schreiboperation beim Aufruf der Übersicht. Fachregeln, Timer, Entwürfe, Backup,
+Rechnungsautorität und Geschäftsdaten werden durch diese Darstellung nicht geändert.
+
+17 Revier-UI- und41 Übersichts-/Zugänglichkeitsprüfungen PASS; zusätzlich der
+bestehende Sicherungszugang mit Tastatur-/Größen-/Fehlerfällen PASS. Quelle2329
+Dateien und gesamter Worktree6008Dateien einschließlich ignorierter Dateien
+bestehen die Privacy-Gates. Keine neue native oder physische Abnahme.
+Prüfbeleg: `docs/verification/today-overview-2026-10-27.json`.
+Vorschau ausschließlich synthetische Browserdaten. Keine APK gebaut, keine
+Installation oder produktive Geräteprüfung. Der unveränderte106-Release-Tag
+bleibt die letzte geprüfte Paketquelle; diese Quellüberarbeitung ist kein
+neuer freigegebener Build. Ruckelige Übergänge und zunächst alte Startoberfläche
+sind noch keine nachgewiesen behobenen Gerätefehler.
+
+## Zurückgestellte Ablagebereinigung
 
 GitHub als einzige Entwicklungszentrale; keine Drive-Quellkopien oder externen
 Regel-/Statusabrufe. Widersprüchliche aktuelle Anweisungen werden ersetzt,

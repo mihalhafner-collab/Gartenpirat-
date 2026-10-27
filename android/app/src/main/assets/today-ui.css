@@ -70,3 +70,19 @@ html.today-root #mobile-toast{bottom:calc(var(--app-nav-height,80px) + var(--tod
 @media(prefers-reduced-motion:reduce){#home *{transition:none!important;scroll-behavior:auto!important}#home #sync-status.is-syncing::before{animation:none}}
 
 #home>.brand{display:none!important}
+
+/* Today is an overview; tour editing and recorded-work details have their own places. */
+#home #revier-today{margin:0 0 12px;padding:12px;border:1px solid var(--hg-line);border-radius:16px;box-shadow:none}
+#home .today-visits-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 8px}
+#home .today-visits-heading h2{margin:0;font-size:1rem;line-height:1.4}
+#home .today-visits-heading button,#home #revier-today>button{min-height:48px;max-width:100%;margin:0;padding:8px 0;border:0;background:transparent;color:var(--hg-green);font-size:.85rem;white-space:normal;overflow-wrap:anywhere;text-align:left}
+#home .today-visits{list-style:none;padding:0;margin:0 0 4px}
+#home .today-visits>li+li{border-top:1px solid var(--hg-line)}
+#home .today-visit{display:grid;grid-template-columns:minmax(0,1fr) 20px;gap:4px 8px;width:100%;min-height:64px;margin:0;padding:12px 0;border:0;background:transparent;color:var(--hg-text);text-align:left;line-height:1.4;box-shadow:none}
+#home .today-visit strong,#home .today-visit span{grid-column:1;min-width:0;overflow-wrap:anywhere}
+#home .today-visit strong{font-size:.95rem}
+#home .today-visit span{font-size:.8rem;color:var(--hg-muted)}
+#home .today-visit b{grid-column:2;grid-row:1/span 2;align-self:center;text-align:right}
+#home #today-summary{margin:0 0 12px;border-top:1px solid var(--hg-line)}
+#home #today-summary>summary{min-height:48px;padding:12px 0;box-sizing:border-box;color:var(--hg-green);font-size:.9rem;line-height:1.4;cursor:pointer}
+#home #today-summary[open]>summary{margin-bottom:4px}

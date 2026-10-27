@@ -105,6 +105,10 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
     return '<button type="button" class="today-appointment" data-appointment-open="'+esc(a.id)+'" aria-label="'+esc([time,end,customerName(a.customer_id),a.title,a.location||'Einsatzort offen',notice].filter(Boolean).join(' · '))+'"><span class="today-time">'+esc(time)+'<small>'+esc(end)+'</small></span><strong class="today-customer">'+esc(customerName(a.customer_id))+'</strong><span class="today-title">'+esc(a.title||'')+'</span><span class="today-place">'+esc(a.location||'Einsatzort offen')+'</span><span class="today-weather" title="'+esc(notice)+'"><span role="img" aria-label="'+esc(weather)+'">'+icon+'</span>'+(warning?'<span class="today-warning" role="img" aria-label="Hinweis prüfen">⚠</span>':'')+'</span><span class="today-weather-label">'+esc(weather)+(clashes.length?' · Terminkollision prüfen':'')+'</span></button>';
   }
   function browseHome(direction){const rows=window.PlanningUI?.upcoming()||[],index=rows.findIndex(a=>a.id===futureSelection),next=index<0?rows[0]:rows[index+direction];if(next)futureSelection=next.id;else if(!rows.length)futureSelection='';lastPlanningKey='';renderToday();}
+  function refreshScheduleVisibility(){
+    const card=get('planning-home');
+    if(card)card.hidden=get('revier-today')?.dataset.todayLoaded==='true'&&!card.querySelector('[data-appointment-open]');
+  }
   function renderToday(){
     document.documentElement.classList.toggle('today-root',currentPage==='home');
     if(currentPage!=='home')return;
@@ -120,6 +124,7 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
       else content+='<p class="sub">Keine bevorstehenden Termine.</p>';
       card.innerHTML=content;
     }
+    refreshScheduleVisibility();
     const logs=worklogs(),today=localDate(),hours=logs.filter(row=>row.work_date===today).reduce((sum,row)=>sum+Number(row.hours||0),0);
     get('today-recorded-hours').textContent=hours.toLocaleString('de-AT',{maximumFractionDigits:2})+' h';
     const openOrders=orders().filter(o=>openStatuses.has(o.status||'')&&o.scheduled_date===today),planned=new Set(merged('appointments','appointment').filter(a=>!['cancelled','completed','draft'].includes(a.status)).map(a=>a.order_id)),legacy=openOrders.filter(o=>!planned.has(o.id)),upcoming=get('design-upcoming'),legacyKey=JSON.stringify(legacy.map(o=>[o,customerName(o.customer_id)]));
@@ -135,6 +140,6 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
     const card=get('planning-home');homeGestures(card);
     renderToday();setInterval(()=>{if(!document.hidden&&currentPage==='home')workTimer();},1000);
   }
-  window.TodayUI=Object.freeze({render:renderToday,syncChip,invalidate(){lastPlanningKey='';renderToday();}});
+  window.TodayUI=Object.freeze({render:renderToday,syncChip,refreshScheduleVisibility,invalidate(){lastPlanningKey='';renderToday();}});
   document.addEventListener('DOMContentLoaded',init,{once:true});
 })();

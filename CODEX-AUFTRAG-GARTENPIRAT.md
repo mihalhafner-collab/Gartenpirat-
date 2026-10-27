@@ -1,5 +1,40 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Aktuell: Heute als übersichtlicher Einstieg
+
+Neueste Nutzersteuerung27.10.: Heute zuerst überarbeiten; die neue Oberfläche ist
+zu komplex und die Übersicht verloren gegangen. Bevorstehende Arbeitseinsätze
+müssen sichtbar bleiben. Emulator, ADB-Protokoll, GitHub-Konsolidierung und weitere
+Leistungsanalyse sind vorerst zurückgestellt. Bereits gemeldete träge Übergänge
+und zunächst alte Startoberfläche sind damit noch nicht als behoben erklärt.
+
+Minimaler Änderungsplan vor Umsetzung:
+
+- `android/app/src/main/assets/revier-solo-ui.js`, `refreshToday`: statt vollständiger
+  Tourbearbeitung plus doppelt aufgeführter Besuche eine kompakte Einsatzliste.
+  Bestehende Tourreihenfolge erhalten; nur dieselbe Besuchs-ID deduplizieren.
+  Weitere Besuche und Sortierung bleiben über bestehende Detail-/Listen-/Tourziele
+  erreichbar. Keine neue Geschäftslogik oder zusätzliche Native-Schreibaufrufe.
+- `today-ui.js`: leere zusätzliche Kalenderkarte aus der Übersicht nehmen, sobald
+  die Einsatzübersicht erfolgreich gelesen ist; echte künftige Termine weiter
+  anzeigen und Erstlesefehler nicht durch einen vermeintlichen Leerzustand ersetzen.
+- `mobile.html`/`today-ui.css` und der reine DOM-Zielort der vorhandenen
+  Sicherungsstatuszeile in `business-actions-ui.js`: Kennzahlen, frühere Arbeiten und allgemeine Hinweise
+  in eine beschriftete aufklappbare Übersicht; Einsätze/Termine und laufende Arbeit
+  bleiben vorne. Ungeplante heutige Aufträge nicht als Historie verstecken.
+- Leere Übersicht, Lesefehler, abgesagte/abgeschlossene Besuche, Tour-/Fälligkeits-
+  Doppelungen, lange Texte,320/360/426px und200Prozent-Schrift einzeln prüfen.
+  Fehler dürfen nicht als leerer erfolgreicher Datenstand erscheinen.
+- Timer-, Speicher-, Entwurfs-, Lösch-, Backup- und Rechnungsfachpfade unverändert;
+  bestehende DOM-IDs/Navigation erhalten. Gezielte Browserregressionen mit
+  synthetischen Fixtures; Sichtprüfung der echten gebündelten Assets. Native/
+  physische Abnahme bleibt getrennt. Kein APK-Bau oder Geräteinstallation hier.
+
+Die vorhandenen Kalendertermine sowie heutigen/fälligen Besuche bleiben dieselben
+fachlichen Datenquellen. Weitere/künftige Besuche sind über die bestehende Liste
+zugänglich; keine unbewiesene Zusammenführung verschiedener Fachdatensätze.
+
+
 ## Nutzerauftrag vom 26. Oktober 2026
 
 Die bestehende Codex-Gartenumgebung soll Entwicklungsanweisungen ausschließlich

@@ -48,6 +48,51 @@ const evidence={source_commit:require('node:child_process').execFileSync('git',[
   });
   await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href);try{await page.waitForFunction(()=>document.body.dataset.revierReady==='true');}catch(error){throw new Error(error.message+'; errors='+JSON.stringify(errors)+'; readiness='+JSON.stringify(await page.evaluate(()=>({fieldReady:document.body.dataset.fieldReady,fieldClass:document.body.className,offer:!!window.OfferUI,navigation:!!window.HGNavigation,more:!!document.getElementById('more-page'),simplePrimary:!!document.querySelector('#entry .simple-primary')}))));}
   const check=async(name,run)=>{try{await run();results.push({name,result:'PASS'});console.log('PASS '+name);}catch(error){results.push({name,result:'FAIL',error:error.message});throw error;}};
+  await check('Today shows each upcoming visit once and keeps editing in existing destinations',async()=>{
+   assert.deepEqual(await page.locator('#revier-today [data-revier-detail="visit"]').evaluateAll(rows=>rows.map(row=>row.dataset.id)),['qa_visit_1','qa_visit_2']);
+   assert.equal(await page.locator('#revier-today [data-revier-move]').count(),0);
+   assert.equal(await page.locator('#today-summary').evaluate(node=>node.open),false);
+   assert.equal(await page.locator('#design-metrics').isVisible(),false);
+   await page.locator('#today-summary>summary').click();assert(await page.locator('#design-metrics').isVisible());
+   await page.locator('#today-summary>summary').click();
+   await page.locator('#revier-today [data-id=qa_visit_1]').click();assert.equal(await page.evaluate(()=>currentPage),'revier-visit-detail');
+   await page.evaluate(()=>handleAndroidBack());assert.equal(await page.evaluate(()=>currentPage),'home');
+   await page.locator('#revier-today [data-open=revier-tour]').click();assert(await page.locator('#revier-tour [data-revier-move]').count());
+   await page.evaluate(()=>handleAndroidBack());
+   await page.locator('#revier-today [data-open=revier-visits]').click();assert.equal(await page.evaluate(()=>currentPage),'revier-visits');
+   await page.evaluate(()=>handleAndroidBack());assert.equal(await page.evaluate(()=>qaRevier.writes.length),0);
+  });
+  await check('Today retains its last read on errors and recovers without a write',async()=>{
+   await page.evaluate(()=>{window.qaTodayOwner=AndroidData.ownerCall;AndroidData.ownerCall=(name,raw)=>name==='get_day_tour'?JSON.stringify({ok:false,error:{code:'NETWORK_UNAVAILABLE',message:'QA lesender Fehler'}}):qaTodayOwner(name,raw);render();});
+   assert(await page.locator('#revier-today [role=alert]').isVisible());
+   assert.equal(await page.locator('#revier-today [data-revier-detail="visit"]').count(),2);
+   await page.evaluate(()=>{AndroidData.ownerCall=qaTodayOwner;delete window.qaTodayOwner;});await page.locator('[data-revier-refresh-today]').click();
+   assert.equal(await page.locator('#revier-today [role=alert]').count(),0);
+   assert.equal(await page.evaluate(()=>qaRevier.writes.length),0);
+  });
+  await check('Today respects tour order, bounds its overview, and distinguishes empty from failed reads',async()=>{
+   const original=await page.evaluate(()=>({visits:structuredClone(qaRevier.visits),tourIds:qaRevier.tourIds.slice()}));
+   try{
+    await page.evaluate(()=>{const first=qaRevier.visits[0];qaRevier.visits.push(...[3,4,5].map(i=>({...first,id:'qa_today_'+i,title:'QA weiterer Einsatz '+i})));qaRevier.tourIds=['qa_visit_2','qa_visit_1','qa_today_3','qa_today_4'];render();});
+    assert.deepEqual(await page.locator('#revier-today [data-revier-detail="visit"]').evaluateAll(rows=>rows.map(row=>row.dataset.id)),['qa_visit_2','qa_visit_1','qa_today_3']);
+    assert.match(await page.locator('#revier-today [data-open=revier-visits]').innerText(),/5/);
+    await page.evaluate(()=>{qaRevier.visits[1].status='completed';qaRevier.visits[0].status='cancelled';render();});
+    assert.equal(await page.locator('#revier-today [data-id=qa_visit_1],#revier-today [data-id=qa_visit_2]').count(),0);
+    await page.evaluate(()=>{qaRevier.visits=[];qaRevier.tourIds=[];render();});
+    assert.equal(await page.locator('#revier-today [data-revier-detail="visit"]').count(),0);assert.match(await page.locator('#revier-today').innerText(),/keine Einsätze vorgemerkt/);
+    assert.equal(await page.locator('#revier-today [role=alert]').count(),0);
+   }finally{await page.evaluate(original=>{Object.assign(qaRevier,original);render();},original);}
+   const appointments=await page.evaluate(()=>structuredClone(master.appointments||[]));
+   await page.evaluate(()=>{master.appointments=[];load();});assert.equal(await page.locator('#planning-home').isVisible(),false);
+   await page.evaluate(()=>{master.appointments=[{id:'qa_today_future_appointment',customer_id:'qa_c1',title:'QA späterer Termin',starts_at:new Date(Date.now()+86400000).toISOString(),ends_at:'',timezone:'Europe/Vienna',status:'tentative'}];load();});assert(await page.locator('#planning-home').isVisible());
+   await page.evaluate(appointments=>{master.appointments=appointments;load();window.qaTodayOriginalSync=AndroidData.getSyncStatus;AndroidData.getSyncStatus=()=>JSON.stringify({...JSON.parse(qaTodayOriginalSync()),processing_engine:'pixel_local_v2',storage_contract_version:3,drive_role:'backup_only',business_sync_allowed:false});load();scrollTo(0,0);},appointments);
+   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+   assert(await page.locator('#home .today-header h1').isVisible());
+   assert.equal(await page.locator('#full-backup-today-status').isVisible(),false);
+   await page.screenshot({path:'outputs/qa-heute-uebersicht-360.png',fullPage:false});
+   await page.evaluate(()=>{AndroidData.getSyncStatus=qaTodayOriginalSync;delete window.qaTodayOriginalSync;load();});
+   assert.equal(await page.evaluate(()=>qaRevier.writes.length),0);
+  });
   await check('Four labelled roots preserve legacy destinations and initialization performs no writes',async()=>{assert.deepEqual(await page.locator('.bottom .nav').allTextContents(),['Heute','Objekte','Pflege','Büro']);assert.equal(await page.locator('.bottom [aria-current=page]').count(),1);assert.equal(await page.evaluate(()=>qaRevier.writes.length),0);await page.locator('.bottom [data-open=revier-properties]').click();assert(await page.locator('#revier-properties [data-open=customers]').isVisible());await page.locator('.revier-globalbar [data-open=more-page]').click();for(const id of ['worklogs','planning-page','invoices','settings-page','revier-materials','revier-equipment','revier-search'])assert(await page.locator('#more-page [data-open="'+id+'"]').count(),id);await page.evaluate(()=>handleAndroidBack());assert.equal(await page.evaluate(()=>currentPage),'revier-properties');});
   await check('Untouched forms, revert to baseline, independent drafts, process restart and complete discard',async()=>{
    await page.locator('#revier-properties [data-revier-new=property]').click();await page.evaluate(()=>handleAndroidBack());assert.equal(await page.evaluate(()=>HGFormDrafts.list().length),0);
