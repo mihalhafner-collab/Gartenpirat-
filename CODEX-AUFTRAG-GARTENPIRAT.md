@@ -1,5 +1,20 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Ergänzung27.10.: Emulatoranalyse und physische ADB-Diagnose
+
+Nutzerauftrag: Ursachen wiederholter Cloudemulator-Ausfälle bestimmen und weiter
+kontrolliert testen. Androidsystem-, Host-/Emulator- und Appfehler unterscheiden;
+keine bloße Umbenennung oder Timeout-/Schutzumgehung als Reparatur ausgeben.
+Bestehenden dedizierten synthetischen Cloud-AVD ohne Wipe/Datenverlust prüfen.
+Keine neue Appfunktion, kein neues APK allein für diese Diagnose.
+
+Nutzerpräzisierung zur physischen Testung:4-GB-Windows-Laptop ausschließlich für
+ADB-Verbindung und technische Protokolle; Quelländerungen und Builds nur in der
+Cloud, Sicherung nur in GitHub. Keine Betriebsdaten-/Secretübernahme in Quellen.
+Produktive Testdatensätze, Löschung zum Testen und automatische Installation
+bleiben gesperrt; die ADB-Erreichbarkeit des physischen Geräts aus der Cloud
+ist gesondert nachzuweisen und folgt nicht aus einer MCP-Verbindung.
+
 ## Nutzerauftrag vom 26. Oktober 2026
 
 Die bestehende Codex-Gartenumgebung soll Entwicklungsanweisungen ausschließlich
@@ -110,7 +125,8 @@ Paketkennung und Originalschlüssel erhalten; Signierung nach
 `ORIGINAL-SIGNIERUNG-CLOUD.md`, niemals in GitHub Actions. Vor Build Quellen auf
 GitHub nachweisen, Buildprovenienz exakt binden. Physische Pixelinstallation,
 Bestandserhalt und externe Connector-/Providerprüfungen sind eigene Nachweise.
-Kein Laptop, kein neuer Dienst/Tarif, keine zweite App/DB/Repository, keine neuen
+Laptop nur als ausdrücklich erlaubte ADB-/Protokollbrücke; kein neuer Dienst/Tarif,
+keine zweite App/DB/Repository, keine neuen
 Features vor Transition-Abschluss. Keine produktive Migration oder Installation.
 
 ## Nachvollziehbarkeit

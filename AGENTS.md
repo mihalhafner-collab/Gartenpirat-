@@ -27,8 +27,14 @@ Regeldatei, Projektzentrale, App, operative Datenbank oder Repository anlegen.
   vergleichen. Den tatsächlichen Checkout prüfen; alte Versionsnummern nicht
   auf einen neuen Stand umetikettieren. Laufende fremde Änderungen erhalten.
 - Im vorhandenen passenden Branch arbeiten. Nur falls wirklich erforderlich
-  einen weiteren Arbeitsbranch im selben Repository verwenden. Der Laptop ist
-  weder Arbeitsumgebung noch Fallback. Keine zweite lokale Entwicklung.
+  einen weiteren Arbeitsbranch im selben Repository verwenden. Entwicklung,
+  Quelländerungen und Builds bleiben ausschließlich in der Cloud und GitHub.
+- Nutzerpräzisierung27.10.: Der4-GB-Windows-Laptop darf ausschließlich die
+  ADB-Verbindung zum physischen Android-Gerät und technische Testprotokolle
+  übernehmen. Keine Quellbearbeitung, Builds, zweite Entwicklungsumgebung oder
+  Betriebsdatenkopien auf dem Laptop. Technische Protokolle vor Übernahme in
+  GitHub auf Betriebsdaten und Secrets prüfen. Diese enge Diagnoseausnahme
+  erteilt keine Freigabe für produktive Testdatensätze, Datenlöschung oder Installation.
 - Nach einem abgeschlossenen Schritt, vor Builds, Übergaben und Unterbrechungen:
   Privacy prüfen, nur eigene geprüfte Dateien gezielt committen, nach GitHub
   pushen und den exakten Remote-Commit zurücklesen. Keine pauschalen Git-adds.
@@ -136,7 +142,9 @@ Dieser Bootstrap ist der zuletzt direkt kopierbar übergebene Start-Skill.
 Der Nutzer hat seine manuelle Veröffentlichung am27.10.2026 bestätigt.
 Veröffentlichungsbestätigung, technisches Rücklesen und Übernahme in eine neue
 Laufzeit bleiben im aktuellen Status getrennt; eine Git-Änderung allein ändert
-keine Cloud-Konfiguration.
+keine Cloud-Konfiguration. Die spätere ausdrückliche Nutzerpräzisierung zur
+engen ADB-/Protokollausnahme für den Laptop gilt gemäß den obigen aktuellen Regeln;
+der untenstehende Text bleibt der unveränderte zuletzt manuell veröffentlichte Stand.
 
 ```text
 Arbeite ausschließlich im bestehenden privaten Repository mihalhafner-collab/Gartenpirat-.

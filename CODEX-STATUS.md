@@ -43,6 +43,22 @@ nicht erreichen und bleiben historische Zugriffsevidenz. Screenshots/Privatinhal
 nicht im Repository abgelegt. Kein APK-Bau, keine Installation, Betriebsdaten-,
 Setupskript-, Signierwert- oder Netzänderung durch Codex in diesem Schritt.
 
+## Laufende Emulatoranalyse und ADB-Präzisierung27.10.
+
+Nutzer erlaubt den4-GB-Laptop ausschließlich als ADB-/Protokollbrücke; Entwicklung,
+Quelländerungen und Builds bleiben in der Cloud und GitHub. Keine physische
+ADB-Verbindung ist im aktuellen Cloud-Arbeitsraum sichtbar. MCP ist keine
+Systemrechtefreigabe; keine produktiven Testdatensätze oder Datenlöschung.
+
+Aktuelle Diagnose: kein /dev/kvm, Beschleunigungsprobe meldet fehlende VMX/SVM-
+Unterstützung. Cloudlimit16GiB/4CPU; bisher kein OOM-Kill. Hoher Speicherzähler
+besteht überwiegend aus Cache/Shared Memory und beweist keinen Speichermangel.
+Zwei verschiedene AVD-Konfigurationen tragen denselben Namen: API30/x86_64 und
+API29/x86. Frühere API29-Boots dauerten rund240Sekunden. Kontrollierte Probe mit
+bestehenden synthetischen AVD-Daten läuft; noch keine neue native App-Abnahme.
+Technische Evidenz und minimaler Prüfschrittplan:
+`docs/verification/cloud-emulator-diagnosis-2026-10-27.json`.
+
 ## Quellkandidat und beobachtete Installation
 
 | Zustand | Version | Originalquelle | Nachweisgrenze |

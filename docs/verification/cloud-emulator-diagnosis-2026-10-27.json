@@ -1,0 +1,97 @@
+{
+  "format": "hausgarten.cloud-emulator-diagnosis.v1",
+  "status": "IN_PROGRESS_BOOT_STABILITY_PROBE",
+  "observed_at_utc": "2026-10-27T06:04:01.153560+00:00",
+  "scope": "Existing dedicated synthetic Cloud AVD only; no Pixel, app install/build, account, wipe, timeout-suppression or operational-data use",
+  "user_authorization": {
+    "task": "Find why Cloud emulator is unreliable; continue controlled tests",
+    "laptop_exception": "Laptop only ADB connection and technical logging; development and builds remain Cloud/GitHub"
+  },
+  "host": {
+    "kvm_device_present": false,
+    "emulator_accel_check_exit": 3,
+    "emulator_accel_check": "KVM requires a CPU that supports vmx or svm",
+    "cgroup_memory_max_bytes": 17179869184,
+    "cpu_quota_equivalent": 4,
+    "oom_kills_before_probe": 0,
+    "memory_interpretation": "Most observed resident cgroup allocation is file cache/shared memory, not application heap. No OOM kill established; high usage alone is not a cause proof.",
+    "native_emulator_crashpad_reports": 0
+  },
+  "existing_avds": [
+    {
+      "role": "prior API30 acceptance",
+      "name": "GartenpiratCloud",
+      "api": 30,
+      "abi": "x86_64",
+      "image": "google_apis",
+      "configured_ram": "2G"
+    },
+    {
+      "role": "latest failed106 native setup",
+      "name": "GartenpiratCloud",
+      "api": 29,
+      "abi": "x86",
+      "image": "default",
+      "configured_ram": "2G"
+    }
+  ],
+  "historical_evidence": {
+    "api29_boot_completion_ms": [
+      244082,
+      239486
+    ],
+    "latest106_failure": "ADB install exited255; old runner traceback did not expose the captured failure detail",
+    "runner_readiness_before": "qemu property, AVD name and sys.boot_completed only; no package/activity service health check",
+    "earlier_published_evidence": "NetworkStack/system_server failures and SystemUI/Phone ANRs on software emulation; source docs retain exact older scopes"
+  },
+  "controlled_probe": {
+    "source_path": "Transient technical driver outside source checkout",
+    "driver_sha256": "e4c955e3aa17ea1def09ca1d61daa0fc890abe5363c9da0d961732722cb742ad",
+    "serial": "emulator-5582",
+    "api": 29,
+    "abi": "x86",
+    "graphics": "swiftshader",
+    "acceleration": "off",
+    "guest_ram_mib": 2048,
+    "guest_cores": 1,
+    "display_pixels": [
+      720,
+      1280
+    ],
+    "snapshots": "disabled; no wipe",
+    "app_installations": 0,
+    "maximum_observation_seconds": 510,
+    "required_health": "qemu1; exact AVD; boot complete; package/activity services found; stable samples",
+    "first_probe_limit": "Own probe was stopped during early identity-readiness validation before complete boot; not classified as an emulator/app crash. Dedicated emulator shut down without resetting userdata."
+  },
+  "minimal_change_plan": [
+    {
+      "file": "tests/run_cloud_emulator_tests.py",
+      "function": "require_emulator",
+      "current": "Boot-completed flag alone can remain true after core services fail",
+      "desired": "Fail closed if package/activity service unavailable and package manager cannot read android package path before install/instrumentation",
+      "risk": "Extra read-only ADB probes may be slow under TCG; existing timeouts and test-result gates remain",
+      "counterpaths": [
+        "physical/network serial",
+        "wrong AVD",
+        "boot flag stale1 with package missing",
+        "activity missing",
+        "PM binder present but command fails",
+        "core services disappear after check",
+        "concurrent run"
+      ],
+      "test": "Meaningful mocked failure paths plus live dedicated AVD readback after boot if it becomes healthy",
+      "rollback": "Revert test harness only; no app/data/schema/AVD wipe or release-gate change"
+    },
+    {
+      "file": "tests/test_cloud_emulator_guard.py",
+      "function": "readiness regression cases",
+      "desired": "No install/instrumentation on false readiness; valid system accepted; existing physical-target and lock protections unchanged"
+    },
+    {
+      "file": "tests/Android-Emulator.md",
+      "function": "Cloud diagnosis notes",
+      "desired": "Document actual limits and evidence; no new architecture or optimistic native PASS"
+    }
+  ]
+}

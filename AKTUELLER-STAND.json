@@ -172,7 +172,7 @@
       "evidence_recorded_at_utc": "2026-10-25T22:06:57.964900+00:00"
     }
   ],
-  "updated_at_utc": "2026-10-27T05:21:49.483127+00:00",
+  "updated_at_utc": "2026-10-27T06:04:01.153560+00:00",
   "development_snapshot": {
     "version_name": "1.55.1",
     "version_code": 106,
@@ -300,6 +300,11 @@
       "missing_write_tools": 29,
       "ui_actions": 209,
       "connector_refresh": "EXTERNAL_OPEN_NOT_RETESTED"
+    },
+    "emulator_diagnosis": {
+      "status": "IN_PROGRESS",
+      "evidence": "docs/verification/cloud-emulator-diagnosis-2026-10-27.json",
+      "app_native106_acceptance_unchanged": true
     }
   },
   "historical_snapshot": {
@@ -449,6 +454,17 @@
       "source_privacy_files": 2326,
       "worktree_privacy_files": 6003,
       "business_data_or_backup_mutations": false
+    },
+    "laptop_role": {
+      "authorization": "EXPLICIT_USER_CLARIFICATION27OCT2026",
+      "allowed": [
+        "ADB bridge to physical Android",
+        "technical test logs"
+      ],
+      "development_and_builds": "CLOUD_ONLY",
+      "source_and_change_storage": "GITHUB_ONLY",
+      "operational_data_and_secret_copies": "NOT_ALLOWED",
+      "productive_test_records_and_automatic_installation": "NOT_AUTHORIZED"
     }
   }
 }
