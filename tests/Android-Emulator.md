@@ -1,13 +1,36 @@
 # Androidtests in Codex Cloud
 
-Nur die bestehende Cloudumgebung verwenden. Der operative Pixel ist kein
-Testfixture; keine produktiven Daten oder Konten in Emulatoren übernehmen.
-Keine Windows-Launcher oder Laptop-Abhängigkeit voraussetzen.
+Cloudtestung bleibt nach Nutzerwunsch bevorzugt, sobald eine belastbar stabile
+Konfiguration nachgewiesen ist. Dazu gehören vollständiger Systemstart,
+wiederholbare Kaltstarts und relevante tatsächliche UI-/Instrumentierungsproben.
+Ein einzelner Boot-Erfolg beweist keine allgemeine Zuverlässigkeit.
+
+Für Emulatorläufe die bestehende Cloudumgebung verwenden. Der operative Pixel
+ist kein Testfixture; keine produktiven Daten oder Konten in Emulatoren übernehmen.
+Nutzerpräzisierung27.10.: Der Laptop darf ausschließlich ADB zum physischen Gerät
+und technische Protokolle übernehmen. Entwicklung und Builds bleiben in der Cloud.
+Der Cloudrunner hier akzeptiert weiterhin nur den dedizierten Emulator; eine
+physische Testfreigabe oder Erreichbarkeit folgt nicht aus der Laptopausnahme.
 
 Der vorhandene Einstieg ist `tests/run_cloud_emulator_tests.py`; seine Optionen
 vor einem tatsächlich benötigten nativen Lauf lesen. Er verlangt ein bereites
 Androidsystem und prüft Installations-/Instrumentierungsergebnisse. Readiness-
 Fehler nicht umgehen und kompilierte Proben nicht als ausgeführt ausgeben.
+
+Der Bootstatus allein genügt nicht: Nach einem Systemabsturz kann
+`sys.boot_completed=1` stehen bleiben, während Paketmanager/Aktivitätsdienst fehlen.
+Der Runner verlangt deshalb beide Dienste und einen erfolgreichen lesenden
+Paketmanager-Aufruf vor Installations-/Testaktionen. Ein später verschwundener
+Kerndienst wird als Androidsystemfehler gemeldet; rohe Geräteausgaben werden
+dabei nicht in den Prüfbeleg übernommen. Ergebnis-, Geräte- und Sperrgates bleiben.
+
+Die Diagnose27.10. reproduziert unter API29/x86 mit Emulator37.2.12 und
+Softwaregrafik einen nativen SIGSEGV im Androidsystem (`HostConnection::gl2Encoder`,
+RenderThread von `system_server`), ohne eine APK zu installieren. Fehlendes KVM
+und Softwareemulation sind zusätzliche Umgebungsgrenzen. Hohe RAM-Zähler allein
+beweisen keine OOM-Ursache. Kein Crash-/Timeout-Unterdrücken als Reparatur ausgeben.
+Aktuelle kontrollierte Gegenproben und Grenzen:
+[technischer Prüfbeleg](../docs/verification/cloud-emulator-diagnosis-2026-10-27.json).
 
 Für Build106 ist die native UI-/Updateabnahme offen: der vorherige Cloud-AVD
 verlor den Paketmanager. Kein historischer Emulator-PASS ersetzt diesen fehlenden

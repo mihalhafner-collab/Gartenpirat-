@@ -53,9 +53,20 @@ Systemrechtefreigabe; keine produktiven Testdatensätze oder Datenlöschung.
 Aktuelle Diagnose: kein /dev/kvm, Beschleunigungsprobe meldet fehlende VMX/SVM-
 Unterstützung. Cloudlimit16GiB/4CPU; bisher kein OOM-Kill. Hoher Speicherzähler
 besteht überwiegend aus Cache/Shared Memory und beweist keinen Speichermangel.
-Zwei verschiedene AVD-Konfigurationen tragen denselben Namen: API30/x86_64 und
-API29/x86. Frühere API29-Boots dauerten rund240Sekunden. Kontrollierte Probe mit
-bestehenden synthetischen AVD-Daten läuft; noch keine neue native App-Abnahme.
+Zwei AVD-Konfigurationen tragen denselben Namen: API30/x86_64 und API29/x86.
+
+API29/x86 kontrolliert mit SwiftShader sowie ANGLE/SwiftShader geprüft: beide
+Läufe scheitern an der Stabilitätsschwelle (516/529Sekunden). Ohne neue APK-
+Installation reproduziert: SIGSEGV/Nullpointer in `HostConnection::gl2Encoder`,
+RenderThread des Android-`system_server`; anschließend fehlen Kerndienste trotz
+Bootflag1. Kein OOM-Kill; anderer Grafik-Backend allein ist keine Reparatur.
+Die Testvorprüfung verlangt jetzt zusätzlich Paket-/Aktivitätsdienst und einen
+funktionierenden Android-Paketpfad; expliziter späterer Dienstausfall wird ohne
+rohe Geräteausgabe eingeordnet.13 Schutzregressionen und51 Sourceprüfungen PASS.
+
+Nutzer wünscht weiterhin Cloudtests, sobald zuverlässig: erneute Anpassungsprobe
+mit vorhandenem API30/x86_64-Image läuft, ohne Wipe oder Appinstallation.
+Noch keine neue native App-Abnahme und keine stabile Konfiguration behauptet.
 Technische Evidenz und minimaler Prüfschrittplan:
 `docs/verification/cloud-emulator-diagnosis-2026-10-27.json`.
 

@@ -7,6 +7,9 @@ kontrolliert testen. Androidsystem-, Host-/Emulator- und Appfehler unterscheiden
 keine bloße Umbenennung oder Timeout-/Schutzumgehung als Reparatur ausgeben.
 Bestehenden dedizierten synthetischen Cloud-AVD ohne Wipe/Datenverlust prüfen.
 Keine neue Appfunktion, kein neues APK allein für diese Diagnose.
+Weitere Nutzersteuerung: Emulator erneut kontrolliert anpassen; Cloudtestung
+bleibt bevorzugt, wenn Zuverlässigkeit reproduzierbar nachgewiesen wird.
+Keine stabile Konfiguration allein aufgrund unbelegter Zwischenmeldungen führen.
 
 Nutzerpräzisierung zur physischen Testung:4-GB-Windows-Laptop ausschließlich für
 ADB-Verbindung und technische Protokolle; Quelländerungen und Builds nur in der

@@ -22,8 +22,16 @@ def require_serial(serial):
 def command(adb, serial, args, timeout=90):
     require_serial(serial)
     env = {k: v for k, v in os.environ.items() if not k.startswith('HG_ORIGINAL_')}
-    return subprocess.run([adb, '-s', serial, *args], env=env, capture_output=True,
-                          text=True, timeout=timeout, check=True).stdout.strip()
+    try:
+        return subprocess.run([adb, '-s', serial, *args], env=env, capture_output=True,
+                              text=True, timeout=timeout, check=True).stdout.strip()
+    except subprocess.CalledProcessError as error:
+        # A framework may die after the readiness check. Expose that specific
+        # system failure without dumping raw device output into source evidence.
+        detail = (error.stdout or '') + '\n' + (error.stderr or '')
+        if re.search(r"Can't find service: (?:package|activity)\b", detail):
+            raise ValueError('Android core service disappeared; installation/testing aborted.') from None
+        raise
 
 
 def require_emulator(adb, serial):
@@ -34,6 +42,13 @@ def require_emulator(adb, serial):
         raise ValueError('Only the dedicated GartenpiratCloud AVD is permitted.')
     if command(adb, serial, ['shell', 'getprop', 'sys.boot_completed']) != '1':
         raise ValueError('Wait for complete emulator startup before installing/testing.')
+    # boot_completed stays set when system_server dies and restarts. A working
+    # ADB transport and that flag do not establish a usable Android framework.
+    for service in ('package', 'activity'):
+        if command(adb, serial, ['shell', 'service', 'check', service]) != f'Service {service}: found':
+            raise ValueError('Android core services are not ready; do not install or test.')
+    if not re.fullmatch(r'package:/\S+\.apk', command(adb, serial, ['shell', 'cmd', 'package', 'path', 'android'])):
+        raise ValueError('Android package manager is not functional; do not install or test.')
 
 
 @contextmanager

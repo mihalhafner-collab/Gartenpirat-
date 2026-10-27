@@ -1,11 +1,12 @@
 {
   "format": "hausgarten.cloud-emulator-diagnosis.v1",
-  "status": "IN_PROGRESS_BOOT_STABILITY_PROBE",
+  "status": "GRAPHICS_SYSTEM_CRASH_REPRODUCED;RENDERER_COUNTERPROBE_IN_PROGRESS",
   "observed_at_utc": "2026-10-27T06:04:01.153560+00:00",
   "scope": "Existing dedicated synthetic Cloud AVD only; no Pixel, app install/build, account, wipe, timeout-suppression or operational-data use",
   "user_authorization": {
     "task": "Find why Cloud emulator is unreliable; continue controlled tests",
-    "laptop_exception": "Laptop only ADB connection and technical logging; development and builds remain Cloud/GitHub"
+    "laptop_exception": "Laptop only ADB connection and technical logging; development and builds remain Cloud/GitHub",
+    "preferred_test_location": "Cloud emulator if reproducibly reliable; continue controlled adaptation, physical ADB only as separately scoped alternative"
   },
   "host": {
     "kvm_device_present": false,
@@ -93,5 +94,848 @@
       "function": "Cloud diagnosis notes",
       "desired": "Document actual limits and evidence; no new architecture or optimistic native PASS"
     }
-  ]
+  ],
+  "baseline_result": {
+    "duration_s": 516.0,
+    "healthy_sample_threshold_met": false,
+    "samples": [
+      {
+        "elapsed_s": 0.0,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 15753601024,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "2454",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "NOT_READY"
+      },
+      {
+        "elapsed_s": 15.0,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 16337342464,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "2454",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "NOT_READY"
+      },
+      {
+        "elapsed_s": 30.0,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 16917868544,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "2454",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "NOT_READY"
+      },
+      {
+        "elapsed_s": 45.0,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 17082896384,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "2454",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "NOT_READY"
+      },
+      {
+        "elapsed_s": 60.0,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 17178202112,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "2457",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "1",
+        "identity_probe_returncodes": [
+          0,
+          0
+        ],
+        "boot_completed": "",
+        "package_service": "HOST_PROBE_TIMEOUT",
+        "activity_service": "Service activity: not found",
+        "system_server_pid": "1685",
+        "api": "29",
+        "abi": "x86",
+        "consecutive_healthy_samples": 0
+      },
+      {
+        "elapsed_s": 100.1,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 17178726400,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "2561",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "1",
+        "identity_probe_returncodes": [
+          0,
+          0
+        ],
+        "boot_completed": "",
+        "package_service": "Service package: found",
+        "activity_service": "Service activity: found",
+        "system_server_pid": "1685",
+        "api": "29",
+        "abi": "x86",
+        "consecutive_healthy_samples": 0
+      },
+      {
+        "elapsed_s": 131.3,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 17179738112,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "2860",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "1",
+        "identity_probe_returncodes": [
+          0,
+          0
+        ],
+        "boot_completed": "HOST_PROBE_TIMEOUT",
+        "package_service": "Service package: found",
+        "activity_service": "Service activity: found",
+        "system_server_pid": "1685",
+        "api": "29",
+        "abi": "x86",
+        "consecutive_healthy_samples": 0
+      },
+      {
+        "elapsed_s": 168.6,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 17175711744,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "2898",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "1",
+        "identity_probe_returncodes": [
+          0,
+          0
+        ],
+        "boot_completed": "1",
+        "package_service": "Service package: found",
+        "activity_service": "Service activity: found",
+        "system_server_pid": "1685 2504",
+        "api": "29",
+        "abi": "x86",
+        "consecutive_healthy_samples": 1
+      },
+      {
+        "elapsed_s": 213.2,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 17175515136,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "3227",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "1",
+        "identity_probe_returncodes": [
+          0,
+          0
+        ],
+        "boot_completed": "HOST_PROBE_TIMEOUT",
+        "package_service": "HOST_PROBE_TIMEOUT",
+        "activity_service": "Service activity: found",
+        "system_server_pid": "1685",
+        "api": "29",
+        "abi": "x86",
+        "consecutive_healthy_samples": 0
+      },
+      {
+        "elapsed_s": 261.2,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 17174929408,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "3312",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "1",
+        "identity_probe_returncodes": [
+          0,
+          0
+        ],
+        "boot_completed": "1",
+        "package_service": "Service package: not found",
+        "activity_service": "Service activity: not found",
+        "system_server_pid": "2836",
+        "api": "29",
+        "abi": "x86",
+        "consecutive_healthy_samples": 0
+      },
+      {
+        "elapsed_s": 290.7,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 17169092608,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "3360",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "1",
+        "identity_probe_returncodes": [
+          0,
+          0
+        ],
+        "boot_completed": "HOST_PROBE_TIMEOUT",
+        "package_service": "HOST_PROBE_TIMEOUT",
+        "activity_service": "HOST_PROBE_TIMEOUT",
+        "system_server_pid": "HOST_PROBE_TIMEOUT",
+        "api": "HOST_PROBE_TIMEOUT",
+        "abi": "HOST_PROBE_TIMEOUT",
+        "consecutive_healthy_samples": 0
+      },
+      {
+        "elapsed_s": 356.5,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 17179738112,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "3636",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "HOST_PROBE_TIMEOUT",
+        "identity_probe_returncodes": [
+          0,
+          124
+        ],
+        "identity_not_ready": true
+      },
+      {
+        "elapsed_s": 383.6,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 17179701248,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "3640",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "HOST_PROBE_TIMEOUT",
+        "identity_probe_returncodes": [
+          0,
+          124
+        ],
+        "identity_not_ready": true
+      },
+      {
+        "elapsed_s": 410.6,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 17177178112,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "3647",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "1",
+        "identity_probe_returncodes": [
+          0,
+          0
+        ],
+        "boot_completed": "HOST_PROBE_TIMEOUT",
+        "package_service": "HOST_PROBE_TIMEOUT",
+        "activity_service": "HOST_PROBE_TIMEOUT",
+        "system_server_pid": "HOST_PROBE_TIMEOUT",
+        "api": "29",
+        "abi": "x86",
+        "consecutive_healthy_samples": 0
+      },
+      {
+        "elapsed_s": 467.4,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 17179832320,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "4622",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "1",
+        "identity_probe_returncodes": [
+          0,
+          0
+        ],
+        "boot_completed": "1",
+        "package_service": "Service package: found",
+        "activity_service": "Service activity: found",
+        "system_server_pid": "2836",
+        "api": "29",
+        "abi": "x86",
+        "consecutive_healthy_samples": 1
+      }
+    ],
+    "owned_emulator_shutdown": true,
+    "app_installations": 0,
+    "host_oom_kills_after": "0",
+    "crash_buffer_sha256": "f993397b63f552d3b29e558aa383d4ce3fda649ccd5363ad8e90683f2323dbb3",
+    "system_server_crash_excerpt": [
+      "10-27 06:03:18.746  2577  2577 F DEBUG   : pid: 1685, tid: 2480, name: RenderThread  >>> system_server <<<",
+      "10-27 06:03:18.747  2577  2577 F DEBUG   : signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x10",
+      "10-27 06:03:18.748  2577  2577 F DEBUG   : Cause: null pointer dereference"
+    ],
+    "observed_failure": "SIGSEGV null pointer in HostConnection::gl2Encoder → glGetString/EGL; Android system_server RenderThread. Downstream DeadSystemException in stock Android components. Boot flag1 persisted when package and activity services disappeared.",
+    "claim_limits": "Not an app regression result and not proof that CPU acceleration alone causes this graphics crash. No app APK installed in controlled probe."
+  },
+  "runner_changes": {
+    "readiness": "After qemu/name/boot check require package/activity services and working android package-path readback",
+    "after_readiness_failure": "Classify explicit missing package/activity service from captured ADB error without dumping raw device output; unrelated errors retain their failure type",
+    "tests_passed": 13,
+    "acceptance_result_gates_unchanged": true,
+    "no_timeout_or_crash_suppression": true
+  },
+  "counterprobe": {
+    "status": "COMPLETED_FAILED_STABILITY_THRESHOLD",
+    "only_changed_launch_argument": [
+      "-gpu",
+      "swangle"
+    ],
+    "all_other_launch_arguments_and_existing_avd_unchanged": true,
+    "reason": "Supported alternative GLES backend; direct graphics-path counterprobe, not a gate bypass",
+    "user_data_not_reset": true,
+    "intermediate_system_server_crash_reproduced": true,
+    "same_gl2_encoder_failure": true,
+    "system_server_crash_excerpt": [
+      "10-27 06:12:52.621  2701  2701 F DEBUG   : pid: 1688, tid: 2406, name: RenderThread  >>> system_server <<<",
+      "10-27 06:12:52.621  2701  2701 F DEBUG   : signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x10",
+      "10-27 06:12:52.690  2701  2701 F DEBUG   : Cause: null pointer dereference"
+    ],
+    "crash_buffer_sha256": "3e7ecb948d2e6db145e3cfe4bcf0ea1d5e13054c2c96c180d5010c9abd6c55ee",
+    "claim": "Alternative supported GLES renderer does not remove the reproduced native graphics crash; no emulator stabilization claimed.",
+    "duration_s": 529.5,
+    "healthy_sample_threshold_met": false,
+    "samples": [
+      {
+        "elapsed_s": 0.0,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 14636539904,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "5852",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "NOT_READY"
+      },
+      {
+        "elapsed_s": 15.0,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 15158661120,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "5852",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "NOT_READY"
+      },
+      {
+        "elapsed_s": 30.0,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 15699865600,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "5852",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "NOT_READY"
+      },
+      {
+        "elapsed_s": 45.0,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 15836823552,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "5852",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "NOT_READY"
+      },
+      {
+        "elapsed_s": 60.0,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 15973019648,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "5852",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "NOT_READY"
+      },
+      {
+        "elapsed_s": 75.0,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 16063598592,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "5852",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "1",
+        "identity_probe_returncodes": [
+          0,
+          0
+        ],
+        "boot_completed": "",
+        "package_service": "Service package: not found",
+        "activity_service": "Service activity: not found",
+        "system_server_pid": "1688",
+        "api": "29",
+        "abi": "x86",
+        "consecutive_healthy_samples": 0
+      },
+      {
+        "elapsed_s": 105.4,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 16232701952,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "5852",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "1",
+        "identity_probe_returncodes": [
+          0,
+          0
+        ],
+        "boot_completed": "",
+        "package_service": "Service package: found",
+        "activity_service": "Service activity: found",
+        "system_server_pid": "1688",
+        "api": "29",
+        "abi": "x86",
+        "consecutive_healthy_samples": 0
+      },
+      {
+        "elapsed_s": 131.7,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 16371113984,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "5852",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "1",
+        "identity_probe_returncodes": [
+          0,
+          0
+        ],
+        "boot_completed": "",
+        "package_service": "Service package: found",
+        "activity_service": "Service activity: found",
+        "system_server_pid": "HOST_PROBE_TIMEOUT",
+        "api": "29",
+        "abi": "HOST_PROBE_TIMEOUT",
+        "consecutive_healthy_samples": 0
+      },
+      {
+        "elapsed_s": 183.1,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 16537247744,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "5852",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "1",
+        "identity_probe_returncodes": [
+          0,
+          0
+        ],
+        "boot_completed": "1",
+        "package_service": "HOST_PROBE_TIMEOUT",
+        "activity_service": "HOST_PROBE_TIMEOUT",
+        "system_server_pid": "HOST_PROBE_TIMEOUT",
+        "api": "29",
+        "abi": "x86",
+        "consecutive_healthy_samples": 0
+      },
+      {
+        "elapsed_s": 247.8,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 16646766592,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "5852",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "1",
+        "identity_probe_returncodes": [
+          0,
+          0
+        ],
+        "boot_completed": "1",
+        "package_service": "HOST_PROBE_TIMEOUT",
+        "activity_service": "Service activity: not found",
+        "system_server_pid": "2832",
+        "api": "29",
+        "abi": "x86",
+        "consecutive_healthy_samples": 0
+      },
+      {
+        "elapsed_s": 301.7,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 16681680896,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "5852",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "1",
+        "identity_probe_returncodes": [
+          0,
+          0
+        ],
+        "boot_completed": "1",
+        "package_service": "HOST_PROBE_TIMEOUT",
+        "activity_service": "HOST_PROBE_TIMEOUT",
+        "system_server_pid": "HOST_PROBE_TIMEOUT",
+        "api": "HOST_PROBE_TIMEOUT",
+        "abi": "HOST_PROBE_TIMEOUT",
+        "consecutive_healthy_samples": 0
+      },
+      {
+        "elapsed_s": 366.2,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 16701661184,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "5852",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "HOST_PROBE_TIMEOUT",
+        "identity_probe_returncodes": [
+          0,
+          124
+        ],
+        "identity_not_ready": true
+      },
+      {
+        "elapsed_s": 393.3,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 16683839488,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "5852",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "HOST_PROBE_TIMEOUT",
+        "identity_probe_returncodes": [
+          0,
+          124
+        ],
+        "identity_not_ready": true
+      },
+      {
+        "elapsed_s": 420.4,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 16683642880,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "5852",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "HOST_PROBE_TIMEOUT",
+        "identity_probe_returncodes": [
+          0,
+          124
+        ],
+        "identity_not_ready": true
+      },
+      {
+        "elapsed_s": 447.4,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 16696836096,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "5852",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "HOST_PROBE_TIMEOUT",
+        "identity_probe_returncodes": [
+          0,
+          124
+        ],
+        "identity_not_ready": true
+      },
+      {
+        "elapsed_s": 474.5,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 16695529472,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "5852",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "HOST_PROBE_TIMEOUT",
+        "identity_probe_returncodes": [
+          0,
+          124
+        ],
+        "identity_not_ready": true
+      },
+      {
+        "elapsed_s": 501.6,
+        "host_exit": null,
+        "memory": {
+          "current_bytes": 16687640576,
+          "events": {
+            "low": "0",
+            "high": "0",
+            "max": "5852",
+            "oom": "0",
+            "oom_kill": "0",
+            "oom_group_kill": "0"
+          }
+        },
+        "adb_state": "device",
+        "avd_name": "GartenpiratCloud",
+        "qemu": "HOST_PROBE_TIMEOUT",
+        "identity_probe_returncodes": [
+          0,
+          124
+        ],
+        "identity_not_ready": true
+      }
+    ],
+    "owned_emulator_shutdown": true,
+    "host_oom_kills_after": "0"
+  },
+  "updated_at_utc": "2026-10-27T06:20:57.172519+00:00",
+  "live_guard_readback": {
+    "status": "HOST_TIMEOUT45SECONDS_NO_PASS",
+    "app_actions": 0,
+    "meaning": "The current unhealthy OS did not finish the read-only preflight within the bounded outer diagnostic call; no installation or instrumentation attempted."
+  },
+  "api30_adaptation": {
+    "status": "IN_PROGRESS",
+    "avd_home": "Existing qa-drive-closure-avd",
+    "api": 30,
+    "abi": "x86_64",
+    "system_image_revision": 16,
+    "system_image_minimum_emulator_dependency": "30.8.0",
+    "guest_ram_mib": 2048,
+    "guest_cores": 1,
+    "graphics": "swiftshader",
+    "display_pixels": [
+      720,
+      1280
+    ],
+    "maximum_observation_seconds": 780,
+    "data": "Existing separate synthetic userdata preserved; no snapshots or wipes",
+    "required_health": "8 consecutive samples with boot1, both core services, one stable system_server PID and valid android package path; no app/test PASS from this alone",
+    "driver_sha256": "243c1239a78b64abcce8803a05b937968d9cd4a0c3259dfb1925917f7a6291e3"
+  },
+  "validation_checkpoint": {
+    "cloud_guard_tests": 13,
+    "source_regressions": 51,
+    "release_baseline": "PASS106>observed105; native source fingerprint unchanged",
+    "app_code_changed": false
+  }
 }

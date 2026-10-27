@@ -125,6 +125,10 @@ Pflanzendaten und Webspiegel weiter über `tools/sync_plant_assets.py` führen;
 generierte Spiegel nicht unabhängig ändern. Bestehende Fachverträge erhalten.
 Nur relevante bestehende Prüfungen ausführen; fehlende native/physische oder
 externe Nachweise ausdrücklich offen lassen. Ein Build ist keine Geräteabnahme.
+Nutzerpräzisierung27.10.: Cloudtests mit Emulator bleiben der bevorzugte Weg,
+sobald ein reproduzierbar zuverlässiges Setup tatsächlich nachgewiesen ist.
+Stabilität nicht aus einem Bootflag oder einem einzelnen erfolgreichen Start
+ableiten. Systemfehler nicht als Appfehler oder als bestandene Abnahme ausgeben.
 
 Bei uneindeutiger Datenintegrität, drohendem Verlust einzigartiger Arbeit,
 unklarer Belegautorität oder notwendiger Gateumgehung den betroffenen Schritt

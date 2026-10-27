@@ -61,9 +61,52 @@ class CloudEmulatorGuardTests(unittest.TestCase):
                     runner.require_emulator('unused-adb', 'emulator-5580')
 
     def test_ready_dedicated_emulator_is_accepted(self):
-        with mock.patch.object(runner, 'command', side_effect=['1', 'GartenpiratCloud\nOK', '1']) as command:
+        with mock.patch.object(runner, 'command', side_effect=[
+                '1', 'GartenpiratCloud\nOK', '1', 'Service package: found',
+                'Service activity: found', 'package:/system/framework/framework-res.apk']) as command:
             runner.require_emulator('unused-adb', 'emulator-5580')
-            self.assertEqual(command.call_count, 3)
+            self.assertEqual(command.call_count, 6)
+
+    def test_stale_boot_flag_never_allows_installation_or_instrumentation(self):
+        ready = ['1', 'GartenpiratCloud\nOK', '1']
+        failures = [ready + ['Service package: not found'],
+                    ready + ['Service package: found', 'Service activity: not found'],
+                    ready + ['Service package: found', 'Service activity: found', ''],
+                    ready + ['Service package: found', 'Service activity: found', 'package:'],
+                    ready + ['Service package: found', 'Service activity: found', 'qa_unexpected_output']]
+        args = SimpleNamespace(adb='unused-adb', serial='emulator-5580',
+                               mode='acceptance', apk=None, instrumentation_apk=None)
+        for outputs in failures:
+            with self.subTest(outputs=outputs), mock.patch.object(runner, 'command', side_effect=outputs) as command, \
+                    mock.patch.object(runner.subprocess, 'run') as native:
+                with self.assertRaisesRegex(ValueError, 'Android'):
+                    runner.run(args)
+                native.assert_not_called()
+                self.assertFalse(any('install' in call.args[2] or 'instrument' in call.args[2]
+                                     for call in command.call_args_list))
+
+    def test_package_service_command_failure_stays_fail_closed(self):
+        failure = runner.subprocess.CalledProcessError(1, ['qa_adb'])
+        with mock.patch.object(runner, 'command', side_effect=[
+                '1', 'GartenpiratCloud\nOK', '1', 'Service package: found',
+                'Service activity: found', failure]):
+            with self.assertRaises(runner.subprocess.CalledProcessError):
+                runner.require_emulator('unused-adb', 'emulator-5580')
+
+    def test_framework_death_after_readiness_is_reported_without_raw_device_output(self):
+        for field in ('output', 'stderr'):
+            error = runner.subprocess.CalledProcessError(255, ['qa_adb'],
+                **{field: "cmd: Can't find service: package\nqa_private_diagnostic"})
+            with self.subTest(field=field), mock.patch.object(runner.subprocess, 'run', side_effect=error):
+                with self.assertRaisesRegex(ValueError, 'Android core service disappeared') as failure:
+                    runner.command('qa_adb', 'emulator-5580', ['install', '-r', 'qa.apk'])
+                self.assertNotIn('qa_private_diagnostic', str(failure.exception))
+
+    def test_other_adb_failures_are_not_misclassified_as_framework_death(self):
+        error = runner.subprocess.CalledProcessError(255, ['qa_adb'], stderr='qa_unrelated_failure')
+        with mock.patch.object(runner.subprocess, 'run', side_effect=error):
+            with self.assertRaises(runner.subprocess.CalledProcessError):
+                runner.command('qa_adb', 'emulator-5580', ['shell', 'getprop', 'ro.kernel.qemu'])
 
     def test_process_recovery_kills_only_between_confirmed_phases_and_never_clears_data(self):
         args = SimpleNamespace(adb='unused-adb', serial='emulator-5580')
