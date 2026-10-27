@@ -172,7 +172,7 @@
       "evidence_recorded_at_utc": "2026-10-25T22:06:57.964900+00:00"
     }
   ],
-  "updated_at_utc": "2026-10-27T04:36:17.527155+00:00",
+  "updated_at_utc": "2026-10-27T04:45:38.088279+00:00",
   "development_snapshot": {
     "version_name": "1.55.1",
     "version_code": 106,
@@ -339,7 +339,17 @@
       "configuration_id": "e12633f2-083b-4373-bec4-15f54f592001~cecfg_6acf33fe75d08195a929c819804e82d1",
       "observed_spec_revision": "16",
       "prepared_in": "AGENTS.md#starttext-für-die-bestehende-gartenumgebung",
-      "published_change": "NOT_APPLIED_USER_REPORTS_TINYFISH_LOGIN_NOT_POSSIBLE;CONFIGURATION_CONNECTOR_READ_ONLY"
+      "published_change": "NOT_APPLIED_AUTHENTICATED_BROWSER_CANNOT_LOCATE_TARGET_CONFIGURATION;DIRECT_CONFIGURATION_URL_REQUESTED",
+      "browser_check": {
+        "at_utc": "2026-10-27T04:45:38.088279+00:00",
+        "run_id": "45c23e19-4fa4-4cad-9c67-cdd6b309e206",
+        "status": "COMPLETED_READ_ONLY",
+        "authentication": "ChatGPT session authenticated according to browser inspection",
+        "target_configuration_visible": false,
+        "startup_field_observed": false,
+        "configuration_changes": false,
+        "bootstrap_sha256_utf8_no_trailing_newline": "3dbb03cf74eabd71d5576a4974fae736f6874bee4d099feb17dd23f0974529ed"
+      }
     },
     "unmerged_unique_branch": {
       "ref": "codex/pflanzenbibliothek-20261023",

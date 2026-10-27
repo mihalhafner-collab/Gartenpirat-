@@ -329,9 +329,24 @@
     "github_path": "AGENTS.md#starttext-für-die-bestehende-gartenumgebung",
     "configuration_id": "e12633f2-083b-4373-bec4-15f54f592001~cecfg_6acf33fe75d08195a929c819804e82d1",
     "observed_spec_revision": "16",
-    "status": "NOT_APPLIED_USER_REPORTS_TINYFISH_LOGIN_NOT_POSSIBLE;CONFIGURATION_CONNECTOR_READ_ONLY",
+    "status": "NOT_APPLIED_AUTHENTICATED_BROWSER_CANNOT_LOCATE_TARGET_CONFIGURATION;DIRECT_CONFIGURATION_URL_REQUESTED",
     "sensitive_values_must_remain_unchanged": true,
-    "manual_fallback": "Paste the exact prepared GitHub AGENTS starttext into the existing garden environment configuration; preserve all secret/network/repository values. No local START file can stand in for publishing."
+    "manual_fallback": "Prepared text remains in GitHub AGENTS. Direct configuration access is required; no local START file can stand in for publishing.",
+    "previous_blocker": "User previously reported TinyFish login not possible; subsequent saved Default profile was authenticated in read-only browser inspection.",
+    "browser_inspection": {
+      "at_utc": "2026-10-27T04:45:38.088279+00:00",
+      "run_id": "45c23e19-4fa4-4cad-9c67-cdd6b309e206",
+      "run_url": "https://agent.tinyfish.ai/runs/45c23e19-4fa4-4cad-9c67-cdd6b309e206",
+      "terminal_status": "completed",
+      "read_only": true,
+      "authentication_observed": "Browser reported an authenticated ChatGPT session; no login required",
+      "navigation_result": "Observed https://chatgpt.com/codex/cloud redirected to ChatGPT main page. Target environment/configuration and editable startup instruction field not located.",
+      "target_identity_verified": false,
+      "edit_or_publish_performed": false,
+      "existing_bootstrap_sha256_utf8_no_trailing_newline": "3dbb03cf74eabd71d5576a4974fae736f6874bee4d099feb17dd23f0974529ed",
+      "scope_limits": "No account/plan entitlement inferred; no app business data, secrets, environment settings or setup script changed. Runtime context reports existing configuration revision16, not an editable draft."
+    },
+    "next_required_input": "Direct existing garden environment configuration URL; user requested via text question. No password or further generic login request."
   },
   "risks_and_recovery": {
     "apk_deletion": "Permanent, explicitly requested retirement. No restoration or rebuilding of retired APKs; exact IDs/names/sizes and existing hashes recorded in GitHub.",
