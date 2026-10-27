@@ -6,14 +6,47 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
-## Aktuell: APK1.55.2/107 beauftragt, Bau noch offen
+## Aktuell: Original-APK1.55.2/107 erstellt
 
-Expliziter neuer Nutzerauftrag: aktuellen geprüften Stand als APK erstellen.
-Version über tatsächlich beobachteter106 auf1.55.2/107 gesetzt. Originalpaket und
-Signierweg bleiben erhalten. Erst nach gesichertem Quellcommit und tatsächlichen
-Build-/Signatur-/Artefakt-/Privacyprüfungen als fertig melden. Keine Installation,
-produktive Migration oder Rechnungsfreigabe. Vorbereiteter107-Stand ist noch kein
-gebautes oder abgenommenes Paket; installierte App bleibt beobachtete106.
+Explizit beauftragter Release-Bau aus sauberem, auf GitHub nachgewiesenem
+Quellcommit `eb3df6b884cfcf00b3083ad32e6a957f2e83e85d`, unverändertem Tag
+`source/v1.55.2-build107` und Quellfingerprint
+`ff2a7d7fc78723fce48cc85d6e805b44a43059b7c09b3a8d13fb836dacaf0830`.
+Originalpaket `at.hausgarten.service`, Version1.55.2/107 über beobachteter106,
+minSdk26/targetSdk37, Release ohne Debug/Preview, DB-Schema weiterhin6.
+
+Release-Build und Lint PASS:0Fatal/0Error,103Warnungen im Bericht. Obligatorische
+Vorbuild-/Artefakt-Privacygates PASS. Offizieller Originalsignierer PASS, genau ein
+Originalzertifikat `a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8`;
+finale Signatur und16-KiB-Ausrichtung erneut geprüft. Temporäre Signierordner0.
+64 gezielte synthetische Pythonchecks PASS (45Signierung/13Quellsicherung/6Identität).
+703 Quellassets exakt gleich; beide generierten ART-Profile mit Compileroutput
+abgeglichen. Alle204 aktuellen Produktionsklassen enthalten, alter
+DriveDirectFiles-Transport fehlt weiterhin. Gepackte BuildConfig-Felder im DEX
+geprüft, signierte Nutzlast unverändert zur geprüften unsignierten APK.
+0 operative Startzeilen; keine Betriebsdaten für Entwicklung verwendet.
+Finale Übergabeprüfung: Quelle2362Dateien, gesamter Worktree6212Dateien
+und tatsächlich signierte APK PASS; ignorierte/unversionierte Dateien enthalten.
+Final ergänzte Metadaten nochmals separat geprüft.
+
+[Geprüfte APK herunterladen](https://drive.google.com/file/d/1ylfMaW2PD-F1Cqj7xcVxE3wFAbSWvayc/view?usp=drivesdk)
+im bestehenden privaten Installationsbereich, neuer Versionsunterordner107.
+Dateigröße82891120Bytes, lokaler SHA256
+`7d04665514f7ef3cd62f9ecf3e972cc3c820e0147f7f8db619271c3037f7ba71`.
+Drive-Dateiname/Elternordner/Größe zurückgelesen; vollständiger authentifizierter
+Abruf als Dateireferenz mit derselben Größe gelungen. Unabhängiger Remote-SHA256
+bleibt ausdrücklich offen: Cloud-Proxy verweigert Materialisierung der Dateireferenz
+mit CONNECT403; keine Umgehung. Keine Quellen/Entwicklungsbackups nach Drive.
+
+Paket enthält die bereits geprüfte einheitliche Bedienung, Gerätewartung und
+Startkorrektur;169MCP-Werkzeuge/212UI-Aktionen. Die37Browser-Prüfgruppen und80Java-
+Gruppen der jeweiligen früheren Quellprüfungen bleiben datierte separate Evidenz,
+keine neu behauptete Pixelprüfung. Keine Installation, produktive Migration oder
+Rechnungsfreigabe. Tatsächlicher Datenerhalt beim Update, native Startzeit,
+Pixel-Bedienung und echtes Backup/Restore bleiben gesondert abzuprüfen.
+Installiert beobachtet bleibt106 mit166Werkzeugen; erst nach separat ausgeführtem
+107-Update den tatsächlichen169er-MCP-Katalog abgleichen.
+Beleg: `docs/verification/release-107-2026-10-27.json`.
 
 ## Aktuell: MCP-Katalog der installierten App abgeglichen
 

@@ -1,6 +1,11 @@
 # Aktueller Gartenpirat-Auftrag
 
-## Neuester Auftrag: geprüfte APK jetzt erstellen
+## Neuester Auftrag: Original-APK1.55.2/107 erstellt
+
+Ergebnis: Original-APK1.55.2/107 gebaut, signiert, lokal vollständig geprüft und
+im bestehenden privaten APK-Bereich bereitgestellt. Drive-Größenreadback PASS;
+unabhängiger Remote-SHA wegen Cloud-Proxy403 ausdrücklich offen. Keine Installation
+oder produktive Freigabe. Nachweise im vorhandenen Status und Releasebeleg.
 
 Nutzer beauftragt ausdrücklich den APK-Bau des aktuellen geprüften Quellstands.
 Da die installierte App inzwischen106 meldet, nächste Version1.55.2/107 verwenden;

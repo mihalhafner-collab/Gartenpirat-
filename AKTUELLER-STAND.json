@@ -184,7 +184,7 @@
       "evidence_recorded_at_utc": "2026-10-25T22:06:57.964900+00:00"
     }
   ],
-  "updated_at_utc": "2026-10-27T18:18:37.053470+00:00",
+  "updated_at_utc": "2026-10-27T18:37:27.419604+00:00",
   "development_snapshot": {
     "version_name": "1.55.1",
     "version_code": 106,
@@ -481,5 +481,26 @@
       "worktree_privacy_files": 6003,
       "business_data_or_backup_mutations": false
     }
+  },
+  "current_release_candidate": {
+    "version_name": "1.55.2",
+    "version_code": 107,
+    "status": "ORIGINAL_SIGNED_APK_BUILD_LINT_LOCAL_PRIVACY_PASS;DRIVE_SIZE_READBACK_PASS;REMOTE_SHA_OPEN;PHYSICAL_ACCEPTANCE_OPEN",
+    "app_source_git_sha": "eb3df6b884cfcf00b3083ad32e6a957f2e83e85d",
+    "source_tag": "source/v1.55.2-build107",
+    "source_sha256": "ff2a7d7fc78723fce48cc85d6e805b44a43059b7c09b3a8d13fb836dacaf0830",
+    "apk_sha256": "7d04665514f7ef3cd62f9ecf3e972cc3c820e0147f7f8db619271c3037f7ba71",
+    "apk_bytes": 82891120,
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "tools": 169,
+    "ui_actions": 212,
+    "drive_apk_id": "1ylfMaW2PD-F1Cqj7xcVxE3wFAbSWvayc",
+    "drive_apk_url": "https://drive.google.com/file/d/1ylfMaW2PD-F1Cqj7xcVxE3wFAbSWvayc/view?usp=drivesdk",
+    "drive_folder_id": "1Ki2vWzYvFmJA6ea0QD6UM4PPVT4Hse42",
+    "drive_readback": "NOT_VERIFIED; Cloud proxy CONNECT403 to authenticated file-reference download host; no network-policy bypass attempted",
+    "installation": "NOT_PERFORMED;observed installation remains106",
+    "productive_migration": "NOT_PERFORMED",
+    "invoice_authority": "NOT_ACTIVATED",
+    "evidence": "docs/verification/release-107-2026-10-27.json"
   }
 }

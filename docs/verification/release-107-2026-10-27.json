@@ -1,0 +1,225 @@
+{
+  "format": "gartenpirat.release-artifact.v1",
+  "classification": "PUBLIC_SOURCE",
+  "created_at_utc": "2026-10-27T18:37:27.419604+00:00",
+  "version_name": "1.55.2",
+  "version_code": 107,
+  "scope": "Explicitly requested original APK; source-only and synthetic QA. No operating data read or packaged.",
+  "source": {
+    "repository": "mihalhafner-collab/Gartenpirat-",
+    "git_sha": "eb3df6b884cfcf00b3083ad32e6a957f2e83e85d",
+    "tree_sha": "17676a6667b7fcb8da3da6352cf0ac32ac66e4bc",
+    "tag": "source/v1.55.2-build107",
+    "tag_exact_remote": "PASS",
+    "source_sha256": "ff2a7d7fc78723fce48cc85d6e805b44a43059b7c09b3a8d13fb836dacaf0830",
+    "source_dirty": false,
+    "preservation": {
+      "git_sha": "eb3df6b884cfcf00b3083ad32e6a957f2e83e85d",
+      "remote_refs": [
+        "refs/heads/codex/heute-uebersicht-20261027",
+        "refs/tags/source/v1.55.2-build107"
+      ],
+      "repository": "mihalhafner-collab/Gartenpirat-",
+      "scope": "clean_checkout_and_remote_commit_only",
+      "status": "PASS"
+    }
+  },
+  "build": {
+    "release_assemble": "PASS",
+    "lint_release": "PASS",
+    "lint_counts": {
+      "Fatal": 0,
+      "Error": 0,
+      "Warning": 103,
+      "Information": 0
+    },
+    "compile_sdk": 37,
+    "min_sdk": 26,
+    "target_sdk": 37,
+    "logs_sha256": "bb4a9a217ed2e6996cbed1615a69f6d0f13fe698e50e1921df4fc6dc253d576e",
+    "privacy_gates": [
+      {
+        "stage": "PREBUILD_ONLY",
+        "source_privacy": {
+          "status": "PASS",
+          "files": 2361,
+          "operational_seed_rows": 0
+        },
+        "workspace_privacy": {
+          "status": "PASS",
+          "files": 6222,
+          "includes_ignored_untracked": true,
+          "git_history": "SEPARATE_READONLY_AUDIT"
+        },
+        "artifact_privacy": "NOT_TESTABLE",
+        "secret_values_printed": false
+      },
+      {
+        "stage": "RELEASE_ARTIFACT",
+        "source_privacy": {
+          "status": "PASS",
+          "files": 2361,
+          "operational_seed_rows": 0
+        },
+        "workspace_privacy": {
+          "status": "PASS",
+          "files": 6203,
+          "includes_ignored_untracked": true,
+          "git_history": "SEPARATE_READONLY_AUDIT"
+        },
+        "artifact_privacy": {
+          "status": "PASS",
+          "sha256": "2084457d5f17bcf1a490f36894a9eca3772ff767442b2b0b3759a208ceb25235",
+          "operational_seed_rows": 0
+        },
+        "secret_values_printed": false
+      }
+    ]
+  },
+  "artifact": {
+    "status": "PASS",
+    "sha256": "7d04665514f7ef3cd62f9ecf3e972cc3c820e0147f7f8db619271c3037f7ba71",
+    "bytes": 82891120,
+    "package": "at.hausgarten.service",
+    "version_code": 107,
+    "version_name": "1.55.2",
+    "signature_valid": true,
+    "certificates": [
+      "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8"
+    ],
+    "assets": {
+      "added": [],
+      "removed": [],
+      "changed": [],
+      "unchanged_count": 703,
+      "matches": true,
+      "generated_profiles": {
+        "dexopt/baseline.prof": "b1ec9414186483686ff3dcbe0c94e82e5f037c3939920c8b0e705e52eddc60ea",
+        "dexopt/baseline.profm": "5f41d293e75a4fe84d40b19cc2903e5640e95ce3750f85ccefc673972c08e9ad"
+      }
+    },
+    "source_asset_files": 703,
+    "empty_seed": {
+      "all_business_collections_empty": true,
+      "operational_seed_rows": 0
+    },
+    "zipalign_16k": "PASS",
+    "signed_payload_identical_to_verified_unsigned": true,
+    "private_signing_directory_count": 0,
+    "source_preservation": {
+      "git_sha": "eb3df6b884cfcf00b3083ad32e6a957f2e83e85d",
+      "remote_refs": [
+        "refs/heads/codex/heute-uebersicht-20261027",
+        "refs/tags/source/v1.55.2-build107"
+      ],
+      "repository": "mihalhafner-collab/Gartenpirat-",
+      "scope": "clean_checkout_and_remote_commit_only",
+      "status": "PASS"
+    }
+  },
+  "original_signing": {
+    "status": "SIGNED_NO_INSTALL_OR_UPDATE_ACCEPTANCE",
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "exact_single_original_signer": true,
+    "private_signing_directory_count": 0,
+    "key_values_or_alias_included": false,
+    "signer_final_artifact_privacy": "PASS;official signer completed after final gate"
+  },
+  "packaged_provenance": {
+    "method": "DEX BuildConfig static fields inspected; signed non-signature payload identical to unsigned",
+    "fields": {
+      "APPLICATION_ID": "\"at.hausgarten.service\"",
+      "BUILD_TYPE": "\"release\"",
+      "DEBUG": "false",
+      "GIT_SHA": "\"eb3df6b884cfcf00b3083ad32e6a957f2e83e85d\"",
+      "SOURCE_DIRTY": "false",
+      "SOURCE_SHA256": "\"ff2a7d7fc78723fce48cc85d6e805b44a43059b7c09b3a8d13fb836dacaf0830\"",
+      "UI_PREVIEW": "false",
+      "VERSION_CODE": "107",
+      "VERSION_NAME": "\"1.55.2\""
+    },
+    "current_source_top_level_classes": 204,
+    "retired_drive_direct_transport_absent": true,
+    "startup_ui_packaged": true
+  },
+  "current_tools": 169,
+  "current_ui_actions": 212,
+  "observed_installed_version": "1.55.1/106;not updated by Codex",
+  "observed_bound_tools": 166,
+  "next_mcp_check": "After any separately performed107 installation compare169 installed tool definitions against bound catalog; current166 check remains scoped to106.",
+  "validation": {
+    "python_original_signing": {
+      "passed": 45,
+      "synthetic_only": true
+    },
+    "python_source_preservation": {
+      "passed": 13,
+      "synthetic_only": true
+    },
+    "python_candidate_identity": {
+      "passed": 6,
+      "synthetic_only": true
+    },
+    "current_catalog_and_original_contract": "PASS",
+    "previous_unchanged_source_evidence": [
+      {
+        "commit": "9f3112ec8ade7796b442840ec169606ac83619bc",
+        "evidence": "docs/verification/simple-forms-2026-10-27.json",
+        "scope": "80Java groups and36browser groups for prior unifiedUI/maintenance;not falsely rerun for version-only107"
+      },
+      {
+        "commit": "09ad4f9268bbe2e84051000e3381a1d03b47dcf1",
+        "evidence": "docs/verification/startup-2026-10-27.json",
+        "scope": "37browser groups,10startup cases;Cloud Chromium not Pixel timing"
+      },
+      {
+        "commit": "69d7053b0ce66f03754488709897c9a6f98b9dae",
+        "evidence": "docs/verification/mcp-catalog-diagnosis-2026-10-27.json",
+        "scope": "Discovery106/169,65tunnel cases,1399parity checks"
+      }
+    ]
+  },
+  "delivery": {
+    "id": "1ylfMaW2PD-F1Cqj7xcVxE3wFAbSWvayc",
+    "folder_id": "1Ki2vWzYvFmJA6ea0QD6UM4PPVT4Hse42",
+    "name": "Haus-Garten-1.55.2-107-original-update.apk",
+    "url": "https://drive.google.com/file/d/1ylfMaW2PD-F1Cqj7xcVxE3wFAbSWvayc/view?usp=drivesdk",
+    "size_bytes": 82891120,
+    "metadata_parent_size_name_readback": "PASS",
+    "authenticated_complete_file_fetch": "PASS_STREAMED_REFERENCE_AND_COMPLETE_SIZE",
+    "independent_remote_sha256": "NOT_VERIFIED; Cloud proxy CONNECT403 to authenticated file-reference download host; no network-policy bypass attempted",
+    "source_or_development_backups_uploaded": false
+  },
+  "physical_and_productive": {
+    "installation": "NOT_PERFORMED",
+    "in_place_update_data_retention": "NOT_TESTED",
+    "native_startup_and_ui_acceptance": "NOT_TESTED",
+    "backup_restore_real_end_to_end": "NOT_TESTED",
+    "data_integrity_transition": "OPEN_SEPARATE_GATE",
+    "invoice_authority": "NOT_ACTIVATED",
+    "productive_release_approval": false
+  },
+  "verifier_scope": "Reused its current asset/ART-profile helpers. Historical required DriveDirectFiles class is obsolete and absent from106/107; instead every actual current production source class was required. No production gate skipped.",
+  "no_new_architecture_features_or_data_migration_for_build": true,
+  "final_handoff_privacy": {
+    "stage": "RELEASE_ARTIFACT",
+    "source_privacy": {
+      "status": "PASS",
+      "files": 2362,
+      "operational_seed_rows": 0
+    },
+    "workspace_privacy": {
+      "status": "PASS",
+      "files": 6212,
+      "includes_ignored_untracked": true,
+      "git_history": "SEPARATE_READONLY_AUDIT"
+    },
+    "artifact_privacy": {
+      "status": "PASS",
+      "sha256": "7d04665514f7ef3cd62f9ecf3e972cc3c820e0147f7f8db619271c3037f7ba71",
+      "operational_seed_rows": 0
+    },
+    "secret_values_printed": false,
+    "final_changed_metadata_rechecked": "PASS"
+  }
+}

@@ -489,6 +489,28 @@
       "current_source_storage": "GITHUB_IMMUTABLE_TAG",
       "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
       "version_reference_status": "RETAINED_ORIGINAL_REMOTE_READBACK_VERIFIED"
+    },
+    {
+      "version": "1.55.2",
+      "build": 107,
+      "status": "ORIGINAL_SIGNED_BUILD_LINT_LOCAL_PRIVACY_PASS;DRIVE_SIZE_READBACK_PASS;REMOTE_SHA_OPEN;PHYSICAL_ACCEPTANCE_OPEN",
+      "tag": "source/v1.55.2-build107",
+      "git_sha": "eb3df6b884cfcf00b3083ad32e6a957f2e83e85d",
+      "tree_sha": "17676a6667b7fcb8da3da6352cf0ac32ac66e4bc",
+      "source_sha256": "ff2a7d7fc78723fce48cc85d6e805b44a43059b7c09b3a8d13fb836dacaf0830",
+      "apk_sha256": "7d04665514f7ef3cd62f9ecf3e972cc3c820e0147f7f8db619271c3037f7ba71",
+      "apk_bytes": 82891120,
+      "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+      "current_source_storage": "GITHUB_IMMUTABLE_SOURCE_TAG;NO_DRIVE_SOURCE_COPY",
+      "drive_folder_id": "1Ki2vWzYvFmJA6ea0QD6UM4PPVT4Hse42",
+      "drive_apk_id": "1ylfMaW2PD-F1Cqj7xcVxE3wFAbSWvayc",
+      "drive_apk_url": "https://drive.google.com/file/d/1ylfMaW2PD-F1Cqj7xcVxE3wFAbSWvayc/view?usp=drivesdk",
+      "remote_readback": "PASS exact GitHub source commit/tag",
+      "drive_readback": "PASS complete streamed file reference and82891120byte metadata;independent remoteSHA NOT_VERIFIED dueCloud proxy403",
+      "device_acceptance": "NOT_EXECUTED",
+      "released": false,
+      "download_provided": true,
+      "evidence": "docs/verification/release-107-2026-10-27.json"
     }
   ],
   "last_drive_cleanup": {
