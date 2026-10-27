@@ -15,8 +15,10 @@
       "remote_readback": "PASS",
       "drive_zip_id": "14PwvVo4DGTa9r7zh-OYxKucKzjuWxqsh",
       "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB",
-      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
-      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
+      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
     },
     {
       "version": "1.54.1",
@@ -32,8 +34,10 @@
       "remote_readback": "PASS",
       "drive_zip_id": "1C945yeV6Z0SgQQMBqK-GFtJS2a0zrIFW",
       "drive_readback": "COMPLETE_STREAM_SIZE_ONLY; ORIGINAL_SOURCE_BYTES_VERIFIED_ON_GITHUB",
-      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
-      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
+      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
     },
     {
       "version": "1.53.1",
@@ -49,8 +53,10 @@
       "drive_readback": "HISTORICAL_EXPORT_RECEIPT; SOURCE_BYTES_VERIFIED_IN_GIT",
       "git_sha": "dc394b5796fbcb268533a8d8951fe05a829956df",
       "remote_readback": "PASS",
-      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
-      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
+      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
     }
   ],
   "candidates": [
@@ -72,8 +78,10 @@
       "remote_readback": "PASS",
       "device_acceptance": "NOT EXECUTED",
       "drive_folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
-      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
-      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
+      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
     },
     {
       "version": "1.54.3",
@@ -94,8 +102,10 @@
       "drive_readback": "18 source files SHA256_BYTES; original ZIP/APK COMPLETE_STREAM_SIZE_ONLY",
       "historical_drive_folder_id": "1pzAVZQcxcvYEqbEYYzZXKg7cNm0qllw_",
       "drive_folder_id_availability": "AVAILABLE_PRIVATE_APK_PARENT_AFTER_CONSOLIDATION;HISTORICAL_PARENT_REMOVED",
-      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
-      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
+      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
     },
     {
       "version": "1.54.4",
@@ -120,8 +130,10 @@
       "drive_folder_id_availability": "AVAILABLE_PRIVATE_APK_PARENT_AFTER_CONSOLIDATION;HISTORICAL_PARENT_REMOVED",
       "historical_development_export_folder_id": "1kE3pqZns1XOrPSM7SZ2V7sMVAEIdFOjv",
       "development_export_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
-      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
-      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
+      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
     },
     {
       "version": "1.54.5",
@@ -151,8 +163,10 @@
       "development_export_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
       "historical_drive_provenance_id": "1QKvtz_IY9N-vg3WYoOAmdSqpjy20X1lY",
       "drive_provenance_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
-      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
-      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
+      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
     },
     {
       "version": "1.54.6",
@@ -180,8 +194,10 @@
       "development_export_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
       "historical_drive_verification_id": "1F_vDQOOnO_W84u879Penqi9VWzcmT_kp",
       "drive_verification_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
-      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
-      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
+      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
     },
     {
       "version": "1.54.7",
@@ -212,8 +228,10 @@
       "development_export_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
       "historical_drive_verification_id": "1UZJh4BhsZGZWez1hiLRo2w_X9skKKZZf",
       "drive_verification_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
-      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
-      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
+      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
     },
     {
       "version": "1.54.8",
@@ -248,8 +266,10 @@
       "drive_verification_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
       "historical_drive_report_id": "13butggb-KowkX0uVrOsB_dO14UYVzrNa",
       "drive_report_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
-      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
-      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
+      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
     },
     {
       "version": "1.54.9",
@@ -292,8 +312,10 @@
       "source_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
       "historical_development_export_folder_id": "1sNafTvi2E2RtlfGpSiR_O3yo5D_IlN4u",
       "development_export_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
-      "current_source_storage": "GITHUB_IMMUTABLE_TAG",
-      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
+      "current_source_storage": "GITHUB_HISTORICAL_COMMIT_AFTER_REF_RETIREMENT",
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
+      "version_reference_status": "RETIRE_PLANNED_PRE_REVIER_SOLO",
+      "retirement_evidence": "docs/verification/revier-version-retention-2026-10-27.json"
     },
     {
       "version": "1.55.0",
@@ -397,7 +419,8 @@
       "historical_source_folder_id": "15nuOA815cOg54nhlCZq9U3ROCQiy7lea",
       "source_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
       "current_source_storage": "GITHUB_IMMUTABLE_TAG",
-      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
+      "version_reference_status": "RETAIN"
     },
     {
       "version": "1.55.1",
@@ -445,7 +468,8 @@
       "historical_source_folder_id": "1ZRL0poCxcagmVMN3-TJLoW0F4_fjVDZi",
       "source_folder_id_availability": "REMOVED_AFTER_VERIFIED_GITHUB_DEDUPLICATION",
       "current_source_storage": "GITHUB_IMMUTABLE_TAG",
-      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4"
+      "drive_historical_evidence_folder_id": "1048ulp1uC8Oj3ewqKc8JQEl4IaiRNLM4",
+      "version_reference_status": "RETAIN"
     }
   ],
   "last_drive_cleanup": {
@@ -496,5 +520,11 @@
       "release_identity_and_acceptance_unchanged": true,
       "protection_flags_removed": 0
     }
+  },
+  "version_retention": {
+    "minimum_build_inclusive": 99,
+    "status": "PRE99_TAG_RETIREMENT_PLANNED_ORIGINAL_METADATA_PRESERVED",
+    "evidence": "docs/verification/revier-version-retention-2026-10-27.json",
+    "release_approval_unchanged": true
   }
 }

@@ -295,6 +295,19 @@ def cleanup_export_cache(cache, records, now=None, apply=False):
     return {'files': removed, 'applied': apply}
 
 
+def retained_original_sources(catalog, policy):
+    """Select retained originals without granting release or device approval."""
+    minimum = policy.get('version_retention_decision', {}).get('minimum_build_inclusive')
+    if type(minimum) is not int or minimum < 1:
+        raise ValueError('Explicit source retention boundary required')
+    originals = catalog.get('releases', []) + catalog.get('candidates', [])
+    retained = [row for row in originals
+                if type(row.get('build')) is int and row['build'] >= minimum]
+    if not retained:
+        raise ValueError('No retained original sources available')
+    return sorted(retained, key=lambda row: row['build'])
+
+
 def restore_check(releases, git=git_bytes):
     """Actually restore ZIP bytes from each pinned Git tree and verify contents."""
     results = []
@@ -330,13 +343,19 @@ def main():
     if args.command == 'check':
         print(json.dumps(verify_preserved_source(ROOT)))
     elif args.command == 'restore-check':
-        releases = json.loads((ROOT / 'source-releases.json').read_text())['releases']
-        print(json.dumps(restore_check(releases)))
+        catalog = json.loads((ROOT / 'source-releases.json').read_text())
+        print(json.dumps(restore_check(retained_original_sources(catalog, policy))))
     elif args.command == 'clean-local':
         if not args.registry:
             parser.error('Explicit local artifact registry required')
         registry = json.loads(args.registry.read_text())
-        result = {'generated': cleanup_local(ROOT, registry.get('local_files', []), apply=args.apply, retained_builds=policy['keep_builds'])}
+        records = registry.get('local_files', [])
+        minimum = policy.get('version_retention_decision', {}).get('minimum_build_inclusive')
+        retained = set(policy['keep_builds'])
+        if type(minimum) is int and minimum > 0:
+            retained.update(item['build'] for item in records
+                            if type(item.get('build')) is int and item['build'] >= minimum)
+        result = {'generated': cleanup_local(ROOT, records, apply=args.apply, retained_builds=retained)}
         if registry.get('export_cache'):
             result['exports'] = cleanup_export_cache(registry['export_cache'], registry.get('local_exports', []), apply=args.apply)
         print(json.dumps(result))

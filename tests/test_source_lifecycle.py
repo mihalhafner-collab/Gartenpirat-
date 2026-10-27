@@ -10,6 +10,7 @@ from unittest import mock
 import zipfile
 
 from tools import source_lifecycle as life
+from bootstrap_contract import BOOTSTRAP
 
 
 class SourceLifecycleTests(unittest.TestCase):
@@ -156,6 +157,51 @@ class SourceLifecycleTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 life.cleanup_local(self.root, [{'path': name}], self.now, apply=True)
         self.assertTrue(outside.exists())
+
+    def test_restore_selection_excludes_retired_sources_without_promoting_candidates(self):
+        catalog = {'releases': [{'build': 90}], 'candidates': [
+            {'build': 98}, {'build': 99, 'release_approved': False},
+            {'build': 106, 'release_approved': False}]}
+        before = copy.deepcopy(catalog)
+        policy = {'version_retention_decision': {'minimum_build_inclusive': 99}}
+        retained = life.retained_original_sources(catalog, policy)
+        self.assertEqual([row['build'] for row in retained], [99, 106])
+        self.assertTrue(all(row['release_approved'] is False for row in retained))
+        self.assertEqual(catalog, before)
+
+    def test_restore_selection_requires_an_explicit_boundary_and_retained_sources(self):
+        for minimum in (None, False, 0, -1, '99'):
+            with self.assertRaises(ValueError):
+                life.retained_original_sources({'releases': [{'build': 90}]},
+                    {'version_retention_decision': {'minimum_build_inclusive': minimum}})
+        with self.assertRaises(ValueError):
+            life.retained_original_sources({'releases': [{'build': 90}]},
+                {'version_retention_decision': {'minimum_build_inclusive': 99}})
+
+    def test_cli_cleanup_preserves_boundary_and_future_apks(self):
+        (self.root / 'outputs').mkdir()
+        records = []
+        for build in (98, 99, 107):
+            path = self.root / f'outputs/qa_build{build}.apk'
+            with zipfile.ZipFile(path, 'w') as archive:
+                archive.writestr('qa_marker.txt', b'QA_SYNTHETIC_ARTIFACT')
+                archive.writestr('assets/initial-data.json', json.dumps(BOOTSTRAP))
+            records.append({'path': str(path.relative_to(self.root)), 'build': build,
+                'role': 'apk_retired', 'classification': 'PUBLIC_ARTIFACT',
+                'completed': True, 'replacement_verified': True,
+                'retired_at': '2020-01-01T00:00:00Z',
+                'sha256': life.digest(path.read_bytes())})
+        policy = {**self.policy, 'keep_builds': [99, 105, 106],
+                  'version_retention_decision': {'minimum_build_inclusive': 99}}
+        (self.root / 'source-lifecycle.json').write_text(json.dumps(policy))
+        registry = self.root / 'qa_registry.json'
+        registry.write_text(json.dumps({'local_files': records}))
+        with mock.patch.object(life, 'ROOT', self.root), mock.patch('sys.stdout', new_callable=io.StringIO), \
+                mock.patch('sys.argv', ['source_lifecycle', 'clean-local', '--registry', str(registry), '--apply']):
+            life.main()
+        self.assertFalse((self.root / 'outputs/qa_build98.apk').exists())
+        self.assertTrue((self.root / 'outputs/qa_build99.apk').is_file())
+        self.assertTrue((self.root / 'outputs/qa_build107.apk').is_file())
 
     def test_restore_checks_pinned_remote_tag_and_original_source_bytes(self):
         files = {'android/app/build.gradle': b'// QA build', 'qa_source.py': b'QA_SOURCE = True\n'}

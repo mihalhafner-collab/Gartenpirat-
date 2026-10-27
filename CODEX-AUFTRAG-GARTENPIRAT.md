@@ -10,9 +10,13 @@ Bereitstellung einer fertig erstellten, geprüften APK für die Paketinstallatio
 Die verschlüsselte App-Sicherungsfunktion bleibt davon getrennt erhalten.
 
 Anschließend Repositorystruktur und alte Quellstände prüfen und bereinigen,
-aktuelle Informationen nachvollziehbar zusammenführen. Die Angabe „bis zur
-derzeit 2ältesten Version“ ist vor Versionslöschung zu klären; bis zur Antwort
-keine Tags/Quellversionen nach angenommener Aufbewahrungsgrenze entfernen.
+aktuelle Informationen nachvollziehbar zusammenführen. Nutzerklärung vom27.10.:
+APKs **ab Umstellung Revier Solo behalten**, ältere entfernen. Die Quellgrenze ist
+1.55.0/Build99 (`00974518426e1a2bdfcb07c5eba1223071a49ca3`); vorhandene
+Pakete ab99 bleiben, ältere administrative APKs und Versionsreferenzen entfallen.
+Git-Historie und historische Nachweise erhalten; keine Betriebsdaten-/Backuplöschung.
+Den vorbereiteten Cloud-Starttext in die bestehende Gartenumgebung übernehmen;
+Benutzer hat die sichere ChatGPT-Anmeldung im Cloudbrowser beauftragt.
 
 ## Konkrete Arbeit und Abnahme
 
@@ -29,7 +33,7 @@ keine Tags/Quellversionen nach angenommener Aufbewahrungsgrenze entfernen.
 5. Überholte Dokumente/Launcher nur bei geprüften Abhängigkeiten aus dem aktiven
    Baum entfernen. Vollständige Fassungen mit festen Git-Commitlinks erhalten;
    aktuelle Zusammenfassungen führen, keine parallele Regelzentrale erzeugen.
-6. Versionsreferenzen nach geklärter Grenze bereinigen. Eingebaute Fachfunktionen,
+6. Versionsreferenzen vor Build99 nach belegter Git-Historienerhaltung bereinigen. Eingebaute Fachfunktionen,
    aktive Schutzprüfungen, benötigte Tests und Fixtures sind keine alten Kopien.
 7. Relevante bestehende Source-/Workflow-/Signierbaseline-Prüfungen sowie Privacy
    und Links/Referenzen prüfen. Commit, Push und exakten GitHub-Read-back liefern.
