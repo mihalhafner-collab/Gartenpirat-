@@ -9,7 +9,15 @@ In der verwalteten Cloud auch die vorgegebenen Proxy-/CA-Einstellungen für die
 Gradle-JVM verwenden; Java übernimmt HTTP-Proxy-Umgebungsvariablen nicht selbst.
 Vorhandene Abhängigkeiten können bei vollständigem Cache offline verwendet werden.
 
-## Vor und nach einer Änderung
+## Testreihenfolge im laufenden Auftrag
+
+Die ausdrückliche Nutzerpräzisierung vom 28.10.2026 hat für den laufenden Umbau
+Vorrang: Etappen 3–5 und vereinbarte kleine Ergänzungen zuerst im Quellcode
+umsetzen, anschließend gemeinsam testen. Bis dahin keine weiteren Testläufe
+starten. Bereits vorhandene Ausgangsmessungen erhalten. Zwischenstände sind
+ungetestet; die folgenden Befehle beschreiben den anschließenden Prüflauf.
+
+## Gemeinsame Quellprüfung nach dem Umbau
 
 ```sh
 python3 -B tools/check_current.py
@@ -68,6 +76,151 @@ synthetischen Hilfsklassen bleiben nur erhalten, soweit die aktuellen Werkzeuge
 sie brauchen. Vor einer späteren Umstellung der bisherigen Abläufe sind ein
 aktueller nativer Testeinstieg und die betroffenen Pixel-Prüfungen gesondert nötig.
 Quellprüfungen, Kompilierung und JVM-/Browsertests sind getrennte Nachweise.
+
+## ADB-Analyse und Lese-/Schreibtests über den Laptop
+
+Vom Nutzer am 28.10.2026 ausdrücklich als Testweg freigegeben, einschließlich
+Lesen und Schreiben. Ausführung erst nach der oben festgelegten Umsetzung.
+Der Windows-Laptop wird konkret als USB-/ADB-Verbindung zum Pixel benötigt;
+Android Studio, lokale Builds und ein Emulator sind dafür nicht erforderlich.
+Quellarbeit und Auswertung möglichst in der Cloud belassen. Eine Cloud-Sitzung
+besitzt durch eine lokale USB-Verbindung nicht automatisch Zugriff auf ADB.
+Den tatsächlichen Ausführungsort und die erreichbare Verbindung feststellen.
+
+### Verbindung und eindeutig gebundener Test
+
+Vorhandene Android Platform Tools und die bewusst bestätigte Gerätefreigabe
+verwenden. `adb devices -l` lokal zur Auswahl lesen; keine Seriennummern in GitHub
+übernehmen. Bei mehreren Geräten immer die konkrete Auswahl `-s` verwenden.
+Keinen offenen ADB-Port ins Internet stellen. Keine Verbindung, `offline` oder
+`unauthorized` bedeutet **NICHT AUSGEFÜHRT**, nicht PASS.
+
+PowerShell, lokal auf dem verbundenen Laptop:
+
+```powershell
+$gpAdb = 'adb'
+& $gpAdb devices -l
+$gpSerial = Read-Host 'Seriennummer des ausdrücklich ausgewählten Testgeräts'
+& $gpAdb -s $gpSerial get-state
+& $gpAdb -s $gpSerial shell getprop ro.build.version.release
+& $gpAdb -s $gpSerial shell getprop ro.build.version.sdk
+& $gpAdb -s $gpSerial shell dumpsys package at.hausgarten.service |
+  Select-String '^\s*versionCode=|^\s*versionName='
+& $gpAdb -s $gpSerial shell wm size
+& $gpAdb -s $gpSerial shell wm density
+& $gpAdb -s $gpSerial shell settings get system font_scale
+```
+
+Vor einem schreibenden **App-Test** müssen exakte Quell-/APK-Version, Paketkennung,
+Testfall und synthetischer Bestand feststehen. Kein Import von Produktivdaten in
+Testprofile. Keine zweite operative App oder Datenbank einführen. Die bestehende
+Installation nicht durch eine ungeprüfte Test-APK ersetzen. Die allgemeine
+ADB-Testfreigabe setzt weder Installations- noch Rechnungs-/Migrationsgates außer
+Kraft. Ein bloßes `test_record`-Flag beweist keine Isolation eines echten Bestands.
+Die neue native Testanbindung muss einen eigenen temporären synthetischen
+Datenbestand verwenden; der bisher ausgeschlossene historische Instrumentierungslauf
+ist dadurch nicht wieder freigegeben.
+
+### Prüfen des ADB-Lese-/Schreibtransports
+
+Die folgenden Schritte schreiben ausschließlich eine neu erzeugte synthetische
+Prüfdatei in ein neues Verzeichnis unter `/data/local/tmp`, lesen genau diese Datei
+zurück und vergleichen Größe und SHA256. Das ist ein Transporttest, kein Nachweis
+für App-Speichern, SQLite, Backup oder Restore. Der Verzeichnisname wird vom Gerät
+erzeugt und geprüft; es werden keine vorhandenen Appdateien gelesen oder gelöscht.
+
+```powershell
+$gpTestDir = (& $gpAdb -s $gpSerial shell mktemp -d /data/local/tmp/qa_gartenpirat_XXXXXXXX).Trim()
+if ($LASTEXITCODE -ne 0 -or $gpTestDir -notmatch '^/data/local/tmp/qa_gartenpirat_[A-Za-z0-9]+$') {
+  throw 'Kein eindeutiges neues ADB-Testverzeichnis; Schreibtest nicht begonnen.'
+}
+$gpLocal = Join-Path ([IO.Path]::GetTempPath()) ('qa_gartenpirat_' + [Guid]::NewGuid().ToString('N'))
+[IO.Directory]::CreateDirectory($gpLocal) | Out-Null
+$gpSource = Join-Path $gpLocal 'probe.bin'
+$gpReadback = Join-Path $gpLocal 'readback.bin'
+$gpBytes = [Text.Encoding]::UTF8.GetBytes(('SYNTHETIC_GARTENPIRAT_ADB_0123456789' * 4096))
+[IO.File]::WriteAllBytes($gpSource, $gpBytes)
+try {
+  & $gpAdb -s $gpSerial push $gpSource "$gpTestDir/probe.bin"
+  if ($LASTEXITCODE -ne 0) { throw 'ADB-Schreiben fehlgeschlagen.' }
+  & $gpAdb -s $gpSerial pull "$gpTestDir/probe.bin" $gpReadback
+  if ($LASTEXITCODE -ne 0) { throw 'ADB-Rücklesen fehlgeschlagen.' }
+  $gpExpected = (Get-FileHash -Algorithm SHA256 $gpSource).Hash
+  $gpActual = (Get-FileHash -Algorithm SHA256 $gpReadback).Hash
+  if ($gpExpected -ne $gpActual -or (Get-Item $gpReadback).Length -ne $gpBytes.Length) {
+    throw 'ADB-Rücklesen: Inhalt oder Größe abweichend.'
+  }
+  [PSCustomObject]@{ scope='SYNTHETIC_ADB_TRANSPORT'; bytes=$gpBytes.Length; sha256=$gpActual; result='PASS' }
+} finally {
+  & $gpAdb -s $gpSerial shell rm -f "$gpTestDir/probe.bin"
+  & $gpAdb -s $gpSerial shell rmdir $gpTestDir
+  Remove-Item -LiteralPath $gpSource -ErrorAction SilentlyContinue
+  Remove-Item -LiteralPath $gpReadback -ErrorAction SilentlyContinue
+  Remove-Item -LiteralPath $gpLocal -ErrorAction SilentlyContinue
+}
+```
+
+Bei Verbindungsabbruch den bekannten erzeugten Testpfad zur gezielten späteren
+Bereinigung behalten. Kein pauschales `rm -rf`, `pm clear`, Löschen der Appdaten,
+Zurücksetzen von Rechnungszählern oder Überschreiben einer produktiven Datenbank.
+
+### Messwerte während der synthetischen App-Testfälle
+
+Dieselben sechs Bedienwege wie in Etappe 1, mit demselben Fixture und mindestens
+40 Wiederholungen je vergleichbarer Variante. Kalte Starts und warme Wechsel
+getrennt messen. Vor jedem Vergleich Build, Schriftgröße, Anzeige, Energielage,
+thermischen Zustand und Hintergrundlast festhalten. Neustart-/Abbruch-/Restoretests
+schreiben ausschließlich in den expliziten synthetischen Testbestand.
+
+Gezielte Abfragen, ohne Rohprotokolle im Repository zu speichern:
+
+```powershell
+& $gpAdb -s $gpSerial shell dumpsys meminfo at.hausgarten.service |
+  Select-String '^\s*(Native Heap|Dalvik Heap|Java Heap|Graphics|Stack|Code|Private Other|System|TOTAL|TOTAL PSS|TOTAL RSS|TOTAL SWAP PSS|Views:|AppContexts:|Local Binders:|SQL|MEMORY_USED:|PAGECACHE_OVERFLOW:|MALLOC_SIZE:)'
+& $gpAdb -s $gpSerial shell dumpsys cpuinfo |
+  Select-String '^\s*[0-9.]+%\s+\d+/at\.hausgarten\.service(?:\s|:|/)'
+& $gpAdb -s $gpSerial shell dumpsys gfxinfo at.hausgarten.service framestats |
+  Where-Object { $_ -match '^Flags,|^\d+(,\d+)+,?$|^\s*(Total frames rendered:|Janky frames:|\d+th percentile:)' }
+```
+
+`gfxinfo ... reset` ist als schreibender Messzugriff freigegeben, wenn bewusst
+ein neues Messfenster begonnen wird; vor dem Reset benötigte Werte erhalten.
+Keine ungefilterten `logcat`-/Bugreport-/Heap-/Bildschirm-/UI-Hierarchy-Abzüge.
+SQL-Zeit, Abfragezahl, gelesene Zeilen/Bytes und Vollsnapshotzähler aus der
+synthetischen Instrumentierung erfassen, ohne SQL-Argumente oder Datensätze zu
+protokollieren. Die schon vorhandenen nativen Messpuffer für `getState`, `ownerCall`
+und `getWorkSession` sowie die Browserwerte für `render`/Seitenwechsel auswerten,
+sobald der aktuelle native Testeinstieg sie liefert. Fehlende Werte als fehlend
+ausweisen; ADB-Übertragungszeit ist keine Bridge- oder UI-Laufzeit.
+
+Bei `framestats` nur gültige, vollständige Frames auswerten; nicht abgeschlossene,
+markierte oder doppelt gelesene Frames getrennt zählen. Die Framezeit aus
+`FrameCompleted - IntendedVsync` berechnen. Variable Bildwiederholrate beachten;
+kein pauschales 16-ms-Limit als Gerätebeweis. `gfxinfo` allein deckt bei WebView
+nicht jeden Renderer-/Compositorpfad ab. Speicherwerte PSS, RSS, privat und Swap
+unterscheiden; mehrere Messpunkte statt eines Einzelwerts verwenden. CPU-Messungen
+mit anderem Zeitfenster oder anderem Prozessumfang nicht direkt vergleichen.
+
+### Ergebnisse in Verbesserungen überführen
+
+Alle nutzbaren, datensparsamen Testbefunde zusammenführen: fachliche Ergebnisse,
+Fehler-/Abbruchpfade, Hash-/Anzahlvergleiche, Lese-/Schreibumfang, Ausreißer,
+Speicherverlauf, CPU und Bildaufbau. Je Befund konkrete Quellstelle, Hypothese,
+kleinste passende Änderung und denselben Nachtest nennen. Keine Funktionen auf
+Vorrat. Zuerst Regressions-/Integritätsfehler beheben, dann belegte Engpässe.
+Jede Verbesserung gegen die ursprünglichen Fach- und Schutzregeln prüfen.
+
+Der abschließende Beleg unter `docs/verification/` enthält pro Bedienweg Mittelwert,
+P95 und Mittelwert der langsamsten 5 %, Stichprobenzahl, Bedingungen, Messgrenzen
+und Fehler. Cloud-Browser, JVM/SQLite, Emulator, ADB-Transport und physischer Pixel
+werden getrennt ausgewiesen. Aus bislang ungemessenen Änderungen keinen Gewinn
+ableiten. Fehlt eine vergleichbare Geräte-Vorhermessung, den ersten Gerätelauf als
+Ausgangsmessung führen; alte/produktive Daten nicht zur Vergleichbarkeit zurückspielen.
+
+Offizielle Grundlagen (gelesen am 28.10.2026):
+[Android Debug Bridge](https://developer.android.com/tools/adb),
+[dumpsys: Speicher und Framezeiten](https://developer.android.com/tools/dumpsys),
+[AndroidJUnitRunner](https://developer.android.com/training/testing/instrumented-tests/androidx-test-libraries/runner).
 
 ## Codex-Regeln neu einlesen
 

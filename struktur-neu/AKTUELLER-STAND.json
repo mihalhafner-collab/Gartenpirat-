@@ -48,21 +48,39 @@
   ],
   "current_task": {
     "name": "Geschwindigkeit und schlanker Umbau: Etappen 1/2 auf Build113 prüfen, danach Etappen 3–5 nacheinander",
-    "status": "STAGES_1_2_REVERIFIED;STAGE3_PLAN_READY_BACKUP_REQUIREMENT_UNRESOLVED;STAGES_3_5_NOT_IMPLEMENTED",
+    "status": "STAGE3_STORAGE_BOUNDARY_IN_PROGRESS;STAGES_4_5_PENDING;FURTHER_TESTS_DEFERRED_BY_USER",
     "authorized": true,
     "specification": "../CODEX-AUFTRAG-GARTENPIRAT.md",
     "verification": "docs/verification/performance-build113.md",
     "basis": "1.55.8 / Build113; user clarification 2026-10-28",
-    "authorization_scope": "Current user source-work request; no installation, productive migration, restore or invoice authority; explicit stage prerequisites preserved"
+    "authorization_scope": "Current user source-work request; no installation, productive migration, restore or invoice authority; explicit stage prerequisites preserved",
+    "latest_user_directives": {
+      "date": "2026-10-28",
+      "source_implementation_explicitly_confirmed": true,
+      "backup_present": "USER_CONFIRMED;archive protection, readback and restore not independently verified",
+      "adb": "READ_AND_WRITE_FOR_SYNTHETIC_TESTING_AUTHORIZED; laptop as connection host",
+      "test_order": "NO_MORE_TEST_RUNS_UNTIL_STAGE3_TO_STAGE5_AND_AGREED_SMALL_CHANGES_IMPLEMENTED",
+      "productive_data_for_testing": false
+    },
+    "test_environment_access": {
+      "adb_client": "NOT_AVAILABLE_IN_CLOUD",
+      "adb_server_configuration": "ABSENT",
+      "local_adb_server_5037": "NOT_REACHABLE",
+      "physical_device_test": "NOT_EXECUTED",
+      "laptop_remote_shell": "NOT_AVAILABLE"
+    },
+    "implementation_checkpoint": "WIP_SOURCE_ONLY;not a completed stage and not a release candidate"
   },
   "open_checks": [
-    "Etappe3: Widerspruch klären – aktuelle Vorgabe verlangt verschlüsseltes Backup vor Tabellenübernahme, Build113 verwendet PIXEL_PLAINTEXT_ZIP; keine stillschweigende Regeländerung",
-    "Etappe3: Tabellenadapter, bewusste Übernahme, Abbruch/Neustart/Restore und verlustfreier Rückweg noch nicht implementiert oder abgenommen",
-    "Etappe4: nach Etappe3 je Bildschirm Heute → Kunden → Büro separat Funktionsliste, Umbau, Abnahme und Remote-Sicherung",
+    "Vor produktiver Tabellenübernahme den passenden vollständigen Sicherungsnachweis und Schutzart prüfen; Nutzer bestätigt Backup vorhanden, keine unabhängige Archiv-/Restoreprüfung",
+    "Etappe3: BusinessTableStore und SQLite-Anbindung begonnen, ohne aktive Umschaltung; produktive Leser/Schreiber, Sicherung/Restore, Abnahme und Rückweg-Integration noch offen",
+    "Etappe4: Heute → Kunden → Büro nacheinander umsetzen; Tests nach neuer Nutzeranweisung gemeinsam nach Etappen3–5",
     "Etappe5: geschützte Altlasten erst nach ausdrücklicher Nutzerbestätigung von Pixel-Backup und Restore sowie Abhängigkeitsnachweis entfernen",
     "Build113 auf dem Pixel speichern und wiederherstellen: nicht nachgewiesen",
     "Native Android-/SQLite-/Pixel-Leistung und Geräteabnahme nicht ausgeführt",
-    "Produktive Integrität und Rechnungsautorität: keine neue Freigabe"
+    "Produktive Integrität und Rechnungsautorität: keine neue Freigabe",
+    "ADB: In dieser Cloud kein adb-Client, kein konfigurierter ADB-Server und kein erreichbarer lokaler Server; keine Gerätezugriffe ausgeführt",
+    "Neue Quelländerungen noch NICHT GETESTET; Testläufe erst nach der vom Nutzer festgelegten Implementierungsfolge"
   ],
   "workflow": {
     "scope": "PARALLEL_STAGING; existing source paths and workflows unchanged",
@@ -104,19 +122,13 @@
     "Separater alter Python-/Drive-Geschäftsserver"
   ],
   "validation": {
-    "app_source_fingerprint": "MATCHES_BUILD113",
-    "android_release_java_compilation": "PASS; no APK built",
-    "python_tests_passed": 54,
-    "jvm_suites_passed": 3,
-    "jvm_checks_passed": 164,
-    "browser_suites_passed": 5,
+    "app_source_fingerprint": "CHANGED_AFTER_BUILD113;WIP_NOT_TESTED",
     "native_pixel_tests": "NOT_EXECUTED",
     "source_privacy": "PASS",
     "business_data_read": false,
     "installation_performed": false,
     "authored_changes_diff_check": "PASS",
     "imported_source_whitespace": "2 existing findings in byte-identical Build113 sources; no unrelated source formatting applied",
-    "current_python_tests_passed": 62,
     "current_performance_review": {
       "date": "2026-10-28",
       "source_commit": "bd25fa9b9cc1ea183974c5d2434ef11f56b4d12a",
@@ -132,7 +144,34 @@
       "android_build": "NOT_EXECUTED",
       "jvm_suites": "NOT_EXECUTED",
       "report": "docs/verification/performance-build113.md"
-    }
+    },
+    "current_source_changes": {
+      "status": "IN_PROGRESS_NOT_TESTED",
+      "scope": "Stage3 row-storage boundary; no production entry point or automatic migration",
+      "pixel_adb_tests": "NOT_EXECUTED;connection unavailable",
+      "further_tests": "DEFERRED_BY_EXPLICIT_USER_INSTRUCTION",
+      "implemented_boundary": [
+        "explicit preparation and batched copy with atomic checkpoints",
+        "row hashes, original preservation and explicit activation",
+        "targeted ID/filter reads and transactional compare-and-save with request receipts",
+        "current-row reconstruction for rollback after subsequent changes",
+        "SQLite adapter using the existing PixelLocalStore database"
+      ],
+      "not_implemented": [
+        "business read/write routing to table storage",
+        "binding to verified device backup and original/relationship evidence",
+        "backup/restore format integration and old-writer protection",
+        "current native synthetic test entry point",
+        "stages 4 and 5"
+      ]
+    },
+    "previous_android_release_java_compilation": "PASS; no APK built",
+    "previous_python_tests_passed": 54,
+    "previous_jvm_suites_passed": 3,
+    "previous_jvm_checks_passed": 164,
+    "previous_browser_suites_passed": 5,
+    "last_executed_python_tests_passed": 62,
+    "last_completed_test_source_sha256": "8c5bb6151d7517fb8b82ce60704c02749badf582d8390772e0729bdad5815f8e"
   },
   "required_test_support": {
     "java": [

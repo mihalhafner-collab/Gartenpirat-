@@ -28,6 +28,37 @@ Nachweise zu Etappen 1/2 und die aktuelle Ausgangsmessung sind in
 gebunden. Relative Fach-, Quell- und Prüfpfade im folgenden Plan beginnen in
 `struktur-neu/`.
 
+## Vorrangige Präzisierungen vom 28. Oktober 2026
+
+- „Bestätigung ausdrücklich erteilt. Backup vorhanden“: Die Umsetzung von Etappen
+  3–5 ist ausdrücklich freigegeben; das Vorhandensein einer Sicherung ist vom
+  Nutzer bestätigt. Das ist keine unabhängig ausgeführte Archivprüfung und kein
+  Nachweis einer erfolgreichen Wiederherstellung. Die Freigabe nicht erneut erfragen.
+- Die Laptop-Verbindung per ADB wird als Analyse- und Testweg aufgenommen.
+  „ADB Verbindung Lesen und Schreiben zum Testen benutzen“ autorisiert die
+  erforderlichen Lese- und Schreibzugriffe im synthetischen Testumfang. Dafür dient
+  der Laptop als ADB-Verbindung zum Pixel; Entwicklung und Auswertung bleiben
+  soweit möglich in der Cloud. Keine betrieblichen Daten als Testmaterial verwenden.
+- „Test werden erst nach Durchführung von Etappe 3 bis 5 und eventuellen anderen
+  kleinen Änderungen durchgeführt“: Ab jetzt keine weiteren Testläufe vorziehen.
+  Zuerst die Quelländerungen der Etappen 3, 4 und 5 nacheinander sowie ausdrücklich
+  vereinbarte kleine Ergänzungen umsetzen, danach gemeinsam prüfen. Diese neuere
+  Weisung ersetzt für den laufenden Auftrag die untenstehende Testabnahme und
+  Vorher-/Nachher-Messung nach jeder einzelnen Etappe. Schon ausgeführte Messungen
+  erhalten; keine neuen Vorherwerte nachträglich erfinden. Ungetestete Zwischenstände
+  ausdrücklich als solche kennzeichnen; keine Erfolgs- oder Freigabeflags setzen.
+- Datenmigration auf dem produktiven Gerät, Installation, Wiederherstellung und
+  Rechnungsautorität bleiben eigene Handlungen. Die ADB-Testfreigabe ist keine
+  Erlaubnis zum Löschen des produktiven Appbestands. Die neue Testreihenfolge hebt
+  keinen Löschschutz auf: für noch geschützte Altlasten zunächst den
+  Abhängigkeitsnachweis und die Änderung vorbereiten; eine ausstehende tatsächliche
+  Pixel-Wiederherstellung nicht als bestanden ausgeben.
+
+Die ADB-Routine und die Auswertungsvorgaben stehen in der vorhandenen
+[Bauanleitung](struktur-neu/docs/entwicklung/BAU.md#adb-analyse-und-leseschreibtests-über-den-laptop).
+Der tatsächliche Umsetzungs- und Teststand steht ausschließlich in
+`struktur-neu/AKTUELLER-STAND.json`.
+
 ## Direkter Nutzerauftrag vom 28.10.2026: Geschwindigkeit und schlanker Umbau
 
 Grundlage: unabhängige Quellcodeprüfung des Stands 1.55.3 / Build 108 (Commit
@@ -182,9 +213,11 @@ Die jüngere Verschlüsselungsanforderung wird nicht stillschweigend durch ZIP e
 der aktuelle einfache Sicherungsablauf wird aber auch nicht ungefragt erweitert.
 Die Entscheidung muss ausdrücklich klären, ob die Tabellenübernahme das bestehende
 geprüfte Pixel-ZIP voraussetzen darf oder die Verschlüsselungsanforderung gilt.
-Bis dahin keinen produktiven Aktivierungspfad implementieren und keine Etappe 3
-als abgeschlossen melden. Der allgemeine Ausführungsauftrag wird nicht erneut
-zur Freigabe vorgelegt; offen ist diese konkrete widersprüchliche Voraussetzung.
+Die spätere ausdrückliche Umsetzungsbestätigung ist oben erfasst. Sie erlaubt die
+Quellarbeit und synthetischen Testpfade. Der vorhandene Sicherungsablauf bleibt
+unverändert. Vor einer tatsächlichen Geräteübernahme muss der Aufrufer den zu
+diesem Quellbestand passenden Sicherungsinhalt und die verlangte Schutzart
+prüfen; ein bloßes Client-Flag oder ein Dateiname genügt nicht.
 
 ### Abnahme von Etappe 3
 
@@ -199,7 +232,8 @@ Geräteabnahme getrennt ausweisen; eine simulierte Browserbridge beweist beides 
 
 ## Reihenfolge und Abnahme von Etappen 4 und 5
 
-Etappe 4 beginnt erst nach geprüftem und gesichertem Abschluss von Etappe 3.
+Etappe 4 folgt im Quellcode auf Etappe 3; die Tests erfolgen gemäß der neueren
+Nutzerpräzisierung gemeinsam nach Etappen 3–5.
 Die Funktionsliste jedes Bildschirms wird vor seiner Änderung aus dem dann aktuellen
 Code vervollständigt, nicht aus Screenshots geraten. Ausgangspunkte:
 
@@ -212,8 +246,9 @@ Code vervollständigt, nicht aus Screenshots geraten. Ausgangspunkte:
 Pro Bildschirm eine verantwortliche Darstellung in vorhandenen Modulen herstellen;
 zugehörige fremde DOM-Umschreiber im selben Schritt ablösen. Keine gleichzeitig
 aktiven alten/neuen Renderer. Vorhandene Fachaufrufe und Entwurfs-/Rückwege erhalten.
-Nach jedem Bildschirm separat Funktionsliste, 320/360px und 200%-Schrift, relevante
-Tests und Wechselzeiten prüfen, committen und den exakten Remote-Stand zurücklesen.
+Für die abschließende gemeinsame Prüfung pro Bildschirm die Funktionsliste,
+320/360px und 200%-Schrift sowie relevante Tests und Wechselzeiten vorbereiten.
+Gesicherte Zwischenstände bis zu diesem Testlauf ausdrücklich als ungeprüft führen.
 
 Etappe 5 bleibt an die ausdrückliche Nutzerbestätigung von **Speichern und
 Wiederherstellen auf dem Pixel** gebunden. Ein Hinweis auf Build 113 allein ist

@@ -45,6 +45,26 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     @Override public synchronized void close(){super.close();if(registeredOpen){try{java.util.concurrent.atomic.AtomicInteger count=OPEN_STORES.get(context.getDatabasePath("haus-garten-mobile.db").getCanonicalPath());if(count!=null)count.decrementAndGet();}catch(IOException invalid){throw new IllegalStateException("LOCAL_STORE_PATH_INVALID",invalid);}finally{registeredOpen=false;}}}
     static void assertNoOpenStores(Context context)throws Exception {java.util.concurrent.atomic.AtomicInteger count=OPEN_STORES.get(context.getDatabasePath("haus-garten-mobile.db").getCanonicalPath());if(count!=null&&count.get()!=0)throw new IOException("RESTORE_DATABASE_STILL_OPEN");}
     Context appContext(){return context;}
+    /** Explicit storage-transfer boundary; opening the app never invokes a transfer. */
+    BusinessTableStore businessTables(){
+        return new BusinessTableStore(new BusinessTableStore.Sql(){
+            public BusinessTableStore.Rows query(String statement,String...args){
+                Cursor rows=getReadableDatabase().rawQuery(statement,args);
+                return new BusinessTableStore.Rows(){
+                    public boolean next(){return rows.moveToNext();}
+                    public String text(int column){return rows.getString(column);}
+                    public long number(int column){return rows.getLong(column);}
+                    public void close(){rows.close();}
+                };
+            }
+            public void execute(String statement,Object...args){getWritableDatabase().execSQL(statement,args);}
+            public <T>T transaction(BusinessTableStore.Action<T> action)throws Exception{
+                SQLiteDatabase db=getWritableDatabase();db.beginTransaction();
+                try{T result=action.run();db.setTransactionSuccessful();return result;}
+                finally{db.endTransaction();}
+            }
+        });
+    }
     WorkSessionStore workSessions(){return new WorkSessionStore(getWritableDatabase(),clock);}
     int compactPurgedTestActions()throws Exception{return LocalTestCleanup.compact(this);}
     private String readAsset(String name) throws Exception {
