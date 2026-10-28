@@ -35,7 +35,7 @@
     "bounded automatic retries",
     "explicit user retry"
   ],
-  "apk": "BUILD111_PENDING",
+  "apk": "ORIGINAL_SIGNED111;BUILD_LINT_PRIVACY_PASS;PIXEL_NOT_EXECUTED",
   "source_regressions": {
     "passed": 89,
     "failed": 0

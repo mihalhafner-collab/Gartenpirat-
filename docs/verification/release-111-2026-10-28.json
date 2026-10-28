@@ -1,0 +1,65 @@
+{
+  "classification": "PUBLIC_SOURCE_AND_SYNTHETIC_TEST_METADATA",
+  "version_name": "1.55.6",
+  "version_code": 111,
+  "source_commit": "1ae47ed4dc5d70e3c7e6a44237ca22756a9fe20e",
+  "signing": {
+    "apk_sha256": "50f0aa71b3a9ef596b46efd3da30f7a74fe417dd565bcf0ed042c241a5dc5a7f",
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "package": "at.hausgarten.service",
+    "result": "SIGNED_NO_INSTALL_OR_UPDATE_ACCEPTANCE",
+    "source_preservation": {
+      "git_sha": "1ae47ed4dc5d70e3c7e6a44237ca22756a9fe20e",
+      "remote_refs": [
+        "refs/heads/codex/heute-uebersicht-20261027"
+      ],
+      "repository": "mihalhafner-collab/Gartenpirat-",
+      "scope": "clean_checkout_and_remote_commit_only",
+      "status": "PASS"
+    },
+    "version_code": 111,
+    "version_name": "1.55.6"
+  },
+  "metadata": {
+    "package": "at.hausgarten.service",
+    "version_code": 111,
+    "version_name": "1.55.6",
+    "signature_valid": true,
+    "certificates": [
+      "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8"
+    ]
+  },
+  "assets": {
+    "added": [],
+    "removed": [],
+    "changed": [],
+    "unchanged_count": 705,
+    "matches": true,
+    "generated_profiles": {
+      "dexopt/baseline.prof": "04f17c919146717c826352734cddf6583df352168fb948c5c10641fc7860cb8e",
+      "dexopt/baseline.profm": "ff5b966548587b6fbe2d9801b35d7491c22a730a5f361ba5a8dbc50032fef11a"
+    }
+  },
+  "seed": {
+    "all_business_collections_empty": true,
+    "operational_seed_rows": 0
+  },
+  "bytes": 82911740,
+  "sha256": "50f0aa71b3a9ef596b46efd3da30f7a74fe417dd565bcf0ed042c241a5dc5a7f",
+  "build": "assembleRelease and lintRelease PASS",
+  "lint": {
+    "errors": 0,
+    "warnings": 103
+  },
+  "host_rule_tests": 63,
+  "source_regressions": 89,
+  "pixel": "NOT_EXECUTED",
+  "installation": "NOT_PERFORMED",
+  "migration": "NOT_PERFORMED",
+  "invoice_authority": "NOT_ACTIVATED",
+  "repair_report": "docs/verification/backup-additional-blockers-2026-10-28.json",
+  "delivery": {
+    "status": "PUSH_PENDING",
+    "path": "downloads/Haus-Garten-1.55.6-111-original.apk"
+  }
+}

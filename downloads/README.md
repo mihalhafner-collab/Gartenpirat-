@@ -1,8 +1,9 @@
 # Installationspaket
 
-Originalsignierter **[Prüfkandidat1.55.5 / Build110](Haus-Garten-1.55.5-110-original.apk)**.
+Originalsignierter **[Prüfkandidat1.55.6 / Build111](Haus-Garten-1.55.6-111-original.apk)**.
 Im privaten GitHub-Repository öffnen und „Download raw file“ wählen.
 
+- Wartende Sicherungen bieten einen ausdrücklichen Wiederholungsversuch am selben Job.
 - Manuelles „Jetzt sichern“ verarbeitet genau den angeforderten Job direkt in der
   geöffneten Backupansicht, ohne eine bloße Android-Jobvormerkung.
 - Neue Einrichtung erlaubt mobile Daten; tägliche Automatik ist standardmäßig aus.
@@ -13,9 +14,9 @@ Im privaten GitHub-Repository öffnen und „Download raw file“ wählen.
 | Nachweis | Wert |
 | --- | --- |
 | Paket | `at.hausgarten.service` |
-| Originalquelle | `source/v1.55.5-build110` |
-| Quellcommit | `aa094fee726650f60ba01445bbf2398b34a38ac7` |
-| APK SHA256 | `5cf9d46e1af8c91a482b9015f1e1e06d58f4688ae81418184b2e71a383b5bd42` |
+| Originalquelle | `source/v1.55.6-build111` |
+| Quellcommit | `1ae47ed4dc5d70e3c7e6a44237ca22756a9fe20e` |
+| APK SHA256 | `50f0aa71b3a9ef596b46efd3da30f7a74fe417dd565bcf0ed042c241a5dc5a7f` |
 | APK Bytes | 82911740 |
 | Physische Abnahme | Nicht ausgeführt; keine Installation durch Codex |
 
@@ -24,6 +25,7 @@ Sicherung, vollständiges Rücklesen und Wiederherstellung müssen am Gerät gep
 werden. Keine Tabellenübernahme oder Queue-/Belegbereinigung in diesem Paket.
 Zwei historische Testlücken bleiben dokumentiert; keine Gerätefreigabe ableiten.
 
+[Vorheriger Prüfkandidat1.55.5/110](Haus-Garten-1.55.5-110-original.apk) bleibt erhalten.
 [Vorheriger Prüfkandidat1.55.4/109](Haus-Garten-1.55.4-109-original.apk) bleibt erhalten.
 Zwischenbericht1–2: [Prüfbericht](../docs/verification/interim-stages1-2-2026-10-28.md).
 Bereitstellung per normalem Git nach belegtem Drive-Blobtimeout/Releaseasset401;
