@@ -17,6 +17,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
     if(name==='delete_entity'){const rows=master[groups[a.entity]],row=rows.find(row=>row.id===a.entity_id);if(!row||a.expected_record_hash!=='qa_hash_'+row.id)return bad('QA version changed');archive.push({archive_key:a.entity+':'+row.id,record_hash:'qa_archive_'+row.id,entry:{record:row,archived_at:'2026-10-21'}});master[groups[a.entity]]=rows.filter(x=>x!==row);return okay({entity_id:row.id});}
     if(name==='list_archive')return okay({archive:archive.slice(a.offset||0,(a.offset||0)+(a.limit||30)),total:archive.length});
     if(name==='preview_purge')return okay({allowed:true,expected_record_hash:'qa_archive_'+a.entity_id});
+    if(name==='get_revier_overview')return okay({tour:{stops:[]},due_visits:[]});
     if(name==='get_settings')return okay({settings:{},record_hash:'a'.repeat(64)});
     if(name==='get_business_settings')return okay({settings:{},record_hash:'b'.repeat(64)});
     if(name==='list_offers')return okay({offers:master.offers.map(offer=>({offer})),total:master.offers.length});
@@ -33,6 +34,33 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href);await page.waitForFunction(()=>window.HGRecordActions&&document.body.dataset.fieldReady==='true');await page.waitForTimeout(300);
   const close=async()=>{await page.evaluate(()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());});};
   const hold=async(selector)=>{await page.locator(selector).first().dispatchEvent('pointerdown',{pointerId:1,isPrimary:true,button:0,clientX:70,clientY:200});await page.waitForTimeout(620);await page.locator('body').dispatchEvent('pointerup',{pointerId:1});};
+  await check('One full state build per load preserves the complete embedded sync status',async()=>{
+   const result=await page.evaluate(()=>{
+    const read=AndroidData.getState,status=AndroidData.getSyncStatus;let builds=0,statusReads=0;
+    const expected={configured:false,pending:0,review:0,locally_committed:0,local_cleanup_pending:true,background_work_pending:true,background_work_error_code:'qa_background',duplicate_files:2,warning:'QA Warnung bleibt erhalten'};
+    AndroidData.getState=()=>{builds++;return JSON.stringify({...JSON.parse(read()),sync_status:expected});};AndroidData.getSyncStatus=()=>{builds++;statusReads++;return JSON.stringify(expected);};
+    try{load();const got={...syncInfo};delete got.pending_total;delete got.full_backup;return{builds,statusReads,got,expected};}finally{AndroidData.getState=read;AndroidData.getSyncStatus=status;}
+   });assert.equal(result.builds,1);assert.equal(result.statusReads,0);assert.deepEqual(result.got,result.expected);
+  });
+  await check('Unchanged Today → Office → Today reuses sorted data, overview and existing DOM nodes',async()=>{
+   const result=await page.evaluate(()=>{
+    openPage('home');openPage('revier-office');openPage('home');
+    const reads=AndroidData.getState,status=AndroidData.getSyncStatus,owner=AndroidData.ownerCall,order=window.HGDataOrder;
+    let fullBuilds=0,ownerReads=0,recalculations=0;const ownerNames=[];
+    AndroidData.getState=()=>{fullBuilds++;return reads();};AndroidData.getSyncStatus=()=>{fullBuilds++;return status();};AndroidData.ownerCall=(...args)=>{ownerReads++;ownerNames.push(args[0]);return owner(...args);};window.HGDataOrder={...order,sorted(...args){recalculations++;return order.sorted(...args);}};
+    const overview=document.querySelector('#revier-today button'),office=document.querySelector('#revier-office .revier-content').firstChild;
+    const cache=customers(),logs=worklogs();
+    try{openPage('revier-office');openPage('home');return{fullBuilds,ownerReads,ownerNames,recalculations,sameCustomers:cache===customers(),sameLogs:logs===worklogs(),sameOffice:office===document.querySelector('#revier-office .revier-content').firstChild,sameOverview:overview===document.querySelector('#revier-today button')};}
+    finally{AndroidData.getState=reads;AndroidData.getSyncStatus=status;AndroidData.ownerCall=owner;window.HGDataOrder=order;}
+   });assert.deepEqual(result,{fullBuilds:0,ownerReads:0,ownerNames:[],recalculations:0,sameCustomers:true,sameLogs:true,sameOffice:true,sameOverview:true});
+  });
+  await check('Create, edit, delete and native notification invalidate cached visible and hidden pages',async()=>{
+   await page.evaluate(()=>{openPage('customers');master.customers.push({id:'qa_cache',name:'QA Cache neu',active:1});load();});assert(await page.locator('[data-customer-open="qa_cache"]').isVisible());
+   await page.evaluate(()=>{openPage('revier-office');master.customers.find(x=>x.id==='qa_cache').name='QA Cache geändert';load();openPage('customers');});assert.match(await page.locator('[data-customer-open="qa_cache"]').innerText(),/geändert/);
+   await page.evaluate(()=>{master.customers=master.customers.filter(x=>x.id!=='qa_cache');load();});assert.equal(await page.locator('[data-customer-open="qa_cache"]').count(),0);
+   await page.evaluate(()=>{master.customers.push({id:'qa_notification',name:'QA Native Änderung',active:1});document.activeElement?.blur();onLocalBusinessChanged();});await page.waitForSelector('[data-customer-open="qa_notification"]');
+   await page.evaluate(()=>{master.customers=master.customers.filter(x=>x.id!=='qa_notification');load();});assert.equal(await page.locator('[data-customer-open="qa_notification"]').count(),0);
+  });
   await check('Natural alphabetic ordering includes all customer selectors and new accounts',async()=>{
    assert.deepEqual(await page.evaluate(()=>customers().map(x=>x.id)),['qa_2','qa_10','qa_m','qa_z']);await page.evaluate(()=>{AndroidData.saveCustomer(JSON.stringify({name:'Aachen QA',active:1}));load();});assert.equal(await page.evaluate(()=>customers()[0].id),'qa_new');
   });

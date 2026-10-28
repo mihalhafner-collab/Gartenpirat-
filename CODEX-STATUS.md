@@ -6,6 +6,39 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Umsetzung28.10.: Etappe 2 – Laden und Cache; APK109 vorbereitet
+
+Etappe1 nach Prüfung in4657cf6 gesichert und exakt zurückgelesen. Danach getrennt
+Etappe2: eingebetteter vollständiger Sync-Status statt zweitem expliziten Stateaufbau;
+zustandsabhängiger Listen-/Seitencache; keine unsichtbaren Listenberechnungen;
+Heute-/Büroübersicht und Sicherungsstatus beim unveränderten Wechsel wiederverwenden.
+Native Sicherungsstatusabfrage benötigt keinen Geschäftssnapshot. Statuswarnungen,
+Timer, Fokus-/Änderungsrefresh, bewusstes Neulesen und Entwürfe bleiben erhalten.
+Ein im Regressionstest entdeckter Auswahlverlust beim Wiederaufnehmen eines
+Arbeitsentwurfs wurde im Wiederherstellungspfad korrigiert und nachgetestet.
+
+40 gleiche synthetische Cloudmessungen wiederholt. Vergleichstabelle und Details:
+`docs/verification/performance-stage2-2026-10-28.md` und gleichnamige JSON-Datei.
+Mittlere Zeiten Etappe1→2: Heute→Büro279→179ms, Büro→Heute268→181ms,
+Kunden368→292ms, Start1823→1458ms. Kein Pixel-/SQLite-Nachweis daraus ableiten.
+Abnahme im Kontexttest:1 expliziter load-Stateaufbau; unveränderter Tabwechsel0
+State-/Owneraufrufe und0 HGDataOrder-Neusortierungen; sichtbare und versteckte
+Listen reagieren nach Anlage/Änderung/Löschung und nativer Änderungsmeldung korrekt.
+
+Aktuelle Browserprüfungen für Revier, Kunden-Navigation, Kontext/Löschen/Suche,
+Planungsübersicht, Timerabschluss, einfache Formulare, erhaltene Entwürfe,
+Rechnungsansicht, Design, Start, tägliche Bedienung und Geräteprofilfotos PASS.
+Historischer Build97-Barrierefreiheitstest wartet auf2Tabs/entfernten Action-Dock;
+dieser veraltete Prüffall bleibt FAIL, keine Rückänderung der aktuellen3Tabs.
+Aktuelle320/360/426px-/200%-Prüfungen in Revier/Navigation/Gerätefoto PASS.
+P1-Altkataloggate aus Etappe1 bleibt als eigener Befund offen.
+
+Version1.55.4/Build109 für den beauftragten APK-Abschluss vorbereitet. Native
+Kompilierung/Adapterprüfungen, finaler Releasebau, Lint, Originalsignatur und
+Artefaktprüfung folgen aus gesichertem sauberem Quellcommit. Noch keine APK109
+als fertig gemeldet. Keine Installation, Migration oder Rechnungsfreigabe;
+Pixel-Leistungsmessung und Geräteabnahme offen. Etappen3–5 nicht umgesetzt.
+
 ## Umsetzung28.10.: Etappe 1 – Messung
 
 Ausführungsauftrag und anschließender APK-Bau im Auftrag festgehalten. Zuerst nur

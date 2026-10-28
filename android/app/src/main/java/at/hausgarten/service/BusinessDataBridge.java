@@ -38,6 +38,7 @@ public class BusinessDataBridge {
         }} } catch(JSONException unavailable){return "{}";}
         return result.toString();
     }
+    protected JSONObject uiSyncStatus(JSONObject state)throws JSONException {return state.getJSONObject("sync_status");}
     private void notifyCommitted() {
         // The business transaction already succeeded. A deferrable adapter/scheduler
         // failure cannot turn that local commit into a failed save or a second create.
@@ -49,7 +50,7 @@ public class BusinessDataBridge {
     }
 @JavascriptInterface public String getBrowserDraftState(String raw){try{return new JSONObject().put("ok",true).put("data",new BrowserDraftRepository(context,store).read(raw)).toString();}catch(Exception failure){return BrowserDraftRepository.responseFailure(failure);}}
 @JavascriptInterface public String writeBrowserDraftState(String raw){try{return new JSONObject().put("ok",true).put("data",new BrowserDraftRepository(context,store).write(raw)).toString();}catch(Exception failure){return BrowserDraftRepository.responseFailure(failure);}}
-@JavascriptInterface public String getState() { return measured("getState", () -> { try{JSONObject state=store.getState();state.put("master",PixelMcpReadTools.effective(state)).put("ui_effective",true);JSONArray photos=state.getJSONObject("master").getJSONArray("photos");for(int i=0;i<photos.length();i++){JSONObject photo=photos.getJSONObject(i);String thumbnail=photo.optString("thumbnail_storage_name");if(thumbnail.matches("[0-9a-f]{64}\\.jpg"))photo.put("thumbnail_data","content://"+context.getPackageName()+".photothumbnails/"+thumbnail);}return state.toString();}catch(Exception e){return store.getState().toString();} }); }
+@JavascriptInterface public String getState() { return measured("getState", () -> { try{JSONObject state=store.getState();state.put("master",PixelMcpReadTools.effective(state)).put("ui_effective",true);state.put("sync_status",uiSyncStatus(state));JSONArray photos=state.getJSONObject("master").getJSONArray("photos");for(int i=0;i<photos.length();i++){JSONObject photo=photos.getJSONObject(i);String thumbnail=photo.optString("thumbnail_storage_name");if(thumbnail.matches("[0-9a-f]{64}\\.jpg"))photo.put("thumbnail_data","content://"+context.getPackageName()+".photothumbnails/"+thumbnail);}return state.toString();}catch(Exception e){return store.getState().toString();} }); }
 @JavascriptInterface public String planningTime(String value,String zone,String offset){try{return AppointmentRules.local(value,zone,offset).toString();}catch(Exception e){return "ERROR: "+e.getMessage();}}
 @JavascriptInterface public String ownerCall(String name,String arguments){ return measured("ownerCall", () -> {
     try{if(!name.equals("get_invoice")&&!name.equals("get_business_summary")&&!PixelMcpOwnerTools.read(name)&&!PixelMcpOwnerTools.write(name)&&!OfferTools.read(name)&&!OfferTools.write(name)&&!AppointmentTools.read(name)&&!AppointmentTools.write(name))throw new IllegalArgumentException("Unbekannte Eigentümerfunktion.");PixelMcpReadTools tools=new PixelMcpReadTools(()->store.getState(),store,new PixelOwnerAccess(context,store));return tools.call(name,new JSONObject(arguments)).toString();}

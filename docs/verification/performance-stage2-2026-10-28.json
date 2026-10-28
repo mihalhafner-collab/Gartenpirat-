@@ -1,0 +1,150 @@
+{
+  "format": "gartenpirat.synthetic-performance.v1",
+  "environment": "Cloud Chromium; JavaScript bridge doubles, not Android/SQLite/Pixel",
+  "source_commit": "4657cf650f1ff96f29d6a65df5cf9dfca9bd26b9",
+  "phase": "stage2",
+  "fixture": {
+    "customers": 300,
+    "worklogs": 5000,
+    "photos": 3000,
+    "invoices": 500
+  },
+  "warmups": 0,
+  "viewport": {
+    "width": 360,
+    "height": 840
+  },
+  "timing": "performance.now; action to second animation frame; search includes 130ms debounce wait; startup navigation to hg:startup-ready; fresh page per sample, warm browser asset cache",
+  "operations": {
+    "App-Start": {
+      "samples": 40,
+      "mean": 1458.209999999986,
+      "p95": 1673.5,
+      "slowest_5_percent_mean": 1754.7000000001863
+    },
+    "Heute → Büro": {
+      "samples": 40,
+      "mean": 179.27750000006054,
+      "p95": 202.40000000037253,
+      "slowest_5_percent_mean": 244.60000000009313
+    },
+    "Büro → Heute": {
+      "samples": 40,
+      "mean": 181.11500000008382,
+      "p95": 216.70000000018626,
+      "slowest_5_percent_mean": 285.04999999981374
+    },
+    "Kunden öffnen": {
+      "samples": 40,
+      "mean": 292.3599999999395,
+      "p95": 343.40000000037253,
+      "slowest_5_percent_mean": 355.70000000018626
+    },
+    "Suche": {
+      "samples": 40,
+      "mean": 150.93749999993014,
+      "p95": 160.29999999981374,
+      "slowest_5_percent_mean": 164.54999999981374
+    },
+    "Speichern": {
+      "samples": 40,
+      "mean": 757.0675000000513,
+      "p95": 879.4000000003725,
+      "slowest_5_percent_mean": 1012.0000000004657
+    }
+  },
+  "bridge": {
+    "getState": {
+      "duration_ms": {
+        "samples": 120,
+        "mean": 8.525000000007761,
+        "p95": 18.200000000186265,
+        "slowest_5_percent_mean": 28.316666666573536
+      },
+      "response_bytes": {
+        "samples": 120,
+        "mean": 1594868,
+        "p95": 1595009,
+        "slowest_5_percent_mean": 1595009
+      }
+    },
+    "getWorkSession": {
+      "duration_ms": {
+        "samples": 310,
+        "mean": 0.013548387106387847,
+        "p95": 0.10000000055879354,
+        "slowest_5_percent_mean": 0.11250000051222742
+      },
+      "response_bytes": {
+        "samples": 310,
+        "mean": 16,
+        "p95": 16,
+        "slowest_5_percent_mean": 16
+      }
+    },
+    "ownerCall": {
+      "duration_ms": {
+        "samples": 200,
+        "mean": 0.017499999990686774,
+        "p95": 0.10000000055879354,
+        "slowest_5_percent_mean": 0.11000000052154064
+      },
+      "response_bytes": {
+        "samples": 200,
+        "mean": 30.4,
+        "p95": 68,
+        "slowest_5_percent_mean": 68
+      }
+    }
+  },
+  "pixel": "NOT_EXECUTED",
+  "source_dirty": true,
+  "native_measurements": "NOT_EXECUTED; bridge timings are JavaScript doubles only",
+  "source_files_sha256": {
+    "android/app/src/main/assets/backup-browser-state.js": "b73cf276823d2525a711c9c53002f1a4dab72e2209616796a581571402ab956a",
+    "android/app/src/main/assets/backup-restore-drafts.html": "4f180ff1a92910d923fbeb434262bb3b91af5258f336a2dc80c8d0b581398d7f",
+    "android/app/src/main/assets/billing-ui.js": "7110b83dad725a2d42a96d927e753427cef3cac19b8ffbe2e0543b243004ca9e",
+    "android/app/src/main/assets/business-actions-ui.js": "8878e787a420ae050aef632d3e04139df0b8413836111e2eb6ede7829a9cc7bc",
+    "android/app/src/main/assets/business-feedback.js": "25ca63d7aec62c05bc926ef042894b47f4c55d9269b3c011ff4fdd286051ce5a",
+    "android/app/src/main/assets/customer-hub.js": "4c1d3e7fcf689c160a9b3aa4e1bb47171b3afd90796608db9194d279e630995c",
+    "android/app/src/main/assets/daily-usability.js": "76837329ebc33930fde69491c07b64474d7d1e848d9b85d5f1eb3b23bfb1d087",
+    "android/app/src/main/assets/data-order.js": "12c646ad5d61d3b6aab3bea91cb33c637df85709cdbb46d4d9d8e9b71ac16a99",
+    "android/app/src/main/assets/design-concept.js": "d006892e73e05debb84d7728bd756b38b4a894e3b49c71c63319d7303c70db40",
+    "android/app/src/main/assets/field-ui.js": "132aee01f207f2cde432caaa00516a9e74af7012a8ab88bed81a7922841c6b83",
+    "android/app/src/main/assets/frame-guard.js": "bde06673123846bb39ce644229d84bc672db205e3cc13ce75e5c7c4e8e487d75",
+    "android/app/src/main/assets/gartenpirat-photo-store.js": "50c1a294c08e16483b6daef1dc677640820588ccebe2ba64b7fde2c468d5c51c",
+    "android/app/src/main/assets/gartenpirat.js": "8a6e11d7542ebfa22afa2955dfffdf7e3de172ad97fa6b647bdc1c08735f8815",
+    "android/app/src/main/assets/invoice-draft.js": "68ffe14e29986c8de87e7b0639549374fa7ab97b8ef85131a8090fa8732e7582",
+    "android/app/src/main/assets/invoice-editor.js": "92956c2ac3b0d11715b3d2d8914646fecd5850606fb957718d4dc3615984b25c",
+    "android/app/src/main/assets/invoice-flow.js": "1727981d7e8247faa82c3e6c422558e19454730c089a058015dbbe1a855f37d6",
+    "android/app/src/main/assets/legacy-conflicts-ui.js": "97a07315a4d65488571c53a846ab8a8644434a71cc36acc597850e967170d00e",
+    "android/app/src/main/assets/local-invoice-ui.js": "4b28f780ef9f6964077422593c23db6dbc7d3db9bea88a8776e9f600610c4e8a",
+    "android/app/src/main/assets/mobile.html": "1888a662638e3d2120c1b7bef3922c714a861c0a685146d74a859fb2f4aaffe2",
+    "android/app/src/main/assets/navigation-status.js": "863f4cd34ac071c75ecc6dd06db10cb96ac5f92df824248cc1bbe2c46d51a355",
+    "android/app/src/main/assets/offer-contract.js": "975068d39128ac6207fc0b5e9835803ca7d5675a9529851c63625631bd668a1f",
+    "android/app/src/main/assets/offers-ui.js": "374430542b256cc5c901b54d034ff8f7a669edb56ac93dd9b28fff5e647c1d53",
+    "android/app/src/main/assets/order-sync-review.js": "699ec85256b3dc325c1a62268193e47490e4d92370c975ad71958c3fb9411399",
+    "android/app/src/main/assets/order-window.js": "445981b60691499d020f66abc7dd187126383d34eb28460123203962e1c5e11b",
+    "android/app/src/main/assets/owner-client.js": "44063a3acb12a5e55b18c8db7dbebb692c69616056d59c82b7debfcb79e66e71",
+    "android/app/src/main/assets/owner-ui.js": "e786ad9d40dc57319ae42df06fde54fa5fc222f769c50b134536511b3e65f43e",
+    "android/app/src/main/assets/personal-payment.js": "61578775a2e9951d4b7b4e21f84905bb45c3de69eddc69df245d79e0aef0918d",
+    "android/app/src/main/assets/photo-settings.js": "25ae00bbf1fa0ce5f1ce8a34eeaa8ec9771dccd2410b5a172869dcdca7d9269d",
+    "android/app/src/main/assets/pixel-tunnel-ui.js": "568bcdd746939dd4a6d55757472de0e0e3d03f737f4304c80c19c40c7c45bc40",
+    "android/app/src/main/assets/planning-ui.js": "37f218102a34e9e92f9469d10d77f47016e1ecbafa8e75f4f76490f05abe043a",
+    "android/app/src/main/assets/plant-catalog.js": "4b31cc183e99643bd965602cf952533215e70a621f9025209cac480575089bf2",
+    "android/app/src/main/assets/pull-refresh.js": "da9ed8149b144c33184c635e6e4b31c6a4da2eaf69901627c38e7602da96faf8",
+    "android/app/src/main/assets/record-actions.js": "fc81ac89b178d0e89f32e864601e17f79003c713e746e04d161a0f06b54e7554",
+    "android/app/src/main/assets/revier-solo-ui.js": "2fc780d4cc1680c57b4f026d7a7824914b46d172705adf87b76ada595cee6487",
+    "android/app/src/main/assets/runtime-compat.js": "0c94af35ae06b524a9a4c045715c61d1e82592471abd417443c3724f0f5a1caf",
+    "android/app/src/main/assets/sync-dashboard.js": "8264006325d94d84103be80fe758bf11b13d8a6390cdb279e4eed00655c1f0d0",
+    "android/app/src/main/assets/today-ui.js": "6109a40fd00989ef4a892863ebfe42c0813cbd4ef09ced63a8b29af8bb98d6a1",
+    "android/app/src/main/assets/trash-ui.js": "1938a6967deb6528ae5a685b38c7d7e5428c3f66535d0244574c8fd716a16f55",
+    "android/app/src/main/assets/work-location.js": "a11159915147cdef5a2448b670040513e56380b67610331430ce2e792265997b",
+    "android/app/src/main/assets/workday-ui.js": "e8d76a4fc10e1b38a868cbe661b31eac89bf47048e62de172f4b859da0e7fb5f",
+    "android/app/src/main/assets/workflow-ui.js": "1a9af36253e80f8b1b0b82098e3dbdeb394ec59555c6663a2a3cf4826e840a58",
+    "android/app/src/main/assets/equipment-photo-ui.js": "357fb6b58204ed7d11ed5c6d193a90aceb1df69d3400e79d44f715d2ee735572",
+    "android/app/src/main/assets/equipment-maintenance-texts.js": "f602a62ce5259643436ba796901c3fbb758d50e1e5950f233a74c1e21e344c12",
+    "android/app/src/main/assets/startup-ui.js": "cb868dbd302afa6d364d6327d53926ac5753cc2bcb6fded3d25d1d331c2c5ae0",
+    "android/app/src/main/assets/simple-forms.js": "40f6a12c7daa574fc89e731c61211759740db7642d946d0da8d9fdbb47a6afd3"
+  }
+}

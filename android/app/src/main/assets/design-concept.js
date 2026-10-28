@@ -19,9 +19,12 @@
     return rows.length?grid(rows.slice(0,photoLimit))+(rows.length>photoLimit?'<button type="button" class="secondary" data-profile-photos-more>Weitere Fotos · '+(rows.length-photoLimit)+'</button>':''):'<p class="sub">Noch keine Fotos zugeordnet.</p>';
   }
   function compactLists(){
-    const records=new Map(worklogs().map(row=>[row.id,row])),counts=new Map();
+    if(!['worklogs','orders'].includes(currentPage))return;
+    if(currentPage==='worklogs'){const records=new Map(worklogs().map(row=>[row.id,row])),counts=new Map();
     photos().forEach(photo=>counts.set(photo.worklog_id,(counts.get(photo.worklog_id)||0)+1));
     document.querySelectorAll('.worklog-entry').forEach(row=>{const record=records.get(row.dataset.editWorklog);if(!record)return;const status=row.querySelector('.worklog-entry-status');if(status){const count=counts.get(record.id)||0;status.textContent=(Number(record.billed)?'Abgerechnet':'Nicht abgerechnet')+(count?' · '+count+' Fotos':'');}});
+    }
+    if(currentPage!=='orders')return;
     const select=get('design-order-status'),rows=new Map(orders().map(row=>[row.id,row]));
     let visible=0;document.querySelectorAll('#order-list [data-edit-order]').forEach(button=>{const row=rows.get(button.dataset.editOrder);if(!row)return;const wrapper=button.closest('.swipe-shell')||button;wrapper.hidden=select?.value==='open'&&!openStatuses.has(row.status||'')||select?.value==='closed'&&openStatuses.has(row.status||'');if(!wrapper.hidden)visible++;let date=button.querySelector('.design-order-date');if(!date){date=document.createElement('span');date.className='design-order-date';button.append(date);}date.textContent=row.scheduled_date?worklogDateLabel(row.scheduled_date):'Ohne festen Termin';});
     let hint=get('design-order-empty');if(!hint){hint=document.createElement('p');hint.id='design-order-empty';hint.className='sub';hint.setAttribute('role','status');get('order-list').after(hint);}hint.textContent='Keine Aufträge für diese Auswahl. Suche oder Statusfilter zurücksetzen.';hint.hidden=visible>0||!get('order-list').querySelector('[data-edit-order]');
@@ -208,7 +211,7 @@
     window.workEntryBusinessSaved=(edit,id,data)=>{edit.context.saved_work={id,customer_id:data.customer_id,order_id:data.order_id||''};HGFormDrafts.put(edit);};
     async function stageWorkPhoto(source,prior=Promise.resolve()){const {edit,key,batch}=source;await prior.catch(()=>{});if(HGFormDrafts.removed(edit.session_id))throw Error('FORM_DRAFT_DISCARDED');HGFormDrafts.put(edit);if(!batch.items[0].action_context)batch.items[0].action_context=await GartenpiratPhotoStore.actionContext();await GartenpiratPhotoStore.customerDraft(key,batch);if(!HGFormDrafts.removed(edit.session_id)){edit.values.photo_durable=true;HGFormDrafts.put(edit);}}
     window.workEntryPhotoSource=async edit=>{try{await(photoJobs.get(edit.session_id)||Promise.resolve());}catch(error){if(entryPhoto?.edit.session_id!==edit.session_id||entryPhoto.item.submitted)throw error;const retry=stageWorkPhoto(entryPhoto);photoJobs.set(edit.session_id,retry);await retry;}if(!edit.values.had_photo)return null;const key=edit.values.media_key;if(entryPhoto?.key===key)return entryPhoto;const batch=await GartenpiratPhotoStore.customerDraft(key);if(!batch?.items?.[0]?.file&&edit.context.confirmed_photo_id){const record=HGOwnerClient.create('Fotobeleg noch nicht lesbar.')('get_photo',{photo_id:edit.context.confirmed_photo_id}).photo;if(record?.worklog_id!==edit.context.saved_work?.id)throw Error('Bestätigten Fotobezug prüfen.');const item={confirmed_photo_id:record.id,payload:{id:record.id}};return{key,batch:{items:[item]},item,edit};}if(!batch?.items?.[0]?.file)throw Error('Der Fotoentwurf ist noch nicht vollständig lesbar. Nur dieses Foto erneut auswählen oder den Entwurf gezielt prüfen.');return {key,batch,item:batch.items[0],edit};};
-    window.resumeWorkEntryEdit=async edit=>{if(!get('entry-billing-customer'))await new Promise(resolve=>document.addEventListener('work-entry-fields-ready',resolve,{once:true}));try{if(entryEdit?.session_id!==edit.session_id&&!retainEntry())return;field.dataset.restoringEntry='true';try{field.reset();}finally{delete field.dataset.restoringEntry;}entryEdit=edit;entryEdit.touched=true;entryPhoto=null;field.dataset.editSession=edit.session_id;const fields=edit.values.fields||[];for(const value of fields.filter(v=>v.type==='hidden'))if(![...field.elements].some(e=>e.name===value.name)){const input=document.createElement('input');input.type='hidden';input.name=value.name;input.id=value.id;field.append(input);}const customer=fields.find(v=>v.name==='customer_id');if(customer){get('customer').value=customer.value;ordersForCustomer();}HGFormDrafts.applyFields(field,fields);const billing=get('entry-billing-customer');if(billing){billing.dataset.workCustomer=get('customer').value;billing.dataset.userOverride='1';}openPage('work-entry');HGFormDrafts.syncLock(edit);if(edit.values.had_photo){const photo=await window.workEntryPhotoSource(edit);if(!window.isCurrentWorkEntry(edit))return;entryPhoto=photo;if(edit.context.saved_work?.id)window.showRetainedWorkPhoto?.(photo);else{const transfer=new DataTransfer();transfer.items.add(new File([photo.item.file],photo.item.payload.original_name||'Arbeitsfoto',{type:photo.item.file.type}));get('photo').files=transfer.files;}}window.showUndoToast?.('Begonnene Arbeitserfassung wiederhergestellt.');}catch(error){window.showUndoToast?.('Dieser Arbeitsentwurf benötigt Prüfung: '+error.message);}};
+    window.resumeWorkEntryEdit=async edit=>{if(!get('entry-billing-customer'))await new Promise(resolve=>document.addEventListener('work-entry-fields-ready',resolve,{once:true}));try{if(entryEdit?.session_id!==edit.session_id&&!retainEntry())return;prepareWorkEntryChoices();field.dataset.restoringEntry='true';try{field.reset();}finally{delete field.dataset.restoringEntry;}entryEdit=edit;entryEdit.touched=true;entryPhoto=null;field.dataset.editSession=edit.session_id;const fields=edit.values.fields||[];for(const value of fields.filter(v=>v.type==='hidden'))if(![...field.elements].some(e=>e.name===value.name)){const input=document.createElement('input');input.type='hidden';input.name=value.name;input.id=value.id;field.append(input);}const customer=fields.find(v=>v.name==='customer_id');if(customer){get('customer').value=customer.value;ordersForCustomer();}HGFormDrafts.applyFields(field,fields);const billing=get('entry-billing-customer');if(billing){billing.dataset.workCustomer=get('customer').value;billing.dataset.userOverride='1';}openPage('work-entry');HGFormDrafts.syncLock(edit);if(edit.values.had_photo){const photo=await window.workEntryPhotoSource(edit);if(!window.isCurrentWorkEntry(edit))return;entryPhoto=photo;if(edit.context.saved_work?.id)window.showRetainedWorkPhoto?.(photo);else{const transfer=new DataTransfer();transfer.items.add(new File([photo.item.file],photo.item.payload.original_name||'Arbeitsfoto',{type:photo.item.file.type}));get('photo').files=transfer.files;}}window.showUndoToast?.('Begonnene Arbeitserfassung wiederhergestellt.');}catch(error){window.showUndoToast?.('Dieser Arbeitsentwurf benötigt Prüfung: '+error.message);}};
     field.addEventListener('focusin',()=>{const edit=entryEdit||startEntry();if(!edit.touched&&!edit.pending){edit.baseline={fields:entryFields(),media_key:'',had_photo:false};edit.values=HGFormDrafts.clone(edit.baseline);}});
     field.addEventListener('input',()=>retainEntry(true));
     field.addEventListener('change',event=>{if(event.target!==get('photo')){retainEntry(true);return;}const file=get('photo').files[0];if(!file)return;const edit=entryEdit||startEntry();if(edit.pending||edit.context.saved_work)return;edit.touched=true;edit.values={...edit.values,fields:entryFields()};const key=edit.context.media_key||'work-entry-'+edit.session_id;edit.context.media_key=key;edit.values.media_key=key;edit.values.had_photo=true;const source={customer_id:field.elements.customer_id.value,order_id:field.elements.order_id.value||'',session_id:field.elements._session_id?.value||'',...Object.fromEntries(['property_id','visit_id','appointment_id','billing_customer_id'].filter(name=>field.elements[name]).map(name=>[name,field.elements[name].value]))},request='photo_'+crypto.randomUUID().replaceAll('-',''),batch={formatVersion:1,source,items:[{file:file.slice(0,file.size,file.type),submitted:false,payload:{id:'pho_mobile_'+crypto.randomUUID().replaceAll('-',''),_photo_request_id:request,customer_id:source.customer_id,order_id:source.order_id,original_name:file.name||'Arbeitsfoto',caption:field.elements.photo_caption.value,role:'documentation',mime_type:'image/jpeg',customer_visible:1}}]};entryPhoto={key,batch,item:batch.items[0],edit};const prior=photoJobs.get(edit.session_id)||Promise.resolve();photoCheckpoint=stageWorkPhoto(entryPhoto,prior);photoJobs.set(edit.session_id,photoCheckpoint);photoCheckpoint.catch(()=>window.showUndoToast?.('Die Fotoauswahl ist noch nicht vollständig gesichert. Andere Arbeitsangaben bleiben erhalten.'));});
@@ -371,10 +374,11 @@
     update();
   }
   function listPresentation(){
-    const records=new Map(worklogs().map(row=>[String(row.id),row]));
-    get('worklog-list')?.querySelectorAll('.design-date-group').forEach(x=>x.remove());
+    if(!['worklogs','customers','orders'].includes(currentPage))return;
+    const records=new Map((currentPage==='worklogs'?worklogs():[]).map(row=>[String(row.id),row]));
+    (currentPage==='worklogs'?get('worklog-list'):null)?.querySelectorAll('.design-date-group').forEach(x=>x.remove());
     let previous='';
-    get('worklog-list')?.querySelectorAll('.worklog-entry').forEach(row=>{
+    (currentPage==='worklogs'?get('worklog-list'):null)?.querySelectorAll('.worklog-entry').forEach(row=>{
       const record=records.get(row.dataset.editWorklog);if(!record)return;
       let parent=row.parentElement;
       if(parent===get('worklog-list')){const wrapper=document.createElement('div');row.before(wrapper);wrapper.append(row);parent=wrapper;}
@@ -385,11 +389,11 @@
       const status=row.querySelector('.worklog-entry-status');if(status)status.textContent=(Number(record.billed)?'App: verrechnet':'App: offen')+(record.pending?' · auf Gerät gespeichert':'');
       const duration=row.querySelector('.worklog-entry-hours');if(duration)duration.textContent=minutes(record.hours);
     });
-    for(const card of get('customer-list')?.querySelectorAll('.customer-card')||[]){
+    for(const card of (currentPage==='customers'?get('customer-list'):null)?.querySelectorAll('.customer-card')||[]){
       if(card.querySelector('.design-record-menu'))continue;
       const menu=document.createElement('button');menu.type='button';menu.className='design-record-menu';menu.textContent='⋮';menu.setAttribute('aria-label','Kundenaktionen');menu.onclick=()=>card.querySelector('[data-customer-open]').dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true}));card.append(menu);
     }
-    for(const row of get('order-list')?.querySelectorAll('[data-edit-order]')||[]){
+    for(const row of (currentPage==='orders'?get('order-list'):null)?.querySelectorAll('[data-edit-order]')||[]){
       let parent=row.parentElement;
       if(parent===get('order-list')){const wrapper=document.createElement('div');row.before(wrapper);wrapper.append(row);parent=wrapper;}
       parent.classList.add('design-record-row');
@@ -398,6 +402,7 @@
     }
   }
   function recentActivities(){
+    if(currentPage!=='work-entry')return;
     const field=get('activity');let box=get('design-recent-activities');
     if(!box){box=document.createElement('div');box.id='design-recent-activities';box.className='design-suggestions';field.after(box);}
     box.replaceChildren();

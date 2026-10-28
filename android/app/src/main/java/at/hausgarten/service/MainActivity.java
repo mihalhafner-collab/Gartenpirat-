@@ -381,6 +381,7 @@ public class MainActivity extends Activity implements McpSyncHost {
         @JavascriptInterface public String consumePlanningOpenContext(){try{if(!getIntent().getBooleanExtra("open_planning",false))return "{}";JSONObject result=new JSONObject().put("open",true).put("appointment_id",getIntent().getStringExtra("planning_appointment_id")).put("action",getIntent().getStringExtra("planning_action"));getIntent().removeExtra("open_planning");return result.toString();}catch(Exception e){return "{}";}}
         @JavascriptInterface public boolean consumePlanningOpen(){boolean open=getIntent().getBooleanExtra("open_planning",false);getIntent().removeExtra("open_planning");return open;}
 
+        @Override protected JSONObject uiSyncStatus(JSONObject state){return syncStatus(state);}
         @JavascriptInterface public String getSyncStatus() { return syncStatus().toString(); }
 
         @JavascriptInterface public void connectDrive(){if(previewConnectionBlocked())return;openFullBackup();}
@@ -594,8 +595,11 @@ public class MainActivity extends Activity implements McpSyncHost {
     }
 
     private JSONObject syncStatus() {
+        try{return syncStatus(store.getState());}catch(Exception error){return new JSONObject();}
+    }
+    private JSONObject syncStatus(JSONObject current) {
         try {
-            JSONObject current=store.getState(),status=DriveSyncCoordinator.status(this,current.getJSONObject("sync_queue"));
+            JSONObject status=DriveSyncCoordinator.status(this,current.getJSONObject("sync_queue"));
             int duplicates=preferences.getInt("drive_duplicate_files",0);status.put("local_cleanup_pending",localCleanupPending()).put("background_work_pending",backgroundPending()).put("background_work_error_code",backgroundCode()).put("duplicate_files",duplicates).put("warning",duplicates>0?"Gleichnamige Dateien prüfen. Originale bleiben erhalten.":"");
             return status;
         }catch(Exception error){return new JSONObject();}

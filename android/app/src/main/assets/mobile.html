@@ -83,10 +83,15 @@ let state={master:{customers:[],orders:[],worklogs:[],invoices:[],photos:[]},pen
 const el=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),list=(items,render,empty='Noch keine Einträge vorhanden.')=>items.length?items.map(render).join(''):`<div class="empty">${empty}</div>`;
 function localDate(){const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`}
 function worklogDateLabel(value){if(!value)return'Ohne Datum';const d=new Date(`${value}T12:00:00`);return Number.isNaN(d.getTime())?value:d.toLocaleDateString('de-AT',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})}
-let dataCacheState=null,dataCachePending=null,dataCacheSize=-1,dataCache=new Map(),customerIndex=new Map();
-function clearDataCache(){dataCacheState=null;dataCache.clear()}
+let dataCacheState=null,dataCachePending=null,dataCacheSize=-1,dataCache=new Map(),customerIndex=new Map(),dataCacheRevision=0;
+const renderedPages=new Map();
+function clearDataCache(){dataCacheState=null;dataCache.clear();customerIndex.clear()}
+function dataRevision(){
+  if(dataCacheState!==state||dataCachePending!==state.pending||dataCacheSize!==(state.pending||[]).length){dataCacheState=state;dataCachePending=state.pending;dataCacheSize=(state.pending||[]).length;dataCache.clear();customerIndex.clear();dataCacheRevision++}
+  return dataCacheRevision;
+}
 function merged(collection,kind){
-  if(dataCacheState!==state||dataCachePending!==state.pending||dataCacheSize!==(state.pending||[]).length){dataCacheState=state;dataCachePending=state.pending;dataCacheSize=(state.pending||[]).length;dataCache.clear();customerIndex.clear()}
+  dataRevision();
   if(dataCache.has(collection))return dataCache.get(collection);
   const blocked=new Set([...(state.master?.sync_errors||[]),...(state.master?.drive_journal_errors||[])].map(e=>e.client_id)),map=new Map((state.master?.[collection]||[]).map(x=>[x.id,{...x,pending:false}]));for(const action of state.pending||[])if(action.kind===kind&&action.payload?.id&&!blocked.has(action.client_id)){if(state.ui_effective){if(map.has(action.payload.id))map.get(action.payload.id).pending=true;}else map.set(action.payload.id,{...(map.get(action.payload.id)||{}),...action.payload,pending:true});}const rows=HGDataOrder.sorted(collection,[...map.values()]);dataCache.set(collection,rows);if(collection==='customers')customerIndex=new Map(rows.map(c=>[c.id,c]));return rows
 }
@@ -102,10 +107,16 @@ function load(){
   let read=false;
   try{const next=JSON.parse(AndroidData.getState());if(!next.master||!Array.isArray(next.master.customers))throw new Error('Datenstand fehlt');state=next;read=true;window.hgHasLoadedState=true;window.hgDataReadError=false;}
   catch(_){window.hgDataReadError=true;if(!window.hgHasLoadedState)try{const cached=JSON.parse(HGDraftStorage.getItem('mobile-state')||'null');if(cached?.master&&Array.isArray(cached.master.customers))state=cached;}catch(_){}}
-  try{const status=JSON.parse(AndroidData.getSyncStatus());if(status&&typeof status==='object')syncInfo=status;}catch(_){syncInfo={...syncInfo,cloud_confirmed:false};}
+  try{const status=read&&state.sync_status&&typeof state.sync_status==='object'?state.sync_status:JSON.parse(AndroidData.getSyncStatus());if(status&&typeof status==='object')syncInfo={...status};}catch(_){syncInfo={...syncInfo,cloud_confirmed:false};}
   render();if(!read)window.showUndoToast?.('App-Daten konnten nicht neu gelesen werden. Die bisherige Ansicht bleibt erhalten. Bitte erneut laden.');return read;
 }
 function customerName(id){customers();return customerIndex.get(id)?.name||'Kunde'}
+function prepareWorkEntryChoices(){
+  const cs=customers();
+  const customerSelect=el('customer'),selected=customerSelect.value,choices=cs.filter(c=>HGDataOrder.active(c.active)),choiceKey=JSON.stringify(choices.map(c=>[c.id,c.name]));
+  // Reuse identical option nodes; derive this key from fresh local data each time.
+  if(customerSelect._hgOptionsKey!==choiceKey||customerSelect.options.length!==choices.length+1){customerSelect.innerHTML='<option value="">Kunde auswählen</option>'+choices.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');customerSelect._hgOptionsKey=choiceKey;customerSelect.value=selected;}ordersForCustomer();
+}
 function ordersForCustomer(){const id=el('customer').value,select=el('order'),selected=select.value,rows=orders().filter(o=>id&&o.customer_id===id).sort((a,b)=>Number(!['Geplant','Offen','In Arbeit'].includes(a.status))-Number(!['Geplant','Offen','In Arbeit'].includes(b.status))||HGDataOrder.compare(a,b,'title')),key=JSON.stringify([id,rows.map(o=>[o.id,o.title,o.status])]);if(select._hgOptionsKey===key&&select.options.length===rows.length+1)return;select.innerHTML='<option value="">Auftrag auswählen</option>'+rows.map(o=>`<option value="${esc(o.id)}">${esc(o.title)}${o.status?` · ${esc(o.status)}`:''}</option>`).join('');select._hgOptionsKey=key;if(rows.some(o=>o.id===selected))select.value=selected}
 function openPage(id,remember=true){if(!document.getElementById(id)||id===currentPage)return;if(remember){if(['home','customers','more-page'].includes(id))pageHistory=id==='home'?[]:[{id:'home',scrollY:0}];else pageHistory.push({id:currentPage,scrollY:window.scrollY})}currentPage=id;document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.open===id));render();scrollTo({top:0,behavior:'auto'})}
 function finishPage(id){if(pageHistory.at(-1)?.id===id)pageHistory.pop();openPage(id,false)}
@@ -127,13 +138,15 @@ function syncLabel(){
   el('sync-title').textContent=shown.title;el('sync-detail').textContent=shown.detail;window.TodayUI?.syncChip();
 }
 function render(){
-  clearDataCache();
-  const m=state.master||{},cs=customers(),orders=merged('orders','order'),logs=worklogs(),invoices=merged('invoices','invoice'),photoRows=photos(),pending=state.pending||[];
+  const revision=dataRevision(),pending=state.pending||[];
   syncInfo.pending_total=pending.length;syncInfo.pending=state.sync_queue?.pending_upload??pending.length;syncInfo.review=state.sync_queue?.review??0;
-  const customerSelect=el('customer'),selected=customerSelect.value,choices=cs.filter(c=>HGDataOrder.active(c.active)),choiceKey=JSON.stringify(choices.map(c=>[c.id,c.name]));
-  // Reuse identical option nodes; derive this key from fresh local data each time.
-  if(customerSelect._hgOptionsKey!==choiceKey||customerSelect.options.length!==choices.length+1){customerSelect.innerHTML='<option value="">Kunde auswählen</option>'+choices.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');customerSelect._hgOptionsKey=choiceKey;customerSelect.value=selected;}ordersForCustomer();
-  for(const [id,text] of [['customer-count',`${cs.length} Kunden`],['order-count',`${orders.length} Aufträge`],['work-count',`${logs.length} Einträge`]])if(el(id))el(id).textContent=text;
+  syncLabel();
+  const filters=['customer-search','worklog-search','worklog-period','worklog-customer-filter','worklog-billing-filter','week-period','week-customer','order-search'].map(id=>el(id)?.closest('.page')?.id===currentPage?el(id).value:null);
+  const renderKey=JSON.stringify([revision,currentPage,localDate(),filters,worklogDisplayLimit,weekDisplayLimit]);
+  if(renderedPages.get(currentPage)===renderKey){window.TodayUI?.render();return;}
+  const cs=['work-entry','customers','worklogs','weeks'].includes(currentPage)?customers():[],orders=currentPage==='orders'?merged('orders','order'):[],logs=['home','weeks','worklogs'].includes(currentPage)?worklogs():[],invoices=currentPage==='invoices'?merged('invoices','invoice'):[],photoRows=['worklogs','orders'].includes(currentPage)?photos():[];
+  if(currentPage==='work-entry')prepareWorkEntryChoices();
+  for(const [id,text] of [['customer-count',`${cs.length} Kunden`],['order-count',`${orders.length} Aufträge`],['work-count',`${logs.length} Einträge`]])if(el(id)?.closest('.page')?.id===currentPage)el(id).textContent=text;
   if(currentPage==='worklogs'){
   const workCustomerFilter=el('worklog-customer-filter');if(workCustomerFilter){const chosen=workCustomerFilter.value||'all';workCustomerFilter.innerHTML='<option value="all">Alle Kunden</option>'+cs.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');workCustomerFilter.value=cs.some(c=>c.id===chosen)?chosen:'all'}
   const term=(el('worklog-search')?.value||'').trim().toLocaleLowerCase('de-AT'),period=el('worklog-period')?.value||'all',customerFilter=workCustomerFilter?.value||'all',billing=el('worklog-billing-filter')?.value||'all',today=weekInfo(localDate()),now=new Date();
@@ -143,14 +156,15 @@ function render(){
   el('worklog-list').innerHTML=list(shownLogs,x=>{const pc=photoCounts.get(x.id)||0,customer=x.customer_name||customerName(x.customer_id),details=[x.order_title?`Auftrag: ${esc(x.order_title)}`:'',x.material?`Material: ${esc(x.material)}`:'',x.kilometers?`${Number(x.kilometers).toLocaleString('de-AT')} km`:'' ,pc?`${pc} Foto${pc===1?'':'s'}`:''].filter(Boolean).join(' · '),billing=x.billed?'Abgerechnet':'Noch nicht abgerechnet',sync='Lokal gespeichert';return`<button type="button" class="worklog-entry" data-edit-worklog="${esc(x.id)}"><span class="worklog-entry-head"><span class="worklog-entry-identity"><strong>${esc(customer)}</strong><small>${esc(worklogDateLabel(x.work_date))}</small></span><span class="worklog-entry-hours">${Number(x.hours||0).toLocaleString('de-AT')} h</span></span><span class="worklog-entry-activity">${esc(x.activity||'Keine Tätigkeit angegeben')}</span>${details?`<span class="worklog-entry-details">${details}</span>`:''}<span class="worklog-entry-foot"><span class="worklog-entry-status">${billing} · ${sync}</span><strong>Öffnen zum Bearbeiten <span aria-hidden="true">›</span></strong></span></button>`},'Keine passenden Arbeitsaufzeichnungen. Filter zurücksetzen oder neuen Eintrag erfassen.')+(visibleLogs.length>shownLogs.length?`<button type="button" class="secondary" id="worklog-load-more" style="width:100%;margin:10px 0;min-height:50px">Weitere 50 anzeigen · ${shownLogs.length} von ${visibleLogs.length}</button>`:'');
   }
   if(currentPage==='customers')renderCustomers(cs);
-  if(currentPage==='weeks')renderWeeks(logs);else el('week-list').replaceChildren();
-  const currentWeek=weekInfo(localDate());el('current-week-hours').textContent=logs.filter(row=>weekInfo(row.work_date)?.key===currentWeek?.key).reduce((sum,row)=>sum+Number(row.hours||0),0).toLocaleString('de-AT',{maximumFractionDigits:2})+' h';
+  if(currentPage==='weeks')renderWeeks(logs);
+  if(currentPage==='home'){const currentWeek=weekInfo(localDate());el('current-week-hours').textContent=logs.filter(row=>weekInfo(row.work_date)?.key===currentWeek?.key).reduce((sum,row)=>sum+Number(row.hours||0),0).toLocaleString('de-AT',{maximumFractionDigits:2})+' h';}
   if(currentPage==='orders'){
   const orderTerm=(el('order-search')?.value||'').trim().toLocaleLowerCase('de-AT');
   el('order-list').innerHTML=list(orders.filter(x=>HGDataOrder.matches(orderTerm,[x.title,x.description,x.location,x.customer_name,customerName(x.customer_id)])),x=>{const attached=photoRows.filter(p=>p.order_id===x.id),thumbs=attached.slice(0,4).map(p=>{const src=p.thumbnail_data||p.data;return src&&String(src).startsWith('data:image/')?`<img src="${esc(src)}" alt="${esc(p.caption||'Projektfoto')}" loading="lazy">`:'<span class="photo-thumb-empty">▧</span>'}).join('');return`<button type="button" class="list-item customer-row editable-row order-list-item" data-edit-order="${esc(x.id)}"><strong>${esc(x.title)}</strong><small>${esc(x.customer_name||customerName(x.customer_id))} · ${esc(x.status||'')}</small>${attached.length?`<span class="mobile-photo-strip">${thumbs}${attached.length>4?`<small>+${attached.length-4}</small>`:''}</span>`:''}</button>`},'Kein passendes Projekt gefunden.');
   }
   if(currentPage==='invoices')el('invoice-list').innerHTML=list(invoices,x=>`<div class="list-item invoice-entry" data-invoice="${esc(x.id)}"><strong>${esc(x.invoice_number||'Rechnung')} · ${Number(x.amount||0).toLocaleString('de-AT',{style:'currency',currency:'EUR'})}</strong><small>${esc(x.customer_name||customerName(x.customer_id))} · ${esc(x.status||'')}</small></div>`,'Noch keine Rechnungen auf diesem Gerät.');
-  const queueItems=new Map((state.sync_queue?.items||[]).map(x=>[x.client_id,x]));el('pending').innerHTML=pending.length?pending.map(x=>{const info=queueItems.get(x.client_id);return`<div class="list-item"><strong><span class="pending-dot"></span>${esc(x.payload.name||x.payload.activity||x.payload.caption||({delete:'Löschauftrag',customer:'Kundenänderung',order:'Auftragsänderung',invoice:'Rechnungsentwurf',invoice_issue:'Rechnungsabschluss',owner_invoice_issue:'Rechnungsabschluss',pixel_invoice_issue_v1:'Rechnungsabschluss',invoice_correction:'Korrekturentwurf',archive:'Archivierung',restore:'Wiederherstellung',conflict_resolution:'Konfliktentscheidung',invoice_payment:'Zahlungsmarkierung',business_settings:'Rechnungseinstellungen'}[x.kind]||x.kind))}</strong><small>${esc(info?.message||'Historischer Vorgang erhalten · lokale Prüfung ausstehend')}</small></div>`}).join(''):'<div class="empty">Keine ausstehenden Änderungen.</div>';syncLabel();window.TodayUI?.render()
+  if(currentPage==='sync-page'){const queueItems=new Map((state.sync_queue?.items||[]).map(x=>[x.client_id,x]));el('pending').innerHTML=pending.length?pending.map(x=>{const info=queueItems.get(x.client_id);return`<div class="list-item"><strong><span class="pending-dot"></span>${esc(x.payload.name||x.payload.activity||x.payload.caption||({delete:'Löschauftrag',customer:'Kundenänderung',order:'Auftragsänderung',invoice:'Rechnungsentwurf',invoice_issue:'Rechnungsabschluss',owner_invoice_issue:'Rechnungsabschluss',pixel_invoice_issue_v1:'Rechnungsabschluss',invoice_correction:'Korrekturentwurf',archive:'Archivierung',restore:'Wiederherstellung',conflict_resolution:'Konfliktentscheidung',invoice_payment:'Zahlungsmarkierung',business_settings:'Rechnungseinstellungen'}[x.kind]||x.kind))}</strong><small>${esc(info?.message||'Historischer Vorgang erhalten · lokale Prüfung ausstehend')}</small></div>`}).join(''):'<div class="empty">Keine ausstehenden Änderungen.</div>';}
+  renderedPages.set(currentPage,renderKey);window.TodayUI?.render()
 }
 function renderCustomers(rows){
   const term=(el('customer-search')?.value||'').trim().toLocaleLowerCase('de-AT');

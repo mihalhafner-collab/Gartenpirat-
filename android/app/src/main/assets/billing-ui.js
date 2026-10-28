@@ -43,7 +43,7 @@
   window.HGBillingUI=Object.freeze({sourceContext});
   let billingLimit=50;
   function groups(){
-    if(currentPage!=='billing-page'){get('billing-group-list')?.replaceChildren();return;}
+    if(currentPage!=='billing-page')return;
     try{const context=sourceContext();if(context){get('billing-local-error')?.remove();localGroups(context);return;}}catch(error){let status=get('billing-local-error');if(!status){status=document.createElement('p');status.id='billing-local-error';status.setAttribute('role','alert');get('billing-group-list').before(status);}status.textContent=HGBusinessFeedback.error(error)+' Den Abrechnungsbereich erneut öffnen. Es wurde kein Entwurf angelegt.';return;}get('billing-local-error')?.remove();
     const map=new Map(),invoices=merged('invoices','invoice');
     const invoiced=new Set(invoices.filter(i=>!['Storniert','Cancelled','Entfernt'].includes(i.status)&&(i.issued_at||i.sevdesk_id&&i.status!=='Entwurf')).flatMap(i=>[...(i.worklog_ids||[]),...(i.positions||[]).map(p=>p.worklog_id)]));
@@ -113,7 +113,7 @@
     const pageBase=window.openPage;window.openPage=function(...args){const result=pageBase(...args);if(result===false)return false;if(currentPage==='work-entry')entryDefault();if(currentPage==='customer-edit'&&!form.elements.id.value)customerEdit('');if(currentPage==='customer-profile-page')profile();if(currentPage==='billing-page')groups();if(currentPage==='invoices')invoiceReadiness();return result;};
     const detail=window.openWorklogDetail;window.openWorklogDetail=function(id){detail(id);const row=worklogs().find(w=>w.id===id);if(row){fill(w,recipient(row));window.captureWorklogBaseline?.();const info=get('worklog-detail-subtitle');if(info&&recipient(row)!==row.customer_id)info.textContent+=' · Abrechnung über: '+named(recipient(row));}};
     // Add a compact recipient line without replacing existing record rows/handlers.
-    function decorate(){document.querySelectorAll('.worklog-entry[data-edit-worklog]').forEach(node=>{const row=worklogs().find(w=>w.id===node.dataset.editWorklog);if(row&&recipient(row)!==row.customer_id&&!node.querySelector('.billing-line')){const span=document.createElement('small');span.className='billing-line';span.textContent='Abrechnung über: '+named(recipient(row));node.append(span);}});}
+    function decorate(){if(currentPage!=='worklogs')return;document.querySelectorAll('.worklog-entry[data-edit-worklog]').forEach(node=>{const row=worklogs().find(w=>w.id===node.dataset.editWorklog);if(row&&recipient(row)!==row.customer_id&&!node.querySelector('.billing-line')){const span=document.createElement('small');span.className='billing-line';span.textContent='Abrechnung über: '+named(recipient(row));node.append(span);}});}
     const after=window.render;window.render=function(){after();decorate();};
     customerEdit('');entryDefault();fill(w,'');fill(o,'','',true);
 

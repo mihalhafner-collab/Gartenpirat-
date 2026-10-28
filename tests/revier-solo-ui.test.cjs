@@ -64,7 +64,7 @@ const evidence={source_commit:require('node:child_process').execFileSync('git',[
    await page.evaluate(()=>handleAndroidBack());assert.equal(await page.evaluate(()=>qaRevier.writes.length),0);
   });
   await check('Today retains its last read on errors and recovers without a write',async()=>{
-   await page.evaluate(()=>{window.qaTodayOwner=AndroidData.ownerCall;AndroidData.ownerCall=(name,raw)=>name==='get_day_tour'?JSON.stringify({ok:false,error:{code:'NETWORK_UNAVAILABLE',message:'QA lesender Fehler'}}):qaTodayOwner(name,raw);render();});
+   await page.evaluate(()=>{window.qaTodayOwner=AndroidData.ownerCall;AndroidData.ownerCall=(name,raw)=>name==='get_day_tour'?JSON.stringify({ok:false,error:{code:'NETWORK_UNAVAILABLE',message:'QA lesender Fehler'}}):qaTodayOwner(name,raw);RevierUI.refresh();});
    assert(await page.locator('#revier-today [role=alert]').isVisible());
    assert.equal(await page.locator('#revier-today [data-revier-detail="visit"]').count(),2);
    await page.evaluate(()=>{AndroidData.ownerCall=qaTodayOwner;delete window.qaTodayOwner;});await page.locator('[data-revier-refresh-today]').click();
@@ -74,15 +74,15 @@ const evidence={source_commit:require('node:child_process').execFileSync('git',[
   await check('Today respects tour order, bounds its overview, and distinguishes empty from failed reads',async()=>{
    const original=await page.evaluate(()=>({visits:structuredClone(qaRevier.visits),tourIds:qaRevier.tourIds.slice()}));
    try{
-    await page.evaluate(()=>{const first=qaRevier.visits[0];qaRevier.visits.push(...[3,4,5].map(i=>({...first,id:'qa_today_'+i,title:'QA weiterer Einsatz '+i})));qaRevier.tourIds=['qa_visit_2','qa_visit_1','qa_today_3','qa_today_4'];render();});
+    await page.evaluate(()=>{const first=qaRevier.visits[0];qaRevier.visits.push(...[3,4,5].map(i=>({...first,id:'qa_today_'+i,title:'QA weiterer Einsatz '+i})));qaRevier.tourIds=['qa_visit_2','qa_visit_1','qa_today_3','qa_today_4'];RevierUI.refresh();});
     assert.deepEqual(await page.locator('#revier-today [data-revier-detail="visit"]').evaluateAll(rows=>rows.map(row=>row.dataset.id)),['qa_visit_2','qa_visit_1','qa_today_3']);
     assert.match(await page.locator('#revier-today [data-open=revier-visits]').innerText(),/5/);
-    await page.evaluate(()=>{qaRevier.visits[1].status='completed';qaRevier.visits[0].status='cancelled';render();});
+    await page.evaluate(()=>{qaRevier.visits[1].status='completed';qaRevier.visits[0].status='cancelled';RevierUI.refresh();});
     assert.equal(await page.locator('#revier-today [data-id=qa_visit_1],#revier-today [data-id=qa_visit_2]').count(),0);
-    await page.evaluate(()=>{qaRevier.visits=[];qaRevier.tourIds=[];render();});
+    await page.evaluate(()=>{qaRevier.visits=[];qaRevier.tourIds=[];RevierUI.refresh();});
     assert.equal(await page.locator('#revier-today [data-revier-detail="visit"]').count(),0);assert.match(await page.locator('#revier-today').innerText(),/keine Einsätze vorgemerkt/);
     assert.equal(await page.locator('#revier-today [role=alert]').count(),0);
-   }finally{await page.evaluate(original=>{Object.assign(qaRevier,original);render();},original);}
+   }finally{await page.evaluate(original=>{Object.assign(qaRevier,original);RevierUI.refresh();},original);}
    const appointments=await page.evaluate(()=>structuredClone(master.appointments||[]));
    await page.evaluate(()=>{master.appointments=[];load();});assert.equal(await page.locator('#planning-home').isVisible(),false);
    await page.evaluate(()=>{master.appointments=[{id:'qa_today_future_appointment',customer_id:'qa_c1',title:'QA späterer Termin',starts_at:new Date(Date.now()+86400000).toISOString(),ends_at:'',timezone:'Europe/Vienna',status:'tentative'}];load();});assert(await page.locator('#planning-home').isVisible());

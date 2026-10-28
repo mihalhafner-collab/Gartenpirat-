@@ -51,6 +51,11 @@ public final class LocalWorkflowContractsTests {
             int index=method.getName().equals("fullBackupAction")?0:method.getName().equals("revierAction")?1:method.getName().equals("localInvoiceAction")?2:-1;if(index<0)throw new AssertionError("Unexpected local effect port "+method.getName());ports[index]++;return new JSONObject().put("operation",values[0]).put("request_id",((JSONObject)values[1]).getString("request_id"));
         });
         OwnerApplicationService dispatch=new OwnerApplicationService(routed);for(String name:LocalWorkflowTools.WRITES){if(LocalWorkflowTools.offerDecision(name))continue;JSONObject result=dispatch.perform(name,request(),"qa_routed_request");yes(result.getString("operation").equals(name)&&result.getString("request_id").equals("qa_local_contract_request"));}yes(ports[0]==2&&ports[1]==21&&ports[2]==5);
+        // The real backup-status route must not deserialize the business snapshot.
+        int[] builds={0},statusReads={0};JSONObject backupStatus=new JSONObject().put("phase","REMOTE_VERIFIED").put("last_external_verified_at","qa_checked");
+        PixelMcpReadTools snapshotFree=new PixelMcpReadTools(()->{builds[0]++;throw new AssertionError("backup status rebuilt business state");},null,(name,args2)->{statusReads[0]++;yes(name.equals("get_full_backup_status"));return backupStatus;});
+        JSONObject backupResponse=snapshotFree.call("get_full_backup_status",new JSONObject().put("offset",0).put("limit",1));yes(builds[0]==0&&statusReads[0]==1);yes(backupResponse.getBoolean("ok")&&!backupResponse.getBoolean("cloud_confirmed")&&backupResponse.getBoolean("untrusted_business_data"));yes(backupResponse.getJSONObject("data").toString().equals(backupStatus.toString()));
+        try{snapshotFree.call("get_full_backup_status",new JSONObject().put("limit",0));throw new AssertionError("invalid status query accepted");}catch(IllegalArgumentException expected){yes(statusReads[0]==1&&builds[0]==0);}
         System.out.println("PASS "+checks+" additive local schemas/shared dispatch/decimal and explicit-clear/secret-field rejection checks;native persistence tested separately");
     }
 }

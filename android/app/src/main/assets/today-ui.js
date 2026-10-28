@@ -109,11 +109,14 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
     const card=get('planning-home');
     if(card)card.hidden=get('revier-today')?.dataset.todayLoaded==='true'&&!card.querySelector('[data-appointment-open]');
   }
+  let lastTodayDataKey='';
   function renderToday(){
     document.documentElement.classList.toggle('today-root',currentPage==='home');
     if(currentPage!=='home')return;
     const date=get('home-dayline');date.textContent=new Date().toLocaleDateString('de-AT',{timeZone:'Europe/Vienna',weekday:'short',day:'numeric',month:'short'});date.setAttribute('aria-label',new Date().toLocaleDateString('de-AT',{timeZone:'Europe/Vienna',dateStyle:'full'}));
     syncChip();workTimer();
+    const todayDataKey=()=>JSON.stringify([dataRevision(),localDate(),Math.floor(Date.now()/60000),futureSelection,syncInfo]);
+    if(lastTodayDataKey===todayDataKey())return;
     const data=window.PlanningUI?.homeRows(1,futureSelection,true)||{entries:[],total:0,future:[],next:null},card=get('planning-home');
     if(data.next)futureSelection=data.next.appointment.id;
     const key=JSON.stringify([data.next,data.total,data.future.map(a=>a.id),data.next?customerName(data.next.appointment.customer_id):'']);
@@ -134,12 +137,12 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
     if(recent._rowsKey!==recentKey){recent._rowsKey=recentKey;recent.innerHTML=rows.map(row=>'<button type="button" class="workday-recent-row" data-edit-worklog="'+esc(row.id)+'"><strong>'+esc(customerName(row.customer_id))+'</strong><span>'+esc(worklogDateLabel(row.work_date))+' · '+esc(String(row.activity||'').slice(0,75))+'</span><b>'+Number(row.hours||0).toLocaleString('de-AT')+' h</b></button>').join('');}
     const review=Number(syncInfo.review??state.sync_queue?.review??0),backup=syncInfo.full_backup,needsBackup=!backup?.last_external_verified_at||backup?.requires_setup||backup?.clock_review_required,open=get('today-open');open.hidden=!review&&!needsBackup;
     open.innerHTML='<h2>Prüfen</h2><div class="today-open-chips">'+(review?'<button type="button" data-open="sync-page">Historische Vorgänge prüfen</button>':'')+(needsBackup?'<button type="button" data-open-full-backup>Sicherung prüfen</button>':'')+'</div>';
-    document.body.dataset.todayReady='true';
+    lastTodayDataKey=todayDataKey();document.body.dataset.todayReady='true';
   }
   function init(){
     const card=get('planning-home');homeGestures(card);
     renderToday();setInterval(()=>{if(!document.hidden&&currentPage==='home')workTimer();},1000);
   }
-  window.TodayUI=Object.freeze({render:renderToday,syncChip,refreshScheduleVisibility,invalidate(){lastPlanningKey='';renderToday();}});
+  window.TodayUI=Object.freeze({render:renderToday,syncChip,refreshScheduleVisibility,invalidate(){lastPlanningKey='';lastTodayDataKey='';renderToday();}});
   document.addEventListener('DOMContentLoaded',init,{once:true});
 })();
