@@ -62,7 +62,8 @@
       "test_order": "NO_MORE_TEST_RUNS_UNTIL_STAGE3_TO_STAGE5_AND_AGREED_SMALL_CHANGES_IMPLEMENTED",
       "productive_data_for_testing": false,
       "journal_and_lists": "COMPLETE_SOURCE_CONVERSION_REQUESTED;protected legacy deletion only after restore evidence",
-      "protected_legacy_removal": "EXPLICITLY_REQUESTED;prior backup/restore prerequisite not evidenced or explicitly withdrawn"
+      "protected_legacy_removal": "EXPLICITLY_REQUESTED;prior backup/restore prerequisite not evidenced or explicitly withdrawn",
+      "backup_diagnosis": "User requested investigation; supplied screenshot shows BACKUP_CAPTURE_INVENTORY_IO_FAILED;no productive retry or restore requested"
     },
     "test_environment_access": {
       "adb_client": "NOT_AVAILABLE_IN_CLOUD",
@@ -72,9 +73,11 @@
       "laptop_remote_shell": "NOT_AVAILABLE",
       "pixel_metadata_connector": "AVAILABLE;read-only backup/restore status retrieved;no ADB connection or test performed"
     },
-    "implementation_checkpoint": "SOURCE_ONLY_NOT_TESTED;full acceptance and protected legacy deletion remain open;not a release candidate"
+    "implementation_checkpoint": "SOURCE_ONLY_NOT_TESTED;full acceptance and protected legacy deletion remain open;not a release candidate",
+    "current_focus": "Backup-Fehlersuche: INVENTORY_IO_FAILED eingrenzen und verlorene Fehlerdiagnose/Jobstatus korrigieren; ursprüngliche Bestandsursache noch unbekannt"
   },
   "open_checks": [
+    "Backup: konkreten Inventarfehler nach korrigierter Fehlerweitergabe bestimmen; danach Ursache gezielt beheben und vollständige Sicherung/Restore prüfen; nicht als reparierte Sicherung melden",
     "Etappe3: gemeinsame Journal-/Tabellen-/Requesttransaktion und acht gezielte Listen-/Suchabfragen im Quellcode angebunden; Atomarität, Filterparität und alle Fachschreiber noch ungeprüft",
     "Etappe3: verschlüsselten Archivnachweis, Beziehungen/Originale, Preferences-Übernahme, Schreibsperre, Backup/Restore und Rückweg gemeinsam am aktuellen Quellstand prüfen; bisher keine unabhängige Geräteprüfung",
     "Etappe4: Heute/Kunden/Büro über zuständige Renderer verbunden; vollständige Funktionsliste, Entwurfswege, 320/360px und 200%-Schrift sowie Leistung noch ungeprüft",
@@ -202,7 +205,43 @@
     "previous_jvm_checks_passed": 164,
     "previous_browser_suites_passed": 5,
     "last_executed_python_tests_passed": 62,
-    "last_completed_test_source_sha256": "8c5bb6151d7517fb8b82ce60704c02749badf582d8390772e0729bdad5815f8e"
+    "last_completed_test_source_sha256": "8c5bb6151d7517fb8b82ce60704c02749badf582d8390772e0729bdad5815f8e",
+    "backup_diagnosis": {
+      "observed_at_utc": "2026-10-28T20:29:46Z",
+      "device_reported_build": {
+        "version_name": "1.55.8",
+        "version_code": 113,
+        "git_sha": "2758d2e68dc00ff6b70078879b98a8fb3797c18c",
+        "source_sha256": "8c5bb6151d7517fb8b82ce60704c02749badf582d8390772e0729bdad5815f8e",
+        "database_version": 6,
+        "binding": "APP_SELF_REPORT;no fresh independent APK/signature readback"
+      },
+      "ui_error": "BACKUP_CAPTURE_INVENTORY_IO_FAILED",
+      "metadata_status": {
+        "phase": "CAPTURING",
+        "byte_size": 0,
+        "local_verified": false,
+        "browser_capture_pending": false,
+        "browser_checkpoint_error": ""
+      },
+      "confirmed_findings": [
+        "Capture reached inventory validation after SQLite/file capture; external ZIP export had not started",
+        "Build113 capture error wrapper hides non-BACKUP/RECOVERY IOException codes, including browser media and financial validation errors",
+        "Capture failure is displayed only in the activity; existing job remains CAPTURING without durable lastErrorCode",
+        "FullBackupController does not expose lastErrorCode or attempt timestamps in Build113"
+      ],
+      "source_corrections": [
+        "bounded browser-media/financial machine codes retained; unknown inventory failures get substage codes without private text",
+        "local preparation/export failures persist lastErrorCode and timestamps; incomplete job becomes FAILED; prior verification proofs retained",
+        "status exposes safe failure code and timestamps; activity uses same sanitizer; successful retry clears last failure",
+        "existing provider proof protects verified destination from overwrite independently of current job phase"
+      ],
+      "root_cause": "NOT_YET_IDENTIFIED;original lower-level IOException is not available from installed status or screenshot;no specific missing file, damaged record or financial conflict asserted",
+      "verification": "SOURCE_REVIEW_ONLY;diagnostic regression cases added to existing PixelPlainBackupTests but not executed;no compilation or device test",
+      "deployment": "NOT_PERFORMED;installed Build113 does not yet contain diagnostic correction",
+      "data_access": "App technical metadata and user screenshot only;no business records, original files or backups downloaded",
+      "next_evidence": "Specific error code from corrected device build, or an existing original exception trace if available"
+    }
   },
   "required_test_support": {
     "java": [

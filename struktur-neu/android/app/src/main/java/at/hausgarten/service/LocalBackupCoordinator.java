@@ -41,14 +41,22 @@ final class LocalBackupCoordinator {
     JSONObject prepareLocal(String backupId)throws Exception {
         if(store.getWritableDatabase().inTransaction())throw new IOException("BACKUP_PREPARE_REQUIRES_OUTSIDE_TRANSACTION");
         if(!LOCAL_RUNNING.tryLock())return status(backupId).put("runnerBusy",true);
-        try{return prepareLocked(backupId);}finally{LOCAL_RUNNING.unlock();}
+        try{beginAttempt(backupId);return prepareLocked(backupId);}catch(Exception failure){recordFailure(backupId,failure);throw failure;}finally{LOCAL_RUNNING.unlock();}
+    }
+    private void beginAttempt(String backupId)throws Exception {step(jobs.load(backupId),new JSONObject().put("lastLocalAttemptAt",java.time.Instant.now().toString()).put("lastErrorCode",""));}
+    /** Persist the safe failure while retaining captured files and any earlier verification proof. */
+    void recordFailure(String backupId,Exception failure){
+        try{JSONObject job=jobs.load(backupId),changes=new JSONObject().put("lastErrorCode",BackupScheduleRules.errorCode(failure)).put("lastAttemptAt",java.time.Instant.now().toString());
+            if(!job.optString("phase").equals("PROVIDER_VERIFIED"))changes.put("phase","FAILED");
+            step(job,changes);
+        }catch(Exception reportingFailure){failure.addSuppressed(reportingFailure);}
     }
     private CapturedJob captureLocked(String backupId)throws Exception {
         currentContext();JSONObject job=jobs.load(backupId);File root=root(job);JSONObject capture=job.optJSONObject("capture"),metadata=null;
         if(capture!=null){File info=child(root,capture.getString("metadataFile"));if(capture.has("metadataSha256")&&!info.isFile())throw new IOException("BACKUP_CAPTURE_METADATA_MISSING");if(info.isFile()){
             String actual=EncryptedBackupArchive.sha256(info);if(capture.has("metadataSha256")&&!capture.getString("metadataSha256").equals(actual))throw new IOException("BACKUP_CAPTURE_METADATA_CHANGED");
             metadata=readJson(info);requireIdentity(metadata,job);LocalBackupDataset.inspectStaged(child(root,capture.getString("directory")),metadata);
-            capture.put("metadataSha256",actual);job=step(job,new JSONObject().put("capture",capture));
+            capture.put("metadataSha256",actual);JSONObject changes=new JSONObject().put("capture",capture);if(job.optString("phase").equals("FAILED"))changes.put("phase","CAPTURED");job=step(job,changes);
         }}
         if(metadata==null){
             String nonce=UUID.randomUUID().toString();capture=new JSONObject().put("directory","capture-"+nonce).put("metadataFile","capture-"+nonce+".json");job=step(job,new JSONObject().put("phase","CAPTURING").put("capture",capture));
@@ -65,7 +73,7 @@ final class LocalBackupCoordinator {
     }
     LocalBackupDataset.Captured captureForPortable(String backupId)throws Exception {
         if(store.getWritableDatabase().inTransaction())throw new IOException("BACKUP_PREPARE_REQUIRES_OUTSIDE_TRANSACTION");if(!LOCAL_RUNNING.tryLock())throw new IOException("BACKUP_RUNNER_BUSY");
-        try{CapturedJob captured=captureLocked(backupId);return new LocalBackupDataset.Captured(child(captured.root,captured.capture.getString("directory")),captured.metadata);}finally{LOCAL_RUNNING.unlock();}
+        try{beginAttempt(backupId);CapturedJob captured=captureLocked(backupId);return new LocalBackupDataset.Captured(child(captured.root,captured.capture.getString("directory")),captured.metadata);}catch(Exception failure){recordFailure(backupId,failure);throw failure;}finally{LOCAL_RUNNING.unlock();}
     }
     private JSONObject prepareLocked(String backupId)throws Exception {
         CapturedJob captured=captureLocked(backupId);JSONObject job=captured.job,capture=captured.capture,metadata=captured.metadata;File root=captured.root;
@@ -89,6 +97,7 @@ final class LocalBackupCoordinator {
             }
             archive.put("localVerifiedAt",java.time.Instant.now().toString());job=step(job,new JSONObject().put("phase","LOCAL_VERIFIED").put("archive",archive));
         }
+        if(!job.optString("phase").equals("PROVIDER_VERIFIED"))job=step(job,new JSONObject().put("phase","LOCAL_VERIFIED"));
         return job;
     }
     File verifiedArchive(String backupId)throws Exception {

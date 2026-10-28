@@ -63,6 +63,25 @@ gelten. Diese Prüfmatrix ersetzt keinen Restore-Nachweis auf dem Pixel.
 
 ## Gemeinsame Quellprüfung nach dem Umbau
 
+Bei Fehlern lokaler ZIP-Sicherungen zuerst den Fehlercode der Sicherungsseite und
+`get_full_backup_status` vergleichen. `CAPTURING` allein ist kein Beleg für einen
+noch laufenden Worker; frühere Appstände hielten einen Capture-Abbruch nicht im
+Job fest. `BACKUP_CAPTURE_INVENTORY_IO_FAILED` grenzt den Abbruch auf die
+Bestandsprüfung nach der Datenbankaufnahme ein, benennt aber weder eine bestimmte
+Datei noch einen konkreten Finanz-/Medienfehler. Die Ziel-ZIP wird erst nach
+erfolgreicher interner Aufnahme und Integritätsprüfung ausgegeben.
+
+Für den anschließenden Prüflauf `PixelPlainBackupTests` einschließlich der
+Fehlercode-Fälle ausführen: konkrete Medien-/Finanzcodes unverändert durchreichen,
+unbekannte Fehler auf den jeweiligen Inventarschritt begrenzen und Freitext/Pfade
+nicht ausgeben. Native Fehlerfälle zusätzlich prüfen: Capture-Abbruch führt zu
+`FAILED` mit `last_error_code` und Zeitstempel; ein erfolgreicher Wiederholungsversuch
+verwendet geprüfte vorhandene Zwischenstände und entfernt den letzten Fehlercode.
+Export-/Rücklesefehler dürfen einen vorhandenen Providerbeleg weder löschen noch
+zum erneuten Überschreiben eines bereits verifizierten Ziels berechtigen. Eine
+bloße Quellkorrektur der Diagnose beweist keine Behebung des ursprünglichen
+Bestandsfehlers. Keine Sicherung durch Überspringen der Fachprüfungen freigeben.
+
 ```sh
 python3 -B tools/check_current.py
 ```

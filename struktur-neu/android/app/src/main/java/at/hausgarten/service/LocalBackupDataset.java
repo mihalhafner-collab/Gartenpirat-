@@ -52,15 +52,23 @@ final class LocalBackupDataset {
         if(!PixelMcpWriteTools.hash(preferences).equals(PixelMcpWriteTools.hash(BackupPreferences.capture(context))))throw new IOException("BACKUP_PREFERENCES_CHANGED_RETRY");
         stageName="INVENTORY";JSONObject inventory,state,revier,numberState,financial,financialOriginals,browserMedia;
         try(SQLiteDatabase snapshot=SQLiteDatabase.openDatabase(database.getAbsolutePath(),null,SQLiteDatabase.OPEN_READONLY)){
+            stageName="INVENTORY_STATE";
             state=BackupSnapshotState.read(snapshot,BackupPreferences.values(preferences,"haus_garten"),initial,catalog);
             state.put("extended_business_fingerprint",BusinessStateFingerprint.read(snapshot));
+            stageName="INVENTORY_BUSINESS";
             inventory=LocalMigrationInventory.inspect(state,new LocalOriginalVerifier(new File(freshDirectory,"files"),id->BackupSnapshotState.photo(snapshot,id),id->new JSONObject(DatabaseBackupSnapshot.ownerValue(snapshot,"local_invoice_job:"+id,"{}"))));
+            stageName="INVENTORY_RELATIONS";
             revier=new RevierApplicationService(new RevierSnapshotRepository(snapshot,SnapshotProjection.effective(state),new File(freshDirectory,"files"))).validateRelationships();
+            stageName="INVENTORY_FINANCIAL";
             financial=LocalFinancialSnapshotValidation.inspect(snapshot,SnapshotProjection.effective(state));
+            stageName="INVENTORY_ORIGINALS";
             financialOriginals=LocalFinancialOriginals.inspect(new File(freshDirectory,"files"),new JSONObject(DatabaseBackupSnapshot.ownerValue(snapshot,"local_invoice_external_evidence","{}")));
+            stageName="INVENTORY_BROWSER_MEDIA";
             browserMedia=BrowserMediaRepository.inspectCaptured(snapshot,new File(freshDirectory,"files"));
+            stageName="INVENTORY_NUMBERS";
             numberState=numberState(snapshot,state);
         }
+        stageName="INVENTORY_METADATA";
         if(inventory.getInt("missing_local_originals")!=0)throw new IOException("BACKUP_LOCAL_ORIGINALS_INCOMPLETE");
         JSONObject metadata=new JSONObject(identity.toString()).put("schemaVersion",db.getInt("schemaVersion")).put("applicationId",context.getPackageName()).put("appVersion",context.getPackageManager().getPackageInfo(context.getPackageName(),0).versionName)
             .put("captureStartedAt",started).put("capturedAt",java.time.Instant.now().toString()).put("counts",inventory.getJSONObject("counts")).put("database",db).put("inventory",inventory).put("revier_inventory",revier).put("financial_inventory",financial).put("financial_originals",financialOriginals).put("business_snapshot_sha256",LocalAuthorityMigration.businessHash(state)).put("business_snapshot_hash_version",1)

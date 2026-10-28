@@ -8,7 +8,21 @@ public final class PixelPlainBackupTests {
     static int checks;static void yes(boolean v){checks++;if(!v)throw new AssertionError("plain backup "+checks);}
     interface Case {void run()throws Exception;}static void reject(Case test)throws Exception{try{test.run();}catch(Exception expected){checks++;return;}throw new AssertionError("invalid plain archive accepted");}
     static JSONObject metadata()throws Exception{return new JSONObject().put("schemaVersion",6).put("applicationId","at.hausgarten.service").put("appVersion","qa").put("backupId","qa_plain_backup").put("installationId","qa_install").put("businessId","qa_business").put("capturedAt","2026-10-28T00:00:00Z").put("counts",new JSONObject()).put("numberState",new JSONObject()).put("lastIssuedDocumentIds",new JSONArray());}
+    static void diagnosticChecks()throws Exception{
+        // These failures used to collapse to BACKUP_CAPTURE_INVENTORY_IO_FAILED.
+        for(String code:new String[]{"BROWSER_MEDIA_RECORD_MISSING","FINANCIAL_NUMBER_COLLISION","FINANCIAL_ORIGINAL_HASH_MISMATCH"}){
+            Exception error=BackupScheduleRules.captureFailure("INVENTORY",new IOException(code));
+            yes(BackupScheduleRules.errorCode(error).equals(code));
+        }
+        IOException privateDetail=new IOException("QA path /private/customer-document.pdf");
+        Exception sanitized=BackupScheduleRules.captureFailure("INVENTORY_BROWSER_MEDIA",privateDetail);
+        yes(BackupScheduleRules.errorCode(sanitized).equals("BACKUP_CAPTURE_INVENTORY_BROWSER_MEDIA_IO_FAILED"));
+        yes(sanitized.getCause()==privateDetail);yes(BackupScheduleRules.errorCode(privateDetail).equals("BACKUP_OPERATION_FAILED"));
+        yes(BackupScheduleRules.errorCode(new IOException("FINANCIAL_SECRET\nQA private text")).equals("BACKUP_OPERATION_FAILED"));
+        InterruptedIOException interrupted=new InterruptedIOException("QA cancelled");yes(BackupScheduleRules.captureFailure("INVENTORY",interrupted)==interrupted);
+    }
     public static void main(String[] args)throws Exception{
+        diagnosticChecks();
         File root=Files.createTempDirectory("qa_plain_backup_").toFile();try{
             File source=new File(root,"qa_database.sqlite"),zip=new File(root,"qa_backup.zip");byte[] bytes="QA local plaintext contents".getBytes("UTF-8");Files.write(source.toPath(),bytes);
             try(OutputStream out=new FileOutputStream(zip)){EncryptedBackupArchive.writePlain(out,metadata(),Arrays.asList(new EncryptedBackupArchive.Source("database.sqlite",source)));}

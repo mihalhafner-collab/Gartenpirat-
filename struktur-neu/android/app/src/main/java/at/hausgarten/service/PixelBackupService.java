@@ -22,13 +22,15 @@ final class PixelBackupService {
         LocalBackupCoordinator service=new LocalBackupCoordinator(context,store);String id="pixel_"+PixelMcpWriteTools.hash(request).substring(0,32);JSONObject job;
         try{job=service.status(id);if(!job.getString("requestId").equals(request)||!target.toString().equals(job.getJSONObject("destination").optString("treeUri")))throw new IOException("BACKUP_LOCAL_TARGET_CHANGED");}
         catch(IOException absent){if(!"BACKUP_JOB_NOT_FOUND".equals(absent.getMessage()))throw absent;JSONObject checkpoint=new BackupSettingsRepository(context,store).browser();job=service.createWithIntent(request,id,new JSONObject().put("kind","saf").put("treeUri",target.toString()).put("purpose","pixel_plain_backup"),checkpoint.getJSONObject("browser"),"manual");}
-        progress.accept("Bestand für die Sicherung aufnehmen …");JSONObject prepared=service.prepareLocal(id);if(prepared.optBoolean("runnerBusy"))throw new IOException("BACKUP_RUNNER_BUSY");File archive=service.verifiedArchive(id);job=service.status(id);
+        progress.accept("Bestand für die Sicherung aufnehmen …");JSONObject prepared=service.prepareLocal(id);if(prepared.optBoolean("runnerBusy"))throw new IOException("BACKUP_RUNNER_BUSY");
+        try{File archive=service.verifiedArchive(id);job=service.status(id);
         progress.accept("ZIP-Datei speichern und vollständig zurücklesen …");String hash=job.getJSONObject("archive").getString("sha256");
-        BackupDocumentTransfer.exportLocal(archive,hash,job.optString("phase").equals("PROVIDER_VERIFIED"),new BackupDocumentTransfer.LocalFile(){
+        BackupDocumentTransfer.exportLocal(archive,hash,job.optJSONObject("provider")!=null,new BackupDocumentTransfer.LocalFile(){
             public OutputStream write()throws Exception{return context.getContentResolver().openOutputStream(target,"wt");}
             public InputStream read()throws Exception{return context.getContentResolver().openInputStream(target);}
         });
         service.recordProviderProof(id,new JSONObject().put("backup_id",id).put("archive_sha256",hash).put("byte_size",archive.length()).put("verified_at",Instant.now().toString()).put("verification_scope","DOCUMENT_PROVIDER_READBACK").put("destination_location","SAME_DEVICE").put("external_storage_verified",false));
         return new JSONObject().put("backup_id",id).put("saved",true).put("verified",true).put("encrypted",false).put("byte_size",archive.length()).put("cloud_confirmed",false);
+        }catch(Exception failure){service.recordFailure(id,failure);throw failure;}
     }
 }
