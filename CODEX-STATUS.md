@@ -21,7 +21,14 @@ Tabelle: `docs/verification/performance-stage1-2026-10-28.md`; Rohstatistik in
 `performance-before-2026-10-28.json` und `performance-stage1-2026-10-28.json`.
 Keine Verbesserung behauptet; gemeinsame Cloudhardware zeigt Ausreißer.
 Native-/Emulatorzeitmessung und Pixel-Leistungsmessung nicht ausgeführt.
-Start-/Adapterprüfungen laufen noch; dieser Zwischenschritt ist keine APK-Freigabe.
+13 Start-/Fehler-/Entwurfsschutzgruppen,32 Pythonprüfungen und82 JVM-Suiten PASS;
+Android-Quellen erfolgreich kompiliert. Native Adapterprüfung umfasst416 Checks
+einschließlich Messpuffer/UTF-8-Größe/Originalexception. Bestehendes P1-Altkataloggate
+meldet weiterhin einen tools-Schemaversatz: sämtliche Tools-Quellen und das Gate
+sind bytegleich zur Original108-Quelle9415c8d.169er-/212er-Parität PASS; Altgate
+nicht abgeschwächt. Beleg: `docs/verification/performance-stage1-tests-2026-10-28.json`.
+Messwerte bleiben Cloudwerte; keine APK-/Gerätefreigabe.
+Quellen im Zwischencommit a6d08f6 exakt auf GitHub zurückgelesen.
 
 Privacy-Vorbereitung: zwei fehlende Bild-Sidecars durch exakt übereinstimmende
 synthetische Originalhashes im bestehenden Funktionstestbericht und visuelle
