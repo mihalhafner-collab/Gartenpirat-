@@ -72,6 +72,46 @@ final class BackupAutomation {
         }finally{UPLOAD_RUNNING.unlock();}
     }
 
+    /** Explicit user action: prepare and upload exactly this durable job now.
+     * No Android scheduler, fresh job, automatic opt-in or changed request ID. */
+    JSONObject runManual(String id,long now)throws Exception {
+        return runManual(id,now,()->{
+            android.net.ConnectivityManager manager=context.getSystemService(android.net.ConnectivityManager.class);
+            android.net.Network network=manager==null?null:manager.getActiveNetwork();
+            android.net.NetworkCapabilities caps=network==null?null:manager.getNetworkCapabilities(network);
+            String wait=BackupScheduleRules.networkWait(settings.read(),caps!=null&&caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET),manager!=null&&manager.isActiveNetworkMetered());
+            if(wait.equals("NETWORK_UNAVAILABLE"))throw new DriveRestClient.Failure(wait,"Kein Internetzugang.",0,false);
+            if(!wait.isEmpty())throw new IOException(wait);
+        });
+    }
+    JSONObject runManual(String id,long now,LocalBackupCoordinator.UploadGate network)throws Exception {
+        if(!LOCAL_RUNNING.tryLock())return result("BUSY",id,0);
+        boolean uploadLock=false;
+        try{
+            uploadLock=UPLOAD_RUNNING.tryLock();if(!uploadLock)return result("BUSY",id,0);
+            JSONObject config=settings.read(),job=service.status(id);
+            if(!ready(config)||!FullBackupController.targetMatches(job,config))throw new IOException("BACKUP_DESTINATION_CHANGED_REVIEW_REQUIRED");
+            if(invalidEntries(new JSONArray().put(job),now)!=null)return result("JOB_REVIEW",id,0);
+            if(COMPLETE.contains(job.optString("phase")))return result("COMPLETED",id,0).put("phase",job.getString("phase"));
+            if(!active(job)||job.optInt(locallyVerified(job)?"attempts":"localAttempts")>=BackupScheduleRules.MAX_ATTEMPTS)return result("JOB_REVIEW",id,0).put("lastErrorCode",job.optString("lastErrorCode","BACKUP_RETRY_LIMIT_REVIEW_REQUIRED"));
+            if(job.optLong("nextAttemptAt",0)>now)return result("WAIT",id,job.getLong("nextAttemptAt"));
+            BackupJobRepository jobs=repository();
+            if(!manual(job))job=jobs.update(id,job.getString("revision"),new JSONObject().put("manualRequested",true));
+            if(!locallyVerified(job)){
+                String lease="local_"+UUID.randomUUID();int previous=job.optInt("localAttempts");
+                job=jobs.update(id,job.getString("revision"),new JSONObject().put("localAttempts",previous+1).put("runnerAttemptId",lease).put("lastLocalAttemptAt",Instant.ofEpochMilli(now).toString()));
+                try{
+                    JSONObject prepared=service.prepareLocal(id);
+                    if(prepared.optBoolean("runnerBusy")){releaseBusy(id,lease,"localAttempts",previous);return result("BUSY",id,0);}
+                    job=service.status(id);if(lease.equals(job.optString("runnerAttemptId")))job=jobs.update(id,job.getString("revision"),new JSONObject().put("runnerAttemptId","").put("lastErrorCode",""));
+                }catch(Exception failure){return failure(id,lease,previous+1,now,failure);}
+            }
+            try{network.check();}catch(DriveRestClient.Failure unavailable){return result("WAIT_NETWORK",id,0).put("lastErrorCode",unavailable.code);}
+            catch(IOException preference){if(!"BACKUP_WIFI_REQUIRED".equals(preference.getMessage()))throw preference;return result("WAIT_NETWORK",id,0).put("lastErrorCode","BACKUP_WIFI_REQUIRED");}
+            return upload(job,config,System.currentTimeMillis(),false,network);
+        }finally{if(uploadLock)UPLOAD_RUNNING.unlock();LOCAL_RUNNING.unlock();}
+    }
+
     JSONObject pending(long now)throws Exception {
         JSONObject config=settings.read();JSONArray rows=currentJobs();JSONObject invalid=invalid(rows,now);long local=Long.MAX_VALUE,upload=Long.MAX_VALUE;
         if(invalid==null&&ready(config))for(int i=0;i<rows.length();i++){
@@ -83,12 +123,16 @@ final class BackupAutomation {
     }
 
     private JSONObject upload(JSONObject job,JSONObject config,long now,boolean prepare)throws Exception {
+        return upload(job,config,now,prepare,()->{});
+    }
+    private JSONObject upload(JSONObject job,JSONObject config,long now,boolean prepare,LocalBackupCoordinator.UploadGate network)throws Exception {
         String id=job.getString("backupId"),lease="upload_"+UUID.randomUUID();int previous=job.optInt("attempts");if(previous>=BackupScheduleRules.MAX_ATTEMPTS)return result("JOB_REVIEW",id,0);
         BackupJobRepository jobs=repository();jobs.update(id,job.getString("revision"),new JSONObject().put("attempts",previous+1).put("lastAttemptAt",Instant.ofEpochMilli(now).toString()).put("runnerAttemptId",lease).put("nextAttemptAt",0));
         try{
             if(prepare){JSONObject prepared=service.prepareLocal(id);if(prepared.optBoolean("runnerBusy")){releaseBusy(id,lease,"attempts",previous);return result("BUSY",id,now+30000);}}
             if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException();
             LocalBackupCoordinator.UploadGate gate=()->{
+                network.check();
                 JSONObject current=service.status(id);if(!lease.equals(current.optString("runnerAttemptId")))throw new IOException("BACKUP_JOB_SUPERSEDED");
                 JSONObject selected=settings.read();if(!ready(selected)||!FullBackupController.targetMatches(current,selected))throw new IOException("BACKUP_DESTINATION_CHANGED_REVIEW_REQUIRED");
                 if(!manual(current)&&!selected.optBoolean("enabled"))throw new IOException("BACKUP_AUTOMATIC_PAUSED");
@@ -103,7 +147,7 @@ final class BackupAutomation {
         if(Thread.currentThread().isInterrupted()||failure instanceof java.io.InterruptedIOException)throw failure;
         JSONObject latest=service.status(id);if(!lease.equals(latest.optString("runnerAttemptId")))return result("SUPERSEDED",id,0);
         String code=safeCode(failure);if(code.equals("BACKUP_JOB_SUPERSEDED"))return result("SUPERSEDED",id,0);
-        boolean paused=code.equals("BACKUP_AUTOMATIC_PAUSED")||code.equals("BACKUP_SETTINGS_CHANGED"),transientCapture=Arrays.asList("BACKUP_PREFERENCES_CHANGED_RETRY","BACKUP_BROWSER_CAPTURE_REQUIRED","BACKUP_BROWSER_WRITE_CONFLICT","BACKUP_BROWSER_EDITOR_STATE_MISMATCH","BACKUP_SOURCE_CHANGED").contains(code);boolean needs=!paused&&!transientCapture&&(code.startsWith("BACKUP_")||code.startsWith("RECOVERY_")||failure instanceof SecurityException||failure instanceof JSONException||failure instanceof IllegalArgumentException||failure instanceof DriveRestClient.Failure&&((DriveRestClient.Failure)failure).userAction);
+        boolean paused=code.equals("BACKUP_AUTOMATIC_PAUSED")||code.equals("BACKUP_SETTINGS_CHANGED")||code.equals("BACKUP_WIFI_REQUIRED"),transientCapture=Arrays.asList("BACKUP_PREFERENCES_CHANGED_RETRY","BACKUP_BROWSER_CAPTURE_REQUIRED","BACKUP_BROWSER_WRITE_CONFLICT","BACKUP_BROWSER_EDITOR_STATE_MISMATCH","BACKUP_SOURCE_CHANGED").contains(code);boolean needs=!paused&&!transientCapture&&(code.startsWith("BACKUP_")||code.startsWith("RECOVERY_")||failure instanceof SecurityException||failure instanceof JSONException||failure instanceof IllegalArgumentException||failure instanceof DriveRestClient.Failure&&((DriveRestClient.Failure)failure).userAction);
         long next=paused?0:needs?Long.MAX_VALUE:BackupScheduleRules.retryAt(Math.max(now,System.currentTimeMillis()),count,failure instanceof DriveRestClient.Failure?((DriveRestClient.Failure)failure).retryAfter:0);
         repository().update(id,latest.getString("revision"),new JSONObject().put("phase",next==Long.MAX_VALUE?"NEEDS_USER_ACTION":"RETRY_PENDING").put("nextAttemptAt",next).put("lastErrorCode",code).put("runnerAttemptId",""));
         return result(next==Long.MAX_VALUE?"JOB_REVIEW":paused?"PAUSED":"WAIT",id,next).put("lastErrorCode",code);

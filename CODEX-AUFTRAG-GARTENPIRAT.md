@@ -1,5 +1,33 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Direkter Folgeauftrag28.10.: Etappen3–5 abschließen; Backupfehler zuerst klären
+
+Nutzerauftrag: „Schließe Etappen 3-5 vollständig ab. Vorher zwichenbericht von
+etappe 1 und 2 für mich“. Der dokumentierte Tabellen-/Übernahme-/Rückwegplan ist
+hiermit für die Quellimplementierung freigegeben. Die bewusste produktive Übernahme,
+verschlüsseltes Backup mit Rücklesen und Gerätebestätigung bleiben Vorbedingungen;
+keine automatische Migration, Installation oder Rechnungsfreigabe.
+
+Anschließende Nutzerklärung: „Backup Funktion arbeitet nicht wirklich“;
+Symptom: „Sicherung startet nicht oder bleibt hängen“. Keine erfolgreiche Pixel-
+Sicherung oder Wiederherstellung bestätigt. Deshalb zuerst den vorhandenen Backup-
+Start/Fortsetzungsweg prüfen und reproduzierte Ursachen minimal reparieren.
+Eine bestätigte Sicherungsanforderung bei Schedulerfehlern erhalten, dieselbe
+Request-ID/Argumente erneut lesend prüfen, keine versteckte Neuanlage. Keine
+Sicherungs-/Wiederherstellungs-/Migrationsfreigabe aus synthetischen Tests ableiten.
+Etappe5-Löschungen bleiben bis bestätigtem Pixel-Backup/Restore gesperrt.
+Zwischenbericht: `docs/verification/interim-stages1-2-2026-10-28.md`.
+
+Weitere direkte Nutzerpräzisierung: „Ändere bei Backup Einstellungen wlan vorgabe
+zu mobile Daten und krine Android Entscheidung sondern auf wunsch des users.“
+Neue Einrichtung erlaubt mobile Daten; manuelles „Jetzt sichern“ führt den
+angeforderten bestehenden Job unmittelbar im Vordergrund aus, keine bloße
+Android-Jobvormerkung. Zusätzliche tägliche Automatik bleibt bewusst wählbar,
+standardmäßig aus. Gespeicherte ausdrückliche Netz-/Automatikentscheidungen nicht
+still überschreiben. Original-ID, Fortschritt, Unterbrechung und vollständiger
+externer Hashnachweis bleiben erhalten; keine Zusicherung gegen OS-Prozessabbruch.
+
+
 ## Ausführungsauftrag vom 28.10.2026
 
 Direkte Nutzeranweisung: „Umsetzten und nach abschluss apk erstellen“.

@@ -12,7 +12,7 @@ final class BackupSettingsRepository {
     BackupSettingsRepository(Context context,PixelLocalStore store)throws Exception {this.context=context;this.store=store;guard=new BackupDeviceGuard(context);}
     JSONObject read()throws Exception {
         JSONObject identity=guard.current();String raw=store.ownerValue("full_backup_settings","");
-        JSONObject value=raw.isEmpty()?new JSONObject().put("formatVersion",1).put("enabled",false).put("unmeteredOnly",true).put("account","").put("folderId",""):new JSONObject(raw);
+        JSONObject value=raw.isEmpty()?new JSONObject().put("formatVersion",1).put("enabled",false).put("unmeteredOnly",false).put("account","").put("folderId",""):new JSONObject(raw);
         if(value.getInt("formatVersion")!=1)throw new IOException("BACKUP_SETTINGS_VERSION_UNSUPPORTED");
         boolean matches=identity.getString("installationId").equals(value.optString("installationId"))&&identity.getString("restoreEpoch").equals(value.optString("restoreEpoch"));
         return value.put("revision",PixelMcpWriteTools.hash(value)).put("contextMatches",matches).put("keyConfigured",new BackupRecoveryKeyStore(context).configured());

@@ -32,6 +32,25 @@ class BackupSetupUiTests(unittest.TestCase):
             self.assertNotIn('https://drive.google.com/drive/folders/',path.read_text())
         self.assertNotIn('checkDriveAccess()', (JAVA/'FullBackupActivity.java').read_text())
 
+    def test_new_setup_allows_mobile_data_without_opt_in_to_automatic_runs(self):
+        source=(JAVA/'FullBackupActivity.java').read_text()
+        settings=(JAVA/'BackupSettingsRepository.java').read_text()
+        self.assertIn('automatic.setChecked(false)',source)
+        self.assertIn('unmetered.setChecked(false)',source)
+        self.assertIn('put("unmeteredOnly",false)',settings)
+        self.assertNotIn('unmeteredOnly",true',source)
+        self.assertNotIn('unmeteredOnly",true',settings)
+        self.assertIn('config.optBoolean("unmeteredOnly",false)',source)
+
+    def test_explicit_user_request_executes_in_foreground_and_retains_identity(self):
+        source=(JAVA/'FullBackupActivity.java').read_text()
+        manual=source.split('private void requestBackup(){',1)[1].split('private void prepareRecoveryExport()',1)[0]
+        self.assertIn('BackupScheduleRules.dispatchManual(',manual)
+        self.assertIn('new BackupAutomation(this,store).runManual(id,',manual)
+        self.assertNotIn('FullBackupJob.schedule',manual)
+        self.assertIn('put("request_id",request).put("expected_settings_hash",settings)',manual)
+        self.assertNotIn('if(!backupRequest.isEmpty()){refresh(false);return;}',source)
+
 
 if __name__=='__main__':
     unittest.main()

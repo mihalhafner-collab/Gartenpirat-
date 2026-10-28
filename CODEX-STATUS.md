@@ -6,6 +6,29 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Folgeauftrag28.10.: Etappen3–5 freigegeben; Backupfehler als Vorbedingung
+
+Zwischenbericht1–2 für den Nutzer erstellt und unter
+`docs/verification/interim-stages1-2-2026-10-28.md` festgehalten. Folgeauftrag zum
+Abschluss3–5 ist die Freigabe des vorhandenen Tabellenplans für Quellarbeit.
+Nutzer meldet aber ausdrücklich: Backup startet nicht oder bleibt hängen.
+Kein Pixel-Backup/Restore bestätigt; produktive Übernahme und Etappe5-Löschungen
+bleiben gesperrt. Keine Installation, Migration oder Rechnungsfreigabe.
+
+Weitere Nutzerpräzisierung: mobile Daten als neue Netzvorgabe und Sicherungsstart
+auf Knopfdruck. Vorhandener Fehler im Startpfad: bestätigte backupRequest führt
+bei erneutem Druck nur zum Statuslesen, Scheduler-Rückmeldungen wurden ignoriert.
+Unveränderte Entscheidungsfunktion vor Korrektur auf Host geprüft: STATUS statt
+erneutem Start. Jetzt direkte Vordergrundausführung genau derselben dauerhaften
+Generation; kein Android-JobScheduler im manuellen Anforderungs-/Fortsetzungspfad.
+Neue Einrichtung: mobile Daten erlaubt, tägliche Automatik standardmäßig aus.
+Bestehende ausdrücklich gespeicherte WLAN-/Automatikwerte bleiben erhalten.
+Netzverlust, Wartezeit, Unterbrechung und unklare Antwort bleiben offene Zustände;
+externer Erfolg erst nach vollständigem Hash-Read-back.50 Host-Regelprüfungen
+und13 Quellen-/Setupgrenzen PASS; Androidkompilierung/Regressionen folgen noch.
+Ein neuer nativer isolierter Abnahmefall ist vorbereitet, noch nicht ausgeführt.
+Diese Quellkorrektur ist noch kein Nachweis einer reparierten Pixel-Sicherung.
+
 ## Abschluss28.10.: Etappen1–2 und Original-APK1.55.4/109
 
 Etappen1–2 umgesetzt, einzeln geprüft und auf GitHub gesichert/zurückgelesen.

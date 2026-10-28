@@ -38,13 +38,13 @@ public final class FullBackupJob extends JobService {
             if(!ready){scheduler.cancel(PERIODIC);scheduler.cancel(ONCE);scheduler.cancel(LOCAL);return false;}
             JobInfo previous=scheduler.getPendingJob(PERIODIC);boolean installedNew=false;
             if(settings.optBoolean("enabled")){
-                if(previous==null||previous.getNetworkType()!=JobInfo.NETWORK_TYPE_NONE||!matchesStorageScope(context,previous.getExtras())){if(scheduler.schedule(specification(context,true,settings.optBoolean("unmeteredOnly",true),0))!=JobScheduler.RESULT_SUCCESS)return false;installedNew=true;}
+                if(previous==null||previous.getNetworkType()!=JobInfo.NETWORK_TYPE_NONE||!matchesStorageScope(context,previous.getExtras())){if(scheduler.schedule(specification(context,true,settings.optBoolean("unmeteredOnly",false),0))!=JobScheduler.RESULT_SUCCESS)return false;installedNew=true;}
             }else scheduler.cancel(PERIODIC);
             JSONObject pending=new BackupAutomation(context,store).pending(System.currentTimeMillis());
             boolean accepted=true;
-            if(pending.optBoolean("has_local"))accepted=scheduleId(context,LOCAL,pending.optLong("next_local_at"),settings.optBoolean("unmeteredOnly",true));
-            else if(installedNew)accepted=scheduleId(context,LOCAL,System.currentTimeMillis(),settings.optBoolean("unmeteredOnly",true));
-            if(pending.optBoolean("has_upload"))accepted=scheduleId(context,ONCE,pending.optLong("next_upload_at"),settings.optBoolean("unmeteredOnly",true))&&accepted;
+            if(pending.optBoolean("has_local"))accepted=scheduleId(context,LOCAL,pending.optLong("next_local_at"),settings.optBoolean("unmeteredOnly",false));
+            else if(installedNew)accepted=scheduleId(context,LOCAL,System.currentTimeMillis(),settings.optBoolean("unmeteredOnly",false));
+            if(pending.optBoolean("has_upload"))accepted=scheduleId(context,ONCE,pending.optLong("next_upload_at"),settings.optBoolean("unmeteredOnly",false))&&accepted;
             return accepted;
         }
     }
@@ -52,7 +52,7 @@ public final class FullBackupJob extends JobService {
     static boolean schedule(Context context,long delay)throws Exception {
         if(!install(context))return false;try(PixelLocalStore store=new PixelLocalStore(context)){
             JSONObject settings=new BackupSettingsRepository(context,store).read();long now=System.currentTimeMillis(),at=delay>Long.MAX_VALUE-now?Long.MAX_VALUE:now+Math.max(0,delay);
-            boolean local=scheduleId(context,LOCAL,at,settings.optBoolean("unmeteredOnly",true));boolean upload=scheduleId(context,ONCE,at,settings.optBoolean("unmeteredOnly",true));return local&&upload;
+            boolean local=scheduleId(context,LOCAL,at,settings.optBoolean("unmeteredOnly",false));boolean upload=scheduleId(context,ONCE,at,settings.optBoolean("unmeteredOnly",false));return local&&upload;
         }
     }
     private static boolean scheduleId(Context context,int id,long due,boolean unmetered){
@@ -107,7 +107,7 @@ public final class FullBackupJob extends JobService {
     private void scheduleStage(int id,long due)throws Exception {
         try(PixelLocalStore store=new PixelLocalStore(this)){
             JSONObject settings=new BackupSettingsRepository(this,store).read();if(!settings.optBoolean("contextMatches")||!settings.optBoolean("keyConfigured")||!FullBackupController.validTarget(settings))return;
-            if(!scheduleId(this,id,due,settings.optBoolean("unmeteredOnly",true)))throw new java.io.IOException("BACKUP_SCHEDULER_UNAVAILABLE");
+            if(!scheduleId(this,id,due,settings.optBoolean("unmeteredOnly",false)))throw new java.io.IOException("BACKUP_SCHEDULER_UNAVAILABLE");
         }
     }
     private void recordFailure(Exception failure){

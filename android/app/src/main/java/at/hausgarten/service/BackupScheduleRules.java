@@ -10,6 +10,42 @@ final class BackupScheduleRules {
     static final int MAX_ATTEMPTS=8;
     private static final Set<String> COMPLETE=new HashSet<>(Arrays.asList("REMOTE_VERIFIED","CANCELLED"));
     private static final Set<String> ACTIVE=new HashSet<>(Arrays.asList("CAPTURE_PENDING","CAPTURING","CAPTURED","SEALING","SEALED_LOCAL","LOCAL_VERIFIED","UPLOAD_PENDING","UPLOADING","REMOTE_VERIFY_PENDING","RETRY_PENDING"));
+    interface ManualRequest {JSONObject request()throws Exception;}
+    interface Scheduler {boolean schedule()throws Exception;}
+    static String manualStartAction(String request,String requestedBackup,JSONArray jobs,String activeBackup)throws Exception {
+        String selected=request!=null&&!request.isEmpty()?requestedBackup:activeBackup;
+        if(selected!=null&&!selected.isEmpty()&&jobs!=null)for(int i=0;i<jobs.length();i++){
+            JSONObject job=jobs.optJSONObject(i);if(job==null||!selected.equals(job.optString("backup_id")))continue;
+            if(Arrays.asList("REMOTE_VERIFIED","PROVIDER_VERIFIED","CANCELLED","FAILED","NEEDS_USER_ACTION","FORMAT_REVIEW_REQUIRED").contains(job.optString("phase")))return "STATUS";
+        }
+        // An unresolved request must be read back with the original ID/arguments.
+        // The controller's durable receipt prevents a second generation.
+        return request!=null&&!request.isEmpty()?"REQUEST":activeBackup!=null&&!activeBackup.isEmpty()?"RESUME":"REQUEST";
+    }
+    static String scheduleAttempt(Scheduler scheduler){
+        try{return scheduler.schedule()?"":"BACKUP_SCHEDULER_UNAVAILABLE";}
+        catch(Exception unavailable){return "BACKUP_SCHEDULER_UNAVAILABLE";}
+    }
+    static String networkWait(JSONObject settings,boolean connected,boolean metered){
+        return !connected?"NETWORK_UNAVAILABLE":settings.optBoolean("unmeteredOnly",false)&&metered?"BACKUP_WIFI_REQUIRED":"";
+    }
+    interface ManualWork {JSONObject run(String backupId)throws Exception;}
+    static JSONObject dispatchManual(ManualRequest request,ManualWork work)throws Exception {
+        JSONObject accepted=request.request();
+        String id=accepted==null?"":accepted.optString("backup_id");
+        if(accepted==null||!accepted.optBoolean("accepted_locally")||!id.matches("[A-Za-z0-9_-]{8,100}"))throw new java.io.IOException("BACKUP_CONTROL_RESULT_UNKNOWN");
+        JSONObject result=new JSONObject(accepted.toString());
+        try{
+            JSONObject executed=work.run(id);
+            if(executed==null||!id.equals(executed.optString("backupId")))return result.put("execution_error_code","BACKUP_RUN_RESULT_UNKNOWN");
+            return result.put("foreground_result",executed);
+        }catch(Exception failure){
+            boolean interrupted=failure instanceof java.io.InterruptedIOException||failure instanceof InterruptedException||Thread.currentThread().isInterrupted();
+            if(interrupted)Thread.currentThread().interrupt();
+            // Preserve the committed identity even if foreground execution stops.
+            return result.put("execution_error_code",interrupted?"BACKUP_RUN_INTERRUPTED":"BACKUP_OPERATION_FAILED");
+        }
+    }
     static JSONObject decide(JSONObject settings,JSONArray currentJobs,long now)throws Exception {
         if(!settings.optBoolean("enabled")||!settings.optBoolean("contextMatches")||!settings.optBoolean("keyConfigured"))return decision("DISABLED",null,0);
         if(now<0)return decision("CLOCK_REVIEW",null,0);

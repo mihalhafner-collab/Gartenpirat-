@@ -28,6 +28,30 @@ public final class BackupScheduleRulesTests {
         JSONObject localOnly=job("qa_local_only","LOCAL_VERIFIED",now-1000).put("archive",new JSONObject().put("capturedAt",Instant.ofEpochMilli(now-1000).toString()).put("localVerifiedAt",Instant.ofEpochMilli(now-500).toString()));yes(!BackupScheduleRules.decide(settings,new JSONArray().put(localOnly),now).getString("action").equals("CREATE"));
         yes(BackupScheduleRules.retryAt(now,1,0)==now+30000);yes(BackupScheduleRules.retryAt(now,2,0)==now+60000);yes(BackupScheduleRules.retryAt(now,7,3600000)==now+3600000);yes(BackupScheduleRules.retryAt(now,8,0)==Long.MAX_VALUE);yes(BackupScheduleRules.retryAt(now,2,Long.MAX_VALUE)==now+6L*60*60*1000);
         yes(!BackupScheduleRules.decide(settings,new JSONArray(),now).getBoolean("exactExecutionGuaranteed"));
+        JSONObject pendingManual=new JSONObject().put("backup_id","qa_pending_manual").put("phase","CAPTURE_PENDING");
+        String manual=BackupScheduleRules.manualStartAction("qa_request_manual","qa_pending_manual",new JSONArray().put(pendingManual),"qa_pending_manual");
+        yes(manual.equals("REQUEST"));
+        yes(BackupScheduleRules.manualStartAction("qa_request_unknown","",new JSONArray(),"").equals("REQUEST"));
+        yes(BackupScheduleRules.manualStartAction("","",new JSONArray().put(pendingManual),"qa_pending_manual").equals("RESUME"));
+        for(String phase:new String[]{"REMOTE_VERIFIED","PROVIDER_VERIFIED","CANCELLED","FAILED","NEEDS_USER_ACTION","FORMAT_REVIEW_REQUIRED"})yes(BackupScheduleRules.manualStartAction("qa_request_manual","qa_pending_manual",new JSONArray().put(new JSONObject(pendingManual.toString()).put("phase",phase)),"qa_pending_manual").equals("STATUS"));
+        JSONObject receipt=new JSONObject().put("backup_id","qa_pending_manual").put("accepted_locally",true).put("phase","CAPTURE_PENDING").put("cloud_confirmed",false).put("next_action","schedule_after_commit");
+        yes(BackupScheduleRules.networkWait(new JSONObject(),true,true).isEmpty());
+        yes(BackupScheduleRules.networkWait(new JSONObject().put("unmeteredOnly",false),true,true).isEmpty());
+        yes(BackupScheduleRules.networkWait(new JSONObject().put("unmeteredOnly",true),true,true).equals("BACKUP_WIFI_REQUIRED"));
+        yes(BackupScheduleRules.networkWait(new JSONObject().put("unmeteredOnly",true),true,false).isEmpty());
+        yes(BackupScheduleRules.networkWait(new JSONObject(),false,false).equals("NETWORK_UNAVAILABLE"));
+        int[] requests={0},foreground={0};
+        JSONObject completed=BackupScheduleRules.dispatchManual(()->{requests[0]++;return receipt;},id->{foreground[0]++;yes(id.equals("qa_pending_manual"));return new JSONObject().put("backupId",id).put("action","COMPLETED").put("phase","REMOTE_VERIFIED");});
+        yes(requests[0]==1&&foreground[0]==1&&completed.getJSONObject("foreground_result").getString("phase").equals("REMOTE_VERIFIED"));yes(completed.getString("backup_id").equals(receipt.getString("backup_id"))&&completed.getBoolean("accepted_locally")&&!completed.getBoolean("cloud_confirmed")&&!receipt.has("foreground_result"));
+        JSONObject waiting=BackupScheduleRules.dispatchManual(()->receipt,id->new JSONObject().put("backupId",id).put("action","WAIT_NETWORK").put("lastErrorCode","NETWORK_UNAVAILABLE"));yes(waiting.getBoolean("accepted_locally")&&!waiting.getBoolean("cloud_confirmed")&&waiting.getJSONObject("foreground_result").getString("action").equals("WAIT_NETWORK"));
+        JSONObject thrown=BackupScheduleRules.dispatchManual(()->receipt,id->{throw new java.io.IOException("QA private execution detail");});yes(thrown.getString("execution_error_code").equals("BACKUP_OPERATION_FAILED")&&!thrown.toString().contains("private execution detail")&&thrown.getBoolean("accepted_locally"));
+        int[] durable={0},dispatches={0},replays={0};BackupScheduleRules.ManualRequest lostReply=()->{if(durable[0]==0){durable[0]++;throw new java.io.IOException("QA response lost after durable request");}replays[0]++;return receipt;};
+        try{BackupScheduleRules.dispatchManual(lostReply,id->{dispatches[0]++;return new JSONObject().put("backupId",id).put("action","COMPLETED");});throw new AssertionError("lost reply accepted");}catch(java.io.IOException expected){yes(durable[0]==1&&dispatches[0]==0);}
+        JSONObject recovered=BackupScheduleRules.dispatchManual(lostReply,id->{dispatches[0]++;return new JSONObject().put("backupId",id).put("action","COMPLETED");});yes(recovered.getString("backup_id").equals("qa_pending_manual")&&durable[0]==1&&dispatches[0]==1&&replays[0]==1);
+        try{BackupScheduleRules.dispatchManual(()->new JSONObject().put("accepted_locally",true),id->{dispatches[0]++;return new JSONObject();});throw new AssertionError("missing identity accepted");}catch(java.io.IOException expected){yes(dispatches[0]==1);}
+        JSONObject mismatch=BackupScheduleRules.dispatchManual(()->receipt,id->new JSONObject().put("backupId","qa_wrong_job").put("action","COMPLETED"));yes(mismatch.getString("execution_error_code").equals("BACKUP_RUN_RESULT_UNKNOWN")&&!mismatch.has("foreground_result"));
+        JSONObject interrupted=BackupScheduleRules.dispatchManual(()->receipt,id->{throw new java.io.InterruptedIOException();});try{yes(Thread.currentThread().isInterrupted()&&interrupted.getString("execution_error_code").equals("BACKUP_RUN_INTERRUPTED")&&interrupted.getString("backup_id").equals("qa_pending_manual"));}finally{Thread.interrupted();}
+        System.out.println("MANUAL_START_AFTER action="+manual+" existing_generations="+durable[0]+" foreground_runs="+dispatches[0]+" Android_scheduler_calls=0");
         System.out.println("PASS "+checks+" daily backup/retry/restore-context/data-age/clock/target guards;no scheduler timing or account claim");
     }
 }
