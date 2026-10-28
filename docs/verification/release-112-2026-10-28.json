@@ -1,0 +1,85 @@
+{
+  "classification": "PUBLIC_SOURCE_AND_SYNTHETIC_TEST_METADATA",
+  "version_name": "1.55.7",
+  "version_code": 112,
+  "source_commit": "a62ad37187d283671866b4e61e2aeed45cd3174d",
+  "source_sha256": "588d9526f66d0f60d048ee9c73bcc6663764c02306f82f44c1515d0d49138014",
+  "signing": {
+    "apk_sha256": "562096c98599fc801084b216dd4acce12ba867493a97ffd978ed3781cdbb0df8",
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "package": "at.hausgarten.service",
+    "result": "SIGNED_NO_INSTALL_OR_UPDATE_ACCEPTANCE",
+    "source_preservation": {
+      "git_sha": "a62ad37187d283671866b4e61e2aeed45cd3174d",
+      "remote_refs": [
+        "refs/heads/codex/heute-uebersicht-20261027"
+      ],
+      "repository": "mihalhafner-collab/Gartenpirat-",
+      "scope": "clean_checkout_and_remote_commit_only",
+      "status": "PASS"
+    },
+    "version_code": 112,
+    "version_name": "1.55.7"
+  },
+  "metadata": {
+    "package": "at.hausgarten.service",
+    "version_code": 112,
+    "version_name": "1.55.7",
+    "signature_valid": true,
+    "certificates": [
+      "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8"
+    ]
+  },
+  "assets": {
+    "added": [],
+    "removed": [],
+    "changed": [],
+    "unchanged_count": 705,
+    "matches": true,
+    "generated_profiles": {
+      "dexopt/baseline.prof": "dd65ec8f0d2dd6ec1038331411a14ecb775d974425073df6a8582adff7258fd6",
+      "dexopt/baseline.profm": "1d4b657e628fe6254f610dac427fb64b294cf26f43ce69d0d3d5eee94c2a66c5"
+    }
+  },
+  "seed": {
+    "all_business_collections_empty": true,
+    "operational_seed_rows": 0
+  },
+  "bytes": 82911740,
+  "sha256": "562096c98599fc801084b216dd4acce12ba867493a97ffd978ed3781cdbb0df8",
+  "build": {
+    "assembleRelease": "PASS",
+    "lintRelease": "PASS",
+    "compileReleaseAndroidTestJavaWithJavac": "PASS",
+    "lint_errors": 0,
+    "lint_warnings": 108
+  },
+  "tests": {
+    "auth_wait": 5,
+    "backup_rules": 68,
+    "python": 97,
+    "jvm_suites": 83,
+    "legacy_P1_schema_contract": "FAIL_PREEXISTING_UNCHANGED"
+  },
+  "scope": "Bound separate Google auth wait and identify local capture failures; observed Pixel local root cause remains open",
+  "device_backup_restore": "NOT_EXECUTED",
+  "installation": "NOT_PERFORMED",
+  "migration": "NOT_PERFORMED",
+  "invoice_authority": "NOT_ACTIVATED",
+  "repair_report": "docs/verification/backup-auth-wait-2026-10-28.json",
+  "delivery": {
+    "method": "PRIVATE_DRIVE_APK",
+    "status": "UPLOAD_SUCCESS_METADATA_READBACK_PASS",
+    "id": "1jcHNbSeONksnQAr0t4lnutyR9dlVbO0m",
+    "url": "https://drive.google.com/file/d/1jcHNbSeONksnQAr0t4lnutyR9dlVbO0m/view?usp=drivesdk",
+    "parent": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+    "bytes": 82911740,
+    "mime_type": "application/vnd.android.package-archive",
+    "permissions": "OWNER_ONLY_OBSERVED",
+    "independent_remote_sha256": "NOT_VERIFIED;metadata connector omits checksum"
+  },
+  "source_tag": "source/v1.55.7-build112",
+  "source_tag_object": "d796e977ba2c22c82721c80a364428114cc1c65d",
+  "source_tag_readback": "PASS_EXACT_PEELED_SOURCE_COMMIT",
+  "privacy": "SOURCE_WORKTREE_AND_ARTIFACT_PASS_IN_ORIGINAL_SIGNING_COMMAND"
+}

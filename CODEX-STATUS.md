@@ -22,7 +22,11 @@ ist keine Erklärung des beobachteten lokalen Fehlers. Aufnahmefehler erhalten
 jetzt feste Schritt-/Kategoriecodes statt TRANSFER_FAILED;68 Regeltests,97
 Python-Schutztests,83 JVM-Suiten PASS. Der vorhandene P1-Schemakonflikt tritt
 erst danach unverändert auf. Kein aktiver Backup-/Restore-Gerätenachweis.
-Bericht: `docs/verification/backup-auth-wait-2026-10-28.json`. Build112 vorbereitet.
+Bericht: `docs/verification/backup-auth-wait-2026-10-28.json`. Build112 originalsigniert und auf Drive bereitgestellt. Releasebau/Lint und
+Android-Testkompilierung PASS;0Fehler/108Warnungen, Signatur/Paket/Assets/Seed
+und Privacy PASS. Keine Installation, operative Sicherung oder Restore.
+[APK112](https://drive.google.com/file/d/1jcHNbSeONksnQAr0t4lnutyR9dlVbO0m/view?usp=drivesdk). Beleg:
+`docs/verification/release-112-2026-10-28.json`. Lokale Pixelursache weiterhin offen.
 
 ## Drive-Bereitstellung111: neuer Versuch erfolgreich
 

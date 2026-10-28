@@ -1,4 +1,15 @@
-# Installationspaket
+# Aktueller Prüfkandidat1.55.7 / Build112
+
+**[Originalsignierte APK112 auf Drive](https://drive.google.com/file/d/1jcHNbSeONksnQAr0t4lnutyR9dlVbO0m/view?usp=drivesdk)**.
+Herunterladen, APK öffnen, Paketinstallation → Aktualisieren.
+
+Google-Freigabe mit gemeinsamem90s-Limit und eigener Fortschrittsmeldung;
+lokale Aufnahmefehler mit festen Schritt-/Kategoriecodes. Der beobachtete
+Pixel-Fehler vor dem Upload ist noch nicht erklärt oder als repariert bestätigt.
+Build/Lint/Signatur/Privacy PASS; keine Installation oder Gerätefreigabe.
+Nachweis: [Release112](../docs/verification/release-112-2026-10-28.json).
+
+# Vorheriger Prüfkandidat111
 
 Originalsignierter **[Prüfkandidat1.55.6 / Build111](Haus-Garten-1.55.6-111-original.apk)**.
 [Gewohnter Download auf Drive](https://drive.google.com/file/d/1J2IvW5cr_bhfDEIysQ6LqRzqbFxdO_Le/view?usp=drivesdk).

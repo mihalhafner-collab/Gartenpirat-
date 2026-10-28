@@ -22,7 +22,7 @@
   },
   "device": "NOT_EXECUTED",
   "not_claimed": "No proof this is the user Pixel hang; no wall-clock performance claim; screenshot protection unchanged",
-  "build": "PENDING112",
+  "build": "112_ASSEMBLE_LINT_ANDROIDTEST_COMPILE_PASS;ORIGINAL_SIGNED;DRIVE_METADATA_VERIFIED",
   "readonly_pixel_status": {
     "performed": true,
     "operation": "get_full_backup_status;limit3;no mutation",
@@ -57,5 +57,6 @@
   "privacy": {
     "source_delta": "PASS9files0seed before local-stage diagnostic addition",
     "worktree": "PASS5723includesIgnoredUntracked"
-  }
+  },
+  "pixel_root_cause": "STILL_OPEN;no operative backup triggered by Codex"
 }

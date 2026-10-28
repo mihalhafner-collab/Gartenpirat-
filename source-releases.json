@@ -574,6 +574,25 @@
       "drive_apk_id": "1J2IvW5cr_bhfDEIysQ6LqRzqbFxdO_Le",
       "drive_apk_url": "https://drive.google.com/file/d/1J2IvW5cr_bhfDEIysQ6LqRzqbFxdO_Le/view?usp=drivesdk",
       "drive_readback": "NAME_SIZE_PARENT_OWNER_PERMISSION_PASS;INDEPENDENT_REMOTE_SHA_OPEN"
+    },
+    {
+      "version": "1.55.7",
+      "build": 112,
+      "tag": "source/v1.55.7-build112",
+      "git_sha": "a62ad37187d283671866b4e61e2aeed45cd3174d",
+      "tree_sha": "1499d0a4a82a05b86b03c9a91fb6e739551ec7de",
+      "source_sha256": "588d9526f66d0f60d048ee9c73bcc6663764c02306f82f44c1515d0d49138014",
+      "apk_sha256": "562096c98599fc801084b216dd4acce12ba867493a97ffd978ed3781cdbb0df8",
+      "apk_bytes": 82911740,
+      "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+      "remote_readback": "PASS source commit and peeled tag",
+      "drive_apk_id": "1jcHNbSeONksnQAr0t4lnutyR9dlVbO0m",
+      "drive_apk_url": "https://drive.google.com/file/d/1jcHNbSeONksnQAr0t4lnutyR9dlVbO0m/view?usp=drivesdk",
+      "drive_readback": "NAME_SIZE_PARENT_OWNER_PERMISSION_PASS;INDEPENDENT_REMOTE_SHA_OPEN",
+      "device_acceptance": "NOT_EXECUTED;read-only technical backup status only",
+      "productive_migration": "NOT_PERFORMED",
+      "invoice_authority": "NOT_ACTIVATED",
+      "evidence": "docs/verification/release-112-2026-10-28.json"
     }
   ],
   "last_drive_cleanup": {
