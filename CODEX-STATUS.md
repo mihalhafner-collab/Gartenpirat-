@@ -6,7 +6,7 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
-## Aktuell: Geräteprofilfoto und moderne Bedienoberfläche; Release108 in Vorbereitung
+## Aktuell: Geräteprofilfoto, moderne Bedienoberfläche und Original-APK108 erstellt
 
 Direkter Nutzerauftrag umgesetzt: optionales Gerätefoto aufnehmen/auswählen,
 Vorschau beim Bearbeiten, Erkennung in Geräteliste und Detail; Austausch gehört
@@ -42,8 +42,27 @@ Android-Kompilierung danach erfolgreich erneut ausgeführt.
 Technische Kaskade: `docs/verification/equipment-modern-ui-2026-10-28.json`.
 Die fünf modern-ui-*-390.png zeigen tatsächlichen Quellcode mit Beispieldaten.
 
-Version1.55.3/108 vorbereitet; APK-Bau/Originalsignierung/Bereitstellung noch offen.
-Vor Signierung muss der genaue Quellcommit sauber auf GitHub zurückgelesen sein.
+Original-APK **1.55.3/108** fertig, signiert und im bestehenden privaten
+Installationsbereich bereitgestellt. Release-Build, Lint0Fehler/103Warnungen,
+Privacy und tatsächlicher Paket-/Quellabgleich PASS:705 exakt passende Assets,
+205 aktuelle Produktionsklassen, leere Startdaten, kein Debug/Preview. Ursprüngliche
+Paketidentität und Originalzertifikat stimmen mit107 überein; Nutzlast nach
+Signierung unverändert. Unveränderlicher Quelltag `source/v1.55.3-build108` auf
+Commit `9415c8da6c26314969b731bc01708c5e8f424349`, Fingerprint
+`84e1d90175fe3a5863aaba14735f8ea25193fe5cf43005c99bc2e6e746315da5`.
+Quellcommit vor Bau/Signierung exakt auf GitHub zurückgelesen; ein zuvor
+verfrüht gestarteter Dirty-Bau wurde abgebrochen und nicht ausgeliefert.
+Die vermeintliche Remote-Abweichung war eine veraltete lokale Trackingreferenz.
+
+[APK1.55.3/108 herunterladen](https://drive.google.com/file/d/1s_5LCAinPU5MhXWAUhXkM2em1a1tiOhq/view?usp=drivesdk).
+82903548Bytes; lokaler SHA256
+`5bdaa005664ac2a436ac50b7b4acff3f19bcaa09ce05f3568a1c6147937bb7d2`.
+Dateiname, Größe, privater Versionsordner und vollständiger authentifizierter
+Abruf als Dateireferenz mit identischer Größe geprüft. Unabhängiger Remote-SHA
+bleibt offen:83MB überschreiten die32-MiB-Materialisierungsgrenze; keine
+Netzwerkumgehung. Nachweise/Quellcode nur GitHub, nur die APK in Drive.
+Abschluss: `docs/verification/release-108-2026-10-28.json`.
+64 synthetische Schutztests zu Signierung/Quellsicherung/Identität PASS.
 Keine automatische Installation, keine produktiven Daten gelesen/verändert.
 Offen bleiben Pixelkamera/-galerie, native Vorschau, physischer Update-Datenerhalt,
 reale Wechsel-/Startzeit und vollständige geräteseitige Backup-/Restoreabnahme.

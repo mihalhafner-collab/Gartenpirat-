@@ -184,7 +184,7 @@
       "evidence_recorded_at_utc": "2026-10-25T22:06:57.964900+00:00"
     }
   ],
-  "updated_at_utc": "2026-10-28T04:32:56.718532+00:00",
+  "updated_at_utc": "2026-10-28T04:46:00.000644+00:00",
   "development_snapshot": {
     "version_name": "1.55.1",
     "version_code": 106,
@@ -325,22 +325,23 @@
     "ui_work_in_progress": {
       "branch": "codex/heute-uebersicht-20261027",
       "base_main": "05eac2d5769bed55a42317ed542be9baccda0e77",
-      "status": "RELEASE108_SOURCE_IMPLEMENTED_SYNTHETIC_CHECKS_PASS_BUILD_PENDING",
+      "status": "ORIGINAL_SIGNED_RELEASE108_DELIVERED_PHYSICAL_ACCEPTANCE_OPEN",
       "scope": "Device profile photo with native active edit/media proof, discard/restore/receipt guards; modern graphite/lime UI, unchanged routes and features. Prior Revierbuch/Abendgruen designs rejected.",
       "bottom_roots": [
         "Heute",
         "Kunden",
         "Büro"
       ],
-      "last_built_apk": 107,
+      "last_built_apk": 108,
       "released_107_source_tag_unchanged": true,
-      "new_apk_built_for_this_task": false,
+      "new_apk_built_for_this_task": true,
       "physical_installation": false,
       "pixel_performance_acceptance": "NOT_EXECUTED",
       "operating_data_used": false,
       "evidence": "docs/verification/equipment-modern-ui-2026-10-28.json",
       "planned_version_code": 108,
-      "planned_version_name": "1.55.3"
+      "planned_version_name": "1.55.3",
+      "release_evidence": "docs/verification/release-108-2026-10-28.json"
     }
   },
   "historical_snapshot": {
@@ -495,14 +496,22 @@
   "current_release_candidate": {
     "version_name": "1.55.3",
     "version_code": 108,
-    "status": "SOURCE_IMPLEMENTED_TESTS_PASS_BUILD_SIGN_UPLOAD_PENDING",
-    "source_tag_planned": "source/v1.55.3-build108",
-    "last_original_apk_evidence": "docs/verification/release-107-2026-10-27.json",
+    "status": "ORIGINAL_SIGNED_BUILD_LINT_PACKAGE_PRIVACY_PASS;DRIVE_METADATA_COMPLETE_REFERENCE_SIZE_PASS;REMOTE_SHA_OPEN;PHYSICAL_ACCEPTANCE_OPEN",
+    "app_source_git_sha": "9415c8da6c26314969b731bc01708c5e8f424349",
+    "source_tag": "source/v1.55.3-build108",
+    "source_sha256": "84e1d90175fe3a5863aaba14735f8ea25193fe5cf43005c99bc2e6e746315da5",
+    "apk_sha256": "5bdaa005664ac2a436ac50b7b4acff3f19bcaa09ce05f3568a1c6147937bb7d2",
+    "apk_bytes": 82903548,
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
     "tools": 169,
     "ui_actions": 212,
-    "installation": "NOT_PERFORMED; last observed106, not re-read",
+    "drive_apk_id": "1s_5LCAinPU5MhXWAUhXkM2em1a1tiOhq",
+    "drive_apk_url": "https://drive.google.com/file/d/1s_5LCAinPU5MhXWAUhXkM2em1a1tiOhq/view?usp=drivesdk",
+    "drive_folder_id": "1ltFO6ZyZ61td2ubf61z3Lxm1y5z3ytDC",
+    "drive_readback": "METADATA_PRIVATE_PARENT_AND_COMPLETE_AUTHENTICATED_FILE_REFERENCE_SIZE_PASS;INDEPENDENT_REMOTE_SHA_NOT_VERIFIED_32MIB_MATERIALIZATION_LIMIT",
+    "installation": "NOT_PERFORMED;last actual installation observation106, not re-read",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "NOT_ACTIVATED",
-    "evidence": "docs/verification/equipment-modern-ui-2026-10-28.json"
+    "evidence": "docs/verification/release-108-2026-10-28.json"
   }
 }

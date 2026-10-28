@@ -1,0 +1,208 @@
+{
+  "format": "gartenpirat.release-artifact.v1",
+  "classification": "PUBLIC_SOURCE",
+  "created_at_utc": "2026-10-28T04:46:00.000644+00:00",
+  "version_name": "1.55.3",
+  "version_code": 108,
+  "scope": "User-requested device identification photos, modern compact presentation and completed original APK. No automatic installation or operating-data access.",
+  "source": {
+    "repository": "mihalhafner-collab/Gartenpirat-",
+    "git_sha": "9415c8da6c26314969b731bc01708c5e8f424349",
+    "tree_sha": "05da40603f56980702a9fc55843324ffc5533c1d",
+    "tag": "source/v1.55.3-build108",
+    "tag_exact_remote": "PASS",
+    "source_sha256": "84e1d90175fe3a5863aaba14735f8ea25193fe5cf43005c99bc2e6e746315da5",
+    "source_dirty": false,
+    "preservation": {
+      "git_sha": "9415c8da6c26314969b731bc01708c5e8f424349",
+      "remote_refs": [
+        "refs/heads/codex/heute-uebersicht-20261027",
+        "refs/tags/source/v1.55.3-build108"
+      ],
+      "repository": "mihalhafner-collab/Gartenpirat-",
+      "scope": "clean_checkout_and_remote_commit_only",
+      "status": "PASS"
+    }
+  },
+  "build": {
+    "release_assemble": "PASS",
+    "lint_release": "PASS",
+    "lint_counts": {
+      "Fatal": 0,
+      "Error": 0,
+      "Warning": 103
+    },
+    "compile_sdk": 37,
+    "min_sdk": 26,
+    "target_sdk": 37,
+    "logs_sha256": "a4b0f5440209dab319b2e91877f4addc8bfd08d9957856b8bc843cd615bfba79",
+    "privacy_gates": [
+      {
+        "stage": "PREBUILD_ONLY",
+        "source_privacy": {
+          "status": "PASS",
+          "files": 2393,
+          "operational_seed_rows": 0
+        },
+        "workspace_privacy": {
+          "status": "PASS",
+          "files": 6548,
+          "includes_ignored_untracked": true,
+          "git_history": "SEPARATE_READONLY_AUDIT"
+        },
+        "artifact_privacy": "NOT_TESTABLE",
+        "secret_values_printed": false
+      },
+      {
+        "stage": "RELEASE_ARTIFACT",
+        "source_privacy": {
+          "status": "PASS",
+          "files": 2393,
+          "operational_seed_rows": 0
+        },
+        "workspace_privacy": {
+          "status": "PASS",
+          "files": 6446,
+          "includes_ignored_untracked": true,
+          "git_history": "SEPARATE_READONLY_AUDIT"
+        },
+        "artifact_privacy": {
+          "status": "PASS",
+          "sha256": "cdf4a38ec34cad422d8596653bf9ced42e90b7b02db725e52aafe8aa749c45f6",
+          "operational_seed_rows": 0
+        },
+        "secret_values_printed": false
+      }
+    ],
+    "aborted_attempt": "Initial local tracking reference was stale, so source guard did not confirm the expected ref. A premature dirty build was stopped before signing/publication; explicit fetch of the exact branch proved GitHub already contained the prior navigation commit. Only clean9415c8d was used for the delivered package."
+  },
+  "package": {
+    "status": "PASS",
+    "apk_sha256": "5bdaa005664ac2a436ac50b7b4acff3f19bcaa09ce05f3568a1c6147937bb7d2",
+    "bytes": 82903548,
+    "package": "at.hausgarten.service",
+    "version_code": 108,
+    "version_name": "1.55.3",
+    "signature_valid": true,
+    "certificates": [
+      "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8"
+    ],
+    "min_sdk": 26,
+    "target_sdk": 37,
+    "debuggable": false,
+    "source_commit": "9415c8da6c26314969b731bc01708c5e8f424349",
+    "source_sha256": "84e1d90175fe3a5863aaba14735f8ea25193fe5cf43005c99bc2e6e746315da5",
+    "assets": {
+      "added": [],
+      "removed": [],
+      "changed": [],
+      "unchanged_count": 705,
+      "matches": true,
+      "generated_profiles": {
+        "dexopt/baseline.prof": "8ddf726ed74261ce10b16a7a2eef1e44ec5443eb799eb82d2a55b2955d8b2a0f",
+        "dexopt/baseline.profm": "e2ba28baad069d2085d0a9c40d2ee59681274fba6f7be1890a3da780915a5075"
+      }
+    },
+    "seed": {
+      "all_business_collections_empty": true,
+      "operational_seed_rows": 0
+    },
+    "all_current_source_classes_packaged": 205,
+    "missing_source_classes": [],
+    "retired_drive_direct_transport_absent": true,
+    "packaged_BuildConfig_fields_verified": {
+      "APPLICATION_ID": "\"at.hausgarten.service\"",
+      "BUILD_TYPE": "\"release\"",
+      "DEBUG": "false",
+      "GIT_SHA": "\"9415c8da6c26314969b731bc01708c5e8f424349\"",
+      "SOURCE_DIRTY": "false",
+      "SOURCE_SHA256": "\"84e1d90175fe3a5863aaba14735f8ea25193fe5cf43005c99bc2e6e746315da5\"",
+      "UI_PREVIEW": "false",
+      "VERSION_CODE": "108",
+      "VERSION_NAME": "\"1.55.3\""
+    },
+    "original_107_update_identity": "PASS",
+    "lint_counts": {
+      "Warning": 103
+    },
+    "signed_payload_equals_unsigned": true,
+    "device_acceptance": "NOT_EXECUTED",
+    "scope": "Actual package, current source classes, exact assets/generated profiles and original identity. Historical candidate tool requires retired DriveDirectFiles; reuse its asset/identity helpers with all actual current classes instead."
+  },
+  "signing": {
+    "apk_sha256": "5bdaa005664ac2a436ac50b7b4acff3f19bcaa09ce05f3568a1c6147937bb7d2",
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "package": "at.hausgarten.service",
+    "result": "SIGNED_NO_INSTALL_OR_UPDATE_ACCEPTANCE",
+    "source_preservation": {
+      "git_sha": "9415c8da6c26314969b731bc01708c5e8f424349",
+      "remote_refs": [
+        "refs/heads/codex/heute-uebersicht-20261027",
+        "refs/tags/source/v1.55.3-build108"
+      ],
+      "repository": "mihalhafner-collab/Gartenpirat-",
+      "scope": "clean_checkout_and_remote_commit_only",
+      "status": "PASS"
+    },
+    "version_code": 108,
+    "version_name": "1.55.3"
+  },
+  "drive": {
+    "file_id": "1s_5LCAinPU5MhXWAUhXkM2em1a1tiOhq",
+    "file_name": "Haus-Garten-1.55.3-108-original-update.apk",
+    "mime_type": "application/vnd.android.package-archive",
+    "bytes": 82903548,
+    "parent_ids": [
+      "1ltFO6ZyZ61td2ubf61z3Lxm1y5z3ytDC"
+    ],
+    "shared": false,
+    "url": "https://drive.google.com/file/d/1s_5LCAinPU5MhXWAUhXkM2em1a1tiOhq/view?usp=drivesdk",
+    "folder_id": "1ltFO6ZyZ61td2ubf61z3Lxm1y5z3ytDC",
+    "folder_parent_ids": [
+      "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M"
+    ],
+    "folder_shared": false,
+    "authenticated_fetch_complete_reference": true,
+    "authenticated_fetch_size": 82903548,
+    "independent_remote_sha256": "NOT_VERIFIED: complete 82903548-byte file reference exceeds download_file 32MiB materialization limit; no attempt to bypass cloud egress restrictions."
+  },
+  "synthetic_checks": {
+    "ui_evidence": "docs/verification/equipment-modern-ui-2026-10-28.json",
+    "browser_suites_pass": 43,
+    "targeted_closure_suites_pass": 12,
+    "equipment_profile_photo_checks": 54,
+    "maintenance_checks": 91,
+    "revier_checks": 328,
+    "media_repository_checks": 78,
+    "media_file_checks": 22,
+    "ui_mcp_parity_checks": 1405,
+    "source_tools": 169,
+    "ui_actions": 212,
+    "discovery_protocols": 4,
+    "original_signing_protection_tests": 45,
+    "source_preservation_tests": 13,
+    "identity_tests": 6
+  },
+  "physical": {
+    "installation": "NOT_PERFORMED",
+    "camera_gallery_and_native_profile_preview": "NOT_EXECUTED",
+    "in_place_update_data_retention": "NOT_EXECUTED",
+    "pixel_start_and_menu_latency": "NOT_MEASURED",
+    "full_device_backup_restore_acceptance": "NOT_EXECUTED",
+    "bound_catalog_after_install": "NOT_REFRESHED_OR_RECHECKED; source169 tools, names unchanged from source107; optional equipment photo inputs added."
+  },
+  "protected_gates": {
+    "operating_data_used": false,
+    "automatic_installation": false,
+    "financial_authority_activation": false,
+    "productive_migration": false,
+    "business_drive_sync_enabled": false,
+    "source_backups_to_drive": false
+  },
+  "limitations": [
+    "Current independent Drive SHA256 is not verified; authenticated full reference and size are verified, local signature/source checks passed. No network-policy bypass.",
+    "Source/cloud regression checks do not replace Pixel camera/provider/update and performance acceptance.",
+    "Format3 equipment photo records require the current reader; old APK readers must not restore or write them.",
+    "Lint retains103 existing warnings; no errors."
+  ]
+}
