@@ -6,6 +6,20 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Neuer Auftrag28.10.: Geschwindigkeit und schlanker Umbau
+
+Vollständige neue Nutzervorgabe im bestehenden Auftrag festgehalten: zuerst
+synthetisch messen, danach die zwei Cache-/Ladeverbesserungen, Tabellenumbau nur
+nach ausdrücklicher Freigabe, anschließend je ein Bildschirm und zuletzt belegte
+Altlastenbereinigung. AGENTS und sämtliche Schutzgates bleiben unverändert.
+In diesem Dokumentationsschritt keine Etappe umgesetzt und keine Leistungsverbesserung
+behauptet; Vorher-/Nachher-Tabelle und Pixel-Leistungsmessung stehen noch aus.
+Die genannte Prüfgrundlage71c6fbf ersetzt keine vorhandene Releaseprovenienz.
+Dokumentationsprüfung: `git diff --check` und Privacy der beiden geänderten
+Dateien PASS (0 operative Seedzeilen). Gesamt-Worktree-Privacy nicht PASS:
+23 Funde in vorhandenen, hier unveränderten Dateien (22 unklassifizierte Bilder,
+1 Rohkennung). Keine Übernahme oder Löschung dieser Funde; kein Build.
+
 ## ADB tatsächlich ausgeführt28.10.: Original108 auf produktivem Pixel bestätigt
 
 Neue direkte ADB-Anweisung hebt die Laptop-Sperre für ADB-/Protokollarbeit auf.

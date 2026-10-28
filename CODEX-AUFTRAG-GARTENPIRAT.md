@@ -1,5 +1,64 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Direkter Nutzerauftrag vom 28.10.2026: Geschwindigkeit und schlanker Umbau
+
+Grundlage: unabhängige Quellcodeprüfung des Stands 1.55.3 / Build 108 (Commit
+71c6fbf). Alle Befunde stammen aus der Quellcodeanalyse, nichts davon ist am Pixel
+gemessen. Diese Prüfgrundlage ist keine neue Installations- oder Releaseprovenienz.
+Alle Regeln aus `AGENTS.md` gelten unverändert (nur GitHub, keine echten Daten,
+keine automatische Migration, keine Installation, keine Rechnungsfreigabe).
+
+### Leitregeln für alle Etappen
+
+1. Eine Oberfläche, eine Datenbank, keine zusätzlichen Skripte. Neue Funktionen sind nicht Teil dieser Vorgabe.
+2. Immer nur eine Etappe, danach prüfen, sichern, zurücklesen. Nie mehrere Umbauten gleichzeitig.
+3. Vor jeder Änderung messen, nach jeder Änderung dieselbe Messung wiederholen. Erst dann „besser“ behaupten.
+4. Bestehende Schutzregeln (Entwürfe, Commit-IDs, Rechnungsgates, Backup/Restore, Löschschutz) bleiben unverändert.
+
+### Etappe 1: Messen (zuerst, klein)
+
+- In `getState`, `ownerCall` und `getWorkSession` Dauer und Datengröße erfassen. In der Oberfläche Dauer von Seitenwechsel und `render()` erfassen. Nur Zeiten, keine Geschäftsdaten.
+- Messung mit synthetischem Bestand realistischer Größe (z. B. 300 Kunden, 5 000 Arbeitseinträge, 3 000 Fotoeinträge, 500 Rechnungen). Kein produktiver Bestand.
+- Ergebnis als Tabelle (Mittelwert und langsamste 5 %) für: Heute → Büro, Büro → Heute, Kunden öffnen, Suche, Speichern, App-Start.
+- Abnahme: Tabelle liegt unter `docs/verification/`. Pixel-Messung bleibt offen, bis der Nutzer sie ausführt.
+
+### Etappe 2: Zwei schnelle Verbesserungen
+
+- `load()` ruft `getState()` und `getSyncStatus()` nacheinander auf, und `getSyncStatus()` baut den ganzen Zustand noch einmal auf. Der Sync-Status steckt bereits im ersten Ergebnis (`sync_status`) und wird von dort übernommen.
+  Abnahme: pro Laden genau ein Vollaufbau (Zähler im Test), Statusinhalt unverändert.
+- `render()` löscht bei jedem Aufruf den Listen-Cache (`clearDataCache`) und rechnet alle Listen neu, auch unsichtbare. Cache nur bei geändertem Zustand verwerfen und nur die aktive Seite neu zeichnen.
+  Abnahme: Heute → Büro → Heute ohne Datenänderung löst keinen Vollaufbau und keine Neuberechnung aus. Neue, geänderte und gelöschte Einträge erscheinen weiterhin sofort.
+
+### Etappe 3: Datenbank in Tabellen (nur nach Freigabe durch den Nutzer)
+
+Ist-Zustand laut Quellcodeprüfung: Kunden, Aufträge, Arbeiten, Rechnungen und Fotos
+liegen als ein großer JSON-Text (`owner_state`, Schlüssel `snapshot`), der bei fast
+jeder Aktion komplett gelesen und geparst wird.
+Soll-Zustand: eine Tabelle je Art, einzelne Einträge werden gezielt gelesen und geschrieben.
+
+- Zuerst ein Plan im Auftrag (Tabellen, Übernahme, Rückweg). Keine Umsetzung ohne ausdrückliche Freigabe des Nutzers, weil `AGENTS.md` automatische Migration verbietet.
+- Übernahme nur bewusst, mit vorherigem verschlüsseltem Backup und Rücklesen. Alte Daten bleiben bis zur bestätigten Prüfung unverändert erhalten.
+- Gleiche Fachregeln und Prüfsummen müssen vor und nach der Übernahme dieselben Zahlen und Hashes ergeben.
+- Abnahme: Tests mit synthetischen Daten für Übernahme, Abbruch mittendrin, Neustart, Restore und Rückweg. Geräteabnahme bleibt Sache des Nutzers.
+
+### Etappe 4: Oberfläche schrittweise erneuern
+
+- Jeweils ein Bildschirm, beginnend mit Heute, dann Kunden, dann Büro. Alte und neue Version laufen nie gleichzeitig auf demselben Bildschirm.
+- Ziel: eine gemeinsame Darstellung, keine Skripte, die fremde Seiten umschreiben. Vorhandene Funktionen, Zurück/Speichern/Verwerfen und Entwurfsschutz bleiben erhalten.
+- Vor dem Neuaufbau eines Bildschirms: Liste seiner Funktionen und Tests. Nach dem Umbau muss jede Funktion der Liste belegt sein.
+- Abnahme je Bildschirm: bestehende Tests grün, Bedienung auf kleiner Anzeige und großer Schrift geprüft, Wechselzeiten aus Etappe 1 nicht schlechter.
+
+### Etappe 5: Altlasten entfernen
+
+- Reste der alten Drive-Synchronisierung und alte Warteschlangen erst entfernen, wenn Sicherung und Wiederherstellung am Pixel bestätigt sind.
+- Historische Belege und Schutzprüfungen werden nicht nach Alter gelöscht. Löschen nur mit Nachweis, dass nichts darauf zugreift.
+
+### Abschlussbericht je Etappe
+
+- Was geändert wurde (Dateien und Funktionen), welche Tests liefen, Ergebnis der Vorher-Nachher-Messung.
+- Getrennt ausweisen: selbst ausgeführter Test, Emulator- oder Cloudmessung, nicht geprüft (insbesondere Pixel).
+- Offene Punkte klar nennen, keine Freigabeflags setzen.
+
 ## Nutzerpräzisierung28.10.: ADB jetzt ausführen
 
 Direkte Nutzeranweisung: „Test per adb auszuführen“. Damit ist der Laptop für
