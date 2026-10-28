@@ -1,5 +1,57 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Neuester Auftrag28.10.: reproduzierbare ADB-Testkampagne
+
+Direkter Nutzerauftrag: Funktionsfähigkeit, Performance, Datenbeständigkeit,
+Bedienbarkeit und Barrierefreiheit auf einer nachgewiesen isolierten Android-
+Testumgebung prüfen; ein Build oder eine Codeprüfung ist keine Geräteabnahme.
+Zuerst frisches main und bestehende Branches prüfen, fremde Arbeit erhalten.
+Falls die geltende Laptop-Sperre entgegensteht, ausschließlich zulässige
+Vorbereitungen ausführen. Produktive Daten, Installation/Reset des produktiven
+Pixels, Migration, Rechnungsfreigabe und echter Versand bleiben ausgeschlossen.
+
+Kampagnenumfang: Kunden/Objekte/Rechnungsempfänger; Anfrage/Angebot/Entscheidung;
+Aufträge/Arbeiten/Timer/Pausen; Pflegepläne/Besuche/Termine/Tour; Material/Bestand/
+Geräte/Wartung; Entwürfe/Zahlungen/geschützte Belege; Fotos/Originale; Suche/
+große Listen; Einstellungen/Rechte; Archiv/Papierkorb/Restore/Purge; verschlüsseltes
+Backup/Vollrestore; Offline- und Wiederanlaufpfade. Tatsächliche MCP-/UI-Kataloge
+neu zählen. Jeder Fall erhält Vorbedingungen, synthetische Daten, Schritte,
+Sollzustand, Messwerte, Ergebnisstatus und Beleg.
+
+Vorhandene synthetische Factory verwenden und deterministische verknüpfte Profile
+50/500, 500/5000, 2000/20000 Kunden/Arbeiten nach Ressourcenprüfung vorbereiten;
+Umlaute, Duplikate, Langtexte, optionale Leerfelder, abweichende Rechnungsempfänger,
+Datumsgrenzen, Medien und archivierte/gelöschte Fälle einschließen. Kein
+Produktivmaterial übernehmen oder leeren Bootstrap als Testseed ersetzen.
+
+Releasevergleich mit Macrobenchmark/FrameTimingMetric, passenden WebView-Markern,
+Perfetto-Ursachenläufen und gezielten gfxinfo/meminfo/procstats-Messungen:
+Start, Navigation, sichtbare Suche/Akten, Commit plus Readback, Scrollen,
+Foto/Original, Kalender/Tour, PDF und synthetisches Backup/Restore. Warmups getrennt;
+mindestens30 Messwiederholungen anstreben, Median/p90/p95/Maximum/Fehlerquote sowie
+Gerät, Profil, Hz, Temperatur, Ladung und Hintergrundlast erfassen. Bestehende
+Ziele erhalten; neue Ziele nur als Vorschlag. Keine Emulatorwerte als Pixelwerte.
+
+Robustheit: Netz/Timeoutadapter, einzelne Rechte, Hintergrund/Rotation, echter
+OS-Prozessabbruch, Mehrfachtap, stabile Request-ID, verlorene/verspätete Antwort,
+injizierte Testuhr und begrenzte Speichersimulation. Bestätigte Commits, Draft-
+Verwerfen, Timer-/Medienbeziehungen, stillgelegte Drive-Schreiber und alle
+Autoritäts-/Finanzgates regressieren. Nutzertestkarte für Kunde→Arbeit→Foto→Termin→
+Rechnungsentwurf vorbereiten; Ergebnisse nur mit echten Teilnehmern.
+
+Auslieferung: vorhandene ausführbare Tests mit dokumentiertem Einstieg,
+versionierte Matrix, JSON/CSV, priorisierte Ursachen-/Verbesserungsliste,
+offene Prüfungen und ggf. tatsächlich gemessener Vorher-/Nachhervergleich.
+Nur eigene bereinigte Evidenz nach docs/verification, große Traces nur über
+vorhandenen genehmigten Artefaktweg. Auftrag/Status fortschreiben, vor Sicherung
+Privacy prüfen, gezielt committen und exakten Remote-Commit/Inhalt zurücklesen.
+
+Aktueller Ausführungsumfang wegen Regelkonflikt: nur Remote-Vorbereitung über
+GitHub, keine lokale Quellkopie oder ADB-Ausführung. Der separate Revierbranch
+enthält eine noch nicht auf main/Appbranch integrierte ADB-Ausnahme; keine
+stillschweigende Auswahl der weniger restriktiven Regel. Einstieg und Grenzen:
+[ADB-Testkampagne](tests/ADB-Testkampagne.md).
+
 ## Android Fachwissen für die Stabilisierung vom 28. Oktober 2026
 
 ### Auftrag und Ergebnis der Recherche

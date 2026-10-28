@@ -6,6 +6,58 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Aktuell28.10.: ADB-Kampagne vorbereitet, Geräteabnahme BLOCKED
+
+Direkter neuer Auftrag aus diesem Gespräch in CODEX-AUFTRAG-GARTENPIRAT.md erfasst.
+Frisches main05eac2d und die drei vorhandenen Arbeitsbranches verglichen.
+main und neuester Appbranch771183d verbieten den Laptop weiterhin. Nur
+Revier371384f enthält eine enge, noch nicht integrierte ADB-/Protokollausnahme.
+Diese widersprüchlichen Branchstände wurden nicht als allgemeine Testfreigabe
+ausgelegt. Gemäß Auftrag ausschließlich zulässige Vorbereitung über GitHub.
+Aktuelles Arbeitsverzeichnis ohne Git-Checkout; keine lokale Quellkopie erstellt.
+Keine Behauptung über ungeprüfte lokale Änderungen in anderen Arbeitsverzeichnissen.
+
+Vorbereitung auf bestehendem Appbranch codex/heute-uebersicht-20261027, dessen
+Appdateien dem Originalquelltag108/9415c8d entsprechen; kein neuer Appbuild.
+Revier- und Pflanzenarbeit unverändert erhalten. Heute kein ADB-Gerät ausgewählt,
+kein Modell/Android-/Versionsreadback, keine Installation, kein Appvorgang,
+kein Rohlog/Privatbild und keine Produktivdaten gelesen oder verändert.
+
+Frische Quellauswertung: main166 MCP-Werkzeuge/209 semantische UI-Gruppen;
+App108169/212 (73 read,96 write;197 business,15 platform).
+Aktuell exponierte Verbindung166 Werkzeugnamen, gleich main; gegenüber App108
+fehlen get_equipment_maintenance, save_equipment_maintenance_plan und
+record_equipment_maintenance. Nur Metadatenvergleich, kein aktueller
+Installations-/Erreichbarkeitsbeweis und kein reproduzierter Gerätefehler.
+
+64 Szenarien definiert und alle169 Werkzeuge/212 UI-Gruppen geplanten Szenarien
+zugeordnet:39 BLOCKED,25 NOT TESTED,0 PASS/0 FAIL. Teilweise vorhandene Suites
+sind keine vollständige Szenarienausführung. 50 vorbereitete Messzeilen haben
+n=0 und Zeit-/Fehlerquoten null; keine neuen Leistungswerte oder Teilnehmer.
+Lastprofile50/500,500/5000 und2000/20000 spezifiziert, nicht implementiert/generiert.
+Vorhandene Factory bleibt minimal/edge_cases/scale mit1 Kunde/1 Auftrag und
+maximal3000 Arbeitseinträgen; Macrobenchmark/Perfetto-Pipeline fehlt.
+
+Konkrete Quellenbefunde: aktueller Cloudrunner akzeptiert syntaktisch RESULT0
+und prüft Android-Kerndienste noch nicht; strengere Guards existieren auf Revier.
+Alter Fonthostrunner verlangt Build98 und ist kein108-Einstieg. Keine
+Produktänderung oder ungeprüfte Guardintegration. Suchpfad mit Vollscan/Sortierung
+als plausible Kostenhypothese dokumentiert; keine heutige Laufzeitursache belegt.
+Historische105-Cloudsuche772,582006ms p95 bei25 Samples bleibt ausdrücklich
+historisch; kein aktueller Pixelwert, kein Vorher-/Nachhervergleich.
+
+Größter erwarteter Nutzen: eindeutige isolierte Umgebung/Abnahmeguards;
+realistische zentrale Factory plus sichtbare Release-Messpunkte; danach
+tracegestützte Such-/Navigationsoptimierung mit Beziehungs-/Löschregressionen.
+Produktive Transition-/Rechnungs-/Restore-/Versandgates bleiben geschlossen.
+
+Einstieg: [tests/ADB-Testkampagne.md](tests/ADB-Testkampagne.md).
+Matrix/Kataloge/Profile/Befunde: docs/verification/adb-campaign-2026-10-28.json;
+Szenarien- und Mess-CSV liegen daneben. Dokument-/JSON-/CSV-/Quellenverweise
+und nur eigene neue Inhalte auf Privacy geprüft. Keine erneute vollständige
+Source-/Worktree-Privacyprüfung und keine Androidtests in diesem Auftrag.
+Die eigentliche Geräteabnahme und Benchmarkimplementierung bleiben offen.
+
 ## Android Fachwissen für Codex recherchiert am 28. Oktober 2026
 
 Der aktuelle Nutzerauftrag zur Android-Wissensgrundlage ist in der

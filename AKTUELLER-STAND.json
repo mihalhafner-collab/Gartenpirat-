@@ -534,5 +534,30 @@
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "NOT_ACTIVATED",
     "evidence": "docs/verification/release-108-2026-10-28.json"
+  },
+  "adb_campaign_2026_10_28": {
+    "status": "PREPARATION_ONLY_DEVICE_ACCEPTANCE_BLOCKED",
+    "app_branch": "codex/heute-uebersicht-20261027",
+    "inspected_app_commit": "771183ddb9fbae81e68dd7474ea5277f0c4ac48c",
+    "app_release_source": "9415c8da6c26314969b731bc01708c5e8f424349",
+    "expected_build": 108,
+    "device_observed_today": false,
+    "rule_conflict": "main/Appbranch laptop prohibition; separate unmerged Revier ADB exception",
+    "source_tools": 169,
+    "semantic_ui_actions": 212,
+    "exposed_connection_metadata_tools": 166,
+    "scenarios": 64,
+    "pass": 0,
+    "fail": 0,
+    "blocked": 39,
+    "not_tested": 25,
+    "measurements": 0,
+    "participants": 0,
+    "load_profiles": "SPECIFIED_NOT_IMPLEMENTED",
+    "benchmark_pipeline": "NOT_IMPLEMENTED",
+    "app_files_changed": false,
+    "productive_gates_unchanged": true,
+    "evidence": "docs/verification/adb-campaign-2026-10-28.json",
+    "entry": "tests/ADB-Testkampagne.md"
   }
 }
