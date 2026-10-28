@@ -24,8 +24,12 @@
     "apk_bytes": 82870780,
     "production_source_classes": 200,
     "signature_valid": true,
-    "download_url": "https://github.com/mihalhafner-collab/Gartenpirat-/raw/refs/heads/main/downloads/Gartenpirat-1.55.9-build114.apk",
-    "download_readback": "PENDING_PUSH_AND_REMOTE_BYTES_VERIFICATION"
+    "download_url": "https://github.com/mihalhafner-collab/Gartenpirat-/raw/8f1f22f7786e147e4087608437e5062e93b15539/downloads/Gartenpirat-1.55.9-build114.apk",
+    "download_readback": {
+      "status": "PASS",
+      "commit": "8f1f22f7786e147e4087608437e5062e93b15539",
+      "method": "Fresh GitHub clone;remote APK size and SHA256 exactly match verified signed APK"
+    }
   },
   "last_observed_installed_build": {
     "observed_at_utc": "2026-10-28T06:04:36.9034129Z",
@@ -48,7 +52,7 @@
   ],
   "current_task": {
     "name": "Aktuelle originalsignierte APK bauen, prüfen und zum Download bereitstellen",
-    "status": "BUILD_AND_ORIGINAL_SIGNATURE_PASS;DOWNLOAD_PUSH_AND_READBACK_PENDING",
+    "status": "COMPLETED;APK_BUILT_ORIGINAL_SIGNED_VERIFIED_AND_AVAILABLE",
     "authorized": true,
     "authorization_scope": "User explicitly requested build,original signing,checks and download;no device installation or productive data operation",
     "release_environment": {
@@ -61,7 +65,6 @@
     "distribution": "Repository downloads;Release attachment upload rejected with HTTP401;no Drive upload"
   },
   "open_checks": [
-    "Build114-Download nach GitHub pushen und exakte Bytes zurücklesen",
     "Nach Installation spezifischen Backup-Inventarfehler ermitteln;vollständiges Pixel-Backup/Restore nachweisen",
     "Android-Transaktionslistener,UI/MCP/Timer-/Rechnungsschreiber und CursorWindow nativ prüfen;SQLite/JDBC ersetzt das nicht",
     "Physische Pixel-Bedienung,WebView,Update-Datenerhalt und Geräteleistung prüfen",
@@ -126,7 +129,8 @@
       "signed_apk": "PASS;original certificate,package,version,DEX source binding,exact assets,all 200 production classes,22 retired/test classes absent,alignment,empty business seed",
       "signing_payload_unchanged": true,
       "physical_update_data_retention": "NOT_EXECUTED",
-      "full_pixel_backup_restore": "NOT_EXECUTED"
+      "full_pixel_backup_restore": "NOT_EXECUTED",
+      "github_download": "PASS;independent remote bytes readback with matching size/SHA256"
     },
     "current_source_changes": {
       "status": "RELEASE_BUILD_AND_SYNTHETIC_TESTS_PASS;PHYSICAL_ACCEPTANCE_OPEN;PROTECTED_DELETION_PENDING_RESTORE_EVIDENCE",
