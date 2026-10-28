@@ -9,7 +9,8 @@ import java.io.IOException;
 final class BackupSnapshotState {
     static JSONObject read(SQLiteDatabase db,JSONObject preferences,String initialData,String serviceCatalog)throws Exception {
         if(db.getVersion()<4||db.getVersion()>PixelLocalStore.SCHEMA_VERSION)throw new IOException("BACKUP_DATABASE_VERSION_UNSUPPORTED");
-        String fallback=preferences.optString("drive_snapshot",initialData),saved=DatabaseBackupSnapshot.ownerValue(db,"snapshot",fallback);JSONObject master=new JSONObject(saved);
+        String fallback=preferences.optString("drive_snapshot",initialData);
+        JSONObject master=PixelLocalStore.businessTables(db).snapshot(fallback);
         String engine=master.optString("processing_engine");if(!engine.isEmpty()&&!engine.equals(PixelDriveState.ENGINE)&&!engine.equals(LocalAuthorityRules.ENGINE))throw new IOException("BACKUP_SNAPSHOT_ENGINE_UNSUPPORTED");
         PixelLocalStore.removeSnapshotPhotoBinaries(master);JSONArray invoices=master.optJSONArray("invoices");for(int i=0;invoices!=null&&i<invoices.length();i++){JSONObject invoice=invoices.getJSONObject(i);if(LegacyPdfAttachment.describe(invoice)!=null)invoice.remove("pdf_base64");}
         PixelDriveState.prepare(master);ServiceCatalogBootstrap.seed(master,()->serviceCatalog);LocalTestCleanup.overlay((key,otherwise)->DatabaseBackupSnapshot.ownerValue(db,key,otherwise),master);

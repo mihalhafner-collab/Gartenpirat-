@@ -30,6 +30,37 @@
    target.querySelector('[data-library-more]')?.addEventListener('click',()=>{view.limit+=30;draw();});};
   section.querySelectorAll('[data-photo-filter]').forEach(f=>{f.value=view[f.dataset.photoFilter];f.onchange=()=>{view[f.dataset.photoFilter]=f.value;view.limit=30;draw();};});draw();return section;
  }
+let lastListRows=null,lastListKey='';
+function renderList(rows){
+  const term=(el('customer-search')?.value||'').trim().toLocaleLowerCase('de-AT');
+  const key=JSON.stringify([dataRevision(),term]);if(lastListRows===rows&&lastListKey===key)return;
+  const shown=HGDataOrder.sorted('customers',rows.filter(x=>HGDataOrder.matches(term,[x.name,x.company,x.first_name,x.last_name,x.street,x.postal_code,x.city,x.phone,x.email])));
+  const profiles=new Map();for(const photo of photos())if(/^(profilbild|profil|profile)$/i.test(String(photo.caption||'').trim())&&!profiles.has(photo.customer_id))profiles.set(photo.customer_id,photo);
+  const count=el('customer-count');if(count)count.textContent=rows.length+' Kunden';
+  el('customer-list').classList.add('customer-list-grid');
+  el('customer-list').innerHTML=list(shown,x=>{
+    const profile=profiles.get(x.id),src=profile?.thumbnail_data||profile?.data;
+    const initials=String(x.name||'K').trim().split(/\s+/).slice(0,2).map(v=>v[0]||'').join('').toLocaleUpperCase('de-AT');
+    const subtitle=[x.company&&x.company!==x.name?x.company:'',x.city,x.active===0?'Archiviert':''].filter(Boolean).join(' · ')||'Kunde';
+    return '<article class="customer-card" data-customer="'+esc(x.id)+'"><button type="button" class="customer-profile" data-customer-open="'+esc(x.id)+'"><span class="customer-avatar">'+(src&&String(src).startsWith('data:image/')?'<img class="customer-avatar" src="'+esc(src)+'" alt="Profilbild" loading="lazy">':esc(initials||'K'))+'</span><span class="customer-profile-copy"><strong>'+(x.pending?'<span class="pending-dot"></span>':'')+esc(x.name)+'</strong><small>'+esc(subtitle)+'</small></span><span class="customer-chevron">›</span></button><div class="customer-contact-line" hidden></div></article>';
+  },'Kein Kunde gefunden. Suche ändern oder einen Kunden hinzufügen.');
+  for(const card of el('customer-list').querySelectorAll('.customer-card')){
+    const menu=document.createElement('button');menu.type='button';menu.className='design-record-menu';menu.textContent='⋮';menu.setAttribute('aria-label','Kundenaktionen');menu.onclick=()=>card.querySelector('[data-customer-open]').dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true}));card.append(menu);
+  }
+  lastListRows=rows;lastListKey=key;
+}
+
+ function renderProfile(container,html,model){
+  if(protect(model.customer.id))return;
+  // Compose off-screen and commit once; no second script rewrites the visible dossier.
+  const content=document.createElement('div');content.innerHTML=html;
+  if(model.moreHistory){const more=document.createElement('button');more.type='button';more.className='secondary';more.dataset.profileHistoryMore='1';more.textContent='Weitere Einsätze laden';content.querySelectorAll(':scope > section')[3]?.append(more);}
+  decorate(content,model);
+  const label=document.createElement('p');label.id='customer-billing-summary';label.className='billing-summary';const customer=model.customer;
+  label.textContent=customer.billing_mode==='via_customer'?'Abrechnung über: '+(customers().find(row=>row.id===customer.default_billing_customer_id)?.name||'Zuordnung prüfen'):'Abrechnung: Direkt';
+  content.querySelector('.design-profile-header')?.after(label);
+  container.replaceChildren(...content.childNodes);container.onclick=content.onclick;
+ }
  function decorate(container,{customer,logs,jobs,invoices,pictures}){
   const sections=[...container.children],tab=tabs.get(customer.id)||'overview',header=sections[0];sections[2]?.querySelector('[data-design-action="new-work"]')?.remove();container.replaceChildren(header);
   const quick=document.createElement('div');quick.className='customer-hub-actions';quick.innerHTML='<button type="button" class="primary" data-customer-start>Arbeit starten</button><button type="button" class="secondary" data-customer-new-appointment>Termin</button><button type="button" class="secondary" data-design-action="add-photos" aria-label="Foto zum Kunden hinzufügen">+ Foto</button>';header.append(quick);
@@ -58,5 +89,6 @@
   if(tab==='history'){if(sections[1])container.append(sections[1]);if(sections[3])container.append(sections[3]);}
  }
 
- window.CustomerHub=Object.freeze({decorate,protect,photoLibrary,resumeGardenDraft:session=>{const edit=HGFormDrafts.list('garden').find(row=>row.session_id===session),customer=edit&&customers().find(row=>row.id===edit.context.record_id);if(!customer){window.showUndoToast?.('Der ursprüngliche Gartenkunde ist derzeit nicht lesbar. Entwurf bleibt erhalten.');return;}resumeGardenSession=session;tabs.set(customer.id,'garden');window.openCustomer(customer.id);}});
+ window.CustomerHub=Object.freeze({renderList,renderProfile,protect,photoLibrary,resumeGardenDraft:session=>{const edit=HGFormDrafts.list('garden').find(row=>row.session_id===session),customer=edit&&customers().find(row=>row.id===edit.context.record_id);if(!customer){window.showUndoToast?.('Der ursprüngliche Gartenkunde ist derzeit nicht lesbar. Entwurf bleibt erhalten.');return;}resumeGardenSession=session;tabs.set(customer.id,'garden');window.openCustomer(customer.id);}});
+ HGPageRenderers.register('customers',()=>renderList(customers()));
 })();

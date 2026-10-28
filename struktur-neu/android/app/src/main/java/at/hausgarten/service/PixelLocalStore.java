@@ -21,8 +21,8 @@ import java.util.UUID;
 
 /** Original SQLite store separated from Activity lifecycle; schema and files unchanged. */
 final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteTools.Sink {
-    // Contract 6 adds authoritative native editor state; older clients must not write it.
-    static final int SCHEMA_VERSION=6;
+    // Contract 7 fences old snapshot-only writers after a conscious table transition.
+    static final int SCHEMA_VERSION=7;
     private final Context context;
     private final SharedPreferences preferences;
     private final PhotoAttachmentStore photoAttachments;
@@ -46,10 +46,11 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     static void assertNoOpenStores(Context context)throws Exception {java.util.concurrent.atomic.AtomicInteger count=OPEN_STORES.get(context.getDatabasePath("haus-garten-mobile.db").getCanonicalPath());if(count!=null&&count.get()!=0)throw new IOException("RESTORE_DATABASE_STILL_OPEN");}
     Context appContext(){return context;}
     /** Explicit storage-transfer boundary; opening the app never invokes a transfer. */
-    BusinessTableStore businessTables(){
+    BusinessTableStore businessTables(){return businessTables(getWritableDatabase());}
+    static BusinessTableStore businessTables(SQLiteDatabase database){
         return new BusinessTableStore(new BusinessTableStore.Sql(){
             public BusinessTableStore.Rows query(String statement,String...args){
-                Cursor rows=getReadableDatabase().rawQuery(statement,args);
+                Cursor rows=database.rawQuery(statement,args);
                 return new BusinessTableStore.Rows(){
                     public boolean next(){return rows.moveToNext();}
                     public String text(int column){return rows.getString(column);}
@@ -57,13 +58,42 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
                     public void close(){rows.close();}
                 };
             }
-            public void execute(String statement,Object...args){getWritableDatabase().execSQL(statement,args);}
+            public void execute(String statement,Object...args){database.execSQL(statement,args);}
             public <T>T transaction(BusinessTableStore.Action<T> action)throws Exception{
-                SQLiteDatabase db=getWritableDatabase();db.beginTransaction();
-                try{T result=action.run();db.setTransactionSuccessful();return result;}
-                finally{db.endTransaction();}
+                // Captured backup databases are immutable and opened read-only.
+                if(database.isReadOnly())return action.run();
+                database.beginTransaction();
+                try{T result=action.run();database.setTransactionSuccessful();return result;}
+                finally{database.endTransaction();}
             }
         });
+    }
+    /** Maintenance entry point: callers must deliberately select each phase and supply archive bytes.
+     * There is no startup, upgrade, restore or remote-tool call to this method.
+     */
+    JSONObject transferBusinessTables(String operation,String request,String expectedHash,int batch,File archive,String recovery,File staging)throws Exception {
+        BusinessTableStore tables=businessTables();
+        if(operation.equals("status"))return tables.status();
+        if(operation.equals("cancel"))return tables.cancel(request);
+        if(archive==null||staging==null)throw new IOException("TABLE_BACKUP_EVIDENCE_REQUIRED");
+        BusinessTableStore.Evidence evidence=LocalBackupDataset.tableEvidence(this,archive,recovery,staging);
+        switch(operation){
+            case "prepare":{
+                SQLiteDatabase db=getWritableDatabase();db.beginTransaction();
+                try{
+                    if(DatabaseBackupSnapshot.ownerValue(db,"snapshot",null)==null){
+                        String legacy=preferences.getString("drive_snapshot","");if(legacy.isEmpty())throw new IOException("TABLE_PERSISTED_SNAPSHOT_REQUIRED");
+                        if(!PixelMcpWriteTools.hash(new JSONObject(legacy)).equals(expectedHash))throw new IOException("TABLE_SOURCE_CHANGED");
+                        evidence.verify(new JSONObject(legacy));putOwnerValue("snapshot",legacy);
+                    }
+                    JSONObject prepared=tables.prepare(request,expectedHash,evidence);db.setTransactionSuccessful();return prepared;
+                }finally{db.endTransaction();}
+            }
+            case "copy":return tables.copyBatch(request,batch,evidence);
+            case "activate":return tables.activate(request,expectedHash,evidence);
+            case "rollback":return tables.rollback(request,expectedHash,evidence);
+            default:throw new IOException("TABLE_TRANSFER_OPERATION_UNSUPPORTED");
+        }
     }
     WorkSessionStore workSessions(){return new WorkSessionStore(getWritableDatabase(),clock);}
     int compactPurgedTestActions()throws Exception{return LocalTestCleanup.compact(this);}
@@ -95,16 +125,27 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         JSONArray photos=snapshot.optJSONArray("photos");for(int i=0;photos!=null&&i<photos.length();i++){JSONObject photo=photos.optJSONObject(i);if(photo!=null){photo.remove("data");photo.remove("full_data");}}
     }
     @Override public void onCreate(SQLiteDatabase database) { database.execSQL("CREATE TABLE pending(id TEXT PRIMARY KEY,kind TEXT NOT NULL,payload TEXT NOT NULL,created_at TEXT NOT NULL)"); WorkSessionStore.createSchema(database); createPhotoAttachmentSchema(database); createOwnerSchema(database); }
-    @Override public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) { if(oldVersion<2) WorkSessionStore.createSchema(database);if(oldVersion<3){createPhotoAttachmentSchema(database);migrateLegacyPendingPhotoAttachments(database);}if(oldVersion<4)createOwnerSchema(database); /* 5 -> 6 is a writer-contract fence; existing rows remain byte-for-byte unchanged. */ }
+    @Override public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) { if(oldVersion<2) WorkSessionStore.createSchema(database);if(oldVersion<3){createPhotoAttachmentSchema(database);migrateLegacyPendingPhotoAttachments(database);}if(oldVersion<4)createOwnerSchema(database); /* 5 -> 7 fences old writers; no snapshot copy or activation occurs here. */ }
     private void createOwnerSchema(SQLiteDatabase database){
         database.execSQL("CREATE TABLE IF NOT EXISTS owner_state(key TEXT PRIMARY KEY,value TEXT NOT NULL)");
         database.execSQL("CREATE TABLE IF NOT EXISTS mcp_uploads(id TEXT PRIMARY KEY,metadata TEXT NOT NULL,data BLOB NOT NULL)");
     }
+    JSONObject rawSnapshot(String fallback)throws Exception {return businessTables().snapshot(preferences.getString("drive_snapshot",fallback));}
     String snapshotText(String fallback){
         String value=ownerValue("snapshot",null);return value==null?preferences.getString("drive_snapshot",fallback):value;
     }
-    void putOwnerValue(String key,String value){ContentValues v=new ContentValues();v.put("key",key);v.put("value",value);getWritableDatabase().insertWithOnConflict("owner_state",null,v,SQLiteDatabase.CONFLICT_REPLACE);}
+    void putOwnerValue(String key,String value){
+        SQLiteDatabase db=getWritableDatabase();db.beginTransaction();
+        try{
+            BusinessTableStore tables=businessTables(db);
+            if(key.equals("snapshot")&&tables.active())tables.replaceSnapshot(new JSONObject(value));
+            else{db.execSQL("INSERT OR REPLACE INTO owner_state(key,value) VALUES(?,?)",new Object[]{key,value});}
+            db.setTransactionSuccessful();
+        }catch(Exception invalid){throw new IllegalStateException("LOCAL_STATE_WRITE_FAILED",invalid);}
+        finally{db.endTransaction();}
+    }
     String ownerValue(String key,String fallback){
+        if(key.equals("snapshot"))try{BusinessTableStore tables=businessTables();if(tables.active())return tables.exportSnapshot().toString();}catch(Exception invalid){throw new IllegalStateException("LOCAL_TABLE_READ_FAILED",invalid);}
         int count;try(Cursor row=getReadableDatabase().rawQuery("SELECT length(value) FROM owner_state WHERE key=?",new String[]{key})){if(!row.moveToFirst())return fallback;count=row.getInt(0);}
         StringBuilder out=new StringBuilder();for(int offset=0;offset<count;offset+=32768)try(Cursor row=getReadableDatabase().rawQuery("SELECT substr(value,?,32768) FROM owner_state WHERE key=?",new String[]{Integer.toString(offset+1),key})){if(!row.moveToFirst())return fallback;out.append(row.getString(0));}return out.toString();
     }
@@ -137,9 +178,54 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     JSONObject getState() {
         SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{JSONObject result=getStateLocked();db.setTransactionSuccessful();return result;}finally{db.endTransaction();}
     }
+    PixelMcpReadTools.Source readSource(){
+        return new PixelMcpReadTools.Source(){
+            public JSONObject state(){return getState();}
+            public JSONObject stateFor(String tool,JSONObject args)throws Exception{return queryState(tool,args);}
+            public JSONObject metadata()throws Exception{return new JSONObject().put("last_drive_sync",preferences.getString("last_drive_sync",""));}
+        };
+    }
+    /** Point reads avoid unrelated collections only when no journal overlay can change the result. */
+    private JSONObject queryState(String tool,JSONObject args)throws Exception {
+        if(!java.util.Arrays.asList("get_customer","get_order","get_photo").contains(tool))return getState();
+        SQLiteDatabase db=getWritableDatabase();db.beginTransaction();
+        try{
+            BusinessTableStore tables=businessTables(db);JSONObject result;
+            if(!tables.active())result=getStateLocked();
+            else{
+                JSONObject master=tables.metadataSnapshot();JSONArray actions=DriveJournalRules.union(pendingActions(),master.optJSONArray("drive_review_actions"));
+                if(actions.length()!=0||new JSONObject(ownerValue("purged_local_test_records_v1","{}")).length()!=0)result=getStateLocked();
+                else{
+                    for(String collection:BusinessTableStore.COLLECTIONS)master.put(collection,new JSONArray());
+                    String collection=tool.equals("get_customer")?"customers":tool.equals("get_order")?"orders":"photos";
+                    String key=tool.equals("get_customer")?"customer_id":tool.equals("get_order")?"order_id":"photo_id";
+                    JSONObject row=tables.get(collection,args.getString(key));
+                    if(row!=null){master.getJSONArray(collection).put(row);if(tool.equals("get_order")){addQueryCustomer(tables,master,row.optString("customer_id"));addQueryCustomer(tables,master,row.optString("billing_customer_id"));}if(tool.equals("get_customer"))addQueryCustomer(tables,master,row.optString("default_billing_customer_id"));}
+                    // Partial collections must not enter the full projection, which computes totals.
+                    refreshQueryDisplay(tables,collection,row);removeSnapshotPhotoBinaries(master);
+                    result=readSource().metadata().put("master",master).put("pending",new JSONArray()).put("storage_point_read",true);
+                }
+            }
+            db.setTransactionSuccessful();return result;
+        }finally{db.endTransaction();}
+    }
+    private void refreshQueryDisplay(BusinessTableStore tables,String collection,JSONObject row)throws Exception {
+        if(row==null||collection.equals("customers"))return;
+        if(row.has("customer_name")){JSONObject customer=tables.get("customers",row.optString("customer_id"));if(customer!=null)row.put("customer_name",customer.optString("name"));}
+        if(row.has("order_title")){JSONObject order=tables.get("orders",row.optString("order_id"));row.put("order_title",order==null?"":order.optString("title"));}
+        if(collection.equals("orders")&&row.has("total_hours")){
+            double hours=0;for(int offset=0;;offset+=100){JSONArray work=tables.select("worklogs","order_id",row.getString("id"),offset,100);for(int i=0;i<work.length();i++)hours+=work.getJSONObject(i).optDouble("hours",0);if(work.length()<100)break;}row.put("total_hours",Math.round(hours*100)/100.0);
+        }
+    }
+    private void addQueryCustomer(BusinessTableStore tables,JSONObject master,String id)throws Exception {
+        if(id.isEmpty()||findById(master.getJSONArray("customers"),id)!=null)return;
+        JSONObject row=tables.get("customers",id);if(row==null)return;master.getJSONArray("customers").put(row);
+        // The selected customer's default billing recipient can supply the displayed name.
+        String billing=row.optString("default_billing_customer_id");if(!billing.isEmpty()&&!billing.equals(id)&&findById(master.getJSONArray("customers"),billing)==null){JSONObject recipient=tables.get("customers",billing);if(recipient!=null)master.getJSONArray("customers").put(recipient);}
+    }
     private JSONObject getStateLocked() {
         JSONObject output = new JSONObject();
-        try { JSONObject master=new JSONObject(snapshotText(readAsset("initial-data.json")));removeSnapshotPhotoBinaries(master);documentReferences(master);PixelDriveState.prepare(master);seedServiceCatalog(master);LocalTestCleanup.overlay(this,master);if(LocalAuthorityGuard.local(context))master.put("processing_engine",LocalAuthorityRules.ENGINE).put("local_contract_version",LocalAuthorityRules.CONTRACT);output.put("master",master); output.put("pending", DriveJournalRules.union(pendingActions(),output.getJSONObject("master").optJSONArray("drive_review_actions"))); output.put("last_drive_sync", preferences.getString("last_drive_sync", ""));output.put("work_session",workSessions().current());output.put("sync_queue",DriveJournalRules.queueStatus(output.getJSONObject("master"),output.getJSONArray("pending"))); }
+        try { JSONObject master=rawSnapshot(readAsset("initial-data.json"));removeSnapshotPhotoBinaries(master);documentReferences(master);PixelDriveState.prepare(master);seedServiceCatalog(master);LocalTestCleanup.overlay(this,master);if(LocalAuthorityGuard.local(context))master.put("processing_engine",LocalAuthorityRules.ENGINE).put("local_contract_version",LocalAuthorityRules.CONTRACT);output.put("master",master); output.put("pending", DriveJournalRules.union(pendingActions(),output.getJSONObject("master").optJSONArray("drive_review_actions"))); output.put("last_drive_sync", preferences.getString("last_drive_sync", ""));output.put("work_session",workSessions().current());output.put("sync_queue",DriveJournalRules.queueStatus(output.getJSONObject("master"),output.getJSONArray("pending"))); }
         catch (Exception error) { throw new IllegalStateException("LOCAL_STATE_BUILD_FAILED"); }
         try{output.put("drive_sync_failed",preferences.getBoolean("drive_sync_failed",false)).put("last_sync_attempt",preferences.getString("last_sync_attempt","")).put("cloud_confirmed",preferences.getBoolean("drive_cloud_confirmed",false)&&output.getJSONObject("sync_queue").getInt("total")==0).put("confirmation_scope",preferences.getString("drive_confirmation_scope","local_only")).put("last_full_sync",preferences.getString("last_full_sync",""));}catch(Exception ignored){}
         try{JSONObject old=output.getJSONObject("sync_queue");output.put("legacy_queue_inventory",old).put("sync_queue",new JSONObject().put("contract_version",DriveRolePolicy.contractVersion()).put("mode",DriveRolePolicy.role()).put("total",0).put("pending",0).put("review",old.optInt("review")).put("locally_committed",output.getJSONArray("pending").length())).put("storage_contract_version",DriveRolePolicy.contractVersion()).put("drive_role",DriveRolePolicy.role()).put("processing_engine",LocalAuthorityRules.ENGINE).put("inventory_processing_engine",output.getJSONObject("master").optString("processing_engine")).put("business_sync_allowed",false).put("cloud_confirmed",false).put("drive_sync_failed",false).put("confirmation_scope","local_only").put("local_authority",new LocalAuthorityGuard(context).current());}catch(Exception invalid){throw new IllegalStateException("LOCAL_STATE_CONTRACT_INVALID",invalid);}

@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Row storage for the five snapshot collections, in the existing database.
@@ -15,7 +17,7 @@ import java.util.Set;
  */
 final class BusinessTableStore {
     static final String META = "business_tables:v1";
-    private static final String[] COLLECTIONS = {"customers", "orders", "worklogs", "invoices", "photos"};
+    static final String[] COLLECTIONS = {"customers", "orders", "worklogs", "invoices", "photos"};
     private static final Set<String> FILTERS = new HashSet<>(Arrays.asList(
         "customer_id", "billing_customer_id", "order_id", "worklog_id", "work_date", "status", "name"));
 
@@ -66,6 +68,32 @@ final class BusinessTableStore {
                 sql.execute("CREATE INDEX IF NOT EXISTS ix_" + name + "_" + field + " ON " + name + "(generation," + field + ")");
         }
     }
+    /** Persistent SQLite fences cover every existing writer, including journal/session writers.
+     * Only this transfer's metadata can change until explicit activation or cancellation.
+     */
+    private void fence(boolean enabled)throws Exception {
+        java.util.List<String> names=new java.util.ArrayList<>();
+        try(Rows rows=sql.query("SELECT name FROM sqlite_master WHERE type='trigger' AND name GLOB 'business_tables_fence_*'")){while(rows.next())names.add(rows.text(0));}
+        for(String name:names){require(name.matches("[A-Za-z_][A-Za-z0-9_]*"),"TABLE_SCHEMA_NAME_UNSUPPORTED");sql.execute("DROP TRIGGER "+name);}
+        if(!enabled){sql.execute("DELETE FROM owner_state WHERE key=?","business_tables:write_lock");return;}
+        names.clear();try(Rows rows=sql.query("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ")){while(rows.next())names.add(rows.text(0));}
+        for(String name:names){
+            boolean target=false;for(String collection:COLLECTIONS)if(name.equals(table(collection)))target=true;if(target)continue;
+            require(name.matches("[A-Za-z_][A-Za-z0-9_]*"),"TABLE_SCHEMA_NAME_UNSUPPORTED");
+            for(String action:new String[]{"INSERT","UPDATE","DELETE"}){
+                String guard="EXISTS(SELECT 1 FROM owner_state WHERE key='business_tables:write_lock')";
+                if(name.equals("owner_state")){
+                    String changed=action.equals("DELETE")?"OLD.key NOT GLOB 'business_tables:*'":action.equals("INSERT")?"NEW.key NOT GLOB 'business_tables:*'":"(NEW.key NOT GLOB 'business_tables:*' OR OLD.key NOT GLOB 'business_tables:*')";guard+=" AND "+changed;
+                }
+                sql.execute("CREATE TRIGGER business_tables_fence_"+name+"_"+action+" BEFORE "+action+" ON "+name+" WHEN "+guard+" BEGIN SELECT RAISE(ABORT,'TABLE_TRANSFER_IN_PROGRESS'); END");
+            }
+        }
+        owner("business_tables:write_lock","locked");
+    }
+    /** Cancellation preserves both the old source and the incomplete target for inspection. */
+    JSONObject cancel(String requestId)throws Exception {
+        return sql.transaction(()->{JSONObject meta=transfer(requestId);require(java.util.Arrays.asList("COPYING","READY","ABORTED").contains(meta.getString("phase")),"TABLE_CANCEL_PHASE_REQUIRED");meta.put("phase","ABORTED");owner(META,meta.toString());fence(false);return meta;});
+    }
     private String owner(String key) throws Exception {
         return textChunks("owner_state", "value", "key=?", new String[]{key});
     }
@@ -77,7 +105,8 @@ final class BusinessTableStore {
         if (value == null) return null;
         JSONObject result = new JSONObject(value);
         require(result.getInt("format") == 1, "TABLE_FORMAT_UNSUPPORTED");
-        require(Arrays.asList("COPYING", "READY", "ACTIVE", "ROLLED_BACK").contains(result.getString("phase")), "TABLE_PHASE_UNSUPPORTED");
+        require(Arrays.asList("COPYING", "READY", "ACTIVE", "ROLLED_BACK", "ABORTED").contains(result.getString("phase")), "TABLE_PHASE_UNSUPPORTED");
+        require(hash(result.getJSONObject("remainder")).equals(result.getString("remainder_hash")), "TABLE_METADATA_HASH_MISMATCH");
         return result;
     }
     private JSONObject transfer(String requestId) throws Exception {
@@ -87,6 +116,69 @@ final class BusinessTableStore {
         return meta;
     }
     boolean active() throws Exception { JSONObject meta = metadata(); return meta != null && "ACTIVE".equals(meta.getString("phase")); }
+
+    JSONObject status() throws Exception {
+        return sql.transaction(() -> {
+            JSONObject meta = metadata();
+            if (meta == null) return new JSONObject().put("phase", "SNAPSHOT");
+            return new JSONObject().put("phase", meta.getString("phase")).put("request", meta.getString("request"))
+                .put("source_hash", meta.getString("source_hash")).put("collection", meta.getInt("collection"))
+                .put("offset", meta.getInt("offset")).put("format", meta.getInt("format"));
+        });
+    }
+    /** The single read boundary used by live storage and captured backup databases. */
+    JSONObject snapshot(String fallback) throws Exception {
+        return sql.transaction(() -> {
+            JSONObject meta = metadata();
+            if (meta != null && "ACTIVE".equals(meta.getString("phase"))) return materialize(meta);
+            String raw = owner("snapshot");
+            return new JSONObject(raw == null ? fallback : raw);
+        });
+    }
+    JSONObject metadataSnapshot() throws Exception {
+        return sql.transaction(() -> new JSONObject(activeMetadata().getJSONObject("remainder").toString()));
+    }
+    JSONArray all(String collection) throws Exception {
+        return sql.transaction(() -> collection(activeMetadata(), collection));
+    }
+
+    /** Compatibility for rules which validate a complete state. Only changed rows are written.
+     * The snapshot key remains the preserved old generation, never a second active writer.
+     */
+    void replaceSnapshot(JSONObject next) throws Exception {
+        sql.transaction(() -> {
+            JSONObject meta = activeMetadata(); validateRows(next);
+            String generation = meta.getString("generation");
+            for (String collection : COLLECTIONS) {
+                String name = table(collection); JSONArray rows = next.getJSONArray(collection);
+                Map<String,String> hashes = new LinkedHashMap<>(); Map<String,Long> positions = new LinkedHashMap<>();
+                try (Rows old = sql.query("SELECT id,record_hash,position FROM " + name + " WHERE generation=? ORDER BY position", generation)) {
+                    while (old.next()) { hashes.put(old.text(0), old.text(1)); positions.put(old.text(0), old.number(2)); }
+                }
+                Set<String> retained = new HashSet<>();
+                for (int i = 0; i < rows.length(); i++) retained.add(id(rows.getJSONObject(i)));
+                for (String old : hashes.keySet()) if (!retained.contains(old))
+                    sql.execute("DELETE FROM " + name + " WHERE generation=? AND id=?", generation, old);
+                // Move only changed ordinals aside before assigning their new unique positions.
+                for (int i = 0; i < rows.length(); i++) {
+                    String id = id(rows.getJSONObject(i)); Long old = positions.get(id);
+                    if (old != null && old != i) sql.execute("UPDATE " + name + " SET position=? WHERE generation=? AND id=?", -1L-i, generation, id);
+                }
+                for (int i = 0; i < rows.length(); i++) {
+                    JSONObject row = rows.getJSONObject(i); String id = id(row);
+                    if (!hash(row).equals(hashes.get(id))) {
+                        sql.execute("DELETE FROM " + name + " WHERE generation=? AND id=?", generation, id);
+                        insert(generation, collection, i, row);
+                    } else if (positions.get(id) != i) sql.execute("UPDATE " + name + " SET position=? WHERE generation=? AND id=?", i, generation, id);
+                }
+            }
+            JSONObject rest = remainder(next);
+            if (!hash(rest).equals(meta.getString("remainder_hash"))) {
+                meta.put("remainder", rest).put("remainder_hash", hash(rest)); owner(META, meta.toString());
+            }
+            return null;
+        });
+    }
 
     private static JSONObject remainder(JSONObject source) throws Exception {
         JSONObject result = new JSONObject(source.toString());
@@ -128,15 +220,16 @@ final class BusinessTableStore {
             if (existing != null) {
                 require(requestId.equals(existing.getString("request")) && expectedSourceHash.equals(existing.getString("source_hash")) && backup.equals(existing.getString("backup_hash")), "TABLE_TRANSFER_EXISTS");
                 require(!"ROLLED_BACK".equals(existing.getString("phase")), "TABLE_TRANSFER_ALREADY_ROLLED_BACK");
+                if("ABORTED".equals(existing.getString("phase"))){source(existing,check);existing.put("phase",existing.getInt("collection")==COLLECTIONS.length?"READY":"COPYING");owner(META,existing.toString());fence(true);}
                 return existing;
             }
             schema();
             JSONObject meta = new JSONObject().put("format", 1).put("request", requestId)
                 .put("generation", hash(requestId)).put("phase", "COPYING")
                 .put("source_hash", expectedSourceHash).put("source_text_hash", hash(raw))
-                .put("backup_hash", backup).put("remainder", remainder(source))
+                .put("backup_hash", backup).put("remainder", remainder(source)).put("remainder_hash", hash(remainder(source)))
                 .put("collection", 0).put("offset", 0);
-            owner(META, meta.toString());
+            owner(META, meta.toString());fence(true);
             return meta;
         });
     }
@@ -178,7 +271,7 @@ final class BusinessTableStore {
             require(evidence(check, readback).equals(meta.getString("backup_hash")), "TABLE_BACKUP_CHANGED");
             owner("business_tables:original:" + meta.getString("generation"), owner("snapshot"));
             meta.put("phase", "ACTIVE");
-            owner(META, meta.toString());
+            owner(META, meta.toString());fence(false);
             return meta;
         });
     }
@@ -255,11 +348,18 @@ final class BusinessTableStore {
     JSONObject exportSnapshot() throws Exception { return sql.transaction(() -> materialize(activeMetadata())); }
     private JSONObject materialize(JSONObject meta) throws Exception {
         JSONObject result = new JSONObject(meta.getJSONObject("remainder").toString());
-        for (String collection : COLLECTIONS) {
-            JSONArray ids = new JSONArray(), records = new JSONArray();
-            try (Rows rows = sql.query("SELECT id FROM " + table(collection) + " WHERE generation=? ORDER BY position", meta.getString("generation"))) { while (rows.next()) ids.put(rows.text(0)); }
-            for (int i = 0; i < ids.length(); i++) records.put(row(meta, collection, ids.getString(i)));
-            result.put(collection, records);
+        for (String collection : COLLECTIONS) result.put(collection, collection(meta, collection));
+        return result;
+    }
+    /** One bounded cursor per collection; large individual rows use additional chunks. */
+    private JSONArray collection(JSONObject meta, String collection) throws Exception {
+        JSONArray result = new JSONArray(); String name = table(collection), generation = meta.getString("generation");
+        try (Rows rows = sql.query("SELECT id,record_hash,length(record_json),substr(record_json,1,32768) FROM " + name + " WHERE generation=? ORDER BY position", generation)) {
+            while (rows.next()) {
+                String id = rows.text(0), raw = rows.number(2) <= 32768 ? rows.text(3) : textChunks(name, "record_json", "generation=? AND id=?", new String[]{generation,id});
+                JSONObject record = new JSONObject(raw);
+                require(id.equals(id(record)) && rows.text(1).equals(hash(record)), "TABLE_ROW_HASH_MISMATCH"); result.put(record);
+            }
         }
         return result;
     }

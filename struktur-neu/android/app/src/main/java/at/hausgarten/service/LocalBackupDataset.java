@@ -27,7 +27,7 @@ final class LocalBackupDataset {
         String initial=asset(context,"initial-data.json"),catalog=asset(context,"service-catalog.json"),started=java.time.Instant.now().toString();
         // Reuse local-only legacy materialization. IDs/amounts/source snapshots are unchanged;
         // the existing content hashes make original-file caching idempotent. Never fetch Drive.
-        stageName="MATERIALIZE";JSONObject raw=new JSONObject(store.snapshotText(initial));store.recordSnapshotPhotoAttachments(raw);store.documentReferences(raw);
+        stageName="MATERIALIZE";JSONObject raw=store.rawSnapshot(initial);store.recordSnapshotPhotoAttachments(raw);store.documentReferences(raw);
         JSONObject current=PixelMcpReadTools.effective(store.getState());store.recordSnapshotPhotoAttachments(current);store.documentReferences(current);
         stageName="PIN_FILES";BackupFilePins.pinImmutable(new File(context.getFilesDir(),"customer-photo-originals"),freshDirectory,"files/customer-photo-originals");
         BackupFilePins.pinImmutable(new File(context.getFilesDir(),"business-documents"),freshDirectory,"files/business-documents");
@@ -99,6 +99,36 @@ final class LocalBackupDataset {
             if(original.has("pending_document_jobs")&&original.getInt("pending_document_jobs")!=inventory.getInt("pending_document_jobs"))throw new IOException("BACKUP_DOCUMENT_JOBS_MISMATCH");
             if(inventory.getInt("missing_local_originals")!=0)throw new IOException("BACKUP_LOCAL_ORIGINALS_INCOMPLETE");return inventory;
         }
+    }
+    /** Evidence for an explicitly invoked table transfer; never called by startup or restore.
+     * Verifies the actual encrypted archive on every step and compares captured/live business
+     * state, pending actions, relationships and originals. The staging directory must be fresh.
+     */
+    static BusinessTableStore.Evidence tableEvidence(PixelLocalStore store,File archive,String recovery,File staging){
+        return source->{
+            String digest=EncryptedBackupArchive.sha256(archive);
+            try(InputStream input=new BufferedInputStream(new FileInputStream(archive));
+                EncryptedBackupArchive.Verified verified=EncryptedBackupArchive.verifyAndStage(input,recovery,staging,staging.getParentFile().getUsableSpace(),PixelLocalStore.SCHEMA_VERSION)){
+                JSONObject manifest=verified.manifest,identity=new BackupDeviceGuard(store.appContext()).current();
+                for(String key:new String[]{"installationId","restoreEpoch"})if(!identity.getString(key).equals(manifest.getString(key)))throw new IOException("TABLE_BACKUP_DEVICE_CONTEXT_MISMATCH");
+                if(!store.appContext().getPackageName().equals(manifest.getString("applicationId")))throw new IOException("TABLE_BACKUP_APPLICATION_MISMATCH");
+                File directory=new File(verified.directory,"data");JSONObject capturedInventory=inspectStaged(directory,manifest);
+                try(SQLiteDatabase captured=SQLiteDatabase.openDatabase(new File(directory,"database.sqlite").getAbsolutePath(),null,SQLiteDatabase.OPEN_READONLY)){
+                    JSONObject prefs=BackupPreferences.values(new JSONObject(text(new File(directory,"preferences.json"))),"haus_garten");
+                    JSONObject capturedRaw=PixelLocalStore.businessTables(captured).snapshot(prefs.optString("drive_snapshot",text(new File(directory,"bootstrap/initial-data.json"))));
+                    if(!PixelMcpWriteTools.hash(source).equals(PixelMcpWriteTools.hash(capturedRaw)))throw new IOException("TABLE_BACKUP_SOURCE_MISMATCH");
+                }
+                JSONObject live=store.getState().put("extended_business_fingerprint",BusinessStateFingerprint.read(store.getReadableDatabase()));
+                if(!LocalAuthorityMigration.businessHash(live).equals(manifest.getString("business_snapshot_sha256")))throw new IOException("TABLE_BACKUP_BUSINESS_STATE_CHANGED");
+                JSONObject inventory=LocalMigrationInventory.inspect(live,new LocalOriginalVerifier(store.appContext().getFilesDir(),store::photoAttachment,id->new JSONObject(store.ownerValue("local_invoice_job:"+id,"{}"))));
+                if(!inventory.optBoolean("projection_applied")||inventory.getInt("duplicate_ids")!=0||inventory.getInt("orphan_relations")!=0||inventory.getInt("missing_local_originals")!=0)throw new IOException("TABLE_SOURCE_INTEGRITY_REVIEW_REQUIRED");
+                for(String key:new String[]{"counts","id_set_sha256","collection_sha256","pending_sha256","historical_hours_decimal","historical_invoice_amounts_decimal"})if(!PixelMcpWriteTools.hash(inventory.get(key)).equals(PixelMcpWriteTools.hash(capturedInventory.get(key))))throw new IOException("TABLE_BACKUP_INVENTORY_MISMATCH");
+                new RevierApplicationService(new RevierSnapshotRepository(store.getReadableDatabase(),SnapshotProjection.effective(live),store.appContext().getFilesDir())).validateRelationships();
+                LocalFinancialSnapshotValidation.inspect(store.getReadableDatabase(),SnapshotProjection.effective(live));
+                if(!digest.equals(EncryptedBackupArchive.sha256(archive)))throw new IOException("TABLE_BACKUP_CHANGED");
+                return digest;
+            }
+        };
     }
     private static JSONObject numberState(SQLiteDatabase snapshot,JSONObject state)throws Exception {
         String counter=DatabaseBackupSnapshot.ownerValue(snapshot,"local_invoice_counter","");long reservations;try(android.database.Cursor rows=snapshot.rawQuery("SELECT count(*) FROM owner_state WHERE key LIKE 'local_number_reservation:%'",null)){if(!rows.moveToFirst())throw new IOException("BACKUP_NUMBER_STATE_INVALID");reservations=rows.getLong(0);}

@@ -243,6 +243,17 @@ Code vervollständigt, nicht aus Screenshots geraten. Ausgangspunkte:
 | Kunden | Suche/Sortierung, Profil, Anlegen/Bearbeiten, Gartenangaben, Aufträge, Fotos, Dokumente, Speichern/Verwerfen/Zurück | `mobile.html`, `design-concept.js`, `customer-hub.js`, historische aktuelle Kontext-/Navigationstests |
 | Büro | Anfrage/Besichtigung/Angebot/Auftrag/Abrechnung, Rechnungen/Zahlungen, Material/Geräte, Suche, Mehr-Menü, offene Entwürfe | `revier-solo-ui.js`, bestehende Fachmodule, `revier-solo-ui.test.cjs` |
 
+Die vor der Umstellung erfasste Funktionsliste wird für die gemeinsame Abnahme
+konkretisiert: Heute erhält Arbeitsstart/-pause/-fortsetzung/-abschluss, Foto- und
+Materialaktionen, Terminblättern, fällige Besuche in gespeicherter Tourreihenfolge,
+Wochen-/Tagesstunden, letzte Arbeiten und Sicherungs-/Prüfhinweise. Kunden erhält
+zusätzlich Kontextmenü, Profilbild, Kontakt/Route, Rechnungsempfänger, Dokumentation
+mit Filtern und Nachladen, Gartenentwurf sowie Foto-/Dokumenttabs. Büro erhält
+Anfrage/Besichtigung, Angebote, Aufträge, Abrechnung, Rechnungen, Zahlung/Guthaben,
+Material, Gerätewartung, globale Suche, Mehr-Menü und Entwurfsfortsetzung. Die
+bestehenden Aktionen und Entwurfsbesitzer bleiben verantwortlich für Speichern,
+Verwerfen und Zurück; die Darstellung wird in vorhandenen Modulen zusammengeführt.
+
 Pro Bildschirm eine verantwortliche Darstellung in vorhandenen Modulen herstellen;
 zugehörige fremde DOM-Umschreiber im selben Schritt ablösen. Keine gleichzeitig
 aktiven alten/neuen Renderer. Vorhandene Fachaufrufe und Entwurfs-/Rückwege erhalten.

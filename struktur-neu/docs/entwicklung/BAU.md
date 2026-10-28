@@ -17,6 +17,33 @@ umsetzen, anschließend gemeinsam testen. Bis dahin keine weiteren Testläufe
 starten. Bereits vorhandene Ausgangsmessungen erhalten. Zwischenstände sind
 ungetestet; die folgenden Befehle beschreiben den anschließenden Prüflauf.
 
+## Vorbereitete native Tabellenprüfung über ADB
+
+Der aktuelle Einstieg `PixelMcpInstrumentation` akzeptiert ausschließlich
+`-e suite business_tables`. Er erstellt eine neue, zufällig benannte synthetische
+SQLite-Datei im Cache, öffnet **keine produktive Datenbank** und entfernt nur sein
+eigenes Testverzeichnis. Er prüft die Tabellen-Speichergrenze mit 300 Kunden,
+40 Aufträgen, 5 000 Arbeiten, 500 Rechnungen und 3 000 Fotometadaten, einschließlich
+eines großen Unicode-Datensatzes. Geprüft werden sollen Kopierabbruch und atomarer
+Fortschritt, Schreibsperre, Abbruch/Fortsetzung, Neustart, Hashgleichheit, Konflikte,
+Request-Wiederholung, Reihenfolgeänderung, SQLite-Sicherung/Rücklesen und Rückweg
+nach nachträglichen Änderungen.
+
+Nach Abschluss der Implementierung und gesonderter Bereitstellung der zum
+Quellstand passenden, mit der Originalsignatur signierten App/Test-APK:
+
+```powershell
+& $gpAdb -s $gpSerial shell am instrument -w -e suite business_tables at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation
+```
+
+`$gpAdb` und `$gpSerial` werden wie im ADB-Abschnitt unten lokal ausgewählt.
+Der Rückgabeblock enthält Prüfanzahl, Gesamtdauer und den synthetischen Umfang.
+Ein erfolgreicher Lauf dieses Einstiegspunkts belegt den SQLite-Speichervertrag.
+Die Test-Evidenz darin ist ausdrücklich synthetisch; die echte verschlüsselte
+Archivprüfung des Wartungspfads, vollständiger App-Restore, Fachschreiber und
+Bildschirmabnahme müssen zusätzlich geprüft werden. Quellcode vorhanden bedeutet
+nicht gebaut, installiert oder ausgeführt.
+
 ## Gemeinsame Quellprüfung nach dem Umbau
 
 ```sh

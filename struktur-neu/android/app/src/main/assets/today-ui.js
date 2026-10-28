@@ -109,12 +109,29 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
     const card=get('planning-home');
     if(card)card.hidden=get('revier-today')?.dataset.todayLoaded==='true'&&!card.querySelector('[data-appointment-open]');
   }
+  let lastVisitsKey='';
+  function visits(){
+    const panel=get('revier-today');if(!panel||!window.RevierUI?.todayData)return;
+    const key=JSON.stringify([dataRevision(),localDate()]);if(lastVisitsKey===key)return;
+    try{
+      const {date,visits:rows}=RevierUI.todayData();
+      panel.innerHTML='<div class="today-visits-heading"><h2>Einsätze heute</h2><button type="button" class="secondary" data-open="revier-tour">Tour öffnen</button></div>'+(rows.length?'<ul class="today-visits">'+rows.slice(0,3).map(row=>{
+        const when=row.date===date?'Heute':row.date<date?'Fällig seit '+row.date:row.date;
+        const context=[when,row.window_start&&row.window_end?row.window_start+'–'+row.window_end:'',row.display_place,['partial','in_progress'].includes(row.status)?row.display_status:''].filter(Boolean).join(' · ');
+        return '<li><button type="button" class="today-visit" data-revier-detail="visit" data-id="'+esc(row.id)+'"><strong>'+esc(row.title||'Einsatz')+'</strong><span>'+esc(context)+'</span><b aria-hidden="true">›</b></button></li>';
+      }).join('')+'</ul>':'<p class="sub">Heute sind keine Einsätze vorgemerkt.</p>')+'<button type="button" class="secondary" data-open="revier-visits">'+(rows.length>3?'Alle Einsätze · '+rows.length+' heute oder fällig':'Alle Einsätze')+'</button>';
+      lastVisitsKey=key;panel.dataset.todayLoaded='true';refreshScheduleVisibility();
+    }catch(error){
+      let alert=panel.querySelector('[data-today-read-error]');if(!alert){alert=document.createElement('div');alert.dataset.todayReadError='';alert.setAttribute('role','alert');panel.prepend(alert);}
+      alert.innerHTML='<p>Einsätze konnten nicht neu gelesen werden. Eine vorhandene Übersicht bleibt erhalten.</p><button type="button" class="secondary" data-revier-refresh-today>Erneut lesen</button>';
+    }
+  }
   let lastTodayDataKey='';
   function renderToday(){
     document.documentElement.classList.toggle('today-root',currentPage==='home');
     if(currentPage!=='home')return;
     const date=get('home-dayline');date.textContent=new Date().toLocaleDateString('de-AT',{timeZone:'Europe/Vienna',weekday:'short',day:'numeric',month:'short'});date.setAttribute('aria-label',new Date().toLocaleDateString('de-AT',{timeZone:'Europe/Vienna',dateStyle:'full'}));
-    syncChip();workTimer();
+    syncChip();workTimer();visits();
     const todayDataKey=()=>JSON.stringify([dataRevision(),localDate(),Math.floor(Date.now()/60000),futureSelection,syncInfo]);
     if(lastTodayDataKey===todayDataKey())return;
     const data=window.PlanningUI?.homeRows(1,futureSelection,true)||{entries:[],total:0,future:[],next:null},card=get('planning-home');
@@ -128,21 +145,27 @@ const sessionRequest=action=>`${action}-${Date.now()}-${crypto.randomUUID?.()||M
       card.innerHTML=content;
     }
     refreshScheduleVisibility();
-    const logs=worklogs(),today=localDate(),hours=logs.filter(row=>row.work_date===today).reduce((sum,row)=>sum+Number(row.hours||0),0);
+    const logs=worklogs(),today=localDate(),currentWeek=weekInfo(today);get('current-week-hours').textContent=logs.filter(row=>weekInfo(row.work_date)?.key===currentWeek?.key).reduce((sum,row)=>sum+Number(row.hours||0),0).toLocaleString('de-AT',{maximumFractionDigits:2})+' h';
+    const hours=logs.filter(row=>row.work_date===today).reduce((sum,row)=>sum+Number(row.hours||0),0);
     get('today-recorded-hours').textContent=hours.toLocaleString('de-AT',{maximumFractionDigits:2})+' h';
     const openOrders=orders().filter(o=>openStatuses.has(o.status||'')&&o.scheduled_date===today),planned=new Set(merged('appointments','appointment').filter(a=>!['cancelled','completed','draft'].includes(a.status)).map(a=>a.order_id)),legacy=openOrders.filter(o=>!planned.has(o.id)),upcoming=get('design-upcoming'),legacyKey=JSON.stringify(legacy.map(o=>[o,customerName(o.customer_id)]));
     if(upcoming._rowsKey!==legacyKey){upcoming._rowsKey=legacyKey;upcoming.hidden=!legacy.length;upcoming.innerHTML='<h2>Weitere Aufträge heute</h2>'+legacy.map(o=>'<button type="button" class="design-upcoming-row" data-edit-order="'+esc(o.id)+'"><strong>'+esc(o.title)+'</strong><small>'+esc(customerName(o.customer_id))+'</small></button>').join('');}
     const recent=get('workday-recent'),rows=logs.slice().sort((a,b)=>String(b.work_date||'').localeCompare(String(a.work_date||''))||String(b.start_time||'').localeCompare(String(a.start_time||''))).slice(0,3),recentKey=JSON.stringify(rows.map(row=>[row,customerName(row.customer_id)]));
     get('today-recent').hidden=!rows.length;
     if(recent._rowsKey!==recentKey){recent._rowsKey=recentKey;recent.innerHTML=rows.map(row=>'<button type="button" class="workday-recent-row" data-edit-worklog="'+esc(row.id)+'"><strong>'+esc(customerName(row.customer_id))+'</strong><span>'+esc(worklogDateLabel(row.work_date))+' · '+esc(String(row.activity||'').slice(0,75))+'</span><b>'+Number(row.hours||0).toLocaleString('de-AT')+' h</b></button>').join('');}
+    const backupStatus=syncInfo.full_backup;const backupLabel=get('full-backup-today-status');if(backupLabel)backupLabel.textContent=backupStatus?.last_local_verified_at?'Auf dem Pixel geprüft: '+HGBusinessFeedback.time(backupStatus.last_local_verified_at)+' · enthaltener Datenstand: '+HGBusinessFeedback.time(backupStatus.last_local_captured_at):'Noch keine vollständig gespeicherte lokale ZIP-Sicherung bestätigt.';
     const review=Number(syncInfo.review??state.sync_queue?.review??0),backup=syncInfo.full_backup,needsBackup=!backup?.last_external_verified_at||backup?.requires_setup||backup?.clock_review_required,open=get('today-open');open.hidden=!review&&!needsBackup;
     open.innerHTML='<h2>Prüfen</h2><div class="today-open-chips">'+(review?'<button type="button" data-open="sync-page">Historische Vorgänge prüfen</button>':'')+(needsBackup?'<button type="button" data-open-full-backup>Sicherung prüfen</button>':'')+'</div>';
     lastTodayDataKey=todayDataKey();document.body.dataset.todayReady='true';
   }
   function init(){
+    const backup=document.createElement('p');backup.id='full-backup-today-status';backup.setAttribute('role','status');backup.style.cssText='font-size:max(1rem,16px);overflow-wrap:anywhere;';get('today-summary').append(backup);
+    const panel=document.createElement('section');panel.id='revier-today';panel.className='card revier-today';panel.setAttribute('aria-label','Einsätze heute');get('workday-timer').after(panel);
     const card=get('planning-home');homeGestures(card);
     renderToday();setInterval(()=>{if(!document.hidden&&currentPage==='home')workTimer();},1000);
   }
-  window.TodayUI=Object.freeze({render:renderToday,syncChip,refreshScheduleVisibility,invalidate(){lastPlanningKey='';lastTodayDataKey='';renderToday();}});
+  window.TodayUI=Object.freeze({render:renderToday,syncChip,refreshScheduleVisibility,dirty(){lastVisitsKey='';lastTodayDataKey='';},invalidate(){lastPlanningKey='';lastTodayDataKey='';lastVisitsKey='';renderToday();}});
+  HGPageRenderers.register('home',renderToday);
+  document.addEventListener('hg:revier-ready',()=>window.TodayUI.invalidate());
   document.addEventListener('DOMContentLoaded',init,{once:true});
 })();

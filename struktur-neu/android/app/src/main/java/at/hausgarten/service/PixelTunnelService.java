@@ -70,7 +70,7 @@ public final class PixelTunnelService extends Service implements McpSyncHost {
                     }
                     public JSONObject status(String id,JSONObject state)throws Exception{return store.status(id,state);}
                 }:null;
-                PixelTunnelWire tunnel=new PixelTunnelWire(config.id(),http,new PixelMcpReadTools(this::readState,allowed,new PixelOwnerAccess(this,store)));
+                PixelTunnelWire tunnel=new PixelTunnelWire(config.id(),http,new PixelMcpReadTools(store.readSource(),allowed,new PixelOwnerAccess(this,store)));
                 status("connecting","OpenAI-Tunnel wird geprüft.");tunnel.verify();failures=0;
                 while(!closing.get()&&config.enabled()){
                     if(config.writeEnabled()!=(allowed!=null))break; // Rebuild the advertised catalogue after a permission change.

@@ -47,8 +47,8 @@
     }
   ],
   "current_task": {
-    "name": "Geschwindigkeit und schlanker Umbau: Etappen 1/2 auf Build113 prüfen, danach Etappen 3–5 nacheinander",
-    "status": "STAGE3_STORAGE_BOUNDARY_IN_PROGRESS;STAGES_4_5_PENDING;FURTHER_TESTS_DEFERRED_BY_USER",
+    "name": "Etappen 3–5: Tabellenanbindung, zuständige Bildschirmrenderer und belegte Bereinigung",
+    "status": "SOURCE_IMPLEMENTATION_IN_PROGRESS;STAGE3_INTEGRATION_EXTENDED;STAGE4_RENDERERS_CONNECTED;STAGE5_DEPENDENCIES_REVIEWED;TESTS_DEFERRED",
     "authorized": true,
     "specification": "../CODEX-AUFTRAG-GARTENPIRAT.md",
     "verification": "docs/verification/performance-build113.md",
@@ -69,18 +69,16 @@
       "physical_device_test": "NOT_EXECUTED",
       "laptop_remote_shell": "NOT_AVAILABLE"
     },
-    "implementation_checkpoint": "WIP_SOURCE_ONLY;not a completed stage and not a release candidate"
+    "implementation_checkpoint": "SOURCE_ONLY_NOT_TESTED;not completed stages or a release candidate"
   },
   "open_checks": [
-    "Vor produktiver Tabellenübernahme den passenden vollständigen Sicherungsnachweis und Schutzart prüfen; Nutzer bestätigt Backup vorhanden, keine unabhängige Archiv-/Restoreprüfung",
-    "Etappe3: BusinessTableStore und SQLite-Anbindung begonnen, ohne aktive Umschaltung; produktive Leser/Schreiber, Sicherung/Restore, Abnahme und Rückweg-Integration noch offen",
-    "Etappe4: Heute → Kunden → Büro nacheinander umsetzen; Tests nach neuer Nutzeranweisung gemeinsam nach Etappen3–5",
-    "Etappe5: geschützte Altlasten erst nach ausdrücklicher Nutzerbestätigung von Pixel-Backup und Restore sowie Abhängigkeitsnachweis entfernen",
-    "Build113 auf dem Pixel speichern und wiederherstellen: nicht nachgewiesen",
-    "Native Android-/SQLite-/Pixel-Leistung und Geräteabnahme nicht ausgeführt",
-    "Produktive Integrität und Rechnungsautorität: keine neue Freigabe",
-    "ADB: In dieser Cloud kein adb-Client, kein konfigurierter ADB-Server und kein erreichbarer lokaler Server; keine Gerätezugriffe ausgeführt",
-    "Neue Quelländerungen noch NICHT GETESTET; Testläufe erst nach der vom Nutzer festgelegten Implementierungsfolge"
+    "Etappe3: journalgestützte Fachschreiber und Filter-/Listenabfragen weiter auf gezielte Tabellenzugriffe umstellen; bei Pending-/Tombstone-Projektion weiterhin vollständiger Fachkontext erforderlich",
+    "Etappe3: verschlüsselten Archivnachweis, Beziehungen/Originale, Preferences-Übernahme, Schreibsperre, Backup/Restore und Rückweg gemeinsam am aktuellen Quellstand prüfen; bisher keine unabhängige Geräteprüfung",
+    "Etappe4: Heute/Kunden/Büro über zuständige Renderer verbunden; vollständige Funktionsliste, Entwurfswege, 320/360px und 200%-Schrift sowie Leistung noch ungeprüft",
+    "Etappe5: referenzierte Drive-/Queue-/Restorebelege erhalten; geschützte Löschung weiterhin erst nach bestätigtem Pixel-Backup UND Restore sowie Abhängigkeitsnachweis",
+    "Gemeinsamer Prüflauf einschließlich check_current, Browser, Java, Android-Kompilierung und synthetischer Instrumentierung noch nicht ausgeführt; neuere Nutzerreihenfolge beachten",
+    "ADB-Lese-/Schreibprüfungen vorbereitet, aber kein erreichbarer Laptop-/Pixel-Zugang in dieser Umgebung",
+    "Keine Installation, produktive Migration, Wiederherstellung oder neue Rechnungsautorität durchgeführt"
   ],
   "workflow": {
     "scope": "PARALLEL_STAGING; existing source paths and workflows unchanged",
@@ -124,10 +122,10 @@
   "validation": {
     "app_source_fingerprint": "CHANGED_AFTER_BUILD113;WIP_NOT_TESTED",
     "native_pixel_tests": "NOT_EXECUTED",
-    "source_privacy": "PASS",
+    "source_privacy": "PREVIOUS_PASS;current source changes contain code and synthetic fixtures only;current automated check deferred",
     "business_data_read": false,
     "installation_performed": false,
-    "authored_changes_diff_check": "PASS",
+    "authored_changes_diff_check": "SOURCE_REVIEW_ONLY;no test or compilation of the new changes",
     "imported_source_whitespace": "2 existing findings in byte-identical Build113 sources; no unrelated source formatting applied",
     "current_performance_review": {
       "date": "2026-10-28",
@@ -147,23 +145,33 @@
     },
     "current_source_changes": {
       "status": "IN_PROGRESS_NOT_TESTED",
-      "scope": "Stage3 row-storage boundary; no production entry point or automatic migration",
+      "scope": "Stage3 live/backup table read boundary and explicit verified maintenance path; Stage4 renderer ownership; Stage5 dependency review and unused UI decorator removal",
       "pixel_adb_tests": "NOT_EXECUTED;connection unavailable",
       "further_tests": "DEFERRED_BY_EXPLICIT_USER_INSTRUCTION",
       "implemented_boundary": [
-        "explicit preparation and batched copy with atomic checkpoints",
-        "row hashes, original preservation and explicit activation",
-        "targeted ID/filter reads and transactional compare-and-save with request receipts",
-        "current-row reconstruction for rollback after subsequent changes",
-        "SQLite adapter using the existing PixelLocalStore database"
+        "explicit batched copy, transactional checkpoints, cancellation and restart; persistent SQLite write fences during transfer",
+        "row hashes, preserved original snapshot, explicit activation and rollback reconstructed from current rows",
+        "active snapshot writes update changed rows only; live state, invoice review and backup/restore use the shared storage boundary",
+        "database schema 7 fences old snapshot-only app writers without automatic table activation",
+        "maintenance evidence verifies actual encrypted archive bytes, device/restore context, raw and effective state, pending hash, exact totals, relationships and originals",
+        "point reads for customer/order/photo through MCP/native Source; full-context fallback with pending actions or synthetic tombstones",
+        "owner queries avoid eager duplicate full-state construction where a native query already supplies the result",
+        "explicit renderer registry; Today owns visit/backup/weekly summaries, CustomerHub owns list/context menu/final dossier/billing label, Revier owns Office",
+        "native ADB synthetic SQLite instrumentation entry point prepared; not executed",
+        "unused customer-history DOM wrapper removed; referenced legacy business evidence and fixture APIs retained"
       ],
       "not_implemented": [
-        "business read/write routing to table storage",
-        "binding to verified device backup and original/relationship evidence",
-        "backup/restore format integration and old-writer protection",
-        "current native synthetic test entry point",
-        "stages 4 and 5"
-      ]
+        "complete conversion of journal-backed business writes and filtered/list reads to targeted row operations",
+        "current full encrypted archive/restore integration and exhaustive fault/relationship tests",
+        "current UI, native compilation and performance acceptance",
+        "protected Drive/queue deletion pending Pixel restore confirmation and demonstrated absence of references"
+      ],
+      "legacy_dependency_review": {
+        "PixelLocalStore.commitSnapshot/pendingActionsForDrive": "still called by androidTest LegacyDriveSyncFixture; retained",
+        "DriveJournalRules/SnapshotProjection/LocalPendingActions": "live state and backup projections still depend on these; retained",
+        "SyncCommitRules/RetiredBackupDriveClient/RetiredDriveAccount/RetiredDriveBackupUpload/RetiredBackupScheduleRules": "current test runner or fixtures still reference these; retained",
+        "workday-ui.compactCustomers": "no current markup producer for customer-work-section; obsolete decorator and wrapper removed, history in CustomerHub preserved"
+      }
     },
     "previous_android_release_java_compilation": "PASS; no APK built",
     "previous_python_tests_passed": 54,

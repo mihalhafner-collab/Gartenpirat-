@@ -27,13 +27,6 @@
     select.dataset.workCustomer=id;
     fill(select,target);select.closest('.billing-field').querySelector('small').textContent=target===id?'Direktabrechnung an den Einsatzkunden.':'Vorschlag aus Kunde/Auftrag · für diesen Eintrag änderbar.';
   }
-  function profile(){
-    const page=get('customer-profile-page');if(!page?.classList.contains('active'))return;
-    const c=customers().find(c=>c.id===page.dataset.customerId);
-    if(!c)return;
-    let label=get('customer-billing-summary');if(!label){label=document.createElement('p');label.id='customer-billing-summary';label.className='billing-summary';page.querySelector('.design-profile-header').after(label);}
-    label.textContent=c.billing_mode==='via_customer'?'Abrechnung über: '+named(c.default_billing_customer_id):'Abrechnung: Direkt';
-  }
   function sourceContext(){return window.LocalInvoiceUI?.billingContext?.()||null;}
   function quantityLabel(row){return window.InvoiceFlow.quantityLabel(row);}
   function localGroups(context){
@@ -109,8 +102,8 @@
     const page=document.createElement('section');page.id='billing-page';page.className='page';page.innerHTML='<div class="page-head"><button type="button" class="back" aria-label="Zurück">‹</button><h2>Abrechnung</h2></div><p class="billing-notice">In der App offen markierte Leistungen nach Rechnungsempfänger. Dies ist kein Nachweis, dass noch keine Rechnung gestellt wurde.</p><div id="billing-group-list"></div>';document.querySelector('main.app').append(page);
     const link=document.createElement('button');link.type='button';link.dataset.open='billing-page';link.innerHTML='<span><strong>Offene Leistungen</strong><small>Nach Rechnungsempfänger · mit Einsatzorten</small></span><b>›</b>';get('more-page').querySelector('[data-open="invoices"]').before(link);
     document.addEventListener('click',event=>{const prepare=event.target.closest('[data-prepare-billing]');if(prepare)prepareInvoice({recipient:prepare.dataset.prepareBilling});if(event.target.closest('#billing-load-more')){billingLimit+=50;groups();}});
-    const renderBase=window.render;window.render=function(){renderBase();groups();profile();invoiceReadiness();};
-    const pageBase=window.openPage;window.openPage=function(...args){const result=pageBase(...args);if(result===false)return false;if(currentPage==='work-entry')entryDefault();if(currentPage==='customer-edit'&&!form.elements.id.value)customerEdit('');if(currentPage==='customer-profile-page')profile();if(currentPage==='billing-page')groups();if(currentPage==='invoices')invoiceReadiness();return result;};
+    const renderBase=window.render;window.render=function(){renderBase();groups();invoiceReadiness();};
+    const pageBase=window.openPage;window.openPage=function(...args){const result=pageBase(...args);if(result===false)return false;if(currentPage==='work-entry')entryDefault();if(currentPage==='customer-edit'&&!form.elements.id.value)customerEdit('');if(currentPage==='customer-profile-page')if(currentPage==='billing-page')groups();if(currentPage==='invoices')invoiceReadiness();return result;};
     const detail=window.openWorklogDetail;window.openWorklogDetail=function(id){detail(id);const row=worklogs().find(w=>w.id===id);if(row){fill(w,recipient(row));window.captureWorklogBaseline?.();const info=get('worklog-detail-subtitle');if(info&&recipient(row)!==row.customer_id)info.textContent+=' · Abrechnung über: '+named(recipient(row));}};
     // Add a compact recipient line without replacing existing record rows/handlers.
     function decorate(){if(currentPage!=='worklogs')return;document.querySelectorAll('.worklog-entry[data-edit-worklog]').forEach(node=>{const row=worklogs().find(w=>w.id===node.dataset.editWorklog);if(row&&recipient(row)!==row.customer_id&&!node.querySelector('.billing-line')){const span=document.createElement('small');span.className='billing-line';span.textContent='Abrechnung über: '+named(recipient(row));node.append(span);}});}
