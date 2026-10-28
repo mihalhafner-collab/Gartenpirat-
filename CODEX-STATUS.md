@@ -6,6 +6,24 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Backup-Hängepfad28.10.: Google-Freigabe ohne Zeitlimit
+
+Erneuter Nutzerbericht eines Hängers. Nur technischen Pixel-Backupstatus gelesen:
+Einrichtung/Browser/Medien bereit, mobile Daten erlaubt; lokale Vorbereitung
+scheitert mit TRANSFER_FAILED,Uploadversuche0. Ursache dadurch vor dem Upload
+eingegrenzt, konkreter lokaler Fehler noch unbekannt. Keine Businessdaten/Schlüssel
+abgerufen, keine operative Änderung oder Sicherung durch Codex gestartet.
+Quellbefund: zwei unbegrenzte AccountManagerFuture.getResult()-Aufrufe. Beide
+verwenden jetzt ein gemeinsames monotones90s-Zeitlimit; offene Anfrage bei Ende
+abbrechen, eindeutige Kontofreigabe-Rückmeldung statt unbestimmter Uploadanzeige.
+Gleiche Job-ID, Archiv, Einwilligung und Prüfsummenregeln bleiben erhalten.
+5 ausgeführte Hosttests des echten Await-Pfads PASS. Dieser separate Hängepfad
+ist keine Erklärung des beobachteten lokalen Fehlers. Aufnahmefehler erhalten
+jetzt feste Schritt-/Kategoriecodes statt TRANSFER_FAILED;68 Regeltests,97
+Python-Schutztests,83 JVM-Suiten PASS. Der vorhandene P1-Schemakonflikt tritt
+erst danach unverändert auf. Kein aktiver Backup-/Restore-Gerätenachweis.
+Bericht: `docs/verification/backup-auth-wait-2026-10-28.json`. Build112 vorbereitet.
+
 ## Drive-Bereitstellung111: neuer Versuch erfolgreich
 
 Nach ausdrücklichem erneuten Nutzerauftrag APK111 aus dem bytegeprüften

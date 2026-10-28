@@ -28,6 +28,13 @@ final class BackupScheduleRules {
         if(!ACTIVE.contains(phase)&&!Arrays.asList("NEEDS_USER_ACTION","FAILED").contains(phase))return false;
         return Arrays.asList("NEEDS_USER_ACTION","FAILED","RETRY_PENDING").contains(phase)||job.optLong("next_attempt_at",0)>now;
     }
+    static Exception captureFailure(String stage,Exception failure){
+        if(failure instanceof java.io.InterruptedIOException||Thread.currentThread().isInterrupted())return failure;
+        String code=failure.getMessage();if(code!=null&&code.matches("(?:BACKUP|RECOVERY)_[A-Z0-9_]{1,90}"))return failure;
+        if(!Arrays.asList("READINESS","MATERIALIZE","PIN_FILES","PREFERENCES","DATABASE","BROWSER","FILES","INVENTORY").contains(stage))stage="UNKNOWN";
+        String category=failure.getClass().getName().startsWith("android.database.")?"DATABASE":failure instanceof java.io.IOException?"IO":failure instanceof org.json.JSONException?"DATA":failure instanceof SecurityException?"PERMISSION":"STATE";
+        return new java.io.IOException("BACKUP_CAPTURE_"+stage+"_"+category+"_FAILED",failure);
+    }
     static String scheduleAttempt(Scheduler scheduler){
         try{return scheduler.schedule()?"":"BACKUP_SCHEDULER_UNAVAILABLE";}
         catch(Exception unavailable){return "BACKUP_SCHEDULER_UNAVAILABLE";}

@@ -1,5 +1,12 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Direkter Backup-Folgeauftrag28.10.: Hänger statt Screenshot-Schalter
+
+Nutzer meldet weiter hängenden Backup-Prozess und verlangt funktionierende
+Sicherung statt weiterer Bedienhürden. Screenshotänderung nicht bestätigt.
+Hängepfade reproduzierbar prüfen und korrigieren; keine Schutzgates pauschal
+umgehen. Konkreter Gerätestatus/Version separat erfragt, noch nicht belegt.
+
 ## Direkte Bereitstellungspräzisierung28.10.
 
 Nutzer: „Bisherige zur verfügungstellung wie gewohnt Drive“. Geprüfte

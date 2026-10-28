@@ -18,6 +18,7 @@ final class LocalBackupDataset {
     }
     static Captured capture(Context context,PixelLocalStore store,File freshDirectory,JSONObject identity,JSONObject browserStorage)throws Exception {synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK){return captureLocked(context,store,freshDirectory,identity,browserStorage);}}
     private static Captured captureLocked(Context context,PixelLocalStore store,File freshDirectory,JSONObject identity,JSONObject browserStorage)throws Exception {
+        String stageName="READINESS";try{
         if(browserStorage==null||browserStorage.optInt("formatVersion")!=1||browserStorage.optJSONObject("storage")==null)throw new IOException("BACKUP_BROWSER_STATE_REQUIRED");
         JSONObject mediaReadiness=new BrowserMediaRepository(context,store).status();if(!mediaReadiness.optBoolean("mirror_complete")||mediaReadiness.optString("mode").equals("MIRROR_REQUIRED"))throw new IOException("BACKUP_BROWSER_CAPTURE_REQUIRED");
         String stage=freshDirectory.getCanonicalPath();
@@ -26,22 +27,22 @@ final class LocalBackupDataset {
         String initial=asset(context,"initial-data.json"),catalog=asset(context,"service-catalog.json"),started=java.time.Instant.now().toString();
         // Reuse local-only legacy materialization. IDs/amounts/source snapshots are unchanged;
         // the existing content hashes make original-file caching idempotent. Never fetch Drive.
-        JSONObject raw=new JSONObject(store.snapshotText(initial));store.recordSnapshotPhotoAttachments(raw);store.documentReferences(raw);
+        stageName="MATERIALIZE";JSONObject raw=new JSONObject(store.snapshotText(initial));store.recordSnapshotPhotoAttachments(raw);store.documentReferences(raw);
         JSONObject current=PixelMcpReadTools.effective(store.getState());store.recordSnapshotPhotoAttachments(current);store.documentReferences(current);
-        BackupFilePins.pinImmutable(new File(context.getFilesDir(),"customer-photo-originals"),freshDirectory,"files/customer-photo-originals");
+        stageName="PIN_FILES";BackupFilePins.pinImmutable(new File(context.getFilesDir(),"customer-photo-originals"),freshDirectory,"files/customer-photo-originals");
         BackupFilePins.pinImmutable(new File(context.getFilesDir(),"business-documents"),freshDirectory,"files/business-documents");
         BackupFilePins.pinImmutable(new File(context.getFilesDir(),"browser-media"),freshDirectory,"files/browser-media");
-        JSONObject preferences=BackupPreferences.capture(context);
+        stageName="PREFERENCES";JSONObject preferences=BackupPreferences.capture(context);
         write(new File(freshDirectory,"preferences.json"),preferences.toString());
         write(new File(freshDirectory,"bootstrap/initial-data.json"),initial);write(new File(freshDirectory,"bootstrap/service-catalog.json"),catalog);
-        File database=new File(freshDirectory,"database.sqlite");JSONObject db=DatabaseBackupSnapshot.capture(store.getWritableDatabase(),database);
-        JSONObject capturedBrowser=browserStorage;
+        stageName="DATABASE";File database=new File(freshDirectory,"database.sqlite");JSONObject db=DatabaseBackupSnapshot.capture(store.getWritableDatabase(),database);
+        stageName="BROWSER";JSONObject capturedBrowser=browserStorage;
         try(SQLiteDatabase snapshot=SQLiteDatabase.openDatabase(database.getAbsolutePath(),null,SQLiteDatabase.OPEN_READONLY)){
             if(identity.optBoolean("requireDatabaseBrowserCheckpoint"))capturedBrowser=databaseBrowser(snapshot,identity);
             BrowserDraftRepository.validateCaptured(snapshot,identity,capturedBrowser);
         }
         write(new File(freshDirectory,"browser-storage.json"),capturedBrowser.toString());
-        BackupFilePins.capture(context.getFilesDir(),freshDirectory,"files");
+        stageName="FILES";BackupFilePins.capture(context.getFilesDir(),freshDirectory,"files");
         for(String name:new String[]{"photo-capture","invoice-share"})BackupFilePins.capture(new File(context.getCacheDir(),name),freshDirectory,"cache/"+name);
         // Keystore/recovery capsules and our own staging trees are deliberately not exported.
         // Existing deletion/conflict backups remain immutable evidence, inside this encryption.
@@ -49,7 +50,7 @@ final class LocalBackupDataset {
         // A legacy preference-backed snapshot or an editor setting may change independently
         // of SQLite. Fail/retry instead of certifying a mixed preference capture.
         if(!PixelMcpWriteTools.hash(preferences).equals(PixelMcpWriteTools.hash(BackupPreferences.capture(context))))throw new IOException("BACKUP_PREFERENCES_CHANGED_RETRY");
-        JSONObject inventory,state,revier,numberState,financial,financialOriginals,browserMedia;
+        stageName="INVENTORY";JSONObject inventory,state,revier,numberState,financial,financialOriginals,browserMedia;
         try(SQLiteDatabase snapshot=SQLiteDatabase.openDatabase(database.getAbsolutePath(),null,SQLiteDatabase.OPEN_READONLY)){
             state=BackupSnapshotState.read(snapshot,BackupPreferences.values(preferences,"haus_garten"),initial,catalog);
             state.put("extended_business_fingerprint",BusinessStateFingerprint.read(snapshot));
@@ -70,6 +71,7 @@ final class LocalBackupDataset {
             .put("structured_preference_credentials_excluded",true).put("legacy_backup_evidence_activation","FORBIDDEN").put("external_account_activation","REQUIRES_DEVICE_REAUTHORIZATION").put("local_authority_activated",false).put("invoice_release_after_restore","BLOCKED_UNTIL_CURRENT_EXTERNAL_RECONCILIATION")
             .put("device_specific_exclusions",new JSONArray().put("Android_Keystore").put("backup_key_protection").put("backup_device_guard").put("local_authority_guard").put("full_restore_staging").put("full_backup_saf_staging").put("scoped_restore_capsules").put("account_tokens").put("running_backup_staging"));
         return new Captured(freshDirectory,metadata);
+        }catch(Exception failure){throw BackupScheduleRules.captureFailure(stageName,failure);}
     }
     static JSONObject inspectStaged(File directory,JSONObject manifest)throws Exception {
         if(manifest.has("business_snapshot_sha256")&&manifest.optInt("business_snapshot_hash_version",1)!=1)throw new IOException("BACKUP_BUSINESS_HASH_VERSION_UNSUPPORTED");

@@ -1,0 +1,61 @@
+{
+  "classification": "PUBLIC_SOURCE_AND_SYNTHETIC_TEST_METADATA",
+  "symptom": "User reports backup hanging; exact Pixel stage and installed version unknown",
+  "finding": "AccountManagerFuture.getResult() without deadline in both Google token requests",
+  "before": {
+    "source_commit": "9cb246c6df9b595f2a2bc2b91d769eb9e01c26fd",
+    "unbounded_calls": 2,
+    "deadline": null
+  },
+  "after": {
+    "shared_deadline_seconds": 90,
+    "clock": "System.nanoTime",
+    "cancel_unfinished_request": true,
+    "error": "AUTH_CANCELLED_OR_TIMEOUT",
+    "progress": "Google consent waiting distinguished from upload/readback",
+    "job_and_archive_retained": true
+  },
+  "host_tests": {
+    "passed": 5,
+    "failed": 0,
+    "scope": "Actual DriveAccount.await with synthetic AccountManagerFuture; bounded wait parameters, remaining budget, cancellation, expired deadline; no Google account or Pixel"
+  },
+  "device": "NOT_EXECUTED",
+  "not_claimed": "No proof this is the user Pixel hang; no wall-clock performance claim; screenshot protection unchanged",
+  "build": "PENDING112",
+  "readonly_pixel_status": {
+    "performed": true,
+    "operation": "get_full_backup_status;limit3;no mutation",
+    "setup_ready": true,
+    "mobile_allowed": true,
+    "browser_ready": true,
+    "media_ready": true,
+    "latest_observed_error": "TRANSFER_FAILED",
+    "latest_local_attempts": 6,
+    "latest_upload_attempts": 0,
+    "older_jobs_local_attempts": 8,
+    "local_capture_or_preparation_failed": true,
+    "local_verified": false,
+    "remote_verified": false,
+    "no_business_data_or_keys_requested": true
+  },
+  "diagnosis_limit": "Auth wait finding is independent and does not explain observed pre-upload local failure; exact exception unknown",
+  "local_capture_diagnostics": {
+    "before": "generic TRANSFER_FAILED",
+    "after": "fixed stage/category codes; no raw paths/messages; existing BACKUP/RECOVERY errors and cancellation preserved",
+    "host_rule_tests_passed": 68
+  },
+  "source_regressions": {
+    "passed": 97,
+    "failed": 0
+  },
+  "jvm_suites": {
+    "passed": 83,
+    "failed": 0,
+    "runner_exit": "preexisting P1 schema contract mismatch after all suites; unchanged"
+  },
+  "privacy": {
+    "source_delta": "PASS9files0seed before local-stage diagnostic addition",
+    "worktree": "PASS5723includesIgnoredUntracked"
+  }
+}

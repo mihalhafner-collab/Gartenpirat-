@@ -57,6 +57,11 @@ public final class BackupScheduleRulesTests {
         for(String key:new String[]{"retry_available","context_matches","target_matches"})yes(!BackupScheduleRules.manualRetryAvailable(new JSONObject(manualWaiting.toString()).put(key,false),now));
         for(String phase:new String[]{"REMOTE_VERIFIED","PROVIDER_VERIFIED","CANCELLED","FORMAT_REVIEW_REQUIRED","qa_unknown"})yes(!BackupScheduleRules.manualRetryAvailable(new JSONObject(manualWaiting.toString()).put("phase",phase),now));
         for(String phase:new String[]{"FAILED","NEEDS_USER_ACTION","RETRY_PENDING"})yes(BackupScheduleRules.manualRetryAvailable(new JSONObject(manualWaiting.toString()).put("phase",phase).put("next_attempt_at",0),now));
+        Exception disk=new java.io.IOException("QA private file path must never become status");yes(BackupScheduleRules.captureFailure("DATABASE",disk).getMessage().equals("BACKUP_CAPTURE_DATABASE_IO_FAILED"));
+        Exception known=new java.io.IOException("BACKUP_STORAGE_RESERVE_REQUIRED");yes(BackupScheduleRules.captureFailure("FILES",known)==known);
+        Exception cancel=new java.io.InterruptedIOException();yes(BackupScheduleRules.captureFailure("FILES",cancel)==cancel);
+        yes(BackupScheduleRules.captureFailure("QA private stage",disk).getMessage().equals("BACKUP_CAPTURE_UNKNOWN_IO_FAILED"));
+        yes(BackupScheduleRules.captureFailure("INVENTORY",new org.json.JSONException("QA data")).getMessage().equals("BACKUP_CAPTURE_INVENTORY_DATA_FAILED"));
         System.out.println("MANUAL_START_AFTER action="+manual+" existing_generations="+durable[0]+" foreground_runs="+dispatches[0]+" Android_scheduler_calls=0");
         System.out.println("PASS "+checks+" daily backup/retry/restore-context/data-age/clock/target guards;no scheduler timing or account claim");
     }
