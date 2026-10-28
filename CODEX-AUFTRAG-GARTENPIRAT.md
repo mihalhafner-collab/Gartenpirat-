@@ -1,5 +1,27 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Paralleler Prüfauftrag vom 28.10.2026: Testkonzept und Funktionstestbericht
+
+Direkter Nutzerauftrag: „Erstelle Konzept um app vollumfänglich zu testen.
+Erstelle nach vollem Funktionstest einen vollständigen Funktionstest Bericht.“
+Die erste Anweisung lautete, die Haus und Gartenapp über MCP zu testen.
+
+Umfang: alle aktuellen 169 MCP-Funktionen, 212 semantischen UI-Aktionen,
+15 Fachgruppen, bestehende RS-01–RS-16/P-01–P-06 und vollständige Fachketten.
+Testfälle mit positivem Ablauf, Validierung, alten Hashes, identischer Request-ID,
+Antwortverlust, Offlinebetrieb, Persistenz und unabhängigem Read-back planen.
+Nur saubere Quellen, leeren Bootstrap und synthetische Fixtures verwenden.
+Produktive Testdatensätze, automatische Migration, Installation und Restore
+bleiben nach den vorhandenen Regeln ausgeschlossen.
+
+Ausführung am unveränderten Originalquellcommit 9415c8d für 1.55.3/108:
+Host-/Browserergebnisse und konkrete Fehler stehen im aktuellen CODEX-STATUS
+sowie `docs/verification/function-test-2026-10-28.json`. Vollständige Abnahme erst
+nach isolierter nativer Geräte-/MCP-Ausführung, Fehlernachtests und echten
+externen Sicherungs-/Restorebelegen. Offene Pflichtfälle sind keine PASS-Fälle.
+Bestehendes Nutzerdossier weiterführen; keine zweite App oder operative Datenbank
+anlegen. Kein APK-Bau wegen dieses Testberichts.
+
 ## Neuester Auftrag28.10.: reproduzierbare ADB-Testkampagne
 
 Direkter Nutzerauftrag: Funktionsfähigkeit, Performance, Datenbeständigkeit,

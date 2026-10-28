@@ -6,6 +6,48 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Prüfstand: Funktionstest von App 1.55.3 / Build 108 am 28.10.2026
+
+Direkter Nutzerauftrag: vollständiges Testkonzept und nachvollziehbarer Bericht.
+Geprüfter, unveränderter Quellcommit:
+`9415c8da6c26314969b731bc01708c5e8f424349`. Spätere Übergabe-, Wissens- und
+Statusänderungen sind kein neuer geprüfter Appstand. 1.307 Originaldateien gegen
+Git-Blobs geprüft; Privacy über 1.571 Dateien PASS, keine operativen Testdaten.
+
+464 eindeutige Pythonmethoden und 7 Node-Suiten PASS. Von 84 Java-Hostprogrammen
+81 PASS, 1 Kamera-Sollkonflikt FAIL und 2 BLOCKED. Die drei zusätzlichen
+Java/Python-Abgleiche sind keine weiteren Programme. 62 Browser-Suiten in
+81 begründeten Ausführungen: 52 PASS, 1 FLAKY (Revier-Entwurf PASS→FAIL→PASS),
+2 reproduzierbare Rechnungsdialog-Layoutfehler bei 320 px/200 % Schrift,
+6 Testvertrags-/Timing-/Portabilitätsfehler und 1 binärer Exportblocker.
+Eine weitere historische Git-Browsersuite und ein Python-Historienabgleich
+bleiben blockiert. Originaltests und Appquellen blieben unverändert;
+abgebrochene Folgefälle wurden nicht als bestanden gezählt.
+
+Vier nachträglich verkürzte Browserlogs sind als Beweiskettenvorfall dokumentiert.
+Alle vier vollständigen Originalhashes wurden durch unveränderte Nachläufe
+reproduziert. Die Ursache der späteren Kürzung bleibt ungeklärt. Ein späterer
+PASS beseitigt den instabilen Revier-Entwurfsbefund nicht.
+
+Konzept: 169 Funktionen in 15 Fachgruppen, 212 UI-Aktionen, RS-01–RS-16 und
+P-01–P-06. Die semantischen Quellkataloge stimmen mit der beobachteten Laufzeit
+überein. MCP-Diagnose ausschließlich lesend: 13 Aufrufe über 6 Funktionen;
+166 verfügbare Bindings gegenüber 169 Laufzeitfunktionen. Drei Wartungsbindings
+fehlen. Keine vollständige Ausführung aller 169 Fachfunktionen behauptet.
+
+Keine vollständige Funktionsfreigabe: native Android-/SQLite-Persistenz,
+Pixelkamera/-galerie, TalkBack, reale Provider, zwei USB-Ziele und vollständiger
+Geräterestore bleiben offen. 48-MiB-Kryptotests enthalten synthetische Medien
+und einen Textplatzhalter namens database.sqlite, keinen Android-DB-Restore.
+Vorbereitete Zahlungszustände beweisen keine native Buchungsfolge.
+Kein produktiver Testschreibzugriff, keine Installation, Migration oder APK-Bau.
+
+Einzelnachweis: `docs/verification/function-test-2026-10-28.json`.
+Zwei gesondert geprüfte synthetische Dialogbilder:
+`docs/verification/function-test-2026-10-28/`.
+Das bestehende Nutzerdossier enthält Konzept, Ergebnisse und Restabnahmeplan:
+https://chatgpt.com/space/page_7f18b1e34e808191b3851b6c15ebf582
+
 ## Aktuell28.10.: ADB-Kampagne vorbereitet, Geräteabnahme BLOCKED
 
 Direkter neuer Auftrag aus diesem Gespräch in CODEX-AUFTRAG-GARTENPIRAT.md erfasst.
