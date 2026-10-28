@@ -10,6 +10,11 @@ Schlüssel- oder Passwortwerte im Repository.
 `HG_ORIGINAL_KEY_ALIAS`, `HG_ORIGINAL_KEY_PASSWORD` und `HG_ORIGINAL_CERT_SHA256`.
 Werte nicht anzeigen, protokollieren oder als Prozessargumente übergeben.
 
+Die Variablen gehören zur gewählten persönlichen Bauumgebung. Ein neuer
+Projektchat übernimmt weder diese Variablen noch Android-Bauwerkzeuge automatisch.
+Vor einem APK-Auftrag die tatsächliche Umgebung und die Verfügbarkeit prüfen;
+bereits eingerichtete Umgebungen weiterverwenden statt Schlüssel zu übertragen.
+
 Nach einem ausdrücklich beauftragten Bau:
 
 1. Geprüften Quellstand committen, pushen und mit

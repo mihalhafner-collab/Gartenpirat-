@@ -1,8 +1,8 @@
 # Gartenpirat – minimale Arbeitsbasis
 
-Übernommen ist der freigegebene App-Quellstand **1.55.8 / Build113**. Der genaue
-Ursprungscommit, die zuletzt belegte Installation und offene Prüfungen stehen im
-[aktuellen Stand](AKTUELLER-STAND.json).
+Die Arbeitsbasis wurde aus Build113 übernommen und seitdem weiterentwickelt.
+Aktuelle Version, Quellstand, zuletzt belegte Installation und offene Prüfungen
+stehen im [aktuellen Stand](AKTUELLER-STAND.json).
 
 Diese Struktur ist die vorbereitete Parallelfassung. Die bisherigen Quellpfade,
 GitHub-Workflows und die installierte App werden damit nicht automatisch ersetzt.
@@ -17,8 +17,8 @@ GitHub-Workflows und die installierte App werden damit nicht automatisch ersetzt
 
 Das Projekt **Haus und Garten App Entwicklung** wird nach dem
 [kurzen Projektablauf](docs/entwicklung/PROJEKT.md) als Gesprächs- und Planungsraum
-eingebunden. Der dort vorbereitete Anweisungstext muss in den Projekteinstellungen
-eingetragen werden; eine automatische GitHub-Synchronisierung wird nicht vorausgesetzt.
+eingebunden. Die Projektanweisungen sind laut Nutzer gespeichert. Eine automatische
+GitHub-Synchronisierung oder Übernahme der Bauumgebung wird nicht vorausgesetzt.
 
 | Pfad | Inhalt |
 |---|---|

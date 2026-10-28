@@ -12,17 +12,15 @@
     "production_code_modified": false
   },
   "current_release_candidate": {
-    "version_name": "1.55.8",
-    "version_code": 113,
-    "app_source_git_sha": "2758d2e68dc00ff6b70078879b98a8fb3797c18c",
-    "source_tag": "source/v1.55.8-build113",
-    "source_sha256": "8c5bb6151d7517fb8b82ce60704c02749badf582d8390772e0729bdad5815f8e",
-    "apk_sha256": "a99c464794a61fc2e677c225496042ce49008725ee3a2c5eec8af842429c87ec",
-    "apk_bytes": 82854396,
+    "version_name": "1.55.9",
+    "version_code": 114,
+    "source_sha256": "699e7b6bddd10143658780efaec60ecf13314185d7c8d6e8eea2e7a1cd89f133",
+    "source_tag": "source/v1.55.9-build114",
+    "source_binding": "PENDING_PRESERVED_SOURCE_COMMIT_AND_FINAL_SIGNED_APK",
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
     "tools": 169,
     "ui_actions": 212,
-    "installation": "NOT_PERFORMED;last observed physical installation remains108",
+    "installation": "NOT_PERFORMED;latest device self-report is Build113;independent APK/signature readback not repeated",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "NOT_ACTIVATED",
     "app_backup_mode": "PIXEL_PLAINTEXT_ZIP"
@@ -47,62 +45,28 @@
     }
   ],
   "current_task": {
-    "name": "Etappen 3–5 und Backup-Diagnose prüfen; aktualisierte Original-APK bereitstellen",
-    "status": "SOURCE_AND_SYNTHETIC_TESTS_PASS;ANDROID_BUILD_AND_ORIGINAL_SIGNING_BLOCKED_BY_ENVIRONMENT;PIXEL_ACCEPTANCE_OPEN",
+    "name": "Aktuellen GitHub-Quellstand in eingerichteter Bauumgebung originalsigniert bauen, prüfen und zum Download bereitstellen",
+    "status": "SOURCE_AND_SYNTHETIC_CHECKS_PASS;FINAL_PRESERVED_BUILD_SIGNING_AND_DOWNLOAD_PENDING",
     "authorized": true,
-    "specification": "../CODEX-AUFTRAG-GARTENPIRAT.md",
-    "verification": "docs/verification/performance-build113.md",
-    "basis": "1.55.8 / Build113; user clarification 2026-10-28",
-    "authorization_scope": "Latest explicit user request authorizes necessary tests, updated original-signed APK and distribution for Android package installation; no productive migration, restore or invoice authority inferred",
-    "latest_user_directives": {
-      "date": "2026-10-28",
-      "source_implementation_explicitly_confirmed": true,
-      "backup_present": "USER_CONFIRMED;archive protection, readback and restore not independently verified",
-      "adb": "READ_AND_WRITE_FOR_SYNTHETIC_TESTING_AUTHORIZED; laptop as connection host",
-      "test_order": "TEST_PAUSE_LIFTED_BY_LATEST_EXPLICIT_REQUEST;run necessary tests now",
-      "productive_data_for_testing": false,
-      "journal_and_lists": "COMPLETE_SOURCE_CONVERSION_REQUESTED;protected legacy deletion only after restore evidence",
-      "protected_legacy_removal": "EXPLICITLY_REQUESTED;prior backup/restore prerequisite not evidenced or explicitly withdrawn",
-      "backup_diagnosis": "User requested investigation; supplied screenshot shows BACKUP_CAPTURE_INVENTORY_IO_FAILED;no productive retry or restore requested",
-      "apk_delivery": "EXPLICITLY_REQUESTED;regular update of at.hausgarten.service with original signature, offered through package installation"
-    },
-    "test_environment_access": {
-      "adb_client": "NOT_AVAILABLE_IN_CLOUD",
-      "adb_server_configuration": "ABSENT",
-      "local_adb_server_5037": "NOT_REACHABLE",
-      "physical_device_test": "NOT_EXECUTED",
-      "laptop_remote_shell": "NOT_AVAILABLE",
-      "pixel_metadata_connector": "AVAILABLE;read-only backup/restore status retrieved;no ADB connection or test performed"
-    },
-    "implementation_checkpoint": "SOURCE_AND_SYNTHETIC_CHECKS_COMPLETED;not built or signed as an APK;Android and productive backup/restore acceptance remain open",
-    "current_focus": "Tested billing refresh correction and backup diagnostics; APK build/distribution blocked by unavailable Android toolchain and original-signing configuration",
+    "authorization_scope": "Latest explicit user request authorizes current GitHub source retrieval, required release version metadata, build, original signing, checks and APK download;no device installation or productive data operation inferred",
     "release_environment": {
-      "checked_at_utc": "2026-10-28T20:47:00.839804Z",
-      "gradle": "UNAVAILABLE",
-      "android_build_tools": "UNAVAILABLE",
-      "android_api_jar": "37.0 reused for JVM compilation only",
-      "adb": "UNAVAILABLE",
-      "signing_ready": false,
-      "missing_variable_names": [
-        "HG_ORIGINAL_KEYSTORE_BASE64",
-        "HG_ORIGINAL_STORE_PASSWORD",
-        "HG_ORIGINAL_KEY_ALIAS",
-        "HG_ORIGINAL_KEY_PASSWORD",
-        "HG_ORIGINAL_CERT_SHA256"
-      ],
-      "prior_delivery_route": "Original-signed APK file in repository downloads;release asset upload previously unavailable",
-      "required_next_step": "Resume in previously configured personal build environment;then release build, original-signature verification and APK distribution;do not create a replacement signing key"
-    }
+      "checked_at_utc": "2026-10-28T20:55:10.432791+00:00",
+      "gradle": "AVAILABLE;9.3.1",
+      "android_build_tools": "AVAILABLE;37.0.0",
+      "jdk": "AVAILABLE;17",
+      "signing_variables": "ALL_FIVE_PRESENT;managed runtime observation READY",
+      "secret_values_printed": false,
+      "project_chat_inherits_environment": false
+    },
+    "implementation_checkpoint": "Build114/1.55.9;application changes already present in main 3de3234e406d921015801f020b7cdc2b64093acf;this release only increments version metadata and updates APK verification to current production sources"
   },
   "open_checks": [
-    "Aktualisierte APK: vollständigen Gradle-/Android-Releasebau und Artefaktprüfungen in der bisherigen konfigurierten Bauumgebung ausführen; Originalsignatur verifizieren und APK zur Paketinstallation bereitstellen",
-    "Diese Sitzung hat keine Gradle-/Android-Build-Tools, kein ADB und keine der fünf HG_ORIGINAL_-Signaturvariablen; vorhandenes Android-API-JAR erlaubt JVM-Prüfung, aber keinen APK-Bau; kein erreichbarer Zugriff auf die frühere Bauumgebung gefunden",
-    "Backup: konkreten Inventarfehler nach Installation der Diagnosekorrektur bestimmen; danach Ursache gezielt beheben und vollständige Sicherung/Restore prüfen; ursprüngliche Ursache weiterhin unbekannt",
-    "Etappe3: Android-Transaktionslistener, alle UI/MCP/Timer-/Rechnungsschreiber, CursorWindow, Backup/Restore und Rückweg über aktuelle Instrumentierung prüfen; SQLite/JDBC-Prüfung ersetzt diesen Gerätenachweis nicht",
-    "Etappe4: synthetische Browser- und Cacheprüfungen bestanden; physische Pixel-Bedienung, WebView, Update-Datenerhalt und Geräteleistung offen",
-    "Etappe5: geschützte Drive-/Queue-/Restorebelege erst nach bestätigtem Pixel-Backup UND Restore sowie Abhängigkeitsnachweis entfernen",
-    "ADB-Lese-/Schreibprüfungen autorisiert und vorbereitet; kein erreichbarer Laptop-/Pixel-Zugang in dieser Umgebung",
-    "Keine APK gebaut, signiert oder ausgeliefert; keine Installation, produktive Migration, Wiederherstellung oder neue Rechnungsautorität durchgeführt"
+    "Build114 aus gesichertem Quellcommit endgültig bauen, Originalsignatur prüfen und Download zurücklesen",
+    "Backup: konkreten Inventarfehler nach Installation der Diagnosekorrektur bestimmen;danach vollständige Sicherung und Restore prüfen;ursprüngliche Ursache weiterhin unbekannt",
+    "Etappe3: Android-Transaktionslistener, vollständige UI/MCP/Timer-/Rechnungsschreiber, CursorWindow und vollständiges Backup/Restore auf dem Pixel prüfen;SQLite/JDBC ersetzt diesen Nachweis nicht",
+    "Etappe4: physische Pixel-Bedienung, WebView, Update-Datenerhalt und Geräteleistung offen",
+    "Etappe5: geschützte Drive-/Queue-/Restorebelege erst nach Pixel-Backup UND Restore sowie Abhängigkeitsnachweis entfernen",
+    "Native Geräteprüfungen und Installation nicht ausgeführt;keine produktive Migration, Wiederherstellung oder neue Rechnungsautorität"
   ],
   "workflow": {
     "scope": "PARALLEL_STAGING; existing source paths and workflows unchanged",
@@ -144,7 +108,7 @@
     "Separater alter Python-/Drive-Geschäftsserver"
   ],
   "validation": {
-    "app_source_fingerprint": "c40efb4ec646143616be34d979f6bb99bfb5d8b6b9601366f8406705882b1c5d",
+    "app_source_fingerprint": "699e7b6bddd10143658780efaec60ecf13314185d7c8d6e8eea2e7a1cd89f133",
     "native_pixel_tests": "NOT_EXECUTED",
     "source_privacy": "PASS;current materialized source gate;0 operational seed rows",
     "business_data_read": false,
@@ -168,7 +132,7 @@
       "report": "docs/verification/performance-build113.md"
     },
     "current_source_changes": {
-      "status": "SOURCE_AND_SYNTHETIC_TESTS_PASS;ANDROID_AND_PHYSICAL_ACCEPTANCE_OPEN;PROTECTED_DELETION_PENDING_RESTORE_EVIDENCE",
+      "status": "SOURCE_AND_SYNTHETIC_TESTS_PASS;FINAL_RELEASE_BUILD_PENDING;PHYSICAL_ACCEPTANCE_OPEN;PROTECTED_DELETION_PENDING_RESTORE_EVIDENCE",
       "scope": "Stage3 atomic journal/table/request transactions and targeted point/list/search reads; Stage4 renderer ownership; Stage5 dependency evidence and preservation of protected legacy paths",
       "pixel_adb_tests": "NOT_EXECUTED;connection unavailable",
       "further_tests": "ANDROID_BUILD_AND_ADB_PENDING_ENVIRONMENT_ACCESS",
@@ -224,7 +188,7 @@
     "previous_jvm_checks_passed": 164,
     "previous_browser_suites_passed": 5,
     "last_executed_python_tests_passed": 62,
-    "last_completed_test_source_sha256": "c40efb4ec646143616be34d979f6bb99bfb5d8b6b9601366f8406705882b1c5d",
+    "last_completed_test_source_sha256": "699e7b6bddd10143658780efaec60ecf13314185d7c8d6e8eea2e7a1cd89f133",
     "backup_diagnosis": {
       "observed_at_utc": "2026-10-28T20:29:46Z",
       "device_reported_build": {
@@ -257,16 +221,16 @@
       ],
       "root_cause": "NOT_YET_IDENTIFIED;original lower-level IOException is not available from installed status or screenshot;no specific missing file, damaged record or financial conflict asserted",
       "verification": "PASS 27 PixelPlainBackupTests checks including 8 diagnostic regressions;source error codes retained and private error prose rejected;native persisted-job/retry/coordinator and original Pixel failure not tested",
-      "deployment": "NOT_PERFORMED;no newly built APK;Build113 self-report still the latest observation",
+      "deployment": "NOT_INSTALLED;diagnostic corrections are in pending Build114;latest device self-report remains Build113",
       "data_access": "App technical metadata and user screenshot only;no business records, original files or backups downloaded",
       "next_evidence": "Specific error code from corrected device build, or an existing original exception trace if available"
     },
     "current_test_run": {
-      "observed_at_utc": "2026-10-28T20:47:00.839804Z",
-      "base_commit": "89675f1c3635a68a18e8ffe29be3ee7fdca006ef",
-      "app_source_sha256": "c40efb4ec646143616be34d979f6bb99bfb5d8b6b9601366f8406705882b1c5d",
-      "source_binding": "Exact application fingerprint; tested working tree including billing correction and refreshed UI review; not the unmodified base commit",
-      "check_current": "PASS;62 Python tests plus privacy/contracts/UI inventory/fixtures/plants/maintenance checks",
+      "observed_at_utc": "2026-10-28T20:55:10.432812+00:00",
+      "base_commit": "3de3234e406d921015801f020b7cdc2b64093acf",
+      "app_source_sha256": "699e7b6bddd10143658780efaec60ecf13314185d7c8d6e8eea2e7a1cd89f133",
+      "source_binding": "Current main application plus release version increment to114;final source commit not yet assigned",
+      "check_current": "PASS;62 Python tests plus source/privacy/contracts/UI/fixtures/plants/maintenance checks",
       "java_suites_passed": 4,
       "java_checks_passed": 274,
       "java_breakdown": {
@@ -275,102 +239,11 @@
         "EquipmentProfilePhotoTests": 54,
         "PixelPlainBackupTests": 27
       },
-      "table_environment": "SQLite3.46.1 through JDBC, JDK17;temporary synthetic DB;66 selection parity cases;no Android runtime/listener/CursorWindow or real archive evidence",
-      "browser_suites": "PASS simple-forms (9), startup-ui (13), equipment-maintenance-ui, equipment-profile-photo-ui, work-entry-photo-failure;PASS 18 context/cache groups",
-      "browser_environment": "Cloud Chromium153.0.8010.0, Playwright1.64.1, Acorn8.19.0;synthetic JavaScript bridge doubles",
-      "billing_regression": "Reproduced stale billing groups when reopening same page before correction;passes after removing stray customer-profile condition",
-      "performance": {
-        "environment": "Cloud Chromium; JavaScript bridge doubles, not Android/SQLite/Pixel",
-        "samples_per_operation": 40,
-        "operations": {
-          "App-Start": {
-            "samples": 40,
-            "mean": 934.9125,
-            "p95": 1151.8999999985099,
-            "slowest_5_percent_mean": 1180.050000000745
-          },
-          "Heute → Büro": {
-            "samples": 40,
-            "mean": 102.62750000022352,
-            "p95": 125,
-            "slowest_5_percent_mean": 140.30000000074506
-          },
-          "Büro → Heute": {
-            "samples": 40,
-            "mean": 112.06250000018626,
-            "p95": 147.79999999701977,
-            "slowest_5_percent_mean": 161.65000000037253
-          },
-          "Kunden öffnen": {
-            "samples": 40,
-            "mean": 192.72500000037252,
-            "p95": 253.80000000074506,
-            "slowest_5_percent_mean": 271.1000000014901
-          },
-          "Suche": {
-            "samples": 40,
-            "mean": 148.74500000029803,
-            "p95": 155.10000000149012,
-            "slowest_5_percent_mean": 155.7999999988824
-          },
-          "Speichern": {
-            "samples": 40,
-            "mean": 441.99500000020487,
-            "p95": 551,
-            "slowest_5_percent_mean": 606.1500000003725
-          }
-        },
-        "bridge": {
-          "getState": {
-            "duration_ms": {
-              "samples": 120,
-              "mean": 4.406666666610787,
-              "p95": 6.400000002235174,
-              "slowest_5_percent_mean": 7.333333333333333
-            },
-            "response_bytes": {
-              "samples": 120,
-              "mean": 1594868,
-              "p95": 1595009,
-              "slowest_5_percent_mean": 1595009
-            }
-          },
-          "getWorkSession": {
-            "duration_ms": {
-              "samples": 360,
-              "mean": 0.007499999987582366,
-              "p95": 0.09999999776482582,
-              "slowest_5_percent_mean": 0.12222222259475125
-            },
-            "response_bytes": {
-              "samples": 360,
-              "mean": 16,
-              "p95": 16,
-              "slowest_5_percent_mean": 16
-            }
-          },
-          "ownerCall": {
-            "duration_ms": {
-              "samples": 240,
-              "mean": 0.014166666707023979,
-              "p95": 0.10000000149011612,
-              "slowest_5_percent_mean": 0.11666666809469461
-            },
-            "response_bytes": {
-              "samples": 240,
-              "mean": 36.666666666666664,
-              "p95": 68,
-              "slowest_5_percent_mean": 68
-            }
-          }
-        },
-        "comparison": "Current measurement only;concurrent JVM work differs from earlier baseline;no speedup assertion"
-      },
-      "android_gradle_compilation": "NOT_EXECUTED;toolchain unavailable",
-      "native_pixel_tests": "NOT_EXECUTED;ADB/laptop connection unavailable",
-      "original_signature": "NOT_EXECUTED;all five required variables absent",
-      "apk_creation": "NOT_PERFORMED",
-      "apk_distribution": "NOT_PERFORMED",
+      "table_environment": "SQLite3.46.1 through JDBC,JDK17;temporary synthetic DB;Android transaction listener/CursorWindow and full restore not tested",
+      "browser_suites": "PASS simple-forms,startup-ui,equipment-maintenance-ui,equipment-profile-photo-ui,work-entry-photo-failure",
+      "browser_environment": "Cloud Chromium;Playwright1.64.1;Acorn8.19.0;synthetic JavaScript bridge doubles",
+      "native_pixel_tests": "NOT_EXECUTED",
+      "apk_distribution": "PENDING",
       "productive_data_access": false
     }
   },
