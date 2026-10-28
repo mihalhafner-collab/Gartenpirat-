@@ -7,6 +7,7 @@ class BackupSetupUiTests(unittest.TestCase):
     def test_simple_local_save_without_account_or_key_setup(self):
         s=(JAVA/'FullBackupActivity.java').read_text()
         self.assertIn('Intent.ACTION_CREATE_DOCUMENT',s)
+        self.assertEqual(s.count('putExtra(Intent.EXTRA_LOCAL_ONLY,true)'),2)
         self.assertIn('new PixelBackupService(this,store).save(',s)
         for forbidden in ('DriveAccount','BackupFolderPicker','FullBackupJob','new BackupRecoveryKeyStore','confirmRecovery','automatic','unmetered'):
             self.assertNotIn(forbidden,s)
@@ -45,4 +46,3 @@ class BackupSetupUiTests(unittest.TestCase):
         self.assertIn('LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED',(JAVA/'LocalAuthorityRules.java').read_text())
         self.assertIn('REMOVABLE_STORAGE_VOLUME',(JAVA/'LocalAuthorityRules.java').read_text())
 if __name__=='__main__':unittest.main()
-

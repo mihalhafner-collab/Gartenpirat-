@@ -33,7 +33,7 @@
     "large_plain_file_bytes": 50331648,
     "jvm_heap_bytes": 67108864,
     "jvm_suites_passed": 84,
-    "source_python_tests_passed": 99,
+    "source_python_tests_passed": 100,
     "web_feedback": "PASS",
     "cloud_chromium_entry": "PASS;320/360/426px;200% font;48px controls;native entry invoked once;local status/read failure;no business writes",
     "production_and_native_source_compilation": "PASS using installed SDK and cached dependencies; not device execution",
@@ -48,7 +48,8 @@
   "apk": "CANDIDATE113_PENDING_BUILD",
   "review_followup": {
     "historical_authority_evidence": "Internal read-only status projection retained; no cloud call and no relaxation of LocalAuthorityRules external-evidence/invoice gates",
-    "first_release_build": "assemble and AndroidTest compile PASS; lint rejected dynamic URI permission flag expression; replaced with explicit fixed READ or READ|WRITE calls; no suppression"
+    "first_release_build": "assemble and AndroidTest compile PASS; lint rejected dynamic URI permission flag expression; replaced with explicit fixed READ or READ|WRITE calls; no suppression",
+    "local_picker": "Both create/open request EXTRA_LOCAL_ONLY and enforce provider boundary; one unsigned build deliberately stopped before packaging final source"
   },
   "privacy": {
     "source_delta": "PASS110files0seed",
