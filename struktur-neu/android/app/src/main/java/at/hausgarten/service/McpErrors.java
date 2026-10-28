@@ -1,0 +1,183 @@
+package at.hausgarten.service;
+
+import org.json.JSONObject;
+import java.util.*;
+
+/** One error boundary. Existing transport-specific codes/messages remain compatible. */
+final class McpErrors {
+    private McpErrors() {}
+    // Only reviewed internal constants may cross this boundary. Arbitrary exception
+    // messages can contain private text, paths or provider response bodies.
+    private static final Set<String> LOCAL_CODES=new HashSet<>(Arrays.asList(
+        "REVIER_SCHEMA_UPGRADE_REQUIRED","REVIER_RECORD_INVALID",
+        "LOCAL_AUTHORITY_REQUIRED","LOCAL_MIGRATION_REQUIRED_AFTER_RESTORE","LOCAL_STATE_BUILD_FAILED","LOCAL_BOOTSTRAP_INVALID",
+        "INVOICE_ORIGINAL_RECONCILIATION_REQUIRED","INVOICE_REVIEW_CONTEXT_REQUIRED","INVOICE_PDF_NOT_CREATED_REVIEW_REQUIRED",
+        "FINANCIAL_JOB_ORIGIN_INVALID","FINANCIAL_JOB_AUTHORIZATION_INVALID","FINANCIAL_JOB_ADOPTION_INVALID","FINANCIAL_RECOVERY_AUDIT_INVALID",
+        "INVOICE_OPENING_BALANCE_CORRECTION_REQUIRED","INVOICE_RECONCILIATION_REVIEW_REQUIRED",
+        "LOCAL_AUTHORITY_CURRENT_EVIDENCE_REQUIRED","LOCAL_AUTHORITY_RECEIPT_STALE_AFTER_RESTORE",
+        "LEGACY_SYNC_WRITER_DISABLED","LEGACY_SYNC_RETIRED","LOCAL_DATABASE_CONTRACT_REVIEW_REQUIRED","LOCAL_ORIGINAL_MISSING",
+        "LOCAL_STATE_CONTRACT_INVALID","LOCAL_STATE_METADATA_UNREADABLE","LOCAL_STORE_PATH_INVALID","RESTORE_DATABASE_STILL_OPEN",
+        "FINANCIAL_NUMBER_EVIDENCE_INVALID",
+        "FINANCIAL_ORIGINAL_EVIDENCE_INVALID","FINANCIAL_ORIGINAL_PATH_REJECTED","FINANCIAL_ORIGINAL_MISSING",
+        "FINANCIAL_ORIGINAL_SIZE_MISMATCH","FINANCIAL_ORIGINAL_HASH_MISMATCH","FINANCIAL_ORIGINAL_PDF_INVALID",
+        "FINANCIAL_ORIGINAL_CHANGED","FINANCIAL_ORIGINAL_READ_FAILED","FINANCIAL_ORIGINAL_INTERRUPTED",
+        "FINANCIAL_PAYMENT_DUPLICATE_REQUEST",
+        "FINANCIAL_AMOUNT_INVALID","FINANCIAL_COUNTER_INVALID","FINANCIAL_COUNTER_MISSING",
+        "FINANCIAL_DUPLICATE_ALLOCATION","FINANCIAL_DUPLICATE_ID","FINANCIAL_JOB_DOCUMENT_INVALID",
+        "FINANCIAL_JOB_INVALID","FINANCIAL_JOB_MISSING","FINANCIAL_JOB_SNAPSHOT_MISMATCH",
+        "FINANCIAL_MATERIAL_REFERENCE_INVALID","FINANCIAL_NAMESPACE_INVALID","FINANCIAL_NUMBER_COLLISION",
+        "FINANCIAL_OPENING_BALANCE_INVALID","FINANCIAL_PAYMENT_CORRECTION_INVALID","FINANCIAL_PAYMENT_INVALID",
+        "FINANCIAL_PAYMENT_REFERENCE_INVALID","FINANCIAL_PAYMENT_SUM_MISMATCH","FINANCIAL_QUANTITY_INVALID",
+        "FINANCIAL_RECORD_INVALID","FINANCIAL_REFERENCE_INVALID","FINANCIAL_REFERENCE_MISSING",
+        "FINANCIAL_RESERVATION_INVALID","FINANCIAL_RESERVATION_MISSING","FINANCIAL_RESERVATION_SNAPSHOT_MISMATCH",
+        "FINANCIAL_SOURCE_QUANTITY_EXCEEDED","FINANCIAL_SOURCE_REFERENCE_INVALID","FINANCIAL_SOURCE_SNAPSHOT_MISMATCH",
+        "PAYMENT_AMOUNT_MINOR_INVALID","PAYMENT_BALANCE_RECONCILIATION_REQUIRED","PAYMENT_CREDIT_DOCUMENT_ALLOCATION_REQUIRES_REVIEW",
+        "PAYMENT_ZERO_CORRECTION_REQUIRES_EMPTY_ALLOCATIONS",
+        "INVOICE_DOCUMENT_ORIGINAL_MISSING_OR_CHANGED","INVOICE_DOCUMENT_RECEIPT_INVALID","INVOICE_DOCUMENT_RECEIPT_STORAGE_UNAVAILABLE",
+        "INVOICE_CURRENT_LEDGER_INCOMPLETE","INVOICE_EVIDENCE_DUPLICATE","INVOICE_EVIDENCE_MISMATCH",
+        "INVOICE_EXTERNAL_ORIGINAL_MISSING","INVOICE_OPENING_BALANCE_INVALID","INVOICE_ORIGINAL_EVIDENCE_REQUIRED",
+        "INVOICE_RECONCILIATION_REPLAY_MISMATCH","INVOICE_RESERVATION_REVIEW_REQUIRED",
+        "INVOICE_MATERIAL_RECIPIENT_MISMATCH","INVOICE_MATERIAL_SOURCE_MISSING","INVOICE_MATERIAL_SOURCE_NOT_AVAILABLE",
+        "INVOICE_SOURCE_QUANTITY_REVIEW_REQUIRED","INVOICE_AUTHORITY_CHECKPOINT_PENDING","INVOICE_JOB_SCOPE_UNAVAILABLE",
+        "BACKUP_SAF_OWNED_TEMP_CLEANUP_REQUIRED","BACKUP_CAPTURE_METADATA_MISSING","BACKUP_RUNNER_BUSY",
+        "BACKUP_ALREADY_COMPLETE","BACKUP_AUTOMATIC_PAUSED","BACKUP_BROWSER_REPLAY_MISMATCH","BACKUP_BROWSER_EDITOR_STATE_MISMATCH",
+        "BACKUP_BROWSER_RESTORE_REVIEW_REQUIRED","BACKUP_BROWSER_REVISION_REQUIRED","BACKUP_BROWSER_STATE_CHANGED",
+        "BACKUP_BROWSER_STATE_INVALID","BACKUP_BROWSER_STATE_REQUIRED","BACKUP_BROWSER_STATE_REQUIRED_OPEN_APP",
+        "BACKUP_BROWSER_STATE_TOO_LARGE","BACKUP_BROWSER_STORAGE_INVALID","BACKUP_BROWSER_WRITE_CONFLICT",
+        "BACKUP_BUSINESS_ID_REQUIRED","BACKUP_BUSINESS_INVENTORY_MISMATCH","BACKUP_CAPTURE_ARCHIVE_MISMATCH",
+        "BACKUP_CAPTURE_IDENTITY_MISMATCH","BACKUP_CAPTURE_METADATA_CHANGED","BACKUP_CAPTURE_RECURSIVE_TARGET_REJECTED",
+        "BACKUP_CAPTURE_TARGET_EXISTS_OR_UNAVAILABLE","BACKUP_COMMIT_MISSING","BACKUP_CONTROL_REPLAY_MISMATCH",
+        "BACKUP_DATABASE_MANIFEST_MISMATCH","BACKUP_DATABASE_VERSION_UNSUPPORTED","BACKUP_DESTINATION_CHANGED_REVIEW_REQUIRED",
+        "BACKUP_DESTINATION_UNSUPPORTED","BACKUP_DEVICE_EPOCH_CONFLICT","BACKUP_DEVICE_GUARD_INVALID",
+        "BACKUP_DEVICE_GUARD_UNAVAILABLE","BACKUP_DRIVE_DESTINATION_REQUIRED","BACKUP_DUPLICATE_FILE",
+        "BACKUP_ENVELOPE_INVALID","BACKUP_ENVELOPE_TOO_LARGE","BACKUP_FILE_HASH_MISMATCH",
+        "BACKUP_FILE_SET_INVALID","BACKUP_FORMAT_UNSUPPORTED","BACKUP_INSTALLATION_AND_EPOCH_REQUIRED",
+        "BACKUP_INTENT_INVALID","BACKUP_INTERRUPTED","BACKUP_JOB_ATTEMPTS_INVALID",
+        "BACKUP_JOB_ATTEMPT_ID_INVALID","BACKUP_JOB_FIELD_IMMUTABLE","BACKUP_JOB_FORMAT_UNSUPPORTED",
+        "BACKUP_JOB_ID_CONFLICT","BACKUP_JOB_ID_REQUIRED","BACKUP_JOB_MANUAL_INTENT_INVALID",
+        "BACKUP_JOB_NOT_FOUND","BACKUP_JOB_PHASE_UNSUPPORTED","BACKUP_JOB_REPLAY_MISMATCH",
+        "BACKUP_JOB_RESTORE_CONTEXT_REVIEW_REQUIRED","BACKUP_JOB_RETRY_TIME_INVALID","BACKUP_JOB_REVISION_REQUIRED",
+        "BACKUP_JOB_SUPERSEDED","BACKUP_JOB_WRITE_CONFLICT","BACKUP_LOCAL_ORIGINALS_INCOMPLETE",
+        "BACKUP_LOCAL_VERIFICATION_REQUIRED","BACKUP_MANIFEST_INVALID","BACKUP_MANIFEST_TOO_LARGE",
+        "BACKUP_METADATA_TOO_LARGE","BACKUP_PAGE_INVALID","BACKUP_PATH_INVALID",
+        "BACKUP_PREFERENCES_CHANGED_RETRY","BACKUP_PREFERENCES_VERSION_UNSUPPORTED","BACKUP_PREFERENCE_TYPES_MISSING",
+        "BACKUP_PREFERENCE_TYPE_INVALID","BACKUP_PREFERENCE_TYPE_UNSUPPORTED","BACKUP_PREPARE_REQUIRES_OUTSIDE_TRANSACTION",
+        "BACKUP_PROVIDER_DESTINATION_REQUIRED","BACKUP_RECOVERY_SETUP_REQUIRED","BACKUP_REQUEST_ID_REQUIRED",
+        "BACKUP_RESTORE_CONTEXT_CHANGED","BACKUP_RESTORE_REPLAY_MISMATCH","BACKUP_RESTORE_REQUEST_ID_REQUIRED",
+        "BACKUP_REVISION_REQUIRED","BACKUP_SAF_COMMIT_CONTENT_MISMATCH","BACKUP_SAF_COMMIT_FORMAT_UNSUPPORTED",
+        "BACKUP_SAF_COMMIT_READBACK_MISMATCH","BACKUP_SAF_COMMIT_SOURCE_CHANGED","BACKUP_SAF_COMMIT_TOO_LARGE",
+        "BACKUP_SAF_CREATE_RESPONSE_UNCERTAIN","BACKUP_SAF_DUPLICATE_CANDIDATE","BACKUP_SAF_GENERATION_MISMATCH",
+        "BACKUP_SAF_INVENTORY_UNAVAILABLE","BACKUP_SAF_NAME_COLLISION","BACKUP_SAF_OPERATION_NOT_FOUND",
+        "BACKUP_SAF_PERMISSION_REQUIRED","BACKUP_SAF_READBACK_HASH_MISMATCH","BACKUP_SAF_READBACK_SIZE_MISMATCH",
+        "BACKUP_SAF_READ_UNAVAILABLE","BACKUP_SAF_REPLAY_MISMATCH","BACKUP_SAF_REQUEST_ID_REQUIRED",
+        "BACKUP_SAF_REQUIRES_OUTSIDE_TRANSACTION","BACKUP_SAF_RESTORE_CONTEXT_CHANGED","BACKUP_SAF_RUNNER_BUSY",
+        "BACKUP_SAF_SOURCE_CHANGED","BACKUP_SAF_STAGING_INVALID","BACKUP_SAF_STAGING_UNAVAILABLE",
+        "BACKUP_SAF_TREE_REQUIRED","BACKUP_SAF_WRITE_CONFLICT","BACKUP_SAF_WRITE_UNAVAILABLE",
+        "BACKUP_SCHEDULER_UNAVAILABLE","BACKUP_SEALED_ARCHIVE_CHANGED","BACKUP_SEALED_ARCHIVE_MISSING",
+        "BACKUP_SETTINGS_CHANGED","BACKUP_SETTINGS_REPLAY_MISMATCH","BACKUP_SETTINGS_REVISION_REQUIRED",
+        "BACKUP_SETTINGS_VERSION_UNSUPPORTED","BACKUP_SETTINGS_WRITE_CONFLICT","BACKUP_SETUP_REVIEW_REQUIRED",
+        "BACKUP_SNAPSHOT_ENGINE_UNSUPPORTED","BACKUP_SOURCE_CHANGED","BACKUP_SOURCE_LINK_OR_DIRECTORY_INVALID",
+        "BACKUP_SOURCE_LINK_REJECTED","BACKUP_SOURCE_UNAVAILABLE","BACKUP_SOURCE_UNREADABLE",
+        "BACKUP_STAGING_LINK_REJECTED","BACKUP_STAGING_UNAVAILABLE","BACKUP_STAGING_UNREADABLE",
+        "BACKUP_STORAGE_RESERVE_REQUIRED","BACKUP_UPLOAD_PHASE_UNSUPPORTED","BACKUP_UPLOAD_REQUIRES_OUTSIDE_TRANSACTION",
+        "BACKUP_VERSION_UNSUPPORTED","BACKUP_WORK_LINK_REJECTED","BACKUP_WORK_OWNERSHIP_MISMATCH",
+        "BACKUP_WORK_OWNERSHIP_UNCONFIRMED","BACKUP_WORK_PATH_REJECTED","BACKUP_WORK_STORAGE_UNAVAILABLE",
+        "INVALID_DECIMAL_POSITION","INVOICE_ALREADY_ISSUED","INVOICE_AUTHORITY_RECONCILIATION_REQUIRED",
+        "INVOICE_DOCUMENT_JOB_MISSING","INVOICE_DOCUMENT_SOURCE_MISMATCH","INVOICE_FROZEN_SNAPSHOT_CHANGED",
+        "INVOICE_NUMBER_COLLISION","INVOICE_NUMBER_CONFIGURATION_REQUIRED","INVOICE_NUMBER_RANGE_EXHAUSTED",
+        "INVOICE_NUMBER_ROLLBACK_DETECTED","INVOICE_NUMBER_ROLLBACK_RECONCILIATION_REQUIRED","INVOICE_NUMBER_STATE_INVALID",
+        "INVOICE_PDF_NOT_READY","INVOICE_SOURCE_ALREADY_BILLED","INVOICE_SOURCE_QUANTITY_EXCEEDED",
+        "INVOICE_SOURCE_UNIT_REVIEW_REQUIRED","INVOICE_TOTAL_MISMATCH","LOCAL_AUTHORITY_CONTRACT_UNSUPPORTED",
+        "LOCAL_AUTHORITY_EVIDENCE_REQUIRED","LOCAL_AUTHORITY_RECORD_INVALID","LOCAL_AUTHORITY_STORAGE_UNAVAILABLE",
+        "LOCAL_DATABASE_CONTRACT_UNSUPPORTED","LOCAL_FINANCIAL_QUERY_UNKNOWN","LOCAL_MIGRATION_DATA_REVIEW_REQUIRED",
+        "LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED","LOCAL_MIGRATION_OPEN_NUMBER_ACTIONS","LOCAL_MIGRATION_RECEIPT_MISMATCH",
+        "LOCAL_MIGRATION_REPLAY_MISMATCH","LOCAL_MIGRATION_REQUEST_ID_REQUIRED","LOCAL_MIGRATION_REVIEW_REQUIRED",
+        "LOCAL_MIGRATION_SYNC_STILL_RUNNING","LOCAL_MIGRATION_WRITE_CONFLICT","MONEY_REQUIRED",
+        "PAYMENT_ALLOCATION_EXCEEDS_AMOUNT","PAYMENT_ALLOCATION_INVALID","PAYMENT_ALREADY_CORRECTED",
+        "PAYMENT_AMOUNT_AND_ALLOCATION_REQUIRED","PAYMENT_CORRECTION_REASON_REQUIRED","PAYMENT_DATE_IN_FUTURE",
+        "PAYMENT_DUPLICATE_ID","PAYMENT_INVOICE_INVALID","PAYMENT_LEDGER_WRITE_CONFLICT",
+        "PAYMENT_METHOD_INVALID","PAYMENT_NOT_CORRECTABLE","PAYMENT_POSITIVE_AMOUNT_REQUIRED",
+        "RECOVERY_ALREADY_CONFIGURED","RECOVERY_CODE_INVALID","RECOVERY_CONFIRMATION_MISMATCH",
+        "RECOVERY_EXPORT_READBACK_FAILED","RECOVERY_EXPORT_UNAVAILABLE","RECOVERY_KEYSTORE_UNAVAILABLE_USE_RECOVERY_CODE",
+        "RECOVERY_NOT_CONFIGURED","RECOVERY_READBACK_FAILED","RECOVERY_SCOPE_INVALID",
+        "RECOVERY_STORAGE_INVALID","RECOVERY_STORAGE_UNAVAILABLE","RECOVERY_STORAGE_VERSION_UNSUPPORTED",
+        "REPLAY_MISMATCH","RESTORE_ACTIVATION_REPLAY_MISMATCH","RESTORE_ACTIVE_PATH_LINK_REJECTED",
+        "RESTORE_ACTIVE_PATH_OVERLAP","RESTORE_CANCELLATION_REPLAY_MISMATCH","RESTORE_CANCELLATION_REQUIRES_RECOVERY",
+        "RESTORE_CONFIRMATION_REQUIRED","RESTORE_CURRENT_BACKUP_PROOF_REQUIRED","RESTORE_DOCUMENT_REQUIRED",
+        "RESTORE_EXCHANGE_NEW_STATE_AMBIGUOUS","RESTORE_EXCHANGE_NEW_STATE_CHANGED","RESTORE_EXCHANGE_OLD_STATE_AMBIGUOUS",
+        "RESTORE_EXCHANGE_OLD_STATE_CHANGED","RESTORE_EXCHANGE_PATH_CONFLICT","RESTORE_EXCHANGE_STORAGE_UNAVAILABLE",
+        "RESTORE_EXCHANGE_TARGET_INVALID","RESTORE_EXCHANGE_TARGET_OVERLAP","RESTORE_HASH_REQUIRED",
+        "RESTORE_ID_INVALID","RESTORE_METADATA_TOO_LARGE","RESTORE_OTHER_ACTIVATION_PENDING",
+        "RESTORE_PATH_INVALID","RESTORE_PREFERENCE_PATH_REQUIRED","RESTORE_PREFERENCE_TYPE_UNSUPPORTED",
+        "RESTORE_PREPARED_STORAGE_UNAVAILABLE","RESTORE_PREVIEW_CHANGED","RESTORE_PREVIEW_NOT_REUSABLE",
+        "RESTORE_PROTECTION_REQUIRED","RESTORE_REPLAY_MISMATCH","RESTORE_REQUEST_ID_REQUIRED",
+        "RESTORE_RESTART_REQUIRED","RESTORE_ROLLBACK_NEW_STATE_AMBIGUOUS","RESTORE_ROLLBACK_NEW_STATE_REMAINS",
+        "RESTORE_ROLLBACK_OLD_STATE_AMBIGUOUS","RESTORE_SOURCE_UNAVAILABLE","RESTORE_SPACE_REQUIRED",
+        "RESTORE_SPACE_REQUIRED_OR_SOURCE_CHANGED","RESTORE_STAGED_FILE_CHANGED","RESTORE_STAGING_CLEANUP_REQUIRED",
+        "RESTORE_STAGING_LINK_REJECTED","RESTORE_STAGING_UNAVAILABLE","RESTORE_STARTUP_REENTRY",
+        "RESTORE_TARGET_CONTEXT_CHANGED","RESTORE_UNEXPECTED_STAGED_FILE","WRITE_CONFLICT"
+    ));
+    private static String localCode(Exception error){String value=error.getMessage();return value!=null&&LOCAL_CODES.contains(value)?value:null;}
+    private static String localMessage(String code){
+        if(code.equals("INVOICE_REVIEW_CONTEXT_REQUIRED"))return "Rechnung samt aktuellem Aussteller, Empfänger und Leistungsquellen neu öffnen, den vollständigen Prüfstand lesen und ausdrücklich bestätigen. Noch keine Nummer vergeben.";
+        if(code.equals("LOCAL_STATE_BUILD_FAILED"))return "Der lokale Datenstand konnte nicht vollständig aufgebaut werden. Lokalen Stand und geprüfte Sicherung am Gerät prüfen; keine automatische Rückspielung starten.";
+        if(code.equals("INVOICE_ORIGINAL_RECONCILIATION_REQUIRED"))return "Nach Wiederherstellung ist der ursprüngliche PDF-Stand ungeklärt. Aktuelles externes Original unverändert binden oder ausdrücklich nachweisen, dass noch kein Original erstellt wurde. Die Belegnummer bleibt erhalten; kein PDF wird automatisch neu erzeugt.";
+        if(code.equals("LOCAL_AUTHORITY_CURRENT_EVIDENCE_REQUIRED")||code.equals("LOCAL_AUTHORITY_RECEIPT_STALE_AFTER_RESTORE"))return "Nach Umstellung oder Wiederherstellung aktuellen externen Beleg-/Nummernstand für diese Installation neu prüfen und ausdrücklich bestätigen. Eine frühere Bestätigung gibt nichts frei.";
+        if(code.equals("LEGACY_SYNC_WRITER_DISABLED"))return "Der lokale Pixelbestand ist maßgeblich. Alte operative Drive-Schreibwege bleiben gesperrt; Drive dient der Vollsicherung.";
+        if(code.equals("LEGACY_SYNC_RETIRED"))return "Der frühere Drive-Geschäftsabgleich ist stillgelegt. Lokale Daten und Aktionen bleiben erhalten. Vollsicherung in der App einrichten oder get_full_backup_status lesen; es wurde keine Sicherung gestartet.";
+        if(code.equals("LOCAL_BOOTSTRAP_INVALID"))return "Der leere lokale App-Ausgangsstand konnte nicht geprüft werden. App-Version und Sicherungsstand prüfen; keine automatische Übernahme externer Daten und keine Änderung ausgeführt.";
+        if(code.equals("LOCAL_ORIGINAL_MISSING")||code.equals("INVOICE_DOCUMENT_ORIGINAL_MISSING_OR_CHANGED")||code.startsWith("FINANCIAL_ORIGINAL_"))return "Ein benötigtes Original fehlt, ist verändert oder konnte nicht vollständig geprüft werden. Geprüfte Sicherung am Gerät prüfen; Originale werden nicht automatisch ersetzt.";
+        if(code.equals("INVOICE_PDF_NOT_READY"))return "Das Rechnungs-PDF ist noch nicht lokal verifiziert. Dokumentauftrag prüfen oder denselben Auftrag erneut ausführen; Belegnummer bleibt erhalten.";
+        if(code.contains("WRITE_CONFLICT")||code.contains("EPOCH_CONFLICT")||code.endsWith("CHANGED"))return "Der gespeicherte Stand hat sich geändert. Neu laden; Eingaben bleiben erhalten.";
+        if(code.equals("BACKUP_BROWSER_EDITOR_STATE_MISMATCH"))return "Formularentwürfe und Sicherungsaufnahme gehören noch nicht zum selben lokalen Stand. Zur App zurückkehren und die Sicherung erneut öffnen; bestätigte Geschäftsdaten bleiben erhalten.";
+        if(code.contains("REPLAY_MISMATCH"))return "Die Anfragekennung gehört zu anderen Angaben. Die ursprüngliche Aktion prüfen.";
+        if(code.contains("AUTHORITY")||code.contains("RECONCILIATION"))return "Rechnungsausgabe bleibt gesperrt: aktuellen Original-/Nummernstand und den alleinigen Schreiber nachweisen und erneut prüfen.";
+        if(code.equals("PAYMENT_ZERO_CORRECTION_REQUIRES_EMPTY_ALLOCATIONS"))return "Eine Zahlung vollständig zurücknehmen: Betrag 0, keine neuen Rechnungszuordnungen und einen Korrekturgrund angeben. Die ursprüngliche Zahlung bleibt protokolliert; keine Bankbuchung wird ausgelöst.";
+        if(code.equals("PAYMENT_AMOUNT_AND_ALLOCATION_REQUIRED"))return "Zahlung mit Betrag, Datum, Zahlungsart und ausdrücklicher Rechnungszuordnung erfassen. Persönliches b.b. bleibt unabhängig.";
+        if(code.contains("DECIMAL")||code.startsWith("MONEY_"))return "Beträge und Mengen mit exakten Dezimalwerten beziehungsweise kleinsten Währungseinheiten prüfen.";
+        if(code.startsWith("RECOVERY_"))return "Wiederherstellungscode und Geräteeinrichtung prüfen. Gespeicherte Daten bleiben erhalten.";
+        if(code.contains("STORAGE")||code.contains("SPACE"))return "Freien Speicher und gewähltes Sicherungsziel prüfen. Die letzte geprüfte Sicherung bleibt erhalten.";
+        if(code.contains("RESTORE")||code.contains("VERSION")||code.contains("SCHEMA"))return "Version und Wiederherstellungsstand müssen geprüft werden. Alte Schreibvorgänge bleiben gesperrt.";
+        return "Der lokale Vorgang benötigt Prüfung. Gespeicherten Stand und Geräteeinrichtung prüfen.";
+    }
+
+
+    private static String code(Exception error, String fallback) {
+        String local=localCode(error);
+        return error instanceof PixelMcpWriteTools.Rejected
+            ? ((PixelMcpWriteTools.Rejected) error).code : local!=null?local:fallback;
+    }
+
+    static JSONObject rpc(Exception error) throws Exception {
+        String local=localCode(error);
+        JSONObject problem = new JSONObject()
+            .put("code", code(error, error instanceof HttpTransport.Failure
+                ? ((HttpTransport.Failure) error).code
+                : error instanceof IllegalArgumentException ? "INVALID_INPUT" : "READ_ERROR"))
+            .put("message", local!=null?localMessage(local):error instanceof IllegalArgumentException || error instanceof HttpTransport.Failure
+                ? error.getMessage()
+                : "Anfrage nicht möglich. Pflichtangaben, Datensatz-ID oder gespeicherten Drive-Stand prüfen.");
+        if (error instanceof HttpTransport.Failure) {
+            HttpTransport.Failure failure = (HttpTransport.Failure) error;
+            problem.put("retry_after_ms", Math.max(0, Math.min(3600000, failure.retryAfter)))
+                .put("user_action_required", failure.userAction);
+        }
+        if(local!=null)problem.put("user_action_required",true);
+        rejection(problem,error);return envelope(problem);
+    }
+
+    static JSONObject bridge(Exception error) throws Exception {
+        String local=localCode(error);
+        JSONObject problem=new JSONObject().put("code", code(error, "VALIDATION_ERROR"))
+            .put("message", local!=null?localMessage(local):error instanceof IllegalArgumentException ? error.getMessage()
+                : "Vorgang nicht abgeschlossen. Sicherung, Versionen und Berechtigungen prüfen.");rejection(problem,error);return envelope(problem);
+    }
+
+    private static void rejection(JSONObject problem,Exception error)throws Exception {
+        String code=problem.optString("code");if(error instanceof PixelMcpWriteTools.Rejected&&!Arrays.asList("REPLAY_MISMATCH","REQUEST_EXPIRED").contains(code))problem.put("commit_state","not_committed");
+    }
+    private static JSONObject envelope(JSONObject problem) throws Exception {
+        if(problem.optString("code").equals("RESTORE_FULL_REPLACEMENT_REQUIRED"))problem.put("device_step","open_full_backup_restore").put("required_restore_contract","encrypted_full_replacement_v1");
+        return new JSONObject().put("ok", false).put("error", problem);
+    }
+}

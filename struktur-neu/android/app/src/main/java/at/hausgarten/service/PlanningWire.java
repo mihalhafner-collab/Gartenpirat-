@@ -1,0 +1,23 @@
+package at.hausgarten.service;
+import java.net.*;
+import java.io.*;
+import java.util.*;
+
+/** Fixed HTTPS destinations only; never includes provider bodies/URLs/keys in errors. */
+final class PlanningWire implements HttpTransport.Wire {
+    static boolean allowed(String method,URL target,Map<String,String> headers){
+        if(!"https".equals(target.getProtocol())||target.getPort()!=-1||target.getUserInfo()!=null||!Arrays.asList("www.googleapis.com","warnungen.zamg.at","dataset.api.hub.geosphere.at","charts.ecmwf.int","api.open-meteo.com").contains(target.getHost()))return false;
+        if(!"www.googleapis.com".equals(target.getHost())){
+            if(!"GET".equals(method))return false;
+            for(String name:headers.keySet())if(name.equalsIgnoreCase("Authorization")||name.equalsIgnoreCase("Cookie"))return false;
+        }return true;
+    }
+    public HttpTransport.Reply send(String method,String url,Map<String,String> headers,byte[] body,int maximum)throws Exception {
+        URL target=new URL(url);if(!allowed(method,target,headers))throw new SecurityException("Nicht freigegebenes Planungsziel.");
+        HttpURLConnection c=(HttpURLConnection)target.openConnection();c.setConnectTimeout(8000);c.setReadTimeout(12000);c.setInstanceFollowRedirects(false);c.setRequestMethod(method);
+        try{for(Map.Entry<String,String> h:headers.entrySet())c.setRequestProperty(h.getKey(),h.getValue());if(body!=null){c.setDoOutput(true);c.setFixedLengthStreamingMode(body.length);try(OutputStream out=c.getOutputStream()){out.write(body);}}
+            int code=c.getResponseCode();Map<String,String> hs=new HashMap<>();for(Map.Entry<String,List<String>> h:c.getHeaderFields().entrySet())if(h.getKey()!=null&&!h.getValue().isEmpty())hs.put(h.getKey(),h.getValue().get(0));
+            InputStream input=code>=400?c.getErrorStream():c.getInputStream();ByteArrayOutputStream result=new ByteArrayOutputStream();if(input!=null)try(InputStream in=input){byte[] buffer=new byte[8192];int n;while((n=in.read(buffer))!=-1){if(result.size()+n>maximum)throw new IOException("Planungsantwort zu groß.");result.write(buffer,0,n);}}return new HttpTransport.Reply(code,result.toByteArray(),hs);
+        }catch(IOException e){throw new IOException("Planungsdienst nicht erreichbar. Gespeicherte Daten bleiben erhalten.");}finally{c.disconnect();}
+    }
+}

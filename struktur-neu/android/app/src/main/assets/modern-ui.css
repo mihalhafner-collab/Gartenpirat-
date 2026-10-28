@@ -1,0 +1,90 @@
+/* Contemporary presentation only. Routes, field order and owner commands stay intact. */
+body.revier-solo{
+ --hg-bg:#f4f5f8;--hg-surface:#fff;--hg-text:#141820;--hg-muted:#515d6c;--hg-line:#c3cbd5;
+ --hg-green:#242b39;--hg-green-btn:#242b39;--hg-sage:#edf0f5;--green:#242b39;--green2:#242b39;
+ --sage:#edf0f5;--muted:#515d6c;--line:#c3cbd5;--signal:#d7fa50;
+ color:var(--hg-text);background:var(--hg-bg);font-family:Roboto,system-ui,"Noto Sans",sans-serif;line-height:1.4;
+}
+body.revier-solo :is(h1,h2,h3,h4,button,input,select,textarea){font-family:inherit}
+body.revier-solo :is(h1,h2,h3,h4){color:var(--hg-text);letter-spacing:-.025em}
+body.revier-solo h2{font-size:1.55rem;font-weight:750;line-height:1.2}
+body.revier-solo h3{font-size:1.1rem;font-weight:700}
+body.revier-solo :is(.sub,small,.list-detail,label){color:var(--hg-muted);font-size:.92rem;line-height:1.4}
+body.revier-solo :is(.card,.customer-card,.design-card){background:#fff;border:1px solid #d5dbe3;border-radius:16px;box-shadow:none}
+body.revier-solo .card{padding:16px;margin-bottom:12px}
+body.revier-solo .app{max-width:760px;padding-left:16px;padding-right:16px}
+body.revier-solo .page-head{gap:8px;margin-bottom:18px}
+body.revier-solo #home>.page-head h2{font-size:2rem;letter-spacing:-.045em}
+body.revier-solo .revier-globalbar{border:0;background:var(--hg-bg);min-height:52px;padding:4px 0;margin-bottom:4px}
+body.revier-solo .revier-globalbar>span{font-size:.77rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#424c5b;display:flex;align-items:center;gap:8px}
+body.revier-solo .revier-globalbar>span::before{content:'';width:12px;height:12px;background:var(--signal);border:2px solid #242b39;border-radius:3px;transform:rotate(-8deg)}
+/* Five transparent border pixels keep the hit area while reducing visible button mass. */
+body.revier-solo button:not(.nav):not(.revier-row):not(.customer-profile):not(.back):not(.customer-card){min-height:48px;border-radius:15px;letter-spacing:0;box-shadow:none}
+body.revier-solo :is(button.primary,button.secondary){border:5px solid transparent;background-clip:padding-box;padding:6px 12px;font-size:.9rem;font-weight:650;min-height:48px}
+body.revier-solo button.primary{background-color:#242b39;color:#fff}
+body.revier-solo button.secondary{background-color:#e8edf4;color:#242b39}
+body.revier-solo :is(button.danger,button.danger-button,.danger button){background-color:#922f34;color:#fff}
+body.revier-solo button:disabled{opacity:.55}
+body.revier-solo :is(button,input,select,textarea,summary):focus-visible{outline:3px solid #4960ae;outline-offset:2px}
+body.revier-solo :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea){background:#f3f5f9;color:#141820;border:1px solid #aeb9c9;border-radius:11px;min-height:48px;box-shadow:none;padding:10px 12px}
+body.revier-solo :is(input,textarea)::placeholder{color:#5d6876;opacity:1}
+body.revier-solo label{font-weight:550;margin-bottom:5px}
+body.revier-solo :is(.revier-actions,.actions){gap:4px}
+body.revier-solo :is(.simple-actions,.revier-sticky-actions){background:#f4f5f8;border-color:#d5dbe3;box-shadow:none;padding:8px 0}
+body.revier-solo :is(details.simple-extras,details.more){background:#fff;border:1px solid #d5dbe3;border-radius:12px}
+body.revier-solo summary{color:#374253;font-size:.9rem;min-height:48px}
+body.revier-solo .revier-row{background:#fff;border:1px solid #d5dbe3;border-radius:13px;padding:12px 14px;text-align:left;min-height:64px;position:relative}
+body.revier-solo .revier-row strong{color:#141820;font-size:1rem;font-weight:700}
+body.revier-solo .revier-row span{color:#515d6c;font-size:.9rem}
+body.revier-solo .revier-list{gap:8px}
+body.revier-solo .revier-today{border:0;border-left:5px solid #242b39;background:#e9edf4;padding:16px 15px;border-radius:2px 16px 16px 2px}
+body.revier-solo .revier-today :is(h2,h3){color:#141820}
+body.revier-solo :is(.revier-today-row,.today-appointment){background:#fff;border-color:#d0d8e3;border-radius:12px}
+body.revier-solo #field-today-actions .primary{background-color:var(--signal);color:#1c2610}
+body.revier-solo .bottom{background:#fff;border-top:1px solid #c3cbd5;box-shadow:none;padding:7px 10px max(9px,env(safe-area-inset-bottom))}
+body.revier-solo .bottom-inner{max-width:728px;gap:8px}
+body.revier-solo .bottom .nav{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:56px;min-width:48px;padding:5px 6px;border:0;border-radius:13px;background:transparent;color:#515d6c;font-size:.78rem;font-weight:650;line-height:1.2;box-shadow:none}
+body.revier-solo .bottom .nav.active,body.revier-solo .bottom .nav[aria-current=page]{color:#17220a;background:#d7fa50}
+body.revier-solo .bottom .nav::before{display:none}
+.bottom .nav svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+body.revier-solo :is(.customer-avatar,.date-chip){background:#e8edf4;color:#242b39;border-radius:12px}
+body.revier-solo :is(.customer-hub-tabs,.design-tabs) button[aria-selected=true]{color:#242b39;border-color:#242b39}
+body.revier-solo :is(.revier-warning,.warning){background:#fff4d6;color:#63440d;border:1px solid #a68640;border-radius:12px}
+body.revier-solo :is(.revier-error,.error,[role=alert]){color:#922f34}
+body.revier-solo .equipment-photo-editor{display:flex;align-items:center;gap:12px;padding:12px;background:#edf0f5;border-radius:14px;margin-bottom:16px;min-width:0}
+.equipment-photo-editor>div{min-width:0}.equipment-photo-editor>div:nth-child(2){flex:1}
+body.revier-solo .equipment-photo-editor input[hidden]{display:none!important}
+.equipment-photo-thumb,.equipment-photo-placeholder{display:block;width:76px;height:76px;object-fit:cover;border-radius:14px;background:#dde4ee;color:#515d6c}
+.equipment-photo-placeholder{display:grid;place-items:center;font-size:.8rem;border:1px dashed #929eaf}
+.equipment-photo-avatar{float:left;width:48px;height:48px;margin-right:12px}
+.equipment-photo-avatar :is(.equipment-photo-thumb,.equipment-photo-placeholder){width:48px;height:48px;border-radius:10px}
+.equipment-photo-detail{padding:8px 0 16px}.equipment-photo-detail :is(.equipment-photo-thumb,.equipment-photo-placeholder){width:120px;height:120px;border-radius:18px}
+body.revier-solo .equipment-photo-editor .sub{overflow-wrap:anywhere;font-size:.83rem;margin:4px 0}
+body.revier-solo .equipment-photo-editor .revier-actions{flex-wrap:wrap}
+.page[data-quiet-saved=true]>.page-head h2::after{content:'✓';display:inline-grid;place-items:center;vertical-align:middle;margin-left:8px;font:700 .8rem/1 system-ui;color:#243014;background:#d7fa50;width:24px;height:24px;border-radius:50%}
+body.revier-solo #mobile-toast{background:#242b39;color:#fff;border:0;border-radius:13px;box-shadow:0 4px 14px #0002;pointer-events:none}
+body.revier-solo #mobile-toast :is(button,a){pointer-events:auto}
+@media(max-width:350px){body.revier-solo .app{padding-left:12px;padding-right:12px}.equipment-photo-editor{flex-wrap:wrap}.equipment-photo-editor>div:nth-child(2){min-width:150px}}
+@media(prefers-reduced-motion:reduce){body.revier-solo *{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+
+body.revier-solo .bottom .nav>span{font-size:.78rem;line-height:1.2}
+body.revier-solo #today-action-dock .timer-main{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#242b39;color:#fff;border:5px solid transparent;background-clip:padding-box;border-radius:15px;padding:6px 12px;min-height:48px}
+body.revier-solo #today-action-dock .timer-main small{color:#e2e8f0;font-size:.8rem;text-align:right}
+body.revier-solo #today-action-dock .timer-main b{font-size:.94rem}
+body.revier-solo .revier-state{color:#515d6c;font-size:.86rem}
+body.revier-solo .revier-search{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+body.revier-solo .revier-search label{position:absolute;width:1px;height:1px;padding:0;clip-path:inset(50%);overflow:hidden;white-space:nowrap}
+body.revier-solo .revier-search input{flex:1;min-width:120px}
+body.revier-solo .revier-search button{flex:none}
+
+body.revier-solo #revier-global-status{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0}
+body.revier-solo .equipment-photo-editor .revier-actions{display:flex;flex-wrap:wrap;gap:2px}
+body.revier-solo .equipment-photo-editor button.secondary{width:auto;flex:0 1 auto;padding:6px 10px;font-size:.84rem}
+body.revier-solo #revier-editor-state{font-size:.86rem;color:#515d6c}
+body.revier-solo #revier-editor-state[data-editor-state=pristine]{display:none}
+
+body.revier-solo .planning-tabs>button{border:1px solid var(--hg-line);background-clip:border-box;background:#fff;color:#515d6c}
+body.revier-solo .planning-tabs>button[aria-pressed=true]{border:2px solid #242b39;background:#edf0f5;color:#242b39}
+
+body.revier-solo button.card.design-profile-row[data-offer-open]{display:block;width:100%;padding:10px;border:1px solid #c3cbd5;text-align:left}
+body.revier-solo button[data-offer-open] :is(strong,span){display:block;width:auto;min-width:0;overflow-wrap:anywhere}

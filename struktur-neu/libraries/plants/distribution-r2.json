@@ -1,0 +1,21 @@
+{
+  "file": "Pflanzenbibliothek-2026-10-23-r2.zip",
+  "sha256": "412a67476b1188c6987821c2c34fb3fc5ef02147d6de4ef36cf0746ecb87edb7",
+  "bytes": 30626529,
+  "sourceCommit": "78e0204cd7155799c61c4a88f98150baffeb9ffd",
+  "profiles": 314,
+  "photoReferences": 1140,
+  "includedImageCount": 335,
+  "newImageOriginalsDownloaded": 0,
+  "newImageOriginalsVisuallyReviewed": 0,
+  "archiveReadback": "ALL_MEMBERS_SHA256_MATCH",
+  "artifactPrivacy": {
+    "status": "PASS",
+    "sha256": "412a67476b1188c6987821c2c34fb3fc5ef02147d6de4ef36cf0746ecb87edb7",
+    "operational_seed_rows": 0
+  },
+  "applicationIntegrated": false,
+  "kind": "EDITORIAL_LIBRARY_DATA_PACKAGE_NOT_APPLICATION_SOURCE_EXPORT",
+  "remoteSourceVerified": "refs/heads/codex/pflanzenbibliothek-20261023",
+  "fullApplicationSourceExport": "BLOCKED_BY_21_PREEXISTING_WORKSPACE_PRIVACY_FINDINGS"
+}

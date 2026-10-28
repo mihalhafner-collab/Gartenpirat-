@@ -1,0 +1,39 @@
+/* Common operation across the existing screens; no business state is styled away. */
+body.simple-ui button,body.simple-ui summary{min-height:48px;touch-action:manipulation}
+body.simple-ui input:not([type=checkbox]):not([type=radio]):not([type=hidden]),body.simple-ui select,body.simple-ui textarea{min-height:48px;font-size:1rem;max-width:100%;min-width:0}
+body.simple-ui .page-head{align-items:center;gap:12px}
+body.simple-ui .simple-back{min-width:48px;border-radius:12px}
+body.simple-ui .simple-form{min-width:0}
+body.simple-ui .revier-page [role=status]:empty{display:none}
+body.simple-ui [data-revier-draft-actions]{display:contents}
+body.simple-ui [data-revier-draft-actions]>button{flex:1 1 140px}
+body.simple-ui .simple-form label{line-height:1.4}
+body.simple-ui .simple-form :focus-visible{outline:3px solid var(--hg-text);outline-offset:3px}
+body.simple-ui .simple-options{margin:12px 0;border:1px solid var(--hg-line);border-radius:12px;padding:0 12px}
+body.simple-ui .simple-options>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:700;cursor:pointer;list-style:none;padding:10px 0}
+body.simple-ui .simple-options>summary::-webkit-details-marker{display:none}
+body.simple-ui .simple-options>summary:after{content:'＋';flex:none}
+body.simple-ui .simple-options[open]>summary:after{content:'−'}
+body.simple-ui .simple-options>fieldset{border:0;padding:0;min-width:0}
+body.simple-ui .simple-options>label:last-child,body.simple-ui .simple-options>textarea:last-child{margin-bottom:12px}
+body.simple-ui .simple-choices{display:flex;flex-wrap:wrap;gap:6px;margin:7px 0 10px}
+body.simple-ui .simple-choices>button{flex:1 1 auto;min-width:48px;padding:8px 10px;font-size:.85rem}
+body.simple-ui .simple-actions{position:sticky;bottom:var(--app-nav-height,80px);z-index:3;display:flex;flex-wrap:wrap;gap:8px;background:var(--hg-bg);border-top:1px solid var(--hg-line);padding:10px 0 max(10px,env(safe-area-inset-bottom));margin-top:16px}
+body.simple-ui .simple-actions>button{min-height:52px;min-width:0;flex:1 1 40%;margin:0;white-space:normal}
+body.simple-ui .simple-actions>.simple-discard{order:1;background:var(--hg-surface);color:var(--hg-danger);border:1px solid var(--hg-line)}
+body.simple-ui .simple-actions>.simple-save,body.simple-ui .simple-actions>[type=submit]{order:2}
+body.simple-ui .simple-actions>.simple-later{order:0;flex-basis:100%}
+body.simple-ui dialog .simple-actions{bottom:0}
+body.simple-ui #field-quick-entry{background:var(--hg-bg)}
+body.simple-ui #field-quick-entry .field-sheet-heading{display:flex;align-items:center;gap:12px;padding-bottom:12px}
+body.simple-ui #field-quick-entry .field-sheet-heading p{display:none}
+body.simple-ui #field-quick-entry #entry>.actions{background:var(--hg-bg);bottom:0}
+body.simple-ui #field-quick-entry #entry>.actions>#new-work-cancel{order:1}
+body.simple-ui #field-quick-entry #entry>.actions>[type=submit]{order:2}
+body.simple-ui #field-quick-entry #hours-result{display:block;margin-bottom:12px}
+body.simple-ui #field-quick-entry .simple-times{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+body.simple-ui #field-quick-entry .simple-date-hours{display:block}
+body.simple-ui .revier-sticky-actions.simple-actions{position:sticky}
+body.simple-ui .simple-form .revier-grid:empty{display:none}
+@media(max-width:390px){body.simple-ui .simple-form .revier-grid{grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:reduce){body.simple-ui *{scroll-behavior:auto!important;transition:none!important}}

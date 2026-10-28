@@ -1,0 +1,6 @@
+{
+  "package": "at.hausgarten.service",
+  "version_name": "1.45.0",
+  "version_code": 64,
+  "certificate_variable": "HG_ORIGINAL_CERT_SHA256"
+}

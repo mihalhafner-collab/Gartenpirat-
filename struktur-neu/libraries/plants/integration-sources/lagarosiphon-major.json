@@ -1,0 +1,63 @@
+{
+  "plantId": "lagarosiphon-major",
+  "checkedAt": "2026-10-23",
+  "requestUrl": "https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrsearch=incategory%3A%22Lagarosiphon+major%22+filetype%3Abitmap&gsrlimit=50&prop=imageinfo&iiprop=url%7Cextmetadata",
+  "responseSha256": "d91d36b617f57ec621e713fd2cedf18017906ba6f9f66206197f1601bd43bbae",
+  "method": "Fresh Commons imageinfo/extmetadata with individual author, license and original URL; no visual approval.",
+  "images": [
+    {
+      "id": "lagarosiphon-major-fresh-86569966",
+      "caption": "Flickr description Howardian",
+      "author": "Dr Mary Gillham Archive Project",
+      "license": "CC-BY-2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Lagarasiphon_major,_Howardian,_August_1992_(34388714862).jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Lagarasiphon_major%2C_Howardian%2C_August_1992_%2834388714862%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    {
+      "id": "lagarosiphon-major-fresh-86569960",
+      "caption": "Flickr description Howardian scrape, marsh",
+      "author": "Dr Mary Gillham Archive Project",
+      "license": "CC-BY-2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Lagarosiphon_major._Howardian,_1992_(30491279833).jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/4/43/Lagarosiphon_major._Howardian%2C_1992_%2830491279833%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    {
+      "id": "lagarosiphon-major-fresh-86569963",
+      "caption": "Flickr description Howardian scrape, marsh",
+      "author": "Dr Mary Gillham Archive Project",
+      "license": "CC-BY-2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Lagarosiphon_major._Howardian_Reserve,_Cardiff,_August_1992_(30491279013).jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/6/61/Lagarosiphon_major._Howardian_Reserve%2C_Cardiff%2C_August_1992_%2830491279013%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    {
+      "id": "lagarosiphon-major-fresh-174326727",
+      "caption": "Lagarosiphon major unterwasser",
+      "author": "Lorenz Seebauer",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Lagarosiphon_major_Detail.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/a/aa/Lagarosiphon_major_Detail.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    {
+      "id": "lagarosiphon-major-fresh-50203390",
+      "caption": "Lagarosiphon major flowers on Salagou Lake in the commune of Clermont-l'Hérault, Hérault, France",
+      "author": "Christian Ferrer",
+      "license": "CC-BY-SA-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Lagarosiphon_major_flowers_on_Salagou_Lake_cf01.jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/0/0a/Lagarosiphon_major_flowers_on_Salagou_Lake_cf01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    {
+      "id": "lagarosiphon-major-fresh-86569973",
+      "caption": "Flickr description Water plant set. True aquatics",
+      "author": "Dr Mary Gillham Archive Project",
+      "license": "CC-BY-2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Lagarosiphon_majus,_Danydarren_Quarry_pool,_Cefn_Coed,_1994_(29296982852).jpg",
+      "originalLocator": "https://upload.wikimedia.org/wikipedia/commons/f/f0/Lagarosiphon_majus%2C_Danydarren_Quarry_pool%2C_Cefn_Coed%2C_1994_%2829296982852%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    }
+  ]
+}

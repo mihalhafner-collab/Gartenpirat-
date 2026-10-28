@@ -1,0 +1,22 @@
+.personal-payment-record{display:flex;align-items:center;gap:8px;border-bottom:1px solid #e8ede9}
+#worklog-list .personal-payment-record{margin-right:0;display:grid;grid-template-columns:minmax(0,1fr);padding-right:0}
+#worklog-list .personal-payment-record>.worklog-entry{width:100%;padding-right:13px!important}
+#worklog-list .personal-payment-toggle{justify-self:start;margin:0 12px 12px;max-width:calc(100% - 24px);white-space:normal}
+#worklog-list .worklog-entry-head{flex-wrap:wrap}
+#worklog-list .worklog-entry-identity{flex:1 1 140px}
+#worklog-list .design-record-row:has(.personal-payment-record){display:grid;grid-template-columns:minmax(0,1fr) 48px;align-items:start}
+#worklog-list .design-record-row:has(.personal-payment-record)>.design-record-menu{position:static}
+.personal-payment-record>.worklog-entry,.personal-payment-record>.workday-recent-row{flex:1;min-width:0;border-bottom:0}
+.personal-payment-toggle{flex:0 0 auto;min-height:44px;min-width:44px;margin-right:6px;padding:8px;border:1px solid #b8c7bc;border-radius:10px;background:#fff;color:#174b32;font:inherit;font-size:13px}
+.personal-payment-toggle[aria-pressed=true]{background:#e7f2e9;border-color:#347c4d}
+.personal-payment-label{display:block;color:#24633b;font-weight:600;grid-column:1/-1}
+
+.page-head h2{min-width:0;overflow-wrap:anywhere;hyphens:auto}
+/* One action row works with either decorator order. Text uses the full row. */
+#worklog-list .design-record-row,#worklog-list .personal-payment-record{display:grid;grid-template-columns:minmax(0,1fr) 48px;align-items:start}
+#worklog-list .design-record-row:not(.personal-payment-record)>.personal-payment-record{display:contents}
+#worklog-list .worklog-entry{grid-column:1/-1;padding-right:13px!important}
+#worklog-list .personal-payment-toggle{grid-column:1}
+#worklog-list .design-record-menu{position:static!important;grid-column:2;justify-self:end}
+#worklogs>.page-head:not(:has(.add-button)){padding-right:0}
+#worklogs>.page-head h2{font-size:clamp(1rem,5vw,1.5rem);line-height:1.2}

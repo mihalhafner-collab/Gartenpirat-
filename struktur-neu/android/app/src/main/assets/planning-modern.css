@@ -1,0 +1,52 @@
+/* Three compact list control rows: range, view/problem chip, week strip. Editor contract unchanged. */
+#planning-page[data-planning-mode=list]{position:relative;padding-top:0}
+#planning-page[data-planning-mode=list]>.page-head{position:absolute;right:0;top:0;min-height:0;margin:0;padding:0;z-index:12}
+#planning-page[data-planning-mode=list]>.page-head>h2,#planning-page[data-planning-mode=list]>.page-head>.back{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+#planning-page #planning-message:empty{display:none;margin:0}
+#planning-page[data-planning-mode=list] .planning-range{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:0 56px 6px 0;min-height:48px}
+#planning-page[data-planning-mode=list] .planning-range button{flex:0 0 48px;min-width:48px;width:48px;min-height:48px;padding:6px;margin:0;border:0;background:transparent}
+#planning-page[data-planning-mode=list] .planning-range strong{flex:1 1 min-content;min-width:min-content;align-self:center;text-align:center;font-size:.85rem;line-height:1.35;white-space:normal;overflow-wrap:normal}
+#planning-page[data-planning-mode=list] .planning-modebar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-height:48px;margin-bottom:6px}
+#planning-page[data-planning-mode=list] .planning-tabs{display:grid;grid-template-columns:repeat(2,minmax(48px,1fr));gap:0;flex:1 1 145px;margin:0}
+#planning-page[data-planning-mode=list] .planning-tabs button{min-width:48px;min-height:48px;margin:0;padding:8px;font-size:.85rem;line-height:1.3}
+#planning-page[data-planning-mode=list] .planning-connection-chip{flex:1 1 120px;min-width:48px;min-height:48px;margin:0;padding:6px 8px;font-size:.75rem;line-height:1.35;overflow-wrap:anywhere;background:var(--hg-warn-bg);color:var(--hg-warn-text)}
+#planning-page[data-planning-mode=list] .planning-week-strip{grid-template-columns:repeat(7,minmax(48px,1fr));gap:0;margin:0 0 8px}
+#planning-page[data-planning-mode=list] .planning-week-day{min-width:48px;min-height:58px;padding:4px 1px;gap:0;border-radius:8px;font-size:.7rem;line-height:1.25}
+#planning-page[data-planning-mode=list] .planning-week-day>strong{font-size:.85rem;line-height:1.25}
+#planning-page[data-planning-mode=list] .planning-day-count{min-height:6px;font-size:0;gap:0}
+#planning-page[data-planning-mode=list] .planning-day-head{margin:8px 0 6px;font-size:.8rem;line-height:1.4}
+#planning-page[data-planning-mode=list] .planning-row[data-appointment-open]{margin:0 0 8px;padding:10px;gap:4px 8px}
+#planning-page[data-planning-mode=list] .planning-customer,#planning-page[data-planning-mode=list] .planning-what{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+#planning-page #planning-tools{position:relative;margin:0;flex:none}
+#planning-page #planning-tools>summary{display:grid;place-items:center;list-style:none;min-width:48px;width:48px;min-height:48px;padding:0;font-size:1.5rem;line-height:1;border:1px solid var(--hg-line);border-radius:12px;background:var(--hg-surface);color:var(--hg-green);cursor:pointer}
+#planning-page #planning-tools>summary::-webkit-details-marker{display:none}
+#planning-page #planning-tools .planning-tools-panel{position:absolute;right:0;top:56px;z-index:20;display:grid;gap:10px;width:min(320px,calc(100vw - 24px));max-height:calc(100dvh - 150px);overflow:auto;padding:12px;border:1px solid var(--hg-line);border-radius:16px;background:var(--hg-surface);box-shadow:0 8px 24px #173d2726}
+#planning-page #planning-tools:not([open]) .planning-tools-panel{display:none}
+#planning-page #planning-tools .planning-head-actions{display:grid;grid-template-columns:1fr;gap:6px;margin:0}
+#planning-page #planning-tools .planning-head-actions>button{display:flex;align-items:center;justify-content:flex-start;gap:8px;min-width:48px;width:100%;height:auto;min-height:48px;padding:8px;text-align:left;font-size:.9rem;line-height:1.4}
+#planning-page #planning-tools .planning-head-label{position:static;width:auto;height:auto;padding:0;margin:0;overflow:visible;clip-path:none;white-space:normal;overflow-wrap:anywhere}
+#planning-page #planning-tools .planning-list-links{display:grid;grid-template-columns:1fr;gap:6px;margin:6px 0}
+#planning-page #planning-tools button,#planning-page #planning-tools select,#planning-page #planning-tools summary{min-width:48px;min-height:48px;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+#planning-page #planning-tools #planning-list-tools{display:grid;gap:8px}
+#planning-page #planning-tools label{display:grid;gap:6px;font-size:.9rem;line-height:1.4}
+#planning-page #planning-tools .planning-list-links button{width:100%;text-align:left;font-size:.9rem}
+#planning-page[data-planning-mode=edit] #planning-list-tools{display:none!important}
+#planning-page[data-planning-mode=list] .planning-list-actions{position:fixed;left:50%;right:auto;transform:translateX(-50%);bottom:var(--app-nav-height,80px);display:block;width:min(680px,100%);height:auto;padding:8px 12px;margin:0;border-top:1px solid var(--hg-line);border-radius:0;background:var(--hg-surface);z-index:7}
+#planning-page[data-planning-mode=list] #planning-new{position:static;display:block;width:100%;height:auto;min-width:48px;min-height:52px;max-width:none;padding:10px 12px;border-radius:12px;aspect-ratio:auto;font-size:1rem;line-height:1.4}
+#planning-page[data-planning-mode=list]{padding-bottom:90px}
+#planning-page .planning-tools-panel [hidden]{display:none!important}
+@media(max-width:359px){#planning-page[data-planning-mode=list] .planning-week-strip{grid-template-columns:repeat(4,minmax(48px,1fr))}}
+
+#planning-page[data-planning-mode] summary{min-height:48px;min-width:48px;line-height:1.4}
+
+#planning-tools[data-filtered=true]>summary::after{content:"";position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--hg-green)}
+
+/* A complete customer name gets the full card width, including at 200% text. */
+#planning-page[data-planning-mode=list] .planning-row[data-appointment-open]{grid-template-columns:minmax(0,1fr)}
+#planning-page[data-planning-mode=list] .planning-row>.planning-time{grid-column:1;grid-row:1;white-space:normal;overflow-wrap:anywhere}
+#planning-page[data-planning-mode=list] .planning-row>.planning-customer{grid-column:1;grid-row:2}
+#planning-page[data-planning-mode=list] .planning-row>.planning-what{grid-column:1;grid-row:3}
+#planning-page[data-planning-mode=list] .planning-row>.planning-chips{grid-column:1;grid-row:4}
+#planning-page #planning-tools>summary::before{content:none}
+
+/* Intrinsic date width lets large OS text add a control line instead of splitting the year. */

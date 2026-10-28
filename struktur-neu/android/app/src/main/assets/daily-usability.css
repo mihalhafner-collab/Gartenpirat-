@@ -1,0 +1,56 @@
+/* Reachable controls, without changing the established green work-tool design. */
+.daily-list-page{padding-bottom:100px}
+.daily-list-tools{position:fixed;z-index:9;left:50%;transform:translateX(-50%);bottom:calc(78px + env(safe-area-inset-bottom) + var(--design-keyboard,0px));width:min(650px,calc(100% - 24px));display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 4px 18px #173d2717}
+.page:not(.active) .daily-list-tools{display:none}
+.daily-list-tools input{margin:0!important;min-width:0;min-height:52px}
+.daily-list-tools .daily-add{position:static!important;margin:0!important;width:auto!important;min-height:52px;padding:12px;font-size:.9rem;white-space:nowrap}
+#customers #add-customer.daily-add,#orders #add-order.daily-add,#worklogs #design-add-work.daily-add{font-size:.95rem!important;border-radius:12px!important;line-height:1.2;padding:12px!important;min-width:96px}
+.daily-settings{margin-left:auto;flex:none;width:48px;height:48px;border:1px solid var(--line);border-radius:14px;background:#edf3ee;color:var(--green);font-size:1.4rem}
+#settings-page .check{font-size:1rem;font-weight:600;min-height:56px;line-height:1.4}
+#settings-page .check input{flex:none;width:24px;height:24px}
+#settings-page .secondary{width:100%;min-height:52px;text-align:left}
+#settings-page h3{font-size:1.05rem}
+#settings-page .sub{line-height:1.5}
+#settings-page .settings-section{display:grid;gap:10px}
+#settings-page .settings-section>h3,#settings-page .settings-section>p{margin:0}
+#settings-page .settings-note{margin:0;color:var(--muted);font-size:.8rem;line-height:1.45}
+#settings-page .settings-note.is-error{color:#8a2e25;font-weight:700}
+#settings-page .settings-state{display:grid;gap:4px;padding:12px 13px;border-radius:13px;background:#eef1ee;color:#34483e}
+#settings-page .settings-state strong{color:var(--green);font-size:.95rem}
+#settings-page .settings-state span{font-size:.82rem;line-height:1.45}
+#settings-page .settings-state.is-ok{background:#e4f2e8;color:#275f40}
+#settings-page .settings-state.is-pending{background:#fff0cf;color:#765311}
+#settings-page .settings-state.is-error{background:#fde6e3;color:#8a2e25}
+#settings-page .settings-state.is-error strong,#settings-page .settings-state.is-pending strong{color:inherit}
+#settings-page .settings-diagnostics{display:grid;gap:1px;margin:0;border:1px solid var(--line);border-radius:13px;overflow:hidden;background:var(--line)}
+#settings-page .settings-diagnostics>div{display:grid;grid-template-columns:minmax(105px,.8fr) minmax(0,1.4fr);gap:10px;padding:11px 12px;background:#fff}
+#settings-page .settings-diagnostics dt{color:var(--muted);font-size:.75rem}
+#settings-page .settings-diagnostics dd{margin:0;color:#263d2b;font-size:.8rem;font-weight:650;overflow-wrap:anywhere}
+#settings-page .settings-about{margin-bottom:20px}
+#customer-form label[hidden]{display:none!important}
+@media(max-width:380px){.daily-list-tools{width:calc(100% - 16px);gap:6px;padding:8px}.daily-list-tools .daily-add{font-size:.82rem;padding:10px}.daily-settings{width:44px;height:44px}.daily-list-tools input{font-size:16px}#settings-page .settings-diagnostics>div{grid-template-columns:1fr;gap:3px}}
+@media(min-width:800px){.daily-list-tools{width:650px}}
+
+/* Existing dialogs, readable on narrow screens and with larger system text. */
+.business-action-dialog{box-sizing:border-box;width:min(96vw,40rem);max-height:92dvh;overflow:auto;padding:1rem;border:1px solid #cbd9cf;border-radius:14px;color:#183c2c}.business-action-dialog label{display:grid;gap:.4rem;margin:.8rem 0}.business-action-dialog input,.business-action-dialog select,.business-action-dialog textarea{box-sizing:border-box;max-width:100%;width:100%;font:inherit;min-height:48px}.settings-section pre,.settings-error-details{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.8rem}.business-action-dialog .dialog-actions{display:flex;gap:.5rem;flex-wrap:wrap}.business-action-dialog button{min-height:48px}
+
+.document-steps{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}.document-steps button{flex:1 1 100px;min-height:48px}.document-steps [aria-pressed=true]{background:#e6f0e8;border:2px solid #176b46}.business-setup-step>summary{min-height:48px;padding:12px;font-weight:750;cursor:pointer}.business-setup-step{margin:10px 0;border:1px solid var(--line);border-radius:10px;padding:6px}.business-setup-step label{display:block}.business-setup-step input,.business-setup-step textarea,.business-setup-step select{max-width:100%;box-sizing:border-box}
+
+.daily-header-actions{display:grid;gap:6px;flex:none;margin-left:auto}.daily-header-actions .daily-settings{margin:0}#global-search-dialog input{font-size:1rem}#global-search-dialog .design-profile-row{min-height:64px}#global-search-dialog .design-profile-row strong{overflow-wrap:anywhere}
+
+/* Settings presentation: one diagnostic disclosure, neutral pending sync, explicit restore risk. */
+#settings-page .settings-about{margin:16px 2px 24px;padding:0;background:transparent;border:0;color:var(--hg-muted)}
+#settings-page .settings-about p{font-size:var(--hg-fs-caption)}
+#settings-page .settings-state.is-busy{background:var(--hg-sage);color:var(--hg-green)}
+#settings-page .settings-state.is-busy strong{color:inherit}
+#settings-page [data-backup-restore]{background:var(--hg-surface);border:1px solid var(--hg-danger);color:var(--hg-danger)}
+#settings-page .settings-advanced{min-width:0}
+#settings-page .sync-pill{display:flex;align-items:center;gap:8px;width:fit-content;max-width:100%;min-height:48px;overflow-wrap:anywhere}
+#settings-page .sync-pill.busy::before{content:'';flex:none;width:10px;height:10px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%}
+#settings-page .sync-pill.busy.is-syncing::before{animation:settings-sync-turn 1s linear infinite}
+@keyframes settings-sync-turn{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){#settings-page .sync-pill.busy.is-syncing::before{animation:none}}
+
+#settings-about-title,#settings-sync-summary{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+#timer-review-dialog{width:calc(100% - 24px);max-width:38rem;max-height:calc(100vh - 24px);overflow:auto;padding:16px;color:#33261A;background:#FCFAF7;border:1px solid #8A4B1F;border-radius:16px}#timer-review-dialog h2{font-size:1.4rem}#timer-review-dialog input,#timer-review-dialog textarea{font-size:1rem;min-height:48px}#timer-review-dialog button{min-height:48px}#timer-review-dialog .actions{position:static;margin:16px 0 0;flex-wrap:wrap}#timer-review-dialog [role=alert]{color:#8E2925}#timer-review-dialog :focus-visible{outline:3px solid #8A4B1F;outline-offset:3px}

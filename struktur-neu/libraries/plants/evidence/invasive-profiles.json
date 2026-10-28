@@ -1,0 +1,2112 @@
+{
+  "sources": [
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/myriophyllum-aquaticum/",
+      "finalUrl": "https://plants.ces.ncsu.edu/plants/myriophyllum-aquaticum/",
+      "title": "Myriophyllum aquaticum\n        (Brazilian Water-Milfoil, Parrot Feather, Parrot Feather Milfoil, Red-Stemmed Parrot Feather)\n    \n    |\nNorth Carolina Extension Gardener Plant Toolbox",
+      "checkedAt": "2026-10-23",
+      "method": "Public original DOM via TinyFish include_selectors body; original dt/dd and image data-caption/data-attrib/data-license/data-downloadurl attributes.",
+      "identityHeadings": [
+        "Myriophyllum aquaticum"
+      ],
+      "facts": {
+        "Genus": [
+          "Myriophyllum"
+        ],
+        "Species": [
+          "aquaticum"
+        ],
+        "Family": [
+          "Haloragaceae"
+        ],
+        "Life Cycle": [
+          "Perennial"
+        ],
+        "Recommended Propagation Strategy": [
+          "Division"
+        ],
+        "Country Or Region Of Origin": [
+          "South America, Australia and New Zealand,"
+        ],
+        "Dimensions": [
+          "Height: 5 ft. 0 in. - 6 ft. 0 in.",
+          "Width: 5 ft. 0 in. - 6 ft. 0 in."
+        ],
+        "Plant Type": [
+          "Perennial",
+          "Water Plant"
+        ],
+        "Habit/Form": [
+          "Creeping",
+          "Horizontal",
+          "Spreading"
+        ],
+        "Growth Rate": [
+          "Rapid"
+        ],
+        "Maintenance": [
+          "High"
+        ],
+        "Light": [
+          "Full sun (6 or more hours of direct sunlight a day)",
+          "Partial Shade (Direct sunlight only part of the day, 2-6 hours)"
+        ],
+        "Soil Texture": [
+          "High Organic Matter"
+        ],
+        "Soil Drainage": [
+          "Frequent Standing Water"
+        ],
+        "USDA Plant Hardiness Zone": [
+          "6a, 6b, 7a, 7b, 8a, 8b, 9a, 9b, 10a, 10b"
+        ],
+        "Flower Color": [
+          "Gold/Yellow",
+          "Green"
+        ],
+        "Flower Bloom Time": [
+          "Spring"
+        ],
+        "Leaf Color": [
+          "Blue",
+          "Green"
+        ]
+      },
+      "fieldAliases": {},
+      "figures": [
+        {
+          "caption": "Leaf",
+          "author": "Tom Glasgow",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Parrotfeather-leaf-T_hDbSuuHL6ByN.jpeg",
+          "creditFilename": "attachment;filename=Leaf Leaf Tom Glasgow CC BY 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "32587"
+        },
+        {
+          "caption": "In mass",
+          "author": "Tom Glasgow",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Parrotfeather-form-T_xRv0uN7SpaCu.jpeg",
+          "creditFilename": "attachment;filename=In mass In mass Tom Glasgow CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "32586"
+        },
+        {
+          "caption": "Stem",
+          "author": "Tom Glasgow",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Parrotfeather-stem-t_fMMMABB4DhRA.jpeg",
+          "creditFilename": "attachment;filename=Stem Stem Tom Glasgow CC BY 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "32588"
+        },
+        {
+          "caption": "Close up of leaf pattern",
+          "author": "Tom Glasgow",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/ParrotFeather-closeu_XiU1rVZ4iGVr.jpeg",
+          "creditFilename": "attachment;filename=Close up of leaf pattern Close up of leaf pattern Tom Glasgow CC BY 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "32590"
+        },
+        {
+          "caption": "Stem and leaf",
+          "author": "Tom Glasgow",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/ParrotFeather-steml_vyYWXaz5WJqe.jpeg",
+          "creditFilename": "attachment;filename=Stem and leaf Stem and leaf Tom Glasgow CC BY 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "32591"
+        },
+        {
+          "caption": "Close up of foliage",
+          "author": "Tom Glasgow",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Parrotfeather-closeu_xeTikmXg6SnI.jpeg",
+          "creditFilename": "attachment;filename=Close up of foliage Close up of foliage Tom Glasgow CC BY 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "32592"
+        },
+        {
+          "caption": "Stem and Leaf",
+          "author": "Tom Glasgow",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/parrotfeather-steman_IePtYn6FO7jO.jpeg",
+          "creditFilename": "attachment;filename=Stem and leaf Stem and Leaf Tom Glasgow CC BY 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "32593"
+        },
+        {
+          "caption": "Leaf",
+          "author": "Tom Glasgow",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Parrotfeather-leaf-T_hDbSuuHL6ByN.jpeg",
+          "creditFilename": "attachment;filename=Leaf Leaf Tom Glasgow CC BY 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "32587"
+        }
+      ],
+      "photoCount": 7
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/salvinia-molesta/",
+      "finalUrl": "https://plants.ces.ncsu.edu/plants/salvinia-molesta/",
+      "title": "Salvinia molesta\n        (African Pyle, Aquarium Watermoss, Giant Salvinia, Kariba Weed, Waterfern)\n    \n    |\nNorth Carolina Extension Gardener Plant Toolbox",
+      "checkedAt": "2026-10-23",
+      "method": "Public original DOM via TinyFish include_selectors body; original dt/dd and image data-caption/data-attrib/data-license/data-downloadurl attributes.",
+      "identityHeadings": [
+        "Salvinia molesta"
+      ],
+      "facts": {
+        "Genus": [
+          "Salvinia"
+        ],
+        "Species": [
+          "molesta"
+        ],
+        "Family": [
+          "Salviniaceae"
+        ],
+        "Country Or Region Of Origin": [
+          "Argentina Northeast, Brazil South, Brazil Southeast"
+        ],
+        "Plant Type": [
+          "Fern",
+          "Herbaceous Perennial",
+          "Water Plant",
+          "Weed"
+        ],
+        "Habit/Form": [
+          "Prostrate"
+        ],
+        "Growth Rate": [
+          "Rapid"
+        ],
+        "Maintenance": [
+          "High"
+        ],
+        "Light": [
+          "Full sun (6 or more hours of direct sunlight a day)",
+          "Partial Shade (Direct sunlight only part of the day, 2-6 hours)"
+        ],
+        "Soil Drainage": [
+          "Frequent Standing Water"
+        ],
+        "Leaf Color": [
+          "Brown/Copper",
+          "Green"
+        ]
+      },
+      "fieldAliases": {},
+      "figures": [
+        {
+          "caption": "Salvinia molesta",
+          "author": "Marshman~commonswiki",
+          "licenseRaw": "CC BY-SA 3.0",
+          "licenseId": "CC-BY-SA-3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/deed.en",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Salvinia_molesta_for_R5SLwae95TpM.jpeg",
+          "creditFilename": "attachment;filename=Floating ovate leaves with bristly surfaces. Salvinia molesta Marshman~commonswiki CC BY-SA 3.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "36428"
+        },
+        {
+          "caption": "Salvinia molesta",
+          "author": "Kevin Faccenda",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Salvinia_molesta_lea_yXeVeHRixZQ6.jpeg",
+          "creditFilename": "attachment;filename=Leaf surface showing the texture of the bristles. Salvinia molesta Kevin Faccenda CC BY 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "36429"
+        },
+        {
+          "caption": "Salvinia molesta. Sporocarps",
+          "author": "John Forlonge",
+          "licenseRaw": "CC BY-NC-ND 2.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/2.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Salvinia_molesta_spo_n3OZI2E7Ralc.jpeg",
+          "creditFilename": "attachment;filename=A chain of scaley ovoid structures. Salvinia molesta. Sporocarps John Forlonge CC BY-NC-ND 2.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "36430"
+        },
+        {
+          "caption": "Salvinia molesta",
+          "author": "陳陪泛",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Salvinia_molesta_you_mVEPMlgfw4mS.jpeg",
+          "creditFilename": "attachment;filename=Floating ovate leaves with bristly surfaces. Salvinia molesta 陳陪泛 CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "36431"
+        },
+        {
+          "caption": "Infestation of Salvinia molesta in an LA state park",
+          "author": "canoeandtrail",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Salvinia_molesta_inf_7Al6rAe2uRAF.jpeg",
+          "creditFilename": "attachment;filename=Kayakers & lake surface partially obstructed by a mat of fern. Infestation of Salvinia molesta in an LA state park canoeandtrail CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "36432"
+        },
+        {
+          "caption": "Salvinia molesta. Egg beater bristles.",
+          "author": "Robert Vidéki, Doronicum Kft., Bugwood.org",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Salvinia_molesta_egg_4SerRkPwwICD.jpeg",
+          "creditFilename": "attachment;filename=Close-up of leaf section showing whisk-shaped bristles. Salvinia molesta. Egg beater bristles. Robert Vidéki Doronicum Kft. Bugwood.org CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "36433"
+        },
+        {
+          "caption": "Salvinia molesta",
+          "author": "Marshman~commonswiki",
+          "licenseRaw": "CC BY-SA 3.0",
+          "licenseId": "CC-BY-SA-3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/deed.en",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Salvinia_molesta_for_R5SLwae95TpM.jpeg",
+          "creditFilename": "attachment;filename=Floating ovate leaves with bristly surfaces. Salvinia molesta Marshman~commonswiki CC BY-SA 3.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "36428"
+        }
+      ],
+      "photoCount": 3
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/asclepias-syriaca/",
+      "finalUrl": "https://plants.ces.ncsu.edu/plants/asclepias-syriaca/",
+      "title": "Asclepias syriaca\n        (Common Milkweed)\n    \n    |\nNorth Carolina Extension Gardener Plant Toolbox",
+      "checkedAt": "2026-10-23",
+      "method": "Public original DOM via TinyFish include_selectors body; original dt/dd and image data-caption/data-attrib/data-license/data-downloadurl attributes.",
+      "identityHeadings": [
+        "Asclepias syriaca"
+      ],
+      "facts": {
+        "Genus": [
+          "Asclepias"
+        ],
+        "Species": [
+          "syriaca"
+        ],
+        "Family": [
+          "Apocynaceae"
+        ],
+        "Life Cycle": [
+          "Perennial"
+        ],
+        "Recommended Propagation Strategy": [
+          "Root Cutting",
+          "Seed"
+        ],
+        "Country Or Region Of Origin": [
+          "Central & E. Canada to Central & E. U.S.A., NC"
+        ],
+        "Dimensions": [
+          "Height: 3 ft. 0 in. - 5 ft. 0 in.",
+          "Width: 0 ft. 8 in. - 1 ft. 0 in."
+        ],
+        "Plant Type": [
+          "Herbaceous Perennial",
+          "Native Plant",
+          "Poisonous",
+          "Wildflower"
+        ],
+        "Woody Plant Leaf Characteristics": [
+          "Deciduous"
+        ],
+        "Habit/Form": [
+          "Erect"
+        ],
+        "Growth Rate": [
+          "Rapid"
+        ],
+        "Maintenance": [
+          "Low"
+        ],
+        "Light": [
+          "Full sun (6 or more hours of direct sunlight a day)"
+        ],
+        "Soil Texture": [
+          "Clay",
+          "Loam (Silt)",
+          "Sand",
+          "Shallow Rocky"
+        ],
+        "Soil Drainage": [
+          "Good Drainage",
+          "Occasionally Dry"
+        ],
+        "USDA Plant Hardiness Zone": [
+          "3a, 3b, 4a, 4b, 5a, 5b, 6a, 6b, 7a, 7b, 8a, 8b, 9a, 9b"
+        ],
+        "Flower Color": [
+          "Green",
+          "Pink",
+          "Purple/Lavender",
+          "White"
+        ],
+        "Flower Bloom Time": [
+          "Summer"
+        ],
+        "Leaf Color": [
+          "Green"
+        ],
+        "Attracts": [
+          "Bees",
+          "Butterflies",
+          "Pollinators",
+          "Songbirds",
+          "Specialized Bees"
+        ],
+        "Resistance To Challenges": [
+          "Deer",
+          "Drought",
+          "Dry Soil",
+          "Erosion",
+          "Poor Soil"
+        ],
+        "Poison Severity": [
+          "Low"
+        ],
+        "Causes Contact Dermatitis": [
+          "Yes"
+        ]
+      },
+      "fieldAliases": {},
+      "figures": [
+        {
+          "caption": "Form in bloom (Guilford County, NC)-Mid Summer",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Asclepias_syriaca_5_U5vW8MZs4z5I.jpg",
+          "creditFilename": "attachment;filename=Form in bloom (Guilford County NC)-Mid Summer Form in bloom (Guilford County NC)-Mid Summer Douglas Goldman USDA CC BY-NC 4.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "29550"
+        },
+        {
+          "caption": "Flower close-up (Guilford County, NC)-Mid Summer",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Asclepias_syriaca_1_4wlNRSfsuURU.jpg",
+          "creditFilename": "attachment;filename=Flower close-up (Guilford County NC)-Mid Summer Flower close-up (Guilford County NC)-Mid Summer Douglas Goldman USDA CC BY-NC 4.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "29546"
+        },
+        {
+          "caption": "Side view of flower (Guilford County, NC)-Mid Summer",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Asclepias_syriaca_2_AjjluioWKRgR.jpg",
+          "creditFilename": "attachment;filename=Side view of flower (Guilford County NC)-Mid Summer Side view of flower (Guilford County NC)-Mid Summer Douglas Goldman USDA CC BY-NC 4.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "29547"
+        },
+        {
+          "caption": "Leaves and flower clusters (Guilford County, NC)-Mid Summer",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Asclepias_syriaca_4_IheMkTEsVlK0.jpg",
+          "creditFilename": "attachment;filename=Leaves and flower clusters (Guilford County NC)-Mid Summer Leaves and flower clusters (Guilford County NC)-Mid Summer Douglas Goldman USDA CC BY-NC 4.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "29549"
+        },
+        {
+          "caption": "Flower cluster (Guilford County, NC)-Mid Summer",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Asclepias_syriaca_3_IhQuHSrd2ulv.jpg",
+          "creditFilename": "attachment;filename=Flower cluster (Guilford County NC)-Mid Summer Flower cluster (Guilford County NC)-Mid Summer Douglas Goldman USDA CC BY-NC 4.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "29548"
+        },
+        {
+          "caption": "Flowers",
+          "author": "Lucy Bradley",
+          "licenseRaw": "CC0",
+          "licenseId": "CC0-1.0",
+          "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Asclepias_syriaca_--_VNtUjdmgzyf0.jfif",
+          "creditFilename": "attachment;filename=Flowers Flowers Lucy Bradley CC0.jfif",
+          "association": "original_image_data_attributes",
+          "providerImageId": "12884"
+        },
+        {
+          "caption": "Asclepias syriaca",
+          "author": "Joshua Mayer",
+          "licenseRaw": "CC-BY-SA 2.0",
+          "licenseId": "CC-BY-SA-2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Asclepias-syriaca--Joshua-Mayer--CC-BY-SA.jpg",
+          "creditFilename": "attachment;filename=Asclepias syriaca Asclepias syriaca Joshua Mayer CC-BY-SA 2.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "3454"
+        },
+        {
+          "caption": "Flowers",
+          "author": "James Van Gundy",
+          "licenseRaw": "CC BY-NC-ND 2.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/2.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Asclepias-syriaca--James-Van-Gundy--CC-BY-NC-ND.jpg",
+          "creditFilename": "attachment;filename=Flowers Flowers James Van Gundy CC BY-NC-ND 2.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "6706"
+        },
+        {
+          "caption": "Leaves",
+          "author": "F. D. Richards",
+          "licenseRaw": "CC-BY-SA 2.0",
+          "licenseId": "CC-BY-SA-2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Asclepias-syriaca--F-D-Richards--CC-BY-SA.jpg",
+          "creditFilename": "attachment;filename=Leaves Leaves F. D. Richards CC-BY-SA 2.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "6703"
+        },
+        {
+          "caption": "Asclepias syriaca seeds with fluffy coma removed.",
+          "author": "Justin Meissen",
+          "licenseRaw": "CC-BY-SA 2.0",
+          "licenseId": "CC-BY-SA-2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Asclepias-syriaca--Justin-Meissen--CC-BY-SA.jpg",
+          "creditFilename": "attachment;filename=flat brown discoid seeds Asclepias syriaca seeds with fluffy coma removed. Justin Meissen CC-BY-SA 2.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "6704"
+        },
+        {
+          "caption": "Side of flower",
+          "author": "Forest Eyes",
+          "licenseRaw": "CC BY-NC-ND 2.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/2.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Asclepias-syriaca--Forest-Eyes--CC-BY-NC-ND.jpg",
+          "creditFilename": "attachment;filename=Side of flower Side of flower Forest Eyes CC BY-NC-ND 2.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "6705"
+        },
+        {
+          "caption": "Monarch, leaves, flowers & Stem - Aug 8, Wake Co., NC",
+          "author": "Cathy DeWitt",
+          "licenseRaw": "CC BY-NC-ND 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Asclepias-syriaca__M_QM6hp11Tqu48.jpeg",
+          "creditFilename": "attachment;filename=Monarch leaves flowers & Stem - Aug 8 Wake Co. NC Monarch leaves flowers & Stem - Aug 8 Wake Co. NC Cathy DeWitt CC BY-NC-ND 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "33566"
+        },
+        {
+          "caption": "Monarch, leaves, flowers & Stem - Aug 8, Wake Co., NC",
+          "author": "Cathy DeWitt",
+          "licenseRaw": "CC BY-NC-ND 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Asclepias-syriaca__M_BJ756FVi6fQO.jpeg",
+          "creditFilename": "attachment;filename=Monarch leaves flowers & Stem - Aug 8 Wake Co. NC Monarch leaves flowers & Stem - Aug 8 Wake Co. NC Cathy DeWitt CC BY-NC-ND 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "33567"
+        },
+        {
+          "caption": "Form - June - Wake Co., NC",
+          "author": "Cathy DeWitt",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Asclepias-syriaca-Mi_LYNklqRbWrUH.jpeg",
+          "creditFilename": "attachment;filename=Form - June - Wake Co. NC Form - June - Wake Co. NC Cathy DeWitt CC BY 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "35262"
+        },
+        {
+          "caption": "Flower - Summer - Buncombe Co., NC",
+          "author": "Randy Harter",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Asclepias_syriaca_fl_1UNlODJzDkh9.jpeg",
+          "creditFilename": "attachment;filename=Flower - Summer - Buncombe Co. NC Flower - Summer - Buncombe Co. NC Randy Harter CC BY 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "35459"
+        },
+        {
+          "caption": "Mid-season flowers and blooms",
+          "author": "Hope Duckworth",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/asclepias-syriaca-ca_gjS8Ntypr3bT.mpo",
+          "creditFilename": "attachment;filename=Mid-season flowers and blooms Mid-season flowers and blooms Hope Duckworth CC BY 4.0.mpo",
+          "association": "original_image_data_attributes",
+          "providerImageId": "39726"
+        },
+        {
+          "caption": "asclepias syriaca form June Wake County",
+          "author": "Cathy DeWitt",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Asclepias-common-mil_0zEgfsYmswLZ.jpeg",
+          "creditFilename": "attachment;filename=pink fragrant flower clusters asclepias syriaca form June Wake County Cathy DeWitt CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "41581"
+        },
+        {
+          "caption": "Milkweed Aphids Monarch Caterpillar Moore",
+          "author": "Cathy DeWitt",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Common-Milkweed-Milk_5z5vBC1Du4hd.mpo",
+          "creditFilename": "attachment;filename=Milkweed with Milkweed aphids and Monarch Caterpillar Milkweed Aphids Monarch Caterpillar Moore Cathy DeWitt CC BY-NC 4.0.mpo",
+          "association": "original_image_data_attributes",
+          "providerImageId": "41724"
+        },
+        {
+          "caption": "Milkweed aphids on pods",
+          "author": "Cathy DeWitt",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Common-Milkweed-Milk_BZv5OgHwvDKy.jpeg",
+          "creditFilename": "attachment;filename=pods covered with yellowish-orange Oleander milkweeds Milkweed aphids on pods Cathy DeWitt CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "41725"
+        },
+        {
+          "caption": "Form in bloom (Guilford County, NC)-Mid Summer",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Asclepias_syriaca_5_U5vW8MZs4z5I.jpg",
+          "creditFilename": "attachment;filename=Form in bloom (Guilford County NC)-Mid Summer Form in bloom (Guilford County NC)-Mid Summer Douglas Goldman USDA CC BY-NC 4.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "29550"
+        }
+      ],
+      "photoCount": 7
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/ailanthus-altissima/",
+      "finalUrl": "https://plants.ces.ncsu.edu/plants/ailanthus-altissima/",
+      "title": "Ailanthus altissima\n        (Ailanthus, Paradise-tree, Tree of Heaven, Tree-of-Heaven, White Snakeroot)\n    \n    |\nNorth Carolina Extension Gardener Plant Toolbox",
+      "checkedAt": "2026-10-23",
+      "method": "Public original DOM via TinyFish include_selectors body; original dt/dd and image data-caption/data-attrib/data-license/data-downloadurl attributes.",
+      "identityHeadings": [
+        "Ailanthus altissima"
+      ],
+      "facts": {
+        "Genus": [
+          "Ailanthus"
+        ],
+        "Species": [
+          "altissima"
+        ],
+        "Family": [
+          "Simaroubaceae"
+        ],
+        "Life Cycle": [
+          "Woody"
+        ],
+        "Country Or Region Of Origin": [
+          "China"
+        ],
+        "Dimensions": [
+          "Height: 40 ft. 0 in. - 60 ft. 0 in.",
+          "Width: 15 ft. 0 in. - 30 ft. 0 in."
+        ],
+        "Plant Type": [
+          "Tree"
+        ],
+        "Woody Plant Leaf Characteristics": [
+          "Deciduous"
+        ],
+        "Habit/Form": [
+          "Erect"
+        ],
+        "Growth Rate": [
+          "Rapid"
+        ],
+        "Maintenance": [
+          "High"
+        ],
+        "Light": [
+          "Full sun (6 or more hours of direct sunlight a day)",
+          "Partial Shade (Direct sunlight only part of the day, 2-6 hours)"
+        ],
+        "Soil Texture": [
+          "Clay",
+          "Loam (Silt)",
+          "Sand",
+          "Shallow Rocky"
+        ],
+        "Soil pH": [
+          "Acid (<6.0)",
+          "Alkaline (>8.0)",
+          "Neutral (6.0-8.0)"
+        ],
+        "Soil Drainage": [
+          "Good Drainage",
+          "Occasionally Dry"
+        ],
+        "USDA Plant Hardiness Zone": [
+          "4a, 4b, 5a, 5b, 6a, 6b, 7a, 7b, 8a, 8b"
+        ],
+        "Flower Color": [
+          "Brown/Copper",
+          "Gold/Yellow",
+          "Green"
+        ],
+        "Flower Bloom Time": [
+          "Summer"
+        ],
+        "Leaf Color": [
+          "Green"
+        ],
+        "Resistance To Challenges": [
+          "Pollution",
+          "Poor Soil",
+          "Urban Conditions"
+        ]
+      },
+      "fieldAliases": {},
+      "figures": [
+        {
+          "caption": "Form",
+          "author": "Cathy Dewitt",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus-altissima-_7oXsrxJ7kJRQ.jpeg",
+          "creditFilename": "attachment;filename=Form Form Cathy Dewitt CC BY 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "33183"
+        },
+        {
+          "caption": "Stout branch with V-shaped scars leaves emerging",
+          "author": "Cathy DeWitt",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus_altissima__eSACrFsFI8E4.jpeg",
+          "creditFilename": "attachment;filename=stout branch with large V-shaped leaf scars Stout branch with V-shaped scars leaves emerging Cathy DeWitt CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "41794"
+        },
+        {
+          "caption": "Leaves up close with glands near edge",
+          "author": "Cathy DeWitt",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus-altissima-_Pd378baHBpFw.jpeg",
+          "creditFilename": "attachment;filename=When leaves crushed it smells likt peanut butter Leaves up close with glands near edge Cathy DeWitt CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "41462"
+        },
+        {
+          "caption": "Fruits - Halifax Co., NC",
+          "author": "Cathy DeWitt",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus-altissima-_frvrcKSXzAfJ.jpeg",
+          "creditFilename": "attachment;filename=fruits - Halifax Co. NC Fruits - Halifax Co. NC Cathy DeWitt CC BY 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "36474"
+        },
+        {
+          "caption": "New leaf close-up (Wake County,NC)-Spring",
+          "author": "Cathy Dewitt",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus_altissima-_kldvNyoUZkZl.jpeg",
+          "creditFilename": "attachment;filename=Ailanthus altissima New leaf close-up (Wake CountyNC)-Spring Cathy Dewitt CC BY 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "27183"
+        },
+        {
+          "caption": "Leaflets with auricles at the base, serrations tend to be only at the base.",
+          "author": "Cathy Dewitt",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus_altissima-_zVC3SoaW3Cey.jpe",
+          "creditFilename": "attachment;filename=Leaflet auricles at the base serrations Leaflets with auricles at the base serrations tend to be only at the base. Cathy Dewitt CC BY 4.0.jpe",
+          "association": "original_image_data_attributes",
+          "providerImageId": "22358"
+        },
+        {
+          "caption": "Young trees",
+          "author": "Nikola Veljković",
+          "licenseRaw": "CC BY-SA 4.0",
+          "licenseId": "CC-BY-SA-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus_altissima_napu%C5%A1tene_fabrike_ccbysa30.mpo",
+          "creditFilename": "attachment;filename=Young trees Young trees Nikola Veljković CC BY-SA 4.0.mpo",
+          "association": "original_image_data_attributes",
+          "providerImageId": "10561"
+        },
+        {
+          "caption": "Ailanthus altissima Winter bark",
+          "author": "Cathy DeWitt",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus-altissima-_uIthDCzZKJGs.jpeg",
+          "creditFilename": "attachment;filename=light grey bark with textured bark Ailanthus altissima Winter bark Cathy DeWitt CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "41461"
+        },
+        {
+          "caption": "Mature winged fruits (Halifax County, NC)-Mid Winter",
+          "author": "Cathy Dewitt",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus-altissima-_zVgUfbczjA1e.jpe",
+          "creditFilename": "attachment;filename=winged fruits hanging in clusters. Mature winged fruits (Halifax County NC)-Mid Winter Cathy Dewitt CC BY 4.0.jpe",
+          "association": "original_image_data_attributes",
+          "providerImageId": "28470"
+        },
+        {
+          "caption": "Immature, winged fruits - July - Halifax Co., NC",
+          "author": "Cathy DeWitt",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus-altissima-_Lit4D2qQNeUg.jpeg",
+          "creditFilename": "attachment;filename=green fruits- July - Halifax Co. NC Immature winged fruits - July - Halifax Co. NC Cathy DeWitt CC BY 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "35480"
+        },
+        {
+          "caption": "Leaflets with red rachis (Summer, Mitchell Co., NC)",
+          "author": "Andrea Laine",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus-altissima-_gFFyr07ilDLs.jpeg",
+          "creditFilename": "attachment;filename=Leaflets with red rachis (Summer Mitchell Co. NC) Leaflets with red rachis  (Summer Mitchell Co. NC) Andrea Laine CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "35503"
+        },
+        {
+          "caption": "Pinnately compound leaf (Summer, Mitchell Co., NC)",
+          "author": "Andrea Laine",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus-altissima-_l7Rjz6VMi74R.jpeg",
+          "creditFilename": "attachment;filename=Pinnately compound leaf (Summer Mitchell Co. NC) Pinnately compound leaf (Summer Mitchell Co. NC) Andrea Laine CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "35502"
+        },
+        {
+          "caption": "New Leaf (Wake County,NC)",
+          "author": "Cathy Dewitt",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus_altissima-_YSDUw7AFmFTW.jpeg",
+          "creditFilename": "attachment;filename=Ailanthus altissima New Leaf (Wake CountyNC) Cathy Dewitt CC BY 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "27181"
+        },
+        {
+          "caption": "Purple leaves",
+          "author": "Jim Robbins",
+          "licenseRaw": "CC BY-NC-ND 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus_altissima_PURPLE_lf2_051310_260_Beijing_Rainbow_Floriculture_Co_Chang_Ping_District_.jpe",
+          "creditFilename": "attachment;filename=Ailanthis altissima Purple leaves Jim Robbins CC BY-NC-ND 4.0.jpe",
+          "association": "original_image_data_attributes",
+          "providerImageId": "11286"
+        },
+        {
+          "caption": "Purple Leaf Form",
+          "author": "Jim Robbins",
+          "licenseRaw": "CC BY-NC-ND 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus_altissima__RmLeAtpfoXS7.jfif",
+          "creditFilename": "attachment;filename=Ailanthus altissima Purple Leaf Form Jim Robbins CC BY-NC-ND 4.0.jfif",
+          "association": "original_image_data_attributes",
+          "providerImageId": "18642"
+        },
+        {
+          "caption": "Fruit Form",
+          "author": "Jim Robbins",
+          "licenseRaw": "CC BY-NC-ND 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus_altissima__uT4gyXxM6qLh.jpg",
+          "creditFilename": "attachment;filename=Ailanthus altissima Fruit Form Jim Robbins CC BY-NC-ND 4.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "18872"
+        },
+        {
+          "caption": "New Leaf",
+          "author": "Jim Robbins",
+          "licenseRaw": "CC BY-NC-ND 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus_altissima__Z9wZJgQcRLxH.jpe",
+          "creditFilename": "attachment;filename=Ailanthus altissima New Leaf Jim Robbins CC BY-NC-ND 4.0.jpe",
+          "association": "original_image_data_attributes",
+          "providerImageId": "18873"
+        },
+        {
+          "caption": "Bark Close-up (Wake County, NC)-Winter",
+          "author": "Cathy Dewitt",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus-altissima-_F0EGYE217csl.jpe",
+          "creditFilename": "attachment;filename=Ailanthus altissima Bark Close-up (Wake County NC)-Winter Cathy Dewitt CC BY 4.0.jpe",
+          "association": "original_image_data_attributes",
+          "providerImageId": "28469"
+        },
+        {
+          "caption": "It can be very weedy, here it is seen growing along a roadside.",
+          "author": "028mdk09",
+          "licenseRaw": "CC BY-SA 3.0",
+          "licenseId": "CC-BY-SA-3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/deed.en",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus_altissima_MA4028mdk09_ccbysa30.jpeg",
+          "creditFilename": "attachment;filename=It can be very weedy here it is seen growing along a roadside. It can be very weedy here it is seen growing along a roadside. 028mdk09 CC BY-SA 3.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "10562"
+        },
+        {
+          "caption": "Form",
+          "author": "Cathy Dewitt",
+          "licenseRaw": "CC BY 4.0",
+          "licenseId": "CC-BY-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Ailanthus-altissima-_7oXsrxJ7kJRQ.jpeg",
+          "creditFilename": "attachment;filename=Form Form Cathy Dewitt CC BY 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "33183"
+        }
+      ],
+      "photoCount": 11
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/humulus-scandens/",
+      "finalUrl": "https://plants.ces.ncsu.edu/plants/humulus-scandens/",
+      "title": "Humulus scandens\n        (Japanese Hops)\n    \n    |\nNorth Carolina Extension Gardener Plant Toolbox",
+      "checkedAt": "2026-10-23",
+      "method": "Public original DOM via TinyFish include_selectors body; original dt/dd and image data-caption/data-attrib/data-license/data-downloadurl attributes.",
+      "identityHeadings": [
+        "Humulus scandens"
+      ],
+      "facts": {
+        "Genus": [
+          "Humulus"
+        ],
+        "Species": [
+          "scandens"
+        ],
+        "Family": [
+          "Cannabaceae"
+        ],
+        "Life Cycle": [
+          "Annual"
+        ],
+        "Recommended Propagation Strategy": [
+          "Seed"
+        ],
+        "Country Or Region Of Origin": [
+          "Eastern Asia; Russia south to North Vietnam"
+        ],
+        "Plant Type": [
+          "Annual",
+          "Vine"
+        ],
+        "Woody Plant Leaf Characteristics": [
+          "Deciduous"
+        ],
+        "Habit/Form": [
+          "Ascending",
+          "Creeping",
+          "Spreading"
+        ],
+        "Growth Rate": [
+          "Rapid"
+        ],
+        "Maintenance": [
+          "High"
+        ],
+        "Light": [
+          "Full sun (6 or more hours of direct sunlight a day)",
+          "Partial Shade (Direct sunlight only part of the day, 2-6 hours)"
+        ],
+        "Soil Texture": [
+          "Clay",
+          "Loam (Silt)",
+          "Sand"
+        ],
+        "Soil pH": [
+          "Alkaline (>8.0)",
+          "Neutral (6.0-8.0)"
+        ],
+        "Soil Drainage": [
+          "Good Drainage",
+          "Occasionally Dry",
+          "Occasionally Wet"
+        ],
+        "USDA Plant Hardiness Zone": [
+          "4a, 4b, 5a, 5b, 6a, 6b, 7a, 7b, 8a, 8b"
+        ],
+        "Flower Color": [
+          "Gold/Yellow",
+          "Green"
+        ],
+        "Flower Bloom Time": [
+          "Fall",
+          "Summer"
+        ],
+        "Leaf Color": [
+          "Green"
+        ],
+        "Attracts": [
+          "Bees",
+          "Butterflies",
+          "Pollinators"
+        ],
+        "Resistance To Challenges": [
+          "Drought"
+        ],
+        "Poison Severity": [
+          "Low"
+        ],
+        "Causes Contact Dermatitis": [
+          "Yes"
+        ]
+      },
+      "fieldAliases": {},
+      "figures": [
+        {
+          "caption": "Foliage, showing 5- to 7-lobed leaves.",
+          "author": "Scott Zona",
+          "licenseRaw": "CC BY-NC 2.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/2.0/",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Humulus-scandens-fol_8tFmi9HUwXky.jpeg",
+          "creditFilename": "attachment;filename=Foliage showing 5- to 7-lobed leaves. Foliage showing 5- to 7-lobed leaves. Scott Zona CC BY-NC 2.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "36941"
+        },
+        {
+          "caption": "Foliage, showing 5- to 7-lobed leaves.",
+          "author": "Scott Zona",
+          "licenseRaw": "CC BY-NC 2.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/2.0/",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Humulus-scandens-fol_coesYImI5frO.jpeg",
+          "creditFilename": "attachment;filename=Foliage showing 5- to 7-lobed leaves. Foliage showing 5- to 7-lobed leaves. Scott Zona CC BY-NC 2.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "36942"
+        },
+        {
+          "caption": "Foliage, showing 5- to 7-lobed leaves.",
+          "author": "Scott Zona",
+          "licenseRaw": "CC BY-NC 2.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/2.0/",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Humulus-scandens-fol_8tFmi9HUwXky.jpeg",
+          "creditFilename": "attachment;filename=Foliage showing 5- to 7-lobed leaves. Foliage showing 5- to 7-lobed leaves. Scott Zona CC BY-NC 2.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "36941"
+        }
+      ],
+      "photoCount": 0
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/reynoutria-japonica/",
+      "finalUrl": "https://plants.ces.ncsu.edu/plants/reynoutria-japonica/",
+      "title": "Reynoutria japonica\n        (Asiatic Knotweed, Donkey Rhubarb, Fleeceflower, Japanese Bamboo, Japanese Knotweed)\n    \n    |\nNorth Carolina Extension Gardener Plant Toolbox",
+      "checkedAt": "2026-10-23",
+      "method": "Public original DOM via TinyFish include_selectors body; original dt/dd and image data-caption/data-attrib/data-license/data-downloadurl attributes.",
+      "identityHeadings": [
+        "Reynoutria japonica"
+      ],
+      "facts": {
+        "Genus": [
+          "Reynoutria"
+        ],
+        "Species": [
+          "japonica"
+        ],
+        "Family": [
+          "Polygonaceae"
+        ],
+        "Life Cycle": [
+          "Perennial"
+        ],
+        "Country Or Region Of Origin": [
+          "Eastern Asia"
+        ],
+        "Dimensions": [
+          "Height: 10 ft. 0 in. - 13 ft. 0 in.",
+          "Width: 3 ft. 0 in. - 20 ft. 0 in."
+        ],
+        "Plant Type": [
+          "Edible",
+          "Herbaceous Perennial",
+          "Weed"
+        ],
+        "Habit/Form": [
+          "Arching"
+        ],
+        "Growth Rate": [
+          "Rapid"
+        ],
+        "Maintenance": [
+          "High"
+        ],
+        "Light": [
+          "Full sun (6 or more hours of direct sunlight a day)"
+        ],
+        "Soil Drainage": [
+          "Moist",
+          "Occasionally Wet"
+        ],
+        "Flower Color": [
+          "Cream/Tan",
+          "Green",
+          "White"
+        ],
+        "Flower Bloom Time": [
+          "Fall",
+          "Summer"
+        ],
+        "Leaf Color": [
+          "Green",
+          "Red/Burgundy"
+        ]
+      },
+      "fieldAliases": {},
+      "figures": [
+        {
+          "caption": "Plant in bloom",
+          "author": "MdE",
+          "licenseRaw": "CC BY-SA 3.0",
+          "licenseId": "CC-BY-SA-3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/deed.en",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Fallopia_japonica_pl_XJNYVVX36DJb.jpg",
+          "creditFilename": "attachment;filename=Plant in bloom Plant in bloom MdE CC BY-SA 3.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "17381"
+        },
+        {
+          "caption": "Form",
+          "author": "Jon Sullivan",
+          "licenseRaw": "CC BY-NC 2.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/2.0/",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Reynoutria_japonica__9NW00UVAKDIR.jpeg",
+          "creditFilename": "attachment;filename=Form Form Jon Sullivan CC BY-NC 2.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "36687"
+        },
+        {
+          "caption": "Leaves",
+          "author": "Angus MacAskill",
+          "licenseRaw": "CC BY 2.0",
+          "licenseId": "CC-BY-2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/2.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Polygonella-cuspidatum--Angus-MacAskill--CC-BY.jpg",
+          "creditFilename": "attachment;filename=Leaves Leaves Angus MacAskill CC BY 2.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "7443"
+        },
+        {
+          "caption": "Alternate leaves",
+          "author": "Liz West",
+          "licenseRaw": "CC BY 2.0",
+          "licenseId": "CC-BY-2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/2.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Polygonella-cuspidatum--Liz-West--CC-BY.jpg",
+          "creditFilename": "attachment;filename=Alternate leaves Alternate leaves Liz West CC BY 2.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "7444"
+        },
+        {
+          "caption": "Flowers",
+          "author": "Steve Guttman NYC",
+          "licenseRaw": "CC BY-NC-ND 2.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/2.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Polygonella-cuspidatum--Steve-Guttman-NYC--CC-BY-NC-ND.jpg",
+          "creditFilename": "attachment;filename=Flowers Flowers Steve Guttman NYC CC BY-NC-ND 2.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "7445"
+        },
+        {
+          "caption": "New fruits, white color.",
+          "author": "Jan Samanek",
+          "licenseRaw": "CC BY 3.0",
+          "licenseId": "CC-BY-3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/reynoutria-japonica-_9XIW5hOPECai.jpeg",
+          "creditFilename": "attachment;filename=New fruits white color. New fruits white color. Jan Samanek CC BY 3.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "24042"
+        },
+        {
+          "caption": "Mature three winged fruits.",
+          "author": "Lorianne DiSabato",
+          "licenseRaw": "CC BY-NC-ND 2.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/2.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Polygonella-cuspidatum--Lorianne-DiSabato-1--CC-BY-NC-ND.jpg",
+          "creditFilename": "attachment;filename=Mature three winged fruits. Mature three winged fruits. Lorianne DiSabato CC BY-NC-ND 2.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "7446"
+        },
+        {
+          "caption": "Stems",
+          "author": "Foodista",
+          "licenseRaw": "CC BY 2.0",
+          "licenseId": "CC-BY-2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/2.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Polygonella-cuspidatum--Foodista--CC-BY.jpg",
+          "creditFilename": "attachment;filename=Stems Stems Foodista CC BY 2.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "7447"
+        },
+        {
+          "caption": "Spring growth",
+          "author": "Crouch, Swale",
+          "licenseRaw": "CC BY-SA 4.0",
+          "licenseId": "CC-BY-SA-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Japanese_knotweed_sp_40nA5XaDsZCb.jpg",
+          "creditFilename": "attachment;filename=Spring growth Spring growth Crouch Swale CC BY-SA 4.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "17380"
+        },
+        {
+          "caption": "Seedling, pull this plant when it is young to avoid infestation.",
+          "author": "Ohio State Weed Bank",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/reynoutria-japonica-_nMgOMMuUY3xt.jpeg",
+          "creditFilename": "attachment;filename=Seedling pull this plant when it is young to avoid infestation. Seedling pull this plant when it is young to avoid infestation. Ohio State Weed Bank CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "24043"
+        },
+        {
+          "caption": "Hollow reddish-brown stems resemble bamboo.",
+          "author": "James H. Miller, USDA Forest Service, Bugwood.org",
+          "licenseRaw": "CC BY 3.0",
+          "licenseId": "CC-BY-3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/reynoutria-japonica-_i3z1mrapdEh2.jpe",
+          "creditFilename": "attachment;filename=Hollow reddish-brown stems. Hollow reddish-brown stems resemble bamboo. James H. Miller USDA Forest Service Bugwood.org CC BY 3.0.jpe",
+          "association": "original_image_data_attributes",
+          "providerImageId": "24044"
+        },
+        {
+          "caption": "Brown-black triangular shaped shiny seeds.",
+          "author": "Ken Chamberlain, The Ohio State University, Bugwood.org",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/reynoutria-japonica-_swBQ5Zt8oVkB.jpe",
+          "creditFilename": "attachment;filename=Brown-black triangular shaped shiny seeds. Brown-black triangular shaped shiny seeds. Ken Chamberlain The Ohio State University Bugwood.org CC BY-NC 4.0.jpe",
+          "association": "original_image_data_attributes",
+          "providerImageId": "24045"
+        },
+        {
+          "caption": "Plant in bloom",
+          "author": "MdE",
+          "licenseRaw": "CC BY-SA 3.0",
+          "licenseId": "CC-BY-SA-3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/deed.en",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Fallopia_japonica_pl_XJNYVVX36DJb.jpg",
+          "creditFilename": "attachment;filename=Plant in bloom Plant in bloom MdE CC BY-SA 3.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "17381"
+        }
+      ],
+      "photoCount": 8
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/broussonetia-papyrifera/",
+      "finalUrl": "https://plants.ces.ncsu.edu/plants/broussonetia-papyrifera/",
+      "title": "Broussonetia papyrifera\n        (Paper Mullberry, Tapa Cloth Tree)\n    \n    |\nNorth Carolina Extension Gardener Plant Toolbox",
+      "checkedAt": "2026-10-23",
+      "method": "Public original DOM via TinyFish include_selectors body; original dt/dd and image data-caption/data-attrib/data-license/data-downloadurl attributes.",
+      "identityHeadings": [
+        "Broussonetia papyrifera"
+      ],
+      "facts": {
+        "Genus": [
+          "Broussonetia"
+        ],
+        "Species": [
+          "papyrifera"
+        ],
+        "Family": [
+          "Moraceae"
+        ],
+        "Life Cycle": [
+          "Woody"
+        ],
+        "Recommended Propagation Strategy": [
+          "Root Cutting",
+          "Stem Cutting"
+        ],
+        "Country Or Region Of Origin": [
+          "East Asia, Japan, and China."
+        ],
+        "Dimensions": [
+          "Height: 40 ft. 0 in. - 50 ft. 0 in.",
+          "Width: 30 ft. 0 in. - 40 ft. 0 in."
+        ],
+        "Plant Type": [
+          "Perennial",
+          "Shrub",
+          "Tree",
+          "Weed"
+        ],
+        "Woody Plant Leaf Characteristics": [
+          "Deciduous"
+        ],
+        "Habit/Form": [
+          "Rounded"
+        ],
+        "Growth Rate": [
+          "Rapid"
+        ],
+        "Maintenance": [
+          "High"
+        ],
+        "Light": [
+          "Full sun (6 or more hours of direct sunlight a day)",
+          "Partial Shade (Direct sunlight only part of the day, 2-6 hours)"
+        ],
+        "Soil Texture": [
+          "Clay",
+          "Loam (Silt)",
+          "Sand"
+        ],
+        "Soil pH": [
+          "Acid (<6.0)",
+          "Alkaline (>8.0)",
+          "Neutral (6.0-8.0)"
+        ],
+        "Soil Drainage": [
+          "Good Drainage"
+        ],
+        "USDA Plant Hardiness Zone": [
+          "6a, 6b, 7a, 7b, 8a, 8b, 9a, 9b, 10a, 10b, 11a, 11b"
+        ],
+        "Flower Color": [
+          "Gold/Yellow",
+          "Green",
+          "Orange",
+          "Red/Burgundy"
+        ],
+        "Flower Bloom Time": [
+          "Spring"
+        ],
+        "Leaf Color": [
+          "Green"
+        ],
+        "Attracts": [
+          "Songbirds"
+        ],
+        "Resistance To Challenges": [
+          "Drought",
+          "Poor Soil"
+        ]
+      },
+      "fieldAliases": {},
+      "figures": [
+        {
+          "caption": "Full Form",
+          "author": "Jim Robbins",
+          "licenseRaw": "CC BY-NC-ND 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Broussonetia_papyrif_DxjprGnqIl3V.jpg",
+          "creditFilename": "attachment;filename=Broussonetia papyrifera Full Form Jim Robbins CC BY-NC-ND 4.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "18900"
+        },
+        {
+          "caption": "Leaf Structure",
+          "author": "Jim Robbins",
+          "licenseRaw": "CC BY-NC-ND 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Broussonetia_papyrif_iHE1ZZgbHv2V.jpe",
+          "creditFilename": "attachment;filename=Broussonetia papyrifera Leaf Structure Jim Robbins CC BY-NC-ND 4.0.jpe",
+          "association": "original_image_data_attributes",
+          "providerImageId": "18901"
+        },
+        {
+          "caption": "Fruit and Leaves On Tree",
+          "author": "Jim Robbins",
+          "licenseRaw": "CC BY-NC-ND 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Broussonetia_papyrif_VwBqZSDYdVQ5.jfif",
+          "creditFilename": "attachment;filename=Fruit and Leaves On Tree Fruit and Leaves On Tree Jim Robbins CC BY-NC-ND 4.0.jfif",
+          "association": "original_image_data_attributes",
+          "providerImageId": "18114"
+        },
+        {
+          "caption": "Fruit and Leaf",
+          "author": "Jim Robbins",
+          "licenseRaw": "CC BY-NC-ND 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Broussonetia_papyrif_Es2J1ckmfSh1.jfif",
+          "creditFilename": "attachment;filename=Fruit and Leaf Fruit and Leaf Jim Robbins CC BY-NC-ND 4.0.jfif",
+          "association": "original_image_data_attributes",
+          "providerImageId": "17143"
+        },
+        {
+          "caption": "Leaves",
+          "author": "Jim Robbins",
+          "licenseRaw": "CC BY-NC-ND 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Broussonetia_papyrif_i8xWhjC2ANEB.jfif",
+          "creditFilename": "attachment;filename=Leaves Leaves Jim Robbins CC BY-NC-ND 4.0.jfif",
+          "association": "original_image_data_attributes",
+          "providerImageId": "17144"
+        },
+        {
+          "caption": "Full Form",
+          "author": "Jim Robbins",
+          "licenseRaw": "CC BY-NC-ND 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Broussonetia_papyrif_DxjprGnqIl3V.jpg",
+          "creditFilename": "attachment;filename=Broussonetia papyrifera Full Form Jim Robbins CC BY-NC-ND 4.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "18900"
+        }
+      ],
+      "photoCount": 0
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/heracleum-mantegazzianum/",
+      "finalUrl": "https://plants.ces.ncsu.edu/plants/heracleum-mantegazzianum/",
+      "title": "Heracleum mantegazzianum\n        (Cartwheel-flower, Giant Cow Parsley, Giant Cow Parsnip, Giant Hogweed, Hogsbane)\n    \n    |\nNorth Carolina Extension Gardener Plant Toolbox",
+      "checkedAt": "2026-10-23",
+      "method": "Public original DOM via TinyFish include_selectors body; original dt/dd and image data-caption/data-attrib/data-license/data-downloadurl attributes.",
+      "identityHeadings": [
+        "Heracleum mantegazzianum"
+      ],
+      "facts": {
+        "Genus": [
+          "Heracleum"
+        ],
+        "Species": [
+          "mantegazzianum"
+        ],
+        "Family": [
+          "Apiaceae"
+        ],
+        "Life Cycle": [
+          "Biennial",
+          "Perennial"
+        ],
+        "Country Or Region Of Origin": [
+          "Asia"
+        ],
+        "Plant Type": [
+          "Herbaceous Perennial",
+          "Perennial",
+          "Poisonous",
+          "Weed"
+        ],
+        "Habit/Form": [
+          "Erect"
+        ],
+        "Growth Rate": [
+          "Rapid"
+        ],
+        "Maintenance": [
+          "High"
+        ],
+        "Light": [
+          "Partial Shade (Direct sunlight only part of the day, 2-6 hours)"
+        ],
+        "Soil Texture": [
+          "Clay",
+          "Loam (Silt)",
+          "Sand"
+        ],
+        "Soil Drainage": [
+          "Good Drainage",
+          "Moist"
+        ],
+        "USDA Plant Hardiness Zone": [
+          "3a, 3b, 4a, 4b, 5a, 5b, 6a, 6b, 7a, 7b, 8a, 8b, 9a, 9b"
+        ],
+        "Flower Color": [
+          "White"
+        ],
+        "Flower Bloom Time": [
+          "Summer"
+        ],
+        "Leaf Color": [
+          "Green"
+        ],
+        "Poison Severity": [
+          "High"
+        ],
+        "Causes Contact Dermatitis": [
+          "Yes"
+        ]
+      },
+      "fieldAliases": {},
+      "figures": [
+        {
+          "caption": "Flower form (Boone, NC)-Mid Summer",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Heracleum_mantegazzi_phsO8aPgotrV.jpeg",
+          "creditFilename": "attachment;filename=Flower form (Boone NC)-Mid Summer Flower form (Boone NC)-Mid Summer Douglas Goldman USDA CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "30720"
+        },
+        {
+          "caption": "Flower clusters (Boone, NC)-Mid Summer",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Heracleum_mantegazzi_9cmEXrAEqKmC.jpeg",
+          "creditFilename": "attachment;filename=Flower clusters (Boone NC)-Mid Summer Flower clusters (Boone NC)-Mid Summer Douglas Goldman USDA CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "30721"
+        },
+        {
+          "caption": "Flower close-up (Boone, NC)-Mid Summer",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Heracleum_mantegazzi_XKMaYP360lO2.jpeg",
+          "creditFilename": "attachment;filename=Flower close-up (Boone NC)-Mid Summer Flower close-up (Boone NC)-Mid Summer Douglas Goldman USDA CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "30713"
+        },
+        {
+          "caption": "Side view with hairs on stem (Boone, NC)-Mid Summer",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Heracleum_mantegazzi_GNTgapuKOOoU.jpeg",
+          "creditFilename": "attachment;filename=Side view with hairs on stem (Boone NC)-Mid Summer Side view with hairs on stem (Boone NC)-Mid Summer Douglas Goldman USDA CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "30715"
+        },
+        {
+          "caption": "Leaf close-up (Boone, NC)-Mid Summer",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Heracleum_mantegazzi_U7F9DCG5HZ4e.jpeg",
+          "creditFilename": "attachment;filename=Leaf close-up (Boone NC)-Mid Summer Leaf close-up (Boone NC)-Mid Summer Douglas Goldman USDA CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "30723"
+        },
+        {
+          "caption": "Fruits forming (Boone, NC)-Mid Summer",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Heracleum_mantegazzi_Qr4tDoM8N3Hl.jpeg",
+          "creditFilename": "attachment;filename=Fruits forming (Boone NC)-Mid Summer Fruits forming (Boone NC)-Mid Summer Douglas Goldman USDA CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "30716"
+        },
+        {
+          "caption": "Fruit clos-up (Boone, NC)-Mid Summer",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Heracleum_mantegazzi_GYXN4te4qj4V.jpeg",
+          "creditFilename": "attachment;filename=Fruit close-up (Boone NC)-Mid Summer Fruit clos-up (Boone NC)-Mid Summer Douglas Goldman USDA CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "30717"
+        },
+        {
+          "caption": "Mature fruits (Boone, NC)-Mid Summer",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Heracleum_mantegazzi_mDNTuzPA5c3S.jpeg",
+          "creditFilename": "attachment;filename=Mature fruits (Boone NC)-Mid Summer Mature fruits (Boone NC)-Mid Summer Douglas Goldman USDA CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "30718"
+        },
+        {
+          "caption": "Dried fruit (Boone, NC)-Mid Summer",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Heracleum_mantegazzi_0rFhst6TIsHG.jpeg",
+          "creditFilename": "attachment;filename=Dried fruit (Boone NC)-Mid Summer Dried fruit (Boone NC)-Mid Summer Douglas Goldman USDA CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "30719"
+        },
+        {
+          "caption": "Angular stem with hairs (Boone, NC)-Mid Summer",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Heracleum_mantegazzi_9YvRbqQxzZXh.jpeg",
+          "creditFilename": "attachment;filename=Angular stem with hairs (Boone NC)-Mid Summer Angular stem with hairs (Boone NC)-Mid Summer Douglas Goldman USDA CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "30722"
+        },
+        {
+          "caption": "Flower form (Boone, NC)-Mid Summer",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Heracleum_mantegazzi_phsO8aPgotrV.jpeg",
+          "creditFilename": "attachment;filename=Flower form (Boone NC)-Mid Summer Flower form (Boone NC)-Mid Summer Douglas Goldman USDA CC BY-NC 4.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "30720"
+        }
+      ],
+      "photoCount": 0
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/celastrus-orbiculatus/",
+      "finalUrl": "https://plants.ces.ncsu.edu/plants/celastrus-orbiculatus/",
+      "title": "Celastrus orbiculatus\n        (Asian Bittersweet, Chinese Bittersweet, Oriental Bittersweet)\n    \n    |\nNorth Carolina Extension Gardener Plant Toolbox",
+      "checkedAt": "2026-10-23",
+      "method": "Public original DOM via TinyFish include_selectors body; original dt/dd and image data-caption/data-attrib/data-license/data-downloadurl attributes.",
+      "identityHeadings": [
+        "Celastrus orbiculatus"
+      ],
+      "facts": {
+        "Genus": [
+          "Celastrus"
+        ],
+        "Species": [
+          "orbiculatus"
+        ],
+        "Family": [
+          "Celastraceae"
+        ],
+        "Life Cycle": [
+          "Woody"
+        ],
+        "Country Or Region Of Origin": [
+          "Russian Far East, China, Korea, Central & S. Japan"
+        ],
+        "Dimensions": [
+          "Height: 30 ft. 0 in. - 60 ft. 0 in.",
+          "Width: 5 ft. 0 in. - 10 ft. 0 in."
+        ],
+        "Plant Type": [
+          "Perennial",
+          "Vine",
+          "Weed"
+        ],
+        "Woody Plant Leaf Characteristics": [
+          "Deciduous"
+        ],
+        "Habit/Form": [
+          "Climbing",
+          "Spreading"
+        ],
+        "Growth Rate": [
+          "Rapid"
+        ],
+        "Maintenance": [
+          "High"
+        ],
+        "Light": [
+          "Full sun (6 or more hours of direct sunlight a day)",
+          "Partial Shade (Direct sunlight only part of the day, 2-6 hours)"
+        ],
+        "Soil Texture": [
+          "Clay",
+          "High Organic Matter",
+          "Loam (Silt)",
+          "Sand",
+          "Shallow Rocky"
+        ],
+        "Soil pH": [
+          "Acid (<6.0)",
+          "Alkaline (>8.0)",
+          "Neutral (6.0-8.0)"
+        ],
+        "Soil Drainage": [
+          "Moist"
+        ],
+        "USDA Plant Hardiness Zone": [
+          "4a, 4b, 5a, 5b, 6a, 6b, 7a, 7b, 8a, 8b"
+        ],
+        "Flower Color": [
+          "Green"
+        ],
+        "Flower Bloom Time": [
+          "Spring"
+        ],
+        "Leaf Color": [
+          "Green"
+        ],
+        "Resistance To Challenges": [
+          "Deer",
+          "Rabbits"
+        ]
+      },
+      "fieldAliases": {},
+      "figures": [
+        {
+          "caption": "Celastrus orbiculatus fruit and seed (Alleghany County, NC)-Mid Fall",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Celastrus_orbiculatu_UJymA23kNDDc.jpg",
+          "creditFilename": "attachment;filename=Open capsules with red seeds. Celastrus orbiculatus fruit and seed (Alleghany County NC)-Mid Fall Douglas Goldman USDA CC BY-NC 4.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "29931"
+        },
+        {
+          "caption": "Celastrus orbiculatus. Leaves and fruit (Alleghany County, NC)-Mid Fall",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Celastrus_orbiculatu_3NPayu3gffIO.jfif",
+          "creditFilename": "attachment;filename=Aging & yellowing leaves and red seeds in open capsules. Celastrus orbiculatus. Leaves and fruit (Alleghany County NC)-Mid Fall Douglas Goldman USDA CC BY-NC 4.0.jfif",
+          "association": "original_image_data_attributes",
+          "providerImageId": "29933"
+        },
+        {
+          "caption": "Celastrus orbiculatus",
+          "author": "Leonora Enking",
+          "licenseRaw": "CC-BY-SA 2.0",
+          "licenseId": "CC-BY-SA-2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Celastrus-orbiculatus--Leonora-Enking--CC-BY-SA-2-0_1.jpg",
+          "creditFilename": "attachment;filename=Leafy shoot with clusters of green flowers. Celastrus orbiculatus Leonora Enking CC-BY-SA 2.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "5644"
+        },
+        {
+          "caption": "Celastrus orbicularis. Foliage.",
+          "author": "Scott Zona",
+          "licenseRaw": "CC BY-NC 2.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/2.0/",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Celastrus_orbiculatu_Mo6YSrZkpSJf.jpeg",
+          "creditFilename": "attachment;filename=Leafy branch with green axillary flowers. Celastrus orbicularis. Foliage. Scott Zona CC BY-NC 2.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "40712"
+        },
+        {
+          "caption": "Celastrus orbiculatus (Alleghany County, NC)-Mid Fall",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Celastrus_orbiculatu_LaTjNabfVOl7.jfif",
+          "creditFilename": "attachment;filename=Branch with open capsules displaying red seeds. Celastrus orbiculatus (Alleghany County NC)-Mid Fall Douglas Goldman USDA CC BY-NC 4.0.jfif",
+          "association": "original_image_data_attributes",
+          "providerImageId": "29932"
+        },
+        {
+          "caption": "Celastrus orbiculatus. Flowers appear in clusters in the leaf axils, a few of the flowers have fallen off this cluster.",
+          "author": "Anita Gould",
+          "licenseRaw": "CC BY-NC 2.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/2.0/",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/celastrus_orbiculatrus_Anita_Gould_ccbync2.0_bloom.jpg",
+          "creditFilename": "attachment;filename=Small dangling green flowers with 5 petals. Celastrus orbiculatus. Flowers appear in clusters in the leaf axils a few of the flowers have fallen off this cluster. Anita Gould CC BY-NC 2.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "7935"
+        },
+        {
+          "caption": "Celastrus orbiculatus",
+          "author": "Esteve Conaway",
+          "licenseRaw": "CC BY 2.0",
+          "licenseId": "CC-BY-2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/2.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/celastrus_orbiculatus_Esteve_Conaway_ccby2.0_berries.jpg",
+          "creditFilename": "attachment;filename=Leafless branches with open capsules displaying red seeds. Celastrus orbiculatus Esteve Conaway CC BY 2.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "7936"
+        },
+        {
+          "caption": "Celastrus orbicularis. Orange capsules splitting in 3 valves to reveal red seeds",
+          "author": "pverdonk",
+          "licenseRaw": "CC BY-NC 2.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/2.0/",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/celastrus_scandens_p_ULDUYlSpD1KN.jpeg",
+          "creditFilename": "attachment;filename=Leafless branches with open capsules displaying red seeds. Celastrus orbicularis. Orange capsules splitting in 3 valves to reveal red seeds pverdonk CC BY-NC 2.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "35242"
+        },
+        {
+          "caption": "Celastrus orbiculatus fruit and seed (Alleghany County, NC)-Mid Fall",
+          "author": "Douglas Goldman, USDA",
+          "licenseRaw": "CC BY-NC 4.0",
+          "licenseId": null,
+          "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+          "eligible": false,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Celastrus_orbiculatu_UJymA23kNDDc.jpg",
+          "creditFilename": "attachment;filename=Open capsules with red seeds. Celastrus orbiculatus fruit and seed (Alleghany County NC)-Mid Fall Douglas Goldman USDA CC BY-NC 4.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "29931"
+        }
+      ],
+      "photoCount": 2
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/pistia-stratiotes/",
+      "finalUrl": "https://plants.ces.ncsu.edu/plants/pistia-stratiotes/",
+      "title": "Pistia stratiotes\n        (Nile Cabbage, Shellflower, Water Cabbage, Water Lettuce)\n    \n    |\nNorth Carolina Extension Gardener Plant Toolbox",
+      "checkedAt": "2026-10-23",
+      "method": "Public original DOM via TinyFish include_selectors body; original dt/dd and image data-caption/data-attrib/data-license/data-downloadurl attributes.",
+      "identityHeadings": [
+        "Pistia stratiotes"
+      ],
+      "facts": {
+        "Genus": [
+          "Pistia"
+        ],
+        "Species": [
+          "stratiotes"
+        ],
+        "Family": [
+          "Araceae"
+        ],
+        "Life Cycle": [
+          "Perennial"
+        ],
+        "Country Or Region Of Origin": [
+          "Tropical and subtropical regions worldwide, USA"
+        ],
+        "Dimensions": [
+          "Height: 0 ft. 3 in. - 0 ft. 6 in.",
+          "Width: 0 ft. 6 in. - 1 ft. 6 in."
+        ],
+        "Plant Type": [
+          "Herbaceous Perennial",
+          "Poisonous",
+          "Water Plant"
+        ],
+        "Woody Plant Leaf Characteristics": [
+          "Broadleaf Evergreen"
+        ],
+        "Habit/Form": [
+          "Spreading"
+        ],
+        "Growth Rate": [
+          "Rapid"
+        ],
+        "Maintenance": [
+          "High"
+        ],
+        "Light": [
+          "Full sun (6 or more hours of direct sunlight a day)",
+          "Partial Shade (Direct sunlight only part of the day, 2-6 hours)"
+        ],
+        "Soil Drainage": [
+          "Frequent Standing Water"
+        ],
+        "USDA Plant Hardiness Zone": [
+          "8a, 8b, 9a, 9b, 10a, 10b"
+        ],
+        "Flower Color": [
+          "Gold/Yellow",
+          "Green",
+          "Insignificant",
+          "White"
+        ],
+        "Flower Bloom Time": [
+          "Spring",
+          "Summer"
+        ],
+        "Leaf Color": [
+          "Gray/Silver",
+          "Green",
+          "White"
+        ],
+        "Resistance To Challenges": [
+          "Heat",
+          "Wet Soil"
+        ],
+        "Poison Severity": [
+          "Medium"
+        ],
+        "Causes Contact Dermatitis": [
+          "No"
+        ]
+      },
+      "fieldAliases": {},
+      "figures": [
+        {
+          "caption": "Pistia stratiotes",
+          "author": "Forest and Kim Starr",
+          "licenseRaw": "CC BY 3.0",
+          "licenseId": "CC-BY-3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/ForestandKim_Starr_Attribuzione_3.0_Unported_CC_BY_3.0_Pistia_stratiotes.jpg",
+          "creditFilename": "attachment;filename=Pistia stratiotes Pistia stratiotes Forest and Kim Starr CC BY 3.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "10722"
+        },
+        {
+          "caption": "Pistia stratiotes flower",
+          "author": "Keisotyo",
+          "licenseRaw": "CC BY-SA 3.0",
+          "licenseId": "CC-BY-SA-3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/deed.en",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Keisotyo_Atribucion-CompartirIgual_3.0_No_portada_CC_BY-SA_3.0_Pistia_stratiotes_Flower.jpeg",
+          "creditFilename": "attachment;filename=Pistia stratiotes Pistia stratiotes flower Keisotyo CC BY-SA 3.0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "10723"
+        },
+        {
+          "caption": "Pistia stratiotes",
+          "author": "Krzysztof Ziarnek",
+          "licenseRaw": "CC BY-SA 4.0",
+          "licenseId": "CC-BY-SA-4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/legalcode",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Krzysztof_Ziarnek_Attribution-ShareAlike_4.0_International_CC_BY-SA_4.0_Pistia_stratiotes.jpg",
+          "creditFilename": "attachment;filename=Pistia stratiotes Pistia stratiotes Krzysztof Ziarnek CC BY-SA 4.0.jpg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "10724"
+        },
+        {
+          "caption": "Pistia stratiotes",
+          "author": "Scot Nelson",
+          "licenseRaw": "CC0",
+          "licenseId": "CC0-1.0",
+          "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "eligible": true,
+          "url": "https://eit-planttoolbox-prod.s3.amazonaws.com/media/images/Scot_Nelson_PublicDomain_Pistia_stratiotes.jpeg",
+          "creditFilename": "attachment;filename=Pistia stratiotes Pistia stratiotes Scot Nelson CC0.jpeg",
+          "association": "original_image_data_attributes",
+          "providerImageId": "10725"
+        }
+      ],
+      "photoCount": 4
+    }
+  ],
+  "retrievalErrors": [
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/reynoutria-x-bohemica/",
+      "error": "page_not_found",
+      "status": 404
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/impatiens-glandulifera/",
+      "error": "page_not_found",
+      "status": 404
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/lysichiton-americanus/",
+      "error": "page_not_found",
+      "status": 404
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/ludwigia-grandiflora/",
+      "error": "page_not_found",
+      "status": 404
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/delairea-odorata/",
+      "error": "page_not_found",
+      "status": 404
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/crassula-helmsii/",
+      "error": "page_not_found",
+      "status": 404
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/reynoutria-sachalinensis/",
+      "error": "page_not_found",
+      "status": 404
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/elodea-nuttallii/",
+      "error": "page_not_found",
+      "status": 404
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/myriophyllum-heterophyllum/",
+      "error": "page_not_found",
+      "status": 404
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/koenigia-polystachya/",
+      "error": "page_not_found",
+      "status": 404
+    },
+    {
+      "url": "https://plants.ces.ncsu.edu/plants/lagarosiphon-major/",
+      "error": "page_not_found",
+      "status": 404
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="drive_connection_1">Direkter Abgleich mit Cloud-Bestätigung. Verwende das Google-Konto und den bisherigen Haus-&amp;-Garten-Ordner. Google muss Lese- und Schreibzugriff bestätigen. Die App greift ausschließlich auf diesen Ordner zu. Bestehende Daten bleiben erhalten.</string>
+    <string name="drive_connection_2">Google-Konto auswählen</string>
+    <string name="drive_connection_3">Google-Kontenauswahl ist auf diesem Gerät nicht verfügbar.</string>
+    <string name="drive_connection_4">Verbindung prüfen und verwenden</string>
+    <string name="drive_connection_5">Falls Google die Anmeldung blockiert, muss der Kontoinhaber die Android-OAuth-Anwendung mit Paket und Originalzertifikat im Google-Projekt freigeben. Der bisherige Dateianbieter bleibt gespeichert. Eine neue Verbindung wird erst nach erfolgreicher Prüfung aktiviert.</string>
+    <string name="drive_connection_6">Zurück</string>
+    <string name="drive_connection_7">Google-Freigabe und bestehenden Ordner prüfen …</string>
+    <string name="drive_connection_8">Verbindung geprüft. Der erste Abgleich beginnt; sein Ergebnis wird gesondert angezeigt.</string>
+    <string name="drive_connection_no_account">Noch kein Konto ausgewählt</string>
+</resources>

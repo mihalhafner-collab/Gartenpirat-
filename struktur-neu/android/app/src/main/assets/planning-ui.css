@@ -1,0 +1,121 @@
+.planning-controls,.planning-primary{display:flex;flex-wrap:wrap;align-items:center;gap:.65rem;margin:.65rem 0}.planning-controls>strong{flex:1;min-width:9rem;text-align:center;font-size:.95rem}.planning-controls>button,.planning-primary>button{min-height:44px;flex:1 1 7rem;white-space:normal}.planning-row{display:flex;flex-direction:column;align-items:stretch;width:100%;gap:.4rem;text-align:left;white-space:normal;min-width:0;overflow-wrap:anywhere;padding:1rem;margin:.6rem 0}.planning-row>strong{font-size:1.05rem;line-height:1.4}.planning-row>span,.planning-row>small{line-height:1.4;min-width:0}.planning-weather{padding:.4rem .6rem;border-radius:.45rem;background:#edf2f3;color:#263c43}.planning-weather[data-severity=critical]{background:#fce5e3;color:#84251e}.planning-weather[data-severity=difficult]{background:#fff0cd;color:#624200}.planning-weather[data-severity=clear]{background:#e7f3e4;color:#285624}#planning-page input,#planning-page select,#planning-page textarea{box-sizing:border-box;width:100%;min-width:0;max-width:100%;font:inherit}#planning-page label{display:block;margin:.85rem 0}#planning-page details{margin:.8rem 0}#planning-page summary{min-height:44px;padding:.6rem 0}#planning-page form>button{margin:.5rem .4rem .5rem 0;min-height:44px}#planning-page textarea{min-height:6rem}.planning-message{overflow-wrap:anywhere;line-height:1.5}#planning-home>h3{margin-bottom:.5rem}#planning-home .planning-row{box-shadow:none;padding:.65rem 0;border:0}#planning-page{padding-bottom:7rem}#planning-weather-detail small{display:block;line-height:1.5}.planning-primary button:focus-visible,.planning-row:focus-visible{outline:3px solid #23638d;outline-offset:2px}.planning-range{display:grid;grid-template-columns:44px minmax(0,1fr) 44px}.planning-range>button{padding:.5rem;min-width:0}.planning-range>strong{min-width:0;font-size:.9rem}.planning-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.planning-tabs>button{min-width:0;padding:.5rem;font:inherit}.planning-primary>button{min-width:0;overflow-wrap:anywhere}@media(max-width:360px){.planning-controls{gap:.4rem}}
+
+#planning-page button{max-width:100%;box-sizing:border-box;white-space:normal;overflow-wrap:anywhere}
+/* Saved appointments open as a readable overview; editing is an explicit action. */
+.planning-facts{margin:16px 0}.planning-facts>div{display:grid;grid-template-columns:minmax(85px,1fr) minmax(0,2fr);gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}.planning-facts dt{color:var(--muted)}.planning-facts dd{margin:0;font-weight:650;overflow-wrap:anywhere}.planning-note{white-space:pre-wrap;overflow-wrap:anywhere}#appointment-overview details{margin:12px 0}#appointment-overview summary{min-height:44px;padding:12px 0;cursor:pointer}#appointment-overview h3{overflow-wrap:anywhere}#appointment-overview h3:focus{outline:none}
+.planning-weather-setup{display:grid;gap:.4rem;margin:.7rem 0;padding:.75rem;border:1px solid var(--border,#899b8a);border-radius:.75rem;overflow-wrap:anywhere}
+.planning-weather-setup small{display:block}
+.planning-weather[data-severity="unknown"]{background:#f2f0e8;color:#453e29;border:1px solid #837652}
+.planning-list-actions{position:fixed;z-index:5;left:50%;transform:translateX(-50%);bottom:var(--app-nav-height,80px);width:min(760px,100%);box-sizing:border-box;padding:8px 12px;margin:0;background:#fff;border-top:1px solid var(--line)}
+#planning-page[data-planning-mode="list"]{padding-bottom:100px}
+#planning-page[data-planning-mode="edit"]{padding-bottom:110px}
+.planning-save-actions{position:fixed;z-index:6;bottom:0;left:50%;transform:translateX(-50%);width:min(760px,100%);padding:10px 12px max(10px,env(safe-area-inset-bottom));box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;background:#fff;border-top:1px solid var(--line)}
+.planning-save-actions>button{font:inherit;min-height:52px;white-space:normal;overflow-wrap:anywhere;padding:10px}
+
+.planning-collisions{margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:#f3f6f4;overflow-wrap:anywhere}.planning-collisions>strong,.planning-collisions small{display:block;line-height:1.45}.planning-collisions p{line-height:1.5;margin:8px 0}.planning-collisions[data-state=conflict],.planning-collision-badge{background:#fce9e4;border:1px solid #a14532;color:#762b20}.planning-collision-badge{padding:8px;border-radius:8px;font-weight:750}.planning-collisions button{min-height:48px}
+.planning-open-end{display:flex!important;align-items:center;gap:10px;min-height:56px;padding:8px;border:1px solid var(--line);border-radius:10px;background:#f7f5e9;box-sizing:border-box}
+#planning-page .planning-open-end input{width:24px;min-width:24px;height:24px;min-height:24px;flex:0 0 24px;margin:12px;accent-color:#22644c}
+.planning-open-end span{min-width:0;overflow-wrap:anywhere}.planning-open-end strong,.planning-open-end small{display:block;line-height:1.45}
+#planning-page input,#planning-page select{min-height:48px}#planning-duration[hidden]{display:none}
+.planning-collisions[data-state=uncertain],.planning-collision-badge[data-uncertain=true]{background:#fff4d5;border:1px solid #a78026;color:#674c10}
+
+/* K1: one week of loaded metadata, with accessible targets on narrow screens. */
+.planning-range{grid-template-columns:48px minmax(0,1fr) 48px auto}
+.planning-range>strong{overflow-wrap:anywhere}
+#planning-today{min-width:64px;padding:8px;font-size:var(--hg-fs-caption)}
+.planning-week-strip{display:grid;grid-template-columns:repeat(7,minmax(48px,1fr));gap:4px;margin:12px 0}
+.planning-week-strip>.planning-week-day{display:grid;justify-items:center;align-content:center;gap:2px;min-width:48px;min-height:68px;padding:6px 2px;border:1px solid var(--hg-line);border-radius:var(--hg-radius);background:var(--hg-surface);color:var(--hg-text);font-size:var(--hg-fs-caption)}
+.planning-week-day>strong{font-size:var(--hg-fs-body)}
+.planning-week-strip .planning-week-day[data-today=true]{background:var(--hg-sage);color:var(--hg-green)}
+.planning-week-strip .planning-week-day[aria-pressed=true]{border:2px solid var(--hg-green)}
+.planning-day-count{display:flex;align-items:center;gap:3px;min-height:1em;font-size:var(--hg-fs-caption);color:var(--hg-muted)}
+.planning-day-dot{width:6px;height:6px;border-radius:50%;background:var(--hg-green);flex:none}
+.planning-day-head{margin:18px 0 8px;font-size:var(--hg-fs-caption);color:var(--hg-muted);line-height:1.5}
+@media(max-width:389px){.planning-week-strip{grid-template-columns:repeat(4,minmax(48px,1fr))}}
+
+/* K2: two text rows, with a separate wrapping region for meaningful notices. */
+.planning-row[data-appointment-open]{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:6px 10px;align-items:start;min-height:56px;border-radius:var(--hg-radius);box-shadow:var(--hg-shadow-1)}
+.planning-row>.planning-time{grid-column:1;grid-row:1;white-space:nowrap;font-size:var(--hg-fs-body);font-weight:var(--hg-fw-strong);font-variant-numeric:tabular-nums}
+.planning-row>.planning-customer{grid-column:2;grid-row:1;font-size:var(--hg-fs-body);line-height:1.4}
+.planning-row>.planning-what{grid-column:1/-1;grid-row:2;color:var(--hg-muted);font-size:var(--hg-fs-body)}
+.planning-customer,.planning-what{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.planning-row>.planning-chips{grid-column:1/-1;grid-row:3;display:flex;flex-wrap:wrap;align-items:start;gap:6px;min-width:0}
+.planning-row>.planning-chips:empty{display:none}
+.planning-chips>.planning-chip,.planning-chips>.planning-weather,.planning-chips>.planning-collision-badge{max-width:100%;min-width:0;padding:5px 8px;border:0;border-radius:var(--hg-radius);font-size:var(--hg-fs-caption);line-height:1.4;font-weight:var(--hg-fw-regular);overflow-wrap:anywhere}
+.planning-chip{background:var(--hg-sage);color:var(--hg-green)}
+.planning-chip[data-status=draft]{background:var(--hg-info-bg);color:var(--hg-info-text)}
+.planning-chip[data-status=cancelled]{background:var(--hg-danger-bg);color:var(--hg-danger)}
+.planning-chip[data-kind=calendar],.planning-chip[data-kind=duration],.planning-chips>.planning-collision-badge{background:var(--hg-warn-bg);color:var(--hg-warn-text)}
+.planning-weather-area{display:block}
+
+/* K3: two period choices; actual hours and status remain separate links. */
+.planning-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+.planning-list-links{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;margin:4px 0 10px}
+.planning-list-links>.secondary{width:auto;flex:0 1 auto;min-height:48px;padding:8px;background:transparent;color:var(--hg-info-text);font-size:var(--hg-fs-caption);text-decoration:underline}
+.planning-list-links>.planning-actual-hours{color:var(--hg-green)}
+.planning-customer-filter{min-height:48px;max-width:100%;margin:4px 0 12px;border:1px solid var(--hg-line);border-radius:var(--hg-radius-pill);background:var(--hg-sage);color:var(--hg-green)}
+#planning-page>.page-head{gap:8px}
+#planning-page>.page-head>h2{flex:1;min-width:0}
+#planning-page .planning-head-actions{display:flex;flex-wrap:nowrap;gap:4px;margin:0;flex:none}
+#planning-page .planning-head-actions>button{display:grid;place-items:center;flex:none;position:relative;width:48px;min-width:48px;height:48px;padding:8px}
+.planning-head-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;border:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.planning-tabs>button{border:1px solid var(--hg-line);background:var(--hg-surface);color:var(--hg-muted)}
+.planning-tabs>button[aria-pressed=true]{border:2px solid var(--hg-green);background:var(--hg-sage);color:var(--hg-green);font-weight:var(--hg-fw-strong)}
+
+/* K4: only the round create action floats; list tools stay in the page flow. */
+.planning-list-actions{position:static;display:contents;transform:none;width:auto;padding:0;margin:0;background:transparent;border:0}
+.planning-list-actions>#planning-new{position:fixed;z-index:8;right:16px;left:auto;bottom:calc(var(--app-nav-height,80px) + 16px);width:56px;min-width:56px;max-width:56px;height:56px;min-height:56px;padding:0;margin:0;border-radius:var(--hg-radius-pill);display:grid;place-items:center;font-size:var(--hg-fs-head);line-height:1;box-shadow:var(--hg-shadow-2)}
+#planning-page[data-planning-mode=list]{padding-bottom:100px}
+.planning-list-links>#planning-suggest{color:var(--hg-green)}
+
+.planning-connection-notice{margin:8px 0}
+.planning-connection-chip{min-height:48px;max-width:100%;padding:8px 12px;border:1px solid var(--hg-warn-text);border-radius:var(--hg-radius-pill);background:var(--hg-warn-bg);color:var(--hg-warn-text);font-size:var(--hg-fs-caption);text-align:left}
+
+/* K6: original controls move into a short form; stored values and capture stay intact. */
+#appointment-form{padding:12px}
+#appointment-form>h3{font-size:var(--hg-fs-title);margin:0 0 12px}
+.planning-core{display:grid;gap:10px}
+#planning-page .planning-core label{display:grid;gap:4px;margin:0;font-size:var(--hg-fs-caption)}
+.planning-core input,.planning-core select{min-height:48px;padding:10px}
+.planning-duration-chips{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px}
+.planning-duration-chips>.secondary{flex:0 1 auto;min-width:48px;min-height:48px;padding:6px;border:1px solid var(--hg-line);background:var(--hg-surface);color:var(--hg-green);font-size:var(--hg-fs-caption);font-weight:var(--hg-fw-regular)}
+#planning-page .planning-duration-chips>.planning-open-end{display:flex!important;align-items:center;gap:5px;margin:0;padding:6px;min-height:48px;font-size:var(--hg-fs-caption);background:var(--hg-surface);border:1px solid var(--hg-line)}
+#planning-page .planning-duration-chips .planning-open-end input{margin:0;width:24px;min-width:24px;height:24px;min-height:24px;flex:0 0 24px}
+#planning-page .planning-duration-chips .planning-open-end strong{font-weight:var(--hg-fw-regular)}
+.planning-duration-chips>.secondary[aria-pressed=true],#planning-page .planning-duration-chips>.planning-open-end.is-selected{border:2px solid var(--hg-green);background:var(--hg-sage);color:var(--hg-green)}
+.planning-field-help{position:absolute;width:1px;height:1px;padding:0;margin:-1px;border:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+#planning-page .planning-more-options{margin:12px 0;padding:0 10px;border:1px solid var(--hg-line);border-radius:var(--hg-radius)}
+#planning-page .planning-more-options>summary{min-height:48px;padding:12px 0;color:var(--hg-green);font-weight:var(--hg-fw-strong)}
+#planning-message:empty{display:none}
+#planning-page .planning-core input,#planning-page .planning-core select{font-size:var(--hg-fs-body)}
+
+/* K7: compare existing versions before the unchanged explicit decision. */
+.planning-compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.planning-compare-version{min-width:0;padding:10px;border:1px solid var(--hg-line);border-radius:var(--hg-radius);background:var(--hg-surface)}
+.planning-compare-version>h4{margin:0 0 10px;color:var(--hg-green)}
+.planning-compare-version dl{margin:0}
+.planning-compare-version dl>div{margin:8px 0}
+.planning-compare-version dt{font-size:var(--hg-fs-caption);color:var(--hg-muted)}
+.planning-compare-value{margin:4px 0 0;padding:4px;line-height:1.4;overflow-wrap:anywhere}
+.planning-compare-value[data-different=true]{background:var(--hg-warn-bg);color:var(--hg-warn-text);font-weight:var(--hg-fw-strong);border-radius:6px}
+.planning-calendar-choices{display:grid;gap:8px;margin-top:12px}
+.planning-calendar-choices>button{width:100%;min-height:48px}
+.planning-calendar-choices>.sub{margin:0;font-size:var(--hg-fs-caption);line-height:1.4}
+@media(max-width:360px){.planning-compare-grid{grid-template-columns:minmax(0,1fr)}}
+
+.planning-weather[data-severity="clear"][data-forecast-stage="trend"]{background:#edf2f3;color:#263c43}
+.planning-availability{margin:12px 0;padding:12px;border:1px solid var(--hg-warn-text);border-radius:var(--hg-radius);background:var(--hg-warn-bg);color:var(--hg-warn-text);font-size:var(--hg-fs-caption);overflow-wrap:anywhere}
+.planning-availability p{margin:6px 0;line-height:1.45}.planning-availability button{min-height:48px;max-width:100%}
+.planning-availability[data-verified=true]{border-color:var(--hg-line);background:var(--hg-sage);color:var(--hg-green)}
+#planning-home{touch-action:pan-y;min-width:0;overflow-wrap:anywhere}
+.planning-home-position{display:grid;grid-template-columns:48px minmax(0,1fr) 48px;gap:8px;align-items:center}
+.planning-home-position>button{min-width:48px;min-height:48px;padding:6px}.planning-home-position>span{text-align:center;font-size:var(--hg-fs-caption);line-height:1.5}
+.planning-home-position>button:disabled{opacity:.4}.planning-home-help{font-size:var(--hg-fs-caption);color:var(--hg-muted);margin:6px 0 0}
+
+/* A labelled create action and one disclosure keep the list focused on appointments. */
+.planning-list-actions>#planning-new{width:auto;min-width:120px;max-width:calc(100vw - 32px);padding:10px 20px;border-radius:16px;font-size:var(--hg-fs-body);line-height:1.3}
+.planning-more-tools{margin:8px 0 12px;border-bottom:1px solid var(--hg-line)}
+.planning-more-tools>summary{display:flex;align-items:center;gap:8px;min-height:48px;color:var(--hg-green);cursor:pointer}
+.planning-more-tools>summary::before{content:'›';font-size:1.5em}.planning-more-tools[open]>summary::before{transform:rotate(90deg)}
+.planning-more-tools .planning-list-links{display:flex;flex-wrap:wrap;gap:8px}.planning-more-tools .planning-list-links>button{flex:1 1 140px}
+.planning-home-heading{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:4px 12px;margin-bottom:8px}.planning-home-heading h3{margin:0}.planning-home-heading>span{font-size:var(--hg-fs-caption);color:var(--hg-muted)}

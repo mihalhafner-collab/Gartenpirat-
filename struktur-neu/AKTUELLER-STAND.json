@@ -1,0 +1,112 @@
+{
+  "format": "gartenpirat.current-work.v1",
+  "repository": "mihalhafner-collab/Gartenpirat-",
+  "source_directory": "struktur-neu",
+  "source_import": {
+    "branch": "codex/heute-uebersicht-20261027",
+    "commit": "012b0433c5ffcf912a85ea95f898473bce10ae3a",
+    "build": 113,
+    "cutoff_build_inclusive": 100,
+    "cutoff_source_commit": "5467ca1e708f5105e0712404815d395994cfe516",
+    "copied_source_files": 1970,
+    "production_code_modified": false
+  },
+  "current_release_candidate": {
+    "version_name": "1.55.8",
+    "version_code": 113,
+    "app_source_git_sha": "2758d2e68dc00ff6b70078879b98a8fb3797c18c",
+    "source_tag": "source/v1.55.8-build113",
+    "source_sha256": "8c5bb6151d7517fb8b82ce60704c02749badf582d8390772e0729bdad5815f8e",
+    "apk_sha256": "a99c464794a61fc2e677c225496042ce49008725ee3a2c5eec8af842429c87ec",
+    "apk_bytes": 82854396,
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "tools": 169,
+    "ui_actions": 212,
+    "installation": "NOT_PERFORMED;last observed physical installation remains108",
+    "productive_migration": "NOT_PERFORMED",
+    "invoice_authority": "NOT_ACTIVATED",
+    "app_backup_mode": "PIXEL_PLAINTEXT_ZIP"
+  },
+  "last_observed_installed_build": {
+    "observed_at_utc": "2026-10-28T06:04:36.9034129Z",
+    "version_name": "1.55.3",
+    "version_code": 108,
+    "matched_release_source_git_sha": "9415c8da6c26314969b731bc01708c5e8f424349",
+    "source_sha256": "84e1d90175fe3a5863aaba14735f8ea25193fe5cf43005c99bc2e6e746315da5",
+    "source_binding": "EXACT_INSTALLED_APK_SHA256_MATCH_TO_RELEASE_REGISTRY;not independent App selfreport",
+    "apk_sha256": "5bdaa005664ac2a436ac50b7b4acff3f19bcaa09ce05f3568a1c6147937bb7d2",
+    "certificate_independently_read": false
+  },
+  "observed_installation_history": [
+    {
+      "observed_at_utc": "2026-10-27T18:14:26.286842+00:00",
+      "version_name": "1.55.1",
+      "version_code": 106,
+      "reported_base_git_sha": "99ab63afbdfdb9fd32dac70134f9461b1ba15b17",
+      "source_sha256": "6da86aad5019a93520c50794b72f53b45b5847b7dd30dfb650f290fe99e22928"
+    }
+  ],
+  "current_task": {
+    "name": "Minimalen Build113-Quellstand in Parallelstruktur übernehmen",
+    "status": "EXTRACTED_AND_VALIDATED",
+    "authorized": true
+  },
+  "open_checks": [
+    "Build113 auf dem Pixel speichern und wiederherstellen: nicht nachgewiesen",
+    "Produktive Integrität und Rechnungsautorität: keine neue Freigabe",
+    "Produktiver Performance-/Datenbankumbau: nicht abgeschlossen",
+    "Native Geräteabnahme nach Migration: nicht ausgeführt"
+  ],
+  "workflow": {
+    "scope": "PARALLEL_STAGING; existing source paths and workflows unchanged",
+    "rules": "AGENTS.md",
+    "code": "android/app/src/main",
+    "build_instructions": "docs/entwicklung/BAU.md",
+    "business_contract": "docs/fachregeln/APP.md",
+    "automatic_external_publication": false,
+    "automatic_installation": false
+  },
+  "excluded": [
+    "Testberichte und Diagnosen bis einschließlich Build100",
+    "Ältere nicht benötigte Tests und Gerätekampagnen",
+    "Alte Auftrags-/Statuschroniken und Auslieferungsfreigaben",
+    "Quellarchive, APKs, Betriebsdaten und Geheimwerte",
+    "Separater alter Python-/Drive-Geschäftsserver"
+  ],
+  "validation": {
+    "app_source_fingerprint": "MATCHES_BUILD113",
+    "android_release_java_compilation": "PASS; no APK built",
+    "python_tests_passed": 54,
+    "jvm_suites_passed": 3,
+    "jvm_checks_passed": 164,
+    "browser_suites_passed": 5,
+    "native_pixel_tests": "NOT_EXECUTED",
+    "source_privacy": "PASS",
+    "business_data_read": false,
+    "installation_performed": false,
+    "authored_changes_diff_check": "PASS",
+    "imported_source_whitespace": "2 existing findings in byte-identical Build113 sources; no unrelated source formatting applied"
+  },
+  "required_test_support": {
+    "java": [
+      "tests/java-support/at/hausgarten/service/RevierDomainTests.java",
+      "tests/java-support/at/hausgarten/service/BrowserMediaRepositoryRulesTests.java"
+    ],
+    "reason": "Only shared memory fixtures required by the selected current suites; old main test entrypoints removed"
+  },
+  "migration_adjustments": [
+    "Current Java runner restricted to three suites and their fixtures",
+    "Source handoff guard accepts the one staged source directory in the same repository",
+    "Startup test checks current behavior without an old diagnostic report",
+    "Photo UI test awaits asynchronous draft restoration before asserting visibility",
+    "Browser screenshots and transient diagnostics go to ignored outputs, not maintained documentation",
+    "Shared Java memory fixtures extracted without their old test main routines"
+  ],
+  "unmerged_work": [
+    {
+      "branch": "codex/pflanzenbibliothek-20261023",
+      "commit": "7d499b225ed28f501333227e0ce92a54d4c5d542",
+      "status": "PRESERVED_SEPARATELY;not automatically integrated into Build113"
+    }
+  ]
+}
