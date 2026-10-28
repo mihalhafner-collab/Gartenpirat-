@@ -47,15 +47,22 @@
     }
   ],
   "current_task": {
-    "name": "Regeln vereinheitlichen, Codex-Neulesen aktivieren und Projekteinstieg konkret vorbereiten",
-    "status": "CODEX_RULES_AND_HOOK_VALIDATED;PROJECT_SETTINGS_ENTRY_PENDING",
-    "authorized": true
+    "name": "Geschwindigkeit und schlanker Umbau: Etappen 1/2 auf Build113 prüfen, danach Etappen 3–5 nacheinander",
+    "status": "STAGES_1_2_REVERIFIED;STAGE3_PLAN_READY_BACKUP_REQUIREMENT_UNRESOLVED;STAGES_3_5_NOT_IMPLEMENTED",
+    "authorized": true,
+    "specification": "../CODEX-AUFTRAG-GARTENPIRAT.md",
+    "verification": "docs/verification/performance-build113.md",
+    "basis": "1.55.8 / Build113; user clarification 2026-10-28",
+    "authorization_scope": "Current user source-work request; no installation, productive migration, restore or invoice authority; explicit stage prerequisites preserved"
   },
   "open_checks": [
+    "Etappe3: Widerspruch klären – aktuelle Vorgabe verlangt verschlüsseltes Backup vor Tabellenübernahme, Build113 verwendet PIXEL_PLAINTEXT_ZIP; keine stillschweigende Regeländerung",
+    "Etappe3: Tabellenadapter, bewusste Übernahme, Abbruch/Neustart/Restore und verlustfreier Rückweg noch nicht implementiert oder abgenommen",
+    "Etappe4: nach Etappe3 je Bildschirm Heute → Kunden → Büro separat Funktionsliste, Umbau, Abnahme und Remote-Sicherung",
+    "Etappe5: geschützte Altlasten erst nach ausdrücklicher Nutzerbestätigung von Pixel-Backup und Restore sowie Abhängigkeitsnachweis entfernen",
     "Build113 auf dem Pixel speichern und wiederherstellen: nicht nachgewiesen",
-    "Produktive Integrität und Rechnungsautorität: keine neue Freigabe",
-    "Produktiver Performance-/Datenbankumbau: nicht abgeschlossen",
-    "Native Geräteabnahme nach Migration: nicht ausgeführt"
+    "Native Android-/SQLite-/Pixel-Leistung und Geräteabnahme nicht ausgeführt",
+    "Produktive Integrität und Rechnungsautorität: keine neue Freigabe"
   ],
   "workflow": {
     "scope": "PARALLEL_STAGING; existing source paths and workflows unchanged",
@@ -85,8 +92,8 @@
       "name": "Haus und Garten App Entwicklung",
       "role": "Conversations, goals and reference material; GitHub remains authoritative",
       "instructions": "docs/entwicklung/PROJEKT.md",
-      "settings_updated": false,
-      "status": "READY_TO_ENTER;PROJECT_SETTINGS_TOOL_NOT_AVAILABLE"
+      "settings_updated": true,
+      "status": "USER_CONFIRMED_SAVED;NO_INDEPENDENT_SETTINGS_TOOL_READBACK"
     }
   },
   "excluded": [
@@ -109,7 +116,23 @@
     "installation_performed": false,
     "authored_changes_diff_check": "PASS",
     "imported_source_whitespace": "2 existing findings in byte-identical Build113 sources; no unrelated source formatting applied",
-    "current_python_tests_passed": 62
+    "current_python_tests_passed": 62,
+    "current_performance_review": {
+      "date": "2026-10-28",
+      "source_commit": "bd25fa9b9cc1ea183974c5d2434ef11f56b4d12a",
+      "source_sha256": "8c5bb6151d7517fb8b82ce60704c02749badf582d8390772e0729bdad5815f8e",
+      "production_code_modified": false,
+      "check_current": "PASS;62 Python tests and selected source checks",
+      "startup_browser_groups_passed": 13,
+      "context_cache_browser_groups_passed": 18,
+      "scale_measurement": "PASS;40 samples per 6 operations;synthetic 300 customers/5000 worklogs/3000 photos/500 invoices",
+      "browser": "Cloud Chromium 153.0.8010.0;Playwright1.64.1;Acorn8.19.0;JavaScript bridge doubles",
+      "native_sqlite_measurement": "NOT_EXECUTED",
+      "pixel_measurement": "NOT_EXECUTED",
+      "android_build": "NOT_EXECUTED",
+      "jvm_suites": "NOT_EXECUTED",
+      "report": "docs/verification/performance-build113.md"
+    }
   },
   "required_test_support": {
     "java": [
