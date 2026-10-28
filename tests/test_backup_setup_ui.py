@@ -46,7 +46,7 @@ class BackupSetupUiTests(unittest.TestCase):
         source=(JAVA/'FullBackupActivity.java').read_text()
         manual=source.split('private void requestBackup(){',1)[1].split('private void prepareRecoveryExport()',1)[0]
         self.assertIn('BackupScheduleRules.dispatchManual(',manual)
-        self.assertIn('new BackupAutomation(this,store).runManual(id,',manual)
+        self.assertIn('new BackupAutomation(this,store,coordinator).runManual(id,',manual)
         self.assertNotIn('FullBackupJob.schedule',manual)
         self.assertIn('put("request_id",request).put("expected_settings_hash",settings)',manual)
         self.assertNotIn('if(!backupRequest.isEmpty()){refresh(false);return;}',source)

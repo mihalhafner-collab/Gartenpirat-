@@ -74,7 +74,8 @@ final class BackupAutomation {
 
     /** Explicit user action: prepare and upload exactly this durable job now.
      * No Android scheduler, fresh job, automatic opt-in or changed request ID. */
-    JSONObject runManual(String id,long now)throws Exception {
+    JSONObject runManual(String id,long now)throws Exception {return runManual(id,now,stage->{});}
+    JSONObject runManual(String id,long now,java.util.function.Consumer<String> progress)throws Exception {
         return runManual(id,now,()->{
             android.net.ConnectivityManager manager=context.getSystemService(android.net.ConnectivityManager.class);
             android.net.Network network=manager==null?null:manager.getActiveNetwork();
@@ -82,9 +83,11 @@ final class BackupAutomation {
             String wait=BackupScheduleRules.networkWait(settings.read(),caps!=null&&caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET),manager!=null&&manager.isActiveNetworkMetered());
             if(wait.equals("NETWORK_UNAVAILABLE"))throw new DriveRestClient.Failure(wait,"Kein Internetzugang.",0,false);
             if(!wait.isEmpty())throw new IOException(wait);
-        });
+        },progress);
     }
-    JSONObject runManual(String id,long now,LocalBackupCoordinator.UploadGate network)throws Exception {
+    JSONObject runManual(String id,long now,LocalBackupCoordinator.UploadGate network)throws Exception {return runManual(id,now,network,stage->{});}
+    private static void progress(java.util.function.Consumer<String> callback,String stage){try{callback.accept(stage);}catch(RuntimeException unavailable){/* Feedback never changes a durable backup outcome. */}}
+    JSONObject runManual(String id,long now,LocalBackupCoordinator.UploadGate network,java.util.function.Consumer<String> progress)throws Exception {
         if(!LOCAL_RUNNING.tryLock())return result("BUSY",id,0);
         boolean uploadLock=false;
         try{
@@ -98,6 +101,7 @@ final class BackupAutomation {
             BackupJobRepository jobs=repository();
             if(!manual(job))job=jobs.update(id,job.getString("revision"),new JSONObject().put("manualRequested",true));
             if(!locallyVerified(job)){
+                progress(progress,"local");
                 String lease="local_"+UUID.randomUUID();int previous=job.optInt("localAttempts");
                 job=jobs.update(id,job.getString("revision"),new JSONObject().put("localAttempts",previous+1).put("runnerAttemptId",lease).put("lastLocalAttemptAt",Instant.ofEpochMilli(now).toString()));
                 try{
@@ -106,6 +110,7 @@ final class BackupAutomation {
                     job=service.status(id);if(lease.equals(job.optString("runnerAttemptId")))job=jobs.update(id,job.getString("revision"),new JSONObject().put("runnerAttemptId","").put("lastErrorCode",""));
                 }catch(Exception failure){return failure(id,lease,previous+1,now,failure);}
             }
+            progress(progress,"upload");
             try{network.check();}catch(DriveRestClient.Failure unavailable){return result("WAIT_NETWORK",id,0).put("lastErrorCode",unavailable.code);}
             catch(IOException preference){if(!"BACKUP_WIFI_REQUIRED".equals(preference.getMessage()))throw preference;return result("WAIT_NETWORK",id,0).put("lastErrorCode","BACKUP_WIFI_REQUIRED");}
             return upload(job,config,System.currentTimeMillis(),false,network);

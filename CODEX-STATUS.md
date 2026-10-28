@@ -25,7 +25,11 @@ Neue Einrichtung: mobile Daten erlaubt, tägliche Automatik standardmäßig aus.
 Bestehende ausdrücklich gespeicherte WLAN-/Automatikwerte bleiben erhalten.
 Netzverlust, Wartezeit, Unterbrechung und unklare Antwort bleiben offene Zustände;
 externer Erfolg erst nach vollständigem Hash-Read-back.50 Host-Regelprüfungen
-und13 Quellen-/Setupgrenzen PASS; Androidkompilierung/Regressionen folgen noch.
+und15 Quellen-/Setupgrenzen PASS. Produktions- und Instrumentierungsquellen
+aus8b335dd erfolgreich kompiliert;80 zugehörige Python-Schutztests PASS.
+Letzte Fortschritts-/Vordergrundanmeldungsänderungen werden erneut kompiliert.
+Prüfkandidat1.55.5/110 für bewusste Geräteprüfung der Backup-Vorbedingung vorgesehen.
+Beleg: `docs/verification/backup-foreground-repair-2026-10-28.json`.
 Ein neuer nativer isolierter Abnahmefall ist vorbereitet, noch nicht ausgeführt.
 Diese Quellkorrektur ist noch kein Nachweis einer reparierten Pixel-Sicherung.
 
