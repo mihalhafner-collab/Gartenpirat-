@@ -531,6 +531,26 @@
       "productive_migration": "NOT_PERFORMED",
       "invoice_authority": "NOT_ACTIVATED",
       "evidence": "docs/verification/release-109-2026-10-28.json"
+    },
+    {
+      "version": "1.55.5",
+      "build": 110,
+      "tag": "source/v1.55.5-build110",
+      "git_sha": "aa094fee726650f60ba01445bbf2398b34a38ac7",
+      "tree_sha": "2e4053afec74ec81c08de3b2910e291b5076aeb7",
+      "source_sha256": "3ea5d475626bbbaa721d1cf029c6b507faf102a3824700245bda6e0c436ef115",
+      "apk_sha256": "5cf9d46e1af8c91a482b9015f1e1e06d58f4688ae81418184b2e71a383b5bd42",
+      "apk_bytes": 82911740,
+      "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+      "remote_readback": "PASS exact source commit and immutable peeled tag",
+      "download_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/f019fe523d821471133595d3a85a21b245cb4758/downloads/Haus-Garten-1.55.5-110-original.apk",
+      "download_artifact_commit": "f019fe523d821471133595d3a85a21b245cb4758",
+      "download_blob_sha1": "1c5c768a80b5c0d5db114938feed955d9a8b11bb",
+      "download_readback": "PASS_EXACT_REMOTE_COMMIT_TREE_AND_GITHUB_CONTENT_METADATA",
+      "device_acceptance": "NOT_EXECUTED",
+      "productive_migration": "NOT_PERFORMED",
+      "invoice_authority": "NOT_ACTIVATED",
+      "evidence": "docs/verification/release-110-2026-10-28.json"
     }
   ],
   "last_drive_cleanup": {

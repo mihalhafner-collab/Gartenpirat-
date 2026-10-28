@@ -523,7 +523,12 @@
   "delivery": {
     "method": "GIT_TRACKED_APK_IN_EXISTING_PRIVATE_REPOSITORY",
     "path": "downloads/Haus-Garten-1.55.5-110-original.apk",
-    "status": "PUSH_PENDING"
+    "status": "PASS_EXACT_REMOTE_COMMIT_TREE_AND_GITHUB_CONTENT_METADATA",
+    "artifact_commit": "f019fe523d821471133595d3a85a21b245cb4758",
+    "blob_sha1": "1c5c768a80b5c0d5db114938feed955d9a8b11bb",
+    "bytes": 82911740,
+    "download_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/f019fe523d821471133595d3a85a21b245cb4758/downloads/Haus-Garten-1.55.5-110-original.apk",
+    "independent_remote_full_file_download": false
   },
   "installation": "NOT_PERFORMED",
   "productive_data_access": "NONE",
@@ -533,5 +538,18 @@
   "stage4": "NOT_STARTED",
   "stage5": "BLOCKED_BY_MISSING_PIXEL_BACKUP_RESTORE_PROOF",
   "physical_backup_restore": "NOT_VERIFIED; user reports previous backup does not start or hangs",
-  "repair_evidence": "docs/verification/backup-foreground-repair-2026-10-28.json"
+  "repair_evidence": "docs/verification/backup-foreground-repair-2026-10-28.json",
+  "source_tag_readback": {
+    "object": "361c1527cc5704f29c8f598eb489c7acb988bf24",
+    "peeled": "aa094fee726650f60ba01445bbf2398b34a38ac7",
+    "status": "PASS"
+  },
+  "delivery_privacy": {
+    "source_delta": "PASS;7files;0seed",
+    "worktree": "PASS;5708files;includes ignored/untracked"
+  },
+  "final_registry_tests": {
+    "passed": 84,
+    "failed": 0
+  }
 }

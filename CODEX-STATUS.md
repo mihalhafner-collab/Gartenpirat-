@@ -22,8 +22,8 @@ neu vorbereiteter nativer Vordergrundfall noch nicht ausgeführt. Releasebau/Lin
 PASS0Fehler/103Warnungen, Quell-/Worktree-/APK-Privacy und Originalsignatur PASS.
 Die historischen P1-/Build97-Prüflücken bleiben separat offen, nicht abgeschwächt.
 Quellcommit `aa094fee726650f60ba01445bbf2398b34a38ac7`,
-Quelltag `source/v1.55.5-build110`; signierte APK unter downloads zur Git-Sicherung
-vorbereitet. Bericht: `docs/verification/release-110-2026-10-28.json`.
+Quelltag `source/v1.55.5-build110`; signierte APK in GitHub gesichert und exakter Remotecommit, Git-Blob, Größe
+und GitHub-Dateimetadaten zurückgelesen. Artefaktcommit `f019fe523d821471133595d3a85a21b245cb4758`. Bericht: `docs/verification/release-110-2026-10-28.json`.
 
 Keine Installation oder operative Backupausführung durch Codex. Dass eine reale
 Pixel-Sicherung jetzt funktioniert, ist noch nicht bestätigt. Etappen3–5 daher
