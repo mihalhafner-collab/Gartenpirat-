@@ -18,6 +18,7 @@ def main():
         ['tools/sync_equipment_maintenance_texts.py', '--check'],
         ['-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_original_signing.py'],
         ['-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_drive_backup_only_build.py'],
+        ['-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_codex_context_hook.py'],
     ]
     for arguments in checks:
         subprocess.run([sys.executable, '-B', *arguments], cwd=ROOT, check=True)

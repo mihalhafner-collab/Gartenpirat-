@@ -47,8 +47,8 @@
     }
   ],
   "current_task": {
-    "name": "Minimalen Build113-Quellstand in Parallelstruktur übernehmen",
-    "status": "EXTRACTED_AND_VALIDATED",
+    "name": "Regeln vereinheitlichen, Codex-Neulesen aktivieren und Projekteinstieg konkret vorbereiten",
+    "status": "CODEX_RULES_AND_HOOK_VALIDATED;PROJECT_SETTINGS_ENTRY_PENDING",
     "authorized": true
   },
   "open_checks": [
@@ -59,12 +59,35 @@
   ],
   "workflow": {
     "scope": "PARALLEL_STAGING; existing source paths and workflows unchanged",
-    "rules": "AGENTS.md",
+    "rules": "../AGENTS.md",
     "code": "android/app/src/main",
     "build_instructions": "docs/entwicklung/BAU.md",
     "business_contract": "docs/fachregeln/APP.md",
     "automatic_external_publication": false,
-    "automatic_installation": false
+    "automatic_installation": false,
+    "rule_reload": {
+      "event": "UserPromptSubmit",
+      "configuration": ".codex/hooks.json",
+      "reader": ".codex/read_project_context.py",
+      "status": "CODEX_CLI_TRUSTED_AND_NATIVE_CONTEXT_DELIVERY_VERIFIED",
+      "scope": "Supported and trusted Codex clients; no automatic reconfiguration of the running cloud chat",
+      "cli_version": "0.159.2",
+      "verification": {
+        "synthetic_unit_tests_passed": 8,
+        "native_prompts_with_correct_rules_and_state_hashes": 2,
+        "missing_state_prevented_model_transport": true,
+        "real_ai_model_invoked": false,
+        "running_cloud_chat_hook_invocation_verified": false
+      },
+      "single_rules_file": "AGENTS.md"
+    },
+    "chatgpt_project": {
+      "name": "Haus und Garten App Entwicklung",
+      "role": "Conversations, goals and reference material; GitHub remains authoritative",
+      "instructions": "docs/entwicklung/PROJEKT.md",
+      "settings_updated": false,
+      "status": "READY_TO_ENTER;PROJECT_SETTINGS_TOOL_NOT_AVAILABLE"
+    }
   },
   "excluded": [
     "Testberichte und Diagnosen bis einschließlich Build100",
@@ -85,7 +108,8 @@
     "business_data_read": false,
     "installation_performed": false,
     "authored_changes_diff_check": "PASS",
-    "imported_source_whitespace": "2 existing findings in byte-identical Build113 sources; no unrelated source formatting applied"
+    "imported_source_whitespace": "2 existing findings in byte-identical Build113 sources; no unrelated source formatting applied",
+    "current_python_tests_passed": 62
   },
   "required_test_support": {
     "java": [

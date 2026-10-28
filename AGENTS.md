@@ -1,237 +1,80 @@
-# Gartenpirat – verbindliche Codex-Regeln
+# Gartenpirat: verbindliche Arbeitsregeln
 
-## Entwicklungsprinzipien und Freigabe vor Codeänderungen
+Diese Datei ist die einzige verbindliche Regelfassung für dieses Repository und
+alle beteiligten KI-Werkzeuge, Hauptagenten und Subagenten. Die aktuelle Arbeitsbasis
+liegt in `struktur-neu/`. Bestehende Installation und bisherige Quellpfade werden
+durch die Regelumstellung nicht automatisch geändert.
 
-Diese Regeln sind bei jeder neuen Nutzereingabe für die aktuelle Aufgabe zu
-beachten. Prüfe vor jeder Codeänderung, ob der vorgeschriebene Ablauf eingehalten
-wurde und eine ausdrückliche Freigabe für den gewählten Lösungsweg vorliegt.
+Das ChatGPT-Projekt „Haus und Garten App Entwicklung“ bündelt fachlichen Kontext,
+Gespräche und Referenzmaterial nach `struktur-neu/docs/entwicklung/PROJEKT.md`.
+Verfügbaren Projektkontext zum Verstehen nutzen; technische Angaben vor Umsetzung
+mit GitHub abgleichen. Projektgedächtnis ersetzt weder Quellenprüfung noch Freigabe.
 
-Du agierst als pragmatischer Senior-Entwickler. Deine obersten Prinzipien sind
-KISS (Keep It Simple, Stupid) und YAGNI (You Aren’t Gonna Need It). Löse das
-aktuelle Problem mit möglichst wenig Code und Komplexität, ohne Verständlichkeit,
-Korrektheit oder Sicherheit zu opfern.
+## Oberste Entwicklungsprinzipien
 
-### Anti-Bloat-Regeln
+**KISS und YAGNI:** Wähle die einfachste Lösung, die den konkreten Bedarf
+vollständig, korrekt und wartbar erfüllt. Zusätzliche Dateien, Abhängigkeiten,
+Abstraktionen und Schutzmaßnahmen brauchen einen konkreten Nutzen. Vorhandenes
+bevorzugen, wenn es die Gesamtlösung vereinfacht. Keine vorsorglichen Funktionen.
+Bedienablauf zuerst festlegen; erforderliche Technik daran ausrichten.
 
-1. **Kein Vorrats-Code:** Erstelle keine Klassen, Interfaces, Wrapper,
-   Konfigurationsoptionen oder Hilfsfunktionen für theoretische zukünftige
-   Anforderungen. Löse ausschließlich die aktuelle Aufgabe.
-2. **Ursachen statt Pflaster:** Untersuche bei fehlerhafter Logik zuerst die
-   Ursache. Ergänze keine Sonderfälle, Flags oder try-catch-Blöcke, die das
-   eigentliche Problem verdecken. Schlage bei Bedarf einen einfachen Umbau der
-   betroffenen Basislogik vor. Notwendige Eingabeprüfungen und Fehlerbehandlung
-   bleiben ausdrücklich erlaubt.
-3. **Keine unnötigen Abhängigkeiten:** Bevorzuge vorhandene Projektmittel, native
-   Sprachfunktionen und die Standardbibliothek. Neue Abhängigkeiten brauchen
-   einen konkreten, nachvollziehbaren Nutzen.
-4. **Wiederverwendung vor Neuschreiben:** Prüfe zuerst, ob vorhandene Funktionen
-   oder Strukturen genutzt oder minimal angepasst werden können. Erzwinge keine
-   Wiederverwendung, die den Code komplizierter macht.
-5. **Keine Nebenbaustellen:** Vermeide ungefragte Refactorings, Umbenennungen,
-   Formatierungsänderungen und zusätzliche Features. Ändere nur, was zur Aufgabe
-   gehört oder für deren korrekte Umsetzung erforderlich ist.
-6. **Lesbarkeit vor Kürze:** Weniger Code ist kein Selbstzweck. Bevorzuge klare
-   Namen und direkte Abläufe gegenüber verdichteten Einzeilern oder unnötig
-   abstrakten Lösungen.
+## Beginn und Freigabe
 
-### Pflicht-Ablauf vor jeder Codeänderung
+1. Bei jeder neuen Anfrage diese Datei und
+   `struktur-neu/AKTUELLER-STAND.json` erneut lesen.
+2. Den tatsächlichen GitHub-Stand, Arbeitszweig und lokale Änderungen prüfen.
+   Build113 ist die übernommene Grundlage, keine unveränderliche Zukunftsvorgabe.
+3. Nur betroffene Fachregeln, Quelltexte und Prüfungen zusätzlich lesen.
+4. Vor Änderungen den einfachsten Weg, eine sinnvolle Alternative und die
+   Empfehlung kurz erklären. Ist kein sinnvoller anderer Weg vorhanden, sagen.
+5. Dateien in GitHub erst nach ausdrücklicher Nutzerbestätigung anlegen, ändern
+   oder löschen. Eine Freigabe umfasst die vorgestellte Änderung und ihre nötigen
+   Prüfungen. Bereits erteilte Freigaben nicht erneut anfordern.
 
-Beginne bei jeder neuen Umsetzungsaufgabe mit:
+Der Codex-Auslöser `UserPromptSubmit` ist in `.codex/hooks.json` konfiguriert.
+Er liest Regeln und Arbeitsstand frisch aus dem Checkout und stellt ihren Inhalt
+mit Prüfsummen bereit. Ungültige oder fehlende Pflichtdateien führen zur expliziten
+Blockierantwort. Voraussetzung sind eine unterstützte Codex-Oberfläche und die
+Prüfung/Freigabe der Hookdefinition. Eine laufende Cloud-Unterhaltung wird dadurch
+nicht automatisch umkonfiguriert; Aktivierung und tatsächlichen Aufruf getrennt
+nachweisen. Die technische Bereitstellung beweist keine fehlerfreie Regelanwendung.
 
-1. **Der simpelsten Lösung:** Wie lässt sich die Aufgabe mit minimalem Aufwand
-   lösen? Welche bestehenden Strukturen können genutzt werden?
-2. **Einer echten Alternative:** Nenne einen strukturell anderen Lösungsweg mit
-   kurzem Vor- und Nachteil. Falls keine sinnvolle Alternative existiert, sage
-   das ausdrücklich, statt eine künstliche Lösung zu erfinden.
-3. **Deiner Empfehlung:** Welcher Weg hält den Code langfristig schlank und
-   verständlich? Begründe die Wahl kurz.
+## Informationen pflegen
 
-Schreibe oder ändere erst Code, nachdem der Nutzer einen Weg ausdrücklich
-freigegeben hat, beispielsweise mit „Mach Weg 1“.
+- Eine zuständige Datei je Thema. Vor Neuanlage nach vorhandenen Inhalten suchen.
+- Technischer Stand, aktueller Auftrag und offene Punkte stehen ausschließlich
+  in `struktur-neu/AKTUELLER-STAND.json`; Anleitungen und Fachregeln in den dort
+  verlinkten Dokumenten.
+- Bei Änderungen betroffene vorhandene Informationen im selben Auftrag anpassen.
+  Erledigte Aufträge und überholte Aussagen nach Übernahme gültiger Inhalte löschen.
+- Keine Statuschronik, zusätzlichen Archivordner oder externen Entwicklungsexporte
+  anlegen. Alte Aufträge enthalten keine fortgeltende Ausführungsfreigabe.
+- Tests und Diagnosen bis einschließlich Build100 nicht übernehmen. Weiterhin
+  benötigte Build-, Prüf- und Fixture-Helfer bleiben unabhängig von ihrem Alter.
+  Aktuelle Prüfungen müssen den tatsächlich bearbeiteten Quellstand betreffen.
+- Ein Hauptagent führt Änderungen zusammen. Subagenten nur bei ausdrücklichem
+  Auftrag oder geltender Delegationsanweisung einsetzen; mit begrenzter Aufgabe,
+  diesen Regeln und eindeutigem Quellstand. Sie liefern Befunde mit Dateiverweisen.
 
-Für eine fundierte Empfehlung darfst du vorher vorhandenen Code und
-Projektdokumentation lesen und durchsuchen. Verändere dabei keine Dateien und
-führe keine Aktionen mit Nebenwirkungen aus.
+## Bestehende App erhalten
 
-### Umgang mit Unklarheiten und Freigaben
+- Paketkennung `at.hausgarten.service` und Originalsignatur erhalten.
+- Nur öffentlichen Quellbestand und synthetische Testdaten verwenden. Betriebliche
+  Dateien und Geheimwerte bleiben außerhalb des Repositorys und der Testdaten.
+- Keine Installation, Datenmigration, Wiederherstellung oder Rechnungsfreigabe
+  aus einem allgemeinen Entwicklungsauftrag ableiten.
+- Ein Build oder synthetischer Test beweist keine Prüfung auf dem produktiven Pixel.
+- Keine pauschale Bereitstellungs- oder Updatefreigabe aus alten Anweisungen
+  übernehmen. Externe Veröffentlichungen benötigen einen eigenen Nutzerauftrag.
 
-- Stelle gezielte Rückfragen, wenn fehlende Informationen die Lösungswahl
-  wesentlich beeinflussen. Benenne ansonsten deine Annahmen knapp.
-- Eine Freigabe gilt für den gewählten Weg einschließlich der dafür notwendigen
-  Implementierungsdetails und Prüfungen. Frage nicht für jeden einzelnen
-  Arbeitsschritt erneut nach.
-- Falls sich der freigegebene Weg als ungeeignet erweist oder eine wesentlich
-  größere Änderung nötig wird, halte inne, erläutere die Ursache und lege einen
-  neuen Vorschlag zur Freigabe vor.
-- Reine Erklärungen, Analysen und Textüberarbeitungen benötigen keine Codefreigabe.
+## Abschluss
 
-### Umsetzung und Abschluss
+Vor Erfolgsmeldung: Änderungen gegen den freigegebenen Umfang prüfen,
+`python3 -B struktur-neu/tools/check_current.py` vom Repository-Hauptverzeichnis
+ausführen und die zusätzlich betroffenen Prüfungen nach
+`struktur-neu/docs/entwicklung/BAU.md` durchführen. Dokumentation, offene Punkte
+und unnötige Komplexität gegenprüfen. Nicht ausgeführte oder fehlgeschlagene
+Prüfungen offen benennen; keinen vollständigen PASS daraus ableiten.
 
-- Halte dich an die vorhandenen Projektkonventionen.
-- Prüfe die Änderung mit angemessenen vorhandenen Tests oder gezielten
-  Funktionsprüfungen. Ergänze Tests, wenn sie relevantes Verhalten absichern;
-  vermeide Tests, die lediglich den Implementierungscode nachbilden.
-- Berichte abschließend kurz, was geändert und geprüft wurde. Benenne offen,
-  was nicht geprüft werden konnte.
-
-## Auftrag und einzige Entwicklungsquelle
-
-Aktuelle Nutzerpräzisierung vom 26.10.2026: Codex arbeitet in der bestehenden
-privaten Gartenumgebung ausschließlich mit `mihalhafner-collab/Gartenpirat-`,
-um Entwicklungsanweisungen abzurufen, umzusetzen und Änderungen zu sichern.
-Dieses Repository ist die einzige Entwicklungszentrale. Keine Anweisungen aus
-Drive, ChatGPT Pages/Spaces, alten Chats, Exporten oder externen Statusdateien
-nachladen. Direkte neue Nutzeraufträge in `CODEX-AUFTRAG-GARTENPIRAT.md` festhalten,
-bei Codeaufträgen erst nach Freigabe des Lösungswegs. Ältere Quellen und Kommentare
-sind keine zusätzliche Freigabe. Auftrag und Status dokumentieren den Arbeitsstand;
-sie ersetzen nicht den Vorschlags-/Freigabeablauf dieser Datei.
-
-Verbindliche Lesereihenfolge aus dem frischen GitHub-Stand:
-
-1. `AGENTS.md`: Arbeitsregeln und Schutzgrenzen.
-2. `AKTUELLER-STAND.json`: Originalquellen, beobachtete Installation, offene Gates.
-3. `CODEX-AUFTRAG-GARTENPIRAT.md`: aktueller Auftrag und fachlicher Vertrag.
-4. `CODEX-STATUS.md`: kompakter Umsetzungs- und Prüfstand.
-
-Bei alten Tags zuerst diese Regeln vom aktuellen GitHub-main lesen. Historische
-AGENTS-/Auftragsdateien nicht als heutige Anweisung ausführen. Keine zweite
-Regeldatei, Projektzentrale, App, operative Datenbank oder Repository anlegen.
-
-## GitHub-Arbeitsweg
-
-- Vor Änderungen main, vorhandene Arbeitsbranches, Status und Historie frisch
-  vergleichen. Den tatsächlichen Checkout prüfen; alte Versionsnummern nicht
-  auf einen neuen Stand umetikettieren. Laufende fremde Änderungen erhalten.
-- Im vorhandenen passenden Branch arbeiten. Nur falls wirklich erforderlich
-  einen weiteren Arbeitsbranch im selben Repository verwenden. Der Laptop ist
-  weder Arbeitsumgebung noch Fallback. Keine zweite lokale Entwicklung.
-- Nach einem abgeschlossenen Schritt, vor Builds, Übergaben und Unterbrechungen:
-  Privacy prüfen, nur eigene geprüfte Dateien gezielt committen, nach GitHub
-  pushen und den exakten Remote-Commit zurücklesen. Keine pauschalen Git-adds.
-- Bei fehlgeschlagenem Push: Sicherung offen melden und Auslieferung anhalten.
-  Keine Ersatzsicherung in Drive oder einem anderen Dienst anlegen.
-- Vor Originalsignierung muss `python3 tools/source_preservation.py` PASS liefern:
-  sauberer Quellcheckout, richtiges Repository, genauer Commit auf GitHub.
-  Keine Dirty-/Offline-/Skip-Abkürzung. Auslieferung nur aus unverändertem Commit.
-- Änderungen/Prüfbelege im Repository sichern. Regeln gehören hierher, Aufgaben
-  in den bestehenden Auftrag, aktuelle Ergebnisse in den bestehenden Status;
-  maschinenlesbare technische Evidenz nach `docs/verification/`.
-
-## Drive-Grenze
-
-Codex legt keine Quellcode-ZIPs, TXT-Exporte, Dokumentationsgenerationen,
-Entwicklungsbackups, Arbeitsanweisungen oder Statusregister in Drive ab.
-Keine Automatik für solche Kopien erstellen oder wieder einschalten.
-
-Einzige Codex-Ausnahme: Nach einem tatsächlich beauftragten und geprüften APK-Bau
-darf das originale Installationspaket im bestehenden privaten APK-Bereich
-bereitgestellt und zurückgelesen werden. Nur unmittelbar erforderliche Prüfsumme
-und Installationsprovenienz ergänzen; Quellen und Entwicklungsberichte bleiben
-in GitHub. Kein APK-Bau allein wegen einer Dokumentationsänderung.
-
-Davon getrennt bleibt die vorhandene verschlüsselte **App-Betriebsdatensicherung**
-nach Drive bestehen. Codex aktiviert sie nicht eigenständig und benutzt weder
-sie noch produktive Dateien als Entwicklungs- oder Testmaterial. Backup ist kein
-Geschäftssync. Bestehende Sicherungsordner und einzigartige Originalbelege schützen.
-
-## Lokaler Betrieb und Schutz des Bestands
-
-Pixel/App ist die einzige operative Geschäftsdatenautorität. UI und MCP verwenden
-dieselben lokalen Fachpfade. Drive-Geschäftssync und alte Schreiber nicht
-reaktivieren. Historische Queue-/Journalbelege dürfen keine neuen Retries erzeugen
-oder durch Neustart/Restore wieder aktiv werden. Backupfehler blockieren keinen
-lokalen Geschäftsvorgang. Die offene produktive Integritäts-/Migrationsprüfung
-bleibt ein eigenes Gate; keine manuell gesetzten Freigabeflags.
-
-Lokale Datenautorität erteilt keine Rechnungs-/Belegnummernfreigabe. Kunden,
-Einsatzobjekt und Rechnungsempfänger unterscheiden; auftragslose Arbeit und
-persönliches b.b./bezahlt getrennt vom Rechnungsstatus erhalten. Keine erfundenen
-Kunden, Zeiten, Preise, Beziehungen oder Belegnummern.
-
-Unberührtes Formular: kein Draft. Bearbeitet: Draft. Bestätigtes Speichern:
-Geschäftssatz. Verwerfen entfernt den Draft vollständig; Abbruch erzeugt keinen
-versteckten Geschäftssatz. Delete ist kein Archive, Inactive oder Hidden. Fachliche
-Aufbewahrung und referenzierte Belege trotzdem prüfen. Unklare Commitantwort:
-ursprüngliche ID/Argumente erhalten und zuerst lesen, keine neue ID erzeugen.
-Bestätigte Commits durch Foto-, UI- oder Backupfolgefehler nicht zurückrollen.
-
-Keine produktiven Testkunden/-aufträge/-rechnungen, keine Löschung zum Testen,
-keine automatische Migration, Installation, Deinstallation oder App-Datenlöschung.
-Restore ist bewusst, getrennt und fail-closed. Gesetzliche Dokumentenschutzgates
-und Originalidentität `at.hausgarten.service` bleiben unverändert.
-
-## Quellcode ohne Betriebsdaten
-
-Im Quellcheckout ausschließlich PUBLIC_SOURCE und SYNTHETIC_TEST. Auch ignorierte,
-unversionierte Dateien und Buildausgaben prüfen; .gitignore genügt nicht.
-PRIVATE_RUNTIME und SECRET bleiben außerhalb. Keine produktiven Datensätze,
-Fotos, Datenbanken, Snapshots, Rohbackups oder Kontowerte für Tests abrufen.
-Bestehende ungeklärte Workspace-Funde weder übernehmen noch pauschal löschen.
-
-`initial-data.json` bleibt der exakt leere Vertrag aus `bootstrap_contract.py`;
-nur `tools/empty_bootstrap.py --write` darf ihn aus Konstanten erzeugen.
-Host-Betriebszugriffe ausschließlich über `runtime_paths.py` und ausdrücklich
-externes `HG_PRIVATE_DATA_ROOT`; kein Fallback ins Repository. Tests verwenden
-die synthetische Factory und eigene temporäre Stores. Quelle, gesamter
-Quellworktree und auszulieferndes Artefakt müssen ihre Privacy-Gates bestehen.
-Alte Git-Objekte nur lesend behandeln; kein automatisches History-Rewrite.
-
-Originalsignierung ausschließlich nach `ORIGINAL-SIGNIERUNG-CLOUD.md` mit den
-bestehenden geschützten persönlichen Cloud-Werten. Keine Schlüsselwerte in Git,
-Logs oder Artefakten, kein Ersatzschlüssel, keine Signierung in GitHub Actions.
-Der öffentliche geprüfte Zertifikat-Fingerprint ist Provenienz, kein Secret.
-
-## Änderungen und Nachweis
-
-Keine neuen Features vor abgeschlossenem Transition-Auftrag. Nach Freigabe des
-Lösungswegs und vor der Codeänderung Endzustand und realistische Gegenpfade
-bestimmen, Ursache im Code/Datenmodell prüfen, minimal korrigieren und durch reproduzierbaren Test oder Read-back
-gegenprüfen. UI/native/SQLite/Owner-Stores/MCP/Journale/Queue/Backup/Restore sowie
-Drafts, Timer, Medien, Planung, Angebote, Rechnungen und Löschpfade einschließen,
-soweit betroffen. Tests und Fixtures dürfen ausgemusterte Pfade nicht aktivieren.
-
-Aktive Schutz-/Test-/Host-Legacykomponenten nicht nach Dateiname oder Alter löschen.
-Pflanzendaten und Webspiegel weiter über `tools/sync_plant_assets.py` führen;
-generierte Spiegel nicht unabhängig ändern. Bestehende Fachverträge erhalten.
-Nur relevante bestehende Prüfungen ausführen; fehlende native/physische oder
-externe Nachweise ausdrücklich offen lassen. Ein Build ist keine Geräteabnahme.
-
-Bei uneindeutiger Datenintegrität, drohendem Verlust einzigartiger Arbeit,
-unklarer Belegautorität oder notwendiger Gateumgehung den betroffenen Schritt
-anhalten. Andere eindeutig ausführbare Schritte fortsetzen. Aktuelle und
-beobachtete installierte Versionen nicht mit historischen Ständen verwechseln.
-Versionsaufbewahrung nach Nutzerklärung vom27.10.: APKs ab Revier Solo
-(1.55.0/Build99) behalten, ältere administrative APKs und Versionsreferenzen
-entfernen. Die genaue Grenze und Nachweise stehen in `source-lifecycle.json`;
-kein automatisches späteres Verschieben auf „nur zwei Versionen“. Git-Historie zur Nachvollziehbarkeit
-erhalten; nie Force-Push oder unangekündigtes Umschreiben.
-
-## Starttext für die bestehende Gartenumgebung
-
-Dieser Bootstrap ist der zuletzt direkt kopierbar übergebene Start-Skill.
-Der Nutzer hat seine manuelle Veröffentlichung am27.10.2026 bestätigt.
-Veröffentlichungsbestätigung, technisches Rücklesen und Übernahme in eine neue
-Laufzeit bleiben im aktuellen Status getrennt; eine Git-Änderung allein ändert
-keine Cloud-Konfiguration.
-
-```text
-Arbeite ausschließlich im bestehenden privaten Repository mihalhafner-collab/Gartenpirat-.
-
-Hole vor Aufgabenbeginn den aktuellen GitHub-main und die vorhandenen Arbeitsbranches.
-
-Lies zuerst AGENTS.md vom aktuellen GitHub-main, danach AKTUELLER-STAND.json, CODEX-AUFTRAG-GARTENPIRAT.md und CODEX-STATUS.md aus dem passenden aktuellen Quellstand.
-
-Anweisungen und Entwicklungsstände ausschließlich über dieses GitHub-Repository führen. Keine Regeln, Aufträge oder Arbeitsstände aus Drive, Pages/Spaces oder alten Chats nachladen.
-
-Alle Änderungen nach Privacyprüfung committen, nach GitHub pushen und exakt zurücklesen.
-
-Keine Drive-Quellsicherungen, Exporte oder Statuskopien. Ausnahme: fertige geprüfte APKs und unmittelbar erforderliche Installationsprüfsummen im bestehenden privaten APK-Bereich.
-
-Verschlüsselte App-Backups getrennt erhalten. Keine Betriebsdaten für Entwicklung oder Tests verwenden.
-
-Persönliche Signierwerte sowie Netzwerk- und Zugriffsrechte unverändert schützen.
-
-Kein Laptop, keine automatische Installation, Migration oder Rechnungsfreigabe.
-
-Bei fehlendem GitHub-Zugriff sicher anhalten. Keinen anderen Anweisungs- oder Sicherungsdienst verwenden.
-```
+Nur eigene geprüfte Dateien gezielt committen, nach GitHub pushen und den exakten
+Commit zurücklesen. Bei fehlender Sicherung den Auftrag nicht als gesichert melden.

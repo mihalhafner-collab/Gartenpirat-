@@ -68,3 +68,19 @@ synthetischen Hilfsklassen bleiben nur erhalten, soweit die aktuellen Werkzeuge
 sie brauchen. Vor einer späteren Umstellung der bisherigen Abläufe sind ein
 aktueller nativer Testeinstieg und die betroffenen Pixel-Prüfungen gesondert nötig.
 Quellprüfungen, Kompilierung und JVM-/Browsertests sind getrennte Nachweise.
+
+## Codex-Regeln neu einlesen
+
+Die einzige Regelfassung ist `AGENTS.md` im Repository-Hauptverzeichnis.
+`.codex/hooks.json` ruft bei `UserPromptSubmit` den kleinen Lesehelfer auf.
+Er stellt die aktuellen Checkout-Dateien samt Prüfsummen bereit; er lädt keine
+externen Aufträge und verändert weder Dateien noch die App. Fehlende oder
+ungültige Pflichtdateien führen zu einer expliziten Blockierantwort.
+
+Eine unterstützte Codex-CLI muss das Projekt und die konkrete Hookdefinition
+zuerst als vertrauenswürdig akzeptieren. Dazu `/hooks` öffnen und die Definition
+prüfen/freigeben. Geänderte Definitionen benötigen eine neue Prüfung. Die
+Konfiguration im Repository allein beweist keine Aktivierung in anderen Clients.
+Lokale Command-Hooks werden nicht in jeder Cloud-Oberfläche unterstützt; die
+laufende ChatGPT-Unterhaltung wird durch einen Git-Commit nicht umkonfiguriert.
+Der tatsächliche Aktivierungs-/Prüfstand steht im aktuellen Arbeitsstand.

@@ -9,11 +9,16 @@ GitHub-Workflows und die installierte App werden damit nicht automatisch ersetzt
 
 ## Einstieg
 
-1. [Arbeitsregeln](AGENTS.md)
+1. [Arbeitsregeln](../AGENTS.md)
 2. [Aktueller Stand und Auftrag](AKTUELLER-STAND.json)
 3. Je nach Aufgabe [Bau und Prüfungen](docs/entwicklung/BAU.md),
    [Originalsignierung](docs/entwicklung/SIGNIERUNG.md) oder
    [gültige Fachregeln](docs/fachregeln/APP.md)
+
+Das Projekt **Haus und Garten App Entwicklung** wird nach dem
+[kurzen Projektablauf](docs/entwicklung/PROJEKT.md) als Gesprächs- und Planungsraum
+eingebunden. Der dort vorbereitete Anweisungstext muss in den Projekteinstellungen
+eingetragen werden; eine automatische GitHub-Synchronisierung wird nicht vorausgesetzt.
 
 | Pfad | Inhalt |
 |---|---|
