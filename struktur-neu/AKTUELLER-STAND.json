@@ -29,6 +29,12 @@
       "status": "PASS",
       "commit": "8f1f22f7786e147e4087608437e5062e93b15539",
       "method": "Fresh GitHub clone;remote APK size and SHA256 exactly match verified signed APK"
+    },
+    "drive": {
+      "file_id": "1RJYcOth3kklnbO00h_Zz8M0sKfJbJcFo",
+      "url": "https://drive.google.com/file/d/1RJYcOth3kklnbO00h_Zz8M0sKfJbJcFo/view?usp=drivesdk",
+      "mime_type": "application/vnd.android.package-archive",
+      "verification": "PASS;metadata,MIME,size and authenticated raw-file download verified"
     }
   },
   "last_observed_installed_build": {
@@ -51,10 +57,10 @@
     }
   ],
   "current_task": {
-    "name": "Aktuelle originalsignierte APK bauen, prüfen und zum Download bereitstellen",
-    "status": "COMPLETED;APK_BUILT_ORIGINAL_SIGNED_VERIFIED_AND_AVAILABLE",
+    "name": "Build114 über Drive zur Android-Paketinstallation bereitstellen",
+    "status": "COMPLETED;APK_ON_DRIVE_READY_FOR_USER_PACKAGE_INSTALLATION",
     "authorized": true,
-    "authorization_scope": "User explicitly requested build,original signing,checks and download;no device installation or productive data operation",
+    "authorization_scope": "Current user requested Drive delivery of this APK for user-started Android package installation",
     "release_environment": {
       "gradle": "9.3.1",
       "android_build_tools": "37.0.0",
@@ -62,7 +68,7 @@
       "signing": "PASS;all five existing variables available;original certificate independently matched to recorded reference",
       "project_chat_inherits_environment": false
     },
-    "distribution": "Repository downloads;Release attachment upload rejected with HTTP401;no Drive upload"
+    "distribution": "Drive20-APK/Aktuell;existing GitHub download retained"
   },
   "open_checks": [
     "Nach Installation spezifischen Backup-Inventarfehler ermitteln;vollständiges Pixel-Backup/Restore nachweisen",
