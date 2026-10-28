@@ -38,4 +38,11 @@ class BackupSetupUiTests(unittest.TestCase):
         self.assertIn('if(!record.optBoolean("unencrypted"))BackupRecoveryKeyStore',s)
         self.assertIn('record.optBoolean("unencrypted")?""',s)
         self.assertIn('EncryptedBackupArchive.writePlain(', (JAVA/'RestoreStartupProtection.java').read_text())
+    def test_historical_authority_proof_stays_readable_without_relaxing_gate(self):
+        control=(JAVA/'FullBackupController.java').read_text()
+        self.assertIn('args.optBoolean("legacy_evidence")',control)
+        self.assertIn('put("legacy_evidence",true)',(JAVA/'LocalAuthorityActivity.java').read_text())
+        self.assertIn('LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED',(JAVA/'LocalAuthorityRules.java').read_text())
+        self.assertIn('REMOVABLE_STORAGE_VOLUME',(JAVA/'LocalAuthorityRules.java').read_text())
 if __name__=='__main__':unittest.main()
+

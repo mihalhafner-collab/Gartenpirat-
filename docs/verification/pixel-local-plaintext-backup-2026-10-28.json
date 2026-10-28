@@ -45,5 +45,13 @@
     "No claim of faster device performance; comparison is contract/behavior not elapsed-time benchmark",
     "No installation, automatic restore, productive migration or invoice release"
   ],
-  "apk": "CANDIDATE113_PENDING_BUILD"
+  "apk": "CANDIDATE113_PENDING_BUILD",
+  "review_followup": {
+    "historical_authority_evidence": "Internal read-only status projection retained; no cloud call and no relaxation of LocalAuthorityRules external-evidence/invoice gates",
+    "first_release_build": "assemble and AndroidTest compile PASS; lint rejected dynamic URI permission flag expression; replaced with explicit fixed READ or READ|WRITE calls; no suppression"
+  },
+  "privacy": {
+    "source_delta": "PASS110files0seed",
+    "worktree": "PASS5785files;includesIgnoredUntracked"
+  }
 }
