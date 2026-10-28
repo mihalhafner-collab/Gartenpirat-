@@ -61,14 +61,16 @@
       "adb": "READ_AND_WRITE_FOR_SYNTHETIC_TESTING_AUTHORIZED; laptop as connection host",
       "test_order": "NO_MORE_TEST_RUNS_UNTIL_STAGE3_TO_STAGE5_AND_AGREED_SMALL_CHANGES_IMPLEMENTED",
       "productive_data_for_testing": false,
-      "journal_and_lists": "COMPLETE_SOURCE_CONVERSION_REQUESTED;protected legacy deletion only after restore evidence"
+      "journal_and_lists": "COMPLETE_SOURCE_CONVERSION_REQUESTED;protected legacy deletion only after restore evidence",
+      "protected_legacy_removal": "EXPLICITLY_REQUESTED;prior backup/restore prerequisite not evidenced or explicitly withdrawn"
     },
     "test_environment_access": {
       "adb_client": "NOT_AVAILABLE_IN_CLOUD",
       "adb_server_configuration": "ABSENT",
       "local_adb_server_5037": "NOT_REACHABLE",
       "physical_device_test": "NOT_EXECUTED",
-      "laptop_remote_shell": "NOT_AVAILABLE"
+      "laptop_remote_shell": "NOT_AVAILABLE",
+      "pixel_metadata_connector": "AVAILABLE;read-only backup/restore status retrieved;no ADB connection or test performed"
     },
     "implementation_checkpoint": "SOURCE_ONLY_NOT_TESTED;full acceptance and protected legacy deletion remain open;not a release candidate"
   },
@@ -177,10 +179,21 @@
         "LocalTestCleanup": "active committed row projection uses preserved original snapshot for synthetic provenance; verified deletion backup, tombstones and relationships remain required; no protected business-journal deletion added"
       },
       "protected_deletion_evidence": {
-        "backup_present": "USER_CONFIRMED",
-        "pixel_restore": "NOT_CONFIRMED;no build/archive/result-bound restore evidence available",
-        "dependency_absence": "NOT_ESTABLISHED;listed legacy classes remain referenced",
-        "deletion": "NOT_PERFORMED"
+        "backup_present": "USER_CONFIRMED;registered full-backup job not yet locally verified",
+        "pixel_restore": "DIRECT_PIXEL_STATUS_NONE;no completed restore evidenced",
+        "dependency_absence": "NOT_ESTABLISHED;live journal/table/backup readers and historical test fixtures still reference the listed classes",
+        "deletion": "NOT_PERFORMED;explicit source deletion request retained pending prerequisite",
+        "device_status_observation": {
+          "observed_at_utc": "2026-10-28T20:17:02Z",
+          "source": "Haus & Gartenservice Pixel get_restore_status/get_full_backup_status;read-only metadata",
+          "restore_phase": "NONE",
+          "backup_mode": "PIXEL_PLAINTEXT_ZIP",
+          "registered_backup_jobs": 1,
+          "backup_phase": "CAPTURING",
+          "backup_byte_size": 0,
+          "last_local_verified_at_present": false,
+          "scope": "Existing status only;no restore, backup creation or test executed;other user-held backups not inspected"
+        }
       }
     },
     "previous_android_release_java_compilation": "PASS; no APK built",
