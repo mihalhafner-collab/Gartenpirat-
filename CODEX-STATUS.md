@@ -1,10 +1,19 @@
 # Gartenpirat Arbeitsstand
 
-Stand: 27. Oktober 2026. Repository: `mihalhafner-collab/Gartenpirat-`.
+Stand: 28. Oktober 2026. Repository: `mihalhafner-collab/Gartenpirat-`.
 Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 `AGENTS.md`. Vollständige frühere Berichte sind im festen
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
+
+## Regelergänzung vom 28. Oktober 2026
+
+KISS-/YAGNI-Regeln und verbindlichen Vorschlags-/Freigabeablauf vor Codeänderungen
+in die vorhandene `AGENTS.md` aufgenommen. Keine zweite Regeldatei und kein
+wiederkehrender Bestätigungssatz. Bestehende Schutzregeln erhalten. Nur
+Projektanweisungen, Auftrag und Status geändert; keine Appänderung und kein Build.
+Die Repositoryregeln sind keine technische Ausführungssperre vor jedem Prompt;
+eine Änderung der veröffentlichten Cloud-Konfiguration wird nicht behauptet.
 
 ## Aktueller Auftrag
 

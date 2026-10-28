@@ -1,5 +1,14 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Nutzerauftrag vom 28. Oktober 2026
+
+Die im Chat abgestimmten KISS-/YAGNI-Regeln in die bestehende `AGENTS.md`
+integrieren. Vor Codeänderungen einfachste Lösung, echte Alternative und
+Empfehlung nennen und die ausdrückliche Freigabe abwarten. Keine künstliche
+Alternative erzwingen. Den einmaligen Bestätigungssatz nicht übernehmen.
+Bestehende Schutzregeln erhalten; Änderung prüfen, committen, nach GitHub pushen
+und den exakten Remote-Stand zurücklesen. Keine Appänderung oder APK erforderlich.
+
 ## Nutzerauftrag vom 26. Oktober 2026
 
 Die bestehende Codex-Gartenumgebung soll Entwicklungsanweisungen ausschließlich
