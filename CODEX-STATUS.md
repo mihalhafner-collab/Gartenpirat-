@@ -32,6 +32,17 @@ Releaseassetupload401, Entwurf enthält0Assets. Die geprüfte Original-APK wird
 deshalb direkt unter `downloads/Haus-Garten-1.55.4-109-original.apk` im bestehenden
 privaten Repository per Git gesichert; Zugangsdaten und Rechte unverändert.
 Keine erfolgte Drive-/Releaseassetbereitstellung behauptet. Quellen/Berichte nur GitHub.
+GitHub-Bereitstellung tatsächlich PASS: Commit `d6200c51120b5565028cf20aa854045dafb54766`
+exakt zurückgelesen; GitHub-Dateimetadaten bestätigen82907644Bytes und Blob
+`d83f72e00b685e6aff60dca0ed0df9c08057c23e`. Der FETCH_HEAD-gebundene APK-Blob
+hat denselben SHA256 wie das signierte Original. Kein separater Remote-Byteabruf
+behauptet. [APK109 im privaten GitHub öffnen](https://github.com/mihalhafner-collab/Gartenpirat-/blob/d6200c51120b5565028cf20aa854045dafb54766/downloads/Haus-Garten-1.55.4-109-original.apk).
+Dort „Download raw file“ wählen. Der GitHub-Entwurf verlinkt diese Datei, enthält
+wegen des401 keine Release-Assets. Aktuelle Kandidatenregistrierung109 ergänzt;
+Original108-Beobachtung und deren Provenienz unverändert als Vorgänger erhalten.
+Finale Quellprivacy der sechs Lieferdateien und Worktree5590Dateien PASS.
+Nach Kandidatenregistrierung84 Originalsignier-/Versionssperren-/Quell-Lifecycle-/
+Quellsicherungsprüfungen PASS; vier abschließende Metadatendateien Privacy PASS.
 Keine Installation, produktive Datenübernahme oder Rechnungsfreigabe. Pixel-
 Leistungsmessung, native Geräteausführung, Update-Datenerhalt und echte Backup-/
 Restore-Bestätigung bleiben offen. APK ist ein Prüfkandidat, keine Geräteabnahme.

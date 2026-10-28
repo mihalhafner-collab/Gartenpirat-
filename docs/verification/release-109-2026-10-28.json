@@ -126,15 +126,33 @@
   "github_release_assets": {
     "release_id": 426561607,
     "draft": true,
-    "tag": "source/v1.55.4-build109",
+    "tag": "untagged-95af2bfae0009902b024",
     "status": "UPLOAD_FAILED_401;READBACK_ASSETS_EMPTY",
-    "assets": 0
+    "assets": 0,
+    "draft_body_links_git_artifact": true,
+    "html_url": "https://github.com/mihalhafner-collab/Gartenpirat-/releases/tag/untagged-95af2bfae0009902b024",
+    "intended_source_tag": "source/v1.55.4-build109"
   },
   "delivery": {
     "method": "GIT_TRACKED_APK_IN_EXISTING_PRIVATE_REPOSITORY",
     "path": "downloads/Haus-Garten-1.55.4-109-original.apk",
     "sha256": "267a59057cbc6f2a2a09127d901ec3f5441139f2ad37f285b8bf91f078ba7b67",
     "bytes": 82907644,
-    "remote_status": "PUSH_PENDING"
+    "remote_status": "PASS_EXACT_REMOTE_COMMIT_TREE_AND_GITHUB_CONTENT_METADATA",
+    "artifact_commit": "d6200c51120b5565028cf20aa854045dafb54766",
+    "git_blob_sha1": "d83f72e00b685e6aff60dca0ed0df9c08057c23e",
+    "github_metadata_size": 82907644,
+    "github_file_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/d6200c51120b5565028cf20aa854045dafb54766/downloads/Haus-Garten-1.55.4-109-original.apk",
+    "fetch_head_blob_sha256": "267a59057cbc6f2a2a09127d901ec3f5441139f2ad37f285b8bf91f078ba7b67",
+    "verification": "GitHub contents metadata returned exact blob SHA1/size; remote branch commit reread; FETCH_HEAD-bound blob SHA256 matches signed file. No separate full remote byte redownload claim."
+  },
+  "final_source_worktree_privacy": {
+    "source_changed_files": "PASS6files0seedrows",
+    "worktree": "PASS5590files includes ignored/untracked and both APKs"
+  },
+  "final_registry_regressions": {
+    "passed": 84,
+    "failed": 0,
+    "scope": "Original signing/version guard, source lifecycle, source preservation"
   }
 }

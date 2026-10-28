@@ -1,7 +1,7 @@
 {
   "format": "gartenpirat.source-location.v1",
   "repository": "https://github.com/mihalhafner-collab/Gartenpirat-",
-  "development_ref": "refs/heads/codex/revier-solo-20261023",
+  "development_ref": "refs/heads/codex/heute-uebersicht-20261027",
   "verified_release_source": {
     "version": "1.54.1",
     "build": 90,
@@ -535,25 +535,28 @@
     }
   },
   "current_release_candidate": {
-    "version_name": "1.55.3",
-    "version_code": 108,
-    "status": "ORIGINAL_SIGNED_BUILD_LINT_PACKAGE_PRIVACY_PASS;DRIVE_METADATA_COMPLETE_REFERENCE_SIZE_PASS;REMOTE_SHA_OPEN;PHYSICAL_ACCEPTANCE_OPEN",
-    "app_source_git_sha": "9415c8da6c26314969b731bc01708c5e8f424349",
-    "source_tag": "source/v1.55.3-build108",
-    "source_sha256": "84e1d90175fe3a5863aaba14735f8ea25193fe5cf43005c99bc2e6e746315da5",
-    "apk_sha256": "5bdaa005664ac2a436ac50b7b4acff3f19bcaa09ce05f3568a1c6147937bb7d2",
-    "apk_bytes": 82903548,
+    "version_name": "1.55.4",
+    "version_code": 109,
+    "status": "ORIGINAL_SIGNED_BUILD_LINT_PACKAGE_PRIVACY_PASS;PRIVATE_GIT_DOWNLOAD_VERIFIED;PHYSICAL_ACCEPTANCE_OPEN;TWO_LEGACY_TEST_GAPS_OPEN",
+    "app_source_git_sha": "ac67b156d8bc17bc07722f387a1c7a392b865176",
+    "source_tag": "source/v1.55.4-build109",
+    "source_sha256": "c02911e34317e4691e6caabc20d10029d18992e7361bd506db6e0a9b30e6fa95",
+    "apk_sha256": "267a59057cbc6f2a2a09127d901ec3f5441139f2ad37f285b8bf91f078ba7b67",
+    "apk_bytes": 82907644,
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
     "tools": 169,
     "ui_actions": 212,
-    "drive_apk_id": "1s_5LCAinPU5MhXWAUhXkM2em1a1tiOhq",
-    "drive_apk_url": "https://drive.google.com/file/d/1s_5LCAinPU5MhXWAUhXkM2em1a1tiOhq/view?usp=drivesdk",
-    "drive_folder_id": "1ltFO6ZyZ61td2ubf61z3Lxm1y5z3ytDC",
-    "drive_readback": "METADATA_PRIVATE_PARENT_AND_COMPLETE_AUTHENTICATED_FILE_REFERENCE_SIZE_PASS;INDEPENDENT_REMOTE_SHA_NOT_VERIFIED_32MIB_MATERIALIZATION_LIMIT",
-    "installation": "OBSERVED108_VIA_ADB_VERSION_AND_EXACT_INSTALLED_APK_SHA256;no installation performed in this run;productive user-confirmed;synthetic device acceptance open",
+    "download_method": "GIT_TRACKED_APK_IN_EXISTING_PRIVATE_REPOSITORY",
+    "download_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/d6200c51120b5565028cf20aa854045dafb54766/downloads/Haus-Garten-1.55.4-109-original.apk",
+    "artifact_commit": "d6200c51120b5565028cf20aa854045dafb54766",
+    "artifact_blob_sha1": "d83f72e00b685e6aff60dca0ed0df9c08057c23e",
+    "remote_readback": "PASS_EXACT_REMOTE_COMMIT_TREE_AND_GITHUB_CONTENT_METADATA",
+    "drive_upload": "FAILED_BLOB_TIMEOUT;NEW_FOLDER_EMPTY",
+    "github_release_asset_upload": "FAILED401;DRAFT_WITH_GIT_FILE_LINK_ONLY",
+    "installation": "NOT_PERFORMED;last observed physical installation remains108",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "NOT_ACTIVATED",
-    "evidence": "docs/verification/release-108-2026-10-28.json"
+    "evidence": "docs/verification/release-109-2026-10-28.json"
   },
   "adb_campaign_2026_10_28": {
     "status": "PARTIAL_PASSIVE_ADB_EXECUTED;SYNTHETIC_ACCEPTANCE_BLOCKED",
@@ -591,5 +594,40 @@
     "evidence_readonly": "docs/verification/adb-device-readonly-2026-10-28.json",
     "executable_preflight": "tests/adb_readonly_preflight.ps1",
     "executable_performance": "tests/adb_readonly_performance.ps1"
+  },
+  "previous_release_candidates": [
+    {
+      "version_name": "1.55.3",
+      "version_code": 108,
+      "status": "ORIGINAL_SIGNED_BUILD_LINT_PACKAGE_PRIVACY_PASS;DRIVE_METADATA_COMPLETE_REFERENCE_SIZE_PASS;REMOTE_SHA_OPEN;PHYSICAL_ACCEPTANCE_OPEN",
+      "app_source_git_sha": "9415c8da6c26314969b731bc01708c5e8f424349",
+      "source_tag": "source/v1.55.3-build108",
+      "source_sha256": "84e1d90175fe3a5863aaba14735f8ea25193fe5cf43005c99bc2e6e746315da5",
+      "apk_sha256": "5bdaa005664ac2a436ac50b7b4acff3f19bcaa09ce05f3568a1c6147937bb7d2",
+      "apk_bytes": 82903548,
+      "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+      "tools": 169,
+      "ui_actions": 212,
+      "drive_apk_id": "1s_5LCAinPU5MhXWAUhXkM2em1a1tiOhq",
+      "drive_apk_url": "https://drive.google.com/file/d/1s_5LCAinPU5MhXWAUhXkM2em1a1tiOhq/view?usp=drivesdk",
+      "drive_folder_id": "1ltFO6ZyZ61td2ubf61z3Lxm1y5z3ytDC",
+      "drive_readback": "METADATA_PRIVATE_PARENT_AND_COMPLETE_AUTHENTICATED_FILE_REFERENCE_SIZE_PASS;INDEPENDENT_REMOTE_SHA_NOT_VERIFIED_32MIB_MATERIALIZATION_LIMIT",
+      "installation": "OBSERVED108_VIA_ADB_VERSION_AND_EXACT_INSTALLED_APK_SHA256;no installation performed in this run;productive user-confirmed;synthetic device acceptance open",
+      "productive_migration": "NOT_PERFORMED",
+      "invoice_authority": "NOT_ACTIVATED",
+      "evidence": "docs/verification/release-108-2026-10-28.json"
+    }
+  ],
+  "performance_stages_2026_10_28": {
+    "completed_source_work": [
+      1,
+      2
+    ],
+    "synthetic_browser_performance": "docs/verification/performance-stage2-2026-10-28.md",
+    "verification": "docs/verification/performance-stage2-tests-2026-10-28.json",
+    "stage3": "CONCRETE_PLAN_IN_ORDER;NOT_IMPLEMENTED;EXPLICIT_USER_APPROVAL_REQUIRED",
+    "stage4": "NOT_STARTED;STAGES_NOT_PARALLELIZED",
+    "stage5": "NOT_STARTED;PIXEL_BACKUP_RESTORE_CONFIRMATION_REQUIRED",
+    "pixel_performance": "NOT_EXECUTED"
   }
 }
