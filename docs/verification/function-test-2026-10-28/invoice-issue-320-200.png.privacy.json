@@ -1,0 +1,6 @@
+{
+  "classification": "SYNTHETIC_TEST",
+  "fixture": "qa_browser_fixture",
+  "sha256": "a70487ad12e0b350e29f7362a57124188f4f3084e740ae602b98589056d59942",
+  "provenance": "docs/verification/function-test-2026-10-28.json; exact original image hash and visual review"
+}

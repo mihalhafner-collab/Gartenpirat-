@@ -15,6 +15,29 @@ public class BusinessDataBridge {
         this.context=context;this.store=store;this.pendingWorkPhotos=pendingWorkPhotos;this.requestSync=requestSync;
         repository=new LocalOwnerRepository(context,store);
     }
+    // Bounded, process-local technical samples only. Never retain arguments,
+    // responses, tool names, record IDs, timestamps or business content.
+    private final Map<String,ArrayDeque<double[]>> performanceSamples = new LinkedHashMap<>();
+    private String measured(String label, java.util.function.Supplier<String> operation) {
+        long started=System.nanoTime();String result=null;
+        try { return result=operation.get(); }
+        finally {
+            double elapsed=(System.nanoTime()-started)/1_000_000.0;
+            int bytes=result==null?0:result.getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+            synchronized(performanceSamples){
+                ArrayDeque<double[]> samples=performanceSamples.computeIfAbsent(label,key->new ArrayDeque<>());
+                if(samples.size()==128)samples.removeFirst();samples.addLast(new double[]{elapsed,bytes});
+            }
+        }
+    }
+    @JavascriptInterface public String getPerformanceMetrics() {
+        JSONObject result=new JSONObject();
+        try { synchronized(performanceSamples){for(Map.Entry<String,ArrayDeque<double[]>> entry:performanceSamples.entrySet()){
+            JSONArray rows=new JSONArray();for(double[] row:entry.getValue())rows.put(new JSONObject().put("duration_ms",row[0]).put("response_bytes",(long)row[1]));
+            result.put(entry.getKey(),rows);
+        }} } catch(JSONException unavailable){return "{}";}
+        return result.toString();
+    }
     private void notifyCommitted() {
         // The business transaction already succeeded. A deferrable adapter/scheduler
         // failure cannot turn that local commit into a failed save or a second create.
@@ -26,19 +49,19 @@ public class BusinessDataBridge {
     }
 @JavascriptInterface public String getBrowserDraftState(String raw){try{return new JSONObject().put("ok",true).put("data",new BrowserDraftRepository(context,store).read(raw)).toString();}catch(Exception failure){return BrowserDraftRepository.responseFailure(failure);}}
 @JavascriptInterface public String writeBrowserDraftState(String raw){try{return new JSONObject().put("ok",true).put("data",new BrowserDraftRepository(context,store).write(raw)).toString();}catch(Exception failure){return BrowserDraftRepository.responseFailure(failure);}}
-@JavascriptInterface public String getState() { try{JSONObject state=store.getState();state.put("master",PixelMcpReadTools.effective(state)).put("ui_effective",true);JSONArray photos=state.getJSONObject("master").getJSONArray("photos");for(int i=0;i<photos.length();i++){JSONObject photo=photos.getJSONObject(i);String thumbnail=photo.optString("thumbnail_storage_name");if(thumbnail.matches("[0-9a-f]{64}\\.jpg"))photo.put("thumbnail_data","content://"+context.getPackageName()+".photothumbnails/"+thumbnail);}return state.toString();}catch(Exception e){return store.getState().toString();} }
+@JavascriptInterface public String getState() { return measured("getState", () -> { try{JSONObject state=store.getState();state.put("master",PixelMcpReadTools.effective(state)).put("ui_effective",true);JSONArray photos=state.getJSONObject("master").getJSONArray("photos");for(int i=0;i<photos.length();i++){JSONObject photo=photos.getJSONObject(i);String thumbnail=photo.optString("thumbnail_storage_name");if(thumbnail.matches("[0-9a-f]{64}\\.jpg"))photo.put("thumbnail_data","content://"+context.getPackageName()+".photothumbnails/"+thumbnail);}return state.toString();}catch(Exception e){return store.getState().toString();} }); }
 @JavascriptInterface public String planningTime(String value,String zone,String offset){try{return AppointmentRules.local(value,zone,offset).toString();}catch(Exception e){return "ERROR: "+e.getMessage();}}
-@JavascriptInterface public String ownerCall(String name,String arguments){
+@JavascriptInterface public String ownerCall(String name,String arguments){ return measured("ownerCall", () -> {
     try{if(!name.equals("get_invoice")&&!name.equals("get_business_summary")&&!PixelMcpOwnerTools.read(name)&&!PixelMcpOwnerTools.write(name)&&!OfferTools.read(name)&&!OfferTools.write(name)&&!AppointmentTools.read(name)&&!AppointmentTools.write(name))throw new IllegalArgumentException("Unbekannte Eigentümerfunktion.");PixelMcpReadTools tools=new PixelMcpReadTools(()->store.getState(),store,new PixelOwnerAccess(context,store));return tools.call(name,new JSONObject(arguments)).toString();}
     catch(Exception e){try{return McpErrors.bridge(e).toString();}catch(Exception ignored){return "{}";}}
-}
+}); }
 @JavascriptInterface public String getSyncDetails(){try{JSONObject s=store.getState();return DriveJournalRules.queueStatus(s.getJSONObject("master"),s.getJSONArray("pending")).toString();}catch(Exception e){return "{}";}}
 @JavascriptInterface public String getSyncConflict(String id){try{return PixelMcpOwnerTools.conflicts(store.getState(),new JSONObject().put("limit",1).put("client_id",id)).toString();}catch(Exception e){return "ERROR: Konflikt konnte nicht vollständig gelesen werden.";}}
 @JavascriptInterface public String resolveSyncConflict(String request){try{return new PixelOwnerAccess(context,store).execute("resolve_sync_conflict",new JSONObject(request)).toString();}catch(Exception e){return "ERROR: "+e.getMessage();}}
-@JavascriptInterface public String getWorkSession() {
+@JavascriptInterface public String getWorkSession() { return measured("getWorkSession", () -> {
     try { return store.workSessions().current().toString(); }
     catch (Exception error) { return "{\"state\":\"ERROR\",\"message\":"+JSONObject.quote(String.valueOf(error.getMessage()))+"}"; }
-}
+}); }
 @JavascriptInterface public String reviewWorkSession(String sessionId,String input) {
     try { return store.workSessions().reviewTime(sessionId,new JSONObject(input)).toString(); }
     catch(Exception error){ return "ERROR: "+error.getMessage(); }

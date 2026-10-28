@@ -20,16 +20,67 @@ async function measure(browser,setup){
  page.on('pageerror',e=>errors.push(e.message));if(setup)await setup(page);
  return page;
 }
+// Opt-in repeatable scale measurement; never connects to a device or native store.
+async function performanceRun(browser){
+ const count=40,rows={},bridge={},failures=[];
+ const add=(key,n)=>(rows[key]||(rows[key]=[])).push(n);
+ for(let sample=0;sample<count;sample++){
+  const page=await browser.newPage({viewport:{width:360,height:840}});
+  page.on('pageerror',e=>failures.push(e.message));
+  await page.addInitScript({content:fixtureSource('daily-usability.test.cjs')});
+  await page.addInitScript(seed=>{
+   const base=seed.customers[0],work=seed.worklogs[0],order=seed.orders[0];
+   const master={...seed,customers:Array.from({length:300},(_,i)=>({...base,id:'qa_customer_'+i,name:'QA Kunde '+i})),orders:Array.from({length:300},(_,i)=>({...order,id:'qa_order_'+i,customer_id:'qa_customer_'+i})),worklogs:Array.from({length:5000},(_,i)=>({...work,id:'qa_work_'+i,customer_id:'qa_customer_'+(i%300),order_id:'qa_order_'+(i%300)})),photos:Array.from({length:3000},(_,i)=>({id:'qa_photo_'+i,customer_id:'qa_customer_'+(i%300),caption:'QA Foto '+i,test_record:true})),invoices:Array.from({length:500},(_,i)=>({id:'qa_invoice_'+i,customer_id:'qa_customer_'+(i%300),invoice_number:'QA-R-'+i,status:'Entwurf',amount:10,test_record:true}))};
+   const status={configured:false,syncing:false,pending:0,review:0,drive_role:'backup_only'};
+   window.qaPerf={master,counts:{getState:0,getSyncStatus:0,ownerCall:0,getWorkSession:0},durations:{},sizes:{}};
+   const measure=(label,fn)=>{const start=performance.now();let raw;try{return raw=fn();}finally{qaPerf.counts[label]++;(qaPerf.durations[label]||=[]).push(performance.now()-start);(qaPerf.sizes[label]||=[]).push(typeof raw==='string'?new TextEncoder().encode(raw).length:0);}};
+   const snapshot=()=>({master,pending:[],sync_status:{...status},work_session:{state:'IDLE'}});
+   AndroidData.getState=()=>measure('getState',()=>JSON.stringify(snapshot()));
+   AndroidData.getSyncStatus=()=>measure('getSyncStatus',()=>{JSON.parse(JSON.stringify(snapshot()));return JSON.stringify(status);});
+   AndroidData.getWorkSession=()=>measure('getWorkSession',()=>JSON.stringify({state:'IDLE'}));
+   AndroidData.ownerCall=(name,raw)=>measure('ownerCall',()=>{let data={};if(name==='get_revier_overview')data={tour:{stops:[]},due_visits:[],counts:{}};if(name==='get_day_tour')data={stops:[]};if(name==='get_settings')data={settings:{},record_hash:'a'.repeat(64)};if(name==='get_business_settings')data={settings:master.business_settings,record_hash:'a'.repeat(64)};return JSON.stringify({ok:true,data});});
+   AndroidData.saveCustomer=raw=>{const row=JSON.parse(raw),id=row.id||'qa_saved';master.customers=master.customers.filter(x=>x.id!==id);master.customers.push({...row,id,test_record:true});return id;};
+   window.qaPerfFrame=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+   window.qaPerfReady=new Promise(resolve=>document.addEventListener('hg:startup-ready',()=>{qaPerf.startup=performance.now();resolve();},{once:true}));
+  },require('./synthetic-fixtures.cjs').profile());
+  await page.goto(url);await page.evaluate(()=>qaPerfReady);await page.evaluate(()=>qaPerfFrame());
+  add('App-Start',await page.evaluate(()=>qaPerf.startup));
+  async function step(label,fn){const ms=await page.evaluate(async source=>{const start=performance.now();await (0,eval)('('+source+')')();await qaPerfFrame();return performance.now()-start;},fn.toString());add(label,ms);}
+  await step('Heute → Büro',()=>openPage('revier-office'));
+  await step('Büro → Heute',()=>openPage('home'));
+  await step('Kunden öffnen',()=>openPage('customers'));
+  await step('Suche',async()=>{el('customer-search').value='QA Kunde 29';el('customer-search').dispatchEvent(new Event('input',{bubbles:true}));await new Promise(resolve=>setTimeout(resolve,130));});
+  await page.evaluate(()=>{el('customer-search').value='';openPage('customer-edit');const f=el('customer-form');f.reset();f.elements.id.value='';f.elements.name.value='QA Gespeichert';f.elements.name.dispatchEvent(new Event('input',{bubbles:true}));});
+  await step('Speichern',()=>el('customer-form').requestSubmit());
+  assert.equal(await page.evaluate(()=>qaPerf.master.customers.filter(x=>x.name==='QA Gespeichert').length),1);
+  const stats=await page.evaluate(()=>({durations:qaPerf.durations,sizes:qaPerf.sizes,counts:qaPerf.counts}));
+  for(const [key,values]of Object.entries(stats.durations)){bridge[key]||={durations:[],sizes:[]};bridge[key].durations.push(...values);bridge[key].sizes.push(...stats.sizes[key]);}
+  await page.close();
+ }
+ const summary=values=>{const sorted=values.slice().sort((a,b)=>a-b);return{samples:values.length,mean:values.reduce((a,b)=>a+b,0)/values.length,p95:sorted[Math.ceil(sorted.length*.95)-1],slowest_5_percent_mean:sorted.slice(-Math.max(1,Math.ceil(sorted.length*.05))).reduce((a,b)=>a+b,0)/Math.max(1,Math.ceil(sorted.length*.05))};};
+ assert.deepEqual(failures,[]);
+ const report={format:'gartenpirat.synthetic-performance.v1',environment:'Cloud Chromium; JavaScript bridge doubles, not Android/SQLite/Pixel',source_commit:require('node:child_process').execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),phase:process.env.HG_PERFORMANCE_PHASE||'before',fixture:{customers:300,worklogs:5000,photos:3000,invoices:500},warmups:0,viewport:{width:360,height:840},timing:'performance.now; action to second animation frame; search includes 130ms debounce wait; startup navigation to hg:startup-ready; fresh page per sample, warm browser asset cache',operations:Object.fromEntries(Object.entries(rows).map(([k,v])=>[k,summary(v)])),bridge:Object.fromEntries(Object.entries(bridge).map(([k,v])=>[k,{duration_ms:summary(v.durations),response_bytes:summary(v.sizes)}])),pixel:'NOT_EXECUTED'};
+ fs.writeFileSync(process.env.HG_PERFORMANCE_REPORT,JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));
+}
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+ if(process.env.HG_PERFORMANCE_REPORT){try{await performanceRun(browser);}finally{await browser.close();}return;}
  async function check(name,task){try{await task();results.push({name,result:'PASS'});}catch(e){results.push({name,result:'FAIL',error:e.stack});}console.log(results.at(-1));}
  try{
   await check('Five cold bundled-page starts use the same synthetic fixture and record every visible intermediate frame',async()=>{
    for(let i=0;i<5;i++){
-    const page=await measure(browser);try{await page.goto(url);await page.waitForFunction(()=>qaBootProbe.ready>0);const data=await page.evaluate(()=>({navigation_to_ready_ms:qaBootProbe.ready,dom_to_ready_ms:qaBootProbe.ready-qaBootProbe.dom,visible_unready_frames:qaBootProbe.frames.filter(f=>f.visible&&!f.complete),first_visible_frame:qaBootProbe.frames.find(f=>f.visible),writes:writes.length,drafts:HGFormDrafts.list().length,styles:[...document.styleSheets].map(s=>s.href||'inline')}));samples.push(data);assert.equal(data.writes,0);assert.equal(data.drafts,0);if(!baseline){assert.equal(data.visible_unready_frames.length,0);assert.deepEqual(data.first_visible_frame.labels,['Heute','Kunden','Büro']);const before=JSON.parse(fs.readFileSync('docs/verification/startup-before-2026-10-27.json','utf8')).samples[0];assert.deepEqual(data.styles.filter(s=>s!=='inline'),before.styles.filter(s=>s!=='inline').concat(data.styles.filter(s=>s.endsWith('/modern-ui.css'))));assert.equal(await page.locator('#app-startup-status').isVisible(),false);}}finally{await page.close();}
+    const page=await measure(browser);try{await page.goto(url);await page.waitForFunction(()=>qaBootProbe.ready>0);const data=await page.evaluate(()=>({navigation_to_ready_ms:qaBootProbe.ready,dom_to_ready_ms:qaBootProbe.ready-qaBootProbe.dom,visible_unready_frames:qaBootProbe.frames.filter(f=>f.visible&&!f.complete),first_visible_frame:qaBootProbe.frames.find(f=>f.visible),writes:writes.length,drafts:HGFormDrafts.list().length,styles:[...document.styleSheets].map(s=>s.href||'inline')}));samples.push(data);assert.equal(data.writes,0);assert.equal(data.drafts,0);if(!baseline){assert.equal(data.visible_unready_frames.length,0);assert.deepEqual(data.first_visible_frame.labels,['Heute','Kunden','Büro']);const before=JSON.parse(fs.readFileSync('docs/verification/startup-before-2026-10-27.json','utf8')).samples[0];assert.deepEqual(data.styles.filter(s=>s!=='inline').map(s=>s.split('/').pop()),before.styles.filter(s=>s!=='inline').concat(data.styles.filter(s=>s.endsWith('/modern-ui.css'))).map(s=>s.split('/').pop()));assert.equal(await page.locator('#app-startup-status').isVisible(),false);}}finally{await page.close();}
    }
   });
   if(!baseline){
+   await check('Performance diagnostics retain only bounded numeric samples without persisting content',async()=>{
+    const page=await measure(browser);try{
+     await page.goto(url);await page.waitForFunction(()=>document.documentElement.dataset.startup==='ready');
+     const result=await page.evaluate(()=>{const before=HGDraftStorage.getItem('mobile-state');for(let i=0;i<140;i++)render();const snapshot=HGPerformance.snapshot();snapshot.render[0]=-1;return{snapshot:HGPerformance.snapshot(),sameDraftStorage:before===HGDraftStorage.getItem('mobile-state'),writes:writes.length};});
+     assert.equal(result.snapshot.render.length,128);assert(result.sameDraftStorage);assert.equal(result.writes,0);
+     for(const [key,rows]of Object.entries(result.snapshot)){assert(['app-start','page-change','render'].includes(key));assert(rows.every(n=>typeof n==='number'&&n>=0));}
+    }finally{await page.close();}
+   });
    await check('Offline operation and missing backup configuration do not block presentation or write business rows',async()=>{
     const page=await measure(browser,async page=>{await page.context().setOffline(true);await page.addInitScript(()=>{AndroidData.getSyncStatus=()=>JSON.stringify({configured:false,drive_role:'backup_only',business_sync_allowed:false});});});
     try{await page.goto(url);await page.waitForFunction(()=>document.documentElement.dataset.startup==='ready');assert.equal(await page.evaluate(()=>writes.length),0);assert.deepEqual(await page.locator('.bottom .nav').allTextContents(),['Heute','Kunden','Büro']);}finally{await page.close();}

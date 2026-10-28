@@ -1,6 +1,16 @@
 /* Presentation readiness only. No data access, business gate or automatic retry. */
 (() => {
  'use strict';
+ // Diagnostic memory only: fixed technical labels and at most 128 samples each.
+ // No storage, console logging, network, arguments or page/business identifiers.
+ const measurements=new Map(),labels=new Set(['render','page-change','app-start']);
+ function record(label,duration){if(!labels.has(label)||!Number.isFinite(duration)||duration<0)return;const rows=measurements.get(label)||[];if(rows.length===128)rows.shift();rows.push(duration);measurements.set(label,rows);}
+ window.HGPerformance=Object.freeze({snapshot:()=>Object.fromEntries([...measurements].map(([key,rows])=>[key,rows.slice()]))});
+ document.addEventListener('hg:startup-ready',()=>{
+  record('app-start',performance.now());
+  const render=window.render;window.render=function(...args){const started=performance.now();try{return render.apply(this,args);}finally{record('render',performance.now()-started);}};
+  const open=window.openPage;window.openPage=function(...args){const before=currentPage,started=performance.now();try{return open.apply(this,args);}finally{if(currentPage!==before)requestAnimationFrame(()=>requestAnimationFrame(()=>record('page-change',performance.now()-started)));}};
+ },{once:true});
  const html=document.documentElement,styles=['design-concept.css','planning-ui.css','field-ui.css','modern-ui.css'];
  const critical=new Set(['mobile.html','runtime-compat.js','data-order.js','owner-client.js','business-feedback.js','workday-ui.js','design-concept.js','daily-usability.js','billing-ui.js','workflow-ui.js','planning-ui.js','navigation-status.js','field-ui.js','revier-solo-ui.js','simple-forms.js','startup-ui.js','offers-ui.js','local-invoice-ui.js','record-actions.js','invoice-flow.js','invoice-editor.js','invoice-draft.js','order-window.js','gartenpirat-photo-store.js','equipment-photo-ui.js',...styles]);
  let failed=false,slow=false,queued=false,finished=false,ordered=false,recoveryBlocked=false;

@@ -13,8 +13,21 @@ public final class LocalOwnerRepositoryTests {
         public void successful(){success=true;}
         public void end(){if(!success){values=before;pending=prior;}}
     }
+    static void performanceDiagnostics()throws Exception{
+        BusinessDataBridge bridge=new BusinessDataBridge(null,null,null,()->{});
+        java.lang.reflect.Method measured=BusinessDataBridge.class.getDeclaredMethod("measured",String.class,java.util.function.Supplier.class);measured.setAccessible(true);
+        String secretLikeBusinessContent="QA sensitive argument Ä😀";
+        for(int i=0;i<140;i++)yes(secretLikeBusinessContent.equals(measured.invoke(bridge,"getState",(java.util.function.Supplier<String>)()->secretLikeBusinessContent)));
+        JSONObject metrics=new JSONObject(bridge.getPerformanceMetrics());JSONArray samples=metrics.getJSONArray("getState");yes(samples.length()==128);yes(!metrics.toString().contains("sensitive"));
+        for(int i=0;i<samples.length();i++){JSONObject row=samples.getJSONObject(i);yes(row.length()==2&&row.getDouble("duration_ms")>=0);yes(row.getInt("response_bytes")==secretLikeBusinessContent.getBytes(java.nio.charset.StandardCharsets.UTF_8).length);}
+        RuntimeException failure=new IllegalStateException("QA original failure");
+        try{measured.invoke(bridge,"ownerCall",(java.util.function.Supplier<String>)()->{throw failure;});throw new AssertionError("swallowed original failure");}
+        catch(java.lang.reflect.InvocationTargetException expected){yes(expected.getCause()==failure);}
+        metrics=new JSONObject(bridge.getPerformanceMetrics());yes(metrics.getJSONArray("ownerCall").getJSONObject(0).getInt("response_bytes")==0);yes(!metrics.toString().contains("original failure"));
+        metrics.getJSONArray("getState").remove(0);yes(new JSONObject(bridge.getPerformanceMetrics()).getJSONArray("getState").length()==128);
+    }
     public static void main(String[] args)throws Exception{
-        SyntheticBusinessData.verify();MemoryTransactions db=new MemoryTransactions();LocalOwnerRepository repo=new LocalOwnerRepository(db);String fingerprint=PixelMcpWriteTools.hash("qa_same");
+        SyntheticBusinessData.verify();performanceDiagnostics();MemoryTransactions db=new MemoryTransactions();LocalOwnerRepository repo=new LocalOwnerRepository(db);String fingerprint=PixelMcpWriteTools.hash("qa_same");
         try{repo.runRequest("qa_rollback",fingerprint,()->{db.pending.add("qa_rollback");throw new java.io.IOException("qa deliberate failure");});throw new AssertionError("accepted failed command");}catch(java.io.IOException expected){yes(db.pending.isEmpty());yes(db.values.isEmpty());}
         int[] calls={0};LocalOwnerRepository.Request command=()->{calls[0]++;if(!db.pending.add("qa_once"))throw new IllegalStateException("qa duplicate primary key");return new JSONObject().put("client_id","qa_once");};
         JSONObject first=repo.runRequest("qa_once",fingerprint,command);yes(first.getString("client_id").equals("qa_once"));yes(calls[0]==1&&db.pending.size()==1);yes(db.values.containsKey("receipt:qa_once"));

@@ -1,0 +1,121 @@
+{
+  "format": "gartenpirat.synthetic-performance.v1",
+  "environment": "Cloud Chromium; JavaScript bridge doubles, not Android/SQLite/Pixel",
+  "source_commit": "b4486422a4f95c58cf74e111f9776193eb0da61c",
+  "phase": "instrumented",
+  "fixture": {
+    "customers": 300,
+    "worklogs": 5000,
+    "photos": 3000,
+    "invoices": 500
+  },
+  "warmups": 0,
+  "viewport": {
+    "width": 360,
+    "height": 840
+  },
+  "timing": "performance.now; action to second animation frame; search includes 130ms debounce wait; startup navigation to hg:startup-ready; fresh page per sample, warm browser asset cache",
+  "operations": {
+    "App-Start": {
+      "samples": 40,
+      "mean": 1823.3350000000094,
+      "p95": 2447.5,
+      "slowest_5_percent_mean": 3107.649999999907
+    },
+    "Heute → Büro": {
+      "samples": 40,
+      "mean": 279.1075000000419,
+      "p95": 437.20000000018626,
+      "slowest_5_percent_mean": 529.75
+    },
+    "Büro → Heute": {
+      "samples": 40,
+      "mean": 268.197499999986,
+      "p95": 407,
+      "slowest_5_percent_mean": 998.1999999999534
+    },
+    "Kunden öffnen": {
+      "samples": 40,
+      "mean": 368.38999999995576,
+      "p95": 518.1999999997206,
+      "slowest_5_percent_mean": 602.1000000000931
+    },
+    "Suche": {
+      "samples": 40,
+      "mean": 157.75249999999068,
+      "p95": 172.39999999990687,
+      "slowest_5_percent_mean": 209.19999999995343
+    },
+    "Speichern": {
+      "samples": 40,
+      "mean": 1003.049999999965,
+      "p95": 1347,
+      "slowest_5_percent_mean": 1882.9000000001397
+    }
+  },
+  "bridge": {
+    "getState": {
+      "duration_ms": {
+        "samples": 120,
+        "mean": 10.056666666657353,
+        "p95": 17.699999999720603,
+        "slowest_5_percent_mean": 26.333333333178114
+      },
+      "response_bytes": {
+        "samples": 120,
+        "mean": 1594868,
+        "p95": 1595009,
+        "slowest_5_percent_mean": 1595009
+      }
+    },
+    "getSyncStatus": {
+      "duration_ms": {
+        "samples": 120,
+        "mean": 12.929999999981373,
+        "p95": 21.600000000093132,
+        "slowest_5_percent_mean": 41.650000000062086
+      },
+      "response_bytes": {
+        "samples": 120,
+        "mean": 86,
+        "p95": 86,
+        "slowest_5_percent_mean": 86
+      }
+    },
+    "getWorkSession": {
+      "duration_ms": {
+        "samples": 334,
+        "mean": 0.016766467068935493,
+        "p95": 0.10000000009313226,
+        "slowest_5_percent_mean": 0.12941176477162278
+      },
+      "response_bytes": {
+        "samples": 334,
+        "mean": 16,
+        "p95": 16,
+        "slowest_5_percent_mean": 16
+      }
+    },
+    "ownerCall": {
+      "duration_ms": {
+        "samples": 280,
+        "mean": 0.028571428569765495,
+        "p95": 0.10000000009313226,
+        "slowest_5_percent_mean": 0.2285714286179947
+      },
+      "response_bytes": {
+        "samples": 280,
+        "mean": 34.42857142857143,
+        "p95": 68,
+        "slowest_5_percent_mean": 68
+      }
+    }
+  },
+  "pixel": "NOT_EXECUTED",
+  "source_dirty": true,
+  "native_measurements": "NOT_EXECUTED; native methods instrumented; browser bridge metrics are doubles only",
+  "source_files_sha256": {
+    "android/app/src/main/assets/startup-ui.js": "cb868dbd302afa6d364d6327d53926ac5753cc2bcb6fded3d25d1d331c2c5ae0",
+    "android/app/src/main/java/at/hausgarten/service/BusinessDataBridge.java": "d7e31f0a26eea2d493e20c41797da1c13a2e55e9b34af9be92970944d1013d2b"
+  }
+}

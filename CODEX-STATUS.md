@@ -6,6 +6,32 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Umsetzung28.10.: Etappe 1 – Messung
+
+Ausführungsauftrag und anschließender APK-Bau im Auftrag festgehalten. Zuerst nur
+Messinstrumentierung, keine Cache-/Datenbank-/Bildschirmänderung: native Bridge
+`getState`, `ownerCall`, `getWorkSession` erfassen Dauer/UTF-8-Antwortgröße; bestehendes
+`startup-ui.js` erfasst vollständiges render, Seitenwechsel und Start. Je Kategorie
+höchstens128 Zahlenstichproben im Arbeitsspeicher; kein Geschäftsdatenlogging.
+Bestehender Starttest um reproduzierbaren 40-fachen Skalierungslauf erweitert.
+
+Vorher und mit Messinstrumentierung: je40 Cloud-Chromium-Stichproben bei
+300/5000/3000/500 synthetischen Kunden/Arbeiten/Fotometadaten/Rechnungen.
+Tabelle: `docs/verification/performance-stage1-2026-10-28.md`; Rohstatistik in
+`performance-before-2026-10-28.json` und `performance-stage1-2026-10-28.json`.
+Keine Verbesserung behauptet; gemeinsame Cloudhardware zeigt Ausreißer.
+Native-/Emulatorzeitmessung und Pixel-Leistungsmessung nicht ausgeführt.
+Start-/Adapterprüfungen laufen noch; dieser Zwischenschritt ist keine APK-Freigabe.
+
+Privacy-Vorbereitung: zwei fehlende Bild-Sidecars durch exakt übereinstimmende
+synthetische Originalhashes im bestehenden Funktionstestbericht und visuelle
+Prüfung belegt.35 ignorierte, nicht versionierte Alt-Ausgaben ohne Inhaltsübernahme
+vollständig außerhalb des Checkouts erhalten (privates Verzeichnis samt
+Hashinventar); keine Löschung oder Bereinigung ihrer Inhalte. Source2411Dateien
+und kompletter Worktree2677Dateien PASS,0 operative Seedzeilen. Keine Schutzregel
+abgeschwächt. Testumgebung: vorhandene externe Cloud-Browserwerkzeuge verwendet,
+fehlenden Acorn-Parser nur dort ergänzt; keine App-/Geräteinstallation.
+
 ## Neuer Auftrag28.10.: Geschwindigkeit und schlanker Umbau
 
 Vollständige neue Nutzervorgabe im bestehenden Auftrag festgehalten: zuerst

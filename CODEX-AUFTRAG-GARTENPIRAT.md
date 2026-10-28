@@ -1,5 +1,14 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Ausführungsauftrag vom 28.10.2026
+
+Direkte Nutzeranweisung: „Umsetzten und nach abschluss apk erstellen“.
+Etappen strikt nacheinander umsetzen, prüfen, auf GitHub sichern und zurücklesen.
+Nach Abschluss der freigegebenen Arbeiten eine geprüfte originalsignierte APK
+erstellen. Keine Installation, automatische Migration oder Rechnungsfreigabe.
+Die ausdrückliche gesonderte Freigabe für Etappe 3 und die Pixel-Bestätigung vor
+Etappe 5 werden dadurch nicht ersetzt. Geräteabnahmen offen ausweisen.
+
 ## Direkter Nutzerauftrag vom 28.10.2026: Geschwindigkeit und schlanker Umbau
 
 Grundlage: unabhängige Quellcodeprüfung des Stands 1.55.3 / Build 108 (Commit
