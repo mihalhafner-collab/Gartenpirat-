@@ -1,5 +1,164 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Android Fachwissen für die Stabilisierung vom 28. Oktober 2026
+
+### Auftrag und Ergebnis der Recherche
+
+Michael möchte das relevante Android-Programmierwissen für seine bereits betriebene App bündeln und Codex damit bei der Beseitigung ihrer Kinderkrankheiten unterstützen. Dieser Abschnitt ist die technische Wissens- und Prüfgrundlage im vorhandenen Auftrag. Maßgeblich bleiben die bestehenden Projektregeln und Fachverträge; öffentliche Dokumentation liefert technische Informationen und erteilt keine zusätzlichen Freigaben.
+
+Die Recherche und gezielte Quellprüfung ergeben als wichtigste nächste Qualitätsaufgabe eine durchgängige native Abnahme des aktuellen Kandidaten. Host-, Java-, Python- und Browserprüfungen sind bereits vorhanden. Für Start, Wechselzeiten, Kamera/Galerie, native Vorschau, Updateerhalt und geräteseitiges Backup/Restore bleiben Nachweise offen. Die konkrete Ursache eines gemeldeten Gerätefehlers ist damit noch nicht bestimmt. Der Rechercheauftrag startet keine pausierten Emulator-/ADB-/Leistungsläufe, baut keine APK und verändert keine Betriebsdaten.
+
+### Geprüfte Ausgangsbasis und vorhandene Vorarbeit
+
+Recherchebasis ist der am 28.10.2026 gelesene Arbeitsbranch `codex/heute-uebersicht-20261027` bei `71c6fbfa4ce328bbec15fbbfbc7fad6ca6b29729`. Vor späterer Umsetzung den Remote-Stand erneut bestimmen und parallele Arbeit erhalten.
+
+| Gegenstand | Belegter Stand und Bedeutung |
+| --- | --- |
+| App-Aufbau | Java/Android-WebView mit lokalen HTML-/CSS-/JavaScript-Assets; native SQLite-/Owner-Fachpfade; Python für vorhandene Host-/Werkzeugkomponenten. Kotlin, Compose, Flutter und Room sind keine Grundlage dieses Reparaturauftrags. |
+| Neuester auf dem Arbeitsbranch dokumentierter APK-Kandidat | 1.55.3 / 108; Originalquelltag `source/v1.55.3-build108`, Quellcommit `9415c8da6c26314969b731bc01708c5e8f424349`. Dokumentierter Build-/Signiernachweis und tatsächliche Pixelinstallation bleiben getrennt. |
+| Letzte gelesene Installationsdokumentation | 1.55.1 / 106 mit 166 verfügbaren MCP-Werkzeugen; im neueren Quellstand 169. Heute wurde keine Runtime abgefragt. Den früheren 117er-Connectorbefund nicht wieder als aktuellen Fehler ausgeben. |
+| `main` | `05eac2d5769bed55a42317ed542be9baccda0e77`; enthält einen älteren Entwicklungsstand. Sein 106-Status ist nicht der neueste App-Kandidat. |
+| Vorhandene pausierte native Arbeit | `codex/revier-solo-20261023`, gelesen bei `371384fe5aa49d055cb558c645f82226761fecc8`, Entwurf #14. Enthält bereits Kernservice-/Paketmanager-Prüfungen. Erst abgleichen, keine konkurrierende Neuimplementierung oder automatische Integration. |
+| Buildvertrag | AGP 9.1.1, Gradle 9.3.1 und JDK 17 im vorhandenen Workflow; minSdk 26, compileSdk/targetSdk 37, Build-Tools 37.0.0. Die offizielle AGP-Matrix unterstützt API 37.0 und nennt Gradle 9.3.1/JDK 17. [A01](https://developer.android.com/build/releases/agp-9-1-0-release-notes)[A02](https://developer.android.com/build/jdks) |
+| Varianten | Paket `at.hausgarten.service`; Instrumentierung gegen `release`, Debugvarianten deaktiviert, `minifyEnabled false`. R8 ist damit keine belegte Ursache der aktuellen Beschwerden. |
+| Buildaufruf | Der vorhandene Workflow richtet Gradle ausdrücklich ein. In den gelesenen Root-/Android-Verzeichnissen fehlt ein Wrapper; das macht den dokumentierten Buildweg nicht ungültig. Generische Anleitungen mit `./gradlew assembleDebug` passen hier nicht. |
+| Automatische Prüfungen | `.github/workflows/qa-apk.yml` wird manuell über `workflow_dispatch` gestartet. Es prüft Host-/Browser-/Java-Code und einen unsignierten Releasekandidaten; es führt selbst keinen nativen Android-Test aus. |
+
+Quellbelege: [App-Gradle](https://github.com/mihalhafner-collab/Gartenpirat-/blob/71c6fbfa4ce328bbec15fbbfbc7fad6ca6b29729/android/app/build.gradle), [AGP](https://github.com/mihalhafner-collab/Gartenpirat-/blob/71c6fbfa4ce328bbec15fbbfbc7fad6ca6b29729/android/build.gradle), [Workflow](https://github.com/mihalhafner-collab/Gartenpirat-/blob/71c6fbfa4ce328bbec15fbbfbc7fad6ca6b29729/.github/workflows/qa-apk.yml), [damals aktueller Status](https://github.com/mihalhafner-collab/Gartenpirat-/blob/71c6fbfa4ce328bbec15fbbfbc7fad6ca6b29729/CODEX-STATUS.md), [MainActivity](https://github.com/mihalhafner-collab/Gartenpirat-/blob/71c6fbfa4ce328bbec15fbbfbc7fad6ca6b29729/android/app/src/main/java/at/hausgarten/service/MainActivity.java), [native Instrumentierung](https://github.com/mihalhafner-collab/Gartenpirat-/blob/71c6fbfa4ce328bbec15fbbfbc7fad6ca6b29729/android/app/src/androidTest/java/at/hausgarten/service/PixelMcpInstrumentation.java), [vorbereiteter Kernservice-Test](https://github.com/mihalhafner-collab/Gartenpirat-/blob/371384fe5aa49d055cb558c645f82226761fecc8/tests/run_cloud_emulator_tests.py).
+
+### Wissen passend zu Java WebView und SQLite
+
+Die folgenden Prüfungen sind technische Ableitungen für Gartenpirat. Ein Prüfpunkt ist erst dann ein bestätigter Appfehler, wenn der konkrete Codepfad oder eine reproduzierbare Ausführung ihn belegt.
+
+**1. JavaScript-Brücke und Threads.** `addJavascriptInterface` führt die Java-Methode auf einem Hintergrundthread aus, blockiert den aufrufenden JavaScript-Ablauf aber synchron bis zur Rückkehr. Ein langer SQLite-/Dateiaufruf kann deshalb die Weboberfläche aufhalten, obwohl er nicht unmittelbar auf dem Android-Hauptthread läuft. `evaluateJavascript` und sein Callback gehören zum UI-Thread. [A03](https://developer.android.com/develop/ui/views/layout/webapps/native-api-access-jsbridge)[A04](https://developer.android.com/reference/android/webkit/WebView) Den tatsächlichen Weg JS → Bridge → Fachservice → SQLite → Rückruf → Darstellung verfolgen; Laufzeit und Sperren je Übergang messen. Gegenseitiges synchrones Warten zwischen Bridge, UI und JavaScript gezielt untersuchen. Einen gefundenen langsamen Pfad an seiner Ursache korrigieren; Umstellung aller Brücken auf ein neues Verfahren wäre ein eigener Architekturentscheid.
+
+**2. Lebenszyklus und verspätete Antworten.** Activity-Neuerstellung, Hintergrund/Vordergrund, kompletter App-Prozessverlust und WebView-Rendererverlust sind unterschiedliche Fälle. Dauerhafte Geschäftswerte gehören in den lokalen Fachspeicher; kleine UI-Zustände brauchen eine bewusste Wiederherstellung. Gespeicherter UI-Zustand ersetzt keine Datenbank. [A05](https://developer.android.com/topic/libraries/architecture/saving-states) Antworten an ursprüngliche Aktionskennung, Editiersitzung und gültige Bildschirmgeneration binden. Vor einem verzögerten UI-Aufruf Gültigkeit erneut prüfen; bereits bestätigte Commits bei anschließendem Darstellungsfehler erhalten.
+
+Im gelesenen `MainActivity.java` existiert kein `onRenderProcessGone`-Handler; der allgemeine `callback()`-Helfer enthält selbst keinen sichtbaren Instanz-/Generationscheck. Das sind konkrete Untersuchungsstellen, noch keine Diagnose der Nutzerbeschwerden. Andere Pfade besitzen bereits Seiten-/Sitzungsprüfungen. Nach Rendererabbruch darf die beschädigte WebView nicht weiterverwendet werden; Wiederaufbau und begrenzte Fehlerbehandlung müssen auch laufende Entwürfe berücksichtigen. [A06](https://developer.android.com/develop/ui/views/layout/webapps/handle-termination)
+
+**3. Start und Wechselzeiten.** Kalt-, Warm- und Heißstart getrennt messen. Android unterscheidet das erste sichtbare Bild (TTID) und die vollständig nutzbare Ansicht (TTFD). [A07](https://developer.android.com/topic/performance/issues/launch-time) Für Gartenpirat zusätzlich tatsächliche Bridge-Bereitschaft, erste erfolgreiche lokale Anzeige und Tipp-zu-nutzbarer-Zielansicht erfassen. Gleicher Quell-/APK-Stand, WebView-Provider, synthetischer Bestand und vergleichbarer Gerätezustand sind Voraussetzung für Vorher/Nachher. Einzelwerte und ausreichend wiederholte Messungen dokumentieren; Median und Streuung sind aussagekräftiger als ein bester Lauf. Die gemeldete ungefähr einsekündige Wechselzeit ist mit Cloud-Browserzeiten nicht als behoben nachgewiesen.
+
+Feste Startverzögerungen, mehrfaches Initialisieren, synchrone Großabfragen, JSON-Verarbeitung, DOM-Neuaufbau und Bilddekodierung sind prüfbare Ursachen. Bereits umgesetzte Start-/Navigationsänderungen erhalten. Ein Startbild darf einen langsameren nutzbaren Zustand nicht als Leistungsgewinn verdecken. Bei einem ANR den betroffenen Thread, blockierende Ein-/Ausgabe und Sperren untersuchen; ein Screenshot allein erklärt die Ursache nicht. [A08](https://developer.android.com/topic/performance/anrs/diagnose-and-fix-anrs)
+
+**4. SQLite, atomare Speicherung und Wiederholungen.** Zusammengehörige fachliche Änderungen und ihre Quittung brauchen den bestehenden gemeinsamen Transaktionspfad. Das Android-Muster markiert eine Transaktion erfolgreich und beendet sie anschließend; nach `setTransactionSuccessful()` soll keine weitere Datenbankarbeit erfolgen. [A09](https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase) Ein UI-Erfolg muss zum tatsächlich abgeschlossenen Commit passen. Synthetisch zwischen Teilschritten scheitern lassen, verlorene Antwort und Wiederholung derselben Aktionskennung prüfen. Gleiche Kennung mit anderen Argumenten muss entsprechend dem bestehenden Vertrag abgewiesen werden. Ein deaktivierter Speicherknopf allein schützt nicht gegen doppelte Verarbeitung.
+
+**5. Entwürfe, Verwerfen und konkurrierende Änderungen.** Bestehende Unterscheidung unberührt → Entwurf → gespeicherter Geschäftssatz durch alle UI-/MCP-Adapter erhalten. Verwerfen muss die tatsächliche Editiersitzung betreffen; späte Foto- oder Speicherantworten dürfen keine andere geöffnete Maske überschreiben. Lösch-/Verwerfbelege und vorhandene Versionsprüfungen auch nach Reload, Wiederholung und Restore beachten. Ein Anzeige-Cache darf keine eigene Schreibautorität werden. Fachliches Archivieren, Löschen und Verwerfen behalten ihre bereits festgelegte Bedeutung. Dies sind vorhandene Gartenpirat-Fachverträge, keine aus einer Android-Bibliothek abgeleiteten neuen Geschäftsregeln.
+
+**6. Updates und Migrationen.** `SQLiteOpenHelper.onUpgrade` läuft in einer Transaktion. Ein schon ausgelieferter und ausgeführter Migrationsschritt wird durch nachträgliches Bearbeiten nicht erneut angewendet; eine notwendige Korrektur braucht einen neuen Schritt. [A10](https://developer.android.com/reference/android/database/sqlite/SQLiteOpenHelper) Bei unverändertem DB-Schema trotzdem neue Datensatzformate prüfen: Gerätewartung und Gerätefotos verwenden laut aktuellem Auftrag Format 2 beziehungsweise 3 bei weiterhin Schema 6. Alte Leser dürfen unbekannte Formate nicht als vollständig geprüft restaurieren. Rein synthetischen Altbestand aus dem jeweiligen Schema aufbauen, Update und Neustart prüfen, IDs, Beziehungen, Werte, Entwürfe und Medienreferenzen vergleichen. Deinstallation, Datenlöschung und Neuanlage sind kein Update-Nachweis. Paketkennung, Signatur und Versionskennung müssen zur vorhandenen Installation passen. [A11](https://developer.android.com/google/play/app-updates) Originalsignierung ausschließlich über den bestehenden geschützten Cloudweg; keinen Ersatzschlüssel einführen.
+
+**7. Kamera, Galerie, Dateien und Bilder.** Dokumentauswahl liefert einen URI samt konkreten Zugriffsrechten; ein URI ist kein gewöhnlicher Dateipfad. Persistierbare Rechte nur übernehmen, wenn der verwendete Auswahlweg sie tatsächlich gewährt. Auch dann können Dateien verschwinden oder verschoben werden. [A12](https://developer.android.com/training/data-storage/shared/documents-files) Photo Picker beschränkt Freigaben auf ausgewählte Medien. [A13](https://developer.android.com/training/data-storage/shared/photo-picker) Den tatsächlich vorhandenen Android-Auswahl-/Providerpfad verwenden und API-Verfügbarkeit gegen minSdk 26 prüfen. Abbruch, Rechteentzug, große/beschädigte Datei, falscher Typ, verspätete Auswahl und Austausch des Fotos synthetisch testen. Vorschau begrenzen, Streams schließen, Original und Vorschaubild unterscheiden. Eine spätere Bildstörung erzeugt kein zweites Gerät und hebt keinen bereits bestätigten Geschäftssatz auf.
+
+**8. Berechtigungen und Hintergrundbetrieb.** Standort, Benachrichtigungen und externe Auswahl können verweigert oder später entzogen werden. Die betroffene Funktion soll verständlich reagieren; andere lokale Arbeit bleibt möglich. [A14](https://developer.android.com/training/permissions/requesting) Vorhandene `JobService`-/Foreground-Service-Pfade anhand ihrer wirklichen Aufgabe und Android-Zielversion prüfen. Hintergrundarbeit ist nicht automatisch sofortige Arbeit; Planung und fachliche Einmalverarbeitung sind getrennte Probleme. [A15](https://developer.android.com/develop/background-work/background-tasks) Keine pauschale Batterieausnahme, kein pauschales WorkManager-Refactoring. Standortfehler dürfen insbesondere keinen geratenen Einsatzkunden oder automatischen Arbeitsbeginn erzeugen.
+
+**9. Lokale Autorität, Backup und externe Dienste.** Pixel/App bleibt die operative Autorität; Drive ist das vorhandene verschlüsselte Backupziel. Die generische Android-Empfehlung für Offline-Synchronisierung darf hier keine stillgelegten Drive-Geschäftsschreiber reaktivieren. Methodennamen wie `requestAutomaticSync` beweisen keinen aktiven Geschäftssync: den aufgerufenen Pfad lesen. Backup fehlend, pausiert oder fehlgeschlagen muss lokale Erfassung ermöglichen. Lokales Archiv, Upload und externer Inhaltsnachweis getrennt ausweisen. Vollrestore, private Originale und produktive Integritätsklärung bleiben eigenständige geschützte Abläufe. Entwicklung verwendet ausschließlich Quellcode, leeren Bootstrap und synthetische Testdaten.
+
+**10. MCP und UI-Gleichheit.** Katalog der jeweiligen Appversion, tatsächlich gebundene Verbindung und Quellvertrag unterscheiden. MCP-Discovery mit Version, vollständiger Pagination, Namen und Schemas prüfen; protokollspezifische Änderungsbenachrichtigungen nur verwenden, wenn unterstützt. [A16](https://modelcontextprotocol.io/specification/2025-11-25/server/tools) Die interne App-Protokollnummer 9 ist nicht automatisch eine MCP-Spezifikationsrevision. Gleiche synthetische Fachaktion über UI und MCP muss denselben lokalen Endzustand liefern. Discovery beweist Erreichbarkeit eines Werkzeugs, noch nicht seine vollständige fachliche Korrektheit. Den inzwischen abgeglichenen 166er-Katalog der dokumentierten Installation106 nicht mit den 169 Werkzeugen der neueren APK-Quelle verwechseln.
+
+**11. WebView-Vertrauensgrenze.** Eine `addJavascriptInterface`-Brücke ist grundsätzlich in allen Frames erreichbar; `getUrl()` eignet sich nicht als verlässlicher Herkunftsnachweis des aufrufenden Frames. [A03](https://developer.android.com/develop/ui/views/layout/webapps/native-api-access-jsbridge)[A17](https://developer.android.com/privacy-and-security/risks/insecure-webview-native-bridges) Die vorhandenen Netz-/Dateisperren, externe Linkbehandlung und CSP erhalten; Eingaben als Daten serialisieren. Synthetische Anführungszeichen, Zeilenumbrüche, HTML-Inhalte, externe Navigation und Redirects prüfen. Android empfiehlt `WebViewAssetLoader` für lokale Inhalte. [A18](https://developer.android.com/develop/ui/views/layout/webapps/load-local-content) Ein Wechsel vom bestehenden `file:///android_asset/`-Ursprung muss origin-gebundene Webspeicher und alte Entwürfe berücksichtigen; nicht als beiläufige Fehlerkorrektur durchführen.
+
+**12. Versionskompatibilität und Fachwerte.** Neue API-Beispiele nur nach Prüfung von minSdk, targetSdk, WebView-Provider und vorhandenen Bibliotheken verwenden. Android-17-Verhaltensänderungen gelten teilweise für alle Apps, teilweise erst ab entsprechendem targetSdk. [A19](https://developer.android.com/about/versions/17/behavior-changes-17) Build-JDK, Java-Sprachversion und tatsächlich auf dem Gerät verfügbare Java-APIs auseinanderhalten. [A02](https://developer.android.com/build/jdks) Relevante Fachgegenproben bleiben: Europe/Vienna und Sommerzeitwechsel, Datum ohne erfundene Uhrzeit, Dezimalkomma, exakte Geld-/Rundungsregeln, Kunde versus Einsatzobjekt versus Rechnungsempfänger. Bestehende Berechnungs- und Finanzverträge liefern die Sollwerte; die Recherche erfindet keine neuen Preise, Zeiten oder Freigaben.
+
+### Vorhandene Tests sinnvoll einsetzen
+
+Android unterscheidet Tests auf dem Host von Instrumentierung auf Android-Gerät oder Emulator. [A20](https://developer.android.com/training/testing/fundamentals) Für hybride Apps prüft Espresso-Web die Verbindung zwischen WebView und nativen Komponenten. [A21](https://developer.android.com/training/testing/espresso/web) Gartenpirat besitzt bereits eigene native Instrumentierung; zuerst deren Abdeckung nutzen und nur bei einer konkreten Lücke zusätzliche Testabhängigkeiten erwägen.
+
+| Prüfebene | Was sie beweist | Was zusätzlich erforderlich bleibt |
+| --- | --- | --- |
+| Python/Java-Fachtests | Fachlogik, Fehlerbehandlung und Verträge im ausgeführten Testaufbau | Android-Runtime, echte Plattform-APIs und sichtbare Bedienung |
+| Browser mit synthetischer Bridge | DOM, Formulare, Navigation und JS-Reaktionen | Tatsächliche Android-Brücke, SQLite-/Provider-Integration |
+| Native Instrumentierung im leeren Cloud-AVD | Ausgeführte Android-/WebView-/SQLite-Pfade für genau diesen Kandidaten | Physisches Pixel, echte Kamera-/Galeriebedienung sowie ein separat freigegebener Geräte- und Update-Nachweis |
+| Release-Build, Lint, Privacy und Signatur | Baubarkeit, statische Befunde, Paketinhalt und Identität im geprüften Umfang | Nutzungsabläufe, Prozess-/Rendererfälle, Updateinhalt und Laufzeitmessung |
+
+Vorhandene Einstiegspunkte sind `tests/run_cloud_emulator_tests.py` und `android/app/src/androidTest/java/at/hausgarten/service/PixelMcpInstrumentation.java`. Unter anderem existieren `ui`, `backup_setup`, `drive_backup_only`, `revier_core`, `revier_ui`, `revier_authority`, `revier_finance`, `revier_recovery`, `prepare`/`verify` und Prozess-Prüfpaare. Namen und CLI-Verfügbarkeit vor einem späteren Lauf aus dem dann aktuellen Code lesen. Der vorhandene Prozesslauf benutzt `am force-stop`; das ist als Force-stop-Test auszuweisen und deckt nicht automatisch jeden Android-Prozessverlust ab.
+
+**Wichtige konkrete Testgrenze:** Einige native Modi berechnen zusätzlich `businessSnapshotHash()` oder `reportProductionCounts()` des normalen Default-Stores. Deshalb auch diese Instrumentierung ausschließlich im garantiert leeren beziehungsweise synthetischen Cloud-AVD ausführen. Eine eigene synthetische Fixture allein beweist nicht, dass kein produktiver Store gelesen wird. Instrumentierung, vollständige Bugreports oder Trace-Uploads vom produktiven Pixel sind kein Standardmaterial dieses Auftrags.
+
+Vor einem nativen Lauf müssen Emulatoridentität, Boot, PackageManager, ActivityManager, WebView-Provider, Installierbarkeit und tatsächlich ausgeführte Tests nachgewiesen sein. `boot_completed=1` allein genügt nicht. Die passenden Kernservice-Prüfungen existieren bereits im pausierten Revier-Branch. Ein Emulatorausfall ist zunächst ein Umgebungsfehler; Null Tests, kompilierte Tests und ein erfolgreicher Build ergeben keinen nativen PASS. Cloud-CI ist der passende Ausführungsort für automatisierte Prüfungen. [A22](https://developer.android.com/training/testing/continuous-integration) Der Windows-Laptop wird dafür nicht als Ersatz benötigt.
+
+### Priorisierte Fälle für einen späteren Reparaturlauf
+
+Alle Fälle beginnen mit leerem Bootstrap und ausdrücklich erfundenen Testwerten. Bereits vorhandene passende Regressionen wiederverwenden. Die Sollwerte ergeben sich aus den bestehenden Fachverträgen.
+
+| Fall | Auslöser | Abnahme |
+| --- | --- | --- |
+| S01 Start und Navigation | Kaltstart, Wiederaufnahme, Heute/Kunden/Büro, langsame Bridge | Richtige erste nutzbare Ansicht; keine alte Zwischenoberfläche; Laufzeiten samt Umgebung belegt |
+| S02 Speichern und Wiederholung | Doppeltes Tippen, Timeout nach Commit, erneuter Aufruf mit gleicher ID | Genau der vereinbarte Geschäftssatz; ursprüngliche Quittung; keine neue Aktion bei unklarer Antwort |
+| S03 Entwurf und Verwerfen | Bearbeiten, Zurück, Verwerfen, Reload, spätes Fotoergebnis | Richtiger Entwurf bleibt oder wird nach Vertrag entfernt; kein heimlich angelegter Satz |
+| S04 Lifecycle | Activity-Neuerstellung, App-Prozessende und Rendererende getrennt | Keine veralteten UI-Callbacks; bestätigte Daten bleiben; definierte Wiederaufnahme |
+| S05 Foto | Auswahlabbruch, Rechteentzug, große/beschädigte Datei, Gerätewechsel | Richtige Zuordnung, begrenzte Vorschau, klare Fehler; kein doppelter Gerätesatz |
+| S06 Offline und Backupausfall | Flugmodus, kein Backupkonto, unterbrochener Upload | Lokale Arbeit bleibt möglich; fachlicher Commit und Backupstatus getrennt; keine Drive-Geschäftsqueue |
+| S07 Update und Datensatzformate | Unterstützte synthetische Altversion → aktueller Kandidat → Neustart | Schlüssel, Werte, Beziehungen und Medienreferenzen erhalten; unbekannte Formate kontrolliert abgewiesen |
+| S08 MCP und UI | Gleiche Fachaktion über beide Adapter, vollständiger versionierter Katalog | Gleiches Ergebnis und gleiche Fachfehler; Versionsabweichungen richtig erklärt |
+| S09 Bedienung | Tastatur, Zurück-Geste, große Schrift, schmaler Bildschirm, versteckte Pflichtfehler | Aktion erreichbar; richtige Rückkehr; verständliche und sichtbare Fehler |
+| S10 Fachgrenzen | Monatsende, Sommerzeit, Dezimalkomma, allgemeine Arbeit ohne Auftrag | Bestehender Vertrag erfüllt; keine erfundenen Zeiten, Beziehungen oder Rechnungsfreigaben |
+
+### Offizielle Android-Wissenswerkzeuge für Codex
+
+Google veröffentlicht Android Skills nach dem Agent-Skills-Standard. Die Android CLI dokumentiert `codex` als Ziel und projektbezogene Installation. [A23](https://developer.android.com/tools/agents/android-skills)[A24](https://developer.android.com/tools/agents/android-cli/commands/skills_add) Für Gartenpirat passt zunächst die Prüfung von `testing-setup`; der Skill wird in Googles Testgrundlagen genannt. Ein R8-Skill ist erst bei tatsächlich relevanter Optimierung sinnvoll. Bestehende Minifizierung ist aus. Compose-/Room-/AGP-Migrationsskills sind kein pauschaler Reparaturauftrag.
+
+Zusätzlich bietet `android docs` Zugriff auf die Android Knowledge Base: zuerst suchen, dann den tatsächlich gelieferten `kb://`-Verweis vollständig abrufen. [A25](https://developer.android.com/tools/agents/android-cli/commands/docs) Vor Nutzung feststellen, ob die aktuelle Cloud diese CLI bereits enthält und ob deren Zugriff funktioniert. Die folgenden Befehle sind dokumentierte Beispiele, hier nicht ausgeführt:
+
+```sh
+android --version
+android docs search "WebView JavaScript bridge threading lifecycle"
+android docs fetch '<kb://-Verweis aus dem tatsächlichen Suchergebnis>'
+```
+
+Eine mögliche, vorher inhaltlich zu prüfende projektbezogene Einrichtung lautet:
+
+```sh
+android skills add --agent=codex --project='<vorhandener Repositorypfad>' testing-setup
+```
+
+Skillinhalt, Skripte, Zielpfad und bestehende Projektregeln vor Installation vergleichen; keine globale Sammelinstallation mit `--all`. Bei Übernahme Quelle/Version im vorhandenen Repository nachvollziehbar halten. Die Recherche installiert nichts und ändert weder den veröffentlichten Start-Skill noch Rechte, Netzkonfiguration oder Signierwerte. Ist CLI-Zugriff nicht verfügbar, die hier verlinkten offiziellen Webseiten gezielt nutzen. Neue kostenpflichtige Dienste sind dafür nicht erforderlich.
+
+OpenAI dokumentiert `AGENTS.md` als vorab geladene Projektanweisung. Die bestehenden Projektanweisungen verweisen bereits auf diese Auftragsdatei; diese Fachsektion gehört damit in den vorhandenen Leseweg. Eine zweite Regeldatei oder ein riesiges allgemeines Android-Handbuch in `AGENTS.md` ist dafür nicht erforderlich. [A26](https://learn.chatgpt.com/docs/agent-configuration/agents-md) Ein Chattext allein aktualisiert keine bestehende Cloud-Laufzeit. Im nächsten tatsächlichen Codex-Lauf den geladenen Branch, Commit und diesen Abschnitt nachweisen. Ein ungelesener Link gilt nicht als geladenes Wissen. Fehlt der GitHub-Zugriff, greift die bestehende Zugriffsgrenze; keine fremde Kopie als aktuellen Repository-Stand ausgeben. Veröffentlichung und Übernahme des bereits bestätigten Start-Skills nicht nochmals ohne Anlass anfordern.
+
+Aktuelle Dienständerung: Firebase Test Lab ist laut offizieller Mitteilung vom 27.10.2026 abgekündigt, Abschaltung am 30.09.2027; Developer Device Platform ist Preview. [A27](https://firebase.google.com/docs/test-lab/migrate) Die vorhandene Cloud-Testarbeit weiterverwenden. Daraus entsteht kein Auftrag, einen neuen Testdienst oder Tarif einzurichten.
+
+### Arbeitsmethode und Abschlussnachweis für Codex
+
+1. **Kontext belegen:** aktuellen main und passende Arbeitsbranches vergleichen; bereits erledigte Änderungen, Originalquelltag und nur beobachtete Installation trennen. Bestehende pausierte Arbeit berücksichtigen.
+2. **Fehler benennen:** konkreter Nutzerablauf, erwarteter Endzustand, reproduzierbare Schritte, Auswirkung und geeignete synthetische Gegenprobe. Datenverlust/Fehlbuchung vor Absturz/Hänger, danach zentrale Bedienfehler und Leistung priorisieren.
+3. **Ursache belegen:** betroffene Datei/Funktion, Thread, Datenzustand oder Plattformbedingung zeigen. Vermutung ausdrücklich als Hypothese führen. Keine Reparatur allein aus einem fehlenden Methodennamen ableiten.
+4. **Gezielt korrigieren:** kleinster fachlich vollständiger Eingriff. Betroffene Testfälle, erforderlichenfalls Fehlerprovokation und relevante Gegenpfade prüfen. Bestehende Schutzgrenzen und erfolgreiche Fachpfade erhalten.
+5. **Nachweis binden:** Commit, Variante, Paketversion, APK-Hash, Android-/WebView-Version, Testfall, tatsächliche Anzahl, Ergebnis und passende Log-/Screenshotstelle in bestehender technischer Evidenz erfassen. Sensitive Werte ausschließen.
+6. **Wahrheitsgemäß abschließen:** ausgeführte Hostprüfung, nativer Test, reale Pixelabnahme und externer Dienstnachweis getrennt melden. Blockierte, übersprungene und nicht ausgeführte Prüfungen bleiben offen. Die Zahl grüner Tests ersetzt keine passende Abdeckung.
+
+Erwarteter Ergebnisblock je Fehler: **Symptom → reproduzierter Fall → bestätigte Ursache → geänderte Stellen → tatsächlich ausgeführte Prüfung → verbleibender Gerätenachweis**. Der abgeschlossene Rechercheumfang liefert diese Grundlage; App-Reparatur, Wiederaufnahme pausierter Laufzeittests und produktive Abnahme bleiben davon unterscheidbare Arbeitsschritte.
+
+### Offizielle technische Quellen
+
+Geöffnet und geprüft am 28.10.2026. Gezielt die zur Projektversion passende API verwenden; die Quellenliste ist eine Arbeitsauswahl für diesen Bestand und beansprucht keine Vollständigkeit sämtlicher Android-APIs.
+
+- [A01 Android Gradle Plugin 9.1.1 und Kompatibilität](https://developer.android.com/build/releases/agp-9-1-0-release-notes)
+- [A02 Java-Versionen in Android-Builds](https://developer.android.com/build/jdks)
+- [A03 Native JavaScript-Brücken](https://developer.android.com/develop/ui/views/layout/webapps/native-api-access-jsbridge)
+- [A04 WebView API einschließlich evaluateJavascript](https://developer.android.com/reference/android/webkit/WebView)
+- [A05 UI-Zustände erhalten](https://developer.android.com/topic/libraries/architecture/saving-states)
+- [A06 WebView-Rendererabbruch behandeln](https://developer.android.com/develop/ui/views/layout/webapps/handle-termination)
+- [A07 App-Startzeit und Nutzbarkeit](https://developer.android.com/topic/performance/issues/launch-time)
+- [A08 ANRs diagnostizieren](https://developer.android.com/topic/performance/anrs/diagnose-and-fix-anrs)
+- [A09 SQLiteDatabase und Transaktionen](https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase)
+- [A10 SQLiteOpenHelper und Migrationen](https://developer.android.com/reference/android/database/sqlite/SQLiteOpenHelper)
+- [A11 Android-Updatebedingungen](https://developer.android.com/google/play/app-updates)
+- [A12 Dokumente und URI-Rechte](https://developer.android.com/training/data-storage/shared/documents-files)
+- [A13 Photo Picker](https://developer.android.com/training/data-storage/shared/photo-picker)
+- [A14 Laufzeitberechtigungen](https://developer.android.com/training/permissions/requesting)
+- [A15 Hintergrundaufgaben auswählen](https://developer.android.com/develop/background-work/background-tasks)
+- [A16 MCP-Werkzeugkatalog, Revision 2025-11-25 als versionsgebundene Referenz](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)
+- [A17 Sicherheit nativer WebView-Brücken](https://developer.android.com/privacy-and-security/risks/insecure-webview-native-bridges)
+- [A18 Lokale WebView-Inhalte laden](https://developer.android.com/develop/ui/views/layout/webapps/load-local-content)
+- [A19 Android 17 Änderungen für targetSdk 37](https://developer.android.com/about/versions/17/behavior-changes-17)
+- [A20 Android-Testgrundlagen und Testing Setup Skill](https://developer.android.com/training/testing/fundamentals)
+- [A21 Espresso-Web für hybride Apps](https://developer.android.com/training/testing/espresso/web)
+- [A22 Android Continuous Integration](https://developer.android.com/training/testing/continuous-integration)
+- [A23 Android Skills Übersicht](https://developer.android.com/tools/agents/android-skills)
+- [A24 Android Skills gezielt für Codex installieren](https://developer.android.com/tools/agents/android-cli/commands/skills_add)
+- [A25 Android Knowledge Base über android docs](https://developer.android.com/tools/agents/android-cli/commands/docs)
+- [A26 OpenAI Projektanweisungen mit AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md)
+- [A27 Firebase Test Lab Migration](https://firebase.google.com/docs/test-lab/migrate)
+
 ## Neuester Auftrag: manuelle Quellcode-Übergabe an Claude
 
 Nutzerauftrag vom28.10.2026: Drive-Ordner `Claude` erstellen und aktuellen
