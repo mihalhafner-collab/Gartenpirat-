@@ -184,7 +184,7 @@
       "evidence_recorded_at_utc": "2026-10-25T22:06:57.964900+00:00"
     }
   ],
-  "updated_at_utc": "2026-10-28T05:19:27.734568+00:00",
+  "updated_at_utc": "2026-10-28T05:32:22.846097+00:00",
   "development_snapshot": {
     "version_name": "1.55.1",
     "version_code": 106,
@@ -494,12 +494,24 @@
     },
     "claude_handoff": {
       "authorization": "DIRECT_USER_REQUEST_2026_10_28",
-      "status": "PREPARING",
+      "status": "VERIFIED_PRIVATE_HANDOFF_METADATA_AND_GUIDE_READBACK_PASS",
       "scope": "One-off private source-only handoff; GitHub remains sole development/instruction authority; no operating data, signing secrets, history, runtime or automatic source export.",
       "folder_id": "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt",
       "folder_url": "https://drive.google.com/drive/folders/1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt",
       "source_parent_commit": "dcbb1367c626dd3ce4ed2e1ca18ab939a30f6e4e",
-      "application_inputs_changed": false
+      "application_inputs_changed": false,
+      "source_snapshot_commit": "71c6fbfa4ce328bbec15fbbfbc7fad6ca6b29729",
+      "files": 19,
+      "app_code_parts": 10,
+      "tracked_source_files": 2394,
+      "small_app_code_files": 286,
+      "guide_file_id": "1Rc2OaY_Wv7V6i5EhALywtZidV7Pg29Cs",
+      "parts_folder_id": "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW",
+      "archive_partition": "CODE_APP_TESTS_DOCS_PLUS_STATIC_MEDIA_TWO_NORMAL_ZIPS_UNDER_100MIB",
+      "remote_readback": "ALL_NAMES_SIZES_PARENTS_PRIVATE_PASS;GUIDE_AND_INDEX_EXACT;LARGE_ARCHIVE_REMOTE_SHA_NOT_VERIFIED",
+      "evidence": "docs/verification/claude-source-handoff-2026-10-28.json",
+      "new_apk": false,
+      "automatic_exports": false
     }
   },
   "current_release_candidate": {

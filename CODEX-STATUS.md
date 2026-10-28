@@ -6,16 +6,35 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
-## Aktuell: ausdrücklich beauftragte Claude-Übergabe in Vorbereitung
+## Aktuell: private Claude-Übergabe vollständig bereitgestellt
 
-Der Nutzer beauftragt einen privaten Drive-Ordner `Claude` mit aktuellem
-Quellcode und nötigen KI-Einstiegshinweisen. Eng begrenzte manuelle Ausnahme vom
-allgemeinen Drive-Quellsicherungsverbot, in AGENTS.md/aktuellem Auftrag festgehalten.
-GitHub bleibt die einzige Entwicklungs-/Regelquelle. Keine automatische Sicherung,
-Betriebsdaten, privaten Signierwerte oder neue APK. Die App-Quellfingerprints und
-unveränderlichen Original-APK-Tags bleiben erhalten.
-Zielordner: https://drive.google.com/drive/folders/1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt
-Quell-/Textpakete und lesbarer Einstieg werden vor Abschluss zurückgeprüft.
+Expliziter Nutzerauftrag vom28.10.2026 erfüllt: privater Drive-Ordner
+[Claude](https://drive.google.com/drive/folders/1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt)
+mit19geprüften Dateien und kleinem App-Code-Unterordner. Einstieg über
+`00_START_HIER_CLAUDE.txt`, danach vorhandene zentrale Projektstände/Regeln und
+Dateiindex.10 kleine Code-Teile erschließen286App-Quelldateien. Zwei tatsächliche
+UI-Vorschauen enthalten nur Beispieldaten. Vollständiger kopierbarer Text umfasst
+1114lesbare Dateien. Quell-/App-ZIP und static-Medien-ZIP ergeben disjunkt alle
+2394versionierten Dateien einschließlich1280Binärdateien; jede ZIP-Datei unter
+der100-MiB-Grenze des Uploadzugangs. Zuerst abgewiesenes163MB-Gesamt-ZIP wurde
+nicht in Drive angelegt. Keine Quellinhalte wegen der Größenaufteilung ausgelassen.
+
+Unveränderlicher Übergabecommit `71c6fbfa4ce328bbec15fbbfbc7fad6ca6b29729` exakt
+auf GitHub zurückgelesen. Die Übergabe enthält nur spätere Metadaten gegenüber
+APK108; App-Quellfingerprint und Originaltag bleiben unverändert. Namen, Größen,
+Elternordner und Privatstatus aller19Dateien sowie beider Ordner zurückgelesen;
+START-HIER und Dateiindex inhaltlich exakt bestätigt. Lokale Archive/Textdaten
+Privacy PASS; die Vereinigung beider ZIPs gegen das vollständige Git-Archiv
+byteweise geprüft. Unabhängiger Remote-SHA der großen ZIPs nicht bestätigt;
+Metadaten/Größen und lesbarer Einstieg sind geprüft.
+Nachweis: `docs/verification/claude-source-handoff-2026-10-28.json`.
+
+Eng begrenzte manuelle Ausnahme nach direktem Nutzerauftrag, keine Exportautomatik
+oder zweite Regelquelle. GitHub bleibt Entwicklungs-/Regelzentrale. Keine
+Betriebsdaten, privaten Signierwerte, .git-Historie oder Buildausgaben übertragen;
+keine neue APK, Installation, Migration oder Rechnungsfreigabe. Die zuvor im Chat
+genannten internen Workspace-Links sind keine funktionierende Downloadbereitstellung;
+für diese Übergabe stattdessen den bestätigten privaten Drive-Ordner verwenden.
 
 ## Aktuell: Geräteprofilfoto, moderne Bedienoberfläche und Original-APK108 erstellt
 

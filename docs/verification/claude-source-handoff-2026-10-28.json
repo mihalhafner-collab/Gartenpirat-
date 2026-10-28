@@ -1,0 +1,384 @@
+{
+  "format": "gartenpirat.manual-claude-handoff.v1",
+  "classification": "PUBLIC_SOURCE",
+  "source_commit": "71c6fbfa4ce328bbec15fbbfbc7fad6ca6b29729",
+  "app_source_commit": "9415c8da6c26314969b731bc01708c5e8f424349",
+  "app_source_sha256": "84e1d90175fe3a5863aaba14735f8ea25193fe5cf43005c99bc2e6e746315da5",
+  "authorization": "Explicit user request: create Drive folder Claude and provide source plus necessary AI handoff context.",
+  "folder": {
+    "id": "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt",
+    "title": "Claude",
+    "mime_type": "application/vnd.google-apps.folder",
+    "size": null,
+    "url": "https://drive.google.com/drive/folders/1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt",
+    "display_url": "https://drive.google.com/drive/folders/1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt",
+    "file_or_folder": "folder",
+    "created_time": null,
+    "modified_time": null,
+    "parent_ids": [
+      "0AByoVY2e4ZZyUk9PVA"
+    ],
+    "drive_id": null,
+    "current_user_can_share": null,
+    "has_augmented_permissions": null,
+    "shared": false,
+    "permissions": null,
+    "source_visibility_status": "not_shared"
+  },
+  "parts_folder": {
+    "id": "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW",
+    "title": "App-Code_in_Teilen",
+    "mime_type": "application/vnd.google-apps.folder",
+    "size": null,
+    "url": "https://drive.google.com/drive/folders/1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW",
+    "display_url": "https://drive.google.com/drive/folders/1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW",
+    "file_or_folder": "folder",
+    "created_time": null,
+    "modified_time": null,
+    "parent_ids": [
+      "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt"
+    ],
+    "drive_id": null,
+    "current_user_can_share": null,
+    "has_augmented_permissions": null,
+    "shared": false,
+    "permissions": null,
+    "source_visibility_status": "not_shared"
+  },
+  "files": [
+    {
+      "path": "00_START_HIER_CLAUDE.txt",
+      "bytes": 7395,
+      "sha256": "50002a4aa216e8c7e2b7585167197a35c61e22f42afe5753ca7f018e2603c680",
+      "id": "1Rc2OaY_Wv7V6i5EhALywtZidV7Pg29Cs",
+      "url": "https://drive.google.com/file/d/1Rc2OaY_Wv7V6i5EhALywtZidV7Pg29Cs/view?usp=drivesdk",
+      "parent_id": "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt",
+      "readback": {
+        "name": "00_START_HIER_CLAUDE.txt",
+        "bytes": 7395,
+        "parent_ids": [
+          "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt"
+        ],
+        "shared": false
+      }
+    },
+    {
+      "path": "01_PROJEKTSTAND_UND_REGELN.txt",
+      "bytes": 128802,
+      "sha256": "c88dc0399231ac4417a5a8abe3f0bff42c19e250ade35c89118afab8d56097c0",
+      "id": "1Tc1dhEO5ZRLbBIRxqZ1xXwEoABq_Dsca",
+      "url": "https://drive.google.com/file/d/1Tc1dhEO5ZRLbBIRxqZ1xXwEoABq_Dsca/view?usp=drivesdk",
+      "parent_id": "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt",
+      "readback": {
+        "name": "01_PROJEKTSTAND_UND_REGELN.txt",
+        "bytes": 128802,
+        "parent_ids": [
+          "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt"
+        ],
+        "shared": false
+      }
+    },
+    {
+      "path": "02A_QUELLCODE_UND_APP.zip",
+      "bytes": 84175862,
+      "sha256": "9cb403d98b5166df60da4de4c5cad7369730954f1db64bc6ec8341ba48190816",
+      "id": "1KCaa0pSuaKmu-P9GiDwSmPnJVaZsAJpk",
+      "url": "https://drive.google.com/file/d/1KCaa0pSuaKmu-P9GiDwSmPnJVaZsAJpk/view?usp=drivesdk",
+      "parent_id": "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt",
+      "readback": {
+        "name": "02A_QUELLCODE_UND_APP.zip",
+        "bytes": 84175862,
+        "parent_ids": [
+          "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt"
+        ],
+        "shared": false
+      }
+    },
+    {
+      "path": "02B_STATISCHE_MEDIEN.zip",
+      "bytes": 78617183,
+      "sha256": "499d756e637676b9ea0c5fc35b86e88c1c1a85c25b24883bef00eded4aa202af",
+      "id": "1h-PwJ66o7jSurIhUMT1rdp2JCQGG4XV5",
+      "url": "https://drive.google.com/file/d/1h-PwJ66o7jSurIhUMT1rdp2JCQGG4XV5/view?usp=drivesdk",
+      "parent_id": "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt",
+      "readback": {
+        "name": "02B_STATISCHE_MEDIEN.zip",
+        "bytes": 78617183,
+        "parent_ids": [
+          "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt"
+        ],
+        "shared": false
+      }
+    },
+    {
+      "path": "03_QUELLCODE_KOPIERBAR.txt",
+      "bytes": 28816640,
+      "sha256": "4bee5bd81d64cbfb6c6c39ae4c3dfe83bad568c404c6c1cde4e81048c3bff129",
+      "id": "1Lciyn-ZNhlUfO7o4XcNzK5CBGhrwMrOz",
+      "url": "https://drive.google.com/file/d/1Lciyn-ZNhlUfO7o4XcNzK5CBGhrwMrOz/view?usp=drivesdk",
+      "parent_id": "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt",
+      "readback": {
+        "name": "03_QUELLCODE_KOPIERBAR.txt",
+        "bytes": 28816640,
+        "parent_ids": [
+          "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt"
+        ],
+        "shared": false
+      }
+    },
+    {
+      "path": "App-Code_in_Teilen/00_DATEI-INDEX.txt",
+      "bytes": 24714,
+      "sha256": "72462a7d36bfc6df4fc64132bf563f0bcafd775b5e3293cb12a2077d17824610",
+      "id": "1Gmepb35Zg-4itFRUHwchWOZ_WpopVf5y",
+      "url": "https://drive.google.com/file/d/1Gmepb35Zg-4itFRUHwchWOZ_WpopVf5y/view?usp=drivesdk",
+      "parent_id": "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW",
+      "readback": {
+        "name": "00_DATEI-INDEX.txt",
+        "bytes": 24714,
+        "parent_ids": [
+          "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW"
+        ],
+        "shared": false
+      }
+    },
+    {
+      "path": "App-Code_in_Teilen/Code-Teil-01.txt",
+      "bytes": 409063,
+      "sha256": "cee9d51d6ccdffabbd57ff0f94bc8e892dbd9ddd21659ea3851c84353d121d7d",
+      "id": "1KUBXMyyNjoEbtQc866Cm59szBN_vVX1s",
+      "url": "https://drive.google.com/file/d/1KUBXMyyNjoEbtQc866Cm59szBN_vVX1s/view?usp=drivesdk",
+      "parent_id": "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW",
+      "readback": {
+        "name": "Code-Teil-01.txt",
+        "bytes": 409063,
+        "parent_ids": [
+          "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW"
+        ],
+        "shared": false
+      }
+    },
+    {
+      "path": "App-Code_in_Teilen/Code-Teil-02.txt",
+      "bytes": 449392,
+      "sha256": "2010032551caa53cc9ad584999f5ba4e9fac29e47dc89ce1f9684e7e4ade64e1",
+      "id": "17_97MUjsfqnIkSx-_nmvVppkhd_OCHZX",
+      "url": "https://drive.google.com/file/d/17_97MUjsfqnIkSx-_nmvVppkhd_OCHZX/view?usp=drivesdk",
+      "parent_id": "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW",
+      "readback": {
+        "name": "Code-Teil-02.txt",
+        "bytes": 449392,
+        "parent_ids": [
+          "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW"
+        ],
+        "shared": false
+      }
+    },
+    {
+      "path": "App-Code_in_Teilen/Code-Teil-03.txt",
+      "bytes": 433317,
+      "sha256": "0e4ef2880d28de1f538645ed650b735d31cfa4ff5b06db16cf91de9f1096ea5c",
+      "id": "1Sv4tfY3FEMFsr-94yfNDJgBTxJVDj6I7",
+      "url": "https://drive.google.com/file/d/1Sv4tfY3FEMFsr-94yfNDJgBTxJVDj6I7/view?usp=drivesdk",
+      "parent_id": "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW",
+      "readback": {
+        "name": "Code-Teil-03.txt",
+        "bytes": 433317,
+        "parent_ids": [
+          "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW"
+        ],
+        "shared": false
+      }
+    },
+    {
+      "path": "App-Code_in_Teilen/Code-Teil-04.txt",
+      "bytes": 395628,
+      "sha256": "aaf8c650655ce76d8f45e581c7d21ed3a0e6d8610857eede718f0b6bc3af929d",
+      "id": "1e7AY3nWfRDVW6G_UeuYEs-1nu19Lmbrt",
+      "url": "https://drive.google.com/file/d/1e7AY3nWfRDVW6G_UeuYEs-1nu19Lmbrt/view?usp=drivesdk",
+      "parent_id": "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW",
+      "readback": {
+        "name": "Code-Teil-04.txt",
+        "bytes": 395628,
+        "parent_ids": [
+          "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW"
+        ],
+        "shared": false
+      }
+    },
+    {
+      "path": "App-Code_in_Teilen/Code-Teil-05.txt",
+      "bytes": 447785,
+      "sha256": "cd09e2a25f923d88442f6946e162774d96e6e6756d99c6341aa91453e7236bae",
+      "id": "1vxo-Chh9UOwjfHxLEEM42vNwPaEm-Jf3",
+      "url": "https://drive.google.com/file/d/1vxo-Chh9UOwjfHxLEEM42vNwPaEm-Jf3/view?usp=drivesdk",
+      "parent_id": "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW",
+      "readback": {
+        "name": "Code-Teil-05.txt",
+        "bytes": 447785,
+        "parent_ids": [
+          "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW"
+        ],
+        "shared": false
+      }
+    },
+    {
+      "path": "App-Code_in_Teilen/Code-Teil-06.txt",
+      "bytes": 441449,
+      "sha256": "b47bf7ffd2c3828759600c0a0d3362044af83dc4fb5fc74121f44850cd9271de",
+      "id": "16XvpfbEI_VB6ZbuNhTIFEc0ACilOlJm9",
+      "url": "https://drive.google.com/file/d/16XvpfbEI_VB6ZbuNhTIFEc0ACilOlJm9/view?usp=drivesdk",
+      "parent_id": "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW",
+      "readback": {
+        "name": "Code-Teil-06.txt",
+        "bytes": 441449,
+        "parent_ids": [
+          "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW"
+        ],
+        "shared": false
+      }
+    },
+    {
+      "path": "App-Code_in_Teilen/Code-Teil-07.txt",
+      "bytes": 439694,
+      "sha256": "54d14d4814d20e1428caa32929ec3a20c3bc36495db2c90f4825577d257a946f",
+      "id": "1EWv-TAXZp_ZsNDZUCVMTT9_YurnrpAJw",
+      "url": "https://drive.google.com/file/d/1EWv-TAXZp_ZsNDZUCVMTT9_YurnrpAJw/view?usp=drivesdk",
+      "parent_id": "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW",
+      "readback": {
+        "name": "Code-Teil-07.txt",
+        "bytes": 439694,
+        "parent_ids": [
+          "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW"
+        ],
+        "shared": false
+      }
+    },
+    {
+      "path": "App-Code_in_Teilen/Code-Teil-08.txt",
+      "bytes": 391653,
+      "sha256": "de0bab4021b53d7cbcba4149e6101006bfcbddd35c365669e5164b02704f731f",
+      "id": "1m4-se1C8ydim3p-PybCF-DwZQJ9rb9IO",
+      "url": "https://drive.google.com/file/d/1m4-se1C8ydim3p-PybCF-DwZQJ9rb9IO/view?usp=drivesdk",
+      "parent_id": "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW",
+      "readback": {
+        "name": "Code-Teil-08.txt",
+        "bytes": 391653,
+        "parent_ids": [
+          "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW"
+        ],
+        "shared": false
+      }
+    },
+    {
+      "path": "App-Code_in_Teilen/Code-Teil-09.txt",
+      "bytes": 441010,
+      "sha256": "e69da7b1f892f0c8500ee406ccf24f18961b7dbaa170e1463d12cc1ef8582a6e",
+      "id": "121ApVGHcUeQ753gF6-7kA5QCGFokIiA0",
+      "url": "https://drive.google.com/file/d/121ApVGHcUeQ753gF6-7kA5QCGFokIiA0/view?usp=drivesdk",
+      "parent_id": "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW",
+      "readback": {
+        "name": "Code-Teil-09.txt",
+        "bytes": 441010,
+        "parent_ids": [
+          "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW"
+        ],
+        "shared": false
+      }
+    },
+    {
+      "path": "App-Code_in_Teilen/Code-Teil-10.txt",
+      "bytes": 148919,
+      "sha256": "c5c012893d5d40be49a1f4d22e49b7f5fad8e44671840b0affcfeb26b276383c",
+      "id": "1_kGx92UpVeq7bGoyItfUPleURK9J0eQv",
+      "url": "https://drive.google.com/file/d/1_kGx92UpVeq7bGoyItfUPleURK9J0eQv/view?usp=drivesdk",
+      "parent_id": "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW",
+      "readback": {
+        "name": "Code-Teil-10.txt",
+        "bytes": 148919,
+        "parent_ids": [
+          "1ZqH6sCAFsZ0Wsok1ceMCedTW0WKXlxPW"
+        ],
+        "shared": false
+      }
+    },
+    {
+      "path": "Vorschau_Geraet.png",
+      "bytes": 39985,
+      "sha256": "9414bc6621d3dea97c2b6f1b9eafea8d1d7bcc9fd9e09630984004f47ddb49e5",
+      "id": "18T9stenyjED_6XbxLclF4RD3R4HEzVhY",
+      "url": "https://drive.google.com/file/d/18T9stenyjED_6XbxLclF4RD3R4HEzVhY/view?usp=drivesdk",
+      "parent_id": "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt",
+      "readback": {
+        "name": "Vorschau_Geraet.png",
+        "bytes": 39985,
+        "parent_ids": [
+          "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt"
+        ],
+        "shared": false
+      }
+    },
+    {
+      "path": "Vorschau_Heute.png",
+      "bytes": 35692,
+      "sha256": "b035fc34c1458efdc4920eac4cfdbf13215cf5c3c22bbc46e6e16e0c5e3c07cd",
+      "id": "1baQZipWmTYuUwT_c7PpilaZZ61TwRoMe",
+      "url": "https://drive.google.com/file/d/1baQZipWmTYuUwT_c7PpilaZZ61TwRoMe/view?usp=drivesdk",
+      "parent_id": "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt",
+      "readback": {
+        "name": "Vorschau_Heute.png",
+        "bytes": 35692,
+        "parent_ids": [
+          "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt"
+        ],
+        "shared": false
+      }
+    },
+    {
+      "path": "04_DATEIEN_UND_PRUEFSUMMEN.json",
+      "bytes": 3878,
+      "sha256": "c3b609d4427202c69c7c2cfa5c09717f4429a91e97934a1799121e7e609d48e2",
+      "id": "1mjcvCNkoyZlJYFy9Cd5RaGvcQAfndmWJ",
+      "url": "https://drive.google.com/file/d/1mjcvCNkoyZlJYFy9Cd5RaGvcQAfndmWJ/view?usp=drivesdk",
+      "parent_id": "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt",
+      "readback": {
+        "name": "04_DATEIEN_UND_PRUEFSUMMEN.json",
+        "bytes": 3878,
+        "parent_ids": [
+          "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt"
+        ],
+        "shared": false
+      }
+    }
+  ],
+  "verification": {
+    "names_sizes_parents_private": "PASS for all19 files and both folders",
+    "guide_and_index_exact_readback": "PASS",
+    "local_archive_privacy": "PASS",
+    "all2394tracked_files_complete": "PASS; disjoint ZIP entry union compared byte for byte to complete Git archive",
+    "all1114text_files_exported": "PASS",
+    "small_app_code_parts": 10,
+    "app_code_source_files": 286,
+    "app_inputs_unchanged_since_APK108": "PASS",
+    "independent_remote_sha256_of_large_archives": "NOT_VERIFIED; metadata and size checked; no complete file materialization for hash"
+  },
+  "delivery_adjustments": [
+    "Initial163MB ZIP rejected before action invocation by100MiB connector limit; folder listing confirmed no failed ZIP was created.",
+    "Delivered two ordinary archives: code/app/tests/docs and static media. Both below100MiB, all files retained. No limit bypass."
+  ],
+  "scope": {
+    "private_folder": true,
+    "operating_data": false,
+    "private_signing_values": false,
+    "git_history": false,
+    "build_outputs": false,
+    "new_apk": false,
+    "automatic_exports": false,
+    "github_remains_authority": true
+  },
+  "links": {
+    "folder": "https://drive.google.com/drive/folders/1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt",
+    "start": "https://drive.google.com/file/d/1Rc2OaY_Wv7V6i5EhALywtZidV7Pg29Cs/view?usp=drivesdk"
+  },
+  "completed_at_utc": "2026-10-28T05:32:22.847090+00:00"
+}
