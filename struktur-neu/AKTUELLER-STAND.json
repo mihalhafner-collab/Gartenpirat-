@@ -6,24 +6,26 @@
     "branch": "codex/heute-uebersicht-20261027",
     "commit": "012b0433c5ffcf912a85ea95f898473bce10ae3a",
     "build": 113,
-    "cutoff_build_inclusive": 100,
-    "cutoff_source_commit": "5467ca1e708f5105e0712404815d395994cfe516",
-    "copied_source_files": 1970,
-    "production_code_modified": false
+    "cutoff_build_inclusive": 100
   },
   "current_release_candidate": {
     "version_name": "1.55.9",
     "version_code": 114,
     "source_sha256": "699e7b6bddd10143658780efaec60ecf13314185d7c8d6e8eea2e7a1cd89f133",
     "source_tag": "source/v1.55.9-build114",
-    "source_binding": "PENDING_PRESERVED_SOURCE_COMMIT_AND_FINAL_SIGNED_APK",
+    "source_binding": "VERIFIED_SIGNED_DEX;clean committed source;source tag preserved on GitHub",
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-    "tools": 169,
-    "ui_actions": 212,
     "installation": "NOT_PERFORMED;latest device self-report is Build113;independent APK/signature readback not repeated",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "NOT_ACTIVATED",
-    "app_backup_mode": "PIXEL_PLAINTEXT_ZIP"
+    "app_backup_mode": "PIXEL_PLAINTEXT_ZIP",
+    "app_source_git_sha": "267280d2964328b83a86d7b5608da84bd367cef7",
+    "apk_sha256": "0060a78004a2be39f31e3aa51af73f54bc92f0491c9d081e1bdb88140905d7f8",
+    "apk_bytes": 82870780,
+    "production_source_classes": 200,
+    "signature_valid": true,
+    "download_url": "https://github.com/mihalhafner-collab/Gartenpirat-/raw/refs/heads/main/downloads/Gartenpirat-1.55.9-build114.apk",
+    "download_readback": "PENDING_PUSH_AND_REMOTE_BYTES_VERIFICATION"
   },
   "last_observed_installed_build": {
     "observed_at_utc": "2026-10-28T06:04:36.9034129Z",
@@ -45,28 +47,25 @@
     }
   ],
   "current_task": {
-    "name": "Aktuellen GitHub-Quellstand in eingerichteter Bauumgebung originalsigniert bauen, prüfen und zum Download bereitstellen",
-    "status": "SOURCE_AND_SYNTHETIC_CHECKS_PASS;FINAL_PRESERVED_BUILD_SIGNING_AND_DOWNLOAD_PENDING",
+    "name": "Aktuelle originalsignierte APK bauen, prüfen und zum Download bereitstellen",
+    "status": "BUILD_AND_ORIGINAL_SIGNATURE_PASS;DOWNLOAD_PUSH_AND_READBACK_PENDING",
     "authorized": true,
-    "authorization_scope": "Latest explicit user request authorizes current GitHub source retrieval, required release version metadata, build, original signing, checks and APK download;no device installation or productive data operation inferred",
+    "authorization_scope": "User explicitly requested build,original signing,checks and download;no device installation or productive data operation",
     "release_environment": {
-      "checked_at_utc": "2026-10-28T20:55:10.432791+00:00",
-      "gradle": "AVAILABLE;9.3.1",
-      "android_build_tools": "AVAILABLE;37.0.0",
-      "jdk": "AVAILABLE;17",
-      "signing_variables": "ALL_FIVE_PRESENT;managed runtime observation READY",
-      "secret_values_printed": false,
+      "gradle": "9.3.1",
+      "android_build_tools": "37.0.0",
+      "jdk": "17",
+      "signing": "PASS;all five existing variables available;original certificate independently matched to recorded reference",
       "project_chat_inherits_environment": false
     },
-    "implementation_checkpoint": "Build114/1.55.9;application changes already present in main 3de3234e406d921015801f020b7cdc2b64093acf;this release only increments version metadata and updates APK verification to current production sources"
+    "distribution": "Repository downloads;Release attachment upload rejected with HTTP401;no Drive upload"
   },
   "open_checks": [
-    "Build114 aus gesichertem Quellcommit endgültig bauen, Originalsignatur prüfen und Download zurücklesen",
-    "Backup: konkreten Inventarfehler nach Installation der Diagnosekorrektur bestimmen;danach vollständige Sicherung und Restore prüfen;ursprüngliche Ursache weiterhin unbekannt",
-    "Etappe3: Android-Transaktionslistener, vollständige UI/MCP/Timer-/Rechnungsschreiber, CursorWindow und vollständiges Backup/Restore auf dem Pixel prüfen;SQLite/JDBC ersetzt diesen Nachweis nicht",
-    "Etappe4: physische Pixel-Bedienung, WebView, Update-Datenerhalt und Geräteleistung offen",
-    "Etappe5: geschützte Drive-/Queue-/Restorebelege erst nach Pixel-Backup UND Restore sowie Abhängigkeitsnachweis entfernen",
-    "Native Geräteprüfungen und Installation nicht ausgeführt;keine produktive Migration, Wiederherstellung oder neue Rechnungsautorität"
+    "Build114-Download nach GitHub pushen und exakte Bytes zurücklesen",
+    "Nach Installation spezifischen Backup-Inventarfehler ermitteln;vollständiges Pixel-Backup/Restore nachweisen",
+    "Android-Transaktionslistener,UI/MCP/Timer-/Rechnungsschreiber und CursorWindow nativ prüfen;SQLite/JDBC ersetzt das nicht",
+    "Physische Pixel-Bedienung,WebView,Update-Datenerhalt und Geräteleistung prüfen",
+    "Geschützte Drive-/Queue-/Restorebelege erst nach Pixel-Backup UND Restore sowie Abhängigkeitsnachweis entfernen"
   ],
   "workflow": {
     "scope": "PARALLEL_STAGING; existing source paths and workflows unchanged",
@@ -88,7 +87,8 @@
         "native_prompts_with_correct_rules_and_state_hashes": 2,
         "missing_state_prevented_model_transport": true,
         "real_ai_model_invoked": false,
-        "running_cloud_chat_hook_invocation_verified": false
+        "running_cloud_chat_hook_invocation_verified": false,
+        "current_repository_context_delivery": "PASS;both current files and exact hashes fit the existing context limit"
       },
       "single_rules_file": "AGENTS.md"
     },
@@ -100,95 +100,49 @@
       "status": "USER_CONFIRMED_SAVED;NO_INDEPENDENT_SETTINGS_TOOL_READBACK"
     }
   },
-  "excluded": [
-    "Testberichte und Diagnosen bis einschließlich Build100",
-    "Ältere nicht benötigte Tests und Gerätekampagnen",
-    "Alte Auftrags-/Statuschroniken und Auslieferungsfreigaben",
-    "Quellarchive, APKs, Betriebsdaten und Geheimwerte",
-    "Separater alter Python-/Drive-Geschäftsserver"
-  ],
   "validation": {
     "app_source_fingerprint": "699e7b6bddd10143658780efaec60ecf13314185d7c8d6e8eea2e7a1cd89f133",
+    "source_privacy": "PASS;empty operational seed",
     "native_pixel_tests": "NOT_EXECUTED",
-    "source_privacy": "PASS;current materialized source gate;0 operational seed rows",
     "business_data_read": false,
     "installation_performed": false,
     "authored_changes_diff_check": "PASS",
     "imported_source_whitespace": "2 existing findings in byte-identical Build113 sources; no unrelated source formatting applied",
-    "current_performance_review": {
-      "date": "2026-10-28",
-      "source_commit": "bd25fa9b9cc1ea183974c5d2434ef11f56b4d12a",
-      "source_sha256": "8c5bb6151d7517fb8b82ce60704c02749badf582d8390772e0729bdad5815f8e",
-      "production_code_modified": false,
-      "check_current": "PASS;62 Python tests and selected source checks",
-      "startup_browser_groups_passed": 13,
-      "context_cache_browser_groups_passed": 18,
-      "scale_measurement": "PASS;40 samples per 6 operations;synthetic 300 customers/5000 worklogs/3000 photos/500 invoices",
-      "browser": "Cloud Chromium 153.0.8010.0;Playwright1.64.1;Acorn8.19.0;JavaScript bridge doubles",
-      "native_sqlite_measurement": "NOT_EXECUTED",
-      "pixel_measurement": "NOT_EXECUTED",
-      "android_build": "NOT_EXECUTED",
-      "jvm_suites": "NOT_EXECUTED",
-      "report": "docs/verification/performance-build113.md"
+    "current_test_run": {
+      "observed_at_utc": "2026-10-28T21:00:56.582956+00:00",
+      "check_current": "PASS;62 Python tests and source/contracts/privacy/fixtures/plants/UI checks",
+      "java_suites_passed": 4,
+      "java_checks_passed": 274,
+      "java_breakdown": {
+        "BusinessTableStoreTests": 102,
+        "EquipmentMaintenanceTests": 91,
+        "EquipmentProfilePhotoTests": 54,
+        "PixelPlainBackupTests": 27
+      },
+      "java_environment": "JDK17;synthetic SQLite/JDBC and JVM fixtures;Android runtime not tested",
+      "browser_suites_passed": 5,
+      "browser_environment": "Cloud Chromium,Playwright1.64.1,Acorn8.19.0;synthetic bridge doubles",
+      "android_release_build": "PASS;assembleRelease,lintVitalRelease,prebuild and artifact privacy gates",
+      "signed_apk": "PASS;original certificate,package,version,DEX source binding,exact assets,all 200 production classes,22 retired/test classes absent,alignment,empty business seed",
+      "signing_payload_unchanged": true,
+      "physical_update_data_retention": "NOT_EXECUTED",
+      "full_pixel_backup_restore": "NOT_EXECUTED"
     },
     "current_source_changes": {
-      "status": "SOURCE_AND_SYNTHETIC_TESTS_PASS;FINAL_RELEASE_BUILD_PENDING;PHYSICAL_ACCEPTANCE_OPEN;PROTECTED_DELETION_PENDING_RESTORE_EVIDENCE",
-      "scope": "Stage3 atomic journal/table/request transactions and targeted point/list/search reads; Stage4 renderer ownership; Stage5 dependency evidence and preservation of protected legacy paths",
-      "pixel_adb_tests": "NOT_EXECUTED;connection unavailable",
-      "further_tests": "ANDROID_BUILD_AND_ADB_PENDING_ENVIRONMENT_ACCESS",
-      "implemented_boundary": [
-        "explicit batched copy, transactional checkpoints, cancellation and restart; persistent SQLite write fences during transfer",
-        "row hashes, preserved original snapshot, explicit activation and rollback reconstructed from current rows",
-        "active snapshot writes update changed rows only; live state, invoice review and backup/restore use the shared storage boundary",
-        "database schema 7 fences old snapshot-only app writers without automatic table activation",
-        "maintenance evidence verifies actual encrypted archive bytes, device/restore context, raw and effective state, pending hash, exact totals, relationships and originals",
-        "committed journal projections serve customer/order/photo point reads and eight list/search queries; indexed compact selection fields retain existing sorting/filtering and fetch complete rows only for the selected page",
-        "outer SQLite transaction listener projects final journal IDs and writes changed rows/positions/remainder together with request receipts; projection errors roll back the transaction; historical journal evidence and original snapshot remain",
-        "journal revision triggers detect dirty projections; readers use full context while dirty or on earlier formats without explicit tracking preparation; local authority mode preserved",
-        "synthetic cleanup uses preserved original provenance after table activation; existing verified deletion-backup and relationship checks remain",
-        "owner queries avoid eager duplicate full-state construction where a native query already supplies the result",
-        "explicit renderer registry; Today owns visit/backup/weekly summaries, CustomerHub owns list/context menu/final dossier/billing label, Revier owns Office",
-        "native synthetic SQLite instrumentation extended with selection parity, final action IDs, atomic journal/row/receipt rollback, authority preservation and restart checks; Android entry not compiled/executed; separate SQLite/JDBC boundary tests passed",
-        "unused customer-history DOM wrapper removed; referenced legacy business evidence and fixture APIs retained"
-      ],
-      "not_implemented": [
-        "Full Android app/test compilation, Android transaction-listener and complete writer acceptance",
-        "Verified original-signed updated APK and package-installation delivery",
-        "Full encrypted archive and physical backup/restore acceptance",
-        "Protected Drive/queue deletion pending Pixel restore confirmation and demonstrated absence of references"
-      ],
+      "status": "RELEASE_BUILD_AND_SYNTHETIC_TESTS_PASS;PHYSICAL_ACCEPTANCE_OPEN;PROTECTED_DELETION_PENDING_RESTORE_EVIDENCE",
+      "scope": "Atomic table/journal writes,targeted reads,renderer ownership and protected legacy cleanup;source implementation in current APK",
       "legacy_dependency_review": {
-        "PixelLocalStore.commitSnapshot/pendingActionsForDrive": "still called by androidTest LegacyDriveSyncFixture; retained",
-        "DriveJournalRules/SnapshotProjection/LocalPendingActions": "live state and backup projections still depend on these; retained",
-        "SyncCommitRules/RetiredBackupDriveClient/RetiredDriveAccount/RetiredDriveBackupUpload/RetiredBackupScheduleRules": "current test runner or fixtures still reference these; retained",
-        "workday-ui.compactCustomers": "no current markup producer for customer-work-section; obsolete decorator and wrapper removed, history in CustomerHub preserved",
-        "LocalTestCleanup": "active committed row projection uses preserved original snapshot for synthetic provenance; verified deletion backup, tombstones and relationships remain required; no protected business-journal deletion added"
+        "production": "DriveJournalRules,SnapshotProjection and LocalPendingActions still used by live state/backup projections",
+        "fixtures": "Kept JVM/native fixtures reference legacy and retired adapters;these test-only classes are absent from release APK",
+        "LocalTestCleanup": "Preserved original-snapshot provenance;existing verified deletion backup,tombstones and relationships remain required"
       },
       "protected_deletion_evidence": {
         "backup_present": "USER_CONFIRMED;registered full-backup job not yet locally verified",
         "pixel_restore": "DIRECT_PIXEL_STATUS_NONE;no completed restore evidenced",
         "dependency_absence": "NOT_ESTABLISHED;live journal/table/backup readers and historical test fixtures still reference the listed classes",
-        "deletion": "NOT_PERFORMED;explicit source deletion request retained pending prerequisite",
-        "device_status_observation": {
-          "observed_at_utc": "2026-10-28T20:17:02Z",
-          "source": "Haus & Gartenservice Pixel get_restore_status/get_full_backup_status;read-only metadata",
-          "restore_phase": "NONE",
-          "backup_mode": "PIXEL_PLAINTEXT_ZIP",
-          "registered_backup_jobs": 1,
-          "backup_phase": "CAPTURING",
-          "backup_byte_size": 0,
-          "last_local_verified_at_present": false,
-          "scope": "Existing status only;no restore, backup creation or test executed;other user-held backups not inspected"
-        }
+        "deletion": "NOT_PERFORMED;explicit source deletion request retained pending prerequisite"
       }
     },
-    "previous_android_release_java_compilation": "PASS; no APK built",
-    "previous_python_tests_passed": 54,
-    "previous_jvm_suites_passed": 3,
-    "previous_jvm_checks_passed": 164,
-    "previous_browser_suites_passed": 5,
-    "last_executed_python_tests_passed": 62,
-    "last_completed_test_source_sha256": "699e7b6bddd10143658780efaec60ecf13314185d7c8d6e8eea2e7a1cd89f133",
     "backup_diagnosis": {
       "observed_at_utc": "2026-10-28T20:29:46Z",
       "device_reported_build": {
@@ -207,61 +161,14 @@
         "browser_capture_pending": false,
         "browser_checkpoint_error": ""
       },
-      "confirmed_findings": [
-        "Capture reached inventory validation after SQLite/file capture; external ZIP export had not started",
-        "Build113 capture error wrapper hides non-BACKUP/RECOVERY IOException codes, including browser media and financial validation errors",
-        "Capture failure is displayed only in the activity; existing job remains CAPTURING without durable lastErrorCode",
-        "FullBackupController does not expose lastErrorCode or attempt timestamps in Build113"
-      ],
-      "source_corrections": [
-        "bounded browser-media/financial machine codes retained; unknown inventory failures get substage codes without private text",
-        "local preparation/export failures persist lastErrorCode and timestamps; incomplete job becomes FAILED; prior verification proofs retained",
-        "status exposes safe failure code and timestamps; activity uses same sanitizer; successful retry clears last failure",
-        "existing provider proof protects verified destination from overwrite independently of current job phase"
-      ],
       "root_cause": "NOT_YET_IDENTIFIED;original lower-level IOException is not available from installed status or screenshot;no specific missing file, damaged record or financial conflict asserted",
-      "verification": "PASS 27 PixelPlainBackupTests checks including 8 diagnostic regressions;source error codes retained and private error prose rejected;native persisted-job/retry/coordinator and original Pixel failure not tested",
-      "deployment": "NOT_INSTALLED;diagnostic corrections are in pending Build114;latest device self-report remains Build113",
-      "data_access": "App technical metadata and user screenshot only;no business records, original files or backups downloaded",
+      "correction": "Specific sanitized error codes and durable FAILED state/retry timestamps included in Build114;original inventory cause not yet established",
+      "verification": "PASS;27 synthetic PixelPlainBackupTests checks;native persisted-job/retry and original Pixel failure not tested",
+      "deployment": "BUILD114_SIGNED;NOT_INSTALLED;latest device self-report remains113",
       "next_evidence": "Specific error code from corrected device build, or an existing original exception trace if available"
     },
-    "current_test_run": {
-      "observed_at_utc": "2026-10-28T20:55:10.432812+00:00",
-      "base_commit": "3de3234e406d921015801f020b7cdc2b64093acf",
-      "app_source_sha256": "699e7b6bddd10143658780efaec60ecf13314185d7c8d6e8eea2e7a1cd89f133",
-      "source_binding": "Current main application plus release version increment to114;final source commit not yet assigned",
-      "check_current": "PASS;62 Python tests plus source/privacy/contracts/UI/fixtures/plants/maintenance checks",
-      "java_suites_passed": 4,
-      "java_checks_passed": 274,
-      "java_breakdown": {
-        "BusinessTableStoreTests": 102,
-        "EquipmentMaintenanceTests": 91,
-        "EquipmentProfilePhotoTests": 54,
-        "PixelPlainBackupTests": 27
-      },
-      "table_environment": "SQLite3.46.1 through JDBC,JDK17;temporary synthetic DB;Android transaction listener/CursorWindow and full restore not tested",
-      "browser_suites": "PASS simple-forms,startup-ui,equipment-maintenance-ui,equipment-profile-photo-ui,work-entry-photo-failure",
-      "browser_environment": "Cloud Chromium;Playwright1.64.1;Acorn8.19.0;synthetic JavaScript bridge doubles",
-      "native_pixel_tests": "NOT_EXECUTED",
-      "apk_distribution": "PENDING",
-      "productive_data_access": false
-    }
+    "performance_evidence": "docs/verification/performance-build113.md;synthetic measurements;physical Pixel comparison not performed"
   },
-  "required_test_support": {
-    "java": [
-      "tests/java-support/at/hausgarten/service/RevierDomainTests.java",
-      "tests/java-support/at/hausgarten/service/BrowserMediaRepositoryRulesTests.java"
-    ],
-    "reason": "Only shared memory fixtures required by the selected current suites; old main test entrypoints removed"
-  },
-  "migration_adjustments": [
-    "Current Java runner restricted to three suites and their fixtures",
-    "Source handoff guard accepts the one staged source directory in the same repository",
-    "Startup test checks current behavior without an old diagnostic report",
-    "Photo UI test awaits asynchronous draft restoration before asserting visibility",
-    "Browser screenshots and transient diagnostics go to ignored outputs, not maintained documentation",
-    "Shared Java memory fixtures extracted without their old test main routines"
-  ],
   "unmerged_work": [
     {
       "branch": "codex/pflanzenbibliothek-20261023",
