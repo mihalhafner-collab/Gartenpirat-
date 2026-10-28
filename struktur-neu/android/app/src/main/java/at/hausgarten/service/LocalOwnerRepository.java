@@ -15,7 +15,7 @@ final class LocalOwnerRepository implements OwnerRepository {
     LocalOwnerRepository(Context context,PixelLocalStore store){
         this.context=context;this.store=store;
         this.requests=new OwnerRequestTransactions.Store(){
-            public void begin(){store.getWritableDatabase().beginTransaction();}
+            public void begin(){store.beginBusinessTransaction(store.getWritableDatabase());}
             public String read(String key){return store.ownerValue(key,"");}
             public void write(String key,String value){store.putOwnerValue(key,value);}
             public void successful(){store.getWritableDatabase().setTransactionSuccessful();}
@@ -64,6 +64,7 @@ final class LocalOwnerRepository implements OwnerRepository {
         return new JSONObject().put("resource_type",type).put("resource_id",id).put("mime_type",mime).put("byte_size",bytes.length).put("sha256",hash).put("offset",offset).put("next_offset",offset+part.length).put("eof",offset+part.length==bytes.length).put("chunk_sha256",digest(part)).put("chunk_base64",Base64.getEncoder().encodeToString(part));
     }
     public JSONObject enqueue(String kind,JSONObject payload,String request)throws Exception{
+        SQLiteDatabase db=store.getWritableDatabase();store.beginBusinessTransaction(db);try{
         if(Arrays.asList("archive","delete","purge_v1").contains(kind))revier().protectParent(payload.optString("entity"),payload.optString("id"));
         if(kind.equals("photo")&&payload.optString("role").equals("profile"))revier().protectParent("photo",payload.optString("id"));
         if(kind.equals(TrashPurgeBatch.KIND)){JSONArray entries=payload.getJSONArray("entries");for(int i=0;i<entries.length();i++){JSONObject entry=entries.getJSONObject(i);revier().protectParent(entry.getString("entity"),entry.getString("entity_id"));}}
@@ -80,7 +81,8 @@ final class LocalOwnerRepository implements OwnerRepository {
         if(store.testLocalOnly(kind,payload))payload.put("_local_only",true);
         ContentValues a=new ContentValues();a.put("id",request);a.put("kind",kind);a.put("payload",payload.toString());a.put("created_at",java.time.Instant.now().toString());store.getWritableDatabase().insertOrThrow("pending",null,a);
         JSONObject result=new JSONObject().put("client_id",request).put("entity_type",payload.optString("entity",kind)).put("entity_id",payload.optString("id")).put("local_state","local_saved").put("sync_state",!DriveRolePolicy.businessSyncAllowed()||payload.optBoolean("_local_only")?"not_applicable":"sync_pending").put("test_local_only",payload.optBoolean("_local_only")).put("cloud_confirmed",false);
-        if(!DriveRolePolicy.businessSyncAllowed())result.put("drive_role",DriveRolePolicy.role()).put("storage_contract_version",DriveRolePolicy.contractVersion());return result;
+        if(!DriveRolePolicy.businessSyncAllowed())result.put("drive_role",DriveRolePolicy.role()).put("storage_contract_version",DriveRolePolicy.contractVersion());db.setTransactionSuccessful();return result;
+        }finally{db.endTransaction();}
     }
     JSONObject backupCounts(JSONObject saved)throws Exception{JSONObject out=new JSONObject(),master=saved.getJSONObject("state").getJSONObject("master");for(String key:new String[]{"customers","orders","worklogs","invoices","photos","service_catalog","offers","appointments"})out.put(key,master.getJSONArray(key).length());return out;}
     public JSONObject createBackup(String request)throws Exception{

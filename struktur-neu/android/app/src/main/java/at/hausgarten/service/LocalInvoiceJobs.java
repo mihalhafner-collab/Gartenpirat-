@@ -32,7 +32,7 @@ final class LocalInvoiceJobs {
                     // A durable file receipt precedes SQL publication. Once it exists, a
                     // retry must use those exact bytes, including after process death.
                     JSONObject metadata=document(context,job);
-                    SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();try{
+                    SQLiteDatabase db=store.getWritableDatabase();store.beginBusinessTransaction(db);try{
                         JSONObject state=store.getState(),all=new JSONObject(state.getJSONObject("master").toString());DriveJournalRules.apply(all,state.getJSONArray("pending"));JSONObject invoice=PixelMcpWriteTools.find(all.getJSONArray("invoices"),frozen.getString("id"));
                         if(!sameFrozenInvoice(invoice,frozen))throw new IOException("INVOICE_DOCUMENT_SOURCE_MISMATCH");
                         for(Iterator<String> it=metadata.keys();it.hasNext();){String field=it.next();invoice.put(field,metadata.get(field));}invoice.put("pdf_state","READY");OwnerJournalRules.replace(all,"invoices",invoice.getString("id"),invoice);store.commitLocalSnapshot(all);job.put("phase","READY").put("document",metadata).put("verified_at",java.time.Instant.now().toString()).remove("last_error_code");store.putOwnerValue(key,job.toString());db.setTransactionSuccessful();completed++;

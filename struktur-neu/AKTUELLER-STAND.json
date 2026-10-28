@@ -47,8 +47,8 @@
     }
   ],
   "current_task": {
-    "name": "Etappen 3–5: Tabellenanbindung, zuständige Bildschirmrenderer und belegte Bereinigung",
-    "status": "SOURCE_IMPLEMENTATION_IN_PROGRESS;STAGE3_INTEGRATION_EXTENDED;STAGE4_RENDERERS_CONNECTED;STAGE5_DEPENDENCIES_REVIEWED;TESTS_DEFERRED",
+    "name": "Etappen 3–5: atomare Journalschreiber, gezielte Listen und geschützte Bereinigung",
+    "status": "SOURCE_JOURNAL_AND_LIST_IMPLEMENTATION_PRESENT;STAGE4_RENDERERS_CONNECTED;STAGE5_PROTECTED_DELETION_BLOCKED_BY_RESTORE_EVIDENCE;TESTS_DEFERRED",
     "authorized": true,
     "specification": "../CODEX-AUFTRAG-GARTENPIRAT.md",
     "verification": "docs/verification/performance-build113.md",
@@ -60,7 +60,8 @@
       "backup_present": "USER_CONFIRMED;archive protection, readback and restore not independently verified",
       "adb": "READ_AND_WRITE_FOR_SYNTHETIC_TESTING_AUTHORIZED; laptop as connection host",
       "test_order": "NO_MORE_TEST_RUNS_UNTIL_STAGE3_TO_STAGE5_AND_AGREED_SMALL_CHANGES_IMPLEMENTED",
-      "productive_data_for_testing": false
+      "productive_data_for_testing": false,
+      "journal_and_lists": "COMPLETE_SOURCE_CONVERSION_REQUESTED;protected legacy deletion only after restore evidence"
     },
     "test_environment_access": {
       "adb_client": "NOT_AVAILABLE_IN_CLOUD",
@@ -69,10 +70,10 @@
       "physical_device_test": "NOT_EXECUTED",
       "laptop_remote_shell": "NOT_AVAILABLE"
     },
-    "implementation_checkpoint": "SOURCE_ONLY_NOT_TESTED;not completed stages or a release candidate"
+    "implementation_checkpoint": "SOURCE_ONLY_NOT_TESTED;full acceptance and protected legacy deletion remain open;not a release candidate"
   },
   "open_checks": [
-    "Etappe3: journalgestützte Fachschreiber und Filter-/Listenabfragen weiter auf gezielte Tabellenzugriffe umstellen; bei Pending-/Tombstone-Projektion weiterhin vollständiger Fachkontext erforderlich",
+    "Etappe3: gemeinsame Journal-/Tabellen-/Requesttransaktion und acht gezielte Listen-/Suchabfragen im Quellcode angebunden; Atomarität, Filterparität und alle Fachschreiber noch ungeprüft",
     "Etappe3: verschlüsselten Archivnachweis, Beziehungen/Originale, Preferences-Übernahme, Schreibsperre, Backup/Restore und Rückweg gemeinsam am aktuellen Quellstand prüfen; bisher keine unabhängige Geräteprüfung",
     "Etappe4: Heute/Kunden/Büro über zuständige Renderer verbunden; vollständige Funktionsliste, Entwurfswege, 320/360px und 200%-Schrift sowie Leistung noch ungeprüft",
     "Etappe5: referenzierte Drive-/Queue-/Restorebelege erhalten; geschützte Löschung weiterhin erst nach bestätigtem Pixel-Backup UND Restore sowie Abhängigkeitsnachweis",
@@ -144,8 +145,8 @@
       "report": "docs/verification/performance-build113.md"
     },
     "current_source_changes": {
-      "status": "IN_PROGRESS_NOT_TESTED",
-      "scope": "Stage3 live/backup table read boundary and explicit verified maintenance path; Stage4 renderer ownership; Stage5 dependency review and unused UI decorator removal",
+      "status": "SOURCE_IMPLEMENTATION_PRESENT_NOT_TESTED;PROTECTED_DELETION_PENDING_RESTORE_EVIDENCE",
+      "scope": "Stage3 atomic journal/table/request transactions and targeted point/list/search reads; Stage4 renderer ownership; Stage5 dependency evidence and preservation of protected legacy paths",
       "pixel_adb_tests": "NOT_EXECUTED;connection unavailable",
       "further_tests": "DEFERRED_BY_EXPLICIT_USER_INSTRUCTION",
       "implemented_boundary": [
@@ -154,15 +155,17 @@
         "active snapshot writes update changed rows only; live state, invoice review and backup/restore use the shared storage boundary",
         "database schema 7 fences old snapshot-only app writers without automatic table activation",
         "maintenance evidence verifies actual encrypted archive bytes, device/restore context, raw and effective state, pending hash, exact totals, relationships and originals",
-        "point reads for customer/order/photo through MCP/native Source; full-context fallback with pending actions or synthetic tombstones",
+        "committed journal projections serve customer/order/photo point reads and eight list/search queries; indexed compact selection fields retain existing sorting/filtering and fetch complete rows only for the selected page",
+        "outer SQLite transaction listener projects final journal IDs and writes changed rows/positions/remainder together with request receipts; projection errors roll back the transaction; historical journal evidence and original snapshot remain",
+        "journal revision triggers detect dirty projections; readers use full context while dirty or on earlier formats without explicit tracking preparation; local authority mode preserved",
+        "synthetic cleanup uses preserved original provenance after table activation; existing verified deletion-backup and relationship checks remain",
         "owner queries avoid eager duplicate full-state construction where a native query already supplies the result",
         "explicit renderer registry; Today owns visit/backup/weekly summaries, CustomerHub owns list/context menu/final dossier/billing label, Revier owns Office",
-        "native ADB synthetic SQLite instrumentation entry point prepared; not executed",
+        "native synthetic SQLite instrumentation extended with selection parity, final action IDs, atomic journal/row/receipt rollback, authority preservation and restart checks; not compiled or executed",
         "unused customer-history DOM wrapper removed; referenced legacy business evidence and fixture APIs retained"
       ],
       "not_implemented": [
-        "complete conversion of journal-backed business writes and filtered/list reads to targeted row operations",
-        "current full encrypted archive/restore integration and exhaustive fault/relationship tests",
+        "full encrypted archive and physical restore acceptance; exhaustive relationship, UI/MCP/timer/invoice writer and fault tests",
         "current UI, native compilation and performance acceptance",
         "protected Drive/queue deletion pending Pixel restore confirmation and demonstrated absence of references"
       ],
@@ -170,7 +173,14 @@
         "PixelLocalStore.commitSnapshot/pendingActionsForDrive": "still called by androidTest LegacyDriveSyncFixture; retained",
         "DriveJournalRules/SnapshotProjection/LocalPendingActions": "live state and backup projections still depend on these; retained",
         "SyncCommitRules/RetiredBackupDriveClient/RetiredDriveAccount/RetiredDriveBackupUpload/RetiredBackupScheduleRules": "current test runner or fixtures still reference these; retained",
-        "workday-ui.compactCustomers": "no current markup producer for customer-work-section; obsolete decorator and wrapper removed, history in CustomerHub preserved"
+        "workday-ui.compactCustomers": "no current markup producer for customer-work-section; obsolete decorator and wrapper removed, history in CustomerHub preserved",
+        "LocalTestCleanup": "active committed row projection uses preserved original snapshot for synthetic provenance; verified deletion backup, tombstones and relationships remain required; no protected business-journal deletion added"
+      },
+      "protected_deletion_evidence": {
+        "backup_present": "USER_CONFIRMED",
+        "pixel_restore": "NOT_CONFIRMED;no build/archive/result-bound restore evidence available",
+        "dependency_absence": "NOT_ESTABLISHED;listed legacy classes remain referenced",
+        "deletion": "NOT_PERFORMED"
       }
     },
     "previous_android_release_java_compilation": "PASS; no APK built",

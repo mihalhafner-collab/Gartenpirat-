@@ -47,7 +47,8 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     Context appContext(){return context;}
     /** Explicit storage-transfer boundary; opening the app never invokes a transfer. */
     BusinessTableStore businessTables(){return businessTables(getWritableDatabase());}
-    static BusinessTableStore businessTables(SQLiteDatabase database){
+    static BusinessTableStore businessTables(SQLiteDatabase database){return businessTables(database,false);}
+    static BusinessTableStore businessTables(SQLiteDatabase database,boolean committing){
         return new BusinessTableStore(new BusinessTableStore.Sql(){
             public BusinessTableStore.Rows query(String statement,String...args){
                 Cursor rows=database.rawQuery(statement,args);
@@ -61,7 +62,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
             public void execute(String statement,Object...args){database.execSQL(statement,args);}
             public <T>T transaction(BusinessTableStore.Action<T> action)throws Exception{
                 // Captured backup databases are immutable and opened read-only.
-                if(database.isReadOnly())return action.run();
+                if(database.isReadOnly()||committing)return action.run();
                 database.beginTransaction();
                 try{T result=action.run();database.setTransactionSuccessful();return result;}
                 finally{database.endTransaction();}
@@ -90,10 +91,31 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
                 }finally{db.endTransaction();}
             }
             case "copy":return tables.copyBatch(request,batch,evidence);
-            case "activate":return tables.activate(request,expectedHash,evidence);
+            case "activate":{SQLiteDatabase db=getWritableDatabase();beginBusinessTransaction(db);try{JSONObject activated=tables.activate(request,expectedHash,evidence);db.setTransactionSuccessful();return activated;}finally{db.endTransaction();}}
             case "rollback":return tables.rollback(request,expectedHash,evidence);
             default:throw new IOException("TABLE_TRANSFER_OPERATION_UNSUPPORTED");
         }
+    }
+    /** Only the outer write transaction projects journals, after temporary action IDs are replaced.
+     * Android calls onCommit before COMMIT and rolls back if it throws. No nested BEGIN here.
+     */
+    void beginBusinessTransaction(SQLiteDatabase db){
+        beginJournalTransaction(db,()->{
+            BusinessTableStore tables=businessTables(db,true);
+            if(tables.active()&&!tables.projectionCurrent())tables.commitJournal(LocalPendingActions.read(db,false,id->BackupSnapshotState.photo(db,id),0),master->{
+                removeSnapshotPhotoBinaries(master);documentReferences(master);PixelDriveState.prepare(master);seedServiceCatalog(master);LocalTestCleanup.overlay((key,fallback)->DatabaseBackupSnapshot.ownerValue(db,key,fallback),master);
+                if(LocalAuthorityGuard.local(context))master.put("processing_engine",LocalAuthorityRules.ENGINE).put("local_contract_version",LocalAuthorityRules.CONTRACT);
+                OfferDecisionProjection.apply(db,master);LocalBillingProjection.apply(db,master);
+            });return null;
+        });
+    }
+    static void beginJournalTransaction(SQLiteDatabase db,BusinessTableStore.Action<Void> commit){
+        if(db.inTransaction()){db.beginTransaction();return;}
+        db.beginTransactionWithListener(new android.database.sqlite.SQLiteTransactionListener(){
+            public void onBegin(){}
+            public void onRollback(){}
+            public void onCommit(){try{commit.run();}catch(Exception failure){throw new IllegalStateException("LOCAL_JOURNAL_TABLE_COMMIT_FAILED",failure);}}
+        });
     }
     WorkSessionStore workSessions(){return new WorkSessionStore(getWritableDatabase(),clock);}
     int compactPurgedTestActions()throws Exception{return LocalTestCleanup.compact(this);}
@@ -135,11 +157,11 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         String value=ownerValue("snapshot",null);return value==null?preferences.getString("drive_snapshot",fallback):value;
     }
     void putOwnerValue(String key,String value){
-        SQLiteDatabase db=getWritableDatabase();db.beginTransaction();
+        SQLiteDatabase db=getWritableDatabase();beginBusinessTransaction(db);
         try{
             BusinessTableStore tables=businessTables(db);
             if(key.equals("snapshot")&&tables.active())tables.replaceSnapshot(new JSONObject(value));
-            else{db.execSQL("INSERT OR REPLACE INTO owner_state(key,value) VALUES(?,?)",new Object[]{key,value});}
+            else{db.execSQL("INSERT OR REPLACE INTO owner_state(key,value) VALUES(?,?)",new Object[]{key,value});if(key.equals("purged_local_test_records_v1"))tables.invalidateJournal();}
             db.setTransactionSuccessful();
         }catch(Exception invalid){throw new IllegalStateException("LOCAL_STATE_WRITE_FAILED",invalid);}
         finally{db.endTransaction();}
@@ -152,7 +174,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     void seedServiceCatalog(JSONObject snapshot)throws Exception{ServiceCatalogBootstrap.seed(snapshot,()->readAsset("service-catalog.json"));}
     void commitSnapshot(JSONObject snapshot,Set<String> confirmed)throws Exception{
         if(!LocalAuthorityGuard.legacySyncAllowed(context))throw new IOException("LEGACY_SYNC_WRITER_DISABLED");
-        SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{
+        SQLiteDatabase db=getWritableDatabase();beginBusinessTransaction(db);try{
             JSONArray remaining=new JSONArray(),actions=pendingActions();for(int i=0;i<actions.length();i++)if(!confirmed.contains(actions.getJSONObject(i).getString("client_id")))remaining.put(actions.getJSONObject(i));
             JSONObject future=SnapshotProjection.effective(new JSONObject().put("master",new JSONObject(snapshot.toString())).put("pending",remaining));new RevierApplicationService(new RevierSnapshotRepository(db,future)).validateRelationships();
             putOwnerValue("snapshot",snapshot.toString());acknowledge(confirmed);db.setTransactionSuccessful();
@@ -185,37 +207,50 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
             public JSONObject metadata()throws Exception{return new JSONObject().put("last_drive_sync",preferences.getString("last_drive_sync",""));}
         };
     }
-    /** Point reads avoid unrelated collections only when no journal overlay can change the result. */
+    /** Committed row projections serve point and list reads without replaying the journal.
+     * A write in progress still reads its complete uncommitted context for domain validation.
+     */
     private JSONObject queryState(String tool,JSONObject args)throws Exception {
-        if(!java.util.Arrays.asList("get_customer","get_order","get_photo").contains(tool))return getState();
+        String collection;boolean point;
+        switch(tool){
+            case "get_customer":collection="customers";point=true;break;
+            case "get_order":collection="orders";point=true;break;
+            case "get_photo":collection="photos";point=true;break;
+            case "search_customers":collection="customers";point=false;break;
+            case "search_orders":case "get_open_orders":collection="orders";point=false;break;
+            case "list_work_records":case "get_customer_work_records":collection="worklogs";point=false;break;
+            case "list_invoices":collection="invoices";point=false;break;
+            case "list_photos":collection="photos";point=false;break;
+            case "search_business_data":collection="";point=false;break;
+            default:return getState();
+        }
         SQLiteDatabase db=getWritableDatabase();db.beginTransaction();
         try{
             BusinessTableStore tables=businessTables(db);JSONObject result;
-            if(!tables.active())result=getStateLocked();
+            if(!tables.projectionCurrent())result=getStateLocked();
             else{
-                JSONObject master=tables.metadataSnapshot();JSONArray actions=DriveJournalRules.union(pendingActions(),master.optJSONArray("drive_review_actions"));
-                if(actions.length()!=0||new JSONObject(ownerValue("purged_local_test_records_v1","{}")).length()!=0)result=getStateLocked();
-                else{
-                    for(String collection:BusinessTableStore.COLLECTIONS)master.put(collection,new JSONArray());
-                    String collection=tool.equals("get_customer")?"customers":tool.equals("get_order")?"orders":"photos";
+                JSONObject master=tables.metadataSnapshot();for(String kind:BusinessTableStore.COLLECTIONS)master.put(kind,new JSONArray());
+                if(point){
                     String key=tool.equals("get_customer")?"customer_id":tool.equals("get_order")?"order_id":"photo_id";
                     JSONObject row=tables.get(collection,args.getString(key));
                     if(row!=null){master.getJSONArray(collection).put(row);if(tool.equals("get_order")){addQueryCustomer(tables,master,row.optString("customer_id"));addQueryCustomer(tables,master,row.optString("billing_customer_id"));}if(tool.equals("get_customer"))addQueryCustomer(tables,master,row.optString("default_billing_customer_id"));}
-                    // Partial collections must not enter the full projection, which computes totals.
-                    refreshQueryDisplay(tables,collection,row);removeSnapshotPhotoBinaries(master);
-                    result=readSource().metadata().put("master",master).put("pending",new JSONArray()).put("storage_point_read",true);
+                }else{
+                    // Reference context retains the existing matching and missing-ID behavior.
+                    JSONObject references=tables.referenceContext();master.put("customers",references.getJSONArray("customers")).put("orders",references.getJSONArray("orders"));
+                    if(tool.equals("search_business_data")){
+                        JSONObject filters=new JSONObject().put("query",args.getString("query")).put("include_inactive",true).put("limit",args.optInt("limit_per_type",10));
+                        for(String kind:new String[]{"customer","order","worklog"}){String group=kind.equals("customer")?"customers":kind.equals("order")?"orders":"worklogs";master.put(group,tables.selected(group,kind,filters,references));}
+                    }else{
+                        JSONObject filters=new JSONObject(args.toString());if(tool.equals("get_open_orders"))filters.put("open_only",true).put("limit",args.optInt("limit",50));
+                        String kind=collection.equals("customers")?"customer":collection.equals("orders")?"order":collection.equals("worklogs")?"worklog":collection.equals("invoices")?"invoice":"photo";
+                        master.put(collection,tables.selected(collection,kind,filters,master));
+                    }
                 }
+                removeSnapshotPhotoBinaries(master);
+                result=readSource().metadata().put("master",master).put("pending",new JSONArray()).put("storage_point_read",true).put("storage_list_selected",!point);
             }
             db.setTransactionSuccessful();return result;
         }finally{db.endTransaction();}
-    }
-    private void refreshQueryDisplay(BusinessTableStore tables,String collection,JSONObject row)throws Exception {
-        if(row==null||collection.equals("customers"))return;
-        if(row.has("customer_name")){JSONObject customer=tables.get("customers",row.optString("customer_id"));if(customer!=null)row.put("customer_name",customer.optString("name"));}
-        if(row.has("order_title")){JSONObject order=tables.get("orders",row.optString("order_id"));row.put("order_title",order==null?"":order.optString("title"));}
-        if(collection.equals("orders")&&row.has("total_hours")){
-            double hours=0;for(int offset=0;;offset+=100){JSONArray work=tables.select("worklogs","order_id",row.getString("id"),offset,100);for(int i=0;i<work.length();i++)hours+=work.getJSONObject(i).optDouble("hours",0);if(work.length()<100)break;}row.put("total_hours",Math.round(hours*100)/100.0);
-        }
     }
     private void addQueryCustomer(BusinessTableStore tables,JSONObject master,String id)throws Exception {
         if(id.isEmpty()||findById(master.getJSONArray("customers"),id)!=null)return;
@@ -233,7 +268,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         return output;
     }
     String saveWorklog(JSONObject payload) throws Exception {
-        SQLiteDatabase transaction=getWritableDatabase();transaction.beginTransaction();
+        SQLiteDatabase transaction=getWritableDatabase();beginBusinessTransaction(transaction);
         try {String result=saveWorklogLocked(payload);transaction.setTransactionSuccessful();return result;}
         finally{transaction.endTransaction();}
     }
@@ -268,7 +303,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         if(payload.optString("source").trim().isEmpty())payload.put("source",previous==null?"Pixel offline":previous.optString("source","Pixel offline"));
         prepareManualChange("worklog",payload,previous);
         String actionId = "worklog_change_" + UUID.randomUUID().toString().replace("-", "");
-        SQLiteDatabase database = getWritableDatabase(); database.beginTransaction();
+        SQLiteDatabase database = getWritableDatabase(); beginBusinessTransaction(database);
         try {
             // Retain successive offline edits as a guarded action chain, not a lossy replacement.
             ContentValues values = new ContentValues(); values.put("id", actionId); values.put("kind", "worklog"); values.put("payload", payload.toString()); values.put("created_at", isoNow());
@@ -276,7 +311,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         } finally { database.endTransaction(); }
         return entityId;
     }
-    JSONObject startWorkSession(JSONObject payload)throws Exception{JSONObject request=new JSONObject(payload.toString());request.remove("_request_input_hash");String inputHash=PixelMcpWriteTools.hash(request);request.put("_request_input_hash",inputHash);SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{JSONObject result=startWorkSessionLocked(request);db.setTransactionSuccessful();return result;}finally{db.endTransaction();}}
+    JSONObject startWorkSession(JSONObject payload)throws Exception{JSONObject request=new JSONObject(payload.toString());request.remove("_request_input_hash");String inputHash=PixelMcpWriteTools.hash(request);request.put("_request_input_hash",inputHash);SQLiteDatabase db=getWritableDatabase();beginBusinessTransaction(db);try{JSONObject result=startWorkSessionLocked(request);db.setTransactionSuccessful();return result;}finally{db.endTransaction();}}
     private JSONObject startWorkSessionLocked(JSONObject payload)throws Exception{
         JSONObject active=workSessions().current();if(!"IDLE".equals(active.optString("state")))return workSessions().start(payload);
         JSONObject master=PixelMcpReadTools.effective(getState());
@@ -292,7 +327,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         return workSessions().start(payload);
     }
     String completeWorkSession(String sessionId,JSONObject payload,String requestId)throws Exception{
-        SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
+        SQLiteDatabase database=getWritableDatabase();beginBusinessTransaction(database);
         try{
         WorkSessionStore sessions=workSessions();JSONObject session=sessions.current(sessionId);
         if(!WorkSessionStore.STOPPED.equals(session.optString("state"))&&!WorkSessionStore.FINALIZED.equals(session.optString("state")))throw new IllegalStateException("Bitte die laufende Arbeit zuerst stoppen.");
@@ -345,7 +380,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         else throw new PixelMcpWriteTools.Rejected("UNKNOWN_TOOL","Diese Schreibfunktion ist nicht freigegeben.");
         String clientId = "mcp_pixel_" + PixelMcpWriteTools.hash(args.getString("request_id")).substring(0,40);
         String fingerprint = PixelMcpWriteTools.hash(new JSONObject().put("tool",tool).put("args",args));
-        SQLiteDatabase database = getWritableDatabase(); database.beginTransaction();
+        SQLiteDatabase database = getWritableDatabase(); beginBusinessTransaction(database);
         JSONObject result;
         try {
             JSONObject receipt = receipt(clientId);
@@ -391,7 +426,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     private JSONObject executeSession(String tool,JSONObject args)throws Exception{
         PixelMcpWriteTools.validate(args,PixelMcpSessionTools.schema(tool));
         String clientId="mcp_pixel_"+PixelMcpWriteTools.hash(args.getString("request_id")).substring(0,40),fingerprint=PixelMcpWriteTools.hash(new JSONObject().put("tool",tool).put("args",args));
-        SQLiteDatabase database=getWritableDatabase();database.beginTransaction();JSONObject result;
+        SQLiteDatabase database=getWritableDatabase();beginBusinessTransaction(database);JSONObject result;
         try{
             JSONObject existing=receipt(clientId);if(existing!=null){if(!fingerprint.equals(existing.optString("fingerprint")))throw new PixelMcpWriteTools.Rejected("REPLAY_MISMATCH","Anfragekennung wurde für andere Angaben verwendet.");result=new JSONObject(existing.getJSONObject("result").toString()).put("replayed",true);}
             else{
@@ -439,7 +474,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
             .put("message",phase.equals("resolved")?"Die Konfliktentscheidung wurde übernommen. Die ursprüngliche Aktion bleibt im Journal erhalten.":phase.equals("accepted")?"Im Gesamtstand übernommen und bestätigt. Cloud-Upload wird durch Drive durchgeführt.":phase.equals("failed")?"Die Änderung benötigt eine Prüfung. Lokale Daten bleiben erhalten.":phase.equals("superseded")?"Die vorgemerkte Änderung wurde in der App ersetzt. Bitte den Eintrag öffnen.":phase.equals("transferred")?"Änderung an die Drive-App übergeben und zurückgelesen; auf dem Pixel nutzbar. Der Google-Cloud-Upload ist nicht unabhängig bestätigt.":phase.equals("applied_on_pixel")?"Auf dem Pixel übernommen; Provider-Rücklesen noch nicht nachgewiesen.":phase.equals("queued")?"Auf dem Pixel gesichert. Drive-Abgleich steht noch aus.":"Für diese Anfrage liegt noch keine Bestätigung vor."),state);
     }
     void markUploaded(JSONArray actions) throws Exception {
-        SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
+        SQLiteDatabase database=getWritableDatabase();beginBusinessTransaction(database);
         try {for(int i=0;i<actions.length();i++){String clientId=actions.getJSONObject(i).optString("client_id");JSONObject metadata=receipt(clientId);if(metadata!=null){metadata.put("uploaded",true);ContentValues value=new ContentValues();value.put("payload",metadata.toString());database.update("pending",value,"id=? AND kind='mcp_receipt'",new String[]{"receipt_"+clientId});}}database.setTransactionSuccessful();}finally{database.endTransaction();}
     }
     private JSONObject findById(JSONArray rows, String id) throws Exception {
@@ -452,7 +487,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     String saveEditorRecord(String kind,JSONObject input)throws Exception {
         JSONObject payload=new JSONObject(input.toString());String request=payload.optString("_request_id");payload.remove("_request_id");if(kind.equals("worklog")&&payload.optString("_session_id").isEmpty())payload.remove("_session_id");
         if(!request.isEmpty()&&!request.matches("[A-Za-z0-9_-]{8,200}"))throw new IllegalArgumentException("Ungültige Aktionskennung.");
-        SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{
+        SQLiteDatabase db=getWritableDatabase();beginBusinessTransaction(db);try{
             String key="editor_commit:"+PixelMcpWriteTools.hash(request),fingerprint=PixelMcpWriteTools.hash(new JSONObject().put("kind",kind).put("payload",payload));
             if(!request.isEmpty()){String raw=ownerValue(key,"");if(!raw.isEmpty()){JSONObject receipt=new JSONObject(raw);if(!fingerprint.equals(receipt.getString("fingerprint")))throw new IllegalArgumentException("REQUEST_ID_REUSED: Ursprüngliche Speicherung unverändert prüfen.");db.setTransactionSuccessful();return receipt.getString("id");}}
             String id;switch(kind){case "customer":id=saveCustomer(payload);break;case "order":id=saveOrder(payload);break;case "worklog":{JSONObject work=new JSONObject(payload.toString());String session=work.optString("_session_id");work.remove("_session_id");if(!session.isEmpty()&&!request.isEmpty()&&WorkSessionStore.FINALIZED.equals(workSessions().current(session).optString("state")))throw new IllegalArgumentException("Diese Arbeitssitzung ist bereits abgeschlossen. Gespeicherte Arbeit öffnen; eine andere Bearbeitung wurde nicht angewendet.");id=session.isEmpty()?saveWorklog(work):completeWorkSession(session,work,"ui-finalize-"+session);break;}case "invoice":id=saveInvoiceDraft(payload);break;default:throw new IllegalArgumentException("Unbekannter Editor.");}
@@ -461,7 +496,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     }
     String saveCustomer(JSONObject payload) throws Exception {
         if (payload.optString("name").trim().isEmpty()) throw new IllegalArgumentException("Der Kundenname fehlt.");
-        SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
+        SQLiteDatabase database=getWritableDatabase();beginBusinessTransaction(database);
         try {
         JSONObject master=PixelMcpReadTools.effective(getState());
         JSONArray customers=master.getJSONArray("customers");
@@ -482,18 +517,18 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         } finally { database.endTransaction(); }
     }
     String saveReviewedOrder(JSONObject request)throws Exception {
-        SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
+        SQLiteDatabase database=getWritableDatabase();beginBusinessTransaction(database);
         try{JSONObject payload=OrderReviewRules.prepare(getState(),request);String id=saveAction("order","ord_mobile_",payload);database.setTransactionSuccessful();return id;}
         finally{database.endTransaction();}
     }
     String saveOrder(JSONObject payload) throws Exception {
-        SQLiteDatabase tx=getWritableDatabase();tx.beginTransaction();try{String result=saveOrderLocked(payload);tx.setTransactionSuccessful();return result;}finally{tx.endTransaction();}
+        SQLiteDatabase tx=getWritableDatabase();beginBusinessTransaction(tx);try{String result=saveOrderLocked(payload);tx.setTransactionSuccessful();return result;}finally{tx.endTransaction();}
     }
     private String saveOrderLocked(JSONObject payload) throws Exception {
         JSONObject current=PixelMcpReadTools.effective(getState());payload=ManualChangeRules.editor(payload,findById(current.getJSONArray("orders"),payload.optString("id")),"order");
         BillingRules.order(payload,current);
         if (payload.optString("customer_id").isEmpty() || payload.optString("title").trim().isEmpty()) throw new IllegalArgumentException("Kunde und Auftragsbezeichnung sind erforderlich.");
-        SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
+        SQLiteDatabase database=getWritableDatabase();beginBusinessTransaction(database);
         try {
         JSONObject master=PixelMcpReadTools.effective(getState());
         if (!containsId(master.getJSONArray("customers"), payload.optString("customer_id"))) throw new IllegalArgumentException("Der ausgewählte Kunde existiert nicht.");
@@ -509,7 +544,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         } finally { database.endTransaction(); }
     }
     String saveInvoiceDraft(JSONObject payload) throws Exception {
-        SQLiteDatabase db=getWritableDatabase();db.beginTransaction();
+        SQLiteDatabase db=getWritableDatabase();beginBusinessTransaction(db);
         try{JSONObject all=PixelMcpReadTools.effective(getState());String id=payload.optString("id");if(id.isEmpty())id="inv_mobile_"+UUID.randomUUID().toString().replace("-","");payload.put("id",id);
             JSONObject old=findById(all.getJSONArray("invoices"),id);payload=ManualChangeRules.editor(payload,old,"invoice");
             for(int i=0;i<getState().getJSONArray("pending").length();i++){JSONObject a=getState().getJSONArray("pending").getJSONObject(i);if(java.util.Arrays.asList("invoice_issue","owner_invoice_issue","pixel_invoice_issue_v1").contains(a.optString("kind"))&&id.equals(a.getJSONObject("payload").optString("id")))throw new IllegalArgumentException("Rechnungsabschluss ist bereits vorgemerkt.");}
@@ -537,7 +572,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         if(origin!=null){JSONObject identity=new BackupDeviceGuard(context).current();if(origin.optInt("formatVersion")!=1||origin.optBoolean("unknown_restore")||!identity.getString("installationId").equals(origin.optString("installation_id"))||!identity.getString("restoreEpoch").equals(origin.optString("restore_epoch")))throw new IOException("PHOTO_RESTORE_ACTION_REVIEW_REQUIRED");}
         String entityId=payload.optString("id");if(entityId.isEmpty())entityId="pho_mobile_"+UUID.randomUUID().toString().replace("-","");payload.put("id",entityId);
         PhotoAttachmentStore.Prepared prepared=null;boolean committed=false;
-        SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
+        SQLiteDatabase database=getWritableDatabase();beginBusinessTransaction(database);
         try {
             if(!request.isEmpty()){String saved=ownerValue("photo-ui:"+request,"");if(!saved.isEmpty()){JSONObject receipt=new JSONObject(saved);if(!fingerprint.equals(receipt.getString("hash")))throw new IllegalArgumentException("Die Foto-Anfragekennung enthält andere Angaben.");database.setTransactionSuccessful();committed=true;return receipt.getString("id");}}
             JSONObject master=PixelMcpReadTools.effective(getState());
@@ -636,7 +671,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     }
     void markPhotoAttachmentTransferred(String photoId){ContentValues values=new ContentValues();values.put("transfer_state","provider_readback");getWritableDatabase().update("photo_attachments",values,"photo_id=?",new String[]{photoId});}
     void recordSnapshotPhotoAttachments(JSONObject snapshot)throws Exception{
-        JSONArray photos=snapshot.optJSONArray("photos");if(photos==null)return;SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
+        JSONArray photos=snapshot.optJSONArray("photos");if(photos==null)return;SQLiteDatabase database=getWritableDatabase();beginBusinessTransaction(database);
         try{
             for(int i=0;i<photos.length();i++){
                 JSONObject photo=photos.optJSONObject(i);if(photo==null||photo.optString("id").isEmpty())continue;
@@ -681,7 +716,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         }
         candidates.removeAll(active);candidates.removeAll(protectedPending);
         if(candidates.isEmpty())return;
-        SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
+        SQLiteDatabase database=getWritableDatabase();beginBusinessTransaction(database);
         try{
             for(String photoId:candidates){
                 JSONObject metadata=photoAttachment(photoId);if(metadata==null)continue;String hash=metadata.getString("content_sha256");boolean shared;
@@ -696,7 +731,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     }
     boolean hasOtherPhotoAttachment(String id,String hash){try(Cursor rows=getReadableDatabase().rawQuery("SELECT 1 FROM photo_attachments WHERE content_sha256=? AND photo_id<>? LIMIT 1",new String[]{hash,id})){return rows.moveToFirst();}}
     void cleanupPurgedDocument(String key,JSONObject document,String marker)throws Exception{
-        synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK){SQLiteDatabase db=getWritableDatabase();if(db.inTransaction())throw new IOException("MEDIA_CLEANUP_REQUIRES_COMMITTED_STATE");putOwnerValue(marker,"pending");db.beginTransaction();try{
+        synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK){SQLiteDatabase db=getWritableDatabase();if(db.inTransaction())throw new IOException("MEDIA_CLEANUP_REQUIRES_COMMITTED_STATE");putOwnerValue(marker,"pending");beginBusinessTransaction(db);try{
             JSONObject current=PixelMcpReadTools.effective(getState()),saved=OwnerJournalRules.archives(current).optJSONObject(key);if(saved==null||!saved.optBoolean("purged")||!PixelMcpWriteTools.hash(saved.getJSONObject("document")).equals(PixelMcpWriteTools.hash(document)))throw new IllegalArgumentException("Dokument-Löschbeleg fehlt oder wurde geändert.");
             if(!TrashRules.referenced(current,pendingActions(),document.optString("pdf_storage_name")))new BusinessDocumentStore(context).deleteVerified(document);putOwnerValue(marker,"done");db.setTransactionSuccessful();
         }finally{db.endTransaction();}}
@@ -704,8 +739,8 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     void cleanupPurgedPhoto(String id,JSONObject media,String marker)throws Exception{
         synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK){SQLiteDatabase db=getWritableDatabase();if(db.inTransaction())throw new IOException("MEDIA_CLEANUP_REQUIRES_COMMITTED_STATE");
             // The row removal commits before file work. A later rollback can only leave a retry marker.
-            db.beginTransaction();try{JSONObject current=PixelMcpReadTools.effective(getState());if(!TrashRules.purged(current,"photo",id))throw new IllegalArgumentException("Löschbeleg fehlt.");db.delete("photo_attachments","photo_id=?",new String[]{id});putOwnerValue(marker,"pending");db.setTransactionSuccessful();}finally{db.endTransaction();}
-            db.beginTransaction();try{JSONObject current=PixelMcpReadTools.effective(getState());JSONArray queued=pendingActions();if(!TrashRules.purged(current,"photo",id))throw new IllegalArgumentException("Löschbeleg wurde geändert.");if(!hasOtherPhotoAttachment(id,media.optString("content_sha256"))&&!TrashRules.referenced(current,queued,media.optString("storage_name")))photoAttachments.discardCreated(media);String thumb=media.optString("thumbnail_storage_name");if(!thumb.isEmpty()&&!TrashRules.referenced(current,queued,thumb))photoAttachments.deleteThumbnailVerified(thumb);putOwnerValue(marker,"done");db.setTransactionSuccessful();}finally{db.endTransaction();}
+            beginBusinessTransaction(db);try{JSONObject current=PixelMcpReadTools.effective(getState());if(!TrashRules.purged(current,"photo",id))throw new IllegalArgumentException("Löschbeleg fehlt.");db.delete("photo_attachments","photo_id=?",new String[]{id});putOwnerValue(marker,"pending");db.setTransactionSuccessful();}finally{db.endTransaction();}
+            beginBusinessTransaction(db);try{JSONObject current=PixelMcpReadTools.effective(getState());JSONArray queued=pendingActions();if(!TrashRules.purged(current,"photo",id))throw new IllegalArgumentException("Löschbeleg wurde geändert.");if(!hasOtherPhotoAttachment(id,media.optString("content_sha256"))&&!TrashRules.referenced(current,queued,media.optString("storage_name")))photoAttachments.discardCreated(media);String thumb=media.optString("thumbnail_storage_name");if(!thumb.isEmpty()&&!TrashRules.referenced(current,queued,thumb))photoAttachments.deleteThumbnailVerified(thumb);putOwnerValue(marker,"done");db.setTransactionSuccessful();}finally{db.endTransaction();}
         }
     }
     String loadPhotoData(String photoId)throws Exception{
@@ -720,7 +755,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         if(!last.isEmpty())dependencies.put(last);if(dependencies.length()>0)payload.put("_sync_predecessors",dependencies);
     }
     String removeEntity(String entity, String entityId) throws Exception {
-        SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{
+        SQLiteDatabase db=getWritableDatabase();beginBusinessTransaction(db);try{
             ActiveWorkProtection.require(getState(),entity,entityId);
             JSONObject all=PixelMcpReadTools.effective(getState()),current=OwnerJournalRules.findOrNull(all.getJSONArray(OwnerJournalRules.group(entity)),entityId);
             if(current==null)throw new IllegalArgumentException("Der Eintrag fehlt.");
@@ -754,12 +789,14 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
         return false;
     }
     String saveAction(String kind, String prefix, JSONObject payload) throws Exception {
+        SQLiteDatabase db=getWritableDatabase();beginBusinessTransaction(db);try{
         if(testLocalOnly(kind,payload))payload.put("_local_only",true);
         String id = payload.optString("id"); if (id.isEmpty()) id = prefix + UUID.randomUUID().toString().replace("-", "");
         payload.put("id", id);
         // Entity IDs are stable. Each change must have a fresh receipt ID, including deletions.
         ContentValues values = new ContentValues(); values.put("id", kind + "_change_" + UUID.randomUUID()); values.put("kind", kind); values.put("payload", payload.toString()); values.put("created_at", isoNow());
-        getWritableDatabase().insertOrThrow("pending", null, values); return id;
+        db.insertOrThrow("pending", null, values);db.setTransactionSuccessful();return id;
+        }finally{db.endTransaction();}
     }
     JSONArray pendingActions() throws Exception {
         return pendingActions(false);
@@ -771,6 +808,6 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     private JSONArray pendingActions(boolean forDrive) throws Exception {
         return LocalPendingActions.read(getReadableDatabase(),forDrive,this::photoAttachment,System.currentTimeMillis());
     }
-    void acknowledge(Set<String> ids) { SQLiteDatabase database = getWritableDatabase(); for (String id : ids) database.delete("pending", "id=?", new String[]{id}); }
+    void acknowledge(Set<String> ids) { SQLiteDatabase database=getWritableDatabase();beginBusinessTransaction(database);try{for(String id:ids)database.delete("pending","id=?",new String[]{id});database.setTransactionSuccessful();}finally{database.endTransaction();} }
 }
 

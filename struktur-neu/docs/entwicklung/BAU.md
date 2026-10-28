@@ -27,7 +27,13 @@ eigenes Testverzeichnis. Er prüft die Tabellen-Speichergrenze mit 300 Kunden,
 eines großen Unicode-Datensatzes. Geprüft werden sollen Kopierabbruch und atomarer
 Fortschritt, Schreibsperre, Abbruch/Fortsetzung, Neustart, Hashgleichheit, Konflikte,
 Request-Wiederholung, Reihenfolgeänderung, SQLite-Sicherung/Rücklesen und Rückweg
-nach nachträglichen Änderungen.
+nach nachträglichen Änderungen. Hinzu kommen Filter-/Seitengleichheit zwischen
+Tabellen und bestehendem Selektor sowie eine getrennte synthetische Journaldatei:
+endgültige statt temporärer Aktionskennungen, gemeinsamer Commit von Journal,
+Tabellenzeile und Requestbeleg, erhaltene lokale Autorität, unveränderter
+Ursprungssnapshot und Neustart mit derselben Projektionsrevision. Ein absichtlich
+fehlschlagender Zeilenschreiber muss Journal, Zeile und Requestbeleg vollständig
+zurückrollen.
 
 Nach Abschluss der Implementierung und gesonderter Bereitstellung der zum
 Quellstand passenden, mit der Originalsignatur signierten App/Test-APK:
@@ -43,6 +49,17 @@ Die Test-Evidenz darin ist ausdrücklich synthetisch; die echte verschlüsselte
 Archivprüfung des Wartungspfads, vollständiger App-Restore, Fachschreiber und
 Bildschirmabnahme müssen zusätzlich geprüft werden. Quellcode vorhanden bedeutet
 nicht gebaut, installiert oder ausgeführt.
+
+Beim gemeinsamen Prüflauf insbesondere UI-, MCP- und Timerabschluss mit mehrfachen
+Änderungen derselben ID, Archivieren/Wiederherstellen, synthetische Löschkompaktierung
+mit echtem Testarchiv, Rechnungserstellung und Dokumentjobs ausführen. Jede der
+acht Listen-/Suchabfragen mit leerer Seite, Versatz, inaktiven Kunden, natürlichen
+Namen, Telefonvarianten, Kunden-/Auftragsbezügen, Rechnungsempfänger und Datumsgrenzen
+gegen denselben vollständigen Fachstand vergleichen. Innerhalb einer noch offenen
+Schreibtransaktion muss der Leser den uncommitteten Journalstand berücksichtigen;
+nach Commit müssen Zeilen und Projektionsrevision übereinstimmen. Fehlende
+Journalverfolgung in älteren Zwischenformaten darf nicht als aktuelle Projektion
+gelten. Diese Prüfmatrix ersetzt keinen Restore-Nachweis auf dem Pixel.
 
 ## Gemeinsame Quellprüfung nach dem Umbau
 

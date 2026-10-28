@@ -38,8 +38,12 @@ final class BusinessTableStore {
      * Implementations must also enforce the caller's encryption/originals policy.
      */
     interface Evidence { String verify(JSONObject source) throws Exception; }
+    interface PrepareJournal {void prepare(JSONObject master)throws Exception;}
+    private static final String JOURNAL_REVISION="business_tables:journal_revision";
+    private static final String PROJECTED_REVISION="business_tables:projected_revision";
 
     private final Sql sql;
+    private final Map<String,Boolean> selectionSchemas=new java.util.HashMap<>();
     BusinessTableStore(Sql sql) { this.sql = sql; }
 
     private static String table(String collection) throws IOException {
@@ -61,9 +65,11 @@ final class BusinessTableStore {
 
     /** Called only during a conscious preparation, not from onCreate/onUpgrade. */
     private void schema() throws Exception {
+        for(String action:new String[]{"INSERT","UPDATE","DELETE"})sql.execute("CREATE TRIGGER IF NOT EXISTS business_tables_journal_"+action+" AFTER "+action+" ON pending BEGIN INSERT OR REPLACE INTO owner_state(key,value) VALUES('"+JOURNAL_REVISION+"',CAST(COALESCE((SELECT value FROM owner_state WHERE key='"+JOURNAL_REVISION+"'),'0') AS INTEGER)+1); END");
+        if(owner(JOURNAL_REVISION)==null)owner(JOURNAL_REVISION,"0");
         for (String collection : COLLECTIONS) {
             String name = table(collection);
-            sql.execute("CREATE TABLE IF NOT EXISTS " + name + " (generation TEXT NOT NULL,id TEXT NOT NULL,position INTEGER NOT NULL,record_json TEXT NOT NULL,record_hash TEXT NOT NULL,customer_id TEXT NOT NULL,billing_customer_id TEXT NOT NULL,order_id TEXT NOT NULL,worklog_id TEXT NOT NULL,work_date TEXT NOT NULL,status TEXT NOT NULL,name TEXT NOT NULL,PRIMARY KEY(generation,id),UNIQUE(generation,position))");
+            sql.execute("CREATE TABLE IF NOT EXISTS " + name + " (generation TEXT NOT NULL,id TEXT NOT NULL,position INTEGER NOT NULL,record_json TEXT NOT NULL,record_hash TEXT NOT NULL,selection_json TEXT NOT NULL,selection_hash TEXT NOT NULL,customer_id TEXT NOT NULL,billing_customer_id TEXT NOT NULL,order_id TEXT NOT NULL,worklog_id TEXT NOT NULL,work_date TEXT NOT NULL,status TEXT NOT NULL,name TEXT NOT NULL,PRIMARY KEY(generation,id),UNIQUE(generation,position))");
             for (String field : new String[]{"customer_id", "billing_customer_id", "order_id", "worklog_id", "work_date", "status", "name"})
                 sql.execute("CREATE INDEX IF NOT EXISTS ix_" + name + "_" + field + " ON " + name + "(generation," + field + ")");
         }
@@ -142,12 +148,44 @@ final class BusinessTableStore {
         return sql.transaction(() -> collection(activeMetadata(), collection));
     }
 
+    boolean projectionCurrent()throws Exception {
+        JSONObject meta=metadata();String projected=owner(PROJECTED_REVISION);return meta!=null&&"ACTIVE".equals(meta.getString("phase"))&&meta.optInt("journal_tracking_version")==1&&projected!=null&&projected.equals(owner(JOURNAL_REVISION));
+    }
+    void invalidateJournal()throws Exception {
+        if(active())sql.execute("INSERT OR REPLACE INTO owner_state(key,value) VALUES(?,CAST(COALESCE((SELECT value FROM owner_state WHERE key=?),'0') AS INTEGER)+1)",JOURNAL_REVISION,JOURNAL_REVISION);
+    }
+    /** Runs inside the same transaction as journal writes/receipts. Historical actions remain.
+     * Full reconstruction here supplies the unchanged cross-record validation rules;
+     * replaceSnapshot writes only actual changed records and positions.
+     */
+    void commitJournal(JSONArray actions,PrepareJournal prepare)throws Exception {
+        sql.transaction(()->{
+            // Earlier unactivated source checkpoints did not install journal triggers.
+            // They retain full-context reads until an explicit preparation enables tracking.
+            if(!active()||activeMetadata().optInt("journal_tracking_version")!=1||projectionCurrent())return null;
+            JSONObject master=materialize(activeMetadata());prepare.prepare(master);
+            String engine=master.optString("processing_engine");
+            JSONArray journal=DriveJournalRules.union(actions,master.optJSONArray("drive_review_actions"));
+            DriveJournalRules.apply(master,journal);
+            // Replay uses historical validation; it must not switch the local authority mode.
+            if(LocalAuthorityRules.ENGINE.equals(engine))master.put("processing_engine",engine);
+            replaceSnapshot(master);owner(PROJECTED_REVISION,owner(JOURNAL_REVISION));return null;
+        });
+    }
+    /** Select indexed candidates; shared Java rules retain exact natural sorting and text matching. */
+    JSONArray candidates(String collection,JSONObject filters)throws Exception {
+        return sql.transaction(()->{
+            JSONObject meta=activeMetadata();StringBuilder where=new StringBuilder("generation=?");java.util.List<String> args=new java.util.ArrayList<>();args.add(meta.getString("generation"));
+            for(String field:new String[]{"customer_id","order_id","status","worklog_id"})if(!filters.optString(field).isEmpty()){where.append(" AND ").append(field).append("=?");args.add(filters.getString(field));}
+            return collection(meta,collection,where.toString(),args.toArray(new String[0]));
+        });
+    }
     /** Compatibility for rules which validate a complete state. Only changed rows are written.
      * The snapshot key remains the preserved old generation, never a second active writer.
      */
     void replaceSnapshot(JSONObject next) throws Exception {
         sql.transaction(() -> {
-            JSONObject meta = activeMetadata(); validateRows(next);
+            JSONObject meta = activeMetadata(); validateRows(next);invalidateJournal();
             String generation = meta.getString("generation");
             for (String collection : COLLECTIONS) {
                 String name = table(collection); JSONArray rows = next.getJSONArray(collection);
@@ -180,6 +218,45 @@ final class BusinessTableStore {
         });
     }
 
+    private static JSONObject selection(JSONObject row)throws Exception {
+        JSONObject result=new JSONObject();
+        for(String key:new String[]{"id","name","title","company","first_name","last_name","street","postal_code","city","email","phone","active","customer_id","billing_customer_id","order_id","worklog_id","role","session_id","status","billed","work_date","capture_time","created_at","description","activity","notes","material","location","customer_name","order_title","invoice_number","offer_number","caption","original_name","filename"})if(row.has(key))result.put(key,row.get(key));
+        return result;
+    }
+    private boolean selectionColumns(String collection)throws Exception {
+        if(selectionSchemas.containsKey(collection))return selectionSchemas.get(collection);boolean found=false;
+        try(Rows rows=sql.query("PRAGMA table_info("+table(collection)+")")){while(rows.next())if("selection_json".equals(rows.text(1)))found=true;}selectionSchemas.put(collection,found);return found;
+    }
+    /** Only compact search fields are scanned/sorted; complete bodies are fetched for the selected page. */
+    JSONArray selected(String collection,String kind,JSONObject filters,JSONObject context)throws Exception {
+        return sql.transaction(()->{
+            JSONObject meta=activeMetadata();JSONArray candidates=new JSONArray();
+            if(!selectionColumns(collection))return SnapshotReadSupport.select(candidates(collection,filters),filters,kind,context);
+            StringBuilder where=new StringBuilder("generation=?");java.util.List<String> args=new java.util.ArrayList<>();args.add(meta.getString("generation"));
+            for(String field:new String[]{"customer_id","order_id","status","worklog_id"})if(!filters.optString(field).isEmpty()){where.append(" AND ").append(field).append("=?");args.add(filters.getString(field));}
+            try(Rows rows=sql.query("SELECT id,selection_hash,length(selection_json),substr(selection_json,1,32768) FROM "+table(collection)+" WHERE "+where+" ORDER BY position",args.toArray(new String[0]))){while(rows.next()){
+                String raw=rows.number(2)<=32768?rows.text(3):textChunks(table(collection),"selection_json","generation=? AND id=?",new String[]{meta.getString("generation"),rows.text(0)});
+                JSONObject selected=new JSONObject(raw);require(rows.text(0).equals(id(selected))&&rows.text(1).equals(hash(selected)),"TABLE_SELECTION_HASH_MISMATCH");candidates.put(selected);
+            }}
+            JSONArray page=SnapshotReadSupport.select(candidates,filters,kind,context),result=new JSONArray();
+            for(int i=0;i<page.length();i++){JSONObject selected=page.getJSONObject(i),full=row(meta,collection,id(selected));require(hash(selected).equals(hash(SnapshotReadSupport.withoutBinary(selection(full)))),"TABLE_SELECTION_STALE");result.put(full);}
+            return result;
+        });
+    }
+    JSONObject referenceContext()throws Exception {
+        JSONObject context=new JSONObject();
+        for(String collection:new String[]{"customers","orders"}){
+            JSONArray result=new JSONArray();JSONObject meta=activeMetadata();
+            if(!selectionColumns(collection)){context.put(collection,all(collection));continue;}
+            try(Rows rows=sql.query("SELECT id,selection_hash,length(selection_json),substr(selection_json,1,32768) FROM "+table(collection)+" WHERE generation=? ORDER BY position",meta.getString("generation"))){while(rows.next()){
+                String raw=rows.number(2)<=32768?rows.text(3):textChunks(table(collection),"selection_json","generation=? AND id=?",new String[]{meta.getString("generation"),rows.text(0)});JSONObject value=new JSONObject(raw);
+                require(rows.text(0).equals(id(value))&&rows.text(1).equals(hash(value)),"TABLE_SELECTION_HASH_MISMATCH");JSONObject reference=new JSONObject().put("id",value.getString("id"));for(String key:new String[]{"name","company","title"})if(value.has(key))reference.put(key,value.get(key));result.put(reference);
+            }}context.put(collection,result);
+        }return context;
+    }
+    JSONObject originalSnapshot()throws Exception {
+        return sql.transaction(()->{JSONObject meta=activeMetadata();String raw=owner("business_tables:original:"+meta.getString("generation"));require(raw!=null,"TABLE_ORIGINAL_MISSING");JSONObject original=new JSONObject(raw);require(hash(original).equals(meta.getString("source_hash")),"TABLE_ORIGINAL_HASH_MISMATCH");return original;});
+    }
     private static JSONObject remainder(JSONObject source) throws Exception {
         JSONObject result = new JSONObject(source.toString());
         for (String collection : COLLECTIONS) result.remove(collection);
@@ -220,11 +297,12 @@ final class BusinessTableStore {
             if (existing != null) {
                 require(requestId.equals(existing.getString("request")) && expectedSourceHash.equals(existing.getString("source_hash")) && backup.equals(existing.getString("backup_hash")), "TABLE_TRANSFER_EXISTS");
                 require(!"ROLLED_BACK".equals(existing.getString("phase")), "TABLE_TRANSFER_ALREADY_ROLLED_BACK");
+                if(existing.optInt("journal_tracking_version")!=1){schema();existing.put("journal_tracking_version",1);owner(META,existing.toString());invalidateJournal();}
                 if("ABORTED".equals(existing.getString("phase"))){source(existing,check);existing.put("phase",existing.getInt("collection")==COLLECTIONS.length?"READY":"COPYING");owner(META,existing.toString());fence(true);}
                 return existing;
             }
             schema();
-            JSONObject meta = new JSONObject().put("format", 1).put("request", requestId)
+            JSONObject meta = new JSONObject().put("format", 1).put("journal_tracking_version",1).put("request", requestId)
                 .put("generation", hash(requestId)).put("phase", "COPYING")
                 .put("source_hash", expectedSourceHash).put("source_text_hash", hash(raw))
                 .put("backup_hash", backup).put("remainder", remainder(source)).put("remainder_hash", hash(remainder(source)))
@@ -281,9 +359,12 @@ final class BusinessTableStore {
         require(meta != null && "ACTIVE".equals(meta.getString("phase")), "TABLE_STORAGE_NOT_ACTIVE");
         return meta;
     }
-    private void insert(String generation, String collection, long position, JSONObject row) throws Exception {
-        sql.execute("INSERT INTO " + table(collection) + "(generation,id,position,record_json,record_hash,customer_id,billing_customer_id,order_id,worklog_id,work_date,status,name) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
-            generation, id(row), position, row.toString(), hash(row), row.optString("customer_id"), row.optString("billing_customer_id"), row.optString("order_id"), row.optString("worklog_id"), row.optString("work_date"), row.optString("status"), row.optString("name", row.optString("title")));
+    private void insert(String generation,String collection,long position,JSONObject row)throws Exception {
+        JSONObject selected=selection(row);boolean indexed=selectionColumns(collection);
+        java.util.List<Object> args=new java.util.ArrayList<>(java.util.Arrays.asList(generation,id(row),position,row.toString(),hash(row)));
+        if(indexed){args.add(selected.toString());args.add(hash(selected));}
+        args.addAll(java.util.Arrays.asList(row.optString("customer_id"),row.optString("billing_customer_id"),row.optString("order_id"),row.optString("worklog_id"),row.optString("work_date"),row.optString("status"),row.optString("name",row.optString("title"))));
+        sql.execute("INSERT INTO "+table(collection)+"(generation,id,position,record_json,record_hash,"+(indexed?"selection_json,selection_hash,":"")+"customer_id,billing_customer_id,order_id,worklog_id,work_date,status,name) VALUES("+String.join(",",java.util.Collections.nCopies(args.size(),"?"))+")",args.toArray());
     }
     private JSONObject row(JSONObject meta, String collection, String id) throws Exception {
         String name = table(collection), generation = meta.getString("generation"), expected;
@@ -329,6 +410,7 @@ final class BusinessTableStore {
             String fingerprint = hash(new JSONObject().put("generation", meta.getString("generation")).put("collection", collection).put("id", id).put("value", value == null ? JSONObject.NULL : value).put("expected", expectedHash));
             String key = "business_tables:receipt:" + requestId, saved = owner(key);
             if (saved != null) { JSONObject receipt = new JSONObject(saved); require(fingerprint.equals(receipt.getString("fingerprint")), "TABLE_REQUEST_REUSED"); return receipt; }
+            invalidateJournal();
             JSONObject current = row(meta, collection, id);
             require(expectedHash.equals(current == null ? "" : hash(current)), "TABLE_WRITE_CONFLICT");
             long position;
@@ -352,9 +434,12 @@ final class BusinessTableStore {
         return result;
     }
     /** One bounded cursor per collection; large individual rows use additional chunks. */
-    private JSONArray collection(JSONObject meta, String collection) throws Exception {
+    private JSONArray collection(JSONObject meta,String collection)throws Exception {
+        return collection(meta,collection,"generation=?",new String[]{meta.getString("generation")});
+    }
+    private JSONArray collection(JSONObject meta,String collection,String where,String[] arguments)throws Exception {
         JSONArray result = new JSONArray(); String name = table(collection), generation = meta.getString("generation");
-        try (Rows rows = sql.query("SELECT id,record_hash,length(record_json),substr(record_json,1,32768) FROM " + name + " WHERE generation=? ORDER BY position", generation)) {
+        try (Rows rows = sql.query("SELECT id,record_hash,length(record_json),substr(record_json,1,32768) FROM " + name + " WHERE "+where+" ORDER BY position", arguments)) {
             while (rows.next()) {
                 String id = rows.text(0), raw = rows.number(2) <= 32768 ? rows.text(3) : textChunks(name, "record_json", "generation=? AND id=?", new String[]{generation,id});
                 JSONObject record = new JSONObject(raw);

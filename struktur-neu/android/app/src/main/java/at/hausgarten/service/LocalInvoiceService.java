@@ -32,7 +32,7 @@ final class LocalInvoiceService {
         throw new IllegalArgumentException("LOCAL_FINANCIAL_QUERY_UNKNOWN");
     }
     private JSONObject issue(JSONObject args,String request)throws Exception {
-        LocalAuthorityGuard guard=new LocalAuthorityGuard(context);guard.requireInvoiceAuthority();SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();try{
+        LocalAuthorityGuard guard=new LocalAuthorityGuard(context);guard.requireInvoiceAuthority();SQLiteDatabase db=store.getWritableDatabase();store.beginBusinessTransaction(db);try{
             JSONObject all=materialize(),current=PixelMcpWriteTools.find(all.getJSONArray("invoices"),args.getString("invoice_id"));TestDataRules.noDelivery(current,all);
             if(IssuedInvoiceRules.isIssued(current)){
                 if(request.equals(current.optString("local_issue_request"))){db.setTransactionSuccessful();return issuedResult(current).put("replayed",true);}throw new IOException("INVOICE_ALREADY_ISSUED");
@@ -81,7 +81,7 @@ final class LocalInvoiceService {
         }return allocated;
     }
     private static void clearActiveSources(JSONObject invoice)throws Exception {JSONArray positions=invoice.getJSONArray("positions");for(int i=0;i<positions.length();i++)for(String field:new String[]{"source_type","source_id","source_quantity_decimal"})positions.getJSONObject(i).remove(field);}
-    private JSONObject correction(JSONObject args,String request)throws Exception {SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();try{
+    private JSONObject correction(JSONObject args,String request)throws Exception {SQLiteDatabase db=store.getWritableDatabase();store.beginBusinessTransaction(db);try{
         JSONObject all=materialize(),original=PixelMcpWriteTools.find(all.getJSONArray("invoices"),args.getString("invoice_id"));if(!PixelMcpWriteTools.hash(PixelMcpEntityWriteTools.recordForHash("invoice",original)).equals(args.getString("expected_record_hash")))throw new IOException("WRITE_CONFLICT");
         // The original validator predates source_* position metadata. Corrections
         // refer to the immutable original; copied positions are no new allocation.
@@ -98,7 +98,7 @@ final class LocalInvoiceService {
     }
     private JSONObject retryDocument(JSONObject args,String request)throws Exception {JSONObject current=invoice(args.getString("invoice_id"));if(!OwnerJournalRules.version(current).equals(args.getString("expected_record_hash")))throw new IOException("WRITE_CONFLICT");String key="local_invoice_job:"+current.getString("id"),raw=store.ownerValue(key,"");if(raw.isEmpty())throw new IOException("INVOICE_DOCUMENT_JOB_MISSING");JSONObject job=new JSONObject(raw);if(job.optString("phase").equals("ORIGINAL_REVIEW_REQUIRED"))throw new IOException("INVOICE_DOCUMENT_ORIGINAL_MISSING_OR_CHANGED");if(job.optString("phase").equals("READY")){verifiedInvoice(current);return safeJob(job);}job.put("phase","PDF_PENDING").put("attempts",0);store.putOwnerValue(key,job.toString());return safeJob(job);}
     private JSONObject payment(String name,JSONObject args,String request)throws Exception {
-        SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();try{
+        SQLiteDatabase db=store.getWritableDatabase();store.beginBusinessTransaction(db);try{
             JSONObject current=ledger(new JSONObject());if(!current.getString("ledger_hash").equals(args.getString("expected_ledger_hash")))throw new IOException("PAYMENT_LEDGER_WRITE_CONFLICT");JSONObject all=materialize();JSONArray entries=paymentEntries();String stamp=Instant.now(clock).toString(),id="pay_"+PixelMcpWriteTools.hash(request).substring(0,32);
             if(name.equals("correct_payment")){
                 if(args.optString("reason").trim().isEmpty())throw new IOException("PAYMENT_CORRECTION_REASON_REQUIRED");JSONObject old=null;for(int i=0;i<entries.length();i++)if(entries.getJSONObject(i).getString("payment_id").equals(args.getString("payment_id")))old=entries.getJSONObject(i);if(old==null||old.optBoolean("reversal")||exactMinor(old.get("amount_minor"))<=0)throw new IOException("PAYMENT_NOT_CORRECTABLE");for(int i=0;i<entries.length();i++)if(old.getString("payment_id").equals(entries.getJSONObject(i).optString("reverses")))throw new IOException("PAYMENT_ALREADY_CORRECTED");JSONArray reversed=new JSONArray();JSONArray oldAlloc=old.getJSONArray("allocations");for(int i=0;i<oldAlloc.length();i++)reversed.put(new JSONObject(oldAlloc.getJSONObject(i).toString()).put("amount_minor",Math.negateExact(oldAlloc.getJSONObject(i).getLong("amount_minor"))));JSONObject reversal=new JSONObject().put("formatVersion",1).put("payment_id",id+"_reversal").put("amount_minor",Math.negateExact(old.getLong("amount_minor"))).put("allocations",reversed).put("reversal",true).put("reverses",old.getString("payment_id")).put("reason",args.getString("reason")).put("recorded_at",stamp);store.putOwnerValue("local_payment:"+reversal.getString("payment_id"),reversal.toString());entries.put(reversal);

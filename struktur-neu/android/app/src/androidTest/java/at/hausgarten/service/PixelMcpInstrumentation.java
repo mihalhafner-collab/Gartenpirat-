@@ -41,7 +41,7 @@ public final class PixelMcpInstrumentation extends Instrumentation {
         try{
             if(arguments==null||!"business_tables".equals(arguments.getString("suite")))throw new Exception("EXPLICIT_BUSINESS_TABLE_SUITE_REQUIRED");
             directory=Files.createTempDirectory(getTargetContext().getCacheDir().toPath(),"gp-table-test-").toFile();
-            runStorage(directory);
+            runStorage(directory);runJournal(directory);
             report.putString("result",new JSONObject().put("suite","business_tables").put("checks",checks).put("elapsed_ms",(System.nanoTime()-started)/1000000).put("synthetic_only",true).put("productive_data_read",false).put("archive_restore_tested",false).toString());
             removeOwned(directory);directory=null;finish(Activity.RESULT_OK,report);
         }catch(Throwable error){report.putString("failure",error.getClass().getSimpleName()+": "+error.getMessage());report.putInt("checks",checks);try{if(directory!=null)removeOwned(directory);}catch(Exception cleanup){report.putString("cleanup","SYNTHETIC_CLEANUP_FAILED");}finish(Activity.RESULT_CANCELED,report);}
@@ -76,6 +76,11 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             denied("TABLE_REQUEST_REUSED",()->tables.put("customers",row,hash(edited),"qa_table_write"));
             denied("TABLE_WRITE_CONFLICT",()->tables.put("customers",row,hash(row),"qa_table_conflict"));
             yes(tables.select("worklogs","order_id","orders_qa_0",0,100).length()==100);
+            JSONObject filters=new JSONObject().put("order_id","orders_qa_0").put("offset",17).put("limit",23);
+            yes(hash(SnapshotReadSupport.withoutBinary(tables.selected("worklogs","worklog",filters,source))).equals(hash(SnapshotReadSupport.select(source.getJSONArray("worklogs"),filters,"worklog",source))));
+            filters=new JSONObject().put("query","Synthetisch 2").put("offset",3).put("limit",7);
+            JSONObject expectedSource=new JSONObject(source.toString());expectedSource.getJSONArray("customers").put(0,edited);
+            yes(hash(SnapshotReadSupport.withoutBinary(tables.selected("customers","customer",filters,source))).equals(hash(SnapshotReadSupport.select(expectedSource.getJSONArray("customers"),filters,"customer",source))));
             JSONObject current=tables.exportSnapshot();JSONArray reversed=new JSONArray();JSONArray customers=current.getJSONArray("customers");for(int i=customers.length()-1;i>=0;i--)reversed.put(customers.get(i));current.put("customers",reversed);
             tables.replaceSnapshot(current);yes(hash(current).equals(hash(tables.exportSnapshot())));yes(original.equals(DatabaseBackupSnapshot.ownerValue(db,"snapshot","")));
             File captured=new File(directory,"captured.sqlite");DatabaseBackupSnapshot.capture(db,captured);
@@ -86,6 +91,38 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             yes(DatabaseBackupSnapshot.ownerValue(db,"business_tables:original:"+hash(request),"").equals(original));
         }
     }
+    private void runJournal(File directory)throws Exception {
+        try(SQLiteDatabase db=SQLiteDatabase.openOrCreateDatabase(new File(directory,"journal.sqlite"),null)){
+            db.execSQL("CREATE TABLE owner_state(key TEXT PRIMARY KEY,value TEXT NOT NULL)");db.execSQL("CREATE TABLE pending(id TEXT PRIMARY KEY,kind TEXT NOT NULL,payload TEXT NOT NULL,created_at TEXT NOT NULL)");
+            JSONObject source=new JSONObject();for(String collection:BusinessTableStore.COLLECTIONS)source.put(collection,new JSONArray());
+            JSONObject customer=new JSONObject().put("id","qa_customer").put("name","QA Alt").put("active",1);source.getJSONArray("customers").put(customer);
+            db.execSQL("INSERT INTO owner_state VALUES('snapshot',?)",new Object[]{source.toString()});String sourceHash=hash(source);BusinessTableStore tables=PixelLocalStore.businessTables(db);
+            BusinessTableStore.Evidence proof=value->hash("synthetic journal archive");tables.prepare("qa_journal_transfer",sourceHash,proof);tables.copyBatch("qa_journal_transfer",100,proof);tables.activate("qa_journal_transfer",sourceHash,proof);
+            BusinessTableStore.Action<Void> commit=()->{PixelLocalStore.businessTables(db,true).commitJournal(LocalPendingActions.read(db,false,id->null,0),master->{PixelDriveState.prepare(master);master.put("processing_engine",LocalAuthorityRules.ENGINE);});return null;};
+            JSONObject payload=new JSONObject().put("id","qa_customer").put("name","QA Neu").put("_sync_base",DriveJournalRules.guard(customer,"customer"));
+            PixelLocalStore.beginJournalTransaction(db,commit);try{
+                append(db,"qa_temporary",payload);db.execSQL("DELETE FROM pending WHERE id='qa_temporary'");append(db,"qa_final",payload);
+                db.execSQL("INSERT INTO owner_state VALUES('receipt:qa_final','{}')");yes(!tables.projectionCurrent());db.setTransactionSuccessful();
+            }finally{db.endTransaction();}
+            yes(tables.projectionCurrent());yes(tables.get("customers","qa_customer").getString("name").equals("QA Neu"));
+            JSONObject current=tables.exportSnapshot();yes(DriveJournalRules.ids(current.getJSONArray("drive_applied_ids")).contains("qa_final"));yes(!DriveJournalRules.ids(current.getJSONArray("drive_applied_ids")).contains("qa_temporary"));
+            yes(LocalAuthorityRules.ENGINE.equals(current.getString("processing_engine")));
+            yes(hash(source).equals(hash(tables.originalSnapshot())));
+            db.execSQL("CREATE TRIGGER qa_fail BEFORE INSERT ON business_customers WHEN NEW.id='qa_customer' BEGIN SELECT RAISE(ABORT,'QA_STORAGE_FAILURE'); END");
+            denied("LOCAL_JOURNAL_TABLE_COMMIT_FAILED",()->{
+                PixelLocalStore.beginJournalTransaction(db,commit);try{
+                    append(db,"qa_failure",new JSONObject().put("id","qa_customer").put("name","QA Verlust verboten").put("_sync_base",DriveJournalRules.guard(tables.get("customers","qa_customer"),"customer")));
+                    db.execSQL("INSERT INTO owner_state VALUES('receipt:qa_failure','{}')");db.setTransactionSuccessful();
+                }finally{db.endTransaction();}
+            });
+            yes(DatabaseBackupSnapshot.ownerValue(db,"receipt:qa_failure",null)==null);yes(hash(current).equals(hash(tables.exportSnapshot())));
+            try(android.database.Cursor rows=db.rawQuery("SELECT count(*) FROM pending WHERE id='qa_failure'",null)){yes(rows.moveToFirst()&&rows.getInt(0)==0);}
+            db.execSQL("DROP TRIGGER qa_fail");yes(tables.projectionCurrent());
+            // Fresh adapter after commit: a restart must use the same sealed row projection.
+            yes(PixelLocalStore.businessTables(db).projectionCurrent());
+        }
+    }
+    private static void append(SQLiteDatabase db,String id,JSONObject payload){db.execSQL("INSERT INTO pending(id,kind,payload,created_at) VALUES(?,'customer',?,'2026-10-28T12:00:00Z')",new Object[]{id,payload.toString()});}
     private static void removeOwned(File directory)throws Exception {
         // Only the fresh random directory created above is ever passed here.
         File[] entries=directory.listFiles();if(entries!=null)for(File entry:entries){if(entry.isDirectory())removeOwned(entry);else if(!entry.delete())throw new Exception("SYNTHETIC_CLEANUP_FAILED");}if(!directory.delete())throw new Exception("SYNTHETIC_CLEANUP_FAILED");

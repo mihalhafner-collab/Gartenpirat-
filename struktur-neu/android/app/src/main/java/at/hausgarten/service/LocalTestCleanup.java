@@ -34,9 +34,9 @@ final class LocalTestCleanup {
     static int compact(PixelLocalStore store)throws Exception {
         JSONArray initial=store.pendingActions();boolean purge=false;for(int i=0;i<initial.length();i++){JSONObject a=initial.getJSONObject(i);if(a.getJSONObject("payload").optBoolean("_local_only")&&Arrays.asList("purge_v1",TrashPurgeBatch.KIND).contains(a.optString("kind")))purge=true;}
         if(!purge){cleanupMedia(store);return 0;}
-        SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();int removed=0;
+        SQLiteDatabase db=store.getWritableDatabase();store.beginBusinessTransaction(db);int removed=0;
         try{
-            JSONObject state=store.getState(),raw=new JSONObject(store.snapshotText("{}"));JSONArray pending=store.pendingActions();
+            BusinessTableStore tables=store.businessTables();boolean rowStorage=tables.projectionCurrent();JSONObject state=store.getState(),raw=rowStorage?tables.originalSnapshot():store.rawSnapshot("{}");JSONArray pending=store.pendingActions();
             JSONObject effective=PixelMcpReadTools.effective(state),archive=OwnerJournalRules.archives(effective),receipts=new JSONObject(store.ownerValue(KEY,"{}"));
             JSONObject session=state.getJSONObject("work_session");
             JSONArray candidates=new JSONArray();
@@ -55,7 +55,7 @@ final class LocalTestCleanup {
                 String backup=result==null?"":result.optString("deletion_backup_id");if(backup.isEmpty())continue;
                 LocalOwnerRepository repo=new LocalOwnerRepository(store.appContext(),store);JSONObject meta=repo.fileMeta(backup);repo.inspectDeletionBackup(backup,meta);
                 boolean local=OwnerJournalRules.findOrNull(raw.optJSONArray(OwnerJournalRules.group(entity)),id)==null&&!OwnerJournalRules.archives(raw).has(key);
-                promoteSharedRemoval(store,raw,pending,entity,id,action);
+                if(!rowStorage)promoteSharedRemoval(store,raw,pending,entity,id,action); // Active rows already contain the guarded removal.
                 JSONObject compacted=new JSONObject(tombstone.toString()).put("local_test_only",local);
                 JSONObject original=OwnerJournalRules.findOrNull(raw.optJSONArray(OwnerJournalRules.group(entity)),id),oldArchive=OwnerJournalRules.archives(raw).optJSONObject(key);
                 if(original!=null)compacted.put("source_record_hash",OwnerJournalRules.version(original));if(oldArchive!=null)compacted.put("source_archive_hash",OwnerJournalRules.version(oldArchive));receipts.put(key,compacted);

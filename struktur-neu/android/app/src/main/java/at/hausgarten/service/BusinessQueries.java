@@ -29,6 +29,13 @@ final class BusinessQueries {
     static Object query(String name, JSONObject a, JSONObject state, JSONObject master, PixelMcpWriteTools.Sink writer) throws Exception {
         Query query = QUERIES.get(name);
         if (query == null) throw new IllegalArgumentException("Dieses Werkzeug ist in der Pixel-Testversion nicht freigegeben.");
+        if(state.optBoolean("storage_list_selected")){
+            if(name.equals("search_business_data"))return new JSONObject().put("customers",master.getJSONArray("customers")).put("orders",master.getJSONArray("orders")).put("work_records",master.getJSONArray("worklogs"));
+            String collection=name.equals("search_customers")?"customers":name.equals("search_orders")||name.equals("get_open_orders")?"orders":name.equals("list_work_records")||name.equals("get_customer_work_records")?"worklogs":name.equals("list_invoices")?"invoices":name.equals("list_photos")?"photos":"";
+            if(collection.isEmpty())throw new IllegalArgumentException("TABLE_LIST_QUERY_UNSUPPORTED");
+            JSONArray rows=master.getJSONArray(collection);JSONObject result=new JSONObject().put(collection.equals("worklogs")?"work_records":collection,rows);
+            if(name.equals("search_customers"))result.put("count",rows.length()).put("requires_clarification",rows.length()>1);return result;
+        }
         // Name is passed as immutable dispatch data, never inferred from record contents.
         return query.run(name, a, state, master, writer);
     }

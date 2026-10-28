@@ -53,6 +53,12 @@ gebunden. Relative Fach-, Quell- und Prüfpfade im folgenden Plan beginnen in
   keinen Löschschutz auf: für noch geschützte Altlasten zunächst den
   Abhängigkeitsnachweis und die Änderung vorbereiten; eine ausstehende tatsächliche
   Pixel-Wiederherstellung nicht als bestanden ausgeben.
+- „vollständige Umstellung der journalgestützten Schreib- und Listenpfade sowie
+  geschützte Altlastenlöschung nach Restore-Nachweis“: Journal, geänderte Tabellenzeilen
+  und Requestbelege müssen gemeinsam committen oder gemeinsam zurückrollen.
+  Listen einschließlich sammlungsübergreifender Suche nutzen dieselben Filter-,
+  Sortier-, Hash- und Antwortverträge. Der Restore-Nachweis bleibt Voraussetzung
+  für geschützte Löschungen; die Formulierung selbst ist kein solcher Nachweis.
 
 Die ADB-Routine und die Auswertungsvorgaben stehen in der vorhandenen
 [Bauanleitung](struktur-neu/docs/entwicklung/BAU.md#adb-analyse-und-leseschreibtests-über-den-laptop).
@@ -152,6 +158,24 @@ Bestehende Sitzungs-, Medien- und Belegtabellen bleiben in derselben Datenbank.
 `owner_state` behält Einstellungen, Entwürfe, Request-/Commitbelege und historische
 Nachweise. Die fünf Geschäftssammlungen werden nach der bewussten Umschaltung
 nicht gleichzeitig im alten Snapshot weitergeschrieben.
+
+Die Listenprojektion `selection_json` mit `selection_hash` enthält ausschließlich
+die vom gemeinsamen Selektor verwendeten Such-/Sortierfelder. SQL grenzt passende
+IDs über vorhandene Indizes ein; die bisherigen Java-Regeln erhalten natürliche
+Sortierung, Namensbezüge, Telefon-, Datums- und Seitenfilter. Vollständige Datensätze
+werden erst für die ausgewählte Seite geladen. Unbekannte Felder bleiben im
+Originaldatensatz erhalten. Vollständige Fachprüfungen und Exporte dürfen weiterhin
+den Gesamtbestand lesen; daraus ist noch keine gemessene Beschleunigung abzuleiten.
+
+Journaländerungen erhöhen innerhalb derselben SQLite-Transaktion eine Revision.
+Der äußerste Fachabschluss projiziert erst nach endgültiger Festlegung der
+Aktionskennungen die bestehende validierte Journalfolge und schreibt nur geänderte
+Zeilen/Positionen sowie Metadaten. Ein Projektionsfehler muss den gesamten Abschluss
+einschließlich Journal und Requestbeleg zurückrollen. Ursprünglicher Snapshot,
+historische Journalaktionen, Konflikte und Hashbelege bleiben erhalten. Eine
+unvollständige oder ältere Projektion darf keine gezielte Listenlesung bedienen;
+sie benötigt den vollständigen Fachkontext. Die aktive lokale Rechnungsautorität
+darf durch historische Journalprojektion nicht verändert werden.
 
 ### Tatsächlich betroffene Quellpfade
 
