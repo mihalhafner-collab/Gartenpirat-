@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.IOException;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
@@ -459,6 +460,37 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
                 }catch(Exception ignored){/* A verified orphan is safer than masking the original failed save. */}
             }
         }
+    }
+    JSONObject prepareEquipmentProfilePhoto(String upload,String equipment,String request)throws Exception {
+        LocalOwnerRepository files=new LocalOwnerRepository(context,this);JSONObject meta=files.fileMeta(upload);byte[] bytes=files.fileBytes(upload);EquipmentProfilePhotoRules.upload(meta,bytes);
+        JSONObject photo=storeEquipmentProfilePhoto(bytes,meta.getString("mime_type"),equipment,request);
+        meta.put("attached_photo",photo.getString("id")).put("equipment_id",equipment);files.putFile(upload,meta,new byte[0]);return photo;
+    }
+    JSONObject prepareEquipmentProfilePhotoDraft(JSONObject source,String equipment,String request)throws Exception {
+        try {
+            String consumed="equipment_photo_draft_consumed:"+PixelMcpWriteTools.hash(source);
+            if(!ownerValue(consumed,"").isEmpty())throw new PixelMcpWriteTools.Rejected("EQUIPMENT_PHOTO_DRAFT_UNAVAILABLE","Diese Fotoauswahl wurde bereits gespeichert. Aktuellen Gerätestand prüfen.");
+            JSONObject editState=new BrowserDraftRepository(context,this).read(new JSONObject().put("formatVersion",1).put("action","get").put("key","hausgarten.form.sessions.v1").toString());
+            EquipmentProfilePhotoRules.draftSession(editState,source,request);
+            BrowserMediaRepository media=new BrowserMediaRepository(context,this);
+            JSONObject current=media.readRecord("customer-draft:"+source.optString("media_key"));
+            JSONObject ref=EquipmentProfilePhotoRules.draft(current,source);
+            media.assertReadableReference(current.getString("record_id"),ref);
+            File directory=new File(context.getFilesDir(),"browser-media");BrowserMediaFiles.verifyReference(directory,ref);
+            byte[] bytes=java.nio.file.Files.readAllBytes(BrowserMediaFiles.referenceFile(directory,ref).toPath());
+            if(bytes.length!=ref.getLong("byte_size")||!McpFileTransfer.sha(bytes).equals(ref.getString("sha256")))throw new IOException("BROWSER_MEDIA_ORIGINAL_MISSING_OR_CHANGED");
+            JSONObject photo=storeEquipmentProfilePhoto(bytes,ref.getString("mime_type"),equipment,request);
+            putOwnerValue(consumed,request);return photo;
+        }catch(PixelMcpWriteTools.Rejected known){throw known;}
+        catch(Exception unavailable){throw new PixelMcpWriteTools.Rejected("EQUIPMENT_PHOTO_DRAFT_UNAVAILABLE","Fotoentwurf nicht eindeutig lesbar. Auswahl erneut prüfen; Geräteangaben bleiben erhalten.");}
+    }
+    private JSONObject storeEquipmentProfilePhoto(byte[] bytes,String mime,String equipment,String request)throws Exception {
+        PhotoAttachmentStore.Prepared prepared;
+        try{prepared=photoAttachments.prepare(new JSONObject().put("data","data:"+PhotoAttachmentStore.canonicalMime(mime)+";base64,"+android.util.Base64.encodeToString(bytes,android.util.Base64.NO_WRAP)).put("role","profile").put("_photo_quality","optimized"));}
+        catch(IllegalArgumentException invalid){throw new PixelMcpWriteTools.Rejected("EQUIPMENT_PHOTO_INVALID","Das ausgewählte Foto ist beschädigt oder nicht unterstützt. Bitte eine andere Datei auswählen.");}
+        catch(IOException unavailable){throw new PixelMcpWriteTools.Rejected("EQUIPMENT_PHOTO_UNAVAILABLE","Das Foto konnte noch nicht im privaten Speicher gesichert werden. Geräteangaben und Fotoentwurf bleiben erhalten.");}
+        JSONObject photo=new JSONObject(prepared.metadata.toString()).put("format_version",1).put("id","eqp_photo_"+PixelMcpWriteTools.hash(request).substring(0,32)).put("equipment_id",equipment);
+        EquipmentProfilePhotoRules.validate(photo,equipment);saveAttachmentMetadata(getWritableDatabase(),photo.getString("id"),photo,"local");return photo;
     }
     private void saveAttachmentMetadata(SQLiteDatabase database,String photoId,JSONObject metadata,String state)throws Exception{
         String hash=metadata.optString("content_sha256"),mime=PhotoAttachmentStore.canonicalMime(metadata.optString("mime_type")),name=metadata.optString("storage_name"),role=metadata.optString("role","documentation").trim().toLowerCase(Locale.ROOT);

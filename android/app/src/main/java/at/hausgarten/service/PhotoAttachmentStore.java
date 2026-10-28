@@ -20,7 +20,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
-/** Private, content-addressed originals. Business metadata remains in the existing photo entity. */
+/** Private, content-addressed originals. Metadata remains in the existing photo entity or equipment owner record. */
 final class PhotoAttachmentStore {
     static final int MAX_BYTES = 20 * 1024 * 1024;
     static final long MAX_PIXELS = 120_000_000L;

@@ -34,6 +34,9 @@ final class RevierLocalRepository implements RevierRepository {
     public JSONObject session(String id)throws Exception {return RevierSessionContexts.session(store.getReadableDatabase(),id);}
     public JSONArray sessionContexts()throws Exception {return RevierSessionContexts.all(store.getReadableDatabase());}
     public JSONObject currentSession()throws Exception {return store.workSessions().current();}
+    public JSONObject prepareEquipmentProfilePhoto(String upload,String equipment,String request)throws Exception {return store.prepareEquipmentProfilePhoto(upload,equipment,request);}
+    public JSONObject prepareEquipmentProfilePhotoDraft(JSONObject source,String equipment,String request)throws Exception {return store.prepareEquipmentProfilePhotoDraft(source,equipment,request);}
+    public void verifyEquipmentProfilePhoto(JSONObject photo)throws Exception {EquipmentProfilePhotoRules.attachment(photo,store.photoAttachment(photo.getString("id")));store.photoAttachmentStore().read(photo);}
     public void assertSourceCorrectionAllowed(String type,String id)throws Exception {
         if(!type.equals("material_movement"))return;
         try(Cursor rows=store.getReadableDatabase().rawQuery("SELECT key FROM owner_state WHERE key>=? AND key<?",new String[]{"local_invoice_material_sources:","local_invoice_material_sources:\uffff"})){

@@ -51,9 +51,10 @@ final class RevierRules {
     static void version(JSONObject row)throws Exception {
         Object version=row.opt("format_version");String kind=row.optString("kind");
         boolean maintenanceKind=kind.equals("equipment")||kind.equals("equipment_maintenance");
-        if(version instanceof Number&&(version.toString().equals("1")||version.toString().equals("2")&&maintenanceKind)){
+        if(version instanceof Number&&(version.toString().equals("1")||version.toString().equals("2")&&maintenanceKind||version.toString().equals("3")&&kind.equals("equipment")&&row.optJSONObject("profile_photo")!=null)){
             if(version.toString().equals("1")&&(kind.equals("equipment_maintenance")||kind.equals("equipment")&&row.optJSONArray("maintenance_plans")!=null&&row.optJSONArray("maintenance_plans").length()>0))
                 throw error("REVIER_SCHEMA_UPGRADE_REQUIRED","Wartungsdaten benötigen ihren geprüften Datensatzvertrag. Keine automatische Migration.");
+            if(kind.equals("equipment")&&row.has("profile_photo")&&!version.toString().equals("3"))throw error("REVIER_SCHEMA_UPGRADE_REQUIRED","Gerätefotos benötigen ihren geprüften Datensatzvertrag.");
             return;
         }
         throw error("REVIER_SCHEMA_UPGRADE_REQUIRED","Ein neues oder unbekanntes Datenformat benötigt eine passende Appversion. Keine Änderung vorgenommen.");

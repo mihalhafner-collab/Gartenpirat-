@@ -1,8 +1,8 @@
 /* Presentation readiness only. No data access, business gate or automatic retry. */
 (() => {
  'use strict';
- const html=document.documentElement,styles=['design-concept.css','planning-ui.css','field-ui.css'];
- const critical=new Set(['mobile.html','runtime-compat.js','data-order.js','owner-client.js','business-feedback.js','workday-ui.js','design-concept.js','daily-usability.js','billing-ui.js','workflow-ui.js','planning-ui.js','navigation-status.js','field-ui.js','revier-solo-ui.js','simple-forms.js','startup-ui.js','offers-ui.js','local-invoice-ui.js','record-actions.js','invoice-flow.js','invoice-editor.js','invoice-draft.js','order-window.js','gartenpirat-photo-store.js',...styles]);
+ const html=document.documentElement,styles=['design-concept.css','planning-ui.css','field-ui.css','modern-ui.css'];
+ const critical=new Set(['mobile.html','runtime-compat.js','data-order.js','owner-client.js','business-feedback.js','workday-ui.js','design-concept.js','daily-usability.js','billing-ui.js','workflow-ui.js','planning-ui.js','navigation-status.js','field-ui.js','revier-solo-ui.js','simple-forms.js','startup-ui.js','offers-ui.js','local-invoice-ui.js','record-actions.js','invoice-flow.js','invoice-editor.js','invoice-draft.js','order-window.js','gartenpirat-photo-store.js','equipment-photo-ui.js',...styles]);
  let failed=false,slow=false,queued=false,finished=false,ordered=false,recoveryBlocked=false;
  html.dataset.startup='loading';
  const get=id=>document.getElementById(id);
@@ -21,7 +21,7 @@
   // load event. Keep checking this actual prerequisite until it is available.
   if(links.some(link=>!link?.sheet)){queue();return;}
   // Initializers also append inline styles. Preserve the old final cascade,
-  // with the three preloaded production sheets last, before the first UI frame.
+  // with the production sheets and current theme last, before the first UI frame.
   if(!ordered){ordered=true;for(const link of links)document.head.append(link);queue();return;}
   finished=true;clearTimeout(notice);observer.disconnect();html.dataset.startup='ready';get('app-startup-status').hidden=true;
   performance.mark?.('hg-startup-ready');document.dispatchEvent(new Event('hg:startup-ready'));

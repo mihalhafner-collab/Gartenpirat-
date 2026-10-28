@@ -45,7 +45,8 @@ final class LocalOwnerRepository implements OwnerRepository {
         String type=a.getString("resource_type"),id=a.getString("resource_id"),mime;byte[] bytes;
         switch(type){
             case "photo":{
-                PixelMcpWriteTools.find(effective().getJSONArray("photos"),id);JSONObject m=store.photoAttachment(id);if(m==null)throw localOriginalMissing();
+                boolean listed=false;JSONArray photos=effective().getJSONArray("photos");for(int i=0;i<photos.length();i++)if(id.equals(photos.getJSONObject(i).optString("id")))listed=true;
+                if(!listed&&new RevierApplicationService(new RevierLocalRepository(store,null)).equipmentPhoto(id)==null)throw new IllegalArgumentException("Das Foto besitzt keine aktuelle Zuordnung.");JSONObject m=store.photoAttachment(id);if(m==null)throw localOriginalMissing();
                 // The final app never fetches business originals from Drive.
                 try{bytes=store.photoAttachmentStore().read(m);}catch(IOException absent){throw localOriginalMissing();}mime=m.getString("mime_type");break;
             }

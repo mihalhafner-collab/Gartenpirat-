@@ -1,5 +1,69 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Neuester Auftrag: Gerätefoto, modernere Oberfläche und anschließend APK
+
+Direkte Nutzersteuerung: Geräte-Profilfoto zum Wiedererkennen implementieren.
+Beide früheren Vorschläge Revierbuch/Abendgrün sind wegen langweiligem Aussehen
+verworfen. Modernere UI näher an heutigen Apps, kleinere sichtbare Buttons,
+weniger Systemmeldungen; Aufbau und Funktionalität ausdrücklich erhalten.
+Anschließend fertige original signierte APK erstellen, keine automatische Installation.
+Quellcode/Betriebsdaten-Grenze, Finanz-/Restore-/Commitgates unverändert.
+
+Endzustand und geprüfter minimaler Plan vor Umsetzung:
+
+- Gerätefoto ist optional und gehört ausschließlich zum Gerät, nicht zu einem
+  erfundenen Kunden oder Einsatz. Vorhandene Geräteanlage und Wartung bleiben.
+  Aufnahme/Dateiauswahl über bestehende Android-Auswahl; ein kleiner Avatar in
+  Liste und Gerätedetail, Foto hinzufügen/ersetzen in der vorhandenen Bearbeitung.
+- Original und Vorschau im vorhandenen privaten PhotoAttachmentStore; Metadaten
+  am vorhandenen Equipment-Ownersatz, Binärdaten nicht im JSON/Draftmirror.
+  UI übernimmt unmittelbar den aktiven Browsermedia-Entwurf über save_equipment
+  mit profile_photo_draft (Sitzung/Auswahl/Installation/Restore-Epoche), ohne zweite
+  Uploadkopie. MCP kann alternativ den vorhandenen begrenzten Uploadpfad über
+  profile_photo_upload_id verwenden. Beide Adapter führen in dieselbe lokale
+  Foto-/Geräte-Transaktion mit CAS, Verbrauchsbeleg und ursprünglicher Quittung. Keine neue DB/Fotoautorität,
+  keine Gerätefotos in Kundenfotolisten, kein Drive-Geschäftspfad.
+- Native RevierRepository-Fotoport und rein lesender Snapshot-Port prüfen
+  Metadaten/Originalhash. Vollbackup enthält bereits alle privaten Fotodateien und
+  SQLite-Tabellen; erweiterte bestehende Beziehungsprüfung verifiziert Gerätefotos
+  im tatsächlich erfassten/restaurierten Verzeichnis. Fehlendes Original wird
+  nicht als vollständiges Backup/Restore akzeptiert; normale lokale Erfassung
+  bleibt unabhängig. Geräteneudaten mit Foto erhalten gezielt Format3; alte
+  Leser lehnen diese bereits ab. Wartungsänderungen dürfen Format3 nicht auf2
+  zurücksetzen. Vorhandene Geräte ohne Foto bleiben unverändert lesbar.
+- Fotoentwurf über vorhandenen nativen Browsermedienspeicher und HGFormDrafts,
+  eindeutige Editiersitzung, Back behält, Verwerfen retiert Draft/Medien und
+  verspätete Callback-Ergebnisse. Unberührt/abgebrochen legt kein Gerät an.
+  Unklare Geräteantwort zuerst inspect_edit_action mit originalen Argumenten;
+  bestätigte Anlage bei Anzeige-/Fotocleanupfehler nicht erneut schreiben.
+  Historische Originale bleiben unveränderliche Evidenz, keine automatische
+  destruktive Bildbereinigung oder Umdeutung vorhandener Löschpfade.
+- Aktuelle Gestaltung in bestehenden Revier-/gemeinsamen Stilen modernisieren:
+  klare serifenlose Typografie, kompaktere Zeilen, kühle helle Flächen und dunkle
+  Akzente mit markantem Signalton. Drei Hauptpunkte und sämtliche Fachziele,
+  Feldreihenfolge, Dialoge und Bestätigungen erhalten. Kleinere sichtbare Buttons
+  mit weiter gut erreichbarer Touchfläche; keine Showanimationen/Frameworks.
+- Nur eindeutig benannte normale Erfolgspopups beruhigen und knappe Rückmeldung
+  direkt am Eintrag. Fehler, unklare Speicherung, Undo, offene Kalender-/Backup-
+  Zustände und notwendige Android-Berechtigungs-/Bestätigungsdialoge behalten.
+  Keine globalen Android-Benachrichtigungsrechte ändern.
+- Kaskade: korrekte Geräte-ID, mehrere Geräte, Austausch, beschädigte/zu große
+  Datei, Abbruch, CAS-Konflikt, verlorene Antwort, Retry/ID, Discard/Reload,
+  verspätete Callbacks, Vorschaufehler, Format-/Neustart-/Restorepfade und
+  UI/MCP-Gleichheit prüfen; bestehende Kundenfotos/Wartung/Formulare/Finanzgates
+  regressieren. Rein synthetische Bilder. Bilder der tatsächlichen neuen
+  Oberfläche, Cloud-Prüfungen und Pixelgrenzen getrennt dokumentieren.
+- Vor APK: Privacy, gezielter Commit, Push, exakter GitHub-Read-back und
+  source_preservation; neue Buildnummer über letzter APK107, bestehendes
+  Originalzertifikat. Build/Lint/Paket-/Signatur-/Quellabgleich aus sauberem
+  Commit; geprüfte APK ausschließlich im bestehenden Installationsbereich.
+  Quellberichte nur GitHub. Bei Gates Fehler beheben statt Freigabeflags.
+
+Rollback vor Auslieferung durch Quellrücknahme, keine operative Migration.
+Nach gespeicherten Format3-Gerätefotos keinen alten Leser als vollständigen
+Restoreprüfer ausgeben. Pixelkamera, physische Bedienung und Updatebestand
+bleiben ohne tatsächlichen Gerätenachweis ausdrücklich offen.
+
 ## Neuester Auftrag: Kunden als dritter Hauptpunkt, Design und kurze Wechselwege
 
 Nutzer meldet ungefähr1s zwischen Heute/Büro und beauftragt ausdrücklich einen

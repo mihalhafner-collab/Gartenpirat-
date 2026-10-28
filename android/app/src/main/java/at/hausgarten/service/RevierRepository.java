@@ -18,4 +18,7 @@ interface RevierRepository {
     default JSONArray sessionContexts()throws Exception {return new JSONArray();}
     default JSONObject currentSession()throws Exception {return new JSONObject();}
     default void assertSourceCorrectionAllowed(String type,String id)throws Exception {}
+    default JSONObject prepareEquipmentProfilePhoto(String upload,String equipment,String request)throws Exception {throw RevierRules.error("EQUIPMENT_PHOTO_UNAVAILABLE","Gerätefoto kann gerade nicht gespeichert werden.");}
+    default JSONObject prepareEquipmentProfilePhotoDraft(JSONObject source,String equipment,String request)throws Exception {throw RevierRules.error("EQUIPMENT_PHOTO_UNAVAILABLE","Gerätefotoentwurf kann gerade nicht gespeichert werden.");}
+    default void verifyEquipmentProfilePhoto(JSONObject photo)throws Exception {throw RevierRules.error("EQUIPMENT_PHOTO_ORIGINAL_MISSING","Gerätefoto kann hier nicht vollständig geprüft werden.");}
 }

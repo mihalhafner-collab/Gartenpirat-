@@ -1,12 +1,55 @@
 # Gartenpirat Arbeitsstand
 
-Stand: 27. Oktober 2026. Repository: `mihalhafner-collab/Gartenpirat-`.
+Stand: 28. Oktober 2026. Repository: `mihalhafner-collab/Gartenpirat-`.
 Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 `AGENTS.md`. Vollständige frühere Berichte sind im festen
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
-## Aktuell: Kundenpunkt und Designstudie nach APK107
+## Aktuell: Geräteprofilfoto und moderne Bedienoberfläche; Release108 in Vorbereitung
+
+Direkter Nutzerauftrag umgesetzt: optionales Gerätefoto aufnehmen/auswählen,
+Vorschau beim Bearbeiten, Erkennung in Geräteliste und Detail; Austausch gehört
+weiter nur zu diesem Gerät. Wartungsintervalle und Verlauf bleiben erhalten.
+Die ausdrücklich verworfenen Entwürfe Revierbuch/Abendgrün werden nicht ausgeliefert.
+Neue Gestaltung: Graphit, kühle helle Flächen, Limettenakzent, kompaktere sichtbare
+Buttons mit mindestens48px Bedienfläche; Heute/Kunden/Büro und alle Fachwege bleiben.
+Normale kurze Erfolgspopups sind beruhigt, Fehler/Undo/unklare Commits und nötige
+Android-/Finanz-/Backupbestätigungen bleiben. Keine Android-Systemrechte verändert.
+
+UI übernimmt direkt den vorhandenen privaten Browsermedia-Entwurf. Kein zweiter
+MCP-Uploadcache entsteht beim UI-Speichern. Native Prüfung des vorhandenen
+Formularjournals einschließlich Verwerfen, exakter Sitzung/Auswahl/Aktionskennung
+und Installations-/Restore-Epoche; danach aktiver Medienverweis, Originalhash und
+Einmalverbrauch im gemeinsamen lokalen Commit. MCP kann den vorhandenen Upload
+als zweite Eingabequelle zum selben save_equipment-Fachpfad verwenden. Keine neue
+DB, kein Kundenfoto, kein Drive-Geschäftsvorgang. Unklare Antwort: ursprüngliche
+Kennung lesen; bestätigtes Gerät bei späterem Vorschau-/Cleanupfehler nicht erneut
+anlegen. Vollbackup prüft Gerätefoto im tatsächlich erfassten/stagierten Verzeichnis;
+fehlendes Original bleibt fail-closed, normale Geräteangaben bleiben bearbeitbar.
+Neue Gerätefotos verwenden Equipmentformat3; alte Leser dürfen sie nicht schreiben,
+Wartung setzt die Version nicht zurück. Schema6 und MCP-Protokoll9 bleiben.
+
+43 relevante Browser-Prüfgruppen inklusive gezielter Wiederholungen PASS;
+12 gezielte Abschlussgruppen erneut geprüft. Neue Fotofälle decken Abbruch,
+Verwerfen, verspätete Auswahl/Antwort, neue Geräte ohne versteckte Anlage,
+Offlinebetrieb, eindeutige Ablehnung, Austausch und verlorene Antwort/Reload ab.
+54 Foto-,91 Wartungs-,328 Revier-,78 Medienjournal- und22 Medien-Dateiprüfungen PASS;
+1405 UI/MCP-Paritätsprüfungen,169er-Discovery über vier Protokolle und45
+Originalsignier-Schutztests PASS. Die Abschlusserstellung wird separat nachgewiesen;
+ein früherer Compilefehler (fehlender File-Import) wurde korrigiert; die vollständige
+Android-Kompilierung danach erfolgreich erneut ausgeführt.
+Technische Kaskade: `docs/verification/equipment-modern-ui-2026-10-28.json`.
+Die fünf modern-ui-*-390.png zeigen tatsächlichen Quellcode mit Beispieldaten.
+
+Version1.55.3/108 vorbereitet; APK-Bau/Originalsignierung/Bereitstellung noch offen.
+Vor Signierung muss der genaue Quellcommit sauber auf GitHub zurückgelesen sein.
+Keine automatische Installation, keine produktiven Daten gelesen/verändert.
+Offen bleiben Pixelkamera/-galerie, native Vorschau, physischer Update-Datenerhalt,
+reale Wechsel-/Startzeit und vollständige geräteseitige Backup-/Restoreabnahme.
+Keine Behebung der gemeldeten1s Wechselzeit ohne Messung behauptet.
+
+## Historisch: Kundenpunkt und Designstudie nach APK107
 
 Neuer Nutzerauftrag: unten Heute/Kunden/Büro, übersichtliche Kundendatei und
 persönliches einfaches Design; gemeldete Wechselverzögerung von etwa1s untersuchen.
@@ -15,8 +58,8 @@ Akte und Bearbeitung gehören zum Kundenpunkt. Explizite Bottomwechsel und
 kontextuelle Kundenauswahl haben unterschiedliche, geprüfte Rückwege; Suche,
 Formulare und ursprüngliche Commitkennungen bleiben erhalten.
 
-Zwei klickbare, rein synthetische Entwürfe: empfohlen **Revierbuch** (warmes
-Papier/Waldgrün), alternativ **Abendgrün** (dunkles Grün/warmes Gelb). Große
+Zwei frühere klickbare, rein synthetische Entwürfe, inzwischen ausdrücklich verworfen:
+**Revierbuch** (warmes Papier/Waldgrün) und **Abendgrün** (dunkles Grün/warmes Gelb). Große
 Bedienziele, ruhige Listen, eine Hauptaktion je Ansicht; Zusatzangaben bei Bedarf.
 Keine zusätzliche Produkt-App, Datenbank, Backendanbindung oder Fremdframework.
 Die neue Bildsprache und die zusammengeführte Kundenübersicht sind Designstudie,
@@ -77,7 +120,7 @@ belegen keine Behebung der gemeldeten1s. Keine neue APK, Versionserhöhung oder
 Installation aus diesem Auftrag. Das bereits ausgelieferte Originalpaket107
 und sein unveränderter Quelltag enthalten diese späteren Änderungen nicht.
 
-## Aktuell: Original-APK1.55.2/107 erstellt
+## Historisch: Original-APK1.55.2/107 erstellt
 
 Explizit beauftragter Release-Bau aus sauberem, auf GitHub nachgewiesenem
 Quellcommit `eb3df6b884cfcf00b3083ad32e6a957f2e83e85d`, unverändertem Tag
