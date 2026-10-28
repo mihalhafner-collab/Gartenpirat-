@@ -95,13 +95,14 @@
     "temporary_private_signing_directories_remaining": 0
   },
   "drive": {
-    "status": "UPLOAD_IN_PROGRESS_NO_REMOTE_SUCCESS_CLAIM",
+    "status": "UPLOAD_FAILED_BLOB_TIMEOUT_300S;READBACK_FOLDER_EMPTY",
     "folder_id": "1_eqW0iJ9jn_wies2mQwXalYUsUCwLcw2",
     "parent_folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
     "folder_name": "Original-Update-1.55.4-build109",
     "apk_id": null,
     "apk_url": null,
-    "independent_remote_sha": "NOT_VERIFIED"
+    "independent_remote_sha": "NOT_VERIFIED",
+    "folder_empty_readback": true
   },
   "synthetic_checks": "docs/verification/performance-stage2-tests-2026-10-28.json",
   "performance": "docs/verification/performance-stage2-2026-10-28.md",
@@ -120,6 +121,20 @@
     "Native Android/SQLite performance and device acceptance open",
     "Historical P1 tools-schema gate remains FAIL",
     "Historical Build97 accessibility fixture remains FAIL; current navigation/font checks pass separately",
-    "Remote upload/readback not yet complete"
-  ]
+    "Drive transfer timed out and GitHub release-asset upload returned401; git artifact delivery/readback recorded separately"
+  ],
+  "github_release_assets": {
+    "release_id": 426561607,
+    "draft": true,
+    "tag": "source/v1.55.4-build109",
+    "status": "UPLOAD_FAILED_401;READBACK_ASSETS_EMPTY",
+    "assets": 0
+  },
+  "delivery": {
+    "method": "GIT_TRACKED_APK_IN_EXISTING_PRIVATE_REPOSITORY",
+    "path": "downloads/Haus-Garten-1.55.4-109-original.apk",
+    "sha256": "267a59057cbc6f2a2a09127d901ec3f5441139f2ad37f285b8bf91f078ba7b67",
+    "bytes": 82907644,
+    "remote_status": "PUSH_PENDING"
+  }
 }

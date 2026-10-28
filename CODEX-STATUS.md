@@ -27,8 +27,11 @@ Die Schutzgates wurden nicht abgeschwächt. Details und Grenzen:
 `docs/verification/performance-stage2-tests-2026-10-28.json` und
 `docs/verification/release-109-2026-10-28.json`.
 
-Upload der fertigen APK in den bestehenden privaten APK-Bereich läuft noch;
-noch kein Remoteerfolg oder Remote-SHA behauptet. Quellen und Berichte nur GitHub.
+Drive-Blobupload nach300s abgebrochen, Zielordner per Read-back leer. GitHub-
+Releaseassetupload401, Entwurf enthält0Assets. Die geprüfte Original-APK wird
+deshalb direkt unter `downloads/Haus-Garten-1.55.4-109-original.apk` im bestehenden
+privaten Repository per Git gesichert; Zugangsdaten und Rechte unverändert.
+Keine erfolgte Drive-/Releaseassetbereitstellung behauptet. Quellen/Berichte nur GitHub.
 Keine Installation, produktive Datenübernahme oder Rechnungsfreigabe. Pixel-
 Leistungsmessung, native Geräteausführung, Update-Datenerhalt und echte Backup-/
 Restore-Bestätigung bleiben offen. APK ist ein Prüfkandidat, keine Geräteabnahme.

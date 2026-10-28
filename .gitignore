@@ -31,4 +31,4 @@ qa-signing-password.txt
 .qa-signing/
 
 # One retained original reference; other APK builds remain ignored.
-!downloads/Haus-Garten-1.51.0-79-original-update-kandidat.apk
+!downloads/Haus-Garten-1.55.4-109-original.apk
