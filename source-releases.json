@@ -593,6 +593,26 @@
       "productive_migration": "NOT_PERFORMED",
       "invoice_authority": "NOT_ACTIVATED",
       "evidence": "docs/verification/release-112-2026-10-28.json"
+    },
+    {
+      "version": "1.55.8",
+      "build": 113,
+      "tag": "source/v1.55.8-build113",
+      "git_sha": "2758d2e68dc00ff6b70078879b98a8fb3797c18c",
+      "tree_sha": "b8908287a0f3e29dfdff5b5da29bd4715856f756",
+      "source_sha256": "8c5bb6151d7517fb8b82ce60704c02749badf582d8390772e0729bdad5815f8e",
+      "apk_sha256": "a99c464794a61fc2e677c225496042ce49008725ee3a2c5eec8af842429c87ec",
+      "apk_bytes": 82854396,
+      "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+      "remote_readback": "PASS source commit and peeled tag",
+      "drive_apk_id": "11_OmkQs8bZuwrCiflZYopVMW3AxlXw0t",
+      "drive_apk_url": "https://drive.google.com/file/d/11_OmkQs8bZuwrCiflZYopVMW3AxlXw0t/view?usp=drivesdk",
+      "drive_readback": "APK_NAME_SIZE_PARENT_OWNER_PERMISSION_PASS;INDEPENDENT_REMOTE_SHA_OPEN",
+      "app_backup_mode": "PIXEL_PLAINTEXT_ZIP;NO_RUNTIME_DRIVE_BACKUP",
+      "device_acceptance": "NOT_EXECUTED",
+      "productive_migration": "NOT_PERFORMED",
+      "invoice_authority": "NOT_ACTIVATED",
+      "evidence": "docs/verification/release-113-2026-10-28.json"
     }
   ],
   "last_drive_cleanup": {

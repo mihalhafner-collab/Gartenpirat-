@@ -38,14 +38,18 @@
     "cloud_chromium_entry": "PASS;320/360/426px;200% font;48px controls;native entry invoked once;local status/read failure;no business writes",
     "production_and_native_source_compilation": "PASS using installed SDK and cached dependencies; not device execution",
     "existing_P1_schema_contract": "FAIL_PREEXISTING_UNCHANGED;after all JVM suites",
-    "pixel_save_restore": "NOT_EXECUTED"
+    "pixel_save_restore": "NOT_EXECUTED",
+    "release_lint": {
+      "errors": 0,
+      "warnings": 81
+    }
   },
   "limits": [
     "Existing Pixel local capture failure may persist; new local ZIP still uses complete capture and detailed stage codes",
     "No claim of faster device performance; comparison is contract/behavior not elapsed-time benchmark",
     "No installation, automatic restore, productive migration or invoice release"
   ],
-  "apk": "CANDIDATE113_PENDING_BUILD",
+  "apk": "ORIGINAL_SIGNED113;BUILD_LINT_ANDROIDTEST_COMPILE_PRIVACY_PASS;DRIVE_APK_METADATA_READBACK_PASS",
   "review_followup": {
     "historical_authority_evidence": "Internal read-only status projection retained; no cloud call and no relaxation of LocalAuthorityRules external-evidence/invoice gates",
     "first_release_build": "assemble and AndroidTest compile PASS; lint rejected dynamic URI permission flag expression; replaced with explicit fixed READ or READ|WRITE calls; no suppression",
@@ -54,5 +58,16 @@
   "privacy": {
     "source_delta": "PASS110files0seed",
     "worktree": "PASS5785files;includesIgnoredUntracked"
+  },
+  "final_package": {
+    "production_source_classes": 199,
+    "removed_drive_backup_runtime_classes": 8,
+    "retired_fixture_classes_in_apk": 0,
+    "registered_FullBackupJob": false,
+    "package_update_identity": "PASS_SAME_ORIGINAL_CERT;NO_INSTALL",
+    "sha256": "a99c464794a61fc2e677c225496042ce49008725ee3a2c5eec8af842429c87ec",
+    "bytes": 82854396,
+    "source_commit": "2758d2e68dc00ff6b70078879b98a8fb3797c18c",
+    "source_tag": "source/v1.55.8-build113"
   }
 }

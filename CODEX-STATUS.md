@@ -19,14 +19,20 @@ Rückweg; Schlüssel nur noch zum Lesen alter verschlüsselter Archive. Kein neu
 Schema, keine operative Migration, Installation oder Rechnungsfreigabe.
 
 84 JVM-Suiten PASS, darunter19 neue Klartext-/Dateifehlerprüfungen mit48MiB bei
-64MiB Heap.99 Python-Schutztests, Web-Feedback und Cloud-Chromium-Einstieg bei
+64MiB Heap.100 Python-Schutztests, Web-Feedback und Cloud-Chromium-Einstieg bei
 320/360/426px/200% Schrift PASS. Produktions-/Android-Testquellen kompiliert;
 nicht am Gerät ausgeführt. Bestehender P1-Schemakonflikt nach allen JVM-Suiten
 bleibt offen.2 alte UI-Auditzeilen ausdrücklich retired;212 Historien-/Audit-
 Einträge und169 MCP-Werkzeuge, keine neuen Tools. Verifikation:
 `docs/verification/pixel-local-plaintext-backup-2026-10-28.json`.
 
-Prüfkandidat1.55.8/113 für Releasebau vorbereitet. Der bekannte lokale Pixel-
+Originalsignierter Prüfkandidat1.55.8/113 auf Drive bereitgestellt und
+Name/Größe/privater Zielordner/Eigentümerberechtigung zurückgelesen. Releasebau,
+Lint und Android-Testkompilierung PASS;0Fehler/81Warnungen.199 Produktionsklassen
+im DEX,0 entfernte Drive-Backup-Klassen,0 Testadapter, kein registrierter
+Backup-Job. Paket/Originalzertifikat/Version/Assets/Seed/Privacy PASS.
+[APK113](https://drive.google.com/file/d/11_OmkQs8bZuwrCiflZYopVMW3AxlXw0t/view?usp=drivesdk).
+Bericht: `docs/verification/release-113-2026-10-28.json`. Der bekannte lokale Pixel-
 Aufnahmefehler ist damit noch nicht als behoben bestätigt; ein erfolgreiches
 Speichern/Wiederherstellen auf dem Pixel ist weiter offen. Vorherige Berichte
 beschreiben den damaligen Auftrag, keine Freigabe für reaktiviertes Drive-Backup.

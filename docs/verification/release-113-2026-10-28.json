@@ -1,0 +1,102 @@
+{
+  "classification": "PUBLIC_SOURCE_AND_SYNTHETIC_TEST_METADATA",
+  "version_name": "1.55.8",
+  "version_code": 113,
+  "scope": "Local plaintext ZIP on Pixel; all Drive backup runtime paths removed; legacy encrypted restore reader retained",
+  "source_commit": "2758d2e68dc00ff6b70078879b98a8fb3797c18c",
+  "source_sha256": "8c5bb6151d7517fb8b82ce60704c02749badf582d8390772e0729bdad5815f8e",
+  "signing": {
+    "apk_sha256": "a99c464794a61fc2e677c225496042ce49008725ee3a2c5eec8af842429c87ec",
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "package": "at.hausgarten.service",
+    "result": "SIGNED_NO_INSTALL_OR_UPDATE_ACCEPTANCE",
+    "source_preservation": {
+      "git_sha": "2758d2e68dc00ff6b70078879b98a8fb3797c18c",
+      "remote_refs": [
+        "refs/heads/codex/heute-uebersicht-20261027"
+      ],
+      "repository": "mihalhafner-collab/Gartenpirat-",
+      "scope": "clean_checkout_and_remote_commit_only",
+      "status": "PASS"
+    },
+    "version_code": 113,
+    "version_name": "1.55.8"
+  },
+  "metadata": {
+    "package": "at.hausgarten.service",
+    "version_code": 113,
+    "version_name": "1.55.8",
+    "signature_valid": true,
+    "certificates": [
+      "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8"
+    ]
+  },
+  "assets": {
+    "added": [],
+    "removed": [],
+    "changed": [],
+    "unchanged_count": 705,
+    "matches": true,
+    "generated_profiles": {
+      "dexopt/baseline.prof": "2c6c9279d8bdca0748de89b61724606a5658df25e7074dad593bcb5dbab36f15",
+      "dexopt/baseline.profm": "a2bf64526774f103b0f9ada8a1b57bcf1e8ad13eff4a74a7cba230bdabe29673"
+    }
+  },
+  "seed": {
+    "all_business_collections_empty": true,
+    "operational_seed_rows": 0
+  },
+  "production_source_classes": 199,
+  "removed_runtime_classes_absent": [
+    "DriveAccount",
+    "DriveRestClient",
+    "DriveBackupUpload",
+    "BackupFolderPicker",
+    "BackupAutomation",
+    "FullBackupJob",
+    "BackupPortableExport",
+    "BackupSafService"
+  ],
+  "retired_test_classes_in_apk": 0,
+  "manifest_backup_job_registered": false,
+  "update_identity_from112": "PASS_SAME_PACKAGE_ORIGINAL_CERT_HIGHER_VERSION;NO_INSTALL",
+  "bytes": 82854396,
+  "sha256": "a99c464794a61fc2e677c225496042ce49008725ee3a2c5eec8af842429c87ec",
+  "build": {
+    "assembleRelease": "PASS",
+    "lintRelease": "PASS",
+    "compileReleaseAndroidTestJavaWithJavac": "PASS",
+    "lint_errors": 0,
+    "lint_warnings": 81
+  },
+  "tests": {
+    "plaintext_file_checks": 19,
+    "plaintext_stream_MiB": 48,
+    "jvm_suites": 84,
+    "python_tests": 100,
+    "cloud_browser_entry": "PASS",
+    "parity_checks": 1410,
+    "existing_P1_schema_contract": "FAIL_PREEXISTING_UNCHANGED_AFTER_ALL_SUITES"
+  },
+  "pixel_backup_restore": "NOT_EXECUTED",
+  "known_previous_pixel_capture_failure": "NOT_CONFIRMED_FIXED;full local capture retained",
+  "installation": "NOT_PERFORMED",
+  "productive_migration": "NOT_PERFORMED",
+  "invoice_authority": "NOT_ACTIVATED",
+  "repair_report": "docs/verification/pixel-local-plaintext-backup-2026-10-28.json",
+  "privacy": "SOURCE_WORKTREE_SIGNED_APK_PASS_IN_ORIGINAL_SIGNING_COMMAND",
+  "delivery": {
+    "method": "PRIVATE_DRIVE_APK_ONLY;APP_BUSINESS_BACKUP_LOCAL_ONLY",
+    "status": "UPLOAD_SUCCESS_METADATA_READBACK_PASS",
+    "id": "11_OmkQs8bZuwrCiflZYopVMW3AxlXw0t",
+    "url": "https://drive.google.com/file/d/11_OmkQs8bZuwrCiflZYopVMW3AxlXw0t/view?usp=drivesdk",
+    "parent": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+    "bytes": 82854396,
+    "mime_type": "application/vnd.android.package-archive",
+    "permissions": "OWNER_ONLY_OBSERVED",
+    "independent_remote_sha256": "NOT_VERIFIED;metadata connector omits checksum"
+  },
+  "source_tag": "source/v1.55.8-build113",
+  "source_tag_object": "0b071ede3db03ad8116c55ba50c2d84323afb128",
+  "source_tag_readback": "PASS_EXACT_PEELED_SOURCE_COMMIT"
+}

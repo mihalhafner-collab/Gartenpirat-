@@ -1,4 +1,17 @@
-# Aktueller Prüfkandidat1.55.7 / Build112
+# Aktueller Prüfkandidat1.55.8 / Build113
+
+**[Originalsignierte APK113 auf Drive](https://drive.google.com/file/d/11_OmkQs8bZuwrCiflZYopVMW3AxlXw0t/view?usp=drivesdk)**.
+Herunterladen → APK öffnen → Paketinstallation → Aktualisieren.
+
+App-Sicherung: eine unverschlüsselte ZIP auf dem Pixel, ohne Drive, Google-Konto,
+Schlüsselsetup oder automatische Uploadjobs. Speichern, vollständig zurücklesen
+und bewusst wiederherstellen. Alte verschlüsselte Archive bleiben lesbar.
+Drive enthält nur die weiterhin beauftragte APK-Bereitstellung.
+Build/Lint/Signatur/ZIP-/Schutztests PASS; bekannte P1-Schemaprüfung separat offen.
+Sichern und Restore auf dem Pixel noch nicht ausgeführt; keine Installation
+durch Codex. [Release113-Nachweis](../docs/verification/release-113-2026-10-28.json).
+
+# Vorheriger Prüfkandidat1.55.7 / Build112
 
 **[Originalsignierte APK112 auf Drive](https://drive.google.com/file/d/1jcHNbSeONksnQAr0t4lnutyR9dlVbO0m/view?usp=drivesdk)**.
 Herunterladen, APK öffnen, Paketinstallation → Aktualisieren.
