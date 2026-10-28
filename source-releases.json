@@ -570,7 +570,10 @@
       "device_acceptance": "NOT_EXECUTED",
       "productive_migration": "NOT_PERFORMED",
       "invoice_authority": "NOT_ACTIVATED",
-      "evidence": "docs/verification/release-111-2026-10-28.json"
+      "evidence": "docs/verification/release-111-2026-10-28.json",
+      "drive_apk_id": "1J2IvW5cr_bhfDEIysQ6LqRzqbFxdO_Le",
+      "drive_apk_url": "https://drive.google.com/file/d/1J2IvW5cr_bhfDEIysQ6LqRzqbFxdO_Le/view?usp=drivesdk",
+      "drive_readback": "NAME_SIZE_PARENT_OWNER_PERMISSION_PASS;INDEPENDENT_REMOTE_SHA_OPEN"
     }
   ],
   "last_drive_cleanup": {

@@ -551,13 +551,15 @@
     "artifact_commit": "4c9814afbef4a5d3dc7f95ebab18b958ddbdc587",
     "artifact_blob_sha1": "e02759524e7727e08c2eef63dea50af3b2108020",
     "remote_readback": "PASS_EXACT_REMOTE_COMMIT_TREE_AND_GITHUB_CONTENT_METADATA",
-    "drive_upload": "FAILED_BLOB_UPLOAD_TIMEOUT300001MS;POST_ATTEMPT_NO_FILE_FOUND",
+    "drive_upload": "SUCCESS;NAME_SIZE_PARENT_PRIVATE_METADATA_READBACK_PASS;INDEPENDENT_REMOTE_SHA_OPEN",
     "github_release_asset_upload": "FAILED401;DRAFT_WITH_GIT_FILE_LINK_ONLY",
     "installation": "NOT_PERFORMED;last observed physical installation remains108",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "NOT_ACTIVATED",
     "evidence": "docs/verification/release-111-2026-10-28.json",
-    "preferred_delivery": "DRIVE;REQUESTED_NOT_COMPLETED"
+    "preferred_delivery": "DRIVE;COMPLETED_METADATA_READBACK",
+    "drive_apk_id": "1J2IvW5cr_bhfDEIysQ6LqRzqbFxdO_Le",
+    "drive_apk_url": "https://drive.google.com/file/d/1J2IvW5cr_bhfDEIysQ6LqRzqbFxdO_Le/view?usp=drivesdk"
   },
   "adb_campaign_2026_10_28": {
     "status": "PARTIAL_PASSIVE_ADB_EXECUTED;SYNTHETIC_ACCEPTANCE_BLOCKED",

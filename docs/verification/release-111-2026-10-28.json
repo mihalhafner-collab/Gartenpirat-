@@ -79,17 +79,32 @@
     "delivery_delta": "PASS;6files;0seed;APK copied byte-identically"
   },
   "drive_delivery": {
-    "user_preference": "DRIVE_IN_EXISTING_PRIVATE_APK_AREA",
-    "status": "FAILED_BEFORE_DRIVE_FILE_CONFIRMATION",
+    "status": "UPLOAD_SUCCESS_METADATA_READBACK_PASS",
+    "id": "1J2IvW5cr_bhfDEIysQ6LqRzqbFxdO_Le",
+    "url": "https://drive.google.com/file/d/1J2IvW5cr_bhfDEIysQ6LqRzqbFxdO_Le/view?usp=drivesdk",
     "parent_folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
-    "attempted_name": "Haus-Garten-1.55.6-111-original.apk",
-    "failure": "OpenAI file blob upload to sdmntprnortheu.oaiusercontent.com timeout after300001ms; error sending request",
-    "request_id": "6288429a-d960-4c8b-8717-58d20a1c0975",
-    "drive_file_id": null,
-    "post_attempt_search": "NO_MATCH",
-    "post_attempt_target_listing": "NO_CANDIDATE111",
-    "sharing_changed": false,
-    "old_files_changed": false,
-    "retry": "No identical automatic retry after proven transfer timeout"
-  }
+    "name": "Haus-Garten-1.55.6-111-original.apk",
+    "mime_type": "application/vnd.android.package-archive",
+    "bytes": 82911740,
+    "permissions": "owner_only_observed",
+    "local_sha256": "50f0aa71b3a9ef596b46efd3da30f7a74fe417dd565bcf0ed042c241a5dc5a7f",
+    "independent_remote_sha256": "NOT_VERIFIED_METADATA_CONNECTOR_DOES_NOT_RETURN_CHECKSUM",
+    "installation": "NOT_PERFORMED"
+  },
+  "drive_delivery_previous_attempts": [
+    {
+      "user_preference": "DRIVE_IN_EXISTING_PRIVATE_APK_AREA",
+      "status": "FAILED_BEFORE_DRIVE_FILE_CONFIRMATION",
+      "parent_folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+      "attempted_name": "Haus-Garten-1.55.6-111-original.apk",
+      "failure": "OpenAI file blob upload to sdmntprnortheu.oaiusercontent.com timeout after300001ms; error sending request",
+      "request_id": "6288429a-d960-4c8b-8717-58d20a1c0975",
+      "drive_file_id": null,
+      "post_attempt_search": "NO_MATCH",
+      "post_attempt_target_listing": "NO_CANDIDATE111",
+      "sharing_changed": false,
+      "old_files_changed": false,
+      "retry": "No identical automatic retry after proven transfer timeout"
+    }
+  ]
 }

@@ -1,7 +1,9 @@
 # Installationspaket
 
 Originalsignierter **[Prüfkandidat1.55.6 / Build111](Haus-Garten-1.55.6-111-original.apk)**.
-Im privaten GitHub-Repository öffnen und „Download raw file“ wählen.
+[Gewohnter Download auf Drive](https://drive.google.com/file/d/1J2IvW5cr_bhfDEIysQ6LqRzqbFxdO_Le/view?usp=drivesdk).
+APK herunterladen und auf Android mit der Paketinstallation öffnen.
+GitHub bleibt als Ersatzdownload erhalten.
 
 - Wartende Sicherungen bieten einen ausdrücklichen Wiederholungsversuch am selben Job.
 - Manuelles „Jetzt sichern“ verarbeitet genau den angeforderten Job direkt in der

@@ -6,6 +6,15 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Drive-Bereitstellung111: neuer Versuch erfolgreich
+
+Nach ausdrücklichem erneuten Nutzerauftrag APK111 aus dem bytegeprüften
+vorhandenen signierten Artefakt nach Drive hochgeladen. Datei-ID
+`1J2IvW5cr_bhfDEIysQ6LqRzqbFxdO_Le`; Dateiname,APK-MIME,82911740Bytes,
+Zielordner und ausschließlich Eigentümerberechtigung zurückgelesen.
+[APK111 auf Drive](https://drive.google.com/file/d/1J2IvW5cr_bhfDEIysQ6LqRzqbFxdO_Le/view?usp=drivesdk). Unabhängiger Remote-SHA nicht verifiziert;
+keine Installation ausgeführt. Der folgende Fehlversuch bleibt historische Evidenz.
+
 ## Drive-Bereitstellung111 erneut beauftragt28.10.
 
 Nutzer möchte weiterhin die gewohnte private Drive-Bereitstellung. Upload der
