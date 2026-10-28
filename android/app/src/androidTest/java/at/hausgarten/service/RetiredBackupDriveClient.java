@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /** Encrypted-backup transport and shared HTTP value types; no business sync operations. */
-class DriveRestClient {
+class RetiredBackupDriveClient {
     static final String API="https://www.googleapis.com/drive/v3/", UPLOAD="https://www.googleapis.com/upload/drive/v3/files";
     static final int MAX_JSON=64*1024*1024, CHUNK=256*1024;
     static final int LARGE_CHUNK=4*1024*1024, CACHE_LIMIT=4*1024*1024, CACHE_ENTRY_LIMIT=512*1024;
@@ -37,7 +37,7 @@ class DriveRestClient {
     static final class HttpWire implements Wire {
         interface Connections {HttpURLConnection open(URL target)throws IOException;}
         private final Connections connections;
-        HttpWire(){this(target->(HttpURLConnection)target.openConnection());}
+        HttpWire(){this(target->{throw new IOException("QA_LIVE_DRIVE_NETWORK_FORBIDDEN");});}
         HttpWire(Connections connections){this.connections=connections;}
         private final java.util.concurrent.ConcurrentHashMap<Thread,HttpURLConnection> active=new java.util.concurrent.ConcurrentHashMap<>();
         public void cancel(Thread thread){HttpURLConnection connection=active.get(thread);if(connection!=null)connection.disconnect();}
@@ -81,9 +81,9 @@ class DriveRestClient {
     private Traffic traffic=new Traffic();
     String checkpoint(String key){return checkpoints.get("drive-meta:"+folder+":"+key);}
     void checkpoint(String key,String value){checkpoints.put("drive-meta:"+folder+":"+key,value);}
-    DriveRestClient(String folder,Token token,Wire wire,Checkpoints checkpoints){if(!validId(folder))throw new IllegalArgumentException("Ungültige Drive-Ordnerkennung.");this.folder=folder;this.token=token;this.wire=wire;this.checkpoints=checkpoints;}
+    RetiredBackupDriveClient(String folder,Token token,Wire wire,Checkpoints checkpoints){if(!validId(folder))throw new IllegalArgumentException("Ungültige Drive-Ordnerkennung.");this.folder=folder;this.token=token;this.wire=wire;this.checkpoints=checkpoints;}
     /** Metadata-only setup client. A backup upload still requires a bound destination. */
-    DriveRestClient(Token token,Wire wire){this.folder="";this.token=token;this.wire=wire;this.checkpoints=new Checkpoints(){public String get(String key){return "";}public void put(String key,String value){}};}
+    RetiredBackupDriveClient(Token token,Wire wire){this.folder="";this.token=token;this.wire=wire;this.checkpoints=new Checkpoints(){public String get(String key){return "";}public void put(String key,String value){}};}
     void cancelActiveTransfers(){for(Thread thread:activeRequests)wire.cancel(thread);}
     static boolean validId(String id){return id!=null&&id.matches("[A-Za-z0-9_-]{10,200}");}
     static String folderId(String input){String value=input.trim();if(value.startsWith("https://drive.google.com/drive/folders/"))value=value.substring("https://drive.google.com/drive/folders/".length()).split("[?#/]",2)[0];if(!validId(value))throw new IllegalArgumentException("Bitte einen gültigen Drive-Ordnerlink verwenden.");return value;}

@@ -19,16 +19,18 @@ if hashlib.sha256(jar.read_bytes()).hexdigest() != '3cf6cd6892e32e2b4c1c39e0f52f
 sdk = Path(os.environ.get('ANDROID_HOME') or os.environ['ANDROID_SDK_ROOT'])
 android = sdk/'platforms/android-37.0/android.jar'
 classes = ROOT/'outputs/integration-java/classes'
+if classes.exists():shutil.rmtree(classes)  # Only generated synthetic JVM class output.
 classes.mkdir(parents=True, exist_ok=True)
 src = ROOT/'android/app/src/main/java/at/hausgarten/service'
 names = ['DeletionBackupStore', 'SnapshotProjection', 'OwnerCommand', 'EntityContract', 'EntityApplicationService', 'OwnerApplicationService','PlanningApplicationService','OfferApplicationService','WorkApplicationService','PhotoApplicationService','SyncArchiveApplicationService','SettingsApplicationService','InvoiceApplicationService','OwnerRepository', 'McpFields', 'McpErrors', 'SnapshotReadSupport', 'BusinessQueries', 'OwnerToolSchemas', 'OfferContract', 'OfferDeliveryClient', 'TestDataRules', 'AppointmentRules', 'AppointmentTools', 'WeatherRiskRules', 'FreeWeatherSource', 'WeatherAlertRules', 'WeatherLocationRules', 'CalendarRules', 'CalendarAccessRules', 'AppointmentAvailability', 'CalendarClient', 'CalendarCredential', 'LegacyBackupPolicy', 'TrashPurgeBatch', 'WorklogArchiveBatch', 'TrashRules', 'DriveTransferPool', 'DriveMediaBatch', 'SyncWakeup', 'SyncMediaPlan', 'SyncPolicy', 'PhotoJournalRules', 'DeletionRules', 'InvoiceIssueRules', 'DriveNumbering', 'DrivePrimaryState', 'PixelDriveState', 'OfferRules', 'OfferTools', 'OfferJournalRules', 'LegacyConflictRules', 'PhotoPolicy', 'BillingRules', 'WorklogRules', 'PixelMcpWriteTools', 'EntityProtectionRules',
          'PixelMcpEntityWriteTools', 'PixelMcpReadTools', 'PixelMcpSessionTools', 'PixelMcpBusinessTools',
-         'WorklogRelationRules', 'ManualChangeRules', 'GardenRules', 'SyncActionOrder', 'DriveRestClient', 'DrivePublication', 'McpSchema', 'McpFileTransfer', 'InvoiceDraftRules', 'PixelMcpOwnerTools', 'OwnerJournalRules', 'DriveJournalRules', 'OrderReviewRules', 'PixelTunnelConfig',
+         'WorklogRelationRules', 'ManualChangeRules', 'GardenRules', 'SyncActionOrder', 'HttpTransport', 'DrivePublication', 'McpSchema', 'McpFileTransfer', 'InvoiceDraftRules', 'PixelMcpOwnerTools', 'OwnerJournalRules', 'DriveJournalRules', 'OrderReviewRules', 'PixelTunnelConfig',
          'PixelTunnelWire', 'WorkSessionPauseRules']
 names += ['DriveRolePolicy','BackgroundWorkDispatch','LocalMigrationInventory','WorkSessionTimingRules','SyncCommitRules','OwnerRequestTransactions','ReceiptRetentionRules','SyncFailureRules','LocalTestTombstone','ActiveWorkProtection','ImmutableStateReference','CatalogSemanticHash','SyncQueueCounters','VerifiedSyncCache','SyncIoFailure','CalendarRecoveryRules','OpenMeteoWeatherSource','CalendarSetupRules','PlanningWire']
-names += ['DriveAccount', 'BackupCrypto', 'BackupRecoveryExport', 'EncryptedBackupArchive', 'ServiceCatalogBootstrap', 'BackupFilePins', 'DriveBackupUpload', 'BackupScheduleRules', 'BackupStorageBudget']
+names += ['BackupCrypto', 'BackupRecoveryExport', 'EncryptedBackupArchive', 'ServiceCatalogBootstrap', 'BackupFilePins', 'BackupScheduleRules', 'BackupStorageBudget']
 names += ['LocalAuthorityRules','LocalWorkflowTools','LocalWorkflowApplicationService','RevierRepository','RevierRules','RevierApplicationService','OfferDecisionRules','OfferDecisionService','BackupDocumentTransfer','BackupDatasetExchange','BackupPortableFormat','LocalBillingRules','OfferDecisionValidation','LocalFinancialValidation','LocalFinancialOriginals','IssuedInvoiceRules']
 names += ['LocalInvoiceCreationRules', 'InvoiceIssueReviewRules', 'RestoredBrowserReviewRules', 'BrowserMediaFiles', 'BrowserMediaRepositoryRules', 'EquipmentMaintenanceRules', 'EquipmentProfilePhotoRules']
+retired_sources = [ROOT/'android/app/src/androidTest/java/at/hausgarten/service'/f'{n}.java' for n in ['RetiredBackupDriveClient','RetiredDriveAccount','RetiredDriveBackupUpload','RetiredBackupScheduleRules']]
 tests = sorted((ROOT/'tests/java/at/hausgarten/service').glob('*Tests.java'))
 dependency_cache = Path(os.environ.get('GRADLE_USER_HOME', Path.home()/'.gradle'))/'caches/modules-2/files-2.1'
 crypto_jars = []
@@ -48,12 +50,12 @@ def run(command):
     return result.stdout
 
 run([shutil.which('javac'), '-encoding', 'UTF-8', '-cp', cp, '-d', str(classes),
-     *[str((src if (src/(name+'.java')).exists() else ROOT/'android/app/src/androidTest/java/at/hausgarten/service')/(name+'.java')) for name in names], str(ROOT/'android/app/src/androidTest/java/at/hausgarten/service/LegacyDriveRestFixture.java'), str(ROOT/'tests/java/at/hausgarten/service/SyntheticBusinessData.java'), *map(str, tests)])
+     *[str((src if (src/(name+'.java')).exists() else ROOT/'android/app/src/androidTest/java/at/hausgarten/service')/(name+'.java')) for name in names], *map(str,retired_sources), str(ROOT/'android/app/src/androidTest/java/at/hausgarten/service/LegacyDriveRestFixture.java'), str(ROOT/'tests/java/at/hausgarten/service/SyntheticBusinessData.java'), *map(str, tests)])
 results = []
 for test in tests:
     # Execute real Tink on the host JCE without Android stub classes. The heap is
     # smaller than the complete encrypted/archive/restored dataset on disk.
-    crypto = test.stem in ('EncryptedBackupArchiveTests','DriveBackupUploadTests','BackupDocumentTransferTests','BackupPortableFormatTests','LocalFinancialOriginalsTests','BrowserMediaFilesTests')
+    crypto = test.stem in ('EncryptedBackupArchiveTests','PixelPlainBackupTests','DriveBackupUploadTests','BackupDocumentTransferTests','BackupPortableFormatTests','LocalFinancialOriginalsTests','BrowserMediaFilesTests')
     runtime_cp = os.pathsep.join(map(str, [classes, jar, *crypto_jars])) if crypto else cp
     output = run([shutil.which('java'), *(['-Xmx64m'] if crypto else []), '-Dfile.encoding=UTF-8', '-cp', runtime_cp, 'at.hausgarten.service.'+test.stem])
     (classes.parent/(test.stem+'.log')).write_text(output)

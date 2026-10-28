@@ -13,15 +13,13 @@
   return raw.replace(/^ERROR:\s*/, '')||'Der Vorgang konnte nicht abgeschlossen werden.';
  }
  const backupOnly=s=>s?.drive_role==='backup_only'||s?.mode==='backup_only'||Number(s?.storage_contract_version)>=3;
- function backupStatus(s){const b=s.full_backup;if(!b||typeof b!=='object')return {title:'Sicherungsstatus offen',detail:'Geschäftsdaten liegen auf diesem Gerät. Eine extern geprüfte Vollsicherung ist noch nicht bestätigt. Sicherung öffnen; Drive dient nur als Sicherungsziel.',tone:'busy'};
-  const checked=time(b.last_external_verified_at),captured=time(b.last_external_captured_at);if(checked&&captured&&!b.clock_review_required)return {title:'Sicherung extern geprüft',detail:'Auf diesem Gerät gespeichert. Vollsicherung extern geprüft: '+checked+' · enthaltener Datenstand: '+captured+'. Neuere Arbeit ist damit nicht automatisch gesichert.',tone:'ok'};
-  const jobs=(Array.isArray(b.jobs)?b.jobs:[]).filter(job=>job.context_matches===true&&job.target_matches===true),job=jobs[0]||{},phase=String(job.phase||'');
-  if(b.clock_review_required)return {title:'Sicherungszeit prüfen',detail:'Geschäftsdaten bleiben lokal gespeichert. Zeitpunkt und Datenstand der Sicherung sind noch nicht zuverlässig bestätigt. Sicherung öffnen und Gerätezeit prüfen.',tone:'error'};
-  if(b.requires_setup)return {title:'Sicherung einrichten',detail:'Geschäftsdaten bleiben lokal gespeichert. Sicherung öffnen, Wiederherstellungscode und gewähltes Drive- oder USB-Ziel prüfen. Kein Geschäftsabgleich nötig.',tone:'busy'};
-  if(['FAILED','NEEDS_USER_ACTION','FORMAT_REVIEW_REQUIRED'].includes(phase)||b.last_scheduler_error_code)return {title:'Sicherung prüfen',detail:'Geschäftsdaten bleiben lokal gespeichert. Der Sicherungsauftrag benötigt eine Prüfung. Sicherung öffnen; keine externe Sicherung bestätigt.',tone:'error'};
-  if(phase==='PROVIDER_VERIFIED')return {title:'Dateianbieter zurückgelesen',detail:'Das Sicherungsarchiv wurde vom Anbieter zurückgelesen. Ein unabhängiger externer Upload ist dadurch noch nicht bestätigt. Geschäftsdaten bleiben lokal gespeichert.',tone:'busy'};
-  if(['UPLOAD_PENDING','UPLOADING','REMOTE_VERIFY_PENDING','LOCAL_VERIFIED'].includes(phase))return {title:'Sicherung ausstehend',detail:'Sicherung lokal vorbereitet. Externer Upload und vollständiges Rücklesen sind noch nicht bestätigt. Du kannst lokal weiterarbeiten.',tone:'busy'};
-  return {title:'Sicherung ausstehend',detail:'Auf diesem Gerät gespeichert. Noch keine extern vollständig geprüfte Vollsicherung bestätigt. Automatische Uploads und zusätzliche USB-Sicherung unter Sicherung prüfen.',tone:'busy'};
+ function backupStatus(s){const b=s.full_backup;if(!b||typeof b!=='object')return {title:'Sicherungsstatus offen',detail:'Geschäftsdaten liegen auf diesem Gerät. Noch keine lokale ZIP-Sicherung bestätigt. Sicherung öffnen.',tone:'busy'};
+  const checked=time(b.last_local_verified_at),captured=time(b.last_local_captured_at);
+  if(checked&&captured&&!b.clock_review_required)return {title:'Sicherung auf dem Pixel geprüft',detail:'ZIP-Datei gespeichert und vollständig zurückgelesen: '+checked+' · enthaltener Datenstand: '+captured+'. Neuere Arbeit ist damit nicht automatisch gesichert.',tone:'ok'};
+  if(b.clock_review_required)return {title:'Sicherungszeit prüfen',detail:'Der Zeitpunkt der lokalen Sicherung ist nicht bestätigt. Gerätezeit und Sicherungsdatei prüfen.',tone:'error'};
+  const job=(Array.isArray(b.jobs)?b.jobs:[])[0]||{};
+  if(['FAILED','NEEDS_USER_ACTION','FORMAT_REVIEW_REQUIRED'].includes(job.phase))return {title:'Sicherung prüfen',detail:'Die lokale Sicherung wurde nicht abgeschlossen. Sicherung öffnen und den angezeigten Fehler prüfen.',tone:'error'};
+  return {title:'Sicherung ausstehend',detail:'Auf diesem Gerät gespeichert. Noch keine vollständig gespeicherte und zurückgelesene lokale ZIP-Sicherung bestätigt. Mit „Sicherung speichern“ eine Datei auf dem Pixel anlegen.',tone:'busy'};
  }
  function sync(s={}){
   if(backupOnly(s))return backupStatus(s);

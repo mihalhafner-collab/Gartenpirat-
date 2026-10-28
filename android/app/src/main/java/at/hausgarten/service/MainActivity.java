@@ -73,7 +73,6 @@ public class MainActivity extends Activity implements McpSyncHost {
         if(BuildConfig.UI_PREVIEW)return;
         refreshBusinessView();MainActivity activity=foreground.get();
         if(activity!=null)activity.runOnUiThread(()->activity.requestAutomaticSync(0));
-        else try{FullBackupJob.install(context);}catch(Exception unavailable){/* Existing opted-in backup jobs remain retryable. */}
     }
     private final Handler syncHandler = new Handler(Looper.getMainLooper());
     private android.net.ConnectivityManager.NetworkCallback syncNetworkCallback;
@@ -84,7 +83,6 @@ public class MainActivity extends Activity implements McpSyncHost {
         store = new PixelLocalStore(this);
         if(!BuildConfig.UI_PREVIEW){
             try{DriveSyncJob.install(this);}catch(RuntimeException unavailable){backgroundState(true,"BACKGROUND_SCHEDULING_FAILED");}
-            try{FullBackupJob.install(this);}catch(Exception unavailable){backgroundState(true,"BACKUP_SCHEDULING_PENDING");}
             try{if(PlanningAccount.connected(this)||PlanningAccount.prefs(this).getBoolean("weather_enabled",false))PlanningJob.install(this);}catch(RuntimeException unavailable){backgroundState(true,"BACKGROUND_SCHEDULING_FAILED");}
         }
         new Thread(()->{try{if(store.compactPurgedTestActions()>0)refreshBusinessView();}catch(Exception failure){runOnUiThread(()->Toast.makeText(this,"Testbereinigung benötigt Prüfung. Bestehende Daten bleiben erhalten.",Toast.LENGTH_LONG).show());}},"test-cleanup").start();
@@ -495,7 +493,7 @@ public class MainActivity extends Activity implements McpSyncHost {
             try(PixelLocalStore local=new PixelLocalStore(getApplicationContext())){
                 if(restoredBrowserGate()){prepareRestoredBrowserReview(page);return;}
                 if(new RestoredBrowserCheckpoint(getApplicationContext(),local).pending()){runOnUiThread(()->{if(!isDestroyed()&&page.equals(backupPageToken))webView.loadUrl("file:///android_asset/backup-restore-drafts.html");});return;}
-                JSONObject config=new BackupSettingsRepository(getApplicationContext(),local).read();boolean active=config.optBoolean("contextMatches")&&config.optBoolean("keyConfigured")&&!config.optString("folderId").isEmpty();
+                boolean active=explicit;
                 if(active||explicit)markBackupCapturePending(local,page);
                 String script;try(java.io.InputStream input=getAssets().open("backup-browser-state.js");java.io.ByteArrayOutputStream output=new java.io.ByteArrayOutputStream()){byte[] bytes=new byte[8192];int n;while((n=input.read(bytes))!=-1)output.write(bytes,0,n);script=new String(output.toByteArray(),StandardCharsets.UTF_8);}
                 runOnUiThread(()->{
@@ -503,7 +501,6 @@ public class MainActivity extends Activity implements McpSyncHost {
                     String expression=script+";window.HGBackupSnapshot.bind("+JSONObject.quote(page)+","+active+");window.HGBackupSnapshot.prepareMedia(false).catch(()=>{});"+((active||explicit)?"JSON.stringify(window.HGBackupSnapshot.capture());":"null;");
                     webView.evaluateJavascript(expression,value->{if(active||explicit){try{Object decoded=new org.json.JSONTokener(value).nextValue();if(!(decoded instanceof String))throw new IOException();enqueueBackupCheckpoint((String)decoded,explicit,after,true);}catch(Exception invalid){recordBackupCaptureFailure("BACKUP_BROWSER_CAPTURE_REQUIRED",explicit,after);}}});
                 });
-                try{if(!FullBackupJob.install(getApplicationContext()))backgroundState(true,"BACKGROUND_SCHEDULER_UNAVAILABLE");}catch(Exception ignored){/* A missing schedule never changes local business data. */}
             }catch(Exception failure){if(explicit)recordBackupCaptureFailure("BACKUP_BROWSER_CAPTURE_REQUIRED",true,after);}
         });
     }
@@ -511,13 +508,9 @@ public class MainActivity extends Activity implements McpSyncHost {
         JSONObject previous=new JSONObject(local.ownerValue("full_backup_browser_status","{}"));if(!previous.optString("code").isEmpty()&&(!previous.optBoolean("capturePending")||!backupPendingCaptures.containsKey(page)))backupRecoveryWakeups.add(page);
         backupPendingCaptures.put(page,backupPendingCaptures.getOrDefault(page,0)+1);local.putOwnerValue("full_backup_browser_status",new JSONObject().put("code","BACKUP_BROWSER_CAPTURE_REQUIRED").put("capturePending",true).put("at",java.time.Instant.now().toString()).toString());
     }
-    private void completeBackupCapture(PixelLocalStore local,String page,JSONObject config)throws Exception {
+    private void completeBackupCapture(PixelLocalStore local,String page)throws Exception {
         int remaining=Math.max(0,backupPendingCaptures.getOrDefault(page,1)-1);if(remaining==0)backupPendingCaptures.remove(page);else backupPendingCaptures.put(page,remaining);
-        if(remaining==0&&page.equals(backupPageToken)&&backupLastSequence>0&&backupLastSequence>=backupReceivedSequence){
-            local.putOwnerValue("full_backup_browser_status",new JSONObject().put("code","").put("at",java.time.Instant.now().toString()).toString());boolean wake=backupRecoveryWakeups.remove(page);JSONObject scheduler=new JSONObject(local.ownerValue("full_backup_scheduler_status","{}"));
-            if(java.util.Arrays.asList("BACKUP_BROWSER_CAPTURE_REQUIRED","BACKUP_BROWSER_STATE_REQUIRED_OPEN_APP","BACKUP_BROWSER_WRITE_CONFLICT","BACKUP_BROWSER_EDITOR_STATE_MISMATCH","BACKUP_BROWSER_STATE_TOO_LARGE").contains(scheduler.optString("code"))){local.putOwnerValue("full_backup_scheduler_status",new JSONObject().put("code","").put("needsReview",false).put("at",java.time.Instant.now().toString()).toString());wake=true;}
-            if(wake&&config.optBoolean("enabled"))try{FullBackupJob.schedule(getApplicationContext(),0);}catch(Exception ignored){}
-        }
+        if(remaining==0&&page.equals(backupPageToken)&&backupLastSequence>0&&backupLastSequence>=backupReceivedSequence){local.putOwnerValue("full_backup_browser_status",new JSONObject().put("code","").put("at",java.time.Instant.now().toString()).toString());backupRecoveryWakeups.remove(page);}
     }
     private void enqueueBackupCheckpoint(String raw,boolean explicit,Runnable after,boolean alreadyPending){
         if(!trustedBackupPage())return;final String page=backupPageToken;
@@ -526,14 +519,14 @@ public class MainActivity extends Activity implements McpSyncHost {
             try(PixelLocalStore local=new PixelLocalStore(getApplicationContext())){
                 JSONObject value=new JSONObject(raw),checkpoint=value.getJSONObject("_checkpoint");long sequence=checkpoint.getLong("sequence");
                 if(!page.equals(checkpoint.getString("pageToken"))||!page.equals(backupPageToken))return;
-                BackupSettingsRepository repository=new BackupSettingsRepository(getApplicationContext(),local);JSONObject config=repository.read();
-                if(!explicit&&!(config.optBoolean("contextMatches")&&config.optBoolean("keyConfigured")&&!config.optString("folderId").isEmpty()))return;
+                BackupSettingsRepository repository=new BackupSettingsRepository(getApplicationContext(),local);
+                if(!explicit&&!backupCheckpointActive)return;
                 if(!alreadyPending)markBackupCapturePending(local,page);backupReceivedSequence=Math.max(backupReceivedSequence,sequence);
-                if(sequence<=backupLastSequence){completeBackupCapture(local,page,config);return;}
+                if(sequence<=backupLastSequence){completeBackupCapture(local,page);return;}
                 value.remove("_checkpoint");value=sanitizeBackupCheckpoint(value);
                 boolean unchanged=false;try{unchanged=PixelMcpWriteTools.hash(value).equals(repository.browser().optString("contentSha256"));}catch(Exception missing){/* First explicit checkpoint or a restored epoch needs its own commit. */}
                 if(!unchanged)repository.saveBrowser(UUID.randomUUID().toString(),repository.browserRevision(),value);
-                backupLastSequence=sequence;completeBackupCapture(local,page,config);
+                backupLastSequence=sequence;completeBackupCapture(local,page);
                 if(after!=null)runOnUiThread(()->{if(!isDestroyed())after.run();});
             }catch(Exception failure){String message=failure.getMessage(),code="BACKUP_BROWSER_CAPTURE_REQUIRED";if("BACKUP_BROWSER_STATE_TOO_LARGE".equals(message)||"BACKUP_BROWSER_WRITE_CONFLICT".equals(message))code=message;recordBackupCaptureFailure(code,explicit,after);}
         });
@@ -589,8 +582,8 @@ public class MainActivity extends Activity implements McpSyncHost {
             public void state(boolean pending,String code){backgroundState(pending,code);}
             public boolean post(Runnable task){return syncHandler.post(task);}
             public void prepare(){if(LocalAuthorityGuard.local(MainActivity.this))scheduleLocalMaintenance();}
-            public boolean localReady()throws Exception {JSONObject config=new BackupSettingsRepository(MainActivity.this,store).read();return config.optBoolean("contextMatches")&&config.optBoolean("enabled")&&config.optBoolean("keyConfigured")&&FullBackupController.validTarget(config);}
-            public boolean local(long delay)throws Exception {return FullBackupJob.schedule(MainActivity.this,delay);}
+            public boolean localReady(){return false;}
+            public boolean local(long delay)throws Exception {return false;}
         });
     }
 

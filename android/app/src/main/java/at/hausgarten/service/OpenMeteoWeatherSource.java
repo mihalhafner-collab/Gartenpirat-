@@ -26,7 +26,7 @@ final class OpenMeteoWeatherSource {
         if(untilStart>24*3600)return 8*3600;
         return untilStart>6*3600?4*3600:2*3600;
     }
-    static JSONObject refreshSite(String location,JSONObject cache,Instant now,long untilStart,DriveRestClient.Wire wire)throws Exception {
+    static JSONObject refreshSite(String location,JSONObject cache,Instant now,long untilStart,HttpTransport.Wire wire)throws Exception {
         if(untilStart>FreeWeatherSource.MONITOR_WINDOW)return cache;
         if(cache.optBoolean("source_unavailable")||!PROVIDER.equals(cache.optString("forecast_provider"))||FreeWeatherSource.due(cache,"fetched_at",now,FreeWeatherSource.intervalSeconds(untilStart))){
             JSONObject raw=FreeWeatherSource.fetch(wire,url(location),1024*1024,now).json();

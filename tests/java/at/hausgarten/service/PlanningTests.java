@@ -18,12 +18,12 @@ public final class PlanningTests {
   return SyntheticBusinessData.object().put("forecast",SyntheticBusinessData.object().put("hourly",h)).put("fetched_at",now.toString()).put("warnings",new JSONArray()).put("warnings_fetched_at",now.toString());
  }
  static JSONObject event(JSONObject r,String etag)throws Exception{return CalendarRules.event(r).put("etag",etag);}
- static final class Provider implements DriveRestClient.Wire {
+ static final class Provider implements HttpTransport.Wire {
   JSONObject remote;int inserts,patches,deletes;boolean failAck,stale,expired,deny,retry;
-  DriveRestClient.Reply reply(int code,JSONObject body)throws Exception{return new DriveRestClient.Reply(code,body==null?new byte[0]:body.toString().getBytes(StandardCharsets.UTF_8),new HashMap<>());}
-  public DriveRestClient.Reply send(String method,String url,Map<String,String> headers,byte[] body,int max)throws Exception{
+  HttpTransport.Reply reply(int code,JSONObject body)throws Exception{return new HttpTransport.Reply(code,body==null?new byte[0]:body.toString().getBytes(StandardCharsets.UTF_8),new HashMap<>());}
+  public HttpTransport.Reply send(String method,String url,Map<String,String> headers,byte[] body,int max)throws Exception{
    yes(url.startsWith(CalendarClient.API)&&headers.get("Authorization").equals("Bearer synthetic"));
-   if(deny)return reply(401,null);if(retry)return new DriveRestClient.Reply(429,new byte[0],Collections.singletonMap("Retry-After","120"));
+   if(deny)return reply(401,null);if(retry)return new HttpTransport.Reply(429,new byte[0],Collections.singletonMap("Retry-After","120"));
    if(method.equals("GET")&&url.contains("maxResults")){if(expired)return reply(410,null);return reply(200,SyntheticBusinessData.object().put("items",remote==null?new JSONArray():new JSONArray().put(remote)).put("nextSyncToken","next"));}
    if(method.equals("GET"))return reply(remote==null?404:200,remote);
    if(method.equals("DELETE")){if(stale)return reply(412,null);yes(headers.get("If-Match").equals(remote.getString("etag")));deletes++;remote=null;return reply(204,null);}
@@ -74,7 +74,7 @@ public final class PlanningTests {
   JSONObject official=SyntheticBusinessData.object().put("fetched_at",now.minusSeconds(86400).toString()).put("warnings_fetched_at",now.toString()).put("warnings",new JSONArray().put(SyntheticBusinessData.object().put("starts_at",a.getString("starts_at")).put("ends_at",a.getString("ends_at")).put("level",2).put("type","Gewitter")));JSONObject officialOnly=WeatherRiskRules.evaluate(a,official,now,preferences);yes(officialOnly.getString("severity").equals("critical")&&officialOnly.getBoolean("forecast_unknown"));
   Provider wire=new Provider();CalendarClient client=new CalendarClient(()->"synthetic",wire);wire.failAck=true;rejects(()->client.save("test",a,null));yes(wire.inserts==1);JSONObject after=client.save("test",a,null);yes(wire.inserts==1&&after.getString("etag").equals("v1"));
   JSONObject changedRow=SyntheticBusinessData.object(a.toString()).put("title","changed");client.save("test",changedRow,after);yes(wire.patches==1);wire.stale=true;rejects(()->client.save("test",a,after));wire.stale=false;client.remove("test",CalendarRules.eventId("qa_a"),wire.remote);yes(wire.deletes==1&&wire.remote==null);client.remove("test",CalendarRules.eventId("qa_a"),null);yes(wire.deletes==1);
-  wire.expired=true;yes(client.changes("test","old").getBoolean("reset_required"));wire.expired=false;yes(client.changes("test","").getString("next_sync_token").equals("next"));wire.deny=true;rejects(()->client.get("test","id"));wire.deny=false;wire.retry=true;try{client.get("test","id");throw new AssertionError();}catch(DriveRestClient.Failure f){yes(f.retryAfter==120000&&!f.userAction);}
+  wire.expired=true;yes(client.changes("test","old").getBoolean("reset_required"));wire.expired=false;yes(client.changes("test","").getString("next_sync_token").equals("next"));wire.deny=true;rejects(()->client.get("test","id"));wire.deny=false;wire.retry=true;try{client.get("test","id");throw new AssertionError();}catch(HttpTransport.Failure f){yes(f.retryAfter==120000&&!f.userAction);}
   for(String name:AppointmentTools.READS)McpSchema.validate(SyntheticBusinessData.object(),name.equals("get_appointment")?AppointmentTools.schema("get_planning_context"):name.equals("suggest_appointment_slots")?AppointmentTools.schema("get_planning_context"):AppointmentTools.schema(name));
   JSONObject create=SyntheticBusinessData.object(row().toString()).put("request_id","qa-create");create.remove("id");McpSchema.validate(create,AppointmentTools.schema("create_appointment"));rejects(()->McpSchema.validate(SyntheticBusinessData.object(create.toString()).put("sql","unsafe"),AppointmentTools.schema("create_appointment")));
   PixelMcpReadTools reader=new PixelMcpReadTools(()->SyntheticBusinessData.object().put("master",snapshot()).put("pending",new JSONArray()));rejects(()->reader.call("create_appointment",create));yes(reader.tools().toString().contains("get_workweek_weather"));

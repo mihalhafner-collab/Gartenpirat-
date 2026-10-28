@@ -1,0 +1,49 @@
+{
+  "classification": "PUBLIC_SOURCE_AND_SYNTHETIC_TEST_METADATA",
+  "user_order": "Remove all Drive backup paths; plaintext backup on Pixel; simple UI",
+  "baseline_commit": "c24b4e86a4c4879dcd9cda5a5814f2d63464300f",
+  "before_after": {
+    "active_drive_backup_components": {
+      "before": 8,
+      "after": 0
+    },
+    "registered_background_backup_service": {
+      "before": true,
+      "after": false
+    },
+    "new_backup_format": {
+      "before": "encrypted hgb plus key/account setup",
+      "after": "one plaintext ZIP on Pixel; no account or recovery setup"
+    },
+    "drive_api_or_scope_in_production": {
+      "after": false
+    }
+  },
+  "implementation": {
+    "screen": "FullBackupActivity; one save and explicit restore; optional legacy encrypted reader; conditional previous-state recovery",
+    "storage": "one existing operational SQLite database; backup snapshots are files; no schema migration",
+    "save": "Android CREATE_DOCUMENT; Pixel primary/Downloads only; stable request/URI binding; full byte/hash readback; no second commit file",
+    "restore": "same complete manifest/hash/path checks and cold-start exchange/rollback; no key capsule for new ZIP; existing encrypted reader retained",
+    "retired_sources": "historical implementations only in androidTest; default live network/account access blocked",
+    "generic_http": "shared values renamed HttpTransport; no Google Drive client or network implementation",
+    "history": "no user files, keys, pending receipts or historical evidence deleted"
+  },
+  "tests": {
+    "plaintext_file_checks": 19,
+    "large_plain_file_bytes": 50331648,
+    "jvm_heap_bytes": 67108864,
+    "jvm_suites_passed": 84,
+    "source_python_tests_passed": 99,
+    "web_feedback": "PASS",
+    "cloud_chromium_entry": "PASS;320/360/426px;200% font;48px controls;native entry invoked once;local status/read failure;no business writes",
+    "production_and_native_source_compilation": "PASS using installed SDK and cached dependencies; not device execution",
+    "existing_P1_schema_contract": "FAIL_PREEXISTING_UNCHANGED;after all JVM suites",
+    "pixel_save_restore": "NOT_EXECUTED"
+  },
+  "limits": [
+    "Existing Pixel local capture failure may persist; new local ZIP still uses complete capture and detailed stage codes",
+    "No claim of faster device performance; comparison is contract/behavior not elapsed-time benchmark",
+    "No installation, automatic restore, productive migration or invoice release"
+  ],
+  "apk": "CANDIDATE113_PENDING_BUILD"
+}

@@ -179,14 +179,14 @@ final class AppointmentRuntime {
                 p.edit().putString(prefix+"retry_at",now.plusMillis(CalendarRecoveryRules.MIN_RETRY).toString()).apply();store.putOwnerValue(kind+":status","retry_pending");return CalendarRecoveryRules.MIN_RETRY;
             }
             if(kind.equals("calendar"))store.putOwnerValue("calendar:last_error_code",CalendarAccessRules.code(e));
-            if(kind.equals("weather")&&e instanceof DriveRestClient.Failure&&Arrays.asList("WEATHER_BATCH_PENDING","WEATHER_RATE_LIMIT").contains(((DriveRestClient.Failure)e).code)){
-                long delay=Math.max(30000,((DriveRestClient.Failure)e).retryAfter);p.edit().putString(prefix+"retry_at",now.plusMillis(delay).toString()).apply();store.putOwnerValue(kind+":status","pending");return delay;
+            if(kind.equals("weather")&&e instanceof HttpTransport.Failure&&Arrays.asList("WEATHER_BATCH_PENDING","WEATHER_RATE_LIMIT").contains(((HttpTransport.Failure)e).code)){
+                long delay=Math.max(30000,((HttpTransport.Failure)e).retryAfter);p.edit().putString(prefix+"retry_at",now.plusMillis(delay).toString()).apply();store.putOwnerValue(kind+":status","pending");return delay;
             }
-            boolean auth=e instanceof DriveRestClient.Failure&&((DriveRestClient.Failure)e).userAction&&!(calendar&&((DriveRestClient.Failure)e).code.equals("CALENDAR_CONSENT_CANCELLED"));
+            boolean auth=e instanceof HttpTransport.Failure&&((HttpTransport.Failure)e).userAction&&!(calendar&&((HttpTransport.Failure)e).code.equals("CALENDAR_CONSENT_CANCELLED"));
             if(auth){p.edit().putBoolean(prefix+"blocked",true).apply();store.putOwnerValue(kind+":status","authorization_required");return Long.MAX_VALUE;}
             if(e instanceof PixelMcpWriteTools.Rejected){store.putOwnerValue(kind+":status","review_required");return Long.MAX_VALUE;}
-            if(calendar){long delay=CalendarRecoveryRules.retryDelay(failures,e instanceof DriveRestClient.Failure?((DriveRestClient.Failure)e).retryAfter:0,new Random().nextInt(3000));p.edit().putInt(prefix+"failures",CalendarRecoveryRules.nextFailures(failures)).putString(prefix+"retry_at",now.plusMillis(delay).toString()).apply();store.putOwnerValue("calendar:status","retry_pending");return delay;}
-            long delay=Math.min(3600000,30000L*(1L<<failures))+new Random().nextInt(3000);if(e instanceof DriveRestClient.Failure)delay=Math.max(delay,((DriveRestClient.Failure)e).retryAfter);
+            if(calendar){long delay=CalendarRecoveryRules.retryDelay(failures,e instanceof HttpTransport.Failure?((HttpTransport.Failure)e).retryAfter:0,new Random().nextInt(3000));p.edit().putInt(prefix+"failures",CalendarRecoveryRules.nextFailures(failures)).putString(prefix+"retry_at",now.plusMillis(delay).toString()).apply();store.putOwnerValue("calendar:status","retry_pending");return delay;}
+            long delay=Math.min(3600000,30000L*(1L<<failures))+new Random().nextInt(3000);if(e instanceof HttpTransport.Failure)delay=Math.max(delay,((HttpTransport.Failure)e).retryAfter);
             p.edit().putInt(prefix+"failures",failures+1).putString(prefix+"retry_at",now.plusMillis(delay).toString()).apply();store.putOwnerValue(kind+":status",failures>=7?"retry_limit_reached":"retry_pending");return failures>=7?Long.MAX_VALUE:delay;
         }
     }
@@ -271,10 +271,10 @@ final class AppointmentRuntime {
         if(changed)saveSettings(store,s);
     }
     static void refreshWeather(Context c,PixelLocalStore store,Instant now)throws Exception {refreshWeather(c,store,now,new PlanningWire());}
-    static void refreshWeather(Context c,PixelLocalStore store,Instant now,DriveRestClient.Wire upstream)throws Exception {
+    static void refreshWeather(Context c,PixelLocalStore store,Instant now,HttpTransport.Wire upstream)throws Exception {
         refreshWeather(c,store,now,upstream,query->WeatherLocationResolver.lookup(c,query));
     }
-    static void refreshWeather(Context c,PixelLocalStore store,Instant now,DriveRestClient.Wire upstream,WeatherLocationResolver.Lookup lookup)throws Exception {
+    static void refreshWeather(Context c,PixelLocalStore store,Instant now,HttpTransport.Wire upstream,WeatherLocationResolver.Lookup lookup)throws Exception {
         JSONObject snapshot=PixelMcpReadTools.effective(store.getState());JSONArray all=snapshot.getJSONArray("appointments");
         Map<String,Long> sites=new LinkedHashMap<>();WeatherLocationResolver.Budget locationBudget=new WeatherLocationResolver.Budget();boolean locationsPending=false;
         for(int i=0;i<all.length();i++){
@@ -290,11 +290,11 @@ final class AppointmentRuntime {
         }
         JSONObject common=new JSONObject(store.ownerValue("weather:public-source-cache","{}"));
         final int[] requests={0};final long deadline=android.os.SystemClock.elapsedRealtime()+45000;
-        DriveRestClient.Wire wire=(method,url,headers,body,max)->{
+        HttpTransport.Wire wire=(method,url,headers,body,max)->{
             if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException();
-            if(++requests[0]>12||android.os.SystemClock.elapsedRealtime()>deadline)throw new DriveRestClient.Failure("WEATHER_BATCH_PENDING","Weitere Wetterprüfungen werden später fortgesetzt.",300000,false);
+            if(++requests[0]>12||android.os.SystemClock.elapsedRealtime()>deadline)throw new HttpTransport.Failure("WEATHER_BATCH_PENDING","Weitere Wetterprüfungen werden später fortgesetzt.",300000,false);
             long bucket=now.getEpochSecond()/3600;JSONObject budget=new JSONObject(store.ownerValue("weather:request-budget","{}"));int count=budget.optLong("hour",-1)==bucket?budget.optInt("count"):0;
-            if(count>=180)throw new DriveRestClient.Failure("WEATHER_RATE_LIMIT","Wetterprüfung wird später fortgesetzt.",(3600-now.getEpochSecond()%3600)*1000,false);
+            if(count>=180)throw new HttpTransport.Failure("WEATHER_RATE_LIMIT","Wetterprüfung wird später fortgesetzt.",(3600-now.getEpochSecond()%3600)*1000,false);
             store.putOwnerValue("weather:request-budget",new JSONObject().put("hour",bucket).put("count",count+1).toString());
             if(requests[0]>1)Thread.sleep(300); // Below the public 5 requests/second quota; worker only.
             return upstream.send(method,url,headers,body,max);
@@ -311,16 +311,16 @@ final class AppointmentRuntime {
                 FreeWeatherSource.refreshNonCommercialSite(loc,cache,now,site.getValue(),wire);cache.remove("source_unavailable");
                 if(site.getValue()<=3*3600){JSONObject assessment=null;for(int i=0;i<all.length();i++){JSONObject a=all.getJSONObject(i);if(loc.equals(WeatherRiskRules.locationKey(a))){assessment=WeatherRiskRules.evaluate(a,cache,now,settings(store));if(!assessment.optString("severity").equals("clear"))break;}}
                     if(assessment!=null&&!assessment.optString("severity").equals("clear"))try{FreeWeatherSource.refreshNowcast(loc,cache,now,wire);cache.remove("nowcast_status");}
-                    catch(Exception unavailable){cache.put("nowcast_status","Kurzfristwetter derzeit nicht verfügbar.");if(CalendarRecoveryRules.interrupted(unavailable)||(unavailable instanceof DriveRestClient.Failure&&Arrays.asList("WEATHER_RATE_LIMIT","WEATHER_BATCH_PENDING").contains(((DriveRestClient.Failure)unavailable).code)))throw unavailable;}
+                    catch(Exception unavailable){cache.put("nowcast_status","Kurzfristwetter derzeit nicht verfügbar.");if(CalendarRecoveryRules.interrupted(unavailable)||(unavailable instanceof HttpTransport.Failure&&Arrays.asList("WEATHER_RATE_LIMIT","WEATHER_BATCH_PENDING").contains(((HttpTransport.Failure)unavailable).code)))throw unavailable;}
                 }
-            }catch(Exception unavailable){failure=unavailable;if(unavailable instanceof DriveRestClient.Failure&&((DriveRestClient.Failure)unavailable).userAction)cache.put("source_unavailable",true);}
+            }catch(Exception unavailable){failure=unavailable;if(unavailable instanceof HttpTransport.Failure&&((HttpTransport.Failure)unavailable).userAction)cache.put("source_unavailable",true);}
             finally{
                 for(Iterator<String> keys=cache.keys();keys.hasNext();){String key=keys.next();if(key.equals("licence_checked_at")||key.contains(":metadata"))common.put(key,cache.get(key));}
                 store.putOwnerValue("weather:public-source-cache",common.toString());store.putOwnerValue("weather:"+loc,cache.toString());store.putOwnerValue("weather:attempt:"+loc,now.toString());
             }
-            if(failure instanceof DriveRestClient.Failure)break; // Respect Retry-After globally, never hammer another site.
+            if(failure instanceof HttpTransport.Failure)break; // Respect Retry-After globally, never hammer another site.
         }
-        if(failure!=null)throw failure;if(locationsPending)throw new DriveRestClient.Failure("WEATHER_BATCH_PENDING","Weitere Einsatzadressen werden später geprüft.",300000,false);
+        if(failure!=null)throw failure;if(locationsPending)throw new HttpTransport.Failure("WEATHER_BATCH_PENDING","Weitere Einsatzadressen werden später geprüft.",300000,false);
     }
     static void notifyRisks(Context c,PixelLocalStore store,Instant now)throws Exception {
         if(!flag(c,store,"weather_enabled")||!flag(c,store,"notifications")){WeatherNotifications.cancelAll(c);store.putOwnerValue("weather:delivery-paused","true");return;}

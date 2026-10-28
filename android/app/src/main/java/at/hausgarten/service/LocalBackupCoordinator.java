@@ -10,16 +10,12 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
-/** Android coordinator for local capture, sealing, reference verification and optional backup upload. */
+/** Local capture, plaintext ZIP preparation and file-reference verification. No network. */
 final class LocalBackupCoordinator {
-    interface Tokens {String forAccount(String account)throws Exception;}
-    interface UploadGate {void check()throws Exception;}
-    private static final ReentrantLock LOCAL_RUNNING=new ReentrantLock(),UPLOAD_RUNNING=new ReentrantLock();
-    private final Context context;private final PixelLocalStore store;private final BackupDeviceGuard guard;private final JSONObject identity;private final BackupJobRepository jobs;private final DriveRestClient.Wire wire;private final Tokens tokens;
-    LocalBackupCoordinator(Context context,PixelLocalStore store)throws Exception {this(context,store,new DriveRestClient.HttpWire());}
-    LocalBackupCoordinator(Context context,PixelLocalStore store,DriveRestClient.Wire wire)throws Exception {this(context,store,wire,account->DriveAccount.token(context,account,null));}
-    LocalBackupCoordinator(Context context,PixelLocalStore store,DriveRestClient.Wire wire,Tokens tokens)throws Exception {
-        this.context=context;this.store=store;this.wire=wire;this.tokens=tokens;guard=new BackupDeviceGuard(context);identity=guard.current();jobs=new BackupJobRepository(store,identity.getString("installationId"),identity.getString("restoreEpoch"));
+    private static final ReentrantLock LOCAL_RUNNING=new ReentrantLock();
+    private final Context context;private final PixelLocalStore store;private final BackupDeviceGuard guard;private final JSONObject identity;private final BackupJobRepository jobs;
+    LocalBackupCoordinator(Context context,PixelLocalStore store)throws Exception {
+        this.context=context;this.store=store;guard=new BackupDeviceGuard(context);identity=guard.current();jobs=new BackupJobRepository(store,identity.getString("installationId"),identity.getString("restoreEpoch"));
     }
     JSONObject create(String requestId,String backupId,JSONObject destination,JSONObject browser)throws Exception {
         return createWithIntent(requestId,backupId,destination,browser,null);
@@ -27,9 +23,7 @@ final class LocalBackupCoordinator {
     JSONObject createWithIntent(String requestId,String backupId,JSONObject destination,JSONObject browser,String intent)throws Exception {
         currentContext();if(browser==null||browser.optInt("formatVersion")!=1||browser.optJSONObject("storage")==null)throw new IOException("BACKUP_BROWSER_STATE_REQUIRED");
         String kind=destination.getString("kind");
-        if(kind.equals("drive")){if(!DriveRestClient.validId(destination.optString("folderId"))||destination.optString("account").trim().isEmpty())throw new IOException("BACKUP_DRIVE_DESTINATION_REQUIRED");}
-        else if(kind.equals("saf")){if(!destination.optString("treeUri").startsWith("content://"))throw new IOException("BACKUP_PROVIDER_DESTINATION_REQUIRED");}
-        else throw new IOException("BACKUP_DESTINATION_UNSUPPORTED");
+        if(!kind.equals("saf")||!destination.optString("treeUri").startsWith("content://"))throw new IOException("BACKUP_LOCAL_DESTINATION_REQUIRED");
         if(intent!=null&&!Arrays.asList("manual","automatic").contains(intent))throw new IOException("BACKUP_INTENT_INVALID");
         byte[] browserBytes=browser.toString().getBytes(StandardCharsets.UTF_8);if(browserBytes.length>16*1024*1024)throw new IOException("BACKUP_BROWSER_STATE_TOO_LARGE");
         SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();try{
@@ -74,21 +68,21 @@ final class LocalBackupCoordinator {
         try{CapturedJob captured=captureLocked(backupId);return new LocalBackupDataset.Captured(child(captured.root,captured.capture.getString("directory")),captured.metadata);}finally{LOCAL_RUNNING.unlock();}
     }
     private JSONObject prepareLocked(String backupId)throws Exception {
-        String recovery=new BackupRecoveryKeyStore(context).read();CapturedJob captured=captureLocked(backupId);JSONObject job=captured.job,capture=captured.capture,metadata=captured.metadata;File root=captured.root;
+        CapturedJob captured=captureLocked(backupId);JSONObject job=captured.job,capture=captured.capture,metadata=captured.metadata;File root=captured.root;
         JSONObject archive=job.optJSONObject("archive");File sealed=archive==null?null:child(root,archive.getString("file"));
         if(archive!=null&&archive.has("sha256")&&!sealed.isFile())throw new IOException("BACKUP_SEALED_ARCHIVE_MISSING");
         if(sealed!=null&&sealed.isFile()&&archive.has("sha256")&&!archive.getString("sha256").equals(EncryptedBackupArchive.sha256(sealed)))throw new IOException("BACKUP_SEALED_ARCHIVE_CHANGED");
         if(sealed==null||!sealed.isFile()||!archive.has("sha256")){
             // A partial, uncommitted attempt never overwrites a previously valid generation.
-            archive=new JSONObject().put("file","sealed-"+UUID.randomUUID()+".hgb");job=step(job,new JSONObject().put("phase","SEALING").put("archive",archive));sealed=child(root,archive.getString("file"));
+            archive=new JSONObject().put("file","sealed-"+UUID.randomUUID()+".zip").put("archiveFormat","PLAIN_ZIP");job=step(job,new JSONObject().put("phase","SEALING").put("archive",archive));sealed=child(root,archive.getString("file"));
             try(FileOutputStream out=new FileOutputStream(sealed)){
-                EncryptedBackupArchive.write(new FilterOutputStream(BackupStorageBudget.guard(out,root)){@Override public void close()throws IOException{flush();}},recovery,metadata,BackupFilePins.sources(child(root,capture.getString("directory"))));out.getFD().sync();
+                EncryptedBackupArchive.writePlain(new FilterOutputStream(BackupStorageBudget.guard(out,root)){@Override public void close()throws IOException{flush();}},metadata,BackupFilePins.sources(child(root,capture.getString("directory"))));out.getFD().sync();
             }
             archive.put("sha256",EncryptedBackupArchive.sha256(sealed)).put("size",sealed.length()).put("capturedAt",metadata.getString("capturedAt"));job=step(job,new JSONObject().put("phase","SEALED_LOCAL").put("archive",archive));
         }
         if(!archive.has("localVerifiedAt")){
             BackupStorageBudget.require(root,0);
-            try(EncryptedBackupArchive.Verified verified=EncryptedBackupArchive.verifyAndStage(new FileInputStream(sealed),recovery,child(root,"verify-"+UUID.randomUUID()),root.getUsableSpace()-BackupStorageBudget.BUSINESS_RESERVE_BYTES,PixelLocalStore.SCHEMA_VERSION)){
+            try(EncryptedBackupArchive.Verified verified=EncryptedBackupArchive.verifyArchive(new FileInputStream(sealed),archive.optString("archiveFormat").equals("PLAIN_ZIP")?"":new BackupRecoveryKeyStore(context).read(),child(root,"verify-"+UUID.randomUUID()),root.getUsableSpace()-BackupStorageBudget.BUSINESS_RESERVE_BYTES,PixelLocalStore.SCHEMA_VERSION)){
                 requireIdentity(verified.manifest,job);LocalBackupDataset.inspectStaged(new File(verified.directory,"data"),verified.manifest);
                 if(!verified.manifest.getJSONObject("database").getString("sha256").equals(metadata.getJSONObject("database").getString("sha256")))throw new IOException("BACKUP_CAPTURE_ARCHIVE_MISMATCH");
                 if(metadata.has("browser_media_inventory")){if(metadata.optInt("browser_media_format_version")!=1||verified.manifest.optInt("browser_media_format_version")!=1||!PixelMcpWriteTools.hash(metadata.getJSONObject("browser_media_inventory")).equals(PixelMcpWriteTools.hash(verified.manifest.getJSONObject("browser_media_inventory"))))throw new IOException("BACKUP_BROWSER_MEDIA_INVENTORY_MISMATCH");archive.put("mediaCoverage","VERIFIED_NATIVE_MIRROR").put("mediaFormatVersion",1).put("mediaInventorySha256",PixelMcpWriteTools.hash(verified.manifest.getJSONObject("browser_media_inventory"))).put("captureMetadataSha256",capture.getString("metadataSha256"));}
@@ -97,22 +91,6 @@ final class LocalBackupCoordinator {
         }
         return job;
     }
-    JSONObject uploadToDrive(String backupId)throws Exception {
-        return uploadToDrive(backupId,()->{});
-    }
-    JSONObject uploadToDrive(String backupId,UploadGate gate)throws Exception {
-        if(store.getWritableDatabase().inTransaction())throw new IOException("BACKUP_UPLOAD_REQUIRES_OUTSIDE_TRANSACTION");
-        if(!UPLOAD_RUNNING.tryLock())return status(backupId).put("runnerBusy",true);
-        try{
-            gate.check();JSONObject job=status(backupId);if(job.optJSONObject("archive")==null||!job.getJSONObject("archive").has("localVerifiedAt")){job=prepareLocal(backupId);if(job.optBoolean("runnerBusy"))return job;}
-            JSONObject destination=job.getJSONObject("destination"),archive=job.getJSONObject("archive");if(!destination.getString("kind").equals("drive"))throw new IOException("BACKUP_DRIVE_DESTINATION_REQUIRED");currentContext();File sealed=verifiedArchive(backupId);
-            DriveRestClient.Wire checkedWire=new DriveRestClient.Wire(){public DriveRestClient.Reply send(String method,String url,Map<String,String> headers,byte[] body,int maximum)throws Exception{gate.check();return wire.send(method,url,headers,body,maximum);}public DriveRestClient.HashReply readHash(String url,Map<String,String> headers,long expected)throws Exception{gate.check();return wire.readHash(url,headers,expected);}};
-            DriveRestClient client=new DriveRestClient(destination.getString("folderId"),()->{gate.check();return tokens.forAccount(destination.getString("account"));},checkedWire,new DriveRestClient.Checkpoints(){public String get(String key){return store.ownerValue(key,"");}public void put(String key,String value){store.putOwnerValue(key,value);}});
-            DriveBackupUpload.Checkpoint saved=jobs.uploadCheckpoint(backupId);DriveBackupUpload.Checkpoint guarded=new DriveBackupUpload.Checkpoint(){public JSONObject read()throws Exception{currentContext();gate.check();return saved.read();}public void save(JSONObject state)throws Exception{currentContext();gate.check();saved.save(state);}};
-            new DriveBackupUpload(client).upload(sealed,backupId,archive.getString("sha256"),guarded);return status(backupId);
-        }finally{UPLOAD_RUNNING.unlock();}
-    }
-    /** Native SAF adapter only; never return a private filesystem path through MCP. */
     File verifiedArchive(String backupId)throws Exception {
         currentContext();JSONObject job=jobs.load(backupId),archive=job.optJSONObject("archive");if(archive==null||!archive.has("localVerifiedAt"))throw new IOException("BACKUP_LOCAL_VERIFICATION_REQUIRED");File sealed=child(root(job),archive.getString("file"));
         if(!sealed.isFile()||sealed.length()!=archive.getLong("size")||!EncryptedBackupArchive.sha256(sealed).equals(archive.getString("sha256")))throw new IOException("BACKUP_SEALED_ARCHIVE_CHANGED");metadata(backupId);return sealed;

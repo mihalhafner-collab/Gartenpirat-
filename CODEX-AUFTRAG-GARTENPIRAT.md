@@ -1,5 +1,19 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Neuer direkter Nutzerauftrag: nur lokale unverschlüsselte Sicherung
+
+„Entferne restlos alle Backup pfade zu drive. Sicherung auf Pixel ohne
+verschlüsselung. Halte Backup möglichst einfach und userfreundlich.“
+Dieser neuere ausdrückliche Auftrag ersetzt Drive-/Verschlüsselungsvorgaben für
+neu erzeugte App-Sicherungen. Eine lokale ZIP mit vollständigem Bestand und
+bewusster Wiederherstellung, ohne Konto, Netz, Schlüssel oder Hintergrundjobs.
+Drive-Transport, Auswahl und automatische Backupstarts aus Produktion entfernen;
+historische Belege und alte Sicherungsdateien/Schlüssel nicht löschen. Alte
+verschlüsselte Archive bleiben nur zur Wiederherstellung lesbar. APK-Bereitstellung
+auf Drive ist davon getrennt weiterhin vom Nutzer verlangt. Keine Installation,
+Migration, produktiven Tests oder Rechnungsfreigabe. Hash-/Vollständigkeitsprüfung
+und Rückweg beim bewussten Restore bleiben erhalten.
+
 ## Direkter Backup-Folgeauftrag28.10.: Hänger statt Screenshot-Schalter
 
 Nutzer meldet weiter hängenden Backup-Prozess und verlangt funktionierende

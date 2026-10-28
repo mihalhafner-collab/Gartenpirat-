@@ -43,7 +43,7 @@ final class LocalAuthorityRules {
         JSONObject upload=job.optJSONObject("upload"),provider=job.optJSONObject("provider");
         if(upload!=null&&job.optString("phase").equals("REMOTE_VERIFIED")&&upload.optString("state").equals("REMOTE_VERIFIED")&&destination.optString("kind").equals("drive")){
             String binding=PixelMcpWriteTools.hash(new JSONObject().put("backupId",id).put("folder",destination.getString("folderId")).put("size",size).put("sha256",sha));
-            if(binding.equals(upload.optString("binding"))&&DriveRestClient.validId(upload.optString("remoteId"))&&sha.equals(upload.optString("remoteSha256"))&&size==new BigDecimal(upload.get("uploadedBytes").toString()).longValueExact()){verified=upload.getString("remoteVerifiedAt");scope="drive_server_full_hash";}
+            if(binding.equals(upload.optString("binding"))&&HttpTransport.validId(upload.optString("remoteId"))&&sha.equals(upload.optString("remoteSha256"))&&size==new BigDecimal(upload.get("uploadedBytes").toString()).longValueExact()){verified=upload.getString("remoteVerifiedAt");scope="drive_server_full_hash";}
         }
         if(verified.isEmpty()&&provider!=null&&"1".equals(String.valueOf(provider.opt("formatVersion")))&&provider.optBoolean("external_storage_verified")&&provider.optString("destination_location").equals("REMOVABLE_STORAGE_VOLUME")&&provider.optString("verification_scope").equals("DOCUMENT_PROVIDER_READBACK")&&id.equals(provider.optString("backup_id"))&&sha.equals(provider.optString("archive_sha256"))&&size==new BigDecimal(provider.get("byte_size").toString()).longValueExact()){
             verified=provider.getString("verified_at");scope="removable_storage_full_readback";

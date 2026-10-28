@@ -23,9 +23,14 @@ for(const field of ['request_id','price_source','client_id','provider_readback']
 
 // The final local storage contract never treats the old business queue as backup proof.
 const local={drive_role:'backup_only',storage_contract_version:3,pending:999,review:12,syncing:true,configured:true,cloud_confirmed:true,last_sync:'2027-05-18T19:00:00Z'};
-assert.equal(f.backupOnly(local),true);assert.equal(f.backupOnly({storage_contract_version:3}),true);assert.doesNotMatch(JSON.stringify(f.sync(local)),/999|12|Synchronisierung|abgeglichen|Drive verbinden|gesichert/);assert.match(f.sync(local).detail,/nicht bestätigt/);
-assert.match(f.sync({...local,full_backup:{requires_setup:true}}).title,/einrichten/);
-assert.match(f.sync({...local,full_backup:{jobs:[{phase:'PROVIDER_VERIFIED',context_matches:true,target_matches:true}]}}).detail,/externer Upload.*noch nicht bestätigt/);
-assert.match(f.sync({...local,full_backup:{jobs:[{phase:'UPLOADING',context_matches:true,target_matches:true}]}}).title,/ausstehend/);
-assert.match(f.sync({...local,full_backup:{jobs:[{phase:'FAILED',context_matches:true,target_matches:true}]}}).title,/prüfen/);
-const proof={last_external_verified_at:'2027-05-18T19:00:00Z',last_external_captured_at:'2027-05-17T18:00:00Z'};assert.match(f.sync({...local,full_backup:proof}).title,/extern geprüft/);assert.match(f.sync({...local,full_backup:proof}).detail,/enthaltener Datenstand/);assert.match(f.sync({...local,full_backup:{...proof,clock_review_required:true}}).title,/Sicherungszeit prüfen/);assert.doesNotMatch(f.sync({...local,full_backup:{last_external_verified_at:'not a date'}}).title,/extern geprüft/);assert.match(f.sync({...local,full_backup:{jobs:[{phase:'REMOTE_VERIFIED',context_matches:false,target_matches:false,cloud_confirmed:true}]}}).title,/ausstehend/);console.log('PASS backup-only presentation: legacy queue/cloud flags are not backup evidence; setup/upload/provider/full external proof separated');
+assert.equal(f.backupOnly(local),true);assert.equal(f.backupOnly({storage_contract_version:3}),true);assert.doesNotMatch(JSON.stringify(f.sync(local)),/999|12|Synchronisierung|abgeglichen|Drive verbinden|gesichert/);assert.match(f.sync(local).detail,/keine.*bestätigt/);
+assert.match(f.sync({...local,full_backup:{mode:'PIXEL_PLAINTEXT_ZIP'}}).title,/ausstehend/);
+assert.match(f.sync({...local,full_backup:{jobs:[{phase:'LOCAL_VERIFIED'}]}}).detail,/Noch keine vollständig gespeicherte/);
+assert.match(f.sync({...local,full_backup:{jobs:[{phase:'FAILED'}]}}).title,/prüfen/);
+const proof={last_local_verified_at:'2027-05-18T19:00:00Z',last_local_captured_at:'2027-05-17T18:00:00Z'};
+assert.match(f.sync({...local,full_backup:proof}).title,/Pixel geprüft/);assert.match(f.sync({...local,full_backup:proof}).detail,/enthaltener Datenstand/);
+assert.match(f.sync({...local,full_backup:{...proof,clock_review_required:true}}).title,/Sicherungszeit prüfen/);
+assert.doesNotMatch(f.sync({...local,full_backup:{last_local_verified_at:'not a date'}}).title,/Pixel geprüft/);
+assert.match(f.sync({...local,full_backup:{last_external_verified_at:'2027-05-18T19:00:00Z',last_external_captured_at:'2027-05-18T19:00:00Z'}}).title,/ausstehend/);
+assert.doesNotMatch(JSON.stringify(f.sync({...local,full_backup:proof})),/Drive|Upload|Passwort/);
+console.log('PASS local ZIP presentation: historical cloud flags are not local save proof; readback/date and pending/failure separated');

@@ -68,10 +68,13 @@ für regelmäßige Drive-Quellsicherungen, Betriebsdaten oder Signierschlüssel.
 GitHub bleibt die einzige Entwicklungs- und Regelquelle; der Claude-Ordner ist
 nur ein datierter Übergabesnapshot, keine zweite Projektzentrale.
 
-Davon getrennt bleibt die vorhandene verschlüsselte **App-Betriebsdatensicherung**
-nach Drive bestehen. Codex aktiviert sie nicht eigenständig und benutzt weder
-sie noch produktive Dateien als Entwicklungs- oder Testmaterial. Backup ist kein
-Geschäftssync. Bestehende Sicherungsordner und einzigartige Originalbelege schützen.
+Direkte Nutzeränderung: Neue **App-Betriebsdatensicherungen** werden ausschließlich
+als unverschlüsselte ZIP auf dem Pixel gespeichert. Keine Drive-Backup-Pfade,
+Google-Kontofreigabe, Recovery-Einrichtung oder automatische Uploadjobs dafür.
+Vorhandene Sicherungsdateien, Schlüssel und einzigartige Originalbelege bleiben
+erhalten; alte verschlüsselte Archive dürfen bewusst gelesen/wiederhergestellt
+werden. Diese Änderung betrifft App-Backups, nicht die gesondert beauftragte
+Bereitstellung fertiger APKs auf Drive. Keine Betriebsdaten als Testmaterial.
 
 ## Lokaler Betrieb und Schutz des Bestands
 

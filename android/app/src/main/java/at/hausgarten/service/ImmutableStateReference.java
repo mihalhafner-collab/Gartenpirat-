@@ -13,7 +13,7 @@ final class ImmutableStateReference {
         byte[] recovered=null;
         for(Map.Entry<String,String> row:names.entrySet())if(expected.equals(row.getValue())){
             byte[] bytes=reader.read(row.getKey());
-            if(!hash.equals(DriveRestClient.sha256(bytes)))throw new SyncIoFailure("PUBLICATION_INVALID");
+            if(!hash.equals(HttpTransport.sha256(bytes)))throw new SyncIoFailure("PUBLICATION_INVALID");
             if(recovered!=null&&!Arrays.equals(recovered,bytes))throw new SyncIoFailure("REMOTE_DUPLICATES_DIFFER");recovered=bytes;
         }
         if(recovered==null)throw new SyncIoFailure("REMOTE_STATE_REFERENCE_MISSING");

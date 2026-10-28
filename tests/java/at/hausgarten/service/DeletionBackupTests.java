@@ -7,7 +7,7 @@ public final class DeletionBackupTests {
  public static void main(String[] ignored)throws Exception{SyntheticBusinessData.verify();Path temp=Files.createTempDirectory("qa_deletion_backup_");
   try{
    byte[] photo="QA synthetic original".getBytes(StandardCharsets.UTF_8),pdf="%PDF-1.4\nQA synthetic document\n%%EOF".getBytes(StandardCharsets.UTF_8);
-   String ph=DriveRestClient.sha256(photo),dh=DriveRestClient.sha256(pdf);JSONObject s=TrashPurgeBatchTests.state();
+   String ph=HttpTransport.sha256(photo),dh=HttpTransport.sha256(pdf);JSONObject s=TrashPurgeBatchTests.state();
    for(String id:new String[]{"qa_photo_1","qa_photo_2"})TrashPurgeBatchTests.archive(s,"photo",TrashWorkflowTests.photo(id).put("content_sha256",ph).put("storage_name",ph+".jpg").put("byte_size",photo.length));
    JSONObject offer=OffersAndPhotosTests.draft().put("status","draft").put("pdf_storage_name",dh+".pdf").put("pdf_sha256",dh).put("pdf_byte_size",pdf.length);TrashPurgeBatchTests.archive(s,"offer",offer);
    JSONArray selection=TrashPurgeBatch.preview(s).getJSONArray("entries");String before=PixelMcpWriteTools.hash(s);int[] reads={0};
@@ -17,8 +17,8 @@ public final class DeletionBackupTests {
    File zip=temp.resolve(meta.getString("storage_name")).toFile();yes(DeletionBackupStore.sha(zip).equals(meta.getString("sha256")));
    try(ZipFile archive=new ZipFile(zip)){yes(archive.size()==3);yes(Arrays.equals(archive.getInputStream(archive.getEntry("originals/"+ph+".jpg")).readAllBytes(),photo));yes(Arrays.equals(archive.getInputStream(archive.getEntry("originals/"+dh+".pdf")).readAllBytes(),pdf));}
    JSONObject args=SyntheticBusinessData.object().put("resource_id",result.getString("backup_id"));yes(DeletionBackupStore.chunk(temp.toFile(),meta,args).getString("mime_type").equals("application/zip"));
-   ByteArrayOutputStream assembled=new ByteArrayOutputStream();int offset=0;while(true){JSONObject chunk=DeletionBackupStore.chunk(temp.toFile(),meta,new JSONObject(args.toString()).put("expected_sha256",meta.getString("sha256")).put("offset",offset).put("length",73));byte[] bytes=Base64.getDecoder().decode(chunk.getString("chunk_base64"));yes(DriveRestClient.sha256(bytes).equals(chunk.getString("chunk_sha256")));assembled.write(bytes);offset=chunk.getInt("next_offset");if(chunk.getBoolean("eof"))break;}
-   yes(DriveRestClient.sha256(assembled.toByteArray()).equals(meta.getString("sha256")));
+   ByteArrayOutputStream assembled=new ByteArrayOutputStream();int offset=0;while(true){JSONObject chunk=DeletionBackupStore.chunk(temp.toFile(),meta,new JSONObject(args.toString()).put("expected_sha256",meta.getString("sha256")).put("offset",offset).put("length",73));byte[] bytes=Base64.getDecoder().decode(chunk.getString("chunk_base64"));yes(HttpTransport.sha256(bytes).equals(chunk.getString("chunk_sha256")));assembled.write(bytes);offset=chunk.getInt("next_offset");if(chunk.getBoolean("eof"))break;}
+   yes(HttpTransport.sha256(assembled.toByteArray()).equals(meta.getString("sha256")));
    rejects(()->DeletionBackupStore.chunk(temp.toFile(),meta,new JSONObject(args.toString()).put("expected_sha256","0".repeat(64)).put("offset",0)));
    rejects(()->DeletionBackupStore.chunk(temp.toFile(),meta,new JSONObject(args.toString()).put("expected_sha256",meta.getString("sha256")).put("offset",-1)));
    rejects(()->DeletionBackupStore.inspect(temp.toFile(),new JSONObject(meta.toString()).put("storage_name","../qa_escape.zip")));

@@ -5,7 +5,7 @@ public final class ImmutableStateReferenceTests {
  interface Task{void run()throws Exception;}
  static void rejects(Task task,String code)throws Exception{try{task.run();}catch(SyncIoFailure e){yes(e.code.equals(code));return;}throw new AssertionError("reference accepted");}
  public static void main(String[] args)throws Exception{SyntheticBusinessData.verify();
-  byte[] original="qa_immutable_state".getBytes(java.nio.charset.StandardCharsets.UTF_8);String hash=DriveRestClient.sha256(original),name="HausGarten-State-"+hash+".json";
+  byte[] original="qa_immutable_state".getBytes(java.nio.charset.StandardCharsets.UTF_8);String hash=HttpTransport.sha256(original),name="HausGarten-State-"+hash+".json";
   JSONObject manifest=SyntheticBusinessData.object().put("state_file_id","qa_old_provider_id").put("state_name",name).put("state_sha256",hash);
   Map<String,String> names=new LinkedHashMap<>();names.put("qa_new_provider_id",name);
   yes(Arrays.equals(original,ImmutableStateReference.read(names,manifest,id->original)));yes(manifest.getString("state_file_id").equals("qa_old_provider_id"));

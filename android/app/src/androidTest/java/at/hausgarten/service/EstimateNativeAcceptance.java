@@ -16,7 +16,7 @@ final class EstimateNativeAcceptance {
    t.yes(f.store.pendingActionsForDrive().length()==0);
    JSONObject finalArgs=SyntheticBusinessData.object().put("request_id","final-"+type).put("offer_id",id).put("expected_record_hash",read.getString("record_hash")).put("expected_context_hash",read.getString("context_hash")).put("confirmed",true);f.call("finalize_offer",finalArgs);
    t.yes(f.call("finalize_offer",finalArgs).getBoolean("replayed"));read=offer(f,id);row=read.getJSONObject("offer");byte[] pdf=new BusinessDocumentStore(f.context).read(row);
-   t.yes(pdf.length>1000&&new String(pdf,0,5,StandardCharsets.US_ASCII).equals("%PDF-")&&DriveRestClient.sha256(pdf).equals(row.getString("pdf_sha256")));
+   t.yes(pdf.length>1000&&new String(pdf,0,5,StandardCharsets.US_ASCII).equals("%PDF-")&&HttpTransport.sha256(pdf).equals(row.getString("pdf_sha256")));
    t.yes(row.getString("pdf_filename").startsWith(type.startsWith("estimate_")?"TEST-KV-":"TEST-ANG-"));
    JSONObject resource=f.call("read_file_chunk",SyntheticBusinessData.object().put("resource_type","offer").put("resource_id",id).put("offset",0).put("length",49152).put("expected_sha256",row.getString("pdf_sha256")));
    t.yes(resource.getString("sha256").equals(row.getString("pdf_sha256")));

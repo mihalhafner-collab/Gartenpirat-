@@ -13,24 +13,24 @@ import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
 /** Conscious plaintext CSV/JSON/original export; distinct from encrypted full restore archives. */
-final class BackupPortableExport {
+final class RetiredBackupPortableExport {
     private static final ReentrantLock RUNNING=new ReentrantLock();
     private final Context context;private final PixelLocalStore store;
-    BackupPortableExport(Context context,PixelLocalStore store){this.context=context;this.store=store;}
+    RetiredBackupPortableExport(Context context,PixelLocalStore store){this.context=context;this.store=store;}
     static void requireLocalDestination(Uri uri)throws IOException {
         if(uri==null||!"content".equals(uri.getScheme())||!"com.android.externalstorage.documents".equals(uri.getAuthority())||!android.provider.DocumentsContract.isTreeUri(uri))throw new IOException("PORTABLE_LOCAL_DESTINATION_REQUIRED");
     }
     JSONObject createAndExport(String requestId,Uri treeUri,boolean plaintextConfirmed)throws Exception {
-        if(!plaintextConfirmed)throw new IOException("PORTABLE_PLAINTEXT_CONFIRMATION_REQUIRED");request(requestId);requireLocalDestination(treeUri);BackupSafService.requireTree(context,treeUri);
-        String backupId="portable_"+PixelMcpWriteTools.hash(requestId).substring(0,32);LocalBackupCoordinator service=new LocalBackupCoordinator(context,store);boolean exists=false;
+        if(!plaintextConfirmed)throw new IOException("PORTABLE_PLAINTEXT_CONFIRMATION_REQUIRED");request(requestId);requireLocalDestination(treeUri);RetiredBackupSafService.requireTree(context,treeUri);
+        String backupId="portable_"+PixelMcpWriteTools.hash(requestId).substring(0,32);RetiredLocalBackupCoordinator service=new RetiredLocalBackupCoordinator(context,store);boolean exists=false;
         try{JSONObject job=service.status(backupId);if(!job.getString("requestId").equals(requestId)||!job.getJSONObject("destination").optString("kind").equals("saf")||!job.getJSONObject("destination").optString("purpose").equals("portable_export")||!job.getJSONObject("destination").optString("treeUri").equals(treeUri.toString()))throw new IOException("PORTABLE_REPLAY_MISMATCH");exists=true;}catch(IOException absent){if(!"BACKUP_JOB_NOT_FOUND".equals(absent.getMessage()))throw absent;}
-        if(!exists){JSONObject checkpoint=new BackupSettingsRepository(context,store).browser();service.createWithIntent(requestId,backupId,new JSONObject().put("kind","saf").put("treeUri",treeUri.toString()).put("purpose","portable_export"),checkpoint.getJSONObject("browser"),"manual");}
+        if(!exists){JSONObject checkpoint=new RetiredBackupSettingsRepository(context,store).browser();service.createWithIntent(requestId,backupId,new JSONObject().put("kind","saf").put("treeUri",treeUri.toString()).put("purpose","portable_export"),checkpoint.getJSONObject("browser"),"manual");}
         return exportBackup(requestId,backupId,treeUri,true);
     }
     JSONObject exportBackup(String requestId,String backupId,Uri treeUri,boolean plaintextConfirmed)throws Exception {
-        if(!plaintextConfirmed)throw new IOException("PORTABLE_PLAINTEXT_CONFIRMATION_REQUIRED");request(requestId);requireLocalDestination(treeUri);BackupSafService.requireTree(context,treeUri);if(store.getWritableDatabase().inTransaction())throw new IOException("PORTABLE_REQUIRES_OUTSIDE_TRANSACTION");if(!RUNNING.tryLock())throw new IOException("PORTABLE_RUNNER_BUSY");
+        if(!plaintextConfirmed)throw new IOException("PORTABLE_PLAINTEXT_CONFIRMATION_REQUIRED");request(requestId);requireLocalDestination(treeUri);RetiredBackupSafService.requireTree(context,treeUri);if(store.getWritableDatabase().inTransaction())throw new IOException("PORTABLE_REQUIRES_OUTSIDE_TRANSACTION");if(!RUNNING.tryLock())throw new IOException("PORTABLE_RUNNER_BUSY");
         try{
-            LocalBackupCoordinator service=new LocalBackupCoordinator(context,store);LocalBackupDataset.Captured captured=service.captureForPortable(backupId);JSONObject identity=new BackupDeviceGuard(context).current();String operation=PixelMcpWriteTools.hash(new JSONObject().put("request_id",requestId).put("identity",identity)).substring(0,40),key="portable_export:"+PixelMcpWriteTools.hash(requestId);
+            RetiredLocalBackupCoordinator service=new RetiredLocalBackupCoordinator(context,store);LocalBackupDataset.Captured captured=service.captureForPortable(backupId);JSONObject identity=new BackupDeviceGuard(context).current();String operation=PixelMcpWriteTools.hash(new JSONObject().put("request_id",requestId).put("identity",identity)).substring(0,40),key="portable_export:"+PixelMcpWriteTools.hash(requestId);
             String fingerprint=PixelMcpWriteTools.hash(new JSONObject().put("request_id",requestId).put("backup_id",backupId).put("tree_uri",treeUri.toString()).put("database_sha256",captured.metadata.getJSONObject("database").getString("sha256")).put("identity",identity).put("plaintext_confirmed",true));
             File work=new File(context.getNoBackupFilesDir(),"portable-export/"+operation);if(Files.isSymbolicLink(work.toPath())||!work.getCanonicalPath().startsWith(context.getNoBackupFilesDir().getCanonicalPath()+File.separator))throw new IOException("PORTABLE_STAGING_PATH_INVALID");if(!work.isDirectory()&&!work.mkdirs())throw new IOException("PORTABLE_STAGING_UNAVAILABLE");
             String saved=store.ownerValue(key,"");JSONObject state;
@@ -39,7 +39,7 @@ final class BackupPortableExport {
                 SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();try{String concurrent=store.ownerValue(key,"");if(!concurrent.isEmpty())throw new IOException("PORTABLE_WRITE_CONFLICT");store.putOwnerValue(key,state.toString());db.setTransactionSuccessful();}finally{db.endTransaction();}
             }else{state=new JSONObject(saved);if(state.optInt("formatVersion")!=1)throw new IOException("PORTABLE_OPERATION_SCHEMA_UNSUPPORTED");if(!state.getString("request_fingerprint").equals(fingerprint))throw new IOException("PORTABLE_REPLAY_MISMATCH");}
             String filename=state.getString("local_zip");if(!filename.matches("export-[0-9a-f-]{36}\\.zip"))throw new IOException("PORTABLE_STAGING_PATH_INVALID");File zip=new File(work,filename);BackupDocumentTransfer.Checkpoint journal=checkpoint(key,identity);
-            try{JSONObject result=BackupDocumentTransfer.exportPortable(zip,new File(work,"commit.json"),new BackupSafService.SafDocuments(context,treeUri),journal,input->{byte[] b=new byte[65536];while(input.read(b)!=-1)EncryptedBackupArchive.checkCancelled();});result.put("last_error_code","");journal.save(result);return view(result);}
+            try{JSONObject result=BackupDocumentTransfer.exportPortable(zip,new File(work,"commit.json"),new RetiredBackupSafService.SafDocuments(context,treeUri),journal,input->{byte[] b=new byte[65536];while(input.read(b)!=-1)EncryptedBackupArchive.checkCancelled();});result.put("last_error_code","");journal.save(result);return view(result);}
             catch(Exception failure){try{JSONObject current=journal.read();current.put("last_error_code",safeCode(failure));journal.save(current);}catch(Exception ignored){}throw failure;}
         }finally{RUNNING.unlock();}
     }

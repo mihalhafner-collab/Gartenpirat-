@@ -42,8 +42,8 @@ final class BackupRestoreService {
         return previewFrom(requestId,archiveUri.toString(),recoveryCode,()->{InputStream input=context.getContentResolver().openInputStream(archiveUri);if(input==null)throw new IOException("RESTORE_SOURCE_UNAVAILABLE");return input;});
     }
     JSONObject previewFrom(String requestId,String sourceId,String recoveryCode,Source source)throws Exception {
-        request(requestId);byte[] material=BackupCrypto.recoveryKey(recoveryCode);String keyHash;
-        try{keyHash=hex(MessageDigest.getInstance("SHA-256").digest(material));}finally{Arrays.fill(material,(byte)0);}
+        request(requestId);String keyHash="PLAIN_LOCAL_ZIP";
+        if(recoveryCode!=null&&!recoveryCode.isEmpty()){byte[] material=BackupCrypto.recoveryKey(recoveryCode);try{keyHash=hex(MessageDigest.getInstance("SHA-256").digest(material));}finally{Arrays.fill(material,(byte)0);}}
         JSONObject identity=new BackupDeviceGuard(context).current();String restoreId="restore_"+PixelMcpWriteTools.hash(new JSONObject().put("request_id",requestId).put("installationId",identity.getString("installationId")).put("restoreEpoch",identity.getString("restoreEpoch"))).substring(0,36);
         String fingerprint=PixelMcpWriteTools.hash(new JSONObject().put("request_id",requestId).put("source",sourceId).put("recovery_binding",keyHash).put("identity",identity));
         synchronized(LOCK){
@@ -56,11 +56,11 @@ final class BackupRestoreService {
             String directory="stage-"+UUID.randomUUID();record.put("directory",directory);write(info,record);
             EncryptedBackupArchive.Verified staged=null;
             try{
-                BackupStorageBudget.require(work,0);staged=EncryptedBackupArchive.verifyAndStage(source.open(),recoveryCode,child(work,directory),Math.max(0,work.getUsableSpace()-BackupStorageBudget.BUSINESS_RESERVE_BYTES),PixelLocalStore.SCHEMA_VERSION);
+                BackupStorageBudget.require(work,0);staged=EncryptedBackupArchive.verifyArchive(source.open(),recoveryCode,child(work,directory),Math.max(0,work.getUsableSpace()-BackupStorageBudget.BUSINESS_RESERVE_BYTES),PixelLocalStore.SCHEMA_VERSION);
                 LocalBackupDataset.inspectStaged(new File(staged.directory,"data"),staged.manifest);
                 write(new File(work,"manifest.json"),staged.manifest);String manifestHash=EncryptedBackupArchive.sha256(new File(work,"manifest.json"));
                 record.put("manifest_sha256",manifestHash).put("preview_hash",PixelMcpWriteTools.hash(new JSONObject().put("restore_id",restoreId).put("manifest_sha256",manifestHash).put("request_fingerprint",fingerprint))).put("phase","VALIDATED").put("validated_at",Instant.now().toString());
-                BackupRecoveryKeyStore.scoped(context,"restore_"+restoreId).confirmAndStore(requestId,recoveryCode,recoveryCode);write(info,record);return previewView(record);
+                record.put("unencrypted",staged.manifest.optString("archiveProtection").equals("NONE"));if(!record.optBoolean("unencrypted"))BackupRecoveryKeyStore.scoped(context,"restore_"+restoreId).confirmAndStore(requestId,recoveryCode,recoveryCode);write(info,record);return previewView(record);
             }catch(Exception failure){if(staged!=null)try{staged.close();}catch(Exception ignored){}record.put("phase","FAILED").put("last_error_code",safeCode(failure));write(info,record);throw failure;}
         }
     }
@@ -71,7 +71,7 @@ final class BackupRestoreService {
         request(requestId);request(activationRequestId);synchronized(LOCK){JSONObject state=readOptional(receipt(activationRequestId));if(state==null){JSONObject current=readOptional(activationFile());if(current!=null&&current.optString("request_id").equals(activationRequestId))state=current;}if(state==null)throw new IOException("RESTORE_PREVIOUS_PROOF_REQUIRED");activationVersion(state);JSONObject proof=state.getJSONObject("current_backup_proof");File archive=previousArchive(activationRequestId,proof);if(!archive.isFile()||archive.length()!=proof.getLong("byte_size")||!EncryptedBackupArchive.sha256(archive).equals(proof.getString("archive_sha256")))throw new IOException("RESTORE_PREVIOUS_ARCHIVE_CHANGED");return previewFrom(requestId,"previous-preservation:"+activationRequestId+":"+proof.getString("archive_sha256"),recoveryCode,()->new FileInputStream(archive));}
     }
     private File previousArchive(String activationRequestId,JSONObject proof)throws Exception {
-        validateProof(proof);String relative="before-restore/"+PixelMcpWriteTools.hash(activationRequestId)+"/generation.hgb";if(!relative.equals(proof.optString("private_archive_ref")))throw new IOException("RESTORE_PREVIOUS_PROOF_REQUIRED");File archive=new File(context.getNoBackupFilesDir(),relative);if(Files.isSymbolicLink(archive.toPath())||!archive.getCanonicalPath().startsWith(context.getNoBackupFilesDir().getCanonicalPath()+File.separator))throw new IOException("RESTORE_PREVIOUS_ARCHIVE_CHANGED");return archive;
+        validateProof(proof);String relative="before-restore/"+PixelMcpWriteTools.hash(activationRequestId)+"/"+(proof.optString("archive_format").equals("PLAIN_ZIP")?"generation.zip":"generation.hgb");if(!relative.equals(proof.optString("private_archive_ref")))throw new IOException("RESTORE_PREVIOUS_PROOF_REQUIRED");File archive=new File(context.getNoBackupFilesDir(),relative);if(Files.isSymbolicLink(archive.toPath())||!archive.getCanonicalPath().startsWith(context.getNoBackupFilesDir().getCanonicalPath()+File.separator))throw new IOException("RESTORE_PREVIOUS_ARCHIVE_CHANGED");return archive;
     }
     JSONObject requestActivation(String requestId,String restoreId,String expectedPreviewHash,boolean confirmed)throws Exception {
         return requestActivation(requestId,restoreId,expectedPreviewHash,confirmed,false);
@@ -111,7 +111,7 @@ final class BackupRestoreService {
                 final JSONObject[] current={state};BackupDatasetExchange.Journal journal=new BackupDatasetExchange.Journal(){public JSONObject read(){return current[0];}public void save(JSONObject value)throws Exception{write(service.activationFile(),value);current[0]=value;}};
                 try{
                     if(!state.has("targets")){
-                        service.requireTargetContext(record);service.validateStage(work,record);String recovery=BackupRecoveryKeyStore.scoped(context,"restore_"+record.getString("restore_id")).read();
+                        service.requireTargetContext(record);service.validateStage(work,record);String recovery=record.optBoolean("unencrypted")?"":BackupRecoveryKeyStore.scoped(context,"restore_"+record.getString("restore_id")).read();
                         JSONObject proof=state.optJSONObject("current_backup_proof");if(proof==null){proof=protection.preserveCurrent(state.getString("request_id"),recovery);validateProof(proof);state.put("current_backup_proof",proof);journal.save(state);}else validateProof(proof);
                         ActivePaths active=protection.activePaths();Map<String,File> prepared=service.prepareTargets(work,record,manifest);state.put("targets",BackupDatasetExchange.targets(active.paths,prepared,new File(work,"rollback"))).put("phase","ACTIVATING");journal.save(state);
                     }

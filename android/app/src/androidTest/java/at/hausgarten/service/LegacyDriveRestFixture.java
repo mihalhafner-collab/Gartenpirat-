@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /** Folder-scoped transport. Tokens are obtained per request and are never persisted here. */
-final class LegacyDriveRestFixture extends DriveRestClient {
+final class LegacyDriveRestFixture extends HttpTransport {
     static final String API="https://www.googleapis.com/drive/v3/", UPLOAD="https://www.googleapis.com/upload/drive/v3/files";
     static final int MAX_JSON=64*1024*1024, CHUNK=256*1024;
     static final int LARGE_CHUNK=4*1024*1024, CACHE_LIMIT=4*1024*1024, CACHE_ENTRY_LIMIT=512*1024;
@@ -65,7 +65,7 @@ final class LegacyDriveRestFixture extends DriveRestClient {
     private Traffic traffic=new Traffic();
     String checkpoint(String key){return checkpoints.get("drive-meta:"+folder+":"+key);}
     void checkpoint(String key,String value){checkpoints.put("drive-meta:"+folder+":"+key,value);}
-    LegacyDriveRestFixture(String folder,Token token,Wire wire,Checkpoints checkpoints){super(folder,token,wire,checkpoints);if(!validId(folder))throw new IllegalArgumentException("Ungültige Drive-Ordnerkennung.");this.folder=folder;this.token=token;this.wire=wire;this.checkpoints=checkpoints;}
+    LegacyDriveRestFixture(String folder,Token token,Wire wire,Checkpoints checkpoints){super();if(!validId(folder))throw new IllegalArgumentException("Ungültige Drive-Ordnerkennung.");this.folder=folder;this.token=token;this.wire=wire;this.checkpoints=checkpoints;}
     /** Each worker owns its caches; writes and refreshes never mutate another worker's inventory. */
     LegacyDriveRestFixture fork(String parent,JSONArray rows)throws Exception{
         LegacyDriveRestFixture child=new LegacyDriveRestFixture(folder,token,wire,checkpoints);

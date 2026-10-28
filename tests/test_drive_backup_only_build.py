@@ -20,27 +20,27 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         for path in MAIN.glob('*.java'):
             self.assertNotRegex(path.read_text(), r'\bLegacy\w*Fixture\b', path.name)
 
-    def test_only_backup_can_construct_drive_clients_or_request_tokens(self):
-        for expression in (r'new DriveRestClient\(', r'\bDriveAccount\.token\('):
-            callers = {p.stem for p in MAIN.glob('*.java') if re.search(expression, p.read_text())}
-            self.assertEqual(callers, {'LocalBackupCoordinator', 'FullBackupActivity'})
-        account = (MAIN / 'DriveAccount.java').read_text()
-        self.assertNotRegex(account, r'\b(?:configured|available|providerPermission|client)\(')
+    def test_all_cloud_backup_transports_are_absent_from_production(self):
+        for name in ('DriveAccount','DriveRestClient','DriveBackupUpload','BackupFolderPicker','BackupAutomation','FullBackupJob'):
+            self.assertFalse((MAIN/(name+'.java')).exists(),name)
+        for path in MAIN.glob('*.java'):
+            self.assertNotRegex(path.read_text(),r'googleapis.com/(?:auth/drive|drive/v3|upload/drive)')
+            self.assertNotRegex(path.read_text(),r'\bRetired(?:Backup|Drive|FullBackup|LocalBackup)\w*\b')
+        self.assertNotIn('openConnection()', (MAIN/'HttpTransport.java').read_text())
 
-    def test_old_business_rest_capabilities_are_absent(self):
-        source = (MAIN / 'DriveRestClient.java').read_text()
-        for method in ('readRoot', 'readListed', 'readCommitFiles', 'readConditional',
-                       'compareAndWrite', 'verifyConditionalWrites', 'deleteVerified',
-                       'ensureDirectory', 'inventoryFingerprint', 'fork'):
-            self.assertNotRegex(source, r'\b' + method + r'\(')
-        self.assertNotIn('HausGarten-', source)
+    def test_retired_backup_adapters_cannot_use_live_accounts_or_network(self):
+        account=(FIXTURES/'RetiredDriveAccount.java').read_text()
+        self.assertNotIn('AccountManager.get(',account)
+        self.assertIn('QA_LIVE_DRIVE_ACCOUNT_FORBIDDEN',account)
+        self.assertIn('QA_LIVE_DRIVE_NETWORK_FORBIDDEN',(FIXTURES/'RetiredBackupDriveClient.java').read_text())
 
     def test_old_jobs_have_no_registered_service_or_scheduling(self):
         manifest = ET.parse(ROOT / 'android/app/src/main/AndroidManifest.xml')
         key = '{http://schemas.android.com/apk/res/android}name'
         services = {element.get(key) for element in manifest.findall('.//service')}
         self.assertNotIn('.DriveSyncJob', services)
-        self.assertIn('.FullBackupJob', services)
+        self.assertNotIn('.FullBackupJob', services)
+        self.assertIn('cancelRetiredJobs',(MAIN/'PixelBackupService.java').read_text())
         source = (MAIN / 'DriveSyncJob.java').read_text()
         self.assertNotIn('JobService', source)
         self.assertNotIn('new JobInfo', source)
@@ -72,16 +72,11 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         self.assertNotIn('AccountManager.get(', account)
         self.assertIn('QA_LIVE_DRIVE_ACCOUNT_FORBIDDEN', account)
 
-    def test_plaintext_exports_cannot_use_the_generic_cloud_document_provider(self):
-        source = (MAIN / 'BackupPortableExport.java').read_text()
-        self.assertIn('"com.android.externalstorage.documents".equals(uri.getAuthority())', source)
-        for entry, next_step in [('createAndExport', 'LocalBackupCoordinator'),
-                                 ('exportBackup', 'store.getWritableDatabase()')]:
-            body = source.split('JSONObject ' + entry + '(', 1)[1]
-            self.assertLess(body.index('requireLocalDestination(treeUri)'), body.index(next_step))
-        encrypted = (MAIN / 'BackupSafService.java').read_text()
-        self.assertNotIn('requireLocalDestination', encrypted)
+    def test_plaintext_backup_rejects_cloud_and_usb_targets(self):
+        source=(MAIN/'PixelBackupService.java').read_text()
+        self.assertIn('"com.android.externalstorage.documents".equals(uri.getAuthority())',source)
+        self.assertIn('startsWith("primary:")',source)
+        self.assertLess(source.index('requirePixel(target)'),source.index('LocalBackupCoordinator service='))
+        self.assertNotIn('BackupRecoveryKeyStore',source)
 
-
-if __name__ == '__main__':
-    unittest.main()
+if __name__=='__main__':unittest.main()

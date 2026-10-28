@@ -26,7 +26,7 @@ final class DrivePrimaryState {
         Map<String,String> commitFiles=storage.commits();
         for(String name:commitFiles.values())if(!name.matches("HausGarten-Commit-[0-9a-f]{64}\\.json"))throw new IllegalArgumentException("PUBLICATION_INVALID: Ungültige Veröffentlichungsreferenz.");
         storage.readCommits(commitFiles,(id,name,bytes)->{
-            if(!name.equals("HausGarten-Commit-"+DriveRestClient.sha256(bytes)+".json"))throw new IllegalArgumentException("PUBLICATION_INVALID: Veröffentlichungsbeleg verändert.");
+            if(!name.equals("HausGarten-Commit-"+HttpTransport.sha256(bytes)+".json"))throw new IllegalArgumentException("PUBLICATION_INVALID: Veröffentlichungsbeleg verändert.");
             JSONObject m=new JSONObject(new String(bytes,StandardCharsets.UTF_8));
             if(!"hausgarten.drive.commit.v1".equals(m.optString("format")))throw new IllegalArgumentException("PUBLICATION_INVALID: Unbekanntes Belegformat.");
             summaries.put(new JSONObject().put("id",id).put("publisher",m.getString("publisher_id"))

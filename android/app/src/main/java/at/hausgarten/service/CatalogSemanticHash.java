@@ -18,7 +18,7 @@ final class CatalogSemanticHash {
             default:if(c<32||c==0x2028||c==0x2029)out.append(String.format(Locale.ROOT,"\\u%04x",(int)c));else out.append(c);
         }}return out.append('\"').toString();
     }
-    static String hash(Object value)throws Exception{return DriveRestClient.sha256(canonical(value).getBytes(java.nio.charset.StandardCharsets.UTF_8));}
+    static String hash(Object value)throws Exception{return HttpTransport.sha256(canonical(value).getBytes(java.nio.charset.StandardCharsets.UTF_8));}
     static JSONObject describe(Object value)throws Exception{return new JSONObject().put("version",VERSION).put("sha256",hash(value));}
     private CatalogSemanticHash(){}
 }

@@ -27,7 +27,7 @@ public final class SyncFailureRulesTests {
         }
         JSONObject invalid=decision(new JSONException("qa-private"),2);yes(invalid.getString("last_error_code").equals("INVALID_REMOTE_DATA"));yes(invalid.getBoolean("user_action_required"));yes(invalid.getInt("retry_count")==3);
         JSONObject permission=decision(new SecurityException("qa-private"),0);yes(permission.getString("last_error_code").equals("PERMISSION_REQUIRED"));yes(permission.getBoolean("user_action_required"));
-        JSONObject rest=decision(new DriveRestClient.Failure("HTTP_429","qa bounded",150000,false),0);yes(rest.getString("last_error_code").equals("HTTP_429"));yes(rest.getLong("next_retry")==250000);
+        JSONObject rest=decision(new HttpTransport.Failure("HTTP_429","qa bounded",150000,false),0);yes(rest.getString("last_error_code").equals("HTTP_429"));yes(rest.getLong("next_retry")==250000);
         JSONObject logic=decision(new IllegalStateException("QA Musterkunde /private/qa-file Bearer qa-secret "+"x".repeat(300)),0);
         yes(logic.getString("last_error_code").equals("TRANSFER_FAILED"));String detail=logic.getString("last_error_detail");yes(detail.contains("IllegalStateException"));yes(detail.length()<=120);
         for(String secret:new String[]{"Musterkunde","/private","Bearer","qa-secret","xxxxx"})yes(!detail.contains(secret));

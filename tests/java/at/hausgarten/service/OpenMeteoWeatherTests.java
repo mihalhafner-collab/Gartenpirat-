@@ -21,7 +21,7 @@ public final class OpenMeteoWeatherTests {
         for(int k=0;k<fields.length;k++){JSONArray values=new JSONArray();for(int i=0;i<384;i++)values.put(defaults[k]);data.put(fields[k],values);units.put(fields[k],unit[k]);}
         return new JSONObject().put("latitude",48.2).put("longitude",16.3).put("utc_offset_seconds",0).put("timezone","GMT").put("hourly_units",units).put("hourly",data);
     }
-    static DriveRestClient.Reply reply(int status,JSONObject body){return new DriveRestClient.Reply(status,body.toString().getBytes(StandardCharsets.UTF_8),Collections.emptyMap());}
+    static HttpTransport.Reply reply(int status,JSONObject body){return new HttpTransport.Reply(status,body.toString().getBytes(StandardCharsets.UTF_8),Collections.emptyMap());}
     static JSONObject appointment(Instant start)throws Exception{return new JSONObject().put("id","qa_long_range_appointment").put("customer_id","qa_weather_customer").put("status","confirmed").put("weather_profile","general").put("starts_at",start.toString()).put("ends_at",start.plusSeconds(8*3600).toString()).put("latitude",48.2).put("longitude",16.3);}
     static JSONObject cache()throws Exception{return new JSONObject().put("forecast",OpenMeteoWeatherSource.normalize(raw(),new double[]{48.2,16.3})).put("fetched_at",NOW.toString()).put("forecast_provider",OpenMeteoWeatherSource.PROVIDER).put("forecast_source",OpenMeteoWeatherSource.ATTRIBUTION);}
     public static void main(String[] args)throws Exception {
@@ -51,16 +51,16 @@ public final class OpenMeteoWeatherTests {
         JSONObject shortArray=raw();shortArray.getJSONObject("hourly").put("precipitation",new JSONArray("[0,0]"));rejects(()->OpenMeteoWeatherSource.normalize(shortArray,new double[]{48.2,16.3}));
         JSONObject malformed=raw();malformed.getJSONObject("hourly").getJSONArray("temperature_2m").put(0,"15");rejects(()->OpenMeteoWeatherSource.normalize(malformed,new double[]{48.2,16.3}));
         JSONObject badProbability=raw();badProbability.getJSONObject("hourly").getJSONArray("precipitation_probability").put(0,101);rejects(()->OpenMeteoWeatherSource.normalize(badProbability,new double[]{48.2,16.3}));
-        int[] requests={0};JSONObject loaded=new JSONObject();DriveRestClient.Wire weather=(m,u,h,b,max)->{requests[0]++;yes(m.equals("GET")&&h.isEmpty()&&b==null&&u.equals(url));return reply(200,raw());};
+        int[] requests={0};JSONObject loaded=new JSONObject();HttpTransport.Wire weather=(m,u,h,b,max)->{requests[0]++;yes(m.equals("GET")&&h.isEmpty()&&b==null&&u.equals(url));return reply(200,raw());};
         FreeWeatherSource.refreshNonCommercialSite("48.2,16.3",loaded,NOW,14*86400,weather);yes(requests[0]==1&&loaded.has("forecast"));yes(loaded.getJSONObject("monitoring").getInt("first_check_days_before")==16);
         FreeWeatherSource.refreshNonCommercialSite("48.2,16.3",loaded,NOW.plusSeconds(3600),14*86400-3600,weather);yes(requests[0]==1);
         final int[] noRequests={0};FreeWeatherSource.refreshNonCommercialSite("48.2,16.3",new JSONObject(),NOW,17*86400,(m,u,h,b,max)->{noRequests[0]++;throw new AssertionError();});yes(noRequests[0]==0);
         JSONObject retained=cache();String previous=retained.getJSONObject("forecast").toString(),stamp=retained.getString("fetched_at");
         try{OpenMeteoWeatherSource.refreshSite("48.2,16.3",retained,NOW.plusSeconds(86400),14*86400,(m,u,h,b,max)->reply(503,new JSONObject()));throw new AssertionError();}
-        catch(DriveRestClient.Failure expected){yes(expected.retryAfter>=30000&&!expected.userAction);}
+        catch(HttpTransport.Failure expected){yes(expected.retryAfter>=30000&&!expected.userAction);}
         yes(previous.equals(retained.getJSONObject("forecast").toString())&&stamp.equals(retained.getString("fetched_at")));
-        int[] rateRequests={0};try{FreeWeatherSource.refreshNonCommercialSite("48.2,16.3",new JSONObject(),NOW,3600,(m,u,h,b,max)->{rateRequests[0]++;return new DriveRestClient.Reply(429,new byte[0],Collections.singletonMap("Retry-After","120"));});throw new AssertionError();}
-        catch(DriveRestClient.Failure expected){yes(expected.code.equals("WEATHER_RATE_LIMIT")&&expected.retryAfter==120000&&rateRequests[0]==1);}
+        int[] rateRequests={0};try{FreeWeatherSource.refreshNonCommercialSite("48.2,16.3",new JSONObject(),NOW,3600,(m,u,h,b,max)->{rateRequests[0]++;return new HttpTransport.Reply(429,new byte[0],Collections.singletonMap("Retry-After","120"));});throw new AssertionError();}
+        catch(HttpTransport.Failure expected){yes(expected.code.equals("WEATHER_RATE_LIMIT")&&expected.retryAfter==120000&&rateRequests[0]==1);}
         JSONObject warningsFail=new JSONObject();FreeWeatherSource.refreshNonCommercialSite("48.2,16.3",warningsFail,NOW,24*3600,(m,u,h,b,max)->u.startsWith(OpenMeteoWeatherSource.API)?reply(200,raw()):reply(503,new JSONObject()));
         yes(warningsFail.has("forecast")&&warningsFail.has("warning_status")&&!warningsFail.optBoolean("source_unavailable"));
         yes(!WeatherRiskRules.evaluate(appointment(NOW.plusSeconds(24*3600)),warningsFail,NOW,new JSONObject()).getString("severity").equals("unknown"));

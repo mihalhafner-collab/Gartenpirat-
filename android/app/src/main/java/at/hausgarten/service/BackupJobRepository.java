@@ -59,17 +59,6 @@ final class BackupJobRepository {
             store.putOwnerValue(key(backupId),updated.toString());db.setTransactionSuccessful();return view(updated);
         }finally{db.endTransaction();}
     }
-    DriveBackupUpload.Checkpoint uploadCheckpoint(String backupId)throws Exception {
-        load(backupId);
-        return new DriveBackupUpload.Checkpoint(){
-            private String revision;
-            public JSONObject read()throws Exception {JSONObject job=load(backupId);revision=job.getString("revision");JSONObject upload=job.optJSONObject("upload");return upload==null?null:new JSONObject(upload.toString());}
-            public void save(JSONObject upload)throws Exception {
-                if(revision==null)read();String phase=upload.getString("state");if(!Arrays.asList("UPLOAD_PENDING","UPLOADING","REMOTE_VERIFY_PENDING","REMOTE_VERIFIED").contains(phase))throw new IOException("BACKUP_UPLOAD_PHASE_UNSUPPORTED");
-                JSONObject saved=update(backupId,revision,new JSONObject().put("phase",phase).put("upload",new JSONObject(upload.toString())));revision=saved.getString("revision");
-            }
-        };
-    }
     JSONArray inventory()throws Exception {
         JSONArray jobs=new JSONArray(),records=records();for(int i=0;i<records.length();i++){
             JSONObject entry=records.getJSONObject(i),row=entry.getJSONObject("job");boolean same=entry.getBoolean("sameInstallation"),sameEpoch=entry.getBoolean("sameRestoreEpoch");

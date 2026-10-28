@@ -17,7 +17,7 @@ final class DrivePublication {
         return new JSONObject().put("format","hausgarten.drive.commit.v1").put("state_file_id",stateId).put("state_sha256",sha).put("receipts",receipts);
     }
     static void verify(JSONObject manifest,byte[] state,JSONArray actions)throws Exception{
-        if(!"hausgarten.drive.commit.v1".equals(manifest.optString("format"))||!DriveRestClient.sha256(state).equals(manifest.optString("state_sha256")))throw new IllegalArgumentException("Drive-Veröffentlichung ist unvollständig oder verändert.");
+        if(!"hausgarten.drive.commit.v1".equals(manifest.optString("format"))||!HttpTransport.sha256(state).equals(manifest.optString("state_sha256")))throw new IllegalArgumentException("Drive-Veröffentlichung ist unvollständig oder verändert.");
         JSONObject receipts=manifest.getJSONObject("receipts");for(int i=0;i<actions.length();i++){JSONObject action=actions.getJSONObject(i),r=receipts.optJSONObject(action.getString("client_id"));if(r==null||!PixelMcpWriteTools.hash(action).equals(r.optString("action_sha256")))throw new IllegalArgumentException("Drive-Aktionsbeleg stimmt nicht mit der Änderung überein.");}
     }
     static JSONObject progress(JSONObject manifest,String publicationId)throws Exception{

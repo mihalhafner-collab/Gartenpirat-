@@ -10,7 +10,7 @@ import org.json.*;
 final class SyncFailureRules {
     static String failureCode(Exception error){
         if(error instanceof SyncIoFailure)return ((SyncIoFailure)error).code;
-        if(error instanceof DriveRestClient.Failure)return ((DriveRestClient.Failure)error).code;
+        if(error instanceof HttpTransport.Failure)return ((HttpTransport.Failure)error).code;
         if(error instanceof PixelMcpWriteTools.Rejected)return ((PixelMcpWriteTools.Rejected)error).code;
         if(error instanceof UnknownHostException||error instanceof SocketTimeoutException||error instanceof ConnectException)return "NETWORK_UNAVAILABLE";
         if(error instanceof SecurityException)return "PERMISSION_REQUIRED";
@@ -19,7 +19,7 @@ final class SyncFailureRules {
     }
     static String friendly(Exception error){
         if(error instanceof SyncIoFailure)return SyncPolicy.message(((SyncIoFailure)error).code);
-        if(error instanceof DriveRestClient.Failure)return error.getMessage();
+        if(error instanceof HttpTransport.Failure)return error.getMessage();
         if(error instanceof UnknownHostException||error instanceof SocketTimeoutException||error instanceof ConnectException)return SyncPolicy.message("NETWORK_UNAVAILABLE");
         if(error instanceof SecurityException)return "Drive-Zugriff fehlt oder ist abgelaufen. Bestehenden Ordner erneut auswählen; lokale Daten bleiben erhalten.";
         if(error instanceof JSONException)return "Eine Drive-Datei ist unvollständig oder beschädigt. Keine Datei überschrieben; Sicherung prüfen.";
@@ -36,11 +36,11 @@ final class SyncFailureRules {
     }
     static JSONObject recordFailure(Exception error,int previous,long now)throws Exception{
         String code=failureCode(error);boolean statusOnly=code.equals("STATUS_NOT_SAVED");
-        boolean needs=error instanceof SyncIoFailure&&((SyncIoFailure)error).needsAction()||error instanceof JSONException||error instanceof IllegalArgumentException||error instanceof SecurityException||error instanceof DriveRestClient.Failure&&((DriveRestClient.Failure)error).userAction;
+        boolean needs=error instanceof SyncIoFailure&&((SyncIoFailure)error).needsAction()||error instanceof JSONException||error instanceof IllegalArgumentException||error instanceof SecurityException||error instanceof HttpTransport.Failure&&((HttpTransport.Failure)error).userAction;
         boolean configuration=code.equals("FOLDER_NOT_SELECTED")||code.equals("DEVICE_ID_MISSING");
         int attempts=statusOnly?0:configuration?1:Math.min(SyncPolicy.MAX_ATTEMPTS,Math.max(0,previous)+1);
         boolean paused=!statusOnly&&(needs||attempts>=SyncPolicy.MAX_ATTEMPTS&&!code.equals("NETWORK_UNAVAILABLE"));
-        long delay=code.equals("REMOTE_STATE_REFERENCE_MISSING")?Math.min(6L*60*60*1000,15L*60*1000*(1L<<Math.min(attempts-1,4))):SyncPolicy.retryDelay(attempts,error instanceof DriveRestClient.Failure?((DriveRestClient.Failure)error).retryAfter:0);
+        long delay=code.equals("REMOTE_STATE_REFERENCE_MISSING")?Math.min(6L*60*60*1000,15L*60*1000*(1L<<Math.min(attempts-1,4))):SyncPolicy.retryDelay(attempts,error instanceof HttpTransport.Failure?((HttpTransport.Failure)error).retryAfter:0);
         boolean schedule=!statusOnly&&(!paused||code.equals("REMOTE_STATE_REFERENCE_MISSING")&&attempts<SyncPolicy.MAX_ATTEMPTS);
         return new JSONObject().put("last_error_code",code).put("last_error",friendly(error)).put("last_error_detail",detail(error))
             .put("drive_sync_failed",!statusOnly).put("cloud_confirmed",false).put("user_action_required",paused).put("retry_count",attempts)

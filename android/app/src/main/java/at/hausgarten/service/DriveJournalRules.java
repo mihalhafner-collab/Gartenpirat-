@@ -190,7 +190,7 @@ final class DriveJournalRules {
     private static String hashString(String value)throws Exception{
         byte[] bytes=java.security.MessageDigest.getInstance("SHA-256").digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));StringBuilder out=new StringBuilder();for(byte b:bytes)out.append(String.format(Locale.ROOT,"%02x",b&255));return out.toString();
     }
-    private static String errorCode(Exception error){return error instanceof PixelMcpWriteTools.Rejected?((PixelMcpWriteTools.Rejected)error).code:error instanceof DriveRestClient.Failure?((DriveRestClient.Failure)error).code:error instanceof java.io.IOException?"IO_RETRY_REQUIRED":"INVALID_ACTION";}
+    private static String errorCode(Exception error){return error instanceof PixelMcpWriteTools.Rejected?((PixelMcpWriteTools.Rejected)error).code:error instanceof HttpTransport.Failure?((HttpTransport.Failure)error).code:error instanceof java.io.IOException?"IO_RETRY_REQUIRED":"INVALID_ACTION";}
     static boolean componentReady(JSONObject snapshot,String kind){
         JSONObject capabilities=snapshot.optJSONObject("capabilities");
         if(Arrays.asList("offer_validate","offer_share","offer_delivery").contains(kind))return capabilities!=null&&capabilities.optBoolean("offer_workflow_v2");

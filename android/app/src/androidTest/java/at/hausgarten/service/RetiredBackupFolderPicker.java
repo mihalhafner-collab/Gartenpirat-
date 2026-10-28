@@ -7,10 +7,10 @@ import java.util.*;
 import java.util.concurrent.Executor;
 
 /** Explicit backup-folder selection; folder metadata only, never business files. */
-final class BackupFolderPicker {
+final class RetiredBackupFolderPicker {
     interface Selection {void selected(String id,String name);}
     private final Activity activity;
-    private final DriveRestClient client;
+    private final RetiredBackupDriveClient client;
     private final Executor work;
     private final Selection selection;
     private final ArrayList<JSONObject> path=new ArrayList<>();
@@ -21,7 +21,7 @@ final class BackupFolderPicker {
     private boolean loading,retry;
     private long revision;
     private String next="",retryToken="";
-    BackupFolderPicker(Activity activity,DriveRestClient client,Executor work,Selection selection){this.activity=activity;this.client=client;this.work=work;this.selection=selection;}
+    RetiredBackupFolderPicker(Activity activity,RetiredBackupDriveClient client,Executor work,Selection selection){this.activity=activity;this.client=client;this.work=work;this.selection=selection;}
     void show(){
         labels=new ArrayAdapter<>(activity,android.R.layout.simple_list_item_1);
         dialog=new AlertDialog.Builder(activity).setTitle("Backup-Ordner auswählen").setAdapter(labels,null)

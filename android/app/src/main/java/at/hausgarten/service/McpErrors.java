@@ -151,14 +151,14 @@ final class McpErrors {
     static JSONObject rpc(Exception error) throws Exception {
         String local=localCode(error);
         JSONObject problem = new JSONObject()
-            .put("code", code(error, error instanceof DriveRestClient.Failure
-                ? ((DriveRestClient.Failure) error).code
+            .put("code", code(error, error instanceof HttpTransport.Failure
+                ? ((HttpTransport.Failure) error).code
                 : error instanceof IllegalArgumentException ? "INVALID_INPUT" : "READ_ERROR"))
-            .put("message", local!=null?localMessage(local):error instanceof IllegalArgumentException || error instanceof DriveRestClient.Failure
+            .put("message", local!=null?localMessage(local):error instanceof IllegalArgumentException || error instanceof HttpTransport.Failure
                 ? error.getMessage()
                 : "Anfrage nicht möglich. Pflichtangaben, Datensatz-ID oder gespeicherten Drive-Stand prüfen.");
-        if (error instanceof DriveRestClient.Failure) {
-            DriveRestClient.Failure failure = (DriveRestClient.Failure) error;
+        if (error instanceof HttpTransport.Failure) {
+            HttpTransport.Failure failure = (HttpTransport.Failure) error;
             problem.put("retry_after_ms", Math.max(0, Math.min(3600000, failure.retryAfter)))
                 .put("user_action_required", failure.userAction);
         }

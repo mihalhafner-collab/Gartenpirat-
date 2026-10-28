@@ -32,7 +32,7 @@ final class DeletionBackupStore {
    try(FileOutputStream raw=new FileOutputStream(temporary);ZipOutputStream zip=new ZipOutputStream(raw)){
     zip.putNextEntry(new ZipEntry("manifest.json"));zip.write(manifest.toString().getBytes(StandardCharsets.UTF_8));zip.closeEntry();
     for(Map.Entry<String,JSONObject> item:sources.entrySet()){JSONObject source=item.getValue(),file=source.getJSONObject("file");byte[] bytes=originals.read(source.getString("entity"),source.getJSONObject("record"));
-     if(bytes.length!=file.getLong("byte_size")||!DriveRestClient.sha256(bytes).equals(file.getString("sha256")))throw new IOException("Original für Löschsicherung stimmt nicht überein. Nichts gelöscht.");
+     if(bytes.length!=file.getLong("byte_size")||!HttpTransport.sha256(bytes).equals(file.getString("sha256")))throw new IOException("Original für Löschsicherung stimmt nicht überein. Nichts gelöscht.");
      zip.putNextEntry(new ZipEntry("originals/"+item.getKey()));zip.write(bytes);zip.closeEntry();}
     zip.finish();zip.flush();raw.getFD().sync();
    }
@@ -55,7 +55,7 @@ final class DeletionBackupStore {
  static JSONObject chunk(File root,JSONObject meta,JSONObject args)throws Exception{
   File file=file(root,meta);String hash=meta.getString("sha256");JSONObject out=new JSONObject().put("resource_type","backup").put("resource_id",args.getString("resource_id")).put("mime_type","application/zip").put("byte_size",file.length()).put("sha256",hash);
   if(!args.has("expected_sha256")){if(!sha(file).equals(hash))throw new IOException("Löschsicherung beschädigt.");return out;}if(!hash.equals(args.getString("expected_sha256")))throw new PixelMcpWriteTools.Rejected("FILE_VERSION_CONFLICT","Sicherungsversion geändert.");
-  int offset=args.getInt("offset"),length=args.optInt("length",PixelMcpOwnerTools.CHUNK);if(offset<0||offset>file.length()||length<1||length>PixelMcpOwnerTools.CHUNK)throw new IllegalArgumentException("Ungültiger Sicherungsbereich.");byte[] bytes=new byte[(int)Math.min(length,file.length()-offset)];try(RandomAccessFile in=new RandomAccessFile(file,"r")){in.seek(offset);in.readFully(bytes);}return out.put("offset",offset).put("next_offset",offset+bytes.length).put("eof",offset+bytes.length==file.length()).put("chunk_sha256",DriveRestClient.sha256(bytes)).put("chunk_base64",Base64.getEncoder().encodeToString(bytes));
+  int offset=args.getInt("offset"),length=args.optInt("length",PixelMcpOwnerTools.CHUNK);if(offset<0||offset>file.length()||length<1||length>PixelMcpOwnerTools.CHUNK)throw new IllegalArgumentException("Ungültiger Sicherungsbereich.");byte[] bytes=new byte[(int)Math.min(length,file.length()-offset)];try(RandomAccessFile in=new RandomAccessFile(file,"r")){in.seek(offset);in.readFully(bytes);}return out.put("offset",offset).put("next_offset",offset+bytes.length).put("eof",offset+bytes.length==file.length()).put("chunk_sha256",HttpTransport.sha256(bytes)).put("chunk_base64",Base64.getEncoder().encodeToString(bytes));
  }
  private DeletionBackupStore(){}
 }

@@ -12,7 +12,7 @@ final class CalendarRecoveryRules {
     }
     static boolean interrupted(Throwable error){
         for(int i=0;i<8&&error!=null;i++,error=error.getCause())
-            if(error instanceof InterruptedException||error instanceof java.io.InterruptedIOException&&!(error instanceof java.net.SocketTimeoutException)||error instanceof java.util.concurrent.CancellationException||error instanceof DriveRestClient.Failure&&((DriveRestClient.Failure)error).code.equals("CALENDAR_INTERRUPTED"))return true;
+            if(error instanceof InterruptedException||error instanceof java.io.InterruptedIOException&&!(error instanceof java.net.SocketTimeoutException)||error instanceof java.util.concurrent.CancellationException||error instanceof HttpTransport.Failure&&((HttpTransport.Failure)error).code.equals("CALENDAR_INTERRUPTED"))return true;
         return false;
     }
     static boolean fresh(String value,Instant now){

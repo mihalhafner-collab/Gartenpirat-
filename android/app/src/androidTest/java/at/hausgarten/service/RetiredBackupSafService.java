@@ -13,21 +13,21 @@ import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
 /** Explicit SAF generation export. Provider readback is never represented as remote cloud upload. */
-final class BackupSafService {
+final class RetiredBackupSafService {
     private static final ReentrantLock RUNNING=new ReentrantLock();
     private final Context context;private final PixelLocalStore store;
-    BackupSafService(Context context,PixelLocalStore store){this.context=context;this.store=store;}
+    RetiredBackupSafService(Context context,PixelLocalStore store){this.context=context;this.store=store;}
     JSONObject createAndExport(String requestId,Uri treeUri)throws Exception {
         requireTree(context,treeUri);request(requestId);
-        LocalBackupCoordinator service=new LocalBackupCoordinator(context,store);String backupId="backup_"+PixelMcpWriteTools.hash(requestId).substring(0,32);boolean exists=false;
+        RetiredLocalBackupCoordinator service=new RetiredLocalBackupCoordinator(context,store);String backupId="backup_"+PixelMcpWriteTools.hash(requestId).substring(0,32);boolean exists=false;
         try{JSONObject job=service.status(backupId);if(!job.getString("requestId").equals(requestId)||!job.getJSONObject("destination").optString("kind").equals("saf")||!job.getJSONObject("destination").optString("treeUri").equals(treeUri.toString()))throw new IOException("BACKUP_SAF_REPLAY_MISMATCH");exists=true;}catch(IOException missing){if(!"BACKUP_JOB_NOT_FOUND".equals(missing.getMessage()))throw missing;}
-        if(!exists){JSONObject checkpoint=new BackupSettingsRepository(context,store).browser();service.createWithIntent(requestId,backupId,new JSONObject().put("kind","saf").put("treeUri",treeUri.toString()),checkpoint.getJSONObject("browser"),"manual");}return exportBackup(requestId,backupId,treeUri);
+        if(!exists){JSONObject checkpoint=new RetiredBackupSettingsRepository(context,store).browser();service.createWithIntent(requestId,backupId,new JSONObject().put("kind","saf").put("treeUri",treeUri.toString()),checkpoint.getJSONObject("browser"),"manual");}return exportBackup(requestId,backupId,treeUri);
     }
     JSONObject exportBackup(String requestId,String backupId,Uri treeUri)throws Exception {
         request(requestId);requireTree(context,treeUri);if(store.getWritableDatabase().inTransaction())throw new IOException("BACKUP_SAF_REQUIRES_OUTSIDE_TRANSACTION");
         if(!RUNNING.tryLock())throw new IOException("BACKUP_SAF_RUNNER_BUSY");
         try{
-            LocalBackupCoordinator service=new LocalBackupCoordinator(context,store);JSONObject prepared=service.prepareLocal(backupId);if(prepared.optBoolean("runnerBusy"))throw new IOException("BACKUP_SAF_RUNNER_BUSY");
+            RetiredLocalBackupCoordinator service=new RetiredLocalBackupCoordinator(context,store);JSONObject prepared=service.prepareLocal(backupId);if(prepared.optBoolean("runnerBusy"))throw new IOException("BACKUP_SAF_RUNNER_BUSY");
             File archive=service.verifiedArchive(backupId);JSONObject job=service.status(backupId),metadata=service.metadata(backupId),identity=new BackupDeviceGuard(context).current(),destination=destinationEvidence(context,treeUri);
             String operation=PixelMcpWriteTools.hash(new JSONObject().put("request_id",requestId).put("installationId",identity.getString("installationId")).put("restoreEpoch",identity.getString("restoreEpoch"))).substring(0,40);
             String key="full_backup_saf:"+PixelMcpWriteTools.hash(requestId),fingerprint=PixelMcpWriteTools.hash(new JSONObject().put("request_id",requestId).put("backup_id",backupId).put("tree_uri",treeUri.toString()).put("archive_sha256",job.getJSONObject("archive").getString("sha256")).put("identity",identity));

@@ -7,7 +7,7 @@ final class VerifiedSyncCache {
     VerifiedSyncCache(int limit){this.limit=limit;}
     byte[] get(String id){byte[] b=entries.get(id);return b==null?null:b.clone();}
     void remember(String id,String name,byte[] bytes)throws Exception {
-        if(!name.matches("HausGarten-(Commit|State)-[0-9a-f]{64}\\.json")||!name.endsWith(DriveRestClient.sha256(bytes)+".json"))return;
+        if(!name.matches("HausGarten-(Commit|State)-[0-9a-f]{64}\\.json")||!name.endsWith(HttpTransport.sha256(bytes)+".json"))return;
         byte[] old=entries.remove(id);if(old!=null)size-=old.length;
         if(bytes.length>limit)return;
         while(size+bytes.length>limit&&!entries.isEmpty()){String first=entries.keySet().iterator().next();size-=entries.remove(first).length;}

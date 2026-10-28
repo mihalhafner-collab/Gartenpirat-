@@ -6,6 +6,31 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Neuer Auftrag umgesetzt: lokale unverschlüsselte ZIP statt Drive-Backup
+
+Ein Speicherknopf, Android-Dateiwahl auf Pixel/Downloads, eine unverschlüsselte
+ZIP-Datei; kein Konto, Netz, Schlüsselsetup oder automatischer Backupjob.
+Drive-Client/-Account/-Upload/-Ordnerauswahl/-Automatik/-Job aus Produktion
+entfernt; alte Implementierungen ausschließlich als netz-/kontogesperrte Tests.
+Alte Dateien, Schlüssel, Journale und Geschäftsdaten bleiben unangetastet.
+Neue ZIPs werden vollständig zurückgelesen/gehasht. Wiederherstellung bleibt
+bewusst mit vollständiger Prüfung, lokaler Rückfallkopie und gleichem Austausch/
+Rückweg; Schlüssel nur noch zum Lesen alter verschlüsselter Archive. Kein neues
+Schema, keine operative Migration, Installation oder Rechnungsfreigabe.
+
+84 JVM-Suiten PASS, darunter19 neue Klartext-/Dateifehlerprüfungen mit48MiB bei
+64MiB Heap.99 Python-Schutztests, Web-Feedback und Cloud-Chromium-Einstieg bei
+320/360/426px/200% Schrift PASS. Produktions-/Android-Testquellen kompiliert;
+nicht am Gerät ausgeführt. Bestehender P1-Schemakonflikt nach allen JVM-Suiten
+bleibt offen.2 alte UI-Auditzeilen ausdrücklich retired;212 Historien-/Audit-
+Einträge und169 MCP-Werkzeuge, keine neuen Tools. Verifikation:
+`docs/verification/pixel-local-plaintext-backup-2026-10-28.json`.
+
+Prüfkandidat1.55.8/113 für Releasebau vorbereitet. Der bekannte lokale Pixel-
+Aufnahmefehler ist damit noch nicht als behoben bestätigt; ein erfolgreiches
+Speichern/Wiederherstellen auf dem Pixel ist weiter offen. Vorherige Berichte
+beschreiben den damaligen Auftrag, keine Freigabe für reaktiviertes Drive-Backup.
+
 ## Backup-Hängepfad28.10.: Google-Freigabe ohne Zeitlimit
 
 Erneuter Nutzerbericht eines Hängers. Nur technischen Pixel-Backupstatus gelesen:

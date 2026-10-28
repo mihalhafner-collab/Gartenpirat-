@@ -8,7 +8,7 @@ import java.security.MessageDigest;
 import java.util.*;
 import java.util.zip.*;
 
-/** Streaming authenticated container. Does not collect or activate business state. */
+/** Complete plaintext ZIP and legacy encrypted-container reader. No business activation. */
 final class EncryptedBackupArchive {
     static final int FORMAT_VERSION=1;
     // Metadata-only anti-exhaustion limit; payload/media have no fixed archive-size cap.
@@ -28,10 +28,16 @@ final class EncryptedBackupArchive {
         @Override public void close()throws IOException {removeOwned(directory);}
     }
     static JSONObject write(OutputStream destination,String recovery,JSONObject metadata,List<Source> sources)throws Exception {
-        JSONObject manifest=new JSONObject(metadata.toString());manifest.put("formatVersion",FORMAT_VERSION);
+        return writeContainer(destination,recovery,metadata,sources,false);
+    }
+    static JSONObject writePlain(OutputStream destination,JSONObject metadata,List<Source> sources)throws Exception {
+        return writeContainer(destination,"",metadata,sources,true);
+    }
+    private static JSONObject writeContainer(OutputStream destination,String recovery,JSONObject metadata,List<Source> sources,boolean plain)throws Exception {
+        JSONObject manifest=new JSONObject(metadata.toString());manifest.put("formatVersion",FORMAT_VERSION);if(plain)manifest.put("archiveProtection","NONE");
         requireMetadata(manifest,Integer.MAX_VALUE);
         Set<String> names=new HashSet<>();JSONArray files=new JSONArray();long total=0;
-        try(ZipOutputStream archive=new ZipOutputStream(BackupCrypto.encrypt(destination,recovery))){
+        try(ZipOutputStream archive=new ZipOutputStream(plain?destination:BackupCrypto.encrypt(destination,recovery))){
             archive.setLevel(Deflater.NO_COMPRESSION);
             for(Source source:sources){
                 requirePath(source.path);if(!names.add(source.path))throw new IOException("BACKUP_DUPLICATE_FILE");
@@ -50,13 +56,25 @@ final class EncryptedBackupArchive {
         return manifest;
     }
     static Verified verifyAndStage(InputStream encrypted,String recovery,File newDirectory,long availableBytes,int supportedSchema)throws Exception {
+        return verifyContainer(encrypted,recovery,newDirectory,availableBytes,supportedSchema,false);
+    }
+    static Verified verifyPlain(InputStream input,File newDirectory,long availableBytes,int supportedSchema)throws Exception {
+        return verifyContainer(input,"",newDirectory,availableBytes,supportedSchema,true);
+    }
+    static Verified verifyArchive(InputStream input,String recovery,File directory,long bytes,int schema)throws Exception {
+        java.io.PushbackInputStream source=new java.io.PushbackInputStream(input,4);byte[] magic=new byte[4];int count=0,n;
+        while(count<4&&(n=source.read(magic,count,4-count))!=-1)count+=n;
+        source.unread(magic,0,count);
+        return verifyContainer(source,recovery,directory,bytes,schema,count==4&&magic[0]==80&&magic[1]==75&&magic[2]==3&&magic[3]==4);
+    }
+    private static Verified verifyContainer(InputStream encrypted,String recovery,File newDirectory,long availableBytes,int supportedSchema,boolean unencrypted)throws Exception {
         try(InputStream owned=encrypted){
         if(availableBytes<=0||newDirectory.exists()||!newDirectory.mkdirs())throw new IOException("RESTORE_STAGING_UNAVAILABLE");
         boolean verified=false;File plain=new File(newDirectory,"authenticated.zip");
         try{
             // Read the AEAD stream to EOF, including the authenticated final segment, before
             // parsing ZIP metadata. ZipInputStream alone could stop before that final tag.
-            try(InputStream decrypted=BackupCrypto.decrypt(owned,recovery);FileOutputStream out=new FileOutputStream(plain)){
+            try(InputStream decrypted=unencrypted?owned:BackupCrypto.decrypt(owned,recovery);FileOutputStream out=new FileOutputStream(plain)){
                 copy(decrypted,BackupStorageBudget.guard(out,newDirectory),null,availableBytes);out.getFD().sync();
             }
             JSONObject manifest;
@@ -116,7 +134,7 @@ final class EncryptedBackupArchive {
     static String sha256(File file)throws Exception {
         checkCancelled();MessageDigest digest=MessageDigest.getInstance("SHA-256");try(InputStream in=new BufferedInputStream(new FileInputStream(file))){byte[] b=new byte[BUFFER];int n;while((n=in.read(b))!=-1){checkCancelled();digest.update(b,0,n);}}return hex(digest.digest());
     }
-    private static String hex(byte[] value){StringBuilder result=new StringBuilder();for(byte b:value)result.append(String.format(Locale.ROOT,"%02x",b&255));return result.toString();}
+    static String hex(byte[] value){StringBuilder result=new StringBuilder();for(byte b:value)result.append(String.format(Locale.ROOT,"%02x",b&255));return result.toString();}
     private static void removeOwned(File directory)throws IOException {
         if(Files.isSymbolicLink(directory.toPath()))throw new IOException("RESTORE_STAGING_LINK_REJECTED");
         File[] children=directory.listFiles();if(children!=null)for(File child:children){if(child.isDirectory()&&!Files.isSymbolicLink(child.toPath()))removeOwned(child);else if(!child.delete())throw new IOException("RESTORE_STAGING_CLEANUP_REQUIRED");}

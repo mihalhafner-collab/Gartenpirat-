@@ -304,7 +304,7 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
             database.setTransactionSuccessful();
         }finally{database.endTransaction();}
         if((tool.equals("complete_work_session")||tool.equals("finish_work"))){if(context instanceof McpSyncHost)((McpSyncHost)context).requestMcpSync();JSONObject sync=status(clientId,getState());result.put("sync",sync).put("sync_state",sync.optString("sync_state"));}
-        return new JSONObject().put("ok",true).put("data",result).put("message",tool.equals("stop_work")?"Zeiterfassung lokal gestoppt. Tätigkeit prüfen und mit complete_work_session als Arbeitsaufzeichnung abschließen.":"Aktion dauerhaft auf dem Pixel gespeichert. Timer und Arbeitsaufzeichnungen bleiben lokal; Drive dient ausschließlich der Vollsicherung.");
+        return new JSONObject().put("ok",true).put("data",result).put("message",tool.equals("stop_work")?"Zeiterfassung lokal gestoppt. Tätigkeit prüfen und mit complete_work_session als Arbeitsaufzeichnung abschließen.":"Aktion dauerhaft auf dem Pixel gespeichert. Timer und Arbeitsaufzeichnungen bleiben lokal; Sicherungen werden als unverschlüsselte ZIP auf dem Pixel gespeichert.");
     }
     @Override public JSONObject status(String clientId,JSONObject state) throws Exception {
         JSONObject master=state.getJSONObject("master"),metadata=receipt(clientId);String ownerReceipt=ownerValue("receipt:"+clientId,"");boolean ownerSaved=!ownerReceipt.isEmpty(),providerReadback=DriveJournalRules.ids(master.optJSONArray("drive_delivered_ids")).contains(clientId)||(metadata!=null&&metadata.optBoolean("uploaded"));JSONObject ownerResult=ownerSaved?new JSONObject(ownerReceipt).optJSONObject("result"):null;

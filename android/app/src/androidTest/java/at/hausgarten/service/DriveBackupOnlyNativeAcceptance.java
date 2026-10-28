@@ -10,12 +10,12 @@ final class DriveBackupOnlyNativeAcceptance {
         test.probe("plaintext exports reject Drive and unknown cloud providers before any store or permission access",()->{
             for(String target:new String[]{"content://com.google.android.apps.docs.storage/tree/qa_cloud","content://qa_cloud_provider/tree/qa_cloud","file:///qa_export","content://com.android.externalstorage.documents/document/qa_file"}){
                 android.net.Uri uri=android.net.Uri.parse(target);
-                for(PixelMcpInstrumentation.Task action:new PixelMcpInstrumentation.Task[]{()->new BackupPortableExport(null,null).createAndExport("qa_cloud_export",uri,true),()->new BackupPortableExport(null,null).exportBackup("qa_cloud_retry","qa_old_backup",uri,true)}){
+                for(PixelMcpInstrumentation.Task action:new PixelMcpInstrumentation.Task[]{()->new RetiredBackupPortableExport(null,null).createAndExport("qa_cloud_export",uri,true),()->new RetiredBackupPortableExport(null,null).exportBackup("qa_cloud_retry","qa_old_backup",uri,true)}){
                     try{action.run();throw new AssertionError("Plaintext cloud target became active");}
                     catch(IOException expected){test.yes(expected.getMessage().equals("PORTABLE_LOCAL_DESTINATION_REQUIRED"));}
                 }
             }
-            for(String volume:new String[]{"primary","1234-ABCD"})BackupPortableExport.requireLocalDestination(android.net.Uri.parse("content://com.android.externalstorage.documents/tree/"+volume+"%3Aqa_export"));
+            for(String volume:new String[]{"primary","1234-ABCD"})RetiredBackupPortableExport.requireLocalDestination(android.net.Uri.parse("content://com.android.externalstorage.documents/tree/"+volume+"%3Aqa_export"));
         });
         for(boolean restoreReview:new boolean[]{false,true})test.probe("removed Drive engine cannot execute in "+(restoreReview?"restore review":"legacy authority"),()->{
             PixelMcpInstrumentation.Isolated context=new PixelMcpInstrumentation.Isolated(test.getTargetContext());
@@ -50,7 +50,7 @@ final class DriveBackupOnlyNativeAcceptance {
                 JSONObject saved=store.execute("create_customer",args).getJSONObject("data");mcpId=saved.getString("entity_id");
                 int pending=store.pendingActions().length();
                 test.yes(store.execute("create_customer",args).getJSONObject("data").getBoolean("replayed")&&store.pendingActions().length()==pending);
-                test.yes(!new BackupSettingsRepository(context,store).read().optBoolean("enabled"));
+                test.yes(!new RetiredBackupSettingsRepository(context,store).read().optBoolean("enabled"));
                 test.yes(DriveSyncCoordinator.run(context,store).getString("code").equals("LEGACY_SYNC_RETIRED"));
             }
             try(PixelLocalStore reopened=new PixelLocalStore(context)){

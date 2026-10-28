@@ -11,6 +11,6 @@ public final class RevierApplication extends Application {
         if(BackupRestoreService.requiresExclusiveStartup(this))BackupRestoreService.activatePending(this,new RestoreStartupProtection(this));
         recoveryRequired=BackupRestoreService.requiresExclusiveStartup(this)||RestoreStartupProtection.requiresColdRestart(this);
     }catch(Exception failure){recoveryRequired=true;}}
-    @Override public void onCreate(){super.onCreate();DriveSyncJob.install(this);}
+    @Override public void onCreate(){super.onCreate();PixelBackupService.cancelRetiredJobs(this);DriveSyncJob.install(this);}
     static boolean recoveryRequired(){return recoveryRequired;}
 }

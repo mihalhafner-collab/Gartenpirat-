@@ -12,12 +12,12 @@ public final class BackupSetupTests {
     private static void yes(boolean value){checks++;if(!value)throw new AssertionError("setup check "+checks);}
     interface Action {void run()throws Exception;}
     static void refused(Action action)throws Exception{try{action.run();throw new AssertionError("Expected refusal");}catch(IOException|IllegalArgumentException expected){checks++;}}
-    static final class Wire implements DriveRestClient.Wire {
+    static final class Wire implements RetiredBackupDriveClient.Wire {
         String response="{}",url,method;int calls,status=200;
-        public DriveRestClient.Reply send(String method,String url,Map<String,String> headers,byte[] body,int max){this.method=method;this.url=url;calls++;yes(method.equals("GET")&&body==null&&headers.get("Authorization").equals("Bearer qa_token"));return new DriveRestClient.Reply(status,response.getBytes(StandardCharsets.UTF_8),Collections.emptyMap());}
+        public RetiredBackupDriveClient.Reply send(String method,String url,Map<String,String> headers,byte[] body,int max){this.method=method;this.url=url;calls++;yes(method.equals("GET")&&body==null&&headers.get("Authorization").equals("Bearer qa_token"));return new RetiredBackupDriveClient.Reply(status,response.getBytes(StandardCharsets.UTF_8),Collections.emptyMap());}
     }
     public static void main(String[] args)throws Exception {
-        Wire wire=new Wire();DriveRestClient client=new DriveRestClient(()->"qa_token",wire);
+        Wire wire=new Wire();RetiredBackupDriveClient client=new RetiredBackupDriveClient(()->"qa_token",wire);
         JSONObject folder=new JSONObject().put("id","qa_folder_123456").put("name","QA Backup & <Ordner>").put("mimeType","application/vnd.google-apps.folder").put("trashed",false);
         wire.response=new JSONObject().put("files",new JSONArray().put(folder)).put("nextPageToken","qa_next+' &=").toString();
         yes(client.backupFolderPage("root","").getJSONArray("files").length()==1);
@@ -30,7 +30,7 @@ public final class BackupSetupTests {
         wire.response=new JSONObject(folder.toString()).put("capabilities",new JSONObject().put("canAddChildren",false)).toString();refused(()->client.backupFolder("qa_folder_123456"));
         wire.response=new JSONObject(folder.toString()).put("capabilities",new JSONObject().put("canAddChildren",true)).toString();yes(client.backupFolder("qa_folder_123456").getString("name").equals(folder.getString("name")));
         wire.response=new JSONObject(folder.toString()).put("id","qa_other_folder_123456").put("capabilities",new JSONObject().put("canAddChildren",true)).toString();refused(()->client.backupFolder("qa_folder_123456"));
-        before=wire.calls;refused(()->new DriveBackupUpload(client).upload(null,null,null,null));yes(before==wire.calls);
+        before=wire.calls;refused(()->new RetiredDriveBackupUpload(client).upload(null,null,null,null));yes(before==wire.calls);
         wire.status=403;refused(()->client.backupFolderPage("root",""));wire.status=200;
 
         String code=BackupCrypto.newRecoveryCode();ByteArrayOutputStream saved=new ByteArrayOutputStream();

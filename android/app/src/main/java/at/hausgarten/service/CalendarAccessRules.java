@@ -63,7 +63,7 @@ final class CalendarAccessRules {
     }}
     static String code(Throwable error){
         if(CalendarRecoveryRules.interrupted(error))return "CALENDAR_INTERRUPTED";
-        if(error instanceof DriveRestClient.Failure)return safeCode(((DriveRestClient.Failure)error).code);
+        if(error instanceof HttpTransport.Failure)return safeCode(((HttpTransport.Failure)error).code);
         if(error instanceof PixelMcpWriteTools.Rejected)return "CALENDAR_SETTINGS_CHANGED";
         if(error instanceof JSONException)return "CALENDAR_REPLY_INVALID";
         if(error instanceof java.io.IOException)return "CALENDAR_NETWORK";
@@ -82,18 +82,18 @@ final class CalendarAccessRules {
         return "CALENDAR_GOOGLE_AUTH_ERROR";
     }
     static String missingResultCode(int result){return result==0?"CALENDAR_CONSENT_CANCELLED":"CALENDAR_AUTH_RESULT_MISSING";}
-    static boolean rejectedCreation(DriveRestClient.Failure error){return Arrays.asList(
+    static boolean rejectedCreation(HttpTransport.Failure error){return Arrays.asList(
         "CALENDAR_AUTH_REQUIRED","CALENDAR_API_DISABLED","CALENDAR_RATE_LIMIT","CALENDAR_REQUEST_REJECTED",
         "CALENDAR_APP_REGISTRATION_REQUIRED","CALENDAR_GOOGLE_AUTH_ERROR","CALENDAR_ACCOUNT_ACCESS_REQUIRED",
         "CALENDAR_CONSENT_CANCELLED","CALENDAR_GOOGLE_SERVICES_REQUIRED","CALENDAR_SCOPE_UNSUPPORTED","CALENDAR_BUSY_PERMISSION_REQUIRED","CALENDAR_TOKEN_NETWORK").contains(error.code);}
-    static Set<String> reasons(DriveRestClient.Reply reply){
+    static Set<String> reasons(HttpTransport.Reply reply){
         Set<String> reasons=new HashSet<>();try{
             JSONObject error=reply.json().optJSONObject("error");if(error==null)return reasons;
             JSONArray errors=error.optJSONArray("errors");for(int i=0;errors!=null&&i<errors.length();i++)if(errors.optJSONObject(i)!=null)reasons.add(errors.getJSONObject(i).optString("reason"));
             JSONArray details=error.optJSONArray("details");for(int i=0;details!=null&&i<details.length();i++)if(details.optJSONObject(i)!=null)reasons.add(details.getJSONObject(i).optString("reason"));
         }catch(Exception ignored){}return reasons;
     }
-    static DriveRestClient.Failure failure(DriveRestClient.Reply reply){
+    static HttpTransport.Failure failure(HttpTransport.Reply reply){
         Set<String> reasons=reasons(reply);String code=null;boolean user=false;long retry=0;
         if(reply.status==401){code="CALENDAR_AUTH_REQUIRED";user=true;}
         else if(reply.status==403){
@@ -104,7 +104,7 @@ final class CalendarAccessRules {
         else if(reply.status>=500)code="CALENDAR_RETRY";
         if(code==null)return null;
         if(!user){retry=30000;try{retry=Math.min(3600000,Math.max(retry,Long.parseLong(reply.header("Retry-After"))*1000));}catch(Exception absent){try{retry=Math.min(3600000,Math.max(retry,java.time.Duration.between(java.time.Instant.now(),java.time.ZonedDateTime.parse(reply.header("Retry-After"),java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME).toInstant()).toMillis()));}catch(Exception ignored){}}}
-        return new DriveRestClient.Failure(code,message(code),retry,user);
+        return new HttpTransport.Failure(code,message(code),retry,user);
     }
     private CalendarAccessRules(){}
 }

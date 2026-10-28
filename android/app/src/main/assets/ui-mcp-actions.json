@@ -1270,7 +1270,7 @@
       "platform_only": false,
       "availability": "legacy_api_only",
       "replacement_action_id": "platform.vollbackup_saf",
-      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die verschlüsselte Vollsicherung."
+      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die lokale ZIP-Sicherung."
     },
     {
       "id": "sicherung.94",
@@ -1286,7 +1286,7 @@
       "platform_only": false,
       "availability": "legacy_api_only",
       "replacement_action_id": "platform.vollbackup_saf",
-      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die verschlüsselte Vollsicherung."
+      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die lokale ZIP-Sicherung."
     },
     {
       "id": "sicherung.95",
@@ -1302,7 +1302,7 @@
       "platform_only": false,
       "availability": "legacy_api_only",
       "replacement_action_id": "platform.vollbackup_saf",
-      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die verschlüsselte Vollsicherung."
+      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die lokale ZIP-Sicherung."
     },
     {
       "id": "sicherung.96",
@@ -1319,7 +1319,7 @@
       "platform_only": false,
       "availability": "legacy_api_only",
       "replacement_action_id": "platform.vollbackup_saf",
-      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die verschlüsselte Vollsicherung."
+      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die lokale ZIP-Sicherung."
     },
     {
       "id": "sicherung.97",
@@ -1336,7 +1336,7 @@
       "platform_only": false,
       "availability": "legacy_api_only",
       "replacement_action_id": "platform.vollbackup_saf",
-      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die verschlüsselte Vollsicherung."
+      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die lokale ZIP-Sicherung."
     },
     {
       "id": "sicherung.98",
@@ -2136,14 +2136,14 @@
     {
       "id": "backup.voll.get_full_backup_status",
       "area": "sicherung",
-      "action": "Stand der verschlüsselten Vollsicherung lesen",
+      "action": "Liest den lokalen Status unverschlüsselter ZIP-Sicherungen auf dem Pixel. Kein Drive, Konto, Schlüssel oder Hintergrundupload. Vollständige Dateiwahl und Wiederherstellung erfolgen bewusst am Gerät.",
       "source": "FullBackupActivity.java",
       "mcp": [
         "get_full_backup_status"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "test_scope": "Local backup metadata/read-only hint; actual file choice and restore remain device actions.",
       "platform_only": false
     },
     {
@@ -2305,27 +2305,27 @@
     {
       "id": "backup.voll.request_full_backup",
       "area": "sicherung",
-      "action": "Verschlüsselte Vollsicherung vormerken",
+      "action": "Liefert den Hinweis, die lokale Sicherungsansicht und Android-Dateiwahl auf dem Pixel zu öffnen. Startet keinen Upload und erzeugt ohne Dateiwahl keine Sicherung. Zuerst get_full_backup_status lesen; request_id bei Wiederholung erhalten.",
       "source": "FullBackupActivity.java",
       "mcp": [
         "request_full_backup"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "test_scope": "Local backup metadata/read-only hint; actual file choice and restore remain device actions.",
       "platform_only": false
     },
     {
       "id": "backup.voll.retry_full_backup",
       "area": "sicherung",
-      "action": "Vollsicherungsjob ausdrücklich erneut versuchen",
+      "action": "Liefert den Hinweis, einen bestehenden lokalen Speicherversuch in der Sicherungsansicht am Pixel fortzusetzen. Keine neue Sicherung oder Dateifreigabe durch MCP; kein Drive-Zugriff.",
       "source": "FullBackupActivity.java",
       "mcp": [
         "retry_full_backup"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
+      "test_scope": "Local backup metadata/read-only hint; actual file choice and restore remain device actions.",
       "platform_only": false
     },
     {
@@ -2545,7 +2545,9 @@
       "kind": "platform_or_presentation",
       "barrier": "Recovery-Geheimnis bleibt ausschließlich in geschützter Geräteoberfläche; SAF-/Kontofreigaben sind ausdrückliche Geräteschritte. MCP fordert oder liest keinen Recovery-Code.",
       "platform_only": true,
-      "test_scope": "Synthetic contract/interaction checks; real device consent and external target readback require separate acceptance."
+      "test_scope": "Synthetic contract/interaction checks; real device consent and external target readback require separate acceptance.",
+      "availability": "retired",
+      "retirement_reason": "Direct user request: one plaintext local ZIP; no key setup or separate portable export"
     },
     {
       "id": "buero.get_payment_ledger",
@@ -2700,28 +2702,28 @@
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Read-only shared pending job DTO; physical activation and secrets remain device steps.",
+      "test_scope": "Local backup metadata/read-only hint; actual file choice and restore remain device actions.",
       "platform_only": false
     },
     {
       "id": "platform.vollbackup_saf",
       "area": "plattform",
-      "action": "USB-/Dateianbieterziel wählen und externe Geräteübergabe prüfen",
+      "action": "Unverschlüsselte ZIP-Datei auf dem Pixel speichern und zurücklesen",
       "source": "FullBackupActivity.java",
       "mcp": [],
       "kind": "platform_or_presentation",
-      "barrier": "Android-SAF-Freigabe und angeschlossenes Medium müssen am Gerät verfügbar sein. Provider-Rücklesen ist kein unabhängiger Cloud-Uploadbeleg; MCP erteilt keine URI-Rechte.",
+      "barrier": "Android-Dateiwahl und lokale Dateirechte bleiben am Gerät. Kein Konto, Schlüssel oder Cloudanbieter.",
       "platform_only": true,
       "test_scope": "Native device consent/handoff boundary; shared services tested with isolated providers and physical limits reported separately."
     },
     {
       "id": "platform.vollrestore_bestaetigen",
       "area": "plattform",
-      "action": "Sicherungsdatei und Recovery-Code am Gerät prüfen und vollständigen Bestandsaustausch ausdrücklich bestätigen",
+      "action": "Lokale Sicherungsdatei prüfen und Wiederherstellung bewusst bestätigen",
       "source": "FullBackupActivity.java",
       "mcp": [],
       "kind": "platform_or_presentation",
-      "barrier": "Recovery-Geheimnis, SAF-Dateiwahl und konkrete geprüfte Wiederherstellungsentscheidung bleiben am Gerät. Kein Restore oder Codeversand aus bloßer MCP-Statusabfrage; keine automatische Bestandsvermischung.",
+      "barrier": "Dateiwahl und bestätigter Bestandsaustausch am Gerät; Rückfallkopie bleibt erhalten. Schlüssel nur beim Lesen alter verschlüsselter Archive.",
       "platform_only": true,
       "test_scope": "Native device consent/handoff boundary; shared services tested with isolated providers and physical limits reported separately."
     },
@@ -2734,7 +2736,9 @@
       "kind": "platform_or_presentation",
       "barrier": "Klartextweitergabe erfordert ausdrückliche Wahl und Bestätigung des SAF-/Sharesheet-Ziels am Gerät. Datenformat und Prüfung verwenden den gemeinsamen Exportdienst; MCP wählt keine fremden Freigaben oder Konten.",
       "platform_only": true,
-      "test_scope": "Native device consent/handoff boundary; shared services tested with isolated providers and physical limits reported separately."
+      "test_scope": "Native device consent/handoff boundary; shared services tested with isolated providers and physical limits reported separately.",
+      "availability": "retired",
+      "retirement_reason": "Direct user request: one plaintext local ZIP; no key setup or separate portable export"
     },
     {
       "id": "revier.accept_inquiry_direct",
@@ -2838,12 +2842,12 @@
     "android/app/src/main/assets/backup-restore-drafts.html": "4f180ff1a92910d923fbeb434262bb3b91af5258f336a2dc80c8d0b581398d7f",
     "android/app/src/main/assets/billing-ui.css": "bf57b082368de2a242e8d7ce4313b03535208c6c0b7e33881b8440f3518478c3",
     "android/app/src/main/assets/billing-ui.js": "7110b83dad725a2d42a96d927e753427cef3cac19b8ffbe2e0543b243004ca9e",
-    "android/app/src/main/assets/business-actions-ui.js": "8878e787a420ae050aef632d3e04139df0b8413836111e2eb6ede7829a9cc7bc",
-    "android/app/src/main/assets/business-feedback.js": "25ca63d7aec62c05bc926ef042894b47f4c55d9269b3c011ff4fdd286051ce5a",
+    "android/app/src/main/assets/business-actions-ui.js": "5c90ecbe704aff65ae3902c1ab3d2ec24a12a54ef45485e2ba0eae1098e02b5d",
+    "android/app/src/main/assets/business-feedback.js": "b45bcfa780c35e4786a45674a58a511f1b3db170fc91c454a1d2041787e03b9a",
     "android/app/src/main/assets/customer-hub.css": "7cfb06a23e32666ee9aa9b43ef2af10a728805db06c7fee4961246e76caf3c75",
     "android/app/src/main/assets/customer-hub.js": "4c1d3e7fcf689c160a9b3aa4e1bb47171b3afd90796608db9194d279e630995c",
     "android/app/src/main/assets/daily-usability.css": "bb8c6d9107c374a57a4e6c14f466bd6be0ab6ae04ff4b53ee49be555e61c0edb",
-    "android/app/src/main/assets/daily-usability.js": "76837329ebc33930fde69491c07b64474d7d1e848d9b85d5f1eb3b23bfb1d087",
+    "android/app/src/main/assets/daily-usability.js": "93392f324112c58817208d26538d1853c2eb41e2cc00fbc70ff4651a1c16c1da",
     "android/app/src/main/assets/data-order.js": "12c646ad5d61d3b6aab3bea91cb33c637df85709cdbb46d4d9d8e9b71ac16a99",
     "android/app/src/main/assets/design-concept.css": "c5f80bd5bb7c01e6cadadf76f17ed1ebd4d1c5f6faacc406907c087d6e1e05fe",
     "android/app/src/main/assets/design-concept.js": "d006892e73e05debb84d7728bd756b38b4a894e3b49c71c63319d7303c70db40",
@@ -2862,7 +2866,7 @@
     "android/app/src/main/assets/legacy-conflicts-ui.js": "97a07315a4d65488571c53a846ab8a8644434a71cc36acc597850e967170d00e",
     "android/app/src/main/assets/local-invoice-ui.css": "7cf2524aec8e0877749c8e7fb490de93f1ccaaf8e369514d7eaaa6e96a6b65e4",
     "android/app/src/main/assets/local-invoice-ui.js": "4b28f780ef9f6964077422593c23db6dbc7d3db9bea88a8776e9f600610c4e8a",
-    "android/app/src/main/assets/mobile.html": "1888a662638e3d2120c1b7bef3922c714a861c0a685146d74a859fb2f4aaffe2",
+    "android/app/src/main/assets/mobile.html": "97f35e4962fc1785cdab7e691d1ace5620e00b9310c4a10cd97dcad3427a25c4",
     "android/app/src/main/assets/modern-ui.css": "4ef568d5db25d86f61b7475be8baebc79ff6cc53dedf67be5b3bb1cb3a146d85",
     "android/app/src/main/assets/navigation-status.js": "863f4cd34ac071c75ecc6dd06db10cb96ac5f92df824248cc1bbe2c46d51a355",
     "android/app/src/main/assets/offer-contract.js": "975068d39128ac6207fc0b5e9835803ca7d5675a9529851c63625631bd668a1f",
@@ -2903,35 +2907,41 @@
     "android/app/src/main/assets/workday-ui.js": "e8d76a4fc10e1b38a868cbe661b31eac89bf47048e62de172f4b859da0e7fb5f",
     "android/app/src/main/assets/workflow-ui.css": "e8e3af705782c2db8286ae064184d3f0767025571ce49fae037cb6ebab8a3920",
     "android/app/src/main/assets/workflow-ui.js": "1a9af36253e80f8b1b0b82098e3dbdeb394ec59555c6663a2a3cf4826e840a58",
-    "android/app/src/main/java/at/hausgarten/service/MainActivity.java": "79a435f6f84af14904285f93c4d65b1f8183ccd5929bd512d7d2da19594c1e01",
-    "android/app/src/main/java/at/hausgarten/service/DriveJournalRules.java": "b844389e750675e20ba3b9c242e781969ba0b76950ef88d0e154099cd6152856",
+    "android/app/src/main/java/at/hausgarten/service/MainActivity.java": "9144dab1818fc0af90998de5ad9e26289ee2bceba10377c8d3c3fe928d32c86e",
+    "android/app/src/main/java/at/hausgarten/service/DriveJournalRules.java": "be16300d6372133721831b007bfc6eb32e00b59b90109fabf1334a09c9598e49",
     "android/app/src/main/java/at/hausgarten/service/InvoiceIssueRules.java": "46a18e1c59987804194eb7ebe29070f65510e005bde3a8b20c72dfff47e7c34f",
-    "android/app/src/main/java/at/hausgarten/service/DriveRolePolicy.java": "3147d73e21c1e74cdb8dce018df9aed516389c9f9941768ca93ef87c492f7a9a",
+    "android/app/src/main/java/at/hausgarten/service/DriveRolePolicy.java": "79d887beeb460c444e1b0bdb67b0da9ff569dbce0b15b6da1f9faecaed79a7cf",
     "android/app/src/main/java/at/hausgarten/service/DriveSyncCoordinator.java": "0305e067422dae1a43b5282cc487fca58a411263b0aa0d89eacb551fe7974f52",
     "android/app/src/main/java/at/hausgarten/service/DriveSyncJob.java": "f6b5bbba2825bcd0da568e68ed9cfbb9c138e617b8b2f497cdb0848115c3f9e0",
-    "android/app/src/main/java/at/hausgarten/service/DriveConnectionActivity.java": "d90648ea2c555bec94daa04f8e5054b21893efab6c157b7462ac094c76ebfbcb",
-    "android/app/src/main/java/at/hausgarten/service/PixelOwnerAccess.java": "1f1ef21cb62888473499082e9b0fb59a33aa463ba56a99cd785fc7f2c38b8081",
+    "android/app/src/main/java/at/hausgarten/service/DriveConnectionActivity.java": "5c7f5fde949c08cffae2cf96217443cab3d391d6be7c970f2f1f17091725eef1",
+    "android/app/src/main/java/at/hausgarten/service/PixelOwnerAccess.java": "fc057f99edb068ebf29cabac8f0ed4ba9762410ae319c286f3942b33364aa601",
     "android/app/src/main/java/at/hausgarten/service/LocalOwnerRepository.java": "08acde751ab6c5594e0f0aff8718b1bcf4bb7efa3b3c10df5adcee9bbf185633",
-    "android/app/src/main/java/at/hausgarten/service/PixelLocalStore.java": "4045add7c3d5bd9913566bac70dba10a746d7aeab74d41305626c7200a90246b",
+    "android/app/src/main/java/at/hausgarten/service/PixelLocalStore.java": "839d6375440c3fb74c74fa3365a19708afa71f003f0b0f67ac26eb0414246b5a",
     "android/app/src/main/java/at/hausgarten/service/WorkSessionStore.java": "3d5919ebf8152683c403c6c9e72596958189c617018e578fcf2cad1e3d1462e8",
     "android/app/src/main/java/at/hausgarten/service/BusinessDataBridge.java": "6ef77a7cf9ee52d12635a223a90f854b8b3590fb3550998ca40da7f0636c5e0c",
     "android/app/src/main/java/at/hausgarten/service/BrowserDraftRepository.java": "dc161b9c56a32259de492897e471bad3fdd3dfc249a8b2a2a791de0a50728a5f",
-    "android/app/src/main/java/at/hausgarten/service/BackupSettingsRepository.java": "32552c458e7d974b2e2377ca533eb3168868e69f48075b6df88570ceecaccea1",
+    "android/app/src/main/java/at/hausgarten/service/BackupSettingsRepository.java": "ce76b12e17049645253a1bd66262d460e0d719f6fa17c66adeb575d92f352418",
     "android/app/src/main/java/at/hausgarten/service/LocalBackupDataset.java": "773efea97091ea5658bdcef14ca30d70750ffa3bbbc3a04b46ae95ea700e17b0",
     "android/app/src/main/java/at/hausgarten/service/BrowserMediaBridge.java": "4a1f36acacd1e680a4c7ec6b9cc3e8d3121e9d286d86ce77fec0fd9dc3e13f96",
-    "android/app/src/main/java/at/hausgarten/service/NativeOwnerQueries.java": "b19476a61ef4c680389066fc129618e5ee388a39ebe20bcce9a363a5813af1b8",
-    "android/app/src/main/java/at/hausgarten/service/PixelMcpOwnerTools.java": "f2fc8f02b77e462e465b3af008c5f617a8acda78fc5ded18a04be751f23b9846",
+    "android/app/src/main/java/at/hausgarten/service/NativeOwnerQueries.java": "ebbf16d444919d5d14dcb4869a6d7b67583251f28d02bf0a9927032d61170f2f",
+    "android/app/src/main/java/at/hausgarten/service/PixelMcpOwnerTools.java": "c1954e7efafc47fddd1a17daa62e7613fb41ee24752ad4d6e6f279a43427193e",
     "android/app/src/main/java/at/hausgarten/service/SyncArchiveApplicationService.java": "540dff6bb8de313f3286720f4e8586692c19583eb406f5cda4eaad3f8ea50923",
     "android/app/src/main/java/at/hausgarten/service/LocalMigrationInventory.java": "03028b8f3e20887e1d5345e633325207965e4f8e7267c6545cbbb3b76b7554db",
-    "android/app/src/main/java/at/hausgarten/service/LocalAuthorityMigration.java": "19409366d72f96a880f739eb79d0e2bd97426f938f100be063d6b064eca6b8d4",
-    "android/app/src/main/java/at/hausgarten/service/LocalAuthorityRules.java": "85f9264f0e50e3b8d2e0acd055b801105ed4d2619fc026fb90fd670f0b54af64",
+    "android/app/src/main/java/at/hausgarten/service/LocalAuthorityMigration.java": "3b90f17ba518c411dabd92f7f98e8da18fec166a6c01fe6cb6234bb3caae1802",
+    "android/app/src/main/java/at/hausgarten/service/LocalAuthorityRules.java": "69176dfd1379a1985456cdfca50183275bcd2a4e9c346db24239313d142f730b",
     "android/app/src/main/java/at/hausgarten/service/PlanningConnectionActivity.java": "df0a49b412ea23bffd5b16fc38d29b67dda9f05c1b8b076eab7dad9877cf0875",
     "android/app/src/main/java/at/hausgarten/service/PixelTunnelActivity.java": "5344f908037dcc9f50549c279e05bff2ed7dc378153bb1a47e3dbefd0fba1b16",
     "android/app/src/main/java/at/hausgarten/service/NativeUi.java": "d49edfc81f227a1df1e8321b9fc6cea035d0f2c0e8d83e542e281bc559eaa035",
     "android/app/src/main/java/at/hausgarten/service/BackgroundWorkDispatch.java": "639d6059c077140b12c21305ec5761c227d5f203cafea0bde90ed312f2a2cafc",
     "android/app/src/main/java/at/hausgarten/service/PendingWorkPhotoStore.java": "3019f9c8843818d54f939ec24174ea4939767b2e72f802d097abb7f000ea42e6",
-    "android/app/src/main/java/at/hausgarten/service/BackupAutomation.java": "55dcc2f4e926724363aa7c14685085ba06878531efed64fe24e5eb29c7e45508",
-    "android/app/src/main/java/at/hausgarten/service/BackupScheduleRules.java": "c27e14e019efc90d04842140fa096040a6ade72a83b59f36fcb4a3eb4da1347c",
+    "android/app/src/main/java/at/hausgarten/service/PixelBackupService.java": "2860798ab8f309f4634e30ea8cbe89bc5a2729bfca30b23fc8cb23fc5eac526f",
+    "android/app/src/main/java/at/hausgarten/service/BackupDocumentTransfer.java": "3443f286dcce556d4f57efa15f43cb6999767a6f699707ce88697776ed36a1bf",
+    "android/app/src/main/java/at/hausgarten/service/FullBackupController.java": "fed81a406bbdf504bb14df39bb0642a11121cccc385c1fc45b032c14fe99cddf",
+    "android/app/src/main/java/at/hausgarten/service/LocalBackupCoordinator.java": "c6cde8ea3a3a70d229ecb41f5736b4143689b8fd0056a777ba9368512007e800",
+    "android/app/src/main/java/at/hausgarten/service/EncryptedBackupArchive.java": "df6121437ea5319667cbaf65072b9db68761ea6122f3cc89a250e0e54b9e41a9",
+    "android/app/src/main/java/at/hausgarten/service/BackupRestoreService.java": "9232fcade87b656676783f8548c8532b97cc3a2ce5eb871ef6733ae72bfc4b18",
+    "android/app/src/main/java/at/hausgarten/service/RestoreStartupProtection.java": "380532470fb555d1f56b978b2f6f70381aeed02438ab2d5676cf0dea456cee9f",
+    "android/app/src/main/java/at/hausgarten/service/BackupScheduleRules.java": "dff524d10d608fd7d8a0dee4e381ac27892f16187b326487c11ba7976a916fd8",
     "android/app/src/main/java/at/hausgarten/service/TrashMediaCleanup.java": "6466208f4b0111b12d427ce18b91ffffda59bd4ac4e54ddf8e74c9da4d2f7417",
     "android/app/src/main/java/at/hausgarten/service/BrowserMediaRepository.java": "28a6942a0bae2c4c38203fe7300942cf193a2a55dd3da5e6c3001442a990006f",
     "android/app/src/main/java/at/hausgarten/service/BrowserMediaRepositoryRules.java": "4e57b10108e8f5121b61ee46b3f430899bba22b0a7d3317a0bc728a1664fa156",
@@ -2944,16 +2954,15 @@
     "android/app/src/main/java/at/hausgarten/service/RevierRepository.java": "f85ac7fc648191e1bb210d557c61108fa0f466793032b93354080932047581be",
     "android/app/src/main/java/at/hausgarten/service/RevierLocalRepository.java": "410131dc6be291ab9a34afe6c56fe00cc7d04d2c4c7b8c7a66afe36f0dabe729",
     "android/app/src/main/java/at/hausgarten/service/RevierSnapshotRepository.java": "9c8f1435baf3a24dbc54f0a189ad082f60f141b22b8c006486dea20c2984e5cb",
-    "android/app/src/main/java/at/hausgarten/service/LocalWorkflowTools.java": "89f13aace9e7d3e757d38f46c49274e0baf3c0607061992e1f1239fb4b2266ac",
+    "android/app/src/main/java/at/hausgarten/service/LocalWorkflowTools.java": "46c0bb2757df104a9f9166b9b65c1bf4c811186be3846885c1623c2659abae3b",
     "android/app/src/main/java/at/hausgarten/service/PlanningApplicationService.java": "976da88729a0071c509a03864bd2e57d6c3504a3b46a8b2fd145fd2b0d83880a",
     "android/app/src/main/java/at/hausgarten/service/OfferApplicationService.java": "df37f6468e85d4d008537d61f25a446f6f75e117ac8045e5c92860c6b176af62",
     "android/app/src/main/java/at/hausgarten/service/LocalInvoiceService.java": "43a00dfae72a7dd88749becbaf9eeec50b16c9645303e4b025cbbee7821cdd3c",
     "android/app/src/main/java/at/hausgarten/service/OwnerRequestTransactions.java": "b5dfd5d3328bb9d6db0364c013e3812d323f7df31341541bf924ffbeda528771",
-    "android/app/src/main/java/at/hausgarten/service/McpErrors.java": "2c0f69f23f7d41c3f348da5c98a34136730a6cf189f4ddaab98e320649ad5864",
+    "android/app/src/main/java/at/hausgarten/service/McpErrors.java": "3a2cbc57eb15c4d0c2986e3230197e96e336a7b06aa91d8e36512d0034c71d3d",
     "android/app/src/main/java/at/hausgarten/service/CalendarSetupRules.java": "c2049341103fbb0c6aa2a4bc400c8af0dcb2900af3ec224320c336f1013d5755",
-    "android/app/src/main/java/at/hausgarten/service/FullBackupActivity.java": "986b773764a324e0814319ea8b3d750294446b4228340deda4b4f85eb04014e5",
-    "android/app/src/main/java/at/hausgarten/service/BackupFolderPicker.java": "c2f8b54f38b8d37cfade7694157c01ca7da6ba040b86cbcaf5f3308d05cd0a4b",
+    "android/app/src/main/java/at/hausgarten/service/FullBackupActivity.java": "36b803db0f18d25959ba4bea858d8d1eeeeed397191f8fd8c69e634af61de910",
     "android/app/src/main/java/at/hausgarten/service/RestoreRecoveryActivity.java": "30042050d78f446f93c38ab5c0c18e28d512d47d45513ff68257c9cea2e2bf98",
-    "android/app/src/main/java/at/hausgarten/service/LocalAuthorityActivity.java": "e5cbe4620aa6ce02076b24fe20e56e517b222e4c4e519d32d286985d1925e62a"
+    "android/app/src/main/java/at/hausgarten/service/LocalAuthorityActivity.java": "6c48cd88425942f6d18214c5321cc15b82efe7e12e1ef005edd1fe2fdd36c310"
   }
 }

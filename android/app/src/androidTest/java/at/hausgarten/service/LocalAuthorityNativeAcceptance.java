@@ -63,8 +63,8 @@ final class LocalAuthorityNativeAcceptance {
                     JSONObject incomplete=new JSONObject().put("formatVersion",1).put("verified",true).put("external_verified",false).put("archive_sha256",PixelMcpWriteTools.hash("qa_incomplete_archive")).put("business_snapshot_sha256",preview.getString("state_sha256"));
                     rejected(test,"LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED",()->migration.activate("qa_missing_external_archive",preview.getString("preview_hash"),incomplete,evidence()));
                     String code=BackupCrypto.newRecoveryCode();keys.confirmAndStore("qa_migration_key",code,code);JSONObject browser=new JSONObject().put("formatVersion",1).put("storage",new JSONObject());
-                    BackupSettingsRepository settings=new BackupSettingsRepository(f.context,f.store);settings.saveBrowser("qa_migration_browser",settings.browserRevision(),browser);
-                    LocalBackupCoordinator backups=new LocalBackupCoordinator(f.context,f.store);String backupId="qa_resolved_migration_archive";
+                    RetiredBackupSettingsRepository settings=new RetiredBackupSettingsRepository(f.context,f.store);settings.saveBrowser("qa_migration_browser",settings.browserRevision(),browser);
+                    RetiredLocalBackupCoordinator backups=new RetiredLocalBackupCoordinator(f.context,f.store);String backupId="qa_resolved_migration_archive";
                     backups.createWithIntent("qa_migration_archive_request",backupId,new JSONObject().put("kind","saf").put("treeUri","content://qa.synthetic.documents/tree/qa_migration"),browser,"manual");backups.prepareLocal(backupId);
                     JSONObject args=new JSONObject().put("request_id","qa_resolved_migration_activate").put("expected_preview_hash",migration.preview().getString("preview_hash")).put("backup_id",backupId).put("writer_evidence",evidence());
                     // A sealed local file is not external protection. This is still blocked.

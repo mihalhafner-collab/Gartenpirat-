@@ -16,6 +16,16 @@ final class BackupDocumentTransfer {
         InputStream read(String id)throws Exception;
         OutputStream replaceOwnCandidate(String id)throws Exception;
     }
+    interface LocalFile {OutputStream write()throws Exception;InputStream read()throws Exception;}
+    static void exportLocal(File archive,String expectedHash,boolean alreadyVerified,LocalFile destination)throws Exception {
+        if(!archive.isFile()||!EncryptedBackupArchive.sha256(archive).equals(expectedHash))throw new IOException("BACKUP_LOCAL_SOURCE_CHANGED");
+        if(!alreadyVerified)try(InputStream input=new FileInputStream(archive);OutputStream output=destination.write()){
+            if(output==null)throw new IOException("BACKUP_LOCAL_WRITE_FAILED");EncryptedBackupArchive.copy(input,output,null,archive.length());output.flush();
+        }
+        try(InputStream input=destination.read()){
+            if(input==null||!hash(input,archive.length()).equals(expectedHash))throw new IOException("BACKUP_LOCAL_READBACK_FAILED");
+        }
+    }
     interface Checkpoint {JSONObject read()throws Exception;void save(JSONObject state)throws Exception;}
     interface ArchiveVerifier {void verify(InputStream ciphertext)throws Exception;}
     private interface CommitCodec {JSONObject read(InputStream source)throws Exception;void write(OutputStream destination,JSONObject value)throws Exception;}

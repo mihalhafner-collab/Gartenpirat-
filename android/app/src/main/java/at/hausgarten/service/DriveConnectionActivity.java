@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-/** Old internal activity name routes only to explicit encrypted-backup setup. */
+/** Historical internal name redirects to local backup. No Google connection. */
 public final class DriveConnectionActivity extends Activity {
     @Override public void onCreate(Bundle state){
         super.onCreate(state);

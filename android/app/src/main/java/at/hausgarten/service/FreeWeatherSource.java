@@ -37,22 +37,22 @@ final class FreeWeatherSource {
         try{Instant at=Instant.parse(cache.getString(key));return at.isAfter(now.plusSeconds(300))||!at.isAfter(now.minusSeconds(age));}
         catch(Exception missing){return true;}
     }
-    static DriveRestClient.Reply fetch(DriveRestClient.Wire wire,String url,int max,Instant now)throws Exception{
-        DriveRestClient.Reply reply=wire.send("GET",url,Collections.emptyMap(),null,max);
+    static HttpTransport.Reply fetch(HttpTransport.Wire wire,String url,int max,Instant now)throws Exception{
+        HttpTransport.Reply reply=wire.send("GET",url,Collections.emptyMap(),null,max);
         if(reply.status==429||reply.status>=500){
             long delay=30000;String retry=reply.header("Retry-After");
             try{delay=Math.max(delay,Long.parseLong(retry)*1000);}catch(Exception numeric){try{delay=Math.max(delay,Duration.between(now,ZonedDateTime.parse(retry,DateTimeFormatter.RFC_1123_DATE_TIME).toInstant()).toMillis());}catch(Exception ignored){}}
-            throw new DriveRestClient.Failure(reply.status==429?"WEATHER_RATE_LIMIT":"WEATHER_RETRY","Wetterdaten derzeit nicht verfügbar.",Math.min(24*HOUR*1000,delay),false);
+            throw new HttpTransport.Failure(reply.status==429?"WEATHER_RATE_LIMIT":"WEATHER_RETRY","Wetterdaten derzeit nicht verfügbar.",Math.min(24*HOUR*1000,delay),false);
         }
-        if(reply.status!=200)throw new DriveRestClient.Failure("WEATHER_UNAVAILABLE","Wetterdaten derzeit nicht verfügbar.",0,reply.status==401||reply.status==403);
+        if(reply.status!=200)throw new HttpTransport.Failure("WEATHER_UNAVAILABLE","Wetterdaten derzeit nicht verfügbar.",0,reply.status==401||reply.status==403);
         return reply;
     }
-    static void requireLicence(JSONObject cache,Instant now,DriveRestClient.Wire wire)throws Exception{
+    static void requireLicence(JSONObject cache,Instant now,HttpTransport.Wire wire)throws Exception{
         if(!due(cache,"licence_checked_at",now,7*DAY))return;
         String html=new String(fetch(wire,LICENCE,512*1024,now).body,StandardCharsets.UTF_8);
         String plain=html.replaceAll("<[^>]*>"," ").replaceAll("\\s+"," ").toLowerCase(Locale.ROOT);
         if(!plain.contains("all data that is publicly accessible without authentication")||!html.contains("creativecommons.org/licenses/by/4.0")){
-            cache.remove("licence_checked_at");throw new DriveRestClient.Failure("WEATHER_LICENCE_UNVERIFIED","Wetterdaten derzeit nicht verfügbar. Kostenfreier öffentlicher Datenzugang ist nicht bestätigt.",0,true);
+            cache.remove("licence_checked_at");throw new HttpTransport.Failure("WEATHER_LICENCE_UNVERIFIED","Wetterdaten derzeit nicht verfügbar. Kostenfreier öffentlicher Datenzugang ist nicht bestätigt.",0,true);
         }
         cache.put("licence_checked_at",now.toString());
     }
@@ -61,7 +61,7 @@ final class FreeWeatherSource {
         JSONArray list=metadata.optJSONArray("parameters");if(list==null)throw new IOException("Wetterdaten derzeit nicht verfügbar.");
         JSONObject out=new JSONObject();for(int i=0;i<list.length();i++){JSONObject p=list.getJSONObject(i);String id=p.optString("name",p.optString("id"));if(id.isEmpty()||out.has(id))throw new IOException("Wetterparameter nicht eindeutig.");out.put(id,p);}return out;
     }
-    static JSONObject metadata(String dataset,JSONObject cache,Instant now,DriveRestClient.Wire wire)throws Exception{
+    static JSONObject metadata(String dataset,JSONObject cache,Instant now,HttpTransport.Wire wire)throws Exception{
         String key=dataset+":metadata";
         if(due(cache,key+":at",now,DAY)){
             JSONObject m=fetch(wire,API+dataset+"/metadata",1024*1024,now).json();parameters(m);
@@ -73,7 +73,7 @@ final class FreeWeatherSource {
         String[] pair=location.split(",");if(pair.length!=2)throw new IOException("Einsatzort für Wetterprüfung ergänzen.");
         double lat=Double.parseDouble(pair[0]),lon=Double.parseDouble(pair[1]);if(!Double.isFinite(lat)||!Double.isFinite(lon)||lat< -90||lat>90||lon< -180||lon>180)throw new IOException("Einsatzort für Wetterprüfung ergänzen.");return new double[]{lat,lon};
     }
-    static JSONObject response(String dataset,String requested,String loc,JSONObject meta,DriveRestClient.Wire wire,Instant now)throws Exception{
+    static JSONObject response(String dataset,String requested,String loc,JSONObject meta,HttpTransport.Wire wire,Instant now)throws Exception{
         double[] point=coords(loc);JSONObject raw=fetch(wire,API+dataset+"?parameters="+requested+"&lat_lon="+point[0]+","+point[1]+"&output_format=geojson",1024*1024,now).json();
         JSONArray features=raw.optJSONArray("features");if(features==null||features.length()!=1)throw new IOException("Wetterort nicht eindeutig.");
         JSONObject geometry=features.getJSONObject(0).optJSONObject("geometry");JSONArray coordinates=geometry==null?null:geometry.optJSONArray("coordinates");
@@ -82,7 +82,7 @@ final class FreeWeatherSource {
         for(String id:requested.split(",")){JSONObject p=actual.optJSONObject(id),m=declared.optJSONObject(id);if(p==null||m==null)throw new IOException("Wetterparameter fehlt.");if(p.optString("unit").isEmpty())p.put("unit",m.getString("unit"));else if(!p.getString("unit").equals(m.getString("unit")))throw new IOException("Wettereinheiten widersprüchlich.");}
         return raw;
     }
-    static JSONObject refreshSite(String loc,JSONObject cache,Instant now,long untilStart,DriveRestClient.Wire wire)throws Exception{
+    static JSONObject refreshSite(String loc,JSONObject cache,Instant now,long untilStart,HttpTransport.Wire wire)throws Exception{
         long cadence=intervalSeconds(untilStart);
         cache.put("monitoring",new JSONObject().put("active",untilStart<=MONITOR_WINDOW).put("first_check_days_before",16).put("next_interval_seconds",cadence).put("source",ATTRIBUTION));
         if(untilStart>MONITOR_WINDOW)return cache;
@@ -93,7 +93,7 @@ final class FreeWeatherSource {
             double[] point=coords(loc);
             try{JSONObject warnings=fetch(wire,"https://warnungen.zamg.at/wsapp/api/getWarningsForCoords?lat="+point[0]+"&lon="+point[1]+"&lang=de",512*1024,now).json();
                 cache.put("warnings",WeatherRiskRules.parseWarnings(warnings)).put("warnings_fetched_at",now.toString()).remove("warning_status");
-            }catch(DriveRestClient.Failure unavailable){cache.put("warning_status","Amtliche Warnungen derzeit nicht verfügbar.");throw unavailable;}
+            }catch(HttpTransport.Failure unavailable){cache.put("warning_status","Amtliche Warnungen derzeit nicht verfügbar.");throw unavailable;}
             catch(Exception unavailable){cache.put("warning_status","Amtliche Warnungen derzeit nicht verfügbar.");}
         }
         if(untilStart<=60*HOUR&&due(cache,"fetched_at",now,cadence)){
@@ -105,14 +105,14 @@ final class FreeWeatherSource {
         }
         return cache;
     }
-    static JSONObject refreshNonCommercialSite(String loc,JSONObject cache,Instant now,long untilStart,DriveRestClient.Wire wire)throws Exception {
+    static JSONObject refreshNonCommercialSite(String loc,JSONObject cache,Instant now,long untilStart,HttpTransport.Wire wire)throws Exception {
         cache.put("monitoring",new JSONObject().put("active",untilStart<=MONITOR_WINDOW).put("first_check_days_before",16)
             .put("minimum_forecast_lead_days",14).put("next_interval_seconds",intervalSeconds(untilStart)).put("source",OpenMeteoWeatherSource.ATTRIBUTION));
         if(untilStart>MONITOR_WINDOW)return cache;
         try{OpenMeteoWeatherSource.refreshSite(loc,cache,now,untilStart,wire);}
         catch(Exception primary){
             if(CalendarRecoveryRules.interrupted(primary))throw primary;
-            if(primary instanceof DriveRestClient.Failure&&Arrays.asList("WEATHER_RATE_LIMIT","WEATHER_BATCH_PENDING").contains(((DriveRestClient.Failure)primary).code))throw primary;
+            if(primary instanceof HttpTransport.Failure&&Arrays.asList("WEATHER_RATE_LIMIT","WEATHER_BATCH_PENDING").contains(((HttpTransport.Failure)primary).code))throw primary;
             // Preserve the public short-range adapter as a real fallback; never claim it covers 14 days.
             if(untilStart<=60*HOUR)try{
                 JSONObject fallback=new JSONObject(cache.toString());fallback.remove("fetched_at");refreshSite(loc,fallback,now,untilStart,wire);
@@ -126,17 +126,17 @@ final class FreeWeatherSource {
         if(untilStart<=4*DAY)try{refreshWarnings(loc,cache,now,untilStart,wire);}
         catch(Exception unavailable){
             cache.put("warning_status","Amtliche Warnungen derzeit nicht verfügbar.");
-            if(CalendarRecoveryRules.interrupted(unavailable)||(unavailable instanceof DriveRestClient.Failure&&Arrays.asList("WEATHER_RATE_LIMIT","WEATHER_BATCH_PENDING").contains(((DriveRestClient.Failure)unavailable).code)))throw unavailable;
+            if(CalendarRecoveryRules.interrupted(unavailable)||(unavailable instanceof HttpTransport.Failure&&Arrays.asList("WEATHER_RATE_LIMIT","WEATHER_BATCH_PENDING").contains(((HttpTransport.Failure)unavailable).code)))throw unavailable;
         }
         return cache;
     }
-    static void refreshWarnings(String loc,JSONObject cache,Instant now,long untilStart,DriveRestClient.Wire wire)throws Exception {
+    static void refreshWarnings(String loc,JSONObject cache,Instant now,long untilStart,HttpTransport.Wire wire)throws Exception {
         if(untilStart>4*DAY||!due(cache,"warnings_fetched_at",now,Math.min(3*HOUR,intervalSeconds(untilStart))))return;
         double[] point=coords(loc);requireLicence(cache,now,wire);
         JSONObject warnings=fetch(wire,"https://warnungen.zamg.at/wsapp/api/getWarningsForCoords?lat="+point[0]+"&lon="+point[1]+"&lang=de",512*1024,now).json();
         cache.put("warnings",WeatherRiskRules.parseWarnings(warnings)).put("warnings_fetched_at",now.toString());cache.remove("warning_status");
     }
-    static void refreshNowcast(String loc,JSONObject cache,Instant now,DriveRestClient.Wire wire)throws Exception{
+    static void refreshNowcast(String loc,JSONObject cache,Instant now,HttpTransport.Wire wire)throws Exception{
         if(!due(cache,"nowcast_fetched_at",now,HOUR))return;
         requireLicence(cache,now,wire);
         JSONObject m=metadata("nowcast-v1-15min-1km",cache,now,wire),p=parameters(m);

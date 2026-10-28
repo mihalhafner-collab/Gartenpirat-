@@ -6,34 +6,10 @@ import org.json.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-/** Explicit backup-only opt-in and browser checkpoints in the existing local database. */
+/** Local browser checkpoint in the existing database; no account or cloud settings. */
 final class BackupSettingsRepository {
     private final Context context;private final PixelLocalStore store;private final BackupDeviceGuard guard;
     BackupSettingsRepository(Context context,PixelLocalStore store)throws Exception {this.context=context;this.store=store;guard=new BackupDeviceGuard(context);}
-    JSONObject read()throws Exception {
-        JSONObject identity=guard.current();String raw=store.ownerValue("full_backup_settings","");
-        JSONObject value=raw.isEmpty()?new JSONObject().put("formatVersion",1).put("enabled",false).put("unmeteredOnly",false).put("account","").put("folderId",""):new JSONObject(raw);
-        if(value.getInt("formatVersion")!=1)throw new IOException("BACKUP_SETTINGS_VERSION_UNSUPPORTED");
-        boolean matches=identity.getString("installationId").equals(value.optString("installationId"))&&identity.getString("restoreEpoch").equals(value.optString("restoreEpoch"));
-        return value.put("revision",PixelMcpWriteTools.hash(value)).put("contextMatches",matches).put("keyConfigured",new BackupRecoveryKeyStore(context).configured());
-    }
-    JSONObject configure(String requestId,String expectedRevision,boolean enabled,String account,String folderId,boolean unmeteredOnly)throws Exception {
-        if(requestId==null||!requestId.matches("[A-Za-z0-9_-]{8,200}"))throw new IOException("BACKUP_REQUEST_ID_REQUIRED");
-        if(expectedRevision==null||!expectedRevision.matches("[0-9a-f]{64}"))throw new IOException("BACKUP_SETTINGS_REVISION_REQUIRED");
-        if(account==null||folderId==null||account.length()>320)throw new IOException("BACKUP_DRIVE_DESTINATION_REQUIRED");
-        account=account.trim();folderId=folderId.trim();
-        if(enabled){if(account.isEmpty()||!DriveRestClient.validId(folderId))throw new IOException("BACKUP_DRIVE_DESTINATION_REQUIRED");new BackupRecoveryKeyStore(context).read();}
-        JSONObject identity=guard.current();JSONObject inputs=new JSONObject().put("enabled",enabled).put("account",account).put("folderId",folderId).put("unmeteredOnly",unmeteredOnly).put("expectedRevision",expectedRevision).put("installationId",identity.getString("installationId")).put("restoreEpoch",identity.getString("restoreEpoch"));String fingerprint=PixelMcpWriteTools.hash(inputs),key="full_backup_settings_request:"+PixelMcpWriteTools.hash(requestId);
-        SQLiteDatabase db=store.getWritableDatabase();db.beginTransaction();try{
-            String previous=store.ownerValue(key,"");if(!previous.isEmpty()){
-                JSONObject receipt=new JSONObject(previous);if(!fingerprint.equals(receipt.getString("fingerprint")))throw new IOException("BACKUP_SETTINGS_REPLAY_MISMATCH");
-                db.setTransactionSuccessful();return new JSONObject(receipt.getJSONObject("result").toString()).put("replayed",true);
-            }
-            if(!read().getString("revision").equals(expectedRevision))throw new IOException("BACKUP_SETTINGS_WRITE_CONFLICT");
-            JSONObject value=new JSONObject().put("formatVersion",1).put("installationId",identity.getString("installationId")).put("restoreEpoch",identity.getString("restoreEpoch")).put("enabled",enabled).put("unmeteredOnly",unmeteredOnly).put("account",account).put("folderId",folderId).put("updatedAt",java.time.Instant.now().toString());store.putOwnerValue("full_backup_settings",value.toString());
-            JSONObject result=read().put("replayed",false);store.putOwnerValue(key,new JSONObject().put("fingerprint",fingerprint).put("result",result).toString());db.setTransactionSuccessful();return result;
-        }finally{db.endTransaction();}
-    }
     JSONObject browser()throws Exception {
         String error=browserError();if(!error.isEmpty())throw new IOException(error);
         String raw=store.ownerValue("full_backup_browser","");if(raw.isEmpty())throw new IOException("BACKUP_BROWSER_STATE_REQUIRED_OPEN_APP");JSONObject saved=new JSONObject(raw),identity=guard.current();
