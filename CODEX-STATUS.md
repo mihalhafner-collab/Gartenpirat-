@@ -6,6 +6,16 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Drive-Bereitstellung111 erneut beauftragt28.10.
+
+Nutzer möchte weiterhin die gewohnte private Drive-Bereitstellung. Upload der
+bytegeprüften originalsignierten APK111 in den vorhandenen Test-APK-Bereich
+versucht. Connector bricht beim OpenAI-Dateiblobtransfer nach300001ms ab;
+kein Drive-Datei-ID/Uploadabschluss. Suche und Zielordner nach Fehler nochmals
+gelesen: APK111 nicht vorhanden. Keine Freigaben/Altdateien geändert.
+Drive-Bereitstellung bleibt offen; GitHub-Datei ist nur bestehender Ersatzdownload.
+Nachweis im Release111-Bericht; kein neuer APK-Bau für diese Dokumentation.
+
 ## Weitere Backup-Bedienblockade28.10.
 
 Ein wartender Job in LOCAL_VERIFIED/Uploadphasen bot trotz verfügbarer bewusster

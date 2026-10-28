@@ -77,5 +77,19 @@
   "privacy": {
     "source_worktree_artifact": "PASS_IN_ORIGINAL_SIGNING_COMMAND",
     "delivery_delta": "PASS;6files;0seed;APK copied byte-identically"
+  },
+  "drive_delivery": {
+    "user_preference": "DRIVE_IN_EXISTING_PRIVATE_APK_AREA",
+    "status": "FAILED_BEFORE_DRIVE_FILE_CONFIRMATION",
+    "parent_folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+    "attempted_name": "Haus-Garten-1.55.6-111-original.apk",
+    "failure": "OpenAI file blob upload to sdmntprnortheu.oaiusercontent.com timeout after300001ms; error sending request",
+    "request_id": "6288429a-d960-4c8b-8717-58d20a1c0975",
+    "drive_file_id": null,
+    "post_attempt_search": "NO_MATCH",
+    "post_attempt_target_listing": "NO_CANDIDATE111",
+    "sharing_changed": false,
+    "old_files_changed": false,
+    "retry": "No identical automatic retry after proven transfer timeout"
   }
 }

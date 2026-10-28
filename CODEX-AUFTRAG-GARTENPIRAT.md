@@ -1,5 +1,13 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Direkte Bereitstellungspräzisierung28.10.
+
+Nutzer: „Bisherige zur verfügungstellung wie gewohnt Drive“. Geprüfte
+originalsignierte APKs weiterhin im bestehenden privaten Drive-APK-Bereich
+bereitstellen und zurücklesen; GitHub bleibt die einzige Entwicklungsquelle.
+Keine öffentliche Freigabe, keine Installation und keine Quell-/Statuskopien
+nach Drive. Aktueller beauftragter Prüfkandidat1.55.6/111.
+
 ## Direkter Folgeauftrag28.10.: Etappen3–5 abschließen; Backupfehler zuerst klären
 
 Nutzerauftrag: „Schließe Etappen 3-5 vollständig ab. Vorher zwichenbericht von
