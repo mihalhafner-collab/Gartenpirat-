@@ -44,6 +44,18 @@ class ObservedReleaseBaselineTests(unittest.TestCase):
         with self.assertRaises(ValueError):require_newer_version(baseline+1,state)
         self.assertEqual(require_newer_version(newer+1,state),newer)
 
+    def test_exact_apk_observation_and_incomplete_current_evidence(self):
+        from tools.check_release_baseline import require_newer_version
+        history=[{'version_code':10,'observed_at_utc':'qa','reported_base_git_sha':'0'*40,'source_sha256':'0'*64}]
+        observed={'version_code':12,'observed_at_utc':'qa','source_sha256':'1'*64,'matched_release_source_git_sha':'1'*40,'apk_sha256':'2'*64,'source_binding':'EXACT_INSTALLED_APK_SHA256_MATCH_TO_RELEASE_REGISTRY;not independent App selfreport'}
+        state={'observed_installation_history':history,'last_observed_installed_build':observed}
+        self.assertEqual(require_newer_version(13,state),12)
+        for code in (10,11,12):
+            with self.subTest(code=code),self.assertRaises(ValueError):require_newer_version(code,state)
+        for field in ('apk_sha256','source_sha256','matched_release_source_git_sha','source_binding','observed_at_utc'):
+            invalid={**observed};invalid.pop(field)
+            with self.subTest(field=field),self.assertRaises(ValueError):require_newer_version(13,{**state,'last_observed_installed_build':invalid})
+
 
 class OriginalSigningTests(unittest.TestCase):
     def setUp(self):

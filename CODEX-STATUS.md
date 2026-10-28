@@ -33,6 +33,13 @@ dieser veraltete Prüffall bleibt FAIL, keine Rückänderung der aktuellen3Tabs.
 Aktuelle320/360/426px-/200%-Prüfungen in Revier/Navigation/Gerätefoto PASS.
 P1-Altkataloggate aus Etappe1 bleibt als eigener Befund offen.
 
+Release-Versionssperre: bestehender Test erkannte, dass der ADB-Hashnachweis108
+nicht in der älteren Installationshistorie stand und der Guard nur106 berücksichtigte.
+Kandidatenbau vor Auslieferung angehalten; Guard berücksichtigt jetzt zusätzlich
+die vollständig belegte aktuelle Beobachtung und sperrt bei unvollständiger
+aktueller Evidenz. Keine Absenkung der Baseline und keine Änderung des beobachteten
+Gerätestands.71 Signier-/Identitäts-/Quellsicherungs-/Architekturtests PASS.
+
 Version1.55.4/Build109 für den beauftragten APK-Abschluss vorbereitet. Native
 Kompilierung/Adapterprüfungen, finaler Releasebau, Lint, Originalsignatur und
 Artefaktprüfung folgen aus gesichertem sauberem Quellcommit. Noch keine APK109
