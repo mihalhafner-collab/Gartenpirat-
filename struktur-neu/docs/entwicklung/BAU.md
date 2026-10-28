@@ -11,11 +11,11 @@ Vorhandene Abhängigkeiten können bei vollständigem Cache offline verwendet we
 
 ## Testreihenfolge im laufenden Auftrag
 
-Die ausdrückliche Nutzerpräzisierung vom 28.10.2026 hat für den laufenden Umbau
-Vorrang: Etappen 3–5 und vereinbarte kleine Ergänzungen zuerst im Quellcode
-umsetzen, anschließend gemeinsam testen. Bis dahin keine weiteren Testläufe
-starten. Bereits vorhandene Ausgangsmessungen erhalten. Zwischenstände sind
-ungetestet; die folgenden Befehle beschreiben den anschließenden Prüflauf.
+Die neueste Nutzeranweisung vom 28.10.2026 beauftragt ausdrücklich die notwendigen
+Tests und eine aktualisierte originalsignierte APK zur Paketinstallation. Damit
+ist die frühere Testpause aufgehoben. Den aktuellen Quellstand gemeinsam prüfen;
+vorhandene Ausgangsmessungen getrennt erhalten. Die geschützte Altlastenlöschung
+bleibt an den tatsächlichen Backup-/Restore-Nachweis gebunden.
 
 ## Vorbereitete native Tabellenprüfung über ADB
 
@@ -112,6 +112,20 @@ Android-SDK und die durch Gradle aufgelösten Tink-/Gson-Abhängigkeiten.
 
 ```sh
 python3 -B tools/run-followup-java.py
+```
+
+Für die Tabellenumstellung zusätzlich `--tables` verwenden. Dafür
+`HG_SQLITE_JDBC_JAR` auf SQLite-JDBC3.46.1.0 und `HG_SLF4J_API_JAR` auf
+SLF4J-API1.7.36 setzen; der Runner prüft die festgelegten SHA256-Prüfsummen.
+Die vierte Suite verwendet echte SQLite-Transaktionen in einer frisch angelegten
+synthetischen Datei. Sie prüft Übernahme, Kopierabbruch, Fortsetzung, Schreibsperre,
+66 Filter-/Seitengleichheiten, Unicode-Großdaten, CAS/Wiederholung, Journalprojektion,
+Fehler-Rollback und Rückweg mit aktuellen Änderungen. Sie prüft weder den
+Android-Transaktionslistener noch CursorWindow, die vollständigen App-Schreiber
+oder Backup/Restore auf dem Pixel; dafür bleibt der ADB-Einstieg erforderlich.
+
+```sh
+python3 -B tools/run-followup-java.py --tables
 ```
 
 Die zwei Dateien in `tests/java-support/` liefern tatsächlich referenzierte

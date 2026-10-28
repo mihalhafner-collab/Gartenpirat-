@@ -19,6 +19,15 @@ const {chromium}=require('./browser.cjs'),fixtureSource=require('./ui-fixture-so
    for(const id of ids){await page.evaluate(id=>openPage(id),id);assert.equal(await page.evaluate(()=>currentPage),id,id);}
    assert.equal(await page.evaluate(()=>writes.length+qaRevier.writes.length),0);await page.evaluate(()=>openPage('home'));
   });
+  await check('Reopening billing refreshes the locally read groups without creating a draft',async()=>{
+   await page.evaluate(()=>{window.qaBillingOriginal=window.LocalInvoiceUI;window.qaBillingLabel='QA Erste Abrechnung';window.LocalInvoiceUI={...LocalInvoiceUI,billingContext:()=>({groups:[{billing_customer_id:'qa_recipient',billing_customer_name:qaBillingLabel,hours:0,work_records:[]}]})};openPage('billing-page');});
+   try{
+    assert.equal(await page.locator('#billing-group-list h3').innerText(),'QA Erste Abrechnung');
+    await page.evaluate(()=>{qaBillingLabel='QA Neu gelesene Abrechnung';openPage('billing-page');});
+    assert.equal(await page.locator('#billing-group-list h3').innerText(),'QA Neu gelesene Abrechnung');
+    assert.equal(await page.evaluate(()=>writes.length+qaRevier.writes.length),0);
+   }finally{await page.evaluate(()=>{window.LocalInvoiceUI=qaBillingOriginal;delete window.qaBillingOriginal;delete window.qaBillingLabel;openPage('home');});}
+  });
   await check('Capture shows original clock fields, optional notes, a header Back and separate Discard/Save',async()=>{
    await page.evaluate(()=>openPage('work-entry'));for(const id of ['start','end'])assert(await page.locator('#'+id).isVisible());
    await page.screenshot({path:'outputs/simple-work-capture-360.png'});
