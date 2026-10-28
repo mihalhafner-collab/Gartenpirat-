@@ -1,0 +1,59 @@
+{
+  "classification": "PUBLIC_SOURCE_AND_SYNTHETIC_TEST_METADATA",
+  "scope": "Explicit manual retry visibility for existing delayed backup",
+  "before": {
+    "phase": "LOCAL_VERIFIED",
+    "future_next_attempt_at": true,
+    "primary_result": "WAIT",
+    "explicit_retry_button": false,
+    "source_commit": "b82869184630a947ff651623b9cd13cc96024e89",
+    "eligibility_expression_checked": true
+  },
+  "after": {
+    "same_job": true,
+    "explicit_retry_button": true,
+    "automatic_retry_wait_unchanged": true,
+    "controller_revision_and_target_checks_unchanged": true
+  },
+  "host_rule_tests": {
+    "passed": 63,
+    "failed": 0,
+    "added_cases": 13
+  },
+  "setup_source_tests": {
+    "passed": 5,
+    "failed": 0
+  },
+  "pixel": "NOT_EXECUTED",
+  "timing": "No performance claim; deterministic UI eligibility comparison only",
+  "protected": [
+    "encryption",
+    "recovery key",
+    "target and installation context",
+    "revision conflicts",
+    "hash readback",
+    "bounded automatic retries",
+    "explicit user retry"
+  ],
+  "apk": "BUILD111_PENDING",
+  "source_regressions": {
+    "passed": 89,
+    "failed": 0
+  },
+  "audit": {
+    "manual_independent_of_automatic_enabled": true,
+    "manual_no_JobScheduler": true,
+    "network_mobile_default": true,
+    "saved_wifi_choice_preserved": true,
+    "network_timeouts": "connect15s/read30s;existing",
+    "remaining_required_conditions": [
+      "network for Drive upload",
+      "Google consent",
+      "confirmed recovery key",
+      "complete browser/media checkpoint",
+      "same target and installation context",
+      "full archive hash readback"
+    ],
+    "device_claim": "none"
+  }
+}

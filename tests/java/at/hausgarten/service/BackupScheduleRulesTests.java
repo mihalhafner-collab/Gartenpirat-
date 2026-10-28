@@ -51,6 +51,12 @@ public final class BackupScheduleRulesTests {
         try{BackupScheduleRules.dispatchManual(()->new JSONObject().put("accepted_locally",true),id->{dispatches[0]++;return new JSONObject();});throw new AssertionError("missing identity accepted");}catch(java.io.IOException expected){yes(dispatches[0]==1);}
         JSONObject mismatch=BackupScheduleRules.dispatchManual(()->receipt,id->new JSONObject().put("backupId","qa_wrong_job").put("action","COMPLETED"));yes(mismatch.getString("execution_error_code").equals("BACKUP_RUN_RESULT_UNKNOWN")&&!mismatch.has("foreground_result"));
         JSONObject interrupted=BackupScheduleRules.dispatchManual(()->receipt,id->{throw new java.io.InterruptedIOException();});try{yes(Thread.currentThread().isInterrupted()&&interrupted.getString("execution_error_code").equals("BACKUP_RUN_INTERRUPTED")&&interrupted.getString("backup_id").equals("qa_pending_manual"));}finally{Thread.interrupted();}
+        JSONObject manualWaiting=new JSONObject().put("phase","LOCAL_VERIFIED").put("retry_available",true).put("context_matches",true).put("target_matches",true).put("next_attempt_at",now+60000);
+        yes(BackupScheduleRules.manualRetryAvailable(manualWaiting,now));
+        yes(!BackupScheduleRules.manualRetryAvailable(manualWaiting,now+60000));
+        for(String key:new String[]{"retry_available","context_matches","target_matches"})yes(!BackupScheduleRules.manualRetryAvailable(new JSONObject(manualWaiting.toString()).put(key,false),now));
+        for(String phase:new String[]{"REMOTE_VERIFIED","PROVIDER_VERIFIED","CANCELLED","FORMAT_REVIEW_REQUIRED","qa_unknown"})yes(!BackupScheduleRules.manualRetryAvailable(new JSONObject(manualWaiting.toString()).put("phase",phase),now));
+        for(String phase:new String[]{"FAILED","NEEDS_USER_ACTION","RETRY_PENDING"})yes(BackupScheduleRules.manualRetryAvailable(new JSONObject(manualWaiting.toString()).put("phase",phase).put("next_attempt_at",0),now));
         System.out.println("MANUAL_START_AFTER action="+manual+" existing_generations="+durable[0]+" foreground_runs="+dispatches[0]+" Android_scheduler_calls=0");
         System.out.println("PASS "+checks+" daily backup/retry/restore-context/data-age/clock/target guards;no scheduler timing or account claim");
     }

@@ -6,6 +6,15 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Weitere Backup-Bedienblockade28.10.
+
+Ein wartender Job in LOCAL_VERIFIED/Uploadphasen bot trotz verfügbarer bewusster
+Wiederholung bisher keinen Wiederholungsbutton. Anzeige jetzt anhand desselben
+Controller-Vertrags und zukünftigen Wiederholungszeitpunkts; gleiche Job-ID,
+Revision und Zielprüfung. Automatische Wartezeiten/Schutzgates unverändert.
+63 Host-Regeltests und5 Setup-Quellentests PASS; Pixel nicht ausgeführt.
+Nachweis: `docs/verification/backup-additional-blockers-2026-10-28.json`.
+
 ## Backupkorrektur28.10.: Original-Prüfkandidat1.55.5/110
 
 Direkter Nutzerwunsch umgesetzt: mobile Daten bei neuer Einrichtung erlaubt,

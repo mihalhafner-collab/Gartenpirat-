@@ -28,6 +28,11 @@ still überschreiben. Original-ID, Fortschritt, Unterbrechung und vollständiger
 externer Hashnachweis bleiben erhalten; keine Zusicherung gegen OS-Prozessabbruch.
 
 
+Weitere direkte Nutzeranweisung: „Sollten noch soerren bestehen diese gleich mit beheben.“
+Unbeabsichtigte Backup-Bedienblockaden prüfen und korrigieren; Schutzgates bleiben
+erhalten. Insbesondere ausdrückliche Wiederholung eines wartenden bestehenden Jobs
+anbieten, ohne automatische Wartezeiten oder Prüfsummenprüfungen zu umgehen.
+
 ## Ausführungsauftrag vom 28.10.2026
 
 Direkte Nutzeranweisung: „Umsetzten und nach abschluss apk erstellen“.

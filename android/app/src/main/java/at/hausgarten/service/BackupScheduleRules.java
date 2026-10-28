@@ -22,6 +22,12 @@ final class BackupScheduleRules {
         // The controller's durable receipt prevents a second generation.
         return request!=null&&!request.isEmpty()?"REQUEST":activeBackup!=null&&!activeBackup.isEmpty()?"RESUME":"REQUEST";
     }
+    static boolean manualRetryAvailable(JSONObject job,long now){
+        if(!job.optBoolean("retry_available")||!job.optBoolean("context_matches")||!job.optBoolean("target_matches"))return false;
+        String phase=job.optString("phase");
+        if(!ACTIVE.contains(phase)&&!Arrays.asList("NEEDS_USER_ACTION","FAILED").contains(phase))return false;
+        return Arrays.asList("NEEDS_USER_ACTION","FAILED","RETRY_PENDING").contains(phase)||job.optLong("next_attempt_at",0)>now;
+    }
     static String scheduleAttempt(Scheduler scheduler){
         try{return scheduler.schedule()?"":"BACKUP_SCHEDULER_UNAVAILABLE";}
         catch(Exception unavailable){return "BACKUP_SCHEDULER_UNAVAILABLE";}
