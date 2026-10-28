@@ -30,7 +30,7 @@ public class BusinessDataBridge {
             }
         }
     }
-    @JavascriptInterface public String getPerformanceMetrics() {
+    final String performanceMetrics() {
         JSONObject result=new JSONObject();
         try { synchronized(performanceSamples){for(Map.Entry<String,ArrayDeque<double[]>> entry:performanceSamples.entrySet()){
             JSONArray rows=new JSONArray();for(double[] row:entry.getValue())rows.put(new JSONObject().put("duration_ms",row[0]).put("response_bytes",(long)row[1]));

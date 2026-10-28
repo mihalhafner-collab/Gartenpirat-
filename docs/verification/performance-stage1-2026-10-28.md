@@ -27,7 +27,7 @@ Reproduktion: bestehendes `tests/startup-ui.test.cjs` mit
 `HG_PERFORMANCE_PHASE=instrumented` ausführen. Browser-/Acorn-Pfade wie bei den
 bestehenden Cloudtests konfigurieren; keine Verbindung zu Gerät oder Betriebsstore.
 
-Native Erfassung: `BusinessDataBridge.getPerformanceMetrics()` liest je höchstens
+Native Erfassung: Das bestehende `AndroidData.getAppInfo()` liefert unter `performance_metrics` je höchstens
 128 technische Stichproben für getState, ownerCall, getWorkSession (Dauer in ms,
 Antwortgröße in UTF-8-Bytes). Keine Argumente, Antworten, Toolnamen, Datensatz-IDs,
 Zeitstempel, Persistenz oder Übertragung. `HGPerformance.snapshot()` liest die

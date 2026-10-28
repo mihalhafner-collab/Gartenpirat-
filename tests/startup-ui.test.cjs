@@ -117,6 +117,6 @@ async function performanceRun(browser){
   }
  }finally{await browser.close();}
  const artifact={classification:'SYNTHETIC_TEST',scope:'Cloud Chromium bundled-page timing only; no native/Pixel measurement',base_source_commit:'9f3112ec8ade7796b442840ec169606ac83619bc',mode:baseline?'before':'after',samples,results,errors};
- fs.writeFileSync(baseline?'docs/verification/startup-before-2026-10-27.json':'outputs/startup-after-results.json',JSON.stringify(artifact,null,2)+'\n');
+ fs.mkdirSync('outputs',{recursive:true});fs.writeFileSync(baseline?'docs/verification/startup-before-2026-10-27.json':'outputs/startup-after-results.json',JSON.stringify(artifact,null,2)+'\n');
  if(results.some(r=>r.result==='FAIL'))process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1});

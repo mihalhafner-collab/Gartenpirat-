@@ -415,6 +415,7 @@ public class MainActivity extends Activity implements McpSyncHost {
             try {
                 android.content.pm.PackageInfo installed = getPackageManager().getPackageInfo(getPackageName(), 0);
                 info.put("uiPreview",BuildConfig.UI_PREVIEW);info.put("applicationId",getPackageName());
+                info.put("performance_metrics",new JSONObject(performanceMetrics()));
                 info.put("systemGestureLeftCss",systemGestureLeftDp);info.put("build_fingerprint",BuildProvenance.describe());info.put("versionName", installed.versionName);
                 info.put("versionCode", android.os.Build.VERSION.SDK_INT >= 28 ? installed.getLongVersionCode() : installed.versionCode);
             } catch (Exception ignored) {}

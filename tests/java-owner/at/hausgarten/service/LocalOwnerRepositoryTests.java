@@ -18,13 +18,13 @@ public final class LocalOwnerRepositoryTests {
         java.lang.reflect.Method measured=BusinessDataBridge.class.getDeclaredMethod("measured",String.class,java.util.function.Supplier.class);measured.setAccessible(true);
         String secretLikeBusinessContent="QA sensitive argument Ä😀";
         for(int i=0;i<140;i++)yes(secretLikeBusinessContent.equals(measured.invoke(bridge,"getState",(java.util.function.Supplier<String>)()->secretLikeBusinessContent)));
-        JSONObject metrics=new JSONObject(bridge.getPerformanceMetrics());JSONArray samples=metrics.getJSONArray("getState");yes(samples.length()==128);yes(!metrics.toString().contains("sensitive"));
+        JSONObject metrics=new JSONObject(bridge.performanceMetrics());JSONArray samples=metrics.getJSONArray("getState");yes(samples.length()==128);yes(!metrics.toString().contains("sensitive"));
         for(int i=0;i<samples.length();i++){JSONObject row=samples.getJSONObject(i);yes(row.length()==2&&row.getDouble("duration_ms")>=0);yes(row.getInt("response_bytes")==secretLikeBusinessContent.getBytes(java.nio.charset.StandardCharsets.UTF_8).length);}
         RuntimeException failure=new IllegalStateException("QA original failure");
         try{measured.invoke(bridge,"ownerCall",(java.util.function.Supplier<String>)()->{throw failure;});throw new AssertionError("swallowed original failure");}
         catch(java.lang.reflect.InvocationTargetException expected){yes(expected.getCause()==failure);}
-        metrics=new JSONObject(bridge.getPerformanceMetrics());yes(metrics.getJSONArray("ownerCall").getJSONObject(0).getInt("response_bytes")==0);yes(!metrics.toString().contains("original failure"));
-        metrics.getJSONArray("getState").remove(0);yes(new JSONObject(bridge.getPerformanceMetrics()).getJSONArray("getState").length()==128);
+        metrics=new JSONObject(bridge.performanceMetrics());yes(metrics.getJSONArray("ownerCall").getJSONObject(0).getInt("response_bytes")==0);yes(!metrics.toString().contains("original failure"));
+        metrics.getJSONArray("getState").remove(0);yes(new JSONObject(bridge.performanceMetrics()).getJSONArray("getState").length()==128);
     }
     public static void main(String[] args)throws Exception{
         SyntheticBusinessData.verify();performanceDiagnostics();MemoryTransactions db=new MemoryTransactions();LocalOwnerRepository repo=new LocalOwnerRepository(db);String fingerprint=PixelMcpWriteTools.hash("qa_same");
