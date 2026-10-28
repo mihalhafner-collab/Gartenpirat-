@@ -59,7 +59,23 @@
   "invoice_authority": "NOT_ACTIVATED",
   "repair_report": "docs/verification/backup-additional-blockers-2026-10-28.json",
   "delivery": {
-    "status": "PUSH_PENDING",
-    "path": "downloads/Haus-Garten-1.55.6-111-original.apk"
+    "status": "PASS_EXACT_REMOTE_COMMIT_TREE_AND_GITHUB_CONTENT_METADATA",
+    "path": "downloads/Haus-Garten-1.55.6-111-original.apk",
+    "html_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/4c9814afbef4a5d3dc7f95ebab18b958ddbdc587/downloads/Haus-Garten-1.55.6-111-original.apk",
+    "sha": "e02759524e7727e08c2eef63dea50af3b2108020",
+    "size": 82911740,
+    "artifact_commit": "4c9814afbef4a5d3dc7f95ebab18b958ddbdc587",
+    "independent_remote_full_download": false
+  },
+  "source_tag": "source/v1.55.6-build111",
+  "source_sha256": "726aa4f206e857dc139935d6c64d393ee3cf0a24768c90f6151dd89ad241e0f2",
+  "source_tag_readback": {
+    "object": "26aa007b5b70eabaf19172c8437deec3ababb9f8",
+    "peeled": "1ae47ed4dc5d70e3c7e6a44237ca22756a9fe20e",
+    "status": "PASS"
+  },
+  "privacy": {
+    "source_worktree_artifact": "PASS_IN_ORIGINAL_SIGNING_COMMAND",
+    "delivery_delta": "PASS;6files;0seed;APK copied byte-identically"
   }
 }

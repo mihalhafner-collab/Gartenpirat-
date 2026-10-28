@@ -14,6 +14,11 @@ Controller-Vertrags und zukünftigen Wiederholungszeitpunkts; gleiche Job-ID,
 Revision und Zielprüfung. Automatische Wartezeiten/Schutzgates unverändert.
 63 Host-Regeltests und5 Setup-Quellentests PASS; Pixel nicht ausgeführt.
 Nachweis: `docs/verification/backup-additional-blockers-2026-10-28.json`.
+Originalsignierter Prüfkandidat1.55.6/111 in GitHub gesichert und zurückgelesen:
+`4c9814afbef4a5d3dc7f95ebab18b958ddbdc587`, Quelle `1ae47ed4dc5d70e3c7e6a44237ca22756a9fe20e`.
+Releasebau/Lint PASS0Fehler/103Warnungen; Signatur, Paketversion,705 Assets,
+leerer Seed und Privacy PASS. Keine Installation oder Pixelabnahme.
+Artefaktnachweis: `docs/verification/release-111-2026-10-28.json`.
 
 ## Backupkorrektur28.10.: Original-Prüfkandidat1.55.5/110
 

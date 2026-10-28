@@ -535,28 +535,28 @@
     }
   },
   "current_release_candidate": {
-    "version_name": "1.55.5",
-    "version_code": 110,
+    "version_name": "1.55.6",
+    "version_code": 111,
     "status": "ORIGINAL_SIGNED_BUILD_LINT_PACKAGE_PRIVACY_PASS;PRIVATE_GIT_DOWNLOAD_VERIFIED;PIXEL_BACKUP_RESTORE_OPEN",
-    "app_source_git_sha": "aa094fee726650f60ba01445bbf2398b34a38ac7",
-    "source_tag": "source/v1.55.5-build110",
-    "source_sha256": "3ea5d475626bbbaa721d1cf029c6b507faf102a3824700245bda6e0c436ef115",
-    "apk_sha256": "5cf9d46e1af8c91a482b9015f1e1e06d58f4688ae81418184b2e71a383b5bd42",
+    "app_source_git_sha": "1ae47ed4dc5d70e3c7e6a44237ca22756a9fe20e",
+    "source_tag": "source/v1.55.6-build111",
+    "source_sha256": "726aa4f206e857dc139935d6c64d393ee3cf0a24768c90f6151dd89ad241e0f2",
+    "apk_sha256": "50f0aa71b3a9ef596b46efd3da30f7a74fe417dd565bcf0ed042c241a5dc5a7f",
     "apk_bytes": 82911740,
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
     "tools": 169,
     "ui_actions": 212,
     "download_method": "GIT_TRACKED_APK_IN_EXISTING_PRIVATE_REPOSITORY",
-    "download_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/f019fe523d821471133595d3a85a21b245cb4758/downloads/Haus-Garten-1.55.5-110-original.apk",
-    "artifact_commit": "f019fe523d821471133595d3a85a21b245cb4758",
-    "artifact_blob_sha1": "1c5c768a80b5c0d5db114938feed955d9a8b11bb",
+    "download_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/4c9814afbef4a5d3dc7f95ebab18b958ddbdc587/downloads/Haus-Garten-1.55.6-111-original.apk",
+    "artifact_commit": "4c9814afbef4a5d3dc7f95ebab18b958ddbdc587",
+    "artifact_blob_sha1": "e02759524e7727e08c2eef63dea50af3b2108020",
     "remote_readback": "PASS_EXACT_REMOTE_COMMIT_TREE_AND_GITHUB_CONTENT_METADATA",
     "drive_upload": "FAILED_BLOB_TIMEOUT;NEW_FOLDER_EMPTY",
     "github_release_asset_upload": "FAILED401;DRAFT_WITH_GIT_FILE_LINK_ONLY",
     "installation": "NOT_PERFORMED;last observed physical installation remains108",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "NOT_ACTIVATED",
-    "evidence": "docs/verification/release-110-2026-10-28.json"
+    "evidence": "docs/verification/release-111-2026-10-28.json"
   },
   "adb_campaign_2026_10_28": {
     "status": "PARTIAL_PASSIVE_ADB_EXECUTED;SYNTHETIC_ACCEPTANCE_BLOCKED",
@@ -596,6 +596,30 @@
     "executable_performance": "tests/adb_readonly_performance.ps1"
   },
   "previous_release_candidates": [
+    {
+      "version_name": "1.55.5",
+      "version_code": 110,
+      "status": "ORIGINAL_SIGNED_BUILD_LINT_PACKAGE_PRIVACY_PASS;PRIVATE_GIT_DOWNLOAD_VERIFIED;PIXEL_BACKUP_RESTORE_OPEN",
+      "app_source_git_sha": "aa094fee726650f60ba01445bbf2398b34a38ac7",
+      "source_tag": "source/v1.55.5-build110",
+      "source_sha256": "3ea5d475626bbbaa721d1cf029c6b507faf102a3824700245bda6e0c436ef115",
+      "apk_sha256": "5cf9d46e1af8c91a482b9015f1e1e06d58f4688ae81418184b2e71a383b5bd42",
+      "apk_bytes": 82911740,
+      "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+      "tools": 169,
+      "ui_actions": 212,
+      "download_method": "GIT_TRACKED_APK_IN_EXISTING_PRIVATE_REPOSITORY",
+      "download_url": "https://github.com/mihalhafner-collab/Gartenpirat-/blob/f019fe523d821471133595d3a85a21b245cb4758/downloads/Haus-Garten-1.55.5-110-original.apk",
+      "artifact_commit": "f019fe523d821471133595d3a85a21b245cb4758",
+      "artifact_blob_sha1": "1c5c768a80b5c0d5db114938feed955d9a8b11bb",
+      "remote_readback": "PASS_EXACT_REMOTE_COMMIT_TREE_AND_GITHUB_CONTENT_METADATA",
+      "drive_upload": "FAILED_BLOB_TIMEOUT;NEW_FOLDER_EMPTY",
+      "github_release_asset_upload": "FAILED401;DRAFT_WITH_GIT_FILE_LINK_ONLY",
+      "installation": "NOT_PERFORMED;last observed physical installation remains108",
+      "productive_migration": "NOT_PERFORMED",
+      "invoice_authority": "NOT_ACTIVATED",
+      "evidence": "docs/verification/release-110-2026-10-28.json"
+    },
     {
       "version_name": "1.55.4",
       "version_code": 109,
@@ -653,7 +677,7 @@
     "stage4": "NOT_STARTED;STAGES_NOT_PARALLELIZED",
     "stage5": "BLOCKED_PIXEL_BACKUP_RESTORE_PROOF;USER_REPORTS_BACKUP_NOT_STARTING_OR_HANGING",
     "pixel_performance": "NOT_EXECUTED",
-    "backup_prerequisite_repair": "IMPLEMENTED_CANDIDATE110;PIXEL_NOT_EXECUTED",
+    "backup_prerequisite_repair": "IMPLEMENTED_CANDIDATE111;EXPLICIT_DELAYED_RETRY_VISIBLE;PIXEL_NOT_EXECUTED",
     "interim_report": "docs/verification/interim-stages1-2-2026-10-28.md"
   }
 }
