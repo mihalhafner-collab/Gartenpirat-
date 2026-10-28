@@ -32,3 +32,4 @@ qa-signing-password.txt
 
 # One retained original reference; other APK builds remain ignored.
 !downloads/Haus-Garten-1.55.4-109-original.apk
+!downloads/Haus-Garten-1.55.5-110-original.apk

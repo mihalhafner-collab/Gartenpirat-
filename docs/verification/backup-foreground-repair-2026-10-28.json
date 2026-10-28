@@ -20,7 +20,12 @@
     },
     "persisted_explicit_settings": "RETAINED; no device preferences modified",
     "native_compile_before_final_feedback_edits": "PASS production and Android instrumentation sources",
-    "native_fixture": "FullBackupControlNativeAcceptance foreground/offline/resume case added; COMPILED_NOT_EXECUTED"
+    "native_fixture": "FullBackupControlNativeAcceptance foreground/offline/resume case added; COMPILED_NOT_EXECUTED",
+    "final_android_compile": "PASS production and Android instrumentation sources",
+    "full_jvm_suites": 82,
+    "related_python_tests": 80,
+    "release_build_lint": "PASS0errors103warnings",
+    "candidate": "1.55.5/110; original-signed; no installation"
   },
   "protected_gates": {
     "confirmed_request_identity": "retained on response loss, interruption and post-commit execution failure",
@@ -30,5 +35,5 @@
     "productive_migration": "NOT_PERFORMED"
   },
   "pixel": "NOT_EXECUTED; user has not confirmed working backup/restore",
-  "next": "Final source compilation, full relevant regressions and reviewable candidate110 before device gate can be closed"
+  "next": "User/device backup and restore acceptance remains required; table migration and protected removal not performed"
 }

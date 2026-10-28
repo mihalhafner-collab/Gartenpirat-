@@ -1,0 +1,537 @@
+{
+  "format": "gartenpirat.original-release110.v1",
+  "classification": "PUBLIC_SOURCE_AND_SYNTHETIC_TEST_METADATA",
+  "version_name": "1.55.5",
+  "version_code": 110,
+  "scope": "Backup prerequisite repair for approved stages3-5; no table migration or screen reconstruction",
+  "source": {
+    "version_name": "1.55.5",
+    "version_code": 110,
+    "git_sha": "aa094fee726650f60ba01445bbf2398b34a38ac7",
+    "source_sha256": "3ea5d475626bbbaa721d1cf029c6b507faf102a3824700245bda6e0c436ef115",
+    "source_dirty": false,
+    "installed_baseline": 108
+  },
+  "source_tag": "source/v1.55.5-build110",
+  "artifact": {
+    "classification": "PUBLIC_SOURCE_AND_SYNTHETIC_TEST_METADATA",
+    "status": "PASS",
+    "metadata": {
+      "package": "at.hausgarten.service",
+      "version_code": 110,
+      "version_name": "1.55.5",
+      "signature_valid": true,
+      "certificates": [
+        "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8"
+      ]
+    },
+    "source": {
+      "version_name": "1.55.5",
+      "version_code": 110,
+      "git_sha": "aa094fee726650f60ba01445bbf2398b34a38ac7",
+      "source_sha256": "3ea5d475626bbbaa721d1cf029c6b507faf102a3824700245bda6e0c436ef115",
+      "source_dirty": false,
+      "installed_baseline": 108
+    },
+    "assets": {
+      "added": [],
+      "removed": [],
+      "changed": [],
+      "unchanged_count": 705,
+      "matches": true,
+      "generated_profiles": {
+        "dexopt/baseline.prof": "2ba517cf170aaa96e0894b7ddd082b83fb1aadaa1e4264d63f23381f2a2fa1a5",
+        "dexopt/baseline.profm": "ff5b966548587b6fbe2d9801b35d7491c22a730a5f361ba5a8dbc50032fef11a"
+      }
+    },
+    "seed": {
+      "all_business_collections_empty": true,
+      "operational_seed_rows": 0
+    },
+    "production_classes": 205,
+    "bytes": 82911740,
+    "sha256": "5cf9d46e1af8c91a482b9015f1e1e06d58f4688ae81418184b2e71a383b5bd42",
+    "signature_schemes": {
+      "v1": "false",
+      "v2": "true",
+      "v3": "true",
+      "v3.1": "false",
+      "v3.2": "false",
+      "v4": "false"
+    },
+    "zipalign_16k": "PASS",
+    "debuggable": false,
+    "installation": "NOT_PERFORMED",
+    "pixel_backup_restore": "NOT_EXECUTED",
+    "instrumentation": "COMPILED_NOT_EXECUTED"
+  },
+  "signing": {
+    "apk_sha256": "5cf9d46e1af8c91a482b9015f1e1e06d58f4688ae81418184b2e71a383b5bd42",
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "package": "at.hausgarten.service",
+    "result": "SIGNED_NO_INSTALL_OR_UPDATE_ACCEPTANCE",
+    "source_preservation": {
+      "git_sha": "aa094fee726650f60ba01445bbf2398b34a38ac7",
+      "remote_refs": [
+        "refs/heads/codex/heute-uebersicht-20261027"
+      ],
+      "repository": "mihalhafner-collab/Gartenpirat-",
+      "scope": "clean_checkout_and_remote_commit_only",
+      "status": "PASS"
+    },
+    "version_code": 110,
+    "version_name": "1.55.5"
+  },
+  "build": {
+    "assembleRelease": "PASS",
+    "lintRelease": "PASS",
+    "compileReleaseAndroidTestJavaWithJavac": "PASS",
+    "lint": {
+      "Error": 0,
+      "Fatal": 0,
+      "Warning": 103
+    }
+  },
+  "validation": {
+    "jvm_suites": {
+      "suites": [
+        {
+          "suite": "AppointmentAvailabilityTests",
+          "result": "PASS",
+          "summary": "PASS 16 local and Google collisions, travel buffers, half-open boundaries, inactive rows, stale/disabled/invalid availability and no mutation checks; synthetic only"
+        },
+        {
+          "suite": "BackupDatasetExchangeTests",
+          "result": "PASS",
+          "summary": "PASS 140 real filesystem cold-start journal/each-move process death/reopen/replay/rollback/sidecar preservation checks;synthetic roots,no active app or SQLite swap"
+        },
+        {
+          "suite": "BackupDocumentTransferTests",
+          "result": "PASS",
+          "summary": "PASS 20 encrypted and conscious plaintext provider generation/48MiB/25media/reopen/readback/corruption/disconnect/uncertain-create/collision/replay checks;synthetic provider,no physical USB or SQLite restore proof"
+        },
+        {
+          "suite": "BackupFilePinsTests",
+          "result": "PASS",
+          "summary": "PASS7 immutable pin/mutable copy/UTF8/symlink/source preservation/cancellation checks"
+        },
+        {
+          "suite": "BackupPortableFormatTests",
+          "result": "PASS",
+          "summary": "PASS 45 plaintext export/48MiB stream/exactIDs/minorAmounts/originalhash/UTF8CSV/formula-protection/business-key-allowlist checks;synthetic dataset,no provider or product data"
+        },
+        {
+          "suite": "BackupScheduleRulesTests",
+          "result": "PASS",
+          "summary": "PASS 50 daily backup/retry/restore-context/data-age/clock/target guards;no scheduler timing or account claim"
+        },
+        {
+          "suite": "BackupSetupTests",
+          "result": "PASS",
+          "summary": "PASS 30 backup folder selection and independent recovery-copy checks"
+        },
+        {
+          "suite": "BackupStorageBudgetTests",
+          "result": "PASS",
+          "summary": "PASS 10 storage reserve/long-size/mid-write shortage/cancellation/previous-generation checks;synthetic space port,not physical disk-full proof"
+        },
+        {
+          "suite": "BillingTests",
+          "result": "PASS",
+          "summary": "RESULT 13 billing tests passed"
+        },
+        {
+          "suite": "BrowserMediaFilesTests",
+          "result": "PASS",
+          "summary": "PASS 22 browser media 48MiB stream/reopen/chunk-replay/quota/exact-hash/graph-ref/no-inline/no-secret/corruption checks; no Android or SQLite claim"
+        },
+        {
+          "suite": "BrowserMediaRepositoryRulesTests",
+          "result": "PASS",
+          "summary": "PASS 78 browser-media graph/25photos/CAS/replay/transaction rollback/immutable historical files/restore source separation/explicit selection/epoch/byte-integrity/Android-null-string write-delete-cleanup checks;synthetic host port,no Android IDB proof"
+        },
+        {
+          "suite": "CalendarAccessTests",
+          "result": "PASS",
+          "summary": "PASS 43 calendar token refresh, explicit denial recovery, ambiguous response quarantine, redaction and unchanged scope checks; synthetic only"
+        },
+        {
+          "suite": "CalendarAuthorizationTests",
+          "result": "PASS",
+          "summary": "PASS 54 Google scope/partial-grant/one-operation credential/401/isolated-account/retry/redaction checks; no Google connection"
+        },
+        {
+          "suite": "CalendarRecoveryTests",
+          "result": "PASS",
+          "summary": "PASS 2025 bounded long-outage recovery, cancellation/network distinction, consent result and truthful check-time contracts; synthetic only"
+        },
+        {
+          "suite": "CalendarSetupProgressTests",
+          "result": "PASS",
+          "summary": "PASS 41 observed Google authorization/account/calendar progress, early registration failure, minimal scopes and non-secret diagnostics checks; synthetic only"
+        },
+        {
+          "suite": "CalendarSetupTests",
+          "result": "PASS",
+          "summary": "PASS 54 calendar setup/readback/restart/lost-reply/duplicate/permissions/retry/title checks; synthetic provider only"
+        },
+        {
+          "suite": "DeletionBackupTests",
+          "result": "PASS",
+          "summary": "PASS 57 exact deletion backup/original/dedup/readback/chunk/corruption/failure-before-enqueue checks (synthetic OS-temp only)"
+        },
+        {
+          "suite": "DriveBackupUploadTests",
+          "result": "PASS",
+          "summary": "PASS 380 backup upload assertions;48MiB disk payload,1MiB chunks,real streaming HTTP hash reader,restarts/lost replies/conflicts;synthetic port only,no Google account"
+        },
+        {
+          "suite": "DriveJournalTests",
+          "result": "PASS",
+          "summary": "Passed 37 Drive journal tests using isolated data."
+        },
+        {
+          "suite": "DriveLegacyNormalizationTests",
+          "result": "PASS",
+          "summary": "PASS 14 raw/normalized/restart/legacy-hash compatibility checks; actual business changes still blocked, original input unchanged"
+        },
+        {
+          "suite": "DrivePerformanceTests",
+          "result": "PASS",
+          "summary": "PASS 13 Drive performance checks; synthetic only; upload data PUTs previous 8 -> 2, unchanged immutable body GETs 2 -> 1"
+        },
+        {
+          "suite": "DriveThroughputTests",
+          "result": "PASS",
+          "summary": "PASS 17 throughput/cancellation/integrity/scheduling checks; actual synthetic media concurrency=3, HTTP ceiling=6; no real mobile timing claim"
+        },
+        {
+          "suite": "DriveTransportTests",
+          "result": "PASS",
+          "summary": "24 Drive transport/dependency/garden checks passed"
+        },
+        {
+          "suite": "EncryptedBackupArchiveTests",
+          "result": "PASS",
+          "summary": "PASS 29 encrypted archive fault checks;48MiB and25 synthetic media;no Keystore;active data unchanged"
+        },
+        {
+          "suite": "EntityProtectionTests",
+          "result": "PASS",
+          "summary": "RESULT 24 entity protection checks passed; no Android storage simulated"
+        },
+        {
+          "suite": "EquipmentMaintenanceTests",
+          "result": "PASS",
+          "summary": "PASS 91 equipment maintenance calendar/early review/history/idempotency/CAS/rollback/restore/reference/shared-port checks; synthetic JVM only"
+        },
+        {
+          "suite": "EquipmentProfilePhotoTests",
+          "result": "PASS",
+          "summary": "PASS 54 equipment photo identity, local-only, replay/CAS/rollback, replace/history, format, maintenance, missing-original/business-continuity and restore checks"
+        },
+        {
+          "suite": "EstimateContractTests",
+          "result": "PASS",
+          "summary": "PASS 121 shared estimate, price/schema, immutable status, test-isolation and real-receipt validation contracts"
+        },
+        {
+          "suite": "FreeWeatherSourceTests",
+          "result": "PASS",
+          "summary": "PASS 43 exact cadence, horizon, licence, units, missing/reset, throttling and unknown weather checks; synthetic only"
+        },
+        {
+          "suite": "ImmutableStateReferenceTests",
+          "result": "PASS",
+          "summary": "PASS 8 immutable state recovery, altered content, duplicate, missing, permission and interruption checks"
+        },
+        {
+          "suite": "InvoiceDraftUnknownSettingsTests",
+          "result": "PASS",
+          "summary": "PASS 6 missing/blank tax settings: drafts editable, no invented tax mode, final issue blocked"
+        },
+        {
+          "suite": "InvoiceIssueReviewRulesTests",
+          "result": "PASS",
+          "summary": "PASS 59 invoice review/current issuer/recipient/work/material/order/numbering/restore context/CAS/unchanged prices/blocker checks;pure synthetic,no number or job mutation"
+        },
+        {
+          "suite": "IssuedInvoiceRulesTests",
+          "result": "PASS",
+          "summary": "PASS 26 imported-original/empty-issue-date/opening-payment/full-reversal/replay/corruption checks; no invented dates or status-only issue authority"
+        },
+        {
+          "suite": "LocalAuthorityRulesTests",
+          "result": "PASS",
+          "summary": "PASS 31 local authority external-proof and exact-money checks"
+        },
+        {
+          "suite": "LocalBillingQuantityTests",
+          "result": "PASS",
+          "summary": "PASS 15 local partial-source/remaining-draft/CAS-input/legacy/corruption checks;canonical historicalhours unchanged,synthetic JVM"
+        },
+        {
+          "suite": "LocalFinancialOriginalsTests",
+          "result": "PASS",
+          "summary": "PASS 32 external-original real-file/hash/size/header/dedup/path/symlink/48MiB streaming checks; synthetic isolated files only"
+        },
+        {
+          "suite": "LocalFinancialRestoreRecoveryTests",
+          "result": "PASS",
+          "summary": "PASS 64 frozen-document-origin/not-created-ledger/reservation/adoption/audit corruption guards; pure captured metadata, no file generation or authority claim"
+        },
+        {
+          "suite": "LocalFinancialValidationTests",
+          "result": "PASS",
+          "summary": "PASS 45 captured financial semantic checks: valid pending PDF, exact partial payments/correction, corrupted IDs/quantities/jobs/reservations/counter rejected without writes; no original-file claim"
+        },
+        {
+          "suite": "LocalInvoiceCreationRulesTests",
+          "result": "PASS",
+          "summary": "PASS 58 original-context/current-proof/restore/remigration/stale-authorization PDF byte-creation checks; no files or writes"
+        },
+        {
+          "suite": "LocalMigrationInventoryTests",
+          "result": "PASS",
+          "summary": "PASS 154 old-format inventory/count/decimal/privacy/authority guards; no productive migration"
+        },
+        {
+          "suite": "LocalMoneyCompatibilityTests",
+          "result": "PASS",
+          "summary": "PASS 14 local minor-unit/decimal quantity/rounding/missing-price/legacy/Subcontractor recipient checks;synthetic only"
+        },
+        {
+          "suite": "LocalTestTombstoneTests",
+          "result": "PASS",
+          "summary": "PASS 16 server receipt precedence, changed-original visibility, private-metadata and local deletion protection checks"
+        },
+        {
+          "suite": "LocalWorkflowContractsTests",
+          "result": "PASS",
+          "summary": "PASS 236 additive local schemas/shared dispatch/decimal and explicit-clear/secret-field rejection checks;native persistence tested separately"
+        },
+        {
+          "suite": "ManualChangeTests",
+          "result": "PASS",
+          "summary": "PASS 27 manual baseline and chained replay checks"
+        },
+        {
+          "suite": "McpCatalogDiscoveryTests",
+          "result": "PASS",
+          "summary": "PASS discovery, four protocols, complete local block, capabilities/health, write gate, tunnel serialization and zero writes"
+        },
+        {
+          "suite": "McpErrorsTests",
+          "result": "PASS",
+          "summary": "PASS compatible domain/provider/transport errors, reviewed local codes and unknown-message redaction assertions"
+        },
+        {
+          "suite": "McpMetadataTests",
+          "result": "PASS",
+          "summary": "PASS metadata catalog/hash consistency, final backup-only transition, fresh results and zero writes; host CPU measurements only"
+        },
+        {
+          "suite": "OfferDecisionBoundaryTests",
+          "result": "PASS",
+          "summary": "PASS 14 offer decision captured-store/history/receipt/PDF/version/revision/corruption checks;synthetic port,no device restore proof"
+        },
+        {
+          "suite": "OfferDecisionTests",
+          "result": "PASS",
+          "summary": "PASS 31 offer acceptance/decline/exact-document/revision/conversion/idempotence/legacy guards;synthetic owner port,not device PDF proof"
+        },
+        {
+          "suite": "OffersAndPhotosTests",
+          "result": "PASS",
+          "summary": "PASS 94 offer, authorization, seven legacy decisions and photo policy checks (synthetic JVM)"
+        },
+        {
+          "suite": "OpenEndPlanningTests",
+          "result": "PASS",
+          "summary": "PASS 49 explicit open ends, real/possible overlaps, hours, CAS/Drive replay, Calendar roundtrip, weather/Pixel notification eligibility and recurrence checks; synthetic only"
+        },
+        {
+          "suite": "OpenMeteoWeatherTests",
+          "result": "PASS",
+          "summary": "PASS 48 non-commercial keyless 16-day forecast, T+14/DST, partial/stale/null/unit/HTTP, real fallback and credential-boundary checks; synthetic only"
+        },
+        {
+          "suite": "OrderReviewTests",
+          "result": "PASS",
+          "summary": "Passed 16 explicit order review tests."
+        },
+        {
+          "suite": "OwnerApplicationTests",
+          "result": "PASS",
+          "summary": "PASS 134 application routing/port/CAS/isolation/upload/account/backup guards; durable SQLite replay tested natively"
+        },
+        {
+          "suite": "OwnerToolsTests",
+          "result": "PASS",
+          "summary": "PASS 333 owner schemas, access gates, file blocks, archives and conflict receipts (synthetic host data)"
+        },
+        {
+          "suite": "PixelDriveStateTests",
+          "result": "PASS",
+          "summary": "PASS 222 native Pixel/Drive migration, recovery, CAS, receipt, crash and financial guards (synthetic host storage; no device/network proof)"
+        },
+        {
+          "suite": "PixelMcpDailyTests",
+          "result": "PASS",
+          "summary": "PASS total=38 daily MCP rules/dispatch checks; Android persistence not simulated"
+        },
+        {
+          "suite": "PixelMcpEntityWriteTests",
+          "result": "PASS",
+          "summary": "PASS total=29 entity write tests"
+        },
+        {
+          "suite": "PixelMcpWriteTests",
+          "result": "PASS",
+          "summary": "PASS total=44 isolated write/schema tests"
+        },
+        {
+          "suite": "PixelTunnelContractTests",
+          "result": "PASS",
+          "summary": "RESULT 65 passed, 0 failed"
+        },
+        {
+          "suite": "PlanningTests",
+          "result": "PASS",
+          "summary": "PASS 86 planning/time/weather/Calendar/CAS/response-loss/schema checks; synthetic JVM, no real account access"
+        },
+        {
+          "suite": "ReceiptRetentionRulesTests",
+          "result": "PASS",
+          "summary": "PASS 18 receipt age/queue/backup/tombstone/reference gates"
+        },
+        {
+          "suite": "RefactoringCharacterizationTests",
+          "result": "PASS",
+          "summary": "PASS 23 frozen read/error/write-gate observations; input unchanged"
+        },
+        {
+          "suite": "RestoredBrowserReviewRulesTests",
+          "result": "PASS",
+          "summary": "PASS 56 restored-browser strict source/visible-form projection/explicit source selection/conflict/no old actions/no mutation checks; no database or device claim"
+        },
+        {
+          "suite": "RevierContextBoundaryTests",
+          "result": "PASS",
+          "summary": "PASS 8 captured canonical work/photo/session START context/legacy/rollback checks;synthetic port,no SQLite/device proof"
+        },
+        {
+          "suite": "RevierDomainTests",
+          "result": "PASS",
+          "summary": "PASS 328 Revier domain workflow/CAS/rollback/inspection/series/tour/resources/search checks;synthetic transaction port,no device/provider acceptance"
+        },
+        {
+          "suite": "SearchOrderingTests",
+          "result": "PASS",
+          "summary": "PASS 19 German aliases/multiword/phone/natural-order/inactive/new-record/relation/pagination checks; read-only synthetic JVM"
+        },
+        {
+          "suite": "ServiceCatalogBootstrapTests",
+          "result": "PASS",
+          "summary": "PASS4 catalog bootstrap preservation/failure checks; no historical price changes"
+        },
+        {
+          "suite": "SyncCommitRulesTests",
+          "result": "PASS",
+          "summary": "PASS 21 production atomic-confirmation/post-commit preference-failure checks"
+        },
+        {
+          "suite": "SyncDeletionTests",
+          "result": "PASS",
+          "summary": "PASS 88 sync policy, bounded media, immutable photos, recoverable deletion, receipt and stale-version checks (synthetic JVM)"
+        },
+        {
+          "suite": "SyncFailureRulesTests",
+          "result": "PASS",
+          "summary": "PASS 123 production sync classification/status/backoff/privacy checks"
+        },
+        {
+          "suite": "SyncOptimizationTests",
+          "result": "PASS",
+          "summary": "PASS 38 truthful sync flags, queue actions/counters, semantic serialization and bounded verified cache checks"
+        },
+        {
+          "suite": "TrashBoundaryTests",
+          "result": "PASS",
+          "summary": "PASS 97 trash local/Drive boundary checks (synthetic JVM)"
+        },
+        {
+          "suite": "TrashPurgeBatchTests",
+          "result": "PASS",
+          "summary": "PASS empty-trash/provider-backup checks=173"
+        },
+        {
+          "suite": "TrashWorkflowTests",
+          "result": "PASS",
+          "summary": "PASS 86 trash, relationship, purge, replay, stale-form and shared-media checks (synthetic JVM)"
+        },
+        {
+          "suite": "UiMcpParityTests",
+          "result": "PASS",
+          "summary": "PASS 1405 parity checks; semantic UI actions=212, MCP-covered=197, explicit platform/presentation groups=15, source tools=169"
+        },
+        {
+          "suite": "WeatherWorkflowTests",
+          "result": "PASS",
+          "summary": "PASS 66 weather address precedence, ambiguity, cache isolation, quiet hours, deduplication and actionable message checks; synthetic only"
+        },
+        {
+          "suite": "WorkSessionPauseTests",
+          "result": "PASS",
+          "summary": "RESULT 10 pause calculations passed; native SQLite transitions not executed"
+        },
+        {
+          "suite": "WorkSessionTimingTests",
+          "result": "PASS",
+          "summary": "PASS 11 clock/reference-day rules; native persistence requires Android execution"
+        },
+        {
+          "suite": "WorklogArchiveBatchTests",
+          "result": "PASS",
+          "summary": "PASS 21 batch archive selection/version/photo/financial/replay checks; 128 action preparation=126 ms (host JVM, synthetic)"
+        },
+        {
+          "suite": "WorklogRelationTests",
+          "result": "PASS",
+          "summary": "RESULT 17 relation tests passed"
+        },
+        {
+          "suite": "LocalOwnerRepositoryTests",
+          "result": "PASS",
+          "summary": "PASS 416 actual LocalOwnerRepository rollback/replay/mismatch/expired replay checks"
+        }
+      ],
+      "cross_language_hash": "PASS"
+    },
+    "backup_rules": 50,
+    "backup_source_boundary_tests": 15,
+    "related_python_tests": 80,
+    "legacy_p1_gate": "FAIL preexisting tools-schema baseline; not weakened",
+    "native_foreground_backup_acceptance": "COMPILED_NOT_EXECUTED"
+  },
+  "privacy": {
+    "source": "PASS2419files0seedrows",
+    "workspace": "PASS5679files includes ignored/untracked",
+    "unsigned_apk": "PASS ef9a845da622379f8bf4f40dfc08cf6f58646bc1ab3bf70afe0def251d08eb96",
+    "signed_apk": "PASS; original signer returned after final artifact gate"
+  },
+  "delivery": {
+    "method": "GIT_TRACKED_APK_IN_EXISTING_PRIVATE_REPOSITORY",
+    "path": "downloads/Haus-Garten-1.55.5-110-original.apk",
+    "status": "PUSH_PENDING"
+  },
+  "installation": "NOT_PERFORMED",
+  "productive_data_access": "NONE",
+  "migration": "NOT_PERFORMED",
+  "invoice_authority": "NOT_ACTIVATED",
+  "stage3": "PLAN_APPROVED_FOR_SOURCE;NOT_IMPLEMENTED;BACKUP_PREREQUISITE_OPEN",
+  "stage4": "NOT_STARTED",
+  "stage5": "BLOCKED_BY_MISSING_PIXEL_BACKUP_RESTORE_PROOF",
+  "physical_backup_restore": "NOT_VERIFIED; user reports previous backup does not start or hangs",
+  "repair_evidence": "docs/verification/backup-foreground-repair-2026-10-28.json"
+}

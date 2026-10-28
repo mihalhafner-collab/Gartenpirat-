@@ -6,6 +6,32 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Backupkorrektur28.10.: Original-Prüfkandidat1.55.5/110
+
+Direkter Nutzerwunsch umgesetzt: mobile Daten bei neuer Einrichtung erlaubt,
+tägliche Automatik standardmäßig aus. Manuelles Starten/Fortsetzen verarbeitet
+exakt denselben dauerhaften Job direkt im Vordergrund; keine bloße Übergabe an
+Android JobScheduler. Vorhandene ausdrückliche WLAN-/Automatikeinstellungen nicht
+überschrieben. Im Vordergrund ist eine nötige Kontofreigabe bewusst möglich.
+Rückmeldungen unterscheiden lokale Prüfung, Upload, Netzwarten, Unterbrechung und
+vollständigen externen Hashnachweis. Keine neue Generation bei unklarer Antwort.
+
+50 Host-Regeltests,15 Quellen-/Setupgrenzen,80 zugehörige Python-Schutztests und82
+JVM-Suiten PASS. Produktions- und Android-Instrumentierungsquellen kompiliert;
+neu vorbereiteter nativer Vordergrundfall noch nicht ausgeführt. Releasebau/Lint
+PASS0Fehler/103Warnungen, Quell-/Worktree-/APK-Privacy und Originalsignatur PASS.
+Die historischen P1-/Build97-Prüflücken bleiben separat offen, nicht abgeschwächt.
+Quellcommit `aa094fee726650f60ba01445bbf2398b34a38ac7`,
+Quelltag `source/v1.55.5-build110`; signierte APK unter downloads zur Git-Sicherung
+vorbereitet. Bericht: `docs/verification/release-110-2026-10-28.json`.
+
+Keine Installation oder operative Backupausführung durch Codex. Dass eine reale
+Pixel-Sicherung jetzt funktioniert, ist noch nicht bestätigt. Etappen3–5 daher
+nicht als vollständig abgeschlossen ausgegeben: Tabellenplan für Quellarbeit
+freigegeben, Datenbankübernahme und geschützte Altlastenentfernung weiter an
+funktionierendes Backup/Restore gebunden; keine Gate-/Rechnungsfreigabeflags.
+Zwischenbericht1–2 liegt im Repository, siehe gleichnamigen Beleg oben.
+
 ## Folgeauftrag28.10.: Etappen3–5 freigegeben; Backupfehler als Vorbedingung
 
 Zwischenbericht1–2 für den Nutzer erstellt und unter
