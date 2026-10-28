@@ -6,6 +6,36 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Android Fachwissen für Codex recherchiert am 28. Oktober 2026
+
+Der aktuelle Nutzerauftrag zur Android-Wissensgrundlage ist in der
+[Android-Fachsektion des bestehenden Auftrags](CODEX-AUFTRAG-GARTENPIRAT.md#android-fachwissen-für-die-stabilisierung-vom-28-oktober-2026)
+gebündelt: 27 geöffnete offizielle Quellen, zwölf auf Gartenpirat zugeschnittene
+Themen, zehn priorisierte Prüffälle und ein nachvollziehbarer Reparaturablauf.
+Es wurde gezielt Quellcode gelesen, keine vollständige App-Abnahme ausgeführt.
+
+Geprüfte Recherchebasis: Arbeitsbranch `codex/heute-uebersicht-20261027` bei
+`71c6fbfa4ce328bbec15fbbfbc7fad6ca6b29729`, dokumentierter Kandidat 1.55.3/108.
+Die zuletzt gelesene Installationsdokumentation nennt 1.55.1/106; keine neue
+Runtime-Abfrage oder Geräteinstallation. Der aktuelle App-Aufbau ist
+Java/WebView/JavaScript mit nativen SQLite-/Owner-Pfaden.
+Vorhandene Host-/Browserprüfungen ersetzen die offenen nativen und physischen
+Nachweise für Start, Navigation, Medien, Updateerhalt und Backup/Restore nicht.
+
+Bereits vorhandene Kernservice-/Paketmanager-Arbeit im pausierten Revier-Branch
+und Entwurf #14 ist ausdrücklich berücksichtigt. Mehrere native Testmodi lesen
+zusätzlich den normalen Default-Store: deshalb nur garantiert leere oder
+synthetische Testumgebungen verwenden. Die Recherche hebt keine Pause auf.
+Beobachtete Untersuchungsstellen im Lifecycle-/Callback-Code sind als
+Hypothesen markiert, nicht als bestätigte Ursache der Gerätebeschwerden.
+
+Abschlussumfang: Ergänzung dieses Status und des bestehenden Auftrags,
+fachliche Gegenprüfung und exaktes Remote-Read-back. Keine Änderung des
+Appcodes, kein Build oder Testlauf, keine Skill-/CLI-Installation,
+keine Änderung der Cloud-Konfiguration, Signierung oder Betriebsdaten.
+Die Wissensgrundlage ist im Codex-Leseweg verfügbar; ihre tatsächliche
+Übernahme ist erst im nächsten Codex-Lauf anhand Branch/Commit/Leseweg belegt.
+
 ## Aktuell: private Claude-Übergabe vollständig bereitgestellt
 
 Expliziter Nutzerauftrag vom28.10.2026 erfüllt: privater Drive-Ordner
