@@ -1,0 +1,577 @@
+{
+  "format": "hausgarten.adb-device-readonly-acceptance.v1",
+  "date": "2026-10-28",
+  "repository": "mihalhafner-collab/Gartenpirat-",
+  "authorization": {
+    "user_statement": "Test per adb auszuführen",
+    "laptop_adb_exception_authorized": true,
+    "additional_device_confirmation": "Produktive Installation mit echten Daten",
+    "scope": "Laptop only ADB bridge/technical protocol; no application code/builds; no productive business mutations, install, reset, restore, force-stop, UI input or screenshots"
+  },
+  "execution": {
+    "actual_adb_device": true,
+    "device_alias": "adb-target-1",
+    "device_count": 1,
+    "selected_with_s": true,
+    "raw_serial_retained_in_git": false,
+    "preflight_completed": true,
+    "synthetic_functional_cases_executed": 0,
+    "macrobenchmark_runs": 0,
+    "perfetto_runs": 0,
+    "business_reads": 0,
+    "business_writes": 0,
+    "app_state_changed": false,
+    "device_acceptance_complete": false
+  },
+  "tools": {
+    "name": "Android SDK Platform-Tools",
+    "version": "37.0.1-15733141",
+    "adb_version": "1.0.41",
+    "source": "https://developer.android.com/tools/releases/platform-tools",
+    "download_url": "https://dl.google.com/android/repository/platform-tools_r37.0.1-win.zip",
+    "archive_bytes": 8044989,
+    "archive_sha256": "45f4d63113e895ebde0c90f194099a4676b6ac653bd28d54314a9e022bbc1a99",
+    "verification": "Full downloaded archive size and SHA1 match official repository2-3.xml; SHA256 recorded; no PATH or Windows driver changes"
+  },
+  "preflight": {
+    "format": "hausgarten.adb-passive-preflight.v1",
+    "observed_at_utc": "2026-10-28T06:04:36.9034129Z",
+    "authorization": "Direct user request: Test per adb auszuführen; laptop used only as ADB bridge and technical protocol",
+    "package_expected": "at.hausgarten.service",
+    "device_count": 1,
+    "selected_alias": "adb-target-1",
+    "serial_published": false,
+    "scope": "PASSIVE_READONLY; no app launch/stop/input/instrumentation/install or business-record reads",
+    "model": "Pixel 10 Pro",
+    "android_version": "17",
+    "api_level": "37",
+    "qemu": "",
+    "soc_model": "Tensor G5",
+    "cpu_abi": "arm64-v8a",
+    "cpu_present": "0-7",
+    "memory": {
+      "MemTotal_kib": 15949000,
+      "MemAvailable_kib": 5758564
+    },
+    "screen_sizes": [
+      {
+        "kind": "Physical",
+        "width_px": 1280,
+        "height_px": 2856
+      }
+    ],
+    "display_densities": [
+      {
+        "kind": "Physical",
+        "dpi": 480
+      }
+    ],
+    "storage": {
+      "total_kib": 114582612,
+      "used_kib": 73604140,
+      "free_kib": 40847400,
+      "used_percent": 65
+    },
+    "battery": {
+      "level": 100,
+      "scale": 100,
+      "status": 2,
+      "health": 2,
+      "temperature": 266,
+      "voltage": 4440,
+      "AC powered": false,
+      "USB powered": true,
+      "Wireless powered": false,
+      "temperature_c": 26.6
+    },
+    "thermal_status": 0,
+    "display_refresh_metadata": {
+      "mActiveRenderFrameRate": [
+        120.00001
+      ],
+      "mActiveModeId": [
+        1
+      ],
+      "mRenderFrameRate": []
+    },
+    "active_physical_mode_numeric_fields": {
+      "width": 1280,
+      "height": 2856,
+      "peakRefreshRate": 120.00001,
+      "vsyncRate": 120.00001
+    },
+    "actual_refresh_rate_hz": 120.00001,
+    "webview": {
+      "package": "com.google.android.webview",
+      "version": "155.0.8059.43"
+    },
+    "installed_version": "1.55.3",
+    "installed_build": 108,
+    "granted_permission_flags": [
+      {
+        "permission": "android.permission.ACCESS_COARSE_LOCATION",
+        "granted": true
+      },
+      {
+        "permission": "android.permission.ACCESS_FINE_LOCATION",
+        "granted": true
+      },
+      {
+        "permission": "android.permission.ACCESS_NETWORK_STATE",
+        "granted": true
+      },
+      {
+        "permission": "android.permission.FOREGROUND_SERVICE",
+        "granted": true
+      },
+      {
+        "permission": "android.permission.FOREGROUND_SERVICE_SPECIAL_USE",
+        "granted": true
+      },
+      {
+        "permission": "android.permission.INTERNET",
+        "granted": true
+      },
+      {
+        "permission": "android.permission.POST_NOTIFICATIONS",
+        "granted": true
+      },
+      {
+        "permission": "android.permission.RECEIVE_BOOT_COMPLETED",
+        "granted": true
+      }
+    ],
+    "requested_permissions": [
+      "android.permission.POST_NOTIFICATIONS",
+      "android.permission.ACCESS_FINE_LOCATION",
+      "android.permission.FOREGROUND_SERVICE",
+      "android.permission.RECEIVE_BOOT_COMPLETED",
+      "android.permission.FOREGROUND_SERVICE_SPECIAL_USE",
+      "android.permission.INTERNET",
+      "android.permission.ACCESS_COARSE_LOCATION",
+      "android.permission.ACCESS_NETWORK_STATE"
+    ],
+    "installer": "com.google.android.packageinstaller",
+    "installed_apks": [
+      {
+        "file_name": "base.apk",
+        "sha256": "5bdaa005664ac2a436ac50b7b4acff3f19bcaa09ce05f3568a1c6147937bb7d2",
+        "bytes": 82903548
+      }
+    ],
+    "certificate_sha256": null,
+    "certificate_note": "Independent certificate byte proof not collected; no APK pulled",
+    "network": {
+      "default_network_present": true,
+      "default_transports": [
+        "CELLULAR"
+      ],
+      "default_validated": true
+    },
+    "app_running": true,
+    "isolation_proven": false,
+    "isolation_note": "User confirmed productive Pixel with real data. No application state changes allowed by this preflight.",
+    "calls": [
+      {
+        "label": "ro.product.model",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 231.902
+      },
+      {
+        "label": "ro.build.version.release",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 141.553
+      },
+      {
+        "label": "ro.build.version.sdk",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 215.447
+      },
+      {
+        "label": "ro.kernel.qemu",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 227.95
+      },
+      {
+        "label": "ro.soc.model",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 226.819
+      },
+      {
+        "label": "ro.product.cpu.abilist",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 217.062
+      },
+      {
+        "label": "cpu_present",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 222.287
+      },
+      {
+        "label": "system_memory",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 216.472
+      },
+      {
+        "label": "screen_size",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 278.34
+      },
+      {
+        "label": "screen_density",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 319.024
+      },
+      {
+        "label": "data_storage",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 246.293
+      },
+      {
+        "label": "battery",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 254.394
+      },
+      {
+        "label": "thermal_status",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 296.994
+      },
+      {
+        "label": "display_refresh_metadata",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 338.423
+      },
+      {
+        "label": "webview_provider",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 246.244
+      },
+      {
+        "label": "package_metadata",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 326.057
+      },
+      {
+        "label": "installer",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 252.744
+      },
+      {
+        "label": "installed_apk_paths",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 304.523
+      },
+      {
+        "label": "installed_apk_sha256",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 427.495
+      },
+      {
+        "label": "installed_apk_bytes",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 273.562
+      },
+      {
+        "label": "network_transport_metadata",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 343.914
+      },
+      {
+        "label": "app_running",
+        "exit_code": 0,
+        "timeout": false,
+        "roundtrip_ms": 147.635
+      }
+    ],
+    "target_role": "PRODUCTIVE_USER_CONFIRMED",
+    "expected_apk_sha256": "5bdaa005664ac2a436ac50b7b4acff3f19bcaa09ce05f3568a1c6147937bb7d2",
+    "exact_original108_apk_hash_match": true,
+    "checks": [
+      {
+        "id": "ADB01",
+        "requirement": "Explicit authorized ADB target",
+        "status": "PASS"
+      },
+      {
+        "id": "ADB02",
+        "requirement": "Expected package version1.55.3/build108",
+        "status": "PASS"
+      },
+      {
+        "id": "ADB03",
+        "requirement": "Installed executable APK hash equals original108",
+        "status": "PASS"
+      },
+      {
+        "id": "ADB04",
+        "requirement": "Isolated synthetic test installation",
+        "status": "BLOCKED"
+      }
+    ],
+    "completed_at_utc": "2026-10-28T06:04:43.0029428Z"
+  },
+  "passive_performance": {
+    "format": "hausgarten.adb-passive-performance.v1",
+    "observed_at_utc": "2026-10-28T06:05:09.4472213Z",
+    "device_alias": "adb-target-1",
+    "new_synthetic_scenarios": 0,
+    "app_state_changed": false,
+    "scope": "Existing running process; cumulative statistics only; no reset or start/stop",
+    "memory_samples": [
+      {
+        "index": 0,
+        "observed_at_utc": "2026-10-28T06:05:11.0315374Z",
+        "TOTAL PSS_kib": 65437,
+        "TOTAL RSS_kib": 278700,
+        "TOTAL SWAP PSS_kib": 5,
+        "Java Heap_pss_kib": 5432,
+        "Native Heap_pss_kib": 19828,
+        "Code_pss_kib": 5496,
+        "Stack_pss_kib": 1936,
+        "Graphics_pss_kib": 11156,
+        "Private Other_pss_kib": 12260,
+        "System_pss_kib": 9329
+      },
+      {
+        "index": 1,
+        "observed_at_utc": "2026-10-28T06:05:11.2560672Z",
+        "TOTAL PSS_kib": 65225,
+        "TOTAL RSS_kib": 278488,
+        "TOTAL SWAP PSS_kib": 5,
+        "Java Heap_pss_kib": 5344,
+        "Native Heap_pss_kib": 19828,
+        "Code_pss_kib": 5496,
+        "Stack_pss_kib": 1936,
+        "Graphics_pss_kib": 11156,
+        "Private Other_pss_kib": 12136,
+        "System_pss_kib": 9329
+      },
+      {
+        "index": 2,
+        "observed_at_utc": "2026-10-28T06:05:11.4013546Z",
+        "TOTAL PSS_kib": 65205,
+        "TOTAL RSS_kib": 278468,
+        "TOTAL SWAP PSS_kib": 5,
+        "Java Heap_pss_kib": 5324,
+        "Native Heap_pss_kib": 19828,
+        "Code_pss_kib": 5496,
+        "Stack_pss_kib": 1936,
+        "Graphics_pss_kib": 11156,
+        "Private Other_pss_kib": 12136,
+        "System_pss_kib": 9329
+      }
+    ],
+    "storage_rows": [
+      {
+        "total_kib": 114582612,
+        "used_kib": 73604064,
+        "free_kib": 40847476,
+        "used_percent": "65",
+        "mount_alias": "app_data_volume"
+      }
+    ],
+    "gfxinfo": {
+      "values": {
+        "Total frames rendered": {
+          "value": 2719,
+          "unit": ""
+        },
+        "Janky frames": {
+          "value": 86,
+          "unit": ""
+        },
+        "50th percentile": {
+          "value": 5,
+          "unit": "ms"
+        },
+        "90th percentile": {
+          "value": 7,
+          "unit": "ms"
+        },
+        "95th percentile": {
+          "value": 11,
+          "unit": "ms"
+        },
+        "99th percentile": {
+          "value": 46,
+          "unit": "ms"
+        },
+        "Number Missed Vsync": {
+          "value": 43,
+          "unit": ""
+        },
+        "Number High input latency": {
+          "value": 1387,
+          "unit": ""
+        },
+        "Number Slow UI thread": {
+          "value": 44,
+          "unit": ""
+        },
+        "Number Slow bitmap uploads": {
+          "value": 0,
+          "unit": ""
+        },
+        "Number Slow issue draw commands": {
+          "value": 54,
+          "unit": ""
+        },
+        "Number Frame deadline missed": {
+          "value": 86,
+          "unit": ""
+        },
+        "Number GPU deadline missed": null
+      },
+      "stats_since_monotonic_ns": "482983178037783",
+      "scope": "Pre-existing cumulative gfxinfo; unknown actions and changing refresh rate; not new benchmark samples"
+    },
+    "cpu_snapshot": {
+      "total_percent": 4.2,
+      "user_percent": 3,
+      "kernel_percent": 1.1,
+      "scope": "dumpsys existing system sampling window"
+    },
+    "procstats": {
+      "response_nonempty": true,
+      "package_mentioned": true,
+      "scope": "Historical procstats returned; raw text and unrelated process metadata not retained"
+    },
+    "historical_exit_primary_count": 16,
+    "historical_exit_reason_counts": [
+      {
+        "code": 4,
+        "name": "APP CRASHEXCEPTION",
+        "count": 2
+      },
+      {
+        "code": 13,
+        "name": "OTHER KILLS BY SYSTEM",
+        "count": 8
+      },
+      {
+        "code": 16,
+        "name": "PACKAGE UPDATED",
+        "count": 6
+      }
+    ],
+    "historical_exits_note": "Historical primary reasons only; no subreason duplication, no current-build attribution or newly reproduced crash; raw descriptions/paths discarded",
+    "memory_scope": "Three passive consecutive snapshots; no repeated user workflow, no leak inference",
+    "finished_at_utc": "2026-10-28T06:05:11.4031847Z"
+  },
+  "summary": {
+    "metadata_tests_pass": 3,
+    "metadata_tests_fail": 0,
+    "synthetic_isolation_blocked": 1,
+    "installed_build": 108,
+    "installed_apk_exact_hash_match": true,
+    "free_gib": 38.955116271972656,
+    "total_ram_gib": 15.210151672363281,
+    "pss_kib": {
+      "n": 3,
+      "min": 65205,
+      "median": 65225,
+      "max": 65437
+    },
+    "cumulative_frames": 2719,
+    "cumulative_janky_frames": 86,
+    "cumulative_jank_percent": 3.1629275468922398,
+    "cumulative_frame_p50_ms": 5,
+    "cumulative_frame_p90_ms": 7,
+    "cumulative_frame_p95_ms": 11,
+    "cumulative_frame_p99_ms": 46,
+    "current_display_vsync_hz": 120.00001,
+    "historical_crash_records": 2,
+    "newly_reproduced_crashes": 0,
+    "anr_reproduction": "NOT_TESTED",
+    "app_workflow_latency": "NOT_MEASURED",
+    "memory_leak": "NOT_DETERMINED"
+  },
+  "limits": [
+    "Productive device confirmed; no synthetic isolated installation available.",
+    "gfxinfo describes existing unknown actions since previous stats start; refresh rate may have varied; not30 controlled samples.",
+    "Three consecutive PSS snapshots do not prove growth/leak or compare workflows.",
+    "Existing system CPU window4.2% is not controlled benchmark CPU.",
+    "Historical crash records cannot be assigned to build108 from the collected evidence.",
+    "Certificate fingerprint not independently extracted; exact APK SHA256 binds to prior verified release artifact.",
+    "No instrumentation installed; no private screenshots, unfiltered logcat, data exports or raw dumps saved."
+  ],
+  "issues": [
+    {
+      "id": "ADB-D01",
+      "priority": "P1_DIAGNOSIS",
+      "observed": "86 cumulative janky frames/2719; p95 frame11ms; p99 frame46ms",
+      "measured": true,
+      "cause": "UNDETERMINED",
+      "recommendation": "Reproduce navigation/search on an isolated release fixture, then separate Perfetto/UI-ready traces from cumulative stats.",
+      "regression": "P03/P04 with same source/profile/device and actual frame deadlines."
+    },
+    {
+      "id": "ADB-D02",
+      "priority": "P1_CRASH_TRIAGE",
+      "observed": "Two historical primary exit reason4 records among16 records",
+      "measured": true,
+      "cause": "UNDETERMINED_BUILD_UNATTRIBUTED",
+      "recommendation": "On isolated installation capture a newly reproducible crash and a sanitized exception/stack tied to build/action; no attribution from old reason alone.",
+      "regression": "Exact triggering case after fix plus process/renderer recovery."
+    }
+  ],
+  "privacy": {
+    "raw_device_serial": false,
+    "private_device_identifiers": false,
+    "ssids_ips_accounts": false,
+    "credentials": false,
+    "business_records": false,
+    "screenshots": false,
+    "raw_logs": false,
+    "scope": "Own scripts and filtered numeric technical metadata only; no full source-worktree privacy gate claimed"
+  },
+  "supplementary_readonly_checks": {
+    "observed_at_utc": "2026-10-28T06:01:04.0007792Z",
+    "system_services": [
+      {
+        "index": 0,
+        "observed_at_utc": "2026-10-28T06:01:02.4733953Z",
+        "package_service_found": true,
+        "activity_service_found": true,
+        "android_package_path_returned": true
+      },
+      {
+        "index": 1,
+        "observed_at_utc": "2026-10-28T06:01:02.9674192Z",
+        "package_service_found": true,
+        "activity_service_found": true,
+        "android_package_path_returned": true
+      },
+      {
+        "index": 2,
+        "observed_at_utc": "2026-10-28T06:01:03.4982956Z",
+        "package_service_found": true,
+        "activity_service_found": true,
+        "android_package_path_returned": true
+      }
+    ],
+    "hausgarten_instrumentation_present": false
+  }
+}

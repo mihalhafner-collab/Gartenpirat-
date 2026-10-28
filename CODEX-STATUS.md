@@ -6,6 +6,56 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## ADB tatsächlich ausgeführt28.10.: Original108 auf produktivem Pixel bestätigt
+
+Neue direkte ADB-Anweisung hebt die Laptop-Sperre für ADB-/Protokollarbeit auf.
+Der Nutzer bestätigt anschließend die produktive Installation mit echten Daten.
+Deshalb ausschließlich passive technische Prüfungen; keine Appbedienung,
+Schreibdaten, Installation, Reset, Prozessunterbrechung, Backup oder Restore.
+
+Genau ein autorisiertes physisches Pixel 10 Pro, Alias adb-target-1; Android 17 /
+API 37, Tensor G5 / 8 Kerne, arm64-v8a, MemTotal 15,210 GiB,1280×2856 bei 480 dpi.
+Aktiver Displaymodus meldet120,00001 Hz. Rund 38,96 GiB frei;100 % Akku an USB,
+26,7 °C im Preflight, Thermalstatus 0. Mobilfunk als validiertes Standardnetz;
+WebView 155.0.8059.43. Alle acht angeforderten Androidrechte als granted gelesen.
+Seriennummer/SSIDs/IPs/Konten und private Bildschirme nicht übernommen.
+
+Installiert 1.55.3/108, Paket at.hausgarten.service. Tatsächliches base.apk auf
+dem Gerät gehasht:82.903.548 Bytes, SHA256
+5bdaa005664ac2a436ac50b7b4acff3f19bcaa09ce05f3568a1c6147937bb7d2.
+Exakt identisch mit dokumentiertem Original108/Quelltag9415c8d. Keine APK
+herunterkopiert oder installiert. Zertifikat nicht unabhängig ausgelesen;
+Quell-/Originalbindung über identischen vollständigen APK-Hash nachgewiesen.
+
+Ausgeführte Metadatenprüfungen:3 PASS / 0 FAIL; synthetische Isolation BLOCKED.
+Zusätzlich drei Kerndienststichproben package/activity/Androidpaketpfad positiv;
+keine Instrumentierung für Haus&Garten installiert. Keine64-Fachfall-Abnahme.
+
+Vorhandene kumulative gfxinfo:2.719 Frames, 86 Jank = 3,1629 %, Frame-p50/90/95/99
+5/7/11/46ms. Zähler u.a.43 MissedVsync, 44 SlowUIThread, 54 SlowDrawCommands,
+1.387 HighInputLatency. Gemischte unbekannte frühere Abläufe und ggf. wechselnde
+Displayfrequenzen; keine neu erzeugten30Benchmarks und keine Aufgabenlatenz.
+Drei passive PSS-Stichproben 65205/65225/65437 KiB (min/median/max), etwa 64 MiB;
+keine Leakdiagnose. CPU 4,2 % aus vorhandenem Systemmessfenster, keine Lastmessung.
+16 historische primäre Exitgründe, darunter 2 Crash/Exception-Einträge; weder
+aktuellem Build zugeordnet noch neu reproduziert. Keine aktuelle ANR-Freiheit behauptet.
+
+Ausführbare, tatsächlich ausgeführte Protokolle:
+tests/adb_readonly_preflight.ps1 und tests/adb_readonly_performance.ps1.
+Evidenz: docs/verification/adb-device-readonly-2026-10-28.json und -metrics.csv.
+Die offiziellen Platform-Tools 37.0.1 außerhalb des Quellbaums eingerichtet,
+komplette Downloadgröße/SHA1 gegen offizielle Metadaten geprüft. Kein PATH-
+oder Treiberumbau. Alle Geräteaufrufe explizit mit -s.
+
+Die bisherige Vorbereitungsbegründung ENV_RULE_CONFLICT ist damit für diese
+enge ADB-Rolle erledigt. Neuer entscheidender Blocker: bestätigt produktiver
+Bestand ohne isolierte synthetische Zielinstallation. Kalt-/Warmstart,
+Navigation/Schreiben, Fehlerinduktion und Restore bleiben deshalb ungetestet.
+Priorität: isolierte Native-/Releaseabnahme ermöglichen, historische Crashes
+erst reproduzierbar zuordnen, danach Navigation/Suche/Jank mit Traces messen.
+Keine Produktänderung und kein Vorher-/Nachher-Leistungsgewinn.
+
+
 ## Prüfstand: Funktionstest von App 1.55.3 / Build 108 am 28.10.2026
 
 Direkter Nutzerauftrag: vollständiges Testkonzept und nachvollziehbarer Bericht.

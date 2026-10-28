@@ -29,6 +29,14 @@ Regeldatei, Projektzentrale, App, operative Datenbank oder Repository anlegen.
 - Im vorhandenen passenden Branch arbeiten. Nur falls wirklich erforderlich
   einen weiteren Arbeitsbranch im selben Repository verwenden. Der Laptop ist
   weder Arbeitsumgebung noch Fallback. Keine zweite lokale Entwicklung.
+- Direkte Nutzerpräzisierung28.10.2026: ADB-Tests jetzt ausführen. Der Laptop
+  darf dafür ausschließlich ADB-Verbindung und technische Testprotokolle führen;
+  keine lokale Appentwicklung oder Builds. Das angeschlossene Pixel wurde vom
+  Nutzer ausdrücklich als produktive Installation mit echten Daten bestätigt.
+  Dort nur passive technische Diagnose ohne Geschäftsdaten, UI-Eingaben,
+  Installation, Reset, Prozessabbruch oder Restore. Mutierende synthetische
+  Tests weiterhin nur nach nachgewiesener Isolation. Diese enge Ausnahme ersetzt
+  die obige allgemeine Laptop-Sperre ausschließlich für ADB-/Protokollarbeit.
 - Nach einem abgeschlossenen Schritt, vor Builds, Übergaben und Unterbrechungen:
   Privacy prüfen, nur eigene geprüfte Dateien gezielt committen, nach GitHub
   pushen und den exakten Remote-Commit zurücklesen. Keine pauschalen Git-adds.

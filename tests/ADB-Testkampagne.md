@@ -1,5 +1,37 @@
 # ADB-Testkampagne Haus & Garten – Vorbereitung vom 28.10.2026
 
+## Fortschreibung: tatsächliche passive ADB-Prüfung
+
+Direkte Nutzeranweisung „Test per adb auszuführen“ erlaubt jetzt die enge
+Laptoprolle als ADB-Brücke. Der Nutzer bestätigt Produktivdaten auf dem Pixel.
+Darum sind nur die folgenden rein lesenden Protokolle ausgeführt worden.
+Der nachstehende Vorbereitungsstand bleibt historische Planung; seine Angabe
+„keine ADB-Befehle“ beschreibt den früheren Schritt.
+
+[Gerät und tatsächliche Messaggregate](../docs/verification/adb-device-readonly-2026-10-28.json)
+und [Mess-CSV](../docs/verification/adb-device-readonly-2026-10-28-metrics.csv).
+Pixel10Pro/API37, Original108 durch vollständigen on-device APK-Hash bestätigt.
+3 Metadatenprüfungen PASS, Isolation BLOCKED. Alle64 synthetischen Fachfälle
+weiterhin offen; keine Appstarts, Schreibtests oder Restores.
+
+Ausführbare PowerShell-Protokolle, beide mit ausdrücklich ausgewählter Seriennummer;
+Seriennummer über flüchtige Umgebungsvariable setzen, nicht in Git speichern:
+
+```powershell
+pwsh -NoProfile -File tests/adb_readonly_preflight.ps1 -AdbPath "$env:LOCALAPPDATA\HausGarten-Adb-Testtools\platform-tools\adb.exe" -Serial "$env:HG_ADB_SERIAL"
+pwsh -NoProfile -File tests/adb_readonly_performance.ps1 -AdbPath "$env:LOCALAPPDATA\HausGarten-Adb-Testtools\platform-tools\adb.exe" -Serial "$env:HG_ADB_SERIAL"
+```
+
+Zuerst Preflight ausführen; er legt nur das technische Ergebnisverzeichnis unter
+LOCALAPPDATA an. Danach Performanceprotokoll für vorhandene Statistiken.
+Mehrere Geräte sind nur über die ausdrücklich übergebene Seriennummer zulässig.
+Keine Diagnose-APK oder Instrumentierung installieren. Kein Logcat-/Screenshot-
+oder Geschäftsdatenexport. Nicht als Funktionstest oder neue Lastmessung ausgeben.
+gfxinfo ist kumulativ; PSS hat nur3 passive Stichproben; historische Exitgründe
+sind keinem aktuellen Build zugeordnet. Keine Rohdumps werden als Dateien erzeugt.
+
+## Historischer Vorbereitungsstand
+
 **Stand: PREPARATION_ONLY, keine Geräteabnahme.** Paket `at.hausgarten.service`.
 Es wurden keine ADB-Befehle, Builds, Installationen, Appvorgänge oder Nutzertests
 ausgeführt. Diese Datei dokumentiert den Einstieg für eine später zulässige

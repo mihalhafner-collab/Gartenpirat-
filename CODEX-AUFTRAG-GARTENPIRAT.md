@@ -1,5 +1,24 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Nutzerpräzisierung28.10.: ADB jetzt ausführen
+
+Direkte Nutzeranweisung: „Test per adb auszuführen“. Damit ist der Laptop für
+die notwendige ADB-Verbindung und technische Protokolle ausdrücklich erlaubt;
+Quelländerungen/Builds bleiben in GitHub/Cloud. Die anschließende Gerätefrage
+wurde mit „Produktive Installation mit echten Daten“ beantwortet. Diese
+Präzisierung erlaubt keine synthetischen Schreibversuche auf dem produktiven
+Pixel, keinen Reset, Appstart/-abbruch, Installation, Restore oder echten Versand.
+
+Zulässige Ausführung: tatsächlich verbundenes Gerät ausdrücklich über adb -s
+adressieren, Geräte-/Appmetadaten und APK-Hash sowie vorhandene gfxinfo/meminfo/
+procstats-/CPU-/Exit-Aggregate rein lesend erfassen. Seriennummer nur flüchtig
+zur Auswahl, keine privaten Kennungen, Rohdumps oder Geschäftsdaten sichern.
+Vorhandene Grafik-/Exitstatistik nicht als neu ausgeführten Last- oder Crashtest
+ausgeben. Die64 synthetischen Fachszenarien bleiben ohne isolierte Testinstallation
+offen. Ausführbare reine Diagnoseprotokolle und bereinigte Ergebnisse in diesem
+Repository sichern; Produktivbestand unverändert erhalten.
+
+
 ## Paralleler Prüfauftrag vom 28.10.2026: Testkonzept und Funktionstestbericht
 
 Direkter Nutzerauftrag: „Erstelle Konzept um app vollumfänglich zu testen.
@@ -68,7 +87,8 @@ Nur eigene bereinigte Evidenz nach docs/verification, große Traces nur über
 vorhandenen genehmigten Artefaktweg. Auftrag/Status fortschreiben, vor Sicherung
 Privacy prüfen, gezielt committen und exakten Remote-Commit/Inhalt zurücklesen.
 
-Aktueller Ausführungsumfang wegen Regelkonflikt: nur Remote-Vorbereitung über
+Historischer Vorbereitungsumfang vor der obigen direkten ADB-Präzisierung:
+nur Remote-Vorbereitung über
 GitHub, keine lokale Quellkopie oder ADB-Ausführung. Der separate Revierbranch
 enthält eine noch nicht auf main/Appbranch integrierte ADB-Ausnahme; keine
 stillschweigende Auswahl der weniger restriktiven Regel. Einstieg und Grenzen:
