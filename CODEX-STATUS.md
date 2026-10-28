@@ -6,6 +6,38 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Abschluss28.10.: Etappen1–2 und Original-APK1.55.4/109
+
+Etappen1–2 umgesetzt, einzeln geprüft und auf GitHub gesichert/zurückgelesen.
+Originalsignierte APK109 tatsächlich erstellt:82907644Bytes, SHA256
+`267a59057cbc6f2a2a09127d901ec3f5441139f2ad37f285b8bf91f078ba7b67`.
+Paket `at.hausgarten.service`, nicht debuggable, Originalzertifikat unverändert,
+v2/v3 und16KiB-Ausrichtung PASS.705 Assets quellenidentisch,205 aktuelle
+Produktionsklassen vorhanden, exakt leerer Bootstrap. APK-Provenienz bindet den
+sauberen Quellcommit `ac67b156d8bc17bc07722f387a1c7a392b865176` und Fingerprint
+`c02911e34317e4691e6caabc20d10029d18992e7361bd506db6e0a9b30e6fa95`.
+Unveränderlicher Quelltag `source/v1.55.4-build109` exakt auf GitHub zurückgelesen.
+
+Releasebau/Lint PASS:0Fehler/103Warnungen. Quelle2414Dateien/0Seedzeilen,
+Worktree5569Dateien und unsignierte/signierte APK bestehen Privacy.
+71 Python-Schutztests,82 JVM-Suiten, aktuelle Browserprüfungen und finale
+Kontext-/Navigationsnachtests PASS. Zwei historische Testprobleme weiterhin
+getrennt offen: P1-Altkatalog-Schemaversatz und Build97-Zwei-Tab-/Dock-Fixture.
+Die Schutzgates wurden nicht abgeschwächt. Details und Grenzen:
+`docs/verification/performance-stage2-tests-2026-10-28.json` und
+`docs/verification/release-109-2026-10-28.json`.
+
+Upload der fertigen APK in den bestehenden privaten APK-Bereich läuft noch;
+noch kein Remoteerfolg oder Remote-SHA behauptet. Quellen und Berichte nur GitHub.
+Keine Installation, produktive Datenübernahme oder Rechnungsfreigabe. Pixel-
+Leistungsmessung, native Geräteausführung, Update-Datenerhalt und echte Backup-/
+Restore-Bestätigung bleiben offen. APK ist ein Prüfkandidat, keine Geräteabnahme.
+
+Etappe3: konkreter Tabellen-/Übernahme-/Rückwegplan im bestehenden Auftrag
+festgehalten. Noch keine Implementierung oder Migration; ausdrückliche Freigabe
+des Plans bleibt erforderlich. Etappen4–5 nicht vorgezogen; alte Queue-/Beleg-
+und Schutzkomponenten erhalten. Keine weiteren Freigabeflags gesetzt.
+
 ## Umsetzung28.10.: Etappe 2 – Laden und Cache; APK109 vorbereitet
 
 Etappe1 nach Prüfung in4657cf6 gesichert und exakt zurückgelesen. Danach getrennt

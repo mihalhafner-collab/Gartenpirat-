@@ -50,6 +50,89 @@ Soll-Zustand: eine Tabelle je Art, einzelne Einträge werden gezielt gelesen und
 - Gleiche Fachregeln und Prüfsummen müssen vor und nach der Übernahme dieselben Zahlen und Hashes ergeben.
 - Abnahme: Tests mit synthetischen Daten für Übernahme, Abbruch mittendrin, Neustart, Restore und Rückweg. Geräteabnahme bleibt Sache des Nutzers.
 
+### Konkreter Plan zu Etappe 3 – vor Freigabe, nicht umgesetzt
+
+Stand nach Etappe2: nur Plan; kein Schemawechsel, keine Datenübernahme und kein
+neuer Schreiber. Die folgende technische Umsetzung benötigt die ausdrückliche
+Freigabe dieses Plans. Physisches verschlüsseltes Backup und Rücklesen bleiben
+zusätzliche Vorbedingungen der späteren bewussten Geräteübernahme.
+
+**Tabellen in derselben bestehenden SQLite-Datenbank:**
+
+| Tabelle | Einzelner Datensatz und gezielte Indizes |
+| --- | --- |
+| `business_customers` | `id` als Primärschlüssel; Name, Aktivstatus; Index Name/Aktivstatus |
+| `business_orders` | `id`; Einsatzkunde, Rechnungsempfänger, Status, Planungsdatum; Indizes Kunde/Status/Datum |
+| `business_worklogs` | `id`; Einsatzkunde, Rechnungsempfänger, optionaler Auftrag, Arbeitsdatum, Billed-Status; Indizes Kunde/Datum und Auftrag |
+| `business_invoices` | `id`; Kunde/Rechnungsempfänger, Belegnummer, Status, Ausstellungsdatum; Indizes Kunde/Datum/Status; keine neue Nummernvergabe |
+| `business_photos` | `id`; Kunde/Auftrag/Arbeit, bestehende Original-/Thumbnailreferenz und Inhaltshash; Indizes für diese Beziehungen |
+
+Jede Zeile erhält zusätzlich den verlustfrei erhaltenen einzelnen `record_json`
+und dessen nach bestehender Kanonisierung berechneten `record_hash`. Der JSON-Wert
+enthält nur einen Datensatz, keine komplette Sammlung; gezieltes Lesen/Schreiben
+über ID und Indizes ersetzt den Gesamtsnapshot. Die oben genannten Suchspalten
+sind aus genau diesem Datensatz abgeleitet; Index und JSON werden atomar geändert.
+Unbekannte optionale Felder, Dezimaldarstellungen, leere Werte und Original-IDs
+bleiben erhalten. Keine geratenen Fremdschlüssel oder automatische Datenreparatur.
+Beziehungsregeln bleiben in den gemeinsamen UI-/MCP-Fachpfaden unverändert.
+
+Bestehende Tabellen für Arbeitssitzungen, Medien, Belege und andere Facharten
+bleiben bestehen. `owner_state` behält Einstellungen, Entwürfe, Request-/Commit-
+Belege, historische Journale/Queue und sonstige geschützte Werte. Keine zweite
+operative Datenbank, parallele Oberfläche oder zusätzliche Laufzeitskripte.
+Keine automatische Übernahme in `onUpgrade`, beim Appstart oder beim Restore.
+
+**Bewusste Übernahme:**
+
+1. Zuerst synthetisch alle Lese-/Schreib-/Suchpfade der fünf Arten erfassen und
+   dieselben Fachregeln und Hashfunktionen an den Tabellenadapter binden. Noch
+   kein produktiver Tabellenleser/Schreiber aktiv. Vollständige Tests vor Gerätepfad.
+2. Vor Geräteübernahme bewusst vollständiges verschlüsseltes Backup anlegen und
+   extern vollständig zurücklesen, Hash/Umfang bestätigen. Dies erledigt der Nutzer;
+   Codex ruft dafür weder Betriebsbestand noch Sicherungsinhalt ab. Ungeklärte
+   Originale oder Integrität blockieren die Übernahme, keine Gatefreischaltung.
+3. Genau den nach bisherigen Prioritätsregeln aktiven `owner_state/snapshot` samt
+   aktivem Pending-/Projektionszustand erfassen; nicht mit einer älteren Preference-
+   oder Drivekopie vermischen. Originalbytes, kanonische Sammlungs-/Datensatzhashes,
+   Anzahl, fachliche Summen, Beziehungen und Medien-/Belegmanifest binden.
+4. Während der bewusst gestarteten Übernahme Fachschreiben kurz sperren. In derselben
+   DB leere Zieltabelle/Staginggeneration füllen; einen versionierten Fortschritts-
+   und Prüfnachweis führen. Alte Snapshotbytes und alle bestehenden Belege bleiben
+   unverändert. Bis zur Umschaltung ist ausschließlich der alte Leser autoritativ.
+5. Alle Zeilen zurücklesen und gegen denselben eingefrorenen Ausgangsstand prüfen:
+   gleiche IDs/Anzahlen, kanonische Hashes, exakte Dezimalsummen, Referenzen und
+   Originaldatei-Hashes. Keine Floattoleranz, keine stillschweigende Bereinigung.
+6. Nur nach vollständigem PASS und bewusster Bestätigung den Leser/Schreiber durch
+   einen atomaren Format-/Generationszeiger in einer Transaktion umschalten. Keine
+   Dual-Writes. Rechnungs-, Entwurfs-, Commit-ID- und Restoregates unverändert.
+   Alte Snapshotgeneration bis zur bestätigten Geräteprüfung weiter erhalten.
+
+**Abbruch, Neustart und Rückweg:**
+
+- Vor Umschaltung bleibt der alte Stand aktiv. Unvollständige Stagingdaten werden
+  beim Neustart erkannt, aber weder automatisch aktiviert noch blind entfernt.
+  Fortsetzung nur bewusst, bei identischem Ausgangshash und gültigem Backupnachweis.
+- Direkt nach Umschaltung ohne neue Fachschreibvorgänge ist ein bewusster atomarer
+  Rückwechsel auf den unveränderten alten Snapshot nach Hashprüfung möglich.
+- Nach neuen Tabellenänderungen niemals einfach auf den veralteten Snapshot zeigen:
+  unter Schreibsperre einen aktuellen Snapshot aus allen Tabellen und den unverändert
+  erhaltenen übrigen Sammlungen rekonstruieren, identische Hashes/Summen zurücklesen,
+  erst dann bewusst umschalten. Alte Originalbytes getrennt erhalten. Ein Restore
+  eines älteren Backups ist kein verlustfreier Rückweg für neuere Geschäftsvorgänge.
+- Vollrestore bleibt bewusst, getrennt und fail-closed. Format und Generation werden
+  vor Aktivierung geprüft; keine Mischung alter/neuer Stände, kein Reaktivieren
+  verworfener Entwürfe, alter Queue-Schreiber oder Rechnungsautorität.
+
+**Abnahme vor produktiver Übernahme:** synthetische Profile einschließlich
+300/5000/3000/500; unbekannte Felder, optionale/ungültige Referenzen, Entwürfe und
+bekannte/unklare Commit-IDs. Fehler nach jeder Kopiergrenze, Speicherfehler,
+Prozessabbruch vor/in/nach Umschalttransaktion, erneuter Start, Wiederholung mit
+identischer ID, falscher Ausgangshash, fehlendes/verändertes Original, vollständiger
+Restore und beide Rückwege. Vorher/nachher identische Fachprüfsummen und Summen;
+anschließend dieselben Leistungsmessungen wie in Etappe1. Reale Geräteabnahme und
+Backup/Restore-Bestätigung bleiben beim Nutzer. Bis dahin keine Umsetzung der
+Etappe3 und keine Entfernung historischer Belege oder Queue-Reste aus Etappe5.
+
 ### Etappe 4: Oberfläche schrittweise erneuern
 
 - Jeweils ein Bildschirm, beginnend mit Heute, dann Kunden, dann Büro. Alte und neue Version laufen nie gleichzeitig auf demselben Bildschirm.

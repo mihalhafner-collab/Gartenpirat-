@@ -1,0 +1,125 @@
+{
+  "format": "gartenpirat.original-release109.v1",
+  "classification": "PUBLIC_SOURCE_AND_SYNTHETIC_TEST_METADATA",
+  "created_at_utc": "2026-10-28T11:03:56.019716+00:00",
+  "version_name": "1.55.4",
+  "version_code": 109,
+  "scope": "Performance stages1-2; no feature/database migration/UI reconstruction",
+  "source": {
+    "git_sha": "ac67b156d8bc17bc07722f387a1c7a392b865176",
+    "tag": "source/v1.55.4-build109",
+    "tag_object": "d82f981cab9f7e2964dd2148df73073af62d9f2a",
+    "source_sha256": "c02911e34317e4691e6caabc20d10029d18992e7361bd506db6e0a9b30e6fa95",
+    "source_dirty": false,
+    "remote_readback": "PASS exact branch and peeled tag",
+    "tree_sha": "338f656f532c1bab3c41721407e172b504828e6c"
+  },
+  "build": {
+    "assembleRelease": "PASS",
+    "lintRelease": "PASS",
+    "lint_errors": 0,
+    "lint_fatal": 0,
+    "lint_warnings": 103,
+    "unsigned_sha256": "812c94561cfdc6cd0c5569344110cd63585c4d5c569c08697b2f97e7da16cca1"
+  },
+  "package": {
+    "status": "PASS",
+    "classification": "PUBLIC_SOURCE_AND_SYNTHETIC_TEST_METADATA",
+    "sha256": "267a59057cbc6f2a2a09127d901ec3f5441139f2ad37f285b8bf91f078ba7b67",
+    "bytes": 82907644,
+    "metadata": {
+      "package": "at.hausgarten.service",
+      "version_code": 109,
+      "version_name": "1.55.4",
+      "signature_valid": true,
+      "certificates": [
+        "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8"
+      ]
+    },
+    "assets": {
+      "added": [],
+      "removed": [],
+      "changed": [],
+      "unchanged_count": 705,
+      "matches": true,
+      "generated_profiles": {
+        "dexopt/baseline.prof": "bbbb1d283a7fcf3bea4c1089e03347ce228058a5d05820df63df7dfc6f1c1ccc",
+        "dexopt/baseline.profm": "28a890dc37478ad27db1c8331a3b8acb3b965cfdd5c640e5fb44908790d42587"
+      }
+    },
+    "seed": {
+      "all_business_collections_empty": true,
+      "operational_seed_rows": 0
+    },
+    "all_current_production_classes_present": 205,
+    "build_provenance": {
+      "version_name": "1.55.4",
+      "version_code": 109,
+      "git_sha": "ac67b156d8bc17bc07722f387a1c7a392b865176",
+      "source_sha256": "c02911e34317e4691e6caabc20d10029d18992e7361bd506db6e0a9b30e6fa95",
+      "source_dirty": false,
+      "installed_baseline": 108
+    },
+    "ui_actions": 212,
+    "debuggable": false,
+    "certificate_comparison": "MATCH prior108 public certificate registry; no prior APK bytes or Pixel certificate independently reread",
+    "pixel": "NOT_EXECUTED",
+    "installation": "NOT_PERFORMED"
+  },
+  "signing": {
+    "apk_sha256": "267a59057cbc6f2a2a09127d901ec3f5441139f2ad37f285b8bf91f078ba7b67",
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "package": "at.hausgarten.service",
+    "result": "SIGNED_NO_INSTALL_OR_UPDATE_ACCEPTANCE",
+    "source_preservation": {
+      "git_sha": "ac67b156d8bc17bc07722f387a1c7a392b865176",
+      "remote_refs": [
+        "refs/heads/codex/heute-uebersicht-20261027"
+      ],
+      "repository": "mihalhafner-collab/Gartenpirat-",
+      "scope": "clean_checkout_and_remote_commit_only",
+      "status": "PASS"
+    },
+    "version_code": 109,
+    "version_name": "1.55.4",
+    "signature_schemes": {
+      "v1": "false",
+      "v2": "true",
+      "v3": "true",
+      "v3.1": "false",
+      "v3.2": "false",
+      "v4": "false"
+    },
+    "zipalign_16k": "PASS",
+    "post_sign_artifact_privacy": "PASS; signer returned only after final unchanged artifact gate",
+    "temporary_private_signing_directories_remaining": 0
+  },
+  "drive": {
+    "status": "UPLOAD_IN_PROGRESS_NO_REMOTE_SUCCESS_CLAIM",
+    "folder_id": "1_eqW0iJ9jn_wies2mQwXalYUsUCwLcw2",
+    "parent_folder_id": "1_IJ3vc98An893tE0J_YCdxVioNL8yO-M",
+    "folder_name": "Original-Update-1.55.4-build109",
+    "apk_id": null,
+    "apk_url": null,
+    "independent_remote_sha": "NOT_VERIFIED"
+  },
+  "synthetic_checks": "docs/verification/performance-stage2-tests-2026-10-28.json",
+  "performance": "docs/verification/performance-stage2-2026-10-28.md",
+  "physical": {
+    "pixel_performance": "NOT_EXECUTED",
+    "update_data_retention": "NOT_EXECUTED",
+    "installation": "NOT_PERFORMED",
+    "device_backup_restore_confirmation": "OPEN"
+  },
+  "protected_gates": {
+    "productive_migration": "NOT_PERFORMED",
+    "invoice_authority": "NOT_ACTIVATED",
+    "stages3_4_5": "NOT_IMPLEMENTED; stage3 plan only, explicit approval required"
+  },
+  "limitations": [
+    "Native Android/SQLite performance and device acceptance open",
+    "Historical P1 tools-schema gate remains FAIL",
+    "Historical Build97 accessibility fixture remains FAIL; current navigation/font checks pass separately",
+    "Remote upload/readback not yet complete"
+  ]
+}

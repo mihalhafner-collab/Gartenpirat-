@@ -1,0 +1,852 @@
+{
+  "format": "gartenpirat.performance-stage2-verification.v1",
+  "classification": "SYNTHETIC_TEST_AND_PUBLIC_SOURCE_METADATA",
+  "app_source_commit": "ac67b156d8bc17bc07722f387a1c7a392b865176",
+  "jvm": {
+    "suites": [
+      {
+        "suite": "AppointmentAvailabilityTests",
+        "result": "PASS",
+        "summary": "PASS 16 local and Google collisions, travel buffers, half-open boundaries, inactive rows, stale/disabled/invalid availability and no mutation checks; synthetic only"
+      },
+      {
+        "suite": "BackupDatasetExchangeTests",
+        "result": "PASS",
+        "summary": "PASS 140 real filesystem cold-start journal/each-move process death/reopen/replay/rollback/sidecar preservation checks;synthetic roots,no active app or SQLite swap"
+      },
+      {
+        "suite": "BackupDocumentTransferTests",
+        "result": "PASS",
+        "summary": "PASS 20 encrypted and conscious plaintext provider generation/48MiB/25media/reopen/readback/corruption/disconnect/uncertain-create/collision/replay checks;synthetic provider,no physical USB or SQLite restore proof"
+      },
+      {
+        "suite": "BackupFilePinsTests",
+        "result": "PASS",
+        "summary": "PASS7 immutable pin/mutable copy/UTF8/symlink/source preservation/cancellation checks"
+      },
+      {
+        "suite": "BackupPortableFormatTests",
+        "result": "PASS",
+        "summary": "PASS 45 plaintext export/48MiB stream/exactIDs/minorAmounts/originalhash/UTF8CSV/formula-protection/business-key-allowlist checks;synthetic dataset,no provider or product data"
+      },
+      {
+        "suite": "BackupScheduleRulesTests",
+        "result": "PASS",
+        "summary": "PASS 26 daily backup/retry/restore-context/data-age/clock/target guards;no scheduler timing or account claim"
+      },
+      {
+        "suite": "BackupSetupTests",
+        "result": "PASS",
+        "summary": "PASS 30 backup folder selection and independent recovery-copy checks"
+      },
+      {
+        "suite": "BackupStorageBudgetTests",
+        "result": "PASS",
+        "summary": "PASS 10 storage reserve/long-size/mid-write shortage/cancellation/previous-generation checks;synthetic space port,not physical disk-full proof"
+      },
+      {
+        "suite": "BillingTests",
+        "result": "PASS",
+        "summary": "RESULT 13 billing tests passed"
+      },
+      {
+        "suite": "BrowserMediaFilesTests",
+        "result": "PASS",
+        "summary": "PASS 22 browser media 48MiB stream/reopen/chunk-replay/quota/exact-hash/graph-ref/no-inline/no-secret/corruption checks; no Android or SQLite claim"
+      },
+      {
+        "suite": "BrowserMediaRepositoryRulesTests",
+        "result": "PASS",
+        "summary": "PASS 78 browser-media graph/25photos/CAS/replay/transaction rollback/immutable historical files/restore source separation/explicit selection/epoch/byte-integrity/Android-null-string write-delete-cleanup checks;synthetic host port,no Android IDB proof"
+      },
+      {
+        "suite": "CalendarAccessTests",
+        "result": "PASS",
+        "summary": "PASS 43 calendar token refresh, explicit denial recovery, ambiguous response quarantine, redaction and unchanged scope checks; synthetic only"
+      },
+      {
+        "suite": "CalendarAuthorizationTests",
+        "result": "PASS",
+        "summary": "PASS 54 Google scope/partial-grant/one-operation credential/401/isolated-account/retry/redaction checks; no Google connection"
+      },
+      {
+        "suite": "CalendarRecoveryTests",
+        "result": "PASS",
+        "summary": "PASS 2025 bounded long-outage recovery, cancellation/network distinction, consent result and truthful check-time contracts; synthetic only"
+      },
+      {
+        "suite": "CalendarSetupProgressTests",
+        "result": "PASS",
+        "summary": "PASS 41 observed Google authorization/account/calendar progress, early registration failure, minimal scopes and non-secret diagnostics checks; synthetic only"
+      },
+      {
+        "suite": "CalendarSetupTests",
+        "result": "PASS",
+        "summary": "PASS 54 calendar setup/readback/restart/lost-reply/duplicate/permissions/retry/title checks; synthetic provider only"
+      },
+      {
+        "suite": "DeletionBackupTests",
+        "result": "PASS",
+        "summary": "PASS 57 exact deletion backup/original/dedup/readback/chunk/corruption/failure-before-enqueue checks (synthetic OS-temp only)"
+      },
+      {
+        "suite": "DriveBackupUploadTests",
+        "result": "PASS",
+        "summary": "PASS 380 backup upload assertions;48MiB disk payload,1MiB chunks,real streaming HTTP hash reader,restarts/lost replies/conflicts;synthetic port only,no Google account"
+      },
+      {
+        "suite": "DriveJournalTests",
+        "result": "PASS",
+        "summary": "Passed 37 Drive journal tests using isolated data."
+      },
+      {
+        "suite": "DriveLegacyNormalizationTests",
+        "result": "PASS",
+        "summary": "PASS 14 raw/normalized/restart/legacy-hash compatibility checks; actual business changes still blocked, original input unchanged"
+      },
+      {
+        "suite": "DrivePerformanceTests",
+        "result": "PASS",
+        "summary": "PASS 13 Drive performance checks; synthetic only; upload data PUTs previous 8 -> 2, unchanged immutable body GETs 2 -> 1"
+      },
+      {
+        "suite": "DriveThroughputTests",
+        "result": "PASS",
+        "summary": "PASS 17 throughput/cancellation/integrity/scheduling checks; actual synthetic media concurrency=3, HTTP ceiling=6; no real mobile timing claim"
+      },
+      {
+        "suite": "DriveTransportTests",
+        "result": "PASS",
+        "summary": "24 Drive transport/dependency/garden checks passed"
+      },
+      {
+        "suite": "EncryptedBackupArchiveTests",
+        "result": "PASS",
+        "summary": "PASS 29 encrypted archive fault checks;48MiB and25 synthetic media;no Keystore;active data unchanged"
+      },
+      {
+        "suite": "EntityProtectionTests",
+        "result": "PASS",
+        "summary": "RESULT 24 entity protection checks passed; no Android storage simulated"
+      },
+      {
+        "suite": "EquipmentMaintenanceTests",
+        "result": "PASS",
+        "summary": "PASS 91 equipment maintenance calendar/early review/history/idempotency/CAS/rollback/restore/reference/shared-port checks; synthetic JVM only"
+      },
+      {
+        "suite": "EquipmentProfilePhotoTests",
+        "result": "PASS",
+        "summary": "PASS 54 equipment photo identity, local-only, replay/CAS/rollback, replace/history, format, maintenance, missing-original/business-continuity and restore checks"
+      },
+      {
+        "suite": "EstimateContractTests",
+        "result": "PASS",
+        "summary": "PASS 121 shared estimate, price/schema, immutable status, test-isolation and real-receipt validation contracts"
+      },
+      {
+        "suite": "FreeWeatherSourceTests",
+        "result": "PASS",
+        "summary": "PASS 43 exact cadence, horizon, licence, units, missing/reset, throttling and unknown weather checks; synthetic only"
+      },
+      {
+        "suite": "ImmutableStateReferenceTests",
+        "result": "PASS",
+        "summary": "PASS 8 immutable state recovery, altered content, duplicate, missing, permission and interruption checks"
+      },
+      {
+        "suite": "InvoiceDraftUnknownSettingsTests",
+        "result": "PASS",
+        "summary": "PASS 6 missing/blank tax settings: drafts editable, no invented tax mode, final issue blocked"
+      },
+      {
+        "suite": "InvoiceIssueReviewRulesTests",
+        "result": "PASS",
+        "summary": "PASS 59 invoice review/current issuer/recipient/work/material/order/numbering/restore context/CAS/unchanged prices/blocker checks;pure synthetic,no number or job mutation"
+      },
+      {
+        "suite": "IssuedInvoiceRulesTests",
+        "result": "PASS",
+        "summary": "PASS 26 imported-original/empty-issue-date/opening-payment/full-reversal/replay/corruption checks; no invented dates or status-only issue authority"
+      },
+      {
+        "suite": "LocalAuthorityRulesTests",
+        "result": "PASS",
+        "summary": "PASS 31 local authority external-proof and exact-money checks"
+      },
+      {
+        "suite": "LocalBillingQuantityTests",
+        "result": "PASS",
+        "summary": "PASS 15 local partial-source/remaining-draft/CAS-input/legacy/corruption checks;canonical historicalhours unchanged,synthetic JVM"
+      },
+      {
+        "suite": "LocalFinancialOriginalsTests",
+        "result": "PASS",
+        "summary": "PASS 32 external-original real-file/hash/size/header/dedup/path/symlink/48MiB streaming checks; synthetic isolated files only"
+      },
+      {
+        "suite": "LocalFinancialRestoreRecoveryTests",
+        "result": "PASS",
+        "summary": "PASS 64 frozen-document-origin/not-created-ledger/reservation/adoption/audit corruption guards; pure captured metadata, no file generation or authority claim"
+      },
+      {
+        "suite": "LocalFinancialValidationTests",
+        "result": "PASS",
+        "summary": "PASS 45 captured financial semantic checks: valid pending PDF, exact partial payments/correction, corrupted IDs/quantities/jobs/reservations/counter rejected without writes; no original-file claim"
+      },
+      {
+        "suite": "LocalInvoiceCreationRulesTests",
+        "result": "PASS",
+        "summary": "PASS 58 original-context/current-proof/restore/remigration/stale-authorization PDF byte-creation checks; no files or writes"
+      },
+      {
+        "suite": "LocalMigrationInventoryTests",
+        "result": "PASS",
+        "summary": "PASS 154 old-format inventory/count/decimal/privacy/authority guards; no productive migration"
+      },
+      {
+        "suite": "LocalMoneyCompatibilityTests",
+        "result": "PASS",
+        "summary": "PASS 14 local minor-unit/decimal quantity/rounding/missing-price/legacy/Subcontractor recipient checks;synthetic only"
+      },
+      {
+        "suite": "LocalTestTombstoneTests",
+        "result": "PASS",
+        "summary": "PASS 16 server receipt precedence, changed-original visibility, private-metadata and local deletion protection checks"
+      },
+      {
+        "suite": "LocalWorkflowContractsTests",
+        "result": "PASS",
+        "summary": "PASS 236 additive local schemas/shared dispatch/decimal and explicit-clear/secret-field rejection checks;native persistence tested separately"
+      },
+      {
+        "suite": "ManualChangeTests",
+        "result": "PASS",
+        "summary": "PASS 27 manual baseline and chained replay checks"
+      },
+      {
+        "suite": "McpCatalogDiscoveryTests",
+        "result": "PASS",
+        "summary": "PASS discovery, four protocols, complete local block, capabilities/health, write gate, tunnel serialization and zero writes"
+      },
+      {
+        "suite": "McpErrorsTests",
+        "result": "PASS",
+        "summary": "PASS compatible domain/provider/transport errors, reviewed local codes and unknown-message redaction assertions"
+      },
+      {
+        "suite": "McpMetadataTests",
+        "result": "PASS",
+        "summary": "PASS metadata catalog/hash consistency, final backup-only transition, fresh results and zero writes; host CPU measurements only"
+      },
+      {
+        "suite": "OfferDecisionBoundaryTests",
+        "result": "PASS",
+        "summary": "PASS 14 offer decision captured-store/history/receipt/PDF/version/revision/corruption checks;synthetic port,no device restore proof"
+      },
+      {
+        "suite": "OfferDecisionTests",
+        "result": "PASS",
+        "summary": "PASS 31 offer acceptance/decline/exact-document/revision/conversion/idempotence/legacy guards;synthetic owner port,not device PDF proof"
+      },
+      {
+        "suite": "OffersAndPhotosTests",
+        "result": "PASS",
+        "summary": "PASS 94 offer, authorization, seven legacy decisions and photo policy checks (synthetic JVM)"
+      },
+      {
+        "suite": "OpenEndPlanningTests",
+        "result": "PASS",
+        "summary": "PASS 49 explicit open ends, real/possible overlaps, hours, CAS/Drive replay, Calendar roundtrip, weather/Pixel notification eligibility and recurrence checks; synthetic only"
+      },
+      {
+        "suite": "OpenMeteoWeatherTests",
+        "result": "PASS",
+        "summary": "PASS 48 non-commercial keyless 16-day forecast, T+14/DST, partial/stale/null/unit/HTTP, real fallback and credential-boundary checks; synthetic only"
+      },
+      {
+        "suite": "OrderReviewTests",
+        "result": "PASS",
+        "summary": "Passed 16 explicit order review tests."
+      },
+      {
+        "suite": "OwnerApplicationTests",
+        "result": "PASS",
+        "summary": "PASS 134 application routing/port/CAS/isolation/upload/account/backup guards; durable SQLite replay tested natively"
+      },
+      {
+        "suite": "OwnerToolsTests",
+        "result": "PASS",
+        "summary": "PASS 333 owner schemas, access gates, file blocks, archives and conflict receipts (synthetic host data)"
+      },
+      {
+        "suite": "PixelDriveStateTests",
+        "result": "PASS",
+        "summary": "PASS 222 native Pixel/Drive migration, recovery, CAS, receipt, crash and financial guards (synthetic host storage; no device/network proof)"
+      },
+      {
+        "suite": "PixelMcpDailyTests",
+        "result": "PASS",
+        "summary": "PASS total=38 daily MCP rules/dispatch checks; Android persistence not simulated"
+      },
+      {
+        "suite": "PixelMcpEntityWriteTests",
+        "result": "PASS",
+        "summary": "PASS total=29 entity write tests"
+      },
+      {
+        "suite": "PixelMcpWriteTests",
+        "result": "PASS",
+        "summary": "PASS total=44 isolated write/schema tests"
+      },
+      {
+        "suite": "PixelTunnelContractTests",
+        "result": "PASS",
+        "summary": "RESULT 65 passed, 0 failed"
+      },
+      {
+        "suite": "PlanningTests",
+        "result": "PASS",
+        "summary": "PASS 86 planning/time/weather/Calendar/CAS/response-loss/schema checks; synthetic JVM, no real account access"
+      },
+      {
+        "suite": "ReceiptRetentionRulesTests",
+        "result": "PASS",
+        "summary": "PASS 18 receipt age/queue/backup/tombstone/reference gates"
+      },
+      {
+        "suite": "RefactoringCharacterizationTests",
+        "result": "PASS",
+        "summary": "PASS 23 frozen read/error/write-gate observations; input unchanged"
+      },
+      {
+        "suite": "RestoredBrowserReviewRulesTests",
+        "result": "PASS",
+        "summary": "PASS 56 restored-browser strict source/visible-form projection/explicit source selection/conflict/no old actions/no mutation checks; no database or device claim"
+      },
+      {
+        "suite": "RevierContextBoundaryTests",
+        "result": "PASS",
+        "summary": "PASS 8 captured canonical work/photo/session START context/legacy/rollback checks;synthetic port,no SQLite/device proof"
+      },
+      {
+        "suite": "RevierDomainTests",
+        "result": "PASS",
+        "summary": "PASS 328 Revier domain workflow/CAS/rollback/inspection/series/tour/resources/search checks;synthetic transaction port,no device/provider acceptance"
+      },
+      {
+        "suite": "SearchOrderingTests",
+        "result": "PASS",
+        "summary": "PASS 19 German aliases/multiword/phone/natural-order/inactive/new-record/relation/pagination checks; read-only synthetic JVM"
+      },
+      {
+        "suite": "ServiceCatalogBootstrapTests",
+        "result": "PASS",
+        "summary": "PASS4 catalog bootstrap preservation/failure checks; no historical price changes"
+      },
+      {
+        "suite": "SyncCommitRulesTests",
+        "result": "PASS",
+        "summary": "PASS 21 production atomic-confirmation/post-commit preference-failure checks"
+      },
+      {
+        "suite": "SyncDeletionTests",
+        "result": "PASS",
+        "summary": "PASS 88 sync policy, bounded media, immutable photos, recoverable deletion, receipt and stale-version checks (synthetic JVM)"
+      },
+      {
+        "suite": "SyncFailureRulesTests",
+        "result": "PASS",
+        "summary": "PASS 123 production sync classification/status/backoff/privacy checks"
+      },
+      {
+        "suite": "SyncOptimizationTests",
+        "result": "PASS",
+        "summary": "PASS 38 truthful sync flags, queue actions/counters, semantic serialization and bounded verified cache checks"
+      },
+      {
+        "suite": "TrashBoundaryTests",
+        "result": "PASS",
+        "summary": "PASS 97 trash local/Drive boundary checks (synthetic JVM)"
+      },
+      {
+        "suite": "TrashPurgeBatchTests",
+        "result": "PASS",
+        "summary": "PASS empty-trash/provider-backup checks=173"
+      },
+      {
+        "suite": "TrashWorkflowTests",
+        "result": "PASS",
+        "summary": "PASS 86 trash, relationship, purge, replay, stale-form and shared-media checks (synthetic JVM)"
+      },
+      {
+        "suite": "UiMcpParityTests",
+        "result": "PASS",
+        "summary": "PASS 1405 parity checks; semantic UI actions=212, MCP-covered=197, explicit platform/presentation groups=15, source tools=169"
+      },
+      {
+        "suite": "WeatherWorkflowTests",
+        "result": "PASS",
+        "summary": "PASS 66 weather address precedence, ambiguity, cache isolation, quiet hours, deduplication and actionable message checks; synthetic only"
+      },
+      {
+        "suite": "WorkSessionPauseTests",
+        "result": "PASS",
+        "summary": "RESULT 10 pause calculations passed; native SQLite transitions not executed"
+      },
+      {
+        "suite": "WorkSessionTimingTests",
+        "result": "PASS",
+        "summary": "PASS 11 clock/reference-day rules; native persistence requires Android execution"
+      },
+      {
+        "suite": "WorklogArchiveBatchTests",
+        "result": "PASS",
+        "summary": "PASS 21 batch archive selection/version/photo/financial/replay checks; 128 action preparation=132 ms (host JVM, synthetic)"
+      },
+      {
+        "suite": "WorklogRelationTests",
+        "result": "PASS",
+        "summary": "RESULT 17 relation tests passed"
+      },
+      {
+        "suite": "LocalOwnerRepositoryTests",
+        "result": "PASS",
+        "summary": "PASS 416 actual LocalOwnerRepository rollback/replay/mismatch/expired replay checks"
+      }
+    ],
+    "cross_language_hash": "PASS"
+  },
+  "python": {
+    "passed": 71,
+    "failed": 0
+  },
+  "context_browser": {
+    "classification": "SYNTHETIC_TEST",
+    "device": false,
+    "results": [
+      {
+        "name": "One full state build per load preserves the complete embedded sync status",
+        "result": "PASS"
+      },
+      {
+        "name": "Unchanged Today → Office → Today reuses sorted data, overview and existing DOM nodes",
+        "result": "PASS"
+      },
+      {
+        "name": "Create, edit, delete and native notification invalidate cached visible and hidden pages",
+        "result": "PASS"
+      },
+      {
+        "name": "Natural alphabetic ordering includes all customer selectors and new accounts",
+        "result": "PASS"
+      },
+      {
+        "name": "Long hold opens exact customer context without a write",
+        "result": "PASS"
+      },
+      {
+        "name": "Long hold opens exact order context without a write",
+        "result": "PASS"
+      },
+      {
+        "name": "Long hold opens exact worklog context without a write",
+        "result": "PASS"
+      },
+      {
+        "name": "Long hold opens exact invoice context without a write",
+        "result": "PASS"
+      },
+      {
+        "name": "Long hold opens exact photo context without a write",
+        "result": "PASS"
+      },
+      {
+        "name": "Long hold opens exact offer context without a write",
+        "result": "PASS"
+      },
+      {
+        "name": "Long hold opens exact service_template context without a write",
+        "result": "PASS"
+      },
+      {
+        "name": "Long hold opens exact appointment context without a write",
+        "result": "PASS"
+      },
+      {
+        "name": "Scrolling and multiple fingers cancel long hold",
+        "result": "PASS"
+      },
+      {
+        "name": "Visible actions and keyboard context use the same stable record ID",
+        "result": "PASS"
+      },
+      {
+        "name": "Global search covers German aliases, multiple words, filenames, document numbers and catalog",
+        "result": "PASS"
+      },
+      {
+        "name": "Status read failure cannot replace valid business data; failed data read retains last confirmed view",
+        "result": "PASS"
+      },
+      {
+        "name": "Photo originals in the viewer are bounded and released when closing",
+        "result": "PASS"
+      },
+      {
+        "name": "Context sheets remain reachable at narrow widths and enlarged text",
+        "result": "PASS"
+      }
+    ]
+  },
+  "startup_browser": {
+    "classification": "SYNTHETIC_TEST",
+    "scope": "Cloud Chromium bundled-page timing only; no native/Pixel measurement",
+    "base_source_commit": "9f3112ec8ade7796b442840ec169606ac83619bc",
+    "mode": "after",
+    "samples": [
+      {
+        "navigation_to_ready_ms": 650.5,
+        "dom_to_ready_ms": 215.20000000018626,
+        "visible_unready_frames": [],
+        "first_visible_frame": {
+          "at": 650.5,
+          "complete": true,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden",
+            "Büro"
+          ]
+        },
+        "writes": 0,
+        "drafts": 0,
+        "styles": [
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/tokens.css",
+          "inline",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/invoice-editor.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/order-window.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/work-location.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/daily-usability.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/billing-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/gartenpirat.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/simple-forms.css",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/order-sync-review.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/personal-payment.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/customer-hub.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/offers-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/record-actions.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/workflow-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/today-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/planning-modern.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/revier-solo-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/local-invoice-ui.css",
+          "inline",
+          "inline",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/workday-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/design-concept.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/planning-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/field-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/modern-ui.css",
+          "inline"
+        ]
+      },
+      {
+        "navigation_to_ready_ms": 538.5,
+        "dom_to_ready_ms": 155,
+        "visible_unready_frames": [],
+        "first_visible_frame": {
+          "at": 538.5,
+          "complete": true,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden",
+            "Büro"
+          ]
+        },
+        "writes": 0,
+        "drafts": 0,
+        "styles": [
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/tokens.css",
+          "inline",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/invoice-editor.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/order-window.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/work-location.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/daily-usability.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/billing-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/gartenpirat.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/simple-forms.css",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/order-sync-review.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/personal-payment.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/customer-hub.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/offers-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/record-actions.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/workflow-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/today-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/planning-modern.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/revier-solo-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/local-invoice-ui.css",
+          "inline",
+          "inline",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/workday-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/design-concept.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/planning-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/field-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/modern-ui.css",
+          "inline"
+        ]
+      },
+      {
+        "navigation_to_ready_ms": 551.2999999998137,
+        "dom_to_ready_ms": 189.29999999981374,
+        "visible_unready_frames": [],
+        "first_visible_frame": {
+          "at": 551.1999999992549,
+          "complete": true,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden",
+            "Büro"
+          ]
+        },
+        "writes": 0,
+        "drafts": 0,
+        "styles": [
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/tokens.css",
+          "inline",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/invoice-editor.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/order-window.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/work-location.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/daily-usability.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/billing-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/gartenpirat.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/simple-forms.css",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/order-sync-review.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/personal-payment.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/customer-hub.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/offers-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/record-actions.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/workflow-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/today-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/planning-modern.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/revier-solo-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/local-invoice-ui.css",
+          "inline",
+          "inline",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/workday-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/design-concept.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/planning-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/field-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/modern-ui.css",
+          "inline"
+        ]
+      },
+      {
+        "navigation_to_ready_ms": 543.7000000001863,
+        "dom_to_ready_ms": 200.5,
+        "visible_unready_frames": [],
+        "first_visible_frame": {
+          "at": 543.6000000005588,
+          "complete": true,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden",
+            "Büro"
+          ]
+        },
+        "writes": 0,
+        "drafts": 0,
+        "styles": [
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/tokens.css",
+          "inline",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/invoice-editor.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/order-window.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/work-location.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/daily-usability.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/billing-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/gartenpirat.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/simple-forms.css",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/order-sync-review.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/personal-payment.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/customer-hub.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/offers-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/record-actions.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/workflow-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/today-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/planning-modern.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/revier-solo-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/local-invoice-ui.css",
+          "inline",
+          "inline",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/workday-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/design-concept.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/planning-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/field-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/modern-ui.css",
+          "inline"
+        ]
+      },
+      {
+        "navigation_to_ready_ms": 594,
+        "dom_to_ready_ms": 214.90000000037253,
+        "visible_unready_frames": [],
+        "first_visible_frame": {
+          "at": 593.9000000003725,
+          "complete": true,
+          "visible": true,
+          "labels": [
+            "Heute",
+            "Kunden",
+            "Büro"
+          ]
+        },
+        "writes": 0,
+        "drafts": 0,
+        "styles": [
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/tokens.css",
+          "inline",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/invoice-editor.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/order-window.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/work-location.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/daily-usability.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/billing-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/gartenpirat.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/simple-forms.css",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/order-sync-review.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/personal-payment.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/customer-hub.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/offers-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/record-actions.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/workflow-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/today-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/planning-modern.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/revier-solo-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/local-invoice-ui.css",
+          "inline",
+          "inline",
+          "inline",
+          "inline",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/workday-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/design-concept.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/planning-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/field-ui.css",
+          "http://127.0.0.1:18766/workspace/Gartenpirat-/android/app/src/main/assets/modern-ui.css",
+          "inline"
+        ]
+      }
+    ],
+    "results": [
+      {
+        "name": "Five cold bundled-page starts use the same synthetic fixture and record every visible intermediate frame",
+        "result": "PASS"
+      },
+      {
+        "name": "Performance diagnostics retain only bounded numeric samples without persisting content",
+        "result": "PASS"
+      },
+      {
+        "name": "Offline operation and missing backup configuration do not block presentation or write business rows",
+        "result": "PASS"
+      },
+      {
+        "name": "A local read error remains visible in the finished UI without becoming a startup or Drive gate",
+        "result": "PASS"
+      },
+      {
+        "name": "A retained work draft survives restart and conscious recovery from a stylesheet error with the same edit ID",
+        "result": "PASS"
+      },
+      {
+        "name": "An initial modal remains operable and no partially initialized page is exposed while waiting for it",
+        "result": "PASS"
+      },
+      {
+        "name": "A delayed module can finish after the slow-start notice without reload, fallback or business writes",
+        "result": "PASS"
+      },
+      {
+        "name": "Missing simple-forms.js keeps the legacy view inaccessible and offers conscious recovery",
+        "result": "PASS"
+      },
+      {
+        "name": "Missing field-ui.css keeps the legacy view inaccessible and offers conscious recovery",
+        "result": "PASS"
+      },
+      {
+        "name": "Missing startup-ui.js keeps the legacy view inaccessible and offers conscious recovery",
+        "result": "PASS"
+      },
+      {
+        "name": "Missing modern-ui.css keeps the legacy view inaccessible and offers conscious recovery",
+        "result": "PASS"
+      },
+      {
+        "name": "Missing equipment-photo-ui.js keeps the legacy view inaccessible and offers conscious recovery",
+        "result": "PASS"
+      },
+      {
+        "name": "A critical initializer exception fails visibly without showing the old controls",
+        "result": "PASS"
+      }
+    ],
+    "errors": [
+      "QA expected startup initializer failure"
+    ]
+  },
+  "other_current_browser_suites_pass": [
+    "revier-solo-ui",
+    "planning-overview",
+    "customer-navigation",
+    "timer-completion",
+    "simple-forms",
+    "saved-drafts-read-first",
+    "billing-ui",
+    "design-concept",
+    "daily-usability",
+    "equipment-profile-photo-ui"
+  ],
+  "known_failed_legacy_gates": [
+    {
+      "test": "check_refactoring_contract.py",
+      "result": "FAIL",
+      "reason": "historical tools-schema baseline gap; unchanged catalogue/schema sources;169-tool/212-action parity PASS;not weakened"
+    },
+    {
+      "test": "overview-accessibility.test.cjs",
+      "result": "FAIL",
+      "reason": "Build97 fixture waits for two tabs and removed action dock; current three tabs/narrow/200percent checks PASS separately;test not weakened"
+    }
+  ],
+  "build": "PASS assembleRelease and lintRelease",
+  "lint": {
+    "Error": 0,
+    "Fatal": 0,
+    "Warning": 103
+  },
+  "pixel": "NOT_EXECUTED",
+  "android_emulator_performance": "NOT_EXECUTED",
+  "native_jvm_scope": "Host JVM, synthetic repositories/providers; not Android SQLite/device execution",
+  "protected_gates": "UNCHANGED; release-version guard additionally honors confirmed108 observation",
+  "installation": "NOT_PERFORMED"
+}
