@@ -9,7 +9,11 @@ Alternative erzwingen. Den einmaligen Bestätigungssatz nicht übernehmen.
 Bestehende Schutzregeln erhalten; Änderung prüfen, committen, nach GitHub pushen
 und den exakten Remote-Stand zurücklesen. Keine Appänderung oder APK erforderlich.
 
-## Nutzerauftrag vom 26. Oktober 2026
+Die Regeln wurden mit Commit `378a1a6` eingeführt. Anschließend wurde Weg 1 zur
+Bereinigung freigegeben: widersprüchliche aktive Anweisungen gezielt anpassen,
+historische Nachweise erhalten. Verbindlicher Entwicklungsablauf: `AGENTS.md`.
+
+## Historischer Auftragskontext vom 26. Oktober 2026
 
 Die bestehende Codex-Gartenumgebung soll Entwicklungsanweisungen ausschließlich
 aus dem privaten Repository `mihalhafner-collab/Gartenpirat-` beziehen. Sämtliche
@@ -27,7 +31,11 @@ Git-Historie und historische Nachweise erhalten; keine Betriebsdaten-/Backuplös
 Den vorbereiteten Cloud-Starttext in die bestehende Gartenumgebung übernehmen;
 Benutzer hat die sichere ChatGPT-Anmeldung im Cloudbrowser beauftragt.
 
-## Konkrete Arbeit und Abnahme
+## Historischer Arbeitsumfang und Abnahme vom 26. Oktober 2026
+
+Die folgenden Punkte dokumentieren den damaligen Umfang. Erledigte Schritte nicht
+erneut ausführen; Ergebnisse und offene Nachweise stehen in `CODEX-STATUS.md`.
+Sie erteilen keine neue Code-, Lösch- oder Veröffentlichungsfreigabe.
 
 1. Aktuelle GitHub-Branches/Tags und Arbeitsstand lesen; einzigartige ungesicherte
    oder nicht integrierte Arbeit erkennen. Keine Branchlöschung nur nach Alter.
@@ -95,6 +103,7 @@ Drafts und vermischt keine älteren Cloudstände mit neueren lokalen Geschäftsd
 
 ### Prüfkaskade bei späteren technischen Änderungen
 
+Nach Freigabe des Lösungswegs gemäß `AGENTS.md`:
 Endzustand definieren → realistische Gegenpfade einzeln untersuchen → tatsächliche
 Code-/Datenmodellursache bestimmen → minimal korrigieren → denselben Zustand
 reproduzierbar testen/zurücklesen → neu entstandene Gegenpfade prüfen. Nicht beim

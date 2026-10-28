@@ -13,6 +13,10 @@ dann [Quell-/Gerätestand](AKTUELLER-STAND.json), [aktuellen Auftrag](CODEX-AUFT
 und [Ergebnisse und offene Punkte](CODEX-STATUS.md) lesen. Historische Aufträge
 werden nicht automatisch wieder aufgenommen. Keine externen Pages-/Drive-Regeln.
 
+Für neue Codeaufträge gilt der Vorschlags-/Freigabeablauf aus
+[AGENTS.md](AGENTS.md#pflicht-ablauf-vor-jeder-codeänderung). Bestehende Aufträge,
+Prüfanleitungen und Starttexte ersetzen diese Freigabe nicht.
+
 Entwicklung, Tests und Originalsignierung laufen in der bestehenden persönlichen
 Gartenumgebung. Änderungen ausschließlich in diesem Repository committen, pushen
 und zurücklesen. Keine Quellcode-/Statussicherungen in Drive; nach einem beauftragten

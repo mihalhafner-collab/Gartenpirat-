@@ -1,5 +1,10 @@
 # Android 17 als Build- und Testziel
 
+Historischer Buildnachweis vom 10. Oktober 2026, kein neuer Buildauftrag.
+Heutige Arbeitsregeln: [AGENTS.md](../AGENTS.md); aktueller Quell-/Gerätestand:
+[CODEX-STATUS.md](../CODEX-STATUS.md). Alte Drive- oder Auslieferungsabläufe
+daraus nicht reaktivieren.
+
 Vorgabe von Michael, geprüft am 10.10.2026: Den nächsten Android-Build auf
 Android 17 / API 37 ausrichten. Die bestehende App weiterverwenden; Daten,
 IDs, Signatur, Drive-Anbindung und MCP-Verbindungen erhalten.

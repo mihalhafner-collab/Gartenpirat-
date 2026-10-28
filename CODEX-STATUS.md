@@ -15,12 +15,27 @@ Projektanweisungen, Auftrag und Status geändert; keine Appänderung und kein Bu
 Die Repositoryregeln sind keine technische Ausführungssperre vor jedem Prompt;
 eine Änderung der veröffentlichten Cloud-Konfiguration wird nicht behauptet.
 
-## Aktueller Auftrag
+## Abschluss der Anweisungsbereinigung vom 28. Oktober 2026
 
-GitHub als einzige Entwicklungszentrale; keine Drive-Quellkopien oder externen
-Regel-/Statusabrufe. Widersprüchliche aktuelle Anweisungen werden ersetzt,
-überholte Dokumente/Windows-Launcher nach Abhängigkeitsprüfung aus dem aktiven
-Baum entfernt. Aktuelle Quellen, Installation und offene Gates bleiben getrennt.
+Aktive Projektanweisungen und Dokumentation geprüft. Freigabeablauf in `AGENTS.md`
+präzisiert, im README verlinkt und alte Auftrags-/Abnahmeblöcke als historischen
+Kontext gekennzeichnet; Android-17-Buildanleitung als historischen Nachweis
+ausgewiesen. Auftragsprotokollierung bei Codeaufträgen erfolgt erst nach
+Freigabe. Bestehende Schutzregeln, historische Nachweise und veröffentlichter
+Starttext bleiben erhalten. Keine Änderung externer Cloud-Einstellungen oder
+Automationen; deren aktuelle Inhalte wurden nicht zurückgelesen.
+
+Prüfung dieser Textänderung: `git diff --check` PASS; Quellprivacy PASS
+(2326 Dateien, 0 operative Seedzeilen). Gesamter Workspace: FAIL mit 21
+vorhandenen Funden (20 UNCLASSIFIED_IMAGE, 1 RAW_OPERATIONAL_IDENTIFIER). Diese
+Funde wurden weder übernommen noch gelöscht; kein vollständiger Workspace-PASS.
+Nur die fünf geprüften Dokumente werden gesichert.
+
+## Historischer Bereinigungsstand vom 26./27. Oktober 2026
+
+GitHub ist die einzige Entwicklungszentrale. Die folgende Dokumentation beschreibt
+bereits ausgeführte Bereinigungen und offene Nachweise, keinen neuen Arbeitsauftrag.
+Aktuelle Quellen, Installation und offene Gates bleiben getrennt.
 
 **Nutzerklärung27.10.:** APKs ab Revier Solo behalten. Grenze:1.55.0/Build99
 (`00974518426e1a2bdfcb07c5eba1223071a49ca3`).16 ältere administrative APKs
@@ -41,8 +56,8 @@ Der zuletzt direkt kopierbar übergebene Text steht jetzt wortgleich im vorhande
 Starttextblock von `AGENTS.md`; Inhalt und Schutzgrenzen unverändert.
 
 Technische Nachweisgrenze: kein vollständiges Rücklesen des veröffentlichten
-Start-Skills und keine neue Laufzeit durch Codex. Der aktuelle Umgebungsstatus
-meldet weiterhin die bereits laufende Instanz aus Konfigurationsrevision16.
+Start-Skills und keine neue Laufzeit durch Codex. Der damals gelesene Umgebungsstatus
+meldete die bereits laufende Instanz aus Konfigurationsrevision16.
 Dieser Wert beschreibt nicht den neuesten veröffentlichten Stand und widerlegt
 die Nutzerbestätigung nicht. Neue veröffentlichte Revision unbekannt; Übernahme
 beim nächsten tatsächlichen Umgebungsstart noch nicht technisch geprüft.

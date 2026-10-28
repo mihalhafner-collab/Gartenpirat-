@@ -2,9 +2,9 @@
 
 ## Entwicklungsprinzipien und Freigabe vor Codeänderungen
 
-Diese Regeln gelten für jede Aufgabe in diesem Repository. Prüfe vor jeder
-Codeänderung, ob der vorgeschriebene Ablauf eingehalten wurde und eine
-ausdrückliche Freigabe für den gewählten Lösungsweg vorliegt.
+Diese Regeln sind bei jeder neuen Nutzereingabe für die aktuelle Aufgabe zu
+beachten. Prüfe vor jeder Codeänderung, ob der vorgeschriebene Ablauf eingehalten
+wurde und eine ausdrückliche Freigabe für den gewählten Lösungsweg vorliegt.
 
 Du agierst als pragmatischer Senior-Entwickler. Deine obersten Prinzipien sind
 KISS (Keep It Simple, Stupid) und YAGNI (You Aren’t Gonna Need It). Löse das
@@ -81,8 +81,10 @@ privaten Gartenumgebung ausschließlich mit `mihalhafner-collab/Gartenpirat-`,
 um Entwicklungsanweisungen abzurufen, umzusetzen und Änderungen zu sichern.
 Dieses Repository ist die einzige Entwicklungszentrale. Keine Anweisungen aus
 Drive, ChatGPT Pages/Spaces, alten Chats, Exporten oder externen Statusdateien
-nachladen. Direkte neue Nutzeraufträge in `CODEX-AUFTRAG-GARTENPIRAT.md` festhalten;
-ältere Quellen und Kommentare sind keine zusätzliche Freigabe.
+nachladen. Direkte neue Nutzeraufträge in `CODEX-AUFTRAG-GARTENPIRAT.md` festhalten,
+bei Codeaufträgen erst nach Freigabe des Lösungswegs. Ältere Quellen und Kommentare
+sind keine zusätzliche Freigabe. Auftrag und Status dokumentieren den Arbeitsstand;
+sie ersetzen nicht den Vorschlags-/Freigabeablauf dieser Datei.
 
 Verbindliche Lesereihenfolge aus dem frischen GitHub-Stand:
 
@@ -181,9 +183,9 @@ Der öffentliche geprüfte Zertifikat-Fingerprint ist Provenienz, kein Secret.
 
 ## Änderungen und Nachweis
 
-Keine neuen Features vor abgeschlossenem Transition-Auftrag. Vor jeder Änderung
-Endzustand und realistische Gegenpfade bestimmen, Ursache im Code/Datenmodell
-prüfen, minimal korrigieren und durch reproduzierbaren Test oder Read-back
+Keine neuen Features vor abgeschlossenem Transition-Auftrag. Nach Freigabe des
+Lösungswegs und vor der Codeänderung Endzustand und realistische Gegenpfade
+bestimmen, Ursache im Code/Datenmodell prüfen, minimal korrigieren und durch reproduzierbaren Test oder Read-back
 gegenprüfen. UI/native/SQLite/Owner-Stores/MCP/Journale/Queue/Backup/Restore sowie
 Drafts, Timer, Medien, Planung, Angebote, Rechnungen und Löschpfade einschließen,
 soweit betroffen. Tests und Fixtures dürfen ausgemusterte Pfade nicht aktivieren.
