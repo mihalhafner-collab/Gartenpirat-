@@ -1,5 +1,19 @@
 # Aktueller Gartenpirat-Auftrag
 
+## Neuester Auftrag: manuelle Quellcode-Übergabe an Claude
+
+Nutzerauftrag vom28.10.2026: Drive-Ordner `Claude` erstellen und aktuellen
+Quellcode sowie nötige Informationen zur KI-Übergabe bereitstellen, nachdem
+interne Cloud-Dateilinks für den Nutzer nicht herunterladbar waren.
+Einmaliger privater Snapshot aus exakt auf GitHub zurückgelesenem Commit:
+vollständiges Quell-ZIP, kopierbarer Text, vorhandene zentrale Projektstände,
+kurzer Wegweiser und für Claude handhabbare App-Code-Teile. Originalpfade,
+Commitbezug und ausgelieferte APK108 unterscheiden. Keine neue Regelquelle;
+Einstieg verweist auf AGENTS.md, AKTUELLER-STAND.json, diesen Auftrag und Status.
+Keine Betriebsdaten, Schlüssel, .git-Historie, Buildausgaben oder erneuter APK-Bau.
+Uploads anhand Namen, Ordnern, Größen und lesbaren Einstiegsdateien zurückprüfen.
+GitHub bleibt Entwicklungszentrale; keine neue Drive-Exportautomatik einrichten.
+
 ## Neuester Auftrag: Gerätefoto, modernere Oberfläche und anschließend APK
 
 Direkte Nutzersteuerung: Geräte-Profilfoto zum Wiedererkennen implementieren.

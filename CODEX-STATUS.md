@@ -6,6 +6,17 @@ Entwicklungsanweisungen und neue Sicherungen ausschließlich in GitHub nach
 [Vorbereinigungsstand a41fc67](https://github.com/mihalhafner-collab/Gartenpirat-/blob/a41fc67f9e2d74fb3912c688b0f57cf7476ec598/CODEX-STATUS.md)
 erhalten und gelten nicht als neue Arbeitsanweisung.
 
+## Aktuell: ausdrücklich beauftragte Claude-Übergabe in Vorbereitung
+
+Der Nutzer beauftragt einen privaten Drive-Ordner `Claude` mit aktuellem
+Quellcode und nötigen KI-Einstiegshinweisen. Eng begrenzte manuelle Ausnahme vom
+allgemeinen Drive-Quellsicherungsverbot, in AGENTS.md/aktuellem Auftrag festgehalten.
+GitHub bleibt die einzige Entwicklungs-/Regelquelle. Keine automatische Sicherung,
+Betriebsdaten, privaten Signierwerte oder neue APK. Die App-Quellfingerprints und
+unveränderlichen Original-APK-Tags bleiben erhalten.
+Zielordner: https://drive.google.com/drive/folders/1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt
+Quell-/Textpakete und lesbarer Einstieg werden vor Abschluss zurückgeprüft.
+
 ## Aktuell: Geräteprofilfoto, moderne Bedienoberfläche und Original-APK108 erstellt
 
 Direkter Nutzerauftrag umgesetzt: optionales Gerätefoto aufnehmen/auswählen,
@@ -60,7 +71,8 @@ Die vermeintliche Remote-Abweichung war eine veraltete lokale Trackingreferenz.
 Dateiname, Größe, privater Versionsordner und vollständiger authentifizierter
 Abruf als Dateireferenz mit identischer Größe geprüft. Unabhängiger Remote-SHA
 bleibt offen:83MB überschreiten die32-MiB-Materialisierungsgrenze; keine
-Netzwerkumgehung. Nachweise/Quellcode nur GitHub, nur die APK in Drive.
+Netzwerkumgehung. Entwicklungsquelle/Nachweise bleiben GitHub. Der spätere
+ausdrückliche Claude-Übergabeauftrag ist die oben begrenzte Ausnahme.
 Abschluss: `docs/verification/release-108-2026-10-28.json`.
 64 synthetische Schutztests zu Signierung/Quellsicherung/Identität PASS.
 Keine automatische Installation, keine produktiven Daten gelesen/verändert.

@@ -184,7 +184,7 @@
       "evidence_recorded_at_utc": "2026-10-25T22:06:57.964900+00:00"
     }
   ],
-  "updated_at_utc": "2026-10-28T04:46:00.000644+00:00",
+  "updated_at_utc": "2026-10-28T05:19:27.734568+00:00",
   "development_snapshot": {
     "version_name": "1.55.1",
     "version_code": 106,
@@ -374,7 +374,7 @@
       "CODEX-STATUS.md"
     ],
     "changes_saved_only_to": "GITHUB",
-    "codex_drive_writes": "APK_INSTALLATION_ARTIFACTS_ONLY_AFTER_AUTHORIZED_BUILD",
+    "codex_drive_writes": "APK_INSTALLATION_ARTIFACTS_AFTER_AUTHORIZED_BUILD;EXPLICIT_ONE_OFF_PRIVATE_CLAUDE_SOURCE_HANDOFF_2026_10_28",
     "app_encrypted_drive_backup": "UNCHANGED_SEPARATE_RUNTIME_FEATURE",
     "version_retention": "REVIER_SOLO_FROM99;16OLDER_APKS_AND11OLD_TAGS_REMOVED;READBACK_PASS",
     "environment_bootstrap": {
@@ -491,6 +491,15 @@
       "source_privacy_files": 2326,
       "worktree_privacy_files": 6003,
       "business_data_or_backup_mutations": false
+    },
+    "claude_handoff": {
+      "authorization": "DIRECT_USER_REQUEST_2026_10_28",
+      "status": "PREPARING",
+      "scope": "One-off private source-only handoff; GitHub remains sole development/instruction authority; no operating data, signing secrets, history, runtime or automatic source export.",
+      "folder_id": "1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt",
+      "folder_url": "https://drive.google.com/drive/folders/1plepbi35nyIoE8SgSIm9-aCIpPmvQXEt",
+      "source_parent_commit": "dcbb1367c626dd3ce4ed2e1ca18ab939a30f6e4e",
+      "application_inputs_changed": false
     }
   },
   "current_release_candidate": {

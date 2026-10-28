@@ -47,11 +47,18 @@ Codex legt keine Quellcode-ZIPs, TXT-Exporte, Dokumentationsgenerationen,
 Entwicklungsbackups, Arbeitsanweisungen oder Statusregister in Drive ab.
 Keine Automatik für solche Kopien erstellen oder wieder einschalten.
 
-Einzige Codex-Ausnahme: Nach einem tatsächlich beauftragten und geprüften APK-Bau
+Reguläre Codex-Ausnahme: Nach einem tatsächlich beauftragten und geprüften APK-Bau
 darf das originale Installationspaket im bestehenden privaten APK-Bereich
 bereitgestellt und zurückgelesen werden. Nur unmittelbar erforderliche Prüfsumme
 und Installationsprovenienz ergänzen; Quellen und Entwicklungsberichte bleiben
 in GitHub. Kein APK-Bau allein wegen einer Dokumentationsänderung.
+
+Ausdrücklicher Einzelauftrag vom28.10.2026: Im privaten Drive-Ordner `Claude`
+ist eine manuelle Übergabe des aktuellen GitHub-Quellstands einschließlich
+nötiger Einstiegshinweise erlaubt. Diese begrenzte Ausnahme erteilt keine Freigabe
+für regelmäßige Drive-Quellsicherungen, Betriebsdaten oder Signierschlüssel.
+GitHub bleibt die einzige Entwicklungs- und Regelquelle; der Claude-Ordner ist
+nur ein datierter Übergabesnapshot, keine zweite Projektzentrale.
 
 Davon getrennt bleibt die vorhandene verschlüsselte **App-Betriebsdatensicherung**
 nach Drive bestehen. Codex aktiviert sie nicht eigenständig und benutzt weder
