@@ -140,16 +140,16 @@
     "authored_changes_diff_check": "PASS",
     "current_test_run": {
       "scope": "CURRENT25_CLASS_BACKUP_BOUNDARY;not full app acceptance",
-      "observed_at_utc": "2026-10-29T21:40:40.921168+00:00",
-      "source_base_git_sha": "ba87387c8acc045b02d16aac16a8b67468c3c223",
+      "observed_at_utc": "2026-10-29T21:51:47.958735+00:00",
+      "source_base_git_sha": "70e4d75ac19caf76d7e88524553e701a5cf5d65d",
       "source_sha256": "714a42e4c4153519d082bde2f579e35d3de7f82fc6373b401ed720ad00232e2f",
-      "source_dirty": true,
+      "source_dirty": false,
       "source_checks": "PASS;62 Python/source/privacy/contracts;seed0",
       "jvm": "PASS;271 existing+237 format+24 SQLite checks",
       "android_build": "PASS;full release/test APK with all gates;test-runtime isolation verified in complete DEX/manifests",
-      "native": "FIRST_CI:backup56+checkpoint102 PASS;provider control setup failed;test-only shell fix awaits full rerun",
+      "native": "CI:backup56+checkpoint102 PASS;provider rights/faults+system save reached;restore-picker breadcrumb selector failed;test-only fix awaiting full rerun",
       "pixel_drive_account_personal_zip": "NOT_RUN;synthetic only",
-      "ci_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40958330727"
+      "ci_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40959914550"
     },
     "performance_evidence": "docs/verification/performance-current.md measures the previous candidate fingerprint;no performance claim for the new native image path",
     "connector": {

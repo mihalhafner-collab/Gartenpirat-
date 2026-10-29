@@ -217,13 +217,33 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
         it.isVisibleToUser && (it.text?.toString() == label || it.contentDescription?.toString() == label)
     }
 
-    private fun click(label: String) {
-        find(automation.rootInActiveWindow) { it.text?.toString() == label }
-            ?.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id)
-        waitUntil("VISIBLE_$label") { node(label) != null }
-        var selected = requireNotNull(node(label))
-        while (!selected.isClickable && selected.parent != null) selected = selected.parent
-        yes(selected.performAction(AccessibilityNodeInfo.ACTION_CLICK), "CLICK_$label")
+    private fun actionableAncestor(node: AccessibilityNodeInfo, boundary: AccessibilityNodeInfo): AccessibilityNodeInfo? {
+        var current: AccessibilityNodeInfo? = node
+        while (current != null && current != boundary) {
+            if (current.isVisibleToUser && current.isEnabled &&
+                (current.isClickable || current.actionList.any { it.id == AccessibilityNodeInfo.ACTION_CLICK })) return current
+            current = current.parent
+        }
+        return null
+    }
+
+    private fun click(label: String, scope: () -> AccessibilityNodeInfo? = { automation.rootInActiveWindow }) {
+        waitUntil("CLICK_$label") {
+            val root = scope() ?: return@waitUntil false
+            val matches: (AccessibilityNodeInfo) -> Boolean = {
+                it.text?.toString() == label || it.contentDescription?.toString() == label
+            }
+            val match = find(root) { matches(it) && actionableAncestor(it, root) != null }
+            if (match == null) {
+                find(root, matches)?.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id)
+                return@waitUntil false
+            }
+            val target = actionableAncestor(match, root) ?: return@waitUntil false
+            // A drawer animation or a document-list refresh can invalidate a previously found node.
+            // Retry with a fresh accessibility tree instead of clicking a stale ancestor.
+            target.refresh() && target.isVisibleToUser && target.isEnabled && target.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+        }
+        checks++
     }
 
     private fun back() {
@@ -239,9 +259,17 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
 
     private fun chooseSyntheticRoot() {
         waitUntil("DOCUMENTS_UI") { pickerVisible() }
-        if (node(SyntheticBackupDocumentsProvider.ROOT_LABEL) == null) click("Show roots")
-        click(SyntheticBackupDocumentsProvider.ROOT_LABEL)
-        waitUntil("ROOT_SELECTED") { node("Show roots") != null && node(SyntheticBackupDocumentsProvider.ROOT_LABEL) != null }
+        // A remembered root also appears in the breadcrumb. Only the actual roots-list row
+        // opens a provider; the breadcrumb must never decide whether the drawer is open.
+        fun rootsList(): AccessibilityNodeInfo? = find(automation.rootInActiveWindow) {
+            it.isVisibleToUser && it.viewIdResourceName?.endsWith(":id/roots_list") == true
+        }
+        if (rootsList() == null) click("Show roots")
+        waitUntil("ROOTS_DRAWER_VISIBLE") { rootsList() != null }
+        click(SyntheticBackupDocumentsProvider.ROOT_LABEL, ::rootsList)
+        waitUntil("ROOT_SELECTED") {
+            rootsList() == null && pickerVisible() && node(SyntheticBackupDocumentsProvider.ROOT_LABEL) != null
+        }
     }
 
     private fun pickerChecks(): String {
