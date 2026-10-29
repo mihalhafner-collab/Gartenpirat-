@@ -68,7 +68,13 @@ noch laufenden Worker; frühere Appstände hielten einen Capture-Abbruch nicht i
 Job fest. `BACKUP_CAPTURE_INVENTORY_IO_FAILED` grenzt den Abbruch auf die
 Bestandsprüfung nach der Datenbankaufnahme ein, benennt aber weder eine bestimmte
 Datei noch einen konkreten Finanz-/Medienfehler. Die Ziel-ZIP wird erst nach
-erfolgreicher interner Aufnahme und Integritätsprüfung ausgegeben.
+erfolgreicher interner Aufnahme und technischer Integritätsprüfung ausgegeben.
+Finanzielle Fachprüfungen, insbesondere die Eindeutigkeit vorhandener
+Rechnungsnummern, gehören nicht zu Aufnahme, Archivprüfung oder Wiederherstellung.
+`LocalBackupDataset` ruft dort keine `LocalFinancialSnapshotValidation` auf.
+Das frühere Manifestfeld `financial_inventory` ist keine Restore-Bedingung;
+Datenbank- und Dateiprüfsummen decken den unveränderten Bestand ab. Die Prüfung
+neuer Rechnungsnummern in `LocalInvoiceService` bleibt erforderlich.
 Die Sicherungsseite hat einen gemeinsamen Wiederherstellungseinstieg. Nur wenn
 ein ausgewähltes verschlüsseltes Archiv den Schlüssel benötigt, erscheint das
 zugehörige Eingabefeld. Neue ZIP-Sicherungen brauchen keinen Schlüssel.
@@ -82,7 +88,13 @@ verwendet geprüfte vorhandene Zwischenstände und entfernt den letzten Fehlerco
 Export-/Rücklesefehler dürfen einen vorhandenen Providerbeleg weder löschen noch
 zum erneuten Überschreiben eines bereits verifizierten Ziels berechtigen. Eine
 bloße Quellkorrektur der Diagnose beweist keine Behebung des ursprünglichen
-Bestandsfehlers. Keine Sicherung durch Überspringen der Fachprüfungen freigeben.
+Bestandsfehlers. Doppelte vorhandene Rechnungsnummern müssen unverändert durch
+ZIP-Schreiben, Rücklesen und Wiederherstellung erhalten bleiben. Die JVM-Suite
+prüft dafür einen synthetischen Archiv-Rundlauf; die Quellprüfung sichert die
+Trennung von Sicherung und Finanzvalidierung. Auf einem ausdrücklich freigegebenen
+Testgerät zusätzlich vollständige Aufnahme und Restore mit zwei verschiedenen
+Rechnungs-IDs und gleicher Nummer prüfen. Beschädigte Archive müssen weiterhin
+abgelehnt werden; der JVM-Rundlauf ersetzt diese native Prüfung nicht.
 
 ```sh
 python3 -B tools/check_current.py

@@ -30,6 +30,13 @@ Vorhandene ältere Archive und Schlüssel bleiben für eine bewusst beauftragte
 Wiederherstellung erhalten. Deren Lesbarkeit rechtfertigt keine neue komplizierte
 Einrichtung für aktuelle Sicherungen.
 
+Sicherung bewahrt den vorhandenen Datenbestand unverändert in einem für die App
+wieder lesbaren Format. Rechnungsnummernkollisionen und die fachliche Gültigkeit
+des Finanzbestands sind keine Voraussetzung für Speichern oder Wiederherstellen.
+Die Sicherung vergibt, korrigiert oder entfernt keine Rechnungsnummern. Sie prüft
+die technische Lesbarkeit, Vollständigkeit und unveränderte Übertragung der Daten,
+einschließlich Datenbank, Originaldateien, Format und Prüfsummen.
+
 Wiederherstellung erfolgt ausdrücklich, nach vollständiger Archivprüfung und mit
 dem vorhandenen Rückweg bei Fehlern. Sicherungsfehler blockieren die lokale
 Geschäftserfassung nicht. Ein echter Speichern-/Wiederherstellen-Nachweis auf dem
@@ -40,12 +47,14 @@ zufälligen Kennungen und Listenseiten. Ein neuerer Fehler bleibt sichtbar, auch
 wenn eine ältere Sicherung bestätigt ist. Eine gespeicherte Capture-Phase allein
 beweist keinen laufenden Worker. Der Selbsttest unterscheidet fehlende Nachweise,
 Fehler und protokolliertes Dateirücklesen; letzteres ist keine neue Dateiprüfung
-und kein Restore-Test. Nummernkollisionen bleiben Integritätsfehler. Deren genauer
-Fehlercode darf weder Finanzdaten ausgeben noch Belegnummern verändern.
+und kein Restore-Test. Fehlercodes dürfen keine Finanzdaten ausgeben.
 
 ## Rechnungen und Datenübernahme
 
-Die bestehende Prüfung von Integrität, Nummern und Originalbelegen bleibt wirksam.
+Die Rechnungsfunktion ist bei künftigen Rechnungserstellungen für korrekte und
+eindeutige Nummern verantwortlich. Ihre Prüfungen von Integrität, Nummern und
+Originalbelegen bleiben wirksam. Eine erfolgreiche Sicherung oder Wiederherstellung
+bestätigt keine fachliche Gültigkeit der vorhandenen Rechnungen.
 Eine allgemeine lokale Datenautorität ist keine Rechnungsfreigabe. Ausgestellte
 Rechnungsangaben und Original-PDFs erhalten; wiederholtes Bestätigen darf keine
 zweite Nummer vergeben. Preise und Pflichtangaben müssen vor Abschluss feststehen.

@@ -79,4 +79,20 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         self.assertLess(source.index('requirePixel(target)'),source.index('LocalBackupCoordinator service='))
         self.assertNotIn('BackupRecoveryKeyStore',source)
 
+    def test_backup_does_not_require_financial_business_validity(self):
+        # The shared capture/staging boundary is used by save, restore and rollback.
+        # Explicit business-table transfer remains a separate validated operation.
+        source = (MAIN/'LocalBackupDataset.java').read_text()
+        backup, table_transfer = source.split('static BusinessTableStore.Evidence tableEvidence(', 1)
+        self.assertNotRegex(backup, r'LocalFinancial(?:Snapshot)?Validation\s*\.\s*inspect\(')
+        self.assertNotIn('.put("financial_inventory"', backup)
+        self.assertIn('LocalFinancialSnapshotValidation.inspect(', table_transfer)
+        for name in ('LocalBackupCoordinator', 'BackupRestoreService', 'RestoreStartupProtection'):
+            self.assertIn('LocalBackupDataset.inspectStaged(', (MAIN/(name+'.java')).read_text())
+        # New invoice issuance still rejects an already used number before recording it.
+        invoice = (MAIN/'LocalInvoiceService.java').read_text()
+        self.assertIn('"INVOICE_NUMBER_COLLISION"', invoice)
+        self.assertLess(invoice.index('"INVOICE_NUMBER_COLLISION"'),
+                        invoice.index('store.putOwnerValue("local_number_reservation:'))
+
 if __name__=='__main__':unittest.main()

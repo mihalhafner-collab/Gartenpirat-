@@ -28,27 +28,28 @@
     }
   ],
   "current_task": {
-    "name": "Nachweislich ungenutzte App-Altlasten entfernen und Sicherungsbedienung vereinfachen",
-    "status": "SOURCE_CLEANUP_IMPLEMENTED;JVM_AND_SOURCE_CHECKS_PASS;ANDROID_BROWSER_AND_PIXEL_ACCEPTANCE_OPEN",
+    "name": "Rechnungsnummernprüfung aus Sicherung und Wiederherstellung entfernen",
+    "status": "BACKUP_FINANCIAL_GATE_REMOVED;SOURCE_AND_JVM_CHECKS_PASS;NATIVE_BACKUP_RESTORE_ACCEPTANCE_OPEN",
     "authorized": true,
-    "authorization_scope": "Direct user instruction29Oct2026: Entferne alle Altlasten aus der app. Source cleanup,dependent checks and GitHub commit;no productive data deletion,installation,restore,invoice changes or external APK delivery.",
+    "authorization_scope": "Direct user instruction29Oct2026: Sicherung soll vorhandene Daten einfach wieder lesbar bereitstellen;korrekte zukünftige Rechnungsnummern sind Aufgabe der Rechnungsfunktion. Source changes,dependent checks and GitHub commit;no productive data changes,installation,restore or APK delivery.",
     "implementation": [
-      "Removed14 unreachable production Java classes and11 obsolete test adapters after class dependency and entrypoint review",
-      "Removed unused encrypted archive creation,key generation/repair,portable export and provider generation protocol;local ZIP export/readback retained",
-      "Single restore entry;recovery key field appears only when the chosen encrypted archive requires it",
-      "Removed obsolete Drive Activity manifest registrations and two stale UI-catalog actions;current catalog210 actions",
-      "Candidate1.55.11/build116;no APK built or installed"
+      "Removed LocalFinancialSnapshotValidation from LocalBackupDataset.capture and inspectStaged;shared save,restore and rollback paths accept existing invoice number collisions",
+      "Removed financial_inventory from new manifests;old optional financial_inventory is not a restore condition;database and archive hashes still cover every captured financial record",
+      "Preserved invoice creation collision checks in LocalInvoiceService and financial validation for explicit invoice reconciliation and business-table transfer",
+      "Preserved SQLite/schema,file completeness,original-file and archive hash verification;no invoice record or counter modified",
+      "Updated APP.md and BAU.md to separate backup fidelity from invoice-number validity",
+      "Source candidate remains1.55.11/build116;no APK built or installed"
     ],
     "remaining": [
-      "Full Gradle/Android compilation and native UI/device acceptance not executed successfully in this environment",
-      "FINANCIAL_ISSUED_NUMBER_COLLISION reported in user screenshot remains unresolved;no productive invoices read or changed",
-      "Active journal/snapshot/financial-integrity paths and existing encrypted archive reader remain required;not an all-legacy-code deletion claim"
+      "Full Android/Gradle compile and synthetic native capture/restore of conflicting records not executed in this environment",
+      "Real Pixel save/restore and update data retention untested;existing invoice-number conflicts are preserved,not repaired"
     ]
   },
   "open_checks": [
-    "Build116 Gradle compile/assemble and Android/Pixel acceptance pending;missing Gradle/Google Play Services dependencies,generated BuildConfig and Chromium in this environment",
+    "Build116 Gradle compile/assemble and Android/Pixel acceptance pending;Gradle/complete Android dependency environment and reachable ADB unavailable",
+    "Run synthetic native capture and restore with distinct issued invoice IDs sharing the same number;verify database,PDFs,counter and reservations unchanged and damaged archives rejected",
     "Real Android file picker,restore key prompt,restart,backup/restore and update data retention remain untested",
-    "User screenshot29Oct reports FINANCIAL_ISSUED_NUMBER_COLLISION;affected invoices not inspected;no numbering or financial checks changed",
+    "The reported FINANCIAL_ISSUED_NUMBER_COLLISION no longer gates backup source paths;successful save on the user Pixel still requires a new APK and device readback",
     "Active journal/snapshot code and existing encrypted archive reader require a demonstrated replacement and verified backup/restore before removal"
   ],
   "workflow": {
@@ -85,7 +86,7 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "54d845d553db16e024694d244845d154e4aa695470c2e1131161325efa86182b",
+    "app_source_fingerprint": "bb9586a0fe086392147312859bc0463a853e1e58819eda5081ab595fabae97b5",
     "source_privacy": "PASS;empty operational seed",
     "native_pixel_tests": "NOT_EXECUTED;ADB unavailable",
     "business_data_read": false,
@@ -93,21 +94,23 @@
     "authored_changes_diff_check": "PASS",
     "imported_source_whitespace": "2 existing findings in byte-identical Build113 sources; no unrelated source formatting applied",
     "current_test_run": {
-      "observed_at_utc": "2026-10-29T16:27:47.674687+00:00",
-      "source_sha256": "54d845d553db16e024694d244845d154e4aa695470c2e1131161325efa86182b",
-      "check_current": "PASS;61 Python tests plus source/contracts/privacy/fixtures/plants/UI checks",
+      "observed_at_utc": "2026-10-29T16:58:57.627289+00:00",
+      "source_sha256": "bb9586a0fe086392147312859bc0463a853e1e58819eda5081ab595fabae97b5",
+      "check_current": "PASS;62 Python tests plus source/contracts/privacy/fixtures/plants/UI checks",
       "java_suites_passed": 3,
-      "java_checks_passed": 222,
+      "java_checks_passed": 231,
       "java_breakdown": {
         "EquipmentMaintenanceTests": 91,
         "EquipmentProfilePhotoTests": 54,
-        "PixelPlainBackupTests": 77
+        "PixelPlainBackupTests": 86
       },
       "java_environment": "JDK17 compiler via com.sun.tools.javac.Main;real Android37 API JAR,JSON20240303,Tink1.24.0,Gson2.13.2;synthetic JVM fixtures",
-      "legacy_archive_regression": "PASS;fixed synthetic archive generated with pre-cleanup writer,missing key,correct key,corrupt final segment and temporary-stage cleanup;no productive backup accessed",
-      "key_store_compile": "PASS;changed BackupRecoveryKeyStore compiled against real Android37 API and actual JVM-compiled production dependencies",
-      "browser_tests": "NOT_EXECUTED;simple-forms launch blocked by absent Chromium;runtime Acorn8.18.0 available instead of documented8.19.0",
-      "android_compile": "NOT_PASSED;direct javac attempt blocked by missing generated BuildConfig and Google Play Services classes;Gradle unavailable;no placeholder compile dependencies used",
+      "conflicting_backup_archive": "PASS;two distinct issued invoice IDs with the same number and unchanged counter survive plaintext ZIP write/read byte-for-byte;strict financial validator rejects the fixture before and after;synthetic JSON payload,not native DB capture",
+      "backup_validation_boundary": "PASS;source check excludes financial semantic validator from capture/staging while retaining explicit business-transfer validation and invoice issuance collision check;shared save/restore/rollback call sites reviewed",
+      "legacy_archive_regression": "PASS;fixed synthetic encrypted archive,missing key,correct key,corrupt final segment and temporary-stage cleanup;no productive backup accessed",
+      "archive_integrity": "PASS;schema,truncation,missing manifest,space limits,provider readback,source preservation and48MiB streaming tests",
+      "android_compile": "NOT_EXECUTED;Gradle/complete Android dependency environment unavailable;JVM suite does not compile LocalBackupDataset",
+      "browser_tests": "NOT_EXECUTED;no browser/UI changes in this task;candidate UI acceptance remains open",
       "android_release_build": "NOT_EXECUTED",
       "android_instrumentation": "NOT_EXECUTED;no reachable ADB",
       "physical_update_data_retention": "NOT_EXECUTED",
@@ -115,23 +118,16 @@
     },
     "current_source_changes": {
       "status": "IMPLEMENTED_AND_SOURCE_JVM_VERIFIED;NATIVE_ACCEPTANCE_OPEN",
-      "base_git_sha": "41d159c32580296c67ce55641839ee21cc54b507",
-      "deleted_production_classes": 14,
-      "deleted_historical_test_adapters": 11,
-      "production_java_files_before": 201,
-      "production_java_files_after": 187,
-      "dependency_review": "Java identifier graph from manifest/entrypoint classes and current test roots,manual call-site and reflective-use review;no remaining unreachable class candidates;not a proof that every method is needed",
+      "base_git_sha": "e61caa244df751b944f125a104db8f92690bbcd7",
+      "production_java_files": 187,
+      "backup_business_validation": "Removed full financial semantic validation from capture and staged backup verification;not a one-error-code exception",
       "preserved": [
-        "Active DriveJournalRules,SnapshotProjection,LocalPendingActions and financial/backup validation",
-        "Existing encrypted archive reader and key capsule readers including format2;legacy files and keys untouched",
-        "Current local ZIP save/readback,restore rollback and old job cancellation",
-        "Original package/signing configuration and all productive data"
+        "Database/schema/file completeness and archive/file hashes;financial originals verification",
+        "Original invoice records,numbers,counter and reservation data",
+        "Invoice issuance number collision guard;explicit reconciliation and business-table-transfer financial validation",
+        "Local ZIP save/readback,restore rollback,encrypted archive reader,package and signing configuration"
       ],
-      "protected_deletion_evidence": {
-        "backup_restore": "No new Pixel backup/restore proof;user screenshot shows save failure",
-        "dependency_absence": "Not established for active journal/snapshot/recovery paths",
-        "deletion": "Only independently proven unused source classes/methods removed;no runtime file/data cleanup"
-      }
+      "productive_data_changes": false
     },
     "backup_diagnosis": {
       "reported_on": "2026-10-29",
@@ -139,7 +135,7 @@
       "device_build": "NOT_SHOWN_IN_SCREENSHOT",
       "latest_error_code": "FINANCIAL_ISSUED_NUMBER_COLLISION",
       "root_cause": "Current code raises this subtype when distinct issued invoices have the same invoice_number;specific records and origin not independently inspected",
-      "resolution": "UNRESOLVED;financial checks and all invoice data unchanged",
+      "resolution": "SOURCE_FIX_IMPLEMENTED;financial semantic gate removed from capture and staged verification;existing data preserved;synthetic ZIP and source-boundary checks PASS;native capture/restore and user Pixel verification open",
       "local_saved_backup_verified": false
     },
     "performance_evidence": "docs/verification/performance-current.md measures the previous candidate fingerprint;no performance claim for the new native image path",
@@ -160,7 +156,7 @@
       "connection_changed": false,
       "observed_at_utc": "2026-10-29T12:15:07.276831+00:00"
     },
-    "business_data_scope": "Source-only cleanup and synthetic tests;no productive app data or backup read or written",
+    "business_data_scope": "Source-only backup validation change and synthetic tests;no productive app data or backup read or written",
     "equipment_photo_display": {
       "diagnosis": "Original readable;file-origin WebView used content-URI thumbnail;load errors became empty placeholders",
       "correction": "Existing native bridge reads current equipment attachment and verified original;existing image conversion returns a bounded JPEG data URI directly;visible decode/read error",
@@ -218,8 +214,8 @@
   "current_release_candidate": {
     "version_name": "1.55.11",
     "version_code": 116,
-    "source_sha256": "54d845d553db16e024694d244845d154e4aa695470c2e1131161325efa86182b",
-    "base_git_sha": "41d159c32580296c67ce55641839ee21cc54b507",
+    "source_sha256": "bb9586a0fe086392147312859bc0463a853e1e58819eda5081ab595fabae97b5",
+    "base_git_sha": "e61caa244df751b944f125a104db8f92690bbcd7",
     "status": "SOURCE_ONLY;NOT_BUILT_SIGNED_OR_DISTRIBUTED",
     "installation": "NOT_PERFORMED",
     "productive_migration": "NOT_PERFORMED",

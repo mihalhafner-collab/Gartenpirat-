@@ -59,9 +59,35 @@ public final class PixelPlainBackupTests {
         evidence.getJSONArray("issued").getJSONObject(0).put("invoice_id","qa_invoice_one");yes(LocalFinancialValidation.inspect(data,namespace).getString("status").equals("PASS"));
         for(String code:new String[]{"FINANCIAL_ISSUED_NUMBER_COLLISION","FINANCIAL_RESERVATION_COUNTER_COLLISION","FINANCIAL_RESERVATION_INVOICE_COLLISION","FINANCIAL_EXTERNAL_NUMBER_COLLISION"}){yes(BackupScheduleRules.errorCode(BackupScheduleRules.captureFailure("INVENTORY",new IOException(code))).equals(code));yes(BackupStatusRules.failureMessage(code).contains("Rechnungen und Nummern wurden nicht verändert"));}
     }
+    static void conflictingRecordsRoundTrip(File root)throws Exception {
+        JSONObject first=new JSONObject().put("id","qa_conflict_one").put("invoice_number","QA-2026-0042").put("issued_at","2026-10-28T10:00:00Z").put("amount","12.3400");
+        JSONObject second=new JSONObject(first.toString()).put("id","qa_conflict_two");
+        JSONObject data=new JSONObject().put("invoices",new JSONArray().put(first).put(second));
+        JSONObject namespaces=new JSONObject().put("local_invoice_counter",new JSONObject().put("last_number",42));
+        byte[] original=new JSONObject().put("effective",data).put("namespaces",namespaces).put("unknown_optional","Grün 🌿").toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        try{LocalFinancialValidation.inspect(data,namespaces);throw new AssertionError("financial fixture must have a number conflict");}
+        catch(IOException expected){yes(expected.getMessage().equals("FINANCIAL_ISSUED_NUMBER_COLLISION"));}
+        File source=new File(root,"qa_conflicts.json"),archive=new File(root,"qa_conflicts.zip");Files.write(source.toPath(),original);
+        try(OutputStream output=new FileOutputStream(archive)){
+            EncryptedBackupArchive.writePlain(output,metadata(),Collections.singletonList(new EncryptedBackupArchive.Source("files/qa-financial-state.json",source)));
+        }
+        // Same archive reader used by the restore path; synthetic JSON, not a native DB capture.
+        try(EncryptedBackupArchive.Verified restored=EncryptedBackupArchive.verifyArchive(new FileInputStream(archive),"",new File(root,"conflict_restore"),1024*1024,6)){
+            byte[] restoredBytes=Files.readAllBytes(restored.file("files/qa-financial-state.json").toPath());yes(Arrays.equals(original,restoredBytes));
+            JSONObject saved=new JSONObject(new String(restoredBytes,java.nio.charset.StandardCharsets.UTF_8));
+            JSONArray invoices=saved.getJSONObject("effective").getJSONArray("invoices");yes(invoices.length()==2);
+            yes(!invoices.getJSONObject(0).getString("id").equals(invoices.getJSONObject(1).getString("id")));
+            yes(invoices.getJSONObject(0).getString("invoice_number").equals(invoices.getJSONObject(1).getString("invoice_number")));
+            yes(saved.getJSONObject("namespaces").getJSONObject("local_invoice_counter").getInt("last_number")==42);
+            try{LocalFinancialValidation.inspect(saved.getJSONObject("effective"),saved.getJSONObject("namespaces"));throw new AssertionError("backup must not repair or authorize invoices");}
+            catch(IOException expected){yes(expected.getMessage().equals("FINANCIAL_ISSUED_NUMBER_COLLISION"));}
+        }
+        yes(Arrays.equals(original,Files.readAllBytes(source.toPath())));yes(!new File(root,"conflict_restore").exists());
+    }
     public static void main(String[] args)throws Exception{
         diagnosticChecks();statusChecks();financialChecks();
         File root=Files.createTempDirectory("qa_plain_backup_").toFile();try{
+            conflictingRecordsRoundTrip(root);
             File source=new File(root,"qa_database.sqlite"),zip=new File(root,"qa_backup.zip");byte[] bytes="QA local plaintext contents".getBytes("UTF-8");Files.write(source.toPath(),bytes);
             try(OutputStream out=new FileOutputStream(zip)){EncryptedBackupArchive.writePlain(out,metadata(),Arrays.asList(new EncryptedBackupArchive.Source("database.sqlite",source)));}
             try(ZipFile readable=new ZipFile(zip)){yes(readable.getEntry("data/database.sqlite")!=null&&readable.getEntry("manifest.json")!=null);}

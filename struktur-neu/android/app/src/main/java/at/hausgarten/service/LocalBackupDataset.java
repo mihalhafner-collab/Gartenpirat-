@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 
-/** Private captured inputs for the encrypted writer; no provider, network or activation. */
+/** Private captured inputs for backup; no provider, network or activation. */
 final class LocalBackupDataset {
     static final class Captured {
         final File directory;
@@ -45,12 +45,12 @@ final class LocalBackupDataset {
         stageName="FILES";BackupFilePins.capture(context.getFilesDir(),freshDirectory,"files");
         for(String name:new String[]{"photo-capture","invoice-share"})BackupFilePins.capture(new File(context.getCacheDir(),name),freshDirectory,"cache/"+name);
         // Keystore/recovery capsules and our own staging trees are deliberately not exported.
-        // Existing deletion/conflict backups remain immutable evidence, inside this encryption.
+        // Existing deletion/conflict backups remain immutable evidence inside the archive.
         for(String name:new String[]{"deletion-backups","legacy-conflict-backups"})BackupFilePins.capture(new File(context.getNoBackupFilesDir(),name),freshDirectory,"no_backup/"+name);
         // A legacy preference-backed snapshot or an editor setting may change independently
         // of SQLite. Fail/retry instead of certifying a mixed preference capture.
         if(!PixelMcpWriteTools.hash(preferences).equals(PixelMcpWriteTools.hash(BackupPreferences.capture(context))))throw new IOException("BACKUP_PREFERENCES_CHANGED_RETRY");
-        stageName="INVENTORY";JSONObject inventory,state,revier,numberState,financial,financialOriginals,browserMedia;
+        stageName="INVENTORY";JSONObject inventory,state,revier,numberState,financialOriginals,browserMedia;
         try(SQLiteDatabase snapshot=SQLiteDatabase.openDatabase(database.getAbsolutePath(),null,SQLiteDatabase.OPEN_READONLY)){
             stageName="INVENTORY_STATE";
             state=BackupSnapshotState.read(snapshot,BackupPreferences.values(preferences,"haus_garten"),initial,catalog);
@@ -59,8 +59,8 @@ final class LocalBackupDataset {
             inventory=LocalMigrationInventory.inspect(state,new LocalOriginalVerifier(new File(freshDirectory,"files"),id->BackupSnapshotState.photo(snapshot,id),id->new JSONObject(DatabaseBackupSnapshot.ownerValue(snapshot,"local_invoice_job:"+id,"{}"))));
             stageName="INVENTORY_RELATIONS";
             revier=new RevierApplicationService(new RevierSnapshotRepository(snapshot,SnapshotProjection.effective(state),new File(freshDirectory,"files"))).validateRelationships();
-            stageName="INVENTORY_FINANCIAL";
-            financial=LocalFinancialSnapshotValidation.inspect(snapshot,SnapshotProjection.effective(state));
+            // Preserve financial records as captured, including number conflicts.
+            // Invoice validation belongs to billing; database/file hashes prove backup fidelity.
             stageName="INVENTORY_ORIGINALS";
             financialOriginals=LocalFinancialOriginals.inspect(new File(freshDirectory,"files"),new JSONObject(DatabaseBackupSnapshot.ownerValue(snapshot,"local_invoice_external_evidence","{}")));
             stageName="INVENTORY_BROWSER_MEDIA";
@@ -71,7 +71,7 @@ final class LocalBackupDataset {
         stageName="INVENTORY_METADATA";
         if(inventory.getInt("missing_local_originals")!=0)throw new IOException("BACKUP_LOCAL_ORIGINALS_INCOMPLETE");
         JSONObject metadata=new JSONObject(identity.toString()).put("schemaVersion",db.getInt("schemaVersion")).put("applicationId",context.getPackageName()).put("appVersion",context.getPackageManager().getPackageInfo(context.getPackageName(),0).versionName)
-            .put("captureStartedAt",started).put("capturedAt",java.time.Instant.now().toString()).put("counts",inventory.getJSONObject("counts")).put("database",db).put("inventory",inventory).put("revier_inventory",revier).put("financial_inventory",financial).put("financial_originals",financialOriginals).put("business_snapshot_sha256",LocalAuthorityMigration.businessHash(state)).put("business_snapshot_hash_version",1)
+            .put("captureStartedAt",started).put("capturedAt",java.time.Instant.now().toString()).put("counts",inventory.getJSONObject("counts")).put("database",db).put("inventory",inventory).put("revier_inventory",revier).put("financial_originals",financialOriginals).put("business_snapshot_sha256",LocalAuthorityMigration.businessHash(state)).put("business_snapshot_hash_version",1)
             .put("browser_checkpoint_source",identity.optBoolean("requireDatabaseBrowserCheckpoint")?"captured_database":"legacy_explicit_argument").put("browser_checkpoint_captured_at",capturedBrowser.optString("checkpointCapturedAt")).put("browser_checkpoint_sha256",PixelMcpWriteTools.hash(capturedBrowser))
             .put("numberState",numberState)
             .put("browser_media_format_version",1).put("browser_media_inventory",browserMedia).put("media_coverage","VERIFIED_NATIVE_MIRROR")
@@ -100,7 +100,8 @@ final class LocalBackupDataset {
             JSONObject expectedNumbers=manifest.getJSONObject("numberState"),numbers=numberState(snapshot,state);if(expectedNumbers.optBoolean("external_current_number_proof"))throw new IOException("BACKUP_NUMBER_PROOF_SCOPE_INVALID");for(String field:new String[]{"business_settings","local_invoice_counter","reservation_count","counter_source"})if(expectedNumbers.has(field)&&!PixelMcpWriteTools.hash(expectedNumbers.get(field)).equals(PixelMcpWriteTools.hash(numbers.opt(field))))throw new IOException("BACKUP_NUMBER_STATE_MISMATCH");
             JSONObject inventory=LocalMigrationInventory.inspect(state,new LocalOriginalVerifier(new File(directory,"files"),id->BackupSnapshotState.photo(snapshot,id),id->new JSONObject(DatabaseBackupSnapshot.ownerValue(snapshot,"local_invoice_job:"+id,"{}"))));
             JSONObject revier=new RevierApplicationService(new RevierSnapshotRepository(snapshot,SnapshotProjection.effective(state),new File(directory,"files"))).validateRelationships();if(manifest.has("revier_inventory"))for(String field:new String[]{"counts","id_set_hashes"})if(!PixelMcpWriteTools.hash(revier.get(field)).equals(PixelMcpWriteTools.hash(manifest.getJSONObject("revier_inventory").get(field))))throw new IOException("BACKUP_REVIER_INVENTORY_MISMATCH");
-            JSONObject financial=LocalFinancialSnapshotValidation.inspect(snapshot,SnapshotProjection.effective(state));if(manifest.has("financial_inventory")&&!PixelMcpWriteTools.hash(financial.getJSONObject("counts")).equals(PixelMcpWriteTools.hash(manifest.getJSONObject("financial_inventory").getJSONObject("counts"))))throw new IOException("BACKUP_FINANCIAL_INVENTORY_MISMATCH");
+            // Older manifests may contain financial_inventory. It is not a restore condition:
+            // the captured database hash above covers those records without judging their numbers.
             JSONObject financialOriginals=LocalFinancialOriginals.inspect(new File(directory,"files"),new JSONObject(DatabaseBackupSnapshot.ownerValue(snapshot,"local_invoice_external_evidence","{}")));if(manifest.has("financial_originals")){JSONObject expected=manifest.getJSONObject("financial_originals");for(java.util.Iterator<String> fields=expected.keys();fields.hasNext();){String field=fields.next();if(!financialOriginals.has(field)||!PixelMcpWriteTools.hash(financialOriginals.get(field)).equals(PixelMcpWriteTools.hash(expected.get(field))))throw new IOException("BACKUP_FINANCIAL_ORIGINALS_MISMATCH");}}
             JSONObject original=manifest.getJSONObject("inventory");
             for(String field:new String[]{"counts","id_set_sha256","collection_sha256","pending_sha256","historical_hours_decimal","historical_invoice_amounts_decimal"})if(!PixelMcpWriteTools.hash(inventory.get(field)).equals(PixelMcpWriteTools.hash(original.get(field))))throw new IOException("BACKUP_BUSINESS_INVENTORY_MISMATCH");
