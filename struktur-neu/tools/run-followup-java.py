@@ -1,6 +1,6 @@
-"""Compile and execute original Java contract tests against synthetic JSON data.
+"""Compile Kotlin/Java production code and contract tests against synthetic data.
 
-Requires a JDK, HG_JSON_JAR, resolved pinned Gradle dependencies and ANDROID_HOME
+Requires a JDK, Kotlin 2.2.10 compiler, HG_JSON_JAR, pinned dependencies and ANDROID_HOME
 (or ANDROID_SDK_ROOT). No ADB,
 installation, credentials or productive records are accessed.
 """
@@ -8,6 +8,7 @@ from pathlib import Path
 import hashlib
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -53,7 +54,10 @@ if table_tests:
         if hashlib.sha256(dependency.read_bytes()).hexdigest() != digest:
             raise RuntimeError('Table-test dependency mismatch: '+variable)
         table_jars.append(dependency)
-cp = os.pathsep.join(map(str, [classes, jar, android, *crypto_jars, *table_jars]))
+stdlib = list((dependency_cache/'org.jetbrains.kotlin/kotlin-stdlib/2.2.10').glob('*/*.jar'))
+if len(stdlib) != 1:
+    raise RuntimeError('Resolve the pinned Kotlin standard library with Gradle first')
+cp = os.pathsep.join(map(str, [classes, jar, android, *crypto_jars, *table_jars, *stdlib]))
 
 def run(command):
     result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, encoding='utf-8', timeout=180)
@@ -62,13 +66,47 @@ def run(command):
         raise RuntimeError('Java contract suite failed')
     return result.stdout
 
-run([shutil.which('javac'), '-encoding', 'UTF-8', '-cp', cp, '-d', str(classes),
-     *[str((src if (src/(name+'.java')).exists() else ROOT/'android/app/src/androidTest/java/at/hausgarten/service')/(name+'.java')) for name in names], str(ROOT/'tests/java/at/hausgarten/service/SyntheticBusinessData.java'), *map(str, support), *map(str, tests)])
+sources = []
+for name in names:
+    candidates = [folder/(name+suffix) for folder in (src, ROOT/'android/app/src/androidTest/java/at/hausgarten/service') for suffix in ('.java','.kt')]
+    found = [path for path in candidates if path.is_file()]
+    if len(found) != 1:
+        raise RuntimeError('Expected one production or test-support source: '+name)
+    sources += found
+java_sources = [p for p in sources if p.suffix == '.java']
+java_sources += [ROOT/'tests/java/at/hausgarten/service/SyntheticBusinessData.java', *support, *tests]
+kotlin_sources = [p for p in sources if p.suffix == '.kt']
+kotlin_tests = sorted((ROOT/'tests/kotlin').rglob('*.kt'))
+if kotlin_sources or kotlin_tests:
+    if os.environ.get('HG_KOTLINC'):
+        compiler = shlex.split(os.environ['HG_KOTLINC'])
+    else:
+        compiler_jars = []
+        for group, artifact, version in [
+            ('org.jetbrains.kotlin', 'kotlin-compiler-embeddable', '2.2.10'),
+            ('org.jetbrains.kotlin', 'kotlin-stdlib', '2.2.10'),
+            ('org.jetbrains.kotlin', 'kotlin-script-runtime', '2.2.10'),
+            ('org.jetbrains.kotlin', 'kotlin-reflect', '1.6.10'),
+            ('org.jetbrains.kotlin', 'kotlin-daemon-embeddable', '2.2.10'),
+            ('org.jetbrains.kotlinx', 'kotlinx-coroutines-core-jvm', '1.8.0'),
+            ('org.jetbrains', 'annotations', '23.0.0'),
+        ]:
+            resolved = list((dependency_cache/group/artifact/version).glob('*/*.jar'))
+            if len(resolved) != 1:
+                raise RuntimeError('Compile the Kotlin Android app with Gradle first or set HG_KOTLINC: '+artifact)
+            compiler_jars += resolved
+        compiler = [shutil.which('java'), '-cp', os.pathsep.join(map(str, compiler_jars)),
+                    'org.jetbrains.kotlin.cli.jvm.K2JVMCompiler']
+    run([*compiler, '-no-stdlib', '-no-reflect', '-jvm-target', '17', '-classpath', cp, '-d', str(classes),
+         *map(str, kotlin_sources), *map(str, kotlin_tests), *map(str, java_sources)])
+run([shutil.which('javac'), '-encoding', 'UTF-8', '-cp', cp, '-d', str(classes), *map(str, java_sources)])
 results = []
 for test in tests:
-    runtime_cp = os.pathsep.join(map(str, [classes, jar, *crypto_jars, *table_jars]))
+    runtime_cp = os.pathsep.join(map(str, [classes, jar, *crypto_jars, *table_jars, *stdlib]))
     heap = '-Xmx512m' if test.stem == 'BusinessTableStoreTests' else '-Xmx64m'
     output = run([shutil.which('java'), heap, '-Dfile.encoding=UTF-8', '-cp', runtime_cp, 'at.hausgarten.service.'+test.stem])
     print(output.strip())
     results.append(test.stem)
-print('PASS current Java suites:', len(results))
+if kotlin_tests:
+    subprocess.run([sys.executable, '-B', str(ROOT/'tools/check_backup_compatibility.py'), '--classpath', runtime_cp], cwd=ROOT, check=True)
+print('PASS current JVM suites:', len(results) + bool(kotlin_tests))

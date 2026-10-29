@@ -28,27 +28,89 @@
     }
   ],
   "current_task": {
-    "name": "Vollständiges Kotlin-Refactoring nach KISS/YAGNI mit einfachem ZIP-Backup und gezielten SQLite-/Bildzugriffen",
-    "status": "REQUIREMENTS_RECORDED;OPTIONS_REVIEW_PENDING;APPLICATION_REFACTORING_NOT_STARTED",
+    "name": "Kotlin-Update der bestehenden Haus-und-Garten-App mit kompatiblem ZIP-Backup",
+    "status": "IMPLEMENTING;PARTIAL_KOTLIN_BACKUP;FULL_REFACTORING_NOT_COMPLETE",
     "authorized": true,
-    "authorization_scope": "User requests complete Kotlin application refactoring with retained functionality;Drive only stores an unencrypted ZIP via Android file selection;incorporate index,WAL,projection,file-based photo,Coil,coroutine and Flow guidance;no productive migration,installation or device restore",
+    "authorization_scope": "UPDATE same package/original signature;full Kotlin refactoring and regression;synthetic data only;bounded subagents;no productive access,installation,migration,restore or delivery",
     "requirements_document": "docs/fachregeln/APP.md",
     "implementation": [
-      "App contract incorporates latest Drive-backup-only correction and SQLite/photo/threading requirements;no application source or schema changed",
-      "Current source inspection finds existing business indexes and photo downsampling;PixelLocalStore does not explicitly enable WAL;temporary MCP uploads still use BLOBs"
+      "13 backup/restore classes ported to Kotlin;SQLite schema7/ZIP format1 preserved",
+      "Drive target through Android document picker;no own Drive API/auth;WAL enabled",
+      "Legacy Java<->Kotlin archive comparison and mixed JVM regression added;full app migration remains open",
+      "Provider header-read failure reproduced RED,fixed,and237 format checks GREEN;independent code/tooling reviews complete"
     ],
     "remaining": [
-      "Complete relevant Kotlin platform,UI,storage and dependency review before choosing the simplest final architecture",
-      "Convert all application source including the JavaScript UI while preserving package identity,local data compatibility and shared UI/MCP behavior",
-      "Allow the unencrypted ZIP backup target through the Android document picker including Drive;remove other Drive implementations,configuration,permissions and dependencies without losing unrelated calendar functionality",
-      "Implement query-driven indexes,WAL with consistent backup,limited list projections,file-based image handling and background I/O;evaluate Room/Flow and Coil for the selected Kotlin UI",
-      "Run source/build and affected regression suites;measure query plans,concurrent access,backup roundtrip and image memory/frame behavior with synthetic data;report missing Pixel evidence separately"
-    ]
+      "Complete architecture/dependency decision and remaining Kotlin/UI/business paths",
+      "Close open acceptance items with final-source evidence;native emulator and synthetic Pixel checks remain required",
+      "Personal saved ZIP version/integrity unknown;never opened because customer data excluded"
+    ],
+    "regression_instructions": "docs/entwicklung/BAU.md#regressionsschleife-für-das-kotlin-refactoring",
+    "acceptance_matrix": {
+      "KOTLIN": {
+        "status": "PARTIAL;13_NATIVE_CLASSES;UI_JAVASCRIPT_REMAINS",
+        "required_evidence": "Source inventory and build:all application entries/UI Kotlin;no Java/JS implementation left"
+      },
+      "OPTIONS": {
+        "status": "ANDROID_JVM_SQLITE_DECIDED;COMPOSE_DEPENDENCIES_PENDING",
+        "required_evidence": "Compare relevant Kotlin targets,UI,storage and dependency compatibility before selection"
+      },
+      "KISS_YAGNI": {
+        "status": "OPEN",
+        "required_evidence": "Independent review:each module,abstraction and dependency meets a concrete need"
+      },
+      "PARITY": {
+        "status": "OPEN",
+        "required_evidence": "Complete baseline UI/MCP behavior incl.calendar,timer,photos,offers,invoices,backup/restore;package/signature retained"
+      },
+      "DRIVE_ZIP": {
+        "status": "IMPLEMENTED;PROVIDER_RUNTIME_NOT_RUN",
+        "required_evidence": "Plain ZIP via Android picker to Drive;provider/readback/restore tests;no own Drive API/login"
+      },
+      "DRIVE_REMOVAL": {
+        "status": "OPEN",
+        "required_evidence": "All other Drive code,calls,config,permissions,unused dependencies gone;calendar retained"
+      },
+      "INDEXES": {
+        "status": "OPEN",
+        "required_evidence": "Real filter/sort/history plans use matching indexes;synthetic volume and result parity"
+      },
+      "WAL": {
+        "status": "IMPLEMENTED;NATIVE_AND_TRANSACTION_CONCURRENCY_PENDING",
+        "required_evidence": "Runtime WAL,concurrent access,committed WAL data in backup and restore/reopen proven"
+      },
+      "PROJECTIONS": {
+        "status": "OPEN",
+        "required_evidence": "Bounded list rows/columns;details on demand;no whole-state JSON list reads"
+      },
+      "IMAGES": {
+        "status": "OPEN",
+        "required_evidence": "File photos/uploads,legacy data preserved,tile-sized decoding,bounded Coil/cache memory"
+      },
+      "BACKGROUND": {
+        "status": "OPEN",
+        "required_evidence": "No blocking DB/file work on UI;coroutine/Flow lifecycle and transaction parity tested"
+      },
+      "SYNTHETIC_ONLY": {
+        "status": "APPLIED;NO_PRODUCTIVE_DATA_READ",
+        "required_evidence": "No real or derived customer data,photos,DBs,backups or productive connector/device reads"
+      },
+      "REGRESSION": {
+        "status": "ACTIVE;SOURCE_JVM_FORMAT_PASS;FULL_ACCEPTANCE_PENDING",
+        "required_evidence": "Current-source evidence per item;fix/recheck;final suite;unexecuted checks stay open"
+      },
+      "SUBAGENTS": {
+        "status": "APPLIED;BOUNDED_PORTS_AND_INDEPENDENT_REVIEWS",
+        "required_evidence": "Bounded independent tasks,explicit base/files;main agent reviews and verifies integration"
+      },
+      "BACKUP_COMPAT": {
+        "status": "FORMAT_PASS;ANDROID_RESTORE_PENDING;PERSONAL_ZIP_UNREAD",
+        "required_evidence": "Legacy format1/schema6,7 Java->Kotlin and reverse;native restore/reopen/rollback;preserve all tables/files/preferences"
+      }
+    }
   },
   "open_checks": [
-    "Actual file selection/provider permissions and complete backup/restore acceptance on user Pixel NOT_EXECUTED;matching-source isolated emulator tests do not establish Pixel acceptance",
-    "Manual update installation and data retention on user Pixel NOT_EXECUTED",
-    "Existing inconsistent records and missing originals remain preserved/as backup notes;new invoice creation guards remain unchanged"
+    "Synthetic Pixel/provider acceptance and physical update/data retention NOT_EXECUTED",
+    "Existing inconsistent records/missing originals preserved;invoice guards unchanged"
   ],
   "workflow": {
     "scope": "CURRENT_SOURCE;struktur-neu is authoritative;qa-apk.yml builds and tests this source without publishing a user APK",
@@ -62,128 +124,43 @@
       "event": "UserPromptSubmit",
       "configuration": ".codex/hooks.json",
       "reader": ".codex/read_project_context.py",
-      "status": "CODEX_CLI_TRUSTED_AND_NATIVE_CONTEXT_DELIVERY_VERIFIED",
-      "scope": "Supported and trusted Codex clients; no automatic reconfiguration of the running cloud chat",
-      "cli_version": "0.159.2",
+      "status": "LOCAL_READER_PASS;CLOUD_AUTOMATIC_INVOCATION_NOT_VERIFIED",
       "verification": {
-        "synthetic_unit_tests_passed": 8,
-        "native_prompts_with_correct_rules_and_state_hashes": 2,
-        "missing_state_prevented_model_transport": true,
-        "real_ai_model_invoked": false,
-        "running_cloud_chat_hook_invocation_verified": false,
-        "current_repository_context_delivery": "PASS;both current files and exact hashes fit the existing context limit"
-      },
-      "single_rules_file": "AGENTS.md"
+        "actual_current_file_delivery": "PASS;full current files and SHA256 within16000-byte limit",
+        "running_cloud_chat_hook_invocation_verified": false
+      }
     },
     "chatgpt_project": {
       "name": "Haus und Garten App Entwicklung",
-      "role": "Conversations, goals and reference material; GitHub remains authoritative",
-      "instructions": "docs/entwicklung/PROJEKT.md",
-      "settings_updated": true,
-      "status": "USER_CONFIRMED_SAVED;NO_INDEPENDENT_SETTINGS_TOOL_READBACK"
+      "instructions": "docs/entwicklung/PROJEKT.md"
     }
   },
   "validation": {
-    "app_source_fingerprint": "ef6261b4e79c54131248bf439e148bc16c6c7cc2e579936d857cb2b9b258d219",
+    "app_source_fingerprint": "8f7e2319773f7dcbfedbf962874d0430ace66bde2beed56d6b674012eae9ce0f",
     "source_privacy": "PASS;empty operational seed",
-    "native_pixel_tests": "NOT_EXECUTED;actual Pixel file selection and backup test remain open",
     "business_data_read": false,
-    "installation_performed": false,
     "authored_changes_diff_check": "PASS",
-    "imported_source_whitespace": "2 existing findings in byte-identical Build113 sources; no unrelated source formatting applied",
     "current_test_run": {
-      "observed_at_utc": "2026-10-29T19:21:19.055530+00:00",
-      "check_current": "PASS;62 Python checks plus source/contracts/privacy/fixtures/plants/UI inventory",
-      "java_suites_passed": 3,
-      "java_checks_passed": 271,
-      "java_breakdown": {
-        "EquipmentMaintenanceTests": 91,
-        "EquipmentProfilePhotoTests": 54,
-        "PixelPlainBackupTests": 126
-      },
-      "native_backup_roundtrip": {
-        "status": "PASS",
-        "android_api": 35,
-        "local_backup_checks": 29,
-        "fresh_process_checks": 7,
-        "scope": "Actual production SQLite capture, ZIP save/readback, restore activation, rollback preservation, preferences/files/BLOBs, and separate-process reopen in unused device-protected storage of a disposable emulator.",
-        "synthetic_only": true,
-        "android_file_picker_tested": false,
-        "tested_source_git_sha": "9579a46ef170aec158c2981c01492afdd498cfa5",
-        "source_sha256": "ef6261b4e79c54131248bf439e148bc16c6c7cc2e579936d857cb2b9b258d219",
-        "evidence_verified": "PASS;GitHub run40929572604/job123644103481 success and logs read back:29 local_backup checks,7 local_backup_reopen checks",
-        "source_equivalence": "PASS;git diff9579a46..e605bed changes only AKTUELLER-STAND.json;production,test and workflow sources byte-identical",
-        "rerun_in_release_task": false
-      },
-      "physical_pixel_backup_restore": "NOT_EXECUTED",
-      "business_data_read": false,
-      "installation_performed": false,
-      "source_sha256": "ef6261b4e79c54131248bf439e148bc16c6c7cc2e579936d857cb2b9b258d219",
-      "source_git_sha": "e605bed6bf65681353aa4ff7d4cedca8a5bf4c62",
-      "android_build": "PASS;new local :app:assembleRelease with release javac,lint and mandatory privacy gates;no production source changes",
-      "github_actions_run": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40929572604",
-      "test_apk_installation": "DISPOSABLE_EMULATOR_ONLY;temporary test signing material removed",
-      "android_release_build": "PASS;new local Gradle assembleRelease,existing toolchain and configuration",
-      "browser_tests": "PASS;27 synthetic Chromium checks:simple-forms14,startup-ui13",
-      "signed_apk": "PASS;original certificate exact match,apksigner/zipalign,clean committed source and all705 bundled asset bytes plus source fingerprint/commit in DEX",
-      "physical_pixel_file_picker": "NOT_EXECUTED",
-      "physical_update_data_retention": "NOT_EXECUTED"
-    },
-    "current_source_changes": {
-      "status": "SOURCE_JVM_ANDROID_BUILD_NATIVE_EMULATOR_AND_ORIGINAL_RELEASE_DELIVERY_PASS;PHYSICAL_PIXEL_OPEN",
-      "base_git_sha": "73ba6b23855b1aecab7c0bf9de36503d9cbbef81",
-      "backup": "Direct snapshot and copy with informational original/reference defects; no backup-job engine",
-      "productive_data_changes": false,
-      "verified_source_commit": "9579a46ef170aec158c2981c01492afdd498cfa5"
-    },
-    "backup_diagnosis": {
-      "reported_on": "2026-10-29",
-      "source": "User-provided screenshot;no productive data read",
-      "device_build": "NOT_SHOWN_IN_SCREENSHOT",
-      "latest_error_code": "BACKUP_LOCAL_ORIGINALS_INCOMPLETE",
-      "root_cause": "Old capture and restore rejected the complete operation when LocalMigrationInventory found any unverified original.",
-      "resolution": "New direct backup source built as original-signed Build117 and privately delivered;missing originals/metadata/financial conflicts remain notes;matching-source native emulator tests passed;actual Pixel save remains untested",
-      "local_saved_backup_verified": false
+      "scope": "Current partial Kotlin backup migration;not complete application acceptance",
+      "observed_at_utc": "2026-10-29T20:32:26.890474+00:00",
+      "check_current": "PASS;62 Python plus source/privacy/contracts/fixtures/plants/UI inventory",
+      "jvm": "PASS;271 existing+237 archive compatibility+24 SQLite content/type checks",
+      "archive_reference": "Build117 commit035d6503d16d63a7468498611060f99640a67284;format1/schema6,7",
+      "android_build": "PASS;release/test APK then final Kotlin+Java recompile after header-stream fix;CI runtime pending",
+      "native_emulator": "PENDING_CI",
+      "pixel_and_personal_zip": "NOT_RUN;no customer data access",
+      "source_sha256": "8f7e2319773f7dcbfedbf962874d0430ace66bde2beed56d6b674012eae9ce0f",
+      "tooling_review": "PASS;recursive Kotlin bridges,source ambiguity,no encrypt writer;targeted synthetic gate probes",
+      "context_reader": "PASS;complete current rules/state with SHA256 within16000 bytes;no automatic cloud invocation claim"
     },
     "performance_evidence": "docs/verification/performance-current.md measures the previous candidate fingerprint;no performance claim for the new native image path",
     "connector": {
-      "plugin_id": "plugin_asdk_app_6acb41da3780819199c4cfa8e0e117ef",
-      "app_id": "asdk_app_6acb41da3780819199c4cfa8e0e117ef",
-      "pixel_tool_count": 169,
-      "stored_catalog_tool_count": 169,
-      "stored_catalog_read_count": 73,
-      "stored_catalog_write_count": 96,
-      "current_chat_exposed_tool_count": 169,
-      "current_chat_missing_tools": [],
-      "status": "169_TOOLS_EXPOSED;GET_CAPABILITIES_READBACK_PASS",
-      "verification": "Current chat exposes169 tools including three maintenance operations;authenticated get_capabilities succeeds;Pixel self-report Build114",
-      "input_schema_comparison": "Typed tool schemas available;full catalog-wide comparison not performed",
-      "new_tool_execution": "Read-only list_equipment and get_capabilities succeeded;no maintenance writes",
-      "permissions_changed": false,
-      "connection_changed": false,
-      "observed_at_utc": "2026-10-29T12:15:07.276831+00:00"
+      "tools": 169,
+      "read": 73,
+      "write": 96,
+      "scope": "Prior Build114 observation only;no refactoring device access"
     },
-    "business_data_scope": "Public source and synthetic fixtures only;no productive Pixel data or backup accessed",
-    "equipment_photo_display": {
-      "diagnosis": "Original readable;file-origin WebView used content-URI thumbnail;load errors became empty placeholders",
-      "correction": "Existing native bridge reads current equipment attachment and verified original;existing image conversion returns a bounded JPEG data URI directly;visible decode/read error",
-      "no_productive_writes": true,
-      "new_dependencies": false,
-      "new_photo_store": false,
-      "fallback_chain": false,
-      "native_test_scope": "Isolated synthetic original and WebView profile;missing thumbnail,original readback,image decode,WebView recreation,missing original;actual Android picker and full app restart still require acceptance"
-    },
-    "requirements_review": {
-      "scope": "Requirements and existing-source inspection only;not Kotlin implementation or a performance measurement",
-      "application_source_unchanged": true,
-      "checks": "PASS;check_current:62 Python tests plus source/privacy/contracts/fixtures/plants/UI inventory;git diff --check",
-      "productive_data_accessed": false,
-      "installation_performed": false,
-      "observed_at_utc": "2026-10-29T19:56:51.045516+00:00",
-      "application_source_sha256": "ef6261b4e79c54131248bf439e148bc16c6c7cc2e579936d857cb2b9b258d219",
-      "android_build": "NOT_RUN;documentation-only change",
-      "performance_tests": "NOT_RUN;requirements only"
-    }
+    "prior_release_checks": "Build117:62 Python,271 JVM,27 browser,36 native API35 emulator checks;source9579a46 matches release;GitHub run40929572604"
   },
   "unmerged_work": [
     {
@@ -197,46 +174,27 @@
     "version_code": 117,
     "source_sha256": "ef6261b4e79c54131248bf439e148bc16c6c7cc2e579936d857cb2b9b258d219",
     "app_source_git_sha": "e605bed6bf65681353aa4ff7d4cedca8a5bf4c62",
-    "source_tag": "source/v1.55.12-build117",
-    "backup_test_source_git_sha": "9579a46ef170aec158c2981c01492afdd498cfa5",
-    "source_binding": "PASS;all bundled source assets byte-identical;commit and source fingerprint found in signed DEX;generated BuildConfig clean",
     "apk_sha256": "8648043cd04f86b67e3fcd53a7a85e1688eac8702a9198e10eb74ea966fdb1c9",
     "apk_bytes": 82854396,
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
     "signature_valid": true,
     "original_certificate_match": true,
-    "temporary_signing_material_removed": true,
     "installation": "NOT_PERFORMED;manual Pixel update requested",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "NOT_ACTIVATED",
     "app_backup_mode": "PIXEL_PLAINTEXT_ZIP_DIRECT_SNAPSHOT_FULL_READBACK",
     "production_source_classes": 185,
-    "built_at_utc": "2026-10-29T19:21:19.055530+00:00",
-    "build_command": "gradle --no-daemon --no-configuration-cache --no-build-cache :app:assembleRelease",
     "download_url": "https://drive.google.com/file/d/12tClRSwSiYxWRNxwGmlLweqSbz7vr-5n/view?usp=drivesdk",
-    "drive": {
-      "file_id": "12tClRSwSiYxWRNxwGmlLweqSbz7vr-5n",
-      "url": "https://drive.google.com/file/d/12tClRSwSiYxWRNxwGmlLweqSbz7vr-5n/view?usp=drivesdk",
-      "parent_folder_id": "1K4WB9L6ZKlW-33o8uPK3zTfqgAOVOE8u",
-      "mime_type": "application/vnd.android.package-archive",
-      "visibility": "PRIVATE;owner-only permission readback;existing sharing unchanged",
-      "verification": "PASS;authenticated raw-file fetch,fresh complete download,size/SHA256 and original certificate match"
-    },
     "download_readback": {
-      "status": "PASS",
-      "observed_at_utc": "2026-10-29T19:21:19.055530+00:00",
-      "bytes": 82854396,
-      "sha256": "8648043cd04f86b67e3fcd53a7a85e1688eac8702a9198e10eb74ea966fdb1c9",
-      "signature_valid": true,
-      "original_certificate_match": true
-    }
+      "status": "PASS;fresh complete download,size/SHA256 and original certificate matched",
+      "observed_at_utc": "2026-10-29T19:21:19.055530+00:00"
+    },
+    "source_binding": "PASS;705 assets byte-identical;source commit/hash in signed DEX;BuildConfig clean",
+    "delivery_visibility": "PRIVATE;owner-only permission readback;sharing unchanged"
   },
   "current_release_candidate": {
-    "version_name": "1.55.12",
-    "version_code": 117,
-    "source_git_sha": "e605bed6bf65681353aa4ff7d4cedca8a5bf4c62",
-    "source_sha256": "ef6261b4e79c54131248bf439e148bc16c6c7cc2e579936d857cb2b9b258d219",
-    "status": "ORIGINAL_SIGNED_AND_PRIVATELY_DELIVERED;READBACK_PASS;NOT_INSTALLED",
-    "installation": "NOT_PERFORMED"
+    "version_name": "1.56.0",
+    "version_code": 118,
+    "status": "SOURCE_ONLY;PARTIAL_KOTLIN;NOT_SIGNED_OR_DISTRIBUTED"
   }
 }

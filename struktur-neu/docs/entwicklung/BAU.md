@@ -9,6 +9,53 @@ In der verwalteten Cloud auch die vorgegebenen Proxy-/CA-Einstellungen für die
 Gradle-JVM verwenden; Java übernimmt HTTP-Proxy-Umgebungsvariablen nicht selbst.
 Vorhandene Abhängigkeiten können bei vollständigem Cache offline verwendet werden.
 
+## Kotlin-Ziel und kompatible Sicherungen
+
+Die Umsetzung bleibt ein Update von `at.hausgarten.service` mit Originalsignatur
+und höherer Versionsnummer. Android/JVM im vorhandenen `:app`-Modul ist der
+einfachste Weg: AGP9.1.1 bringt Kotlin2.2.10 bereits mit. Kein zusätzliches
+`org.jetbrains.kotlin.android`-Plugin anwenden. JDK17, Gradle9.3.1 und SDK37
+bleiben die gemeinsame Baugrundlage. Kotlin-Dateien dürfen während der Umstellung
+im bestehenden Android-Quellordner liegen; eine Ordnerumbenennung verändert das
+Sicherungsformat nicht.
+
+Zuerst Speicher- und Fachpfade semantisch nach Kotlin portieren und deren
+Schnittstellen prüfen. SQLite-Schema7 und ZIP-Format1 bleiben dabei erhalten.
+Room wäre eine Alternative für typisierte Abfragen und Flow, benötigt aber eine
+ausdrücklich getestete, verlustfreie Schemamigration. Kein destruktiver Fallback.
+Für die vollständige Android-Oberfläche ist Compose der Zielweg; Compiler,
+Coroutines und Coil müssen vor Aufnahme gemeinsam versionsgerecht aufgelöst und
+kompiliert werden. Kotlin/JS im WebView wäre die Alternative zum Erhalt des DOM,
+würde aber einen weiteren Baupfad und dauerhafte native Brücken benötigen.
+Für Kotlin/Wasm, Multiplatform oder Native gibt es bei der derzeitigen reinen
+Android-App keinen konkreten Zusatznutzen. Zusätzliche Module oder Frameworks
+werden nicht vorsorglich eingeführt.
+
+Das bisherige Backup enthält eine vollständige SQLite-Datei, typisierte
+Einstellungen, Formularstände und relative Dateipfade. Manifestversion, Tabellen,
+unbekannte Zusatzdaten, BLOBs, IDs, Bezüge und Dateibytes müssen erhalten bleiben.
+Eine neue Quellstruktur allein belegt keine Importkompatibilität. Die
+Archivprüfung muss durch echten Android-Restore, Prozessneustart und Rollback
+mit vollständig synthetischem Bestand ergänzt werden. Ein persönliches ZIP wird
+im Entwicklungsauftrag ohne Kundendaten nicht geöffnet; dessen Unversehrtheit
+oder unbekannte Erstellerversion ist damit nicht bestätigt.
+
+Die Kotlin-Suite `BackupFormatCompatibilityTests` und der vorhandene JVM-Runner
+prüfen beide Richtungen: Java-Schreiber aus dem festgelegten Build117-Commit
+`035d6503d16d63a7468498611060f99640a67284` zum Kotlin-Leser sowie Kotlin-Schreiber
+zum ursprünglichen Java-Leser. `tools/check_backup_compatibility.py` erzeugt dafür
+frische SQLite6/7-Datenbanken einschließlich Unicode, NULL, Int64 und BLOBs sowie
+Einstellungen und Dateien. Die Referenzquelle wird aus Git gelesen und per SHA256
+geprüft; es wird keine alte Produktionsimplementierung parallel ausgeliefert.
+
+Offizielle Grundlagen:
+[Built-in Kotlin](https://developer.android.com/build/migrate-to-built-in-kotlin),
+[AGP9.1-Kompatibilität](https://developer.android.com/build/releases/agp-9-1-0-release-notes),
+[SQLite zu Room](https://developer.android.com/training/data-storage/room/sqlite-room-migration),
+[Compose-Compiler](https://developer.android.com/develop/ui/compose/setup-compose-dependencies-and-compiler),
+[Kotlin/JS](https://kotlinlang.org/docs/js-overview.html) und
+[Coil-Kompatibilität](https://coil-kt.github.io/coil/changelog/).
+
 ## Testumfang festlegen
 
 Der aktuelle Auftrag und seine Freigaben stehen ausschließlich im Arbeitsstand.
@@ -16,11 +63,66 @@ Betroffene Quell-, JVM- und Browserprüfungen ausführen; vorhandene Ausgangsmes
 für Vergleiche verwenden. Installation, Migration, Wiederherstellung, APK-Verteilung
 und geschützte Altlastenlöschung nicht aus einer allgemeinen Korrektur ableiten.
 
+## Regressionsschleife für das Kotlin-Refactoring
+
+Ohne Kundendaten arbeiten: ausschließlich frei erfundene synthetische Fixtures,
+generierte Testbilder und neu angelegte, isolierte temporäre Datenbanken und
+Verzeichnisse verwenden. Keine produktiven Kundendaten, Fotos, Datenbanken oder
+Backups öffnen; auch keine daraus abgeleiteten oder anonymisierten Fixtures.
+Tests starten keine produktiven Pixel-/Drive-Verbindungen und entfernen nur ihre
+eigenen temporären Daten.
+
+Die Akzeptanzmatrix und ihr aktueller Prüfstatus stehen ausschließlich in
+`AKTUELLER-STAND.json`. Jede Nutzeranforderung erhält eine Kennung, ein konkret
+prüfbares Sollverhalten und einen passenden Nachweis. Diese Anleitung beschreibt
+das Verfahren; sie führt keine zweite Statusliste oder Prüfchronik.
+
+1. Vor der Umsetzung den relevanten Kotlin-/Oberflächen-/Speicherweg und seine
+   Abhängigkeiten nach KISS/YAGNI bewerten. Bestehende Funktionen mit synthetischen
+   Daten erfassen und jeder Anforderung die betroffenen Prüfungen zuordnen.
+2. Eine begrenzte Änderung umsetzen und die zugehörigen Quell-, Fach-, UI-, Build-
+   oder nativen Prüfungen ausführen. Subagenten bekommen einen eindeutigen
+   Quellstand, eine abgegrenzte Aufgabe und bei Schreibaufgaben disjunkte Dateien.
+   Ein Hauptagent integriert ihre Ergebnisse und prüft die Änderungen unabhängig;
+   eine Subagentenmeldung allein ist kein Abnahmenachweis.
+3. Bei Fehlern Ursache und kleinste passende Korrektur bestimmen. Den betroffenen
+   Test und die von der Korrektur berührten Nachbarpfade erneut prüfen. Wiederholen,
+   bis der Fehler behoben ist; Tests oder Sollverhalten nicht nur zum Bestehen
+   abschwächen. Fehlende Werkzeuge oder Gerätetests bleiben ausdrücklich offen.
+4. Nach der letzten funktionalen Änderung die betroffene Gesamtsuite einschließlich
+   `tools/check_current.py` auf dem finalen Quellstand ausführen. Spätere Änderungen
+   entwerten die davon betroffenen Ergebnisse und benötigen entsprechende Nachtests.
+5. Jede Anforderung gegen Implementierung und Nachweise abgleichen. Erst schließen,
+   wenn alle erforderlichen Nachweise zum finalen Stand vorliegen. Andernfalls den
+   Auftrag mit konkreten offenen Punkten als unvollständig führen.
+
+Die Abnahme umfasst alle handgeschriebenen Anwendungspfade in Kotlin einschließlich
+der bisherigen Java-/JavaScript-Oberfläche, den Funktionserhalt und dieselben
+transaktionalen Fachpfade für UI und MCP. Die Drive-Grenze aus `docs/fachregeln/APP.md`
+mit einer unverschlüsselten ZIP über den Android-Dateianbieter prüfen: keine eigene
+Drive-Anmeldung, API, Berechtigung oder Geschäftsdaten-Synchronisierung; gemeinsame,
+weiterhin benötigte Kalenderfunktionen bleiben erhalten.
+
+Für Datenbank und Bilder insbesondere Abfragepläne der benötigten Indizes,
+begrenzte Spalten-/Seitenauswahl, WAL mit gleichzeitigen Zugriffen und konsistentem
+ZIP-Sichern/Wiederherstellen nachweisen. Dateibasierte Fotos und Übertragungen,
+Vorschaugröße, begrenzten Bildspeicher, Hintergrundzugriffe und die tatsächlich
+gewählten Coil-/Coroutine-/Flow-Pfade prüfen. Erhaltene bestehende Datenformate und
+Beziehungen nur mit synthetischen Beständen testen. Gemessene Antwortzeiten,
+Speicher- und Framewerte gelten ausschließlich für die angegebene Testumgebung.
+
+Jeder Nachweis nennt Quellcommit und gegebenenfalls den abweichenden
+Quellfingerabdruck, Testbefehl, Umgebung, Ergebnis und Messgrenzen. `PASS`, `FAIL`
+und `NOT_RUN` unterscheiden. Übernommene ältere Ergebnisse mit ihrem ursprünglichen
+Quellbezug kennzeichnen; sie sind kein neuer Testlauf. Quellprüfung, Build,
+synthetischer JVM-/Emulatorlauf und Pixel-Abnahme bleiben getrennte Nachweise.
+
 ## Vorbereitete native Tabellenprüfung über ADB
 
-Der aktuelle Einstieg `PixelMcpInstrumentation` akzeptiert ausschließlich
-`-e suite business_tables`. Er erstellt eine neue, zufällig benannte synthetische
-SQLite-Datei im Cache, öffnet **keine produktive Datenbank** und entfernt nur sein
+Dieser Abschnitt beschreibt den ausdrücklich gewählten Einstieg
+`PixelMcpInstrumentation` mit `-e suite business_tables`. Er erstellt eine neue,
+zufällig benannte synthetische SQLite-Datei im Cache, öffnet **keine produktive
+Datenbank** und entfernt nur sein
 eigenes Testverzeichnis. Er prüft die Tabellen-Speichergrenze mit 300 Kunden,
 40 Aufträgen, 5 000 Arbeiten, 500 Rechnungen und 3 000 Fotometadaten, einschließlich
 eines großen Unicode-Datensatzes. Geprüft werden sollen Kopierabbruch und atomarer
@@ -164,11 +266,15 @@ Ein tatsächlich beauftragtes Installationspaket wird mit `:app:assembleRelease`
 gebaut. Die eingebauten Vor-/Artefaktprüfungen bleiben erforderlich. Es gibt keine
 automatische Installation oder Freigabe durch erfolgreiche Kompilierung.
 
-## Aktuelle Java-Prüfungen
+## Aktuelle JVM-Prüfungen
 
-`tools/run-followup-java.py` führt nur die drei übernommenen aktuellen Suiten für
-lokales ZIP-Backup, Gerätewartung und Gerätefotos aus. Benötigt werden der vorhandene
-Android-SDK und die durch Gradle aufgelösten Tink-/Gson-Abhängigkeiten.
+`tools/run-followup-java.py` kompiliert die betroffenen Kotlin-/Java-Quellen gemeinsam
+und führt die übernommenen Suiten für ZIP-Backup, Gerätewartung und Gerätefotos
+sowie den bidirektionalen Archivvergleich aus. Benötigt werden der vorhandene
+Android-SDK, JDK17, Kotlin2.2.10 und die durch Gradle aufgelösten Abhängigkeiten.
+Nach dem Android-Kotlin-Build nutzt der Runner dessen festgelegte Compiler-JARs
+aus dem Gradle-Cache; alternativ bezeichnet `HG_KOTLINC` einen passenden Compiler.
+Es werden keine Abhängigkeiten durch den Test-Runner nachgeladen.
 `HG_JSON_JAR` verweist auf `org.json:json:20240303`, SHA256
 `3cf6cd6892e32e2b4c1c39e0f52f5248a2f5b37646fdfbb79a66b46b618414ed`.
 

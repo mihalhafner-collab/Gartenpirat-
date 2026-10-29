@@ -33,6 +33,8 @@ final class PixelLocalStore extends SQLiteOpenHelper implements PixelMcpWriteToo
     PixelLocalStore(Context context,WorkSessionStore.Clock clock) {
         super(context, "haus-garten-mobile.db", null, SCHEMA_VERSION);
         LocalAuthorityGuard.assertStoreMayOpen(context);
+        // Configure the helper before legacy attachment handling can open the database.
+        setWriteAheadLoggingEnabled(true);
         this.clock=clock;
         this.context = context;
         preferences = context.getSharedPreferences("haus_garten", Context.MODE_PRIVATE);

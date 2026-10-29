@@ -84,7 +84,10 @@ def verify(apk, aapt, apksigner, baseline=None):
     if not seed['all_business_collections_empty']:
         raise ValueError('Nonempty operational seed')
     production = ROOT / 'android/app/src/main/java/at/hausgarten/service'
-    required = {path.stem for path in production.glob('*.java')}
+    sources = [path for path in production.iterdir() if path.suffix in ('.java', '.kt')]
+    required = {path.stem for path in sources}
+    if len(sources) != len(required):
+        raise ValueError('Ambiguous Java/Kotlin production source')
     classes = dex_classes(apk)
     if not required or not all('at.hausgarten.service.' + name in classes for name in required):
         raise ValueError('Required operative classes missing from DEX')
@@ -92,7 +95,7 @@ def verify(apk, aapt, apksigner, baseline=None):
                'BackupFolderPicker', 'BackupAutomation', 'FullBackupJob',
                'BackupPortableExport', 'BackupSafService'}
     test_sources = ROOT / 'android/app/src/androidTest/java/at/hausgarten/service'
-    retired.update(path.stem for path in test_sources.glob('*.java') if path.stem not in required)
+    retired.update(path.stem for path in test_sources.iterdir() if path.suffix in ('.java', '.kt') and path.stem not in required)
     if any('at.hausgarten.service.' + name in classes for name in retired):
         raise ValueError('Retired transport or test-only class present in release DEX')
     with zipfile.ZipFile(apk) as archive:

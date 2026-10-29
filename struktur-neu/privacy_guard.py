@@ -18,7 +18,7 @@ import zipfile
 from bootstrap_contract import COLLECTIONS, verify_bootstrap, verify_legacy_empty_bootstrap
 
 ROOT = Path(__file__).resolve().parent
-TEXT = {'.py','.js','.cjs','.java','.json','.html','.css','.xml','.gradle','.properties','.md','.txt','.cmd','.ps1','.log','.csv','.tsv','.yml','.yaml'}
+TEXT = {'.py','.js','.cjs','.java','.kt','.kts','.json','.html','.css','.xml','.gradle','.properties','.md','.txt','.cmd','.ps1','.log','.csv','.tsv','.yml','.yaml'}
 SECRET = (re.compile(rb'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----'),
           re.compile(rb'\bsk-(?:proj-|svcacct-)?[A-Za-z0-9_-]{24,}'),
           re.compile(rb'tunnel_[a-z0-9]{32}|org-[A-Za-z0-9]{18,64}'),

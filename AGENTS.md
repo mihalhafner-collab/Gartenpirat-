@@ -54,13 +54,18 @@ nachweisen. Die technische Bereitstellung beweist keine fehlerfreie Regelanwendu
   Aktuelle Prüfungen müssen den tatsächlich bearbeiteten Quellstand betreffen.
 - Ein Hauptagent führt Änderungen zusammen. Subagenten nur bei ausdrücklichem
   Auftrag oder geltender Delegationsanweisung einsetzen; mit begrenzter Aufgabe,
-  diesen Regeln und eindeutigem Quellstand. Sie liefern Befunde mit Dateiverweisen.
+  diesen Regeln, eindeutigem Quellstand und klarer Dateizuständigkeit. Unabhängige
+  Aufgaben aufteilen; der Hauptagent prüft Befunde und integrierte Änderungen selbst.
+  Sie liefern Befunde mit Dateiverweisen.
 
 ## Bestehende App erhalten
 
 - Paketkennung `at.hausgarten.service` und Originalsignatur erhalten.
-- Nur öffentlichen Quellbestand und synthetische Testdaten verwenden. Betriebliche
-  Dateien und Geheimwerte bleiben außerhalb des Repositorys und der Testdaten.
+- Nur öffentlichen Quellbestand und vollständig synthetische Testdaten verwenden.
+  Keine produktiven Kundendaten, Datenbanken, Fotos oder Sicherungen lesen oder
+  importieren; auch keine daraus abgeleiteten oder anonymisierten Testdaten nutzen.
+  Betriebliche Dateien und Geheimwerte bleiben außerhalb des Repositorys und der
+  Testdaten.
 - Keine Installation, Datenmigration, Wiederherstellung oder Rechnungsfreigabe
   aus einem allgemeinen Entwicklungsauftrag ableiten.
 - Ein Build oder synthetischer Test beweist keine Prüfung auf dem produktiven Pixel.

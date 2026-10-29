@@ -25,6 +25,7 @@ final class LocalBackupNativeTests {
             @Override public Context getApplicationContext() { return this; }
         };
         if (!context.isDeviceProtectedStorage()) throw new IOException("ISOLATED_STORAGE_REQUIRED");
+        documentBoundaryChecks();
         File database = context.getDatabasePath("haus-garten-mobile.db");
         File marker = new File(context.getNoBackupFilesDir(), "qa-backup-roundtrip.json");
         if (reopen) {
@@ -67,6 +68,7 @@ final class LocalBackupNativeTests {
             db.execSQL("CREATE TABLE qa_backup_payload (id INTEGER PRIMARY KEY, payload BLOB)");
             byte[] blob = new byte[65536]; new Random(71).nextBytes(blob);
             db.execSQL("INSERT INTO qa_backup_payload(id,payload) VALUES(1,?)", new Object[]{blob});
+            walSnapshotChecks(context, db, blob);
             // An existing foreign-key defect must be preserved, not repaired or used as a save gate.
             db.execSQL("PRAGMA foreign_keys=OFF");
             db.execSQL("CREATE TABLE qa_parent(id INTEGER PRIMARY KEY)");
@@ -122,6 +124,50 @@ final class LocalBackupNativeTests {
         yes(text(new File(context.getFilesDir(), "qa-extra.txt")).equals("QA exact file before save"));
         write(marker, new JSONObject().put("snapshot", originalSnapshot).put("backup_id", id).toString());
         return checks;
+    }
+    private void documentBoundaryChecks() throws Exception {
+        // URI validation only: no real provider, account, Drive file or network is contacted.
+        PixelBackupService.requireDocument(android.net.Uri.parse("content://com.android.providers.downloads.documents/document/qa_backup.zip")); yes(true);
+        PixelBackupService.requireDocument(android.net.Uri.parse("content://com.google.android.apps.docs.storage/document/qa_backup.zip")); yes(true);
+        rejects(() -> PixelBackupService.requireDocument(null));
+        rejects(() -> PixelBackupService.requireDocument(android.net.Uri.parse("file:///qa_backup.zip")));
+        rejects(() -> PixelBackupService.requireDocument(android.net.Uri.parse("https://example.invalid/qa_backup.zip")));
+        rejects(() -> PixelBackupService.requireDocument(android.net.Uri.parse("content:///qa_backup.zip")));
+    }
+    private void walSnapshotChecks(Context context, SQLiteDatabase source, byte[] expected) throws Exception {
+        yes(source.isWriteAheadLoggingEnabled());
+        try (android.database.Cursor mode = source.rawQuery("PRAGMA journal_mode", null)) {
+            yes(mode.moveToFirst()); yes("wal".equalsIgnoreCase(mode.getString(0)));
+        }
+        int checkpoint;
+        try (android.database.Cursor setting = source.rawQuery("PRAGMA wal_autocheckpoint", null)) {
+            if (!setting.moveToFirst()) throw new IOException("QA_WAL_SETTING_UNAVAILABLE");
+            checkpoint = setting.getInt(0);
+        }
+        File directory = Files.createTempDirectory(context.getNoBackupFilesDir().toPath(), "qa-wal-snapshot-").toFile();
+        try {
+            try (android.database.Cursor setting = source.rawQuery("PRAGMA wal_autocheckpoint=0", null)) {
+                if (!setting.moveToFirst() || setting.getInt(0) != 0) throw new IOException("QA_WAL_SETTING_UNAVAILABLE");
+            }
+            // Commit a fresh marker after disabling automatic checkpointing. Capture must
+            // include it without copying the live DB file or requiring a checkpoint first.
+            source.execSQL("INSERT INTO qa_backup_payload(id,payload) VALUES(2,?)", new Object[]{expected});
+            File wal = new File(source.getPath() + "-wal"); yes(wal.isFile() && wal.length() > 32);
+            File captured = new File(directory, "snapshot.sqlite");
+            JSONObject evidence = DatabaseBackupSnapshot.capture(source, captured);
+            yes(evidence.getInt("schemaVersion") == PixelLocalStore.SCHEMA_VERSION);
+            try (SQLiteDatabase image = SQLiteDatabase.openDatabase(captured.getPath(), null, SQLiteDatabase.OPEN_READONLY);
+                 android.database.Cursor row = image.rawQuery("SELECT payload FROM qa_backup_payload WHERE id=2", null)) {
+                yes(row.moveToFirst()); yes(Arrays.equals(expected, row.getBlob(0))); yes(!row.moveToNext());
+            }
+            // Keep the surrounding original roundtrip fixture at its original one-row size.
+            source.execSQL("DELETE FROM qa_backup_payload WHERE id=2");
+        } finally {
+            try (android.database.Cursor setting = source.rawQuery("PRAGMA wal_autocheckpoint=" + checkpoint, null)) {
+                if (!setting.moveToFirst() || setting.getInt(0) != checkpoint) throw new IOException("QA_WAL_SETTING_UNAVAILABLE");
+            }
+            EncryptedBackupArchive.removeOwned(directory);
+        }
     }
     private static String text(File file) throws IOException { return new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8); }
     private static void write(File file, String value) throws IOException { Files.write(file.toPath(), value.getBytes(StandardCharsets.UTF_8)); }
