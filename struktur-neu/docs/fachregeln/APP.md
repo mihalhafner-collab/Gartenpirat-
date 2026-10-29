@@ -21,6 +21,13 @@ ausgestellte Belege und erforderliche Aufbewahrung vor dem Löschen berücksicht
 Neustart, verspätete Antworten und Wiederherstellung dürfen verworfene Inhalte
 nicht unbeabsichtigt wieder aktivieren.
 
+Der Abschluss einer Formularsichtung nach Wiederherstellung wird erst nach
+erfolgreichem Speichern des Kernzustands bestätigt. Ein optionaler Medienfehler
+darf diesen Abschluss nicht unbemerkt zurückrollen. Ausdrücklich ausgewählte
+Medien und Kernzustand werden weiterhin gemeinsam übernommen; zurückgestellte
+Medien bleiben getrennt prüfbar. Ungültige oder wiederholte Bestätigungen dürfen
+keine zusätzliche Übernahme auslösen.
+
 ## Sicherung
 
 Neue Sicherungen sind unverschlüsselte ZIP-Dateien: Speicherknopf,

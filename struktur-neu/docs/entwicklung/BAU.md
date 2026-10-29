@@ -194,11 +194,37 @@ SQLite mit zusätzlichen Tabellen/BLOBs, fehlende Originale/Metadaten, doppelte
 Nummern, Fremdschlüsselverletzung, Schreibfehler, Wiederholung, Zielschutz,
 Archivbeschädigung, Rückfallkopie und Wiederherstellung nach Prozessneustart.
 Der normale, anmeldegeschützte App-Speicher bleibt getrennt. Ein vorhandener Testbestand
-wird nicht überschrieben; echte Geräte werden abgewiesen. Die Dateiauswahl/Android-Providerberechtigung und das echte
-Pixel bleiben separate Abnahmen; der native Test nutzt einen isolierten Dateistream.
+wird nicht überschrieben; echte Geräte werden abgewiesen. Diese beiden Suiten
+verwenden einen isolierten Dateistream. Weitere Android-Grenzen prüfen die
+nachfolgenden Suiten; das echte Pixel und ein echtes Drive-Konto bleiben separate
+Abnahmen.
+
+`browser_checkpoint` und danach `browser_checkpoint_reopen` prüfen den dauerhaften
+Abschluss der Formularsichtung mit tatsächlichen SQLite-Transaktionen. Neue
+UUID-Verzeichnisse und eigene Präferenznamen liegen im gerätegeschützten Speicher
+der Ziel-App-UID. Ungültige Argumente, absichtlich beschädigter optionaler
+Medienzustand, Kernschreibfehler, atomare aktive Medienauswahl, Replay und
+Epochwechsel werden geprüft. Eine optionale Medienoperation erfolgt erst nach
+abgeschlossenem Kerncommit; ihr Fehler darf keine falsche Erfolgsantwort erzeugen.
+Die zweite Suite prüft dieselben gespeicherten Werte in einem neuen Prozess.
+
+`document_provider` und danach `document_provider_reopen` verwenden einen eigenen
+`DocumentsProvider` ausschließlich in der Test-APK, mit separater UID und eigenem
+Prozess. Der Anbieter meldet sich als nicht lokal, speichert aber ausschließlich
+frisch erzeugte synthetische Dateien; es gibt keine Konto- oder Netzwerkverbindung.
+Geprüft werden echte `ContentResolver`-Zugriffe, fehlende, eingeschränkte und
+entzogene URI-Rechte, Schreib-/Lesefehler, abgebrochene Schreibstreams, Wiederholung
+und Rücklesung. Die erste Suite bedient die wirkliche Android-Dateiauswahl für
+Erstellen, Öffnen und Abbrechen sowie eine Neuerstellung der Sicherungs-Activity.
+Die zweite prüft dauerhafte Pickerrechte und unverändertes Rücklesen nach Neustart
+beider Prozesse. Der Erstlauf verweigert einen bereits vorhandenen App-Testbestand.
+Die Test-APK verpackt ihre Kotlin-Laufzeit ausdrücklich selbst, weil der separate
+Anbieterprozess den gemeinsamen Instrumentierungs-Classloader nicht verwendet.
+Anbieter, Testklassen und zusätzliche Berechtigung dürfen in der Release-APK
+nicht vorhanden sein.
 
 Der bestehende GitHub-Workflow `qa-apk.yml` baut `struktur-neu`, prüft die JVM-Suiten
-und startet diese zwei nativen Testphasen auf einem Wegwerf-Emulator. Seine temporäre
+und startet diese sechs nativen Testphasen auf einem Wegwerf-Emulator. Seine temporäre
 Signatur gilt ausschließlich für Emulator-Testpakete; es wird keine signierte
 Benutzer-APK erzeugt oder verteilt. Produktive Signierkonfiguration bleibt erhalten.
 Ergebnis und etwaige Blockaden werden ausschließlich im aktuellen Arbeitsstand geführt.

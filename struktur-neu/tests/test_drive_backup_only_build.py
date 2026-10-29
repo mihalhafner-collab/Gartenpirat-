@@ -100,7 +100,9 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         # The shared capture/staging boundary is used by save, restore and rollback.
         # Explicit business-table transfer remains a separate validated operation.
         code = source('LocalBackupDataset')
-        backup, table_transfer = code.split('static BusinessTableStore.Evidence tableEvidence(', 1)
+        boundary = re.search(r'(?:static\s+BusinessTableStore\.Evidence|fun)\s+tableEvidence\s*\(', code)
+        self.assertIsNotNone(boundary, 'Explicit table-transfer boundary must remain separate from backup capture')
+        backup, table_transfer = code[:boundary.start()], code[boundary.start():]
         self.assertNotRegex(backup, r'LocalFinancial(?:Snapshot)?Validation\s*\.\s*inspect\(')
         self.assertNotIn('.put("financial_inventory"', backup)
         self.assertNotIn('LocalMigrationInventory', backup)

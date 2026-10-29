@@ -9,9 +9,9 @@ import org.json.JSONObject;
 import java.io.File;
 import java.nio.file.Files;
 
-/** Current opt-in ADB routine. Uses only newly created synthetic files/WebView profiles.
- * Never opens PixelLocalStore, the installed business DB, preferences or original files.
- * Storage-contract checks are not a full app/backup-archive or physical-device approval.
+/** Current opt-in ADB routines use freshly created, synthetic storage only.
+ * Native backup/provider/review suites reject real devices and existing fixture data.
+ * A passing emulator suite is not physical Pixel or real Drive-account acceptance.
  */
 public final class PixelMcpInstrumentation extends Instrumentation {
     private Bundle arguments;
@@ -40,6 +40,16 @@ public final class PixelMcpInstrumentation extends Instrumentation {
         Bundle report=new Bundle();File directory=null;long started=System.nanoTime();
         try{
             String suite=arguments==null?"":arguments.getString("suite","");
+            if(suite.equals("document_provider")||suite.equals("document_provider_reopen")){
+                JSONObject result=BackupDocumentProviderNativeTests.run(this,suite.equals("document_provider_reopen"));
+                checks=result.getInt("checks");report.putString("result",result.put("suite",suite).toString());
+                finish(Activity.RESULT_OK,report);return;
+            }
+            if(suite.equals("browser_checkpoint")||suite.equals("browser_checkpoint_reopen")){
+                JSONObject result=RestoredBrowserCheckpointNativeTests.run(this,suite.equals("browser_checkpoint_reopen"));
+                checks=result.getInt("checks");report.putString("result",result.put("suite",suite).toString());
+                finish(Activity.RESULT_OK,report);return;
+            }
             if(suite.equals("local_backup")||suite.equals("local_backup_reopen")){
                 checks=LocalBackupNativeTests.run(this,suite.equals("local_backup_reopen"));
                 report.putString("result",new JSONObject().put("suite",suite).put("checks",checks).put("synthetic_only",true).put("productive_data_read",false).put("native_backup_roundtrip",true).put("android_file_picker_tested",false).toString());

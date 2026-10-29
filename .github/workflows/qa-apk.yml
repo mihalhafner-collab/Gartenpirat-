@@ -69,8 +69,8 @@ jobs:
           "$ALIGN" -f 4 "$TEST_APK" "$RUNNER_TEMP/gp-test.apk"
           "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-app.apk"
           "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-test.apk"
-      - name: Run native SQLite save, restore and new-process readback
-        timeout-minutes: 8
+      - name: Run native SQLite, document picker, provider and new-process checks
+        timeout-minutes: 12
         run: |
           set -euo pipefail
           sudo chmod 666 /dev/kvm
@@ -93,14 +93,31 @@ jobs:
           "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-app.apk"
           "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-test.apk"
           mkdir -p outputs
-          for suite in local_backup local_backup_reopen; do
+          for suite in local_backup local_backup_reopen browser_checkpoint browser_checkpoint_reopen document_provider document_provider_reopen; do
             "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service
-            timeout 120 "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation | tee "outputs/$suite.txt"
+            "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service.test
+            timeout 240 "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation | tee "outputs/$suite.txt"
             python3 - "$suite" <<'PY'
-          import pathlib,sys
+          import json,pathlib,sys
           text=pathlib.Path('outputs/'+sys.argv[1]+'.txt').read_text()
-          assert 'INSTRUMENTATION_CODE: -1' in text and '"native_backup_roundtrip":true' in text, text
+          assert 'INSTRUMENTATION_CODE: -1' in text, text
           assert 'INSTRUMENTATION_FAILED' not in text and 'INSTRUMENTATION_RESULT: failure=' not in text, text
+          result=json.loads(next(line.split('=',1)[1] for line in text.splitlines() if line.startswith('INSTRUMENTATION_RESULT: result=')))
+          assert result['suite']==sys.argv[1] and result['checks']>0, result
+          assert result['synthetic_only'] is True and result['productive_data_read'] is False, result
+          if sys.argv[1].startswith('local_backup'):
+              assert result['native_backup_roundtrip'] is True, result
+          elif sys.argv[1].startswith('browser_checkpoint'):
+              assert result['real_sqlite_transactions'] is True and result['isolated_context_paths'] is True, result
+              assert result['new_process_readback'] is sys.argv[1].endswith('_reopen'), result
+              assert result['optional_media_failure_tested'] is (not sys.argv[1].endswith('_reopen')), result
+          else:
+              assert result['real_document_provider_tested'] is True and result['non_local_provider_tested'] is True, result
+              assert result['android_file_picker_tested'] is (not sys.argv[1].endswith('_reopen')), result
+              assert result['new_process_readback'] is sys.argv[1].endswith('_reopen') and result['drive_account_tested'] is False, result
+              assert result['picker_cancellation_tested'] is (not sys.argv[1].endswith('_reopen')), result
+              assert result['picker_activity_recreation_tested'] is (not sys.argv[1].endswith('_reopen')), result
+              assert result['provider_process_restart_tested'] is sys.argv[1].endswith('_reopen'), result
           PY
           done
       - name: Collect isolated emulator diagnostics
@@ -118,6 +135,8 @@ jobs:
           name: Gartenpirat-backup-test-results
           path: |
             struktur-neu/outputs/local_backup*.txt
+            struktur-neu/outputs/browser_checkpoint*.txt
+            struktur-neu/outputs/document_provider*.txt
             struktur-neu/outputs/emulator*.txt
             struktur-neu/android/app/build/reports/lint-results-release.html
           if-no-files-found: ignore

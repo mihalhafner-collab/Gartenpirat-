@@ -2,9 +2,15 @@ plugins {
     id 'com.android.application'
 }
 
+// The synthetic document provider runs in the test APK's own process, outside
+// instrumentation's shared target classloader. Keep its Kotlin runtime test-only.
+configurations { syntheticDocumentProviderRuntime }
+
 dependencies {
     implementation 'com.google.android.gms:play-services-auth:22.0.0'
     implementation 'com.google.crypto.tink:tink-android:1.24.0'
+    syntheticDocumentProviderRuntime 'org.jetbrains.kotlin:kotlin-stdlib:2.2.10@jar'
+    androidTestImplementation files(configurations.syntheticDocumentProviderRuntime)
     constraints {
         implementation('androidx.annotation:annotation:1.8.2') {
             because 'Align the legacy facade with the annotation-jvm version required by Tink; avoid duplicate classes.'
