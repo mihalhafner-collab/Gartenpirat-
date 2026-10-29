@@ -29,18 +29,18 @@
   ],
   "current_task": {
     "name": "Kotlin-Update der bestehenden Haus-und-Garten-App mit kompatiblem ZIP-Backup",
-    "status": "BACKUP_PORT_AND_CORE_NATIVE_PASS;PROVIDER_FIX_RECHECK_PENDING;FULL_APP_REFACTORING_OPEN",
+    "status": "BACKUP_STAGE_COMPLETE;FULL_APP_KOTLIN_REFACTORING_OPEN",
     "authorized": true,
     "authorization_scope": "UPDATE same package/original signature;full Kotlin refactoring and regression;synthetic data only;bounded subagents;no productive access,installation,migration,restore or delivery",
     "requirements_document": "docs/fachregeln/APP.md",
     "implementation": [
-      "All25 backup/restore boundary classes Kotlin;schema7/ZIP1 unchanged;160 other app Java classes and JavaScript UI remain",
-      "Optional media deferral now follows core review commit;native SQLite regression added",
-      "Test-only remote nonlocal DocumentsProvider and real system picker/fault/reopen suites wired;no extra release provider/permission"
+      "25 backup/restore boundary classes Kotlin;schema7/ZIP1 unchanged;160 app Java classes and JavaScript UI remain",
+      "Core browser review commits before optional media deferral;active selected media stays atomic;native rollback/replay/epoch tests PASS",
+      "Synthetic nonlocal provider and actual system picker:cancel,grants/faults,recreation and both process restarts PASS;fixtures/test permissions absent from release"
     ],
     "remaining": [
-      "Run final-source native backup,checkpoint/provider/picker and new-process suites;fix/recheck any failure",
-      "Then remaining Kotlin app,SQL projections/images/Flow and open acceptance items;no personal ZIP access"
+      "Remaining Kotlin app/UI with full behavior parity;SQL indexes/projections,photos,coroutines/Flow and other acceptance items remain OPEN",
+      "Physical Pixel update/retention,real Drive account and personal ZIP remain NOT_EXECUTED;no productive access/install/delivery authorized"
     ],
     "regression_instructions": "docs/entwicklung/BAU.md#regressionsschleife-für-das-kotlin-refactoring",
     "acceptance_matrix": {
@@ -61,7 +61,7 @@
         "required_evidence": "Complete baseline UI/MCP behavior incl.calendar,timer,photos,offers,invoices,backup/restore;package/signature retained"
       },
       "DRIVE_ZIP": {
-        "status": "SYNTHETIC_NONLOCAL_PROVIDER_PICKER_TESTS_BUILT;RUNTIME_PENDING",
+        "status": "SYNTHETIC_NONLOCAL_PROVIDER_AND_REAL_SYSTEM_PICKER_PASS;REAL_DRIVE_ACCOUNT_NOT_RUN",
         "required_evidence": "Plain ZIP via Android picker to Drive;provider/readback/restore tests;no own Drive API/login"
       },
       "DRIVE_REMOVAL": {
@@ -93,7 +93,7 @@
         "required_evidence": "No real or derived customer data,photos,DBs,backups or productive connector/device reads"
       },
       "REGRESSION": {
-        "status": "ACTIVE;LOCAL_SOURCE_JVM_APK_PASS;NEW_NATIVE_SUITES_PENDING",
+        "status": "BACKUP_STAGE_PASS;FULL_APP_ACCEPTANCE_OPEN",
         "required_evidence": "Current-source evidence per item;fix/recheck;final suite;unexecuted checks stay open"
       },
       "SUBAGENTS": {
@@ -101,13 +101,13 @@
         "required_evidence": "Bounded independent tasks,explicit base/files;main agent reviews and verifies integration"
       },
       "BACKUP_COMPAT": {
-        "status": "JVM_FORMAT_PASS;CURRENT_NATIVE_PORT_RECHECK_PENDING;PERSONAL_ZIP_UNREAD",
+        "status": "SYNTHETIC_JAVA_KOTLIN_FORMAT_AND_NATIVE_RESTORE_REOPEN_PASS;PERSONAL_ZIP_UNREAD",
         "required_evidence": "Legacy format1/schema6,7 Java->Kotlin and reverse;native restore/reopen/rollback;preserve all tables/files/preferences"
       }
     }
   },
   "open_checks": [
-    "Actual Drive/Android picker and physical Pixel update/data retention NOT_EXECUTED",
+    "Real Drive account and physical Pixel update/data retention NOT_EXECUTED;emulator system picker PASS",
     "Full Kotlin UI/business migration and remaining acceptance items OPEN;personal ZIP version/integrity unverified"
   ],
   "workflow": {
@@ -140,16 +140,26 @@
     "authored_changes_diff_check": "PASS",
     "current_test_run": {
       "scope": "CURRENT25_CLASS_BACKUP_BOUNDARY;not full app acceptance",
-      "observed_at_utc": "2026-10-29T21:51:47.958735+00:00",
-      "source_base_git_sha": "70e4d75ac19caf76d7e88524553e701a5cf5d65d",
+      "observed_at_utc": "2026-10-29T22:05:02.995179+00:00",
+      "tested_git_sha": "970009dbb679aa6bdf2687c84e046534beb28c3b",
       "source_sha256": "714a42e4c4153519d082bde2f579e35d3de7f82fc6373b401ed720ad00232e2f",
       "source_dirty": false,
       "source_checks": "PASS;62 Python/source/privacy/contracts;seed0",
       "jvm": "PASS;271 existing+237 format+24 SQLite checks",
-      "android_build": "PASS;full release/test APK with all gates;test-runtime isolation verified in complete DEX/manifests",
-      "native": "CI:backup56+checkpoint102 PASS;provider rights/faults+system save reached;restore-picker breadcrumb selector failed;test-only fix awaiting full rerun",
-      "pixel_drive_account_personal_zip": "NOT_RUN;synthetic only",
-      "ci_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40959914550"
+      "android_build": "PASS;full release/test APK and lint/privacy gates;test-only runtime/manifest isolation verified",
+      "native": {
+        "status": "PASS;Android15/API35 disposable emulator;250 checks",
+        "suites": {
+          "local_backup": 43,
+          "local_backup_reopen": 13,
+          "browser_checkpoint": 79,
+          "browser_checkpoint_reopen": 23,
+          "document_provider": 75,
+          "document_provider_reopen": 17
+        }
+      },
+      "ci_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40961632697",
+      "pixel_drive_account_personal_zip": "NOT_RUN;synthetic only"
     },
     "performance_evidence": "docs/verification/performance-current.md measures the previous candidate fingerprint;no performance claim for the new native image path",
     "connector": {
@@ -192,6 +202,6 @@
   "current_release_candidate": {
     "version_name": "1.56.0",
     "version_code": 118,
-    "status": "LOCAL_UNSIGNED_BUILD_TESTED;BACKUP_BOUNDARY_KOTLIN;NO_DISTRIBUTION_OR_INSTALL"
+    "status": "CI_BUILD_AND_BACKUP_REGRESSION_PASS;FULL_APP_REFACTORING_OPEN;NO_DISTRIBUTION_OR_INSTALL"
   }
 }
