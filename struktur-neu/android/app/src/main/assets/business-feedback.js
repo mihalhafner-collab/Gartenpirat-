@@ -14,11 +14,12 @@
  }
  const backupOnly=s=>s?.drive_role==='backup_only'||s?.mode==='backup_only'||Number(s?.storage_contract_version)>=3;
  function backupStatus(s){const b=s.full_backup;if(!b||typeof b!=='object')return {title:'Sicherungsstatus offen',detail:'Geschäftsdaten liegen auf diesem Gerät. Noch keine lokale ZIP-Sicherung bestätigt. Sicherung öffnen.',tone:'busy'};
+  const job=b.latest_job||(Array.isArray(b.jobs)?b.jobs:[])[0]||{};
   const checked=time(b.last_local_verified_at),captured=time(b.last_local_captured_at);
+  if(b.state==='RUNNING'||job.running)return {title:'Sicherung läuft …',detail:'Bitte auf das Ergebnis warten. Die neue ZIP-Datei ist noch nicht bestätigt.',tone:'busy'};
+  if(b.state==='FAILED'||job.last_error_code||['FAILED','NEEDS_USER_ACTION','FORMAT_REVIEW_REQUIRED'].includes(job.phase))return {title:'Letzte Sicherung nicht abgeschlossen',detail:'Sicherung öffnen und den angezeigten Fehler prüfen.'+(checked?' Frühere Sicherung bestätigt: '+checked+'.':' Noch keine gespeicherte ZIP-Sicherung bestätigt.'),tone:'error'};
   if(checked&&captured&&!b.clock_review_required)return {title:'Sicherung auf dem Pixel geprüft',detail:'ZIP-Datei gespeichert und vollständig zurückgelesen: '+checked+' · enthaltener Datenstand: '+captured+'. Neuere Arbeit ist damit nicht automatisch gesichert.',tone:'ok'};
   if(b.clock_review_required)return {title:'Sicherungszeit prüfen',detail:'Der Zeitpunkt der lokalen Sicherung ist nicht bestätigt. Gerätezeit und Sicherungsdatei prüfen.',tone:'error'};
-  const job=(Array.isArray(b.jobs)?b.jobs:[])[0]||{};
-  if(['FAILED','NEEDS_USER_ACTION','FORMAT_REVIEW_REQUIRED'].includes(job.phase))return {title:'Sicherung prüfen',detail:'Die lokale Sicherung wurde nicht abgeschlossen. Sicherung öffnen und den angezeigten Fehler prüfen.',tone:'error'};
   return {title:'Sicherung ausstehend',detail:'Auf diesem Gerät gespeichert. Noch keine vollständig gespeicherte und zurückgelesene lokale ZIP-Sicherung bestätigt. Mit „Sicherung speichern“ eine Datei auf dem Pixel anlegen.',tone:'busy'};
  }
  function sync(s={}){

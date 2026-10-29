@@ -8,44 +8,15 @@
     "build": 113,
     "cutoff_build_inclusive": 100
   },
-  "current_release_candidate": {
+  "last_observed_installed_build": {
+    "observed_at_utc": "2026-10-29T04:56:16.086472+00:00",
     "version_name": "1.55.9",
     "version_code": 114,
+    "reported_base_git_sha": "267280d2964328b83a86d7b5608da84bd367cef7",
     "source_sha256": "699e7b6bddd10143658780efaec60ecf13314185d7c8d6e8eea2e7a1cd89f133",
-    "source_tag": "source/v1.55.9-build114",
-    "source_binding": "VERIFIED_SIGNED_DEX;clean committed source;source tag preserved on GitHub",
-    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-    "installation": "NOT_PERFORMED;latest device self-report is Build113;independent APK/signature readback not repeated",
-    "productive_migration": "NOT_PERFORMED",
-    "invoice_authority": "NOT_ACTIVATED",
-    "app_backup_mode": "PIXEL_PLAINTEXT_ZIP",
-    "app_source_git_sha": "267280d2964328b83a86d7b5608da84bd367cef7",
-    "apk_sha256": "0060a78004a2be39f31e3aa51af73f54bc92f0491c9d081e1bdb88140905d7f8",
-    "apk_bytes": 82870780,
-    "production_source_classes": 200,
-    "signature_valid": true,
-    "download_url": "https://github.com/mihalhafner-collab/Gartenpirat-/raw/8f1f22f7786e147e4087608437e5062e93b15539/downloads/Gartenpirat-1.55.9-build114.apk",
-    "download_readback": {
-      "status": "PASS",
-      "commit": "8f1f22f7786e147e4087608437e5062e93b15539",
-      "method": "Fresh GitHub clone;remote APK size and SHA256 exactly match verified signed APK"
-    },
-    "drive": {
-      "file_id": "1RJYcOth3kklnbO00h_Zz8M0sKfJbJcFo",
-      "url": "https://drive.google.com/file/d/1RJYcOth3kklnbO00h_Zz8M0sKfJbJcFo/view?usp=drivesdk",
-      "mime_type": "application/vnd.android.package-archive",
-      "verification": "PASS;metadata,MIME,size and authenticated raw-file download verified"
-    }
-  },
-  "last_observed_installed_build": {
-    "observed_at_utc": "2026-10-28T06:04:36.9034129Z",
-    "version_name": "1.55.3",
-    "version_code": 108,
-    "matched_release_source_git_sha": "9415c8da6c26314969b731bc01708c5e8f424349",
-    "source_sha256": "84e1d90175fe3a5863aaba14735f8ea25193fe5cf43005c99bc2e6e746315da5",
-    "source_binding": "EXACT_INSTALLED_APK_SHA256_MATCH_TO_RELEASE_REGISTRY;not independent App selfreport",
-    "apk_sha256": "5bdaa005664ac2a436ac50b7b4acff3f19bcaa09ce05f3568a1c6147937bb7d2",
-    "certificate_independently_read": false
+    "source_binding": "APP_SELF_REPORT_AND_USER_UPDATE_CONFIRMATION;no fresh independent APK/signature readback",
+    "certificate_independently_read": false,
+    "database_version": 7
   },
   "observed_installation_history": [
     {
@@ -57,24 +28,31 @@
     }
   ],
   "current_task": {
-    "name": "Build114 über Drive zur Android-Paketinstallation bereitstellen",
-    "status": "COMPLETED;APK_ON_DRIVE_READY_FOR_USER_PACKAGE_INSTALLATION",
+    "name": "Sicherungsdiagnose und Statusanzeigen,Connector,Profilbilder,Schriftüberlauf und doppelten Datenabruf korrigieren",
+    "status": "SOURCE_FIXES_TESTED;CONNECTOR_REFRESH_AND_PRODUCTIVE_COLLISION_RESOLUTION_OPEN",
     "authorized": true,
-    "authorization_scope": "Current user requested Drive delivery of this APK for user-started Android package installation",
-    "release_environment": {
-      "gradle": "9.3.1",
-      "android_build_tools": "37.0.0",
-      "jdk": "17",
-      "signing": "PASS;all five existing variables available;original certificate independently matched to recorded reference",
-      "project_chat_inherits_environment": false
-    },
-    "distribution": "Drive20-APK/Aktuell;existing GitHub download retained"
+    "authorization_scope": "Current user explicitly ordered corrections and necessary tests;no automatic install,migration,restore or invoice changes",
+    "implementation": [
+      "chronological_backup_status_and_latest_job_before_pagination",
+      "incomplete_idle_jobs_reported_as_interrupted_without_mutating_journal",
+      "self_test_uses_recorded_readback_proof_not_constant_PASS",
+      "specific_number_collision_categories_and_native_error_messages",
+      "customer_profile_role_and_safe_native_thumbnail_URIs",
+      "invoice_readiness_wraps_at_200_percent_text",
+      "one_getState_after_customer_save_without_photo"
+    ],
+    "remaining": [
+      "Refresh existing ChatGPT connector schema;authenticated management session required",
+      "Resolve the actual Pixel financial collision after narrowed diagnosis;no records or invoice numbers rewritten",
+      "Gradle release compilation and physical Pixel acceptance unavailable in this environment"
+    ]
   },
   "open_checks": [
-    "Nach Installation spezifischen Backup-Inventarfehler ermitteln;vollständiges Pixel-Backup/Restore nachweisen",
-    "Android-Transaktionslistener,UI/MCP/Timer-/Rechnungsschreiber und CursorWindow nativ prüfen;SQLite/JDBC ersetzt das nicht",
-    "Physische Pixel-Bedienung,WebView,Update-Datenerhalt und Geräteleistung prüfen",
-    "Geschützte Drive-/Queue-/Restorebelege erst nach Pixel-Backup UND Restore sowie Abhängigkeitsnachweis entfernen"
+    "Connector refresh:169 tools on Pixel,166 exposed;three equipment-maintenance tools absent and backup descriptions stale",
+    "Existing FINANCIAL_NUMBER_COLLISION is not resolved by diagnostic text;exact affected record category requires corrected device build and local review",
+    "Build115 is source only;Gradle and full Google/AndroidX dependency cache unavailable;no APK produced",
+    "ADB unavailable;physical UI,native worker lifecycle,photo provider,full backup/restore and performance not tested",
+    "Protected legacy deletion still requires Pixel backup AND restore and dependency evidence"
   ],
   "workflow": {
     "scope": "PARALLEL_STAGING; existing source paths and workflows unchanged",
@@ -110,7 +88,7 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "699e7b6bddd10143658780efaec60ecf13314185d7c8d6e8eea2e7a1cd89f133",
+    "app_source_fingerprint": "4f1f66a811dd7c796e3b6cab8b395b14d1aa03cf6ed79cde0cdabb6d9ee6c49d",
     "source_privacy": "PASS;empty operational seed",
     "native_pixel_tests": "NOT_EXECUTED",
     "business_data_read": false,
@@ -118,29 +96,32 @@
     "authored_changes_diff_check": "PASS",
     "imported_source_whitespace": "2 existing findings in byte-identical Build113 sources; no unrelated source formatting applied",
     "current_test_run": {
-      "observed_at_utc": "2026-10-28T21:00:56.582956+00:00",
+      "observed_at_utc": "2026-10-29T04:56:16.086472+00:00",
       "check_current": "PASS;62 Python tests and source/contracts/privacy/fixtures/plants/UI checks",
       "java_suites_passed": 4,
-      "java_checks_passed": 274,
+      "java_checks_passed": 318,
       "java_breakdown": {
         "BusinessTableStoreTests": 102,
         "EquipmentMaintenanceTests": 91,
         "EquipmentProfilePhotoTests": 54,
-        "PixelPlainBackupTests": 27
+        "PixelPlainBackupTests": 71
       },
       "java_environment": "JDK17;synthetic SQLite/JDBC and JVM fixtures;Android runtime not tested",
       "browser_suites_passed": 5,
-      "browser_environment": "Cloud Chromium,Playwright1.64.1,Acorn8.19.0;synthetic bridge doubles",
-      "android_release_build": "PASS;assembleRelease,lintVitalRelease,prebuild and artifact privacy gates",
-      "signed_apk": "PASS;original certificate,package,version,DEX source binding,exact assets,all 200 production classes,22 retired/test classes absent,alignment,empty business seed",
-      "signing_payload_unchanged": true,
+      "browser_groups_passed": 63,
+      "browser_environment": "Cloud Chromium153,Playwright1.64.1,Acorn8.19.0;synthetic bridge doubles",
+      "layout_cases_passed": 68,
+      "profile_cases_passed": 6,
+      "performance_iterations_per_operation": 40,
+      "android_release_build": "NOT_EXECUTED;Gradle and complete Google/AndroidX dependencies unavailable",
+      "android_compile_smoke": "200 production Java sources with Android37 SDK compiled;CalendarAuthorization and AndroidX ViewCompat replaced by compile-only stubs;BuildConfig synthetic;NOT a release build",
+      "signed_apk": "NOT_BUILT",
       "physical_update_data_retention": "NOT_EXECUTED",
-      "full_pixel_backup_restore": "NOT_EXECUTED",
-      "github_download": "PASS;independent remote bytes readback with matching size/SHA256"
+      "full_pixel_backup_restore": "NOT_EXECUTED"
     },
     "current_source_changes": {
-      "status": "RELEASE_BUILD_AND_SYNTHETIC_TESTS_PASS;PHYSICAL_ACCEPTANCE_OPEN;PROTECTED_DELETION_PENDING_RESTORE_EVIDENCE",
-      "scope": "Atomic table/journal writes,targeted reads,renderer ownership and protected legacy cleanup;source implementation in current APK",
+      "status": "SOURCE_ONLY_FIXES_SYNTHETICALLY_TESTED;PHYSICAL_ACCEPTANCE_OPEN",
+      "scope": "Current authorized backup status/diagnosis,customer avatar,large text and redundant reload corrections;previous protected legacy dependencies retained",
       "legacy_dependency_review": {
         "production": "DriveJournalRules,SnapshotProjection and LocalPendingActions still used by live state/backup projections",
         "fixtures": "Kept JVM/native fixtures reference legacy and retired adapters;these test-only classes are absent from release APK",
@@ -154,30 +135,30 @@
       }
     },
     "backup_diagnosis": {
-      "observed_at_utc": "2026-10-28T20:29:46Z",
-      "device_reported_build": {
-        "version_name": "1.55.8",
-        "version_code": 113,
-        "git_sha": "2758d2e68dc00ff6b70078879b98a8fb3797c18c",
-        "source_sha256": "8c5bb6151d7517fb8b82ce60704c02749badf582d8390772e0729bdad5815f8e",
-        "database_version": 6,
-        "binding": "APP_SELF_REPORT;no fresh independent APK/signature readback"
-      },
-      "ui_error": "BACKUP_CAPTURE_INVENTORY_IO_FAILED",
-      "metadata_status": {
-        "phase": "CAPTURING",
-        "byte_size": 0,
-        "local_verified": false,
-        "browser_capture_pending": false,
-        "browser_checkpoint_error": ""
-      },
-      "root_cause": "NOT_YET_IDENTIFIED;original lower-level IOException is not available from installed status or screenshot;no specific missing file, damaged record or financial conflict asserted",
-      "correction": "Specific sanitized error codes and durable FAILED state/retry timestamps included in Build114;original inventory cause not yet established",
-      "verification": "PASS;27 synthetic PixelPlainBackupTests checks;native persisted-job/retry and original Pixel failure not tested",
-      "deployment": "BUILD114_SIGNED;NOT_INSTALLED;latest device self-report remains113",
-      "next_evidence": "Specific error code from corrected device build, or an existing original exception trace if available"
+      "observed_at_utc": "2026-10-29T04:56:16.086472+00:00",
+      "device_reported_build": 114,
+      "latest_error_code": "FINANCIAL_NUMBER_COLLISION",
+      "local_saved_backup_verified": false,
+      "root_cause": "A number collision was reported by the financial inventory;exact subtype/records unknown;no productive financial dataset used as development input",
+      "correction": "Build115 source separates issued-number,reservation-counter,reservation-invoice and external-proof collisions;integrity checks still reject them;chronological status and nonconstant self-test implemented",
+      "resolution": "PRODUCTIVE_COLLISION_NOT_FIXED;new diagnostic categories and synthetic regression tests only",
+      "deployment": "SOURCE_ONLY;Pixel still runs114"
     },
-    "performance_evidence": "docs/verification/performance-build113.md;synthetic measurements;physical Pixel comparison not performed"
+    "performance_evidence": "docs/verification/performance-current.md;Build114 versus candidate115;synthetic only;no physical Pixel comparison",
+    "connector": {
+      "plugin_id": "plugin_asdk_app_6acb41da3780819199c4cfa8e0e117ef",
+      "app_id": "asdk_app_6acb41da3780819199c4cfa8e0e117ef",
+      "pixel_tool_count": 169,
+      "exposed_tool_count": 166,
+      "missing_tools": [
+        "get_equipment_maintenance",
+        "save_equipment_maintenance_plan",
+        "record_equipment_maintenance"
+      ],
+      "status": "REFRESH_REQUIRED;plugin package only references App;no supported refresh API;management browser unauthenticated",
+      "permissions_changed": false,
+      "connection_changed": false
+    }
   },
   "unmerged_work": [
     {
@@ -185,5 +166,45 @@
       "commit": "7d499b225ed28f501333227e0ce92a54d4c5d542",
       "status": "PRESERVED_SEPARATELY;not automatically integrated into Build113"
     }
-  ]
+  ],
+  "last_distributed_build": {
+    "version_name": "1.55.9",
+    "version_code": 114,
+    "source_sha256": "699e7b6bddd10143658780efaec60ecf13314185d7c8d6e8eea2e7a1cd89f133",
+    "source_tag": "source/v1.55.9-build114",
+    "source_binding": "VERIFIED_SIGNED_DEX;clean committed source;source tag preserved on GitHub",
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "installation": "USER_CONFIRMED_AND_APP_SELF_REPORT_BUILD114;no fresh independent APK/signature readback",
+    "productive_migration": "NOT_PERFORMED",
+    "invoice_authority": "NOT_ACTIVATED",
+    "app_backup_mode": "PIXEL_PLAINTEXT_ZIP",
+    "app_source_git_sha": "267280d2964328b83a86d7b5608da84bd367cef7",
+    "apk_sha256": "0060a78004a2be39f31e3aa51af73f54bc92f0491c9d081e1bdb88140905d7f8",
+    "apk_bytes": 82870780,
+    "production_source_classes": 200,
+    "signature_valid": true,
+    "download_url": "https://github.com/mihalhafner-collab/Gartenpirat-/raw/8f1f22f7786e147e4087608437e5062e93b15539/downloads/Gartenpirat-1.55.9-build114.apk",
+    "download_readback": {
+      "status": "PASS",
+      "commit": "8f1f22f7786e147e4087608437e5062e93b15539",
+      "method": "Fresh GitHub clone;remote APK size and SHA256 exactly match verified signed APK"
+    },
+    "drive": {
+      "file_id": "1RJYcOth3kklnbO00h_Zz8M0sKfJbJcFo",
+      "url": "https://drive.google.com/file/d/1RJYcOth3kklnbO00h_Zz8M0sKfJbJcFo/view?usp=drivesdk",
+      "mime_type": "application/vnd.android.package-archive",
+      "verification": "PASS;metadata,MIME,size and authenticated raw-file download verified"
+    }
+  },
+  "current_release_candidate": {
+    "version_name": "1.55.10",
+    "version_code": 115,
+    "source_sha256": "4f1f66a811dd7c796e3b6cab8b395b14d1aa03cf6ed79cde0cdabb6d9ee6c49d",
+    "status": "SOURCE_ONLY;NOT_BUILT_OR_SIGNED",
+    "source_base_commit": "ce9b677e50e37cae463b08eac63e9af904be2870",
+    "installation": "NOT_PERFORMED",
+    "productive_migration": "NOT_PERFORMED",
+    "invoice_authority": "NOT_ACTIVATED",
+    "app_backup_mode": "PIXEL_PLAINTEXT_ZIP"
+  }
 }

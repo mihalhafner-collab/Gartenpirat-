@@ -4,7 +4,7 @@
  let resumeGardenSession='';
  const photoViews=new Map(),documentLimits=new Map();
  const role=p=>p.role||(/^(profilbild|profil|profile)$/i.test(String(p.caption||'').trim())?'profile':'documentation');
- const preview=p=>{const s=String(p.thumbnail_data||'');return s.startsWith('data:image/')||/^content:\/\/at\.hausgarten\.service\.photothumbnails\/[0-9a-f]{64}\.jpg$/.test(s)?s:'';};
+ const preview=p=>{const s=String(p.thumbnail_data||(String(p.data||'').startsWith('data:image/')?p.data:''));return s.startsWith('data:image/')||/^content:\/\/at\.hausgarten\.service\.photothumbnails\/[0-9a-f]{64}\.jpg$/.test(s)?s:'';};
  const tabs=new Map(),draftKey=id=>'hausgarten.garden.draft.'+id,fields=[['Rasenfläche (m²)','number'],['Heckenlänge (m)','number'],['Bewässerung','text'],['Pflegehinweise','text'],['Zugangshinweise','text']];
  const custom=c=>{try{return typeof c.custom_fields==='string'?JSON.parse(c.custom_fields||'{}'):{...(c.custom_fields||{})};}catch(_){return {};}};
  const area=value=>value===null||value===undefined||value===''?'Nicht erfasst':Number(value).toLocaleString('de-AT')+' m²';
@@ -35,14 +35,14 @@ function renderList(rows){
   const term=(el('customer-search')?.value||'').trim().toLocaleLowerCase('de-AT');
   const key=JSON.stringify([dataRevision(),term]);if(lastListRows===rows&&lastListKey===key)return;
   const shown=HGDataOrder.sorted('customers',rows.filter(x=>HGDataOrder.matches(term,[x.name,x.company,x.first_name,x.last_name,x.street,x.postal_code,x.city,x.phone,x.email])));
-  const profiles=new Map();for(const photo of photos())if(/^(profilbild|profil|profile)$/i.test(String(photo.caption||'').trim())&&!profiles.has(photo.customer_id))profiles.set(photo.customer_id,photo);
+  const profiles=new Map();for(const photo of photos())if(role(photo)==='profile'&&!profiles.has(photo.customer_id))profiles.set(photo.customer_id,photo);
   const count=el('customer-count');if(count)count.textContent=rows.length+' Kunden';
   el('customer-list').classList.add('customer-list-grid');
   el('customer-list').innerHTML=list(shown,x=>{
-    const profile=profiles.get(x.id),src=profile?.thumbnail_data||profile?.data;
+    const profile=profiles.get(x.id),src=profile?preview(profile):'';
     const initials=String(x.name||'K').trim().split(/\s+/).slice(0,2).map(v=>v[0]||'').join('').toLocaleUpperCase('de-AT');
     const subtitle=[x.company&&x.company!==x.name?x.company:'',x.city,x.active===0?'Archiviert':''].filter(Boolean).join(' · ')||'Kunde';
-    return '<article class="customer-card" data-customer="'+esc(x.id)+'"><button type="button" class="customer-profile" data-customer-open="'+esc(x.id)+'"><span class="customer-avatar">'+(src&&String(src).startsWith('data:image/')?'<img class="customer-avatar" src="'+esc(src)+'" alt="Profilbild" loading="lazy">':esc(initials||'K'))+'</span><span class="customer-profile-copy"><strong>'+(x.pending?'<span class="pending-dot"></span>':'')+esc(x.name)+'</strong><small>'+esc(subtitle)+'</small></span><span class="customer-chevron">›</span></button><div class="customer-contact-line" hidden></div></article>';
+    return '<article class="customer-card" data-customer="'+esc(x.id)+'"><button type="button" class="customer-profile" data-customer-open="'+esc(x.id)+'"><span class="customer-avatar">'+(src?'<img class="customer-avatar" src="'+esc(src)+'" alt="Profilbild" loading="lazy">':esc(initials||'K'))+'</span><span class="customer-profile-copy"><strong>'+(x.pending?'<span class="pending-dot"></span>':'')+esc(x.name)+'</strong><small>'+esc(subtitle)+'</small></span><span class="customer-chevron">›</span></button><div class="customer-contact-line" hidden></div></article>';
   },'Kein Kunde gefunden. Suche ändern oder einen Kunden hinzufügen.');
   for(const card of el('customer-list').querySelectorAll('.customer-card')){
     const menu=document.createElement('button');menu.type='button';menu.className='design-record-menu';menu.textContent='⋮';menu.setAttribute('aria-label','Kundenaktionen');menu.onclick=()=>card.querySelector('[data-customer-open]').dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true}));card.append(menu);

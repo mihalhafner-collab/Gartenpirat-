@@ -88,3 +88,6 @@ body.revier-solo .planning-tabs>button[aria-pressed=true]{border:2px solid #242b
 
 body.revier-solo button.card.design-profile-row[data-offer-open]{display:block;width:100%;padding:10px;border:1px solid #c3cbd5;text-align:left}
 body.revier-solo button[data-offer-open] :is(strong,span){display:block;width:auto;min-width:0;overflow-wrap:anywhere}
+
+/* Long setup labels remain readable at 200% text size on narrow screens. */
+#invoice-readiness{min-width:0;overflow-wrap:anywhere}

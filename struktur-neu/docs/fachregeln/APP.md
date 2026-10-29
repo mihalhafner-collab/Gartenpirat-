@@ -21,7 +21,7 @@ ausgestellte Belege und erforderliche Aufbewahrung vor dem Löschen berücksicht
 Neustart, verspätete Antworten und Wiederherstellung dürfen verworfene Inhalte
 nicht unbeabsichtigt wieder aktivieren.
 
-## Sicherung in Build113
+## Lokale Sicherung
 
 Neue Sicherungen sind unverschlüsselte ZIP-Dateien auf dem Pixel: Speicherknopf,
 Android-Dateiauswahl und geprüfte Rücklesung der gespeicherten Datei. Dafür gibt
@@ -33,7 +33,15 @@ Einrichtung für aktuelle Sicherungen.
 Wiederherstellung erfolgt ausdrücklich, nach vollständiger Archivprüfung und mit
 dem vorhandenen Rückweg bei Fehlern. Sicherungsfehler blockieren die lokale
 Geschäftserfassung nicht. Ein echter Speichern-/Wiederherstellen-Nachweis auf dem
-Pixel ist für Build113 noch offen; Kompilierung ersetzt ihn nicht.
+Pixel ist getrennt zu führen; Kompilierung ersetzt ihn nicht.
+
+Statusanzeigen ordnen Versuche nach tatsächlichem Zeitpunkt, unabhängig von
+zufälligen Kennungen und Listenseiten. Ein neuerer Fehler bleibt sichtbar, auch
+wenn eine ältere Sicherung bestätigt ist. Eine gespeicherte Capture-Phase allein
+beweist keinen laufenden Worker. Der Selbsttest unterscheidet fehlende Nachweise,
+Fehler und protokolliertes Dateirücklesen; letzteres ist keine neue Dateiprüfung
+und kein Restore-Test. Nummernkollisionen bleiben Integritätsfehler. Deren genauer
+Fehlercode darf weder Finanzdaten ausgeben noch Belegnummern verändern.
 
 ## Rechnungen und Datenübernahme
 

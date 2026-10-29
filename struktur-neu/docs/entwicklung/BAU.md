@@ -9,13 +9,12 @@ In der verwalteten Cloud auch die vorgegebenen Proxy-/CA-Einstellungen für die
 Gradle-JVM verwenden; Java übernimmt HTTP-Proxy-Umgebungsvariablen nicht selbst.
 Vorhandene Abhängigkeiten können bei vollständigem Cache offline verwendet werden.
 
-## Testreihenfolge im laufenden Auftrag
+## Testumfang festlegen
 
-Die neueste Nutzeranweisung vom 28.10.2026 beauftragt ausdrücklich die notwendigen
-Tests und eine aktualisierte originalsignierte APK zur Paketinstallation. Damit
-ist die frühere Testpause aufgehoben. Den aktuellen Quellstand gemeinsam prüfen;
-vorhandene Ausgangsmessungen getrennt erhalten. Die geschützte Altlastenlöschung
-bleibt an den tatsächlichen Backup-/Restore-Nachweis gebunden.
+Der aktuelle Auftrag und seine Freigaben stehen ausschließlich im Arbeitsstand.
+Betroffene Quell-, JVM- und Browserprüfungen ausführen; vorhandene Ausgangsmessungen
+für Vergleiche verwenden. Installation, Migration, Wiederherstellung, APK-Verteilung
+und geschützte Altlastenlöschung nicht aus einer allgemeinen Korrektur ableiten.
 
 ## Vorbereitete native Tabellenprüfung über ADB
 
@@ -91,6 +90,24 @@ Prüfdatenadapter und die ausgewählten Python-Prüfungen. Er erzeugt keine APK,
 signiert nicht und greift nicht auf ein Gerät zu. Für Oberfläche, native Fachlogik
 und Baukonfiguration zusätzlich die jeweils betroffenen Prüfungen ausführen.
 
+Für Statusänderungen außerdem synthetisch prüfen: aktuelle Fehler vor älteren
+Erfolgen, Datumsreihenfolge mit Zeitzonen, stabile Übersicht trotz Pagination,
+fehlender/ungültiger Providerbeleg, zukünftige Zeiten, abgebrochener und aktiver
+Worker, erhaltene ältere Belege nach Rücklesefehlern sowie unveränderter Quellbestand.
+`PixelPlainBackupTests` deckt diese Regeln und spezifische Finanzkollisionen ab.
+Persistierte Android-Worker-/Activity-Lebenszyklen bleiben ein eigener Gerätetest.
+
+`simple-forms.test.cjs` prüft zusätzlich die Statusanzeige, sichere lokale
+Kundenprofil-Thumbnails und explizite Profilrollen, alle Hauptseiten bei 200 %
+Schrift sowie genau einen Vollabruf beim Kundenspeichern ohne Foto.
+Der Fotopfad behält seinen eigenen notwendigen Rückleseschritt.
+
+Ein veralteter ChatGPT-Connector-Katalog wird am bestehenden Connector aktualisiert.
+Zuerst `get_capabilities.tools` mit den tatsächlich exponierten Werkzeugen vergleichen;
+`run_self_test.ui_mcp_parity` prüft nur den App-internen Katalog. Nach Aktualisierung
+Anzahl, Namen, Schemas und Beschreibungen erneut vergleichen. Pluginmanifest und
+Appkennung nicht ändern, wenn nur der gespeicherte Werkzeugkatalog veraltet ist.
+
 ## App-Kompilierung
 
 ```sh
@@ -156,8 +173,8 @@ Quellprüfungen, Kompilierung und JVM-/Browsertests sind getrennte Nachweise.
 
 ## ADB-Analyse und Lese-/Schreibtests über den Laptop
 
-Vom Nutzer am 28.10.2026 ausdrücklich als Testweg freigegeben, einschließlich
-Lesen und Schreiben. Ausführung erst nach der oben festgelegten Umsetzung.
+Der konkrete aktuelle ADB-Auftrag muss Lesen, Schreiben und Testumfang abdecken.
+Eine frühere Freigabe oder diese Anleitung ersetzt den aktuellen Auftrag nicht.
 Der Windows-Laptop wird konkret als USB-/ADB-Verbindung zum Pixel benötigt;
 Android Studio, lokale Builds und ein Emulator sind dafür nicht erforderlich.
 Quellarbeit und Auswertung möglichst in der Cloud belassen. Eine Cloud-Sitzung

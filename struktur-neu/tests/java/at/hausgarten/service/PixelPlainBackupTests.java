@@ -21,8 +21,46 @@ public final class PixelPlainBackupTests {
         yes(BackupScheduleRules.errorCode(new IOException("FINANCIAL_SECRET\nQA private text")).equals("BACKUP_OPERATION_FAILED"));
         InterruptedIOException interrupted=new InterruptedIOException("QA cancelled");yes(BackupScheduleRules.captureFailure("INVENTORY",interrupted)==interrupted);
     }
+    static JSONObject backup(String id,String created,String phase)throws Exception {
+        return new JSONObject().put("sameInstallation",true).put("sameRestoreEpoch",true).put("job",new JSONObject().put("backupId",id).put("revision","a".repeat(64)).put("createdAt",created).put("phase",phase).put("destination",new JSONObject().put("purpose","pixel_plain_backup")));
+    }
+    static JSONObject proof(JSONObject record)throws Exception {
+        JSONObject job=record.getJSONObject("job");job.put("archive",new JSONObject().put("archiveFormat","PLAIN_ZIP").put("sha256","b".repeat(64)).put("size",100).put("capturedAt","2026-10-28T10:00:00Z").put("localVerifiedAt","2026-10-28T10:01:00Z"));
+        job.put("provider",new JSONObject().put("backup_id",job.getString("backupId")).put("archive_sha256","b".repeat(64)).put("byte_size",100).put("verification_scope","DOCUMENT_PROVIDER_READBACK").put("verified_at","2026-10-28T10:02:00Z"));return record;
+    }
+    static JSONObject status(JSONArray records,JSONObject args,String... active)throws Exception{return BackupStatusRules.project(records,args,new HashSet<>(Arrays.asList(active)),java.time.Instant.parse("2026-10-29T12:00:00Z"));}
+    static void statusChecks()throws Exception {
+        JSONObject empty=status(new JSONArray(),new JSONObject());yes(empty.getString("state").equals("NOT_SAVED"));yes(BackupStatusRules.selfTest(empty).getString("status").equals("NOT TESTABLE"));
+        JSONObject success=proof(backup("qa_z_old","2026-10-28T10:00:00Z","PROVIDER_VERIFIED"));
+        JSONObject failed=backup("qa_a_new","2026-10-29T10:00:00Z","FAILED");failed.getJSONObject("job").put("lastErrorCode","FINANCIAL_NUMBER_COLLISION").put("lastAttemptAt","2026-10-29T10:02:00Z");
+        JSONObject stale=backup("qa_y_stale","2026-10-27T10:00:00Z","CAPTURING");
+        JSONArray all=new JSONArray().put(failed).put(stale).put(success);String unchanged=all.toString();
+        JSONObject shown=status(all,new JSONObject().put("limit",1));yes(shown.getJSONObject("latest_job").getString("backup_id").equals("qa_a_new"));yes(shown.getString("state").equals("FAILED"));yes(shown.getJSONArray("jobs").length()==1&&shown.getInt("total")==3);yes(!shown.getString("last_local_verified_at").isEmpty());yes(BackupStatusRules.selfTest(shown).getString("status").equals("FAIL"));yes(BackupStatusRules.message(shown).contains("doppelte Nummer"));
+        JSONObject page=status(all,new JSONObject().put("offset",1).put("limit",1));yes(page.getString("state").equals("FAILED")&&page.getJSONObject("latest_job").getString("backup_id").equals("qa_a_new"));yes(page.getJSONArray("jobs").getJSONObject(0).getString("backup_id").equals("qa_z_old"));
+        JSONObject older=status(all,new JSONObject().put("backup_id","qa_z_old"));yes(older.getString("state").equals("VERIFIED"));yes(BackupStatusRules.selfTest(older).getString("status").equals("PASS"));yes(!BackupStatusRules.selfTest(older).getBoolean("file_rechecked_now")&&!BackupStatusRules.selfTest(older).getBoolean("restore_tested"));
+        JSONObject interrupted=status(new JSONArray().put(stale),new JSONObject());yes(interrupted.getString("state").equals("FAILED"));yes(interrupted.getJSONObject("latest_job").getString("last_error_code").equals("BACKUP_INTERRUPTED"));yes(interrupted.getJSONObject("latest_job").getString("recorded_phase").equals("CAPTURING"));
+        JSONObject running=status(new JSONArray().put(stale),new JSONObject(),"qa_y_stale");yes(running.getString("state").equals("RUNNING"));yes(BackupStatusRules.selfTest(running).getString("status").equals("NOT TESTABLE"));yes(all.toString().equals(unchanged));
+        JSONObject other=new JSONObject(success.toString()).put("sameRestoreEpoch",false);yes(status(new JSONArray().put(other),new JSONObject()).getInt("total")==0);
+        other=new JSONObject(success.toString()).put("sameInstallation",false);yes(status(new JSONArray().put(other),new JSONObject()).getInt("total")==0);
+        other=new JSONObject(success.toString());other.getJSONObject("job").getJSONObject("destination").put("purpose","legacy_encrypted");yes(status(new JSONArray().put(other),new JSONObject()).getInt("total")==0);yes(status(new JSONArray().put(other),new JSONObject().put("legacy_evidence",true)).getJSONObject("latest_job").getString("phase").equals("PROVIDER_VERIFIED"));
+        for(String bad:new String[]{"not a date","2026-11-30T10:00:00Z","2026-10-28T09:00:00Z","2026-10-28T10:00:30Z"}){JSONObject invalid=new JSONObject(success.toString());invalid.getJSONObject("job").getJSONObject("provider").put("verified_at",bad);JSONObject result=status(new JSONArray().put(invalid),new JSONObject());yes(result.getBoolean("clock_review_required")&&result.getString("state").equals("FAILED"));}
+        JSONObject corrupt=new JSONObject(success.toString());corrupt.getJSONObject("job").getJSONObject("provider").put("archive_sha256","c".repeat(64));yes(status(new JSONArray().put(corrupt),new JSONObject()).getString("state").equals("FAILED"));
+        JSONObject retry=new JSONObject(success.toString());retry.getJSONObject("job").put("lastErrorCode","BACKUP_LOCAL_READBACK_FAILED").put("lastAttemptAt","2026-10-29T11:00:00Z");JSONObject retryStatus=status(new JSONArray().put(retry),new JSONObject());yes(retryStatus.getString("state").equals("FAILED")&&!retryStatus.getString("last_local_verified_at").isEmpty());yes(retry.getJSONObject("job").getString("phase").equals("PROVIDER_VERIFIED"));
+        JSONObject utc=backup("qa_z_utc","2026-10-29T09:00:00Z","CAPTURE_PENDING"),offset=backup("qa_a_offset","2026-10-29T10:00:00+02:00","CAPTURE_PENDING");yes(status(new JSONArray().put(offset).put(utc),new JSONObject()).getJSONObject("latest_job").getString("backup_id").equals("qa_z_utc"));
+    }
+    static void financialChecks()throws Exception {
+        JSONObject one=new JSONObject().put("id","qa_invoice_one").put("invoice_number","QA-2026-1").put("issued_at","2026-10-28T10:00:00Z").put("amount",10);
+        JSONObject two=new JSONObject(one.toString()).put("id","qa_invoice_two");JSONObject data=new JSONObject().put("invoices",new JSONArray().put(one).put(two));String unchanged=data.toString();
+        try{LocalFinancialValidation.inspect(data,new JSONObject());throw new AssertionError("duplicate invoice accepted");}catch(IOException expected){yes(expected.getMessage().equals("FINANCIAL_ISSUED_NUMBER_COLLISION"));}
+        yes(data.toString().equals(unchanged));two.put("invoice_number","QA-2026-2");yes(LocalFinancialValidation.inspect(data,new JSONObject()).getString("status").equals("PASS"));
+        JSONObject evidence=new JSONObject().put("formatVersion",1).put("external_writers_disabled",true).put("evidence_sha256","a".repeat(64)).put("evidence_reference","qa_review").put("checked_at","2026-10-28T10:00:00Z").put("last_number",2).put("reservations",new JSONArray()).put("issued",new JSONArray().put(new JSONObject().put("invoice_id","qa_external").put("invoice_number","QA-2026-1").put("pdf_sha256","c".repeat(64))));
+        JSONObject namespace=new JSONObject().put("local_invoice_external_evidence",evidence).put("local_invoice_counter",new JSONObject().put("last_number",2));
+        try{LocalFinancialValidation.inspect(data,namespace);throw new AssertionError("external collision accepted");}catch(IOException expected){yes(expected.getMessage().equals("FINANCIAL_EXTERNAL_NUMBER_COLLISION"));}
+        evidence.getJSONArray("issued").getJSONObject(0).put("invoice_id","qa_invoice_one");yes(LocalFinancialValidation.inspect(data,namespace).getString("status").equals("PASS"));
+        for(String code:new String[]{"FINANCIAL_ISSUED_NUMBER_COLLISION","FINANCIAL_RESERVATION_COUNTER_COLLISION","FINANCIAL_RESERVATION_INVOICE_COLLISION","FINANCIAL_EXTERNAL_NUMBER_COLLISION"}){yes(BackupScheduleRules.errorCode(BackupScheduleRules.captureFailure("INVENTORY",new IOException(code))).equals(code));yes(BackupStatusRules.failureMessage(code).contains("Rechnungen und Nummern wurden nicht verändert"));}
+    }
     public static void main(String[] args)throws Exception{
-        diagnosticChecks();
+        diagnosticChecks();statusChecks();financialChecks();
         File root=Files.createTempDirectory("qa_plain_backup_").toFile();try{
             File source=new File(root,"qa_database.sqlite"),zip=new File(root,"qa_backup.zip");byte[] bytes="QA local plaintext contents".getBytes("UTF-8");Files.write(source.toPath(),bytes);
             try(OutputStream out=new FileOutputStream(zip)){EncryptedBackupArchive.writePlain(out,metadata(),Arrays.asList(new EncryptedBackupArchive.Source("database.sqlite",source)));}
