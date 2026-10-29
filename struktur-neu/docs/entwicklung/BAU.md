@@ -102,6 +102,31 @@ Kundenprofil-Thumbnails und explizite Profilrollen, alle Hauptseiten bei 200 %
 Schrift sowie genau einen Vollabruf beim Kundenspeichern ohne Foto.
 Der Fotopfad behält seinen eigenen notwendigen Rückleseschritt.
 
+Geräteprofilbilder werden über die vorhandene `AndroidGardenPhotos`-Bridge aus
+dem verifizierten, dem Gerät zugeordneten Original gelesen und mit der bestehenden
+Android-Bildverarbeitung als kleines JPEG direkt angezeigt. Der Gerätebild-Renderer
+verwendet weder `content://` noch gespeicherte Vorschaudateien. Die restriktiven
+WebView-Einstellungen bleiben bestehen. Ein nicht lesbares Original oder ein
+Dekodierfehler zeigt sichtbar „Foto nicht lesbar“.
+
+`equipment-profile-photo-ui.test.cjs` prüft Auswahl/Speichern, tatsächliche
+Bilddekodierung, Seitenwechsel, erneut geöffneten Editor und sichtbare Fehler mit
+synthetischer Bridge. Für den echten Android-Fotospeicher und die WebView gibt es
+die ausdrücklich gewählte Instrumentierung:
+
+```powershell
+& $gpAdb -s $gpSerial shell am instrument -w -e suite equipment_photo_display at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation
+```
+
+Diese Suite benötigt API28+, eine passende App/Test-APK und einen frischen
+Testprozess. Sie verwendet ein neues temporäres Foto und ein isoliertes
+WebView-Profil, entfernt nur eigene Testdateien und öffnet keine Geschäftsdatenbank.
+Sie prüft fehlende Vorschaudatei, unverändertes Original, tatsächliche Dekodierung
+mit produktivem Renderer/CSP, neue WebView und fehlendes Original. Die Auswahl
+über den Android-Fotodialog sowie Speichern, Seitenwechsel und vollständiger
+App-Neustart müssen zusätzlich am Pixel abgenommen werden. Kompilierung oder
+Browser-Bridges ersetzen diesen Gerätetest nicht.
+
 Ein veralteter ChatGPT-Connector-Katalog wird am bestehenden Connector aktualisiert.
 Zuerst `get_capabilities.tools` mit den tatsächlich exponierten Werkzeugen vergleichen;
 `run_self_test.ui_mcp_parity` prüft nur den App-internen Katalog. Nach Aktualisierung

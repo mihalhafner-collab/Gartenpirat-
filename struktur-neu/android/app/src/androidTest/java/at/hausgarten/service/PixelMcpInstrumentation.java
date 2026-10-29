@@ -9,7 +9,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.nio.file.Files;
 
-/** Current opt-in ADB routine. Uses only newly created synthetic SQLite files.
+/** Current opt-in ADB routine. Uses only newly created synthetic files/WebView profiles.
  * Never opens PixelLocalStore, the installed business DB, preferences or original files.
  * Storage-contract checks are not a full app/backup-archive or physical-device approval.
  */
@@ -39,12 +39,73 @@ public final class PixelMcpInstrumentation extends Instrumentation {
     @Override public void onStart(){
         Bundle report=new Bundle();File directory=null;long started=System.nanoTime();
         try{
-            if(arguments==null||!"business_tables".equals(arguments.getString("suite")))throw new Exception("EXPLICIT_BUSINESS_TABLE_SUITE_REQUIRED");
+            String suite=arguments==null?"":arguments.getString("suite","");
+            if(!suite.equals("business_tables")&&!suite.equals("equipment_photo_display"))throw new Exception("EXPLICIT_SYNTHETIC_SUITE_REQUIRED");
             directory=Files.createTempDirectory(getTargetContext().getCacheDir().toPath(),"gp-table-test-").toFile();
-            runStorage(directory);runJournal(directory);
-            report.putString("result",new JSONObject().put("suite","business_tables").put("checks",checks).put("elapsed_ms",(System.nanoTime()-started)/1000000).put("synthetic_only",true).put("productive_data_read",false).put("archive_restore_tested",false).toString());
+            if(suite.equals("business_tables")){runStorage(directory);runJournal(directory);}else runEquipmentPhotos(directory);
+            report.putString("result",new JSONObject().put("suite",suite).put("checks",checks).put("elapsed_ms",(System.nanoTime()-started)/1000000).put("synthetic_only",true).put("productive_data_read",false).put("archive_restore_tested",false).toString());
             removeOwned(directory);directory=null;finish(Activity.RESULT_OK,report);
         }catch(Throwable error){report.putString("failure",error.getClass().getSimpleName()+": "+error.getMessage());report.putInt("checks",checks);try{if(directory!=null)removeOwned(directory);}catch(Exception cleanup){report.putString("cleanup","SYNTHETIC_CLEANUP_FAILED");}finish(Activity.RESULT_CANCELED,report);}
+    }
+    private void runEquipmentPhotos(File directory)throws Exception {
+        if(android.os.Build.VERSION.SDK_INT<28)throw new Exception("ISOLATED_WEBVIEW_REQUIRES_API_28");
+        android.content.Context isolated=new android.content.ContextWrapper(getTargetContext()){
+            @Override public File getFilesDir(){return directory;}
+        };
+        PhotoAttachmentStore photos=new PhotoAttachmentStore(isolated);
+        android.graphics.Bitmap bitmap=android.graphics.Bitmap.createBitmap(480,320,android.graphics.Bitmap.Config.ARGB_8888);
+        bitmap.eraseColor(android.graphics.Color.GREEN);java.io.ByteArrayOutputStream bytes=new java.io.ByteArrayOutputStream();
+        bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,bytes);bitmap.recycle();
+        JSONObject photo=photos.prepare(new JSONObject().put("data","data:image/png;base64,"+android.util.Base64.encodeToString(bytes.toByteArray(),android.util.Base64.NO_WRAP)).put("role","profile")).metadata;
+        photo.put("id","eqp_photo_00000000000000000000000000000001");
+        String originalHash=PhotoAttachmentStore.sha256(photos.read(photo));
+        File thumbnail=photos.thumbnailFile(photo.getString("thumbnail_storage_name"));yes(thumbnail.delete());
+        String image=photos.displayDataUri(photo);yes(image.startsWith("data:image/jpeg;base64,"));
+        byte[] jpeg=android.util.Base64.decode(image.substring(image.indexOf(',')+1),android.util.Base64.NO_WRAP);
+        android.graphics.Bitmap decoded=android.graphics.BitmapFactory.decodeByteArray(jpeg,0,jpeg.length);
+        yes(decoded!=null&&decoded.getWidth()==240&&decoded.getHeight()==160);decoded.recycle();
+        yes(!thumbnail.exists());yes(PhotoAttachmentStore.sha256(photos.read(photo)).equals(originalHash));
+        // Read the current production image renderer and CSP, not a copied implementation.
+        String script,document;
+        try(java.io.InputStream input=getTargetContext().getAssets().open("equipment-photo-ui.js")){script=new String(input.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);}
+        try(java.io.InputStream input=getTargetContext().getAssets().open("mobile.html")){document=new String(input.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);}
+        java.util.regex.Matcher csp=java.util.regex.Pattern.compile("<meta http-equiv=\"Content-Security-Policy\"[^>]+>").matcher(document);yes(csp.find());
+        String html=csp.group()+"<div id=\"photo\"></div><script>"+script+"</script>";
+        String suffix="qa_equipment_"+java.util.UUID.randomUUID().toString().replace("-","");
+        runOnMainSync(()->android.webkit.WebView.setDataDirectorySuffix(suffix));
+        File webProfile=new File(getTargetContext().getDataDir(),"app_webview_"+suffix);
+        try{
+            // Two fresh WebViews model reopening/recreation. Each bridge read reopens the original.
+            for(int round=0;round<2;round++){
+                android.webkit.WebView[] view=new android.webkit.WebView[1];
+                try{
+                    java.util.concurrent.CountDownLatch loaded=new java.util.concurrent.CountDownLatch(1);
+                    runOnMainSync(()->{
+                        view[0]=new android.webkit.WebView(getTargetContext());android.webkit.WebSettings settings=view[0].getSettings();
+                        settings.setJavaScriptEnabled(true);settings.setAllowFileAccess(false);settings.setAllowFileAccessFromFileURLs(false);settings.setAllowUniversalAccessFromFileURLs(false);settings.setAllowContentAccess(true);settings.setBlockNetworkLoads(true);settings.setBlockNetworkImage(false);
+                        view[0].addJavascriptInterface(new PhotoDisplayBridge(isolated,photo),"AndroidGardenPhotos");
+                        view[0].setWebViewClient(new android.webkit.WebViewClient(){@Override public void onPageFinished(android.webkit.WebView v,String url){loaded.countDown();}});
+                        view[0].loadDataWithBaseURL("file:///android_asset/mobile.html",html,"text/html","UTF-8",null);
+                    });
+                    yes(loaded.await(10,java.util.concurrent.TimeUnit.SECONDS));
+                    String render="document.querySelector('#photo').innerHTML=EquipmentPhotoUI.image("+photo+",true);";
+                    evaluate(view[0],render);long deadline=System.nanoTime()+java.util.concurrent.TimeUnit.SECONDS.toNanos(5);
+                    String ok;do{ok=evaluate(view[0],"(()=>{const i=document.querySelector('#photo img');return !!(i&&i.complete&&i.naturalWidth===240)})()");if(ok.equals("true"))break;Thread.sleep(25);}while(System.nanoTime()<deadline);
+                    yes(ok.equals("true"));
+                    if(round==1){yes(photos.file(photo).delete());evaluate(view[0],render);yes(evaluate(view[0],"document.querySelector('#photo').textContent").equals("\"Foto nicht lesbar\""));}
+                }finally{runOnMainSync(()->{if(view[0]!=null)view[0].destroy();});}
+            }
+        }finally{if(webProfile.exists())removeOwned(webProfile);}
+    }
+    public static final class PhotoDisplayBridge {
+        private final android.content.Context context;private final JSONObject photo;
+        PhotoDisplayBridge(android.content.Context context,JSONObject photo){this.context=context;this.photo=photo;}
+        @android.webkit.JavascriptInterface public String readEquipmentPhoto(String id){try{return photo.getString("id").equals(id)?new PhotoAttachmentStore(context).displayDataUri(photo):"";}catch(Exception missing){return "";}}
+    }
+    private String evaluate(android.webkit.WebView view,String script)throws Exception {
+        java.util.concurrent.CountDownLatch done=new java.util.concurrent.CountDownLatch(1);String[] result=new String[1];
+        runOnMainSync(()->view.evaluateJavascript(script,value->{result[0]=value;done.countDown();}));
+        if(!done.await(5,java.util.concurrent.TimeUnit.SECONDS))throw new Exception("WEBVIEW_SCRIPT_TIMEOUT");return result[0];
     }
     private void runStorage(File directory)throws Exception {
         File file=new File(directory,"synthetic.sqlite");JSONObject source=fixture();String original=source.toString(),sourceHash=hash(source),request="qa_table_transfer";

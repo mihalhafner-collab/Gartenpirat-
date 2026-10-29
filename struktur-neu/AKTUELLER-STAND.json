@@ -28,27 +28,52 @@
     }
   ],
   "current_task": {
-    "name": "Sicherungsdiagnose und Statusanzeigen,Connector,Profilbilder,Schriftüberlauf und doppelten Datenabruf korrigieren",
-    "status": "SOURCE_FIXES_TESTED;CONNECTOR_CATALOG_REFRESHED;CHAT_BINDING_AND_PRODUCTIVE_COLLISION_RESOLUTION_OPEN",
+    "name": "Listenbestand und sinnvolle Filter mit einfachem modernen Bedienkonzept prüfen",
+    "status": "LIST_FILTER_REVIEW_COMPLETE;FILTER_CODE_UNCHANGED;EQUIPMENT_IMAGE_SOURCE_REPLACED;APK_BUILD_ASSIGNED_TO_USER_CODEX",
     "authorized": true,
-    "authorization_scope": "Current user explicitly ordered corrections and necessary tests;no automatic install,migration,restore or invoice changes",
-    "implementation": [
-      "chronological_backup_status_and_latest_job_before_pagination",
-      "incomplete_idle_jobs_reported_as_interrupted_without_mutating_journal",
-      "self_test_uses_recorded_readback_proof_not_constant_PASS",
-      "specific_number_collision_categories_and_native_error_messages",
-      "customer_profile_role_and_safe_native_thumbnail_URIs",
-      "invoice_readiness_wraps_at_200_percent_text",
-      "one_getState_after_customer_save_without_photo"
-    ],
+    "authorization_scope": "User explicitly ordered equipment image replacement and tests;subsequently requested list inventory and useful filter concept first;APK build assigned to their Codex environment",
+    "implementation": [],
     "remaining": [
-      "Verify renewed chat binding and input schemas;stored connector catalog refreshed to169 but this running chat still exposes166",
-      "Resolve the actual Pixel financial collision after narrowed diagnosis;no records or invoice numbers rewritten",
-      "Gradle release compilation and physical Pixel acceptance unavailable in this environment"
-    ]
+      "Agree minimal filter rollout from the source inventory;no filter code changed in this review",
+      "APK build and original signing in existing Codex environment;physical image acceptance and complete backup/restore remain open"
+    ],
+    "list_filter_review": {
+      "source": "Current bundled mobile assets and list readers;code review only,no Pixel UI acceptance",
+      "high_value": [
+        "Kunden:existing text search;consider active/archived and billing route",
+        "Arbeitsgeräte:existing text search;expose existing condition values ready/maintenance/defective",
+        "Aufträge:existing text search;status and customer filters",
+        "Rechnungen:existing list without dedicated filter;status and customer filters",
+        "Anfragen/Pflegepläne/Besuche:existing text search;status,customer and dates for visits"
+      ],
+      "existing_controls": [
+        "Arbeitsaufzeichnungen:text,period,customer,billing",
+        "Wochenstunden:period and customer",
+        "Angebote:document type and status",
+        "Terminplanung:day/week/list range and customer",
+        "Kundenfotos:role,date,order,work;global photos all/unassigned",
+        "Pflanzenlexikon:search and plant-property filters",
+        "Papierkorb:entity category;separate Revier archive list",
+        "Global search:type,status,date,archive scope"
+      ],
+      "lower_priority": [
+        "Objekte:existing text search;customer/area only if useful with larger inventory",
+        "Material:existing text search;unit/stock only if needed",
+        "Leistungsbausteine:search/category for larger catalog",
+        "Revier archive:entity filter if list grows"
+      ],
+      "no_extra_filter_recommended": [
+        "Today summary",
+        "Single-day tour",
+        "Short equipment maintenance history",
+        "Current backup status/history"
+      ],
+      "interaction": "Visible compact filter buttons;single active choice per criterion;All resets;result count;existing search retained;immediate filtering without confirmation dialogs;no extra dependencies or saved-filter system",
+      "implementation_performed": false
+    }
   },
   "open_checks": [
-    "Stored connector catalog now169;current chat binding still166;three maintenance tools and input schemas not yet callable/verified through renewed chat binding",
+    "Equipment image source replacement:Android instrumentation and browser rendering suites prepared but not executed here;Pixel still Build114",
     "Existing FINANCIAL_NUMBER_COLLISION is not resolved by diagnostic text;exact affected record category requires corrected device build and local review",
     "Build115 is source only;Gradle and full Google/AndroidX dependency cache unavailable;no APK produced",
     "ADB unavailable;physical UI,native worker lifecycle,photo provider,full backup/restore and performance not tested",
@@ -88,40 +113,37 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "4f1f66a811dd7c796e3b6cab8b395b14d1aa03cf6ed79cde0cdabb6d9ee6c49d",
+    "app_source_fingerprint": "18b663ffaf5828e98f68ae9eab0f1d6a67ce55c4e333d9c762106b7b0760c56b",
     "source_privacy": "PASS;empty operational seed",
     "native_pixel_tests": "NOT_EXECUTED",
-    "business_data_read": false,
+    "business_data_read": true,
     "installation_performed": false,
     "authored_changes_diff_check": "PASS",
     "imported_source_whitespace": "2 existing findings in byte-identical Build113 sources; no unrelated source formatting applied",
     "current_test_run": {
-      "observed_at_utc": "2026-10-29T04:56:16.086472+00:00",
-      "check_current": "PASS;62 Python tests and source/contracts/privacy/fixtures/plants/UI checks",
-      "java_suites_passed": 4,
-      "java_checks_passed": 318,
+      "observed_at_utc": "2026-10-29T12:15:07.276831+00:00",
+      "source_sha256": "18b663ffaf5828e98f68ae9eab0f1d6a67ce55c4e333d9c762106b7b0760c56b",
+      "check_current": "PASS;62 Python tests plus source/contracts/privacy/fixtures/plants/UI checks",
+      "java_suites_passed": 1,
+      "java_checks_passed": 54,
       "java_breakdown": {
-        "BusinessTableStoreTests": 102,
-        "EquipmentMaintenanceTests": 91,
-        "EquipmentProfilePhotoTests": 54,
-        "PixelPlainBackupTests": 71
+        "EquipmentProfilePhotoTests": 54
       },
-      "java_environment": "JDK17;synthetic SQLite/JDBC and JVM fixtures;Android runtime not tested",
-      "browser_suites_passed": 5,
-      "browser_groups_passed": 63,
-      "browser_environment": "Cloud Chromium153,Playwright1.64.1,Acorn8.19.0;synthetic bridge doubles",
-      "layout_cases_passed": 68,
-      "profile_cases_passed": 6,
-      "performance_iterations_per_operation": 40,
-      "android_release_build": "NOT_EXECUTED;Gradle and complete Google/AndroidX dependencies unavailable",
-      "android_compile_smoke": "200 production Java sources with Android37 SDK compiled;CalendarAuthorization and AndroidX ViewCompat replaced by compile-only stubs;BuildConfig synthetic;NOT a release build",
+      "java_environment": "JDK17;current production classes and synthetic repository fixtures;Android runtime not executed",
+      "renderer_checks_passed": 8,
+      "renderer_environment": "Node VM with synthetic native bridge and DOM;no image decoding or Android runtime",
+      "javascript_syntax": "PASS;equipment-photo-ui.js and equipment-profile-photo-ui.test.cjs",
+      "android_compile_smoke": "PASS;200 production Java sources and PixelMcpInstrumentation with Android37 SDK;CalendarAuthorization and AndroidX ViewCompat compile-only stubs;synthetic BuildConfig;NOT a release build",
+      "browser_tests": "NOT_EXECUTED;Acorn and Chromium binary unavailable",
+      "android_instrumentation": "PREPARED_NOT_EXECUTED;equipment_photo_display;no ADB/device access",
+      "android_release_build": "NOT_EXECUTED;assigned by user to existing Codex build environment",
       "signed_apk": "NOT_BUILT",
       "physical_update_data_retention": "NOT_EXECUTED",
       "full_pixel_backup_restore": "NOT_EXECUTED"
     },
     "current_source_changes": {
-      "status": "SOURCE_ONLY_FIXES_SYNTHETICALLY_TESTED;PHYSICAL_ACCEPTANCE_OPEN",
-      "scope": "Current authorized backup status/diagnosis,customer avatar,large text and redundant reload corrections;previous protected legacy dependencies retained",
+      "status": "SOURCE_ONLY;SOURCE_AND_CONTRACT_CHECKS_PASSED;ANDROID_AND_BROWSER_ACCEPTANCE_OPEN",
+      "scope": "Current authorized backup status/diagnosis,customer avatar,large text and redundant reload corrections;previous protected legacy dependencies retained;equipment profile display reads verified original through existing native photo bridge",
       "legacy_dependency_review": {
         "production": "DriveJournalRules,SnapshotProjection and LocalPendingActions still used by live state/backup projections",
         "fixtures": "Kept JVM/native fixtures reference legacy and retired adapters;these test-only classes are absent from release APK",
@@ -132,7 +154,17 @@
         "pixel_restore": "DIRECT_PIXEL_STATUS_NONE;no completed restore evidenced",
         "dependency_absence": "NOT_ESTABLISHED;live journal/table/backup readers and historical test fixtures still reference the listed classes",
         "deletion": "NOT_PERFORMED;explicit source deletion request retained pending prerequisite"
-      }
+      },
+      "implementation": [
+        "chronological_backup_status_and_latest_job_before_pagination",
+        "incomplete_idle_jobs_reported_as_interrupted_without_mutating_journal",
+        "self_test_uses_recorded_readback_proof_not_constant_PASS",
+        "specific_number_collision_categories_and_native_error_messages",
+        "customer_profile_role_and_safe_native_thumbnail_URIs",
+        "invoice_readiness_wraps_at_200_percent_text",
+        "one_getState_after_customer_save_without_photo",
+        "equipment_image_direct_from_verified_original_without_content_uri_or_thumbnail_file"
+      ]
     },
     "backup_diagnosis": {
       "observed_at_utc": "2026-10-29T04:56:16.086472+00:00",
@@ -144,7 +176,7 @@
       "resolution": "PRODUCTIVE_COLLISION_NOT_FIXED;new diagnostic categories and synthetic regression tests only",
       "deployment": "SOURCE_ONLY;Pixel still runs114"
     },
-    "performance_evidence": "docs/verification/performance-current.md;Build114 versus candidate115;synthetic only;no physical Pixel comparison",
+    "performance_evidence": "docs/verification/performance-current.md measures the previous candidate fingerprint;no performance claim for the new native image path",
     "connector": {
       "plugin_id": "plugin_asdk_app_6acb41da3780819199c4cfa8e0e117ef",
       "app_id": "asdk_app_6acb41da3780819199c4cfa8e0e117ef",
@@ -152,18 +184,25 @@
       "stored_catalog_tool_count": 169,
       "stored_catalog_read_count": 73,
       "stored_catalog_write_count": 96,
-      "current_chat_exposed_tool_count": 166,
-      "current_chat_missing_tools": [
-        "get_equipment_maintenance",
-        "save_equipment_maintenance_plan",
-        "record_equipment_maintenance"
-      ],
-      "status": "STORED_CATALOG_REFRESH_VERIFIED;running chat binding remains166",
-      "verification": "Authenticated existing plugin management:Tools aktualisieren;refreshed tool list shows169 names,including all three maintenance tools;backup descriptions correctly state local plaintext ZIP and device file chooser",
-      "input_schema_comparison": "NOT_VERIFIED;management UI exposes names and descriptions but not input schemas;renewed chat binding required",
-      "new_tool_execution": "NOT_EXECUTED;missing from current chat binding",
+      "current_chat_exposed_tool_count": 169,
+      "current_chat_missing_tools": [],
+      "status": "169_TOOLS_EXPOSED;GET_CAPABILITIES_READBACK_PASS",
+      "verification": "Current chat exposes169 tools including three maintenance operations;authenticated get_capabilities succeeds;Pixel self-report Build114",
+      "input_schema_comparison": "Typed tool schemas available;full catalog-wide comparison not performed",
+      "new_tool_execution": "Read-only list_equipment and get_capabilities succeeded;no maintenance writes",
       "permissions_changed": false,
-      "connection_changed": false
+      "connection_changed": false,
+      "observed_at_utc": "2026-10-29T12:15:07.276831+00:00"
+    },
+    "business_data_scope": "Read-only equipment metadata and one original byte for diagnosis;no productive data used or persisted as development fixtures",
+    "equipment_photo_display": {
+      "diagnosis": "Original readable;file-origin WebView used content-URI thumbnail;load errors became empty placeholders",
+      "correction": "Existing native bridge reads current equipment attachment and verified original;existing image conversion returns a bounded JPEG data URI directly;visible decode/read error",
+      "no_productive_writes": true,
+      "new_dependencies": false,
+      "new_photo_store": false,
+      "fallback_chain": false,
+      "native_test_scope": "Isolated synthetic original and WebView profile;missing thumbnail,original readback,image decode,WebView recreation,missing original;actual Android picker and full app restart still require acceptance"
     }
   },
   "unmerged_work": [
@@ -205,12 +244,13 @@
   "current_release_candidate": {
     "version_name": "1.55.10",
     "version_code": 115,
-    "source_sha256": "4f1f66a811dd7c796e3b6cab8b395b14d1aa03cf6ed79cde0cdabb6d9ee6c49d",
+    "source_sha256": "18b663ffaf5828e98f68ae9eab0f1d6a67ce55c4e333d9c762106b7b0760c56b",
     "status": "SOURCE_ONLY;NOT_BUILT_OR_SIGNED",
     "source_base_commit": "ce9b677e50e37cae463b08eac63e9af904be2870",
     "installation": "NOT_PERFORMED",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "NOT_ACTIVATED",
-    "app_backup_mode": "PIXEL_PLAINTEXT_ZIP"
+    "app_backup_mode": "PIXEL_PLAINTEXT_ZIP",
+    "build_handoff": "User will build/sign in existing Codex environment after source completion;no install performed here"
   }
 }

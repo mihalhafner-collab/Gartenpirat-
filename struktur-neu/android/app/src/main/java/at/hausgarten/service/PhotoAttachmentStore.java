@@ -66,8 +66,16 @@ final class PhotoAttachmentStore {
     }
 
     private void makeThumbnail(byte[] bytes,JSONObject metadata)throws Exception{
+        byte[] raw=displayBytes(bytes,metadata);String hash=sha256(raw);storeThumbnail(raw,hash+".jpg");metadata.put("thumbnail_storage_name",hash+".jpg").put("thumbnail_sha256",hash);
+    }
+    // Render from the verified original. Equipment display needs no second file or content:// URL.
+    String displayDataUri(JSONObject metadata)throws Exception{
+        return "data:image/jpeg;base64,"+Base64.encodeToString(displayBytes(read(metadata),metadata),Base64.NO_WRAP);
+    }
+    private byte[] displayBytes(byte[] bytes,JSONObject metadata)throws Exception{
         BitmapFactory.Options o=new BitmapFactory.Options();o.inSampleSize=1;while(Math.max(metadata.getInt("width"),metadata.getInt("height"))/(o.inSampleSize*2)>480)o.inSampleSize*=2;
-        Bitmap b=null,oriented=null,small=null;try{b=BitmapFactory.decodeByteArray(bytes,0,bytes.length,o);if(b==null)throw new IOException("Vorschau nicht lesbar.");oriented=orient(b,PhotoPolicy.orientation(bytes));double scale=Math.min(1,240.0/Math.max(oriented.getWidth(),oriented.getHeight()));small=Bitmap.createScaledBitmap(oriented,Math.max(1,(int)(oriented.getWidth()*scale)),Math.max(1,(int)(oriented.getHeight()*scale)),true);ByteArrayOutputStream out=new ByteArrayOutputStream();small.compress(Bitmap.CompressFormat.JPEG,65,out);byte[] raw=out.toByteArray();String hash=sha256(raw);storeThumbnail(raw,hash+".jpg");metadata.put("thumbnail_storage_name",hash+".jpg").put("thumbnail_sha256",hash);}
+        Bitmap b=null,oriented=null,small=null;try{b=BitmapFactory.decodeByteArray(bytes,0,bytes.length,o);if(b==null)throw new IOException("Vorschau nicht lesbar.");oriented=orient(b,PhotoPolicy.orientation(bytes));double scale=Math.min(1,240.0/Math.max(oriented.getWidth(),oriented.getHeight()));small=Bitmap.createScaledBitmap(oriented,Math.max(1,(int)(oriented.getWidth()*scale)),Math.max(1,(int)(oriented.getHeight()*scale)),true);ByteArrayOutputStream out=new ByteArrayOutputStream();if(!small.compress(Bitmap.CompressFormat.JPEG,65,out)||out.size()==0||out.size()>65536)throw new IOException("Gerätebild kann nicht dargestellt werden.");return out.toByteArray();}
+        catch(OutOfMemoryError exhausted){throw new IOException("Gerätebild kann nicht geladen werden.");}
         finally{if(small!=null&&small!=oriented)small.recycle();if(oriented!=null&&oriented!=b)oriented.recycle();if(b!=null)b.recycle();}
     }
     File thumbnailFile(String name)throws Exception{if(!name.matches("[0-9a-f]{64}\\.jpg"))throw new IllegalArgumentException("Ungültige Vorschaureferenz.");return new File(new File(directory,"thumbnails"),name);}

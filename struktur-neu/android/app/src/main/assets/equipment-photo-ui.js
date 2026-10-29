@@ -8,7 +8,12 @@
  const currentSelection=(edit,selection)=>live(edit)&&HGFormDrafts.list().some(d=>d.session_id===edit.session_id&&d.context?.photo_selection===selection);
  const request=()=>crypto.randomUUID().replaceAll('-','');
  function release(){if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl='';}}
- function image(photo,large=false){const name=photo?.thumbnail_storage_name;if(!/^[a-f0-9]{64}\.jpg$/.test(name||''))return '<span class="equipment-photo-placeholder" aria-label="Noch kein Gerätefoto">'+(large?'Foto':'')+'</span>';return '<img class="equipment-photo-thumb" src="content://at.hausgarten.service.photothumbnails/'+name+'" alt="Gerätefoto" loading="lazy" decoding="async">';}
+ function image(photo,large=false){
+  if(!photo)return '<span class="equipment-photo-placeholder" aria-label="Noch kein Gerätefoto">'+(large?'Foto':'')+'</span>';
+  let source='';try{source=window.AndroidGardenPhotos?.readEquipmentPhoto(photo.id)||'';}catch(_){}
+  if(!/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(source)||source.length>87407)return '<span class="equipment-photo-placeholder" role="status">Foto nicht lesbar</span>';
+  return '<img class="equipment-photo-thumb" src="'+source+'" alt="Gerätefoto" decoding="async">';
+ }
  function markup(edit){return '<section class="equipment-photo-editor" aria-label="Gerätefoto"><div data-equipment-photo-preview>'+image(edit.values.profile_photo,true)+'</div><div><strong>Gerätefoto</strong><p class="sub" data-equipment-photo-message>'+(edit.values.profile_photo_selected?escape(edit.values.profile_photo_selected):'Optional · zum Wiedererkennen')+'</p><div class="revier-actions"><button type="button" class="secondary" data-equipment-photo-source="camera">Aufnehmen</button><button type="button" class="secondary" data-equipment-photo-source="gallery">Auswählen</button></div></div><input type="file" id="equipment-photo-camera" accept="image/*" capture="environment" hidden><input type="file" id="equipment-photo-gallery" accept="image/*" hidden></section>';}
  function bind(edit,form,retain){
   if(edit.kind!=='equipment')return;
@@ -44,6 +49,6 @@
   return {media_key:key(edit),session_id:edit.session_id,selection:value.selection,installation_id:context.installation_id,restore_epoch:context.restore_epoch};
  }
  async function saved(edit){if(key(edit))await GartenpiratPhotoStore.customerDraft(key(edit),null);release();}
- document.addEventListener('error',event=>{const image=event.target;if(!image.matches?.('.equipment-photo-thumb'))return;const placeholder=document.createElement('span');placeholder.className='equipment-photo-placeholder';placeholder.setAttribute('aria-label','Fotovorschau nicht verfügbar');image.replaceWith(placeholder);},true);
+ document.addEventListener('error',event=>{const image=event.target;if(!image.matches?.('.equipment-photo-thumb'))return;const placeholder=document.createElement('span');placeholder.className='equipment-photo-placeholder';placeholder.setAttribute('role','status');placeholder.textContent='Foto nicht lesbar';image.replaceWith(placeholder);},true);
  window.EquipmentPhotoUI=Object.freeze({markup,bind,prepare,saved,image,release});
 })();

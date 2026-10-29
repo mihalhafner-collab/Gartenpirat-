@@ -322,6 +322,15 @@ public class MainActivity extends Activity implements McpSyncHost {
     }
 
     public class GardenPhotosBridge {
+        @JavascriptInterface public String readEquipmentPhoto(String photoId) {
+            try {
+                if(BuildConfig.UI_PREVIEW||!trustedBackupPage()||photoId==null||!photoId.matches("eqp_photo_[0-9a-f]{32}"))return "";
+                JSONObject photo=new RevierApplicationService(new RevierLocalRepository(store,null)).equipmentPhoto(photoId);
+                if(photo==null)return "";
+                EquipmentProfilePhotoRules.attachment(photo,store.photoAttachment(photoId));
+                return store.photoAttachmentStore().displayDataUri(photo);
+            } catch(Exception unreadable) {return "";}
+        }
         @JavascriptInterface public void preparePicker() {
             // A short-lived marker scopes the next WebView file request to this feature.
             gardenPickerPreparedUntil = android.os.SystemClock.elapsedRealtime() + 3000;
