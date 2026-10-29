@@ -66,3 +66,15 @@ Importwerkzeug benötigten redaktionellen Eingaben bleiben in `libraries/plants/
 Gerätefotos gehören zum Gerät. Abgebrochene Auswahl und verworfene Bearbeitung
 dürfen keine Geschäftsdaten erzeugen. Bestehende Wartungsintervalle und ihr Verlauf
 bleiben erhalten. Der Wortlautkatalog wird über das vorhandene Werkzeug erzeugt.
+
+## Bedienung und Listenfilter
+
+Der Nutzer hat kleine Hände: häufige Aktionen am unteren Bildschirmrand gut
+erreichbar anbieten, mit kompakten, gut treffbaren Schaltflächen statt übergroßer
+Buttons. Aktionsleisten müssen Platz im Layout erhalten und dürfen weder Inhalte
+noch Tastatur oder Systemnavigation verdecken; Systemabstände und verkleinerte
+Bildschirmhöhe beachten. Die vorhandene Suche bleibt erhalten.
+Kunden nach aktiv/archiviert und Abrechnungsweg, Geräte nach vorhandenem Zustand,
+Aufträge und Rechnungen nach vorhandenem Status und Kunde filtern. Aktive Auswahl,
+Trefferzahl und einfaches Zurücksetzen sichtbar halten. Keine gespeicherten
+Filterprofile oder zusätzlichen Datenmodelle.

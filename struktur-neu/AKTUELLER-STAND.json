@@ -28,54 +28,23 @@
     }
   ],
   "current_task": {
-    "name": "Listenbestand und sinnvolle Filter mit einfachem modernen Bedienkonzept prüfen",
-    "status": "LIST_FILTER_REVIEW_COMPLETE;FILTER_CODE_UNCHANGED;EQUIPMENT_IMAGE_SOURCE_REPLACED;APK_BUILD_ASSIGNED_TO_USER_CODEX",
+    "name": "Build115 mit bestehenden Korrekturen und kleinen Listenfiltern original signieren und privat bereitstellen",
+    "status": "SOURCE_COMPLETE_AND_TESTED;RELEASE_BUILD_AND_DELIVERY_IN_PROGRESS",
     "authorized": true,
-    "authorization_scope": "User explicitly ordered equipment image replacement and tests;subsequently requested list inventory and useful filter concept first;APK build assigned to their Codex environment",
-    "implementation": [],
-    "remaining": [
-      "Agree minimal filter rollout from the source inventory;no filter code changed in this review",
-      "APK build and original signing in existing Codex environment;physical image acceptance and complete backup/restore remain open"
+    "authorization_scope": "User expressly authorized implementation,tests,commit/push,assembleRelease,original signing and private delivery;no installation,migration,restore or productive financial changes",
+    "implementation": [
+      "Existing backup evidence/collision diagnosis,customer and equipment photos,200 percent invoice text,single customer state reload retained",
+      "Customer active/archive and billing route;equipment condition;order/invoice status and customer;search,count,reset;bottom filter access",
+      "Small-hand interaction requirement recorded in docs/fachregeln/APP.md"
     ],
-    "list_filter_review": {
-      "source": "Current bundled mobile assets and list readers;code review only,no Pixel UI acceptance",
-      "high_value": [
-        "Kunden:existing text search;consider active/archived and billing route",
-        "Arbeitsgeräte:existing text search;expose existing condition values ready/maintenance/defective",
-        "Aufträge:existing text search;status and customer filters",
-        "Rechnungen:existing list without dedicated filter;status and customer filters",
-        "Anfragen/Pflegepläne/Besuche:existing text search;status,customer and dates for visits"
-      ],
-      "existing_controls": [
-        "Arbeitsaufzeichnungen:text,period,customer,billing",
-        "Wochenstunden:period and customer",
-        "Angebote:document type and status",
-        "Terminplanung:day/week/list range and customer",
-        "Kundenfotos:role,date,order,work;global photos all/unassigned",
-        "Pflanzenlexikon:search and plant-property filters",
-        "Papierkorb:entity category;separate Revier archive list",
-        "Global search:type,status,date,archive scope"
-      ],
-      "lower_priority": [
-        "Objekte:existing text search;customer/area only if useful with larger inventory",
-        "Material:existing text search;unit/stock only if needed",
-        "Leistungsbausteine:search/category for larger catalog",
-        "Revier archive:entity filter if list grows"
-      ],
-      "no_extra_filter_recommended": [
-        "Today summary",
-        "Single-day tour",
-        "Short equipment maintenance history",
-        "Current backup status/history"
-      ],
-      "interaction": "Visible compact filter buttons;single active choice per criterion;All resets;result count;existing search retained;immediate filtering without confirmation dialogs;no extra dependencies or saved-filter system",
-      "implementation_performed": false
-    }
+    "remaining": [
+      "Build exact preserved source with assembleRelease;original signature and private download readback",
+      "Physical Android/Pixel acceptance unavailable without ADB"
+    ]
   },
   "open_checks": [
-    "Equipment image source replacement:Android instrumentation and browser rendering suites prepared but not executed here;Pixel still Build114",
+    "Android/Pixel NOT_EXECUTED:no ADB;real photo picker,save/reopen/full restart,native worker lifecycle,keyboard/system navigation,update data retention and full backup/restore remain open",
     "Existing FINANCIAL_NUMBER_COLLISION is not resolved by diagnostic text;exact affected record category requires corrected device build and local review",
-    "Build115 is source only;Gradle and full Google/AndroidX dependency cache unavailable;no APK produced",
     "ADB unavailable;physical UI,native worker lifecycle,photo provider,full backup/restore and performance not tested",
     "Protected legacy deletion still requires Pixel backup AND restore and dependency evidence"
   ],
@@ -113,36 +82,36 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "18b663ffaf5828e98f68ae9eab0f1d6a67ce55c4e333d9c762106b7b0760c56b",
+    "app_source_fingerprint": "dcb2e148c6597b576831200514a62452e04c592e7b3c8b1d7284846fc8f8222b",
     "source_privacy": "PASS;empty operational seed",
-    "native_pixel_tests": "NOT_EXECUTED",
-    "business_data_read": true,
+    "native_pixel_tests": "NOT_EXECUTED;ADB unavailable",
+    "business_data_read": false,
     "installation_performed": false,
     "authored_changes_diff_check": "PASS",
     "imported_source_whitespace": "2 existing findings in byte-identical Build113 sources; no unrelated source formatting applied",
     "current_test_run": {
-      "observed_at_utc": "2026-10-29T12:15:07.276831+00:00",
-      "source_sha256": "18b663ffaf5828e98f68ae9eab0f1d6a67ce55c4e333d9c762106b7b0760c56b",
+      "observed_at_utc": "2026-10-29T13:24:35.244857+00:00",
+      "source_sha256": "dcb2e148c6597b576831200514a62452e04c592e7b3c8b1d7284846fc8f8222b",
       "check_current": "PASS;62 Python tests plus source/contracts/privacy/fixtures/plants/UI checks",
-      "java_suites_passed": 1,
-      "java_checks_passed": 54,
+      "java_suites_passed": 3,
+      "java_checks_passed": 216,
       "java_breakdown": {
-        "EquipmentProfilePhotoTests": 54
+        "EquipmentMaintenanceTests": 91,
+        "EquipmentProfilePhotoTests": 54,
+        "PixelPlainBackupTests": 71
       },
-      "java_environment": "JDK17;current production classes and synthetic repository fixtures;Android runtime not executed",
-      "renderer_checks_passed": 8,
-      "renderer_environment": "Node VM with synthetic native bridge and DOM;no image decoding or Android runtime",
-      "javascript_syntax": "PASS;equipment-photo-ui.js and equipment-profile-photo-ui.test.cjs",
-      "android_compile_smoke": "PASS;200 production Java sources and PixelMcpInstrumentation with Android37 SDK;CalendarAuthorization and AndroidX ViewCompat compile-only stubs;synthetic BuildConfig;NOT a release build",
-      "browser_tests": "NOT_EXECUTED;Acorn and Chromium binary unavailable",
-      "android_instrumentation": "PREPARED_NOT_EXECUTED;equipment_photo_display;no ADB/device access",
-      "android_release_build": "NOT_EXECUTED;assigned by user to existing Codex build environment",
-      "signed_apk": "NOT_BUILT",
+      "java_environment": "JDK17;real pinned dependencies;synthetic JVM fixtures;no Android runtime",
+      "browser_tests": "PASS;simple-forms(14),startup-ui,equipment-maintenance-ui,equipment-profile-photo-ui,work-entry-photo-failure;synthetic Chromium",
+      "browser_scope": "Filter/search/count/reset,65 equipment rows across pages,200 percent text at320/360px,short viewport,bottom access,photo decode/save/reopen,backup status,single customer getState",
+      "android_compile": "PASS;actual :app:compileReleaseJavaWithJavac;SDK37,pinned production dependencies,no compile stubs",
+      "android_release_build": "PENDING assembleRelease after exact source preservation",
+      "signed_apk": "PENDING",
+      "android_instrumentation": "NOT_EXECUTED;ADB unavailable",
       "physical_update_data_retention": "NOT_EXECUTED",
       "full_pixel_backup_restore": "NOT_EXECUTED"
     },
     "current_source_changes": {
-      "status": "SOURCE_ONLY;SOURCE_AND_CONTRACT_CHECKS_PASSED;ANDROID_AND_BROWSER_ACCEPTANCE_OPEN",
+      "status": "SOURCE_AND_JVM_BROWSER_COMPILE_CHECKS_PASSED;RELEASE_PENDING",
       "scope": "Current authorized backup status/diagnosis,customer avatar,large text and redundant reload corrections;previous protected legacy dependencies retained;equipment profile display reads verified original through existing native photo bridge",
       "legacy_dependency_review": {
         "production": "DriveJournalRules,SnapshotProjection and LocalPendingActions still used by live state/backup projections",
@@ -163,7 +132,8 @@
         "customer_profile_role_and_safe_native_thumbnail_URIs",
         "invoice_readiness_wraps_at_200_percent_text",
         "one_getState_after_customer_save_without_photo",
-        "equipment_image_direct_from_verified_original_without_content_uri_or_thumbnail_file"
+        "equipment_image_direct_from_verified_original_without_content_uri_or_thumbnail_file",
+        "minimal_existing_list_filters_and_bottom_access"
       ]
     },
     "backup_diagnosis": {
@@ -174,7 +144,7 @@
       "root_cause": "A number collision was reported by the financial inventory;exact subtype/records unknown;no productive financial dataset used as development input",
       "correction": "Build115 source separates issued-number,reservation-counter,reservation-invoice and external-proof collisions;integrity checks still reject them;chronological status and nonconstant self-test implemented",
       "resolution": "PRODUCTIVE_COLLISION_NOT_FIXED;new diagnostic categories and synthetic regression tests only",
-      "deployment": "SOURCE_ONLY;Pixel still runs114"
+      "deployment": "Build115 source tested;release pending;no productive collision correction"
     },
     "performance_evidence": "docs/verification/performance-current.md measures the previous candidate fingerprint;no performance claim for the new native image path",
     "connector": {
@@ -194,7 +164,7 @@
       "connection_changed": false,
       "observed_at_utc": "2026-10-29T12:15:07.276831+00:00"
     },
-    "business_data_scope": "Read-only equipment metadata and one original byte for diagnosis;no productive data used or persisted as development fixtures",
+    "business_data_scope": "This task uses public source and synthetic fixtures only;no productive app data read or written",
     "equipment_photo_display": {
       "diagnosis": "Original readable;file-origin WebView used content-URI thumbnail;load errors became empty placeholders",
       "correction": "Existing native bridge reads current equipment attachment and verified original;existing image conversion returns a bounded JPEG data URI directly;visible decode/read error",
@@ -244,13 +214,13 @@
   "current_release_candidate": {
     "version_name": "1.55.10",
     "version_code": 115,
-    "source_sha256": "18b663ffaf5828e98f68ae9eab0f1d6a67ce55c4e333d9c762106b7b0760c56b",
-    "status": "SOURCE_ONLY;NOT_BUILT_OR_SIGNED",
+    "source_sha256": "dcb2e148c6597b576831200514a62452e04c592e7b3c8b1d7284846fc8f8222b",
+    "status": "SOURCE_TESTED;RELEASE_BUILD_PENDING",
     "source_base_commit": "ce9b677e50e37cae463b08eac63e9af904be2870",
     "installation": "NOT_PERFORMED",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "NOT_ACTIVATED",
     "app_backup_mode": "PIXEL_PLAINTEXT_ZIP",
-    "build_handoff": "User will build/sign in existing Codex environment after source completion;no install performed here"
+    "build_handoff": "Existing Codex cloud environment;authorized build/sign/private distribution;no installation"
   }
 }

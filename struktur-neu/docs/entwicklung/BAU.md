@@ -101,6 +101,10 @@ Persistierte Android-Worker-/Activity-Lebenszyklen bleiben ein eigener Gerätete
 Kundenprofil-Thumbnails und explizite Profilrollen, alle Hauptseiten bei 200 %
 Schrift sowie genau einen Vollabruf beim Kundenspeichern ohne Foto.
 Der Fotopfad behält seinen eigenen notwendigen Rückleseschritt.
+Die Suite prüft auch kombinierte Kunden-/Auftrags-/Rechnungsfilter mit Suche,
+Trefferzahl und Zurücksetzen sowie Geräte-Zustandsfilter über mehrere Seiten.
+Der untere Filterzugang wird mit reserviertem Navigationsplatz und verkleinerter
+Bildschirmhöhe geprüft; echte Android-Tastatur/Systemnavigation bleiben Gerätetests.
 
 Geräteprofilbilder werden über die vorhandene `AndroidGardenPhotos`-Bridge aus
 dem verifizierten, dem Gerät zugeordneten Original gelesen und mit der bestehenden

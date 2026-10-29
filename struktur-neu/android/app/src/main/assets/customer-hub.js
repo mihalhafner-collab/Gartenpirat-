@@ -30,10 +30,29 @@
    target.querySelector('[data-library-more]')?.addEventListener('click',()=>{view.limit+=30;draw();});};
   section.querySelectorAll('[data-photo-filter]').forEach(f=>{f.value=view[f.dataset.photoFilter];f.onchange=()=>{view[f.dataset.photoFilter]=f.value;view.limit=30;draw();};});draw();return section;
  }
+// Ephemeral choices on the existing lists; no persisted filter model.
+window.HGListFilters={
+ apply(page,rows,criteria,searchId,redraw){
+  const target=el({customers:'customer-list',orders:'order-list',invoices:'invoice-list'}[page]);
+  let box=el(page+'-filters');
+  if(!box){box=document.createElement('section');box.id=page+'-filters';box.className='compact-list-filters';box.setAttribute('aria-label','Listenfilter');target.before(box);}
+  for(const [field,label,values] of criteria){
+   let select=box.querySelector('[data-list-filter="'+field+'"]');
+   if(!select){const wrap=document.createElement('label');wrap.textContent=label;select=document.createElement('select');select.dataset.listFilter=field;wrap.append(select);box.append(wrap);select.onchange=()=>{renderedPages.delete(page);redraw();};}
+   const selected=select.value;select.innerHTML='<option value="">Alle</option>'+values.map(([v,t])=>'<option value="'+esc(v)+'">'+esc(t)+'</option>').join('');select.value=selected;if(select.selectedIndex<0)select.value='';
+  }
+  let summary=box.querySelector('[role=status]');if(!summary){summary=document.createElement('p');summary.setAttribute('role','status');box.append(summary);const reset=document.createElement('button');reset.type='button';reset.className='secondary';reset.textContent='Zurücksetzen';reset.onclick=()=>{box.querySelectorAll('select').forEach(s=>s.value='');if(el(searchId))el(searchId).value='';renderedPages.delete(page);redraw();};box.append(reset);}
+  const filtered=rows.filter(row=>criteria.every(([field])=>{const value=box.querySelector('[data-list-filter="'+field+'"]').value;if(!value)return true;return field==='active'?(row.active===0?'archived':'active')===value:field==='billing_mode'?(row.billing_mode||'direct')===value:String(row[field]||'')===value;}));
+  const active=[...box.querySelectorAll('select')].filter(s=>s.value).map(s=>s.selectedOptions[0].textContent);if(el(searchId)?.value.trim())active.push('Suche: '+el(searchId).value.trim());
+  summary.textContent=filtered.length+' Treffer'+(active.length?' · '+active.join(' · '):' · Alle');return filtered;
+ },
+ values(rows,field){return [...new Set(rows.map(r=>r[field]).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'de')).map(v=>[v,v]);}
+};
 let lastListRows=null,lastListKey='';
 function renderList(rows){
   const term=(el('customer-search')?.value||'').trim().toLocaleLowerCase('de-AT');
-  const key=JSON.stringify([dataRevision(),term]);if(lastListRows===rows&&lastListKey===key)return;
+  rows=HGListFilters.apply('customers',rows.filter(x=>HGDataOrder.matches(term,[x.name,x.company,x.first_name,x.last_name,x.street,x.postal_code,x.city,x.phone,x.email])),[['active','Status',[['active','Aktiv'],['archived','Archiviert']]],['billing_mode','Abrechnung',[['direct','Direkt'],['via_customer','Über anderen Kunden']]]],'customer-search',()=>renderList(customers()));
+  const key=JSON.stringify([dataRevision(),term,rows.map(r=>r.id)]);if(lastListRows===rows&&lastListKey===key)return;
   const shown=HGDataOrder.sorted('customers',rows.filter(x=>HGDataOrder.matches(term,[x.name,x.company,x.first_name,x.last_name,x.street,x.postal_code,x.city,x.phone,x.email])));
   const profiles=new Map();for(const photo of photos())if(role(photo)==='profile'&&!profiles.has(photo.customer_id))profiles.set(photo.customer_id,photo);
   const count=el('customer-count');if(count)count.textContent=rows.length+' Kunden';

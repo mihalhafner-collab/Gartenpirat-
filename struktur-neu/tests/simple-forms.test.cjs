@@ -74,6 +74,24 @@ const {chromium}=require('./browser.cjs'),fixtureSource=require('./ui-fixture-so
     await page.evaluate(t=>{master.photos=[{id:'qa_profile_regression',customer_id:'qa_c1',caption:t.caption,role:t.role,thumbnail_data:t.src}];load();openPage('customers');},item);assert.equal(await page.locator('[data-customer-open="qa_c1"] img').count(),item.expected);
    }
   });
+  await check('List filters combine with search, show counts and reset without writes',async()=>{
+   await page.evaluate(()=>{master.customers=[{id:'qa_c1',name:'QA Direkt',active:1},{id:'qa_c2',name:'QA Archiv',active:0,billing_mode:'via_customer'}];master.orders=[{id:'qa_o1',title:'QA Garten',customer_id:'qa_c1',status:'Geplant'},{id:'qa_o2',title:'QA Garten',customer_id:'qa_c2',status:'Erledigt'}];master.invoices=[{id:'qa_i1',invoice_number:'QA-1',customer_id:'qa_c1',status:'Entwurf'},{id:'qa_i2',invoice_number:'QA-2',customer_id:'qa_c2',status:'Bezahlt'}];load();window.qaFilterWrites=writes.length+qaRevier.writes.length;openPage('customers');});
+   await page.locator('#customers-filters [data-list-filter=active]').selectOption('archived');assert.equal(await page.locator('#customer-list [data-customer]').count(),1);assert.match(await page.locator('#customers-filters [role=status]').innerText(),/1 Treffer.*Archiviert/);
+   await page.locator('#customers-filters [data-list-filter=billing_mode]').selectOption('direct');assert.equal(await page.locator('#customer-list [data-customer]').count(),0);
+   await page.locator('#customers-filters button').click();assert.equal(await page.locator('#customer-list [data-customer]').count(),2);
+   for(const [id,search,row] of [['orders','order-search','[data-edit-order]'],['invoices','invoice-search','[data-invoice]']]){
+    await page.evaluate(id=>openPage(id),id);await page.locator('#'+id+'-filters [data-list-filter=customer_id]').selectOption('qa_c2');assert.equal(await page.locator('#'+id+' '+row).count(),1);
+    await page.locator('#'+search).fill('nichtvorhanden');await page.waitForTimeout(200);assert.equal(await page.locator('#'+id+' '+row).count(),0);
+    await page.locator('#'+id+'-filters button').click();assert.equal(await page.locator('#'+id+' '+row).count(),2);assert.equal(await page.locator('#'+search).inputValue(),'');
+    await page.locator('#'+id+'-filters [data-list-filter=status]').selectOption(id==='orders'?'Erledigt':'Bezahlt');assert.equal(await page.locator('#'+id+' '+row).count(),1);await page.locator('#'+id+'-filters button').click();
+   }
+   await page.evaluate(()=>{qaRevier.equipment=Array.from({length:65},(_,i)=>({id:'qa_filter_equipment_'+i,name:'QA Gerät '+i,condition:i<60?'ready':'defective',record_hash:'e'.repeat(64)}));openPage('revier-equipment');});
+   await page.locator('[data-equipment-condition]').selectOption('defective');assert.equal(await page.locator('[data-revier-list=equipment] [data-revier-detail]').count(),5);assert.match(await page.locator('#revier-equipment .revier-state').innerText(),/5.*Defekt/);
+   await page.locator('[data-equipment-reset]').click();assert.equal(await page.locator('[data-revier-list=equipment] [data-revier-detail]').count(),40);await page.locator('[data-revier-more=equipment]').click();assert.equal(await page.locator('[data-revier-list=equipment] [data-revier-detail]').count(),65);
+   assert.equal(await page.evaluate(()=>writes.length+qaRevier.writes.length-qaFilterWrites),0);
+   const access=await page.locator('#list-filter-access').boundingBox(),nav=await page.locator('.bottom').boundingBox();assert(access.y>=nav.y&&access.y+access.height<=840);
+   await page.setViewportSize({width:360,height:380});await page.evaluate(()=>openPage('invoices'));assert.equal(await page.locator('.bottom').evaluate(n=>getComputedStyle(n).position),'static');await page.setViewportSize({width:360,height:840});
+  });
   await check('All 17 main destinations retain content at 200 percent text on 320 and 360 pixel widths',async()=>{
    const ids=await page.locator('#more-page [data-open]').evaluateAll(nodes=>[...new Set(['home','customers','revier-office',...nodes.map(n=>n.dataset.open)])]);
    for(const width of [320,360])for(const font of [16,32]){await page.setViewportSize({width,height:840});await page.evaluate(font=>document.documentElement.style.fontSize=font+'px',font);for(const id of ids){await page.evaluate(id=>openPage(id),id);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),id+' '+width+' '+font);}}
