@@ -68,13 +68,14 @@ jobs:
           "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-app.apk"
           "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-test.apk"
       - name: Run native SQLite save, restore and new-process readback
+        timeout-minutes: 8
         run: |
           set -euo pipefail
           sudo chmod 666 /dev/kvm
           echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n Gartenpirat_Backup_QA -k 'system-images;android-35;default;x86_64'
           "$ANDROID_HOME/emulator/emulator" -avd Gartenpirat_Backup_QA -port 5580 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
           ADB="$ANDROID_HOME/platform-tools/adb"
-          "$ADB" -s emulator-5580 wait-for-device
+          timeout 180 "$ADB" -s emulator-5580 wait-for-device
           for attempt in $(seq 1 120); do
             if [ "$("$ADB" -s emulator-5580 shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; then break; fi
             sleep 2
@@ -86,7 +87,7 @@ jobs:
           mkdir -p outputs
           for suite in local_backup local_backup_reopen; do
             "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service
-            "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation | tee "outputs/$suite.txt"
+            timeout 120 "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation | tee "outputs/$suite.txt"
             python3 - "$suite" <<'PY'
           import pathlib,sys
           text=pathlib.Path('outputs/'+sys.argv[1]+'.txt').read_text()
@@ -94,6 +95,12 @@ jobs:
           assert 'INSTRUMENTATION_FAILED' not in text and 'INSTRUMENTATION_RESULT: failure=' not in text, text
           PY
           done
+      - name: Collect isolated emulator diagnostics
+        if: failure()
+        run: |
+          mkdir -p outputs
+          cp "$RUNNER_TEMP/emulator.log" outputs/emulator.txt 2>/dev/null || true
+          timeout 15 "$ANDROID_HOME/platform-tools/adb" -s emulator-5580 logcat -d -t 500 > outputs/emulator-logcat.txt 2>&1 || true
       - name: Preserve synthetic test results only
         if: always()
         uses: actions/upload-artifact@v4
@@ -101,6 +108,7 @@ jobs:
           name: Gartenpirat-backup-test-results
           path: |
             struktur-neu/outputs/local_backup*.txt
+            struktur-neu/outputs/emulator*.txt
             struktur-neu/android/app/build/reports/lint-results-release.html
           if-no-files-found: ignore
           retention-days: 7

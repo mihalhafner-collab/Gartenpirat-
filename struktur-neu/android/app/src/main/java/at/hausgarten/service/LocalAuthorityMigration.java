@@ -10,6 +10,20 @@ import java.util.*;
 final class LocalAuthorityMigration {
     private final Context context;private final PixelLocalStore store;
     LocalAuthorityMigration(Context context,PixelLocalStore store){this.context=context;this.store=store;}
+    /** Existing external proof stays selectable for explicit migration, without a backup writer. */
+    JSONObject historicalBackups(JSONObject args)throws Exception {
+        JSONObject identity=new BackupDeviceGuard(context).current();JSONArray records=new JSONArray();
+        try(android.database.Cursor rows=store.getReadableDatabase().rawQuery("SELECT key FROM owner_state WHERE key LIKE 'backup_job:%' ORDER BY key",null)){
+            while(rows.moveToNext())try{
+                String key=rows.getString(0);JSONObject job=new JSONObject(store.ownerValue(key,"{}"));
+                if(!key.equals("backup_job:"+job.optString("backupId")))continue;
+                records.put(new JSONObject().put("job",new JSONObject(job.toString()).put("revision",PixelMcpWriteTools.hash(job)))
+                    .put("sameInstallation",identity.getString("installationId").equals(job.optString("installationId")))
+                    .put("sameRestoreEpoch",identity.getString("restoreEpoch").equals(job.optString("restoreEpoch"))));
+            }catch(org.json.JSONException malformed){/* A malformed historical entry is not migration proof. */}
+        }
+        return BackupStatusRules.project(records,new JSONObject(args.toString()).put("legacy_evidence",true),Collections.emptySet(),java.time.Instant.now());
+    }
     JSONObject preview()throws Exception {
         JSONObject state=withExtended(store.getState()),inventory=LocalMigrationInventory.inspect(state,new LocalOriginalVerifier(context.getFilesDir(),store::photoAttachment,id->new JSONObject(store.ownerValue("local_invoice_job:"+id,"{}"))));
         JSONObject result=new JSONObject().put("formatVersion",1).put("authority",new LocalAuthorityGuard(context).current()).put("inventory",inventory).put("state_sha256",businessHash(state)).put("drive_writer_running",DriveSyncCoordinator.running()).put("invoice_issue_allowed",false).put("requires_current_external_backup",true).put("requires_external_writer_evidence",true);

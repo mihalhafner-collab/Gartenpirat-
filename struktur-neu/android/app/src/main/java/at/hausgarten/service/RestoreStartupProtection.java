@@ -46,13 +46,16 @@ final class RestoreStartupProtection implements BackupRestoreService.Protection 
     }
     public void afterActivation(String requestId,JSONObject manifest,File database)throws Exception {
         try(SQLiteDatabase db=SQLiteDatabase.openDatabase(database.getAbsolutePath(),null,SQLiteDatabase.OPEN_READWRITE)){
-            if(db.getVersion()<4||db.getVersion()>PixelLocalStore.SCHEMA_VERSION)throw new IOException("RESTORE_DATABASE_VERSION_UNSUPPORTED");db.beginTransaction();try{
+            if(db.getVersion()<4||db.getVersion()>PixelLocalStore.SCHEMA_VERSION)throw new IOException("RESTORE_DATABASE_VERSION_UNSUPPORTED");
+            // A failed optional media transaction must finish before the core restore transaction.
+            // Catching a nested SQLite failure inside it would silently roll back checkpoint activation.
+            String mediaWarning="";
+            try{BrowserMediaRepository.installRestored(db,requestId,new BackupDeviceGuard(context).current());}
+            catch(Exception mediaProblem){if(!"pixel.snapshot.v2".equals(manifest.optString("datasetFormat")))throw mediaProblem;mediaWarning=BackupScheduleRules.errorCode(mediaProblem);}
+            db.beginTransaction();try{
                 try(Cursor sessions=db.rawQuery("SELECT id FROM work_sessions WHERE state IN ('RUNNING','PAUSED','STOPPED_PENDING_REVIEW')",null)){while(sessions.moveToNext()){String id=sessions.getString(0);android.content.ContentValues row=new android.content.ContentValues();String token=PixelMcpWriteTools.hash(requestId+":"+id);row.put("id","evt_restore_"+token);row.put("session_id",id);row.put("event_type","TIME_REVIEW_REQUIRED");row.put("request_id","restore-review-"+token);row.put("occurred_at",java.time.Instant.now().toString());row.put("payload",new JSONObject().put("reason","RESTORED_SESSION_REVIEW_REQUIRED").put("original_time_values_preserved",true).toString());db.insertWithOnConflict("work_session_events",null,row,SQLiteDatabase.CONFLICT_IGNORE);}}
                 try(Cursor row=db.rawQuery("SELECT value FROM owner_state WHERE key='planning_settings'",null)){if(row.moveToFirst()){String original=row.getString(0);put(db,"restored_inactive_planning_settings:"+requestId,original);JSONObject settings=new JSONObject(original);for(String key:new String[]{"calendar_sync_enabled","weather_enabled","read_busy"})settings.put(key,false);settings.put("requires_device_reauthorization",true);put(db,"planning_settings",settings.toString());}}
-                try{BrowserMediaRepository.installRestored(db,requestId,new BackupDeviceGuard(context).current());}catch(Exception mediaProblem){
-                    if(!"pixel.snapshot.v2".equals(manifest.optString("datasetFormat")))throw mediaProblem;
-                    put(db,"restore_media_warning",BackupScheduleRules.errorCode(mediaProblem));
-                }
+                if(!mediaWarning.isEmpty())put(db,"restore_media_warning",mediaWarning);
                 RestoredBrowserCheckpoint.install(db,requestId,manifest,manifest.getJSONObject("_restored_browser_checkpoint"),new BackupDeviceGuard(context).current());
                 put(db,"restore_requires_invoice_reconciliation","true");db.setVersion(PixelLocalStore.SCHEMA_VERSION);db.setTransactionSuccessful();
             }finally{db.endTransaction();}

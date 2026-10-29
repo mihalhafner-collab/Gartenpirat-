@@ -2,7 +2,6 @@ package at.hausgarten.service;
 import java.util.*;
 /** Safe stage codes for local backup capture. No scheduling or remote targets. */
 final class BackupScheduleRules {
-    static final int MAX_ATTEMPTS=8; // Validate historical journal counters; no automatic retries.
     /** Only bounded machine codes, never exception prose, paths or business values. */
     static String errorCode(Throwable failure){
         String code=failure==null?null:failure.getMessage();

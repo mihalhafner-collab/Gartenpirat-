@@ -82,12 +82,13 @@ Die JVM-Suite `PixelPlainBackupTests` prüft auch Hinweis-Rundlauf, unverändert
 Rechnungsnummernkollisionen und Rollback nach Unterbrechung unmittelbar nach jeder
 Dateiverschiebung. Die vollständige native Suite heißt `local_backup`, gefolgt von
 `local_backup_reopen` in einem neuen Prozess. Sie verwendet ausschließlich den
-frisch installierten **Test-APK-Sandbox** und die produktiven Sicherungs-/Restoreklassen:
+frisch installierten Wegwerf-Emulator und dessen vorher leeren, separaten
+gerätegeschützten Speicher mit den produktiven Sicherungs-/Restoreklassen:
 SQLite mit zusätzlichen Tabellen/BLOBs, fehlende Originale/Metadaten, doppelte
 Nummern, Fremdschlüsselverletzung, Schreibfehler, Wiederholung, Zielschutz,
 Archivbeschädigung, Rückfallkopie und Wiederherstellung nach Prozessneustart.
-Sie öffnet keine Datenbank der eigentlichen App. Ein vorhandener Testbestand wird
-nicht überschrieben. Die Dateiauswahl/Android-Providerberechtigung und das echte
+Der normale, anmeldegeschützte App-Speicher bleibt getrennt. Ein vorhandener Testbestand
+wird nicht überschrieben; echte Geräte werden abgewiesen. Die Dateiauswahl/Android-Providerberechtigung und das echte
 Pixel bleiben separate Abnahmen; der native Test nutzt einen isolierten Dateistream.
 
 Der bestehende GitHub-Workflow `qa-apk.yml` baut `struktur-neu`, prüft die JVM-Suiten

@@ -3,7 +3,6 @@ package at.hausgarten.service;
 import android.app.Instrumentation;
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.content.res.AssetManager;
 import android.database.sqlite.SQLiteDatabase;
 import org.json.*;
 import java.io.*;
@@ -11,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 
-/** Full native roundtrip inside the freshly installed TEST APK's sandbox, never the app's data. */
+/** Full roundtrip in unused device-protected storage of a freshly installed disposable emulator. */
 final class LocalBackupNativeTests {
     private int checks;
     private void yes(boolean value) { if (!value) throw new AssertionError("NATIVE_BACKUP_CHECK_" + checks); checks++; }
@@ -21,11 +20,11 @@ final class LocalBackupNativeTests {
     private int execute(Instrumentation test, boolean reopen) throws Exception {
         Context testContext = test.getContext();
         if (!"at.hausgarten.service.test".equals(testContext.getPackageName())) throw new IOException("ISOLATED_TEST_APK_REQUIRED");
-        Context context = new ContextWrapper(testContext) {
-            @Override public String getPackageName() { return "at.hausgarten.service"; }
+        if (!Arrays.asList("ranchu", "goldfish").contains(android.os.Build.HARDWARE)) throw new IOException("DISPOSABLE_EMULATOR_REQUIRED");
+        Context context = new ContextWrapper(test.getTargetContext().createDeviceProtectedStorageContext()) {
             @Override public Context getApplicationContext() { return this; }
-            @Override public AssetManager getAssets() { return test.getTargetContext().getAssets(); }
         };
+        if (!context.isDeviceProtectedStorage()) throw new IOException("ISOLATED_STORAGE_REQUIRED");
         File database = context.getDatabasePath("haus-garten-mobile.db");
         File marker = new File(context.getNoBackupFilesDir(), "qa-backup-roundtrip.json");
         if (reopen) {
@@ -40,7 +39,7 @@ final class LocalBackupNativeTests {
             yes(Files.readString(new File(context.getFilesDir(), "qa-extra.txt").toPath()).equals("QA exact file before save"));
             return checks;
         }
-        // A previous fixture is never overwritten, and no target application database is opened.
+        // The app uses credential-protected storage; this separate fixture must be empty.
         if (database.exists() || marker.exists() || context.getSharedPreferences("haus_garten", Context.MODE_PRIVATE).getAll().size() != 0) throw new IOException("FRESH_TEST_APK_SANDBOX_REQUIRED");
         JSONObject snapshot = SyntheticBusinessData.profile("minimal");
         snapshot.getJSONArray("customers").getJSONObject(0).put("name", "QA Grün 🌿");
@@ -63,6 +62,7 @@ final class LocalBackupNativeTests {
             JSONObject identity = new BackupDeviceGuard(context).current();
             JSONObject browser = new JSONObject().put("formatVersion", 1).put("storage", new JSONObject().put("hausgarten.entry.draft.v1", "QA preserved draft 🌿"));
             store.putOwnerValue("full_backup_browser", new JSONObject(identity.toString()).put("formatVersion", 1).put("capturedAt", java.time.Instant.now().toString()).put("browser", browser).put("contentSha256", PixelMcpWriteTools.hash(browser)).toString());
+            store.putOwnerValue(BrowserMediaRepositoryRules.PREFIX+"state",new JSONObject().put("formatVersion",99).toString());
             SQLiteDatabase db = store.getWritableDatabase();
             db.execSQL("CREATE TABLE qa_backup_payload (id INTEGER PRIMARY KEY, payload BLOB)");
             byte[] blob = new byte[65536]; new Random(71).nextBytes(blob);
@@ -116,6 +116,8 @@ final class LocalBackupNativeTests {
         try (SQLiteDatabase db = SQLiteDatabase.openDatabase(database.getPath(), null, SQLiteDatabase.OPEN_READONLY)) {
             yes(DatabaseBackupSnapshot.ownerValue(db, "qa_backup_marker", "").equals("QA before save"));
             yes(new JSONObject(DatabaseBackupSnapshot.ownerValue(db, "local_invoice_counter", "{}")).getInt("last_number") == 42);
+            yes(!DatabaseBackupSnapshot.ownerValue(db,"restored_browser_checkpoint_active","").isEmpty());
+            yes(!DatabaseBackupSnapshot.ownerValue(db,"restore_media_warning","").isEmpty());
         }
         yes(Files.readString(new File(context.getFilesDir(), "qa-extra.txt").toPath()).equals("QA exact file before save"));
         Files.writeString(marker.toPath(), new JSONObject().put("snapshot", originalSnapshot).put("backup_id", id).toString(), StandardCharsets.UTF_8);
