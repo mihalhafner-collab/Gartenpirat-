@@ -29,7 +29,7 @@
   ],
   "current_task": {
     "name": "Sicherungsdiagnose und Statusanzeigen,Connector,Profilbilder,Schriftüberlauf und doppelten Datenabruf korrigieren",
-    "status": "SOURCE_FIXES_TESTED;CONNECTOR_REFRESH_AND_PRODUCTIVE_COLLISION_RESOLUTION_OPEN",
+    "status": "SOURCE_FIXES_TESTED;CONNECTOR_CATALOG_REFRESHED;CHAT_BINDING_AND_PRODUCTIVE_COLLISION_RESOLUTION_OPEN",
     "authorized": true,
     "authorization_scope": "Current user explicitly ordered corrections and necessary tests;no automatic install,migration,restore or invoice changes",
     "implementation": [
@@ -42,13 +42,13 @@
       "one_getState_after_customer_save_without_photo"
     ],
     "remaining": [
-      "Refresh existing ChatGPT connector schema;authenticated management session required",
+      "Verify renewed chat binding and input schemas;stored connector catalog refreshed to169 but this running chat still exposes166",
       "Resolve the actual Pixel financial collision after narrowed diagnosis;no records or invoice numbers rewritten",
       "Gradle release compilation and physical Pixel acceptance unavailable in this environment"
     ]
   },
   "open_checks": [
-    "Connector refresh:169 tools on Pixel,166 exposed;three equipment-maintenance tools absent and backup descriptions stale",
+    "Stored connector catalog now169;current chat binding still166;three maintenance tools and input schemas not yet callable/verified through renewed chat binding",
     "Existing FINANCIAL_NUMBER_COLLISION is not resolved by diagnostic text;exact affected record category requires corrected device build and local review",
     "Build115 is source only;Gradle and full Google/AndroidX dependency cache unavailable;no APK produced",
     "ADB unavailable;physical UI,native worker lifecycle,photo provider,full backup/restore and performance not tested",
@@ -149,13 +149,19 @@
       "plugin_id": "plugin_asdk_app_6acb41da3780819199c4cfa8e0e117ef",
       "app_id": "asdk_app_6acb41da3780819199c4cfa8e0e117ef",
       "pixel_tool_count": 169,
-      "exposed_tool_count": 166,
-      "missing_tools": [
+      "stored_catalog_tool_count": 169,
+      "stored_catalog_read_count": 73,
+      "stored_catalog_write_count": 96,
+      "current_chat_exposed_tool_count": 166,
+      "current_chat_missing_tools": [
         "get_equipment_maintenance",
         "save_equipment_maintenance_plan",
         "record_equipment_maintenance"
       ],
-      "status": "REFRESH_REQUIRED;plugin package only references App;no supported refresh API;management browser unauthenticated",
+      "status": "STORED_CATALOG_REFRESH_VERIFIED;running chat binding remains166",
+      "verification": "Authenticated existing plugin management:Tools aktualisieren;refreshed tool list shows169 names,including all three maintenance tools;backup descriptions correctly state local plaintext ZIP and device file chooser",
+      "input_schema_comparison": "NOT_VERIFIED;management UI exposes names and descriptions but not input schemas;renewed chat binding required",
+      "new_tool_execution": "NOT_EXECUTED;missing from current chat binding",
       "permissions_changed": false,
       "connection_changed": false
     }

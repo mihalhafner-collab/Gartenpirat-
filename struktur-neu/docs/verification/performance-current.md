@@ -71,6 +71,6 @@ CalendarAuthorization, eine AndroidX-Heading-Methode und BuildConfig wurden
 nur für diesen Check durch nicht ausführbare Hilfsdefinitionen ersetzt. Dies ist
 kein Gradle-, DEX-, Signatur- oder APK-Nachweis. Keine neue APK erstellt.
 
-Die laufende App meldet 169 MCP-Werkzeuge, der exponierte Connector166.
-Der App-interne Paritätstest kann diesen Unterschied nicht erkennen. Die
-Connector-Aktualisierung und der Gerätnachtest sind getrennt zu bestätigen.
+Der App-interne Paritätstest prüft keinen in ChatGPT gespeicherten Werkzeugkatalog.
+Connector-Abgleich und Gerätnachtest bleiben getrennte Nachweise; der aktuelle
+Connector- und Prüfstand steht ausschließlich in `AKTUELLER-STAND.json`.
