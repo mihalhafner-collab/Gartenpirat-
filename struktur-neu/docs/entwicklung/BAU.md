@@ -69,6 +69,9 @@ Job fest. `BACKUP_CAPTURE_INVENTORY_IO_FAILED` grenzt den Abbruch auf die
 Bestandsprüfung nach der Datenbankaufnahme ein, benennt aber weder eine bestimmte
 Datei noch einen konkreten Finanz-/Medienfehler. Die Ziel-ZIP wird erst nach
 erfolgreicher interner Aufnahme und Integritätsprüfung ausgegeben.
+Die Sicherungsseite hat einen gemeinsamen Wiederherstellungseinstieg. Nur wenn
+ein ausgewähltes verschlüsseltes Archiv den Schlüssel benötigt, erscheint das
+zugehörige Eingabefeld. Neue ZIP-Sicherungen brauchen keinen Schlüssel.
 
 Für den anschließenden Prüflauf `PixelPlainBackupTests` einschließlich der
 Fehlercode-Fälle ausführen: konkrete Medien-/Finanzcodes unverändert durchreichen,
@@ -193,10 +196,11 @@ historischen Stylesheet-Vergleich oder frühere Diagnoseberichte.
 
 ## Grenzen der Bereinigung
 
-Alte Tests und Diagnosekampagnen wurden nicht übernommen. Die komplette frühere
-Android-Instrumentierung ist deshalb hier kein lauffähiger Abnahmeweg. Ihre
-synthetischen Hilfsklassen bleiben nur erhalten, soweit die aktuellen Werkzeuge
-sie brauchen. Vor einer späteren Umstellung der bisherigen Abläufe sind ein
+Alte Tests und Diagnosekampagnen wurden nicht übernommen. Nicht mehr referenzierte
+Drive-/Cloud-Sicherungsadapter und ihre historischen Test-Fixtures sind entfernt.
+Der aktuelle Runner kompiliert nur noch die benötigten Quellen und Speicher-Fixtures.
+Die feste synthetische Altsicherung in `PixelPlainBackupTests` prüft den erhaltenen
+Lesepfad unabhängig von einem nicht mehr vorhandenen Verschlüsselungsschreiber. Vor einer späteren Umstellung der bisherigen Abläufe sind ein
 aktueller nativer Testeinstieg und die betroffenen Pixel-Prüfungen gesondert nötig.
 Quellprüfungen, Kompilierung und JVM-/Browsertests sind getrennte Nachweise.
 

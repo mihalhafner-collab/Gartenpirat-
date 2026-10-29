@@ -1999,17 +1999,6 @@
       "platform_only": false
     },
     {
-      "id": "platform.146",
-      "area": "plattform",
-      "action": "Android/Google-Konto, OAuth, Drive-Dokumentbaum erstmalig freigeben",
-      "source": "DriveConnectionActivity.java",
-      "mcp": [],
-      "kind": "platform_or_presentation",
-      "barrier": "Android system consent; MCP kann keine Kontorechte erteilen.",
-      "platform_only": true,
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md"
-    },
-    {
       "id": "platform.147",
       "area": "plattform",
       "action": "Google-Kalender erstmalig verbinden / App-Kalender anlegen",
@@ -2537,19 +2526,6 @@
       "platform_only": false
     },
     {
-      "id": "platform.recovery_vollbackup",
-      "area": "plattform",
-      "action": "Recovery-Code am Gerät einrichten, separat exportieren und rückbestätigen; Sicherungsziel freigeben",
-      "source": "FullBackupActivity.java",
-      "mcp": [],
-      "kind": "platform_or_presentation",
-      "barrier": "Recovery-Geheimnis bleibt ausschließlich in geschützter Geräteoberfläche; SAF-/Kontofreigaben sind ausdrückliche Geräteschritte. MCP fordert oder liest keinen Recovery-Code.",
-      "platform_only": true,
-      "test_scope": "Synthetic contract/interaction checks; real device consent and external target readback require separate acceptance.",
-      "availability": "retired",
-      "retirement_reason": "Direct user request: one plaintext local ZIP; no key setup or separate portable export"
-    },
-    {
       "id": "buero.get_payment_ledger",
       "area": "buero",
       "action": "Zahlungen, offene Beträge und Guthaben lesen",
@@ -2911,9 +2887,8 @@
     "android/app/src/main/java/at/hausgarten/service/DriveJournalRules.java": "be16300d6372133721831b007bfc6eb32e00b59b90109fabf1334a09c9598e49",
     "android/app/src/main/java/at/hausgarten/service/InvoiceIssueRules.java": "46a18e1c59987804194eb7ebe29070f65510e005bde3a8b20c72dfff47e7c34f",
     "android/app/src/main/java/at/hausgarten/service/DriveRolePolicy.java": "79d887beeb460c444e1b0bdb67b0da9ff569dbce0b15b6da1f9faecaed79a7cf",
-    "android/app/src/main/java/at/hausgarten/service/DriveSyncCoordinator.java": "0305e067422dae1a43b5282cc487fca58a411263b0aa0d89eacb551fe7974f52",
-    "android/app/src/main/java/at/hausgarten/service/DriveSyncJob.java": "f6b5bbba2825bcd0da568e68ed9cfbb9c138e617b8b2f497cdb0848115c3f9e0",
-    "android/app/src/main/java/at/hausgarten/service/DriveConnectionActivity.java": "5c7f5fde949c08cffae2cf96217443cab3d391d6be7c970f2f1f17091725eef1",
+    "android/app/src/main/java/at/hausgarten/service/DriveSyncCoordinator.java": "247418df87acf38346c81c651c00705e0c0ca945df219e1820f29e344128ac36",
+    "android/app/src/main/java/at/hausgarten/service/DriveSyncJob.java": "ea66c6a7999c32011efbfc053eb091e38c761edd079fd3701813b96ef3a2ad6b",
     "android/app/src/main/java/at/hausgarten/service/PixelOwnerAccess.java": "fc057f99edb068ebf29cabac8f0ed4ba9762410ae319c286f3942b33364aa601",
     "android/app/src/main/java/at/hausgarten/service/LocalOwnerRepository.java": "066b5e3027c99ec658f77b4e75e39e82e78d3475ca2f43c55b182bbb786b7f93",
     "android/app/src/main/java/at/hausgarten/service/PixelLocalStore.java": "d3f6efbbd5ed617e1e8516a8611e2679a8983b5743c77c2ed7b3bed14d48b958",
@@ -2935,10 +2910,10 @@
     "android/app/src/main/java/at/hausgarten/service/BackgroundWorkDispatch.java": "639d6059c077140b12c21305ec5761c227d5f203cafea0bde90ed312f2a2cafc",
     "android/app/src/main/java/at/hausgarten/service/PendingWorkPhotoStore.java": "3019f9c8843818d54f939ec24174ea4939767b2e72f802d097abb7f000ea42e6",
     "android/app/src/main/java/at/hausgarten/service/PixelBackupService.java": "321aa73f68a111b5cc1b0d92dc8153ea2b4fffccc12f3d719f320ff199c9c701",
-    "android/app/src/main/java/at/hausgarten/service/BackupDocumentTransfer.java": "3443f286dcce556d4f57efa15f43cb6999767a6f699707ce88697776ed36a1bf",
+    "android/app/src/main/java/at/hausgarten/service/BackupDocumentTransfer.java": "9608f768bcc6efed6e4708322cf3023df5c32683bcd01c491432fc3a2143942b",
     "android/app/src/main/java/at/hausgarten/service/FullBackupController.java": "e529dfaa2d40e8036a9c26ace88cf5deedb2546fafc5dbcfa4a127d1fc644f79",
     "android/app/src/main/java/at/hausgarten/service/LocalBackupCoordinator.java": "ff897d5bc9a5e7aef1e26abf59fde58db70bf3c8c29910aea3bbb95c9130af5c",
-    "android/app/src/main/java/at/hausgarten/service/EncryptedBackupArchive.java": "df6121437ea5319667cbaf65072b9db68761ea6122f3cc89a250e0e54b9e41a9",
+    "android/app/src/main/java/at/hausgarten/service/EncryptedBackupArchive.java": "90775265212f8dd98608e027340936bcf544a6f0c795f90f3b2b5843f3a06ccc",
     "android/app/src/main/java/at/hausgarten/service/BackupRestoreService.java": "9232fcade87b656676783f8548c8532b97cc3a2ce5eb871ef6733ae72bfc4b18",
     "android/app/src/main/java/at/hausgarten/service/RestoreStartupProtection.java": "380532470fb555d1f56b978b2f6f70381aeed02438ab2d5676cf0dea456cee9f",
     "android/app/src/main/java/at/hausgarten/service/BackupScheduleRules.java": "5b85ef14cc2d1a956b853bf5068276ef68dad979589436e902f11a9683e40d09",
@@ -2962,7 +2937,7 @@
     "android/app/src/main/java/at/hausgarten/service/OwnerRequestTransactions.java": "b5dfd5d3328bb9d6db0364c013e3812d323f7df31341541bf924ffbeda528771",
     "android/app/src/main/java/at/hausgarten/service/McpErrors.java": "05692a5112da4f7d890d18877fd72269b3d801b0267e0cf524830730096f3fd1",
     "android/app/src/main/java/at/hausgarten/service/CalendarSetupRules.java": "c2049341103fbb0c6aa2a4bc400c8af0dcb2900af3ec224320c336f1013d5755",
-    "android/app/src/main/java/at/hausgarten/service/FullBackupActivity.java": "dea095cdc7a67f98e32aeac44974d88edaa0ed0628db51ddc447fce1df915c64",
+    "android/app/src/main/java/at/hausgarten/service/FullBackupActivity.java": "efdb2111b4932d6adeaf3a337d760b7ab878093d9b78debbe66ddadec1523416",
     "android/app/src/main/java/at/hausgarten/service/RestoreRecoveryActivity.java": "30042050d78f446f93c38ab5c0c18e28d512d47d45513ff68257c9cea2e2bf98",
     "android/app/src/main/java/at/hausgarten/service/LocalAuthorityActivity.java": "d5506bf427ea97bb023454df40bb8381614a4b76b5710dc028549378995c1656"
   }

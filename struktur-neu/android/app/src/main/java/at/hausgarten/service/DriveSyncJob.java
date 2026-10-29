@@ -9,6 +9,5 @@ final class DriveSyncJob {
         JobScheduler jobs=context.getSystemService(JobScheduler.class);
         if(jobs!=null){jobs.cancel(0x484701);jobs.cancel(0x484702);}
     }
-    static boolean schedule(Context context,long delay){install(context);return false;}
     private DriveSyncJob(){}
 }

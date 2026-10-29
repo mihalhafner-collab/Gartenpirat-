@@ -34,7 +34,7 @@ def verify(apk, baseline=None):
         if current is not None:
             current.append(line)
     components = ['\n'.join(lines) for lines in components.values()]
-    disabled = ['DriveConnectionActivity', 'PlanningConnectionActivity', 'PixelTunnelActivity',
+    disabled = ['PlanningConnectionActivity', 'PixelTunnelActivity',
                 'DriveSyncJob', 'PlanningJob', 'PixelTunnelService', 'PixelTunnelBootReceiver']
     for name in disabled:
         block = [x for x in components if '="at.hausgarten.service.'+name+'"' in x]

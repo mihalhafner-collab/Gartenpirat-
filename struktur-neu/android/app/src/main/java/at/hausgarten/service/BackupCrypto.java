@@ -8,7 +8,6 @@ import com.google.crypto.tink.TinkJsonProtoKeysetFormat;
 import com.google.crypto.tink.aead.AeadConfig2026;
 import com.google.crypto.tink.aead.AesGcmKey;
 import com.google.crypto.tink.aead.AesGcmParameters;
-import com.google.crypto.tink.streamingaead.AesGcmHkdfStreamingParameters;
 import com.google.crypto.tink.streamingaead.StreamingAeadConfig2026;
 import com.google.crypto.tink.util.SecretBytes;
 import java.io.*;
@@ -17,14 +16,10 @@ import java.security.*;
 import java.util.Arrays;
 import java.util.Base64;
 
-/** Tink envelope: random streaming key per archive, wrapped by a random recovery key. */
+/** Reader for existing encrypted archives. New backups use plaintext ZIP only. */
 final class BackupCrypto {
     private static final byte[] MAGIC="HG-BACKUP-1\n".getBytes(StandardCharsets.US_ASCII);
     private static final int MAX_ENVELOPE=16*1024;
-    static String newRecoveryCode()throws GeneralSecurityException {
-        byte[] key=new byte[32];new SecureRandom().nextBytes(key);
-        try{return code(key);}finally{Arrays.fill(key,(byte)0);}
-    }
     static byte[] recoveryKey(String code)throws GeneralSecurityException {
         if(code==null||!code.trim().matches("HG1\\.[A-Za-z0-9_-]{43}\\.[0-9a-f]{8}"))throw new GeneralSecurityException("RECOVERY_CODE_INVALID");
         String value=code.trim();byte[] key;
@@ -44,14 +39,6 @@ final class BackupCrypto {
             AesGcmKey imported=AesGcmKey.builder().setParameters(parameters).setKeyBytes(SecretBytes.copyFrom(key,InsecureSecretKeyAccess.get())).build();
             return KeysetHandle.newBuilder().setConfiguration(AeadConfig2026.get()).addEntry(KeysetHandle.importKey(imported).withFixedId(1).makePrimary()).build().getPrimitive(AeadConfig2026.get(),Aead.class);
         }finally{Arrays.fill(key,(byte)0);}
-    }
-    static OutputStream encrypt(OutputStream destination,String recovery)throws Exception {
-        AesGcmHkdfStreamingParameters parameters=AesGcmHkdfStreamingParameters.builder().setKeySizeBytes(32).setDerivedAesGcmKeySizeBytes(32).setHkdfHashType(AesGcmHkdfStreamingParameters.HashType.SHA256).setCiphertextSegmentSizeBytes(1024*1024).build();
-        KeysetHandle handle=KeysetHandle.generateNew(parameters,StreamingAeadConfig2026.get());
-        byte[] wrapped=TinkJsonProtoKeysetFormat.serializeEncryptedKeyset(handle,recoveryAead(recovery),MAGIC,StreamingAeadConfig2026.get()).getBytes(StandardCharsets.UTF_8);
-        if(wrapped.length>MAX_ENVELOPE)throw new GeneralSecurityException("BACKUP_ENVELOPE_TOO_LARGE");
-        ByteArrayOutputStream header=new ByteArrayOutputStream();DataOutputStream bytes=new DataOutputStream(header);bytes.write(MAGIC);bytes.writeInt(wrapped.length);bytes.write(wrapped);bytes.flush();byte[] aad=header.toByteArray();destination.write(aad);
-        return handle.getPrimitive(StreamingAeadConfig2026.get(),StreamingAead.class).newEncryptingStream(destination,aad);
     }
     static InputStream decrypt(InputStream source,String recovery)throws Exception {
         DataInputStream in=new DataInputStream(source);byte[] magic=new byte[MAGIC.length];in.readFully(magic);if(!Arrays.equals(magic,MAGIC))throw new IOException("BACKUP_FORMAT_UNSUPPORTED");

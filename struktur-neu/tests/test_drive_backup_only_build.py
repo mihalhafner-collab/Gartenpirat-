@@ -1,4 +1,4 @@
-"""Enforce the production boundary; historical transports belong only to test sources."""
+"""Keep retired transports out of the app and current synthetic test sources."""
 from pathlib import Path
 import re
 import unittest
@@ -16,7 +16,7 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         for name in ('LegacyDriveSyncFixture', 'LegacyDriveDirectFixture',
                      'LegacyDriveRestFixture', 'LegacyDriveAccountFixture',
                      'LegacyConflictBackupFixture', 'DriveNumbering', 'DriveMediaBatch'):
-            self.assertTrue((FIXTURES / (name + '.java')).is_file(), name)
+            self.assertFalse((FIXTURES / (name + '.java')).exists(), name)
         for path in MAIN.glob('*.java'):
             self.assertNotRegex(path.read_text(), r'\bLegacy\w*Fixture\b', path.name)
 
@@ -28,11 +28,19 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
             self.assertNotRegex(path.read_text(),r'\bRetired(?:Backup|Drive|FullBackup|LocalBackup)\w*\b')
         self.assertNotIn('openConnection()', (MAIN/'HttpTransport.java').read_text())
 
-    def test_retired_backup_adapters_cannot_use_live_accounts_or_network(self):
-        account=(FIXTURES/'RetiredDriveAccount.java').read_text()
-        self.assertNotIn('AccountManager.get(',account)
-        self.assertIn('QA_LIVE_DRIVE_ACCOUNT_FORBIDDEN',account)
-        self.assertIn('QA_LIVE_DRIVE_NETWORK_FORBIDDEN',(FIXTURES/'RetiredBackupDriveClient.java').read_text())
+    def test_unused_legacy_classes_and_writers_are_removed(self):
+        for name in ('BackupPortableFormat', 'BackupRecoveryExport', 'BackupRecoveryRepairService',
+                     'DriveConnectionActivity', 'DrivePrimaryState', 'DriveTransferPool',
+                     'ImmutableStateReference', 'LegacyBackupPolicy', 'OwnerReceiptRetention',
+                     'ReceiptRetentionRules', 'SyncCommitRules', 'SyncMediaPlan',
+                     'SyncWakeup', 'VerifiedSyncCache'):
+            self.assertFalse((MAIN / (name + '.java')).exists(), name)
+        for name in ('RetiredDriveAccount', 'RetiredDriveBackupUpload',
+                     'RetiredBackupDriveClient', 'RetiredBackupScheduleRules'):
+            self.assertFalse((FIXTURES / (name + '.java')).exists(), name)
+        self.assertNotIn('static OutputStream encrypt(', (MAIN/'BackupCrypto.java').read_text())
+        self.assertNotIn('repairAfterVerifiedArchive(', (MAIN/'BackupRecoveryKeyStore.java').read_text())
+        self.assertNotIn('DriveConnectionActivity', (ROOT/'android/app/src/main/AndroidManifest.xml').read_text())
 
     def test_old_jobs_have_no_registered_service_or_scheduling(self):
         manifest = ET.parse(ROOT / 'android/app/src/main/AndroidManifest.xml')
@@ -63,14 +71,6 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         self.assertIn('RESTORE_FULL_REPLACEMENT_REQUIRED', body)
         self.assertNotRegex(body, r'\b(?:state|effective|fileMeta|fileBytes|enqueue|local)\(')
         self.assertNotIn('LocalAuthorityGuard', body)
-
-    def test_historical_fixtures_cannot_use_real_network_or_account_tokens(self):
-        rest = (FIXTURES / 'LegacyDriveRestFixture.java').read_text()
-        account = (FIXTURES / 'LegacyDriveAccountFixture.java').read_text()
-        self.assertNotIn('target.openConnection()', rest)
-        self.assertIn('QA_LIVE_DRIVE_NETWORK_FORBIDDEN', rest)
-        self.assertNotIn('AccountManager.get(', account)
-        self.assertIn('QA_LIVE_DRIVE_ACCOUNT_FORBIDDEN', account)
 
     def test_plaintext_backup_rejects_cloud_and_usb_targets(self):
         source=(MAIN/'PixelBackupService.java').read_text()

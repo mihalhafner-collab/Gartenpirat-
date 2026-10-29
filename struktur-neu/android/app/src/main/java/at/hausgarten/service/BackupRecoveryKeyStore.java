@@ -63,32 +63,6 @@ final class BackupRecoveryKeyStore {
     String read()throws Exception {
         synchronized(KEY_LOCK){String code=readProtected().getString("recovery_code");byte[] checked=BackupCrypto.recoveryKey(code);Arrays.fill(checked,(byte)0);return code;}
     }
-    /** Only call after authenticating and inspecting a complete known archive with this candidate. */
-    JSONObject repairAfterVerifiedArchive(String requestId,String candidate,String confirmation,JSONObject proof)throws Exception {
-        synchronized(KEY_LOCK){
-            if(requestId==null||!requestId.matches("[A-Za-z0-9_-]{8,200}"))throw new GeneralSecurityException("BACKUP_REQUEST_ID_REQUIRED");
-            if(proof.optInt("formatVersion")!=1||!proof.optBoolean("archive_verified")||!proof.optString("backup_id").matches("[A-Za-z0-9_-]{8,100}")||proof.optString("business_id").isEmpty()||!proof.optString("archive_sha256").matches("[0-9a-f]{64}")||!proof.optString("database_sha256").matches("[0-9a-f]{64}"))throw new GeneralSecurityException("RECOVERY_REPAIR_PROOF_REQUIRED");
-            byte[] candidateKey=BackupCrypto.recoveryKey(candidate),confirmationKey=null;
-            try{
-                confirmationKey=BackupCrypto.recoveryKey(confirmation);if(!MessageDigest.isEqual(candidateKey,confirmationKey))throw new GeneralSecurityException("RECOVERY_CONFIRMATION_MISMATCH");
-                String fingerprint=PixelMcpWriteTools.hash(new JSONObject().put("request_id",requestId).put("proof",proof).put("key_sha256",hex(MessageDigest.getInstance("SHA-256").digest(candidateKey))));
-                if(!configured())throw new GeneralSecurityException("RECOVERY_NOT_CONFIGURED");
-                JSONObject current=null;try{current=readProtected();}catch(Exception unavailable){/* The externally authenticated archive is the separate recovery path. */}
-                if(current!=null){if(requestId.equals(current.optString("request_id"))&&fingerprint.equals(current.optString("repair_fingerprint")))return new JSONObject().put("replayed",true);throw new GeneralSecurityException("RECOVERY_REPAIR_NOT_REQUIRED");}
-                byte[] original;try(InputStream input=protectedKey.openRead();ByteArrayOutputStream bytes=new ByteArrayOutputStream()){byte[] block=new byte[1024];int count;while((count=input.read(block))!=-1){if(count>8192-bytes.size())throw new IOException("RECOVERY_STORAGE_INVALID");bytes.write(block,0,count);}original=bytes.toByteArray();}
-                if(original.length>=4){int savedVersion=new DataInputStream(new ByteArrayInputStream(original)).readInt();if(savedVersion!=1&&savedVersion!=2)throw new IOException("RECOVERY_STORAGE_VERSION_UNSUPPORTED");}
-                File preserved=new File(protectedKey.getBaseFile().getParentFile(),protectedKey.getBaseFile().getName()+".preserved-"+hex(MessageDigest.getInstance("SHA-256").digest(original)));
-                if(!preserved.exists()){AtomicFile prior=new AtomicFile(preserved);FileOutputStream old=null;try{old=prior.startWrite();old.write(original);prior.finishWrite(old);old=null;}catch(Exception failure){if(old!=null)prior.failWrite(old);throw failure;}}
-                if(!MessageDigest.isEqual(original,java.nio.file.Files.readAllBytes(preserved.toPath())))throw new IOException("RECOVERY_PRESERVATION_FAILED");
-                String repairedAlias=alias+".repair."+java.util.UUID.randomUUID();JSONObject value=new JSONObject().put("formatVersion",1).put("request_id",requestId).put("recovery_code",candidate.trim()).put("repair_fingerprint",fingerprint).put("archive_proof_sha256",PixelMcpWriteTools.hash(proof));
-                Cipher cipher=Cipher.getInstance("AES/GCM/NoPadding");cipher.init(Cipher.ENCRYPT_MODE,key(repairedAlias,true));cipher.updateAAD(repairAad(repairedAlias));byte[] sealed=cipher.doFinal(value.toString().getBytes(StandardCharsets.UTF_8));FileOutputStream output=null;
-                try{output=protectedKey.startWrite();DataOutputStream data=new DataOutputStream(output);data.writeInt(2);data.writeUTF(repairedAlias);data.write(cipher.getIV());data.writeInt(sealed.length);data.write(sealed);data.flush();protectedKey.finishWrite(output);output=null;}catch(Exception failure){if(output!=null)protectedKey.failWrite(output);throw failure;}
-                if(!fingerprint.equals(readProtected().optString("repair_fingerprint")))throw new GeneralSecurityException("RECOVERY_READBACK_FAILED");
-                return new JSONObject().put("replayed",false);
-            }finally{Arrays.fill(candidateKey,(byte)0);if(confirmationKey!=null)Arrays.fill(confirmationKey,(byte)0);}
-        }
-    }
-    private static String hex(byte[] digest){StringBuilder text=new StringBuilder();for(byte value:digest)text.append(String.format(java.util.Locale.ROOT,"%02x",value&255));return text.toString();}
     private byte[] repairAad(String repairedAlias){return (new String(capsuleAad,StandardCharsets.US_ASCII)+"/v2/"+repairedAlias).getBytes(StandardCharsets.US_ASCII);}
     private JSONObject readProtected()throws Exception {
         if(!configured())throw new GeneralSecurityException("RECOVERY_NOT_CONFIGURED");

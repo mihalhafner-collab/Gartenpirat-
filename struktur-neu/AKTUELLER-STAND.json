@@ -28,25 +28,28 @@
     }
   ],
   "current_task": {
-    "name": "Build115 mit bestehenden Korrekturen und kleinen Listenfiltern original signieren und privat bereitstellen",
-    "status": "COMPLETE;ORIGINAL_SIGNED_BUILD115_PRIVATELY_DELIVERED_AND_READ_BACK;NO_INSTALLATION",
+    "name": "Nachweislich ungenutzte App-Altlasten entfernen und Sicherungsbedienung vereinfachen",
+    "status": "SOURCE_CLEANUP_IMPLEMENTED;JVM_AND_SOURCE_CHECKS_PASS;ANDROID_BROWSER_AND_PIXEL_ACCEPTANCE_OPEN",
     "authorized": true,
-    "authorization_scope": "User expressly authorized implementation,tests,commit/push,assembleRelease,original signing and private delivery;no installation,migration,restore or productive financial changes",
+    "authorization_scope": "Direct user instruction29Oct2026: Entferne alle Altlasten aus der app. Source cleanup,dependent checks and GitHub commit;no productive data deletion,installation,restore,invoice changes or external APK delivery.",
     "implementation": [
-      "Existing backup evidence/collision diagnosis,customer and equipment photos,200 percent invoice text,single customer state reload retained",
-      "Customer active/archive and billing route;equipment condition;order/invoice status and customer;search,count,reset;bottom filter access",
-      "Small-hand interaction requirement recorded in docs/fachregeln/APP.md"
+      "Removed14 unreachable production Java classes and11 obsolete test adapters after class dependency and entrypoint review",
+      "Removed unused encrypted archive creation,key generation/repair,portable export and provider generation protocol;local ZIP export/readback retained",
+      "Single restore entry;recovery key field appears only when the chosen encrypted archive requires it",
+      "Removed obsolete Drive Activity manifest registrations and two stale UI-catalog actions;current catalog210 actions",
+      "Candidate1.55.11/build116;no APK built or installed"
     ],
     "remaining": [
-      "Physical Android/Pixel acceptance NOT_EXECUTED:no ADB;real photo picker/save/reopen/full restart,native worker lifecycle,keyboard/system navigation,update data retention,full backup/restore",
-      "Productive FINANCIAL_NUMBER_COLLISION remains unresolved;no numbers or integrity checks changed"
+      "Full Gradle/Android compilation and native UI/device acceptance not executed successfully in this environment",
+      "FINANCIAL_ISSUED_NUMBER_COLLISION reported in user screenshot remains unresolved;no productive invoices read or changed",
+      "Active journal/snapshot/financial-integrity paths and existing encrypted archive reader remain required;not an all-legacy-code deletion claim"
     ]
   },
   "open_checks": [
-    "Android/Pixel NOT_EXECUTED:no ADB;real photo picker,save/reopen/full restart,native worker lifecycle,keyboard/system navigation,update data retention and full backup/restore remain open",
-    "Existing FINANCIAL_NUMBER_COLLISION is not resolved by diagnostic text;exact affected record category requires corrected device build and local review",
-    "ADB unavailable;physical UI,native worker lifecycle,photo provider,full backup/restore and performance not tested",
-    "Protected legacy deletion still requires Pixel backup AND restore and dependency evidence"
+    "Build116 Gradle compile/assemble and Android/Pixel acceptance pending;missing Gradle/Google Play Services dependencies,generated BuildConfig and Chromium in this environment",
+    "Real Android file picker,restore key prompt,restart,backup/restore and update data retention remain untested",
+    "User screenshot29Oct reports FINANCIAL_ISSUED_NUMBER_COLLISION;affected invoices not inspected;no numbering or financial checks changed",
+    "Active journal/snapshot code and existing encrypted archive reader require a demonstrated replacement and verified backup/restore before removal"
   ],
   "workflow": {
     "scope": "PARALLEL_STAGING; existing source paths and workflows unchanged",
@@ -82,7 +85,7 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "dcb2e148c6597b576831200514a62452e04c592e7b3c8b1d7284846fc8f8222b",
+    "app_source_fingerprint": "54d845d553db16e024694d244845d154e4aa695470c2e1131161325efa86182b",
     "source_privacy": "PASS;empty operational seed",
     "native_pixel_tests": "NOT_EXECUTED;ADB unavailable",
     "business_data_read": false,
@@ -90,61 +93,54 @@
     "authored_changes_diff_check": "PASS",
     "imported_source_whitespace": "2 existing findings in byte-identical Build113 sources; no unrelated source formatting applied",
     "current_test_run": {
-      "observed_at_utc": "2026-10-29T13:24:35.244857+00:00",
-      "source_sha256": "dcb2e148c6597b576831200514a62452e04c592e7b3c8b1d7284846fc8f8222b",
-      "check_current": "PASS;62 Python tests plus source/contracts/privacy/fixtures/plants/UI checks",
+      "observed_at_utc": "2026-10-29T16:27:47.674687+00:00",
+      "source_sha256": "54d845d553db16e024694d244845d154e4aa695470c2e1131161325efa86182b",
+      "check_current": "PASS;61 Python tests plus source/contracts/privacy/fixtures/plants/UI checks",
       "java_suites_passed": 3,
-      "java_checks_passed": 216,
+      "java_checks_passed": 222,
       "java_breakdown": {
         "EquipmentMaintenanceTests": 91,
         "EquipmentProfilePhotoTests": 54,
-        "PixelPlainBackupTests": 71
+        "PixelPlainBackupTests": 77
       },
-      "java_environment": "JDK17;real pinned dependencies;synthetic JVM fixtures;no Android runtime",
-      "browser_tests": "PASS;66 checks across simple-forms(14),startup-ui(13),equipment-maintenance-ui(13),equipment-profile-photo-ui(14),work-entry-photo-failure(12);synthetic Chromium",
-      "browser_scope": "Filter/search/count/reset,65 equipment rows across pages,200 percent text at320/360px,short viewport,bottom access,photo decode/save/reopen,backup status,single customer getState",
-      "android_compile": "PASS;actual :app:compileReleaseJavaWithJavac;SDK37,pinned production dependencies,no compile stubs",
-      "android_release_build": "PASS;actual :app:assembleRelease;release lint,source/workspace/artifact privacy gates",
-      "signed_apk": "PASS;original certificate,apksigner,zipalign,705 byte-identical assets,clean source and DEX source binding",
-      "android_instrumentation": "NOT_EXECUTED;ADB unavailable",
+      "java_environment": "JDK17 compiler via com.sun.tools.javac.Main;real Android37 API JAR,JSON20240303,Tink1.24.0,Gson2.13.2;synthetic JVM fixtures",
+      "legacy_archive_regression": "PASS;fixed synthetic archive generated with pre-cleanup writer,missing key,correct key,corrupt final segment and temporary-stage cleanup;no productive backup accessed",
+      "key_store_compile": "PASS;changed BackupRecoveryKeyStore compiled against real Android37 API and actual JVM-compiled production dependencies",
+      "browser_tests": "NOT_EXECUTED;simple-forms launch blocked by absent Chromium;runtime Acorn8.18.0 available instead of documented8.19.0",
+      "android_compile": "NOT_PASSED;direct javac attempt blocked by missing generated BuildConfig and Google Play Services classes;Gradle unavailable;no placeholder compile dependencies used",
+      "android_release_build": "NOT_EXECUTED",
+      "android_instrumentation": "NOT_EXECUTED;no reachable ADB",
       "physical_update_data_retention": "NOT_EXECUTED",
       "full_pixel_backup_restore": "NOT_EXECUTED"
     },
     "current_source_changes": {
-      "status": "JVM_BROWSER_COMPILE_RELEASE_SIGNING_AND_PRIVATE_READBACK_PASSED;PHYSICAL_PIXEL_ACCEPTANCE_OPEN",
-      "scope": "Current authorized backup status/diagnosis,customer avatar,large text and redundant reload corrections;previous protected legacy dependencies retained;equipment profile display reads verified original through existing native photo bridge",
-      "legacy_dependency_review": {
-        "production": "DriveJournalRules,SnapshotProjection and LocalPendingActions still used by live state/backup projections",
-        "fixtures": "Kept JVM/native fixtures reference legacy and retired adapters;these test-only classes are absent from release APK",
-        "LocalTestCleanup": "Preserved original-snapshot provenance;existing verified deletion backup,tombstones and relationships remain required"
-      },
+      "status": "IMPLEMENTED_AND_SOURCE_JVM_VERIFIED;NATIVE_ACCEPTANCE_OPEN",
+      "base_git_sha": "41d159c32580296c67ce55641839ee21cc54b507",
+      "deleted_production_classes": 14,
+      "deleted_historical_test_adapters": 11,
+      "production_java_files_before": 201,
+      "production_java_files_after": 187,
+      "dependency_review": "Java identifier graph from manifest/entrypoint classes and current test roots,manual call-site and reflective-use review;no remaining unreachable class candidates;not a proof that every method is needed",
+      "preserved": [
+        "Active DriveJournalRules,SnapshotProjection,LocalPendingActions and financial/backup validation",
+        "Existing encrypted archive reader and key capsule readers including format2;legacy files and keys untouched",
+        "Current local ZIP save/readback,restore rollback and old job cancellation",
+        "Original package/signing configuration and all productive data"
+      ],
       "protected_deletion_evidence": {
-        "backup_present": "USER_CONFIRMED;registered full-backup job not yet locally verified",
-        "pixel_restore": "DIRECT_PIXEL_STATUS_NONE;no completed restore evidenced",
-        "dependency_absence": "NOT_ESTABLISHED;live journal/table/backup readers and historical test fixtures still reference the listed classes",
-        "deletion": "NOT_PERFORMED;explicit source deletion request retained pending prerequisite"
-      },
-      "implementation": [
-        "chronological_backup_status_and_latest_job_before_pagination",
-        "incomplete_idle_jobs_reported_as_interrupted_without_mutating_journal",
-        "self_test_uses_recorded_readback_proof_not_constant_PASS",
-        "specific_number_collision_categories_and_native_error_messages",
-        "customer_profile_role_and_safe_native_thumbnail_URIs",
-        "invoice_readiness_wraps_at_200_percent_text",
-        "one_getState_after_customer_save_without_photo",
-        "equipment_image_direct_from_verified_original_without_content_uri_or_thumbnail_file",
-        "minimal_existing_list_filters_and_bottom_access"
-      ]
+        "backup_restore": "No new Pixel backup/restore proof;user screenshot shows save failure",
+        "dependency_absence": "Not established for active journal/snapshot/recovery paths",
+        "deletion": "Only independently proven unused source classes/methods removed;no runtime file/data cleanup"
+      }
     },
     "backup_diagnosis": {
-      "observed_at_utc": "2026-10-29T04:56:16.086472+00:00",
-      "device_reported_build": 114,
-      "latest_error_code": "FINANCIAL_NUMBER_COLLISION",
-      "local_saved_backup_verified": false,
-      "root_cause": "A number collision was reported by the financial inventory;exact subtype/records unknown;no productive financial dataset used as development input",
-      "correction": "Build115 source separates issued-number,reservation-counter,reservation-invoice and external-proof collisions;integrity checks still reject them;chronological status and nonconstant self-test implemented",
-      "resolution": "PRODUCTIVE_COLLISION_NOT_FIXED;new diagnostic categories and synthetic regression tests only",
-      "deployment": "Original-signed Build115 privately delivered and read back;not installed;productive collision remains unresolved"
+      "reported_on": "2026-10-29",
+      "source": "User-provided screenshot;no device or financial dataset read",
+      "device_build": "NOT_SHOWN_IN_SCREENSHOT",
+      "latest_error_code": "FINANCIAL_ISSUED_NUMBER_COLLISION",
+      "root_cause": "Current code raises this subtype when distinct issued invoices have the same invoice_number;specific records and origin not independently inspected",
+      "resolution": "UNRESOLVED;financial checks and all invoice data unchanged",
+      "local_saved_backup_verified": false
     },
     "performance_evidence": "docs/verification/performance-current.md measures the previous candidate fingerprint;no performance claim for the new native image path",
     "connector": {
@@ -164,7 +160,7 @@
       "connection_changed": false,
       "observed_at_utc": "2026-10-29T12:15:07.276831+00:00"
     },
-    "business_data_scope": "This task uses public source and synthetic fixtures only;no productive app data read or written",
+    "business_data_scope": "Source-only cleanup and synthetic tests;no productive app data or backup read or written",
     "equipment_photo_display": {
       "diagnosis": "Original readable;file-origin WebView used content-URI thumbnail;load errors became empty placeholders",
       "correction": "Existing native bridge reads current equipment attachment and verified original;existing image conversion returns a bounded JPEG data URI directly;visible decode/read error",
@@ -220,41 +216,15 @@
     }
   },
   "current_release_candidate": {
-    "version_name": "1.55.10",
-    "version_code": 115,
-    "source_sha256": "dcb2e148c6597b576831200514a62452e04c592e7b3c8b1d7284846fc8f8222b",
-    "app_source_git_sha": "085dbe9c1a58a6b9e63651d83ad8ce741366501b",
-    "source_tag": "source/v1.55.10-build115",
-    "source_binding": "PASS;all bundled source assets byte-identical;commit and source fingerprint found in signed DEX;generated BuildConfig clean",
-    "apk_sha256": "7197ec51df599a6a4377f215fcc3f28e7517410e93352edbcf073b62936a2bc2",
-    "apk_bytes": 82874876,
-    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-    "signature_valid": true,
-    "original_certificate_match": true,
-    "temporary_signing_material_removed": true,
-    "installation": "NOT_PERFORMED;last observed Pixel114",
+    "version_name": "1.55.11",
+    "version_code": 116,
+    "source_sha256": "54d845d553db16e024694d244845d154e4aa695470c2e1131161325efa86182b",
+    "base_git_sha": "41d159c32580296c67ce55641839ee21cc54b507",
+    "status": "SOURCE_ONLY;NOT_BUILT_SIGNED_OR_DISTRIBUTED",
+    "installation": "NOT_PERFORMED",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "NOT_ACTIVATED",
     "app_backup_mode": "PIXEL_PLAINTEXT_ZIP",
-    "production_source_classes": 200,
-    "built_at_utc": "2026-10-29T13:29:37.995133+00:00",
-    "build_command": ":app:assembleRelease",
-    "download_url": "https://drive.google.com/file/d/1QTCULhXn6tVFgj3v9Jws1wQwmtaUzF1k/view?usp=drivesdk",
-    "drive": {
-      "file_id": "1QTCULhXn6tVFgj3v9Jws1wQwmtaUzF1k",
-      "url": "https://drive.google.com/file/d/1QTCULhXn6tVFgj3v9Jws1wQwmtaUzF1k/view?usp=drivesdk",
-      "parent_folder_id": "1K4WB9L6ZKlW-33o8uPK3zTfqgAOVOE8u",
-      "mime_type": "application/vnd.android.package-archive",
-      "visibility": "PRIVATE;permissions metadata contains owner only;no sharing change",
-      "verification": "PASS;authenticated raw-file fetch,fresh local download,size and SHA256 identical;downloaded APK passes apksigner"
-    },
-    "download_readback": {
-      "status": "PASS",
-      "observed_at_utc": "2026-10-29T13:29:37.995133+00:00",
-      "bytes": 82874876,
-      "sha256": "7197ec51df599a6a4377f215fcc3f28e7517410e93352edbcf073b62936a2bc2",
-      "signature_valid": true
-    },
-    "status": "ORIGINAL_SIGNED_AND_PRIVATELY_DELIVERED;READBACK_PASS;NOT_INSTALLED"
+    "production_source_classes": 187
   }
 }

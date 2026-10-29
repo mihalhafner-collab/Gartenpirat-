@@ -27,17 +27,11 @@ final class EncryptedBackupArchive {
         // Only our freshly created isolated directory is owned here. Never the active store.
         @Override public void close()throws IOException {removeOwned(directory);}
     }
-    static JSONObject write(OutputStream destination,String recovery,JSONObject metadata,List<Source> sources)throws Exception {
-        return writeContainer(destination,recovery,metadata,sources,false);
-    }
     static JSONObject writePlain(OutputStream destination,JSONObject metadata,List<Source> sources)throws Exception {
-        return writeContainer(destination,"",metadata,sources,true);
-    }
-    private static JSONObject writeContainer(OutputStream destination,String recovery,JSONObject metadata,List<Source> sources,boolean plain)throws Exception {
-        JSONObject manifest=new JSONObject(metadata.toString());manifest.put("formatVersion",FORMAT_VERSION);if(plain)manifest.put("archiveProtection","NONE");
+        JSONObject manifest=new JSONObject(metadata.toString());manifest.put("formatVersion",FORMAT_VERSION).put("archiveProtection","NONE");
         requireMetadata(manifest,Integer.MAX_VALUE);
         Set<String> names=new HashSet<>();JSONArray files=new JSONArray();long total=0;
-        try(ZipOutputStream archive=new ZipOutputStream(plain?destination:BackupCrypto.encrypt(destination,recovery))){
+        try(ZipOutputStream archive=new ZipOutputStream(destination)){
             archive.setLevel(Deflater.NO_COMPRESSION);
             for(Source source:sources){
                 requirePath(source.path);if(!names.add(source.path))throw new IOException("BACKUP_DUPLICATE_FILE");
