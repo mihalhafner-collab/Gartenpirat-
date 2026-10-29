@@ -16,9 +16,20 @@ final class LocalAuthorityMigration {
         return result.put("preview_hash",PixelMcpWriteTools.hash(result));
     }
     JSONObject activateFromArgs(JSONObject args)throws Exception {
-        LocalBackupCoordinator backups=new LocalBackupCoordinator(context,store);String backupId=args.getString("backup_id");JSONObject job=backups.status(backupId),manifest=backups.metadata(backupId);backups.verifiedArchive(backupId);
+        // Historical proof is read only for an explicitly requested migration. It cannot create/resume a backup.
+        String backupId=args.getString("backup_id");if(!backupId.matches("[A-Za-z0-9_-]{8,100}"))throw new IOException("LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED");
+        JSONObject job=new JSONObject(store.ownerValue("backup_job:"+backupId,"{}")),identity=new BackupDeviceGuard(context).current();
+        if(!backupId.equals(job.optString("backupId"))||!identity.getString("installationId").equals(job.optString("installationId"))||!identity.getString("restoreEpoch").equals(job.optString("restoreEpoch")))throw new IOException("LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED");
+        File root=new File(context.getNoBackupFilesDir(),"full-backup-work/"+backupId);JSONObject capture=job.getJSONObject("capture"),archive=job.getJSONObject("archive");
+        File info=evidenceFile(root,capture.getString("metadataFile")),file=evidenceFile(root,archive.getString("file"));
+        if(!EncryptedBackupArchive.sha256(info).equals(capture.getString("metadataSha256"))||file.length()!=archive.getLong("size")||!EncryptedBackupArchive.sha256(file).equals(archive.getString("sha256")))throw new IOException("LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED");
+        JSONObject manifest=new JSONObject(new String(java.nio.file.Files.readAllBytes(info.toPath()),java.nio.charset.StandardCharsets.UTF_8));
         JSONObject proof=LocalAuthorityRules.externalBackupProof(job,manifest,java.time.Instant.now());
         return activate(args.getString("request_id"),args.getString("expected_preview_hash"),proof,args.getJSONObject("writer_evidence"));
+    }
+    private static File evidenceFile(File root,String name)throws Exception {
+        if(!name.matches("[A-Za-z0-9_-][A-Za-z0-9_.-]{0,159}"))throw new IOException("LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED");
+        File file=new File(root,name);if(!file.isFile()||java.nio.file.Files.isSymbolicLink(file.toPath())||!file.getCanonicalFile().getParentFile().equals(root.getCanonicalFile()))throw new IOException("LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED");return file;
     }
     JSONObject reconcile(JSONObject args)throws Exception {
         String request=args.getString("request_id"),fingerprint=PixelMcpWriteTools.hash(args);JSONObject evidence=args.getJSONObject("ledger");LocalAuthorityRules.requireEvidence(evidence);

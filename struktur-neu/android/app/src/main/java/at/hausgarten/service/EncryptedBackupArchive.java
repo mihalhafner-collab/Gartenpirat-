@@ -129,7 +129,7 @@ final class EncryptedBackupArchive {
         checkCancelled();MessageDigest digest=MessageDigest.getInstance("SHA-256");try(InputStream in=new BufferedInputStream(new FileInputStream(file))){byte[] b=new byte[BUFFER];int n;while((n=in.read(b))!=-1){checkCancelled();digest.update(b,0,n);}}return hex(digest.digest());
     }
     static String hex(byte[] value){StringBuilder result=new StringBuilder();for(byte b:value)result.append(String.format(Locale.ROOT,"%02x",b&255));return result.toString();}
-    private static void removeOwned(File directory)throws IOException {
+    static void removeOwned(File directory)throws IOException {
         if(Files.isSymbolicLink(directory.toPath()))throw new IOException("RESTORE_STAGING_LINK_REJECTED");
         File[] children=directory.listFiles();if(children!=null)for(File child:children){if(child.isDirectory()&&!Files.isSymbolicLink(child.toPath()))removeOwned(child);else if(!child.delete())throw new IOException("RESTORE_STAGING_CLEANUP_REQUIRED");}
         if(directory.exists()&&!directory.delete())throw new IOException("RESTORE_STAGING_CLEANUP_REQUIRED");

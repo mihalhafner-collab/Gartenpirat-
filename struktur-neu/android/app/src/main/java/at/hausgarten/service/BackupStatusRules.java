@@ -41,7 +41,7 @@ final class BackupStatusRules {
                 .put("external_storage_verified",proof!=null&&proof.optBoolean("external_storage_verified")).put("provider_verified_at",checked)
                 .put("remote_verified_at",job.optJSONObject("upload")==null?"":job.getJSONObject("upload").optString("remoteVerifiedAt"))
                 .put("local_verified_at",archive==null?"":archive.optString("localVerifiedAt")).put("byte_size",archive==null?0:archive.optLong("size"))
-                .put("encrypted",archive!=null&&!archive.optString("archiveFormat").equals("PLAIN_ZIP")).put("saved_proof_valid",proven&&!badClock).put("cloud_confirmed",false));
+                .put("warning_count",job.optInt("warning_count")).put("encrypted",archive!=null&&!archive.optString("archiveFormat").equals("PLAIN_ZIP")).put("saved_proof_valid",proven&&!badClock).put("cloud_confirmed",false));
         }
         ordered.sort((a,b)->{int time=activity(b).compareTo(activity(a));return time!=0?time:a.optString("backup_id").compareTo(b.optString("backup_id"));});
         int offset=Math.max(0,args.optInt("offset")),limit=Math.min(100,Math.max(1,args.optInt("limit",20)));JSONArray page=new JSONArray();
@@ -65,6 +65,13 @@ final class BackupStatusRules {
         if(code.equals("BACKUP_PIXEL_FOLDER_REQUIRED"))return "Bitte einen Speicherort auf diesem Pixel wählen. Drive und andere Cloud-Anbieter werden nicht verwendet.";
         if(code.equals("BACKUP_INTERRUPTED"))return "Die letzte Sicherung wurde unterbrochen. Bitte die Sicherung erneut öffnen und speichern.";
         if(code.equals("BACKUP_RUNNER_BUSY"))return "Eine Sicherung läuft bereits. Bitte auf deren Ergebnis warten.";
+        if(code.equals("BACKUP_TARGET_ALREADY_VERIFIED"))return "Diese Datei enthält bereits eine bestätigte Sicherung. Bitte einen neuen Dateinamen wählen.";
+        if(code.equals("BACKUP_LOCAL_WRITE_FAILED"))return "Die ZIP-Datei konnte nicht vollständig gespeichert werden. Bitte freien Speicher und Schreibzugriff prüfen und erneut speichern.";
+        if(code.equals("BACKUP_LOCAL_READBACK_FAILED"))return "Die gespeicherte Datei konnte nicht vollständig zurückgelesen werden. Bitte freien Speicher und Dateizugriff prüfen und erneut speichern.";
+        if(code.contains("SPACE_REQUIRED")||code.equals("BACKUP_WORK_STORAGE_UNAVAILABLE"))return "Zu wenig freier Speicher für Sicherung und Prüfung. Bitte Speicher freigeben und erneut speichern.";
+        if(code.equals("BACKUP_PREFERENCES_CHANGED_RETRY")||code.equals("BACKUP_SOURCE_CHANGED"))return "Der Bestand hat sich während der Aufnahme verändert. Bitte den laufenden Vorgang abschließen und erneut sichern.";
+        if(code.equals("BACKUP_DATABASE_INTEGRITY_FAILED"))return "Die Datenbank ist technisch nicht lesbar. Der Bestand bleibt erhalten; die Datenbank muss geprüft werden.";
+        if(code.startsWith("BACKUP_FILE_")||code.startsWith("BACKUP_MANIFEST_")||code.equals("BACKUP_COMMIT_MISSING"))return "Die Sicherungsdatei ist unvollständig oder beschädigt. Bitte eine andere Sicherungsdatei auswählen.";
         String reason="";
         switch(code){
             case "FINANCIAL_ISSUED_NUMBER_COLLISION":reason="Mehrere ausgestellte Rechnungen verwenden dieselbe Nummer.";break;
@@ -83,7 +90,7 @@ final class BackupStatusRules {
         String earlier=status.optString("last_local_verified_at");
         if(state.equals("FAILED"))return failureMessage(latest==null?"BACKUP_OPERATION_FAILED":latest.optString("last_error_code","BACKUP_OPERATION_FAILED"))+(earlier.isEmpty()?"":" Früherer bestätigter Sicherungszeitpunkt: "+displayTime(earlier)+".");
         if(status.optBoolean("clock_review_required"))return "Sicherungszeit nicht bestätigt. Bitte Gerätezeit und Sicherungsdatei prüfen.";
-        if(state.equals("VERIFIED"))return "Sicherung gespeichert und vollständig zurückgelesen: "+displayTime(earlier)+". Enthaltener Datenstand: "+displayTime(status.optString("last_local_captured_at"))+". Neuere Arbeit ist damit nicht automatisch gesichert.";
+        if(state.equals("VERIFIED"))return "Sicherung gespeichert und vollständig zurückgelesen: "+displayTime(earlier)+". Enthaltener Datenstand: "+displayTime(status.optString("last_local_captured_at"))+". Neuere Arbeit ist damit nicht automatisch gesichert."+(latest!=null&&latest.optInt("warning_count")>0?" Hinweise zum Ausgangsbestand: "+latest.optInt("warning_count")+". Details: data/backup-notes.json in der ZIP-Datei.":"");
         return "Noch keine vollständig gespeicherte und zurückgelesene Sicherung bestätigt. Eine Kopie auf demselben Pixel schützt nicht bei Verlust oder Defekt des Geräts.";
     }
 }

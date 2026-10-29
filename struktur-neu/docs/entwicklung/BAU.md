@@ -62,39 +62,39 @@ gelten. Diese Prüfmatrix ersetzt keinen Restore-Nachweis auf dem Pixel.
 
 ## Gemeinsame Quellprüfung nach dem Umbau
 
-Bei Fehlern lokaler ZIP-Sicherungen zuerst den Fehlercode der Sicherungsseite und
-`get_full_backup_status` vergleichen. `CAPTURING` allein ist kein Beleg für einen
-noch laufenden Worker; frühere Appstände hielten einen Capture-Abbruch nicht im
-Job fest. `BACKUP_CAPTURE_INVENTORY_IO_FAILED` grenzt den Abbruch auf die
-Bestandsprüfung nach der Datenbankaufnahme ein, benennt aber weder eine bestimmte
-Datei noch einen konkreten Finanz-/Medienfehler. Die Ziel-ZIP wird erst nach
-erfolgreicher interner Aufnahme und technischer Integritätsprüfung ausgegeben.
-Finanzielle Fachprüfungen, insbesondere die Eindeutigkeit vorhandener
-Rechnungsnummern, gehören nicht zu Aufnahme, Archivprüfung oder Wiederherstellung.
-`LocalBackupDataset` ruft dort keine `LocalFinancialSnapshotValidation` auf.
-Das frühere Manifestfeld `financial_inventory` ist keine Restore-Bedingung;
-Datenbank- und Dateiprüfsummen decken den unveränderten Bestand ab. Die Prüfung
-neuer Rechnungsnummern in `LocalInvoiceService` bleibt erforderlich.
-Die Sicherungsseite hat einen gemeinsamen Wiederherstellungseinstieg. Nur wenn
-ein ausgewähltes verschlüsseltes Archiv den Schlüssel benötigt, erscheint das
-zugehörige Eingabefeld. Neue ZIP-Sicherungen brauchen keinen Schlüssel.
+Der Sicherungseinstieg ist `PixelBackupService`: direkte Aufnahme über
+`LocalBackupDataset`, ZIP-Erstellung, technische Prüfung und vollständiges
+Dateirücklesen. `LocalBackupCoordinator`, `BackupJobRepository` und
+`FullBackupController` sind entfernt. Oberfläche, MCP und Selbsttest verwenden
+denselben neuen Status. Historische Sicherungsbelege werden nur noch bei einer
+expliziten Datenautoritäts-Umstellung gelesen; der alte Schreiber wird nie gestartet.
 
-Für den anschließenden Prüflauf `PixelPlainBackupTests` einschließlich der
-Fehlercode-Fälle ausführen: konkrete Medien-/Finanzcodes unverändert durchreichen,
-unbekannte Fehler auf den jeweiligen Inventarschritt begrenzen und Freitext/Pfade
-nicht ausgeben. Native Fehlerfälle zusätzlich prüfen: Capture-Abbruch führt zu
-`FAILED` mit `last_error_code` und Zeitstempel; ein erfolgreicher Wiederholungsversuch
-verwendet geprüfte vorhandene Zwischenstände und entfernt den letzten Fehlercode.
-Export-/Rücklesefehler dürfen einen vorhandenen Providerbeleg weder löschen noch
-zum erneuten Überschreiben eines bereits verifizierten Ziels berechtigen. Eine
-bloße Quellkorrektur der Diagnose beweist keine Behebung des ursprünglichen
-Bestandsfehlers. Doppelte vorhandene Rechnungsnummern müssen unverändert durch
-ZIP-Schreiben, Rücklesen und Wiederherstellung erhalten bleiben. Die JVM-Suite
-prüft dafür einen synthetischen Archiv-Rundlauf; die Quellprüfung sichert die
-Trennung von Sicherung und Finanzvalidierung. Auf einem ausdrücklich freigegebenen
-Testgerät zusätzlich vollständige Aufnahme und Restore mit zwei verschiedenen
-Rechnungs-IDs und gleicher Nummer prüfen. Beschädigte Archive müssen weiterhin
-abgelehnt werden; der JVM-Rundlauf ersetzt diese native Prüfung nicht.
+`BackupInventory` erzeugt ausschließlich Hinweise. Fehlende Originale, unvollständige
+Metadaten, alte Prüfsummenabweichungen, finanzielle Konflikte und bereits vorhandene
+Fremdschlüsselverletzungen sind keine Abbruchbedingungen des Backups. Die Datei
+`backup-notes.json` im Archiv enthält Details. Nicht auswertbare fachliche Daten
+werden als solche vermerkt und bleiben in der SQLite-Datei erhalten.
+`inspectStaged` prüft Datenbankdatei, Format und wieder lesbare Einstellungen.
+ZIP-Dateiliste, Größen und Prüfsummen bleiben zwingend. Die aktuelle Datenbank und
+Originaldateien werden durch die Aufnahme nicht repariert oder normalisiert.
+
+Die JVM-Suite `PixelPlainBackupTests` prüft auch Hinweis-Rundlauf, unveränderte
+Rechnungsnummernkollisionen und Rollback nach Unterbrechung unmittelbar nach jeder
+Dateiverschiebung. Die vollständige native Suite heißt `local_backup`, gefolgt von
+`local_backup_reopen` in einem neuen Prozess. Sie verwendet ausschließlich den
+frisch installierten **Test-APK-Sandbox** und die produktiven Sicherungs-/Restoreklassen:
+SQLite mit zusätzlichen Tabellen/BLOBs, fehlende Originale/Metadaten, doppelte
+Nummern, Fremdschlüsselverletzung, Schreibfehler, Wiederholung, Zielschutz,
+Archivbeschädigung, Rückfallkopie und Wiederherstellung nach Prozessneustart.
+Sie öffnet keine Datenbank der eigentlichen App. Ein vorhandener Testbestand wird
+nicht überschrieben. Die Dateiauswahl/Android-Providerberechtigung und das echte
+Pixel bleiben separate Abnahmen; der native Test nutzt einen isolierten Dateistream.
+
+Der bestehende GitHub-Workflow `qa-apk.yml` baut `struktur-neu`, prüft die JVM-Suiten
+und startet diese zwei nativen Testphasen auf einem Wegwerf-Emulator. Seine temporäre
+Signatur gilt ausschließlich für Emulator-Testpakete; es wird keine signierte
+Benutzer-APK erzeugt oder verteilt. Produktive Signierkonfiguration bleibt erhalten.
+Ergebnis und etwaige Blockaden werden ausschließlich im aktuellen Arbeitsstand geführt.
 
 ```sh
 python3 -B tools/check_current.py

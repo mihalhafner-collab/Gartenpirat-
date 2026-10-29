@@ -27,7 +27,7 @@ names = ['DeletionBackupStore', 'SnapshotProjection', 'OwnerCommand', 'EntityCon
          'WorklogRelationRules', 'ManualChangeRules', 'GardenRules', 'SyncActionOrder', 'HttpTransport', 'DrivePublication', 'McpSchema', 'McpFileTransfer', 'InvoiceDraftRules', 'PixelMcpOwnerTools', 'OwnerJournalRules', 'DriveJournalRules', 'OrderReviewRules', 'PixelTunnelConfig',
          'PixelTunnelWire', 'WorkSessionPauseRules']
 names += ['DriveRolePolicy','BackgroundWorkDispatch','LocalMigrationInventory','WorkSessionTimingRules','OwnerRequestTransactions','SyncFailureRules','LocalTestTombstone','ActiveWorkProtection','CatalogSemanticHash','SyncQueueCounters','SyncIoFailure','CalendarRecoveryRules','OpenMeteoWeatherSource','CalendarSetupRules','PlanningWire']
-names += ['BackupCrypto', 'EncryptedBackupArchive', 'ServiceCatalogBootstrap', 'BackupFilePins', 'BackupScheduleRules', 'BackupStatusRules', 'BackupStorageBudget']
+names += ['BackupCrypto', 'EncryptedBackupArchive', 'ServiceCatalogBootstrap', 'BackupFilePins', 'BackupScheduleRules', 'BackupStatusRules', 'BackupInventory', 'BackupStorageBudget']
 names += ['LocalAuthorityRules','LocalWorkflowTools','LocalWorkflowApplicationService','RevierRepository','RevierRules','RevierApplicationService','OfferDecisionRules','OfferDecisionService','BackupDocumentTransfer','BackupDatasetExchange','LocalBillingRules','OfferDecisionValidation','LocalFinancialValidation','LocalFinancialOriginals','IssuedInvoiceRules']
 names += ['LocalInvoiceCreationRules', 'InvoiceIssueReviewRules', 'RestoredBrowserReviewRules', 'BrowserMediaFiles', 'BrowserMediaRepositoryRules', 'EquipmentMaintenanceRules', 'EquipmentProfilePhotoRules']
 table_tests = '--tables' in sys.argv

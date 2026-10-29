@@ -30,23 +30,13 @@ final class RestoreStartupProtection implements BackupRestoreService.Protection 
         try(PixelLocalStore store=new PixelLocalStore(context)){
             // Empty business collections say nothing about editor drafts or localStorage.
             // A failed/stale capture is never evidence that an empty checkpoint is safe.
-            JSONObject browser=requireBrowserCheckpoint(store);
+            JSONObject browser=null;
             JSONObject identity=new BackupDeviceGuard(context).current();String business=store.ownerValue("backup_business_id","");if(business.isEmpty()){business=UUID.randomUUID().toString();store.putOwnerValue("backup_business_id",business);}String backupId="before_restore_"+PixelMcpWriteTools.hash(requestId).substring(0,32);
             File capture=new File(root,"capture-"+UUID.randomUUID());LocalBackupDataset.Captured captured=LocalBackupDataset.capture(context,store,capture,new JSONObject().put("backupId",backupId).put("installationId",identity.getString("installationId")).put("restoreEpoch",identity.getString("restoreEpoch")).put("businessId",business).put("requireDatabaseBrowserCheckpoint",true),browser);
             if(archive.exists())throw new IOException("RESTORE_CURRENT_BACKUP_INCOMPLETE_REVIEW_REQUIRED");try(FileOutputStream out=new FileOutputStream(archive)){EncryptedBackupArchive.writePlain(new FilterOutputStream(BackupStorageBudget.guard(out,root)){@Override public void close()throws IOException{flush();}},captured.metadata,captured.sources());out.getFD().sync();}
             try(EncryptedBackupArchive.Verified verified=EncryptedBackupArchive.verifyArchive(new FileInputStream(archive),incomingRecoveryCode,new File(root,"verified-"+UUID.randomUUID()),root.getUsableSpace()-BackupStorageBudget.BUSINESS_RESERVE_BYTES,PixelLocalStore.SCHEMA_VERSION)){LocalBackupDataset.inspectStaged(new File(verified.directory,"data"),verified.manifest);}
             JSONObject proof=new JSONObject().put("formatVersion",1).put("verified",true).put("backup_id",backupId).put("archive_sha256",EncryptedBackupArchive.sha256(archive)).put("database_sha256",captured.metadata.getJSONObject("database").getString("sha256")).put("byte_size",archive.length()).put("captured_at",captured.metadata.getString("capturedAt")).put("local_verified_at",java.time.Instant.now().toString()).put("private_archive_ref","before-restore/"+PixelMcpWriteTools.hash(requestId)+"/generation.zip").put("archive_format","PLAIN_ZIP");write(proofFile,proof);return proof;
         }
-    }
-    private JSONObject requireBrowserCheckpoint(PixelLocalStore store)throws IOException {
-        try{
-            JSONObject saved=new BackupSettingsRepository(context,store).browser(),browser=saved.getJSONObject("browser"),storage=browser.getJSONObject("storage");
-            for(JSONObject versioned:new JSONObject[]{saved,browser}){Object version=versioned.opt("formatVersion");if(!(version instanceof Number)||!version.toString().equals("1"))throw new IOException("BACKUP_BROWSER_STATE_INVALID");}
-            for(Iterator<String> keys=storage.keys();keys.hasNext();)if(!(storage.get(keys.next()) instanceof String))throw new IOException("BACKUP_BROWSER_STORAGE_INVALID");
-            if(browser.toString().getBytes(StandardCharsets.UTF_8).length>16*1024*1024||!PixelMcpWriteTools.hash(browser).equals(saved.getString("contentSha256")))throw new IOException("BACKUP_BROWSER_STATE_INVALID");
-            if(java.time.Instant.parse(saved.getString("capturedAt")).isAfter(java.time.Instant.now().plusSeconds(120)))throw new IOException("BACKUP_BROWSER_CLOCK_REVIEW_REQUIRED");
-            return new JSONObject(browser.toString());
-        }catch(Exception unavailable){throw new IOException("RESTORE_CURRENT_BROWSER_CHECKPOINT_REQUIRED");}
     }
     public void blockBeforeActivation(String requestId,JSONObject manifest,JSONObject currentBackupProof)throws Exception {
         if(!currentBackupProof.optBoolean("verified"))throw new IOException("RESTORE_CURRENT_BACKUP_REQUIRED");JSONObject target=manifest.getJSONObject("_activation_context"),identity=new BackupDeviceGuard(context).current();
@@ -59,7 +49,10 @@ final class RestoreStartupProtection implements BackupRestoreService.Protection 
             if(db.getVersion()<4||db.getVersion()>PixelLocalStore.SCHEMA_VERSION)throw new IOException("RESTORE_DATABASE_VERSION_UNSUPPORTED");db.beginTransaction();try{
                 try(Cursor sessions=db.rawQuery("SELECT id FROM work_sessions WHERE state IN ('RUNNING','PAUSED','STOPPED_PENDING_REVIEW')",null)){while(sessions.moveToNext()){String id=sessions.getString(0);android.content.ContentValues row=new android.content.ContentValues();String token=PixelMcpWriteTools.hash(requestId+":"+id);row.put("id","evt_restore_"+token);row.put("session_id",id);row.put("event_type","TIME_REVIEW_REQUIRED");row.put("request_id","restore-review-"+token);row.put("occurred_at",java.time.Instant.now().toString());row.put("payload",new JSONObject().put("reason","RESTORED_SESSION_REVIEW_REQUIRED").put("original_time_values_preserved",true).toString());db.insertWithOnConflict("work_session_events",null,row,SQLiteDatabase.CONFLICT_IGNORE);}}
                 try(Cursor row=db.rawQuery("SELECT value FROM owner_state WHERE key='planning_settings'",null)){if(row.moveToFirst()){String original=row.getString(0);put(db,"restored_inactive_planning_settings:"+requestId,original);JSONObject settings=new JSONObject(original);for(String key:new String[]{"calendar_sync_enabled","weather_enabled","read_busy"})settings.put(key,false);settings.put("requires_device_reauthorization",true);put(db,"planning_settings",settings.toString());}}
-                BrowserMediaRepository.installRestored(db,requestId,new BackupDeviceGuard(context).current());
+                try{BrowserMediaRepository.installRestored(db,requestId,new BackupDeviceGuard(context).current());}catch(Exception mediaProblem){
+                    if(!"pixel.snapshot.v2".equals(manifest.optString("datasetFormat")))throw mediaProblem;
+                    put(db,"restore_media_warning",BackupScheduleRules.errorCode(mediaProblem));
+                }
                 RestoredBrowserCheckpoint.install(db,requestId,manifest,manifest.getJSONObject("_restored_browser_checkpoint"),new BackupDeviceGuard(context).current());
                 put(db,"restore_requires_invoice_reconciliation","true");db.setVersion(PixelLocalStore.SCHEMA_VERSION);db.setTransactionSuccessful();
             }finally{db.endTransaction();}

@@ -40,6 +40,11 @@ public final class PixelMcpInstrumentation extends Instrumentation {
         Bundle report=new Bundle();File directory=null;long started=System.nanoTime();
         try{
             String suite=arguments==null?"":arguments.getString("suite","");
+            if(suite.equals("local_backup")||suite.equals("local_backup_reopen")){
+                checks=LocalBackupNativeTests.run(this,suite.equals("local_backup_reopen"));
+                report.putString("result",new JSONObject().put("suite",suite).put("checks",checks).put("synthetic_only",true).put("productive_data_read",false).put("native_backup_roundtrip",true).put("android_file_picker_tested",false).toString());
+                finish(Activity.RESULT_OK,report);return;
+            }
             if(!suite.equals("business_tables")&&!suite.equals("equipment_photo_display"))throw new Exception("EXPLICIT_SYNTHETIC_SUITE_REQUIRED");
             directory=Files.createTempDirectory(getTargetContext().getCacheDir().toPath(),"gp-table-test-").toFile();
             if(suite.equals("business_tables")){runStorage(directory);runJournal(directory);}else runEquipmentPhotos(directory);

@@ -15,6 +15,16 @@ final class LocalOriginalVerifier implements LocalMigrationInventory.Originals {
     private final DocumentJobs documents;
     LocalOriginalVerifier(File files,PhotoMetadata photos){this(files,photos,null);}
     LocalOriginalVerifier(File files,PhotoMetadata photos,DocumentJobs documents){this.files=files;this.photos=photos;this.documents=documents;}
+    String problem(String kind,JSONObject reference)throws Exception {
+        if(verified(kind,reference)||kind.equals("document")&&pendingDocument(reference))return "";
+        JSONObject metadata=kind.equals("photo")?photos.get(reference.optString("id")):reference;if(metadata==null)metadata=reference;
+        String name=metadata.optString(kind.equals("photo")?"storage_name":"pdf_storage_name");
+        String sha=metadata.optString(kind.equals("photo")?"content_sha256":"pdf_sha256");
+        if(name.isEmpty()||!sha.matches("[0-9a-f]{64}"))return "ORIGINAL_METADATA_INCOMPLETE";
+        File file=new File(new File(files,kind.equals("photo")?"customer-photo-originals":"business-documents"),name);
+        if(!file.isFile())return "ORIGINAL_FILE_MISSING";
+        return "ORIGINAL_NOT_VERIFIABLE";
+    }
     @Override public boolean verified(String kind,JSONObject reference)throws Exception {
         JSONObject metadata=reference;File file;
         if(kind.equals("photo")){

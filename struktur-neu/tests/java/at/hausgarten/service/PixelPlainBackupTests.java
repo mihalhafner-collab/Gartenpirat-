@@ -84,10 +84,49 @@ public final class PixelPlainBackupTests {
         }
         yes(Arrays.equals(original,Files.readAllBytes(source.toPath())));yes(!new File(root,"conflict_restore").exists());
     }
+    static void warningRoundTrip(File root)throws Exception {
+        JSONObject photo=new JSONObject().put("id","qa_missing_photo").put("filename","qa_missing.jpg");
+        JSONObject state=new JSONObject().put("photos",new JSONArray().put(photo))
+            .put("invoices",new JSONArray().put(new JSONObject().put("id","qa_invoice").put("issued_at","2026-10-29T10:00:00Z").put("invoice_number","42")))
+            .put("owner_archive",new JSONObject().put("qa_archived",new JSONObject().put("record",photo)));
+        String before=state.toString();
+        JSONObject report=BackupInventory.inspect(state,(kind,row)->kind.equals("photo")?"ORIGINAL_FILE_MISSING":"ORIGINAL_METADATA_INCOMPLETE");
+        yes(state.toString().equals(before));yes(report.getJSONArray("warnings").length()==2);
+        yes(report.getJSONArray("warnings").getJSONObject(0).getString("record_id").equals("qa_missing_photo"));
+        yes(BackupInventory.message(report.getJSONArray("warnings")).contains("2 Hinweise"));
+        JSONObject failedInspection=BackupInventory.inspect(state,(kind,row)->{throw new IOException("qa unreadable metadata");});
+        yes(failedInspection.getJSONArray("warnings").length()==2);
+        File notes=new File(root,"qa-notes.json"),original=new File(root,"qa-readable.bin"),zip=new File(root,"qa-with-missing.zip");
+        Files.writeString(notes.toPath(),report.toString());Files.writeString(original.toPath(),"QA available original even when old metadata disagrees");
+        try(OutputStream out=new FileOutputStream(zip)){EncryptedBackupArchive.writePlain(out,metadata().put("datasetFormat","pixel.snapshot.v2").put("warning_count",2),Arrays.asList(new EncryptedBackupArchive.Source("backup-notes.json",notes),new EncryptedBackupArchive.Source("files/original.bin",original)));}
+        try(EncryptedBackupArchive.Verified checked=EncryptedBackupArchive.verifyPlain(new FileInputStream(zip),new File(root,"qa_warning_restore"),1024*1024,6)){
+            yes(Files.readString(checked.file("backup-notes.json").toPath()).equals(report.toString()));
+            yes(Files.readString(checked.file("files/original.bin").toPath()).equals(Files.readString(original.toPath())));
+            yes(checked.manifest.getInt("warning_count")==2);
+        }
+    }
+    static void interruptedRestore(File root)throws Exception {
+        for(int stop=1;stop<=4;stop++){
+            File dir=new File(root,"qa_exchange_"+stop);yes(dir.mkdir());
+            Map<String,File> live=new LinkedHashMap<>(),prepared=new LinkedHashMap<>();
+            for(String key:new String[]{"database","files"}){
+                File old=new File(dir,"live_"+key),next=new File(dir,"new_"+key);
+                Files.writeString(old.toPath(),"old_"+key);Files.writeString(next.toPath(),"new_"+key);live.put(key,old);prepared.put(key,next);
+            }
+            JSONObject[] persisted={new JSONObject().put("targets",BackupDatasetExchange.targets(live,prepared,new File(dir,"rollback"))).put("phase","ACTIVATING")};
+            BackupDatasetExchange.Journal journal=new BackupDatasetExchange.Journal(){public JSONObject read()throws Exception{return new JSONObject(persisted[0].toString());}public void save(JSONObject state)throws Exception{persisted[0]=new JSONObject(state.toString());}};
+            final int failAt=stop;int[] moved={0};
+            try{BackupDatasetExchange.install(journal,(from,to)->{BackupDatasetExchange.ATOMIC.move(from,to);if(++moved[0]==failAt)throw new IOException("QA process ended immediately after rename");});throw new AssertionError("missing interruption");}catch(IOException expected){yes(moved[0]==stop);}
+            BackupDatasetExchange.rollback(journal,BackupDatasetExchange.ATOMIC);
+            yes(journal.read().getString("phase").equals("ROLLED_BACK"));
+            for(String key:live.keySet()){yes(Files.readString(live.get(key).toPath()).equals("old_"+key));yes(Files.readString(prepared.get(key).toPath()).equals("new_"+key));}
+            BackupDatasetExchange.rollback(journal,BackupDatasetExchange.ATOMIC);yes(journal.read().getString("phase").equals("ROLLED_BACK"));
+        }
+    }
     public static void main(String[] args)throws Exception{
         diagnosticChecks();statusChecks();financialChecks();
         File root=Files.createTempDirectory("qa_plain_backup_").toFile();try{
-            conflictingRecordsRoundTrip(root);
+            conflictingRecordsRoundTrip(root);warningRoundTrip(root);interruptedRestore(root);
             File source=new File(root,"qa_database.sqlite"),zip=new File(root,"qa_backup.zip");byte[] bytes="QA local plaintext contents".getBytes("UTF-8");Files.write(source.toPath(),bytes);
             try(OutputStream out=new FileOutputStream(zip)){EncryptedBackupArchive.writePlain(out,metadata(),Arrays.asList(new EncryptedBackupArchive.Source("database.sqlite",source)));}
             try(ZipFile readable=new ZipFile(zip)){yes(readable.getEntry("data/database.sqlite")!=null&&readable.getEntry("manifest.json")!=null);}

@@ -28,25 +28,25 @@
     }
   ],
   "current_task": {
-    "name": "Aktuelle originalsignierte Release-APK bauen und privat bereitstellen",
-    "status": "COMPLETE;BUILD116_ORIGINAL_SIGNED_PRIVATE_DELIVERY_AND_DOWNLOAD_READBACK_PASS;NO_INSTALLATION",
+    "name": "Bisherigen Backup-Ablauf durch direkte lokale Sicherung ersetzen",
+    "status": "IMPLEMENTED;SOURCE_AND_JVM_PASS;NATIVE_CI_PENDING",
     "authorized": true,
-    "authorization_scope": "User expressly authorized current source checks,necessary build fixes/version changes,GitHub preservation,original signing and private APK delivery;no Pixel installation,deletion,migration or productive restore",
+    "authorization_scope": "Direct user instruction 2026-10-29: remove previous backup implementation and its bindings; implement and verify replacement. Source and synthetic tests only; no productive data access, installation or restore.",
     "implementation": [
-      "Current main b5b9aa0 retained without production source changes;version1.55.11/build116 previously undistributed",
-      "Existing legacy cleanup and separation of backup fidelity from invoice-number validation included;technical archive checks and legacy encrypted reader retained",
-      "62 Python checks,3 JVM suites/231 checks,6 exact-production invoice guard JVM cases,1 altered-archive checksum case and5 browser suites/66 checks PASS",
-      "Actual Gradle assembleRelease,release lint/privacy gates,original signing,APK source binding and fresh private download verification PASS"
+      "Removed backup coordinator, durable backup-job repository and controller; UI/MCP/self-test use direct PixelBackupService.",
+      "Snapshot of raw SQLite, existing files and preferences; original and inventory problems are archive notes, not save/restore gates.",
+      "ZIP integrity, provider readback, confirmed target protection and restore rollback retained; encrypted legacy reader only for existing archives.",
+      "Existing GitHub QA workflow updated to current source and isolated native SQLite save/restore/new-process tests."
     ],
     "remaining": [
-      "Android/Pixel native capture/restore with conflicting invoices,real file picker/key prompt,restart,worker lifecycle and update data retention NOT_EXECUTED;no reachable ADB"
+      "Actual Gradle build and isolated native CI run pending.",
+      "Real Pixel file picker/provider/lifecycle acceptance not executed."
     ]
   },
   "open_checks": [
-    "Full native Android capture and restore with two issued invoice IDs sharing one number NOT_EXECUTED;synthetic ZIP roundtrip and source boundary passed,but actual database/PDF/counter/reservations roundtrip needs device acceptance",
-    "Real Android file picker,legacy restore key prompt,restart,worker lifecycle,backup/restore and update data retention NOT_EXECUTED;no reachable ADB",
-    "Existing invoice-number conflicts are preserved,not repaired;successful save on user Pixel is not established by cloud tests",
-    "Active journal/snapshot code and existing encrypted archive reader require a demonstrated replacement and verified backup/restore before removal"
+    "Native GitHub emulator save/restore and fresh-process readback pending.",
+    "Real Android file picker/provider permissions and full physical Pixel backup/restore remain unexecuted.",
+    "Existing inconsistent business records are preserved; new invoice issuance guards unchanged."
   ],
   "workflow": {
     "scope": "PARALLEL_STAGING; existing source paths and workflows unchanged",
@@ -82,7 +82,7 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "bb9586a0fe086392147312859bc0463a853e1e58819eda5081ab595fabae97b5",
+    "app_source_fingerprint": "a4274c30e60cda6b39568126c6e4998344f79e7fd7c2d79449f328ebb49ec25a",
     "source_privacy": "PASS;empty operational seed",
     "native_pixel_tests": "NOT_EXECUTED;no reachable ADB",
     "business_data_read": false,
@@ -90,52 +90,34 @@
     "authored_changes_diff_check": "PASS",
     "imported_source_whitespace": "2 existing findings in byte-identical Build113 sources; no unrelated source formatting applied",
     "current_test_run": {
-      "observed_at_utc": "2026-10-29T17:13:28.804971+00:00",
-      "source_sha256": "bb9586a0fe086392147312859bc0463a853e1e58819eda5081ab595fabae97b5",
-      "check_current": "PASS;62 Python tests plus source/contracts/privacy/fixtures/plants/UI checks",
+      "observed_at_utc": "2026-10-29T17:40:32.795035+00:00",
+      "check_current": "PASS;62 Python checks plus source/contracts/privacy/fixtures/plants/UI inventory",
       "java_suites_passed": 3,
-      "java_checks_passed": 231,
+      "java_checks_passed": 271,
       "java_breakdown": {
         "EquipmentMaintenanceTests": 91,
         "EquipmentProfilePhotoTests": 54,
-        "PixelPlainBackupTests": 86
+        "PixelPlainBackupTests": 126
       },
-      "java_environment": "JDK17;actual pinned JSON20240303,Android37,Tink1.24.0,Gson2.13.2;synthetic JVM fixtures",
-      "conflicting_backup_archive": "PASS;two distinct issued invoice IDs with the same number and unchanged counter survive plaintext ZIP write/read byte-for-byte;strict financial validator rejects the fixture before and after;synthetic JSON payload,not native DB capture",
-      "backup_validation_boundary": "PASS;source check excludes financial semantic validator from capture/staging while retaining explicit business-transfer validation and invoice issuance collision check;shared save/restore/rollback call sites reviewed",
-      "legacy_archive_regression": "PASS;fixed synthetic encrypted archive,missing key,correct key,corrupt final segment and temporary-stage cleanup;no productive backup accessed",
-      "archive_integrity": "PASS;schema,truncation,missing manifest,space limits,provider readback,source preservation and48MiB streaming tests",
-      "android_compile": "PASS;real Gradle release javac within assembleRelease;no compile stubs",
-      "browser_tests": "PASS;66 synthetic Chromium checks:simple-forms14,startup-ui13,equipment-maintenance-ui13,equipment-profile-photo-ui14,work-entry-photo-failure12",
-      "android_release_build": "PASS;actual Gradle :app:assembleRelease;release lint,source/workspace/artifact privacy",
-      "android_instrumentation": "NOT_EXECUTED;no reachable ADB",
-      "physical_update_data_retention": "NOT_EXECUTED",
-      "full_pixel_backup_restore": "NOT_EXECUTED",
-      "signed_apk": "PASS;apksigner and zipalign,original certificate exact match,clean committed source and DEX/asset binding",
-      "invoice_number_guard": "PASS;6 isolated JVM cases executing exact production LocalInvoiceService collision guard;internal/external existing number rejected,unused number accepted;inputs unchanged;not full native invoice transaction",
-      "invoice_number_guard_sha256": "1a72ec83c4542d9a71b4566d18ec3ba2955c83d6e2089cb0f57039c463d01efa",
-      "archive_tampering": "PASS;content modified with regenerated valid ZIP CRC rejected as BACKUP_FILE_HASH_MISMATCH;source unchanged and staging removed"
+      "native_backup_roundtrip": "PENDING_GITHUB_CI",
+      "physical_pixel_backup_restore": "NOT_EXECUTED",
+      "business_data_read": false,
+      "installation_performed": false,
+      "source_sha256": "a4274c30e60cda6b39568126c6e4998344f79e7fd7c2d79449f328ebb49ec25a"
     },
     "current_source_changes": {
-      "status": "SOURCE_JVM_BROWSER_RELEASE_SIGNING_AND_PRIVATE_READBACK_PASSED;NATIVE_PIXEL_ACCEPTANCE_OPEN",
-      "base_git_sha": "e61caa244df751b944f125a104db8f92690bbcd7",
-      "production_java_files": 187,
-      "backup_business_validation": "Removed full financial semantic validation from capture and staged backup verification;not a one-error-code exception",
-      "preserved": [
-        "Database/schema/file completeness and archive/file hashes;financial originals verification",
-        "Original invoice records,numbers,counter and reservation data",
-        "Invoice issuance number collision guard;explicit reconciliation and business-table-transfer financial validation",
-        "Local ZIP save/readback,restore rollback,encrypted archive reader,package and signing configuration"
-      ],
+      "status": "SOURCE_AND_JVM_PASS;NATIVE_CI_PENDING",
+      "base_git_sha": "73ba6b23855b1aecab7c0bf9de36503d9cbbef81",
+      "backup": "Direct snapshot and copy with informational original/reference defects; no backup-job engine",
       "productive_data_changes": false
     },
     "backup_diagnosis": {
       "reported_on": "2026-10-29",
-      "source": "User-provided screenshot;no device or financial dataset read",
+      "source": "User-provided screenshot;no productive data read",
       "device_build": "NOT_SHOWN_IN_SCREENSHOT",
-      "latest_error_code": "FINANCIAL_ISSUED_NUMBER_COLLISION",
-      "root_cause": "Current code raises this subtype when distinct issued invoices have the same invoice_number;specific records and origin not independently inspected",
-      "resolution": "Original-signed Build116 privately delivered;financial semantic gate absent from capture/staged verification;existing records unchanged;synthetic ZIP,guard,corruption and source-boundary checks PASS;native capture/restore and user Pixel save remain unverified",
+      "latest_error_code": "BACKUP_LOCAL_ORIGINALS_INCOMPLETE",
+      "root_cause": "Old capture and restore rejected the complete operation when LocalMigrationInventory found any unverified original.",
+      "resolution": "Old save/job path replaced; raw copy with per-record notes; native validation pending.",
       "local_saved_backup_verified": false
     },
     "performance_evidence": "docs/verification/performance-current.md measures the previous candidate fingerprint;no performance claim for the new native image path",
@@ -213,42 +195,9 @@
     }
   },
   "current_release_candidate": {
-    "version_name": "1.55.11",
-    "version_code": 116,
-    "source_sha256": "bb9586a0fe086392147312859bc0463a853e1e58819eda5081ab595fabae97b5",
-    "app_source_git_sha": "b5b9aa0d0b27c801a8f1e755ca3799d75fc29c46",
-    "source_tag": "source/v1.55.11-build116",
-    "source_binding": "PASS;all bundled source assets byte-identical;commit and source fingerprint found in signed DEX;generated BuildConfig clean",
-    "apk_sha256": "68f91f72e6f89baf334128cef82c53dd8b14c7b978b65fdde0035f5a14945c9a",
-    "apk_bytes": 82858492,
-    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-    "signature_valid": true,
-    "original_certificate_match": true,
-    "temporary_signing_material_removed": true,
-    "installation": "NOT_PERFORMED;last independently documented installed baseline114;115 previously distributed",
-    "productive_migration": "NOT_PERFORMED",
-    "invoice_authority": "NOT_ACTIVATED",
-    "app_backup_mode": "PIXEL_PLAINTEXT_ZIP",
-    "production_source_classes": 187,
-    "built_at_utc": "2026-10-29T17:13:28.804971+00:00",
-    "build_command": "gradle --no-daemon --no-configuration-cache --no-build-cache :app:assembleRelease",
-    "download_url": "https://drive.google.com/file/d/1giOrJLTOkGd46AaPCJGuSOF4vfJaxyKI/view?usp=drivesdk",
-    "drive": {
-      "file_id": "1giOrJLTOkGd46AaPCJGuSOF4vfJaxyKI",
-      "url": "https://drive.google.com/file/d/1giOrJLTOkGd46AaPCJGuSOF4vfJaxyKI/view?usp=drivesdk",
-      "parent_folder_id": "1K4WB9L6ZKlW-33o8uPK3zTfqgAOVOE8u",
-      "mime_type": "application/vnd.android.package-archive",
-      "visibility": "PRIVATE;permissions metadata contains owner only;no sharing change",
-      "verification": "PASS;authenticated raw-file fetch,fresh complete download,size/SHA256 and original signer match"
-    },
-    "download_readback": {
-      "status": "PASS",
-      "observed_at_utc": "2026-10-29T17:13:28.804971+00:00",
-      "bytes": 82858492,
-      "sha256": "68f91f72e6f89baf334128cef82c53dd8b14c7b978b65fdde0035f5a14945c9a",
-      "signature_valid": true,
-      "original_certificate_match": true
-    },
-    "status": "ORIGINAL_SIGNED_AND_PRIVATELY_DELIVERED;READBACK_PASS;NOT_INSTALLED"
+    "version_name": "1.55.12",
+    "version_code": 117,
+    "status": "SOURCE_ONLY;NATIVE_VALIDATION_PENDING;NOT_SIGNED_OR_DISTRIBUTED",
+    "installation": "NOT_PERFORMED"
   }
 }

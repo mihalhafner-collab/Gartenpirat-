@@ -26,7 +26,7 @@ final class DatabaseBackupSnapshot {
         if(!database.isFile())throw new IOException("BACKUP_DATABASE_MISSING");
         try(SQLiteDatabase copy=SQLiteDatabase.openDatabase(database.getAbsolutePath(),null,SQLiteDatabase.OPEN_READONLY)){
             try(Cursor check=copy.rawQuery("PRAGMA integrity_check",null)){if(!check.moveToFirst()||!"ok".equals(check.getString(0))||check.moveToNext())throw new IOException("BACKUP_DATABASE_INTEGRITY_FAILED");}
-            try(Cursor foreign=copy.rawQuery("PRAGMA foreign_key_check",null)){if(foreign.moveToFirst())throw new IOException("BACKUP_DATABASE_RELATION_FAILED");}
+            long foreignKeyViolations=0;try(Cursor foreign=copy.rawQuery("PRAGMA foreign_key_check",null)){while(foreign.moveToNext())foreignKeyViolations++;}
             JSONObject counts=new JSONObject();TreeMap<String,String> definitions=new TreeMap<>();
             try(Cursor schema=copy.rawQuery("SELECT type,name,sql FROM sqlite_master ORDER BY type,name",null)){
                 while(schema.moveToNext()){
@@ -34,7 +34,7 @@ final class DatabaseBackupSnapshot {
                     if(kind.equals("table"))try(Cursor count=copy.rawQuery("SELECT count(*) FROM \""+name.replace("\"","\"\"")+"\"",null)){if(!count.moveToFirst())throw new IOException("BACKUP_DATABASE_COUNT_FAILED");counts.put(name,count.getLong(0));}
                 }
             }
-            return new JSONObject().put("schemaVersion",copy.getVersion()).put("tableCounts",counts).put("schemaSha256",PixelMcpWriteTools.hash(new JSONObject(definitions))).put("size",database.length()).put("sha256",EncryptedBackupArchive.sha256(database));
+            return new JSONObject().put("schemaVersion",copy.getVersion()).put("foreignKeyViolations",foreignKeyViolations).put("tableCounts",counts).put("schemaSha256",PixelMcpWriteTools.hash(new JSONObject(definitions))).put("size",database.length()).put("sha256",EncryptedBackupArchive.sha256(database));
         }
     }
     /** Large snapshot/payload rows must not require a CursorWindow-sized JSON value. */

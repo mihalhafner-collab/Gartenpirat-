@@ -30,17 +30,31 @@ Vorhandene ältere Archive und Schlüssel bleiben für eine bewusst beauftragte
 Wiederherstellung erhalten. Deren Lesbarkeit rechtfertigt keine neue komplizierte
 Einrichtung für aktuelle Sicherungen.
 
-Sicherung bewahrt den vorhandenen Datenbestand unverändert in einem für die App
-wieder lesbaren Format. Rechnungsnummernkollisionen und die fachliche Gültigkeit
-des Finanzbestands sind keine Voraussetzung für Speichern oder Wiederherstellen.
-Die Sicherung vergibt, korrigiert oder entfernt keine Rechnungsnummern. Sie prüft
-die technische Lesbarkeit, Vollständigkeit und unveränderte Übertragung der Daten,
-einschließlich Datenbank, Originaldateien, Format und Prüfsummen.
+Sicherung kopiert den vorhandenen Bestand unverändert. Die direkte Aufnahme umfasst
+alle SQLite-Tabellen, die vorhandenen privaten Dateien, typisierte Einstellungen
+und den zuletzt lesbaren Formularstand. Die bisherige Sicherungs-Auftragsverwaltung
+ist entfernt; es werden nur letzter Versuch und letzter Erfolg gespeichert.
+Rechnungsnummernkollisionen, bereits fehlerhafte Datenbezüge, fehlende oder nicht
+verifizierte Originale verhindern das Sichern und Wiederherstellen nicht. Konkrete
+Datensatzkennungen und Gründe stehen in `data/backup-notes.json`; Oberfläche und
+MCP nennen die Anzahl der Hinweise. Ist eine Bestandsübersicht nicht auswertbar,
+bleiben Rohdaten erhalten und die fehlende Auswertbarkeit wird ausdrücklich genannt.
+Eine Sicherung mit Hinweisen bestätigt keine vollständige Verfügbarkeit aller
+referenzierten Originale. Sie repariert oder normalisiert den Ausgangsbestand nicht.
 
-Wiederherstellung erfolgt ausdrücklich, nach vollständiger Archivprüfung und mit
-dem vorhandenen Rückweg bei Fehlern. Sicherungsfehler blockieren die lokale
-Geschäftserfassung nicht. Ein echter Speichern-/Wiederherstellen-Nachweis auf dem
-Pixel ist getrennt zu führen; Kompilierung ersetzt ihn nicht.
+Technisch unlesbare Datenbanken, Schreibfehler und beschädigte oder veränderte
+Archive bleiben echte Fehler. Ein Erfolg setzt das vollständige Zurücklesen der
+geschriebenen ZIP voraus. Bestätigte Ziele werden bei Wiederholung nur geprüft;
+eine neue Sicherung benötigt eine neue Zieldatei. Temporäre Aufnahmen werden nach
+dem Versuch entfernt. Es gibt keine Verbindung zur Migrationsprüfung oder zur
+Rechnungsfreigabe. Der Leser älterer verschlüsselter Archive bleibt ausschließlich
+für bereits vorhandene Altsicherungen erhalten; er erzeugt keine neuen Sicherungen.
+
+Wiederherstellung erfolgt ausdrücklich nach technischer Archivprüfung und mit
+einer Rückfallkopie des aktuellen Bestands. Der bestehende atomare Dateiaustausch
+mit Wiederanlauf und Rollback bleibt erhalten. Sicherungsfehler blockieren die
+Geschäftserfassung nicht. Ein echter Pixel-Nachweis ist getrennt von JVM- und
+synthetischen Emulatorprüfungen zu führen.
 
 Statusanzeigen ordnen Versuche nach tatsächlichem Zeitpunkt, unabhängig von
 zufälligen Kennungen und Listenseiten. Ein neuerer Fehler bleibt sichtbar, auch

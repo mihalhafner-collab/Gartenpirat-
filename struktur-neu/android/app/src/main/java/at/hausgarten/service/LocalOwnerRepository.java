@@ -132,9 +132,9 @@ final class LocalOwnerRepository implements OwnerRepository {
     @Override public JSONObject acknowledgeWeather(JSONObject args)throws Exception{return AppointmentRuntime.acknowledge(context,store,args);}
     @Override public JSONObject resolveCalendar(JSONObject args)throws Exception{return AppointmentRuntime.resolve(context,store,args);}
     @Override public void checkBusy(JSONObject appointment)throws Exception{AppointmentRuntime.checkBusy(context,store,appointment);}
-    @Override public JSONObject fullBackupStatus(JSONObject args)throws Exception{return new FullBackupController(context,store).status(args);}
+    @Override public JSONObject fullBackupStatus(JSONObject args)throws Exception{return new PixelBackupService(context,store).status(args);}
     @Override public JSONObject fullBackupAction(String name,JSONObject args)throws Exception {
-        FullBackupController control=new FullBackupController(context,store);
+        PixelBackupService control=new PixelBackupService(context,store);
         if(name.equals("request_full_backup"))return control.request(args);
         if(name.equals("retry_full_backup"))return control.retry(args);
         throw new IllegalArgumentException("Sicherungsaktion fehlt.");

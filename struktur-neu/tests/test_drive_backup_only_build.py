@@ -29,7 +29,7 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         self.assertNotIn('openConnection()', (MAIN/'HttpTransport.java').read_text())
 
     def test_unused_legacy_classes_and_writers_are_removed(self):
-        for name in ('BackupPortableFormat', 'BackupRecoveryExport', 'BackupRecoveryRepairService',
+        for name in ('FullBackupController', 'LocalBackupCoordinator', 'BackupJobRepository', 'BackupPortableFormat', 'BackupRecoveryExport', 'BackupRecoveryRepairService',
                      'DriveConnectionActivity', 'DrivePrimaryState', 'DriveTransferPool',
                      'ImmutableStateReference', 'LegacyBackupPolicy', 'OwnerReceiptRetention',
                      'ReceiptRetentionRules', 'SyncCommitRules', 'SyncMediaPlan',
@@ -76,7 +76,7 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         source=(MAIN/'PixelBackupService.java').read_text()
         self.assertIn('"com.android.externalstorage.documents".equals(uri.getAuthority())',source)
         self.assertIn('startsWith("primary:")',source)
-        self.assertLess(source.index('requirePixel(target)'),source.index('LocalBackupCoordinator service='))
+        self.assertLess(source.index('requirePixel(target)'),source.index('return saveTo('))
         self.assertNotIn('BackupRecoveryKeyStore',source)
 
     def test_backup_does_not_require_financial_business_validity(self):
@@ -86,8 +86,13 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         backup, table_transfer = source.split('static BusinessTableStore.Evidence tableEvidence(', 1)
         self.assertNotRegex(backup, r'LocalFinancial(?:Snapshot)?Validation\s*\.\s*inspect\(')
         self.assertNotIn('.put("financial_inventory"', backup)
+        self.assertNotIn('LocalMigrationInventory', backup)
+        self.assertNotIn('BACKUP_LOCAL_ORIGINALS_INCOMPLETE', backup)
+        self.assertNotIn('LocalFinancialOriginals.inspect', backup)
+        self.assertNotIn('validateRelationships()', backup)
+        self.assertNotIn('recordSnapshotPhotoAttachments', backup)
         self.assertIn('LocalFinancialSnapshotValidation.inspect(', table_transfer)
-        for name in ('LocalBackupCoordinator', 'BackupRestoreService', 'RestoreStartupProtection'):
+        for name in ('PixelBackupService', 'BackupRestoreService', 'RestoreStartupProtection'):
             self.assertIn('LocalBackupDataset.inspectStaged(', (MAIN/(name+'.java')).read_text())
         # New invoice issuance still rejects an already used number before recording it.
         invoice = (MAIN/'LocalInvoiceService.java').read_text()
