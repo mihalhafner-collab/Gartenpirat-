@@ -21,11 +21,17 @@ ausgestellte Belege und erforderliche Aufbewahrung vor dem Löschen berücksicht
 Neustart, verspätete Antworten und Wiederherstellung dürfen verworfene Inhalte
 nicht unbeabsichtigt wieder aktivieren.
 
-## Lokale Sicherung
+## Sicherung
 
-Neue Sicherungen sind unverschlüsselte ZIP-Dateien auf dem Pixel: Speicherknopf,
-Android-Dateiauswahl und geprüfte Rücklesung der gespeicherten Datei. Dafür gibt
-es keine Kontoeinrichtung, Cloud-Zielwahl oder automatischen Uploadjob.
+Neue Sicherungen sind unverschlüsselte ZIP-Dateien: Speicherknopf,
+Android-Dateiauswahl, Drive oder lokalen Speicher als Ziel wählen und die
+gespeicherte Datei zurücklesen. Drive ist ausschließlich Speicherort des fertigen
+Backup-Archivs und Quelle einer ausdrücklich gewählten Wiederherstellung.
+Die installierte Drive-App übernimmt die Ablage über den Android-Dateianbieter.
+Es gibt keine eigene Drive-API, Drive-Anmeldung, Drive-Berechtigungen,
+Geschäftsdaten-Synchronisierung oder automatischen Uploadjob in der App.
+Die lokale Datenbank bleibt führend. Eine Rücklesung durch den Dateianbieter
+bestätigt die gelesenen Dateibytes; sie belegt keine unabhängige Cloud-Bestätigung.
 Vorhandene ältere Archive und Schlüssel bleiben für eine bewusst beauftragte
 Wiederherstellung erhalten. Deren Lesbarkeit rechtfertigt keine neue komplizierte
 Einrichtung für aktuelle Sicherungen.
@@ -101,3 +107,50 @@ Kunden nach aktiv/archiviert und Abrechnungsweg, Geräte nach vorhandenem Zustan
 Aufträge und Rechnungen nach vorhandenem Status und Kunde filtern. Aktive Auswahl,
 Trefferzahl und einfaches Zurücksetzen sichtbar halten. Keine gespeicherten
 Filterprofile oder zusätzlichen Datenmodelle.
+
+## Datenbank, Bilder und Reaktionszeit beim Kotlin-Refactoring
+
+Indizes an den tatsächlichen Filter- und Sortierabfragen ausrichten. Für eine
+Objekthistorie insbesondere den vorhandenen Objektbezug zusammen mit dem
+Arbeitsdatum prüfen; keine neue Beziehung allein für einen Beispielindex erfinden.
+Bei Room die passenden Indizes mit `@Index` ausdrücken. Die Verwendung mit
+`EXPLAIN QUERY PLAN` und realistischen synthetischen Daten prüfen. Zusätzliche
+Indizes benötigen eine konkrete Abfrage, weil sie auch Schreibaufwand verursachen.
+
+WAL ausdrücklich konfigurieren und zur Laufzeit prüfen; bei Room
+`JournalMode.WRITE_AHEAD_LOGGING` verwenden. WAL erlaubt gleichzeitige Leser und
+einen Schreiber, beseitigt aber nicht jede Sperre. SQLite-Sicherungen müssen einen
+konsistenten, vollständig bestätigten Stand einschließlich der Änderungen im WAL
+aufnehmen. Das isolierte Kopieren der Hauptdatei einer laufenden WAL-Datenbank ist
+keine vollständige Sicherung. Den bestehenden Sicherungs-/Wiederherstellungsvertrag
+auch bei gleichzeitigem Schreiben und nach erneutem Öffnen prüfen.
+
+Listen laden nur die benötigten Spalten und einen begrenzten Ergebnisumfang,
+beispielsweise Kundenkennung, Name und Adresse. Filter und Sortierung möglichst
+in der Datenbank ausführen. Historien, Notizen, Beziehungen und Originaldateien
+erst beim Öffnen des jeweiligen Details laden. Ein ausgewähltes JSON-Feld mit
+dem gesamten Bestand erfüllt diese Projektion nicht. Vollständige Bestandslesungen
+bleiben den Bedienwegen vorbehalten, die sie tatsächlich benötigen, etwa Sicherungen.
+
+Fotos und neue temporäre Fotoübertragungen als Dateien speichern; in SQLite nur
+Dateireferenz und benötigte Metadaten halten. Vorhandene BLOBs und ihre
+MCP-/Sicherungsbezüge bei einer Umstellung vollständig erhalten; keine bestehende
+Dateiübertragung ersatzlos entfernen. Listen verwenden auf die tatsächliche
+Anzeigegröße verkleinerte Vorschauen statt dekodierter Kameraoriginale. Für eine
+Compose-Oberfläche Coil mit gemeinsamem ImageLoader, größenbegrenzter Dekodierung
+und begrenzten RAM-/Disk-Caches berücksichtigen; keine zweite eigene Cacheverwaltung.
+Originale bleiben für Detailansicht, Export und Sicherung verfügbar.
+
+Datenbankabfragen, Dateizugriffe und Bildverarbeitung dürfen den UI-Thread nicht
+blockieren. In Kotlin suspendierende Room-Zugriffe und für blockierende Datei- und
+Datenbankarbeit `Dispatchers.IO` verwenden. Room-Abfragen über `Flow` beobachten und
+an den Lebenszyklus der Oberfläche binden. Room führt betroffene Abfragen nach
+Invalidierung erneut aus; es liefert nicht automatisch nur einzelne geänderte
+Zeilen. Abfrageumfang und unnötige UI-Neuberechnungen deshalb begrenzen.
+Oberfläche und MCP behalten dieselben transaktionalen Fachschreiber.
+
+Room, Coroutines/Flow und Coil zusammen mit den relevanten Kotlin- und
+Oberflächenvarianten auf Kompatibilität und konkreten Nutzen nach KISS/YAGNI
+prüfen. Durchsatz, Antwortzeit, Speicherverbrauch und flüssiges Scrollen am
+tatsächlichen Zielgerät messen. 50.000 Lesevorgänge pro Sekunde, 0,1 Millisekunden
+oder 120 Bilder pro Sekunde sind keine zugesicherten Eigenschaften der App.

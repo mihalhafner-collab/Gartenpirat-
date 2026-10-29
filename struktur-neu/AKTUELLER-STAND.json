@@ -28,19 +28,21 @@
     }
   ],
   "current_task": {
-    "name": "Neue direkte Backup-Funktion als originalsignierte Release-APK privat bereitstellen",
-    "status": "COMPLETE;BUILD117_ORIGINAL_SIGNED_PRIVATE_DELIVERY_AND_DOWNLOAD_READBACK_PASS;NO_PIXEL_INSTALLATION",
+    "name": "Vollständiges Kotlin-Refactoring nach KISS/YAGNI mit einfachem ZIP-Backup und gezielten SQLite-/Bildzugriffen",
+    "status": "REQUIREMENTS_RECORDED;OPTIONS_REVIEW_PENDING;APPLICATION_REFACTORING_NOT_STARTED",
     "authorized": true,
-    "authorization_scope": "User expressly authorized APK build,original signing,necessary checks,private Drive delivery and current technical state update;no Pixel installation,deletion,migration or restore",
+    "authorization_scope": "User requests complete Kotlin application refactoring with retained functionality;Drive only stores an unencrypted ZIP via Android file selection;incorporate index,WAL,projection,file-based photo,Coil,coroutine and Flow guidance;no productive migration,installation or device restore",
+    "requirements_document": "docs/fachregeln/APP.md",
     "implementation": [
-      "Current main e605bed retained without production changes;only AKTUELLER-STAND differs from verified backup source9579a46",
-      "Version1.55.12/build117 previously undistributed;built using existing Gradle configuration",
-      "check_current62 Python checks,271 JVM checks and27 browser checks passed locally;prior36 native emulator checks verified from matching-source GitHub job logs",
-      "Original release signer,package/version,source binding and fresh private Drive download checks passed;temporary signing material removed"
+      "App contract incorporates latest Drive-backup-only correction and SQLite/photo/threading requirements;no application source or schema changed",
+      "Current source inspection finds existing business indexes and photo downsampling;PixelLocalStore does not explicitly enable WAL;temporary MCP uploads still use BLOBs"
     ],
     "remaining": [
-      "Actual Android file picker/provider permissions and backup test on user Pixel NOT_EXECUTED",
-      "Manual update installation and update data retention on user Pixel NOT_EXECUTED"
+      "Complete relevant Kotlin platform,UI,storage and dependency review before choosing the simplest final architecture",
+      "Convert all application source including the JavaScript UI while preserving package identity,local data compatibility and shared UI/MCP behavior",
+      "Allow the unencrypted ZIP backup target through the Android document picker including Drive;remove other Drive implementations,configuration,permissions and dependencies without losing unrelated calendar functionality",
+      "Implement query-driven indexes,WAL with consistent backup,limited list projections,file-based image handling and background I/O;evaluate Room/Flow and Coil for the selected Kotlin UI",
+      "Run source/build and affected regression suites;measure query plans,concurrent access,backup roundtrip and image memory/frame behavior with synthetic data;report missing Pixel evidence separately"
     ]
   },
   "open_checks": [
@@ -170,6 +172,17 @@
       "new_photo_store": false,
       "fallback_chain": false,
       "native_test_scope": "Isolated synthetic original and WebView profile;missing thumbnail,original readback,image decode,WebView recreation,missing original;actual Android picker and full app restart still require acceptance"
+    },
+    "requirements_review": {
+      "scope": "Requirements and existing-source inspection only;not Kotlin implementation or a performance measurement",
+      "application_source_unchanged": true,
+      "checks": "PASS;check_current:62 Python tests plus source/privacy/contracts/fixtures/plants/UI inventory;git diff --check",
+      "productive_data_accessed": false,
+      "installation_performed": false,
+      "observed_at_utc": "2026-10-29T19:56:51.045516+00:00",
+      "application_source_sha256": "ef6261b4e79c54131248bf439e148bc16c6c7cc2e579936d857cb2b9b258d219",
+      "android_build": "NOT_RUN;documentation-only change",
+      "performance_tests": "NOT_RUN;requirements only"
     }
   },
   "unmerged_work": [
