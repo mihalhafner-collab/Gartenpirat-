@@ -37,7 +37,7 @@
       "13 backup/restore classes ported to Kotlin;SQLite schema7/ZIP format1 preserved",
       "Drive target through Android document picker;no own Drive API/auth;WAL enabled",
       "Legacy Java<->Kotlin archive comparison and mixed JVM regression added;full app migration remains open",
-      "Provider header-read failure reproduced RED,fixed,and237 format checks GREEN;independent code/tooling reviews complete"
+      "Current-source CI:62 Python,532 JVM/archive/SQLite and56 native checks PASS;real picker/provider/Pixel and full Kotlin migration open"
     ],
     "remaining": [
       "Complete architecture/dependency decision and remaining Kotlin/UI/business paths",
@@ -63,7 +63,7 @@
         "required_evidence": "Complete baseline UI/MCP behavior incl.calendar,timer,photos,offers,invoices,backup/restore;package/signature retained"
       },
       "DRIVE_ZIP": {
-        "status": "IMPLEMENTED;PROVIDER_RUNTIME_NOT_RUN",
+        "status": "IMPLEMENTED;URI_BOUNDARY_PASS;REAL_PICKER_PROVIDER_OPEN",
         "required_evidence": "Plain ZIP via Android picker to Drive;provider/readback/restore tests;no own Drive API/login"
       },
       "DRIVE_REMOVAL": {
@@ -75,7 +75,7 @@
         "required_evidence": "Real filter/sort/history plans use matching indexes;synthetic volume and result parity"
       },
       "WAL": {
-        "status": "IMPLEMENTED;NATIVE_AND_TRANSACTION_CONCURRENCY_PENDING",
+        "status": "RUNTIME_SNAPSHOT_PASS;APP_TRANSACTION_CONCURRENCY_OPEN",
         "required_evidence": "Runtime WAL,concurrent access,committed WAL data in backup and restore/reopen proven"
       },
       "PROJECTIONS": {
@@ -103,14 +103,14 @@
         "required_evidence": "Bounded independent tasks,explicit base/files;main agent reviews and verifies integration"
       },
       "BACKUP_COMPAT": {
-        "status": "FORMAT_PASS;ANDROID_RESTORE_PENDING;PERSONAL_ZIP_UNREAD",
+        "status": "FORMAT_AND_NATIVE_RESTORE_PASS;PERSONAL_ZIP_UNREAD",
         "required_evidence": "Legacy format1/schema6,7 Java->Kotlin and reverse;native restore/reopen/rollback;preserve all tables/files/preferences"
       }
     }
   },
   "open_checks": [
-    "Synthetic Pixel/provider acceptance and physical update/data retention NOT_EXECUTED",
-    "Existing inconsistent records/missing originals preserved;invoice guards unchanged"
+    "Actual Drive/Android picker and physical Pixel update/data retention NOT_EXECUTED",
+    "Full Kotlin UI/business migration and remaining acceptance items OPEN;personal ZIP version/integrity unverified"
   ],
   "workflow": {
     "scope": "CURRENT_SOURCE;struktur-neu is authoritative;qa-apk.yml builds and tests this source without publishing a user APK",
@@ -142,16 +142,17 @@
     "authored_changes_diff_check": "PASS",
     "current_test_run": {
       "scope": "Current partial Kotlin backup migration;not complete application acceptance",
-      "observed_at_utc": "2026-10-29T20:32:26.890474+00:00",
+      "observed_at_utc": "2026-10-29T20:54:11.866521+00:00",
       "check_current": "PASS;62 Python plus source/privacy/contracts/fixtures/plants/UI inventory",
       "jvm": "PASS;271 existing+237 archive compatibility+24 SQLite content/type checks",
       "archive_reference": "Build117 commit035d6503d16d63a7468498611060f99640a67284;format1/schema6,7",
-      "android_build": "PASS;fresh CI release/test APK and local final Kotlin/Java compile",
-      "native_emulator": "PENDING_CORRECTED_CI;shallow checkout lacked pinned legacy source;targeted fetch added",
+      "android_build": "PASS;fresh CI release/test APK;disposable test signer;no user APK delivered",
+      "native_emulator": "PASS;API35 local_backup43,reopen13;synthetic;no real picker/provider or Pixel test",
       "pixel_and_personal_zip": "NOT_RUN;no customer data access",
       "source_sha256": "8f7e2319773f7dcbfedbf962874d0430ace66bde2beed56d6b674012eae9ce0f",
-      "tooling_review": "PASS;recursive Kotlin bridges,source ambiguity,no encrypt writer;targeted synthetic gate probes",
-      "ci_run": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40950124501;JVM reference setup failed before native phase"
+      "tooling_review": "PASS;recursive Kotlin/ambiguity/encrypt gates;fresh shallow-reference fetch regression",
+      "ci_run": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40951796102;SUCCESS",
+      "source_git_sha": "e5c6449e65c3b1e219ce1ffe5fb14aa203db726f"
     },
     "performance_evidence": "docs/verification/performance-current.md measures the previous candidate fingerprint;no performance claim for the new native image path",
     "connector": {
@@ -194,6 +195,6 @@
   "current_release_candidate": {
     "version_name": "1.56.0",
     "version_code": 118,
-    "status": "SOURCE_ONLY;PARTIAL_KOTLIN;NOT_SIGNED_OR_DISTRIBUTED"
+    "status": "UNSIGNED_CI_BUILD_TESTED;PARTIAL_KOTLIN;NOT_DISTRIBUTED_OR_INSTALLED"
   }
 }
