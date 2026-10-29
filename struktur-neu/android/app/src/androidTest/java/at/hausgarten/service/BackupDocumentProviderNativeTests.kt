@@ -9,7 +9,9 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
+import android.os.Process
 import android.os.SystemClock
+import android.util.Base64
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityNodeInfo
@@ -45,12 +47,20 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
         ParcelFileDescriptor.AutoCloseInputStream(it).use { input -> input.readBytes().toString(Charsets.UTF_8).trim() }
     }
 
-    private fun control(method: String, id: String? = null, args: Bundle? = null): Bundle {
-        automation.adoptShellPermissionIdentity("android.permission.MANAGE_DOCUMENTS")
-        try {
-            return context.contentResolver.call(SyntheticBackupDocumentsProvider.CONTROL_URI,
-                SyntheticBackupDocumentsProvider.CONTROL + method, id, args) ?: Bundle.EMPTY
-        } finally { automation.dropShellPermissionIdentity() }
+    private fun control(method: String, id: String? = null, args: Bundle? = null): JSONObject {
+        val request = JSONObject().put("method", method)
+        if (id != null) request.put("id", id)
+        args?.keySet()?.forEach { request.put(it, args.get(it)) }
+        val encoded = Base64.encodeToString(request.toString().toByteArray(Charsets.UTF_8), Base64.URL_SAFE or Base64.NO_WRAP)
+        // The actual shell owns DUMP and ACCESS_CONTENT_PROVIDERS_EXTERNALLY. AMS accepts an
+        // accessible path permission for acquisition; document transport still enforces SAF grants.
+        val output = shell("content call --uri ${SyntheticBackupDocumentsProvider.CONTROL_URI} " +
+            "--method ${SyntheticBackupDocumentsProvider.CONTROL}shell --arg $encoded")
+        val payload = Regex("qa_result=([A-Za-z0-9_=-]+)").find(output)?.groupValues?.get(1)
+            ?: throw IOException("QA_SHELL_CONTROL_FAILED: $output")
+        val response = JSONObject(String(Base64.decode(payload, Base64.URL_SAFE), Charsets.UTF_8))
+        if (response.getInt("caller_uid") != Process.SHELL_UID) throw SecurityException("QA_ACTUAL_SHELL_RESPONSE_REQUIRED")
+        return response.getJSONObject("result")
     }
 
     private fun stats(): JSONObject = JSONObject(requireNotNull(control("stats").getString("state")))
@@ -84,6 +94,14 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
         File(context.filesDir, "qa-provider-payload.bin").writeBytes(ByteArray(196608).also { Random(87).nextBytes(it) })
 
         val success = create()
+        var targetControlRejected = false
+        try {
+            context.contentResolver.call(SyntheticBackupDocumentsProvider.CONTROL_URI,
+                SyntheticBackupDocumentsProvider.CONTROL + "shell", null, null)
+        } catch (failure: SecurityException) {
+            targetControlRejected = failure.message?.contains("QA_CONTROL_REQUIRES_ACTUAL_SHELL_UID") == true
+        }
+        yes(targetControlRejected, "TARGET_DOCUMENT_GRANT_CANNOT_CONTROL_FIXTURE")
         val request = "qa_provider_save_001"
         PixelLocalStore(context).use { store ->
             store.putOwnerValue("qa_provider_marker", "QA synthetic provider fixture")

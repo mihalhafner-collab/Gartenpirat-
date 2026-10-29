@@ -212,6 +212,9 @@ Die zweite Suite prüft dieselben gespeicherten Werte in einem neuen Prozess.
 `DocumentsProvider` ausschließlich in der Test-APK, mit separater UID und eigenem
 Prozess. Der Anbieter meldet sich als nicht lokal, speichert aber ausschließlich
 frisch erzeugte synthetische Dateien; es gibt keine Konto- oder Netzwerkverbindung.
+Die Einrichtung und Fehlersteuerung läuft als echter Shell-UID-Aufruf über den
+Testpfad `/qa-control` mit dessen `DUMP`-Pfadrecht. Dokumentzugriffe verwenden
+weiter die unveränderten Apprechte; die Teststeuerung prüft zusätzlich die Shell-UID.
 Geprüft werden echte `ContentResolver`-Zugriffe, fehlende, eingeschränkte und
 entzogene URI-Rechte, Schreib-/Lesefehler, abgebrochene Schreibstreams, Wiederholung
 und Rücklesung. Die erste Suite bedient die wirkliche Android-Dateiauswahl für

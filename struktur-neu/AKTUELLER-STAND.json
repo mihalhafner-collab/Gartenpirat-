@@ -29,7 +29,7 @@
   ],
   "current_task": {
     "name": "Kotlin-Update der bestehenden Haus-und-Garten-App mit kompatiblem ZIP-Backup",
-    "status": "BACKUP_BOUNDARY_PORTED;SYNTHETIC_PROVIDER_CHECKPOINT_NATIVE_PENDING;FULL_APP_REFACTORING_OPEN",
+    "status": "BACKUP_PORT_AND_CORE_NATIVE_PASS;PROVIDER_FIX_RECHECK_PENDING;FULL_APP_REFACTORING_OPEN",
     "authorized": true,
     "authorization_scope": "UPDATE same package/original signature;full Kotlin refactoring and regression;synthetic data only;bounded subagents;no productive access,installation,migration,restore or delivery",
     "requirements_document": "docs/fachregeln/APP.md",
@@ -140,15 +140,16 @@
     "authored_changes_diff_check": "PASS",
     "current_test_run": {
       "scope": "CURRENT25_CLASS_BACKUP_BOUNDARY;not full app acceptance",
-      "observed_at_utc": "2026-10-29T21:27:48.254061+00:00",
+      "observed_at_utc": "2026-10-29T21:40:40.921168+00:00",
       "source_base_git_sha": "ba87387c8acc045b02d16aac16a8b67468c3c223",
       "source_sha256": "714a42e4c4153519d082bde2f579e35d3de7f82fc6373b401ed720ad00232e2f",
       "source_dirty": true,
       "source_checks": "PASS;62 Python/source/privacy/contracts;seed0",
       "jvm": "PASS;271 existing+237 format+24 SQLite checks",
       "android_build": "PASS;full release/test APK with all gates;test-runtime isolation verified in complete DEX/manifests",
-      "native": "PENDING_CI;backup2,checkpoint2,provider/picker2 suites",
-      "pixel_drive_account_personal_zip": "NOT_RUN;synthetic only"
+      "native": "FIRST_CI:backup56+checkpoint102 PASS;provider control setup failed;test-only shell fix awaits full rerun",
+      "pixel_drive_account_personal_zip": "NOT_RUN;synthetic only",
+      "ci_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40958330727"
     },
     "performance_evidence": "docs/verification/performance-current.md measures the previous candidate fingerprint;no performance claim for the new native image path",
     "connector": {

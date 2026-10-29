@@ -10,8 +10,10 @@ import android.os.Build
 import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
+import android.os.Process
 import android.provider.DocumentsContract
 import android.provider.DocumentsProvider
+import android.util.Base64
 import org.json.JSONObject
 import java.io.File
 import java.io.FileNotFoundException
@@ -25,7 +27,7 @@ class SyntheticBackupDocumentsProvider : DocumentsProvider() {
         const val ROOT_LABEL = "QA synthetic backups"
         const val ROOT_ID = "qa_root"
         const val CONTROL = "qa_backup_"
-        val CONTROL_URI: Uri = Uri.parse("content://$AUTHORITY")
+        val CONTROL_URI: Uri = Uri.parse("content://$AUTHORITY/qa-control")
         fun document(id: String): Uri = DocumentsContract.buildDocumentUri(AUTHORITY, id)
     }
 
@@ -65,50 +67,69 @@ class SyntheticBackupDocumentsProvider : DocumentsProvider() {
     @Synchronized
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
         if (!method.startsWith(CONTROL)) return super.call(method, arg, extras)
-        // Control calls never become available through a granted document URI.
-        requireNotNull(context).enforceCallingPermission("android.permission.MANAGE_DOCUMENTS", "QA_CONTROL_REQUIRES_SHELL")
+        // ContentProvider.call has no path-specific permission check. Require the actual shell UID;
+        // adopting permissions in the target process must never authorize fixture administration.
+        if (method != CONTROL + "shell" || Binder.getCallingUid() != Process.SHELL_UID) {
+            throw SecurityException("QA_CONTROL_REQUIRES_ACTUAL_SHELL_UID")
+        }
+        val request = JSONObject(String(Base64.decode(requireNotNull(arg), Base64.URL_SAFE), Charsets.UTF_8))
+        val arguments = Bundle().apply {
+            if (request.has("fault")) putString("fault", request.getString("fault"))
+            if (request.has("read_only")) putBoolean("read_only", request.getBoolean("read_only"))
+        }
+        val caller = Binder.getCallingUid()
         val identity = Binder.clearCallingIdentity()
         try {
-            if (method == CONTROL + "prepare") {
-                if (root.exists() && root.listFiles()?.isNotEmpty() != false) throw IOException("FRESH_PROVIDER_FIXTURE_REQUIRED")
-                if (!root.isDirectory && !root.mkdirs()) throw IOException("QA_PROVIDER_STORAGE_UNAVAILABLE")
-                write(JSONObject().put("fixture", "synthetic-backup-provider-v1").put("documents", JSONObject()))
-                requireNotNull(context).contentResolver.notifyChange(DocumentsContract.buildRootsUri(AUTHORITY), null)
-                return Bundle.EMPTY
+            val result = control(CONTROL + request.getString("method"), request.optString("id", ""), arguments)
+            val values = JSONObject()
+            for (key in result.keySet()) values.put(key, result.get(key))
+            val response = JSONObject().put("caller_uid", caller).put("result", values)
+            return Bundle().apply {
+                putString("qa_result", Base64.encodeToString(response.toString().toByteArray(Charsets.UTF_8), Base64.URL_SAFE or Base64.NO_WRAP))
             }
-            val value = state()
-            val documents = value.getJSONObject("documents")
-            val id = arg ?: ""
-            when (method.removePrefix(CONTROL)) {
-                "create" -> {
-                    val created = create(value, "QA synthetic ${documents.length()}.zip")
-                    return Bundle().apply { putString("id", created) }
-                }
-                "stats" -> return Bundle().apply {
-                    putString("state", value.toString())
-                    putInt("pid", android.os.Process.myPid())
-                    putInt("uid", android.os.Process.myUid())
-                }
-                "fault" -> {
-                    val fault = extras?.getString("fault") ?: "NONE"
-                    require(fault in listOf("NONE", "WRITE_OPEN", "WRITE_STREAM", "READ_OPEN", "READ_TRUNCATED"))
-                    documents.getJSONObject(id).put("fault", fault)
-                    write(value)
-                }
-                "grant" -> {
-                    documents.getJSONObject(id)
-                    requireNotNull(context).grantUriPermission("at.hausgarten.service", document(id),
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION or (if (extras?.getBoolean("read_only") == true) 0 else Intent.FLAG_GRANT_WRITE_URI_PERMISSION) or
-                            Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-                }
-                "revoke" -> requireNotNull(context).revokeUriPermission(document(id),
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                else -> throw IllegalArgumentException("UNKNOWN_QA_PROVIDER_CONTROL")
-            }
-            return Bundle.EMPTY
         } finally {
             Binder.restoreCallingIdentity(identity)
         }
+    }
+
+    private fun control(method: String, arg: String?, extras: Bundle?): Bundle {
+        if (method == CONTROL + "prepare") {
+            if (root.exists() && root.listFiles()?.isNotEmpty() != false) throw IOException("FRESH_PROVIDER_FIXTURE_REQUIRED")
+            if (!root.isDirectory && !root.mkdirs()) throw IOException("QA_PROVIDER_STORAGE_UNAVAILABLE")
+            write(JSONObject().put("fixture", "synthetic-backup-provider-v1").put("documents", JSONObject()))
+            requireNotNull(context).contentResolver.notifyChange(DocumentsContract.buildRootsUri(AUTHORITY), null)
+            return Bundle.EMPTY
+        }
+        val value = state()
+        val documents = value.getJSONObject("documents")
+        val id = arg ?: ""
+        when (method.removePrefix(CONTROL)) {
+            "create" -> {
+                val created = create(value, "QA synthetic ${documents.length()}.zip")
+                return Bundle().apply { putString("id", created) }
+            }
+            "stats" -> return Bundle().apply {
+                putString("state", value.toString())
+                putInt("pid", android.os.Process.myPid())
+                putInt("uid", android.os.Process.myUid())
+            }
+            "fault" -> {
+                val fault = extras?.getString("fault") ?: "NONE"
+                require(fault in listOf("NONE", "WRITE_OPEN", "WRITE_STREAM", "READ_OPEN", "READ_TRUNCATED"))
+                documents.getJSONObject(id).put("fault", fault)
+                write(value)
+            }
+            "grant" -> {
+                documents.getJSONObject(id)
+                requireNotNull(context).grantUriPermission("at.hausgarten.service", document(id),
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or (if (extras?.getBoolean("read_only") == true) 0 else Intent.FLAG_GRANT_WRITE_URI_PERMISSION) or
+                        Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+            }
+            "revoke" -> requireNotNull(context).revokeUriPermission(document(id),
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            else -> throw IllegalArgumentException("UNKNOWN_QA_PROVIDER_CONTROL")
+        }
+        return Bundle.EMPTY
     }
 
     private fun create(value: JSONObject, title: String): String {

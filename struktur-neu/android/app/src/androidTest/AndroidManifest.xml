@@ -9,6 +9,11 @@
             android:grantUriPermissions="true"
             android:permission="android.permission.MANAGE_DOCUMENTS"
             android:process=":qa_documents">
+            <!-- Shell can acquire the control endpoint; document paths still require SAF grants. -->
+            <path-permission
+                android:path="/qa-control"
+                android:readPermission="android.permission.DUMP"
+                android:writePermission="android.permission.DUMP" />
             <intent-filter>
                 <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
             </intent-filter>
