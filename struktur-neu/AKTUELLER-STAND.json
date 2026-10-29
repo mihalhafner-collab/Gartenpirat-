@@ -29,27 +29,26 @@
   ],
   "current_task": {
     "name": "Bisherigen Backup-Ablauf durch direkte lokale Sicherung ersetzen",
-    "status": "IMPLEMENTED;SOURCE_AND_JVM_PASS;NATIVE_CI_PENDING",
+    "status": "COMPLETED;SOURCE_JVM_ANDROID_BUILD_AND_NATIVE_ROUNDTRIP_PASS",
     "authorized": true,
     "authorization_scope": "Direct user instruction 2026-10-29: remove previous backup implementation and its bindings; implement and verify replacement. Source and synthetic tests only; no productive data access, installation or restore.",
     "implementation": [
       "Removed backup coordinator, durable backup-job repository and controller; UI/MCP/self-test use direct PixelBackupService.",
       "Snapshot of raw SQLite, existing files and preferences; original and inventory problems are archive notes, not save/restore gates.",
       "ZIP integrity, provider readback, confirmed target protection and restore rollback retained; encrypted legacy reader only for existing archives.",
-      "Existing GitHub QA workflow updated to current source and isolated native SQLite save/restore/new-process tests."
+      "Existing GitHub QA workflow builds current source and verifies native SQLite save/restore plus fresh-process readback on an isolated emulator."
     ],
     "remaining": [
-      "Actual Gradle build and isolated native CI run pending.",
-      "Real Pixel file picker/provider/lifecycle acceptance not executed."
+      "Real Pixel file picker/provider/lifecycle acceptance and release APK delivery were not part of this source-only task and remain unexecuted."
     ]
   },
   "open_checks": [
-    "Native GitHub emulator save/restore and fresh-process readback pending.",
     "Real Android file picker/provider permissions and full physical Pixel backup/restore remain unexecuted.",
+    "Release APK not signed, distributed or installed; emulator packages used a disposable test signature only.",
     "Existing inconsistent business records are preserved; new invoice issuance guards unchanged."
   ],
   "workflow": {
-    "scope": "PARALLEL_STAGING; existing source paths and workflows unchanged",
+    "scope": "CURRENT_SOURCE;struktur-neu is authoritative;qa-apk.yml builds and tests this source without publishing a user APK",
     "rules": "../AGENTS.md",
     "code": "android/app/src/main",
     "build_instructions": "docs/entwicklung/BAU.md",
@@ -82,15 +81,15 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "a4274c30e60cda6b39568126c6e4998344f79e7fd7c2d79449f328ebb49ec25a",
+    "app_source_fingerprint": "ef6261b4e79c54131248bf439e148bc16c6c7cc2e579936d857cb2b9b258d219",
     "source_privacy": "PASS;empty operational seed",
-    "native_pixel_tests": "NOT_EXECUTED;no reachable ADB",
+    "native_pixel_tests": "NOT_EXECUTED;no physical Pixel backup/restore or file-picker acceptance",
     "business_data_read": false,
     "installation_performed": false,
     "authored_changes_diff_check": "PASS",
     "imported_source_whitespace": "2 existing findings in byte-identical Build113 sources; no unrelated source formatting applied",
     "current_test_run": {
-      "observed_at_utc": "2026-10-29T17:40:32.795035+00:00",
+      "observed_at_utc": "2026-10-29T18:25:13Z",
       "check_current": "PASS;62 Python checks plus source/contracts/privacy/fixtures/plants/UI inventory",
       "java_suites_passed": 3,
       "java_checks_passed": 271,
@@ -99,17 +98,30 @@
         "EquipmentProfilePhotoTests": 54,
         "PixelPlainBackupTests": 126
       },
-      "native_backup_roundtrip": "PENDING_GITHUB_CI",
+      "native_backup_roundtrip": {
+        "status": "PASS",
+        "android_api": 35,
+        "local_backup_checks": 29,
+        "fresh_process_checks": 7,
+        "scope": "Actual production SQLite capture, ZIP save/readback, restore activation, rollback preservation, preferences/files/BLOBs, and separate-process reopen in unused device-protected storage of a disposable emulator.",
+        "synthetic_only": true,
+        "android_file_picker_tested": false
+      },
       "physical_pixel_backup_restore": "NOT_EXECUTED",
       "business_data_read": false,
       "installation_performed": false,
-      "source_sha256": "a4274c30e60cda6b39568126c6e4998344f79e7fd7c2d79449f328ebb49ec25a"
+      "source_sha256": "ef6261b4e79c54131248bf439e148bc16c6c7cc2e579936d857cb2b9b258d219",
+      "source_git_sha": "9579a46ef170aec158c2981c01492afdd498cfa5",
+      "android_build": "PASS;assembleRelease and assembleReleaseAndroidTest",
+      "github_actions_run": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40929572604",
+      "test_apk_installation": "DISPOSABLE_EMULATOR_ONLY;temporary test signing material removed"
     },
     "current_source_changes": {
-      "status": "SOURCE_AND_JVM_PASS;NATIVE_CI_PENDING",
+      "status": "SOURCE_JVM_ANDROID_BUILD_AND_NATIVE_ROUNDTRIP_PASS",
       "base_git_sha": "73ba6b23855b1aecab7c0bf9de36503d9cbbef81",
       "backup": "Direct snapshot and copy with informational original/reference defects; no backup-job engine",
-      "productive_data_changes": false
+      "productive_data_changes": false,
+      "verified_source_commit": "9579a46ef170aec158c2981c01492afdd498cfa5"
     },
     "backup_diagnosis": {
       "reported_on": "2026-10-29",
@@ -117,7 +129,7 @@
       "device_build": "NOT_SHOWN_IN_SCREENSHOT",
       "latest_error_code": "BACKUP_LOCAL_ORIGINALS_INCOMPLETE",
       "root_cause": "Old capture and restore rejected the complete operation when LocalMigrationInventory found any unverified original.",
-      "resolution": "Old save/job path replaced; raw copy with per-record notes; native validation pending.",
+      "resolution": "Old save/job path replaced. Missing originals and inventory defects are notes. Native save/restore/new-process roundtrip passed; physical Pixel acceptance remains untested.",
       "local_saved_backup_verified": false
     },
     "performance_evidence": "docs/verification/performance-current.md measures the previous candidate fingerprint;no performance claim for the new native image path",
@@ -197,7 +209,9 @@
   "current_release_candidate": {
     "version_name": "1.55.12",
     "version_code": 117,
-    "status": "SOURCE_ONLY;NATIVE_VALIDATION_PENDING;NOT_SIGNED_OR_DISTRIBUTED",
-    "installation": "NOT_PERFORMED"
+    "status": "ANDROID_BUILD_AND_SYNTHETIC_NATIVE_TESTS_PASS;NOT_RELEASE_SIGNED_OR_DISTRIBUTED",
+    "installation": "NOT_PERFORMED",
+    "source_git_sha": "9579a46ef170aec158c2981c01492afdd498cfa5",
+    "source_sha256": "ef6261b4e79c54131248bf439e148bc16c6c7cc2e579936d857cb2b9b258d219"
   }
 }
