@@ -47,6 +47,10 @@ zum ursprünglichen Java-Leser. `tools/check_backup_compatibility.py` erzeugt da
 frische SQLite6/7-Datenbanken einschließlich Unicode, NULL, Int64 und BLOBs sowie
 Einstellungen und Dateien. Die Referenzquelle wird aus Git gelesen und per SHA256
 geprüft; es wird keine alte Produktionsimplementierung parallel ausgeliefert.
+In einem flachen Checkout vorher ausschließlich diese Referenz nachladen:
+`git fetch --no-tags --depth=1 origin 035d6503d16d63a7468498611060f99640a67284`.
+Der bestehende CI-Workflow erledigt diesen Vorbereitungsschritt ausdrücklich;
+der Test selbst lädt keine Quellen oder Abhängigkeiten nach.
 
 Offizielle Grundlagen:
 [Built-in Kotlin](https://developer.android.com/build/migrate-to-built-in-kotlin),

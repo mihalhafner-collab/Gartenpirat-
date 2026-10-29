@@ -135,7 +135,10 @@ def main():
     javac, java = shutil.which('javac'), shutil.which('java')
     if not javac or not java:
         raise RuntimeError('A JDK is required')
-    reference = source(REFERENCE_PATH)
+    try:
+        reference = source(REFERENCE_PATH)
+    except subprocess.CalledProcessError as unavailable:
+        raise RuntimeError('Pinned legacy ZIP source is missing; fetch it first: git fetch --no-tags --depth=1 origin ' + REFERENCE_COMMIT) from unavailable
     if hashlib.sha256(reference).hexdigest() != REFERENCE_SHA256:
         raise RuntimeError('Pinned legacy source does not match its expected SHA256')
     with tempfile.TemporaryDirectory(prefix='qa_backup_compat_') as temporary:

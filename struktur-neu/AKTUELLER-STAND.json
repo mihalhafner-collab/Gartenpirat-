@@ -146,12 +146,12 @@
       "check_current": "PASS;62 Python plus source/privacy/contracts/fixtures/plants/UI inventory",
       "jvm": "PASS;271 existing+237 archive compatibility+24 SQLite content/type checks",
       "archive_reference": "Build117 commit035d6503d16d63a7468498611060f99640a67284;format1/schema6,7",
-      "android_build": "PASS;release/test APK then final Kotlin+Java recompile after header-stream fix;CI runtime pending",
-      "native_emulator": "PENDING_CI",
+      "android_build": "PASS;fresh CI release/test APK and local final Kotlin/Java compile",
+      "native_emulator": "PENDING_CORRECTED_CI;shallow checkout lacked pinned legacy source;targeted fetch added",
       "pixel_and_personal_zip": "NOT_RUN;no customer data access",
       "source_sha256": "8f7e2319773f7dcbfedbf962874d0430ace66bde2beed56d6b674012eae9ce0f",
       "tooling_review": "PASS;recursive Kotlin bridges,source ambiguity,no encrypt writer;targeted synthetic gate probes",
-      "context_reader": "PASS;complete current rules/state with SHA256 within16000 bytes;no automatic cloud invocation claim"
+      "ci_run": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40950124501;JVM reference setup failed before native phase"
     },
     "performance_evidence": "docs/verification/performance-current.md measures the previous candidate fingerprint;no performance claim for the new native image path",
     "connector": {
@@ -159,8 +159,7 @@
       "read": 73,
       "write": 96,
       "scope": "Prior Build114 observation only;no refactoring device access"
-    },
-    "prior_release_checks": "Build117:62 Python,271 JVM,27 browser,36 native API35 emulator checks;source9579a46 matches release;GitHub run40929572604"
+    }
   },
   "unmerged_work": [
     {
