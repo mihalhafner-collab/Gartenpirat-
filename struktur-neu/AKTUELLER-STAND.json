@@ -29,7 +29,7 @@
   ],
   "current_task": {
     "name": "Build115 mit bestehenden Korrekturen und kleinen Listenfiltern original signieren und privat bereitstellen",
-    "status": "SOURCE_COMPLETE_AND_TESTED;RELEASE_BUILD_AND_DELIVERY_IN_PROGRESS",
+    "status": "COMPLETE;ORIGINAL_SIGNED_BUILD115_PRIVATELY_DELIVERED_AND_READ_BACK;NO_INSTALLATION",
     "authorized": true,
     "authorization_scope": "User expressly authorized implementation,tests,commit/push,assembleRelease,original signing and private delivery;no installation,migration,restore or productive financial changes",
     "implementation": [
@@ -38,8 +38,8 @@
       "Small-hand interaction requirement recorded in docs/fachregeln/APP.md"
     ],
     "remaining": [
-      "Build exact preserved source with assembleRelease;original signature and private download readback",
-      "Physical Android/Pixel acceptance unavailable without ADB"
+      "Physical Android/Pixel acceptance NOT_EXECUTED:no ADB;real photo picker/save/reopen/full restart,native worker lifecycle,keyboard/system navigation,update data retention,full backup/restore",
+      "Productive FINANCIAL_NUMBER_COLLISION remains unresolved;no numbers or integrity checks changed"
     ]
   },
   "open_checks": [
@@ -101,17 +101,17 @@
         "PixelPlainBackupTests": 71
       },
       "java_environment": "JDK17;real pinned dependencies;synthetic JVM fixtures;no Android runtime",
-      "browser_tests": "PASS;simple-forms(14),startup-ui,equipment-maintenance-ui,equipment-profile-photo-ui,work-entry-photo-failure;synthetic Chromium",
+      "browser_tests": "PASS;66 checks across simple-forms(14),startup-ui(13),equipment-maintenance-ui(13),equipment-profile-photo-ui(14),work-entry-photo-failure(12);synthetic Chromium",
       "browser_scope": "Filter/search/count/reset,65 equipment rows across pages,200 percent text at320/360px,short viewport,bottom access,photo decode/save/reopen,backup status,single customer getState",
       "android_compile": "PASS;actual :app:compileReleaseJavaWithJavac;SDK37,pinned production dependencies,no compile stubs",
-      "android_release_build": "PENDING assembleRelease after exact source preservation",
-      "signed_apk": "PENDING",
+      "android_release_build": "PASS;actual :app:assembleRelease;release lint,source/workspace/artifact privacy gates",
+      "signed_apk": "PASS;original certificate,apksigner,zipalign,705 byte-identical assets,clean source and DEX source binding",
       "android_instrumentation": "NOT_EXECUTED;ADB unavailable",
       "physical_update_data_retention": "NOT_EXECUTED",
       "full_pixel_backup_restore": "NOT_EXECUTED"
     },
     "current_source_changes": {
-      "status": "SOURCE_AND_JVM_BROWSER_COMPILE_CHECKS_PASSED;RELEASE_PENDING",
+      "status": "JVM_BROWSER_COMPILE_RELEASE_SIGNING_AND_PRIVATE_READBACK_PASSED;PHYSICAL_PIXEL_ACCEPTANCE_OPEN",
       "scope": "Current authorized backup status/diagnosis,customer avatar,large text and redundant reload corrections;previous protected legacy dependencies retained;equipment profile display reads verified original through existing native photo bridge",
       "legacy_dependency_review": {
         "production": "DriveJournalRules,SnapshotProjection and LocalPendingActions still used by live state/backup projections",
@@ -144,7 +144,7 @@
       "root_cause": "A number collision was reported by the financial inventory;exact subtype/records unknown;no productive financial dataset used as development input",
       "correction": "Build115 source separates issued-number,reservation-counter,reservation-invoice and external-proof collisions;integrity checks still reject them;chronological status and nonconstant self-test implemented",
       "resolution": "PRODUCTIVE_COLLISION_NOT_FIXED;new diagnostic categories and synthetic regression tests only",
-      "deployment": "Build115 source tested;release pending;no productive collision correction"
+      "deployment": "Original-signed Build115 privately delivered and read back;not installed;productive collision remains unresolved"
     },
     "performance_evidence": "docs/verification/performance-current.md measures the previous candidate fingerprint;no performance claim for the new native image path",
     "connector": {
@@ -183,44 +183,78 @@
     }
   ],
   "last_distributed_build": {
-    "version_name": "1.55.9",
-    "version_code": 114,
-    "source_sha256": "699e7b6bddd10143658780efaec60ecf13314185d7c8d6e8eea2e7a1cd89f133",
-    "source_tag": "source/v1.55.9-build114",
-    "source_binding": "VERIFIED_SIGNED_DEX;clean committed source;source tag preserved on GitHub",
+    "version_name": "1.55.10",
+    "version_code": 115,
+    "source_sha256": "dcb2e148c6597b576831200514a62452e04c592e7b3c8b1d7284846fc8f8222b",
+    "app_source_git_sha": "085dbe9c1a58a6b9e63651d83ad8ce741366501b",
+    "source_tag": "source/v1.55.10-build115",
+    "source_binding": "PASS;all bundled source assets byte-identical;commit and source fingerprint found in signed DEX;generated BuildConfig clean",
+    "apk_sha256": "7197ec51df599a6a4377f215fcc3f28e7517410e93352edbcf073b62936a2bc2",
+    "apk_bytes": 82874876,
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-    "installation": "USER_CONFIRMED_AND_APP_SELF_REPORT_BUILD114;no fresh independent APK/signature readback",
+    "signature_valid": true,
+    "original_certificate_match": true,
+    "temporary_signing_material_removed": true,
+    "installation": "NOT_PERFORMED;last observed Pixel114",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "NOT_ACTIVATED",
     "app_backup_mode": "PIXEL_PLAINTEXT_ZIP",
-    "app_source_git_sha": "267280d2964328b83a86d7b5608da84bd367cef7",
-    "apk_sha256": "0060a78004a2be39f31e3aa51af73f54bc92f0491c9d081e1bdb88140905d7f8",
-    "apk_bytes": 82870780,
     "production_source_classes": 200,
-    "signature_valid": true,
-    "download_url": "https://github.com/mihalhafner-collab/Gartenpirat-/raw/8f1f22f7786e147e4087608437e5062e93b15539/downloads/Gartenpirat-1.55.9-build114.apk",
+    "built_at_utc": "2026-10-29T13:29:37.995133+00:00",
+    "build_command": ":app:assembleRelease",
+    "download_url": "https://drive.google.com/file/d/1QTCULhXn6tVFgj3v9Jws1wQwmtaUzF1k/view?usp=drivesdk",
+    "drive": {
+      "file_id": "1QTCULhXn6tVFgj3v9Jws1wQwmtaUzF1k",
+      "url": "https://drive.google.com/file/d/1QTCULhXn6tVFgj3v9Jws1wQwmtaUzF1k/view?usp=drivesdk",
+      "parent_folder_id": "1K4WB9L6ZKlW-33o8uPK3zTfqgAOVOE8u",
+      "mime_type": "application/vnd.android.package-archive",
+      "visibility": "PRIVATE;permissions metadata contains owner only;no sharing change",
+      "verification": "PASS;authenticated raw-file fetch,fresh local download,size and SHA256 identical;downloaded APK passes apksigner"
+    },
     "download_readback": {
       "status": "PASS",
-      "commit": "8f1f22f7786e147e4087608437e5062e93b15539",
-      "method": "Fresh GitHub clone;remote APK size and SHA256 exactly match verified signed APK"
-    },
-    "drive": {
-      "file_id": "1RJYcOth3kklnbO00h_Zz8M0sKfJbJcFo",
-      "url": "https://drive.google.com/file/d/1RJYcOth3kklnbO00h_Zz8M0sKfJbJcFo/view?usp=drivesdk",
-      "mime_type": "application/vnd.android.package-archive",
-      "verification": "PASS;metadata,MIME,size and authenticated raw-file download verified"
+      "observed_at_utc": "2026-10-29T13:29:37.995133+00:00",
+      "bytes": 82874876,
+      "sha256": "7197ec51df599a6a4377f215fcc3f28e7517410e93352edbcf073b62936a2bc2",
+      "signature_valid": true
     }
   },
   "current_release_candidate": {
     "version_name": "1.55.10",
     "version_code": 115,
     "source_sha256": "dcb2e148c6597b576831200514a62452e04c592e7b3c8b1d7284846fc8f8222b",
-    "status": "SOURCE_TESTED;RELEASE_BUILD_PENDING",
-    "source_base_commit": "ce9b677e50e37cae463b08eac63e9af904be2870",
-    "installation": "NOT_PERFORMED",
+    "app_source_git_sha": "085dbe9c1a58a6b9e63651d83ad8ce741366501b",
+    "source_tag": "source/v1.55.10-build115",
+    "source_binding": "PASS;all bundled source assets byte-identical;commit and source fingerprint found in signed DEX;generated BuildConfig clean",
+    "apk_sha256": "7197ec51df599a6a4377f215fcc3f28e7517410e93352edbcf073b62936a2bc2",
+    "apk_bytes": 82874876,
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "signature_valid": true,
+    "original_certificate_match": true,
+    "temporary_signing_material_removed": true,
+    "installation": "NOT_PERFORMED;last observed Pixel114",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "NOT_ACTIVATED",
     "app_backup_mode": "PIXEL_PLAINTEXT_ZIP",
-    "build_handoff": "Existing Codex cloud environment;authorized build/sign/private distribution;no installation"
+    "production_source_classes": 200,
+    "built_at_utc": "2026-10-29T13:29:37.995133+00:00",
+    "build_command": ":app:assembleRelease",
+    "download_url": "https://drive.google.com/file/d/1QTCULhXn6tVFgj3v9Jws1wQwmtaUzF1k/view?usp=drivesdk",
+    "drive": {
+      "file_id": "1QTCULhXn6tVFgj3v9Jws1wQwmtaUzF1k",
+      "url": "https://drive.google.com/file/d/1QTCULhXn6tVFgj3v9Jws1wQwmtaUzF1k/view?usp=drivesdk",
+      "parent_folder_id": "1K4WB9L6ZKlW-33o8uPK3zTfqgAOVOE8u",
+      "mime_type": "application/vnd.android.package-archive",
+      "visibility": "PRIVATE;permissions metadata contains owner only;no sharing change",
+      "verification": "PASS;authenticated raw-file fetch,fresh local download,size and SHA256 identical;downloaded APK passes apksigner"
+    },
+    "download_readback": {
+      "status": "PASS",
+      "observed_at_utc": "2026-10-29T13:29:37.995133+00:00",
+      "bytes": 82874876,
+      "sha256": "7197ec51df599a6a4377f215fcc3f28e7517410e93352edbcf073b62936a2bc2",
+      "signature_valid": true
+    },
+    "status": "ORIGINAL_SIGNED_AND_PRIVATELY_DELIVERED;READBACK_PASS;NOT_INSTALLED"
   }
 }
