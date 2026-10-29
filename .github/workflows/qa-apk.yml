@@ -72,7 +72,13 @@ jobs:
         run: |
           set -euo pipefail
           sudo chmod 666 /dev/kvm
-          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n Gartenpirat_Backup_QA -k 'system-images;android-35;default;x86_64'
+          export ANDROID_USER_HOME="$RUNNER_TEMP/gp-android"
+          export ANDROID_EMULATOR_HOME="$ANDROID_USER_HOME"
+          export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n Gartenpirat_Backup_QA -p "$ANDROID_AVD_HOME/Gartenpirat_Backup_QA.avd" -k 'system-images;android-35;default;x86_64'
+          test -f "$ANDROID_AVD_HOME/Gartenpirat_Backup_QA.ini"
+          "$ANDROID_HOME/emulator/emulator" -list-avds
           "$ANDROID_HOME/emulator/emulator" -avd Gartenpirat_Backup_QA -port 5580 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
           ADB="$ANDROID_HOME/platform-tools/adb"
           timeout 180 "$ADB" -s emulator-5580 wait-for-device
@@ -101,6 +107,8 @@ jobs:
           mkdir -p outputs
           cp "$RUNNER_TEMP/emulator.log" outputs/emulator.txt 2>/dev/null || true
           timeout 15 "$ANDROID_HOME/platform-tools/adb" -s emulator-5580 logcat -d -t 500 > outputs/emulator-logcat.txt 2>&1 || true
+          tail -80 outputs/emulator.txt 2>/dev/null || true
+          tail -80 outputs/emulator-logcat.txt 2>/dev/null || true
       - name: Preserve synthetic test results only
         if: always()
         uses: actions/upload-artifact@v4

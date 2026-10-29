@@ -50,7 +50,7 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             if(suite.equals("business_tables")){runStorage(directory);runJournal(directory);}else runEquipmentPhotos(directory);
             report.putString("result",new JSONObject().put("suite",suite).put("checks",checks).put("elapsed_ms",(System.nanoTime()-started)/1000000).put("synthetic_only",true).put("productive_data_read",false).put("archive_restore_tested",false).toString());
             removeOwned(directory);directory=null;finish(Activity.RESULT_OK,report);
-        }catch(Throwable error){report.putString("failure",error.getClass().getSimpleName()+": "+error.getMessage());report.putInt("checks",checks);try{if(directory!=null)removeOwned(directory);}catch(Exception cleanup){report.putString("cleanup","SYNTHETIC_CLEANUP_FAILED");}finish(Activity.RESULT_CANCELED,report);}
+        }catch(Throwable error){report.putString("failure",error.getClass().getSimpleName()+": "+error.getMessage());report.putString("trace",android.util.Log.getStackTraceString(error));report.putInt("checks",checks);try{if(directory!=null)removeOwned(directory);}catch(Exception cleanup){report.putString("cleanup","SYNTHETIC_CLEANUP_FAILED");}finish(Activity.RESULT_CANCELED,report);}
     }
     private void runEquipmentPhotos(File directory)throws Exception {
         if(android.os.Build.VERSION.SDK_INT<28)throw new Exception("ISOLATED_WEBVIEW_REQUIRES_API_28");

@@ -177,7 +177,7 @@ final class McpErrors {
         String code=problem.optString("code");if(error instanceof PixelMcpWriteTools.Rejected&&!Arrays.asList("REPLAY_MISMATCH","REQUEST_EXPIRED").contains(code))problem.put("commit_state","not_committed");
     }
     private static JSONObject envelope(JSONObject problem) throws Exception {
-        if(problem.optString("code").equals("RESTORE_FULL_REPLACEMENT_REQUIRED"))problem.put("device_step","open_full_backup_restore").put("required_restore_contract","encrypted_full_replacement_v1");
+        if(problem.optString("code").equals("RESTORE_FULL_REPLACEMENT_REQUIRED"))problem.put("device_step","open_full_backup_restore").put("required_restore_contract","pixel_full_replacement_v2");
         return new JSONObject().put("ok", false).put("error", problem);
     }
 }
