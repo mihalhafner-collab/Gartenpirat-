@@ -34,7 +34,7 @@
   ],
   "current_task": {
     "name": "Kotlin-Bedienung vereinfachen und maschinenbezogenes Zubehör ergänzen",
-    "status": "SOURCE_CHECK_PASS;CI_BASELINE_AND_NATIVE_ACCEPTANCE_PENDING;NO_PIXEL_TEST",
+    "status": "SOURCE_CHECK_PASS;JVM_AND_BUILD_PASS_ON_FIRST_CANDIDATE;NATIVE_CORRECTION_LOOP",
     "authorized": true,
     "authorization_scope": "Direct user 14-requirement implementation request;user explicitly confirmed takeover and no parallel process;source changes,synthetic checks and targeted GitHub source save;no installation,migration,restore,invoice activation or release publication",
     "base_git_sha": "19537218aad3878a12cf01426ca9326b015294b0",
@@ -143,11 +143,14 @@
     "implementation_notes": [
       "Preserved existing Compose and SQLite paths;four main sections and machine-bound accessories",
       "Fixed decimal comma regression in free hours,kilometers and material cost",
-      "Photo discard reports deletion failure and retains draft for retry;confirmed records untouched"
+      "Photo discard reports deletion failure and retains draft for retry;confirmed records untouched",
+      "Reset saved Compose route state when no corresponding draft remains",
+      "Exercise temporary work photo through both actual discard dialog choices;preserve confirmed photo bytes",
+      "Office fixtures explicitly carry synthetic issue evidence;no production invoice activation"
     ]
   },
   "open_checks": [
-    "Current edited source:JVM/Android/emulator execution pending;previous Build119 results do not validate this change",
+    "Current correction candidate:rerun build/JVM/native suites;do not transfer prior UI evidence without checking changed source",
     "No physical Pixel test,installation or release;the earlier ADB test was ended by the user",
     "Office per-route UI/Pixel latency missing;synthetic repository baseline does not prove opening latency",
     "Previous independent Build119 findings outside this scope:photo customer filter,startup cleanup warning;see existing physical evidence"
@@ -181,16 +184,17 @@
     "business_data_read": false,
     "authored_changes_diff_check": "PASS;reviewed adopted implementation plus decimal/discard fixes;git diff --check",
     "current_test_run": {
-      "source": "Working candidate based on19537218aad3878a12cf01426ca9326b015294b0;adopted and reviewed18-file implementation",
-      "source_check": "PASS;62 Python tests and current source/contracts/privacy/fixtures/plants/UI inventory",
-      "jvm": "NOT_RUN;local compiler/AndroidSDK unavailable;existing GitHub workflow used",
-      "native": "NOT_RUN",
+      "source": "New correction candidate following d00485949f8edf25eba56b0b6063a33fdf7086f8;final CI pending",
+      "source_check": "PASS;62 Python tests;source/privacy/contracts/assets/UI inventory",
+      "jvm": "PASS on8702112d08cbc99e0ef09a228d3cd56efe85eaa4;9suites;53new work/accessory checks;current rerun pending",
+      "android_build": "PASS on8702112d08cbc99e0ef09a228d3cd56efe85eaa4;release/test APK and lint",
+      "native": "FAIL on8702112d08cbc99e0ef09a228d3cd56efe85eaa4;6suites PASS;native_data office fixture lacked issue evidence;native_compose pause/suggestions not reached",
+      "evidence_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/41035247629",
       "physical_pixel": "NOT_RUN",
       "performance_claim": false,
       "installation_performed": false,
       "migration_performed": false,
-      "publication_performed": false,
-      "observed_at_utc": "2026-10-30T09:39:18.897224+00:00"
+      "publication_performed": false
     },
     "performance_evidence": "docs/verification/performance-current.md:actual physical startup/PSS/gfxinfo histograms;no estimated FPS;individual frame/SQL/per-route latency limits explicit",
     "connector": {

@@ -333,6 +333,9 @@ private fun NativeEntityEditor(controller: NativeAppController, collection: Stri
             val saved = controller.draft(draftKey)
             if (saved != null) { photoUri = saved.optString("selected_photo_uri"); photoOrigin = saved.optJSONObject("photo_origin")?.toString() ?: "{}"; savedWorkId = saved.optString("saved_work_id"); photoArgs = saved.optJSONObject("photo_args"); valueText = saved.optJSONObject("values")?.toString() ?: "{}"; changesText = saved.optJSONObject("changes")?.toString() ?: "{}"; baseline = saved.optJSONObject("base"); pending = saved.optJSONObject("original_args"); restored = saved.optBoolean("_restore_action_review_required"); conflict = saved.optBoolean("conflict_review_required") }
             else {
+                // A route can retain Compose state after its draft was saved or
+                // discarded. A fresh entry must not inherit its photo or receipt.
+                photoUri = ""; photoOrigin = "{}"; savedWorkId = ""; photoArgs = null; changesText = "{}"
                 val row = if (id.isEmpty()) JSONObject(controller.route.args.toString()) else controller.query(primaryGet(kind), JSONObject().put(primaryId(kind), id))
                 baseline = if (mode != "duplicate" && id.isNotEmpty()) JSONObject(row.toString()) else null
                 val value = JSONObject(row.toString())

@@ -304,6 +304,29 @@ und ausdrücklich zurückgestellten Restoremedien prüfen. Ein alter DOM-/Bridge
 belegt diese Compose-Bedienwege nicht. Physischer Pixel, reales Drive-Konto und ein
 individuell gewähltes Sicherungsarchiv benötigen ihre eigenen zulässigen Nachweise.
 
+Für die vereinfachte Bedienung prüft `native_compose` zusätzlich das erneute Öffnen
+der Kundenliste bei erhaltenem Filter, freie Arbeits-/Pausen-/Entsorgungswerte,
+Textbausteine, sofortige Notizen und den Verwerfungsdialog mit eigenen temporären
+Fotodateien. Gespeicherte Fotobytes werden davor und danach verglichen. Ein frisches
+Formular darf keine Speicherbestätigung oder Fotoauswahl des vorherigen Formulars
+übernehmen. Tastatur- und 200-%-Schriftprüfungen vergleichen die tatsächlichen
+Aktionsgrenzen mit dem sichtbaren Bereich und den Systemabständen.
+
+Die Zubehörprüfung verbindet die native Geräteauswahl, freie Bezeichnung,
+Kettenspezifikationen und aktuelle Kette mit SQLite-Rücklesung. Das generierte Foto
+läuft über den vorhandenen Uploadpfad; nach Activity-Neuerstellung wird auf eine
+erfolgreiche Coil-Dekodierung gewartet. Die Zubehörprüfung allein ist kein Nachweis
+der Kamera- oder Systempickerbedienung; diese bleiben getrennte Prüfungen.
+
+`native_data.office_reads` misst Abfragen mit 120 synthetischen Rechnungen und
+240 Zahlungen. `native_compose.office_opening` misst vom ausgelösten Öffnen bis zu
+sichtbaren bereiten Inhalten: Abrechnungsformular, Rechnungsliste sowie die
+gemeinsame Ansicht für Zahlungen und Guthaben. Je Pfad zwei Aufwärmläufe und
+40 Messungen, Mittelwert, P95 und langsamste 5 % ausgeben. UI-Zeiten enthalten
+Semantik-Abfrage/Polling; Hostlast ist nicht kontrolliert. Ersten Lauf als Ausgangs-
+messung führen. Repositoryzeiten, Emulatoranzeige und physischer Pixel dürfen
+weder gleichgesetzt noch als unbelegter Vorher-/Nachhergewinn dargestellt werden.
+
 ## Eigenständige Website
 
 `static/` und seine JavaScript-/CSS-Ressourcen bleiben eine eigenständige Website.

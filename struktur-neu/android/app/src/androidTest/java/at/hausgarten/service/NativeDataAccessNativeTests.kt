@@ -180,7 +180,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
         val fixture = SyntheticBusinessData.profile("minimal")
         val invoices = JSONArray()
         for (index in 0 until 120) invoices.put(JSONObject().put("id", "qa_office_invoice_$index").put("invoice_number", "QA-$index")
-            .put("customer_id", "qa_customer_0").put("status", "Gestellt").put("invoice_date", "2026-10-30").put("gross_total", 100)
+            .put("customer_id", fixture.getJSONArray("customers").getJSONObject(0).getString("id")).put("status", "Gestellt").put("issued_at", "2026-10-30T08:00:00Z").put("invoice_date", "2026-10-30").put("gross_total", 100)
             .put("money_minor", JSONObject().put("gross_minor", 10000)).put("test_record", true))
         fixture.put("invoices", invoices)
         store.putOwnerValue("snapshot", fixture.toString())

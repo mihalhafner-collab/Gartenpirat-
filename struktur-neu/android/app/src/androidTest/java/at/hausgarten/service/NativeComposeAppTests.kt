@@ -470,6 +470,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         enter("Beginn", "08:00")
         enter("Ende", "12:00")
         // Preset and free input use the same visible field, with no pause submenu.
+        reveal("Pause (Minuten)")
+        logVisibleActions("pause_before_preset")
         click("30")
         enter("Pause (Minuten) · frei eingeben", "23")
         enter("Was wurde erledigt? *", "[TEST] QA usability work")
@@ -551,6 +553,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Maschinenpark und Gerätewartung")
         click("Gerät anlegen")
         click("Gerätebezeichnung auswählen ▾")
+        shown("Gerätebezeichnung auswählen ▴")
+        logVisibleActions("equipment_suggestions_open")
         enter("Vorschläge durchsuchen", "kett")
         click("Kettensäge")
         yes(field("Gerätebezeichnung *")?.text?.toString() == "Kettensäge", "EQUIPMENT_SEARCHABLE_PRESET")
@@ -630,7 +634,24 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(!File(requireNotNull(draft.path)).exists() && File(requireNotNull(other.path)).isFile, "DISCARD_ONLY_OWN_TEMP_PHOTO")
         val saved = read("get_photo", JSONObject().put("photo_id", photoId))
         yes(saved.toString().contains(work.getString("id")), "SAVED_PHOTO_RETAINS_WORK_RELATION")
-        nativeDeletePhotoDraft(controller, other.toString()); source.delete()
+        val attachment = requireNotNull(store.photoAttachment(photoId))
+        val original = store.photoAttachmentStore().verifiedFile(attachment)
+        val originalBytes = original.readBytes()
+        controller.saveDraft("editor:worklog:new", JSONObject().put("values", JSONObject()
+            .put("_request_id", "qa_discard_work_photo").put("activity", "QA unsaved photo draft"))
+            .put("selected_photo_uri", other.toString()))
+        controller.flushDrafts()
+        click("Heute"); click("Arbeit erfassen")
+        reveal("Ungespeichertes Foto")
+        click("Verwerfen"); click("Abbrechen", scrollTo = false)
+        yes(File(requireNotNull(other.path)).isFile, "CANCEL_DISCARD_KEEPS_TEMP_PHOTO")
+        reveal("Was wurde erledigt? *")
+        yes(field("Was wurde erledigt? *")?.text?.toString() == "QA unsaved photo draft", "CANCEL_DISCARD_KEEPS_PHOTO_FORM")
+        click("Verwerfen"); click("OK", scrollTo = false)
+        waitUntil("DISCARD_REMOVES_TEMP_PHOTO") { !File(requireNotNull(other.path)).exists() }
+        yes(controller.draft("editor:worklog:new") == null, "DISCARD_REMOVES_ONLY_OWN_DRAFT")
+        yes(original.isFile && original.readBytes().contentEquals(originalBytes), "DISCARD_PRESERVES_SAVED_PHOTO_BYTES")
+        source.delete()
     }
 
     private fun timerJourney() {
@@ -707,6 +728,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         return Rect().also { target.getBoundsInScreen(it) }
     }
 
+    private fun logVisibleActions(stage: String) {
+        // Only the previously verified disposable synthetic fixture is allowed here.
+        nodes().filter { it.isVisibleToUser && texts(it).isNotEmpty() }.forEach { item ->
+            val bounds = Rect(); item.getBoundsInScreen(bounds)
+            android.util.Log.i("NativeComposeQA", "$stage ${texts(item)} $bounds editable=${item.isEditable} clickable=${clickable(item) != null}")
+        }
+    }
+
     private fun officeOpeningMeasurements() {
         // The disposable fixture was checked before any application data was read.
         // Preserve its existing rows/journal; add only synthetic office records.
@@ -714,8 +743,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val fixture = JSONObject(store.getState().getJSONObject("master").toString())
         val invoices = JSONArray()
         for (index in 0 until 120) invoices.put(JSONObject().put("id", "qa_ui_office_$index")
-            .put("invoice_number", "QA-UI-$index").put("customer_id", "synthetic_customer")
-            .put("status", "Gestellt").put("invoice_date", "2026-10-30")
+            .put("invoice_number", "QA-UI-$index").put("customer_id", fixture.getJSONArray("customers").getJSONObject(0).getString("id"))
+            .put("status", "Gestellt").put("issued_at", "2026-10-30T08:00:00Z").put("invoice_date", "2026-10-30")
             .put("gross_total", if (index == 0) 25 else 100)
             .put("money_minor", JSONObject().put("gross_minor", if (index == 0) 2500 else 10000)).put("test_record", true))
         fixture.put("invoices", invoices)

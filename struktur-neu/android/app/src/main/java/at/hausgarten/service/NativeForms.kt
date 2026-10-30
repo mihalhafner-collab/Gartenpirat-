@@ -40,8 +40,8 @@ internal fun NativeChoice(label: String, selected: String, options: List<Pair<St
 /** Optional suggestions never replace a free input with a mandatory catalog value. */
 @Composable
 internal fun NativeSuggestions(label: String, options: List<String>, onChoose: (String) -> Unit) {
-    var open by remember { mutableStateOf(false) }
-    var search by remember { mutableStateOf("") }
+    var open by rememberSaveable(label) { mutableStateOf(false) }
+    var search by rememberSaveable(label) { mutableStateOf("") }
     TextButton({ open = !open }) { Text(label + if (open) " ▴" else " ▾") }
     if (open) {
         NativeField("Vorschläge durchsuchen", search, { search = it })
