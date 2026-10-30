@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.window.Dialog
@@ -103,6 +104,52 @@ internal fun NativeAmountPresets(label: String, inputLabel: String, value: Strin
     }
 }
 
+/** Same remaining-space layout for real lists and selection windows. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun NativeSearchLayout(modifier: Modifier = Modifier, controls: @Composable () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+    val sideBySide = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+    Layout(modifier = modifier, content = { controls(); Column(Modifier.fillMaxSize(), content = content) }) { children, limits ->
+        val gap = if (sideBySide) 12.dp.roundToPx() else 0
+        val controlWidth = if (sideBySide) ((limits.maxWidth-gap)*0.42f).toInt() else limits.maxWidth
+        val head = children[0].measure(Constraints(minWidth = controlWidth, maxWidth = controlWidth, maxHeight = limits.maxHeight))
+        val bodyWidth = if (sideBySide) limits.maxWidth-controlWidth-gap else limits.maxWidth
+        val bodyHeight = if (sideBySide) limits.maxHeight else (limits.maxHeight-head.height).coerceAtLeast(0)
+        val body = children[1].measure(Constraints.fixed(bodyWidth, bodyHeight))
+        layout(limits.maxWidth, limits.maxHeight) {
+            head.placeRelative(0, 0)
+            body.placeRelative(if (sideBySide) controlWidth+gap else 0, if (sideBySide) 0 else head.height)
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun NativeSearchList(label: String, query: String, onQuery: (String) -> Unit, count: String,
+    onFilters: (() -> Unit)? = null, onFocus: () -> Unit = {}, onSearch: (() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit) {
+    val ime = WindowInsets.isImeVisible
+    val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+    val large = ime && LocalDensity.current.fontScale > 1.3f
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focus = LocalFocusManager.current
+    val shortCount = count.substringBefore(" ·")
+    NativeSearchLayout(Modifier.fillMaxSize(), controls = {
+        Column(Modifier.verticalScroll(rememberScrollState())) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                NativeField(label, query, onQuery, search = true, onSearch = onSearch,
+                    modifier = Modifier.weight(1f).onFocusChanged { if (it.isFocused) onFocus() }, showLabel = !(large && landscape))
+                if (ime) Column(Modifier.widthIn(max = 128.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    IconButton({ keyboard?.hide(); focus.clearFocus() }, Modifier.semantics { contentDescription = "Eingabe beenden" }) { Text("×") }
+                    if (large && !landscape) Text(shortCount, style = MaterialTheme.typography.labelLarge)
+                }
+            }
+            if (!ime) NativeSearchSummary(count, onFilters)
+            else if (!large || landscape) Text(shortCount, Modifier.padding(horizontal = 12.dp, vertical = if (large) 0.dp else 2.dp), style = MaterialTheme.typography.labelLarge)
+        }
+    }, content = content)
+}
+
 /** One bounded, keyboard-aware selection surface for customer, planning and media paths. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -126,7 +173,7 @@ internal fun NativeSearchDialog(title: String, search: String, onSearch: (String
         Surface(Modifier.fillMaxSize()) {
             // Keep the same text-field node when IME/rotation changes placement;
             // replacing a Column with a Row would dispose its focused editor.
-            Layout(modifier = Modifier.fillMaxSize().safeDrawingPadding().imePadding().padding(horizontal = 12.dp, vertical = if (compactLabel) 0.dp else 4.dp), content = {
+            NativeSearchLayout(modifier = Modifier.fillMaxSize().safeDrawingPadding().imePadding().padding(horizontal = 12.dp, vertical = if (compactLabel) 0.dp else 4.dp), controls = {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
                     if (!imeVisible) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
@@ -141,23 +188,12 @@ internal fun NativeSearchDialog(title: String, search: String, onSearch: (String
                     }
                     if (!compactControls) Text(count, Modifier.padding(vertical = if (compactLabel) 0.dp else 2.dp), style = MaterialTheme.typography.labelLarge)
                 }
+            }) {
                 LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (error.isNotBlank()) item { Text(error, color = MaterialTheme.colorScheme.error) }
                     else if (!loading && total == 0) item { Text("Keine Treffer. Suchtext oder Filter ändern.", Modifier.padding(vertical = 8.dp)) }
                     if (loading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
                     content(close)
-                }
-            }) { children, limits ->
-                val sideBySide = landscape && imeVisible
-                val gap = if (sideBySide) 12.dp.roundToPx() else 0
-                val controlWidth = if (sideBySide) ((limits.maxWidth-gap)*0.42f).toInt() else limits.maxWidth
-                val controls = children[0].measure(Constraints(minWidth = controlWidth, maxWidth = controlWidth, maxHeight = limits.maxHeight))
-                val resultsWidth = if (sideBySide) limits.maxWidth-controlWidth-gap else limits.maxWidth
-                val resultsHeight = if (sideBySide) limits.maxHeight else (limits.maxHeight-controls.height).coerceAtLeast(0)
-                val results = children[1].measure(Constraints.fixed(resultsWidth, resultsHeight))
-                layout(limits.maxWidth, limits.maxHeight) {
-                    controls.placeRelative(0,0)
-                    results.placeRelative(if (sideBySide) controlWidth+gap else 0, if (sideBySide) 0 else controls.height)
                 }
             }
         }

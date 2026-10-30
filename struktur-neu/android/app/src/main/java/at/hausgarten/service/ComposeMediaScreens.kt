@@ -123,11 +123,9 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
             val loadedPage by displayFlow.collectAsStateWithLifecycle(null)
             val page = loadedPage ?: NativeListPage(emptyList(), 0, offset, 40)
             val listLoading = loadedPage == null && readFailure.isEmpty()
-            Column(Modifier.fillMaxSize()) {
-                if (!imeVisible) Text("Kundenfotos", Modifier.padding(horizontal = 16.dp, vertical = 8.dp), style = MaterialTheme.typography.headlineSmall)
+            NativeSearchList("Fotos suchen", search, { search = it; offset = 0 },
+                if (listLoading) "Wird geladen …" else "${page.total} Treffer", onFilters = { filterOpen = true }) {
                 if (readFailure.isNotEmpty()) { Text(readFailure, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error); TextButton(onClick = { readFailure = ""; readRetry++ }) { Text("Fotos erneut lesen") } }
-                NativeField("Fotos suchen", search, { search = it; offset = 0 }, search = true, modifier = Modifier.padding(horizontal = 16.dp))
-                NativeSearchSummary(if (listLoading) "Wird geladen …" else "${page.total} Treffer") { filterOpen = true }
                 val active = listOf(customerLabel, photoRoles[role].orEmpty(), dateFrom.takeIf { it.isNotBlank() }?.let { "Ab ${nativeDisplayDate(it)}" }.orEmpty(), dateTo.takeIf { it.isNotBlank() }?.let { "Bis ${nativeDisplayDate(it)}" }.orEmpty(), orderLabel, worklogLabel, if (sessionId.isNotBlank()) "Laufende Sitzung" else "").filter { it.isNotBlank() }
                 if (active.isNotEmpty() && !imeVisible) Text(active.joinToString(" · "), Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
                 if (page.rows.isEmpty()) Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { if (listLoading) CircularProgressIndicator() else if (readFailure.isEmpty()) Text("Keine Fotos für diese Auswahl.") }
@@ -146,7 +144,7 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                         }
                     }
                 }
-                MediaPagination(offset, page.rows.size, page.total, 40) { offset = it }
+                if (!imeVisible) MediaPagination(offset, page.rows.size, page.total, 40) { offset = it }
                 if (!imeVisible) NativeActions {
                     FilledTonalButton(onClick = { importContext = JSONObject().put("customer_id", customerId).put("order_id", orderId).put("worklog_id", worklogId).put("session_id", sessionId).toString(); importing = true }) { Text("Foto hinzufügen") }
                     TextButton(onClick = { archive = true }) { Text("Papierkorb") }
@@ -497,10 +495,8 @@ private fun NativePlantLibrary(initialId: String, controller: NativeAppControlle
             SnapshotReadSupport.matches(search, listOf(plant.optString("name"), plant.optString("scientificName"), plant.optString("family"), plant.optString("category"), fieldText(plant.opt("alternativeNames")), fieldText(plant.opt("light")), neo?.optString("statusLabel").orEmpty(), neo?.optString("austriaStatus").orEmpty()).joinToString(" "))
     } }
     var filters by remember { mutableStateOf(false) }
-    Column(Modifier.fillMaxSize()) {
-        if (!imeVisible) Text("Pflanzenbibliothek", Modifier.padding(16.dp), style = MaterialTheme.typography.headlineSmall)
-        NativeField("Name, botanischer Name oder Familie", search, { search = it; limit = 40 }, search = true, modifier = Modifier.padding(horizontal = 16.dp))
-        NativeSearchSummary("${filtered.size} Treffer") { filters = true }
+    NativeSearchList("Name, botanischer Name oder Familie", search, { search = it; limit = 40 },
+        "${filtered.size} Treffer", onFilters = { filters = true }) {
         val filterLabel = listOf(category, light, when(neophyte) { "all" -> "Neophyten"; "established" -> "Etabliert"; "invasive" -> "Invasiv"; "union" -> "EU-Unionsliste"; else -> "" }).filter { it.isNotBlank() }.joinToString(" · ")
         if (filterLabel.isNotBlank() && !imeVisible) Text(filterLabel, Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
         if (error.isNotBlank()) Text(error, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)

@@ -558,3 +558,5 @@ Schließen der Filter durch Hauptsuchfokus und Activity-Neuerstellung.
 die jeweiligen tatsächlichen Eingaben mit IME.
 
 Der native Datenzugriffstest schließt den SQLite-Helper auch mitten in einer vollständigen Bestandsabfrage. Erfolg und Abfragefehler müssen die Transaktion beenden, die letzte Datenbankreferenz freigeben und anschließendes Lesen/Schreiben ohne verbleibende Sperre erlauben.
+
+Ergänzend prüft `list_viewports` elf Fachlisten bei 200 % und verkleinerter Höhe in beiden Ausrichtungen (22 Fälle). Suche und Trefferzahl müssen vollständig oberhalb der IME liegen. Bei langen Detailkarten darf der restliche Karteninhalt scrollbar außerhalb des kleinen Ausschnitts liegen; der sichtbare Titelanfang und eine mindestens 48 × 48 dp große tatsächlich injizierte Touchfläche müssen innerhalb der Bildschirm-/IME-Grenzen liegen. Die bisherigen Dialog- und normalen Suchprüfungen verlangen weiterhin vollständig sichtbare Ergebnisflächen. IME-Fertig, erhaltener Suchwert und Öffnen desselben Treffers werden getrennt geprüft.

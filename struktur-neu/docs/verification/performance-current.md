@@ -448,44 +448,73 @@ Die neue Büro-Zeitmessung beginnt in der gemeinsamen Abrechnungsübersicht. Sie
 ist wegen dieses veränderten Starts nicht mit den früheren Büro-Zahlen oben
 vergleichbar; kein neuer Laufzeitgewinn wird daraus abgeleitet.
 
-### Bestätigte Fehler und Grenzen
+### Bestätigte Fehler und Korrekturen
 
-Im bisherigen Emulatorlauf sichtbar bestätigt: Bei 200 % drückte eine lange
-Filterbeschriftung die Trefferzahl auf einzelne Buchstaben; die kurze Filteraktion
-und umbrechende Trefferzeile korrigieren den Aufbau. Der alte Kundenwähler wurde
-zunächst nur ohne Tastatur abgebildet. Diese Bilder zählen ausdrücklich nicht
-als Nachweis für sichtbare Treffer bei geöffneter Tastatur. Die korrigierte Prüfung verlangt eine sichtbare IME unmittelbar vor und nach jeder Aufnahme. Das Auswahlfenster behält denselben Eingabeknoten beim Wechsel zwischen Stapel- und Querformatanordnung; die Systemsymbole erhalten auf der hellen Fläche dunklen Kontrast.
+Die Quellprüfung bestätigte die übergebenen, aber nicht zuverlässig angewendeten
+Kundenfilter für Fotos und Angebote, fehlende Bereichszuordnung in Unteransichten,
+problematische lange Navigationsnamen, die gleichgewichtige Bürofolge, uneinheitliche
+Oberflächen und technische beziehungsweise doppelte Detailangaben. Alte allgemeine
+Speichermeldungen konnten einen Seitenwechsel überstehen. Die beschriebenen
+Kontextfilter, Hauptbereiche, gemeinsamen Bausteine und begrenzten Meldungen
+adressieren diese Befunde.
 
-Prüfcodefehler wurden separat behandelt: Ein identischer Suchfeldwert wurde zuerst
-als Treffer gefunden; Querformat war in den damaligen Fällen tatsächlich nicht
-erreicht. Die korrigierte Prüfung verlangt weiterhin echte Orientierung,
-IME-Fenstergrenzen und injizierte Touchauswahl. Ein vorhandener Accessibility-Knoten
-allein zählt nicht als bestandene Sichtbarkeitsprüfung.
+Die strengere Bildschirmprüfung fand zusätzliche konkrete Fehler: lange Filtertexte
+verdrängten die Trefferzahl; im kleinen Hochformat wurde bei 200 % ein Treffer
+angeschnitten; im Querformat konnte die Trefferzahl unter der Tastatur verschwinden.
+Das gemeinsame Auswahlfenster verteilt Suche und Treffer nach dem tatsächlich
+verfügbaren Raum. Im engen Querformat ersetzt ein Platzhalter die zusätzliche
+schwebende Beschriftung, bei erhaltener zugänglicher Bezeichnung und Schriftgröße.
+Suchfeld, Trefferzahl und antippbare Treffer werden gemeinsam innerhalb der sichtbaren
+Grenzen geprüft. Foto- und Pflanzensuchen behalten bei vorhandenem Suchtext die
+kompakte Ergebnisliste nach „Fertig“.
 
-Maßgeblich sind die Ergebnisse und der exakte Quellfingerabdruck im aktuellen
-Arbeitsstand. Fehlgeschlagene Zwischenläufe werden nicht als PASS gewertet.
-Die vollständigen CI-Checkouts führen `check_current.py`, Build/Lint, neun JVM-
-und acht native Suiten aus. Im lokalen Teilcheckout fehlen große unveränderte
-Pflanzenassets; sein vollständiger `check_current.py` endet an dieser fehlenden
-Datei. Die 62 vorhandenen Python-Tests bestehen bei Aufruf ihrer Testprogramme.
+Aufklappbare Listenfilter bleiben beim Bearbeiten ihrer eigenen Datums-/Statusfelder
+sichtbar. Erst der Fokus auf die Hauptsuche schließt sie. Ein stabiler Listenschlüssel
+erhält den Eingabeknoten, wenn die Tastatur ergänzende Kontextzeilen ausblendet.
+„Zur Liste“ verwendet den vorherigen Listenzustand, einschließlich Suchtext und
+Filter. Timer und Belegdetails haben ihre häufigen Aktionen am unteren Rand;
+ergänzende Prüfungen und Quellen bleiben im scrollbaren Inhalt. Einstellungen
+kennzeichnen das Laden; die Abnahme wartet auf die bedienbare Hauptaktion.
 
-Physischer Pixel, echtes Drive-Konto, produktive Installation, Migration,
-Wiederherstellung, Rechnungsfreigabe und Veröffentlichung gehören nicht zu diesem
-Auftrag. Die zuvor gebundenen historischen Pixel-Belege bleiben historische
-Belege und sind keine Abnahme dieser Oberfläche.
+Wiederholte Darstellungswechsel zeigten außerdem `SQLITE_BUSY` und eine geleakte
+SQLite-Verbindung. In `PixelLocalStore.getState()` fehlte eine Referenzhaltung über
+die gesamte Transaktion; Activity-Schließen konnte den Pool vor deren Ende schließen.
+Die Abfrage verwendet nun denselben Referenzmechanismus wie die indizierten Lesewege.
+Ein deterministischer nativer Test schließt den Helper mitten in der Bestandsabfrage
+und prüft Erfolg, Fehlerpfad, vollständige Freigabe und erneutes Lesen/Schreiben.
+Keine globale Sperre, geänderte Fachbuchung oder zusätzliche Speicherarchitektur.
 
-Der ausdrückliche Rückweg „Zur Liste“ in Belegen und Leistungsbausteinen verwendet den vorhandenen vorherigen Listenzustand. Dadurch bleiben auch global begonnene Suchtexte erhalten, wenn die Detailroute zusätzliche Kontextargumente enthält. Die fachlichen Suchprüfungen kontrollieren diesen Rückweg ausdrücklich.
+Prüfcodefehler wurden getrennt korrigiert: identischer Text im Suchfeld zählte zuerst
+als Treffer; einzelne Querformatfälle hatten die Orientierung noch nicht erreicht;
+Folgezustände wurden teils während des UI-Übergangs gelesen. Die Prüfung wartet nun
+auf die tatsächliche Konfiguration und unveränderten Suchwerte. Frische Testaufgaben
+starten nach Sonder-Activities mit `NEW_TASK | CLEAR_TASK`, damit Android nicht nur
+eine bestehende Kalenderaufgabe nach vorne holt. Der Gestentest berücksichtigt den
+Android-Basismodus ohne aktiviertes Navigations-Overlay und stellt den Ausgangsmodus
+wieder her. Ein Accessibility-Knoten allein zählt weiterhin nicht als Sichtnachweis.
 
-Die erweiterten Zwischenläufe zeigten einen blockierenden Testneustart nach der Kalender-Activity (Android `START_TASK_TO_FRONT`, kein neuer MainActivity-Start). Frische synthetische Testaufgaben werden deshalb mit `NEW_TASK | CLEAR_TASK` gestartet. Oberflächenaktionen werden vollständig in den sichtbaren Bereich gescrollt; Suchtreffer müssen ohne dieses zusätzliche Scrollen antippbar sein. Jeder Prüfbereich und Fehler wird unmittelbar protokolliert.
+### Nachweise und verbleibende Grenzen
 
-Zusätzlich wurde in der strengeren Suchmatrix `SQLITE_BUSY` sichtbar. Die betroffenen Fälle sind fehlgeschlagen; eine Abnahme wird daraus nicht abgeleitet. Die nächste Prüfung enthält Threaddiagnosen bei Zeitüberschreitung. Die Speicherlogik bleibt bis zur Eingrenzung unverändert. Systemleisten von Dialogen und Sonder-Activities verwenden dieselbe vorhandene Einstellung für dunkle Symbole. Allgemeine Cent-Beträge verwenden die vorhandene Euroformatierung mit zwei Nachkommastellen.
+Maßgeblich sind Ergebnis, Commit und Quellfingerabdruck im aktuellen Arbeitsstand.
+Fehlgeschlagene Zwischenläufe werden nicht als PASS gewertet. Der vollständige
+CI-Checkout führt `check_current.py`, Release-/Test-Build, Lint, neun JVM-Suiten
+und acht native Suiten aus. Der lokale Teilcheckout enthält die großen unveränderten
+Pflanzenassets nicht; sein Gesamtcheck endet an dieser fehlenden Datei. Die 62
+vorhandenen Python-Tests bestehen beim direkten Aufruf ihrer Testprogramme.
 
-Aufklappbare Listenfilter bleiben beim Bearbeiten ihrer eigenen Datums-/Statusfelder sichtbar. Erst der Fokus auf die Hauptsuche schließt sie. Ein stabiler vorhandener Lazy-Listenschlüssel erhält den Eingabeknoten, wenn die Tastatur ergänzende Kontextzeilen ausblendet. Diese kleine Änderung vermeidet zusätzliche Filterdialoge; Arbeitszeit- und lokale Datumsfilter werden mit sichtbarer IME, Feldgrenzen, Fertig und erhaltenen Werten geprüft.
+Die normalen Fachlisten verwenden dieselbe adaptive Flächenaufteilung wie die Auswahlfenster. Im Querformat stehen Suchkopf und Ergebnisse nebeneinander; bei großer Schrift im Hochformat steht die Trefferzahl neben dem Suchfeld. Zusatzfilter bleiben nach Beenden der Eingabe erreichbar. Die Eingabeknoten bleiben beim Umordnen erhalten.
 
-Der vollständige Zwischenlauf `4487cc6` (CI `41096270726`, Versuch2) beendete alle Bedienfolgen ohne SQL-Sperre und ohne Activity-Testneustart-Hänger. 38Einstiege, Kundenkontext, Timer, Zubehör, Entwürfe und große Formulare liefen durch. Die Compose-Gesamtprüfung blieb FAIL: 200%/kleines Hochformat schnitt die Trefferzeile tatsächlich um20px ab; nach Fertig wechselte die Fotosuche in ein höheres Raster. Die Trefferzahl steht deshalb bei großer Schrift neben der Suche; Foto-/Pflanzensuchen behalten bei Suchtext die kompakte Liste. Drei Querformat- und drei Listenrückkehrprüfungen fragten den Folgezustand ohne Abwarten der UI-Übergabe ab; sie warten nun ausdrücklich auf den unveränderten Suchwert. Die Gestenprüfung akzeptiert den belegten Basismodus ohne aktives Navigations-Overlay und prüft dessen Wiederherstellung. Diese Korrekturen und die zusätzlich entdeckten Filtereingaben benötigen einen neuen vollständigen Lauf. Die früheren SQL-Sperren sind mangels Reproduktion noch nicht pauschal als behoben zu erklären.
+Die Compose-Abnahme kombiniert zwölf Darstellungen (100/130/200 %, normale/kleine
+Höhe, Hoch-/Querformat), 16 fachliche Suchwege, 22 zusätzliche Fachlistenfälle bei 200 %/kleiner Höhe und 38 Einstiege mit synthetischen
+Bildaufnahmen, tatsächlichen IME-Fenstergrenzen und injizierten Android-Touchereignissen.
+Sie prüft zusätzlich leere Suche, null/einen/viele Treffer, Seitenwechsel, A/B-Kontext,
+gleichnamige Kunden, Filtereingaben, Zurück-Taste/-Geste, Speichern, Verwerfen,
+Entwurfsfortsetzung und Activity-Neuerstellung. Sichtbarkeit und Antippbarkeit werden
+für die geprüften Ziele belegt. Bei langen Detailkarten in sehr kleinen Ausschnitten müssen Titelanfang und mindestens 48 × 48 dp Touchfläche sichtbar sein; ergänzende Karteninhalte bleiben scrollbar. Dialogtreffer behalten die strengere vollständige Zeilenprüfung; daraus folgt keine Abnahme jeder denkbaren Kombination
+auf jedem Android-Gerät. Lange Formulare bleiben scrollbar, ohne ihre Schrift zu verkleinern.
 
-Timer und Belegdetails verwenden nun dieselbe untere Aktionsleiste: je nach Zustand Stoppen/Fortsetzen/Zeitspeichern beziehungsweise Bearbeiten/Zahlungen/Originalteilen. Ergänzende Prüfungen und Quellen bleiben im scrollbaren Inhalt; bestehende Fachprüfungen bleiben unverändert. Leere Belegdatumszeilen entfallen. Die identischen Konflikteinstiege sind zu „Konflikte prüfen und lösen“ zusammengefasst; Einstellungen kennzeichnen das Laden und die Bildschirmprüfung wartet auf die bedienbare Hauptaktion. Synthetische Timer-/Belegbilder und tatsächliche Aktionsgrenzen ergänzen die bestehenden Abläufe.
-
-Die Bildprüfung zeigte zusätzlich: Bei 200% im Querformat war die Trefferzahl trotz sichtbarer Treffer angeschnitten. Im engen Querformat verwendet dasselbe Suchfeld deshalb einen Platzhalter statt einer zusätzlichen schwebenden Beschriftungszeile; seine zugängliche Bezeichnung bleibt erhalten. Schrift und Treffergrößen werden nicht reduziert. Die Matrix verlangt jetzt auch vollständig sichtbare Suchfeld- und Trefferzahlgrenzen.
-
-Der Wiederholungslauf auf `2107a6af2a5d0be6b13a57a78601035f79ba4bf9` (CI41099682741) bestätigt erneut `SQLITE_BUSY` und eine geleakte SQLite-Verbindung bei Darstellungswechseln. Quellbefund: `PixelLocalStore.getState()` hielt im Gegensatz zu den indizierten Lesewegen keine Datenbankreferenz über die gesamte Transaktion. Activity-Schließen konnte dadurch den Verbindungspool vor `endTransaction()` schließen. Die bestehende Referenzhaltung wurde auf diese Abfrage ausgedehnt. Ein deterministischer nativer Test schließt den Helper mitten in der Bestandsabfrage, prüft Erfolg und Fehlerpfad, vollständige Freigabe und anschließendes Lesen/Schreiben mit neuem Helper. KISS: vorhandener SQLite-Referenzmechanismus statt globaler Sperre oder neuer Architektur; erneuter Emulatornachweis steht noch aus. Die Datumsfilterprüfung wurde im Zwischenlauf ohne eigenen Fehler durchlaufen; durch die übrigen Fehler ist das kein Gesamt-PASS.
+Physischer Pixel und ein echtes Drive-Konto sind nicht geprüft. Produktive Installation,
+Migration, Wiederherstellung, Rechnungsfreigabe und Veröffentlichung sind nicht erfolgt.
+Die zuvor gebundenen historischen Pixel-Belege sind keine Abnahme dieser Oberfläche.
+Die ChatGPT-Zugangsdatenansicht behält `FLAG_SECURE`; der Schutz wird für Bilder nicht
+aufgehoben. Es werden ausschließlich vollständig synthetische Daten verwendet.

@@ -134,9 +134,9 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
         catch (error: Exception) { failure = error.message.orEmpty() }
     }
     val risks = remember(context?.toString()) { context?.optJSONArray("appointments")?.planningRows()?.associateBy { it.getJSONObject("appointment").optString("id") }.orEmpty() }
-    Column(Modifier.fillMaxSize()) {
-        NativeField("Suche", search, { search = it; offset = 0 }, search = true, modifier = Modifier.padding(horizontal = 16.dp).onFocusChanged { if (it.isFocused) filtersOpen = false })
-        NativeSearchSummary(if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.rows.size} auf dieser Seite") { filtersOpen = !filtersOpen }
+    NativeSearchList("Suche", search, { search = it; offset = 0 },
+        if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.rows.size} auf dieser Seite",
+        onFilters = { filtersOpen = !filtersOpen }, onFocus = { filtersOpen = false }) {
         if (!imeVisible) Text(if (from == to) nativeDisplayDate(from.toString()) else "${nativeDisplayDate(from.toString())} – ${nativeDisplayDate(to.toString())}", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
           if (!imeVisible) item {

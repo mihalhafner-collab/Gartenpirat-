@@ -258,9 +258,9 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
     val loadedPage by displayFlow.collectAsStateWithLifecycle(null)
     val page = loadedPage ?: NativeListPage(emptyList(), 0, offset, 50)
     val listLoading = loadedPage == null && error.isEmpty()
-    Column(Modifier.fillMaxSize()) {
-        NativeField(if(section == "catalog") "Bausteine suchen" else "Suchen", query, { query = it; offset = 0 }, modifier = Modifier.padding(horizontal = 16.dp).onFocusChanged { if (it.isFocused) filtersOpen = false })
-        NativeSearchSummary(if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.rows.size} auf dieser Seite", if (section == "catalog") null else ({ filtersOpen = !filtersOpen }))
+    NativeSearchList(if (section == "catalog") "Bausteine suchen" else "Suchen", query, { query = it; offset = 0 },
+        if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.rows.size} auf dieser Seite",
+        onFilters = if (section == "catalog") null else ({ filtersOpen = !filtersOpen }), onFocus = { filtersOpen = false }) {
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (!imeVisible) item { NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer), if (section == "invoices") "Rechnungsempfänger" else "Kunde") }
         if (filtersOpen) item(key = "native-list-filters") {

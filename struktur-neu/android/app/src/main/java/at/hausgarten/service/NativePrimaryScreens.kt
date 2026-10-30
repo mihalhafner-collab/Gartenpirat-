@@ -392,9 +392,9 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
     val page = loadedPage ?: NativeListPage(emptyList(), 0, offset, 50)
     val listLoading = loadedPage == null && listFailure.isEmpty()
     val scope = rememberCoroutineScope()
-    Column(Modifier.fillMaxSize()) {
-        NativeField("Suchen", search, { search = it; offset = 0 }, modifier = Modifier.padding(horizontal = 16.dp).onFocusChanged { if (it.isFocused) filtersOpen = false })
-        NativeSearchSummary(if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.offset + if (page.rows.isEmpty()) 0 else 1}–${page.offset + page.rows.size}") { filtersOpen = !filtersOpen }
+    NativeSearchList("Suchen", search, { search = it; offset = 0 },
+        if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.offset + if (page.rows.isEmpty()) 0 else 1}–${page.offset + page.rows.size}",
+        onFilters = { filtersOpen = !filtersOpen }, onFocus = { filtersOpen = false }) {
         LazyColumn(Modifier.weight(1f).padding(horizontal = 16.dp), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (listLoading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
         if (listFailure.isNotEmpty()) item { Text(listFailure, color = MaterialTheme.colorScheme.error) }

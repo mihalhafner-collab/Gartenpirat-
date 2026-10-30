@@ -192,9 +192,9 @@ private fun RevierList(config: RevierSection, controller: NativeAppController, r
     val loadedPage by displayFlow.collectAsStateWithLifecycle(null)
     val page = loadedPage ?: NativeListPage(emptyList(), 0, offset, 50)
     val listLoading = loadedPage == null && failure.isEmpty()
-    Column(Modifier.fillMaxSize()) {
-        NativeField("Suchen", query, { query = it; offset = 0 }, modifier = Modifier.padding(horizontal = 16.dp).onFocusChanged { if (it.isFocused) filtersOpen = false })
-        NativeSearchSummary(if (listLoading) "Wird geladen …" else "${page.total} Treffer" + if (status.isNotBlank() || archived) " · Filter aktiv" else "") { filtersOpen = !filtersOpen }
+    NativeSearchList("Suchen", query, { query = it; offset = 0 },
+        if (listLoading) "Wird geladen …" else "${page.total} Treffer" + if (status.isNotBlank() || archived) " · Filter aktiv" else "",
+        onFilters = { filtersOpen = !filtersOpen }, onFocus = { filtersOpen = false }) {
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (!imeVisible) item { NativeContext(controller, controller.route.args) }
             if (filtersOpen) item(key = "native-list-filters") {
@@ -1366,10 +1366,9 @@ private fun RevierSearch(controller: NativeAppController) {
         }
     }
     val rows = result?.optJSONArray("items")?.revierObjects().orEmpty()
-    Column(Modifier.fillMaxSize()) {
-        NativeField("Name, Objekt, Tätigkeit, Notiz oder Beleg", query, { query = it }, search = true,
-            modifier = Modifier.padding(horizontal = 16.dp).onFocusChanged { if (it.isFocused) filtersOpen = false }, onSearch = { if (query.isNotBlank()) search(0) })
-        NativeSearchSummary(result?.let { "${it.optInt("total")} Treffer" } ?: "Suchtext eingeben") { filtersOpen = !filtersOpen }
+    NativeSearchList("Name, Objekt, Tätigkeit, Notiz oder Beleg", query, { query = it },
+        result?.let { "${it.optInt("total")} Treffer" } ?: "Suchtext eingeben",
+        onFilters = { filtersOpen = !filtersOpen }, onFocus = { filtersOpen = false }, onSearch = { if (query.isNotBlank()) search(0) }) {
         if (!imeVisible && !filtersOpen) TextButton({ search(0) }, enabled = !busy && query.isNotBlank(), modifier = Modifier.padding(horizontal = 16.dp)) { Text("Lokal suchen") }
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (filtersOpen) item(key = "native-list-filters") {
@@ -1407,7 +1406,7 @@ private fun RevierSearch(controller: NativeAppController) {
                 }
             }
         }
-        NativeActions {
+        if (!imeVisible) NativeActions {
             OutlinedButton({ search((offset - 50).coerceAtLeast(0), true) }, enabled = offset > 0 && !busy) { Text("Vorherige") }
             OutlinedButton({ search(offset + 50, true) }, enabled = offset + rows.size < (result?.optInt("total") ?: 0) && !busy) { Text("Weitere Treffer") }
         }

@@ -52,6 +52,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private val searchMatrix = JSONArray()
     private val domainSearchCases = JSONArray()
     private val surfaceCases = JSONArray()
+    private val listViewportCases = JSONArray()
 
     private fun yes(value: Boolean, code: String) {
         if (!value) throw AssertionError("QA_NATIVE_COMPOSE_$code")
@@ -330,6 +331,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("search_keyboard", ::searchKeyboardJourney)
             journey("back_gesture", ::backGestureJourney)
             journey("domain_search", ::domainSearchJourney)
+            journey("list_viewports", ::listViewportJourney)
             journey("filter_keyboard", ::filterKeyboardJourney)
             journey("surfaces", ::surfaceJourney)
             journey("large_text", ::largeTextJourney)
@@ -346,7 +348,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("draft_write_failure_recovery", true)
                 .put("work_entry_usability", true).put("work_photo_retention", true)
                 .put("machine_accessory_roundtrip", true).put("decimal_comma_inputs", true)
-                .put("filter_keyboard", true).put("system_back_gesture", true).put("work_ime_actions", true).put("search_keyboard_matrix", searchMatrix).put("domain_search_cases", domainSearchCases).put("surface_cases", surfaceCases).put("office_opening", officeMeasurements)
+                .put("filter_keyboard", true).put("system_back_gesture", true).put("work_ime_actions", true).put("search_keyboard_matrix", searchMatrix).put("domain_search_cases", domainSearchCases).put("surface_cases", surfaceCases).put("list_viewport_cases", listViewportCases).put("office_opening", officeMeasurements)
                 .put("drive_account_tested", false).put("physical_pixel_tested", false)
         } finally {
             shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
@@ -1016,12 +1018,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     /** Validate real screen/IME geometry, then inject a touch, not a semantics click. */
-    private fun visibleResult(label: String, tap: Boolean = false, requireKeyboard: Boolean = false, scrollIntoView: Boolean = false): Rect {
+    private fun visibleResult(label: String, tap: Boolean = false, requireKeyboard: Boolean = false, scrollIntoView: Boolean = false, allowClippedCard: Boolean = false): Rect {
         var result: Rect? = null
         var geometry = "No candidate"
         var lastScroll = 0L
         try { waitUntil("SEARCH_RESULT_BOUNDS_$label") {
-            val candidate = nodes().firstNotNullOfOrNull { if (matches(it, label)) clickable(it) else null } ?: return@waitUntil false
+            val textNode = nodes().firstOrNull { matches(it, label) && clickable(it) != null } ?: return@waitUntil false
+            val candidate = clickable(textNode) ?: return@waitUntil false
             val bounds = Rect().also { candidate.getBoundsInScreen(it) }
             val screen = Rect()
             automation.rootInActiveWindow?.getBoundsInScreen(screen)
@@ -1031,9 +1034,17 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 val keyboard = Rect().also { ime.getBoundsInScreen(it) }
                 if (!keyboard.isEmpty) screen.bottom = minOf(screen.bottom, keyboard.top)
             }
-            val valid = !bounds.isEmpty && screen.contains(bounds) && bounds.width() >= (48 * context.resources.displayMetrics.density).toInt() && bounds.height() >= (48 * context.resources.displayMetrics.density).toInt()
-            geometry = "candidate=$bounds screen=$screen keyboard=${ime != null} density=${context.resources.displayMetrics.density}"
-            if (valid) result = bounds
+            // A long entity card may exceed a tiny landscape viewport. Its visible
+            // title and real touch intersection still need a complete 48dp target.
+            // Selection rows and all ordinary journeys retain the full-row check.
+            val hit = Rect(bounds)
+            val title = Rect().also { textNode.getBoundsInScreen(it) }
+            val minimum = (48 * context.resources.displayMetrics.density).toInt()
+            val titleVisible = title.top >= screen.top && title.top + minOf(title.height(), minimum) <= screen.bottom
+            val within = if (allowClippedCard) hit.intersect(screen) && titleVisible else screen.contains(bounds)
+            val valid = !hit.isEmpty && within && hit.width() >= minimum && hit.height() >= minimum
+            geometry = "candidate=$bounds touch=$hit title=$title screen=$screen keyboard=${ime != null} density=${context.resources.displayMetrics.density}"
+            if (valid) result = hit
             else if (scrollIntoView && SystemClock.uptimeMillis()-lastScroll > 300) { scroll(); lastScroll = SystemClock.uptimeMillis() }
             valid
         } } catch (failure: Throwable) { throw AssertionError("SEARCH_GEOMETRY_$label: $geometry", failure) }
@@ -1322,6 +1333,84 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
         if (failures.isNotEmpty()) { val failure = AssertionError("DOMAIN_SEARCH_${failures.size}_FAILED"); failures.forEach(failure::addSuppressed); throw failure }
         yes(domainSearchCases.length() == 16, "ALL_DOMAIN_SEARCH_PATHS")
+    }
+
+    private fun listViewportJourney() {
+        val oldFont = shell("settings get system font_scale")
+        val sizeText = shell("wm size")
+        val override = Regex("Override size: (\\d+x\\d+)").find(sizeText)?.groupValues?.get(1)
+        val physical = Regex("(?:Override|Physical) size: (\\d+)x(\\d+)").findAll(sizeText).last().groupValues
+        val width = minOf(physical[1].toInt(), physical[2].toInt())
+        val height = maxOf(physical[1].toInt(), physical[2].toInt())
+        val workRows = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
+        val work = (0 until workRows.length()).map { workRows.getJSONObject(it) }.first { it.optString("activity").startsWith("[TEST] QA usability work") }.getString("activity")
+        val plant = JSONObject(context.assets.open("plant-catalog.json").bufferedReader().use { it.readText() }).getJSONArray("plants").getJSONObject(0)
+        data class Target(val key: String, val label: String, val query: String, val result: String, val manual: Boolean = false, val open: () -> Unit)
+        val targets = listOf(
+            Target("customers", "Suchen", fixturePrefix+"000", fixturePrefix+"000") { click("Kunden") },
+            Target("work", "Suchen", "QA usability work", work) { click("Arbeit") },
+            Target("orders", "Suchen", "QA Kontextauftrag 0", "QA Kontextauftrag 0") { openOfficeGroup("Kunden und Aufträge", "Aufträge") },
+            Target("offers", "Suchen", "QA Kontextangebot 0", "QA Kontextangebot 0") { click("Büro"); click("Abrechnung"); click("Angebote") },
+            Target("invoices", "Suchen", "QA-UI-119", "QA-UI-119") { click("Büro"); click("Abrechnung"); click("Rechnungen") },
+            Target("planning", "Suche", "QA Native Notification", "[TEST] QA Native Notification") { click("Büro"); click("Planung") },
+            Target("equipment", "Suchen", "QA Zubehör Säge", "[TEST] QA Zubehör Säge") { click("Büro"); click("Maschinenpark und Gerätewartung") },
+            Target("photos", "Fotos suchen", "QA Kontextfoto 0", "QA Kontextfoto 0") { openOfficeGroup("Material und Wissen", "Fotos") },
+            Target("catalog", "Bausteine suchen", "QA Leistungsbaustein", "QA Leistungsbaustein") { openOfficeGroup("Material und Wissen", "Leistungskatalog") },
+            Target("plants", "Name, botanischer Name oder Familie", plant.getString("scientificName"), plant.getString("name")) { openOfficeGroup("Material und Wissen", "Pflanzen") },
+            Target("local", "Name, Objekt, Tätigkeit, Notiz oder Beleg", fixturePrefix+"000", fixturePrefix+"000", true) { openOfficeGroup("Weitere Verwaltung", "Lokale Suche") }
+        )
+        val failures = ArrayList<Throwable>()
+        try {
+            for (landscape in listOf(false, true)) for (target in targets) {
+                val key = target.key + if (landscape) "-landscape" else "-portrait"
+                test.sendStatus(0, Bundle().apply { putString("list_viewport_start", key) })
+                try {
+                    activity?.let { current -> test.runOnMainSync { current.finish() } }
+                    shell("wm size ${width}x${(height*0.82).toInt()}")
+                    shell("settings put system font_scale 2.0")
+                    automation.setRotation(UiAutomation.ROTATION_FREEZE_0)
+                    launch()
+                    test.runOnMainSync { requireNotNull(activity).requestedOrientation = if (landscape) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
+                    waitUntil("LIST_CONFIGURATION_$key") {
+                        val config = requireNotNull(activity).resources.configuration
+                        kotlin.math.abs(config.fontScale-2f) < 0.02f && (config.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) == landscape
+                    }
+                    target.open(); enter(target.label, target.query)
+                    if (target.manual) {
+                        showKeyboard(target.label)
+                        yes(requireNotNull(field(target.label)).performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id), "LIST_MANUAL_SEARCH_$key")
+                    }
+                    showKeyboard(target.label)
+                    visibleResult(target.result, requireKeyboard = true, allowClippedCard = true)
+                    waitUntil("LIST_FIELD_AND_COUNT_$key") {
+                        val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
+                        val ime = automation.windows.firstOrNull { it.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD && it.root?.isVisibleToUser == true } ?: return@waitUntil false
+                        screen.bottom = minOf(screen.bottom, Rect().also { ime.getBoundsInScreen(it) }.top)
+                        val count = nodes().firstOrNull { it.text?.toString()?.matches(Regex("[0-9]+ Treffer.*")) == true }
+                        listOf(field(target.label), count).all { candidate -> candidate != null && Rect().also { candidate.getBoundsInScreen(it) }.let { !it.isEmpty && screen.contains(it) } }
+                    }
+                    captureSyntheticScreen("list-$key", requireKeyboard = true)
+                    yes(requireNotNull(field(target.label)).performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id), "LIST_DONE_$key")
+                    waitUntil("LIST_DONE_PRESERVES_QUERY_$key") { !keyboardVisible() && field(target.label)?.text?.toString()?.contains(target.query) == true }
+                    visibleResult(target.result, scrollIntoView = true, allowClippedCard = true)
+                    showKeyboard(target.label); visibleResult(target.result, tap = true, requireKeyboard = true, allowClippedCard = true)
+                    waitUntil("LIST_TOUCH_OPENED_$key") { !keyboardVisible() && field(target.label) == null }
+                    listViewportCases.put(JSONObject().put("case", key).put("font", 2.0).put("compact", true).put("landscape", landscape).put("keyboard_bounds", true).put("real_touch", true).put("ime_preserves_query", true))
+                } catch (failure: Throwable) {
+                    test.sendStatus(0, Bundle().apply { putString("list_viewport_failure", "$key: " + failure.stackTraceToString()) })
+                    runCatching { captureSyntheticScreen("failure-list-$key") }
+                    failures.add(AssertionError("LIST_VIEWPORT_$key", failure))
+                }
+            }
+        } finally {
+            activity?.let { current -> test.runOnMainSync { current.finish() } }
+            automation.setRotation(UiAutomation.ROTATION_UNFREEZE)
+            shell("wm size " + (override ?: "reset"))
+            shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
+            launch()
+        }
+        if (failures.isNotEmpty()) { val failure = AssertionError("LIST_VIEWPORTS_${failures.size}_FAILED"); failures.forEach(failure::addSuppressed); throw failure }
+        yes(listViewportCases.length() == 22, "ALL_LIST_VIEWPORTS")
     }
 
     private fun filterKeyboardJourney() {
