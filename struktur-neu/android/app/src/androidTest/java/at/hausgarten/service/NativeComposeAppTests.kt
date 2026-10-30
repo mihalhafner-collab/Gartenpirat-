@@ -87,11 +87,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun clickable(node: AccessibilityNodeInfo): AccessibilityNodeInfo? {
         var current: AccessibilityNodeInfo? = node
+        var target: AccessibilityNodeInfo? = null
         while (current != null) {
-            if (current.isVisibleToUser && current.isEnabled && current.actionList.any { it.id == AccessibilityNodeInfo.ACTION_CLICK }) return current
+            // Text-field values can equal a card label. Their click action only
+            // focuses the editor; a child must not bypass an editable ancestor.
+            if (current.isEditable) return null
+            if (target == null && current.isVisibleToUser && current.isEnabled && current.actionList.any { it.id == AccessibilityNodeInfo.ACTION_CLICK }) target = current
             current = current.parent
         }
-        return null
+        return target
     }
 
     private fun scrollTargets(action: Int): List<AccessibilityNodeInfo> {
@@ -106,14 +110,17 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private fun scroll(): Boolean = scrollTargets(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)
         .any { it.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD) }
 
-    private fun click(label: String, scrollTo: Boolean = true) {
+    private fun click(label: String, scrollTo: Boolean = true): AccessibilityNodeInfo {
         if (scrollTo && nodes().none { matches(it, label) && clickable(it) != null }) scrollTop()
         var lastScroll = 0L
+        var clicked: AccessibilityNodeInfo? = null
         waitUntil("CLICK_$label") {
             val candidate = nodes().firstOrNull { matches(it, label) && clickable(it) != null }
             val target = candidate?.let(::clickable)
             if (target != null && target.refresh() && target.isVisibleToUser && target.isEnabled) {
-                return@waitUntil target.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                val accepted = target.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                if (accepted) clicked = target
+                return@waitUntil accepted
             }
             if (scrollTo && SystemClock.uptimeMillis() - lastScroll > 250) {
                 nodes().firstOrNull { matches(it, label) }?.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id)
@@ -122,6 +129,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             false
         }
         checks++
+        return requireNotNull(clicked)
     }
 
     private fun field(label: String): AccessibilityNodeInfo? = nodes().firstOrNull { candidate ->
@@ -438,7 +446,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val before = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length()
         enter("Suchen", fixturePrefix + "000")
         shown("1 Treffer · 1–1")
-        click(fixturePrefix + "000")
+        val searchField = requireNotNull(field("Suchen"))
+        yes(searchField.isEditable && clickable(searchField) == null, "SEARCH_VALUE_IS_NOT_A_CUSTOMER_CARD_ACTION")
+        val customerCard = click(fixturePrefix + "000")
+        yes(!customerCard.isEditable && customerCard.actionList.any { it.id == AccessibilityNodeInfo.ACTION_CLICK }, "TIMER_CUSTOMER_CARD_USES_NON_EDITABLE_ACTION")
+        reveal("Arbeit beginnen")
         click("Arbeit beginnen")
         click("Bewusst speichern")
         waitUntil("TIMER_STARTED") { read("get_active_work_session").optString("state") == "RUNNING" }
