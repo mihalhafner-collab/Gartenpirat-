@@ -46,7 +46,7 @@ import java.util.UUID
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-internal fun NativeField(label: String, value: String, onValueChange: (String) -> Unit, required: Boolean = false, multiline: Boolean = false, search: Boolean = false, modifier: Modifier = Modifier, onSearch: (() -> Unit)? = null, enabled: Boolean = true) {
+internal fun NativeField(label: String, value: String, onValueChange: (String) -> Unit, required: Boolean = false, multiline: Boolean = false, search: Boolean = false, modifier: Modifier = Modifier, onSearch: (() -> Unit)? = null, enabled: Boolean = true, showLabel: Boolean = true) {
     val keyboard = LocalSoftwareKeyboardController.current
     val focus = LocalFocusManager.current
     val searching = search || label in listOf("Suchen", "Suche", "Bausteine suchen", "Text suchen", "Vorschläge durchsuchen")
@@ -54,7 +54,9 @@ internal fun NativeField(label: String, value: String, onValueChange: (String) -
     val displayedLabel = label + if (required) " *" else ""
     OutlinedTextField(value, onValueChange, modifier.fillMaxWidth().semantics {
         testTagsAsResourceId = true; testTag = "native-field:$displayedLabel"
-    }, label = { Text(displayedLabel) },
+        if (!showLabel) contentDescription = displayedLabel
+    }, label = if (showLabel) ({ Text(displayedLabel) }) else null,
+        placeholder = if (!showLabel) ({ Text(displayedLabel) }) else null,
         enabled = enabled, singleLine = !multiline, minLines = if (multiline) 3 else 1,
         keyboardOptions = KeyboardOptions(imeAction = if (multiline) ImeAction.Default else if (searching) ImeAction.Search else ImeAction.Done),
         keyboardActions = KeyboardActions(onSearch = { finish(); onSearch?.invoke() }, onDone = { finish() }))
@@ -116,26 +118,28 @@ internal fun NativeSearchDialog(title: String, search: String, onSearch: (String
         val focus = LocalFocusManager.current
         val imeVisible = WindowInsets.isImeVisible || WindowInsets.ime.getBottom(LocalDensity.current) > 0
         val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-        val compactControls = imeVisible && !landscape && LocalDensity.current.fontScale > 1.3f
+        val largeSearch = imeVisible && LocalDensity.current.fontScale > 1.3f
+        val compactControls = largeSearch && !landscape
+        val compactLabel = largeSearch && landscape
         val close = { keyboard?.hide(); focus.clearFocus(); onDismiss() }
         val count = if (loading) "Wird geladen …" else "$total Treffer" + if (pageCount && !imeVisible) " auf dieser Seite" else ""
         Surface(Modifier.fillMaxSize()) {
             // Keep the same text-field node when IME/rotation changes placement;
             // replacing a Column with a Row would dispose its focused editor.
-            Layout(modifier = Modifier.fillMaxSize().safeDrawingPadding().imePadding().padding(horizontal = 12.dp, vertical = 4.dp), content = {
+            Layout(modifier = Modifier.fillMaxSize().safeDrawingPadding().imePadding().padding(horizontal = 12.dp, vertical = if (compactLabel) 0.dp else 4.dp), content = {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
                     if (!imeVisible) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
                         TextButton(close) { Text("Schließen") }
                     }
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        if (searchEnabled) NativeField(searchLabel, search, onSearch, search = true, modifier = Modifier.weight(1f))
-                        if (imeVisible) Column(Modifier.widthIn(max = 112.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        if (searchEnabled) NativeField(searchLabel, search, onSearch, search = true, modifier = Modifier.weight(1f), showLabel = !compactLabel)
+                        if (imeVisible) Column(Modifier.widthIn(max = 128.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                             IconButton(close, Modifier.semantics { contentDescription = "Schließen" }) { Text("×") }
                             if (compactControls) Text(count, style = MaterialTheme.typography.labelLarge)
                         }
                     }
-                    if (!compactControls) Text(count, Modifier.padding(vertical = 2.dp), style = MaterialTheme.typography.labelLarge)
+                    if (!compactControls) Text(count, Modifier.padding(vertical = if (compactLabel) 0.dp else 2.dp), style = MaterialTheme.typography.labelLarge)
                 }
                 LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (error.isNotBlank()) item { Text(error, color = MaterialTheme.colorScheme.error) }

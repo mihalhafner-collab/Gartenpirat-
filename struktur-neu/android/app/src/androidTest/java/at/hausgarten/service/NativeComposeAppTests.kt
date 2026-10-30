@@ -1084,6 +1084,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     visibleResult(fixturePrefix + "000")
                     showKeyboard("Suchen")
                     visibleResult(fixturePrefix + "000", requireKeyboard = true)
+                    waitUntil("SEARCH_FIELD_AND_COUNT_BOUNDS_$key") {
+                        val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
+                        val ime = automation.windows.firstOrNull { it.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD && it.root?.isVisibleToUser == true } ?: return@waitUntil false
+                        screen.bottom = minOf(screen.bottom, Rect().also { ime.getBoundsInScreen(it) }.top)
+                        listOf(field("Suchen"), node("1 Treffer")).all { candidate -> candidate != null && Rect().also { candidate.getBoundsInScreen(it) }.let { !it.isEmpty && screen.contains(it) } }
+                    }
                     captureSyntheticScreen(key, requireKeyboard = true)
                     yes(requireNotNull(field("Suchen")).performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id), "SEARCH_IME_ACTION_$key")
                     waitUntil("SEARCH_IME_HIDDEN_$key") { !keyboardVisible() }
