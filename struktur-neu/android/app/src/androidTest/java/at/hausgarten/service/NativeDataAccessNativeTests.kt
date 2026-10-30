@@ -155,6 +155,8 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 cacheSchemaRepairProof(context)
                 phase = "business_transaction_lifetime"
                 businessTransactionLifetimeProof(context)
+                phase = "snapshot_close_lifetime"
+                snapshotCloseLifetimeProof(context)
                 phase = "thumbnail_tiles"
                 thumbnailTileProof(context, store)
                 phase = "upload_publication"
@@ -605,6 +607,45 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             store = PixelLocalStore(context)
             yes(store.ownerValue("qa_lifetime", "") == "committed", "FAILED_COMMIT_ROLLS_BACK_AND_REOPENS")
         } finally { store.close() }
+    }
+
+    private fun snapshotCloseLifetimeProof(owner: Context) {
+        val base = FixtureContext(owner, File(owner.cacheDir, "snapshot-close-lifetime"), "qa_snapshot_close_lifetime")
+        var duringSnapshot: (() -> Unit)? = null
+        val context = object : ContextWrapper(base) {
+            override fun getApplicationContext(): Context = this
+            override fun getSharedPreferences(name: String, mode: Int): SharedPreferences {
+                val preferences = base.getSharedPreferences(name, mode)
+                return object : SharedPreferences by preferences {
+                    override fun getString(key: String?, defValue: String?): String? {
+                        if (key == "drive_snapshot") duringSnapshot?.invoke()
+                        return preferences.getString(key, defValue)
+                    }
+                }
+            }
+        }
+        for (fail in listOf(false, true)) {
+            val store = PixelLocalStore(context)
+            try {
+                store.putOwnerValue("snapshot", SyntheticBusinessData.profile("minimal").toString())
+                val database = store.writableDatabase
+                duringSnapshot = {
+                    duringSnapshot = null
+                    yes(database.inTransaction(), "SNAPSHOT_CLOSE_DURING_TRANSACTION_$fail")
+                    store.close()
+                    yes(database.isOpen, "SNAPSHOT_CLOSE_PINS_CONNECTION_$fail")
+                    if (fail) throw IOException("QA_SYNTHETIC_SNAPSHOT_FAILURE")
+                }
+                val outcome = runCatching { store.getState() }
+                yes(if (fail) outcome.exceptionOrNull() is IllegalStateException else outcome.getOrThrow().has("master"), "SNAPSHOT_CLOSE_OUTCOME_$fail")
+                yes(!database.isOpen, "SNAPSHOT_CLOSE_RELEASES_CONNECTION_$fail")
+                PixelLocalStore.assertNoOpenStores(context)
+                PixelLocalStore(context).use { reopened ->
+                    reopened.putOwnerValue("qa_snapshot_reopened", "ready")
+                    yes(reopened.getState().has("master") && reopened.ownerValue("qa_snapshot_reopened", "") == "ready", "SNAPSHOT_CLOSE_NO_LOCK_AFTER_REOPEN_$fail")
+                }
+            } finally { duringSnapshot = null; store.close() }
+        }
     }
 
     private suspend fun chunkedUploadStorageProof(owner: Context) {

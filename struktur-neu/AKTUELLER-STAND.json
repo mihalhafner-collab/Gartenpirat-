@@ -54,8 +54,8 @@
     ]
   },
   "open_checks": [
-    "Compose-Zwischenläufe: Task-Neustart nach Kalender blockiert; Testharness korrigiert, vollständiger Wiederholungslauf nötig.",
-    "SQLITE_BUSY nach schnellem Dialog-/Formularwechsel: Ursache offen; Threaddiagnose und unabhängige Fehleraufzeichnung ergänzt. 12Darstellungen/16Suchwege/38Einstiege noch nicht abgenommen.",
+    "Vollständige Abnahme der letzten UI-Korrekturen läuft; Pixel und echtes Drive-Konto bleiben getrennt.",
+    "CI41099682741: wiederholtes SQLITE_BUSY und geleakte Verbindung. getState-Transaktion erhält Referenzhaltung; deterministischer Schließen-/Fehlerpfadtest und vollständiger Emulatorlauf noch offen.",
     "Physical Pixel NOT_RUN; außerhalb Auftrag."
   ],
   "workflow": {

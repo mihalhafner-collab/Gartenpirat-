@@ -556,3 +556,5 @@ geöffneter Tastatur: sichtbare Feldgrenzen, Eingabe, Fertig, erhaltene Werte,
 Schließen der Filter durch Hauptsuchfokus und Activity-Neuerstellung.
 `qa-native-filter-work-date.png` und `qa-native-filter-local-date.png` zeigen
 die jeweiligen tatsächlichen Eingaben mit IME.
+
+Der native Datenzugriffstest schließt den SQLite-Helper auch mitten in einer vollständigen Bestandsabfrage. Erfolg und Abfragefehler müssen die Transaktion beenden, die letzte Datenbankreferenz freigeben und anschließendes Lesen/Schreiben ohne verbleibende Sperre erlauben.

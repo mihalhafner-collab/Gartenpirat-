@@ -507,6 +507,10 @@ saveAttachmentMetadata(database, payload.getString("id"), prepared.metadata, "le
 fun getState(): JSONObject {
 
 var db = getWritableDatabase()
+// Activity destruction may close the helper while an IO query finishes.
+// Keep the connection pool alive through endTransaction, including failures.
+db.acquireReference()
+try {
 db.beginTransaction()
 try {
 
@@ -517,6 +521,7 @@ return result
 } finally {
 db.endTransaction()
 }
+} finally { db.releaseReference() }
 }
 fun readSource(): PixelMcpReadTools.Source {
 
