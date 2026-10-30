@@ -291,7 +291,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             installed = true
             enter("Name *", transientName)
             waitUntil("REAL_DRAFT_WRITE_FAILURE_RECORDED") { draftFailure(logicalKey) != null }
-            yes(draftFailure(logicalKey)?.message?.contains("QA_DRAFT_WRITE_FAILURE") == true, "ACTUAL_SQLITE_DRAFT_FAILURE")
+            // The store preserves its public LOCAL_STATE_WRITE_FAILED wrapper;
+            // require the actual injected SQLite trigger failure in its cause chain.
+            val failures = generateSequence(draftFailure(logicalKey)) { it.cause }.take(16).toList()
+            yes(failures.any { it is android.database.sqlite.SQLiteConstraintException &&
+                it.message?.contains("QA_DRAFT_WRITE_FAILURE") == true }, "ACTUAL_SQLITE_DRAFT_FAILURE")
             yes(store.ownerValue(draftKey, "") == durableBeforeFailure, "FAILED_DRAFT_WRITE_PRESERVES_DISK_VALUE")
         } finally {
             if (installed) database.execSQL("DROP TRIGGER $trigger")

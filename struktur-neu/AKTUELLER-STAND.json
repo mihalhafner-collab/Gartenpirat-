@@ -29,17 +29,17 @@
   ],
   "current_task": {
     "name": "Kotlin-Update der bestehenden Haus-und-Garten-App mit kompatiblem ZIP-Backup",
-    "status": "FIXING_EMULATOR_FIXTURE_ISOLATION_BEFORE_FINAL_COMPOSE_ACCEPTANCE",
+    "status": "FIXING_COMPOSE_TEST_EXCEPTION_CAUSE_ASSERTION",
     "authorized": true,
     "authorization_scope": "UPDATE same package/original signature;full Kotlin refactoring and regression;synthetic data only;bounded subagents;no productive access,installation,migration,restore or delivery",
     "requirements_document": "docs/fachregeln/APP.md",
     "implementation": [
       "193 Kotlin production files;native Compose feature routes/editors;no active app Java/JS",
       "SQLite indexed read cache/projections,IO/committed Flow,file media,bounded thumbnail-first Coil",
-      "JVM1154/Python62/build/lint PASS;Android data225 and4 backup suites PASS;provider fixture guard under repair"
+      "JVM1154/Python62/build/lint and7 native suites PASS;Compose draft-error assertion under repair"
     ],
     "remaining": [
-      "Fix strict fresh provider fixture guard for AndroidX runtime metadata;rerun all8 native suites",
+      "Rerun8 native suites after checking injected SQLite trigger cause beneath store wrapper",
       "Real Drive,personal ZIP,physical Pixel untested;no productive actions",
       "Raw IndexedDB-only drafts preserved;not automatically materialized"
     ],
@@ -94,7 +94,7 @@
         "required_evidence": "No productive or derived customer data/device/ZIP access"
       },
       "REGRESSION": {
-        "status": "JVM1154_PYTHON62_BUILD_LINT_DATA225_BACKUP4_PASS;PROVIDER_FIXTURE_FIX_PENDING",
+        "status": "JVM1154_PYTHON62_BUILD_LINT_7_NATIVE_PASS;COMPOSE_ASSERTION_FIX_PENDING",
         "required_evidence": "Current-source checks;fix/recheck;unexecuted evidence stays open"
       },
       "SUBAGENTS": {
@@ -108,7 +108,7 @@
     }
   },
   "open_checks": [
-    "Provider fixture guard rejects AndroidX profile metadata;provider/reopen/Compose acceptance pending",
+    "Compose test must inspect wrapped SQLite trigger failure;remainingUI journeys pending",
     "Real Drive account,personal ZIP and physical Pixel update/data retention NOT_EXECUTED;synthetic only",
     "Historical raw IndexedDB-only drafts are preserved;not automatically materialized as native photos"
   ],
@@ -141,26 +141,28 @@
     "business_data_read": false,
     "authored_changes_diff_check": "PASS",
     "current_test_run": {
-      "scope": "CURRENT_FULL_REFACTOR;PROVIDER_FIXTURE_ISOLATION_FIX_PENDING",
-      "observed_at_utc": "2026-10-30T01:12:37.814891+00:00",
-      "tested_git_sha": "d1efa543b003e2bcdd31f1ace4868eb991d6f990",
+      "scope": "CURRENT_FULL_REFACTOR;COMPOSE_TEST_ASSERTION_FIX_PENDING",
+      "observed_at_utc": "2026-10-30T01:35:53.444745+00:00",
+      "tested_git_sha": "1e5a8255b425d7b55fa7cb9cacfe0274012cdc58",
       "source_sha256": "a2757b8b6371237727f21bcd7f0e945a620806971f450d71d4050dbeb64e2750",
       "source_dirty": false,
       "source_checks": "PASS;62 Python/source/privacy/contracts;seed0",
       "jvm": "PASS;1154 checks across8 suites",
       "android_build": "PASS;local and CI release/test APK and lint0errors;637 assets/210 Kotlin targets verified",
       "native": {
-        "status": "DATA_AND4_BACKUP_SUITES_PASS;PROVIDER_FIXTURE_GUARD_FAILED;DEPENDENT_SUITES_BLOCKED",
+        "status": "7_SUITES_PASS;COMPOSE_TEST_EXCEPTION_LEVEL_ASSERTION_FAILED",
         "suites": {
           "local_backup": 43,
           "local_backup_reopen": 13,
           "browser_checkpoint": 79,
           "browser_checkpoint_reopen": 23,
-          "native_data": 225
+          "native_data": 225,
+          "document_provider": 75,
+          "document_provider_reopen": 17
         },
-        "provider_failure": "FRESH_SYNTHETIC_PROVIDER_APP_SANDBOX_REQUIRED;ProfileInstaller installation seen;no application-data failure observed"
+        "compose_failure": "ACTUAL_SQLITE_DRAFT_FAILURE;store wraps SQLite error;verify cause chain"
       },
-      "ci_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40982052480",
+      "ci_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40985102864",
       "pixel_drive_account_personal_zip": "NOT_RUN;synthetic only"
     },
     "performance_evidence": "docs/verification/performance-current.md defines native measurement method;no inherited browser timing,FPS or physical Pixel performance claim",
