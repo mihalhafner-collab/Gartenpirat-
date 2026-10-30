@@ -31,7 +31,7 @@
     "name": "Kotlin-Update der bestehenden Haus-und-Garten-App mit kompatiblem ZIP-Backup",
     "status": "TECHNICAL_COMPLETE_SYNTHETIC_ACCEPTANCE_PASS",
     "authorized": true,
-    "authorization_scope": "Same-package Kotlin update;synthetic regression;bounded subagents. APK119 build/original signing/local artifact authorized;no productive access,installation,migration,restore or external publication.",
+    "authorization_scope": "Same-package Kotlin update;synthetic regression;bounded subagents. APK119 build,original signing,private Drive delivery/manual update guide authorized;no productive data access,automatic installation or restore.",
     "requirements_document": "docs/fachregeln/APP.md",
     "implementation": [
       "193 Kotlin production files;native Compose feature routes/editors;no active app Java/JS",
@@ -103,7 +103,7 @@
     }
   },
   "open_checks": [
-    "Real Drive account,personal ZIP and physical Pixel update/data retention NOT_RUN;synthetic only",
+    "App backup on real Drive,personal ZIP and physical Pixel update/data retention NOT_RUN;synthetic only",
     "Raw old IndexedDB-only drafts preserved;not automatically materialized as native photos"
   ],
   "workflow": {
@@ -177,32 +177,32 @@
     }
   ],
   "last_distributed_build": {
-    "version_name": "1.55.12",
-    "version_code": 117,
-    "source_sha256": "ef6261b4e79c54131248bf439e148bc16c6c7cc2e579936d857cb2b9b258d219",
-    "app_source_git_sha": "e605bed6bf65681353aa4ff7d4cedca8a5bf4c62",
-    "apk_sha256": "8648043cd04f86b67e3fcd53a7a85e1688eac8702a9198e10eb74ea966fdb1c9",
-    "apk_bytes": 82854396,
+    "version_name": "1.57.0",
+    "version_code": 119,
+    "source_sha256": "1dccfad7966f564f3a844c848af4dae50c5200b8697592e07a449e4e06920407",
+    "app_source_git_sha": "94b75be56ef46ed1404b19a725a97811cbfcd19a",
+    "apk_sha256": "f907a1b260ec7719e7b11bf24e6d02671b8eaef7ba797f9ddca02b0a0ab42f86",
+    "apk_bytes": 89453503,
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
     "signature_valid": true,
     "original_certificate_match": true,
     "installation": "NOT_PERFORMED;manual Pixel update requested",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "NOT_ACTIVATED",
-    "app_backup_mode": "PIXEL_PLAINTEXT_ZIP_DIRECT_SNAPSHOT_FULL_READBACK",
-    "production_source_classes": 185,
-    "download_url": "https://drive.google.com/file/d/12tClRSwSiYxWRNxwGmlLweqSbz7vr-5n/view?usp=drivesdk",
+    "app_backup_mode": "PLAINTEXT_ZIP_ANDROID_SAF_FULL_READBACK",
+    "download_url": "https://drive.google.com/file/d/1HAK1gjYp-23sUXowGRW4cfkiFnB9z7M7/view?usp=drivesdk",
     "download_readback": {
       "status": "PASS;fresh complete download,size/SHA256 and original certificate matched",
-      "observed_at_utc": "2026-10-29T19:21:19.055530+00:00"
+      "observed_at_utc": "2026-10-30T04:39:28.624259+00:00"
     },
-    "source_binding": "PASS;705 assets byte-identical;source commit/hash in signed DEX;BuildConfig clean",
-    "delivery_visibility": "PRIVATE;owner-only permission readback;sharing unchanged"
+    "source_binding": "PASS;637 assets/210 Kotlin targets;clean source commit/fingerprint in signed DEX",
+    "delivery_visibility": "PRIVATE;owner-only permission readback;sharing unchanged",
+    "production_source_targets": 210
   },
   "current_release_candidate": {
     "version_name": "1.57.0",
     "version_code": 119,
-    "status": "ORIGINAL_SIGNED_VERIFIED_LOCAL_APK;NOT_INSTALLED_OR_EXTERNALLY_PUBLISHED",
+    "status": "DRIVE_DELIVERED;ORIGINAL_SIGNED_VERIFIED;NOT_INSTALLED",
     "artifact": "Gartenpirat-1.57.0-build119.apk",
     "source_git_sha": "94b75be56ef46ed1404b19a725a97811cbfcd19a",
     "apk_sha256": "f907a1b260ec7719e7b11bf24e6d02671b8eaef7ba797f9ddca02b0a0ab42f86",
