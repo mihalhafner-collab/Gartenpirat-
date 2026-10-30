@@ -3297,7 +3297,7 @@
     "android/app/src/main/java/at/hausgarten/service/NativeDataRepository.kt": "179c86ab34e0aa4fc51a7c7a2beade78d14c9943424c9eb9e6d58ff516946ec2",
     "android/app/src/main/java/at/hausgarten/service/NativeForms.kt": "734afbd5d204ad7d8d195a4cd693ef177eb6cbf52f963e510223200656353a7b",
     "android/app/src/main/java/at/hausgarten/service/NativeOwnerQueries.kt": "b6906e45daa3f708a5053d1f3fae375bc84044e4ed676e3753e9869870686465",
-    "android/app/src/main/java/at/hausgarten/service/NativePrimaryScreens.kt": "a29c1d2a10a7a29e709069647c09a6aa69d2d7ad29323e97bc86865f6fc1e264",
+    "android/app/src/main/java/at/hausgarten/service/NativePrimaryScreens.kt": "c85fc67a307067bd1dfd0bf3904e858e57fe6a728a8593e420eaad2100167543",
     "android/app/src/main/java/at/hausgarten/service/NativeRestoredDraftScreens.kt": "8837476666d5e32679d3718aa029e52c048b39a58f5c7c43bcbaea0fcb2654f5",
     "android/app/src/main/java/at/hausgarten/service/OfferApplicationService.kt": "e916096d7987f4396862a107b5e87966fcdd8bcf401a6cad8c1a5e80395095ac",
     "android/app/src/main/java/at/hausgarten/service/OrderReviewRules.kt": "f8da15c56e3f3f6008cc3c481ec93eb3ccbce546dc7d3cd7d56890f81638a526",

@@ -74,7 +74,7 @@
         "code": "LocalInvoiceService.kt:ledger/paymentEntries;ComposeFinanceScreens.kt:FinancePayments",
         "expected": "Gleiche synthetische Messreihe n40;keine ungemessene Verbesserung",
         "verification": "native_data/office_reads;physical per-route NOT_RUN",
-        "status": "EMULATOR_DATA_BASELINE_PASS;PAIRED_READER_AND_UI_TIMING_PENDING;NO_PIXEL_MEASUREMENT"
+        "status": "PAIRED_EMULATOR_PAYMENT_READER_PASS;UI_OPENING_PENDING;NO_PIXEL_MEASUREMENT"
       },
       {
         "id": 6,
@@ -179,16 +179,16 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "4f08d519bf0f97c69ad1e9a56905d72e721b780f1500b52900084263fd2ebafc",
+    "app_source_fingerprint": "f9db82981664b57119c5dc78bb7bde9dbaeefabf8801ce71897bd93939ec8bf6",
     "source_privacy": "PASS;empty operational seed",
     "business_data_read": false,
     "authored_changes_diff_check": "PASS;reviewed adopted implementation plus decimal/discard fixes;git diff --check",
     "current_test_run": {
-      "source": "Current candidate after db968f6721b550926cc87bdc32ea10a6388bef51;final runtime acceptance pending",
+      "source": "Current UI acceptance candidate following81d4987eecd051b8b53ad3301d7559ed086b2764;final native run pending",
       "source_check": "PASS;62 Python tests;source/privacy/contracts/assets/UI inventory",
       "jvm": "PASS on8702112d08cbc99e0ef09a228d3cd56efe85eaa4;9suites;53new work/accessory checks;current rerun pending",
       "android_build": "PASS on8702112d08cbc99e0ef09a228d3cd56efe85eaa4;release/test APK and lint",
-      "native": "7of8suites PASS on e15dcdd660d48bcd19f61a6d9328fc15ed5e0b8c;native_compose FAIL;transition waits and compact suggestions corrected;rerun pending",
+      "native": "7of8suites PASS ondb968f6721b550926cc87bdc32ea10a6388bef51;native_compose FAIL;precise field targeting,compact suggestion dialog and bounded header under validation",
       "evidence_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/41037793804",
       "physical_pixel": "NOT_RUN",
       "performance_claim": false,

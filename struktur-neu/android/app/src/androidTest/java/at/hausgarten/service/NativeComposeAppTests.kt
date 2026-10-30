@@ -114,7 +114,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun settleUi() {
         test.waitForIdleSync()
-        automation.waitForIdle(150, 3000)
+        automation.waitForIdle(500, 5000)
     }
 
     private fun scroll(): Boolean {
@@ -124,7 +124,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         return moved
     }
 
-    private fun click(label: String, scrollTo: Boolean = true): AccessibilityNodeInfo {
+    private fun click(label: String, scrollTo: Boolean = true, onAction: ((Long) -> Unit)? = null): AccessibilityNodeInfo {
         if (scrollTo && nodes().none { matches(it, label) && clickable(it) != null }) scrollTop()
         var lastScroll = 0L
         var clicked: AccessibilityNodeInfo? = null
@@ -132,8 +132,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             val candidate = nodes().firstOrNull { matches(it, label) && clickable(it) != null }
             val target = candidate?.let(::clickable)
             if (target != null && target.refresh() && target.isVisibleToUser && target.isEnabled) {
+                val start = System.nanoTime()
                 val accepted = target.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                if (accepted) clicked = target
+                if (accepted) { clicked = target; onAction?.invoke(start) }
                 return@waitUntil accepted
             }
             if (scrollTo && SystemClock.uptimeMillis() - lastScroll > 250) {
@@ -143,14 +144,17 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             false
         }
         checks++
-        settleUi()
+        if (onAction == null) settleUi()
         return requireNotNull(clicked)
     }
 
     private fun field(label: String): AccessibilityNodeInfo? = nodes().firstOrNull { candidate ->
         candidate.isVisibleToUser && candidate.isEditable && (
             matches(candidate, label) || all(candidate).any { matches(it, label) } ||
-                candidate.parent?.let { parent -> parent.childCount <= 5 && all(parent).any { matches(it, label) } } == true)
+                candidate.parent?.let { parent ->
+                    val siblings = all(parent)
+                    siblings.count { it.isEditable } == 1 && siblings.any { matches(it, label) }
+                } == true)
     }
 
     private fun enter(label: String, value: String, displayed: String = value) {
@@ -804,13 +808,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             val values = ArrayList<Double>()
             repeat(42) { sample ->
                 click("Büro")
-                reveal(entry)
                 var start = 0L
-                waitUntil("OFFICE_OPEN_$name") {
-                    val target = node(entry)?.let(::clickable)
-                    if (target == null || !target.refresh()) false
-                    else { start = System.nanoTime(); target.performAction(AccessibilityNodeInfo.ACTION_CLICK) }
-                }
+                click(entry, onAction = { start = it })
                 waitUntil("OFFICE_READY_$name") { node(ready) != null }
                 val elapsed = (System.nanoTime() - start) / 1_000_000.0
                 if (sample >= 2) values.add(elapsed)
@@ -876,6 +875,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         checks++
         shown("Heute")
         click("Arbeit erfassen")
+        shown("Speichern")
         val saveWork = actionBounds("Speichern")
         val discardWork = actionBounds("Verwerfen")
         yes(!Rect.intersects(saveWork, discardWork) && safe.contains(saveWork) && safe.contains(discardWork), "LARGE_TEXT_WORK_ACTIONS_CLEAR_SYSTEM_BARS")
