@@ -13,6 +13,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -22,6 +23,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.text.KeyboardOptions
@@ -77,6 +79,8 @@ internal fun NativeSuggestions(label: String, options: List<String>, onChoose: (
 @OptIn(ExperimentalLayoutApi::class, ExperimentalComposeUiApi::class)
 @Composable
 internal fun NativeAmountPresets(label: String, inputLabel: String, value: String, presets: List<String>, suffix: String, change: (String) -> Unit) {
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focus = LocalFocusManager.current
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(label, style = MaterialTheme.typography.titleSmall)
         FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -87,7 +91,8 @@ internal fun NativeAmountPresets(label: String, inputLabel: String, value: Strin
         OutlinedTextField(value, change, Modifier.fillMaxWidth().semantics {
             testTagsAsResourceId = true; testTag = "native-field:$inputLabel"
         }, label = { Text(inputLabel, maxLines = 1, overflow = TextOverflow.Ellipsis) }, singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { keyboard?.hide(); focus.clearFocus() }))
     }
 }
 
@@ -95,14 +100,36 @@ internal fun NativeAmountPresets(label: String, inputLabel: String, value: Strin
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun NativeSearchDialog(title: String, search: String, onSearch: (String) -> Unit, total: Int,
-    loading: Boolean = false, error: String = "", searchLabel: String = "Suchen", searchEnabled: Boolean = true, onDismiss: () -> Unit,
+    loading: Boolean = false, error: String = "", pageCount: Boolean = false, searchLabel: String = "Suchen", searchEnabled: Boolean = true, onDismiss: () -> Unit,
     content: LazyListScope.(close: () -> Unit) -> Unit) {
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         val keyboard = LocalSoftwareKeyboardController.current
         val focus = LocalFocusManager.current
         val imeVisible = WindowInsets.isImeVisible
+        val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
         val close = { keyboard?.hide(); focus.clearFocus(); onDismiss() }
+        val count = if (loading) "Wird geladen …" else "$total Treffer" + if (pageCount && !imeVisible) " auf dieser Seite" else ""
+        val results: @Composable (Modifier) -> Unit = { modifier ->
+            LazyColumn(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (error.isNotBlank()) item { Text(error, color = MaterialTheme.colorScheme.error) }
+                else if (!loading && total == 0) item { Text("Keine Treffer. Suchtext oder Filter ändern.", Modifier.padding(vertical = 12.dp)) }
+                if (loading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+                content(close)
+            }
+        }
         Surface(Modifier.fillMaxSize()) {
+            if (landscape && imeVisible) {
+                Row(Modifier.safeDrawingPadding().imePadding().padding(horizontal = 12.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(Modifier.weight(0.4f).fillMaxHeight().verticalScroll(rememberScrollState())) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(count, Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+                            IconButton(close, Modifier.semantics { contentDescription = "Schließen" }) { Text("×") }
+                        }
+                        if (searchEnabled) NativeField(searchLabel, search, onSearch, search = true)
+                    }
+                    results(Modifier.weight(0.6f).fillMaxHeight())
+                }
+            } else {
             Column(Modifier.safeDrawingPadding().imePadding().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 if (!imeVisible) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -110,15 +137,11 @@ internal fun NativeSearchDialog(title: String, search: String, onSearch: (String
                 }
                 if (searchEnabled) NativeField(searchLabel, search, onSearch, search = true)
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(if (loading) "Einträge werden geladen …" else "$total Treffer", Modifier.weight(1f).padding(vertical = 4.dp), style = MaterialTheme.typography.labelLarge)
+                    Text(count, Modifier.weight(1f).padding(vertical = 4.dp), style = MaterialTheme.typography.labelLarge)
                     if (imeVisible) TextButton(close) { Text("Schließen") }
                 }
-                LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    if (error.isNotBlank()) item { Text(error, color = MaterialTheme.colorScheme.error) }
-                    else if (!loading && total == 0) item { Text("Keine Treffer. Suchtext oder Filter ändern.", Modifier.padding(vertical = 12.dp)) }
-                    if (loading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
-                    content(close)
-                }
+                results(Modifier.weight(1f).fillMaxWidth())
+            }
             }
         }
     }
@@ -156,19 +179,27 @@ internal fun NativeRecordDialog(visible: Boolean, controller: NativeAppControlle
     }
 }
 
+internal fun nativeReferenceLabel(row: JSONObject, collection: String): String {
+    val title = row.optString("name").ifBlank { row.optString("title").ifBlank { row.optString("activity").ifBlank { "Ausgewählter Eintrag" } } }
+    val address = if (collection == "customers") row.optString("address").ifBlank {
+        listOf(row.optString("street"), listOf(row.optString("postal_code"), row.optString("city")).filter { it.isNotBlank() }.joinToString(" ")).filter { it.isNotBlank() }.joinToString(", ")
+    } else ""
+    return listOf(title, address).filter { it.isNotBlank() }.joinToString(" · ")
+}
+
 @Composable
-internal fun NativeRecordPicker(controller: NativeAppController, collection: String, label: String, value: String, onValueChange: (String) -> Unit) {
+internal fun NativeRecordPicker(controller: NativeAppController, collection: String, label: String, value: String, customerId: String = "", onValueChange: (String) -> Unit) {
     var open by rememberSaveable { mutableStateOf(false) }
     var selectedLabel by remember(value) { mutableStateOf(if (value.isEmpty()) "Nicht zugeordnet" else "Wird geladen …") }
     LaunchedEffect(value, collection) {
         selectedLabel = if (value.isEmpty()) "Nicht zugeordnet" else try {
             val row = controller.store.nativeData().detail(collection, value)
-            row?.optString("name")?.ifBlank { row.optString("title") }?.ifBlank { "Ausgewählter Eintrag" } ?: "Eintrag nicht mehr vorhanden"
+            row?.let { nativeReferenceLabel(it, collection) } ?: "Eintrag nicht mehr vorhanden"
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (_: Exception) { "Ausgewählter Eintrag nicht lesbar" }
     }
     OutlinedButton({ open = true }, Modifier.fillMaxWidth()) { Text("$label: $selectedLabel") }
-    NativeRecordDialog(open, controller, collection, label, onDismiss = { open = false }) { onValueChange(it?.id.orEmpty()) }
+    NativeRecordDialog(open, controller, collection, label, customerId = customerId, onDismiss = { open = false }) { onValueChange(it?.id.orEmpty()) }
 }
 
 private val nativeLabels = mapOf(
@@ -228,7 +259,7 @@ private fun NativeSchemaField(controller: NativeAppController, name: String, spe
     val choices = spec.optJSONArray("enum")
     val collection = referenceCollection(name)
     when {
-        collection != null -> NativeRecordPicker(controller, collection, label + if (required) " *" else "", if (value is String) value else "", change)
+        collection != null -> NativeRecordPicker(controller, collection, label + if (required) " *" else "", if (value is String) value else "", onValueChange = change)
         spec.optString("type") == "boolean" -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text(label, Modifier.weight(1f)); Switch(value == true, change) }
         choices != null -> NativeChoice(label, value?.toString() ?: "", (0 until choices.length()).map { choices.getString(it) to nativeValue(choices.getString(it)) }, change)
         spec.optString("type") == "object" && depth < 4 -> {

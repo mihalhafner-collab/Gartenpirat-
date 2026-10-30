@@ -94,7 +94,12 @@ class NativeDataRepository(private val store: PixelLocalStore) {
             val order = if (collection in datedCollections) "work_date ${if (chronological) "ASC" else "DESC"},id" else "active DESC,sort_key,id"
             val rows = ArrayList<NativeListRow>(limit)
             db.rawQuery("SELECT id,title,subtitle,address,status,customer_id,work_date,thumbnail_reference,active,billing_type FROM native_read_rows WHERE $where ORDER BY $order LIMIT ? OFFSET ?", (args + listOf(limit.toString(), offset.toString())).toTypedArray()).use { cursor ->
-                while (cursor.moveToNext()) rows.add(NativeListRow(cursor.getString(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getString(5), cursor.getString(6), cursor.getString(7), cursor.getInt(8) != 0, cursor.getString(9)))
+                while (cursor.moveToNext()) {
+                    // Display only: old read caches also omit an irrelevant creation date.
+                    val subtitle = if (collection in datedCollections || collection in listOf("invoices", "offers")) cursor.getString(2)
+                        else cursor.getString(2).split(" · ").filterNot { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) }.joinToString(" · ")
+                    rows.add(NativeListRow(cursor.getString(0), cursor.getString(1), subtitle, cursor.getString(3), cursor.getString(4), cursor.getString(5), cursor.getString(6), cursor.getString(7), cursor.getInt(8) != 0, cursor.getString(9)))
+                }
             }
             NativeListPage(rows, total, offset, limit)
         }

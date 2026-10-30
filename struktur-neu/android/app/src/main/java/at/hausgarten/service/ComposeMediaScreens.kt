@@ -73,12 +73,13 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
     val listStates = rememberSaveableStateHolder()
     val imeVisible = WindowInsets.isImeVisible
     var selected by rememberSaveable(initialId) { mutableStateOf(initialId) }
+    var importContext by rememberSaveable(initialId) { mutableStateOf(controller.route.args.toString()) }
     var importing by rememberSaveable(initialId) { mutableStateOf(controller.route.mode == "import") }
     var editorDraftKey by rememberSaveable(initialId) { mutableStateOf(controller.route.args.optString("_draft_key")) }
     var archive by rememberSaveable(initialId) { mutableStateOf(false) }
     var settings by rememberSaveable(initialId) { mutableStateOf(false) }
     when {
-        importing -> NativePhotoImport(controller, editorDraftKey) { importing = false; editorDraftKey = "" }
+        importing -> NativePhotoImport(controller, editorDraftKey, JSONObject(importContext)) { importing = false; editorDraftKey = "" }
         selected.isNotBlank() -> NativePhotoDetail(selected, controller, editorDraftKey) { selected = ""; editorDraftKey = "" }
         archive -> NativePhotoTrash(controller) { archive = false }
         settings -> NativePhotoSettings(controller) { settings = false }
@@ -148,7 +149,7 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                 }
                 MediaPagination(offset, page.rows.size, page.total, 40) { offset = it }
                 if (!imeVisible) Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    FilledTonalButton(onClick = { importing = true }, Modifier.weight(1f)) { Text("Foto hinzufügen") }
+                    FilledTonalButton(onClick = { importContext = JSONObject().put("customer_id", customerId).put("order_id", orderId).put("worklog_id", worklogId).put("session_id", sessionId).toString(); importing = true }, Modifier.weight(1f)) { Text("Foto hinzufügen") }
                     TextButton(onClick = { archive = true }) { Text("Papierkorb") }
                     TextButton(onClick = { settings = true }) { Text("Qualität") }
                 }
@@ -318,19 +319,19 @@ private suspend fun retainImportedPhotoResult(controller: NativeAppController, d
 }
 
 @Composable
-private fun NativePhotoImport(controller: NativeAppController, draftKeyOverride: String = "", close: () -> Unit) {
+private fun NativePhotoImport(controller: NativeAppController, draftKeyOverride: String = "", initialArgs: JSONObject = controller.route.args, close: () -> Unit) {
     val scope = rememberCoroutineScope()
     var selected by rememberSaveable { mutableStateOf("") }
-    var customer by rememberSaveable { mutableStateOf(controller.route.args.optString("customer_id")) }
+    var customer by rememberSaveable { mutableStateOf(initialArgs.optString("customer_id")) }
     var customerLabel by rememberSaveable { mutableStateOf("") }
     var caption by rememberSaveable { mutableStateOf("") }
     var role by rememberSaveable { mutableStateOf("documentation") }
     var visible by rememberSaveable { mutableStateOf(false) }
-    var order by rememberSaveable { mutableStateOf(controller.route.args.optString("order_id")) }
+    var order by rememberSaveable { mutableStateOf(initialArgs.optString("order_id")) }
     var orderLabel by rememberSaveable { mutableStateOf("") }
-    var worklog by rememberSaveable { mutableStateOf(controller.route.args.optString("worklog_id")) }
+    var worklog by rememberSaveable { mutableStateOf(initialArgs.optString("worklog_id")) }
     var workLabel by rememberSaveable { mutableStateOf("") }
-    var session by rememberSaveable { mutableStateOf(controller.route.args.optString("session_id")) }
+    var session by rememberSaveable { mutableStateOf(initialArgs.optString("session_id")) }
     var origin by rememberSaveable { mutableStateOf("") }
     var pending by rememberSaveable { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
@@ -352,7 +353,7 @@ private fun NativePhotoImport(controller: NativeAppController, draftKeyOverride:
     LaunchedEffect(customer, order, worklog) {
         suspend fun title(collection: String, id: String): String {
             if (id.isEmpty()) return ""
-            return try { controller.store.nativeData().detail(collection, id)?.let { it.optString("name").ifBlank { it.optString("title").ifBlank { it.optString("activity") } } }.orEmpty() }
+            return try { controller.store.nativeData().detail(collection, id)?.let { nativeReferenceLabel(it, collection) }.orEmpty() }
             catch (cancelled: CancellationException) { throw cancelled } catch (_: Exception) { "Zuordnung prüfen" }
         }
         customerLabel = title("customers", customer); orderLabel = title("orders", order); workLabel = title("worklogs", worklog)
@@ -508,7 +509,14 @@ private fun NativePlantLibrary(initialId: String, controller: NativeAppControlle
         if (filterLabel.isNotBlank() && !imeVisible) Text(filterLabel, Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
         if (error.isNotBlank()) Text(error, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
         if (neophyte.isNotBlank() && !imeVisible) Text(catalog?.optJSONObject("neophyteReference")?.optString("notice").orEmpty(), Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
-        LazyVerticalGrid(columns = GridCells.Adaptive(148.dp), modifier = Modifier.weight(1f), contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (imeVisible) LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)) {
+            if (filtered.isEmpty() && catalog != null) item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
+            items(filtered.take(limit), key = { it.getString("id") }) { plant ->
+                ListItem(headlineContent = { Text(plant.optString("name")) }, supportingContent = { Text(plant.optString("scientificName")) },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { selected = plant.getString("id") })
+            }
+            if (filtered.size > limit) item { TextButton({ limit += 40 }) { Text("Weitere laden") } }
+        } else LazyVerticalGrid(columns = GridCells.Adaptive(148.dp), modifier = Modifier.weight(1f), contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             if (filtered.isEmpty() && catalog != null) item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
             items(filtered.take(limit), key = { it.getString("id") }) { plant -> Card(onClick = { selected = plant.getString("id") }) {
                 MediaAssetImage(plant.optJSONArray("images")?.optJSONObject(0)?.optString("path").orEmpty(), plant.optString("name"), controller, Modifier.fillMaxWidth().height(130.dp))
@@ -517,7 +525,7 @@ private fun NativePlantLibrary(initialId: String, controller: NativeAppControlle
                 Text(plant.optString("category"), Modifier.padding(8.dp), style = MaterialTheme.typography.bodySmall)
             } }
         }
-        Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (!imeVisible) NativeActions {
             OutlinedButton(onClick = { if (plants.isNotEmpty()) selected = plants.random().getString("id") }, enabled = plants.isNotEmpty()) { Text("Zufällige Pflanze") }
             if (filtered.size > limit) Button(onClick = { limit += 40 }) { Text("Weitere laden") }
         }

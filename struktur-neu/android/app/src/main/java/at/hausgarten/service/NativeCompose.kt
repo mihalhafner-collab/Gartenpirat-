@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -59,6 +60,17 @@ internal fun NativeActions(content: @Composable FlowRowScope.() -> Unit) {
         FlowRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
             verticalArrangement = Arrangement.spacedBy(4.dp), content = content)
+    }
+}
+
+/** A short filter action cannot squeeze the result count into one-character lines. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun NativeSearchSummary(count: String, onFilters: (() -> Unit)? = null) {
+    val compact = LocalDensity.current.fontScale > 1.3f
+    FlowRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+        Text(if (compact) count.substringBefore(" ·") else count, Modifier.padding(vertical = 12.dp), style = MaterialTheme.typography.labelLarge)
+        if (onFilters != null) TextButton(onFilters) { Text("Filter") }
     }
 }
 

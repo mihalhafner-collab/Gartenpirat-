@@ -22,8 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -54,6 +54,7 @@ private fun primaryId(kind: String) = if (kind == "worklog") "work_record_id" el
 internal fun NativeApplication(controller: NativeAppController) {
     val route = controller.route
     val imeVisible = WindowInsets.isImeVisible
+    val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
     val notice by controller.messages.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val routeStates = rememberSaveableStateHolder()
@@ -67,7 +68,9 @@ internal fun NativeApplication(controller: NativeAppController) {
         reviewChecked = true
     }
     BackHandler(reviewChecked && controller.canGoBack() && route.section != "restore_review") { controller.back() }
-    Scaffold(
+    Row(Modifier.fillMaxSize()) {
+    if (reviewChecked && route.section != "restore_review" && landscape && !imeVisible) NativeMainNavigation(controller, rail = true)
+    Scaffold(modifier = Modifier.weight(1f),
         topBar = {
             if (!imeVisible) Column(Modifier.statusBarsPadding()) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -78,7 +81,7 @@ internal fun NativeApplication(controller: NativeAppController) {
             }
         },
         bottomBar = {
-            if (reviewChecked && route.section != "restore_review" && !imeVisible) NativeMainNavigation(controller)
+            if (reviewChecked && route.section != "restore_review" && !imeVisible && !landscape) NativeMainNavigation(controller)
         }
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding()) {
@@ -119,12 +122,27 @@ internal fun NativeApplication(controller: NativeAppController) {
         }
     }
 }
+}
 
 /** Buttons retain an explicit overview action even while their area is selected. */
 @Composable
-private fun NativeMainNavigation(controller: NativeAppController) {
+private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean = false) {
     val entries = listOf("today" to "Heute", "worklogs" to "Arbeit", "customers" to "Kunden", "office" to "Büro")
     val large = LocalDensity.current.fontScale > 1.3f
+    if (rail) {
+        Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
+            Column(Modifier.width(112.dp).fillMaxHeight().safeDrawingPadding().padding(horizontal = 4.dp), verticalArrangement = Arrangement.Center) {
+                entries.forEach { (section, label) ->
+                    val active = controller.route.area == section
+                    TextButton({ controller.openSection(section) }, Modifier.fillMaxWidth().heightIn(min = 48.dp).semantics {
+                        selected = active; stateDescription = if (active) "Ausgewählter Bereich" else "Bereich öffnen"
+                    }, contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp), colors = ButtonDefaults.textButtonColors(
+                        containerColor = if (active) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)) { Text(label) }
+                }
+            }
+        }
+        return
+    }
     Surface(color = MaterialTheme.colorScheme.surfaceContainer, tonalElevation = 3.dp) {
         Column(Modifier.navigationBarsPadding().padding(horizontal = 4.dp, vertical = 2.dp)) {
             entries.chunked(if (large) 2 else 4).forEach { group ->
@@ -132,7 +150,7 @@ private fun NativeMainNavigation(controller: NativeAppController) {
                     group.forEach { (section, label) ->
                         val active = controller.route.area == section
                         TextButton(onClick = { controller.openSection(section) },
-                            modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics { selected = active; role = Role.Tab },
+                            modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics { selected = active; stateDescription = if (active) "Ausgewählter Bereich" else "Bereich öffnen" },
                             contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
                             colors = ButtonDefaults.textButtonColors(
                                 containerColor = if (active) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
@@ -369,10 +387,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
     val scope = rememberCoroutineScope()
     Column(Modifier.fillMaxSize()) {
         NativeField("Suchen", search, { search = it; offset = 0 }, modifier = Modifier.padding(horizontal = 16.dp))
-        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("${page.total} Treffer · ${page.offset + if (page.rows.isEmpty()) 0 else 1}–${page.offset + page.rows.size}", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
-            TextButton({ filtersOpen = !filtersOpen }) { Text(if (filtersOpen) "Filter schließen" else "Filter") }
-        }
+        NativeSearchSummary("${page.total} Treffer · ${page.offset + if (page.rows.isEmpty()) 0 else 1}–${page.offset + page.rows.size}") { filtersOpen = !filtersOpen }
         LazyColumn(Modifier.weight(1f).padding(horizontal = 16.dp), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (!imeVisible && collection != "customers") item {
             NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer).put("date_from", from).put("date_to", to))
@@ -383,7 +398,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Archivierte Kunden einbeziehen"); Switch(inactive, { inactive = it; offset = 0 }) }
                 NativeChoice("Abrechnungsweg", billing, listOf("" to "Alle", "direct" to "Kunde selbst", "via_customer" to "Anderer Rechnungsempfänger"), { billing = it; offset = 0 })
             } else {
-                NativeRecordPicker(controller, "customers", "Kunde", customer, { customer = it; offset = 0 })
+                NativeRecordPicker(controller, "customers", "Kunde", customer, onValueChange = { customer = it; offset = 0 })
                 if (collection == "orders") NativeChoice("Status", status, listOf("" to "Alle", "Geplant" to "Geplant", "In Arbeit" to "In Arbeit", "Wartet auf Material" to "Wartet auf Material", "Erledigt" to "Erledigt", "Abgerechnet" to "Abgerechnet"), { status = it; offset = 0 })
                 if (collection == "worklogs") {
                     NativeField("Ab Datum (JJJJ-MM-TT)", from, { from = it; offset = 0 }); NativeField("Bis Datum (JJJJ-MM-TT)", to, { to = it; offset = 0 })
@@ -641,7 +656,7 @@ private fun NativeEntityEditor(controller: NativeAppController, collection: Stri
                 "order" -> listOf("title", "description", "location", "scheduled_date")
                 else -> listOf("work_date", "start_time", "end_time", "break_minutes", "activity", "disposal_cost")
             }
-            if (kind != "customer") item { NativeRecordPicker(controller, "customers", "Kunde", v.optString("customer_id"), { change("customer_id", it) }) }
+            if (kind != "customer") item { NativeRecordPicker(controller, "customers", "Kunde", v.optString("customer_id"), onValueChange = { change("customer_id", it) }) }
             items(textFields) { field ->
                 val entered = v.opt(field)?.takeUnless { it == JSONObject.NULL }?.toString() ?: ""
                 when (field) {
@@ -664,7 +679,7 @@ private fun NativeEntityEditor(controller: NativeAppController, collection: Stri
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { OutlinedButton({ choosePhoto(true) }, enabled = !busy) { Text("Aufnehmen") }; OutlinedButton({ choosePhoto(false) }, enabled = !busy) { Text("Foto auswählen") } }
                 }
                 item {
-                    NativeRecordPicker(controller, "orders", "Auftrag (optional)", v.optString("order_id"), { change("order_id", it) })
+                    NativeRecordPicker(controller, "orders", "Auftrag (optional)", v.optString("order_id"), customerId = v.optString("customer_id"), onValueChange = { change("order_id", it) })
                     for (field in listOf("hours", "material", "material_cost", "kilometers", "location", "notes")) NativeField(if (field == "hours") "Arbeitsdauer in Stunden (nur ohne Beginn/Ende; netto)" else nativeLabel(field), v.opt(field)?.takeUnless { it == JSONObject.NULL }?.toString() ?: "", { entered ->
                         change(field, if (field in listOf("hours", "material_cost", "kilometers")) entered.replace(',', '.').toDoubleOrNull() ?: entered else entered)
                     }, multiline = field in listOf("notes", "material"))
@@ -673,7 +688,7 @@ private fun NativeEntityEditor(controller: NativeAppController, collection: Stri
             item { OutlinedButton({ controller.speech { spoken -> val key = if (kind == "worklog") "activity" else "notes"; change(key, listOf(JSONObject(valueText).optString(key), spoken).filter { it.isNotBlank() }.joinToString(" ")) } }) { Text("Spracheingabe") } }
             if (kind != "customer") item { OutlinedButton({ scope.launch { try { val location = controller.location(); val address = location.optJSONObject("address"); val readable = if (address != null) listOf(listOf(address.optString("street"), address.optString("house_number")).filter { it.isNotBlank() }.joinToString(" "), listOf(address.optString("postal_code"), address.optString("city")).filter { it.isNotBlank() }.joinToString(" ")).filter { it.isNotBlank() }.joinToString(", ") else location.optString("address"); if (readable.isNotBlank()) change("location", readable) else error = location.optString("message", "Standort nicht verfügbar.") } catch (failure: Exception) { error = failure.message ?: "Standort nicht verfügbar." } } }) { Text("Aktuellen Standort übernehmen") } }
             item {
-                NativeRecordPicker(controller, "customers", "Rechnungsempfänger", v.optString(if (kind == "customer") "default_billing_customer_id" else "billing_customer_id"), { change(if (kind == "customer") "default_billing_customer_id" else "billing_customer_id", it) })
+                NativeRecordPicker(controller, "customers", "Rechnungsempfänger", v.optString(if (kind == "customer") "default_billing_customer_id" else "billing_customer_id"), onValueChange = { change(if (kind == "customer") "default_billing_customer_id" else "billing_customer_id", it) })
                 if (kind == "customer") {
                     NativeChoice("Abrechnungsweg", v.optString("billing_mode", "direct"), listOf("direct" to "Kunde selbst", "via_customer" to "Anderer Rechnungsempfänger"), { change("billing_mode", it) })
                     Row { Text("Aktiv", Modifier.weight(1f)); Switch(v.optBoolean("active", v.optInt("active", 1) != 0), { change("active", if (it) 1 else 0) }) }

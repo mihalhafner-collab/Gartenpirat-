@@ -188,10 +188,7 @@ private fun RevierList(config: RevierSection, controller: NativeAppController, r
     val page by source.collectAsStateWithLifecycle(NativeListPage(emptyList(), 0, offset, 50))
     Column(Modifier.fillMaxSize()) {
         NativeField("Suchen", query, { query = it; offset = 0 }, modifier = Modifier.padding(horizontal = 16.dp))
-        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("${page.total} Treffer" + if (status.isNotBlank() || archived) " · Filter aktiv" else "", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
-            TextButton({ filtersOpen = !filtersOpen }) { Text(if (filtersOpen) "Filter schließen" else "Filter") }
-        }
+        NativeSearchSummary("${page.total} Treffer" + if (status.isNotBlank() || archived) " · Filter aktiv" else "") { filtersOpen = !filtersOpen }
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (!imeVisible) item { NativeContext(controller, controller.route.args) }
             if (filtersOpen && !imeVisible) item {
@@ -824,7 +821,7 @@ private fun RevierFields(edit: RevierEdit, value: JSONObject, controller: Native
         else if (text(key).isNotEmpty()) { Text(label, style = MaterialTheme.typography.labelLarge); Text(text(key)) }
     }
     @Composable fun relation(key: String, collection: String, label: String) {
-        NativeRecordPicker(controller, collection, label, text(key)) { if (enabled) update(key, it) }
+        NativeRecordPicker(controller, collection, label, text(key), customerId = if (collection in listOf("orders", "properties", "visits", "photos")) text("customer_id") else "") { if (enabled) update(key, it) }
     }
     @Composable fun choice(key: String, label: String, options: List<String>, fallback: String = "") {
         RevierChoice(label, text(key, fallback), options.map { it to revierLabel(it) }, enabled) { update(key, it) }
@@ -1003,7 +1000,7 @@ private fun RevierRelations(controller: NativeAppController, collection: String,
     val selected = values.optJSONArray(field) ?: JSONArray()
     Text(label, style = MaterialTheme.typography.titleMedium)
     for (index in 0 until selected.length()) {
-        NativeRecordPicker(controller, collection, label, selected.optString(index)) { chosen ->
+        NativeRecordPicker(controller, collection, label, selected.optString(index), customerId = if (collection == "photos") values.optString("customer_id") else "") { chosen ->
             if (enabled) update(field, JSONArray((0 until selected.length()).map { if (it == index) chosen else selected.optString(it) }))
         }
         if (enabled) TextButton({ update(field, JSONArray((0 until selected.length()).filter { it != index }.map { selected.optString(it) })) }) { Text("Auswahl entfernen") }

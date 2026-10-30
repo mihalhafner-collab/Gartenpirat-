@@ -50,6 +50,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private lateinit var tools: PixelMcpReadTools
     private var officeMeasurements = JSONObject()
     private val searchMatrix = JSONArray()
+    private val domainSearchCases = JSONArray()
 
     private fun yes(value: Boolean, code: String) {
         if (!value) throw AssertionError("QA_NATIVE_COMPOSE_$code")
@@ -318,6 +319,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("customer_context", ::customerContextJourney)
             journey("office_opening", ::officeOpeningMeasurements)
             journey("search_keyboard", ::searchKeyboardJourney)
+            journey("domain_search", ::domainSearchJourney)
             journey("large_text", ::largeTextJourney)
             if (failures.isNotEmpty()) {
                 val failure = AssertionError("QA_NATIVE_COMPOSE_JOURNEYS_FAILED_${failures.size}")
@@ -332,7 +334,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("draft_write_failure_recovery", true)
                 .put("work_entry_usability", true).put("work_photo_retention", true)
                 .put("machine_accessory_roundtrip", true).put("decimal_comma_inputs", true)
-                .put("work_ime_actions", true).put("search_keyboard_matrix", searchMatrix).put("office_opening", officeMeasurements)
+                .put("work_ime_actions", true).put("search_keyboard_matrix", searchMatrix).put("domain_search_cases", domainSearchCases).put("office_opening", officeMeasurements)
                 .put("drive_account_tested", false).put("physical_pixel_tested", false)
         } finally {
             shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
@@ -466,7 +468,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(customers(createdName).isEmpty(), "CUSTOMER_UPDATE_PRESERVES_ID_WITHOUT_DUPLICATE")
         reveal("Bearbeiten")
         val customerNavigation = nodes().firstNotNullOfOrNull { candidate -> if (matches(candidate, "Kunden")) clickable(candidate) else null }
-        yes(customerNavigation != null && customerNavigation.isClickable && customerNavigation.isSelected,
+        yes(customerNavigation != null && customerNavigation.isClickable && customerNavigation.stateDescription?.toString() == "Ausgewählter Bereich",
             "CUSTOMER_DETAIL_SELECTED_AREA_EXPOSES_ACCESSIBLE_LIST_NAVIGATION")
         click("Kunden")
         enter("Suchen", "QA Native F")
@@ -880,7 +882,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             shown("QA Kontextangebot $index")
             yes(node("QA Kontextangebot ${1-index}") == null, "OFFERS_KEEP_CUSTOMER_$index")
             if (index == 0) captureSyntheticScreen("customer-offers")
-            yes(nodes().any { it.isSelected && matches(it, "Büro") }, "OFFERS_OFFICE_AREA_$index")
+            yes(nodes().any { it.stateDescription?.toString() == "Ausgewählter Bereich" && matches(it, "Büro") }, "OFFERS_OFFICE_AREA_$index")
             click("QA Kontextangebot $index"); click("Zur Liste")
             shown("QA Kontextangebot $index")
             yes(node("QA Kontextangebot ${1-index}") == null, "OFFER_DETAIL_RETURN_FILTER_$index")
@@ -961,7 +963,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private fun visibleResult(label: String, tap: Boolean = false): Rect {
         var result: Rect? = null
         waitUntil("SEARCH_RESULT_BOUNDS_$label") {
-            val candidate = node(label)?.let(::clickable) ?: return@waitUntil false
+            val candidate = nodes().firstNotNullOfOrNull { if (matches(it, label)) clickable(it) else null } ?: return@waitUntil false
             val bounds = Rect().also { candidate.getBoundsInScreen(it) }
             val screen = Rect()
             automation.rootInActiveWindow?.getBoundsInScreen(screen)
@@ -1003,8 +1005,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     activity?.let { current -> test.runOnMainSync { current.finish() } }
                     shell("wm size ${width}x${if (compact) (height*0.82).toInt() else height}")
                     shell("settings put system font_scale $font")
-                    automation.setRotation(if (landscape) UiAutomation.ROTATION_FREEZE_90 else UiAutomation.ROTATION_FREEZE_0)
+                    automation.setRotation(UiAutomation.ROTATION_FREEZE_0)
                     launch()
+                    test.runOnMainSync { requireNotNull(activity).requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
+                    click("Arbeit erfassen"); click("Kunde: Nicht zugeordnet")
+                    test.runOnMainSync { requireNotNull(activity).requestedOrientation = if (landscape) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
                     waitUntil("SEARCH_CONFIGURATION_$key") {
                         var correct = false
                         test.runOnMainSync {
@@ -1014,7 +1019,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         }
                         correct
                     }
-                    click("Arbeit erfassen"); click("Kunde: Nicht zugeordnet")
                     enter("Suchen", fixturePrefix + "000"); shown("1 Treffer")
                     visibleResult(fixturePrefix + "000")
                     showKeyboard("Suchen")
@@ -1068,6 +1072,147 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Heute")
     }
 
+    private fun openOfficeGroup(label: String, entry: String) {
+        click("Büro")
+        click("$label ▾")
+        click(entry)
+    }
+
+    private fun keyboardSearchProof(key: String, fieldLabel: String, query: String, result: String, manual: Boolean = false) {
+        enter(fieldLabel, "NO_SYNTHETIC_MATCH_48273")
+        showKeyboard(fieldLabel)
+        if (manual) {
+            yes(requireNotNull(field(fieldLabel)).performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id), "DOMAIN_EMPTY_SEARCH_$key")
+        }
+        waitUntil("DOMAIN_ZERO_$key") { visibleTexts().any { it.startsWith("0 Treffer") } }
+        enter(fieldLabel, query)
+        if (manual) {
+            showKeyboard(fieldLabel)
+            yes(requireNotNull(field(fieldLabel)).performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id), "DOMAIN_MANUAL_SEARCH_$key")
+        }
+        showKeyboard(fieldLabel); visibleResult(result)
+        captureSyntheticScreen("domain-$key")
+        yes(requireNotNull(field(fieldLabel)).performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id), "DOMAIN_IME_ACTION_$key")
+        waitUntil("DOMAIN_IME_CLOSED_$key") { !keyboardVisible() }
+        yes(field(fieldLabel)?.text?.toString()?.contains(query) == true, "DOMAIN_QUERY_RETAINED_$key")
+        showKeyboard(fieldLabel); visibleResult(result, tap = true)
+        waitUntil("DOMAIN_TOUCH_OPENED_$key") { !keyboardVisible() && field(fieldLabel) == null }
+        domainSearchCases.put(JSONObject().put("case", key).put("zero_and_one", true).put("keyboard_bounds", true)
+            .put("real_touch", true).put("ime_preserves_query", true).put("screenshot", "qa-native-domain-$key.png"))
+    }
+
+    private fun domainSearchJourney() {
+        val source = JSONObject(store.getState().getJSONObject("master").toString())
+        val catalog = source.optJSONArray("service_catalog") ?: JSONArray()
+        catalog.put(JSONObject().put("id", "qa_ui_service").put("title", "QA Leistungsbaustein").put("description", "Vollständig synthetischer langer Tätigkeitstext für die Auswahlprüfung.")
+            .put("category", "QA").put("unit", "h").put("default_price", "7.50").put("default_quantity", "1").put("price_confirmed", true).put("active", true))
+        source.put("service_catalog", catalog)
+        val duplicateName = "[TEST] QA Gleichnamig mit sehr langem Gartenkundenname"
+        val allCustomers = source.getJSONArray("customers")
+        for ((index, city) in listOf("QA TestNord", "QA TestSüd").withIndex()) allCustomers.put(JSONObject().put("id", "qa_duplicate_$index").put("name", duplicateName).put("city", city).put("active", 1).put("billing_mode", "direct").put("test_record", true))
+        store.putOwnerValue("snapshot", source.toString()); store.notifyCommittedChange()
+        val failures = ArrayList<Throwable>()
+        fun case(key: String, body: () -> Unit) {
+            try {
+                activity?.let { current -> test.runOnMainSync { current.finish() } }
+                launch(); body()
+            } catch (failure: Throwable) {
+                runCatching { captureSyntheticScreen("failure-domain-$key") }
+                failures.add(AssertionError("DOMAIN_$key", failure))
+            }
+        }
+        case("work") {
+            val rows = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
+            val work = (0 until rows.length()).map { rows.getJSONObject(it) }.first { it.optString("activity").startsWith("[TEST] QA usability work") }
+            click("Arbeit"); keyboardSearchProof("work", "Suchen", "QA usability work", work.getString("activity"))
+        }
+        case("offers") {
+            click("Kunden"); enter("Suchen", fixturePrefix+"000"); click(fixturePrefix+"000"); click("Angebote")
+            keyboardSearchProof("offers", "Suchen", "QA Kontextangebot 0", "QA Kontextangebot 0")
+        }
+        case("invoices") {
+            click("Büro"); click("Abrechnung"); click("Rechnungen")
+            keyboardSearchProof("invoices", "Suchen", "QA-UI-119", "QA-UI-119")
+        }
+        case("planning") {
+            click("Büro"); click("Planung")
+            keyboardSearchProof("planning", "Suche", "QA Native Notification", "[TEST] QA Native Notification")
+        }
+        case("equipment") {
+            click("Büro"); click("Maschinenpark und Gerätewartung")
+            keyboardSearchProof("equipment", "Suchen", "QA Zubehör Säge", "[TEST] QA Zubehör Säge")
+        }
+        case("photos") {
+            openOfficeGroup("Material und Wissen", "Fotos")
+            keyboardSearchProof("photos", "Fotos suchen", "QA Kontextfoto 0", "QA Kontextfoto 0")
+        }
+        case("catalog") {
+            openOfficeGroup("Material und Wissen", "Leistungskatalog")
+            keyboardSearchProof("catalog", "Bausteine suchen", "QA Leistungsbaustein", "QA Leistungsbaustein")
+        }
+        case("plants") {
+            val plants = JSONObject(context.assets.open("plant-catalog.json").bufferedReader().use { it.readText() }).getJSONArray("plants")
+            val plant = plants.getJSONObject(0)
+            openOfficeGroup("Material und Wissen", "Pflanzen")
+            keyboardSearchProof("plants", "Name, botanischer Name oder Familie", plant.getString("scientificName"), plant.getString("name"))
+        }
+        case("local") {
+            openOfficeGroup("Weitere Verwaltung", "Lokale Suche")
+            keyboardSearchProof("local", "Name, Objekt, Tätigkeit, Notiz oder Beleg", fixturePrefix+"000", fixturePrefix+"000", manual = true)
+        }
+        case("phrases") {
+            click("Arbeit erfassen"); click("Textbausteine ▾")
+            keyboardSearchProof("phrases", "Vorschläge durchsuchen", "Rasen gemäht", "Rasen gemäht")
+            waitUntil("PHRASE_TRANSFERRED") { field("Was wurde erledigt? *")?.text?.toString()?.contains("Rasen gemäht") == true }
+            click("Verwerfen"); click("OK", scrollTo = false)
+        }
+        case("duplicate-customers") {
+            click("Arbeit erfassen"); click("Kunde: Nicht zugeordnet")
+            enter("Suchen", "QA Gleichnamig"); shown("2 Treffer"); reveal("QA TestNord"); reveal("QA TestSüd")
+            enter("Suchen", "QA TestSüd"); showKeyboard("Suchen"); visibleResult(duplicateName)
+            captureSyntheticScreen("domain-duplicate-customers"); visibleResult(duplicateName, tap = true)
+            waitUntil("DUPLICATE_PICKER_CLOSED") { !keyboardVisible() && field("Suchen") == null }
+            reveal("Kunde: $duplicateName · QA TestSüd")
+            domainSearchCases.put(JSONObject().put("case", "duplicate-customers").put("keyboard_bounds", true).put("real_touch", true).put("address_distinguishes", true))
+            click("Verwerfen"); click("OK", scrollTo = false)
+        }
+        case("equipment-picker") {
+            click("Büro"); click("Planung"); click("Einsätze")
+            enter("Suchen", "QA Kontexteinsatz 0"); click("QA Kontexteinsatz 0"); click("Bearbeiten")
+            click("Benötigte Geräte ergänzen"); click("Benötigte Geräte: Nicht zugeordnet")
+            keyboardSearchProof("equipment-picker", "Suchen", "QA Zubehör Säge", "[TEST] QA Zubehör Säge")
+            reveal("Benötigte Geräte: [TEST] QA Zubehör Säge"); click("Verwerfen")
+        }
+        case("planning-picker") {
+            click("Büro"); click("Planung"); click("Einsatz planen"); click("Kunde: Bitte wählen")
+            keyboardSearchProof("planning-picker", "Suchen", fixturePrefix+"000", fixturePrefix+"000")
+            reveal("Kunde: " + fixturePrefix+"000")
+            click("Ungespeicherten Entwurf verwerfen"); click("Verwerfen", scrollTo = false)
+        }
+        case("photo-assignment") {
+            openOfficeGroup("Material und Wissen", "Fotos"); click("Foto hinzufügen"); click("Kunden auswählen")
+            keyboardSearchProof("photo-assignment", "Suchen", fixturePrefix+"001", fixturePrefix+"001")
+            shown(fixturePrefix+"001"); click("Verwerfen"); click("Auswahl verwerfen", scrollTo = false)
+        }
+        case("offer-positions") {
+            click("Kunden"); enter("Suchen", fixturePrefix+"000"); click(fixturePrefix+"000"); click("Angebote")
+            click("Neues Angebot / Kostenvoranschlag"); click("Leistungsbausteine auswählen")
+            keyboardSearchProof("offer-positions", "Bausteine suchen", "QA Leistungsbaustein", "QA Leistungsbaustein · 7,50 €")
+            reveal("Position 1"); click("Verwerfen")
+        }
+        case("maintenance-phrases") {
+            val action = JSONObject(context.assets.open("equipment-maintenance-texts.json").bufferedReader().use { it.readText() }).getJSONArray("actions").getJSONObject(0)
+            click("Büro"); click("Maschinenpark und Gerätewartung"); enter("Suchen", "QA Zubehör Säge"); click("[TEST] QA Zubehör Säge")
+            click("Wartung einrichten"); click("Tätigkeitstext auswählen")
+            keyboardSearchProof("maintenance-phrases", "Text suchen", action.getString("label"), action.getString("label"))
+            waitUntil("MAINTENANCE_TEXT_TRANSFERRED") { field("Wartungstätigkeit *")?.text?.toString()?.contains(action.getString("text")) == true }
+            click("Verwerfen")
+        }
+        activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
+        if (failures.isNotEmpty()) { val failure = AssertionError("DOMAIN_SEARCH_${failures.size}_FAILED"); failures.forEach(failure::addSuppressed); throw failure }
+        yes(domainSearchCases.length() == 16, "ALL_DOMAIN_SEARCH_PATHS")
+    }
+
     private fun largeTextJourney() {
         activity?.let { current -> test.runOnMainSync { current.finish() } }
         shell("settings put system font_scale 2.0")
@@ -1078,7 +1223,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             font >= 1.99f
         }
         checks++
-        shown("Planung")
+        shown("Termine")
         shown("Einsatz planen")
         shown("Jetzt prüfen")
         val plan = actionBounds("Einsatz planen")
@@ -1117,7 +1262,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(store.ownerValue("native_form_draft:" + PixelMcpWriteTools.hash("planning:appointment:new"), "").isEmpty(), "PLANNING_DISCARD_REMOVES_DRAFT")
         yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments").length() == before, "PLANNING_DISCARD_DOES_NOT_CREATE_RECORD")
         back()
-        waitUntil("PLANNING_BACK_TO_MAIN") { node("Planung") == null && automation.rootInActiveWindow?.packageName?.toString() == context.packageName }
+        waitUntil("PLANNING_BACK_TO_MAIN") { node("Termine") == null && automation.rootInActiveWindow?.packageName?.toString() == context.packageName }
         checks++
         shown("Heute")
         click("Arbeit erfassen")

@@ -247,10 +247,7 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
     val page by source.collectAsStateWithLifecycle(NativeListPage(emptyList(), 0, offset, 50))
     Column(Modifier.fillMaxSize()) {
         NativeField(if(section == "catalog") "Bausteine suchen" else "Suchen", query, { query = it; offset = 0 }, modifier = Modifier.padding(horizontal = 16.dp))
-        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("${page.total} Treffer · ${page.rows.size} auf dieser Seite", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
-            if (section != "catalog") TextButton({ filtersOpen = !filtersOpen }) { Text(if (filtersOpen) "Filter schließen" else "Filter") }
-        }
+        NativeSearchSummary("${page.total} Treffer · ${page.rows.size} auf dieser Seite", if (section == "catalog") null else ({ filtersOpen = !filtersOpen }))
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (!imeVisible) item { NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer), if (section == "invoices") "Rechnungsempfänger" else "Kunde") }
         if (filtersOpen && !imeVisible) item {
@@ -461,7 +458,7 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
                 if(section!="catalog") {
                     NativeRecordPicker(controller,"customers",if(section=="invoices") "Rechnungsempfänger" else "Einsatzkunde",form.optString("customer_id")) { field("customer_id",it) }
                     if(section=="offers") NativeRecordPicker(controller,"customers","Abweichender Rechnungsempfänger",form.optString("billing_customer_id")) { field("billing_customer_id",it) }
-                    NativeRecordPicker(controller,"orders","Zugeordneter Auftrag (optional)",form.optString("order_id")) { field("order_id",it) }
+                    NativeRecordPicker(controller,"orders","Zugeordneter Auftrag (optional)",form.optString("order_id"), customerId = if (section == "offers") form.optString("customer_id") else "") { field("order_id",it) }
                     if(section=="offers") {
                         NativeField("Titel",form.optString("title"),{field("title",it)},required=true)
                         FinanceChoice("Dokumentart",form.optString("document_type"),OfferContract.types().map { it to OfferRules.label(it) }) { field("document_type",it) }
@@ -504,7 +501,7 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
                             } catch(cancelled:CancellationException){throw cancelled}catch(f:Exception) {sourceError=f.message.orEmpty()} finally {sourceLoading=false}
                         }
                         NativeSearchDialog(if (section == "offers") "Leistungsbausteine" else "Offene Arbeiten", sourceSearch, { sourceSearch=it; sourceOffset=0 }, sourceRows.size,
-                            loading=sourceLoading, error=sourceError, searchLabel="Bausteine suchen", searchEnabled=section=="offers", onDismiss={sourceVisible=false}) { close ->
+                            loading=sourceLoading, error=sourceError, pageCount=true, searchLabel="Bausteine suchen", searchEnabled=section=="offers", onDismiss={sourceVisible=false}) { close ->
                         items(sourceRows, key={it.getString("id")}) { source -> TextButton(onClick={scope.launch {try {
                             val lines=JSONArray((form.optJSONArray("positions") ?: JSONArray()).toString())
                             if(section=="offers") {

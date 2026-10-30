@@ -428,3 +428,23 @@ der bisherige absteigende Historienmodus bleibt Standard.
 
 Alle 210 semantischen UI/MCP-Aktionen bleiben im bestehenden Inventar erhalten.
 Diese Quellzuordnung ist kein Ersatz für die noch laufende native Oberflächenabnahme.
+
+KISS/YAGNI Etappe 5: Ein kurzer Filterknopf und eine umbrechende Trefferzeile
+beheben den im Emulator bei 200 % sichtbaren Ein-Buchstaben-Umbruch. Die
+Bereichsschalter bleiben auch ausgewählt klickbar; eine Tab-Rolle hatte diesen
+Einstieg gesperrt. Der Auswahlzustand wird jetzt ausdrücklich vorgelesen.
+Querformat nutzt eine seitliche Hauptnavigation; bei geöffneter Tastatur stehen
+Suchfeld und Ergebnisliste im Auswahlfenster nebeneinander. Keine kleinere Schrift,
+zusätzliche Datenhaltung oder Sucharchitektur. Kundenadressen unterscheiden
+gleichnamige Einträge auch nach Auswahl. Fotoimport übernimmt die aktuell
+eingestellten Filter. Vorhandene Kundenbezüge begrenzen passende Objekt-/Auftrags-
+und Einsatzwähler; Rechnungsempfänger bleiben fachlich getrennt.
+
+Die vorherigen Läufe 41074975556 und 41075726848 bestanden Quellprüfung,
+Android-Bau/Lint, JVM-Suiten und sieben native Fach-/Speichersuiten. Compose
+scheiterte an fünf Bedienfolgen. Zwei Prüfprobleme wurden getrennt korrigiert:
+Treffertext entsprach dem Suchfeldtext; Querformat war tatsächlich nicht erreicht.
+Die neue Prüfung verlangt weiterhin reale Fenstergrenzen und Touchauswahl.
+Die ergänzten 16 fachlichen Suchfälle und zwölf Darstellungskombinationen sind
+noch nicht bestanden; Screenshots aus einem geschlossenen Tastaturzustand sind
+kein Nachweis für sichtbare Treffer bei geöffneter Tastatur.

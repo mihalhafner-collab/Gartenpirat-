@@ -34,7 +34,7 @@
   ],
   "current_task": {
     "name": "Einheitliche Oberfläche, Suchansichten und gemeinsame Übersichten",
-    "status": "IN_PROGRESS;STAGE4_SOURCE_REVIEWED;REGRESSION_PENDING",
+    "status": "IN_PROGRESS;STAGE5_SEARCH_AND_NAV_CORRECTIONS;EMULATOR_RETEST_PENDING",
     "authorized": true,
     "authorization_scope": "Current explicit user task: source changes, synthetic tests, check builds, existing documentation and GitHub readback; no productive installation, migration, restore, invoice activation or publication",
     "base_git_sha": "242ccc9159cefdb22879c57474bcd45586244ab6",
@@ -52,29 +52,31 @@
       "Stage4: office grouped into billing, planning, equipment, settings and expandable operational groups; original destinations remain reachable",
       "Customer record combines contact/actions, original open-hour billing report, bounded objects/upcoming appointments/visits and work history; propagated relation filters also applied to Revier lists",
       "Work list includes timer state and scoped drafts; billing overview links existing invoice drafts, invoices, payments and scoped drafts; planning combines appointments/visits/tour/weather; settings groups connections/backup/diagnosis",
-      "Chronological display option selects upcoming appointments before page limiting; historical lists retain original descending default; no change to database schema or authoritative business records"
+      "Chronological display option selects upcoming appointments before page limiting; historical lists retain original descending default; no change to database schema or authoritative business records",
+      "Stage5: search selection covers actual domain dialogs and IME actions; duplicate customers retain address after selection; photo import uses current local filters; related record pickers reuse known customer context",
+      "Corrected confirmed 200-percent result-count squeeze, retained overview click through button semantics with explicit selected state, added landscape side navigation and side-by-side IME search/results without shrinking text"
     ],
     "kiss_yagni": "Reuse route arguments, SQL filters, Compose state and Material buttons. No new database, dependency, architecture or filter profiles. Separate navigation area only for action/recreation; a replacement navigation framework is unnecessary.",
     "stages": [
       {
         "stage": 1,
-        "status": "BUILD_JVM_7_NATIVE_SUITES_PASS;COMPOSE_NAV_ACCESSIBILITY_ROLE_CORRECTED_RETEST_PENDING"
+        "status": "SOURCE_BUILD_LINT_JVM_7_NATIVE_SUITES_PASS;COMPOSE_CORRECTIONS_RETEST_PENDING"
       },
       {
         "stage": 2,
-        "status": "BUILD_AND_LINT_PASS;EMULATOR_MATRIX_RUNNING_OR_QUEUED"
+        "status": "SOURCE_BUILD_LINT_JVM_7_NATIVE_SUITES_PASS;COMPOSE_CORRECTIONS_RETEST_PENDING"
       },
       {
         "stage": 3,
-        "status": "SOURCE_AND_CONTRAST_REVIEWED;BUILD_EMULATOR_PENDING"
+        "status": "SOURCE_BUILD_LINT_JVM_7_NATIVE_SUITES_PASS;COMPOSE_CORRECTIONS_RETEST_PENDING"
       },
       {
         "stage": 4,
-        "status": "SOURCE_REVIEWED;CUSTOMER_AB_AND_NEXT_APPOINTMENT_TESTS_PENDING"
+        "status": "SOURCE_BUILD_LINT_JVM_PASS;NATIVE_RUNNING"
       },
       {
         "stage": 5,
-        "status": "PENDING"
+        "status": "SOURCE_REVIEWED;16_DOMAIN_SEARCH_CASES_AND_12_DISPLAY_CASES_RETEST_PENDING"
       }
     ],
     "remaining": [
@@ -84,10 +86,10 @@
     ]
   },
   "open_checks": [
-    "Stage1 Compose run failed two selected-state accessibility assertions; screenshots confirm visual marking; explicit Tab role correction awaits retest",
-    "Stage2 12-case actual keyboard/screen matrix pending",
-    "Stages3–5 still in progress",
-    "Physical Pixel NOT_RUN;no productive access or installation"
+    "Compose previous runs fail navigation assertions, selected-area click, result-candidate test and orientation setup; corrected in current source, retest pending",
+    "Confirmed 200-percent planning count layout corrected; actual IME geometry and all domain searches still need passing evidence",
+    "Complete synthetic surface navigation and regression acceptance pending",
+    "Physical Pixel NOT_RUN;outside task scope;no productive access or installation"
   ],
   "workflow": {
     "scope": "CURRENT_SOURCE;struktur-neu authoritative;qa-apk.yml builds/tests without user APK publication",
@@ -128,8 +130,9 @@
       "stage2": "CI41074975556 full source/build/lint PASS;JVM/native running",
       "business_data_read": false,
       "pixel_installation_performed": false,
-      "stage3": "GitHub8baf3bcfe05676458daa7c275e4c2c29e714e278;11 blobs readback PASS;CI41075726848 pending",
-      "stage4": "Source/inventory review;A/B orders/objects/visits and chronological query tests added;execution pending"
+      "stage3": "CI41075726848 source/build/lint/JVM/7 native suites PASS;Compose FAIL5 journeys (known navigation, candidate/orientation test and large-font layout)",
+      "stage4": "GitHub7fef9abc69c9a0f635d114d7181f7a680b3e1e05;15 blobs readback PASS;CI41077739265 build/lint/JVM PASS;native running",
+      "stage5": "Corrections and16domain searches plus12display cases authored;execution pending;no matrix PASS claimed"
     },
     "performance_evidence": "docs/verification/performance-current.md;Build120 emulator and historical Pixel119 separate",
     "connector": {

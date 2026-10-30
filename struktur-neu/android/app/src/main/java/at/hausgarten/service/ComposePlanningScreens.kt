@@ -129,10 +129,7 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
     val risks = remember(context?.toString()) { context?.optJSONArray("appointments")?.planningRows()?.associateBy { it.getJSONObject("appointment").optString("id") }.orEmpty() }
     Column(Modifier.fillMaxSize()) {
         NativeField("Suche", search, { search = it; offset = 0 }, search = true, modifier = Modifier.padding(horizontal = 16.dp))
-        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("${page.total} Treffer · ${page.rows.size} auf dieser Seite", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
-            TextButton({ filtersOpen = !filtersOpen }) { Text(if (filtersOpen) "Filter schließen" else "Zeitraum / Filter") }
-        }
+        NativeSearchSummary("${page.total} Treffer · ${page.rows.size} auf dieser Seite") { filtersOpen = !filtersOpen }
         if (!imeVisible) Text(if (from == to) from.toString() else "$from – $to", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
           if (!imeVisible) item {
@@ -607,7 +604,7 @@ private fun PlanningPicker(label: String, collection: String, selected: String, 
     var selectedLabel by remember(selected) { mutableStateOf("") }
     LaunchedEffect(selected, collection) {
         selectedLabel = if (selected.isEmpty()) "" else try {
-            repository.detail(collection, selected)?.let { it.optString("name").ifBlank { it.optString("title") } } ?: "Eintrag nicht mehr vorhanden"
+            repository.detail(collection, selected)?.let { nativeReferenceLabel(it, collection) } ?: "Eintrag nicht mehr vorhanden"
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (_: Exception) { "Ausgewählter Eintrag nicht lesbar" }
     }
