@@ -117,6 +117,9 @@ private fun RevierPage(section: String, id: String, controller: NativeAppControl
     val scope = rememberCoroutineScope()
     val repository = remember(controller.store) { NativeDataRepository(controller.store) }
     var selected by rememberSaveable(section, id) { mutableStateOf(id.takeUnless { it == "new" }.orEmpty()) }
+    // The detail leaves composition while its editor is open. Keep the tab with
+    // the selected machine so saving or cancelling returns to the same context.
+    var equipmentTab by rememberSaveable(selected) { mutableIntStateOf(0) }
     var editor by remember { mutableStateOf<RevierEdit?>(null) }
     var refresh by remember { mutableIntStateOf(0) }
     var failure by remember { mutableStateOf("") }
@@ -158,7 +161,7 @@ private fun RevierPage(section: String, id: String, controller: NativeAppControl
             refresh++
         })
     } else if (selected.isNotEmpty()) {
-        RevierDetail(config, selected, refresh, controller, repository, onBack = { selected = "" }, onEdit = ::openEditor, onRefresh = { refresh++ })
+        RevierDetail(config, selected, refresh, controller, repository, equipmentTab, { equipmentTab = it }, onBack = { selected = "" }, onEdit = ::openEditor, onRefresh = { refresh++ })
     } else {
         RevierList(config, controller, repository, onSelect = { selected = it }, onNew = { openEditor(config.kind) })
     }
@@ -282,12 +285,12 @@ private class RevierEdit(
 @Composable
 private fun RevierDetail(
     config: RevierSection, id: String, refresh: Int, controller: NativeAppController, repository: NativeDataRepository,
+    equipmentTab: Int, onEquipmentTab: (Int) -> Unit,
     onBack: () -> Unit, onEdit: (String, JSONObject?, JSONObject) -> Unit, onRefresh: () -> Unit
 ) {
     var data by remember(id) { mutableStateOf<JSONObject?>(null) }
     var failure by remember(id) { mutableStateOf("") }
     var loadFailure by remember(id) { mutableStateOf("") }
-    var equipmentTab by rememberSaveable(id) { mutableIntStateOf(0) }
     var archiveMode by remember { mutableStateOf("") }
     var archiveReason by remember { mutableStateOf("") }
     var confirmed by remember { mutableStateOf(false) }
@@ -386,8 +389,8 @@ private fun RevierDetail(
                 }
                 "equipment" -> {
                     TabRow(equipmentTab) {
-                        Tab(equipmentTab == 0, { equipmentTab = 0 }, text = { Text("Gerät & Wartung") })
-                        Tab(equipmentTab == 1, { equipmentTab = 1 }, text = { Text("Zubehör") })
+                        Tab(equipmentTab == 0, { onEquipmentTab(0) }, text = { Text("Gerät & Wartung") })
+                        Tab(equipmentTab == 1, { onEquipmentTab(1) }, text = { Text("Zubehör") })
                     }
                     if (equipmentTab == 0) {
                         RevierProfilePhoto(row.optJSONObject("profile_photo"), controller)

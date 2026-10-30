@@ -127,7 +127,7 @@
       },
       {
         "id": 13,
-        "code": "NativePrimaryScreens.kt;NativeForms.kt;NativeCompose.kt;MainActivity.kt",
+        "code": "NativePrimaryScreens.kt;NativeForms.kt;NativeCompose.kt;MainActivity.kt;AndroidManifest.xml",
         "expected": "Einheitliche vier Bereiche/kompakte Aktionen/Inhalte direkt/IME-Systemabstände",
         "verification": "native_compose/large_text;physical Pixel NOT_RUN",
         "status": "SOURCE_REVIEWED;RUNTIME_PENDING"
@@ -148,7 +148,8 @@
       "Exercise temporary work photo through both actual discard dialog choices;preserve confirmed photo bytes",
       "Office fixtures explicitly carry synthetic issue evidence;no production invoice activation",
       "Screenshot-confirmed large-font overflow corrected with bounded navigation labels and wrapping action/preset rows;original text scale preserved",
-      "Emulator screenshot proved keyboard panning hid save/discard;MainActivity now requests resize and consumes Scaffold insets before IME padding"
+      "Emulator screenshot proved keyboard panning hid save/discard;MainActivity now requests resize and consumes Scaffold insets before IME padding",
+      "Accessory tab state lives with selected machine across its editor;short free-value labels and explicit spacing prevent 200-percent text overlap"
     ]
   },
   "open_checks": [
@@ -181,16 +182,16 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "56ccf47a2a9f1788e56dd31b721e78560ce7232f059c50e68a8f71a6feb30e3c",
+    "app_source_fingerprint": "a08ad845065f9d83a8ce9206f98b42c14053f4d779aa9a7961167ac797d7ae3c",
     "source_privacy": "PASS;empty operational seed",
     "business_data_read": false,
     "authored_changes_diff_check": "PASS;reviewed adopted implementation plus decimal/discard fixes;git diff --check",
     "current_test_run": {
-      "source": "Current IME resize/insets correction followingccd125ff07494c14529c32230905784e3d26f0e7;native rerun pending",
+      "source": "Current accessory-tab/large-font label correction following5030c175b00a8b8226c30a54f15855a8e953cec3;final native rerun pending",
       "source_check": "PASS;62 Python tests;source/privacy/contracts/assets/UI inventory",
-      "jvm": "PASS on8a4d9cb89051a32d56c0171401504a5cf00cd3ee;9suites;53new work/accessory assertions;current rerun pending",
-      "android_build": "PASS on8a4d9cb89051a32d56c0171401504a5cf00cd3ee;release/test APK and lint;current rerun pending",
-      "native": "7of8 PASS on8a4d9cb89051a32d56c0171401504a5cf00cd3ee;Compose FAIL due stale nodes/clipped labels and asynchronous destination;changed test approach under validation",
+      "jvm": "PASS onccd125ff07494c14529c32230905784e3d26f0e7;9suites;53new work/accessory assertions;current rerun pending",
+      "android_build": "PASS onccd125ff07494c14529c32230905784e3d26f0e7;release/test APK and lint;current rerun pending",
+      "native": "7of8 PASS onccd125ff07494c14529c32230905784e3d26f0e7;Compose customer,office,large_text,timer,notification PASS;keyboard and accessory return-tab fixes under validation",
       "evidence_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/41037793804",
       "physical_pixel": "NOT_RUN",
       "performance_claim": false,

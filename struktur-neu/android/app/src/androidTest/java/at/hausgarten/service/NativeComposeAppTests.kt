@@ -17,6 +17,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.view.accessibility.AccessibilityNodeInfo
+import android.view.accessibility.AccessibilityWindowInfo
 import org.json.JSONObject
 import org.json.JSONArray
 import kotlinx.coroutines.runBlocking
@@ -292,7 +293,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val previousFlags = previousInfo.flags
         val oldFont = shell("settings get system font_scale")
         try {
-            automation.serviceInfo = previousInfo.apply { flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS }
+            automation.serviceInfo = previousInfo.apply { flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS }
             seedPaging()
             launch()
             val failures = ArrayList<Throwable>()
@@ -513,16 +514,16 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         reveal("Pause (Minuten)")
         logVisibleActions("pause_before_preset")
         click("30")
-        enter("Pause (Minuten) · frei eingeben", "23")
+        enter("Freie Minuten", "23")
         enter("Was wurde erledigt? *", "[TEST] QA usability work")
         click("Textbausteine ▾")
         click("Rasen gemäht")
-        enter("Entsorgung (€) · optional · frei eingeben", "73,40")
+        enter("Freier Betrag (€)", "73,40")
         enter("Notizen", "[TEST] QA sofort sichtbare Notiz")
         checkWorkKeyboardActions()
         recreate()
-        reveal("Entsorgung (€) · optional · frei eingeben")
-        yes(field("Entsorgung (€) · optional · frei eingeben")?.text?.toString()?.contains("73,40") == true, "FREE_DISPOSAL_SURVIVES_RECREATION")
+        reveal("Freier Betrag (€)")
+        yes(field("Freier Betrag (€)")?.text?.toString()?.contains("73,40") == true, "FREE_DISPOSAL_SURVIVES_RECREATION")
         click("Speichern")
         fun saved(): JSONObject? {
             val rows = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
@@ -567,20 +568,40 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun checkWorkKeyboardActions() {
         val input = requireNotNull(field("Notizen"))
-        yes(input.performAction(AccessibilityNodeInfo.ACTION_FOCUS), "WORK_FIELD_FOCUS")
-        input.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-        test.runOnMainSync { requireNotNull(activity).window.insetsController?.show(WindowInsets.Type.ime()) }
+        yes(input.performAction(AccessibilityNodeInfo.ACTION_CLICK), "WORK_FIELD_CLICK")
         waitUntil("WORK_KEYBOARD_VISIBLE") {
             var visible = false
             test.runOnMainSync { visible = requireNotNull(activity).window.decorView.rootWindowInsets?.isVisible(WindowInsets.Type.ime()) == true }
             visible
         }
-        settleUi()
-        val frame = Rect()
-        test.runOnMainSync { requireNotNull(activity).window.decorView.getWindowVisibleDisplayFrame(frame) }
-        val save = actionBounds("Speichern")
-        val discard = actionBounds("Verwerfen")
-        yes(frame.contains(save) && frame.contains(discard) && !Rect.intersects(save, discard), "WORK_ACTIONS_CLEAR_KEYBOARD")
+        // IME visibility is reported before its first draw and inset animation.
+        // Observe the real keyboard window and stable geometry, not a fixed delay.
+        var lastGeometry = ""
+        var clearSince = 0L
+        waitUntil("WORK_ACTIONS_CLEAR_KEYBOARD") {
+            val frame = Rect()
+            var keyboardTop = 0
+            test.runOnMainSync {
+                val decor = requireNotNull(activity).window.decorView
+                decor.getWindowVisibleDisplayFrame(frame)
+                val location = IntArray(2); decor.getLocationOnScreen(location)
+                keyboardTop = location[1] + decor.height - requireNotNull(decor.rootWindowInsets).getInsets(WindowInsets.Type.ime()).bottom
+            }
+            val keyboardShown = automation.windows.any { it.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD && it.root?.isVisibleToUser == true }
+            val save = runCatching { actionBounds("Speichern") }.getOrNull()
+            val discard = runCatching { actionBounds("Verwerfen") }.getOrNull()
+            val clear = keyboardShown && save != null && discard != null && frame.contains(save) && frame.contains(discard) &&
+                save.bottom <= keyboardTop && discard.bottom <= keyboardTop && !Rect.intersects(save, discard)
+            val geometry = "$frame keyboardTop=$keyboardTop keyboardShown=$keyboardShown save=$save discard=$discard"
+            if (geometry != lastGeometry) {
+                android.util.Log.i("NativeComposeQA", "work_keyboard_bounds $geometry")
+                lastGeometry = geometry; clearSince = 0L
+            }
+            if (!clear) clearSince = 0L
+            else if (clearSince == 0L) clearSince = SystemClock.uptimeMillis()
+            clear && SystemClock.uptimeMillis() - clearSince >= 500
+        }
+        checks++
         captureSyntheticScreen("work-keyboard")
         back()
         waitUntil("WORK_KEYBOARD_HIDDEN") {
@@ -648,6 +669,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             val photo = storedB.getJSONObject("photo")
             val native = RevierApplicationService(RevierLocalRepository(store, null)).equipmentPhoto(photo.getString("id"))
             yes(native?.getString("content_sha256") == photo.getString("content_sha256"), "ACCESSORY_PHOTO_REOPEN")
+            // Machine navigation intentionally remembers its current detail.
+            // Leave through the visible list action before testing a fresh open.
+            click("Zur Liste")
             click("Heute"); click("Büro"); click("Maschinenpark und Gerätewartung")
             click(name); click("Zubehör")
             reveal("QA Kette B")
@@ -698,7 +722,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         reveal("Was wurde erledigt? *")
         yes(field("Was wurde erledigt? *")?.text?.toString() == "QA unsaved photo draft", "CANCEL_DISCARD_KEEPS_PHOTO_FORM")
         click("Verwerfen"); click("OK", scrollTo = false)
-        waitUntil("DISCARD_REMOVES_TEMP_PHOTO") { !File(requireNotNull(other.path)).exists() }
+        waitUntil("DISCARD_REMOVES_TEMP_PHOTO_AND_DRAFT") {
+            !File(requireNotNull(other.path)).exists() &&
+                store.ownerValue("native_form_draft:" + PixelMcpWriteTools.hash("editor:worklog:new"), "").isEmpty()
+        }
         yes(controller.draft("editor:worklog:new") == null, "DISCARD_REMOVES_ONLY_OWN_DRAFT")
         yes(original.isFile && original.readBytes().contentEquals(originalBytes), "DISCARD_PRESERVES_SAVED_PHOTO_BYTES")
         source.delete()
@@ -903,12 +930,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         enter("Ende", "12:00")
         reveal("Pause (Minuten)")
         click("60")
-        reveal("Pause (Minuten) · frei eingeben")
-        waitUntil("LARGE_TEXT_PAUSE_PRESET") { field("Pause (Minuten) · frei eingeben")?.text?.toString() == "60" }
+        reveal("Freie Minuten")
+        waitUntil("LARGE_TEXT_PAUSE_PRESET") { field("Freie Minuten")?.text?.toString() == "60" }
         checks++
         click("150 €")
-        reveal("Entsorgung (€) · optional · frei eingeben")
-        waitUntil("LARGE_TEXT_DISPOSAL_PRESET") { field("Entsorgung (€) · optional · frei eingeben")?.text?.toString() == "150" }
+        reveal("Freier Betrag (€)")
+        waitUntil("LARGE_TEXT_DISPOSAL_PRESET") { field("Freier Betrag (€)")?.text?.toString() == "150" }
         checks++
         val saveWork = actionBounds("Speichern")
         val discardWork = actionBounds("Verwerfen")

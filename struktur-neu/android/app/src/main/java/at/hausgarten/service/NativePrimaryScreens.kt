@@ -461,8 +461,8 @@ private fun NativeEntityEditor(controller: NativeAppController, collection: Stri
             items(textFields) { field ->
                 val entered = v.opt(field)?.takeUnless { it == JSONObject.NULL }?.toString() ?: ""
                 when (field) {
-                    "break_minutes" -> NativeAmountPresets("Pause (Minuten)", entered, listOf("15", "30", "45", "60"), "") { change(field, it.toIntOrNull() ?: it) }
-                    "disposal_cost" -> NativeAmountPresets("Entsorgung (€) · optional", entered, listOf("50", "100", "150"), "€") { change(field, it) }
+                    "break_minutes" -> NativeAmountPresets("Pause (Minuten)", "Freie Minuten", entered, listOf("15", "30", "45", "60"), "") { change(field, it.toIntOrNull() ?: it) }
+                    "disposal_cost" -> NativeAmountPresets("Entsorgung (€) · optional", "Freier Betrag (€)", entered, listOf("50", "100", "150"), "€") { change(field, it) }
                     else -> {
                         NativeField(when (field) { "activity" -> "Was wurde erledigt?"; "hours" -> "Arbeitsdauer in Stunden (ohne Beginn/Ende; netto)"; else -> nativeLabel(field) }, entered, { input ->
                             change(field, if (field == "hours") input.replace(',', '.').toDoubleOrNull() ?: input else input)

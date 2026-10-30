@@ -14,6 +14,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CancellationException
@@ -32,7 +33,7 @@ internal fun NativeField(label: String, value: String, onValueChange: (String) -
     val displayedLabel = label + if (required) " *" else ""
     OutlinedTextField(value, onValueChange, Modifier.fillMaxWidth().semantics {
         testTagsAsResourceId = true; testTag = "native-field:$displayedLabel"
-    }, label = { Text(displayedLabel) },
+    }, label = { Text(displayedLabel, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         singleLine = !multiline, minLines = if (multiline) 3 else 1)
 }
 
@@ -65,17 +66,19 @@ internal fun NativeSuggestions(label: String, options: List<String>, onChoose: (
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalComposeUiApi::class)
 @Composable
-internal fun NativeAmountPresets(label: String, value: String, presets: List<String>, suffix: String, change: (String) -> Unit) {
-    Text(label, style = MaterialTheme.typography.titleSmall)
-    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        presets.forEach { preset ->
-            FilterChip(selected = value.replace(',', '.').toDoubleOrNull() == preset.toDoubleOrNull(), onClick = { change(preset) }, label = { Text("$preset $suffix".trim()) })
+internal fun NativeAmountPresets(label: String, inputLabel: String, value: String, presets: List<String>, suffix: String, change: (String) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(label, style = MaterialTheme.typography.titleSmall)
+        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            presets.forEach { preset ->
+                FilterChip(selected = value.replace(',', '.').toDoubleOrNull() == preset.toDoubleOrNull(), onClick = { change(preset) }, label = { Text("$preset $suffix".trim()) })
+            }
         }
+        OutlinedTextField(value, change, Modifier.fillMaxWidth().semantics {
+            testTagsAsResourceId = true; testTag = "native-field:$inputLabel"
+        }, label = { Text(inputLabel, maxLines = 1, overflow = TextOverflow.Ellipsis) }, singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
     }
-    OutlinedTextField(value, change, Modifier.fillMaxWidth().semantics {
-        testTagsAsResourceId = true; testTag = "native-field:$label · frei eingeben"
-    }, label = { Text("$label · frei eingeben") }, singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
 }
 
 @Composable
