@@ -61,7 +61,8 @@ class NativeDataRepository(private val store: PixelLocalStore) {
         dateTo: String = "",
         orderId: String = "",
         worklogId: String = "",
-        sessionId: String = ""
+        sessionId: String = "",
+        chronological: Boolean = false
     ): NativeListPage = withContext(Dispatchers.IO) {
         requireCollection(collection)
         require(offset in 0..1_000_000 && limit in 1..100) { "TABLE_PAGE_OUT_OF_RANGE" }
@@ -90,7 +91,7 @@ class NativeDataRepository(private val store: PixelLocalStore) {
                 args.add(term)
             }
             val total = db.rawQuery("SELECT count(*) FROM native_read_rows WHERE $where", args.toTypedArray()).use { it.moveToFirst(); it.getInt(0) }
-            val order = if (collection in datedCollections) "work_date DESC,id" else "active DESC,sort_key,id"
+            val order = if (collection in datedCollections) "work_date ${if (chronological) "ASC" else "DESC"},id" else "active DESC,sort_key,id"
             val rows = ArrayList<NativeListRow>(limit)
             db.rawQuery("SELECT id,title,subtitle,address,status,customer_id,work_date,thumbnail_reference,active,billing_type FROM native_read_rows WHERE $where ORDER BY $order LIMIT ? OFFSET ?", (args + listOf(limit.toString(), offset.toString())).toTypedArray()).use { cursor ->
                 while (cursor.moveToNext()) rows.add(NativeListRow(cursor.getString(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getString(5), cursor.getString(6), cursor.getString(7), cursor.getInt(8) != 0, cursor.getString(9)))
@@ -115,8 +116,9 @@ class NativeDataRepository(private val store: PixelLocalStore) {
         dateTo: String = "",
         orderId: String = "",
         worklogId: String = "",
-        sessionId: String = ""
-    ): Flow<NativeListPage> = flow { changes.collect { awaitCommit(); emit(list(collection, search, status, customerId, offset, limit, includeInactive, billingType, propertyId, role, dateFrom, dateTo, orderId, worklogId, sessionId)) } }.distinctUntilChanged().flowOn(Dispatchers.IO)
+        sessionId: String = "",
+        chronological: Boolean = false
+    ): Flow<NativeListPage> = flow { changes.collect { awaitCommit(); emit(list(collection, search, status, customerId, offset, limit, includeInactive, billingType, propertyId, role, dateFrom, dateTo, orderId, worklogId, sessionId, chronological)) } }.distinctUntilChanged().flowOn(Dispatchers.IO)
 
     suspend fun detail(collection: String, id: String): JSONObject? = withContext(Dispatchers.IO) {
         requireCollection(collection)

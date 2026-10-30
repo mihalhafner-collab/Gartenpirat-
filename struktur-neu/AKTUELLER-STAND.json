@@ -34,7 +34,7 @@
   ],
   "current_task": {
     "name": "Einheitliche Oberfläche, Suchansichten und gemeinsame Übersichten",
-    "status": "IN_PROGRESS;STAGE3_SOURCE_REVIEWED;CI_PENDING",
+    "status": "IN_PROGRESS;STAGE4_SOURCE_REVIEWED;REGRESSION_PENDING",
     "authorized": true,
     "authorization_scope": "Current explicit user task: source changes, synthetic tests, check builds, existing documentation and GitHub readback; no productive installation, migration, restore, invoice activation or publication",
     "base_git_sha": "242ccc9159cefdb22879c57474bcd45586244ab6",
@@ -48,7 +48,11 @@
       "Synthetic search matrix uses actual IME window boundaries, screenshots and injected touch events for 100/130/200 percent, normal/reduced height and both orientations",
       "Stage3: complete shared green Material 3 palette, standard typography, consistent corner scale and navigation stroke icons; status surfaces retain readable text",
       "Shared wrapping bottom action rows used for primary/Revier/finance/planning editors; backup main save pinned below content; shared special-activity header delegates to existing back guards",
-      "Read-only display formats dates and decimal amounts, omits technical creation/update duplicates; list no longer repeats work date"
+      "Read-only display formats dates and decimal amounts, omits technical creation/update duplicates; list no longer repeats work date",
+      "Stage4: office grouped into billing, planning, equipment, settings and expandable operational groups; original destinations remain reachable",
+      "Customer record combines contact/actions, original open-hour billing report, bounded objects/upcoming appointments/visits and work history; propagated relation filters also applied to Revier lists",
+      "Work list includes timer state and scoped drafts; billing overview links existing invoice drafts, invoices, payments and scoped drafts; planning combines appointments/visits/tour/weather; settings groups connections/backup/diagnosis",
+      "Chronological display option selects upcoming appointments before page limiting; historical lists retain original descending default; no change to database schema or authoritative business records"
     ],
     "kiss_yagni": "Reuse route arguments, SQL filters, Compose state and Material buttons. No new database, dependency, architecture or filter profiles. Separate navigation area only for action/recreation; a replacement navigation framework is unnecessary.",
     "stages": [
@@ -58,7 +62,7 @@
       },
       {
         "stage": 2,
-        "status": "SOURCE_REVIEWED;12_DISPLAY_CASES_PENDING"
+        "status": "BUILD_AND_LINT_PASS;EMULATOR_MATRIX_RUNNING_OR_QUEUED"
       },
       {
         "stage": 3,
@@ -66,7 +70,7 @@
       },
       {
         "stage": 4,
-        "status": "PENDING"
+        "status": "SOURCE_REVIEWED;CUSTOMER_AB_AND_NEXT_APPOINTMENT_TESTS_PENDING"
       },
       {
         "stage": 5,
@@ -74,10 +78,9 @@
       }
     ],
     "remaining": [
-      "Stage2 emulator matrix and all domain search checks",
-      "Stage3 shared design and action bars",
-      "Stage4 customer record and feature bundles",
-      "Stage5 surface inventory and complete regression"
+      "Actual keyboard/visible-touch acceptance for every search and twelve display cases",
+      "Complete synthetic surface navigation and regression acceptance",
+      "Resolve CI failures, inspect screenshots, update exact evidence and save final readback"
     ]
   },
   "open_checks": [
@@ -122,10 +125,11 @@
       "jvm": "PASS;9 suites",
       "emulator": "7 native suites PASS;Compose FAIL selected navigation accessibility assertions in customer and customer_context;remaining independent Compose journeys passed",
       "physical_pixel": "NOT_RUN;outside task scope",
-      "stage2": "SOURCE_REVIEWED;BUILD_AND_EMULATOR_PENDING",
+      "stage2": "CI41074975556 full source/build/lint PASS;JVM/native running",
       "business_data_read": false,
       "pixel_installation_performed": false,
-      "stage3": "Source diff/inventory PASS;6 text/background contrast pairs 6.74–16.08:1;build/visual acceptance pending"
+      "stage3": "GitHub8baf3bcfe05676458daa7c275e4c2c29e714e278;11 blobs readback PASS;CI41075726848 pending",
+      "stage4": "Source/inventory review;A/B orders/objects/visits and chronological query tests added;execution pending"
     },
     "performance_evidence": "docs/verification/performance-current.md;Build120 emulator and historical Pixel119 separate",
     "connector": {

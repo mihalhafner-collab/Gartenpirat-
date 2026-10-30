@@ -54,7 +54,7 @@ internal class NativeAppController(private val activity: MainActivity, val store
     fun navigate(section: String, id: String = "", mode: String = "list", args: JSONObject = JSONObject()) {
         messages.value = ""
         history.addLast(route)
-        route = NativeRoute(section, id, mode, JSONObject(args.toString()), if (section == "action") route.area else nativeMainSection(section))
+        route = NativeRoute(section, id, mode, JSONObject(args.toString()), if (section == "action") route.area else if (section == "drafts" && args.optString("scope") == "billing") "office" else nativeMainSection(section))
     }
     fun openSection(section: String) {
         if (section == "customers") customerListEntry++

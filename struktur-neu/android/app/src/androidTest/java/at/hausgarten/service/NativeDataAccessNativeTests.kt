@@ -122,6 +122,10 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 yes(data.list("offers", status = "draft").rows.single().id == "qa_offer_sent", "OFFER_DOMAIN_STATUS_FILTER")
                 yes(data.list("offers", search = "Suchannahme").total == 1, "OFFER_SEARCH_FIELDS")
                 yes(data.list("appointments", dateFrom = "2026-10-29", dateTo = "2026-10-29").total == 1, "VIENNA_DAY_BOUNDARY")
+                smallSource.getJSONArray("appointments").put(JSONObject().put("id", "qa_later_appointment").put("title", "QA later").put("starts_at", "2027-01-01T09:00:00Z"))
+                store.putOwnerValue("snapshot", smallSource.toString())
+                yes(data.list("appointments", limit = 1, chronological = true).rows.single().id == "qa_appointment", "NEXT_APPOINTMENT_BEFORE_PAGE_LIMIT")
+                yes(data.list("appointments", limit = 1).rows.single().id == "qa_later_appointment", "DEFAULT_HISTORY_ORDER_UNCHANGED")
                 val timer = store.readSource().stateFor("get_active_work_session", JSONObject())
                 yes(timer.getJSONObject("master").length() == 0 && timer.getJSONArray("pending").length() == 0 && timer.optBoolean("storage_point_read") && timer.getJSONObject("work_session").has("state"), "MCP_TIMER_MINIMAL_STATE")
                 phase = "transfer_cache"

@@ -321,16 +321,16 @@ private suspend fun retainImportedPhotoResult(controller: NativeAppController, d
 private fun NativePhotoImport(controller: NativeAppController, draftKeyOverride: String = "", close: () -> Unit) {
     val scope = rememberCoroutineScope()
     var selected by rememberSaveable { mutableStateOf("") }
-    var customer by rememberSaveable { mutableStateOf("") }
+    var customer by rememberSaveable { mutableStateOf(controller.route.args.optString("customer_id")) }
     var customerLabel by rememberSaveable { mutableStateOf("") }
     var caption by rememberSaveable { mutableStateOf("") }
     var role by rememberSaveable { mutableStateOf("documentation") }
     var visible by rememberSaveable { mutableStateOf(false) }
-    var order by rememberSaveable { mutableStateOf("") }
+    var order by rememberSaveable { mutableStateOf(controller.route.args.optString("order_id")) }
     var orderLabel by rememberSaveable { mutableStateOf("") }
-    var worklog by rememberSaveable { mutableStateOf("") }
+    var worklog by rememberSaveable { mutableStateOf(controller.route.args.optString("worklog_id")) }
     var workLabel by rememberSaveable { mutableStateOf("") }
-    var session by rememberSaveable { mutableStateOf("") }
+    var session by rememberSaveable { mutableStateOf(controller.route.args.optString("session_id")) }
     var origin by rememberSaveable { mutableStateOf("") }
     var pending by rememberSaveable { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
@@ -348,6 +348,14 @@ private fun NativePhotoImport(controller: NativeAppController, draftKeyOverride:
             }
         } catch (failure: Exception) { controller.message(mediaError(failure)) }
         draftReady = true
+    }
+    LaunchedEffect(customer, order, worklog) {
+        suspend fun title(collection: String, id: String): String {
+            if (id.isEmpty()) return ""
+            return try { controller.store.nativeData().detail(collection, id)?.let { it.optString("name").ifBlank { it.optString("title").ifBlank { it.optString("activity") } } }.orEmpty() }
+            catch (cancelled: CancellationException) { throw cancelled } catch (_: Exception) { "Zuordnung prüfen" }
+        }
+        customerLabel = title("customers", customer); orderLabel = title("orders", order); workLabel = title("worklogs", worklog)
     }
     fun draftValue() = JSONObject().put("selected_uri", selected).put("customer_id", customer).put("customer_label", customerLabel).put("caption", caption).put("role", role).put("customer_visible", visible).put("order_id", order).put("order_label", orderLabel).put("worklog_id", worklog).put("work_label", workLabel).put("session_id", session).put("capture_context", origin).put("pending", pending)
     val draftSnapshot = draftValue().toString()

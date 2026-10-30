@@ -391,3 +391,40 @@ zusätzlichen Zurück-Einstieg. Allgemeine Leseansichten verbergen technische
 Erstell-/Änderungsfelder; gespeicherte Daten und Eingabefelder bleiben unverändert.
 Sechs verwendete Text-/Flächenkontraste rechnerisch geprüft: 6,74 bis 16,08:1.
 Dies ersetzt weder Bildschirmprüfung noch Geräteabnahme.
+
+
+Etappe 3: GitHub `8baf3bcfe05676458daa7c275e4c2c29e714e278`, alle elf geänderten
+Blob-Hashes zurückgelesen; Prüflauf `41075726848`. Etappe 2: vollständige Quellprüfung,
+Release-/Test-Build und Lint in `41074975556` bestanden; native Matrix noch offen.
+
+KISS/YAGNI Etappe 4: Bestehende Beziehungen, begrenzte SQL-Seiten und Fachberichte
+werden in gemeinsamen Übersichten verwendet. Keine zweite Planung, Abrechnung oder
+Zubehörverwaltung. „Offene Stunden“ verwendet `BillingRules.groups` über den bestehenden
+Arbeitsbericht und zeigt dessen Beleggrenze. Empfängerbezogene Zahlungen werden weiterhin
+am konkreten Rechnungsbeleg geprüft; nicht zugeordnete Zahlungen werden keinem Kunden
+erfunden zugeteilt. Nächste Termine werden vor der Seitengrenze chronologisch gelesen;
+der bisherige absteigende Historienmodus bleibt Standard.
+
+### Funktionsabgleich und Einstiege des laufenden Umbaus
+
+| Vorhandene Ansicht / Funktion | Gemeinsamer oder direkter Einstieg | Suche / Filter und erhaltene Aktionen |
+| --- | --- | --- |
+| Heute | Hauptbereich Heute | Geplante Einsätze, heutige Arbeiten, Hinweise; manuelle Erfassung und Timer |
+| Arbeitsaufzeichnungen, Timer | Hauptbereich Arbeit / Heute | Suche, Kunde, Zeitraum, Zusammenfassung, Mehrfacharchivierung; laufende Arbeit, Nachtragen, Entwürfe |
+| Kundenakte | Hauptbereich Kunden | Suche, aktiv/archiviert, Abrechnungsweg; Kontakt, Bearbeiten, Objekte, nächste Termine/Einsätze, Stunden, Historie, Fotos, Angebote, Aufträge, Abrechnung |
+| Objekte, Anfragen, Aufträge, Pflegepläne | Büro → Kunden und Aufträge; Kundenakte kontextbezogen | Suche, vorhandene Status-/Archivfilter; Erstellen, Beziehungen, Historie und alle bisherigen Fachaktionen |
+| Planung, Termine, Einsätze | Büro → Planung; Heute / Kundenakte | Suche, Tag/Woche, Datum, Kunde, Status; Termin/Einsatzdetails, Vorschläge, Kollisionsprüfung, Entwürfe |
+| Tagestour, Wetter | Planung → Tagestour / Wetterhinweise | Tagesbezug, bestehende Tourreihenfolge und Wetter-/Kalenderprüfungen; keine automatische Ist-Buchung |
+| Angebote, Rechnungen, Zahlungen, Guthaben | Büro → Abrechnung; Kundenakte → Abrechnung dieses Kunden | Vorhandene Editoren/Prüfungen; Suche und Kunde bzw. Empfänger/Status; unveränderte Zahlungen, Korrekturen und Original-PDFs |
+| Leistungsbausteine | Büro → Material und Wissen → Leistungskatalog; Belegeditor | Suche, Quelle wählen, Positionen/Preise ausdrücklich prüfen |
+| Geräte, Zubehör, aktuelle Kette, Wartung | Büro → Maschinenpark und Gerätewartung | Gemeinsames bestehendes Gerätedetail mit Tabs, Fotos, Zubehör und Wartung; Suche/Zustand/Archivfilter |
+| Material | Büro → Material und Wissen → Material | Suche, Bestand, Bewegungen/Gegenbuchung und unveränderte Zuordnungsprüfungen |
+| Fotos | Büro → Material und Wissen → Fotos; Kundenakte → Kundenfotos | Suche, Kunde/Auftrag/Arbeit/Zeitraum/Rolle, Zuordnen, Kamera/Galerie, Papierkorb und Qualität |
+| Pflanzen | Büro → Material und Wissen → Pflanzen | Suche nach Name/Familie, Gruppen-/Standort-/Neophytenfilter, Details und Zuordnung |
+| Entwürfe | Arbeit → Arbeitsentwürfe; Abrechnung → Abrechnungsentwürfe; Büro → Weitere Verwaltung → Entwürfe | Gemeinsamer vorhandener Posteingang mit Bereichsauswahl; Fortsetzen, ursprüngliche Aktion prüfen, Verwerfen, übernommene Quellen |
+| Lokale Suche, Revier-Archiv, Papierkorb, lokale Vorgänge | Büro → Weitere Verwaltung | Bestehende Suche/Filter/Seiten; Wiederherstellungs- und Löschschutz bleibt wirksam |
+| Einstellungen, Verbindungen | Büro → Einstellungen | Standards, Unternehmensdaten; Kalender/Wetter und ChatGPT; Diagnose; weitere Fachprüfungen aufklappbar |
+| Sicherung / Wiederherstellung | Einstellungen → Sicherung und Wiederherstellung | Unveränderter Android-Dateidialog, Speichern/Zurücklesen, Vorschau, ausdrückliche Wiederherstellung, Wiederanlauf/Rückfallpfade |
+
+Alle 210 semantischen UI/MCP-Aktionen bleiben im bestehenden Inventar erhalten.
+Diese Quellzuordnung ist kein Ersatz für die noch laufende native Oberflächenabnahme.

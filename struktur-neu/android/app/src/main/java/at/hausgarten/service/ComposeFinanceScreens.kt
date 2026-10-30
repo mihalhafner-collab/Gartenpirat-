@@ -233,7 +233,7 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
     var filtersOpen by rememberSaveable { mutableStateOf(false) }
     val imeVisible = WindowInsets.isImeVisible
     var customer by rememberSaveable(section) { mutableStateOf(controller.route.args.optString("customer_id")) }
-    var status by rememberSaveable(section) { mutableStateOf("") }
+    var status by rememberSaveable(section) { mutableStateOf(controller.route.args.optString("status")) }
     var query by rememberSaveable(section) { mutableStateOf("") }
     var offset by rememberSaveable(section) { mutableIntStateOf(0) }
     var error by remember { mutableStateOf("") }
@@ -252,6 +252,7 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
             if (section != "catalog") TextButton({ filtersOpen = !filtersOpen }) { Text(if (filtersOpen) "Filter schließen" else "Filter") }
         }
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (!imeVisible) item { NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer), if (section == "invoices") "Rechnungsempfänger" else "Kunde") }
         if (filtersOpen && !imeVisible) item {
         if (section != "catalog") {
             NativeRecordPicker(controller, "customers", if (section == "invoices") "Rechnungsempfänger" else "Kunde", customer) { customer = it; offset = 0 }
@@ -365,6 +366,7 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
                 if(settings.optString("tax_mode") in listOf("small_business","standard")) form.put("tax_mode",settings.getString("tax_mode"))
                 if(section=="invoices") form.put("payment_days",settings.optInt("default_payment_days",14))
                 if(section=="catalog") form.put("active",true).put("pricing_type","unit")
+                for (field in listOf("customer_id", "order_id")) if (controller.route.args.optString(field).isNotEmpty()) form.put(field, controller.route.args.getString(field))
             }
             loaded=true
         } catch(cancelled:CancellationException){throw cancelled}catch(f:Exception) {error=f.message.orEmpty();loaded=false}

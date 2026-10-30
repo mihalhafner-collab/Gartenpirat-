@@ -102,7 +102,7 @@ internal fun NativePlanningScreen(section: String, id: String, controller: Nativ
 private fun PlanningList(controller: NativeAppController, repository: NativeDataRepository, weatherView: Boolean, onWeather: (Boolean) -> Unit, onSelect: (String) -> Unit, onNew: () -> Unit) {
     var filtersOpen by rememberSaveable { mutableStateOf(false) }
     val imeVisible = WindowInsets.isImeVisible
-    var anchor by rememberSaveable { mutableStateOf(planningDay().toString()) }
+    var anchor by rememberSaveable { mutableStateOf(controller.route.args.optString("date", controller.route.args.optString("date_from", planningDay().toString()))) }
     var week by rememberSaveable { mutableStateOf(true) }
     var search by rememberSaveable { mutableStateOf("") }
     var status by rememberSaveable { mutableStateOf("") }
@@ -114,7 +114,7 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
     val day = runCatching { LocalDate.parse(anchor) }.getOrDefault(planningDay())
     val from = if (week) day.minusDays((day.dayOfWeek.value - 1).toLong()) else day
     val to = if (week) from.plusDays(6) else day
-    val flow = remember(search, status, customer, offset, from, to) { repository.watchList("appointments", search = search, status = status, customerId = customer, offset = offset, limit = 50, dateFrom = from.toString(), dateTo = to.toString()) }
+    val flow = remember(search, status, customer, offset, from, to) { repository.watchList("appointments", search = search, status = status, customerId = customer, offset = offset, limit = 50, dateFrom = from.toString(), dateTo = to.toString(), orderId = controller.route.args.optString("order_id"), chronological = true) }
     val page by flow.collectAsStateWithLifecycle(NativeListPage(emptyList(), 0, offset, 50))
     val scope = rememberCoroutineScope()
     var busy by remember { mutableStateOf(false) }
@@ -135,6 +135,15 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
         }
         if (!imeVisible) Text(if (from == to) from.toString() else "$from – $to", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          if (!imeVisible) item {
+              NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer))
+              FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                  TextButton({ controller.navigate("tour", args = JSONObject().put("date", anchor).put("customer_id", customer)) }) { Text("Tagestour") }
+                  TextButton({ controller.navigate("visits", args = JSONObject().put("customer_id", customer).put("date_from", from.toString()).put("date_to", to.toString())) }) { Text("Einsätze") }
+                  TextButton({ onWeather(!weatherView) }) { Text(if (weatherView) "Termine" else "Wetterhinweise") }
+              }
+          }
+          if (!imeVisible) item { NativeRelatedList(controller, "visits", "Geplante Einsätze", JSONObject().put("customer_id", customer).put("date_from", from.toString()).put("date_to", to.toString())) }
           if (filtersOpen && !imeVisible) item { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(if (weatherView) "Wetter & Einsätze" else "Planung", style = MaterialTheme.typography.headlineSmall)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {

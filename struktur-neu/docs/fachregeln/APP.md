@@ -131,6 +131,15 @@ Aufträge und Rechnungen nach vorhandenem Status und Kunde filtern. Aktive Auswa
 Trefferzahl und einfaches Zurücksetzen sichtbar halten. Keine gespeicherten
 Filterprofile oder zusätzlichen Datenmodelle.
 
+Die vier Hauptbereiche bleiben Heute, Arbeit (vollständiger Seitentitel:
+Arbeitsaufzeichnungen), Kunden und Büro. Unteransichten zeigen ihren Bereich weiter an.
+Gemeinsame Übersichten führen in dieselben Fachansichten und bewahren Kunden-,
+Objekt-, Auftrags- und Zeitraumbezüge. Rechnungsempfänger wird gesondert benannt.
+Eine Übersicht oder Planung löst keine Buchung aus. Suchtext und Auswahl bleiben
+beim Tastaturabschluss erhalten; „Keine Treffer“ und „Keine Zuordnung“ unterscheiden.
+Die verbindliche Funktionszuordnung und tatsächlich erreichte Abnahme stehen in der
+bestehenden Prüfnotiz `docs/verification/performance-current.md` und im aktuellen Stand.
+
 ## Datenbank, Bilder und Reaktionszeit
 
 Die vorhandene SQLite-Datei bleibt der Geschäftsspeicher. Die Tabellen

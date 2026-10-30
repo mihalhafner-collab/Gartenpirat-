@@ -856,6 +856,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         for (index in 0..1) {
             val name = fixturePrefix + String.format(Locale.ROOT, "%03d", index)
             val id = customers(name).single().getString("id")
+            val property = read("create_property", JSONObject().put("request_id", "qa_ui_context_property_$index").put("customer_id", id).put("name", "QA Kontextobjekt $index").put("address", "QA Gartenweg $index, Testort"))
+            read("plan_visit", JSONObject().put("request_id", "qa_ui_context_visit_$index").put("property_id", property.getString("property_id")).put("title", "QA Kontexteinsatz $index").put("date", LocalDate.now(ZoneId.of("Europe/Vienna")).toString()).put("planned_minutes", 60))
+            val orders = fixture.optJSONArray("orders") ?: JSONArray()
+            orders.put(JSONObject().put("id", "qa_context_order_$index").put("customer_id", id).put("title", "QA Kontextauftrag $index").put("status", "Geplant").put("test_record", true))
+            fixture.put("orders", orders)
             offers.put(JSONObject().put("id", "qa_context_offer_$index").put("customer_id", id)
                 .put("title", "QA Kontextangebot $index").put("status", "draft").put("test_record", true))
             runBlocking { controller.importPhoto(Uri.fromFile(source), JSONObject().put("_photo_request_id", "qa_context_photo_$index")
@@ -879,6 +884,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("QA Kontextangebot $index"); click("Zur Liste")
             shown("QA Kontextangebot $index")
             yes(node("QA Kontextangebot ${1-index}") == null, "OFFER_DETAIL_RETURN_FILTER_$index")
+            click("Kunden"); enter("Suchen", name); click(name); click("Aufträge")
+            shown("QA Kontextauftrag $index"); yes(node("QA Kontextauftrag ${1-index}") == null, "ORDERS_KEEP_CUSTOMER_$index")
+            click("‹ Zurück"); click("Alle Objekte")
+            shown("QA Kontextobjekt $index"); yes(node("QA Kontextobjekt ${1-index}") == null, "PROPERTIES_KEEP_CUSTOMER_$index")
+            click("Objekt anlegen"); shown("Kunde: $name"); click("Verwerfen")
+            click("‹ Zurück"); click("Alle Einsätze")
+            shown("QA Kontexteinsatz $index"); yes(node("QA Kontexteinsatz ${1-index}") == null, "VISITS_KEEP_CUSTOMER_$index")
+            click("‹ Zurück"); scrollTop()
+            if (index == 0) captureSyntheticScreen("customer-overview")
         }
         source.delete()
         click("Heute")
@@ -902,7 +916,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             .put("method", "bank").put("recorded_at", "2026-10-30T08:00:00Z")
             .put("allocations", JSONArray().put(JSONObject().put("invoice_id", "qa_ui_office_${index % 120}").put("amount_minor", 2500))).toString())
         store.notifyCommittedChange()
-        officeMeasurements = JSONObject().put("scope", "EMULATOR_UI_ACTION_TO_VISIBLE_READY_CONTENT;WARM_PROCESS")
+        officeMeasurements = JSONObject().put("scope", "EMULATOR_UI_ACTION_TO_VISIBLE_READY_CONTENT;WARM_PROCESS;FROM_BILLING_OVERVIEW")
             .put("invoice_count", 120).put("payment_count", 240).put("samples_per_path", 40).put("warmups_per_path", 2)
             .put("payments_and_credits_share_view", true).put("performance_claim", false)
             .put("display", shell("wm size") + ";" + shell("wm density"))
@@ -918,7 +932,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 click("Büro")
                 // Verify the actual destination before locating its action;
                 // a late query result from the previous route is not a ready menu.
-                reveal("Abrechnung")
+                click("Abrechnung")
                 var start = 0L
                 click(entry, onAction = { start = it })
                 waitUntil("OFFICE_READY_$name") { node(ready) != null }

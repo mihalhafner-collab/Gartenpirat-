@@ -166,7 +166,7 @@ private fun RevierPage(section: String, id: String, controller: NativeAppControl
     } else if (selected.isNotEmpty()) {
         RevierDetail(config, selected, refresh, controller, repository, equipmentTab, { equipmentTab = it }, onBack = { selected = "" }, onEdit = ::openEditor, onRefresh = { refresh++ })
     } else {
-        listStates.SaveableStateProvider("revier-list") { RevierList(config, controller, repository, onSelect = { selected = it }, onNew = { openEditor(config.kind) }) }
+        listStates.SaveableStateProvider("revier-list") { RevierList(config, controller, repository, onSelect = { selected = it }, onNew = { openEditor(config.kind, context = JSONObject().apply { for (field in listOf("customer_id", "property_id", "order_id")) if (controller.route.args.optString(field).isNotEmpty()) put(field, controller.route.args.getString(field)) }) }) }
     }
     if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp))
 }
@@ -177,13 +177,13 @@ private fun RevierList(config: RevierSection, controller: NativeAppController, r
     var filtersOpen by rememberSaveable { mutableStateOf(false) }
     val imeVisible = WindowInsets.isImeVisible
     var query by rememberSaveable(config.kind) { mutableStateOf("") }
-    var status by rememberSaveable(config.kind) { mutableStateOf("") }
+    var status by rememberSaveable(config.kind) { mutableStateOf(controller.route.args.optString("status")) }
     var archived by rememberSaveable(config.kind) { mutableStateOf(false) }
     var offset by rememberSaveable(config.kind) { mutableIntStateOf(0) }
     var failure by remember { mutableStateOf("") }
     var retry by remember { mutableIntStateOf(0) }
     val source = remember(config.collection, query, status, archived, offset, retry) {
-        repository.watchList(config.collection, search = query, status = status, offset = offset, limit = 50, includeInactive = archived).catch { failure = it.message.orEmpty() }
+        repository.watchList(config.collection, search = query, status = status, offset = offset, limit = 50, includeInactive = archived, customerId = controller.route.args.optString("customer_id"), propertyId = controller.route.args.optString("property_id"), orderId = controller.route.args.optString("order_id"), dateFrom = controller.route.args.optString("date_from"), dateTo = controller.route.args.optString("date_to"), chronological = config.collection == "visits").catch { failure = it.message.orEmpty() }
     }
     val page by source.collectAsStateWithLifecycle(NativeListPage(emptyList(), 0, offset, 50))
     Column(Modifier.fillMaxSize()) {
@@ -193,6 +193,7 @@ private fun RevierList(config: RevierSection, controller: NativeAppController, r
             TextButton({ filtersOpen = !filtersOpen }) { Text(if (filtersOpen) "Filter schließen" else "Filter") }
         }
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (!imeVisible) item { NativeContext(controller, controller.route.args) }
             if (filtersOpen && !imeVisible) item {
                 Column(Modifier.padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     val states = when (config.kind) {

@@ -40,7 +40,7 @@ private val nativeSections = linkedMapOf(
     "today" to "Heute", "worklogs" to "Arbeitsaufzeichnungen", "timer" to "Zeiterfassung", "customers" to "Kunden", "properties" to "Objekte",
     "inquiries" to "Anfragen", "care_plans" to "Pflegepläne", "visits" to "Einsätze", "tour" to "Tagestour", "materials" to "Material",
     "equipment" to "Geräte", "revier_search" to "Lokale Suche", "revier_archive" to "Revier-Archiv", "orders" to "Aufträge", "offers" to "Angebote", "invoices" to "Rechnungen", "payments" to "Zahlungen",
-    "catalog" to "Leistungskatalog", "photos" to "Fotos", "plants" to "Pflanzen", "appointments" to "Termine", "weather" to "Wetter",
+    "billing" to "Abrechnung", "drafts" to "Entwürfe", "catalog" to "Leistungskatalog", "photos" to "Fotos", "plants" to "Pflanzen", "appointments" to "Termine", "weather" to "Wetter",
     "planning" to "Planung", "trash" to "Papierkorb", "local_actions" to "Lokale Vorgänge", "settings" to "Einstellungen", "connections" to "Verbindungen", "backup" to "Sicherung"
 )
 private fun nativeDay(): String = LocalDate.now(ZoneId.of("Europe/Vienna")).toString()
@@ -86,6 +86,7 @@ internal fun NativeApplication(controller: NativeAppController) {
             else routeStates.SaveableStateProvider(controller.savedRoute()) { when (route.section) {
                 "today" -> NativeToday(controller)
                 "more", "office" -> NativeOffice(controller)
+                "billing" -> NativeBillingOverview(controller)
                 "customers", "orders", "worklogs" -> when {
                     route.mode in listOf("new", "edit", "duplicate") -> NativeEntityEditor(controller, route.section, route.id, route.mode)
                     route.id.isNotEmpty() -> NativeEntityDetail(controller, route.section, route.id)
@@ -103,7 +104,7 @@ internal fun NativeApplication(controller: NativeAppController) {
                 "local_actions" -> NativeLocalActions(controller)
                 "order_review" -> NativeReviewedWorkflow(controller, true, route.id)
                 "conflict_review" -> NativeReviewedWorkflow(controller, false, route.id)
-                "connections" -> Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                "connections" -> Column(Modifier.verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("Kalender, Wetter und die private MCP-Verbindung werden getrennt eingerichtet.")
                     Button({ controller.open(PlanningConnectionActivity::class.java) }) { Text("Kalender und Wetter verbinden") }
                     Button({ controller.open(PixelTunnelActivity::class.java) }) { Text("Private MCP-Verbindung") }
@@ -150,21 +151,127 @@ private fun NativeMainNavigation(controller: NativeAppController) {
 
 @Composable
 private fun NativeOffice(controller: NativeAppController) {
+    var expanded by rememberSaveable { mutableStateOf("") }
     val groups = linkedMapOf(
-        "Abrechnung" to listOf("orders", "offers", "invoices", "payments", "catalog"),
-        "Einsätze und Betrieb" to listOf("properties", "inquiries", "care_plans", "visits", "tour", "materials", "equipment", "photos", "plants", "appointments", "weather", "planning", "timer"),
-        "Verwaltung" to listOf("drafts", "revier_search", "revier_archive", "trash", "local_actions", "settings", "connections", "backup")
+        "Kunden und Aufträge" to listOf("properties", "inquiries", "orders", "care_plans"),
+        "Material und Wissen" to listOf("materials", "photos", "plants", "catalog"),
+        "Weitere Verwaltung" to listOf("drafts", "revier_search", "revier_archive", "trash", "local_actions")
     )
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        for ((title, sections) in groups) {
-            item { Text(title, style = MaterialTheme.typography.titleMedium) }
-            if (title == "Abrechnung") item { OutlinedButton({ controller.navigate("invoices", mode = "new") }, Modifier.fillMaxWidth()) { Text("Arbeiten abrechnen") } }
-            items(sections, key = { it }) { section ->
-                OutlinedCard(Modifier.fillMaxWidth().clickable { controller.openSection(section) }) {
-                    Text(when (section) { "equipment" -> "Maschinenpark und Gerätewartung"; "payments" -> "Zahlungen und Guthaben"; "drafts" -> "Entwürfe"; else -> nativeSections[section] ?: section }, Modifier.padding(14.dp))
+        items(listOf(Triple("billing", "Abrechnung", "Offene Arbeiten, Belege, Zahlungen und Guthaben"),
+            Triple("planning", "Planung", "Termine, Einsätze, Tagestour und Wetter"),
+            Triple("equipment", "Maschinenpark und Gerätewartung", "Geräte, Zubehör, aktuelle Kette, Fotos und Wartung"),
+            Triple("settings", "Einstellungen", "Verbindungen, Sicherung und Diagnose"))) { (section,title,subtitle) ->
+            OutlinedCard(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { controller.navigate(section) }) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(title, style = MaterialTheme.typography.titleMedium)
+                    Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
+        for ((title, sections) in groups) {
+            item { OutlinedButton({ expanded = if (expanded == title) "" else title }, Modifier.fillMaxWidth()) { Text(title + if (expanded == title) " ▴" else " ▾") } }
+            if (expanded == title) items(sections, key = { it }) { section ->
+                TextButton({ controller.navigate(section) }, Modifier.fillMaxWidth()) { Text(nativeSections[section] ?: section) }
+            }
+        }
+    }
+}
+
+/** Existing bounded lists shared by the customer record, billing and planning. */
+@Composable
+internal fun NativeRelatedList(controller: NativeAppController, section: String, title: String, args: JSONObject = JSONObject()) {
+    val encoded = args.toString()
+    var failure by remember(encoded, section) { mutableStateOf("") }
+    val flow = remember(encoded, section) { controller.store.nativeData().watchList(section,
+        customerId = args.optString("customer_id"), propertyId = args.optString("property_id"), orderId = args.optString("order_id"),
+        dateFrom = args.optString("date_from"), dateTo = args.optString("date_to"), status = args.optString("status"), limit = 5,
+        includeInactive = false, chronological = section in listOf("appointments", "visits")).catch { failure = it.message ?: "Einträge nicht lesbar." } }
+    val page by flow.collectAsStateWithLifecycle(null)
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(title + (page?.let { " · ${it.total}" } ?: ""), style = MaterialTheme.typography.titleMedium)
+        if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
+        else if (page == null) LinearProgressIndicator(Modifier.fillMaxWidth())
+        else if (page!!.rows.isEmpty()) Text("Keine Einträge vorhanden.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        page?.rows?.forEach { row ->
+            OutlinedCard(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { controller.navigate(section, row.id, args = args) }) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(row.title, style = MaterialTheme.typography.titleSmall)
+                    if (row.subtitle.isNotBlank()) Text(nativeDisplayText(row.subtitle))
+                    if (row.address.isNotBlank()) Text(row.address)
+                }
+            }
+        }
+        TextButton({ controller.navigate(section, args = args) }) { Text("Alle $title") }
+    }
+}
+
+/** Context is resolved from existing records, never inferred from a display name. */
+@Composable
+internal fun NativeContext(controller: NativeAppController, args: JSONObject, customerLabel: String = "Kunde") {
+    val encoded = args.toString()
+    var label by remember(encoded) { mutableStateOf("") }
+    LaunchedEffect(encoded) {
+        val labels = ArrayList<String>()
+        for ((key, collection, title) in listOf(Triple("customer_id", "customers", customerLabel), Triple("property_id", "properties", "Objekt"), Triple("order_id", "orders", "Auftrag"))) {
+            val id = args.optString(key)
+            if (id.isNotEmpty()) {
+                val row = try { controller.store.nativeData().detail(collection, id) } catch (cancelled: CancellationException) { throw cancelled } catch (_: Exception) { null }
+                labels.add(title + ": " + (row?.optString("name")?.ifBlank { row.optString("title") }?.ifBlank { "Eintrag prüfen" } ?: "Eintrag prüfen"))
+            }
+        }
+        if (args.optString("date_from").isNotEmpty() || args.optString("date_to").isNotEmpty()) labels.add(listOf(args.optString("date_from"), args.optString("date_to")).filter { it.isNotEmpty() }.map(::nativeDisplayDate).joinToString(" – "))
+        label = labels.joinToString(" · ")
+    }
+    if (label.isNotEmpty()) Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
+/** Uses the existing billing report, keeping marks, proven quantities and recipients distinct. */
+@Composable
+private fun NativeOpenHours(controller: NativeAppController, customer: String) {
+    var summary by remember(customer) { mutableStateOf<JSONObject?>(null) }
+    var error by remember(customer) { mutableStateOf("") }
+    LaunchedEffect(customer) {
+        try { summary = controller.query("get_work_record_summary", JSONObject().put("group_by_billing_customer", true).apply { if (customer.isNotEmpty()) put("customer_id", customer) }) }
+        catch (cancelled: CancellationException) { throw cancelled }
+        catch (failure: Exception) { error = failure.message ?: "Stundenübersicht nicht lesbar. Zeitraum in Arbeitsaufzeichnungen eingrenzen." }
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text("Offene Stunden", style = MaterialTheme.typography.titleMedium)
+        if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error)
+        else if (summary == null) LinearProgressIndicator(Modifier.fillMaxWidth())
+        else {
+            val groups = summary!!.optJSONArray("billing_groups") ?: JSONArray()
+            if (groups.length() == 0) Text("Keine offen markierten Stunden.")
+            for (i in 0 until groups.length()) {
+                val group = groups.getJSONObject(i)
+                Text("${nativeNumber(group.opt("hours_decimal") ?: group.opt("hours"))} h · Rechnungsempfänger: ${group.optString("billing_customer_name")}")
+                if (!group.optBoolean("valid")) Text("Zuordnung vor Abrechnung prüfen.", color = MaterialTheme.colorScheme.error)
+            }
+            Text(summary!!.optString("billing_notice"), style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+@Composable
+private fun NativeBillingOverview(controller: NativeAppController) {
+    val context = controller.route.args
+    val customer = context.optString("work_customer_id")
+    val recipient = context.optString("billing_customer_id")
+    val invoices = JSONObject().apply { if (recipient.isNotEmpty()) put("customer_id", recipient) }
+    Column(Modifier.fillMaxSize()) {
+        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            item { NativeContext(controller, JSONObject().put("customer_id", customer)); NativeContext(controller, invoices, "Rechnungsempfänger") }
+            item { NativeOpenHours(controller, customer) }
+            item { OutlinedButton({ controller.navigate("worklogs", args = JSONObject().apply { if (customer.isNotEmpty()) put("customer_id", customer) }) }, Modifier.fillMaxWidth()) { Text("Arbeitsaufzeichnungen prüfen") } }
+            item { NativeRelatedList(controller, "invoices", "Rechnungsentwürfe", JSONObject(invoices.toString()).put("status", "Entwurf")) }
+            item { OutlinedButton({ controller.navigate("invoices", args = invoices) }, Modifier.fillMaxWidth()) { Text("Rechnungen") } }
+            if (recipient.isEmpty()) item { OutlinedButton({ controller.navigate("payments") }, Modifier.fillMaxWidth()) { Text("Zahlungen und Guthaben") } }
+            else item { Text("Zahlungen und Guthaben zum Empfänger: Rechnung öffnen und „Zahlungen und belegten Rest prüfen“ wählen. Nicht zugeordnete Zahlungen gehören noch zu keinem Kunden.") }
+            item { OutlinedButton({ controller.navigate("drafts", args = JSONObject().put("scope", "billing")) }, Modifier.fillMaxWidth()) { Text("Abrechnungsentwürfe fortsetzen") } }
+            item { TextButton({ controller.navigate("offers", args = JSONObject().apply { if (customer.isNotEmpty()) put("customer_id", customer) }) }) { Text("Angebote") } }
+        }
+        NativeActions { Button({ controller.navigate("invoices", mode = "new", args = invoices) }) { Text("Arbeiten abrechnen") } }
     }
 }
 
@@ -223,9 +330,26 @@ private fun NativeToday(controller: NativeAppController) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
+private fun NativeWorkOverview(controller: NativeAppController) {
+    var session by remember { mutableStateOf<JSONObject?>(null) }
+    var error by remember { mutableStateOf("") }
+    LaunchedEffect(Unit) { try { session = controller.query("get_active_work_session") } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = failure.message.orEmpty() } }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
+        val active = session?.optString("state") !in listOf(null, "IDLE", "UNAVAILABLE")
+        if (active) NativeStatus("Zeiterfassung: " + when(session?.optString("state")) { "RUNNING" -> "Läuft"; "PAUSED" -> "Pause"; else -> "Abschluss offen" })
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            OutlinedButton({ controller.navigate("timer", args = controller.route.args) }) { Text(if (active) "Laufende Arbeit öffnen" else "Zeiterfassung öffnen") }
+            TextButton({ controller.navigate("drafts", args = JSONObject().put("scope", "work")) }) { Text("Arbeitsentwürfe") }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
 private fun NativeEntityList(controller: NativeAppController, collection: String) {
     var search by rememberSaveable(collection) { mutableStateOf("") }
-    var status by rememberSaveable(collection) { mutableStateOf("") }
+    var status by rememberSaveable(collection) { mutableStateOf(controller.route.args.optString("status")) }
     var customer by rememberSaveable(collection) { mutableStateOf(controller.route.args.optString("customer_id")) }
     var billing by rememberSaveable(collection) { mutableStateOf("") }
     var inactive by rememberSaveable(collection) { mutableStateOf(false) }
@@ -250,6 +374,10 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
             TextButton({ filtersOpen = !filtersOpen }) { Text(if (filtersOpen) "Filter schließen" else "Filter") }
         }
         LazyColumn(Modifier.weight(1f).padding(horizontal = 16.dp), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (!imeVisible && collection != "customers") item {
+            NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer).put("date_from", from).put("date_to", to))
+        }
+        if (!imeVisible && collection == "worklogs") item { NativeWorkOverview(controller) }
         if (filtersOpen && !imeVisible) item {
             if (collection == "customers") {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Archivierte Kunden einbeziehen"); Switch(inactive, { inactive = it; offset = 0 }) }
@@ -267,7 +395,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
             TextButton({ search = ""; status = ""; customer = ""; billing = ""; from = ""; to = ""; inactive = false; offset = 0 }) { Text("Filter zurücksetzen") }
         }
         items(page.rows, key = { it.id }) { row ->
-            OutlinedCard(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { controller.navigate(collection, row.id) }) {
+            OutlinedCard(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { controller.navigate(collection, row.id, args = JSONObject(controller.route.args.toString()).put("customer_id", customer).put("date_from", from).put("date_to", to)) }) {
                 Row(Modifier.padding(12.dp)) {
                     if (collection == "worklogs") Checkbox(row.id in selected, { check -> selected = if (check) selected + row.id else selected - row.id })
                     Column { Text(row.title, style = MaterialTheme.typography.titleMedium); if (row.subtitle.isNotBlank()) Text(nativeDisplayText(row.subtitle)); if (row.address.isNotBlank()) Text(row.address); if (row.status.isNotBlank()) NativeStatus(nativeValue(row.status)) }
@@ -293,6 +421,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun NativeEntityDetail(controller: NativeAppController, collection: String, id: String) {
     val kind = primaryKind(collection)
@@ -313,21 +442,28 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
             catch (failure: Exception) { error = failure.message ?: "Eintrag fehlt." }
         }
     }
-    LazyColumn(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.fillMaxSize()) {
+    LazyColumn(Modifier.weight(1f).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error) }
-        item { record?.let { Text(it.optString("name", it.optString("title", it.optString("activity", "Eintrag"))), style = MaterialTheme.typography.headlineSmall); if (kind == "worklog" && it.optString("notes").isNotBlank()) Text("Notizen: " + it.getString("notes")); NativeBusinessValues(JSONObject(it.toString()).apply { if (kind == "worklog") remove("notes") }) } }
-        item { Button({ controller.navigate(collection, id, "edit") }, enabled = record != null) { Text("Bearbeiten") } }
+        item { record?.let { Text(it.optString("name", it.optString("title", it.optString("activity", "Eintrag"))), style = MaterialTheme.typography.headlineSmall); if (kind == "worklog" && it.optString("notes").isNotBlank()) Text("Notizen: " + it.getString("notes")); NativeBusinessValues(JSONObject(it.toString()).apply { remove("name"); remove("title"); remove("activity"); if (kind == "worklog") remove("notes") }) } }
+        item { OutlinedButton({ controller.navigate(collection, id, "edit", controller.route.args) }, enabled = record != null) { Text("Bearbeiten") } }
         if (kind == "customer") item {
             val row = record
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 if (!row?.optString("phone").isNullOrBlank()) OutlinedButton({ controller.context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + Uri.encode(row!!.getString("phone"))))) }) { Text("Anrufen") }
                 if (!row?.optString("email").isNullOrBlank()) OutlinedButton({ controller.context.startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:" + Uri.encode(row!!.getString("email"))))) }) { Text("E-Mail") }
                 OutlinedButton({ controller.navigate("photos", args = JSONObject().put("customer_id", id)) }) { Text("Kundenfotos") }
                 OutlinedButton({ controller.navigate("offers", args = JSONObject().put("customer_id", id)) }) { Text("Angebote") }
                 OutlinedButton({ controller.navigate("orders", args = JSONObject().put("customer_id", id)) }) { Text("Aufträge") }
+                OutlinedButton({ controller.navigate("billing", args = JSONObject().put("work_customer_id", id).put("billing_customer_id", row?.optString("default_billing_customer_id")?.ifBlank { id } ?: id)) }) { Text("Abrechnung dieses Kunden") }
             }
         }
-        item { OutlinedButton({ controller.navigate("timer", args = JSONObject().put("customer_id", if (kind == "customer") id else record?.optString("customer_id", "")).apply { if (kind == "order") put("order_id", id) }) }) { Text("Arbeit beginnen") } }
+        if (kind == "customer") {
+            item { NativeOpenHours(controller, id) }
+            item { NativeRelatedList(controller, "properties", "Objekte", JSONObject().put("customer_id", id)) }
+            item { NativeRelatedList(controller, "appointments", "Nächste Termine", JSONObject().put("customer_id", id).put("date_from", nativeDay())) }
+            item { NativeRelatedList(controller, "visits", "Einsätze", JSONObject().put("customer_id", id).put("date_from", nativeDay())) }
+        }
         if (kind == "worklog") {
             item { OutlinedButton({ controller.navigate("worklogs", id, "duplicate") }) { Text("Als Vorlage duplizieren") } }
             item { OutlinedButton({ controller.action("Kunde / Rechnungsempfänger ändern", "reassign_work_record", JSONObject().put("work_record_id", id).put("expected_record_hash", envelope?.optString("record_hash", ""))) }) { Text("Zuordnung ändern") } }
@@ -346,6 +482,11 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
             controller.action("${if (kind == "customer") "Kunde archivieren" else "In den Papierkorb"}", "archive_entity", args)
         } catch (failure: Exception) { controller.message(failure.message ?: "Archivierung konnte nicht geprüft werden.") } } }, enabled = record != null) { Text(if (kind == "customer") "Kunde archivieren" else "In Papierkorb") } }
         item { NativeActionMenu(controller, if (kind == "customer") "kunden" else if (kind == "order") "auftraege" else "arbeiten", JSONObject().put(primaryId(kind), id).put("entity_id", id).put("entity", kind)) }
+    }
+    NativeActions {
+        if (kind == "worklog") Button({ controller.navigate(collection, id, "edit", controller.route.args) }, enabled = record != null) { Text("Arbeit bearbeiten") }
+        else Button({ controller.navigate("timer", args = JSONObject(controller.route.args.toString()).put("customer_id", if (kind == "customer") id else record?.optString("customer_id", "")).apply { if (kind == "order") put("order_id", id) }) }, enabled = record != null) { Text("Arbeit beginnen") }
+    }
     }
 }
 
@@ -686,22 +827,31 @@ private fun NativeSettings(controller: NativeAppController) {
     var settings by remember { mutableStateOf<JSONObject?>(null) }
     var info by remember { mutableStateOf<JSONObject?>(null) }
     var error by remember { mutableStateOf("") }
+    var advanced by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    LaunchedEffect(Unit) { try { settings = controller.query("get_settings"); info = controller.query("get_capabilities") } catch (failure: Exception) { error = failure.message.orEmpty() } }
-    LazyColumn(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        item { Text("Haus & Garten ${BuildConfig.VERSION_NAME} · Build ${BuildConfig.VERSION_CODE}"); Text("SQLite ${PixelLocalStore.SCHEMA_VERSION} · Kotlin / Compose") }
-        item { if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error); settings?.let { NativeBusinessValues(it) } }
-        item { Button({ controller.action("Gerätestandards ändern", "update_settings", JSONObject().put("expected_record_hash", settings?.optString("record_hash", "")).put("updates", settings?.optJSONObject("settings") ?: JSONObject())) }) { Text("Tätigkeit, Einsatzort und Fotoqualität") } }
-        item { Button({ controller.action("Unternehmensdaten lesen", "get_business_settings") }) { Text("Unternehmensdaten") } }
-        item { Button({ scope.launch { try { val current = controller.query("get_business_settings"); controller.action("Unternehmensdaten bearbeiten", "update_business_settings", JSONObject().put("expected_record_hash", current.optString("record_hash")).put("updates", current.optJSONObject("settings") ?: JSONObject())) } catch (failure: Exception) { error = failure.message.orEmpty() } } }) { Text("Ausstellerdaten bearbeiten") } }
-        item { Button({ controller.navigate("planning") }) { Text("Planung und Wetter") } }
-        item { Button({ controller.open(LocalAuthorityActivity::class.java) }) { Text("Datenübernahme und Rechnungsfreigabe prüfen") } }
-        item { Button({ controller.navigate("backup") }) { Text("Sicherung") } }
-        item { Button({ controller.navigate("drafts") }) { Text("Formularentwürfe und übernommene Bearbeitungen") } }
-        item { Button({ controller.navigate("connections") }) { Text("Verbindungen") } }
-        item { Button({ scope.launch { try { info = controller.query("run_self_test"); error = "" } catch (failure: Exception) { error = failure.message.orEmpty() } } }) { Text("App-Selbsttest") } }
+    LaunchedEffect(Unit) { try { settings = controller.query("get_settings") } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = failure.message.orEmpty() } }
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        item { Text("Gartenpirat ${BuildConfig.VERSION_NAME} · Build ${BuildConfig.VERSION_CODE}", style = MaterialTheme.typography.titleMedium); if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error) }
+        item { Text("Arbeiten und Unternehmen", style = MaterialTheme.typography.titleMedium) }
+        item { Button({ controller.action("Gerätestandards ändern", "update_settings", JSONObject().put("expected_record_hash", settings?.optString("record_hash", "")).put("updates", settings?.optJSONObject("settings") ?: JSONObject())) }, enabled = settings != null, modifier = Modifier.fillMaxWidth()) { Text("Tätigkeit, Einsatzort und Fotoqualität") } }
+        item { OutlinedButton({ controller.action("Unternehmensdaten lesen", "get_business_settings") }, Modifier.fillMaxWidth()) { Text("Unternehmensdaten") } }
+        item { OutlinedButton({ scope.launch { try { val current = controller.query("get_business_settings"); controller.action("Unternehmensdaten bearbeiten", "update_business_settings", JSONObject().put("expected_record_hash", current.optString("record_hash")).put("updates", current.optJSONObject("settings") ?: JSONObject())) } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = failure.message.orEmpty() } } }, Modifier.fillMaxWidth()) { Text("Ausstellerdaten bearbeiten") } }
+        item { Text("Verbindungen und Sicherung", style = MaterialTheme.typography.titleMedium) }
+        item { OutlinedButton({ controller.open(PlanningConnectionActivity::class.java) }, Modifier.fillMaxWidth()) { Text("Kalender und Wetter verbinden") } }
+        item { OutlinedButton({ controller.open(PixelTunnelActivity::class.java) }, Modifier.fillMaxWidth()) { Text("ChatGPT-Verbindung") } }
+        item { OutlinedButton({ scope.launch { try { controller.flushDrafts(); controller.open(FullBackupActivity::class.java) } catch (failure: Exception) { error = failure.message.orEmpty() } } }, Modifier.fillMaxWidth()) { Text("Sicherung und Wiederherstellung") } }
+        item { Text("Diagnose", style = MaterialTheme.typography.titleMedium) }
+        item { OutlinedButton({ scope.launch { try { info = controller.query("run_self_test"); error = "" } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = failure.message.orEmpty() } } }, Modifier.fillMaxWidth()) { Text("App-Selbsttest") } }
         item { info?.let { NativeBusinessValues(it) } }
-        item { NativeActionMenu(controller, "einstellungen") }
+        item { TextButton({ advanced = !advanced }) { Text(if (advanced) "Weitere Einstellungen schließen" else "Weitere Einstellungen und Prüfungen") } }
+        if (advanced) {
+            item { settings?.let { NativeBusinessValues(it) } }
+            item { OutlinedButton({ controller.navigate("planning") }, Modifier.fillMaxWidth()) { Text("Planung und Wetter") } }
+            item { OutlinedButton({ controller.open(LocalAuthorityActivity::class.java) }, Modifier.fillMaxWidth()) { Text("Datenübernahme und Rechnungsfreigabe prüfen") } }
+            item { OutlinedButton({ controller.navigate("drafts") }, Modifier.fillMaxWidth()) { Text("Formularentwürfe und übernommene Bearbeitungen") } }
+            item { TextButton({ controller.navigate("connections") }) { Text("Verbindungen") } }
+            item { NativeActionMenu(controller, "einstellungen") }
+        }
     }
 }
 

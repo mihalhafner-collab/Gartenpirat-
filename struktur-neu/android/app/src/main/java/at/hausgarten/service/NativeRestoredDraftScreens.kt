@@ -273,6 +273,7 @@ private data class LoadedInbox(val entry: JSONObject, val content: Any, val plan
 /** Both restored browser selections and restored native edits remain reachable after completion/restart. */
 @Composable
 internal fun NativeDraftInbox(controller: NativeAppController) {
+    var category by rememberSaveable { mutableStateOf(controller.route.args.optString("scope")) }
     var rows by remember { mutableStateOf(emptyList<DraftInboxRow>()) }
     var offset by rememberSaveable { mutableIntStateOf(0) }
     var more by remember { mutableStateOf(false) }
@@ -289,14 +290,20 @@ internal fun NativeDraftInbox(controller: NativeAppController) {
     var proof by remember { mutableStateOf<JSONObject?>(null) }
     val scope = rememberCoroutineScope()
     BackHandler(selected.isNotEmpty()) { selected = ""; content = null; proof = null }
-    LaunchedEffect(offset) {
+    LaunchedEffect(offset, category) {
         try {
             val page = withContext(Dispatchers.IO) {
                 // Repair reachability for a review completed by an earlier native screen, without changing its decision.
                 val review = RestoredBrowserCheckpoint(controller.context, controller.store).status(true)
                 review.optJSONObject("selection")?.let { NativeRestoredDrafts.retainSelection(controller.store, it) }
                 val found = ArrayList<DraftInboxRow>()
-                controller.store.readableDatabase.rawQuery("SELECT key, CASE WHEN json_valid(value) THEN json_extract(value,'$._draft_key') END, CASE WHEN json_valid(value) THEN json_extract(value,'$.label') END FROM owner_state WHERE (key GLOB 'native_form_draft:*' OR key GLOB 'native_restored_draft:*' OR key GLOB 'browser_media:v1:active:*') AND value<>'' ORDER BY key LIMIT 41 OFFSET ?", arrayOf(offset.toString())).use { cursor ->
+                val categoryField = "CASE WHEN json_valid(value) THEN coalesce(json_extract(value,'$._draft_key'),json_extract(value,'$.kind'),'') ELSE '' END"
+                val categoryFilter = when (category) {
+                    "work" -> " AND ($categoryField LIKE 'editor:worklog:%' OR $categoryField IN ('worklog','work_entry','timer_action','timer_cancelled'))"
+                    "billing" -> " AND ($categoryField LIKE 'finance:%' OR $categoryField IN ('invoice','offer','payment','offer_decision'))"
+                    else -> ""
+                }
+                controller.store.readableDatabase.rawQuery("SELECT key, CASE WHEN json_valid(value) THEN json_extract(value,'$._draft_key') END, CASE WHEN json_valid(value) THEN json_extract(value,'$.label') END FROM owner_state WHERE (key GLOB 'native_form_draft:*' OR key GLOB 'native_restored_draft:*' OR key GLOB 'browser_media:v1:active:*') AND value<>''$categoryFilter ORDER BY key LIMIT 41 OFFSET ?", arrayOf(offset.toString())).use { cursor ->
                     while (cursor.moveToNext()) {
                         val sql = cursor.getString(0); val key = cursor.getString(1).orEmpty()
                         val legacy = sql.startsWith("native_restored_draft:")
@@ -335,6 +342,7 @@ internal fun NativeDraftInbox(controller: NativeAppController) {
             if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         }
         if (selected.isEmpty()) {
+            item { NativeChoice("Bereich", category, listOf("" to "Alle Entwürfe", "work" to "Arbeit", "billing" to "Abrechnung")) { category = it; offset = 0 } }
             if (rows.isEmpty()) item { Text("Keine erhaltenen Entwürfe in dieser Auswahl.") }
             items(rows, key = { it.sqlKey }) { row -> OutlinedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp)) {
                 Text(row.label); Text(if (row.legacy) "Übernommene Formularquelle" else "Native Bearbeitung", style = MaterialTheme.typography.bodySmall)
