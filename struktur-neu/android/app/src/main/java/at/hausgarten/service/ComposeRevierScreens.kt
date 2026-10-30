@@ -491,10 +491,16 @@ private fun RevierEquipmentThumbnail(reference: String, controller: NativeAppCon
 @Composable
 private fun RevierProfilePhoto(photo: JSONObject?, controller: NativeAppController) {
     if (photo == null) return
+    var decoded by remember(photo.toString()) { mutableStateOf(false) }
+    var decodeFailed by remember(photo.toString()) { mutableStateOf(false) }
     val model by produceState<File?>(null, photo.toString()) {
         value = withContext(Dispatchers.IO) { runCatching { controller.store.photoAttachmentStore().verifiedFile(photo) }.getOrNull() }
     }
-    if (model != null) AsyncImage(model, "Gerätefoto", imageLoader = controller.imageLoader, modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp))
+    if (model != null) {
+        AsyncImage(model, if (decoded) "Gerätefoto" else "Gerätefoto wird geladen", imageLoader = controller.imageLoader,
+            modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp), onSuccess = { decoded = true; decodeFailed = false }, onError = { decodeFailed = true })
+        if (decodeFailed) Text("Foto nicht lesbar. Bitte die gespeicherte Aufnahme prüfen.", color = MaterialTheme.colorScheme.error)
+    }
     else Text("Gerätefoto derzeit nicht lesbar. Gespeicherter Eintrag bleibt erhalten.")
 }
 

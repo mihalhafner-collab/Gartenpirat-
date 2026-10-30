@@ -72,7 +72,7 @@ jobs:
           "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-app.apk"
           "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-test.apk"
       - name: Run native SQLite, Compose, document picker, provider and new-process checks
-        timeout-minutes: 20
+        timeout-minutes: 25
         run: |
           set -euo pipefail
           sudo chmod 666 /dev/kvm
@@ -101,7 +101,9 @@ jobs:
             "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service.test
             "$ADB" -s emulator-5580 logcat -c
             instrumentation_status=0
-            timeout 360 "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation 2>&1 | tee "outputs/$suite.txt" || instrumentation_status=$?
+            suite_timeout=360
+            if [ "$suite" = native_compose ]; then suite_timeout=720; fi
+            timeout "$suite_timeout" "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation 2>&1 | tee "outputs/$suite.txt" || instrumentation_status=$?
             timeout 15 "$ADB" -s emulator-5580 logcat -d -t 1500 > "outputs/$suite-logcat.txt" 2>&1 || true
             if [ "$instrumentation_status" != 0 ]; then
               native_suite_failures=$((native_suite_failures+1))
@@ -132,8 +134,10 @@ jobs:
               for proof in ('real_main_activity','native_compose_ui','customer_crud','paging_and_search',
                             'mcp_write_visible_without_reload','draft_recreation','timer_state_transitions',
                             'font_scale_200_percent','planning_notification_alternatives','customer_conflict_review',
-                            'draft_write_failure_recovery'):
+                            'draft_write_failure_recovery','work_entry_usability','work_photo_retention',
+                            'machine_accessory_roundtrip','decimal_comma_inputs','work_ime_actions'):
                   assert result[proof] is True, result
+              assert result['office_opening']['samples_per_path'] == 40, result
               assert result['drive_account_tested'] is False and result['physical_pixel_tested'] is False, result
           else:
               assert sys.argv[1] in ('document_provider','document_provider_reopen'), result

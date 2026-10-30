@@ -536,12 +536,12 @@ private fun legacyEditor(entry: JSONObject, original: JSONObject): RestoredEdito
         }
     }
     val normalized = if (kind == "care") "care_plan" else kind
-    val section = when (normalized) { "property" -> "properties"; "inquiry", "inspection", "direct_acceptance" -> "inquiries"; "care_plan", "generate" -> "care_plans"; "visit" -> "visits"; "material", "movement" -> "materials"; "equipment", "maintenance_plan", "maintenance_done", "maintenance_adjust", "equipment_use" -> "equipment"; else -> return null }
+    val section = when (normalized) { "property" -> "properties"; "inquiry", "inspection", "direct_acceptance" -> "inquiries"; "care_plan", "generate" -> "care_plans"; "visit" -> "visits"; "material", "movement" -> "materials"; "equipment", "accessories", "maintenance_plan", "maintenance_done", "maintenance_adjust", "equipment_use" -> "equipment"; else -> return null }
     val id = if (raw.optBoolean("editing")) raw.optString("record_id") else base.optString("id")
     val prior = restoredCopy(base).apply { if (id.isNotEmpty() && !has("id")) put("id", id) }
     val draft = restoredCopy(guarded).put("kind", normalized).put("original", prior).put("values", values).put("record_hash", raw.optString("record_hash")).put("request_id", request).put("restore_review_required", true).put("dirty", true)
     pending?.let { draft.put("pending", it) }
-    val modes = setOf("inspection", "direct_acceptance", "generate", "maintenance_plan", "maintenance_done", "maintenance_adjust", "movement", "equipment_use")
+    val modes = setOf("accessories", "inspection", "direct_acceptance", "generate", "maintenance_plan", "maintenance_done", "maintenance_adjust", "movement", "equipment_use")
     return RestoredEditor(key, section, id, if (normalized in modes) normalized else if (id.isEmpty()) "new" else "edit", draft, restoredCopy(values).apply { remove("_draft_key") })
 }
 

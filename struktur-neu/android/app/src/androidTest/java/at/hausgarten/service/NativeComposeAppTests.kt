@@ -45,6 +45,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private val flowName = "[TEST] QA Native Flow 102"
     private lateinit var store: PixelLocalStore
     private lateinit var tools: PixelMcpReadTools
+    private var officeMeasurements = JSONObject()
 
     private fun yes(value: Boolean, code: String) {
         if (!value) throw AssertionError("QA_NATIVE_COMPOSE_$code")
@@ -276,6 +277,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("accessories", ::accessoryJourney)
             journey("timer", ::timerJourney)
             journey("notification", ::notificationJourney)
+            journey("office_opening", ::officeOpeningMeasurements)
             journey("large_text", ::largeTextJourney)
             if (failures.isNotEmpty()) {
                 val failure = AssertionError("QA_NATIVE_COMPOSE_JOURNEYS_FAILED_${failures.size}")
@@ -290,6 +292,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("draft_write_failure_recovery", true)
                 .put("work_entry_usability", true).put("work_photo_retention", true)
                 .put("machine_accessory_roundtrip", true).put("decimal_comma_inputs", true)
+                .put("work_ime_actions", true).put("office_opening", officeMeasurements)
                 .put("drive_account_tested", false).put("physical_pixel_tested", false)
         } finally {
             shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
@@ -474,6 +477,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Rasen gemäht")
         enter("Entsorgung (€) · optional · frei eingeben", "73,40")
         enter("Notizen", "[TEST] QA sofort sichtbare Notiz")
+        checkWorkKeyboardActions()
         recreate()
         reveal("Entsorgung (€) · optional · frei eingeben")
         yes(field("Entsorgung (€) · optional · frei eingeben")?.text?.toString()?.contains("73,40") == true, "FREE_DISPOSAL_SURVIVES_RECREATION")
@@ -517,6 +521,29 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             }
         }
         checks++
+    }
+
+    private fun checkWorkKeyboardActions() {
+        val input = requireNotNull(field("Notizen"))
+        yes(input.performAction(AccessibilityNodeInfo.ACTION_FOCUS), "WORK_FIELD_FOCUS")
+        input.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+        test.runOnMainSync { requireNotNull(activity).window.insetsController?.show(WindowInsets.Type.ime()) }
+        waitUntil("WORK_KEYBOARD_VISIBLE") {
+            var visible = false
+            test.runOnMainSync { visible = requireNotNull(activity).window.decorView.rootWindowInsets?.isVisible(WindowInsets.Type.ime()) == true }
+            visible
+        }
+        val frame = Rect()
+        test.runOnMainSync { requireNotNull(activity).window.decorView.getWindowVisibleDisplayFrame(frame) }
+        val save = actionBounds("Speichern")
+        val discard = actionBounds("Verwerfen")
+        yes(frame.contains(save) && frame.contains(discard) && !Rect.intersects(save, discard), "WORK_ACTIONS_CLEAR_KEYBOARD")
+        back()
+        waitUntil("WORK_KEYBOARD_HIDDEN") {
+            var hidden = false
+            test.runOnMainSync { hidden = requireNotNull(activity).window.decorView.rootWindowInsets?.isVisible(WindowInsets.Type.ime()) == false }
+            hidden
+        }
     }
 
     private fun accessoryJourney() {
@@ -579,7 +606,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             reveal("Aktuell verwendete Kette")
             recreate()
             reveal("QA Kette B")
-            yes(node("Foto nicht lesbar") == null, "ACCESSORY_PHOTO_DISPLAY_NO_ERROR")
+            reveal("Gerätefoto")
             click("Gerät & Wartung")
             reveal("Wartung einrichten")
         } finally { source.delete() }
@@ -680,6 +707,53 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         return Rect().also { target.getBoundsInScreen(it) }
     }
 
+    private fun officeOpeningMeasurements() {
+        // The disposable fixture was checked before any application data was read.
+        // Preserve its existing rows/journal; add only synthetic office records.
+        click("Heute")
+        val fixture = JSONObject(store.getState().getJSONObject("master").toString())
+        val invoices = JSONArray()
+        for (index in 0 until 120) invoices.put(JSONObject().put("id", "qa_ui_office_$index")
+            .put("invoice_number", "QA-UI-$index").put("customer_id", "synthetic_customer")
+            .put("status", "Gestellt").put("invoice_date", "2026-10-30")
+            .put("gross_total", if (index == 0) 25 else 100)
+            .put("money_minor", JSONObject().put("gross_minor", if (index == 0) 2500 else 10000)).put("test_record", true))
+        fixture.put("invoices", invoices)
+        store.putOwnerValue("snapshot", fixture.toString())
+        for (index in 0 until 240) store.putOwnerValue("local_payment:qa_ui_office_$index", JSONObject()
+            .put("payment_id", "qa_ui_office_$index").put("amount_minor", 2500).put("paid_on", "2026-10-30")
+            .put("method", "bank").put("recorded_at", "2026-10-30T08:00:00Z")
+            .put("allocations", JSONArray().put(JSONObject().put("invoice_id", "qa_ui_office_${index % 120}").put("amount_minor", 2500))).toString())
+        store.notifyCommittedChange()
+        officeMeasurements = JSONObject().put("scope", "EMULATOR_UI_ACTION_TO_VISIBLE_READY_CONTENT;WARM_PROCESS")
+            .put("invoices", 120).put("payments", 240).put("samples_per_path", 40).put("warmups_per_path", 2)
+            .put("payments_and_credits_share_view", true).put("performance_claim", false)
+            .put("display", shell("wm size") + ";" + shell("wm density"))
+            .put("font_scale", shell("settings get system font_scale"))
+            .put("api", Build.VERSION.SDK_INT).put("host_load", "NOT_CONTROLLED")
+        for ((name, entry, ready) in listOf(
+            Triple("billing", "Arbeiten abrechnen", "Rechnungsempfänger: Nicht zugeordnet"),
+            Triple("invoices", "Rechnungen", "120 Treffer · 50 auf dieser Seite"),
+            Triple("payments_and_credits", "Zahlungen und Guthaben", "Rest 0,00 € · Guthaben 25,00 €")
+        )) {
+            val values = ArrayList<Double>()
+            repeat(42) { sample ->
+                click("Büro")
+                reveal(entry)
+                val target = requireNotNull(clickable(requireNotNull(node(entry))))
+                val start = System.nanoTime()
+                yes(target.performAction(AccessibilityNodeInfo.ACTION_CLICK), "OFFICE_OPEN_$name")
+                shown(ready)
+                val elapsed = (System.nanoTime() - start) / 1_000_000.0
+                if (sample >= 2) values.add(elapsed)
+            }
+            val sorted = values.sorted()
+            officeMeasurements.put(name, JSONObject().put("mean_ms", values.average()).put("p95_ms", sorted[37])
+                .put("slowest_5_percent_mean_ms", sorted.takeLast(2).average()).put("samples_ms", JSONArray(values)))
+        }
+        click("Heute")
+    }
+
     private fun largeTextJourney() {
         activity?.let { current -> test.runOnMainSync { current.finish() } }
         shell("settings put system font_scale 2.0")
@@ -731,5 +805,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         back()
         waitUntil("PLANNING_BACK_TO_MAIN") { node("Planung") == null && automation.rootInActiveWindow?.packageName?.toString() == context.packageName }
         checks++
+        click("Heute")
+        click("Arbeit erfassen")
+        val saveWork = actionBounds("Speichern")
+        val discardWork = actionBounds("Verwerfen")
+        yes(!Rect.intersects(saveWork, discardWork) && safe.contains(saveWork) && safe.contains(discardWork), "LARGE_TEXT_WORK_ACTIONS_CLEAR_SYSTEM_BARS")
+        yes(saveWork.height() >= minimumTouch && discardWork.height() >= minimumTouch, "LARGE_TEXT_WORK_TOUCH_TARGETS")
+        click("Verwerfen"); click("OK", scrollTo = false)
     }
 }
