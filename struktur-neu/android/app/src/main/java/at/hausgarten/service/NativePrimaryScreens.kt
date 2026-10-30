@@ -738,6 +738,29 @@ private fun NativeCustomerExtras(raw: Any?, change: (JSONObject) -> Unit) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
+private fun NativeTimerValues(controller: NativeAppController, value: JSONObject) {
+    Text(when (value.optString("state")) { "RUNNING" -> "Arbeit läuft"; "PAUSED" -> "Pause läuft"; "STOPPED_PENDING_REVIEW" -> "Arbeit gestoppt"; "CANCELLED" -> "Verworfene Arbeit"; else -> "Zeiterfassung" }, style = MaterialTheme.typography.headlineSmall)
+    val seconds = value.optLong("worked_ms").coerceAtLeast(0) / 1000
+    Text("Arbeitsdauer", style = MaterialTheme.typography.titleSmall)
+    Text("${seconds / 3600} Std. ${seconds / 60 % 60} Min. ${seconds % 60} Sek.", style = MaterialTheme.typography.headlineSmall)
+    NativeContext(controller, JSONObject().apply {
+        for (key in listOf("customer_id", "property_id", "order_id")) put(key, value.optString(key))
+    })
+    for (key in listOf("activity", "location")) if (value.optString(key).isNotBlank()) Text(nativeLabel(key) + ": " + value.getString(key))
+    Text("Arbeitsdatum: " + nativeDisplayDate(value.optString("work_date")))
+    if (value.optLong("started_at_ms") > 0) {
+        val start = java.time.Instant.ofEpochMilli(value.getLong("started_at_ms")).atZone(java.time.ZoneId.of("Europe/Vienna"))
+        val pattern = if (start.toLocalDate().toString() == value.optString("work_date")) "HH:mm" else "dd.MM.yyyy · HH:mm"
+        Text("Beginn: " + start.format(java.time.format.DateTimeFormatter.ofPattern(pattern)))
+    }
+    Text("Pause: " + nativeNumber(value.opt("break_minutes")) + " Min.")
+    if (value.optString("time_origin") == "manual_review") Text("Zeit wurde manuell geprüft.")
+    if (value.optString("correction_reason").isNotBlank()) Text("Zeitkorrektur: " + value.getString("correction_reason"))
+    if (value.optBoolean("review_required")) Text("Die Zeitmessung muss vor dem Speichern ausdrücklich geprüft werden.", color = MaterialTheme.colorScheme.error)
+    if (value.optBoolean("pause_unverified")) Text("Die Pausendauer ist noch ungeklärt. Bitte bei der Zeitprüfung kontrollieren.", color = MaterialTheme.colorScheme.error)
+}
+
+@Composable
 private fun NativeTimer(controller: NativeAppController) {
     var session by remember { mutableStateOf<JSONObject?>(null) }
     var error by remember { mutableStateOf("") }
@@ -799,7 +822,7 @@ private fun NativeTimer(controller: NativeAppController) {
     if (pending != null) {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("Der ursprüngliche Zeitvorgang wird mit derselben Kennung geprüft.")
-            session?.let { NativeBusinessValues(it) }
+            session?.let { NativeTimerValues(controller, it) }
             if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error)
             Button({ execute(requireNotNull(pending).first) }, enabled = !busy) { Text("Ursprünglichen Vorgang prüfen") }
             if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -819,8 +842,7 @@ private fun NativeTimer(controller: NativeAppController) {
     Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error)
         if (value == null) CircularProgressIndicator() else {
-            Text(when (state) { "RUNNING" -> "Arbeit läuft"; "PAUSED" -> "Pause läuft"; "STOPPED_PENDING_REVIEW" -> "Arbeit gestoppt"; "CANCELLED" -> "Verworfene Arbeit"; else -> "Zeiterfassung" }, style = MaterialTheme.typography.headlineSmall)
-            NativeBusinessValues(value)
+            NativeTimerValues(controller, value)
             if (state in listOf("RUNNING", "PAUSED", "STOPPED_PENDING_REVIEW")) {
                 val resourceContext = JSONObject().put("session_id", value.optString("id", value.optString("session_id"))).apply {
                     for (field in listOf("customer_id", "order_id", "property_id", "visit_id")) if (value.optString(field).isNotEmpty()) put(field, value.getString(field))

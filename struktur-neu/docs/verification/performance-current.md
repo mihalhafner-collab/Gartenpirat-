@@ -476,7 +476,7 @@ Aufklappbare Listenfilter bleiben beim Bearbeiten ihrer eigenen Datums-/Statusfe
 sichtbar. Erst der Fokus auf die Hauptsuche schließt sie. Ein stabiler Listenschlüssel
 erhält den Eingabeknoten, wenn die Tastatur ergänzende Kontextzeilen ausblendet.
 „Zur Liste“ verwendet den vorherigen Listenzustand, einschließlich Suchtext und
-Filter. Timer und Belegdetails haben ihre häufigen Aktionen am unteren Rand;
+Filter. Der Timer zeigt Arbeitsdauer in Stunden/Minuten/Sekunden, Beginn, Pause und Kundenbezug statt interner Millisekunden- und Zustandsfelder; Zeitkorrektur- und Prüfhinweise bleiben sichtbar. Timer und Belegdetails haben ihre häufigen Aktionen am unteren Rand;
 ergänzende Prüfungen und Quellen bleiben im scrollbaren Inhalt. Einstellungen
 kennzeichnen das Laden; die Abnahme wartet auf die bedienbare Hauptaktion.
 
