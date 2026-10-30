@@ -1168,9 +1168,18 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             enter("Suchen", fixturePrefix+"000"); visibleResult(fixturePrefix+"000")
             yes(!keyboardVisible(), "GESTURE_PICKER_IME_INITIALLY_CLOSED")
             val screen = Rect().also { requireNotNull(automation.rootInActiveWindow).getBoundsInScreen(it) }
-            // Android's standard input command injects a real edge swipe.
-            shell("input touchscreen swipe 1 ${screen.centerY()} ${screen.centerX()} ${screen.centerY()} 350")
-            waitUntil("BACK_GESTURE_CLOSES_ONLY_PICKER") { node("Schließen") == null && node("Kunde: Nicht zugeordnet") != null }
+            // Cross the activation threshold and remain beyond it before release.
+            // This is a real edge swipe, not KEYCODE_BACK or a navigation callback.
+            val output = shell("input touchscreen swipe ${screen.left+4} ${screen.centerY()} ${screen.left+screen.width()*4/5} ${screen.centerY()} 500")
+            test.sendStatus(0, Bundle().apply { putString("gesture_input", output.ifBlank { "edge swipe injected" }) })
+            try {
+                waitUntil("BACK_GESTURE_CLOSES_ONLY_PICKER") { node("Schließen") == null && node("Kunde: Nicht zugeordnet") != null }
+            } catch (failure: Throwable) {
+                val systemUi = shell("dumpsys activity service com.android.systemui/.SystemUIService")
+                val start = systemUi.indexOf("EdgeBackGestureHandler:")
+                test.sendStatus(0, Bundle().apply { putString("gesture_diagnostics", if (start >= 0) systemUi.substring(start).take(10000) else systemUi.takeLast(10000)) })
+                throw failure
+            }
             captureSyntheticScreen("back-gesture")
             click("‹ Zurück"); shown("Arbeit erfassen")
         } catch (failure: Throwable) {

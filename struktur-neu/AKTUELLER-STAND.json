@@ -82,17 +82,17 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "ecec0e368a6e6dc506c3f98c068548f594a32029de089007bd71285dbddea5c2",
+    "app_source_fingerprint": "f4270892824e5107864b312088e9e365d4b4f251a97b83b30eb466c81d8f53f3",
     "source_privacy": "PASS;empty operational seed",
     "business_data_read": false,
     "authored_changes_diff_check": "PASS;git diff --check und210Aktionszuordnungen",
     "current_test_run": {
-      "source_basis": "4487cc658eb8902eec821e4f45d843c6d205b693",
-      "workflow_run": 41096270726,
+      "source_basis": "d22c546c5662d2f770ac70226cb01184469de7aa",
+      "workflow_run": 41103001936,
       "source_review": "PASS;vollständiger CI-Quellcheck",
       "android_build": "PASS;release+AndroidTest+lint",
       "jvm": "PASS;9Suiten",
-      "emulator": "7Suiten PASS;Compose FAIL:4Darstellungsfälle,4Suchfälle,Gesten-Vorbedingung.38Einstiege sowie Kundenkontext/Timer/Zubehör/Entwürfe durchlaufen;keine SQL-Sperre. Folgekorrekturen erneut zu prüfen.",
+      "emulator": "7Suiten PASS;Compose nur Randgeste FAIL.12Darstellungen,16Suchwege,Filtereingaben,38Einstiege und bestehende Fachabläufe PASS. Spätere Layout-/SQLite-Korrekturen separat zu prüfen.",
       "physical_pixel": "NOT_RUN;außerhalb Auftrag",
       "local_python": "PASS62Tests;lokaler Gesamtcheck endet am fehlenden unveränderten Pflanzenasset im Teilcheckout",
       "business_data_read": false,

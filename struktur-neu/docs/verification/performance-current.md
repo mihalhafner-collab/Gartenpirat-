@@ -458,6 +458,10 @@ Speichermeldungen konnten einen Seitenwechsel überstehen. Die beschriebenen
 Kontextfilter, Hauptbereiche, gemeinsamen Bausteine und begrenzten Meldungen
 adressieren diese Befunde.
 
+Der Lauf auf `d22c546c5662d2f770ac70226cb01184469de7aa` bestand die zwölf Auswahl-Darstellungen, 16 fachlichen Suchen, Filtereingaben und 38 Einstiege; allein die echte Randgeste blieb fehlgeschlagen. Die systemseitige Gestenerkennung wird mit deutlicherem Weg über die Aktivierungsschwelle und unmittelbarer SystemUI-Diagnose getrennt geprüft; der Dialog verwendet weiterhin Compose-Standardverhalten. Die spätere gemeinsame Fachlisten-Anordnung und SQLite-Lebenszykluskorrektur benötigen ihre eigenen vollständigen Nachweise.
+
+Die alten grünen Systemleisten-Hintergründe hatten zusammen mit dunklen Android-Symbolen zu wenig Kontrast. Die vorhandene Theme-Ressource verwendet jetzt die helle App-Fläche und dunkle Systemleisten-Symbole.
+
 Die strengere Bildschirmprüfung fand zusätzliche konkrete Fehler: lange Filtertexte
 verdrängten die Trefferzahl; im kleinen Hochformat wurde bei 200 % ein Treffer
 angeschnitten; im Querformat konnte die Trefferzahl unter der Tastatur verschwinden.
