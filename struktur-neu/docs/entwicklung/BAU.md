@@ -550,3 +550,9 @@ im Wegwerf-Emulator, schließt den Kundenwähler mit echten Rand-Touchereignisse
 und prüft den unveränderten Formularzustand. Das zuvor aktive Navigations-Overlay
 wird anschließend wiederhergestellt. System-Zurück per Taste und Randgeste
 bleiben getrennte Prüfungen.
+
+Die Bedienfolge `filter_keyboard` prüft Arbeitszeit- und lokale Datumsfilter bei
+geöffneter Tastatur: sichtbare Feldgrenzen, Eingabe, Fertig, erhaltene Werte,
+Schließen der Filter durch Hauptsuchfokus und Activity-Neuerstellung.
+`qa-native-filter-work-date.png` und `qa-native-filter-local-date.png` zeigen
+die jeweiligen tatsächlichen Eingaben mit IME.

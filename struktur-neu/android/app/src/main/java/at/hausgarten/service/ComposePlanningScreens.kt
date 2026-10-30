@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -134,7 +135,7 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
     }
     val risks = remember(context?.toString()) { context?.optJSONArray("appointments")?.planningRows()?.associateBy { it.getJSONObject("appointment").optString("id") }.orEmpty() }
     Column(Modifier.fillMaxSize()) {
-        NativeField("Suche", search, { search = it; offset = 0 }, search = true, modifier = Modifier.padding(horizontal = 16.dp))
+        NativeField("Suche", search, { search = it; offset = 0 }, search = true, modifier = Modifier.padding(horizontal = 16.dp).onFocusChanged { if (it.isFocused) filtersOpen = false })
         NativeSearchSummary(if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.rows.size} auf dieser Seite") { filtersOpen = !filtersOpen }
         if (!imeVisible) Text(if (from == to) nativeDisplayDate(from.toString()) else "${nativeDisplayDate(from.toString())} – ${nativeDisplayDate(to.toString())}", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -147,7 +148,7 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
               }
           }
           if (!imeVisible && search.isBlank()) item { NativeRelatedList(controller, "visits", "Geplante Einsätze", JSONObject().put("customer_id", customer).put("date_from", from.toString()).put("date_to", to.toString())) }
-          if (filtersOpen && !imeVisible) item { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          if (filtersOpen) item(key = "native-list-filters") { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(if (weatherView) "Wetter & Einsätze" else "Planung", style = MaterialTheme.typography.headlineSmall)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 OutlinedButton({ anchor = day.minusDays(if (week) 7 else 1).toString(); offset = 0 }) { Text("‹") }

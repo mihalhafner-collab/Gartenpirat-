@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
@@ -392,7 +393,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
     val listLoading = loadedPage == null && listFailure.isEmpty()
     val scope = rememberCoroutineScope()
     Column(Modifier.fillMaxSize()) {
-        NativeField("Suchen", search, { search = it; offset = 0 }, modifier = Modifier.padding(horizontal = 16.dp))
+        NativeField("Suchen", search, { search = it; offset = 0 }, modifier = Modifier.padding(horizontal = 16.dp).onFocusChanged { if (it.isFocused) filtersOpen = false })
         NativeSearchSummary(if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.offset + if (page.rows.isEmpty()) 0 else 1}–${page.offset + page.rows.size}") { filtersOpen = !filtersOpen }
         LazyColumn(Modifier.weight(1f).padding(horizontal = 16.dp), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (listLoading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
@@ -401,7 +402,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
             NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer).put("date_from", from).put("date_to", to))
         }
         if (!imeVisible && search.isBlank() && collection == "worklogs") item { NativeWorkOverview(controller) }
-        if (filtersOpen && !imeVisible) item {
+        if (filtersOpen) item(key = "native-list-filters") {
             if (collection == "customers") {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Archivierte Kunden einbeziehen", Modifier.weight(1f)); Switch(inactive, { inactive = it; offset = 0 }) }
                 NativeChoice("Abrechnungsweg", billing, listOf("" to "Alle", "direct" to "Kunde selbst", "via_customer" to "Anderer Rechnungsempfänger"), { billing = it; offset = 0 })

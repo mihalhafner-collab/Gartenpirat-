@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -251,11 +252,11 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
     val page = loadedPage ?: NativeListPage(emptyList(), 0, offset, 50)
     val listLoading = loadedPage == null && error.isEmpty()
     Column(Modifier.fillMaxSize()) {
-        NativeField(if(section == "catalog") "Bausteine suchen" else "Suchen", query, { query = it; offset = 0 }, modifier = Modifier.padding(horizontal = 16.dp))
+        NativeField(if(section == "catalog") "Bausteine suchen" else "Suchen", query, { query = it; offset = 0 }, modifier = Modifier.padding(horizontal = 16.dp).onFocusChanged { if (it.isFocused) filtersOpen = false })
         NativeSearchSummary(if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.rows.size} auf dieser Seite", if (section == "catalog") null else ({ filtersOpen = !filtersOpen }))
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (!imeVisible) item { NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer), if (section == "invoices") "Rechnungsempfänger" else "Kunde") }
-        if (filtersOpen && !imeVisible) item {
+        if (filtersOpen) item(key = "native-list-filters") {
         if (section != "catalog") {
             NativeRecordPicker(controller, "customers", if (section == "invoices") "Rechnungsempfänger" else "Kunde", customer) { customer = it; offset = 0 }
             FinanceChoice("Status", status, if(section == "invoices") listOf("" to "Alle", "Entwurf" to "Entwurf", "Gestellt" to "Gestellt", "Bezahlt" to "Bezahlt", "Storniert" to "Storniert") else listOf("" to "Alle", "draft" to "Entwurf", "validated" to "Geprüft", "finalized" to "Finalisiert", "accepted" to "Angenommen", "share_prepared" to "Teilen vorbereitet", "sent" to "Versand bestätigt")) { status = it; offset = 0 }

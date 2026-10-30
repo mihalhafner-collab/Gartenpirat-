@@ -41,7 +41,7 @@
     "branch": "codex/kotlin-refactoring-20261029",
     "implementation": [
       "Kontextfilter für Fotos, Angebote und verwandte Listen; erkennbare Hauptbereiche, wiederhergestellte Navigation und bereinigte Meldungen.",
-      "Gemeinsame IME-feste Auswahlfenster: Suche/Fertig, Seiten, adressierte Kunden, echte Trefferflächen und getrenntes Keine Zuordnung.",
+      "Gemeinsame IME-feste Auswahlfenster: Suche/Fertig, Seiten, adressierte Kunden und getrenntes Keine Zuordnung. Filterfelder bleiben bei eigener Tastatureingabe erhalten.",
       "Einheitliches Material3, umbrechende Aktionsleisten, lesbare Statusflächen, deutsche Anzeigeformate, reduzierte technische Details.",
       "Büro bündelt Abrechnung/Planung/Maschinenpark/Einstellungen; übrige Ziele in drei Gruppen. Kundenakte, Arbeit und Entwürfe verwenden vorhandene Beziehungen und Abfragen.",
       "Arbeitskunde/Rechnungsempfänger getrennt; Quellenfilter und Objekt-/Anfragekontext im Formularentwurf. Keine neue Fachbeziehung, Datenbank oder automatische Buchung.",

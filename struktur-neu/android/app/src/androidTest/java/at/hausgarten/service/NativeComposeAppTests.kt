@@ -330,6 +330,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("search_keyboard", ::searchKeyboardJourney)
             journey("back_gesture", ::backGestureJourney)
             journey("domain_search", ::domainSearchJourney)
+            journey("filter_keyboard", ::filterKeyboardJourney)
             journey("surfaces", ::surfaceJourney)
             journey("large_text", ::largeTextJourney)
             if (failures.isNotEmpty()) {
@@ -345,7 +346,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("draft_write_failure_recovery", true)
                 .put("work_entry_usability", true).put("work_photo_retention", true)
                 .put("machine_accessory_roundtrip", true).put("decimal_comma_inputs", true)
-                .put("system_back_gesture", true).put("work_ime_actions", true).put("search_keyboard_matrix", searchMatrix).put("domain_search_cases", domainSearchCases).put("surface_cases", surfaceCases).put("office_opening", officeMeasurements)
+                .put("filter_keyboard", true).put("system_back_gesture", true).put("work_ime_actions", true).put("search_keyboard_matrix", searchMatrix).put("domain_search_cases", domainSearchCases).put("surface_cases", surfaceCases).put("office_opening", officeMeasurements)
                 .put("drive_account_tested", false).put("physical_pixel_tested", false)
         } finally {
             shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
@@ -1301,6 +1302,42 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
         if (failures.isNotEmpty()) { val failure = AssertionError("DOMAIN_SEARCH_${failures.size}_FAILED"); failures.forEach(failure::addSuppressed); throw failure }
         yes(domainSearchCases.length() == 16, "ALL_DOMAIN_SEARCH_PATHS")
+    }
+
+    private fun filterKeyboardJourney() {
+        fun edit(label: String, value: String, key: String) {
+            enter(label, "")
+            showKeyboard(label)
+            waitUntil("FILTER_VISIBLE_ABOVE_IME_$key") {
+                val candidate = field(label) ?: return@waitUntil false
+                val bounds = Rect().also { candidate.getBoundsInScreen(it) }
+                val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
+                val ime = automation.windows.firstOrNull { it.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD && it.root?.isVisibleToUser == true } ?: return@waitUntil false
+                screen.bottom = minOf(screen.bottom, Rect().also { ime.getBoundsInScreen(it) }.top)
+                screen.contains(bounds) && bounds.height() >= (48 * context.resources.displayMetrics.density).toInt()
+            }
+            enter(label, value)
+            captureSyntheticScreen("filter-$key", requireKeyboard = true)
+            yes(requireNotNull(field(label)).performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id), "FILTER_DONE_$key")
+            waitUntil("FILTER_DONE_PRESERVES_VALUE_$key") { !keyboardVisible() && field(label)?.text?.toString()?.contains(value) == true }
+        }
+        activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
+        click("Arbeit"); click("Filter")
+        edit("Ab Datum (JJJJ-MM-TT)", "2020-01-01", "work-date")
+        showKeyboard("Suchen")
+        waitUntil("WORK_SEARCH_CLOSES_FILTERS") { field("Ab Datum (JJJJ-MM-TT)") == null }
+        back(); waitUntil("WORK_FILTER_IME_CLOSED") { !keyboardVisible() }
+        recreate(); click("Filter")
+        reveal("Ab Datum (JJJJ-MM-TT)")
+        yes(field("Ab Datum (JJJJ-MM-TT)")?.text?.toString()?.contains("2020-01-01") == true, "WORK_FILTER_RECREATION")
+        activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
+        openOfficeGroup("Weitere Verwaltung", "Lokale Suche"); click("Filter")
+        edit("Zeitraum ab · JJJJ-MM-TT", "2020-01-01", "local-date")
+        showKeyboard("Name, Objekt, Tätigkeit, Notiz oder Beleg")
+        waitUntil("LOCAL_SEARCH_CLOSES_FILTERS") { field("Zeitraum ab · JJJJ-MM-TT") == null }
+        back(); waitUntil("LOCAL_FILTER_IME_CLOSED") { !keyboardVisible() }
+        click("Filter"); reveal("Zeitraum ab · JJJJ-MM-TT")
+        yes(field("Zeitraum ab · JJJJ-MM-TT")?.text?.toString()?.contains("2020-01-01") == true, "LOCAL_FILTER_VALUE_RETAINED")
     }
 
     /** Read-only route acceptance complements the mutating domain journeys above. */

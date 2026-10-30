@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -192,11 +193,11 @@ private fun RevierList(config: RevierSection, controller: NativeAppController, r
     val page = loadedPage ?: NativeListPage(emptyList(), 0, offset, 50)
     val listLoading = loadedPage == null && failure.isEmpty()
     Column(Modifier.fillMaxSize()) {
-        NativeField("Suchen", query, { query = it; offset = 0 }, modifier = Modifier.padding(horizontal = 16.dp))
+        NativeField("Suchen", query, { query = it; offset = 0 }, modifier = Modifier.padding(horizontal = 16.dp).onFocusChanged { if (it.isFocused) filtersOpen = false })
         NativeSearchSummary(if (listLoading) "Wird geladen …" else "${page.total} Treffer" + if (status.isNotBlank() || archived) " · Filter aktiv" else "") { filtersOpen = !filtersOpen }
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (!imeVisible) item { NativeContext(controller, controller.route.args) }
-            if (filtersOpen && !imeVisible) item {
+            if (filtersOpen) item(key = "native-list-filters") {
                 Column(Modifier.padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     val states = when (config.kind) {
                         "equipment" -> listOf("ready", "maintenance", "defective")
@@ -1367,11 +1368,11 @@ private fun RevierSearch(controller: NativeAppController) {
     val rows = result?.optJSONArray("items")?.revierObjects().orEmpty()
     Column(Modifier.fillMaxSize()) {
         NativeField("Name, Objekt, Tätigkeit, Notiz oder Beleg", query, { query = it }, search = true,
-            modifier = Modifier.padding(horizontal = 16.dp), onSearch = { if (query.isNotBlank()) search(0) })
+            modifier = Modifier.padding(horizontal = 16.dp).onFocusChanged { if (it.isFocused) filtersOpen = false }, onSearch = { if (query.isNotBlank()) search(0) })
         NativeSearchSummary(result?.let { "${it.optInt("total")} Treffer" } ?: "Suchtext eingeben") { filtersOpen = !filtersOpen }
         if (!imeVisible && !filtersOpen) TextButton({ search(0) }, enabled = !busy && query.isNotBlank(), modifier = Modifier.padding(horizontal = 16.dp)) { Text("Lokal suchen") }
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (filtersOpen && !imeVisible) item {
+            if (filtersOpen) item(key = "native-list-filters") {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     RevierChoice("Art", type, listOf("" to "Alle Arten", "customer" to "Kunden", "property" to "Objekte", "inquiry" to "Anfragen", "care_plan" to "Pflegepläne", "order" to "Aufträge", "appointment" to "Termine", "visit" to "Besuche", "activity" to "Arbeiten", "note" to "Notizen", "offer" to "Angebote", "invoice" to "Rechnungen", "material" to "Material", "equipment" to "Geräte")) { type = it }
                     NativeField("Status (optional)", status, { status = it })
