@@ -546,7 +546,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(saved()?.getString("id") == row.getString("id"), "DISCARD_PRESERVES_SAVED_WORK")
         yes(saved()?.getString("activity") == row.getString("activity"), "DISCARD_DOES_NOT_SAVE_CHANGES")
         workPhotoRetention(row)
-        click("Heute")
+        // Discard has already returned to Today; its selected tab has no click action.
+        reveal("Erfasste Arbeiten")
         click("Arbeit erfassen")
         click("Kunde: Nicht zugeordnet")
         enter("Suchen", fixturePrefix + "000")
