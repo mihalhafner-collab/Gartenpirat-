@@ -75,13 +75,31 @@ final class LocalBackupNativeTests {
             db.execSQL("CREATE TABLE qa_child(id INTEGER, parent_id INTEGER REFERENCES qa_parent(id))");
             db.execSQL("INSERT INTO qa_child VALUES(1,99)");
             PixelBackupService service = new PixelBackupService(context, store);
-            JSONObject result = service.saveTo("qa_native_save_001", "qa_destination", provider, message -> {});
+            File orphan = new File(context.getNoBackupFilesDir(), "pixel-backup/attempt-orphan/capture/old.bin");
+            yes(orphan.getParentFile().mkdirs());
+            write(orphan, "QA orphaned backup bytes");
+            File stray = new File(context.getNoBackupFilesDir(), "pixel-backup/old.zip");
+            write(stray, "QA orphaned archive");
+            yes(PixelBackupService.cleanupWork(context) > 0); yes(!orphan.exists() && !stray.exists());
+            yes(orphan.getParentFile().mkdirs());
+            write(orphan, "QA orphan before next backup");
+            JSONObject result = service.saveTo("qa_native_save_001", "qa_destination", provider, message -> {
+                if (message.startsWith("Originaldateien")) {
+                    yes(!orphan.exists());
+                    File root = new File(context.getNoBackupFilesDir(), "pixel-backup");
+                    for (File attempt : root.listFiles()) {
+                        yes(!new File(attempt,"capture").exists() && !new File(attempt,"verify").exists() && !new File(attempt,"backup.zip").exists());
+                        yes(!new File(attempt,"snapshot/files").exists());
+                        yes(new File(attempt,"snapshot/database.sqlite").isFile());
+                    }
+                }
+            });
             id = result.getString("backup_id");
             yes(result.getBoolean("verified")); yes(result.getInt("warning_count") >= 4); yes(writes[0] == 1);
             yes(store.ownerValue("qa_backup_marker", "").equals("QA before save"));
             yes(service.status(new JSONObject()).getString("state").equals("VERIFIED"));
             service.saveTo("qa_native_save_001", "qa_destination", provider, message -> {}); yes(writes[0] == 1);
-            rejects(() -> service.saveTo("qa_native_save_002", "qa_destination", provider, message -> {})); yes(writes[0] == 1);
+            yes(service.saveTo("qa_native_save_002", "qa_destination", provider, message -> {}).getBoolean("verified")); yes(writes[0] == 2);
             String savedHash = EncryptedBackupArchive.sha256(saved);
             BackupDocumentTransfer.LocalFile broken = new BackupDocumentTransfer.LocalFile() {
                 public OutputStream write() throws Exception { throw new IOException("QA disk full"); }

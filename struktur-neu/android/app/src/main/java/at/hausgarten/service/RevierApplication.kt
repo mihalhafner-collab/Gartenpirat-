@@ -35,6 +35,7 @@ class RevierApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         startupExecutor.execute {
+            try { PixelBackupService.cleanupWork(this) } catch (_: Exception) { }
             if (recoveryRequired) return@execute
             try { PixelBackupService.cancelRetiredJobs(this) } catch (_: RuntimeException) { }
             try { DriveSyncJob.install(this) } catch (_: RuntimeException) { }

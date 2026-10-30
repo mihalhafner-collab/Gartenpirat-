@@ -16,14 +16,21 @@ import java.time.Instant
 
 /** Private captured inputs for backup; no provider, network or activation. */
 internal object LocalBackupDataset {
-    class Captured(@JvmField val directory: File, @JvmField val metadata: JSONObject) {
+    class Captured(@JvmField val directory: File, @JvmField val metadata: JSONObject, private val originals: List<EncryptedBackupArchive.Source> = emptyList()) {
         @Throws(Exception::class)
-        fun sources(): List<EncryptedBackupArchive.Source> = BackupFilePins.sources(directory)
+        fun sources(): List<EncryptedBackupArchive.Source> = BackupFilePins.sources(directory) + originals
     }
 
     @JvmStatic
     @Throws(Exception::class)
     fun capture(context: Context, store: PixelLocalStore, directory: File, identity: JSONObject, suppliedBrowser: JSONObject?): Captured =
+        capture(context, store, directory, identity, suppliedBrowser, false)
+
+    /** Caller holds FILE_CAPTURE_LOCK until the originals have been streamed. */
+    fun forStreaming(context: Context, store: PixelLocalStore, directory: File, identity: JSONObject): Captured =
+        capture(context, store, directory, identity, null, true)
+
+    private fun capture(context: Context, store: PixelLocalStore, directory: File, identity: JSONObject, suppliedBrowser: JSONObject?, streamOriginals: Boolean): Captured =
         synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) {
             var stage = "FILES"
             try {
@@ -38,7 +45,7 @@ internal object LocalBackupDataset {
                 val initial = asset(context, "initial-data.json")
                 val catalog = asset(context, "service-catalog.json")
                 // Freeze immutable originals before the DB snapshot so concurrent removal cannot lose them.
-                for (name in arrayOf("customer-photo-originals", "business-documents", "browser-media", "mcp-photo-uploads", "native-form-media")) {
+                if (!streamOriginals) for (name in arrayOf("customer-photo-originals", "business-documents", "browser-media", "mcp-photo-uploads", "native-form-media")) {
                     BackupFilePins.pinImmutable(File(context.filesDir, name), directory, "files/$name")
                 }
                 stage = "PREFERENCES"
@@ -50,13 +57,15 @@ internal object LocalBackupDataset {
                 val database = File(directory, "database.sqlite")
                 val db = DatabaseBackupSnapshot.capture(store.writableDatabase, database)
                 stage = "FILES"
-                BackupFilePins.capture(context.filesDir, directory, "files")
-                for (name in arrayOf("photo-capture", "invoice-share")) {
-                    BackupFilePins.capture(File(context.cacheDir, name), directory, "cache/$name")
+                val originals = ArrayList<EncryptedBackupArchive.Source>()
+                fun include(root: File, prefix: String) {
+                    if (streamOriginals) originals.addAll(BackupFilePins.directSources(root, prefix))
+                    else BackupFilePins.capture(root, directory, prefix)
                 }
-                for (name in arrayOf("deletion-backups", "legacy-conflict-backups")) {
-                    BackupFilePins.capture(File(context.noBackupFilesDir, name), directory, "no_backup/$name")
-                }
+                include(context.filesDir, "files")
+                for (name in arrayOf("photo-capture", "invoice-share")) include(File(context.cacheDir, name), "cache/$name")
+                for (name in arrayOf("deletion-backups", "legacy-conflict-backups")) include(File(context.noBackupFilesDir, name), "no_backup/$name")
+                val filesRoot = if (streamOriginals) context.filesDir else File(directory, "files")
                 if (PixelMcpWriteTools.hash(preferences) != PixelMcpWriteTools.hash(BackupPreferences.capture(context))) {
                     throw IOException("BACKUP_PREFERENCES_CHANGED_RETRY")
                 }
@@ -67,7 +76,7 @@ internal object LocalBackupDataset {
                     val capturedBrowser = browserSnapshot(snapshot, suppliedBrowser, extra)
                     try {
                         if (BrowserMediaRepository.hasCapturedNamespace(snapshot)) {
-                            BrowserMediaRepository.inspectCaptured(snapshot, File(directory, "files"))
+                            BrowserMediaRepository.inspectCaptured(snapshot, filesRoot)
                         }
                     } catch (mediaProblem: Exception) {
                         extra.put(JSONObject().put("kind", "browser_media").put("reason", BackupScheduleRules.errorCode(mediaProblem))
@@ -76,7 +85,7 @@ internal object LocalBackupDataset {
                     // Diagnostic only. Raw SQLite and every readable file have already been captured.
                     try {
                         val state = BackupSnapshotState.read(snapshot, BackupPreferences.values(preferences, "haus_garten"), initial, catalog)
-                        val originals = LocalOriginalVerifier(File(directory, "files"),
+                        val originals = LocalOriginalVerifier(filesRoot,
                             { id -> BackupSnapshotState.photo(snapshot, id) },
                             { id -> JSONObject(DatabaseBackupSnapshot.ownerValue(snapshot, "local_invoice_job:$id", "{}")!!) })
                         report = BackupInventory.inspect(SnapshotProjection.effective(state)) { kind, row -> originals.problem(kind, row) }
@@ -102,7 +111,7 @@ internal object LocalBackupDataset {
                     .put("numberState", JSONObject()).put("lastIssuedDocumentIds", report.getJSONArray("lastIssuedDocumentIds"))
                     .put("warning_count", warnings.length()).put("captureScope", "database_all_tables_private_files_preferences_browser_storage_and_legacy_backups")
                     .put("media_coverage", "AVAILABLE_FILES_WITH_NOTES")
-                Captured(directory, metadata)
+                Captured(directory, metadata, originals)
             } catch (failure: Exception) {
                 throw BackupScheduleRules.captureFailure(stage, failure)
             }

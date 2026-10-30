@@ -75,6 +75,15 @@ object BackupFilePins {
         return result
     }
 
+    /** Enumerate existing originals without copying or hardlinking their bytes. */
+    fun directSources(root: File, prefix: String): List<EncryptedBackupArchive.Source> {
+        if (!root.exists()) return emptyList()
+        if (Files.isSymbolicLink(root.toPath()) || !root.isDirectory) throw IOException("BACKUP_SOURCE_LINK_OR_DIRECTORY_INVALID")
+        val result = ArrayList<EncryptedBackupArchive.Source>()
+        collect(root, "$prefix/", result)
+        return result
+    }
+
     private fun collect(directory: File, prefix: String, result: MutableList<EncryptedBackupArchive.Source>) {
         val entries = directory.listFiles() ?: throw IOException("BACKUP_STAGING_UNREADABLE")
         entries.sortBy { it.name }

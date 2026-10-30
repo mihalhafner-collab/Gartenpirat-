@@ -59,9 +59,12 @@ Vorhandene ältere Archive und Schlüssel bleiben für eine bewusst beauftragte
 Wiederherstellung erhalten. Deren Lesbarkeit rechtfertigt keine neue komplizierte
 Einrichtung für aktuelle Sicherungen.
 
-Sicherung kopiert den vorhandenen Bestand unverändert. Die direkte Aufnahme umfasst
-alle SQLite-Tabellen, die vorhandenen privaten Dateien, typisierte Einstellungen
-und den zuletzt lesbaren Formularstand. Die bisherige Sicherungs-Auftragsverwaltung
+Sicherung bewahrt den vorhandenen Bestand. Ein konsistenter SQLite-Snapshot,
+typisierte Einstellungen und der zuletzt lesbare Formularstand werden aufgenommen.
+Originalfotos, PDFs und weitere private Dateien werden direkt in den ZIP-Stream
+des gewählten Dateianbieters gelesen; keine vollständige Medienkopie und kein
+Komplett-Entpacken zur Sicherungsprüfung. Dateigrößen und SHA256 werden beim
+Schreiben geprüft, die geschriebene ZIP danach vollständig im Stream zurückgelesen. Die bisherige Sicherungs-Auftragsverwaltung
 ist entfernt; es werden nur letzter Versuch und letzter Erfolg gespeichert.
 Rechnungsnummernkollisionen, bereits fehlerhafte Datenbezüge, fehlende oder nicht
 verifizierte Originale verhindern das Sichern und Wiederherstellen nicht. Konkrete
@@ -73,9 +76,11 @@ referenzierten Originale. Sie repariert oder normalisiert den Ausgangsbestand ni
 
 Technisch unlesbare Datenbanken, Schreibfehler und beschädigte oder veränderte
 Archive bleiben echte Fehler. Ein Erfolg setzt das vollständige Zurücklesen der
-geschriebenen ZIP voraus. Bestätigte Ziele werden bei Wiederholung nur geprüft;
-eine neue Sicherung benötigt eine neue Zieldatei. Temporäre Aufnahmen werden nach
-dem Versuch entfernt. Es gibt keine Verbindung zur Migrationsprüfung oder zur
+geschriebenen ZIP voraus. Eine Wiederholung derselben Vorgangskennung liest das Ergebnis zurück; ein neuer
+Sicherungslauf darf dieselbe ausdrücklich gewählte Zieldatei überschreiben.
+Verwaiste Inhalte des ausschließlich temporären Verzeichnisses `pixel-backup`
+werden beim Start sowie vor und nach jedem Sicherungslauf entfernt. Ein laufender
+Sicherungsvorgang wird dabei nicht abgeräumt. Es gibt keine Verbindung zur Migrationsprüfung oder zur
 Rechnungsfreigabe. Der Leser älterer verschlüsselter Archive bleibt ausschließlich
 für bereits vorhandene Altsicherungen erhalten; er erzeugt keine neuen Sicherungen.
 

@@ -33,10 +33,10 @@
     }
   ],
   "current_task": {
-    "name": "Einheitliche Oberfläche, Suchansichten und gemeinsame Übersichten",
-    "status": "IN_PROGRESS;FINAL_EMULATOR_ACCEPTANCE_RUNNING",
+    "name": "Einheitliche Oberfläche sowie einfaches lokales Backup, Löschen und Speicherbereinigung",
+    "status": "IN_PROGRESS;UI_ACCEPTANCE_RUNNING;LOCAL_STORAGE_SIMPLIFICATION",
     "authorized": true,
-    "authorization_scope": "Quellcode, synthetische Tests, Prüfbuilds, bestehende Dokumentation und GitHub-Sicherung; keine produktive Installation/Migration/Wiederherstellung/Rechnungsfreigabe/Veröffentlichung.",
+    "authorization_scope": "Quellcode, synthetische Tests, Prüfbuilds, Dokumentation und GitHub; Zusatzauftrag: Streaming-Backup, lokale Löschung ohne Cloud-Sperren, Speicherdiagnose/Bereinigung. Keine produktive Installation/Migration/Wiederherstellung/Rechnungsfreigabe/Veröffentlichung.",
     "base_git_sha": "242ccc9159cefdb22879c57474bcd45586244ab6",
     "branch": "codex/kotlin-refactoring-20261029",
     "implementation": [
@@ -45,18 +45,19 @@
       "Einheitliches Material3, umbrechende Aktionsleisten, lesbare Statusflächen, deutsche Anzeigeformate, reduzierte technische Details.",
       "Büro bündelt Abrechnung/Planung/Maschinenpark/Einstellungen; übrige Ziele in drei Gruppen. Kundenakte, Arbeit und Entwürfe verwenden vorhandene Beziehungen und Abfragen.",
       "Arbeitskunde/Rechnungsempfänger getrennt; Quellenfilter und Objekt-/Anfragekontext im Formularentwurf. Keine neue Fachbeziehung, Datenbank oder automatische Buchung.",
-      "Abgleich210Aktionen; synthetische12Darstellungen,16Suchwege,22große Fachlistenfälle,38Einstiege, A/B-Kontext, Activity-Neuerstellung, IME-Grenzen, Screenshots, Touch und Zurück-Geste. Details:docs/verification/performance-current.md."
+      "Abgleich210Aktionen; synthetische12Darstellungen,16Suchwege,22große Fachlistenfälle,38Einstiege, A/B-Kontext, Activity-Neuerstellung, IME-Grenzen, Screenshots, Touch und Zurück-Geste. Details:docs/verification/performance-current.md.",
+      "Backup streamt Originaldateien mit DB-Snapshot direkt zum Dateianbieter; keine capture-/verify-Vollkopien. Zielüberschreiben und verwaiste Arbeitsordner berücksichtigt; vollständige Prüfung läuft."
     ],
     "kiss_yagni": "Vorhandene Route, SQL-Abfragen, Compose-Zustände und Fachschreiber weiterverwenden; keine neue Datenbank, Abhängigkeit, Architektur oder Filterprofile.",
     "remaining": [
-      "Abnahme der adaptiven Fachlisten, SQLite-Lebensdauer und Systemgeste abschließen; aktuelle Bilder prüfen und bestätigte Fehler beheben",
-      "Aktuellen Quellfingerabdruck und Nachweise eintragen; abschließende GitHub-Sicherung zurücklesen"
+      "UI-Abnahme einschließlich Großschriftlisten, Timer und Randgeste abschließen",
+      "Lokale Löschpfade, Foto-Epochensperren, Altlasten und referenzsichere Speicherbereinigung vereinfachen; passende Tests",
+      "Nachweise und Bilder prüfen; vorhandene Dokumentation abschließen und finalen GitHub-Commit zurücklesen"
     ]
   },
   "open_checks": [
-    "Vollständige Abnahme der letzten UI-Korrekturen läuft; Pixel und echtes Drive-Konto bleiben getrennt.",
-    "CI41099682741: wiederholtes SQLITE_BUSY und geleakte Verbindung. getState-Transaktion erhält Referenzhaltung; deterministischer Schließen-/Fehlerpfadtest und vollständiger Emulatorlauf noch offen.",
-    "Physical Pixel NOT_RUN; außerhalb Auftrag."
+    "UI-Abnahme und neue Backup-/Speicherprüfungen offen. SQLite-Schließen-/Fehlerpfad in405nativen Datenprüfungen bestanden.",
+    "Physical Pixel und echtes Drive-Konto NOT_RUN; keine produktiven Daten gelesen."
   ],
   "workflow": {
     "scope": "CURRENT_SOURCE;struktur-neu authoritative;qa-apk.yml builds/tests without user APK publication",

@@ -6,9 +6,6 @@ import android.net.Uri
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.FilterOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -33,6 +30,27 @@ class PixelBackupService internal constructor(private val context: Context, priv
             } catch (_: RuntimeException) {
                 // No retired service remains in the manifest.
             }
+        }
+
+        /** Only this dedicated work directory is disposable; never a chosen destination. */
+        @JvmStatic
+        fun cleanupWork(context: Context): Long = synchronized(SAVE_LOCK) {
+            if (RUNNING.isNotEmpty()) return@synchronized 0L
+            cleanupWorkLocked(context)
+        }
+
+        private fun cleanupWorkLocked(context: Context): Long {
+            val root = File(context.noBackupFilesDir, "pixel-backup")
+            if (!root.exists()) return 0L
+            if (Files.isSymbolicLink(root.toPath()) || !root.isDirectory) throw IOException("BACKUP_WORK_STORAGE_UNAVAILABLE")
+            var removed = 0L
+            for (child in root.listFiles() ?: throw IOException("BACKUP_WORK_STORAGE_UNAVAILABLE")) {
+                if (!Files.isSymbolicLink(child.toPath())) {
+                    removed += if (child.isDirectory) child.walkTopDown().onEnter { !Files.isSymbolicLink(it.toPath()) }.filter { it.isFile && !Files.isSymbolicLink(it.toPath()) }.sumOf { it.length() } else child.length()
+                    EncryptedBackupArchive.removeOwned(child)
+                } else Files.delete(child.toPath())
+            }
+            return removed
         }
 
         /** The explicit Android picker grants access to this document, including Drive documents. */
@@ -102,17 +120,16 @@ class PixelBackupService internal constructor(private val context: Context, priv
         val id = "pixel_" + PixelMcpWriteTools.hash(request).substring(0, 32)
         synchronized(SAVE_LOCK) {
             if (RUNNING.isNotEmpty()) throw IOException("BACKUP_RUNNER_BUSY")
+            cleanupWorkLocked(context)
             RUNNING.add(id)
         }
-        var work: File? = null
         var record: JSONObject? = null
         try {
             val identity = BackupDeviceGuard(context).current()
             val previous = store.ownerValue("pixel_backup_success", "")
             if (previous.isNotEmpty()) {
                 val saved = JSONObject(previous)
-                if (destination == saved.getJSONObject("destination").optString("treeUri")) {
-                    if (request != saved.optString("requestId")) throw IOException("BACKUP_TARGET_ALREADY_VERIFIED")
+                if (destination == saved.getJSONObject("destination").optString("treeUri") && request == saved.optString("requestId")) {
                     val repeated = JSONObject(saved.toString())
                     record = repeated
                     repeated.put("lastLocalAttemptAt", Instant.now().toString())
@@ -140,36 +157,26 @@ class PixelBackupService internal constructor(private val context: Context, priv
                 throw IOException("BACKUP_WORK_STORAGE_UNAVAILABLE")
             }
             val attempt = Files.createTempDirectory(parent.toPath(), "attempt-").toFile()
-            work = attempt
-            progress.accept("Vorhandenen Bestand aufnehmen …")
             val captureIdentity = JSONObject(identity.toString()).put("backupId", id)
                 .put("businessId", context.packageName)
-            val captured = LocalBackupDataset.capture(context, store, File(attempt, "capture"), captureIdentity, null)
-            val zip = File(attempt, "backup.zip")
-            progress.accept("ZIP-Datei erstellen und prüfen …")
-            FileOutputStream(zip).use { output ->
-                val guarded = object : FilterOutputStream(BackupStorageBudget.guard(output, attempt)) {
-                    override fun close() = flush()
+            val (captured, archive) = synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) {
+                progress.accept("Datenbank und Einstellungen aufnehmen …")
+                val captured = LocalBackupDataset.forStreaming(context, store, File(attempt, "snapshot"), captureIdentity)
+                progress.accept("Originaldateien sichern und ZIP vollständig zurücklesen …")
+                val archive = BackupDocumentTransfer.exportStream(selectedFile) { output ->
+                    EncryptedBackupArchive.writePlain(output, captured.metadata, captured.sources())
                 }
-                EncryptedBackupArchive.writePlain(guarded, captured.metadata, captured.sources())
-                output.fd.sync()
+                captured to archive
             }
-            EncryptedBackupArchive.verifyPlain(
-                FileInputStream(zip), File(attempt, "verify"),
-                attempt.usableSpace - BackupStorageBudget.BUSINESS_RESERVE_BYTES, PixelLocalStore.SCHEMA_VERSION
-            ).use { checked ->
-                LocalBackupDataset.inspectStaged(File(checked.directory, "data"), checked.manifest)
-            }
-            val sha = EncryptedBackupArchive.sha256(zip)
-            progress.accept("ZIP-Datei speichern und vollständig zurücklesen …")
-            BackupDocumentTransfer.exportLocal(zip, sha, false, selectedFile)
+            val sha = archive.getString("sha256")
+            val size = archive.getLong("size")
             val verifiedAt = Instant.now().toString()
             current.put("phase", "PROVIDER_VERIFIED").put("warning_count", captured.metadata.optInt("warning_count"))
-                .put("archive", JSONObject().put("archiveFormat", "PLAIN_ZIP").put("sha256", sha).put("size", zip.length())
+                .put("archive", JSONObject().put("archiveFormat", "PLAIN_ZIP").put("sha256", sha).put("size", size)
                     .put("capturedAt", captured.metadata.getString("capturedAt")).put("localVerifiedAt", verifiedAt)
                     .put("mediaCoverage", "AVAILABLE_FILES_WITH_NOTES"))
                 .put("provider", JSONObject().put("backup_id", id).put("archive_sha256", sha)
-                    .put("byte_size", zip.length()).put("verified_at", verifiedAt)
+                    .put("byte_size", size).put("verified_at", verifiedAt)
                     .put("verification_scope", "DOCUMENT_PROVIDER_READBACK")
                     .put("destination_location", "DOCUMENT_PROVIDER").put("external_storage_verified", false))
             store.putOwnerValue("pixel_backup_success", current.toString())
@@ -187,13 +194,10 @@ class PixelBackupService internal constructor(private val context: Context, priv
             }
             throw failure
         } finally {
-            RUNNING.remove(id)
-            work?.let { attempt ->
-                try {
-                    EncryptedBackupArchive.removeOwned(attempt)
-                } catch (_: IOException) {
-                    // Only this attempt is disposable; saved user files stay untouched.
-                }
+            synchronized(SAVE_LOCK) {
+                try { cleanupWorkLocked(context) }
+                catch (_: IOException) { /* Startup and the storage action retry orphan cleanup. */ }
+                finally { RUNNING.remove(id) }
             }
         }
     }

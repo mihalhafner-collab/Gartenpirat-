@@ -87,9 +87,14 @@ verschlüsselter Sicherungen. Keine Drive-API wird dadurch wieder eingeführt.
 ## Sicherungs- und Wiederherstellungsvertrag
 
 ZIP-Manifestformat1 und SQLite-Schema7 bleiben kompatibel. `PixelBackupService`
-verwendet die direkte Aufnahme über `LocalBackupDataset`, eine unverschlüsselte
-ZIP, technische Archivprüfung und vollständiges Rücklesen des gewählten
-Android-Dokuments. Drive ist ausschließlich ein durch den Android-Dateianbieter
+verwendet den konsistenten DB-Snapshot über `LocalBackupDataset.forStreaming`
+und streamt Originaldateien ohne lokale Vollkopie direkt in eine unverschlüsselte
+ZIP beim gewählten Android-Dokument. Größen-/SHA256-Prüfung pro Eintrag und
+vollständiges Zurücklesen des ZIP-Streams ersetzen `capture/`, lokales `backup.zip`
+und die komplette `verify/`-Entpackung im Sicherungsweg. Der Restoreleser behält
+seine notwendige isolierte Staging-/Rollback-Funktion. `local_backup` prüft
+verwaiste Arbeitsdateien, fehlende Medien-Vollkopien, Überschreiben desselben Ziels
+mit neuer Kennung sowie Wiederholung und Fehlerbereinigung. Drive ist ausschließlich ein durch den Android-Dateianbieter
 gewähltes Ziel oder eine ausdrücklich gewählte Restorequelle. Es gibt keine eigene
 Drive-Anmeldung, API, Berechtigung oder Geschäftsdaten-Synchronisierung.
 Kalenderfunktionen und ihre gesonderte Kontoauswahl bleiben erhalten.
