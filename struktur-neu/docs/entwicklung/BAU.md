@@ -533,3 +533,14 @@ Treffergrenzen, Android-Touchereignisse und Bilder werden zusammen ausgewertet.
 Suchen/Fertig muss die Eingabe beenden und Suchtext/Treffer erhalten. Nulltreffer,
 leere Suche, Seitenwechsel, Auswahlabbruch und die Rückkehr nach Activity-Neuerstellung
 gehören zu derselben synthetischen Compose-Suite.
+
+Zusätzlich prüft dieselbe Suite 16 fachliche Suchwege: Arbeitsverlauf, Angebote,
+Rechnungen, Planung, Geräte, Fotos, Leistungskatalog, Pflanzen, lokale Suche,
+Textbausteine, gleichnamige Kunden, Geräteauswahl, Planungsauswahl, Fotozuordnung,
+Angebotspositionen und Wartungstexte. Nulltreffer, IME-Aktion, erhaltener Suchtext,
+sichtbare Treffergrenzen und tatsächliche Touchauswahl werden zusammen geprüft.
+38 Einstiege ergänzen den Abgleich aller Bereiche und der Sonderseiten, darunter
+Einstellungen/Kalender/Sicherung bei 200 %. Verbindungen werden dabei nur gelesen,
+keine Kontofreigabe, produktive Sicherung oder Migration ausgelöst. Die
+ChatGPT-Zugangsdatenansicht behält `FLAG_SECURE`; für Screenshots wird dieser
+Schutz nicht aufgehoben.

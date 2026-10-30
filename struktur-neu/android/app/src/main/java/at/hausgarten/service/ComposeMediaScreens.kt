@@ -36,6 +36,8 @@ import coil3.request.ImageRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -117,21 +119,18 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
             val pageFlow = remember(repository, search, role, customerId, dateFrom, dateTo, orderId, worklogId, sessionId, offset, readRetry) {
                 repository.watchList("photos", search = search, customerId = customerId, offset = offset, limit = 40, role = role, dateFrom = dateFrom, dateTo = dateTo, orderId = orderId, worklogId = worklogId, sessionId = sessionId).catch { readFailure = mediaError(it) }
             }
-            val page by pageFlow.collectAsStateWithLifecycle(NativeListPage(emptyList(), 0, 0, 40))
+            val displayFlow = remember(pageFlow) { pageFlow.map<NativeListPage, NativeListPage?> { it }.onStart { readFailure = ""; emit(null) } }
+            val loadedPage by displayFlow.collectAsStateWithLifecycle(null)
+            val page = loadedPage ?: NativeListPage(emptyList(), 0, offset, 40)
+            val listLoading = loadedPage == null && readFailure.isEmpty()
             Column(Modifier.fillMaxSize()) {
                 if (!imeVisible) Text("Kundenfotos", Modifier.padding(horizontal = 16.dp, vertical = 8.dp), style = MaterialTheme.typography.headlineSmall)
                 if (readFailure.isNotEmpty()) { Text(readFailure, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error); TextButton(onClick = { readFailure = ""; readRetry++ }) { Text("Fotos erneut lesen") } }
                 NativeField("Fotos suchen", search, { search = it; offset = 0 }, search = true, modifier = Modifier.padding(horizontal = 16.dp))
-                Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(onClick = { filterOpen = true }) { Text("Filter") }
-                    Text("${page.total} Treffer", Modifier.weight(1f))
-                    if (search.isNotBlank() || customerId.isNotBlank() || role.isNotBlank() || dateFrom.isNotBlank() || dateTo.isNotBlank() || orderId.isNotBlank() || worklogId.isNotBlank() || sessionId.isNotBlank()) TextButton(onClick = {
-                        search = ""; customerId = ""; customerLabel = ""; role = ""; dateFrom = ""; dateTo = ""; orderId = ""; orderLabel = ""; worklogId = ""; worklogLabel = ""; sessionId = ""; offset = 0
-                    }) { Text("Zurücksetzen") }
-                }
+                NativeSearchSummary(if (listLoading) "Wird geladen …" else "${page.total} Treffer") { filterOpen = true }
                 val active = listOf(customerLabel, photoRoles[role].orEmpty(), dateFrom.takeIf { it.isNotBlank() }?.let { "Ab $it" }.orEmpty(), dateTo.takeIf { it.isNotBlank() }?.let { "Bis $it" }.orEmpty(), orderLabel, worklogLabel, if (sessionId.isNotBlank()) "Laufende Sitzung" else "").filter { it.isNotBlank() }
                 if (active.isNotEmpty() && !imeVisible) Text(active.joinToString(" · "), Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
-                if (page.rows.isEmpty()) Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Text("Keine Fotos für diese Auswahl.") }
+                if (page.rows.isEmpty()) Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { if (listLoading) CircularProgressIndicator() else if (readFailure.isEmpty()) Text("Keine Fotos für diese Auswahl.") }
                 else if (imeVisible) LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 12.dp)) {
                     items(page.rows, key = { it.id }) { row ->
                         ListItem(headlineContent = { Text(row.title) }, supportingContent = { Text(row.subtitle) },
@@ -148,8 +147,8 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                     }
                 }
                 MediaPagination(offset, page.rows.size, page.total, 40) { offset = it }
-                if (!imeVisible) Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    FilledTonalButton(onClick = { importContext = JSONObject().put("customer_id", customerId).put("order_id", orderId).put("worklog_id", worklogId).put("session_id", sessionId).toString(); importing = true }, Modifier.weight(1f)) { Text("Foto hinzufügen") }
+                if (!imeVisible) NativeActions {
+                    FilledTonalButton(onClick = { importContext = JSONObject().put("customer_id", customerId).put("order_id", orderId).put("worklog_id", worklogId).put("session_id", sessionId).toString(); importing = true }) { Text("Foto hinzufügen") }
                     TextButton(onClick = { archive = true }) { Text("Papierkorb") }
                     TextButton(onClick = { settings = true }) { Text("Qualität") }
                 }
@@ -158,10 +157,11 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                 Surface(shape = MaterialTheme.shapes.large) {
                     Column(Modifier.heightIn(max = 600.dp).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Fotos filtern", style = MaterialTheme.typography.titleLarge)
+                        TextButton({ search = ""; customerId = ""; customerLabel = ""; role = ""; dateFrom = ""; dateTo = ""; orderId = ""; orderLabel = ""; worklogId = ""; worklogLabel = ""; sessionId = ""; offset = 0 }) { Text("Zurücksetzen") }
                         MediaChoice("Kunde", customerLabel.ifBlank { "Alle Kunden" }, { picker = "customers" }, { customerId = ""; customerLabel = ""; offset = 0 })
                         MediaDropdown("Rolle", role, linkedMapOf("" to "Alle Rollen").apply { putAll(photoRoles) }) { role = it; offset = 0 }
-                        OutlinedTextField(dateFrom, { dateFrom = it; offset = 0 }, label = { Text("Von (JJJJ-MM-TT)") }, singleLine = true)
-                        OutlinedTextField(dateTo, { dateTo = it; offset = 0 }, label = { Text("Bis (JJJJ-MM-TT)") }, singleLine = true)
+                        NativeField("Von (JJJJ-MM-TT)", dateFrom, { dateFrom = it; offset = 0 })
+                        NativeField("Bis (JJJJ-MM-TT)", dateTo, { dateTo = it; offset = 0 })
                         MediaChoice("Auftrag", orderLabel.ifBlank { "Alle Aufträge" }, { picker = "orders" }, { orderId = ""; orderLabel = ""; offset = 0 })
                         MediaChoice("Arbeit", worklogLabel.ifBlank { "Alle Arbeiten" }, { picker = "worklogs" }, { worklogId = ""; worklogLabel = ""; offset = 0 })
                         val scope = rememberCoroutineScope()
@@ -172,7 +172,7 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
             }
             if (picker.isNotBlank()) MediaEntityPicker(picker, controller, customerId, dismiss = { picker = "" }) { row ->
                 when (picker) {
-                    "customers" -> { customerId = row.id; customerLabel = row.title; orderId = ""; orderLabel = ""; worklogId = ""; worklogLabel = "" }
+                    "customers" -> { customerId = row.id; customerLabel = listOf(row.title, row.address).filter { it.isNotBlank() }.joinToString(" · "); orderId = ""; orderLabel = ""; worklogId = ""; worklogLabel = "" }
                     "orders" -> { orderId = row.id; orderLabel = row.title }
                     "worklogs" -> { worklogId = row.id; worklogLabel = row.title }
                 }
@@ -286,9 +286,9 @@ private fun NativePhotoDetail(id: String, controller: NativeAppController, draft
             if (draftTouched) TextButton(enabled = !busy, onClick = { scope.launch { try { controller.removeDraft(draftKey); draftTouched = false; close() } catch (failure: Exception) { controller.message(mediaError(failure)) } } }) { Text("Änderungen verwerfen") }
             TextButton(enabled = !busy && pending.isBlank() && !restoreReview, onClick = { scope.launch { try { preview = controller.query("preview_delete", JSONObject().put("entity", "photo").put("entity_id", id)).put("request_id", mediaRequest()) } catch (failure: Exception) { controller.message(mediaError(failure)) } } }) { Text("In den Papierkorb") }
         }
-        Row(Modifier.fillMaxWidth().imePadding().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { leave() }, Modifier.weight(1f), enabled = !busy) { Text("Schließen") }
-            Button(enabled = photo != null && !busy && draftReady && !restoreReview, modifier = Modifier.weight(1f), onClick = {
+        NativeActions {
+            OutlinedButton(onClick = { leave() }, enabled = !busy) { Text("Schließen") }
+            Button(enabled = photo != null && !busy && draftReady && !restoreReview, onClick = {
                 scope.launch {
                     busy = true
                     try {
@@ -407,9 +407,9 @@ private fun NativePhotoImport(controller: NativeAppController, draftKeyOverride:
             }
             if (pending.isNotBlank()) Text("Die Speicherantwort ist noch unklar. Die unveränderte Aktion erneut prüfen.")
         }
-        Row(Modifier.fillMaxWidth().imePadding().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { leave() }, Modifier.weight(1f), enabled = !busy) { Text("Verwerfen") }
-            Button(enabled = !busy && draftReady && !restoreReview && selected.isNotBlank() && customer.isNotBlank(), modifier = Modifier.weight(1f), onClick = { scope.launch {
+        NativeActions {
+            OutlinedButton(onClick = { leave() }, enabled = !busy) { Text("Verwerfen") }
+            Button(enabled = !busy && draftReady && !restoreReview && selected.isNotBlank() && customer.isNotBlank(), onClick = { scope.launch {
                 busy = true
                 try {
                     if (pending.isBlank()) pending = JSONObject().put("_photo_request_id", mediaRequest()).put("customer_id", customer).put("caption", caption).put("role", role).put("customer_visible", visible).put("order_id", order).put("worklog_id", worklog).put("session_id", session).put("_capture_context", JSONObject(origin)).toString()
@@ -421,7 +421,7 @@ private fun NativePhotoImport(controller: NativeAppController, draftKeyOverride:
             } }) { Text(if (busy) "Speichert …" else if (pending.isNotBlank()) "Erneut prüfen" else "Speichern") }
         }
     }
-    if (picker.isNotBlank()) MediaEntityPicker(picker, controller, customer, dismiss = { picker = "" }) { row -> draftTouched = true; when (picker) { "customers" -> { customer = row.id; customerLabel = row.title; order = ""; orderLabel = ""; worklog = ""; workLabel = ""; session = "" }; "orders" -> { order = row.id; orderLabel = row.title; session = "" }; else -> { worklog = row.id; workLabel = row.title; session = "" } }; picker = "" }
+    if (picker.isNotBlank()) MediaEntityPicker(picker, controller, customer, dismiss = { picker = "" }) { row -> draftTouched = true; when (picker) { "customers" -> { customer = row.id; customerLabel = listOf(row.title, row.address).filter { it.isNotBlank() }.joinToString(" · "); order = ""; orderLabel = ""; worklog = ""; workLabel = ""; session = "" }; "orders" -> { order = row.id; orderLabel = row.title; session = "" }; else -> { worklog = row.id; workLabel = row.title; session = "" } }; picker = "" }
     if (confirmDiscard) AlertDialog(onDismissRequest = { confirmDiscard = false }, title = { Text("Fotoauswahl verwerfen?") }, text = { Text(if (pending.isBlank()) "Die Auswahl und ihre Eingaben werden geschlossen." else "Eine unklare Speicherung zuerst erneut prüfen. Ein bereits gespeichertes Foto bleibt erhalten.") }, confirmButton = { TextButton(onClick = { scope.launch { try { controller.removeDraft(draftKey); withContext(Dispatchers.IO) { runCatching { PhotoCaptureProvider.release(controller.context, Uri.parse(selected)) } }; selected = ""; pending = ""; draftTouched = false; confirmDiscard = false; close() } catch (failure: Exception) { controller.message(mediaError(failure)) } } }) { Text("Auswahl verwerfen") } }, dismissButton = { TextButton(onClick = { confirmDiscard = false }) { Text("Weiter bearbeiten") } })
 }
 
@@ -500,11 +500,7 @@ private fun NativePlantLibrary(initialId: String, controller: NativeAppControlle
     Column(Modifier.fillMaxSize()) {
         if (!imeVisible) Text("Pflanzenbibliothek", Modifier.padding(16.dp), style = MaterialTheme.typography.headlineSmall)
         NativeField("Name, botanischer Name oder Familie", search, { search = it; limit = 40 }, search = true, modifier = Modifier.padding(horizontal = 16.dp))
-        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = { filters = true }) { Text("Filter") }
-            Text("${filtered.size} Treffer", Modifier.weight(1f))
-            if (search.isNotBlank() || category.isNotBlank() || light.isNotBlank() || neophyte.isNotBlank()) TextButton(onClick = { search = ""; category = ""; light = ""; neophyte = ""; limit = 40 }) { Text("Zurücksetzen") }
-        }
+        NativeSearchSummary("${filtered.size} Treffer") { filters = true }
         val filterLabel = listOf(category, light, when(neophyte) { "all" -> "Neophyten"; "established" -> "Etabliert"; "invasive" -> "Invasiv"; "union" -> "EU-Unionsliste"; else -> "" }).filter { it.isNotBlank() }.joinToString(" · ")
         if (filterLabel.isNotBlank() && !imeVisible) Text(filterLabel, Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
         if (error.isNotBlank()) Text(error, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
@@ -533,6 +529,7 @@ private fun NativePlantLibrary(initialId: String, controller: NativeAppControlle
     if (filters) Dialog(onDismissRequest = { filters = false }) { Surface(shape = MaterialTheme.shapes.large) {
         Column(Modifier.heightIn(max = 560.dp).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("Pflanzen filtern", style = MaterialTheme.typography.titleLarge)
+            TextButton({ search = ""; category = ""; light = ""; neophyte = ""; limit = 40 }) { Text("Zurücksetzen") }
             MediaDropdown("Gruppe", category, linkedMapOf("" to "Alle Gruppen").apply { plants.map { it.optString("category") }.distinct().sorted().forEach { put(it, it) } }) { category = it; limit = 40 }
             MediaDropdown("Standort", light, linkedMapOf("" to "Alle Standorte", "Sonne" to "Sonne", "Halbschatten" to "Halbschatten", "Schatten" to "Schatten")) { light = it; limit = 40 }
             MediaDropdown("Status", neophyte, linkedMapOf("" to "Alle Pflanzen", "all" to "Alle erfassten Neophyten", "established" to "Etabliert / lokal etabliert", "invasive" to "Invasiv eingestuft", "union" to "EU-Unionsliste")) { neophyte = it; limit = 40 }

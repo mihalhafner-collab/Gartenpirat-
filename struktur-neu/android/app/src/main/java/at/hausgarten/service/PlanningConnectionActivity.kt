@@ -65,11 +65,9 @@ class PlanningConnectionActivity : ComponentActivity() {
                 Scaffold(
                     modifier = Modifier.safeDrawingPadding().imePadding(),
                     bottomBar = {
-                        Surface(tonalElevation = 3.dp) {
-                            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                OutlinedButton(onClick = { finish() }, modifier = Modifier.weight(1f)) { Text("Zurück") }
-                                Button(onClick = { calendarPrimary() }, enabled = loaded && !working, modifier = Modifier.weight(2f)) { Text(presentation.action) }
-                            }
+                        NativeActions {
+                                OutlinedButton(onClick = { onBackPressedDispatcher.onBackPressed() }) { Text("Zurück") }
+                                Button(onClick = { calendarPrimary() }, enabled = loaded && !working) { Text(presentation.action) }
                         }
                     }
                 ) { insets ->
@@ -125,12 +123,12 @@ class PlanningConnectionActivity : ComponentActivity() {
                                 Text("Arbeitszeiten für Terminvorschläge")
                                 val labels = arrayOf("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag")
                                 for (i in labels.indices) Toggle(labels[i], days.getOrElse(i) { false }) { days[i] = it }
-                                OutlinedTextField(from, { from = it }, label = { Text("Arbeitsbeginn (HH:mm)") }, singleLine = true, enabled = !working, modifier = Modifier.fillMaxWidth())
-                                OutlinedTextField(to, { to = it }, label = { Text("Arbeitsende (HH:mm)") }, singleLine = true, enabled = !working, modifier = Modifier.fillMaxWidth())
-                                OutlinedTextField(travel, { travel = it }, label = { Text("Anfahrtpuffer in Minuten") }, singleLine = true, enabled = !working, modifier = Modifier.fillMaxWidth())
+                                NativeField("Arbeitsbeginn (HH:mm)", from, { from = it }, enabled = !working)
+                                NativeField("Arbeitsende (HH:mm)", to, { to = it }, enabled = !working)
+                                NativeField("Anfahrtpuffer in Minuten", travel, { travel = it }, enabled = !working)
                                 Text("Betriebliche Wetterschwellen für Hinweise; keine Sicherheitsfreigabe. Fehlende Wetterdaten bleiben unbekannt.")
                                 for ((key, label) in arrayOf("rain_mm" to "Regen mm/h", "rain_probability" to "Regenwahrscheinlichkeit %", "gust_kmh" to "Böen km/h", "frost_c" to "Frost °C", "heat_c" to "Hitze °C"))
-                                    OutlinedTextField(thresholds[key] ?: "", { thresholds[key] = it }, label = { Text(label) }, singleLine = true, enabled = !working, modifier = Modifier.fillMaxWidth())
+                                    NativeField(label, thresholds[key] ?: "", { thresholds[key] = it }, enabled = !working)
                                 Action("Arbeitszeiten und Wettergrenzen speichern") { saveAdvanced() }
                             }
                         }

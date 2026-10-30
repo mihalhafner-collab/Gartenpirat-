@@ -21,6 +21,8 @@ import java.time.ZoneId
 import java.util.UUID
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.catch
 import org.json.JSONArray
 import org.json.JSONObject
@@ -244,10 +246,13 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
             search = query, status = status, customerId = customer, offset = offset, limit = 50, includeInactive = section=="catalog")
             .catch { failure -> error = failure.message ?: "Liste konnte nicht gelesen werden." }
     }
-    val page by source.collectAsStateWithLifecycle(NativeListPage(emptyList(), 0, offset, 50))
+    val displayFlow = remember(source) { source.map<NativeListPage, NativeListPage?> { it }.onStart { error = ""; emit(null) } }
+    val loadedPage by displayFlow.collectAsStateWithLifecycle(null)
+    val page = loadedPage ?: NativeListPage(emptyList(), 0, offset, 50)
+    val listLoading = loadedPage == null && error.isEmpty()
     Column(Modifier.fillMaxSize()) {
         NativeField(if(section == "catalog") "Bausteine suchen" else "Suchen", query, { query = it; offset = 0 }, modifier = Modifier.padding(horizontal = 16.dp))
-        NativeSearchSummary("${page.total} Treffer · ${page.rows.size} auf dieser Seite", if (section == "catalog") null else ({ filtersOpen = !filtersOpen }))
+        NativeSearchSummary(if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.rows.size} auf dieser Seite", if (section == "catalog") null else ({ filtersOpen = !filtersOpen }))
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (!imeVisible) item { NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer), if (section == "invoices") "Rechnungsempfänger" else "Kunde") }
         if (filtersOpen && !imeVisible) item {
@@ -258,7 +263,8 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
         }
         if (!imeVisible && (customer.isNotEmpty() || status.isNotEmpty() || query.isNotEmpty())) item { TextButton(onClick = { customer="";status="";query="";offset=0 }) { Text("Filter und Suche zurücksetzen") } }
         if(error.isNotEmpty()) item { Text(error, color=MaterialTheme.colorScheme.error) }
-        if (page.rows.isEmpty() && error.isEmpty()) item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
+        if (listLoading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+        if (!listLoading && page.rows.isEmpty() && error.isEmpty()) item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
         items(page.rows, key = { it.id }) { row -> OutlinedCard(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { controller.navigate(section, row.id, args = JSONObject(controller.route.args.toString()).put("customer_id", customer)) }) {
             Column(Modifier.padding(12.dp), verticalArrangement=Arrangement.spacedBy(5.dp)) {
                 Text(if (section == "invoices" && row.title.startsWith("Entwurf-")) "Rechnungsentwurf" else row.title, style=MaterialTheme.typography.titleMedium)

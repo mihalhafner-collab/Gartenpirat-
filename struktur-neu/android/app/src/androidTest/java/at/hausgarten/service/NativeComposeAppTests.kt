@@ -51,6 +51,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private var officeMeasurements = JSONObject()
     private val searchMatrix = JSONArray()
     private val domainSearchCases = JSONArray()
+    private val surfaceCases = JSONArray()
 
     private fun yes(value: Boolean, code: String) {
         if (!value) throw AssertionError("QA_NATIVE_COMPOSE_$code")
@@ -320,6 +321,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("office_opening", ::officeOpeningMeasurements)
             journey("search_keyboard", ::searchKeyboardJourney)
             journey("domain_search", ::domainSearchJourney)
+            journey("surfaces", ::surfaceJourney)
             journey("large_text", ::largeTextJourney)
             if (failures.isNotEmpty()) {
                 val failure = AssertionError("QA_NATIVE_COMPOSE_JOURNEYS_FAILED_${failures.size}")
@@ -334,7 +336,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("draft_write_failure_recovery", true)
                 .put("work_entry_usability", true).put("work_photo_retention", true)
                 .put("machine_accessory_roundtrip", true).put("decimal_comma_inputs", true)
-                .put("work_ime_actions", true).put("search_keyboard_matrix", searchMatrix).put("domain_search_cases", domainSearchCases).put("office_opening", officeMeasurements)
+                .put("work_ime_actions", true).put("search_keyboard_matrix", searchMatrix).put("domain_search_cases", domainSearchCases).put("surface_cases", surfaceCases).put("office_opening", officeMeasurements)
                 .put("drive_account_tested", false).put("physical_pixel_tested", false)
         } finally {
             shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
@@ -1211,6 +1213,81 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
         if (failures.isNotEmpty()) { val failure = AssertionError("DOMAIN_SEARCH_${failures.size}_FAILED"); failures.forEach(failure::addSuppressed); throw failure }
         yes(domainSearchCases.length() == 16, "ALL_DOMAIN_SEARCH_PATHS")
+    }
+
+    /** Read-only route acceptance complements the mutating domain journeys above. */
+    private fun surfaceJourney() {
+        val failures = ArrayList<Throwable>()
+        fun case(key: String, ready: String, screenshot: Boolean = false, body: () -> Unit) {
+            try {
+                activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
+                body(); reveal(ready)
+                yes(!keyboardVisible(), "SURFACE_NO_UNREQUESTED_IME_$key")
+                // Readable labels and actual actionable bounds are separate checks.
+                val target = node(ready)?.let(::clickable)
+                if (target != null) visibleResult(ready)
+                if (screenshot) captureSyntheticScreen("surface-$key")
+                surfaceCases.put(JSONObject().put("surface", key).put("ready", ready).put("no_auto_ime", true))
+            } catch (failure: Throwable) {
+                runCatching { captureSyntheticScreen("failure-surface-$key") }
+                failures.add(AssertionError("SURFACE_$key", failure))
+            }
+        }
+        fun settings() { click("Büro"); click("Einstellungen") }
+        fun planning() { click("Büro"); click("Planung") }
+        fun billing() { click("Büro"); click("Abrechnung") }
+        case("today", "Arbeit beginnen", true) { }
+        case("work", "Arbeitsentwürfe") { click("Arbeit") }
+        case("timer", "Zeiterfassung") { click("Arbeit beginnen") }
+        case("customers", "Kunde anlegen") { click("Kunden") }
+        case("office", "Kunden und Aufträge ▾", true) { click("Büro") }
+        case("properties", "Objekt anlegen") { openOfficeGroup("Kunden und Aufträge", "Objekte") }
+        case("inquiries", "Anfrage anlegen") { openOfficeGroup("Kunden und Aufträge", "Anfragen") }
+        case("orders", "Auftrag anlegen") { openOfficeGroup("Kunden und Aufträge", "Aufträge") }
+        case("care-plans", "Pflegeplan anlegen") { openOfficeGroup("Kunden und Aufträge", "Pflegepläne") }
+        case("planning", "Einsatz planen", true) { planning() }
+        case("visits", "Einsatz anlegen") { planning(); click("Einsätze") }
+        case("tour", "Datum öffnen") { planning(); click("Tagestour") }
+        case("weather", "Termine") { planning(); click("Wetterhinweise") }
+        case("billing", "Arbeiten abrechnen", true) { billing() }
+        case("offers", "Neues Angebot / Kostenvoranschlag") { billing(); click("Angebote") }
+        case("invoices", "Neuer Rechnungsentwurf") { billing(); click("Rechnungen") }
+        case("payments", "Zahlungen") { billing(); click("Zahlungen und Guthaben") }
+        case("equipment", "Gerät anlegen") { click("Büro"); click("Maschinenpark und Gerätewartung") }
+        case("accessories", "Zubehör bearbeiten", true) {
+            click("Büro"); click("Maschinenpark und Gerätewartung"); enter("Suchen", "QA Zubehör Säge"); click("[TEST] QA Zubehör Säge"); click("Zubehör")
+        }
+        case("maintenance", "Wartung einrichten") {
+            click("Büro"); click("Maschinenpark und Gerätewartung"); enter("Suchen", "QA Zubehör Säge"); click("[TEST] QA Zubehör Säge")
+        }
+        case("materials", "Material anlegen") { openOfficeGroup("Material und Wissen", "Material") }
+        case("photos", "Foto hinzufügen") { openOfficeGroup("Material und Wissen", "Fotos") }
+        case("plants", "Pflanzen") { openOfficeGroup("Material und Wissen", "Pflanzen") }
+        case("catalog", "Neuer Leistungsbaustein") { openOfficeGroup("Material und Wissen", "Leistungskatalog") }
+        case("drafts", "Bereich: Alle Entwürfe") { openOfficeGroup("Weitere Verwaltung", "Entwürfe") }
+        case("restored-drafts", "Übernommene Formularstände prüfen") {
+            openOfficeGroup("Weitere Verwaltung", "Entwürfe"); click("Formular- und Medienauswahl prüfen")
+        }
+        case("local-search", "Suchtext eingeben") { openOfficeGroup("Weitere Verwaltung", "Lokale Suche") }
+        case("archive", "Art: Alle Arten") { openOfficeGroup("Weitere Verwaltung", "Revier-Archiv") }
+        case("trash", "Papierkorb leeren prüfen") { openOfficeGroup("Weitere Verwaltung", "Papierkorb") }
+        case("local-actions", "ZIP-Sicherung öffnen") { openOfficeGroup("Weitere Verwaltung", "Lokale Vorgänge") }
+        case("settings", "Tätigkeit, Einsatzort und Fotoqualität", true) { settings() }
+        case("connections", "Private MCP-Verbindung") { settings(); click("Weitere Einstellungen und Prüfungen"); click("Verbindungen") }
+        case("calendar", "Verbinden", true) { settings(); click("Kalender und Wetter verbinden") }
+        // FLAG_SECURE remains enabled; do not weaken credential screens for screenshots.
+        case("chatgpt", "Erweitert / Diagnose · Einrichtung und Rechte") { settings(); click("ChatGPT-Verbindung") }
+        case("backup", "Sicherung speichern", true) { settings(); click("Sicherung und Wiederherstellung") }
+        val oldFont = shell("settings get system font_scale")
+        try {
+            shell("settings put system font_scale 2.0")
+            case("settings-200", "Tätigkeit, Einsatzort und Fotoqualität", true) { settings() }
+            case("calendar-200", "Verbinden", true) { settings(); click("Kalender und Wetter verbinden") }
+            case("backup-200", "Sicherung speichern", true) { settings(); click("Sicherung und Wiederherstellung") }
+        } finally { shell("settings put system font_scale $oldFont") }
+        activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
+        if (failures.isNotEmpty()) { val failure = AssertionError("SURFACES_${failures.size}_FAILED"); failures.forEach(failure::addSuppressed); throw failure }
+        yes(surfaceCases.length() == 38, "ALL_SURFACES_REACHABLE")
     }
 
     private fun largeTextJourney() {

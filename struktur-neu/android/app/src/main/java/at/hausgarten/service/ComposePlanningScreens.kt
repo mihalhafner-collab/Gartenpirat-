@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -114,11 +116,14 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
     val day = runCatching { LocalDate.parse(anchor) }.getOrDefault(planningDay())
     val from = if (week) day.minusDays((day.dayOfWeek.value - 1).toLong()) else day
     val to = if (week) from.plusDays(6) else day
-    val flow = remember(search, status, customer, offset, from, to) { repository.watchList("appointments", search = search, status = status, customerId = customer, offset = offset, limit = 50, dateFrom = from.toString(), dateTo = to.toString(), orderId = controller.route.args.optString("order_id"), chronological = true) }
-    val page by flow.collectAsStateWithLifecycle(NativeListPage(emptyList(), 0, offset, 50))
+    var failure by remember { mutableStateOf("") }
+    val flow = remember(search, status, customer, offset, from, to, refresh) { repository.watchList("appointments", search = search, status = status, customerId = customer, offset = offset, limit = 50, dateFrom = from.toString(), dateTo = to.toString(), orderId = controller.route.args.optString("order_id"), chronological = true).catch { failure = it.message ?: "Termine nicht lesbar." }
+    val displayFlow = remember(flow) { flow.map<NativeListPage, NativeListPage?> { it }.onStart { failure = ""; emit(null) } }
+    val loadedPage by displayFlow.collectAsStateWithLifecycle(null)
+    val page = loadedPage ?: NativeListPage(emptyList(), 0, offset, 50)
+    val listLoading = loadedPage == null && failure.isEmpty()
     val scope = rememberCoroutineScope()
     var busy by remember { mutableStateOf(false) }
-    var failure by remember { mutableStateOf("") }
     LaunchedEffect(refresh, from, to, weatherView) {
         try {
             context = controller.query(if (weatherView) "get_workweek_weather" else "get_planning_settings", if (weatherView) JSONObject().put("date_from", from.toString()).put("date_to", to.toString()) else JSONObject())
@@ -129,7 +134,7 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
     val risks = remember(context?.toString()) { context?.optJSONArray("appointments")?.planningRows()?.associateBy { it.getJSONObject("appointment").optString("id") }.orEmpty() }
     Column(Modifier.fillMaxSize()) {
         NativeField("Suche", search, { search = it; offset = 0 }, search = true, modifier = Modifier.padding(horizontal = 16.dp))
-        NativeSearchSummary("${page.total} Treffer · ${page.rows.size} auf dieser Seite") { filtersOpen = !filtersOpen }
+        NativeSearchSummary(if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.rows.size} auf dieser Seite") { filtersOpen = !filtersOpen }
         if (!imeVisible) Text(if (from == to) from.toString() else "$from – $to", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
           if (!imeVisible) item {
@@ -167,7 +172,8 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
             if (weatherView) Text("Wetter optional · gewerbliche API-Nutzung ungeklärt. Fehlende oder veraltete Wetterdaten bleiben unbekannt. Ein Wetterhinweis verschiebt keinen Termin.")
           } }
             if (failure.isNotEmpty()) item { Text(failure, color = MaterialTheme.colorScheme.error) }
-            if (page.rows.isEmpty()) item { Text("Keine Termine in diesem Zeitraum. Zeitraum und Filter prüfen.") }
+            if (listLoading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+            if (!listLoading && failure.isEmpty() && page.rows.isEmpty()) item { Text("Keine Termine in diesem Zeitraum. Zeitraum und Filter prüfen.") }
             items(page.rows.sortedBy { it.workDate }, key = { it.id }) { row ->
                 OutlinedCard(Modifier.fillMaxWidth().clickable { onSelect(row.id) }) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {

@@ -54,7 +54,9 @@
       "Work list includes timer state and scoped drafts; billing overview links existing invoice drafts, invoices, payments and scoped drafts; planning combines appointments/visits/tour/weather; settings groups connections/backup/diagnosis",
       "Chronological display option selects upcoming appointments before page limiting; historical lists retain original descending default; no change to database schema or authoritative business records",
       "Stage5: search selection covers actual domain dialogs and IME actions; duplicate customers retain address after selection; photo import uses current local filters; related record pickers reuse known customer context",
-      "Corrected confirmed 200-percent result-count squeeze, retained overview click through button semantics with explicit selected state, added landscape side navigation and side-by-side IME search/results without shrinking text"
+      "Corrected confirmed 200-percent result-count squeeze, retained overview click through button semantics with explicit selected state, added landscape side navigation and side-by-side IME search/results without shrinking text",
+      "Shared wrapping action rows also cover photo import/details, device details, tour and calendar connection; compact accessible back icon preserves page-title width",
+      "Loading lists distinguish pending queries from zero matches; shared short filter action dismisses IME;38 read-only surface entry checks include settings/calendar/backup at200percent"
     ],
     "kiss_yagni": "Reuse route arguments, SQL filters, Compose state and Material buttons. No new database, dependency, architecture or filter profiles. Separate navigation area only for action/recreation; a replacement navigation framework is unnecessary.",
     "stages": [
@@ -80,9 +82,9 @@
       }
     ],
     "remaining": [
-      "Actual keyboard/visible-touch acceptance for every search and twelve display cases",
-      "Complete synthetic surface navigation and regression acceptance",
-      "Resolve CI failures, inspect screenshots, update exact evidence and save final readback"
+      "Resolve current CI failures and visually inspect actual keyboard screenshots",
+      "Run complete38surface/16domain/12display acceptance and existing business regressions",
+      "Update final evidence and source fingerprint;final GitHub readback"
     ]
   },
   "open_checks": [
@@ -131,8 +133,8 @@
       "business_data_read": false,
       "pixel_installation_performed": false,
       "stage3": "CI41075726848 source/build/lint/JVM/7 native suites PASS;Compose FAIL5 journeys (known navigation, candidate/orientation test and large-font layout)",
-      "stage4": "GitHub7fef9abc69c9a0f635d114d7181f7a680b3e1e05;15 blobs readback PASS;CI41077739265 build/lint/JVM PASS;native running",
-      "stage5": "Corrections and16domain searches plus12display cases authored;execution pending;no matrix PASS claimed"
+      "stage4": "CI41077739265 source/build/lint/JVM/7native suites PASS;Compose known5journey failures;corrected in next checkpoint",
+      "stage5": "GitHub21b684c932886e8520c914be7236ec89e3357c9f;13blobs readback PASS;CI41081046364 running. Additional surface checks and action/loading consistency pending next run."
     },
     "performance_evidence": "docs/verification/performance-current.md;Build120 emulator and historical Pixel119 separate",
     "connector": {

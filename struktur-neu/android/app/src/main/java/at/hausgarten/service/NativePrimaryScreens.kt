@@ -28,6 +28,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import org.json.JSONArray
@@ -74,7 +76,7 @@ internal fun NativeApplication(controller: NativeAppController) {
         topBar = {
             if (!imeVisible) Column(Modifier.statusBarsPadding()) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                    if (reviewChecked && controller.canGoBack() && route.section != "restore_review") TextButton({ controller.requestBack() }) { Text("‹ Zurück") }
+                    if (reviewChecked && controller.canGoBack() && route.section != "restore_review") NativeBackButton { controller.requestBack() }
                     Text((if (route.section in listOf("office", "more")) "Büro" else nativeSections[route.section]) ?: if (route.section == "restore_review") "Wiederhergestellte Entwürfe" else "Haus & Garten", Modifier.weight(1f).padding(12.dp), style = MaterialTheme.typography.titleLarge)
                 }
                 if (notice.isNotBlank()) Text(notice, Modifier.padding(horizontal = 16.dp, vertical = 6.dp), style = MaterialTheme.typography.bodySmall)
@@ -339,9 +341,9 @@ private fun NativeToday(controller: NativeAppController) {
             }
             item { TextButton({ scope.launch { refresh() } }) { Text("Aktualisieren") } }
         }
-        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton({ controller.navigate("worklogs", mode = "new") }, Modifier.weight(1f)) { Text("Arbeit erfassen") }
-            Button({ controller.navigate("timer") }, Modifier.weight(1f)) { Text(if (session?.optString("state", "IDLE") in listOf(null, "IDLE")) "Arbeit beginnen" else "Laufende Arbeit öffnen") }
+        NativeActions {
+            OutlinedButton({ controller.navigate("worklogs", mode = "new") }) { Text("Arbeit erfassen") }
+            Button({ controller.navigate("timer") }) { Text(if (session?.optString("state", "IDLE") in listOf(null, "IDLE")) "Arbeit beginnen" else "Laufende Arbeit öffnen") }
         }
     }
 }
@@ -382,20 +384,26 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
     LaunchedEffect(controller.customerListEntry) {
         if (collection == "customers" && seenCustomerEntry != controller.customerListEntry) { offset = 0; listState.scrollToItem(0); seenCustomerEntry = controller.customerListEntry }
     }
-    val flow = remember(collection, search, status, customer, billing, inactive, from, to, offset) { controller.store.nativeData().watchList(collection, search = search, status = status, customerId = customer, billingType = billing, includeInactive = inactive, offset = offset, limit = 50, dateFrom = from, dateTo = to).nativeErrors(controller) }
-    val page by flow.collectAsStateWithLifecycle(NativeListPage(emptyList(), 0, offset, 50))
+    var listFailure by remember { mutableStateOf("") }
+    val flow = remember(collection, search, status, customer, billing, inactive, from, to, offset) { controller.store.nativeData().watchList(collection, search = search, status = status, customerId = customer, billingType = billing, includeInactive = inactive, offset = offset, limit = 50, dateFrom = from, dateTo = to).catch { listFailure = it.message ?: "Liste nicht lesbar. Bitte erneut öffnen." } }
+    val displayFlow = remember(flow) { flow.map<NativeListPage, NativeListPage?> { it }.onStart { listFailure = ""; emit(null) } }
+    val loadedPage by displayFlow.collectAsStateWithLifecycle(null)
+    val page = loadedPage ?: NativeListPage(emptyList(), 0, offset, 50)
+    val listLoading = loadedPage == null && listFailure.isEmpty()
     val scope = rememberCoroutineScope()
     Column(Modifier.fillMaxSize()) {
         NativeField("Suchen", search, { search = it; offset = 0 }, modifier = Modifier.padding(horizontal = 16.dp))
-        NativeSearchSummary("${page.total} Treffer · ${page.offset + if (page.rows.isEmpty()) 0 else 1}–${page.offset + page.rows.size}") { filtersOpen = !filtersOpen }
+        NativeSearchSummary(if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.offset + if (page.rows.isEmpty()) 0 else 1}–${page.offset + page.rows.size}") { filtersOpen = !filtersOpen }
         LazyColumn(Modifier.weight(1f).padding(horizontal = 16.dp), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (listLoading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+        if (listFailure.isNotEmpty()) item { Text(listFailure, color = MaterialTheme.colorScheme.error) }
         if (!imeVisible && collection != "customers") item {
             NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer).put("date_from", from).put("date_to", to))
         }
         if (!imeVisible && collection == "worklogs") item { NativeWorkOverview(controller) }
         if (filtersOpen && !imeVisible) item {
             if (collection == "customers") {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Archivierte Kunden einbeziehen"); Switch(inactive, { inactive = it; offset = 0 }) }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Archivierte Kunden einbeziehen", Modifier.weight(1f)); Switch(inactive, { inactive = it; offset = 0 }) }
                 NativeChoice("Abrechnungsweg", billing, listOf("" to "Alle", "direct" to "Kunde selbst", "via_customer" to "Anderer Rechnungsempfänger"), { billing = it; offset = 0 })
             } else {
                 NativeRecordPicker(controller, "customers", "Kunde", customer, onValueChange = { customer = it; offset = 0 })
@@ -417,7 +425,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                 }
             }
         }
-        if (page.rows.isEmpty()) item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
+        if (!listLoading && listFailure.isEmpty() && page.rows.isEmpty()) item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
         item { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { if (offset > 0) OutlinedButton({ offset = maxOf(0, offset - 50) }) { Text("Vorherige 50") }; if (page.hasMore) OutlinedButton({ offset += 50 }) { Text("Weitere 50") } } }
         if (collection == "worklogs" && selected.isNotEmpty()) item {
             Button({ scope.launch {
@@ -880,7 +888,7 @@ private fun NativeTrash(controller: NativeAppController) {
     LaunchedEffect(offset, refresh) { try { data = controller.query("list_archive", JSONObject().put("offset", offset).put("limit", 40)); error = "" } catch (failure: Exception) { error = failure.message.orEmpty() } }
     val rows = data?.optJSONArray("items") ?: data?.optJSONArray("archive") ?: data?.optJSONArray("entries") ?: JSONArray()
     LazyColumn(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        item { Text("Papierkorb", style = MaterialTheme.typography.headlineSmall); if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error) }
+        item { if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error) else if (data == null) LinearProgressIndicator(Modifier.fillMaxWidth()) else if (rows.length() == 0) Text("Der Papierkorb ist leer.") }
         items((0 until rows.length()).map { rows.getJSONObject(it) }) { row ->
             Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp)) {
                 NativeBusinessValues(row)

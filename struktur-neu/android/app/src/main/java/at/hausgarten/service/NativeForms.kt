@@ -41,7 +41,7 @@ import java.util.UUID
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-internal fun NativeField(label: String, value: String, onValueChange: (String) -> Unit, required: Boolean = false, multiline: Boolean = false, search: Boolean = false, modifier: Modifier = Modifier, onSearch: (() -> Unit)? = null) {
+internal fun NativeField(label: String, value: String, onValueChange: (String) -> Unit, required: Boolean = false, multiline: Boolean = false, search: Boolean = false, modifier: Modifier = Modifier, onSearch: (() -> Unit)? = null, enabled: Boolean = true) {
     val keyboard = LocalSoftwareKeyboardController.current
     val focus = LocalFocusManager.current
     val searching = search || label in listOf("Suchen", "Suche", "Bausteine suchen", "Text suchen", "Vorschläge durchsuchen")
@@ -50,7 +50,7 @@ internal fun NativeField(label: String, value: String, onValueChange: (String) -
     OutlinedTextField(value, onValueChange, modifier.fillMaxWidth().semantics {
         testTagsAsResourceId = true; testTag = "native-field:$displayedLabel"
     }, label = { Text(displayedLabel) },
-        singleLine = !multiline, minLines = if (multiline) 3 else 1,
+        enabled = enabled, singleLine = !multiline, minLines = if (multiline) 3 else 1,
         keyboardOptions = KeyboardOptions(imeAction = if (multiline) ImeAction.Default else if (searching) ImeAction.Search else ImeAction.Done),
         keyboardActions = KeyboardActions(onSearch = { finish(); onSearch?.invoke() }, onDone = { finish() }))
 }

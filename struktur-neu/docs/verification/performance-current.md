@@ -448,3 +448,11 @@ Die neue Prüfung verlangt weiterhin reale Fenstergrenzen und Touchauswahl.
 Die ergänzten 16 fachlichen Suchfälle und zwölf Darstellungskombinationen sind
 noch nicht bestanden; Screenshots aus einem geschlossenen Tastaturzustand sind
 kein Nachweis für sichtbare Treffer bei geöffneter Tastatur.
+
+Die Aktionsleisten für Fotoimport/-details, Tour, Geräte und Kalender verwenden
+denselben umbrechenden Baustein. Der Zurück-Pfeil besitzt eine beschriftete
+48-dp-Tastfläche; lange Seitentitel behalten ihre Schriftgröße. Noch laufende
+Listenabfragen sind von Nulltreffern getrennt. Der gemeinsame Filterknopf beendet
+die Tastatureingabe, bevor er die Filter zeigt. Die zusätzlichen 38 Einstiegsfälle
+prüfen sämtliche Bereiche und lesen Sonderseiten ohne Verbindungs-, Übernahme-
+oder Wiederherstellungsaktion. Die Ausführung und Screenshotprüfung stehen aus.

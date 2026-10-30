@@ -10,7 +10,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -68,9 +72,25 @@ internal fun NativeActions(content: @Composable FlowRowScope.() -> Unit) {
 @Composable
 internal fun NativeSearchSummary(count: String, onFilters: (() -> Unit)? = null) {
     val compact = LocalDensity.current.fontScale > 1.3f
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focus = LocalFocusManager.current
     FlowRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
         Text(if (compact) count.substringBefore(" ·") else count, Modifier.padding(vertical = 12.dp), style = MaterialTheme.typography.labelLarge)
-        if (onFilters != null) TextButton(onFilters) { Text("Filter") }
+        if (onFilters != null) TextButton({ keyboard?.hide(); focus.clearFocus(); onFilters() }) { Text("Filter") }
+    }
+}
+
+/** Fixed touch target leaves the full page title room at large font sizes. */
+@Composable
+internal fun NativeBackButton(onBack: () -> Unit) {
+    val color = MaterialTheme.colorScheme.onSurface
+    IconButton(onBack, Modifier.semantics { contentDescription = "‹ Zurück" }) {
+        Canvas(Modifier.size(24.dp)) {
+            val unit = size.minDimension / 24f
+            drawLine(color, Offset(20*unit,12*unit), Offset(4*unit,12*unit), 2*unit)
+            drawLine(color, Offset(4*unit,12*unit), Offset(11*unit,5*unit), 2*unit)
+            drawLine(color, Offset(4*unit,12*unit), Offset(11*unit,19*unit), 2*unit)
+        }
     }
 }
 
@@ -126,7 +146,7 @@ fun ComponentActivity.nativeContent(title: String, showBack: Boolean = true, act
                 Column(Modifier.safeDrawingPadding().imePadding()) {
                     if (!WindowInsets.isImeVisible) {
                         Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            if (showBack) TextButton({ onBackPressedDispatcher.onBackPressed() }) { Text("‹ Zurück") }
+                            if (showBack) NativeBackButton { onBackPressedDispatcher.onBackPressed() }
                             Text(title, Modifier.weight(1f).padding(8.dp), style = MaterialTheme.typography.titleLarge)
                         }
                         HorizontalDivider()

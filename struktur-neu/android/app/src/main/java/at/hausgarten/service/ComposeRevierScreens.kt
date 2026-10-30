@@ -24,6 +24,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -185,10 +187,13 @@ private fun RevierList(config: RevierSection, controller: NativeAppController, r
     val source = remember(config.collection, query, status, archived, offset, retry) {
         repository.watchList(config.collection, search = query, status = status, offset = offset, limit = 50, includeInactive = archived, customerId = controller.route.args.optString("customer_id"), propertyId = controller.route.args.optString("property_id"), orderId = controller.route.args.optString("order_id"), dateFrom = controller.route.args.optString("date_from"), dateTo = controller.route.args.optString("date_to"), chronological = config.collection == "visits").catch { failure = it.message.orEmpty() }
     }
-    val page by source.collectAsStateWithLifecycle(NativeListPage(emptyList(), 0, offset, 50))
+    val displayFlow = remember(source) { source.map<NativeListPage, NativeListPage?> { it }.onStart { failure = ""; emit(null) } }
+    val loadedPage by displayFlow.collectAsStateWithLifecycle(null)
+    val page = loadedPage ?: NativeListPage(emptyList(), 0, offset, 50)
+    val listLoading = loadedPage == null && failure.isEmpty()
     Column(Modifier.fillMaxSize()) {
         NativeField("Suchen", query, { query = it; offset = 0 }, modifier = Modifier.padding(horizontal = 16.dp))
-        NativeSearchSummary("${page.total} Treffer" + if (status.isNotBlank() || archived) " · Filter aktiv" else "") { filtersOpen = !filtersOpen }
+        NativeSearchSummary(if (listLoading) "Wird geladen …" else "${page.total} Treffer" + if (status.isNotBlank() || archived) " · Filter aktiv" else "") { filtersOpen = !filtersOpen }
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (!imeVisible) item { NativeContext(controller, controller.route.args) }
             if (filtersOpen && !imeVisible) item {
@@ -212,7 +217,8 @@ private fun RevierList(config: RevierSection, controller: NativeAppController, r
                 Text(failure, color = MaterialTheme.colorScheme.error)
                 TextButton({ failure = ""; retry++ }) { Text("Erneut lesen") }
             } }
-            if (page.rows.isEmpty()) item { Text("Keine passenden Einträge. Suchtext und Filter prüfen.", Modifier.padding(12.dp)) }
+            if (listLoading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+            if (!listLoading && failure.isEmpty() && page.rows.isEmpty()) item { Text("Keine passenden Einträge. Suchtext und Filter prüfen.", Modifier.padding(12.dp)) }
             items(page.rows, key = { it.id }) { row ->
                 OutlinedCard(Modifier.fillMaxWidth().clickable { onSelect(row.id) }) {
                     Row(Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -428,9 +434,9 @@ private fun RevierDetail(
             if (loadFailure.isNotEmpty()) { Text(loadFailure, color = MaterialTheme.colorScheme.error); TextButton(onRefresh) { Text("Erneut lesen") } }
             if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
         }
-        Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (!row.optBoolean("archived")) Button({ onEdit(config.kind, row, JSONObject()) }, Modifier.weight(1f)) { Text("Bearbeiten") }
-            OutlinedButton({ archiveMode = if (row.optBoolean("archived")) "restore" else "archive"; confirmed = false }, Modifier.weight(1f)) { Text(if (row.optBoolean("archived")) "Wiederherstellen" else "Archivieren") }
+        NativeActions {
+            if (!row.optBoolean("archived")) Button({ onEdit(config.kind, row, JSONObject()) }) { Text("Bearbeiten") }
+            OutlinedButton({ archiveMode = if (row.optBoolean("archived")) "restore" else "archive"; confirmed = false }) { Text(if (row.optBoolean("archived")) "Wiederherstellen" else "Archivieren") }
             if (row.optBoolean("archived")) TextButton({ archiveMode = "purge"; confirmed = false }) { Text("Endgültig löschen") }
         }
     }
@@ -1251,8 +1257,8 @@ private fun RevierTour(controller: NativeAppController) {
             }
             if (available.isEmpty()) item { Text("Für diesen Tag sind keine Besuche geplant.") }
         }
-        Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton({ controller.navigate("visits") }, Modifier.weight(1f)) { Text("Besuche") }
+        NativeActions {
+            OutlinedButton({ controller.navigate("visits", args = JSONObject().put("date_from", date).put("date_to", date)) }) { Text("Besuche") }
             Button({
                 val previous = tour?.optJSONObject("tour")?.optJSONArray("visit_ids")?.let { ids -> (0 until ids.length()).map { ids.getString(it) } }.orEmpty()
                 val changed = if (previous.size == selected.size) previous.indices.filter { previous[it] != selected[it] } else emptyList()
@@ -1260,7 +1266,7 @@ private fun RevierTour(controller: NativeAppController) {
                 val args = JSONObject().put("request_id", revierRequest()).put("date", date).put("expected_record_hash", originalHash)
                 if (adjacent) args.put("visit_id", previous[changed[0]]).put("direction", "down") else args.put("visit_ids", JSONArray(selected))
                 save(JSONObject().put("tool", if (adjacent) "move_tour_stop" else "set_day_tour").put("args", args))
-            }, enabled = !busy && originalHash.isNotEmpty(), modifier = Modifier.weight(1f)) { Text(if (pending != null) "Ergebnis prüfen" else "Tour speichern") }
+            }, enabled = !busy && originalHash.isNotEmpty()) { Text(if (pending != null) "Ergebnis prüfen" else "Tour speichern") }
         }
     }
     comparison?.let { current ->
@@ -1318,7 +1324,7 @@ private fun RevierArchive(controller: NativeAppController) {
             }
             if (result != null && rows.isEmpty()) item { Text("Keine archivierten Einträge dieser Art.") }
         }
-        Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        NativeActions {
             OutlinedButton({ offset = (offset - 20).coerceAtLeast(0) }, enabled = offset > 0) { Text("Vorherige") }
             OutlinedButton({ offset += 20 }, enabled = offset + rows.size < (result?.optInt("total") ?: 0)) { Text("Weitere") }
         }
@@ -1361,10 +1367,7 @@ private fun RevierSearch(controller: NativeAppController) {
     Column(Modifier.fillMaxSize()) {
         NativeField("Name, Objekt, Tätigkeit, Notiz oder Beleg", query, { query = it }, search = true,
             modifier = Modifier.padding(horizontal = 16.dp), onSearch = { if (query.isNotBlank()) search(0) })
-        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(result?.let { "${it.optInt("total")} Treffer" } ?: "Suchtext eingeben", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
-            TextButton({ filtersOpen = !filtersOpen }) { Text(if (filtersOpen) "Filter schließen" else "Filter") }
-        }
+        NativeSearchSummary(result?.let { "${it.optInt("total")} Treffer" } ?: "Suchtext eingeben") { filtersOpen = !filtersOpen }
         if (!imeVisible && !filtersOpen) TextButton({ search(0) }, enabled = !busy && query.isNotBlank(), modifier = Modifier.padding(horizontal = 16.dp)) { Text("Lokal suchen") }
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (filtersOpen && !imeVisible) item {
@@ -1402,7 +1405,7 @@ private fun RevierSearch(controller: NativeAppController) {
                 }
             }
         }
-        Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        NativeActions {
             OutlinedButton({ search((offset - 50).coerceAtLeast(0), true) }, enabled = offset > 0 && !busy) { Text("Vorherige") }
             OutlinedButton({ search(offset + 50, true) }, enabled = offset + rows.size < (result?.optInt("total") ?: 0) && !busy) { Text("Weitere Treffer") }
         }
