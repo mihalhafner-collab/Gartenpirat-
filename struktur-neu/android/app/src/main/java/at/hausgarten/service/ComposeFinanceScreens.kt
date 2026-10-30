@@ -94,6 +94,7 @@ private fun FinanceDraftSummary(controller: NativeAppController, row: JSONObject
 }
 
 /** Offers, invoice originals, catalog and immutable payments use their existing owner commands. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun NativeFinanceScreen(section: String, id: String, controller: NativeAppController) {
     val listStates = rememberSaveableStateHolder()
@@ -179,12 +180,16 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
             if (error.isEmpty()) CircularProgressIndicator() else Text(error, color = MaterialTheme.colorScheme.error)
             TextButton(onClick = { refresh++ }) { Text("Erneut lesen") }
         }
-        else -> Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        else -> Column(Modifier.fillMaxSize()) {
+            val editable = section == "catalog" || if(section == "invoices") !IssuedInvoiceRules.isIssued(row) && row.optString("status", "Entwurf") == "Entwurf" else OfferRules.editable(row)
+            Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(if (section == "invoices") financeInvoiceTitle(row) else row.optString("title"), style = MaterialTheme.typography.headlineSmall)
             Text(financeStatus(if(section == "invoices") row.optString("status", "Entwurf") else row.optString("status", if(section == "catalog") "Leistungsbaustein" else "draft")))
             if (section != "catalog") {
                 Text("Summe: ${financeMoney(row.opt("gross_total") ?: row.opt("amount"))}")
-                Text(if(section == "invoices") "Rechnungsdatum: ${nativeDisplayDate(row.optString("invoice_date"))} · Leistung: ${nativeDisplayDate(row.optString("service_start"))} bis ${nativeDisplayDate(row.optString("service_end"))}" else "Datum: ${nativeDisplayDate(row.optString("issue_date"))} · gültig bis ${nativeDisplayDate(row.optString("valid_until"))}")
+                val dates = if (section == "invoices") listOf("invoice_date" to "Rechnungsdatum", "service_start" to "Leistung ab", "service_end" to "Leistung bis") else listOf("issue_date" to "Datum", "valid_until" to "Gültig bis")
+                val dateText = dates.mapNotNull { (key, label) -> row.optString(key).takeIf { it.isNotBlank() }?.let { "$label: ${nativeDisplayDate(it)}" } }.joinToString(" · ")
+                if (dateText.isNotEmpty()) Text(dateText)
                 FinancePositionSummary(row.optJSONArray("positions"))
                 for ((key, label) in listOf("header_text" to "Kopftext", "footer_text" to "Fußtext", "notes" to "Notizen", "binding_notice" to "Bindungshinweis", "payment_terms" to "Zahlungsbedingungen", "assumptions" to "Annahmen", "exclusions" to "Ausschlüsse")) if(row.optString(key).isNotEmpty()) Text("$label: ${row.optString(key)}")
             } else {
@@ -192,14 +197,11 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                 Text(if (row.optBoolean("price_confirmed")) "Preis bestätigt" else "Preis noch nicht bestätigt")
                 Text(if (row.optBoolean("active", true)) "Aktiv" else "Deaktiviert")
             }
-            val editable = section == "catalog" || if(section == "invoices") !IssuedInvoiceRules.isIssued(row) && row.optString("status", "Entwurf") == "Entwurf" else OfferRules.editable(row)
-            if (editable) Button(onClick = { fresh = false; editing = true }, Modifier.fillMaxWidth()) { Text("Bearbeiten") }
             if (section == "invoices") {
-                if (editable) Button(onClick = { scope.launch { try { issueReview = controller.call("get_invoice", JSONObject().put("invoice_id", id)) } catch(cancelled:CancellationException){throw cancelled}catch(f: Exception) { controller.message(f.message.orEmpty()) } } }, Modifier.fillMaxWidth()) { Text("Ausgabe vollständig prüfen") }
+                if (editable) OutlinedButton(onClick = { scope.launch { try { issueReview = controller.call("get_invoice", JSONObject().put("invoice_id", id)) } catch(cancelled:CancellationException){throw cancelled}catch(f: Exception) { controller.message(f.message.orEmpty()) } } }, Modifier.fillMaxWidth()) { Text("Ausgabe vollständig prüfen") }
                 else {
                     Text("Ausgestellte Angaben und Original bleiben erhalten.")
                     OutlinedButton(onClick = { pendingAction = "create_invoice_correction" to JSONObject().put("invoice_id", id).put("expected_record_hash", detail!!.optString("record_hash")) }, Modifier.fillMaxWidth()) { Text("Korrektur / Storno vorbereiten") }
-                    Button(onClick = { controller.navigate("payments", id) }, Modifier.fillMaxWidth()) { Text("Zahlungen und belegten Rest prüfen") }
                     FinanceInvoiceDocument(controller, id)
                 }
             }
@@ -207,12 +209,11 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                 if (editable) {
                     OutlinedButton(onClick = { scope.launch { try { val validation = controller.query("validate_offer", JSONObject().put("offer_id", id)); detail = validation; controller.message(validation.optJSONObject("validation")?.let { if(it.optBoolean("valid")) "Angaben sind vollständig." else it.optJSONArray("errors")?.join("; ").orEmpty() } ?: "Prüfung gelesen.") } catch(cancelled:CancellationException){throw cancelled}catch(f: Exception) { controller.message(f.message.orEmpty()) } } }, Modifier.fillMaxWidth()) { Text("Pflichtangaben prüfen") }
                     OutlinedButton(onClick = { pendingAction = "validate_offer_draft" to JSONObject().put("offer_id", id).put("expected_record_hash", detail!!.optString("record_hash")) }, Modifier.fillMaxWidth()) { Text("Geprüften Entwurfsstand speichern") }
-                    Button(onClick = {scope.launch {try {offerReview=controller.query("get_offer",JSONObject().put("offer_id",id).put("include_review",true));offerReviewed=false}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){controller.message(f.message.orEmpty())}}}, Modifier.fillMaxWidth()) { Text("Finalisierung prüfen") }
+                    OutlinedButton(onClick = {scope.launch {try {offerReview=controller.query("get_offer",JSONObject().put("offer_id",id).put("include_review",true));offerReviewed=false}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){controller.message(f.message.orEmpty())}}}, Modifier.fillMaxWidth()) { Text("Finalisierung prüfen") }
                 } else {
                     Text(detail?.optJSONObject("decision")?.let { "Entscheidung: ${financeStatus(it.optString("decision"))} · ${nativeDisplayDate(it.optString("accepted_at"))}" } ?: "Annahme oder Ablehnung noch nicht erfasst.")
                     FinanceValues(detail?.optJSONObject("decision"),listOf("evidence" to "Annahmenachweis","reason" to "Begründung","recorded_at" to "Erfasst am"))
                     OutlinedButton(onClick={scope.launch {try{controller.viewDocument("offer",id)}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){controller.message(f.message.orEmpty())}}},modifier=Modifier.fillMaxWidth()) {Text("Original-PDF öffnen")}
-                    Button(onClick = {pendingAction="prepare_offer_share" to JSONObject().put("offer_id",id).put("expected_record_hash",detail!!.optString("record_hash"))}, Modifier.fillMaxWidth()) { Text("Geprüftes Original-PDF teilen") }
                     OutlinedButton(onClick = { pendingAction = "prepare_offer_delivery" to JSONObject().put("offer_id", id).put("expected_record_hash", detail!!.optString("record_hash")) }, Modifier.fillMaxWidth()) { Text("E-Mail-Übergabe vorbereiten") }
                     OutlinedButton(onClick = { pendingAction = "confirm_offer_delivery" to JSONObject().put("offer_id", id).put("expected_record_hash", detail!!.optString("record_hash")) }, Modifier.fillMaxWidth()) { Text("Versandbeleg beim Anbieter prüfen") }
                     OutlinedButton(onClick = { pendingAction = "record_offer_acceptance" to JSONObject().put("offer_id", id).put("expected_record_hash", detail!!.optString("record_hash")) }, Modifier.fillMaxWidth()) { Text("Annahme nachweisen") }
@@ -224,7 +225,13 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
             }
             if (section == "catalog") OutlinedButton(onClick = { pendingAction = "update_catalog_entry" to JSONObject().put("entry_id", id).put("expected_record_hash", detail!!.optString("record_hash")).put("updates", JSONObject().put("active", !row.optBoolean("active", true))) }, Modifier.fillMaxWidth()) { Text(if(row.optBoolean("active", true)) "Baustein deaktivieren" else "Baustein reaktivieren") }
             if (editable && section != "catalog") TextButton(onClick = {scope.launch {try {archivePreview=controller.query("preview_delete",JSONObject().put("entity",if(section=="offers") "offer" else "invoice").put("entity_id",id))}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){controller.message(f.message.orEmpty())}}}) { Text("Entwurf archivieren …") }
-            TextButton(onClick = { controller.returnToList(section) }) { Text("Zur Liste") }
+            }
+            NativeActions {
+                TextButton(onClick = { controller.returnToList(section) }) { Text("Zur Liste") }
+                if (editable) Button(onClick = { fresh = false; editing = true }) { Text("Bearbeiten") }
+                else if (section == "invoices") Button(onClick = { controller.navigate("payments", id) }) { Text("Zahlungen und belegten Rest prüfen") }
+                else if (section == "offers") Button(onClick = { pendingAction = "prepare_offer_share" to JSONObject().put("offer_id", id).put("expected_record_hash", detail!!.optString("record_hash")) }) { Text("Geprüftes Original-PDF teilen") }
+            }
         }
     }
 }

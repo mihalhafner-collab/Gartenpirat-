@@ -112,7 +112,7 @@ internal fun NativeApplication(controller: NativeAppController) {
                 "conflict_review" -> NativeReviewedWorkflow(controller, false, route.id)
                 "connections" -> Column(Modifier.verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("Kalender, Wetter und die private MCP-Verbindung werden getrennt eingerichtet.")
-                    Button({ controller.open(PlanningConnectionActivity::class.java) }) { Text("Kalender und Wetter verbinden") }
+                    OutlinedButton({ controller.open(PlanningConnectionActivity::class.java) }) { Text("Kalender und Wetter verbinden") }
                     Button({ controller.open(PixelTunnelActivity::class.java) }) { Text("Private MCP-Verbindung") }
                 }
                 "backup" -> Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -737,6 +737,7 @@ private fun NativeCustomerExtras(raw: Any?, change: (JSONObject) -> Unit) {
     OutlinedButton({ if (name.isNotBlank()) { change(JSONObject(values.toString()).put(name.trim(), "")); name = "" } }) { Text("Zusatzfeld ergänzen") }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun NativeTimer(controller: NativeAppController) {
     var session by remember { mutableStateOf<JSONObject?>(null) }
@@ -814,26 +815,13 @@ private fun NativeTimer(controller: NativeAppController) {
         }
         return
     }
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    val value = session
+    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error)
-        val value = session
         if (value == null) CircularProgressIndicator() else {
             Text(when (state) { "RUNNING" -> "Arbeit läuft"; "PAUSED" -> "Pause läuft"; "STOPPED_PENDING_REVIEW" -> "Arbeit gestoppt"; "CANCELLED" -> "Verworfene Arbeit"; else -> "Zeiterfassung" }, style = MaterialTheme.typography.headlineSmall)
             NativeBusinessValues(value)
-            when (state) {
-                "RUNNING" -> {
-                    Button({ execute("start_break") }, enabled = !busy) { Text("Pause starten") }
-                    Button({ execute("stop_work") }, enabled = !busy) { Text("Arbeit stoppen") }
-                    OutlinedButton({ controller.action("Stoppen und Tätigkeit speichern", "finish_work", JSONObject().put("session_id", value.optString("id", value.optString("session_id")))) }) { Text("Stoppen und speichern") }
-                }
-                "PAUSED" -> { Button({ execute("end_break") }, enabled = !busy) { Text("Pause beenden") }; Button({ execute("stop_work") }, enabled = !busy) { Text("Arbeit stoppen") } }
-                "STOPPED_PENDING_REVIEW" -> {
-                    Button({ execute("continue_work") }, enabled = !busy) { Text("Arbeit fortsetzen") }
-                    Button({ controller.action("Geprüfte Zeit speichern", "complete_work_session", JSONObject().put("session_id", value.optString("id", value.optString("session_id")))) }) { Text("Zeit prüfen und speichern") }
-                    OutlinedButton({ execute("discard_work_session") }, enabled = !busy) { Text("Sitzung verwerfen") }
-                }
-                "CANCELLED" -> Button({ execute("restore_work_session") }, enabled = !busy) { Text("Sitzung zurückholen") }
-            }
             if (state in listOf("RUNNING", "PAUSED", "STOPPED_PENDING_REVIEW")) {
                 val resourceContext = JSONObject().put("session_id", value.optString("id", value.optString("session_id"))).apply {
                     for (field in listOf("customer_id", "order_id", "property_id", "visit_id")) if (value.optString(field).isNotEmpty()) put(field, value.getString(field))
@@ -841,8 +829,25 @@ private fun NativeTimer(controller: NativeAppController) {
                 OutlinedButton({ controller.navigate("materials", mode = "movement", args = resourceContext) }) { Text("Materialverbrauch zur Arbeit erfassen") }
                 OutlinedButton({ controller.navigate("equipment", mode = "equipment_use", args = resourceContext) }) { Text("Gerätenutzung zur Arbeit erfassen") }
             }
-            if (value.optBoolean("review_required")) Button({ controller.action("Zeit nach Neustart prüfen", "review_work_session", JSONObject().put("session_id", value.optString("id", value.optString("session_id"))).put("expected_revision_hash", value.optString("revision_hash"))) }) { Text("Zeit ausdrücklich prüfen") }
         }
+    }
+    if (value != null) NativeActions {
+            when (state) {
+                "RUNNING" -> {
+                    OutlinedButton({ execute("start_break") }, enabled = !busy) { Text("Pause starten") }
+                    Button({ execute("stop_work") }, enabled = !busy) { Text("Arbeit stoppen") }
+                    OutlinedButton({ controller.action("Stoppen und Tätigkeit speichern", "finish_work", JSONObject().put("session_id", value.optString("id", value.optString("session_id")))) }) { Text("Stoppen und speichern") }
+                }
+                "PAUSED" -> { Button({ execute("end_break") }, enabled = !busy) { Text("Pause beenden") }; OutlinedButton({ execute("stop_work") }, enabled = !busy) { Text("Arbeit stoppen") } }
+                "STOPPED_PENDING_REVIEW" -> {
+                    OutlinedButton({ execute("continue_work") }, enabled = !busy) { Text("Arbeit fortsetzen") }
+                    Button({ controller.action("Geprüfte Zeit speichern", "complete_work_session", JSONObject().put("session_id", value.optString("id", value.optString("session_id")))) }) { Text("Zeit prüfen und speichern") }
+                    OutlinedButton({ execute("discard_work_session") }, enabled = !busy) { Text("Sitzung verwerfen") }
+                }
+                "CANCELLED" -> Button({ execute("restore_work_session") }, enabled = !busy) { Text("Sitzung zurückholen") }
+            }
+            if (value.optBoolean("review_required")) OutlinedButton({ controller.action("Zeit nach Neustart prüfen", "review_work_session", JSONObject().put("session_id", value.optString("id", value.optString("session_id"))).put("expected_revision_hash", value.optString("revision_hash"))) }) { Text("Zeit ausdrücklich prüfen") }
+    }
     }
 }
 
@@ -856,6 +861,7 @@ private fun NativeSettings(controller: NativeAppController) {
     LaunchedEffect(Unit) { try { settings = controller.query("get_settings") } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = failure.message.orEmpty() } }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Text("Gartenpirat ${BuildConfig.VERSION_NAME} · Build ${BuildConfig.VERSION_CODE}", style = MaterialTheme.typography.titleMedium); if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error) }
+        if (settings == null && error.isEmpty()) item { LinearProgressIndicator(Modifier.fillMaxWidth()); Text("Einstellungen werden geladen …") }
         item { Text("Arbeiten und Unternehmen", style = MaterialTheme.typography.titleMedium) }
         item { Button({ controller.action("Gerätestandards ändern", "update_settings", JSONObject().put("expected_record_hash", settings?.optString("record_hash", "")).put("updates", settings?.optJSONObject("settings") ?: JSONObject())) }, enabled = settings != null, modifier = Modifier.fillMaxWidth()) { Text("Tätigkeit, Einsatzort und Fotoqualität") } }
         item { OutlinedButton({ controller.action("Unternehmensdaten lesen", "get_business_settings") }, Modifier.fillMaxWidth()) { Text("Unternehmensdaten") } }
@@ -920,9 +926,8 @@ private fun NativeLocalActions(controller: NativeAppController) {
         Text("Geschäftsdaten bleiben lokal. Frühere Vorgänge und Konflikte bleiben zur Prüfung erhalten.")
         if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error)
         status?.let { NativeBusinessValues(it) }
-        Button({ controller.navigate("conflict_review") }) { Text("Konflikte lesen") }
-        Button({ controller.navigate("conflict_review") }) { Text("Konflikt lösen") }
-        Button({ controller.navigate("backup") }) { Text("ZIP-Sicherung öffnen") }
+        Button({ controller.navigate("conflict_review") }) { Text("Konflikte prüfen und lösen") }
+        OutlinedButton({ controller.navigate("backup") }) { Text("ZIP-Sicherung öffnen") }
     }
 }
 

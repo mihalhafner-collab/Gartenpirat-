@@ -772,6 +772,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Heute")
         click("Laufende Arbeit öffnen")
         reveal("Arbeit läuft")
+        visibleResult("Arbeit stoppen")
+        captureSyntheticScreen("timer-actions")
         click("Pause starten")
         reveal("Pause läuft")
         yes(read("get_active_work_session").getString("state") == "PAUSED", "UI_PAUSES_REAL_TIMER")
@@ -1223,11 +1225,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("offers") {
             click("Kunden"); enter("Suchen", fixturePrefix+"000"); click(fixturePrefix+"000"); click("Angebote")
             keyboardSearchProof("offers", "Suchen", "QA Kontextangebot 0", "QA Kontextangebot 0")
+            visibleResult("Zur Liste")
+            captureSyntheticScreen("detail-offers")
             click("Zur Liste"); waitUntil("DOMAIN_RETURN_QUERY_offers") { field("Suchen")?.text?.toString()?.contains("QA Kontextangebot 0") == true }
         }
         case("invoices") {
             click("Büro"); click("Abrechnung"); click("Rechnungen")
             keyboardSearchProof("invoices", "Suchen", "QA-UI-119", "QA-UI-119")
+            visibleResult("Zur Liste")
+            captureSyntheticScreen("detail-invoices")
             click("Zur Liste"); waitUntil("DOMAIN_RETURN_QUERY_invoices") { field("Suchen")?.text?.toString()?.contains("QA-UI-119") == true }
         }
         case("planning") {
@@ -1245,6 +1251,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("catalog") {
             openOfficeGroup("Material und Wissen", "Leistungskatalog")
             keyboardSearchProof("catalog", "Bausteine suchen", "QA Leistungsbaustein", "QA Leistungsbaustein")
+            visibleResult("Zur Liste")
+            captureSyntheticScreen("detail-catalog")
             click("Zur Liste"); waitUntil("DOMAIN_RETURN_QUERY_catalog") { field("Bausteine suchen")?.text?.toString()?.contains("QA Leistungsbaustein") == true }
         }
         case("plants") {
@@ -1366,7 +1374,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 failures.add(AssertionError("SURFACE_$key", failure))
             }
         }
-        fun settings() { click("Büro"); click("Einstellungen") }
+        fun settings() {
+            click("Büro"); click("Einstellungen")
+            waitUntil("SETTINGS_ACTION_READY") { node("Tätigkeit, Einsatzort und Fotoqualität")?.let(::clickable) != null }
+        }
         fun planning() { click("Büro"); click("Planung") }
         fun billing() { click("Büro"); click("Abrechnung") }
         case("today", "Arbeit beginnen", true) { }
