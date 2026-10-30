@@ -20,8 +20,8 @@
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
     "certificate_independently_read": true,
     "certificate_reference": "MATCH_PROJECT_ORIGINAL_REFERENCE;historical original APK not independently reread",
-    "database_version": null,
-    "database_version_evidence": "NOT_READ;app data outside permitted isolation"
+    "database_version": 7,
+    "database_version_evidence": "Bound Build119 MCP runtime;no direct DB dump"
   },
   "observed_installation_history": [
     {
@@ -33,21 +33,20 @@
     }
   ],
   "current_task": {
-    "name": "USB/ADB-Prüfung der Haus-und-Garten-App am physischen Telefon",
-    "status": "PARTIAL_PREFLIGHT_TRANSPORT_PASS;APP_TESTS_NOT_RUN_ISOLATION_UNPROVEN",
+    "name": "USB/ADB-Prüfung am Pixel mit Freigabe für die aktuelle Datenbank",
+    "status": "STOPPED_AT_USER_REQUEST;DEVICE_CLEANUP_DONE;KNOWN_FAILURES;NO_FULL_ACCEPTANCE",
     "authorized": true,
-    "authorization_scope": "Current user request:read/write only fully synthetic isolated app dataset;without isolation metadata and synthetic ADB file transport only;document findings in existing project files;no app installation,productive data access,gate bypass or account access",
+    "authorization_scope": "User explicitly permitted current-DB read/write tests,then ended testing. New synthetic records;no install,authority activation,destructive restore or account tests.",
     "requirements_document": "docs/fachregeln/APP.md",
     "test_instructions": "docs/entwicklung/BAU.md#adb-analyse-und-lese-schreibtests-über-den-laptop",
     "result_pointer": "validation.physical_device_test",
-    "completion_claim": "NO_FULL_ACCEPTANCE;APP_FUNCTION_UI_PERFORMANCE_BACKUP_RESTORE_NOT_RUN"
+    "completion_claim": "TEST_ENDED_AND_DOCUMENTED;NOT_FULL_ACCEPTANCE"
   },
   "open_checks": [
-    "Physical Pixel app read/write/UI/normal and200%font/backup/restore tests NOT_RUN:isolated fully synthetic app dataset not proven;no customer records/photos/archives read",
-    "Physical performance start/list/detail/save/timer/photo,frame time,memory/CPU/SQL NOT_MEASURED:n=0;requires same isolated fixture and>=40 repetitions per variant",
-    "Provision a documented fresh separate Android test user/sandbox with synthetic-only provenance and no personal accounts/media;separate installation/provisioning authorization required;do not clear/replace main-user app or bypass emulator guards",
-    "Full current-source checker not completed locally:no authenticated CLI checkout;connector-only partial source copy stops on missing bootstrap_contract;run in complete checkout before source validation PASS",
-    "Real Drive/account/calendar checks NOT_RUN;personal ZIP outside authorized synthetic scope",
+    "5 UI fixes documented only:photo filter,Today duplication,customer timestamps,statusbar contrast,startup warning;see evidence document",
+    "User ended tests;unrun UI/performance cases and backup/restore/account/authority limits listed in evidence document",
+    "Own18 records archived/inactive;session/receipts retained. default_location now empty instead of absent;API has no remove path",
+    "Full current-source checker cannot complete in partial connector copy(missing bootstrap_contract);no fresh source/build/native-suite PASS",
     "Raw old IndexedDB-only drafts preserved;not automatically materialized as native photos"
   ],
   "workflow": {
@@ -76,8 +75,8 @@
   "validation": {
     "app_source_fingerprint": "1dccfad7966f564f3a844c848af4dae50c5200b8697592e07a449e4e06920407",
     "source_privacy": "PASS;empty operational seed",
-    "business_data_read": false,
-    "authored_changes_diff_check": "PASS;documentation only:current status and existing verification evidence;no app source changes",
+    "business_data_read": true,
+    "authored_changes_diff_check": "PASS;documentation-only JSON diff and evidence review;full source check unavailable",
     "current_test_run": {
       "scope": "CURRENT_FULL_KOTLIN_COMPOSE_REFACTOR;SYNTHETIC_ACCEPTANCE_PASS",
       "observed_at_utc": "2026-10-30T03:42:22.092646+00:00",
@@ -105,29 +104,35 @@
       "ci_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40996808542",
       "pixel_drive_account_personal_zip": "NOT_RUN;synthetic only"
     },
-    "performance_evidence": "docs/verification/performance-current.md defines native measurement method;no inherited browser timing,FPS or physical Pixel performance claim",
+    "performance_evidence": "docs/verification/performance-current.md:actual physical startup/PSS/gfxinfo histograms;no estimated FPS;individual frame/SQL/per-route latency limits explicit",
     "connector": {
       "tools": 169,
       "read": 73,
       "write": 96,
-      "scope": "Prior Build114 observation only;no refactoring device access"
+      "scope": "CURRENT_BUILD119;synthetic customer UI proved connected physical-device binding"
     },
     "physical_device_test": {
-      "observed_at_utc": "2026-10-30T04:53:51.4297165Z",
-      "source_commit": "a7ef9c2a488832bf9ae3f4f7c84a588073358603",
-      "scope": "PHYSICAL_PIXEL_USB_ADB_PREFLIGHT_AND_SYNTHETIC_FILE_TRANSPORT_ONLY",
-      "result": "PARTIAL;8_PASS_1_PREREQUISITE_FAIL_113_NOT_RUN;NO_APP_ACCEPTANCE",
+      "source_commit": "6da869753ee2ed1e8640ec1b2a1c354724fdd0ee",
+      "scope": "USER_AUTHORIZED_CURRENT_DATABASE;NEW_SYNTHETIC_RECORDS;PHYSICAL_UI_AND_MCP_SEPARATE",
+      "result": "ENDED_BY_USER;CORE_READ_WRITE_TESTS_EXECUTED;5_UI_FINDINGS;NO_FULL_ACCEPTANCE",
       "evidence_document": "docs/verification/performance-current.md#gebundener-gerätebeleg",
-      "device": "Pixel10 Pro;Android17/API37;1280x2856;480dpi;font_scale1.3;only main user0;test APK absent",
-      "apk_identity": "PASS;1.57.0/119;89453503 bytes;exact distributed SHA256/certificate and signed DEX binding matched",
-      "transport": "PASS;147456 synthetic bytes;SHA2569234590f51cc5f375a5163c065d8e759ecab20217373445703613121f8928c20;own /data/local/tmp file/directory removed",
-      "isolation": "NOT_PROVEN;no app datasets/UI/photos/backup read or written;emulator guards preserved",
-      "coverage": "Source inventory28 menus+internal routes;122 documented cases;no device function/UI/backup/restore cases executed;no screenshots",
-      "measurements": "NICHT GEMESSEN;app timings,frames,memory,CPU,SQL n=0;ADB transport is not UI/DB measurement",
-      "device_settings": "PASS_UNCHANGED;final metadata comparison;no setting modified",
-      "current_source_check": "ATTEMPTED_NOT_COMPLETED;partial connector copy lacks bootstrap_contract;full CLI checkout unavailable;no source PASS",
-      "local_evidence": "Local task workspace/adb-evidence-20261030;not uploaded;serial/name remain local",
-      "remaining": "Prove fresh isolated account/media-free synthetic app sandbox and supported hardware test path before all app tests;no installation or clearing main-user data authorized"
+      "device": "Pixel10 Pro;Android17/API37;1280x2856;480dpi;font1.3;installed119 APK identity unchanged",
+      "authorization": "Follow-up explicitly allowed current DB reads/writes;no isolation claim;no original customer records changed",
+      "coverage": "28 routes;core synthetic CRUD;native customer draft/save/discard and photo selection/preview/discard/save;timer,replay,CAS,paging;details in report",
+      "measurements": "Actual n40 COLD mean109.75/P95119/slow5 139ms(171attempts);n40 WARM same-process Activity recreation41.225/52/72ms;initial display only",
+      "limits": "Individual framestats unavailable even with temporary profiling;gfxinfo histograms and multiple PSS/RSS/Swap points recorded;SQL/per-route UI latency NOT_MEASURED",
+      "cleanup": "Own18 records archived/inactive;test visit cancelled;test file/dir removed;session/receipts retained;no active test timer",
+      "settings": "font1.3,rotation0,autoRotation0,GPU profile restored. default_location now empty string instead of initially absent;no supported remove path",
+      "privacy": "Raw local only;no serial/name publication. One mixed photo screenshot removed;retained screenshot evidence synthetic only",
+      "source_check": "Full check attempted but partial checkout lacks bootstrap_contract;no full source PASS",
+      "local_evidence": "Task workspace/adb-evidence-20261030;164 MCP receipts;route,launch,memory,frame and screenshot files",
+      "case_counts": {
+        "total": 67,
+        "pass": 57,
+        "fail": 6,
+        "not_executed": 4,
+        "route_smoke": 28
+      }
     }
   },
   "unmerged_work": [
@@ -163,7 +168,7 @@
   "current_release_candidate": {
     "version_name": "1.57.0",
     "version_code": 119,
-    "status": "OBSERVED_INSTALLED119_APK_HASH_CERT_MATCH;APP_ACCEPTANCE_NOT_RUN_ISOLATION_UNPROVEN",
+    "status": "INSTALLED119_VERIFIED;PHYSICAL_TESTS_ENDED_USER;KNOWN_UI_FAILURES;NOT_ACCEPTED",
     "artifact": "Gartenpirat-1.57.0-build119.apk",
     "source_git_sha": "94b75be56ef46ed1404b19a725a97811cbfcd19a",
     "apk_sha256": "f907a1b260ec7719e7b11bf24e6d02671b8eaef7ba797f9ddca02b0a0ab42f86",
