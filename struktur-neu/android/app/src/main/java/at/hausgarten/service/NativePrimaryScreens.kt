@@ -74,7 +74,7 @@ internal fun NativeApplication(controller: NativeAppController) {
                     // A selected tab has no accessibility click action. Keep the
                     // section overview reachable from its detail and editor routes.
                     val selected = route.section == section && route.id.isEmpty() && route.mode == "list"
-                    NavigationBarItem(selected = selected, onClick = { controller.openSection(section) }, icon = { Text(when (section) { "today" -> "⌂"; "worklogs" -> "◷"; "customers" -> "♧"; else -> "☰" }) }, label = { Text(label) })
+                    NavigationBarItem(selected = selected, onClick = { controller.openSection(section) }, icon = { Text(when (section) { "today" -> "⌂"; "worklogs" -> "◷"; "customers" -> "♧"; else -> "☰" }) }, label = { Text(label, maxLines = 2, overflow = TextOverflow.Ellipsis) })
                 }
             }
         }
@@ -306,6 +306,7 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun NativeEntityEditor(controller: NativeAppController, collection: String, id: String, mode: String) {
     val kind = primaryKind(collection)
@@ -500,9 +501,9 @@ private fun NativeEntityEditor(controller: NativeAppController, collection: Stri
         }
         item { OutlinedButton({ controller.back() }, enabled = !busy) { Text("Entwurf behalten und zurück") } }
     }
-        Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton({ discard = true }, enabled = loaded && !busy && pending == null) { Text("Verwerfen") }
-            Button({ save() }, Modifier.weight(1f), enabled = loaded && !busy && !restored && !conflict && pending == null && savedWorkId.isEmpty()) { Text("Speichern") }
+        FlowRow(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            OutlinedButton({ discard = true }, enabled = loaded && !busy && pending == null) { Text("Verwerfen", maxLines = 1) }
+            Button({ save() }, enabled = loaded && !busy && !restored && !conflict && pending == null && savedWorkId.isEmpty()) { Text("Speichern", maxLines = 1) }
         }
     }
     if (discard) AlertDialog(onDismissRequest = { if (!busy) discard = false }, text = { Text("Ungespeicherte Eingaben und Foto verwerfen?") },

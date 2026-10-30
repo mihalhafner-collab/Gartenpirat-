@@ -581,7 +581,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         logVisibleActions("equipment_suggestions_open")
         enter("Vorschläge durchsuchen", "kett")
         click("Kettensäge")
-        yes(field("Gerätebezeichnung *")?.text?.toString() == "Kettensäge", "EQUIPMENT_SEARCHABLE_PRESET")
+        waitUntil("EQUIPMENT_SEARCHABLE_PRESET") { field("Gerätebezeichnung *")?.text?.toString() == "Kettensäge" }
+        checks++
         val name = "[TEST] QA Zubehör Säge"
         enter("Gerätebezeichnung *", name)
         click("Speichern")
@@ -876,6 +877,18 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown("Heute")
         click("Arbeit erfassen")
         shown("Speichern")
+        reveal("Arbeitsdatum *")
+        enter("Beginn", "08:00")
+        enter("Ende", "12:00")
+        reveal("Pause (Minuten)")
+        click("60")
+        reveal("Pause (Minuten) · frei eingeben")
+        waitUntil("LARGE_TEXT_PAUSE_PRESET") { field("Pause (Minuten) · frei eingeben")?.text?.toString() == "60" }
+        checks++
+        click("150 €")
+        reveal("Entsorgung (€) · optional · frei eingeben")
+        waitUntil("LARGE_TEXT_DISPOSAL_PRESET") { field("Entsorgung (€) · optional · frei eingeben")?.text?.toString() == "150" }
+        checks++
         val saveWork = actionBounds("Speichern")
         val discardWork = actionBounds("Verwerfen")
         yes(!Rect.intersects(saveWork, discardWork) && safe.contains(saveWork) && safe.contains(discardWork), "LARGE_TEXT_WORK_ACTIONS_CLEAR_SYSTEM_BARS")

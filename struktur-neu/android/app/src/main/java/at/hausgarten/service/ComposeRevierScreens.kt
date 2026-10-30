@@ -576,6 +576,7 @@ private fun RevierMaintenance(controller: NativeAppController, row: JSONObject, 
     if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun RevierEditor(controller: NativeAppController, edit: RevierEdit, repository: NativeDataRepository, onClose: () -> Unit, onSaved: (JSONObject) -> Unit) {
     val scope = rememberCoroutineScope()
@@ -639,7 +640,7 @@ private fun RevierEditor(controller: NativeAppController, edit: RevierEdit, repo
                 }
             }, enabled = !busy) { Text("Änderungen vergleichen") }
         }
-        Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             OutlinedButton({
                 busy = true
                 scope.launch {
@@ -650,7 +651,7 @@ private fun RevierEditor(controller: NativeAppController, edit: RevierEdit, repo
                     catch (error: Exception) { failure = error.message.orEmpty() }
                     finally { busy = false }
                 }
-            }, enabled = !busy && !edit.mediaBusy, modifier = Modifier.weight(1f)) { Text("Später") }
+            }, enabled = !busy && !edit.mediaBusy, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)) { Text("Später", maxLines = 1) }
             TextButton({
                 busy = true
                 scope.launch {
@@ -712,7 +713,7 @@ private fun RevierEditor(controller: NativeAppController, edit: RevierEdit, repo
                         if (edit.dirty || edit.pending != null) controller.saveDraft(edit.key, edit.snapshot())
                     } finally { busy = false }
                 }
-            }, enabled = !busy && !edit.mediaBusy, modifier = Modifier.weight(1f)) { Text(if (edit.pending != null) "Ergebnis prüfen" else "Speichern") }
+            }, enabled = !busy && !edit.mediaBusy, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)) { Text(if (edit.pending != null) "Ergebnis prüfen" else "Speichern", maxLines = 1) }
         }
     }
     val fresh = comparison

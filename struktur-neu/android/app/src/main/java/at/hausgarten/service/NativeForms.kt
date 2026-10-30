@@ -55,10 +55,11 @@ internal fun NativeSuggestions(label: String, options: List<String>, onChoose: (
     }, confirmButton = { TextButton({ open = false }) { Text("Abbrechen") } })
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun NativeAmountPresets(label: String, value: String, presets: List<String>, suffix: String, change: (String) -> Unit) {
     Text(label, style = MaterialTheme.typography.titleSmall)
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         presets.forEach { preset ->
             FilterChip(selected = value.replace(',', '.').toDoubleOrNull() == preset.toDoubleOrNull(), onClick = { change(preset) }, label = { Text("$preset $suffix".trim()) })
         }

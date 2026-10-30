@@ -71,6 +71,8 @@ jobs:
           "$ALIGN" -f 4 "$TEST_APK" "$RUNNER_TEMP/gp-test.apk"
           "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-app.apk"
           "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-test.apk"
+          mkdir -p outputs
+          (cd "$RUNNER_TEMP" && sha256sum gp-app.apk gp-test.apk) | tee outputs/qa-test-package-identity.txt
       - name: Run native SQLite, Compose, document picker, provider and new-process checks
         timeout-minutes: 25
         run: |
@@ -180,6 +182,7 @@ jobs:
             struktur-neu/outputs/native_data*.txt
             struktur-neu/outputs/native_compose*.txt
             struktur-neu/outputs/qa-native-*.png
+            struktur-neu/outputs/qa-test-package-identity.txt
             struktur-neu/outputs/emulator*.txt
             struktur-neu/android/app/build/reports/lint-results-release.html
           if-no-files-found: ignore
