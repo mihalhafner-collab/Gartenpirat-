@@ -16,7 +16,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.window.DialogWindowProvider
-import androidx.core.view.WindowCompat
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.Constraints
@@ -111,12 +110,7 @@ internal fun NativeSearchDialog(title: String, search: String, onSearch: (String
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         val view = LocalView.current
         SideEffect {
-            (view.parent as? DialogWindowProvider)?.window?.let { window ->
-                WindowCompat.getInsetsController(window, view).apply {
-                    isAppearanceLightStatusBars = true
-                    isAppearanceLightNavigationBars = true
-                }
-            }
+            (view.parent as? DialogWindowProvider)?.window?.nativeLightSystemBars()
         }
         val keyboard = LocalSoftwareKeyboardController.current
         val focus = LocalFocusManager.current
@@ -258,7 +252,7 @@ internal fun NativeBusinessValues(value: JSONObject, depth: Int = 0) {
             }
             null, JSONObject.NULL -> Unit
             else -> if (field.toString().isNotBlank()) Text(nativeLabel(key).removeSuffix(" in Cent") + ": " + if (field is Boolean) { if (field) "Ja" else "Nein" } else when {
-                key.endsWith("_minor") -> nativeNumber(field.toString().toBigDecimalOrNull()?.movePointLeft(2)) + " €"
+                key.endsWith("_minor") -> financeMoney(field.toString().toBigDecimalOrNull()?.movePointLeft(2))
                 key in setOf("hours", "quantity", "quantity_decimal", "kilometers") -> nativeNumber(field)
                 else -> nativeDisplayText(nativeValue(field.toString()))
             })

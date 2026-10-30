@@ -68,6 +68,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             if (condition()) return
             SystemClock.sleep(75)
         }
+        val threads = Thread.getAllStackTraces().entries.filter { (_, frames) -> frames.any { it.className.startsWith("at.hausgarten.service") } }
+            .joinToString("\n") { (thread, frames) -> thread.name + ": " + thread.state + "\n" + frames.take(16).joinToString("\n") }
+        test.sendStatus(0, Bundle().apply { putString("timeout_threads", "$code\n$threads") })
         throw AssertionError("QA_NATIVE_COMPOSE_TIMEOUT_$code; visible=" + visibleTexts().joinToString(" | ").take(3000))
     }
 
@@ -252,7 +255,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun launch(planning: Boolean = false, appointment: String = "", action: String = "") {
         shell("wm dismiss-keyguard")
-        activity = test.startActivitySync(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK).putExtra("open_planning", planning)
+        // Each launch intentionally starts a fresh synthetic task. Without CLEAR_TASK,
+        // Android can only bring a child connection Activity to the front and
+        // startActivitySync waits forever for a MainActivity that is not created.
+        activity = test.startActivitySync(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK).putExtra("open_planning", planning)
             .putExtra("planning_appointment_id", appointment).putExtra("planning_action", action))
         latest = activity
         waitUntil("MAIN_COMPOSE_CONTENT") {
@@ -303,11 +309,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             launch()
             val failures = ArrayList<Throwable>()
             fun journey(name: String, run: () -> Unit) {
+                test.sendStatus(0, Bundle().apply { putString("journey_start", name) })
                 val failure = try { run(); null }
                     catch (failure: AssertionError) { failure }
                     catch (failure: Exception) { failure }
                 if (failure == null) android.util.Log.i("NativeComposeQA", "$name PASS")
                 else {
+                    test.sendStatus(0, Bundle().apply { putString("journey_failure", "$name: " + failure.stackTraceToString()) })
                     runCatching { captureSyntheticScreen("failure-$name"); logVisibleActions("failure_$name") }
                     failures.add(AssertionError("QA_NATIVE_COMPOSE_JOURNEY_$name", failure))
                 }
@@ -1005,9 +1013,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     /** Validate real screen/IME geometry, then inject a touch, not a semantics click. */
-    private fun visibleResult(label: String, tap: Boolean = false, requireKeyboard: Boolean = false): Rect {
+    private fun visibleResult(label: String, tap: Boolean = false, requireKeyboard: Boolean = false, scrollIntoView: Boolean = false): Rect {
         var result: Rect? = null
-        waitUntil("SEARCH_RESULT_BOUNDS_$label") {
+        var geometry = "No candidate"
+        var lastScroll = 0L
+        try { waitUntil("SEARCH_RESULT_BOUNDS_$label") {
             val candidate = nodes().firstNotNullOfOrNull { if (matches(it, label)) clickable(it) else null } ?: return@waitUntil false
             val bounds = Rect().also { candidate.getBoundsInScreen(it) }
             val screen = Rect()
@@ -1019,9 +1029,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 if (!keyboard.isEmpty) screen.bottom = minOf(screen.bottom, keyboard.top)
             }
             val valid = !bounds.isEmpty && screen.contains(bounds) && bounds.width() >= (48 * context.resources.displayMetrics.density).toInt() && bounds.height() >= (48 * context.resources.displayMetrics.density).toInt()
+            geometry = "candidate=$bounds screen=$screen keyboard=${ime != null} density=${context.resources.displayMetrics.density}"
             if (valid) result = bounds
+            else if (scrollIntoView && SystemClock.uptimeMillis()-lastScroll > 300) { scroll(); lastScroll = SystemClock.uptimeMillis() }
             valid
-        }
+        } } catch (failure: Throwable) { throw AssertionError("SEARCH_GEOMETRY_$label: $geometry", failure) }
         val bounds = requireNotNull(result)
         checks++
         if (tap) {
@@ -1081,10 +1093,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     searchMatrix.put(JSONObject().put("font", font).put("compact", compact).put("landscape", landscape)
                         .put("keyboard_open_and_closed", true).put("ime_action_preserves_query", true).put("real_touch_selection", true).put("screenshot", "qa-native-$key.png"))
                 } catch (failure: Throwable) {
+                    test.sendStatus(0, Bundle().apply { putString("search_display_failure", "$key: " + failure.stackTraceToString()) })
                     runCatching { captureSyntheticScreen("failure-$key") }
                     failures.add(AssertionError(key, failure))
                     // Own synthetic form only; keep later independent display cases executable.
-                    runBlocking { NativeAppController(requireNotNull(activity) as MainActivity, store).removeDraft("editor:worklog:new") }
+                    runCatching { runBlocking { NativeAppController(requireNotNull(activity) as MainActivity, store).removeDraft("editor:worklog:new") } }
+                        .onFailure { cleanup -> test.sendStatus(0, Bundle().apply { putString("search_cleanup_failure", cleanup.stackTraceToString()) }) }
                 }
             }
         } finally {
@@ -1130,17 +1144,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             enter("Suchen", fixturePrefix+"000"); visibleResult(fixturePrefix+"000")
             yes(!keyboardVisible(), "GESTURE_PICKER_IME_INITIALLY_CLOSED")
             val screen = Rect().also { requireNotNull(automation.rootInActiveWindow).getBoundsInScreen(it) }
-            val now = SystemClock.uptimeMillis()
-            for (step in 0..12) {
-                val event = MotionEvent.obtain(now, SystemClock.uptimeMillis(), when (step) { 0 -> MotionEvent.ACTION_DOWN; 12 -> MotionEvent.ACTION_UP; else -> MotionEvent.ACTION_MOVE },
-                    2f + screen.width()*0.45f*step/12f, screen.exactCenterY(), 0)
-                event.source = InputDevice.SOURCE_TOUCHSCREEN
-                try { yes(automation.injectInputEvent(event, true), "BACK_EDGE_GESTURE_EVENT") } finally { event.recycle() }
-                if (step < 12) SystemClock.sleep(20)
-            }
+            // Android's standard input command injects a real edge swipe.
+            shell("input touchscreen swipe 1 ${screen.centerY()} ${screen.centerX()} ${screen.centerY()} 350")
             waitUntil("BACK_GESTURE_CLOSES_ONLY_PICKER") { node("Schließen") == null && node("Kunde: Nicht zugeordnet") != null }
             captureSyntheticScreen("back-gesture")
             click("‹ Zurück"); shown("Arbeit erfassen")
+        } catch (failure: Throwable) {
+            runCatching { captureSyntheticScreen("failure-back-gesture-active") }
+            throw failure
         } finally {
             shell("cmd overlay enable-exclusive --category --user 0 $original")
             activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
@@ -1170,6 +1181,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(requireNotNull(field(fieldLabel)).performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id), "DOMAIN_IME_ACTION_$key")
         waitUntil("DOMAIN_IME_CLOSED_$key") { !keyboardVisible() }
         yes(field(fieldLabel)?.text?.toString()?.contains(query) == true, "DOMAIN_QUERY_RETAINED_$key")
+        visibleResult(result)
         showKeyboard(fieldLabel); visibleResult(result, tap = true, requireKeyboard = true)
         waitUntil("DOMAIN_TOUCH_OPENED_$key") { !keyboardVisible() && field(fieldLabel) == null }
         domainSearchCases.put(JSONObject().put("case", key).put("zero_and_matches", true).put("keyboard_bounds", true)
@@ -1204,10 +1216,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("offers") {
             click("Kunden"); enter("Suchen", fixturePrefix+"000"); click(fixturePrefix+"000"); click("Angebote")
             keyboardSearchProof("offers", "Suchen", "QA Kontextangebot 0", "QA Kontextangebot 0")
+            click("Zur Liste"); yes(field("Suchen")?.text?.toString()?.contains("QA Kontextangebot 0") == true, "DOMAIN_RETURN_QUERY_offers")
         }
         case("invoices") {
             click("Büro"); click("Abrechnung"); click("Rechnungen")
             keyboardSearchProof("invoices", "Suchen", "QA-UI-119", "QA-UI-119")
+            click("Zur Liste"); yes(field("Suchen")?.text?.toString()?.contains("QA-UI-119") == true, "DOMAIN_RETURN_QUERY_invoices")
         }
         case("planning") {
             click("Büro"); click("Planung")
@@ -1224,6 +1238,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("catalog") {
             openOfficeGroup("Material und Wissen", "Leistungskatalog")
             keyboardSearchProof("catalog", "Bausteine suchen", "QA Leistungsbaustein", "QA Leistungsbaustein")
+            click("Zur Liste"); yes(field("Bausteine suchen")?.text?.toString()?.contains("QA Leistungsbaustein") == true, "DOMAIN_RETURN_QUERY_catalog")
         }
         case("plants") {
             val plants = JSONObject(context.assets.open("plant-catalog.json").bufferedReader().use { it.readText() }).getJSONArray("plants")
@@ -1292,16 +1307,18 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private fun surfaceJourney() {
         val failures = ArrayList<Throwable>()
         fun case(key: String, ready: String, screenshot: Boolean = false, body: () -> Unit) {
+            test.sendStatus(0, Bundle().apply { putString("surface_start", key) })
             try {
                 activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
                 body(); reveal(ready)
                 yes(!keyboardVisible(), "SURFACE_NO_UNREQUESTED_IME_$key")
                 // Readable labels and actual actionable bounds are separate checks.
                 val target = node(ready)?.let(::clickable)
-                if (target != null) visibleResult(ready)
+                if (target != null) visibleResult(ready, scrollIntoView = true)
                 if (screenshot) captureSyntheticScreen("surface-$key")
                 surfaceCases.put(JSONObject().put("surface", key).put("ready", ready).put("no_auto_ime", true))
             } catch (failure: Throwable) {
+                test.sendStatus(0, Bundle().apply { putString("surface_failure", "$key: " + failure.stackTraceToString()) })
                 runCatching { captureSyntheticScreen("failure-surface-$key") }
                 failures.add(AssertionError("SURFACE_$key", failure))
             }
@@ -1335,7 +1352,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         case("materials", "Material anlegen") { openOfficeGroup("Material und Wissen", "Material") }
         case("photos", "Foto hinzufügen") { openOfficeGroup("Material und Wissen", "Fotos") }
-        case("plants", "Pflanzen") { openOfficeGroup("Material und Wissen", "Pflanzen") }
+        case("plants", "Zufällige Pflanze") { openOfficeGroup("Material und Wissen", "Pflanzen") }
         case("catalog", "Neuer Leistungsbaustein") { openOfficeGroup("Material und Wissen", "Leistungskatalog") }
         case("drafts", "Bereich: Alle Entwürfe") { openOfficeGroup("Weitere Verwaltung", "Entwürfe") }
         case("restored-drafts", "Übernommene Formularstände prüfen") {

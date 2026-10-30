@@ -27,6 +27,14 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+/** All light app windows, including full-screen selection and connection views. */
+internal fun android.view.Window.nativeLightSystemBars() {
+    androidx.core.view.WindowCompat.getInsetsController(this, decorView).apply {
+        isAppearanceLightStatusBars = true
+        isAppearanceLightNavigationBars = true
+    }
+}
+
 /** One Material 3 palette for main, connection and recovery activities. */
 @Composable
 fun HausGartenTheme(content: @Composable () -> Unit) {
@@ -143,6 +151,7 @@ internal fun nativeNumber(value: Any?): String = value?.toString()?.toBigDecimal
 /** Connection and recovery screens keep their own back guards and transactions. */
 @OptIn(ExperimentalLayoutApi::class)
 fun ComponentActivity.nativeContent(title: String, showBack: Boolean = true, actions: (@Composable () -> Unit)? = null, content: @Composable ColumnScope.() -> Unit) {
+    window.nativeLightSystemBars()
     setContent {
         HausGartenTheme {
             Surface(Modifier.fillMaxSize()) {

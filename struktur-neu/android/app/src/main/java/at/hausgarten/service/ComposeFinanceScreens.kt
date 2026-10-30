@@ -38,7 +38,7 @@ private fun financeRows(data: JSONObject, vararg names: String): List<JSONObject
     val array = (names.toList() + "items").firstNotNullOfOrNull { data.optJSONArray(it) } ?: return emptyList()
     return (0 until array.length()).mapNotNull { array.optJSONObject(it) }.map { it.optJSONObject("offer") ?: it.optJSONObject("entry") ?: it }
 }
-private fun financeMoney(value: Any?): String = if (value == null || value == JSONObject.NULL) "offen" else runCatching { BigDecimal(value.toString()).setScale(2, RoundingMode.HALF_UP).toPlainString().replace('.', ',') + " €" }.getOrDefault("Betrag prüfen")
+internal fun financeMoney(value: Any?): String = if (value == null || value == JSONObject.NULL) "offen" else runCatching { BigDecimal(value.toString()).setScale(2, RoundingMode.HALF_UP).toPlainString().replace('.', ',') + " €" }.getOrDefault("Betrag prüfen")
 private fun financeMinor(value: String): Long = BigDecimal(value.trim().replace(',', '.')).movePointRight(2).longValueExact()
 private fun financeFields(row: JSONObject, keys: Array<String>) = JSONObject().also { out -> keys.forEach { if (row.has(it)) out.put(it, row.get(it)) } }
 private fun financeStatus(value: String): String = mapOf("draft" to "Entwurf", "validated" to "Geprüft", "finalized" to "Finalisiert", "accepted" to "Angenommen", "declined" to "Abgelehnt", "share_prepared" to "Teilen vorbereitet", "sent" to "Versand bestätigt", "cash" to "Bar", "bank" to "Bank", "card" to "Karte", "other" to "Andere", "b2b" to "Unternehmen", "consumer" to "Verbraucher", "on_premise" to "Im Geschäft", "distance" to "Fernabsatz", "off_premise" to "Außerhalb der Geschäftsräume", "confirmed" to "Bestätigt", "catalog" to "Freigegebener Katalogpreis", "calculated" to "Berechnet", "estimated" to "Geschätzt", "unit" to "Einheitspreis", "text" to "Text", "own" to "Eigener Nummernkreis")[value] ?: nativeValue(value)
@@ -223,7 +223,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
             }
             if (section == "catalog") OutlinedButton(onClick = { pendingAction = "update_catalog_entry" to JSONObject().put("entry_id", id).put("expected_record_hash", detail!!.optString("record_hash")).put("updates", JSONObject().put("active", !row.optBoolean("active", true))) }, Modifier.fillMaxWidth()) { Text(if(row.optBoolean("active", true)) "Baustein deaktivieren" else "Baustein reaktivieren") }
             if (editable && section != "catalog") TextButton(onClick = {scope.launch {try {archivePreview=controller.query("preview_delete",JSONObject().put("entity",if(section=="offers") "offer" else "invoice").put("entity_id",id))}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){controller.message(f.message.orEmpty())}}}) { Text("Entwurf archivieren …") }
-            TextButton(onClick = { controller.navigate(section, args = controller.route.args) }) { Text("Zur Liste") }
+            TextButton(onClick = { controller.returnToList(section) }) { Text("Zur Liste") }
         }
     }
 }

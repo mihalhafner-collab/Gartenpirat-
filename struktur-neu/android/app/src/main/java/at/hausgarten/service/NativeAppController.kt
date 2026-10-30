@@ -61,6 +61,11 @@ internal class NativeAppController(private val activity: MainActivity, val store
         if (route.section != section || route.id.isNotEmpty() || route.mode != "list") navigate(section)
     }
     fun back() { messages.value = ""; route = if (history.isEmpty()) NativeRoute() else history.removeLast() }
+    fun returnToList(section: String) {
+        val previous = history.lastOrNull()
+        if (previous?.section == section && previous.id.isEmpty() && previous.mode == "list") back()
+        else navigate(section, args = route.args)
+    }
     fun requestBack() { activity.onBackPressedDispatcher.onBackPressed() }
     fun canGoBack(): Boolean = history.isNotEmpty() || route.section != "today"
     fun restoreRoute(saved: String?) {

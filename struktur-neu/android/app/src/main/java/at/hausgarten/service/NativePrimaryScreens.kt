@@ -400,7 +400,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
         if (!imeVisible && collection != "customers") item {
             NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer).put("date_from", from).put("date_to", to))
         }
-        if (!imeVisible && collection == "worklogs") item { NativeWorkOverview(controller) }
+        if (!imeVisible && search.isBlank() && collection == "worklogs") item { NativeWorkOverview(controller) }
         if (filtersOpen && !imeVisible) item {
             if (collection == "customers") {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Archivierte Kunden einbeziehen", Modifier.weight(1f)); Switch(inactive, { inactive = it; offset = 0 }) }

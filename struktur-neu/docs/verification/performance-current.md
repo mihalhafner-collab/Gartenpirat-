@@ -473,3 +473,9 @@ Physischer Pixel, echtes Drive-Konto, produktive Installation, Migration,
 Wiederherstellung, Rechnungsfreigabe und Veröffentlichung gehören nicht zu diesem
 Auftrag. Die zuvor gebundenen historischen Pixel-Belege bleiben historische
 Belege und sind keine Abnahme dieser Oberfläche.
+
+Der ausdrückliche Rückweg „Zur Liste“ in Belegen und Leistungsbausteinen verwendet den vorhandenen vorherigen Listenzustand. Dadurch bleiben auch global begonnene Suchtexte erhalten, wenn die Detailroute zusätzliche Kontextargumente enthält. Die fachlichen Suchprüfungen kontrollieren diesen Rückweg ausdrücklich.
+
+Die erweiterten Zwischenläufe zeigten einen blockierenden Testneustart nach der Kalender-Activity (Android `START_TASK_TO_FRONT`, kein neuer MainActivity-Start). Frische synthetische Testaufgaben werden deshalb mit `NEW_TASK | CLEAR_TASK` gestartet. Oberflächenaktionen werden vollständig in den sichtbaren Bereich gescrollt; Suchtreffer müssen ohne dieses zusätzliche Scrollen antippbar sein. Jeder Prüfbereich und Fehler wird unmittelbar protokolliert.
+
+Zusätzlich wurde in der strengeren Suchmatrix `SQLITE_BUSY` sichtbar. Die betroffenen Fälle sind fehlgeschlagen; eine Abnahme wird daraus nicht abgeleitet. Die nächste Prüfung enthält Threaddiagnosen bei Zeitüberschreitung. Die Speicherlogik bleibt bis zur Eingrenzung unverändert. Systemleisten von Dialogen und Sonder-Activities verwenden dieselbe vorhandene Einstellung für dunkle Symbole. Allgemeine Cent-Beträge verwenden die vorhandene Euroformatierung mit zwei Nachkommastellen.

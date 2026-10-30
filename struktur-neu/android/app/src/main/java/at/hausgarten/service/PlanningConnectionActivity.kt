@@ -60,6 +60,7 @@ class PlanningConnectionActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState); title = "Kalender & Wetter"
+        window.nativeLightSystemBars()
         setContent {
             HausGartenTheme {
                 Scaffold(

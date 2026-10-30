@@ -124,10 +124,7 @@ class MainActivity : ComponentActivity(), McpSyncHost {
                 else if (current?.canGoBack() == true) current.back() else finish()
             }
         })
-        androidx.core.view.WindowCompat.getInsetsController(window, window.decorView).apply {
-            isAppearanceLightStatusBars = true
-            isAppearanceLightNavigationBars = true
-        }
+        window.nativeLightSystemBars()
         setContent {
             HausGartenTheme {
                 val current = controller

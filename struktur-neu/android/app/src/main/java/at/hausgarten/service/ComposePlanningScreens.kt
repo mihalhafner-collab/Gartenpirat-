@@ -146,7 +146,7 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
                   TextButton({ onWeather(!weatherView) }) { Text(if (weatherView) "Termine" else "Wetterhinweise") }
               }
           }
-          if (!imeVisible) item { NativeRelatedList(controller, "visits", "Geplante Einsätze", JSONObject().put("customer_id", customer).put("date_from", from.toString()).put("date_to", to.toString())) }
+          if (!imeVisible && search.isBlank()) item { NativeRelatedList(controller, "visits", "Geplante Einsätze", JSONObject().put("customer_id", customer).put("date_from", from.toString()).put("date_to", to.toString())) }
           if (filtersOpen && !imeVisible) item { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(if (weatherView) "Wetter & Einsätze" else "Planung", style = MaterialTheme.typography.headlineSmall)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
