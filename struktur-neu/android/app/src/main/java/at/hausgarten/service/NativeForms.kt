@@ -37,6 +37,32 @@ internal fun NativeChoice(label: String, selected: String, options: List<Pair<St
     }, confirmButton = { TextButton({ open = false }) { Text("Abbrechen") } })
 }
 
+/** Optional suggestions never replace a free input with a mandatory catalog value. */
+@Composable
+internal fun NativeSuggestions(label: String, options: List<String>, onChoose: (String) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    var search by remember { mutableStateOf("") }
+    TextButton({ open = !open }) { Text(label + if (open) " ▴" else " ▾") }
+    if (open) {
+        NativeField("Vorschläge durchsuchen", search, { search = it })
+        options.filter { it.contains(search, ignoreCase = true) }.forEach { value ->
+            TextButton({ onChoose(value); open = false }, Modifier.fillMaxWidth()) { Text(value) }
+        }
+    }
+}
+
+@Composable
+internal fun NativeAmountPresets(label: String, value: String, presets: List<String>, suffix: String, change: (String) -> Unit) {
+    Text(label, style = MaterialTheme.typography.titleSmall)
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        presets.forEach { preset ->
+            FilterChip(selected = value.replace(',', '.').toDoubleOrNull() == preset.toDoubleOrNull(), onClick = { change(preset) }, label = { Text("$preset $suffix".trim()) })
+        }
+    }
+    OutlinedTextField(value, change, Modifier.fillMaxWidth(), label = { Text("$label · frei eingeben") }, singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
+}
+
 @Composable
 internal fun NativeRecordPicker(controller: NativeAppController, collection: String, label: String, value: String, onValueChange: (String) -> Unit) {
     var open by remember { mutableStateOf(false) }
@@ -78,7 +104,7 @@ private val nativeLabels = mapOf(
     "equipment_id" to "Gerät", "material_id" to "Material", "care_plan_id" to "Pflegeplan", "appointment_id" to "Termin", "worklog_id" to "Tätigkeit",
     "phone" to "Telefon", "email" to "E-Mail", "company" to "Firma", "first_name" to "Vorname", "last_name" to "Nachname", "street" to "Straße",
     "postal_code" to "Postleitzahl", "city" to "Ort", "country" to "Land", "address" to "Adresse", "location" to "Einsatzort", "garden_area" to "Gartenfläche",
-    "activity" to "Tätigkeit", "work_date" to "Arbeitsdatum", "date" to "Datum", "date_from" to "Ab Datum", "date_to" to "Bis Datum", "hours" to "Stunden",
+    "disposal_cost" to "Entsorgung (€)", "activity" to "Tätigkeit", "work_date" to "Arbeitsdatum", "date" to "Datum", "date_from" to "Ab Datum", "date_to" to "Bis Datum", "hours" to "Stunden",
     "start_time" to "Beginn", "end_time" to "Ende", "break_minutes" to "Pause in Minuten", "material" to "Material", "material_cost" to "Materialkosten",
     "kilometers" to "Kilometer", "customer_visible" to "Für Kunden sichtbar", "allow_overnight" to "Arbeit über Mitternacht", "billed" to "Abgerechnet",
     "active" to "Aktiv", "archived" to "Archiviert", "status" to "Status", "updates" to "Änderungen", "confirmed" to "Ich bestätige diese Aktion",

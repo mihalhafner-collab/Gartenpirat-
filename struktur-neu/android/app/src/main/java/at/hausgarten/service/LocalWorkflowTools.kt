@@ -950,6 +950,13 @@ internal class LocalWorkflowTools {
                                 ),
                             ),
                         )
+                        .put("accessories", array(McpFields.`object`(JSONObject()
+                            .put("id", McpFields.id()).put("type", McpFields.enumeration("chain", "other"))
+                            .put("name", McpFields.text(240)).put("manufacturer", McpFields.text(240)).put("model", McpFields.text(240))
+                            .put("pitch", McpFields.text(80)).put("gauge", McpFields.text(80)).put("drive_links", McpFields.text(80))
+                            .put("article_number", McpFields.text(240)).put("tooth_type", McpFields.text(240)).put("file_size", McpFields.text(80))
+                            .put("notes", McpFields.text(10000)).put("photo_upload_id", McpFields.id()), "id", "type"), 100))
+                        .put("current_chain_id", McpFields.text(200))
                         .put("profile_photo_upload_id", McpFields.id())
                         .put("equipment_id", McpFields.id())
                         .put("expected_record_hash", McpFields.hash())

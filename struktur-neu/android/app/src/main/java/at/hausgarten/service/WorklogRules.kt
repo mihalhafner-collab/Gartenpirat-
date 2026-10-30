@@ -7,6 +7,21 @@ class WorklogRules {
     companion object {
         @Throws(Exception::class)
         @JvmStatic fun validate(payload: JSONObject, isNew: Boolean) {
+            if (payload.has("disposal_cost") && !payload.isNull("disposal_cost")) {
+                val entered = payload.get("disposal_cost").toString().trim().replace(',', '.')
+                if (entered.isEmpty()) payload.remove("disposal_cost")
+                else {
+                    val amount = entered.toBigDecimalOrNull()
+                        ?: throw IllegalArgumentException("Bitte einen gültigen Entsorgungsbetrag eingeben.")
+                    require(amount.signum() >= 0 && amount.stripTrailingZeros().scale() <= 2) { "Entsorgung als Eurobetrag mit höchstens zwei Nachkommastellen eingeben." }
+                    payload.put("disposal_cost", amount)
+                }
+            }
+            for (field in listOf("break_minutes", "hours", "kilometers")) {
+                if (payload.has(field) && !payload.isNull(field) && payload.opt(field).toString().isNotBlank()) {
+                    require(payload.opt(field).toString().toDoubleOrNull()?.isFinite() == true) { "Bitte gültige Stunden, Kilometer und eine Pause in ganzen Minuten eingeben." }
+                }
+            }
             var pause: Double = payload.optDouble("break_minutes", (0).toDouble())
             var km: Double = payload.optDouble("kilometers", (0).toDouble())
             var hours: Double = payload.optDouble("hours", (0).toDouble())

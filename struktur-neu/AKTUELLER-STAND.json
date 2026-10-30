@@ -33,21 +33,124 @@
     }
   ],
   "current_task": {
-    "name": "USB/ADB-Prüfung am Pixel mit Freigabe für die aktuelle Datenbank",
-    "status": "STOPPED_AT_USER_REQUEST;DEVICE_CLEANUP_DONE;KNOWN_FAILURES;NO_FULL_ACCEPTANCE",
+    "name": "Kotlin-Bedienung vereinfachen und maschinenbezogenes Zubehör ergänzen",
+    "status": "SOURCE_CHECK_PASS;CI_BASELINE_AND_NATIVE_ACCEPTANCE_PENDING;NO_PIXEL_TEST",
     "authorized": true,
-    "authorization_scope": "User explicitly permitted current-DB read/write tests,then ended testing. New synthetic records;no install,authority activation,destructive restore or account tests.",
-    "requirements_document": "docs/fachregeln/APP.md",
-    "test_instructions": "docs/entwicklung/BAU.md#adb-analyse-und-lese-schreibtests-über-den-laptop",
-    "result_pointer": "validation.physical_device_test",
-    "completion_claim": "TEST_ENDED_AND_DOCUMENTED;NOT_FULL_ACCEPTANCE"
+    "authorization_scope": "Direct user 14-requirement implementation request;user explicitly confirmed takeover and no parallel process;source changes,synthetic checks and targeted GitHub source save;no installation,migration,restore,invoice activation or release publication",
+    "base_git_sha": "19537218aad3878a12cf01426ca9326b015294b0",
+    "branch": "codex/kotlin-refactoring-20261029",
+    "design": "Four bottom sections:Heute/Arbeitsaufzeichnungen/Kunden/Büro;existing Compose/repositories;compact bottom actions;direct facts,optional suggestions;presented before UI changes",
+    "requirements": [
+      {
+        "id": 1,
+        "code": "NativePrimaryScreens.kt:NativeToday",
+        "expected": "Erfasste Arbeiten und Hinweise offen;Einsätze nur einmal",
+        "verification": "native_compose/usability",
+        "status": "SOURCE_REVIEWED;RUNTIME_PENDING"
+      },
+      {
+        "id": 2,
+        "code": "NativePrimaryScreens.kt:NativeApplication/NativeOffice",
+        "expected": "Kein Mehr auf Heute;erforderliche Funktionen unter vier Bereichen",
+        "verification": "native_compose/usability;source route inventory",
+        "status": "SOURCE_REVIEWED;RUNTIME_PENDING"
+      },
+      {
+        "id": 3,
+        "code": "NativeAppController.kt:openSection;NativePrimaryScreens.kt:NativeEntityList",
+        "expected": "Kunden-Menü setzt Seite/Scrollanfang;Filter bleiben",
+        "verification": "native_compose/usability",
+        "status": "SOURCE_REVIEWED;RUNTIME_PENDING"
+      },
+      {
+        "id": 4,
+        "code": "NativePrimaryScreens.kt:NativeEntityList",
+        "expected": "Kein unterer Suchknopf;vorhandenes Suchfeld bleibt",
+        "verification": "source review;native_compose/customer",
+        "status": "SOURCE_REVIEWED;RUNTIME_PENDING"
+      },
+      {
+        "id": 5,
+        "code": "LocalInvoiceService.kt:ledger/paymentEntries;ComposeFinanceScreens.kt:FinancePayments",
+        "expected": "Gleiche synthetische Messreihe n40;keine ungemessene Verbesserung",
+        "verification": "native_data/office_reads;physical per-route NOT_RUN",
+        "status": "SOURCE_REVIEWED;RUNTIME_PENDING"
+      },
+      {
+        "id": 6,
+        "code": "WorklogRules.kt;PixelMcpWriteTools.kt;NativePrimaryScreens.kt:NativeEntityEditor",
+        "expected": "Optionale Entsorgung50/100/150 oder frei;Speichern/Wiederöffnen",
+        "verification": "WorkEntryAccessoryTests;native_compose/usability",
+        "status": "SOURCE_REVIEWED;RUNTIME_PENDING"
+      },
+      {
+        "id": 7,
+        "code": "NativePrimaryScreens.kt:NativeEntityDetail",
+        "expected": "Arbeitsnotizen direkt unter Titel",
+        "verification": "native_compose/usability",
+        "status": "SOURCE_REVIEWED;RUNTIME_PENDING"
+      },
+      {
+        "id": 8,
+        "code": "WorklogRules.kt;NativePrimaryScreens.kt:NativeEntityEditor",
+        "expected": "Pause15/30/45/60/frei unter Beginn/Ende;einmaliger Abzug",
+        "verification": "WorkEntryAccessoryTests;native_compose/usability",
+        "status": "SOURCE_REVIEWED;RUNTIME_PENDING"
+      },
+      {
+        "id": 9,
+        "code": "NativeForms.kt:NativeSuggestions;NativePrimaryScreens.kt:NativeEntityEditor",
+        "expected": "Aufklappbare Tätigkeitsbausteine;Freitext bleibt",
+        "verification": "native_compose/usability",
+        "status": "SOURCE_REVIEWED;RUNTIME_PENDING"
+      },
+      {
+        "id": 10,
+        "code": "NativePrimaryScreens.kt:NativeEntityEditor;ComposeRevierScreens.kt:nativeDeletePhotoDraft",
+        "expected": "Exakter OK/Abbrechen-Dialog;nur eigener Entwurf/temporäres Foto;gespeicherte Inhalte bleiben",
+        "verification": "native_compose/usability/workPhotoRetention",
+        "status": "SOURCE_REVIEWED;RUNTIME_PENDING"
+      },
+      {
+        "id": 11,
+        "code": "ComposeRevierScreens.kt:RevierFields;NativeForms.kt:NativeSuggestions",
+        "expected": "20 Gerätebegriffe;durchsuchbare Vorauswahl/Freitext;Wartung bleibt",
+        "verification": "source inventory;emulator UI pending",
+        "status": "SOURCE_REVIEWED;RUNTIME_PENDING"
+      },
+      {
+        "id": 12,
+        "code": "NativePrimaryScreens.kt:NativeApplication",
+        "expected": "Arbeitsaufzeichnungen direkt rechts neben Heute",
+        "verification": "native_compose/usability;source review",
+        "status": "SOURCE_REVIEWED;RUNTIME_PENDING"
+      },
+      {
+        "id": 13,
+        "code": "NativePrimaryScreens.kt;NativeForms.kt;NativeCompose.kt;MainActivity.kt",
+        "expected": "Einheitliche vier Bereiche/kompakte Aktionen/Inhalte direkt/IME-Systemabstände",
+        "verification": "native_compose/large_text;physical Pixel NOT_RUN",
+        "status": "SOURCE_REVIEWED;RUNTIME_PENDING"
+      },
+      {
+        "id": 14,
+        "code": "RevierApplicationService.kt:equipment/equipmentPhoto;ComposeRevierScreens.kt:RevierAccessoryFields;LocalWorkflowTools.kt",
+        "expected": "Zubehör pro Maschine;ein aktueller Kettenbezug;optionale Angaben und bestehender Fotopfad",
+        "verification": "WorkEntryAccessoryTests;native equipment UI pending",
+        "status": "SOURCE_REVIEWED;RUNTIME_PENDING"
+      }
+    ],
+    "implementation_notes": [
+      "Preserved existing Compose and SQLite paths;four main sections and machine-bound accessories",
+      "Fixed decimal comma regression in free hours,kilometers and material cost",
+      "Photo discard reports deletion failure and retains draft for retry;confirmed records untouched"
+    ]
   },
   "open_checks": [
-    "5 UI fixes documented only:photo filter,Today duplication,customer timestamps,statusbar contrast,startup warning;see evidence document",
-    "User ended tests;unrun UI/performance cases and backup/restore/account/authority limits listed in evidence document",
-    "Own18 records archived/inactive;session/receipts retained. default_location now empty instead of absent;API has no remove path",
-    "Full current-source checker cannot complete in partial connector copy(missing bootstrap_contract);no fresh source/build/native-suite PASS",
-    "Raw old IndexedDB-only drafts preserved;not automatically materialized as native photos"
+    "Current edited source:JVM/Android/emulator execution pending;previous Build119 results do not validate this change",
+    "No physical Pixel test,installation or release;the earlier ADB test was ended by the user",
+    "Office per-route UI/Pixel latency missing;synthetic repository baseline does not prove opening latency",
+    "Previous independent Build119 findings outside this scope:photo customer filter,startup cleanup warning;see existing physical evidence"
   ],
   "workflow": {
     "scope": "CURRENT_SOURCE;struktur-neu is authoritative;qa-apk.yml builds and tests this source without publishing a user APK",
@@ -75,34 +178,19 @@
   "validation": {
     "app_source_fingerprint": "1dccfad7966f564f3a844c848af4dae50c5200b8697592e07a449e4e06920407",
     "source_privacy": "PASS;empty operational seed",
-    "business_data_read": true,
-    "authored_changes_diff_check": "PASS;documentation-only JSON diff and evidence review;full source check unavailable",
+    "business_data_read": false,
+    "authored_changes_diff_check": "PASS;reviewed adopted implementation plus decimal/discard fixes;git diff --check",
     "current_test_run": {
-      "scope": "CURRENT_FULL_KOTLIN_COMPOSE_REFACTOR;SYNTHETIC_ACCEPTANCE_PASS",
-      "observed_at_utc": "2026-10-30T03:42:22.092646+00:00",
-      "tested_git_sha": "7bb6875d2efa77f5268bef2edc44a0f1bc87840c",
-      "source_sha256": "1dccfad7966f564f3a844c848af4dae50c5200b8697592e07a449e4e06920407",
-      "source_dirty": false,
-      "source_checks": "PASS;62 Python/source/privacy/contracts;seed0",
-      "jvm": "PASS;1154 checks across8 suites",
-      "android_build": "PASS;CI clean release/test APK and lint0errors;637 assets/210 Kotlin targets verified for same app fingerprint",
-      "native": {
-        "status": "PASS;8 suites/637 checks;Android15/API35",
-        "suites": {
-          "local_backup": 43,
-          "local_backup_reopen": 13,
-          "browser_checkpoint": 79,
-          "browser_checkpoint_reopen": 23,
-          "native_data": 225,
-          "document_provider": 75,
-          "document_provider_reopen": 17,
-          "native_compose": 162
-        },
-        "evidence": "40000 rows/4 indexed plans;WAL/Flow/concurrency;data main-thread disk0;draft failure/recreate/CAS;timer;200%font",
-        "performance_claim": false
-      },
-      "ci_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40996808542",
-      "pixel_drive_account_personal_zip": "NOT_RUN;synthetic only"
+      "source": "Working candidate based on19537218aad3878a12cf01426ca9326b015294b0;adopted and reviewed18-file implementation",
+      "source_check": "PASS;62 Python tests and current source/contracts/privacy/fixtures/plants/UI inventory",
+      "jvm": "NOT_RUN;local compiler/AndroidSDK unavailable;existing GitHub workflow used",
+      "native": "NOT_RUN",
+      "physical_pixel": "NOT_RUN",
+      "performance_claim": false,
+      "installation_performed": false,
+      "migration_performed": false,
+      "publication_performed": false,
+      "observed_at_utc": "2026-10-30T09:39:18.897224+00:00"
     },
     "performance_evidence": "docs/verification/performance-current.md:actual physical startup/PSS/gfxinfo histograms;no estimated FPS;individual frame/SQL/per-route latency limits explicit",
     "connector": {
@@ -166,14 +254,9 @@
     "production_source_targets": 210
   },
   "current_release_candidate": {
-    "version_name": "1.57.0",
-    "version_code": 119,
-    "status": "INSTALLED119_VERIFIED;PHYSICAL_TESTS_ENDED_USER;KNOWN_UI_FAILURES;NOT_ACCEPTED",
-    "artifact": "Gartenpirat-1.57.0-build119.apk",
-    "source_git_sha": "94b75be56ef46ed1404b19a725a97811cbfcd19a",
-    "apk_sha256": "f907a1b260ec7719e7b11bf24e6d02671b8eaef7ba797f9ddca02b0a0ab42f86",
-    "apk_bytes": 89453503,
-    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-    "verification": "PASS;original identity,637 assets,210 targets,clean DEX,seed0"
+    "version_name": "1.57.1",
+    "version_code": 120,
+    "status": "SOURCE_CANDIDATE;NO_USER_APK;NO_INSTALLATION",
+    "base_git_sha": "19537218aad3878a12cf01426ca9326b015294b0"
   }
 }

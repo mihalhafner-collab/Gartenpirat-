@@ -42,6 +42,7 @@ class PixelMcpWriteTools {
                 "break_minutes",
                 "material",
                 "material_cost",
+                "disposal_cost",
                 "kilometers",
                 "notes",
                 "location",
@@ -62,6 +63,9 @@ class PixelMcpWriteTools {
                 "end_time",
                 "break_minutes",
                 "material",
+                "material_cost",
+                "disposal_cost",
+                "allow_overnight",
                 "kilometers",
                 "notes",
                 "location",
@@ -81,7 +85,7 @@ class PixelMcpWriteTools {
         fun field(key: String): JSONObject {
 
             var type =
-                (if ((((key == "hours") || (key == "kilometers")) || (key == "material_cost")))
+                (if ((((key == "hours") || (key == "kilometers")) || (key in listOf("material_cost", "disposal_cost"))))
                     "number"
                 else
                     (if ((key == "break_minutes")) "integer"

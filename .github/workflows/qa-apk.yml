@@ -3,7 +3,7 @@ name: Gartenpirat Kotlin, Compose and native regression checks
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, codex/kotlin-refactoring-20261029]
     paths:
       - 'struktur-neu/android/**'
       - 'struktur-neu/tests/**'

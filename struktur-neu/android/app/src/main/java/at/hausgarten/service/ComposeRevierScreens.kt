@@ -3,6 +3,7 @@ package at.hausgarten.service
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
@@ -38,7 +40,7 @@ private val revierSections = listOf(
     RevierSection("material", "materials", "Material", "Material"),
     RevierSection("equipment", "equipment", "Gerätewartung", "Gerät")
 )
-private val revierActionEditors = setOf("inspection", "direct_acceptance", "generate", "maintenance_plan", "maintenance_done", "maintenance_adjust", "movement", "equipment_use")
+private val revierActionEditors = setOf("accessories", "inspection", "direct_acceptance", "generate", "maintenance_plan", "maintenance_done", "maintenance_adjust", "movement", "equipment_use")
 private data class RevierPhrase(val id: String, val label: String, val text: String)
 private object RevierMaintenanceCatalog {
     @Volatile private var cached: List<RevierPhrase>? = null
@@ -285,6 +287,7 @@ private fun RevierDetail(
     var data by remember(id) { mutableStateOf<JSONObject?>(null) }
     var failure by remember(id) { mutableStateOf("") }
     var loadFailure by remember(id) { mutableStateOf("") }
+    var equipmentTab by rememberSaveable(id) { mutableIntStateOf(0) }
     var archiveMode by remember { mutableStateOf("") }
     var archiveReason by remember { mutableStateOf("") }
     var confirmed by remember { mutableStateOf(false) }
@@ -382,11 +385,30 @@ private fun RevierDetail(
                     }
                 }
                 "equipment" -> {
-                    RevierProfilePhoto(row.optJSONObject("profile_photo"), controller)
-                    if (row.optString("condition") == "defective") Text("Dieses Gerät ist als defekt markiert. Vor dem Einsatz prüfen.", color = MaterialTheme.colorScheme.error)
-                    OutlinedButton({ onEdit("equipment_use", row, JSONObject().put("equipment_id", id)) }) { Text("Nutzung zuordnen") }
-                    RevierMaintenance(controller, row, refresh, onEdit)
-                    RevierHistory(controller, repository, "equipment_usage", "equipment_id", id)
+                    TabRow(equipmentTab) {
+                        Tab(equipmentTab == 0, { equipmentTab = 0 }, text = { Text("Gerät & Wartung") })
+                        Tab(equipmentTab == 1, { equipmentTab = 1 }, text = { Text("Zubehör") })
+                    }
+                    if (equipmentTab == 0) {
+                        RevierProfilePhoto(row.optJSONObject("profile_photo"), controller)
+                        if (row.optString("condition") == "defective") Text("Dieses Gerät ist als defekt markiert. Vor dem Einsatz prüfen.", color = MaterialTheme.colorScheme.error)
+                        OutlinedButton({ onEdit("equipment_use", row, JSONObject().put("equipment_id", id)) }) { Text("Nutzung zuordnen") }
+                        RevierMaintenance(controller, row, refresh, onEdit)
+                        RevierHistory(controller, repository, "equipment_usage", "equipment_id", id)
+                    } else {
+                        Text("Zubehör für " + row.getString("name"), style = MaterialTheme.typography.titleMedium)
+                        val accessories = row.optJSONArray("accessories")?.revierObjects().orEmpty()
+                        if (accessories.isEmpty()) Text("Noch kein Zubehör zugeordnet.")
+                        for (accessory in accessories) OutlinedCard(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(listOf(accessory.optString("name"), accessory.optString("manufacturer"), accessory.optString("model")).filter { it.isNotBlank() }.joinToString(" · "))
+                                if (accessory.optString("id") == row.optString("current_chain_id")) Text("Aktuell verwendete Kette", color = MaterialTheme.colorScheme.primary)
+                                for ((key, label) in accessoryFields) if (accessory.optString(key).isNotBlank()) Text("$label: " + accessory.getString(key))
+                                RevierProfilePhoto(accessory.optJSONObject("photo"), controller)
+                            }
+                        }
+                        OutlinedButton({ onEdit("accessories", row, JSONObject()) }, enabled = !row.optBoolean("archived")) { Text("Zubehör bearbeiten") }
+                    }
                 }
             }
             if (row.optString("property_id").isNotEmpty()) TextButton({ controller.navigate("properties", row.getString("property_id"), "detail") }) { Text("Objekt öffnen") }
@@ -597,7 +619,7 @@ private fun RevierEditor(controller: NativeAppController, edit: RevierEdit, repo
                 scope.launch {
                     try {
                         val collection = when {
-                            edit.kind.startsWith("maintenance_") || edit.kind == "equipment_use" -> "equipment"
+                            edit.kind.startsWith("maintenance_") || edit.kind in listOf("equipment_use", "accessories") -> "equipment"
                             edit.kind in listOf("inspection", "direct_acceptance") -> "inquiries"
                             edit.kind == "generate" -> "care_plans"
                             edit.kind == "movement" -> "materials"
@@ -626,7 +648,7 @@ private fun RevierEditor(controller: NativeAppController, edit: RevierEdit, repo
             TextButton({
                 busy = true
                 scope.launch {
-                    try { controller.removeDraft(edit.key); revierDeletePhotoDraft(controller, edit.row().optString("selected_photo_uri")); onClose() }
+                    try { revierDeleteEditPhotos(controller, edit.row()); controller.removeDraft(edit.key); onClose() }
                     catch (cancelled: CancellationException) { throw cancelled }
                     catch (error: Exception) { failure = error.message.orEmpty() }
                     finally { busy = false }
@@ -655,6 +677,15 @@ private fun RevierEditor(controller: NativeAppController, edit: RevierEdit, repo
                                 controller.saveDraft(edit.key, edit.snapshot()); controller.flushDrafts()
                                 argsValues = edit.row()
                             }
+                            if (edit.kind == "accessories" && frozen == null) {
+                                val accessories = argsValues.optJSONArray("accessories") ?: JSONArray()
+                                for (index in 0 until accessories.length()) {
+                                    val item = accessories.getJSONObject(index)
+                                    if (item.optString("selected_photo_uri").isNotEmpty()) item.put("photo_upload_id", controller.stageEquipmentPhoto(Uri.parse(item.getString("selected_photo_uri")), edit.request + "_" + PixelMcpWriteTools.hash(item.getString("id") + item.getString("selected_photo_uri")).take(24)))
+                                }
+                                edit.values = argsValues.put("accessories", accessories).toString()
+                                controller.saveDraft(edit.key, edit.snapshot()); controller.flushDrafts()
+                            }
                             val operation = frozen ?: revierArguments(edit, argsValues)
                             edit.pending = operation.toString(); edit.dirty = true
                             controller.saveDraft(edit.key, edit.snapshot()); controller.flushDrafts()
@@ -663,8 +694,8 @@ private fun RevierEditor(controller: NativeAppController, edit: RevierEdit, repo
                         // A confirmed business save remains confirmed if draft cleanup or rendering fails.
                         edit.pending = null
                         edit.dirty = false
-                        runCatching { controller.removeDraft(edit.key); revierDeletePhotoDraft(controller, edit.row().optString("selected_photo_uri")) }.onFailure { controller.message("Gespeichert. Entwurfsbereinigung steht noch aus.") }
-                        controller.message("Lokal gespeichert.")
+                        val cleanup = runCatching { revierDeleteEditPhotos(controller, edit.row()); controller.removeDraft(edit.key) }
+                        controller.message(if (cleanup.isSuccess) "Lokal gespeichert." else "Gespeichert. Entwurfsbereinigung steht noch aus.")
                         onSaved(result)
                     } catch (cancelled: CancellationException) { throw cancelled } catch (error: Exception) {
                         if (error is NativeCallFailure && error.detail.optString("commit_state") == "not_committed") {
@@ -738,7 +769,7 @@ private fun RevierEditor(controller: NativeAppController, edit: RevierEdit, repo
 
 private fun revierEditorTitle(kind: String): String = when (kind) {
     "property" -> "Objekt"; "inquiry" -> "Anfrage"; "care_plan" -> "Pflegeplan"; "visit" -> "Einsatz"
-    "material" -> "Material"; "equipment" -> "Gerät"; "inspection" -> "Besichtigung planen"
+    "accessories" -> "Zubehör der Maschine"; "material" -> "Material"; "equipment" -> "Gerät"; "inspection" -> "Besichtigung planen"
     "direct_acceptance" -> "Direkte Auftragsannahme"; "generate" -> "Besuche erzeugen"; "movement" -> "Materialbewegung"
     "equipment_use" -> "Gerätenutzung"; "maintenance_plan" -> "Wartungsintervall"; "maintenance_done" -> "Wartung erledigt"
     "maintenance_adjust" -> "Früher warten"; else -> "Eintrag"
@@ -755,11 +786,11 @@ private fun RevierFields(edit: RevierEdit, value: JSONObject, controller: Native
         scope.launch {
             try {
                 controller.pickPhoto(camera)?.let { source ->
-                    val retained = revierRetainPhotoDraft(controller, source)
+                    val retained = nativeRetainPhotoDraft(controller, source)
                     val previous = text("selected_photo_uri")
                     update("selected_photo_uri", retained.toString())
                     controller.flushDrafts()
-                    revierDeletePhotoDraft(controller, previous)
+                    nativeDeletePhotoDraft(controller, previous)
                 }
             } catch (cancelled: CancellationException) { throw cancelled }
             catch (error: Exception) { controller.message(error.message.orEmpty()) }
@@ -838,6 +869,7 @@ private fun RevierFields(edit: RevierEdit, value: JSONObject, controller: Native
             field("purchase_price", "Einstandspreis in EUR (optional)"); field("billing_price", "Abrechnungspreis in EUR (optional)")
             field("notes", "Notizen", multiline = true)
         }
+        "accessories" -> RevierAccessoryFields(edit, value, controller, enabled, update)
         "equipment" -> {
             RevierProfilePhoto(value.optJSONObject("profile_photo"), controller)
             if (text("selected_photo_uri").isNotEmpty()) AsyncImage(Uri.parse(text("selected_photo_uri")), "Ausgewähltes Gerätefoto · noch nicht gespeichert", imageLoader = controller.imageLoader, modifier = Modifier.fillMaxWidth().heightIn(max = 180.dp))
@@ -845,7 +877,9 @@ private fun RevierFields(edit: RevierEdit, value: JSONObject, controller: Native
                 OutlinedButton({ pickEquipmentPhoto(true) }, enabled = enabled) { Text("Aufnehmen") }
                 OutlinedButton({ pickEquipmentPhoto(false) }, enabled = enabled) { Text("Foto auswählen") }
             }
-            field("name", "Gerätebezeichnung", true); choice("condition", "Zustand", listOf("ready", "maintenance", "defective"), "ready")
+            field("name", "Gerätebezeichnung", true)
+            if (enabled) NativeSuggestions("Gerätebezeichnung auswählen", listOf("Rasenmäher", "Freischneider/Motorsense", "Rasentrimmer", "Vertikutierer", "Rasenlüfter", "Heckenschere", "Hochheckenschere", "Kettensäge", "Hochentaster", "Häcksler", "Laubbläser", "Laubsauger", "Laubsammler", "Kehrmaschine", "Hochdruckreiniger", "Motorhacke/Bodenfräse", "Rasenwalze", "Streuwagen", "Wasserpumpe", "Drucksprühgerät")) { update("name", it) }
+            choice("condition", "Zustand", listOf("ready", "maintenance", "defective"), "ready")
             field("maintenance_due", "Zusätzlich vorgemerkt · JJJJ-MM-TT"); field("notes", "Notizen / Defekt", multiline = true)
         }
         "movement" -> {
@@ -1069,6 +1103,13 @@ private fun revierArguments(edit: RevierEdit, value: JSONObject): JSONObject {
                 } else if (editing && edit.original.has(key)) args.put(key, JSONObject.NULL)
             }
             if (editing) guarded("material_id"); "save_material"
+        }
+        "accessories" -> {
+            guarded("equipment_id")
+            val accessories = JSONArray()
+            for (row in value.optJSONArray("accessories")?.revierObjects().orEmpty()) accessories.put(row.revierCopy().apply { remove("equipment_id"); remove("photo"); remove("selected_photo_uri") })
+            args.put("accessories", accessories).put("current_chain_id", value.optString("current_chain_id"))
+            "save_equipment"
         }
         "equipment" -> { merge(fields("name", "condition", "maintenance_due", "notes", "profile_photo_upload_id")); if (editing) guarded("equipment_id"); "save_equipment" }
         "movement" -> {
@@ -1382,7 +1423,7 @@ private fun RevierComparisonValue(field: String, value: Any?, repository: Native
 }
 
 /** A selected original is a file-backed draft, retained independently of provider grants. */
-private suspend fun revierRetainPhotoDraft(controller: NativeAppController, source: Uri): Uri = withContext(Dispatchers.IO) {
+internal suspend fun nativeRetainPhotoDraft(controller: NativeAppController, source: Uri): Uri = withContext(Dispatchers.IO) {
     val mime = controller.context.contentResolver.getType(source).orEmpty()
     val extension = when (mime) { "image/png" -> ".png"; "image/webp" -> ".webp"; "image/gif" -> ".gif"; "image/heic", "image/heif" -> ".heic"; else -> ".jpg" }
     // Cache is outside the captured files tree. Only a complete immutable draft is published.
@@ -1415,13 +1456,79 @@ private suspend fun revierRetainPhotoDraft(controller: NativeAppController, sour
         Uri.fromFile(file)
     } finally { temporary.delete() }
 }
-private suspend fun revierDeletePhotoDraft(controller: NativeAppController, source: String) = withContext(Dispatchers.IO) {
+internal suspend fun nativeDeletePhotoDraft(controller: NativeAppController, source: String) = withContext(Dispatchers.IO) {
     if (source.isEmpty()) return@withContext
     val uri = Uri.parse(source)
     if (uri.scheme != "file") return@withContext
     synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) {
         val directory = File(controller.context.filesDir, "native-form-media").canonicalFile
         val file = File(uri.path.orEmpty()).canonicalFile
-        if (file.parentFile == directory && file.name.startsWith("equipment-")) file.delete()
+        if (file.parentFile == directory && file.name.startsWith("equipment-")) {
+            check(!file.exists() || file.delete()) { "Das ungespeicherte Foto konnte nicht entfernt werden. Bitte erneut verwerfen." }
+        }
     }
+}
+
+private val accessoryFields = linkedMapOf("pitch" to "Kettenteilung", "gauge" to "Treibgliedstärke", "drive_links" to "Anzahl Treibglieder", "article_number" to "Hersteller-Artikelnummer", "tooth_type" to "Schneidezahntyp", "file_size" to "Feilengröße", "notes" to "Weitere Angaben")
+
+@Composable
+private fun RevierAccessoryFields(edit: RevierEdit, value: JSONObject, controller: NativeAppController, enabled: Boolean, update: (String, Any) -> Unit) {
+    val scope = rememberCoroutineScope()
+    Text("Maschine: " + edit.original.optString("name"), style = MaterialTheme.typography.titleMedium)
+    Text("Unbekannte Angaben leer lassen. Es werden keine Spezifikationen ergänzt.")
+    val entries = value.optJSONArray("accessories") ?: JSONArray()
+    fun replace(index: Int, field: String, newValue: Any) {
+        val changed = JSONArray(edit.row().optJSONArray("accessories")?.toString() ?: "[]")
+        changed.getJSONObject(index).put(field, newValue); update("accessories", changed)
+    }
+    for (index in 0 until entries.length()) {
+        val item = entries.getJSONObject(index)
+        OutlinedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            RevierChoice("Art", item.optString("type", "other"), listOf("chain" to "Kette", "other" to "Anderes Zubehör"), enabled) {
+                if (it != "chain" && value.optString("current_chain_id") == item.optString("id")) update("current_chain_id", "")
+                replace(index, "type", it)
+            }
+            for ((key, label) in linkedMapOf("name" to "Bezeichnung", "manufacturer" to "Hersteller", "model" to "Modell") + accessoryFields.filterKeys { item.optString("type") == "chain" || it in listOf("article_number", "notes") }) {
+                if (enabled) NativeField(label, item.optString(key), { replace(index, key, it) }, multiline = key == "notes")
+                else if (item.optString(key).isNotBlank()) Text("$label: " + item.optString(key))
+            }
+            if (item.optString("type") == "chain") Row(Modifier.fillMaxWidth().selectable(
+                selected = value.optString("current_chain_id") == item.getString("id"), enabled = enabled,
+                role = Role.RadioButton, onClick = { update("current_chain_id", item.getString("id")) }
+            )) {
+                RadioButton(value.optString("current_chain_id") == item.getString("id"), onClick = null, enabled = enabled)
+                Text("Aktuell verwendet", Modifier.padding(top = 12.dp))
+            }
+            RevierProfilePhoto(item.optJSONObject("photo"), controller)
+            if (item.optString("selected_photo_uri").isNotEmpty()) AsyncImage(Uri.parse(item.getString("selected_photo_uri")), "Ungespeichertes Zubehörfoto", imageLoader = controller.imageLoader, modifier = Modifier.fillMaxWidth().heightIn(max = 180.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                for ((camera, label) in listOf(true to "Aufnehmen", false to "Foto auswählen")) OutlinedButton({
+                    edit.mediaBusy = true
+                    scope.launch {
+                        try {
+                            controller.pickPhoto(camera)?.let { source ->
+                                val retained = nativeRetainPhotoDraft(controller, source)
+                                val changed = JSONArray(edit.row().optJSONArray("accessories")?.toString() ?: "[]")
+                                val current = changed.getJSONObject(index)
+                                val previous = current.optString("selected_photo_uri")
+                                current.put("selected_photo_uri", retained.toString()).remove("photo_upload_id")
+                                edit.change("accessories", changed); controller.saveDraft(edit.key, edit.snapshot()); controller.flushDrafts()
+                                nativeDeletePhotoDraft(controller, previous)
+                                withContext(Dispatchers.IO) { PhotoCaptureProvider.release(controller.context, source) }
+                            }
+                        } catch (cancelled: CancellationException) { throw cancelled }
+                        catch (failure: Exception) { controller.message(failure.message.orEmpty()) }
+                        finally { edit.mediaBusy = false }
+                    }
+                }, enabled = enabled) { Text(label) }
+            }
+        } }
+    }
+    if (value.optString("current_chain_id").isNotEmpty()) TextButton({ update("current_chain_id", "") }, enabled = enabled) { Text("Keine aktuelle Kette festlegen") }
+    OutlinedButton({ update("accessories", JSONArray(entries.toString()).put(JSONObject().put("id", "acc_" + UUID.randomUUID().toString().replace("-", "")).put("type", "other"))) }, enabled = enabled) { Text("Zubehör hinzufügen") }
+}
+
+private suspend fun revierDeleteEditPhotos(controller: NativeAppController, value: JSONObject) {
+    nativeDeletePhotoDraft(controller, value.optString("selected_photo_uri"))
+    for (item in value.optJSONArray("accessories")?.revierObjects().orEmpty()) nativeDeletePhotoDraft(controller, item.optString("selected_photo_uri"))
 }

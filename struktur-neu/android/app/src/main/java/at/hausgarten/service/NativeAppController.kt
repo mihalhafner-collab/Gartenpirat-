@@ -34,6 +34,8 @@ internal class NativeAppController(private val activity: MainActivity, val store
     val messages = MutableStateFlow("")
     var route by mutableStateOf(NativeRoute())
         private set
+    var customerListEntry by mutableStateOf(0)
+        private set
     private val history = ArrayDeque<NativeRoute>()
     private val draftMutex get() = NativeDraftPersistence.mutex
     private val draftScope get() = NativeDraftPersistence.scope
@@ -46,6 +48,10 @@ internal class NativeAppController(private val activity: MainActivity, val store
     fun navigate(section: String, id: String = "", mode: String = "list", args: JSONObject = JSONObject()) {
         history.addLast(route)
         route = NativeRoute(section, id, mode, JSONObject(args.toString()))
+    }
+    fun openSection(section: String) {
+        if (section == "customers") customerListEntry++
+        if (route.section != section || route.id.isNotEmpty() || route.mode != "list") navigate(section)
     }
     fun back() { route = if (history.isEmpty()) NativeRoute() else history.removeLast() }
     fun canGoBack(): Boolean = history.isNotEmpty() || route.section != "today"

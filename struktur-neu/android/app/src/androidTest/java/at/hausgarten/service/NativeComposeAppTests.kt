@@ -18,6 +18,10 @@ import android.view.ViewGroup
 import android.view.WindowInsets
 import android.view.accessibility.AccessibilityNodeInfo
 import org.json.JSONObject
+import org.json.JSONArray
+import kotlinx.coroutines.runBlocking
+import android.net.Uri
+import android.graphics.Bitmap
 import java.io.File
 import java.time.LocalDate
 import java.time.ZoneId
@@ -138,7 +142,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 candidate.parent?.let { parent -> parent.childCount <= 5 && all(parent).any { matches(it, label) } } == true)
     }
 
-    private fun enter(label: String, value: String) {
+    private fun enter(label: String, value: String, displayed: String = value) {
         if (field(label) == null) scrollTop()
         var lastScroll = 0L
         waitUntil("FIELD_$label") {
@@ -150,7 +154,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(selected.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, Bundle().apply {
             putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, value)
         }), "SET_TEXT_$label")
-        waitUntil("VALUE_$label") { field(label)?.text?.toString()?.contains(value) == true || value.isEmpty() && field(label) != null }
+        waitUntil("VALUE_$label") { field(label)?.text?.toString()?.contains(displayed) == true || value.isEmpty() && field(label) != null }
     }
 
     private fun back() {
@@ -268,6 +272,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 else failures.add(AssertionError("QA_NATIVE_COMPOSE_JOURNEY_$name", failure))
             }
             journey("customer", ::customerJourney)
+            journey("usability", ::usabilityJourney)
+            journey("accessories", ::accessoryJourney)
             journey("timer", ::timerJourney)
             journey("notification", ::notificationJourney)
             journey("large_text", ::largeTextJourney)
@@ -282,6 +288,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("draft_recreation", true).put("timer_state_transitions", true).put("font_scale_200_percent", true)
                 .put("planning_notification_alternatives", true).put("customer_conflict_review", true)
                 .put("draft_write_failure_recovery", true)
+                .put("work_entry_usability", true).put("work_photo_retention", true)
+                .put("machine_accessory_roundtrip", true).put("decimal_comma_inputs", true)
                 .put("drive_account_tested", false).put("physical_pixel_tested", false)
         } finally {
             shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
@@ -437,6 +445,165 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         enter("Suchen", "QA Native F")
         shown("0 Treffer · 0–0")
         yes(node(flowName) == null, "ARCHIVED_CUSTOMER_NOT_IN_ACTIVE_LIST")
+    }
+
+    private fun usabilityJourney() {
+        click("Heute")
+        reveal("Erfasste Arbeiten")
+        reveal("Hinweise")
+        yes(node("Mehr") == null, "NO_TODAY_MORE_MENU")
+        click("Kunden")
+        enter("Suchen", fixturePrefix)
+        click("Weitere 50")
+        click("Heute")
+        click("Kunden")
+        shown("55 Treffer · 1–50")
+        yes(field("Suchen")?.text?.toString()?.contains(fixturePrefix) == true, "CUSTOMER_FILTER_PRESERVED_ON_ENTRY")
+        click("Heute")
+        click("Arbeit erfassen")
+        click("Kunde: Nicht zugeordnet")
+        enter("Suchen", fixturePrefix + "000")
+        click(fixturePrefix + "000")
+        enter("Beginn", "08:00")
+        enter("Ende", "12:00")
+        // Preset and free input use the same visible field, with no pause submenu.
+        click("30")
+        enter("Pause (Minuten) · frei eingeben", "23")
+        enter("Was wurde erledigt? *", "[TEST] QA usability work")
+        click("Textbausteine ▾")
+        click("Rasen gemäht")
+        enter("Entsorgung (€) · optional · frei eingeben", "73,40")
+        enter("Notizen", "[TEST] QA sofort sichtbare Notiz")
+        recreate()
+        reveal("Entsorgung (€) · optional · frei eingeben")
+        yes(field("Entsorgung (€) · optional · frei eingeben")?.text?.toString()?.contains("73,40") == true, "FREE_DISPOSAL_SURVIVES_RECREATION")
+        click("Speichern")
+        fun saved(): JSONObject? {
+            val rows = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
+            return (0 until rows.length()).map { rows.getJSONObject(it) }.firstOrNull { it.optString("activity").startsWith("[TEST] QA usability work") }
+        }
+        waitUntil("SAVED_WORK") { saved() != null }
+        val row = requireNotNull(saved())
+        yes(row.getInt("break_minutes") == 23 && row.getDouble("hours") == 3.62, "PAUSE_DEDUCTED_ONCE")
+        yes(row.getDouble("disposal_cost") == 73.4 && row.getString("activity").contains("Rasen gemäht"), "DISPOSAL_AND_PHRASE_SAVED")
+        reveal("Notizen: [TEST] QA sofort sichtbare Notiz")
+        click("Bearbeiten")
+        enter("Was wurde erledigt? *", "[TEST] QA ungespeichert")
+        click("Verwerfen")
+        shown("Ungespeicherte Eingaben und Foto verwerfen?")
+        click("Abbrechen", scrollTo = false)
+        reveal("Was wurde erledigt? *")
+        yes(field("Was wurde erledigt? *")?.text?.toString()?.contains("ungespeichert") == true, "CANCEL_DISCARD_RETAINS_INPUT")
+        click("Verwerfen")
+        click("OK", scrollTo = false)
+        yes(saved()?.getString("id") == row.getString("id"), "DISCARD_PRESERVES_SAVED_WORK")
+        yes(saved()?.getString("activity") == row.getString("activity"), "DISCARD_DOES_NOT_SAVE_CHANGES")
+        workPhotoRetention(row)
+        click("Heute")
+        click("Arbeit erfassen")
+        click("Kunde: Nicht zugeordnet")
+        enter("Suchen", fixturePrefix + "000")
+        click(fixturePrefix + "000")
+        enter("Was wurde erledigt? *", "[TEST] QA freie Dezimalwerte")
+        enter("Arbeitsdauer in Stunden (nur ohne Beginn/Ende; netto)", "3,5", "3.5")
+        enter("Kilometer", "7,25", "7.25")
+        enter("Materialkosten", "12,50", "12.5")
+        click("Speichern")
+        waitUntil("DECIMAL_WORK_SAVED") {
+            val rows = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
+            (0 until rows.length()).map { rows.getJSONObject(it) }.any {
+                it.optString("activity") == "[TEST] QA freie Dezimalwerte" && it.optDouble("hours") == 3.5 &&
+                    it.optDouble("kilometers") == 7.25 && it.optString("material").contains("12.50")
+            }
+        }
+        checks++
+    }
+
+    private fun accessoryJourney() {
+        click("Büro")
+        click("Maschinenpark und Gerätewartung")
+        click("Gerät anlegen")
+        click("Gerätebezeichnung auswählen ▾")
+        enter("Vorschläge durchsuchen", "kett")
+        click("Kettensäge")
+        yes(field("Gerätebezeichnung *")?.text?.toString() == "Kettensäge", "EQUIPMENT_SEARCHABLE_PRESET")
+        val name = "[TEST] QA Zubehör Säge"
+        enter("Gerätebezeichnung *", name)
+        click("Speichern")
+        reveal("Gerätewartung")
+        click("Zubehör")
+        click("Zubehör bearbeiten")
+        click("Zubehör hinzufügen")
+        click("Anderes Zubehör")
+        click("Kette", scrollTo = false)
+        enter("Bezeichnung", "QA Kette A")
+        enter("Hersteller", "QA Hersteller")
+        enter("Modell", "QA Modell")
+        enter("Kettenteilung", "3/8 LP")
+        enter("Treibgliedstärke", "1.1 mm")
+        enter("Anzahl Treibglieder", "45")
+        enter("Feilengröße", "4 mm")
+        click("Aktuell verwendet")
+        click("Speichern")
+        reveal("Aktuell verwendete Kette")
+        fun machine(): JSONObject {
+            val rows = read("list_equipment", JSONObject().put("limit", 100)).getJSONArray("items")
+            return (0 until rows.length()).map { rows.getJSONObject(it) }.first { it.optString("name") == name }
+        }
+        val first = machine()
+        val a = first.getJSONArray("accessories").getJSONObject(0)
+        yes(first.getString("current_chain_id") == a.getString("id") && a.getString("equipment_id") == first.getString("id"), "UI_ACCESSORY_CURRENT_MACHINE")
+        yes(a.getString("pitch") == "3/8 LP" && a.getString("gauge") == "1.1 mm" && a.getString("drive_links") == "45" && a.getString("file_size") == "4 mm", "UI_ACCESSORY_SPECIFICATIONS")
+        // Synthetic photo traverses the real native upload/store path. Picker UI remains a separate test.
+        val source = File(context.cacheDir, "qa-accessory.png")
+        val image = Bitmap.createBitmap(3, 3, Bitmap.Config.ARGB_8888)
+        source.outputStream().use { image.compress(Bitmap.CompressFormat.PNG, 100, it) }; image.recycle()
+        val controller = NativeAppController(requireNotNull(activity) as MainActivity, store)
+        try {
+            val upload = runBlocking { controller.stageEquipmentPhoto(Uri.fromFile(source), "qa_accessory_photo") }
+            val b = JSONObject().put("id", "qa_ui_chain_b").put("type", "chain").put("name", "QA Kette B").put("photo_upload_id", upload)
+            val args = JSONObject().put("request_id", "qa_accessory_second").put("equipment_id", first.getString("id"))
+                .put("expected_record_hash", first.getString("record_hash")).put("accessories", JSONArray().put(JSONObject(a.toString()).apply { remove("equipment_id"); remove("photo") }).put(b))
+                .put("current_chain_id", "qa_ui_chain_b")
+            read("save_equipment", args)
+            val second = machine()
+            yes(second.getString("current_chain_id") == "qa_ui_chain_b" && second.getJSONArray("accessories").length() == 2, "ONLY_ONE_CURRENT_CHAIN")
+            val storedB = second.getJSONArray("accessories").getJSONObject(1)
+            yes(!storedB.has("pitch") || storedB.optString("pitch").isEmpty(), "UNKNOWN_SPECIFICATION_NOT_INVENTED")
+            val photo = storedB.getJSONObject("photo")
+            val native = RevierApplicationService(RevierLocalRepository(store, null)).equipmentPhoto(photo.getString("id"))
+            yes(native?.getString("content_sha256") == photo.getString("content_sha256"), "ACCESSORY_PHOTO_REOPEN")
+            click("Heute"); click("Büro"); click("Maschinenpark und Gerätewartung")
+            click(name); click("Zubehör")
+            reveal("QA Kette B")
+            reveal("Aktuell verwendete Kette")
+            recreate()
+            reveal("QA Kette B")
+            yes(node("Foto nicht lesbar") == null, "ACCESSORY_PHOTO_DISPLAY_NO_ERROR")
+            click("Gerät & Wartung")
+            reveal("Wartung einrichten")
+        } finally { source.delete() }
+    }
+
+    private fun workPhotoRetention(work: JSONObject) = runBlocking {
+        val controller = NativeAppController(requireNotNull(activity) as MainActivity, store)
+        val source = File(context.cacheDir, "qa-work-entry-photo.png")
+        val bitmap = Bitmap.createBitmap(3, 3, Bitmap.Config.ARGB_8888)
+        source.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()
+        val draft = nativeRetainPhotoDraft(controller, Uri.fromFile(source))
+        val other = nativeRetainPhotoDraft(controller, Uri.fromFile(source))
+        val identity = BackupDeviceGuard(context).current()
+        val args = JSONObject().put("_photo_request_id", "qa_work_entry_photo_001").put("customer_id", work.getString("customer_id"))
+            .put("worklog_id", work.getString("id")).put("role", "documentation").put("caption", "QA synthetic 3x3")
+            .put("_capture_context", JSONObject().put("formatVersion", 1).put("installation_id", identity.getString("installationId")).put("restore_epoch", identity.getString("restoreEpoch")))
+        val photo = controller.importPhoto(draft, args)
+        val photoId = photo.getString("id")
+        yes(controller.importPhoto(draft, args).getString("id") == photoId, "PHOTO_REPLAY_NO_DUPLICATE")
+        nativeDeletePhotoDraft(controller, draft.toString())
+        yes(!File(requireNotNull(draft.path)).exists() && File(requireNotNull(other.path)).isFile, "DISCARD_ONLY_OWN_TEMP_PHOTO")
+        val saved = read("get_photo", JSONObject().put("photo_id", photoId))
+        yes(saved.toString().contains(work.getString("id")), "SAVED_PHOTO_RETAINS_WORK_RELATION")
+        nativeDeletePhotoDraft(controller, other.toString()); source.delete()
     }
 
     private fun timerJourney() {

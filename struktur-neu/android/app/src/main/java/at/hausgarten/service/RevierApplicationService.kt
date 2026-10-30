@@ -1569,6 +1569,40 @@ class RevierApplicationService {
             repository.verifyEquipmentProfilePhoto(photo)
             row.put("profile_photo", photo).put("format_version", 3)
         }
+        if (args.has("accessories") || args.has("current_chain_id")) {
+            val previous = old?.optJSONArray("accessories") ?: JSONArray()
+            val entries = if (args.has("accessories")) args.getJSONArray("accessories") else previous
+            val accessories = JSONArray()
+            val identities = HashSet<String>()
+            for (index in 0 until entries.length()) {
+                val input = entries.getJSONObject(index)
+                val accessoryId = RevierRules.id(input, "id", true)
+                if (!identities.add(accessoryId)) throw RevierRules.error("INVALID_INPUT", "Zubehörkennungen müssen innerhalb der Maschine eindeutig sein.")
+                val before = (0 until previous.length()).map { previous.getJSONObject(it) }.firstOrNull { it.optString("id") == accessoryId }
+                val item = JSONObject().put("id", accessoryId).put("equipment_id", row.getString("id"))
+                val type = input.optString("type", "other")
+                if (type !in listOf("chain", "other")) throw RevierRules.error("INVALID_INPUT", "Zubehörart auswählen.")
+                item.put("type", type)
+                for (field in listOf("name", "manufacturer", "model", "pitch", "gauge", "drive_links", "article_number", "tooth_type", "file_size", "notes")) {
+                    if (input.has(field)) item.put(field, RevierRules.text(input, field, if (field == "notes") 10000 else 240, false))
+                }
+                if (listOf("name", "manufacturer", "model").all { item.optString(it).isBlank() }) throw RevierRules.error("INVALID_INPUT", "Zubehör mit Bezeichnung oder Hersteller/Modell erfassen.")
+                before?.optJSONObject("photo")?.let { item.put("photo", RevierRules.copy(it)) }
+                val uploadId = RevierRules.id(input, "photo_upload_id", false)
+                if (uploadId.isNotEmpty()) {
+                    if (row.optBoolean("archived") || !row.optBoolean("active", true)) throw RevierRules.error("EQUIPMENT_INACTIVE", "Archiviertes oder inaktives Gerät zuerst bewusst prüfen.")
+                    val photo = repository.prepareEquipmentProfilePhoto(uploadId, row.getString("id"), request + "_" + PixelMcpWriteTools.hash(accessoryId).take(16))
+                    EquipmentProfilePhotoRules.validate(photo, row.getString("id")); repository.verifyEquipmentProfilePhoto(photo)
+                    item.put("photo", photo)
+                }
+                accessories.put(item)
+            }
+            val current = args.optString("current_chain_id", row.optString("current_chain_id"))
+            if (current.isNotEmpty() && (0 until accessories.length()).none { accessories.getJSONObject(it).optString("id") == current && accessories.getJSONObject(it).optString("type") == "chain" }) {
+                throw RevierRules.error("INVALID_INPUT", "Die aktuelle Kette muss dieser Maschine zugeordnet sein.")
+            }
+            row.put("accessories", accessories).put("current_chain_id", current)
+        }
         var saved: JSONObject = save("equipment", row, old, request, "Gerätezustand gespeichert")
         return JSONObject().put("record", saved).put("equipment", saved).put("equipment_id", row.getString("id"))
     }
@@ -2056,6 +2090,16 @@ class RevierApplicationService {
                     EquipmentProfilePhotoRules.validate(photo, row.getString("id"))
                     return RevierRules.copy(photo)
                 }
+                val accessories = row.optJSONArray("accessories") ?: JSONArray()
+                for (index in 0 until accessories.length()) {
+                    val accessory = accessories.getJSONObject(index)
+                    val photo = accessory.optJSONObject("photo") ?: continue
+                    if (photoId == photo.optString("id")) {
+                        if (accessory.optString("equipment_id") != row.getString("id")) throw RevierRules.error("EQUIPMENT_PHOTO_INVALID", "Zubehör gehört nicht zu dieser Maschine.")
+                        EquipmentProfilePhotoRules.validate(photo, row.getString("id"))
+                        return RevierRules.copy(photo)
+                    }
+                }
                 i++
             }
         }
@@ -2358,6 +2402,21 @@ class RevierApplicationService {
                     }
                     repository.verifyEquipmentProfilePhoto(photo)
                 }
+                val accessories = device.optJSONArray("accessories") ?: JSONArray()
+                val accessoryIds = HashSet<String>()
+                val chain = device.optString("current_chain_id")
+                var currentFound = chain.isEmpty()
+                for (index in 0 until accessories.length()) {
+                    val item = accessories.getJSONObject(index)
+                    if (!accessoryIds.add(item.getString("id")) || item.optString("equipment_id") != device.getString("id")) throw RevierRules.error("REVIER_RELATION_INVALID", "Zubehörzuordnung ist nicht eindeutig.")
+                    if (item.getString("id") == chain && item.optString("type") == "chain") currentFound = true
+                    item.optJSONObject("photo")?.let { photo ->
+                        EquipmentProfilePhotoRules.validate(photo, device.getString("id"))
+                        if (equipmentPhotos.put(photo.getString("id"), device.getString("id") + ":" + item.getString("id") + ":" + photo.getString("content_sha256")) != null) throw RevierRules.error("EQUIPMENT_PHOTO_INVALID", "Fotozuordnung ist nicht eindeutig.")
+                        repository.verifyEquipmentProfilePhoto(photo)
+                    }
+                }
+                if (!currentFound) throw RevierRules.error("REVIER_RELATION_INVALID", "Aktuelle Kette gehört nicht zur Maschine.")
                 var plans: JSONArray = EquipmentMaintenanceRules.plans(device)
                 run {
                     var j: Int = 0

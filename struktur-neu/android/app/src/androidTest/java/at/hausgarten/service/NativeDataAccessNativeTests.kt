@@ -159,6 +159,8 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 chunkedUploadStorageProof(context)
                 phase = "immutable_publication"
                 immutablePublishedFileProof(context, store)
+                phase = "office_baseline"
+                val office = officeReadMeasurements(context, store, data)
                 phase = "final_revision"
                 val final = data.diagnostics()
                 yes(final.getLong("source_revision") == final.getLong("cached_revision"), "COMMITTED_CACHE_REVISION")
@@ -169,9 +171,40 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                     .put("cache_initialization_close_concurrency", true)
                     .put("upload_publication_backup_concurrency", true)
                     .put("chunk_upload_prefix_storage_bounded", true)
-                    .put("main_thread_disk_violations", 0).put("performance_claim", false)
+                    .put("main_thread_disk_violations", 0).put("performance_claim", false).put("office_reads", office)
             }
         }
+    }
+
+    private suspend fun officeReadMeasurements(context: Context, store: PixelLocalStore, data: NativeDataRepository): JSONObject {
+        val fixture = SyntheticBusinessData.profile("minimal")
+        val invoices = JSONArray()
+        for (index in 0 until 120) invoices.put(JSONObject().put("id", "qa_office_invoice_$index").put("invoice_number", "QA-$index")
+            .put("customer_id", "qa_customer_0").put("status", "Gestellt").put("invoice_date", "2026-10-30").put("gross_total", 100)
+            .put("money_minor", JSONObject().put("gross_minor", 10000)).put("test_record", true))
+        fixture.put("invoices", invoices)
+        store.putOwnerValue("snapshot", fixture.toString())
+        for (index in 0 until 240) store.putOwnerValue("local_payment:qa_office_$index", JSONObject().put("payment_id", "qa_office_$index")
+            .put("amount_minor", 2500).put("paid_on", "2026-10-30").put("method", "bank").put("recorded_at", "2026-10-30T08:00:00Z")
+            .put("allocations", JSONArray().put(JSONObject().put("invoice_id", "qa_office_invoice_${index % 120}").put("amount_minor", 2500))).toString())
+        val service = LocalInvoiceService(context, store)
+        val result = JSONObject().put("scope", "EMULATOR_REPOSITORY_AND_LEDGER_READS;NO_UI_OR_PIXEL_LATENCY")
+            .put("invoices", 120).put("payments", 240).put("samples_per_path", 40).put("warmups_per_path", 2)
+        suspend fun measure(name: String, block: suspend () -> Unit) {
+            repeat(2) { block() }
+            val values = ArrayList<Double>()
+            repeat(40) { val start = System.nanoTime(); block(); values.add((System.nanoTime() - start) / 1_000_000.0) }
+            val sorted = values.sorted()
+            result.put(name, JSONObject().put("mean_ms", values.average()).put("p95_ms", sorted[37]).put("slowest_5_percent_mean_ms", sorted.takeLast(2).average()).put("samples_ms", JSONArray(values)))
+        }
+        measure("invoices") { yes(data.list("invoices", limit = 50).total == 120, "OFFICE_INVOICE_COUNT") }
+        measure("billing_work_records") { data.list("worklogs", limit = 50) }
+        measure("payments_and_credits") {
+            val ledger = service.query("get_payment_ledger", JSONObject().put("offset", 0).put("limit", 50))
+            yes(ledger.getInt("total") == 240 && ledger.getJSONArray("payments").length() == 50, "OFFICE_PAYMENT_PAGE")
+            yes(ledger.getJSONArray("balances").length() == 120 && ledger.getJSONArray("balances").getJSONObject(0).getLong("remaining_minor") == 5000L, "OFFICE_BALANCES")
+        }
+        return result
     }
 
     private fun longNote(): String = "QA synthetic 🌿 äß ".repeat(7000)

@@ -188,3 +188,33 @@ Antwortzeit, Speicherverbrauch und flüssiges Scrollen am tatsächlichen Zielger
 messen. Durchsatz, einzelne Millisekundenwerte oder Bildraten sind keine zugesicherten
 Eigenschaften der App. Ein Quellcheck oder synthetischer Emulatorlauf ersetzt
 keinen entsprechenden Nachweis auf dem Pixel.
+
+## Vereinfachte native Bedienung und Arbeitszubehör
+
+Heute, Arbeitsaufzeichnungen, Kunden und Büro sind die vier festen Hauptbereiche.
+Heute zeigt erfasste Arbeiten und Hinweise direkt. Der Kunden-Menüaufruf beginnt
+am Listenanfang; Suchtext und Filter werden dadurch nicht geändert. Arbeitsnotizen
+stehen ohne Aufklappen im Detail. Büro erhält die vorhandenen Funktionen einschließlich
+Maschinenpark und Gerätewartung. Häufige Aktionen liegen kompakt am unteren Rand.
+
+Arbeit erfassen folgt Kunde, Beginn/Ende, Pause, Tätigkeit, optionale Entsorgung
+und Fotos. Datum und weitere bestehende Angaben bleiben erreichbar. Pause bietet
+15/30/45/60 Minuten und freie Eingabe; aus Uhrzeiten wird sie genau einmal abgezogen.
+Eine ausschließlich eingegebene Dauer ist die Nettoarbeitszeit. Textbausteine ergänzen
+den freien Tätigkeitstext. Entsorgung ist ein optionaler Eurobetrag mit50/100/150-Euro-
+Auswahl und freier Eingabe; kein automatischer Preis und keine Zusatzpflichten.
+Der vorhandene Arbeitsdatensatz speichert den Betrag als `disposal_cost`.
+
+Verwerfen fragt „Ungespeicherte Eingaben und Foto verwerfen?“ mit OK/Abbrechen.
+Nur der eigene ungespeicherte Formularstand und seine temporären Fotodaten werden
+verworfen. Bestätigte Arbeit und bereits gespeicherte Fotos bleiben erhalten, auch
+wenn ein nachfolgender Foto- oder Bereinigungsschritt fehlschlägt.
+
+Gerätebezeichnungen erlauben durchsuchbare Vorschläge und freien Text. Zubehör
+liegt im vorhandenen Gerätedatensatz (`accessories`) und ist im eigenen Reiter
+sichtbar. `current_chain_id` ist die einzige aktuelle Kettenzuordnung und muss auf
+eine Kette derselben Maschine zeigen. Bezeichnung oder Hersteller/Modell identifizieren
+das Zubehör; unbekannte Spezifikationen bleiben leer. Kettenteilung, Treibgliedstärke,
+Treibgliederzahl, Artikelnummer, Zahntyp, Feilengröße und weitere Angaben bleiben
+optional. Zubehörfotos verwenden den vorhandenen Gerätefotopfad und behalten ihren
+Maschinenbezug. Keine neue Datenbank, Lagerverwaltung oder Wartungsautomatik.
