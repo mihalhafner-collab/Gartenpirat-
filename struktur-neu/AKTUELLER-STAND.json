@@ -29,24 +29,24 @@
   ],
   "current_task": {
     "name": "Kotlin-Update der bestehenden Haus-und-Garten-App mit kompatiblem ZIP-Backup",
-    "status": "VERIFYING_NATIVE_CONCURRENCY_AND_BOUNDED_UPLOAD_FIXES",
+    "status": "FIXING_EMULATOR_FIXTURE_ISOLATION_BEFORE_FINAL_COMPOSE_ACCEPTANCE",
     "authorized": true,
     "authorization_scope": "UPDATE same package/original signature;full Kotlin refactoring and regression;synthetic data only;bounded subagents;no productive access,installation,migration,restore or delivery",
     "requirements_document": "docs/fachregeln/APP.md",
     "implementation": [
       "193 Kotlin production files;native Compose feature routes/editors;no active app Java/JS",
       "SQLite indexed read cache/projections,IO/committed Flow,file media,bounded thumbnail-first Coil",
-      "JVM1154/Python62 PASS;final changed-source Android acceptance pending"
+      "JVM1154/Python62/build/lint PASS;Android data225 and4 backup suites PASS;provider fixture guard under repair"
     ],
     "remaining": [
-      "Rerun all8 native suites for lifetime/affinity,cold WAL cache and bounded chunk-upload fixes",
+      "Fix strict fresh provider fixture guard for AndroidX runtime metadata;rerun all8 native suites",
       "Real Drive,personal ZIP,physical Pixel untested;no productive actions",
       "Raw IndexedDB-only drafts preserved;not automatically materialized"
     ],
     "regression_instructions": "docs/entwicklung/BAU.md#regressionsschleife-für-das-kotlin-refactoring",
     "acceptance_matrix": {
       "KOTLIN": {
-        "status": "SOURCE_PASS;193_KOTLIN_FILES;NO_ACTIVE_APP_JAVA_JS;APK_PENDING",
+        "status": "PASS_SOURCE_BUILD;193_KOTLIN_FILES;210_KOTLIN_DEX_TARGETS;NO_APP_JAVA_JS",
         "required_evidence": "All application entries/UI Kotlin;clean source/build inventory"
       },
       "OPTIONS": {
@@ -70,23 +70,23 @@
         "required_evidence": "No Drive business API/auth/sync;calendar preserved"
       },
       "INDEXES": {
-        "status": "JDBC_EXPLAIN_AND_FILTER_PARITY_PASS;ANDROID_40000_ROW_FIXTURE_PENDING",
+        "status": "PASS_ANDROID_40000_ROWS_INDEXED_EXPLAIN_PARITY",
         "required_evidence": "Actual query plans and synthetic scale/result parity"
       },
       "WAL": {
-        "status": "JVM_AND_PRIOR_BACKUP_RUNTIME_PASS;CURRENT_ANDROID_CONCURRENCY_PENDING",
+        "status": "PASS_ANDROID_COLD_WAL_CONCURRENCY_AND_LIFETIME",
         "required_evidence": "Runtime WAL,concurrent access,backup/restore committed pages"
       },
       "PROJECTIONS": {
-        "status": "BOUNDED_SQL_DISPLAY_LISTS_AND_POINT_DETAILS_IMPLEMENTED;ANDROID_PENDING",
+        "status": "PASS_ANDROID_BOUNDED_SQL_LISTS_AND_POINT_DETAILS",
         "required_evidence": "Bounded SQL rows/columns;point details;no full-state list reads"
       },
       "IMAGES": {
-        "status": "FILE_UPLOADS_AND_THUMBNAIL_FIRST_COIL_IMPLEMENTED;PUBLICATION_AND_NATIVE_CHECKS_PENDING",
+        "status": "PASS_ANDROID_FILE_MEDIA_THUMBNAILS_BOUNDED_CHUNK_STORAGE",
         "required_evidence": "File media,legacy preservation,thumbnail decoding,bounded caches"
       },
       "BACKGROUND": {
-        "status": "IO_COROUTINES_COMMITTED_FLOW_IMPLEMENTED;CURRENT_ANDROID_STRICTMODE_AND_UI_PENDING",
+        "status": "PASS_ANDROID_REAL_IO_FLOW_CLOSE_AFFINITY;MAIN_THREAD_DISK0",
         "required_evidence": "IO dispatch,committed Flow,lifecycle and transaction parity"
       },
       "SYNTHETIC_ONLY": {
@@ -94,7 +94,7 @@
         "required_evidence": "No productive or derived customer data/device/ZIP access"
       },
       "REGRESSION": {
-        "status": "JVM1154_AND_PYTHON62_PASS;FINAL_CHANGED_SOURCE_AND_EIGHT_NATIVE_SUITES_PENDING",
+        "status": "JVM1154_PYTHON62_BUILD_LINT_DATA225_BACKUP4_PASS;PROVIDER_FIXTURE_FIX_PENDING",
         "required_evidence": "Current-source checks;fix/recheck;unexecuted evidence stays open"
       },
       "SUBAGENTS": {
@@ -108,7 +108,7 @@
     }
   },
   "open_checks": [
-    "Native SQLite concurrency FAIL under repair;chunk-prefix storage fix and final8-suite acceptance pending",
+    "Provider fixture guard rejects AndroidX profile metadata;provider/reopen/Compose acceptance pending",
     "Real Drive account,personal ZIP and physical Pixel update/data retention NOT_EXECUTED;synthetic only",
     "Historical raw IndexedDB-only drafts are preserved;not automatically materialized as native photos"
   ],
@@ -136,34 +136,31 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "3eff7f7b5def23411e1dac8c245dcecf1eb58040111214e9c6a62a8a4a41abdb",
+    "app_source_fingerprint": "a2757b8b6371237727f21bcd7f0e945a620806971f450d71d4050dbeb64e2750",
     "source_privacy": "PASS;empty operational seed",
     "business_data_read": false,
     "authored_changes_diff_check": "PASS",
     "current_test_run": {
-      "scope": "30cbf9a_CI_FAILED;CURRENT_FIXES_IN_PROGRESS",
-      "observed_at_utc": "2026-10-30T00:12:17.161906+00:00",
-      "tested_git_sha": "30cbf9a4d07040273f72b6e7aeb2b2fcbe973913",
-      "source_sha256": "3eff7f7b5def23411e1dac8c245dcecf1eb58040111214e9c6a62a8a4a41abdb",
+      "scope": "CURRENT_FULL_REFACTOR;PROVIDER_FIXTURE_ISOLATION_FIX_PENDING",
+      "observed_at_utc": "2026-10-30T01:12:37.814891+00:00",
+      "tested_git_sha": "d1efa543b003e2bcdd31f1ace4868eb991d6f990",
+      "source_sha256": "a2757b8b6371237727f21bcd7f0e945a620806971f450d71d4050dbeb64e2750",
       "source_dirty": false,
       "source_checks": "PASS;62 Python/source/privacy/contracts;seed0",
       "jvm": "PASS;1154 checks across8 suites",
-      "android_build": "PASS at30cbf9a;release/test APK,full lint0errors;637 assets/210 Kotlin targets verified",
+      "android_build": "PASS;local and CI release/test APK and lint0errors;637 assets/210 Kotlin targets verified",
       "native": {
-        "status": "FAIL;native_data SQLITE_BUSY;fixing and rerunning",
+        "status": "DATA_AND4_BACKUP_SUITES_PASS;PROVIDER_FIXTURE_GUARD_FAILED;DEPENDENT_SUITES_BLOCKED",
         "suites": {
           "local_backup": 43,
           "local_backup_reopen": 13,
           "browser_checkpoint": 79,
-          "browser_checkpoint_reopen": 23
+          "browser_checkpoint_reopen": 23,
+          "native_data": 225
         },
-        "not_run": [
-          "document_provider",
-          "document_provider_reopen",
-          "native_compose"
-        ]
+        "provider_failure": "FRESH_SYNTHETIC_PROVIDER_APP_SANDBOX_REQUIRED;ProfileInstaller installation seen;no application-data failure observed"
       },
-      "ci_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40977778647",
+      "ci_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40982052480",
       "pixel_drive_account_personal_zip": "NOT_RUN;synthetic only"
     },
     "performance_evidence": "docs/verification/performance-current.md defines native measurement method;no inherited browser timing,FPS or physical Pixel performance claim",

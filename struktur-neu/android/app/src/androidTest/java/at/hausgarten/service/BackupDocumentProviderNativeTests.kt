@@ -26,6 +26,25 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
         /** Run provider first, force-stop the target, then run provider_reopen in a new process. */
         @JvmStatic
         fun run(test: Instrumentation, reopen: Boolean): JSONObject = BackupDocumentProviderNativeTests(test).execute(reopen)
+
+        // AndroidX ProfileInstaller 1.4.1 writes these two package-bound cache
+        // records after startup. They contain no application or fixture data.
+        private fun verifiedProfileMetadata(root: File, file: File, updatedAt: Long): Boolean = try {
+            if (java.nio.file.Files.isSymbolicLink(file.toPath()) || !file.isFile || file.canonicalFile.parentFile != root.canonicalFile) false
+            else when (file.name) {
+                "profileinstaller_profileWrittenFor_lastUpdateTime.dat" -> file.length() == 8L &&
+                    java.io.DataInputStream(file.inputStream()).use { it.readLong() == updatedAt && it.read() == -1 }
+                "profileInstalled" -> file.length() == 24L && java.io.DataInputStream(file.inputStream()).use { input ->
+                    val schema = input.readInt()
+                    val result = input.readInt()
+                    val packageUpdatedAt = input.readLong()
+                    val profileSize = input.readLong()
+                    schema == 1 && result in setOf(0, 1, 2, 3, 65536, 131072, 196608, 262144, 327680) &&
+                        packageUpdatedAt == updatedAt && profileSize >= 0 && input.read() == -1
+                }
+                else -> false
+            }
+        } catch (_: IOException) { false }
     }
 
     private val context: Context = test.targetContext
@@ -79,11 +98,23 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
         yes(Build.VERSION.SDK_INT == 35, "API_35_REQUIRED")
         yes(!context.isDeviceProtectedStorage, "SEPARATE_CREDENTIAL_FIXTURE")
         if (reopen) return reopen()
-        if (marker.exists() || context.getDatabasePath("haus-garten-mobile.db").exists() ||
-            context.filesDir.listFiles()?.isNotEmpty() != false ||
-            context.noBackupFilesDir.listFiles()?.isNotEmpty() != false ||
-            BackupPreferences.GROUPS.any { context.getSharedPreferences(it, Context.MODE_PRIVATE).all.isNotEmpty() }) {
-            throw IOException("FRESH_SYNTHETIC_PROVIDER_APP_SANDBOX_REQUIRED")
+        val files = context.filesDir
+        val noBackup = context.noBackupFilesDir
+        val entries = files.listFiles()
+        val noBackupEntries = noBackup.listFiles()
+        val updatedAt = context.packageManager.getPackageInfo(context.packageName, 0).lastUpdateTime
+        val onlyProfileMetadata = !java.nio.file.Files.isSymbolicLink(files.toPath()) &&
+            entries != null && entries.all { verifiedProfileMetadata(files, it, updatedAt) }
+        val noBackupEmpty = !java.nio.file.Files.isSymbolicLink(noBackup.toPath()) && noBackupEntries?.isEmpty() == true
+        val nonemptyPreferences = BackupPreferences.GROUPS.filter { context.getSharedPreferences(it, Context.MODE_PRIVATE).all.isNotEmpty() }
+        val databaseExists = context.getDatabasePath("haus-garten-mobile.db").exists()
+        if (marker.exists() || databaseExists || !onlyProfileMetadata || !noBackupEmpty || nonemptyPreferences.isNotEmpty()) {
+            val details = JSONObject().put("marker_exists", marker.exists()).put("database_exists", databaseExists)
+                .put("files", org.json.JSONArray(entries?.map { it.name } ?: emptyList<String>()))
+                .put("files_readable", entries != null).put("only_verified_profile_metadata", onlyProfileMetadata)
+                .put("no_backup", org.json.JSONArray(noBackupEntries?.map { it.name } ?: emptyList<String>()))
+                .put("no_backup_empty", noBackupEmpty).put("nonempty_preferences", org.json.JSONArray(nonemptyPreferences))
+            throw IOException("FRESH_SYNTHETIC_PROVIDER_APP_SANDBOX_REQUIRED: $details")
         }
         control("prepare") // Refuses a nonempty provider fixture; never clears existing data.
         val remote = control("stats")
