@@ -575,6 +575,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             test.runOnMainSync { visible = requireNotNull(activity).window.decorView.rootWindowInsets?.isVisible(WindowInsets.Type.ime()) == true }
             visible
         }
+        settleUi()
         val frame = Rect()
         test.runOnMainSync { requireNotNull(activity).window.decorView.getWindowVisibleDisplayFrame(frame) }
         val save = actionBounds("Speichern")

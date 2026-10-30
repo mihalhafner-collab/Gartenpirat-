@@ -103,6 +103,7 @@ class MainActivity : ComponentActivity(), McpSyncHost {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
         if (RevierApplication.recoveryRequired()) { startActivity(Intent(this, RestoreRecoveryActivity::class.java)); finish(); return }
         val cameraName = savedInstanceState?.getString("capture_name")
         if (cameraName != null && cameraName.matches(Regex("capture-[0-9a-f]{32}\\.jpg"))) {

@@ -147,7 +147,8 @@
       "Reset saved Compose route state when no corresponding draft remains",
       "Exercise temporary work photo through both actual discard dialog choices;preserve confirmed photo bytes",
       "Office fixtures explicitly carry synthetic issue evidence;no production invoice activation",
-      "Screenshot-confirmed large-font overflow corrected with bounded navigation labels and wrapping action/preset rows;original text scale preserved"
+      "Screenshot-confirmed large-font overflow corrected with bounded navigation labels and wrapping action/preset rows;original text scale preserved",
+      "Emulator screenshot proved keyboard panning hid save/discard;MainActivity now requests resize and consumes Scaffold insets before IME padding"
     ]
   },
   "open_checks": [
@@ -180,12 +181,12 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "21a8d28127a60a992f5a3b76185e688b0997c17e1829eced11fec7d0c6992640",
+    "app_source_fingerprint": "56ccf47a2a9f1788e56dd31b721e78560ce7232f059c50e68a8f71a6feb30e3c",
     "source_privacy": "PASS;empty operational seed",
     "business_data_read": false,
     "authored_changes_diff_check": "PASS;reviewed adopted implementation plus decimal/discard fixes;git diff --check",
     "current_test_run": {
-      "source": "Current candidate following7e916eb822da8db0808cbedf850663e8b0ed088f;stable field identifiers and fresh accessibility nodes;native rerun pending",
+      "source": "Current IME resize/insets correction followingccd125ff07494c14529c32230905784e3d26f0e7;native rerun pending",
       "source_check": "PASS;62 Python tests;source/privacy/contracts/assets/UI inventory",
       "jvm": "PASS on8a4d9cb89051a32d56c0171401504a5cf00cd3ee;9suites;53new work/accessory assertions;current rerun pending",
       "android_build": "PASS on8a4d9cb89051a32d56c0171401504a5cf00cd3ee;release/test APK and lint;current rerun pending",

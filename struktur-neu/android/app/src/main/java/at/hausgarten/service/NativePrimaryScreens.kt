@@ -79,7 +79,7 @@ internal fun NativeApplication(controller: NativeAppController) {
             }
         }
     ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding).imePadding()) {
+        Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding()) {
             if (!reviewChecked) Column(Modifier.padding(16.dp)) { CircularProgressIndicator(); Text("Übernommene Formulare werden geprüft …") }
             else routeStates.SaveableStateProvider(controller.savedRoute()) { when (route.section) {
                 "today" -> NativeToday(controller)
