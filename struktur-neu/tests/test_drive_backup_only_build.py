@@ -135,7 +135,11 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         self.assertNotIn('validateRelationships()', backup)
         self.assertNotIn('recordSnapshotPhotoAttachments', backup)
         self.assertIn('LocalFinancialSnapshotValidation.inspect(', table_transfer)
-        for name in ('PixelBackupService', 'BackupRestoreService', 'RestoreStartupProtection'):
+        service = source('PixelBackupService')
+        self.assertIn('LocalBackupDataset.forStreaming(', service)
+        self.assertIn('BackupDocumentTransfer.exportStream(', service)
+        self.assertNotIn('EncryptedBackupArchive.verifyPlain(', service)
+        for name in ('BackupRestoreService', 'RestoreStartupProtection'):
             self.assertIn('LocalBackupDataset.inspectStaged(', source(name))
         # New invoice issuance still rejects an already used number before recording it.
         invoice = source('LocalInvoiceService')
