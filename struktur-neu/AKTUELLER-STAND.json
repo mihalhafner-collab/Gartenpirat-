@@ -34,7 +34,7 @@
   ],
   "current_task": {
     "name": "Einheitliche Oberfläche, Suchansichten und gemeinsame Übersichten",
-    "status": "IN_PROGRESS;FINAL_IME_GEOMETRY_CORRECTION;RETEST_PENDING",
+    "status": "IN_PROGRESS;FINAL_EMULATOR_ACCEPTANCE_RUNNING",
     "authorized": true,
     "authorization_scope": "Current explicit user task: source changes, synthetic tests, check builds, existing documentation and GitHub readback; no productive installation, migration, restore, invoice activation or publication",
     "base_git_sha": "242ccc9159cefdb22879c57474bcd45586244ab6",
@@ -58,7 +58,9 @@
       "Shared wrapping action rows also cover photo import/details, device details, tour and calendar connection; compact accessible back icon preserves page-title width",
       "Loading lists distinguish pending queries from zero matches; shared short filter action dismisses IME;38 read-only surface entry checks include settings/calendar/backup at200percent",
       "Invoice source selection retains work customer independently of recipient, including draft recreation;explicit widening reuses the same selector. UI A/B shared-recipient regression added.",
-      "Remaining photo/invoice/planning/device display dates and hour decimals use existing German format helpers;input and storage formats unchanged."
+      "Remaining photo/invoice/planning/device display dates and hour decimals use existing German format helpers;input and storage formats unchanged.",
+      "Offer editors retain property/inquiry source context in the existing draft and initialize existing title/location fields;no new business relation or automatic record creation.",
+      "Selection dialog uses existing dark system-bar appearance for readable icons;duplicate display formatting removed."
     ],
     "kiss_yagni": "Reuse route arguments, SQL filters, Compose state and Material buttons. No new database, dependency, architecture or filter profiles. Separate navigation area only for action/recreation; a replacement navigation framework is unnecessary.",
     "stages": [
@@ -90,9 +92,8 @@
     ]
   },
   "open_checks": [
-    "CI41081046364:16domain searches and existing independent Compose journeys PASS;customer_context assertion inspected child instead of selected button, corrected",
-    "12display matrix:4reported failures;some reported passes lost IME before screenshot and are invalidated. Stable layout and compact rows corrected;strict IME-before/after capture and48dp touch checks added",
-    "Full38surface/shared-recipient/gesture regression pending successful build and emulator rerun",
+    "CI41086310498 builds stable IME layout and strict keyboard geometry assertions;results pending",
+    "Property/inquiry offer-draft recreation and dialog system-bar correction require final build/emulator rerun",
     "Physical Pixel NOT_RUN;outside task scope;no productive access or installation"
   ],
   "workflow": {

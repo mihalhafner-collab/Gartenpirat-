@@ -172,7 +172,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
         issueReview != null -> FinanceIssueReview(controller, id, issueReview!!, onClose = { issueReview = null; if(controller.route.args.optString("_draft_key").isNotEmpty()) controller.navigate(section,id) else refresh++ })
         section == "payments" -> FinancePayments(controller, id)
         editing && (fresh || row!=null || controller.route.args.optString("_draft_key").isNotEmpty()) -> FinanceEditor(section, if (fresh) null else row, if (fresh) "" else detail?.optString("record_hash").orEmpty(), controller,
-            onClose = { editing = false; fresh = false; if(controller.route.args.optString("_draft_key").isNotEmpty()) controller.navigate(section,id) else refresh++ }, onSaved = { savedId -> editing = false; fresh = false; if (savedId.isNotEmpty()) controller.navigate(section, savedId) else refresh++ })
+            onClose = { editing = false; fresh = false; if(controller.route.args.optString("_draft_key").isNotEmpty()) controller.navigate(section,id) else refresh++ }, onSaved = { savedId -> editing = false; fresh = false; if (savedId.isNotEmpty()) controller.navigate(section, savedId, args = controller.route.args) else refresh++ })
         id.isEmpty() -> listStates.SaveableStateProvider("finance-list") { FinanceList(section, controller, onCreate = { fresh = true; editing = true }) }
         row == null -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (error.isEmpty()) CircularProgressIndicator() else Text(error, color = MaterialTheme.colorScheme.error)
@@ -370,9 +370,17 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
                 if(section=="invoices") form.put("payment_days",settings.optInt("default_payment_days",14))
                 if(section=="catalog") form.put("active",true).put("pricing_type","unit")
                 for (field in listOf("customer_id", "order_id")) if (controller.route.args.optString(field).isNotEmpty()) form.put(field, controller.route.args.getString(field))
-                if (section == "invoices") form.put("_source_context", JSONObject().apply {
-                    for (field in listOf("work_customer_id", "order_id", "date_from", "date_to")) if (controller.route.args.optString(field).isNotEmpty()) put(field, controller.route.args.getString(field))
+                if (section in listOf("invoices", "offers")) form.put("_source_context", JSONObject().apply {
+                    val fields = if (section == "invoices") listOf("work_customer_id", "order_id", "date_from", "date_to") else listOf("property_id", "inquiry_id")
+                    for (field in fields) if (controller.route.args.optString(field).isNotEmpty()) put(field, controller.route.args.getString(field))
                 })
+                if (section == "offers") {
+                    if (controller.route.args.optString("title").isNotBlank()) form.put("title", controller.route.args.getString("title"))
+                    val propertyId = controller.route.args.optString("property_id")
+                    if (propertyId.isNotEmpty()) controller.store.nativeData().detail("properties", propertyId)?.let { property ->
+                        form.put("location", property.optString("address"))
+                    }
+                }
             }
             loaded=true
         } catch(cancelled:CancellationException){throw cancelled}catch(f:Exception) {error=f.message.orEmpty();loaded=false}
@@ -469,6 +477,7 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
                     if(section=="offers") NativeRecordPicker(controller,"customers","Abweichender Rechnungsempfänger",form.optString("billing_customer_id")) { field("billing_customer_id",it) }
                     NativeRecordPicker(controller,"orders","Zugeordneter Auftrag (optional)",form.optString("order_id"), customerId = if (section == "offers") form.optString("customer_id") else "") { field("order_id",it) }
                     if(section=="offers") {
+                        NativeContext(controller, form.optJSONObject("_source_context") ?: JSONObject())
                         NativeField("Titel",form.optString("title"),{field("title",it)},required=true)
                         FinanceChoice("Dokumentart",form.optString("document_type"),OfferContract.types().map { it to OfferRules.label(it) }) { field("document_type",it) }
                         NativeField("Angebotsdatum",form.optString("issue_date"),{field("issue_date",it)},required=true)

@@ -217,7 +217,7 @@ internal fun NativeRelatedList(controller: NativeAppController, section: String,
             OutlinedCard(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { controller.navigate(section, row.id, args = args) }) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(row.title, style = MaterialTheme.typography.titleSmall)
-                    if (row.subtitle.isNotBlank()) Text(nativeDisplayText(nativeDisplayText(row.subtitle)))
+                    if (row.subtitle.isNotBlank()) Text(nativeDisplayText(row.subtitle))
                     if (row.address.isNotBlank()) Text(row.address)
                 }
             }
@@ -233,7 +233,7 @@ internal fun NativeContext(controller: NativeAppController, args: JSONObject, cu
     var label by remember(encoded) { mutableStateOf("") }
     LaunchedEffect(encoded) {
         val labels = ArrayList<String>()
-        for ((key, collection, title) in listOf(Triple("customer_id", "customers", customerLabel), Triple("property_id", "properties", "Objekt"), Triple("order_id", "orders", "Auftrag"))) {
+        for ((key, collection, title) in listOf(Triple("customer_id", "customers", customerLabel), Triple("property_id", "properties", "Objekt"), Triple("inquiry_id", "inquiries", "Anfrage"), Triple("order_id", "orders", "Auftrag"))) {
             val id = args.optString(key)
             if (id.isNotEmpty()) {
                 val row = try { controller.store.nativeData().detail(collection, id) } catch (cancelled: CancellationException) { throw cancelled } catch (_: Exception) { null }
@@ -421,7 +421,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
             OutlinedCard(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { controller.navigate(collection, row.id, args = JSONObject(controller.route.args.toString()).put("customer_id", customer).put("date_from", from).put("date_to", to)) }) {
                 Row(Modifier.padding(12.dp)) {
                     if (collection == "worklogs") Checkbox(row.id in selected, { check -> selected = if (check) selected + row.id else selected - row.id })
-                    Column { Text(row.title, style = MaterialTheme.typography.titleMedium); if (row.subtitle.isNotBlank()) Text(nativeDisplayText(nativeDisplayText(row.subtitle))); if (row.address.isNotBlank()) Text(row.address); if (row.status.isNotBlank()) NativeStatus(nativeValue(row.status)) }
+                    Column { Text(row.title, style = MaterialTheme.typography.titleMedium); if (row.subtitle.isNotBlank()) Text(nativeDisplayText(row.subtitle)); if (row.address.isNotBlank()) Text(row.address); if (row.status.isNotBlank()) NativeStatus(nativeValue(row.status)) }
                 }
             }
         }

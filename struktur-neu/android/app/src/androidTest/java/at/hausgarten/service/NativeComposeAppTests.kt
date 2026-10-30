@@ -864,6 +864,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             val name = fixturePrefix + String.format(Locale.ROOT, "%03d", index)
             val id = customers(name).single().getString("id")
             val property = read("create_property", JSONObject().put("request_id", "qa_ui_context_property_$index").put("customer_id", id).put("name", "QA Kontextobjekt $index").put("address", "QA Gartenweg $index, Testort"))
+            read("create_inquiry", JSONObject().put("request_id", "qa_ui_context_inquiry_$index").put("customer_id", id).put("property_id", property.getString("property_id")).put("title", "QA Kontextanfrage $index"))
             read("plan_visit", JSONObject().put("request_id", "qa_ui_context_visit_$index").put("property_id", property.getString("property_id")).put("title", "QA Kontexteinsatz $index").put("date", LocalDate.now(ZoneId.of("Europe/Vienna")).toString()).put("planned_minutes", 60))
             val orders = fixture.optJSONArray("orders") ?: JSONArray()
             orders.put(JSONObject().put("id", "qa_context_order_$index").put("customer_id", id).put("title", "QA Kontextauftrag $index").put("status", "Geplant").put("test_record", true))
@@ -907,6 +908,22 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("‹ Zurück"); scrollTop()
             if (index == 0) {
                 captureSyntheticScreen("customer-overview")
+                for (fromInquiry in listOf(false, true)) {
+                    if (fromInquiry) { openOfficeGroup("Kunden und Aufträge", "Anfragen"); enter("Suchen", "QA Kontextanfrage 0"); click("QA Kontextanfrage 0"); click("Angebot aus dieser Anfrage") }
+                    else { click("Alle Objekte"); click("QA Kontextobjekt 0"); click("Angebot aus diesem Objekt") }
+                    val title = if (fromInquiry) "QA Kontextanfrage 0" else "QA Kontextobjekt 0"
+                    shown("Einsatzkunde: $name")
+                    yes(field("Titel *")?.text?.toString()?.contains(title) == true, "OFFER_SOURCE_TITLE_$fromInquiry")
+                    enter("Titel *", "$title geprüft")
+                    val draftKey = "native_form_draft:" + PixelMcpWriteTools.hash("finance:offers:new")
+                    waitUntil("OFFER_SOURCE_DRAFT_$fromInquiry") { store.ownerValue(draftKey, "").contains("_source_context") }
+                    recreate()
+                    reveal("Objekt: QA Kontextobjekt 0" + if (fromInquiry) " · Anfrage: QA Kontextanfrage 0" else "")
+                    yes(field("Titel *")?.text?.toString()?.contains("$title geprüft") == true, "OFFER_SOURCE_TITLE_RECREATED_$fromInquiry")
+                    reveal("Einsatzort"); yes(field("Einsatzort")?.text?.toString()?.contains("QA Gartenweg 0, Testort") == true, "OFFER_SOURCE_LOCATION_$fromInquiry")
+                    click("Verwerfen")
+                    click("Kunden"); enter("Suchen", name); click(name)
+                }
                 val invoiceCount = PixelMcpReadTools.effective(store.getState()).getJSONArray("invoices").length()
                 click("Abrechnung dieses Kunden"); click("Arbeiten abrechnen")
                 shown("Rechnungsempfänger: $name")
@@ -1155,7 +1172,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(field(fieldLabel)?.text?.toString()?.contains(query) == true, "DOMAIN_QUERY_RETAINED_$key")
         showKeyboard(fieldLabel); visibleResult(result, tap = true, requireKeyboard = true)
         waitUntil("DOMAIN_TOUCH_OPENED_$key") { !keyboardVisible() && field(fieldLabel) == null }
-        domainSearchCases.put(JSONObject().put("case", key).put("zero_and_one", true).put("keyboard_bounds", true)
+        domainSearchCases.put(JSONObject().put("case", key).put("zero_and_matches", true).put("keyboard_bounds", true)
             .put("real_touch", true).put("ime_preserves_query", true).put("screenshot", "qa-native-domain-$key.png"))
     }
 

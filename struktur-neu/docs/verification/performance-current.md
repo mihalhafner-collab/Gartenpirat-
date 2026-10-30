@@ -393,7 +393,7 @@ und Wartungsansicht. Einstellungen bündeln Verbindungen, Sicherung und Diagnose
 Arbeitskunde und Rechnungsempfänger bleiben getrennt, auch bei mehreren Kunden
 mit demselben Empfänger. Der Quellenfilter wird im Formularentwurf erhalten;
 die vorhandene Quellenauswahl lässt sich ausdrücklich auf den Empfänger erweitern.
-Dieser Anzeigekontext wird nicht als neues Rechnungsfachfeld gespeichert. Eine
+Dieser Anzeigekontext wird nicht als neues Rechnungsfachfeld gespeichert. Objekt-/Anfrageeinstiege übernehmen den vorhandenen Titel und Einsatzort in den Angebotsentwurf; der Herkunftskontext bleibt dort sichtbar und wird mit dem Formularentwurf wiederhergestellt. Es wird keine neue fachliche Objekt-Angebotsbeziehung erfunden. Eine
 Tagesübersicht oder Tour erzeugt keine Arbeitsbuchung. Persönliche Bezahlmarkierung
 und belegte Rechnungszahlungen bleiben getrennt. Restore- und Belegschutzprüfungen
 werden nicht durch Übersichten ersetzt.
@@ -418,8 +418,6 @@ werden nicht durch Übersichten ersetzt.
 | Lokale Suche, Revier-Archiv, Papierkorb, lokale Vorgänge | Büro → Weitere Verwaltung | Bestehende Suche/Filter/Seiten; Wiederherstellungs- und Löschschutz bleibt wirksam |
 | Einstellungen, Verbindungen | Büro → Einstellungen | Standards, Unternehmensdaten; Kalender/Wetter und ChatGPT; Diagnose; weitere Fachprüfungen aufklappbar |
 | Sicherung / Wiederherstellung | Einstellungen → Sicherung und Wiederherstellung | Unveränderter Android-Dateidialog, Speichern/Zurücklesen, Vorschau, ausdrückliche Wiederherstellung, Wiederanlauf/Rückfallpfade |
-
-Alle 210 semantischen UI/MCP-Aktionen bleiben im bestehenden Inventar erhalten.
 
 Die 210 semantischen Aktionen bleiben im vorhandenen Manifest erfasst. Die
 Quellzuordnung allein beweist keine vollständige Geräteabnahme. Die zugehörige
@@ -456,7 +454,7 @@ Im bisherigen Emulatorlauf sichtbar bestätigt: Bei 200 % drückte eine lange
 Filterbeschriftung die Trefferzahl auf einzelne Buchstaben; die kurze Filteraktion
 und umbrechende Trefferzeile korrigieren den Aufbau. Der alte Kundenwähler wurde
 zunächst nur ohne Tastatur abgebildet. Diese Bilder zählen ausdrücklich nicht
-als Nachweis für sichtbare Treffer bei geöffneter Tastatur.
+als Nachweis für sichtbare Treffer bei geöffneter Tastatur. Die korrigierte Prüfung verlangt eine sichtbare IME unmittelbar vor und nach jeder Aufnahme. Das Auswahlfenster behält denselben Eingabeknoten beim Wechsel zwischen Stapel- und Querformatanordnung; die Systemsymbole erhalten auf der hellen Fläche dunklen Kontrast.
 
 Prüfcodefehler wurden separat behandelt: Ein identischer Suchfeldwert wurde zuerst
 als Treffer gefunden; Querformat war in den damaligen Fällen tatsächlich nicht
@@ -473,5 +471,5 @@ Datei. Die 62 vorhandenen Python-Tests bestehen bei Aufruf ihrer Testprogramme.
 
 Physischer Pixel, echtes Drive-Konto, produktive Installation, Migration,
 Wiederherstellung, Rechnungsfreigabe und Veröffentlichung gehören nicht zu diesem
-Auftrag. Die unten/oben gebundenen historischen Pixel-Belege bleiben historische
+Auftrag. Die zuvor gebundenen historischen Pixel-Belege bleiben historische
 Belege und sind keine Abnahme dieser Oberfläche.
