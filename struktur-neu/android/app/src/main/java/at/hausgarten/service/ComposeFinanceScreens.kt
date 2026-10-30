@@ -11,7 +11,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -252,7 +251,7 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
         error = ""
         repository.watchList(if (section == "catalog") "service_catalog" else section,
             search = query, status = status, customerId = customer, offset = offset, limit = 50, includeInactive = section=="catalog")
-            .catch { failure -> error = failure.message ?: "Liste konnte nicht gelesen werden." }
+            .catch { failure -> error = NATIVE_LIST_READ_ERROR }
     }
     val displayFlow = remember(source) { source.map<NativeListPage, NativeListPage?> { it }.onStart { error = ""; emit(null) } }
     val loadedPage by displayFlow.collectAsStateWithLifecycle(null)

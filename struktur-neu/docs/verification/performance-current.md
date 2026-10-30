@@ -506,7 +506,7 @@ und acht native Suiten aus. Der lokale Teilcheckout enthält die großen unverä
 Pflanzenassets nicht; sein Gesamtcheck endet an dieser fehlenden Datei. Die 62
 vorhandenen Python-Tests bestehen beim direkten Aufruf ihrer Testprogramme.
 
-Die normalen Fachlisten verwenden dieselbe adaptive Flächenaufteilung wie die Auswahlfenster. Im Querformat stehen Suchkopf und Ergebnisse nebeneinander; bei großer Schrift im Hochformat steht die Trefferzahl neben dem Suchfeld. Zusatzfilter bleiben nach Beenden der Eingabe erreichbar. Die Eingabeknoten bleiben beim Umordnen erhalten.
+Die normalen Fachlisten verwenden dieselbe adaptive Flächenaufteilung wie die Auswahlfenster. Im Querformat stehen Suchkopf und Ergebnisse nebeneinander; bei großer Schrift im Hochformat steht die Trefferzahl neben dem Suchfeld. Zusatzfilter bleiben nach Beenden der Eingabe erreichbar. Bei großer Schrift bleibt auch der geschlossene Suchkopf kompakt; seine zugängliche Feldbezeichnung bleibt vollständig erhalten. Auswahlfenster behalten ohne Tastatur ihren vollständigen Kopf. Die Eingabeknoten bleiben beim Umordnen erhalten. Technische Lesefehler erscheinen in den Listen als verständliche deutsche Rückmeldung; Fach- und Schutzprüfungen bleiben unverändert.
 
 Die Compose-Abnahme kombiniert zwölf Darstellungen (100/130/200 %, normale/kleine
 Höhe, Hoch-/Querformat), 16 fachliche Suchwege, 22 zusätzliche Fachlistenfälle bei 200 %/kleiner Höhe und 38 Einstiege mit synthetischen

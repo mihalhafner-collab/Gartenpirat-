@@ -17,7 +17,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
@@ -386,7 +385,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
         if (collection == "customers" && seenCustomerEntry != controller.customerListEntry) { offset = 0; listState.scrollToItem(0); seenCustomerEntry = controller.customerListEntry }
     }
     var listFailure by remember { mutableStateOf("") }
-    val flow = remember(collection, search, status, customer, billing, inactive, from, to, offset) { controller.store.nativeData().watchList(collection, search = search, status = status, customerId = customer, billingType = billing, includeInactive = inactive, offset = offset, limit = 50, dateFrom = from, dateTo = to).catch { listFailure = it.message ?: "Liste nicht lesbar. Bitte erneut öffnen." } }
+    val flow = remember(collection, search, status, customer, billing, inactive, from, to, offset) { controller.store.nativeData().watchList(collection, search = search, status = status, customerId = customer, billingType = billing, includeInactive = inactive, offset = offset, limit = 50, dateFrom = from, dateTo = to).catch { listFailure = NATIVE_LIST_READ_ERROR } }
     val displayFlow = remember(flow) { flow.map<NativeListPage, NativeListPage?> { it }.onStart { listFailure = ""; emit(null) } }
     val loadedPage by displayFlow.collectAsStateWithLifecycle(null)
     val page = loadedPage ?: NativeListPage(emptyList(), 0, offset, 50)

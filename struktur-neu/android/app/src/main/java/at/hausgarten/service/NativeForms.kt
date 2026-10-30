@@ -57,7 +57,7 @@ internal fun NativeField(label: String, value: String, onValueChange: (String) -
         testTagsAsResourceId = true; testTag = "native-field:$displayedLabel"
         if (!showLabel) contentDescription = displayedLabel
     }, label = if (showLabel) ({ Text(displayedLabel) }) else null,
-        placeholder = if (!showLabel) ({ Text(displayedLabel) }) else null,
+        placeholder = if (!showLabel) ({ Text(displayedLabel, maxLines = 1, overflow = TextOverflow.Ellipsis) }) else null,
         enabled = enabled, singleLine = !multiline, minLines = if (multiline) 3 else 1,
         keyboardOptions = KeyboardOptions(imeAction = if (multiline) ImeAction.Default else if (searching) ImeAction.Search else ImeAction.Done),
         keyboardActions = KeyboardActions(onSearch = { finish(); onSearch?.invoke() }, onDone = { finish() }))
@@ -104,11 +104,13 @@ internal fun NativeAmountPresets(label: String, inputLabel: String, value: Strin
     }
 }
 
+internal const val NATIVE_LIST_READ_ERROR = "Die Einträge konnten nicht geladen werden. Bitte die Ansicht erneut öffnen oder die Suche ändern."
+
 /** Same remaining-space layout for real lists and selection windows. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun NativeSearchLayout(modifier: Modifier = Modifier, controls: @Composable () -> Unit, content: @Composable ColumnScope.() -> Unit) {
-    val sideBySide = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+internal fun NativeSearchLayout(modifier: Modifier = Modifier, sideBySideWithoutIme: Boolean = false, controls: @Composable () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+    val sideBySide = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE && (WindowInsets.isImeVisible || sideBySideWithoutIme)
     Layout(modifier = modifier, content = { controls(); Column(Modifier.fillMaxSize(), content = content) }) { children, limits ->
         val gap = if (sideBySide) 12.dp.roundToPx() else 0
         val controlWidth = if (sideBySide) ((limits.maxWidth-gap)*0.42f).toInt() else limits.maxWidth
@@ -130,22 +132,23 @@ internal fun NativeSearchList(label: String, query: String, onQuery: (String) ->
     content: @Composable ColumnScope.() -> Unit) {
     val ime = WindowInsets.isImeVisible
     val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-    val large = ime && LocalDensity.current.fontScale > 1.3f
+    val large = LocalDensity.current.fontScale > 1.3f
     val keyboard = LocalSoftwareKeyboardController.current
     val focus = LocalFocusManager.current
     val shortCount = count.substringBefore(" ·")
-    NativeSearchLayout(Modifier.fillMaxSize(), controls = {
+    NativeSearchLayout(Modifier.fillMaxSize(), sideBySideWithoutIme = true, controls = {
         Column(Modifier.verticalScroll(rememberScrollState())) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                 NativeField(label, query, onQuery, search = true, onSearch = onSearch,
-                    modifier = Modifier.weight(1f).onFocusChanged { if (it.isFocused) onFocus() }, showLabel = !(large && landscape))
-                if (ime) Column(Modifier.widthIn(max = 128.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    IconButton({ keyboard?.hide(); focus.clearFocus() }, Modifier.semantics { contentDescription = "Eingabe beenden" }) { Text("×") }
+                    modifier = Modifier.weight(1f).onFocusChanged { if (it.isFocused) onFocus() }, showLabel = !large)
+                if (ime || large && !landscape) Column(Modifier.widthIn(max = 128.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    if (ime) IconButton({ keyboard?.hide(); focus.clearFocus() }, Modifier.semantics { contentDescription = "Eingabe beenden" }) { Text("×") }
+                    else if (onFilters != null) TextButton(onFilters) { Text("Filter") }
                     if (large && !landscape) Text(shortCount, style = MaterialTheme.typography.labelLarge)
                 }
             }
-            if (!ime) NativeSearchSummary(count, onFilters)
-            else if (!large || landscape) Text(shortCount, Modifier.padding(horizontal = 12.dp, vertical = if (large) 0.dp else 2.dp), style = MaterialTheme.typography.labelLarge)
+            if (!ime && !(large && !landscape)) NativeSearchSummary(count, onFilters)
+            else if (ime && (!large || landscape)) Text(shortCount, Modifier.padding(horizontal = 12.dp, vertical = if (large) 0.dp else 2.dp), style = MaterialTheme.typography.labelLarge)
         }
     }, content = content)
 }
@@ -212,7 +215,7 @@ internal fun NativeRecordDialog(visible: Boolean, controller: NativeAppControlle
         value = null; error = ""
         try { controller.store.nativeData().watchList(collection, search = search, customerId = customerId, offset = offset, limit = 30).collect { value = it } }
         catch (cancelled: CancellationException) { throw cancelled }
-        catch (failure: Exception) { error = failure.message ?: "Einträge nicht lesbar. Bitte erneut versuchen." }
+        catch (failure: Exception) { error = NATIVE_LIST_READ_ERROR }
     }
     NativeSearchDialog(title, search, { search = it; offset = 0 }, page?.total ?: 0, loading = page == null && error.isEmpty(), error = error, onDismiss = onDismiss) { close ->
         if (error.isNotBlank()) item { TextButton({ retry++ }) { Text("Erneut versuchen") } }

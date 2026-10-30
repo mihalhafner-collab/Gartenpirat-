@@ -49,7 +49,7 @@
     ],
     "kiss_yagni": "Vorhandene Route, SQL-Abfragen, Compose-Zustände und Fachschreiber weiterverwenden; keine neue Datenbank, Abhängigkeit, Architektur oder Filterprofile.",
     "remaining": [
-      "Vollständige Emulatorabnahme und Bildschirmprüfung abschließen; bestätigte Fehler korrigieren",
+      "Abnahme der adaptiven Fachlisten, SQLite-Lebensdauer und Systemgeste abschließen; aktuelle Bilder prüfen und bestätigte Fehler beheben",
       "Aktuellen Quellfingerabdruck und Nachweise eintragen; abschließende GitHub-Sicherung zurücklesen"
     ]
   },

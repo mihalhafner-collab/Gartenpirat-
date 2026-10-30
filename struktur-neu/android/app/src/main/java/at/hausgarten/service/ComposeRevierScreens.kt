@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -186,7 +185,7 @@ private fun RevierList(config: RevierSection, controller: NativeAppController, r
     var failure by remember { mutableStateOf("") }
     var retry by remember { mutableIntStateOf(0) }
     val source = remember(config.collection, query, status, archived, offset, retry) {
-        repository.watchList(config.collection, search = query, status = status, offset = offset, limit = 50, includeInactive = archived, customerId = controller.route.args.optString("customer_id"), propertyId = controller.route.args.optString("property_id"), orderId = controller.route.args.optString("order_id"), dateFrom = controller.route.args.optString("date_from"), dateTo = controller.route.args.optString("date_to"), chronological = config.collection == "visits").catch { failure = it.message.orEmpty() }
+        repository.watchList(config.collection, search = query, status = status, offset = offset, limit = 50, includeInactive = archived, customerId = controller.route.args.optString("customer_id"), propertyId = controller.route.args.optString("property_id"), orderId = controller.route.args.optString("order_id"), dateFrom = controller.route.args.optString("date_from"), dateTo = controller.route.args.optString("date_to"), chronological = config.collection == "visits").catch { failure = NATIVE_LIST_READ_ERROR }
     }
     val displayFlow = remember(source) { source.map<NativeListPage, NativeListPage?> { it }.onStart { failure = ""; emit(null) } }
     val loadedPage by displayFlow.collectAsStateWithLifecycle(null)
@@ -529,7 +528,7 @@ private fun RevierHistory(controller: NativeAppController, repository: NativeDat
     var failure by remember(collection, relation, id) { mutableStateOf("") }
     var retry by remember(collection, relation, id) { mutableIntStateOf(0) }
     val source = remember(collection, relation, id, offset, retry) {
-        repository.watchHistory(collection, relation, id, offset, 20).catch { failure = it.message.orEmpty() }
+        repository.watchHistory(collection, relation, id, offset, 20).catch { failure = NATIVE_LIST_READ_ERROR }
     }
     val records by source.collectAsStateWithLifecycle(emptyList())
     if (failure.isNotEmpty()) {

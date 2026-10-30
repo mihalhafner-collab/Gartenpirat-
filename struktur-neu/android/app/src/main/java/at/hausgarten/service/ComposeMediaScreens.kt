@@ -117,7 +117,7 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                 catch (failure: Exception) { readFailure = mediaError(failure) }
             }
             val pageFlow = remember(repository, search, role, customerId, dateFrom, dateTo, orderId, worklogId, sessionId, offset, readRetry) {
-                repository.watchList("photos", search = search, customerId = customerId, offset = offset, limit = 40, role = role, dateFrom = dateFrom, dateTo = dateTo, orderId = orderId, worklogId = worklogId, sessionId = sessionId).catch { readFailure = mediaError(it) }
+                repository.watchList("photos", search = search, customerId = customerId, offset = offset, limit = 40, role = role, dateFrom = dateFrom, dateTo = dateTo, orderId = orderId, worklogId = worklogId, sessionId = sessionId).catch { readFailure = NATIVE_LIST_READ_ERROR }
             }
             val displayFlow = remember(pageFlow) { pageFlow.map<NativeListPage, NativeListPage?> { it }.onStart { readFailure = ""; emit(null) } }
             val loadedPage by displayFlow.collectAsStateWithLifecycle(null)
