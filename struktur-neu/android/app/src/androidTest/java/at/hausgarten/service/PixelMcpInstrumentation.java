@@ -109,7 +109,7 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             String currentHash=hash(current);BusinessTableStore.Evidence currentProof=value->{yes(currentHash.equals(hash(value)));return hash("synthetic current archive");};
             tables.rollback("qa_table_rollback",currentHash,currentProof);tables.rollback("qa_table_rollback",currentHash,currentProof);
             yes(!tables.active());yes(currentHash.equals(hash(tables.snapshot("{}"))));
-            yes(DatabaseBackupSnapshot.ownerValue(db,"business_tables:original:"+hash(request),"").equals(original));
+            yes(DatabaseBackupSnapshot.ownerValue(db,"business_tables:original:"+hash(request),"").isEmpty());
         }
     }
     private void runJournal(File directory)throws Exception {
@@ -128,7 +128,7 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             yes(tables.projectionCurrent());yes(tables.get("customers","qa_customer").getString("name").equals("QA Neu"));
             JSONObject current=tables.exportSnapshot();yes(DriveJournalRules.ids(current.getJSONArray("drive_applied_ids")).contains("qa_final"));yes(!DriveJournalRules.ids(current.getJSONArray("drive_applied_ids")).contains("qa_temporary"));
             yes(LocalAuthorityRules.ENGINE.equals(current.getString("processing_engine")));
-            yes(hash(source).equals(hash(tables.originalSnapshot())));
+            try (android.database.Cursor originals = db.rawQuery("SELECT count(*) FROM owner_state WHERE key GLOB 'business_tables:original:*'", null)) { yes(originals.moveToFirst() && originals.getInt(0) == 0); }
             db.execSQL("CREATE TRIGGER qa_fail BEFORE INSERT ON business_customers WHEN NEW.id='qa_customer' BEGIN SELECT RAISE(ABORT,'QA_STORAGE_FAILURE'); END");
             denied("LOCAL_JOURNAL_TABLE_COMMIT_FAILED",()->{
                 PixelLocalStore.beginJournalTransaction(db,commit);try{

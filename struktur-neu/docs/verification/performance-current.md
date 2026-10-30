@@ -522,3 +522,13 @@ Migration, Wiederherstellung, Rechnungsfreigabe und Veröffentlichung sind nicht
 Die zuvor gebundenen historischen Pixel-Belege sind keine Abnahme dieser Oberfläche.
 Die ChatGPT-Zugangsdatenansicht behält `FLAG_SECURE`; der Schutz wird für Bilder nicht
 aufgehoben. Es werden ausschließlich vollständig synthetische Daten verwendet.
+
+Lokale Backup-/Löschvereinfachung (Zusatzauftrag, Umsetzung in Prüfung): Der
+Sicherungspfad streamt Originaldateien direkt, der Restore behält seine notwendige
+Rückfallkopie. Eine gemeinsame Speicherbereinigung ersetzt die alte testdatenabhängige
+Tombstone-/Receipt-Kompaktierung und deren unspezifischen Start-Toast (B05).
+Normale Archivierung/Purge benötigen keine vom Nutzer beschafften Hashes.
+Einstellungen zeigen Speicherbereiche und bieten eine einzelne Bereinigungsaktion.
+KISS: vorhandene SQLite-Transaktion und bestehende Dateiverweise statt zusätzlicher
+Freigaben; keinerlei neue Abhängigkeit. Noch kein bestandener Lauf der neuen
+Speichersuite und keine Messung des produktiven 22,8-GB-Bestands.

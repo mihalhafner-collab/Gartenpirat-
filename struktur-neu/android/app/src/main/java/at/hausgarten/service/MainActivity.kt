@@ -151,8 +151,6 @@ class MainActivity : ComponentActivity(), McpSyncHost {
                             try { if (PlanningAccount.connected(this@MainActivity) || PlanningAccount.prefs(this@MainActivity).getBoolean("weather_enabled", false)) PlanningJob.install(this@MainActivity) }
                             catch (_: RuntimeException) { backgroundState(local, true, "BACKGROUND_SCHEDULING_FAILED") }
                         }
-                        try { if (local.compactPurgedTestActions() > 0) local.notifyCommittedChange() }
-                        catch (_: Exception) { runOnUiThread { toast("Testbereinigung benötigt Prüfung. Bestehende Daten bleiben erhalten.") } }
                     }
                 }
                 store = opened
@@ -301,26 +299,10 @@ class MainActivity : ComponentActivity(), McpSyncHost {
             BackgroundWorkDispatch.request(delayMs, object : BackgroundWorkDispatch.Host {
                 override fun state(pending: Boolean, code: String) { backgroundState(local, pending, code) }
                 override fun post(task: Runnable): Boolean { maintenance.launch { task.run() }; return true }
-                override fun prepare() { if (LocalAuthorityGuard.local(this@MainActivity)) scheduleLocalMaintenance(local) }
+                override fun prepare() {}
                 override fun localReady(): Boolean = false
                 override fun local(delay: Long): Boolean = false
             })
-        }
-    }
-    private fun scheduleLocalMaintenance(local: PixelLocalStore) {
-        val generation = UUID.randomUUID().toString()
-        try {
-            local.putOwnerValue("local_media_cleanup", JSONObject().put("formatVersion", 1).put("pending", true).put("generation", generation).toString())
-            val result = TrashMediaCleanup.runLocal(this, local)
-            val database = local.writableDatabase
-            database.beginTransaction()
-            try {
-                val marker = JSONObject(local.ownerValue("local_media_cleanup", "{}"))
-                if (generation == marker.optString("generation")) local.putOwnerValue("local_media_cleanup", marker.put("pending", result.optInt("pending") > 0).put("code", result.optString("error_code")).toString())
-                database.setTransactionSuccessful()
-            } finally { database.endTransaction() }
-        } catch (_: Exception) {
-            try { local.putOwnerValue("local_media_cleanup", JSONObject().put("formatVersion", 1).put("pending", true).put("code", "LOCAL_MEDIA_CLEANUP_PENDING").toString()) } catch (_: Exception) { }
         }
     }
     override fun onSaveInstanceState(outState: Bundle) {

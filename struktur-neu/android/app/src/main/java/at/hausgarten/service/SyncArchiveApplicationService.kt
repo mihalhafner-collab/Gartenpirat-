@@ -16,55 +16,14 @@ class SyncArchiveApplicationService : OwnerCommand {
         when ((name)) {
             "empty_trash" -> {
                 run {
-                    var payload: JSONObject = TrashPurgeBatch.payload(all, a.getString("expected_preview_hash"), a.getBoolean("confirmed"))
-                    if ((TestDataRules.localOnly(JSONObject().put("kind", TrashPurgeBatch.KIND).put("payload", payload), all))) {
-                        payload.put("_local_only", true)
+                    val payload = TrashPurgeBatch.payload(all, TrashPurgeBatch.preview(all).getString("preview_hash"), a.getBoolean("confirmed"))
+                    val targets = payload.getJSONArray("entries")
+                    for (i in 0 until targets.length()) {
+                        val target = targets.getJSONObject(i)
+                        requireInactiveSession(target.getString("entity"), target.getString("entity_id"))
                     }
-                    var targets: JSONArray = payload.getJSONArray("entries")
-                    run {
-                        var i: Int = 0
-                        while ((i < targets.length())) {
-                            var target: JSONObject = targets.getJSONObject(i)
-                            requireInactiveSession(target.getString("entity"), target.getString("entity_id"))
-                            i++
-                        }
-                    }
-                    var prior: JSONArray = repository.pendingActions()
-                    var shared: JSONArray = JSONArray()
-                    var predecessors: JSONArray = JSONArray()
-                    run {
-                        var i: Int = 0
-                        while ((i < prior.length())) {
-                            var event: JSONObject = prior.getJSONObject(i)
-                            var p: JSONObject = event.getJSONObject("payload")
-                            if (((payload.optBoolean("_local_only") || (!p.optBoolean("_local_only") && !p.optBoolean("test_record"))))) {
-                                shared.put(event)
-                            }
-                            i++
-                        }
-                    }
-                    var projected: JSONObject = JSONObject(repository.state().getJSONObject("master").toString())
-                    DriveJournalRules.apply(projected, shared)
-                    if ((!payload.optBoolean("_local_only"))) {
-                        TrashPurgeBatch.bindDrivePreview(payload, projected)
-                    }
-                    var incorporated: MutableSet<String> = DriveJournalRules.ids(projected.optJSONArray("drive_applied_ids"))
-                    run {
-                        var i: Int = 0
-                        while ((i < shared.length())) {
-                            var id: String = shared.getJSONObject(i).getString("client_id")
-                            if ((incorporated.contains(id))) {
-                                predecessors.put(id)
-                            }
-                            i++
-                        }
-                    }
-                    if (((predecessors.length() > 0))) {
-                        payload.put("_sync_predecessors", predecessors)
-                    }
-                    TrashPurgeBatch.apply(JSONObject(all.toString()), JSONObject().put("kind", TrashPurgeBatch.KIND).put("client_id", request).put("created_at", stamp).put("payload", payload))
-                    var backup: JSONObject = repository.protectDeletion(all, payload.getJSONArray("entries"), request)
-                    return repository.enqueue(TrashPurgeBatch.KIND, payload, request).put("deletion_backup_id", backup.getString("backup_id")).put("deleted", payload.getJSONArray("entries").length()).put("recoverable", false).put("media_cleanup", "after_verified_publication")
+                    return repository.enqueue(TrashPurgeBatch.KIND, payload, request)
+                        .put("deleted", targets.length()).put("recoverable", false).put("media_cleanup", "local_after_commit")
                 }
             }
             "archive_work_records" -> {
@@ -107,13 +66,12 @@ class SyncArchiveApplicationService : OwnerCommand {
                 run {
                     requireInactiveSession(a.getString("entity"), a.getString("entity_id"))
                     var kind: String = "purge_v1"
-                    var p: JSONObject = JSONObject().put("id", a.getString("entity_id")).put("expected_record_hash", a.getString("expected_record_hash")).put("updated_at", stamp)
+                    var p: JSONObject = JSONObject().put("id", a.getString("entity_id")).put("expected_record_hash", OwnerJournalRules.version(OwnerJournalRules.archives(all).getJSONObject(a.getString("entity") + ":" + a.getString("entity_id")))).put("updated_at", stamp)
                     if ((name.equals("purge_entity"))) {
                         p.put("entity", a.getString("entity")).put("confirmed", a.getBoolean("confirmed"))
                     }
                     OwnerJournalRules.apply(JSONObject(all.toString()), JSONObject().put("kind", kind).put("payload", p).put("client_id", request).put("created_at", stamp), HashMap(), JSONObject())
-                    var backup: JSONObject = repository.protectDeletion(all, JSONArray().put(JSONObject().put("entity", a.getString("entity")).put("entity_id", a.getString("entity_id")).put("expected_record_hash", a.getString("expected_record_hash"))), request)
-                    return repository.enqueue(kind, p, request).put("deletion_backup_id", backup.getString("backup_id"))
+                    return repository.enqueue(kind, p, request).put("recoverable", false).put("media_cleanup", "local_after_commit")
                 }
             }
             "delete_entity", "archive_entity" -> {
@@ -198,13 +156,11 @@ class SyncArchiveApplicationService : OwnerCommand {
                 throw IllegalArgumentException("Zeiterfassung dieses Termins zuerst abschließen oder bewusst verwerfen. Nichts archiviert.")
             }
         }
-        var p: JSONObject = DeletionRules.payload(all, args.getString("entity"), args.getString("entity_id"), args.getString("expected_record_hash"), stamp)
-        if ((((p.getJSONArray("photo_link_ids").length() > 0) && !args.has("expected_photo_links_hash")))) {
-            throw PixelMcpWriteTools.Rejected("PREVIEW_REQUIRED", "Fotozuordnungen zuerst mit preview_delete prüfen.")
-        }
-        if (((args.has("expected_photo_links_hash") && !args.getString("expected_photo_links_hash").equals(p.getString("expected_photo_links_hash"))))) {
-            throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Fotozuordnungen wurden geändert.")
-        }
+        val entity = args.getString("entity")
+        val id = args.getString("entity_id")
+        val current = OwnerJournalRules.findOrNull(all.getJSONArray(OwnerJournalRules.group(entity)), id)
+            ?: throw IllegalArgumentException("Der Eintrag fehlt oder liegt bereits im Papierkorb.")
+        val p = DeletionRules.payload(all, entity, id, OwnerJournalRules.version(current), stamp)
         OwnerJournalRules.apply(JSONObject(all.toString()), JSONObject().put("kind", "archive").put("client_id", request).put("payload", p).put("created_at", stamp), HashMap(), JSONObject())
         return repository.enqueue("archive", p, request).put("recoverable", true).put("physical_delete", false)
     }

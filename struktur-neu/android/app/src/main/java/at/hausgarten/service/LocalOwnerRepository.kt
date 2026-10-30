@@ -116,7 +116,7 @@ return out.toByteArray()
 @Throws(Exception::class) override fun putFile(id: String, metadata: JSONObject, data: ByteArray) {
     // Immutable content files keep a rolled-back SQLite reference valid. Legacy
     // mcp_uploads BLOBs remain readable and remain in complete SQLite backups.
-    val stored = JSONObject(metadata.toString())
+    val stored = JSONObject(metadata.toString()).put("last_written_at", java.time.Instant.now().toString())
     val photoUpload = stored.optString("kind") == "photo_upload"
     val database = store!!.writableDatabase
     // Cleanup also takes the SQLite writer. Even callers without an outer owner
@@ -387,6 +387,7 @@ try {
 
 if (Arrays.asList("archive", "delete", "purge_v1").contains(kind)) {
 revier().protectParent(payload.optString("entity"), payload.optString("id"))
+revier().detachOptionalParent(payload.optString("entity"), payload.optString("id"), request)
 }
 if ((kind == "photo") && (payload.optString("role") == "profile")) {
 revier().protectParent("photo", payload.optString("id"))
@@ -402,6 +403,7 @@ if (!(i < entries.length())) break
 
 var entry = entries.getJSONObject(i)
 revier().protectParent(entry.getString("entity"), entry.getString("entity_id"))
+revier().detachOptionalParent(entry.getString("entity"), entry.getString("entity_id"), request)
 
 }
 }

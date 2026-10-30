@@ -210,7 +210,7 @@ internal class OwnerToolSchemas {
 
             p.put("expected_preview_hash", McpFields.hash())
                 .put("confirmed", McpFields.bool().put("enum", JSONArray().put(true)))
-            required.addAll(Arrays.asList("expected_preview_hash", "confirmed"))
+            required.add("confirmed")
         }
 
         private @JvmStatic @Throws(Exception::class) fun closeLegacyConflicts(
@@ -414,7 +414,8 @@ internal class OwnerToolSchemas {
             p.put("entity", McpFields.enumeration(*DeletionRules.ENTITIES))
                 .put("entity_id", McpFields.id())
                 .put("expected_record_hash", McpFields.hash())
-            required.addAll(Arrays.asList("entity", "entity_id", "expected_record_hash"))
+            required.addAll(Arrays.asList("entity", "entity_id"))
+            if (name == "restore_entity") required.add("expected_record_hash")
             if (((name == "delete_entity") || (name == "archive_entity"))) {
                 p.put("expected_photo_links_hash", McpFields.hash())
             }

@@ -700,3 +700,38 @@ private fun nativeExistingOrderProof(observation: JSONObject, chosen: String): S
     if (chosen.isEmpty() || order.optString("id") != chosen || !hash.matches(Regex("[0-9a-f]{64}"))) throw IllegalArgumentException("Der gewählte Auftrag ist nicht mit seinem aktuellen Vergleichsnachweis lesbar.")
     return hash
 }
+
+/** One confirmation shared by record details, documents and the trash list. */
+@Composable
+internal fun NativeDeleteButton(controller: NativeAppController, entity: String, id: String,
+    label: String = "In Papierkorb", permanent: Boolean = false, emptyTrash: Boolean = false,
+    enabled: Boolean = true, onDone: () -> Unit) {
+    var showing by rememberSaveable(entity, id) { mutableStateOf(false) }
+    var busy by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    OutlinedButton({ error = ""; showing = true }, enabled = enabled) { Text(label) }
+    if (showing) AlertDialog(
+        onDismissRequest = { if (!busy) showing = false },
+        title = { Text(if (emptyTrash) "Papierkorb leeren?" else if (permanent) "Endgültig löschen?" else "In den Papierkorb verschieben?") },
+        text = { Column(Modifier.verticalScroll(rememberScrollState())) {
+            Text(if (permanent || emptyTrash) "Diese Löschung lässt sich nicht rückgängig machen. Dateien werden entfernt, sobald sie nirgends mehr verwendet werden. Ausgestellte Belege bleiben geschützt."
+                else "Der Eintrag kann im Papierkorb wiederhergestellt werden. Bei Aufträgen und Terminen bleiben erfasste Arbeiten, Fotos und ihr Kundenbezug erhalten; nur die optionale Zuordnung wird gelöst.")
+            if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error)
+        } },
+        confirmButton = { TextButton(enabled = !busy, onClick = {
+            busy = true
+            scope.launch {
+                try {
+                    val args = if (emptyTrash) JSONObject().put("confirmed", true) else JSONObject().put("entity", entity).put("entity_id", id).apply { if (permanent) put("confirmed", true) }
+                    controller.call(if (emptyTrash) "empty_trash" else if (permanent) "purge_entity" else "archive_entity", args)
+                    showing = false
+                    onDone()
+                } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+                catch (failure: Exception) { error = failure.message ?: "Löschen nicht möglich. Der Eintrag bleibt erhalten." }
+                finally { busy = false }
+            }
+        }) { Text(if (busy) "Wird gelöscht …" else if (permanent || emptyTrash) "Endgültig löschen" else "In Papierkorb") } },
+        dismissButton = { TextButton({ showing = false }, enabled = !busy) { Text("Abbrechen") } }
+    )
+}

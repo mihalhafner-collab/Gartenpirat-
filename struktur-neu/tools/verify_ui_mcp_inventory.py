@@ -35,7 +35,7 @@ paths.update(native_source(name) for name in (
     'PixelTunnelBootReceiver', 'BackgroundWorkDispatch', 'PendingWorkPhotoStore',
     'PixelBackupService', 'BackupDocumentTransfer', 'BackupInventory',
     'EncryptedBackupArchive', 'BackupRestoreService', 'RestoreStartupProtection',
-    'BackupScheduleRules', 'BackupStatusRules', 'TrashMediaCleanup',
+    'BackupScheduleRules', 'BackupStatusRules', 'LocalStorageMaintenance',
     'BrowserMediaRepository', 'BrowserMediaRepositoryRules', 'RestoredBrowserCheckpoint',
     'RestoredBrowserReviewRules', 'RevierApplicationService', 'RevierRules',
     'EquipmentMaintenanceRules', 'EquipmentProfilePhotoRules', 'RevierRepository',

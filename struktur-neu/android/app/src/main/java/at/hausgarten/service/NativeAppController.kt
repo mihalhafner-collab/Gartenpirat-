@@ -104,6 +104,11 @@ internal class NativeAppController(private val activity: MainActivity, val store
         if (spec(name)?.optJSONObject("annotations")?.optBoolean("readOnlyHint") == false) store.notifyCommittedChange()
         result
     }
+    suspend fun storageUsage(): JSONObject = withContext(Dispatchers.IO) { LocalStorageMaintenance(context, store).usage() }
+    suspend fun cleanStorage(): JSONObject {
+        flushDrafts()
+        return withContext(Dispatchers.IO) { LocalStorageMaintenance(context, store).clean(true).also { store.notifyCommittedChange() } }
+    }
     suspend fun query(name: String, args: JSONObject = JSONObject()): JSONObject {
         val result = call(name, args)
         return when (val data = result.opt("data")) {

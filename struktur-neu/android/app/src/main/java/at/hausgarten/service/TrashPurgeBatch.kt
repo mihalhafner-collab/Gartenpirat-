@@ -114,6 +114,7 @@ class TrashPurgeBatch {
                 }
             }
             OwnerJournalRules.validateArchive(type, record, view)
+            TrashRules.detachOptionalParent(view, type, id, java.time.Instant.now().toString())
             TrashRules.requireUnreferenced(view, type, id)
         }
         @Throws(Exception::class)

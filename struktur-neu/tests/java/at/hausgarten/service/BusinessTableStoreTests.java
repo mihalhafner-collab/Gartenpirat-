@@ -125,7 +125,7 @@ public final class BusinessTableStoreTests {
                 tables.commitJournal(sql.pending(),master->{PixelDriveState.prepare(master);master.put("processing_engine",LocalAuthorityRules.ENGINE);});return null;
             });
             yes(tables.projectionCurrent());yes(tables.get("customers",edited.getString("id")).getString("name").equals("[TEST] QA Journal"));
-            JSONObject committed=tables.exportSnapshot();yes(DriveJournalRules.ids(committed.getJSONArray("drive_applied_ids")).contains("qa_final"));yes(!DriveJournalRules.ids(committed.getJSONArray("drive_applied_ids")).contains("qa_temporary"));yes(committed.getString("processing_engine").equals(LocalAuthorityRules.ENGINE));yes(sourceHash.equals(hash(tables.originalSnapshot())));
+            JSONObject committed=tables.exportSnapshot();yes(DriveJournalRules.ids(committed.getJSONArray("drive_applied_ids")).contains("qa_final"));yes(!DriveJournalRules.ids(committed.getJSONArray("drive_applied_ids")).contains("qa_temporary"));yes(committed.getString("processing_engine").equals(LocalAuthorityRules.ENGINE));yes(sql.owner("business_tables:original:"+hash(request))==null);
             sql.execute("CREATE TRIGGER qa_fail BEFORE INSERT ON business_customers WHEN NEW.id='customers_qa_1' BEGIN SELECT RAISE(ABORT,'QA_STORAGE_FAILURE'); END");
             denied("QA_STORAGE_FAILURE",()->sql.transaction(()->{
                 JSONObject next=tables.get("customers","customers_qa_1");sql.append("qa_failure",new JSONObject(next.toString()).put("name","[TEST] QA verboten").put("_sync_base",DriveJournalRules.guard(next,"customer")));sql.execute("INSERT INTO owner_state VALUES('receipt:qa_failure','{}')");tables.commitJournal(sql.pending(),PixelDriveState::prepare);return null;
@@ -135,7 +135,7 @@ public final class BusinessTableStoreTests {
         try(Sql sql=new Sql(file)){
             BusinessTableStore tables=new BusinessTableStore(sql);yes(tables.projectionCurrent());String currentHash=hash(tables.exportSnapshot());
             BusinessTableStore.Evidence currentProof=value->{yes(currentHash.equals(hash(value)));return hash("synthetic current evidence");};
-            tables.rollback("qa_table_rollback",currentHash,currentProof);tables.rollback("qa_table_rollback",currentHash,currentProof);yes(!tables.active());yes(currentHash.equals(hash(tables.snapshot("{}"))));yes(original.equals(sql.owner("business_tables:original:"+hash(request))));
+            tables.rollback("qa_table_rollback",currentHash,currentProof);tables.rollback("qa_table_rollback",currentHash,currentProof);yes(!tables.active());yes(currentHash.equals(hash(tables.snapshot("{}"))));yes(sql.owner("business_tables:original:"+hash(request))==null);
         }
     }
     public static void main(String[] args)throws Exception {

@@ -105,7 +105,6 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
     var pendingAction by remember(section,id) { mutableStateOf<Pair<String, JSONObject>?>(null) }
     var issueReview by remember(section,id) { mutableStateOf<JSONObject?>(null) }
     var initialModeHandled by remember(section,id,controller.route.mode,controller.route.args.optString("_draft_key")) {mutableStateOf(false)}
-    var archivePreview by remember(section,id) { mutableStateOf<JSONObject?>(null) }
     var offerReview by remember(section,id) { mutableStateOf<JSONObject?>(null) }
     var offerReviewed by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -162,14 +161,6 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
             Button(enabled=offerReviewed && validation.optBoolean("valid"),onClick={pendingAction="finalize_offer" to JSONObject().put("offer_id",id).put("expected_record_hash",review.getString("record_hash")).put("expected_context_hash",review.getString("context_hash"));offerReview=null},modifier=Modifier.fillMaxWidth()) {Text("Geprüfte Finalisierung bestätigen")}
             TextButton(onClick={offerReview=null}) {Text("Zum Angebot zurück")}
         }
-        archivePreview != null -> Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-            val preview=archivePreview!!
-            Text("Entwurf in den Papierkorb",style=MaterialTheme.typography.headlineSmall)
-            Text(preview.optString("message"))
-            Text("Betroffene Fotozuordnungen: ${preview.optInt("related_photos")}")
-            if(preview.optBoolean("allowed")) Button(onClick={pendingAction="archive_entity" to JSONObject().put("entity",if(section=="offers") "offer" else "invoice").put("entity_id",id).put("expected_record_hash",preview.getString("expected_record_hash")).put("expected_photo_links_hash",preview.getString("expected_photo_links_hash"));archivePreview=null},modifier=Modifier.fillMaxWidth()) {Text("Geprüfte Archivierung vorbereiten")}
-            TextButton(onClick={archivePreview=null}) {Text("Zum Beleg zurück")}
-        }
         issueReview != null -> FinanceIssueReview(controller, id, issueReview!!, onClose = { issueReview = null; if(controller.route.args.optString("_draft_key").isNotEmpty()) controller.navigate(section,id) else refresh++ })
         section == "payments" -> FinancePayments(controller, id)
         editing && (fresh || row!=null || controller.route.args.optString("_draft_key").isNotEmpty()) -> FinanceEditor(section, if (fresh) null else row, if (fresh) "" else detail?.optString("record_hash").orEmpty(), controller,
@@ -223,7 +214,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                 TextButton(onClick = { pendingAction = "duplicate_offer" to JSONObject().put("offer_id", id) }) { Text("Als neue Version duplizieren") }
             }
             if (section == "catalog") OutlinedButton(onClick = { pendingAction = "update_catalog_entry" to JSONObject().put("entry_id", id).put("expected_record_hash", detail!!.optString("record_hash")).put("updates", JSONObject().put("active", !row.optBoolean("active", true))) }, Modifier.fillMaxWidth()) { Text(if(row.optBoolean("active", true)) "Baustein deaktivieren" else "Baustein reaktivieren") }
-            if (editable && section != "catalog") TextButton(onClick = {scope.launch {try {archivePreview=controller.query("preview_delete",JSONObject().put("entity",if(section=="offers") "offer" else "invoice").put("entity_id",id))}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){controller.message(f.message.orEmpty())}}}) { Text("Entwurf archivieren …") }
+            if (editable && section != "catalog") NativeDeleteButton(controller, if (section == "offers") "offer" else "invoice", id, label = "Entwurf in Papierkorb") { controller.returnToList(section) }
             }
             NativeActions {
                 TextButton(onClick = { controller.returnToList(section) }) { Text("Zur Liste") }

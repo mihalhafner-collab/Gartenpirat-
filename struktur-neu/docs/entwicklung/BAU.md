@@ -141,6 +141,12 @@ git fetch --no-tags --depth=1 origin 035d6503d16d63a7468498611060f99640a67284
 Der Test selbst lädt keine Quellen oder Abhängigkeiten nach. Archivvergleiche
 ersetzen keinen Android-Restore mit Neustart und Rollback.
 
+Die native Datensuite prüft zusätzlich die lokale Speicherbereinigung in einem
+neuen synthetischen Kontext: Auftrags-/Terminlöschung mit geleisteter Arbeit,
+Purge/Leerung ohne Vorschau-Hashes, gemeinsam verwendete Fotos, Papierkorb,
+Entwurfs-PDF gegenüber ausgestelltem Beleg, alte Upload-BLOBs/Snapshot-Duplikate,
+WAL/VACUUM und erneutes Öffnen. Diese Prüfungen ändern keine produktiven Dateien.
+
 ## Regressionsschleife für das Kotlin-Refactoring
 
 Auftrag, Freigaben, Akzeptanzmatrix und tatsächliche Prüfergebnisse stehen

@@ -167,18 +167,117 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 immutablePublishedFileProof(context, store)
                 phase = "office_baseline"
                 val office = officeReadMeasurements(context, store, data)
+                phase = "local_storage_cleanup"
+                localStorageCleanup(owner)
                 phase = "final_revision"
                 val final = data.diagnostics()
                 yes(final.getLong("source_revision") == final.getLong("cached_revision"), "COMMITTED_CACHE_REVISION")
                 JSONObject().put("checks", checks).put("synthetic_only", true).put("productive_data_read", false)
                     .put("isolated_context_paths", true).put("projection_rows", 40_000).put("plans", plans)
                     .put("real_sqlite_transactions", true).put("wal_concurrent_reader", true).put("actual_coroutine_flow", true)
+                    .put("local_storage_cleanup", true).put("local_delete_without_cloud_guards", true)
                     .put("cache_photo_concurrency", true)
                     .put("cache_initialization_close_concurrency", true)
                     .put("upload_publication_backup_concurrency", true)
                     .put("chunk_upload_prefix_storage_bounded", true)
                     .put("main_thread_disk_violations", 0).put("performance_claim", false).put("office_reads", office)
             }
+        }
+    }
+
+    private fun localStorageCleanup(owner: Context) {
+        val token = UUID.randomUUID().toString().replace("-", "")
+        val root = File(owner.cacheDir, "qa-local-cleanup-$token")
+        yes(!root.exists() && root.mkdir(), "CLEANUP_NEW_ROOT")
+        val context = FixtureContext(owner, root, "qa_cleanup_$token")
+        fun file(directory: String, name: String, content: ByteArray = ByteArray(8192) { 7 }): File =
+            File(File(context.filesDir, directory).apply { mkdirs() }, name).apply { writeBytes(content) }
+        val issued = file("business-documents", "qa-issued.pdf")
+        val draft = file("business-documents", "qa-draft.pdf")
+        val lost = file("customer-photo-originals", "qa-unused.jpg")
+        val browser = file("browser-media", "a".repeat(64) + ".blob")
+        val pending = file("pending-work-photo-files", "b".repeat(64) + ".jpg")
+        val staged = file("native-form-media", "qa-form.jpg")
+        staged.setLastModified(0)
+        File(context.filesDir, "pending-work-photo.json").writeText(JSONObject().put("sha256", "b".repeat(64)).toString())
+        val fixture = SyntheticBusinessData.profile("minimal")
+        fixture.getJSONArray("invoices").put(JSONObject().put("id", "qa_issued").put("invoice_number", "QA-001")
+            .put("issued_at", "2026-10-30T10:00:00Z").put("customer_id", "qa_customer_1").put("pdf_storage_name", issued.name))
+        fixture.getJSONArray("invoices").put(JSONObject().put("id", "qa_draft").put("invoice_number", "Entwurf")
+            .put("customer_id", "qa_customer_1").put("pdf_storage_name", draft.name))
+        fixture.getJSONArray("appointments").put(JSONObject().put("id", "qa_appointment").put("customer_id", "qa_customer_1")
+            .put("order_id", "qa_order_1").put("title", "QA Erledigter Termin").put("status", "completed"))
+        fixture.getJSONArray("worklogs").getJSONObject(0).put("appointment_id", "qa_appointment")
+        val linkedInvoice = JSONObject(fixture.toString())
+        linkedInvoice.getJSONArray("invoices").getJSONObject(0).put("worklog_ids", JSONArray().put("qa_work_1"))
+        var protected = false
+        try { OwnerJournalRules.validateArchive("order", linkedInvoice.getJSONArray("orders").getJSONObject(0), linkedInvoice) } catch (_: IllegalArgumentException) { protected = true }
+        yes(protected, "ISSUED_WORK_PROTECTS_PARENT_ORDER")
+        context.getSharedPreferences("haus_garten", 0).edit().putString("drive_snapshot", fixture.toString()).commit()
+        lateinit var keptPhoto: File
+        PixelLocalStore(context).use { store ->
+            val db = store.writableDatabase
+            store.putOwnerValue("business_tables:original:qa_obsolete", fixture.toString())
+            store.putOwnerValue("browser_media:v1:record:qa", JSONObject().put("graph", JSONObject().put("sha256", "a".repeat(64))).toString())
+            store.putOwnerValue("native-form:qa", JSONObject().put("uri", staged.toURI().toString()).toString())
+            db.execSQL("INSERT INTO mcp_uploads VALUES('qa_old_upload', '{}', ?)", arrayOf(ByteArray(1024 * 1024)))
+            val bitmap = android.graphics.Bitmap.createBitmap(2, 2, android.graphics.Bitmap.Config.ARGB_8888)
+            val encoded = java.io.ByteArrayOutputStream().use { output -> bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, output); output.toByteArray() }
+            bitmap.recycle()
+            fun photo(request: String): String = store.savePhoto(JSONObject().put("customer_id", "qa_customer_1").put("order_id", "qa_order_1")
+                .put("_photo_request_id", request).put("_capture_context", JSONObject().put("installation_id", "old-device").put("restore_epoch", "old-epoch"))
+                .put("data", "data:image/png;base64," + android.util.Base64.encodeToString(encoded, android.util.Base64.NO_WRAP)))
+            val first = photo("qa_photo_cleanup_first")
+            val second = photo("qa_photo_cleanup_second")
+            val access = PixelOwnerAccess(context, store)
+            var sequence = 0
+            fun command(name: String, entity: String, id: String): JSONObject = access.execute(name,
+                JSONObject().put("request_id", "qa_cleanup_${sequence++}").put("entity", entity).put("entity_id", id).apply { if (name == "purge_entity") put("confirmed", true) })
+            command("archive_entity", "order", "qa_order_1")
+            var current = PixelMcpReadTools.effective(store.getState())
+            yes(current.getJSONArray("orders").length() == 0, "ORDER_ARCHIVED_WITH_WORK")
+            yes(current.getJSONArray("worklogs").getJSONObject(0).optString("order_id").isEmpty(), "WORK_ORDER_DETACHED")
+            yes(current.getJSONArray("worklogs").getJSONObject(0).getString("customer_id") == "qa_customer_1", "WORK_CUSTOMER_PRESERVED")
+            yes(current.getJSONArray("photos").getJSONObject(0).optString("order_id").isEmpty(), "PHOTO_ORDER_DETACHED")
+            command("purge_entity", "order", "qa_order_1")
+            yes(!OwnerJournalRules.archives(PixelMcpReadTools.effective(store.getState())).has("order:qa_order_1"), "NO_ORDER_TOMBSTONE")
+            command("archive_entity", "appointment", "qa_appointment")
+            yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").getJSONObject(0).optString("appointment_id").isEmpty(), "COMPLETED_WORK_APPOINTMENT_DETACHED")
+            command("purge_entity", "appointment", "qa_appointment")
+            val metadata = store.photoAttachment(first)!!
+            keptPhoto = File(File(context.filesDir, "customer-photo-originals"), metadata.getString("storage_name"))
+            command("archive_entity", "photo", first)
+            yes(keptPhoto.isFile, "TRASH_RETAINS_SHARED_PHOTO")
+            command("purge_entity", "photo", first)
+            yes(keptPhoto.isFile, "ACTIVE_SHARED_PHOTO_RETAINED")
+            command("archive_entity", "invoice", "qa_draft")
+            yes(draft.isFile, "TRASH_RETAINS_DRAFT_PDF")
+            command("purge_entity", "invoice", "qa_draft")
+            yes(!draft.exists() && issued.isFile, "DRAFT_PDF_REMOVED_ISSUED_RETAINED")
+            var rejected = false
+            try { command("archive_entity", "invoice", "qa_issued") } catch (_: Exception) { rejected = true }
+            yes(rejected && issued.isFile, "ISSUED_INVOICE_PROTECTED")
+            val orphan = File(context.noBackupFilesDir, "pixel-backup/attempt-abandoned/capture/large.bin")
+            orphan.parentFile!!.mkdirs(); orphan.writeBytes(ByteArray(16384))
+            val maintenance = LocalStorageMaintenance(context, store)
+            val cleaned = maintenance.clean(true)
+            yes(cleaned.getLong("database_bytes") > 0 && cleaned.getLong("freed_bytes") > 0, "ACTUAL_USAGE_AND_RECLAIM")
+            yes(!orphan.exists() && !lost.exists(), "ORPHANS_REMOVED")
+            yes(browser.isFile && pending.isFile && staged.isFile && keptPhoto.isFile && issued.isFile, "ALL_LIVE_REFERENCES_RETAINED")
+            yes(!context.getSharedPreferences("haus_garten", 0).contains("drive_snapshot"), "LEGACY_PREFERENCES_REMOVED")
+            db.rawQuery("SELECT count(*) FROM owner_state WHERE key GLOB 'business_tables:original:*' OR key GLOB 'receipt_guard:*'", null).use { rows -> yes(rows.moveToFirst() && rows.getInt(0) == 0, "OLD_DUPLICATES_REMOVED") }
+            db.rawQuery("SELECT count(*) FROM mcp_uploads WHERE id='qa_old_upload'", null).use { rows -> yes(rows.moveToFirst() && rows.getInt(0) == 0, "ORPHAN_UPLOAD_BLOB_REMOVED") }
+            command("archive_entity", "photo", second)
+            access.execute("empty_trash", JSONObject().put("request_id", "qa_cleanup_empty_trash").put("confirmed", true))
+            yes(!keptPhoto.exists(), "LAST_PHOTO_REFERENCE_RECLAIMED_IMMEDIATELY")
+            current = PixelMcpReadTools.effective(store.getState())
+            yes(current.getJSONArray("worklogs").length() == 1 && current.getJSONArray("invoices").length() == 1, "BUSINESS_ROWS_PRESERVED")
+            yes(OwnerJournalRules.archives(current).length() == 0, "TRASH_PHYSICALLY_EMPTY")
+        }
+        PixelLocalStore(context).use { reopened ->
+            val current = PixelMcpReadTools.effective(reopened.getState())
+            yes(current.getJSONArray("customers").length() == 1 && current.getJSONArray("worklogs").length() == 1 && current.getJSONArray("invoices").length() == 1, "COMPACTED_REOPEN_EXACT_ROWS")
+            yes(current.getJSONArray("photos").length() == 0 && current.getJSONArray("orders").length() == 0 && OwnerJournalRules.archives(current).length() == 0, "DELETED_ROWS_DO_NOT_REAPPEAR")
         }
     }
 

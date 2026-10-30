@@ -394,17 +394,6 @@ context.put(collection, result)
 }
 return context
 }
-@Throws(Exception::class) fun originalSnapshot(): JSONObject {
-
-return sql.transaction(LAM@ {
-var meta = activeMetadata()
-var raw = owner("business_tables:original:" + meta.getString("generation"))
-require(raw != null, "TABLE_ORIGINAL_MISSING")
-var original = JSONObject(raw)
-require((hash(original) == meta.getString("source_hash")), "TABLE_ORIGINAL_HASH_MISMATCH")
-return@LAM original
- })
-}
 private @Throws(Exception::class) fun source(meta: JSONObject, check: Evidence?): JSONObject {
 
 var raw = owner("snapshot")
@@ -499,7 +488,6 @@ source(meta, check)
 var readback = materialize(meta)
 require((hash(readback) == expectedSourceHash), "TABLE_READBACK_MISMATCH")
 require((evidence(check, readback) == meta.getString("backup_hash")), "TABLE_BACKUP_CHANGED")
-owner("business_tables:original:" + meta.getString("generation"), owner("snapshot")!!)
 meta.put("phase", "ACTIVE")
 owner(META, meta.toString())
 fence(false)

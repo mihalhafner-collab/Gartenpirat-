@@ -153,6 +153,46 @@ class TrashRules {
                 }
             }
         }
+        /** Optional planning links never own the work or its customer. */
+        @JvmStatic fun detachOptionalParent(s: JSONObject, entity: String, id: String, stamp: String) {
+            val field = when (entity) { "order" -> "order_id"; "appointment" -> "appointment_id"; else -> return }
+            fun detach(row: JSONObject) {
+                if (row.optString(field) == id) row.put(field, "").put("updated_at", stamp)
+            }
+            for (group in arrayOf("orders", "worklogs", "photos", "invoices", "offers", "appointments")) {
+                val rows = s.optJSONArray(group) ?: continue
+                for (i in 0 until rows.length()) detach(rows.getJSONObject(i))
+            }
+            val archive = existingArchive(s)
+            for (key in archive.keys().asSequence().toList()) {
+                if (key != "$entity:$id") archive.optJSONObject(key)?.optJSONObject("record")?.let(::detach)
+            }
+        }
+
+        @JvmStatic fun requireDeletableParent(s: JSONObject, entity: String, id: String) {
+            val field = when (entity) { "order" -> "order_id"; "appointment" -> "appointment_id"; else -> return }
+            val workIds = HashSet<String>()
+            val work = s.optJSONArray("worklogs") ?: JSONArray()
+            for (i in 0 until work.length()) if (work.getJSONObject(i).optString(field) == id) workIds.add(work.getJSONObject(i).getString("id"))
+            val archive = existingArchive(s)
+            for (key in archive.keys().asSequence().toList()) {
+                if (key.startsWith("worklog:")) archive.optJSONObject(key)?.optJSONObject("record")?.let { if (it.optString(field) == id) workIds.add(it.getString("id")) }
+            }
+            fun protect(row: JSONObject, invoice: Boolean) {
+                val linked = row.optString(field) == id || workIds.any { containsWork(row, it) }
+                if (!linked) return
+                if (invoice) EntityProtectionRules.validateInvoiceDelete(row)
+                else if (!OfferRules.editable(row)) throw IllegalArgumentException("Der Eintrag gehört zu einem abgeschlossenen Angebot und bleibt als Belegbezug erhalten.")
+            }
+            for (group in arrayOf("invoices", "offers")) {
+                val rows = s.optJSONArray(group) ?: JSONArray()
+                for (i in 0 until rows.length()) protect(rows.getJSONObject(i), group == "invoices")
+            }
+            for (key in archive.keys().asSequence().toList()) {
+                if (key.startsWith("invoice:") || key.startsWith("offer:")) archive.optJSONObject(key)?.optJSONObject("record")?.let { protect(it, key.startsWith("invoice:")) }
+            }
+        }
+
         @Throws(Exception::class)
         @JvmStatic fun requireUnreferenced(s: JSONObject, entity: String, id: String) {
             var ref: String = (if (entity.equals("customer")) "customer_id" else (if (entity.equals("order")) "order_id" else (if (entity.equals("worklog")) "worklog_id" else (if (entity.equals("offer")) "offer_id" else (if (entity.equals("appointment")) "appointment_id" else "")))))
@@ -241,6 +281,7 @@ class TrashRules {
             OwnerJournalRules.checkHash(saved, p.getString("expected_record_hash"))
             var record: JSONObject = saved!!.getJSONObject("record")
             OwnerJournalRules.validateArchive(entity, record, s)
+            detachOptionalParent(s, entity, id, action.getString("created_at"))
             requireUnreferenced(s, entity, id)
             var current: JSONObject? = OwnerJournalRules.findOrNull(s.getJSONArray(OwnerJournalRules.group(entity)), id)
             if (((entity.equals("customer") || entity.equals("service_template")))) {
@@ -254,32 +295,9 @@ class TrashRules {
         }
         @Throws(Exception::class)
         @JvmStatic fun commitPurge(s: JSONObject, action: JSONObject, entity: String, id: String, saved: JSONObject) {
-            var record: JSONObject = saved.getJSONObject("record")
-            var archive: JSONObject = OwnerJournalRules.archives(s)
-            var receipt: String = (action.getString("client_id") + ((if (TrashPurgeBatch.KIND.equals(action.optString("kind"))) (("" + (":" + entity) + ":") + id) else "")))
-            var tombstone: JSONObject = JSONObject().put("purged", true).put("purged_at", action.getString("created_at")).put("purge_action", receipt).put("archive_hash", OwnerJournalRules.version(saved))
-            var media: JSONObject = JSONObject()
-            if ((entity.equals("photo"))) {
-                for (field in arrayOf("content_sha256", "storage_name", "byte_size", "mime_type", "thumbnail_storage_name", "thumbnail_sha256")) {
-                    if ((record.has(field))) {
-                        media.put(field, record.get(field))
-                    }
-                }
-            }
-            if (((media.length() > 0))) {
-                tombstone.put("media", media)
-            }
-            if (((((entity.equals("invoice") || entity.equals("offer"))) && !record.optString("pdf_storage_name").isEmpty()))) {
-                var document: JSONObject = JSONObject()
-                for (field in arrayOf("document_id", "pdf_storage_name", "pdf_sha256", "pdf_byte_size")) {
-                    if ((record.has(field))) {
-                        document.put(field, record.get(field))
-                    }
-                }
-                tombstone.put("document", document)
-            }
+            detachOptionalParent(s, entity, id, action.getString("created_at"))
             OwnerJournalRules.replace(s, OwnerJournalRules.group(entity), id, null)
-            archive.put((("" + entity + ":") + id), tombstone)
+            OwnerJournalRules.archives(s).remove("$entity:$id")
         }
         @Throws(Exception::class)
         @JvmStatic fun referenced(s: JSONObject, pending: JSONArray?, name: String): Boolean {

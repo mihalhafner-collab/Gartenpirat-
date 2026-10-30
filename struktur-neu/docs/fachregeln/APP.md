@@ -27,6 +27,32 @@ ausgestellte Belege und erforderliche Aufbewahrung vor dem Löschen berücksicht
 Neustart, verspätete Antworten und Wiederherstellung dürfen verworfene Inhalte
 nicht unbeabsichtigt wieder aktivieren.
 
+Die lokale Einzelnutzer-Oberfläche benötigt zum Archivieren oder endgültigen
+Löschen einen verständlichen Bestätigungsdialog, keine vorab einzuholenden
+Vorschau- oder Fotoverknüpfungs-Hashes. Fachliche Sperren für ausgestellte
+Rechnungen, abgeschlossene Angebote und laufende Zeiterfassung bleiben bestehen.
+Beim Entfernen von Auftrag oder Termin werden optionale Bezüge an Arbeiten,
+Fotos, Einsätzen und Anfragen gelöst; die Datensätze und ihre Kunden bleiben
+vorhanden. Endgültiges Löschen entfernt den Archivdatensatz wirklich.
+
+Die anschließende lokale Bereinigung schreibt den bereits wirksamen Datenstand
+transaktional fest und entfernt nur erfolgreich übernommene Journalaktionen,
+alte Snapshot-Duplikate und Löschbelege. Ungeklärte lokale Aktionen bleiben
+vorhanden. Dateien werden gegen aktive Datensätze, Papierkorb, Entwürfe und
+verbliebene Aktionen geprüft. Erst nach dem Datenbank-Commit werden ungenutzte
+Originale, Vorschauen, Medien und Entwurfs-PDFs entfernt. Gerade veröffentlichte
+Formular-Fotodateien und laufende Uploads erhalten höchstens einen Tag Schonfrist,
+weil ihre Formularreferenz erst unmittelbar danach gespeichert wird.
+
+Einstellungen → Sicherung und Diagnose zeigt die tatsächlichen Dateigrößen der
+Datenbank einschließlich WAL, Fotos/Medien, PDFs, weiteren App-Dateien und lokalen
+Arbeitsdaten. „Speicher bereinigen“ entfernt verwaiste Backup-Arbeitsdateien und
+ungenutzte Medien/Uploads, anschließend laufen WAL-Checkpoint und VACUUM außerhalb
+der Transaktion. Geschäftsdaten und ausgestellte Originalbelege werden nicht
+aufgrund ihres Alters gelöscht. Die Bereinigung ist keine produktive Migration
+oder Rechnungsfreigabe. Lokale Fotoentwürfe werden nach Wiederherstellung nicht
+an einer früheren Geräte-/Restore-Epoche abgewiesen.
+
 Der Abschluss einer Formularsichtung nach Wiederherstellung wird erst nach
 erfolgreichem Speichern des Kernzustands bestätigt. Ein optionaler Medienfehler
 darf diesen Abschluss nicht unbemerkt zurückrollen. Ausdrücklich ausgewählte

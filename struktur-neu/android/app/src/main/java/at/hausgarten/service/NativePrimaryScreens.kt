@@ -499,11 +499,7 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
             items(related, key = { it.id }) { work -> TextButton({ controller.navigate("worklogs", work.id) }) { Text(listOf(nativeDisplayDate(work.workDate), work.title).filter { it.isNotEmpty() }.joinToString(" · ")) } }
             item { Row { if (historyOffset > 0) TextButton({ historyOffset = maxOf(0, historyOffset - 20) }) { Text("Vorherige Tätigkeiten") }; if (related.size == 20) TextButton({ historyOffset += 20 }) { Text("Weitere Tätigkeiten") } } }
         }
-        item { OutlinedButton({ scope.launch { try {
-            val preview = controller.query("preview_delete", JSONObject().put("entity", kind).put("entity_id", id))
-            val args = JSONObject(preview.toString()).put("entity", kind).put("entity_id", id).put("_preview", preview)
-            controller.action("${if (kind == "customer") "Kunde archivieren" else "In den Papierkorb"}", "archive_entity", args)
-        } catch (failure: Exception) { controller.message(failure.message ?: "Archivierung konnte nicht geprüft werden.") } } }, enabled = record != null) { Text(if (kind == "customer") "Kunde archivieren" else "In Papierkorb") } }
+        item { NativeDeleteButton(controller, kind, id, label = if (kind == "customer") "Kunde archivieren" else "In Papierkorb", enabled = record != null) { controller.returnToList(collection) } }
         item { NativeActionMenu(controller, if (kind == "customer") "kunden" else if (kind == "order") "auftraege" else "arbeiten", JSONObject().put(primaryId(kind), id).put("entity_id", id).put("entity", kind)) }
     }
     NativeActions {
@@ -891,7 +887,8 @@ private fun NativeSettings(controller: NativeAppController) {
         item { OutlinedButton({ controller.open(PlanningConnectionActivity::class.java) }, Modifier.fillMaxWidth()) { Text("Kalender und Wetter verbinden") } }
         item { OutlinedButton({ controller.open(PixelTunnelActivity::class.java) }, Modifier.fillMaxWidth()) { Text("ChatGPT-Verbindung") } }
         item { OutlinedButton({ scope.launch { try { controller.flushDrafts(); controller.open(FullBackupActivity::class.java) } catch (failure: Exception) { error = failure.message.orEmpty() } } }, Modifier.fillMaxWidth()) { Text("Sicherung und Wiederherstellung") } }
-        item { Text("Diagnose", style = MaterialTheme.typography.titleMedium) }
+        item { Text("Sicherung und Diagnose", style = MaterialTheme.typography.titleMedium) }
+        item { NativeStorageSettings(controller) }
         item { OutlinedButton({ scope.launch { try { info = controller.query("run_self_test"); error = "" } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = failure.message.orEmpty() } } }, Modifier.fillMaxWidth()) { Text("App-Selbsttest") } }
         item { info?.let { NativeBusinessValues(it) } }
         item { TextButton({ advanced = !advanced }) { Text(if (advanced) "Weitere Einstellungen schließen" else "Weitere Einstellungen und Prüfungen") } }
@@ -925,14 +922,11 @@ private fun NativeTrash(controller: NativeAppController) {
                 val entity = if (archiveKey.contains(':')) archiveKey.substringBefore(':') else archived.optString("entity", archived.optString("entity_type"))
                 val id = if (archiveKey.contains(':')) archiveKey.substringAfter(':') else archived.optString("entity_id", archived.optString("id"))
                 Button({ controller.action("Eintrag wiederherstellen", "restore_entity", JSONObject().put("entity", entity).put("entity_id", id).put("expected_record_hash", row.optString("record_hash"))) }) { Text("Wiederherstellen") }
-                OutlinedButton({ scope.launch { try {
-                    val preview = controller.query("preview_purge", JSONObject().put("entity", entity).put("entity_id", id))
-                    controller.action("Eintrag endgültig löschen", "purge_entity", JSONObject(preview.toString()).put("entity", entity).put("entity_id", id).put("_preview", preview))
-                } catch (failure: Exception) { error = failure.message.orEmpty() } } }) { Text("Endgültige Löschung prüfen") }
+                NativeDeleteButton(controller, entity, id, label = "Endgültig löschen", permanent = true) { refresh++ }
             } }
         }
         item { Row { if (offset > 0) OutlinedButton({ offset = maxOf(0, offset - 40) }) { Text("Vorherige") }; if (rows.length() == 40) OutlinedButton({ offset += 40 }) { Text("Weitere Einträge") } } }
-        item { OutlinedButton({ scope.launch { try { val preview = controller.query("preview_empty_trash"); controller.action("Papierkorb bewusst leeren", "empty_trash", JSONObject().put("expected_preview_hash", preview.getString("preview_hash")).put("_preview", preview)) } catch (failure: Exception) { error = failure.message.orEmpty() } } }) { Text("Papierkorb leeren prüfen") } }
+        item { NativeDeleteButton(controller, "", "", label = "Papierkorb leeren", emptyTrash = true, enabled = rows.length() > 0) { offset = 0; refresh++ } }
         item { OutlinedButton({ controller.navigate("revier_archive") }) { Text("Revier-Archiv") } }
         item { NativeActionMenu(controller, "papierkorb") }
     }
@@ -1130,4 +1124,44 @@ private fun NativeReviewValues(controller: NativeAppController, row: JSONObject)
     val safe = JSONObject(row.toString())
     for (field in listOf("data", "full_data", "thumbnail_data", "pdf_base64", "data_base64", "chunk_base64")) safe.remove(field)
     NativeBusinessValues(safe)
+}
+
+@Composable
+private fun NativeStorageSettings(controller: NativeAppController) {
+    var usage by remember { mutableStateOf<JSONObject?>(null) }
+    var busy by remember { mutableStateOf(false) }
+    var result by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        try { usage = controller.storageUsage() }
+        catch (cancelled: CancellationException) { throw cancelled }
+        catch (failure: Exception) { error = failure.message.orEmpty() }
+    }
+    fun size(bytes: Long) = android.text.format.Formatter.formatFileSize(controller.context, bytes)
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Speicher auf diesem Gerät", style = MaterialTheme.typography.titleMedium)
+            usage?.let { value ->
+                for ((key, label) in listOf("database_bytes" to "Datenbank mit Journal", "photo_bytes" to "Fotos, Vorschauen und Medien", "document_bytes" to "PDF-Belege", "other_files_bytes" to "Weitere App- und Arbeitsdateien", "work_bytes" to "Lokale Arbeits- und Wiederherstellungsdaten")) {
+                    Text("$label: ${size(value.optLong(key))}")
+                }
+                Text("Davon Backup-Arbeitsdateien: ${size(value.optLong("backup_work_bytes"))}")
+                Text("Gesamt: ${size(value.optLong("total_bytes"))}", style = MaterialTheme.typography.titleSmall)
+            } ?: LinearProgressIndicator(Modifier.fillMaxWidth())
+            Text("Bereinigt ungenutzte Dateien und alte lokale Verarbeitungsreste. Geschäftsdaten, Papierkorb, Entwürfe und verknüpfte Originale bleiben erhalten.")
+            Button(enabled = !busy && usage != null, modifier = Modifier.fillMaxWidth(), onClick = {
+                busy = true; result = ""; error = ""
+                scope.launch {
+                    try { val cleaned = controller.cleanStorage(); usage = cleaned; result = "Bereinigung abgeschlossen: ${size(cleaned.optLong("freed_bytes"))} freigegeben." }
+                    catch (cancelled: CancellationException) { throw cancelled }
+                    catch (failure: Exception) { error = "Bereinigung nicht vollständig: ${failure.message.orEmpty()}"; usage = controller.storageUsage() }
+                    finally { busy = false }
+                }
+            }) { Text(if (busy) "Speicher wird bereinigt …" else "Speicher bereinigen") }
+            if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+            if (result.isNotEmpty()) Text(result)
+            if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error)
+        }
+    }
 }

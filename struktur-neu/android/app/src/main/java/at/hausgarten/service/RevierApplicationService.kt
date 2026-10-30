@@ -1974,6 +1974,20 @@ class RevierApplicationService {
         return JSONObject().put("date", day).put("timezone", "Europe/Vienna").put("visits", planned).put("planned_visits", planned).put("due_visits", due).put("tour", tour(day)).put("properties_count", records("property").length()).put("customers_count", customerCount).put("open_inquiries", open).put("work_session", repository.currentSession()).put("external_calendar_status", "unknown").put("local_only", true)
     }
     @Throws(Exception::class)
+    fun detachOptionalParent(entity: String, id: String, request: String) {
+        if (entity != "order" && entity != "appointment") return
+        for (type in arrayOf("visit", "inquiry")) {
+            val field = if (entity == "order") "order_id" else "inspection_appointment_id"
+            val rows = records(type)
+            for (i in 0 until rows.length()) {
+                val old = rows.getJSONObject(i)
+                if (old.optString(field) != id) continue
+                save(type, RevierRules.copy(old).put(field, ""), old, request,
+                    "Optionale Zuordnung nach Entfernen des Auftrags/Termins gelöst; Kundenbezug erhalten.")
+            }
+        }
+    }
+    @Throws(Exception::class)
     fun protectParent(entity: String, id: String) {
         if ((entity.equals("offer"))) {
             var rows: JSONArray = repository.rawEntries(OfferDecisionRules.PREFIX)
@@ -2008,19 +2022,7 @@ class RevierApplicationService {
                 }
             }
         }
-        if ((entity.equals("order"))) {
-            var records: JSONArray = records("visit")
-            run {
-                var i: Int = 0
-                while ((i < records.length())) {
-                    if ((id.equals(records.getJSONObject(i).optString("order_id")))) {
-                        throw RevierRules.error("REVIER_REFERENCE_PROTECTED", "Auftrag ist mit Besuchshistorie verknüpft und bleibt geschützt.")
-                    }
-                    i++
-                }
-            }
-        }
-        if ((Arrays.asList("order", "offer", "appointment").contains(entity))) {
+        if (entity == "offer") {
             var field: String = (if (entity.equals("appointment")) "inspection_appointment_id" else ("" + entity + "_id"))
             var rows: JSONArray = records("inquiry")
             run {

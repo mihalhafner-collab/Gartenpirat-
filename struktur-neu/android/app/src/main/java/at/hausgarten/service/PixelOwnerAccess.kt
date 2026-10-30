@@ -101,10 +101,10 @@ internal class PixelOwnerAccess : PixelMcpOwnerTools.Access {
         if (((name == "purge_entity") || (name == "empty_trash"))) {
             try {
 
-                store.compactPurgedTestActions()
+                LocalStorageMaintenance(context, store).clean(false)
             } catch (pending: Exception) {
-                store.putOwnerValue("local_test_cleanup_error", "JOURNAL_CLEANUP_PENDING")
-                result.put("test_cleanup_state", "review_required")
+                store.putOwnerValue("local_media_cleanup", JSONObject().put("pending", true).put("code", "STORAGE_CLEANUP_PENDING").toString())
+                result.put("storage_cleanup_pending", true)
             }
         }
         MainActivity.refreshBusinessView()

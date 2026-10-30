@@ -21,7 +21,7 @@ import java.util.Set
 import java.util.UUID
 
 class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
-private val context: Context
+internal val context: Context
 private val preferences: SharedPreferences
 private val photoAttachments: PhotoAttachmentStore
 private val clock: WorkSessionStore.Clock
@@ -204,10 +204,6 @@ return@LAM null
 fun workSessions(): WorkSessionStore {
 
 return WorkSessionStore(getWritableDatabase(), clock)
-}
-@Throws(Exception::class) fun compactPurgedTestActions(): Int {
-
-return LocalTestCleanup.compact(this)
 }
 private @Throws(Exception::class) fun readAsset(name: String): String {
 
@@ -1470,7 +1466,6 @@ finally { synchronized(photoOperations) { activePhotoOperations--; photoOperatio
 private @Throws(Exception::class) fun savePhotoTransaction(payload: JSONObject): String {
 var payload = payload
 
-var origin = payload.optJSONObject("_capture_context")
 payload = JSONObject(payload.toString())
 payload.remove("_capture_context")
 if (payload.has("_photo_quality") && !(java.util.Arrays.asList("original", "high", "optimized").contains(payload.getString("_photo_quality")))) {
@@ -1497,12 +1492,6 @@ if (!((fingerprint == receipt.getString("hash")))) {
 throw IllegalArgumentException("Die Foto-Anfragekennung enthält andere Angaben.")
 }
 return receipt.getString("id")
-}
-}
-if (origin != null) {
-var identity = BackupDeviceGuard(context).current()
-if (origin.optInt("formatVersion") != 1 || origin.optBoolean("unknown_restore") || !((identity.getString("installationId") == origin.optString("installation_id"))) || !((identity.getString("restoreEpoch") == origin.optString("restore_epoch")))) {
-throw IOException("PHOTO_RESTORE_ACTION_REVIEW_REQUIRED")
 }
 }
 var entityId = payload.optString("id")
@@ -1908,85 +1897,6 @@ database.setTransactionSuccessful()
 database.endTransaction()
 }
 }
-fun hasOtherPhotoAttachment(id: String, hash: String): Boolean {
-
-getReadableDatabase().rawQuery("SELECT 1 FROM photo_attachments WHERE content_sha256=? AND photo_id<>? LIMIT 1", arrayOf(hash, id)).use { rows ->
-
-return rows.moveToFirst()
-
-}
-}
-@Throws(Exception::class) fun cleanupPurgedDocument(key: String, document: JSONObject, marker: String): Unit {
-
-synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) {
-var db = getWritableDatabase()
-if (db.inTransaction()) {
-throw IOException("MEDIA_CLEANUP_REQUIRES_COMMITTED_STATE")
-}
-putOwnerValue(marker, "pending")
-beginBusinessTransaction(db)
-try {
-
-var current = PixelMcpReadTools.effective(getState())
-var saved = OwnerJournalRules.archives(current).optJSONObject(key)
-if (saved == null || !(saved.optBoolean("purged")) || !((PixelMcpWriteTools.hash(saved.getJSONObject("document")) == PixelMcpWriteTools.hash(document)))) {
-throw IllegalArgumentException("Dokument-Löschbeleg fehlt oder wurde geändert.")
-}
-if (!(TrashRules.referenced(current, pendingActions(), document.optString("pdf_storage_name")))) {
-BusinessDocumentStore(context).deleteVerified(document)
-}
-putOwnerValue(marker, "done")
-db.setTransactionSuccessful()
-
-} finally {
-db.endTransaction()
-}
-}
-}
-@Throws(Exception::class) fun cleanupPurgedPhoto(id: String, media: JSONObject, marker: String): Unit {
-
-synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) {
-var db = getWritableDatabase()
-if (db.inTransaction()) {
-throw IOException("MEDIA_CLEANUP_REQUIRES_COMMITTED_STATE")
-}
-beginBusinessTransaction(db)
-try {
-
-var current = PixelMcpReadTools.effective(getState())
-if (!(TrashRules.purged(current, "photo", id))) {
-throw IllegalArgumentException("Löschbeleg fehlt.")
-}
-db.delete("photo_attachments", "photo_id=?", arrayOf(id))
-putOwnerValue(marker, "pending")
-db.setTransactionSuccessful()
-
-} finally {
-db.endTransaction()
-}
-beginBusinessTransaction(db)
-try {
-
-var current = PixelMcpReadTools.effective(getState())
-var queued = pendingActions()
-if (!(TrashRules.purged(current, "photo", id))) {
-throw IllegalArgumentException("Löschbeleg wurde geändert.")
-}
-if (!(hasOtherPhotoAttachment(id, media.optString("content_sha256"))) && !(TrashRules.referenced(current, queued, media.optString("storage_name")))) {
-photoAttachments.discardCreated(media)
-}
-var thumb = media.optString("thumbnail_storage_name")
-if (!(thumb.isEmpty()) && !(TrashRules.referenced(current, queued, thumb))) {
-photoAttachments.deleteThumbnailVerified(thumb)
-}
-putOwnerValue(marker, "done")
-db.setTransactionSuccessful()
-
-} finally {
-db.endTransaction()
-}
-}
-}
 @Throws(Exception::class) fun loadPhotoData(photoId: String): String {
 
 var metadata = photoAttachment(photoId)
@@ -2051,39 +1961,9 @@ throw IllegalArgumentException("Der Eintrag fehlt.")
 }
 var payload = DeletionRules.payload(all, entity, entityId, OwnerJournalRules.version(current), isoNow())
 OwnerJournalRules.apply(JSONObject(all.toString()), JSONObject().put("kind", "archive").put("payload", payload).put("client_id", "preview-delete").put("created_at", isoNow()), java.util.HashMap(), JSONObject())
-var dependencies = JSONArray()
-var prior = pendingActions()
-run {
-var i: Int = 0
-var firstIteration56 = true
-while (true) {
-if (firstIteration56) firstIteration56 = false else { i++ }
-if (!(i < prior.length())) break
-
-var a = prior.getJSONObject(i)
-if ((entityId == a.getJSONObject("payload").optString("id"))) {
-dependencies.put(a.getString("client_id"))
-}
-var linked = payload.optJSONArray("photo_link_ids")
-run {
-var j: Int = 0
-var firstIteration55 = true
-while (true) {
-if (firstIteration55) firstIteration55 = false else { j++ }
-if (!(linked != null && j < linked.length())) break
-
-if ((linked.getJSONObject(j).getString("id") == a.getJSONObject("payload").optString("id"))) {
-dependencies.put(a.getString("client_id"))
-}
-
-}
-}
-
-}
-}
-if (dependencies.length() > 0) {
-payload.put("_sync_predecessors", dependencies)
-}
+val revier = RevierApplicationService(RevierLocalRepository(this, null))
+revier.protectParent(entity, entityId)
+revier.detachOptionalParent(entity, entityId, "archive_local_" + java.util.UUID.randomUUID())
 var saved = saveAction("archive", "archive_mobile_", payload)
 db.setTransactionSuccessful()
 return saved

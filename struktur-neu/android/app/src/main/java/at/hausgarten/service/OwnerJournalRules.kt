@@ -281,24 +281,14 @@ class OwnerJournalRules {
             } else {
                 replace(snapshot, collection, id, null)
             }
+            TrashRules.detachOptionalParent(snapshot, entity, id, p.getString("updated_at"))
             archive.put(key, saved)
         }
         @Throws(Exception::class)
         @JvmStatic fun validateArchive(entity: String, row: JSONObject, snapshot: JSONObject) {
-            if ((entity.equals("order"))) {
-                AppointmentRules.protectParent(snapshot, entity, row.getString("id"))
-            }
-            if ((entity.equals("appointment"))) {
-                var work: JSONArray = snapshot.getJSONArray("worklogs")
-                run {
-                    var i: Int = 0
-                    while ((i < work.length())) {
-                        if ((row.getString("id").equals(work.getJSONObject(i).optString("appointment_id")))) {
-                            throw IllegalArgumentException("Erfasste Arbeit verweist auf diesen Termin. Verlauf behalten und Termin als erledigt/abgesagt kennzeichnen.")
-                        }
-                        i++
-                    }
-                }
+            if (entity == "order" || entity == "appointment") {
+                TrashRules.requireDeletableParent(snapshot, entity, row.getString("id"))
+                return
             }
             if ((entity.equals("customer"))) {
                 for (group in arrayOf("customers", "orders", "worklogs")) {

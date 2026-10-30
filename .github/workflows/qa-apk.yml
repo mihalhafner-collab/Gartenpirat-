@@ -133,6 +133,7 @@ jobs:
           elif sys.argv[1]=='native_data':
               assert result['isolated_context_paths'] is True and result['projection_rows']==40000, result
               assert result['real_sqlite_transactions'] is True and result['wal_concurrent_reader'] is True, result
+              assert result['local_storage_cleanup'] is True and result['local_delete_without_cloud_guards'] is True, result
               assert result['actual_coroutine_flow'] is True and result['main_thread_disk_violations']==0, result
               assert result['performance_claim'] is False and result['plans'], result
               for plan in result['plans'].values():

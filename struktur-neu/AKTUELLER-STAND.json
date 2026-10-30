@@ -46,17 +46,18 @@
       "Büro bündelt Abrechnung/Planung/Maschinenpark/Einstellungen; übrige Ziele in drei Gruppen. Kundenakte, Arbeit und Entwürfe verwenden vorhandene Beziehungen und Abfragen.",
       "Arbeitskunde/Rechnungsempfänger getrennt; Quellenfilter und Objekt-/Anfragekontext im Formularentwurf. Keine neue Fachbeziehung, Datenbank oder automatische Buchung.",
       "Abgleich210Aktionen; synthetische12Darstellungen,16Suchwege,22große Fachlistenfälle,38Einstiege, A/B-Kontext, Activity-Neuerstellung, IME-Grenzen, Screenshots, Touch und Zurück-Geste. Details:docs/verification/performance-current.md.",
-      "Backup streamt Originaldateien mit DB-Snapshot direkt zum Dateianbieter; keine capture-/verify-Vollkopien. Zielüberschreiben und verwaiste Arbeitsordner berücksichtigt; vollständige Prüfung läuft."
+      "Backup streamt Originaldateien mit DB-Snapshot direkt zum Dateianbieter; keine capture-/verify-Vollkopien. Zielüberschreiben und verwaiste Arbeitsordner berücksichtigt; vollständige Prüfung läuft.",
+      "Lokales Archiv/Purge ohne externe Vorschau-Hashes; optionale Auftrags-/Terminbezüge lösen, keine neuen Tombstones. Gemeinsame referenzgeprüfte Speicherbereinigung mit Diagnose und WAL/VACUUM implementiert; neue native Tests noch im Prüfbuild."
     ],
     "kiss_yagni": "Vorhandene Route, SQL-Abfragen, Compose-Zustände und Fachschreiber weiterverwenden; keine neue Datenbank, Abhängigkeit, Architektur oder Filterprofile.",
     "remaining": [
       "UI-Abnahme einschließlich Großschriftlisten, Timer und Randgeste abschließen",
-      "Lokale Löschpfade, Foto-Epochensperren, Altlasten und referenzsichere Speicherbereinigung vereinfachen; passende Tests",
+      "Neue Backup-, Lösch- und Speicherprüfungen ausführen, Fehler beheben und Sicherungsstand zurücklesen",
       "Nachweise und Bilder prüfen; vorhandene Dokumentation abschließen und finalen GitHub-Commit zurücklesen"
     ]
   },
   "open_checks": [
-    "UI-Abnahme und neue Backup-/Speicherprüfungen offen. SQLite-Schließen-/Fehlerpfad in405nativen Datenprüfungen bestanden.",
+    "UI: 200%-Planung/lokale Suche nach IME-Ende korrigieren; System-Randgeste im Emulator noch deaktiviert. Backup-/Speichertests laufen; SQLite405Checks bestanden.",
     "Physical Pixel und echtes Drive-Konto NOT_RUN; keine produktiven Daten gelesen."
   ],
   "workflow": {
