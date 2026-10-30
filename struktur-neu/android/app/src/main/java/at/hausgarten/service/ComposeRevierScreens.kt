@@ -221,9 +221,9 @@ private fun RevierList(config: RevierSection, controller: NativeAppController, r
                         if (row.thumbnailReference.isNotBlank()) RevierEquipmentThumbnail(row.thumbnailReference, controller)
                         Column(Modifier.weight(1f)) {
                             Text(row.title, style = MaterialTheme.typography.titleMedium)
-                            if (row.subtitle.isNotBlank()) Text(row.subtitle)
+                            if (row.subtitle.isNotBlank()) Text(nativeDisplayText(row.subtitle))
                             if (row.address.isNotBlank()) Text(row.address)
-                            if (row.status.isNotBlank()) Text(revierLabel(row.status))
+                            if (row.status.isNotBlank()) NativeStatus(revierLabel(row.status))
                             if (!row.active) Text("Archiviert / inaktiv")
                         }
                     }
@@ -654,7 +654,7 @@ private fun RevierEditor(controller: NativeAppController, edit: RevierEdit, repo
                 }
             }, enabled = !busy) { Text("Änderungen vergleichen") }
         }
-        FlowRow(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        NativeActions {
             OutlinedButton({
                 busy = true
                 scope.launch {

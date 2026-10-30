@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -76,15 +77,16 @@ class FullBackupActivity : ComponentActivity() {
             saveLabel = "Speichern erneut versuchen"
             status = "Der vorherige Speichervorgang ist noch nicht bestätigt. Mit „Speichern erneut versuchen“ prüfen und fortsetzen."
         }
-        nativeContent("Sicherung") {
-            BackHandler(enabled = busy) { status = "Die Sicherung läuft noch. Bitte auf das Ergebnis warten." }
-            Text("Speichert deinen vorhandenen Bestand als unverschlüsselte ZIP-Datei. Wähle in der Android-Dateiauswahl Drive oder einen lokalen Speicherort.")
+        nativeContent("Sicherung", actions = {
             Button(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = {
                 if (target.isEmpty()) chooseSave() else save()
             }) { Text(saveLabel) }
-            if (showNewTarget) Button(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = { target = ""; chooseSave() }) { Text("Anderen Speicherort wählen") }
+        }) {
+            BackHandler(enabled = busy) { status = "Die Sicherung läuft noch. Bitte auf das Ergebnis warten." }
+            Text("Speichert deinen vorhandenen Bestand als unverschlüsselte ZIP-Datei. Wähle in der Android-Dateiauswahl Drive oder einen lokalen Speicherort.")
+            if (showNewTarget) OutlinedButton(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = { target = ""; chooseSave() }) { Text("Anderen Speicherort wählen") }
             Text(status)
-            Button(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = {
+            OutlinedButton(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = {
                 recoveryCode = ""
                 clearPreview()
                 showRecoveryCode = false
@@ -101,7 +103,7 @@ class FullBackupActivity : ComponentActivity() {
             if (showCheck) Button(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = { preview() }) { Text("Gewählte Sicherung prüfen") }
             if (showActivate) Button(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = { confirmRestore() }) { Text("Geprüfte Sicherung wiederherstellen") }
             TextButton(onClick = { if (busy) status = "Die Sicherung läuft noch. Bitte auf das Ergebnis warten." else finish() }) { Text("Zurück") }
-            if (previousActivation.isNotEmpty()) Button(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = {
+            if (previousActivation.isNotEmpty()) OutlinedButton(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = {
                 val id = UUID.randomUUID().toString()
                 val code = recoveryCode
                 val activation = previousActivation

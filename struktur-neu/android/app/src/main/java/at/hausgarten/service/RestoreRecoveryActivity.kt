@@ -28,7 +28,7 @@ class RestoreRecoveryActivity : ComponentActivity() {
     public override fun onCreate(saved: Bundle?) {
         super.onCreate(saved)
         title = "Wiederherstellung prüfen"
-        nativeContent("Wiederherstellung prüfen") {
+        nativeContent("Wiederherstellung prüfen", showBack = false) {
             Text(status)
             if (!cold) Button(enabled = !busy && !cancelled, modifier = Modifier.fillMaxWidth(), onClick = { confirmCancellation = true }) { Text("Wiederherstellung abbrechen") }
             Button(modifier = Modifier.fillMaxWidth(), onClick = {

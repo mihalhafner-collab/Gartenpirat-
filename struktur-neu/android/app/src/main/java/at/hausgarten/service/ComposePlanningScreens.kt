@@ -166,8 +166,8 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
                 OutlinedCard(Modifier.fillMaxWidth().clickable { onSelect(row.id) }) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(row.title, style = MaterialTheme.typography.titleMedium)
-                        Text(row.subtitle)
-                        Text(planningStatuses[row.status] ?: row.status)
+                        Text(nativeDisplayText(row.subtitle))
+                        NativeStatus(planningStatuses[row.status] ?: row.status)
                         val entry = risks[row.id]; val risk = entry?.optJSONObject("weather")
                         if (weatherView) {
                             Text(risk?.optString("label") ?: "Wetter im Detail prüfen")
@@ -184,13 +184,13 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
                 OutlinedButton({ offset += 50 }, enabled = page.hasMore) { Text("Weitere") }
             } }
         }
-        if (!imeVisible) Surface(tonalElevation = 3.dp) { Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onNew, Modifier.weight(1f), enabled = !busy) { Text(if (savedDraft) "Entwurf fortsetzen" else "Einsatz planen") }
+        if (!imeVisible) NativeActions {
+            Button(onNew, enabled = !busy) { Text(if (savedDraft) "Entwurf fortsetzen" else "Einsatz planen") }
             OutlinedButton({ scope.launch { busy = true; try {
                 val result = controller.query("request_calendar_sync", JSONObject().put("request_id", planningRequest()))
                 controller.message(if (result.optString("state") == "configuration_required") "Kalender oder Wetter zuerst einrichten." else "Prüfung angefordert. Abschluss hängt von Geräteplanung und Netz ab."); refresh++
             } catch (cancelled: CancellationException) { throw cancelled } catch (error: Exception) { failure = error.message.orEmpty() } finally { busy = false } } }, enabled = !busy) { Text("Jetzt prüfen") }
-        } }
+        }
     }
 }
 
@@ -293,15 +293,15 @@ private fun PlanningDetail(controller: NativeAppController, repository: NativeDa
             } }, enabled = !busy) { Text("In Papierkorb") }
             if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
         }
-        Surface(tonalElevation = 3.dp) { Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        NativeActions {
             TextButton(onBack) { Text("Zur Planung") }
-            OutlinedButton(onEdit, enabled = !busy, modifier = Modifier.weight(1f)) { Text("Bearbeiten") }
+            OutlinedButton(onEdit, enabled = !busy) { Text("Bearbeiten") }
             if (row.optString("status") !in listOf("draft", "completed", "cancelled")) Button({
                 val args = JSONObject().put("appointment_id", id).put("customer_id", row.getString("customer_id")).put("location", row.optString("location")).put("activity", row.optString("title")).put("work_date", planningDay().toString())
                 if (row.optString("order_id").isNotEmpty()) args.put("order_id", row.getString("order_id"))
                 confirm = Triple("start_work", args, "Zeiterfassung für diesen Einsatz starten? Eine bereits laufende oder noch offene Erfassung muss zuerst abgeschlossen werden.")
-            }, enabled = !busy, modifier = Modifier.weight(1f)) { Text("Arbeit starten") }
-        } }
+            }, enabled = !busy) { Text("Arbeit starten") }
+        }
     }
 }
 
@@ -493,7 +493,7 @@ private fun PlanningEditor(controller: NativeAppController, repository: NativeDa
             if (failure.isNotEmpty()) Text(failure + " Dein Entwurf bleibt erhalten.", color = MaterialTheme.colorScheme.error)
             TextButton({ if (edit.pending == null) discard = true else failure = "Zuerst dieselbe Speicherung erneut prüfen." }, enabled = !busy) { Text("Ungespeicherten Entwurf verwerfen") }
         }
-        Surface(tonalElevation = 3.dp) { Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        NativeActions {
             OutlinedButton({ edit.retain(controller); onClose() }, enabled = !busy) { Text("Zur Planung") }
             Button({
                 busy = true
@@ -524,8 +524,8 @@ private fun PlanningEditor(controller: NativeAppController, repository: NativeDa
                         edit.retain(controller); failure = error.message.orEmpty()
                     } finally { busy = false }
                 }
-            }, enabled = !busy, modifier = Modifier.weight(1f)) { Text(if (edit.pending == null) "Termin speichern" else if (edit.restoreReview) "Gespeicherten Vorgang prüfen" else "Dieselbe Speicherung erneut prüfen") }
-        } }
+            }, enabled = !busy) { Text(if (edit.pending == null) "Termin speichern" else if (edit.restoreReview) "Gespeicherten Vorgang prüfen" else "Dieselbe Speicherung erneut prüfen") }
+        }
     }
 }
 

@@ -376,3 +376,18 @@ bleiben zuständig; Navigation speichert lediglich ihren vorhandenen Verlauf.
 Die erweiterte synthetische Abnahme prüft tatsächliche IME-Grenzen, Bildschirmbilder,
 Tastaturaktion, Sucherhalt und Touchauswahl in zwölf Darstellungskombinationen.
 Ergebnisse stehen bis zum passenden CI-Lauf ausdrücklich aus.
+
+
+Etappe 2 ist unter `c83e63475966f6dc7e9b73fae117e926b417c8e0` gespeichert;
+alle 14 geänderten Blob-Hashes wurden unabhängig aus GitHub zurückgelesen und
+mit den lokalen Inhalten verglichen. Vollständiger Prüflauf: `41074975556`.
+
+KISS/YAGNI Etappe 3: Ein vollständiges bestehendes Material-3-Theme ersetzt
+abweichende Standardfarben. Ein gemeinsamer umbrechender Aktionsbereich dient den
+bereits vorhandenen Editoren. Keine neue Designbibliothek und keine neuen
+Benutzereinstellungen. Sicherung behält alle Prüf- und Rücklesepfade; nur der
+Speicherknopf erhält den festen unteren Platz. Wiederanlaufschutz erhält keinen
+zusätzlichen Zurück-Einstieg. Allgemeine Leseansichten verbergen technische
+Erstell-/Änderungsfelder; gespeicherte Daten und Eingabefelder bleiben unverändert.
+Sechs verwendete Text-/Flächenkontraste rechnerisch geprüft: 6,74 bis 16,08:1.
+Dies ersetzt weder Bildschirmprüfung noch Geräteabnahme.

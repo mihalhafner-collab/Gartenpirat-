@@ -34,7 +34,7 @@
   ],
   "current_task": {
     "name": "Einheitliche Oberfläche, Suchansichten und gemeinsame Übersichten",
-    "status": "IN_PROGRESS;STAGE2_SOURCE_REVIEWED;DISPLAY_MATRIX_PENDING",
+    "status": "IN_PROGRESS;STAGE3_SOURCE_REVIEWED;CI_PENDING",
     "authorized": true,
     "authorization_scope": "Current explicit user task: source changes, synthetic tests, check builds, existing documentation and GitHub readback; no productive installation, migration, restore, invoice activation or publication",
     "base_git_sha": "242ccc9159cefdb22879c57474bcd45586244ab6",
@@ -45,7 +45,10 @@
       "Navigation/back clear previous messages; saved primary entity confirmation names the operation",
       "Stage2: one full-window keyboard-aware search dialog for real customer/equipment/planning/media and phrase selection; IME search/done hides keyboard without clearing state; distinct zero-result and no-assignment actions",
       "List search/count pinned above lazy results, filters collapsed, paging remains accessible; list state holders and navigation history retain context across detail/editor and Activity recreation",
-      "Synthetic search matrix uses actual IME window boundaries, screenshots and injected touch events for 100/130/200 percent, normal/reduced height and both orientations"
+      "Synthetic search matrix uses actual IME window boundaries, screenshots and injected touch events for 100/130/200 percent, normal/reduced height and both orientations",
+      "Stage3: complete shared green Material 3 palette, standard typography, consistent corner scale and navigation stroke icons; status surfaces retain readable text",
+      "Shared wrapping bottom action rows used for primary/Revier/finance/planning editors; backup main save pinned below content; shared special-activity header delegates to existing back guards",
+      "Read-only display formats dates and decimal amounts, omits technical creation/update duplicates; list no longer repeats work date"
     ],
     "kiss_yagni": "Reuse route arguments, SQL filters, Compose state and Material buttons. No new database, dependency, architecture or filter profiles. Separate navigation area only for action/recreation; a replacement navigation framework is unnecessary.",
     "stages": [
@@ -59,7 +62,7 @@
       },
       {
         "stage": 3,
-        "status": "PENDING"
+        "status": "SOURCE_AND_CONTRAST_REVIEWED;BUILD_EMULATOR_PENDING"
       },
       {
         "stage": 4,
@@ -121,7 +124,8 @@
       "physical_pixel": "NOT_RUN;outside task scope",
       "stage2": "SOURCE_REVIEWED;BUILD_AND_EMULATOR_PENDING",
       "business_data_read": false,
-      "pixel_installation_performed": false
+      "pixel_installation_performed": false,
+      "stage3": "Source diff/inventory PASS;6 text/background contrast pairs 6.74–16.08:1;build/visual acceptance pending"
     },
     "performance_evidence": "docs/verification/performance-current.md;Build120 emulator and historical Pixel119 separate",
     "connector": {

@@ -47,7 +47,7 @@ internal fun NativeField(label: String, value: String, onValueChange: (String) -
     val displayedLabel = label + if (required) " *" else ""
     OutlinedTextField(value, onValueChange, modifier.fillMaxWidth().semantics {
         testTagsAsResourceId = true; testTag = "native-field:$displayedLabel"
-    }, label = { Text(displayedLabel, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+    }, label = { Text(displayedLabel) },
         singleLine = !multiline, minLines = if (multiline) 3 else 1,
         keyboardOptions = KeyboardOptions(imeAction = if (multiline) ImeAction.Default else if (searching) ImeAction.Search else ImeAction.Done),
         keyboardActions = KeyboardActions(onSearch = { finish(); onSearch?.invoke() }, onDone = { finish() }))
@@ -191,8 +191,8 @@ private val nativeLabels = mapOf(
     "window_start" to "Von Uhrzeit", "window_end" to "Bis Uhrzeit", "scheduled_date" to "Geplant am", "billing_mode" to "Abrechnungsweg", "query" to "Suche"
 )
 internal fun nativeLabel(key: String): String = nativeLabels[key] ?: key.replace('_', ' ').replaceFirstChar { it.uppercase() }
-internal fun nativeValue(value: String): String = mapOf("active" to "Aktiv", "inactive" to "Inaktiv", "open" to "Offen", "completed" to "Erledigt", "cancelled" to "Abgesagt", "draft" to "Entwurf", "ready" to "Einsatzbereit", "defective" to "Defekt", "maintenance" to "Wartung", "profile" to "Profilfoto", "documentation" to "Dokumentation", "before" to "Vorher", "during" to "Währenddessen", "after" to "Nachher", "damage" to "Schaden", "other" to "Sonstiges", "small_business" to "Kleinunternehmer", "standard" to "Umsatzsteuer", "fixed_price" to "Fixpreisangebot", "time_material" to "Regieangebot", "estimate_binding" to "Verbindlicher Kostenvoranschlag", "estimate_nonbinding" to "Unverbindlicher Kostenvoranschlag")[value] ?: value
-private fun technical(key: String) = key.startsWith("_") || key.startsWith("expected_") || key.endsWith("_id") || key.endsWith("_ids") || key.endsWith("_hash") || key.endsWith("_sha256") || key in setOf("id", "source", "cloud_confirmed", "untrusted_business_data", "security_notice", "pdf_base64", "data_base64", "chunk_base64", "token", "installation_id", "restore_epoch", "protocol_version")
+internal fun nativeValue(value: String): String = mapOf("active" to "Aktiv", "inactive" to "Inaktiv", "open" to "Offen", "completed" to "Erledigt", "cancelled" to "Abgesagt", "draft" to "Entwurf", "ready" to "Einsatzbereit", "defective" to "Defekt", "maintenance" to "Wartung", "profile" to "Profilfoto", "documentation" to "Dokumentation", "before" to "Vorher", "during" to "Währenddessen", "after" to "Nachher", "damage" to "Schaden", "other" to "Sonstiges", "small_business" to "Kleinunternehmer", "standard" to "Umsatzsteuer", "direct" to "Kunde selbst", "via_customer" to "Anderer Rechnungsempfänger", "fixed_price" to "Fixpreisangebot", "time_material" to "Regieangebot", "estimate_binding" to "Verbindlicher Kostenvoranschlag", "estimate_nonbinding" to "Unverbindlicher Kostenvoranschlag")[value] ?: value
+private fun technical(key: String) = key.startsWith("_") || key.startsWith("expected_") || key.endsWith("_id") || key.endsWith("_ids") || key.endsWith("_hash") || key.endsWith("_sha256") || key in setOf("id", "source", "created_at", "updated_at", "formatVersion", "schema_version", "local_revision", "test_record", "revision", "deleted_at", "device_id", "cloud_confirmed", "untrusted_business_data", "security_notice", "pdf_base64", "data_base64", "chunk_base64", "token", "installation_id", "restore_epoch", "protocol_version")
 
 /** Read-only business values, never a raw JSON editor or a binary payload dump. */
 @Composable
@@ -210,7 +210,11 @@ internal fun NativeBusinessValues(value: JSONObject, depth: Int = 0) {
                 if (field.length() > 40) Text("Weitere ${field.length() - 40} Einträge sind in der zugehörigen Liste verfügbar.")
             }
             null, JSONObject.NULL -> Unit
-            else -> if (field.toString().isNotBlank()) Text(nativeLabel(key) + ": " + if (field is Boolean) { if (field) "Ja" else "Nein" } else nativeValue(field.toString()))
+            else -> if (field.toString().isNotBlank()) Text(nativeLabel(key).removeSuffix(" in Cent") + ": " + if (field is Boolean) { if (field) "Ja" else "Nein" } else when {
+                key.endsWith("_minor") -> nativeNumber(field.toString().toBigDecimalOrNull()?.movePointLeft(2)) + " €"
+                key in setOf("hours", "quantity", "quantity_decimal", "kilometers") -> nativeNumber(field)
+                else -> nativeDisplayText(nativeValue(field.toString()))
+            })
         }
     }
 }

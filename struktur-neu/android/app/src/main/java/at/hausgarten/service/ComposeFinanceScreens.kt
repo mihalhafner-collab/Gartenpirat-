@@ -261,11 +261,11 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
         if (!imeVisible && (customer.isNotEmpty() || status.isNotEmpty() || query.isNotEmpty())) item { TextButton(onClick = { customer="";status="";query="";offset=0 }) { Text("Filter und Suche zurücksetzen") } }
         if(error.isNotEmpty()) item { Text(error, color=MaterialTheme.colorScheme.error) }
         if (page.rows.isEmpty() && error.isEmpty()) item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
-        items(page.rows, key = { it.id }) { row -> Card(Modifier.fillMaxWidth().clickable { controller.navigate(section, row.id, args = JSONObject(controller.route.args.toString()).put("customer_id", customer)) }) {
+        items(page.rows, key = { it.id }) { row -> OutlinedCard(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { controller.navigate(section, row.id, args = JSONObject(controller.route.args.toString()).put("customer_id", customer)) }) {
             Column(Modifier.padding(12.dp), verticalArrangement=Arrangement.spacedBy(5.dp)) {
                 Text(if (section == "invoices" && row.title.startsWith("Entwurf-")) "Rechnungsentwurf" else row.title, style=MaterialTheme.typography.titleMedium)
-                if (row.subtitle.isNotEmpty()) Text(row.subtitle)
-                if (row.status.isNotEmpty()) Text(financeStatus(row.status))
+                if (row.subtitle.isNotEmpty()) Text(nativeDisplayText(row.subtitle))
+                if (row.status.isNotEmpty()) NativeStatus(financeStatus(row.status))
                 if (section == "catalog") Text(if (row.active) "Aktiv" else "Deaktiviert")
             }
         } }
@@ -427,7 +427,8 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
             } finally { busy=false }
         }
     }
-    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         Text(if(id.isEmpty()) "Neuer Entwurf" else "Gespeicherten Entwurf bearbeiten",style=MaterialTheme.typography.headlineSmall)
         if(!loaded) {if(error.isEmpty()) CircularProgressIndicator() else {Text(error,color=MaterialTheme.colorScheme.error);TextButton(onClick={error="";loadRetry++}) {Text("Entwurf erneut lesen")}};TextButton(onClick=onClose) {Text("Zurück")};return@Column}
         if (restored) Text("Dieser Entwurf stammt aus einem früheren Gerätestand. Aktuellen Beleg, Beziehungen und Eingaben vor einer neuen Aktion prüfen.")
@@ -548,10 +549,13 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
             } else if(section!="catalog") FinancePositionSummary(form.optJSONArray("positions"))
         }
         if(error.isNotEmpty()) Text(error,color=MaterialTheme.colorScheme.error)
-        Button(enabled=!busy && loaded,onClick={save()},modifier=Modifier.fillMaxWidth()) {Text(if(busy) "Speichern …" else if(pending!=null) "Denselben Speichervorgang erneut prüfen" else "Entwurf speichern")}
         if(section=="offers" && id.isEmpty() && pending==null) OutlinedButton(enabled=!busy && loaded,onClick={save(true)},modifier=Modifier.fillMaxWidth()) {Text("Entwurf erstellen und atomar prüfen")}
-        TextButton(enabled=!busy && pending==null,onClick={scope.launch {controller.removeDraft(key);onClose()}}) {Text("Verwerfen")}
         TextButton(enabled=!busy,onClick=onClose) {Text("Später weiterbearbeiten")}
+    }
+    NativeActions {
+        OutlinedButton(enabled=!busy && pending==null,onClick={scope.launch {controller.removeDraft(key);onClose()}}) {Text("Verwerfen")}
+        Button(enabled=!busy && loaded,onClick={save()}) {Text(if(busy) "Speichern …" else if(pending!=null) "Denselben Speichervorgang erneut prüfen" else "Entwurf speichern")}
+    }
     }
 }
 

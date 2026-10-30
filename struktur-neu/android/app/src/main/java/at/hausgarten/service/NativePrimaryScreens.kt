@@ -137,7 +137,7 @@ private fun NativeMainNavigation(controller: NativeAppController) {
                                 containerColor = if (active) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
                                 contentColor = if (active) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                if (!large) Text(when (section) { "today" -> "⌂"; "worklogs" -> "◷"; "customers" -> "♧"; else -> "☰" })
+                                if (!large) NativeAreaIcon(section)
                                 Text(label, style = MaterialTheme.typography.labelLarge)
                             }
                         }
@@ -267,10 +267,10 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
             TextButton({ search = ""; status = ""; customer = ""; billing = ""; from = ""; to = ""; inactive = false; offset = 0 }) { Text("Filter zurücksetzen") }
         }
         items(page.rows, key = { it.id }) { row ->
-            Card(Modifier.fillMaxWidth().clickable { controller.navigate(collection, row.id) }) {
+            OutlinedCard(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { controller.navigate(collection, row.id) }) {
                 Row(Modifier.padding(12.dp)) {
                     if (collection == "worklogs") Checkbox(row.id in selected, { check -> selected = if (check) selected + row.id else selected - row.id })
-                    Column { Text(row.title, style = MaterialTheme.typography.titleMedium); if (row.subtitle.isNotBlank()) Text(row.subtitle); if (row.address.isNotBlank()) Text(row.address); if (row.workDate.isNotBlank()) Text(row.workDate); if (row.status.isNotBlank()) Text(nativeValue(row.status)) }
+                    Column { Text(row.title, style = MaterialTheme.typography.titleMedium); if (row.subtitle.isNotBlank()) Text(nativeDisplayText(row.subtitle)); if (row.address.isNotBlank()) Text(row.address); if (row.status.isNotBlank()) NativeStatus(nativeValue(row.status)) }
                 }
             }
         }
@@ -544,7 +544,7 @@ private fun NativeEntityEditor(controller: NativeAppController, collection: Stri
         }
         item { OutlinedButton({ controller.back() }, enabled = !busy) { Text("Entwurf behalten und zurück") } }
     }
-        FlowRow(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        NativeActions {
             OutlinedButton({ discard = true }, enabled = loaded && !busy && pending == null) { Text("Verwerfen", maxLines = 1) }
             Button({ save() }, enabled = loaded && !busy && !restored && !conflict && pending == null && savedWorkId.isEmpty()) { Text("Speichern", maxLines = 1) }
         }
