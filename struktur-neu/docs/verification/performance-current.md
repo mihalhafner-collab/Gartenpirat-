@@ -96,32 +96,76 @@ Entwurfs- oder Medienübernahme. Fehlende Daten-, Laufzeit- und Gerätemessungen
 bleiben als solche im aktuellen Arbeitsstand erkennbar; daraus keinen Gewinn oder
 Abnahmestatus ableiten.
 
-## Synthetische Büro-Ausgangsmessung für Build120
+## Synthetische Büro-Messungen für Build120
 
-Quelle `e15dcdd660d48bcd19f61a6d9328fc15ed5e0b8c`,
-[GitHub-Prüflauf41037793804](https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/41037793804),
-Suite `native_data`, 2026-10-30. Isolierter Android35-x86_64-Emulator;
-120 erfundene ausgestellte Rechnungen,240 Zahlungen sowie das vorhandene minimale
-synthetische Grundprofil. Pro Pfad zwei Aufwärmläufe und40Messungen bei unveränderter
-Quellrevision. Zeiten umfassen den Datenabruf einschließlich der Ergebnisprüfung.
-Hostlast und Thermik nicht kontrolliert; keine UI-,Pixel- oder Produktivdatenmessung.
+Quelle `a72240dfed6bc871d7fc1c9ef6fe2e8ee52e6709`, Appfingerabdruck `a08ad845065f9d83a8ce9206f98b42c14053f4d779aa9a7961167ac797d7ae3c`,
+[Prüflauf 41054301410](https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/41054301410),
+2026-10-30. Tatsächlich verwendete, nur temporär signierte Emulator-App:
+SHA256 `aea6dda2ef45ed72b2ea5e91f01d2b7ef14c465783debc4a9a0e90fa2ab31a63`; Testpaket `3c269b978761c464d53f2239ff9e0c717211f6aaa45dccc349b54661cebc7485`.
+Die Pakete wurden ausschließlich im isolierten CI-Emulator installiert und danach
+verworfen. Keine Nutzer-APK, Originalsignatur oder Pixel-Installation daraus ableiten.
 
-| Datenpfad | n | Mittel ms | P95 ms | Mittel langsamste5% ms |
+Android35, x86_64, 320×640Pixel,160dpi, Schriftfaktor1,0; warmer Prozess.
+Je Pfad zwei Aufwärmläufe und40Messungen. Frei erfundene120Rechnungen,
+240Zahlungen und wenige synthetische Arbeitsaufzeichnungen; die UI-Variante enthält
+einen Guthabenfall. Keine betrieblichen Daten. Hostlast, Energie und Thermik nicht
+kontrolliert; das ist kein Lastprofil des persönlichen Pixel-Bestands.
+
+### Ursache und vergleichbarer Leservergleich
+
+`LocalInvoiceService.paymentEntries` las zuvor erst die Schlüssel und anschließend
+jeden Zahlungseintrag einzeln über den gestückelten Leser, einschließlich zusätzlicher
+Längen- und Inhaltsabfragen. Kurze Einträge werden jetzt gemeinsam in einer begrenzten
+SQL-Projektion gelesen. Werte über32768Zeichen behalten den vorhandenen Stückelungspfad.
+Keine Schemaänderung und kein zusätzlicher Cache.
+
+`native_data.office_reads.payment_entry_read_comparison` führt die unveränderte
+frühere Leserfunktion aus `e15dcdd` und den neuen Leser abwechselnd auf derselben
+SQLite-Verbindung mit demselben Fixture aus. Ergebnis-Hashes stimmen in jedem Paar
+überein; ein zusätzlicher großer Unicode-Eintrag prüft den Fallback.
+
+| Zahlungsleser | n | Mittel ms | P95 ms | Mittel langsamste5% ms |
 |---|---:|---:|---:|---:|
-| Rechnungsliste,erste50 | 40 | 0,464 | 0,576 | 0,646 |
-| Arbeitsliste für Abrechnung,erste50 | 40 | 0,367 | 0,434 | 0,481 |
-| Zahlungen und Guthaben,gesamte Reststandsberechnung | 40 | 114,951 | 125,400 | 133,481 |
+| Vorher, ursprüngliche Funktion | 40 | 65,907 | 72,354 | 73,056 |
+| Nachher, begrenzte gemeinsame Abfrage | 40 | 1,282 | 1,583 | 2,327 |
 
-Quellbefund: `LocalInvoiceService.paymentEntries` liest zuerst sämtliche Schlüssel
-und ruft für jeden Eintrag den gestückelten Leser auf. Für kurze nichtleere Werte
-folgen je eine Längen- und Inhaltsabfrage. Zusätzlich durchsucht `balance` für jede
-Rechnung alle Zuordnungen; `FinancePayments` baut alle Reststandskarten in einer
-gewöhnlichen scrollbaren Column auf. Das sind getrennte Kostenstellen; aus der
-Datenmessung folgt keine nachgewiesene Ursache einer konkreten Pixel-Verzögerung.
-Die eng begrenzte Korrektur bündelt kurze Zahlungseinträge; große Werte behalten
-beim Überschreiten von32768Zeichen ihren vorhandenen Lesepfad. Der Vergleich im
-selben Prozess und die UI-Öffnungsmessung sind im aktuellen Prüflauf nachzuweisen.
-Noch keine Aussage über einen Leistungsgewinn.
+Die gemessene Verbesserung gilt ausschließlich für diesen Leser unter diesen
+Bedingungen. Sie belegt keine entsprechende Beschleunigung der vollständigen
+Ansicht oder des Pixel. `balance` durchsucht weiterhin die Zahlungszuordnungen
+je Rechnung; `FinancePayments` baut die Reststandskarten in einer scrollbaren
+Column auf. Diese weiteren Quellbefunde wurden nicht als isolierte Ursachen gemessen.
+
+### Gesamte Datenabfragen und tatsächliches Öffnen
+
+| Repository-/Ledger-Pfad | n | Mittel ms | P95 ms | Mittel langsamste5% ms |
+|---|---:|---:|---:|---:|
+| Rechnungsliste, erste50 | 40 | 0,471 | 0,562 | 0,718 |
+| Arbeitsliste für Abrechnung, erste50 | 40 | 0,353 | 0,430 | 0,456 |
+| Zahlungen/Guthaben einschließlich Reststandsberechnung | 40 | 44,133 | 51,799 | 53,509 |
+
+`native_compose.office_opening` misst von der tatsächlich ausgelösten Öffnungsaktion
+bis zum sichtbaren bereiten Inhalt: Rechnungsempfängerauswahl, bestätigte Rechnungsliste
+bzw. Reststand/Guthaben. Zahlungen und Guthaben teilen dieselbe Ansicht.
+Die Zeit enthält Semantik-Abfrage und Polling; sie ist keine Frame- oder ADB-Transportzeit.
+
+| UI-Öffnung | n | Mittel ms | P95 ms | Mittel langsamste5% ms |
+|---|---:|---:|---:|---:|
+| Arbeiten abrechnen | 40 | 319,337 | 365,676 | 386,596 |
+| Rechnungen | 40 | 120,050 | 175,045 | 203,554 |
+| Zahlungen und Guthaben | 40 | 381,596 | 432,774 | 457,677 |
+
+Diese UI-Werte sind eine Ausgangsmessung. Es gibt keinen vergleichbaren vollständigen
+UI-Vorher-/Nachherlauf und keine neue physische Pixel-Messung. Unterschiede zwischen
+verschiedenen CI-Hosts werden nicht als Gewinn ausgegeben. Die langen Öffnungszeiten
+des persönlichen Geräts sind damit noch nicht abschließend erklärt.
+
+Befehle: bestehender `qa-apk.yml`-Prüflauf, insbesondere
+`am instrument -w -e suite native_data` und `native_compose` mit
+`at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation`.
+Rohwerte, Paketprüfsummen und die gezielten synthetischen Bilder liegen im
+CI-Artefakt `Gartenpirat-backup-test-results`, SHA256 `d9bda63afbf2baa42e485348463a867d16c78fbe17d07a4f35a848aed01d0868`.
+Die begrenzte Artefaktaufbewahrung ersetzt nicht die dauerhaften Zahlen und
+Aussagegrenzen in dieser Datei. Der frühere Build119-Gerätelauf folgt getrennt.
 
 ## Gebundener Gerätebeleg
 
