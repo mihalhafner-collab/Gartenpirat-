@@ -118,6 +118,13 @@ return out.toByteArray()
     // mcp_uploads BLOBs remain readable and remain in complete SQLite backups.
     val stored = JSONObject(metadata.toString())
     val photoUpload = stored.optString("kind") == "photo_upload"
+    val database = store!!.writableDatabase
+    // Cleanup also takes the SQLite writer. Even callers without an outer owner
+    // transaction must publish the file and its reference within that boundary.
+    if (photoUpload) database.acquireReference()
+    var began = false
+    try {
+    if (photoUpload) { database.beginTransactionNonExclusive(); began = true }
     if (photoUpload) {
         if (data.size > 64 * 1024 * 1024) throw IOException("Datei überschreitet Transfergrenze.")
         val sha = McpFileTransfer.sha(data)
@@ -145,7 +152,51 @@ return out.toByteArray()
     val values = ContentValues().apply {
         put("id", id); put("metadata", stored.toString()); put("data", if (photoUpload) ByteArray(0) else data)
     }
-    store!!.writableDatabase.insertWithOnConflict("mcp_uploads", null, values, SQLiteDatabase.CONFLICT_REPLACE)
+    database.insertWithOnConflict("mcp_uploads", null, values, SQLiteDatabase.CONFLICT_REPLACE)
+    if (photoUpload) database.setTransactionSuccessful()
+    } finally {
+        try { if (began) database.endTransaction() }
+        finally { if (photoUpload) database.releaseReference() }
+    }
+}
+
+/** Reclaim replaced upload prefixes only after the owner transaction has ended. */
+@Throws(Exception::class) fun pruneUnreferencedPhotoUploads() {
+    val database = store!!.writableDatabase
+    database.acquireReference()
+    try {
+    // Nested owner work has not physically committed and must never wait on the
+    // capture monitor while holding SQLite's writer (backup takes the reverse).
+    if (database.inTransaction()) return
+    synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) {
+        val directory = File(context!!.filesDir, "mcp-photo-uploads")
+        if (!directory.exists()) return
+        if (!directory.isDirectory || java.nio.file.Files.isSymbolicLink(directory.toPath())) throw IOException("UPLOAD_DIRECTORY_INVALID")
+        database.beginTransactionNonExclusive()
+        try {
+            val referenced = HashSet<String>()
+            database.rawQuery("SELECT metadata FROM mcp_uploads", null).use { rows ->
+                while (rows.moveToNext()) {
+                    val metadata = JSONObject(rows.getString(0))
+                    if (metadata.has("private_upload_storage_name")) {
+                        val name = metadata.getString("private_upload_storage_name")
+                        if (!name.matches(Regex("[a-f0-9]{64}\\.bin"))) throw IOException("UPLOAD_FILE_REFERENCE_INVALID")
+                        referenced.add(name)
+                    }
+                }
+            }
+            val files = directory.listFiles() ?: throw IOException("UPLOAD_DIRECTORY_UNREADABLE")
+            val canonical = directory.canonicalFile
+            for (file in files) {
+                if (file.name.matches(Regex("[a-f0-9]{64}\\.bin")) && file.name !in referenced &&
+                    !java.nio.file.Files.isSymbolicLink(file.toPath()) && file.isFile && file.canonicalFile.parentFile == canonical) {
+                    if (!file.delete() && file.exists()) throw IOException("UPLOAD_PREFIX_CLEANUP_PENDING")
+                }
+            }
+            database.setTransactionSuccessful()
+        } finally { database.endTransaction() }
+    }
+    } finally { database.releaseReference() }
 }
 @Throws(Exception::class) fun asset(path: String): ByteArray {
 

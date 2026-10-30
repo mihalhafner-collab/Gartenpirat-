@@ -26,6 +26,8 @@ private val preferences: SharedPreferences
 private val photoAttachments: PhotoAttachmentStore
 private val clock: WorkSessionStore.Clock
 private var registeredOpen: Boolean = false
+private var closed: Boolean = false
+private var lastOpenedDatabase: SQLiteDatabase? = null
 private val photoOperations = java.lang.Object()
 private var activePhotoOperations = 0
 constructor(context: Context) : this(context, WorkSessionStore.DeviceClock(context)) {
@@ -42,13 +44,20 @@ migrateLegacySnapshotPhotoAttachments()
 }
 override @Synchronized fun getWritableDatabase(): SQLiteDatabase {
 
+if (closed) return closedTransactionDatabase()
 LocalAuthorityGuard.assertStoreMayOpen(context)
 return super.getWritableDatabase()
 }
 override @Synchronized fun getReadableDatabase(): SQLiteDatabase {
 
+if (closed) return closedTransactionDatabase()
 LocalAuthorityGuard.assertStoreMayOpen(context)
 return super.getReadableDatabase()
+}
+private fun closedTransactionDatabase(): SQLiteDatabase {
+val database = lastOpenedDatabase
+if (database != null && database.isOpen && database.inTransaction()) return database
+throw IllegalStateException("LOCAL_STORE_CLOSED")
 }
 override fun onOpen(database: SQLiteDatabase): Unit {
 
@@ -57,6 +66,8 @@ try {
 
 LocalAuthorityGuard.verifyDatabaseContract(context, database)
 if (!database.isReadOnly && !database.isWriteAheadLoggingEnabled) throw IllegalStateException("LOCAL_WAL_REQUIRED")
+lastOpenedDatabase = database
+synchronized(OPEN_DATABASES) { OPEN_DATABASES[database] = context.getDatabasePath("haus-garten-mobile.db").canonicalPath }
 if (!(registeredOpen)) {
 OPEN_STORES.computeIfAbsent(context.getDatabasePath("haus-garten-mobile.db").getCanonicalPath(), { key -> java.util.concurrent.atomic.AtomicInteger() }).incrementAndGet()
 registeredOpen = true
@@ -71,6 +82,8 @@ synchronized(photoOperations) {
 while (activePhotoOperations > 0) photoOperations.wait()
 synchronized(this) {
 
+if (closed) return
+closed = true
 super.close()
 if (registeredOpen) {
 try {
@@ -2187,10 +2200,13 @@ database.endTransaction()
 companion object {
 @JvmField val SCHEMA_VERSION: Int = 7
 private val OPEN_STORES: java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicInteger> = java.util.concurrent.ConcurrentHashMap()
+private val OPEN_DATABASES = java.util.WeakHashMap<SQLiteDatabase, String>()
 @JvmStatic @Throws(Exception::class) fun assertNoOpenStores(context: Context): Unit {
 
-var count = OPEN_STORES.get(context.getDatabasePath("haus-garten-mobile.db").getCanonicalPath())
-if (count != null && count.get() != 0) {
+val path = context.getDatabasePath("haus-garten-mobile.db").canonicalPath
+var count = OPEN_STORES.get(path)
+val databases = synchronized(OPEN_DATABASES) { OPEN_DATABASES.entries.map { it.key to it.value } }
+if ((count != null && count.get() != 0) || databases.any { it.second == path && it.first.isOpen }) {
 throw IOException("RESTORE_DATABASE_STILL_OPEN")
 }
 }
@@ -2253,12 +2269,10 @@ return
 }
 db.beginTransactionWithListener(object : android.database.sqlite.SQLiteTransactionListener {
 override fun onBegin(): Unit {
-
-
+db.acquireReference()
 }
 override fun onRollback(): Unit {
-
-
+db.releaseReference()
 }
 override fun onCommit(): Unit {
 
@@ -2269,6 +2283,8 @@ NativeDataRepository.notifyCommitted(db.path)
 
 } catch (failure: Exception) {
 throw IllegalStateException("LOCAL_JOURNAL_TABLE_COMMIT_FAILED", failure)
+} finally {
+db.releaseReference()
 }
 }
 })

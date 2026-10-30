@@ -34,9 +34,14 @@ import java.util.concurrent.TimeUnit
 /** Production repository/SQLite/coroutines, with a new synthetic target-UID root per invocation. */
 class NativeDataAccessNativeTests private constructor(private val test: Instrumentation) {
     companion object {
-        @JvmStatic fun run(test: Instrumentation): JSONObject = NativeDataAccessNativeTests(test).execute()
+        @JvmStatic fun run(test: Instrumentation): JSONObject {
+            val fixture = NativeDataAccessNativeTests(test)
+            try { return fixture.execute() }
+            catch (failure: Throwable) { throw IllegalStateException("QA_NATIVE_DATA_PHASE_${fixture.phase}", failure) }
+        }
     }
 
+    private var phase = "guards"
     private var checks = 0
     private fun yes(condition: Boolean, code: String) {
         if (!condition) throw AssertionError("QA_NATIVE_DATA_$code")
@@ -67,6 +72,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
         return PixelLocalStore(context).use { store ->
             runBlocking {
                 val data = store.nativeData()
+                phase = "scale"
                 val fixture = scaleFixture()
                 store.putOwnerValue("snapshot", fixture.toString())
                 val count = data.list("worklogs", offset = 115, limit = 50)
@@ -97,6 +103,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                     data.detail("worklogs", "qa_work_00000")
                 }
                 yes(data.diagnostics().getLong("rebuild_count") == firstDiagnostics.getLong("rebuild_count"), "REPEATED_READS_REUSE_CACHE")
+                phase = "mcp_parity"
                 mcpParity(store, fixture)
 
                 // A small second source keeps mutation/Flow checks independent of scale timings.
@@ -117,6 +124,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 yes(data.list("appointments", dateFrom = "2026-10-29", dateTo = "2026-10-29").total == 1, "VIENNA_DAY_BOUNDARY")
                 val timer = store.readSource().stateFor("get_active_work_session", JSONObject())
                 yes(timer.getJSONObject("master").length() == 0 && timer.getJSONArray("pending").length() == 0 && timer.optBoolean("storage_point_read") && timer.getJSONObject("work_session").has("state"), "MCP_TIMER_MINIMAL_STATE")
+                phase = "transfer_cache"
                 transferCacheProof(store, data)
                 val equipment = JSONObject().put("id", "qa_equipment").put("kind", "equipment").put("format_version", 1)
                     .put("name", "QA initial").put("condition", "ready").put("test_record", true)
@@ -129,14 +137,29 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 store.putOwnerValue("revier:v1:entity:equipment_usage:qa_usage", JSONObject().put("id", "qa_usage").put("kind", "equipment_usage")
                     .put("format_version", 1).put("equipment_id", "qa_equipment").put("created_at", "2026-10-29T09:00:00Z").toString())
                 yes(data.history("equipment_usage", "equipment_id", "qa_equipment").single().getString("id") == "qa_usage", "BOUNDED_RELATION_HISTORY")
+                phase = "receipt"
                 receiptProof(store, data)
+                phase = "main_dispatcher"
                 mainDispatcherProof(store)
+                phase = "flow_wal"
                 flowAndWalProof(store, data, key, equipment)
+                phase = "cache_photo_close"
                 cachePhotoConcurrencyProof(context)
+                phase = "cache_init_close"
                 cacheInitializationCloseProof(context)
+                phase = "cache_schema_repair"
+                cacheSchemaRepairProof(context)
+                phase = "business_transaction_lifetime"
+                businessTransactionLifetimeProof(context)
+                phase = "thumbnail_tiles"
                 thumbnailTileProof(context, store)
+                phase = "upload_publication"
                 uploadPublicationProof(context)
+                phase = "upload_chunk_bounds"
+                chunkedUploadStorageProof(context)
+                phase = "immutable_publication"
                 immutablePublishedFileProof(context, store)
+                phase = "final_revision"
                 val final = data.diagnostics()
                 yes(final.getLong("source_revision") == final.getLong("cached_revision"), "COMMITTED_CACHE_REVISION")
                 JSONObject().put("checks", checks).put("synthetic_only", true).put("productive_data_read", false)
@@ -145,6 +168,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                     .put("cache_photo_concurrency", true)
                     .put("cache_initialization_close_concurrency", true)
                     .put("upload_publication_backup_concurrency", true)
+                    .put("chunk_upload_prefix_storage_bounded", true)
                     .put("main_thread_disk_violations", 0).put("performance_claim", false)
             }
         }
@@ -231,7 +255,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
 
     private suspend fun cachePhotoConcurrencyProof(owner: Context) {
         val context = FixtureContext(owner, File(owner.cacheDir, "photo-refresh-race"), "qa_photo_refresh_race")
-        val store = PixelLocalStore(context)
+        var store = PixelLocalStore(context)
         val writerHeld = CountDownLatch(1)
         val refreshAllowed = CountDownLatch(1)
         val refreshed = CompletableDeferred<Unit>()
@@ -242,7 +266,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             val source = SyntheticBusinessData.profile("minimal")
             source.getJSONArray("customers").getJSONObject(0).put("name", "[TEST] QA concurrent customer")
             store.putOwnerValue("snapshot", source.toString())
-            val data = store.nativeData()
+            var data = store.nativeData()
             data.list("customers", limit = 5)
             store.putOwnerValue("revier:v1:entity:equipment:qa_refresh_photo", JSONObject().put("id", "qa_refresh_photo")
                 .put("kind", "equipment").put("name", "[TEST] QA cache photo race").put("condition", "ready").toString())
@@ -300,6 +324,8 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             } finally { refreshAllowed.countDown() }
             val id = withTimeout(10_000) { refreshed.await(); saved.await().also { closed.await() } }
             completed = true
+            store = PixelLocalStore(context)
+            data = store.nativeData()
             yes(store.photoAttachment(id) != null && data.detail("photos", id)?.optString("id") == id, "REFRESH_AND_PHOTO_BOTH_COMMITTED")
             yes(JSONObject(store.ownerValue("photo-ui:$request", "{}")).getString("id") == id, "CONCURRENT_PHOTO_RECEIPT_COMMITTED")
             yes(store.savePhoto(JSONObject(photo.toString())) == id, "CONCURRENT_PHOTO_REPLAY_SAME_ID")
@@ -323,7 +349,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
 
     private suspend fun cacheInitializationCloseProof(owner: Context) {
         val context = FixtureContext(owner, File(owner.cacheDir, "cache-init-close-race"), "qa_cache_init_close_race")
-        val store = PixelLocalStore(context)
+        var store = PixelLocalStore(context)
         val held = CountDownLatch(1)
         val release = CountDownLatch(1)
         val written = CompletableDeferred<Throwable?>()
@@ -341,6 +367,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 current.rawQuery("SELECT count(*) FROM native_read_rows WHERE collection='customers'", null).use { rows -> rows.moveToFirst(); rows.getInt(0) }
             }
             val writer = Thread({
+                db.acquireReference()
                 try {
                     db.beginTransactionNonExclusive()
                     try {
@@ -350,6 +377,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                     } finally { db.endTransaction() }
                     written.complete(null)
                 } catch (failure: Throwable) { written.complete(failure) }
+                finally { db.releaseReference() }
             }, "qa-cache-init-blocking-writer").apply { isDaemon = true }
             val reader = Thread({
                 try { firstRead.invoke(data, count); queried.complete(null) }
@@ -380,7 +408,8 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             yes(outcomes.all { failure ->
                 failure == null || ((failure is IllegalStateException || failure is android.database.sqlite.SQLiteException) && failure.message.orEmpty().contains("closed", ignoreCase = true))
             }, "INIT_CLOSE_ONLY_ALLOWED_CLOSED_QUERY_FAILURES")
-            yes(data.list("customers").total == 1, "INIT_CLOSE_REOPEN_PRESERVES_SOURCE")
+            store = PixelLocalStore(context)
+            yes(store.nativeData().list("customers").total == 1, "INIT_CLOSE_REOPEN_PRESERVES_SOURCE")
         } finally {
             release.countDown()
             // A reproduced deadlock belongs only to this isolated child store.
@@ -390,6 +419,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
 
     private suspend fun flowAndWalProof(store: PixelLocalStore, data: NativeDataRepository, key: String, equipment: JSONObject) = kotlinx.coroutines.coroutineScope {
         val events = CopyOnWriteArrayList<NativeListPage>()
+        val cold = PixelLocalStore(store.appContext())
         val watcher = launch(Dispatchers.Default) { data.watchList("equipment").collect { events.add(it) } }
         try {
             withTimeout(10_000) { while (events.isEmpty()) delay(10) }
@@ -410,6 +440,10 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 val old = withTimeout(5_000) { data.list("equipment") }
                 yes(old.rows.single().title == "QA initial", "WAL_READER_DURING_UNCOMMITTED_WRITER")
                 yes(events.size == 1, "UNCOMMITTED_FLOW_NOT_PUBLISHED")
+                phase = "cold_helper_wal"
+                val coldRead = withTimeout(5_000) { cold.nativeData().list("equipment") }
+                yes(coldRead.rows.single().title == "QA initial", "COLD_HELPER_READS_VALID_WAL_CACHE_WITHOUT_WRITER")
+                phase = "flow_commit"
             } finally { releaseWriter.countDown() }
             writer.await()
             withTimeout(10_000) { while (events.size < 2) delay(10) }
@@ -428,7 +462,189 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             yes(data.list("equipment").rows.single().title == "QA committed", "ROLLBACK_PRESERVES_COMMITTED_LIST")
             yes(events.size == 2 && events.none { page -> page.rows.any { it.title == "QA rollback" } }, "DRAFT_AND_ROLLBACK_NO_FALSE_FLOW")
             yes(data.diagnostics().getLong("rebuild_count") == rebuilds, "ROLLBACK_PRESERVES_CACHE_REVISION")
-        } finally { watcher.cancelAndJoin() }
+        } finally { watcher.cancelAndJoin(); cold.close() }
+    }
+
+    private suspend fun cacheSchemaRepairProof(owner: Context) {
+        val context = FixtureContext(owner, File(owner.cacheDir, "cache-schema-repair"), "qa_cache_schema_repair")
+        PixelLocalStore(context).use { store ->
+            val source = SyntheticBusinessData.profile("minimal")
+            store.putOwnerValue("snapshot", source.toString())
+            store.nativeData().list("customers")
+            val revision = store.nativeData().diagnostics().getLong("source_revision")
+            val db = store.writableDatabase
+            db.execSQL("CREATE TABLE qa_preserved_table(id INTEGER PRIMARY KEY,value TEXT)")
+            db.execSQL("INSERT INTO qa_preserved_table VALUES(1,'QA preserved')")
+            db.execSQL("DROP INDEX ix_native_read_sort")
+            db.execSQL("CREATE INDEX ix_native_read_sort ON native_read_rows(collection,id)")
+            db.execSQL("DROP TRIGGER native_read_revision_owner_state_UPDATE")
+            db.execSQL("CREATE TRIGGER native_read_revision_owner_state_UPDATE AFTER UPDATE ON owner_state BEGIN SELECT 1; END")
+            source.getJSONArray("customers").getJSONObject(0).put("name", "QA repaired cache")
+            store.putOwnerValue("snapshot", source.toString())
+            PixelLocalStore(context).use { cold ->
+                val data = cold.nativeData()
+                yes(data.list("customers").rows.single().title == "QA repaired cache", "COLD_CACHE_REPAIRS_TAMPERED_SCHEMA_AND_STALE_DATA")
+                val diagnostics = data.diagnostics()
+                yes(diagnostics.getLong("source_revision") > revision && diagnostics.getJSONObject("plans").getJSONArray("customer_active_sort").toString().contains("ix_native_read_sort"), "CACHE_REPAIR_REPLACES_INDEX_AND_ADVANCES_GENERATION")
+                source.getJSONArray("customers").getJSONObject(0).put("name", "QA repaired trigger")
+                store.putOwnerValue("snapshot", source.toString())
+                yes(data.list("customers").rows.single().title == "QA repaired trigger", "CACHE_REPAIR_REPLACES_REVISION_TRIGGER")
+                db.rawQuery("SELECT value FROM qa_preserved_table WHERE id=1", null).use { row -> yes(row.moveToFirst() && row.getString(0) == "QA preserved", "CACHE_REPAIR_PRESERVES_UNKNOWN_TABLE") }
+            }
+        }
+    }
+
+    private fun businessTransactionLifetimeProof(owner: Context) {
+        val context = FixtureContext(owner, File(owner.cacheDir, "business-close-lifetime"), "qa_business_close_lifetime")
+        var store = PixelLocalStore(context)
+        fun guardRejects(): Boolean = try { PixelLocalStore.assertNoOpenStores(context); false }
+            catch (expected: IOException) { expected.message == "RESTORE_DATABASE_STILL_OPEN" }
+        try {
+            store.putOwnerValue("snapshot", SyntheticBusinessData.profile("minimal").toString())
+            store.putOwnerValue("qa_lifetime", "before")
+            for (commit in listOf(true, false)) {
+                val db = store.writableDatabase
+                store.beginBusinessTransaction(db)
+                try {
+                    store.close()
+                    yes(db.isOpen && store.writableDatabase === db, "BUSINESS_TRANSACTION_PINS_AND_REUSES_DATABASE_$commit")
+                    store.putOwnerValue("qa_lifetime", if (commit) "committed" else "rolled_back")
+                    yes(store.getState().has("master") && store.ownerValue("qa_lifetime", "") == if (commit) "committed" else "rolled_back", "CLOSED_HELPER_CALLBACK_AFFINITY_$commit")
+                    yes(guardRejects(), "RESTORE_GUARD_REJECTS_PINNED_CLOSED_HELPER_$commit")
+                    if (commit) db.setTransactionSuccessful()
+                } finally { db.endTransaction() }
+                yes(!db.isOpen, "BUSINESS_TRANSACTION_RELEASES_PIN_$commit")
+                PixelLocalStore.assertNoOpenStores(context)
+                var closed = false
+                try { store.writableDatabase } catch (expected: IllegalStateException) { closed = expected.message == "LOCAL_STORE_CLOSED" }
+                yes(closed, "CLOSED_HELPER_CANNOT_REOPEN_$commit")
+                store = PixelLocalStore(context)
+                yes(store.ownerValue("qa_lifetime", "") == "committed", "BUSINESS_NEW_HELPER_COMMIT_ROLLBACK_$commit")
+            }
+            val db = store.writableDatabase
+            PixelLocalStore.beginJournalTransaction(db) { throw IOException("QA_SYNTHETIC_COMMIT_FAILURE") }
+            store.close()
+            store.putOwnerValue("qa_lifetime", "failed_commit")
+            db.setTransactionSuccessful()
+            var rejected = false
+            try { db.endTransaction() } catch (failure: IllegalStateException) { rejected = failure.message == "LOCAL_JOURNAL_TABLE_COMMIT_FAILED" }
+            yes(rejected && !db.isOpen, "FAILED_COMMIT_RELEASES_PIN")
+            PixelLocalStore.assertNoOpenStores(context)
+            store = PixelLocalStore(context)
+            yes(store.ownerValue("qa_lifetime", "") == "committed", "FAILED_COMMIT_ROLLS_BACK_AND_REOPENS")
+        } finally { store.close() }
+    }
+
+    private suspend fun chunkedUploadStorageProof(owner: Context) {
+        val context = FixtureContext(owner, File(owner.cacheDir, "chunk-upload-bound"), "qa_chunk_upload_bound")
+        val store = PixelLocalStore(context)
+        var completed = false
+        try {
+            store.putOwnerValue("snapshot", SyntheticBusinessData.profile("minimal").toString())
+            val repository = LocalOwnerRepository(context, store)
+            val access = PixelOwnerAccess(context, store)
+            val bytes = ByteArray(1024 * 1024) { ((it * 17 + it / 32768) and 255).toByte() }
+            val upload = access.execute("begin_file_upload", JSONObject().put("request_id", "qa_chunk_bound_begin")
+                .put("byte_size", bytes.size).put("sha256", McpFileTransfer.sha(bytes)).put("mime_type", "image/jpeg")).getJSONObject("data").getString("upload_id")
+            val directory = File(context.filesDir, "mcp-photo-uploads")
+            val raw = File(directory, "qa-legacy-unrecognized.raw").apply { writeText("[TEST] QA preserve raw") }
+            val legacy = "[TEST] QA legacy BLOB".toByteArray()
+            repository.putFile("qa_legacy_blob", JSONObject().put("kind", "backup"), legacy)
+            val other = "[TEST] QA other active upload".toByteArray()
+            repository.putFile("qa_other_upload", JSONObject().put("kind", "photo_upload"), other)
+            var replay: JSONObject? = null
+            for (offset in bytes.indices step 32768) {
+                val part = bytes.copyOfRange(offset, minOf(bytes.size, offset + 32768))
+                val args = JSONObject().put("request_id", "qa_chunk_bound_$offset").put("upload_id", upload).put("offset", offset)
+                    .put("chunk_base64", java.util.Base64.getEncoder().encodeToString(part)).put("chunk_sha256", McpFileTransfer.sha(part))
+                val result = access.execute("write_file_chunk", args).getJSONObject("data")
+                yes(result.getInt("next_offset") == offset + part.size && !result.optBoolean("upload_cleanup_pending"), "CHUNK_OFFSET_AND_CLEANUP_$offset")
+                val content = directory.listFiles().orEmpty().filter { it.name.matches(Regex("[a-f0-9]{64}\\.bin")) }
+                yes(content.size == 2 && content.sumOf { it.length() } == (offset + part.size + other.size).toLong(), "CHUNK_LIVE_DISK_BOUND_$offset")
+                if (replay == null) replay = JSONObject(args.toString())
+            }
+            yes(repository.fileBytes(upload).contentEquals(bytes) && repository.fileBytes("qa_legacy_blob").contentEquals(legacy) && raw.readText() == "[TEST] QA preserve raw", "CHUNK_BYTES_AND_LEGACY_PRESERVED")
+            yes(access.execute("write_file_chunk", replay!!).getJSONObject("data").optBoolean("replayed") && repository.fileBytes(upload).contentEquals(bytes), "OLD_CHUNK_REPLAY_DOES_NOT_REWIND")
+
+            val concurrentBytes = bytes.copyOfRange(0, 65536)
+            val second = access.execute("begin_file_upload", JSONObject().put("request_id", "qa_chunk_capture_begin")
+                .put("byte_size", concurrentBytes.size).put("sha256", McpFileTransfer.sha(concurrentBytes)).put("mime_type", "image/jpeg")).getJSONObject("data").getString("upload_id")
+            fun chunkArgs(offset: Int) = JSONObject().put("request_id", "qa_chunk_capture_$offset").put("upload_id", second).put("offset", offset)
+                .put("chunk_base64", java.util.Base64.getEncoder().encodeToString(concurrentBytes.copyOfRange(offset, offset + 32768)))
+                .put("chunk_sha256", McpFileTransfer.sha(concurrentBytes.copyOfRange(offset, offset + 32768)))
+            access.execute("write_file_chunk", chunkArgs(0))
+            val previous = File(directory, repository.fileMeta(second).getString("private_upload_storage_name"))
+            val capture = File(context.cacheDir, "chunk-backup")
+            val pinned = CountDownLatch(1)
+            val captureAllowed = CountDownLatch(1)
+            val captured = CompletableDeferred<File>()
+            val saved = CompletableDeferred<JSONObject>()
+            Thread({
+                try {
+                    synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) {
+                        BackupFilePins.pinImmutable(directory, capture, "files/mcp-photo-uploads")
+                        pinned.countDown()
+                        check(captureAllowed.await(15, TimeUnit.SECONDS)) { "QA_CHUNK_BACKUP_RELEASE_TIMEOUT" }
+                        val image = File(capture, "database.sqlite")
+                        DatabaseBackupSnapshot.capture(store.writableDatabase, image)
+                        BackupFilePins.capture(directory, capture, "files/mcp-photo-uploads")
+                        captured.complete(image)
+                    }
+                } catch (failure: Throwable) { pinned.countDown(); captured.completeExceptionally(failure) }
+            }, "qa-chunk-backup").apply { isDaemon = true }.start()
+            yes(withContext(Dispatchers.IO) { pinned.await(5, TimeUnit.SECONDS) }, "CHUNK_BACKUP_PINNED")
+            Thread({
+                try { saved.complete(access.execute("write_file_chunk", chunkArgs(32768)).getJSONObject("data")) }
+                catch (failure: Throwable) { saved.completeExceptionally(failure) }
+            }, "qa-chunk-owner-write").apply { isDaemon = true }.start()
+            try {
+                withTimeout(10_000) { while (repository.fileMeta(second).getLong("private_upload_byte_size") != concurrentBytes.size.toLong()) delay(10) }
+                yes(!saved.isCompleted && previous.isFile, "CHUNK_COMMITTED_BEFORE_CLEANUP_WAITS_FOR_BACKUP")
+            } finally { captureAllowed.countDown() }
+            val image = withTimeout(15_000) { saved.await(); captured.await() }
+            val pinnedPrevious = File(capture, "files/mcp-photo-uploads/${previous.name}")
+            yes(!previous.exists() && pinnedPrevious.readBytes().contentEquals(concurrentBytes.copyOfRange(0, 32768)), "SUPERSEDED_PREFIX_REMOVED_WITH_BACKUP_PIN_INTACT")
+            SQLiteDatabase.openDatabase(image.path, null, SQLiteDatabase.OPEN_READONLY).use { snapshot ->
+                snapshot.rawQuery("SELECT metadata,length(data) FROM mcp_uploads WHERE id=?", arrayOf(second)).use { row ->
+                    yes(row.moveToFirst() && row.getLong(1) == 0L, "CHUNK_BACKUP_METADATA_ONLY")
+                    val metadata = JSONObject(row.getString(0))
+                    yes(File(capture, "files/mcp-photo-uploads/${metadata.getString("private_upload_storage_name")}").readBytes().contentEquals(concurrentBytes), "CHUNK_BACKUP_COMMITTED_REFERENCE_COMPLETE")
+                }
+            }
+
+            val rollback = "[TEST] QA uncommitted prefix".toByteArray()
+            val rollbackFile = File(directory, McpFileTransfer.sha(rollback) + ".bin")
+            val published = CountDownLatch(1)
+            val rollbackAllowed = CountDownLatch(1)
+            val rolledBack = CompletableDeferred<Unit>()
+            val cleaned = CompletableDeferred<Unit>()
+            Thread({
+                val db = store.writableDatabase
+                try {
+                    db.beginTransactionNonExclusive()
+                    try {
+                        repository.putFile(second, repository.fileMeta(second), rollback)
+                        repository.pruneUnreferencedPhotoUploads() // Nested cleanup must not wait on capture.
+                        published.countDown()
+                        check(rollbackAllowed.await(15, TimeUnit.SECONDS)) { "QA_CHUNK_ROLLBACK_RELEASE_TIMEOUT" }
+                    } finally { db.endTransaction() }
+                    rolledBack.complete(Unit)
+                } catch (failure: Throwable) { published.countDown(); rolledBack.completeExceptionally(failure) }
+            }, "qa-chunk-rollback").apply { isDaemon = true }.start()
+            yes(withContext(Dispatchers.IO) { published.await(5, TimeUnit.SECONDS) }, "ROLLBACK_PREFIX_PUBLISHED")
+            val cleaner = Thread({
+                try { repository.pruneUnreferencedPhotoUploads(); cleaned.complete(Unit) }
+                catch (failure: Throwable) { cleaned.completeExceptionally(failure) }
+            }, "qa-chunk-cleaner").apply { isDaemon = true }
+            cleaner.start()
+            try {
+                withTimeout(5_000) { while (cleaner.stackTrace.none { it.className == "android.database.sqlite.SQLiteConnectionPool" && it.methodName == "waitForConnection" }) { if (cleaned.isCompleted) error("QA_CLEANER_DID_NOT_WAIT_FOR_PUBLISHER"); delay(10) } }
+                yes(rollbackFile.isFile && repository.fileBytes(second).contentEquals(concurrentBytes), "CLEANUP_CANNOT_DELETE_UNCOMMITTED_PUBLISHER_OR_OLD_REFERENCE")
+            } finally { rollbackAllowed.countDown() }
+            withTimeout(10_000) { rolledBack.await(); cleaned.await() }
+            yes(!rollbackFile.exists() && repository.fileBytes(second).contentEquals(concurrentBytes) && repository.fileBytes("qa_other_upload").contentEquals(other), "ROLLBACK_CLEANUP_PRESERVES_ALL_COMMITTED_UPLOADS")
+            completed = true
+        } finally { if (completed) store.close() }
     }
 
 

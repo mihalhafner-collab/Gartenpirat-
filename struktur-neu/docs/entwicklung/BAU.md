@@ -47,6 +47,21 @@ zu lassen. Fotolisten bevorzugen verifizierte Vorschaudateien. Coil verwendet
 einen gemeinsamen ImageLoader, begrenzte Caches und an die Anzeige angepasste
 Dekodiergrößen; die Integritätsprüfung eines erforderlichen Originals läuft auf IO.
 
+Dateiproduzenten schreiben und synchronisieren neue Inhalte zunächst im Cache
+und veröffentlichen sie atomar als unveränderliche Datei. Uploadreferenz und
+Veröffentlichung werden durch den SQLite-Schreiber serialisiert. Nach einem
+bestätigten Upload-Commit bereinigt der gemeinsame Owner-Zugang unreferenzierte
+Uploadzwischenstände unter Aufnahmesperre und anschließendem SQLite-Schreiber.
+Die Sperrreihenfolge nicht umkehren; aktive Referenzen und aufgenommene Hardlinks
+erhalten. Aufräumfehler separat als ausstehend melden. Auch lange Folgen kleiner
+Chunks mit begrenztem Dateibestand, Wiederholung und Rollback prüfen.
+
+Ein aktueller vorhandener Lesecache muss auch beim ersten Zugriff eines neuen
+Store-Helfers ohne Schreibtransaktion lesbar sein. Logische Abfragen und
+Transaktionen halten ihre SQLite-Referenz bis zum Ende, damit ein gleichzeitiges
+Schließen keine offene Sitzung verwaist zurücklässt. Diese Grenzen mit echten
+Android-Verbindungen, Hilfsneuerstellung und gleichzeitigen Schreibern prüfen.
+
 ### Auswahl nach KISS und YAGNI
 
 Die Auswahl richtet sich nach dem vorhandenen Android-Update und seinem
@@ -247,6 +262,12 @@ synthetischen Bestand aus `document_provider_reopen` auf demselben Emulator.
 Reihenfolge und Schutzbedingungen nicht umgehen. Die Test-APK enthält die für
 ihren separaten Anbieterprozess nötige Kotlin-Laufzeit; Testanbieter, Testklassen
 und Testrechte dürfen nicht in die Release-APK gelangen.
+
+Die CI sammelt Ergebnisse aller acht Suiten und schlägt bei jedem einzelnen
+Fehler insgesamt fehl. Jeder Versuch startet mit gestoppten App-Prozessen und
+behält seine eigenen Schutzbedingungen; fehlende Vorbedingungen einer abhängigen
+Suite bleiben ein Fehler. Dadurch verdeckt ein Datenbankfehler keine unabhängig
+prüfbaren Anbieter- oder Oberflächenfehler.
 
 Die CI-Signatur ist ein temporärer Schlüssel ausschließlich für diese
 Wegwerf-Emulatorpakete. Sie signiert kein Benutzerupdate und veröffentlicht keine

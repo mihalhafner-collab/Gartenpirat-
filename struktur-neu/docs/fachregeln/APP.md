@@ -169,6 +169,13 @@ auf das Original erzwingen. Bei fehlender Vorschau darf der geprüfte Originalpf
 verwendet werden; Coil dekodiert passend zur Anzeigegröße. Originale bleiben für
 Detailansicht, Export und Sicherung verfügbar.
 
+Gestückelte Übertragungen dürfen keine dauerhaft wachsende Folge vollständiger
+Dateizwischenstände ansammeln. Nicht mehr referenzierte Uploadstände erst nach
+bestätigtem Commit und abgestimmt mit laufenden Sicherungsaufnahmen entfernen.
+Rollback, andere Uploads, ursprüngliche BLOBs und bereits aufgenommene Dateien
+müssen dabei erhalten bleiben. Ein Aufräumfehler hebt einen bestätigten Commit
+nicht auf und darf keinen erneuten Geschäftsvorgang auslösen.
+
 Coil verwendet einen gemeinsamen ImageLoader mit begrenztem RAM- und Disk-Cache;
 keine zweite eigene Bildcacheverwaltung. Unlesbare Bilder sichtbar kennzeichnen.
 Datenbankabfragen, Dateizugriffe, Integritätsprüfung und Bildverarbeitung dürfen

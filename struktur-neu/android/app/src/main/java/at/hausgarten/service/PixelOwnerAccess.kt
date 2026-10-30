@@ -90,6 +90,14 @@ internal class PixelOwnerAccess : PixelMcpOwnerTools.Access {
                         return@LAM changed
                     },
                 ))
+        if (name == "begin_file_upload" || name == "write_file_chunk" || name == "create_photo") {
+            try {
+                repository.pruneUnreferencedPhotoUploads()
+            } catch (pending: Exception) {
+                // The chunk and its replay receipt have already committed.
+                result.put("upload_cleanup_pending", true)
+            }
+        }
         if (((name == "purge_entity") || (name == "empty_trash"))) {
             try {
 

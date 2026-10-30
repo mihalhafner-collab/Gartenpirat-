@@ -261,19 +261,32 @@ class NativeDataRepository(private val store: PixelLocalStore) {
     // Observers cross that boundary before reading; ordinary reads need no lock.
     private fun awaitCommit() {
         val db = store.writableDatabase
-        db.beginTransactionNonExclusive()
-        try { db.setTransactionSuccessful() } finally { db.endTransaction() }
+        db.acquireReference()
+        try {
+            db.beginTransactionNonExclusive()
+            try { db.setTransactionSuccessful() } finally { db.endTransaction() }
+        } finally { db.releaseReference() }
     }
 
     /** Retry if a commit changes the derived generation between count/chunk reads. */
     private fun <T> readCurrent(read: (SQLiteDatabase) -> T): T {
         val db = store.writableDatabase
+        db.acquireReference()
+        try {
         if (!synchronized(initialized) { initialized.containsKey(db) }) {
             // SQLite serializes first-use DDL. Do not hold its object monitor
             // across refresh: the helper's close path takes those locks in reverse.
             val nested = db.inTransaction()
-            db.beginTransactionNonExclusive()
-            try { ensureSchema(db); refresh(db); db.setTransactionSuccessful() } finally { db.endTransaction() }
+            if (!hasCurrentSchema(db)) {
+                db.beginTransactionNonExclusive()
+                try {
+                    val generation = discardSchema(db)
+                    ensureSchema(db)
+                    db.execSQL("UPDATE native_read_meta SET source_revision=?,cached_revision=-1 WHERE id=1", arrayOf(generation))
+                    refresh(db)
+                    db.setTransactionSuccessful()
+                } finally { db.endTransaction() }
+            }
             // A caller may still roll back its outer transaction, including DDL.
             if (!nested) synchronized(initialized) { initialized[db] = true }
         }
@@ -291,22 +304,14 @@ class NativeDataRepository(private val store: PixelLocalStore) {
                 if (revision(db) == before) throw failure
             }
         }
+        } finally { db.releaseReference() }
     }
 
-    private fun ensureSchema(db: SQLiteDatabase) {
-        db.execSQL("CREATE TABLE IF NOT EXISTS native_read_meta(id INTEGER PRIMARY KEY CHECK(id=1),source_revision INTEGER NOT NULL,cached_revision INTEGER NOT NULL)")
-        db.execSQL("INSERT OR IGNORE INTO native_read_meta(id,source_revision,cached_revision) VALUES(1,0,-1)")
-        db.execSQL("CREATE TABLE IF NOT EXISTS native_read_rows(collection TEXT NOT NULL,id TEXT NOT NULL,title TEXT NOT NULL,subtitle TEXT NOT NULL,address TEXT NOT NULL,status TEXT NOT NULL,delivery_status TEXT NOT NULL,customer_id TEXT NOT NULL,billing_customer_id TEXT NOT NULL,billed INTEGER NOT NULL,is_open INTEGER NOT NULL,mcp_search_text TEXT NOT NULL,phone_digits TEXT NOT NULL,property_id TEXT NOT NULL,material_id TEXT NOT NULL,equipment_id TEXT NOT NULL,order_id TEXT NOT NULL,worklog_id TEXT NOT NULL,session_id TEXT NOT NULL,role TEXT NOT NULL,work_date TEXT NOT NULL,thumbnail_reference TEXT NOT NULL,active INTEGER NOT NULL,billing_type TEXT NOT NULL,sort_key TEXT NOT NULL,search_text TEXT NOT NULL,PRIMARY KEY(collection,id))")
-        val deliveryStatusPresent = db.rawQuery("PRAGMA table_info(native_read_rows)", null).use { cursor ->
-            var found = false
-            while (cursor.moveToNext()) if (cursor.getString(1) == "delivery_status") found = true
-            found
-        }
-        if (!deliveryStatusPresent) {
-            db.execSQL("ALTER TABLE native_read_rows ADD COLUMN delivery_status TEXT NOT NULL DEFAULT ''")
-            db.execSQL("UPDATE native_read_meta SET cached_revision=-1 WHERE id=1")
-        }
-        db.execSQL("CREATE TABLE IF NOT EXISTS native_read_records(collection TEXT NOT NULL,id TEXT NOT NULL,record_json TEXT NOT NULL,PRIMARY KEY(collection,id))")
+    private fun schemaDefinitions(db: SQLiteDatabase): Map<String, String> {
+        val definitions = linkedMapOf<String, String>()
+        definitions["native_read_meta"] = "CREATE TABLE IF NOT EXISTS native_read_meta(id INTEGER PRIMARY KEY CHECK(id=1),source_revision INTEGER NOT NULL,cached_revision INTEGER NOT NULL)"
+        definitions["native_read_rows"] = "CREATE TABLE IF NOT EXISTS native_read_rows(collection TEXT NOT NULL,id TEXT NOT NULL,title TEXT NOT NULL,subtitle TEXT NOT NULL,address TEXT NOT NULL,status TEXT NOT NULL,delivery_status TEXT NOT NULL,customer_id TEXT NOT NULL,billing_customer_id TEXT NOT NULL,billed INTEGER NOT NULL,is_open INTEGER NOT NULL,mcp_search_text TEXT NOT NULL,phone_digits TEXT NOT NULL,property_id TEXT NOT NULL,material_id TEXT NOT NULL,equipment_id TEXT NOT NULL,order_id TEXT NOT NULL,worklog_id TEXT NOT NULL,session_id TEXT NOT NULL,role TEXT NOT NULL,work_date TEXT NOT NULL,thumbnail_reference TEXT NOT NULL,active INTEGER NOT NULL,billing_type TEXT NOT NULL,sort_key TEXT NOT NULL,search_text TEXT NOT NULL,PRIMARY KEY(collection,id))"
+        definitions["native_read_records"] = "CREATE TABLE IF NOT EXISTS native_read_records(collection TEXT NOT NULL,id TEXT NOT NULL,record_json TEXT NOT NULL,PRIMARY KEY(collection,id))"
         for ((name, columns) in mapOf(
             "sort" to "collection,active DESC,sort_key,id",
             "mcp_sort" to "collection,sort_key,id",
@@ -321,7 +326,7 @@ class NativeDataRepository(private val store: PixelLocalStore) {
             "session_date" to "collection,session_id,work_date DESC,id",
             "material_date" to "collection,material_id,work_date DESC,id",
             "equipment_date" to "collection,equipment_id,work_date DESC,id"
-        )) db.execSQL("CREATE INDEX IF NOT EXISTS ix_native_read_$name ON native_read_rows($columns)")
+        )) definitions["ix_native_read_$name"] = "CREATE INDEX IF NOT EXISTS ix_native_read_$name ON native_read_rows($columns)"
         for (table in arrayOf("pending", "owner_state", "work_sessions", "work_session_events", "photo_attachments")) for (action in arrayOf("INSERT", "UPDATE", "DELETE")) {
             val row = if (action == "DELETE") "OLD" else "NEW"
             val condition = when (table) {
@@ -329,13 +334,63 @@ class NativeDataRepository(private val store: PixelLocalStore) {
                 "pending" -> " WHEN $row.kind<>'mcp_receipt'"
                 else -> ""
             }
-            db.execSQL("CREATE TRIGGER IF NOT EXISTS native_read_revision_${table}_$action AFTER $action ON $table$condition BEGIN UPDATE native_read_meta SET source_revision=source_revision+1 WHERE id=1; END")
+            definitions["native_read_revision_${table}_$action"] = "CREATE TRIGGER IF NOT EXISTS native_read_revision_${table}_$action AFTER $action ON $table$condition BEGIN UPDATE native_read_meta SET source_revision=source_revision+1 WHERE id=1; END"
         }
         for (collection in BusinessTableStore.COLLECTIONS) {
             val table = "business_$collection"
             val exists = db.rawQuery("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", arrayOf(table)).use { it.moveToFirst() }
-            if (exists) for (action in arrayOf("INSERT", "UPDATE", "DELETE")) db.execSQL("CREATE TRIGGER IF NOT EXISTS native_read_revision_${table}_$action AFTER $action ON $table BEGIN UPDATE native_read_meta SET source_revision=source_revision+1 WHERE id=1; END")
+            if (exists) for (action in arrayOf("INSERT", "UPDATE", "DELETE")) definitions["native_read_revision_${table}_$action"] = "CREATE TRIGGER IF NOT EXISTS native_read_revision_${table}_$action AFTER $action ON $table BEGIN UPDATE native_read_meta SET source_revision=source_revision+1 WHERE id=1; END"
         }
+        return definitions
+    }
+
+    private fun ensureSchema(db: SQLiteDatabase) {
+        val definitions = schemaDefinitions(db)
+        db.execSQL(definitions.getValue("native_read_meta"))
+        db.execSQL("INSERT OR IGNORE INTO native_read_meta(id,source_revision,cached_revision) VALUES(1,0,-1)")
+        db.execSQL(definitions.getValue("native_read_rows"))
+        for ((name, sql) in definitions) if (name != "native_read_meta" && name != "native_read_rows") db.execSQL(sql)
+    }
+
+    private fun discardSchema(db: SQLiteDatabase): Long {
+        val hasMeta = db.rawQuery("SELECT 1 FROM sqlite_master WHERE type='table' AND name='native_read_meta'", null).use { it.moveToFirst() }
+        val previous = if (hasMeta) try { revision(db).let { maxOf(it.first, it.second) } }
+            catch (_: android.database.sqlite.SQLiteException) { 0L }
+            catch (_: IllegalStateException) { 0L } else 0L
+        val generation = Math.addExact(maxOf(previous, 0L), 1L)
+        for (name in schemaDefinitions(db).keys) {
+            if (name.startsWith("native_read_revision_")) db.execSQL("DROP TRIGGER IF EXISTS $name")
+            if (name.startsWith("ix_native_read_")) db.execSQL("DROP INDEX IF EXISTS $name")
+        }
+        for (name in listOf("native_read_records", "native_read_rows", "native_read_meta")) db.execSQL("DROP TABLE IF EXISTS $name")
+        return generation
+    }
+
+    /** Cold helpers must not request the writer merely to recognize a valid WAL cache. */
+    private fun hasCurrentSchema(db: SQLiteDatabase): Boolean {
+        val definitions = schemaDefinitions(db)
+        val actual = HashMap<String, String>()
+        db.rawQuery("SELECT name,sql FROM sqlite_master WHERE name LIKE 'native_read_%' OR name LIKE 'ix_native_read_%'", null).use { rows ->
+            while (rows.moveToNext()) actual[rows.getString(0)] = rows.getString(1).orEmpty()
+        }
+        fun normalized(sql: String) = sql.replace(Regex("(?i)IF\\s+NOT\\s+EXISTS\\s+"), "").replace(Regex("\\s+"), "").lowercase(Locale.ROOT)
+        for ((name, sql) in definitions) {
+            val found = actual[name] ?: return false
+            if (name.startsWith("native_read_") && !name.startsWith("native_read_revision_")) {
+                // ALTER TABLE may append delivery_status; column order/default text
+                // does not affect display projections, unlike type and key shape.
+                val required = Regex("(?:\\(|,)([a-z_]+) (TEXT|INTEGER)").findAll(sql).associate { it.groupValues[1] to it.groupValues[2] }
+                val columns = HashMap<String, String>()
+                val primary = HashMap<String, Int>()
+                db.rawQuery("PRAGMA table_info($name)", null).use { rows ->
+                    while (rows.moveToNext()) { columns[rows.getString(1)] = rows.getString(2).uppercase(Locale.ROOT); primary[rows.getString(1)] = rows.getInt(5) }
+                }
+                if (columns != required) return false
+                val expectedKey = if (name == "native_read_meta") mapOf("id" to 1) else mapOf("collection" to 1, "id" to 2)
+                if (primary.filterValues { it > 0 } != expectedKey) return false
+            } else if (normalized(found) != normalized(sql)) return false
+        }
+        return db.rawQuery("SELECT source_revision,cached_revision FROM native_read_meta WHERE id=1", null).use { it.moveToFirst() }
     }
 
     private fun revision(db: SQLiteDatabase): Pair<Long, Long> = db.rawQuery("SELECT source_revision,cached_revision FROM native_read_meta WHERE id=1", null).use { check(it.moveToFirst()); it.getLong(0) to it.getLong(1) }

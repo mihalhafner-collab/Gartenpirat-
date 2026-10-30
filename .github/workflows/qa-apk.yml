@@ -95,6 +95,7 @@ jobs:
           "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-app.apk"
           "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-test.apk"
           mkdir -p outputs
+          native_suite_failures=0
           for suite in local_backup local_backup_reopen browser_checkpoint browser_checkpoint_reopen native_data document_provider document_provider_reopen native_compose; do
             "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service
             "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service.test
@@ -102,8 +103,11 @@ jobs:
             instrumentation_status=0
             timeout 360 "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation 2>&1 | tee "outputs/$suite.txt" || instrumentation_status=$?
             timeout 15 "$ADB" -s emulator-5580 logcat -d -t 1500 > "outputs/$suite-logcat.txt" 2>&1 || true
-            test "$instrumentation_status" = 0
-            python3 - "$suite" <<'PY'
+            if [ "$instrumentation_status" != 0 ]; then
+              native_suite_failures=$((native_suite_failures+1))
+              continue
+            fi
+            if python3 - "$suite" <<'PY'
           import json,pathlib,sys
           text=pathlib.Path('outputs/'+sys.argv[1]+'.txt').read_text()
           assert 'INSTRUMENTATION_CODE: -1' in text, text
@@ -140,7 +144,13 @@ jobs:
               assert result['picker_activity_recreation_tested'] is (not sys.argv[1].endswith('_reopen')), result
               assert result['provider_process_restart_tested'] is sys.argv[1].endswith('_reopen'), result
           PY
+            then
+              :
+            else
+              native_suite_failures=$((native_suite_failures+1))
+            fi
           done
+          test "$native_suite_failures" = 0
       - name: Collect isolated emulator diagnostics
         if: failure()
         run: |

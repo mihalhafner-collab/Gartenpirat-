@@ -29,7 +29,7 @@
   ],
   "current_task": {
     "name": "Kotlin-Update der bestehenden Haus-und-Garten-App mit kompatiblem ZIP-Backup",
-    "status": "INTEGRATING_COMPLETE_KOTLIN_COMPOSE_REFACTOR;ANDROID_RUNTIME_ACCEPTANCE_PENDING",
+    "status": "VERIFYING_NATIVE_CONCURRENCY_AND_BOUNDED_UPLOAD_FIXES",
     "authorized": true,
     "authorization_scope": "UPDATE same package/original signature;full Kotlin refactoring and regression;synthetic data only;bounded subagents;no productive access,installation,migration,restore or delivery",
     "requirements_document": "docs/fachregeln/APP.md",
@@ -39,7 +39,7 @@
       "JVM1154/Python62 PASS;final changed-source Android acceptance pending"
     ],
     "remaining": [
-      "Final source gates,clean Android build and eight native suites;fix/recheck",
+      "Rerun all8 native suites for lifetime/affinity,cold WAL cache and bounded chunk-upload fixes",
       "Real Drive,personal ZIP,physical Pixel untested;no productive actions",
       "Raw IndexedDB-only drafts preserved;not automatically materialized"
     ],
@@ -108,7 +108,7 @@
     }
   },
   "open_checks": [
-    "Current full native/Compose Android acceptance pending",
+    "Native SQLite concurrency FAIL under repair;chunk-prefix storage fix and final8-suite acceptance pending",
     "Real Drive account,personal ZIP and physical Pixel update/data retention NOT_EXECUTED;synthetic only",
     "Historical raw IndexedDB-only drafts are preserved;not automatically materialized as native photos"
   ],
@@ -136,31 +136,34 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "714a42e4c4153519d082bde2f579e35d3de7f82fc6373b401ed720ad00232e2f",
+    "app_source_fingerprint": "3eff7f7b5def23411e1dac8c245dcecf1eb58040111214e9c6a62a8a4a41abdb",
     "source_privacy": "PASS;empty operational seed",
     "business_data_read": false,
     "authored_changes_diff_check": "PASS",
     "current_test_run": {
-      "scope": "PREVIOUS_BACKUP_BASELINE_ONLY;FULL_KOTLIN_COMPOSE_SOURCE_AWAITING_ANDROID_ACCEPTANCE",
-      "observed_at_utc": "2026-10-29T22:05:02.995179+00:00",
-      "tested_git_sha": "970009dbb679aa6bdf2687c84e046534beb28c3b",
-      "source_sha256": "714a42e4c4153519d082bde2f579e35d3de7f82fc6373b401ed720ad00232e2f",
+      "scope": "30cbf9a_CI_FAILED;CURRENT_FIXES_IN_PROGRESS",
+      "observed_at_utc": "2026-10-30T00:12:17.161906+00:00",
+      "tested_git_sha": "30cbf9a4d07040273f72b6e7aeb2b2fcbe973913",
+      "source_sha256": "3eff7f7b5def23411e1dac8c245dcecf1eb58040111214e9c6a62a8a4a41abdb",
       "source_dirty": false,
       "source_checks": "PASS;62 Python/source/privacy/contracts;seed0",
-      "jvm": "PASS;271 existing+237 format+24 SQLite checks",
-      "android_build": "PASS;full release/test APK and lint/privacy gates;test-only runtime/manifest isolation verified",
+      "jvm": "PASS;1154 checks across8 suites",
+      "android_build": "PASS at30cbf9a;release/test APK,full lint0errors;637 assets/210 Kotlin targets verified",
       "native": {
-        "status": "PASS;Android15/API35 disposable emulator;250 checks",
+        "status": "FAIL;native_data SQLITE_BUSY;fixing and rerunning",
         "suites": {
           "local_backup": 43,
           "local_backup_reopen": 13,
           "browser_checkpoint": 79,
-          "browser_checkpoint_reopen": 23,
-          "document_provider": 75,
-          "document_provider_reopen": 17
-        }
+          "browser_checkpoint_reopen": 23
+        },
+        "not_run": [
+          "document_provider",
+          "document_provider_reopen",
+          "native_compose"
+        ]
       },
-      "ci_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40961632697",
+      "ci_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40977778647",
       "pixel_drive_account_personal_zip": "NOT_RUN;synthetic only"
     },
     "performance_evidence": "docs/verification/performance-current.md defines native measurement method;no inherited browser timing,FPS or physical Pixel performance claim",
