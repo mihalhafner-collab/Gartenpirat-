@@ -29,18 +29,17 @@
   ],
   "current_task": {
     "name": "Kotlin-Update der bestehenden Haus-und-Garten-App mit kompatiblem ZIP-Backup",
-    "status": "VERIFYING_FINAL_EIGHT_NATIVE_SUITES",
+    "status": "TECHNICAL_COMPLETE_SYNTHETIC_ACCEPTANCE_PASS",
     "authorized": true,
     "authorization_scope": "UPDATE same package/original signature;full Kotlin refactoring and regression;synthetic data only;bounded subagents;no productive access,installation,migration,restore or delivery",
     "requirements_document": "docs/fachregeln/APP.md",
     "implementation": [
       "193 Kotlin production files;native Compose feature routes/editors;no active app Java/JS",
       "SQLite indexed read cache/projections,IO/committed Flow,file media,bounded thumbnail-first Coil",
-      "Current build/lint/JVM1154/Python62/7native and3UI journeys PASS;timer viewport assertion pending"
+      "PASS:1154 JVM,62 Python,637 native checks in8 suites;full Android build/lint"
     ],
     "remaining": [
-      "Timer viewport test fix built;rerun8 native suites",
-      "Real Drive,personal ZIP,physical Pixel untested;no productive actions",
+      "Real Drive,personal ZIP,physical Pixel update acceptance NOT_RUN;no productive actions",
       "Raw IndexedDB-only drafts preserved;not automatically materialized"
     ],
     "regression_instructions": "docs/entwicklung/BAU.md#regressionsschleife-für-das-kotlin-refactoring",
@@ -54,15 +53,15 @@
         "required_evidence": "Relevant target/UI/storage/dependency decisions in BAU"
       },
       "KISS_YAGNI": {
-        "status": "REVIEWED;SINGLE_APP_MODULE;SHARED_WRITERS;EXISTING_SQLITE_CONTRACT;FINAL_CHECK_PENDING",
+        "status": "PASS_REVIEW;SINGLE_APP_MODULE;SHARED_WRITERS;EXISTING_SQLITE_CONTRACT",
         "required_evidence": "Each module,abstraction,dependency meets a concrete need"
       },
       "PARITY": {
-        "status": "DOMAIN_JVM_PASS;NATIVE_FEATURE_ROUTES_IMPLEMENTED;ANDROID_ACCEPTANCE_PENDING",
+        "status": "PASS_DOMAIN_8_NATIVE_SUITES_SELECTED_UI_FLOWS_210_ACTION_SOURCE_CONTRACT;PIXEL_NOT_RUN",
         "required_evidence": "Baseline workflows;package,signing,data contracts preserved"
       },
       "DRIVE_ZIP": {
-        "status": "SYNTHETIC_NONLOCAL_PROVIDER_AND_REAL_SYSTEM_PICKER_PASS;REAL_DRIVE_ACCOUNT_NOT_RUN",
+        "status": "PASS_PLAINTEXT_ZIP_REAL_SYSTEM_PICKER_NONLOCAL_PROVIDER_READBACK;REAL_DRIVE_NOT_RUN",
         "required_evidence": "Plain ZIP,picker/provider/readback/restore;no own Drive login"
       },
       "DRIVE_REMOVAL": {
@@ -94,7 +93,7 @@
         "required_evidence": "No productive or derived customer data/device/ZIP access"
       },
       "REGRESSION": {
-        "status": "CURRENT_7_NATIVE_3_UI_JOURNEYS_JVM1154_PYTHON62_BUILD_LINT_PASS;TIMER_PENDING",
+        "status": "PASS_CURRENT_SOURCE;JVM1154_PYTHON62_NATIVE637_8_SUITES_BUILD_LINT",
         "required_evidence": "Current-source checks;fix/recheck;unexecuted evidence stays open"
       },
       "SUBAGENTS": {
@@ -102,15 +101,14 @@
         "required_evidence": "Bounded ownership,independent review,root integration checks"
       },
       "BACKUP_COMPAT": {
-        "status": "SYNTHETIC_JAVA_KOTLIN_FORMAT_AND_NATIVE_RESTORE_REOPEN_PASS;PERSONAL_ZIP_UNREAD",
+        "status": "PASS_JAVA_KOTLIN_ZIP1_SQLITE6_7_TYPES_FILES_NATIVE_RESTORE_REOPEN;PERSONAL_ZIP_UNREAD",
         "required_evidence": "Java/Kotlin ZIP1 SQLite6/7;all types/files;native restore/reopen/rollback"
       }
     }
   },
   "open_checks": [
-    "Full8-suite acceptance after timer viewport test fix;stop/discard completion pending",
-    "Real Drive account,personal ZIP and physical Pixel update/data retention NOT_EXECUTED;synthetic only",
-    "Historical raw IndexedDB-only drafts are preserved;not automatically materialized as native photos"
+    "Real Drive account,personal ZIP and physical Pixel update/data retention NOT_RUN;synthetic only",
+    "Raw old IndexedDB-only drafts preserved;not automatically materialized as native photos"
   ],
   "workflow": {
     "scope": "CURRENT_SOURCE;struktur-neu is authoritative;qa-apk.yml builds and tests this source without publishing a user APK",
@@ -141,16 +139,16 @@
     "business_data_read": false,
     "authored_changes_diff_check": "PASS",
     "current_test_run": {
-      "scope": "CURRENT_SOURCE;TIMER_VIEWPORT_TEST_FIX_PENDING",
-      "observed_at_utc": "2026-10-30T03:19:22.798679+00:00",
-      "tested_git_sha": "3542d782946fb1f5c72632f80f9973b2f9f72e22",
+      "scope": "CURRENT_FULL_KOTLIN_COMPOSE_REFACTOR;SYNTHETIC_ACCEPTANCE_PASS",
+      "observed_at_utc": "2026-10-30T03:42:22.092646+00:00",
+      "tested_git_sha": "7bb6875d2efa77f5268bef2edc44a0f1bc87840c",
       "source_sha256": "1dccfad7966f564f3a844c848af4dae50c5200b8697592e07a449e4e06920407",
       "source_dirty": false,
       "source_checks": "PASS;62 Python/source/privacy/contracts;seed0",
       "jvm": "PASS;1154 checks across8 suites",
-      "android_build": "PASS;local and CI release/test APK and lint0errors;637 assets/210 Kotlin targets verified",
+      "android_build": "PASS;CI clean release/test APK and lint0errors;637 assets/210 Kotlin targets verified for same app fingerprint",
       "native": {
-        "status": "7_SUITES_AND_CUSTOMER_NOTIFICATION_LARGE_TEXT_PASS;TIMER_VIEWPORT_FAILED",
+        "status": "PASS;8 suites/637 checks;Android15/API35",
         "suites": {
           "local_backup": 43,
           "local_backup_reopen": 13,
@@ -158,11 +156,13 @@
           "browser_checkpoint_reopen": 23,
           "native_data": 225,
           "document_provider": 75,
-          "document_provider_reopen": 17
+          "document_provider_reopen": 17,
+          "native_compose": 162
         },
-        "compose_failure": "Timer470: resumed RUNNING header offscreen;start,pause and recreation passed"
+        "evidence": "40000 rows/4 indexed plans;WAL/Flow/concurrency;data main-thread disk0;draft failure/recreate/CAS;timer;200%font",
+        "performance_claim": false
       },
-      "ci_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40994896305",
+      "ci_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40996808542",
       "pixel_drive_account_personal_zip": "NOT_RUN;synthetic only"
     },
     "performance_evidence": "docs/verification/performance-current.md defines native measurement method;no inherited browser timing,FPS or physical Pixel performance claim",
@@ -206,6 +206,6 @@
   "current_release_candidate": {
     "version_name": "1.57.0",
     "version_code": 119,
-    "status": "FULL_KOTLIN_COMPOSE_SOURCE_IMPLEMENTED;INTEGRATED_ANDROID_REGRESSION_PENDING;NO_DISTRIBUTION_OR_INSTALL"
+    "status": "TECHNICAL_KOTLIN_COMPOSE_ACCEPTANCE_PASS;UNSIGNED;NO_DISTRIBUTION_OR_INSTALL"
   }
 }
