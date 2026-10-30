@@ -14,6 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -105,43 +108,43 @@ internal fun NativeSearchDialog(title: String, search: String, onSearch: (String
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         val keyboard = LocalSoftwareKeyboardController.current
         val focus = LocalFocusManager.current
-        val imeVisible = WindowInsets.isImeVisible
+        val imeVisible = WindowInsets.isImeVisible || WindowInsets.ime.getBottom(LocalDensity.current) > 0
         val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
         val close = { keyboard?.hide(); focus.clearFocus(); onDismiss() }
         val count = if (loading) "Wird geladen …" else "$total Treffer" + if (pageCount && !imeVisible) " auf dieser Seite" else ""
-        val results: @Composable (Modifier) -> Unit = { modifier ->
-            LazyColumn(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                if (error.isNotBlank()) item { Text(error, color = MaterialTheme.colorScheme.error) }
-                else if (!loading && total == 0) item { Text("Keine Treffer. Suchtext oder Filter ändern.", Modifier.padding(vertical = 12.dp)) }
-                if (loading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
-                content(close)
-            }
-        }
         Surface(Modifier.fillMaxSize()) {
-            if (landscape && imeVisible) {
-                Row(Modifier.safeDrawingPadding().imePadding().padding(horizontal = 12.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Column(Modifier.weight(0.4f).fillMaxHeight().verticalScroll(rememberScrollState())) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(count, Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
-                            IconButton(close, Modifier.semantics { contentDescription = "Schließen" }) { Text("×") }
-                        }
-                        if (searchEnabled) NativeField(searchLabel, search, onSearch, search = true)
+            // Keep the same text-field node when IME/rotation changes placement;
+            // replacing a Column with a Row would dispose its focused editor.
+            Layout(modifier = Modifier.fillMaxSize().safeDrawingPadding().imePadding().padding(horizontal = 12.dp, vertical = 4.dp), content = {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    if (!imeVisible) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                        TextButton(close) { Text("Schließen") }
                     }
-                    results(Modifier.weight(0.6f).fillMaxHeight())
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        if (searchEnabled) NativeField(searchLabel, search, onSearch, search = true, modifier = Modifier.weight(1f))
+                        if (imeVisible) IconButton(close, Modifier.semantics { contentDescription = "Schließen" }) { Text("×") }
+                    }
+                    Text(count, Modifier.padding(vertical = 2.dp), style = MaterialTheme.typography.labelLarge)
                 }
-            } else {
-            Column(Modifier.safeDrawingPadding().imePadding().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                if (!imeVisible) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    TextButton(close) { Text("Schließen") }
+                LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (error.isNotBlank()) item { Text(error, color = MaterialTheme.colorScheme.error) }
+                    else if (!loading && total == 0) item { Text("Keine Treffer. Suchtext oder Filter ändern.", Modifier.padding(vertical = 8.dp)) }
+                    if (loading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+                    content(close)
                 }
-                if (searchEnabled) NativeField(searchLabel, search, onSearch, search = true)
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(count, Modifier.weight(1f).padding(vertical = 4.dp), style = MaterialTheme.typography.labelLarge)
-                    if (imeVisible) TextButton(close) { Text("Schließen") }
+            }) { children, limits ->
+                val sideBySide = landscape && imeVisible
+                val gap = if (sideBySide) 12.dp.roundToPx() else 0
+                val controlWidth = if (sideBySide) ((limits.maxWidth-gap)*0.42f).toInt() else limits.maxWidth
+                val controls = children[0].measure(Constraints(minWidth = controlWidth, maxWidth = controlWidth, maxHeight = limits.maxHeight))
+                val resultsWidth = if (sideBySide) limits.maxWidth-controlWidth-gap else limits.maxWidth
+                val resultsHeight = if (sideBySide) limits.maxHeight else (limits.maxHeight-controls.height).coerceAtLeast(0)
+                val results = children[1].measure(Constraints.fixed(resultsWidth, resultsHeight))
+                layout(limits.maxWidth, limits.maxHeight) {
+                    controls.placeRelative(0,0)
+                    results.placeRelative(if (sideBySide) controlWidth+gap else 0, if (sideBySide) 0 else controls.height)
                 }
-                results(Modifier.weight(1f).fillMaxWidth())
-            }
             }
         }
     }
@@ -164,10 +167,11 @@ internal fun NativeRecordDialog(visible: Boolean, controller: NativeAppControlle
     NativeSearchDialog(title, search, { search = it; offset = 0 }, page?.total ?: 0, loading = page == null && error.isEmpty(), error = error, onDismiss = onDismiss) { close ->
         if (error.isNotBlank()) item { TextButton({ retry++ }) { Text("Erneut versuchen") } }
         items(page?.rows ?: emptyList(), key = { it.id }) { row ->
-            ListItem(headlineContent = { Text(row.title) }, supportingContent = {
+            Column(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { onChoose(row); close() }.padding(horizontal = 12.dp, vertical = 4.dp)) {
+                Text(row.title, style = MaterialTheme.typography.bodyLarge)
                 val detail = listOf(row.address, row.subtitle).filter { it.isNotBlank() }.distinct().joinToString(" · ")
-                if (detail.isNotBlank()) Text(detail)
-            }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { onChoose(row); close() })
+                if (detail.isNotBlank()) Text(nativeDisplayText(detail), style = MaterialTheme.typography.bodyMedium)
+            }
         }
         if (offset > 0 || page?.hasMore == true) item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

@@ -351,61 +351,54 @@ Nicht vollständig geprüft: positive Zahlungsbuchung,produktive Belegfinalisier
 Dokumentationsprüfung: JSON-Syntax, 67 eindeutige Test-IDs, Pflichtspalten, Tabellenzusammenhang und Ausschluss von Seriennummer/Profilkennung geprüft. Der unveränderte Pflichtdateien-Hook ist lokal erfolgreich; vollständiger Quellcheck bleibt mit dem beschriebenen Umgebungsfehler offen. Keine Appquelle geändert.
 
 
-## Laufender Oberflächenumbau vom 30.10.2026
+## Bedienkonzept und synthetische Abnahme vom 30.10.2026
 
-Frisch ermittelter Ausgangspunkt: Entwicklungszweig `codex/kotlin-refactoring-20261029`,
-Commit `242ccc9159cefdb22879c57474bcd45586244ab6`; App-Quellen entsprechen dem
-Build120-Quellcommit `f770f38d0bd428ec93004252d1aaacf003a475e2`. `main` enthält
-weiterhin Build117. Keine vorhandenen lokalen Änderungen oder produktiven Daten übernommen.
+Frisch ermittelte Arbeitsbasis: `codex/kotlin-refactoring-20261029`, Commit
+`242ccc9159cefdb22879c57474bcd45586244ab6`. Die App-Quellen entsprechen dort
+Build120 / 1.57.1, Quellcommit `f770f38d0bd428ec93004252d1aaacf003a475e2`.
+`main` enthält Build117. Es gab keinen vorhandenen lokalen Checkout oder lokale
+Änderungen. Alle Änderungen setzen auf dem aktuellen Entwicklungszweig auf.
+Quellstand, laufende Prüfungen und offene Punkte stehen im aktuellen Arbeitsstand;
+diese Dokumentation beschreibt Bedienwege und Nachweisgrenzen.
 
-Etappe 1 wurde unter `8e69c840d3f3facffea799b5134fce0bb2fd5dff` gesichert und
-über den GitHub-Baum einschließlich aller neun geänderten Blob-Hashes zurückgelesen.
-CI `41070955981`: vollständige Quellprüfung, Release-/Test-Build, Lint, neun JVM-
-und sieben native Sicherungs-/Datenbank-/Provider-Suiten bestanden. Compose meldete
-zwei fehlgeschlagene Auswahlzustandsprüfungen (Kundenakte und Angebote). Die gesicherten
-synthetischen Bilder `qa-native-failure-customer.png` und `qa-native-customer-offers.png`
-zeigen den richtigen Bereich farblich; die Navigationsbuttons benötigten zusätzlich
-die Tab-Rolle für den von Android gemeldeten Auswahlzustand. Korrektur in Etappe 2,
-Wiederholungsprüfung ausstehend. Kein vollständiger PASS und keine Pixel-Abnahme.
+### KISS-/YAGNI-Entscheidungen
 
-KISS/YAGNI Etappe 2: Die bisherigen getrennten Suchdialoge verwenden dieselbe
-Auswahlfläche und die vorhandene indizierte Datenquelle. Keine neue Suchmaschine,
-Filterprofile oder Abhängigkeiten. Suchfeld und Trefferzahl bleiben über der Liste,
-Zusatzfilter werden bei Bedarf geöffnet. Die vorhandenen Entwürfe und Fachprüfungen
-bleiben zuständig; Navigation speichert lediglich ihren vorhandenen Verlauf.
-Die erweiterte synthetische Abnahme prüft tatsächliche IME-Grenzen, Bildschirmbilder,
-Tastaturaktion, Sucherhalt und Touchauswahl in zwölf Darstellungskombinationen.
-Ergebnisse stehen bis zum passenden CI-Lauf ausdrücklich aus.
+Vorhandene Route-Argumente, indizierte SQL-Seiten, Fachberichte, Entwürfe und
+transaktionale Schreiber bleiben zuständig. Keine neue Architektur, Abhängigkeit,
+Datenbank, Migration, Filterprofile oder Freigabeverwaltung. Ein zusätzliches
+Navigationsframework ist für vier Bereiche und den vorhandenen Verlauf unnötig.
 
+Die tatsächlichen Kunden-, Geräte-, Planungs-, Foto- und Textauswahlen teilen
+sich eine Suchfläche. Sie zeigt Suche, Trefferzahl, Nulltreffer und Ergebnisliste
+unmittelbar zusammen. Zusatzfilter sind kompakt erreichbar. Suchtext und Filter
+überstehen Detail-/Editorwechsel und Activity-Neuerstellung. IME-Suchen/Fertig
+beendet die Eingabe; Auswahl schließt Wähler und Tastatur. Große Schrift wird
+nicht verkleinert. Gleichnamige Kunden besitzen Adresse/Ort zur Unterscheidung.
 
-Etappe 2 ist unter `c83e63475966f6dc7e9b73fae117e926b417c8e0` gespeichert;
-alle 14 geänderten Blob-Hashes wurden unabhängig aus GitHub zurückgelesen und
-mit den lokalen Inhalten verglichen. Vollständiger Prüflauf: `41074975556`.
+Ein vollständiges Material-3-Farbschema, vorhandene Schriftrollen und Formen,
+lesbare Statusflächen und umbrechende Aktionsleisten vereinheitlichen die App.
+Der Zurück-Pfeil behält eine beschriftete 48-dp-Tastfläche. Die vier Hauptbereiche
+bleiben in Unteransichten erkennbar; „Arbeit“ öffnet Arbeitsaufzeichnungen. Bei
+200 % Schrift stehen die Bereichsschalter in zwei Reihen, im Querformat seitlich.
+Ausgewählte Bereiche bleiben anklickbar. Der explizite Auswahlzustand ersetzt die
+zwischenzeitlich ungeeignete Tab-Rolle, die den Übersichtsklick gesperrt hatte.
 
-KISS/YAGNI Etappe 3: Ein vollständiges bestehendes Material-3-Theme ersetzt
-abweichende Standardfarben. Ein gemeinsamer umbrechender Aktionsbereich dient den
-bereits vorhandenen Editoren. Keine neue Designbibliothek und keine neuen
-Benutzereinstellungen. Sicherung behält alle Prüf- und Rücklesepfade; nur der
-Speicherknopf erhält den festen unteren Platz. Wiederanlaufschutz erhält keinen
-zusätzlichen Zurück-Einstieg. Allgemeine Leseansichten verbergen technische
-Erstell-/Änderungsfelder; gespeicherte Daten und Eingabefelder bleiben unverändert.
-Sechs verwendete Text-/Flächenkontraste rechnerisch geprüft: 6,74 bis 16,08:1.
-Dies ersetzt weder Bildschirmprüfung noch Geräteabnahme.
+Gemeinsame Übersichten verwenden bestehende Beziehungen und begrenzte Listen.
+Die Kundenakte zeigt Kontakt, Objekte, nächste Termine/Einsätze, offene Stunden,
+letzte Arbeiten, Fotos und Belege. Arbeit bündelt Timer, Nachtragen, Verlauf und
+Arbeitsentwürfe. Abrechnung bündelt offene Arbeiten, Belege, Entwürfe, Zahlungen
+und Guthaben. Geräte behalten ihre vorhandene gemeinsame Zubehör-/Ketten-/Foto-
+und Wartungsansicht. Einstellungen bündeln Verbindungen, Sicherung und Diagnose.
 
+Arbeitskunde und Rechnungsempfänger bleiben getrennt, auch bei mehreren Kunden
+mit demselben Empfänger. Der Quellenfilter wird im Formularentwurf erhalten;
+die vorhandene Quellenauswahl lässt sich ausdrücklich auf den Empfänger erweitern.
+Dieser Anzeigekontext wird nicht als neues Rechnungsfachfeld gespeichert. Eine
+Tagesübersicht oder Tour erzeugt keine Arbeitsbuchung. Persönliche Bezahlmarkierung
+und belegte Rechnungszahlungen bleiben getrennt. Restore- und Belegschutzprüfungen
+werden nicht durch Übersichten ersetzt.
 
-Etappe 3: GitHub `8baf3bcfe05676458daa7c275e4c2c29e714e278`, alle elf geänderten
-Blob-Hashes zurückgelesen; Prüflauf `41075726848`. Etappe 2: vollständige Quellprüfung,
-Release-/Test-Build und Lint in `41074975556` bestanden; native Matrix noch offen.
-
-KISS/YAGNI Etappe 4: Bestehende Beziehungen, begrenzte SQL-Seiten und Fachberichte
-werden in gemeinsamen Übersichten verwendet. Keine zweite Planung, Abrechnung oder
-Zubehörverwaltung. „Offene Stunden“ verwendet `BillingRules.groups` über den bestehenden
-Arbeitsbericht und zeigt dessen Beleggrenze. Empfängerbezogene Zahlungen werden weiterhin
-am konkreten Rechnungsbeleg geprüft; nicht zugeordnete Zahlungen werden keinem Kunden
-erfunden zugeteilt. Nächste Termine werden vor der Seitengrenze chronologisch gelesen;
-der bisherige absteigende Historienmodus bleibt Standard.
-
-### Funktionsabgleich und Einstiege des laufenden Umbaus
+### Funktionszuordnung
 
 | Vorhandene Ansicht / Funktion | Gemeinsamer oder direkter Einstieg | Suche / Filter und erhaltene Aktionen |
 | --- | --- | --- |
@@ -427,32 +420,58 @@ der bisherige absteigende Historienmodus bleibt Standard.
 | Sicherung / Wiederherstellung | Einstellungen → Sicherung und Wiederherstellung | Unveränderter Android-Dateidialog, Speichern/Zurücklesen, Vorschau, ausdrückliche Wiederherstellung, Wiederanlauf/Rückfallpfade |
 
 Alle 210 semantischen UI/MCP-Aktionen bleiben im bestehenden Inventar erhalten.
-Diese Quellzuordnung ist kein Ersatz für die noch laufende native Oberflächenabnahme.
 
-KISS/YAGNI Etappe 5: Ein kurzer Filterknopf und eine umbrechende Trefferzeile
-beheben den im Emulator bei 200 % sichtbaren Ein-Buchstaben-Umbruch. Die
-Bereichsschalter bleiben auch ausgewählt klickbar; eine Tab-Rolle hatte diesen
-Einstieg gesperrt. Der Auswahlzustand wird jetzt ausdrücklich vorgelesen.
-Querformat nutzt eine seitliche Hauptnavigation; bei geöffneter Tastatur stehen
-Suchfeld und Ergebnisliste im Auswahlfenster nebeneinander. Keine kleinere Schrift,
-zusätzliche Datenhaltung oder Sucharchitektur. Kundenadressen unterscheiden
-gleichnamige Einträge auch nach Auswahl. Fotoimport übernimmt die aktuell
-eingestellten Filter. Vorhandene Kundenbezüge begrenzen passende Objekt-/Auftrags-
-und Einsatzwähler; Rechnungsempfänger bleiben fachlich getrennt.
+Die 210 semantischen Aktionen bleiben im vorhandenen Manifest erfasst. Die
+Quellzuordnung allein beweist keine vollständige Geräteabnahme. Die zugehörige
+Compose-Prüfung öffnet 38 Einstiege, prüft 16 fachliche Suchen und zwölf
+Darstellungskombinationen; genaue Durchführung in `../entwicklung/BAU.md`.
+Sonderseiten werden dabei gelesen, ohne Kontofreigaben oder produktive Aktionen.
+`FLAG_SECURE` der ChatGPT-Zugangsdatenansicht wird nicht für Screenshots aufgehoben.
 
-Die vorherigen Läufe 41074975556 und 41075726848 bestanden Quellprüfung,
-Android-Bau/Lint, JVM-Suiten und sieben native Fach-/Speichersuiten. Compose
-scheiterte an fünf Bedienfolgen. Zwei Prüfprobleme wurden getrennt korrigiert:
-Treffertext entsprach dem Suchfeldtext; Querformat war tatsächlich nicht erreicht.
-Die neue Prüfung verlangt weiterhin reale Fenstergrenzen und Touchauswahl.
-Die ergänzten 16 fachlichen Suchfälle und zwölf Darstellungskombinationen sind
-noch nicht bestanden; Screenshots aus einem geschlossenen Tastaturzustand sind
-kein Nachweis für sichtbare Treffer bei geöffneter Tastatur.
+### Vergleich derselben Bedienaufgaben
 
-Die Aktionsleisten für Fotoimport/-details, Tour, Geräte und Kalender verwenden
-denselben umbrechenden Baustein. Der Zurück-Pfeil besitzt eine beschriftete
-48-dp-Tastfläche; lange Seitentitel behalten ihre Schriftgröße. Noch laufende
-Listenabfragen sind von Nulltreffern getrennt. Der gemeinsame Filterknopf beendet
-die Tastatureingabe, bevor er die Filter zeigt. Die zusätzlichen 38 Einstiegsfälle
-prüfen sämtliche Bereiche und lesen Sonderseiten ohne Verbindungs-, Übernahme-
-oder Wiederherstellungsaktion. Die Ausführung und Screenshotprüfung stehen aus.
+Vorher meint den oben gebundenen Ausgangsquellstand. Die folgende Tabelle zählt
+Navigationsaktionen ab demselben Ausgangspunkt, keine Buchstabeneingaben. Sie ist
+ein Quell-/Bedienwegvergleich; genaue Scrollstrecken und Reaktionszeiten werden
+daraus nicht als gemessene Verbesserung behauptet.
+
+| Bedienaufgabe | Vorher | Neue Umsetzung / bewusster Nachteil |
+|---|---|---|
+| Kundenakte → Fotos / Angebote | Direkter Einstieg übergibt Kunde, Liste nutzt ihn nicht zuverlässig; manuelle Filtersetzung nötig | Direkter Einstieg nutzt und zeigt den Kundenfilter; A/B-Ausschluss wird synthetisch geprüft |
+| Kundenakte → Objekte / nächste Einsätze / offene Stunden | Getrennte Bereiche und erneute Orientierung | Bestehende Daten stehen in derselben Akte; „Alle …“ führt in die gefilterte vollständige Liste |
+| Heute → manuell erfassen / Timer | Je ein direkter Einstieg | Je ein direkter Einstieg bleibt erhalten |
+| Büro → Rechnungen | Büro, Rechnungen: zwei Navigationsaktionen | Büro, Abrechnung, Rechnungen: drei Aktionen; die gemeinsame Abrechnungsübersicht kostet hier eine zusätzliche Ebene |
+| Büro → Maschinenpark | Zwei Navigationsaktionen plus Scrollen durch die lange Bürofolge | Zwei Aktionen; Maschinenpark ist die dritte Hauptkachel |
+| Büro überblicken | 26 Ziele plus „Arbeiten abrechnen“, in drei offenen Gruppen | Vier Hauptkacheln plus drei aufklappbare Gruppen; alle bisherigen Funktionen bleiben über die Tabelle erreichbar |
+| Kunde in Formular wählen | Dialog mit bis zu 40 Treffern, danach Suche eingrenzen; kein Seitenwechsel | Begrenzte Seiten mit Vorherige/Weitere, ausdrücklich null Treffer und getrennte „Keine Zuordnung“; nach Auswahl ist die Zuordnung sichtbar |
+| Speichern und weiterwechseln | Allgemeine Meldung kann im nächsten Bereich bleiben | Vorgangsbezogene Bestätigung; Navigation/Zurück löschen alte Meldungen |
+
+Die neue Büro-Zeitmessung beginnt in der gemeinsamen Abrechnungsübersicht. Sie
+ist wegen dieses veränderten Starts nicht mit den früheren Büro-Zahlen oben
+vergleichbar; kein neuer Laufzeitgewinn wird daraus abgeleitet.
+
+### Bestätigte Fehler und Grenzen
+
+Im bisherigen Emulatorlauf sichtbar bestätigt: Bei 200 % drückte eine lange
+Filterbeschriftung die Trefferzahl auf einzelne Buchstaben; die kurze Filteraktion
+und umbrechende Trefferzeile korrigieren den Aufbau. Der alte Kundenwähler wurde
+zunächst nur ohne Tastatur abgebildet. Diese Bilder zählen ausdrücklich nicht
+als Nachweis für sichtbare Treffer bei geöffneter Tastatur.
+
+Prüfcodefehler wurden separat behandelt: Ein identischer Suchfeldwert wurde zuerst
+als Treffer gefunden; Querformat war in den damaligen Fällen tatsächlich nicht
+erreicht. Die korrigierte Prüfung verlangt weiterhin echte Orientierung,
+IME-Fenstergrenzen und injizierte Touchauswahl. Ein vorhandener Accessibility-Knoten
+allein zählt nicht als bestandene Sichtbarkeitsprüfung.
+
+Maßgeblich sind die Ergebnisse und der exakte Quellfingerabdruck im aktuellen
+Arbeitsstand. Fehlgeschlagene Zwischenläufe werden nicht als PASS gewertet.
+Die vollständigen CI-Checkouts führen `check_current.py`, Build/Lint, neun JVM-
+und acht native Suiten aus. Im lokalen Teilcheckout fehlen große unveränderte
+Pflanzenassets; sein vollständiger `check_current.py` endet an dieser fehlenden
+Datei. Die 62 vorhandenen Python-Tests bestehen bei Aufruf ihrer Testprogramme.
+
+Physischer Pixel, echtes Drive-Konto, produktive Installation, Migration,
+Wiederherstellung, Rechnungsfreigabe und Veröffentlichung gehören nicht zu diesem
+Auftrag. Die unten/oben gebundenen historischen Pixel-Belege bleiben historische
+Belege und sind keine Abnahme dieser Oberfläche.

@@ -34,7 +34,7 @@
   ],
   "current_task": {
     "name": "Einheitliche Oberfläche, Suchansichten und gemeinsame Übersichten",
-    "status": "IN_PROGRESS;STAGE5_SEARCH_AND_NAV_CORRECTIONS;EMULATOR_RETEST_PENDING",
+    "status": "IN_PROGRESS;FINAL_IME_GEOMETRY_CORRECTION;RETEST_PENDING",
     "authorized": true,
     "authorization_scope": "Current explicit user task: source changes, synthetic tests, check builds, existing documentation and GitHub readback; no productive installation, migration, restore, invoice activation or publication",
     "base_git_sha": "242ccc9159cefdb22879c57474bcd45586244ab6",
@@ -90,9 +90,9 @@
     ]
   },
   "open_checks": [
-    "Compose previous runs fail navigation assertions, selected-area click, result-candidate test and orientation setup; corrected in current source, retest pending",
-    "Confirmed 200-percent planning count layout corrected; actual IME geometry and all domain searches still need passing evidence",
-    "Complete synthetic surface navigation and regression acceptance pending",
+    "CI41081046364:16domain searches and existing independent Compose journeys PASS;customer_context assertion inspected child instead of selected button, corrected",
+    "12display matrix:4reported failures;some reported passes lost IME before screenshot and are invalidated. Stable layout and compact rows corrected;strict IME-before/after capture and48dp touch checks added",
+    "Full38surface/shared-recipient/gesture regression pending successful build and emulator rerun",
     "Physical Pixel NOT_RUN;outside task scope;no productive access or installation"
   ],
   "workflow": {
@@ -136,7 +136,8 @@
       "pixel_installation_performed": false,
       "stage3": "CI41075726848 source/build/lint/JVM/7 native suites PASS;Compose FAIL5 journeys (known navigation, candidate/orientation test and large-font layout)",
       "stage4": "CI41077739265 source/build/lint/JVM/7native suites PASS;Compose known5journey failures;corrected in next checkpoint",
-      "stage5": "CI41081046364 source/build/lint/JVM PASS;emulator running. Full surface checkpoint09b847665016eaf461cb4547ccfefa97672600c0 readback PASS;CI41082425508 running. Shared-recipient regression and remaining display formatting pending next run."
+      "stage5": "CI41081046364 build/lint/JVM/7native suites PASS;Compose FAIL2journeys.16domain searches PASS, matrix not accepted after screenshot review. Latest corrections pending next run.",
+      "build_corrections": "Surface checkpoint2143947 failed missing brace;09b8476 and1fbe01d missing flow.catch import. Both corrected in1e517bb9ef2f34ab3d25bbc4558b8232215d5076;run41084282186 pending."
     },
     "performance_evidence": "docs/verification/performance-current.md;Build120 emulator and historical Pixel119 separate",
     "connector": {

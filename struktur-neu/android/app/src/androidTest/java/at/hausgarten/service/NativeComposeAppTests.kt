@@ -824,13 +824,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
     }
 
-    private fun captureSyntheticScreen(name: String) {
+    private fun captureSyntheticScreen(name: String, requireKeyboard: Boolean = false) {
+        if (requireKeyboard) yes(keyboardVisible(), "SCREENSHOT_IME_BEFORE_$name")
         val bitmap = requireNotNull(automation.takeScreenshot()) { "Synthetic emulator screenshot unavailable" }
         try {
             File(requireNotNull(context.getExternalFilesDir(null)), "qa-native-$name.png").outputStream().use {
                 check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it))
             }
         } finally { bitmap.recycle() }
+        if (requireKeyboard) yes(keyboardVisible(), "SCREENSHOT_IME_AFTER_$name")
     }
 
     private fun customerContextJourney() {
@@ -891,7 +893,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             shown("QA Kontextangebot $index")
             yes(node("QA Kontextangebot ${1-index}") == null, "OFFERS_KEEP_CUSTOMER_$index")
             if (index == 0) captureSyntheticScreen("customer-offers")
-            yes(nodes().any { it.stateDescription?.toString() == "Ausgewählter Bereich" && matches(it, "Büro") }, "OFFERS_OFFICE_AREA_$index")
+            yes(node("Büro")?.let(::clickable)?.stateDescription?.toString() == "Ausgewählter Bereich", "OFFERS_OFFICE_AREA_$index")
             click("QA Kontextangebot $index"); click("Zur Liste")
             shown("QA Kontextangebot $index")
             yes(node("QA Kontextangebot ${1-index}") == null, "OFFER_DETAIL_RETURN_FILTER_$index")
@@ -986,7 +988,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     /** Validate real screen/IME geometry, then inject a touch, not a semantics click. */
-    private fun visibleResult(label: String, tap: Boolean = false): Rect {
+    private fun visibleResult(label: String, tap: Boolean = false, requireKeyboard: Boolean = false): Rect {
         var result: Rect? = null
         waitUntil("SEARCH_RESULT_BOUNDS_$label") {
             val candidate = nodes().firstNotNullOfOrNull { if (matches(it, label)) clickable(it) else null } ?: return@waitUntil false
@@ -994,11 +996,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             val screen = Rect()
             automation.rootInActiveWindow?.getBoundsInScreen(screen)
             val ime = automation.windows.firstOrNull { it.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD && it.root?.isVisibleToUser == true }
+            if (requireKeyboard && ime == null) return@waitUntil false
             if (ime != null) {
                 val keyboard = Rect().also { ime.getBoundsInScreen(it) }
                 if (!keyboard.isEmpty) screen.bottom = minOf(screen.bottom, keyboard.top)
             }
-            val valid = !bounds.isEmpty && screen.contains(bounds) && bounds.width() > 0 && bounds.height() > 0
+            val valid = !bounds.isEmpty && screen.contains(bounds) && bounds.width() >= (48 * context.resources.displayMetrics.density).toInt() && bounds.height() >= (48 * context.resources.displayMetrics.density).toInt()
             if (valid) result = bounds
             valid
         }
@@ -1048,13 +1051,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     enter("Suchen", fixturePrefix + "000"); shown("1 Treffer")
                     visibleResult(fixturePrefix + "000")
                     showKeyboard("Suchen")
-                    visibleResult(fixturePrefix + "000")
-                    captureSyntheticScreen(key)
+                    visibleResult(fixturePrefix + "000", requireKeyboard = true)
+                    captureSyntheticScreen(key, requireKeyboard = true)
                     yes(requireNotNull(field("Suchen")).performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id), "SEARCH_IME_ACTION_$key")
                     waitUntil("SEARCH_IME_HIDDEN_$key") { !keyboardVisible() }
                     yes(field("Suchen")?.text?.toString()?.contains(fixturePrefix + "000") == true, "SEARCH_TEXT_AFTER_IME_$key")
                     shown("1 Treffer")
-                    showKeyboard("Suchen"); visibleResult(fixturePrefix + "000", tap = true)
+                    showKeyboard("Suchen"); visibleResult(fixturePrefix + "000", tap = true, requireKeyboard = true)
                     waitUntil("SEARCH_PICKER_CLOSED_$key") { node("Schließen") == null && !keyboardVisible() }
                     reveal("Kunde: " + fixturePrefix + "000")
                     click("Verwerfen"); click("OK", scrollTo = false)
@@ -1083,7 +1086,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Arbeit erfassen"); click("Kunde: Nicht zugeordnet")
         enter("Suchen", "NO_SYNTHETIC_MATCH_48273"); shown("0 Treffer"); shown("Keine Treffer. Suchtext oder Filter ändern.")
         shown("Keine Zuordnung")
-        showKeyboard("Suchen"); captureSyntheticScreen("search-no-results")
+        showKeyboard("Suchen"); captureSyntheticScreen("search-no-results", requireKeyboard = true)
         enter("Suchen", fixturePrefix); shown("55 Treffer")
         back(); waitUntil("SEARCH_PAGING_IME_HIDDEN") { !keyboardVisible() }
         click("Weitere"); reveal(fixturePrefix + "030"); click("Vorherige")
@@ -1091,8 +1094,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Schließen"); shown("Kunde: Nicht zugeordnet")
         click("‹ Zurück")
         click("Kunden"); enter("Suchen", fixturePrefix + "000"); showKeyboard("Suchen")
-        visibleResult(fixturePrefix + "000"); captureSyntheticScreen("search-customer-list")
-        visibleResult(fixturePrefix + "000", tap = true); reveal("Bearbeiten")
+        visibleResult(fixturePrefix + "000", requireKeyboard = true); captureSyntheticScreen("search-customer-list", requireKeyboard = true)
+        visibleResult(fixturePrefix + "000", tap = true, requireKeyboard = true); reveal("Bearbeiten")
         recreate(); click("‹ Zurück")
         yes(field("Suchen")?.text?.toString()?.contains(fixturePrefix + "000") == true, "LIST_SEARCH_AFTER_DETAIL_RECREATION")
         click("Heute")
@@ -1145,12 +1148,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             showKeyboard(fieldLabel)
             yes(requireNotNull(field(fieldLabel)).performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id), "DOMAIN_MANUAL_SEARCH_$key")
         }
-        showKeyboard(fieldLabel); visibleResult(result)
-        captureSyntheticScreen("domain-$key")
+        showKeyboard(fieldLabel); visibleResult(result, requireKeyboard = true)
+        captureSyntheticScreen("domain-$key", requireKeyboard = true)
         yes(requireNotNull(field(fieldLabel)).performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id), "DOMAIN_IME_ACTION_$key")
         waitUntil("DOMAIN_IME_CLOSED_$key") { !keyboardVisible() }
         yes(field(fieldLabel)?.text?.toString()?.contains(query) == true, "DOMAIN_QUERY_RETAINED_$key")
-        showKeyboard(fieldLabel); visibleResult(result, tap = true)
+        showKeyboard(fieldLabel); visibleResult(result, tap = true, requireKeyboard = true)
         waitUntil("DOMAIN_TOUCH_OPENED_$key") { !keyboardVisible() && field(fieldLabel) == null }
         domainSearchCases.put(JSONObject().put("case", key).put("zero_and_one", true).put("keyboard_bounds", true)
             .put("real_touch", true).put("ime_preserves_query", true).put("screenshot", "qa-native-domain-$key.png"))
@@ -1224,8 +1227,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("duplicate-customers") {
             click("Arbeit erfassen"); click("Kunde: Nicht zugeordnet")
             enter("Suchen", "QA Gleichnamig"); shown("2 Treffer"); reveal("QA TestNord"); reveal("QA TestSüd")
-            enter("Suchen", "QA TestSüd"); showKeyboard("Suchen"); visibleResult(duplicateName)
-            captureSyntheticScreen("domain-duplicate-customers"); visibleResult(duplicateName, tap = true)
+            enter("Suchen", "QA TestSüd"); showKeyboard("Suchen"); visibleResult(duplicateName, requireKeyboard = true)
+            captureSyntheticScreen("domain-duplicate-customers", requireKeyboard = true); visibleResult(duplicateName, tap = true, requireKeyboard = true)
             waitUntil("DUPLICATE_PICKER_CLOSED") { !keyboardVisible() && field("Suchen") == null }
             reveal("Kunde: $duplicateName · QA TestSüd")
             domainSearchCases.put(JSONObject().put("case", "duplicate-customers").put("keyboard_bounds", true).put("real_touch", true).put("address_distinguishes", true))
