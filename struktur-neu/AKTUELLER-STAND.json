@@ -31,16 +31,12 @@
     "name": "Kotlin-Update der bestehenden Haus-und-Garten-App mit kompatiblem ZIP-Backup",
     "status": "TECHNICAL_COMPLETE_SYNTHETIC_ACCEPTANCE_PASS",
     "authorized": true,
-    "authorization_scope": "UPDATE same package/original signature;full Kotlin refactoring and regression;synthetic data only;bounded subagents;no productive access,installation,migration,restore or delivery",
+    "authorization_scope": "Same-package Kotlin update;synthetic regression;bounded subagents. APK119 build/original signing/local artifact authorized;no productive access,installation,migration,restore or external publication.",
     "requirements_document": "docs/fachregeln/APP.md",
     "implementation": [
       "193 Kotlin production files;native Compose feature routes/editors;no active app Java/JS",
       "SQLite indexed read cache/projections,IO/committed Flow,file media,bounded thumbnail-first Coil",
       "PASS:1154 JVM,62 Python,637 native checks in8 suites;full Android build/lint"
-    ],
-    "remaining": [
-      "Real Drive,personal ZIP,physical Pixel update acceptance NOT_RUN;no productive actions",
-      "Raw IndexedDB-only drafts preserved;not automatically materialized"
     ],
     "regression_instructions": "docs/entwicklung/BAU.md#regressionsschleife-für-das-kotlin-refactoring",
     "acceptance_matrix": {
@@ -206,6 +202,12 @@
   "current_release_candidate": {
     "version_name": "1.57.0",
     "version_code": 119,
-    "status": "TECHNICAL_KOTLIN_COMPOSE_ACCEPTANCE_PASS;UNSIGNED;NO_DISTRIBUTION_OR_INSTALL"
+    "status": "ORIGINAL_SIGNED_VERIFIED_LOCAL_APK;NOT_INSTALLED_OR_EXTERNALLY_PUBLISHED",
+    "artifact": "Gartenpirat-1.57.0-build119.apk",
+    "source_git_sha": "94b75be56ef46ed1404b19a725a97811cbfcd19a",
+    "apk_sha256": "f907a1b260ec7719e7b11bf24e6d02671b8eaef7ba797f9ddca02b0a0ab42f86",
+    "apk_bytes": 89453503,
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "verification": "PASS;original identity,637 assets,210 targets,clean DEX,seed0"
   }
 }
