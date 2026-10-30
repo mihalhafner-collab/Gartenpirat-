@@ -116,6 +116,7 @@ internal fun NativeSearchDialog(title: String, search: String, onSearch: (String
         val focus = LocalFocusManager.current
         val imeVisible = WindowInsets.isImeVisible || WindowInsets.ime.getBottom(LocalDensity.current) > 0
         val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        val compactControls = imeVisible && !landscape && LocalDensity.current.fontScale > 1.3f
         val close = { keyboard?.hide(); focus.clearFocus(); onDismiss() }
         val count = if (loading) "Wird geladen …" else "$total Treffer" + if (pageCount && !imeVisible) " auf dieser Seite" else ""
         Surface(Modifier.fillMaxSize()) {
@@ -129,9 +130,12 @@ internal fun NativeSearchDialog(title: String, search: String, onSearch: (String
                     }
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         if (searchEnabled) NativeField(searchLabel, search, onSearch, search = true, modifier = Modifier.weight(1f))
-                        if (imeVisible) IconButton(close, Modifier.semantics { contentDescription = "Schließen" }) { Text("×") }
+                        if (imeVisible) Column(Modifier.widthIn(max = 112.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            IconButton(close, Modifier.semantics { contentDescription = "Schließen" }) { Text("×") }
+                            if (compactControls) Text(count, style = MaterialTheme.typography.labelLarge)
+                        }
                     }
-                    Text(count, Modifier.padding(vertical = 2.dp), style = MaterialTheme.typography.labelLarge)
+                    if (!compactControls) Text(count, Modifier.padding(vertical = 2.dp), style = MaterialTheme.typography.labelLarge)
                 }
                 LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (error.isNotBlank()) item { Text(error, color = MaterialTheme.colorScheme.error) }

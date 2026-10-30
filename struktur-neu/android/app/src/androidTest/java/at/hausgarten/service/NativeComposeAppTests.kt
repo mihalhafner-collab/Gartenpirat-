@@ -1085,7 +1085,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     captureSyntheticScreen(key, requireKeyboard = true)
                     yes(requireNotNull(field("Suchen")).performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id), "SEARCH_IME_ACTION_$key")
                     waitUntil("SEARCH_IME_HIDDEN_$key") { !keyboardVisible() }
-                    yes(field("Suchen")?.text?.toString()?.contains(fixturePrefix + "000") == true, "SEARCH_TEXT_AFTER_IME_$key")
+                    waitUntil("SEARCH_TEXT_AFTER_IME_$key") { field("Suchen")?.text?.toString()?.contains(fixturePrefix + "000") == true }
                     shown("1 Treffer")
                     showKeyboard("Suchen"); visibleResult(fixturePrefix + "000", tap = true, requireKeyboard = true)
                     waitUntil("SEARCH_PICKER_CLOSED_$key") { node("Schließen") == null && !keyboardVisible() }
@@ -1135,8 +1135,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun backGestureJourney() {
         val overlays = shell("cmd overlay list --user 0 android")
+        val originalMode = shell("settings get secure navigation_mode")
+        test.sendStatus(0, Bundle().apply { putString("gesture_environment", "mode=$originalMode\n$overlays") })
+        yes(overlays.contains("com.android.internal.systemui.navbar.gestural"), "GESTURAL_OVERLAY_INSTALLED")
         val original = overlays.lineSequence().firstOrNull { it.trim().startsWith("[x]") && it.contains("com.android.internal.systemui.navbar.") }?.substringAfter("] ")?.trim()
-            ?: error("Synthetic emulator navigation overlay unavailable")
+        // The base three-button configuration needs no enabled navbar overlay.
+        yes(original != null || originalMode == "0", "RECOGNIZED_INITIAL_NAVIGATION_MODE")
         try {
             shell("cmd overlay enable-exclusive --category --user 0 com.android.internal.systemui.navbar.gestural")
             waitUntil("GESTURE_NAVIGATION_ENABLED") { shell("settings get secure navigation_mode") == "2" }
@@ -1154,7 +1158,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             runCatching { captureSyntheticScreen("failure-back-gesture-active") }
             throw failure
         } finally {
-            shell("cmd overlay enable-exclusive --category --user 0 $original")
+            if (original == null) shell("cmd overlay disable --user 0 com.android.internal.systemui.navbar.gestural")
+            else shell("cmd overlay enable-exclusive --category --user 0 $original")
+            waitUntil("ORIGINAL_NAVIGATION_RESTORED") { shell("settings get secure navigation_mode") == originalMode }
             activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
         }
     }
@@ -1217,12 +1223,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("offers") {
             click("Kunden"); enter("Suchen", fixturePrefix+"000"); click(fixturePrefix+"000"); click("Angebote")
             keyboardSearchProof("offers", "Suchen", "QA Kontextangebot 0", "QA Kontextangebot 0")
-            click("Zur Liste"); yes(field("Suchen")?.text?.toString()?.contains("QA Kontextangebot 0") == true, "DOMAIN_RETURN_QUERY_offers")
+            click("Zur Liste"); waitUntil("DOMAIN_RETURN_QUERY_offers") { field("Suchen")?.text?.toString()?.contains("QA Kontextangebot 0") == true }
         }
         case("invoices") {
             click("Büro"); click("Abrechnung"); click("Rechnungen")
             keyboardSearchProof("invoices", "Suchen", "QA-UI-119", "QA-UI-119")
-            click("Zur Liste"); yes(field("Suchen")?.text?.toString()?.contains("QA-UI-119") == true, "DOMAIN_RETURN_QUERY_invoices")
+            click("Zur Liste"); waitUntil("DOMAIN_RETURN_QUERY_invoices") { field("Suchen")?.text?.toString()?.contains("QA-UI-119") == true }
         }
         case("planning") {
             click("Büro"); click("Planung")
@@ -1239,7 +1245,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("catalog") {
             openOfficeGroup("Material und Wissen", "Leistungskatalog")
             keyboardSearchProof("catalog", "Bausteine suchen", "QA Leistungsbaustein", "QA Leistungsbaustein")
-            click("Zur Liste"); yes(field("Bausteine suchen")?.text?.toString()?.contains("QA Leistungsbaustein") == true, "DOMAIN_RETURN_QUERY_catalog")
+            click("Zur Liste"); waitUntil("DOMAIN_RETURN_QUERY_catalog") { field("Bausteine suchen")?.text?.toString()?.contains("QA Leistungsbaustein") == true }
         }
         case("plants") {
             val plants = JSONObject(context.assets.open("plant-catalog.json").bufferedReader().use { it.readText() }).getJSONArray("plants")

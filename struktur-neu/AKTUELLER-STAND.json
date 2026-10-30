@@ -82,17 +82,17 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "a08ad845065f9d83a8ce9206f98b42c14053f4d779aa9a7961167ac797d7ae3c",
+    "app_source_fingerprint": "ecec0e368a6e6dc506c3f98c068548f594a32029de089007bd71285dbddea5c2",
     "source_privacy": "PASS;empty operational seed",
     "business_data_read": false,
     "authored_changes_diff_check": "PASS;git diff --check und210Aktionszuordnungen",
     "current_test_run": {
-      "source_basis": "6f9ddb2b830c9d093edea317a84a98aa771d2e0c",
-      "workflow_run": 41088683017,
+      "source_basis": "4487cc658eb8902eec821e4f45d843c6d205b693",
+      "workflow_run": 41096270726,
       "source_review": "PASS;vollständiger CI-Quellcheck",
       "android_build": "PASS;release+AndroidTest+lint",
       "jvm": "PASS;9Suiten",
-      "emulator": "7Suiten PASS;Compose TIMEOUT am Test-Activity-Neustart. Zusätzliche SQL-Sperre verhindert vollständige UI-Abnahme.",
+      "emulator": "7Suiten PASS;Compose FAIL:4Darstellungsfälle,4Suchfälle,Gesten-Vorbedingung.38Einstiege sowie Kundenkontext/Timer/Zubehör/Entwürfe durchlaufen;keine SQL-Sperre. Folgekorrekturen erneut zu prüfen.",
       "physical_pixel": "NOT_RUN;außerhalb Auftrag",
       "local_python": "PASS62Tests;lokaler Gesamtcheck endet am fehlenden unveränderten Pflanzenasset im Teilcheckout",
       "business_data_read": false,

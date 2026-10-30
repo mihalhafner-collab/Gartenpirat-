@@ -131,7 +131,7 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                 val active = listOf(customerLabel, photoRoles[role].orEmpty(), dateFrom.takeIf { it.isNotBlank() }?.let { "Ab ${nativeDisplayDate(it)}" }.orEmpty(), dateTo.takeIf { it.isNotBlank() }?.let { "Bis ${nativeDisplayDate(it)}" }.orEmpty(), orderLabel, worklogLabel, if (sessionId.isNotBlank()) "Laufende Sitzung" else "").filter { it.isNotBlank() }
                 if (active.isNotEmpty() && !imeVisible) Text(active.joinToString(" · "), Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
                 if (page.rows.isEmpty()) Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { if (listLoading) CircularProgressIndicator() else if (readFailure.isEmpty()) Text("Keine Fotos für diese Auswahl.") }
-                else if (imeVisible) LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 12.dp)) {
+                else if (imeVisible || search.isNotBlank()) LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 12.dp)) {
                     items(page.rows, key = { it.id }) { row ->
                         ListItem(headlineContent = { Text(row.title) }, supportingContent = { Text(nativeDisplayText(row.subtitle)) },
                             modifier = Modifier.fillMaxWidth().clickable { selected = row.id })
@@ -505,7 +505,7 @@ private fun NativePlantLibrary(initialId: String, controller: NativeAppControlle
         if (filterLabel.isNotBlank() && !imeVisible) Text(filterLabel, Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
         if (error.isNotBlank()) Text(error, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
         if (neophyte.isNotBlank() && !imeVisible) Text(catalog?.optJSONObject("neophyteReference")?.optString("notice").orEmpty(), Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
-        if (imeVisible) LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)) {
+        if (imeVisible || search.isNotBlank()) LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)) {
             if (filtered.isEmpty() && catalog != null) item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
             items(filtered.take(limit), key = { it.getString("id") }) { plant ->
                 ListItem(headlineContent = { Text(plant.optString("name")) }, supportingContent = { Text(plant.optString("scientificName")) },
