@@ -1366,7 +1366,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             Target("invoices", "Suchen", "QA-UI-119", "QA-UI-119") { click("Büro"); click("Abrechnung"); click("Rechnungen") },
             Target("planning", "Suche", "QA Native Notification", "[TEST] QA Native Notification") { click("Büro"); click("Planung") },
             Target("equipment", "Suchen", "QA Zubehör Säge", "[TEST] QA Zubehör Säge") { click("Büro"); click("Maschinenpark und Gerätewartung") },
-            Target("photos", "Fotos suchen", "QA Kontextfoto 0", "QA Kontextfoto 0") { openOfficeGroup("Material und Wissen", "Fotos") },
+            // The fixture is newest-first: photo 1 is the first of these two results.
+            // Customer A/B exclusion is verified separately in customerContextJourney.
+            Target("photos", "Fotos suchen", "QA Kontextfoto", "QA Kontextfoto 1") { openOfficeGroup("Material und Wissen", "Fotos") },
             Target("catalog", "Bausteine suchen", "QA Leistungsbaustein", "QA Leistungsbaustein") { openOfficeGroup("Material und Wissen", "Leistungskatalog") },
             Target("plants", "Name, botanischer Name oder Familie", plant.getString("scientificName"), plant.getString("name")) { openOfficeGroup("Material und Wissen", "Pflanzen") },
             Target("local", "Name, Objekt, Tätigkeit, Notiz oder Beleg", fixturePrefix+"000", fixturePrefix+"000", true) { openOfficeGroup("Weitere Verwaltung", "Lokale Suche") }
