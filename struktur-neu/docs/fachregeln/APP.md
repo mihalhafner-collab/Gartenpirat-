@@ -196,6 +196,9 @@ Heute zeigt erfasste Arbeiten und Hinweise direkt. Der Kunden-Menüaufruf beginn
 am Listenanfang; Suchtext und Filter werden dadurch nicht geändert. Arbeitsnotizen
 stehen ohne Aufklappen im Detail. Büro erhält die vorhandenen Funktionen einschließlich
 Maschinenpark und Gerätewartung. Häufige Aktionen liegen kompakt am unteren Rand.
+Bei großer Schrift dürfen Navigationsbeschriftungen den Formularbereich nicht
+verdrängen. Auswahlwerte und Formularaktionen wechseln bei Platzmangel in eine
+weitere Zeile; die eingestellte Schriftgröße bleibt erhalten.
 
 Arbeit erfassen folgt Kunde, Beginn/Ende, Pause, Tätigkeit, optionale Entsorgung
 und Fotos. Datum und weitere bestehende Angaben bleiben erreichbar. Pause bietet

@@ -9,6 +9,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
@@ -22,9 +26,13 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.UUID
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal fun NativeField(label: String, value: String, onValueChange: (String) -> Unit, required: Boolean = false, multiline: Boolean = false) {
-    OutlinedTextField(value, onValueChange, Modifier.fillMaxWidth(), label = { Text(label + if (required) " *" else "") },
+    val displayedLabel = label + if (required) " *" else ""
+    OutlinedTextField(value, onValueChange, Modifier.fillMaxWidth().semantics {
+        testTagsAsResourceId = true; testTag = "native-field:$displayedLabel"
+    }, label = { Text(displayedLabel) },
         singleLine = !multiline, minLines = if (multiline) 3 else 1)
 }
 
@@ -55,7 +63,7 @@ internal fun NativeSuggestions(label: String, options: List<String>, onChoose: (
     }, confirmButton = { TextButton({ open = false }) { Text("Abbrechen") } })
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalComposeUiApi::class)
 @Composable
 internal fun NativeAmountPresets(label: String, value: String, presets: List<String>, suffix: String, change: (String) -> Unit) {
     Text(label, style = MaterialTheme.typography.titleSmall)
@@ -64,7 +72,9 @@ internal fun NativeAmountPresets(label: String, value: String, presets: List<Str
             FilterChip(selected = value.replace(',', '.').toDoubleOrNull() == preset.toDoubleOrNull(), onClick = { change(preset) }, label = { Text("$preset $suffix".trim()) })
         }
     }
-    OutlinedTextField(value, change, Modifier.fillMaxWidth(), label = { Text("$label · frei eingeben") }, singleLine = true,
+    OutlinedTextField(value, change, Modifier.fillMaxWidth().semantics {
+        testTagsAsResourceId = true; testTag = "native-field:$label · frei eingeben"
+    }, label = { Text("$label · frei eingeben") }, singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
 }
 

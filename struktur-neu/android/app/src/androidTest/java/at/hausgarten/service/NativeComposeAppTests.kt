@@ -73,7 +73,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         return result
     }
 
-    private fun nodes() = all(automation.rootInActiveWindow)
+    private fun nodes(): List<AccessibilityNodeInfo> {
+        // API35 is required by guardFixture. A fresh tree avoids acting on a
+        // previous route or pre-scroll bounds retained by AccessibilityCache.
+        automation.clearCache()
+        return all(automation.rootInActiveWindow)
+    }
     private fun texts(node: AccessibilityNodeInfo) = listOfNotNull(node.text?.toString(), node.contentDescription?.toString(), node.hintText?.toString())
     private fun visibleTexts() = nodes().filter { it.isVisibleToUser }.flatMap(::texts)
     private fun matches(node: AccessibilityNodeInfo, label: String) = texts(node).any { it == label || it.split('\n').any { line -> line == label } }
@@ -138,8 +143,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 return@waitUntil accepted
             }
             if (scrollTo && SystemClock.uptimeMillis() - lastScroll > 250) {
-                nodes().firstOrNull { matches(it, label) }?.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id)
-                scroll(); lastScroll = SystemClock.uptimeMillis()
+                val exposed = nodes().firstOrNull { matches(it, label) }
+                    ?.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id) == true
+                if (exposed) settleUi() else if (!scroll()) scrollTop()
+                lastScroll = SystemClock.uptimeMillis()
             }
             false
         }
@@ -148,13 +155,19 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         return requireNotNull(clicked)
     }
 
-    private fun field(label: String): AccessibilityNodeInfo? = nodes().firstOrNull { candidate ->
-        candidate.isVisibleToUser && candidate.isEditable && (
-            matches(candidate, label) || all(candidate).any { matches(it, label) } ||
-                candidate.parent?.let { parent ->
-                    val siblings = all(parent)
-                    siblings.count { it.isEditable } == 1 && siblings.any { matches(it, label) }
-                } == true)
+    private fun field(label: String): AccessibilityNodeInfo? {
+        val current = nodes()
+        // Native fields retain their identity even when a floating label is
+        // clipped by scrolling. Do not infer identity from neighboring fields.
+        current.firstOrNull { it.isVisibleToUser && it.isEditable && it.viewIdResourceName == "native-field:$label" }?.let { return it }
+        return current.firstOrNull { candidate ->
+            candidate.isVisibleToUser && candidate.isEditable && candidate.viewIdResourceName?.startsWith("native-field:") != true && (
+                matches(candidate, label) || all(candidate).any { matches(it, label) } ||
+                    candidate.parent?.let { parent ->
+                        val siblings = all(parent)
+                        siblings.count { it.isEditable } == 1 && siblings.any { matches(it, label) }
+                    } == true)
+        }
     }
 
     private fun enter(label: String, value: String, displayed: String = value) {
@@ -165,10 +178,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             if (SystemClock.uptimeMillis() - lastScroll > 250) { scroll(); lastScroll = SystemClock.uptimeMillis() }
             false
         }
-        val selected = requireNotNull(field(label))
-        yes(selected.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, Bundle().apply {
-            putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, value)
-        }), "SET_TEXT_$label")
+        waitUntil("SET_TEXT_$label") {
+            val selected = field(label)
+            selected != null && selected.refresh() && selected.isEnabled && selected.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, Bundle().apply {
+                putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, value)
+            })
+        }
+        checks++
         waitUntil("VALUE_$label") { field(label)?.text?.toString()?.contains(displayed) == true || value.isEmpty() && field(label) != null }
         settleUi()
     }
@@ -321,6 +337,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun scrollTop() {
+        settleUi()
         // A dispatched scroll can temporarily return false while Compose is
         // animating. Only a settled absence of backward actions proves the top.
         var lastScroll = 0L
@@ -764,7 +781,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         // Only the previously verified disposable synthetic fixture is allowed here.
         nodes().filter { it.isVisibleToUser && texts(it).isNotEmpty() }.forEach { item ->
             val bounds = Rect(); item.getBoundsInScreen(bounds)
-            android.util.Log.i("NativeComposeQA", "$stage ${texts(item)} $bounds editable=${item.isEditable} clickable=${clickable(item) != null}")
+            android.util.Log.i("NativeComposeQA", "$stage ${texts(item)} $bounds id=${item.viewIdResourceName} editable=${item.isEditable} clickable=${clickable(item) != null}")
         }
     }
 
@@ -809,6 +826,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             val values = ArrayList<Double>()
             repeat(42) { sample ->
                 click("Büro")
+                // Verify the actual destination before locating its action;
+                // a late query result from the previous route is not a ready menu.
+                reveal("Abrechnung")
                 var start = 0L
                 click(entry, onAction = { start = it })
                 waitUntil("OFFICE_READY_$name") { node(ready) != null }

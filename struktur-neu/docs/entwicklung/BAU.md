@@ -311,6 +311,16 @@ Fotodateien. Gespeicherte Fotobytes werden davor und danach verglichen. Ein fris
 Formular darf keine Speicherbestätigung oder Fotoauswahl des vorherigen Formulars
 übernehmen. Tastatur- und 200-%-Schriftprüfungen vergleichen die tatsächlichen
 Aktionsgrenzen mit dem sichtbaren Bereich und den Systemabständen.
+Bei 200 % Schrift zusätzlich Beginn/Ende sowie Pausen- und Entsorgungsauswahl
+bedienen. Die gezielten synthetischen Bildschirmbilder prüfen, statt allein aus
+erreichbaren Semantikknoten auf ein lesbares Layout zu schließen. Der vorhandene
+CI-Prüflauf bewahrt dazu nur seine benannten Testbilder und die SHA256-Werte der
+temporär signierten Emulatorpakete auf; keine Nutzer-APK wird veröffentlicht.
+Die gemeinsame Feldkomponente stellt ihre Beschriftung als stabile Testkennung
+bereit. Der Emulator liest frische Accessibility-Knoten und bestätigt den konkreten
+Feldwert nach der Eingabe; abgeschnittene schwebende Beschriftungen sind keine
+Feldidentität. Grundlage ist die bestehende
+[Compose-/UiAutomator-Interoperabilität](https://developer.android.com/develop/ui/compose/testing/interoperability).
 
 Die Zubehörprüfung verbindet die native Geräteauswahl, freie Bezeichnung,
 Kettenspezifikationen und aktuelle Kette mit SQLite-Rücklesung. Das generierte Foto
