@@ -10,7 +10,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CancellationException
@@ -37,6 +39,7 @@ private fun planningText(row: JSONObject, key: String): String = if (!row.has(ke
 /** Projected calendar lists; details and writes use the same guarded planning commands as MCP. */
 @Composable
 internal fun NativePlanningScreen(section: String, id: String, controller: NativeAppController) {
+    val listStates = rememberSaveableStateHolder()
     val repository = remember(controller.store) { NativeDataRepository(controller.store) }
     val scope = rememberCoroutineScope()
     var selected by rememberSaveable(section, id) { mutableStateOf(id.takeUnless { it == "new" }.orEmpty()) }
@@ -89,13 +92,16 @@ internal fun NativePlanningScreen(section: String, id: String, controller: Nativ
                 catch (error: Exception) { failure = error.message.orEmpty() }
             }
         })
-        else -> PlanningList(controller, repository, weatherView, { weatherView = it }, onSelect = { selected = it }, onNew = { openEditor() })
+        else -> listStates.SaveableStateProvider("planning-list") { PlanningList(controller, repository, weatherView, { weatherView = it }, onSelect = { selected = it }, onNew = { openEditor() }) }
     }
     if (failure.isNotEmpty()) Text(failure, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PlanningList(controller: NativeAppController, repository: NativeDataRepository, weatherView: Boolean, onWeather: (Boolean) -> Unit, onSelect: (String) -> Unit, onNew: () -> Unit) {
+    var filtersOpen by rememberSaveable { mutableStateOf(false) }
+    val imeVisible = WindowInsets.isImeVisible
     var anchor by rememberSaveable { mutableStateOf(planningDay().toString()) }
     var week by rememberSaveable { mutableStateOf(true) }
     var search by rememberSaveable { mutableStateOf("") }
@@ -122,8 +128,14 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
     }
     val risks = remember(context?.toString()) { context?.optJSONArray("appointments")?.planningRows()?.associateBy { it.getJSONObject("appointment").optString("id") }.orEmpty() }
     Column(Modifier.fillMaxSize()) {
+        NativeField("Suche", search, { search = it; offset = 0 }, search = true, modifier = Modifier.padding(horizontal = 16.dp))
+        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("${page.total} Treffer · ${page.rows.size} auf dieser Seite", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+            TextButton({ filtersOpen = !filtersOpen }) { Text(if (filtersOpen) "Filter schließen" else "Zeitraum / Filter") }
+        }
+        if (!imeVisible) Text(if (from == to) from.toString() else "$from – $to", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-          item { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          if (filtersOpen && !imeVisible) item { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(if (weatherView) "Wetter & Einsätze" else "Planung", style = MaterialTheme.typography.headlineSmall)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 OutlinedButton({ anchor = day.minusDays(if (week) 7 else 1).toString(); offset = 0 }) { Text("‹") }
@@ -140,7 +152,6 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
                 FilterChip(selected = weatherView, onClick = { onWeather(true) }, label = { Text("Wetter") })
             }
             TextButton({ controller.open(PlanningConnectionActivity::class.java) }) { Text("Kalender & Wetter") }
-            PlanningField("Suche", search, { search = it; offset = 0 })
             PlanningPicker("Kundenfilter", "customers", customer, controller, repository, allowEmpty = true) { customer = it?.id.orEmpty(); offset = 0 }
             PlanningChoice("Status", status, linkedMapOf("" to "Alle") + planningStatuses) { status = it; offset = 0 }
             Text("${page.total} Treffer · ${page.rows.size} auf dieser Seite")
@@ -148,8 +159,8 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
             val integration = context?.optJSONObject("integration")
             if (integration != null) Text("Google Kalender: " + integration.optString("calendar_state", "unbekannt") + " · Belegtzeiten: " + integration.optString("calendar_busy_state", "ungeprüft"))
             if (weatherView) Text("Wetter optional · gewerbliche API-Nutzung ungeklärt. Fehlende oder veraltete Wetterdaten bleiben unbekannt. Ein Wetterhinweis verschiebt keinen Termin.")
-            if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
           } }
+            if (failure.isNotEmpty()) item { Text(failure, color = MaterialTheme.colorScheme.error) }
             if (page.rows.isEmpty()) item { Text("Keine Termine in diesem Zeitraum. Zeitraum und Filter prüfen.") }
             items(page.rows.sortedBy { it.workDate }, key = { it.id }) { row ->
                 OutlinedCard(Modifier.fillMaxWidth().clickable { onSelect(row.id) }) {
@@ -173,7 +184,7 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
                 OutlinedButton({ offset += 50 }, enabled = page.hasMore) { Text("Weitere") }
             } }
         }
-        Surface(tonalElevation = 3.dp) { Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (!imeVisible) Surface(tonalElevation = 3.dp) { Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onNew, Modifier.weight(1f), enabled = !busy) { Text(if (savedDraft) "Entwurf fortsetzen" else "Einsatz planen") }
             OutlinedButton({ scope.launch { busy = true; try {
                 val result = controller.query("request_calendar_sync", JSONObject().put("request_id", planningRequest()))
@@ -583,27 +594,14 @@ private fun PlanningChoice(label: String, value: String, choices: Map<String, St
 @Composable
 private fun PlanningPicker(label: String, collection: String, selected: String, controller: NativeAppController, repository: NativeDataRepository,
     enabled: Boolean = true, customerId: String = "", allowEmpty: Boolean = false, change: (NativeListRow?) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    var search by rememberSaveable { mutableStateOf("") }
-    var offset by remember { mutableIntStateOf(0) }
-    var selectedLabel by remember(selected) { mutableStateOf(selected) }
-    LaunchedEffect(selected) { if (selected.isNotEmpty()) repository.detail(collection, selected)?.let { selectedLabel = it.optString("name", it.optString("title", selected)) } }
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var selectedLabel by remember(selected) { mutableStateOf("") }
+    LaunchedEffect(selected, collection) {
+        selectedLabel = if (selected.isEmpty()) "" else try {
+            repository.detail(collection, selected)?.let { it.optString("name").ifBlank { it.optString("title") } } ?: "Eintrag nicht mehr vorhanden"
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: Exception) { "Ausgewählter Eintrag nicht lesbar" }
+    }
     OutlinedButton({ expanded = true }, enabled = enabled, modifier = Modifier.fillMaxWidth()) { Text(label + ": " + selectedLabel.ifEmpty { if (allowEmpty) "Keine Auswahl" else "Bitte wählen" }) }
-    if (!expanded) return
-    val flow = remember(collection, customerId, search, offset) { repository.watchList(collection, search = search, customerId = customerId, offset = offset, limit = 30, includeInactive = false) }
-    val page by flow.collectAsStateWithLifecycle(NativeListPage(emptyList(), 0, offset, 30))
-    AlertDialog(onDismissRequest = { expanded = false }, title = { Text(label) }, text = {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            PlanningField("Suche", search, { search = it; offset = 0 })
-            Text("${page.total} Treffer")
-            LazyColumn(Modifier.heightIn(max = 320.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                if (allowEmpty) item { TextButton({ change(null); expanded = false }) { Text("Ohne Zuordnung") } }
-                items(page.rows, key = { it.id }) { row -> TextButton({ change(row); expanded = false }, Modifier.fillMaxWidth()) { Text(row.title + if (row.address.isNotEmpty()) " · " + row.address else "") } }
-                item { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton({ offset = maxOf(0, offset - 30) }, enabled = offset > 0) { Text("Zurück") }
-                    TextButton({ offset += 30 }, enabled = page.hasMore) { Text("Weitere") }
-                } }
-            }
-        }
-    }, confirmButton = { TextButton({ expanded = false }) { Text("Schließen") } })
+    NativeRecordDialog(expanded, controller, collection, label, customerId = customerId, allowEmpty = allowEmpty, onDismiss = { expanded = false }, onChoose = change)
 }

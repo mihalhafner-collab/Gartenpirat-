@@ -12,7 +12,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -116,6 +118,7 @@ private fun RevierPage(section: String, id: String, controller: NativeAppControl
     val config = revierSections.firstOrNull { it.collection == normalized } ?: return
     val scope = rememberCoroutineScope()
     val repository = remember(controller.store) { NativeDataRepository(controller.store) }
+    val listStates = rememberSaveableStateHolder()
     var selected by rememberSaveable(section, id) { mutableStateOf(id.takeUnless { it == "new" }.orEmpty()) }
     // The detail leaves composition while its editor is open. Keep the tab with
     // the selected machine so saving or cancelling returns to the same context.
@@ -163,13 +166,16 @@ private fun RevierPage(section: String, id: String, controller: NativeAppControl
     } else if (selected.isNotEmpty()) {
         RevierDetail(config, selected, refresh, controller, repository, equipmentTab, { equipmentTab = it }, onBack = { selected = "" }, onEdit = ::openEditor, onRefresh = { refresh++ })
     } else {
-        RevierList(config, controller, repository, onSelect = { selected = it }, onNew = { openEditor(config.kind) })
+        listStates.SaveableStateProvider("revier-list") { RevierList(config, controller, repository, onSelect = { selected = it }, onNew = { openEditor(config.kind) }) }
     }
     if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp))
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun RevierList(config: RevierSection, controller: NativeAppController, repository: NativeDataRepository, onSelect: (String) -> Unit, onNew: () -> Unit) {
+    var filtersOpen by rememberSaveable { mutableStateOf(false) }
+    val imeVisible = WindowInsets.isImeVisible
     var query by rememberSaveable(config.kind) { mutableStateOf("") }
     var status by rememberSaveable(config.kind) { mutableStateOf("") }
     var archived by rememberSaveable(config.kind) { mutableStateOf(false) }
@@ -181,11 +187,14 @@ private fun RevierList(config: RevierSection, controller: NativeAppController, r
     }
     val page by source.collectAsStateWithLifecycle(NativeListPage(emptyList(), 0, offset, 50))
     Column(Modifier.fillMaxSize()) {
+        NativeField("Suchen", query, { query = it; offset = 0 }, modifier = Modifier.padding(horizontal = 16.dp))
+        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("${page.total} Treffer" + if (status.isNotBlank() || archived) " · Filter aktiv" else "", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+            TextButton({ filtersOpen = !filtersOpen }) { Text(if (filtersOpen) "Filter schließen" else "Filter") }
+        }
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            item {
+            if (filtersOpen && !imeVisible) item {
                 Column(Modifier.padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(config.title, style = MaterialTheme.typography.headlineSmall)
-                    NativeField("Suchen", query, { query = it; offset = 0 })
                     val states = when (config.kind) {
                         "equipment" -> listOf("ready", "maintenance", "defective")
                         "inquiry" -> listOf("new", "inspection_planned", "offered", "accepted", "declined", "closed")
@@ -197,14 +206,14 @@ private fun RevierList(config: RevierSection, controller: NativeAppController, r
                 Checkbox(archived, { archived = it; offset = 0 })
                 Text("Archivierte / inaktive einschließen", Modifier.padding(top = 12.dp))
             }
-            if (failure.isNotEmpty()) {
-                Text(failure, color = MaterialTheme.colorScheme.error)
-                TextButton({ failure = ""; retry++ }) { Text("Erneut lesen") }
-            }
             Text("${page.total} Treffer" + if (query.isNotBlank() || status.isNotBlank() || archived) " · Filter aktiv" else "")
             if (query.isNotBlank() || status.isNotBlank() || archived) TextButton({ query = ""; status = ""; archived = false; offset = 0 }) { Text("Filter zurücksetzen") }
         }
             }
+            if (failure.isNotEmpty()) item { Column {
+                Text(failure, color = MaterialTheme.colorScheme.error)
+                TextButton({ failure = ""; retry++ }) { Text("Erneut lesen") }
+            } }
             if (page.rows.isEmpty()) item { Text("Keine passenden Einträge. Suchtext und Filter prüfen.", Modifier.padding(12.dp)) }
             items(page.rows, key = { it.id }) { row ->
                 OutlinedCard(Modifier.fillMaxWidth().clickable { onSelect(row.id) }) {
@@ -220,11 +229,13 @@ private fun RevierList(config: RevierSection, controller: NativeAppController, r
                     }
                 }
             }
+            if (offset > 0 || page.hasMore) item { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                TextButton({ offset = (offset - 50).coerceAtLeast(0) }, enabled = offset > 0) { Text("Vorherige") }
+                TextButton({ offset += 50 }, enabled = page.hasMore) { Text("Weitere") }
+            } }
         }
-        Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton({ offset = (offset - 50).coerceAtLeast(0) }, enabled = offset > 0) { Text("Zurück") }
-            OutlinedButton({ offset += 50 }, enabled = page.hasMore) { Text("Weitere") }
-            Button(onNew, Modifier.weight(1f)) { Text("${config.singular} anlegen") }
+        if (!imeVisible) Surface(tonalElevation = 3.dp) {
+            Button(onNew, Modifier.fillMaxWidth().padding(12.dp)) { Text("${config.singular} anlegen") }
         }
     }
 }
@@ -973,29 +984,17 @@ private fun RevierPhrasePicker(label: String, phrases: List<RevierPhrase>, enabl
     var open by remember { mutableStateOf(false) }
     var search by remember { mutableStateOf("") }
     OutlinedButton({ search = ""; open = true }, enabled = enabled && phrases.isNotEmpty(), modifier = Modifier.fillMaxWidth()) { Text(label) }
-    if (open) AlertDialog(
-        onDismissRequest = { open = false },
-        title = { Text(label) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Bewusst auswählen und bei Bedarf frei bearbeiten. Die Auswahl speichert noch keine Wartung.")
-                NativeField("Text suchen", search, { search = it })
-                val matching = phrases.filter { search.isBlank() || it.label.contains(search, ignoreCase = true) || it.text.contains(search, ignoreCase = true) }
-                Text("${matching.size} Texte")
-                LazyColumn(Modifier.heightIn(max = 320.dp)) {
-                    items(matching, key = { it.id }) { phrase ->
-                        TextButton({ if (enabled) onChoose(phrase.text); open = false }, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
-                            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text(phrase.label, style = MaterialTheme.typography.labelLarge)
-                                if (phrase.text != phrase.label) Text(phrase.text)
-                            }
-                        }
-                    }
+    val matching = phrases.filter { search.isBlank() || it.label.contains(search, ignoreCase = true) || it.text.contains(search, ignoreCase = true) }
+    if (open) NativeSearchDialog(label, search, { search = it }, matching.size, searchLabel = "Text suchen", onDismiss = { open = false }) { close ->
+        items(matching, key = { it.id }) { phrase ->
+            TextButton({ if (enabled) onChoose(phrase.text); close() }, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(phrase.label, style = MaterialTheme.typography.labelLarge)
+                    if (phrase.text != phrase.label) Text(phrase.text)
                 }
             }
-        },
-        confirmButton = { TextButton({ open = false }) { Text("Zurück") } }
-    )
+        }
+    }
 }
 
 @Composable
@@ -1328,8 +1327,11 @@ private fun RevierArchive(controller: NativeAppController) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun RevierSearch(controller: NativeAppController) {
+    var filtersOpen by rememberSaveable { mutableStateOf(false) }
+    val imeVisible = WindowInsets.isImeVisible
     var query by rememberSaveable { mutableStateOf("") }
     var type by rememberSaveable { mutableStateOf("") }
     var status by rememberSaveable { mutableStateOf("") }
@@ -1359,11 +1361,16 @@ private fun RevierSearch(controller: NativeAppController) {
     }
     val rows = result?.optJSONArray("items")?.revierObjects().orEmpty()
     Column(Modifier.fillMaxSize()) {
+        NativeField("Name, Objekt, Tätigkeit, Notiz oder Beleg", query, { query = it }, search = true,
+            modifier = Modifier.padding(horizontal = 16.dp), onSearch = { if (query.isNotBlank()) search(0) })
+        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(result?.let { "${it.optInt("total")} Treffer" } ?: "Suchtext eingeben", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+            TextButton({ filtersOpen = !filtersOpen }) { Text(if (filtersOpen) "Filter schließen" else "Filter") }
+        }
+        if (!imeVisible && !filtersOpen) TextButton({ search(0) }, enabled = !busy && query.isNotBlank(), modifier = Modifier.padding(horizontal = 16.dp)) { Text("Lokal suchen") }
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            item {
+            if (filtersOpen && !imeVisible) item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Lokale Suche", style = MaterialTheme.typography.headlineSmall)
-                    NativeField("Name, Objekt, Tätigkeit, Notiz oder Beleg", query, { query = it })
                     RevierChoice("Art", type, listOf("" to "Alle Arten", "customer" to "Kunden", "property" to "Objekte", "inquiry" to "Anfragen", "care_plan" to "Pflegepläne", "order" to "Aufträge", "appointment" to "Termine", "visit" to "Besuche", "activity" to "Arbeiten", "note" to "Notizen", "offer" to "Angebote", "invoice" to "Rechnungen", "material" to "Material", "equipment" to "Geräte")) { type = it }
                     NativeField("Status (optional)", status, { status = it })
                     NativeField("Zeitraum ab · JJJJ-MM-TT", from, { from = it }); NativeField("Zeitraum bis · JJJJ-MM-TT", until, { until = it })
@@ -1376,6 +1383,9 @@ private fun RevierSearch(controller: NativeAppController) {
                     if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
                 }
             }
+            if (failure.isNotEmpty()) item { Text(failure, color = MaterialTheme.colorScheme.error) }
+            if (result != null && rows.isEmpty()) item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
+            if (result == null && query.isNotBlank()) item { Text("Mit „Suchen“ auf der Tastatur suchen.") }
             items(rows, key = { it.optString("type") + ":" + it.optString("id") }) { row ->
                 OutlinedCard(Modifier.fillMaxWidth().clickable {
                     val target = row.optJSONObject("target") ?: row

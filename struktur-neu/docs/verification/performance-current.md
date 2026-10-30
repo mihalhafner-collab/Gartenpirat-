@@ -349,3 +349,30 @@ Nicht vollständig geprüft: positive Zahlungsbuchung,produktive Belegfinalisier
 
 
 Dokumentationsprüfung: JSON-Syntax, 67 eindeutige Test-IDs, Pflichtspalten, Tabellenzusammenhang und Ausschluss von Seriennummer/Profilkennung geprüft. Der unveränderte Pflichtdateien-Hook ist lokal erfolgreich; vollständiger Quellcheck bleibt mit dem beschriebenen Umgebungsfehler offen. Keine Appquelle geändert.
+
+
+## Laufender Oberflächenumbau vom 30.10.2026
+
+Frisch ermittelter Ausgangspunkt: Entwicklungszweig `codex/kotlin-refactoring-20261029`,
+Commit `242ccc9159cefdb22879c57474bcd45586244ab6`; App-Quellen entsprechen dem
+Build120-Quellcommit `f770f38d0bd428ec93004252d1aaacf003a475e2`. `main` enthält
+weiterhin Build117. Keine vorhandenen lokalen Änderungen oder produktiven Daten übernommen.
+
+Etappe 1 wurde unter `8e69c840d3f3facffea799b5134fce0bb2fd5dff` gesichert und
+über den GitHub-Baum einschließlich aller neun geänderten Blob-Hashes zurückgelesen.
+CI `41070955981`: vollständige Quellprüfung, Release-/Test-Build, Lint, neun JVM-
+und sieben native Sicherungs-/Datenbank-/Provider-Suiten bestanden. Compose meldete
+zwei fehlgeschlagene Auswahlzustandsprüfungen (Kundenakte und Angebote). Die gesicherten
+synthetischen Bilder `qa-native-failure-customer.png` und `qa-native-customer-offers.png`
+zeigen den richtigen Bereich farblich; die Navigationsbuttons benötigten zusätzlich
+die Tab-Rolle für den von Android gemeldeten Auswahlzustand. Korrektur in Etappe 2,
+Wiederholungsprüfung ausstehend. Kein vollständiger PASS und keine Pixel-Abnahme.
+
+KISS/YAGNI Etappe 2: Die bisherigen getrennten Suchdialoge verwenden dieselbe
+Auswahlfläche und die vorhandene indizierte Datenquelle. Keine neue Suchmaschine,
+Filterprofile oder Abhängigkeiten. Suchfeld und Trefferzahl bleiben über der Liste,
+Zusatzfilter werden bei Bedarf geöffnet. Die vorhandenen Entwürfe und Fachprüfungen
+bleiben zuständig; Navigation speichert lediglich ihren vorhandenen Verlauf.
+Die erweiterte synthetische Abnahme prüft tatsächliche IME-Grenzen, Bildschirmbilder,
+Tastaturaktion, Sucherhalt und Touchauswahl in zwölf Darstellungskombinationen.
+Ergebnisse stehen bis zum passenden CI-Lauf ausdrücklich aus.

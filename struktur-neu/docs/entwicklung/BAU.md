@@ -526,3 +526,10 @@ die Rückkehr aus dem Angebotsdetail. Sie prüft außerdem Bereichszuordnung,
 erneutes Öffnen der Übersicht und das Entfernen alter Meldungen bei Navigation.
 Die Bilder `qa-native-customer-photos.png` und `qa-native-customer-offers.png`
 gehören zum vorhandenen synthetischen CI-Artefakt.
+
+Die gemeinsame Auswahlansicht wird in zwölf Kombinationen aus Schrift 100/130/200 %,
+normaler/verkleinerter Höhe und Hoch-/Querformat geprüft. Echte IME-Fenstergrenzen,
+Treffergrenzen, Android-Touchereignisse und Bilder werden zusammen ausgewertet.
+Suchen/Fertig muss die Eingabe beenden und Suchtext/Treffer erhalten. Nulltreffer,
+leere Suche, Seitenwechsel, Auswahlabbruch und die Rückkehr nach Activity-Neuerstellung
+gehören zu derselben synthetischen Compose-Suite.

@@ -328,7 +328,7 @@ class MainActivity : ComponentActivity(), McpSyncHost {
     }
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putString("native_route", controller?.savedRoute())
+        outState.putString("native_route", controller?.savedNavigation())
         outState.putString("capture_name", pendingCaptureFile?.name)
     }
     override fun onDestroy() {

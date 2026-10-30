@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -66,8 +67,11 @@ private suspend fun mediaWrite(controller: NativeAppController, tool: String, ar
     return response.optJSONObject("data") ?: JSONObject()
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun NativePhotoLibrary(initialId: String, controller: NativeAppController) {
+    val listStates = rememberSaveableStateHolder()
+    val imeVisible = WindowInsets.isImeVisible
     var selected by rememberSaveable(initialId) { mutableStateOf(initialId) }
     var importing by rememberSaveable(initialId) { mutableStateOf(controller.route.mode == "import") }
     var editorDraftKey by rememberSaveable(initialId) { mutableStateOf(controller.route.args.optString("_draft_key")) }
@@ -78,7 +82,7 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
         selected.isNotBlank() -> NativePhotoDetail(selected, controller, editorDraftKey) { selected = ""; editorDraftKey = "" }
         archive -> NativePhotoTrash(controller) { archive = false }
         settings -> NativePhotoSettings(controller) { settings = false }
-        else -> {
+        else -> listStates.SaveableStateProvider("photo-list") {
             val repository = remember(controller.store) { NativeDataRepository(controller.store) }
             var search by rememberSaveable { mutableStateOf("") }
             var customerId by rememberSaveable { mutableStateOf(controller.route.args.optString("customer_id")) }
@@ -114,9 +118,9 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
             }
             val page by pageFlow.collectAsStateWithLifecycle(NativeListPage(emptyList(), 0, 0, 40))
             Column(Modifier.fillMaxSize()) {
-                Text("Kundenfotos", Modifier.padding(horizontal = 16.dp, vertical = 8.dp), style = MaterialTheme.typography.headlineSmall)
+                if (!imeVisible) Text("Kundenfotos", Modifier.padding(horizontal = 16.dp, vertical = 8.dp), style = MaterialTheme.typography.headlineSmall)
                 if (readFailure.isNotEmpty()) { Text(readFailure, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error); TextButton(onClick = { readFailure = ""; readRetry++ }) { Text("Fotos erneut lesen") } }
-                OutlinedTextField(search, { search = it; offset = 0 }, Modifier.fillMaxWidth().padding(horizontal = 16.dp), label = { Text("Fotos suchen") }, singleLine = true)
+                NativeField("Fotos suchen", search, { search = it; offset = 0 }, search = true, modifier = Modifier.padding(horizontal = 16.dp))
                 Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = { filterOpen = true }) { Text("Filter") }
                     Text("${page.total} Treffer", Modifier.weight(1f))
@@ -125,8 +129,14 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                     }) { Text("Zurücksetzen") }
                 }
                 val active = listOf(customerLabel, photoRoles[role].orEmpty(), dateFrom.takeIf { it.isNotBlank() }?.let { "Ab $it" }.orEmpty(), dateTo.takeIf { it.isNotBlank() }?.let { "Bis $it" }.orEmpty(), orderLabel, worklogLabel, if (sessionId.isNotBlank()) "Laufende Sitzung" else "").filter { it.isNotBlank() }
-                if (active.isNotEmpty()) Text(active.joinToString(" · "), Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
+                if (active.isNotEmpty() && !imeVisible) Text(active.joinToString(" · "), Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
                 if (page.rows.isEmpty()) Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Text("Keine Fotos für diese Auswahl.") }
+                else if (imeVisible) LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 12.dp)) {
+                    items(page.rows, key = { it.id }) { row ->
+                        ListItem(headlineContent = { Text(row.title) }, supportingContent = { Text(row.subtitle) },
+                            modifier = Modifier.fillMaxWidth().clickable { selected = row.id })
+                    }
+                }
                 else LazyVerticalGrid(columns = GridCells.Adaptive(144.dp), modifier = Modifier.weight(1f), contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(page.rows, key = { it.id }) { row ->
                         Card(onClick = { selected = row.id }) {
@@ -137,13 +147,13 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                     }
                 }
                 MediaPagination(offset, page.rows.size, page.total, 40) { offset = it }
-                Row(Modifier.fillMaxWidth().imePadding().padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (!imeVisible) Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     FilledTonalButton(onClick = { importing = true }, Modifier.weight(1f)) { Text("Foto hinzufügen") }
                     TextButton(onClick = { archive = true }) { Text("Papierkorb") }
                     TextButton(onClick = { settings = true }) { Text("Qualität") }
                 }
             }
-            if (filterOpen) Dialog(onDismissRequest = { filterOpen = false }) {
+            if (filterOpen && picker.isBlank()) Dialog(onDismissRequest = { filterOpen = false }) {
                 Surface(shape = MaterialTheme.shapes.large) {
                     Column(Modifier.heightIn(max = 600.dp).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Fotos filtern", style = MaterialTheme.typography.titleLarge)
@@ -455,8 +465,10 @@ private fun NativePhotoSettings(controller: NativeAppController, close: () -> Un
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun NativePlantLibrary(initialId: String, controller: NativeAppController) {
+    val imeVisible = WindowInsets.isImeVisible
     var catalog by remember { mutableStateOf<JSONObject?>(null) }
     var error by remember { mutableStateOf("") }
     var selected by rememberSaveable(initialId) { mutableStateOf(initialId) }
@@ -477,18 +489,19 @@ private fun NativePlantLibrary(initialId: String, controller: NativeAppControlle
     } }
     var filters by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize()) {
-        Text("Pflanzenbibliothek", Modifier.padding(16.dp), style = MaterialTheme.typography.headlineSmall)
-        OutlinedTextField(search, { search = it; limit = 40 }, Modifier.fillMaxWidth().padding(horizontal = 16.dp), label = { Text("Name, botanischer Name oder Familie") }, singleLine = true)
+        if (!imeVisible) Text("Pflanzenbibliothek", Modifier.padding(16.dp), style = MaterialTheme.typography.headlineSmall)
+        NativeField("Name, botanischer Name oder Familie", search, { search = it; limit = 40 }, search = true, modifier = Modifier.padding(horizontal = 16.dp))
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             TextButton(onClick = { filters = true }) { Text("Filter") }
             Text("${filtered.size} Treffer", Modifier.weight(1f))
             if (search.isNotBlank() || category.isNotBlank() || light.isNotBlank() || neophyte.isNotBlank()) TextButton(onClick = { search = ""; category = ""; light = ""; neophyte = ""; limit = 40 }) { Text("Zurücksetzen") }
         }
         val filterLabel = listOf(category, light, when(neophyte) { "all" -> "Neophyten"; "established" -> "Etabliert"; "invasive" -> "Invasiv"; "union" -> "EU-Unionsliste"; else -> "" }).filter { it.isNotBlank() }.joinToString(" · ")
-        if (filterLabel.isNotBlank()) Text(filterLabel, Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
+        if (filterLabel.isNotBlank() && !imeVisible) Text(filterLabel, Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
         if (error.isNotBlank()) Text(error, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
-        if (neophyte.isNotBlank()) Text(catalog?.optJSONObject("neophyteReference")?.optString("notice").orEmpty(), Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
+        if (neophyte.isNotBlank() && !imeVisible) Text(catalog?.optJSONObject("neophyteReference")?.optString("notice").orEmpty(), Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
         LazyVerticalGrid(columns = GridCells.Adaptive(148.dp), modifier = Modifier.weight(1f), contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (filtered.isEmpty() && catalog != null) item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
             items(filtered.take(limit), key = { it.getString("id") }) { plant -> Card(onClick = { selected = plant.getString("id") }) {
                 MediaAssetImage(plant.optJSONArray("images")?.optJSONObject(0)?.optString("path").orEmpty(), plant.optString("name"), controller, Modifier.fillMaxWidth().height(130.dp))
                 Text(plant.optString("name"), Modifier.padding(8.dp), style = MaterialTheme.typography.titleSmall)
@@ -613,24 +626,9 @@ private fun MediaChoice(label: String, selected: String, open: () -> Unit, clear
 
 @Composable
 private fun MediaEntityPicker(collection: String, controller: NativeAppController, customerId: String = "", dismiss: () -> Unit = {}, chosen: (NativeListRow) -> Unit) {
-    var search by rememberSaveable { mutableStateOf("") }
-    var offset by rememberSaveable { mutableIntStateOf(0) }
-    val repository = remember(controller.store) { NativeDataRepository(controller.store) }
-    var readFailure by remember { mutableStateOf("") }
-    var readRetry by remember { mutableIntStateOf(0) }
-    val flow = remember(repository, collection, search, customerId, offset, readRetry) { repository.watchList(collection, search = search, customerId = if (collection == "customers") "" else customerId, offset = offset, limit = 30).catch { readFailure = mediaError(it) } }
-    val page by flow.collectAsStateWithLifecycle(NativeListPage(emptyList(), 0, 0, 30))
-    Dialog(onDismissRequest = dismiss) { Surface(shape = MaterialTheme.shapes.large) {
-        Column(Modifier.fillMaxWidth().heightIn(max = 620.dp).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(when (collection) { "customers" -> "Kunden auswählen"; "orders" -> "Auftrag auswählen"; else -> "Arbeit auswählen" }, style = MaterialTheme.typography.titleLarge)
-            OutlinedTextField(search, { search = it; offset = 0 }, label = { Text("Suchen") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-            Text("${page.total} Treffer")
-            if (readFailure.isNotEmpty()) { Text(readFailure, color = MaterialTheme.colorScheme.error); TextButton(onClick = { readFailure = ""; readRetry++ }) { Text("Auswahl erneut lesen") } }
-            LazyColumn(Modifier.weight(1f, fill = false)) { items(page.rows, key = { it.id }) { row -> ListItem(headlineContent = { Text(row.title) }, supportingContent = { Text(row.subtitle.ifBlank { row.address }) }, modifier = Modifier.clickable { chosen(row) }) } }
-            MediaPagination(offset, page.rows.size, page.total, 30) { offset = it }
-            TextButton(onClick = dismiss, modifier = Modifier.align(Alignment.End)) { Text("Abbrechen") }
-        }
-    } }
+    NativeRecordDialog(true, controller, collection,
+        when (collection) { "customers" -> "Kunden auswählen"; "orders" -> "Auftrag auswählen"; else -> "Arbeit auswählen" },
+        customerId = if (collection == "customers") "" else customerId, allowEmpty = false, onDismiss = dismiss) { row -> row?.let(chosen) }
 }
 
 @Composable

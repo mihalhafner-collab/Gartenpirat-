@@ -13,6 +13,8 @@ import android.os.ParcelFileDescriptor
 import android.os.SystemClock
 import android.view.InputDevice
 import android.view.KeyEvent
+import android.view.MotionEvent
+import android.app.UiAutomation
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
@@ -47,6 +49,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private lateinit var store: PixelLocalStore
     private lateinit var tools: PixelMcpReadTools
     private var officeMeasurements = JSONObject()
+    private val searchMatrix = JSONArray()
 
     private fun yes(value: Boolean, code: String) {
         if (!value) throw AssertionError("QA_NATIVE_COMPOSE_$code")
@@ -314,6 +317,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("notification", ::notificationJourney)
             journey("customer_context", ::customerContextJourney)
             journey("office_opening", ::officeOpeningMeasurements)
+            journey("search_keyboard", ::searchKeyboardJourney)
             journey("large_text", ::largeTextJourney)
             if (failures.isNotEmpty()) {
                 val failure = AssertionError("QA_NATIVE_COMPOSE_JOURNEYS_FAILED_${failures.size}")
@@ -328,7 +332,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("draft_write_failure_recovery", true)
                 .put("work_entry_usability", true).put("work_photo_retention", true)
                 .put("machine_accessory_roundtrip", true).put("decimal_comma_inputs", true)
-                .put("work_ime_actions", true).put("office_opening", officeMeasurements)
+                .put("work_ime_actions", true).put("search_keyboard_matrix", searchMatrix).put("office_opening", officeMeasurements)
                 .put("drive_account_tested", false).put("physical_pixel_tested", false)
         } finally {
             shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
@@ -831,8 +835,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         controller.action("Prüfen", "get_work_record")
         yes(controller.route.area == "worklogs", "ACTION_RETAINS_AREA")
         val restored = NativeAppController(requireNotNull(activity) as MainActivity, store)
-        restored.restoreRoute(controller.savedRoute())
+        restored.restoreRoute(controller.savedNavigation())
         yes(restored.route.area == "worklogs", "RECREATED_ACTION_AREA")
+        restored.back()
+        yes(restored.route.section == "worklogs" && restored.route.id == "qa-route", "RECREATED_BACK_STACK")
         controller.message("QA previous save")
         controller.navigate("photos", args = JSONObject().put("customer_id", "qa-customer"))
         yes(controller.messages.value.isEmpty() && controller.route.area == "office", "NAVIGATION_CLEARS_OLD_MESSAGE")
@@ -924,6 +930,127 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("slowest_5_percent_mean_ms", sorted.takeLast(2).average()).put("samples_ms", JSONArray(values)))
         }
         test.sendStatus(0, Bundle().apply { putString("office_opening", officeMeasurements.toString()) })
+        click("Heute")
+    }
+
+    private fun keyboardVisible(): Boolean = automation.windows.any {
+        it.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD && it.root?.isVisibleToUser == true
+    }
+
+    private fun showKeyboard(label: String) {
+        yes(requireNotNull(field(label)).performAction(AccessibilityNodeInfo.ACTION_CLICK), "SEARCH_FOCUS_$label")
+        waitUntil("SEARCH_IME_VISIBLE") { keyboardVisible() }
+        settleUi()
+    }
+
+    /** Validate real screen/IME geometry, then inject a touch, not a semantics click. */
+    private fun visibleResult(label: String, tap: Boolean = false): Rect {
+        var result: Rect? = null
+        waitUntil("SEARCH_RESULT_BOUNDS_$label") {
+            val candidate = node(label)?.let(::clickable) ?: return@waitUntil false
+            val bounds = Rect().also { candidate.getBoundsInScreen(it) }
+            val screen = Rect()
+            automation.rootInActiveWindow?.getBoundsInScreen(screen)
+            val ime = automation.windows.firstOrNull { it.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD && it.root?.isVisibleToUser == true }
+            if (ime != null) {
+                val keyboard = Rect().also { ime.getBoundsInScreen(it) }
+                if (!keyboard.isEmpty) screen.bottom = minOf(screen.bottom, keyboard.top)
+            }
+            val valid = !bounds.isEmpty && screen.contains(bounds) && bounds.width() > 0 && bounds.height() > 0
+            if (valid) result = bounds
+            valid
+        }
+        val bounds = requireNotNull(result)
+        checks++
+        if (tap) {
+            val now = SystemClock.uptimeMillis()
+            for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
+                val event = MotionEvent.obtain(now, SystemClock.uptimeMillis(), action, bounds.exactCenterX(), bounds.exactCenterY(), 0)
+                event.source = InputDevice.SOURCE_TOUCHSCREEN
+                try { yes(automation.injectInputEvent(event, true), "SEARCH_REAL_TOUCH_$label") } finally { event.recycle() }
+            }
+            settleUi()
+        }
+        return bounds
+    }
+
+    private fun searchKeyboardJourney() {
+        val oldFont = shell("settings get system font_scale")
+        val sizeText = shell("wm size")
+        val override = Regex("Override size: (\\d+x\\d+)").find(sizeText)?.groupValues?.get(1)
+        val physical = Regex("(?:Override|Physical) size: (\\d+)x(\\d+)").findAll(sizeText).last().groupValues
+        val width = minOf(physical[1].toInt(), physical[2].toInt())
+        val height = maxOf(physical[1].toInt(), physical[2].toInt())
+        val failures = ArrayList<Throwable>()
+        try {
+            for (font in listOf(1.0, 1.3, 2.0)) for (compact in listOf(false, true)) for (landscape in listOf(false, true)) {
+                val key = "search-${(font*100).toInt()}-${if (compact) "compact" else "normal"}-${if (landscape) "landscape" else "portrait"}"
+                try {
+                    activity?.let { current -> test.runOnMainSync { current.finish() } }
+                    shell("wm size ${width}x${if (compact) (height*0.82).toInt() else height}")
+                    shell("settings put system font_scale $font")
+                    automation.setRotation(if (landscape) UiAutomation.ROTATION_FREEZE_90 else UiAutomation.ROTATION_FREEZE_0)
+                    launch()
+                    waitUntil("SEARCH_CONFIGURATION_$key") {
+                        var correct = false
+                        test.runOnMainSync {
+                            val config = requireNotNull(activity).resources.configuration
+                            correct = kotlin.math.abs(config.fontScale-font.toFloat()) < 0.02f &&
+                                (config.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) == landscape
+                        }
+                        correct
+                    }
+                    click("Arbeit erfassen"); click("Kunde: Nicht zugeordnet")
+                    enter("Suchen", fixturePrefix + "000"); shown("1 Treffer")
+                    visibleResult(fixturePrefix + "000")
+                    showKeyboard("Suchen")
+                    visibleResult(fixturePrefix + "000")
+                    captureSyntheticScreen(key)
+                    yes(requireNotNull(field("Suchen")).performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id), "SEARCH_IME_ACTION_$key")
+                    waitUntil("SEARCH_IME_HIDDEN_$key") { !keyboardVisible() }
+                    yes(field("Suchen")?.text?.toString()?.contains(fixturePrefix + "000") == true, "SEARCH_TEXT_AFTER_IME_$key")
+                    shown("1 Treffer")
+                    showKeyboard("Suchen"); visibleResult(fixturePrefix + "000", tap = true)
+                    waitUntil("SEARCH_PICKER_CLOSED_$key") { node("Schließen") == null && !keyboardVisible() }
+                    reveal("Kunde: " + fixturePrefix + "000")
+                    click("Verwerfen"); click("OK", scrollTo = false)
+                    searchMatrix.put(JSONObject().put("font", font).put("compact", compact).put("landscape", landscape)
+                        .put("keyboard_open_and_closed", true).put("ime_action_preserves_query", true).put("real_touch_selection", true).put("screenshot", "qa-native-$key.png"))
+                } catch (failure: Throwable) {
+                    runCatching { captureSyntheticScreen("failure-$key") }
+                    failures.add(AssertionError(key, failure))
+                    // Own synthetic form only; keep later independent display cases executable.
+                    runBlocking { NativeAppController(requireNotNull(activity) as MainActivity, store).removeDraft("editor:worklog:new") }
+                }
+            }
+        } finally {
+            activity?.let { current -> test.runOnMainSync { current.finish() } }
+            automation.setRotation(UiAutomation.ROTATION_UNFREEZE)
+            shell("wm size " + (override ?: "reset"))
+            shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
+            launch()
+        }
+        if (failures.isNotEmpty()) {
+            val failure = AssertionError("SEARCH_MATRIX_${failures.size}_FAILED")
+            failures.forEach(failure::addSuppressed)
+            throw failure
+        }
+        yes(searchMatrix.length() == 12, "ALL_SEARCH_DISPLAY_COMBINATIONS")
+        click("Arbeit erfassen"); click("Kunde: Nicht zugeordnet")
+        enter("Suchen", "NO_SYNTHETIC_MATCH_48273"); shown("0 Treffer"); shown("Keine Treffer. Suchtext oder Filter ändern.")
+        shown("Keine Zuordnung")
+        showKeyboard("Suchen"); captureSyntheticScreen("search-no-results")
+        enter("Suchen", fixturePrefix); shown("55 Treffer")
+        back(); waitUntil("SEARCH_PAGING_IME_HIDDEN") { !keyboardVisible() }
+        click("Weitere"); reveal(fixturePrefix + "030"); click("Vorherige")
+        enter("Suchen", ""); yes(field("Suchen") != null, "EMPTY_SEARCH_REMAINS_OPEN")
+        click("Schließen"); shown("Kunde: Nicht zugeordnet")
+        click("‹ Zurück")
+        click("Kunden"); enter("Suchen", fixturePrefix + "000"); showKeyboard("Suchen")
+        visibleResult(fixturePrefix + "000"); captureSyntheticScreen("search-customer-list")
+        visibleResult(fixturePrefix + "000", tap = true); reveal("Bearbeiten")
+        recreate(); click("‹ Zurück")
+        yes(field("Suchen")?.text?.toString()?.contains(fixturePrefix + "000") == true, "LIST_SEARCH_AFTER_DETAIL_RECREATION")
         click("Heute")
     }
 

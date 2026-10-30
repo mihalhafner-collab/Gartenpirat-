@@ -2,12 +2,16 @@ package at.hausgarten.service
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.math.BigDecimal
@@ -89,6 +93,7 @@ private fun FinanceDraftSummary(controller: NativeAppController, row: JSONObject
 /** Offers, invoice originals, catalog and immutable payments use their existing owner commands. */
 @Composable
 internal fun NativeFinanceScreen(section: String, id: String, controller: NativeAppController) {
+    val listStates = rememberSaveableStateHolder()
     var editing by rememberSaveable(section, id, controller.route.mode, controller.route.args.optString("_draft_key")) { mutableStateOf(controller.route.mode in listOf("edit","new")) }
     var fresh by rememberSaveable(section, id, controller.route.mode) { mutableStateOf(controller.route.mode=="new") }
     var refresh by remember { mutableIntStateOf(0) }
@@ -166,7 +171,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
         section == "payments" -> FinancePayments(controller, id)
         editing && (fresh || row!=null || controller.route.args.optString("_draft_key").isNotEmpty()) -> FinanceEditor(section, if (fresh) null else row, if (fresh) "" else detail?.optString("record_hash").orEmpty(), controller,
             onClose = { editing = false; fresh = false; if(controller.route.args.optString("_draft_key").isNotEmpty()) controller.navigate(section,id) else refresh++ }, onSaved = { savedId -> editing = false; fresh = false; if (savedId.isNotEmpty()) controller.navigate(section, savedId) else refresh++ })
-        id.isEmpty() -> FinanceList(section, controller, onCreate = { fresh = true; editing = true })
+        id.isEmpty() -> listStates.SaveableStateProvider("finance-list") { FinanceList(section, controller, onCreate = { fresh = true; editing = true }) }
         row == null -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (error.isEmpty()) CircularProgressIndicator() else Text(error, color = MaterialTheme.colorScheme.error)
             TextButton(onClick = { refresh++ }) { Text("Erneut lesen") }
@@ -221,10 +226,12 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FinanceList(section: String, controller: NativeAppController, onCreate: () -> Unit) {
     val scope=rememberCoroutineScope()
-    val scroll=rememberScrollState()
+    var filtersOpen by rememberSaveable { mutableStateOf(false) }
+    val imeVisible = WindowInsets.isImeVisible
     var customer by rememberSaveable(section) { mutableStateOf(controller.route.args.optString("customer_id")) }
     var status by rememberSaveable(section) { mutableStateOf("") }
     var query by rememberSaveable(section) { mutableStateOf("") }
@@ -238,17 +245,23 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
             .catch { failure -> error = failure.message ?: "Liste konnte nicht gelesen werden." }
     }
     val page by source.collectAsStateWithLifecycle(NativeListPage(emptyList(), 0, offset, 50))
-    Column(Modifier.fillMaxWidth().verticalScroll(scroll), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(when(section) { "invoices" -> "Rechnungen"; "offers" -> "Angebote und Kostenvoranschläge"; else -> "Leistungskatalog" }, style = MaterialTheme.typography.headlineSmall)
-        NativeField(if(section == "catalog") "Bausteine suchen" else "Suchen", query, { query = it; offset = 0 })
+    Column(Modifier.fillMaxSize()) {
+        NativeField(if(section == "catalog") "Bausteine suchen" else "Suchen", query, { query = it; offset = 0 }, modifier = Modifier.padding(horizontal = 16.dp))
+        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("${page.total} Treffer · ${page.rows.size} auf dieser Seite", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+            if (section != "catalog") TextButton({ filtersOpen = !filtersOpen }) { Text(if (filtersOpen) "Filter schließen" else "Filter") }
+        }
+        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (filtersOpen && !imeVisible) item {
         if (section != "catalog") {
-            NativeRecordPicker(controller, "customers", "Kunde", customer) { customer = it; offset = 0 }
+            NativeRecordPicker(controller, "customers", if (section == "invoices") "Rechnungsempfänger" else "Kunde", customer) { customer = it; offset = 0 }
             FinanceChoice("Status", status, if(section == "invoices") listOf("" to "Alle", "Entwurf" to "Entwurf", "Gestellt" to "Gestellt", "Bezahlt" to "Bezahlt", "Storniert" to "Storniert") else listOf("" to "Alle", "draft" to "Entwurf", "validated" to "Geprüft", "finalized" to "Finalisiert", "accepted" to "Angenommen", "share_prepared" to "Teilen vorbereitet", "sent" to "Versand bestätigt")) { status = it; offset = 0 }
         }
-        if(customer.isNotEmpty() || status.isNotEmpty() || query.isNotEmpty()) TextButton(onClick = { customer="";status="";query="";offset=0 }) { Text("Filter und Suche zurücksetzen") }
-        Text("${page.total} Treffer · ${page.rows.size} auf dieser Seite")
-        if(error.isNotEmpty()) Text(error, color=MaterialTheme.colorScheme.error)
-        page.rows.forEach { row -> Card(Modifier.fillMaxWidth().clickable { controller.navigate(section, row.id, args = JSONObject(controller.route.args.toString()).put("customer_id", customer)) }) {
+        }
+        if (!imeVisible && (customer.isNotEmpty() || status.isNotEmpty() || query.isNotEmpty())) item { TextButton(onClick = { customer="";status="";query="";offset=0 }) { Text("Filter und Suche zurücksetzen") } }
+        if(error.isNotEmpty()) item { Text(error, color=MaterialTheme.colorScheme.error) }
+        if (page.rows.isEmpty() && error.isEmpty()) item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
+        items(page.rows, key = { it.id }) { row -> Card(Modifier.fillMaxWidth().clickable { controller.navigate(section, row.id, args = JSONObject(controller.route.args.toString()).put("customer_id", customer)) }) {
             Column(Modifier.padding(12.dp), verticalArrangement=Arrangement.spacedBy(5.dp)) {
                 Text(if (section == "invoices" && row.title.startsWith("Entwurf-")) "Rechnungsentwurf" else row.title, style=MaterialTheme.typography.titleMedium)
                 if (row.subtitle.isNotEmpty()) Text(row.subtitle)
@@ -256,16 +269,21 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
                 if (section == "catalog") Text(if (row.active) "Aktiv" else "Deaktiviert")
             }
         } }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.SpaceBetween) {
+        item { Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.SpaceBetween) {
             TextButton(enabled=offset>0,onClick={offset=(offset-50).coerceAtLeast(0)}) { Text("Zurück") }
             TextButton(enabled=page.hasMore,onClick={offset+=50}) { Text("Weitere") }
         }
-        TextButton(onClick={scope.launch {scroll.animateScrollTo(0)}},modifier=Modifier.fillMaxWidth()) {Text("Suche und Filter öffnen")}
-        Button(onClick=onCreate,Modifier.fillMaxWidth()) { Text(if(section=="catalog") "Neuer Leistungsbaustein" else if(section=="invoices") "Neuer Rechnungsentwurf" else "Neues Angebot / Kostenvoranschlag") }
-        if(section == "invoices") {
+        }
+        if(section == "invoices" && !imeVisible) item {
             OutlinedButton(onClick={controller.navigate("payments")},Modifier.fillMaxWidth()) { Text("Zahlungsübersicht") }
             TextButton(onClick={controller.action("Aussteller und Steuermodus", "get_business_settings")}) { Text("Ausstellerdaten und Nummernkonfiguration lesen") }
             TextButton(onClick={scope.launch {try {val settings=controller.query("get_business_settings");controller.action("Ausstellerdaten bewusst aktualisieren", "update_business_settings",JSONObject().put("expected_record_hash",settings.getString("record_hash")).put("updates",JSONObject()))}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()}}}) { Text("Ausstellerdaten und Nummernkonfiguration bearbeiten") }
+        }
+        }
+        if (!imeVisible) Surface(tonalElevation = 3.dp) {
+            Button(onClick = onCreate, Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(if (section == "catalog") "Neuer Leistungsbaustein" else if (section == "invoices") "Neuer Rechnungsentwurf" else "Neues Angebot / Kostenvoranschlag")
+            }
         }
     }
 }
@@ -314,6 +332,8 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
     var error by remember(key) { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var sourceRows by remember { mutableStateOf<List<JSONObject>>(emptyList()) }
+    var sourceLoading by remember { mutableStateOf(false) }
+    var sourceError by remember { mutableStateOf("") }
     var sourceVisible by remember { mutableStateOf(false) }
     var sourceOffset by remember { mutableIntStateOf(0) }
     var sourceSearch by remember { mutableStateOf("") }
@@ -470,18 +490,19 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
                     FinancePositions(form.optJSONArray("positions") ?: JSONArray(),section=="offers") {field("positions",it)}
                     OutlinedButton(onClick={sourceVisible=!sourceVisible;sourceOffset=0},Modifier.fillMaxWidth()) {Text(if(section=="offers") "Leistungsbausteine auswählen" else "Offene Arbeiten mit Restmengen auswählen")}
                     if(sourceVisible) {
-                        if(section=="offers") NativeField("Bausteine suchen",sourceSearch,{sourceSearch=it;sourceOffset=0})
                         LaunchedEffect(section,sourceOffset,sourceSearch,form.optString("customer_id")) {
-                            sourceRows=emptyList()
+                            sourceRows=emptyList(); sourceLoading=true; sourceError=""
                             try {
                                 sourceRows=if(section=="offers") financeRows(controller.query("search_offer_templates",JSONObject().put("query",sourceSearch).put("offset",sourceOffset).put("limit",40)),"entries")
                                 else {
                                     if(form.optString("customer_id").isEmpty()) throw IllegalArgumentException("Zuerst den Rechnungsempfänger auswählen.")
                                     financeRows(controller.query("list_work_records",JSONObject().put("billing_customer_id",form.getString("customer_id")).put("billed",false).put("offset",sourceOffset).put("limit",40)),"work_records")
                                 }
-                            } catch(cancelled:CancellationException){throw cancelled}catch(f:Exception) {error=f.message.orEmpty()}
+                            } catch(cancelled:CancellationException){throw cancelled}catch(f:Exception) {sourceError=f.message.orEmpty()} finally {sourceLoading=false}
                         }
-                        sourceRows.forEach { source -> TextButton(onClick={scope.launch {try {
+                        NativeSearchDialog(if (section == "offers") "Leistungsbausteine" else "Offene Arbeiten", sourceSearch, { sourceSearch=it; sourceOffset=0 }, sourceRows.size,
+                            loading=sourceLoading, error=sourceError, searchLabel="Bausteine suchen", searchEnabled=section=="offers", onDismiss={sourceVisible=false}) { close ->
+                        items(sourceRows, key={it.getString("id")}) { source -> TextButton(onClick={scope.launch {try {
                             val lines=JSONArray((form.optJSONArray("positions") ?: JSONArray()).toString())
                             if(section=="offers") {
                                 val selected=controller.query("get_offer_template",JSONObject().put("entry_id",source.getString("id")))
@@ -497,13 +518,15 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
                                 if(BigDecimal(remaining).signum()<=0) throw IllegalArgumentException("Diese Arbeit hat keine offene Restmenge.")
                                 if((0 until lines.length()).any {lines.getJSONObject(it).optString("worklog_id")==work.optString("id")}) throw IllegalArgumentException("Diese Arbeit ist bereits ausgewählt.")
                                 lines.put(JSONObject().put("title",work.optString("activity",work.optString("description"))).put("description",work.optString("description")).put("unit","h").put("quantity",remaining).put("price",JSONObject.NULL).put("worklog_id",work.getString("id")).put("source_type","worklog").put("source_id",work.getString("id")).put("source_quantity_decimal",remaining))
-                            };field("positions",lines)
-                        }catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()}}}) {Text(if(section=="offers") "${source.optString("title")} · ${financeMoney(source.opt("default_price"))}" else "${source.optString("work_date")} · ${source.optString("activity")}")} }
-                        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
+                            };field("positions",lines); close()
+                        }catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){sourceError=f.message.orEmpty()}}}) {Text(if(section=="offers") "${source.optString("title")} · ${financeMoney(source.opt("default_price"))}" else "${source.optString("work_date")} · ${source.optString("activity")}")} }
+                        item { Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
                             TextButton(enabled=sourceOffset>0,onClick={sourceOffset=(sourceOffset-40).coerceAtLeast(0)}) {Text("Vorherige Quellen")}
                             TextButton(enabled=sourceRows.size==40,onClick={sourceOffset+=40}) {Text("Weitere Quellen")}
                         }
                     }
+                        }
+                        }
                     if(section=="offers") {
                         OutlinedButton(enabled=form.optString("customer_id").isNotEmpty(),onClick={scope.launch {try {offerContext=controller.query("get_offer_context",JSONObject().put("customer_id",form.getString("customer_id")))}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()}}},modifier=Modifier.fillMaxWidth()) {Text("Kundenkontext und bestätigte Preise lesen")}
                         offerContext?.let {context ->

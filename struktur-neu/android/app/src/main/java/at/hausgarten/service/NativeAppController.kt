@@ -61,15 +61,26 @@ internal class NativeAppController(private val activity: MainActivity, val store
         if (route.section != section || route.id.isNotEmpty() || route.mode != "list") navigate(section)
     }
     fun back() { messages.value = ""; route = if (history.isEmpty()) NativeRoute() else history.removeLast() }
+    fun requestBack() { activity.onBackPressedDispatcher.onBackPressed() }
     fun canGoBack(): Boolean = history.isNotEmpty() || route.section != "today"
     fun restoreRoute(saved: String?) {
         if (saved.isNullOrEmpty()) return
         runCatching { JSONObject(saved) }.getOrNull()?.let {
+            history.clear()
+            val stack = it.optJSONArray("back_stack") ?: JSONArray()
+            for (i in 0 until stack.length()) {
+                val entry = stack.getJSONObject(i)
+                val section = entry.optString("section", "today")
+                history.addLast(NativeRoute(section, entry.optString("id"), entry.optString("mode", "list"), entry.optJSONObject("args") ?: JSONObject(), entry.optString("area", nativeMainSection(section))))
+            }
             val section = it.optString("section", "today")
             route = NativeRoute(section, it.optString("id"), it.optString("mode", "list"), it.optJSONObject("args") ?: JSONObject(), it.optString("area", nativeMainSection(section)))
         }
     }
     fun savedRoute(): String = JSONObject().put("section", route.section).put("id", route.id).put("mode", route.mode).put("args", route.args).put("area", route.area).toString()
+    fun savedNavigation(): String = JSONObject(savedRoute()).put("back_stack", JSONArray().apply {
+        history.forEach { entry -> put(JSONObject().put("section", entry.section).put("id", entry.id).put("mode", entry.mode).put("args", entry.args).put("area", entry.area)) }
+    }).toString()
     fun message(value: String) { messages.value = value }
     fun open(type: Class<*>) { activity.startActivity(Intent(activity, type)) }
     fun action(title: String, tool: String, args: JSONObject = JSONObject()) {

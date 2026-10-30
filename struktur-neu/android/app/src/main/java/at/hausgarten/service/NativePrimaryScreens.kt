@@ -22,6 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,9 +49,11 @@ private fun primaryGet(kind: String) = when (kind) { "customer" -> "get_customer
 private fun primaryId(kind: String) = if (kind == "worklog") "work_record_id" else "${kind}_id"
 
 /** Complete native route host; each feature uses the shared Kotlin repositories and writers. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun NativeApplication(controller: NativeAppController) {
     val route = controller.route
+    val imeVisible = WindowInsets.isImeVisible
     val notice by controller.messages.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val routeStates = rememberSaveableStateHolder()
@@ -65,16 +69,16 @@ internal fun NativeApplication(controller: NativeAppController) {
     BackHandler(reviewChecked && controller.canGoBack() && route.section != "restore_review") { controller.back() }
     Scaffold(
         topBar = {
-            Column(Modifier.statusBarsPadding()) {
+            if (!imeVisible) Column(Modifier.statusBarsPadding()) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                    if (reviewChecked && controller.canGoBack() && route.section != "restore_review") TextButton({ controller.back() }) { Text("‹ Zurück") }
+                    if (reviewChecked && controller.canGoBack() && route.section != "restore_review") TextButton({ controller.requestBack() }) { Text("‹ Zurück") }
                     Text((if (route.section in listOf("office", "more")) "Büro" else nativeSections[route.section]) ?: if (route.section == "restore_review") "Wiederhergestellte Entwürfe" else "Haus & Garten", Modifier.weight(1f).padding(12.dp), style = MaterialTheme.typography.titleLarge)
                 }
                 if (notice.isNotBlank()) Text(notice, Modifier.padding(horizontal = 16.dp, vertical = 6.dp), style = MaterialTheme.typography.bodySmall)
             }
         },
         bottomBar = {
-            if (reviewChecked && route.section != "restore_review") NativeMainNavigation(controller)
+            if (reviewChecked && route.section != "restore_review" && !imeVisible) NativeMainNavigation(controller)
         }
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding()) {
@@ -127,7 +131,7 @@ private fun NativeMainNavigation(controller: NativeAppController) {
                     group.forEach { (section, label) ->
                         val active = controller.route.area == section
                         TextButton(onClick = { controller.openSection(section) },
-                            modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics { selected = active },
+                            modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics { selected = active; role = Role.Tab },
                             contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
                             colors = ButtonDefaults.textButtonColors(
                                 containerColor = if (active) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
@@ -217,6 +221,7 @@ private fun NativeToday(controller: NativeAppController) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun NativeEntityList(controller: NativeAppController, collection: String) {
     var search by rememberSaveable(collection) { mutableStateOf("") }
@@ -229,6 +234,8 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
     var offset by rememberSaveable(collection) { mutableIntStateOf(0) }
     var selected by rememberSaveable { mutableStateOf(emptyList<String>()) }
     val listState = rememberLazyListState()
+    var filtersOpen by rememberSaveable { mutableStateOf(false) }
+    val imeVisible = WindowInsets.isImeVisible
     var seenCustomerEntry by rememberSaveable(collection) { mutableIntStateOf(-1) }
     LaunchedEffect(controller.customerListEntry) {
         if (collection == "customers" && seenCustomerEntry != controller.customerListEntry) { offset = 0; listState.scrollToItem(0); seenCustomerEntry = controller.customerListEntry }
@@ -236,10 +243,14 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
     val flow = remember(collection, search, status, customer, billing, inactive, from, to, offset) { controller.store.nativeData().watchList(collection, search = search, status = status, customerId = customer, billingType = billing, includeInactive = inactive, offset = offset, limit = 50, dateFrom = from, dateTo = to).nativeErrors(controller) }
     val page by flow.collectAsStateWithLifecycle(NativeListPage(emptyList(), 0, offset, 50))
     val scope = rememberCoroutineScope()
-    LazyColumn(Modifier.fillMaxSize().padding(horizontal = 16.dp), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { NativeField("Suchen", search, { search = it; offset = 0 }) }
-        item { Button({ controller.navigate(collection, mode = "new") }) { Text(when (collection) { "customers" -> "Kunde anlegen"; "orders" -> "Auftrag anlegen"; else -> "Arbeit erfassen" }) } }
-        item {
+    Column(Modifier.fillMaxSize()) {
+        NativeField("Suchen", search, { search = it; offset = 0 }, modifier = Modifier.padding(horizontal = 16.dp))
+        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("${page.total} Treffer · ${page.offset + if (page.rows.isEmpty()) 0 else 1}–${page.offset + page.rows.size}", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+            TextButton({ filtersOpen = !filtersOpen }) { Text(if (filtersOpen) "Filter schließen" else "Filter") }
+        }
+        LazyColumn(Modifier.weight(1f).padding(horizontal = 16.dp), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (filtersOpen && !imeVisible) item {
             if (collection == "customers") {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Archivierte Kunden einbeziehen"); Switch(inactive, { inactive = it; offset = 0 }) }
                 NativeChoice("Abrechnungsweg", billing, listOf("" to "Alle", "direct" to "Kunde selbst", "via_customer" to "Anderer Rechnungsempfänger"), { billing = it; offset = 0 })
@@ -252,8 +263,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                 }
             }
         }
-        item { Text("${page.total} Treffer · ${page.offset + if (page.rows.isEmpty()) 0 else 1}–${page.offset + page.rows.size}") }
-        if (search.isNotEmpty() || status.isNotEmpty() || customer.isNotEmpty() || billing.isNotEmpty() || from.isNotEmpty() || to.isNotEmpty() || inactive) item {
+        if (!imeVisible && (search.isNotEmpty() || status.isNotEmpty() || customer.isNotEmpty() || billing.isNotEmpty() || from.isNotEmpty() || to.isNotEmpty() || inactive)) item {
             TextButton({ search = ""; status = ""; customer = ""; billing = ""; from = ""; to = ""; inactive = false; offset = 0 }) { Text("Filter zurücksetzen") }
         }
         items(page.rows, key = { it.id }) { row ->
@@ -264,7 +274,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                 }
             }
         }
-        if (page.rows.isEmpty()) item { Text("Keine passenden Einträge.") }
+        if (page.rows.isEmpty()) item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
         item { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { if (offset > 0) OutlinedButton({ offset = maxOf(0, offset - 50) }) { Text("Vorherige 50") }; if (page.hasMore) OutlinedButton({ offset += 50 }) { Text("Weitere 50") } } }
         if (collection == "worklogs" && selected.isNotEmpty()) item {
             Button({ scope.launch {
@@ -273,6 +283,12 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                     controller.action("${selected.size} Arbeiten in den Papierkorb", "archive_work_records", JSONObject().put("work_record_ids", JSONArray(selected)).put("expected_preview_hash", preview.getString("preview_hash")).put("_preview", preview))
                 } catch (failure: Exception) { controller.message(failure.message ?: "Auswahl konnte nicht geprüft werden.") }
             } }) { Text("Auswahl in Papierkorb (${selected.size})") }
+        }
+        }
+        if (!imeVisible) Surface(tonalElevation = 3.dp) {
+            Button({ controller.navigate(collection, mode = "new", args = JSONObject().apply { if (collection != "customers" && customer.isNotBlank()) put("customer_id", customer) }) }, Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(when (collection) { "customers" -> "Kunde anlegen"; "orders" -> "Auftrag anlegen"; else -> "Arbeit erfassen" })
+            }
         }
     }
 }

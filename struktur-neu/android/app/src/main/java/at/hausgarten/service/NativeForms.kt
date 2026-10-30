@@ -2,6 +2,8 @@ package at.hausgarten.service
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -9,6 +11,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
@@ -22,6 +31,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -29,12 +39,18 @@ import java.util.UUID
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-internal fun NativeField(label: String, value: String, onValueChange: (String) -> Unit, required: Boolean = false, multiline: Boolean = false) {
+internal fun NativeField(label: String, value: String, onValueChange: (String) -> Unit, required: Boolean = false, multiline: Boolean = false, search: Boolean = false, modifier: Modifier = Modifier, onSearch: (() -> Unit)? = null) {
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focus = LocalFocusManager.current
+    val searching = search || label in listOf("Suchen", "Suche", "Bausteine suchen", "Text suchen", "Vorschläge durchsuchen")
+    val finish = { keyboard?.hide(); focus.clearFocus(); Unit }
     val displayedLabel = label + if (required) " *" else ""
-    OutlinedTextField(value, onValueChange, Modifier.fillMaxWidth().semantics {
+    OutlinedTextField(value, onValueChange, modifier.fillMaxWidth().semantics {
         testTagsAsResourceId = true; testTag = "native-field:$displayedLabel"
     }, label = { Text(displayedLabel, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-        singleLine = !multiline, minLines = if (multiline) 3 else 1)
+        singleLine = !multiline, minLines = if (multiline) 3 else 1,
+        keyboardOptions = KeyboardOptions(imeAction = if (multiline) ImeAction.Default else if (searching) ImeAction.Search else ImeAction.Done),
+        keyboardActions = KeyboardActions(onSearch = { finish(); onSearch?.invoke() }, onDone = { finish() }))
 }
 
 @Composable
@@ -52,16 +68,10 @@ internal fun NativeSuggestions(label: String, options: List<String>, onChoose: (
     var open by rememberSaveable(label) { mutableStateOf(false) }
     var search by rememberSaveable(label) { mutableStateOf("") }
     TextButton({ open = !open }) { Text(label + if (open) " ▴" else " ▾") }
-    if (open) AlertDialog(onDismissRequest = { open = false }, title = { Text(label) }, text = {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            NativeField("Vorschläge durchsuchen", search, { search = it })
-            LazyColumn(Modifier.heightIn(max = 320.dp)) {
-                items(options.filter { it.contains(search, ignoreCase = true) }) { value ->
-                    TextButton({ onChoose(value); open = false }, Modifier.fillMaxWidth()) { Text(value) }
-                }
-            }
-        }
-    }, confirmButton = { TextButton({ open = false }) { Text("Abbrechen") } })
+    val matches = options.filter { it.contains(search, ignoreCase = true) }
+    if (open) NativeSearchDialog(label, search, { search = it }, matches.size, searchLabel = "Vorschläge durchsuchen", onDismiss = { open = false }) { close ->
+        items(matches) { value -> TextButton({ onChoose(value); close() }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(value) } }
+    }
 }
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalComposeUiApi::class)
@@ -81,39 +91,84 @@ internal fun NativeAmountPresets(label: String, inputLabel: String, value: Strin
     }
 }
 
+/** One bounded, keyboard-aware selection surface for customer, planning and media paths. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun NativeSearchDialog(title: String, search: String, onSearch: (String) -> Unit, total: Int,
+    loading: Boolean = false, error: String = "", searchLabel: String = "Suchen", searchEnabled: Boolean = true, onDismiss: () -> Unit,
+    content: LazyListScope.(close: () -> Unit) -> Unit) {
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+        val keyboard = LocalSoftwareKeyboardController.current
+        val focus = LocalFocusManager.current
+        val imeVisible = WindowInsets.isImeVisible
+        val close = { keyboard?.hide(); focus.clearFocus(); onDismiss() }
+        Surface(Modifier.fillMaxSize()) {
+            Column(Modifier.safeDrawingPadding().imePadding().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                if (!imeVisible) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    TextButton(close) { Text("Schließen") }
+                }
+                if (searchEnabled) NativeField(searchLabel, search, onSearch, search = true)
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(if (loading) "Einträge werden geladen …" else "$total Treffer", Modifier.weight(1f).padding(vertical = 4.dp), style = MaterialTheme.typography.labelLarge)
+                    if (imeVisible) TextButton(close) { Text("Schließen") }
+                }
+                LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (error.isNotBlank()) item { Text(error, color = MaterialTheme.colorScheme.error) }
+                    else if (!loading && total == 0) item { Text("Keine Treffer. Suchtext oder Filter ändern.", Modifier.padding(vertical = 12.dp)) }
+                    if (loading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+                    content(close)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+internal fun NativeRecordDialog(visible: Boolean, controller: NativeAppController, collection: String, title: String,
+    customerId: String = "", allowEmpty: Boolean = true, onDismiss: () -> Unit, onChoose: (NativeListRow?) -> Unit) {
+    var search by rememberSaveable(collection, title) { mutableStateOf("") }
+    var offset by rememberSaveable(collection, title) { mutableIntStateOf(0) }
+    var retry by remember { mutableIntStateOf(0) }
+    var error by remember { mutableStateOf("") }
+    if (!visible) return
+    val page by produceState<NativeListPage?>(null, collection, customerId, search, offset, retry) {
+        value = null; error = ""
+        try { controller.store.nativeData().watchList(collection, search = search, customerId = customerId, offset = offset, limit = 30).collect { value = it } }
+        catch (cancelled: CancellationException) { throw cancelled }
+        catch (failure: Exception) { error = failure.message ?: "Einträge nicht lesbar. Bitte erneut versuchen." }
+    }
+    NativeSearchDialog(title, search, { search = it; offset = 0 }, page?.total ?: 0, loading = page == null && error.isEmpty(), error = error, onDismiss = onDismiss) { close ->
+        if (error.isNotBlank()) item { TextButton({ retry++ }) { Text("Erneut versuchen") } }
+        items(page?.rows ?: emptyList(), key = { it.id }) { row ->
+            ListItem(headlineContent = { Text(row.title) }, supportingContent = {
+                val detail = listOf(row.address, row.subtitle).filter { it.isNotBlank() }.distinct().joinToString(" · ")
+                if (detail.isNotBlank()) Text(detail)
+            }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { onChoose(row); close() })
+        }
+        if (offset > 0 || page?.hasMore == true) item {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                TextButton({ offset = maxOf(0, offset - 30) }, enabled = offset > 0) { Text("Vorherige") }
+                TextButton({ offset += 30 }, enabled = page?.hasMore == true) { Text("Weitere") }
+            }
+        }
+        if (allowEmpty) item { TextButton({ onChoose(null); close() }, Modifier.fillMaxWidth()) { Text("Keine Zuordnung") } }
+    }
+}
+
 @Composable
 internal fun NativeRecordPicker(controller: NativeAppController, collection: String, label: String, value: String, onValueChange: (String) -> Unit) {
-    var open by remember { mutableStateOf(false) }
-    var search by remember { mutableStateOf("") }
-    var selectedLabel by remember(value) { mutableStateOf("") }
-    var rows by remember { mutableStateOf<NativeListPage?>(null) }
-    var error by remember { mutableStateOf("") }
+    var open by rememberSaveable { mutableStateOf(false) }
+    var selectedLabel by remember(value) { mutableStateOf(if (value.isEmpty()) "Nicht zugeordnet" else "Wird geladen …") }
     LaunchedEffect(value, collection) {
         selectedLabel = if (value.isEmpty()) "Nicht zugeordnet" else try {
             val row = controller.store.nativeData().detail(collection, value)
             row?.optString("name")?.ifBlank { row.optString("title") }?.ifBlank { "Ausgewählter Eintrag" } ?: "Eintrag nicht mehr vorhanden"
         } catch (cancelled: CancellationException) { throw cancelled }
-        catch (_: Exception) { "Ausgewählter Eintrag" }
-    }
-    LaunchedEffect(open, search, collection) {
-        if (open) try { rows = controller.store.nativeData().list(collection, search = search, limit = 40); error = "" }
-        catch (cancelled: CancellationException) { throw cancelled }
-        catch (failure: Exception) { error = failure.message ?: "Liste konnte nicht gelesen werden." }
+        catch (_: Exception) { "Ausgewählter Eintrag nicht lesbar" }
     }
     OutlinedButton({ open = true }, Modifier.fillMaxWidth()) { Text("$label: $selectedLabel") }
-    if (open) AlertDialog(onDismissRequest = { open = false }, title = { Text(label) }, text = {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            NativeField("Suchen", search, { search = it })
-            if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error)
-            LazyColumn(Modifier.heightIn(max = 360.dp)) {
-                item { TextButton({ onValueChange(""); open = false }) { Text("Keine Zuordnung") } }
-                items(rows?.rows ?: emptyList(), key = { it.id }) { row ->
-                    TextButton({ onValueChange(row.id); open = false }, Modifier.fillMaxWidth()) { Column { Text(row.title); if (row.subtitle.isNotBlank()) Text(row.subtitle, style = MaterialTheme.typography.bodySmall) } }
-                }
-                if (rows?.hasMore == true) item { Text("Bitte die Suche eingrenzen – es werden die ersten 40 Treffer angezeigt.") }
-            }
-        }
-    }, confirmButton = { TextButton({ open = false }) { Text("Schließen") } })
+    NativeRecordDialog(open, controller, collection, label, onDismiss = { open = false }) { onValueChange(it?.id.orEmpty()) }
 }
 
 private val nativeLabels = mapOf(

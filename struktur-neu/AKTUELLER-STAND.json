@@ -34,7 +34,7 @@
   ],
   "current_task": {
     "name": "Einheitliche Oberfläche, Suchansichten und gemeinsame Übersichten",
-    "status": "IN_PROGRESS;STAGE1_SOURCE_REVIEWED;CI_PENDING",
+    "status": "IN_PROGRESS;STAGE2_SOURCE_REVIEWED;DISPLAY_MATRIX_PENDING",
     "authorized": true,
     "authorization_scope": "Current explicit user task: source changes, synthetic tests, check builds, existing documentation and GitHub readback; no productive installation, migration, restore, invoice activation or publication",
     "base_git_sha": "242ccc9159cefdb22879c57474bcd45586244ab6",
@@ -42,17 +42,20 @@
     "implementation": [
       "Stage1: photo and offer lists initialize the existing customer filter from navigation; photo context labels resolved from existing repository; offer detail/list keeps customer context",
       "Main areas stay selected in subviews and actions, survive activity route restoration; short Arbeit label and two rows at large font without reducing font size",
-      "Navigation/back clear previous messages; saved primary entity confirmation names the operation"
+      "Navigation/back clear previous messages; saved primary entity confirmation names the operation",
+      "Stage2: one full-window keyboard-aware search dialog for real customer/equipment/planning/media and phrase selection; IME search/done hides keyboard without clearing state; distinct zero-result and no-assignment actions",
+      "List search/count pinned above lazy results, filters collapsed, paging remains accessible; list state holders and navigation history retain context across detail/editor and Activity recreation",
+      "Synthetic search matrix uses actual IME window boundaries, screenshots and injected touch events for 100/130/200 percent, normal/reduced height and both orientations"
     ],
     "kiss_yagni": "Reuse route arguments, SQL filters, Compose state and Material buttons. No new database, dependency, architecture or filter profiles. Separate navigation area only for action/recreation; a replacement navigation framework is unnecessary.",
     "stages": [
       {
         "stage": 1,
-        "status": "SOURCE_REVIEWED;EMULATOR_PENDING"
+        "status": "BUILD_JVM_7_NATIVE_SUITES_PASS;COMPOSE_NAV_ACCESSIBILITY_ROLE_CORRECTED_RETEST_PENDING"
       },
       {
         "stage": 2,
-        "status": "PENDING"
+        "status": "SOURCE_REVIEWED;12_DISPLAY_CASES_PENDING"
       },
       {
         "stage": 3,
@@ -68,16 +71,17 @@
       }
     ],
     "remaining": [
-      "All search/keyboard matrix and screenshot acceptance",
-      "Shared visual components and all feature bundles",
-      "Full surface/function inventory and final regression"
+      "Stage2 emulator matrix and all domain search checks",
+      "Stage3 shared design and action bars",
+      "Stage4 customer record and feature bundles",
+      "Stage5 surface inventory and complete regression"
     ]
   },
   "open_checks": [
-    "UI stages2–5 not completed;Stage1 build and synthetic emulator pending",
-    "100/130/200% font, reduced height, portrait/landscape and every search with actual IME/screenshots pending",
-    "Physical Pixel acceptance NOT_RUN;no productive installation or data access",
-    "Historical Build119 physical findings are not current Build120/changed-source acceptance"
+    "Stage1 Compose run failed two selected-state accessibility assertions; screenshots confirm visual marking; explicit Tab role correction awaits retest",
+    "Stage2 12-case actual keyboard/screen matrix pending",
+    "Stages3–5 still in progress",
+    "Physical Pixel NOT_RUN;no productive access or installation"
   ],
   "workflow": {
     "scope": "CURRENT_SOURCE;struktur-neu authoritative;qa-apk.yml builds/tests without user APK publication",
@@ -108,13 +112,14 @@
     "business_data_read": false,
     "authored_changes_diff_check": "PASS;reviewed takeover and own corrections;git diff --check",
     "current_test_run": {
-      "source_basis": "242ccc9159cefdb22879c57474bcd45586244ab6",
-      "source_review": "PASS;targeted Stage1 diff and existing 210-action manifest",
-      "android_build": "PENDING_CI",
-      "jvm": "PENDING_CI",
-      "emulator": "PENDING_CI",
+      "source_basis": "8e69c840d3f3facffea799b5134fce0bb2fd5dff",
+      "workflow_run": 41070955981,
+      "source_review": "PASS;source privacy/contracts/inventory/fixtures and all current checks in full CI checkout",
+      "android_build": "PASS;release + AndroidTest + lint",
+      "jvm": "PASS;9 suites",
+      "emulator": "7 native suites PASS;Compose FAIL selected navigation accessibility assertions in customer and customer_context;remaining independent Compose journeys passed",
       "physical_pixel": "NOT_RUN;outside task scope",
-      "local_environment": "Connector-fetched partial source workspace;direct git clone has no authentication;no Gradle/SDK cache. Complete checks use existing GitHub Actions workflow.",
+      "stage2": "SOURCE_REVIEWED;BUILD_AND_EMULATOR_PENDING",
       "business_data_read": false,
       "pixel_installation_performed": false
     },
