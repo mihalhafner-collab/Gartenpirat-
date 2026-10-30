@@ -364,7 +364,7 @@ private fun RevierDetail(
                     OutlinedButton({ controller.navigate("offers", "", "new", JSONObject().put("customer_id", row.getString("customer_id")).put("property_id", row.optString("property_id")).put("inquiry_id", id).put("inquiry_record_hash", row.getString("record_hash")).put("title", row.optString("title"))) }) { Text("Angebot aus dieser Anfrage") }
                     if (row.optString("offer_id").isNotEmpty()) OutlinedButton({ controller.navigate("offers", row.getString("offer_id"), "detail") }) { Text("Zugeordnetes Angebot") }
                     if (row.optString("order_id").isNotEmpty()) OutlinedButton({ controller.navigate("orders", row.getString("order_id"), "detail") }) { Text("Zugeordneten Auftrag öffnen") }
-                    for (measurement in row.optJSONArray("measurements")?.revierObjects().orEmpty()) Text(listOf(measurement.optString("name"), measurement.optString("value_decimal"), measurement.optString("unit")).filter { it.isNotEmpty() }.joinToString(" "))
+                    for (measurement in row.optJSONArray("measurements")?.revierObjects().orEmpty()) Text(listOf(measurement.optString("name"), nativeNumber(measurement.optString("value_decimal")), measurement.optString("unit")).filter { it.isNotEmpty() }.joinToString(" "))
                 }
                 "care_plan" -> OutlinedButton({ onEdit("generate", row, JSONObject()) }) { Text("Fällige Besuche erzeugen") }
                 "visit" -> {
@@ -430,7 +430,7 @@ private fun RevierDetail(
                 }
             }
             if (row.optString("property_id").isNotEmpty()) TextButton({ controller.navigate("properties", row.getString("property_id"), "detail") }) { Text("Objekt öffnen") }
-            for (event in data?.optJSONArray("history")?.revierObjects().orEmpty()) Text(listOf(event.optString("at"), event.optString("reason", "Änderung gespeichert")).filter { it.isNotBlank() }.joinToString(" · "))
+            for (event in data?.optJSONArray("history")?.revierObjects().orEmpty()) Text(listOf(nativeDisplayDate(event.optString("at")), event.optString("reason", "Änderung gespeichert")).filter { it.isNotBlank() }.joinToString(" · "))
             if (loadFailure.isNotEmpty()) { Text(loadFailure, color = MaterialTheme.colorScheme.error); TextButton(onRefresh) { Text("Erneut lesen") } }
             if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
         }
@@ -540,7 +540,7 @@ private fun RevierHistory(controller: NativeAppController, repository: NativeDat
     for (record in records) {
         OutlinedCard(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(12.dp)) {
-                Text(listOf(revierLabel(record.optString("movement_kind")), record.optString("quantity_decimal"), record.optString("created_at"), record.optString("reason", record.optString("notes"))).filter { it.isNotBlank() }.joinToString(" · "))
+                Text(listOf(revierLabel(record.optString("movement_kind")), nativeNumber(record.optString("quantity_decimal")), nativeDisplayDate(record.optString("created_at")), record.optString("reason", record.optString("notes"))).filter { it.isNotBlank() }.joinToString(" · "))
                 extra(record)
             }
         }
@@ -757,7 +757,7 @@ private fun RevierEditor(controller: NativeAppController, edit: RevierEdit, repo
                     }
                 }
                 val currentPlan = fresh.optJSONArray("maintenance_plans")?.revierObjects()?.firstOrNull { it.optString("id") == values.optString("plan_id") }
-                if (currentPlan != null) Text("Aktuelles Intervall: ${currentPlan.optInt("interval_value")} ${revierLabel(currentPlan.optString("interval_unit"))} · Fällig: ${currentPlan.optString("next_due_on")}")
+                if (currentPlan != null) Text("Aktuelles Intervall: ${currentPlan.optInt("interval_value")} ${revierLabel(currentPlan.optString("interval_unit"))} · Fällig: ${nativeDisplayDate(currentPlan.optString("next_due_on"))}")
                 Row { Checkbox(reviewed, { reviewed = it }); Text("Aktuellen Stand und eigene Angaben geprüft", Modifier.padding(top = 12.dp)) }
             }
         },
@@ -1223,7 +1223,8 @@ private fun RevierTour(controller: NativeAppController) {
                     Text("Tagestour", style = MaterialTheme.typography.headlineSmall)
                     NativeField("Datum · JJJJ-MM-TT", dateInput, { dateInput = it })
                     OutlinedButton({ date = dateInput; revision++ }, enabled = !busy) { Text("Datum öffnen") }
-                    Text("Reihenfolge selbst festlegen.")
+                    Text("Reihenfolge für den gesamten Tag festlegen.")
+                    NativeContext(controller, controller.route.args)
                     if (tour?.optJSONObject("tour")?.optBoolean("needs_review") == true) Text("Tour nach Terminänderung prüfen: " + tour?.optJSONObject("tour")?.optString("review_reason"), color = MaterialTheme.colorScheme.error)
                     val savedIds = tour?.optJSONObject("tour")?.optJSONArray("visit_ids")
                     if (savedIds != null && selected != (0 until savedIds.length()).map { savedIds.getString(it) }) Text("Tourentwurf · noch nicht gespeichert")
@@ -1245,7 +1246,7 @@ private fun RevierTour(controller: NativeAppController) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row {
                             Checkbox(index >= 0, { checked -> selected = if (checked) selected + visitId else selected - visitId; retain() }, enabled = !busy && pending == null && !restored)
-                            Column(Modifier.padding(top = 8.dp)) { Text((if (index >= 0) "${index + 1}. " else "") + visit.optString("title", "Einsatz")); Text(listOf(visit.optString("date"), revierLabel(visit.optString("status")), visit.optString("window_start"), visit.optString("window_end")).filter { it.isNotBlank() }.joinToString(" · ")) }
+                            Column(Modifier.padding(top = 8.dp)) { Text((if (index >= 0) "${index + 1}. " else "") + visit.optString("title", "Einsatz")); Text(listOf(nativeDisplayDate(visit.optString("date")), revierLabel(visit.optString("status")), visit.optString("window_start"), visit.optString("window_end")).filter { it.isNotBlank() }.joinToString(" · ")) }
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             TextButton({ controller.navigate("visits", visitId, "detail") }) { Text("Details") }

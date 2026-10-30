@@ -320,6 +320,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("customer_context", ::customerContextJourney)
             journey("office_opening", ::officeOpeningMeasurements)
             journey("search_keyboard", ::searchKeyboardJourney)
+            journey("back_gesture", ::backGestureJourney)
             journey("domain_search", ::domainSearchJourney)
             journey("surfaces", ::surfaceJourney)
             journey("large_text", ::largeTextJourney)
@@ -336,7 +337,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("draft_write_failure_recovery", true)
                 .put("work_entry_usability", true).put("work_photo_retention", true)
                 .put("machine_accessory_roundtrip", true).put("decimal_comma_inputs", true)
-                .put("work_ime_actions", true).put("search_keyboard_matrix", searchMatrix).put("domain_search_cases", domainSearchCases).put("surface_cases", surfaceCases).put("office_opening", officeMeasurements)
+                .put("system_back_gesture", true).put("work_ime_actions", true).put("search_keyboard_matrix", searchMatrix).put("domain_search_cases", domainSearchCases).put("surface_cases", surfaceCases).put("office_opening", officeMeasurements)
                 .put("drive_account_tested", false).put("physical_pixel_tested", false)
         } finally {
             shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
@@ -865,6 +866,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             val orders = fixture.optJSONArray("orders") ?: JSONArray()
             orders.put(JSONObject().put("id", "qa_context_order_$index").put("customer_id", id).put("title", "QA Kontextauftrag $index").put("status", "Geplant").put("test_record", true))
             fixture.put("orders", orders)
+            val workRows = fixture.optJSONArray("worklogs") ?: JSONArray()
+            workRows.put(JSONObject().put("id", "qa_context_billing_$index").put("customer_id", id)
+                .put("billing_customer_id", customers(fixturePrefix+"000").single().getString("id"))
+                .put("activity", "QA Kontextabrechnung $index").put("hours", 1).put("billed", 0)
+                .put("work_date", LocalDate.now(ZoneId.of("Europe/Vienna")).toString()).put("test_record", true))
+            fixture.put("worklogs", workRows)
             offers.put(JSONObject().put("id", "qa_context_offer_$index").put("customer_id", id)
                 .put("title", "QA Kontextangebot $index").put("status", "draft").put("test_record", true))
             runBlocking { controller.importPhoto(Uri.fromFile(source), JSONObject().put("_photo_request_id", "qa_context_photo_$index")
@@ -896,7 +903,24 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("‹ Zurück"); click("Alle Einsätze")
             shown("QA Kontexteinsatz $index"); yes(node("QA Kontexteinsatz ${1-index}") == null, "VISITS_KEEP_CUSTOMER_$index")
             click("‹ Zurück"); scrollTop()
-            if (index == 0) captureSyntheticScreen("customer-overview")
+            if (index == 0) {
+                captureSyntheticScreen("customer-overview")
+                val invoiceCount = PixelMcpReadTools.effective(store.getState()).getJSONArray("invoices").length()
+                click("Abrechnung dieses Kunden"); click("Arbeiten abrechnen")
+                shown("Rechnungsempfänger: $name")
+                enter("Zahlungsziel in Tagen", "15")
+                waitUntil("BILLING_CONTEXT_DRAFT_DURABLE") {
+                    store.ownerValue("native_form_draft:" + PixelMcpWriteTools.hash("finance:invoices:new"), "").contains("_source_context")
+                }
+                recreate()
+                click("Offene Arbeiten mit Restmengen auswählen")
+                val sourceLabel = nativeDisplayDate(LocalDate.now(ZoneId.of("Europe/Vienna")).toString()) + " · QA Kontextabrechnung 0"
+                reveal(sourceLabel)
+                yes(visibleTexts().none { it.contains("QA Kontextabrechnung 1") }, "BILLING_SOURCE_KEEPS_WORK_CUSTOMER_WITH_SHARED_RECIPIENT")
+                captureSyntheticScreen("customer-billing")
+                click("Schließen"); click("Verwerfen")
+                yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("invoices").length() == invoiceCount, "OVERVIEW_DOES_NOT_CREATE_INVOICE")
+            }
         }
         source.delete()
         click("Heute")
@@ -1072,6 +1096,35 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         recreate(); click("‹ Zurück")
         yes(field("Suchen")?.text?.toString()?.contains(fixturePrefix + "000") == true, "LIST_SEARCH_AFTER_DETAIL_RECREATION")
         click("Heute")
+    }
+
+    private fun backGestureJourney() {
+        val overlays = shell("cmd overlay list --user 0 android")
+        val original = overlays.lineSequence().firstOrNull { it.trim().startsWith("[x]") && it.contains("com.android.internal.systemui.navbar.") }?.substringAfter("] ")?.trim()
+            ?: error("Synthetic emulator navigation overlay unavailable")
+        try {
+            shell("cmd overlay enable-exclusive --category --user 0 com.android.internal.systemui.navbar.gestural")
+            waitUntil("GESTURE_NAVIGATION_ENABLED") { shell("settings get secure navigation_mode") == "2" }
+            activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
+            click("Arbeit erfassen"); click("Kunde: Nicht zugeordnet")
+            enter("Suchen", fixturePrefix+"000"); visibleResult(fixturePrefix+"000")
+            yes(!keyboardVisible(), "GESTURE_PICKER_IME_INITIALLY_CLOSED")
+            val screen = Rect().also { requireNotNull(automation.rootInActiveWindow).getBoundsInScreen(it) }
+            val now = SystemClock.uptimeMillis()
+            for (step in 0..12) {
+                val event = MotionEvent.obtain(now, SystemClock.uptimeMillis(), when (step) { 0 -> MotionEvent.ACTION_DOWN; 12 -> MotionEvent.ACTION_UP; else -> MotionEvent.ACTION_MOVE },
+                    2f + screen.width()*0.45f*step/12f, screen.exactCenterY(), 0)
+                event.source = InputDevice.SOURCE_TOUCHSCREEN
+                try { yes(automation.injectInputEvent(event, true), "BACK_EDGE_GESTURE_EVENT") } finally { event.recycle() }
+                if (step < 12) SystemClock.sleep(20)
+            }
+            waitUntil("BACK_GESTURE_CLOSES_ONLY_PICKER") { node("Schließen") == null && node("Kunde: Nicht zugeordnet") != null }
+            captureSyntheticScreen("back-gesture")
+            click("‹ Zurück"); shown("Arbeit erfassen")
+        } finally {
+            shell("cmd overlay enable-exclusive --category --user 0 $original")
+            activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
+        }
     }
 
     private fun openOfficeGroup(label: String, entry: String) {
@@ -1269,7 +1322,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             openOfficeGroup("Weitere Verwaltung", "Entwürfe"); click("Formular- und Medienauswahl prüfen")
         }
         case("local-search", "Suchtext eingeben") { openOfficeGroup("Weitere Verwaltung", "Lokale Suche") }
-        case("archive", "Art: Alle Arten") { openOfficeGroup("Weitere Verwaltung", "Revier-Archiv") }
+        case("archive", "Alle Arten") { openOfficeGroup("Weitere Verwaltung", "Revier-Archiv") }
         case("trash", "Papierkorb leeren prüfen") { openOfficeGroup("Weitere Verwaltung", "Papierkorb") }
         case("local-actions", "ZIP-Sicherung öffnen") { openOfficeGroup("Weitere Verwaltung", "Lokale Vorgänge") }
         case("settings", "Tätigkeit, Einsatzort und Fotoqualität", true) { settings() }

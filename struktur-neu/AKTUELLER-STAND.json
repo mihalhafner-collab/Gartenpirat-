@@ -56,7 +56,9 @@
       "Stage5: search selection covers actual domain dialogs and IME actions; duplicate customers retain address after selection; photo import uses current local filters; related record pickers reuse known customer context",
       "Corrected confirmed 200-percent result-count squeeze, retained overview click through button semantics with explicit selected state, added landscape side navigation and side-by-side IME search/results without shrinking text",
       "Shared wrapping action rows also cover photo import/details, device details, tour and calendar connection; compact accessible back icon preserves page-title width",
-      "Loading lists distinguish pending queries from zero matches; shared short filter action dismisses IME;38 read-only surface entry checks include settings/calendar/backup at200percent"
+      "Loading lists distinguish pending queries from zero matches; shared short filter action dismisses IME;38 read-only surface entry checks include settings/calendar/backup at200percent",
+      "Invoice source selection retains work customer independently of recipient, including draft recreation;explicit widening reuses the same selector. UI A/B shared-recipient regression added.",
+      "Remaining photo/invoice/planning/device display dates and hour decimals use existing German format helpers;input and storage formats unchanged."
     ],
     "kiss_yagni": "Reuse route arguments, SQL filters, Compose state and Material buttons. No new database, dependency, architecture or filter profiles. Separate navigation area only for action/recreation; a replacement navigation framework is unnecessary.",
     "stages": [
@@ -134,7 +136,7 @@
       "pixel_installation_performed": false,
       "stage3": "CI41075726848 source/build/lint/JVM/7 native suites PASS;Compose FAIL5 journeys (known navigation, candidate/orientation test and large-font layout)",
       "stage4": "CI41077739265 source/build/lint/JVM/7native suites PASS;Compose known5journey failures;corrected in next checkpoint",
-      "stage5": "GitHub21b684c932886e8520c914be7236ec89e3357c9f;13blobs readback PASS;CI41081046364 running. Additional surface checks and action/loading consistency pending next run."
+      "stage5": "CI41081046364 source/build/lint/JVM PASS;emulator running. Full surface checkpoint09b847665016eaf461cb4547ccfefa97672600c0 readback PASS;CI41082425508 running. Shared-recipient regression and remaining display formatting pending next run."
     },
     "performance_evidence": "docs/verification/performance-current.md;Build120 emulator and historical Pixel119 separate",
     "connector": {

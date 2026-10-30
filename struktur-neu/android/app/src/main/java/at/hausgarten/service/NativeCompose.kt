@@ -134,7 +134,10 @@ internal fun nativeDisplayDate(value: String): String {
         else OffsetDateTime.parse(value).atZoneSameInstant(ZoneId.of("Europe/Vienna")).format(DateTimeFormatter.ofPattern("dd.MM.yyyy · HH:mm"))
     } catch (_: Exception) { value }
 }
-internal fun nativeDisplayText(value: String): String = Regex("\\b\\d{4}-\\d{2}-\\d{2}(?:T[0-9:.]+(?:Z|[+-][0-9:]+))?").replace(value) { nativeDisplayDate(it.value) }
+internal fun nativeDisplayText(value: String): String {
+    val dated = Regex("\\b\\d{4}-\\d{2}-\\d{2}(?:T[0-9:.]+(?:Z|[+-][0-9:]+))?").replace(value) { nativeDisplayDate(it.value) }
+    return Regex("(\\d+)\\.(\\d+)(?= (?:h|km|min)\\b)").replace(dated) { it.groupValues[1] + "," + it.groupValues[2] }
+}
 internal fun nativeNumber(value: Any?): String = value?.toString()?.toBigDecimalOrNull()?.stripTrailingZeros()?.toPlainString()?.replace('.', ',') ?: value?.toString().orEmpty()
 
 /** Connection and recovery screens keep their own back guards and transactions. */

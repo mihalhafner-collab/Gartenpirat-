@@ -544,3 +544,9 @@ Einstellungen/Kalender/Sicherung bei 200 %. Verbindungen werden dabei nur gelese
 keine Kontofreigabe, produktive Sicherung oder Migration ausgelöst. Die
 ChatGPT-Zugangsdatenansicht behält `FLAG_SECURE`; für Screenshots wird dieser
 Schutz nicht aufgehoben.
+
+Eine getrennte Bedienfolge aktiviert die Android-Gestennavigation ausschließlich
+im Wegwerf-Emulator, schließt den Kundenwähler mit echten Rand-Touchereignissen
+und prüft den unveränderten Formularzustand. Das zuvor aktive Navigations-Overlay
+wird anschließend wiederhergestellt. System-Zurück per Taste und Randgeste
+bleiben getrennte Prüfungen.

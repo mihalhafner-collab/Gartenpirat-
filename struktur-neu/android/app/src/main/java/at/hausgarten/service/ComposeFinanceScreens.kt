@@ -55,7 +55,7 @@ private fun FinanceValues(row: JSONObject?, fields: List<Pair<String, String>>) 
     row ?: return
     for ((name, label) in fields) if (row.has(name) && !row.isNull(name) && row.optString(name).isNotBlank()) {
         val value = row.opt(name)
-        Text("$label: ${if (value is Boolean) { if (value) "Ja" else "Nein" } else financeStatus(value?.toString().orEmpty())}")
+        Text("$label: ${if (value is Boolean) { if (value) "Ja" else "Nein" } else if (name == "default_price") financeMoney(value) else if (name in listOf("default_quantity", "quantity", "hours")) nativeNumber(value) else nativeDisplayText(financeStatus(value?.toString().orEmpty()))}")
     }
 }
 
@@ -183,7 +183,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
             Text(financeStatus(if(section == "invoices") row.optString("status", "Entwurf") else row.optString("status", if(section == "catalog") "Leistungsbaustein" else "draft")))
             if (section != "catalog") {
                 Text("Summe: ${financeMoney(row.opt("gross_total") ?: row.opt("amount"))}")
-                Text(if(section == "invoices") "Rechnungsdatum: ${row.optString("invoice_date")} · Leistung: ${row.optString("service_start")} bis ${row.optString("service_end")}" else "Datum: ${row.optString("issue_date")} · gültig bis ${row.optString("valid_until")}")
+                Text(if(section == "invoices") "Rechnungsdatum: ${nativeDisplayDate(row.optString("invoice_date"))} · Leistung: ${nativeDisplayDate(row.optString("service_start"))} bis ${nativeDisplayDate(row.optString("service_end"))}" else "Datum: ${nativeDisplayDate(row.optString("issue_date"))} · gültig bis ${nativeDisplayDate(row.optString("valid_until"))}")
                 FinancePositionSummary(row.optJSONArray("positions"))
                 for ((key, label) in listOf("header_text" to "Kopftext", "footer_text" to "Fußtext", "notes" to "Notizen", "binding_notice" to "Bindungshinweis", "payment_terms" to "Zahlungsbedingungen", "assumptions" to "Annahmen", "exclusions" to "Ausschlüsse")) if(row.optString(key).isNotEmpty()) Text("$label: ${row.optString(key)}")
             } else {
@@ -208,7 +208,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                     OutlinedButton(onClick = { pendingAction = "validate_offer_draft" to JSONObject().put("offer_id", id).put("expected_record_hash", detail!!.optString("record_hash")) }, Modifier.fillMaxWidth()) { Text("Geprüften Entwurfsstand speichern") }
                     Button(onClick = {scope.launch {try {offerReview=controller.query("get_offer",JSONObject().put("offer_id",id).put("include_review",true));offerReviewed=false}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){controller.message(f.message.orEmpty())}}}, Modifier.fillMaxWidth()) { Text("Finalisierung prüfen") }
                 } else {
-                    Text(detail?.optJSONObject("decision")?.let { "Entscheidung: ${financeStatus(it.optString("decision"))} · ${it.optString("accepted_at")}" } ?: "Annahme oder Ablehnung noch nicht erfasst.")
+                    Text(detail?.optJSONObject("decision")?.let { "Entscheidung: ${financeStatus(it.optString("decision"))} · ${nativeDisplayDate(it.optString("accepted_at"))}" } ?: "Annahme oder Ablehnung noch nicht erfasst.")
                     FinanceValues(detail?.optJSONObject("decision"),listOf("evidence" to "Annahmenachweis","reason" to "Begründung","recorded_at" to "Erfasst am"))
                     OutlinedButton(onClick={scope.launch {try{controller.viewDocument("offer",id)}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){controller.message(f.message.orEmpty())}}},modifier=Modifier.fillMaxWidth()) {Text("Original-PDF öffnen")}
                     Button(onClick = {pendingAction="prepare_offer_share" to JSONObject().put("offer_id",id).put("expected_record_hash",detail!!.optString("record_hash"))}, Modifier.fillMaxWidth()) { Text("Geprüftes Original-PDF teilen") }
@@ -370,6 +370,9 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
                 if(section=="invoices") form.put("payment_days",settings.optInt("default_payment_days",14))
                 if(section=="catalog") form.put("active",true).put("pricing_type","unit")
                 for (field in listOf("customer_id", "order_id")) if (controller.route.args.optString(field).isNotEmpty()) form.put(field, controller.route.args.getString(field))
+                if (section == "invoices") form.put("_source_context", JSONObject().apply {
+                    for (field in listOf("work_customer_id", "order_id", "date_from", "date_to")) if (controller.route.args.optString(field).isNotEmpty()) put(field, controller.route.args.getString(field))
+                })
             }
             loaded=true
         } catch(cancelled:CancellationException){throw cancelled}catch(f:Exception) {error=f.message.orEmpty();loaded=false}
@@ -493,16 +496,25 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
                     }
                     FinanceChoice("Steuermodus",form.optString("tax_mode"),listOf("small_business" to "Kleinunternehmer","standard" to "Umsatzsteuer")) {field("tax_mode",it)}
                     Text("Der Steuermodus muss mit den zentral bestätigten Ausstellerdaten übereinstimmen.")
+                    if (section == "invoices") {
+                        val sourceContext = form.optJSONObject("_source_context") ?: JSONObject()
+                        NativeContext(controller, JSONObject(sourceContext.toString()).put("customer_id", sourceContext.optString("work_customer_id")), "Arbeitskunde")
+                        if (sourceContext.length() > 0) TextButton({ field("_source_context", JSONObject()) }) { Text("Alle offenen Arbeiten dieses Empfängers anzeigen") }
+                    }
                     FinancePositions(form.optJSONArray("positions") ?: JSONArray(),section=="offers") {field("positions",it)}
                     OutlinedButton(onClick={sourceVisible=!sourceVisible;sourceOffset=0},Modifier.fillMaxWidth()) {Text(if(section=="offers") "Leistungsbausteine auswählen" else "Offene Arbeiten mit Restmengen auswählen")}
                     if(sourceVisible) {
-                        LaunchedEffect(section,sourceOffset,sourceSearch,form.optString("customer_id")) {
+                        LaunchedEffect(section,sourceOffset,sourceSearch,form.optString("customer_id"),form.optJSONObject("_source_context")?.toString()) {
                             sourceRows=emptyList(); sourceLoading=true; sourceError=""
                             try {
                                 sourceRows=if(section=="offers") financeRows(controller.query("search_offer_templates",JSONObject().put("query",sourceSearch).put("offset",sourceOffset).put("limit",40)),"entries")
                                 else {
                                     if(form.optString("customer_id").isEmpty()) throw IllegalArgumentException("Zuerst den Rechnungsempfänger auswählen.")
-                                    financeRows(controller.query("list_work_records",JSONObject().put("billing_customer_id",form.getString("customer_id")).put("billed",false).put("offset",sourceOffset).put("limit",40)),"work_records")
+                                    val sourceContext = form.optJSONObject("_source_context") ?: JSONObject()
+                                    financeRows(controller.query("list_work_records",JSONObject().put("billing_customer_id",form.getString("customer_id")).put("billed",false).put("offset",sourceOffset).put("limit",40).apply {
+                                        if (sourceContext.optString("work_customer_id").isNotEmpty()) put("customer_id", sourceContext.getString("work_customer_id"))
+                                        for (field in listOf("order_id", "date_from", "date_to")) if (sourceContext.optString(field).isNotEmpty()) put(field, sourceContext.getString(field))
+                                    }),"work_records")
                                 }
                             } catch(cancelled:CancellationException){throw cancelled}catch(f:Exception) {sourceError=f.message.orEmpty()} finally {sourceLoading=false}
                         }
@@ -525,7 +537,7 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
                                 if((0 until lines.length()).any {lines.getJSONObject(it).optString("worklog_id")==work.optString("id")}) throw IllegalArgumentException("Diese Arbeit ist bereits ausgewählt.")
                                 lines.put(JSONObject().put("title",work.optString("activity",work.optString("description"))).put("description",work.optString("description")).put("unit","h").put("quantity",remaining).put("price",JSONObject.NULL).put("worklog_id",work.getString("id")).put("source_type","worklog").put("source_id",work.getString("id")).put("source_quantity_decimal",remaining))
                             };field("positions",lines); close()
-                        }catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){sourceError=f.message.orEmpty()}}}) {Text(if(section=="offers") "${source.optString("title")} · ${financeMoney(source.opt("default_price"))}" else "${source.optString("work_date")} · ${source.optString("activity")}")} }
+                        }catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){sourceError=f.message.orEmpty()}}}) {Text(if(section=="offers") "${source.optString("title")} · ${financeMoney(source.opt("default_price"))}" else "${nativeDisplayDate(source.optString("work_date"))} · ${source.optString("activity")}")} }
                         item { Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
                             TextButton(enabled=sourceOffset>0,onClick={sourceOffset=(sourceOffset-40).coerceAtLeast(0)}) {Text("Vorherige Quellen")}
                             TextButton(enabled=sourceRows.size==40,onClick={sourceOffset+=40}) {Text("Weitere Quellen")}
@@ -762,7 +774,7 @@ private fun FinancePayments(controller:NativeAppController,invoiceId:String) {
         Text("${ledger.optInt("total",payments.length())} Zahlungen / Korrekturen")
         for(i in 0 until payments.length()) {val payment=payments.getJSONObject(i)
             Card(Modifier.fillMaxWidth()) {Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
-                Text("${payment.optString("paid_on",payment.optString("recorded_at"))} · ${financeMoney(BigDecimal(payment.optLong("amount_minor")).movePointLeft(2))}",style=MaterialTheme.typography.titleMedium)
+                Text("${nativeDisplayDate(payment.optString("paid_on",payment.optString("recorded_at")))} · ${financeMoney(BigDecimal(payment.optLong("amount_minor")).movePointLeft(2))}",style=MaterialTheme.typography.titleMedium)
                 Text("${financeStatus(payment.optString("method"))} ${payment.optString("reference")}")
                 if(payment.optBoolean("reversal")) Text("Gegenbuchung; Original bleibt erhalten.")
                 if(payment.optString("reason").isNotEmpty()) Text("Korrekturgrund: ${payment.optString("reason")}")

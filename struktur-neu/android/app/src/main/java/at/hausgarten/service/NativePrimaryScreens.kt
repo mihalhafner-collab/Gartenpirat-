@@ -217,7 +217,7 @@ internal fun NativeRelatedList(controller: NativeAppController, section: String,
             OutlinedCard(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { controller.navigate(section, row.id, args = args) }) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(row.title, style = MaterialTheme.typography.titleSmall)
-                    if (row.subtitle.isNotBlank()) Text(nativeDisplayText(row.subtitle))
+                    if (row.subtitle.isNotBlank()) Text(nativeDisplayText(nativeDisplayText(row.subtitle)))
                     if (row.address.isNotBlank()) Text(row.address)
                 }
             }
@@ -278,7 +278,7 @@ private fun NativeBillingOverview(controller: NativeAppController) {
     val context = controller.route.args
     val customer = context.optString("work_customer_id")
     val recipient = context.optString("billing_customer_id")
-    val invoices = JSONObject().apply { if (recipient.isNotEmpty()) put("customer_id", recipient) }
+    val invoices = JSONObject(context.toString()).apply { if (recipient.isNotEmpty()) put("customer_id", recipient) else remove("customer_id") }
     Column(Modifier.fillMaxSize()) {
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             item { NativeContext(controller, JSONObject().put("customer_id", customer)); NativeContext(controller, invoices, "Rechnungsempfänger") }
@@ -315,7 +315,7 @@ private fun NativeToday(controller: NativeAppController) {
     LaunchedEffect(Unit) { refresh() }
     Column(Modifier.fillMaxSize()) {
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            item { Text(day, style = MaterialTheme.typography.titleMedium) }
+            item { Text(nativeDisplayDate(day), style = MaterialTheme.typography.titleMedium) }
             item { Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) { OutlinedButton({ controller.navigate("visits") }) { Text("Einsätze") }; OutlinedButton({ controller.navigate("tour") }) { Text("Tagestour") }; OutlinedButton({ controller.navigate("appointments") }) { Text("Termine") } } }
             val planned = overview?.optJSONArray("planned_visits") ?: JSONArray()
             if (planned.length() > 0) item { Text("Geplante Einsätze", style = MaterialTheme.typography.titleMedium) }
@@ -325,7 +325,7 @@ private fun NativeToday(controller: NativeAppController) {
             item { Text("Erfasste Arbeiten", style = MaterialTheme.typography.titleMedium) }
             if (works.rows.isEmpty()) item { Text("Heute noch keine Arbeiten erfasst.") }
             items(works.rows, key = { "work:" + it.id }) { row ->
-                OutlinedCard(Modifier.fillMaxWidth().clickable { controller.navigate("worklogs", row.id) }) { Column(Modifier.padding(12.dp)) { Text(row.title); Text(row.subtitle) } }
+                OutlinedCard(Modifier.fillMaxWidth().clickable { controller.navigate("worklogs", row.id) }) { Column(Modifier.padding(12.dp)) { Text(row.title); Text(nativeDisplayText(row.subtitle)) } }
             }
             if (works.hasMore) item { TextButton({ controller.navigate("worklogs", args = JSONObject().put("date_from", day).put("date_to", day)) }) { Text("Alle heutigen Arbeiten") } }
             item { Text("Hinweise", style = MaterialTheme.typography.titleMedium) }
@@ -421,7 +421,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
             OutlinedCard(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { controller.navigate(collection, row.id, args = JSONObject(controller.route.args.toString()).put("customer_id", customer).put("date_from", from).put("date_to", to)) }) {
                 Row(Modifier.padding(12.dp)) {
                     if (collection == "worklogs") Checkbox(row.id in selected, { check -> selected = if (check) selected + row.id else selected - row.id })
-                    Column { Text(row.title, style = MaterialTheme.typography.titleMedium); if (row.subtitle.isNotBlank()) Text(nativeDisplayText(row.subtitle)); if (row.address.isNotBlank()) Text(row.address); if (row.status.isNotBlank()) NativeStatus(nativeValue(row.status)) }
+                    Column { Text(row.title, style = MaterialTheme.typography.titleMedium); if (row.subtitle.isNotBlank()) Text(nativeDisplayText(nativeDisplayText(row.subtitle))); if (row.address.isNotBlank()) Text(row.address); if (row.status.isNotBlank()) NativeStatus(nativeValue(row.status)) }
                 }
             }
         }
@@ -496,7 +496,7 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
         if (kind == "order") item { OutlinedButton({ controller.navigate("order_review", id) }) { Text("Auftragsversionen prüfen") } }
         if (kind != "worklog") {
             item { Text("Tätigkeiten und Historie", style = MaterialTheme.typography.titleMedium) }
-            items(related, key = { it.id }) { work -> TextButton({ controller.navigate("worklogs", work.id) }) { Text(listOf(work.workDate, work.title).filter { it.isNotEmpty() }.joinToString(" · ")) } }
+            items(related, key = { it.id }) { work -> TextButton({ controller.navigate("worklogs", work.id) }) { Text(listOf(nativeDisplayDate(work.workDate), work.title).filter { it.isNotEmpty() }.joinToString(" · ")) } }
             item { Row { if (historyOffset > 0) TextButton({ historyOffset = maxOf(0, historyOffset - 20) }) { Text("Vorherige Tätigkeiten") }; if (related.size == 20) TextButton({ historyOffset += 20 }) { Text("Weitere Tätigkeiten") } } }
         }
         item { OutlinedButton({ scope.launch { try {

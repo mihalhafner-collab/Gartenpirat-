@@ -128,12 +128,12 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                 if (readFailure.isNotEmpty()) { Text(readFailure, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error); TextButton(onClick = { readFailure = ""; readRetry++ }) { Text("Fotos erneut lesen") } }
                 NativeField("Fotos suchen", search, { search = it; offset = 0 }, search = true, modifier = Modifier.padding(horizontal = 16.dp))
                 NativeSearchSummary(if (listLoading) "Wird geladen …" else "${page.total} Treffer") { filterOpen = true }
-                val active = listOf(customerLabel, photoRoles[role].orEmpty(), dateFrom.takeIf { it.isNotBlank() }?.let { "Ab $it" }.orEmpty(), dateTo.takeIf { it.isNotBlank() }?.let { "Bis $it" }.orEmpty(), orderLabel, worklogLabel, if (sessionId.isNotBlank()) "Laufende Sitzung" else "").filter { it.isNotBlank() }
+                val active = listOf(customerLabel, photoRoles[role].orEmpty(), dateFrom.takeIf { it.isNotBlank() }?.let { "Ab ${nativeDisplayDate(it)}" }.orEmpty(), dateTo.takeIf { it.isNotBlank() }?.let { "Bis ${nativeDisplayDate(it)}" }.orEmpty(), orderLabel, worklogLabel, if (sessionId.isNotBlank()) "Laufende Sitzung" else "").filter { it.isNotBlank() }
                 if (active.isNotEmpty() && !imeVisible) Text(active.joinToString(" · "), Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
                 if (page.rows.isEmpty()) Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { if (listLoading) CircularProgressIndicator() else if (readFailure.isEmpty()) Text("Keine Fotos für diese Auswahl.") }
                 else if (imeVisible) LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 12.dp)) {
                     items(page.rows, key = { it.id }) { row ->
-                        ListItem(headlineContent = { Text(row.title) }, supportingContent = { Text(row.subtitle) },
+                        ListItem(headlineContent = { Text(row.title) }, supportingContent = { Text(nativeDisplayText(row.subtitle)) },
                             modifier = Modifier.fillMaxWidth().clickable { selected = row.id })
                     }
                 }
@@ -142,7 +142,7 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                         Card(onClick = { selected = row.id }) {
                             NativePhotoImage(row.id, controller, Modifier.fillMaxWidth().height(132.dp), ContentScale.Crop, thumbnailReference = row.thumbnailReference)
                             Text(row.title, Modifier.padding(8.dp), maxLines = 2)
-                            Text(row.subtitle, Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp), style = MaterialTheme.typography.bodySmall, maxLines = 2)
+                            Text(nativeDisplayText(row.subtitle), Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp), style = MaterialTheme.typography.bodySmall, maxLines = 2)
                         }
                     }
                 }
@@ -445,7 +445,7 @@ private fun NativePhotoTrash(controller: NativeAppController, close: () -> Unit)
                 val record = entry.optJSONObject("record") ?: entry.optJSONObject("_archive_record") ?: JSONObject()
                 Card { Column(Modifier.padding(12.dp)) {
                     Text(record.optString("caption").ifBlank { record.optString("original_name", "Foto") })
-                    Text(entry.optString("archived_at").take(10))
+                    Text(nativeDisplayDate(entry.optString("archived_at").take(10)))
                     Button(onClick = { scope.launch { try { mediaWrite(controller, "restore_entity", JSONObject().put("request_id", restoreRequest).put("entity", "photo").put("entity_id", row.getString("archive_key").substringAfter(':')).put("expected_record_hash", row.getString("record_hash"))); revision++; controller.message("Foto einschließlich geprüfter Zuordnung wiederhergestellt.") } catch (failure: Exception) { controller.message(mediaError(failure)) } } }) { Text("Wiederherstellen") }
                 } }
             }

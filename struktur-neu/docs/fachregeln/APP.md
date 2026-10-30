@@ -231,3 +231,11 @@ das Zubehör; unbekannte Spezifikationen bleiben leer. Kettenteilung, Treibglied
 Treibgliederzahl, Artikelnummer, Zahntyp, Feilengröße und weitere Angaben bleiben
 optional. Zubehörfotos verwenden den vorhandenen Gerätefotopfad und behalten ihren
 Maschinenbezug. Keine neue Datenbank, Lagerverwaltung oder Wartungsautomatik.
+
+Aus der Kundenakte übernimmt die Abrechnung den Arbeitskunden zusätzlich zum
+Rechnungsempfänger. Die Auswahl offener Arbeiten bleibt auf diesen Kunden
+begrenzt, auch wenn weitere Kunden denselben Empfänger verwenden. Dieser
+Anzeigekontext bleibt im Formularentwurf erhalten und wird nicht als zusätzliche
+Rechnungsfachinformation gespeichert. Die Auswahl kann ausdrücklich auf alle
+offenen Arbeiten des Empfängers erweitert werden. Geplante Einsätze erzeugen
+weder Arbeitsaufzeichnungen noch Rechnungspositionen.

@@ -135,7 +135,7 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
     Column(Modifier.fillMaxSize()) {
         NativeField("Suche", search, { search = it; offset = 0 }, search = true, modifier = Modifier.padding(horizontal = 16.dp))
         NativeSearchSummary(if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.rows.size} auf dieser Seite") { filtersOpen = !filtersOpen }
-        if (!imeVisible) Text(if (from == to) from.toString() else "$from – $to", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
+        if (!imeVisible) Text(if (from == to) nativeDisplayDate(from.toString()) else "${nativeDisplayDate(from.toString())} – ${nativeDisplayDate(to.toString())}", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
           if (!imeVisible) item {
               NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer))
@@ -156,7 +156,7 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(selected = !week, onClick = { week = false; offset = 0 }, label = { Text("Tag") })
                 FilterChip(selected = week, onClick = { week = true; offset = 0 }, label = { Text("Woche") })
-                Text(if (from == to) from.toString() else "$from – $to", Modifier.padding(top = 12.dp))
+                Text(if (from == to) nativeDisplayDate(from.toString()) else "${nativeDisplayDate(from.toString())} – ${nativeDisplayDate(to.toString())}", Modifier.padding(top = 12.dp))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(selected = !weatherView, onClick = { onWeather(false) }, label = { Text("Termine") })
@@ -270,7 +270,7 @@ private fun PlanningDetail(controller: NativeAppController, repository: NativeDa
             Text(planningStamp(row.optString("starts_at")) + " – " + if (AppointmentRules.openEnd(row)) "Ende offen" else planningStamp(row.optString("ends_at")))
             Text(planningStatuses[row.optString("status")] ?: row.optString("status"))
             Text(row.optString("location").ifEmpty { "Einsatzort offen" })
-            Text("Geplant: " + (if (result.isNull("planned_hours")) "offen" else result.opt("planned_hours").toString() + " h") + " · tatsächlich erfasst: " + result.optDouble("actual_hours", 0.0) + " h")
+            Text("Geplant: " + (if (result.isNull("planned_hours")) "offen" else nativeNumber(result.opt("planned_hours")) + " h") + " · tatsächlich erfasst: " + nativeNumber(result.optDouble("actual_hours", 0.0)) + " h")
             if (row.optInt("break_minutes") > 0) Text("Geplante Pause: ${row.optInt("break_minutes")} min")
             if (row.optInt("travel_minutes") > 0) Text("Anfahrtpuffer: ${row.optInt("travel_minutes")} min")
             if (row.optString("notes").isNotEmpty()) Text(row.optString("notes"))
