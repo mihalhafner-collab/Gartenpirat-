@@ -9,14 +9,19 @@
     "cutoff_build_inclusive": 100
   },
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-10-29T04:56:16.086472+00:00",
-    "version_name": "1.55.9",
-    "version_code": 114,
-    "reported_base_git_sha": "267280d2964328b83a86d7b5608da84bd367cef7",
-    "source_sha256": "699e7b6bddd10143658780efaec60ecf13314185d7c8d6e8eea2e7a1cd89f133",
-    "source_binding": "APP_SELF_REPORT_AND_USER_UPDATE_CONFIRMATION;no fresh independent APK/signature readback",
-    "certificate_independently_read": false,
-    "database_version": 7
+    "observed_at_utc": "2026-10-30T04:53:51.4297165Z",
+    "version_name": "1.57.0",
+    "version_code": 119,
+    "reported_base_git_sha": "94b75be56ef46ed1404b19a725a97811cbfcd19a",
+    "source_sha256": "1dccfad7966f564f3a844c848af4dae50c5200b8697592e07a449e4e06920407",
+    "source_binding": "INDEPENDENT_ADB_APK_SIZE_SHA256_SIGNATURE_MATCH_DISTRIBUTED119;source commit/fingerprint literals found in classes2.dex",
+    "apk_sha256": "f907a1b260ec7719e7b11bf24e6d02671b8eaef7ba797f9ddca02b0a0ab42f86",
+    "apk_bytes": 89453503,
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "certificate_independently_read": true,
+    "certificate_reference": "MATCH_PROJECT_ORIGINAL_REFERENCE;historical original APK not independently reread",
+    "database_version": null,
+    "database_version_evidence": "NOT_READ;app data outside permitted isolation"
   },
   "observed_installation_history": [
     {
@@ -28,82 +33,21 @@
     }
   ],
   "current_task": {
-    "name": "Kotlin-Update der bestehenden Haus-und-Garten-App mit kompatiblem ZIP-Backup",
-    "status": "TECHNICAL_COMPLETE_SYNTHETIC_ACCEPTANCE_PASS",
+    "name": "USB/ADB-Prüfung der Haus-und-Garten-App am physischen Telefon",
+    "status": "PARTIAL_PREFLIGHT_TRANSPORT_PASS;APP_TESTS_NOT_RUN_ISOLATION_UNPROVEN",
     "authorized": true,
-    "authorization_scope": "Same-package Kotlin update;synthetic regression;bounded subagents. APK119 build,original signing,private Drive delivery/manual update guide authorized;no productive data access,automatic installation or restore.",
+    "authorization_scope": "Current user request:read/write only fully synthetic isolated app dataset;without isolation metadata and synthetic ADB file transport only;document findings in existing project files;no app installation,productive data access,gate bypass or account access",
     "requirements_document": "docs/fachregeln/APP.md",
-    "implementation": [
-      "193 Kotlin production files;native Compose feature routes/editors;no active app Java/JS",
-      "SQLite indexed read cache/projections,IO/committed Flow,file media,bounded thumbnail-first Coil",
-      "PASS:1154 JVM,62 Python,637 native checks in8 suites;full Android build/lint"
-    ],
-    "regression_instructions": "docs/entwicklung/BAU.md#regressionsschleife-für-das-kotlin-refactoring",
-    "acceptance_matrix": {
-      "KOTLIN": {
-        "status": "PASS_SOURCE_BUILD;193_KOTLIN_FILES;210_KOTLIN_DEX_TARGETS;NO_APP_JAVA_JS",
-        "required_evidence": "All application entries/UI Kotlin;clean source/build inventory"
-      },
-      "OPTIONS": {
-        "status": "ANDROID_JVM_COMPOSE_SQLITE_COROUTINES_COIL_DECIDED;DEPENDENCIES_RESOLVED;BAU_DECISION_TABLE",
-        "required_evidence": "Relevant target/UI/storage/dependency decisions in BAU"
-      },
-      "KISS_YAGNI": {
-        "status": "PASS_REVIEW;SINGLE_APP_MODULE;SHARED_WRITERS;EXISTING_SQLITE_CONTRACT",
-        "required_evidence": "Each module,abstraction,dependency meets a concrete need"
-      },
-      "PARITY": {
-        "status": "PASS_DOMAIN_8_NATIVE_SUITES_SELECTED_UI_FLOWS_210_ACTION_SOURCE_CONTRACT;PIXEL_NOT_RUN",
-        "required_evidence": "Baseline workflows;package,signing,data contracts preserved"
-      },
-      "DRIVE_ZIP": {
-        "status": "PASS_PLAINTEXT_ZIP_REAL_SYSTEM_PICKER_NONLOCAL_PROVIDER_READBACK;REAL_DRIVE_NOT_RUN",
-        "required_evidence": "Plain ZIP,picker/provider/readback/restore;no own Drive login"
-      },
-      "DRIVE_REMOVAL": {
-        "status": "SOURCE_PASS;NO_DRIVE_API_AUTH_OR_SYNC;CALENDAR_AUTH_RETAINED",
-        "required_evidence": "No Drive business API/auth/sync;calendar preserved"
-      },
-      "INDEXES": {
-        "status": "PASS_ANDROID_40000_ROWS_INDEXED_EXPLAIN_PARITY",
-        "required_evidence": "Actual query plans and synthetic scale/result parity"
-      },
-      "WAL": {
-        "status": "PASS_ANDROID_COLD_WAL_CONCURRENCY_AND_LIFETIME",
-        "required_evidence": "Runtime WAL,concurrent access,backup/restore committed pages"
-      },
-      "PROJECTIONS": {
-        "status": "PASS_ANDROID_BOUNDED_SQL_LISTS_AND_POINT_DETAILS",
-        "required_evidence": "Bounded SQL rows/columns;point details;no full-state list reads"
-      },
-      "IMAGES": {
-        "status": "PASS_ANDROID_FILE_MEDIA_THUMBNAILS_BOUNDED_CHUNK_STORAGE",
-        "required_evidence": "File media,legacy preservation,thumbnail decoding,bounded caches"
-      },
-      "BACKGROUND": {
-        "status": "PASS_ANDROID_REAL_IO_FLOW_CLOSE_AFFINITY;MAIN_THREAD_DISK0",
-        "required_evidence": "IO dispatch,committed Flow,lifecycle and transaction parity"
-      },
-      "SYNTHETIC_ONLY": {
-        "status": "APPLIED;NO_PRODUCTIVE_DATA_READ",
-        "required_evidence": "No productive or derived customer data/device/ZIP access"
-      },
-      "REGRESSION": {
-        "status": "PASS_CURRENT_SOURCE;JVM1154_PYTHON62_NATIVE637_8_SUITES_BUILD_LINT",
-        "required_evidence": "Current-source checks;fix/recheck;unexecuted evidence stays open"
-      },
-      "SUBAGENTS": {
-        "status": "APPLIED;BOUNDED_PORTS_AND_INDEPENDENT_REVIEWS",
-        "required_evidence": "Bounded ownership,independent review,root integration checks"
-      },
-      "BACKUP_COMPAT": {
-        "status": "PASS_JAVA_KOTLIN_ZIP1_SQLITE6_7_TYPES_FILES_NATIVE_RESTORE_REOPEN;PERSONAL_ZIP_UNREAD",
-        "required_evidence": "Java/Kotlin ZIP1 SQLite6/7;all types/files;native restore/reopen/rollback"
-      }
-    }
+    "test_instructions": "docs/entwicklung/BAU.md#adb-analyse-und-lese-schreibtests-über-den-laptop",
+    "result_pointer": "validation.physical_device_test",
+    "completion_claim": "NO_FULL_ACCEPTANCE;APP_FUNCTION_UI_PERFORMANCE_BACKUP_RESTORE_NOT_RUN"
   },
   "open_checks": [
-    "App backup on real Drive,personal ZIP and physical Pixel update/data retention NOT_RUN;synthetic only",
+    "Physical Pixel app read/write/UI/normal and200%font/backup/restore tests NOT_RUN:isolated fully synthetic app dataset not proven;no customer records/photos/archives read",
+    "Physical performance start/list/detail/save/timer/photo,frame time,memory/CPU/SQL NOT_MEASURED:n=0;requires same isolated fixture and>=40 repetitions per variant",
+    "Provision a documented fresh separate Android test user/sandbox with synthetic-only provenance and no personal accounts/media;separate installation/provisioning authorization required;do not clear/replace main-user app or bypass emulator guards",
+    "Full current-source checker not completed locally:no authenticated CLI checkout;connector-only partial source copy stops on missing bootstrap_contract;run in complete checkout before source validation PASS",
+    "Real Drive/account/calendar checks NOT_RUN;personal ZIP outside authorized synthetic scope",
     "Raw old IndexedDB-only drafts preserved;not automatically materialized as native photos"
   ],
   "workflow": {
@@ -120,7 +64,7 @@
       "reader": ".codex/read_project_context.py",
       "status": "LOCAL_READER_PASS;CLOUD_AUTOMATIC_INVOCATION_NOT_VERIFIED",
       "verification": {
-        "actual_current_file_delivery": "PASS;full current files and SHA256 within16000-byte limit",
+        "actual_current_file_delivery": "PASS;full current files+SHA256;local hook handle within16000 bytes",
         "running_cloud_chat_hook_invocation_verified": false
       }
     },
@@ -133,7 +77,7 @@
     "app_source_fingerprint": "1dccfad7966f564f3a844c848af4dae50c5200b8697592e07a449e4e06920407",
     "source_privacy": "PASS;empty operational seed",
     "business_data_read": false,
-    "authored_changes_diff_check": "PASS",
+    "authored_changes_diff_check": "PASS;documentation only:current status and existing verification evidence;no app source changes",
     "current_test_run": {
       "scope": "CURRENT_FULL_KOTLIN_COMPOSE_REFACTOR;SYNTHETIC_ACCEPTANCE_PASS",
       "observed_at_utc": "2026-10-30T03:42:22.092646+00:00",
@@ -167,6 +111,23 @@
       "read": 73,
       "write": 96,
       "scope": "Prior Build114 observation only;no refactoring device access"
+    },
+    "physical_device_test": {
+      "observed_at_utc": "2026-10-30T04:53:51.4297165Z",
+      "source_commit": "a7ef9c2a488832bf9ae3f4f7c84a588073358603",
+      "scope": "PHYSICAL_PIXEL_USB_ADB_PREFLIGHT_AND_SYNTHETIC_FILE_TRANSPORT_ONLY",
+      "result": "PARTIAL;8_PASS_1_PREREQUISITE_FAIL_113_NOT_RUN;NO_APP_ACCEPTANCE",
+      "evidence_document": "docs/verification/performance-current.md#gebundener-gerätebeleg",
+      "device": "Pixel10 Pro;Android17/API37;1280x2856;480dpi;font_scale1.3;only main user0;test APK absent",
+      "apk_identity": "PASS;1.57.0/119;89453503 bytes;exact distributed SHA256/certificate and signed DEX binding matched",
+      "transport": "PASS;147456 synthetic bytes;SHA2569234590f51cc5f375a5163c065d8e759ecab20217373445703613121f8928c20;own /data/local/tmp file/directory removed",
+      "isolation": "NOT_PROVEN;no app datasets/UI/photos/backup read or written;emulator guards preserved",
+      "coverage": "Source inventory28 menus+internal routes;122 documented cases;no device function/UI/backup/restore cases executed;no screenshots",
+      "measurements": "NICHT GEMESSEN;app timings,frames,memory,CPU,SQL n=0;ADB transport is not UI/DB measurement",
+      "device_settings": "PASS_UNCHANGED;final metadata comparison;no setting modified",
+      "current_source_check": "ATTEMPTED_NOT_COMPLETED;partial connector copy lacks bootstrap_contract;full CLI checkout unavailable;no source PASS",
+      "local_evidence": "Local task workspace/adb-evidence-20261030;not uploaded;serial/name remain local",
+      "remaining": "Prove fresh isolated account/media-free synthetic app sandbox and supported hardware test path before all app tests;no installation or clearing main-user data authorized"
     }
   },
   "unmerged_work": [
@@ -186,7 +147,7 @@
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
     "signature_valid": true,
     "original_certificate_match": true,
-    "installation": "NOT_PERFORMED;manual Pixel update requested",
+    "installation": "INDEPENDENTLY_OBSERVED_INSTALLED_VIA_ADB;APK119_SIZE_HASH_CERT_MATCH;no installation action in this task",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "NOT_ACTIVATED",
     "app_backup_mode": "PLAINTEXT_ZIP_ANDROID_SAF_FULL_READBACK",
@@ -202,7 +163,7 @@
   "current_release_candidate": {
     "version_name": "1.57.0",
     "version_code": 119,
-    "status": "DRIVE_DELIVERED;ORIGINAL_SIGNED_VERIFIED;NOT_INSTALLED",
+    "status": "OBSERVED_INSTALLED119_APK_HASH_CERT_MATCH;APP_ACCEPTANCE_NOT_RUN_ISOLATION_UNPROVEN",
     "artifact": "Gartenpirat-1.57.0-build119.apk",
     "source_git_sha": "94b75be56ef46ed1404b19a725a97811cbfcd19a",
     "apk_sha256": "f907a1b260ec7719e7b11bf24e6d02671b8eaef7ba797f9ddca02b0a0ab42f86",
