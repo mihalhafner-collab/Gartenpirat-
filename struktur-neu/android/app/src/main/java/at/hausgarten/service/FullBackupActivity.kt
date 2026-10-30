@@ -1,45 +1,57 @@
 package at.hausgarten.service
 
-import android.app.Activity
-import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.text.Editable
-import android.text.InputType
-import android.text.TextWatcher
-import android.view.View
 import android.view.WindowManager
-import android.widget.Button
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.ScrollView
-import android.widget.TextView
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
-import java.util.concurrent.Executors
 
 /** One selected plaintext ZIP save and one explicit restore; no app-managed cloud account. */
-class FullBackupActivity : Activity() {
+class FullBackupActivity : ComponentActivity() {
     companion object {
         private const val SAVE = 203
         private const val OPEN = 204
-        private val WORK = Executors.newSingleThreadExecutor()
+        // A selected operation finishes across Activity recreation; its request is retried explicitly.
+        private val WORK = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     }
 
-    private lateinit var status: TextView
-    private lateinit var saveButton: Button
-    private lateinit var openButton: Button
-    private lateinit var checkButton: Button
-    private lateinit var activate: Button
-    private lateinit var newTarget: Button
-    private lateinit var recoveryCode: EditText
-    private lateinit var root: LinearLayout
-    private var busy = false
+    private var status by mutableStateOf("Sicherungsstatus wird geprüft …")
+    private var busy by mutableStateOf(true)
+    private var ready by mutableStateOf(false)
+    private var saveLabel by mutableStateOf("Sicherung speichern")
+    private var showNewTarget by mutableStateOf(false)
+    private var showRecoveryCode by mutableStateOf(false)
+    private var showCheck by mutableStateOf(false)
+    private var showActivate by mutableStateOf(false)
+    private var showConfirmation by mutableStateOf(false)
+    private var previousActivation by mutableStateOf("")
+    // Deliberately absent from both SavedState and rememberSaveable.
+    private var recoveryCode by mutableStateOf("")
     private var request = ""
     private var target = ""
     private var restoreRequest = ""
@@ -47,15 +59,11 @@ class FullBackupActivity : Activity() {
     private var restoreId = ""
     private var previewHash = ""
     private var legacyMedia = false
+    private val initialized = CompletableDeferred<Unit>()
+    private var resolvingDocument = false
 
     public override fun onCreate(state: Bundle?) {
         super.onCreate(state)
-        if (RevierApplication.recoveryRequired()) {
-            startActivity(Intent(this, RestoreRecoveryActivity::class.java))
-            finish()
-            return
-        }
-        PixelBackupService.cancelRetiredJobs(this)
         title = "Sicherung"
         if (state != null) {
             request = state.getString("request", "")
@@ -63,80 +71,73 @@ class FullBackupActivity : Activity() {
             restoreRequest = state.getString("restore_request", "")
             restoreUri = state.getString("restore_uri", "")
         }
-        root = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            val pad = NativeUi.dp(this@FullBackupActivity, 16)
-            setPadding(pad, pad, pad, pad)
-            fitsSystemWindows = true
+        showCheck = restoreUri.isNotEmpty()
+        if (target.isNotEmpty()) {
+            saveLabel = "Speichern erneut versuchen"
+            status = "Der vorherige Speichervorgang ist noch nicht bestätigt. Mit „Speichern erneut versuchen“ prüfen und fortsetzen."
         }
-        text("Sicherung", 22)
-        text("Speichert deinen vorhandenen Bestand als unverschlüsselte ZIP-Datei. Wähle in der Android-Dateiauswahl Drive oder einen lokalen Speicherort.", 17)
-        saveButton = button(if (target.isEmpty()) "Sicherung speichern" else "Speichern erneut versuchen") {
-            if (target.isEmpty()) chooseSave() else save()
+        nativeContent("Sicherung") {
+            BackHandler(enabled = busy) { status = "Die Sicherung läuft noch. Bitte auf das Ergebnis warten." }
+            Text("Speichert deinen vorhandenen Bestand als unverschlüsselte ZIP-Datei. Wähle in der Android-Dateiauswahl Drive oder einen lokalen Speicherort.")
+            Button(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = {
+                if (target.isEmpty()) chooseSave() else save()
+            }) { Text(saveLabel) }
+            if (showNewTarget) Button(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = { target = ""; chooseSave() }) { Text("Anderen Speicherort wählen") }
+            Text(status)
+            Button(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = {
+                recoveryCode = ""
+                clearPreview()
+                showRecoveryCode = false
+                window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                chooseRestore()
+            }) { Text("Sicherung wiederherstellen") }
+            if (showRecoveryCode) OutlinedTextField(
+                value = recoveryCode, onValueChange = { recoveryCode = it; clearPreview() },
+                label = { Text("Schlüssel – nur für alte verschlüsselte Sicherungen") },
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                singleLine = true, enabled = !busy, modifier = Modifier.fillMaxWidth()
+            )
+            if (showCheck) Button(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = { preview() }) { Text("Gewählte Sicherung prüfen") }
+            if (showActivate) Button(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = { confirmRestore() }) { Text("Geprüfte Sicherung wiederherstellen") }
+            TextButton(onClick = { if (busy) status = "Die Sicherung läuft noch. Bitte auf das Ergebnis warten." else finish() }) { Text("Zurück") }
+            if (previousActivation.isNotEmpty()) Button(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = {
+                val id = UUID.randomUUID().toString()
+                val code = recoveryCode
+                val activation = previousActivation
+                restoreRequest = id
+                runTask { showPreview(BackupRestoreService(this@FullBackupActivity).previewPrevious(id, activation, code)) }
+            }) { Text("Bestand vor letzter Wiederherstellung zurückholen") }
+            if (showConfirmation) AlertDialog(
+                onDismissRequest = { showConfirmation = false },
+                title = { Text("Bestand wiederherstellen?") },
+                text = { Text("Der aktuelle Bestand wird durch die geprüfte Sicherung ersetzt. Eine lokale Rückfallkopie bleibt erhalten." +
+                    if (legacyMedia) " Die unvollständig belegte Fotoabdeckung dieser alten Sicherung wird ausdrücklich akzeptiert." else "") },
+                dismissButton = { TextButton(onClick = { showConfirmation = false }) { Text("Abbrechen") } },
+                confirmButton = { TextButton(onClick = { showConfirmation = false; activateRestore() }) { Text("Wiederherstellen") } }
+            )
         }
-        newTarget = button("Anderen Speicherort wählen") { target = ""; chooseSave() }
-        newTarget.visibility = View.GONE
-        status = text("Sicherungsstatus wird geprüft …", 16)
-        openButton = button("Sicherung wiederherstellen") {
-            recoveryCode.setText("")
-            recoveryCode.visibility = View.GONE
-            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-            chooseRestore()
-        }
-        recoveryCode = EditText(this).apply {
-            textSize = 16f
-            hint = "Schlüssel – nur für alte verschlüsselte Sicherungen"
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-            isSaveEnabled = false
-        }
-        root.addView(recoveryCode)
-        recoveryCode.visibility = View.GONE
-        checkButton = button("Gewählte Sicherung prüfen") { preview() }
-        checkButton.visibility = if (restoreUri.isEmpty()) View.GONE else View.VISIBLE
-        activate = button("Geprüfte Sicherung wiederherstellen") { confirmRestore() }
-        activate.visibility = View.GONE
-        recoveryCode.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                restoreRequest = ""
-                restoreId = ""
-                previewHash = ""
-                activate.visibility = View.GONE
-            }
-            override fun afterTextChanged(e: Editable?) = Unit
-        })
-        button("Zurück") {
-            if (busy) status.text = "Die Sicherung läuft noch. Bitte auf das Ergebnis warten." else finish()
-        }
-        setContentView(ScrollView(this).apply { addView(root) })
-        WORK.execute {
+        WORK.launch {
+            if (!startupReady()) return@launch
             val initial = try {
-                PixelLocalStore(this).use { store ->
-                    BackupStatusRules.message(PixelBackupService(this, store).status(JSONObject().put("limit", 1)))
+                PixelBackupService.cancelRetiredJobs(this@FullBackupActivity)
+                PixelLocalStore(this@FullBackupActivity).use { store ->
+                    BackupStatusRules.message(PixelBackupService(this@FullBackupActivity, store).status(JSONObject().put("limit", 1)))
                 }
             } catch (_: Exception) {
                 "Sicherungsstatus konnte nicht gelesen werden. Es ist keine neue Sicherung bestätigt."
             }
             ui {
-                if (!busy && status.text.toString() == "Sicherungsstatus wird geprüft …") status.text = initial
+                if (status == "Sicherungsstatus wird geprüft …") status = initial
+                ready = true
+                busy = resolvingDocument
+                initialized.complete(Unit)
             }
-        }
-        if (target.isNotEmpty()) {
-            status.text = "Der vorherige Speichervorgang ist noch nicht bestätigt. Mit „Speichern erneut versuchen“ prüfen und fortsetzen."
-        }
-        WORK.execute {
             try {
-                val previous = BackupRestoreService(this).previousPreservation()
+                val previous = BackupRestoreService(this@FullBackupActivity).previousPreservation()
                 if (previous.optBoolean("available")) {
                     val activation = previous.getString("activation_request_id")
-                    ui {
-                        button("Bestand vor letzter Wiederherstellung zurückholen") {
-                            val id = UUID.randomUUID().toString()
-                            val code = recoveryCode.text.toString()
-                            restoreRequest = id
-                            runTask { showPreview(BackupRestoreService(this).previewPrevious(id, activation, code)) }
-                        }
-                    }
+                    ui { previousActivation = activation }
                 }
             } catch (_: Exception) {
                 // A missing historical proof never blocks a new save.
@@ -144,18 +145,14 @@ class FullBackupActivity : Activity() {
         }
     }
 
-    private fun text(value: String, size: Int): TextView = NativeUi.text(TextView(this)).also {
-        it.textSize = size.toFloat()
-        it.text = value
-        root.addView(it)
-    }
-
-    private fun button(label: String, action: Runnable): Button = NativeUi.style(Button(this), 0).also {
-        it.text = label
-        it.isAllCaps = false
-        it.minHeight = NativeUi.dp(this, 52)
-        root.addView(it)
-        it.setOnClickListener { if (!busy) action.run() }
+    /** Called only on IO; a protected or interrupted startup never exposes backup operations. */
+    private fun startupReady(): Boolean = try {
+        RevierApplication.awaitStartup(this)
+        if (RevierApplication.recoveryRequired()) throw IllegalStateException("RESTORE_RESTART_REQUIRED")
+        true
+    } catch (_: Exception) {
+        ui { startActivity(Intent(this, RestoreRecoveryActivity::class.java)); finish() }
+        false
     }
 
     private fun chooseSave() {
@@ -167,7 +164,7 @@ class FullBackupActivity : Activity() {
         try {
             startActivityForResult(intent, SAVE)
         } catch (_: ActivityNotFoundException) {
-            status.text = "Die Android-Dateiauswahl ist nicht verfügbar."
+            status = "Die Android-Dateiauswahl ist nicht verfügbar."
         }
     }
 
@@ -176,49 +173,37 @@ class FullBackupActivity : Activity() {
         try {
             startActivityForResult(intent, OPEN)
         } catch (_: ActivityNotFoundException) {
-            status.text = "Die Android-Dateiauswahl ist nicht verfügbar."
+            status = "Die Android-Dateiauswahl ist nicht verfügbar."
         }
     }
 
-    private fun runTask(task: Task) {
-        if (busy) return
+    private fun runTask(task: () -> Unit) {
+        if (busy || !ready) return
         busy = true
-        status.text = "Vorgang läuft …"
-        recoveryCode.isEnabled = false
-        saveButton.isEnabled = false
-        openButton.isEnabled = false
-        checkButton.isEnabled = false
-        activate.isEnabled = false
-        WORK.execute {
+        status = "Vorgang läuft …"
+        WORK.launch {
             try {
-                task.run()
+                task()
             } catch (failure: Exception) {
                 val safe = BackupScheduleRules.errorCode(failure)
                 ui {
-                    if (target.isNotEmpty()) newTarget.visibility = View.VISIBLE
+                    if (target.isNotEmpty()) showNewTarget = true
                     if (safe == "RECOVERY_CODE_INVALID") {
-                        recoveryCode.visibility = View.VISIBLE
+                        showRecoveryCode = true
                         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                        status.text = "Diese Sicherung ist verschlüsselt. Den zugehörigen Schlüssel eingeben und erneut prüfen."
+                        status = "Diese Sicherung ist verschlüsselt. Den zugehörigen Schlüssel eingeben und erneut prüfen."
                     } else {
-                        status.text = BackupStatusRules.failureMessage(safe)
+                        status = BackupStatusRules.failureMessage(safe)
                     }
                 }
             } finally {
-                ui {
-                    busy = false
-                    recoveryCode.isEnabled = true
-                    saveButton.isEnabled = true
-                    openButton.isEnabled = true
-                    checkButton.isEnabled = true
-                    activate.isEnabled = true
-                }
+                ui { busy = false }
             }
         }
     }
 
-    private fun ui(action: Runnable) {
-        runOnUiThread { if (!isDestroyed) action.run() }
+    private fun ui(action: () -> Unit) {
+        runOnUiThread { if (!isDestroyed && !isFinishing) action() }
     }
 
     private fun save() {
@@ -226,19 +211,17 @@ class FullBackupActivity : Activity() {
         val destination = target
         runTask {
             PixelLocalStore(this).use { store ->
-                val result = PixelBackupService(this, store).save(current, Uri.parse(destination)) { message ->
-                    ui { status.text = message }
-                }
+                val result = PixelBackupService(this, store).save(current, Uri.parse(destination)) { message -> ui { status = message } }
                 if (!result.optBoolean("verified")) throw IOException("BACKUP_LOCAL_READBACK_FAILED")
                 ui {
-                    status.text = "Sicherung gespeichert und vollständig zurückgelesen. Du findest die ZIP-Datei am gewählten Speicherort." +
+                    status = "Sicherung gespeichert und vollständig zurückgelesen. Du findest die ZIP-Datei am gewählten Speicherort." +
                         if (result.optInt("warning_count") > 0) {
                             " Hinweise zum Ausgangsbestand: ${result.optInt("warning_count")}. Details: data/backup-notes.json in der ZIP-Datei."
                         } else ""
                     request = ""
                     target = ""
-                    newTarget.visibility = View.GONE
-                    saveButton.text = "Neue Sicherung speichern"
+                    showNewTarget = false
+                    saveLabel = "Neue Sicherung speichern"
                 }
             }
         }
@@ -249,11 +232,17 @@ class FullBackupActivity : Activity() {
         if (restoreRequest.isEmpty()) restoreRequest = UUID.randomUUID().toString()
         val id = restoreRequest
         val uri = restoreUri
-        val code = recoveryCode.text.toString()
+        val code = recoveryCode
         runTask { showPreview(BackupRestoreService(this).preview(id, Uri.parse(uri), code)) }
     }
 
-    @Throws(Exception::class)
+    private fun clearPreview() {
+        restoreRequest = ""
+        restoreId = ""
+        previewHash = ""
+        showActivate = false
+    }
+
     private fun showPreview(result: JSONObject) {
         val summary = result.optJSONObject("summary")
         val incomplete = summary != null && summary.optString("media_coverage") == "LEGACY_NOT_PROVEN"
@@ -261,64 +250,78 @@ class FullBackupActivity : Activity() {
             restoreId = result.optString("restore_id")
             previewHash = result.optString("preview_hash")
             legacyMedia = incomplete
-            status.text = "Sicherungsdatei geprüft. Wiederherstellen ersetzt den aktuellen Bestand. Vorher wird eine lokale Rückfallkopie erstellt." +
+            status = "Sicherungsdatei geprüft. Wiederherstellen ersetzt den aktuellen Bestand. Vorher wird eine lokale Rückfallkopie erstellt." +
                 (if (summary != null && summary.optInt("warning_count") > 0) {
                     " Hinweise zum Ausgangsbestand: ${summary.optInt("warning_count")}. Vorhandene Unstimmigkeiten werden mit wiederhergestellt."
                 } else "") +
                 if (legacyMedia) " Bei dieser alten Sicherung ist die Fotoabdeckung nicht vollständig belegt." else ""
-            activate.visibility = View.VISIBLE
+            showActivate = true
         }
     }
 
     private fun confirmRestore() {
-        if (restoreId.isEmpty() || previewHash.isEmpty()) return
-        AlertDialog.Builder(this).setTitle("Bestand wiederherstellen?")
-            .setMessage("Der aktuelle Bestand wird durch die geprüfte Sicherung ersetzt. Eine lokale Rückfallkopie bleibt erhalten." +
-                if (legacyMedia) " Die unvollständig belegte Fotoabdeckung dieser alten Sicherung wird ausdrücklich akzeptiert." else "")
-            .setNegativeButton("Abbrechen", null)
-            .setPositiveButton("Wiederherstellen") { _, _ ->
-                val id = restoreId
-                val hash = previewHash
-                runTask {
-                    BackupRestoreService(this).requestActivation("activate_$restoreRequest", id, hash, true, legacyMedia)
-                    ui {
-                        status.text = "Wiederherstellung vorgemerkt. App vollständig schließen und erneut öffnen. Der Austausch erfolgt beim Neustart."
-                    }
-                }
-            }.show()
+        if (restoreId.isNotEmpty() && previewHash.isNotEmpty()) showConfirmation = true
+    }
+
+    private fun activateRestore() {
+        val id = restoreId
+        val hash = previewHash
+        val activationRequest = "activate_$restoreRequest"
+        val acceptLegacyMedia = legacyMedia
+        if (id.isEmpty() || hash.isEmpty()) return
+        runTask {
+            BackupRestoreService(this).requestActivation(activationRequest, id, hash, true, acceptLegacyMedia)
+            ui { status = "Wiederherstellung vorgemerkt. App vollständig schließen und erneut öffnen. Der Austausch erfolgt beim Neustart." }
+        }
     }
 
     override fun onActivityResult(code: Int, result: Int, data: Intent?) {
         super.onActivityResult(code, result, data)
         if (result != RESULT_OK || code != SAVE && code != OPEN) return
         val uri = data?.data ?: return
-        try {
-            PixelBackupService.requireDocument(uri)
+        // Retain the selected identity immediately, including recreation while the provider grants access.
+        if (code == SAVE) {
+            target = uri.toString()
+            saveLabel = "Speichern erneut versuchen"
+        } else {
+            restoreUri = uri.toString()
+            clearPreview()
+        }
+        // Providers may perform disk work while granting access. Handle the result on IO.
+        resolvingDocument = true
+        busy = true
+        WORK.launch {
             try {
-                val flags = if (code == SAVE) {
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                } else Intent.FLAG_GRANT_READ_URI_PERMISSION
-                contentResolver.takePersistableUriPermission(uri, flags)
-            } catch (_: SecurityException) {
-                // This explicit operation may use its temporary grant.
+                if (!startupReady()) return@launch
+                initialized.await()
+                PixelBackupService.requireDocument(uri)
+                try {
+                    val flags = if (code == SAVE) {
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    } else Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    contentResolver.takePersistableUriPermission(uri, flags)
+                } catch (_: SecurityException) {
+                    // This explicit operation may use its temporary grant.
+                }
+                ui {
+                    resolvingDocument = false
+                    busy = false
+                    if (code == SAVE) {
+                        save()
+                    } else {
+                        showCheck = true
+                        status = "Sicherungsdatei gewählt. Mit „Gewählte Sicherung prüfen“ fortfahren."
+                    }
+                }
+            } catch (_: Exception) {
+                ui {
+                    resolvingDocument = false
+                    busy = false
+                    status = "Die gewählte Datei ist nicht zugänglich. Bitte die Android-Dateiauswahl erneut öffnen. Es wurde keine Sicherung geschrieben."
+                    request = ""
+                    target = ""
+                }
             }
-            if (code == SAVE) {
-                target = uri.toString()
-                saveButton.text = "Speichern erneut versuchen"
-                save()
-            } else {
-                restoreUri = uri.toString()
-                restoreRequest = ""
-                restoreId = ""
-                previewHash = ""
-                activate.visibility = View.GONE
-                checkButton.visibility = View.VISIBLE
-                status.text = "Sicherungsdatei gewählt. Mit „Gewählte Sicherung prüfen“ fortfahren."
-            }
-        } catch (_: Exception) {
-            status.text = "Die gewählte Datei ist nicht zugänglich. Bitte die Android-Dateiauswahl erneut öffnen. Es wurde keine Sicherung geschrieben."
-            request = ""
-            target = ""
         }
     }
 
@@ -328,11 +331,6 @@ class FullBackupActivity : Activity() {
         state.putString("target", target)
         state.putString("restore_request", restoreRequest)
         state.putString("restore_uri", restoreUri)
-        // Never serialize an old recovery code.
-    }
-
-    fun interface Task {
-        @Throws(Exception::class)
-        fun run()
+        // Never serialize an old recovery code or a prior preview/confirmation.
     }
 }

@@ -1,4 +1,4 @@
-name: Gartenpirat source and native backup checks
+name: Gartenpirat Kotlin, Compose and native regression checks
 
 on:
   workflow_dispatch:
@@ -16,7 +16,7 @@ permissions:
 jobs:
   current-source-and-backup:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     defaults:
       run:
         working-directory: struktur-neu
@@ -49,13 +49,15 @@ jobs:
           "$SDKMANAGER" 'platforms;android-37.0' 'build-tools;37.0.0' 'platform-tools' 'emulator' 'system-images;android-35;default;x86_64'
       - name: Build production sources and native test APK without release signing
         working-directory: struktur-neu/android
-        run: gradle --no-daemon --no-configuration-cache --no-build-cache :app:assembleRelease :app:assembleReleaseAndroidTest
+        run: gradle --no-daemon --no-configuration-cache --no-build-cache --max-workers=2 :app:assembleRelease :app:assembleReleaseAndroidTest :app:lintRelease
       - name: Run JVM archive, warning, rollback and related regressions
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/gp-deps"
           curl -fsSL https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o "$RUNNER_TEMP/gp-deps/json.jar"
-          HG_JSON_JAR="$RUNNER_TEMP/gp-deps/json.jar" python3 -B tools/run-followup-java.py
+          curl -fsSL https://repo.maven.apache.org/maven2/org/xerial/sqlite-jdbc/3.46.1.0/sqlite-jdbc-3.46.1.0.jar -o "$RUNNER_TEMP/gp-deps/sqlite-jdbc.jar"
+          curl -fsSL https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar -o "$RUNNER_TEMP/gp-deps/slf4j-api.jar"
+          HG_JSON_JAR="$RUNNER_TEMP/gp-deps/json.jar" HG_SQLITE_JDBC_JAR="$RUNNER_TEMP/gp-deps/sqlite-jdbc.jar" HG_SLF4J_API_JAR="$RUNNER_TEMP/gp-deps/slf4j-api.jar" python3 -B tools/run-followup-java.py --tables
       - name: Sign disposable emulator test packages only
         run: |
           set -euo pipefail
@@ -69,8 +71,8 @@ jobs:
           "$ALIGN" -f 4 "$TEST_APK" "$RUNNER_TEMP/gp-test.apk"
           "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-app.apk"
           "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-test.apk"
-      - name: Run native SQLite, document picker, provider and new-process checks
-        timeout-minutes: 12
+      - name: Run native SQLite, Compose, document picker, provider and new-process checks
+        timeout-minutes: 20
         run: |
           set -euo pipefail
           sudo chmod 666 /dev/kvm
@@ -93,10 +95,14 @@ jobs:
           "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-app.apk"
           "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-test.apk"
           mkdir -p outputs
-          for suite in local_backup local_backup_reopen browser_checkpoint browser_checkpoint_reopen document_provider document_provider_reopen; do
+          for suite in local_backup local_backup_reopen browser_checkpoint browser_checkpoint_reopen native_data document_provider document_provider_reopen native_compose; do
             "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service
             "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service.test
-            timeout 240 "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation | tee "outputs/$suite.txt"
+            "$ADB" -s emulator-5580 logcat -c
+            instrumentation_status=0
+            timeout 360 "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation 2>&1 | tee "outputs/$suite.txt" || instrumentation_status=$?
+            timeout 15 "$ADB" -s emulator-5580 logcat -d -t 1500 > "outputs/$suite-logcat.txt" 2>&1 || true
+            test "$instrumentation_status" = 0
             python3 - "$suite" <<'PY'
           import json,pathlib,sys
           text=pathlib.Path('outputs/'+sys.argv[1]+'.txt').read_text()
@@ -111,7 +117,22 @@ jobs:
               assert result['real_sqlite_transactions'] is True and result['isolated_context_paths'] is True, result
               assert result['new_process_readback'] is sys.argv[1].endswith('_reopen'), result
               assert result['optional_media_failure_tested'] is (not sys.argv[1].endswith('_reopen')), result
+          elif sys.argv[1]=='native_data':
+              assert result['isolated_context_paths'] is True and result['projection_rows']==40000, result
+              assert result['real_sqlite_transactions'] is True and result['wal_concurrent_reader'] is True, result
+              assert result['actual_coroutine_flow'] is True and result['main_thread_disk_violations']==0, result
+              assert result['performance_claim'] is False and result['plans'], result
+              for plan in result['plans'].values():
+                  assert 'USING INDEX ix_native_read_' in str(plan) and 'TEMP B-TREE' not in str(plan), result
+          elif sys.argv[1]=='native_compose':
+              for proof in ('real_main_activity','native_compose_ui','customer_crud','paging_and_search',
+                            'mcp_write_visible_without_reload','draft_recreation','timer_state_transitions',
+                            'font_scale_200_percent','planning_notification_alternatives','customer_conflict_review',
+                            'draft_write_failure_recovery'):
+                  assert result[proof] is True, result
+              assert result['drive_account_tested'] is False and result['physical_pixel_tested'] is False, result
           else:
+              assert sys.argv[1] in ('document_provider','document_provider_reopen'), result
               assert result['real_document_provider_tested'] is True and result['non_local_provider_tested'] is True, result
               assert result['android_file_picker_tested'] is (not sys.argv[1].endswith('_reopen')), result
               assert result['new_process_readback'] is sys.argv[1].endswith('_reopen') and result['drive_account_tested'] is False, result
@@ -137,6 +158,8 @@ jobs:
             struktur-neu/outputs/local_backup*.txt
             struktur-neu/outputs/browser_checkpoint*.txt
             struktur-neu/outputs/document_provider*.txt
+            struktur-neu/outputs/native_data*.txt
+            struktur-neu/outputs/native_compose*.txt
             struktur-neu/outputs/emulator*.txt
             struktur-neu/android/app/build/reports/lint-results-release.html
           if-no-files-found: ignore

@@ -14,14 +14,15 @@ public final class RevierDomainTests {
     static JSONObject args(String request)throws Exception{return object().put("request_id",request);}
     static final Clock CLOCK=Clock.fixed(Instant.parse("2027-05-18T07:00:00Z"),ZoneOffset.UTC);
     static final class Memory implements RevierRepository {
-        JSONObject snapshot;TreeMap<String,String> values=new TreeMap<>();boolean abortReceipt;int inspections,writes;Set<String> billed=new HashSet<>();JSONArray sessionRows=new JSONArray();
+        JSONObject snapshot;TreeMap<String,String> values=new TreeMap<>();boolean abortReceipt;int inspections,writes,effectiveReads,transactions;Map<String,JSONObject> nativeReceipts=new HashMap<>();Set<String> billed=new HashSet<>();JSONArray sessionRows=new JSONArray();
         Memory()throws Exception {snapshot=SyntheticBusinessData.profile("minimal");}
-        public JSONObject effective()throws Exception{return new JSONObject(snapshot.toString());}
+        public JSONObject effective()throws Exception{effectiveReads++;return new JSONObject(snapshot.toString());}
         public String get(String key,String fallback){return values.getOrDefault(key,fallback);}
         public void put(String key,String value){writes++;if(abortReceipt&&key.startsWith(RevierRules.ROOT+"request:"))throw new IllegalStateException("qa simulated receipt failure");values.put(key,value);}
         public JSONArray list(String prefix)throws Exception {JSONArray out=new JSONArray();for(Map.Entry<String,String> entry:values.entrySet())if(entry.getKey().startsWith(prefix))out.put(new JSONObject(entry.getValue()));return out;}
         public JSONArray rawEntries(String prefix)throws Exception {JSONArray out=new JSONArray();for(Map.Entry<String,String> entry:values.entrySet())if(entry.getKey().startsWith(prefix))out.put(object().put("key",entry.getKey()).put("value",entry.getValue()));return out;}
-        public JSONObject transaction(Work work)throws Exception {TreeMap<String,String> before=new TreeMap<>(values);String original=snapshot.toString();int calls=inspections;try{return work.run();}catch(Exception failure){values=before;snapshot=new JSONObject(original);inspections=calls;throw failure;}}
+        public JSONObject transaction(Work work)throws Exception {transactions++;TreeMap<String,String> before=new TreeMap<>(values);String original=snapshot.toString();int calls=inspections;try{return work.run();}catch(Exception failure){values=before;snapshot=new JSONObject(original);inspections=calls;throw failure;}}
+        public JSONObject nativeReceipt(String request)throws Exception {JSONObject receipt=nativeReceipts.get(request);return receipt==null?null:new JSONObject(receipt.toString());}
         public JSONObject planInspection(JSONObject input)throws Exception {McpSchema.validate(input,AppointmentTools.schema("create_appointment"));inspections++;JSONObject row=new JSONObject(input.toString()).put("id","qa_inspection_"+inspections);snapshot.getJSONArray("appointments").put(row);return object().put("appointment_id",row.getString("id"));}
         public JSONObject changeInspection(String operation,JSONObject input)throws Exception {McpSchema.validate(input,AppointmentTools.schema(operation));for(int i=0;i<snapshot.getJSONArray("appointments").length();i++){JSONObject row=snapshot.getJSONArray("appointments").getJSONObject(i);if(row.getString("id").equals(input.getString("appointment_id"))){if(!AppointmentRules.hash(row).equals(input.getString("expected_record_hash")))throw RevierRules.error("WRITE_CONFLICT","QA stale appointment");JSONObject updates=input.getJSONObject("updates");for(Iterator<String> keys=updates.keys();keys.hasNext();){String key=keys.next();row.put(key,updates.get(key));}return object().put("appointment_id",row.getString("id"));}}throw RevierRules.error("REFERENCE_NOT_FOUND","QA appointment missing");}
         public String createDirectOrder(JSONObject input)throws Exception {JSONObject row=new JSONObject(input.toString());row.remove("_request_id");BillingRules.order(row,snapshot);snapshot.getJSONArray("orders").put(row);return row.getString("id");}
@@ -163,8 +164,54 @@ public final class RevierDomainTests {
         rejected("REPLAY_MISMATCH",()->inspectOwnerEdit(app,"update_photo",new JSONObject(photo.toString()).put("updates",object().put("notes","QA andere Notiz"))));
         rejected("REPLAY_MISMATCH",()->inspectOwnerEdit(app,"update_business_settings",new JSONObject(settings.toString()).put("updates",object().put("business_city","QA anderer Ort"))));
         for(String tool:new String[]{"update_photo","update_business_settings"}){JSONObject unknown=inspectOwnerEdit(app,tool,args("qa_no_receipt_"+tool));yes(unknown.getString("state").equals("unknown")&&!unknown.getBoolean("business_write_performed"));}
-        rejected("INVALID_INPUT",()->inspectOwnerEdit(app,"update_settings",settings));rejected("INVALID_INPUT",()->inspectOwnerEdit(app,"create_photo",photo));
+        rejected("REPLAY_MISMATCH",()->inspectOwnerEdit(app,"update_settings",settings));rejected("REPLAY_MISMATCH",()->inspectOwnerEdit(app,"create_photo",photo));
         yes(rowsBefore.equals(store.values.toString()));yes(snapshotHash.equals(PixelMcpWriteTools.hash(store.snapshot)));yes(store.writes==writesBefore);
+    }
+    /** Persisted receipt inspection must prove the original action without executing it. */
+    static void nativeAndOwnerReceiptInspection()throws Exception {
+        Memory store=new Memory();RevierApplicationService app=new RevierApplicationService(store,CLOCK);
+        JSONObject invoice=args("qa_native_invoice_receipt").put("customer_id","qa_customer_1").put("invoice_date","2027-05-18").put("positions",new JSONArray().put(object().put("title","QA Gartenpflege").put("quantity",1).put("price",25)));
+        McpSchema.validate(invoice,PixelMcpEntityWriteTools.schema("create_invoice_draft"));
+        yes(inspectOwnerEdit(app,"create_invoice_draft",invoice).getString("state").equals("unknown"));
+        JSONObject receipt=object().put("tool","create_invoice_draft").put("fingerprint",PixelMcpWriteTools.hash(object().put("tool","create_invoice_draft").put("args",invoice))).put("entity_type","invoice").put("entity_id","qa_invoice_receipt").put("uploaded",false);
+        store.nativeReceipts.put(invoice.getString("request_id"),receipt);
+        JSONObject proof=inspectOwnerEdit(app,"create_invoice_draft",invoice);
+        yes(proof.getString("state").equals("confirmed"));
+        yes(proof.getJSONObject("result").getString("entity_id").equals("qa_invoice_receipt"));
+        yes(!proof.getBoolean("business_write_performed"));
+        JSONObject changed=new JSONObject(invoice.toString()).put("customer_id","qa_customer_2");
+        rejected("REPLAY_MISMATCH",()->inspectOwnerEdit(app,"create_invoice_draft",changed));
+        rejected("REPLAY_MISMATCH",()->inspectOwnerEdit(app,"update_invoice_draft",invoice));
+        receipt.put("test_purged",true);
+        yes(inspectOwnerEdit(app,"create_invoice_draft",invoice).getString("state").equals("content_removed"));
+        receipt.remove("test_purged");receipt.put("entity_id","");
+        yes(inspectOwnerEdit(app,"create_invoice_draft",invoice).getString("state").equals("unknown"));
+        JSONObject timer=args("qa_native_timer_receipt").put("customer_id","qa_customer_1");
+        store.nativeReceipts.put(timer.getString("request_id"),object().put("tool","start_work").put("fingerprint",PixelMcpWriteTools.hash(object().put("tool","start_work").put("args",timer))).put("entity_type","work_session").put("entity_id","qa_session_receipt").put("result",object().put("session",object().put("id","qa_session_receipt").put("state","RUNNING"))));
+        yes(inspectOwnerEdit(app,"start_work",timer).getJSONObject("result").getJSONObject("session").getString("id").equals("qa_session_receipt"));
+        for(String tool:new String[]{"request_invoice_issue","create_catalog_entry","update_settings","create_photo"}){
+            String idField=tool.equals("request_invoice_issue")?"invoice_id":tool.equals("create_catalog_entry")?"entry_id":"entity_id";
+            JSONObject original=args("qa_owner_receipt_"+tool);
+            if(tool.equals("request_invoice_issue"))original.put("invoice_id","qa_invoice_receipt").put("expected_record_hash","a".repeat(64)).put("confirmed",true);
+            else if(tool.equals("create_catalog_entry"))original.put("title","QA Gartenpflege").put("unit","h").put("category","QA Pflege");
+            else if(tool.equals("update_settings"))original.put("expected_record_hash","a".repeat(64)).put("updates",object().put("default_activity","QA Gartenpflege"));
+            else original.put("upload_id","qa_upload_receipt").put("customer_id","qa_customer_1");
+            McpSchema.validate(original,tool.equals("create_catalog_entry")?OfferTools.schema(tool):PixelMcpOwnerTools.schema(tool));
+            ownerEditReceipt(store,tool,original,object().put(idField,"qa_"+tool));
+            JSONObject known=inspectOwnerEdit(app,tool,original);
+            yes(known.getString("state").equals("confirmed"));
+            yes(known.getString("entity_id").equals("qa_"+tool));
+            JSONObject altered=new JSONObject(original.toString());
+            if(tool.equals("request_invoice_issue"))altered.put("invoice_id","qa_invoice_other");
+            else if(tool.equals("create_catalog_entry"))altered.put("title","QA andere Leistung");
+            else if(tool.equals("update_settings"))altered.put("updates",object().put("default_activity","QA andere Tätigkeit"));
+            else altered.put("customer_id","qa_customer_2");
+            rejected("REPLAY_MISMATCH",()->inspectOwnerEdit(app,tool,altered));
+        }
+        rejected("INVALID_INPUT",()->inspectOwnerEdit(app,"not_a_registered_writer",invoice));
+        String ownerBefore=store.values.toString(),nativeBefore=new JSONObject(store.nativeReceipts).toString(),snapshotBefore=store.snapshot.toString();int writesBefore=store.writes;
+        inspectOwnerEdit(app,"start_work",timer);inspectOwnerEdit(app,"create_invoice_draft",invoice);
+        yes(store.writes==writesBefore&&store.transactions==0&&store.effectiveReads==0&&ownerBefore.equals(store.values.toString())&&nativeBefore.equals(new JSONObject(store.nativeReceipts).toString())&&snapshotBefore.equals(store.snapshot.toString()));
     }
     static void calendarDayFilters()throws Exception {
         String[][] cases={

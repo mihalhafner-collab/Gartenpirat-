@@ -28,7 +28,7 @@ internal object BackupSnapshotState {
         }
         PixelDriveState.prepare(master)
         ServiceCatalogBootstrap.seed(master) { serviceCatalog }
-        LocalTestCleanup.overlay({ key, otherwise -> DatabaseBackupSnapshot.ownerValue(db, key, otherwise) }, master)
+        LocalTestCleanup.overlay({ key, otherwise -> DatabaseBackupSnapshot.ownerValue(db, key, otherwise) ?: otherwise }, master)
         if (engine == LocalAuthorityRules.ENGINE ||
             DatabaseBackupSnapshot.ownerValue(db, "local_authority_contract", "")!!.isNotEmpty()) {
             master.put("processing_engine", LocalAuthorityRules.ENGINE)

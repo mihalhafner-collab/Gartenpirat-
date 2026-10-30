@@ -4,8 +4,9 @@ Die Arbeitsbasis wurde aus Build113 übernommen und seitdem weiterentwickelt.
 Aktuelle Version, Quellstand, zuletzt belegte Installation und offene Prüfungen
 stehen im [aktuellen Stand](AKTUELLER-STAND.json).
 
-Diese Struktur ist die vorbereitete Parallelfassung. Die bisherigen Quellpfade,
-GitHub-Workflows und die installierte App werden damit nicht automatisch ersetzt.
+Diese Struktur ist die verbindliche Quelle der Kotlin-App mit Compose-Oberfläche.
+Der aktuelle Prüfworkflow baut diese Quellen; Installation und Veröffentlichung
+benötigen weiterhin einen eigenen Auftrag.
 
 ## Einstieg
 
@@ -22,7 +23,7 @@ GitHub-Synchronisierung oder Übernahme der Bauumgebung wird nicht vorausgesetzt
 
 | Pfad | Inhalt |
 |---|---|
-| `android/` | App, eingebettete Oberfläche und Android-Baukonfiguration |
+| `android/` | Kotlin-App, native Compose-Oberfläche und Android-Baukonfiguration |
 | `static/`, `assets/` | Benötigte gemeinsame Webressourcen und erzeugte Spiegel |
 | `libraries/plants/` | Pflanzenquellen, Bildrechte und notwendige redaktionelle Eingaben |
 | `tools/` | Tatsächlich benötigte Build-, Pflege- und Prüfwerkzeuge |

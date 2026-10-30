@@ -2,7 +2,7 @@
 """Generate/check Web mirrors from the existing Android catalogue, never business data.
 
 Edit only android/app/src/main/assets/plant-catalog.json and its referenced media.
-The JS adapter and Web files are outputs, not a second maintained catalogue.
+The standalone Web catalogue is an output. The Android UI reads JSON in Kotlin.
 --write updates outputs without deleting any files; the default is read-only.
 """
 import argparse
@@ -25,7 +25,7 @@ def synchronize(write=False):
         raise ValueError('Duplicate plant IDs')
     adapter = ('/* Offline botanical database. Generated from plant-catalog.json. */\n'
                'window.GartenpiratCatalog=' + json.dumps(catalog, ensure_ascii=False, separators=(',', ':')) + ';\n').encode()
-    outputs = {ASSETS/'plant-catalog.js': adapter, WEB/'plant-catalog.js': adapter, WEB/'plant-catalog.json': raw}
+    outputs = {WEB/'plant-catalog.js': adapter, WEB/'plant-catalog.json': raw}
     images = set()
     for plant in plants:
         if not plant['sources'] or not plant['images']:
@@ -37,7 +37,7 @@ def synchronize(write=False):
             if not all(image.get(k) for k in ('author', 'license', 'licenseUrl', 'source')):
                 raise ValueError('Missing attribution: ' + str(relative))
             images.add(relative.as_posix())
-    for name in (*SHARED, *sorted(images)):
+    for name in sorted(images):
         outputs[WEB/name] = (ASSETS/name).read_bytes()
     worker = (WEB/'sw.js').read_text()
     match = re.search(r'const GP_ASSETS = (\[[^\n]*\]);', worker)
@@ -48,7 +48,8 @@ def synchronize(write=False):
     paths += ['/' + name for name in sorted(images)]
     worker = worker[:match.start(1)] + json.dumps(paths, ensure_ascii=False, separators=(',', ':')) + worker[match.end(1):]
     # Content address the botanical cache, including viewer code and media.
-    digest = hashlib.sha256(raw + adapter + b''.join(outputs[p] for p in sorted(outputs) if p.parent != ASSETS)).hexdigest()[:16]
+    shared = b''.join((WEB/name).read_bytes() for name in SHARED)
+    digest = hashlib.sha256(raw + adapter + shared + b''.join(outputs[p] for p in sorted(outputs))).hexdigest()[:16]
     worker = re.sub(r"const CACHE = '[^']+';", "const CACHE = 'haus-garten-plants-" + digest + "';", worker, count=1)
     outputs[WEB/'sw.js'] = worker.encode()
     different = []

@@ -38,7 +38,7 @@ internal object LocalBackupDataset {
                 val initial = asset(context, "initial-data.json")
                 val catalog = asset(context, "service-catalog.json")
                 // Freeze immutable originals before the DB snapshot so concurrent removal cannot lose them.
-                for (name in arrayOf("customer-photo-originals", "business-documents", "browser-media")) {
+                for (name in arrayOf("customer-photo-originals", "business-documents", "browser-media", "mcp-photo-uploads", "native-form-media")) {
                     BackupFilePins.pinImmutable(File(context.filesDir, name), directory, "files/$name")
                 }
                 stage = "PREFERENCES"

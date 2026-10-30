@@ -1,40 +1,85 @@
-"""Versioned semantic UI audit. Record fingerprints only after reviewing UI changes."""
+"""Review native UI sources and the complete semantic UI/MCP action mapping."""
 from pathlib import Path
-import hashlib,json,sys,re
-ROOT=Path(__file__).resolve().parents[1];target=ROOT/'android/app/src/main/assets/ui-mcp-actions.json';m=json.loads(target.read_text())
+import hashlib
+import json
+import re
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+SOURCE = ROOT / 'android/app/src/main/java/at/hausgarten/service'
+TARGET = ROOT / 'android/app/src/main/assets/ui-mcp-actions.json'
+manifest = json.loads(TARGET.read_text())
+
+
 def native_source(name):
- candidates=[ROOT/f'android/app/src/main/java/at/hausgarten/service/{name}{suffix}' for suffix in ('.java','.kt')]
- found=[p for p in candidates if p.is_file()]
- if len(found)!=1:raise SystemExit('Expected one reviewed native source: '+name)
- return found[0]
-paths=sorted(p for p in (ROOT/'android/app/src/main/assets').glob('*') if p.suffix in ('.js','.css') or p.name in ('mobile.html','backup-restore-drafts.html','offer-contract.json'))
-paths += [native_source(n) for n in ('MainActivity','DriveJournalRules','InvoiceIssueRules','DriveRolePolicy','DriveSyncCoordinator','DriveSyncJob','PixelOwnerAccess','LocalOwnerRepository','PixelLocalStore','WorkSessionStore','BusinessDataBridge','BrowserDraftRepository','BackupSettingsRepository','LocalBackupDataset','BrowserMediaBridge','NativeOwnerQueries','PixelMcpOwnerTools','SyncArchiveApplicationService','LocalMigrationInventory','LocalAuthorityMigration','LocalAuthorityRules','PlanningConnectionActivity','PixelTunnelActivity','NativeUi','BackgroundWorkDispatch','PendingWorkPhotoStore','PixelBackupService','BackupDocumentTransfer','BackupInventory','EncryptedBackupArchive','BackupRestoreService','RestoreStartupProtection','BackupScheduleRules','BackupStatusRules','TrashMediaCleanup','BrowserMediaRepository','BrowserMediaRepositoryRules','RestoredBrowserCheckpoint','RestoredBrowserReviewRules','RevierApplicationService','RevierRules','EquipmentMaintenanceRules','EquipmentProfilePhotoRules','RevierRepository','RevierLocalRepository','RevierSnapshotRepository','LocalWorkflowTools','PlanningApplicationService','OfferApplicationService','LocalInvoiceService','OwnerRequestTransactions','McpErrors','CalendarSetupRules','FullBackupActivity','RestoreRecoveryActivity','LocalAuthorityActivity')]
-inventoried_native={p for p in paths if p.suffix in ('.java','.kt')}
-for path in (ROOT/'android/app/src/main/java/at/hausgarten/service').rglob('*'):
- if path.suffix in ('.java','.kt') and re.search(r'@(?:android\.webkit\.)?JavascriptInterface\b',path.read_text()) and path not in inventoried_native:raise SystemExit('UI bridge source review required: '+str(path.relative_to(ROOT)))
-observed={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
+    path = SOURCE / (name + '.kt')
+    if not path.is_file():
+        raise SystemExit('Expected reviewed Kotlin source: ' + name)
+    return path
+
+
+# Every Compose source joins the review automatically, including newly added screens.
+paths = {p for p in SOURCE.glob('*.kt') if re.search(r'@(?:androidx\.compose\.runtime\.)?Composable\b', p.read_text())}
+paths.update(native_source(name) for name in (
+    'MainActivity', 'NativePrimaryScreens', 'NativeForms', 'NativeCompose',
+    'NativeAppController', 'NativeActionCatalog', 'NativeDataRepository',
+    'DriveJournalRules', 'GardenRules', 'BillingRules', 'TestDataRules', 'WorklogRules',
+    'EntityProtectionRules', 'OwnerJournalRules', 'SyncActionOrder', 'OrderReviewRules',
+    'InvoiceIssueRules', 'DriveRolePolicy', 'DriveSyncCoordinator',
+    'DriveSyncJob', 'PixelOwnerAccess', 'LocalOwnerRepository', 'PixelLocalStore',
+    'WorkSessionStore', 'BrowserDraftRepository', 'BackupSettingsRepository',
+    'LocalBackupDataset', 'NativeOwnerQueries', 'PixelMcpOwnerTools',
+    'SyncArchiveApplicationService', 'LocalMigrationInventory', 'LocalAuthorityMigration',
+    'LocalAuthorityRules', 'LocalAuthorityGuard', 'RevierApplication',
+    'PlanningConnectionActivity', 'PixelTunnelActivity', 'PixelTunnelService',
+    'PixelTunnelBootReceiver', 'BackgroundWorkDispatch', 'PendingWorkPhotoStore',
+    'PixelBackupService', 'BackupDocumentTransfer', 'BackupInventory',
+    'EncryptedBackupArchive', 'BackupRestoreService', 'RestoreStartupProtection',
+    'BackupScheduleRules', 'BackupStatusRules', 'TrashMediaCleanup',
+    'BrowserMediaRepository', 'BrowserMediaRepositoryRules', 'RestoredBrowserCheckpoint',
+    'RestoredBrowserReviewRules', 'RevierApplicationService', 'RevierRules',
+    'EquipmentMaintenanceRules', 'EquipmentProfilePhotoRules', 'RevierRepository',
+    'RevierLocalRepository', 'RevierSnapshotRepository', 'LocalWorkflowTools',
+    'PlanningApplicationService', 'OfferApplicationService', 'LocalInvoiceService',
+    'OwnerRequestTransactions', 'McpErrors', 'CalendarSetupRules', 'FullBackupActivity',
+    'RestoreRecoveryActivity', 'LocalAuthorityActivity',
+))
+paths.add(ROOT / 'android/app/src/main/assets/offer-contract.json')
+for action in manifest['actions']:
+    for key in ('source', 'native_dispatch'):
+        path = SOURCE / action[key]
+        assert path.is_file() and path.suffix == '.kt', 'Missing native action source: ' + action['id']
+        paths.add(path)
+
+# A reintroduced WebView bridge needs an explicit architecture review.
+for path in SOURCE.glob('*'):
+    if path.suffix in ('.java', '.kt') and re.search(r'@(?:android\.webkit\.)?JavascriptInterface\b|\bWebView\s*\(', path.read_text()):
+        raise SystemExit('Unexpected WebView UI source: ' + str(path.relative_to(ROOT)))
+observed = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in sorted(paths)}
+
+# Check the executed menu registry against all 210 semantic entries, including explicit exceptions.
+pattern = re.compile(r'NativeAction\s*\(\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*,\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*,\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*,\s*listOf\(([^)]*)\)\s*,?([^)]*)\)', re.S)
+entries = pattern.findall(native_source('NativeActionCatalog').read_text())
+registry = {entry[0]: entry for entry in entries}
+assert len(entries) == len(registry) == len(manifest['actions']) == 210
+assert set(registry) == {action['id'] for action in manifest['actions']}
+known = set()
+for path in SOURCE.glob('*Tools.kt'):
+    known.update(re.findall(r'"([a-z][a-z0-9_]+)"', path.read_text()))
+for action in manifest['actions']:
+    _, area, label, tools, flags = registry[action['id']]
+    assert area == action['area'] and json.loads('"' + label + '"') == action['action'], 'Registry action mismatch: ' + action['id']
+    assert re.findall(r'"([a-z][a-z0-9_]+)"', tools) == action['mcp'], 'Registry tool mismatch: ' + action['id']
+    assert ('retired = true' in flags) == action.get('retired', False), 'Registry retirement mismatch: ' + action['id']
+    assert ('platformOnly = true' in flags) == action['platform_only'], 'Registry platform mismatch: ' + action['id']
+    if action['kind'] == 'business':
+        assert action['mcp'] and all(name in known for name in action['mcp']), 'Missing MCP mapping: ' + action['id']
+    else:
+        assert action['platform_only'] and action.get('barrier'), 'Missing platform exception: ' + action['id']
+
 if '--record-reviewed' in sys.argv:
- m['reviewed_sources']=observed;m['protocol_version']=9
- for a in m['actions']:
-  a['platform_only']=a['kind']!='business'
-  if 'validate_offer' in a['mcp'] and 'validate_offer_draft' not in a['mcp']:a['mcp'].append('validate_offer_draft')
-  if 'create_offer_draft' in a['mcp'] and 'create_and_validate_offer' not in a['mcp']:a['mcp'].append('create_and_validate_offer')
-  if 'prepare_offer_share' in a['mcp']:
-   for n in ('prepare_offer_delivery','confirm_offer_delivery'):
-    if n not in a['mcp']:a['mcp'].append(n)
-  if 'get_ui_action_catalog' in a['mcp']:
-   for n in ('get_offer_contract','run_self_test'):
-    if n not in a['mcp']:a['mcp'].append(n)
-  a.setdefault('test_scope','Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md')
- target.write_text(json.dumps(m,ensure_ascii=False,indent=2)+'\n')
-else:
- if m['reviewed_sources']!=observed:raise SystemExit('UI source review required; fingerprint or source set changed')
-known=set()
-for p in (ROOT/'android/app/src/main/java/at/hausgarten/service').glob('*Tools.*'):
- if p.suffix in ('.java','.kt'):known.update(re.findall(r'\"([a-z][a-z0-9_]+)\"',p.read_text()))
-for a in m['actions']:
- if a['kind']=='business':
-  assert a['mcp'] and all(n in known for n in a['mcp']), 'Missing/unknown MCP mapping: '+a['id']
- else:assert a.get('platform_only') and a.get('barrier'), 'Missing explicit platform exception'
-assert len(m['actions'])==210 and len({a['id'] for a in m['actions']})==210
-print('PASS UI review fingerprints;210 semantic actions')
+    manifest['reviewed_sources'] = observed
+    TARGET.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
+elif manifest['reviewed_sources'] != observed:
+    raise SystemExit('UI source review required; fingerprint or source set changed')
+print('PASS native UI review fingerprints; 210 semantic actions and exact executable registry mapping')

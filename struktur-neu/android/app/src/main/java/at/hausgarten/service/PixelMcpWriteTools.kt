@@ -1,0 +1,634 @@
+package at.hausgarten.service
+
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
+import java.util.*
+import org.json.*
+
+class PixelMcpWriteTools {
+    interface Sink {
+        fun writable(): Boolean {
+
+            return true
+        }
+
+        @Throws(Exception::class) fun execute(tool: String, args: JSONObject): JSONObject
+
+        @Throws(Exception::class) fun status(id: String, state: JSONObject): JSONObject
+    }
+
+    open class Rejected : IllegalArgumentException {
+        @JvmField val code: String
+
+        constructor(code: String, message: String) : super(message) {
+            this.code = code
+        }
+    }
+
+    companion object {
+        @JvmField
+        val NAMES: Array<String> =
+            arrayOf("create_work_record", "create_customer_work_record", "update_work_record")
+        @JvmField
+        val EDITABLE: Array<String> =
+            arrayOf(
+                "billing_customer_id",
+                "order_id",
+                "work_date",
+                "activity",
+                "hours",
+                "start_time",
+                "end_time",
+                "break_minutes",
+                "material",
+                "material_cost",
+                "kilometers",
+                "notes",
+                "location",
+                "customer_visible",
+                "allow_overnight",
+            )
+        @JvmField
+        val BASE_FIELDS: Array<String> =
+            arrayOf(
+                "id",
+                "customer_id",
+                "billing_customer_id",
+                "order_id",
+                "work_date",
+                "activity",
+                "hours",
+                "start_time",
+                "end_time",
+                "break_minutes",
+                "material",
+                "kilometers",
+                "notes",
+                "location",
+                "customer_visible",
+                "billed",
+                "updated_at",
+            )
+
+        @JvmStatic
+        fun handles(name: String): Boolean {
+
+            return NAMES.asList().contains(name)
+        }
+
+        @JvmStatic
+        @Throws(Exception::class)
+        fun field(key: String): JSONObject {
+
+            var type =
+                (if ((((key == "hours") || (key == "kilometers")) || (key == "material_cost")))
+                    "number"
+                else
+                    (if ((key == "break_minutes")) "integer"
+                    else
+                        (if (((key == "customer_visible") || (key == "allow_overnight"))) "boolean"
+                        else "string")))
+            var spec = JSONObject().put("type", type)
+            if ((type == "string")) {
+                spec.put(
+                    "maxLength",
+                    (if ((((key == "activity") || (key == "material")) || (key == "notes"))) 10000
+                    else 500),
+                )
+            }
+            if (((type == "number") || (type == "integer"))) {
+                spec.put("minimum", 0)
+            }
+            return spec
+        }
+
+        @JvmStatic
+        @Throws(Exception::class)
+        fun schema(name: String): JSONObject {
+
+            var props =
+                JSONObject()
+                    .put(
+                        "request_id",
+                        JSONObject().put("type", "string").put("minLength", 8).put("maxLength", 128),
+                    )
+            var required = JSONArray().put("request_id")
+            if ((name == "update_work_record")) {
+                props
+                    .put("work_record_id", field("work_record_id"))
+                    .put("expected_record_hash", field("expected_record_hash"))
+                var patch = JSONObject()
+                for (key in EDITABLE) {
+                    patch.put(key, field(key))
+                }
+                props.put(
+                    "updates",
+                    JSONObject()
+                        .put("type", "object")
+                        .put("properties", patch)
+                        .put("additionalProperties", false)
+                        .put("minProperties", 1),
+                )
+                required.put("work_record_id").put("expected_record_hash").put("updates")
+            } else {
+                for (key in EDITABLE) {
+                    props.put(key, field(key))
+                }
+                props.put("customer_id", field("customer_id"))
+                required
+                    .put((if ((name == "create_work_record")) "order_id" else "customer_id"))
+                    .put("work_date")
+                    .put("activity")
+            }
+            return JSONObject()
+                .put("type", "object")
+                .put("properties", props)
+                .put("required", required)
+                .put("additionalProperties", false)
+        }
+
+        @JvmStatic
+        @Throws(Exception::class)
+        fun tools(): JSONArray {
+
+            var result = JSONArray()
+            for (name in NAMES) {
+                result.put(
+                    JSONObject()
+                        .put("name", name)
+                        .put("inputSchema", schema(name))
+                        .put(
+                            "description",
+                            (if ((name == "update_work_record"))
+                                "Korrigiert eine Arbeitsaufzeichnung. Zuerst get_work_record aufrufen und record_hash als expected_record_hash übernehmen. Keine Änderung von Kunden-ID, Abrechnung oder Rechnungen."
+                            else
+                                "Legt eine Arbeitsaufzeichnung mit tatsächlichen Kunden-/Auftrags-IDs dauerhaft auf dem Pixel an. request_id bei Wiederholung unverändert lassen. storage_contract_version 3: kein operativer Drive-Abgleich; get_sync_status liest den lokalen Aktionsbeleg, get_full_backup_status den getrennten Vollsicherungsstand."),
+                        )
+                        .put(
+                            "annotations",
+                            JSONObject()
+                                .put("readOnlyHint", false)
+                                .put("destructiveHint", false)
+                                .put("idempotentHint", true)
+                                .put("openWorldHint", false),
+                        )
+                )
+            }
+            return result
+        }
+
+        @JvmStatic
+        @Throws(Exception::class)
+        fun validate(args: JSONObject, schema: JSONObject): Unit {
+
+            var props = schema.getJSONObject("properties")
+            run {
+                var it = args.keys()
+                var firstIteration101 = true
+                while (true) {
+                    if (firstIteration101) firstIteration101 = false else {}
+                    if (!(it.hasNext())) break
+
+                    var key = it.next()
+                    if (!(props.has(key))) {
+                        throw Rejected("INVALID_INPUT", ("Diese Angabe ist nicht erlaubt: " + key))
+                    }
+                    var value = args.get(key)
+                    var spec = props.getJSONObject(key)
+                    var type = spec.getString("type")
+                    var valid: Boolean =
+                        (if ((type == "string")) value is String
+                        else
+                            (if ((type == "boolean")) value is Boolean
+                            else
+                                (if ((type == "object")) value is JSONObject else value is Number)))
+                    if (!(valid)) {
+                        throw Rejected("INVALID_INPUT", ("Ungültiger Eingabetyp: " + key))
+                    }
+                    if (
+                        (value is String &&
+                            (((((value as String)).length > spec.optInt("maxLength", 10000)) ||
+                                (((value as String)).length < spec.optInt("minLength", 0)))))
+                    ) {
+                        throw Rejected(
+                            "INVALID_INPUT",
+                            ("Bitte die Länge der Angabe prüfen: " + key),
+                        )
+                    }
+                    if (value is Number) {
+                        var n: Double = ((value as Number)).toDouble()
+                        if (
+                            ((!(java.lang.Double.isFinite(n)) || (n < 0)) ||
+                                (((type == "integer") && (n != Math.floor(n)))))
+                        ) {
+                            throw Rejected(
+                                "INVALID_INPUT",
+                                ("Bitte eine gültige nicht negative Zahl eingeben: " + key),
+                            )
+                        }
+                    }
+                    if ((type == "object")) {
+                        if ((((value as JSONObject)).length() == 0)) {
+                            throw Rejected(
+                                "INVALID_INPUT",
+                                "Bitte mindestens eine Änderung angeben.",
+                            )
+                        }
+                        validate((value as JSONObject), spec)
+                    }
+                }
+            }
+            var required = schema.optJSONArray("required")
+            run {
+                var i: Int = 0
+                var firstIteration102 = true
+                while (true) {
+                    if (firstIteration102) firstIteration102 = false
+                    else {
+                        i++
+                    }
+                    if (!(((required != null) && (i < required.length())))) break
+
+                    var key = required.getString(i)
+                    if (
+                        (!(args.has(key)) ||
+                            ((args.get(key) is String && args.getString(key).trim().isEmpty())))
+                    ) {
+                        throw Rejected("MISSING_FIELD", ("Pflichtangabe fehlt: " + key))
+                    }
+                }
+            }
+        }
+
+        @JvmStatic
+        @Throws(Exception::class)
+        fun canonical(value: Any?): String {
+
+            if (value is JSONObject) {
+                var obj = (value as JSONObject)
+                var keys = ArrayList<String>()
+                obj.keys().forEachRemaining(keys::add)
+                Collections.sort(keys)
+                var out = StringJoiner(",", "{", "}")
+                for (key in keys) {
+                    out.add(
+                        ((java.lang.String.valueOf(JSONObject.quote(key)) + ":") +
+                            canonical(obj.get(key)))
+                    )
+                }
+                return out.toString()
+            }
+            if (value is JSONArray) {
+                var out = StringJoiner(",", "[", "]")
+                var a = (value as JSONArray)
+                run {
+                    var i: Int = 0
+                    var firstIteration103 = true
+                    while (true) {
+                        if (firstIteration103) firstIteration103 = false
+                        else {
+                            i++
+                        }
+                        if (!((i < a.length()))) break
+
+                        out.add(canonical(a.get(i)))
+                    }
+                }
+                return out.toString()
+            }
+            if (((value == null) || (value == JSONObject.NULL))) {
+                return "null"
+            }
+            if (value is Number) {
+                return java.math.BigDecimal(value.toString()).stripTrailingZeros().toPlainString()
+            }
+            return (if (value is String) JSONObject.quote((value as String)) else value.toString())
+        }
+
+        @JvmStatic
+        @Throws(Exception::class)
+        fun hash(value: Any?): String {
+
+            var digest =
+                MessageDigest.getInstance("SHA-256")
+                    .digest(canonical(value).toByteArray(StandardCharsets.UTF_8))
+            var out = StringBuilder()
+            for (b in digest) {
+                out.append(String.format(Locale.ROOT, "%02x", (b.toInt() and 255)))
+            }
+            return out.toString()
+        }
+
+        @JvmStatic
+        @Throws(Exception::class)
+        fun base(row: JSONObject): JSONObject {
+
+            var result = JSONObject()
+            for (key in BASE_FIELDS) {
+                if (row.has(key)) {
+                    result.put(key, row.get(key))
+                }
+            }
+            return result
+        }
+
+        @JvmStatic
+        @Throws(Exception::class)
+        fun applyMaterialCost(payload: JSONObject): Unit {
+
+            if (!(payload.has("material_cost"))) {
+                return
+            }
+            var cost = java.math.BigDecimal(payload.get("material_cost").toString())
+            if (((cost.scale() > 2) || (cost.signum() < 0))) {
+                throw Rejected(
+                    "INVALID_INPUT",
+                    "Materialkosten müssen nicht negativ sein und höchstens zwei Nachkommastellen haben.",
+                )
+            }
+            var material =
+                payload
+                    .optString("material")
+                    .replace(Regex("(?m)^Materialkosten \\[EUR\\]: [0-9]+(?:\\.[0-9]{1,2})?\$"), "")
+                    .trim()
+            payload.put(
+                "material",
+                ((java.lang.String.valueOf(((if (material.isEmpty()) "" else (material + "\n")))) +
+                    "Materialkosten [EUR]: ") + cost.setScale(2).toPlainString()),
+            )
+            payload.remove("material_cost")
+        }
+
+        @JvmStatic
+        @Throws(Exception::class)
+        fun find(rows: JSONArray?, id: String): JSONObject {
+
+            run {
+                var i: Int = 0
+                var firstIteration104 = true
+                while (true) {
+                    if (firstIteration104) firstIteration104 = false
+                    else {
+                        i++
+                    }
+                    if (!(((rows != null) && (i < rows.length())))) break
+
+                    if ((id == rows.getJSONObject(i).optString("id"))) {
+                        return rows.getJSONObject(i)
+                    }
+                }
+            }
+            throw Rejected(
+                "REFERENCE_NOT_FOUND",
+                "Die Datensatz-ID existiert nicht. Bitte den Kunden, Auftrag oder Eintrag zuerst suchen.",
+            )
+        }
+
+        @JvmStatic
+        @Throws(Exception::class)
+        fun prepare(
+            name: String,
+            args: JSONObject,
+            state: JSONObject,
+            actionId: String,
+        ): JSONObject {
+
+            validate(args, schema(name))
+            var master = PixelMcpReadTools.effective(state)
+            var payload: JSONObject
+            var update: Boolean = (name == "update_work_record")
+            if (update) {
+                var capabilities = master.optJSONObject("capabilities")
+                if (
+                    ((capabilities == null) ||
+                        !((true == capabilities.opt("worklog_compare_and_save"))))
+                ) {
+                    throw Rejected(
+                        "REMOTE_GUARD_REQUIRED",
+                        "Der gemeinsame Änderungsschutz fehlt im Gesamtstand. Bitte Pixel-Datenstand und App-Version prüfen.",
+                    )
+                }
+                var old = find(master.optJSONArray("worklogs"), args.getString("work_record_id"))
+                if (!((hash(base(old)) == args.getString("expected_record_hash")))) {
+                    throw Rejected(
+                        "WRITE_CONFLICT",
+                        "Der Eintrag wurde inzwischen geändert. Bitte erneut öffnen und die Änderung prüfen.",
+                    )
+                }
+                var pending =
+                    (if ((PixelDriveState.ENGINE == master.optString("processing_engine"))) null
+                    else state.optJSONArray("pending"))
+                run {
+                    var i: Int = 0
+                    var firstIteration105 = true
+                    while (true) {
+                        if (firstIteration105) firstIteration105 = false
+                        else {
+                            i++
+                        }
+                        if (!(((pending != null) && (i < pending.length())))) break
+
+                        var a = pending.getJSONObject(i)
+                        var p = a.optJSONObject("payload")
+                        if (((p != null) && (old.getString("id") == p.optString("id")))) {
+                            throw Rejected(
+                                "WRITE_CONFLICT",
+                                "Für diesen Eintrag ist bereits eine Änderung vorgemerkt. Bitte zuerst abgleichen.",
+                            )
+                        }
+                    }
+                }
+                var patch = args.getJSONObject("updates")
+                var invoiced: Boolean = (old.optInt("billed", 0) != 0)
+                var invoices = master.optJSONArray("invoices")
+                run {
+                    var i: Int = 0
+                    var firstIteration107 = true
+                    while (true) {
+                        if (firstIteration107) firstIteration107 = false
+                        else {
+                            i++
+                        }
+                        if (!(((invoices != null) && (i < invoices.length())))) break
+
+                        var inv = invoices.getJSONObject(i)
+                        var ids = inv.optJSONArray("worklog_ids")
+                        run {
+                            var j: Int = 0
+                            var firstIteration106 = true
+                            while (true) {
+                                if (firstIteration106) firstIteration106 = false
+                                else {
+                                    j++
+                                }
+                                if (!(((ids != null) && (j < ids.length())))) break
+
+                                if ((old.getString("id") == ids.optString(j))) {
+                                    invoiced = true
+                                }
+                            }
+                        }
+                    }
+                }
+                if (invoiced) {
+                    run {
+                        var it = patch.keys()
+                        var firstIteration108 = true
+                        while (true) {
+                            if (firstIteration108) firstIteration108 = false else {}
+                            if (!(it.hasNext())) break
+
+                            if (!((it.next() == "notes"))) {
+                                throw Rejected(
+                                    "BILLED_RECORD_LOCKED",
+                                    "Abgerechnete Leistungsdaten bleiben unverändert. Nur interne Notizen können ergänzt werden.",
+                                )
+                            }
+                        }
+                    }
+                }
+                payload = JSONObject(old.toString())
+                run {
+                    var it = patch.keys()
+                    var firstIteration109 = true
+                    while (true) {
+                        if (firstIteration109) firstIteration109 = false else {}
+                        if (!(it.hasNext())) break
+
+                        var key = it.next()
+                        payload.put(key, patch.get(key))
+                    }
+                }
+                payload.remove("_mcp_create")
+                payload.put("_mcp_base", base(old))
+            } else {
+                payload = JSONObject(args.toString())
+                payload.remove("request_id")
+                var orderId = payload.optString("order_id").trim()
+                var customerId = payload.optString("customer_id").trim()
+                if (!(orderId.isEmpty())) {
+                    var order = find(master.optJSONArray("orders"), orderId)
+                    if (
+                        (!(customerId.isEmpty()) &&
+                            !((customerId == order.optString("customer_id"))))
+                    ) {
+                        throw Rejected(
+                            "REFERENCE_MISMATCH",
+                            "Kunde und Auftrag passen nicht zusammen.",
+                        )
+                    }
+                    customerId = order.optString("customer_id")
+                    payload.put("customer_id", customerId)
+                }
+                payload
+                    .put("id", ("wrk_mobile_mcp_" + hash(actionId).substring(0, 32)))
+                    .put("order_id", orderId)
+                    .put("billed", 0)
+                    .put("source", "ChatGPT Sprache")
+                    .put("_mcp_create", true)
+                var existing = master.optJSONArray("worklogs")
+                run {
+                    var i: Int = 0
+                    var firstIteration110 = true
+                    while (true) {
+                        if (firstIteration110) firstIteration110 = false
+                        else {
+                            i++
+                        }
+                        if (!(((existing != null) && (i < existing.length())))) break
+
+                        if (
+                            (payload.getString("id") == existing.getJSONObject(i).optString("id"))
+                        ) {
+                            throw Rejected(
+                                "ID_ALREADY_EXISTS",
+                                "Diese Anfrage gehört zu einem bereits vorhandenen Eintrag. Bitte den Eintrag prüfen statt ihn erneut anzulegen.",
+                            )
+                        }
+                    }
+                }
+            }
+            var customerId = payload.optString("customer_id").trim()
+            var orderId =
+                (if (payload.isNull("order_id")) "" else payload.optString("order_id").trim())
+            payload.put("order_id", orderId)
+            find(master.optJSONArray("customers"), customerId)
+            if (!(orderId.isEmpty())) {
+                var order = find(master.optJSONArray("orders"), orderId)
+                if (!((customerId == order.optString("customer_id")))) {
+                    throw Rejected("REFERENCE_MISMATCH", "Kunde und Auftrag passen nicht zusammen.")
+                }
+                if (payload.optString("location").trim().isEmpty()) {
+                    payload.put("location", order.optString("location"))
+                }
+            }
+            if (payload.optString("activity").trim().isEmpty()) {
+                throw Rejected("MISSING_FIELD", "Die Tätigkeit fehlt.")
+            }
+            if ((payload.has("customer_visible") && payload.get("customer_visible") is Boolean)) {
+                payload.put(
+                    "customer_visible",
+                    (if (payload.getBoolean("customer_visible")) 1 else 0),
+                )
+            }
+            BillingRules.work(
+                payload,
+                (if (update) find(master.optJSONArray("worklogs"), payload.getString("id"))
+                else null),
+                master,
+            )
+            applyMaterialCost(payload)
+            WorklogRules.validate(payload, true)
+            var submitted = (if (update) args.getJSONObject("updates") else args)
+            if (
+                (((submitted.has("hours") && !(payload.isNull("start_time"))) &&
+                    !(payload.optString("start_time").isEmpty())) &&
+                    (Math.abs((submitted.getDouble("hours") - payload.getDouble("hours"))) > 0.005))
+            ) {
+                throw Rejected(
+                    "TIME_MISMATCH",
+                    "Die Stunden passen nicht zu Beginn, Ende und Pause. Bitte die Zeitangaben prüfen.",
+                )
+            }
+            if (!(update)) {
+                var logs = master.optJSONArray("worklogs")
+                run {
+                    var i: Int = 0
+                    var firstIteration111 = true
+                    while (true) {
+                        if (firstIteration111) firstIteration111 = false
+                        else {
+                            i++
+                        }
+                        if (!(((logs != null) && (i < logs.length())))) break
+
+                        var row = logs.getJSONObject(i)
+                        if (
+                            ((((customerId == row.optString("customer_id")) &&
+                                (payload.getString("work_date") == row.optString("work_date"))) &&
+                                (Math.abs(
+                                    (payload.optDouble("hours") - row.optDouble("hours", -1.0))
+                                ) < 0.005)) &&
+                                payload
+                                    .getString("activity")
+                                    .trim()
+                                    .equals(row.optString("activity").trim(), ignoreCase = true))
+                        ) {
+                            throw Rejected(
+                                "POSSIBLE_DUPLICATE",
+                                "Eine gleiche Arbeitsaufzeichnung ist bereits vorhanden. Bitte zuerst prüfen.",
+                            )
+                        }
+                    }
+                }
+            }
+            if (
+                ((((!(update) || submitted.has("work_date")) || submitted.has("start_time")) ||
+                    submitted.has("end_time")) || submitted.has("hours"))
+            ) {
+                PixelMcpBusinessTools.preventOverlap(payload, master.optJSONArray("worklogs"))
+            }
+            return payload
+        }
+    }
+}

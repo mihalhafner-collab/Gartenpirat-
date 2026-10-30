@@ -29,86 +29,88 @@
   ],
   "current_task": {
     "name": "Kotlin-Update der bestehenden Haus-und-Garten-App mit kompatiblem ZIP-Backup",
-    "status": "BACKUP_STAGE_COMPLETE;FULL_APP_KOTLIN_REFACTORING_OPEN",
+    "status": "INTEGRATING_COMPLETE_KOTLIN_COMPOSE_REFACTOR;ANDROID_RUNTIME_ACCEPTANCE_PENDING",
     "authorized": true,
     "authorization_scope": "UPDATE same package/original signature;full Kotlin refactoring and regression;synthetic data only;bounded subagents;no productive access,installation,migration,restore or delivery",
     "requirements_document": "docs/fachregeln/APP.md",
     "implementation": [
-      "25 backup/restore boundary classes Kotlin;schema7/ZIP1 unchanged;160 app Java classes and JavaScript UI remain",
-      "Core browser review commits before optional media deferral;active selected media stays atomic;native rollback/replay/epoch tests PASS",
-      "Synthetic nonlocal provider and actual system picker:cancel,grants/faults,recreation and both process restarts PASS;fixtures/test permissions absent from release"
+      "193 Kotlin production files;native Compose feature routes/editors;no active app Java/JS",
+      "SQLite indexed read cache/projections,IO/committed Flow,file media,bounded thumbnail-first Coil",
+      "JVM1154/Python62 PASS;final changed-source Android acceptance pending"
     ],
     "remaining": [
-      "Remaining Kotlin app/UI with full behavior parity;SQL indexes/projections,photos,coroutines/Flow and other acceptance items remain OPEN",
-      "Physical Pixel update/retention,real Drive account and personal ZIP remain NOT_EXECUTED;no productive access/install/delivery authorized"
+      "Final source gates,clean Android build and eight native suites;fix/recheck",
+      "Real Drive,personal ZIP,physical Pixel untested;no productive actions",
+      "Raw IndexedDB-only drafts preserved;not automatically materialized"
     ],
     "regression_instructions": "docs/entwicklung/BAU.md#regressionsschleife-für-das-kotlin-refactoring",
     "acceptance_matrix": {
       "KOTLIN": {
-        "status": "PARTIAL;25_BACKUP_BOUNDARY_CLASSES_KOTLIN;OTHER_JAVA_AND_JS_REMAIN",
-        "required_evidence": "Source inventory and build:all application entries/UI Kotlin;no Java/JS implementation left"
+        "status": "SOURCE_PASS;193_KOTLIN_FILES;NO_ACTIVE_APP_JAVA_JS;APK_PENDING",
+        "required_evidence": "All application entries/UI Kotlin;clean source/build inventory"
       },
       "OPTIONS": {
-        "status": "ANDROID_JVM_SQLITE_DECIDED;COMPOSE_DEPENDENCIES_PENDING",
-        "required_evidence": "Compare relevant Kotlin targets,UI,storage and dependency compatibility before selection"
+        "status": "ANDROID_JVM_COMPOSE_SQLITE_COROUTINES_COIL_DECIDED;DEPENDENCIES_RESOLVED;BAU_DECISION_TABLE",
+        "required_evidence": "Relevant target/UI/storage/dependency decisions in BAU"
       },
       "KISS_YAGNI": {
-        "status": "OPEN",
-        "required_evidence": "Independent review:each module,abstraction and dependency meets a concrete need"
+        "status": "REVIEWED;SINGLE_APP_MODULE;SHARED_WRITERS;EXISTING_SQLITE_CONTRACT;FINAL_CHECK_PENDING",
+        "required_evidence": "Each module,abstraction,dependency meets a concrete need"
       },
       "PARITY": {
-        "status": "OPEN",
-        "required_evidence": "Complete baseline UI/MCP behavior incl.calendar,timer,photos,offers,invoices,backup/restore;package/signature retained"
+        "status": "DOMAIN_JVM_PASS;NATIVE_FEATURE_ROUTES_IMPLEMENTED;ANDROID_ACCEPTANCE_PENDING",
+        "required_evidence": "Baseline workflows;package,signing,data contracts preserved"
       },
       "DRIVE_ZIP": {
         "status": "SYNTHETIC_NONLOCAL_PROVIDER_AND_REAL_SYSTEM_PICKER_PASS;REAL_DRIVE_ACCOUNT_NOT_RUN",
-        "required_evidence": "Plain ZIP via Android picker to Drive;provider/readback/restore tests;no own Drive API/login"
+        "required_evidence": "Plain ZIP,picker/provider/readback/restore;no own Drive login"
       },
       "DRIVE_REMOVAL": {
-        "status": "OPEN",
-        "required_evidence": "All other Drive code,calls,config,permissions,unused dependencies gone;calendar retained"
+        "status": "SOURCE_PASS;NO_DRIVE_API_AUTH_OR_SYNC;CALENDAR_AUTH_RETAINED",
+        "required_evidence": "No Drive business API/auth/sync;calendar preserved"
       },
       "INDEXES": {
-        "status": "OPEN",
-        "required_evidence": "Real filter/sort/history plans use matching indexes;synthetic volume and result parity"
+        "status": "JDBC_EXPLAIN_AND_FILTER_PARITY_PASS;ANDROID_40000_ROW_FIXTURE_PENDING",
+        "required_evidence": "Actual query plans and synthetic scale/result parity"
       },
       "WAL": {
-        "status": "RUNTIME_SNAPSHOT_PASS;APP_TRANSACTION_CONCURRENCY_OPEN",
-        "required_evidence": "Runtime WAL,concurrent access,committed WAL data in backup and restore/reopen proven"
+        "status": "JVM_AND_PRIOR_BACKUP_RUNTIME_PASS;CURRENT_ANDROID_CONCURRENCY_PENDING",
+        "required_evidence": "Runtime WAL,concurrent access,backup/restore committed pages"
       },
       "PROJECTIONS": {
-        "status": "OPEN",
-        "required_evidence": "Bounded list rows/columns;details on demand;no whole-state JSON list reads"
+        "status": "BOUNDED_SQL_DISPLAY_LISTS_AND_POINT_DETAILS_IMPLEMENTED;ANDROID_PENDING",
+        "required_evidence": "Bounded SQL rows/columns;point details;no full-state list reads"
       },
       "IMAGES": {
-        "status": "OPEN",
-        "required_evidence": "File photos/uploads,legacy data preserved,tile-sized decoding,bounded Coil/cache memory"
+        "status": "FILE_UPLOADS_AND_THUMBNAIL_FIRST_COIL_IMPLEMENTED;PUBLICATION_AND_NATIVE_CHECKS_PENDING",
+        "required_evidence": "File media,legacy preservation,thumbnail decoding,bounded caches"
       },
       "BACKGROUND": {
-        "status": "OPEN",
-        "required_evidence": "No blocking DB/file work on UI;coroutine/Flow lifecycle and transaction parity tested"
+        "status": "IO_COROUTINES_COMMITTED_FLOW_IMPLEMENTED;CURRENT_ANDROID_STRICTMODE_AND_UI_PENDING",
+        "required_evidence": "IO dispatch,committed Flow,lifecycle and transaction parity"
       },
       "SYNTHETIC_ONLY": {
         "status": "APPLIED;NO_PRODUCTIVE_DATA_READ",
-        "required_evidence": "No real or derived customer data,photos,DBs,backups or productive connector/device reads"
+        "required_evidence": "No productive or derived customer data/device/ZIP access"
       },
       "REGRESSION": {
-        "status": "BACKUP_STAGE_PASS;FULL_APP_ACCEPTANCE_OPEN",
-        "required_evidence": "Current-source evidence per item;fix/recheck;final suite;unexecuted checks stay open"
+        "status": "JVM1154_AND_PYTHON62_PASS;FINAL_CHANGED_SOURCE_AND_EIGHT_NATIVE_SUITES_PENDING",
+        "required_evidence": "Current-source checks;fix/recheck;unexecuted evidence stays open"
       },
       "SUBAGENTS": {
         "status": "APPLIED;BOUNDED_PORTS_AND_INDEPENDENT_REVIEWS",
-        "required_evidence": "Bounded independent tasks,explicit base/files;main agent reviews and verifies integration"
+        "required_evidence": "Bounded ownership,independent review,root integration checks"
       },
       "BACKUP_COMPAT": {
         "status": "SYNTHETIC_JAVA_KOTLIN_FORMAT_AND_NATIVE_RESTORE_REOPEN_PASS;PERSONAL_ZIP_UNREAD",
-        "required_evidence": "Legacy format1/schema6,7 Java->Kotlin and reverse;native restore/reopen/rollback;preserve all tables/files/preferences"
+        "required_evidence": "Java/Kotlin ZIP1 SQLite6/7;all types/files;native restore/reopen/rollback"
       }
     }
   },
   "open_checks": [
-    "Real Drive account and physical Pixel update/data retention NOT_EXECUTED;emulator system picker PASS",
-    "Full Kotlin UI/business migration and remaining acceptance items OPEN;personal ZIP version/integrity unverified"
+    "Current full native/Compose Android acceptance pending",
+    "Real Drive account,personal ZIP and physical Pixel update/data retention NOT_EXECUTED;synthetic only",
+    "Historical raw IndexedDB-only drafts are preserved;not automatically materialized as native photos"
   ],
   "workflow": {
     "scope": "CURRENT_SOURCE;struktur-neu is authoritative;qa-apk.yml builds and tests this source without publishing a user APK",
@@ -139,7 +141,7 @@
     "business_data_read": false,
     "authored_changes_diff_check": "PASS",
     "current_test_run": {
-      "scope": "CURRENT25_CLASS_BACKUP_BOUNDARY;not full app acceptance",
+      "scope": "PREVIOUS_BACKUP_BASELINE_ONLY;FULL_KOTLIN_COMPOSE_SOURCE_AWAITING_ANDROID_ACCEPTANCE",
       "observed_at_utc": "2026-10-29T22:05:02.995179+00:00",
       "tested_git_sha": "970009dbb679aa6bdf2687c84e046534beb28c3b",
       "source_sha256": "714a42e4c4153519d082bde2f579e35d3de7f82fc6373b401ed720ad00232e2f",
@@ -161,7 +163,7 @@
       "ci_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40961632697",
       "pixel_drive_account_personal_zip": "NOT_RUN;synthetic only"
     },
-    "performance_evidence": "docs/verification/performance-current.md measures the previous candidate fingerprint;no performance claim for the new native image path",
+    "performance_evidence": "docs/verification/performance-current.md defines native measurement method;no inherited browser timing,FPS or physical Pixel performance claim",
     "connector": {
       "tools": 169,
       "read": 73,
@@ -200,8 +202,8 @@
     "delivery_visibility": "PRIVATE;owner-only permission readback;sharing unchanged"
   },
   "current_release_candidate": {
-    "version_name": "1.56.0",
-    "version_code": 118,
-    "status": "CI_BUILD_AND_BACKUP_REGRESSION_PASS;FULL_APP_REFACTORING_OPEN;NO_DISTRIBUTION_OR_INSTALL"
+    "version_name": "1.57.0",
+    "version_code": 119,
+    "status": "FULL_KOTLIN_COMPOSE_SOURCE_IMPLEMENTED;INTEGRATED_ANDROID_REGRESSION_PENDING;NO_DISTRIBUTION_OR_INSTALL"
   }
 }

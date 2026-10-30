@@ -1,5 +1,6 @@
 plugins {
     id 'com.android.application'
+    id 'org.jetbrains.kotlin.plugin.compose'
 }
 
 // The synthetic document provider runs in the test APK's own process, outside
@@ -7,6 +8,13 @@ plugins {
 configurations { syntheticDocumentProviderRuntime }
 
 dependencies {
+    implementation platform('androidx.compose:compose-bom:2025.08.01')
+    implementation 'androidx.activity:activity-compose:1.10.1'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.9.2'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.9.2'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+    implementation 'io.coil-kt.coil3:coil-compose:3.3.0'
     implementation 'com.google.android.gms:play-services-auth:22.0.0'
     implementation 'com.google.crypto.tink:tink-android:1.24.0'
     syntheticDocumentProviderRuntime 'org.jetbrains.kotlin:kotlin-stdlib:2.2.10@jar'
@@ -57,7 +65,11 @@ def fingerprintResult = providers.exec {
 def releaseFingerprint = new groovy.json.JsonSlurper().parseText(fingerprintResult)
 
 android {
-    buildFeatures { buildConfig true }
+    buildFeatures { buildConfig true; compose true }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
     namespace 'at.hausgarten.service'
     compileSdk { version = release(37) }
     buildToolsVersion '37.0.0'
@@ -72,8 +84,8 @@ android {
         buildConfigField 'boolean', 'SOURCE_DIRTY', releaseFingerprint.source_dirty.toString()
         minSdk 26
         targetSdk 37
-        versionCode 118
-        versionName '1.56.0'
+        versionCode 119
+        versionName '1.57.0'
         testInstrumentationRunner 'at.hausgarten.service.PixelMcpInstrumentation'
     }
 
@@ -93,33 +105,17 @@ android {
         release {
             minifyEnabled false
         }
-        // Explicitly requested, isolated UI experiment; never an operative update.
-        preview {
-            initWith release
-            applicationIdSuffix '.preview'
-            versionNameSuffix '-preview1'
-            buildConfigField 'boolean', 'UI_PREVIEW', 'true'
-            matchingFallbacks = ['release']
-            signingConfig = null
-        }
+
     }
-    sourceSets.preview.assets.srcDir layout.buildDirectory.dir('generated/preview-assets').get().asFile
+
 }
 
-def previewAssets = tasks.register('generatePreviewUiAssets', Exec) {
-    workingDir rootProject.projectDir.parentFile
-    commandLine 'python3', 'tools/build_ui_preview_assets.py', '--output',
-        layout.buildDirectory.dir('generated/preview-assets').get().asFile.absolutePath
-    inputs.files(fileTree('src/main/assets') { include 'mobile.html', '*.js', '*.css' }, fileTree('src/preview/assets'))
-    inputs.file rootProject.file('../tools/build_ui_preview_assets.py')
-    outputs.dir layout.buildDirectory.dir('generated/preview-assets')
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+        jvmDefault = org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode.NO_COMPATIBILITY
+    }
 }
-tasks.matching { it.name == 'prePreviewBuild' }.configureEach { dependsOn previewAssets }
-def previewPrivacy = tasks.register('verifyPreviewArtifactPrivacy', Exec) {
-    workingDir rootProject.projectDir.parentFile
-    commandLine 'python3', 'tests/apk_privacy_guard.py', '--apk', 'android/app/build/outputs/apk/preview/app-preview-unsigned.apk'
-}
-tasks.matching { it.name == 'assemblePreview' }.configureEach { finalizedBy previewPrivacy }
 
 // Only the existing operative package is built. No automatically signed parallel APK.
 androidComponents {

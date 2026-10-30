@@ -2,312 +2,195 @@
 
 Alle folgenden Befehle beginnen im Ordner `struktur-neu/`. Benötigt werden
 Python3, JDK17, Gradle9.3.1 und Android-SDK37 mit Build-Tools37.0.0 gemäß den
-vorhandenen Gradle-Dateien. Aktuelle Abhängigkeiten nicht vorsorglich ändern.
-`JAVA_HOME`, `ANDROID_HOME` und gegebenenfalls `GRADLE_USER_HOME` auf die vorhandenen
-Werkzeuge setzen; keine Maschinenpfade oder Geheimwerte in Git speichern.
-In der verwalteten Cloud auch die vorgegebenen Proxy-/CA-Einstellungen für die
-Gradle-JVM verwenden; Java übernimmt HTTP-Proxy-Umgebungsvariablen nicht selbst.
-Vorhandene Abhängigkeiten können bei vollständigem Cache offline verwendet werden.
+Gradle-Dateien. `JAVA_HOME`, `ANDROID_HOME` und gegebenenfalls `GRADLE_USER_HOME`
+auf vorhandene Werkzeuge setzen; keine Maschinenpfade oder Geheimwerte in Git
+speichern. In der verwalteten Cloud die vorgegebenen Proxy- und CA-Einstellungen
+auch für die Gradle-JVM verwenden. Ein vollständiger Cache erlaubt Offline-Bauten.
 
-## Kotlin-Ziel und kompatible Sicherungen
+## Android-Architektur und Baugrundlage
 
-Die Umsetzung bleibt ein Update von `at.hausgarten.service` mit Originalsignatur
-und höherer Versionsnummer. Android/JVM im vorhandenen `:app`-Modul ist der
-einfachste Weg: AGP9.1.1 bringt Kotlin2.2.10 bereits mit. Kein zusätzliches
-`org.jetbrains.kotlin.android`-Plugin anwenden. JDK17, Gradle9.3.1 und SDK37
-bleiben die gemeinsame Baugrundlage. Kotlin-Dateien dürfen während der Umstellung
-im bestehenden Android-Quellordner liegen; eine Ordnerumbenennung verändert das
-Sicherungsformat nicht.
+Die Anwendung bleibt ein Update von `at.hausgarten.service` mit Originalsignatur
+und höherer Versionsnummer. Alle Anwendungseinträge, Speicher- und Fachpfade sowie
+die Android-Oberfläche liegen als Kotlin im bestehenden `:app`-Modul. Der
+Quellordner heißt weiterhin `android/app/src/main/java/at/hausgarten/service`;
+das ist kein Java-Anwendungspfad. Java-Dateien in den synthetischen Tests sind
+Testprogramme oder Adapter, keine parallel ausgelieferte Implementierung.
 
-Zuerst Speicher- und Fachpfade semantisch nach Kotlin portieren und deren
-Schnittstellen prüfen. SQLite-Schema7 und ZIP-Format1 bleiben dabei erhalten.
-Room wäre eine Alternative für typisierte Abfragen und Flow, benötigt aber eine
-ausdrücklich getestete, verlustfreie Schemamigration. Kein destruktiver Fallback.
-Für die vollständige Android-Oberfläche ist Compose der Zielweg; Compiler,
-Coroutines und Coil müssen vor Aufnahme gemeinsam versionsgerecht aufgelöst und
-kompiliert werden. Kotlin/JS im WebView wäre die Alternative zum Erhalt des DOM,
-würde aber einen weiteren Baupfad und dauerhafte native Brücken benötigen.
-Für Kotlin/Wasm, Multiplatform oder Native gibt es bei der derzeitigen reinen
-Android-App keinen konkreten Zusatznutzen. Zusätzliche Module oder Frameworks
-werden nicht vorsorglich eingeführt.
+AGP9.1.1 enthält Kotlin2.2.10. Kein zusätzliches `org.jetbrains.kotlin.android`-Plugin
+anwenden. Der Compose-Compiler verwendet `org.jetbrains.kotlin.plugin.compose`
+2.2.10. Die aufeinander abgestimmten Abhängigkeiten stehen in
+`android/app/build.gradle`: Compose-BOM2025.08.01, Activity-Compose1.10.1,
+Lifecycle2.9.2, Coroutines1.10.2 und Coil3.3.0. Änderungen gemeinsam auflösen,
+kompilieren und gegen die betroffenen Bedienwege prüfen.
 
-Das bisherige Backup enthält eine vollständige SQLite-Datei, typisierte
-Einstellungen, Formularstände und relative Dateipfade. Manifestversion, Tabellen,
-unbekannte Zusatzdaten, BLOBs, IDs, Bezüge und Dateibytes müssen erhalten bleiben.
-Eine neue Quellstruktur allein belegt keine Importkompatibilität. Die
-Archivprüfung muss durch echten Android-Restore, Prozessneustart und Rollback
-mit vollständig synthetischem Bestand ergänzt werden. Ein persönliches ZIP wird
-im Entwicklungsauftrag ohne Kundendaten nicht geöffnet; dessen Unversehrtheit
-oder unbekannte Erstellerversion ist damit nicht bestätigt.
+`MainActivity` und die weiteren Activities zeigen native Compose-Inhalte.
+`NativeAppController` verbindet Formulare mit denselben transaktionalen
+Fachschreibern wie MCP; Geschäftsregeln werden nicht in UI-Code dupliziert.
+Die App benötigt weder WebView noch eine aktive JavaScript-Oberfläche.
+Die eigenständige Website unter `static/` bleibt davon getrennt.
 
-Die Kotlin-Suite `BackupFormatCompatibilityTests` und der vorhandene JVM-Runner
-prüfen beide Richtungen: Java-Schreiber aus dem festgelegten Build117-Commit
-`035d6503d16d63a7468498611060f99640a67284` zum Kotlin-Leser sowie Kotlin-Schreiber
-zum ursprünglichen Java-Leser. `tools/check_backup_compatibility.py` erzeugt dafür
-frische SQLite6/7-Datenbanken einschließlich Unicode, NULL, Int64 und BLOBs sowie
-Einstellungen und Dateien. Die Referenzquelle wird aus Git gelesen und per SHA256
-geprüft; es wird keine alte Produktionsimplementierung parallel ausgeliefert.
-In einem flachen Checkout vorher ausschließlich diese Referenz nachladen:
-`git fetch --no-tags --depth=1 origin 035d6503d16d63a7468498611060f99640a67284`.
-Der bestehende CI-Workflow erledigt diesen Vorbereitungsschritt ausdrücklich;
-der Test selbst lädt keine Quellen oder Abhängigkeiten nach.
+Die vorhandene SQLite-Datenbank mit Schema7 bleibt erhalten. `NativeDataRepository`
+verwaltet darin die abgeleiteten Tabellen `native_read_rows`, `native_read_records`
+und `native_read_meta`. Listen lesen begrenzte Anzeigespalten und Seiten, Details
+und Historien werden getrennt geladen. Quellrevisionen invalidieren den Cache;
+der notwendige Wiederaufbau erfolgt im Hintergrund und kann den vollständigen
+Fachstand auswerten. Eine unveränderte Revision wird für weitere Abfragen
+wiederverwendet. Indizes müssen zu tatsächlichen Filtern, Sortierungen und
+Beziehungen passen. Room ist nicht Teil dieses Speicherwegs; seine Einführung
+würde eine eigene, verlustfrei geprüfte Migration benötigen.
 
-Offizielle Grundlagen:
-[Built-in Kotlin](https://developer.android.com/build/migrate-to-built-in-kotlin),
-[AGP9.1-Kompatibilität](https://developer.android.com/build/releases/agp-9-1-0-release-notes),
-[SQLite zu Room](https://developer.android.com/training/data-storage/room/sqlite-room-migration),
-[Compose-Compiler](https://developer.android.com/develop/ui/compose/setup-compose-dependencies-and-compiler),
-[Kotlin/JS](https://kotlinlang.org/docs/js-overview.html) und
-[Coil-Kompatibilität](https://coil-kt.github.io/coil/changelog/).
+WAL wird am Store aktiviert und beim Öffnen geprüft. Blockierende Datenbank- und
+Dateiarbeit läuft auf `Dispatchers.IO`; Flow liefert Aktualisierungen an
+lebenszyklusgebundene Compose-Sichten. Die gemeinsame Startprüfung schützt den
+Bestandsaustausch vor gewöhnlichen Storezugriffen, ohne Androids UI-Thread warten
+zu lassen. Fotolisten bevorzugen verifizierte Vorschaudateien. Coil verwendet
+einen gemeinsamen ImageLoader, begrenzte Caches und an die Anzeige angepasste
+Dekodiergrößen; die Integritätsprüfung eines erforderlichen Originals läuft auf IO.
 
-## Testumfang festlegen
+### Auswahl nach KISS und YAGNI
 
-Der aktuelle Auftrag und seine Freigaben stehen ausschließlich im Arbeitsstand.
-Betroffene Quell-, JVM- und Browserprüfungen ausführen; vorhandene Ausgangsmessungen
-für Vergleiche verwenden. Installation, Migration, Wiederherstellung, APK-Verteilung
-und geschützte Altlastenlöschung nicht aus einer allgemeinen Korrektur ableiten.
+Die Auswahl richtet sich nach dem vorhandenen Android-Update und seinem
+Datensicherungsvertrag. Weitere Plattformen oder ein zweiter Speichervertrag
+gehören nicht zum Auftrag.
+
+| Entscheidung | Geprüfte Alternative und Grund |
+|---|---|
+| Kotlin/JVM im vorhandenen Android-Modul | Kotlin Multiplatform, Native, JS/Wasm und ein Servermodul ergänzen hier keine benötigte Zielplattform; JVM erhält die Android- und Java-Bibliotheksverträge. |
+| Native Compose-Oberfläche | XML/Views wären möglich; Compose erfüllt die gewünschte Kotlin-Oberfläche und bindet Flow direkt an den Lebenszyklus. Ein zusätzlicher WebView-Laufzeitpfad entfällt. |
+| Vorhandene SQLite-Datei und gezielte SQL-Projektionen | Room oder SQLDelight würden neue Mapping- und Migrationsverträge erfordern. Bestehende Tabellen, unbekannte Altwerte und SQLite6/7-Backups bleiben über den bisherigen Store lesbar. |
+| Coroutines und Flow | Manuelle Threads/Callbacks bleiben an bestehenden Plattformgrenzen; für neue UI-Abfragen vermeiden strukturierte Coroutines einen zweiten Scheduler oder RxJava. |
+| Coil mit begrenzten Vorschauen | Glide ist ebenfalls möglich; Coil bindet direkt an Compose. Eigene Bilddecoder und ein weiterer Bildcache sind nicht nötig. |
+| Ein `:app`-Modul mit Fachklassen | Zusätzliche Gradle-Module, DI-Frameworks und eine zweite Geschäftsregel-Schicht haben ohne konkrete unabhängige Laufzeit keinen Nutzen. |
+
+Compose-Compiler und eingebautes Kotlin müssen dieselbe Version verwenden;
+Bibliotheksauflösung, Kotlin-/Java-Interoperabilität, Android-Bau und die
+synthetischen Regressionen prüfen diese konkrete Kombination. Eine Bibliothek
+nur entfernen, wenn kein verbleibender Funktionspfad sie benötigt: Google Auth
+wird weiterhin für Kalender verwendet, Tink ausschließlich zum Lesen älterer
+verschlüsselter Sicherungen. Keine Drive-API wird dadurch wieder eingeführt.
+
+## Sicherungs- und Wiederherstellungsvertrag
+
+ZIP-Manifestformat1 und SQLite-Schema7 bleiben kompatibel. `PixelBackupService`
+verwendet die direkte Aufnahme über `LocalBackupDataset`, eine unverschlüsselte
+ZIP, technische Archivprüfung und vollständiges Rücklesen des gewählten
+Android-Dokuments. Drive ist ausschließlich ein durch den Android-Dateianbieter
+gewähltes Ziel oder eine ausdrücklich gewählte Restorequelle. Es gibt keine eigene
+Drive-Anmeldung, API, Berechtigung oder Geschäftsdaten-Synchronisierung.
+Kalenderfunktionen und ihre gesonderte Kontoauswahl bleiben erhalten.
+
+Alle Tabellen, unbekannte Zusatzdaten, BLOBs, IDs, Beziehungen, private Dateien,
+typisierte Einstellungen und lesbare Formularstände erhalten. `BackupInventory`
+erzeugt Hinweise in `data/backup-notes.json`, ohne Rechnungsnummernkollisionen,
+bereits vorhandene Beziehungsfehler oder fehlende Originale zu reparieren oder
+allein deswegen abzubrechen. Unlesbare Datenbanken, beschädigte Archive und
+Schreib-/Rücklesefehler bleiben echte Fehler. Die vollständige Dateiliste mit
+Größen und Prüfsummen ist zwingend. Ältere verschlüsselte Archive werden nur gelesen;
+der aktuelle Schreiber erzeugt keine neuen verschlüsselten Sicherungen.
+
+Wiederherstellung benötigt eine ausdrückliche Auswahl und Bestätigung, technische
+Prüfung, Rückfallkopie, geschützten atomaren Dateiaustausch sowie Wiederanlauf und
+Rollback. Sie ist weder eine produktive Migration noch eine Rechnungsfreigabe.
+Sicherung, Restore und Schemawechsel nicht aus einem allgemeinen Entwicklungsauftrag
+ableiten. In diesem synthetischen Entwicklungs- und Prüfverfahren wird kein
+persönliches oder aus Kundendaten abgeleitetes ZIP geöffnet. Formatunterstützung
+beweist nicht die individuelle Lesbarkeit oder Unversehrtheit eines solchen Archivs.
+
+`NativeRestoredDraftScreens` ordnet native Entwürfe und bekannte lesbare ältere
+Formularhüllen passenden nativen Editoren zu. Quellhüllen, unklare Vorgangsbelege
+und die dauerhafte Sichtungsentscheidung bleiben erhalten; alte Schreibaktionen
+werden nicht automatisch wiederholt. Unbekannte Hüllen bleiben zur Sichtung
+verfügbar. Rohe archivierte IndexedDB-/LevelDB-Dateien werden bewahrt, aber nicht
+als vollständig interpretierte Browserdatenbank importiert. Ein unvollständiger
+Medienspiegel oder fehlende Nachweise blockieren die Medienaktivierung oder werden
+bewusst zurückgestellt. Diese Grenzen auch bei synthetischen Restorefällen prüfen;
+Dateierhaltung und vollständige Bedienbarkeit sind unterschiedliche Nachweise.
+
+`BackupFormatCompatibilityTests` und `tools/check_backup_compatibility.py` prüfen
+Java-Schreiber zum Kotlin-Leser und Kotlin-Schreiber zum ursprünglichen Java-Leser.
+Die festgelegte Referenz ist Build117-Commit
+`035d6503d16d63a7468498611060f99640a67284`. Der Test erzeugt frische SQLite6/7-Dateien
+mit Unicode, NULL, Int64 und BLOBs sowie Einstellungen und Dateien. Die Referenzquelle
+wird aus Git gelesen und per SHA256 geprüft; sie wird nicht parallel ausgeliefert.
+In einem flachen Checkout ausschließlich diese Referenz nachladen:
+
+```sh
+git fetch --no-tags --depth=1 origin 035d6503d16d63a7468498611060f99640a67284
+```
+
+Der Test selbst lädt keine Quellen oder Abhängigkeiten nach. Archivvergleiche
+ersetzen keinen Android-Restore mit Neustart und Rollback.
 
 ## Regressionsschleife für das Kotlin-Refactoring
 
-Ohne Kundendaten arbeiten: ausschließlich frei erfundene synthetische Fixtures,
-generierte Testbilder und neu angelegte, isolierte temporäre Datenbanken und
-Verzeichnisse verwenden. Keine produktiven Kundendaten, Fotos, Datenbanken oder
-Backups öffnen; auch keine daraus abgeleiteten oder anonymisierten Fixtures.
-Tests starten keine produktiven Pixel-/Drive-Verbindungen und entfernen nur ihre
-eigenen temporären Daten.
+Auftrag, Freigaben, Akzeptanzmatrix und tatsächliche Prüfergebnisse stehen
+ausschließlich in `AKTUELLER-STAND.json`. Diese Anleitung führt keine zweite
+Statusliste. Ausschließlich frei erfundene synthetische Fixtures, generierte
+Testbilder und neue isolierte temporäre Datenbanken verwenden. Keine produktiven
+oder daraus abgeleiteten Kundendaten, Fotos, Datenbanken oder Backups öffnen.
+Tests entfernen nur ihren eigenen temporären Bestand.
 
-Die Akzeptanzmatrix und ihr aktueller Prüfstatus stehen ausschließlich in
-`AKTUELLER-STAND.json`. Jede Nutzeranforderung erhält eine Kennung, ein konkret
-prüfbares Sollverhalten und einen passenden Nachweis. Diese Anleitung beschreibt
-das Verfahren; sie führt keine zweite Statusliste oder Prüfchronik.
-
-1. Vor der Umsetzung den relevanten Kotlin-/Oberflächen-/Speicherweg und seine
-   Abhängigkeiten nach KISS/YAGNI bewerten. Bestehende Funktionen mit synthetischen
-   Daten erfassen und jeder Anforderung die betroffenen Prüfungen zuordnen.
-2. Eine begrenzte Änderung umsetzen und die zugehörigen Quell-, Fach-, UI-, Build-
-   oder nativen Prüfungen ausführen. Subagenten bekommen einen eindeutigen
-   Quellstand, eine abgegrenzte Aufgabe und bei Schreibaufgaben disjunkte Dateien.
-   Ein Hauptagent integriert ihre Ergebnisse und prüft die Änderungen unabhängig;
-   eine Subagentenmeldung allein ist kein Abnahmenachweis.
-3. Bei Fehlern Ursache und kleinste passende Korrektur bestimmen. Den betroffenen
-   Test und die von der Korrektur berührten Nachbarpfade erneut prüfen. Wiederholen,
-   bis der Fehler behoben ist; Tests oder Sollverhalten nicht nur zum Bestehen
-   abschwächen. Fehlende Werkzeuge oder Gerätetests bleiben ausdrücklich offen.
+1. Betroffene Bedienwege, Speichergrenzen und Abhängigkeiten nach KISS/YAGNI prüfen;
+   jeder Anforderung ein prüfbares Sollverhalten und passende Nachweise zuordnen.
+2. Begrenzte Änderung umsetzen und die betroffenen Quell-, Fach-, UI- und Bauprüfungen
+   ausführen. Ein Hauptagent integriert ausdrücklich beauftragte, abgegrenzte
+   Teilaufgaben und prüft deren Ergebnisse unabhängig.
+3. Fehler an der Ursache beheben; Tests und Sollverhalten nicht zum Bestehen
+   abschwächen. Unveränderte, fehlende, JSON-null- und optionale Altfelder ebenso
+   prüfen wie Rückfall, Abbruch und Wiederholung mit derselben Vorgangskennung.
 4. Nach der letzten funktionalen Änderung die betroffene Gesamtsuite einschließlich
-   `tools/check_current.py` auf dem finalen Quellstand ausführen. Spätere Änderungen
-   entwerten die davon betroffenen Ergebnisse und benötigen entsprechende Nachtests.
-5. Jede Anforderung gegen Implementierung und Nachweise abgleichen. Erst schließen,
-   wenn alle erforderlichen Nachweise zum finalen Stand vorliegen. Andernfalls den
-   Auftrag mit konkreten offenen Punkten als unvollständig führen.
+   `tools/check_current.py` auf dem finalen Stand ausführen. Spätere Quelländerungen
+   entwerten davon berührte Nachweise und benötigen passende Nachtests.
+5. Anforderungen gegen Implementierung und Ergebnisse abgleichen. Fehlende
+   Werkzeuge, Laufzeittests und Pixel-Abnahmen bleiben ausdrücklich offen.
 
-Die Abnahme umfasst alle handgeschriebenen Anwendungspfade in Kotlin einschließlich
-der bisherigen Java-/JavaScript-Oberfläche, den Funktionserhalt und dieselben
-transaktionalen Fachpfade für UI und MCP. Die Drive-Grenze aus `docs/fachregeln/APP.md`
-mit einer unverschlüsselten ZIP über den Android-Dateianbieter prüfen: keine eigene
-Drive-Anmeldung, API, Berechtigung oder Geschäftsdaten-Synchronisierung; gemeinsame,
-weiterhin benötigte Kalenderfunktionen bleiben erhalten.
+Jeder Nachweis nennt Quellcommit oder abweichenden Fingerabdruck, Testbefehl,
+Umgebung, Ergebnis und Messgrenzen. `PASS`, `FAIL` und `NOT_RUN` unterscheiden.
+Ein Build ist kein ausgeführter Emulatorlauf; ein synthetischer Emulatorlauf ist
+keine Pixel-Abnahme oder Prüfung eines echten Drive-Kontos. Vorhandener Testcode
+und ein definierter CI-Schritt allein belegen keinen erfolgreichen Lauf.
 
-Für Datenbank und Bilder insbesondere Abfragepläne der benötigten Indizes,
-begrenzte Spalten-/Seitenauswahl, WAL mit gleichzeitigen Zugriffen und konsistentem
-ZIP-Sichern/Wiederherstellen nachweisen. Dateibasierte Fotos und Übertragungen,
-Vorschaugröße, begrenzten Bildspeicher, Hintergrundzugriffe und die tatsächlich
-gewählten Coil-/Coroutine-/Flow-Pfade prüfen. Erhaltene bestehende Datenformate und
-Beziehungen nur mit synthetischen Beständen testen. Gemessene Antwortzeiten,
-Speicher- und Framewerte gelten ausschließlich für die angegebene Testumgebung.
-
-Jeder Nachweis nennt Quellcommit und gegebenenfalls den abweichenden
-Quellfingerabdruck, Testbefehl, Umgebung, Ergebnis und Messgrenzen. `PASS`, `FAIL`
-und `NOT_RUN` unterscheiden. Übernommene ältere Ergebnisse mit ihrem ursprünglichen
-Quellbezug kennzeichnen; sie sind kein neuer Testlauf. Quellprüfung, Build,
-synthetischer JVM-/Emulatorlauf und Pixel-Abnahme bleiben getrennte Nachweise.
-
-## Vorbereitete native Tabellenprüfung über ADB
-
-Dieser Abschnitt beschreibt den ausdrücklich gewählten Einstieg
-`PixelMcpInstrumentation` mit `-e suite business_tables`. Er erstellt eine neue,
-zufällig benannte synthetische SQLite-Datei im Cache, öffnet **keine produktive
-Datenbank** und entfernt nur sein
-eigenes Testverzeichnis. Er prüft die Tabellen-Speichergrenze mit 300 Kunden,
-40 Aufträgen, 5 000 Arbeiten, 500 Rechnungen und 3 000 Fotometadaten, einschließlich
-eines großen Unicode-Datensatzes. Geprüft werden sollen Kopierabbruch und atomarer
-Fortschritt, Schreibsperre, Abbruch/Fortsetzung, Neustart, Hashgleichheit, Konflikte,
-Request-Wiederholung, Reihenfolgeänderung, SQLite-Sicherung/Rücklesen und Rückweg
-nach nachträglichen Änderungen. Hinzu kommen Filter-/Seitengleichheit zwischen
-Tabellen und bestehendem Selektor sowie eine getrennte synthetische Journaldatei:
-endgültige statt temporärer Aktionskennungen, gemeinsamer Commit von Journal,
-Tabellenzeile und Requestbeleg, erhaltene lokale Autorität, unveränderter
-Ursprungssnapshot und Neustart mit derselben Projektionsrevision. Ein absichtlich
-fehlschlagender Zeilenschreiber muss Journal, Zeile und Requestbeleg vollständig
-zurückrollen.
-
-Nach Abschluss der Implementierung und gesonderter Bereitstellung der zum
-Quellstand passenden, mit der Originalsignatur signierten App/Test-APK:
-
-```powershell
-& $gpAdb -s $gpSerial shell am instrument -w -e suite business_tables at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation
-```
-
-`$gpAdb` und `$gpSerial` werden wie im ADB-Abschnitt unten lokal ausgewählt.
-Der Rückgabeblock enthält Prüfanzahl, Gesamtdauer und den synthetischen Umfang.
-Ein erfolgreicher Lauf dieses Einstiegspunkts belegt den SQLite-Speichervertrag.
-Die Test-Evidenz darin ist ausdrücklich synthetisch; die echte verschlüsselte
-Archivprüfung des Wartungspfads, vollständiger App-Restore, Fachschreiber und
-Bildschirmabnahme müssen zusätzlich geprüft werden. Quellcode vorhanden bedeutet
-nicht gebaut, installiert oder ausgeführt.
-
-Beim gemeinsamen Prüflauf insbesondere UI-, MCP- und Timerabschluss mit mehrfachen
-Änderungen derselben ID, Archivieren/Wiederherstellen, synthetische Löschkompaktierung
-mit echtem Testarchiv, Rechnungserstellung und Dokumentjobs ausführen. Jede der
-acht Listen-/Suchabfragen mit leerer Seite, Versatz, inaktiven Kunden, natürlichen
-Namen, Telefonvarianten, Kunden-/Auftragsbezügen, Rechnungsempfänger und Datumsgrenzen
-gegen denselben vollständigen Fachstand vergleichen. Innerhalb einer noch offenen
-Schreibtransaktion muss der Leser den uncommitteten Journalstand berücksichtigen;
-nach Commit müssen Zeilen und Projektionsrevision übereinstimmen. Fehlende
-Journalverfolgung in älteren Zwischenformaten darf nicht als aktuelle Projektion
-gelten. Diese Prüfmatrix ersetzt keinen Restore-Nachweis auf dem Pixel.
-
-## Gemeinsame Quellprüfung nach dem Umbau
-
-Der Sicherungseinstieg ist `PixelBackupService`: direkte Aufnahme über
-`LocalBackupDataset`, ZIP-Erstellung, technische Prüfung und vollständiges
-Dateirücklesen. `LocalBackupCoordinator`, `BackupJobRepository` und
-`FullBackupController` sind entfernt. Oberfläche, MCP und Selbsttest verwenden
-denselben neuen Status. Historische Sicherungsbelege werden nur noch bei einer
-expliziten Datenautoritäts-Umstellung gelesen; der alte Schreiber wird nie gestartet.
-
-`BackupInventory` erzeugt ausschließlich Hinweise. Fehlende Originale, unvollständige
-Metadaten, alte Prüfsummenabweichungen, finanzielle Konflikte und bereits vorhandene
-Fremdschlüsselverletzungen sind keine Abbruchbedingungen des Backups. Die Datei
-`backup-notes.json` im Archiv enthält Details. Nicht auswertbare fachliche Daten
-werden als solche vermerkt und bleiben in der SQLite-Datei erhalten.
-`inspectStaged` prüft Datenbankdatei, Format und wieder lesbare Einstellungen.
-ZIP-Dateiliste, Größen und Prüfsummen bleiben zwingend. Die aktuelle Datenbank und
-Originaldateien werden durch die Aufnahme nicht repariert oder normalisiert.
-
-Die JVM-Suite `PixelPlainBackupTests` prüft auch Hinweis-Rundlauf, unveränderte
-Rechnungsnummernkollisionen und Rollback nach Unterbrechung unmittelbar nach jeder
-Dateiverschiebung. Die vollständige native Suite heißt `local_backup`, gefolgt von
-`local_backup_reopen` in einem neuen Prozess. Sie verwendet ausschließlich den
-frisch installierten Wegwerf-Emulator und dessen vorher leeren, separaten
-gerätegeschützten Speicher mit den produktiven Sicherungs-/Restoreklassen:
-SQLite mit zusätzlichen Tabellen/BLOBs, fehlende Originale/Metadaten, doppelte
-Nummern, Fremdschlüsselverletzung, Schreibfehler, Wiederholung, Zielschutz,
-Archivbeschädigung, Rückfallkopie und Wiederherstellung nach Prozessneustart.
-Der normale, anmeldegeschützte App-Speicher bleibt getrennt. Ein vorhandener Testbestand
-wird nicht überschrieben; echte Geräte werden abgewiesen. Diese beiden Suiten
-verwenden einen isolierten Dateistream. Weitere Android-Grenzen prüfen die
-nachfolgenden Suiten; das echte Pixel und ein echtes Drive-Konto bleiben separate
-Abnahmen.
-
-`browser_checkpoint` und danach `browser_checkpoint_reopen` prüfen den dauerhaften
-Abschluss der Formularsichtung mit tatsächlichen SQLite-Transaktionen. Neue
-UUID-Verzeichnisse und eigene Präferenznamen liegen im gerätegeschützten Speicher
-der Ziel-App-UID. Ungültige Argumente, absichtlich beschädigter optionaler
-Medienzustand, Kernschreibfehler, atomare aktive Medienauswahl, Replay und
-Epochwechsel werden geprüft. Eine optionale Medienoperation erfolgt erst nach
-abgeschlossenem Kerncommit; ihr Fehler darf keine falsche Erfolgsantwort erzeugen.
-Die zweite Suite prüft dieselben gespeicherten Werte in einem neuen Prozess.
-
-`document_provider` und danach `document_provider_reopen` verwenden einen eigenen
-`DocumentsProvider` ausschließlich in der Test-APK, mit separater UID und eigenem
-Prozess. Der Anbieter meldet sich als nicht lokal, speichert aber ausschließlich
-frisch erzeugte synthetische Dateien; es gibt keine Konto- oder Netzwerkverbindung.
-Die Einrichtung und Fehlersteuerung läuft als echter Shell-UID-Aufruf über den
-Testpfad `/qa-control` mit dessen `DUMP`-Pfadrecht. Dokumentzugriffe verwenden
-weiter die unveränderten Apprechte; die Teststeuerung prüft zusätzlich die Shell-UID.
-Geprüft werden echte `ContentResolver`-Zugriffe, fehlende, eingeschränkte und
-entzogene URI-Rechte, Schreib-/Lesefehler, abgebrochene Schreibstreams, Wiederholung
-und Rücklesung. Die erste Suite bedient die wirkliche Android-Dateiauswahl für
-Erstellen, Öffnen und Abbrechen sowie eine Neuerstellung der Sicherungs-Activity.
-Die zweite prüft dauerhafte Pickerrechte und unverändertes Rücklesen nach Neustart
-beider Prozesse. Der Erstlauf verweigert einen bereits vorhandenen App-Testbestand.
-Die Test-APK verpackt ihre Kotlin-Laufzeit ausdrücklich selbst, weil der separate
-Anbieterprozess den gemeinsamen Instrumentierungs-Classloader nicht verwendet.
-Anbieter, Testklassen und zusätzliche Berechtigung dürfen in der Release-APK
-nicht vorhanden sein.
-
-Der bestehende GitHub-Workflow `qa-apk.yml` baut `struktur-neu`, prüft die JVM-Suiten
-und startet diese sechs nativen Testphasen auf einem Wegwerf-Emulator. Seine temporäre
-Signatur gilt ausschließlich für Emulator-Testpakete; es wird keine signierte
-Benutzer-APK erzeugt oder verteilt. Produktive Signierkonfiguration bleibt erhalten.
-Ergebnis und etwaige Blockaden werden ausschließlich im aktuellen Arbeitsstand geführt.
+## Quellprüfung und Android-Bau
 
 ```sh
 python3 -B tools/check_current.py
 ```
 
-Der Befehl prüft aktuelle Quellen, generierte Verträge, Pflanzenressourcen,
-Prüfdatenadapter und die ausgewählten Python-Prüfungen. Er erzeugt keine APK,
-signiert nicht und greift nicht auf ein Gerät zu. Für Oberfläche, native Fachlogik
-und Baukonfiguration zusätzlich die jeweils betroffenen Prüfungen ausführen.
-
-Für Statusänderungen außerdem synthetisch prüfen: aktuelle Fehler vor älteren
-Erfolgen, Datumsreihenfolge mit Zeitzonen, stabile Übersicht trotz Pagination,
-fehlender/ungültiger Providerbeleg, zukünftige Zeiten, abgebrochener und aktiver
-Worker, erhaltene ältere Belege nach Rücklesefehlern sowie unveränderter Quellbestand.
-`PixelPlainBackupTests` deckt diese Regeln und spezifische Finanzkollisionen ab.
-Persistierte Android-Worker-/Activity-Lebenszyklen bleiben ein eigener Gerätetest.
-
-`simple-forms.test.cjs` prüft zusätzlich die Statusanzeige, sichere lokale
-Kundenprofil-Thumbnails und explizite Profilrollen, alle Hauptseiten bei 200 %
-Schrift sowie genau einen Vollabruf beim Kundenspeichern ohne Foto.
-Der Fotopfad behält seinen eigenen notwendigen Rückleseschritt.
-Die Suite prüft auch kombinierte Kunden-/Auftrags-/Rechnungsfilter mit Suche,
-Trefferzahl und Zurücksetzen sowie Geräte-Zustandsfilter über mehrere Seiten.
-Der untere Filterzugang wird mit reserviertem Navigationsplatz und verkleinerter
-Bildschirmhöhe geprüft; echte Android-Tastatur/Systemnavigation bleiben Gerätetests.
-
-Geräteprofilbilder werden über die vorhandene `AndroidGardenPhotos`-Bridge aus
-dem verifizierten, dem Gerät zugeordneten Original gelesen und mit der bestehenden
-Android-Bildverarbeitung als kleines JPEG direkt angezeigt. Der Gerätebild-Renderer
-verwendet weder `content://` noch gespeicherte Vorschaudateien. Die restriktiven
-WebView-Einstellungen bleiben bestehen. Ein nicht lesbares Original oder ein
-Dekodierfehler zeigt sichtbar „Foto nicht lesbar“.
-
-`equipment-profile-photo-ui.test.cjs` prüft Auswahl/Speichern, tatsächliche
-Bilddekodierung, Seitenwechsel, erneut geöffneten Editor und sichtbare Fehler mit
-synthetischer Bridge. Für den echten Android-Fotospeicher und die WebView gibt es
-die ausdrücklich gewählte Instrumentierung:
-
-```powershell
-& $gpAdb -s $gpSerial shell am instrument -w -e suite equipment_photo_display at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation
-```
-
-Diese Suite benötigt API28+, eine passende App/Test-APK und einen frischen
-Testprozess. Sie verwendet ein neues temporäres Foto und ein isoliertes
-WebView-Profil, entfernt nur eigene Testdateien und öffnet keine Geschäftsdatenbank.
-Sie prüft fehlende Vorschaudatei, unverändertes Original, tatsächliche Dekodierung
-mit produktivem Renderer/CSP, neue WebView und fehlendes Original. Die Auswahl
-über den Android-Fotodialog sowie Speichern, Seitenwechsel und vollständiger
-App-Neustart müssen zusätzlich am Pixel abgenommen werden. Kompilierung oder
-Browser-Bridges ersetzen diesen Gerätetest nicht.
-
-Ein veralteter ChatGPT-Connector-Katalog wird am bestehenden Connector aktualisiert.
-Zuerst `get_capabilities.tools` mit den tatsächlich exponierten Werkzeugen vergleichen;
-`run_self_test.ui_mcp_parity` prüft nur den App-internen Katalog. Nach Aktualisierung
-Anzahl, Namen, Schemas und Beschreibungen erneut vergleichen. Pluginmanifest und
-Appkennung nicht ändern, wenn nur der gespeicherte Werkzeugkatalog veraltet ist.
-
-## App-Kompilierung
+Der Befehl prüft aktuelle Quellen, Originalidentität, Datenschutz, generierte
+Verträge, synthetische Fixtures, Pflanzenressourcen und Wartungstexte. Er baut
+keine APK, signiert nicht und greift auf kein Gerät zu.
+`tools/verify_ui_mcp_inventory.py` prüft die 210 semantischen Aktionen gegen den
+nativen Katalog und die geprüften Kotlin-Quellfingerabdrücke. Plattformausnahmen
+und stillgelegte Drive-Aktionen bleiben ausdrücklich erkennbar. Nach tatsächlicher
+Quellsichtung mit `--record-reviewed` aufzeichnen und anschließend ohne Schalter
+prüfen; die Aufzeichnung ersetzt keine ausgeführten Bedienwege.
 
 ```sh
 cd android
-gradle --no-daemon --no-configuration-cache --no-build-cache :app:compileReleaseJavaWithJavac
+gradle --no-daemon --no-configuration-cache --no-build-cache :app:compileReleaseKotlin :app:compileReleaseJavaWithJavac
 ```
 
-Ein tatsächlich beauftragtes Installationspaket wird mit `:app:assembleRelease`
-gebaut. Die eingebauten Vor-/Artefaktprüfungen bleiben erforderlich. Es gibt keine
-automatische Installation oder Freigabe durch erfolgreiche Kompilierung.
+Release- und Testpaket für einen beauftragten synthetischen Android-Lauf:
+
+```sh
+gradle --no-daemon --no-configuration-cache --no-build-cache --max-workers=2 :app:assembleRelease :app:assembleReleaseAndroidTest :app:lintRelease
+```
+
+Vor- und Artefaktprüfungen des Gradle-Baus bleiben zwingend. Die Release-APK bleibt
+hier unsigniert; die Debugvariante ist deaktiviert. Für einen Benutzer-Updateauftrag
+gilt `docs/entwicklung/SIGNIERUNG.md`: Originalzertifikat, Paket, höhere Version,
+leere Startdaten, Quellbindung und APK-Prüfsumme prüfen. Erfolgreiche Kompilierung
+erteilt keine Bereitstellungs-, Installations- oder produktive Restorefreigabe.
 
 ## Aktuelle JVM-Prüfungen
 
-`tools/run-followup-java.py` kompiliert die betroffenen Kotlin-/Java-Quellen gemeinsam
-und führt die übernommenen Suiten für ZIP-Backup, Gerätewartung und Gerätefotos
-sowie den bidirektionalen Archivvergleich aus. Benötigt werden der vorhandene
-Android-SDK, JDK17, Kotlin2.2.10 und die durch Gradle aufgelösten Abhängigkeiten.
-Nach dem Android-Kotlin-Build nutzt der Runner dessen festgelegte Compiler-JARs
-aus dem Gradle-Cache; alternativ bezeichnet `HG_KOTLINC` einen passenden Compiler.
-Es werden keine Abhängigkeiten durch den Test-Runner nachgeladen.
+`tools/run-followup-java.py` kompiliert die aktuellen Kotlin-Fachquellen zusammen
+mit Java-Testprogrammen und synthetischen Speicheradaptern. Er entdeckt die
+vorhandenen `*Tests.java` und Kotlin-Tests automatisch. Dazu gehören Domain-,
+Finanz-, MCP-/Journal-, Gerätewartungs-, Gerätefoto-, ZIP- und Formatprüfungen.
+Benötigt werden JDK17, SDK37, Kotlin2.2.10 und die aufgelösten Gradle-Abhängigkeiten.
+`HG_KOTLINC` kann einen passenden Compiler bezeichnen; andernfalls verwendet der
+Runner die festgelegten Compiler-JARs aus dem Cache. Er lädt nichts nach.
 `HG_JSON_JAR` verweist auf `org.json:json:20240303`, SHA256
 `3cf6cd6892e32e2b4c1c39e0f52f5248a2f5b37646fdfbb79a66b46b618414ed`.
 
@@ -315,46 +198,106 @@ Es werden keine Abhängigkeiten durch den Test-Runner nachgeladen.
 python3 -B tools/run-followup-java.py
 ```
 
-Für die Tabellenumstellung zusätzlich `--tables` verwenden. Dafür
-`HG_SQLITE_JDBC_JAR` auf SQLite-JDBC3.46.1.0 und `HG_SLF4J_API_JAR` auf
-SLF4J-API1.7.36 setzen; der Runner prüft die festgelegten SHA256-Prüfsummen.
-Die vierte Suite verwendet echte SQLite-Transaktionen in einer frisch angelegten
-synthetischen Datei. Sie prüft Übernahme, Kopierabbruch, Fortsetzung, Schreibsperre,
-66 Filter-/Seitengleichheiten, Unicode-Großdaten, CAS/Wiederholung, Journalprojektion,
-Fehler-Rollback und Rückweg mit aktuellen Änderungen. Sie prüft weder den
-Android-Transaktionslistener noch CursorWindow, die vollständigen App-Schreiber
-oder Backup/Restore auf dem Pixel; dafür bleibt der ADB-Einstieg erforderlich.
+Für reale SQLite-Transaktionen in einer neuen synthetischen JDBC-Datei zusätzlich
+`--tables` verwenden. `HG_SQLITE_JDBC_JAR` bezeichnet SQLite-JDBC3.46.1.0,
+`HG_SLF4J_API_JAR` SLF4J-API1.7.36; der Runner prüft ihre festgelegten SHA256-Werte.
 
 ```sh
 python3 -B tools/run-followup-java.py --tables
 ```
 
-Die zwei Dateien in `tests/java-support/` liefern tatsächlich referenzierte
-Speicher-Fixtures. Ihre früheren main-Testprogramme wurden entfernt.
+Die Tabellensuite prüft Kopierabbruch, Fortsetzung, CAS, Replay, Filter- und
+Seitengleichheit, Unicode-Großdaten, Journalprojektion, atomaren Fehler-Rollback
+und den Rückweg mit aktuellen Änderungen. Java-/Kotlin-Nullgrenzen und alte
+optionale JSON-Felder gehören zu den Domain- und MCP-Regressionen. JDBC prüft
+weder Androids Transaktionslistener noch CursorWindow oder die echte Oberfläche.
 
-## Aktuelle Oberflächenprüfungen
+## MCP-Katalog prüfen
 
-Die fünf übernommenen Suiten sind `simple-forms`, `startup-ui`,
-`equipment-maintenance-ui`, `equipment-profile-photo-ui` und
-`work-entry-photo-failure` unter `tests/*.test.cjs`. Playwright1.64.1 und Acorn8.19.0
-außerhalb des Quellbestands bereitstellen; bei Bedarf die vorhandenen Modulpfade
-über `HG_PLAYWRIGHT_MODULE` und `HG_ACORN_MODULE` auswählen. In Cloud-Chromium
-`HG_TEST_LOCAL_ASSETS=1` setzen. Jede betroffene Suite mit `node` aufrufen.
+`get_capabilities.tools` mit den tatsächlich im verwendeten ChatGPT-Connector
+exponierten Werkzeugen vergleichen. `run_self_test.ui_mcp_parity` prüft den
+App-internen Katalog, nicht einen im Client gespeicherten Werkzeugstand. Nach
+einer Katalogaktualisierung Anzahl, Namen, Schemas und Beschreibungen erneut
+vergleichen. Pluginmanifest und Appkennung bleiben bei einer reinen
+Katalogaktualisierung unverändert.
 
-`daily-usability.test.cjs` und `revier-solo-ui.test.cjs` liefern dabei benötigte
-synthetische Browser-Bridges; daraus folgt keine Pflicht zu deren vollständigem Lauf.
-Der Starttest prüft den aktuellen Startablauf und fehlende Pflichtmodule ohne
-historischen Stylesheet-Vergleich oder frühere Diagnoseberichte.
+## Native Android-Prüfungen
 
-## Grenzen der Bereinigung
+`qa-apk.yml` definiert Release-/Testbau, JVM-Lauf mit `--tables` und acht native
+Phasen auf einem frischen API35-Wegwerf-Emulator in genau dieser Reihenfolge:
 
-Alte Tests und Diagnosekampagnen wurden nicht übernommen. Nicht mehr referenzierte
-Drive-/Cloud-Sicherungsadapter und ihre historischen Test-Fixtures sind entfernt.
-Der aktuelle Runner kompiliert nur noch die benötigten Quellen und Speicher-Fixtures.
-Die feste synthetische Altsicherung in `PixelPlainBackupTests` prüft den erhaltenen
-Lesepfad unabhängig von einem nicht mehr vorhandenen Verschlüsselungsschreiber. Vor einer späteren Umstellung der bisherigen Abläufe sind ein
-aktueller nativer Testeinstieg und die betroffenen Pixel-Prüfungen gesondert nötig.
-Quellprüfungen, Kompilierung und JVM-/Browsertests sind getrennte Nachweise.
+| Suite | Prüfgrenze |
+|---|---|
+| `local_backup` | Synthetischer vollständiger Bestand, ZIP, Hinweise, Fehler, Rückfallkopie und geschützter Restore |
+| `local_backup_reopen` | Derselbe isolierte Restorebestand nach Prozessneustart |
+| `browser_checkpoint` | Dauerhafte Formularsichtung, reale SQLite-Transaktionen, aktive Medienauswahl, Fehler und Replay |
+| `browser_checkpoint_reopen` | Gespeicherte Sichtungsentscheidung und Medienbezüge im neuen Prozess |
+| `native_data` | Echte Leseprojektion mit 40 000 Zeilen, Indexpläne, Seitenauswahl, WAL-Leser während eines Schreibers, Flow und Main-Thread-Diskprüfung |
+| `document_provider` | Separater nicht lokaler Testanbieter, echte URI-Rechte, Dateipicker, Abbruch, Fehler, Rücklesen und Activity-Neuerstellung |
+| `document_provider_reopen` | Dauerhafte Pickerrechte und Rücklesen nach Neustart beider Prozesse |
+| `native_compose` | Echte MainActivity, Kundenbearbeitung/Suche/Seiten, MCP-Änderung in sichtbarer Liste, Entwürfe bei Neuerstellung, Timer, Planungsaufruf und 200-%-Schrift |
+
+Die Backup-, Checkpoint- und `native_data`-Phasen verwenden isolierte synthetische
+Kontextpfade. Der `DocumentsProvider` liegt ausschließlich in der Test-APK mit
+separater UID und
+eigenem Prozess; seine Shell-Steuerung verlangt das Testpfadrecht und die Shell-UID.
+Er meldet sich als nicht lokal, benutzt aber ausschließlich neue synthetische
+Dateien ohne Konto oder Netzverbindung. `native_compose` verlangt den bekannten
+synthetischen Bestand aus `document_provider_reopen` auf demselben Emulator.
+Reihenfolge und Schutzbedingungen nicht umgehen. Die Test-APK enthält die für
+ihren separaten Anbieterprozess nötige Kotlin-Laufzeit; Testanbieter, Testklassen
+und Testrechte dürfen nicht in die Release-APK gelangen.
+
+Die CI-Signatur ist ein temporärer Schlüssel ausschließlich für diese
+Wegwerf-Emulatorpakete. Sie signiert kein Benutzerupdate und veröffentlicht keine
+APK. Aus Laufdefinition oder Kompilierung keinen aktuellen Laufzeiterfolg ableiten;
+Ergebnisse und Blockaden gehören ausschließlich in den aktuellen Arbeitsstand.
+
+Nach eigener Auswahl des synthetischen Testgeräts und passend bereitgestellter
+App/Test-APK lautet der Instrumentierungsaufruf:
+
+```powershell
+& $gpAdb -s $gpSerial shell am instrument -w -e suite native_data at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation
+```
+
+Für die acht Phasen den Suitewert gemäß Tabelle wählen und die erforderlichen
+Prozessneustarts wie im Workflow ausführen. Ein Ergebnis muss die verlangten
+Schutz- und Fachnachweise enthalten; Exitcode oder Prüfanzahl allein genügen nicht.
+Die Namen `browser_checkpoint*` bezeichnen den erhaltenen Sicherungs-/Sichtungsvertrag,
+keinen WebView-Bildschirm.
+
+`business_tables` bleibt ein zusätzlicher ausdrücklich gewählter ADB-Einstieg mit
+neuer synthetischer SQLite-Datei. Er prüft den Android-Speichervertrag,
+Projektionsrevisionen und gemeinsamen Commit/Rollback von Journal, Zeile und
+Requestbeleg. Er ersetzt keinen vollständigen Restore oder einen Durchlauf aller
+UI- und MCP-Schreiber.
+
+```powershell
+& $gpAdb -s $gpSerial shell am instrument -w -e suite business_tables at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation
+```
+
+Fotos zusätzlich am tatsächlichen nativen Bildpfad prüfen: verifizierte Vorschau
+ohne Originalzugriff, geprüfter Originalfallback, Coil-Dekodiergröße, sichtbarer
+Fehler, Auswahlabbruch, Gerätezuordnung, Export und Neustart. Ebenso die ausgewählten
+und ausdrücklich zurückgestellten Restoremedien prüfen. Ein alter DOM-/Bridge-Test
+belegt diese Compose-Bedienwege nicht. Physischer Pixel, reales Drive-Konto und ein
+individuell gewähltes Sicherungsarchiv benötigen ihre eigenen zulässigen Nachweise.
+
+## Eigenständige Website
+
+`static/` und seine JavaScript-/CSS-Ressourcen bleiben eine eigenständige Website.
+Der verteilte Pflanzenkatalog ist `android/app/src/main/assets/plant-catalog.json`;
+`tools/sync_plant_assets.py` prüft daraus erzeugte Webspiegel und referenzierte Bilder.
+Browserprüfungen bei Änderungen an der Website auf ihre tatsächlichen Ressourcen
+ausrichten und getrennt von Android auswerten. Browser- und Node-Tests sind kein
+Nachweis für die Kotlin-/Compose-App; insbesondere darf ein Test keine entfernte
+Android-HTML- oder Bridge-Datei als aktuelle App laden.
+
+Offizielle Grundlagen:
+[Built-in Kotlin](https://developer.android.com/build/migrate-to-built-in-kotlin),
+[AGP9.1-Kompatibilität](https://developer.android.com/build/releases/agp-9-1-0-release-notes),
+[Compose-Compiler](https://developer.android.com/develop/ui/compose/setup-compose-dependencies-and-compiler),
+[Coil-Kompatibilität](https://coil-kt.github.io/coil/changelog/).
 
 ## ADB-Analyse und Lese-/Schreibtests über den Laptop
 
@@ -396,9 +339,9 @@ Testprofile. Keine zweite operative App oder Datenbank einführen. Die bestehend
 Installation nicht durch eine ungeprüfte Test-APK ersetzen. Die allgemeine
 ADB-Testfreigabe setzt weder Installations- noch Rechnungs-/Migrationsgates außer
 Kraft. Ein bloßes `test_record`-Flag beweist keine Isolation eines echten Bestands.
-Die neue native Testanbindung muss einen eigenen temporären synthetischen
-Datenbestand verwenden; der bisher ausgeschlossene historische Instrumentierungslauf
-ist dadurch nicht wieder freigegeben.
+Native App-Prüfungen verwenden ausschließlich den ausdrücklich ausgewählten,
+isolierten synthetischen Bestand. Die Emulator-Suiten mit Schutz gegen echte
+Geräte dürfen für eine Pixel-Abnahme nicht umgangen werden.
 
 ### Prüfen des ADB-Lese-/Schreibtransports
 
@@ -445,9 +388,10 @@ Zurücksetzen von Rechnungszählern oder Überschreiben einer produktiven Datenb
 
 ### Messwerte während der synthetischen App-Testfälle
 
-Dieselben sechs Bedienwege wie in Etappe 1, mit demselben Fixture und mindestens
-40 Wiederholungen je vergleichbarer Variante. Kalte Starts und warme Wechsel
-getrennt messen. Vor jedem Vergleich Build, Schriftgröße, Anzeige, Energielage,
+Vergleichbare Bedienwege mit demselben synthetischen Fixture und mindestens
+40 Wiederholungen je Variante messen: Start, gefilterte Liste/Seitenwechsel,
+Detailansicht, Bearbeiten/Speichern, Timerabschluss und Fotoansicht. Kalte Starts
+und warme Wechsel getrennt messen. Vor jedem Vergleich Build, Schriftgröße, Anzeige, Energielage,
 thermischen Zustand und Hintergrundlast festhalten. Neustart-/Abbruch-/Restoretests
 schreiben ausschließlich in den expliziten synthetischen Testbestand.
 
@@ -467,17 +411,17 @@ ein neues Messfenster begonnen wird; vor dem Reset benötigte Werte erhalten.
 Keine ungefilterten `logcat`-/Bugreport-/Heap-/Bildschirm-/UI-Hierarchy-Abzüge.
 SQL-Zeit, Abfragezahl, gelesene Zeilen/Bytes und Vollsnapshotzähler aus der
 synthetischen Instrumentierung erfassen, ohne SQL-Argumente oder Datensätze zu
-protokollieren. Die schon vorhandenen nativen Messpuffer für `getState`, `ownerCall`
-und `getWorkSession` sowie die Browserwerte für `render`/Seitenwechsel auswerten,
-sobald der aktuelle native Testeinstieg sie liefert. Fehlende Werte als fehlend
-ausweisen; ADB-Übertragungszeit ist keine Bridge- oder UI-Laufzeit.
+protokollieren. Projektionsdiagnose, Cache-Wiederaufbauten, Flow-Aktualisierungen
+und native Bildschirmwechsel im gleichen Messfenster zuordnen. Nur tatsächlich
+erfasste Messwerte auswerten; fehlende Werte als fehlend ausweisen.
+ADB-Übertragungszeit ist keine Datenbank- oder UI-Laufzeit.
 
 Bei `framestats` nur gültige, vollständige Frames auswerten; nicht abgeschlossene,
 markierte oder doppelt gelesene Frames getrennt zählen. Die Framezeit aus
 `FrameCompleted - IntendedVsync` berechnen. Variable Bildwiederholrate beachten;
-kein pauschales 16-ms-Limit als Gerätebeweis. `gfxinfo` allein deckt bei WebView
-nicht jeden Renderer-/Compositorpfad ab. Speicherwerte PSS, RSS, privat und Swap
-unterscheiden; mehrere Messpunkte statt eines Einzelwerts verwenden. CPU-Messungen
+kein pauschales 16-ms-Limit als Gerätebeweis. `gfxinfo` allein belegt weder
+vollständige Compose-Neuberechnungen noch die Ursache eines langsamen Frames.
+Speicherwerte PSS, RSS, privat und Swap unterscheiden; mehrere Messpunkte statt eines Einzelwerts verwenden. CPU-Messungen
 mit anderem Zeitfenster oder anderem Prozessumfang nicht direkt vergleichen.
 
 ### Ergebnisse in Verbesserungen überführen
@@ -496,7 +440,7 @@ werden getrennt ausgewiesen. Aus bislang ungemessenen Änderungen keinen Gewinn
 ableiten. Fehlt eine vergleichbare Geräte-Vorhermessung, den ersten Gerätelauf als
 Ausgangsmessung führen; alte/produktive Daten nicht zur Vergleichbarkeit zurückspielen.
 
-Offizielle Grundlagen (gelesen am 28.10.2026):
+Offizielle Grundlagen:
 [Android Debug Bridge](https://developer.android.com/tools/adb),
 [dumpsys: Speicher und Framezeiten](https://developer.android.com/tools/dumpsys),
 [AndroidJUnitRunner](https://developer.android.com/training/testing/instrumented-tests/androidx-test-libraries/runner).

@@ -21,6 +21,28 @@ def native_sources():
     return (path for path in MAIN.rglob('*') if path.suffix in ('.java', '.kt'))
 
 
+def method_body(code, name):
+    """Extract one Java/Kotlin body without counting braces inside text or comments."""
+    declarations = list(re.finditer(r'\b(?:fun\s+' + re.escape(name) +
+                                    r'|JSONObject\s+' + re.escape(name) + r')\s*\(', code))
+    if len(declarations) != 1:
+        raise AssertionError('Expected one method declaration: ' + name)
+    tokens = re.compile(r'"""[\s\S]*?"""|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|'
+                        r'//[^\n]*|/\*[\s\S]*?\*/|[{}]')
+    start = None
+    depth = 0
+    for token in tokens.finditer(code, declarations[0].end()):
+        if token.group() == '{':
+            if start is None:
+                start = token.end()
+            depth += 1
+        elif token.group() == '}':
+            depth -= 1
+            if depth == 0 and start is not None:
+                return code[start:token.start()]
+    raise AssertionError('Unclosed method body: ' + name)
+
+
 class DriveBackupOnlyBuildTests(unittest.TestCase):
     def test_business_transports_are_not_production_sources(self):
         for name in ('DriveDirectFiles', 'DriveNumbering', 'DriveMediaBatch'):
@@ -79,8 +101,10 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
 
     def test_old_partial_restore_rejects_before_accessing_backup_or_business_data(self):
         code = source('LocalOwnerRepository')
-        body = code.split('public JSONObject restoreBackup(', 1)[1].split('@Override public JSONArray pendingActions()', 1)[0]
+        body = method_body(code, 'restoreBackup')
         self.assertIn('RESTORE_FULL_REPLACEMENT_REQUIRED', body)
+        self.assertRegex(body, r'^\s*throw\s+(?:new\s+)?PixelMcpWriteTools\.Rejected\s*\(\s*'
+                              r'"RESTORE_FULL_REPLACEMENT_REQUIRED"\s*,\s*"(?:\\.|[^"\\])*"\s*\)\s*;?\s*$')
         self.assertNotRegex(body, r'\b(?:state|effective|fileMeta|fileBytes|enqueue|local)\(')
         self.assertNotIn('LocalAuthorityGuard', body)
 
@@ -116,7 +140,10 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         # New invoice issuance still rejects an already used number before recording it.
         invoice = source('LocalInvoiceService')
         self.assertIn('"INVOICE_NUMBER_COLLISION"', invoice)
+        reservation_write = re.search(r'\bstore(?:!!)?\s*\.\s*putOwnerValue\s*\(\s*\(?\s*'
+                                      r'"local_number_reservation:', invoice)
+        self.assertIsNotNone(reservation_write, 'The reservation must still be persisted after collision checks')
         self.assertLess(invoice.index('"INVOICE_NUMBER_COLLISION"'),
-                        invoice.index('store.putOwnerValue("local_number_reservation:'))
+                        reservation_write.start())
 
 if __name__=='__main__':unittest.main()

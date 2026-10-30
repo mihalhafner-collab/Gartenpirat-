@@ -15,6 +15,7 @@ aktueller Auftrag und offene Prüfungen stehen ausschließlich im
 [Gültige Fachregeln](struktur-neu/docs/fachregeln/APP.md) ·
 [ChatGPT-Projekteinbindung](struktur-neu/docs/entwicklung/PROJEKT.md)
 
-Die neue Struktur ist eine geprüfte Parallelfassung. Bestehende Quellpfade,
-GitHub-Buildworkflows und die installierte App wurden nicht automatisch umgestellt.
+`struktur-neu/` ist die verbindliche Quelle der Kotlin-App mit Compose-Oberfläche.
+Der dortige Quellstand wird durch den aktuellen Prüfworkflow gebaut. Eine
+Installation oder Veröffentlichung folgt daraus nicht automatisch.
 Alte Auftragsberichte sind keine heutige Arbeitsanweisung oder Ausführungsfreigabe.

@@ -1,0 +1,1077 @@
+package at.hausgarten.service
+
+import java.util.*
+import org.json.*
+
+internal class LocalWorkflowTools {
+    constructor() {}
+
+    companion object {
+        @JvmField
+        val BACKUP_READS: Array<String> = arrayOf("get_full_backup_status", "get_restore_status")
+        @JvmField
+        val BACKUP_WRITES: Array<String> = arrayOf("request_full_backup", "retry_full_backup")
+        @JvmField
+        val REVIER_READS: Array<String> =
+            arrayOf(
+                "get_revier_overview",
+                "inspect_edit_action",
+                "list_revier_archive",
+                "list_properties",
+                "get_property",
+                "list_inquiries",
+                "get_inquiry",
+                "list_care_plans",
+                "list_visits",
+                "get_visit",
+                "get_day_tour",
+                "list_materials",
+                "list_equipment",
+                "search_local",
+                "get_equipment_maintenance",
+            )
+        @JvmField
+        val REVIER_WRITES: Array<String> =
+            arrayOf(
+                "create_property",
+                "update_property",
+                "create_inquiry",
+                "update_inquiry",
+                "accept_inquiry_direct",
+                "set_revier_archived",
+                "purge_revier_entity",
+                "plan_inquiry_inspection",
+                "create_care_plan",
+                "update_care_plan",
+                "generate_care_visits",
+                "plan_visit",
+                "update_visit",
+                "set_day_tour",
+                "move_tour_stop",
+                "save_material",
+                "record_material_movement",
+                "save_equipment",
+                "record_equipment_usage",
+                "save_equipment_maintenance_plan",
+                "record_equipment_maintenance",
+            )
+        @JvmField
+        val FINANCIAL_READS: Array<String> =
+            arrayOf("get_payment_ledger", "get_invoice_document_job", "preview_local_authority")
+        @JvmField
+        val FINANCIAL_WRITES: Array<String> =
+            arrayOf(
+                "record_payment",
+                "correct_payment",
+                "retry_invoice_document_job",
+                "activate_local_authority",
+                "reconcile_local_invoice_authority",
+            )
+        @JvmField val OFFER_DECISION_READS: Array<String> = arrayOf("get_offer_decision_history")
+        @JvmField
+        val OFFER_DECISION_WRITES: Array<String> =
+            arrayOf("record_offer_acceptance", "decline_offer")
+        @JvmField
+        val READS: Array<String> =
+            concat(
+                concat(concat(BACKUP_READS, REVIER_READS), FINANCIAL_READS),
+                OFFER_DECISION_READS,
+            )
+        @JvmField
+        val WRITES: Array<String> =
+            concat(
+                concat(concat(BACKUP_WRITES, REVIER_WRITES), FINANCIAL_WRITES),
+                OFFER_DECISION_WRITES,
+            )
+
+        @JvmStatic
+        fun concat(first: Array<String>, second: Array<String>): Array<String> {
+
+            var all = ArrayList<String>(first.asList())
+            all.addAll(second.asList())
+            return all.toTypedArray()
+        }
+
+        @JvmStatic
+        fun backup(name: String): Boolean {
+
+            return (BACKUP_READS.asList().contains(name) || BACKUP_WRITES.asList().contains(name))
+        }
+
+        @JvmStatic
+        fun revier(name: String): Boolean {
+
+            return (REVIER_READS.asList().contains(name) || REVIER_WRITES.asList().contains(name))
+        }
+
+        @JvmStatic
+        fun financial(name: String): Boolean {
+
+            return (FINANCIAL_READS.asList().contains(name) ||
+                FINANCIAL_WRITES.asList().contains(name))
+        }
+
+        @JvmStatic
+        fun authorityMutation(name: String): Boolean {
+
+            return ((name == "activate_local_authority") ||
+                (name == "reconcile_local_invoice_authority"))
+        }
+
+        @JvmStatic
+        fun critical(name: String): Boolean {
+
+            return (((authorityMutation(name) || (name == "purge_revier_entity")) ||
+                (name == "record_payment")) || (name == "correct_payment"))
+        }
+
+        @JvmStatic
+        fun offerDecision(name: String): Boolean {
+
+            return (OFFER_DECISION_READS.asList().contains(name) ||
+                OFFER_DECISION_WRITES.asList().contains(name))
+        }
+
+        @JvmStatic
+        fun handles(name: String): Boolean {
+
+            return (((backup(name) || revier(name)) || financial(name)) || offerDecision(name))
+        }
+
+        @JvmStatic
+        fun write(name: String): Boolean {
+
+            return WRITES.asList().contains(name)
+        }
+
+        @JvmStatic
+        fun description(name: String): String {
+
+            if ((name == "save_equipment")) {
+                return "Speichert ein lokales Gerät mit unveränderter Wartung. Optional profile_photo_upload_id aus begin_file_upload/write_file_chunk oder profile_photo_draft aus einem aktiven lokalen Browsermedia-Entwurf (Sitzung, Auswahl und Installations-/Restore-Kontext müssen übereinstimmen): geprüfte Fotozuordnung ausschließlich zu diesem Gerät, kein Kundenfoto. Bestehendes Gerät benötigt equipment_id und aktuellen expected_record_hash. list_equipment liefert finale profile_photo-Metadaten; read_file_chunk mit resource_type photo liest das aktuell zugeordnete Original. request_id bei unklarer Antwort erhalten und zuerst inspect_edit_action lesen."
+            }
+            if ((name == "get_equipment_maintenance")) {
+                return "Liest eigene Wartungspläne und paginierten erledigten Wartungsverlauf genau eines lokalen Geräts, einschließlich nächster Fälligkeit und record_hash. Kein Schreiben, keine Gerätefreigabe, keine Herstellerintervalle oder automatische Erledigung."
+            }
+            if ((name == "save_equipment_maintenance_plan")) {
+                return "Speichert einen ausdrücklich gewählten eigenen Wartungsplan am vorhandenen Gerät. configure benötigt Tätigkeit, Kalenderintervall und starts_on; Änderungen benötigen Grund und aktuellen Gerätehash. bring_forward zieht nur den nächsten Termin vor; shorten verkürzt das Intervall dauerhaft. Keine erledigte Wartung, Zustandsfreigabe, Herstellerempfehlung oder Drive-Arbeit. request_id bei unklarer Antwort erhalten und zuerst lesend prüfen."
+            }
+            if ((name == "record_equipment_maintenance")) {
+                return "Erfasst eine tatsächlich erledigte Wartung am vorhandenen Plan mit explizitem performed_on, aktuellem Gerätehash und stabiler request_id. Kein Zukunftsdatum. Ein älterer Nachtrag verdrängt keine neuere Erledigung. Optionale kürzere Intervalle nur mit Grund, etwa Fehlschnitten oder erneutem Nachschärfen. Historie bleibt erhalten; Gerätezustand und Backup bleiben unabhängig."
+            }
+            if ((name == "get_restore_status")) {
+                return "Liest ausschließlich den nicht geheimen Zustand einer am Gerät bestätigten vollständigen Wiederherstellung: Phase, Vorschauhash, Neustartbedarf und Rechnungssperre. Kein Recovery-Code, Dateipfad oder Inhalt und keine Aktivierung durch Lesen."
+            }
+            if ((name == "get_offer_decision_history")) {
+                return "Liest Annahme-/Ablehnungshistorie der unveränderlichen Angebotsversion mit Nachweis und Zeitpunkt. Kein Versand-/Zustellbeleg aus bloßem Teilen."
+            }
+            if ((name == "record_offer_acceptance")) {
+                return "Hält die ausdrücklich bestätigte Annahme genau dieser finalen Angebotsversion mit tatsächlichem Zeitpunkt und nachvollziehbarem Nachweis fest. record_hash prüfen; keine Annahme erfinden und noch keinen zweiten Auftrag erzeugen. request_id bei Retry unverändert lassen."
+            }
+            if ((name == "decline_offer")) {
+                return "Hält die ausdrückliche Ablehnung genau dieser finalen Angebotsversion samt optionalem Grund nachvollziehbar fest. Dokument und Historie bleiben erhalten; kein Auftrag und keine Rechnung entstehen."
+            }
+            if ((name == "preview_local_authority")) {
+                return "Liest den versionierten Umstellungs-/Rechnungsautoritätsstand und die aktuelle Vorschau. Keine Umstellung oder Freigabe durch Lesen. Sicherung, offene Aktionen, Originale und externe Schreiber gesondert belegen."
+            }
+            if ((name == "activate_local_authority")) {
+                return "Aktiviert nach ausdrücklicher Umstellungsentscheidung den maßgeblichen lokalen Pixelbestand anhand aktueller Vorschau, serverseitig geprüfter Vollsicherung und dokumentiert ausgeschlossener externer Schreiber. Kein vom Aufrufer erfundener Sicherungsbeleg. request_id bei Wiederholung beibehalten. Die Rechnungsautorität bleibt bis eigenständigem Original-/Nummernabgleich gesperrt."
+            }
+            if ((name == "reconcile_local_invoice_authority")) {
+                return "Gleicht lokale Rechnungsautorität nach Umstellung/Restore mit aktuellem externen Beleg-/Reservierungs-/Nummernnachweis ab. Original-PDF-Hashes/Größen und alle bekannten Belege werden geprüft; Backupzähler allein gibt nichts frei. current_review muss eine ausdrückliche aktuelle Belegprüfung an genau dieser installation_id und restore_epoch bestätigen; eine importierte frühere Bestätigung reicht nicht. Für bekannte PDF_PENDING-Belege kann pdf_resolution=original das externe Original mit snapshot_sha256 und Bytegröße unverändert binden. not_created braucht ausdrücklich bestätigten aktuellen Nichterstellungsnachweis samt Grund und snapshot_sha256; Erzeugung erst nach genau diesem vollständigen Belegabgleich, niemals bei vorhandener Dateiquittung oder Originalreferenz. Historische Restbeträge nur als ausdrücklich belegte Eröffnungsstände, keine erfundenen Zahlungen."
+            }
+            if ((name == "get_payment_ledger")) {
+                return "Liest unveränderliche Zahlungen, Zuordnungen und Korrekturen samt verbleibenden Forderungen/Guthaben und ledger_hash. Persönliches b.b. bleibt unabhängig. Beträge in kleinsten Währungseinheiten."
+            }
+            if ((name == "correct_payment")) {
+                return "Protokolliert eine ausdrücklich bestätigte Zahlungskorrektur mit Grund, aktuellem ledger_hash und stabiler request_id. Originalzahlung bleibt unverändert; Gegenbuchung und Ersatzquittung bleiben nachvollziehbar. Betrag 0 bedeutet vollständige Rücknahme und verlangt leere allocations sowie ausdrückliche Bestätigung; die sichtbare Nullquittung bleibt im Rechnungsverlauf. Keine Bankbuchung, Nachricht oder Änderung ursprünglicher Rechnungspositionen; persönliches b.b. bleibt unabhängig."
+            }
+            if ((name == "record_payment")) {
+                return "Erfasst die ausdrücklich bestätigte positive Zahlung mit Datum, Zahlungsart, Beträgen in kleinsten Währungseinheiten und versionierten Rechnungszuordnungen. ledger_hash prüfen; request_id bei Retry gleich lassen. Keine Bankbuchung, Nachricht oder Änderung ursprünglicher Rechnungspositionen. Überzahlung bleibt Guthaben/ungeklärte Zuordnung."
+            }
+            if ((name == "get_invoice_document_job")) {
+                return "Liest den lokalen PDF-Job zum unveränderlichen Rechnungsbeleg; Belegstatus, PDF-Status und verifizierte Dateireferenz bleiben getrennt."
+            }
+            if ((name == "retry_invoice_document_job")) {
+                return "Merkt die Wiederholung desselben lokalen PDF-Jobs anhand seines aktuellen record_hash vor. Verwendet denselben eingefrorenen Snapshot und dieselbe Belegnummer; keine zweite Rechnung, kein Versand."
+            }
+            if ((name == "get_full_backup_status")) {
+                return "Liest den lokalen Status unverschlüsselter ZIP-Sicherungen auf dem Pixel. Kein Drive, Konto, Schlüssel oder Hintergrundupload. Vollständige Dateiwahl und Wiederherstellung erfolgen bewusst am Gerät."
+            }
+            if ((name == "request_full_backup")) {
+                return "Liefert den Hinweis, die lokale Sicherungsansicht und Android-Dateiwahl auf dem Pixel zu öffnen. Startet keinen Upload und erzeugt ohne Dateiwahl keine Sicherung. Zuerst get_full_backup_status lesen; request_id bei Wiederholung erhalten."
+            }
+            if ((name == "retry_full_backup")) {
+                return "Liefert den Hinweis, einen bestehenden lokalen Speicherversuch in der Sicherungsansicht am Pixel fortzusetzen. Keine neue Sicherung oder Dateifreigabe durch MCP; kein Drive-Zugriff."
+            }
+            if ((name == "inspect_edit_action")) {
+                return "Prüft ausschließlich lesend den vorhandenen Beleg einer ursprünglichen Editoraktion mit unveränderten Argumenten. state=confirmed, content_removed oder unknown; keine Wiederholung einer Geschäftsaktion und keine Freigabe allein anhand restaurierter Requests. Unbekanntes Ergebnis separat anhand aktueller Originale klären."
+            }
+            if ((name == "list_revier_archive")) {
+                return "Liest archivierte Revier-Einträge mit Eintragsart und Pagination, unveränderten IDs sowie record_hash. Kein Wiederöffnen oder Löschen durch Lesen."
+            }
+            if ((name == "set_revier_archived")) {
+                return "Archiviert oder öffnet genau einen ausdrücklich bestätigten Revier-Eintrag mit aktuellem record_hash. Aktive Einsätze zuerst gesondert beenden; laufende Arbeit und Abhängigkeiten bleiben geschützt. Stabile request_id bei Wiederholung."
+            }
+            if ((name == "purge_revier_entity")) {
+                return "Entfernt genau einen bereits archivierten Revier-Eintrag nach aktueller Versions- und Abhängigkeitsprüfung und ausdrücklicher Bestätigung. Minimale Lösch-/Request-Belege verhindern Wiederbelebung; historische Vollsicherungen bleiben gesondert erhalten. Keine produktive Löschung durch Tests."
+            }
+            if ((name == "accept_inquiry_direct")) {
+                return "Nimmt eine Anfrage ausdrücklich ohne vorheriges Angebot an: tatsächlichen Annahmezeitpunkt, Nachweis und gegebenenfalls getrennten Rechnungsempfänger angeben. Aktuellen record_hash prüfen. Derselbe request_id erzeugt höchstens einen verknüpften Auftrag; kein Rechnungsversand."
+            }
+            return (java.lang.String.valueOf(
+                ((if (write(name))
+                    "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. "
+                else
+                    "Liest den vollständigen lokalen Revier-Bestand mit Typ-/Status-/Zeitraumfiltern und Pagination. "))
+            ) +
+                "Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.")
+        }
+
+        private @JvmStatic @Throws(Exception::class) fun date(): JSONObject {
+
+            return McpFields.text(10).put("pattern", "[0-9]{4}-[0-9]{2}-[0-9]{2}")
+        }
+
+        private @JvmStatic @Throws(Exception::class) fun clock(): JSONObject {
+
+            return McpFields.text(5).put("pattern", "(?:[01][0-9]|2[0-3]):[0-5][0-9]")
+        }
+
+        private @JvmStatic @Throws(Exception::class) fun clearable(field: JSONObject): JSONObject {
+
+            field.remove("minLength")
+            if (field.has("pattern")) {
+                field.put("pattern", (("(?:" + field.getString("pattern")) + ")?"))
+            }
+            return field
+        }
+
+        private @JvmStatic @Throws(Exception::class) fun instant(): JSONObject {
+
+            return McpFields.text(80).put("minLength", 1)
+        }
+
+        private @JvmStatic @Throws(Exception::class) fun decimal(signed: Boolean): JSONObject {
+
+            return McpFields.text(64)
+                .put(
+                    "pattern",
+                    (java.lang.String.valueOf(((if (signed) "-?" else ""))) +
+                        "(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?"),
+                )
+        }
+
+        private @JvmStatic @Throws(Exception::class) fun minor(): JSONObject {
+
+            return JSONObject()
+                .put("type", "integer")
+                .put("minimum", 0)
+                .put("maximum", 9000000000000000L)
+        }
+
+        private @JvmStatic @Throws(Exception::class) fun array(
+            item: JSONObject,
+            max: Int,
+        ): JSONObject {
+
+            return JSONObject().put("type", "array").put("items", item).put("maxItems", max)
+        }
+
+        private @JvmStatic @Throws(Exception::class) fun materialNeeds(): JSONObject {
+
+            return array(
+                McpFields.`object`(
+                    JSONObject()
+                        .put("material_id", McpFields.id())
+                        .put("quantity_decimal", decimal(false)),
+                    "material_id",
+                    "quantity_decimal",
+                ),
+                100,
+            )
+        }
+
+        private @JvmStatic @Throws(Exception::class) fun evidenceFields(): JSONObject {
+
+            return JSONObject()
+                .put("formatVersion", McpFields.number(1, 1))
+                .put(
+                    "external_writers_disabled",
+                    McpFields.bool().put("enum", JSONArray().put(true)),
+                )
+                .put("evidence_sha256", McpFields.hash())
+                .put("evidence_reference", McpFields.text(4000).put("minLength", 1))
+                .put("checked_at", instant())
+        }
+
+        private @JvmStatic fun evidenceRequired(): Array<String> {
+
+            return arrayOf(
+                "formatVersion",
+                "external_writers_disabled",
+                "evidence_sha256",
+                "evidence_reference",
+                "checked_at",
+            )
+        }
+
+        private @JvmStatic @Throws(Exception::class) fun allocations(): JSONObject {
+
+            return array(
+                McpFields.`object`(
+                    JSONObject()
+                        .put("invoice_id", McpFields.id())
+                        .put("amount_minor", minor().put("minimum", 1))
+                        .put("expected_record_hash", McpFields.hash()),
+                    "invoice_id",
+                    "amount_minor",
+                    "expected_record_hash",
+                ),
+                100,
+            )
+        }
+
+        private @JvmStatic @Throws(Exception::class) fun list(p: JSONObject): Unit {
+
+            p.put("offset", McpFields.number(0, 1000000))
+                .put("limit", McpFields.number(1, 100))
+                .put("query", McpFields.text(200))
+                .put("status", McpFields.text(80))
+                .put("customer_id", McpFields.id())
+                .put("property_id", McpFields.id())
+                .put("from_date", date())
+                .put("to_date", date())
+                .put("include_archived", McpFields.bool())
+        }
+
+        private @JvmStatic @Throws(Exception::class) fun propertyFields(
+            create: Boolean
+        ): JSONObject {
+
+            var p =
+                JSONObject()
+                    .put("name", McpFields.text(500).put("minLength", 1))
+                    .put("address", McpFields.text(4000))
+                    .put("district", McpFields.text(500))
+                    .put("access_notes", McpFields.text(10000))
+                    .put("notes", McpFields.text(20000))
+                    .put("area_decimal", decimal(false))
+                    .put("area_unit", McpFields.text(100))
+                    .put(
+                        "latitude",
+                        JSONObject().put("type", "number").put("minimum", -(90)).put("maximum", 90),
+                    )
+                    .put(
+                        "longitude",
+                        JSONObject()
+                            .put("type", "number")
+                            .put("minimum", -(180))
+                            .put("maximum", 180),
+                    )
+                    .put("active", McpFields.bool())
+            if (create) {
+                p.put("customer_id", McpFields.id())
+            } else {
+                p.put("area_decimal", clearable(decimal(false)))
+            }
+            return p
+        }
+
+        private @JvmStatic @Throws(Exception::class) fun inquiryFields(
+            create: Boolean
+        ): JSONObject {
+
+            var p =
+                JSONObject()
+                    .put("title", McpFields.text(500).put("minLength", 1))
+                    .put("property_id", McpFields.id())
+                    .put("concern", McpFields.text(20000))
+                    .put("wish_from", date())
+                    .put("wish_until", date())
+                    .put(
+                        "status",
+                        McpFields.enumeration(
+                            "new",
+                            "inspection_planned",
+                            "offered",
+                            "accepted",
+                            "declined",
+                            "closed",
+                        ),
+                    )
+            if (create) {
+                p.put("customer_id", McpFields.id()).put("received_at", instant())
+            } else {
+                p.put("property_id", McpFields.text(500))
+                    .put("wish_from", clearable(date()))
+                    .put("wish_until", clearable(date()))
+                    .put("inspection_notes", McpFields.text(10000))
+                    .put(
+                        "measurements",
+                        array(
+                            McpFields.`object`(
+                                JSONObject()
+                                    .put("name", McpFields.text(500).put("minLength", 1))
+                                    .put("value_decimal", decimal(true))
+                                    .put("unit", McpFields.text(100)),
+                                "name",
+                                "value_decimal",
+                            ),
+                            200,
+                        ),
+                    )
+                    .put("photo_ids", array(McpFields.id(), 200))
+                    .put("offer_id", McpFields.text(500))
+                    .put("order_id", McpFields.text(500))
+            }
+            return p
+        }
+
+        private @JvmStatic @Throws(Exception::class) fun careFields(create: Boolean): JSONObject {
+
+            var p =
+                JSONObject()
+                    .put("title", McpFields.text(500).put("minLength", 1))
+                    .put("anchor_date", date())
+                    .put("interval_days", McpFields.number(1, 365))
+                    .put("planned_minutes", McpFields.number(1, 1440))
+                    .put("season_start", McpFields.text(5).put("pattern", "[0-9]{2}-[0-9]{2}"))
+                    .put("season_end", McpFields.text(5).put("pattern", "[0-9]{2}-[0-9]{2}"))
+                    .put("material_needs", materialNeeds())
+                    .put("equipment_ids", array(McpFields.id(), 100))
+                    .put("active", McpFields.bool())
+                    .put("notes", McpFields.text(20000))
+            if (create) {
+                p.put("property_id", McpFields.id())
+            } else {
+                p.put("season_start", McpFields.text(5).put("pattern", "(?:[0-9]{2}-[0-9]{2})?"))
+                    .put("season_end", McpFields.text(5).put("pattern", "(?:[0-9]{2}-[0-9]{2})?"))
+            }
+            return p
+        }
+
+        private @JvmStatic @Throws(Exception::class) fun visitFields(create: Boolean): JSONObject {
+
+            var p =
+                JSONObject()
+                    .put("date", date())
+                    .put("title", McpFields.text(500).put("minLength", 1))
+                    .put("planned_minutes", McpFields.number(1, 1440))
+                    .put("window_start", clock())
+                    .put("window_end", clock())
+                    .put("notes", McpFields.text(20000))
+                    .put("material_needs", materialNeeds())
+                    .put("equipment_ids", array(McpFields.id(), 100))
+            if (create) {
+                p.put("property_id", McpFields.id())
+                    .put("order_id", McpFields.id())
+                    .put("parent_visit_id", McpFields.id())
+            } else {
+                p.put(
+                        "status",
+                        McpFields.enumeration(
+                            "planned",
+                            "in_progress",
+                            "completed",
+                            "partial",
+                            "cancelled",
+                        ),
+                    )
+                    .put("remaining_minutes", McpFields.number(0, 1440))
+                    .put("window_start", clearable(clock()))
+                    .put("window_end", clearable(clock()))
+            }
+            return p
+        }
+
+        @JvmStatic
+        @Throws(Exception::class)
+        fun schema(name: String): JSONObject {
+
+            if (!(handles(name))) {
+                throw IllegalArgumentException("Lokaler Werkzeugvertrag fehlt.")
+            }
+            var p = JSONObject()
+            var required = ArrayList<String>()
+            if (write(name)) {
+                p.put("request_id", McpFields.text(128).put("minLength", 8))
+                required.add("request_id")
+            }
+            when (name) {
+                "get_restore_status" -> {}
+                "get_offer_decision_history" -> {
+                    p.put("offer_id", McpFields.id())
+                        .put("offset", McpFields.number(0, 1000000))
+                        .put("limit", McpFields.number(1, 100))
+                    required.add("offer_id")
+                }
+                "record_offer_acceptance" -> {
+                    p.put("offer_id", McpFields.id())
+                        .put("expected_record_hash", McpFields.hash())
+                        .put("accepted_at", instant())
+                        .put("evidence", McpFields.text(10000).put("minLength", 1))
+                    required.addAll(
+                        Arrays.asList("offer_id", "expected_record_hash", "accepted_at", "evidence")
+                    )
+                }
+                "decline_offer" -> {
+                    p.put("offer_id", McpFields.id())
+                        .put("expected_record_hash", McpFields.hash())
+                        .put("reason", McpFields.text(4000))
+                    required.addAll(Arrays.asList("offer_id", "expected_record_hash"))
+                }
+                "get_payment_ledger" -> {
+                    p.put("invoice_id", McpFields.id())
+                        .put("offset", McpFields.number(0, 1000000))
+                        .put("limit", McpFields.number(1, 100))
+                }
+                "record_payment",
+                "correct_payment" -> {
+                    p.put(
+                            "amount_minor",
+                            minor().put("minimum", (if ((name == "correct_payment")) 0 else 1)),
+                        )
+                        .put("paid_on", date())
+                        .put("method", McpFields.enumeration("cash", "bank", "card", "other"))
+                        .put("reference", McpFields.text(4000))
+                        .put("allocations", allocations())
+                        .put("expected_ledger_hash", McpFields.hash())
+                    required.addAll(
+                        Arrays.asList(
+                            "amount_minor",
+                            "paid_on",
+                            "method",
+                            "allocations",
+                            "expected_ledger_hash",
+                        )
+                    )
+                    if ((name == "correct_payment")) {
+                        p.put("payment_id", McpFields.id())
+                            .put("reason", McpFields.text(4000).put("minLength", 1))
+                        required.addAll(Arrays.asList("payment_id", "reason"))
+                    }
+                }
+                "get_invoice_document_job" -> {
+                    p.put("invoice_id", McpFields.id())
+                    required.add("invoice_id")
+                }
+                "retry_invoice_document_job" -> {
+                    p.put("invoice_id", McpFields.id())
+                        .put("expected_record_hash", McpFields.hash())
+                    required.addAll(Arrays.asList("invoice_id", "expected_record_hash"))
+                }
+                "preview_local_authority" -> {}
+                "activate_local_authority" -> {
+                    p.put("expected_preview_hash", McpFields.hash())
+                        .put("backup_id", McpFields.id())
+                        .put(
+                            "writer_evidence",
+                            McpFields.`object`(evidenceFields(), *evidenceRequired()),
+                        )
+                    required.addAll(
+                        Arrays.asList("expected_preview_hash", "backup_id", "writer_evidence")
+                    )
+                }
+                "reconcile_local_invoice_authority" -> {
+                    run {
+                        var fields =
+                            evidenceFields()
+                                .put("last_number", McpFields.number(0, Integer.MAX_VALUE))
+                                .put(
+                                    "issued",
+                                    array(
+                                        McpFields.`object`(
+                                            JSONObject()
+                                                .put("invoice_id", McpFields.id())
+                                                .put(
+                                                    "invoice_number",
+                                                    McpFields.text(500).put("minLength", 1),
+                                                )
+                                                .put("pdf_sha256", McpFields.hash())
+                                                .put(
+                                                    "pdf_byte_size",
+                                                    JSONObject()
+                                                        .put("type", "integer")
+                                                        .put("minimum", 1)
+                                                        .put("maximum", Long.MAX_VALUE),
+                                                )
+                                                .put(
+                                                    "pdf_resolution",
+                                                    McpFields.enumeration("original", "not_created")
+                                                        .put("default", "original"),
+                                                )
+                                                .put("snapshot_sha256", McpFields.hash())
+                                                .put(
+                                                    "not_created_confirmed",
+                                                    McpFields.bool()
+                                                        .put("enum", JSONArray().put(true)),
+                                                )
+                                                .put(
+                                                    "not_created_reason",
+                                                    McpFields.text(4000).put("minLength", 1),
+                                                ),
+                                            "invoice_id",
+                                            "invoice_number",
+                                        ),
+                                        100000,
+                                    ),
+                                )
+                                .put(
+                                    "reservations",
+                                    array(
+                                        McpFields.`object`(
+                                            JSONObject()
+                                                .put("reservation_id", McpFields.id())
+                                                .put("invoice_id", McpFields.id())
+                                                .put(
+                                                    "invoice_number",
+                                                    McpFields.text(500).put("minLength", 1),
+                                                )
+                                                .put("counter", McpFields.number(0, 1000000000))
+                                                .put(
+                                                    "state",
+                                                    McpFields.enumeration(
+                                                        "reserved",
+                                                        "issued",
+                                                        "cancelled",
+                                                    ),
+                                                ),
+                                            "reservation_id",
+                                            "invoice_id",
+                                            "invoice_number",
+                                            "counter",
+                                            "state",
+                                        ),
+                                        10000,
+                                    ),
+                                )
+                                .put(
+                                    "opening_balances",
+                                    array(
+                                        McpFields.`object`(
+                                            JSONObject()
+                                                .put("invoice_id", McpFields.id())
+                                                .put("remaining_minor", minor()),
+                                            "invoice_id",
+                                            "remaining_minor",
+                                        ),
+                                        100000,
+                                    ),
+                                )
+                        fields.put(
+                            "current_review",
+                            McpFields.`object`(
+                                JSONObject()
+                                    .put(
+                                        "confirmed",
+                                        McpFields.bool().put("enum", JSONArray().put(true)),
+                                    )
+                                    .put("installation_id", McpFields.id())
+                                    .put("restore_epoch", McpFields.id())
+                                    .put("reviewed_at", instant())
+                                    .put("evidence_sha256", McpFields.hash()),
+                                "confirmed",
+                                "installation_id",
+                                "restore_epoch",
+                                "reviewed_at",
+                                "evidence_sha256",
+                            ),
+                        )
+                        var must = ArrayList<String>(evidenceRequired().asList())
+                        must.addAll(
+                            Arrays.asList("last_number", "issued", "reservations", "current_review")
+                        )
+                        p.put("expected_preview_hash", McpFields.hash())
+                            .put("ledger", McpFields.`object`(fields, *must.toTypedArray()))
+                        required.addAll(Arrays.asList("expected_preview_hash", "ledger"))
+                    }
+                }
+                "get_full_backup_status" -> {
+                    p.put("offset", McpFields.number(0, 1000000))
+                        .put("limit", McpFields.number(1, 100))
+                        .put("backup_id", McpFields.id())
+                }
+                "request_full_backup" -> {
+                    p.put("expected_settings_hash", McpFields.hash())
+                    required.add("expected_settings_hash")
+                }
+                "retry_full_backup" -> {
+                    p.put("backup_id", McpFields.id()).put("expected_record_hash", McpFields.hash())
+                    required.addAll(Arrays.asList("backup_id", "expected_record_hash"))
+                }
+                "inspect_edit_action" -> {
+                    p.put("original_tool", McpFields.text(100))
+                        .put("original_args", JSONObject().put("type", "object"))
+                    required.addAll(Arrays.asList("original_tool", "original_args"))
+                }
+                "list_revier_archive" -> {
+                    p.put("offset", McpFields.number(0, 1000000))
+                        .put("limit", McpFields.number(1, 100))
+                    p.put(
+                        "entity",
+                        McpFields.enumeration(
+                            "property",
+                            "inquiry",
+                            "care_plan",
+                            "visit",
+                            "material",
+                            "equipment",
+                        ),
+                    )
+                }
+                "get_revier_overview" -> {
+                    p.put("date", date())
+                }
+                "list_properties",
+                "list_inquiries",
+                "list_care_plans",
+                "list_visits",
+                "list_materials",
+                "list_equipment" -> {
+                    list(p)
+                    if ((name == "list_care_plans")) {
+                        p.put("care_plan_id", McpFields.id())
+                    }
+                }
+                "get_property" -> {
+                    p.put("property_id", McpFields.id())
+                    required.add("property_id")
+                }
+                "get_inquiry" -> {
+                    p.put("inquiry_id", McpFields.id())
+                    required.add("inquiry_id")
+                }
+                "get_visit" -> {
+                    p.put("visit_id", McpFields.id())
+                    required.add("visit_id")
+                }
+                "get_day_tour" -> {
+                    p.put("date", date())
+                    required.add("date")
+                }
+                "create_property" -> {
+                    p = merge(p, propertyFields(true))
+                    required.addAll(Arrays.asList("customer_id", "name"))
+                }
+                "update_property" -> {
+                    p.put("property_id", McpFields.id())
+                        .put("expected_record_hash", McpFields.hash())
+                        .put("updates", McpFields.`object`(propertyFields(false)))
+                        .put("reason", McpFields.text(4000))
+                    required.addAll(Arrays.asList("property_id", "expected_record_hash", "updates"))
+                }
+                "create_inquiry" -> {
+                    p = merge(p, inquiryFields(true))
+                    required.addAll(Arrays.asList("customer_id", "title"))
+                }
+                "update_inquiry" -> {
+                    p.put("inquiry_id", McpFields.id())
+                        .put("expected_record_hash", McpFields.hash())
+                        .put("updates", McpFields.`object`(inquiryFields(false)))
+                        .put("reason", McpFields.text(4000))
+                    required.addAll(Arrays.asList("inquiry_id", "expected_record_hash", "updates"))
+                }
+                "set_revier_archived",
+                "purge_revier_entity" -> {
+                    p.put(
+                            "entity",
+                            McpFields.enumeration(
+                                "property",
+                                "inquiry",
+                                "care_plan",
+                                "visit",
+                                "material",
+                                "equipment",
+                            ),
+                        )
+                        .put("entity_id", McpFields.id())
+                        .put("expected_record_hash", McpFields.hash())
+                        .put("reason", McpFields.text(4000))
+                        .put("confirmed", McpFields.bool())
+                    required.addAll(
+                        Arrays.asList("entity", "entity_id", "expected_record_hash", "confirmed")
+                    )
+                    if ((name == "set_revier_archived")) {
+                        p.put("archived", McpFields.bool())
+                        required.add("archived")
+                    }
+                }
+                "accept_inquiry_direct" -> {
+                    p.put("inquiry_id", McpFields.id())
+                        .put("expected_record_hash", McpFields.hash())
+                        .put("accepted_at", instant())
+                        .put("evidence", McpFields.text(4000))
+                        .put("billing_customer_id", McpFields.id())
+                        .put("confirmed", McpFields.bool())
+                    required.addAll(
+                        Arrays.asList(
+                            "inquiry_id",
+                            "expected_record_hash",
+                            "accepted_at",
+                            "evidence",
+                            "confirmed",
+                        )
+                    )
+                }
+                "plan_inquiry_inspection" -> {
+                    p.put(
+                            "mode",
+                            McpFields.enumeration("first", "reschedule", "additional", "reopen"),
+                        )
+                        .put("expected_appointment_hash", McpFields.hash())
+                        .put("inquiry_id", McpFields.id())
+                        .put("expected_record_hash", McpFields.hash())
+                        .put("starts_at", instant())
+                        .put("ends_at", instant())
+                        .put("timezone", McpFields.text(100))
+                        .put("notes", McpFields.text(4000))
+                    required.addAll(
+                        Arrays.asList("inquiry_id", "expected_record_hash", "starts_at", "ends_at")
+                    )
+                }
+                "create_care_plan" -> {
+                    p = merge(p, careFields(true))
+                    required.addAll(
+                        Arrays.asList(
+                            "property_id",
+                            "title",
+                            "anchor_date",
+                            "interval_days",
+                            "planned_minutes",
+                        )
+                    )
+                }
+                "update_care_plan" -> {
+                    p.put("care_plan_id", McpFields.id())
+                        .put("expected_record_hash", McpFields.hash())
+                        .put("scope", McpFields.enumeration("this_and_future"))
+                        .put("effective_from", date())
+                        .put("updates", McpFields.`object`(careFields(false)))
+                        .put("reason", McpFields.text(4000))
+                    required.addAll(
+                        Arrays.asList(
+                            "care_plan_id",
+                            "expected_record_hash",
+                            "scope",
+                            "effective_from",
+                            "updates",
+                        )
+                    )
+                }
+                "generate_care_visits" -> {
+                    p.put("care_plan_id", McpFields.id())
+                        .put("from_date", date())
+                        .put("to_date", date())
+                    required.addAll(Arrays.asList("from_date", "to_date"))
+                }
+                "plan_visit" -> {
+                    p = merge(p, visitFields(true))
+                    required.addAll(
+                        Arrays.asList("property_id", "date", "title", "planned_minutes")
+                    )
+                }
+                "update_visit" -> {
+                    p.put("visit_id", McpFields.id())
+                        .put("expected_record_hash", McpFields.hash())
+                        .put("updates", McpFields.`object`(visitFields(false)))
+                        .put("scope", McpFields.enumeration("only_this"))
+                        .put("reason", McpFields.text(4000))
+                    required.addAll(Arrays.asList("visit_id", "expected_record_hash", "updates"))
+                }
+                "set_day_tour" -> {
+                    p.put("date", date())
+                        .put("visit_ids", array(McpFields.id(), 100))
+                        .put("expected_record_hash", McpFields.hash())
+                        .put("district", McpFields.text(500))
+                    required.addAll(Arrays.asList("date", "visit_ids", "expected_record_hash"))
+                }
+                "move_tour_stop" -> {
+                    p.put("date", date())
+                        .put("visit_id", McpFields.id())
+                        .put("direction", McpFields.enumeration("up", "down"))
+                        .put("expected_record_hash", McpFields.hash())
+                    required.addAll(
+                        Arrays.asList("date", "visit_id", "direction", "expected_record_hash")
+                    )
+                }
+                "save_material" -> {
+                    p.put("material_id", McpFields.id())
+                        .put("expected_record_hash", McpFields.hash())
+                        .put("name", McpFields.text(500).put("minLength", 1))
+                        .put("unit", McpFields.text(100).put("minLength", 1))
+                        .put(
+                            "purchase_price_minor",
+                            minor().put("type", JSONArray().put("integer").put("null")),
+                        )
+                        .put(
+                            "billing_price_minor",
+                            minor().put("type", JSONArray().put("integer").put("null")),
+                        )
+                        .put("notes", McpFields.text(20000))
+                        .put("active", McpFields.bool())
+                }
+                "record_material_movement" -> {
+                    p.put("material_id", McpFields.id())
+                        .put("quantity_decimal", decimal(true))
+                        .put(
+                            "kind",
+                            McpFields.enumeration("receive", "consume", "adjust", "reversal"),
+                        )
+                        .put("reason", McpFields.text(4000).put("minLength", 1))
+                        .put("property_id", McpFields.id())
+                        .put("visit_id", McpFields.id())
+                        .put("session_id", McpFields.id())
+                        .put("reverses_movement_id", McpFields.id())
+                        .put("expected_record_hash", McpFields.hash())
+                    required.addAll(
+                        Arrays.asList("material_id", "kind", "reason", "expected_record_hash")
+                    )
+                }
+                "save_equipment" -> {
+                    p.put(
+                            "profile_photo_draft",
+                            McpFields.`object`(
+                                JSONObject()
+                                    .put("media_key", McpFields.text(240))
+                                    .put("session_id", McpFields.id())
+                                    .put(
+                                        "selection",
+                                        McpFields.text(32).put("pattern", "[a-f0-9]{32}"),
+                                    )
+                                    .put("installation_id", McpFields.text(200))
+                                    .put("restore_epoch", McpFields.text(200)),
+                                *arrayOf(
+                                    "media_key",
+                                    "session_id",
+                                    "selection",
+                                    "installation_id",
+                                    "restore_epoch",
+                                ),
+                            ),
+                        )
+                        .put("profile_photo_upload_id", McpFields.id())
+                        .put("equipment_id", McpFields.id())
+                        .put("expected_record_hash", McpFields.hash())
+                        .put("name", McpFields.text(500).put("minLength", 1))
+                        .put(
+                            "condition",
+                            McpFields.enumeration("ready", "maintenance", "defective"),
+                        )
+                        .put("maintenance_due", clearable(date()))
+                        .put("notes", McpFields.text(20000))
+                        .put("active", McpFields.bool())
+                }
+                "record_equipment_usage" -> {
+                    p.put("equipment_id", McpFields.id())
+                        .put("property_id", McpFields.id())
+                        .put("visit_id", McpFields.id())
+                        .put("session_id", McpFields.id())
+                        .put("starts_at", instant())
+                        .put("ends_at", instant())
+                        .put("notes", McpFields.text(20000))
+                        .put("expected_record_hash", McpFields.hash())
+                    required.addAll(
+                        Arrays.asList("equipment_id", "property_id", "expected_record_hash")
+                    )
+                }
+                "get_equipment_maintenance" -> {
+                    p.put("equipment_id", McpFields.id())
+                        .put("offset", McpFields.number(0, 1000000))
+                        .put("limit", McpFields.number(1, 100))
+                    required.add("equipment_id")
+                }
+                "save_equipment_maintenance_plan" -> {
+                    p.put("equipment_id", McpFields.id())
+                        .put("expected_record_hash", McpFields.hash())
+                        .put("plan_id", McpFields.id())
+                        .put(
+                            "operation",
+                            McpFields.enumeration("configure", "bring_forward", "shorten"),
+                        )
+                        .put("title", McpFields.text(240))
+                        .put("interval_value", McpFields.number(1, 3650))
+                        .put(
+                            "interval_unit",
+                            McpFields.enumeration("days", "weeks", "months", "years"),
+                        )
+                        .put("starts_on", date())
+                        .put("next_due_on", date())
+                        .put("reason", McpFields.text(2000))
+                    required.addAll(
+                        Arrays.asList("equipment_id", "expected_record_hash", "operation")
+                    )
+                }
+                "record_equipment_maintenance" -> {
+                    p.put("equipment_id", McpFields.id())
+                        .put("expected_record_hash", McpFields.hash())
+                        .put("plan_id", McpFields.id())
+                        .put("performed_on", date())
+                        .put("reason", McpFields.text(2000))
+                        .put("notes", McpFields.text(4000))
+                        .put("shorter_interval_value", McpFields.number(1, 3650))
+                        .put(
+                            "shorter_interval_unit",
+                            McpFields.enumeration("days", "weeks", "months", "years"),
+                        )
+                    required.addAll(
+                        Arrays.asList(
+                            "equipment_id",
+                            "expected_record_hash",
+                            "plan_id",
+                            "performed_on",
+                        )
+                    )
+                }
+                "search_local" -> {
+                    list(p)
+                    p.put(
+                        "types",
+                        array(
+                            McpFields.enumeration(
+                                "customer",
+                                "property",
+                                "order",
+                                "appointment",
+                                "visit",
+                                "activity",
+                                "note",
+                                "offer",
+                                "invoice",
+                                "inquiry",
+                                "care_plan",
+                                "material",
+                                "equipment",
+                            ),
+                            13,
+                        ),
+                    )
+                    required.add("query")
+                }
+                else -> {
+                    throw IllegalArgumentException("Lokaler Werkzeugvertrag fehlt.")
+                }
+            }
+            return McpFields.`object`(p, *required.toTypedArray())
+        }
+
+        private @JvmStatic @Throws(Exception::class) fun merge(
+            target: JSONObject,
+            fields: JSONObject,
+        ): JSONObject {
+
+            run {
+                var keys = fields.keys()
+                var firstIteration73 = true
+                while (true) {
+                    if (firstIteration73) firstIteration73 = false else {}
+                    if (!(keys.hasNext())) break
+
+                    var key = keys.next()
+                    target.put(key, fields.get(key))
+                }
+            }
+            return target
+        }
+    }
+}

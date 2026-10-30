@@ -1,76 +1,96 @@
-# Synthetische Leistungsprüfung der aktuellen Quellkorrekturen
+# Leistungsnachweise für die native App
 
-Prüfdatum: 29. Oktober 2026. Öffentliche Repositoryquellen und synthetische Daten.
-Keine Produktivdatensätze als Entwicklungsinput; keine Installation oder Migration.
-Der aktuelle Auftrags-/Freigabestand steht ausschließlich in `AKTUELLER-STAND.json`.
+Diese Datei beschreibt Messverfahren und Aussagegrenzen für die Kotlin-/Compose-App.
+Auftrag, Quellstand und tatsächliche Prüfergebnisse stehen ausschließlich in
+`../../AKTUELLER-STAND.json`. Ausschließlich öffentliche Repositoryquellen und
+vollständig synthetische Daten verwenden. Eine Messung aus einem Browser oder
+JVM-Test lässt sich nicht als Android- oder Pixel-Leistungswert übernehmen.
 
-## Quellbindung
+## Quell- und Umgebungsbindung
 
-Ausgangsstand: GitHub main `ce9b677e50e37cae463b08eac63e9af904be2870`, Build114,
-Appfingerprint `699e7b6bddd10143658780efaec60ecf13314185d7c8d6e8eea2e7a1cd89f133`.
-Geprüfter Kandidat: Build115 / 1.55.10, Fingerprint `4f1f66a811dd7c796e3b6cab8b395b14d1aa03cf6ed79cde0cdabb6d9ee6c49d`.
-Die Prüfkopie enthält sämtliche Appquellen und Assets. Wiederverwendete Dateien
-wurden gegen die GitHub-Blob-SHAs gebunden. Historische Root-Bestände und nicht
-benötigte redaktionelle Pflanzenunterlagen wurden nicht materialisiert. Der lokale
-Hilfscommit der Prüfkopie ist kein GitHub-Quellcommit.
+Jeder Messsatz nennt Quellcommit, abweichenden Appfingerabdruck, Paketversion,
+APK-Prüfsumme, ausgeführten Befehl und tatsächlich verwendete Testumgebung.
+Gerätemodell oder Emulatorprofil, Android-Version, Displaygröße, Dichte,
+Schriftskalierung, Energie- und thermischen Zustand sowie Hintergrundlast festhalten.
+Signatur- und Installationsregeln aus `../entwicklung/BAU.md` und
+`../entwicklung/SIGNIERUNG.md` bleiben wirksam. Ein allgemeiner Entwicklungsauftrag
+erteilt keine Installation oder Leseerlaubnis für einen produktiven Bestand.
 
-## Bedingungen und Messwerte
+Eine Vergleichsmessung verwendet denselben synthetischen Bestand und dieselben
+Bedingungen. Ohne vergleichbare Vorhermessung dient der erste gültige Gerätelauf
+als Ausgangsmessung. Unkontrollierte Hostlast oder ein anderes Messfenster erlauben
+keine Aussage über die Ursache einer Differenz. Persönliche Daten oder Sicherungen
+nicht für eine vermeintlich realistischere Vergleichbarkeit zurückspielen.
 
-Gleicher `startup-ui.test.cjs`-Leistungslauf und gleiche Cloud-Werkzeuge:
-Chromium153, Playwright1.64.1, Acorn8.19.0. Je Bedienweg 40 Wiederholungen,
-360 × 840 CSS-Pixel, 300 synthetische Kunden, 300 Aufträge, 5 000 Arbeiten,
-3 000 Fotometadaten und 500 Rechnungen. Neue Seite pro Stichprobe, warmer
-Browser-Assetcache, keine Warmups. Start bis `hg:startup-ready`, Aktionen bis
-zum zweiten Animationsframe, Suche einschließlich 130-ms-Debouncewartezeit.
-Langsamste 5 %: Mittel der zwei langsamsten Werte. Alle Zeiten in Millisekunden.
-Vorher wurde im Build114-Audit gemessen; Hostlast und Gerätezustand sind nicht
-kontrolliert. Keine isolierte Kausalitätsbehauptung aus Laufzeitunterschieden.
+## Zu messende native Pfade
 
-| Bedienweg | Mittel vorher | Mittel nachher | P95 vorher / nachher | Langsamste 5 % vorher / nachher |
-| --- | ---: | ---: | ---: | ---: |
-| App-Start | 900.2 | 822.3 | 989.9 / 902.9 | 1050.5 / 932.7 |
-| Heute → Büro | 98.9 | 86.2 | 111.9 / 104.3 | 123.2 / 114.0 |
-| Büro → Heute | 107.0 | 93.3 | 130.6 / 111.4 | 140.3 / 120.1 |
-| Kunden öffnen | 189.3 | 172.4 | 225.6 / 201.4 | 234.0 / 207.0 |
-| Suche | 149.6 | 147.1 | 156.9 / 154.9 | 170.3 / 155.6 |
-| Speichern | 427.1 | 289.5 | 488.7 / 332.1 | 496.9 / 362.8 |
+`NativeDataRepository` liest begrenzte Anzeigespalten aus `native_read_rows` und
+lädt Details getrennt aus `native_read_records`. Die Projektion ist ein Cache in
+der vorhandenen SQLite-Datei. Ihren ersten Aufbau nach Invalidierung getrennt
+von wiederholten Seiten-, Filter- und Suchanfragen bei unveränderter Quellrevision
+messen. Ein Wiederaufbau kann den vollständigen Fachstand lesen; Flow beweist
+keine inkrementelle Änderung nur einer Zeile.
 
-Der deterministische Unterschied beim Speichern ohne Foto ist durch den Browsertest
-belegt: genau ein Geschäftsschreibaufruf, 1 statt 2 vollständige `getState`-Abrufe,
-kein verbleibender Kundenentwurf. Bei 40 Start-/Speicherzyklen sinkt `getState`
-von 120 auf 80 Aufrufe (Start und Speichern zusammen). Eine Antwort umfasst rund
-1,595 MB; damit entfällt pro Speichern ohne Foto ein solcher Vollsnapshot.
-Die durchschnittliche simulierte `getState`-Dauer beträgt vorher 4,30 ms und
-nachher 4,28 ms; der Nutzen entsteht aus dem entfallenden Aufruf samt Verarbeitung.
-Alle 40 Speicher-Readbacks erfolgreich; keine Browser-Seitenfehler.
+`diagnostics()` liefert WAL-Modus, Quell- und Cacherevision, Wiederaufbauzähler
+und Abfragepläne. `native_data` prüft diese Grenzen mit 40 000 synthetischen
+Projektionszeilen, tatsächlichen Coroutines/Flow und gleichzeitigem SQLite-Lesen
+und -Schreiben. Die Suite deklariert ausdrücklich keinen Leistungsgewinn.
+Abfrageplan, erfolgreiche Wiederverwendung und ein erfülltes Zeitbudget sind
+verschiedene Nachweise.
 
-## Regressionen
+Fotolisten bevorzugen verifizierte kleine Vorschaudateien. Nur beim nötigen
+Originalfallback Integritätsprüfung und Dekodierung dieses Originals einbeziehen.
+Projektions-/Metadatenzugriffe, Originalbytes, Vorschaubytes, tatsächliche
+Dekodiergröße und Cachezustand getrennt erfassen. Die RAM-/Disk-Grenzen des
+Coil-ImageLoaders sind Konfiguration und kein gemessener Speicherverbrauch.
 
-- Fünf aktuelle Browser-Suiten: 63 Prüfgruppen PASS.
-- Profilbilder: eingebettet und geprüfte native Thumbnail-URI, explizite Rolle,
-  Ablehnung fremder URIs und Vorrang einer expliziten Dokumentationsrolle: 6 Fälle PASS.
-- 17 Hauptseiten × 320/360 Pixel × 100/200 % Schrift: 68 Layoutfälle PASS.
-  Die zuvor überlaufende Rechnungsbereitschaftskarte bricht lange Wörter um.
-- Vier JVM-Suiten: 318 Checks PASS (102 Tabellen, 91 Wartung, 54 Gerätefotos,
-  71 ZIP/Status/Finanzdiagnose). Statusfälle prüfen Reihenfolge, Pagination,
-  Abbruch/Workerstatus, fehlende Nachweise, Zeitfehler und erhaltene frühere Belege.
-- `check_current.py`: 62 Pythonprüfungen und aktuelle Quellen-/Vertrags-/Privacy-/
-  Fixture-/Pflanzenspiegelprüfungen PASS. Privacy gilt für materialisierte Quellen.
+`native_compose` prüft die wirkliche MainActivity und ausgewählte Bedienwege,
+Activity-Neuerstellung und 200-%-Schrift. Daraus folgen keine gemessenen
+Framezeiten, Bildraten oder Pixel-Antwortzeiten. Die genaue Testabdeckung und
+Reihenfolge der acht nativen Suiten stehen in `../entwicklung/BAU.md`.
 
-## Grenzen
+## Messablauf und Auswertung
 
-ADB und physischer Pixel-Zugriff fehlen. Native Worker-/Activity-Lebenszyklen,
-Android-Fotoprovider, SAF-Dateiwahl, vollständiges Backup/Restore, RAM/CPU und
-Framezeiten wurden nicht getestet. Die Nummernkollision im produktiven Bestand
-wurde nicht beseitigt; konkrete Unterkategorien werden erst durch den korrigierten
-Appstand sichtbar. Keine Integritätsprüfung wurde abgeschaltet.
+Start, gefilterte Liste mit Seitenwechsel, Detailansicht, Bearbeiten/Speichern,
+Timerabschluss und Fotoansicht mit demselben synthetischen Fixture prüfen.
+Pro vergleichbarer Variante mindestens 40 Wiederholungen erfassen. Kalte Starts,
+erster Projektionsaufbau, warmer Cache und wiederholte Bildschirmwechsel getrennt
+auswerten; Warmups und Wartezeiten offen angeben.
 
-Gradle und der vollständige Google-/AndroidX-Abhängigkeitscache fehlen. Ein begrenzter
-Javac-Kompilierungscheck umfasst 200 Original-Produktionsquellen mit Android37;
-CalendarAuthorization, eine AndroidX-Heading-Methode und BuildConfig wurden
-nur für diesen Check durch nicht ausführbare Hilfsdefinitionen ersetzt. Dies ist
-kein Gradle-, DEX-, Signatur- oder APK-Nachweis. Keine neue APK erstellt.
+Je Bedienweg Mittelwert, P95, Mittelwert der langsamsten 5 %, Stichprobenanzahl,
+Fehler und Messgrenzen ausweisen. Beginn und Ende der Zeitmessung konkret definieren,
+etwa bewusste Bedienaktion bis zum sichtbaren bestätigten Zustand. Async-Arbeit,
+Entwurfspersistenz und nachfolgende Flow-Aktualisierung berücksichtigen;
+ADB-Transportzeit ist keine UI- oder Datenbanklaufzeit.
 
-Der App-interne Paritätstest prüft keinen in ChatGPT gespeicherten Werkzeugkatalog.
-Connector-Abgleich und Gerätnachtest bleiben getrennte Nachweise; der aktuelle
-Connector- und Prüfstand steht ausschließlich in `AKTUELLER-STAND.json`.
+WAL-Modus, Abfrageplan, abgefragte Zeilen/Spalten, gelesene Bytes und
+Projektionswiederaufbauten dem gleichen Messfenster zuordnen. Schreib- und
+Rücklesefehler, unklare Bestätigung, Prozessneustart, Abbruch und verworfene
+Entwürfe prüfen, ohne Geschäftsdatensätze oder SQL-Argumente zu protokollieren.
+Ein korrekter Snapshot einschließlich bestätigter WAL-Änderungen bleibt auch
+unter Last Voraussetzung eines erfolgreichen Backups.
+
+PSS, RSS, privaten Speicher, Swap und CPU mit mehreren Messpunkten erfassen.
+Bei `gfxinfo framestats` nur vollständige gültige Frames auswerten und
+`FrameCompleted - IntendedVsync` verwenden. Variable Bildwiederholraten beachten;
+kein pauschales 16-ms-Limit und keine aus Quellcode abgeleitete FPS-Zusage.
+Framezeiten erklären allein weder die Ursache einer Verzögerung noch die Anzahl
+der Compose-Neuberechnungen. Die gezielten ADB-Befehle stehen in BAU.md;
+ungefilterte Logcat-, Heap-, Bildschirm- oder Hierarchieabzüge gehören nicht in
+Messartefakte.
+
+## Aussagegrenzen
+
+Quellprüfung, vollständiger Android-Bau, synthetische JVM-/SQLite-Prüfung,
+Emulatorlauf und physischer Pixel sind getrennte Belege. Ein aufgelöster Compiler,
+vorhandener Test oder definierter CI-Schritt bestätigt keinen ausgeführten Lauf.
+Browsermesswerte der eigenständigen Website beschreiben ausschließlich diese
+Website. Aus ihnen keine Aussage über Compose, Coil, Android-Speicher oder die
+native Startprüfung ableiten.
+
+Ein echtes Drive-Konto, der persönliche Pixel und ein individuell gewähltes
+Sicherungsarchiv benötigen jeweils ihren eigenen zulässigen Nachweis. Die
+Erhaltung roher alter IndexedDB-/LevelDB-Dateien beweist keine vollständige native
+Entwurfs- oder Medienübernahme. Fehlende Daten-, Laufzeit- und Gerätemessungen
+bleiben als solche im aktuellen Arbeitsstand erkennbar; daraus keinen Gewinn oder
+Abnahmestatus ableiten.

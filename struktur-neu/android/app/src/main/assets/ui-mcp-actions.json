@@ -1,888 +1,1018 @@
 {
   "format": "hausgarten.ui_mcp_actions.v1",
   "protocol_version": 9,
-  "scope": "Reviewed semantic operator actions; repeated buttons and purely visual navigation grouped; platform consent and uncommitted local drafts explicitly excluded from business parity.",
+  "scope": "Reviewed native Compose operator actions and shared MCP business tools; platform consent, local drafts, and retired Drive business sync remain explicit. Catalog coverage does not itself prove executed workflows.",
   "actions": [
     {
       "id": "kunden.1",
       "area": "kunden",
       "action": "Suchen / Liste",
-      "source": "customer-hub.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "search_customers"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "kunden.2",
       "area": "kunden",
       "action": "Kundenakte lesen",
-      "source": "customer-hub.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_customer"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "kunden.3",
       "area": "kunden",
       "action": "Anlegen",
-      "source": "customer-hub.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "create_customer"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "kunden.4",
       "area": "kunden",
       "action": "Stammdaten bearbeiten",
-      "source": "customer-hub.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_customer",
         "update_customer"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "kunden.5",
       "area": "kunden",
       "action": "Gartenfläche und Gartenhinweise",
-      "source": "customer-hub.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_customer",
         "update_customer"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "kunden.6",
       "area": "kunden",
       "action": "Rechnungsempfänger konfigurieren",
-      "source": "customer-hub.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_customer",
         "update_customer"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "kunden.7",
       "area": "kunden",
       "action": "Aktivstatus",
-      "source": "customer-hub.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_customer",
         "update_customer"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "kunden.8",
       "area": "kunden",
       "action": "Historie / Tätigkeiten",
-      "source": "customer-hub.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_customer_work_records"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "kunden.9",
       "area": "kunden",
       "action": "Fotoübersicht",
-      "source": "customer-hub.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "list_photos"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "kunden.10",
       "area": "kunden",
       "action": "Angebote zum Kunden",
-      "source": "customer-hub.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "list_offers"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "kunden.11",
       "area": "kunden",
       "action": "Aufträge zum Kunden",
-      "source": "customer-hub.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "search_orders"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "kunden.12",
       "area": "kunden",
       "action": "Archivieren mit Fotoablösung",
-      "source": "customer-hub.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "preview_delete",
         "archive_entity"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "kunden.13",
       "area": "kunden",
       "action": "Wiederherstellen",
-      "source": "customer-hub.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "list_archive",
         "restore_entity"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "auftraege.14",
       "area": "auftraege",
       "action": "Suchen / offene Aufträge",
-      "source": "order-sync-review.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "search_orders",
         "get_open_orders"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "auftraege.15",
       "area": "auftraege",
       "action": "Lesen",
-      "source": "order-sync-review.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_order"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "auftraege.16",
       "area": "auftraege",
       "action": "Anlegen",
-      "source": "order-sync-review.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "create_order"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "auftraege.17",
       "area": "auftraege",
       "action": "Bearbeiten / Status / Einsatzort",
-      "source": "order-sync-review.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_order",
         "update_order"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "auftraege.18",
       "area": "auftraege",
       "action": "Rechnungsempfänger",
-      "source": "order-sync-review.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_order",
         "update_order"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "auftraege.19",
       "area": "auftraege",
       "action": "Offene Versionen prüfen",
-      "source": "order-sync-review.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "inspect_order_review"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "auftraege.20",
       "area": "auftraege",
       "action": "Prüfung aktuellen Stand behalten",
-      "source": "order-sync-review.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "inspect_order_review",
         "save_reviewed_order"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "auftraege.21",
       "area": "auftraege",
       "action": "Prüfung korrigiert speichern",
-      "source": "order-sync-review.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "inspect_order_review",
         "save_reviewed_order"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "auftraege.22",
       "area": "auftraege",
       "action": "Aus Angebot übernehmen",
-      "source": "order-sync-review.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "convert_offer_to_order"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "auftraege.23",
       "area": "auftraege",
       "action": "Nachtrag mit Auftrag verbinden",
-      "source": "order-sync-review.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "convert_offer_to_order"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "auftraege.24",
       "area": "auftraege",
       "action": "Archivieren",
-      "source": "order-sync-review.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "preview_delete",
         "archive_entity"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "auftraege.25",
       "area": "auftraege",
       "action": "Wiederherstellen",
-      "source": "order-sync-review.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "list_archive",
         "restore_entity"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "arbeiten.26",
       "area": "arbeiten",
       "action": "Liste / Datum / Suche",
-      "source": "mobile.html",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "list_work_records",
         "search_business_data"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "arbeiten.27",
       "area": "arbeiten",
       "action": "Details lesen",
-      "source": "mobile.html",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_work_record"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "arbeiten.28",
       "area": "arbeiten",
       "action": "Manuell erfassen",
-      "source": "mobile.html",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "create_customer_work_record"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "arbeiten.29",
       "area": "arbeiten",
       "action": "Bestehende bearbeiten / Nachtrag",
-      "source": "mobile.html",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_work_record",
         "update_work_record"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "arbeiten.30",
       "area": "arbeiten",
       "action": "Vorlage duplizieren und gezielt speichern",
-      "source": "mobile.html",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_work_record",
         "create_customer_work_record"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "arbeiten.31",
       "area": "arbeiten",
       "action": "Kunde / Rechnungsempfänger zuordnen",
-      "source": "mobile.html",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_work_record",
         "reassign_work_record"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "arbeiten.32",
       "area": "arbeiten",
       "action": "Abrechnungsmarkierung",
-      "source": "mobile.html",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_work_record",
         "set_work_record_billed"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "arbeiten.33",
       "area": "arbeiten",
       "action": "Persönlich bezahlt / b.b. setzen und entfernen",
-      "source": "mobile.html",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "set_personal_paid"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "arbeiten.34",
       "area": "arbeiten",
       "action": "Persönliche Markierungen lesen",
-      "source": "mobile.html",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_settings"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "arbeiten.35",
       "area": "arbeiten",
       "action": "Wochen / Kalenderjahr / Zusammenfassung",
-      "source": "mobile.html",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_work_record_summary",
         "list_work_records"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "arbeiten.36",
       "area": "arbeiten",
       "action": "Qualitätsübersicht / Überschneidungen",
-      "source": "mobile.html",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_work_record_summary"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "arbeiten.37",
       "area": "arbeiten",
       "action": "Einzeln in Papierkorb",
-      "source": "mobile.html",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "preview_delete",
         "archive_entity"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "arbeiten.38",
       "area": "arbeiten",
       "action": "Auswahl in Papierkorb",
-      "source": "mobile.html",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "preview_archive_work_records",
         "archive_work_records"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "arbeiten.39",
       "area": "arbeiten",
       "action": "Rückgängig / wiederherstellen",
-      "source": "mobile.html",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "list_archive",
         "restore_entity"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "zeiterfassung.40",
       "area": "zeiterfassung",
       "action": "Aktuelle Sitzung / Pausen lesen",
-      "source": "workday-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_active_work_session"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "zeiterfassung.41",
       "area": "zeiterfassung",
       "action": "Bei Kunde / Auftrag / Termin starten",
-      "source": "workday-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "start_work"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "zeiterfassung.42",
       "area": "zeiterfassung",
       "action": "Pause starten",
-      "source": "workday-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "start_break"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "zeiterfassung.43",
       "area": "zeiterfassung",
       "action": "Pause beenden",
-      "source": "workday-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "end_break"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "zeiterfassung.44",
       "area": "zeiterfassung",
       "action": "Stoppen ohne Arbeitsnachweis",
-      "source": "workday-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "stop_work"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "zeiterfassung.45",
       "area": "zeiterfassung",
       "action": "Gestoppte Arbeit fortsetzen",
-      "source": "workday-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "continue_work"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "zeiterfassung.46",
       "area": "zeiterfassung",
       "action": "Geprüfte Zeit speichern",
-      "source": "workday-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "complete_work_session"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "zeiterfassung.47",
       "area": "zeiterfassung",
       "action": "Stoppen und Tätigkeit speichern",
-      "source": "workday-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "finish_work"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "zeiterfassung.48",
       "area": "zeiterfassung",
       "action": "Verwerfen",
-      "source": "workday-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "discard_work_session"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "zeiterfassung.49",
       "area": "zeiterfassung",
       "action": "Verworfene Sitzung zurückholen",
-      "source": "workday-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "restore_work_session"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "rechnungen.50",
       "area": "rechnungen",
       "action": "Liste / Filter",
-      "source": "invoice-editor.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "list_invoices"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "rechnungen.51",
       "area": "rechnungen",
       "action": "Details und Positionen",
-      "source": "invoice-editor.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_invoice"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "rechnungen.52",
       "area": "rechnungen",
       "action": "Entwurf erstellen",
-      "source": "invoice-editor.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "create_invoice_draft"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "rechnungen.53",
       "area": "rechnungen",
       "action": "Entwurf / Positionen / Kopf-/Fußtext bearbeiten",
-      "source": "invoice-editor.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_invoice",
         "update_invoice_draft"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "rechnungen.54",
       "area": "rechnungen",
       "action": "Offene Arbeitseinträge übernehmen",
-      "source": "invoice-editor.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "list_work_records",
         "create_invoice_draft"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "rechnungen.55",
       "area": "rechnungen",
       "action": "Vorschau / Summen",
-      "source": "invoice-editor.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_invoice"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "rechnungen.56",
       "area": "rechnungen",
       "action": "Geschützt ausstellen / Nummernkreis",
-      "source": "invoice-editor.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_invoice",
         "request_invoice_issue"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "rechnungen.57",
       "area": "rechnungen",
       "action": "Korrekturentwurf / Storno",
-      "source": "invoice-editor.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_invoice",
         "create_invoice_correction"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "rechnungen.58",
       "area": "rechnungen",
       "action": "Bezahlt und offen markieren",
-      "source": "invoice-editor.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_invoice",
         "update_invoice_payment"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "rechnungen.59",
       "area": "rechnungen",
       "action": "Original-PDF lesen",
-      "source": "invoice-editor.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_file_metadata",
         "read_file_chunk"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "rechnungen.60",
       "area": "rechnungen",
       "action": "Teilen vorbereiten, Versand gesondert",
-      "source": "invoice-editor.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "prepare_invoice_share"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "rechnungen.61",
       "area": "rechnungen",
       "action": "Entwurf archivieren",
-      "source": "invoice-editor.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "preview_delete",
         "archive_entity"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "rechnungen.62",
       "area": "rechnungen",
       "action": "Ausstellerdaten und Steuermodus",
-      "source": "invoice-editor.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_business_settings",
         "update_business_settings"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "angebote.63",
       "area": "angebote",
       "action": "Liste / Suche",
-      "source": "offers-ui.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "list_offers"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "angebote.64",
       "area": "angebote",
       "action": "Details lesen",
-      "source": "offers-ui.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_offer"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "angebote.65",
       "area": "angebote",
       "action": "Kontext Kunde / Garten / freigegebene Preise",
-      "source": "offers-ui.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_offer_context"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "angebote.66",
       "area": "angebote",
       "action": "Entwurf erstellen / Bausteine übernehmen",
-      "source": "offers-ui.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "search_offer_templates",
         "create_offer_draft",
@@ -890,14 +1020,16 @@
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "angebote.67",
       "area": "angebote",
       "action": "Fixpreis / Regie / verbindlicher und unverbindlicher KV",
-      "source": "offers-ui.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "create_offer_draft",
         "update_offer_draft",
@@ -905,83 +1037,95 @@
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "angebote.68",
       "area": "angebote",
       "action": "Positionen / Texte / Preis bearbeiten",
-      "source": "offers-ui.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_offer",
         "update_offer_draft"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "angebote.69",
       "area": "angebote",
       "action": "Pflichtangaben prüfen",
-      "source": "offers-ui.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "validate_offer",
         "validate_offer_draft"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "angebote.70",
       "area": "angebote",
       "action": "Bewusst finalisieren",
-      "source": "offers-ui.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_offer",
         "finalize_offer"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "angebote.71",
       "area": "angebote",
       "action": "Duplizieren",
-      "source": "offers-ui.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "duplicate_offer"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "angebote.72",
       "area": "angebote",
       "action": "PDF lesen",
-      "source": "offers-ui.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_file_metadata",
         "read_file_chunk"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "angebote.73",
       "area": "angebote",
       "action": "Teilen vorbereiten",
-      "source": "offers-ui.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "prepare_offer_share",
         "prepare_offer_delivery",
@@ -989,164 +1133,188 @@
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "angebote.74",
       "area": "angebote",
       "action": "Annahme und Auftrag / Nachtrag",
-      "source": "offers-ui.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_offer",
         "convert_offer_to_order"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "angebote.75",
       "area": "angebote",
       "action": "Entwurf in Papierkorb",
-      "source": "offers-ui.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "preview_delete",
         "archive_entity"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "leistungskatalog.76",
       "area": "leistungskatalog",
       "action": "Bausteine suchen",
-      "source": "offers-ui.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "search_offer_templates",
         "search_catalog"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "leistungskatalog.77",
       "area": "leistungskatalog",
       "action": "Baustein lesen",
-      "source": "offers-ui.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_offer_template",
         "get_catalog_entry"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "leistungskatalog.78",
       "area": "leistungskatalog",
       "action": "Baustein erstellen",
-      "source": "offers-ui.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "create_catalog_entry"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "leistungskatalog.79",
       "area": "leistungskatalog",
       "action": "Baustein bearbeiten / Preis / Standardtexte",
-      "source": "offers-ui.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_offer_template",
         "update_catalog_entry"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "leistungskatalog.80",
       "area": "leistungskatalog",
       "action": "Baustein deaktivieren / reaktivieren",
-      "source": "offers-ui.js",
+      "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_offer_template",
         "update_catalog_entry"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "fotos.81",
       "area": "fotos",
       "action": "Kundenfotobibliothek / weitere laden",
-      "source": "design-concept.js",
+      "source": "ComposeMediaScreens.kt",
       "mcp": [
         "list_photos"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "fotos.82",
       "area": "fotos",
       "action": "Rollen / Zeitraum / Arbeit / Auftrag filtern",
-      "source": "design-concept.js",
+      "source": "ComposeMediaScreens.kt",
       "mcp": [
         "list_photos"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "fotos.83",
       "area": "fotos",
       "action": "Metadaten lesen",
-      "source": "design-concept.js",
+      "source": "ComposeMediaScreens.kt",
       "mcp": [
         "get_photo"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "fotos.84",
       "area": "fotos",
       "action": "Original authentifiziert lesen / Vollbild",
-      "source": "design-concept.js",
+      "source": "ComposeMediaScreens.kt",
       "mcp": [
         "get_file_metadata",
         "read_file_chunk"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "fotos.85",
       "area": "fotos",
       "action": "Bilder importieren / fortsetzen",
-      "source": "design-concept.js",
+      "source": "ComposeMediaScreens.kt",
       "mcp": [
         "begin_file_upload",
         "write_file_chunk",
@@ -1154,56 +1322,64 @@
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "fotos.86",
       "area": "fotos",
       "action": "Profilfoto / Dokumentation",
-      "source": "design-concept.js",
+      "source": "ComposeMediaScreens.kt",
       "mcp": [
         "get_photo",
         "update_photo"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "fotos.87",
       "area": "fotos",
       "action": "Bildunterschrift / Aufnahmedatum",
-      "source": "design-concept.js",
+      "source": "ComposeMediaScreens.kt",
       "mcp": [
         "get_photo",
         "update_photo"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "fotos.88",
       "area": "fotos",
       "action": "Auftrag / Sitzung / Arbeit zuordnen",
-      "source": "design-concept.js",
+      "source": "ComposeMediaScreens.kt",
       "mcp": [
         "get_photo",
         "update_photo"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "fotos.89",
       "area": "fotos",
       "action": "Mehrere Bilder einer Sitzung",
-      "source": "design-concept.js",
+      "source": "ComposeMediaScreens.kt",
       "mcp": [
         "begin_file_upload",
         "write_file_chunk",
@@ -1211,460 +1387,534 @@
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "fotos.90",
       "area": "fotos",
       "action": "Papierkorb und Kundenverknüpfung lösen",
-      "source": "design-concept.js",
+      "source": "ComposeMediaScreens.kt",
       "mcp": [
         "preview_delete",
         "archive_entity"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "fotos.91",
       "area": "fotos",
       "action": "Wiederherstellen einschließlich geprüfter Zuordnung",
-      "source": "design-concept.js",
+      "source": "ComposeMediaScreens.kt",
       "mcp": [
         "list_archive",
         "restore_entity"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "fotos.92",
       "area": "fotos",
       "action": "Speicherverbrauch / Fotoqualität",
-      "source": "design-concept.js",
+      "source": "ComposeMediaScreens.kt",
       "mcp": [
         "get_settings",
         "update_settings"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "sicherung.93",
       "area": "sicherung",
       "action": "Geschäftssicherung erstellen",
-      "source": "owner-ui.js",
+      "source": "FullBackupActivity.kt",
       "mcp": [
         "create_backup"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "availability": "legacy_api_only",
       "replacement_action_id": "platform.vollbackup_saf",
-      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die lokale ZIP-Sicherung."
+      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die lokale ZIP-Sicherung.",
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "sicherung.94",
       "area": "sicherung",
       "action": "Sicherungen auflisten",
-      "source": "owner-ui.js",
+      "source": "FullBackupActivity.kt",
       "mcp": [
         "list_backups"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "availability": "legacy_api_only",
       "replacement_action_id": "platform.vollbackup_saf",
-      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die lokale ZIP-Sicherung."
+      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die lokale ZIP-Sicherung.",
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "sicherung.95",
       "area": "sicherung",
       "action": "Sicherung prüfen",
-      "source": "owner-ui.js",
+      "source": "FullBackupActivity.kt",
       "mcp": [
         "inspect_backup"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "availability": "legacy_api_only",
       "replacement_action_id": "platform.vollbackup_saf",
-      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die lokale ZIP-Sicherung."
+      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die lokale ZIP-Sicherung.",
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "sicherung.96",
       "area": "sicherung",
       "action": "Sicherung übertragen",
-      "source": "owner-ui.js",
+      "source": "FullBackupActivity.kt",
       "mcp": [
         "get_file_metadata",
         "read_file_chunk"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "availability": "legacy_api_only",
       "replacement_action_id": "platform.vollbackup_saf",
-      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die lokale ZIP-Sicherung."
+      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die lokale ZIP-Sicherung.",
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "sicherung.97",
       "area": "sicherung",
       "action": "Fehlende Daten geschützt wiederherstellen",
-      "source": "owner-ui.js",
+      "source": "FullBackupActivity.kt",
       "mcp": [
         "inspect_backup",
         "restore_backup"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "availability": "legacy_api_only",
       "replacement_action_id": "platform.vollbackup_saf",
-      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die lokale ZIP-Sicherung."
+      "transition": "Die kleine Geschäftssicherung bleibt als kompatible API erhalten. Der reguläre UI-Weg ist die lokale ZIP-Sicherung.",
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "sicherung.98",
       "area": "sicherung",
       "action": "Vollständige Konfliktsicherung",
-      "source": "owner-ui.js",
+      "source": "NativeActionCatalog.kt",
       "mcp": [
         "preview_legacy_conflict_resolution",
         "prepare_legacy_conflict_backup"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "availability": "retired",
+      "retirement_reason": "Retired Drive business synchronization; compatibility tools report LEGACY_SYNC_RETIRED and cannot execute this action.",
+      "replacement_action_id": "platform.vollbackup_saf",
+      "retired": true,
+      "native_dispatch": "NativeActionCatalog.kt"
     },
     {
       "id": "papierkorb.99",
       "area": "papierkorb",
       "action": "Alle Einträge / weitere laden",
-      "source": "trash-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "list_archive"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "papierkorb.100",
       "area": "papierkorb",
       "action": "Einzeln wiederherstellen",
-      "source": "trash-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "list_archive",
         "restore_entity"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "papierkorb.101",
       "area": "papierkorb",
       "action": "Endgültige Einzellöschung prüfen",
-      "source": "trash-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "preview_purge"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "papierkorb.102",
       "area": "papierkorb",
       "action": "Endgültig löschen",
-      "source": "trash-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "preview_purge",
         "purge_entity"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "papierkorb.103",
       "area": "papierkorb",
       "action": "Papierkorb leeren prüfen / geschützte Fälle",
-      "source": "trash-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "preview_empty_trash"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "papierkorb.104",
       "area": "papierkorb",
       "action": "Freigegebenen Papierkorb endgültig leeren",
-      "source": "trash-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "preview_empty_trash",
         "empty_trash"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "synchronisierung.105",
       "area": "synchronisierung",
       "action": "Status / Queue / Fehler lesen",
-      "source": "sync-dashboard.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_sync_overview"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "availability": "historical_read_only",
-      "transition": "Lokale historische Aktionsbelege und Warteschlangen, kein laufender Drive-Geschäftsabgleich."
+      "transition": "Lokale historische Aktionsbelege und Warteschlangen, kein laufender Drive-Geschäftsabgleich.",
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "synchronisierung.106",
       "area": "synchronisierung",
       "action": "Einzelaktionsstatus",
-      "source": "sync-dashboard.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_sync_status"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "availability": "historical_read_only",
-      "transition": "Lokale historische Aktionsbelege und Warteschlangen, kein laufender Drive-Geschäftsabgleich."
+      "transition": "Lokale historische Aktionsbelege und Warteschlangen, kein laufender Drive-Geschäftsabgleich.",
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "synchronisierung.107",
       "area": "synchronisierung",
       "action": "Synchronisieren / erneut versuchen",
-      "source": "sync-dashboard.js",
+      "source": "NativeActionCatalog.kt",
       "mcp": [
         "request_sync"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "availability": "retired",
       "replacement_action_id": "platform.vollbackup_saf",
-      "transition": "Geschäftlicher Drive-Abgleich stillgelegt; request_sync meldet den versionierten Übergang und startet kein Backup."
+      "transition": "Geschäftlicher Drive-Abgleich stillgelegt; request_sync meldet den versionierten Übergang und startet kein Backup.",
+      "retirement_reason": "Retired Drive business synchronization; compatibility tools report LEGACY_SYNC_RETIRED and cannot execute this action.",
+      "retired": true,
+      "native_dispatch": "NativeActionCatalog.kt"
     },
     {
       "id": "synchronisierung.108",
       "area": "synchronisierung",
       "action": "Konfliktvarianten und Hashes lesen",
-      "source": "sync-dashboard.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_sync_conflicts"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "synchronisierung.109",
       "area": "synchronisierung",
       "action": "Aktuellen Stand behalten",
-      "source": "sync-dashboard.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_sync_conflicts",
         "resolve_sync_conflict"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "synchronisierung.110",
       "area": "synchronisierung",
       "action": "Vorschlag geprüft übernehmen",
-      "source": "sync-dashboard.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_sync_conflicts",
         "resolve_sync_conflict"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "synchronisierung.111",
       "area": "synchronisierung",
       "action": "Historische Siebener-Vorschau",
-      "source": "legacy-conflicts-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "preview_legacy_conflict_resolution"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
-      "transition": "Historische Vorgänge bleiben sichtbar; alte netzabhängige Aktionen liefern einen expliziten Übergangszustand."
+      "transition": "Historische Vorgänge bleiben sichtbar; alte netzabhängige Aktionen liefern einen expliziten Übergangszustand.",
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "synchronisierung.112",
       "area": "synchronisierung",
       "action": "Historische Sicherung mit Vorschauhash",
-      "source": "legacy-conflicts-ui.js",
+      "source": "NativeActionCatalog.kt",
       "mcp": [
         "prepare_legacy_conflict_backup"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
-      "transition": "Historische Vorgänge bleiben sichtbar; alte netzabhängige Aktionen liefern einen expliziten Übergangszustand."
+      "transition": "Historische Vorgänge bleiben sichtbar; alte netzabhängige Aktionen liefern einen expliziten Übergangszustand.",
+      "availability": "retired",
+      "retirement_reason": "Retired Drive business synchronization; compatibility tools report LEGACY_SYNC_RETIRED and cannot execute this action.",
+      "replacement_action_id": "platform.vollbackup_saf",
+      "retired": true,
+      "native_dispatch": "NativeActionCatalog.kt"
     },
     {
       "id": "synchronisierung.113",
       "area": "synchronisierung",
       "action": "Alle historischen Konflikte keep_current abschließen",
-      "source": "legacy-conflicts-ui.js",
+      "source": "NativeActionCatalog.kt",
       "mcp": [
         "close_legacy_conflicts"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
-      "transition": "Historische Vorgänge bleiben sichtbar; alte netzabhängige Aktionen liefern einen expliziten Übergangszustand."
+      "transition": "Historische Vorgänge bleiben sichtbar; alte netzabhängige Aktionen liefern einen expliziten Übergangszustand.",
+      "availability": "retired",
+      "retirement_reason": "Retired Drive business synchronization; compatibility tools report LEGACY_SYNC_RETIRED and cannot execute this action.",
+      "replacement_action_id": "synchronisierung.108",
+      "retired": true,
+      "native_dispatch": "NativeActionCatalog.kt"
     },
     {
       "id": "synchronisierung.114",
       "area": "synchronisierung",
       "action": "Konflikthistorie lesen",
-      "source": "sync-dashboard.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_sync_conflicts"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "einstellungen.115",
       "area": "einstellungen",
       "action": "Gerätestandards lesen",
-      "source": "owner-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_settings"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "einstellungen.116",
       "area": "einstellungen",
       "action": "Tätigkeit und Einsatzort vorbelegen",
-      "source": "owner-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_settings",
         "update_settings"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "einstellungen.117",
       "area": "einstellungen",
       "action": "Fotoqualität wählen",
-      "source": "owner-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_settings",
         "update_settings"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "einstellungen.118",
       "area": "einstellungen",
       "action": "Unternehmensdaten lesen / bearbeiten",
-      "source": "owner-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_business_settings",
         "update_business_settings"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "einstellungen.119",
       "area": "einstellungen",
       "action": "Gespeicherte Nummernangaben lesen und geschützte Umstellung öffnen",
-      "source": "owner-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_business_settings"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "availability": "read_only",
       "replacement_action_id": "platform.vollbackup_saf",
-      "transition": "Keine Nummernautorität durch Checkboxen. Geschützter lokaler Autoritätsabgleich im vorhandenen Umstellungsdialog."
+      "transition": "Keine Nummernautorität durch Checkboxen. Geschützter lokaler Autoritätsabgleich im vorhandenen Umstellungsdialog.",
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "einstellungen.120",
       "area": "einstellungen",
       "action": "App-/DB-/Protokollversion und Rechte",
-      "source": "owner-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_capabilities",
         "integration_health"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "einstellungen.121",
       "area": "einstellungen",
       "action": "UI-MCP-Zuordnung / Grenzen lesen",
-      "source": "owner-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_ui_action_catalog",
         "get_offer_contract",
@@ -1672,267 +1922,307 @@
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.122",
       "area": "termine",
       "action": "Tag / Woche / Kunde / Auftrag / weitere laden",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "list_appointments"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.123",
       "area": "termine",
       "action": "Termin und Ist-Zeit lesen",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "get_appointment"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.124",
       "area": "termine",
       "action": "Kunden-/Auftragskontext",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "get_planning_context"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.125",
       "area": "termine",
       "action": "Termin erstellen",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "create_appointment"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.126",
       "area": "termine",
       "action": "Serie bewusst erstellen",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "create_appointment_series"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.127",
       "area": "termine",
       "action": "Termin verschieben / bearbeiten",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "get_appointment",
         "update_appointment"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.128",
       "area": "termine",
       "action": "Termin absagen",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "get_appointment",
         "cancel_appointment"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.129",
       "area": "termine",
       "action": "Abgeschlossen markieren",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "get_appointment",
         "update_appointment"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.130",
       "area": "termine",
       "action": "Alternativen vorschlagen",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "suggest_appointment_slots"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.131",
       "area": "termine",
       "action": "Wetter nächste Arbeitswoche",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "get_workweek_weather"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.132",
       "area": "termine",
       "action": "Risiken / unbekannte Wetterlage lesen",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "get_weather_risks"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.133",
       "area": "termine",
       "action": "Wetterhinweis zur Kenntnis nehmen",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "acknowledge_weather_alert"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.134",
       "area": "termine",
       "action": "Wetter aktualisieren",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "request_weather_refresh"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.135",
       "area": "termine",
       "action": "Kalenderabgleich anstoßen",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "request_calendar_sync"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.136",
       "area": "termine",
       "action": "Google-Konfliktvarianten lesen",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "get_appointment"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.137",
       "area": "termine",
       "action": "Google-Konflikt bewusst lösen",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "resolve_calendar_conflict"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.138",
       "area": "termine",
       "action": "App-Kalenderverbindung pausieren / wieder aktivieren",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "get_planning_settings",
         "update_planning_settings"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.139",
       "area": "termine",
       "action": "Arbeitstage / Tageszeiten / Anfahrtpuffer",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "get_planning_settings",
         "update_planning_settings"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.140",
       "area": "termine",
       "action": "Wetterschwellen / Benachrichtigungen / Wetter aktivieren",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "get_planning_settings",
         "update_planning_settings"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "termine.141",
       "area": "termine",
       "action": "Archivieren und wiederherstellen",
-      "source": "planning-ui.js",
+      "source": "ComposePlanningScreens.kt",
       "mcp": [
         "preview_delete",
         "archive_entity",
@@ -1940,40 +2230,46 @@
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "pflanzen.142",
       "area": "pflanzen",
       "action": "Pflanzenbibliothek / Neophyten / Suche",
-      "source": "gartenpirat.js",
+      "source": "ComposeMediaScreens.kt",
       "mcp": [
         "search_catalog"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "pflanzen.143",
       "area": "pflanzen",
       "action": "Pflanzenprofil / Pflege / Quellen lesen",
-      "source": "gartenpirat.js",
+      "source": "ComposeMediaScreens.kt",
       "mcp": [
         "get_catalog_entry"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "pflanzen.144",
       "area": "pflanzen",
       "action": "Alle Pflanzenbilder / Wischen-Äquivalent",
-      "source": "gartenpirat.js",
+      "source": "ComposeMediaScreens.kt",
       "mcp": [
         "get_catalog_entry",
         "get_file_metadata",
@@ -1981,963 +2277,1057 @@
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "pflanzen.145",
       "area": "pflanzen",
       "action": "Garteninformationen im Kundenkonto",
-      "source": "gartenpirat.js",
+      "source": "ComposeMediaScreens.kt",
       "mcp": [
         "get_customer",
         "update_customer"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "platform.147",
       "area": "plattform",
       "action": "Google-Kalender erstmalig verbinden / App-Kalender anlegen",
-      "source": "PlanningConnectionActivity.java",
+      "source": "PlanningConnectionActivity.kt",
       "mcp": [],
       "kind": "platform_or_presentation",
       "barrier": "Google OAuth und bewusste Kontoauswahl am Gerät; bestehende Verbindung per MCP bedienbar.",
       "platform_only": true,
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md"
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "PlanningConnectionActivity.kt"
     },
     {
       "id": "platform.148",
       "area": "plattform",
       "action": "Wetter-API-Schlüssel erstmalig hinterlegen / ersetzen",
-      "source": "PlanningConnectionActivity.java",
+      "source": "PlanningConnectionActivity.kt",
       "mcp": [],
       "kind": "platform_or_presentation",
       "barrier": "Privates Geheimnis ausschließlich im nativen Geräteeingabefeld; nie ChatGPT anfordern.",
       "platform_only": true,
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md"
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "PlanningConnectionActivity.kt"
     },
     {
       "id": "platform.149",
       "area": "plattform",
       "action": "Tunnel-Runtime-Schlüssel, Organisation, Schreibschalter / Verbindung stoppen",
-      "source": "PixelTunnelActivity.java",
+      "source": "PixelTunnelActivity.kt",
       "mcp": [],
       "kind": "platform_or_presentation",
       "barrier": "Vertrauensanker und Freigabe müssen außerhalb der von ihnen geschützten Verbindung bleiben.",
       "platform_only": true,
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md"
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "PixelTunnelActivity.kt"
     },
     {
       "id": "platform.150",
       "area": "plattform",
       "action": "Android-Benachrichtigungs-, Standort-, Kamera-, Akku-Freigaben",
-      "source": "MainActivity.java",
+      "source": "MainActivity.kt",
       "mcp": [],
       "kind": "platform_or_presentation",
       "barrier": "Android-Systemdialoge lassen sich über fachliches MCP nicht erteilen.",
       "platform_only": true,
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md"
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "MainActivity.kt"
     },
     {
       "id": "platform.151",
       "area": "plattform",
       "action": "Kamera / Galerie am Gerät aufnehmen oder auswählen",
-      "source": "design-concept.js",
+      "source": "MainActivity.kt",
       "mcp": [],
       "kind": "platform_or_presentation",
       "barrier": "Physische Quelle / Systempicker; vorhandene Datei über MCP-Upload gleichwertig speicherbar.",
       "platform_only": true,
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md"
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "MainActivity.kt"
     },
     {
       "id": "platform.152",
       "area": "plattform",
       "action": "Aktuellen GPS-Standort messen",
-      "source": "work-location.js",
+      "source": "MainActivity.kt",
       "mcp": [],
       "kind": "platform_or_presentation",
       "barrier": "Gerätesensor und Android-Einwilligung; bestätigte Koordinaten per update_appointment speicherbar.",
       "platform_only": true,
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md"
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "MainActivity.kt"
     },
     {
       "id": "platform.153",
       "area": "plattform",
       "action": "Versand-App / Telefon / Karten-App tatsächlich bedienen",
-      "source": "MainActivity.java",
+      "source": "MainActivity.kt",
       "mcp": [],
       "kind": "platform_or_presentation",
       "barrier": "OS-Handoff; MCP bereitet Dokument vor, kein fingierter Versand oder Telefonanruf.",
       "platform_only": true,
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md"
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "MainActivity.kt"
     },
     {
       "id": "platform.154",
       "area": "plattform",
       "action": "Vollständige Android-Gerätesicherung / App installieren",
-      "source": "MainActivity.java",
+      "source": "MainActivity.kt",
       "mcp": [],
       "kind": "platform_or_presentation",
       "barrier": "Außerhalb der App-Betriebsfunktionen; Geschäftsbackup ersetzt keine Gerätesicherung.",
       "platform_only": true,
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md"
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "MainActivity.kt"
     },
     {
       "id": "platform.155",
       "area": "plattform",
       "action": "Ansicht / Filter / Zurück / Zoom / Wischen / Piratenknopf positionieren",
-      "source": "gartenpirat.js",
+      "source": "MainActivity.kt",
       "mcp": [],
       "kind": "platform_or_presentation",
       "barrier": "Flüchtige Darstellung; fachliche Inhalte durch Such-/Lese-/Dateiwerkzeuge erreichbar.",
       "platform_only": true,
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md"
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "MainActivity.kt"
     },
     {
       "id": "platform.156",
       "area": "plattform",
       "action": "Formularentwurf / Auswahl / Spracheingabe / Abbrechen / lokale Vorschau",
-      "source": "mobile.html",
+      "source": "MainActivity.kt",
       "mcp": [],
       "kind": "platform_or_presentation",
       "barrier": "Noch keine gespeicherte Geschäftsaktion; MCP übernimmt Entwurf erst als fachliches Create/Update. Fremde offene UI-Entwürfe werden nie überschrieben.",
       "platform_only": true,
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md"
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "MainActivity.kt"
     },
     {
       "id": "zeiterfassung.pruefen",
       "area": "zeiterfassung",
       "action": "Sitzung nach Neustart/Uhränderung ausdrücklich prüfen",
-      "source": "today-ui.js",
+      "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_active_work_session",
         "review_work_session"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "backup.voll.get_full_backup_status",
       "area": "sicherung",
       "action": "Liest den lokalen Status unverschlüsselter ZIP-Sicherungen auf dem Pixel. Kein Drive, Konto, Schlüssel oder Hintergrundupload. Vollständige Dateiwahl und Wiederherstellung erfolgen bewusst am Gerät.",
-      "source": "FullBackupActivity.java",
+      "source": "FullBackupActivity.kt",
       "mcp": [
         "get_full_backup_status"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Local backup metadata/read-only hint; actual file choice and restore remain device actions.",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.get_revier_overview",
       "area": "revier",
       "action": "Heute mit Arbeit, fälligen Besuchen und Tour lesen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "get_revier_overview"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.list_properties",
       "area": "revier",
       "action": "Objekte suchen und vollständig auflisten",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "list_properties"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.get_property",
       "area": "revier",
       "action": "Objektakte lesen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "get_property"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.list_inquiries",
       "area": "revier",
       "action": "Anfragen suchen und auflisten",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "list_inquiries"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.get_inquiry",
       "area": "revier",
       "action": "Anfrage lesen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "get_inquiry"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.list_care_plans",
       "area": "revier",
       "action": "Pflegepläne auflisten",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "list_care_plans"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.list_visits",
       "area": "revier",
       "action": "Besuche und fällige Arbeiten auflisten",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "list_visits"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.get_visit",
       "area": "revier",
       "action": "Einsatzdetails lesen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "get_visit"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.get_day_tour",
       "area": "revier",
       "action": "Geplante Tagestour lesen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "get_day_tour"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.list_materials",
       "area": "revier",
       "action": "Material und Bestand lesen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "list_materials"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.list_equipment",
       "area": "revier",
       "action": "Geräte und Zustand lesen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "list_equipment"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.search_local",
       "area": "revier",
       "action": "Vollständigen lokalen Bestand mit Filtern durchsuchen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "search_local"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "backup.voll.request_full_backup",
       "area": "sicherung",
       "action": "Liefert den Hinweis, die lokale Sicherungsansicht und Android-Dateiwahl auf dem Pixel zu öffnen. Startet keinen Upload und erzeugt ohne Dateiwahl keine Sicherung. Zuerst get_full_backup_status lesen; request_id bei Wiederholung erhalten.",
-      "source": "FullBackupActivity.java",
+      "source": "FullBackupActivity.kt",
       "mcp": [
         "request_full_backup"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Local backup metadata/read-only hint; actual file choice and restore remain device actions.",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "backup.voll.retry_full_backup",
       "area": "sicherung",
       "action": "Liefert den Hinweis, einen bestehenden lokalen Speicherversuch in der Sicherungsansicht am Pixel fortzusetzen. Keine neue Sicherung oder Dateifreigabe durch MCP; kein Drive-Zugriff.",
-      "source": "FullBackupActivity.java",
+      "source": "FullBackupActivity.kt",
       "mcp": [
         "retry_full_backup"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Local backup metadata/read-only hint; actual file choice and restore remain device actions.",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.create_property",
       "area": "revier",
       "action": "Objekt zu bestehendem Kunden anlegen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "create_property"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.update_property",
       "area": "revier",
       "action": "Objekt bewusst bearbeiten",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "update_property"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.create_inquiry",
       "area": "revier",
       "action": "Neue Anfrage lokal speichern",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "create_inquiry"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.update_inquiry",
       "area": "revier",
       "action": "Anfrage mit Historie bearbeiten",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "update_inquiry"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.plan_inquiry_inspection",
       "area": "revier",
       "action": "Besichtigung aus bestätigter Anfrage planen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "plan_inquiry_inspection"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.create_care_plan",
       "area": "revier",
       "action": "Pflegeplan am Objekt anlegen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "create_care_plan"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.update_care_plan",
       "area": "revier",
       "action": "Pflegeregel für zukünftige Termine ändern",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "update_care_plan"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.generate_care_visits",
       "area": "revier",
       "action": "Fällige Pflegebesuche im begrenzten Horizont erzeugen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "generate_care_visits"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.plan_visit",
       "area": "revier",
       "action": "Einzelnen Einsatz planen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "plan_visit"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.update_visit",
       "area": "revier",
       "action": "Termin verschieben, absagen oder Teilerledigung festhalten",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "update_visit"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.set_day_tour",
       "area": "revier",
       "action": "Besuche ausdrücklich in Tagestour aufnehmen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "set_day_tour"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.move_tour_stop",
       "area": "revier",
       "action": "Tourstopp nach oben oder unten verschieben",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "move_tour_stop"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.save_material",
       "area": "revier",
       "action": "Materialkatalog bewusst pflegen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "save_material"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.record_material_movement",
       "area": "revier",
       "action": "Materialzugang, Verbrauch oder Gegenbuchung erfassen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "record_material_movement"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.save_equipment",
       "area": "revier",
       "action": "Gerät, Wartung und Defekt pflegen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "save_equipment"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "revier.record_equipment_usage",
       "area": "revier",
       "action": "Gerätenutzung am Einsatz erfassen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "record_equipment_usage"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned additive schema/dispatch contract; executed UI/native workflows and device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "buero.get_payment_ledger",
       "area": "buero",
       "action": "Zahlungen, offene Beträge und Guthaben lesen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "get_payment_ledger"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "buero.get_invoice_document_job",
       "area": "buero",
       "action": "Status des unveränderlichen Rechnungs-PDF lesen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "get_invoice_document_job"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "buero.preview_local_authority",
       "area": "buero",
       "action": "Lokalen Übergang und Rechnungssperre prüfen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "preview_local_authority"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "buero.record_payment",
       "area": "buero",
       "action": "Teil- oder Sammelzahlung mit Zuordnung erfassen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "record_payment"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "buero.correct_payment",
       "area": "buero",
       "action": "Zahlung mit Grund nachvollziehbar korrigieren",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "correct_payment"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "buero.retry_invoice_document_job",
       "area": "buero",
       "action": "Denselben Rechnungs-PDF-Job wiederholen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "retry_invoice_document_job"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "buero.activate_local_authority",
       "area": "buero",
       "action": "Bestätigten lokalen Bestand nach geprüfter Sicherung aktivieren",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "activate_local_authority"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "buero.reconcile_local_invoice_authority",
       "area": "buero",
       "action": "Rechnungsautorität mit externen Originalen und Nummern abgleichen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "reconcile_local_invoice_authority"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Versioned local financial/authority contract; original proofs, isolated executions and physical device limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "buero.get_offer_decision_history",
       "area": "buero",
       "action": "Annahme- und Ablehnungshistorie einer Angebotsversion lesen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "get_offer_decision_history"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Exact finalized-version decision contract; synthetic executions and physical proof limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "buero.record_offer_acceptance",
       "area": "buero",
       "action": "Annahme genau dieser finalen Angebotsversion mit Nachweis festhalten",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "record_offer_acceptance"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Exact finalized-version decision contract; synthetic executions and physical proof limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "buero.decline_offer",
       "area": "buero",
       "action": "Angebot mit erhaltener Historie ablehnen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "mcp": [
         "decline_offer"
       ],
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "Exact finalized-version decision contract; synthetic executions and physical proof limits are recorded in CODEX-STATUS.md",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "backup.voll.get_restore_status",
       "area": "sicherung",
       "action": "Nicht geheimen Status des bestätigten Wiederherstellungsjobs lesen",
-      "source": "FullBackupActivity.java",
+      "source": "FullBackupActivity.kt",
       "mcp": [
         "get_restore_status"
       ],
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "Local backup metadata/read-only hint; actual file choice and restore remain device actions.",
-      "platform_only": false
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
     },
     {
       "id": "platform.vollbackup_saf",
       "area": "plattform",
       "action": "Unverschlüsselte ZIP-Datei auf dem Pixel speichern und zurücklesen",
-      "source": "FullBackupActivity.java",
+      "source": "FullBackupActivity.kt",
       "mcp": [],
       "kind": "platform_or_presentation",
       "barrier": "Android-Dateiwahl und lokale Dateirechte bleiben am Gerät. Kein Konto, Schlüssel oder Cloudanbieter.",
       "platform_only": true,
-      "test_scope": "Native device consent/handoff boundary; shared services tested with isolated providers and physical limits reported separately."
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "FullBackupActivity.kt"
     },
     {
       "id": "platform.vollrestore_bestaetigen",
       "area": "plattform",
       "action": "Lokale Sicherungsdatei prüfen und Wiederherstellung bewusst bestätigen",
-      "source": "FullBackupActivity.java",
+      "source": "FullBackupActivity.kt",
       "mcp": [],
       "kind": "platform_or_presentation",
       "barrier": "Dateiwahl und bestätigter Bestandsaustausch am Gerät; Rückfallkopie bleibt erhalten. Schlüssel nur beim Lesen alter verschlüsselter Archive.",
       "platform_only": true,
-      "test_scope": "Native device consent/handoff boundary; shared services tested with isolated providers and physical limits reported separately."
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "FullBackupActivity.kt"
     },
     {
       "id": "platform.portabilitaet_ziel",
       "area": "plattform",
       "action": "Sensiblen Klartextexport bewusst an gewähltes Geräte-/Dateiziel übergeben",
-      "source": "FullBackupActivity.java",
+      "source": "FullBackupActivity.kt",
       "mcp": [],
       "kind": "platform_or_presentation",
       "barrier": "Klartextweitergabe erfordert ausdrückliche Wahl und Bestätigung des SAF-/Sharesheet-Ziels am Gerät. Datenformat und Prüfung verwenden den gemeinsamen Exportdienst; MCP wählt keine fremden Freigaben oder Konten.",
       "platform_only": true,
-      "test_scope": "Native device consent/handoff boundary; shared services tested with isolated providers and physical limits reported separately.",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "availability": "retired",
-      "retirement_reason": "Direct user request: one plaintext local ZIP; no key setup or separate portable export"
+      "retirement_reason": "Direct user request: one plaintext local ZIP; no key setup or separate portable export",
+      "retired": false,
+      "native_dispatch": "FullBackupActivity.kt"
     },
     {
       "id": "revier.accept_inquiry_direct",
       "area": "revier",
-      "label": "Direkte Auftragsannahme mit Zeitpunkt und Nachweis",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "kind": "business",
       "mcp": [
         "accept_inquiry_direct"
       ],
       "platform_only": false,
-      "test_scope": "Shared production repository/receipt rules, browser fault regressions and isolated Android probes; final execution evidence in CODEX-STATUS.md"
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "NativeForms.kt",
+      "action": "Direkte Auftragsannahme mit Zeitpunkt und Nachweis",
+      "rights": "owner_write"
     },
     {
       "id": "revier.list_revier_archive",
       "area": "revier",
-      "label": "Archivierte Revier-Einträge lesen",
-      "source": "trash-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "kind": "business",
       "mcp": [
         "list_revier_archive"
       ],
       "platform_only": false,
-      "test_scope": "Shared production repository/receipt rules, browser fault regressions and isolated Android probes; final execution evidence in CODEX-STATUS.md"
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "NativeForms.kt",
+      "action": "Archivierte Revier-Einträge lesen",
+      "rights": "owner_read"
     },
     {
       "id": "revier.set_revier_archived",
       "area": "revier",
-      "label": "Revier-Eintrag ausdrücklich archivieren oder wieder öffnen",
-      "source": "trash-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "kind": "business",
       "mcp": [
         "set_revier_archived"
       ],
       "platform_only": false,
-      "test_scope": "Shared production repository/receipt rules, browser fault regressions and isolated Android probes; final execution evidence in CODEX-STATUS.md"
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "NativeForms.kt",
+      "action": "Revier-Eintrag ausdrücklich archivieren oder wieder öffnen",
+      "rights": "owner_write"
     },
     {
       "id": "revier.purge_revier_entity",
       "area": "revier",
-      "label": "Archivierten Revier-Eintrag nach Abhängigkeitsprüfung endgültig entfernen",
-      "source": "trash-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "kind": "business",
       "mcp": [
         "purge_revier_entity"
       ],
       "platform_only": false,
-      "test_scope": "Shared production repository/receipt rules, browser fault regressions and isolated Android probes; final execution evidence in CODEX-STATUS.md"
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "NativeForms.kt",
+      "action": "Archivierten Revier-Eintrag nach Abhängigkeitsprüfung endgültig entfernen",
+      "rights": "owner_write"
     },
     {
       "id": "revier.inspect_edit_action",
       "area": "revier",
-      "label": "Restaurierte Speicheraktion ausschließlich anhand ihres vorhandenen Belegs prüfen",
-      "source": "owner-client.js",
+      "source": "ComposeRevierScreens.kt",
       "kind": "business",
       "mcp": [
         "inspect_edit_action"
       ],
       "platform_only": false,
-      "test_scope": "Shared production repository/receipt rules, browser fault regressions and isolated Android probes; final execution evidence in CODEX-STATUS.md"
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "NativeForms.kt",
+      "action": "Restaurierte Speicheraktion ausschließlich anhand ihres vorhandenen Belegs prüfen",
+      "rights": "owner_read"
     },
     {
       "id": "revier.get_equipment_maintenance",
       "area": "revier",
-      "label": "Wartungspläne und erledigte Wartungen eines Geräts lesen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "kind": "business",
       "mcp": [
         "get_equipment_maintenance"
       ],
       "platform_only": false,
-      "test_scope": "Shared local production rules over synthetic JVM transaction ports and browser draft/commit checks; no native or physical acceptance claimed"
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "NativeForms.kt",
+      "action": "Wartungspläne und erledigte Wartungen eines Geräts lesen",
+      "rights": "owner_read"
     },
     {
       "id": "revier.save_equipment_maintenance_plan",
       "area": "revier",
-      "label": "Eigene Wartungsintervalle einrichten oder bewusst früher planen",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "kind": "business",
       "mcp": [
         "save_equipment_maintenance_plan"
       ],
       "platform_only": false,
-      "test_scope": "Shared local production rules over synthetic JVM transaction ports and browser draft/commit checks; no native or physical acceptance claimed"
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "NativeForms.kt",
+      "action": "Eigene Wartungsintervalle einrichten oder bewusst früher planen",
+      "rights": "owner_write"
     },
     {
       "id": "revier.record_equipment_maintenance",
       "area": "revier",
-      "label": "Tatsächlich erledigte Wartung mit Datum dokumentieren",
-      "source": "revier-solo-ui.js",
+      "source": "ComposeRevierScreens.kt",
       "kind": "business",
       "mcp": [
         "record_equipment_maintenance"
       ],
       "platform_only": false,
-      "test_scope": "Shared local production rules over synthetic JVM transaction ports and browser draft/commit checks; no native or physical acceptance claimed"
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "NativeForms.kt",
+      "action": "Tatsächlich erledigte Wartung mit Datum dokumentieren",
+      "rights": "owner_write"
     }
   ],
   "reviewed_sources": {
-    "android/app/src/main/assets/backup-browser-state.js": "b73cf276823d2525a711c9c53002f1a4dab72e2209616796a581571402ab956a",
-    "android/app/src/main/assets/backup-restore-drafts.html": "4f180ff1a92910d923fbeb434262bb3b91af5258f336a2dc80c8d0b581398d7f",
-    "android/app/src/main/assets/billing-ui.css": "bf57b082368de2a242e8d7ce4313b03535208c6c0b7e33881b8440f3518478c3",
-    "android/app/src/main/assets/billing-ui.js": "f39da828b41a3bf0359d6bdc1c640241e6dbf55f607383336d4e59ef9fcc2272",
-    "android/app/src/main/assets/business-actions-ui.js": "ff215e3e12241e29e8d711cd383203351dad660af93190184b624cc195b8ee89",
-    "android/app/src/main/assets/business-feedback.js": "296d6bcf3524bd0a6d49143673a673e475e9739e0b508bfadf1927ad6b7b7bc0",
-    "android/app/src/main/assets/customer-hub.css": "7cfb06a23e32666ee9aa9b43ef2af10a728805db06c7fee4961246e76caf3c75",
-    "android/app/src/main/assets/customer-hub.js": "ab43be02da63b4b7fed7ce20ef8a8bf2b06b8aad844dc1492d57698383efc8ad",
-    "android/app/src/main/assets/daily-usability.css": "bb8c6d9107c374a57a4e6c14f466bd6be0ab6ae04ff4b53ee49be555e61c0edb",
-    "android/app/src/main/assets/daily-usability.js": "93392f324112c58817208d26538d1853c2eb41e2cc00fbc70ff4651a1c16c1da",
-    "android/app/src/main/assets/data-order.js": "12c646ad5d61d3b6aab3bea91cb33c637df85709cdbb46d4d9d8e9b71ac16a99",
-    "android/app/src/main/assets/design-concept.css": "c5f80bd5bb7c01e6cadadf76f17ed1ebd4d1c5f6faacc406907c087d6e1e05fe",
-    "android/app/src/main/assets/design-concept.js": "5724efc8c40c098e333deb765e4bd6be16e890bd00821301f0b3ab4359ec7930",
-    "android/app/src/main/assets/equipment-maintenance-texts.js": "f602a62ce5259643436ba796901c3fbb758d50e1e5950f233a74c1e21e344c12",
-    "android/app/src/main/assets/equipment-photo-ui.js": "4bf5d53528fbe493b5073a4714f1eddbf8f784532557624f1c7d1e03f5b1bc1e",
-    "android/app/src/main/assets/field-ui.css": "227843b50c4d4e7983452cb821915f2748c50250944a50d511202f4be178b875",
-    "android/app/src/main/assets/field-ui.js": "132aee01f207f2cde432caaa00516a9e74af7012a8ab88bed81a7922841c6b83",
-    "android/app/src/main/assets/frame-guard.js": "bde06673123846bb39ce644229d84bc672db205e3cc13ce75e5c7c4e8e487d75",
-    "android/app/src/main/assets/gartenpirat-photo-store.js": "50c1a294c08e16483b6daef1dc677640820588ccebe2ba64b7fde2c468d5c51c",
-    "android/app/src/main/assets/gartenpirat.css": "e572dc7dee77e2df54484ae2c586cbbebc3e076aef9777c77b9a14efb2b7d5d8",
-    "android/app/src/main/assets/gartenpirat.js": "8a6e11d7542ebfa22afa2955dfffdf7e3de172ad97fa6b647bdc1c08735f8815",
-    "android/app/src/main/assets/invoice-draft.js": "68ffe14e29986c8de87e7b0639549374fa7ab97b8ef85131a8090fa8732e7582",
-    "android/app/src/main/assets/invoice-editor.css": "77ddc9a8e314c309491efab15ab6d840206c0ee6f6cb49e461721143826ae77d",
-    "android/app/src/main/assets/invoice-editor.js": "92956c2ac3b0d11715b3d2d8914646fecd5850606fb957718d4dc3615984b25c",
-    "android/app/src/main/assets/invoice-flow.js": "1727981d7e8247faa82c3e6c422558e19454730c089a058015dbbe1a855f37d6",
-    "android/app/src/main/assets/legacy-conflicts-ui.js": "97a07315a4d65488571c53a846ab8a8644434a71cc36acc597850e967170d00e",
-    "android/app/src/main/assets/local-invoice-ui.css": "7cf2524aec8e0877749c8e7fb490de93f1ccaaf8e369514d7eaaa6e96a6b65e4",
-    "android/app/src/main/assets/local-invoice-ui.js": "4b28f780ef9f6964077422593c23db6dbc7d3db9bea88a8776e9f600610c4e8a",
-    "android/app/src/main/assets/mobile.html": "5f6e8969f57d76a62dbd045286be2a4a84cf1a904b15209f1a3b5e75faba60ff",
-    "android/app/src/main/assets/modern-ui.css": "33018a5adc6fb888f3d9ad8eb950fdd2f7c0656acc983a9ad5cac0e767a95c78",
-    "android/app/src/main/assets/navigation-status.js": "863f4cd34ac071c75ecc6dd06db10cb96ac5f92df824248cc1bbe2c46d51a355",
-    "android/app/src/main/assets/offer-contract.js": "975068d39128ac6207fc0b5e9835803ca7d5675a9529851c63625631bd668a1f",
     "android/app/src/main/assets/offer-contract.json": "f2fa77c5f92e22f69f46875ba4fc64f15a4d454d47b8339ede853b83ec393971",
-    "android/app/src/main/assets/offers-ui.css": "934613e5bfe2073966f8e07ead9c1cfbe1ff9130f305ccf35e3f989d2e15d42a",
-    "android/app/src/main/assets/offers-ui.js": "374430542b256cc5c901b54d034ff8f7a669edb56ac93dd9b28fff5e647c1d53",
-    "android/app/src/main/assets/order-sync-review.css": "a3ee54b10cf7395fdde8b319bddfa4fa0ddfad1c5918fae16d387e784f4d26d8",
-    "android/app/src/main/assets/order-sync-review.js": "699ec85256b3dc325c1a62268193e47490e4d92370c975ad71958c3fb9411399",
-    "android/app/src/main/assets/order-window.css": "13c71328e27af09c85429a098a4a85045736bdc5fc861abb56d7e74abcbdf1d3",
-    "android/app/src/main/assets/order-window.js": "445981b60691499d020f66abc7dd187126383d34eb28460123203962e1c5e11b",
-    "android/app/src/main/assets/owner-client.js": "44063a3acb12a5e55b18c8db7dbebb692c69616056d59c82b7debfcb79e66e71",
-    "android/app/src/main/assets/owner-ui.js": "e786ad9d40dc57319ae42df06fde54fa5fc222f769c50b134536511b3e65f43e",
-    "android/app/src/main/assets/personal-payment.css": "d9b61367ed0410acfe028e4c20c7020fbd5165f0c5b6bdac452fc96dadb1673e",
-    "android/app/src/main/assets/personal-payment.js": "61578775a2e9951d4b7b4e21f84905bb45c3de69eddc69df245d79e0aef0918d",
-    "android/app/src/main/assets/photo-settings.js": "25ae00bbf1fa0ce5f1ce8a34eeaa8ec9771dccd2410b5a172869dcdca7d9269d",
-    "android/app/src/main/assets/pixel-tunnel-ui.js": "568bcdd746939dd4a6d55757472de0e0e3d03f737f4304c80c19c40c7c45bc40",
-    "android/app/src/main/assets/planning-modern.css": "4220759e2b72e2aa330b9e1d7a228473f58d56de881a80a95c93656db7b5adca",
-    "android/app/src/main/assets/planning-ui.css": "2478b203c1d8686190a938d1030a97a8db1a8acba5f1fbb16e8d70dbc427fc0c",
-    "android/app/src/main/assets/planning-ui.js": "37f218102a34e9e92f9469d10d77f47016e1ecbafa8e75f4f76490f05abe043a",
-    "android/app/src/main/assets/plant-catalog.js": "4b31cc183e99643bd965602cf952533215e70a621f9025209cac480575089bf2",
-    "android/app/src/main/assets/pull-refresh.js": "da9ed8149b144c33184c635e6e4b31c6a4da2eaf69901627c38e7602da96faf8",
-    "android/app/src/main/assets/record-actions.css": "b8f646da0129535c9b3e4489bbe73a07c0c1ee8b6c054305cd8f1e941b600b35",
-    "android/app/src/main/assets/record-actions.js": "fc81ac89b178d0e89f32e864601e17f79003c713e746e04d161a0f06b54e7554",
-    "android/app/src/main/assets/revier-solo-ui.css": "29a97662b45d283ab534662dd666f063db66082afe79529d99cb5888bb71df11",
-    "android/app/src/main/assets/revier-solo-ui.js": "ac5da0cba3b7e67f73043da453a4ecc37acd7786920ab253f7f752e9b0e5b7d7",
-    "android/app/src/main/assets/runtime-compat.js": "0c94af35ae06b524a9a4c045715c61d1e82592471abd417443c3724f0f5a1caf",
-    "android/app/src/main/assets/simple-forms.css": "e9f343d9e292a9761a013ee64ca4f8125b6e5fba319188f54f18349ec8ec7a2f",
-    "android/app/src/main/assets/simple-forms.js": "40f6a12c7daa574fc89e731c61211759740db7642d946d0da8d9fdbb47a6afd3",
-    "android/app/src/main/assets/startup-ui.js": "cb868dbd302afa6d364d6327d53926ac5753cc2bcb6fded3d25d1d331c2c5ae0",
-    "android/app/src/main/assets/sync-dashboard.js": "8264006325d94d84103be80fe758bf11b13d8a6390cdb279e4eed00655c1f0d0",
-    "android/app/src/main/assets/today-ui.css": "4aa4eea32b134b5c861cdeafa86da1a19b1e3691bb42545d4f775c1942b80701",
-    "android/app/src/main/assets/today-ui.js": "2ac1c91af5d2dbcac0c7bc9de632d0d8a5853a9ee08c57d7d6f754861dc6e2dd",
-    "android/app/src/main/assets/tokens.css": "37a0baaf603d0c3afdb76fe276379f256008f236640a00e442d24fad4a8ec9d4",
-    "android/app/src/main/assets/trash-ui.js": "1938a6967deb6528ae5a685b38c7d7e5428c3f66535d0244574c8fd716a16f55",
-    "android/app/src/main/assets/work-location.css": "0e3eeec20060cca16a493083ca000315f7e5bee4d9a4b4538b8f4647c5a8c36b",
-    "android/app/src/main/assets/work-location.js": "a11159915147cdef5a2448b670040513e56380b67610331430ce2e792265997b",
-    "android/app/src/main/assets/workday-ui.css": "8295740c259864cce72c9747ad4c65ca7abe83ee088195e55c09cdb699060e95",
-    "android/app/src/main/assets/workday-ui.js": "a705a6adabcfc1bfe42813e2714f94a246ffa5d1671b633f55ee09b31d89b386",
-    "android/app/src/main/assets/workflow-ui.css": "e8e3af705782c2db8286ae064184d3f0767025571ce49fae037cb6ebab8a3920",
-    "android/app/src/main/assets/workflow-ui.js": "1a9af36253e80f8b1b0b82098e3dbdeb394ec59555c6663a2a3cf4826e840a58",
-    "android/app/src/main/java/at/hausgarten/service/MainActivity.java": "97b27c3abab0eef34b450aaf99ce51a4dfaf4d68331dc2fa1fbe9a02fc91a797",
-    "android/app/src/main/java/at/hausgarten/service/DriveJournalRules.java": "be16300d6372133721831b007bfc6eb32e00b59b90109fabf1334a09c9598e49",
-    "android/app/src/main/java/at/hausgarten/service/InvoiceIssueRules.java": "46a18e1c59987804194eb7ebe29070f65510e005bde3a8b20c72dfff47e7c34f",
-    "android/app/src/main/java/at/hausgarten/service/DriveRolePolicy.java": "79d887beeb460c444e1b0bdb67b0da9ff569dbce0b15b6da1f9faecaed79a7cf",
-    "android/app/src/main/java/at/hausgarten/service/DriveSyncCoordinator.java": "247418df87acf38346c81c651c00705e0c0ca945df219e1820f29e344128ac36",
-    "android/app/src/main/java/at/hausgarten/service/DriveSyncJob.java": "ea66c6a7999c32011efbfc053eb091e38c761edd079fd3701813b96ef3a2ad6b",
-    "android/app/src/main/java/at/hausgarten/service/PixelOwnerAccess.java": "fc057f99edb068ebf29cabac8f0ed4ba9762410ae319c286f3942b33364aa601",
-    "android/app/src/main/java/at/hausgarten/service/LocalOwnerRepository.java": "5f23b80f2f03fd247893ba064ea650fb6eca7ecf32eac4937ca2b1dd21e66b86",
-    "android/app/src/main/java/at/hausgarten/service/PixelLocalStore.java": "4ad01fa56dd9d1e23e0c18ad40ddb665f1e9a2a5feb91ab852dc50489e5780b5",
-    "android/app/src/main/java/at/hausgarten/service/WorkSessionStore.java": "3d5919ebf8152683c403c6c9e72596958189c617018e578fcf2cad1e3d1462e8",
-    "android/app/src/main/java/at/hausgarten/service/BusinessDataBridge.java": "dbd7631b00497e36f500f8357f94386a239eb9ab59c1eb63a988413a6ff50c3b",
-    "android/app/src/main/java/at/hausgarten/service/BrowserDraftRepository.java": "dc161b9c56a32259de492897e471bad3fdd3dfc249a8b2a2a791de0a50728a5f",
-    "android/app/src/main/java/at/hausgarten/service/BackupSettingsRepository.kt": "1634ceedf7f5a7b599c0a105e08c594e5bf2b863a3defef6df2358a51edf9a33",
-    "android/app/src/main/java/at/hausgarten/service/LocalBackupDataset.kt": "603f7e21aa73b2bfc3fe7b0b3f64a1341d924d3f1927f3c1d91368efea49aebc",
-    "android/app/src/main/java/at/hausgarten/service/BrowserMediaBridge.java": "4a1f36acacd1e680a4c7ec6b9cc3e8d3121e9d286d86ce77fec0fd9dc3e13f96",
-    "android/app/src/main/java/at/hausgarten/service/NativeOwnerQueries.java": "0240d625e58f270442f5121151a6bde4920ee38b013fd91a59ad35636f36db63",
-    "android/app/src/main/java/at/hausgarten/service/PixelMcpOwnerTools.java": "c1954e7efafc47fddd1a17daa62e7613fb41ee24752ad4d6e6f279a43427193e",
-    "android/app/src/main/java/at/hausgarten/service/SyncArchiveApplicationService.java": "540dff6bb8de313f3286720f4e8586692c19583eb406f5cda4eaad3f8ea50923",
-    "android/app/src/main/java/at/hausgarten/service/LocalMigrationInventory.java": "03028b8f3e20887e1d5345e633325207965e4f8e7267c6545cbbb3b76b7554db",
-    "android/app/src/main/java/at/hausgarten/service/LocalAuthorityMigration.java": "71c27a9eea1c28f0a63d4fab82f6ace62f84d953a4eb25c06bf05840f3c6aa0c",
-    "android/app/src/main/java/at/hausgarten/service/LocalAuthorityRules.java": "69176dfd1379a1985456cdfca50183275bcd2a4e9c346db24239313d142f730b",
-    "android/app/src/main/java/at/hausgarten/service/PlanningConnectionActivity.java": "df0a49b412ea23bffd5b16fc38d29b67dda9f05c1b8b076eab7dad9877cf0875",
-    "android/app/src/main/java/at/hausgarten/service/PixelTunnelActivity.java": "5344f908037dcc9f50549c279e05bff2ed7dc378153bb1a47e3dbefd0fba1b16",
-    "android/app/src/main/java/at/hausgarten/service/NativeUi.java": "d49edfc81f227a1df1e8321b9fc6cea035d0f2c0e8d83e542e281bc559eaa035",
-    "android/app/src/main/java/at/hausgarten/service/BackgroundWorkDispatch.java": "639d6059c077140b12c21305ec5761c227d5f203cafea0bde90ed312f2a2cafc",
-    "android/app/src/main/java/at/hausgarten/service/PendingWorkPhotoStore.java": "3019f9c8843818d54f939ec24174ea4939767b2e72f802d097abb7f000ea42e6",
-    "android/app/src/main/java/at/hausgarten/service/PixelBackupService.kt": "0b3a269d167f0e91b9919d5d0ed14352bec855f24da4b637029c722d4f4d66ab",
+    "android/app/src/main/java/at/hausgarten/service/BackgroundWorkDispatch.kt": "54b679841d5e734346a246852dd0f9fc8bdf68e97fecfbdf8d18e403dbd16420",
     "android/app/src/main/java/at/hausgarten/service/BackupDocumentTransfer.kt": "2d519705c499406d6889b97abbe0aa9eb401d507694c4ef3c35104ae95fe0152",
     "android/app/src/main/java/at/hausgarten/service/BackupInventory.kt": "bc606e16afaaa023a8002677f8bfcbd122657b1aac4be3532456c4fe4f2dbacf",
-    "android/app/src/main/java/at/hausgarten/service/EncryptedBackupArchive.kt": "16c27acd3b5e524ed232642d023c607522f172f01f3278f1ce21a59bd5a173cd",
     "android/app/src/main/java/at/hausgarten/service/BackupRestoreService.kt": "ac67c8fdc9cd792bae542f9ddfc291ab3bf47ef436a7d4f1f55234ff44084c1e",
-    "android/app/src/main/java/at/hausgarten/service/RestoreStartupProtection.kt": "acc09f6f4305d2690bb9ca3b91c910bcda75ed43d9bbc7710e9ae2cb9051dcdc",
     "android/app/src/main/java/at/hausgarten/service/BackupScheduleRules.kt": "19c2e7791358ff0200256721590e9907c250008865856ebb2658fd20fb05e25e",
+    "android/app/src/main/java/at/hausgarten/service/BackupSettingsRepository.kt": "1634ceedf7f5a7b599c0a105e08c594e5bf2b863a3defef6df2358a51edf9a33",
     "android/app/src/main/java/at/hausgarten/service/BackupStatusRules.kt": "4f6b2bd93d1e93a5e6d119f244d73673b3eaf702d6aace01135d36d35157095b",
-    "android/app/src/main/java/at/hausgarten/service/TrashMediaCleanup.java": "6466208f4b0111b12d427ce18b91ffffda59bd4ac4e54ddf8e74c9da4d2f7417",
-    "android/app/src/main/java/at/hausgarten/service/BrowserMediaRepository.java": "28a6942a0bae2c4c38203fe7300942cf193a2a55dd3da5e6c3001442a990006f",
-    "android/app/src/main/java/at/hausgarten/service/BrowserMediaRepositoryRules.java": "4e57b10108e8f5121b61ee46b3f430899bba22b0a7d3317a0bc728a1664fa156",
+    "android/app/src/main/java/at/hausgarten/service/BillingRules.kt": "f703eaf3dd907c2916fc03a29072022c27993b8e27eb8bc9ccd365edfd22cb75",
+    "android/app/src/main/java/at/hausgarten/service/BrowserDraftRepository.kt": "3b241d6f619a64697855c46e4036475ed7cdf29a761400106dadc790a9d5a211",
+    "android/app/src/main/java/at/hausgarten/service/BrowserMediaRepository.kt": "f2eba4e2181143a516e3b213782ff85086e66546ef2bf659f601a438f5bffc5f",
+    "android/app/src/main/java/at/hausgarten/service/BrowserMediaRepositoryRules.kt": "7abb936431e3c0b3af9f104744728f7f62e664a369a344133f38e948872da409",
+    "android/app/src/main/java/at/hausgarten/service/CalendarSetupRules.kt": "bfe9bd0ac763479131c0c48ddc55b871d529c6c6cc2e58c2f57c1bf034b40a02",
+    "android/app/src/main/java/at/hausgarten/service/ComposeFinanceScreens.kt": "8bdf9f2064ec0aa4efa5ec7d3ace10f5497fdc1fe8980a013b74369c7a57ee09",
+    "android/app/src/main/java/at/hausgarten/service/ComposeMediaScreens.kt": "22819f6391acaa528af1cbd799a2910ac3f4ab43095a26f215d436681d5cfe27",
+    "android/app/src/main/java/at/hausgarten/service/ComposePlanningScreens.kt": "949c8baa04483c112e93bb11a961996432f469bdff5ea875cd461be2e5cefaed",
+    "android/app/src/main/java/at/hausgarten/service/ComposeRevierScreens.kt": "70fe5455ec639bcb66d9f1ab9be37e016d1d2ad2c06ebe1221e1b9742874b2a3",
+    "android/app/src/main/java/at/hausgarten/service/DriveJournalRules.kt": "5e596e63ab697638222ccfe8c99589240fedbe29773870c1cb228a734dce85d6",
+    "android/app/src/main/java/at/hausgarten/service/DriveRolePolicy.kt": "2d88bc8b88152c1da4dfaeb246d5792776fb164829d48b94d7d04118587b3ea5",
+    "android/app/src/main/java/at/hausgarten/service/DriveSyncCoordinator.kt": "a7615141b122785bc994f016ffc9c2be9507dd5f20c9bd6e9fd30a7abeaf244d",
+    "android/app/src/main/java/at/hausgarten/service/DriveSyncJob.kt": "7b2a0dccbf89e92b5a1fae104714606cbf627e0c354427a9210609356b4c69e7",
+    "android/app/src/main/java/at/hausgarten/service/EncryptedBackupArchive.kt": "16c27acd3b5e524ed232642d023c607522f172f01f3278f1ce21a59bd5a173cd",
+    "android/app/src/main/java/at/hausgarten/service/EntityProtectionRules.kt": "a4457ac0f11af63852c8525bc8f729585d13251e18aaa6a6fb352332365fe682",
+    "android/app/src/main/java/at/hausgarten/service/EquipmentMaintenanceRules.kt": "d760e5486acdefe2fec66a281d0f8d71d561ef27c47c1a638dea71705a9e9155",
+    "android/app/src/main/java/at/hausgarten/service/EquipmentProfilePhotoRules.kt": "13baf94a9d0b24bda3d2cf5a2b6ab723f3a7e64f30b014a4f0dd80a42588d3cb",
+    "android/app/src/main/java/at/hausgarten/service/FullBackupActivity.kt": "edd2df04dbb8c25cc0374a2ac33e994e24f50e71d7db44085748ed083c48c236",
+    "android/app/src/main/java/at/hausgarten/service/GardenRules.kt": "70b13d61b0269042e1bed7f8852dba34a801f9854a7c2ae6877efc93379560ff",
+    "android/app/src/main/java/at/hausgarten/service/InvoiceIssueRules.kt": "19f900f84f38997da8fa1222aa724bde8be2e74711e763d4846abafa013e4107",
+    "android/app/src/main/java/at/hausgarten/service/LocalAuthorityActivity.kt": "d0fd1ece82fa1ccd13db3c23e1929e351536daebe2cebe540965ccf9e1905f06",
+    "android/app/src/main/java/at/hausgarten/service/LocalAuthorityGuard.kt": "38e644c942f574cfb0c3e9d9931baca55b84ebd8576d7833fbce982a0a3f2e2e",
+    "android/app/src/main/java/at/hausgarten/service/LocalAuthorityMigration.kt": "bd2122cc2d0de3d49bc618423ce633573fc149e270d845100d38feb8b5614a1f",
+    "android/app/src/main/java/at/hausgarten/service/LocalAuthorityRules.kt": "2801a554b4763d6e45e44f0283cfcc693b8907ae957e9c8dce844c2d9268bd82",
+    "android/app/src/main/java/at/hausgarten/service/LocalBackupDataset.kt": "8805e6cebf0ec96ffb607216082a7e106a3e70d6e782ee84c142fd4dfc973066",
+    "android/app/src/main/java/at/hausgarten/service/LocalInvoiceService.kt": "318980f61102e2c85a054e91ade1b1b3a3a5db5fb0cc09fd18f6b84b66744a2e",
+    "android/app/src/main/java/at/hausgarten/service/LocalMigrationInventory.kt": "c5da7558f006587835e6e63f438cb079856c3bdd3411f6f950ddc2126f1aaf4b",
+    "android/app/src/main/java/at/hausgarten/service/LocalOwnerRepository.kt": "ddfddb487996424a8a45aab72f6f8e557f6ffb9e41eac1553217c2486322080c",
+    "android/app/src/main/java/at/hausgarten/service/LocalWorkflowTools.kt": "0f7eda1c6598a05bd0f18da6fa493af9f9afb4833a9c0c77d14da98efdd058d1",
+    "android/app/src/main/java/at/hausgarten/service/MainActivity.kt": "c1d7125f8a303a06cf98831c64e4b6b34072e14465ec2833c95573dbddddd244",
+    "android/app/src/main/java/at/hausgarten/service/McpErrors.kt": "2f7a61caa4ca80c969cb4d72c7c96559a8405a610b433cded30f975f68377946",
+    "android/app/src/main/java/at/hausgarten/service/NativeActionCatalog.kt": "4ad4407808810ac790f0fb97b10ff10f395a115f466ff35b74878a296bf30853",
+    "android/app/src/main/java/at/hausgarten/service/NativeAppController.kt": "5104c9fa29a79d87483a7e05014dc9445524c9a912e061f0eb94c6845227ef6c",
+    "android/app/src/main/java/at/hausgarten/service/NativeCompose.kt": "5d28a9a633c34f49750ccf2a44acf88d5ac677bb3bbbc567a5187a6e322ea075",
+    "android/app/src/main/java/at/hausgarten/service/NativeDataRepository.kt": "4482b0ca34f76d6d8f63edb9a9bf49217fabe1ce03f0e81a8d27354543ef88f0",
+    "android/app/src/main/java/at/hausgarten/service/NativeForms.kt": "2d8799b72786c2fe6bb4998292a6ef1851f1a012d6de0bea70b68c16d76595f3",
+    "android/app/src/main/java/at/hausgarten/service/NativeOwnerQueries.kt": "b6906e45daa3f708a5053d1f3fae375bc84044e4ed676e3753e9869870686465",
+    "android/app/src/main/java/at/hausgarten/service/NativePrimaryScreens.kt": "cb0196c6cf390e2f06420c4013b2fa2a542c02aa99212c5f8aa1ec11e87ef72c",
+    "android/app/src/main/java/at/hausgarten/service/NativeRestoredDraftScreens.kt": "7d0dc470d64c2d0894eed829fed60e13e7892e88a9c779be4936723e877d3c2a",
+    "android/app/src/main/java/at/hausgarten/service/OfferApplicationService.kt": "e916096d7987f4396862a107b5e87966fcdd8bcf401a6cad8c1a5e80395095ac",
+    "android/app/src/main/java/at/hausgarten/service/OrderReviewRules.kt": "f8da15c56e3f3f6008cc3c481ec93eb3ccbce546dc7d3cd7d56890f81638a526",
+    "android/app/src/main/java/at/hausgarten/service/OwnerJournalRules.kt": "52de394bd5c39a2194672707c5ba0f95e0361942100b61b5150b80af1dd20bc6",
+    "android/app/src/main/java/at/hausgarten/service/OwnerRequestTransactions.kt": "53bf0692e93aeef439d26117e91661a4fd8432c8be4749538a398e8cf12d0497",
+    "android/app/src/main/java/at/hausgarten/service/PendingWorkPhotoStore.kt": "ac4504b69302b542ad964d0d5e0e7820ed09cb939a6a99e1b7574c3b347c2c08",
+    "android/app/src/main/java/at/hausgarten/service/PixelBackupService.kt": "0b3a269d167f0e91b9919d5d0ed14352bec855f24da4b637029c722d4f4d66ab",
+    "android/app/src/main/java/at/hausgarten/service/PixelLocalStore.kt": "40649ec4d520370fee800d3d3555a88496a9da6c19166a5abda87b4457bf1f8e",
+    "android/app/src/main/java/at/hausgarten/service/PixelMcpOwnerTools.kt": "038e2a09aa2d7b39869b6ad0f88f5ef67985ce9338061c9a255ad8ff54275443",
+    "android/app/src/main/java/at/hausgarten/service/PixelOwnerAccess.kt": "3c298e0f6880bc82e5ed79cbdc307179f6a61b83940819213f4c1db01d5d3682",
+    "android/app/src/main/java/at/hausgarten/service/PixelTunnelActivity.kt": "2bce84fdad1761419cb8fff3cb4ab7a7369a81c25ccc14b94f841b1b559d2912",
+    "android/app/src/main/java/at/hausgarten/service/PixelTunnelBootReceiver.kt": "202e9ed94e362c80eccec5cd88672e028fd03248a7e9853e4cb8c8b1fb251cd1",
+    "android/app/src/main/java/at/hausgarten/service/PixelTunnelService.kt": "4ceb6bd7efff5d116648fc10632a3ba570d566332bb0bb7e3a6d7957057c8779",
+    "android/app/src/main/java/at/hausgarten/service/PlanningApplicationService.kt": "669abc46888de54a2b6c53c260d5454b8322f9578deb0f3215000c4b827cdf50",
+    "android/app/src/main/java/at/hausgarten/service/PlanningConnectionActivity.kt": "5790f84a12f2afab6e2646fa000626ac0e8dbefb5a77567c4aad8bbd651599f3",
+    "android/app/src/main/java/at/hausgarten/service/RestoreRecoveryActivity.kt": "460003a1996ce374fb95c8dcae3f5657bd43f73ff8a87b10e6fe8471a42657cc",
+    "android/app/src/main/java/at/hausgarten/service/RestoreStartupProtection.kt": "acc09f6f4305d2690bb9ca3b91c910bcda75ed43d9bbc7710e9ae2cb9051dcdc",
     "android/app/src/main/java/at/hausgarten/service/RestoredBrowserCheckpoint.kt": "b774941b5253a1c528c1495cb40617b4b9cad55637d740ee38adb34d12f06000",
     "android/app/src/main/java/at/hausgarten/service/RestoredBrowserReviewRules.kt": "c0d8d897dddfead1f7e496ec51958fd4d91ba166d4b09b469c3e403786c7f7ac",
-    "android/app/src/main/java/at/hausgarten/service/RevierApplicationService.java": "d05f92c61e4c86372a425c186f216c60f97fdbb720fbe2a43489a05b3cceee3d",
-    "android/app/src/main/java/at/hausgarten/service/RevierRules.java": "4701aad42034049844d38678a8994b094df6c1bd91ce19d6269551b33e2d53a7",
-    "android/app/src/main/java/at/hausgarten/service/EquipmentMaintenanceRules.java": "6371ae29114247694392f02bd2b972462fcf2fdb226f22a77e169f3a1d74c2ea",
-    "android/app/src/main/java/at/hausgarten/service/EquipmentProfilePhotoRules.java": "9e94e56566547af2e4b020e0078d6a26425391d99c5b1bedcbf1c0f7c714b161",
-    "android/app/src/main/java/at/hausgarten/service/RevierRepository.java": "f85ac7fc648191e1bb210d557c61108fa0f466793032b93354080932047581be",
-    "android/app/src/main/java/at/hausgarten/service/RevierLocalRepository.java": "410131dc6be291ab9a34afe6c56fe00cc7d04d2c4c7b8c7a66afe36f0dabe729",
-    "android/app/src/main/java/at/hausgarten/service/RevierSnapshotRepository.java": "9c8f1435baf3a24dbc54f0a189ad082f60f141b22b8c006486dea20c2984e5cb",
-    "android/app/src/main/java/at/hausgarten/service/LocalWorkflowTools.java": "46c0bb2757df104a9f9166b9b65c1bf4c811186be3846885c1623c2659abae3b",
-    "android/app/src/main/java/at/hausgarten/service/PlanningApplicationService.java": "976da88729a0071c509a03864bd2e57d6c3504a3b46a8b2fd145fd2b0d83880a",
-    "android/app/src/main/java/at/hausgarten/service/OfferApplicationService.java": "df37f6468e85d4d008537d61f25a446f6f75e117ac8045e5c92860c6b176af62",
-    "android/app/src/main/java/at/hausgarten/service/LocalInvoiceService.java": "216410940744bdf00350d2d9efc0596ee51a61c7d1a8acf7a96740aa1cc388ac",
-    "android/app/src/main/java/at/hausgarten/service/OwnerRequestTransactions.java": "b5dfd5d3328bb9d6db0364c013e3812d323f7df31341541bf924ffbeda528771",
-    "android/app/src/main/java/at/hausgarten/service/McpErrors.java": "b526138f610115c62e56934fc5f2dd440e1b1d49bf01ffa2146b41fd229c1f1e",
-    "android/app/src/main/java/at/hausgarten/service/CalendarSetupRules.java": "c2049341103fbb0c6aa2a4bc400c8af0dcb2900af3ec224320c336f1013d5755",
-    "android/app/src/main/java/at/hausgarten/service/FullBackupActivity.kt": "e958ec85cdb430d3c3d5c22b92ebe49b9ac405c9381c27ecf3b629fe9fa53fcc",
-    "android/app/src/main/java/at/hausgarten/service/RestoreRecoveryActivity.kt": "6941855a4c22d1dc0e348b0b486a5ec73c70119d9fbb015c72cef79cbc82f2c1",
-    "android/app/src/main/java/at/hausgarten/service/LocalAuthorityActivity.java": "1a535285043626fec0679987343bab868d00439d316964985a50a4e4ecc8a7ea"
+    "android/app/src/main/java/at/hausgarten/service/RevierApplication.kt": "1de2f627f4b7b80cab610149b758648d90ae64d4ff259a826386def883ab524b",
+    "android/app/src/main/java/at/hausgarten/service/RevierApplicationService.kt": "508d786ef6ee15e9ddbc5aa256246a1cb3cecbcb4261fa4b85a7028b0631c925",
+    "android/app/src/main/java/at/hausgarten/service/RevierLocalRepository.kt": "853af48bf3e22101a38ab15b9a7ba00985dbae7f3b6c236d4876ddb890778ab3",
+    "android/app/src/main/java/at/hausgarten/service/RevierRepository.kt": "bc71a62c1ed4d30c1799095598ecab4d183cad8c47394083e44b592f4659495f",
+    "android/app/src/main/java/at/hausgarten/service/RevierRules.kt": "b0e07546868a7fcecacb23d9b8b366847bd1c0601ed3badd863124d5094bd9bb",
+    "android/app/src/main/java/at/hausgarten/service/RevierSnapshotRepository.kt": "d65f212e14d99da0dd0b6e780da7016b0a16441ca3e63aa11f87acf499b06389",
+    "android/app/src/main/java/at/hausgarten/service/SyncActionOrder.kt": "606f4cbb7970bb769e3173bcee4b57d92e8604f2acf9e56f8d6ff82df020cab7",
+    "android/app/src/main/java/at/hausgarten/service/SyncArchiveApplicationService.kt": "098d401efe80d684db74a8a9ab1832cf93b384e7c6fb92d59b891e185be624d3",
+    "android/app/src/main/java/at/hausgarten/service/TestDataRules.kt": "6959e9b3651a9332ee1f606971a291841eed076605a9023c474a03b07bf7d44a",
+    "android/app/src/main/java/at/hausgarten/service/TrashMediaCleanup.kt": "41359da8ccf4144966d10f0a29064311396b2b0763e46bc62c3a0b769b9b2147",
+    "android/app/src/main/java/at/hausgarten/service/WorkSessionStore.kt": "37df25380a9d26a8b9e02f2a9069e7ec29eb4ba37163124bf26cbedfbe9ebdfd",
+    "android/app/src/main/java/at/hausgarten/service/WorklogRules.kt": "74df9b277d1a1c2661ac3fdcc45af378808bc6ddfeca872fcd2ad68f40013945"
   }
 }

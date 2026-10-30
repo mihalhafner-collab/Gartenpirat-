@@ -2,9 +2,15 @@
 
 ## Betrieb und gemeinsame Fachlogik
 
-Die App auf dem Pixel führt die Geschäftsdaten lokal. Oberfläche und MCP verwenden
-dieselben nativen Fachpfade. Kunden, Einsatzobjekte und Rechnungsempfänger sind
-unterschiedliche Beziehungen. Auftragslose Arbeiten bleiben möglich. Persönliches
+Die App auf dem Pixel führt die Geschäftsdaten lokal. Die Android-Anwendung ist
+in Kotlin auf Android/JVM mit nativer Compose-Oberfläche implementiert. Oberfläche
+und MCP verwenden dieselben transaktionalen Fachpfade. Paketkennung
+`at.hausgarten.service`, Originalsignatur und Updatefähigkeit bleiben erhalten.
+Ein Update benötigt eine höhere Versionsnummer. Die Website unter `static/` bleibt
+eigenständig.
+
+Kunden, Einsatzobjekte und Rechnungsempfänger sind unterschiedliche Beziehungen.
+Auftragslose Arbeiten bleiben möglich. Persönliches
 „b.b./bezahlt“ ist vom Rechnungsstatus getrennt. Fehlende Daten, Preise, Zeiten,
 Beziehungen und Belegnummern nicht erfinden.
 
@@ -28,10 +34,20 @@ Medien und Kernzustand werden weiterhin gemeinsam übernommen; zurückgestellte
 Medien bleiben getrennt prüfbar. Ungültige oder wiederholte Bestätigungen dürfen
 keine zusätzliche Übernahme auslösen.
 
+Native Entwürfe und lesbare bekannte Formularhüllen aus älteren Sicherungen werden
+zur ausdrücklichen Sichtung den passenden nativen Editoren zugeordnet. Die
+Quellhülle und unklare Vorgangsbelege bleiben erhalten. Unbekannte Hüllen dürfen
+nicht als abgeschlossene Geschäftsaktionen oder automatisch ausführbare Entwürfe
+ausgelegt werden. Archivierte rohe IndexedDB-/LevelDB-Dateien bleiben erhalten;
+die native Oberfläche kann daraus keinen vollständigen Browserdatenbank-Inhalt
+ableiten. Diese Grenze muss sichtbar bleiben. Medien ohne vollständigen lesbaren
+Spiegel oder erforderliche Nachweise werden ausdrücklich zurückgestellt oder ihre
+Aktivierung bleibt gesperrt; ihre bloße Dateierhaltung ist kein Übernahmenachweis.
+
 ## Sicherung
 
-Neue Sicherungen sind unverschlüsselte ZIP-Dateien: Speicherknopf,
-Android-Dateiauswahl, Drive oder lokalen Speicher als Ziel wählen und die
+SQLite-Schema7 und ZIP-Manifestformat1 bleiben kompatibel. Neue Sicherungen sind
+unverschlüsselte ZIP-Dateien: Speicherknopf, Android-Dateiauswahl, Drive oder lokalen Speicher als Ziel wählen und die
 gespeicherte Datei zurücklesen. Drive ist ausschließlich Speicherort des fertigen
 Backup-Archivs und Quelle einer ausdrücklich gewählten Wiederherstellung.
 Die installierte Drive-App übernimmt die Ablage über den Android-Dateianbieter.
@@ -115,49 +131,53 @@ Aufträge und Rechnungen nach vorhandenem Status und Kunde filtern. Aktive Auswa
 Trefferzahl und einfaches Zurücksetzen sichtbar halten. Keine gespeicherten
 Filterprofile oder zusätzlichen Datenmodelle.
 
-## Datenbank, Bilder und Reaktionszeit beim Kotlin-Refactoring
+## Datenbank, Bilder und Reaktionszeit
 
-Indizes an den tatsächlichen Filter- und Sortierabfragen ausrichten. Für eine
-Objekthistorie insbesondere den vorhandenen Objektbezug zusammen mit dem
-Arbeitsdatum prüfen; keine neue Beziehung allein für einen Beispielindex erfinden.
-Bei Room die passenden Indizes mit `@Index` ausdrücken. Die Verwendung mit
-`EXPLAIN QUERY PLAN` und realistischen synthetischen Daten prüfen. Zusätzliche
-Indizes benötigen eine konkrete Abfrage, weil sie auch Schreibaufwand verursachen.
+Die vorhandene SQLite-Datei bleibt der Geschäftsspeicher. Die Tabellen
+`native_read_rows`, `native_read_records` und `native_read_meta` enthalten eine
+abgeleitete, wiederaufbaubare Leseprojektion innerhalb derselben Datenbank. Sie
+ersetzen weder Fachschreiber noch Originaldaten oder Sicherungsbelege. Eine
+Schemaumstellung oder ein destruktiver Fallback folgt daraus nicht.
 
-WAL ausdrücklich konfigurieren und zur Laufzeit prüfen; bei Room
-`JournalMode.WRITE_AHEAD_LOGGING` verwenden. WAL erlaubt gleichzeitige Leser und
-einen Schreiber, beseitigt aber nicht jede Sperre. SQLite-Sicherungen müssen einen
-konsistenten, vollständig bestätigten Stand einschließlich der Änderungen im WAL
-aufnehmen. Das isolierte Kopieren der Hauptdatei einer laufenden WAL-Datenbank ist
-keine vollständige Sicherung. Den bestehenden Sicherungs-/Wiederherstellungsvertrag
-auch bei gleichzeitigem Schreiben und nach erneutem Öffnen prüfen.
+Listen laden nur benötigte Anzeigespalten und eine begrenzte Seite. Filter und
+Sortierung möglichst in SQL ausführen. Historien, Notizen, Beziehungen und
+Originaldateien erst beim Öffnen des jeweiligen Details laden. Ein JSON-Feld mit
+dem gesamten Bestand erfüllt diese Listenprojektion nicht. Der Aufbau einer
+ungültigen Leseprojektion darf den vollständigen Fachstand im Hintergrund auswerten;
+ungeänderte Projektionen müssen für weitere Seiten und Suchanfragen wiederverwendet
+werden. Eine Änderung invalidiert die betroffene Sicht über die Quellrevision;
+Flow bedeutet keine automatische Verarbeitung nur einzelner geänderter Zeilen.
 
-Listen laden nur die benötigten Spalten und einen begrenzten Ergebnisumfang,
-beispielsweise Kundenkennung, Name und Adresse. Filter und Sortierung möglichst
-in der Datenbank ausführen. Historien, Notizen, Beziehungen und Originaldateien
-erst beim Öffnen des jeweiligen Details laden. Ein ausgewähltes JSON-Feld mit
-dem gesamten Bestand erfüllt diese Projektion nicht. Vollständige Bestandslesungen
-bleiben den Bedienwegen vorbehalten, die sie tatsächlich benötigen, etwa Sicherungen.
+Indizes an tatsächlichen Filter-, Sortier- und Beziehungsabfragen ausrichten.
+Bei einer Objekthistorie den vorhandenen Objektbezug mit dem Arbeitsdatum verwenden.
+`EXPLAIN QUERY PLAN` und realistische synthetische Bestände müssen die Verwendung
+belegen. Zusätzliche Indizes benötigen eine konkrete Abfrage, weil sie auch
+Schreibaufwand verursachen. Keine neue Fachbeziehung nur für einen Index erfinden.
+
+WAL ausdrücklich konfigurieren und zur Laufzeit prüfen. WAL erlaubt gleichzeitige
+Leser und einen Schreiber, beseitigt aber nicht jede Sperre. SQLite-Sicherungen
+müssen einen konsistenten, vollständig bestätigten Stand einschließlich der
+Änderungen im WAL aufnehmen. Das isolierte Kopieren der Hauptdatei einer laufenden
+WAL-Datenbank ist keine vollständige Sicherung. Sicherung, Wiederherstellung und
+erneutes Öffnen auch bei gleichzeitigem Schreiben prüfen.
 
 Fotos und neue temporäre Fotoübertragungen als Dateien speichern; in SQLite nur
-Dateireferenz und benötigte Metadaten halten. Vorhandene BLOBs und ihre
-MCP-/Sicherungsbezüge bei einer Umstellung vollständig erhalten; keine bestehende
-Dateiübertragung ersatzlos entfernen. Listen verwenden auf die tatsächliche
-Anzeigegröße verkleinerte Vorschauen statt dekodierter Kameraoriginale. Für eine
-Compose-Oberfläche Coil mit gemeinsamem ImageLoader, größenbegrenzter Dekodierung
-und begrenzten RAM-/Disk-Caches berücksichtigen; keine zweite eigene Cacheverwaltung.
-Originale bleiben für Detailansicht, Export und Sicherung verfügbar.
+Dateireferenz und benötigte Metadaten halten. Vorhandene BLOBs und ihre MCP- und
+Sicherungsbezüge vollständig erhalten. Listen bevorzugen verifizierte kleine
+Vorschaudateien aus der Projektion. Ein gültiges Vorschaubild darf keinen Zugriff
+auf das Original erzwingen. Bei fehlender Vorschau darf der geprüfte Originalpfad
+verwendet werden; Coil dekodiert passend zur Anzeigegröße. Originale bleiben für
+Detailansicht, Export und Sicherung verfügbar.
 
-Datenbankabfragen, Dateizugriffe und Bildverarbeitung dürfen den UI-Thread nicht
-blockieren. In Kotlin suspendierende Room-Zugriffe und für blockierende Datei- und
-Datenbankarbeit `Dispatchers.IO` verwenden. Room-Abfragen über `Flow` beobachten und
-an den Lebenszyklus der Oberfläche binden. Room führt betroffene Abfragen nach
-Invalidierung erneut aus; es liefert nicht automatisch nur einzelne geänderte
-Zeilen. Abfrageumfang und unnötige UI-Neuberechnungen deshalb begrenzen.
-Oberfläche und MCP behalten dieselben transaktionalen Fachschreiber.
+Coil verwendet einen gemeinsamen ImageLoader mit begrenztem RAM- und Disk-Cache;
+keine zweite eigene Bildcacheverwaltung. Unlesbare Bilder sichtbar kennzeichnen.
+Datenbankabfragen, Dateizugriffe, Integritätsprüfung und Bildverarbeitung dürfen
+den UI-Thread nicht blockieren. Blockierende Fach- und Dateioperationen laufen auf
+`Dispatchers.IO`. Leseprojektionen werden über Flow beobachtet und in Compose an
+den Lebenszyklus gebunden. Die Startprüfung einer unterbrochenen Wiederherstellung
+hält gewöhnliche Speicherzugriffe zurück, ohne den ersten Bildschirm zu blockieren.
 
-Room, Coroutines/Flow und Coil zusammen mit den relevanten Kotlin- und
-Oberflächenvarianten auf Kompatibilität und konkreten Nutzen nach KISS/YAGNI
-prüfen. Durchsatz, Antwortzeit, Speicherverbrauch und flüssiges Scrollen am
-tatsächlichen Zielgerät messen. 50.000 Lesevorgänge pro Sekunde, 0,1 Millisekunden
-oder 120 Bilder pro Sekunde sind keine zugesicherten Eigenschaften der App.
+Antwortzeit, Speicherverbrauch und flüssiges Scrollen am tatsächlichen Zielgerät
+messen. Durchsatz, einzelne Millisekundenwerte oder Bildraten sind keine zugesicherten
+Eigenschaften der App. Ein Quellcheck oder synthetischer Emulatorlauf ersetzt
+keinen entsprechenden Nachweis auf dem Pixel.
