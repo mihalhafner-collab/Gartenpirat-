@@ -75,6 +75,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private fun node(label: String): AccessibilityNodeInfo? = nodes().firstOrNull { it.isVisibleToUser && matches(it, label) }
     private fun shown(label: String) { waitUntil("VISIBLE_$label") { node(label) != null }; checks++ }
     private fun reveal(label: String) {
+        if (node(label) == null) scrollTop()
         var lastScroll = 0L
         waitUntil("REVEAL_$label") {
             if (node(label) != null) return@waitUntil true
@@ -93,10 +94,20 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         return null
     }
 
-    private fun scroll(): Boolean = nodes().filter { it.isVisibleToUser && it.isScrollable }
+    private fun scrollTargets(action: Int): List<AccessibilityNodeInfo> {
+        val vertical = if (action == AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD)
+            AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_UP.id else AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_DOWN.id
+        return nodes().filter { node ->
+            node.isVisibleToUser && !node.isEditable &&
+                node.actionList.any { it.id == action } && node.actionList.any { it.id == vertical }
+        }
+    }
+
+    private fun scroll(): Boolean = scrollTargets(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)
         .any { it.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD) }
 
     private fun click(label: String, scrollTo: Boolean = true) {
+        if (scrollTo && nodes().none { matches(it, label) && clickable(it) != null }) scrollTop()
         var lastScroll = 0L
         waitUntil("CLICK_$label") {
             val candidate = nodes().firstOrNull { matches(it, label) && clickable(it) != null }
@@ -120,6 +131,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun enter(label: String, value: String) {
+        if (field(label) == null) scrollTop()
         var lastScroll = 0L
         waitUntil("FIELD_$label") {
             if (field(label) != null) return@waitUntil true
@@ -239,10 +251,23 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             automation.serviceInfo = previousInfo.apply { flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS }
             seedPaging()
             launch()
-            customerJourney()
-            timerJourney()
-            notificationJourney()
-            largeTextJourney()
+            val failures = ArrayList<Throwable>()
+            fun journey(name: String, run: () -> Unit) {
+                val failure = try { run(); null }
+                    catch (failure: AssertionError) { failure }
+                    catch (failure: Exception) { failure }
+                if (failure == null) android.util.Log.i("NativeComposeQA", "$name PASS")
+                else failures.add(AssertionError("QA_NATIVE_COMPOSE_JOURNEY_$name", failure))
+            }
+            journey("customer", ::customerJourney)
+            journey("timer", ::timerJourney)
+            journey("notification", ::notificationJourney)
+            journey("large_text", ::largeTextJourney)
+            if (failures.isNotEmpty()) {
+                val failure = AssertionError("QA_NATIVE_COMPOSE_JOURNEYS_FAILED_${failures.size}")
+                failures.forEach(failure::addSuppressed)
+                throw failure
+            }
             return JSONObject().put("checks", checks).put("synthetic_only", true).put("productive_data_read", false)
                 .put("real_main_activity", true).put("native_compose_ui", true).put("customer_crud", true)
                 .put("paging_and_search", true).put("mcp_write_visible_without_reload", true)
@@ -259,12 +284,24 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun scrollTop() {
-        // Lazy lists discard off-screen semantics. Use their actual scroll action to return.
-        repeat(80) {
-            val moved = nodes().filter { it.isVisibleToUser && it.isScrollable }
-                .any { it.performAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD) }
-            if (!moved) return
-            SystemClock.sleep(35)
+        // A dispatched scroll can temporarily return false while Compose is
+        // animating. Only a settled absence of backward actions proves the top.
+        var lastScroll = 0L
+        var boundarySince = 0L
+        waitUntil("SCROLL_TOP") {
+            val now = SystemClock.uptimeMillis()
+            val targets = scrollTargets(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD)
+            if (targets.isEmpty()) {
+                if (boundarySince == 0L) boundarySince = now
+                now - boundarySince >= 500
+            } else {
+                boundarySince = 0L
+                if (now - lastScroll >= 350) {
+                    targets.any { it.performAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD) }
+                    lastScroll = now
+                }
+                false
+            }
         }
     }
 
@@ -391,6 +428,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun timerJourney() {
+        click("Kunden")
         val before = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length()
         enter("Suchen", fixturePrefix + "000")
         shown("1 Treffer · 1–1")
