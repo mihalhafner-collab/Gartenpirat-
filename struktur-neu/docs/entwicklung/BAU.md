@@ -326,6 +326,11 @@ gemeinsame Ansicht für Zahlungen und Guthaben. Je Pfad zwei Aufwärmläufe und
 Semantik-Abfrage/Polling; Hostlast ist nicht kontrolliert. Ersten Lauf als Ausgangs-
 messung führen. Repositoryzeiten, Emulatoranzeige und physischer Pixel dürfen
 weder gleichgesetzt noch als unbelegter Vorher-/Nachhergewinn dargestellt werden.
+Der gezielte Zahlungsleservergleich führt den bisherigen Leser und den aktuellen
+Leser im selben Prozess mit wechselnder Reihenfolge je 40-mal aus. Reihenfolge,
+Inhalte und Hash müssen gleich bleiben; große Unicodeeinträge prüfen weiterhin
+den vorhandenen gestückelten Rückfallpfad. Diese Teilmessung belegt keine
+Beschleunigung der gesamten Zahlungsansicht oder des physischen Pixels.
 
 ## Eigenständige Website
 

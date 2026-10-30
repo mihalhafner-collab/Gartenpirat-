@@ -190,12 +190,16 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
         val service = LocalInvoiceService(context, store)
         val result = JSONObject().put("scope", "EMULATOR_REPOSITORY_AND_LEDGER_READS;NO_UI_OR_PIXEL_LATENCY")
             .put("invoices", 120).put("payments", 240).put("samples_per_path", 40).put("warmups_per_path", 2)
+        fun statistics(values: List<Double>): JSONObject {
+            val sorted = values.sorted()
+            return JSONObject().put("mean_ms", values.average()).put("p95_ms", sorted[37])
+                .put("slowest_5_percent_mean_ms", sorted.takeLast(2).average()).put("samples_ms", JSONArray(values))
+        }
         suspend fun measure(name: String, block: suspend () -> Unit) {
             repeat(2) { block() }
             val values = ArrayList<Double>()
             repeat(40) { val start = System.nanoTime(); block(); values.add((System.nanoTime() - start) / 1_000_000.0) }
-            val sorted = values.sorted()
-            result.put(name, JSONObject().put("mean_ms", values.average()).put("p95_ms", sorted[37]).put("slowest_5_percent_mean_ms", sorted.takeLast(2).average()).put("samples_ms", JSONArray(values)))
+            result.put(name, statistics(values))
         }
         measure("invoices") { yes(data.list("invoices", limit = 50).total == 120, "OFFICE_INVOICE_COUNT") }
         measure("billing_work_records") { data.list("worklogs", limit = 50) }
@@ -204,6 +208,37 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             yes(ledger.getInt("total") == 240 && ledger.getJSONArray("payments").length() == 50, "OFFICE_PAYMENT_PAGE")
             yes(ledger.getJSONArray("balances").length() == 120 && ledger.getJSONArray("balances").getJSONObject(0).getLong("remaining_minor") == 5000L, "OFFICE_BALANCES")
         }
+        // Exact pre-change reader from e15dcdd, confined to a synthetic comparison.
+        // Alternating order on the same connection/fixture avoids comparing hosts.
+        fun previousEntries(): JSONArray {
+            val entries = JSONArray()
+            store.readableDatabase.rawQuery("SELECT key FROM owner_state WHERE key LIKE 'local_payment:%' ORDER BY rowid", null).use { rows ->
+                while (rows.moveToNext()) entries.put(JSONObject(store.ownerValue(rows.getString(0), "{}")))
+            }
+            return entries
+        }
+        val currentReader = LocalInvoiceService::class.java.getDeclaredMethod("paymentEntries").apply { isAccessible = true }
+        fun currentEntries() = currentReader.invoke(service) as JSONArray
+        repeat(2) { previousEntries(); currentEntries() }
+        val before = ArrayList<Double>(); val after = ArrayList<Double>()
+        repeat(40) { index ->
+            var oldRows = JSONArray(); var newRows = JSONArray()
+            fun oldRead() { val start = System.nanoTime(); oldRows = previousEntries(); before.add((System.nanoTime() - start) / 1_000_000.0) }
+            fun newRead() { val start = System.nanoTime(); newRows = currentEntries(); after.add((System.nanoTime() - start) / 1_000_000.0) }
+            if (index % 2 == 0) { oldRead(); newRead() } else { newRead(); oldRead() }
+            yes(PixelMcpWriteTools.hash(oldRows) == PixelMcpWriteTools.hash(newRows), "PAYMENT_READER_EXACT_PARITY")
+        }
+        result.put("payment_entry_read_comparison", JSONObject().put("scope", "SAME_PROCESS_SAME_SQLITE_FIXTURE_ALTERNATING_ORDER;NOT_UI")
+            .put("before_reference", "e15dcdd:LocalInvoiceService.paymentEntries").put("before", statistics(before)).put("after", statistics(after)))
+        val largeKey = "local_payment:qa_office_large"
+        val largeText = "QA synthetic 🌿 Unicode ".repeat(150000)
+        try {
+            store.putOwnerValue(largeKey, JSONObject().put("payment_id", "qa_office_large").put("amount_minor", 0)
+                .put("allocations", JSONArray()).put("notes", largeText).toString())
+            val rows = currentEntries()
+            yes(rows.length() == 241 && rows.getJSONObject(240).getString("notes") == largeText, "PAYMENT_LARGE_UNICODE_CHUNK_FALLBACK")
+            yes(PixelMcpWriteTools.hash(previousEntries()) == PixelMcpWriteTools.hash(rows), "PAYMENT_LARGE_ENTRY_PARITY")
+        } finally { store.writableDatabase.delete("owner_state", "key=?", arrayOf(largeKey)) }
         return result
     }
 

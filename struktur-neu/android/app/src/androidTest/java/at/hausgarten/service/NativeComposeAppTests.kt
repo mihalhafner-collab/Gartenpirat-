@@ -112,8 +112,17 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
     }
 
-    private fun scroll(): Boolean = scrollTargets(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)
-        .any { it.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD) }
+    private fun settleUi() {
+        test.waitForIdleSync()
+        automation.waitForIdle(150, 3000)
+    }
+
+    private fun scroll(): Boolean {
+        val moved = scrollTargets(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)
+            .any { it.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD) }
+        if (moved) settleUi()
+        return moved
+    }
 
     private fun click(label: String, scrollTo: Boolean = true): AccessibilityNodeInfo {
         if (scrollTo && nodes().none { matches(it, label) && clickable(it) != null }) scrollTop()
@@ -134,6 +143,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             false
         }
         checks++
+        settleUi()
         return requireNotNull(clicked)
     }
 
@@ -156,6 +166,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, value)
         }), "SET_TEXT_$label")
         waitUntil("VALUE_$label") { field(label)?.text?.toString()?.contains(displayed) == true || value.isEmpty() && field(label) != null }
+        settleUi()
     }
 
     private fun back() {
@@ -316,7 +327,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             } else {
                 boundarySince = 0L
                 if (now - lastScroll >= 350) {
-                    targets.any { it.performAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD) }
+                    if (targets.any { it.performAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD) }) settleUi()
                     lastScroll = now
                 }
                 false
@@ -643,6 +654,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         controller.flushDrafts()
         click("Heute"); click("Arbeit erfassen")
         reveal("Ungespeichertes Foto")
+        val workCount = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length()
+        click("Speichern")
+        reveal("Für das Foto zuerst einen Kunden wählen.")
+        yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() == workCount, "PHOTO_CUSTOMER_REQUIREMENT_CHECKED_BEFORE_WORK_SAVE")
         click("Verwerfen"); click("Abbrechen", scrollTo = false)
         yes(File(requireNotNull(other.path)).isFile, "CANCEL_DISCARD_KEEPS_TEMP_PHOTO")
         reveal("Was wurde erledigt? *")
@@ -769,10 +784,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             repeat(42) { sample ->
                 click("Büro")
                 reveal(entry)
-                val target = requireNotNull(clickable(requireNotNull(node(entry))))
-                val start = System.nanoTime()
-                yes(target.performAction(AccessibilityNodeInfo.ACTION_CLICK), "OFFICE_OPEN_$name")
-                shown(ready)
+                var start = 0L
+                waitUntil("OFFICE_OPEN_$name") {
+                    val target = node(entry)?.let(::clickable)
+                    if (target == null || !target.refresh()) false
+                    else { start = System.nanoTime(); target.performAction(AccessibilityNodeInfo.ACTION_CLICK) }
+                }
+                waitUntil("OFFICE_READY_$name") { node(ready) != null }
                 val elapsed = (System.nanoTime() - start) / 1_000_000.0
                 if (sample >= 2) values.add(elapsed)
             }
@@ -780,6 +798,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             officeMeasurements.put(name, JSONObject().put("mean_ms", values.average()).put("p95_ms", sorted[37])
                 .put("slowest_5_percent_mean_ms", sorted.takeLast(2).average()).put("samples_ms", JSONArray(values)))
         }
+        test.sendStatus(0, Bundle().apply { putString("office_opening", officeMeasurements.toString()) })
         click("Heute")
     }
 
@@ -834,7 +853,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         back()
         waitUntil("PLANNING_BACK_TO_MAIN") { node("Planung") == null && automation.rootInActiveWindow?.packageName?.toString() == context.packageName }
         checks++
-        click("Heute")
+        shown("Heute")
         click("Arbeit erfassen")
         val saveWork = actionBounds("Speichern")
         val discardWork = actionBounds("Verwerfen")

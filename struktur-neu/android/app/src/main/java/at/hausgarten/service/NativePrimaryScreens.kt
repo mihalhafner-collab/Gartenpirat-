@@ -373,6 +373,7 @@ private fun NativeEntityEditor(controller: NativeAppController, collection: Stri
                 if (savedWorkId.isNotEmpty()) finishSaved(savedWorkId)
                 else {
                     val args = frozen ?: JSONObject(valueText).apply { baseline?.let { put("_edit_base", it); put("_edit_changes", JSONObject(changesText)) } }
+                    require(photoUri.isEmpty() || args.optString("customer_id").isNotEmpty()) { "Für das Foto zuerst einen Kunden wählen." }
                     pending = JSONObject(args.toString()); persist(); controller.flushDrafts()
                     val saved = controller.saveEditor(kind, args)
                     finishSaved(saved)

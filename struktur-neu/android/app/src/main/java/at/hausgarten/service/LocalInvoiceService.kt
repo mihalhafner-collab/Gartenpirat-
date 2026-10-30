@@ -1051,18 +1051,18 @@ internal class LocalInvoiceService {
     }
 
     private @Throws(Exception::class) fun paymentEntries(): JSONArray {
-        var out: JSONArray = JSONArray()
-        run {
-            (store!!.getReadableDatabase())!!
-                .rawQuery(
-                    "SELECT key FROM owner_state WHERE key LIKE 'local_payment:%' ORDER BY rowid",
-                    null,
-                )
-                .use { rows ->
-                    while (rows!!.moveToNext()) {
-                        out!!.put(JSONObject(store!!.ownerValue(rows!!.getString(0), "{}")))
-                    }
-                }
+        val out = JSONArray()
+        // Ordinary entries fit in one bounded cursor row. Keep the existing
+        // chunked reader for large historical entries instead of risking a
+        // CursorWindow overflow or issuing two extra queries for every payment.
+        store.readableDatabase.rawQuery(
+            "SELECT key, CASE WHEN length(value)<=32768 THEN value ELSE NULL END " +
+                "FROM owner_state WHERE key LIKE 'local_payment:%' ORDER BY rowid", null
+        ).use { rows ->
+            while (rows.moveToNext()) {
+                val raw = if (rows.isNull(1)) store.ownerValue(rows.getString(0), "{}") else rows.getString(1)
+                out.put(JSONObject(raw))
+            }
         }
         return out
     }
