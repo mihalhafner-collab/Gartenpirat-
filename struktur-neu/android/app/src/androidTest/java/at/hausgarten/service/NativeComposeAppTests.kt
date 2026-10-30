@@ -404,6 +404,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         waitUntil("CUSTOMER_EDITED") { customers(editedName).singleOrNull()?.optString("id") == id }
         yes(customers(editedName).single().optString("notes") == remoteNote, "REVIEWED_SAVE_PRESERVES_REMOTE_NOTE")
         yes(customers(createdName).isEmpty(), "CUSTOMER_UPDATE_PRESERVES_ID_WITHOUT_DUPLICATE")
+        reveal("Bearbeiten")
+        val customerNavigation = nodes().firstNotNullOfOrNull { candidate -> if (matches(candidate, "Kunden")) clickable(candidate) else null }
+        yes(customerNavigation != null && customerNavigation.isClickable && !customerNavigation.isSelected,
+            "CUSTOMER_DETAIL_TAB_EXPOSES_ACCESSIBLE_LIST_NAVIGATION")
         click("Kunden")
         enter("Suchen", "QA Native F")
         shown("1 Treffer · 1–1")
@@ -428,6 +432,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun timerJourney() {
+        activity?.let { current -> test.runOnMainSync { current.finish() } }
+        launch()
         click("Kunden")
         val before = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length()
         enter("Suchen", fixturePrefix + "000")

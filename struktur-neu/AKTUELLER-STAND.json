@@ -29,17 +29,17 @@
   ],
   "current_task": {
     "name": "Kotlin-Update der bestehenden Haus-und-Garten-App mit kompatiblem ZIP-Backup",
-    "status": "FIXING_COMPOSE_TEST_SCROLL_SYNCHRONIZATION",
+    "status": "VERIFYING_FINAL_EIGHT_NATIVE_SUITES",
     "authorized": true,
     "authorization_scope": "UPDATE same package/original signature;full Kotlin refactoring and regression;synthetic data only;bounded subagents;no productive access,installation,migration,restore or delivery",
     "requirements_document": "docs/fachregeln/APP.md",
     "implementation": [
       "193 Kotlin production files;native Compose feature routes/editors;no active app Java/JS",
       "SQLite indexed read cache/projections,IO/committed Flow,file media,bounded thumbnail-first Coil",
-      "JVM1154/Python62/build/lint and7 native suites PASS;Compose scroll harness under repair"
+      "Navigation accessibility fixed;local APK/test/lint/Python62 PASS;final CI pending"
     ],
     "remaining": [
-      "Fix bounded accessibility scrolling;rerun8 native suites",
+      "Navigation fix built;rerun8 native suites on current source",
       "Real Drive,personal ZIP,physical Pixel untested;no productive actions",
       "Raw IndexedDB-only drafts preserved;not automatically materialized"
     ],
@@ -94,7 +94,7 @@
         "required_evidence": "No productive or derived customer data/device/ZIP access"
       },
       "REGRESSION": {
-        "status": "JVM1154_PYTHON62_BUILD_LINT_7_NATIVE_PASS;COMPOSE_SCROLL_FIX_PENDING",
+        "status": "CURRENT_BUILD_PYTHON62_APK_LINT_PASS;FINAL_CI_PENDING",
         "required_evidence": "Current-source checks;fix/recheck;unexecuted evidence stays open"
       },
       "SUBAGENTS": {
@@ -108,7 +108,7 @@
     }
   },
   "open_checks": [
-    "Compose paging search test stops on unfinished top scroll;remainingUI journeys pending",
+    "Overview-tab accessibility fix under final build/regression;customer/timer completion pending",
     "Real Drive account,personal ZIP and physical Pixel update/data retention NOT_EXECUTED;synthetic only",
     "Historical raw IndexedDB-only drafts are preserved;not automatically materialized as native photos"
   ],
@@ -136,21 +136,21 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "a2757b8b6371237727f21bcd7f0e945a620806971f450d71d4050dbeb64e2750",
+    "app_source_fingerprint": "1dccfad7966f564f3a844c848af4dae50c5200b8697592e07a449e4e06920407",
     "source_privacy": "PASS;empty operational seed",
     "business_data_read": false,
     "authored_changes_diff_check": "PASS",
     "current_test_run": {
-      "scope": "CURRENT_FULL_REFACTOR;COMPOSE_SCROLL_HARNESS_FIX_PENDING",
-      "observed_at_utc": "2026-10-30T01:58:56.652577+00:00",
-      "tested_git_sha": "9c28d79748e97ce5ec876e6c5d6dcb5fffa10f18",
+      "scope": "PRIOR_SOURCE;CURRENT_NAVIGATION_ACCESSIBILITY_FIX_PENDING",
+      "observed_at_utc": "2026-10-30T02:25:30.897429+00:00",
+      "tested_git_sha": "dc405bf4bb4d7c1f934e9f26448e00b4555dae8d",
       "source_sha256": "a2757b8b6371237727f21bcd7f0e945a620806971f450d71d4050dbeb64e2750",
       "source_dirty": false,
       "source_checks": "PASS;62 Python/source/privacy/contracts;seed0",
       "jvm": "PASS;1154 checks across8 suites",
       "android_build": "PASS;local and CI release/test APK and lint0errors;637 assets/210 Kotlin targets verified",
       "native": {
-        "status": "7_SUITES_PASS;COMPOSE_SEARCH_AFTER_PAGE_SCROLL_TEST_FAILED",
+        "status": "7_SUITES_AND_NOTIFICATION_LARGE_TEXT_PASS;CUSTOMER_TIMER_SELECTED_TAB_FAILED",
         "suites": {
           "local_backup": 43,
           "local_backup_reopen": 13,
@@ -160,9 +160,9 @@
           "document_provider": 75,
           "document_provider_reopen": 17
         },
-        "compose_failure": "TIMEOUT_FIELD_Suchen;customerJourney326;top-scroll stops on transient action failure"
+        "compose_failure": "Customer407/timer431: selected tab exposes no click;draft failure recovery,CAS/rebase already passed"
       },
-      "ci_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40986941392",
+      "ci_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/40989661363",
       "pixel_drive_account_personal_zip": "NOT_RUN;synthetic only"
     },
     "performance_evidence": "docs/verification/performance-current.md defines native measurement method;no inherited browser timing,FPS or physical Pixel performance claim",

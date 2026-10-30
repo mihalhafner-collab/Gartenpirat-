@@ -68,7 +68,10 @@ internal fun NativeApplication(controller: NativeAppController) {
         bottomBar = {
             if (reviewChecked && route.section != "restore_review") NavigationBar {
                 listOf("today" to "Heute", "worklogs" to "Arbeit", "customers" to "Kunden", "more" to "Mehr").forEach { (section, label) ->
-                    NavigationBarItem(selected = route.section == section, onClick = { controller.navigate(section) }, icon = { Text(when (section) { "today" -> "⌂"; "worklogs" -> "◷"; "customers" -> "♧"; else -> "☰" }) }, label = { Text(label) })
+                    // A selected tab has no accessibility click action. Keep the
+                    // section overview reachable from its detail and editor routes.
+                    val selected = route.section == section && route.id.isEmpty() && route.mode == "list"
+                    NavigationBarItem(selected = selected, onClick = { if (!selected) controller.navigate(section) }, icon = { Text(when (section) { "today" -> "⌂"; "worklogs" -> "◷"; "customers" -> "♧"; else -> "☰" }) }, label = { Text(label) })
                 }
             }
         }
