@@ -117,7 +117,7 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
     val from = if (week) day.minusDays((day.dayOfWeek.value - 1).toLong()) else day
     val to = if (week) from.plusDays(6) else day
     var failure by remember { mutableStateOf("") }
-    val flow = remember(search, status, customer, offset, from, to, refresh) { repository.watchList("appointments", search = search, status = status, customerId = customer, offset = offset, limit = 50, dateFrom = from.toString(), dateTo = to.toString(), orderId = controller.route.args.optString("order_id"), chronological = true).catch { failure = it.message ?: "Termine nicht lesbar." }
+    val flow = remember(search, status, customer, offset, from, to, refresh) { repository.watchList("appointments", search = search, status = status, customerId = customer, offset = offset, limit = 50, dateFrom = from.toString(), dateTo = to.toString(), orderId = controller.route.args.optString("order_id"), chronological = true).catch { failure = it.message ?: "Termine nicht lesbar." } }
     val displayFlow = remember(flow) { flow.map<NativeListPage, NativeListPage?> { it }.onStart { failure = ""; emit(null) } }
     val loadedPage by displayFlow.collectAsStateWithLifecycle(null)
     val page = loadedPage ?: NativeListPage(emptyList(), 0, offset, 50)
