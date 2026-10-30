@@ -43,12 +43,16 @@ internal fun NativeSuggestions(label: String, options: List<String>, onChoose: (
     var open by rememberSaveable(label) { mutableStateOf(false) }
     var search by rememberSaveable(label) { mutableStateOf("") }
     TextButton({ open = !open }) { Text(label + if (open) " ▴" else " ▾") }
-    if (open) {
-        NativeField("Vorschläge durchsuchen", search, { search = it })
-        options.filter { it.contains(search, ignoreCase = true) }.forEach { value ->
-            TextButton({ onChoose(value); open = false }, Modifier.fillMaxWidth()) { Text(value) }
+    if (open) AlertDialog(onDismissRequest = { open = false }, title = { Text(label) }, text = {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            NativeField("Vorschläge durchsuchen", search, { search = it })
+            LazyColumn(Modifier.heightIn(max = 320.dp)) {
+                items(options.filter { it.contains(search, ignoreCase = true) }) { value ->
+                    TextButton({ onChoose(value); open = false }, Modifier.fillMaxWidth()) { Text(value) }
+                }
+            }
         }
-    }
+    }, confirmButton = { TextButton({ open = false }) { Text("Abbrechen") } })
 }
 
 @Composable

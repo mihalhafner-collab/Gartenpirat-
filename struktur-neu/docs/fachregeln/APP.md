@@ -201,7 +201,8 @@ Arbeit erfassen folgt Kunde, Beginn/Ende, Pause, Tätigkeit, optionale Entsorgun
 und Fotos. Datum und weitere bestehende Angaben bleiben erreichbar. Pause bietet
 15/30/45/60 Minuten und freie Eingabe; aus Uhrzeiten wird sie genau einmal abgezogen.
 Eine ausschließlich eingegebene Dauer ist die Nettoarbeitszeit. Textbausteine ergänzen
-den freien Tätigkeitstext. Entsorgung ist ein optionaler Eurobetrag mit50/100/150-Euro-
+den freien Tätigkeitstext. Vorschläge öffnen den vorhandenen Auswahldialog mit Suche.
+Entsorgung ist ein optionaler Eurobetrag mit 50/100/150-Euro-
 Auswahl und freier Eingabe; kein automatischer Preis und keine Zusatzpflichten.
 Der vorhandene Arbeitsdatensatz speichert den Betrag als `disposal_cost`.
 

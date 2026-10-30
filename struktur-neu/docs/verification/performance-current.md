@@ -96,6 +96,33 @@ Entwurfs- oder Medienübernahme. Fehlende Daten-, Laufzeit- und Gerätemessungen
 bleiben als solche im aktuellen Arbeitsstand erkennbar; daraus keinen Gewinn oder
 Abnahmestatus ableiten.
 
+## Synthetische Büro-Ausgangsmessung für Build120
+
+Quelle `e15dcdd660d48bcd19f61a6d9328fc15ed5e0b8c`,
+[GitHub-Prüflauf41037793804](https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/41037793804),
+Suite `native_data`, 2026-10-30. Isolierter Android35-x86_64-Emulator;
+120 erfundene ausgestellte Rechnungen,240 Zahlungen sowie das vorhandene minimale
+synthetische Grundprofil. Pro Pfad zwei Aufwärmläufe und40Messungen bei unveränderter
+Quellrevision. Zeiten umfassen den Datenabruf einschließlich der Ergebnisprüfung.
+Hostlast und Thermik nicht kontrolliert; keine UI-,Pixel- oder Produktivdatenmessung.
+
+| Datenpfad | n | Mittel ms | P95 ms | Mittel langsamste5% ms |
+|---|---:|---:|---:|---:|
+| Rechnungsliste,erste50 | 40 | 0,464 | 0,576 | 0,646 |
+| Arbeitsliste für Abrechnung,erste50 | 40 | 0,367 | 0,434 | 0,481 |
+| Zahlungen und Guthaben,gesamte Reststandsberechnung | 40 | 114,951 | 125,400 | 133,481 |
+
+Quellbefund: `LocalInvoiceService.paymentEntries` liest zuerst sämtliche Schlüssel
+und ruft für jeden Eintrag den gestückelten Leser auf. Für kurze nichtleere Werte
+folgen je eine Längen- und Inhaltsabfrage. Zusätzlich durchsucht `balance` für jede
+Rechnung alle Zuordnungen; `FinancePayments` baut alle Reststandskarten in einer
+gewöhnlichen scrollbaren Column auf. Das sind getrennte Kostenstellen; aus der
+Datenmessung folgt keine nachgewiesene Ursache einer konkreten Pixel-Verzögerung.
+Die eng begrenzte Korrektur bündelt kurze Zahlungseinträge; große Werte behalten
+beim Überschreiten von32768Zeichen ihren vorhandenen Lesepfad. Der Vergleich im
+selben Prozess und die UI-Öffnungsmessung sind im aktuellen Prüflauf nachzuweisen.
+Noch keine Aussage über einen Leistungsgewinn.
+
 ## Gebundener Gerätebeleg
 
 Quellstand: `6da869753ee2ed1e8640ec1b2a1c354724fdd0ee` auf `codex/kotlin-refactoring-20261029`; Appfingerabdruck `1dccfad7966f564f3a844c848af4dae50c5200b8697592e07a449e4e06920407`. Nach der ersten Metadatenprüfung erteilte der Nutzer ausdrücklich Lese- und Schreibfreigabe für die **aktuelle Datenbank**. Der folgende Lauf erfolgte deshalb im bestehenden, **nicht isolierten** Appbestand mit neu angelegten vollständig synthetischen Testdatensätzen. Diese Erlaubnis ersetzt keinen Isolationsnachweis oder eine Freigabe für externe Konten, produktive Belegfinalisierung oder destruktive Wiederherstellung.

@@ -281,7 +281,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     catch (failure: AssertionError) { failure }
                     catch (failure: Exception) { failure }
                 if (failure == null) android.util.Log.i("NativeComposeQA", "$name PASS")
-                else failures.add(AssertionError("QA_NATIVE_COMPOSE_JOURNEY_$name", failure))
+                else {
+                    runCatching { captureSyntheticScreen("failure-$name"); logVisibleActions("failure_$name") }
+                    failures.add(AssertionError("QA_NATIVE_COMPOSE_JOURNEY_$name", failure))
+                }
             }
             journey("customer", ::customerJourney)
             journey("usability", ::usabilityJourney)
@@ -480,6 +483,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click(fixturePrefix + "000")
         enter("Beginn", "08:00")
         enter("Ende", "12:00")
+        waitUntil("WORK_TIMES_DURABLE") {
+            val raw = store.ownerValue("native_form_draft:" + PixelMcpWriteTools.hash("editor:worklog:new"), "{}")
+            val values = JSONObject(raw.ifBlank { "{}" }).optJSONObject("values")
+            values?.optString("start_time") == "08:00" && values.optString("end_time") == "12:00"
+        }
         // Preset and free input use the same visible field, with no pause submenu.
         reveal("Pause (Minuten)")
         logVisibleActions("pause_before_preset")
@@ -551,6 +559,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val save = actionBounds("Speichern")
         val discard = actionBounds("Verwerfen")
         yes(frame.contains(save) && frame.contains(discard) && !Rect.intersects(save, discard), "WORK_ACTIONS_CLEAR_KEYBOARD")
+        captureSyntheticScreen("work-keyboard")
         back()
         waitUntil("WORK_KEYBOARD_HIDDEN") {
             var hidden = false
@@ -564,7 +573,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Maschinenpark und Gerätewartung")
         click("Gerät anlegen")
         click("Gerätebezeichnung auswählen ▾")
-        shown("Gerätebezeichnung auswählen ▴")
+        shown("Gerätebezeichnung auswählen")
         logVisibleActions("equipment_suggestions_open")
         enter("Vorschläge durchsuchen", "kett")
         click("Kettensäge")
@@ -599,6 +608,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         // Synthetic photo traverses the real native upload/store path. Picker UI remains a separate test.
         val source = File(context.cacheDir, "qa-accessory.png")
         val image = Bitmap.createBitmap(3, 3, Bitmap.Config.ARGB_8888)
+        image.eraseColor(0xff1c7a38.toInt())
         source.outputStream().use { image.compress(Bitmap.CompressFormat.PNG, 100, it) }; image.recycle()
         val controller = NativeAppController(requireNotNull(activity) as MainActivity, store)
         try {
@@ -622,6 +632,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             recreate()
             reveal("QA Kette B")
             reveal("Gerätefoto")
+            captureSyntheticScreen("accessory")
             click("Gerät & Wartung")
             reveal("Wartung einrichten")
         } finally { source.delete() }
@@ -631,6 +642,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val controller = NativeAppController(requireNotNull(activity) as MainActivity, store)
         val source = File(context.cacheDir, "qa-work-entry-photo.png")
         val bitmap = Bitmap.createBitmap(3, 3, Bitmap.Config.ARGB_8888)
+        bitmap.eraseColor(0xff1c7a38.toInt())
         source.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()
         val draft = nativeRetainPhotoDraft(controller, Uri.fromFile(source))
         val other = nativeRetainPhotoDraft(controller, Uri.fromFile(source))
@@ -751,6 +763,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
     }
 
+    private fun captureSyntheticScreen(name: String) {
+        val bitmap = requireNotNull(automation.takeScreenshot()) { "Synthetic emulator screenshot unavailable" }
+        try {
+            File(requireNotNull(context.getExternalFilesDir(null)), "qa-native-$name.png").outputStream().use {
+                check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it))
+            }
+        } finally { bitmap.recycle() }
+    }
+
     private fun officeOpeningMeasurements() {
         // The disposable fixture was checked before any application data was read.
         // Preserve its existing rows/journal; add only synthetic office records.
@@ -770,7 +791,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             .put("allocations", JSONArray().put(JSONObject().put("invoice_id", "qa_ui_office_${index % 120}").put("amount_minor", 2500))).toString())
         store.notifyCommittedChange()
         officeMeasurements = JSONObject().put("scope", "EMULATOR_UI_ACTION_TO_VISIBLE_READY_CONTENT;WARM_PROCESS")
-            .put("invoices", 120).put("payments", 240).put("samples_per_path", 40).put("warmups_per_path", 2)
+            .put("invoice_count", 120).put("payment_count", 240).put("samples_per_path", 40).put("warmups_per_path", 2)
             .put("payments_and_credits_share_view", true).put("performance_claim", false)
             .put("display", shell("wm size") + ";" + shell("wm density"))
             .put("font_scale", shell("settings get system font_scale"))
@@ -859,6 +880,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val discardWork = actionBounds("Verwerfen")
         yes(!Rect.intersects(saveWork, discardWork) && safe.contains(saveWork) && safe.contains(discardWork), "LARGE_TEXT_WORK_ACTIONS_CLEAR_SYSTEM_BARS")
         yes(saveWork.height() >= minimumTouch && discardWork.height() >= minimumTouch, "LARGE_TEXT_WORK_TOUCH_TARGETS")
+        captureSyntheticScreen("work-large-font")
         click("Verwerfen"); click("OK", scrollTo = false)
     }
 }

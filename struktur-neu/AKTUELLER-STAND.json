@@ -74,7 +74,7 @@
         "code": "LocalInvoiceService.kt:ledger/paymentEntries;ComposeFinanceScreens.kt:FinancePayments",
         "expected": "Gleiche synthetische Messreihe n40;keine ungemessene Verbesserung",
         "verification": "native_data/office_reads;physical per-route NOT_RUN",
-        "status": "SOURCE_REVIEWED;RUNTIME_PENDING"
+        "status": "EMULATOR_DATA_BASELINE_PASS;PAIRED_READER_AND_UI_TIMING_PENDING;NO_PIXEL_MEASUREMENT"
       },
       {
         "id": 6,
@@ -152,7 +152,7 @@
   "open_checks": [
     "Current correction candidate:rerun build/JVM/native suites;do not transfer prior UI evidence without checking changed source",
     "No physical Pixel test,installation or release;the earlier ADB test was ended by the user",
-    "Office per-route UI/Pixel latency missing;synthetic repository baseline does not prove opening latency",
+    "Office reader before/after and native UI opening measurements pending;no physical per-route latency or overall performance claim",
     "Previous independent Build119 findings outside this scope:photo customer filter,startup cleanup warning;see existing physical evidence"
   ],
   "workflow": {
@@ -179,24 +179,24 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "1dccfad7966f564f3a844c848af4dae50c5200b8697592e07a449e4e06920407",
+    "app_source_fingerprint": "4f08d519bf0f97c69ad1e9a56905d72e721b780f1500b52900084263fd2ebafc",
     "source_privacy": "PASS;empty operational seed",
     "business_data_read": false,
     "authored_changes_diff_check": "PASS;reviewed adopted implementation plus decimal/discard fixes;git diff --check",
     "current_test_run": {
-      "source": "New correction candidate following d00485949f8edf25eba56b0b6063a33fdf7086f8;final CI pending",
+      "source": "Current candidate after db968f6721b550926cc87bdc32ea10a6388bef51;final runtime acceptance pending",
       "source_check": "PASS;62 Python tests;source/privacy/contracts/assets/UI inventory",
       "jvm": "PASS on8702112d08cbc99e0ef09a228d3cd56efe85eaa4;9suites;53new work/accessory checks;current rerun pending",
       "android_build": "PASS on8702112d08cbc99e0ef09a228d3cd56efe85eaa4;release/test APK and lint",
-      "native": "FAIL on8702112d08cbc99e0ef09a228d3cd56efe85eaa4;6suites PASS;native_data office fixture lacked issue evidence;native_compose pause/suggestions not reached",
-      "evidence_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/41035247629",
+      "native": "7of8suites PASS on e15dcdd660d48bcd19f61a6d9328fc15ed5e0b8c;native_compose FAIL;transition waits and compact suggestions corrected;rerun pending",
+      "evidence_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/41037793804",
       "physical_pixel": "NOT_RUN",
       "performance_claim": false,
       "installation_performed": false,
       "migration_performed": false,
       "publication_performed": false
     },
-    "performance_evidence": "docs/verification/performance-current.md:actual physical startup/PSS/gfxinfo histograms;no estimated FPS;individual frame/SQL/per-route latency limits explicit",
+    "performance_evidence": "docs/verification/performance-current.md:synthetic office data baseline separated from previous physical Build119 evidence;paired reader/UI measurements pending",
     "connector": {
       "tools": 169,
       "read": 73,

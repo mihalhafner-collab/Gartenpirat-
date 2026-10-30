@@ -189,7 +189,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             .put("allocations", JSONArray().put(JSONObject().put("invoice_id", "qa_office_invoice_${index % 120}").put("amount_minor", 2500))).toString())
         val service = LocalInvoiceService(context, store)
         val result = JSONObject().put("scope", "EMULATOR_REPOSITORY_AND_LEDGER_READS;NO_UI_OR_PIXEL_LATENCY")
-            .put("invoices", 120).put("payments", 240).put("samples_per_path", 40).put("warmups_per_path", 2)
+            .put("invoice_count", 120).put("payment_count", 240).put("samples_per_path", 40).put("warmups_per_path", 2)
         fun statistics(values: List<Double>): JSONObject {
             val sorted = values.sorted()
             return JSONObject().put("mean_ms", values.average()).put("p95_ms", sorted[37])

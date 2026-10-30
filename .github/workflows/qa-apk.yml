@@ -105,6 +105,11 @@ jobs:
             if [ "$suite" = native_compose ]; then suite_timeout=720; fi
             timeout "$suite_timeout" "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation 2>&1 | tee "outputs/$suite.txt" || instrumentation_status=$?
             timeout 15 "$ADB" -s emulator-5580 logcat -d -t 1500 > "outputs/$suite-logcat.txt" 2>&1 || true
+            if [ "$suite" = native_compose ]; then
+              for image in work-keyboard accessory work-large-font failure-customer failure-usability failure-accessories failure-timer failure-notification failure-office_opening failure-large_text; do
+                "$ADB" -s emulator-5580 pull "/sdcard/Android/data/at.hausgarten.service/files/qa-native-$image.png" "outputs/qa-native-$image.png" || true
+              done
+            fi
             if [ "$instrumentation_status" != 0 ]; then
               native_suite_failures=$((native_suite_failures+1))
               continue
@@ -174,6 +179,7 @@ jobs:
             struktur-neu/outputs/document_provider*.txt
             struktur-neu/outputs/native_data*.txt
             struktur-neu/outputs/native_compose*.txt
+            struktur-neu/outputs/qa-native-*.png
             struktur-neu/outputs/emulator*.txt
             struktur-neu/android/app/build/reports/lint-results-release.html
           if-no-files-found: ignore
