@@ -216,7 +216,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
             }
             if (section == "catalog") OutlinedButton(onClick = { pendingAction = "update_catalog_entry" to JSONObject().put("entry_id", id).put("expected_record_hash", detail!!.optString("record_hash")).put("updates", JSONObject().put("active", !row.optBoolean("active", true))) }, Modifier.fillMaxWidth()) { Text(if(row.optBoolean("active", true)) "Baustein deaktivieren" else "Baustein reaktivieren") }
             if (editable && section != "catalog") TextButton(onClick = {scope.launch {try {archivePreview=controller.query("preview_delete",JSONObject().put("entity",if(section=="offers") "offer" else "invoice").put("entity_id",id))}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){controller.message(f.message.orEmpty())}}}) { Text("Entwurf archivieren …") }
-            TextButton(onClick = { controller.navigate(section) }) { Text("Zur Liste") }
+            TextButton(onClick = { controller.navigate(section, args = controller.route.args) }) { Text("Zur Liste") }
         }
     }
 }
@@ -225,7 +225,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
 private fun FinanceList(section: String, controller: NativeAppController, onCreate: () -> Unit) {
     val scope=rememberCoroutineScope()
     val scroll=rememberScrollState()
-    var customer by rememberSaveable(section) { mutableStateOf("") }
+    var customer by rememberSaveable(section) { mutableStateOf(controller.route.args.optString("customer_id")) }
     var status by rememberSaveable(section) { mutableStateOf("") }
     var query by rememberSaveable(section) { mutableStateOf("") }
     var offset by rememberSaveable(section) { mutableIntStateOf(0) }
@@ -248,7 +248,7 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
         if(customer.isNotEmpty() || status.isNotEmpty() || query.isNotEmpty()) TextButton(onClick = { customer="";status="";query="";offset=0 }) { Text("Filter und Suche zurücksetzen") }
         Text("${page.total} Treffer · ${page.rows.size} auf dieser Seite")
         if(error.isNotEmpty()) Text(error, color=MaterialTheme.colorScheme.error)
-        page.rows.forEach { row -> Card(Modifier.fillMaxWidth().clickable { controller.navigate(section, row.id) }) {
+        page.rows.forEach { row -> Card(Modifier.fillMaxWidth().clickable { controller.navigate(section, row.id, args = JSONObject(controller.route.args.toString()).put("customer_id", customer)) }) {
             Column(Modifier.padding(12.dp), verticalArrangement=Arrangement.spacedBy(5.dp)) {
                 Text(if (section == "invoices" && row.title.startsWith("Entwurf-")) "Rechnungsentwurf" else row.title, style=MaterialTheme.typography.titleMedium)
                 if (row.subtitle.isNotEmpty()) Text(row.subtitle)

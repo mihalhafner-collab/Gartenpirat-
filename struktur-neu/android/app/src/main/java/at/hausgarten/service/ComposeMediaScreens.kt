@@ -32,6 +32,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.catch
@@ -80,21 +81,34 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
         else -> {
             val repository = remember(controller.store) { NativeDataRepository(controller.store) }
             var search by rememberSaveable { mutableStateOf("") }
-            var customerId by rememberSaveable { mutableStateOf("") }
+            var customerId by rememberSaveable { mutableStateOf(controller.route.args.optString("customer_id")) }
             var customerLabel by rememberSaveable { mutableStateOf("") }
             var role by rememberSaveable { mutableStateOf("") }
-            var dateFrom by rememberSaveable { mutableStateOf("") }
-            var dateTo by rememberSaveable { mutableStateOf("") }
-            var orderId by rememberSaveable { mutableStateOf("") }
+            var dateFrom by rememberSaveable { mutableStateOf(controller.route.args.optString("date_from")) }
+            var dateTo by rememberSaveable { mutableStateOf(controller.route.args.optString("date_to")) }
+            var orderId by rememberSaveable { mutableStateOf(controller.route.args.optString("order_id")) }
             var orderLabel by rememberSaveable { mutableStateOf("") }
-            var worklogId by rememberSaveable { mutableStateOf("") }
+            var worklogId by rememberSaveable { mutableStateOf(controller.route.args.optString("worklog_id")) }
             var worklogLabel by rememberSaveable { mutableStateOf("") }
-            var sessionId by rememberSaveable { mutableStateOf("") }
+            var sessionId by rememberSaveable { mutableStateOf(controller.route.args.optString("session_id")) }
             var offset by rememberSaveable { mutableIntStateOf(0) }
             var filterOpen by rememberSaveable { mutableStateOf(false) }
             var picker by remember { mutableStateOf("") }
             var readFailure by remember { mutableStateOf("") }
             var readRetry by remember { mutableIntStateOf(0) }
+            LaunchedEffect(customerId, orderId, worklogId) {
+                suspend fun label(collection: String, id: String): String {
+                    if (id.isBlank()) return ""
+                    val row = repository.detail(collection, id) ?: return "Eintrag nicht mehr vorhanden"
+                    return row.optString("name").ifBlank { row.optString("title") }.ifBlank { row.optString("activity") }.ifBlank { "Ausgewählter Eintrag" }
+                }
+                try {
+                    customerLabel = label("customers", customerId)
+                    orderLabel = label("orders", orderId)
+                    worklogLabel = label("worklogs", worklogId)
+                } catch (cancelled: CancellationException) { throw cancelled }
+                catch (failure: Exception) { readFailure = mediaError(failure) }
+            }
             val pageFlow = remember(repository, search, role, customerId, dateFrom, dateTo, orderId, worklogId, sessionId, offset, readRetry) {
                 repository.watchList("photos", search = search, customerId = customerId, offset = offset, limit = 40, role = role, dateFrom = dateFrom, dateTo = dateTo, orderId = orderId, worklogId = worklogId, sessionId = sessionId).catch { readFailure = mediaError(it) }
             }

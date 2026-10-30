@@ -1,15 +1,212 @@
 {
-"format":"gartenpirat.current-work.v1",
-"repository":"mihalhafner-collab/Gartenpirat-",
-"source_directory":"struktur-neu",
-"source_import":{"branch":"codex/heute-uebersicht-20261027","commit":"012b0433c5ffcf912a85ea95f898473bce10ae3a","build":113,"cutoff_build_inclusive":100},
-"last_observed_installed_build":{"observed_at_utc":"2026-10-30T04:53:51.4297165Z","version_name":"1.57.0","version_code":119,"reported_base_git_sha":"94b75be56ef46ed1404b19a725a97811cbfcd19a","source_sha256":"1dccfad7966f564f3a844c848af4dae50c5200b8697592e07a449e4e06920407","source_binding":"ADB_APK_SIZE_SHA256_SIGNATURE_MATCH;commit/fingerprint in DEX","apk_sha256":"f907a1b260ec7719e7b11bf24e6d02671b8eaef7ba797f9ddca02b0a0ab42f86","apk_bytes":89453503,"certificate_sha256":"a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8","certificate_independently_read":true,"certificate_reference":"MATCH_ORIGINAL_REFERENCE;historical APK not reread","database_version":7,"database_version_evidence":"Build119 MCP runtime;no DB dump"},
-"observed_installation_history":[{"observed_at_utc":"2026-10-27T18:14:26.286842+00:00","version_name":"1.55.1","version_code":106,"reported_base_git_sha":"99ab63afbdfdb9fd32dac70134f9461b1ba15b17","source_sha256":"6da86aad5019a93520c50794b72f53b45b5847b7dd30dfb650f290fe99e22928"}],
-"current_task":{"name":"Build120 originalsigniert gebaut und privat zur manuellen Installation bereitgestellt","status":"COMPLETE;ORIGINAL_SIGNED_PRIVATE_DRIVE_DELIVERY_AND_FULL_DOWNLOAD_READBACK_PASS;NO_PIXEL_INSTALLATION","authorized":true,"authorization_scope":"Current user explicitly authorized source verification,release build,original signing,private Drive delivery,download readback and targeted GitHub documentation;no Pixel installation,productive migration,restore or invoice activation","base_git_sha":"19537218aad3878a12cf01426ca9326b015294b0","branch":"codex/kotlin-refactoring-20261029","design":"Four sections;existing Compose/storage;direct facts,optional selections,compact bottom actions;presented before implementation","requirements":[{"id":1,"code":"NativePrimaryScreens.kt:NativeToday","expected":"Erfasste Arbeiten und Hinweise offen;Einsätze nur einmal","verification":"native_compose","status":"PASS"},{"id":2,"code":"NativePrimaryScreens.kt:NativeApplication/NativeOffice","expected":"Kein Mehr auf Heute;erforderliche Funktionen unter vier Bereichen","verification":"native_compose;source route inventory","status":"PASS"},{"id":3,"code":"NativeAppController.kt:openSection;NativePrimaryScreens.kt:NativeEntityList","expected":"Kunden-Menü setzt Seite/Scrollanfang;Filter bleiben","verification":"native_compose","status":"PASS"},{"id":4,"code":"NativePrimaryScreens.kt:NativeEntityList","expected":"Kein unterer Suchknopf;vorhandenes Suchfeld bleibt","verification":"source review;native_compose/customer","status":"PASS"},{"id":5,"code":"LocalInvoiceService.kt:ledger/paymentEntries;ComposeFinanceScreens.kt:FinancePayments","expected":"Gleiche synthetische Messreihe n40;keine ungemessene Verbesserung","verification":"native_data:paired reader n40;native_compose:office opening n40;performance-current.md","status":"EMULATOR_MEASURED;PIXEL_CAUSE_OPEN"},{"id":6,"code":"WorklogRules.kt;PixelMcpWriteTools.kt;NativePrimaryScreens.kt:NativeEntityEditor","expected":"Optionale Entsorgung50/100/150 oder frei;Speichern/Wiederöffnen","verification":"WorkEntryAccessoryTests;native_compose","status":"PASS"},{"id":7,"code":"NativePrimaryScreens.kt:NativeEntityDetail","expected":"Arbeitsnotizen direkt unter Titel","verification":"native_compose","status":"PASS"},{"id":8,"code":"WorklogRules.kt;NativePrimaryScreens.kt:NativeEntityEditor","expected":"Pause15/30/45/60/frei unter Beginn/Ende;einmaliger Abzug","verification":"WorkEntryAccessoryTests;native_compose","status":"PASS"},{"id":9,"code":"NativeForms.kt:NativeSuggestions;NativePrimaryScreens.kt:NativeEntityEditor","expected":"Aufklappbare Tätigkeitsbausteine;Freitext bleibt","verification":"native_compose","status":"PASS"},{"id":10,"code":"NativePrimaryScreens.kt:NativeEntityEditor;ComposeRevierScreens.kt:nativeDeletePhotoDraft","expected":"Exakter OK/Abbrechen-Dialog;nur eigener Entwurf/temporäres Foto;gespeicherte Inhalte bleiben","verification":"native_compose/workPhotoRetention","status":"PASS"},{"id":11,"code":"ComposeRevierScreens.kt:RevierFields;NativeForms.kt:NativeSuggestions","expected":"20 Gerätebegriffe;durchsuchbare Vorauswahl/Freitext;Wartung bleibt","verification":"source:20 presets;native_compose:search/free entry/maintenance","status":"PASS"},{"id":12,"code":"NativePrimaryScreens.kt:NativeApplication","expected":"Arbeitsaufzeichnungen direkt rechts neben Heute","verification":"native_compose;source review","status":"PASS"},{"id":13,"code":"NativePrimaryScreens.kt;NativeForms.kt;NativeCompose.kt;MainActivity.kt;AndroidManifest.xml","expected":"Einheitliche vier Bereiche/kompakte Aktionen/Inhalte direkt/IME-Systemabstände","verification":"native_compose:visible IME/action bounds/200% text;screenshots;Pixel NOT_RUN","status":"PASS"},{"id":14,"code":"RevierApplicationService.kt:equipment/equipmentPhoto;ComposeRevierScreens.kt:RevierAccessoryFields;LocalWorkflowTools.kt","expected":"Zubehör pro Maschine;ein aktueller Kettenbezug;optionale Angaben und bestehender Fotopfad","verification":"WorkEntryAccessoryTests;native_compose:machine/current chain/specifications/photo decode/reopen","status":"PASS"}],"proof_scope":"Source/JVM/API35 emulator;physical Pixel NOT_RUN for all14","delivery_source_commit":"f770f38d0bd428ec93004252d1aaacf003a475e2"},
-"open_checks":["Build120 manual Pixel update,data retention,usability,camera and latency NOT_EXECUTED;last independently verified installed Pixel remains1.57.0/build119","Office UI is baseline;gain only for paired payment reader;Pixel delay cause remains open","Prior119 photo customer-filter/startup-cleanup findings remain;see physical evidence"],
-"workflow":{"scope":"CURRENT_SOURCE;struktur-neu authoritative;qa-apk.yml builds/tests without user APK publication","rules":"../AGENTS.md","code":"android/app/src/main","build_instructions":"docs/entwicklung/BAU.md","business_contract":"docs/fachregeln/APP.md","automatic_external_publication":false,"automatic_installation":false,"rule_reload":{"event":"UserPromptSubmit","configuration":".codex/hooks.json","reader":".codex/read_project_context.py","status":"LOCAL_READER_PASS;CLOUD_AUTOMATIC_INVOCATION_NOT_VERIFIED","verification":{"actual_current_file_delivery":"PASS;full files+SHA256;local context <=16000 bytes","running_cloud_chat_hook_invocation_verified":false}},"chatgpt_project":{"name":"Haus und Garten App Entwicklung","instructions":"docs/entwicklung/PROJEKT.md"}},
-"validation":{"app_source_fingerprint":"a08ad845065f9d83a8ce9206f98b42c14053f4d779aa9a7961167ac797d7ae3c","source_privacy":"PASS;empty operational seed","business_data_read":false,"authored_changes_diff_check":"PASS;reviewed takeover and own corrections;git diff --check","current_test_run":{"source_commit":"a72240dfed6bc871d7fc1c9ef6fe2e8ee52e6709","source_check":"PASS;62 Python tests;privacy/contracts/assets/UI inventory","jvm":"PASS;9 suites including53 new work/accessory assertions","android_build":"PASS;release APK,androidTest APK,lintRelease","native":[{"suite":"local_backup","status":"PASS","checks":43},{"suite":"local_backup_reopen","status":"PASS","checks":13},{"suite":"browser_checkpoint","status":"PASS","checks":79},{"suite":"browser_checkpoint_reopen","status":"PASS","checks":23},{"suite":"native_data","status":"PASS","checks":393},{"suite":"document_provider","status":"PASS","checks":75},{"suite":"document_provider_reopen","status":"PASS","checks":17},{"suite":"native_compose","status":"PASS","checks":683}],"evidence_url":"https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/41054301410","artifact_sha256":"d9bda63afbf2baa42e485348463a867d16c78fbe17d07a4f35a848aed01d0868","emulator_app_sha256":"aea6dda2ef45ed72b2ea5e91f01d2b7ef14c465783debc4a9a0e90fa2ab31a63","emulator_test_apk_sha256":"3c269b978761c464d53f2239ff9e0c717211f6aaa45dccc349b54661cebc7485","physical_pixel":"NOT_RUN","performance_claim":"PAIRED_PAYMENT_READER_ONLY;no whole-UI/Pixel gain","emulator_test_apk_installed":true,"pixel_installation_performed":false,"productive_migration_performed":false,"release_publication_performed":false,"source_push_performed":true,"correction_loop":"Earlier UI/harness failures corrected;final8 suites PASS;requirements retained"},"performance_evidence":"docs/verification/performance-current.md;Build120 emulator and historical Pixel119 separate","connector":{"tools":169,"read":73,"write":96,"scope":"HISTORICAL_BUILD119;physical binding proved"},"physical_device_test":{"source_commit":"6da869753ee2ed1e8640ec1b2a1c354724fdd0ee","result":"ENDED_BY_USER;NO_FULL_ACCEPTANCE","evidence_document":"docs/verification/performance-current.md#gebundener-gerätebeleg","case_counts":{"total":67,"pass":57,"fail":6,"not_executed":4,"route_smoke":28},"scope":"HISTORICAL119;details in evidence document;not Build120 proof"},"release_delivery":{"observed_at_utc":"2026-10-30T13:42:23.915421+00:00","source_commit":"f770f38d0bd428ec93004252d1aaacf003a475e2","source_sha256":"a08ad845065f9d83a8ce9206f98b42c14053f4d779aa9a7961167ac797d7ae3c","source_preservation":"PASS;clean checkout and exact remote branch commit readback before build/signing","source_equivalence":"PASS;git diff a72240d..f770f38 changes only current status and performance documentation;app,tests,tools and workflow byte-identical","check_current":"PASS;fresh root invocation;62 Python tests plus source/privacy/contracts/assets/inventory","android_build":"PASS;fresh assembleRelease and lintRelease;63 tasks executed","jvm":"PASS;9 suites verified from matching-source CI41054301410;not rerun locally","emulator":"PASS;8 native suites verified from matching-source CI41054301410;not rerun locally","candidate_verification":"PASS;verify_app_candidate both final and Drive download against verified Build119 APK;all assets and empty operational seed","source_binding":"PASS;exact commit/fingerprint in DEX and generated BuildConfig;SOURCE_DIRTY=false","temporary_signing_material_removed":true,"failed_checks":[],"verification_attempt_note":"One premature candidate invocation before signer completion failed because output did not yet exist;rerun after completion PASS","physical_pixel":"NOT_EXECUTED","installation_performed":false,"productive_data_read":false,"productive_migration_performed":false,"restore_performed":false,"invoice_authority_activated":false}},
-"unmerged_work":[{"branch":"codex/pflanzenbibliothek-20261023","commit":"7d499b225ed28f501333227e0ce92a54d4c5d542","status":"PRESERVED_SEPARATELY;not automatically integrated into Build113"}],
-"last_distributed_build":{"version_name":"1.57.1","version_code":120,"app_source_git_sha":"f770f38d0bd428ec93004252d1aaacf003a475e2","source_sha256":"a08ad845065f9d83a8ce9206f98b42c14053f4d779aa9a7961167ac797d7ae3c","apk_sha256":"b86e87cfd01d3a503209185bdf3ec9eff9ec470ba4abe11c0852379aab1d6062","apk_bytes":89502655,"certificate_sha256":"a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8","signature_valid":true,"original_certificate_match":true,"source_binding":"PASS;all source assets;commit/fingerprint in DEX;clean BuildConfig","built_at_utc":"2026-10-30T13:42:23.915421+00:00","download_url":"https://drive.google.com/file/d/18WqTFuunyA0lx53okuycQU-LJEM5IpAy/view?usp=drivesdk","drive":{"file_id":"18WqTFuunyA0lx53okuycQU-LJEM5IpAy","parent_folder_id":"1K4WB9L6ZKlW-33o8uPK3zTfqgAOVOE8u","visibility":"PRIVATE_OWNER_ONLY;fresh permissions readback;existing rights unchanged"},"download_readback":{"status":"PASS;complete authenticated target download;byte-identical cmp;size/SHA256/original signature and candidate verification","bytes":89502655,"sha256":"b86e87cfd01d3a503209185bdf3ec9eff9ec470ba4abe11c0852379aab1d6062","observed_at_utc":"2026-10-30T13:42:23.915421+00:00","signature_valid":true,"original_certificate_match":true},"temporary_signing_material_removed":true,"installation":"NOT_PERFORMED;manual user installation pending","productive_migration":"NOT_PERFORMED","invoice_authority":"NOT_ACTIVATED"},
-"current_release_candidate":{"version_name":"1.57.1","version_code":120,"status":"ORIGINAL_SIGNED_PRIVATE_DELIVERY_AND_DOWNLOAD_READBACK_PASS;NO_PIXEL_INSTALLATION","base_git_sha":"19537218aad3878a12cf01426ca9326b015294b0","tested_source_commit":"a72240dfed6bc871d7fc1c9ef6fe2e8ee52e6709","source_git_sha":"f770f38d0bd428ec93004252d1aaacf003a475e2","source_sha256":"a08ad845065f9d83a8ce9206f98b42c14053f4d779aa9a7961167ac797d7ae3c","download_url":"https://drive.google.com/file/d/18WqTFuunyA0lx53okuycQU-LJEM5IpAy/view?usp=drivesdk"}
+  "format": "gartenpirat.current-work.v1",
+  "repository": "mihalhafner-collab/Gartenpirat-",
+  "source_directory": "struktur-neu",
+  "source_import": {
+    "branch": "codex/heute-uebersicht-20261027",
+    "commit": "012b0433c5ffcf912a85ea95f898473bce10ae3a",
+    "build": 113,
+    "cutoff_build_inclusive": 100
+  },
+  "last_observed_installed_build": {
+    "observed_at_utc": "2026-10-30T04:53:51.4297165Z",
+    "version_name": "1.57.0",
+    "version_code": 119,
+    "reported_base_git_sha": "94b75be56ef46ed1404b19a725a97811cbfcd19a",
+    "source_sha256": "1dccfad7966f564f3a844c848af4dae50c5200b8697592e07a449e4e06920407",
+    "source_binding": "ADB_APK_SIZE_SHA256_SIGNATURE_MATCH;commit/fingerprint in DEX",
+    "apk_sha256": "f907a1b260ec7719e7b11bf24e6d02671b8eaef7ba797f9ddca02b0a0ab42f86",
+    "apk_bytes": 89453503,
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "certificate_independently_read": true,
+    "certificate_reference": "MATCH_ORIGINAL_REFERENCE;historical APK not reread",
+    "database_version": 7,
+    "database_version_evidence": "Build119 MCP runtime;no DB dump"
+  },
+  "observed_installation_history": [
+    {
+      "observed_at_utc": "2026-10-27T18:14:26.286842+00:00",
+      "version_name": "1.55.1",
+      "version_code": 106,
+      "reported_base_git_sha": "99ab63afbdfdb9fd32dac70134f9461b1ba15b17",
+      "source_sha256": "6da86aad5019a93520c50794b72f53b45b5847b7dd30dfb650f290fe99e22928"
+    }
+  ],
+  "current_task": {
+    "name": "Einheitliche Oberfläche, Suchansichten und gemeinsame Übersichten",
+    "status": "IN_PROGRESS;STAGE1_SOURCE_REVIEWED;CI_PENDING",
+    "authorized": true,
+    "authorization_scope": "Current explicit user task: source changes, synthetic tests, check builds, existing documentation and GitHub readback; no productive installation, migration, restore, invoice activation or publication",
+    "base_git_sha": "242ccc9159cefdb22879c57474bcd45586244ab6",
+    "branch": "codex/kotlin-refactoring-20261029",
+    "implementation": [
+      "Stage1: photo and offer lists initialize the existing customer filter from navigation; photo context labels resolved from existing repository; offer detail/list keeps customer context",
+      "Main areas stay selected in subviews and actions, survive activity route restoration; short Arbeit label and two rows at large font without reducing font size",
+      "Navigation/back clear previous messages; saved primary entity confirmation names the operation"
+    ],
+    "kiss_yagni": "Reuse route arguments, SQL filters, Compose state and Material buttons. No new database, dependency, architecture or filter profiles. Separate navigation area only for action/recreation; a replacement navigation framework is unnecessary.",
+    "stages": [
+      {
+        "stage": 1,
+        "status": "SOURCE_REVIEWED;EMULATOR_PENDING"
+      },
+      {
+        "stage": 2,
+        "status": "PENDING"
+      },
+      {
+        "stage": 3,
+        "status": "PENDING"
+      },
+      {
+        "stage": 4,
+        "status": "PENDING"
+      },
+      {
+        "stage": 5,
+        "status": "PENDING"
+      }
+    ],
+    "remaining": [
+      "All search/keyboard matrix and screenshot acceptance",
+      "Shared visual components and all feature bundles",
+      "Full surface/function inventory and final regression"
+    ]
+  },
+  "open_checks": [
+    "UI stages2–5 not completed;Stage1 build and synthetic emulator pending",
+    "100/130/200% font, reduced height, portrait/landscape and every search with actual IME/screenshots pending",
+    "Physical Pixel acceptance NOT_RUN;no productive installation or data access",
+    "Historical Build119 physical findings are not current Build120/changed-source acceptance"
+  ],
+  "workflow": {
+    "scope": "CURRENT_SOURCE;struktur-neu authoritative;qa-apk.yml builds/tests without user APK publication",
+    "rules": "../AGENTS.md",
+    "code": "android/app/src/main",
+    "build_instructions": "docs/entwicklung/BAU.md",
+    "business_contract": "docs/fachregeln/APP.md",
+    "automatic_external_publication": false,
+    "automatic_installation": false,
+    "rule_reload": {
+      "event": "UserPromptSubmit",
+      "configuration": ".codex/hooks.json",
+      "reader": ".codex/read_project_context.py",
+      "status": "LOCAL_READER_PASS;CLOUD_AUTOMATIC_INVOCATION_NOT_VERIFIED",
+      "verification": {
+        "actual_current_file_delivery": "PASS;full files+SHA256;local context <=16000 bytes",
+        "running_cloud_chat_hook_invocation_verified": false
+      }
+    },
+    "chatgpt_project": {
+      "name": "Haus und Garten App Entwicklung",
+      "instructions": "docs/entwicklung/PROJEKT.md"
+    }
+  },
+  "validation": {
+    "app_source_fingerprint": "a08ad845065f9d83a8ce9206f98b42c14053f4d779aa9a7961167ac797d7ae3c",
+    "source_privacy": "PASS;empty operational seed",
+    "business_data_read": false,
+    "authored_changes_diff_check": "PASS;reviewed takeover and own corrections;git diff --check",
+    "current_test_run": {
+      "source_basis": "242ccc9159cefdb22879c57474bcd45586244ab6",
+      "source_review": "PASS;targeted Stage1 diff and existing 210-action manifest",
+      "android_build": "PENDING_CI",
+      "jvm": "PENDING_CI",
+      "emulator": "PENDING_CI",
+      "physical_pixel": "NOT_RUN;outside task scope",
+      "local_environment": "Connector-fetched partial source workspace;direct git clone has no authentication;no Gradle/SDK cache. Complete checks use existing GitHub Actions workflow.",
+      "business_data_read": false,
+      "pixel_installation_performed": false
+    },
+    "performance_evidence": "docs/verification/performance-current.md;Build120 emulator and historical Pixel119 separate",
+    "connector": {
+      "tools": 169,
+      "read": 73,
+      "write": 96,
+      "scope": "HISTORICAL_BUILD119;physical binding proved"
+    },
+    "physical_device_test": {
+      "source_commit": "6da869753ee2ed1e8640ec1b2a1c354724fdd0ee",
+      "result": "ENDED_BY_USER;NO_FULL_ACCEPTANCE",
+      "evidence_document": "docs/verification/performance-current.md#gebundener-gerätebeleg",
+      "case_counts": {
+        "total": 67,
+        "pass": 57,
+        "fail": 6,
+        "not_executed": 4,
+        "route_smoke": 28
+      },
+      "scope": "HISTORICAL119;details in evidence document;not Build120 proof"
+    },
+    "release_delivery": {
+      "observed_at_utc": "2026-10-30T13:42:23.915421+00:00",
+      "source_commit": "f770f38d0bd428ec93004252d1aaacf003a475e2",
+      "source_sha256": "a08ad845065f9d83a8ce9206f98b42c14053f4d779aa9a7961167ac797d7ae3c",
+      "source_preservation": "PASS;clean checkout and exact remote branch commit readback before build/signing",
+      "source_equivalence": "PASS;git diff a72240d..f770f38 changes only current status and performance documentation;app,tests,tools and workflow byte-identical",
+      "check_current": "PASS;fresh root invocation;62 Python tests plus source/privacy/contracts/assets/inventory",
+      "android_build": "PASS;fresh assembleRelease and lintRelease;63 tasks executed",
+      "jvm": "PASS;9 suites verified from matching-source CI41054301410;not rerun locally",
+      "emulator": "PASS;8 native suites verified from matching-source CI41054301410;not rerun locally",
+      "candidate_verification": "PASS;verify_app_candidate both final and Drive download against verified Build119 APK;all assets and empty operational seed",
+      "source_binding": "PASS;exact commit/fingerprint in DEX and generated BuildConfig;SOURCE_DIRTY=false",
+      "temporary_signing_material_removed": true,
+      "failed_checks": [],
+      "verification_attempt_note": "One premature candidate invocation before signer completion failed because output did not yet exist;rerun after completion PASS",
+      "physical_pixel": "NOT_EXECUTED",
+      "installation_performed": false,
+      "productive_data_read": false,
+      "productive_migration_performed": false,
+      "restore_performed": false,
+      "invoice_authority_activated": false
+    }
+  },
+  "unmerged_work": [
+    {
+      "branch": "codex/pflanzenbibliothek-20261023",
+      "commit": "7d499b225ed28f501333227e0ce92a54d4c5d542",
+      "status": "PRESERVED_SEPARATELY;not automatically integrated into Build113"
+    }
+  ],
+  "last_distributed_build": {
+    "version_name": "1.57.1",
+    "version_code": 120,
+    "app_source_git_sha": "f770f38d0bd428ec93004252d1aaacf003a475e2",
+    "source_sha256": "a08ad845065f9d83a8ce9206f98b42c14053f4d779aa9a7961167ac797d7ae3c",
+    "apk_sha256": "b86e87cfd01d3a503209185bdf3ec9eff9ec470ba4abe11c0852379aab1d6062",
+    "apk_bytes": 89502655,
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "signature_valid": true,
+    "original_certificate_match": true,
+    "source_binding": "PASS;all source assets;commit/fingerprint in DEX;clean BuildConfig",
+    "built_at_utc": "2026-10-30T13:42:23.915421+00:00",
+    "download_url": "https://drive.google.com/file/d/18WqTFuunyA0lx53okuycQU-LJEM5IpAy/view?usp=drivesdk",
+    "drive": {
+      "file_id": "18WqTFuunyA0lx53okuycQU-LJEM5IpAy",
+      "parent_folder_id": "1K4WB9L6ZKlW-33o8uPK3zTfqgAOVOE8u",
+      "visibility": "PRIVATE_OWNER_ONLY;fresh permissions readback;existing rights unchanged"
+    },
+    "download_readback": {
+      "status": "PASS;complete authenticated target download;byte-identical cmp;size/SHA256/original signature and candidate verification",
+      "bytes": 89502655,
+      "sha256": "b86e87cfd01d3a503209185bdf3ec9eff9ec470ba4abe11c0852379aab1d6062",
+      "observed_at_utc": "2026-10-30T13:42:23.915421+00:00",
+      "signature_valid": true,
+      "original_certificate_match": true
+    },
+    "temporary_signing_material_removed": true,
+    "installation": "NOT_PERFORMED;manual user installation pending",
+    "productive_migration": "NOT_PERFORMED",
+    "invoice_authority": "NOT_ACTIVATED"
+  },
+  "current_release_candidate": {
+    "version_name": "1.57.1",
+    "version_code": 120,
+    "status": "ORIGINAL_SIGNED_PRIVATE_DELIVERY_AND_DOWNLOAD_READBACK_PASS;NO_PIXEL_INSTALLATION",
+    "base_git_sha": "19537218aad3878a12cf01426ca9326b015294b0",
+    "tested_source_commit": "a72240dfed6bc871d7fc1c9ef6fe2e8ee52e6709",
+    "source_git_sha": "f770f38d0bd428ec93004252d1aaacf003a475e2",
+    "source_sha256": "a08ad845065f9d83a8ce9206f98b42c14053f4d779aa9a7961167ac797d7ae3c",
+    "download_url": "https://drive.google.com/file/d/18WqTFuunyA0lx53okuycQU-LJEM5IpAy/view?usp=drivesdk"
+  }
 }

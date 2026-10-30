@@ -108,7 +108,7 @@ jobs:
             timeout "$suite_timeout" "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation 2>&1 | tee "outputs/$suite.txt" || instrumentation_status=$?
             timeout 15 "$ADB" -s emulator-5580 logcat -d -t 1500 > "outputs/$suite-logcat.txt" 2>&1 || true
             if [ "$suite" = native_compose ]; then
-              for image in work-keyboard accessory work-large-font failure-customer failure-usability failure-accessories failure-timer failure-notification failure-office_opening failure-large_text; do
+              for image in customer-photos customer-offers failure-customer_context work-keyboard accessory work-large-font failure-customer failure-usability failure-accessories failure-timer failure-notification failure-office_opening failure-large_text; do
                 "$ADB" -s emulator-5580 pull "/sdcard/Android/data/at.hausgarten.service/files/qa-native-$image.png" "outputs/qa-native-$image.png" || true
               done
             fi
@@ -138,7 +138,7 @@ jobs:
               for plan in result['plans'].values():
                   assert 'USING INDEX ix_native_read_' in str(plan) and 'TEMP B-TREE' not in str(plan), result
           elif sys.argv[1]=='native_compose':
-              for proof in ('real_main_activity','native_compose_ui','customer_crud','paging_and_search',
+              for proof in ('real_main_activity','native_compose_ui','customer_crud','customer_context_navigation','paging_and_search',
                             'mcp_write_visible_without_reload','draft_recreation','timer_state_transitions',
                             'font_scale_200_percent','planning_notification_alternatives','customer_conflict_review',
                             'draft_write_failure_recovery','work_entry_usability','work_photo_retention',

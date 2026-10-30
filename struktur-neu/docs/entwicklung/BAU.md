@@ -519,3 +519,10 @@ Konfiguration im Repository allein beweist keine Aktivierung in anderen Clients.
 Lokale Command-Hooks werden nicht in jeder Cloud-Oberfläche unterstützt; die
 laufende ChatGPT-Unterhaltung wird durch einen Git-Commit nicht umkonfiguriert.
 Der tatsächliche Aktivierungs-/Prüfstand steht im aktuellen Arbeitsstand.
+
+Die Kundenkontext-Prüfung öffnet Fotos und Angebote über zwei verschiedene
+synthetische Kundenakten, prüft den Ausschluss des jeweils anderen Kunden und
+die Rückkehr aus dem Angebotsdetail. Sie prüft außerdem Bereichszuordnung,
+erneutes Öffnen der Übersicht und das Entfernen alter Meldungen bei Navigation.
+Die Bilder `qa-native-customer-photos.png` und `qa-native-customer-offers.png`
+gehören zum vorhandenen synthetischen CI-Artefakt.

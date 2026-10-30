@@ -312,6 +312,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("accessories", ::accessoryJourney)
             journey("timer", ::timerJourney)
             journey("notification", ::notificationJourney)
+            journey("customer_context", ::customerContextJourney)
             journey("office_opening", ::officeOpeningMeasurements)
             journey("large_text", ::largeTextJourney)
             if (failures.isNotEmpty()) {
@@ -320,7 +321,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 throw failure
             }
             return JSONObject().put("checks", checks).put("synthetic_only", true).put("productive_data_read", false)
-                .put("real_main_activity", true).put("native_compose_ui", true).put("customer_crud", true)
+                .put("real_main_activity", true).put("native_compose_ui", true).put("customer_crud", true).put("customer_context_navigation", true)
                 .put("paging_and_search", true).put("mcp_write_visible_without_reload", true)
                 .put("draft_recreation", true).put("timer_state_transitions", true).put("font_scale_200_percent", true)
                 .put("planning_notification_alternatives", true).put("customer_conflict_review", true)
@@ -461,8 +462,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(customers(createdName).isEmpty(), "CUSTOMER_UPDATE_PRESERVES_ID_WITHOUT_DUPLICATE")
         reveal("Bearbeiten")
         val customerNavigation = nodes().firstNotNullOfOrNull { candidate -> if (matches(candidate, "Kunden")) clickable(candidate) else null }
-        yes(customerNavigation != null && customerNavigation.isClickable && !customerNavigation.isSelected,
-            "CUSTOMER_DETAIL_TAB_EXPOSES_ACCESSIBLE_LIST_NAVIGATION")
+        yes(customerNavigation != null && customerNavigation.isClickable && customerNavigation.isSelected,
+            "CUSTOMER_DETAIL_SELECTED_AREA_EXPOSES_ACCESSIBLE_LIST_NAVIGATION")
         click("Kunden")
         enter("Suchen", "QA Native F")
         shown("1 Treffer · 1–1")
@@ -821,6 +822,60 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it))
             }
         } finally { bitmap.recycle() }
+    }
+
+    private fun customerContextJourney() {
+        val controller = NativeAppController(requireNotNull(activity) as MainActivity, store)
+        controller.navigate("worklogs", "qa-route", "edit")
+        yes(controller.route.area == "worklogs", "WORK_EDITOR_AREA")
+        controller.action("Prüfen", "get_work_record")
+        yes(controller.route.area == "worklogs", "ACTION_RETAINS_AREA")
+        val restored = NativeAppController(requireNotNull(activity) as MainActivity, store)
+        restored.restoreRoute(controller.savedRoute())
+        yes(restored.route.area == "worklogs", "RECREATED_ACTION_AREA")
+        controller.message("QA previous save")
+        controller.navigate("photos", args = JSONObject().put("customer_id", "qa-customer"))
+        yes(controller.messages.value.isEmpty() && controller.route.area == "office", "NAVIGATION_CLEARS_OLD_MESSAGE")
+        controller.message("QA previous photo")
+        controller.back()
+        yes(controller.messages.value.isEmpty(), "BACK_CLEARS_OLD_MESSAGE")
+
+        val fixture = JSONObject(store.getState().getJSONObject("master").toString())
+        val offers = fixture.optJSONArray("offers") ?: JSONArray()
+        val source = File(context.cacheDir, "qa-context-photo.png")
+        val bitmap = Bitmap.createBitmap(3, 3, Bitmap.Config.ARGB_8888)
+        bitmap.eraseColor(0xff346a45.toInt())
+        source.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()
+        val identity = BackupDeviceGuard(context).current()
+        for (index in 0..1) {
+            val name = fixturePrefix + String.format(Locale.ROOT, "%03d", index)
+            val id = customers(name).single().getString("id")
+            offers.put(JSONObject().put("id", "qa_context_offer_$index").put("customer_id", id)
+                .put("title", "QA Kontextangebot $index").put("status", "draft").put("test_record", true))
+            runBlocking { controller.importPhoto(Uri.fromFile(source), JSONObject().put("_photo_request_id", "qa_context_photo_$index")
+                .put("customer_id", id).put("role", "documentation").put("caption", "QA Kontextfoto $index")
+                .put("_capture_context", JSONObject().put("formatVersion", 1).put("installation_id", identity.getString("installationId"))
+                    .put("restore_epoch", identity.getString("restoreEpoch")))) }
+        }
+        fixture.put("offers", offers); store.putOwnerValue("snapshot", fixture.toString()); store.notifyCommittedChange()
+        for (index in 0..1) {
+            val name = fixturePrefix + String.format(Locale.ROOT, "%03d", index)
+            click("Kunden"); enter("Suchen", name); click(name)
+            click("Kundenfotos")
+            shown(name); shown("QA Kontextfoto $index")
+            yes(node("QA Kontextfoto ${1-index}") == null, "PHOTOS_KEEP_CUSTOMER_$index")
+            if (index == 0) captureSyntheticScreen("customer-photos")
+            click("‹ Zurück"); click("Angebote")
+            shown("QA Kontextangebot $index")
+            yes(node("QA Kontextangebot ${1-index}") == null, "OFFERS_KEEP_CUSTOMER_$index")
+            if (index == 0) captureSyntheticScreen("customer-offers")
+            yes(nodes().any { it.isSelected && matches(it, "Büro") }, "OFFERS_OFFICE_AREA_$index")
+            click("QA Kontextangebot $index"); click("Zur Liste")
+            shown("QA Kontextangebot $index")
+            yes(node("QA Kontextangebot ${1-index}") == null, "OFFER_DETAIL_RETURN_FILTER_$index")
+        }
+        source.delete()
+        click("Heute")
     }
 
     private fun officeOpeningMeasurements() {

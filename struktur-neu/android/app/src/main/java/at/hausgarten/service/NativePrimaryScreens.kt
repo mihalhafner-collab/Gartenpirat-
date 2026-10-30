@@ -17,6 +17,11 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -63,20 +68,13 @@ internal fun NativeApplication(controller: NativeAppController) {
             Column(Modifier.statusBarsPadding()) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                     if (reviewChecked && controller.canGoBack() && route.section != "restore_review") TextButton({ controller.back() }) { Text("‹ Zurück") }
-                    Text((if (route.section in listOf("office", "more")) "Büro" else nativeSections[route.section]) ?: if (route.section == "restore_review") "Wiederhergestellte Entwürfe" else "Haus & Garten", Modifier.weight(1f).padding(12.dp), style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text((if (route.section in listOf("office", "more")) "Büro" else nativeSections[route.section]) ?: if (route.section == "restore_review") "Wiederhergestellte Entwürfe" else "Haus & Garten", Modifier.weight(1f).padding(12.dp), style = MaterialTheme.typography.titleLarge)
                 }
                 if (notice.isNotBlank()) Text(notice, Modifier.padding(horizontal = 16.dp, vertical = 6.dp), style = MaterialTheme.typography.bodySmall)
             }
         },
         bottomBar = {
-            if (reviewChecked && route.section != "restore_review") NavigationBar {
-                listOf("today" to "Heute", "worklogs" to "Arbeitsaufzeichnungen", "customers" to "Kunden", "office" to "Büro").forEach { (section, label) ->
-                    // A selected tab has no accessibility click action. Keep the
-                    // section overview reachable from its detail and editor routes.
-                    val selected = route.section == section && route.id.isEmpty() && route.mode == "list"
-                    NavigationBarItem(selected = selected, onClick = { controller.openSection(section) }, icon = { Text(when (section) { "today" -> "⌂"; "worklogs" -> "◷"; "customers" -> "♧"; else -> "☰" }) }, label = { Text(label, maxLines = 2, overflow = TextOverflow.Ellipsis) })
-                }
-            }
+            if (reviewChecked && route.section != "restore_review") NativeMainNavigation(controller)
         }
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding()) {
@@ -113,6 +111,35 @@ internal fun NativeApplication(controller: NativeAppController) {
                 "restore_review", "restored_drafts" -> NativeRestoredDraftReview(controller)
                 else -> NativeRevierScreen(route.section.removePrefix("revier-"), route.id, controller)
             } }
+        }
+    }
+}
+
+/** Buttons retain an explicit overview action even while their area is selected. */
+@Composable
+private fun NativeMainNavigation(controller: NativeAppController) {
+    val entries = listOf("today" to "Heute", "worklogs" to "Arbeit", "customers" to "Kunden", "office" to "Büro")
+    val large = LocalDensity.current.fontScale > 1.3f
+    Surface(color = MaterialTheme.colorScheme.surfaceContainer, tonalElevation = 3.dp) {
+        Column(Modifier.navigationBarsPadding().padding(horizontal = 4.dp, vertical = 2.dp)) {
+            entries.chunked(if (large) 2 else 4).forEach { group ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    group.forEach { (section, label) ->
+                        val active = controller.route.area == section
+                        TextButton(onClick = { controller.openSection(section) },
+                            modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics { selected = active },
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
+                            colors = ButtonDefaults.textButtonColors(
+                                containerColor = if (active) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+                                contentColor = if (active) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                if (!large) Text(when (section) { "today" -> "⌂"; "worklogs" -> "◷"; "customers" -> "♧"; else -> "☰" })
+                                Text(label, style = MaterialTheme.typography.labelLarge)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -366,7 +393,7 @@ private fun NativeEntityEditor(controller: NativeAppController, collection: Stri
         }
         nativeDeletePhotoDraft(controller, photoUri)
         controller.removeDraft(draftKey)
-        controller.message("Lokal gespeichert."); controller.navigate(collection, saved)
+        controller.navigate(collection, saved); controller.message("${if (kind == "customer") "Kunde" else if (kind == "order") "Auftrag" else "Arbeit"} gespeichert.")
     }
     fun save(frozen: JSONObject? = null) {
         scope.launch {

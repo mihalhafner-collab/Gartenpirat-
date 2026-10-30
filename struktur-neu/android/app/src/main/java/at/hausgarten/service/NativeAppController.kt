@@ -24,7 +24,13 @@ import java.security.MessageDigest
 import java.util.UUID
 import okio.Path.Companion.toOkioPath
 
-internal data class NativeRoute(val section: String = "today", val id: String = "", val mode: String = "list", val args: JSONObject = JSONObject())
+internal fun nativeMainSection(section: String): String = when (section) {
+    "today" -> "today"
+    "worklogs", "timer", "work", "drafts" -> "worklogs"
+    "customers" -> "customers"
+    else -> "office"
+}
+internal data class NativeRoute(val section: String = "today", val id: String = "", val mode: String = "list", val args: JSONObject = JSONObject(), val area: String = nativeMainSection(section))
 internal class NativeCallFailure(val detail: JSONObject) : IllegalArgumentException(detail.optString("message", "Die Aktion konnte nicht abgeschlossen werden."))
 
 /** Native UI uses the exact same transactional writers and read contracts as MCP. */
@@ -46,22 +52,24 @@ internal class NativeAppController(private val activity: MainActivity, val store
     private var catalog: Map<String, JSONObject>? = null
 
     fun navigate(section: String, id: String = "", mode: String = "list", args: JSONObject = JSONObject()) {
+        messages.value = ""
         history.addLast(route)
-        route = NativeRoute(section, id, mode, JSONObject(args.toString()))
+        route = NativeRoute(section, id, mode, JSONObject(args.toString()), if (section == "action") route.area else nativeMainSection(section))
     }
     fun openSection(section: String) {
         if (section == "customers") customerListEntry++
         if (route.section != section || route.id.isNotEmpty() || route.mode != "list") navigate(section)
     }
-    fun back() { route = if (history.isEmpty()) NativeRoute() else history.removeLast() }
+    fun back() { messages.value = ""; route = if (history.isEmpty()) NativeRoute() else history.removeLast() }
     fun canGoBack(): Boolean = history.isNotEmpty() || route.section != "today"
     fun restoreRoute(saved: String?) {
         if (saved.isNullOrEmpty()) return
         runCatching { JSONObject(saved) }.getOrNull()?.let {
-            route = NativeRoute(it.optString("section", "today"), it.optString("id"), it.optString("mode", "list"), it.optJSONObject("args") ?: JSONObject())
+            val section = it.optString("section", "today")
+            route = NativeRoute(section, it.optString("id"), it.optString("mode", "list"), it.optJSONObject("args") ?: JSONObject(), it.optString("area", nativeMainSection(section)))
         }
     }
-    fun savedRoute(): String = JSONObject().put("section", route.section).put("id", route.id).put("mode", route.mode).put("args", route.args).toString()
+    fun savedRoute(): String = JSONObject().put("section", route.section).put("id", route.id).put("mode", route.mode).put("args", route.args).put("area", route.area).toString()
     fun message(value: String) { messages.value = value }
     fun open(type: Class<*>) { activity.startActivity(Intent(activity, type)) }
     fun action(title: String, tool: String, args: JSONObject = JSONObject()) {
