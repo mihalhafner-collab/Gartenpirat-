@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{pathToFileURL}=require('node:url');
 const {chromium}=require('./browser.cjs'),fixtureSource=require('./ui-fixture-source.cjs');
-const baseline=process.argv.includes('--baseline'),url=pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href;
+const baseline=process.argv.includes('--baseline'),url=pathToFileURL(path.resolve('app/src/main/assets/mobile.html')).href;
 const results=[],samples=[],errors=[];
 async function measure(browser,setup){
  const page=await browser.newPage({viewport:{width:360,height:840},hasTouch:true});page.setDefaultTimeout(10000);page.setDefaultNavigationTimeout(30000);

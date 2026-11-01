@@ -1,4 +1,4 @@
-"""Central synthetic profiles and disposable host adapter. No production inputs."""
+"""Synthetic profiles and disposable test directories. No production inputs."""
 import json
 import tempfile
 from copy import deepcopy
@@ -40,19 +40,3 @@ class temporary_directory:
     def __enter__(self):return self.name
     def __exit__(self,*error):self.cleanup()
     def cleanup(self):self._temp.cleanup()
-
-
-class SyntheticStore:
-    def __enter__(self):
-        import db
-        self.temporary = tempfile.TemporaryDirectory(prefix='qa_hausgarten_')
-        self.root = configure_db(self.temporary.name)
-        self.previous = db.DATA_DIR, db.DB_PATH, db.PHOTO_DIR, db.BACKUP_DIR
-        db.DATA_DIR, db.DB_PATH, db.PHOTO_DIR, db.BACKUP_DIR = self.root, self.root/'qa.db', self.root/'photos', self.root/'backups'
-        db.init()
-        return self
-
-    def __exit__(self, *error):
-        import db
-        db.DATA_DIR, db.DB_PATH, db.PHOTO_DIR, db.BACKUP_DIR = self.previous
-        self.temporary.cleanup()

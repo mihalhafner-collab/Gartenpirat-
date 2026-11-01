@@ -1,7 +1,0 @@
-{
-  "classification": "SYNTHETIC_TEST",
-  "fixture": "qa_customer_hub",
-  "source_commit": "1382813",
-  "source_fixture": "tests/sync-customer-gallery.test.cjs",
-  "sha256": "ec41792f53d205b1ce28554a5875258848e73cfeadbe27401d5c004d6808a505"
-}

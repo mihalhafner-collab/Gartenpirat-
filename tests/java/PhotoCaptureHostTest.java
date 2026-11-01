@@ -156,7 +156,7 @@ public final class PhotoCaptureHostTest {
             require(result.calls==1&&result.value.length==1&&uri.equals(result.value[0]),"Capture URI delivered once");
             require(captured.isFile()&&app.pendingCaptureFile==null&&app.pendingCaptureUri==null,"No early deletion before WebView reads");
             require(uri.equals(app.revoked)&&app.revokedFlags==3,"Camera grants revoked");
-            require(app.syncHandler.delays.equals(Arrays.asList(24L*60L*60L*1000L)),"Bounded existing retention policy");
+            require(app.syncHandler.delays.isEmpty(),"Unsaved camera draft has no age-based deletion");
         });
         test("cancellation clears only the temporary capture",()->{
             MainActivity app=fresh();Result result=new Result();app.fileCallback=result;

@@ -7,7 +7,7 @@ const {chromium}=require('./browser.cjs'),fixtureSource=require('./ui-fixture-so
  async function check(name,task){try{await task();results.push({name,result:'PASS'});}catch(e){results.push({name,result:'FAIL',error:e.stack});}console.log(results.at(-1));}
  try{
   await page.addInitScript({content:fixtureSource('daily-usability.test.cjs')});await page.addInitScript({content:fixtureSource('revier-solo-ui.test.cjs')});
-  await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href);await page.waitForFunction(()=>document.documentElement.dataset.startup==='ready'&&document.body.dataset.simpleReady==='true');
+  await page.goto(pathToFileURL(path.resolve('app/src/main/assets/mobile.html')).href);await page.waitForFunction(()=>document.documentElement.dataset.startup==='ready'&&document.body.dataset.simpleReady==='true');
   await check('Installing and repeatedly enhancing the whole UI never writes or creates a draft',async()=>{
    assert.equal(await page.evaluate(()=>writes.length+qaRevier.writes.length),0);assert.equal(await page.evaluate(()=>HGFormDrafts.list().length),0);
    const identity=await page.evaluate(()=>{const fields=[...document.querySelectorAll('input,select,textarea')];HGSimpleForms.enhance();HGSimpleForms.enhance();return fields.every(f=>f.isConnected&&[...document.querySelectorAll('input,select,textarea')].includes(f));});assert(identity);

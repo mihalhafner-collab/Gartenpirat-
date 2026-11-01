@@ -1,47 +1,19 @@
-data/
+# Generated builds, caches and test outputs.
+.gradle*/
+**/build/
 outputs/
 output/
-tmp/
 __pycache__/
 *.pyc
 .dependencies/
 .tools/
-.gradle*/
-android-toolchain/
+node_modules/
+/local.properties
 .android-user/
-android/.gradle/
-**/build/
-node_modules/
-android/local.properties
-*.keystore
-*.jks
-*.apk
-*.aab
-*.idsig
-*.db
-*.sqlite
-*.sqlite3
-.env
-.env.*
-# Private signing material must never enter Git.
-*.p12
-*.pfx
-*.key
-qa-signing-password.txt
-.qa-signing/
 
-# One retained original reference; other APK builds remain ignored.
-!downloads/Haus-Garten-1.51.0-79-original-update-kandidat.apk
-
-__pycache__/
-*.pyc
-outputs/
-.dependencies/
-.gradle/
-android/.gradle/
-**/build/
-android/local.properties
-node_modules/
+# Local/private data and signing material.
+data/
+tmp/
 *.apk
 *.aab
 *.idsig
@@ -56,5 +28,5 @@ node_modules/
 *.key
 .env
 .env.*
-
-/local.properties
+qa-signing-password.txt
+.qa-signing/

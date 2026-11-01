@@ -20,7 +20,7 @@ if '--record-reviewed' in sys.argv:
   if 'get_ui_action_catalog' in a['mcp']:
    for n in ('get_offer_contract','run_self_test'):
     if n not in a['mcp']:a['mcp'].append(n)
-  a.setdefault('test_scope','Mapping/schema/catalog contract; executed workflow tests are listed in CODEX-STATUS.md')
+  a.setdefault('test_scope','Mapping/schema/catalog contract; executable regressions are under tests/')
  target.write_text(json.dumps(m,ensure_ascii=False,indent=2)+'\n')
 else:
  if m['reviewed_sources']!=observed:raise SystemExit('UI source review required; fingerprint or source set changed')

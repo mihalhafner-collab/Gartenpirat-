@@ -8,6 +8,13 @@ on:
       - 'app/**'
       - 'tests/**'
       - 'tools/**'
+      - '*.gradle'
+      - 'gradle.properties'
+      - 'gradlew*'
+      - 'gradle/**'
+      - 'bootstrap_contract.py'
+      - 'privacy_guard.py'
+      - 'privacy_policy.json'
       - '.github/workflows/qa-apk.yml'
 
 permissions:
@@ -34,8 +41,6 @@ jobs:
         with:
           gradle-version: '9.3.1'
           cache-disabled: true
-      - name: Run unit tests
-        run: ./gradlew test
       - name: Install Android build and isolated emulator packages
         run: |
           set -euo pipefail
@@ -45,6 +50,12 @@ jobs:
           subprocess.run([sys.argv[1], '--licenses'], input='y\n'*100, text=True, check=True)
           PY
           "$SDKMANAGER" 'platforms;android-37.0' 'build-tools;37.0.0' 'platform-tools' 'emulator' 'system-images;android-35;default;x86_64'
+      - name: Compile app and run build checks
+        run: ./gradlew test
+      - name: Run host regression tests
+        run: |
+          python3 -m pip install -r requirements-plants.txt
+          python3 -B -m unittest discover -s tests
       - name: Build production sources and native test APK without release signing
         working-directory: .
         run: gradle --no-daemon --no-configuration-cache --no-build-cache :app:assembleRelease :app:assembleReleaseAndroidTest

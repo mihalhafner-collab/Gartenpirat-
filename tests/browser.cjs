@@ -15,7 +15,7 @@ if(process.env.HG_BROWSER_EXECUTABLE_PATH){
 // This is a browser boundary double, not Android WebView/device acceptance.
 if(process.env.HG_TEST_LOCAL_ASSETS==='1'){
  const origin='http://127.0.0.1:18766',root=path.resolve(__dirname,'..');
- const roots=[path.join(root,'static'),path.join(root,'android/app/src/main/assets'),...(process.env.HG_TEST_APP_ASSETS?[path.resolve(process.env.HG_TEST_APP_ASSETS)]:[])];
+ const roots=[path.join(root,'app/src/main/assets'),...(process.env.HG_TEST_APP_ASSETS?[path.resolve(process.env.HG_TEST_APP_ASSETS)]:[])];
  const types={'.html':'text/html','.js':'application/javascript','.css':'text/css','.json':'application/json','.jpg':'image/jpeg','.png':'image/png','.svg':'image/svg+xml'};
  function wrap(page){
   if(page.__localAssets)return page;page.__localAssets=true;

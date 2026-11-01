@@ -1,7 +1,0 @@
-
-.gp-saved-photo {margin:16px 0;display:grid;gap:6px}.gp-saved-photo small{color:#52665b}
-.gp-photo-options{position:absolute;z-index:4;left:12px;right:12px;bottom:14px;max-height:75%;overflow:auto;background:#fff;color:#193a29;padding:18px;border-radius:16px;box-shadow:0 10px 40px #0009;display:grid;gap:12px}
-.gp-photo-options[hidden]{display:none}.gp-photo-options h3,.gp-photo-options p{margin:0}
-.gp-photo-options label{display:flex;gap:10px;align-items:flex-start;line-height:1.4}.gp-photo-options input{width:22px;height:22px;flex:none}
-.gp-photo-options button{min-height:46px;border:1px solid #b6c9bd;border-radius:10px;padding:10px;background:#f3f7f1;color:#173d28;font:inherit}
-.gp-photo-mode .gp-photo-message{z-index:5;max-width:calc(100% - 32px);background:#fff;color:#163c28;border-radius:10px;padding:10px;bottom:20px}

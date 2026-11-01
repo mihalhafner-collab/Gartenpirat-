@@ -1,6 +1,0 @@
-{
-  "classification": "SYNTHETIC_TEST",
-  "baseline": "before K9 presentation changes",
-  "restore_handler_sha256": "7faeb4e5c51a42c372cb7b2a6c33f87c61593c9886b0daf7e7253380b6a9754b",
-  "sync_classifier_sha256": "5d81e34370a8754ea75f80d533c6b7ba768156a3b9621639464f133931566a3c"
-}

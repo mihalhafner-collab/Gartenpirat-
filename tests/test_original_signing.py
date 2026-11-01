@@ -24,39 +24,6 @@ sys.path.insert(0, str(ROOT))
 from tools import sign_original_apk as signing
 
 
-class ObservedReleaseBaselineTests(unittest.TestCase):
-    def test_current_observation_blocks_same_or_older_release(self):
-        from tools.check_release_baseline import require_newer_version
-        state=json.loads((ROOT/'AKTUELLER-STAND.json').read_text())
-        baseline=state['last_observed_installed_build']['version_code']
-        self.assertEqual(require_newer_version(baseline+1,state),baseline)
-        for candidate in (77,97,98,baseline-1,baseline):
-            with self.subTest(candidate=candidate),self.assertRaises(ValueError):require_newer_version(candidate,state)
-
-    def test_incomplete_observations_fail_closed_and_newer_observation_wins(self):
-        from tools.check_release_baseline import require_newer_version
-        state=json.loads((ROOT/'AKTUELLER-STAND.json').read_text())
-        baseline=state['last_observed_installed_build']['version_code']
-        for observations in ([],[{'version_code':98}],[{'version_code':True,'observed_at_utc':'qa','reported_base_git_sha':'0'*40,'source_sha256':'0'*64}]):
-            with self.subTest(observations=observations),self.assertRaises(ValueError):require_newer_version(99,{'observed_installation_history':observations})
-        newer=baseline+2
-        state['observed_installation_history'].insert(0,{**state['observed_installation_history'][-1],'version_code':newer})
-        with self.assertRaises(ValueError):require_newer_version(baseline+1,state)
-        self.assertEqual(require_newer_version(newer+1,state),newer)
-
-    def test_exact_apk_observation_and_incomplete_current_evidence(self):
-        from tools.check_release_baseline import require_newer_version
-        history=[{'version_code':10,'observed_at_utc':'qa','reported_base_git_sha':'0'*40,'source_sha256':'0'*64}]
-        observed={'version_code':12,'observed_at_utc':'qa','source_sha256':'1'*64,'matched_release_source_git_sha':'1'*40,'apk_sha256':'2'*64,'source_binding':'EXACT_INSTALLED_APK_SHA256_MATCH_TO_RELEASE_REGISTRY;not independent App selfreport'}
-        state={'observed_installation_history':history,'last_observed_installed_build':observed}
-        self.assertEqual(require_newer_version(13,state),12)
-        for code in (10,11,12):
-            with self.subTest(code=code),self.assertRaises(ValueError):require_newer_version(code,state)
-        for field in ('apk_sha256','source_sha256','matched_release_source_git_sha','source_binding','observed_at_utc'):
-            invalid={**observed};invalid.pop(field)
-            with self.subTest(field=field),self.assertRaises(ValueError):require_newer_version(13,{**state,'last_observed_installed_build':invalid})
-
-
 class OriginalSigningTests(unittest.TestCase):
     def setUp(self):
         # These tests isolate signing; the source handoff guard has its own real

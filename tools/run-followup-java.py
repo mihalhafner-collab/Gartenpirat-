@@ -65,10 +65,18 @@ def run(command):
 run([shutil.which('javac'), '-encoding', 'UTF-8', '-cp', cp, '-d', str(classes),
      *[str((src if (src/(name+'.java')).exists() else ROOT/'app/src/androidTest/java/at/hausgarten/service')/(name+'.java')) for name in names], str(ROOT/'tests/java/at/hausgarten/service/SyntheticBusinessData.java'), *map(str, support), *map(str, tests)])
 results = []
+failures = []
 for test in tests:
     runtime_cp = os.pathsep.join(map(str, [classes, jar, *crypto_jars, *table_jars]))
     heap = '-Xmx512m' if test.stem == 'BusinessTableStoreTests' else '-Xmx64m'
-    output = run([shutil.which('java'), heap, '-Dfile.encoding=UTF-8', '-cp', runtime_cp, 'at.hausgarten.service.'+test.stem])
+    try:
+        output = run([shutil.which('java'), heap, '-Dfile.encoding=UTF-8', '-cp', runtime_cp, 'at.hausgarten.service.'+test.stem])
+    except RuntimeError:
+        failures.append(test.stem)
+        continue
     print(output.strip())
     results.append(test.stem)
 print('PASS current Java suites:', len(results))
+
+if failures:
+    raise SystemExit('Failed Java suites: ' + ', '.join(failures))

@@ -17,7 +17,7 @@ const {chromium}=require('./browser.cjs');
     saveOrder:()=> 'qa-order',openPixelTunnelSettings:()=>{window.settingsOpened=true;}};
    window.AndroidSpeech={start:()=>{}};window.AndroidPhone={dial:()=>{},openMaps:()=>{}};
   });
-  await page.goto(pathToFileURL(path.resolve('android/app/src/main/assets/mobile.html')).href);await page.waitForFunction(()=>document.body.dataset.usabilityVersion==='1.41'&&document.documentElement.dataset.startup==='ready'&&document.body.dataset.fieldReady==='true'&&document.documentElement.dataset.startup==='ready'&&document.body.dataset.revierReady==='true');
+  await page.goto(pathToFileURL(path.resolve('app/src/main/assets/mobile.html')).href);await page.waitForFunction(()=>document.body.dataset.usabilityVersion==='1.41'&&document.documentElement.dataset.startup==='ready'&&document.body.dataset.fieldReady==='true'&&document.documentElement.dataset.startup==='ready'&&document.body.dataset.revierReady==='true');
   async function check(name,fn){try{await fn();results.push({name,result:'PASS'});}catch(e){results.push({name,result:'FAIL',error:e.message});}console.log(results.at(-1));}
   await check('UI installation never writes business records',async()=>{assert.equal(await page.evaluate(()=>writes.length),0);assert.deepEqual(await page.evaluate(()=>master.customers.map(x=>[x.id,x.active])),[['qa_c1',1],['qa_c2',0]]);});
   await check('Stale stored UI marker does not produce false pending work',async()=>{await page.evaluate(()=>{master.worklogs[0].pending=true;load();});assert.equal(await page.evaluate(()=>worklogs()[0].pending),false);assert.equal(await page.evaluate(()=>master.worklogs[0].pending),true);assert.equal(await page.evaluate(()=>writes.length),0);});
