@@ -1,20 +1,13 @@
-name: Gartenpirat source and native backup checks
+name: Gartenpirat Kotlin, Compose and native regression checks
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - 'app/**'
-      - 'tests/**'
-      - 'tools/**'
-      - '*.gradle'
-      - 'gradle.properties'
-      - 'gradlew*'
-      - 'gradle/**'
-      - 'bootstrap_contract.py'
-      - 'privacy_guard.py'
-      - 'privacy_policy.json'
+      - 'struktur-neu/android/**'
+      - 'struktur-neu/tests/**'
+      - 'struktur-neu/tools/**'
       - '.github/workflows/qa-apk.yml'
 
 permissions:
@@ -23,10 +16,10 @@ permissions:
 jobs:
   current-source-and-backup:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 80
     defaults:
       run:
-        working-directory: .
+        working-directory: struktur-neu
         shell: bash
     steps:
       - uses: actions/checkout@v4
@@ -41,6 +34,8 @@ jobs:
         with:
           gradle-version: '9.3.1'
           cache-disabled: true
+      - name: Check current source and synthetic fixtures
+        run: python3 -B tools/check_current.py
       - name: Install Android build and isolated emulator packages
         run: |
           set -euo pipefail
@@ -50,21 +45,17 @@ jobs:
           subprocess.run([sys.argv[1], '--licenses'], input='y\n'*100, text=True, check=True)
           PY
           "$SDKMANAGER" 'platforms;android-37.0' 'build-tools;37.0.0' 'platform-tools' 'emulator' 'system-images;android-35;default;x86_64'
-      - name: Compile app and run build checks
-        run: ./gradlew test
-      - name: Run host regression tests
-        run: |
-          python3 -m pip install -r requirements-plants.txt
-          python3 -B -m unittest discover -s tests
       - name: Build production sources and native test APK without release signing
-        working-directory: .
-        run: gradle --no-daemon --no-configuration-cache --no-build-cache :app:assembleRelease :app:assembleReleaseAndroidTest
+        working-directory: struktur-neu/android
+        run: gradle --no-daemon --no-configuration-cache --no-build-cache --max-workers=2 :app:assembleRelease :app:assembleReleaseAndroidTest :app:lintRelease
       - name: Run JVM archive, warning, rollback and related regressions
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/gp-deps"
           curl -fsSL https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o "$RUNNER_TEMP/gp-deps/json.jar"
-          HG_JSON_JAR="$RUNNER_TEMP/gp-deps/json.jar" python3 -B tools/run-followup-java.py
+          curl -fsSL https://repo.maven.apache.org/maven2/org/xerial/sqlite-jdbc/3.46.1.0/sqlite-jdbc-3.46.1.0.jar -o "$RUNNER_TEMP/gp-deps/sqlite-jdbc.jar"
+          curl -fsSL https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar -o "$RUNNER_TEMP/gp-deps/slf4j-api.jar"
+          HG_JSON_JAR="$RUNNER_TEMP/gp-deps/json.jar" HG_SQLITE_JDBC_JAR="$RUNNER_TEMP/gp-deps/sqlite-jdbc.jar" HG_SLF4J_API_JAR="$RUNNER_TEMP/gp-deps/slf4j-api.jar" python3 -B tools/run-followup-java.py --tables
       - name: Sign disposable emulator test packages only
         run: |
           set -euo pipefail
@@ -72,14 +63,16 @@ jobs:
           keytool -genkeypair -noprompt -keystore "$RUNNER_TEMP/gp-test.jks" -storepass android -keypass android -alias qa -keyalg RSA -validity 2 -dname 'CN=Gartenpirat Synthetic Emulator Only'
           SIGNER="$ANDROID_HOME/build-tools/37.0.0/apksigner"
           ALIGN="$ANDROID_HOME/build-tools/37.0.0/zipalign"
-          TEST_APK=$(find app/build/outputs/apk/androidTest/release -name '*.apk' -print -quit)
+          TEST_APK=$(find android/app/build/outputs/apk/androidTest/release -name '*.apk' -print -quit)
           test -n "$TEST_APK"
-          "$ALIGN" -f 4 app/build/outputs/apk/release/app-release-unsigned.apk "$RUNNER_TEMP/gp-app.apk"
+          "$ALIGN" -f 4 android/app/build/outputs/apk/release/app-release-unsigned.apk "$RUNNER_TEMP/gp-app.apk"
           "$ALIGN" -f 4 "$TEST_APK" "$RUNNER_TEMP/gp-test.apk"
           "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-app.apk"
           "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-test.apk"
-      - name: Run native SQLite save, restore and new-process readback
-        timeout-minutes: 8
+          mkdir -p outputs
+          (cd "$RUNNER_TEMP" && sha256sum gp-app.apk gp-test.apk) | tee outputs/qa-test-package-identity.txt
+      - name: Run native SQLite, Compose, document picker, provider and new-process checks
+        timeout-minutes: 50
         run: |
           set -euo pipefail
           sudo chmod 666 /dev/kvm
@@ -102,16 +95,80 @@ jobs:
           "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-app.apk"
           "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-test.apk"
           mkdir -p outputs
-          for suite in local_backup local_backup_reopen; do
+          native_suite_failures=0
+          for suite in local_backup local_backup_reopen browser_checkpoint browser_checkpoint_reopen native_data document_provider document_provider_reopen native_compose; do
             "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service
-            timeout 120 "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation | tee "outputs/$suite.txt"
-            python3 - "$suite" <<'PY'
-          import pathlib,sys
+            "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service.test
+            "$ADB" -s emulator-5580 logcat -c
+            instrumentation_status=0
+            suite_timeout=360
+            if [ "$suite" = native_compose ]; then suite_timeout=2100; fi
+            timeout "$suite_timeout" "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation 2>&1 | tee "outputs/$suite.txt" || instrumentation_status=$?
+            timeout 15 "$ADB" -s emulator-5580 logcat -d -t 1500 > "outputs/$suite-logcat.txt" 2>&1 || true
+            if [ "$suite" = native_compose ]; then
+              for image in list-customers-portrait failure-list-customers-portrait list-customers-landscape failure-list-customers-landscape list-work-portrait failure-list-work-portrait list-work-landscape failure-list-work-landscape list-orders-portrait failure-list-orders-portrait list-offers-portrait failure-list-offers-portrait list-offers-landscape failure-list-offers-landscape list-invoices-portrait failure-list-invoices-portrait list-invoices-landscape failure-list-invoices-landscape list-planning-portrait failure-list-planning-portrait list-equipment-portrait failure-list-equipment-portrait list-photos-portrait failure-list-photos-portrait list-catalog-portrait failure-list-catalog-portrait list-catalog-landscape failure-list-catalog-landscape list-plants-portrait failure-list-plants-portrait list-local-portrait failure-list-local-portrait list-local-landscape failure-list-local-landscape failure-list_viewports timer-actions detail-offers detail-invoices detail-catalog filter-work-date filter-local-date failure-filter_keyboard back-gesture failure-back-gesture-active failure-back_gesture failure-surface-today failure-surface-work failure-surface-timer failure-surface-customers failure-surface-office failure-surface-properties failure-surface-inquiries failure-surface-orders failure-surface-care-plans failure-surface-planning failure-surface-visits failure-surface-tour failure-surface-weather failure-surface-billing failure-surface-offers failure-surface-invoices failure-surface-payments failure-surface-equipment failure-surface-accessories failure-surface-maintenance failure-surface-materials failure-surface-photos failure-surface-plants failure-surface-catalog failure-surface-drafts failure-surface-restored-drafts failure-surface-local-search failure-surface-archive failure-surface-trash failure-surface-local-actions failure-surface-settings failure-surface-connections failure-surface-calendar failure-surface-chatgpt failure-surface-backup failure-surface-settings-200 failure-surface-calendar-200 failure-surface-backup-200 surface-today surface-office surface-planning surface-billing surface-accessories surface-settings surface-calendar surface-backup surface-settings-200 surface-calendar-200 surface-backup-200 failure-surfaces domain-planning-picker failure-domain-planning-picker domain-photo-assignment failure-domain-photo-assignment domain-offer-positions failure-domain-offer-positions domain-maintenance-phrases failure-domain-maintenance-phrases domain-work failure-domain-work domain-offers failure-domain-offers domain-invoices failure-domain-invoices domain-planning failure-domain-planning domain-equipment failure-domain-equipment domain-photos failure-domain-photos domain-catalog failure-domain-catalog domain-plants failure-domain-plants domain-local failure-domain-local domain-phrases failure-domain-phrases domain-duplicate-customers failure-domain-duplicate-customers domain-equipment-picker failure-domain-equipment-picker failure-domain_search customer-overview customer-billing search-no-results search-customer-list failure-search_keyboard search-100-normal-portrait failure-search-100-normal-portrait search-100-normal-landscape failure-search-100-normal-landscape search-130-normal-portrait failure-search-130-normal-portrait search-130-normal-landscape failure-search-130-normal-landscape search-200-compact-portrait failure-search-200-compact-portrait search-200-compact-landscape failure-search-200-compact-landscape customer-photos customer-offers failure-customer_context work-keyboard accessory work-large-font failure-customer failure-usability failure-accessories failure-timer failure-notification failure-office_opening failure-large_text; do
+                "$ADB" -s emulator-5580 pull "/sdcard/Android/data/at.hausgarten.service/files/qa-native-$image.png" "outputs/qa-native-$image.png" || true
+              done
+            fi
+            if [ "$instrumentation_status" != 0 ]; then
+              native_suite_failures=$((native_suite_failures+1))
+              continue
+            fi
+            if python3 - "$suite" <<'PY'
+          import json,pathlib,sys
           text=pathlib.Path('outputs/'+sys.argv[1]+'.txt').read_text()
-          assert 'INSTRUMENTATION_CODE: -1' in text and '"native_backup_roundtrip":true' in text, text
+          assert 'INSTRUMENTATION_CODE: -1' in text, text
           assert 'INSTRUMENTATION_FAILED' not in text and 'INSTRUMENTATION_RESULT: failure=' not in text, text
+          result=json.loads(next(line.split('=',1)[1] for line in text.splitlines() if line.startswith('INSTRUMENTATION_RESULT: result=')))
+          assert result['suite']==sys.argv[1] and result['checks']>0, result
+          assert result['synthetic_only'] is True and result['productive_data_read'] is False, result
+          if sys.argv[1].startswith('local_backup'):
+              assert result['native_backup_roundtrip'] is True, result
+          elif sys.argv[1].startswith('browser_checkpoint'):
+              assert result['real_sqlite_transactions'] is True and result['isolated_context_paths'] is True, result
+              assert result['new_process_readback'] is sys.argv[1].endswith('_reopen'), result
+              assert result['optional_media_failure_tested'] is (not sys.argv[1].endswith('_reopen')), result
+          elif sys.argv[1]=='native_data':
+              assert result['isolated_context_paths'] is True and result['projection_rows']==40000, result
+              assert result['real_sqlite_transactions'] is True and result['wal_concurrent_reader'] is True, result
+              assert result['local_storage_cleanup'] is True and result['local_delete_without_cloud_guards'] is True, result
+              assert result['actual_coroutine_flow'] is True and result['main_thread_disk_violations']==0, result
+              assert result['performance_claim'] is False and result['plans'], result
+              for plan in result['plans'].values():
+                  assert 'USING INDEX ix_native_read_' in str(plan) and 'TEMP B-TREE' not in str(plan), result
+          elif sys.argv[1]=='native_compose':
+              for proof in ('storage_settings_cleanup','real_main_activity','filter_keyboard','system_back_gesture','native_compose_ui','customer_crud','customer_context_navigation','paging_and_search',
+                            'mcp_write_visible_without_reload','draft_recreation','timer_state_transitions',
+                            'font_scale_200_percent','planning_notification_alternatives','customer_conflict_review',
+                            'draft_write_failure_recovery','work_entry_usability','work_photo_retention',
+                            'machine_accessory_roundtrip','decimal_comma_inputs','work_ime_actions'):
+                  assert result[proof] is True, result
+              assert result['office_opening']['samples_per_path'] == 40, result
+              assert len(result['domain_search_cases']) == 16, result
+              assert len(result['surface_cases']) == 38, result
+              assert len(result['list_viewport_cases']) == 17, result
+              assert all(row['keyboard_bounds'] and row['real_touch'] and row['ime_preserves_query'] for row in result['list_viewport_cases']), result
+              assert all(row['no_auto_ime'] for row in result['surface_cases']), result
+              assert all(row['keyboard_bounds'] and row['real_touch'] for row in result['domain_search_cases']), result
+              assert len(result['search_keyboard_matrix']) == 6, result
+              assert all(row['keyboard_open_and_closed'] and row['ime_action_preserves_query'] and row['real_touch_selection'] for row in result['search_keyboard_matrix']), result
+              assert result['drive_account_tested'] is False and result['physical_pixel_tested'] is False, result
+          else:
+              assert sys.argv[1] in ('document_provider','document_provider_reopen'), result
+              assert result['real_document_provider_tested'] is True and result['non_local_provider_tested'] is True, result
+              assert result['android_file_picker_tested'] is (not sys.argv[1].endswith('_reopen')), result
+              assert result['new_process_readback'] is sys.argv[1].endswith('_reopen') and result['drive_account_tested'] is False, result
+              assert result['picker_cancellation_tested'] is (not sys.argv[1].endswith('_reopen')), result
+              assert result['picker_activity_recreation_tested'] is (not sys.argv[1].endswith('_reopen')), result
+              assert result['provider_process_restart_tested'] is sys.argv[1].endswith('_reopen'), result
           PY
+            then
+              :
+            else
+              native_suite_failures=$((native_suite_failures+1))
+            fi
           done
+          test "$native_suite_failures" = 0
       - name: Collect isolated emulator diagnostics
         if: failure()
         run: |
@@ -126,9 +183,15 @@ jobs:
         with:
           name: Gartenpirat-backup-test-results
           path: |
-            outputs/local_backup*.txt
-            outputs/emulator*.txt
-            app/build/reports/lint-results-release.html
+            struktur-neu/outputs/local_backup*.txt
+            struktur-neu/outputs/browser_checkpoint*.txt
+            struktur-neu/outputs/document_provider*.txt
+            struktur-neu/outputs/native_data*.txt
+            struktur-neu/outputs/native_compose*.txt
+            struktur-neu/outputs/qa-native-*.png
+            struktur-neu/outputs/qa-test-package-identity.txt
+            struktur-neu/outputs/emulator*.txt
+            struktur-neu/android/app/build/reports/lint-results-release.html
           if-no-files-found: ignore
           retention-days: 7
       - name: Remove disposable test signing material

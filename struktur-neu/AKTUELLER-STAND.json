@@ -1,0 +1,72 @@
+{
+  "format": "gartenpirat.current-work.v1",
+  "repository": "mihalhafner-collab/Gartenpirat-",
+  "source_directory": "struktur-neu",
+  "last_observed_installed_build": {
+    "observed_at_utc": "2026-11-01T22:43:59Z",
+    "version_name": "1.57.2",
+    "version_code": 121,
+    "reported_base_git_sha": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
+    "source_sha256": "9effca5a874b05c6fbc097adba1c06d273d3963bf3e4e092b0560ec2664075ae",
+    "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
+    "package_name": "at.hausgarten.service"
+  },
+  "observed_installation_history": [
+    {
+      "observed_at_utc": "2026-11-01T22:43:59Z",
+      "version_name": "1.57.2",
+      "version_code": 121,
+      "reported_base_git_sha": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
+      "source_sha256": "9effca5a874b05c6fbc097adba1c06d273d3963bf3e4e092b0560ec2664075ae",
+      "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
+      "package_name": "at.hausgarten.service"
+    }
+  ],
+  "current_task": {
+    "name": "Aktuellen Pixel-Quellstand als einzige Arbeitsbasis erhalten",
+    "status": "CURRENT_PIXEL_SOURCE_VERIFIED",
+    "remaining": [
+      "Bei jedem neuen Chat die Live-Pixel-Identität erneut prüfen."
+    ]
+  },
+  "open_checks": [
+    "Bekannte UI-Fehler aus Build120 wurden für Build121 nicht erneut geprüft.",
+    "MCP-Buildidentität geprüft; kein produktiver Gerätefunktionstest durchgeführt."
+  ],
+  "workflow": {
+    "code": "android/app/src/main",
+    "automatic_installation": false,
+    "automatic_external_publication": false
+  },
+  "last_distributed_build": {
+    "version_name": "1.57.2",
+    "version_code": 121,
+    "app_source_git_sha": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
+    "source_sha256": "9effca5a874b05c6fbc097adba1c06d273d3963bf3e4e092b0560ec2664075ae",
+    "apk_sha256": "1d7b1acac5ba450bd6697eee11f5a1584d86432273e03bcf31063441869e0a4e",
+    "apk_bytes": 89584575,
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "signature_valid": true,
+    "original_certificate_match": true,
+    "source_binding": "PASS;all source assets;commit/fingerprint in DEX;clean BuildConfig",
+    "built_at_utc": "2026-11-01T12:53:59.183388+00:00",
+    "download_url": "https://drive.google.com/file/d/14hAJWKOxjD6pOg3PQn9OcCVA0czqr-dF/view?usp=drivesdk",
+    "drive": {
+      "file_id": "14hAJWKOxjD6pOg3PQn9OcCVA0czqr-dF",
+      "parent_folder_id": "1K4WB9L6ZKlW-33o8uPK3zTfqgAOVOE8u",
+      "visibility": "PRIVATE_OWNER_ONLY;fresh permissions readback;existing rights unchanged"
+    },
+    "download_readback": {
+      "status": "PASS;complete authenticated target download;byte-identical cmp;size/SHA256/original signature and candidate verification",
+      "bytes": 89584575,
+      "sha256": "1d7b1acac5ba450bd6697eee11f5a1584d86432273e03bcf31063441869e0a4e",
+      "observed_at_utc": "2026-11-01T12:53:59.183388+00:00",
+      "signature_valid": true,
+      "original_certificate_match": true
+    },
+    "temporary_signing_material_removed": true,
+    "installation": "LIVE_PIXEL_MCP_RUNTIME_CONFIRMED;no APK reread in this task",
+    "productive_migration": "NOT_PERFORMED",
+    "invoice_authority": "NOT_ACTIVATED"
+  }
+}

@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#176b4d">
+  <title>Haus- & Gartenservice</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css?v=1.25">
+  <link rel="stylesheet" href="/invoice-editor.css?v=1.25">
+<link rel="stylesheet" href="gartenpirat.css">
+<script src="plant-catalog.js" defer></script>
+<script src="gartenpirat-photo-store.js" defer></script>
+<script src="gartenpirat.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand"><span class="brand-mark">✿</span><span>Haus & Garten</span></div>
+      <nav id="navigation">
+        <button data-view="dashboard" class="active"><span>▦</span> Übersicht</button>
+        <button data-view="customers"><span>☺</span> Kunden</button>
+        <button data-view="orders"><span>▣</span> Aufträge</button>
+        <button data-view="worklogs"><span>◷</span> Arbeitszeiten</button>
+        <button data-view="photos"><span>▧</span> Fotos</button>
+        <button data-view="invoices"><span>€</span> Rechnungen</button>
+        <button data-view="customer"><span>◉</span> Kundenansicht</button>
+      </nav>
+      <div class="sidebar-footer">
+        <span id="online-dot" class="online-dot"></span><span id="online-text">Verbunden</span>
+        <button class="quiet" id="settings-button">⚙ Einstellungen</button>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <button class="mobile-menu" id="menu-button" aria-label="Menü">☰</button>
+        <div>
+          <p class="eyebrow">PERSÖNLICHE BETRIEBS-APP</p>
+          <h1 id="page-title">Übersicht</h1>
+        </div>
+        <div class="top-actions">
+          <label class="search"><span>⌕</span><input id="global-search" placeholder="Suchen"></label>
+          <button class="secondary" id="sync-button">↻ <span class="wide-label">Synchronisieren</span></button>
+          <button class="primary" id="quick-button">+ Hinzufügen</button>
+        </div>
+      </header>
+
+      <div id="notice" class="notice" hidden></div>
+
+      <section id="view-dashboard" class="view active">
+        <div class="hero-panel">
+          <div><p class="eyebrow">HEUTE</p><h2>Was steht an?</h2><p>Arbeitszeit schnell erfassen oder den Betrieb überblicken.</p></div>
+          <div class="hero-actions"><button class="primary" id="hero-worklog-button">+ Arbeit erfassen</button><button class="voice-button" id="voice-button"><span>●</span> Spracheingabe starten</button></div>
+        </div>
+        <div class="metrics" id="metrics"></div>
+        <div class="panel">
+          <div class="panel-heading"><div><p class="eyebrow">ZULETZT ERFASST</p><h2>Arbeitsaufzeichnungen</h2></div><button class="link-button" data-go="worklogs">Alle anzeigen →</button></div>
+          <div id="recent-worklogs" class="table-wrap"></div>
+        </div>
+      </section>
+
+      <section id="view-customers" class="view">
+        <div class="view-heading"><div><p class="eyebrow">STAMMDATEN</p><h2>Kunden</h2><p class="muted">Kundenprofile, Kontakt und bisherige Arbeiten an einem Ort.</p></div><button class="primary" data-new="customer">+ Kunde</button></div>
+        <div class="customer-toolbar"><label class="customer-search">⌕ <input id="customer-search" type="search" placeholder="Kunde, Ort oder Adresse suchen" aria-label="Kunden suchen"></label><span id="customer-count" class="muted"></span></div>
+        <div id="customers-table" class="customer-grid"></div>
+      </section>
+
+      <section id="view-orders" class="view">
+        <div class="view-heading"><div><p class="eyebrow">PLANUNG</p><h2>Projekte & Aufträge</h2></div><button class="primary" data-new="order">+ Auftrag</button></div>
+        <div id="orders-grid" class="card-grid"></div>
+      </section>
+
+      <section id="view-worklogs" class="view">
+        <div class="view-heading"><div><p class="eyebrow">LEISTUNGEN</p><h2>Arbeitsaufzeichnungen</h2></div><div class="button-row"><button class="voice-button compact" data-voice>● Sprache</button><button class="primary" data-new="worklog">+ Arbeitszeit</button></div></div>
+        <div class="worklog-tools"><label class="worklog-search">⌕ <input id="worklog-search" type="search" placeholder="Kunde, Tätigkeit, Auftrag oder Material suchen" aria-label="Arbeitsaufzeichnungen durchsuchen"></label><div class="filter-bar"><select id="worklog-period" aria-label="Zeitraum filtern"><option value="all">Alle Zeiträume</option><option value="today">Heute</option><option value="week">Diese Woche</option><option value="month">Dieser Monat</option></select><select id="worklog-customer-filter" aria-label="Kunden filtern"><option value="all">Alle Kunden</option></select><select id="worklog-billed" aria-label="Abrechnungsstand filtern"><option value="all">Alle Abrechnungsstände</option><option value="no">Nicht abgerechnet</option><option value="yes">Abgerechnet</option></select><button class="secondary" id="clear-filters">Filter zurücksetzen</button></div><p class="worklog-summary" id="worklog-summary" role="status" aria-live="polite"></p></div>
+        <div class="panel"><div id="worklogs-table" class="table-wrap"></div></div>
+      </section>
+
+      <section id="view-photos" class="view">
+        <div class="view-heading"><div><p class="eyebrow">DOKUMENTATION</p><h2>Fotos</h2></div><button class="primary" data-new="photo">+ Foto zuordnen</button></div>
+        <div id="photos-grid" class="photo-grid"></div>
+      </section>
+
+      <section id="view-invoices" class="view">
+        <div class="view-heading"><div><p class="eyebrow">ABRECHNUNG</p><h2>Rechnungen</h2></div><button class="primary" data-new="invoice">+ Rechnung</button></div>
+        <div class="panel"><div id="invoices-table" class="table-wrap"></div></div>
+      </section>
+
+      <section id="view-customer" class="view customer-mode">
+        <div class="view-heading"><div><p class="eyebrow">VORZEIGEMODUS</p><h2>Kundenansicht</h2></div><select id="customer-view-select"><option value="">Kunde auswählen</option></select></div>
+        <div id="customer-view-content" class="customer-preview empty-state">Wähle einen Kunden aus. Interne Notizen und vertrauliche Daten werden hier nicht angezeigt.</div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="customer-detail-dialog" class="detail-dialog">
+    <div id="customer-detail-content"></div>
+      <div class="dialog-actions"><button type="button" class="secondary" data-close>Schließen</button></div>
+  </dialog>
+
+  <dialog id="add-dialog" class="add-dialog">
+    <div class="dialog-heading"><div><p class="eyebrow">SCHNELL ERFASSEN</p><h2>Was möchtest du hinzufügen?</h2></div><button type="button" class="icon-button" data-close aria-label="Schließen">×</button></div>
+    <div class="add-options">
+      <button type="button" class="add-option" data-add-type="worklog"><span>◷</span><span><strong>Arbeitsaufzeichnung</strong><small>Kunde, Zeit, Tätigkeit und Material</small></span><b>›</b></button>
+      <button type="button" class="add-option" data-add-type="customer"><span>☺</span><span><strong>Kunde</strong><small>Kontaktdaten und Adresse</small></span><b>›</b></button>
+      <button type="button" class="add-option" data-add-type="order"><span>▣</span><span><strong>Projekt / Auftrag</strong><small>Kunde, Bezeichnung und Status</small></span><b>›</b></button>
+      <button type="button" class="add-option" data-add-type="photo"><span>▧</span><span><strong>Fotos</strong><small>Mehrere Bilder einem Auftrag zuordnen</small></span><b>›</b></button>
+      <button type="button" class="add-option" data-add-type="invoice"><span>€</span><span><strong>Rechnung erfassen</strong><small>Kunde, Nummer, Betrag und Status</small></span><b>›</b></button>
+    </div>
+  </dialog>
+
+  <dialog id="editor-dialog">
+    <form id="editor-form" method="dialog">
+      <div class="dialog-heading"><div><p class="eyebrow" id="dialog-eyebrow">NEUER EINTRAG</p><h2 id="dialog-title">Erfassen</h2></div><button type="button" class="icon-button" data-close>×</button></div>
+      <div id="form-fields" class="form-grid"></div>
+      <div class="dialog-actions"><button type="button" class="secondary" data-close>Abbrechen</button><button type="submit" class="primary">Speichern</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="voice-dialog">
+    <form id="voice-form" method="dialog">
+      <div class="dialog-heading"><div><p class="eyebrow">SPRACHEINGABE</p><h2>Arbeitsbericht sprechen</h2></div><button type="button" class="icon-button" data-close>×</button></div>
+      <p class="hint">Beispiel: „Heute bei Frau Maier von 8 bis 12 Uhr gearbeitet, 30 Minuten Pause, 18 Kilometer, Material drei Säcke Erde.“</p>
+      <textarea id="voice-text" rows="5" placeholder="Gesprochenen oder geschriebenen Bericht hier erfassen"></textarea>
+      <div class="voice-controls"><button type="button" class="voice-button" id="record-button">● Aufnahme starten</button><span id="voice-status">Bereit</span></div>
+      <div class="dialog-actions"><button type="button" class="secondary" data-close>Abbrechen</button><button type="submit" class="primary">Auswerten</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="settings-dialog">
+    <form id="settings-form" method="dialog">
+      <div class="dialog-heading"><div><p class="eyebrow">LOKALE EINSTELLUNGEN</p><h2>Sicherung</h2></div><button type="button" class="icon-button" data-close>×</button></div>
+      <label>Google-Drive- oder Sicherungsordner<input name="backup_folder" placeholder="z. B. G:\Meine Ablage\Haus-Garten-Sicherungen"></label>
+      <label>Betriebsname<input name="business_name" placeholder="Haus- & Gartenservice"></label>
+      <details><summary>Rechnungsaussteller und Nummernkreis</summary>
+      <p>Für österreichische Inlandsrechnungen als umsatzsteuerbefreiter Kleinunternehmer. sevDesk-Reihe wird im Format RE-Nummer/Jahr fortgesetzt. Nicht gleichzeitig neue Rechnungen in sevDesk erstellen.</p>
+      <label>Vollständiger rechtlicher Name<input name="owner_name"></label>
+      <label>Geschäftsstraße und Hausnummer<input name="business_street"></label>
+      <label>Geschäfts-PLZ<input name="business_postal_code"></label>
+      <label>Geschäftsort<input name="business_city"></label>
+      <label>Rechtsform / zusätzliche Pflichtangaben<textarea name="business_legal_info" placeholder="Falls zutreffend: eingetragene Firma, Rechtsform, Firmenbuchnummer, Firmenbuchgericht"></textarea></label>
+      <label>IBAN (optional)<input name="business_iban"></label>
+      <label>Bank<input name="business_bank"></label><label>BIC<input name="business_bic"></label>
+      <label>Telefon auf Rechnungen<input name="business_phone" type="tel"></label><label>E-Mail auf Rechnungen<input name="business_email" type="email"></label>
+      <label>Rechnungspräfix<input name="invoice_prefix" placeholder="RE" readonly></label>
+      <label><input type="checkbox" name="invoice_issuer_confirmed" value="1">Rechtlichen Namen, Geschäftsadresse und erforderliche Rechtsform-/Firmenbuchangaben geprüft</label>
+      <label><input type="checkbox" name="invoice_numbering_confirmed" value="1">Nummernstand übernommen; neue Rechnungen ausschließlich in dieser App erstellen, nicht parallel in sevDesk</label>
+      </details>
+      <label>Zuhause / Startadresse<input name="home_address" placeholder="Straße, PLZ und Ort"></label>
+      <p class="hint">Die aktive Datenbank bleibt lokal. Derselbe Drive-Ordner kann Sicherungen und den Pixel-Abgleich aufnehmen.</p>
+      <p class="settings-chatgpt-hint">ChatGPT-Einträge werden aus <strong>HausGarten-ChatGPT.json</strong> übernommen, sobald du am Laptop „Pixel abgleichen“ oder am Pixel „Jetzt abgleichen“ wählst. Es gibt keine dauerhafte Direktverbindung zum Chat.</p>
+      <div class="dialog-actions"><button type="button" class="secondary" id="backup-button">Jetzt sichern</button><button type="button" class="secondary" id="drive-sync-button">Pixel abgleichen</button><button type="submit" class="primary">Einstellungen speichern</button></div>
+    </form>
+  </dialog>
+
+  <template id="empty-template"><div class="empty-state"><strong>Noch keine Daten</strong><span>Lege den ersten Eintrag an.</span></div></template>
+  <script src="/invoice-flow.js?v=1.25" defer></script>
+  <script src="/invoice-editor.js?v=1.25" defer></script>
+  <script src="/app.js?v=1.25" defer></script>
+</body>
+</html>

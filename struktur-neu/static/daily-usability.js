@@ -1,0 +1,82 @@
+/* Daily navigation and reachability. Existing forms and native save APIs remain authoritative. */
+(() => {
+  'use strict';
+  const get=id=>document.getElementById(id);
+  function formState(){return JSON.stringify([...get('customer-form').elements].filter(x=>x.name||x.classList.contains('custom-name')||x.classList.contains('custom-value')).map(x=>[x.name||x.className,x.type==='checkbox'?x.checked:x.value]));}
+  function install(){
+    if(get('settings-page'))return;
+    const page=document.createElement('section');page.id='settings-page';page.className='page';
+    page.innerHTML='<div class="page-head"><button type="button" class="back" aria-label="Zurück">‹</button><h2>Einstellungen</h2></div>'+
+      '<section class="card settings-section" aria-labelledby="settings-operation-title"><h3 id="settings-operation-title">Bedienung</h3></section>'+
+      '<section class="card settings-section" aria-labelledby="settings-data-title"><h3 id="settings-data-title">Daten & Synchronisierung</h3><div id="settings-sync-state" class="settings-state" role="status" aria-live="polite"><strong id="settings-sync-summary">Drive wird geprüft</strong><span id="settings-sync-detail">Der lokale und der übertragene Stand werden getrennt angezeigt.</span></div><dl class="settings-diagnostics"><div><dt>Lokale Änderungen</dt><dd id="settings-sync-local">Wird geprüft</dd></div><div><dt>Übertragungsstand</dt><dd id="settings-sync-transfer">Wird geprüft</dd></div><div><dt>Letzter erfolgreicher Stand</dt><dd id="settings-sync-last">Wird geprüft</dd></div></dl><button type="button" class="secondary" data-open="sync-page">Drive-Abgleich und Warteschlange öffnen</button><p class="sub">Lokales Speichern, Übergabe an die Drive-App und bestätigter Online-Upload sind unterschiedliche Zustände. Ausstehende oder zu prüfende Änderungen bleiben sichtbar.</p></section>'+
+      '<section class="card settings-section" aria-labelledby="settings-connection-title"><h3 id="settings-connection-title">Verbindung & Diagnose</h3><p id="settings-connection-state" class="sub" role="status" aria-live="polite">Verbindungsstatus wird geprüft.</p><button type="button" class="secondary" id="settings-connection">Verbindung & Akku-Einstellungen</button><p class="sub">Öffnet die bereits vorhandene Pixel-Verbindung. Es wird keine zweite Verbindung eingerichtet.</p></section>'+
+      '<section class="card settings-section settings-about" aria-labelledby="settings-about-title"><h3 id="settings-about-title">App-Information</h3><p id="settings-version" class="sub">Versionsangabe wird geprüft.</p></section>';
+    document.querySelector('main.app').append(page);
+    const more=document.createElement('button');more.type='button';more.dataset.open='settings-page';more.innerHTML='<span><strong>Einstellungen</strong><small>Bedienung, Daten und Verbindung</small></span><b aria-hidden="true">›</b>';get('more-page').querySelector('.more-destinations').append(more);
+    const shortcut=document.createElement('button');shortcut.type='button';shortcut.className='daily-settings';shortcut.dataset.open='settings-page';shortcut.setAttribute('aria-label','Einstellungen öffnen');shortcut.textContent='⚙';document.querySelector('#home .brand').append(shortcut);
+    // Move, never duplicate, the existing inputs and handlers into reachable toolbars.
+    for(const [id,searchId,addId,label] of [['customers','customer-search','add-customer','+ Kunde'],['worklogs','worklog-search','design-add-work','+ Arbeit'],['orders','order-search','add-order','+ Auftrag']]){
+      const toolbar=document.createElement('div');toolbar.className='daily-list-tools';toolbar.setAttribute('aria-label',label.slice(2)+' suchen oder hinzufügen');toolbar.id='daily-tools-'+id;
+      const search=get(searchId),add=get(addId);if(search){search.setAttribute('aria-label',search.placeholder||'Suchen');toolbar.append(search);}if(add){add.className='primary daily-add';add.textContent=label;toolbar.append(add);}get(id).append(toolbar);get(id).classList.add('daily-list-page');
+    }
+    get('add-worklog').hidden=true;
+    let initialCustomer='',customerTouched=false;
+    for(const event of ['input','change'])get('customer-form').addEventListener(event,()=>{customerTouched=true;});
+    window.customerFormSaved=()=>{initialCustomer=formState();customerTouched=false;};
+    const previousOpen=window.openPage;
+    window.openPage=function(id,...rest){
+      const before=currentPage;
+      if(id!==before&&before==='customer-edit'&&customerTouched&&initialCustomer!==formState()&&!confirm('Ungespeicherte Kundendaten verwerfen? Mit Abbrechen bleibst du bei deiner Eingabe.'))return;
+      previousOpen(id,...rest);
+      if(currentPage===before)return;
+      if(currentPage==='customer-edit'){initialCustomer=formState();customerTouched=false;setTimeout(()=>{if(currentPage==='customer-edit'&&!customerTouched)initialCustomer=formState();},0);}
+      if(before==='customers'||currentPage==='customers'){get('customer-search').value='';get('customer-search').dispatchEvent(new Event('input',{bubbles:true}));}
+      if(currentPage==='settings-page'){document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.open==='more-page'));updateSettings();}
+    };
+    // Modal cancellation uses existing cancel/close handlers, including editor validation.
+    const previousBack=window.handleAndroidBack;
+    window.handleAndroidBack=function(){
+      const dialogs=[...document.querySelectorAll('dialog[open]')],dialog=dialogs.at(-1);
+      if(dialog){const event=new Event('cancel',{cancelable:true});if(dialog.dispatchEvent(event))dialog.close();return true;}
+      return previousBack();
+    };
+    document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!document.querySelector('dialog[open]')){event.preventDefault();window.handleAndroidBack();}});
+    function updateSettings(){
+      const pending=Math.max(0,Number(syncInfo.pending??state.sync_queue?.pending_upload??state.pending?.length??0)||0),review=Math.max(0,Number(syncInfo.review??state.sync_queue?.review??0)||0),local=Math.max(pending+review,Number(syncInfo.pending_total??state.pending?.length??0)||0);
+      const sourceTitle=get('sync-title')?.textContent||get('sync-status')?.textContent||'Drive wird geprüft',sourceDetail=get('sync-detail')?.textContent||'Noch keine Statusdetails verfügbar.';
+      get('settings-sync-summary').textContent=sourceTitle;get('settings-sync-detail').textContent=sourceDetail;
+      const syncState=get('settings-sync-state');syncState.className='settings-state';
+      if(syncInfo.last_error)syncState.classList.add('is-error');else if(syncInfo.syncing||review||pending||!syncInfo.configured)syncState.classList.add('is-pending');else if(syncInfo.last_sync)syncState.classList.add('is-ok');
+      get('settings-sync-local').textContent=local?local+' lokale Änderung'+(local===1?'':'en')+' · '+pending+' zur Übertragung · '+review+' zur Prüfung':'Keine lokalen Änderungen in der Warteschlange';
+      let transfer='Drive noch nicht eingerichtet';
+      if(syncInfo.last_error)transfer='Fehler · lokal gespeicherte Daten bleiben erhalten';
+      else if(syncInfo.syncing)transfer='Abgleich läuft';
+      else if(review)transfer=review+' Änderung'+(review===1?'':'en')+' benötigt Prüfung';
+      else if(pending)transfer=pending+' Änderung'+(pending===1?' wartet':'en warten')+' auf Drive';
+      else if(syncInfo.cloud_confirmed)transfer='Online in Google Drive bestätigt';
+      else if(syncInfo.last_sync&&syncInfo.confirmation_scope==='provider_readback')transfer='An Drive-App übergeben und zurückgelesen';
+      else if(syncInfo.last_sync)transfer='Drive-Abgleich von der App bestätigt';
+      else if(syncInfo.configured)transfer='Eingerichtet · erster Abgleich ausstehend';
+      get('settings-sync-transfer').textContent=transfer;
+      let last='Noch kein erfolgreicher Abgleich';
+      if(syncInfo.last_sync){const date=new Date(syncInfo.last_sync);last=Number.isNaN(date.getTime())?'Erfolgreicher Zeitpunkt nicht lesbar':date.toLocaleString('de-AT',{dateStyle:'medium',timeStyle:'short'});}
+      get('settings-sync-last').textContent=last;
+      let connection=get('pixel-tunnel-state')?.textContent||'Verbindung noch nicht eingerichtet.';
+      try{const info=JSON.parse(AndroidData.getPixelTunnelStatus());connection=info.detail||connection;}catch(_){}
+      get('settings-connection-state').textContent=connection;
+      try{const info=JSON.parse(AndroidData.getAppInfo());get('settings-version').textContent='Haus & Garten App · Version '+(info.versionName||'unbekannt')+(info.versionCode?' · Build '+info.versionCode:'');}catch(_){get('settings-version').textContent='Versionsangabe derzeit nicht verfügbar.';}
+    }
+    // Background service may finish a sync without an Activity callback. Refresh safe root screens only.
+    let lastRefresh='';
+    function refresh(){
+      if(document.hidden)return;
+      try{const native=JSON.parse(AndroidData.getSyncStatus()),signature=JSON.stringify(native);
+        if(signature!==lastRefresh){lastRefresh=signature;syncInfo={...syncInfo,...native};if(['home','customers','worklogs','orders','sync-page','settings-page','more-page'].includes(currentPage)&&!document.querySelector('dialog[open]'))load();else syncLabel();updateSettings();}
+        else if(currentPage==='settings-page')updateSettings();
+      }catch(_){}
+    }
+    document.addEventListener('visibilitychange',refresh);setInterval(refresh,5000);
+    document.body.dataset.usabilityVersion='1.41';updateSettings();
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(install,120),{once:true});
+})();

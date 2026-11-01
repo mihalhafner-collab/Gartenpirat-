@@ -1,32 +1,32 @@
-# Generated builds, caches and test outputs.
-.gradle*/
-**/build/
+data/
 outputs/
 output/
+tmp/
 __pycache__/
 *.pyc
 .dependencies/
 .tools/
-node_modules/
-/local.properties
+.gradle*/
+.kotlin/
+android-toolchain/
 .android-user/
-
-# Local/private data and signing material.
-data/
-tmp/
+android/.gradle/
+**/build/
+node_modules/
+android/local.properties
+*.keystore
+*.jks
 *.apk
 *.aab
 *.idsig
 *.db
 *.sqlite
 *.sqlite3
-*.zip
-*.keystore
-*.jks
+.env
+.env.*
+# Private signing material must never enter Git.
 *.p12
 *.pfx
 *.key
-.env
-.env.*
 qa-signing-password.txt
 .qa-signing/
