@@ -880,14 +880,14 @@ private fun NativeSettings(controller: NativeAppController) {
         item { Text("Gartenpirat ${BuildConfig.VERSION_NAME} · Build ${BuildConfig.VERSION_CODE}", style = MaterialTheme.typography.titleMedium); if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error) }
         if (settings == null && error.isEmpty()) item { LinearProgressIndicator(Modifier.fillMaxWidth()); Text("Einstellungen werden geladen …") }
         item { Text("Arbeiten und Unternehmen", style = MaterialTheme.typography.titleMedium) }
-        item { Button({ controller.action("Gerätestandards ändern", "update_settings", JSONObject().put("expected_record_hash", settings?.optString("record_hash", "")).put("updates", settings?.optJSONObject("settings") ?: JSONObject())) }, enabled = settings != null, modifier = Modifier.fillMaxWidth()) { Text("Tätigkeit, Einsatzort und Fotoqualität") } }
+        item { OutlinedButton({ controller.action("Gerätestandards ändern", "update_settings", JSONObject().put("expected_record_hash", settings?.optString("record_hash", "")).put("updates", settings?.optJSONObject("settings") ?: JSONObject())) }, enabled = settings != null, modifier = Modifier.fillMaxWidth()) { Text("Tätigkeit, Einsatzort und Fotoqualität") } }
         item { OutlinedButton({ controller.action("Unternehmensdaten lesen", "get_business_settings") }, Modifier.fillMaxWidth()) { Text("Unternehmensdaten") } }
         item { OutlinedButton({ scope.launch { try { val current = controller.query("get_business_settings"); controller.action("Unternehmensdaten bearbeiten", "update_business_settings", JSONObject().put("expected_record_hash", current.optString("record_hash")).put("updates", current.optJSONObject("settings") ?: JSONObject())) } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = failure.message.orEmpty() } } }, Modifier.fillMaxWidth()) { Text("Ausstellerdaten bearbeiten") } }
-        item { Text("Verbindungen und Sicherung", style = MaterialTheme.typography.titleMedium) }
+        item { Text("Verbindungen", style = MaterialTheme.typography.titleMedium) }
         item { OutlinedButton({ controller.open(PlanningConnectionActivity::class.java) }, Modifier.fillMaxWidth()) { Text("Kalender und Wetter verbinden") } }
         item { OutlinedButton({ controller.open(PixelTunnelActivity::class.java) }, Modifier.fillMaxWidth()) { Text("ChatGPT-Verbindung") } }
-        item { OutlinedButton({ scope.launch { try { controller.flushDrafts(); controller.open(FullBackupActivity::class.java) } catch (failure: Exception) { error = failure.message.orEmpty() } } }, Modifier.fillMaxWidth()) { Text("Sicherung und Wiederherstellung") } }
         item { Text("Sicherung und Diagnose", style = MaterialTheme.typography.titleMedium) }
+        item { OutlinedButton({ scope.launch { try { controller.flushDrafts(); controller.open(FullBackupActivity::class.java) } catch (failure: Exception) { error = failure.message.orEmpty() } } }, Modifier.fillMaxWidth()) { Text("Sicherung und Wiederherstellung") } }
         item { NativeStorageSettings(controller) }
         item { OutlinedButton({ scope.launch { try { info = controller.query("run_self_test"); error = "" } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = failure.message.orEmpty() } } }, Modifier.fillMaxWidth()) { Text("App-Selbsttest") } }
         item { info?.let { NativeBusinessValues(it) } }

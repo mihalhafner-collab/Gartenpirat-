@@ -84,7 +84,7 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "e437accffe5b9777a194a81da3e0c95b12a9ea854534bcc70c43914fa2abe6f2",
+    "app_source_fingerprint": "b9c0e2b2b5ee7a649c4eafc141cff84a318bb5766d0108848e27d4188972de6b",
     "source_privacy": "PASS;empty operational seed",
     "business_data_read": false,
     "authored_changes_diff_check": "PASS;git diff --check und210Aktionszuordnungen",

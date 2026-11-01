@@ -1981,8 +1981,20 @@ class RevierApplicationService {
             val rows = records(type)
             for (i in 0 until rows.length()) {
                 val old = rows.getJSONObject(i)
-                if (old.optString(field) != id) continue
-                save(type, RevierRules.copy(old).put(field, ""), old, request,
+                val row = RevierRules.copy(old)
+                var changed = false
+                if (row.optString(field) == id) { row.put(field, ""); changed = true }
+                if (entity == "appointment") {
+                    val history = row.optJSONArray("inspection_visits") ?: JSONArray()
+                    for (j in 0 until history.length()) {
+                        val inspection = history.getJSONObject(j)
+                        if (inspection.optString("appointment_id") == id) {
+                            inspection.put("appointment_id", ""); changed = true
+                        }
+                    }
+                }
+                if (!changed) continue
+                save(type, row, old, request,
                     "Optionale Zuordnung nach Entfernen des Auftrags/Termins gelöst; Kundenbezug erhalten.")
             }
         }

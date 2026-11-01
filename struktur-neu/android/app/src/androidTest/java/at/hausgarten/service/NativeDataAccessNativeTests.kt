@@ -220,6 +220,9 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             store.putOwnerValue("business_tables:original:qa_obsolete", fixture.toString())
             store.putOwnerValue("browser_media:v1:record:qa", JSONObject().put("graph", JSONObject().put("sha256", "a".repeat(64))).toString())
             store.putOwnerValue("native-form:qa", JSONObject().put("uri", staged.toURI().toString()).toString())
+            store.putOwnerValue("revier:v1:entity:inquiry:qa_inspection", JSONObject().put("format_version", 1).put("kind", "inquiry")
+                .put("id", "qa_inspection").put("customer_id", "qa_customer_1").put("inspection_appointment_id", "qa_appointment")
+                .put("inspection_visits", JSONArray().put(JSONObject().put("appointment_id", "qa_appointment").put("notes", "QA Befund erhalten"))).toString())
             db.execSQL("INSERT INTO mcp_uploads VALUES('qa_old_upload', '{}', ?)", arrayOf(ByteArray(1024 * 1024)))
             val bitmap = android.graphics.Bitmap.createBitmap(2, 2, android.graphics.Bitmap.Config.ARGB_8888)
             val encoded = java.io.ByteArrayOutputStream().use { output -> bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, output); output.toByteArray() }
@@ -244,6 +247,9 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             command("archive_entity", "appointment", "qa_appointment")
             yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").getJSONObject(0).optString("appointment_id").isEmpty(), "COMPLETED_WORK_APPOINTMENT_DETACHED")
             command("purge_entity", "appointment", "qa_appointment")
+            val inspection = JSONObject(store.ownerValue("revier:v1:entity:inquiry:qa_inspection", "{}"))
+            yes(inspection.optString("inspection_appointment_id").isEmpty() && inspection.getJSONArray("inspection_visits").getJSONObject(0).optString("appointment_id").isEmpty(), "INSPECTION_REFERENCES_DETACHED")
+            yes(inspection.optString("customer_id") == "qa_customer_1" && inspection.getJSONArray("inspection_visits").getJSONObject(0).optString("notes") == "QA Befund erhalten", "INSPECTION_HISTORY_PRESERVED")
             val metadata = store.photoAttachment(first)!!
             keptPhoto = File(File(context.filesDir, "customer-photo-originals"), metadata.getString("storage_name"))
             store.putOwnerValue("receipt:qa_deleted_photo", JSONObject().put("result", JSONObject().put("photo_id", first)).toString())
