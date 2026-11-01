@@ -29,7 +29,7 @@
   ],
   "current_task": {
     "name": "Native Neugestaltung auf Build121; separat installierbare Build122-Test-APK",
-    "status": "TEST_APK_DELIVERED;SOURCE_BACKUP_PENDING;PIXEL_ACCEPTANCE_OPEN",
+    "status": "TEST_APK_DELIVERED;PIXEL_ACCEPTANCE_OPEN",
     "authorized": true,
     "authorization_scope": "Nutzerfreigabe zur Umsetzung des überarbeiteten Build121-Konzepts; anschließend ausdrücklich Test-APK für Pixel OHNE Originalsignatur. Separate Paketkennung .preview, Testsignatur und eigener Datenbereich; keine produktive Aktualisierung oder automatische Installation.",
     "base_git_sha": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
@@ -42,7 +42,6 @@
     ],
     "kiss_yagni": "Keine neuen Frameworks, Dependencies, Fachstores, Tabellen oder Schemamigrationen. Native Fachaktionen und Aktionskennungen bleiben maßgeblich.",
     "remaining": [
-      "Geprüfte Quellen auf eigenem Zweig sichern und exakt zurücklesen.",
       "Native UI-Ausführung und manuelle Pixel-Abnahme bleiben offen."
     ]
   },
@@ -90,7 +89,8 @@
       "physical_pixel": "NOT_RUN",
       "business_data_read": false,
       "pixel_installation_performed": false,
-      "apk_verification": "PASS preview package/label/version, test signer equality and original signer inequality, 637 asset matches, Compose entries, empty seed, no INTERNET, separate provider authorities"
+      "apk_verification": "PASS preview package/label/version, test signer equality and original signer inequality, 637 asset matches, Compose entries, empty seed, no INTERNET, separate provider authorities",
+      "reviewed_code_commit": "5d08d00a528b1199f1b884122cba1aa43f5430e4"
     },
     "performance_evidence": "docs/verification/performance-current.md;Build120 emulator and historical Pixel119 separate",
     "connector": {
@@ -135,6 +135,13 @@
       "operative_original_signing": "NOT_REQUESTED_FOR_THIS_ARTIFACT",
       "preview_package": "at.hausgarten.service.preview",
       "preview_label": "Haus & Garten Test"
+    },
+    "source_preservation": {
+      "status": "PASS",
+      "reviewed_code_commit": "5d08d00a528b1199f1b884122cba1aa43f5430e4",
+      "branch": "codex/redesign-build121",
+      "remote_readback": "exact code commit verified on GitHub; no operative installation",
+      "scope": "native source tree fingerprint matches the separately test-signed APK"
     }
   },
   "unmerged_work": [
