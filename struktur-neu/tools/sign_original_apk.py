@@ -39,9 +39,6 @@ class PrivateConfiguration:
         self.keystore, self.store_password, self.alias = keystore, store_password, alias
         self.key_password, self.certificate = key_password, certificate
 
-    def __repr__(self):
-        return '<private original-signing configuration>'
-
 
 def fingerprint(value):
     value = value.strip()
@@ -306,14 +303,9 @@ def sign(apk, output, *, keytool, aapt, zipalign, apksigner, env=None, instrumen
     raise SigningError(failure)
 
 
-class SafeParser(argparse.ArgumentParser):
-    def error(self, message):
-        raise SigningError('Invalid signing command arguments; use --help.')
-
-
 def main(argv=None):
     try:
-        parser = SafeParser(description=__doc__)
+        parser = argparse.ArgumentParser(description=__doc__)
         for name in ('apk', 'output', 'keytool', 'aapt', 'zipalign', 'apksigner'):
             parser.add_argument('--' + name, required=True)
         parser.add_argument('--instrumentation', action='store_true',

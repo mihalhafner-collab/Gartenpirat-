@@ -503,8 +503,8 @@ Maßgeblich sind Ergebnis, Commit und Quellfingerabdruck im aktuellen Arbeitssta
 Fehlgeschlagene Zwischenläufe werden nicht als PASS gewertet. Der vollständige
 CI-Checkout führt `check_current.py`, Release-/Test-Build, Lint, neun JVM-Suiten
 und acht native Suiten aus. Der lokale Teilcheckout enthält die großen unveränderten
-Pflanzenassets nicht; sein Gesamtcheck endet an dieser fehlenden Datei. Die 62
-vorhandenen Python-Tests bestehen beim direkten Aufruf ihrer Testprogramme.
+Pflanzenassets nicht; sein Gesamtcheck endet an dieser fehlenden Datei.
+Der aktuelle Python-Testbestand umfasst 59 Tests.
 
 Die normalen Fachlisten verwenden dieselbe adaptive Flächenaufteilung wie die Auswahlfenster. Im Querformat stehen Suchkopf und Ergebnisse nebeneinander; bei großer Schrift im Hochformat steht die Trefferzahl neben dem Suchfeld. Zusatzfilter bleiben nach Beenden der Eingabe erreichbar. Bei großer Schrift bleibt auch der geschlossene Suchkopf kompakt; seine zugängliche Feldbezeichnung bleibt vollständig erhalten. Auswahlfenster behalten ohne Tastatur ihren vollständigen Kopf. Die Eingabeknoten bleiben beim Umordnen erhalten. Technische Lesefehler erscheinen in den Listen als verständliche deutsche Rückmeldung; Fach- und Schutzprüfungen bleiben unverändert.
 
