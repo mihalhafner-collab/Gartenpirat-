@@ -724,9 +724,10 @@ internal fun NativeDeleteButton(controller: NativeAppController, entity: String,
             scope.launch {
                 try {
                     val args = if (emptyTrash) JSONObject().put("confirmed", true) else JSONObject().put("entity", entity).put("entity_id", id).apply { if (permanent) put("confirmed", true) }
-                    controller.call(if (emptyTrash) "empty_trash" else if (permanent) "purge_entity" else "archive_entity", args)
+                    val saved = controller.query(if (emptyTrash) "empty_trash" else if (permanent) "purge_entity" else "archive_entity", args)
                     showing = false
                     onDone()
+                    if (saved.optBoolean("storage_cleanup_pending")) controller.message("Eintrag gelöscht. Einige ungenutzte Dateien konnten noch nicht entfernt werden; unter Einstellungen → Sicherung und Diagnose erneut bereinigen.")
                 } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
                 catch (failure: Exception) { error = failure.message ?: "Löschen nicht möglich. Der Eintrag bleibt erhalten." }
                 finally { busy = false }

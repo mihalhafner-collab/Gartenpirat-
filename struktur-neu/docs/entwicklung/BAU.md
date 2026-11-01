@@ -145,7 +145,10 @@ Die native Datensuite prüft zusätzlich die lokale Speicherbereinigung in einem
 neuen synthetischen Kontext: Auftrags-/Terminlöschung mit geleisteter Arbeit,
 Purge/Leerung ohne Vorschau-Hashes, gemeinsam verwendete Fotos, Papierkorb,
 Entwurfs-PDF gegenüber ausgestelltem Beleg, alte Upload-BLOBs/Snapshot-Duplikate,
-WAL/VACUUM und erneutes Öffnen. Diese Prüfungen ändern keine produktiven Dateien.
+Lösch-Sicherungen und erledigte Löschbelege, WAL/VACUUM und erneutes Öffnen.
+Die Compose-Suite betätigt zusätzlich „Speicher bereinigen“, vergleicht die
+Geschäftsdaten und fotografiert Aktion/Ergebnis bei 100 % und 200 % Schrift.
+Diese Prüfungen ändern keine produktiven Dateien.
 
 ## Regressionsschleife für das Kotlin-Refactoring
 

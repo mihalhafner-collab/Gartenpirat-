@@ -45,8 +45,8 @@ Formular-Fotodateien und laufende Uploads erhalten höchstens einen Tag Schonfri
 weil ihre Formularreferenz erst unmittelbar danach gespeichert wird.
 
 Einstellungen → Sicherung und Diagnose zeigt die tatsächlichen Dateigrößen der
-Datenbank einschließlich WAL, Fotos/Medien, PDFs, weiteren App-Dateien und lokalen
-Arbeitsdaten. „Speicher bereinigen“ entfernt verwaiste Backup-Arbeitsdateien und
+Datenbank einschließlich WAL, Fotos/Medien, PDFs, weiteren App-Dateien, lokalen
+Arbeitsdaten und Cache. „Speicher bereinigen“ entfernt verwaiste Backup-Arbeitsdateien und
 ungenutzte Medien/Uploads, anschließend laufen WAL-Checkpoint und VACUUM außerhalb
 der Transaktion. Geschäftsdaten und ausgestellte Originalbelege werden nicht
 aufgrund ihres Alters gelöscht. Die Bereinigung ist keine produktive Migration

@@ -47,7 +47,7 @@
       "Arbeitskunde/Rechnungsempfänger getrennt; Quellenfilter und Objekt-/Anfragekontext im Formularentwurf. Keine neue Fachbeziehung, Datenbank oder automatische Buchung.",
       "Abgleich210Aktionen; synthetische12Darstellungen,16Suchwege,22große Fachlistenfälle,38Einstiege, A/B-Kontext, Activity-Neuerstellung, IME-Grenzen, Screenshots, Touch und Zurück-Geste. Details:docs/verification/performance-current.md.",
       "Backup streamt Originaldateien mit DB-Snapshot direkt zum Dateianbieter; keine capture-/verify-Vollkopien. Zielüberschreiben und verwaiste Arbeitsordner berücksichtigt; vollständige Prüfung läuft.",
-      "Lokales Archiv/Purge ohne externe Vorschau-Hashes; optionale Auftrags-/Terminbezüge lösen, keine neuen Tombstones. Gemeinsame referenzgeprüfte Speicherbereinigung mit Diagnose und WAL/VACUUM implementiert; neue native Tests noch im Prüfbuild."
+      "Lokales Archiv/Purge ohne externe Vorschau-Hashes; optionale Auftrags-/Terminbezüge lösen, keine neuen Tombstones. Referenzgeprüfte Bereinigung mit Speicherdiagnose einschließlich Cache, alten Lösch-Sicherungen, Receipt-Bereinigung und WAL/VACUUM; native und UI-Abnahme läuft."
     ],
     "kiss_yagni": "Vorhandene Route, SQL-Abfragen, Compose-Zustände und Fachschreiber weiterverwenden; keine neue Datenbank, Abhängigkeit, Architektur oder Filterprofile.",
     "remaining": [
@@ -84,7 +84,7 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "f4270892824e5107864b312088e9e365d4b4f251a97b83b30eb466c81d8f53f3",
+    "app_source_fingerprint": "e437accffe5b9777a194a81da3e0c95b12a9ea854534bcc70c43914fa2abe6f2",
     "source_privacy": "PASS;empty operational seed",
     "business_data_read": false,
     "authored_changes_diff_check": "PASS;git diff --check und210Aktionszuordnungen",

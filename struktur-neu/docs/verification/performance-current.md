@@ -529,6 +529,11 @@ Rückfallkopie. Eine gemeinsame Speicherbereinigung ersetzt die alte testdatenab
 Tombstone-/Receipt-Kompaktierung und deren unspezifischen Start-Toast (B05).
 Normale Archivierung/Purge benötigen keine vom Nutzer beschafften Hashes.
 Einstellungen zeigen Speicherbereiche und bieten eine einzelne Bereinigungsaktion.
+Cache und alte unreferenzierte Lösch-Sicherungen sind einbezogen. Belege und
+Foto-Idempotenzantworten endgültig gelöschter Einträge werden entfernt; Antworten
+zu noch bestehenden Datensätzen bleiben erhalten. Die zusätzliche UI-Prüfung
+betätigt die Bereinigung und kontrolliert den unveränderten Geschäftsdatenstand
+sowie die sichtbare Aktion bei 100 % und 200 % Schrift.
 KISS: vorhandene SQLite-Transaktion und bestehende Dateiverweise statt zusätzlicher
 Freigaben; keinerlei neue Abhängigkeit. Noch kein bestandener Lauf der neuen
 Speichersuite und keine Messung des produktiven 22,8-GB-Bestands.

@@ -1143,7 +1143,7 @@ private fun NativeStorageSettings(controller: NativeAppController) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Speicher auf diesem Gerät", style = MaterialTheme.typography.titleMedium)
             usage?.let { value ->
-                for ((key, label) in listOf("database_bytes" to "Datenbank mit Journal", "photo_bytes" to "Fotos, Vorschauen und Medien", "document_bytes" to "PDF-Belege", "other_files_bytes" to "Weitere App- und Arbeitsdateien", "work_bytes" to "Lokale Arbeits- und Wiederherstellungsdaten")) {
+                for ((key, label) in listOf("database_bytes" to "Datenbank mit Journal", "photo_bytes" to "Fotos, Vorschauen und Medien", "document_bytes" to "PDF-Belege", "other_files_bytes" to "Weitere App- und Arbeitsdateien", "work_bytes" to "Lokale Arbeits- und Wiederherstellungsdaten", "cache_bytes" to "Zwischenspeicher")) {
                     Text("$label: ${size(value.optLong(key))}")
                 }
                 Text("Davon Backup-Arbeitsdateien: ${size(value.optLong("backup_work_bytes"))}")
@@ -1155,7 +1155,7 @@ private fun NativeStorageSettings(controller: NativeAppController) {
                 scope.launch {
                     try { val cleaned = controller.cleanStorage(); usage = cleaned; result = "Bereinigung abgeschlossen: ${size(cleaned.optLong("freed_bytes"))} freigegeben." }
                     catch (cancelled: CancellationException) { throw cancelled }
-                    catch (failure: Exception) { error = "Bereinigung nicht vollständig: ${failure.message.orEmpty()}"; usage = controller.storageUsage() }
+                    catch (failure: Exception) { error = if (failure.message == "STORAGE_CHECKPOINT_BUSY") "Ein laufender Vorgang verwendet die Datenbank. Bitte die Bereinigung anschließend erneut starten." else "Die Bereinigung konnte nicht vollständig abgeschlossen werden. Bitte erneut versuchen; verwendete Dateien bleiben erhalten."; usage = controller.storageUsage() }
                     finally { busy = false }
                 }
             }) { Text(if (busy) "Speicher wird bereinigt …" else "Speicher bereinigen") }

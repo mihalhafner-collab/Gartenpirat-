@@ -246,10 +246,14 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             command("purge_entity", "appointment", "qa_appointment")
             val metadata = store.photoAttachment(first)!!
             keptPhoto = File(File(context.filesDir, "customer-photo-originals"), metadata.getString("storage_name"))
+            store.putOwnerValue("receipt:qa_deleted_photo", JSONObject().put("result", JSONObject().put("photo_id", first)).toString())
+            db.execSQL("INSERT INTO pending VALUES('receipt_qa_deleted_photo','mcp_receipt',?,'2026-10-30T00:00:00Z')", arrayOf(JSONObject().put("entity_type", "photo").put("entity_id", first).toString()))
             command("archive_entity", "photo", first)
             yes(keptPhoto.isFile, "TRASH_RETAINS_SHARED_PHOTO")
             command("purge_entity", "photo", first)
             yes(keptPhoto.isFile, "ACTIVE_SHARED_PHOTO_RETAINED")
+            yes(store.ownerValue("receipt:qa_deleted_photo", "").isEmpty() && store.ownerValue("photo-ui:qa_photo_cleanup_first", "").isEmpty(), "DELETED_PHOTO_RECEIPTS_REMOVED")
+            db.rawQuery("SELECT count(*) FROM pending WHERE id='receipt_qa_deleted_photo'", null).use { rows -> yes(rows.moveToFirst() && rows.getInt(0) == 0, "DELETED_NATIVE_RECEIPT_REMOVED") }
             command("archive_entity", "invoice", "qa_draft")
             yes(draft.isFile, "TRASH_RETAINS_DRAFT_PDF")
             command("purge_entity", "invoice", "qa_draft")
@@ -259,10 +263,12 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             yes(rejected && issued.isFile, "ISSUED_INVOICE_PROTECTED")
             val orphan = File(context.noBackupFilesDir, "pixel-backup/attempt-abandoned/capture/large.bin")
             orphan.parentFile!!.mkdirs(); orphan.writeBytes(ByteArray(16384))
+            val oldDeletion = File(context.noBackupFilesDir, "deletion-backups/qa-orphan.zip")
+            oldDeletion.parentFile!!.mkdirs(); oldDeletion.writeBytes(ByteArray(8192))
             val maintenance = LocalStorageMaintenance(context, store)
             val cleaned = maintenance.clean(true)
             yes(cleaned.getLong("database_bytes") > 0 && cleaned.getLong("freed_bytes") > 0, "ACTUAL_USAGE_AND_RECLAIM")
-            yes(!orphan.exists() && !lost.exists(), "ORPHANS_REMOVED")
+            yes(!orphan.exists() && !lost.exists() && !oldDeletion.exists(), "ORPHANS_REMOVED")
             yes(browser.isFile && pending.isFile && staged.isFile && keptPhoto.isFile && issued.isFile, "ALL_LIVE_REFERENCES_RETAINED")
             yes(!context.getSharedPreferences("haus_garten", 0).contains("drive_snapshot"), "LEGACY_PREFERENCES_REMOVED")
             db.rawQuery("SELECT count(*) FROM owner_state WHERE key GLOB 'business_tables:original:*' OR key GLOB 'receipt_guard:*'", null).use { rows -> yes(rows.moveToFirst() && rows.getInt(0) == 0, "OLD_DUPLICATES_REMOVED") }

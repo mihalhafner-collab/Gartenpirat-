@@ -20,10 +20,11 @@ internal class LocalStorageMaintenance(private val context: Context, private val
         val documents = bytes(File(context.filesDir, "business-documents"))
         val other = (bytes(context.filesDir) - photos - documents).coerceAtLeast(0)
         val work = bytes(context.noBackupFilesDir)
+        val cache = bytes(context.cacheDir)
         return JSONObject().put("database_bytes", dbBytes).put("photo_bytes", photos)
-            .put("document_bytes", documents).put("other_files_bytes", other).put("work_bytes", work)
+            .put("document_bytes", documents).put("other_files_bytes", other).put("work_bytes", work).put("cache_bytes", cache)
             .put("backup_work_bytes", bytes(File(context.noBackupFilesDir, "pixel-backup")))
-            .put("total_bytes", dbBytes + photos + documents + other + work)
+            .put("total_bytes", dbBytes + photos + documents + other + work + cache)
     }
 
     fun clean(vacuum: Boolean): JSONObject {
@@ -136,6 +137,13 @@ internal class LocalStorageMaintenance(private val context: Context, private val
                         // Give only that staging area a grace period; purged originals/PDFs go now.
                         removedFiles += removeUnreferenced(directory, refs, if (name == "native-form-media") DAY else 0)
                     }
+                    for (name in arrayOf("deletion-backups", "legacy-conflict-backups")) {
+                        removedFiles += removeUnreferenced(File(context.noBackupFilesDir, name), refs, 0)
+                    }
+                    for (name in arrayOf("immutable-photo-staging", "immutable-document-staging", "photo-capture", "invoice-share")) {
+                        removedFiles += removeUnreferenced(File(context.cacheDir, name), refs, DAY)
+                    }
+                    store.putOwnerValue("local_media_cleanup", JSONObject().put("pending", false).toString())
                     database.setTransactionSuccessful()
                 } finally { database.endTransaction() }
                 if (vacuum) {
@@ -164,6 +172,7 @@ internal class LocalStorageMaintenance(private val context: Context, private val
                 if (key == "snapshot" || key.startsWith("business_tables:") || key.startsWith("receipt:") ||
                     key.startsWith("receipt_guard:") || key.startsWith("photo-ui:") || key.startsWith("purge-cleaned:") ||
                     key.startsWith("revier:v1:audit:") || key == "purged_local_test_records_v1") continue
+                if (key.startsWith("legacy-backup:")) refs.add(key.removePrefix("legacy-backup:"))
                 // Include drafts, active/trash Revier records, invoice originals and retained
                 // browser graphs, including restore candidates whose choice is still open.
                 parse(store.ownerValue(key, ""))?.let { collect(it, refs) }
@@ -184,10 +193,31 @@ internal class LocalStorageMaintenance(private val context: Context, private val
                 val receipt = JSONObject(store.ownerValue(key, "{}"))
                 val result = receipt.optJSONObject("result") ?: continue
                 val target = result.optString("entity_type", result.optString("entity")) + ":" + result.optString("entity_id", result.optString("id"))
-                if (key.removePrefix("receipt:") in requests || target in deleted || result.optBoolean("_result_content_removed")) remove.add(key)
+                val removedEntity = deleted.any { saved ->
+                    val entity = saved.substringBefore(':'); val id = saved.substringAfter(':')
+                    val field = if (entity == "worklog") "work_record_id" else "${entity}_id"
+                    result.optString(field) == id || result.optJSONObject("record")?.let { it.optString("id") == id && (it.optString("kind", entity) == entity) } == true
+                }
+                if (key.removePrefix("receipt:") in requests || target in deleted || removedEntity || result.optBoolean("_result_content_removed")) remove.add(key)
             }
         }
         remove.forEach { database.delete("owner_state", "key=?", arrayOf(it)) }
+        val nativeReceipts = mutableListOf<String>()
+        database.rawQuery("SELECT id,payload FROM pending WHERE kind='mcp_receipt'", null).use { rows ->
+            while (rows.moveToNext()) {
+                val receipt = JSONObject(rows.getString(1))
+                if ((receipt.optString("entity_type") + ":" + receipt.optString("entity_id")) in deleted) nativeReceipts.add(rows.getString(0))
+            }
+        }
+        nativeReceipts.forEach { database.delete("pending", "id=?", arrayOf(it)) }
+        database.rawQuery("SELECT key FROM owner_state WHERE key GLOB 'photo-ui:*'", null).use { rows ->
+            val photos = mutableListOf<String>()
+            while (rows.moveToNext()) {
+                val key = rows.getString(0)
+                if (("photo:" + JSONObject(store.ownerValue(key, "{}")).optString("id")) in deleted) photos.add(key)
+            }
+            photos.forEach { database.delete("owner_state", "key=?", arrayOf(it)) }
+        }
     }
 
     private fun removeUnreferenced(root: File, refs: Set<String>, grace: Long): Int {
@@ -196,7 +226,7 @@ internal class LocalStorageMaintenance(private val context: Context, private val
         var count = 0
         root.walkTopDown().onEnter { !Files.isSymbolicLink(it.toPath()) }.forEach { file ->
             if (file == root || Files.isSymbolicLink(file.toPath()) || !file.isFile) return@forEach
-            if (file.name in refs || file.nameWithoutExtension in refs || file.path in refs || file.toURI().toString() in refs) return@forEach
+            if (file.name in refs || file.nameWithoutExtension in refs || file.path in refs || file.toURI().toString() in refs || file.parentFile?.name in refs) return@forEach
             if (grace > 0 && file.lastModified() > System.currentTimeMillis() - grace) return@forEach
             if (!file.delete() && file.exists()) throw IOException("STORAGE_FILE_CLEANUP_PENDING")
             count++

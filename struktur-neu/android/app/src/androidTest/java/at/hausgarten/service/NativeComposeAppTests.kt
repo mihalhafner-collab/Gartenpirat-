@@ -335,6 +335,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("filter_keyboard", ::filterKeyboardJourney)
             journey("surfaces", ::surfaceJourney)
             journey("large_text", ::largeTextJourney)
+            journey("storage_settings", ::storageSettingsJourney)
             if (failures.isNotEmpty()) {
                 val failure = AssertionError("QA_NATIVE_COMPOSE_JOURNEYS_FAILED_${failures.size}")
                 failures.forEach(failure::addSuppressed)
@@ -348,7 +349,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("draft_write_failure_recovery", true)
                 .put("work_entry_usability", true).put("work_photo_retention", true)
                 .put("machine_accessory_roundtrip", true).put("decimal_comma_inputs", true)
-                .put("filter_keyboard", true).put("system_back_gesture", true).put("work_ime_actions", true).put("search_keyboard_matrix", searchMatrix).put("domain_search_cases", domainSearchCases).put("surface_cases", surfaceCases).put("list_viewport_cases", listViewportCases).put("office_opening", officeMeasurements)
+                .put("storage_settings_cleanup", true).put("filter_keyboard", true).put("system_back_gesture", true).put("work_ime_actions", true).put("search_keyboard_matrix", searchMatrix).put("domain_search_cases", domainSearchCases).put("surface_cases", surfaceCases).put("list_viewport_cases", listViewportCases).put("office_opening", officeMeasurements)
                 .put("drive_account_tested", false).put("physical_pixel_tested", false)
         } finally {
             shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
@@ -1563,6 +1564,41 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
         if (failures.isNotEmpty()) { val failure = AssertionError("SURFACES_${failures.size}_FAILED"); failures.forEach(failure::addSuppressed); throw failure }
         yes(surfaceCases.length() == 38, "ALL_SURFACES_REACHABLE")
+    }
+
+    private fun storageSettingsJourney() {
+        val previousFont = shell("settings get system font_scale")
+        val before = PixelMcpReadTools.effective(store.getState())
+        fun retainedBusiness(value: JSONObject) = JSONObject().apply {
+            for (key in listOf("customers", "orders", "worklogs", "invoices", "offers", "photos", "appointments", "owner_archive")) put(key, value.opt(key))
+        }
+        try {
+            for (scale in listOf(1.0, 2.0)) {
+                activity?.let { current -> test.runOnMainSync { current.finish() } }
+                shell("settings put system font_scale $scale")
+                launch()
+                click("Büro"); click("Einstellungen")
+                reveal("Speicher bereinigen")
+                waitUntil("STORAGE_ACTION_READY_$scale") { node("Speicher bereinigen")?.let(::clickable)?.isEnabled == true }
+                val bounds = actionBounds("Speicher bereinigen")
+                val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
+                yes(screen.contains(bounds) && bounds.height() >= 48, "STORAGE_ACTION_VISIBLE_$scale")
+                yes(!keyboardVisible(), "STORAGE_NO_UNNECESSARY_IME_$scale")
+                captureSyntheticScreen("storage-${(scale*100).toInt()}")
+                if (scale == 1.0) {
+                    click("Speicher bereinigen")
+                    waitUntil("STORAGE_CLEANUP_CONFIRMED") {
+                        nodes().any { it.text?.toString()?.startsWith("Bereinigung abgeschlossen:") == true }
+                    }
+                    yes(PixelMcpWriteTools.hash(retainedBusiness(before)) == PixelMcpWriteTools.hash(retainedBusiness(PixelMcpReadTools.effective(store.getState()))), "STORAGE_UI_PRESERVES_BUSINESS_DATA")
+                    val notice = nodes().mapNotNull { it.text?.toString() }.first { it.startsWith("Bereinigung abgeschlossen:") }
+                    reveal(notice)
+                    captureSyntheticScreen("storage-cleaned")
+                }
+            }
+        } finally {
+            shell(if (previousFont == "null") "settings delete system font_scale" else "settings put system font_scale $previousFont")
+        }
     }
 
     private fun largeTextJourney() {

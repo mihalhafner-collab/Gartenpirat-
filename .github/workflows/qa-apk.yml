@@ -139,7 +139,7 @@ jobs:
               for plan in result['plans'].values():
                   assert 'USING INDEX ix_native_read_' in str(plan) and 'TEMP B-TREE' not in str(plan), result
           elif sys.argv[1]=='native_compose':
-              for proof in ('real_main_activity','filter_keyboard','system_back_gesture','native_compose_ui','customer_crud','customer_context_navigation','paging_and_search',
+              for proof in ('storage_settings_cleanup','real_main_activity','filter_keyboard','system_back_gesture','native_compose_ui','customer_crud','customer_context_navigation','paging_and_search',
                             'mcp_write_visible_without_reload','draft_recreation','timer_state_transitions',
                             'font_scale_200_percent','planning_notification_alternatives','customer_conflict_review',
                             'draft_write_failure_recovery','work_entry_usability','work_photo_retention',
