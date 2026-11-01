@@ -49,6 +49,10 @@ nachweisen. Die technische Bereitstellung beweist keine fehlerfreie Regelanwendu
   Erledigte Aufträge und überholte Aussagen nach Übernahme gültiger Inhalte löschen.
 - Keine Statuschronik, zusätzlichen Archivordner oder externen Entwicklungsexporte
   anlegen. Alte Aufträge enthalten keine fortgeltende Ausführungsfreigabe.
+- Drive enthält keine parallelen Quellcode-, Regel-, Agentenanweisungs- oder
+  Statuskopien. Benötigte APKs und betriebliche Sicherungen bleiben getrennt.
+  Bei ausdrücklich beauftragter Drive-Bereitstellung vorhandene zuständige Dateien
+  aktualisieren; keine neuen Übergabeordner oder mehrfachen Text-/ZIP-Exporte.
 - Tests und Diagnosen bis einschließlich Build100 nicht übernehmen. Weiterhin
   benötigte Build-, Prüf- und Fixture-Helfer bleiben unabhängig von ihrem Alter.
   Aktuelle Prüfungen müssen den tatsächlich bearbeiteten Quellstand betreffen.
