@@ -541,8 +541,8 @@ erneutes Öffnen der Übersicht und das Entfernen alter Meldungen bei Navigation
 Die Bilder `qa-native-customer-photos.png` und `qa-native-customer-offers.png`
 gehören zum vorhandenen synthetischen CI-Artefakt.
 
-Die gemeinsame Auswahlansicht wird in zwölf Kombinationen aus Schrift 100/130/200 %,
-normaler/verkleinerter Höhe und Hoch-/Querformat geprüft. Echte IME-Fenstergrenzen,
+Die gemeinsame Auswahlansicht wird in sechs Kombinationen geprüft: Schrift 100/130 %
+bei normaler Höhe und 200 % bei verkleinerter Höhe, jeweils im Hoch-/Querformat. Echte IME-Fenstergrenzen,
 Treffergrenzen, Android-Touchereignisse und Bilder werden zusammen ausgewertet.
 Suchen/Fertig muss die Eingabe beenden und Suchtext/Treffer erhalten. Nulltreffer,
 leere Suche, Seitenwechsel, Auswahlabbruch und die Rückkehr nach Activity-Neuerstellung
@@ -573,4 +573,4 @@ die jeweiligen tatsächlichen Eingaben mit IME.
 
 Der native Datenzugriffstest schließt den SQLite-Helper auch mitten in einer vollständigen Bestandsabfrage. Erfolg und Abfragefehler müssen die Transaktion beenden, die letzte Datenbankreferenz freigeben und anschließendes Lesen/Schreiben ohne verbleibende Sperre erlauben.
 
-Ergänzend prüft `list_viewports` elf Fachlisten bei 200 % und verkleinerter Höhe in beiden Ausrichtungen (22 Fälle). Suche und Trefferzahl müssen vollständig oberhalb der IME liegen. Bei langen Detailkarten darf der restliche Karteninhalt scrollbar außerhalb des kleinen Ausschnitts liegen; der sichtbare Titelanfang und eine mindestens 48 × 48 dp große tatsächlich injizierte Touchfläche müssen innerhalb der Bildschirm-/IME-Grenzen liegen. Die bisherigen Dialog- und normalen Suchprüfungen verlangen weiterhin vollständig sichtbare Ergebnisflächen. IME-Fertig, erhaltener Suchwert und Öffnen desselben Treffers werden getrennt geprüft.
+Ergänzend prüft `list_viewports` elf Fachlisten bei 200 % und verkleinerter Höhe im Hochformat; Kunden, Arbeit, Angebote, Rechnungen, Leistungskatalog und lokale Suche zusätzlich im Querformat (17 Fälle). Suche und Trefferzahl müssen vollständig oberhalb der IME liegen. Bei langen Detailkarten darf der restliche Karteninhalt scrollbar außerhalb des kleinen Ausschnitts liegen; der sichtbare Titelanfang und eine mindestens 48 × 48 dp große tatsächlich injizierte Touchfläche müssen innerhalb der Bildschirm-/IME-Grenzen liegen. Die bisherigen Dialog- und normalen Suchprüfungen verlangen weiterhin vollständig sichtbare Ergebnisflächen. IME-Fertig, erhaltener Suchwert und Öffnen desselben Treffers werden getrennt geprüft.

@@ -421,7 +421,7 @@ werden nicht durch Übersichten ersetzt.
 
 Die 210 semantischen Aktionen bleiben im vorhandenen Manifest erfasst. Die
 Quellzuordnung allein beweist keine vollständige Geräteabnahme. Die zugehörige
-Compose-Prüfung öffnet 38 Einstiege, prüft 16 fachliche Suchen und zwölf
+Compose-Prüfung öffnet 38 Einstiege, prüft 16 fachliche Suchen und sechs
 Darstellungskombinationen; genaue Durchführung in `../entwicklung/BAU.md`.
 Sonderseiten werden dabei gelesen, ohne Kontofreigaben oder produktive Aktionen.
 `FLAG_SECURE` der ChatGPT-Zugangsdatenansicht wird nicht für Screenshots aufgehoben.
@@ -508,8 +508,8 @@ vorhandenen Python-Tests bestehen beim direkten Aufruf ihrer Testprogramme.
 
 Die normalen Fachlisten verwenden dieselbe adaptive Flächenaufteilung wie die Auswahlfenster. Im Querformat stehen Suchkopf und Ergebnisse nebeneinander; bei großer Schrift im Hochformat steht die Trefferzahl neben dem Suchfeld. Zusatzfilter bleiben nach Beenden der Eingabe erreichbar. Bei großer Schrift bleibt auch der geschlossene Suchkopf kompakt; seine zugängliche Feldbezeichnung bleibt vollständig erhalten. Auswahlfenster behalten ohne Tastatur ihren vollständigen Kopf. Die Eingabeknoten bleiben beim Umordnen erhalten. Technische Lesefehler erscheinen in den Listen als verständliche deutsche Rückmeldung; Fach- und Schutzprüfungen bleiben unverändert.
 
-Die Compose-Abnahme kombiniert zwölf Darstellungen (100/130/200 %, normale/kleine
-Höhe, Hoch-/Querformat), 16 fachliche Suchwege, 22 zusätzliche Fachlistenfälle bei 200 %/kleiner Höhe und 38 Einstiege mit synthetischen
+Die Compose-Abnahme kombiniert sechs Darstellungen (100/130 % bei normaler Höhe,
+200 % bei kleiner Höhe, jeweils Hoch-/Querformat), 16 fachliche Suchwege, 17 zusätzliche Fachlistenfälle bei 200 %/kleiner Höhe gemäß `../entwicklung/BAU.md` und 38 Einstiege mit synthetischen
 Bildaufnahmen, tatsächlichen IME-Fenstergrenzen und injizierten Android-Touchereignissen.
 Sie prüft zusätzlich leere Suche, null/einen/viele Treffer, Seitenwechsel, A/B-Kontext,
 gleichnamige Kunden, Filtereingaben, Zurück-Taste/-Geste, Speichern, Verwerfen,
