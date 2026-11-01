@@ -34,10 +34,10 @@
   ],
   "current_task": {
     "name": "Build121 für manuelle Paketinstallation über den bestehenden privaten Drive-Ordner bereitstellen",
-    "status": "RELEASE_PREPARED;BLOCKED_BUILD_AND_ORIGINAL_SIGNING_ENVIRONMENT",
+    "status": "DELIVERED_PRIVATE_DRIVE;MANUAL_INSTALLATION_PENDING;KNOWN_UI_FAILURES_OPEN",
     "authorized": true,
     "authorization_scope": "Nutzerauftrag 01.11.2026: aktuellen Stand abschließen, neue APK erstellen und über Drive für manuelle Paketinstallation bereitstellen; Emulatortest ausdrücklich weglassen. Bestehendes Zurück bleibt; kein zusätzliches Menü. Keine automatische Pixel-Installation, Migration, Wiederherstellung oder Rechnungsfreigabe.",
-    "base_git_sha": "4debb69b6994a6a3b3238a81a2114d3162d9ce63",
+    "base_git_sha": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
     "branch": "codex/kotlin-refactoring-20261029",
     "implementation": [
       "Kontextfilter für Fotos, Angebote und verwandte Listen; erkennbare Hauptbereiche, wiederhergestellte Navigation und bereinigte Meldungen.",
@@ -50,16 +50,11 @@
       "Lokales Archiv/Purge ohne externe Vorschau-Hashes; optionale Auftrags-/Terminbezüge lösen, keine neuen Tombstones. Referenzgeprüfte Bereinigung mit Speicherdiagnose einschließlich Cache, alten Lösch-Sicherungen, Receipt-Bereinigung und WAL/VACUUM; native Backend-Prüfungen bestanden; UI-Abnahme fehlgeschlagen."
     ],
     "kiss_yagni": "Vorhandene Route, SQL-Abfragen, Compose-Zustände und Fachschreiber weiterverwenden; keine neue Datenbank, Abhängigkeit, Architektur oder Filterprofile.",
-    "remaining": [
-      "Vorhandene persönliche Bauumgebung mit Gradle9.3.1, Android-SDK37/Build-Tools37.0.0 und geschützten HG_ORIGINAL_-Variablen verwenden; in dieser Sitzung nicht verfügbar.",
-      "Build121 ohne Emulator bauen, mit Originalschlüssel signieren und vorhandene APK-Prüfungen ausführen.",
-      "Geprüfte APK im bestehenden privaten Drive-Ordner Aktuell bereitstellen, vollständig zurücklesen und diesen Arbeitsstand um tatsächlichen Commit, APK-Nachweis und Download-Link ergänzen."
-    ]
+    "remaining": []
   },
   "open_checks": [
     "Letzter CI-Lauf 41294127452 zu 4debb69: Quellprüfung, Android-Bau/Lint und JVM bestanden; Android-/UI-Schritt fehlgeschlagen. Acht Compose-Abläufe: customer, usability, accessories, back_gesture, domain_search, list_viewports, surfaces, storage_settings. Kein Nachweis, dass alle Fehler Appfehler sind.",
     "Neuer Emulatortest ausdrücklich vom Nutzer abgewählt; bekannte Fehler bleiben dokumentiert und gelten nicht als behoben.",
-    "Neue APK nicht gebaut, signiert oder hochgeladen: Android-Bauwerkzeuge und alle fünf Original-Signiervariablen fehlen in dieser Sitzung; vorhandene persönliche Bauumgebung nicht angebunden.",
     "Physischer Pixel und produktiver Speicherbestand nicht geprüft; Freigabe zur Drive-Bereitstellung ist keine automatische Installation oder Datenänderung."
   ],
   "workflow": {
@@ -89,14 +84,13 @@
     "app_source_fingerprint": "9effca5a874b05c6fbc097adba1c06d273d3963bf3e4e092b0560ec2664075ae",
     "source_privacy": "PASS;empty operational seed",
     "business_data_read": false,
-    "authored_changes_diff_check": "PASS;git diff --check;in diesem Auftrag ausschließlich Versionsanhebung und bestehender Arbeitsstand geändert",
+    "authored_changes_diff_check": "PASS;only existing current-work file updated with actual Build121 validation/delivery evidence;application and protected tests unchanged",
     "current_test_run": {
-      "source_basis": "4debb69b6994a6a3b3238a81a2114d3162d9ce63",
-      "workflow_run": 41294127452,
-      "source_review": "PASS;CI check_current mit59Python-Tests",
-      "android_build": "PASS;CI release+AndroidTest+lint",
-      "jvm": "PASS;CI9Suiten",
-      "emulator": "FAIL;native_compose8Abläufe fehlgeschlagen;kein erneuter Lauf beauftragt",
+      "source_basis": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
+      "source_review": "PASS;check_current.py;59Python-Tests",
+      "android_build": "PASS;personal Cloud JDK17/Gradle9.3.1/SDK37/Build-Tools37.0.0;assembleRelease/lintRelease;0 errors,97 warnings,45 hints",
+      "jvm": "PASS;run-followup-java.py --tables;9 suites",
+      "emulator": "NOT_RUN;USER_REQUEST;known CI UI failures remain open",
       "physical_pixel": "NOT_RUN",
       "business_data_read": false,
       "pixel_installation_performed": false
@@ -122,29 +116,29 @@
       "scope": "HISTORICAL119;details in evidence document;not Build120 proof"
     },
     "release_delivery": {
-      "observed_at_utc": "2026-10-30T13:42:23.915421+00:00",
-      "source_commit": "f770f38d0bd428ec93004252d1aaacf003a475e2",
-      "source_sha256": "a08ad845065f9d83a8ce9206f98b42c14053f4d779aa9a7961167ac797d7ae3c",
+      "observed_at_utc": "2026-11-01T12:53:59.183388+00:00",
+      "source_commit": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
+      "source_sha256": "9effca5a874b05c6fbc097adba1c06d273d3963bf3e4e092b0560ec2664075ae",
       "physical_pixel": "NOT_EXECUTED",
       "installation_performed": false,
       "productive_data_read": false,
       "productive_migration_performed": false,
       "restore_performed": false,
       "invoice_authority_activated": false,
-      "scope": "HISTORICAL_BUILD120;details in last_distributed_build and docs/verification/performance-current.md",
-      "checks": "PASS:check_current62Python,assembleRelease/lint,9JVM+8native matching CI41054301410,original signature,candidate/Drive download readback,commit/fingerprint DEX;temporary signer removed"
+      "scope": "BUILD121;personal Cloud build;no emulator;manual user installation pending",
+      "checks": "PASS:59Python,assembleRelease/lintRelease,9JVM suites,source_preservation exact remote commit,original signature,candidate verification,all source assets,193 Kotlin files,empty operational seed,clean BuildConfig,commit/fingerprint in DEX,full byte-identical Drive readback and renewed candidate/signature verification;known UI failures not retested"
     },
     "release_preparation": {
       "version_name": "1.57.2",
       "version_code": 121,
-      "base_git_sha": "4debb69b6994a6a3b3238a81a2114d3162d9ce63",
-      "source_review": "PASS;check_current.py nach Versionsanhebung:59Python-Tests;keine native Geräteprüfung",
-      "android_build": "NOT_RUN;Android-Bauwerkzeuge fehlen",
-      "jvm": "NOT_RUN;neuer Bau nicht gestartet",
-      "original_signing": "NOT_RUN;geschützte persönliche Signierumgebung nicht angebunden",
-      "emulator": "NOT_RUN;ausdrücklich vom Nutzer abgewählt",
+      "base_git_sha": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
+      "source_review": "PASS;59Python-Tests",
+      "android_build": "PASS;assembleRelease/lintRelease",
+      "jvm": "PASS;9 suites including synthetic SQLite/JDBC",
+      "original_signing": "PASS;existing protected original key;temporary signing material removed",
+      "emulator": "NOT_RUN;USER_REQUEST",
       "physical_pixel": "NOT_RUN",
-      "drive_upload": "NOT_RUN;noch keine neue APK",
+      "drive_upload": "PASS;private target and complete byte-identical readback verified",
       "drive_target_folder_id": "1K4WB9L6ZKlW-33o8uPK3zTfqgAOVOE8u"
     }
   },
@@ -156,28 +150,28 @@
     }
   ],
   "last_distributed_build": {
-    "version_name": "1.57.1",
-    "version_code": 120,
-    "app_source_git_sha": "f770f38d0bd428ec93004252d1aaacf003a475e2",
-    "source_sha256": "a08ad845065f9d83a8ce9206f98b42c14053f4d779aa9a7961167ac797d7ae3c",
-    "apk_sha256": "b86e87cfd01d3a503209185bdf3ec9eff9ec470ba4abe11c0852379aab1d6062",
-    "apk_bytes": 89502655,
+    "version_name": "1.57.2",
+    "version_code": 121,
+    "app_source_git_sha": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
+    "source_sha256": "9effca5a874b05c6fbc097adba1c06d273d3963bf3e4e092b0560ec2664075ae",
+    "apk_sha256": "1d7b1acac5ba450bd6697eee11f5a1584d86432273e03bcf31063441869e0a4e",
+    "apk_bytes": 89584575,
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
     "signature_valid": true,
     "original_certificate_match": true,
     "source_binding": "PASS;all source assets;commit/fingerprint in DEX;clean BuildConfig",
-    "built_at_utc": "2026-10-30T13:42:23.915421+00:00",
-    "download_url": "https://drive.google.com/file/d/18WqTFuunyA0lx53okuycQU-LJEM5IpAy/view?usp=drivesdk",
+    "built_at_utc": "2026-11-01T12:53:59.183388+00:00",
+    "download_url": "https://drive.google.com/file/d/14hAJWKOxjD6pOg3PQn9OcCVA0czqr-dF/view?usp=drivesdk",
     "drive": {
-      "file_id": "18WqTFuunyA0lx53okuycQU-LJEM5IpAy",
+      "file_id": "14hAJWKOxjD6pOg3PQn9OcCVA0czqr-dF",
       "parent_folder_id": "1K4WB9L6ZKlW-33o8uPK3zTfqgAOVOE8u",
       "visibility": "PRIVATE_OWNER_ONLY;fresh permissions readback;existing rights unchanged"
     },
     "download_readback": {
       "status": "PASS;complete authenticated target download;byte-identical cmp;size/SHA256/original signature and candidate verification",
-      "bytes": 89502655,
-      "sha256": "b86e87cfd01d3a503209185bdf3ec9eff9ec470ba4abe11c0852379aab1d6062",
-      "observed_at_utc": "2026-10-30T13:42:23.915421+00:00",
+      "bytes": 89584575,
+      "sha256": "1d7b1acac5ba450bd6697eee11f5a1584d86432273e03bcf31063441869e0a4e",
+      "observed_at_utc": "2026-11-01T12:53:59.183388+00:00",
       "signature_valid": true,
       "original_certificate_match": true
     },
@@ -189,9 +183,9 @@
   "current_release_candidate": {
     "version_name": "1.57.2",
     "version_code": 121,
-    "status": "SOURCE_PREPARED;APK_NOT_BUILT;ORIGINAL_SIGNING_NOT_AVAILABLE",
-    "base_git_sha": "4debb69b6994a6a3b3238a81a2114d3162d9ce63",
+    "status": "ORIGINAL_SIGNED;DELIVERED_PRIVATE_DRIVE;READBACK_VERIFIED;MANUAL_INSTALLATION_PENDING",
+    "base_git_sha": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
     "emulator": "NOT_RUN;USER_REQUEST",
-    "download_url": null
+    "download_url": "https://drive.google.com/file/d/14hAJWKOxjD6pOg3PQn9OcCVA0czqr-dF/view?usp=drivesdk"
   }
 }
