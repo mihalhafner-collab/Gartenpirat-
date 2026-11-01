@@ -206,13 +206,22 @@ internal class LocalStorageMaintenance(private val context: Context, private val
 
     companion object {
         private const val DAY = 24 * 60 * 60 * 1000L
-        private fun parse(value: String): Any? = runCatching { JSONTokener(value).nextValue() }.getOrNull()
+        private fun parse(value: String): Any? {
+            if (value.isBlank()) return null
+            if (!value.trimStart().let { it.startsWith("{") || it.startsWith("[") || it.startsWith("\"") }) return value
+            return try { JSONTokener(value).nextValue() }
+            catch (failure: Exception) { throw IOException("STORAGE_REFERENCE_UNREADABLE", failure) }
+        }
         private fun collect(value: Any?, refs: MutableSet<String>) {
             when (value) {
                 is JSONObject -> for (key in value.keys()) collect(value.opt(key), refs)
                 is JSONArray -> for (i in 0 until value.length()) collect(value.opt(i), refs)
                 is String -> {
                     refs.add(value)
+                    if (value.trimStart().startsWith("{") || value.trimStart().startsWith("[")) {
+                        val embedded = parse(value)
+                        if (embedded !is String) collect(embedded, refs)
+                    }
                     if ('/' in value) refs.add(value.substringAfterLast('/').substringBefore('?'))
                 }
             }

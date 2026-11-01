@@ -51,13 +51,13 @@
     ],
     "kiss_yagni": "Vorhandene Route, SQL-Abfragen, Compose-Zustände und Fachschreiber weiterverwenden; keine neue Datenbank, Abhängigkeit, Architektur oder Filterprofile.",
     "remaining": [
-      "UI-Abnahme einschließlich Großschriftlisten, Timer und Randgeste abschließen",
+      "Korrigierte Großschriftansichten, Fotoentwürfe und Randgeste im nächsten Emulatorlauf abnehmen",
       "Neue Backup-, Lösch- und Speicherprüfungen ausführen, Fehler beheben und Sicherungsstand zurücklesen",
       "Nachweise und Bilder prüfen; vorhandene Dokumentation abschließen und finalen GitHub-Commit zurücklesen"
     ]
   },
   "open_checks": [
-    "UI: 200%-Planung/lokale Suche nach IME-Ende korrigieren; System-Randgeste im Emulator noch deaktiviert. Backup-/Speichertests laufen; SQLite405Checks bestanden.",
+    "ce44f02:Quellprüfung,Build/Lint,9JVM-Suiten,Backup51+Neustart13 und Restore-Checkpoint79+23 bestanden. Native Speichertestvorlage korrigiert (Entwurfstatus fehlte); UI-Abnahme nach Dialog-/Platzkorrekturen offen.",
     "Physical Pixel und echtes Drive-Konto NOT_RUN; keine produktiven Daten gelesen."
   ],
   "workflow": {

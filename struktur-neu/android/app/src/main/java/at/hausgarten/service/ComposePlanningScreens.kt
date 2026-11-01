@@ -133,12 +133,21 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
         catch (error: Exception) { failure = error.message.orEmpty() }
     }
     val risks = remember(context?.toString()) { context?.optJSONArray("appointments")?.planningRows()?.associateBy { it.getJSONObject("appointment").optString("id") }.orEmpty() }
+    val planningActions: @Composable () -> Unit = {
+        NativeActions {
+            Button(onNew, enabled = !busy) { Text(if (savedDraft) "Entwurf fortsetzen" else "Einsatz planen") }
+            OutlinedButton({ scope.launch { busy = true; try {
+                val result = controller.query("request_calendar_sync", JSONObject().put("request_id", planningRequest()))
+                controller.message(if (result.optString("state") == "configuration_required") "Kalender oder Wetter zuerst einrichten." else "Prüfung angefordert. Abschluss hängt von Geräteplanung und Netz ab."); refresh++
+            } catch (cancelled: CancellationException) { throw cancelled } catch (error: Exception) { failure = error.message.orEmpty() } finally { busy = false } } }, enabled = !busy) { Text("Jetzt prüfen") }
+        }
+    }
     NativeSearchList("Suche", search, { search = it; offset = 0 },
         if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.rows.size} auf dieser Seite",
         onFilters = { filtersOpen = !filtersOpen }, onFocus = { filtersOpen = false }) {
         if (!imeVisible) Text(if (from == to) nativeDisplayDate(from.toString()) else "${nativeDisplayDate(from.toString())} – ${nativeDisplayDate(to.toString())}", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-          if (!imeVisible) item {
+          if (!imeVisible && search.isBlank()) item {
               NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer))
               FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                   TextButton({ controller.navigate("tour", args = JSONObject().put("date", anchor).put("customer_id", customer)) }) { Text("Tagestour") }
@@ -192,18 +201,13 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
                     }
                 }
             }
+            if (!imeVisible && search.isNotBlank()) item { planningActions() }
             item { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton({ offset = maxOf(0, offset - 50) }, enabled = offset > 0) { Text("Vorige Seite") }
                 OutlinedButton({ offset += 50 }, enabled = page.hasMore) { Text("Weitere") }
             } }
         }
-        if (!imeVisible) NativeActions {
-            Button(onNew, enabled = !busy) { Text(if (savedDraft) "Entwurf fortsetzen" else "Einsatz planen") }
-            OutlinedButton({ scope.launch { busy = true; try {
-                val result = controller.query("request_calendar_sync", JSONObject().put("request_id", planningRequest()))
-                controller.message(if (result.optString("state") == "configuration_required") "Kalender oder Wetter zuerst einrichten." else "Prüfung angefordert. Abschluss hängt von Geräteplanung und Netz ab."); refresh++
-            } catch (cancelled: CancellationException) { throw cancelled } catch (error: Exception) { failure = error.message.orEmpty() } finally { busy = false } } }, enabled = !busy) { Text("Jetzt prüfen") }
-        }
+        if (!imeVisible && search.isBlank()) planningActions()
     }
 }
 

@@ -1344,10 +1344,11 @@ private fun RevierSearch(controller: NativeAppController) {
     var until by rememberSaveable { mutableStateOf("") }
     var archived by rememberSaveable { mutableStateOf(controller.route.mode == "archive") }
     var result by remember { mutableStateOf<JSONObject?>(null) }
-    var offset by remember { mutableIntStateOf(0) }
+    var offset by rememberSaveable { mutableIntStateOf(0) }
     var failure by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
-    var frozen by remember { mutableStateOf<JSONObject?>(null) }
+    var frozenText by rememberSaveable { mutableStateOf("") }
+    val frozen = remember(frozenText) { frozenText.takeIf { it.isNotBlank() }?.let(::JSONObject) }
     val scope = rememberCoroutineScope()
     fun search(start: Int, usePrevious: Boolean = false) {
         if (busy) return
@@ -1359,16 +1360,17 @@ private fun RevierSearch(controller: NativeAppController) {
                     for ((key, value) in listOf("status" to status, "from_date" to from, "to_date" to until)) if (value.isNotEmpty()) put(key, value)
                 }
                 args.put("offset", start).put("limit", 50)
-                result = controller.query("search_local", args); frozen = args; offset = start; failure = ""
+                result = controller.query("search_local", args); frozenText = args.toString(); offset = start; failure = ""
             } catch (cancelled: CancellationException) { throw cancelled } catch (error: Exception) { failure = error.message.orEmpty() }
             finally { busy = false }
         }
     }
+    LaunchedEffect(Unit) { if (result == null && frozen != null) search(offset, true) }
     val rows = result?.optJSONArray("items")?.revierObjects().orEmpty()
     NativeSearchList("Name, Objekt, Tätigkeit, Notiz oder Beleg", query, { query = it },
         result?.let { "${it.optInt("total")} Treffer" } ?: "Suchtext eingeben",
         onFilters = { filtersOpen = !filtersOpen }, onFocus = { filtersOpen = false }, onSearch = { if (query.isNotBlank()) search(0) }) {
-        if (!imeVisible && !filtersOpen) TextButton({ search(0) }, enabled = !busy && query.isNotBlank(), modifier = Modifier.padding(horizontal = 16.dp)) { Text("Lokal suchen") }
+        if (!imeVisible && !filtersOpen && (result == null || frozen?.optString("query") != query)) TextButton({ search(0) }, enabled = !busy && query.isNotBlank(), modifier = Modifier.padding(horizontal = 16.dp)) { Text("Lokal suchen") }
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (filtersOpen) item(key = "native-list-filters") {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1378,7 +1380,7 @@ private fun RevierSearch(controller: NativeAppController) {
                     Row { Checkbox(archived, { archived = it }); Text("Archivierte und entfernte Einträge einschließen", Modifier.padding(top = 12.dp)) }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button({ search(0) }, enabled = !busy && query.isNotBlank()) { Text("Lokal suchen") }
-                        TextButton({ query = ""; type = ""; status = ""; from = ""; until = ""; archived = false; result = null; frozen = null; offset = 0 }) { Text("Zurücksetzen") }
+                        TextButton({ query = ""; type = ""; status = ""; from = ""; until = ""; archived = false; result = null; frozenText = ""; offset = 0 }) { Text("Zurücksetzen") }
                     }
                     result?.let { Text("${it.optInt("total")} Treffer im gesamten lokalen Bestand") }
                     if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
@@ -1405,9 +1407,9 @@ private fun RevierSearch(controller: NativeAppController) {
                 }
             }
         }
-        if (!imeVisible) NativeActions {
-            OutlinedButton({ search((offset - 50).coerceAtLeast(0), true) }, enabled = offset > 0 && !busy) { Text("Vorherige") }
-            OutlinedButton({ search(offset + 50, true) }, enabled = offset + rows.size < (result?.optInt("total") ?: 0) && !busy) { Text("Weitere Treffer") }
+        if (!imeVisible && (offset > 0 || offset + rows.size < (result?.optInt("total") ?: 0))) NativeActions {
+            if (offset > 0) OutlinedButton({ search((offset - 50).coerceAtLeast(0), true) }, enabled = !busy) { Text("Vorherige") }
+            if (offset + rows.size < (result?.optInt("total") ?: 0)) OutlinedButton({ search(offset + 50, true) }, enabled = !busy) { Text("Weitere Treffer") }
         }
     }
 }

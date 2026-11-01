@@ -203,7 +203,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
         val fixture = SyntheticBusinessData.profile("minimal")
         fixture.getJSONArray("invoices").put(JSONObject().put("id", "qa_issued").put("invoice_number", "QA-001")
             .put("issued_at", "2026-10-30T10:00:00Z").put("customer_id", "qa_customer_1").put("pdf_storage_name", issued.name))
-        fixture.getJSONArray("invoices").put(JSONObject().put("id", "qa_draft").put("invoice_number", "Entwurf")
+        fixture.getJSONArray("invoices").put(JSONObject().put("id", "qa_draft").put("invoice_number", "Entwurf").put("status", "Entwurf")
             .put("customer_id", "qa_customer_1").put("pdf_storage_name", draft.name))
         fixture.getJSONArray("appointments").put(JSONObject().put("id", "qa_appointment").put("customer_id", "qa_customer_1")
             .put("order_id", "qa_order_1").put("title", "QA Erledigter Termin").put("status", "completed"))

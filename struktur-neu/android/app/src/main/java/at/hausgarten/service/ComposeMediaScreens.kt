@@ -123,6 +123,13 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
             val loadedPage by displayFlow.collectAsStateWithLifecycle(null)
             val page = loadedPage ?: NativeListPage(emptyList(), 0, offset, 40)
             val listLoading = loadedPage == null && readFailure.isEmpty()
+            val photoActions: @Composable () -> Unit = {
+                NativeActions {
+                    FilledTonalButton(onClick = { importContext = JSONObject().put("customer_id", customerId).put("order_id", orderId).put("worklog_id", worklogId).put("session_id", sessionId).toString(); importing = true }) { Text("Foto hinzufügen") }
+                    TextButton(onClick = { archive = true }) { Text("Papierkorb") }
+                    TextButton(onClick = { settings = true }) { Text("Qualität") }
+                }
+            }
             NativeSearchList("Fotos suchen", search, { search = it; offset = 0 },
                 if (listLoading) "Wird geladen …" else "${page.total} Treffer", onFilters = { filterOpen = true }) {
                 if (readFailure.isNotEmpty()) { Text(readFailure, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error); TextButton(onClick = { readFailure = ""; readRetry++ }) { Text("Fotos erneut lesen") } }
@@ -134,6 +141,7 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                         ListItem(headlineContent = { Text(row.title) }, supportingContent = { Text(nativeDisplayText(row.subtitle)) },
                             modifier = Modifier.fillMaxWidth().clickable { selected = row.id })
                     }
+                    if (!imeVisible && search.isNotBlank()) item { photoActions() }
                 }
                 else LazyVerticalGrid(columns = GridCells.Adaptive(144.dp), modifier = Modifier.weight(1f), contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(page.rows, key = { it.id }) { row ->
@@ -145,11 +153,7 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                     }
                 }
                 if (!imeVisible) MediaPagination(offset, page.rows.size, page.total, 40) { offset = it }
-                if (!imeVisible) NativeActions {
-                    FilledTonalButton(onClick = { importContext = JSONObject().put("customer_id", customerId).put("order_id", orderId).put("worklog_id", worklogId).put("session_id", sessionId).toString(); importing = true }) { Text("Foto hinzufügen") }
-                    TextButton(onClick = { archive = true }) { Text("Papierkorb") }
-                    TextButton(onClick = { settings = true }) { Text("Qualität") }
-                }
+                if (!imeVisible && search.isBlank()) photoActions()
             }
             if (filterOpen && picker.isBlank()) Dialog(onDismissRequest = { filterOpen = false }) {
                 Surface(shape = MaterialTheme.shapes.large) {
@@ -232,8 +236,6 @@ private fun NativePhotoDetail(id: String, controller: NativeAppController, draft
     val draftKey = draftKeyOverride.ifEmpty { "photo_edit_" + id }
     var draftReady by remember { mutableStateOf(false) }
     var draftTouched by rememberSaveable(id) { mutableStateOf(false) }
-    var restoreReview by rememberSaveable(id) { mutableStateOf(false) }
-    var reviewConfirm by remember { mutableStateOf(false) }
     LaunchedEffect(id, revision) {
         try {
             val draft = if (revision == 0) controller.draft(draftKey) else null
@@ -241,7 +243,6 @@ private fun NativePhotoDetail(id: String, controller: NativeAppController, draft
             record = read
             if (pending.isBlank() || draft != null) { val p = draft ?: requireNotNull(read).getJSONObject("photo"); caption = p.optString("caption"); capture = p.optString("capture_time"); role = p.optString("role", "documentation"); visible = p.optBoolean("customer_visible"); order = p.optString("order_id"); worklog = p.optString("worklog_id"); session = p.optString("session_id"); pending = draft?.optString("pending").orEmpty() }
             draftTouched = draft != null
-            restoreReview = draft?.optBoolean("_restore_action_review_required") == true
             draftReady = true
             error = if (read == null) "Das aktuelle Foto ist nicht lesbar. Erhaltene Angaben und die ursprüngliche Aktion bleiben zur Prüfung geöffnet." else ""
         } catch (failure: Exception) { error = mediaError(failure) }
@@ -256,37 +257,24 @@ private fun NativePhotoDetail(id: String, controller: NativeAppController, draft
         Row(Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) { TextButton(onClick = { leave() }) { Text("Zurück") }; Text("Foto", style = MaterialTheme.typography.titleLarge) }
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
-            if (restoreReview) {
-                Text("Erhaltene Fotoangaben nach Wiederherstellung ausdrücklich prüfen.", color = MaterialTheme.colorScheme.error)
-                if (pending.isBlank()) Button(onClick = { reviewConfirm = true }) { Text("Entwurf prüfen") }
-                else Button(enabled = !busy, onClick = { scope.launch {
-                    busy = true
-                    try {
-                        val proof = controller.query("inspect_edit_action", JSONObject().put("original_tool", "update_photo").put("original_args", JSONObject(pending)))
-                        if (proof.optString("state") == "confirmed") { controller.removeDraft(draftKey); pending = ""; draftTouched = false; restoreReview = false; revision++; controller.message("Der gespeicherte Fotovorgang wurde gefunden.") }
-                        else controller.message("Kein eindeutiger Fotobeleg. Die ursprünglichen Angaben bleiben unverändert erhalten.")
-                    } catch (failure: Exception) { controller.message(mediaError(failure)) }
-                    finally { busy = false }
-                } }) { Text("Ursprünglichen Fotobeleg lesen") }
-            }
             NativePhotoImage(id, controller, Modifier.fillMaxWidth().height(260.dp).clickable { fullscreen = true }, ContentScale.Fit, original = true)
             TextButton(onClick = { fullscreen = true }) { Text("Vollbild und Vergrößern") }
-            OutlinedTextField(caption, { caption = it; draftTouched = true }, Modifier.fillMaxWidth(), label = { Text("Bildunterschrift") }, enabled = !busy && pending.isBlank() && !restoreReview)
-            OutlinedTextField(capture, { capture = it; draftTouched = true }, Modifier.fillMaxWidth(), label = { Text("Aufnahmedatum (z. B. 2026-10-29T10:30:00Z)") }, enabled = !busy && pending.isBlank() && !restoreReview)
-            MediaDropdown("Rolle", role, photoRoles, enabled = !busy && pending.isBlank() && !restoreReview) { role = it; draftTouched = true }
-            Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(visible, { visible = it; draftTouched = true }, enabled = !busy && pending.isBlank() && !restoreReview); Text("Für Kunden sichtbar") }
-            MediaChoice("Auftrag", orderTitle.ifBlank { if (order.isBlank()) "Nicht zugeordnet" else photo?.optString("order_title").orEmpty().ifBlank { "Auftrag zugeordnet" } }, { picker = "orders" }, { order = ""; orderTitle = ""; draftTouched = true }, pending.isBlank() && !restoreReview)
-            MediaChoice("Arbeit", workTitle.ifBlank { if (worklog.isBlank()) "Nicht zugeordnet" else "Arbeit zugeordnet" }, { picker = "worklogs" }, { worklog = ""; workTitle = ""; draftTouched = true }, pending.isBlank() && !restoreReview)
+            OutlinedTextField(caption, { caption = it; draftTouched = true }, Modifier.fillMaxWidth(), label = { Text("Bildunterschrift") }, enabled = !busy && pending.isBlank())
+            OutlinedTextField(capture, { capture = it; draftTouched = true }, Modifier.fillMaxWidth(), label = { Text("Aufnahmedatum (z. B. 2026-10-29T10:30:00Z)") }, enabled = !busy && pending.isBlank())
+            MediaDropdown("Rolle", role, photoRoles, enabled = !busy && pending.isBlank()) { role = it; draftTouched = true }
+            Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(visible, { visible = it; draftTouched = true }, enabled = !busy && pending.isBlank()); Text("Für Kunden sichtbar") }
+            MediaChoice("Auftrag", orderTitle.ifBlank { if (order.isBlank()) "Nicht zugeordnet" else photo?.optString("order_title").orEmpty().ifBlank { "Auftrag zugeordnet" } }, { picker = "orders" }, { order = ""; orderTitle = ""; draftTouched = true }, pending.isBlank())
+            MediaChoice("Arbeit", workTitle.ifBlank { if (worklog.isBlank()) "Nicht zugeordnet" else "Arbeit zugeordnet" }, { picker = "worklogs" }, { worklog = ""; workTitle = ""; draftTouched = true }, pending.isBlank())
             if (session.isNotBlank()) Text("Mit einer Arbeitssitzung verknüpft.")
-            TextButton(enabled = !busy && pending.isBlank() && !restoreReview, onClick = { scope.launch { try { val active = controller.query("get_active_work_session", JSONObject()); val customer = photo?.optString("customer_id"); if (active.optString("customer_id") != customer) throw IllegalArgumentException("Die laufende Arbeit gehört zu einem anderen Kunden."); session = active.optString("id", active.optString("session_id")); order = active.optString("order_id"); worklog = active.optString("finalized_worklog_id"); draftTouched = true } catch (failure: Exception) { controller.message(mediaError(failure)) } } }) { Text("Laufender Arbeit zuordnen") }
-            if (session.isNotBlank()) TextButton(enabled = !busy && pending.isBlank() && !restoreReview, onClick = { session = ""; draftTouched = true }) { Text("Sitzungsverknüpfung lösen") }
+            TextButton(enabled = !busy && pending.isBlank(), onClick = { scope.launch { try { val active = controller.query("get_active_work_session", JSONObject()); val customer = photo?.optString("customer_id"); if (active.optString("customer_id") != customer) throw IllegalArgumentException("Die laufende Arbeit gehört zu einem anderen Kunden."); session = active.optString("id", active.optString("session_id")); order = active.optString("order_id"); worklog = active.optString("finalized_worklog_id"); draftTouched = true } catch (failure: Exception) { controller.message(mediaError(failure)) } } }) { Text("Laufender Arbeit zuordnen") }
+            if (session.isNotBlank()) TextButton(enabled = !busy && pending.isBlank(), onClick = { session = ""; draftTouched = true }) { Text("Sitzungsverknüpfung lösen") }
             if (photo != null) Text("${photo.optInt("width")} × ${photo.optInt("height")} Pixel · ${photo.optLong("byte_size") / 1024} KB", style = MaterialTheme.typography.bodySmall)
             if (draftTouched) TextButton(enabled = !busy, onClick = { scope.launch { try { controller.removeDraft(draftKey); draftTouched = false; close() } catch (failure: Exception) { controller.message(mediaError(failure)) } } }) { Text("Änderungen verwerfen") }
-            TextButton(enabled = !busy && pending.isBlank() && !restoreReview, onClick = { scope.launch { try { preview = controller.query("preview_delete", JSONObject().put("entity", "photo").put("entity_id", id)).put("request_id", mediaRequest()) } catch (failure: Exception) { controller.message(mediaError(failure)) } } }) { Text("In den Papierkorb") }
+            TextButton(enabled = !busy && pending.isBlank(), onClick = { scope.launch { try { preview = controller.query("preview_delete", JSONObject().put("entity", "photo").put("entity_id", id)).put("request_id", mediaRequest()) } catch (failure: Exception) { controller.message(mediaError(failure)) } } }) { Text("In den Papierkorb") }
         }
         NativeActions {
             OutlinedButton(onClick = { leave() }, enabled = !busy) { Text("Schließen") }
-            Button(enabled = photo != null && !busy && draftReady && !restoreReview, onClick = {
+            Button(enabled = photo != null && !busy && draftReady, onClick = {
                 scope.launch {
                     busy = true
                     try {
@@ -300,7 +288,6 @@ private fun NativePhotoDetail(id: String, controller: NativeAppController, draft
         }
     }
     if (picker.isNotBlank()) MediaEntityPicker(picker, controller, photo?.optString("customer_id").orEmpty(), dismiss = { picker = "" }) { row -> draftTouched = true; if (picker == "orders") { order = row.id; orderTitle = row.title } else { worklog = row.id; workTitle = row.title }; picker = "" }
-    if (reviewConfirm) AlertDialog(onDismissRequest = { reviewConfirm = false }, title = { Text("Erhaltene Fotoangaben übernehmen?") }, text = { Text("Aktuellen Datensatz und Zuordnung prüfen. Die erhaltenen Eingaben werden erst mit Speichern übernommen; eine frühere unklare Aktion wird nicht erneut verwendet.") }, confirmButton = { TextButton(onClick = { scope.launch { try { controller.adoptDraft(draftKey, draftValue().put("pending", "")); pending = ""; restoreReview = false; draftTouched = true; reviewConfirm = false } catch (failure: Exception) { controller.message(mediaError(failure)) } } }) { Text("Bewusst weiter bearbeiten") } }, dismissButton = { TextButton(onClick = { reviewConfirm = false }) { Text("Abbrechen") } })
     if (fullscreen) MediaZoomDialog(id, controller, close = { fullscreen = false })
     preview?.let { p -> AlertDialog(onDismissRequest = { preview = null }, title = { Text("Foto in den Papierkorb?") }, text = { Text(p.optString("message")) }, dismissButton = { TextButton(onClick = { preview = null }) { Text("Abbrechen") } }, confirmButton = { TextButton(enabled = p.optBoolean("allowed"), onClick = { scope.launch { try { mediaWrite(controller, "archive_entity", JSONObject().put("request_id", p.getString("request_id")).put("entity", "photo").put("entity_id", id).put("expected_record_hash", p.getString("expected_record_hash")).put("expected_photo_links_hash", p.getString("expected_photo_links_hash"))); preview = null; close() } catch (failure: Exception) { controller.message(mediaError(failure)) } } }) { Text("In den Papierkorb") } }) }
 }
@@ -339,11 +326,10 @@ private fun NativePhotoImport(controller: NativeAppController, draftKeyOverride:
     val draftKey = draftKeyOverride.ifEmpty { "photo_import" }
     var draftReady by remember { mutableStateOf(false) }
     var draftTouched by rememberSaveable { mutableStateOf(false) }
-    var restoreReview by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         try {
             controller.draft(draftKey)?.let { d ->
-                selected = d.optString("selected_uri"); customer = d.optString("customer_id"); customerLabel = d.optString("customer_label"); caption = d.optString("caption"); role = d.optString("role", "documentation"); visible = d.optBoolean("customer_visible"); order = d.optString("order_id"); orderLabel = d.optString("order_label"); worklog = d.optString("worklog_id"); workLabel = d.optString("work_label"); session = d.optString("session_id"); origin = d.optString("capture_context"); pending = d.optString("pending"); restoreReview = d.optBoolean("_restore_action_review_required"); draftTouched = true
+                selected = d.optString("selected_uri"); customer = d.optString("customer_id"); customerLabel = d.optString("customer_label"); caption = d.optString("caption"); role = d.optString("role", "documentation"); visible = d.optBoolean("customer_visible"); order = d.optString("order_id"); orderLabel = d.optString("order_label"); worklog = d.optString("worklog_id"); workLabel = d.optString("work_label"); session = d.optString("session_id"); origin = d.optString("capture_context"); pending = d.optString("pending"); draftTouched = true
             }
         } catch (failure: Exception) { controller.message(mediaError(failure)) }
         draftReady = true
@@ -359,14 +345,13 @@ private fun NativePhotoImport(controller: NativeAppController, draftKeyOverride:
     fun draftValue() = JSONObject().put("selected_uri", selected).put("customer_id", customer).put("customer_label", customerLabel).put("caption", caption).put("role", role).put("customer_visible", visible).put("order_id", order).put("order_label", orderLabel).put("worklog_id", worklog).put("work_label", workLabel).put("session_id", session).put("capture_context", origin).put("pending", pending)
     val draftSnapshot = draftValue().toString()
     LaunchedEffect(draftSnapshot, draftReady, draftTouched) { if (draftReady && draftTouched) controller.saveDraft(draftKey, JSONObject(draftSnapshot)) }
-    val changeable = pending.isBlank() && !busy && !restoreReview
+    val changeable = pending.isBlank() && !busy
     fun choose(camera: Boolean) { scope.launch {
         try {
             val uri = controller.pickPhoto(camera) ?: return@launch
             val creation = withContext(Dispatchers.IO) { val identity = BackupDeviceGuard(controller.context).current(); JSONObject().put("formatVersion", 1).put("installation_id", identity.getString("installationId")).put("restore_epoch", identity.getString("restoreEpoch")).toString() }
-            if (restoreReview) controller.adoptDraft(draftKey, draftValue().put("pending", "").put("selected_uri", uri.toString()).put("capture_context", creation))
             val previous = selected
-            selected = uri.toString(); origin = creation; pending = ""; restoreReview = false; draftTouched = true
+            selected = uri.toString(); origin = creation; pending = ""; draftTouched = true
             controller.saveDraft(draftKey, draftValue()); controller.flushDrafts()
             if (previous.isNotBlank() && previous != selected) withContext(Dispatchers.IO) { runCatching { PhotoCaptureProvider.release(controller.context, Uri.parse(previous)) } }
         } catch (failure: Exception) { controller.message(mediaError(failure)) }
@@ -378,7 +363,7 @@ private fun NativePhotoImport(controller: NativeAppController, draftKeyOverride:
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (savedId.isNotBlank()) { Text("Foto gespeichert. Ein weiteres Foto kann derselben Arbeit zugeordnet werden."); TextButton(onClick = { controller.navigate("photos", savedId) }) { Text("Gespeichertes Foto öffnen") } }
             if (selected.isNotBlank()) AsyncImage(model = ImageRequest.Builder(controller.context).data(Uri.parse(selected)).size(640, 640).build(), imageLoader = controller.imageLoader, contentDescription = "Ausgewähltes Foto", modifier = Modifier.fillMaxWidth().height(230.dp), contentScale = ContentScale.Fit)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { FilledTonalButton(onClick = { choose(false) }, enabled = changeable || restoreReview && pending.isBlank() && !busy) { Text("Galerie") }; FilledTonalButton(onClick = { choose(true) }, enabled = changeable || restoreReview && pending.isBlank() && !busy) { Text("Kamera") } }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { FilledTonalButton(onClick = { choose(false) }, enabled = changeable) { Text("Galerie") }; FilledTonalButton(onClick = { choose(true) }, enabled = changeable) { Text("Kamera") } }
             MediaChoice("Kunde *", customerLabel.ifBlank { "Kunden auswählen" }, { picker = "customers" }, { customer = ""; customerLabel = ""; order = ""; worklog = ""; session = "" }, changeable)
             OutlinedTextField(caption, { caption = it; draftTouched = true }, Modifier.fillMaxWidth(), label = { Text("Bildunterschrift") }, enabled = changeable)
             MediaDropdown("Rolle", role, photoRoles, changeable) { role = it; draftTouched = true }
@@ -387,27 +372,11 @@ private fun NativePhotoImport(controller: NativeAppController, draftKeyOverride:
             MediaChoice("Arbeit", workLabel.ifBlank { "Nicht zugeordnet" }, { picker = "worklogs" }, { worklog = ""; workLabel = ""; session = "" }, changeable && customer.isNotBlank())
             TextButton(enabled = changeable, onClick = { scope.launch { try { val active = controller.query("get_active_work_session", JSONObject()); val chosen = active.optString("customer_id"); if (chosen.isBlank()) throw IllegalArgumentException("Keine laufende Arbeit vorhanden."); customer = chosen; customerLabel = active.optString("customer_name", "Kunde der laufenden Arbeit"); order = active.optString("order_id"); orderLabel = active.optString("order_title"); worklog = active.optString("finalized_worklog_id"); session = active.optString("id", active.optString("session_id")); draftTouched = true } catch (failure: Exception) { controller.message(mediaError(failure)) } } }) { Text("Laufender Arbeit zuordnen") }
             if (session.isNotBlank()) Text("Weitere Fotos bleiben dieser Arbeitssitzung zugeordnet.", style = MaterialTheme.typography.bodySmall)
-            if (restoreReview) {
-                Text(if (pending.isBlank()) "Diese Fotoauswahl stammt aus einem anderen Gerätestand. Foto bewusst erneut aus Galerie oder Kamera auswählen; die Angaben bleiben erhalten." else "Diese Fotoaktion stammt aus einer Wiederherstellung. Zuerst ausschließlich den gespeicherten Fotobeleg lesen; die ursprünglichen Angaben bleiben unverändert.", color = MaterialTheme.colorScheme.error)
-                if (pending.isNotBlank()) Button(enabled = !busy, onClick = { scope.launch {
-                    busy = true
-                    try {
-                        val original = JSONObject(pending).apply { remove("data"); remove("thumbnail_data") }
-                        val proof = controller.query("inspect_edit_action", JSONObject().put("original_tool", "savePhoto").put("original_args", original))
-                        if (proof.optString("state") == "confirmed" && proof.optString("entity_id").isNotBlank()) {
-                            retainImportedPhotoResult(controller, draftKey, proof.getString("entity_id")); controller.removeDraft(draftKey)
-                            withContext(Dispatchers.IO) { runCatching { PhotoCaptureProvider.release(controller.context, Uri.parse(selected)) } }
-                            savedId = proof.getString("entity_id"); pending = ""; selected = ""; draftTouched = false; restoreReview = false; controller.message("Der ursprüngliche Fotobeleg wurde gefunden. Keine zweite Speicherung angelegt.")
-                        } else controller.message("Kein eindeutiger Fotobeleg. Die ursprüngliche Aktion bleibt geschützt; andere Fotoentwürfe bleiben möglich.")
-                    } catch (failure: Exception) { controller.message(mediaError(failure)) }
-                    finally { busy = false }
-                } }) { Text("Ursprünglichen Fotobeleg lesen") }
-            }
             if (pending.isNotBlank()) Text("Die Speicherantwort ist noch unklar. Die unveränderte Aktion erneut prüfen.")
         }
         NativeActions {
             OutlinedButton(onClick = { leave() }, enabled = !busy) { Text("Verwerfen") }
-            Button(enabled = !busy && draftReady && !restoreReview && selected.isNotBlank() && customer.isNotBlank(), onClick = { scope.launch {
+            Button(enabled = !busy && draftReady && selected.isNotBlank() && customer.isNotBlank(), onClick = { scope.launch {
                 busy = true
                 try {
                     if (pending.isBlank()) pending = JSONObject().put("_photo_request_id", mediaRequest()).put("customer_id", customer).put("caption", caption).put("role", role).put("customer_visible", visible).put("order_id", order).put("worklog_id", worklog).put("session_id", session).put("_capture_context", JSONObject(origin)).toString()

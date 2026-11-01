@@ -110,7 +110,7 @@ internal const val NATIVE_LIST_READ_ERROR = "Die Einträge konnten nicht geladen
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun NativeSearchLayout(modifier: Modifier = Modifier, sideBySideWithoutIme: Boolean = false, controls: @Composable () -> Unit, content: @Composable ColumnScope.() -> Unit) {
-    val sideBySide = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE && (WindowInsets.isImeVisible || sideBySideWithoutIme)
+    val sideBySide = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE && (WindowInsets.isImeVisible || WindowInsets.ime.getBottom(LocalDensity.current) > 0 || sideBySideWithoutIme)
     Layout(modifier = modifier, content = { controls(); Column(Modifier.fillMaxSize(), content = content) }) { children, limits ->
         val gap = if (sideBySide) 12.dp.roundToPx() else 0
         val controlWidth = if (sideBySide) ((limits.maxWidth-gap)*0.42f).toInt() else limits.maxWidth

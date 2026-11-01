@@ -532,3 +532,16 @@ Einstellungen zeigen Speicherbereiche und bieten eine einzelne Bereinigungsaktio
 KISS: vorhandene SQLite-Transaktion und bestehende Dateiverweise statt zusätzlicher
 Freigaben; keinerlei neue Abhängigkeit. Noch kein bestandener Lauf der neuen
 Speichersuite und keine Messung des produktiven 22,8-GB-Bestands.
+
+Nachprüfung ce44f02: Quellprüfung, Android-Prüfbuild/Lint und neun JVM-Suiten
+bestanden; native ZIP-Sicherung51 und neuer Prozess13, Formular-Restore79+23
+bestanden. Die neue Speichersuite erreichte den Entwurfs-PDF-Fall; dessen
+synthetischer Datensatz hatte keinen Status Entwurf und wurde korrekt geschützt.
+Testvorlage korrigiert, vollständiger Lauf bleibt offen. Die UI-Suite erwartete
+noch den alten Löschdialog; Folgefehler ohne erzeugtes Zubehör sind kein neuer
+Beleg für Geräteverlust. Großschrift in Planung, lokaler Suche und Fotos nach
+IME-Ende benötigt mehr Ergebnisraum: ergänzende Aktionen liegen bei Suchtext
+nun am Listenende. Der Dialog berücksichtigt auch die tatsächliche IME-Höhe.
+Der Gesten-Dump zeigte zuerst einen inaktiven Taskbar-Handler; daraus lässt sich
+nicht auf den aktiven Navigationsleisten-Handler schließen. Der Nachtest erfasst
+alle Handler und injiziert tatsächliche Touch-Ereignisse von beiden Rändern.

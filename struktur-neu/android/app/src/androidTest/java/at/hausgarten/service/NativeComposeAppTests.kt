@@ -499,7 +499,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(node(editedName) == null, "COMMITTED_MCP_EDIT_REPLACES_VISIBLE_ROW")
         click(flowName)
         click("Kunde archivieren")
-        click("Bewusst speichern")
+        click("In Papierkorb")
         waitUntil("CUSTOMER_ARCHIVED") { customers(flowName).isEmpty() || customers(flowName).all { it.opt("active") == false || it.optInt("active", 1) == 0 || it.optBoolean("archived") } }
         click("Kunden")
         enter("Suchen", "QA Native F")
@@ -1170,17 +1170,39 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("Arbeit erfassen"); click("Kunde: Nicht zugeordnet")
             enter("Suchen", fixturePrefix+"000"); visibleResult(fixturePrefix+"000")
             yes(!keyboardVisible(), "GESTURE_PICKER_IME_INITIALLY_CLOSED")
+            fun gestureHandlers(): String {
+                val dump = shell("dumpsys activity service com.android.systemui/.SystemUIService")
+                return dump.split("EdgeBackGestureHandler:").drop(1).joinToString("\nNEXT_HANDLER\n") { it.take(2200) }
+            }
+            waitUntil("ATTACHED_EDGE_GESTURE_HANDLER") {
+                gestureHandlers().split("NEXT_HANDLER").any { it.contains("mIsEnabled=true") && it.contains("mIsAttached=true") }
+            }
+            test.sendStatus(0, Bundle().apply { putString("gesture_handlers_before", gestureHandlers()) })
             val screen = Rect().also { requireNotNull(automation.rootInActiveWindow).getBoundsInScreen(it) }
-            // Cross the activation threshold and remain beyond it before release.
-            // This is a real edge swipe, not KEYCODE_BACK or a navigation callback.
-            val output = shell("input touchscreen swipe ${screen.left+4} ${screen.centerY()} ${screen.left+screen.width()*4/5} ${screen.centerY()} 500")
-            test.sendStatus(0, Bundle().apply { putString("gesture_input", output.ifBlank { "edge swipe injected" }) })
+            fun swipeFromEdge(right: Boolean) {
+                val down = SystemClock.uptimeMillis()
+                val from = if (right) screen.right - 1f else screen.left + 1f
+                val to = if (right) screen.left + screen.width() * 0.2f else screen.left + screen.width() * 0.8f
+                for (step in 0..16) {
+                    val action = if (step == 0) MotionEvent.ACTION_DOWN else if (step == 16) MotionEvent.ACTION_UP else MotionEvent.ACTION_MOVE
+                    val event = MotionEvent.obtain(down, SystemClock.uptimeMillis(), action, from + (to-from) * step / 16f, screen.centerY().toFloat(), 0)
+                    event.source = InputDevice.SOURCE_TOUCHSCREEN
+                    try { yes(automation.injectInputEvent(event, true), "EDGE_TOUCH_$step") } finally { event.recycle() }
+                    if (step < 16) SystemClock.sleep(12)
+                }
+            }
+            swipeFromEdge(false)
+            // Either physical edge is a valid Android back gesture; no key/callback substitute.
+            val settle = SystemClock.uptimeMillis() + 2000
+            while (node("Schließen") != null && SystemClock.uptimeMillis() < settle) SystemClock.sleep(50)
+            if (node("Schließen") != null) swipeFromEdge(true)
             try {
                 waitUntil("BACK_GESTURE_CLOSES_ONLY_PICKER") { node("Schließen") == null && node("Kunde: Nicht zugeordnet") != null }
             } catch (failure: Throwable) {
-                val systemUi = shell("dumpsys activity service com.android.systemui/.SystemUIService")
-                val start = systemUi.indexOf("EdgeBackGestureHandler:")
-                test.sendStatus(0, Bundle().apply { putString("gesture_diagnostics", if (start >= 0) systemUi.substring(start).take(10000) else systemUi.takeLast(10000)) })
+                test.sendStatus(0, Bundle().apply {
+                    putString("gesture_diagnostics", gestureHandlers())
+                    putString("gesture_logcat", shell("logcat -d -t 120 -s EdgeBackGestureHandler BackPanelController WindowOnBackDispatcher BackNavigationController").takeLast(12000))
+                })
                 throw failure
             }
             captureSyntheticScreen("back-gesture")
@@ -1523,7 +1545,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         case("local-search", "Suchtext eingeben") { openOfficeGroup("Weitere Verwaltung", "Lokale Suche") }
         case("archive", "Alle Arten") { openOfficeGroup("Weitere Verwaltung", "Revier-Archiv") }
-        case("trash", "Papierkorb leeren prüfen") { openOfficeGroup("Weitere Verwaltung", "Papierkorb") }
+        case("trash", "Papierkorb leeren") { openOfficeGroup("Weitere Verwaltung", "Papierkorb") }
         case("local-actions", "ZIP-Sicherung öffnen") { openOfficeGroup("Weitere Verwaltung", "Lokale Vorgänge") }
         case("settings", "Tätigkeit, Einsatzort und Fotoqualität", true) { settings() }
         case("connections", "Private MCP-Verbindung") { settings(); click("Weitere Einstellungen und Prüfungen"); click("Verbindungen") }
