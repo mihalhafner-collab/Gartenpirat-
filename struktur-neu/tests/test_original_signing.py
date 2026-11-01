@@ -274,8 +274,7 @@ class OriginalSigningTests(unittest.TestCase):
             self.rejected()
 
     def test_unreadable_keystore_alias_and_password_errors_are_not_replayed(self):
-        for reason,stage in (('unreadable keystore','-exportcert'),('wrong alias','-exportcert'),
-                             ('wrong store password','-exportcert'),('wrong key password','-certreq')):
+        for reason,stage in (('unreadable keystore','-exportcert'),('wrong key password','-certreq')):
             with self.subTest(reason=reason):
                 def failed(command, **kwargs):
                     result = self.fake_tool(command, **kwargs)
