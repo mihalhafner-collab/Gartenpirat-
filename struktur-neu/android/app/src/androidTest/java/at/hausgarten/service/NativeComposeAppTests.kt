@@ -153,9 +153,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 return@waitUntil accepted
             }
             if (scrollTo && SystemClock.uptimeMillis() - lastScroll > 250) {
-                val exposed = nodes().firstOrNull { matches(it, label) }
-                    ?.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id) == true
-                if (exposed) settleUi() else if (!scroll()) scrollTop()
+                if (!scroll()) scrollTop()
                 lastScroll = SystemClock.uptimeMillis()
             }
             false
@@ -1377,13 +1375,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val physical = Regex("(?:Override|Physical) size: (\\d+)x(\\d+)").findAll(sizeText).last().groupValues
         val width = minOf(physical[1].toInt(), physical[2].toInt())
         val height = maxOf(physical[1].toInt(), physical[2].toInt())
-        val workRows = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
-        val work = (0 until workRows.length()).map { workRows.getJSONObject(it) }.first { it.optString("activity").startsWith("[TEST] QA usability work") }.getString("activity")
+        val work = "QA Kontextabrechnung 0"
         val plant = JSONObject(context.assets.open("plant-catalog.json").bufferedReader().use { it.readText() }).getJSONArray("plants").getJSONObject(0)
         data class Target(val key: String, val label: String, val query: String, val result: String, val manual: Boolean = false, val open: () -> Unit)
         val targets = listOf(
             Target("customers", "Suchen", fixturePrefix+"000", fixturePrefix+"000") { click("Kunden") },
-            Target("work", "Suchen", "QA usability work", work) { click("Arbeit") },
+            Target("work", "Suchen", work, work) { click("Arbeit") },
             Target("orders", "Suchen", "QA Kontextauftrag 0", "QA Kontextauftrag 0") { openOfficeGroup("Kunden und Aufträge", "Aufträge") },
             Target("offers", "Suchen", "QA Kontextangebot 0", "QA Kontextangebot 0") { click("Büro"); click("Abrechnung"); click("Angebote") },
             Target("invoices", "Suchen", "QA-UI-119", "QA-UI-119") { click("Büro"); click("Abrechnung"); click("Rechnungen") },
