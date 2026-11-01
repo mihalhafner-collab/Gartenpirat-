@@ -33,11 +33,11 @@
     }
   ],
   "current_task": {
-    "name": "Einheitliche Oberfläche sowie einfaches lokales Backup, Löschen und Speicherbereinigung",
-    "status": "IN_PROGRESS;UI_ACCEPTANCE_RUNNING;LOCAL_STORAGE_SIMPLIFICATION",
+    "name": "Build121 für manuelle Paketinstallation über den bestehenden privaten Drive-Ordner bereitstellen",
+    "status": "RELEASE_PREPARED;BLOCKED_BUILD_AND_ORIGINAL_SIGNING_ENVIRONMENT",
     "authorized": true,
-    "authorization_scope": "Quellcode, synthetische Tests, Prüfbuilds, Dokumentation und GitHub; Zusatzauftrag: Streaming-Backup, lokale Löschung ohne Cloud-Sperren, Speicherdiagnose/Bereinigung. Keine produktive Installation/Migration/Wiederherstellung/Rechnungsfreigabe/Veröffentlichung.",
-    "base_git_sha": "242ccc9159cefdb22879c57474bcd45586244ab6",
+    "authorization_scope": "Nutzerauftrag 01.11.2026: aktuellen Stand abschließen, neue APK erstellen und über Drive für manuelle Paketinstallation bereitstellen; Emulatortest ausdrücklich weglassen. Bestehendes Zurück bleibt; kein zusätzliches Menü. Keine automatische Pixel-Installation, Migration, Wiederherstellung oder Rechnungsfreigabe.",
+    "base_git_sha": "4debb69b6994a6a3b3238a81a2114d3162d9ce63",
     "branch": "codex/kotlin-refactoring-20261029",
     "implementation": [
       "Kontextfilter für Fotos, Angebote und verwandte Listen; erkennbare Hauptbereiche, wiederhergestellte Navigation und bereinigte Meldungen.",
@@ -46,19 +46,21 @@
       "Büro bündelt Abrechnung/Planung/Maschinenpark/Einstellungen; übrige Ziele in drei Gruppen. Kundenakte, Arbeit und Entwürfe verwenden vorhandene Beziehungen und Abfragen.",
       "Arbeitskunde/Rechnungsempfänger getrennt; Quellenfilter und Objekt-/Anfragekontext im Formularentwurf. Keine neue Fachbeziehung, Datenbank oder automatische Buchung.",
       "Abgleich210Aktionen; synthetische6Darstellungen,16Suchwege,17große Fachlistenfälle,38Einstiege, A/B-Kontext, Activity-Neuerstellung, IME-Grenzen, Screenshots, Touch und Zurück-Geste. Details:docs/verification/performance-current.md.",
-      "Backup streamt Originaldateien mit DB-Snapshot direkt zum Dateianbieter; keine capture-/verify-Vollkopien. Zielüberschreiben und verwaiste Arbeitsordner berücksichtigt; vollständige Prüfung läuft.",
-      "Lokales Archiv/Purge ohne externe Vorschau-Hashes; optionale Auftrags-/Terminbezüge lösen, keine neuen Tombstones. Referenzgeprüfte Bereinigung mit Speicherdiagnose einschließlich Cache, alten Lösch-Sicherungen, Receipt-Bereinigung und WAL/VACUUM; native und UI-Abnahme läuft."
+      "Backup streamt Originaldateien mit DB-Snapshot direkt zum Dateianbieter; keine capture-/verify-Vollkopien. Zielüberschreiben und verwaiste Arbeitsordner berücksichtigt; synthetische Backend-Prüfungen vorhanden; vollständige UI-Abnahme fehlgeschlagen.",
+      "Lokales Archiv/Purge ohne externe Vorschau-Hashes; optionale Auftrags-/Terminbezüge lösen, keine neuen Tombstones. Referenzgeprüfte Bereinigung mit Speicherdiagnose einschließlich Cache, alten Lösch-Sicherungen, Receipt-Bereinigung und WAL/VACUUM; native Backend-Prüfungen bestanden; UI-Abnahme fehlgeschlagen."
     ],
     "kiss_yagni": "Vorhandene Route, SQL-Abfragen, Compose-Zustände und Fachschreiber weiterverwenden; keine neue Datenbank, Abhängigkeit, Architektur oder Filterprofile.",
     "remaining": [
-      "Korrigierte Großschriftansichten, Fotoentwürfe und Randgeste im nächsten Emulatorlauf abnehmen",
-      "Neue Backup-, Lösch- und Speicherprüfungen ausführen, Fehler beheben und Sicherungsstand zurücklesen",
-      "Nachweise und Bilder prüfen; vorhandene Dokumentation abschließen und finalen GitHub-Commit zurücklesen"
+      "Vorhandene persönliche Bauumgebung mit Gradle9.3.1, Android-SDK37/Build-Tools37.0.0 und geschützten HG_ORIGINAL_-Variablen verwenden; in dieser Sitzung nicht verfügbar.",
+      "Build121 ohne Emulator bauen, mit Originalschlüssel signieren und vorhandene APK-Prüfungen ausführen.",
+      "Geprüfte APK im bestehenden privaten Drive-Ordner Aktuell bereitstellen, vollständig zurücklesen und diesen Arbeitsstand um tatsächlichen Commit, APK-Nachweis und Download-Link ergänzen."
     ]
   },
   "open_checks": [
-    "ce44f02:Quellprüfung,Build/Lint,9JVM-Suiten,Backup51+Neustart13 und Restore-Checkpoint79+23 bestanden. Native Speichertestvorlage korrigiert (Entwurfstatus fehlte); UI-Abnahme nach Dialog-/Platzkorrekturen offen.",
-    "Physical Pixel und echtes Drive-Konto NOT_RUN; keine produktiven Daten gelesen."
+    "Letzter CI-Lauf 41294127452 zu 4debb69: Quellprüfung, Android-Bau/Lint und JVM bestanden; Android-/UI-Schritt fehlgeschlagen. Acht Compose-Abläufe: customer, usability, accessories, back_gesture, domain_search, list_viewports, surfaces, storage_settings. Kein Nachweis, dass alle Fehler Appfehler sind.",
+    "Neuer Emulatortest ausdrücklich vom Nutzer abgewählt; bekannte Fehler bleiben dokumentiert und gelten nicht als behoben.",
+    "Neue APK nicht gebaut, signiert oder hochgeladen: Android-Bauwerkzeuge und alle fünf Original-Signiervariablen fehlen in dieser Sitzung; vorhandene persönliche Bauumgebung nicht angebunden.",
+    "Physischer Pixel und produktiver Speicherbestand nicht geprüft; Freigabe zur Drive-Bereitstellung ist keine automatische Installation oder Datenänderung."
   ],
   "workflow": {
     "scope": "CURRENT_SOURCE;struktur-neu authoritative;qa-apk.yml builds/tests without user APK publication",
@@ -84,19 +86,18 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "b9c0e2b2b5ee7a649c4eafc141cff84a318bb5766d0108848e27d4188972de6b",
+    "app_source_fingerprint": "9effca5a874b05c6fbc097adba1c06d273d3963bf3e4e092b0560ec2664075ae",
     "source_privacy": "PASS;empty operational seed",
     "business_data_read": false,
-    "authored_changes_diff_check": "PASS;git diff --check und210Aktionszuordnungen",
+    "authored_changes_diff_check": "PASS;git diff --check;in diesem Auftrag ausschließlich Versionsanhebung und bestehender Arbeitsstand geändert",
     "current_test_run": {
-      "source_basis": "d22c546c5662d2f770ac70226cb01184469de7aa",
-      "workflow_run": 41103001936,
-      "source_review": "PASS;vollständiger CI-Quellcheck",
-      "android_build": "PASS;release+AndroidTest+lint",
-      "jvm": "PASS;9Suiten",
-      "emulator": "7Suiten PASS;Compose nur Randgeste FAIL.12Darstellungen,16Suchwege,Filtereingaben,38Einstiege und bestehende Fachabläufe PASS. Spätere Layout-/SQLite-Korrekturen separat zu prüfen.",
-      "physical_pixel": "NOT_RUN;außerhalb Auftrag",
-      "local_python": "PASS62Tests;lokaler Gesamtcheck endet am fehlenden unveränderten Pflanzenasset im Teilcheckout",
+      "source_basis": "4debb69b6994a6a3b3238a81a2114d3162d9ce63",
+      "workflow_run": 41294127452,
+      "source_review": "PASS;CI check_current mit59Python-Tests",
+      "android_build": "PASS;CI release+AndroidTest+lint",
+      "jvm": "PASS;CI9Suiten",
+      "emulator": "FAIL;native_compose8Abläufe fehlgeschlagen;kein erneuter Lauf beauftragt",
+      "physical_pixel": "NOT_RUN",
       "business_data_read": false,
       "pixel_installation_performed": false
     },
@@ -132,6 +133,19 @@
       "invoice_authority_activated": false,
       "scope": "HISTORICAL_BUILD120;details in last_distributed_build and docs/verification/performance-current.md",
       "checks": "PASS:check_current62Python,assembleRelease/lint,9JVM+8native matching CI41054301410,original signature,candidate/Drive download readback,commit/fingerprint DEX;temporary signer removed"
+    },
+    "release_preparation": {
+      "version_name": "1.57.2",
+      "version_code": 121,
+      "base_git_sha": "4debb69b6994a6a3b3238a81a2114d3162d9ce63",
+      "source_review": "PASS;check_current.py nach Versionsanhebung:59Python-Tests;keine native Geräteprüfung",
+      "android_build": "NOT_RUN;Android-Bauwerkzeuge fehlen",
+      "jvm": "NOT_RUN;neuer Bau nicht gestartet",
+      "original_signing": "NOT_RUN;geschützte persönliche Signierumgebung nicht angebunden",
+      "emulator": "NOT_RUN;ausdrücklich vom Nutzer abgewählt",
+      "physical_pixel": "NOT_RUN",
+      "drive_upload": "NOT_RUN;noch keine neue APK",
+      "drive_target_folder_id": "1K4WB9L6ZKlW-33o8uPK3zTfqgAOVOE8u"
     }
   },
   "unmerged_work": [
@@ -173,13 +187,11 @@
     "invoice_authority": "NOT_ACTIVATED"
   },
   "current_release_candidate": {
-    "version_name": "1.57.1",
-    "version_code": 120,
-    "status": "HISTORICAL_BUILD120_DELIVERY;CURRENT_UI_CHANGES_NOT_RELEASED",
-    "base_git_sha": "19537218aad3878a12cf01426ca9326b015294b0",
-    "tested_source_commit": "a72240dfed6bc871d7fc1c9ef6fe2e8ee52e6709",
-    "source_git_sha": "f770f38d0bd428ec93004252d1aaacf003a475e2",
-    "source_sha256": "a08ad845065f9d83a8ce9206f98b42c14053f4d779aa9a7961167ac797d7ae3c",
-    "download_url": "https://drive.google.com/file/d/18WqTFuunyA0lx53okuycQU-LJEM5IpAy/view?usp=drivesdk"
+    "version_name": "1.57.2",
+    "version_code": 121,
+    "status": "SOURCE_PREPARED;APK_NOT_BUILT;ORIGINAL_SIGNING_NOT_AVAILABLE",
+    "base_git_sha": "4debb69b6994a6a3b3238a81a2114d3162d9ce63",
+    "emulator": "NOT_RUN;USER_REQUEST",
+    "download_url": null
   }
 }
