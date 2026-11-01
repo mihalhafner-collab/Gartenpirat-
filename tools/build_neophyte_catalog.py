@@ -22,7 +22,7 @@ import urllib.parse
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
-ANDROID = ROOT / "android" / "app" / "src" / "main" / "assets"
+ANDROID = ROOT / "app" / "src" / "main" / "assets"
 STATIC = ROOT / "static"
 ANDROID_MEDIA = ANDROID / "plant-images"
 STATIC_MEDIA = STATIC / "plant-images"

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate/check Web mirrors from the existing Android catalogue, never business data.
 
-Edit only android/app/src/main/assets/plant-catalog.json and its referenced media.
+Edit only app/src/main/assets/plant-catalog.json and its referenced media.
 The JS adapter and Web files are outputs, not a second maintained catalogue.
 --write updates outputs without deleting any files; the default is read-only.
 """
@@ -12,7 +12,7 @@ from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSETS = ROOT / 'android/app/src/main/assets'
+ASSETS = ROOT / 'app/src/main/assets'
 WEB = ROOT / 'static'
 SHARED = ('gartenpirat.js', 'gartenpirat.css', 'gartenpirat.png', 'gartenpirat-photo-store.js')
 
@@ -62,7 +62,7 @@ def synchronize(write=False):
     extra = sorted(p.name for p in (WEB/'plant-images').glob('*') if 'plant-images/' + p.name not in images)
     if different or extra:
         raise ValueError(json.dumps({'outdated_generated_files': different, 'unreferenced_web_images': extra}))
-    return {'canonical': 'android/app/src/main/assets/plant-catalog.json', 'profiles': len(plants),
+    return {'canonical': 'app/src/main/assets/plant-catalog.json', 'profiles': len(plants),
             'images': len(images), 'generated_outputs_checked': len(outputs), 'mode': 'write' if write else 'check'}
 
 

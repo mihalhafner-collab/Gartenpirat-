@@ -21,7 +21,7 @@ def main():
     domain = ROOT / 'outputs/integration-java/classes'
     if not (domain / 'at/hausgarten/service/TrashRules.class').is_file():
         raise RuntimeError('Run tools/run-followup-java.py before this focused test.')
-    source = ROOT / 'android/app/src/main/java/at/hausgarten/service/TrashMediaCleanup.java'
+    source = ROOT / 'app/src/main/java/at/hausgarten/service/TrashMediaCleanup.java'
     test = ROOT / 'tests/java-cleanup/at/hausgarten/service/TrashMediaCleanupTests.java'
     with tempfile.TemporaryDirectory(prefix='qa_trash_cleanup_') as temporary:
         classes = Path(temporary) / 'classes'

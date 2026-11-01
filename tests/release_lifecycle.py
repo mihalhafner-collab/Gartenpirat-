@@ -5,7 +5,7 @@ import json,subprocess,sys,re,time,hashlib
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];ADB=ROOT/'android-toolchain/sdk/platform-tools/adb.exe'
 TARGET='at.hausgarten.service';SERIAL='emulator-5580'
-BUILD=(ROOT/'android/app/build.gradle').read_text(encoding='utf-8')
+BUILD=(ROOT/'app/build.gradle').read_text(encoding='utf-8')
 VERSION=re.search(r"versionName '([^']+)'",BUILD).group(1)
 CODE=int(re.search(r'versionCode (\d+)',BUILD).group(1))
 APK=ROOT/('outputs/Haus-und-Gartenservice-Pixel-v'+VERSION+'.apk')

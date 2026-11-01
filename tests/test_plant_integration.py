@@ -168,7 +168,7 @@ class PlantIntegrationTests(unittest.TestCase):
             self.compile()
 
     def test_old_excluded_image_cannot_return(self):
-        self.plant['legacyPhotos'] = [{'path': 'android/app/src/main/assets/plant-images/qa-old.jpg',
+        self.plant['legacyPhotos'] = [{'path': 'app/src/main/assets/plant-images/qa-old.jpg',
             'editorialDecision': 'CLOSED_EXCLUDED_FROM_LIBRARY_USE'}]
         self.choices[0].update(sourceKind='legacy_derivative', legacyPath=self.plant['legacyPhotos'][0]['path'])
         self.refresh_binding()

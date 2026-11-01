@@ -11,7 +11,7 @@ TASK=ROOT/"outputs/plant-catalog-work";TASK.mkdir(parents=True,exist_ok=True)
 if (ROOT/".dependencies").is_dir():sys.path.insert(0,str(ROOT/".dependencies"))
 from PIL import Image,ImageOps
 CACHE=TASK/"research/catalog";CACHE.mkdir(parents=True,exist_ok=True)
-ASSETS=ROOT/"android/app/src/main/assets";MEDIA=ASSETS/"plant-images";MEDIA.mkdir(exist_ok=True)
+ASSETS=ROOT/"app/src/main/assets";MEDIA=ASSETS/"plant-images";MEDIA.mkdir(exist_ok=True)
 UA="GartenpiratOfflineReference/1.0 (horticultural reference)"
 class Page(HTMLParser):
  def __init__(self):super().__init__(convert_charrefs=True);self.images=[]

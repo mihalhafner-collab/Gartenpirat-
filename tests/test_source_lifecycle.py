@@ -204,15 +204,15 @@ class SourceLifecycleTests(unittest.TestCase):
         self.assertTrue((self.root / 'outputs/qa_build107.apk').is_file())
 
     def test_restore_checks_pinned_remote_tag_and_original_source_bytes(self):
-        files = {'android/app/build.gradle': b'// QA build', 'qa_source.py': b'QA_SOURCE = True\n'}
+        files = {'app/build.gradle': b'// QA build', 'qa_source.py': b'QA_SOURCE = True\n'}
         buffer = io.BytesIO()
         with zipfile.ZipFile(buffer, 'w') as archive:
             archive.writestr('android/', b'')
-            archive.writestr('android/app/', b'')
+            archive.writestr('app/', b'')
             for name, raw in files.items():
                 archive.writestr(name, raw)
         release = {'tag': 'source/qa_build', 'git_sha': 'a' * 40, 'source_files': 2,
-                   'source_sha256': life.fingerprint({'android/app/build.gradle': files['android/app/build.gradle']})}
+                   'source_sha256': life.fingerprint({'app/build.gradle': files['app/build.gradle']})}
         def git(*args):
             return (('a' * 40) + '\trefs/tags/source/qa_build^{}').encode() if args[0] == 'ls-remote' else buffer.getvalue()
         self.assertEqual(life.restore_check([release], git)[0]['status'], 'PASS')

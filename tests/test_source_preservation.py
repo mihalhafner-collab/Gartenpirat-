@@ -122,7 +122,7 @@ class SourcePreservationTests(unittest.TestCase):
         self.git('add', '.gitignore')
         self.git('commit', '-m', 'QA ignore rule')
         self.git('push', 'origin', 'main')
-        path = self.repo / 'android/app/src/main/java/qa_hidden.java'
+        path = self.repo / 'app/src/main/java/qa_hidden.java'
         path.parent.mkdir(parents=True)
         path.write_text('// QA ignored build input\n')
         self.assertEqual(self.git('status', '--porcelain'), '')

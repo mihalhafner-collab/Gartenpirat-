@@ -13,7 +13,7 @@ $taskBaseline = (Resolve-Path -LiteralPath $BaselineApk).Path
 $taskUnsigned = (Resolve-Path -LiteralPath $UnsignedApk).Path
 $taskOutput = [IO.Path]::GetFullPath($OutputApk)
 if (Test-Path -LiteralPath $taskOutput) { throw 'Ziel existiert bereits; keine alte APK wird überschrieben.' }
-$taskBuild = Get-Content -LiteralPath (Join-Path $taskRoot 'android/app/build.gradle') -Raw
+$taskBuild = Get-Content -LiteralPath (Join-Path $taskRoot 'app/build.gradle') -Raw
 if (-not $taskBuild.Contains("'/.android/debug.keystore'")) { throw 'Unbekannter Signierungsweg; sichere manuelle Prüfung erforderlich.' }
 $taskStore = Join-Path ([Environment]::GetFolderPath('UserProfile')) '.android/debug.keystore'
 if (-not (Test-Path -LiteralPath $taskStore -PathType Leaf)) { throw 'Konfigurierter Original-Keystore fehlt. Kein Ersatzschlüssel wird erzeugt.' }

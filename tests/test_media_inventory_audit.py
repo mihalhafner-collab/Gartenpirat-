@@ -159,7 +159,7 @@ class MediaInventoryAuditTests(unittest.TestCase):
         project = Path(__file__).resolve().parents[1]
         env = dict(os.environ); env.pop('HG_PRIVATE_DATA_ROOT', None)
         result = subprocess.run([sys.executable, str(project/'tools/audit_media_inventory.py'),
-                                 '--manifest', str(project/'android/app/src/main/assets/initial-data.json')],
+                                 '--manifest', str(project/'app/src/main/assets/initial-data.json')],
                                 env=env, capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('AUDIT_FAILED:', result.stderr)

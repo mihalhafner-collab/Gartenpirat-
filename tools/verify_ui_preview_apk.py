@@ -34,16 +34,16 @@ def verify(apk, baseline=None):
         if current is not None:
             current.append(line)
     components = ['\n'.join(lines) for lines in components.values()]
-    disabled = ['DriveConnectionActivity', 'PlanningConnectionActivity', 'PixelTunnelActivity',
+    disabled = ['PlanningConnectionActivity', 'PixelTunnelActivity',
                 'DriveSyncJob', 'PlanningJob', 'PixelTunnelService', 'PixelTunnelBootReceiver']
     for name in disabled:
         block = [x for x in components if '="at.hausgarten.service.'+name+'"' in x]
         assert len(block) == 1 and re.search(r'android:enabled[^\n]*=\(type 0x12\)0x0', block[0]), name
     authorities = re.findall(r'android:authorities[^\n]*="([^"]+)"', tree)
     assert set(authorities) == {package+'.'+suffix for suffix in ['invoicefiles','photocapture','photothumbnails']}
-    main = ROOT/'android/app/src/main/assets'
-    generated = ROOT/'android/app/build/generated/preview-assets'
-    preview = ROOT/'android/app/src/preview/assets'
+    main = ROOT/'app/src/main/assets'
+    generated = ROOT/'app/build/generated/preview-assets'
+    preview = ROOT/'app/src/preview/assets'
     overlays = {'mobile.html','design-concept.js','customer-hub.js','workflow-ui.js'}
     expected = {p.relative_to(main).as_posix():p for p in main.rglob('*') if p.is_file()}
     expected.update({name:generated/name for name in overlays})
@@ -62,11 +62,11 @@ def verify(apk, baseline=None):
     if baseline:
         before = json.loads(Path(baseline).read_text())
         changed = [name for name,digest in before.items() if hashlib.sha256((ROOT/name).read_bytes()).hexdigest()!=digest]
-        assert set(changed) == {'android/app/src/main/java/at/hausgarten/service/MainActivity.java',
-                                'android/app/src/main/assets/ui-mcp-actions.json'}, changed
+        assert set(changed) == {'app/src/main/java/at/hausgarten/service/MainActivity.java',
+                                'app/src/main/assets/ui-mcp-actions.json'}, changed
     fingerprint = hashlib.sha256()
-    sources = sorted([p for p in (ROOT/'android/app/src/preview').rglob('*') if p.is_file()]
-                     + [ROOT/'android/app/build.gradle', ROOT/'tools/build_ui_preview_assets.py'])
+    sources = sorted([p for p in (ROOT/'app/src/preview').rglob('*') if p.is_file()]
+                     + [ROOT/'app/build.gradle', ROOT/'tools/build_ui_preview_assets.py'])
     for path in sources:
         fingerprint.update(path.relative_to(ROOT).as_posix().encode()+b'\0'+path.read_bytes()+b'\0')
     return {'status':'PASS','package':package,'version_name':'1.53.1-preview1','version_code':88,

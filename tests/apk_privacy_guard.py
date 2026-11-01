@@ -12,7 +12,7 @@ def scan(files,markers=()):
     if markers:raise ValueError('Live markers are forbidden; use the data-independent privacy contract.')
 def inspect():
     source_gate()
-    return {str(p.relative_to(ROOT)):p.read_bytes() for p in (ROOT/'android/app/src/main/assets').rglob('*') if p.is_file()}
+    return {str(p.relative_to(ROOT)):p.read_bytes() for p in (ROOT/'app/src/main/assets').rglob('*') if p.is_file()}
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--apk');parser.add_argument('--artifact');parser.add_argument('--prebuild',action='store_true');args=parser.parse_args()

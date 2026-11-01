@@ -289,7 +289,7 @@ class QaSigningTests(unittest.TestCase):
         self.assertIn("contents: read", workflow)
 
     def test_gradle_keeps_original_package_and_never_generates_parallel_debug_app(self):
-        gradle = (ROOT / "android/app/build.gradle").read_text()
+        gradle = (ROOT / "app/build.gradle").read_text()
         self.assertIn("applicationId 'at.hausgarten.service'", gradle)
         self.assertNotIn("applicationIdSuffix", gradle)
         self.assertNotIn("signingConfig ", gradle)

@@ -1,0 +1,133 @@
+plugins {
+    id 'com.android.application'
+}
+
+dependencies {
+    implementation 'com.google.android.gms:play-services-auth:22.0.0'
+    implementation 'com.google.crypto.tink:tink-android:1.24.0'
+    constraints {
+        implementation('androidx.annotation:annotation:1.8.2') {
+            because 'Align the legacy facade with the annotation-jvm version required by Tink; avoid duplicate classes.'
+        }
+    }
+}
+
+// Mandatory for ALL future builds. Prevent accidental productive seed/config packaging.
+def offerContractGate = tasks.register('verifyOfferContract', Exec) {
+    workingDir rootProject.projectDir
+    commandLine 'python3', 'tools/sync_offer_contract.py'
+}
+tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn offerContractGate }
+def uiCatalogGate = tasks.register('verifyUiMcpInventory', Exec) {
+    workingDir rootProject.projectDir
+    commandLine 'python3', 'tools/verify_ui_mcp_inventory.py'
+}
+tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn uiCatalogGate }
+def privacyGate = tasks.register('verifyDistributablePrivacy', Exec) {
+    workingDir rootProject.projectDir
+    commandLine(System.getProperty('os.name').toLowerCase().contains('windows') ? ['py', '-3.11', 'tests/apk_privacy_guard.py', '--prebuild'] : ['python3', 'tests/apk_privacy_guard.py', '--prebuild'])
+}
+tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn privacyGate }
+def syntheticFixtureGate = tasks.register('verifySyntheticFixtures', Exec) {
+    workingDir rootProject.projectDir
+    commandLine 'python3', 'tools/sync_synthetic_fixtures.py'
+}
+tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn syntheticFixtureGate }
+def artifactPrivacyGate = tasks.register('verifyReleaseArtifactPrivacy', Exec) {
+    workingDir rootProject.projectDir
+    commandLine 'python3', 'tests/apk_privacy_guard.py', '--apk', 'app/build/outputs/apk/release/app-release-unsigned.apk'
+}
+tasks.matching { it.name == 'assembleRelease' }.configureEach { finalizedBy artifactPrivacyGate }
+def bundlePrivacyGate = tasks.register('verifyReleaseBundlePrivacy', Exec) {
+    workingDir rootProject.projectDir
+    commandLine 'python3', 'tests/apk_privacy_guard.py', '--artifact', 'app/build/outputs/bundle/release/app-release.aab'
+}
+tasks.matching { it.name == 'bundleRelease' }.configureEach { finalizedBy bundlePrivacyGate }
+
+def fingerprintResult = providers.exec {
+    workingDir rootProject.projectDir
+    commandLine 'python3', 'tools/check_release_baseline.py'
+}.standardOutput.asText.get()
+def releaseFingerprint = new groovy.json.JsonSlurper().parseText(fingerprintResult)
+
+android {
+    buildFeatures { buildConfig true }
+    namespace 'at.hausgarten.service'
+    compileSdk { version = release(37) }
+    buildToolsVersion '37.0.0'
+    // Opt-in device instrumentation targets the original signed release, not a second app.
+    testBuildType 'release'
+
+    defaultConfig {
+        applicationId 'at.hausgarten.service'
+        buildConfigField 'boolean', 'UI_PREVIEW', 'false'
+        buildConfigField 'String', 'GIT_SHA', '"' + releaseFingerprint.git_sha + '"'
+        buildConfigField 'String', 'SOURCE_SHA256', '"' + releaseFingerprint.source_sha256 + '"'
+        buildConfigField 'boolean', 'SOURCE_DIRTY', releaseFingerprint.source_dirty.toString()
+        minSdk 26
+        targetSdk 37
+        versionCode 117
+        versionName '1.55.12'
+        testInstrumentationRunner 'at.hausgarten.service.PixelMcpInstrumentation'
+    }
+
+    // Preserve the existing Desktop signing selector for sign-local-update.ps1.
+    // Debug variants are disabled below; release stays unsigned. Never create a
+    // replacement store: the Desktop signer must compare it to the original APK.
+    signingConfigs {
+        debug {
+            storeFile file(System.getProperty('user.home') + '/.android/debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+        // Explicitly requested, isolated UI experiment; never an operative update.
+        preview {
+            initWith release
+            applicationIdSuffix '.preview'
+            versionNameSuffix '-preview1'
+            buildConfigField 'boolean', 'UI_PREVIEW', 'true'
+            matchingFallbacks = ['release']
+            signingConfig = null
+        }
+    }
+    sourceSets.preview.assets.srcDir layout.buildDirectory.dir('generated/preview-assets').get().asFile
+}
+
+def previewAssets = tasks.register('generatePreviewUiAssets', Exec) {
+    workingDir rootProject.projectDir
+    commandLine 'python3', 'tools/build_ui_preview_assets.py', '--output',
+        layout.buildDirectory.dir('generated/preview-assets').get().asFile.absolutePath
+    inputs.files(fileTree('src/main/assets') { include 'mobile.html', '*.js', '*.css' }, fileTree('src/preview/assets'))
+    inputs.file rootProject.file('tools/build_ui_preview_assets.py')
+    outputs.dir layout.buildDirectory.dir('generated/preview-assets')
+}
+tasks.matching { it.name == 'prePreviewBuild' }.configureEach { dependsOn previewAssets }
+def previewPrivacy = tasks.register('verifyPreviewArtifactPrivacy', Exec) {
+    workingDir rootProject.projectDir
+    commandLine 'python3', 'tests/apk_privacy_guard.py', '--apk', 'app/build/outputs/apk/preview/app-preview-unsigned.apk'
+}
+tasks.matching { it.name == 'assemblePreview' }.configureEach { finalizedBy previewPrivacy }
+
+// Only the existing operative package is built. No automatically signed parallel APK.
+androidComponents {
+    beforeVariants(selector().withBuildType('debug')) { variant -> variant.enable = false }
+}
+
+def plantGate = tasks.register('verifySharedPlantAssets', Exec) {
+    workingDir rootProject.projectDir
+    commandLine(System.getProperty('os.name').toLowerCase().contains('windows') ? ['py', '-3.11', 'tools/sync_plant_assets.py'] : ['python3', 'tools/sync_plant_assets.py'])
+}
+tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn plantGate }
+
+def maintenanceTextGate = tasks.register('verifyEquipmentMaintenanceTexts', Exec) {
+    workingDir rootProject.projectDir
+    commandLine 'python3', 'tools/sync_equipment_maintenance_texts.py', '--check'
+}
+tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn maintenanceTextGate }

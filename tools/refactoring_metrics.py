@@ -6,7 +6,7 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-JAVA = ROOT/'android/app/src/main/java/at/hausgarten/service'
+JAVA = ROOT/'app/src/main/java/at/hausgarten/service'
 NAMES = ('PixelOwnerAccess', 'PixelMcpReadTools', 'PixelMcpOwnerTools', 'MainActivity')
 
 BASELINE = '1abf049c1e27167bc16259d8717513aeb5ffe670'

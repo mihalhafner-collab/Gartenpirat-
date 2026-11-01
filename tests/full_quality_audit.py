@@ -37,8 +37,8 @@ def execute(name, args, timeout=300, env=None):
 
 def inventory():
     sources = [*ROOT.glob('*.py'), *ROOT.glob('mcp_integration/*.py'), *ROOT.glob('static/*'),
-        *ROOT.glob('android/app/src/main/assets/*'), *ROOT.glob('android/app/src/main/java/**/*.java'),
-        ROOT/'android/app/src/main/AndroidManifest.xml', ROOT/'android/app/build.gradle']
+        *ROOT.glob('app/src/main/assets/*'), *ROOT.glob('app/src/main/java/**/*.java'),
+        ROOT/'app/src/main/AndroidManifest.xml', ROOT/'app/build.gradle']
     rows=[]
     for file in sorted(set(sources)):
         if file.suffix not in {'.py','.js','.java','.html','.css','.xml','.gradle','.webmanifest'}:continue

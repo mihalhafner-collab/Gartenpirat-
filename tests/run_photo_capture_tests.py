@@ -19,7 +19,7 @@ import hashlib
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
-JAVA = ROOT / "android/app/src/main/java/at/hausgarten/service"
+JAVA = ROOT / "app/src/main/java/at/hausgarten/service"
 
 STUBS = {
     "android/content/Context.java": '''package android.content;

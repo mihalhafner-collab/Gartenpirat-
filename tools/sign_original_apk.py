@@ -20,7 +20,7 @@ import tempfile
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-BASELINE = ROOT / 'android/original-signing-baseline.json'
+BASELINE = ROOT / 'original-signing-baseline.json'
 VARIABLES = ('HG_ORIGINAL_KEYSTORE_BASE64', 'HG_ORIGINAL_STORE_PASSWORD',
              'HG_ORIGINAL_KEY_ALIAS', 'HG_ORIGINAL_KEY_PASSWORD', 'HG_ORIGINAL_CERT_SHA256')
 MAX_APK_BYTES = 256 * 1024 * 1024

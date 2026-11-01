@@ -14,13 +14,13 @@ DOMAINS = {'root', 'file', 'database', 'sharedpref', 'external',
 
 class AndroidBackupPolicyTests(unittest.TestCase):
     def test_os_backup_and_legacy_full_backup_remain_disabled(self):
-        application = ET.parse(ROOT/'android/app/src/main/AndroidManifest.xml').getroot().find('application')
+        application = ET.parse(ROOT/'app/src/main/AndroidManifest.xml').getroot().find('application')
         self.assertEqual(application.get(ANDROID+'allowBackup'), 'false')
         self.assertEqual(application.get(ANDROID+'fullBackupContent'), 'false')
         self.assertEqual(application.get(ANDROID+'dataExtractionRules'), '@xml/data_extraction_rules')
 
     def test_cloud_and_device_transfer_exclude_all_private_and_external_domains(self):
-        rules = ET.parse(ROOT/'android/app/src/main/res/xml/data_extraction_rules.xml').getroot()
+        rules = ET.parse(ROOT/'app/src/main/res/xml/data_extraction_rules.xml').getroot()
         self.assertEqual(rules.tag, 'data-extraction-rules')
         self.assertEqual({item.tag for item in rules}, {'cloud-backup', 'device-transfer'})
         for transport in rules:

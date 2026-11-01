@@ -161,7 +161,7 @@ class DriveSourceTransferTests(unittest.TestCase):
     def test_public_compressed_image_is_stored_without_recompression(self):
         # Existing public catalogue resource; never a runtime/customer image.
         root = Path(__file__).resolve().parents[1]
-        name = 'android/app/src/main/assets/plant-images/zinnia-elegans-1.jpg'
+        name = 'app/src/main/assets/plant-images/zinnia-elegans-1.jpg'
         raw = (root/name).read_bytes()
         with tempfile.TemporaryDirectory(prefix='qa_source_transfer_') as folder:
             target = Path(folder)/'qa-public-image.zip'

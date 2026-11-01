@@ -7,7 +7,7 @@ import re
 
 ROOT = Path(__file__).resolve().parents[1]
 BASELINE = ROOT / 'tests/fixtures/refactoring-baseline.json'
-JAVA = ROOT / 'android/app/src/main/java/at/hausgarten/service'
+JAVA = ROOT / 'app/src/main/java/at/hausgarten/service'
 BRIDGE_SOURCES = {'MainActivity.java', 'BusinessDataBridge.java', 'BrowserMediaBridge.java'}
 
 def javascript_bridges(directory=JAVA, reviewed_sources=None):
@@ -63,7 +63,7 @@ def approved_evolution(expected, current, delta, schema_repair=None):
 
 def observe():
     tools = json.loads((ROOT/'outputs/integration-java/source-tool-catalog.json').read_text())
-    ui = json.loads((ROOT/'android/app/src/main/assets/ui-mcp-actions.json').read_text())
+    ui = json.loads((ROOT/'app/src/main/assets/ui-mcp-actions.json').read_text())
     observations = json.loads((ROOT/'outputs/integration-java/refactoring-observations.json').read_text())
     contracts = {}
     for name in ('DriveJournalRules', 'OwnerJournalRules', 'OfferContract', 'OfferRules',
@@ -76,8 +76,8 @@ def observe():
                 contracts=contracts,
                 sqlite_schema=re.findall(r'"(CREATE (?:TABLE|INDEX)[^"]+)"', store.read_text()),
                 javascript_bridge=bridge,
-                bootstrap=json.loads((ROOT/'android/app/src/main/assets/initial-data.json').read_text()),
-                offer_contract=json.loads((ROOT/'android/app/src/main/assets/offer-contract.json').read_text()),
+                bootstrap=json.loads((ROOT/'app/src/main/assets/initial-data.json').read_text()),
+                offer_contract=json.loads((ROOT/'app/src/main/assets/offer-contract.json').read_text()),
                 package='at.hausgarten.service',
                 protocol=int(re.search(r'PROTOCOL_VERSION\s*=\s*(\d+)', (JAVA/'PixelMcpReadTools.java').read_text())[1]))
 

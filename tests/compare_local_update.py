@@ -84,7 +84,7 @@ def source_equivalence(original, provided):
 
 
 def compare_source_copy(source, provided):
-    paths = [p.relative_to(source) for p in (source/'android/app/src/main').rglob('*')
+    paths = [p.relative_to(source) for p in (source/'app/src/main').rglob('*')
              if p.is_file()]
     different, missing, labels = [], [], []
     for relative in paths:
@@ -127,7 +127,7 @@ def main():
         'native_classes_added': sorted(dex_classes(args.candidate_apk) - dex_classes(args.baseline_apk)),
         'native_classes_removed': sorted(dex_classes(args.baseline_apk) - dex_classes(args.candidate_apk)),
         'candidate_source_assets': compare_assets_to_source(
-            args.candidate_apk, ROOT/'android/app/src/main/assets'),
+            args.candidate_apk, ROOT/'app/src/main/assets'),
         'candidate_seed': empty_seed(args.candidate_apk),
     }
     if args.source_copy:

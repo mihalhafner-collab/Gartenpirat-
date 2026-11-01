@@ -89,8 +89,8 @@ def public_image_hashes():
     global _public_images
     if _public_images is not None:return set(_public_images)
     paths=[]
-    catalog=json.loads((ROOT/'android/app/src/main/assets/plant-catalog.json').read_text())
-    paths += [ROOT/'android/app/src/main/assets'/image['path'] for plant in catalog['plants'] for image in plant['images']]
+    catalog=json.loads((ROOT/'app/src/main/assets/plant-catalog.json').read_text())
+    paths += [ROOT/'app/src/main/assets'/image['path'] for plant in catalog['plants'] for image in plant['images']]
     _public_images=set(POLICY['public_brand_image_sha256']) | {hashlib.sha256(p.read_bytes()).hexdigest() for p in paths if p.is_file() and p.suffix.lower() in IMAGES}
     return set(_public_images)
 
@@ -193,7 +193,7 @@ def scan_files(files, *, artifact=False):
 
 def source_gate(root=ROOT, filenames=None):
     root=Path(root).resolve()
-    verify_bootstrap((root/'android/app/src/main/assets/initial-data.json').read_bytes())
+    verify_bootstrap((root/'app/src/main/assets/initial-data.json').read_bytes())
     names=filenames if filenames is not None else subprocess.check_output(['git','ls-files','--cached','--others','--exclude-standard','-z'],cwd=root).decode().split('\0')
     failures=[];count=0
     for name in names:
@@ -225,10 +225,10 @@ def workspace_gate(root=ROOT):
             if not path.is_file():continue
             count+=1
             raw=path.read_bytes()
-            failures.extend(inspect_bytes(rel,raw,artifact=rel.startswith("android/app/build/")))
+            failures.extend(inspect_bytes(rel,raw,artifact=rel.startswith("app/build/")))
             if path.suffix.lower() in IMAGES:
                 public=hashlib.sha256(raw).hexdigest() in public_image_hashes() or (
-                    rel.startswith('android/app/build/') and '/res/' in rel)
+                    rel.startswith('app/build/') and '/res/' in rel)
                 if not public:
                     try:
                         proof=json.loads(Path(str(path)+'.privacy.json').read_text())

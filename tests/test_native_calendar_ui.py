@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
-JAVA=ROOT/'android/app/src/main/java/at/hausgarten/service'
+JAVA=ROOT/'app/src/main/java/at/hausgarten/service'
 PROOF=json.loads((ROOT/'tests/fixtures/native-calendar-presentation-baseline.json').read_text())
 
 def method(source,name):

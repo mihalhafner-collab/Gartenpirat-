@@ -38,8 +38,8 @@ def fingerprint(files):
 
 
 def category(name):
-    for prefix, group in [('android/app/src/main/java/', '03-ANDROID'),
-                          ('android/app/src/main/assets/', '04-OBERFLAECHE'),
+    for prefix, group in [('app/src/main/java/', '03-ANDROID'),
+                          ('app/src/main/assets/', '04-OBERFLAECHE'),
                           ('tests/', '06-TESTS'), ('tools/', '07-WERKZEUGE')]:
         if name.startswith(prefix):
             return group
@@ -139,7 +139,7 @@ def review_bundle(archive_path, output, commit):
             path.write_bytes(f'HAUS & GARTEN | Commit {commit} | UTF-8 Originalbytes\n'.encode() + content)
             text_paths.append(path)
     verify_text_exports(text_paths, texts)
-    main = {n: raw for n, raw in files.items() if n.startswith('android/app/src/main/') or n == 'android/app/build.gradle'}
+    main = {n: raw for n, raw in files.items() if n.startswith('app/src/main/') or n == 'app/build.gradle'}
     manifest = {'format': 'hausgarten.review-generation.v1', 'git_sha': commit,
                 'source_sha256': fingerprint(main), 'source_files': len(files),
                 'text_files': len(texts), 'public_binary_files': len(files) - len(texts),
@@ -240,7 +240,7 @@ def cleanup_local(root, records, now=None, apply=False, retained_builds=(89, 90)
     result = []
     for item in records:
         path = root / item['path']
-        allowed = any(path.resolve().is_relative_to(root / base) for base in ('outputs', 'android/app/build/outputs'))
+        allowed = any(path.resolve().is_relative_to(root / base) for base in ('outputs', 'app/build/outputs'))
         if '..' in Path(item['path']).parts or not allowed or path.is_symlink() or not path.resolve().is_relative_to(root):
             raise ValueError('Unmanaged local path')
         if item.get('protected') or item.get('active') or not item.get('completed'):
@@ -323,7 +323,7 @@ def restore_check(releases, git=git_bytes):
             files = {name: archive.read(name) for name in names}
         scan_files(files)
         main = {name: value for name, value in files.items()
-                if name.startswith('android/app/src/main/') or name == 'android/app/build.gradle'}
+                if name.startswith('app/src/main/') or name == 'app/build.gradle'}
         if fingerprint(main) != release['source_sha256']:
             raise ValueError('Restored original source hash differs')
         results.append({'tag': release['tag'], 'git_sha': release['git_sha'],

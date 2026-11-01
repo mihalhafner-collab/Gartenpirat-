@@ -1,12 +1,12 @@
-"""Enforce the production boundary; historical transports belong only to test sources."""
+"""Keep retired transports out of the app and current synthetic test sources."""
 from pathlib import Path
 import re
 import unittest
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-MAIN = ROOT / 'android/app/src/main/java/at/hausgarten/service'
-FIXTURES = ROOT / 'android/app/src/androidTest/java/at/hausgarten/service'
+MAIN = ROOT / 'app/src/main/java/at/hausgarten/service'
+FIXTURES = ROOT / 'app/src/androidTest/java/at/hausgarten/service'
 
 
 class DriveBackupOnlyBuildTests(unittest.TestCase):
@@ -16,31 +16,39 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         for name in ('LegacyDriveSyncFixture', 'LegacyDriveDirectFixture',
                      'LegacyDriveRestFixture', 'LegacyDriveAccountFixture',
                      'LegacyConflictBackupFixture', 'DriveNumbering', 'DriveMediaBatch'):
-            self.assertTrue((FIXTURES / (name + '.java')).is_file(), name)
+            self.assertFalse((FIXTURES / (name + '.java')).exists(), name)
         for path in MAIN.glob('*.java'):
             self.assertNotRegex(path.read_text(), r'\bLegacy\w*Fixture\b', path.name)
 
-    def test_only_backup_can_construct_drive_clients_or_request_tokens(self):
-        for expression in (r'new DriveRestClient\(', r'\bDriveAccount\.token\('):
-            callers = {p.stem for p in MAIN.glob('*.java') if re.search(expression, p.read_text())}
-            self.assertEqual(callers, {'LocalBackupCoordinator', 'FullBackupActivity'})
-        account = (MAIN / 'DriveAccount.java').read_text()
-        self.assertNotRegex(account, r'\b(?:configured|available|providerPermission|client)\(')
+    def test_all_cloud_backup_transports_are_absent_from_production(self):
+        for name in ('DriveAccount','DriveRestClient','DriveBackupUpload','BackupFolderPicker','BackupAutomation','FullBackupJob'):
+            self.assertFalse((MAIN/(name+'.java')).exists(),name)
+        for path in MAIN.glob('*.java'):
+            self.assertNotRegex(path.read_text(),r'googleapis.com/(?:auth/drive|drive/v3|upload/drive)')
+            self.assertNotRegex(path.read_text(),r'\bRetired(?:Backup|Drive|FullBackup|LocalBackup)\w*\b')
+        self.assertNotIn('openConnection()', (MAIN/'HttpTransport.java').read_text())
 
-    def test_old_business_rest_capabilities_are_absent(self):
-        source = (MAIN / 'DriveRestClient.java').read_text()
-        for method in ('readRoot', 'readListed', 'readCommitFiles', 'readConditional',
-                       'compareAndWrite', 'verifyConditionalWrites', 'deleteVerified',
-                       'ensureDirectory', 'inventoryFingerprint', 'fork'):
-            self.assertNotRegex(source, r'\b' + method + r'\(')
-        self.assertNotIn('HausGarten-', source)
+    def test_unused_legacy_classes_and_writers_are_removed(self):
+        for name in ('FullBackupController', 'LocalBackupCoordinator', 'BackupJobRepository', 'BackupPortableFormat', 'BackupRecoveryExport', 'BackupRecoveryRepairService',
+                     'DriveConnectionActivity', 'DrivePrimaryState', 'DriveTransferPool',
+                     'ImmutableStateReference', 'LegacyBackupPolicy', 'OwnerReceiptRetention',
+                     'ReceiptRetentionRules', 'SyncCommitRules', 'SyncMediaPlan',
+                     'SyncWakeup', 'VerifiedSyncCache'):
+            self.assertFalse((MAIN / (name + '.java')).exists(), name)
+        for name in ('RetiredDriveAccount', 'RetiredDriveBackupUpload',
+                     'RetiredBackupDriveClient', 'RetiredBackupScheduleRules'):
+            self.assertFalse((FIXTURES / (name + '.java')).exists(), name)
+        self.assertNotIn('static OutputStream encrypt(', (MAIN/'BackupCrypto.java').read_text())
+        self.assertNotIn('repairAfterVerifiedArchive(', (MAIN/'BackupRecoveryKeyStore.java').read_text())
+        self.assertNotIn('DriveConnectionActivity', (ROOT/'app/src/main/AndroidManifest.xml').read_text())
 
     def test_old_jobs_have_no_registered_service_or_scheduling(self):
-        manifest = ET.parse(ROOT / 'android/app/src/main/AndroidManifest.xml')
+        manifest = ET.parse(ROOT / 'app/src/main/AndroidManifest.xml')
         key = '{http://schemas.android.com/apk/res/android}name'
         services = {element.get(key) for element in manifest.findall('.//service')}
         self.assertNotIn('.DriveSyncJob', services)
-        self.assertIn('.FullBackupJob', services)
+        self.assertNotIn('.FullBackupJob', services)
+        self.assertIn('cancelRetiredJobs',(MAIN/'PixelBackupService.java').read_text())
         source = (MAIN / 'DriveSyncJob.java').read_text()
         self.assertNotIn('JobService', source)
         self.assertNotIn('new JobInfo', source)
@@ -64,24 +72,32 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         self.assertNotRegex(body, r'\b(?:state|effective|fileMeta|fileBytes|enqueue|local)\(')
         self.assertNotIn('LocalAuthorityGuard', body)
 
-    def test_historical_fixtures_cannot_use_real_network_or_account_tokens(self):
-        rest = (FIXTURES / 'LegacyDriveRestFixture.java').read_text()
-        account = (FIXTURES / 'LegacyDriveAccountFixture.java').read_text()
-        self.assertNotIn('target.openConnection()', rest)
-        self.assertIn('QA_LIVE_DRIVE_NETWORK_FORBIDDEN', rest)
-        self.assertNotIn('AccountManager.get(', account)
-        self.assertIn('QA_LIVE_DRIVE_ACCOUNT_FORBIDDEN', account)
+    def test_plaintext_backup_rejects_cloud_and_usb_targets(self):
+        source=(MAIN/'PixelBackupService.java').read_text()
+        self.assertIn('"com.android.externalstorage.documents".equals(uri.getAuthority())',source)
+        self.assertIn('startsWith("primary:")',source)
+        self.assertLess(source.index('requirePixel(target)'),source.index('return saveTo('))
+        self.assertNotIn('BackupRecoveryKeyStore',source)
 
-    def test_plaintext_exports_cannot_use_the_generic_cloud_document_provider(self):
-        source = (MAIN / 'BackupPortableExport.java').read_text()
-        self.assertIn('"com.android.externalstorage.documents".equals(uri.getAuthority())', source)
-        for entry, next_step in [('createAndExport', 'LocalBackupCoordinator'),
-                                 ('exportBackup', 'store.getWritableDatabase()')]:
-            body = source.split('JSONObject ' + entry + '(', 1)[1]
-            self.assertLess(body.index('requireLocalDestination(treeUri)'), body.index(next_step))
-        encrypted = (MAIN / 'BackupSafService.java').read_text()
-        self.assertNotIn('requireLocalDestination', encrypted)
+    def test_backup_does_not_require_financial_business_validity(self):
+        # The shared capture/staging boundary is used by save, restore and rollback.
+        # Explicit business-table transfer remains a separate validated operation.
+        source = (MAIN/'LocalBackupDataset.java').read_text()
+        backup, table_transfer = source.split('static BusinessTableStore.Evidence tableEvidence(', 1)
+        self.assertNotRegex(backup, r'LocalFinancial(?:Snapshot)?Validation\s*\.\s*inspect\(')
+        self.assertNotIn('.put("financial_inventory"', backup)
+        self.assertNotIn('LocalMigrationInventory', backup)
+        self.assertNotIn('BACKUP_LOCAL_ORIGINALS_INCOMPLETE', backup)
+        self.assertNotIn('LocalFinancialOriginals.inspect', backup)
+        self.assertNotIn('validateRelationships()', backup)
+        self.assertNotIn('recordSnapshotPhotoAttachments', backup)
+        self.assertIn('LocalFinancialSnapshotValidation.inspect(', table_transfer)
+        for name in ('PixelBackupService', 'BackupRestoreService', 'RestoreStartupProtection'):
+            self.assertIn('LocalBackupDataset.inspectStaged(', (MAIN/(name+'.java')).read_text())
+        # New invoice issuance still rejects an already used number before recording it.
+        invoice = (MAIN/'LocalInvoiceService.java').read_text()
+        self.assertIn('"INVOICE_NUMBER_COLLISION"', invoice)
+        self.assertLess(invoice.index('"INVOICE_NUMBER_COLLISION"'),
+                        invoice.index('store.putOwnerValue("local_number_reservation:'))
 
-
-if __name__ == '__main__':
-    unittest.main()
+if __name__=='__main__':unittest.main()

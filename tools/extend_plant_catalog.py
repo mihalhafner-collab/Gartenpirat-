@@ -87,7 +87,7 @@ def generic_rose():
  if len(pictures)!=2:raise ValueError("Rose illustration licensing incomplete")
  return {"id":"rosa","name":"Gartenrosen","scientificName":"Rosa · Gartengruppen","category":"Rosen","family":"Rosaceae","light":["Sonne","Halbschatten (sortenabhängig)"],"soil":["Humos und nährstoffreich"],"water":["Frisch, gut durchlässig; keine Staunässe"],"ph":[],"dimensions":["Von kompakten Beet- bis großen Kletterrosen; Rosengruppe und Sorte prüfen"],"life":["Mehrjährig"],"foliage":[],"growth":[],"propagation":["Stecklinge (je nach Sorte)"],"origin":["Gartenzüchtungen verschiedener Herkunft"],"bloom":["Sommer; remontierende Sorten auch im Herbst"],"colors":["Sortenabhängig"],"hardiness":["Sorten- und lagenabhängig"],"care":"Schnitt nach Rosengruppe planen. Verblühtes entfernen, bodennah wässern und auf Blattkrankheiten achten.","poison":[],"contact":[],"images":pictures,"sources":[{"title":"RHS · Rosen-Kulturanleitung","url":url,"checked":"2026-10-15"}]}
 def main():
- assets=ROOT/"android/app/src/main/assets"
+ assets=ROOT/"app/src/main/assets"
  catalog=json.loads((assets/"plant-catalog.json").read_text(encoding="utf-8"));by_id={p["id"]:p for p in catalog["plants"]}
  rows=[r for r in (ROOT/"tools/plant_catalog_seed.tsv").read_text(encoding="utf-8").splitlines() if r and not r.startswith("#") and r.split("|")[1].lower().replace(" ","-") not in by_id]
  added=[];unresolved=[]

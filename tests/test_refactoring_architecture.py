@@ -3,7 +3,7 @@ from pathlib import Path
 import re
 import unittest
 
-JAVA = Path(__file__).resolve().parents[1]/'android/app/src/main/java/at/hausgarten/service'
+JAVA = Path(__file__).resolve().parents[1]/'app/src/main/java/at/hausgarten/service'
 
 
 class RefactoringArchitectureTests(unittest.TestCase):

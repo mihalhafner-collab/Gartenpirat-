@@ -5,9 +5,9 @@ on:
   push:
     branches: [main]
     paths:
-      - 'struktur-neu/android/**'
-      - 'struktur-neu/tests/**'
-      - 'struktur-neu/tools/**'
+      - 'app/**'
+      - 'tests/**'
+      - 'tools/**'
       - '.github/workflows/qa-apk.yml'
 
 permissions:
@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 35
     defaults:
       run:
-        working-directory: struktur-neu
+        working-directory: .
         shell: bash
     steps:
       - uses: actions/checkout@v4
@@ -34,8 +34,8 @@ jobs:
         with:
           gradle-version: '9.3.1'
           cache-disabled: true
-      - name: Check current source and synthetic fixtures
-        run: python3 -B tools/check_current.py
+      - name: Run unit tests
+        run: ./gradlew test
       - name: Install Android build and isolated emulator packages
         run: |
           set -euo pipefail
@@ -46,7 +46,7 @@ jobs:
           PY
           "$SDKMANAGER" 'platforms;android-37.0' 'build-tools;37.0.0' 'platform-tools' 'emulator' 'system-images;android-35;default;x86_64'
       - name: Build production sources and native test APK without release signing
-        working-directory: struktur-neu/android
+        working-directory: .
         run: gradle --no-daemon --no-configuration-cache --no-build-cache :app:assembleRelease :app:assembleReleaseAndroidTest
       - name: Run JVM archive, warning, rollback and related regressions
         run: |
@@ -61,9 +61,9 @@ jobs:
           keytool -genkeypair -noprompt -keystore "$RUNNER_TEMP/gp-test.jks" -storepass android -keypass android -alias qa -keyalg RSA -validity 2 -dname 'CN=Gartenpirat Synthetic Emulator Only'
           SIGNER="$ANDROID_HOME/build-tools/37.0.0/apksigner"
           ALIGN="$ANDROID_HOME/build-tools/37.0.0/zipalign"
-          TEST_APK=$(find android/app/build/outputs/apk/androidTest/release -name '*.apk' -print -quit)
+          TEST_APK=$(find app/build/outputs/apk/androidTest/release -name '*.apk' -print -quit)
           test -n "$TEST_APK"
-          "$ALIGN" -f 4 android/app/build/outputs/apk/release/app-release-unsigned.apk "$RUNNER_TEMP/gp-app.apk"
+          "$ALIGN" -f 4 app/build/outputs/apk/release/app-release-unsigned.apk "$RUNNER_TEMP/gp-app.apk"
           "$ALIGN" -f 4 "$TEST_APK" "$RUNNER_TEMP/gp-test.apk"
           "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-app.apk"
           "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-test.apk"
@@ -115,9 +115,9 @@ jobs:
         with:
           name: Gartenpirat-backup-test-results
           path: |
-            struktur-neu/outputs/local_backup*.txt
-            struktur-neu/outputs/emulator*.txt
-            struktur-neu/android/app/build/reports/lint-results-release.html
+            outputs/local_backup*.txt
+            outputs/emulator*.txt
+            app/build/reports/lint-results-release.html
           if-no-files-found: ignore
           retention-days: 7
       - name: Remove disposable test signing material

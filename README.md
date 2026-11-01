@@ -1,20 +1,16 @@
 # Gartenpirat
 
-Verbindlicher Einstieg: [AGENTS.md](AGENTS.md). Die gewählte Arbeitsbasis liegt in
-[struktur-neu/](struktur-neu/README.md). Quellversion, zuletzt belegte Installation,
-aktueller Auftrag und offene Prüfungen stehen ausschließlich im
-[aktuellen Arbeitsstand](struktur-neu/AKTUELLER-STAND.json).
+Android-App `at.hausgarten.service`. Der aktuelle Quellcode liegt direkt unter
+`app/`, die Gradle-Konfiguration im Repository-Hauptverzeichnis.
 
-## Vor der Arbeit
+Arbeitsregeln: [AGENTS.md](AGENTS.md).
 
-1. [Gemeinsame Arbeitsregeln](AGENTS.md) lesen.
-2. [Aktuellen Stand](struktur-neu/AKTUELLER-STAND.json) lesen.
-3. Nur die zur Aufgabe gehörenden Quellen und Anleitungen zusätzlich lesen.
+Tests vom Hauptverzeichnis aus starten:
 
-[Bau und Prüfungen](struktur-neu/docs/entwicklung/BAU.md) ·
-[Gültige Fachregeln](struktur-neu/docs/fachregeln/APP.md) ·
-[ChatGPT-Projekteinbindung](struktur-neu/docs/entwicklung/PROJEKT.md)
+```sh
+./gradlew test
+```
 
-Die neue Struktur ist eine geprüfte Parallelfassung. Bestehende Quellpfade,
-GitHub-Buildworkflows und die installierte App wurden nicht automatisch umgestellt.
-Alte Auftragsberichte sind keine heutige Arbeitsanweisung oder Ausführungsfreigabe.
+Dafür werden Java 17 und das zum Projekt passende Android SDK benötigt.
+Verbleibende Prüf- und Buildwerkzeuge liegen unter `tools/`, Testdaten und
+zusätzliche Regressionstests unter `tests/`.

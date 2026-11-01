@@ -27,8 +27,8 @@ from audit_library import license_url_matches
 
 FORMAT = 'gartenpirat.plant-integration.v1'
 LIBRARY_COMMIT = '78e0204cd7155799c61c4a88f98150baffeb9ffd'
-CATALOG_PATH = 'android/app/src/main/assets/plant-catalog.json'
-ASSET_PATH = 'android/app/src/main/assets/'
+CATALOG_PATH = 'app/src/main/assets/plant-catalog.json'
+ASSET_PATH = 'app/src/main/assets/'
 TRAITS = {'light': 'light', 'soil': 'soilTexture', 'ph': 'soilReaction',
           'water': 'soilDrainage', 'bloom': 'bloomSeason', 'colors': 'flowerColors',
           'life': 'lifeCycle', 'foliage': 'foliage', 'growth': 'growthRate',

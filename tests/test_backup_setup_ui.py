@@ -3,7 +3,7 @@ from pathlib import Path
 import unittest
 
 ROOT=Path(__file__).resolve().parents[1]
-JAVA=ROOT/'android/app/src/main/java/at/hausgarten/service'
+JAVA=ROOT/'app/src/main/java/at/hausgarten/service'
 
 
 class BackupSetupUiTests(unittest.TestCase):

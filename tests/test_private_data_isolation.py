@@ -72,7 +72,7 @@ class RuntimeIsolationTests(unittest.TestCase):
 
     def test_export_is_external_readonly_and_never_rewrites_bootstrap(self):
         import hashlib
-        seed=paths.REPOSITORY/'android/app/src/main/assets/initial-data.json';before=seed.read_bytes()
+        seed=paths.REPOSITORY/'app/src/main/assets/initial-data.json';before=seed.read_bytes()
         with SyntheticStore() as store:
             db.save_customer(dict(name='QA Exportkunde'))
             initial=Path(db.DB_PATH).read_bytes()
@@ -172,7 +172,7 @@ class PrivacyContractTests(unittest.TestCase):
 
     def test_source_gate_scans_untracked_bootstrap_writer(self):
         with temporary_directory() as folder:
-            root=Path(folder);seed=root/'android/app/src/main/assets';seed.mkdir(parents=True)
+            root=Path(folder);seed=root/'app/src/main/assets';seed.mkdir(parents=True)
             __import__('tools.empty_bootstrap',fromlist=['generate']).generate(seed/'initial-data.json')
             (root/'qa_writer.py').write_text("p=Path('initial-data.json');p.write_text(payload)")
             with self.assertRaises(privacy.PrivacyFailure):privacy.source_gate(root,['qa_writer.py'])

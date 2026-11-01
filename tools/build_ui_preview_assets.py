@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def generate(output):
     output = Path(output).resolve()
-    main = ROOT / 'android/app/src/main/assets'
+    main = ROOT / 'app/src/main/assets'
     if output == main or main in output.parents:
         raise ValueError('Preview overlays must never overwrite operative assets')
     output.mkdir(parents=True, exist_ok=True)

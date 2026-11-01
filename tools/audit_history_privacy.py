@@ -2,7 +2,7 @@
 import hashlib,json,subprocess,sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-PATH='android/app/src/main/assets/initial-data.json'
+PATH='app/src/main/assets/initial-data.json'
 sys.path.insert(0,str(ROOT))
 from privacy_guard import retired_literal
 

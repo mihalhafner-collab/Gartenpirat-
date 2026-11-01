@@ -6,7 +6,7 @@ from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-ASSETS = Path(__file__).resolve().parents[1] / 'android' / 'app' / 'src' / 'main' / 'assets'
+ASSETS = Path(__file__).resolve().parents[1] / 'app' / 'src' / 'main' / 'assets'
 MOCK = r'''<script>
 (() => {
   const customer={id:'cus_demo',name:'Demo Gartenkunde',street:'Gartenweg 1',postal_code:'9555',city:'QA Beispielort',country:'Österreich',active:1};

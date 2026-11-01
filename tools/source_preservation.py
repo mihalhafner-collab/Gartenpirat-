@@ -50,15 +50,16 @@ def expected_repository(url):
 
 def verify_preserved_source(root=ROOT):
     root = Path(root).resolve()
-    if Path(git(root, 'rev-parse', '--show-toplevel')).resolve() != root:
-        raise SourcePreservationError('SOURCE_NOT_PRESERVED: Expected repository root required.')
+    repository_root = Path(git(root, 'rev-parse', '--show-toplevel')).resolve()
+    if root != repository_root:
+        raise SourcePreservationError('SOURCE_NOT_PRESERVED: Expected repository source root required.')
     head = git(root, 'rev-parse', 'HEAD')
     if not SHA.fullmatch(head):
         raise SourcePreservationError('SOURCE_NOT_PRESERVED: Source commit unavailable.')
     if git(root, 'status', '--porcelain', '--untracked-files=all'):
         raise SourcePreservationError('SOURCE_NOT_PRESERVED: Commit and push working changes first.')
     if git(root, 'ls-files', '--others', '--ignored', '--exclude-standard', '--',
-           'android/app/src/main', 'android/app/build.gradle'):
+           'app/src/main', 'app/build.gradle'):
         raise SourcePreservationError('SOURCE_NOT_PRESERVED: Unversioned Android build inputs found.')
     if not expected_repository(git(root, 'config', '--get', 'remote.origin.url')):
         raise SourcePreservationError('SOURCE_NOT_PRESERVED: Expected private GitHub repository required.')
@@ -74,7 +75,7 @@ def verify_preserved_source(root=ROOT):
     if (git(root, 'rev-parse', 'HEAD') != head
             or git(root, 'status', '--porcelain', '--untracked-files=all')
             or git(root, 'ls-files', '--others', '--ignored', '--exclude-standard', '--',
-                   'android/app/src/main', 'android/app/build.gradle')):
+                   'app/src/main', 'app/build.gradle')):
         raise SourcePreservationError('SOURCE_NOT_PRESERVED: Checkout changed during verification.')
     return {'status': 'PASS', 'git_sha': head, 'remote_refs': sorted(refs),
             'repository': REPOSITORY, 'scope': 'clean_checkout_and_remote_commit_only'}

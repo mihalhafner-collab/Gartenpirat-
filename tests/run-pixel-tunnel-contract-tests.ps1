@@ -10,7 +10,7 @@ try { $taskJsonHash = [BitConverter]::ToString($taskHasher.ComputeHash([System.I
 finally { $taskHasher.Dispose() }
 if ($taskJsonHash -ne '3CF6CD6892E32E2B4C1C39E0F52F5248A2F5B37646FDFBB79A66B46B618414ED') { throw 'JSON-Testbibliothek stimmt nicht mit dem geprüften Hash überein.' }
 New-Item -ItemType Directory -Force -Path $taskClasses | Out-Null
-$taskSource = Join-Path $taskRoot 'android/app/src/main/java/at/hausgarten/service'
+$taskSource = Join-Path $taskRoot 'app/src/main/java/at/hausgarten/service'
 $taskClasspath = "$taskJson;$taskAndroid"
 & (Join-Path $taskJdk 'javac.exe') -encoding UTF-8 -cp $taskClasspath -d $taskClasses (Join-Path $taskSource 'BillingRules.java') (Join-Path $taskSource 'WorklogRules.java') (Join-Path $taskSource 'PixelMcpWriteTools.java') (Join-Path $taskSource 'EntityProtectionRules.java') (Join-Path $taskSource 'PixelMcpEntityWriteTools.java') (Join-Path $taskSource 'PixelMcpReadTools.java') (Join-Path $taskSource 'PixelMcpSessionTools.java') (Join-Path $taskSource 'PixelMcpBusinessTools.java') (Join-Path $taskSource 'WorklogRelationRules.java') (Join-Path $taskSource 'DriveJournalRules.java') (Join-Path $taskSource 'OrderReviewRules.java') (Join-Path $taskSource 'ManualChangeRules.java') (Join-Path $taskSource 'McpSchema.java') (Join-Path $taskSource 'McpFileTransfer.java') (Join-Path $taskSource 'InvoiceDraftRules.java') (Join-Path $taskSource 'PixelMcpOwnerTools.java') (Join-Path $taskSource 'OwnerJournalRules.java')
 if ($LASTEXITCODE -ne 0) { throw 'Neue MCP-Adapter konnten nicht übersetzt werden.' }

@@ -2,7 +2,7 @@
 import json,sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-c=json.loads((ROOT/'android/app/src/main/assets/offer-contract.json').read_text())
+c=json.loads((ROOT/'app/src/main/assets/offer-contract.json').read_text())
 wire=json.dumps(c,ensure_ascii=False,separators=(',',':'))
 java='''package at.hausgarten.service;
 import org.json.*;
@@ -15,7 +15,7 @@ final class OfferContract {
  private OfferContract(){}
 }
 '''%json.dumps(wire,ensure_ascii=False)
-outputs={ROOT/'android/app/src/main/java/at/hausgarten/service/OfferContract.java':java,ROOT/'android/app/src/main/assets/offer-contract.js':'/* Generated from offer-contract.json. */\nwindow.OfferContract=Object.freeze('+wire+');\n'}
+outputs={ROOT/'app/src/main/java/at/hausgarten/service/OfferContract.java':java,ROOT/'app/src/main/assets/offer-contract.js':'/* Generated from offer-contract.json. */\nwindow.OfferContract=Object.freeze('+wire+');\n'}
 for p,text in outputs.items():
  if '--write' in sys.argv:p.write_text(text)
  elif not p.exists() or p.read_text()!=text:raise SystemExit('Stale generated offer contract: '+str(p.relative_to(ROOT)))

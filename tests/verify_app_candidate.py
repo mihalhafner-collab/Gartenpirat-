@@ -77,18 +77,24 @@ def verify(apk, aapt, apksigner, baseline=None):
     meta = metadata(apk, aapt, apksigner)
     if meta['package'] != PACKAGE or meta['version_code'] <= 65:
         raise ValueError('Unexpected package or old development version')
-    assets = candidate_assets(apk, ROOT/'android/app/src/main/assets', ROOT/'android/app/build/intermediates')
+    assets = candidate_assets(apk, ROOT/'app/src/main/assets', ROOT/'app/build/intermediates')
     if not assets['matches']:
         raise ValueError('Packaged assets differ: ' + json.dumps(assets))
     seed = empty_seed(apk)
     if not seed['all_business_collections_empty']:
         raise ValueError('Nonempty operational seed')
-    required = {'MainActivity', 'WorkSessionStore', 'DriveSyncCoordinator', 'PhotoCaptureProvider',
-                'PhotoAttachmentStore', 'PendingWorkPhotoStore','PixelOwnerAccess','PixelMcpOwnerTools','OwnerJournalRules','InvoiceDraftRules','ManualChangeRules','McpSchema','McpFileTransfer',
-                'DriveAccount','DriveConnectionActivity','DriveRestClient','DriveDirectFiles','DrivePublication','DriveSyncJob','SyncActionOrder','GardenRules','BusinessDocumentStore','PhotoPolicy','PhotoThumbnailProvider','LegacyConflictRules','LegacyConflictBackup','LegacyBackupPolicy','TrashPurgeBatch','OfferRules','OfferJournalRules','OfferTools'}
+    production = ROOT / 'app/src/main/java/at/hausgarten/service'
+    required = {path.stem for path in production.glob('*.java')}
     classes = dex_classes(apk)
-    if not all('at.hausgarten.service.' + name in classes for name in required):
+    if not required or not all('at.hausgarten.service.' + name in classes for name in required):
         raise ValueError('Required operative classes missing from DEX')
+    retired = {'DriveAccount', 'DriveRestClient', 'DriveBackupUpload', 'DriveDirectFiles',
+               'BackupFolderPicker', 'BackupAutomation', 'FullBackupJob',
+               'BackupPortableExport', 'BackupSafService'}
+    test_sources = ROOT / 'app/src/androidTest/java/at/hausgarten/service'
+    retired.update(path.stem for path in test_sources.glob('*.java') if path.stem not in required)
+    if any('at.hausgarten.service.' + name in classes for name in retired):
+        raise ValueError('Retired transport or test-only class present in release DEX')
     with zipfile.ZipFile(apk) as archive:
         catalog_raw = archive.read('assets/plant-catalog.json')
         catalog = json.loads(catalog_raw)
@@ -103,6 +109,7 @@ def verify(apk, aapt, apksigner, baseline=None):
     identity = compare_identity(original, meta) if original else 'NOT_RUN_original_APK_unavailable'
     return {'apk_sha256': hashlib.sha256(apk.read_bytes()).hexdigest(), **meta,
             'assets': assets, 'seed': seed, 'operative_classes_present': sorted(required),
+            'retired_and_test_classes_absent': sorted(retired),
             'plant_profiles': len(catalog['plants']), 'plant_images': len(images),
             'catalog_sha256': hashlib.sha256(catalog_raw).hexdigest(),
             'original_apk_identity_comparison': identity,

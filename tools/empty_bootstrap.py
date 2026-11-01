@@ -10,7 +10,7 @@ import runtime_paths
 
 
 def generate(target=None):
-    canonical = ROOT / 'android/app/src/main/assets/initial-data.json'
+    canonical = ROOT / 'app/src/main/assets/initial-data.json'
     target = Path(target) if target is not None else canonical
     if canonical.resolve()!=canonical or target.is_symlink():
         raise ValueError('Bootstrap generation must never follow a symlink.')
@@ -22,7 +22,7 @@ def generate(target=None):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(); parser.add_argument('--write', action='store_true')
     args = parser.parse_args()
-    target = ROOT / 'android/app/src/main/assets/initial-data.json'
+    target = ROOT / 'app/src/main/assets/initial-data.json'
     if args.write:
         generate()
     verify_bootstrap(target.read_bytes())

@@ -4,11 +4,11 @@ import unittest
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
-JAVA=ROOT/'android/app/src/main/java/at/hausgarten/service'
+JAVA=ROOT/'app/src/main/java/at/hausgarten/service'
 
 class NativeUiConsistencyTests(unittest.TestCase):
     def test_colors_match_shared_web_tokens(self):
-        css=(ROOT/'android/app/src/main/assets/tokens.css').read_text()
+        css=(ROOT/'app/src/main/assets/tokens.css').read_text()
         native=(JAVA/'NativeUi.java').read_text()
         colors=dict(re.findall(r'\b([A-Z_]+)=0xff([a-f0-9]{6})',native))
         tokens=dict(re.findall(r'--hg-([a-z-]+):#([a-f0-9]{6})',css))
