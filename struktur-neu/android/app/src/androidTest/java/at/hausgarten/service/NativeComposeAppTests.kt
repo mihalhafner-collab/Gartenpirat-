@@ -167,7 +167,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val current = nodes()
         // Native fields retain their identity even when a floating label is
         // clipped by scrolling. Do not infer identity from neighboring fields.
-        current.firstOrNull { it.isVisibleToUser && it.isEditable && it.viewIdResourceName == "native-field:$label" }?.let { return it }
+        val fieldLabels = if (label == "Suchen") listOf("Suchen", "Name, Ort oder Objekt suchen", "Arbeiten und Vorgänge suchen") else listOf(label)
+        current.firstOrNull { it.isVisibleToUser && it.isEditable && fieldLabels.any { name -> it.viewIdResourceName == "native-field:$name" } }?.let { return it }
         return current.firstOrNull { candidate ->
             candidate.isVisibleToUser && candidate.isEditable && candidate.viewIdResourceName?.startsWith("native-field:") != true && (
                 matches(candidate, label) || all(candidate).any { matches(it, label) } ||
@@ -325,6 +326,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("timer", ::timerJourney)
             journey("notification", ::notificationJourney)
             journey("customer_context", ::customerContextJourney)
+            journey("redesign_navigation", ::redesignJourney)
             journey("office_opening", ::officeOpeningMeasurements)
             journey("search_keyboard", ::searchKeyboardJourney)
             journey("back_gesture", ::backGestureJourney)
@@ -438,7 +440,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         enter("Suchen", fixturePrefix + "054")
         shown("1 Treffer · 1–1")
         shown(fixturePrefix + "054")
-        click("Kunde anlegen")
+        click("+ Kunde")
         waitUntil("BLANK_CUSTOMER_FORM") { field("Name *") != null }
         val draftKey = "native_form_draft:" + PixelMcpWriteTools.hash("editor:customer:new")
         yes(store.ownerValue(draftKey, "").isEmpty(), "UNTOUCHED_FORM_HAS_NO_DRAFT")
@@ -508,8 +510,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun usabilityJourney() {
         click("Heute")
-        reveal("Erfasste Arbeiten")
-        reveal("Hinweise")
+        reveal("Arbeiten ansehen")
+        reveal("Sicherung")
         yes(node("Mehr") == null, "NO_TODAY_MORE_MENU")
         click("Kunden")
         enter("Suchen", fixturePrefix)
@@ -519,7 +521,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown("55 Treffer · 1–50")
         yes(field("Suchen")?.text?.toString()?.contains(fixturePrefix) == true, "CUSTOMER_FILTER_PRESERVED_ON_ENTRY")
         click("Heute")
-        click("Arbeit erfassen")
+        click("+ Erfassen")
         click("Kunde: Nicht zugeordnet")
         enter("Suchen", fixturePrefix + "000")
         click(fixturePrefix + "000")
@@ -567,8 +569,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(saved()?.getString("activity") == row.getString("activity"), "DISCARD_DOES_NOT_SAVE_CHANGES")
         workPhotoRetention(row)
         // Discard has already returned to Today; its selected tab has no click action.
-        reveal("Erfasste Arbeiten")
-        click("Arbeit erfassen")
+        reveal("Arbeiten ansehen")
+        click("+ Erfassen")
         click("Kunde: Nicht zugeordnet")
         enter("Suchen", fixturePrefix + "000")
         click(fixturePrefix + "000")
@@ -633,8 +635,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun accessoryJourney() {
-        click("Büro")
-        click("Maschinenpark und Gerätewartung")
+        openManagementEntry("Maschinenpark und Gerätewartung")
         click("Gerät anlegen")
         click("Gerätebezeichnung auswählen ▾")
         shown("Gerätebezeichnung auswählen")
@@ -693,7 +694,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             // Machine navigation intentionally remembers its current detail.
             // Leave through the visible list action before testing a fresh open.
             click("Zur Liste")
-            click("Heute"); click("Büro"); click("Maschinenpark und Gerätewartung")
+            click("Heute"); openManagementEntry("Maschinenpark und Gerätewartung")
             click(name); click("Zubehör")
             reveal("QA Kette B")
             reveal("Aktuell verwendete Kette")
@@ -732,7 +733,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             .put("_request_id", "qa_discard_work_photo").put("activity", "QA unsaved photo draft"))
             .put("selected_photo_uri", other.toString()))
         controller.flushDrafts()
-        click("Heute"); click("Arbeit erfassen")
+        click("Heute"); click("+ Erfassen")
         reveal("Ungespeichertes Foto")
         val workCount = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length()
         click("Speichern")
@@ -763,31 +764,31 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(searchField.isEditable && clickable(searchField) == null, "SEARCH_VALUE_IS_NOT_A_CUSTOMER_CARD_ACTION")
         val customerCard = click(fixturePrefix + "000")
         yes(!customerCard.isEditable && customerCard.actionList.any { it.id == AccessibilityNodeInfo.ACTION_CLICK }, "TIMER_CUSTOMER_CARD_USES_NON_EDITABLE_ACTION")
-        reveal("Arbeit beginnen")
-        click("Arbeit beginnen")
+        click("+ Erfassen")
+        click("Einsatz starten")
         click("Bewusst speichern")
         waitUntil("TIMER_STARTED") { read("get_active_work_session").optString("state") == "RUNNING" }
         val session = read("get_active_work_session")
         val id = session.getString("id")
         yes(session.optString("customer_id") == customers(fixturePrefix + "000").single().getString("id"), "TIMER_SYNTHETIC_CUSTOMER")
         click("Heute")
-        click("Laufende Arbeit öffnen")
+        click("Zeitdetails und weitere Aktionen")
         reveal("Arbeit läuft")
         shown("Arbeitsdauer")
         yes(visibleTexts().any { it.matches(Regex("[0-9]+ Std\\. [0-9]+ Min\\. [0-9]+ Sek\\.")) }, "TIMER_HAS_READABLE_DURATION")
         yes(visibleTexts().none { it.startsWith("State:") || it.startsWith("Worked ms:") || it.startsWith("Started at ms:") }, "TIMER_HIDES_RAW_CLOCK_FIELDS")
-        visibleResult("Arbeit stoppen")
+        visibleResult("Stoppen")
         captureSyntheticScreen("timer-actions")
-        click("Pause starten")
+        click("Pause")
         reveal("Pause läuft")
         yes(read("get_active_work_session").getString("state") == "PAUSED", "UI_PAUSES_REAL_TIMER")
         recreate()
         reveal("Pause läuft")
         yes(read("get_active_work_session").getString("id") == id, "RECREATION_PRESERVES_TIMER_ID")
-        click("Pause beenden")
+        click("Fortsetzen")
         reveal("Arbeit läuft")
         yes(read("get_active_work_session").getString("state") == "RUNNING", "UI_RESUMES_REAL_TIMER")
-        click("Arbeit stoppen")
+        click("Stoppen")
         reveal("Arbeit gestoppt")
         yes(read("get_active_work_session").getString("state") == "STOPPED_PENDING_REVIEW", "UI_STOPS_WITHOUT_FINALIZING")
         yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() == before, "STOP_DOES_NOT_CREATE_WORKLOG")
@@ -853,12 +854,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private fun customerContextJourney() {
         val controller = NativeAppController(requireNotNull(activity) as MainActivity, store)
         controller.navigate("worklogs", "qa-route", "edit")
-        yes(controller.route.area == "worklogs", "WORK_EDITOR_AREA")
+        yes(controller.route.area == "today", "WORK_EDITOR_AREA")
         controller.action("Prüfen", "get_work_record")
-        yes(controller.route.area == "worklogs", "ACTION_RETAINS_AREA")
+        yes(controller.route.area == "today", "ACTION_RETAINS_AREA")
         val restored = NativeAppController(requireNotNull(activity) as MainActivity, store)
         restored.restoreRoute(controller.savedNavigation())
-        yes(restored.route.area == "worklogs", "RECREATED_ACTION_AREA")
+        yes(restored.route.area == "today", "RECREATED_ACTION_AREA")
         restored.back()
         yes(restored.route.section == "worklogs" && restored.route.id == "qa-route", "RECREATED_BACK_STACK")
         controller.message("QA previous save")
@@ -994,7 +995,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 click("Büro")
                 // Verify the actual destination before locating its action;
                 // a late query result from the previous route is not a ready menu.
-                click("Abrechnung")
+                click("Abrechnung vorbereiten")
                 var start = 0L
                 click(entry, onAction = { start = it })
                 waitUntil("OFFICE_READY_$name") { node(ready) != null }
@@ -1082,7 +1083,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     automation.setRotation(UiAutomation.ROTATION_FREEZE_0)
                     launch()
                     test.runOnMainSync { requireNotNull(activity).requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
-                    click("Arbeit erfassen"); click("Kunde: Nicht zugeordnet")
+                    click("+ Erfassen"); click("Kunde: Nicht zugeordnet")
                     test.runOnMainSync { requireNotNull(activity).requestedOrientation = if (landscape) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
                     waitUntil("SEARCH_CONFIGURATION_$key") {
                         var correct = false
@@ -1136,7 +1137,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             throw failure
         }
         yes(searchMatrix.length() == 6, "ALL_SEARCH_DISPLAY_COMBINATIONS")
-        click("Arbeit erfassen"); click("Kunde: Nicht zugeordnet")
+        click("+ Erfassen"); click("Kunde: Nicht zugeordnet")
         enter("Suchen", "NO_SYNTHETIC_MATCH_48273"); shown("0 Treffer"); shown("Keine Treffer. Suchtext oder Filter ändern.")
         shown("Keine Zuordnung")
         showKeyboard("Suchen"); captureSyntheticScreen("search-no-results", requireKeyboard = true)
@@ -1166,7 +1167,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             shell("cmd overlay enable-exclusive --category --user 0 com.android.internal.systemui.navbar.gestural")
             waitUntil("GESTURE_NAVIGATION_ENABLED") { shell("settings get secure navigation_mode") == "2" }
             activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
-            click("Arbeit erfassen"); click("Kunde: Nicht zugeordnet")
+            click("+ Erfassen"); click("Kunde: Nicht zugeordnet")
             enter("Suchen", fixturePrefix+"000"); visibleResult(fixturePrefix+"000")
             yes(!keyboardVisible(), "GESTURE_PICKER_IME_INITIALLY_CLOSED")
             fun gestureHandlers(): String {
@@ -1217,8 +1218,65 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
     }
 
+    /** Exercises the new routes, rather than asserting that labels merely exist. */
+    private fun redesignJourney() {
+        click("Heute")
+        val navigation = listOf("Heute", "Kunden", "Büro")
+        for (label in navigation) yes(nodes().any { matches(it, label) && clickable(it)?.stateDescription?.toString() in listOf("Ausgewählter Bereich", "Bereich öffnen") }, "THREE_MAIN_DESTINATIONS_$label")
+        yes(nodes().none { matches(it, "Arbeit") && clickable(it)?.stateDescription != null }, "NO_FOURTH_WORK_TAB")
+        val before = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+        val timer = read("get_active_work_session").toString()
+        click("Kunden")
+        enter("Name, Ort oder Objekt suchen", "QA Gartenweg 0")
+        shown(fixturePrefix + "000")
+        yes(node(fixturePrefix + "001") == null, "PROPERTY_ADDRESS_SEARCH_KEEPS_CUSTOMER_RELATION")
+        if (keyboardVisible()) back()
+        click("Sortieren")
+        shown("Name A–Z"); shown("Zuletzt geöffnet"); shown("Nächster Einsatz")
+        click("Zuletzt geöffnet")
+        shown(fixturePrefix + "000")
+        click("Sortieren"); click("Nächster Einsatz")
+        shown(fixturePrefix + "000")
+        click("Sortieren"); click("Name A–Z")
+        click(fixturePrefix + "000")
+        click("Route starten")
+        shown("QA Gartenweg 0, Testort")
+        yes(visibleTexts().any { it == "Ziel bestätigen" || it == "Wohin möchtest du fahren?" }, "ROUTE_REQUIRES_VISIBLE_TARGET_CONFIRMATION")
+        click("Abbrechen")
+        yes(node("Route in Google Maps öffnen") == null, "ROUTE_CANCEL_CLOSES_CHOICE")
+        yes(read("get_active_work_session").toString() == timer, "ROUTE_CHOICE_CANCEL_PRESERVES_SESSION")
+        click("Kontakt"); shown("Kontaktdaten bearbeiten"); back()
+        click("+ Erfassen"); shown("Notiz zu diesem Kunden bearbeiten"); back()
+        yes(PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) == before, "SORT_AND_ROUTE_CHOICES_NEVER_WRITE_BUSINESS_RECORDS")
+        click("Büro")
+        for (label in listOf("Anfragen & Besichtigungen", "Angebote", "Aufträge", "Abrechnung vorbereiten", "Rechnungen", "Zahlungen & Guthaben", "Betrieb & Verwaltung")) reveal(label)
+        click("Betrieb & Verwaltung")
+        shown("Maschinenpark und Gerätewartung"); shown("Einstellungen")
+        click("Heute")
+        reveal("Arbeiten ansehen"); click("Arbeiten ansehen")
+        yes(nodes().any { matches(it, "Heute") && clickable(it)?.stateDescription?.toString() == "Ausgewählter Bereich" }, "WORK_LIST_BELONGS_TO_TODAY")
+        click("Heute")
+    }
+
+    private fun openManagementEntry(entry: String) {
+        click("Büro")
+        click("Betrieb & Verwaltung")
+        click(entry)
+    }
+
+    private fun openWorkList() {
+        click("Heute")
+        click("Arbeiten ansehen")
+        // The Today row intentionally opens today's date range. The previous
+        // standalone work tab exposed all dates; explicitly request that scope.
+        click("Filter")
+        click("Filter zurücksetzen")
+        click("Filter")
+    }
+
     private fun openOfficeGroup(label: String, entry: String) {
         click("Büro")
+        click("Betrieb & Verwaltung")
         click("$label ▾")
         click(entry)
     }
@@ -1270,7 +1328,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("work") {
             val rows = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
             val work = (0 until rows.length()).map { rows.getJSONObject(it) }.first { it.optString("activity").startsWith("[TEST] QA usability work") }
-            click("Arbeit"); keyboardSearchProof("work", "Suchen", "QA usability work", work.getString("activity"))
+            openWorkList(); keyboardSearchProof("work", "Suchen", "QA usability work", work.getString("activity"))
         }
         case("offers") {
             click("Kunden"); enter("Suchen", fixturePrefix+"000"); click(fixturePrefix+"000"); click("Angebote")
@@ -1280,18 +1338,18 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("Zur Liste"); waitUntil("DOMAIN_RETURN_QUERY_offers") { field("Suchen")?.text?.toString()?.contains("QA Kontextangebot 0") == true }
         }
         case("invoices") {
-            click("Büro"); click("Abrechnung"); click("Rechnungen")
+            click("Büro"); click("Abrechnung vorbereiten"); click("Rechnungen")
             keyboardSearchProof("invoices", "Suchen", "QA-UI-119", "QA-UI-119")
             visibleResult("Zur Liste")
             captureSyntheticScreen("detail-invoices")
             click("Zur Liste"); waitUntil("DOMAIN_RETURN_QUERY_invoices") { field("Suchen")?.text?.toString()?.contains("QA-UI-119") == true }
         }
         case("planning") {
-            click("Büro"); click("Planung")
+            openManagementEntry("Planung")
             keyboardSearchProof("planning", "Suche", "QA Native Notification", "[TEST] QA Native Notification")
         }
         case("equipment") {
-            click("Büro"); click("Maschinenpark und Gerätewartung")
+            openManagementEntry("Maschinenpark und Gerätewartung")
             keyboardSearchProof("equipment", "Suchen", "QA Zubehör Säge", "[TEST] QA Zubehör Säge")
         }
         case("photos") {
@@ -1316,13 +1374,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             keyboardSearchProof("local", "Name, Objekt, Tätigkeit, Notiz oder Beleg", fixturePrefix+"000", fixturePrefix+"000", manual = true)
         }
         case("phrases") {
-            click("Arbeit erfassen"); click("Textbausteine ▾")
+            click("+ Erfassen"); click("Textbausteine ▾")
             keyboardSearchProof("phrases", "Vorschläge durchsuchen", "Rasen gemäht", "Rasen gemäht")
             waitUntil("PHRASE_TRANSFERRED") { field("Was wurde erledigt? *")?.text?.toString()?.contains("Rasen gemäht") == true }
             click("Verwerfen"); click("OK", scrollTo = false)
         }
         case("duplicate-customers") {
-            click("Arbeit erfassen"); click("Kunde: Nicht zugeordnet")
+            click("+ Erfassen"); click("Kunde: Nicht zugeordnet")
             enter("Suchen", "QA Gleichnamig"); shown("2 Treffer"); reveal("QA TestNord"); reveal("QA TestSüd")
             enter("Suchen", "QA TestSüd"); showKeyboard("Suchen"); visibleResult(duplicateName, requireKeyboard = true)
             captureSyntheticScreen("domain-duplicate-customers", requireKeyboard = true); visibleResult(duplicateName, tap = true, requireKeyboard = true)
@@ -1332,14 +1390,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("Verwerfen"); click("OK", scrollTo = false)
         }
         case("equipment-picker") {
-            click("Büro"); click("Planung"); click("Einsätze")
+            openManagementEntry("Planung"); click("Einsätze")
             enter("Suchen", "QA Kontexteinsatz 0"); click("QA Kontexteinsatz 0"); click("Bearbeiten")
             click("Benötigte Geräte ergänzen"); click("Benötigte Geräte: Nicht zugeordnet")
             keyboardSearchProof("equipment-picker", "Suchen", "QA Zubehör Säge", "[TEST] QA Zubehör Säge")
             reveal("Benötigte Geräte: [TEST] QA Zubehör Säge"); click("Verwerfen")
         }
         case("planning-picker") {
-            click("Büro"); click("Planung"); click("Einsatz planen"); click("Kunde: Bitte wählen")
+            openManagementEntry("Planung"); click("Einsatz planen"); click("Kunde: Bitte wählen")
             keyboardSearchProof("planning-picker", "Suchen", fixturePrefix+"000", fixturePrefix+"000")
             reveal("Kunde: " + fixturePrefix+"000")
             click("Ungespeicherten Entwurf verwerfen"); click("Verwerfen", scrollTo = false)
@@ -1357,7 +1415,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         case("maintenance-phrases") {
             val action = JSONObject(context.assets.open("equipment-maintenance-texts.json").bufferedReader().use { it.readText() }).getJSONArray("actions").getJSONObject(0)
-            click("Büro"); click("Maschinenpark und Gerätewartung"); enter("Suchen", "QA Zubehör Säge"); click("[TEST] QA Zubehör Säge")
+            openManagementEntry("Maschinenpark und Gerätewartung"); enter("Suchen", "QA Zubehör Säge"); click("[TEST] QA Zubehör Säge")
             click("Wartung einrichten"); click("Tätigkeitstext auswählen")
             keyboardSearchProof("maintenance-phrases", "Text suchen", action.getString("label"), action.getString("label"))
             waitUntil("MAINTENANCE_TEXT_TRANSFERRED") { field("Wartungstätigkeit *")?.text?.toString()?.contains(action.getString("text")) == true }
@@ -1380,12 +1438,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         data class Target(val key: String, val label: String, val query: String, val result: String, val manual: Boolean = false, val open: () -> Unit)
         val targets = listOf(
             Target("customers", "Suchen", fixturePrefix+"000", fixturePrefix+"000") { click("Kunden") },
-            Target("work", "Suchen", work, work) { click("Arbeit") },
+            Target("work", "Suchen", work, work) { openWorkList() },
             Target("orders", "Suchen", "QA Kontextauftrag 0", "QA Kontextauftrag 0") { openOfficeGroup("Kunden und Aufträge", "Aufträge") },
-            Target("offers", "Suchen", "QA Kontextangebot 0", "QA Kontextangebot 0") { click("Büro"); click("Abrechnung"); click("Angebote") },
-            Target("invoices", "Suchen", "QA-UI-119", "QA-UI-119") { click("Büro"); click("Abrechnung"); click("Rechnungen") },
-            Target("planning", "Suche", "QA Native Notification", "[TEST] QA Native Notification") { click("Büro"); click("Planung") },
-            Target("equipment", "Suchen", "QA Zubehör Säge", "[TEST] QA Zubehör Säge") { click("Büro"); click("Maschinenpark und Gerätewartung") },
+            Target("offers", "Suchen", "QA Kontextangebot 0", "QA Kontextangebot 0") { click("Büro"); click("Abrechnung vorbereiten"); click("Angebote") },
+            Target("invoices", "Suchen", "QA-UI-119", "QA-UI-119") { click("Büro"); click("Abrechnung vorbereiten"); click("Rechnungen") },
+            Target("planning", "Suche", "QA Native Notification", "[TEST] QA Native Notification") { openManagementEntry("Planung") },
+            Target("equipment", "Suchen", "QA Zubehör Säge", "[TEST] QA Zubehör Säge") { openManagementEntry("Maschinenpark und Gerätewartung") },
             // The fixture is newest-first: photo 1 is the first of these two results.
             // Customer A/B exclusion is verified separately in customerContextJourney.
             Target("photos", "Fotos suchen", "QA Kontextfoto", "QA Kontextfoto 1") { openOfficeGroup("Material und Wissen", "Fotos") },
@@ -1466,7 +1524,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             waitUntil("FILTER_DONE_PRESERVES_VALUE_$key") { !keyboardVisible() && field(label)?.text?.toString()?.contains(value) == true }
         }
         activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
-        click("Arbeit"); click("Filter")
+        openWorkList(); click("Filter")
         edit("Ab Datum (JJJJ-MM-TT)", "2020-01-01", "work-date")
         showKeyboard("Suchen")
         waitUntil("WORK_SEARCH_CLOSES_FILTERS") { field("Ab Datum (JJJJ-MM-TT)") == null }
@@ -1505,19 +1563,19 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             }
         }
         fun settings() {
-            click("Büro"); click("Einstellungen")
+            openManagementEntry("Einstellungen")
             waitUntil("SETTINGS_ACTION_READY") { node("Tätigkeit, Einsatzort und Fotoqualität")?.let(::clickable) != null }
         }
-        fun planning() { click("Büro"); click("Planung") }
-        fun billing() { click("Büro"); click("Abrechnung") }
-        case("today", "Arbeit beginnen", true) { }
-        case("work", "Arbeitsentwürfe") { click("Arbeit") }
-        case("timer", "Zeiterfassung") { click("Arbeit beginnen") }
-        case("customers", "Kunde anlegen") { click("Kunden") }
-        case("office", "Kunden und Aufträge ▾", true) { click("Büro") }
+        fun planning() { openManagementEntry("Planung") }
+        fun billing() { click("Büro"); click("Abrechnung vorbereiten") }
+        case("today", "Einsatz starten", true) { }
+        case("work", "Arbeitsentwürfe") { openWorkList() }
+        case("timer", "Arbeit beginnen") { click("Einsatz starten") }
+        case("customers", "+ Kunde") { click("Kunden") }
+        case("office", "Betrieb & Verwaltung", true) { click("Büro") }
         case("properties", "Objekt anlegen") { openOfficeGroup("Kunden und Aufträge", "Objekte") }
         case("inquiries", "Anfrage anlegen") { openOfficeGroup("Kunden und Aufträge", "Anfragen") }
-        case("orders", "Auftrag anlegen") { openOfficeGroup("Kunden und Aufträge", "Aufträge") }
+        case("orders", "+ Auftrag") { openOfficeGroup("Kunden und Aufträge", "Aufträge") }
         case("care-plans", "Pflegeplan anlegen") { openOfficeGroup("Kunden und Aufträge", "Pflegepläne") }
         case("planning", "Einsatz planen", true) { planning() }
         case("visits", "Einsatz anlegen") { planning(); click("Einsätze") }
@@ -1527,12 +1585,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("offers", "Neues Angebot / Kostenvoranschlag") { billing(); click("Angebote") }
         case("invoices", "Neuer Rechnungsentwurf") { billing(); click("Rechnungen") }
         case("payments", "Zahlungen") { billing(); click("Zahlungen und Guthaben") }
-        case("equipment", "Gerät anlegen") { click("Büro"); click("Maschinenpark und Gerätewartung") }
+        case("equipment", "Gerät anlegen") { openManagementEntry("Maschinenpark und Gerätewartung") }
         case("accessories", "Zubehör bearbeiten", true) {
-            click("Büro"); click("Maschinenpark und Gerätewartung"); enter("Suchen", "QA Zubehör Säge"); click("[TEST] QA Zubehör Säge"); click("Zubehör")
+            openManagementEntry("Maschinenpark und Gerätewartung"); enter("Suchen", "QA Zubehör Säge"); click("[TEST] QA Zubehör Säge"); click("Zubehör")
         }
         case("maintenance", "Wartung einrichten") {
-            click("Büro"); click("Maschinenpark und Gerätewartung"); enter("Suchen", "QA Zubehör Säge"); click("[TEST] QA Zubehör Säge")
+            openManagementEntry("Maschinenpark und Gerätewartung"); enter("Suchen", "QA Zubehör Säge"); click("[TEST] QA Zubehör Säge")
         }
         case("materials", "Material anlegen") { openOfficeGroup("Material und Wissen", "Material") }
         case("photos", "Foto hinzufügen") { openOfficeGroup("Material und Wissen", "Fotos") }
@@ -1575,7 +1633,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 activity?.let { current -> test.runOnMainSync { current.finish() } }
                 shell("settings put system font_scale $scale")
                 launch()
-                click("Büro"); click("Einstellungen")
+                openManagementEntry("Einstellungen")
                 reveal("Speicher bereinigen")
                 waitUntil("STORAGE_ACTION_READY_$scale") { node("Speicher bereinigen")?.let(::clickable)?.isEnabled == true }
                 val bounds = actionBounds("Speicher bereinigen")
@@ -1651,7 +1709,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         waitUntil("PLANNING_BACK_TO_MAIN") { node("Termine") == null && automation.rootInActiveWindow?.packageName?.toString() == context.packageName }
         checks++
         shown("Heute")
-        click("Arbeit erfassen")
+        click("+ Erfassen")
         shown("Speichern")
         reveal("Arbeitsdatum *")
         enter("Beginn", "08:00")

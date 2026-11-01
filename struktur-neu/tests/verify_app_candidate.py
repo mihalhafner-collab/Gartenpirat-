@@ -181,9 +181,16 @@ def metadata(apk, aapt, apksigner):
         try:
             certs = [single_signer_certificate(signed.stdout)]
         except SigningError:
-            pass
+            # Build Tools 37 names an ordinary Gradle test signer "V2 Signer:".
+            # apksigner must still verify the complete APK and report exactly one certificate.
+            lines = [line for line in signed.stdout.splitlines() if 'certificate SHA-256 digest:' in line]
+            v2 = re.fullmatch(r'V2 Signer: certificate SHA-256 digest: ([a-fA-F0-9]{64})', lines[0]) if len(lines) == 1 else None
+            if v2 and re.findall(r'^Number of signers: ([0-9]+)[ \t]*$', signed.stdout, re.MULTILINE) == ['1']:
+                certs = [v2[1].lower()]
     return {'package': match[1], 'version_code': int(match[2]), 'version_name': match[3],
-            'signature_valid': signed.returncode == 0 and bool(certs), 'certificates': sorted(c.lower() for c in certs)}
+            'signature_valid': signed.returncode == 0 and bool(certs), 'certificates': sorted(c.lower() for c in certs),
+            'internet_permission': "uses-permission: name='android.permission.INTERNET'" in result.stdout,
+            'application_label': (re.search(r"application-label:'([^']*)'", result.stdout).group(1) if re.search(r"application-label:'([^']*)'", result.stdout) else '')}
 
 
 def compare_identity(previous, candidate):
@@ -198,7 +205,7 @@ def compare_identity(previous, candidate):
     return 'PASS'
 
 
-def candidate_assets(apk, assets_root, intermediates):
+def candidate_assets(apk, assets_root, intermediates, variant="release"):
     comparison = compare_assets_to_source(apk, assets_root)
     profiles = {'dexopt/baseline.prof': ('binary_art_profile', b'pro\0'),
                 'dexopt/baseline.profm': ('binary_art_profile_metadata', b'prm\0')}
@@ -208,7 +215,7 @@ def candidate_assets(apk, assets_root, intermediates):
             if name not in profiles:
                 continue  # Every unknown addition continues to fail the asset gate.
             folder, magic = profiles[name]
-            reference = Path(intermediates) / folder / 'release/compileReleaseArtProfile' / Path(name).name
+            reference = Path(intermediates) / folder / variant / ('compile' + variant[0].upper() + variant[1:] + 'ArtProfile') / Path(name).name
             raw = archive.read('assets/' + name)
             if (not reference.is_file() or reference.is_symlink()
                     or not raw.startswith(magic) or raw != reference.read_bytes()):
@@ -220,11 +227,13 @@ def candidate_assets(apk, assets_root, intermediates):
     return comparison
 
 
-def verify(apk, aapt, apksigner, baseline=None):
+def verify(apk, aapt, apksigner, baseline=None, ui_preview=False):
     meta = metadata(apk, aapt, apksigner)
-    if meta['package'] != PACKAGE or meta['version_code'] <= 65:
+    if meta['package'] != (PACKAGE + '.preview' if ui_preview else PACKAGE) or meta['version_code'] <= 65:
         raise ValueError('Unexpected package or old development version')
-    assets = candidate_assets(apk, ROOT/'android/app/src/main/assets', ROOT/'android/app/build/intermediates')
+    if ui_preview and (baseline is not None or meta['internet_permission'] or meta['application_label'] != 'Haus & Garten Test' or not meta['version_name'].endswith('-test') or not meta['signature_valid']):
+        raise ValueError('Preview must be a separately signed, labelled test app; never an operative update')
+    assets = candidate_assets(apk, ROOT/'android/app/src/main/assets', ROOT/'android/app/build/intermediates', 'uiPreview' if ui_preview else 'release')
     if not assets['matches']:
         raise ValueError('Packaged assets differ: ' + json.dumps(assets))
     seed = empty_seed(apk)
@@ -280,11 +289,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--apk', type=Path, required=True)
     parser.add_argument('--baseline-apk', type=Path)
+    parser.add_argument('--ui-preview', action='store_true', help='Verify only the separate .preview test application')
     parser.add_argument('--aapt', required=True)
     parser.add_argument('--apksigner', required=True)
     parser.add_argument('--report', type=Path, required=True)
     args = parser.parse_args()
-    report = verify(args.apk, args.aapt, args.apksigner, args.baseline_apk)
+    report = verify(args.apk, args.aapt, args.apksigner, args.baseline_apk, args.ui_preview)
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report))

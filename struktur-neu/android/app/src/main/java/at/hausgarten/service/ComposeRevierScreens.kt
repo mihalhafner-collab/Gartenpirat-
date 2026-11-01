@@ -1,5 +1,6 @@
 package at.hausgarten.service
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.clickable
@@ -297,6 +298,126 @@ private class RevierEdit(
     }
 }
 
+private data class NativeRouteTarget(val collection: String, val id: String, val label: String, val address: String, val key: String)
+
+private fun nativeRouteAddress(customer: JSONObject): String = listOf(
+    customer.optString("street"), listOf(customer.optString("postal_code"), customer.optString("city")).filter { it.isNotBlank() }.joinToString(" "), customer.optString("country")
+).filter { it.isNotBlank() }.joinToString(", ")
+
+/** Exact address equality only; an explicitly identical optional country adds no second destination. */
+private fun nativeRouteKey(address: String, country: String): String {
+    val key = address.lowercase(java.util.Locale.ROOT).replace(Regex("[\\s,]+"), " ").trim()
+    val suffix = country.lowercase(java.util.Locale.ROOT).replace(Regex("[\\s,]+"), " ").trim()
+    return if (suffix.isNotEmpty() && key.endsWith(" $suffix")) key.removeSuffix(" $suffix").trim() else key
+}
+
+/** A small external handoff shared by customer and property records. No timer or form is changed. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun NativeRouteAction(controller: NativeAppController, customerId: String, propertyId: String = "") {
+    val scope = rememberCoroutineScope()
+    var shown by remember(customerId, propertyId) { mutableStateOf(false) }
+    var loading by remember(customerId, propertyId) { mutableStateOf(false) }
+    var opening by remember(customerId, propertyId) { mutableStateOf(false) }
+    var failure by remember(customerId, propertyId) { mutableStateOf("") }
+    var targets by remember(customerId, propertyId) { mutableStateOf(emptyList<NativeRouteTarget>()) }
+    var selected by remember(customerId, propertyId) { mutableStateOf("") }
+    var customerName by remember(customerId, propertyId) { mutableStateOf("") }
+    var country by remember(customerId, propertyId) { mutableStateOf("") }
+    var missingPropertyAddress by remember(customerId, propertyId) { mutableStateOf(false) }
+    fun loadTargets() {
+        scope.launch {
+            loading = true; failure = ""; targets = emptyList(); missingPropertyAddress = false
+            try {
+                val repository = controller.store.nativeData()
+                val customer = repository.detail("customers", customerId) ?: error("Der Kunde ist nicht mehr lesbar. Bitte den Vorgang erneut öffnen.")
+                customerName = customer.optString("name"); country = customer.optString("country")
+                val rows = ArrayList<NativeRouteTarget>()
+                fun add(collection: String, id: String, label: String, address: String) {
+                    if (address.isBlank()) return
+                    val key = nativeRouteKey(address, country)
+                    val previous = rows.indexOfFirst { it.key == key }
+                    val next = NativeRouteTarget(collection, id, label, address, key)
+                    if (previous < 0) rows.add(next)
+                    else {
+                        val old = rows[previous]
+                        rows[previous] = (if (id == propertyId) next else old).copy(label = old.label + " / " + label)
+                    }
+                }
+                if (customer.optString("street").isNotBlank() || customer.optString("city").isNotBlank()) add("customers", customerId, "Kundenadresse", nativeRouteAddress(customer))
+                var offset = 0
+                while (true) {
+                    val page = repository.list("properties", customerId = customerId, offset = offset, limit = 100)
+                    for (row in page.rows) add("properties", row.id, row.title + " · Einsatzort", row.address)
+                    offset += page.rows.size
+                    if (!page.hasMore || page.rows.isEmpty()) break
+                }
+                if (propertyId.isNotBlank()) {
+                    val property = repository.detail("properties", propertyId) ?: error("Das Objekt ist nicht mehr lesbar. Bitte den Vorgang erneut öffnen.")
+                    check(property.optString("customer_id") == customerId) { "Kunden- und Objektbezug stimmen nicht mehr überein. Bitte den Vorgang prüfen." }
+                    missingPropertyAddress = property.optString("address").isBlank()
+                    if (!missingPropertyAddress && rows.none { it.collection == "properties" && it.id == propertyId }) add("properties", propertyId, property.optString("name", "Objekt") + " · Einsatzort", property.optString("address"))
+                }
+                targets = rows
+                selected = (rows.firstOrNull { propertyId.isNotBlank() && it.id == propertyId } ?: rows.firstOrNull())?.key.orEmpty()
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (error: Exception) { failure = error.message ?: "Routenziele konnten nicht gelesen werden." }
+            finally { loading = false }
+        }
+    }
+    OutlinedButton({ shown = true; loadTargets() }, enabled = !loading && !opening) { Text("Route starten") }
+    if (!shown) return
+    ModalBottomSheet(onDismissRequest = { if (!opening) shown = false }) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(if (targets.size > 1) "Wohin möchtest du fahren?" else "Ziel bestätigen", style = MaterialTheme.typography.titleLarge)
+            if (customerName.isNotBlank()) Text(customerName)
+            if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
+            if (failure.isNotBlank()) {
+                Text(failure, color = MaterialTheme.colorScheme.error)
+                OutlinedButton({ loadTargets() }, enabled = !loading && !opening) { Text("Erneut lesen") }
+            } else if (!loading) {
+                if (missingPropertyAddress || targets.isEmpty()) {
+                    Text(if (missingPropertyAddress) "Für dieses Objekt ist keine bestätigte Einsatzadresse erfasst." else "Keine bestätigte Zieladresse erfasst.")
+                    Button({ shown = false; controller.navigate(if (propertyId.isNotBlank()) "properties" else "customers", if (propertyId.isNotBlank()) propertyId else customerId, "edit") }) { Text("Adresse ergänzen") }
+                } else {
+                    for (target in targets) {
+                        OutlinedCard(Modifier.fillMaxWidth().selectable(selected == target.key, enabled = !opening, role = Role.RadioButton) { selected = target.key }) {
+                            Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                if (targets.size > 1) RadioButton(selected == target.key, onClick = null)
+                                Column(Modifier.weight(1f)) { Text(target.label, style = MaterialTheme.typography.titleSmall); Text(target.address) }
+                            }
+                        }
+                    }
+                    Text("Startstandort und Navigation übernimmt Google Maps. Die laufende Zeiterfassung bleibt erhalten.", style = MaterialTheme.typography.bodySmall)
+                    Button({
+                        val target = targets.firstOrNull { it.key == selected } ?: return@Button
+                        scope.launch {
+                            opening = true
+                            try {
+                                controller.flushDrafts()
+                                val fresh = controller.store.nativeData().detail(target.collection, target.id) ?: error("Das Routenziel ist nicht mehr lesbar. Bitte die Zielauswahl erneut öffnen.")
+                                check(target.collection != "properties" || fresh.optString("customer_id") == customerId) { "Der Objektbezug wurde geändert. Bitte die Zielauswahl erneut öffnen." }
+                                val address = if (target.collection == "customers") nativeRouteAddress(fresh) else fresh.optString("address")
+                                check(nativeRouteKey(address, country) == target.key) { "Die Zieladresse wurde geändert. Bitte die Ziele erneut lesen und bestätigen." }
+                                val route = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=" + Uri.encode(address))
+                                try { controller.context.startActivity(Intent(Intent.ACTION_VIEW, route).setPackage("com.google.android.apps.maps")) }
+                                catch (missing: ActivityNotFoundException) {
+                                    try { controller.context.startActivity(Intent(Intent.ACTION_VIEW, route)); controller.message("Google Maps ist nicht verfügbar. Die Route wurde im Browser geöffnet.") }
+                                    catch (noBrowser: ActivityNotFoundException) { throw IllegalStateException("Keine Karten- oder Browser-App verfügbar. Bitte die angezeigte Zieladresse verwenden.") }
+                                }
+                                shown = false
+                            } catch (cancelled: CancellationException) { throw cancelled }
+                            catch (error: Exception) { failure = error.message ?: "Die Route konnte nicht geöffnet werden. Die Zieladresse bleibt erhalten." }
+                            finally { opening = false }
+                        }
+                    }, Modifier.fillMaxWidth().heightIn(min = 56.dp), enabled = !opening) { Text(if (opening) "Route wird geöffnet …" else "Route in Google Maps öffnen") }
+                }
+            }
+            TextButton({ shown = false }, enabled = !opening) { Text("Abbrechen") }
+        }
+    }
+}
+
 @Composable
 private fun RevierDetail(
     config: RevierSection, id: String, refresh: Int, controller: NativeAppController, repository: NativeDataRepository,
@@ -351,7 +472,7 @@ private fun RevierDetail(
                     OutlinedButton({ onEdit("care_plan", null, JSONObject().put("property_id", id)) }) { Text("Pflegeplan anlegen") }
                     OutlinedButton({ onEdit("visit", null, JSONObject().put("property_id", id)) }) { Text("Einsatz planen") }
                     OutlinedButton({ controller.navigate("offers", "", "new", JSONObject().put("customer_id", row.getString("customer_id")).put("property_id", id).put("title", row.optString("name"))) }) { Text("Angebot aus diesem Objekt") }
-                    if (row.optString("address").isNotEmpty()) OutlinedButton({ controller.context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + Uri.encode(row.optString("address"))))) }) { Text("Navigation öffnen") }
+                    NativeRouteAction(controller, row.getString("customer_id"), id)
                     for ((collection, kind, title) in listOf(Triple("visits", "visits", "Besuche"), Triple("care_plans", "care_plans", "Pflegepläne"), Triple("inquiries", "inquiries", "Anfragen"))) {
                         val related = data?.optJSONArray(collection)?.revierObjects().orEmpty()
                         if (related.isNotEmpty()) Text(title, style = MaterialTheme.typography.titleMedium)

@@ -29,3 +29,25 @@ Nach einem ausdrücklich beauftragten Bau:
 Der Signierer prüft Originalidentität, Datenfreiheit und temporäre Dateien. Die
 hier übernommenen Signiertests verwenden ausschließlich synthetische Platzhalter
 und gemockte Werkzeuge. Sie signieren keine echte App und erzeugen keine Schlüssel.
+
+## Ausdrücklich beauftragte Test-APK ohne Originalsignatur
+
+Der vorhandene `uiPreview`-Buildtyp verwendet denselben nativen Quellcode mit
+Paketkennung `at.hausgarten.service.preview`, Versionssuffix `-test` und dem
+sichtbaren Namen „Haus & Garten Test“. Er ist separat installierbar und kann die
+Original-App nicht aktualisieren. Der Android-Sandboxbereich ist getrennt;
+Startkollektionen bleiben leer. Das kleine variantenspezifische Manifest entfernt
+nur für die Test-App die INTERNET-Berechtigung. Externe Maps-Übergaben bleiben
+möglich; App-Verbindungen benötigen die reguläre App. Nur synthetische Testdaten
+verwenden.
+
+`HG_TEST_KEYSTORE_PATH` wählt einen privaten Testschlüssel außerhalb des Projekts.
+Die Gradle-Testsignierung verwendet den Android-Debug-Alias mit den üblichen
+Testkennwörtern. Keine Original-Signiervariablen oder Originalschlüssel verwenden.
+Den Build gezielt mit `gradle -p android :app:assembleUiPreview` anstoßen. Die
+Release-Konfiguration behält ihre Originalkennung und bleibt unsigniert.
+
+Danach `tests/verify_app_candidate.py --ui-preview` und den bestehenden
+Artefakt-Datenschutzcheck auf die tatsächlich erzeugte Datei anwenden. Paketname,
+Testkennzeichnung, gültige Testsignatur, native Klassen, identische Ressourcen
+und leere Startdaten sind überprüfbar; eine Pixel-Abnahme folgt daraus nicht.

@@ -9,19 +9,14 @@
     "cutoff_build_inclusive": 100
   },
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-10-30T04:53:51.4297165Z",
-    "version_name": "1.57.0",
-    "version_code": 119,
-    "reported_base_git_sha": "94b75be56ef46ed1404b19a725a97811cbfcd19a",
-    "source_sha256": "1dccfad7966f564f3a844c848af4dae50c5200b8697592e07a449e4e06920407",
-    "source_binding": "ADB_APK_SIZE_SHA256_SIGNATURE_MATCH;commit/fingerprint in DEX",
-    "apk_sha256": "f907a1b260ec7719e7b11bf24e6d02671b8eaef7ba797f9ddca02b0a0ab42f86",
-    "apk_bytes": 89453503,
-    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-    "certificate_independently_read": true,
-    "certificate_reference": "MATCH_ORIGINAL_REFERENCE;historical APK not reread",
+    "observed_at_utc": "2026-11-01T22:37:51.703490+00:00",
+    "version_name": "1.57.2",
+    "version_code": 121,
+    "reported_base_git_sha": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
+    "source_sha256": "9effca5a874b05c6fbc097adba1c06d273d3963bf3e4e092b0560ec2664075ae",
+    "source_binding": "MCP_RUNTIME_BUILD_FINGERPRINT; installed APK bytes not reread",
     "database_version": 7,
-    "database_version_evidence": "Build119 MCP runtime;no DB dump"
+    "database_version_evidence": "MCP runtime; no business records or DB read"
   },
   "observed_installation_history": [
     {
@@ -33,34 +28,29 @@
     }
   ],
   "current_task": {
-    "name": "Build121 für manuelle Paketinstallation über den bestehenden privaten Drive-Ordner bereitstellen",
-    "status": "RELEASE_PREPARED;BLOCKED_BUILD_AND_ORIGINAL_SIGNING_ENVIRONMENT",
+    "name": "Native Neugestaltung auf Build121; separat installierbare Build122-Test-APK",
+    "status": "TEST_APK_DELIVERED;SOURCE_BACKUP_PENDING;PIXEL_ACCEPTANCE_OPEN",
     "authorized": true,
-    "authorization_scope": "Nutzerauftrag 01.11.2026: aktuellen Stand abschließen, neue APK erstellen und über Drive für manuelle Paketinstallation bereitstellen; Emulatortest ausdrücklich weglassen. Bestehendes Zurück bleibt; kein zusätzliches Menü. Keine automatische Pixel-Installation, Migration, Wiederherstellung oder Rechnungsfreigabe.",
-    "base_git_sha": "4debb69b6994a6a3b3238a81a2114d3162d9ce63",
-    "branch": "codex/kotlin-refactoring-20261029",
+    "authorization_scope": "Nutzerfreigabe zur Umsetzung des überarbeiteten Build121-Konzepts; anschließend ausdrücklich Test-APK für Pixel OHNE Originalsignatur. Separate Paketkennung .preview, Testsignatur und eigener Datenbereich; keine produktive Aktualisierung oder automatische Installation.",
+    "base_git_sha": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
+    "branch": "codex/redesign-build121",
     "implementation": [
-      "Kontextfilter für Fotos, Angebote und verwandte Listen; erkennbare Hauptbereiche, wiederhergestellte Navigation und bereinigte Meldungen.",
-      "Gemeinsame IME-feste Auswahlfenster: Suche/Fertig, Seiten, adressierte Kunden und getrenntes Keine Zuordnung. Filterfelder bleiben bei eigener Tastatureingabe erhalten.",
-      "Einheitliches Material3, umbrechende Aktionsleisten, lesbare Statusflächen, deutsche Anzeigeformate, reduzierte technische Details.",
-      "Büro bündelt Abrechnung/Planung/Maschinenpark/Einstellungen; übrige Ziele in drei Gruppen. Kundenakte, Arbeit und Entwürfe verwenden vorhandene Beziehungen und Abfragen.",
-      "Arbeitskunde/Rechnungsempfänger getrennt; Quellenfilter und Objekt-/Anfragekontext im Formularentwurf. Keine neue Fachbeziehung, Datenbank oder automatische Buchung.",
-      "Abgleich210Aktionen; synthetische6Darstellungen,16Suchwege,17große Fachlistenfälle,38Einstiege, A/B-Kontext, Activity-Neuerstellung, IME-Grenzen, Screenshots, Touch und Zurück-Geste. Details:docs/verification/performance-current.md.",
-      "Backup streamt Originaldateien mit DB-Snapshot direkt zum Dateianbieter; keine capture-/verify-Vollkopien. Zielüberschreiben und verwaiste Arbeitsordner berücksichtigt; synthetische Backend-Prüfungen vorhanden; vollständige UI-Abnahme fehlgeschlagen.",
-      "Lokales Archiv/Purge ohne externe Vorschau-Hashes; optionale Auftrags-/Terminbezüge lösen, keine neuen Tombstones. Referenzgeprüfte Bereinigung mit Speicherdiagnose einschließlich Cache, alten Lösch-Sicherungen, Receipt-Bereinigung und WAL/VACUUM; native Backend-Prüfungen bestanden; UI-Abnahme fehlgeschlagen."
+      "Vorhandenes HausGartenTheme, Navigation und Compose-Screens verwenden; keine JS/CSS-Schicht.",
+      "Kundensuche und Sortierung über vorhandene native SQL-Leseprojektionen; Inaktivität und Papierkorb getrennt.",
+      "Native externe Maps-Routenübergabe mit belegten Zielen und Entwurfserhalt.",
+      "Sicherungsanzeige aus vorhandener Auswertung; Android-Dateianbieter kann Drive oder lokalen Speicher repräsentieren."
     ],
-    "kiss_yagni": "Vorhandene Route, SQL-Abfragen, Compose-Zustände und Fachschreiber weiterverwenden; keine neue Datenbank, Abhängigkeit, Architektur oder Filterprofile.",
+    "kiss_yagni": "Keine neuen Frameworks, Dependencies, Fachstores, Tabellen oder Schemamigrationen. Native Fachaktionen und Aktionskennungen bleiben maßgeblich.",
     "remaining": [
-      "Vorhandene persönliche Bauumgebung mit Gradle9.3.1, Android-SDK37/Build-Tools37.0.0 und geschützten HG_ORIGINAL_-Variablen verwenden; in dieser Sitzung nicht verfügbar.",
-      "Build121 ohne Emulator bauen, mit Originalschlüssel signieren und vorhandene APK-Prüfungen ausführen.",
-      "Geprüfte APK im bestehenden privaten Drive-Ordner Aktuell bereitstellen, vollständig zurücklesen und diesen Arbeitsstand um tatsächlichen Commit, APK-Nachweis und Download-Link ergänzen."
+      "Geprüfte Quellen auf eigenem Zweig sichern und exakt zurücklesen.",
+      "Native UI-Ausführung und manuelle Pixel-Abnahme bleiben offen."
     ]
   },
   "open_checks": [
     "Letzter CI-Lauf 41294127452 zu 4debb69: Quellprüfung, Android-Bau/Lint und JVM bestanden; Android-/UI-Schritt fehlgeschlagen. Acht Compose-Abläufe: customer, usability, accessories, back_gesture, domain_search, list_viewports, surfaces, storage_settings. Kein Nachweis, dass alle Fehler Appfehler sind.",
-    "Neuer Emulatortest ausdrücklich vom Nutzer abgewählt; bekannte Fehler bleiben dokumentiert und gelten nicht als behoben.",
-    "Neue APK nicht gebaut, signiert oder hochgeladen: Android-Bauwerkzeuge und alle fünf Original-Signiervariablen fehlen in dieser Sitzung; vorhandene persönliche Bauumgebung nicht angebunden.",
-    "Physischer Pixel und produktiver Speicherbestand nicht geprüft; Freigabe zur Drive-Bereitstellung ist keine automatische Installation oder Datenänderung."
+    "Physischer Pixel und produktiver Speicherbestand nicht geprüft; Freigabe zur Drive-Bereitstellung ist keine automatische Installation oder Datenänderung.",
+    "In dieser Cloud derzeit kein Emulator und kein USB-Pixel verfügbar. Keine ausgeführte native UI-/Pixel-Prüfung behaupten.",
+    "Test-APK gebaut und artefaktgeprüft; native UI-Ausführung und physischer Pixel bleiben offen. Separates Paket ist kein Update der Original-App."
   ],
   "workflow": {
     "scope": "CURRENT_SOURCE;struktur-neu authoritative;qa-apk.yml builds/tests without user APK publication",
@@ -86,20 +76,21 @@
     }
   },
   "validation": {
-    "app_source_fingerprint": "9effca5a874b05c6fbc097adba1c06d273d3963bf3e4e092b0560ec2664075ae",
-    "source_privacy": "PASS;empty operational seed",
+    "app_source_fingerprint": "71a83f9df3e96e38d82b78626e0712e8372e86ad9d5e4fc1ba8386dc127a6986",
+    "source_privacy": "PASS source/workspace/actual test APK; empty initial collections",
     "business_data_read": false,
-    "authored_changes_diff_check": "PASS;git diff --check;in diesem Auftrag ausschließlich Versionsanhebung und bestehender Arbeitsstand geändert",
+    "authored_changes_diff_check": "PASS git diff --check; native redesign and explicit separate test build only",
     "current_test_run": {
-      "source_basis": "4debb69b6994a6a3b3238a81a2114d3162d9ce63",
-      "workflow_run": 41294127452,
-      "source_review": "PASS;CI check_current mit59Python-Tests",
-      "android_build": "PASS;CI release+AndroidTest+lint",
-      "jvm": "PASS;CI9Suiten",
-      "emulator": "FAIL;native_compose8Abläufe fehlgeschlagen;kein erneuter Lauf beauftragt",
+      "source_basis": "working tree based on f44797bfc412d2fea27236fd9ffd4bda6b234286",
+      "source_review": "PASS check_current; 59 selected Python tests",
+      "jvm": "PASS 8 Kotlin/JVM suites; backup117 interoperability included",
+      "android_build": "PASS release + instrumentation APK compile; PASS signed uiPreview APK build",
+      "lint": "PASS release lint and uiPreview critical lint; no UI runtime acceptance",
+      "native_ui_execution": "NOT_RUN; no emulator available",
       "physical_pixel": "NOT_RUN",
       "business_data_read": false,
-      "pixel_installation_performed": false
+      "pixel_installation_performed": false,
+      "apk_verification": "PASS preview package/label/version, test signer equality and original signer inequality, 637 asset matches, Compose entries, empty seed, no INTERNET, separate provider authorities"
     },
     "performance_evidence": "docs/verification/performance-current.md;Build120 emulator and historical Pixel119 separate",
     "connector": {
@@ -109,43 +100,41 @@
       "scope": "HISTORICAL_BUILD119;physical binding proved"
     },
     "physical_device_test": {
-      "source_commit": "6da869753ee2ed1e8640ec1b2a1c354724fdd0ee",
-      "result": "ENDED_BY_USER;NO_FULL_ACCEPTANCE",
-      "evidence_document": "docs/verification/performance-current.md#gebundener-gerätebeleg",
-      "case_counts": {
-        "total": 67,
-        "pass": 57,
-        "fail": 6,
-        "not_executed": 4,
-        "route_smoke": 28
-      },
-      "scope": "HISTORICAL119;details in evidence document;not Build120 proof"
+      "status": "NOT_RUN_FOR_BUILD122",
+      "scope": "No emulator or directly connected Pixel; only synthetic host checks and native compilation"
     },
     "release_delivery": {
-      "observed_at_utc": "2026-10-30T13:42:23.915421+00:00",
-      "source_commit": "f770f38d0bd428ec93004252d1aaacf003a475e2",
-      "source_sha256": "a08ad845065f9d83a8ce9206f98b42c14053f4d779aa9a7961167ac797d7ae3c",
-      "physical_pixel": "NOT_EXECUTED",
-      "installation_performed": false,
-      "productive_data_read": false,
-      "productive_migration_performed": false,
-      "restore_performed": false,
-      "invoice_authority_activated": false,
-      "scope": "HISTORICAL_BUILD120;details in last_distributed_build and docs/verification/performance-current.md",
-      "checks": "PASS:check_current62Python,assembleRelease/lint,9JVM+8native matching CI41054301410,original signature,candidate/Drive download readback,commit/fingerprint DEX;temporary signer removed"
+      "status": "TEST_APK_UPLOADED_AND_FULLY_READ_BACK",
+      "package": "at.hausgarten.service.preview",
+      "version_name": "1.57.3-test",
+      "version_code": 122,
+      "signature": "TEST_KEY; original signer not used",
+      "data": "separate Android sandbox; empty initial collections",
+      "automatic_installation": false,
+      "apk_sha256": "58427fd9b59e41b3f301d4d754ef15f513e3fdeda37b68e9ebf6059e2070db59",
+      "apk_bytes": 89613699,
+      "certificate_sha256": "043c96f359214a90038cc77ff14325758ef28a10c6f4160d2eefa74a7fc9d4ef",
+      "certificate_matches_test_key": true,
+      "certificate_matches_original": false,
+      "internet_permission": false,
+      "built_before_commit": true,
+      "source_binding": "APK BuildConfig source fingerprint equals reviewed native source; source_dirty=true at build, not a clean release build",
+      "artifact_privacy": "PASS",
+      "pixel_installation": "NOT_PERFORMED",
+      "drive_file_id": "1-Ac9dzH0nKL3YI5fcIqZUelArBnej5sJ",
+      "drive_url": "https://drive.google.com/file/d/1-Ac9dzH0nKL3YI5fcIqZUelArBnej5sJ/view?usp=drivesdk",
+      "drive_folder": "20-APK/Test",
+      "drive_shared": false,
+      "readback_bytes": 89613699,
+      "readback_sha256": "58427fd9b59e41b3f301d4d754ef15f513e3fdeda37b68e9ebf6059e2070db59",
+      "readback_matches_apk": true,
+      "installation": "MANUAL_PACKAGE_INSTALLER_ONLY; not performed by agent"
     },
     "release_preparation": {
-      "version_name": "1.57.2",
-      "version_code": 121,
-      "base_git_sha": "4debb69b6994a6a3b3238a81a2114d3162d9ce63",
-      "source_review": "PASS;check_current.py nach Versionsanhebung:59Python-Tests;keine native Geräteprüfung",
-      "android_build": "NOT_RUN;Android-Bauwerkzeuge fehlen",
-      "jvm": "NOT_RUN;neuer Bau nicht gestartet",
-      "original_signing": "NOT_RUN;geschützte persönliche Signierumgebung nicht angebunden",
-      "emulator": "NOT_RUN;ausdrücklich vom Nutzer abgewählt",
-      "physical_pixel": "NOT_RUN",
-      "drive_upload": "NOT_RUN;noch keine neue APK",
-      "drive_target_folder_id": "1K4WB9L6ZKlW-33o8uPK3zTfqgAOVOE8u"
+      "status": "SUPERSEDED_BY_EXPLICIT_TEST_APK_REQUEST",
+      "operative_original_signing": "NOT_REQUESTED_FOR_THIS_ARTIFACT",
+      "preview_package": "at.hausgarten.service.preview",
+      "preview_label": "Haus & Garten Test"
     }
   },
   "unmerged_work": [

@@ -2,6 +2,13 @@ package at.hausgarten.service
 
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
+import android.database.DatabaseUtils
+import android.content.Context
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,6 +16,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -28,7 +37,9 @@ data class NativeListRow(
     val workDate: String,
     val thumbnailReference: String,
     val active: Boolean,
-    val billingType: String
+    val billingType: String,
+    val objectCount: Int? = null,
+    val nextVisitLabel: String = ""
 )
 
 data class NativeListPage(val rows: List<NativeListRow>, val total: Int, val offset: Int, val limit: Int) {
@@ -44,6 +55,7 @@ data class NativeListPage(val rows: List<NativeListRow>, val total: Int, val off
 class NativeDataRepository(private val store: PixelLocalStore) {
     private val path by lazy { store.appContext().getDatabasePath("haus-garten-mobile.db").canonicalPath }
     private val changes get() = versions.computeIfAbsent(path) { MutableStateFlow(0L) }
+    internal fun watchRevision(): Flow<Long> = changes
 
     @JvmOverloads
     suspend fun list(
@@ -62,7 +74,8 @@ class NativeDataRepository(private val store: PixelLocalStore) {
         orderId: String = "",
         worklogId: String = "",
         sessionId: String = "",
-        chronological: Boolean = false
+        chronological: Boolean = false,
+        customerSort: String = "name"
     ): NativeListPage = withContext(Dispatchers.IO) {
         requireCollection(collection)
         require(offset in 0..1_000_000 && limit in 1..100) { "TABLE_PAGE_OUT_OF_RANGE" }
@@ -87,11 +100,23 @@ class NativeDataRepository(private val store: PixelLocalStore) {
             if (!includeInactive) where.append(" AND active=1")
             if (billingType.isNotEmpty()) { where.append(" AND billing_type=?"); args.add(billingType) }
             for (term in SnapshotReadSupport.fold(search).trim().split(Regex("\\s+")).filter { it.isNotEmpty() }) {
-                where.append(" AND instr(search_text,?)>0")
-                args.add(term)
+                if (collection == "customers") {
+                    where.append(" AND (instr(search_text,?)>0 OR EXISTS(SELECT 1 FROM native_read_rows p WHERE p.collection='properties' AND p.active=1 AND p.customer_id=native_read_rows.id AND instr(p.search_text,?)>0))")
+                    args.add(term); args.add(term)
+                } else { where.append(" AND instr(search_text,?)>0"); args.add(term) }
             }
             val total = db.rawQuery("SELECT count(*) FROM native_read_rows WHERE $where", args.toTypedArray()).use { it.moveToFirst(); it.getInt(0) }
-            val order = if (collection in datedCollections) "work_date ${if (chronological) "ASC" else "DESC"},id" else "active DESC,sort_key,id"
+            val next = if (collection == "customers" && customerSort == "next") customerNext(db) else emptyMap()
+            val order = if (collection == "customers") when (customerSort) {
+                "recent" -> {
+                    val recent = store.appContext().getSharedPreferences("hausgarten.customer-recent", Context.MODE_PRIVATE).all
+                        .mapNotNull { (id, value) -> (value as? Long)?.takeIf { it > 0 }?.let { id to it } }
+                        .sortedByDescending { it.second }.take(100)
+                    customerOrder(recent.map { it.first to -it.second })
+                }
+                "next" -> customerOrder(next.map { (id, visit) -> id to visit.first.toEpochMilli() })
+                else -> "title COLLATE LOCALIZED,id"
+            } else if (collection in datedCollections) "work_date ${if (chronological) "ASC" else "DESC"},id" else "active DESC,sort_key,id"
             val rows = ArrayList<NativeListRow>(limit)
             db.rawQuery("SELECT id,title,subtitle,address,status,customer_id,work_date,thumbnail_reference,active,billing_type FROM native_read_rows WHERE $where ORDER BY $order LIMIT ? OFFSET ?", (args + listOf(limit.toString(), offset.toString())).toTypedArray()).use { cursor ->
                 while (cursor.moveToNext()) {
@@ -101,8 +126,55 @@ class NativeDataRepository(private val store: PixelLocalStore) {
                     rows.add(NativeListRow(cursor.getString(0), cursor.getString(1), subtitle, cursor.getString(3), cursor.getString(4), cursor.getString(5), cursor.getString(6), cursor.getString(7), cursor.getInt(8) != 0, cursor.getString(9)))
                 }
             }
-            NativeListPage(rows, total, offset, limit)
+            if (collection == "customers" && rows.isNotEmpty()) {
+                val counts = HashMap<String, Int>()
+                val marks = rows.joinToString(",") { "?" }
+                db.rawQuery("SELECT customer_id,count(*) FROM native_read_rows WHERE collection='properties' AND active=1 AND customer_id IN ($marks) GROUP BY customer_id", rows.map { it.id }.toTypedArray()).use { cursor ->
+                    while (cursor.moveToNext()) counts[cursor.getString(0)] = cursor.getInt(1)
+                }
+                val hints = if (customerSort == "next") next else customerNext(db, rows.map { it.id })
+                NativeListPage(rows.map { it.copy(objectCount = counts[it.id] ?: 0, nextVisitLabel = hints[it.id]?.second.orEmpty()) }, total, offset, limit)
+            } else NativeListPage(rows, total, offset, limit)
         }
+    }
+
+    /** Customer order is resolved before LIMIT; these are disposable display choices, not business writes. */
+    private fun customerOrder(values: List<Pair<String, Long>>): String =
+        if (values.isEmpty()) "title COLLATE LOCALIZED,id" else "CASE id " + values.joinToString(" ") { (id, rank) ->
+            "WHEN ${DatabaseUtils.sqlEscapeString(id)} THEN $rank"
+        } + " ELSE 9223372036854775807 END,title COLLATE LOCALIZED,id"
+
+    /** Narrow scheduling rows select only the earliest viable day per customer before reading its details. */
+    private fun customerNext(db: SQLiteDatabase, customers: List<String>? = null): Map<String, Pair<Instant, String>> {
+        val zone = ZoneId.of("Europe/Vienna")
+        val now = Instant.now()
+        val today = now.atZone(zone).toLocalDate().toString()
+        val next = HashMap<String, Pair<Instant, String>>()
+        val selectedDay = HashMap<String, String>()
+        val format = DateTimeFormatter.ofPattern("dd.MM.yyyy · HH:mm", Locale.GERMAN)
+        val selected = if (customers == null) "" else " AND customer_id IN (" + customers.joinToString(",") { "?" } + ")"
+        db.rawQuery("SELECT collection,id,customer_id,work_date FROM native_read_rows WHERE active=1 AND customer_id<>'' AND work_date>=? AND ((collection='appointments' AND status IN ('tentative','confirmed')) OR (collection='visits' AND status IN ('planned','in_progress','partial')))$selected ORDER BY work_date,id", (listOf(today) + customers.orEmpty()).toTypedArray()).use { cursor ->
+            while (cursor.moveToNext()) {
+                val collection = cursor.getString(0)
+                val customer = cursor.getString(2)
+                val day = cursor.getString(3).take(10)
+                if (selectedDay[customer]?.let { day > it } == true) continue
+                val row = record(db, collection, cursor.getString(1)) ?: continue
+                val at = try {
+                    if (collection == "appointments") Instant.parse(row.getString("starts_at"))
+                    else LocalDateTime.parse(row.getString("date") + "T" + row.optString("window_start").ifBlank { "23:59" }).atZone(zone).toInstant()
+                } catch (_: java.time.DateTimeException) { continue }
+                if (at < now) continue
+                val label = if (collection == "visits" && row.optString("window_start").isBlank())
+                    "Besuch: " + LocalDate.parse(row.getString("date")).format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) + " · ohne feste Uhrzeit"
+                else (if (collection == "appointments") "Termin: " else "Besuch: ") + at.atZone(zone).format(format)
+                if (next[customer]?.first?.let { at >= it } != true) {
+                    next[customer] = at to label
+                    selectedDay[customer] = day
+                }
+            }
+        }
+        return next
     }
 
     @JvmOverloads
@@ -122,8 +194,18 @@ class NativeDataRepository(private val store: PixelLocalStore) {
         orderId: String = "",
         worklogId: String = "",
         sessionId: String = "",
-        chronological: Boolean = false
-    ): Flow<NativeListPage> = flow { changes.collect { awaitCommit(); emit(list(collection, search, status, customerId, offset, limit, includeInactive, billingType, propertyId, role, dateFrom, dateTo, orderId, worklogId, sessionId, chronological)) } }.distinctUntilChanged().flowOn(Dispatchers.IO)
+        chronological: Boolean = false,
+        customerSort: String = "name"
+    ): Flow<NativeListPage> = flow {
+        while (true) {
+            val observed = changes.value
+            awaitCommit()
+            emit(list(collection, search, status, customerId, offset, limit, includeInactive, billingType, propertyId, role, dateFrom, dateTo, orderId, worklogId, sessionId, chronological, customerSort))
+            // Customer hints can expire without a business write; collection cancellation stops this wait.
+            if (collection == "customers") withTimeoutOrNull(60_000L) { changes.first { it != observed } }
+            else changes.first { it != observed }
+        }
+    }.distinctUntilChanged().flowOn(Dispatchers.IO)
 
     suspend fun detail(collection: String, id: String): JSONObject? = withContext(Dispatchers.IO) {
         requireCollection(collection)

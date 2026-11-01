@@ -16,7 +16,10 @@
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
-      "native_dispatch": "NativeForms.kt"
+      "native_dispatch": "NativeForms.kt",
+      "access_before": "Kunden → Suchen / Filter",
+      "access_after": "Kunden → Name, Ort oder Objekt suchen; Sortieren; Abrechnungsfilter",
+      "native_action": "NativeDataRepository.list/watchList; ausschließlich lesend"
     },
     {
       "id": "kunden.2",
@@ -31,7 +34,10 @@
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
-      "native_dispatch": "NativeForms.kt"
+      "native_dispatch": "NativeForms.kt",
+      "access_before": "Kunden → Datensatz",
+      "access_after": "Kunden → Kundenakte; Objekte & Gärten; Arbeiten; Dokumente",
+      "native_action": "Vorhandene native Detail- und Beziehungsabfragen"
     },
     {
       "id": "kunden.3",
@@ -46,7 +52,10 @@
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
-      "native_dispatch": "NativeForms.kt"
+      "native_dispatch": "NativeForms.kt",
+      "access_before": "Kunden → Neu",
+      "access_after": "Kunden → + Kunde",
+      "native_action": "Vorhandener NativeEntityEditor / NativeAppController.saveEditor"
     },
     {
       "id": "kunden.4",
@@ -62,7 +71,10 @@
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
-      "native_dispatch": "NativeForms.kt"
+      "native_dispatch": "NativeForms.kt",
+      "access_before": "Kunden → Bearbeiten",
+      "access_after": "Kundenakte → Kundendaten bearbeiten",
+      "native_action": "Vorhandener NativeEntityEditor / NativeAppController.saveEditor"
     },
     {
       "id": "kunden.5",
@@ -405,7 +417,10 @@
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
-      "native_dispatch": "NativeForms.kt"
+      "native_dispatch": "NativeForms.kt",
+      "access_before": "Arbeit → Liste / Suche",
+      "access_after": "Heute → Arbeiten ansehen → Suche / Filter",
+      "native_action": "NativeDataRepository.watchList; get_work_record Envelope für sichtbare Details"
     },
     {
       "id": "arbeiten.27",
@@ -435,7 +450,10 @@
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
-      "native_dispatch": "NativeForms.kt"
+      "native_dispatch": "NativeForms.kt",
+      "access_before": "Arbeit → Arbeit erfassen",
+      "access_after": "Heute → + Erfassen; Arbeiten → + Nachtragen; Kundenakte → + Erfassen",
+      "native_action": "Vorhandener NativeEntityEditor / NativeAppController.saveEditor"
     },
     {
       "id": "arbeiten.29",
@@ -545,7 +563,10 @@
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
-      "native_dispatch": "NativeForms.kt"
+      "native_dispatch": "NativeForms.kt",
+      "access_before": "Arbeit → Zusammenfassung",
+      "access_after": "Arbeiten → Woche; Filter → Zusammenfassung / Qualität",
+      "native_action": "get_work_record_summary; ausschließlich lesend"
     },
     {
       "id": "arbeiten.36",
@@ -623,7 +644,10 @@
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
-      "native_dispatch": "NativeForms.kt"
+      "native_dispatch": "NativeForms.kt",
+      "access_before": "Arbeit → Zeiterfassung",
+      "access_after": "Heute → laufende Arbeit; Zeitdetails",
+      "native_action": "get_active_work_session"
     },
     {
       "id": "zeiterfassung.41",
@@ -653,7 +677,10 @@
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
-      "native_dispatch": "NativeForms.kt"
+      "native_dispatch": "NativeForms.kt",
+      "access_before": "Zeiterfassung → Pause starten",
+      "access_after": "Heute → Pause",
+      "native_action": "start_break mit bestehenden Argumenten/Aktionskennungen"
     },
     {
       "id": "zeiterfassung.43",
@@ -668,7 +695,10 @@
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
-      "native_dispatch": "NativeForms.kt"
+      "native_dispatch": "NativeForms.kt",
+      "access_before": "Zeiterfassung → Pause beenden",
+      "access_after": "Heute → Fortsetzen",
+      "native_action": "end_break mit bestehenden Argumenten/Aktionskennungen"
     },
     {
       "id": "zeiterfassung.44",
@@ -683,7 +713,10 @@
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
-      "native_dispatch": "NativeForms.kt"
+      "native_dispatch": "NativeForms.kt",
+      "access_before": "Zeiterfassung → Arbeit stoppen",
+      "access_after": "Heute → Stoppen; anschließend separat Angaben ergänzen",
+      "native_action": "stop_work; kein automatischer Arbeitsnachweis"
     },
     {
       "id": "zeiterfassung.45",
@@ -2387,7 +2420,10 @@
       "platform_only": true,
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "retired": false,
-      "native_dispatch": "MainActivity.kt"
+      "native_dispatch": "MainActivity.kt",
+      "access_before": "Objekt → Navigation öffnen; Telefon-/Dokumentübergabe",
+      "access_after": "Kundenakte / Objektakte → Route starten; bestehende Telefon-/Dokumentübergaben",
+      "native_action": "NativeRouteAction; Google-Maps-Routen-Intent mit Browserersatz"
     },
     {
       "id": "platform.154",
@@ -3268,7 +3304,7 @@
     "android/app/src/main/java/at/hausgarten/service/ComposeFinanceScreens.kt": "238f01745d4dab19253227244e259af06f90712dab3c2c22ee573718920df27e",
     "android/app/src/main/java/at/hausgarten/service/ComposeMediaScreens.kt": "0f2d659f09c2f07091debb8c7d8361c0c00364a56d3912fa86a53810b7e7236e",
     "android/app/src/main/java/at/hausgarten/service/ComposePlanningScreens.kt": "b6cda5d76607074a39df89ac2bb2650457a8b8e497641889434c0ee6984ef87f",
-    "android/app/src/main/java/at/hausgarten/service/ComposeRevierScreens.kt": "38161a15cccbb53297a5195dadfba11f3d8657419ea3383975af822721553843",
+    "android/app/src/main/java/at/hausgarten/service/ComposeRevierScreens.kt": "05a42983fc007302d6e599f2ebeb97700f4714252d1d221fcd57956e680b76a0",
     "android/app/src/main/java/at/hausgarten/service/DriveJournalRules.kt": "5e596e63ab697638222ccfe8c99589240fedbe29773870c1cb228a734dce85d6",
     "android/app/src/main/java/at/hausgarten/service/DriveRolePolicy.kt": "2d88bc8b88152c1da4dfaeb246d5792776fb164829d48b94d7d04118587b3ea5",
     "android/app/src/main/java/at/hausgarten/service/DriveSyncCoordinator.kt": "a7615141b122785bc994f016ffc9c2be9507dd5f20c9bd6e9fd30a7abeaf244d",
@@ -3293,12 +3329,12 @@
     "android/app/src/main/java/at/hausgarten/service/MainActivity.kt": "7aff1948ea0eda589dd92aa1ed216091fd81e75b9f6e7444102698d5b95c8c7d",
     "android/app/src/main/java/at/hausgarten/service/McpErrors.kt": "2f7a61caa4ca80c969cb4d72c7c96559a8405a610b433cded30f975f68377946",
     "android/app/src/main/java/at/hausgarten/service/NativeActionCatalog.kt": "4ad4407808810ac790f0fb97b10ff10f395a115f466ff35b74878a296bf30853",
-    "android/app/src/main/java/at/hausgarten/service/NativeAppController.kt": "bafcdb0ace0a9a03f41a7ceae01a893d0ab7e5dabc2bffa3e7ed282abfba2be3",
-    "android/app/src/main/java/at/hausgarten/service/NativeCompose.kt": "4d84cc2f9e5e1adf893d3d108c0b0105b6adebffbcb432f93c37a65f3a6329eb",
-    "android/app/src/main/java/at/hausgarten/service/NativeDataRepository.kt": "5d80a44f2bffb3418e4a2e00a9e3cc3e730894353595d91e2a21fcefc79f58d8",
+    "android/app/src/main/java/at/hausgarten/service/NativeAppController.kt": "23e08b1136812642cc56cad151a656da1bf9d59f2544051f2387a8ddfa1025fb",
+    "android/app/src/main/java/at/hausgarten/service/NativeCompose.kt": "486e890b34bc12bf9ec17f72c9726488244339361128f7d220d9fcfade139b50",
+    "android/app/src/main/java/at/hausgarten/service/NativeDataRepository.kt": "fb3c9c87a68645bf75790bb6af1d783c5e9f7bbb890cbb665cdd6b44128bb233",
     "android/app/src/main/java/at/hausgarten/service/NativeForms.kt": "e76b616e4b8a533873681dde3c5da0f67410f4454a0024f24f72e0f24d3485c4",
     "android/app/src/main/java/at/hausgarten/service/NativeOwnerQueries.kt": "b6906e45daa3f708a5053d1f3fae375bc84044e4ed676e3753e9869870686465",
-    "android/app/src/main/java/at/hausgarten/service/NativePrimaryScreens.kt": "3e6b9d67c0c985df6c70e4368e153ef7e65d53474e85b41419f4aa7c64bb656d",
+    "android/app/src/main/java/at/hausgarten/service/NativePrimaryScreens.kt": "9a410ea89a33731b7bee7ed1ecd69f0031a2adaba2aac23bf5d78749a26ec2c2",
     "android/app/src/main/java/at/hausgarten/service/NativeRestoredDraftScreens.kt": "0cfc862a53b4af43e351f3023df13d7246a4b35844a5d04c1f1be31c7a079044",
     "android/app/src/main/java/at/hausgarten/service/OfferApplicationService.kt": "e916096d7987f4396862a107b5e87966fcdd8bcf401a6cad8c1a5e80395095ac",
     "android/app/src/main/java/at/hausgarten/service/OrderReviewRules.kt": "f8da15c56e3f3f6008cc3c481ec93eb3ccbce546dc7d3cd7d56890f81638a526",

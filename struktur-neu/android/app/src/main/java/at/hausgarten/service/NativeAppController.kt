@@ -25,9 +25,8 @@ import java.util.UUID
 import okio.Path.Companion.toOkioPath
 
 internal fun nativeMainSection(section: String): String = when (section) {
-    "today" -> "today"
-    "worklogs", "timer", "work", "drafts" -> "worklogs"
-    "customers" -> "customers"
+    "today", "worklogs", "timer", "work", "drafts", "planning", "appointments", "weather", "visits", "tour", "care_plans" -> "today"
+    "customers", "properties" -> "customers"
     else -> "office"
 }
 internal data class NativeRoute(val section: String = "today", val id: String = "", val mode: String = "list", val args: JSONObject = JSONObject(), val area: String = nativeMainSection(section))
@@ -53,6 +52,13 @@ internal class NativeAppController(private val activity: MainActivity, val store
 
     fun navigate(section: String, id: String = "", mode: String = "list", args: JSONObject = JSONObject()) {
         messages.value = ""
+        if (section == "customers" && id.isNotEmpty()) {
+            val recent = context.getSharedPreferences("hausgarten.customer-recent", Context.MODE_PRIVATE)
+            val retained = recent.all.filterValues { it is Long }.mapValues { it.value as Long }.toMutableMap()
+            retained[id] = System.currentTimeMillis()
+            recent.edit().clear().apply { retained.entries.sortedByDescending { it.value }.take(100).forEach { putLong(it.key, it.value) } }.apply()
+            customerListEntry++
+        }
         history.addLast(route)
         route = NativeRoute(section, id, mode, JSONObject(args.toString()), if (section == "action") route.area else if (section == "drafts" && args.optString("scope") == "billing") "office" else nativeMainSection(section))
     }
@@ -76,10 +82,16 @@ internal class NativeAppController(private val activity: MainActivity, val store
             for (i in 0 until stack.length()) {
                 val entry = stack.getJSONObject(i)
                 val section = entry.optString("section", "today")
-                history.addLast(NativeRoute(section, entry.optString("id"), entry.optString("mode", "list"), entry.optJSONObject("args") ?: JSONObject(), entry.optString("area", nativeMainSection(section))))
+                val args = entry.optJSONObject("args") ?: JSONObject()
+                val oldArea = entry.optString("area", nativeMainSection(section)).let { if (it == "worklogs") "today" else it }
+                val area = if (section == "action") oldArea else if (section == "drafts" && args.optString("scope") == "billing") "office" else nativeMainSection(section)
+                history.addLast(NativeRoute(section, entry.optString("id"), entry.optString("mode", "list"), args, area))
             }
             val section = it.optString("section", "today")
-            route = NativeRoute(section, it.optString("id"), it.optString("mode", "list"), it.optJSONObject("args") ?: JSONObject(), it.optString("area", nativeMainSection(section)))
+            val args = it.optJSONObject("args") ?: JSONObject()
+            val oldArea = it.optString("area", nativeMainSection(section)).let { area -> if (area == "worklogs") "today" else area }
+            val area = if (section == "action") oldArea else if (section == "drafts" && args.optString("scope") == "billing") "office" else nativeMainSection(section)
+            route = NativeRoute(section, it.optString("id"), it.optString("mode", "list"), args, area)
         }
     }
     fun savedRoute(): String = JSONObject().put("section", route.section).put("id", route.id).put("mode", route.mode).put("args", route.args).put("area", route.area).toString()

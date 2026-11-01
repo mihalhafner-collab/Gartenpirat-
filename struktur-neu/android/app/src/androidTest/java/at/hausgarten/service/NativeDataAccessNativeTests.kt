@@ -169,6 +169,8 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 val office = officeReadMeasurements(context, store, data)
                 phase = "local_storage_cleanup"
                 localStorageCleanup(owner)
+                phase = "customer_discovery"
+                customerDiscoveryProof(context)
                 phase = "final_revision"
                 val final = data.diagnostics()
                 yes(final.getLong("source_revision") == final.getLong("cached_revision"), "COMMITTED_CACHE_REVISION")
@@ -182,6 +184,45 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                     .put("chunk_upload_prefix_storage_bounded", true)
                     .put("main_thread_disk_violations", 0).put("performance_claim", false).put("office_reads", office)
             }
+        }
+    }
+
+    private suspend fun customerDiscoveryProof(owner: Context) {
+        val context = FixtureContext(owner, File(owner.cacheDir, "customer-discovery"), "qa_customer_discovery")
+        PixelLocalStore(context).use { store ->
+            val source = SyntheticBusinessData.profile("minimal")
+            val customers = JSONArray()
+            for (index in 0 until 60) customers.put(JSONObject().put("id", "qa_discovery_$index")
+                .put("name", "QA Kunde " + index.toString().padStart(2, '0')).put("active", if (index == 0) 0 else 1).put("test_record", true))
+            source.put("customers", customers).put("orders", JSONArray()).put("worklogs", JSONArray()).put("photos", JSONArray()).put("invoices", JSONArray())
+            val zone = java.time.ZoneId.of("Europe/Vienna")
+            val tomorrow = java.time.LocalDate.now(zone).plusDays(1)
+            fun appointment(id: String, customer: String, hour: Int) = JSONObject().put("id", id).put("customer_id", customer)
+                .put("title", "QA Termin").put("status", "confirmed").put("starts_at", tomorrow.atTime(hour, 0).atZone(zone).toInstant().toString())
+            source.put("appointments", JSONArray().put(appointment("qa_discovery_appointment_59", "qa_discovery_59", 8))
+                .put(appointment("qa_discovery_appointment_0", "qa_discovery_0", 9)))
+            store.putOwnerValue("snapshot", source.toString())
+            store.putOwnerValue("revier:v1:entity:property:qa_discovery_property", JSONObject().put("id", "qa_discovery_property")
+                .put("name", "QA Objekt").put("address", "QA NurObjektadresse 59").put("customer_id", "qa_discovery_59").toString())
+            store.putOwnerValue("revier:v1:entity:property:qa_discovery_archived", JSONObject().put("id", "qa_discovery_archived")
+                .put("name", "QA archiviertes Objekt").put("address", "QA NichtDurchsuchen 1").put("customer_id", "qa_discovery_1").put("archived", true).toString())
+            fun visit(id: String, customer: String, status: String, hour: String) = JSONObject().put("id", id).put("customer_id", customer)
+                .put("title", "QA Besuch").put("status", status).put("date", tomorrow.toString()).put("window_start", hour)
+            store.putOwnerValue("revier:v1:entity:visit:qa_discovery_visit", visit("qa_discovery_visit", "qa_discovery_20", "planned", "07:00").toString())
+            store.putOwnerValue("revier:v1:entity:visit:qa_discovery_superseded", visit("qa_discovery_superseded", "qa_discovery_1", "superseded", "06:00").toString())
+            val data = store.nativeData()
+            yes(data.list("customers", limit = 1).rows.single().id == "qa_discovery_0", "CUSTOMER_ALPHABETICAL_INACTIVE_FIRST")
+            yes(data.list("customers", search = "NurObjektadresse", limit = 1).rows.single().id == "qa_discovery_59", "CUSTOMER_OBJECT_ADDRESS_BEFORE_PAGINATION")
+            yes(data.list("customers", search = "NichtDurchsuchen").total == 0, "ARCHIVED_OBJECT_ADDRESS_EXCLUDED")
+            val related = data.list("customers", search = "NurObjektadresse").rows.single()
+            yes(related.objectCount == 1 && related.nextVisitLabel.startsWith("Termin:"), "CUSTOMER_BOUNDED_CONTEXT_HINTS")
+            yes(data.list("customers", customerSort = "next", limit = 1).rows.single().id == "qa_discovery_20", "CUSTOMER_NEXT_BEFORE_PAGE_LIMIT")
+            yes(data.list("customers", customerSort = "next", offset = 1, limit = 1).rows.single().id == "qa_discovery_59", "CUSTOMER_NEXT_MIXED_TIMEZONES")
+            yes(data.list("customers", customerSort = "next", offset = 3, limit = 1).rows.single().id == "qa_discovery_1", "CUSTOMER_WITHOUT_NEXT_AFTER_PLANNED")
+            val preferences = context.getSharedPreferences("hausgarten.customer-recent", Context.MODE_PRIVATE)
+            preferences.edit().putLong("qa_discovery_59", 2).putLong("qa_discovery_0", 1).commit()
+            yes(data.list("customers", customerSort = "recent", limit = 1).rows.single().id == "qa_discovery_59", "CUSTOMER_RECENT_BEFORE_PAGE_LIMIT")
+            yes(store.getState().getJSONObject("master").getJSONArray("customers").getJSONObject(0).getInt("active") == 0, "CUSTOMER_SORT_DOES_NOT_WRITE_BUSINESS_STATE")
         }
     }
 

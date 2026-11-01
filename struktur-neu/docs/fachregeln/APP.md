@@ -270,3 +270,35 @@ Anzeigekontext bleibt im Formularentwurf erhalten und wird nicht als zusätzlich
 Rechnungsfachinformation gespeichert. Die Auswahl kann ausdrücklich auf alle
 offenen Arbeiten des Empfängers erweitert werden. Geplante Einsätze erzeugen
 weder Arbeitsaufzeichnungen noch Rechnungspositionen.
+
+## Native Gestaltung ab der Build121-Grundlage
+
+Die Hauptbereiche sind Heute · Kunden · Büro. Arbeit bleibt über die gespeicherte
+Stundenzeile auf Heute erreichbar; Timer, Wochenübersicht, Erfassung und Entwürfe
+behalten ihre vorhandenen Fachaktionen. Stoppen beendet die Zeitnahme, nicht
+automatisch den Arbeitsnachweis. Gespeicherte Tagesstunden sind von laufender Zeit
+getrennt und umfassen alle Tagesarbeiten, unabhängig von der Listenseitengröße.
+
+Kunden sind alphabetisch auffindbar, einschließlich gekennzeichneter inaktiver
+Kunden. Objektadresssuche verwendet ausschließlich belegte Kunden-/Objektbezüge.
+Sortierungen gelten vor der Seitenauswahl für die gesamte Trefferliste. „Zuletzt
+geöffnet“ ist eine begrenzte Anzeigepräferenz, kein Geschäftsverlauf. Nächste
+Einsätze verwenden tatsächlich zugeordnete aktive Besuche oder Termine.
+
+Routenziele werden sichtbar bestätigt; identische Ziele nicht doppelt angeboten.
+Google Maps übernimmt Startstandort und Navigation. Die App berechnet weder Routen
+noch Fahrzeiten. Fehlende Adressen führen zur bestehenden Bearbeitung. Vor einer
+externen Übergabe vorhandene Entwurfswrites abschließen; kein Timerwechsel.
+
+Listen unterscheiden Laden, leeren Bestand, keine Treffer und Lesefehler. Eine
+fehlgeschlagene Aktualisierung ersetzt bekannte Inhalte nicht durch scheinbare
+Leere. Suche, Filter und Listenposition bleiben beim Zurückgehen erhalten.
+Unbekannte Speicherergebnisse behalten dieselbe Aktionskennung und ursprüngliche
+Argumente. Nach Wiederherstellung zuerst vorhandene Aktionsbelege prüfen.
+
+Bedienzonen oberhalb der drei Hauptbereiche umfassen höchstens zwei Reihen;
+Inhalte bleiben bei Tastatur, Android-Gesten und großer Schrift erreichbar.
+Hauptaktionen mindestens 56 dp, weitere Berührungsflächen mindestens 48 dp.
+Geänderte Darstellungen setzen keine Finanz- oder Wiederherstellungsprüfung außer
+Kraft. Geräte einschließlich Zubehör, aktueller Kette, Wartung und Fotos sowie
+bewusste Speicherbereinigung bleiben Bestandteil des vorhandenen Funktionsumfangs.
