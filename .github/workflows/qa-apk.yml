@@ -163,7 +163,7 @@ jobs:
               assert result['drive_account_tested'] is False and result['physical_pixel_tested'] is False, result
           else:
               assert sys.argv[1] in ('document_provider','document_provider_reopen'), result
-              assert result['real_document_provider_tested'] is True and result['non_local_provider_tested'] is True, result
+              assert result['real_document_provider_tested'] is True and result['separate_uid_local_provider_tested'] is True, result
               assert result['android_file_picker_tested'] is (not sys.argv[1].endswith('_reopen')), result
               assert result['new_process_readback'] is sys.argv[1].endswith('_reopen') and result['drive_account_tested'] is False, result
               assert result['picker_cancellation_tested'] is (not sys.argv[1].endswith('_reopen')), result

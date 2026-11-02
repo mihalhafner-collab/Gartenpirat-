@@ -119,6 +119,8 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         self.assertIn('ACTION_CREATE_DOCUMENT', picker)
         self.assertIn('ACTION_OPEN_DOCUMENT', picker)
         self.assertIn('EXTRA_LOCAL_ONLY', picker)
+        provider = (FIXTURES / 'SyntheticBackupDocumentsProvider.kt').read_text()
+        self.assertIn('DocumentsContract.Root.FLAG_LOCAL_ONLY', provider)
         self.assertRegex(code, r'\.put\("cloud_confirmed",\s*false\)')
 
     def test_backup_does_not_require_financial_business_validity(self):

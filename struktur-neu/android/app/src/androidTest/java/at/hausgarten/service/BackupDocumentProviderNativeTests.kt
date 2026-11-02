@@ -20,7 +20,7 @@ import java.io.File
 import java.io.IOException
 import java.util.Random
 
-/** Real resolver/remote-provider and system DocumentsUI tests. No account or network is used. */
+/** Real resolver, separate-UID local document provider and system DocumentsUI tests. */
 class BackupDocumentProviderNativeTests private constructor(private val test: Instrumentation) {
     companion object {
         /** Run provider first, force-stop the target, then run provider_reopen in a new process. */
@@ -223,7 +223,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
 
     private fun report(reopened: Boolean): JSONObject = JSONObject().put("checks", checks).put("synthetic_only", true)
         .put("productive_data_read", false).put("real_document_provider_tested", true)
-        .put("non_local_provider_tested", true)
+        .put("separate_uid_local_provider_tested", true)
         .put("android_file_picker_tested", !reopened).put("picker_cancellation_tested", !reopened)
         .put("picker_activity_recreation_tested", !reopened).put("new_process_readback", reopened)
         .put("provider_process_restart_tested", reopened).put("drive_account_tested", false)

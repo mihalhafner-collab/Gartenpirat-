@@ -255,8 +255,10 @@ Die Backup-, Checkpoint- und `native_data`-Phasen verwenden isolierte synthetisc
 Kontextpfade. Der `DocumentsProvider` liegt ausschließlich in der Test-APK mit
 separater UID und
 eigenem Prozess; seine Shell-Steuerung verlangt das Testpfadrecht und die Shell-UID.
-Er meldet sich als nicht lokal, benutzt aber ausschließlich neue synthetische
-Dateien ohne Konto oder Netzverbindung. `native_compose` verlangt den bekannten
+Er meldet sich mit `FLAG_LOCAL_ONLY` als lokaler Dateianbieter, weil der
+produktive Picker nur lokale Dateien akzeptiert (`EXTRA_LOCAL_ONLY`). Die
+separate UID und der eigene Prozess prüfen echte URI-Rechte, Neustart und
+vollständiges Dateirücklesen ohne Konto oder Netzverbindung. `native_compose` verlangt den bekannten
 synthetischen Bestand aus `document_provider_reopen` auf demselben Emulator.
 Reihenfolge und Schutzbedingungen nicht umgehen. Die Test-APK enthält die für
 ihren separaten Anbieterprozess nötige Kotlin-Laufzeit; Testanbieter, Testklassen

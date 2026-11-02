@@ -158,7 +158,7 @@ class SyntheticBackupDocumentsProvider : DocumentsProvider() {
                     DocumentsContract.Root.COLUMN_ROOT_ID -> ROOT_ID
                     DocumentsContract.Root.COLUMN_DOCUMENT_ID -> ROOT_ID
                     DocumentsContract.Root.COLUMN_TITLE -> ROOT_LABEL
-                    DocumentsContract.Root.COLUMN_FLAGS -> DocumentsContract.Root.FLAG_SUPPORTS_CREATE
+                    DocumentsContract.Root.COLUMN_FLAGS -> DocumentsContract.Root.FLAG_SUPPORTS_CREATE or DocumentsContract.Root.FLAG_LOCAL_ONLY
                     DocumentsContract.Root.COLUMN_MIME_TYPES -> "application/zip"
                     DocumentsContract.Root.COLUMN_AVAILABLE_BYTES -> root.usableSpace
                     else -> null
