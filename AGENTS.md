@@ -2,8 +2,14 @@
 
 ## Verbindlicher Ausgangspunkt
 
-Bei jedem neuen Chat und vor jeder Entwicklungsaufgabe den aktuellen GitHub-Stand
-von `main`, diese Datei und `struktur-neu/AKTUELLER-STAND.json` frisch lesen.
+Dieses GitHub-Repository ist der einzige verbindliche Einstiegspunkt und die
+alleinige aktuelle Quelle für Projektregeln, Arbeitsstand und Entwicklungsaufträge.
+Bei jedem neuen Chat und vor jeder Entwicklungsaufgabe zuerst den aktuellen Stand
+von `main`, danach diese `AGENTS.md` und `struktur-neu/AKTUELLER-STAND.json` lesen.
+Benötigte Fachregeln und Nachweise ausschließlich über die dort referenzierten
+Dateien dieses Repositories ermitteln. Keine externen Regel- oder Übersichtsseiten
+als zusätzliche Pflichtquelle voraussetzen. Frühere Gespräche und Exporte sind
+Quellenmaterial, keine eigenständig geltenden Arbeitsaufträge.
 Die Kotlin-App unter `struktur-neu/android/app/src/main/` ist die einzige funktionale Codebasis für TEST und PRODUKTIV.
 Vor produktiven Geräteaktionen und vor der Auswahl einer produktiven Entwicklungsbasis über
 `Haus & Gartenservice Pixel.get_capabilities` die tatsächlich installierte App
