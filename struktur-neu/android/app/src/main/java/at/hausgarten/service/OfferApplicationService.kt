@@ -37,7 +37,7 @@ internal class OfferApplicationService : OwnerCommand {
                             "validate_offer_draft",
                             ((JSONObject())!!.put("offer_id", id))!!.put(
                                 "expected_record_hash",
-                                PixelMcpWriteTools.hash(DriveJournalRules.clean(row)),
+                                PixelMcpWriteTools.hash(LocalJournalRules.clean(row)),
                             ),
                             (request.toString() + "_validate"),
                         )
@@ -84,7 +84,7 @@ internal class OfferApplicationService : OwnerCommand {
                                 a!!.getString("offer_id"),
                             )
                         if (
-                            !(PixelMcpWriteTools.hash(DriveJournalRules.clean(old)))!!.equals(
+                            !(PixelMcpWriteTools.hash(LocalJournalRules.clean(old)))!!.equals(
                                 a!!.getString("expected_record_hash")
                             )
                         ) {
@@ -93,7 +93,7 @@ internal class OfferApplicationService : OwnerCommand {
                                 "Angebot wurde geändert.",
                             )
                         }
-                        p = DriveJournalRules.clean(old)
+                        p = LocalJournalRules.clean(old)
                         var changes = a!!.getJSONObject("updates")
                         run {
                             var it = changes!!.keys()
@@ -145,7 +145,7 @@ internal class OfferApplicationService : OwnerCommand {
                             .put(
                                 "record_hash",
                                 PixelMcpWriteTools.hash(
-                                    DriveJournalRules.clean(
+                                    LocalJournalRules.clean(
                                         PixelMcpWriteTools.find(
                                             (repository!!.effective())!!.getJSONArray("offers"),
                                             p!!.getString("id"),
@@ -208,7 +208,7 @@ internal class OfferApplicationService : OwnerCommand {
                             ("svc_" + (PixelMcpWriteTools.hash(request))!!.substring(0, 32)),
                         )
                     }
-                    DriveJournalRules.validateTemplate(p)
+                    LocalJournalRules.validateTemplate(p)
                     ManualChangeRules.prepare("service_template", p, old, stamp)
                     return (repository!!.enqueue("service_template", p, request))!!.put(
                         "entry_id",
@@ -264,7 +264,7 @@ internal class OfferApplicationService : OwnerCommand {
                     if (!(a!!.optString("existing_order_id"))!!.isEmpty()) {
                         p!!.put(
                             "_expected_order",
-                            DriveJournalRules.guard(
+                            LocalJournalRules.guard(
                                 PixelMcpWriteTools.find(
                                     all!!.getJSONArray("orders"),
                                     a!!.getString("existing_order_id"),
@@ -321,7 +321,7 @@ internal class OfferApplicationService : OwnerCommand {
                             a!!.getString("offer_id"),
                         )
                     if (
-                        !(PixelMcpWriteTools.hash(DriveJournalRules.clean(offer)))!!.equals(
+                        !(PixelMcpWriteTools.hash(LocalJournalRules.clean(offer)))!!.equals(
                             a!!.getString("expected_record_hash")
                         )
                     ) {

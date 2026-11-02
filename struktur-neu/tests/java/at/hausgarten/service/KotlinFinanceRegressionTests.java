@@ -33,9 +33,9 @@ public final class KotlinFinanceRegressionTests {
                 + "{id:'c2',name:'Synthetic Beta',street:'Testweg 2',postal_code:'2000',city:'Teststadt',country:'AT',billing_mode:'via_customer',default_billing_customer_id:'c1'}],"
                 + "orders:[{id:'o1',customer_id:'c2',billing_customer_id:'c1',title:'Synthetic order',status:'Geplant'}],"
                 + "worklogs:[{id:'w1',customer_id:'c2',billing_customer_id:'c1',order_id:'o1',work_date:'2026-10-28',hours:5.25,billed:0},"
-                + "{id:'w2',customer_id:'c1',work_date:'2026-10-27',hours:1.5,billed:0}],invoices:[],offers:[],service_catalog:[],"
+                + "{id:'w2',customer_id:'c1',work_date:'2026-10-27',hours:1.5,billed:0}],invoices:[],photos:[],offers:[],service_catalog:[],"
                 + "business_settings:{owner_name:'Synthetic Issuer',business_street:'Testweg 3',business_postal_code:'3000',business_city:'Teststadt',"
-                + "invoice_issuer_confirmed:'true',invoice_numbering_confirmed:'true',tax_mode:'standard',business_vat_id:'ATU12345678',invoice_number_format:'own',invoice_prefix:'TEST'}}");
+                + "invoice_issuer_confirmed:'true',tax_mode:'standard',business_vat_id:'ATU12345678'}}");
     }
     private static JSONObject offer() throws Exception {
         return OfferRules.normalize(json("{id:'off1',customer_id:'c1',title:'Synthetic offer',document_type:'fixed_price',issue_date:'2026-10-29',"
@@ -53,6 +53,12 @@ public final class KotlinFinanceRegressionTests {
         yes(groups.length() == 1 && groups.getJSONObject(0).getJSONArray("work_records").length() == 2,
                 "Site and direct work join the same confirmed payer without losing work records");
         money(groups.getJSONObject(0).get("hours"), "6.75", "Exact grouped hours");
+        JSONArray marked = new JSONArray(master().getJSONArray("worklogs").toString());
+        marked.getJSONObject(0).put("billed", 1);
+        JSONObject report = PixelMcpBusinessTools.report(marked, master());
+        yes(report.getInt("marked_open") == 1 && report.getInt("marked_billed") == 1, "Manual billing marks remain independent of sevDesk");
+        yes(!report.has("proven_invoiced") && !report.has("billing_unclear_or_draft") && !report.has("partially_invoiced"), "No retired invoice authority is projected into the hours overview");
+
     }
 
     private static void offersAndDecisions() throws Exception {

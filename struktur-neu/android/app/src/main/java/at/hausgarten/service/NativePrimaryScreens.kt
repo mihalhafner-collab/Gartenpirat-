@@ -43,7 +43,7 @@ private val nativeSections = linkedMapOf(
     "inquiries" to "Anfragen", "care_plans" to "Pflegepläne", "visits" to "Einsätze", "tour" to "Tagestour", "materials" to "Material",
     "equipment" to "Geräte", "revier_search" to "Lokale Suche", "revier_archive" to "Revier-Archiv", "orders" to "Aufträge", "offers" to "Angebote",
     "billing" to "Abrechnung", "drafts" to "Entwürfe", "catalog" to "Leistungskatalog", "photos" to "Fotos", "plants" to "Pflanzen", "appointments" to "Termine", "weather" to "Wetter",
-    "planning" to "Planung", "trash" to "Papierkorb", "local_actions" to "Lokale Vorgänge", "settings" to "Einstellungen", "connections" to "Verbindungen", "backup" to "Sicherung"
+    "planning" to "Planung", "trash" to "Papierkorb", "settings" to "Einstellungen", "connections" to "Verbindungen", "backup" to "Sicherung"
 )
 private fun nativeDay(): String = LocalDate.now(ZoneId.of("Europe/Vienna")).toString()
 private fun primaryKind(collection: String) = when (collection) { "customers" -> "customer"; "orders" -> "order"; else -> "worklog" }
@@ -106,9 +106,6 @@ internal fun NativeApplication(controller: NativeAppController) {
                 "settings" -> NativeSettings(controller)
                 "drafts" -> NativeDraftInbox(controller)
                 "trash" -> NativeTrash(controller)
-                "local_actions" -> NativeLocalActions(controller)
-                "order_review" -> NativeReviewedWorkflow(controller, true, route.id)
-                "conflict_review" -> NativeReviewedWorkflow(controller, false, route.id)
                 "connections" -> Column(Modifier.verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("Kalender, Wetter und die private MCP-Verbindung werden getrennt eingerichtet.")
                     OutlinedButton({ controller.open(PlanningConnectionActivity::class.java) }) { Text("Kalender und Wetter verbinden") }
@@ -175,10 +172,11 @@ private fun NativeOffice(controller: NativeAppController) {
     val groups = linkedMapOf(
         "Kunden und Aufträge" to listOf("properties", "inquiries", "orders", "care_plans"),
         "Material und Wissen" to listOf("materials", "photos", "plants", "catalog"),
-        "Weitere Verwaltung" to listOf("drafts", "revier_search", "revier_archive", "trash", "local_actions")
+        "Weitere Verwaltung" to listOf("drafts", "revier_search", "revier_archive", "trash")
     )
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         items(listOf(Triple("billing", "Offene Arbeitsstunden", "Arbeitsaufzeichnungen für die Rechnungserstellung in sevDesk"),
+            Triple("offers", "Angebote", "Angebote und Kostenvoranschläge mit PDF"),
             Triple("planning", "Planung", "Termine, Einsätze, Tagestour und Wetter"),
             Triple("equipment", "Maschinenpark und Gerätewartung", "Geräte, Zubehör, aktuelle Kette, Fotos und Wartung"),
             Triple("settings", "Einstellungen", "Verbindungen, Sicherung und Diagnose"))) { (section,title,subtitle) ->
@@ -246,7 +244,7 @@ internal fun NativeContext(controller: NativeAppController, args: JSONObject, cu
     if (label.isNotEmpty()) Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
-/** Uses the existing billing report, keeping marks, proven quantities and recipients distinct. */
+/** Uses the existing billing report, keeping local marks and billing recipients distinct. */
 @Composable
 private fun NativeOpenHours(controller: NativeAppController, customer: String) {
     var summary by remember(customer) { mutableStateOf<JSONObject?>(null) }
@@ -484,7 +482,6 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
             item { OutlinedButton({ controller.action("Abrechnungsmarkierung", "set_work_record_billed", JSONObject().put("work_record_id", id).put("expected_record_hash", envelope?.optString("record_hash", ""))) }) { Text("Abgerechnet / offen") } }
             item { OutlinedButton({ controller.action("Persönlich bezahlt", "set_personal_paid", JSONObject().put("work_record_id", id)) }) { Text("Persönlich bezahlt / b.b.") } }
         }
-        if (kind == "order") item { OutlinedButton({ controller.navigate("order_review", id) }) { Text("Auftragsversionen prüfen") } }
         if (kind != "worklog") {
             item { Text("Tätigkeiten und Historie", style = MaterialTheme.typography.titleMedium) }
             items(related, key = { it.id }) { work -> TextButton({ controller.navigate("worklogs", work.id) }) { Text(listOf(nativeDisplayDate(work.workDate), work.title).filter { it.isNotEmpty() }.joinToString(" · ")) } }
@@ -920,200 +917,6 @@ private fun NativeTrash(controller: NativeAppController) {
         item { OutlinedButton({ controller.navigate("revier_archive") }) { Text("Revier-Archiv") } }
         item { NativeActionMenu(controller, "papierkorb") }
     }
-}
-
-@Composable
-private fun NativeLocalActions(controller: NativeAppController) {
-    var status by remember { mutableStateOf<JSONObject?>(null) }
-    var error by remember { mutableStateOf("") }
-    LaunchedEffect(Unit) { try { status = controller.query("get_sync_overview") } catch (failure: Exception) { error = failure.message.orEmpty() } }
-    Column(Modifier.padding(16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Geschäftsdaten bleiben lokal. Frühere Vorgänge und Konflikte bleiben zur Prüfung erhalten.")
-        if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error)
-        status?.let { NativeBusinessValues(it) }
-        Button({ controller.navigate("conflict_review") }) { Text("Konflikte prüfen und lösen") }
-        OutlinedButton({ controller.navigate("backup") }) { Text("ZIP-Sicherung öffnen") }
-    }
-}
-
-
-/** Both review workflows freeze the actual read proof; an unclear write is inspected before any retry. */
-@Composable
-private fun NativeReviewedWorkflow(controller: NativeAppController, orderReview: Boolean, initialId: String) {
-    val section = if (orderReview) "order_review" else "conflict_review"
-    if (initialId.isEmpty()) {
-        NativeReviewSelection(controller, orderReview)
-        return
-    }
-    val key = controller.route.args.optString("_draft_key").ifEmpty { "review:$section:$initialId" }
-    val tool = if (orderReview) "save_reviewed_order" else "resolve_sync_conflict"
-    var proof by remember(key) { mutableStateOf<JSONObject?>(null) }
-    var values by remember(key) { mutableStateOf("{}") }
-    var decision by remember(key) { mutableStateOf("") }
-    var request by remember(key) { mutableStateOf(UUID.randomUUID().toString()) }
-    var pending by remember(key) { mutableStateOf<JSONObject?>(null) }
-    var restored by remember(key) { mutableStateOf(false) }
-    var needsReview by remember(key) { mutableStateOf(false) }
-    var comparison by remember(key) { mutableStateOf<JSONObject?>(null) }
-    var checked by remember(key) { mutableStateOf(false) }
-    var comparisonChecked by remember(key) { mutableStateOf(false) }
-    var busy by remember(key) { mutableStateOf(false) }
-    var error by remember(key) { mutableStateOf("") }
-    val scope = rememberCoroutineScope()
-    fun snapshot() = JSONObject().put("proof", proof ?: JSONObject.NULL).put("values", JSONObject(values)).put("decision", decision)
-        .put("request_id", request).put("pending", pending ?: JSONObject.NULL).put("review_required", needsReview)
-        .put("_inbox_route", JSONObject().put("section", section).put("id", initialId).put("mode", "edit"))
-    fun persist() { controller.saveDraft(key, snapshot()) }
-    fun change(field: String, value: Any) { values = JSONObject(values).put(field, value).toString(); checked = false; persist() }
-    suspend fun readProof(): JSONObject {
-        if (orderReview) {
-            val read = controller.query("inspect_order_review", JSONObject().put("order_id", initialId))
-            return JSONObject().apply { for (field in listOf("id", "token", "order", "current", "checks", "reasons", "pending")) if (read.has(field)) put(field, read.get(field)) }
-        }
-        return controller.query("get_sync_conflicts", JSONObject().put("client_id", initialId).put("limit", 1)).getJSONArray("conflicts").optJSONObject(0)
-            ?: throw IllegalArgumentException("Dieser Konflikt ist nicht mehr offen. Die Liste erneut lesen.")
-    }
-    LaunchedEffect(key) {
-        try {
-            val saved = controller.draft(key)
-            if (saved != null) {
-                proof = saved.optJSONObject("proof"); values = saved.optJSONObject("values")?.toString() ?: "{}"
-                decision = saved.optString("decision"); request = saved.optString("request_id", request); pending = saved.optJSONObject("pending")
-                restored = saved.optBoolean("_restore_action_review_required"); needsReview = saved.optBoolean("review_required")
-            } else { proof = readProof(); values = proof?.optJSONObject("order")?.toString() ?: "{}" }
-        } catch (cancelled: CancellationException) { throw cancelled }
-        catch (failure: Exception) { error = failure.message.orEmpty() }
-    }
-    fun complete() {
-        if (busy) return
-        busy = true
-        scope.launch {
-            error = ""
-            try {
-                val original = pending
-                var confirmed = false
-                if (original != null) {
-                    val receipt = controller.query("inspect_edit_action", JSONObject().put("original_tool", tool).put("original_args", original))
-                    confirmed = receipt.optString("state") == "confirmed"
-                    if (receipt.optString("state") == "content_removed") throw IllegalStateException("Dieser Vorgang wurde endgültig entfernt. Keine erneute Ausführung.")
-                    if (!confirmed && restored) throw IllegalStateException("Kein eindeutiger Beleg für den übernommenen Vorgang. Seine Angaben bleiben erhalten.")
-                }
-                if (!confirmed) {
-                    check(!restored && !needsReview) { "Den aktuellen Stand zuerst lesen und ausdrücklich vergleichen." }
-                    val observed = requireNotNull(proof)
-                    val args = original ?: JSONObject().put("request_id", request).apply {
-                        if (orderReview) {
-                            put("id", observed.getString("id")).put("token", observed.getString("token")).put("decision", decision).put("confirmed", true)
-                            if (decision == "save") {
-                                val edits = JSONObject(); val entered = JSONObject(values)
-                                for (field in listOf("title", "customer_id", "billing_customer_id", "description", "location", "scheduled_date", "status", "customer_visible")) if (entered.has(field)) edits.put(field, if (field == "customer_visible") { if (entered.optBoolean(field, entered.optInt(field, 1) != 0)) 1 else 0 } else entered.get(field))
-                                put("order", edits)
-                            }
-                        }
-                        else put("client_id", observed.getString("client_id")).put("expected_action_hash", observed.getString("action_hash")).put("expected_current_hash", observed.getString("current_hash")).put("resolution", decision)
-                    }
-                    pending = JSONObject(args.toString()); persist(); controller.flushDrafts()
-                    controller.query(tool, args)
-                }
-                pending = null
-                runCatching { controller.removeDraft(key) }.onFailure { controller.message("Entscheidung gespeichert. Entwurfsbereinigung steht noch aus.") }
-                controller.message("Geprüfte Entscheidung lokal gespeichert.")
-                controller.navigate(if (orderReview) "orders" else "conflict_review", if (orderReview) initialId else "")
-            } catch (cancelled: CancellationException) { throw cancelled }
-            catch (failure: Exception) {
-                if (failure is NativeCallFailure && failure.detail.optString("commit_state") == "not_committed") { pending = null; needsReview = true; checked = false; persist() }
-                error = failure.message.orEmpty()
-            } finally { busy = false }
-        }
-    }
-    val observed = proof
-    val locked = busy || pending != null || restored || needsReview
-    LazyColumn(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        item { Text(if (orderReview) "Auftragsversionen prüfen" else "Konfliktvarianten vergleichen", style = MaterialTheme.typography.headlineSmall); if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error) }
-        if (observed == null) item { if (error.isEmpty()) CircularProgressIndicator() }
-        else {
-            item { Text("Aktuell gespeicherter Stand", style = MaterialTheme.typography.titleMedium); observed.optJSONObject("current")?.let { NativeReviewValues(controller, it) } ?: Text("Noch kein übernommener Eintrag vorhanden.") }
-            if (orderReview) {
-                item { Text("Zu prüfende Angaben", style = MaterialTheme.typography.titleMedium); NativeReviewValues(controller, JSONObject(values)); observed.optJSONArray("checks")?.let { NativeBusinessValues(JSONObject().put("checks", it)) }; observed.optJSONArray("reasons")?.let { NativeBusinessValues(JSONObject().put("reasons", it)) } }
-                if (!locked) item { NativeChoice("Ausdrückliche Entscheidung", decision, listOf("save" to "Angezeigte Angaben übernehmen") + if (observed.optJSONObject("current") != null) listOf("keep" to "Gespeicherten Stand behalten") else emptyList()) { decision = it; checked = false; persist() } }
-                if (!locked && decision == "save") {
-                    items(listOf("title", "description", "location", "scheduled_date")) { field -> NativeField(nativeLabel(field), JSONObject(values).optString(field), { change(field, it) }, required = field == "title", multiline = field == "description") }
-                    item { NativeRecordPicker(controller, "customers", "Kunde", JSONObject(values).optString("customer_id")) { change("customer_id", it) }; NativeRecordPicker(controller, "customers", "Rechnungsempfänger", JSONObject(values).optString("billing_customer_id")) { change("billing_customer_id", it) } }
-                    item { NativeChoice("Status", JSONObject(values).optString("status"), listOf("Geplant", "In Arbeit", "Wartet auf Material", "Erledigt", "Abgerechnet").map { it to it }) { change("status", it) }; Row { val visible = JSONObject(values); Checkbox(visible.optBoolean("customer_visible", visible.optInt("customer_visible", 1) != 0), { change("customer_visible", if (it) 1 else 0) }); Text("In Kundenansicht zeigen", Modifier.padding(top = 12.dp)) } }
-                }
-            } else {
-                val proposedOrder = observed.optJSONObject("action")?.takeIf { it.optString("kind") == "order" }?.optJSONObject("payload")?.optString("id").orEmpty()
-                if (proposedOrder.isNotEmpty()) item { OutlinedButton({ controller.navigate("order_review", proposedOrder) }, enabled = !busy && pending == null) { Text("Auftragsangaben prüfen und korrigieren") } }
-                val originalBase = observed.optJSONObject("action")?.optJSONObject("payload")?.let { it.optJSONObject("_sync_base") ?: it.optJSONObject("_mcp_base") }
-                if (originalBase != null) item { Text("Ursprünglicher Stand", style = MaterialTheme.typography.titleMedium); NativeReviewValues(controller, originalBase) }
-                item { Text("Vorgeschlagene Änderung", style = MaterialTheme.typography.titleMedium); observed.optJSONObject("action")?.optJSONObject("payload")?.let { NativeReviewValues(controller, it) }; Text(observed.optString("message", observed.optString("error"))) }
-                if (!observed.optBoolean("resolution_available")) item { Text("Dieser Vorgang benötigt eine gesonderte Prüfung. Keine Konfliktentscheidung verfügbar.") }
-                else if (!locked) item {
-                    val allowed = observed.optJSONArray("allowed_resolutions")
-                    NativeChoice("Ausdrückliche Entscheidung", decision, listOf("keep_current" to "Gespeicherten Stand behalten", "apply_proposed" to "Vorgeschlagene Änderung übernehmen").filter { choice -> allowed == null || (0 until allowed.length()).any { allowed.optString(it) == choice.first } }) { decision = it; checked = false; persist() }
-                }
-            }
-            if (pending == null) item {
-                OutlinedButton(enabled = !busy, onClick = { scope.launch { busy = true; try { comparison = readProof(); comparisonChecked = false; checked = false; error = "" } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = failure.message.orEmpty() } finally { busy = false } } }) { Text("Aktuellen Stand erneut zum Vergleich lesen") }
-                comparison?.let { fresh ->
-                    Text("Neu gelesener Stand", style = MaterialTheme.typography.titleMedium); NativeReviewValues(controller, fresh.optJSONObject("current") ?: JSONObject())
-                    Row { Checkbox(comparisonChecked, { comparisonChecked = it }); Text("Mit meinen erhaltenen Angaben verglichen", Modifier.padding(top = 12.dp)) }
-                    Button(enabled = comparisonChecked && !busy, onClick = { scope.launch {
-                        busy = true
-                        try {
-                            val next = fresh.optJSONObject("order")?.let { JSONObject(it.toString()) } ?: JSONObject()
-                            if (orderReview) { val base = observed.optJSONObject("order") ?: JSONObject(); val own = JSONObject(values); for (field in listOf("title", "customer_id", "billing_customer_id", "description", "location", "scheduled_date", "status", "customer_visible")) if (own.has(field) && own.opt(field)?.toString() != base.opt(field)?.toString()) next.put(field, own.get(field)) }
-                            val nextRequest = UUID.randomUUID().toString()
-                            val adopted = snapshot().put("proof", fresh).put("values", next).put("decision", "").put("pending", JSONObject.NULL).put("review_required", false).put("request_id", nextRequest)
-                            controller.adoptDraft(key, adopted); proof = fresh; values = next.toString(); decision = ""; request = nextRequest; restored = false; needsReview = false; comparison = null; comparisonChecked = false; checked = false
-                        } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = failure.message.orEmpty() } finally { busy = false }
-                    } }) { Text("Vergleich bestätigen und weiterbearbeiten") }
-                }
-            }
-            if (!locked && decision.isNotEmpty()) item { Row { Checkbox(checked, { checked = it }); Text("Diese Entscheidung nach Prüfung ausdrücklich bestätigen", Modifier.padding(top = 12.dp)) } }
-            item { Button(::complete, enabled = !busy && (pending != null || !locked && checked && decision.isNotEmpty())) { Text(if (pending != null) "Gespeicherten Vorgang prüfen" else "Entscheidung speichern") } }
-        }
-        item { OutlinedButton({ controller.back() }, enabled = !busy) { Text("Später entscheiden") } }
-        if (pending == null) item { TextButton({ scope.launch { try { controller.removeDraft(key); controller.back() } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = failure.message.orEmpty() } } }, enabled = !busy) { Text("Entwurf verwerfen") } }
-    }
-}
-
-@Composable
-private fun NativeReviewSelection(controller: NativeAppController, orderReview: Boolean) {
-    if (orderReview) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) { Text("Auftrag zum Prüfen auswählen"); NativeRecordPicker(controller, "orders", "Auftrag", "") { if (it.isNotEmpty()) controller.navigate("order_review", it) }; OutlinedButton({ controller.navigate("conflict_review") }) { Text("Offene historische Vorgänge prüfen") } }
-        return
-    }
-    var offset by rememberSaveable { mutableIntStateOf(0) }
-    var data by remember { mutableStateOf<JSONObject?>(null) }
-    var error by remember { mutableStateOf("") }
-    var retry by remember { mutableIntStateOf(0) }
-    LaunchedEffect(offset, retry) { try { data = controller.query("get_sync_conflicts", JSONObject().put("offset", offset).put("limit", 20)); error = "" } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = failure.message.orEmpty() } }
-    val rows = data?.optJSONArray("conflicts") ?: JSONArray()
-    LazyColumn(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        item { Text("Offene Konflikte", style = MaterialTheme.typography.headlineSmall); data?.let { Text("${it.optInt("total")} Vorgänge") }; if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error); TextButton({ retry++ }) { Text("Erneut lesen") } }
-        items((0 until rows.length()).map { rows.getJSONObject(it) }, key = { it.getString("client_id") }) { row -> OutlinedCard(Modifier.fillMaxWidth().clickable { controller.navigate("conflict_review", row.getString("client_id")) }) { Column(Modifier.padding(12.dp)) { Text(row.optString("message", row.optString("error", "Historischen Vorgang prüfen"))); Text(if (row.optBoolean("resolution_available")) "Varianten vergleichen" else "Gesonderte Prüfung erforderlich") } } }
-        if (data != null && rows.length() == 0) item { Text("Keine offenen Konflikte auf dieser Seite.") }
-        item { Row { TextButton({ offset = (offset - 20).coerceAtLeast(0) }, enabled = offset > 0) { Text("Vorherige") }; TextButton({ offset += 20 }, enabled = offset + rows.length() < (data?.optInt("total") ?: 0)) { Text("Weitere") } } }
-    }
-}
-
-@Composable
-private fun NativeReviewValues(controller: NativeAppController, row: JSONObject) {
-    for ((field, collection) in listOf("customer_id" to "customers", "billing_customer_id" to "customers", "order_id" to "orders")) {
-        val id = row.optString(field)
-        if (id.isNotEmpty()) {
-            val label by produceState("Wird gelesen …", field, id) {
-                value = try { val record = controller.store.nativeData().detail(collection, id); record?.optString("name")?.ifBlank { record.optString("title") }?.ifBlank { "Zugeordneter Eintrag" } ?: "Zuordnung nicht mehr vorhanden" }
-                catch (cancelled: CancellationException) { throw cancelled }
-                catch (_: Exception) { "Zuordnung derzeit nicht lesbar" }
-            }
-            Text(nativeLabel(field) + ": " + label)
-        }
-    }
-    val safe = JSONObject(row.toString())
-    for (field in listOf("data", "full_data", "thumbnail_data", "pdf_base64", "data_base64", "chunk_base64")) safe.remove(field)
-    NativeBusinessValues(safe)
 }
 
 @Composable

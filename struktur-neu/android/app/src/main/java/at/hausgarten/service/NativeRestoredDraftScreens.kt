@@ -390,7 +390,7 @@ internal fun NativeDraftInbox(controller: NativeAppController) {
             }
             if ((editor == null || legacyClosed) && content != null) item {
                 Text("Diese historischen Felder bleiben vollständig in ihrer Quelle erhalten. Du kannst die lesbaren Angaben bewusst als Notiz in ein neues Fachformular kopieren; frühere Aktionen werden dabei nicht ausgeführt.")
-                NativeChoice("Ziel der Notiz", copyTo, listOf("customer" to "Kunde", "order" to "Auftrag", "worklog" to "Arbeitsaufzeichnung", "invoice" to "Rechnung", "offer" to "Angebot", "property" to "Objekt", "inquiry" to "Anfrage"), { copyTo = it; copyConfirmed = false })
+                NativeChoice("Ziel der Notiz", copyTo, listOf("customer" to "Kunde", "order" to "Auftrag", "worklog" to "Arbeitsaufzeichnung", "offer" to "Angebot", "property" to "Objekt", "inquiry" to "Anfrage"), { copyTo = it; copyConfirmed = false })
                 Row { Checkbox(copyConfirmed, { copyConfirmed = it }, enabled = !busy); Text("Ich möchte die angezeigten Angaben als Notiz übernehmen. Die ursprüngliche Quelle bleibt erhalten.", Modifier.weight(1f)) }
                 Button(enabled = !busy && copyConfirmed, modifier = Modifier.fillMaxWidth(), onClick = { scope.launch {
                     busy = true
@@ -413,7 +413,6 @@ private fun draftKeyLabel(key: String) = when {
     key.startsWith("editor:worklog:") -> "Arbeitsaufzeichnung"
     key.startsWith("finance:invoices:") -> "Rechnungsentwurf"
     key.startsWith("finance:offers:") -> "Angebotsentwurf"
-    key.startsWith("finance:payment:") -> "Zahlungserfassung"
     key.startsWith("planning:") -> "Terminplanung"
     key.startsWith("photo_") -> "Fotoentwurf"
     key.startsWith("revier:") -> "Objekt, Anfrage oder Pflege"
@@ -488,11 +487,11 @@ private fun legacyEditor(entry: JSONObject, original: JSONObject): RestoredEdito
             pending?.let { draft.put("original_args", it.getJSONObject("args")) }
             return RestoredEditor(key, mapOf("customer" to "customers", "order" to "orders", "worklog" to "worklogs").getValue(entity), id, if (id.isEmpty()) "new" else "edit", draft)
         }
-        "invoice", "offer" -> {
+        "offer" -> {
             val id = base.optString("id")
             val draft = restoredCopy(guarded).put("record", values).put("record_hash", raw.optString("hash", raw.optString("record_hash"))).put("request_id", request)
             pending?.let { draft.put("pending", it.getJSONObject("args")).put("original_tool", it.optString("tool")) }
-            return RestoredEditor(key, if (kind == "invoice") "invoices" else "offers", id, if (id.isEmpty()) "new" else "edit", draft)
+            return RestoredEditor(key, "offers", id, if (id.isEmpty()) "new" else "edit", draft)
         }
         "appointment" -> {
             val data = values.optJSONObject("data") ?: raw.optJSONObject("data") ?: values
@@ -515,22 +514,14 @@ private fun legacyEditor(entry: JSONObject, original: JSONObject): RestoredEdito
             pending?.let { draft.put("pending", it.getJSONObject("args").toString()) }
             return RestoredEditor(key, "photos", id, "edit", draft)
         }
-        "payment" -> {
-            val correction = raw.optString("corrects", raw.optString("payment_id"))
-            val allocations = values.optJSONArray("allocations")
-            if (allocations != null) for (allocation in restoredObjects(allocations)) if (!allocation.has("amount") && allocation.has("value")) allocation.put("amount", allocation.get("value"))
-            val draft = restoredCopy(guarded).put("form", values).put("ledger_hash", raw.optString("ledger_hash")).put("request_id", request)
-            pending?.let { draft.put("args", it.getJSONObject("args")) }
-            return RestoredEditor(key, "payments", raw.optString("invoice_id"), "edit", draft, args().apply { if (correction.isNotEmpty()) put("payment_id", correction); raw.optJSONObject("original")?.let { put("_correction", it) } })
-        }
         "business_settings", "offer_decision" -> {
             val tool = if (kind == "business_settings") "update_business_settings" else pending?.optString("tool").orEmpty().ifBlank { if (!raw.has("acceptance")) "" else if (raw.optBoolean("acceptance")) "record_offer_acceptance" else "decline_offer" }
             if (tool.isEmpty()) return null
             val body = if (kind == "business_settings") {
                 val updates = JSONObject()
                 val source = context.optJSONObject("source") ?: raw.optJSONObject("source") ?: JSONObject()
-                val allowed = listOf("business_name", "owner_name", "business_street", "business_postal_code", "business_city", "business_email", "business_phone", "business_bank", "business_iban", "business_bic", "business_legal_info", "invoice_issuer_confirmed", "tax_mode", "business_vat_id", "tax_exemption_text", "default_payment_days", "default_payment_terms", "offer_binding_text", "offer_nonbinding_text", "offer_time_material_text")
-                for (field in allowed) if (values.has(field)) updates.put(field, if (field == "default_payment_days" && values.opt(field) is String) values.optString(field).toIntOrNull() ?: values.get(field) else values.get(field))
+                val allowed = listOf("business_name", "owner_name", "business_street", "business_postal_code", "business_city", "business_email", "business_phone", "business_bank", "business_iban", "business_bic", "business_legal_info", "invoice_issuer_confirmed", "tax_mode", "business_vat_id", "tax_exemption_text", "default_payment_terms", "offer_binding_text", "offer_nonbinding_text", "offer_time_material_text")
+                for (field in allowed) if (values.has(field)) updates.put(field, values.get(field))
                 JSONObject().put("expected_record_hash", source.optString("record_hash")).put("updates", updates).put("request_id", request)
             } else {
                 JSONObject().put("offer_id", raw.optString("offer_id")).put("expected_record_hash", raw.optString("record_hash")).put("request_id", request).apply {
@@ -560,9 +551,7 @@ private fun nativeEditor(key: String, raw: JSONObject): RestoredEditor? {
     fun target(section: String, id: String, mode: String = if (id.isEmpty()) "new" else "edit", args: JSONObject = JSONObject()) = RestoredEditor(key, section, id, mode, raw, args)
     return when {
         key.startsWith("editor:") -> { val parts = key.split(':'); val section = mapOf("customer" to "customers", "order" to "orders", "worklog" to "worklogs")[parts.getOrNull(1)] ?: return null; val id = parts.drop(2).joinToString(":"); if (id.startsWith("duplicate:")) target(section, id.removePrefix("duplicate:"), "duplicate") else target(section, id.takeUnless { it == "new" }.orEmpty()) }
-        key.startsWith("finance:payment:") -> { val id = key.removePrefix("finance:payment:"); target("payments", id.removePrefix("new:").takeIf { id.startsWith("new:") }.orEmpty(), "edit", JSONObject().apply { if (!id.startsWith("new:")) put("payment_id", id) }) }
-        key.startsWith("finance:issue:") -> target("invoices", key.removePrefix("finance:issue:"), "issue")
-        key.startsWith("finance:") -> { val parts = key.split(':'); val section = parts.getOrNull(1) ?: return null; target(section, parts.drop(2).joinToString(":").takeUnless { it == "new" }.orEmpty()) }
+        key.startsWith("finance:offers:") || key.startsWith("finance:catalog:") -> { val parts = key.split(':'); val section = parts.getOrNull(1) ?: return null; target(section, parts.drop(2).joinToString(":").takeUnless { it == "new" }.orEmpty()) }
         key.startsWith("planning:appointment:") -> target("appointments", key.removePrefix("planning:appointment:").takeUnless { it == "new" }.orEmpty())
         key.startsWith("revier:") -> { val plan = legacyEditor(JSONObject().put("kind", raw.optString("kind")), raw) ?: return null; plan.copy(key = key, draft = raw) }
         key == "photo_import" -> target("photos", "", "import")

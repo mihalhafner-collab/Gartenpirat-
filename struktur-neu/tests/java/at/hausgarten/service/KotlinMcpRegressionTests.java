@@ -39,23 +39,22 @@ public final class KotlinMcpRegressionTests {
                     "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"),
                     "Legacy null hash remains stable");
         }
-        yes(DriveJournalRules.guard(null, "customer").length() == 0, "Absent row has empty guard");
-        yes(DriveJournalRules.ids(null).isEmpty(), "Absent optional ID list is empty");
-        yes(!PixelDriveState.retryableInfrastructure(null, "customer"), "Absent failure is not retryable");
+        yes(LocalJournalRules.guard(null, "customer").length() == 0, "Absent row has empty guard");
+        yes(LocalJournalRules.ids(null).isEmpty(), "Absent optional ID list is empty");
         for (Object value : new Object[]{null, JSONObject.NULL, ""}) {
-            yes(PixelMcpWriteTools.canonical(DriveJournalRules.comparable("custom_fields", value))
+            yes(PixelMcpWriteTools.canonical(LocalJournalRules.comparable("custom_fields", value))
                     .equals("{}"), "Missing/null/empty custom fields compare as empty object");
-            yes(DriveJournalRules.comparable("garden_area", value) == JSONObject.NULL,
+            yes(LocalJournalRules.comparable("garden_area", value) == JSONObject.NULL,
                     "Missing garden area remains unknown");
         }
         JSONObject customer = new JSONObject().put("id", "qa_missing_fields")
                 .put("name", "[TEST] QA Kunde").put("active", 1);
-        DriveJournalRules.compare(DriveJournalRules.guard(customer, "customer"), customer);
+        LocalJournalRules.compare(LocalJournalRules.guard(customer, "customer"), customer);
         checks++;
-        rejected("WRITE_CONFLICT", () -> DriveJournalRules.compare(
-                DriveJournalRules.guard(customer, "customer"), null));
-        rejected("WRITE_CONFLICT", () -> DriveJournalRules.compare(
-                DriveJournalRules.guard(customer, "customer"),
+        rejected("WRITE_CONFLICT", () -> LocalJournalRules.compare(
+                LocalJournalRules.guard(customer, "customer"), null));
+        rejected("WRITE_CONFLICT", () -> LocalJournalRules.compare(
+                LocalJournalRules.guard(customer, "customer"),
                 new JSONObject(customer.toString()).put("name", "[TEST] QA Fremdänderung")));
 
         JSONObject optional = McpFields.object(new JSONObject().put("note", McpFields.text(30)));
@@ -78,23 +77,23 @@ public final class KotlinMcpRegressionTests {
             if (variants[i] != null) customer.put("custom_fields", variants[i]);
             JSONObject state = master(customer);
             JSONObject payload = new JSONObject(customer.toString()).put("name", "[TEST] QA Journal")
-                    .put("_sync_base", DriveJournalRules.guard(customer, "customer"));
+                    .put("_sync_base", LocalJournalRules.guard(customer, "customer"));
             String id = "qa_customer_journal_" + i;
             JSONArray actions = new JSONArray().put(new JSONObject().put("client_id", id)
                     .put("kind", "customer").put("created_at", "2026-10-28T12:00:00Z")
                     .put("payload", payload));
             String originalAction = PixelMcpWriteTools.hash(actions);
-            JSONArray errors = DriveJournalRules.apply(state, actions);
+            JSONArray errors = LocalJournalRules.apply(state, actions);
             yes(errors.length() == 0, "Optional custom_fields variant " + i + " keeps guarded update valid");
             JSONObject saved = state.getJSONArray("customers").getJSONObject(0);
             yes(saved.getString("name").equals("[TEST] QA Journal"), "Journal commits the customer edit");
             yes(saved.getJSONObject("unknown_optional").getBoolean("qa"), "Unknown legacy data retained");
-            yes(DriveJournalRules.ids(state.getJSONArray("drive_applied_ids")).contains(id),
+            yes(LocalJournalRules.ids(state.getJSONArray("drive_applied_ids")).contains(id),
                     "Committed journal ID recorded");
             yes(originalAction.equals(PixelMcpWriteTools.hash(actions)), "Journal payload stays immutable");
             if (i == 0) yes(!saved.has("custom_fields"), "Absent optional field is not invented");
             saved.put("name", "[TEST] QA Später");
-            yes(DriveJournalRules.apply(state, actions).length() == 0, "Exact replay remains accepted");
+            yes(LocalJournalRules.apply(state, actions).length() == 0, "Exact replay remains accepted");
             yes(state.getJSONArray("customers").getJSONObject(0).getString("name")
                     .equals("[TEST] QA Später"), "Replay preserves a newer customer state");
         }
@@ -118,8 +117,31 @@ public final class KotlinMcpRegressionTests {
                 String tool = catalog.getJSONObject(index).getString("name");
                 yes(!java.util.Arrays.asList("list_invoices", "get_invoice", "create_invoice_draft",
                     "update_invoice_draft", "request_invoice_issue", "update_invoice_payment",
-                    "request_sync", "resolve_sync_conflict", "get_sync_overview").contains(tool),
+                    "request_sync", "resolve_sync_conflict", "get_sync_overview", "get_sync_conflicts",
+                    "get_sync_status", "inspect_order_review", "save_reviewed_order",
+                    "record_payment", "correct_payment", "allocate_payment", "reserve_invoice_number",
+                    "issue_invoice", "cancel_invoice", "prepare_invoice_delivery", "prepare_invoice_share").contains(tool),
                     "Retired invoice and Drive tools are not advertised");
+            }
+        }
+        java.util.Set<String> names = new java.util.HashSet<>();
+        for (int i = 0; i < writable.length(); i++) {
+            JSONObject tool = writable.getJSONObject(i);
+            yes(names.add(tool.getString("name")), "MCP tool is registered exactly once");
+            yes(tool.getJSONObject("inputSchema").getString("type").equals("object"), "MCP argument contract exists");
+        }
+        for (String tool : new String[]{"create_customer", "create_order", "create_work_record", "set_work_record_billed", "create_offer_draft", "get_offer", "save_material", "get_full_backup_status"})
+            yes(names.contains(tool), "Retained business tool: " + tool);
+        JSONObject material = LocalWorkflowTools.schema("save_material").getJSONObject("properties");
+        yes(material.getJSONObject("purchase_price_minor").getLong("minimum") == 0, "Material purchase price uses nonnegative cents");
+        yes(material.getJSONObject("billing_price_minor").getLong("maximum") == 9000000000000000L, "Material billing price retains exact integer bound");
+        for (int i = 0; i < writable.length(); i++) {
+            JSONObject tool = writable.getJSONObject(i);
+            if (tool.getString("name").equals("update_business_settings")) {
+                JSONObject fields = tool.getJSONObject("inputSchema").getJSONObject("properties").getJSONObject("updates").getJSONObject("properties");
+                for (String removed : new String[]{"invoice_prefix", "invoice_number_format", "invoice_numbering_authority", "invoice_numbering_last_number", "invoice_sevdesk_last_number"})
+                    yes(!fields.has(removed), "Retired invoice numbering is not writable: " + removed);
+                yes(fields.has("invoice_issuer_confirmed") && fields.has("tax_mode"), "Offer issuer and tax settings remain writable");
             }
         }
         yes(read.call("search_customers", new JSONObject().put("query", "Katalog"))

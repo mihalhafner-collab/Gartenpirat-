@@ -18,10 +18,8 @@ import java.util.concurrent.Executors
 import org.json.JSONObject
 
 /** User-visible and user-stoppable private MCP responder. */
-class PixelTunnelService : Service(), McpSyncHost {
-    override fun requestMcpSync() {
-        MainActivity.requestMcpSync(this)
-    }
+class PixelTunnelService : Service() {
+
 
     private val closing = AtomicBoolean()
     private var worker: Thread? = null

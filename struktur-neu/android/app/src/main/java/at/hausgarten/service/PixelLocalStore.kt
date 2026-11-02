@@ -118,13 +118,12 @@ fun beginBusinessTransaction(db: SQLiteDatabase): Unit {
 beginJournalTransaction(db, LAM@ {
 var tables = businessTables(db, true)
 if (tables.active() && !(tables.projectionCurrent())) {
-tables.commitJournal(LocalPendingActions.read(db, false, { id -> BackupSnapshotState.photo(db, id) }, 0), LAM@ { master ->
+tables.commitJournal(LocalPendingActions.read(db, { id -> BackupSnapshotState.photo(db, id) }), LAM@ { master ->
 removeSnapshotPhotoBinaries(master)
-documentReferences(master)
-PixelDriveState.prepare(master)
+LocalBusinessState.prepare(master)
 seedServiceCatalog(master)
 LocalTestCleanup.overlay({ key, fallback -> DatabaseBackupSnapshot.ownerValue(db, key, fallback) ?: fallback }, master)
-master.put("processing_engine", LocalAuthorityRules.ENGINE).put("local_contract_version", LocalAuthorityRules.CONTRACT)
+master.put("processing_engine", LocalBusinessState.ENGINE).put("local_contract_version", LocalBusinessState.CONTRACT)
 OfferDecisionProjection.apply(db, master)
  })
 }
@@ -231,26 +230,6 @@ preferences.edit().putString("drive_snapshot", snapshot.toString()).commit()
 
 } catch (ignored: Exception) {
 
-}
-}
-@Throws(Exception::class) fun documentReferences(snapshot: JSONObject): Unit {
-
-var invoices = snapshot.optJSONArray("invoices")
-run {
-var i: Int = 0
-var firstIteration36 = true
-while (true) {
-if (firstIteration36) firstIteration36 = false else { i++ }
-if (!(invoices != null && i < invoices.length())) break
-
-var invoice = invoices.getJSONObject(i)
-var prepared = LegacyPdfAttachment.describe(invoice)
-if (prepared != null) {
-BusinessDocumentStore(context).store(prepared.bytes, invoice)
-invoice.remove("pdf_base64")
-}
-
-}
 }
 }
 override fun onCreate(database: SQLiteDatabase): Unit {
@@ -420,7 +399,7 @@ return queryState(tool, args)
 }
 override @Throws(Exception::class) fun metadata(): JSONObject {
 
-return JSONObject().put("last_drive_sync", preferences.getString("last_drive_sync", ""))
+return JSONObject().put("storage_contract_version", 3)
 }
 }
 }
@@ -439,19 +418,15 @@ try {
 
 var master = rawSnapshot(readAsset("initial-data.json"))
 removeSnapshotPhotoBinaries(master)
-documentReferences(master)
-PixelDriveState.prepare(master)
+LocalBusinessState.prepare(master)
 seedServiceCatalog(master)
 LocalTestCleanup.overlay(this, master)
-master.put("processing_engine", LocalAuthorityRules.ENGINE).put("local_contract_version", LocalAuthorityRules.CONTRACT)
+master.put("processing_engine", LocalBusinessState.ENGINE).put("local_contract_version", LocalBusinessState.CONTRACT)
 output.put("master", master)
 output.put("pending", pendingActions())
 output.put("work_session", workSessions().current())
-output.put("sync_queue", JSONObject().put("mode", "local_only").put("contract_version", 3)
-    .put("total", 0).put("pending", 0).put("review", 0)
-    .put("locally_committed", output.getJSONArray("pending").length()))
 output.put("storage_contract_version", 3)
-output.put("processing_engine", LocalAuthorityRules.ENGINE)
+output.put("processing_engine", LocalBusinessState.ENGINE)
 output.put("business_sync_allowed", false)
 
 } catch (error: Exception) {
@@ -459,9 +434,6 @@ throw IllegalStateException("LOCAL_STATE_BUILD_FAILED", error)
 }
 try {
 OfferDecisionProjection.apply(this, output.getJSONObject("master"))
-output.put("sync_status", JSONObject().put("state", "local_only")
-    .put("syncing", false).put("business_sync_allowed", false)
-    .put("cloud_confirmed", false))
 } catch (invalid: Exception) {
 throw IllegalStateException("LOCAL_STATE_METADATA_UNREADABLE", invalid)
 }
@@ -669,7 +641,7 @@ var old = sessionPhotos.getJSONObject(i)
 if (!((sessionId == old.optString("session_id"))) || !(old.optString("worklog_id").isEmpty())) {
 continue
 }
-var linked = DriveJournalRules.clean(old)
+var linked = LocalJournalRules.clean(old)
 linked.put("worklog_id", saved)
 prepareManualChange("photo", linked, old)
 saveAction("photo", "pho_mobile_", linked)
@@ -815,14 +787,12 @@ database.setTransactionSuccessful()
 } finally {
 database.endTransaction()
 }
-if (context is McpSyncHost) {
-((context as McpSyncHost)).requestMcpSync()
-}
+notifyCommittedChange()
 if (("worklog" == result.optString("entity_type"))) {
 result.put("work_record_id", result.getString("entity_id"))
 }
 result.put("sync", PixelMcpBusinessTools.sync(result.getJSONObject("sync"), getState())).put("local_state", "local_saved").put("sync_state", result.getJSONObject("sync").optString("sync_state"))
-return JSONObject().put("ok", true).put("data", result).put("message", "Auf dem Pixel gespeichert. Drive dient ausschließlich der getrennt geprüften Vollsicherung.")
+return JSONObject().put("ok", true).put("data", result).put("message", "Auf dem Pixel gespeichert. Vollsicherungen werden lokal erstellt.")
 }
 /** Read the original idempotency proof without replaying any command. */
 fun lookupNativeReceipt(request: String): JSONObject? = receipt("mcp_pixel_" + PixelMcpWriteTools.hash(request).substring(0, 40))
@@ -916,7 +886,7 @@ database.insertOrThrow("pending", null, action)
 session = timer.current(id)
 }
 }
-result = JSONObject().put("client_id", clientId).put("session", session).put("replayed", false).put("local_state", "local_saved").put("sync_state", (if (((tool == "complete_work_session") || (tool == "finish_work"))) "sync_pending" else "not_applicable")).put("requires_work_record_completion", (tool == "stop_work"))
+result = JSONObject().put("client_id", clientId).put("session", session).put("replayed", false).put("local_state", "local_saved").put("sync_state", "not_applicable").put("requires_work_record_completion", (tool == "stop_work"))
 var meta = JSONObject().put("fingerprint", fingerprint).put("tool", tool).put("entity_type", (if (((tool == "complete_work_session") || (tool == "finish_work"))) "worklog" else "work_session")).put("entity_id", (if (((tool == "complete_work_session") || (tool == "finish_work"))) session.optString("finalized_worklog_id") else session.getString("id"))).put("work_record_id", session.optString("finalized_worklog_id")).put("uploaded", false).put("test_local_only", payload.optBoolean("_local_only")).put("result", result)
 var row = ContentValues()
 row.put("id", "receipt_" + clientId)
@@ -931,131 +901,27 @@ database.setTransactionSuccessful()
 database.endTransaction()
 }
 if (((tool == "complete_work_session") || (tool == "finish_work"))) {
-if (context is McpSyncHost) {
-((context as McpSyncHost)).requestMcpSync()
-}
+notifyCommittedChange()
 var sync = status(clientId, getState())
 result.put("sync", sync).put("sync_state", sync.optString("sync_state"))
 }
 return JSONObject().put("ok", true).put("data", result).put("message", (if ((tool == "stop_work")) "Zeiterfassung lokal gestoppt. Tätigkeit prüfen und mit complete_work_session als Arbeitsaufzeichnung abschließen." else "Aktion dauerhaft auf dem Pixel gespeichert. Timer und Arbeitsaufzeichnungen bleiben lokal; Sicherungen werden als unverschlüsselte ZIP auf dem Pixel gespeichert."))
 }
 override @Throws(Exception::class) fun status(clientId: String, state: JSONObject): JSONObject {
-
-var master = state.getJSONObject("master")
-var metadata = receipt(clientId)
-var ownerReceipt = ownerValue("receipt:" + clientId, "")!!
-var ownerSaved: Boolean = !(ownerReceipt.isEmpty())
-var providerReadback: Boolean = DriveJournalRules.ids(master.optJSONArray("drive_delivered_ids")).contains(clientId) || (metadata != null && metadata.optBoolean("uploaded"))
-var ownerResult = (if (ownerSaved) JSONObject(ownerReceipt).optJSONObject("result") else null)
-if (metadata != null && ("work_session" == metadata.optString("entity_type"))) {
-return JSONObject().put("client_id", clientId).put("status", "local_saved").put("sync_state", "not_applicable").put("local_state", "local_saved").put("saved_locally", true).put("confirmed_by_app", false).put("uploaded_to_drive", false).put("entity_id", metadata.optString("entity_id")).put("message", "Timeraktion dauerhaft lokal gespeichert; keine Drive-Arbeitsaufzeichnung. Aktuellen Zustand mit get_active_work_session lesen.")
-}
-var phase = "unknown"
-var accepted = master.optJSONArray("accepted_ids")
-run {
-var i: Int = 0
-var firstIteration41 = true
-while (true) {
-if (firstIteration41) firstIteration41 = false else { i++ }
-if (!(accepted != null && i < accepted.length())) break
-
-if ((clientId == accepted.optString(i))) {
-phase = "accepted"
-}
-
-}
-}
-if (!((phase == "accepted"))) {
-var pending = state.optJSONArray("pending")
-var queued: Boolean = false
-run {
-var i: Int = 0
-var firstIteration42 = true
-while (true) {
-if (firstIteration42) firstIteration42 = false else { i++ }
-if (!(pending != null && i < pending.length())) break
-
-if ((clientId == pending.getJSONObject(i).optString("client_id"))) {
-queued = true
-}
-
-}
-}
-if (queued) {
-phase = (if (metadata != null && metadata.optBoolean("uploaded")) "transferred" else "queued")
-} else {
-if (metadata != null) {
-phase = "superseded"
-}
-}
-if (DriveJournalRules.ids(master.optJSONArray("drive_applied_ids")).contains(clientId)) {
-phase = (if (providerReadback) "transferred" else "applied_on_pixel")
-}
-var errors = master.optJSONArray("sync_errors")
-run {
-var i: Int = 0
-var firstIteration43 = true
-while (true) {
-if (firstIteration43) firstIteration43 = false else { i++ }
-if (!(errors != null && i < errors.length())) break
-
-var error = errors.optJSONObject(i)
-if (error != null && (clientId == error.optString("client_id"))) {
-phase = "failed"
-}
-
-}
-}
-var journalErrors = master.optJSONArray("drive_journal_errors")
-run {
-var i: Int = 0
-var firstIteration44 = true
-while (true) {
-if (firstIteration44) firstIteration44 = false else { i++ }
-if (!(journalErrors != null && i < journalErrors.length())) break
-
-var error = journalErrors.optJSONObject(i)
-if (error != null && (clientId == error.optString("client_id"))) {
-phase = "failed"
-}
-
-}
-}
-}
-if (master.optJSONObject("drive_resolved_actions") != null && master.getJSONObject("drive_resolved_actions").has(clientId)) {
-phase = "resolved"
-}
-return PixelMcpBusinessTools.sync(JSONObject().put("client_id", clientId).put("status", phase).put("confirmed_by_app", (phase == "accepted")).put("test_local_only", metadata != null && metadata.optBoolean("test_local_only") || ownerResult != null && ownerResult.optBoolean("test_local_only")).put("saved_locally", metadata != null || ownerSaved).put("uploaded_to_drive", (phase == "accepted") || providerReadback || (metadata != null && metadata.optBoolean("uploaded"))).put("provider_readback", providerReadback || (metadata != null && metadata.optBoolean("uploaded"))).put("entity_type", (if (metadata == null) ((if (ownerResult == null) "" else ownerResult.optString("entity_type"))) else metadata.optString("entity_type", "worklog"))).put("entity_id", (if (metadata == null) ((if (ownerResult == null) "" else ownerResult.optString("entity_id"))) else metadata.optString("entity_id", metadata.optString("work_record_id")))).put("work_record_id", (if (metadata == null) "" else metadata.optString("work_record_id"))).put("applied_on_pixel", DriveJournalRules.ids(master.optJSONArray("drive_applied_ids")).contains(clientId)).put("confirmation_scope", (if ((phase == "accepted")) "web_import_receipt" else (if ((providerReadback || metadata != null && metadata.optBoolean("uploaded"))) "drive_provider_readback" else "local_only"))).put("cloud_confirmed", false).put("message", (if ((phase == "resolved")) "Die Konfliktentscheidung wurde übernommen. Die ursprüngliche Aktion bleibt im Journal erhalten." else (if ((phase == "accepted")) "Im Gesamtstand übernommen und bestätigt. Cloud-Upload wird durch Drive durchgeführt." else (if ((phase == "failed")) "Die Änderung benötigt eine Prüfung. Lokale Daten bleiben erhalten." else (if ((phase == "superseded")) "Die vorgemerkte Änderung wurde in der App ersetzt. Bitte den Eintrag öffnen." else (if ((phase == "transferred")) "Änderung an die Drive-App übergeben und zurückgelesen; auf dem Pixel nutzbar. Der Google-Cloud-Upload ist nicht unabhängig bestätigt." else (if ((phase == "applied_on_pixel")) "Auf dem Pixel übernommen; Provider-Rücklesen noch nicht nachgewiesen." else (if ((phase == "queued")) "Auf dem Pixel gesichert. Drive-Abgleich steht noch aus." else "Für diese Anfrage liegt noch keine Bestätigung vor.")))))))), state)
-}
-@Throws(Exception::class) fun markUploaded(actions: JSONArray): Unit {
-
-var database = getWritableDatabase()
-beginBusinessTransaction(database)
-try {
-
-run {
-var i: Int = 0
-var firstIteration45 = true
-while (true) {
-if (firstIteration45) firstIteration45 = false else { i++ }
-if (!(i < actions.length())) break
-
-var clientId = actions.getJSONObject(i).optString("client_id")
-var metadata = receipt(clientId)
-if (metadata != null) {
-metadata.put("uploaded", true)
-var value = ContentValues()
-value.put("payload", metadata.toString())
-database.update("pending", value, "id=? AND kind='mcp_receipt'", arrayOf("receipt_" + clientId))
-}
-
-}
-}
-database.setTransactionSuccessful()
-
-} finally {
-database.endTransaction()
-}
+val metadata = receipt(clientId)
+val ownerReceipt = ownerValue("receipt:" + clientId, "").orEmpty()
+val ownerResult = if (ownerReceipt.isEmpty()) null else JSONObject(ownerReceipt).optJSONObject("result")
+val saved = metadata != null || ownerReceipt.isNotEmpty()
+val errors = state.getJSONObject("master").optJSONArray("drive_journal_errors") ?: JSONArray()
+val failed = (0 until errors.length()).any { errors.getJSONObject(it).optString("client_id") == clientId }
+return JSONObject().put("client_id", clientId).put("status", if (failed) "failed" else if (saved) "local_saved" else "unknown")
+    .put("sync_state", "not_applicable").put("local_state", if (saved) "local_saved" else "unknown")
+    .put("saved_locally", saved).put("confirmation_scope", "local_only").put("cloud_confirmed", false)
+    .put("applied_on_pixel", LocalJournalRules.ids(state.getJSONObject("master").optJSONArray("drive_applied_ids")).contains(clientId))
+    .put("entity_type", metadata?.optString("entity_type") ?: ownerResult?.optString("entity_type").orEmpty())
+    .put("entity_id", metadata?.optString("entity_id", metadata.optString("work_record_id")) ?: ownerResult?.optString("entity_id").orEmpty())
+    .put("work_record_id", metadata?.optString("work_record_id").orEmpty())
+    .put("message", if (failed) "Lokale Änderung benötigt Prüfung." else if (saved) "Dauerhaft lokal gespeichert." else "Kein lokaler Aktionsbeleg vorhanden.")
 }
 private @Throws(Exception::class) fun findById(rows: JSONArray, id: String): JSONObject? {
 
@@ -1185,21 +1051,7 @@ return entityId
 database.endTransaction()
 }
 }
-@Throws(Exception::class) fun saveReviewedOrder(request: JSONObject): String {
 
-var database = getWritableDatabase()
-beginBusinessTransaction(database)
-try {
-
-var payload = OrderReviewRules.prepare(getState(), request)
-var id = saveAction("order", "ord_mobile_", payload)
-database.setTransactionSuccessful()
-return id
-
-} finally {
-database.endTransaction()
-}
-}
 @Throws(Exception::class) fun saveOrder(payload: JSONObject): String {
 
 var tx = getWritableDatabase()
@@ -1491,9 +1343,9 @@ var confirmed = HashSet<String>()
 try {
 
 var snapshot = JSONObject(snapshotText("{}"))
-confirmed.addAll(DriveJournalRules.ids(snapshot.optJSONArray("accepted_ids")))
-confirmed.addAll(DriveJournalRules.ids(snapshot.optJSONArray("rejected_invoice_ids")))
-confirmed.addAll(DriveJournalRules.ids(snapshot.optJSONArray("drive_applied_ids")))
+confirmed.addAll(LocalJournalRules.ids(snapshot.optJSONArray("accepted_ids")))
+confirmed.addAll(LocalJournalRules.ids(snapshot.optJSONArray("rejected_invoice_ids")))
+confirmed.addAll(LocalJournalRules.ids(snapshot.optJSONArray("drive_applied_ids")))
 var resolved = snapshot.optJSONObject("drive_resolved_actions")
 if (resolved != null) {
 var keys = resolved.keys()
@@ -1855,7 +1707,7 @@ db.endTransaction()
 }
 }
 @Throws(Exception::class) fun pendingActions(): JSONArray =
-    LocalPendingActions.read(getReadableDatabase(), false, this::photoAttachment, System.currentTimeMillis())
+    LocalPendingActions.read(getReadableDatabase(), this::photoAttachment)
 fun acknowledge(ids: MutableSet<String>): Unit {
 
 var database = getWritableDatabase()

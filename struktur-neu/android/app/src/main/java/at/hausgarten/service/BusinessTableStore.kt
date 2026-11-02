@@ -192,12 +192,8 @@ return@LAM null
 }
 var master = materialize(activeMetadata())
 prepare.prepare(master)
-var engine = master.optString("processing_engine")
-var journal = DriveJournalRules.union(actions, master.optJSONArray("drive_review_actions"))
-DriveJournalRules.apply(master, journal)
-if ((LocalAuthorityRules.ENGINE == engine)) {
-master.put("processing_engine", engine)
-}
+var journal = actions
+LocalJournalRules.apply(master, journal)
 replaceSnapshot(master)
 owner(PROJECTED_REVISION, owner(JOURNAL_REVISION)!!)
 return@LAM null

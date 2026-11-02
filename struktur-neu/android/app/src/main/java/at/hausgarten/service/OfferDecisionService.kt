@@ -63,7 +63,7 @@ internal class OfferDecisionService {
                             ))!!
                             .put("items", items))!!
                         .put("total", rows!!.length()))!!
-                    .put("record_hash", PixelMcpWriteTools.hash(DriveJournalRules.clean(offer))))!!
+                    .put("record_hash", PixelMcpWriteTools.hash(LocalJournalRules.clean(offer))))!!
                 .put("document_status", offer!!.optString("status"))
         if ((decision !== null)) {
             var map: JSONObject = (JSONObject())!!.put(id, decision)
@@ -120,7 +120,7 @@ internal class OfferDecisionService {
         var id = RevierRules.id(args, "offer_id", true)
         var offer = PixelMcpWriteTools.find((repository!!.effective())!!.getJSONArray("offers"), id)
         if (
-            !(PixelMcpWriteTools.hash(DriveJournalRules.clean(offer)))!!.equals(
+            !(PixelMcpWriteTools.hash(LocalJournalRules.clean(offer)))!!.equals(
                 args!!.getString("expected_record_hash")
             )
         ) {

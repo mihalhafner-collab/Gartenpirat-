@@ -9,7 +9,7 @@ object BusinessStateFingerprint {
     @JvmStatic @Throws(Exception::class)
     fun read(database: SQLiteDatabase): JSONObject {
         val hashes = JSONObject()
-        database.rawQuery("SELECT key FROM owner_state WHERE key LIKE 'revier:v1:%' OR key LIKE 'offer_decision:v1:%' OR key LIKE 'local_payment:%' OR key LIKE 'local_invoice_sources:%' OR key LIKE 'local_invoice_material_sources:%' OR key LIKE 'invoice_opening_balance:%' OR key LIKE 'local_number_reservation:%' OR key LIKE 'local_invoice_job:%' OR key LIKE 'local_invoice_document_recovery:%' OR key IN ('local_invoice_counter','local_invoice_external_evidence','personal_paid','personal_paid_migrated','settings') ORDER BY key", null).use { keys ->
+        database.rawQuery("SELECT key FROM owner_state WHERE key LIKE 'revier:v1:%' OR key LIKE 'offer_decision:v1:%' OR key IN ('personal_paid','personal_paid_migrated','settings') ORDER BY key", null).use { keys ->
             while (keys.moveToNext()) {
                 val key = keys.getString(0)
                 hashes.put(key, PixelMcpWriteTools.hash(DatabaseBackupSnapshot.ownerValue(database, key, "")))

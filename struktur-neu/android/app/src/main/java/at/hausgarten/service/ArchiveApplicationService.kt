@@ -3,8 +3,8 @@ package at.hausgarten.service
 import org.json.*
 import java.util.*
 
-/** SyncArchive use cases. Effects pass through the existing owner repository transaction. */
-class SyncArchiveApplicationService : OwnerCommand {
+/** Local archive and trash use cases. Effects pass through the existing owner repository transaction. */
+class ArchiveApplicationService : OwnerCommand {
     private val repository: OwnerRepository
     constructor(repository: OwnerRepository) {
         this.repository = repository
@@ -38,7 +38,7 @@ class SyncArchiveApplicationService : OwnerCommand {
                             i++
                         }
                     }
-                    return JSONObject().put("count", saved.length()).put("actions", saved).put("recoverable", true).put("physical_delete", false).put("local_state", "local_saved").put("sync_state", "sync_pending")
+                    return JSONObject().put("count", saved.length()).put("actions", saved).put("recoverable", true).put("physical_delete", false).put("local_state", "local_saved").put("sync_state", "not_applicable")
                 }
             }
             "purge_entity" -> {
@@ -67,12 +67,6 @@ class SyncArchiveApplicationService : OwnerCommand {
                     OwnerJournalRules.apply(JSONObject(all.toString()), JSONObject().put("client_id", request).put("kind", "restore").put("payload", p).put("created_at", stamp), HashMap(), JSONObject())
                     return repository.enqueue("restore", p, request)
                 }
-            }
-            "create_backup" -> {
-                return repository.createBackup(request)
-            }
-            "restore_backup" -> {
-                return repository.restoreBackup(a, request)
             }
             else -> {
                 throw IllegalArgumentException("Eigentümerfunktion fehlt.")

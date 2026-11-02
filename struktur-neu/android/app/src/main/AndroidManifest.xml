@@ -23,7 +23,7 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <provider android:name=".InvoiceFileProvider" android:authorities="${applicationId}.invoicefiles" android:exported="false" android:grantUriPermissions="true" />
+        <provider android:name=".OfferFileProvider" android:authorities="${applicationId}.offerfiles" android:exported="false" android:grantUriPermissions="true" />
         <provider android:name=".PhotoCaptureProvider" android:authorities="${applicationId}.photocapture" android:exported="false" android:grantUriPermissions="true" />
         <provider android:name=".PhotoThumbnailProvider" android:authorities="${applicationId}.photothumbnails" android:exported="false" android:grantUriPermissions="false" />
         <activity android:name=".PixelTunnelActivity" android:exported="false" />

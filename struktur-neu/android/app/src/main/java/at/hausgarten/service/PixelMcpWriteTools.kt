@@ -166,7 +166,7 @@ class PixelMcpWriteTools {
                             (if ((name == "update_work_record"))
                                 "Korrigiert eine Arbeitsaufzeichnung. Zuerst get_work_record aufrufen und record_hash als expected_record_hash übernehmen. Keine Änderung von Kunden-ID, Abrechnung oder Rechnungen."
                             else
-                                "Legt eine Arbeitsaufzeichnung mit tatsächlichen Kunden-/Auftrags-IDs dauerhaft auf dem Pixel an. request_id bei Wiederholung unverändert lassen. storage_contract_version 3: kein operativer Drive-Abgleich; get_sync_status liest den lokalen Aktionsbeleg, get_full_backup_status den getrennten Vollsicherungsstand."),
+                                "Legt eine Arbeitsaufzeichnung mit tatsächlichen Kunden-/Auftrags-IDs dauerhaft auf dem Pixel an. request_id bei Wiederholung unverändert lassen. storage_contract_version 3: lokale Speicherung; get_full_backup_status liest den getrennten Vollsicherungsstand."),
                         )
                         .put(
                             "annotations",
@@ -419,30 +419,7 @@ class PixelMcpWriteTools {
                         "Der Eintrag wurde inzwischen geändert. Bitte erneut öffnen und die Änderung prüfen.",
                     )
                 }
-                var pending =
-                    (if ((PixelDriveState.ENGINE == master.optString("processing_engine"))) null
-                    else state.optJSONArray("pending"))
-                run {
-                    var i: Int = 0
-                    var firstIteration105 = true
-                    while (true) {
-                        if (firstIteration105) firstIteration105 = false
-                        else {
-                            i++
-                        }
-                        if (!(((pending != null) && (i < pending.length())))) break
-
-                        var a = pending.getJSONObject(i)
-                        var p = a.optJSONObject("payload")
-                        if (((p != null) && (old.getString("id") == p.optString("id")))) {
-                            throw Rejected(
-                                "WRITE_CONFLICT",
-                                "Für diesen Eintrag ist bereits eine Änderung vorgemerkt. Bitte zuerst abgleichen.",
-                            )
-                        }
-                    }
-                }
-                var patch = args.getJSONObject("updates")
+                val patch = args.getJSONObject("updates")
                 var invoiced: Boolean = (old.optInt("billed", 0) != 0)
                 var invoices = master.optJSONArray("invoices")
                 run {

@@ -25,9 +25,6 @@ fun putOwnerValue(key: String, value: String): Unit
 @Throws(Exception::class) fun createDocument(record: JSONObject): JSONObject
 @Throws(Exception::class) fun readDocument(record: JSONObject): Unit
 @Throws(Exception::class) fun verifyDelivery(messageId: String, offer: JSONObject): JSONObject
-@Throws(Exception::class) fun createBackup(request: String): JSONObject
-@Throws(Exception::class) fun protectDeletion(snapshot: JSONObject, entries: JSONArray, request: String): JSONObject
-@Throws(Exception::class) fun restoreBackup(args: JSONObject, request: String): JSONObject
 @Throws(Exception::class) fun planningSettings(): JSONObject
 fun calendarConnected(): Boolean
 fun weatherCredentialAvailable(): Boolean

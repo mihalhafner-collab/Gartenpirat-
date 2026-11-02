@@ -358,9 +358,9 @@ internal class OfferRules {
                         (if (complete) (net!!.add(tax))!!.toDouble() else JSONObject.NULL),
                     ))!!
                 .put("status", "draft")
-            if (LocalAuthorityRules.ENGINE.equals(snapshot!!.optString("processing_engine"))) {
+            run {
                 if (complete) {
-                    p!!.put("money_minor", LocalAuthorityRules.exactTotals(p))
+                    p!!.put("money_minor", OfferMoney.exactTotals(p))
                 } else {
                     p!!.remove("money_minor")
                 }

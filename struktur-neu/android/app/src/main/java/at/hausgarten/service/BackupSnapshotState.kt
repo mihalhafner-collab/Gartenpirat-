@@ -14,30 +14,14 @@ internal object BackupSnapshotState {
         }
         val fallback = preferences.optString("drive_snapshot", initialData)
         val master = PixelLocalStore.businessTables(db).snapshot(fallback)
-        val engine = master.optString("processing_engine")
-        if (engine.isNotEmpty() && engine != PixelDriveState.ENGINE && engine != LocalAuthorityRules.ENGINE) {
-            throw IOException("BACKUP_SNAPSHOT_ENGINE_UNSUPPORTED")
-        }
         PixelLocalStore.removeSnapshotPhotoBinaries(master)
-        val invoices = master.optJSONArray("invoices")
-        if (invoices != null) {
-            for (i in 0 until invoices.length()) {
-                val invoice = invoices.getJSONObject(i)
-                if (LegacyPdfAttachment.describe(invoice) != null) invoice.remove("pdf_base64")
-            }
-        }
-        PixelDriveState.prepare(master)
+        LocalBusinessState.prepare(master)
         ServiceCatalogBootstrap.seed(master) { serviceCatalog }
         LocalTestCleanup.overlay({ key, otherwise -> DatabaseBackupSnapshot.ownerValue(db, key, otherwise) ?: otherwise }, master)
-        if (engine == LocalAuthorityRules.ENGINE ||
-            DatabaseBackupSnapshot.ownerValue(db, "local_authority_contract", "")!!.isNotEmpty()) {
-            master.put("processing_engine", LocalAuthorityRules.ENGINE)
-                .put("local_contract_version", LocalAuthorityRules.CONTRACT)
-        }
         OfferDecisionProjection.apply(db, master)
-        val actions = LocalPendingActions.read(db, false, { id -> photo(db, id) }, 0)
+        val actions = LocalPendingActions.read(db, { id -> photo(db, id) })
         val state = JSONObject().put("master", master)
-            .put("pending", DriveJournalRules.union(actions, master.optJSONArray("drive_review_actions")))
+            .put("pending", actions)
             .put("extended_business_fingerprint", BusinessStateFingerprint.read(db))
         db.rawQuery("SELECT id,state,updated_at FROM work_sessions WHERE state NOT IN ('FINALIZED','CANCELLED') ORDER BY rowid DESC LIMIT 1", null).use { session ->
             state.put("work_session", if (session.moveToFirst()) {

@@ -28,7 +28,7 @@ internal class PlanningApplicationService(private val repository: OwnerRepositor
                     .put("ends_at", if (ends == null) "" else AppointmentRules.local(ends.toLocalDateTime().plusWeeks(weeks).toString(), a.getString("timezone"), "").toString())
                 val row = AppointmentRules.prepare("create_appointment", occurrence, all, request + "_" + i, stamp)
                 repository.checkBusy(row); repository.enqueue("appointment", row, request + "_" + i)
-                OwnerJournalRules.replace(all, "appointments", row.getString("id"), DriveJournalRules.clean(row)); ids.put(row.getString("id"))
+                OwnerJournalRules.replace(all, "appointments", row.getString("id"), LocalJournalRules.clean(row)); ids.put(row.getString("id"))
             }
             return JSONObject().put("appointment_ids", ids).put("local_state", "local_saved").put("cloud_confirmed", false)
         }

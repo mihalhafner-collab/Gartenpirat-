@@ -81,9 +81,6 @@ page.put(all.get(i))
 return JSONObject().put("actions", page).put("total", all.length()).put("catalog_hash", hash).put("catalog_semantic", CatalogSemanticHash.describe(catalog)).put("offset", args.optInt("offset")).put("limit", args.optInt("limit", 50)).put("next_cursor", (if (args.optInt("offset") + page.length() < all.length()) args.optInt("offset") + page.length() else JSONObject.NULL)).put("scope", catalog.getString("scope"))
 }
 }
-"inspect_order_review" -> {
-return OrderReviewRules.inspect(repository.state(), args.getString("order_id"))
-}
 "preview_empty_trash" -> {
 return TrashPurgeBatch.preview(repository.effective())
 }
@@ -96,12 +93,12 @@ var data = JSONObject().put("build_fingerprint", BuildProvenance.describe()).put
 var current = repository.effective()
 var caps = current.optJSONObject("capabilities")
 withStorageContract(data)
-data.put("inventory_processing_engine", current.optString("processing_engine")).put("primary_device_id", current.optString("drive_publisher_id")).put("historical_drive_publisher_id", current.optString("drive_publisher_id")).put("offers_sync_ready", false).put("service_catalog_sync_ready", false).put("offers_local_ready", caps != null && caps.optBoolean("offers_v1")).put("service_catalog_local_ready", caps != null && caps.optBoolean("service_catalog_v1"))
+data.put("inventory_processing_engine", current.optString("processing_engine")).put("offers_local_ready", caps != null && caps.optBoolean("offers_v1")).put("service_catalog_local_ready", caps != null && caps.optBoolean("service_catalog_v1"))
 data.put("capabilities", ((if (caps == null) JSONObject() else JSONObject(caps.toString()))).put("local_payment_ledger_v1", false).put("native_editor_storage_v1", true).put("business_drive_sync", false).put("encrypted_drive_backup", false).put("local_plaintext_backup", true))
 var backup = JSONObject()
 var target: Boolean = true
 data.put("local_workflows_contract", 1).put("backup_contract", JSONObject().put("format_version", 3).put("inventory_issues_block_backup", false).put("encrypted_streaming", false).put("daily_deferrable", false).put("setup_requires_device", true).put("remote_readback_sha256", false).put("mode", "PIXEL_PLAINTEXT_ZIP").put("automatic_enabled", false).put("key_required", false))
-data.put("planning", AppointmentRuntime.integration(context, store)).put("drive_configured", false).put("drive_configuration_scope", "retired").put("backup_storage", "PIXEL_LOCAL").put("platform_limits", JSONArray().put("tunnel_account_and_organization_grants").put("backup_android_local_file_permission").put("foreground_and_battery_limits").put("sharing_requires_device_interaction").put("camera_location_and_os_settings_require_device"))
+data.put("planning", AppointmentRuntime.integration(context, store)).put("backup_storage", "PIXEL_LOCAL").put("platform_limits", JSONArray().put("tunnel_account_and_organization_grants").put("backup_android_local_file_permission").put("foreground_and_battery_limits").put("sharing_requires_device_interaction").put("camera_location_and_os_settings_require_device"))
 return data
 }
 }
@@ -133,30 +130,13 @@ var s = effective.optJSONObject("business_settings")
 if (s == null) {
 throw IllegalArgumentException("Pixel-Einstellungsstand fehlt.")
 }
-return withStorageContract(JSONObject().put("initialization_required", s.length() == 0).put("settings_origin", effective.optString("business_settings_origin", "existing_snapshot")).put("settings", s).put("record_hash", PixelMcpWriteTools.hash(s)).put("credentials_exposed", false))
+return withStorageContract(JSONObject().put("initialization_required", s.length() == 0).put("settings_origin", effective.optString("business_settings_origin", "existing_snapshot")).put("settings", JSONObject().apply { for (key in McpFields.BUSINESS_KEYS) if (s.has(key)) put(key, s.get(key)) }).put("record_hash", PixelMcpWriteTools.hash(s)).put("credentials_exposed", false))
 }
 }
 "get_settings" -> {
 run {
 var s = repository.settings()
 return withStorageContract(JSONObject().put("photo_storage", repository.photoStorageSummary()).put("settings", s).put("record_hash", PixelMcpWriteTools.hash(s)).put("personal_paid", JSONArray(store.ownerValue("personal_paid", "[]"))).put("credentials_exposed", false))
-}
-}
-"list_backups" -> {
-return repository.listBackups()
-}
-"inspect_backup" -> {
-run {
-var id = args.getString("backup_id")
-var m = repository.fileMeta(id)
-if (!(("backup" == m.optString("kind")))) {
-throw IllegalArgumentException("Keine Sicherung.")
-}
-if ((DeletionBackupStore.SCOPE == m.optString("scope"))) {
-return repository.inspectDeletionBackup(id, m)
-}
-var saved = JSONObject(String(repository.fileBytes(id), StandardCharsets.UTF_8))
-return JSONObject().put("backup_id", id).put("metadata", m).put("state_hash", PixelMcpWriteTools.hash(repository.state())).put("collections", repository.backupCounts(saved)).put("restore_mode", "add_missing_without_overwrite")
 }
 }
 "search_catalog" -> {

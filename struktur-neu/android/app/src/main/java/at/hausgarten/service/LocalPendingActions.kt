@@ -14,7 +14,7 @@ internal class LocalPendingActions private constructor() {
     companion object {
         @JvmStatic
         @Throws(Exception::class)
-        fun read(db: SQLiteDatabase, forDrive: Boolean, photos: Photos, now: Long): JSONArray {
+        fun read(db: SQLiteDatabase, photos: Photos): JSONArray {
             val result = JSONArray()
             db.rawQuery(
                     "SELECT id,kind,length(payload),created_at FROM pending WHERE kind!='mcp_receipt' ORDER BY created_at ASC,rowid ASC",
@@ -40,20 +40,8 @@ internal class LocalPendingActions private constructor() {
                             offset += 32768
                         }
                         var payload = JSONObject(text.toString())
-                        if (
-                            forDrive &&
-                                (payload.optBoolean("_local_only") ||
-                                    payload.optBoolean("test_record"))
-                        )
-                            continue
-                        if (
-                            forDrive &&
-                                (kind == "delete" || kind == "archive") &&
-                                payload.optLong("_undo_until", 0) > now
-                        )
-                            continue
                         payload.remove("_undo_until")
-                        if (!forDrive && kind == "photo")
+                        if (kind == "photo")
                             payload =
                                 PhotoJournalRules.forSnapshot(
                                     payload,

@@ -39,12 +39,12 @@ class PhotoApplicationService(private val repository: OwnerRepository) : OwnerCo
                 val id = repository.savePhoto(p)
                 m.put("attached_photo", id)
                 repository.putFile(upload, m, ByteArray(0))
-                JSONObject().put("photo_id", id).put("local_state", "local_saved").put("sync_state", "sync_pending")
+                JSONObject().put("photo_id", id).put("local_state", "local_saved").put("sync_state", "not_applicable")
             }
             "update_photo" -> {
                 val old = PixelMcpWriteTools.find(all.getJSONArray("photos"), a.getString("photo_id"))
                 if (PixelMcpWriteTools.hash(PixelMcpOwnerTools.photoHash(old)) != a.getString("expected_record_hash")) throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Foto wurde inzwischen geändert.")
-                val p = DriveJournalRules.clean(old)
+                val p = LocalJournalRules.clean(old)
                 val updates = a.getJSONObject("updates")
                 val keys = updates.keys()
                 while (keys.hasNext()) { val key = keys.next(); p.put(key, updates.get(key)) }

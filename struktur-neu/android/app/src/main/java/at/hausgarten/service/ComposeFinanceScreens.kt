@@ -118,7 +118,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                 val saved=financeData(result)
                 if(tool=="duplicate_offer" && saved.optString("offer_id").isNotEmpty()) controller.navigate("offers",saved.getString("offer_id"))
                 if(tool=="convert_offer_to_order" && saved.optString("order_id").isNotEmpty()) controller.navigate("orders",saved.getString("order_id"))
-                if(tool in listOf("prepare_offer_delivery","prepare_offer_share")) scope.launch {try{controller.shareDocument("offer",id,if(tool=="prepare_offer_delivery") "email" else "share")}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){controller.message(f.message.orEmpty())}}
+                if(tool in listOf("prepare_offer_delivery","prepare_offer_share")) scope.launch {try{controller.shareOffer(id,if(tool=="prepare_offer_delivery") "email" else "share")}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){controller.message(f.message.orEmpty())}}
             }
             TextButton(onClick = { pendingAction = null }) { Text("Zurück zum Beleg") }
         }
@@ -526,16 +526,16 @@ private fun FinancePositions(values:JSONArray,onChange:(JSONArray)->Unit) {
                 if(key=="quantity" && line.has("source_quantity_decimal")) line.put("source_quantity_decimal",value.replace(',','.'))
                 onChange(next)
             },required=key!="tax_rate")
-                FinanceChoice("Preisgrundlage",row.optString("price_basis","confirmed"),listOf("confirmed" to "Bestätigt","catalog" to "Freigegebener Katalogpreis","calculated" to "Berechnet","estimated" to "Geschätzt")) {chosen ->
-                    val next=JSONArray(values.toString());val line=next.getJSONObject(index);line.put("price_basis",chosen)
-                    if(chosen!="catalog") {line.remove("catalog_entry_id");line.remove("catalog_hash")}
-                    onChange(next)
-                }
-                if(row.optString("catalog_entry_id").isEmpty()) FinanceCheck("Diesen Einzelpreis ausdrücklich bestätigt",row.optString("price_source")=="user_confirmed") {checked ->
-                    val next=JSONArray(values.toString());if(checked) next.getJSONObject(index).put("price_source","user_confirmed") else next.getJSONObject(index).remove("price_source");onChange(next)
-                }
-                NativeField("Preisberechnung / Schätzgrundlage",row.optString("price_note"),{update(index,"price_note",it)},multiline=true)
-                if(row.optString("price_basis")=="calculated") for((name,label) in listOf("base_price" to "Berechnungsbasis","factor" to "Faktor","surcharge" to "Zuschlag")) NativeField(label,row.optJSONObject("calculation")?.optString(name).orEmpty(),{value ->val calculation=financeCopy(row.optJSONObject("calculation") ?: JSONObject()).put(name,value);update(index,"calculation",calculation)})
+            FinanceChoice("Preisgrundlage",row.optString("price_basis","confirmed"),listOf("confirmed" to "Bestätigt","catalog" to "Freigegebener Katalogpreis","calculated" to "Berechnet","estimated" to "Geschätzt")) {chosen ->
+                val next=JSONArray(values.toString());val line=next.getJSONObject(index);line.put("price_basis",chosen)
+                if(chosen!="catalog") {line.remove("catalog_entry_id");line.remove("catalog_hash")}
+                onChange(next)
+            }
+            if(row.optString("catalog_entry_id").isEmpty()) FinanceCheck("Diesen Einzelpreis ausdrücklich bestätigt",row.optString("price_source")=="user_confirmed") {checked ->
+                val next=JSONArray(values.toString());if(checked) next.getJSONObject(index).put("price_source","user_confirmed") else next.getJSONObject(index).remove("price_source");onChange(next)
+            }
+            NativeField("Preisberechnung / Schätzgrundlage",row.optString("price_note"),{update(index,"price_note",it)},multiline=true)
+            if(row.optString("price_basis")=="calculated") for((name,label) in listOf("base_price" to "Berechnungsbasis","factor" to "Faktor","surcharge" to "Zuschlag")) NativeField(label,row.optJSONObject("calculation")?.optString(name).orEmpty(),{value ->val calculation=financeCopy(row.optJSONObject("calculation") ?: JSONObject()).put(name,value);update(index,"calculation",calculation)})
             Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                 TextButton(enabled=index>0,onClick={val next=JSONArray();for(i in 0 until values.length()) next.put(values.get(if(i==index-1) index else if(i==index) index-1 else i));onChange(next)}) {Text("Nach oben")}
                 TextButton(onClick={removed=index to financeCopy(row);val next=JSONArray();for(i in 0 until values.length()) if(i!=index) next.put(values.get(i));onChange(next)}) {Text("Entfernen")}

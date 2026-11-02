@@ -72,7 +72,7 @@ public final class PixelPlainBackupTests {
     static void warningRoundTrip(File root)throws Exception {
         JSONObject photo=new JSONObject().put("id","qa_missing_photo").put("filename","qa_missing.jpg");
         JSONObject state=new JSONObject().put("photos",new JSONArray().put(photo))
-            .put("invoices",new JSONArray().put(new JSONObject().put("id","qa_invoice").put("issued_at","2026-10-29T10:00:00Z").put("invoice_number","42")))
+            .put("offers",new JSONArray().put(new JSONObject().put("id","qa_offer").put("finalized_at","2026-10-29T10:00:00Z").put("offer_number","42")))
             .put("owner_archive",new JSONObject().put("qa_archived",new JSONObject().put("record",photo)));
         String before=state.toString();
         JSONObject report=BackupInventory.inspect(state,(kind,row)->kind.equals("photo")?"ORIGINAL_FILE_MISSING":"ORIGINAL_METADATA_INCOMPLETE");

@@ -13,7 +13,7 @@ class AppointmentRules {
         @JvmField val PROFILES: Array<String> = arrayOf("general", "lawn", "hedge", "planting", "inspection", "indoor")
         @Throws(Exception::class)
         @JvmStatic fun hash(row: JSONObject): String {
-            return PixelMcpWriteTools.hash(DriveJournalRules.clean(row))
+            return PixelMcpWriteTools.hash(LocalJournalRules.clean(row))
         }
         @JvmStatic fun active(row: JSONObject): Boolean {
             return !Arrays.asList("cancelled", "completed").contains(row.optString("status"))
@@ -206,7 +206,7 @@ class AppointmentRules {
             if ((((old != null) && !hash(old).equals(a.getString("expected_record_hash"))))) {
                 throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Termin wurde inzwischen geändert. Eingaben bleiben erhalten.")
             }
-            var row: JSONObject = (if ((old == null)) JSONObject() else DriveJournalRules.clean(old))
+            var row: JSONObject = (if ((old == null)) JSONObject() else LocalJournalRules.clean(old))
             var changes: JSONObject? = (if (create) a else a.optJSONObject("updates"))
             if (((changes != null))) {
                 for (key in FIELDS) {
@@ -226,7 +226,7 @@ class AppointmentRules {
             if (((old == null))) {
                 row.put("_mcp_create", true)
             } else {
-                row.put("_mcp_base", DriveJournalRules.guard(old, "appointment"))
+                row.put("_mcp_base", LocalJournalRules.guard(old, "appointment"))
             }
             return row
         }

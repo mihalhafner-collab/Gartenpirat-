@@ -17,7 +17,6 @@ internal class PixelMcpOwnerTools {
                 arrayOf(
                     "run_self_test",
                     "get_ui_action_catalog",
-                    "inspect_order_review",
                     "get_capabilities",
                     "preview_empty_trash",
                     "preview_archive_work_records",
@@ -32,8 +31,6 @@ internal class PixelMcpOwnerTools {
                     "read_file_chunk",
                     "get_file_metadata",
                     "list_archive",
-                    "list_backups",
-                    "inspect_backup",
                 ),
                 LocalWorkflowTools.READS,
             )
@@ -41,7 +38,6 @@ internal class PixelMcpOwnerTools {
         val WRITES: Array<String> =
             LocalWorkflowTools.concat(
                 arrayOf(
-                    "save_reviewed_order",
                     "empty_trash",
                     "archive_work_records",
 
@@ -59,8 +55,6 @@ internal class PixelMcpOwnerTools {
                     "update_settings",
                     "update_business_settings",
                     "set_personal_paid",
-                    "create_backup",
-                    "restore_backup",
 
                 ),
                 LocalWorkflowTools.WRITES,
@@ -115,7 +109,6 @@ internal class PixelMcpOwnerTools {
                                             "delete_entity",
                                             "archive_entity",
                                             "restore_entity",
-                                            "restore_backup",
                                         )
                                         .contains(n) || LocalWorkflowTools.critical(n)),
                                 )
@@ -137,9 +130,6 @@ internal class PixelMcpOwnerTools {
             when (n) {
                 "get_ui_action_catalog" -> {
                     return "Liest die versionierte UI-MCP-Funktionsmatrix mit Werkzeugpfaden und notwendigen Geräte-/Kontofreigaben, paginiert."
-                }
-                "save_reviewed_order" -> {
-                    return "Übernimmt eine ausdrücklich bestätigte Auftragsprüfung mit aktuellem Token aus inspect_order_review. Keine blinde Konfliktüberschreibung, Originalaktionen bleiben dokumentiert."
                 }
                 "preview_archive_work_records" -> {
                     return "Prüft eine ausdrückliche Auswahl von höchstens 200 Arbeitsaufzeichnungen samt Versionen, Fotozuordnungen und Finanzschutz. Keine Änderung. Liefert preview_hash für archive_work_records."
@@ -192,14 +182,6 @@ internal class PixelMcpOwnerTools {
                     return ("Stellt einen archivierten Eintrag mit Original-ID wieder her; bestehende IDs und Beziehungen werden nicht überschrieben." +
                         common)
                 }
-                "create_backup" -> {
-                    return ("Erstellt die bisherige begrenzte Geschäftssicherung im vorhandenen Altformat für Geschäftssnapshot, Journal und lokale Originale. Keine verschlüsselte Vollsicherung und kein vollständiger Restore aller neuen Revier-/Jobdaten. Vollbackup über request_full_backup beziehungsweise die geschützte Geräteoberfläche verwenden." +
-                        common)
-                }
-                "restore_backup" -> {
-                    return ("Stillgelegter Teilrestore: in jedem Autoritätsmodus mit RESTORE_FULL_REPLACEMENT_REQUIRED gesperrt. Vollständigen verschlüsselten Bestand am Gerät prüfen und ausdrücklich ersetzen; keine automatische Vermischung." +
-                        common)
-                }
                 "set_work_record_billed" -> {
                     return ("Ändert ausdrücklich die manuelle Abrechnungsmarkierung mit get_work_record.record_hash und Begründung. Kein Nachweis tatsächlicher Rechnungsstellung. Ausgestellte Leistungsdaten bleiben geschützt; persönliche b.b.-Markierung bleibt separat." +
                         common)
@@ -240,7 +222,7 @@ internal class PixelMcpOwnerTools {
         @Throws(Exception::class)
         fun photoHash(row: JSONObject): JSONObject {
 
-            return DriveJournalRules.guard(row, "photo")
+            return LocalJournalRules.guard(row, "photo")
         }
 
     }

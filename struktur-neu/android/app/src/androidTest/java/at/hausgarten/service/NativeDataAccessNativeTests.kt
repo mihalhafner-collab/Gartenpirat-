@@ -224,6 +224,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 .put("id", "qa_inspection").put("customer_id", "qa_customer_1").put("inspection_appointment_id", "qa_appointment")
                 .put("inspection_visits", JSONArray().put(JSONObject().put("appointment_id", "qa_appointment").put("notes", "QA Befund erhalten"))).toString())
             db.execSQL("INSERT INTO mcp_uploads VALUES('qa_old_upload', '{}', ?)", arrayOf(ByteArray(1024 * 1024)))
+            db.execSQL("INSERT INTO mcp_uploads VALUES('qa_retained_backup', '{\"kind\":\"backup\"}', ?)", arrayOf(ByteArray(4096) { 42 }))
             val bitmap = android.graphics.Bitmap.createBitmap(2, 2, android.graphics.Bitmap.Config.ARGB_8888)
             val encoded = java.io.ByteArrayOutputStream().use { output -> bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, output); output.toByteArray() }
             bitmap.recycle()
@@ -274,7 +275,9 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             val maintenance = LocalStorageMaintenance(context, store)
             val cleaned = maintenance.clean(true)
             yes(cleaned.getLong("database_bytes") > 0 && cleaned.getLong("freed_bytes") > 0, "ACTUAL_USAGE_AND_RECLAIM")
-            yes(!orphan.exists() && !lost.exists() && !oldDeletion.exists(), "ORPHANS_REMOVED")
+            yes(!orphan.exists() && !lost.exists(), "ORPHANS_REMOVED")
+            yes(oldDeletion.isFile && oldDeletion.readBytes().contentEquals(ByteArray(8192)), "HISTORICAL_BACKUP_BYTES_RETAINED")
+            db.rawQuery("SELECT data FROM mcp_uploads WHERE id='qa_retained_backup'", null).use { rows -> yes(rows.moveToFirst() && rows.getBlob(0).contentEquals(ByteArray(4096) { 42 }), "HISTORICAL_BACKUP_BLOB_RETAINED") }
             yes(browser.isFile && pending.isFile && staged.isFile && keptPhoto.isFile && issued.isFile, "ALL_LIVE_REFERENCES_RETAINED")
             yes(!context.getSharedPreferences("haus_garten", 0).contains("drive_snapshot"), "LEGACY_PREFERENCES_REMOVED")
             db.rawQuery("SELECT count(*) FROM owner_state WHERE key GLOB 'business_tables:original:*' OR key GLOB 'receipt_guard:*'", null).use { rows -> yes(rows.moveToFirst() && rows.getInt(0) == 0, "OLD_DUPLICATES_REMOVED") }
@@ -1034,6 +1037,23 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             observers.forEach { it.stopWatching() }
             photo.delete(); thumbnail.delete(); documentFile.delete(); legacy.delete(); capture.deleteRecursively()
         }
+        val offer = JSONObject().put("id", "qa_offer_pdf_$token").put("offer_number", "QA-ANG-1")
+            .put("document_type", "fixed_price").put("issue_date", "2026-11-02").put("valid_until", "2026-11-30")
+            .put("title", "QA Angebots-PDF").put("execution_window", "QA nach Vereinbarung").put("tax_mode", "standard").put("test_record", true)
+            .put("issuer", JSONObject().put("business_name", "QA Musterbetrieb").put("business_vat_id", "ATU12345678"))
+            .put("recipient", JSONObject().put("name", "QA Musterkunde").put("street", "QA Testweg 1"))
+            .put("positions", JSONArray().put(JSONObject().put("title", "QA Gartenarbeit").put("quantity", 2).put("unit", "h").put("price", 10).put("net", 20).put("tax_rate", 20)))
+            .put("net_total", 20).put("tax_total", 4).put("gross_total", 24)
+        val offered = documents.create(offer)
+        try {
+            val raw = documents.read(offered)
+            yes(offered.getString("document_id") == "offer:" + offer.getString("id"), "OFFER_PDF_HAS_OFFER_IDENTITY")
+            yes(String(raw, 0, 5, Charsets.US_ASCII) == "%PDF-" && PhotoAttachmentStore.sha256(raw) == offered.getString("pdf_sha256"), "OFFER_PDF_ORIGINAL_HASH_READBACK")
+            android.os.ParcelFileDescriptor.open(File(documentRoot, offered.getString("pdf_storage_name")), android.os.ParcelFileDescriptor.MODE_READ_ONLY).use { descriptor ->
+                android.graphics.pdf.PdfRenderer(descriptor).use { renderer -> yes(renderer.pageCount > 0, "OFFER_PDF_RENDERS_ON_ANDROID") }
+            }
+        } finally { documents.deleteVerified(offered) }
+
     }
 
     private class FixtureContext(private val owner: Context, private val root: File, private val prefix: String) : ContextWrapper(owner) {

@@ -4,12 +4,10 @@ import java.math.*
 import java.util.*
 import org.json.*
 
-internal class LocalAuthorityRules {
+internal class OfferMoney {
     constructor() {}
 
     companion object {
-        @JvmField val ENGINE: String = "pixel_local_v2"
-        @JvmField val CONTRACT: Int = 1
 
         @JvmStatic
         @Throws(Exception::class)
@@ -32,11 +30,11 @@ internal class LocalAuthorityRules {
 
         @JvmStatic
         @Throws(Exception::class)
-        fun exactTotals(invoice: JSONObject): JSONObject {
+        fun exactTotals(offer: JSONObject): JSONObject {
 
             var net: Long = 0
             var tax: Long = 0
-            var positions = JSONArray(invoice.getJSONArray("positions").toString())
+            var positions = JSONArray(offer.getJSONArray("positions").toString())
             run {
                 var i: Int = 0
                 var firstIteration49 = true
@@ -72,10 +70,6 @@ internal class LocalAuthorityRules {
                                 .movePointLeft(2)
                                 .setScale(2, RoundingMode.HALF_UP)
                         )
-                    if (("cancellation" == invoice.optString("document_type"))) {
-                        n = Math.negateExact(n)
-                        t = Math.negateExact(t)
-                    }
                     line
                         .put("quantity_decimal", quantity.toPlainString())
                         .put("unit_price_minor_decimal", price.movePointRight(2).toPlainString())
@@ -86,12 +80,12 @@ internal class LocalAuthorityRules {
                 }
             }
             if (
-                (((invoice.has("net_total") && (minor(invoice.get("net_total")) != net)) ||
-                    (invoice.has("tax_total") && (minor(invoice.get("tax_total")) != tax))) ||
-                    (invoice.has("gross_total") &&
-                        (minor(invoice.get("gross_total")) != Math.addExact(net, tax))))
+                (((offer.has("net_total") && (minor(offer.get("net_total")) != net)) ||
+                    (offer.has("tax_total") && (minor(offer.get("tax_total")) != tax))) ||
+                    (offer.has("gross_total") &&
+                        (minor(offer.get("gross_total")) != Math.addExact(net, tax))))
             ) {
-                throw IllegalArgumentException("INVOICE_TOTAL_MISMATCH")
+                throw IllegalArgumentException("OFFER_TOTAL_MISMATCH")
             }
             return JSONObject()
                 .put("formatVersion", 1)
@@ -100,53 +94,6 @@ internal class LocalAuthorityRules {
                 .put("net_minor", net)
                 .put("tax_minor", tax)
                 .put("gross_minor", Math.addExact(net, tax))
-        }
-
-        @JvmStatic
-        @Throws(Exception::class)
-        fun paymentBalance(invoiceMinor: Long, payments: JSONArray): JSONObject {
-
-            var allocated: Long = 0
-            var ids = HashSet<String>()
-            run {
-                var i: Int = 0
-                var firstIteration50 = true
-                while (true) {
-                    if (firstIteration50) firstIteration50 = false
-                    else {
-                        i++
-                    }
-                    if (!((i < payments.length()))) break
-
-                    var p = payments.getJSONObject(i)
-                    if (!(ids.add(p.getString("payment_id")))) {
-                        throw IllegalArgumentException("PAYMENT_DUPLICATE_ID")
-                    }
-                    allocated = Math.addExact(allocated, p.getLong("allocated_minor"))
-                }
-            }
-            var difference: Long = Math.subtractExact(invoiceMinor, allocated)
-            return JSONObject()
-                .put("invoice_minor", invoiceMinor)
-                .put("allocated_minor", allocated)
-                .put("remaining_minor", Math.max(0, difference))
-                .put("credit_minor", Math.max(0, Math.negateExact(difference)))
-                .put("paid", (difference <= 0))
-        }
-
-        @JvmStatic
-        @Throws(Exception::class)
-        fun requireEvidence(proof: JSONObject): Unit {
-
-            if (
-                (((!(("1" == java.lang.String.valueOf(proof.opt("formatVersion")))) ||
-                    !(proof.optBoolean("external_writers_disabled"))) ||
-                    !(proof.optString("evidence_sha256").matches(Regex("[0-9a-f]{64}")))) ||
-                    proof.optString("evidence_reference").trim().isEmpty())
-            ) {
-                throw IllegalArgumentException("LOCAL_AUTHORITY_EVIDENCE_REQUIRED")
-            }
-            java.time.Instant.parse(proof.getString("checked_at"))
         }
 
     }

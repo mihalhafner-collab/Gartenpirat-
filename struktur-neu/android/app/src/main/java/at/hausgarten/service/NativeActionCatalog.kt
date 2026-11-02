@@ -82,24 +82,6 @@ internal object NativeActionCatalog {
                 listOf("get_order", "update_order"),
             ),
             NativeAction(
-                "auftraege.19",
-                "auftraege",
-                "Offene Versionen prüfen",
-                listOf("inspect_order_review"),
-            ),
-            NativeAction(
-                "auftraege.20",
-                "auftraege",
-                "Prüfung aktuellen Stand behalten",
-                listOf("inspect_order_review", "save_reviewed_order"),
-            ),
-            NativeAction(
-                "auftraege.21",
-                "auftraege",
-                "Prüfung korrigiert speichern",
-                listOf("inspect_order_review", "save_reviewed_order"),
-            ),
-            NativeAction(
                 "auftraege.22",
                 "auftraege",
                 "Aus Angebot übernehmen",
@@ -416,31 +398,6 @@ internal object NativeActionCatalog {
                 "fotos",
                 "Speicherverbrauch / Fotoqualität",
                 listOf("get_settings", "update_settings"),
-            ),
-            NativeAction(
-                "sicherung.93",
-                "sicherung",
-                "Geschäftssicherung erstellen",
-                listOf("create_backup"),
-            ),
-            NativeAction(
-                "sicherung.94",
-                "sicherung",
-                "Sicherungen auflisten",
-                listOf("list_backups"),
-            ),
-            NativeAction("sicherung.95", "sicherung", "Sicherung prüfen", listOf("inspect_backup")),
-            NativeAction(
-                "sicherung.96",
-                "sicherung",
-                "Sicherung übertragen",
-                listOf("get_file_metadata", "read_file_chunk"),
-            ),
-            NativeAction(
-                "sicherung.97",
-                "sicherung",
-                "Fehlende Daten geschützt wiederherstellen",
-                listOf("inspect_backup", "restore_backup"),
             ),
             NativeAction(
                 "papierkorb.99",

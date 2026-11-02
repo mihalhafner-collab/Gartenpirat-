@@ -13,9 +13,8 @@ Die Anwendung bleibt ein Update von `at.hausgarten.service` mit Originalsignatur
 und höherer Versionsnummer.
 Die integrierte Rechnungsstellung und Zahlungsverwaltung werden in dieser
 Ausbaustufe nicht mehr angeboten. Rechnungen entstehen ausschließlich in sevDesk.
-Veraltete Drive-/Rechnungs-/Migrationsklassen und ausschließlich dafür
-bestehende Tests sind zu löschen; nicht als deaktivierte zweite Implementierung
-weiterführen. Arbeitsaufzeichnungen und Angebote bleiben testbar. Alle Anwendungseinträge, Speicher- und Fachpfade sowie
+Veraltete Drive-/Rechnungs-/Migrationsklassen sowie ausschließlich zugehörige
+Tests sind entfernt. Arbeitsaufzeichnungen und Angebote bleiben testbar. Alle Anwendungseinträge, Speicher- und Fachpfade sowie
 die Android-Oberfläche liegen als Kotlin im bestehenden `:app`-Modul. Der
 Quellordner heißt weiterhin `android/app/src/main/java/at/hausgarten/service`;
 das ist kein Java-Anwendungspfad. Java-Dateien in den synthetischen Tests sind
@@ -333,19 +332,14 @@ läuft über den vorhandenen Uploadpfad; nach Activity-Neuerstellung wird auf ei
 erfolgreiche Coil-Dekodierung gewartet. Die Zubehörprüfung allein ist kein Nachweis
 der Kamera- oder Systempickerbedienung; diese bleiben getrennte Prüfungen.
 
-`native_data.office_reads` misst Abfragen mit 120 synthetischen Rechnungen und
-240 Zahlungen. `native_compose.office_opening` misst vom ausgelösten Öffnen bis zu
-sichtbaren bereiten Inhalten: Abrechnungsformular, Rechnungsliste sowie die
-gemeinsame Ansicht für Zahlungen und Guthaben. Je Pfad zwei Aufwärmläufe und
-40 Messungen, Mittelwert, P95 und langsamste 5 % ausgeben. UI-Zeiten enthalten
-Semantik-Abfrage/Polling; Hostlast ist nicht kontrolliert. Ersten Lauf als Ausgangs-
-messung führen. Repositoryzeiten, Emulatoranzeige und physischer Pixel dürfen
-weder gleichgesetzt noch als unbelegter Vorher-/Nachhergewinn dargestellt werden.
-Der gezielte Zahlungsleservergleich führt den bisherigen Leser und den aktuellen
-Leser im selben Prozess mit wechselnder Reihenfolge je 40-mal aus. Reihenfolge,
-Inhalte und Hash müssen gleich bleiben; große Unicodeeinträge prüfen weiterhin
-den vorhandenen gestückelten Rückfallpfad. Diese Teilmessung belegt keine
-Beschleunigung der gesamten Zahlungsansicht oder des physischen Pixels.
+`native_data.office_reads` misst die erhaltenen Arbeitslisten. Die Compose-Messung
+`office_opening` öffnet offene Arbeitsstunden und Angebote vom Büro aus; je Pfad
+zwei Aufwärmläufe und 40 Messungen mit Mittelwert, P95 und langsamsten 5 %.
+Es gibt keine Zahlungsledger- oder Rechnungserfassungsprüfung mehr. Synthetische
+Kunden mit gemeinsamem Rechnungsempfänger prüfen weiterhin den getrennten
+Einsatzkundenfilter und unveränderte historische Belegdaten. UI-Zeiten enthalten
+Semantik-Abfrage und Polling; Hostlast ist nicht kontrolliert. Aus diesen Messungen
+keinen Geschwindigkeitsgewinn auf dem physischen Pixel ableiten.
 
 ## Pflanzenressourcen
 
@@ -536,14 +530,14 @@ Suchen/Fertig muss die Eingabe beenden und Suchtext/Treffer erhalten. Nulltreffe
 leere Suche, Seitenwechsel, Auswahlabbruch und die Rückkehr nach Activity-Neuerstellung
 gehören zu derselben synthetischen Compose-Suite.
 
-Zusätzlich prüft dieselbe Suite 16 fachliche Suchwege: Arbeitsverlauf, Angebote,
-Rechnungen, Planung, Geräte, Fotos, Leistungskatalog, Pflanzen, lokale Suche,
+Zusätzlich prüft dieselbe Suite 15 fachliche Suchwege: Arbeitsverlauf, Angebote,
+Planung, Geräte, Fotos, Leistungskatalog, Pflanzen, lokale Suche,
 Textbausteine, gleichnamige Kunden, Geräteauswahl, Planungsauswahl, Fotozuordnung,
 Angebotspositionen und Wartungstexte. Nulltreffer, IME-Aktion, erhaltener Suchtext,
 sichtbare Treffergrenzen und tatsächliche Touchauswahl werden zusammen geprüft.
-38 Einstiege ergänzen den Abgleich aller Bereiche und der Sonderseiten, darunter
-Einstellungen/Kalender/Sicherung bei 200 %. Verbindungen werden dabei nur gelesen,
-keine Kontofreigabe, produktive Sicherung oder Migration ausgelöst. Die
+35 Einstiege ergänzen den Abgleich aller Bereiche und der Sonderseiten, darunter
+Einstellungen/Kalender/Sicherung bei 200 %. Verbindungen werden dabei nur gelesen; keine Kontofreigabe und keine produktive
+Sicherung werden ausgelöst. Die
 ChatGPT-Zugangsdatenansicht behält `FLAG_SECURE`; für Screenshots wird dieser
 Schutz nicht aufgehoben.
 
@@ -561,4 +555,4 @@ die jeweiligen tatsächlichen Eingaben mit IME.
 
 Der native Datenzugriffstest schließt den SQLite-Helper auch mitten in einer vollständigen Bestandsabfrage. Erfolg und Abfragefehler müssen die Transaktion beenden, die letzte Datenbankreferenz freigeben und anschließendes Lesen/Schreiben ohne verbleibende Sperre erlauben.
 
-Ergänzend prüft `list_viewports` elf Fachlisten bei 200 % und verkleinerter Höhe im Hochformat; Kunden, Arbeit, Angebote, Rechnungen, Leistungskatalog und lokale Suche zusätzlich im Querformat (17 Fälle). Suche und Trefferzahl müssen vollständig oberhalb der IME liegen. Bei langen Detailkarten darf der restliche Karteninhalt scrollbar außerhalb des kleinen Ausschnitts liegen; der sichtbare Titelanfang und eine mindestens 48 × 48 dp große tatsächlich injizierte Touchfläche müssen innerhalb der Bildschirm-/IME-Grenzen liegen. Die bisherigen Dialog- und normalen Suchprüfungen verlangen weiterhin vollständig sichtbare Ergebnisflächen. IME-Fertig, erhaltener Suchwert und Öffnen desselben Treffers werden getrennt geprüft.
+Ergänzend prüft `list_viewports` zehn Fachlisten bei 200 % und verkleinerter Höhe im Hochformat; Kunden, Arbeit, Angebote, Leistungskatalog und lokale Suche zusätzlich im Querformat (15 Fälle). Suche und Trefferzahl müssen vollständig oberhalb der IME liegen. Bei langen Detailkarten darf der restliche Karteninhalt scrollbar außerhalb des kleinen Ausschnitts liegen; der sichtbare Titelanfang und eine mindestens 48 × 48 dp große tatsächlich injizierte Touchfläche müssen innerhalb der Bildschirm-/IME-Grenzen liegen. Die bisherigen Dialog- und normalen Suchprüfungen verlangen weiterhin vollständig sichtbare Ergebnisflächen. IME-Fertig, erhaltener Suchwert und Öffnen desselben Treffers werden getrennt geprüft.

@@ -1,6 +1,5 @@
 """Keep retired transports out of the app and current synthetic test sources."""
 from pathlib import Path
-import re
 import unittest
 import xml.etree.ElementTree as ET
 
@@ -21,32 +20,13 @@ def native_sources():
     return (path for path in MAIN.rglob('*') if path.suffix in ('.java', '.kt'))
 
 
-def method_body(code, name):
-    """Extract one Java/Kotlin body without counting braces inside text or comments."""
-    declarations = list(re.finditer(r'\b(?:fun\s+' + re.escape(name) +
-                                    r'|JSONObject\s+' + re.escape(name) + r')\s*\(', code))
-    if len(declarations) != 1:
-        raise AssertionError('Expected one method declaration: ' + name)
-    tokens = re.compile(r'"""[\s\S]*?"""|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|'
-                        r'//[^\n]*|/\*[\s\S]*?\*/|[{}]')
-    start = None
-    depth = 0
-    for token in tokens.finditer(code, declarations[0].end()):
-        if token.group() == '{':
-            if start is None:
-                start = token.end()
-            depth += 1
-        elif token.group() == '}':
-            depth -= 1
-            if depth == 0 and start is not None:
-                return code[start:token.start()]
-    raise AssertionError('Unclosed method body: ' + name)
-
-
-class DriveBackupOnlyBuildTests(unittest.TestCase):
+class LocalStorageBuildTests(unittest.TestCase):
     def test_business_transports_are_not_production_sources(self):
         for name in ('DriveDirectFiles', 'DriveNumbering', 'DriveMediaBatch',
-                     'SyncPolicy', 'SyncIoFailure', 'SyncFailureRules'):
+                     'SyncPolicy', 'SyncIoFailure', 'SyncFailureRules',
+                     'DriveJournalRules', 'PixelDriveState', 'SyncActionOrder', 'LocalAuthorityRules',
+                     'IssuedInvoiceRules', 'LegacyPdfAttachment', 'InvoiceFileProvider', 'OrderReviewRules',
+                     'BackgroundWorkDispatch', 'McpSyncHost'):
             self.assertFalse(any((MAIN / (name + ext)).exists() for ext in ('.java', '.kt')), name)
         for name in ('LegacyDriveSyncFixture', 'LegacyDriveDirectFixture',
                      'LegacyDriveRestFixture', 'LegacyDriveAccountFixture',
@@ -98,14 +78,10 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
                 path.name,
             )
 
-    def test_old_partial_restore_rejects_before_accessing_backup_or_business_data(self):
-        code = source('LocalOwnerRepository')
-        body = method_body(code, 'restoreBackup')
-        self.assertIn('RESTORE_FULL_REPLACEMENT_REQUIRED', body)
-        self.assertRegex(body, r'^\s*throw\s+(?:new\s+)?PixelMcpWriteTools\.Rejected\s*\(\s*'
-                              r'"RESTORE_FULL_REPLACEMENT_REQUIRED"\s*,\s*"(?:\\.|[^"\\])*"\s*\)\s*;?\s*$')
-        self.assertNotRegex(body, r'\b(?:state|effective|fileMeta|fileBytes|enqueue|local)\(')
-        self.assertNotIn('LocalAuthorityGuard', body)
+    def test_old_partial_backup_and_restore_are_removed(self):
+        for name in ('LocalOwnerRepository', 'ArchiveApplicationService', 'OwnerRepository'):
+            self.assertNotRegex(source(name), r'\b(?:createBackup|protectDeletion|restoreBackup)\s*\(')
+        self.assertFalse((MAIN / 'DeletionBackupStore.kt').exists())
 
     def test_plaintext_backup_uses_selected_document_provider(self):
         code = source('PixelBackupService')

@@ -15,10 +15,10 @@ class ManualChangeRules {
             if ((!incoming.optString("id").equals(base.optString("id")))) {
                 throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Die Formularzuordnung wurde verändert.")
             }
-            DriveJournalRules.compare(DriveJournalRules.guard(base, kind), current)
-            var result: JSONObject = DriveJournalRules.clean(current ?: throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Der ursprüngliche Eintrag ist nicht mehr vorhanden."))
+            LocalJournalRules.compare(LocalJournalRules.guard(base, kind), current)
+            var result: JSONObject = LocalJournalRules.clean(current ?: throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Der ursprüngliche Eintrag ist nicht mehr vorhanden."))
             var changes: JSONObject = incoming.getJSONObject("_edit_changes")
-            var allowed: MutableSet<String> = HashSet(Arrays.asList(*(if (kind.equals("customer")) PixelMcpEntityWriteTools.CUSTOMER_FIELDS else (if (kind.equals("order")) PixelMcpEntityWriteTools.ORDER_FIELDS else (if (kind.equals("invoice")) arrayOf("customer_id", "order_id", "invoice_date", "service_start", "service_end", "payment_days", "notes", "positions", "domestic_service_confirmed", "header_text", "footer_text", "tax_mode", "recipient_type", "recipient_vat_id") else PixelMcpWriteTools.BASE_FIELDS)))))
+            var allowed: MutableSet<String> = HashSet(Arrays.asList(*(if (kind.equals("customer")) PixelMcpEntityWriteTools.CUSTOMER_FIELDS else (if (kind.equals("order")) PixelMcpEntityWriteTools.ORDER_FIELDS else PixelMcpWriteTools.BASE_FIELDS))))
             allowed.remove("id")
             allowed.remove("updated_at")
             run {
@@ -40,7 +40,7 @@ class ManualChangeRules {
             }
             payload.put("_mcp_create", (previous == null))
             if (((previous != null))) {
-                payload.put("_sync_base", DriveJournalRules.guard(previous, kind)).put("_sync_field_merge", true)
+                payload.put("_sync_base", LocalJournalRules.guard(previous, kind))
             }
             if ((((previous == null) && kind.equals("customer")))) {
                 if ((!payload.has("active"))) {

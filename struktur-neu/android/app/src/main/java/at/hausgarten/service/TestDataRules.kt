@@ -80,7 +80,7 @@ class TestDataRules {
             if ((java.util.Arrays.asList("archive", "restore", "purge_v1").contains(kind))) {
                 kind = p.optString("entity")
             }
-            var group: String = (if (kind.startsWith("offer_")) "offers" else (if (kind.startsWith("invoice_")) "invoices" else DriveJournalRules.collection(kind)))
+            var group: String = (if (kind.startsWith("offer_")) "offers" else (if (kind.startsWith("invoice_")) "invoices" else LocalJournalRules.collection(kind)))
             var existing: JSONObject? = OwnerJournalRules.findOrNull(s.optJSONArray(group), p.optString("id"))
             if (((existing == null))) {
                 var archive: JSONObject? = s.optJSONObject("owner_archive")

@@ -59,7 +59,7 @@ final class LocalBackupNativeTests {
         String id;
         try (PixelLocalStore store = new PixelLocalStore(context)) {
             store.putOwnerValue("qa_backup_marker", "QA before save");
-            store.putOwnerValue("local_invoice_counter", new JSONObject().put("last_number", 42).toString());
+            store.putOwnerValue("qa_backup_metadata", new JSONObject().put("synthetic_value", 42).toString());
             JSONObject identity = new BackupDeviceGuard(context).current();
             JSONObject browser = new JSONObject().put("formatVersion", 1).put("storage", new JSONObject().put("hausgarten.entry.draft.v1", "QA preserved draft 🌿"));
             store.putOwnerValue("full_backup_browser", new JSONObject(identity.toString()).put("formatVersion", 1).put("capturedAt", java.time.Instant.now().toString()).put("browser", browser).put("contentSha256", PixelMcpWriteTools.hash(browser)).toString());
@@ -117,7 +117,7 @@ final class LocalBackupNativeTests {
             yes(text(checked.file("files/qa-extra.txt")).equals("QA exact file before save"));
             try (SQLiteDatabase db = SQLiteDatabase.openDatabase(checked.file("database.sqlite").getPath(), null, SQLiteDatabase.OPEN_READONLY)) {
                 yes(DatabaseBackupSnapshot.ownerValue(db, "qa_backup_marker", "").equals("QA before save"));
-                yes(new JSONObject(DatabaseBackupSnapshot.ownerValue(db, "local_invoice_counter", "{}")).getInt("last_number") == 42);
+                yes(new JSONObject(DatabaseBackupSnapshot.ownerValue(db, "qa_backup_metadata", "{}")).getInt("synthetic_value") == 42);
                 yes(DatabaseBackupSnapshot.inspect(checked.file("database.sqlite")).getLong("foreignKeyViolations") == 1);
             }
         }
@@ -135,7 +135,7 @@ final class LocalBackupNativeTests {
         yes(restore.previousPreservation().getBoolean("available"));
         try (SQLiteDatabase db = SQLiteDatabase.openDatabase(database.getPath(), null, SQLiteDatabase.OPEN_READONLY)) {
             yes(DatabaseBackupSnapshot.ownerValue(db, "qa_backup_marker", "").equals("QA before save"));
-            yes(new JSONObject(DatabaseBackupSnapshot.ownerValue(db, "local_invoice_counter", "{}")).getInt("last_number") == 42);
+            yes(new JSONObject(DatabaseBackupSnapshot.ownerValue(db, "qa_backup_metadata", "{}")).getInt("synthetic_value") == 42);
             yes(!DatabaseBackupSnapshot.ownerValue(db,"restored_browser_checkpoint_active","").isEmpty());
             yes(!DatabaseBackupSnapshot.ownerValue(db,"restore_media_warning","").isEmpty());
         }

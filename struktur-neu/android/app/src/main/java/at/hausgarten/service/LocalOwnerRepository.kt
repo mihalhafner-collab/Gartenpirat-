@@ -231,12 +231,6 @@ return PixelMcpWriteTools.Rejected("LOCAL_ORIGINAL_MISSING", "Das benötigte Ori
 }
 @Throws(Exception::class) fun readChunk(a: JSONObject): JSONObject {
 
-if (("backup" == a.optString("resource_type"))) {
-var meta = fileMeta(a.getString("resource_id"))
-if ((DeletionBackupStore.SCOPE == meta.optString("scope"))) {
-return DeletionBackupStore.chunk(deletionBackupRoot(), meta, a)
-}
-}
 var type = a.getString("resource_type")
 var id = a.getString("resource_id")
 var mime: String
@@ -292,40 +286,6 @@ throw localOriginalMissing()
 mime = "application/pdf"
 }
 }
-"invoice" -> {
-run {
-var invoice = PixelMcpWriteTools.find(effective().getJSONArray("invoices"), id)
-if (!((invoice.optString("pdf_state", "READY") == "READY"))) {
-throw PixelMcpWriteTools.Rejected("INVOICE_PDF_NOT_READY", "Das lokale Rechnungs-PDF ist noch nicht verifiziert. Dokumentauftrag prüfen oder erneut ausführen.")
-}
-var data = invoice.optString("pdf_base64")
-if (data.isEmpty()) {
-if ((invoice.optString("pdf_storage_name").isEmpty() || invoice.optString("pdf_sha256").isEmpty())) {
-throw localOriginalMissing()
-}
-try {
-
-bytes = BusinessDocumentStore(context!!).read(invoice)
-
-} catch (absent: IOException) {
-throw localOriginalMissing()
-}
-mime = "application/pdf"
-return@run
-}
-if (data.length > 28 * 1024 * 1024) {
-throw IOException("PDF zu groß.")
-}
-bytes = Base64.getDecoder().decode(data)
-mime = "application/pdf"
-if (bytes.size < 5 || !((String(bytes, 0, 5, StandardCharsets.US_ASCII) == "%PDF-"))) {
-throw IOException("Original-PDF beschädigt.")
-}
-if (!(invoice.optString("pdf_sha256").isEmpty()) && !((digest(bytes) == invoice.getString("pdf_sha256")))) {
-throw IOException("Original-PDF stimmt nicht mit dem Archiv überein.")
-}
-}
-}
 "catalog" -> {
 run {
 var parts = id.split(Regex("#"))
@@ -353,17 +313,9 @@ bytes = asset(path)
 mime = (if (path.endsWith("png")) "image/png" else (if (path.endsWith("webp")) "image/webp" else "image/jpeg"))
 }
 }
-else -> {
-run {
-var m = fileMeta(id)
-if (!(("backup" == m.optString("kind")))) {
-throw IllegalArgumentException("Keine Sicherung.")
+else -> throw IllegalArgumentException("Unbekannter Dateityp.")
 }
-bytes = fileBytes(id)
-mime = "application/json"
-}
-}
-}
+
 var hash = digest(bytes)
 if (!(a.has("expected_sha256"))) {
 return JSONObject().put("resource_type", type).put("resource_id", id).put("mime_type", mime).put("byte_size", bytes.size).put("sha256", hash)
@@ -446,8 +398,8 @@ payload.put("_sync_predecessors", predecessors)
 }
 if ((kind == "appointment") || (kind == "offer_convert")) {
 var parentProjection = JSONObject(state().getJSONObject("master").toString())
-DriveJournalRules.apply(parentProjection, prior)
-var incorporated = DriveJournalRules.ids(parentProjection.optJSONArray("drive_applied_ids"))
+LocalJournalRules.apply(parentProjection, prior)
+var incorporated = LocalJournalRules.ids(parentProjection.optJSONArray("drive_applied_ids"))
 var targetOrder = payload.optString("order_id", payload.optString("existing_order_id"))
 run {
 var i: Int = 0
@@ -503,119 +455,12 @@ return result
 db.endTransaction()
 }
 }
-@Throws(Exception::class) fun backupCounts(saved: JSONObject): JSONObject {
 
-var out = JSONObject()
-var master = saved.getJSONObject("state").getJSONObject("master")
-for (key in arrayOf("customers", "orders", "worklogs", "invoices", "photos", "service_catalog", "offers", "appointments")) {
-out.put(key, master.getJSONArray(key).length())
-}
-return out
-}
-@Throws(Exception::class) override fun createBackup(request: String): JSONObject {
 
-var saved = JSONObject().put("format", 1).put("state", state()).put("settings", settings()).put("personal_paid", JSONArray(store!!.ownerValue("personal_paid", "[]")))
-var originals = JSONArray()
-var originalBytes: Long = 0
-store!!.getReadableDatabase().rawQuery("SELECT photo_id FROM photo_attachments ORDER BY photo_id", null).use { rows ->
 
-while (rows.moveToNext()) {
-var id = rows.getString(0)
-var m = store!!.photoAttachment(id)
-var bytes: ByteArray
-try {
 
-bytes = store!!.photoAttachmentStore().read(m ?: throw IOException("PHOTO_METADATA_MISSING"))
 
-} catch (missing: Exception) {
-throw IOException("Sicherung nicht vollständig: ein Foto-Original fehlt lokal. Original gezielt importieren oder eine geprüfte Vollsicherung zur Wiederherstellung prüfen.")
-}
-originalBytes += bytes.size
-if (originalBytes > 40 * 1024 * 1024) {
-throw IOException("Vollständige Datei-/Gerätesicherung für diesen Fotoumfang verwenden.")
-}
-originals.put(JSONObject().put("photo_id", id).put("metadata", m).put("base64", Base64.getEncoder().encodeToString(bytes)))
-}
 
-}
-saved.put("originals", originals)
-var documents = JSONArray()
-var master = saved.getJSONObject("state").getJSONObject("master")
-var mediaBytes: Long = originalBytes
-for (collection in arrayOf("invoices", "offers")) {
-run {
-var i: Int = 0
-var firstIteration27 = true
-while (true) {
-if (firstIteration27) firstIteration27 = false else { i++ }
-if (!(i < master.getJSONArray(collection).length())) break
-
-var record = master.getJSONArray(collection).getJSONObject(i)
-if (record.optString("pdf_storage_name").isEmpty()) {
-continue
-}
-var pdf: ByteArray
-try {
-
-pdf = BusinessDocumentStore(context!!).read(record)
-
-} catch (missing: Exception) {
-throw IOException("Sicherung nicht vollständig: ein Dokument fehlt lokal. Original gezielt importieren oder eine geprüfte Vollsicherung zur Wiederherstellung prüfen.")
-}
-mediaBytes += pdf.size
-if (mediaBytes > 40 * 1024 * 1024) {
-throw IOException("Vollständige Datei-/Gerätesicherung für diesen Medienumfang verwenden.")
-}
-documents.put(JSONObject().put("metadata", record).put("base64", Base64.getEncoder().encodeToString(pdf)))
-
-}
-}
-}
-saved.put("documents", documents)
-var bytes = saved.toString().toByteArray(StandardCharsets.UTF_8)
-if (bytes.size > 64 * 1024 * 1024) {
-throw IOException("Sicherung überschreitet die sichere Transfergrenze von 64 MiB. Vollständige Geräte-/Dateisicherung verwenden; kein Teilerfolg.")
-}
-var id = "backup_" + PixelMcpWriteTools.hash(request)
-var meta = JSONObject().put("kind", "backup").put("byte_size", bytes.size).put("sha256", digest(bytes)).put("created_at", java.time.Instant.now().toString()).put("includes_credentials", false).put("scope", "business_snapshot_pending_local_photos_and_documents")
-putFile(id, meta, bytes)
-return JSONObject().put("backup_id", id).put("metadata", meta).put("collections", backupCounts(saved)).put("complete_device_backup", false)
-}
-fun deletionBackupRoot(): java.io.File {
-
-return java.io.File(context!!.getNoBackupFilesDir(), "deletion-backups")
-}
-@Throws(Exception::class) override fun protectDeletion(snapshot: JSONObject, entries: JSONArray, request: String): JSONObject {
-
-var result = DeletionBackupStore.capture(deletionBackupRoot(), snapshot, entries, request, LAM@ { type, record ->
-if ((type == "photo")) {
-try {
-
-return@LAM store!!.photoAttachmentStore().read(record)
-
-} catch (missing: IOException) {
-throw localOriginalMissing()
-}
-}
-try {
-
-return@LAM BusinessDocumentStore(context!!).read(record)
-
-} catch (missing: IOException) {
-throw localOriginalMissing()
-}
- })
-putFile(result.getString("backup_id"), result.getJSONObject("metadata"), ByteArray(0))
-return result
-}
-@Throws(Exception::class) fun inspectDeletionBackup(id: String, meta: JSONObject): JSONObject {
-
-return DeletionBackupStore.inspect(deletionBackupRoot(), meta).put("backup_id", id).put("metadata", meta).put("state_hash", PixelMcpWriteTools.hash(state()))
-}
-@Throws(Exception::class) override fun restoreBackup(a: JSONObject, request: String): JSONObject {
-
-throw PixelMcpWriteTools.Rejected("RESTORE_FULL_REPLACEMENT_REQUIRED", "Vollständige verschlüsselte Wiederherstellung am Gerät prüfen und ausdrücklich bestätigen. Alte Teilbestände werden nicht vermischt.")
-}
 override @Throws(Exception::class) fun pendingActions(): JSONArray {
 
 return store!!.pendingActions()
@@ -750,24 +595,7 @@ return OwnerRequestTransactions.runRequest(requests, request, fingerprint, comma
 
 return store!!.photoAttachmentStore().storageSummary()
 }
-@Throws(Exception::class) fun listBackups(): JSONObject {
 
-var out = JSONArray()
-store!!.getReadableDatabase().rawQuery("SELECT id,metadata FROM mcp_uploads ORDER BY rowid DESC", null).use { rows ->
-
-while (rows.moveToNext()) {
-var m = JSONObject(rows.getString(1))
-if (("backup" == m.optString("kind"))) {
-out.put(JSONObject().put("backup_id", rows.getString(0)).put("metadata", m))
-}
-if (out.length() >= 100) {
-break
-}
-}
-
-}
-return JSONObject().put("backups", out)
-}
 fun migratePersonalPaid(value: String): String {
 
 var db = store!!.getWritableDatabase()

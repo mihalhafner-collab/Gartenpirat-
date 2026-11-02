@@ -125,7 +125,7 @@ internal class NativeAppController(private val activity: MainActivity, val store
         catalog?.get(name)
     }
     suspend fun saveEditor(kind: String, value: JSONObject): String = withContext(Dispatchers.IO) {
-        try { store.saveEditorRecord(kind, JSONObject(value.toString())).also { store.notifyCommittedChange(); MainActivity.requestMcpSync(context) } }
+        try { store.saveEditorRecord(kind, JSONObject(value.toString())).also { store.notifyCommittedChange() } }
         catch (cancelled: CancellationException) { throw cancelled }
         catch (failure: Exception) { throw nativeFailure(failure) }
     }
@@ -273,26 +273,25 @@ internal class NativeAppController(private val activity: MainActivity, val store
         }
     }
 
-    suspend fun shareDocument(kind: String, id: String, channel: String = "share") {
+    suspend fun shareOffer(id: String, channel: String = "share") {
         val send = withContext(Dispatchers.IO) {
             require(channel in listOf("share", "email", "whatsapp")) { "Unbekannter Versandweg." }
-            val row = query(if (kind == "offer") "get_offer" else "get_invoice", JSONObject().put(if (kind == "offer") "offer_id" else "invoice_id", id))
-            val record = row.optJSONObject(kind) ?: row.optJSONObject("record") ?: row
+            val row = query("get_offer", JSONObject().put("offer_id", id))
+            val record = row.optJSONObject("offer") ?: row.optJSONObject("record") ?: row
             val all = PixelMcpReadTools.effective(store.getState())
             TestDataRules.noDelivery(record, all)
-            if (kind == "invoice" && !IssuedInvoiceRules.isIssued(record)) throw IOException("Nur ausgestellte Originalbelege teilen.")
-            if (kind == "offer" && record.optString("finalized_at").isEmpty()) throw IOException("Nur finalisierte Originalangebote teilen.")
+            if (record.optString("finalized_at").isEmpty()) throw IOException("Nur finalisierte Originalangebote teilen.")
             val bytes = BusinessDocumentStore(context).read(record)
             if (bytes.size !in 5..(20 * 1024 * 1024) || String(bytes, 0, 5, Charsets.US_ASCII) != "%PDF-") throw IOException("Original-PDF fehlt oder ist verändert.")
-            val dir = File(context.cacheDir, "invoice-share"); if (!dir.isDirectory && !dir.mkdirs()) throw IOException("Freigabeordner fehlt.")
-            val file = File(dir, (if (kind == "offer") "Angebot-" else "Rechnung-") + UUID.randomUUID() + ".pdf")
+            val dir = File(context.cacheDir, "offer-share"); if (!dir.isDirectory && !dir.mkdirs()) throw IOException("Freigabeordner fehlt.")
+            val file = File(dir, "Angebot-" + UUID.randomUUID() + ".pdf")
             file.writeBytes(bytes)
-            val uri = Uri.parse("content://${context.packageName}.invoicefiles/${file.name}")
+            val uri = Uri.parse("content://${context.packageName}.offerfiles/${file.name}")
             Intent(Intent.ACTION_SEND).setType("application/pdf").putExtra(Intent.EXTRA_STREAM, uri)
-                .putExtra(Intent.EXTRA_SUBJECT, if (kind == "offer") "Angebot" else "Rechnung " + record.optString("invoice_number"))
+                .putExtra(Intent.EXTRA_SUBJECT, "Angebot")
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION).apply {
                     clipData = ClipData.newRawUri("PDF", uri)
-                    val recipient = if (kind == "offer") record.optString("delivery_recipient", record.optJSONObject("recipient")?.optString("email") ?: "") else record.optJSONObject("recipient")?.optString("email") ?: ""
+                    val recipient = record.optString("delivery_recipient", record.optJSONObject("recipient")?.optString("email") ?: "")
                     recipient.takeIf { it.isNotEmpty() }?.let { putExtra(Intent.EXTRA_EMAIL, arrayOf(it)) }
                 }
         }
@@ -315,12 +314,12 @@ internal class NativeAppController(private val activity: MainActivity, val store
 
     suspend fun viewDocument(kind: String, id: String) {
         val intent = withContext(Dispatchers.IO) {
-            val data = query(if (kind == "offer") "get_offer" else "get_invoice", JSONObject().put(if (kind == "offer") "offer_id" else "invoice_id", id))
+            val data = query("get_offer", JSONObject().put("offer_id", id))
             val record = data.optJSONObject(kind) ?: data.optJSONObject("record") ?: data
             val bytes = BusinessDocumentStore(context).read(record)
-            val directory = File(context.cacheDir, "invoice-share"); if (!directory.isDirectory && !directory.mkdirs()) throw IOException("Freigabeordner fehlt.")
-            val file = File(directory, (if (kind == "offer") "Angebot-" else "Rechnung-") + UUID.randomUUID() + ".pdf"); file.writeBytes(bytes)
-            val uri = Uri.parse("content://${context.packageName}.invoicefiles/${file.name}")
+            val directory = File(context.cacheDir, "offer-share"); if (!directory.isDirectory && !directory.mkdirs()) throw IOException("Freigabeordner fehlt.")
+            val file = File(directory, "Angebot-" + UUID.randomUUID() + ".pdf"); file.writeBytes(bytes)
+            val uri = Uri.parse("content://${context.packageName}.offerfiles/${file.name}")
             Intent(Intent.ACTION_VIEW).setDataAndType(uri, "application/pdf").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION).apply { clipData = ClipData.newRawUri("Original-PDF", uri) }
         }
         withContext(Dispatchers.Main) { activity.startActivity(Intent.createChooser(intent, "Original-PDF öffnen")) }
@@ -366,7 +365,6 @@ internal suspend fun NativeAppController.actionObservation(tool: String, argumen
         tool == "archive_work_records" -> call("preview_archive_work_records", JSONObject().put("work_record_ids", arguments.getJSONArray("work_record_ids")))
         tool == "review_work_session" && id("session_id").isNotEmpty() -> withContext(Dispatchers.IO) { JSONObject().put("data", store.workSessions().current(id("session_id"))) }
         id("offer_id").isNotEmpty() -> call("get_offer", JSONObject().put("offer_id", id("offer_id")).apply { if (tool == "finalize_offer") put("include_review", true) })
-        id("invoice_id").isNotEmpty() -> call("get_invoice", JSONObject().put("invoice_id", id("invoice_id")))
         id("work_record_id").isNotEmpty() -> call("get_work_record", JSONObject().put("work_record_id", id("work_record_id")))
         id("photo_id").isNotEmpty() -> call("get_photo", JSONObject().put("photo_id", id("photo_id")))
         id("order_id").isNotEmpty() -> call("get_order", JSONObject().put("order_id", id("order_id")))

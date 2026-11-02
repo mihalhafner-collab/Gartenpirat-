@@ -23,7 +23,7 @@ internal class OfferJournalRules {
             var p = a!!.getJSONObject("payload")
             var old = PixelMcpWriteTools.find(s!!.getJSONArray("offers"), p!!.getString("id"))
             if (
-                !(PixelMcpWriteTools.hash(DriveJournalRules.clean(old)))!!.equals(
+                !(PixelMcpWriteTools.hash(LocalJournalRules.clean(old)))!!.equals(
                     p!!.getString("expected_record_hash")
                 )
             ) {
@@ -289,7 +289,7 @@ internal class OfferJournalRules {
                         refs!!.put(
                             ((((JSONObject())!!.put("offer_id", old!!.getString("id")))!!.put(
                                         "accepted_record_hash",
-                                        PixelMcpWriteTools.hash(DriveJournalRules.clean(old)),
+                                        PixelMcpWriteTools.hash(LocalJournalRules.clean(old)),
                                     ))!!
                                     .put("accepted_at", a!!.getString("created_at")))!!
                                 .put(
@@ -311,7 +311,7 @@ internal class OfferJournalRules {
                                     .trim(),
                             ))!!
                             .put("updated_at", a!!.getString("created_at"))
-                        DriveJournalRules.validateChange("order", order, null, s)
+                        LocalJournalRules.validateChange("order", order, null, s)
                         OwnerJournalRules.replace(s, "orders", id, order)
                         (next!!.put("status", "accepted"))!!.put("converted_order_id", id)
                     }

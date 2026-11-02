@@ -48,13 +48,6 @@ public final class KotlinDomainRegressionTests {
         conflict(() -> ManualChangeRules.editor(edit, null, "customer"));
         yes(!TrashRules.referenced(new JSONObject(), null, "qa-missing-original.jpg"),
                 "Missing optional collections contain no media reference");
-        conflict(() -> SyncActionOrder.merge(
-                new JSONObject().put("id", "qa_order_missing_note").put("notes", "QA ursprüngliche Notiz"),
-                new JSONObject().put("notes", "QA eigene Notiz"),
-                new JSONObject().put("id", "qa_order_missing_note"), "order"));
-        yes(OrderReviewRules.actionHash(null).equals(
-                        "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"),
-                "Absent action retains the legacy canonical-null hash");
         JSONObject order = new JSONObject().put("customer_id", "qa_customer_2");
         JSONObject previous = new JSONObject().put("id", "qa_order_1").put("customer_id", "qa_customer_1");
         EntityProtectionRules.validateOrderChange(order, previous, null, null, null);
@@ -82,11 +75,11 @@ public final class KotlinDomainRegressionTests {
         original.remove("custom_fields");
         original.put("name", "[TEST] QA Kunde vor bestätigter Änderung").put("unknown_field", JSONObject.NULL);
         JSONObject payload = new JSONObject(original.toString()).put("name", "[TEST] QA Kunde nach bestätigter Änderung")
-                .put("_sync_base", DriveJournalRules.guard(original, "customer"));
+                .put("_sync_base", LocalJournalRules.guard(original, "customer"));
         String actionId = "qa_guarded_customer_without_custom_fields";
         JSONObject action = new JSONObject().put("client_id", actionId).put("kind", "customer")
                 .put("created_at", "2027-05-18T10:00:00Z").put("payload", payload);
-        JSONArray errors = DriveJournalRules.apply(master, new JSONArray().put(action));
+        JSONArray errors = LocalJournalRules.apply(master, new JSONArray().put(action));
         JSONObject saved = master.getJSONArray("customers").getJSONObject(0);
         yes(saved.getString("name").equals("[TEST] QA Kunde nach bestätigter Änderung"),
                 "A guarded customer update without optional custom fields changes the name");

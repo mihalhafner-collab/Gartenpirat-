@@ -14,19 +14,13 @@ class WorkApplicationService : OwnerCommand {
         var all: JSONObject = repository.effective()
         var stamp: String = java.time.Instant.now().toString()
         when ((name)) {
-            "save_reviewed_order" -> {
-                run {
-                    var row: JSONObject = OrderReviewRules.prepare(repository.state(), a)
-                    return repository.enqueue("order", row, request).put("order_id", row.getString("id"))
-                }
-            }
             "set_work_record_billed", "reassign_work_record" -> {
                 run {
                     var old: JSONObject = PixelMcpWriteTools.find(all.getJSONArray("worklogs"), a.getString("work_record_id"))
                     if ((!PixelMcpWriteTools.hash(PixelMcpWriteTools.base(old)).equals(a.getString("expected_record_hash")))) {
                         throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Arbeitsaufzeichnung wurde verändert.")
                     }
-                    var p: JSONObject = DriveJournalRules.clean(old)
+                    var p: JSONObject = LocalJournalRules.clean(old)
                     if ((name.equals("set_work_record_billed"))) {
                         p.put("billed", (if (a.getBoolean("billed")) 1 else 0))
                     } else {

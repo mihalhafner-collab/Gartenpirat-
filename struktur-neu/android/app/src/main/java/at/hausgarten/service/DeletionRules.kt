@@ -42,7 +42,7 @@ class DeletionRules {
                 throw IllegalArgumentException("Der Eintrag fehlt.")
             }
             OwnerJournalRules.validateArchive(entity, current, snapshot)
-            return JSONObject().put("entity", entity).put("id", id).put("expected_record_hash", expected).put("_record_base", DriveJournalRules.guard(current, entity)).put("_archive_record", current).put("photo_link_ids", TrashRules.related(snapshot, entity, id)).put("expected_photo_links_hash", PixelMcpWriteTools.hash(TrashRules.related(snapshot, entity, id))).put("deletion_policy", "recoverable_v2").put("updated_at", stamp)
+            return JSONObject().put("entity", entity).put("id", id).put("expected_record_hash", expected).put("_record_base", LocalJournalRules.guard(current, entity)).put("_archive_record", current).put("photo_link_ids", TrashRules.related(snapshot, entity, id)).put("expected_photo_links_hash", PixelMcpWriteTools.hash(TrashRules.related(snapshot, entity, id))).put("deletion_policy", "recoverable_v2").put("updated_at", stamp)
         }
     }
 }

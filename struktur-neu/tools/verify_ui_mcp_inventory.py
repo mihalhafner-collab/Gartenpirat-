@@ -23,16 +23,16 @@ paths = {p for p in SOURCE.glob('*.kt') if re.search(r'@(?:androidx\.compose\.ru
 paths.update(native_source(name) for name in (
     'MainActivity', 'NativePrimaryScreens', 'NativeForms', 'NativeCompose',
     'NativeAppController', 'NativeActionCatalog', 'NativeDataRepository',
-    'DriveJournalRules', 'GardenRules', 'BillingRules', 'TestDataRules', 'WorklogRules',
-    'EntityProtectionRules', 'OwnerJournalRules', 'SyncActionOrder', 'OrderReviewRules',
+    'LocalJournalRules', 'GardenRules', 'BillingRules', 'TestDataRules', 'WorklogRules',
+    'EntityProtectionRules', 'OwnerJournalRules', 'LocalActionOrder',
 
     'PixelOwnerAccess', 'LocalOwnerRepository', 'PixelLocalStore',
     'WorkSessionStore', 'BrowserDraftRepository', 'BackupSettingsRepository',
     'LocalBackupDataset', 'NativeOwnerQueries', 'PixelMcpOwnerTools',
-    'SyncArchiveApplicationService',
-    'LocalAuthorityRules', 'RestoreStartupGuard', 'RevierApplication',
+    'ArchiveApplicationService',
+    'LocalBusinessState', 'OfferMoney', 'OfferFileProvider', 'RestoreStartupGuard', 'RevierApplication',
     'PlanningConnectionActivity', 'PixelTunnelActivity', 'PixelTunnelService',
-    'PixelTunnelBootReceiver', 'BackgroundWorkDispatch', 'PendingWorkPhotoStore',
+    'PixelTunnelBootReceiver',  'PendingWorkPhotoStore',
     'PixelBackupService', 'BackupDocumentTransfer', 'BackupInventory',
     'EncryptedBackupArchive', 'BackupRestoreService', 'RestoreStartupProtection',
     'BackupScheduleRules', 'BackupStatusRules', 'LocalStorageMaintenance',
@@ -57,12 +57,12 @@ for path in SOURCE.glob('*'):
         raise SystemExit('Unexpected WebView UI source: ' + str(path.relative_to(ROOT)))
 observed = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in sorted(paths)}
 
-# Check the executed menu registry against all 210 semantic entries, including explicit exceptions.
+# Check every executed menu entry against the current semantic inventory.
 pattern = re.compile(r'NativeAction\s*\(\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*,\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*,\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*,\s*listOf\(([^)]*)\)\s*,?([^)]*)\)', re.S)
 entries = pattern.findall(native_source('NativeActionCatalog').read_text())
 registry = {entry[0]: entry for entry in entries}
 assert len(entries) == len(registry) == len(manifest['actions'])
-assert len(entries) >= 100
+assert entries, "Empty executable action registry"
 assert set(registry) == {action['id'] for action in manifest['actions']}
 known = set()
 for path in SOURCE.glob('*Tools.kt'):

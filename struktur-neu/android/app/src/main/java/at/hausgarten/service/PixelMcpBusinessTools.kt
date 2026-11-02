@@ -19,15 +19,10 @@ internal class PixelMcpBusinessTools {
         }
 
         @JvmStatic
-        @Throws(Exception::class)
-        fun billing(row: JSONObject, invoices: JSONArray?): String =
-            if (row.optInt("billed", 0) != 0) "billing_unclear" else "marked_open_not_proven"
+        fun billing(row: JSONObject): String =
+            if (row.optInt("billed", 0) != 0) "marked_billed" else "marked_open"
 
         @JvmStatic
-        fun billing(row: JSONObject, invoices: JSONArray?, master: JSONObject): String =
-            billing(row, invoices)
-
-                @JvmStatic
         fun overlap(a: JSONObject, b: JSONObject): Boolean {
 
             if (
@@ -78,9 +73,6 @@ internal class PixelMcpBusinessTools {
 
             var hours: Double = 0.0
             var marked: Int = 0
-            var proven: Int = 0
-            var unclear: Int = 0
-            var partial: Int = 0
             var issues = JSONArray()
             var customerIds = HashSet<String>()
             var customers = master.optJSONArray("customers")
@@ -114,20 +106,7 @@ internal class PixelMcpBusinessTools {
 
                     var row = logs.getJSONObject(i)
                     hours += row.optDouble("hours", 0.0)
-                    var evidence = billing(row, master.optJSONArray("invoices"), master)
-                    if ((evidence == "proven_invoiced")) {
-                        proven++
-                    } else {
-                        if ((evidence == "marked_open_not_proven")) {
-                            marked++
-                        } else {
-                            if ((evidence == "partially_invoiced")) {
-                                partial++
-                            } else {
-                                unclear++
-                            }
-                        }
-                    }
+                    if (row.optInt("billed", 0) == 0) marked++
                     if (!(customerIds.contains(row.optString("customer_id")))) {
                         issues.put(
                             issue(
@@ -159,15 +138,6 @@ internal class PixelMcpBusinessTools {
                                 "INVALID_WORK_RECORD",
                                 row,
                                 "Datum, Zeiten, Tätigkeit und Zahlen bitte prüfen.",
-                            )
-                        )
-                    }
-                    if (((row.optInt("billed", 0) == 0) && (evidence == "proven_invoiced"))) {
-                        issues.put(
-                            issue(
-                                "BILLING_MISMATCH",
-                                row,
-                                "Verknüpfte ausgestellte Rechnung vorhanden, App-Markierung noch offen. Nicht automatisch geändert.",
                             )
                         )
                     }
@@ -220,18 +190,14 @@ internal class PixelMcpBusinessTools {
                 JSONObject()
                     .put("work_records", logs.length())
                     .put("hours", (Math.round((hours * 100)) / 100.0))
-                    .put("marked_open_not_proven", marked)
-                    .put("proven_invoiced", proven)
-                    .put("billing_unclear_or_draft", unclear)
+                    .put("marked_open", marked)
+                    .put("marked_billed", logs.length() - marked)
                     .put("issues", issues)
                     .put("timezone", "Europe/Vienna")
                     .put(
                         "billing_notice",
-                        "Offen markiert ist kein Nachweis fehlender Rechnungen. Tatsächlich nicht abgerechnet ist ohne vollständige verlässliche Rechnungsquelle nicht bestimmbar.",
+                        "Die Übersicht verwendet die lokalen Abrechnungsmarkierungen. Rechnungen und Zahlungen werden ausschließlich in sevDesk verwaltet.",
                     )
-            if ((master.optJSONObject("local_billing_sources") != null)) {
-                result.put("partially_invoiced", partial)
-            }
             return result
         }
 

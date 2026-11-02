@@ -15,7 +15,6 @@ internal class PixelMcpEntityWriteTools {
             )
         @JvmField val CUSTOMER_FIELDS: Array<String> = EntityContract.CUSTOMER_FIELDS
         @JvmField val ORDER_FIELDS: Array<String> = EntityContract.ORDER_FIELDS
-        @JvmField val INVOICE_FIELDS: Array<String> = EntityContract.INVOICE_FIELDS
 
         @JvmStatic
         fun handles(name: String): Boolean {
@@ -80,66 +79,24 @@ internal class PixelMcpEntityWriteTools {
             if (("billing_mode" == key)) {
                 return string(30).put("enum", JSONArray().put("direct").put("via_customer"))
             }
-            if (("payment_days" == key)) {
-                return integer()
-            }
-            if (("positions" == key)) {
-                var p = JSONObject()
-                for (k in arrayOf("title", "description", "unit", "worklog_id")) {
-                    p.put(k, string(10000))
-                }
-                for (k in
-                    arrayOf(
-                        "quantity",
-                        "price",
-                        "tax_rate",
-                        "discount",
-                        "net",
-                        "tax",
-                        "net_total",
-                        "tax_total",
-                        "gross_total",
-                    )) {
-                    p.put(k, JSONObject().put("type", "number"))
-                }
-                p.put(
-                        "source_type",
-                        McpFields.enumeration("worklog", "material_movement", "manual"),
-                    )
-                    .put("source_id", McpFields.id())
-                    .put(
-                        "source_quantity_decimal",
-                        string(64).put("pattern", "(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?"),
-                    )
-                return JSONObject()
-                    .put("type", "array")
-                    .put("minItems", 1)
-                    .put("maxItems", 200)
-                    .put("items", McpFields.`object`(p, "title", "quantity", "price"))
-            }
-            if (("recipient_type" == key)) {
-                return string(30).put("enum", JSONArray().put("b2b").put("consumer").put(""))
-            }
-            if (("tax_mode" == key)) {
-                return string(30).put("enum", JSONArray().put("small_business").put("standard"))
-            }
             return string((if (Arrays.asList("notes", "description").contains(key)) 10000 else 500))
         }
 
         @JvmStatic
         @Throws(Exception::class)
         fun schema(name: String): JSONObject {
+            require(handles(name)) { "UNKNOWN_TOOL" }
 
             var props = JSONObject().put("request_id", string(128).put("minLength", 8))
             var required = JSONArray().put("request_id")
             var update: Boolean = name.startsWith("update_")
             var entity =
                 (if (name.contains("customer")) "customer"
-                else (if (name.contains("order")) "order" else "invoice"))
+                else "order")
             var idKey = (entity + "_id")
             var fields =
                 (if ((entity == "customer")) CUSTOMER_FIELDS
-                else (if ((entity == "order")) ORDER_FIELDS else INVOICE_FIELDS))
+                else ORDER_FIELDS)
             if (update) {
                 props.put(idKey, string(500)).put("expected_record_hash", string(128))
                 var patch = JSONObject()
@@ -165,9 +122,7 @@ internal class PixelMcpEntityWriteTools {
                 if ((entity == "order")) {
                     required.put("customer_id").put("title")
                 }
-                if ((entity == "invoice")) {
-                    required.put("customer_id").put("invoice_date").put("positions")
-                }
+
             }
             return JSONObject()
                 .put("type", "object")
@@ -183,13 +138,10 @@ internal class PixelMcpEntityWriteTools {
             var out = JSONArray()
             for (name in NAMES) {
                 var description =
-                    (if (name.contains("invoice"))
-                        "Erstellt oder ändert ausschließlich einen lokalen Rechnungsentwurf. Dieses Werkzeug stellt keine Rechnung aus, versendet nichts und markiert nichts als bezahlt. Vorhandene sevDesk-Rechnungen bleiben unverändert."
-                    else
-                        (if ((name == "create_customer"))
+                    (if ((name == "create_customer"))
                             "Legt einen neuen Kunden mit Stammdaten und Zusatzfeldern an. Vorher Kunden einschließlich inaktiver Kunden suchen; mögliche Dubletten werden abgewiesen. Kunden-ID wird sicher auf dem Pixel erzeugt."
                         else
-                            "Erstellt oder ändert einen Auftrag mit einer tatsächlich vorhandenen Kunden-ID. Vor Änderungen Datensatz abrufen und record_hash übernehmen."))
+                            "Erstellt oder ändert einen Auftrag mit einer tatsächlich vorhandenen Kunden-ID. Vor Änderungen Datensatz abrufen und record_hash übernehmen.")
                 if ((name == "update_customer")) {
                     description =
                         "Korrigiert ausdrücklich genannte Stammdaten eines vorhandenen Kunden anhand customer_id. Zuerst get_customer aufrufen und dessen record_hash als expected_record_hash übernehmen. Nicht genannte Felder, IDs, Zeitstempel und Verknüpfungen bleiben erhalten. Zusatzfelder werden ergänzt, nicht blind ersetzt."
@@ -372,12 +324,7 @@ internal class PixelMcpEntityWriteTools {
             return EntityApplicationService.prepare(name, args, state, actionId)
         }
 
-        @JvmStatic
-        @Throws(Exception::class)
-        fun validatePositions(positions: JSONArray): Unit {
 
-            EntityContract.validatePositions(positions)
-        }
 
         @JvmStatic
         @Throws(Exception::class)
@@ -386,7 +333,7 @@ internal class PixelMcpEntityWriteTools {
             return EntityContract.editable(
                 row,
                 (if ((entity == "customer")) CUSTOMER_FIELDS
-                else (if ((entity == "order")) ORDER_FIELDS else INVOICE_FIELDS)),
+                else ORDER_FIELDS),
             )
         }
     }

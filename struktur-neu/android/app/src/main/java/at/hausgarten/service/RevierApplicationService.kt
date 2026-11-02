@@ -1493,7 +1493,6 @@ class RevierApplicationService {
         }
         var delta: BigDecimal
         if ((kind.equals("reversal"))) {
-            repository.assertSourceCorrectionAllowed("material_movement", RevierRules.id(args, "reverses_movement_id", true))
             var original: String = RevierRules.id(args, "reverses_movement_id", true)
             var prior: JSONObject = load("material_movement", original)
             if ((!old.getString("id").equals(prior.getString("material_id")))) {

@@ -4,7 +4,7 @@ import org.json.*
 import java.util.*
 
 /** Stable dependency order, independent of device clocks. Original action bytes stay unchanged. */
-class SyncActionOrder {
+class LocalActionOrder {
     companion object {
         @Throws(Exception::class)
         @JvmStatic fun order(input: JSONArray): JSONArray {
@@ -50,10 +50,7 @@ class SyncActionOrder {
                 var a: JSONObject = entry.value
                 var p: JSONObject = a.getJSONObject("payload")
                 var deps: MutableSet<String> = LinkedHashSet()
-                if ((("conflict_resolution".equals(a.getString("kind")) && actions.containsKey(p.optString("client_id"))))) {
-                    deps.add(p.getString("client_id"))
-                }
-                var ownKind: String = (if (a.getString("kind").startsWith("offer_")) "offer" else (if (a.getString("kind").equals("pixel_invoice_issue_v1")) "invoice" else a.getString("kind")))
+                var ownKind: String = (if (a.getString("kind").startsWith("offer_")) "offer" else a.getString("kind"))
                 var creator: String? = creators.get((("" + ownKind + ":") + p.optString("id")))
                 if ((((creator != null) && !creator!!.equals(id)))) {
                     deps.add(creator)
@@ -112,40 +109,6 @@ class SyncActionOrder {
                 }
             }
             return result
-        }
-        @Throws(Exception::class)
-        @JvmStatic fun merge(base: JSONObject, patch: JSONObject, current: JSONObject?, kind: String): JSONObject {
-            if ((((current == null) || !base.optString("id").equals(current!!.optString("id"))))) {
-                throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Der ursprüngliche Datensatz fehlt.")
-            }
-            var result: JSONObject = JSONObject(current!!.toString())
-            var changed: MutableSet<String> = HashSet()
-            run {
-                var keys: MutableIterator<String> = patch.keys()
-                while (keys.hasNext()) {
-                    var key: String = keys.next()
-                    if (((key.startsWith("_") || Arrays.asList("id", "updated_at", "created_at", "pending").contains(key)))) {
-                        continue
-                    }
-                    if (((base.has(key) && !equal(key, base.opt(key), patch.opt(key))))) {
-                        if (((!equal(key, base.opt(key), current!!.opt(key)) && !equal(key, patch.opt(key), current!!.opt(key))))) {
-                            throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Dasselbe Feld wurde unterschiedlich geändert. Beide Varianten bleiben erhalten.")
-                        }
-                        changed.add(key)
-                    }
-                }
-            }
-            for (key in changed) {
-                result.put(key, patch.get(key))
-            }
-            if ((patch.has("updated_at"))) {
-                result.put("updated_at", patch.get("updated_at"))
-            }
-            return result
-        }
-        @Throws(Exception::class)
-        private fun equal(key: String, a: Any?, b: Any?): Boolean {
-            return PixelMcpWriteTools.canonical(DriveJournalRules.comparable(key, a)).equals(PixelMcpWriteTools.canonical(DriveJournalRules.comparable(key, b)))
         }
     }
 }

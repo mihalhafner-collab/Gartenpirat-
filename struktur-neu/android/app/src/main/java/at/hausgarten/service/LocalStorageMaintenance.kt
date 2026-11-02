@@ -43,14 +43,14 @@ internal class LocalStorageMaintenance(private val context: Context, private val
                     val state = store.getState()
                     val effective = JSONObject(state.getJSONObject("master").toString())
                     val pending = state.optJSONArray("pending") ?: JSONArray()
-                    DriveJournalRules.apply(effective, pending)
+                    LocalJournalRules.apply(effective, pending)
                     val displayed = PixelMcpReadTools.effective(state)
                     for (collection in arrayOf("customers", "orders", "worklogs", "invoices", "photos", "offers", "appointments", "owner_archive")) {
                         if (PixelMcpWriteTools.hash(displayed.opt(collection)) != PixelMcpWriteTools.hash(effective.opt(collection)))
                             throw IOException("STORAGE_PROJECTION_MISMATCH")
                     }
-                    val applied = DriveJournalRules.ids(effective.optJSONArray("drive_applied_ids")).toMutableSet()
-                    applied.addAll(DriveJournalRules.ids(effective.optJSONArray("accepted_ids")))
+                    val applied = LocalJournalRules.ids(effective.optJSONArray("drive_applied_ids")).toMutableSet()
+                    applied.addAll(LocalJournalRules.ids(effective.optJSONArray("accepted_ids")))
                     effective.optJSONObject("drive_resolved_actions")?.keys()?.forEach { applied.add(it) }
                     val deleted = mutableSetOf<String>()
                     val archive = OwnerJournalRules.archives(effective)
@@ -87,8 +87,6 @@ internal class LocalStorageMaintenance(private val context: Context, private val
                     }
                     effective.put("drive_applied_ids", JSONArray(applied.filter { it in dependencies }))
                     effective.put("accepted_ids", JSONArray())
-                    val reviews = effective.optJSONArray("drive_review_actions") ?: JSONArray()
-                    effective.put("drive_review_actions", JSONArray((0 until reviews.length()).map { reviews.getJSONObject(it) }.filter { it.optString("client_id") !in applied }))
                     for (field in arrayOf("drive_action_hashes", "drive_action_receipts", "drive_resolved_actions", "owner_resolved_actions", "owner_conflict_history")) {
                         val values = effective.optJSONObject(field) ?: continue
                         for (id in values.keys().asSequence().toList()) if (id in applied && id !in dependencies) values.remove(id)
@@ -119,7 +117,7 @@ internal class LocalStorageMaintenance(private val context: Context, private val
                             val meta = JSONObject(rows.getString(1))
                             val recent = runCatching { Instant.parse(meta.optString("last_written_at")).toEpochMilli() > System.currentTimeMillis() - DAY }.getOrDefault(false)
                             // A currently uploading file may not yet belong to a saved form.
-                            if (id in refs || (recent && !meta.has("attached_photo"))) collect(meta, refs) else uploads.add(id)
+                            if (meta.optString("kind") == "backup" || id in refs || (recent && !meta.has("attached_photo"))) collect(meta, refs) else uploads.add(id)
                         }
                     }
                     uploads.forEach { database.delete("mcp_uploads", "id=?", arrayOf(it)) }
@@ -137,10 +135,7 @@ internal class LocalStorageMaintenance(private val context: Context, private val
                         // Give only that staging area a grace period; purged originals/PDFs go now.
                         removedFiles += removeUnreferenced(directory, refs, if (name == "native-form-media") DAY else 0)
                     }
-                    for (name in arrayOf("deletion-backups", "legacy-conflict-backups")) {
-                        removedFiles += removeUnreferenced(File(context.noBackupFilesDir, name), refs, 0)
-                    }
-                    for (name in arrayOf("immutable-photo-staging", "immutable-document-staging", "photo-capture", "invoice-share")) {
+                    for (name in arrayOf("immutable-photo-staging", "immutable-document-staging", "photo-capture", "offer-share")) {
                         removedFiles += removeUnreferenced(File(context.cacheDir, name), refs, DAY)
                     }
                     store.putOwnerValue("local_media_cleanup", JSONObject().put("pending", false).toString())

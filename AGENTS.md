@@ -53,7 +53,7 @@ Voraussetzung für die übrige App. Alte Cloud-Geschäftsverbindungen und
 Migrationsmasken entfernen. Bestehende Rechnungsansichten dürfen rein informativ
 bleiben. Kein automatisches Löschen auf dem installierten Pixel durch
 Quellcode-Bereinigung, keine Änderungen an bereits ausgestellten sevDesk-Belegen.
-Neue Rechnungserstellung in der App erst bei gesondertem Auftrag und eigener Prüfung.
+Die erhaltenen Angebote einschließlich PDF und die Arbeitsgrundlage für sevDesk bleiben lokal.
 Eine Unlesbarkeit ehemaliger Drive-/Rechnungs-/Migrationsverknüpfungen ist nach
 Eigentümerfreigabe vom 02.11.2026 ausdrücklich akzeptiert; keine Altkompatibilität
 nur für abgeschaffte Funktionspfade bewahren. Historische Geschäftsdateien und

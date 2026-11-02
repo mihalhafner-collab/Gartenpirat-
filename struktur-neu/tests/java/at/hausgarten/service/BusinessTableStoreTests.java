@@ -119,16 +119,16 @@ public final class BusinessTableStoreTests {
             denied("TABLE_WRITE_CONFLICT",()->{tables.put("customers",row,hash(row),"qa_table_conflict");return null;});
             JSONObject current=tables.exportSnapshot();JSONArray reversed=new JSONArray(),customers=current.getJSONArray("customers");for(int i=customers.length()-1;i>=0;i--)reversed.put(customers.get(i));current.put("customers",reversed);tables.replaceSnapshot(current);
             yes(hash(current).equals(hash(tables.exportSnapshot())));yes(original.equals(sql.owner("snapshot")));
-            JSONObject payload=new JSONObject(edited.toString()).put("name","[TEST] QA Journal").put("_sync_base",DriveJournalRules.guard(edited,"customer"));
+            JSONObject payload=new JSONObject(edited.toString()).put("name","[TEST] QA Journal").put("_sync_base",LocalJournalRules.guard(edited,"customer"));
             sql.transaction(()->{
                 sql.append("qa_temporary",payload);sql.execute("DELETE FROM pending WHERE id='qa_temporary'");sql.append("qa_final",payload);sql.execute("INSERT INTO owner_state VALUES('receipt:qa_final','{}')");yes(!tables.projectionCurrent());
-                tables.commitJournal(sql.pending(),master->{PixelDriveState.prepare(master);master.put("processing_engine",LocalAuthorityRules.ENGINE);});return null;
+                tables.commitJournal(sql.pending(),master->{LocalBusinessState.prepare(master);master.put("processing_engine",LocalBusinessState.ENGINE);});return null;
             });
             yes(tables.projectionCurrent());yes(tables.get("customers",edited.getString("id")).getString("name").equals("[TEST] QA Journal"));
-            JSONObject committed=tables.exportSnapshot();yes(DriveJournalRules.ids(committed.getJSONArray("drive_applied_ids")).contains("qa_final"));yes(!DriveJournalRules.ids(committed.getJSONArray("drive_applied_ids")).contains("qa_temporary"));yes(committed.getString("processing_engine").equals(LocalAuthorityRules.ENGINE));yes(sql.owner("business_tables:original:"+hash(request))==null);
+            JSONObject committed=tables.exportSnapshot();yes(LocalJournalRules.ids(committed.getJSONArray("drive_applied_ids")).contains("qa_final"));yes(!LocalJournalRules.ids(committed.getJSONArray("drive_applied_ids")).contains("qa_temporary"));yes(committed.getString("processing_engine").equals(LocalBusinessState.ENGINE));yes(sql.owner("business_tables:original:"+hash(request))==null);
             sql.execute("CREATE TRIGGER qa_fail BEFORE INSERT ON business_customers WHEN NEW.id='customers_qa_1' BEGIN SELECT RAISE(ABORT,'QA_STORAGE_FAILURE'); END");
             denied("QA_STORAGE_FAILURE",()->sql.transaction(()->{
-                JSONObject next=tables.get("customers","customers_qa_1");sql.append("qa_failure",new JSONObject(next.toString()).put("name","[TEST] QA verboten").put("_sync_base",DriveJournalRules.guard(next,"customer")));sql.execute("INSERT INTO owner_state VALUES('receipt:qa_failure','{}')");tables.commitJournal(sql.pending(),PixelDriveState::prepare);return null;
+                JSONObject next=tables.get("customers","customers_qa_1");sql.append("qa_failure",new JSONObject(next.toString()).put("name","[TEST] QA verboten").put("_sync_base",LocalJournalRules.guard(next,"customer")));sql.execute("INSERT INTO owner_state VALUES('receipt:qa_failure','{}')");tables.commitJournal(sql.pending(),LocalBusinessState::prepare);return null;
             }));
             yes(sql.owner("receipt:qa_failure")==null);yes(hash(committed).equals(hash(tables.exportSnapshot())));yes(sql.pending().length()==1);yes(tables.projectionCurrent());sql.execute("DROP TRIGGER qa_fail");
         }

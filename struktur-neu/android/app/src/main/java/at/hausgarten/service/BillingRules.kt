@@ -179,11 +179,11 @@ internal class BillingRules {
                         .put("valid", detail.optBoolean("valid"))
                         .put("hours", 0.0)
                         .put("work_records", JSONArray())
-                        .put("billing_status", "marked_open_not_proven")
+                        .put("billing_status", "marked_open")
                 }
                 val copy = JSONObject(row.toString())
                     .put("billing_customer_id", recipientId)
-                    .put("billing_evidence", "marked_open_not_proven")
+                    .put("billing_status", "marked_open")
                 try {
                     copy.put("work_customer_name",
                         customer(master.optJSONArray("customers"), text(row, "customer_id")).optString("name"))

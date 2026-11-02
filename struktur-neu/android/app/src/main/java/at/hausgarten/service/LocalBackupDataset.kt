@@ -63,7 +63,7 @@ internal object LocalBackupDataset {
                     else BackupFilePins.capture(root, directory, prefix)
                 }
                 include(context.filesDir, "files")
-                for (name in arrayOf("photo-capture", "invoice-share")) include(File(context.cacheDir, name), "cache/$name")
+                for (name in arrayOf("photo-capture")) include(File(context.cacheDir, name), "cache/$name")
                 for (name in arrayOf("deletion-backups", "legacy-conflict-backups")) include(File(context.noBackupFilesDir, name), "no_backup/$name")
                 val filesRoot = if (streamOriginals) context.filesDir else File(directory, "files")
                 if (PixelMcpWriteTools.hash(preferences) != PixelMcpWriteTools.hash(BackupPreferences.capture(context))) {

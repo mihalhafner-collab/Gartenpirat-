@@ -270,7 +270,7 @@ private val nativeLabels = mapOf(
     "kilometers" to "Kilometer", "customer_visible" to "Für Kunden sichtbar", "allow_overnight" to "Arbeit über Mitternacht", "billed" to "Abgerechnet",
     "active" to "Aktiv", "archived" to "Archiviert", "status" to "Status", "updates" to "Änderungen", "confirmed" to "Ich bestätige diese Aktion",
     "positions" to "Positionen", "quantity" to "Menge", "unit" to "Einheit", "unit_price" to "Einzelpreis", "tax_rate" to "Steuersatz", "tax_mode" to "Steuerregelung",
-    "invoice_date" to "Rechnungsdatum", "service_start" to "Leistungsbeginn", "service_end" to "Leistungsende", "payment_days" to "Zahlungsfrist in Tagen",
+    "invoice_issuer_confirmed" to "Ausstellerangaben für Angebote bestätigt", "invoice_date" to "Rechnungsdatum", "service_start" to "Leistungsbeginn", "service_end" to "Leistungsende", "payment_days" to "Zahlungsfrist in Tagen",
     "header_text" to "Einleitung", "footer_text" to "Schlusstext", "caption" to "Bildunterschrift", "capture_time" to "Aufgenommen am", "role" to "Fotorolle",
     "planned_minutes" to "Geplante Minuten", "starts_at" to "Beginn", "ends_at" to "Ende", "timezone" to "Zeitzone", "recurrence" to "Wiederholung",
     "interval_days" to "Abstand in Tagen", "anchor_date" to "Beginn", "condition" to "Zustand", "purchase_price_minor" to "Einstandspreis in Cent",
@@ -279,7 +279,7 @@ private val nativeLabels = mapOf(
     "window_start" to "Von Uhrzeit", "window_end" to "Bis Uhrzeit", "scheduled_date" to "Geplant am", "billing_mode" to "Abrechnungsweg", "query" to "Suche"
 )
 internal fun nativeLabel(key: String): String = nativeLabels[key] ?: key.replace('_', ' ').replaceFirstChar { it.uppercase() }
-internal fun nativeValue(value: String): String = mapOf("active" to "Aktiv", "inactive" to "Inaktiv", "open" to "Offen", "completed" to "Erledigt", "cancelled" to "Abgesagt", "draft" to "Entwurf", "ready" to "Einsatzbereit", "defective" to "Defekt", "maintenance" to "Wartung", "profile" to "Profilfoto", "documentation" to "Dokumentation", "before" to "Vorher", "during" to "Währenddessen", "after" to "Nachher", "damage" to "Schaden", "other" to "Sonstiges", "small_business" to "Kleinunternehmer", "standard" to "Umsatzsteuer", "direct" to "Kunde selbst", "via_customer" to "Anderer Rechnungsempfänger", "fixed_price" to "Fixpreisangebot", "time_material" to "Regieangebot", "estimate_binding" to "Verbindlicher Kostenvoranschlag", "estimate_nonbinding" to "Unverbindlicher Kostenvoranschlag")[value] ?: value
+internal fun nativeValue(value: String): String = mapOf("marked_open" to "Offen markiert", "marked_billed" to "Abgerechnet markiert", "active" to "Aktiv", "inactive" to "Inaktiv", "open" to "Offen", "completed" to "Erledigt", "cancelled" to "Abgesagt", "draft" to "Entwurf", "ready" to "Einsatzbereit", "defective" to "Defekt", "maintenance" to "Wartung", "profile" to "Profilfoto", "documentation" to "Dokumentation", "before" to "Vorher", "during" to "Währenddessen", "after" to "Nachher", "damage" to "Schaden", "other" to "Sonstiges", "small_business" to "Kleinunternehmer", "standard" to "Umsatzsteuer", "direct" to "Kunde selbst", "via_customer" to "Anderer Rechnungsempfänger", "fixed_price" to "Fixpreisangebot", "time_material" to "Regieangebot", "estimate_binding" to "Verbindlicher Kostenvoranschlag", "estimate_nonbinding" to "Unverbindlicher Kostenvoranschlag")[value] ?: value
 private fun technical(key: String) = key.startsWith("_") || key.startsWith("expected_") || key.endsWith("_id") || key.endsWith("_ids") || key.endsWith("_hash") || key.endsWith("_sha256") || key in setOf("id", "source", "created_at", "updated_at", "formatVersion", "schema_version", "local_revision", "test_record", "revision", "deleted_at", "device_id", "cloud_confirmed", "untrusted_business_data", "security_notice", "pdf_base64", "data_base64", "chunk_base64", "token", "installation_id", "restore_epoch", "protocol_version")
 
 /** Read-only business values, never a raw JSON editor or a binary payload dump. */
@@ -593,8 +593,6 @@ internal fun NativeActionMenu(controller: NativeAppController, area: String, con
             TextButton({
                 show = false
                 when {
-                    action.tools.any { it == "inspect_order_review" || it == "save_reviewed_order" } -> controller.navigate("order_review", contextArgs.optString("order_id"), args = JSONObject(contextArgs.toString()))
-                    action.tools.any { it == "get_sync_conflicts" || it == "resolve_sync_conflict" } -> controller.navigate("conflict_review", contextArgs.optString("client_id"), args = JSONObject(contextArgs.toString()))
                     else -> controller.action(action.label, action.tools.first(), contextArgs)
                 }
             }, Modifier.fillMaxWidth()) { Text(action.label) }

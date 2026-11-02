@@ -14,8 +14,6 @@ internal class OwnerToolSchemas {
 
         init {
             BUILDERS.put("get_ui_action_catalog", OwnerToolSchemas::getUiActionCatalog)
-            BUILDERS.put("inspect_order_review", OwnerToolSchemas::inspectOrderReview)
-            BUILDERS.put("save_reviewed_order", OwnerToolSchemas::saveReviewedOrder)
             BUILDERS.put(
                 "preview_archive_work_records",
                 OwnerToolSchemas::previewArchiveWorkRecords,
@@ -43,8 +41,6 @@ internal class OwnerToolSchemas {
             BUILDERS.put("update_business_settings", OwnerToolSchemas::updateBusinessSettings)
             BUILDERS.put("update_settings", OwnerToolSchemas::updateSettings)
             BUILDERS.put("set_personal_paid", OwnerToolSchemas::setPersonalPaid)
-            BUILDERS.put("inspect_backup", OwnerToolSchemas::inspectBackup)
-            BUILDERS.put("restore_backup", OwnerToolSchemas::restoreBackup)
         }
 
         @JvmStatic
@@ -121,43 +117,9 @@ internal class OwnerToolSchemas {
                 .put("limit", McpFields.number(1, 100))
         }
 
-        private @JvmStatic @Throws(Exception::class) fun inspectOrderReview(
-            name: String,
-            p: JSONObject,
-            required: MutableList<String>,
-        ): Unit {
 
-            p.put("order_id", McpFields.id())
-            required.add("order_id")
-        }
 
-        private @JvmStatic @Throws(Exception::class) fun saveReviewedOrder(
-            name: String,
-            p: JSONObject,
-            required: MutableList<String>,
-        ): Unit {
 
-            p.put("id", McpFields.id())
-                .put("token", McpFields.hash())
-                .put("decision", McpFields.enumeration("keep", "save"))
-                .put("confirmed", McpFields.bool().put("enum", JSONArray().put(true)))
-            var edits = JSONObject()
-            for (k in
-                arrayOf(
-                    "title",
-                    "customer_id",
-                    "billing_customer_id",
-                    "description",
-                    "location",
-                    "scheduled_date",
-                    "status",
-                )) {
-                edits.put(k, McpFields.text(10000))
-            }
-            edits.put("customer_visible", McpFields.number(0, 1))
-            p.put("order", McpFields.`object`(edits))
-            required.addAll(Arrays.asList("id", "token", "decision", "confirmed"))
-        }
 
         private @JvmStatic @Throws(Exception::class) fun previewArchiveWorkRecords(
             name: String,
@@ -244,7 +206,7 @@ internal class OwnerToolSchemas {
 
             p.put(
                     "resource_type",
-                    McpFields.enumeration("photo", "invoice", "offer", "catalog", "backup"),
+                    McpFields.enumeration("photo", "offer", "catalog"),
                 )
                 .put("resource_id", McpFields.id())
                 .put("offset", McpFields.number(0, ((1024 * 1024) * 1024)))
@@ -385,33 +347,9 @@ internal class OwnerToolSchemas {
             run {
                 var fields = JSONObject()
                 for (key in McpFields.BUSINESS_KEYS) {
-                    fields.put(
-                        key,
-                        (if (key.endsWith("_confirmed")) McpFields.bool()
-                        else
-                            (if (
-                                (((key == "invoice_sevdesk_last_number") ||
-                                    (key == "invoice_numbering_last_number")))
-                            )
-                                McpFields.number(0, 1000000000)
-                            else
-                                (if ((key == "invoice_number_format"))
-                                    McpFields.enumeration("own", "sevdesk")
-                                else McpFields.text(2000)))),
-                    )
+                    fields.put(key, if (key.endsWith("_confirmed")) McpFields.bool() else McpFields.text(2000))
                 }
-                fields
-                    .put(
-                        "invoice_numbering_authority",
-                        McpFields.enumeration("", "pixel_drive").put("minLength", 0),
-                    )
-                    .put("invoice_numbering_device_id", McpFields.text(200))
-                    .put("tax_mode", McpFields.enumeration("small_business", "standard"))
-                    .put("default_payment_days", McpFields.number(0, 365))
-                fields.put(
-                    "invoice_prefix",
-                    McpFields.text(20).put("pattern", "[A-Za-z][A-Za-z0-9-]{0,19}"),
-                )
+                fields.put("tax_mode", McpFields.enumeration("small_business", "standard"))
                 p.put("expected_record_hash", McpFields.hash())
                     .put("updates", McpFields.`object`(fields).put("minProperties", 1))
                 required.addAll(Arrays.asList("expected_record_hash", "updates"))
@@ -451,25 +389,9 @@ internal class OwnerToolSchemas {
             required.addAll(Arrays.asList("work_record_id", "paid"))
         }
 
-        private @JvmStatic @Throws(Exception::class) fun inspectBackup(
-            name: String,
-            p: JSONObject,
-            required: MutableList<String>,
-        ): Unit {
 
-            p.put("backup_id", McpFields.id())
-            required.add("backup_id")
-        }
 
-        private @JvmStatic @Throws(Exception::class) fun restoreBackup(
-            name: String,
-            p: JSONObject,
-            required: MutableList<String>,
-        ): Unit {
 
-            p.put("backup_id", McpFields.id()).put("expected_state_hash", McpFields.hash())
-            required.addAll(Arrays.asList("backup_id", "expected_state_hash"))
-        }
 
     }
 }

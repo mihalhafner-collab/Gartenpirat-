@@ -3,13 +3,14 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-01T22:43:59Z",
+    "observed_at_utc": "2026-11-02T18:41:26Z",
     "version_name": "1.57.2",
     "version_code": 121,
     "reported_base_git_sha": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
     "source_sha256": "9effca5a874b05c6fbc097adba1c06d273d3963bf3e4e092b0560ec2664075ae",
     "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
-    "package_name": "at.hausgarten.service"
+    "package_name": "at.hausgarten.service",
+    "repository_source_match": "PASS; exact source_sha256 recomputed from f44797bfc412d2fea27236fd9ffd4bda6b234286; ancestor of current main"
   },
   "observed_installation_history": [
     {
@@ -20,23 +21,48 @@
       "source_sha256": "9effca5a874b05c6fbc097adba1c06d273d3963bf3e4e092b0560ec2664075ae",
       "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
       "package_name": "at.hausgarten.service"
+    },
+    {
+      "observed_at_utc": "2026-11-02T18:41:26Z",
+      "version_name": "1.57.2",
+      "version_code": 121,
+      "reported_base_git_sha": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
+      "source_sha256": "9effca5a874b05c6fbc097adba1c06d273d3963bf3e4e092b0560ec2664075ae",
+      "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
+      "package_name": "at.hausgarten.service",
+      "repository_source_match": "PASS; exact source_sha256 recomputed from f44797bfc412d2fea27236fd9ffd4bda6b234286; ancestor of current main"
     }
   ],
   "current_task": {
-    "name": "Radikale Bereinigung nach KISS/YAGNI; Rechnungen bleiben bei sevDesk",
-    "status": "FINANCIAL_MIGRATION_VALIDATORS_PRUNED; CODE_CLEANUP_AND_QA_PENDING",
+    "name": "KISS/YAGNI-Bereinigung; lokale SQLite-App, sevDesk für Rechnungen",
+    "status": "LOCAL_SOURCE_RELEASE_LINT_AND_JVM_PASSED; CI_AND_ORIGINAL_RELEASE_DISTRIBUTION_PENDING",
+    "removed": [
+      "Rechnungserstellung, Zahlungsbuchung, Rechnungs-PDF und Versandzweige",
+      "Drive-Journalverteilung, Cloud-Feldabgleich, Hintergrund-Sync und alte Auftrags-Konfliktprüfung",
+      "Rechnungsautorität, Material-Rechnungssperre und ausführbare wiederhergestellte Rechnungs-/Zahlungseditoren",
+      "JSON-Teilsicherung, deaktivierter Teilrestore und ausschließlich zugehörige Verträge"
+    ],
+    "retained": [
+      "Kunden, Aufträge, Arbeit, Pausen und Abrechnungsmarkierungen für sevDesk",
+      "Angebote/Kostenvoranschläge mit PDF, Katalog, Material, Geräte und Fotos",
+      "Revier, Planung, Termine, Touren, Pflanzen, Papierkorb und lokale MCP-Werkzeuge",
+      "SQLite Schema 7; lokale ZIP-Sicherung, Integrität, Restore-Staging, Rollback und Prozessneustartschutz"
+    ],
+    "verified": [
+      "Installierter Quellfingerabdruck stimmt exakt mit f44797bfc412d2fea27236fd9ffd4bda6b234286 überein; dieser Commit ist Vorfahr von main",
+      "Quellprüfung erfolgreich; acht synthetische JVM-Suiten einschließlich Angeboten, Material und 111 ZIP-/Integritätsprüfungen erfolgreich",
+      "compileReleaseKotlin, compileReleaseJavaWithJavac, assembleRelease, assembleReleaseAndroidTest und lintRelease erfolgreich",
+      "Bisherige Drive-Installations-APK vollständig zurückgelesen; SHA256 und Originalzertifikat stimmen mit dem bestehenden Identitätsvertrag überein"
+    ],
     "remaining": [
-      "Alte Tabellenmigration, Rechnungsvalidierung, Original-Freigaben und sechs zugehörige Klassen entfernt; lokale Backup-Datei-/Hashprüfung mit reinen Hinweisen erhalten.",
-      "Alte Rechnungseditoren, Journal-Verteilungszustände und Start-/Migrationssperren noch entfernen.",
-      "Aktuellen Stand mit Kotlin-Bau, lokalen ZIP-/Restore-Tests und synthetischen Regressionen prüfen."
+      "GitHub-Actions-Emulatorprüfungen auf dem Commit vollständig ausführen und gegebenenfalls reparieren",
+      "Originalsignierte 1.57.3 (122) vom endgültigen Commit prüfen und im bestehenden Drive-Installationsordner bereitstellen"
     ]
   },
   "open_checks": [
-    "Weiter vorhandene historische DriveJournal-, PixelDriveState- und Rechnungs-Datenaufbereitung muss physisch bereinigt werden.",
-    "Neuer GitHub-Actions-Build ist nach Codeänderungen abzuwarten.",
-    "Pixel Build 121 ist unverändert.",
-    "Eigentümer akzeptiert Unlesbarkeit veralteter Verknüpfungen; allein aktuelle lokale Geschäftsdaten, Backup/Restore und Angebote bleiben schutzwürdig.",
-    "Zwischenstand c970e018 scheiterte in Kotlin an überschüssigem OwnerRepository-Abschluss; unter 3bc27c2a korrigiert, Neubau ausstehend."
+    "Pixel bleibt unverändert auf 1.57.2 (121); keine Installation, Migration, Wiederherstellung oder produktiven Tests.",
+    "Zentrale Pages meldeten page_not_found; aktuelle Eigentümeranweisung und Repositoryregeln verwendet.",
+    "Kein /dev/kvm in der Cloud; Android-Laufzeittests über den vorhandenen synthetischen GitHub-Actions-Emulator."
   ],
   "workflow": {
     "code": "android/app/src/main",
@@ -74,5 +100,11 @@
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "NOT_ACTIVATED"
   },
-  "current_test_candidate": null
+  "current_test_candidate": {
+    "version_name": "1.57.3",
+    "version_code": 122,
+    "package_name": "at.hausgarten.service",
+    "status": "LOCAL_RELEASE_AND_LINT_PASSED; CI_AND_ORIGINAL_SIGNING_PENDING",
+    "installation": "NOT_AUTHORIZED; NOT_PERFORMED"
+  }
 }

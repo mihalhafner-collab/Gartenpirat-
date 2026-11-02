@@ -127,7 +127,7 @@ Rechnungen werden ausschließlich über sevDesk erstellt, nummeriert, freigegebe
 und versendet; auch die Zahlungsverwaltung erfolgt dort. Gartenpirat stellt
 keine neuen Rechnungen aus, erzeugt keine Rechnungsentwürfe, vergibt keine
 Rechnungsnummern und bearbeitet keine Zahlungen. Altlogik und ehemalige
-Freigabe-/Migrationsnachweise werden aus dem Quellcode entfernt.
+Freigabe-/Migrationsnachweise sind entfernt.
 
 Arbeitsaufzeichnungen mit Abrechnungsmarkierungen, Auftraggebern und
 Rechnungsempfängern bleiben lokal zugänglich. Sie dienen als fachliche
@@ -162,7 +162,7 @@ Buttons. Aktionsleisten müssen Platz im Layout erhalten und dürfen weder Inhal
 noch Tastatur oder Systemnavigation verdecken; Systemabstände und verkleinerte
 Bildschirmhöhe beachten. Die vorhandene Suche bleibt erhalten.
 Kunden nach aktiv/archiviert und Abrechnungsweg, Geräte nach vorhandenem Zustand,
-Aufträge und Rechnungen nach vorhandenem Status und Kunde filtern. Aktive Auswahl,
+Aufträge nach vorhandenem Status und Kunde filtern. Aktive Auswahl,
 Trefferzahl und einfaches Zurücksetzen sichtbar halten. Keine gespeicherten
 Filterprofile oder zusätzlichen Datenmodelle.
 
@@ -267,10 +267,24 @@ Treibgliederzahl, Artikelnummer, Zahntyp, Feilengröße und weitere Angaben blei
 optional. Zubehörfotos verwenden den vorhandenen Gerätefotopfad und behalten ihren
 Maschinenbezug. Keine neue Datenbank, Lagerverwaltung oder Wartungsautomatik.
 
-Aus der Kundenakte übernimmt die Abrechnung den Arbeitskunden zusätzlich zum
-Rechnungsempfänger. Die Auswahl offener Arbeiten bleibt auf diesen Kunden
-begrenzt, auch wenn weitere Kunden denselben Empfänger verwenden. Dieser
-Anzeigekontext bleibt im Formularentwurf erhalten und wird nicht als zusätzliche
-Rechnungsfachinformation gespeichert. Die Auswahl kann ausdrücklich auf alle
-offenen Arbeiten des Empfängers erweitert werden. Geplante Einsätze erzeugen
-weder Arbeitsaufzeichnungen noch Rechnungspositionen.
+Aus der Kundenakte begrenzt die Übersicht offener Stunden die Arbeitsaufzeichnungen
+auf den gewählten Einsatzkunden, auch wenn weitere Kunden denselben
+Rechnungsempfänger verwenden. „Arbeitsaufzeichnungen für sevDesk prüfen“ öffnet
+dieselbe gefilterte Arbeitsliste. Die Abrechnungsmarkierung bleibt unabhängig von
+sevDesk-Belegen. Angebote und Kostenvoranschläge sind außerdem direkt aus Büro
+zugänglich. Geplante Einsätze erzeugen keine Arbeitsaufzeichnungen.
+
+Die lokale Aktionsprojektion hat einen einzigen Ausführungspfad. Sie verwendet
+keine Drive-Verteilung, entfernten Fehlerzustände oder Cloud-Feldzusammenführung.
+Die bereits im Backupformat vorhandenen Schlüssel `drive_applied_ids`,
+`drive_action_hashes`, `drive_action_receipts` und `drive_journal_errors` bleiben
+Speicherbezeichnungen für lokale Übernahmebelege und Fehler. Sie setzen weder
+Drive noch eine Rechnungsautorität voraus. Bestätigte Aktionen werden vor der
+Bereinigung transaktional in SQLite materialisiert. Veraltete Rechnungsaktionen
+werden nicht ausgeführt. Alte Rechnungs-/Zahlungsformulare erhalten keinen
+Editor und keinen Versandweg; ihre Rohdaten bleiben in vollständigen Sicherungen.
+Die begrenzte JSON-Teilsicherung und ihr gesperrter Teilrestore sind entfernt.
+Bereits vorhandene Altsicherungen als Dateien oder SQLite-BLOBs bleiben auch bei
+der Speicherbereinigung bytegetreu erhalten; nur temporäre Backup-Arbeitsdateien
+werden automatisch entfernt.
+Für vollständige Sicherung und Wiederherstellung gilt allein der lokale ZIP-Pfad.

@@ -370,13 +370,13 @@ internal class OfferTools {
                 PixelMcpWriteTools.find(s!!.getJSONArray("customers"), p!!.getString("customer_id"))
             var r = PixelMcpWriteTools.find(s!!.getJSONArray("customers"), recipient)
             var settings = s!!.optJSONObject("business_settings")
-            return (((((JSONObject())!!.put("customer", DriveJournalRules.guard(c, "customer")))!!
-                            .put("recipient", DriveJournalRules.guard(r, "customer")))!!
+            return (((((JSONObject())!!.put("customer", LocalJournalRules.guard(c, "customer")))!!
+                            .put("recipient", LocalJournalRules.guard(r, "customer")))!!
                         .put(
                             "order",
                             (if ((p!!.optString("order_id"))!!.isEmpty()) JSONObject.NULL
                             else
-                                DriveJournalRules.guard(
+                                LocalJournalRules.guard(
                                     PixelMcpWriteTools.find(
                                         s!!.getJSONArray("orders"),
                                         p!!.getString("order_id"),
@@ -425,7 +425,7 @@ internal class OfferTools {
                                 ))!!
                             .put(
                                 "record_hash",
-                                PixelMcpWriteTools.hash(DriveJournalRules.clean(p)),
+                                PixelMcpWriteTools.hash(LocalJournalRules.clean(p)),
                             ))!!
                         .put("context_hash", PixelMcpWriteTools.hash(context(p, s)))
                 if (a.optBoolean("include_review")) {
@@ -632,7 +632,7 @@ internal class OfferTools {
                                 ))!!
                                 .put(
                                     "record_hash",
-                                    PixelMcpWriteTools.hash(DriveJournalRules.clean(p)),
+                                    PixelMcpWriteTools.hash(LocalJournalRules.clean(p)),
                                 )
                         )
                     }

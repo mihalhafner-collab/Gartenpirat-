@@ -40,15 +40,7 @@ class RevierLocalRepository(private val store: PixelLocalStore, private val insp
         EquipmentProfilePhotoRules.attachment(photo, store.photoAttachment(photo.getString("id")))
         store.photoAttachmentStore().read(photo)
     }
-    override fun assertSourceCorrectionAllowed(type: String, id: String) {
-        if (type != "material_movement") return
-        store.readableDatabase.rawQuery("SELECT key FROM owner_state WHERE key>=? AND key<?", arrayOf("local_invoice_material_sources:", "local_invoice_material_sources:\uffff")).use { rows ->
-            while (rows.moveToNext()) {
-                val allocations = JSONObject(store.ownerValue(rows.getString(0), "{}"))
-                if (allocations.has(id)) throw PixelMcpWriteTools.Rejected("INVOICED_SOURCE_CORRECTION_REQUIRED", "Materialquelle wurde bereits abgerechnet. Zuerst den erforderlichen Korrekturbeleg führen; keine unbemerkte Gegenbuchung.")
-            }
-        }
-    }
+
     override fun rawEntries(prefix: String): JSONArray {
         val out = JSONArray()
         store.readableDatabase.rawQuery("SELECT key,value FROM owner_state WHERE key>=? AND key<? ORDER BY key", arrayOf(prefix, prefix + '\uffff')).use { rows ->

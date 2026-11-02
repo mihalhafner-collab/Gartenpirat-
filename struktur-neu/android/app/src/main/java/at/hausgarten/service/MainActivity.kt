@@ -57,13 +57,13 @@ import java.util.regex.Pattern
 import kotlin.coroutines.resume
 
 /** Native Compose entry point; platform consent stays separate from business writers. */
-class MainActivity : ComponentActivity(), McpSyncHost {
+class MainActivity : ComponentActivity() {
     private lateinit var preferences: SharedPreferences
     private var store: PixelLocalStore? = null
     private var controller by mutableStateOf<NativeAppController?>(null)
     private var startupError by mutableStateOf("")
     private val maintenance = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private var syncNetworkCallback: ConnectivityManager.NetworkCallback? = null
+    private var planningNetworkCallback: ConnectivityManager.NetworkCallback? = null
     private var workLocation: WorkLocationController? = null
     private var locationWaiter: Pair<String, CancellableContinuation<JSONObject>>? = null
     private var photoWaiter: CancellableContinuation<Uri?>? = null
@@ -148,7 +148,7 @@ class MainActivity : ComponentActivity(), McpSyncHost {
                         openingStore = local
                         if (!BuildConfig.UI_PREVIEW) {
                             try { if (PlanningAccount.connected(this@MainActivity) || PlanningAccount.prefs(this@MainActivity).getBoolean("weather_enabled", false)) PlanningJob.install(this@MainActivity) }
-                            catch (_: RuntimeException) { backgroundState(local, true, "BACKGROUND_SCHEDULING_FAILED") }
+                            catch (_: RuntimeException) { android.util.Log.w("HausGartenPlanning", "BACKGROUND_SCHEDULING_FAILED") }
                         }
                     }
                 }
@@ -182,17 +182,17 @@ class MainActivity : ComponentActivity(), McpSyncHost {
         refreshPlanningView()
         if (BuildConfig.UI_PREVIEW) return
         val connectivity = getSystemService(ConnectivityManager::class.java)
-        if (connectivity != null && syncNetworkCallback == null) {
+        if (connectivity != null && planningNetworkCallback == null) {
             val callback = object : ConnectivityManager.NetworkCallback() {
                 private var ready: Network? = null
                 override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
                     if (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
-                        if (network != ready) { ready = network; requestAutomaticSync(0); maintenance.launch { PlanningJob.schedule(this@MainActivity, 1000) } }
+                        if (network != ready) { ready = network; maintenance.launch { PlanningJob.schedule(this@MainActivity, 1000) } }
                     } else if (network == ready) ready = null
                 }
                 override fun onLost(network: Network) { if (network == ready) ready = null }
             }
-            try { connectivity.registerDefaultNetworkCallback(callback); syncNetworkCallback = callback } catch (_: RuntimeException) { }
+            try { connectivity.registerDefaultNetworkCallback(callback); planningNetworkCallback = callback } catch (_: RuntimeException) { }
         }
         maintenance.launch {
             PlanningJob.schedule(this@MainActivity, 1500)
@@ -205,16 +205,14 @@ class MainActivity : ComponentActivity(), McpSyncHost {
                 }
             }
         }
-        requestAutomaticSync(0)
     }
     override fun onPause() {
         if (foreground.get() === this) foreground.clear()
-        val callback = syncNetworkCallback
+        val callback = planningNetworkCallback
         if (callback != null) try { getSystemService(ConnectivityManager::class.java)?.unregisterNetworkCallback(callback) } catch (_: RuntimeException) { }
-        syncNetworkCallback = null
+        planningNetworkCallback = null
         super.onPause()
     }
-    override fun requestMcpSync() { requestMcpSync(this) }
 
     /** The picker and camera only select a draft source. Saving remains an explicit business action. */
     suspend fun pickPhoto(camera: Boolean): Uri? = withContext(Dispatchers.Main) {
@@ -287,23 +285,6 @@ class MainActivity : ComponentActivity(), McpSyncHost {
             } catch (_: Exception) { toast("Formulare konnten noch nicht vollständig gespeichert werden. Bitte erneut prüfen.") }
         }
     }
-    private fun backgroundState(local: PixelLocalStore, pending: Boolean, code: String) {
-        try { local.putOwnerValue("background_work_dispatch", JSONObject().put("formatVersion", 1).put("pending", pending).put("code", code).toString()) } catch (_: Exception) { }
-        try { preferences.edit().putBoolean("background_work_pending", pending).putString("background_work_error_code", code).commit() } catch (_: RuntimeException) { }
-    }
-    private fun requestAutomaticSync(delayMs: Long) {
-        if (BuildConfig.UI_PREVIEW) return
-        val local = store ?: return
-        maintenance.launch {
-            BackgroundWorkDispatch.request(delayMs, object : BackgroundWorkDispatch.Host {
-                override fun state(pending: Boolean, code: String) { backgroundState(local, pending, code) }
-                override fun post(task: Runnable): Boolean { maintenance.launch { task.run() }; return true }
-                override fun prepare() {}
-                override fun localReady(): Boolean = false
-                override fun local(delay: Long): Boolean = false
-            })
-        }
-    }
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString("native_route", controller?.savedNavigation())
@@ -329,7 +310,6 @@ class MainActivity : ComponentActivity(), McpSyncHost {
     }
     private fun toast(message: String) { Toast.makeText(this, message, Toast.LENGTH_LONG).show() }
 
-    class VerifiedInvoiceShare(@JvmField val invoice: JSONObject, @JvmField val bytes: ByteArray)
     companion object {
         @Volatile private var foreground = WeakReference<MainActivity>(null)
         private val BACKUP_SECRET_NAME = Pattern.compile("password|passwd|secret|credential|token|authorization|oauth|recovery.?code|api.?key", Pattern.CASE_INSENSITIVE)
@@ -337,19 +317,6 @@ class MainActivity : ComponentActivity(), McpSyncHost {
         @JvmStatic fun refreshBusinessView() {
             val activity = foreground.get() ?: return
             activity.maintenance.launch { activity.store?.notifyCommittedChange() }
-        }
-        @JvmStatic fun requestMcpSync(context: Context) {
-            if (BuildConfig.UI_PREVIEW) return
-            refreshBusinessView()
-            foreground.get()?.requestAutomaticSync(0)
-        }
-        @JvmStatic @Throws(Exception::class)
-        fun verifiedLocalInvoiceShare(context: Context, store: PixelLocalStore, supplied: JSONObject): VerifiedInvoiceShare {
-            val all = PixelMcpReadTools.effective(store.getState())
-            val invoice = JSONObject(PixelMcpWriteTools.find(all.getJSONArray("invoices"), supplied.getString("id")).toString())
-            if (!IssuedInvoiceRules.isIssued(invoice)) throw IOException("Nur ausgestellte Originalbelege teilen.")
-            TestDataRules.noDelivery(invoice, all)
-            return VerifiedInvoiceShare(invoice, BusinessDocumentStore(context).read(invoice))
         }
         private fun logPhotoCaptureFailure(code: String, error: Exception) {
             val cause = error.cause?.let { "; cause=" + it.javaClass.simpleName } ?: ""

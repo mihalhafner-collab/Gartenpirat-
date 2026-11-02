@@ -6,7 +6,7 @@ import java.util.*
 /** Additive owner journal protocol. Old journals and immutable receipts survive. */
 class OwnerJournalRules {
     companion object {
-        @JvmField val KINDS: Array<String> = arrayOf("purge_v1", "purge_trash_v1", "archive", "restore", "conflict_resolution", "business_settings")
+        @JvmField val KINDS: Array<String> = arrayOf("purge_v1", "purge_trash_v1", "archive", "restore", "business_settings")
         @JvmStatic fun handles(kind: String): Boolean {
             return (Arrays.asList(*KINDS).contains(kind) || OfferJournalRules.handles(kind))
         }
@@ -20,7 +20,7 @@ class OwnerJournalRules {
             return a
         }
         @JvmStatic fun group(entity: String): String {
-            return (if (entity.equals("invoice")) "invoices" else DriveJournalRules.collection(entity))
+            return (if (entity.equals("invoice")) "invoices" else LocalJournalRules.collection(entity))
         }
         @Throws(Exception::class)
         @JvmStatic fun findOrNull(rows: JSONArray?, id: String): JSONObject? {
@@ -45,12 +45,12 @@ class OwnerJournalRules {
             }
             if ((row!!.has("id"))) {
                 if ((((row!!.has("offer_number") || row!!.has("pricing_mode")) || ((row!!.has("unit") && row!!.has("default_price")))))) {
-                    return PixelMcpWriteTools.hash(DriveJournalRules.clean(row))
+                    return PixelMcpWriteTools.hash(LocalJournalRules.clean(row))
                 }
                 var kind: String = (if (row!!.has("name")) "customer" else (if (row!!.has("activity")) "worklog" else (if (row!!.has("title")) "order" else (if (((row!!.has("invoice_number") || row!!.has("positions")) || row!!.has("issued_at"))) "invoice" else "photo"))))
-                return PixelMcpWriteTools.hash(DriveJournalRules.guard(row, kind))
+                return PixelMcpWriteTools.hash(LocalJournalRules.guard(row, kind))
             }
-            return PixelMcpWriteTools.hash(DriveJournalRules.clean(row))
+            return PixelMcpWriteTools.hash(LocalJournalRules.clean(row))
         }
         @Throws(Exception::class)
         @JvmStatic fun checkHash(row: JSONObject?, expected: String) {
@@ -106,96 +106,7 @@ class OwnerJournalRules {
                 snapshot.put("invoice_issuer", issuer)
                 return
             }
-            if ((kind.equals("conflict_resolution"))) {
-                var target: String = p.getString("client_id")
-                var prior: JSONObject? = all.get(target)
-                var embedded: JSONObject? = p.optJSONObject("_original_action")
-                if (((prior == null))) {
-                    var knownFailure: Boolean = false
-                    for (key in arrayOf("sync_errors", "drive_journal_errors")) {
-                        var failures: JSONArray? = snapshot.optJSONArray(key)
-                        run {
-                            var i: Int = 0
-                            while (((failures != null) && (i < failures!!.length()))) {
-                                if ((target.equals(failures!!.getJSONObject(i).optString("client_id")))) {
-                                    knownFailure = true
-                                    break
-                                }
-                                i++
-                            }
-                        }
-                    }
-                    if ((knownFailure)) {
-                        prior = embedded
-                    }
-                }
-                if ((((((prior == null) || !target.equals(prior!!.optString("client_id"))) || !OrderReviewRules.actionHash(prior).equals(p.getString("expected_action_hash"))) || resolved.has(target)))) {
-                    throw PixelMcpWriteTools.Rejected("ACTION_ID_CONFLICT", "Die ursprüngliche Konfliktaktion wurde verändert, ist nicht mehr nachweisbar oder bereits geprüft.")
-                }
-                if ((((embedded != null) && !OrderReviewRules.actionHash(embedded).equals(p.getString("expected_action_hash"))))) {
-                    throw PixelMcpWriteTools.Rejected("ACTION_ID_CONFLICT", "Der eingebettete Konfliktbeleg stimmt nicht mit dem geprüften Hash überein.")
-                }
-                for (errorKey in arrayOf("sync_errors", "drive_journal_errors")) {
-                    var failures: JSONArray? = snapshot.optJSONArray(errorKey)
-                    run {
-                        var i: Int = 0
-                        while (((failures != null) && (i < failures!!.length()))) {
-                            var failure: JSONObject = failures!!.getJSONObject(i)
-                            if ((((target.equals(failure.optString("client_id")) && !Arrays.asList("WRITE_CONFLICT", "DELETE_REVIEW_REQUIRED").contains(failure.optString("code"))) && !(("keep_current".equals(p.optString("resolution")) && DeletionRules.cancelable(prior, failure.optString("code"))))))) {
-                                throw PixelMcpWriteTools.Rejected("CONFLICT_RESOLUTION_NOT_AVAILABLE", "Infrastrukturfehler darf nicht als Geschäftsentscheidung quittiert werden.")
-                            }
-                            i++
-                        }
-                    }
-                }
-                var legacyDelete: Boolean = "delete".equals(prior!!.getString("kind"))
-                var purgeCancel: Boolean = "purge_v1".equals(prior!!.getString("kind"))
-                var bulkCancel: Boolean = TrashPurgeBatch.KIND.equals(prior!!.getString("kind"))
-                var archiveCancel: Boolean = (("archive".equals(prior!!.getString("kind")) || purgeCancel) || bulkCancel)
-                if (((archiveCancel && !"keep_current".equals(p.optString("resolution"))))) {
-                    throw PixelMcpWriteTools.Rejected("CONFLICT_RESOLUTION_NOT_AVAILABLE", "Löschauftrag nur zurücknehmen oder anhand des aktuellen Stands neu prüfen.")
-                }
-                var entity: String = (if (bulkCancel) "" else (if (((legacyDelete || archiveCancel))) prior!!.getJSONObject("payload").getString("entity") else prior!!.getString("kind")))
-                var collection: String = DriveJournalRules.collection(entity)
-                if (((!bulkCancel && collection.isEmpty()))) {
-                    throw IllegalArgumentException("Diesen Vorgang fachlich separat prüfen.")
-                }
-                var patch: JSONObject = prior!!.getJSONObject("payload")
-                var current: JSONObject? = (if (bulkCancel) TrashPurgeBatch.currentGuard(snapshot) else (if (purgeCancel) archives(snapshot).optJSONObject((("" + entity + ":") + patch.optString("id"))) else findOrNull(snapshot.getJSONArray(collection), patch.optString("id"))))
-                checkHash(current, p.getString("expected_current_hash"))
-                var history: JSONObject? = snapshot.optJSONObject("owner_conflict_history")
-                if (((history == null))) {
-                    history = JSONObject()
-                }
-                if ((!p.optString("resolution").equals("keep_current"))) {
-                    if ((!p.optString("resolution").equals("apply_proposed"))) {
-                        throw IllegalArgumentException("Ungültige Konfliktentscheidung.")
-                    }
-                    if ((legacyDelete)) {
-                        if (((current != null))) {
-                            var archive: JSONObject = JSONObject().put("entity", entity).put("id", current!!.getString("id")).put("expected_record_hash", version(current)).put("_record_base", DriveJournalRules.guard(current, entity)).put("_archive_record", current).put("updated_at", action.optString("created_at", java.time.Instant.now().toString()))
-                            apply(snapshot, JSONObject().put("kind", "archive").put("client_id", ("" + action.getString("client_id") + "-archive")).put("created_at", action.optString("created_at")).put("payload", archive), all, resolved)
-                        }
-                    } else {
-                        var merged: JSONObject = (if ((current == null)) JSONObject() else DriveJournalRules.clean(current))
-                        var clean: JSONObject = DriveJournalRules.clean(patch)
-                        run {
-                            var keys: MutableIterator<String> = clean.keys()
-                            while (keys.hasNext()) {
-                                var key: String = keys.next()
-                                merged.put(key, clean.get(key))
-                            }
-                        }
-                        DriveJournalRules.validateChange(entity, merged, current, snapshot)
-                        replace(snapshot, collection, merged.getString("id"), merged)
-                    }
-                }
-                history!!.put(target, JSONObject().put("original_action", prior).put("previous", (if ((current == null)) JSONObject.NULL else current)).put("resolution", p.getString("resolution")).put("action_hash", p.getString("expected_action_hash")).put("reason", p.optString("reason", "explicit_owner_decision")).put("resolved_at", action.optString("created_at")).put("resolution_action", action.getString("client_id")))
-                snapshot.put("owner_conflict_history", history)
-                resolved.put(target, OrderReviewRules.actionHash(prior))
-                return
-            }
-            var entity: String = (if (kind.equals("invoice_payment")) "invoice" else p.getString("entity"))
+            var entity: String = p.getString("entity")
             var id: String = p.getString("id")
             var collection: String = group(entity)
             if ((collection.isEmpty())) {
@@ -203,15 +114,6 @@ class OwnerJournalRules {
             }
             var rows: JSONArray = snapshot.getJSONArray(collection)
             var current: JSONObject? = findOrNull(rows, id)
-            if ((kind.equals("invoice_payment"))) {
-                checkHash(current, p.getString("expected_record_hash"))
-                if (((((current == null) || current!!.optString("issued_at").isEmpty()) || "Storniert".equals(current!!.optString("status"))))) {
-                    throw IllegalArgumentException("Nur ausgestellte, gültige Rechnungen können als bezahlt/offen markiert werden.")
-                }
-                var updated: JSONObject = JSONObject(current!!.toString()).put("status", (if (p.getBoolean("paid")) "Bezahlt" else "Gestellt")).put("updated_at", p.getString("updated_at"))
-                replace(snapshot, collection, id, updated)
-                return
-            }
             var archive: JSONObject = archives(snapshot)
             var key: String = (("" + entity + ":") + id)
             if ((kind.equals("restore"))) {
@@ -235,7 +137,7 @@ class OwnerJournalRules {
                     }
                 }
                 if ((!entity.equals("invoice"))) {
-                    DriveJournalRules.validateChange(entity, original, null, snapshot)
+                    LocalJournalRules.validateChange(entity, original, null, snapshot)
                 }
                 replace(snapshot, collection, id, original)
                 TrashRules.restoreLinks(snapshot, saved)

@@ -10,16 +10,16 @@ import android.provider.OpenableColumns
 import java.io.File
 import java.io.FileNotFoundException
 
-/** Exposes only explicitly shared generated invoice PDFs, never the database. */
-open class InvoiceFileProvider : ContentProvider() {
+/** Exposes only explicitly shared finalized offer PDFs, never the database. */
+open class OfferFileProvider : ContentProvider() {
     override fun onCreate() = true
 
     @Throws(FileNotFoundException::class)
     private fun file(uri: Uri): File {
         RestoreStartupGuard.assertStoreMayOpen(requireNotNull(context))
         val name = uri.lastPathSegment
-        if (name == null || !name.matches(Regex("(?:Rechnung|Angebot)-[a-f0-9-]{36}\\.pdf"))) throw FileNotFoundException()
-        val value = File(File(context!!.cacheDir, "invoice-share"), name)
+        if (name == null || !name.matches(Regex("Angebot-[a-f0-9-]{36}\\.pdf"))) throw FileNotFoundException()
+        val value = File(File(context!!.cacheDir, "offer-share"), name)
         if (!value.isFile) throw FileNotFoundException()
         return value
     }

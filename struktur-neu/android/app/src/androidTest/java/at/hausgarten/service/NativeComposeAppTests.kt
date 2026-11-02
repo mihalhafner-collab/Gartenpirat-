@@ -940,19 +940,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     click("Kunden"); enter("Suchen", name); click(name)
                 }
                 val invoiceCount = PixelMcpReadTools.effective(store.getState()).getJSONArray("invoices").length()
-                click("Abrechnung dieses Kunden"); click("Arbeiten abrechnen")
-                shown("Rechnungsempfänger: $name")
-                enter("Zahlungsziel in Tagen", "15")
-                waitUntil("BILLING_CONTEXT_DRAFT_DURABLE") {
-                    store.ownerValue("native_form_draft:" + PixelMcpWriteTools.hash("finance:invoices:new"), "").contains("_source_context")
-                }
-                recreate()
-                click("Offene Arbeiten mit Restmengen auswählen")
-                val sourceLabel = nativeDisplayDate(LocalDate.now(ZoneId.of("Europe/Vienna")).toString()) + " · QA Kontextabrechnung 0"
+                click("Abrechnung dieses Kunden")
+                shown("Offene Stunden")
+                click("Arbeitsaufzeichnungen für sevDesk prüfen")
+                enter("Suchen", "QA Kontextabrechnung")
+                val sourceLabel = "QA Kontextabrechnung 0"
                 reveal(sourceLabel)
                 yes(visibleTexts().none { it.contains("QA Kontextabrechnung 1") }, "BILLING_SOURCE_KEEPS_WORK_CUSTOMER_WITH_SHARED_RECIPIENT")
                 captureSyntheticScreen("customer-billing")
-                click("Schließen"); click("Verwerfen")
                 yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("invoices").length() == invoiceCount, "OVERVIEW_DOES_NOT_CREATE_INVOICE")
             }
         }
@@ -961,40 +956,19 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun officeOpeningMeasurements() {
-        // The disposable fixture was checked before any application data was read.
-        // Preserve its existing rows/journal; add only synthetic office records.
         click("Heute")
-        val fixture = JSONObject(store.getState().getJSONObject("master").toString())
-        val invoices = JSONArray()
-        for (index in 0 until 120) invoices.put(JSONObject().put("id", "qa_ui_office_$index")
-            .put("invoice_number", "QA-UI-$index").put("customer_id", fixture.getJSONArray("customers").getJSONObject(0).getString("id"))
-            .put("status", "Gestellt").put("issued_at", "2026-10-30T08:00:00Z").put("invoice_date", "2026-10-30")
-            .put("gross_total", if (index == 0) 25 else 100)
-            .put("money_minor", JSONObject().put("gross_minor", if (index == 0) 2500 else 10000)).put("test_record", true))
-        fixture.put("invoices", invoices)
-        store.putOwnerValue("snapshot", fixture.toString())
-        for (index in 0 until 240) store.putOwnerValue("local_payment:qa_ui_office_$index", JSONObject()
-            .put("payment_id", "qa_ui_office_$index").put("amount_minor", 2500).put("paid_on", "2026-10-30")
-            .put("method", "bank").put("recorded_at", "2026-10-30T08:00:00Z")
-            .put("allocations", JSONArray().put(JSONObject().put("invoice_id", "qa_ui_office_${index % 120}").put("amount_minor", 2500))).toString())
-        store.notifyCommittedChange()
-        officeMeasurements = JSONObject().put("scope", "EMULATOR_UI_ACTION_TO_VISIBLE_READY_CONTENT;WARM_PROCESS;FROM_BILLING_OVERVIEW")
-            .put("invoice_count", 120).put("payment_count", 240).put("samples_per_path", 40).put("warmups_per_path", 2)
-            .put("payments_and_credits_share_view", true).put("performance_claim", false)
+        officeMeasurements = JSONObject().put("scope", "EMULATOR_UI_ACTION_TO_VISIBLE_READY_CONTENT;WARM_PROCESS;FROM_OFFICE")
+            .put("samples_per_path", 40).put("warmups_per_path", 2).put("performance_claim", false)
             .put("display", shell("wm size") + ";" + shell("wm density"))
             .put("font_scale", shell("settings get system font_scale"))
             .put("api", Build.VERSION.SDK_INT).put("host_load", "NOT_CONTROLLED")
         for ((name, entry, ready) in listOf(
-            Triple("billing", "Arbeiten abrechnen", "Rechnungsempfänger: Nicht zugeordnet"),
-            Triple("invoices", "Rechnungen", "120 Treffer · 50 auf dieser Seite"),
-            Triple("payments_and_credits", "Zahlungen und Guthaben", "Rest 0,00 € · Guthaben 25,00 €")
+            Triple("billing", "Offene Arbeitsstunden", "Arbeitsaufzeichnungen für sevDesk prüfen"),
+            Triple("offers", "Angebote", "Neues Angebot / Kostenvoranschlag")
         )) {
             val values = ArrayList<Double>()
             repeat(42) { sample ->
                 click("Büro")
-                // Verify the actual destination before locating its action;
-                // a late query result from the previous route is not a ready menu.
-                click("Abrechnung")
                 var start = 0L
                 click(entry, onAction = { start = it })
                 waitUntil("OFFICE_READY_$name") { node(ready) != null }
@@ -1279,13 +1253,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             captureSyntheticScreen("detail-offers")
             click("Zur Liste"); waitUntil("DOMAIN_RETURN_QUERY_offers") { field("Suchen")?.text?.toString()?.contains("QA Kontextangebot 0") == true }
         }
-        case("invoices") {
-            click("Büro"); click("Abrechnung"); click("Rechnungen")
-            keyboardSearchProof("invoices", "Suchen", "QA-UI-119", "QA-UI-119")
-            visibleResult("Zur Liste")
-            captureSyntheticScreen("detail-invoices")
-            click("Zur Liste"); waitUntil("DOMAIN_RETURN_QUERY_invoices") { field("Suchen")?.text?.toString()?.contains("QA-UI-119") == true }
-        }
         case("planning") {
             click("Büro"); click("Planung")
             keyboardSearchProof("planning", "Suche", "QA Native Notification", "[TEST] QA Native Notification")
@@ -1365,7 +1332,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
         if (failures.isNotEmpty()) { val failure = AssertionError("DOMAIN_SEARCH_${failures.size}_FAILED"); failures.forEach(failure::addSuppressed); throw failure }
-        yes(domainSearchCases.length() == 16, "ALL_DOMAIN_SEARCH_PATHS")
+        yes(domainSearchCases.length() == 15, "ALL_DOMAIN_SEARCH_PATHS")
     }
 
     private fun listViewportJourney() {
@@ -1382,8 +1349,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             Target("customers", "Suchen", fixturePrefix+"000", fixturePrefix+"000") { click("Kunden") },
             Target("work", "Suchen", work, work) { click("Arbeit") },
             Target("orders", "Suchen", "QA Kontextauftrag 0", "QA Kontextauftrag 0") { openOfficeGroup("Kunden und Aufträge", "Aufträge") },
-            Target("offers", "Suchen", "QA Kontextangebot 0", "QA Kontextangebot 0") { click("Büro"); click("Abrechnung"); click("Angebote") },
-            Target("invoices", "Suchen", "QA-UI-119", "QA-UI-119") { click("Büro"); click("Abrechnung"); click("Rechnungen") },
+            Target("offers", "Suchen", "QA Kontextangebot 0", "QA Kontextangebot 0") { click("Büro"); click("Angebote") },
             Target("planning", "Suche", "QA Native Notification", "[TEST] QA Native Notification") { click("Büro"); click("Planung") },
             Target("equipment", "Suchen", "QA Zubehör Säge", "[TEST] QA Zubehör Säge") { click("Büro"); click("Maschinenpark und Gerätewartung") },
             // The fixture is newest-first: photo 1 is the first of these two results.
@@ -1396,7 +1362,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val failures = ArrayList<Throwable>()
         try {
             for (landscape in listOf(false, true)) for (target in targets) {
-                if (landscape && target.key !in setOf("customers", "work", "offers", "invoices", "catalog", "local")) continue
+                if (landscape && target.key !in setOf("customers", "work", "offers", "catalog", "local")) continue
                 val key = target.key + if (landscape) "-landscape" else "-portrait"
                 test.sendStatus(0, Bundle().apply { putString("list_viewport_start", key) })
                 try {
@@ -1445,7 +1411,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             launch()
         }
         if (failures.isNotEmpty()) { val failure = AssertionError("LIST_VIEWPORTS_${failures.size}_FAILED"); failures.forEach(failure::addSuppressed); throw failure }
-        yes(listViewportCases.length() == 17, "ALL_LIST_VIEWPORTS")
+        yes(listViewportCases.length() == 15, "ALL_LIST_VIEWPORTS")
     }
 
     private fun filterKeyboardJourney() {
@@ -1509,7 +1475,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             waitUntil("SETTINGS_ACTION_READY") { node("Tätigkeit, Einsatzort und Fotoqualität")?.let(::clickable) != null }
         }
         fun planning() { click("Büro"); click("Planung") }
-        fun billing() { click("Büro"); click("Abrechnung") }
+        fun billing() { click("Büro"); click("Offene Arbeitsstunden") }
         case("today", "Arbeit beginnen", true) { }
         case("work", "Arbeitsentwürfe") { click("Arbeit") }
         case("timer", "Zeiterfassung") { click("Arbeit beginnen") }
@@ -1523,10 +1489,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("visits", "Einsatz anlegen") { planning(); click("Einsätze") }
         case("tour", "Datum öffnen") { planning(); click("Tagestour") }
         case("weather", "Termine") { planning(); click("Wetterhinweise") }
-        case("billing", "Arbeiten abrechnen", true) { billing() }
-        case("offers", "Neues Angebot / Kostenvoranschlag") { billing(); click("Angebote") }
-        case("invoices", "Neuer Rechnungsentwurf") { billing(); click("Rechnungen") }
-        case("payments", "Zahlungen") { billing(); click("Zahlungen und Guthaben") }
+        case("billing", "Arbeitsaufzeichnungen für sevDesk prüfen", true) { billing() }
+        case("offers", "Neues Angebot / Kostenvoranschlag") { click("Büro"); click("Angebote") }
         case("equipment", "Gerät anlegen") { click("Büro"); click("Maschinenpark und Gerätewartung") }
         case("accessories", "Zubehör bearbeiten", true) {
             click("Büro"); click("Maschinenpark und Gerätewartung"); enter("Suchen", "QA Zubehör Säge"); click("[TEST] QA Zubehör Säge"); click("Zubehör")
@@ -1545,7 +1509,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("local-search", "Suchtext eingeben") { openOfficeGroup("Weitere Verwaltung", "Lokale Suche") }
         case("archive", "Alle Arten") { openOfficeGroup("Weitere Verwaltung", "Revier-Archiv") }
         case("trash", "Papierkorb leeren") { openOfficeGroup("Weitere Verwaltung", "Papierkorb") }
-        case("local-actions", "ZIP-Sicherung öffnen") { openOfficeGroup("Weitere Verwaltung", "Lokale Vorgänge") }
         case("settings", "Tätigkeit, Einsatzort und Fotoqualität", true) { settings() }
         case("connections", "Private MCP-Verbindung") { settings(); click("Weitere Einstellungen und Prüfungen"); click("Verbindungen") }
         case("calendar", "Verbinden", true) { settings(); click("Kalender und Wetter verbinden") }
@@ -1561,7 +1524,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         } finally { shell("settings put system font_scale $oldFont") }
         activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
         if (failures.isNotEmpty()) { val failure = AssertionError("SURFACES_${failures.size}_FAILED"); failures.forEach(failure::addSuppressed); throw failure }
-        yes(surfaceCases.length() == 38, "ALL_SURFACES_REACHABLE")
+        yes(surfaceCases.length() == 35, "ALL_SURFACES_REACHABLE")
     }
 
     private fun storageSettingsJourney() {

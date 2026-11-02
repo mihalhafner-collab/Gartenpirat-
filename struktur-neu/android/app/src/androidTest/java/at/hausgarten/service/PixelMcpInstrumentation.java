@@ -119,20 +119,20 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             JSONObject customer=new JSONObject().put("id","qa_customer").put("name","QA Alt").put("active",1);source.getJSONArray("customers").put(customer);
             db.execSQL("INSERT INTO owner_state VALUES('snapshot',?)",new Object[]{source.toString()});String sourceHash=hash(source);BusinessTableStore tables=PixelLocalStore.businessTables(db);
             BusinessTableStore.Evidence proof=value->hash("synthetic journal archive");tables.prepare("qa_journal_transfer",sourceHash,proof);tables.copyBatch("qa_journal_transfer",100,proof);tables.activate("qa_journal_transfer",sourceHash,proof);
-            BusinessTableStore.Action<Void> commit=()->{PixelLocalStore.businessTables(db,true).commitJournal(LocalPendingActions.read(db,false,id->null,0),master->{PixelDriveState.prepare(master);master.put("processing_engine",LocalAuthorityRules.ENGINE);});return null;};
-            JSONObject payload=new JSONObject().put("id","qa_customer").put("name","QA Neu").put("_sync_base",DriveJournalRules.guard(customer,"customer"));
+            BusinessTableStore.Action<Void> commit=()->{PixelLocalStore.businessTables(db,true).commitJournal(LocalPendingActions.read(db,id->null),master->{LocalBusinessState.prepare(master);master.put("processing_engine",LocalBusinessState.ENGINE);});return null;};
+            JSONObject payload=new JSONObject().put("id","qa_customer").put("name","QA Neu").put("_sync_base",LocalJournalRules.guard(customer,"customer"));
             PixelLocalStore.beginJournalTransaction(db,commit);try{
                 append(db,"qa_temporary",payload);db.execSQL("DELETE FROM pending WHERE id='qa_temporary'");append(db,"qa_final",payload);
                 db.execSQL("INSERT INTO owner_state VALUES('receipt:qa_final','{}')");yes(!tables.projectionCurrent());db.setTransactionSuccessful();
             }finally{db.endTransaction();}
             yes(tables.projectionCurrent());yes(tables.get("customers","qa_customer").getString("name").equals("QA Neu"));
-            JSONObject current=tables.exportSnapshot();yes(DriveJournalRules.ids(current.getJSONArray("drive_applied_ids")).contains("qa_final"));yes(!DriveJournalRules.ids(current.getJSONArray("drive_applied_ids")).contains("qa_temporary"));
-            yes(LocalAuthorityRules.ENGINE.equals(current.getString("processing_engine")));
+            JSONObject current=tables.exportSnapshot();yes(LocalJournalRules.ids(current.getJSONArray("drive_applied_ids")).contains("qa_final"));yes(!LocalJournalRules.ids(current.getJSONArray("drive_applied_ids")).contains("qa_temporary"));
+            yes(LocalBusinessState.ENGINE.equals(current.getString("processing_engine")));
             try (android.database.Cursor originals = db.rawQuery("SELECT count(*) FROM owner_state WHERE key GLOB 'business_tables:original:*'", null)) { yes(originals.moveToFirst() && originals.getInt(0) == 0); }
             db.execSQL("CREATE TRIGGER qa_fail BEFORE INSERT ON business_customers WHEN NEW.id='qa_customer' BEGIN SELECT RAISE(ABORT,'QA_STORAGE_FAILURE'); END");
             denied("LOCAL_JOURNAL_TABLE_COMMIT_FAILED",()->{
                 PixelLocalStore.beginJournalTransaction(db,commit);try{
-                    append(db,"qa_failure",new JSONObject().put("id","qa_customer").put("name","QA Verlust verboten").put("_sync_base",DriveJournalRules.guard(tables.get("customers","qa_customer"),"customer")));
+                    append(db,"qa_failure",new JSONObject().put("id","qa_customer").put("name","QA Verlust verboten").put("_sync_base",LocalJournalRules.guard(tables.get("customers","qa_customer"),"customer")));
                     db.execSQL("INSERT INTO owner_state VALUES('receipt:qa_failure','{}')");db.setTransactionSuccessful();
                 }finally{db.endTransaction();}
             });

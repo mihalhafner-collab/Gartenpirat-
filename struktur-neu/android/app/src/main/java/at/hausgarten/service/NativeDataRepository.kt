@@ -154,7 +154,6 @@ class NativeDataRepository(private val store: PixelLocalStore) {
             "get_order", "search_orders", "get_open_orders" -> "orders"
             "get_photo", "list_photos" -> "photos"
             "list_work_records", "get_customer_work_records" -> "worklogs"
-            "list_invoices" -> "invoices"
             "search_business_data" -> ""
             else -> return null
         }
@@ -337,7 +336,7 @@ class NativeDataRepository(private val store: PixelLocalStore) {
         for (table in arrayOf("pending", "owner_state", "work_sessions", "work_session_events", "photo_attachments")) for (action in arrayOf("INSERT", "UPDATE", "DELETE")) {
             val row = if (action == "DELETE") "OLD" else "NEW"
             val condition = when (table) {
-                "owner_state" -> " WHEN $row.key='snapshot' OR $row.key='purged_local_test_records_v1' OR $row.key LIKE 'revier:v1:entity:%' OR $row.key LIKE 'offer_decision:v1:%' OR $row.key LIKE 'local_payment:%' OR $row.key LIKE 'local_invoice_%' OR $row.key LIKE 'local_number_%' OR $row.key='business_tables:v1'"
+                "owner_state" -> " WHEN $row.key='snapshot' OR $row.key='purged_local_test_records_v1' OR $row.key LIKE 'revier:v1:entity:%' OR $row.key LIKE 'offer_decision:v1:%' OR $row.key='business_tables:v1'"
                 "pending" -> " WHEN $row.kind<>'mcp_receipt'"
                 else -> ""
             }
