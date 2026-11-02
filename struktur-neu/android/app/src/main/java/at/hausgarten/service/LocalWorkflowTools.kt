@@ -208,6 +208,11 @@ internal class LocalWorkflowTools {
                 )
         }
 
+        /** Retained for material purchase/billing prices, not invoice payments. */
+        private @JvmStatic fun minor(): JSONObject = JSONObject()
+            .put("type", "integer").put("minimum", 0)
+            .put("maximum", 9000000000000000L)
+
         private @JvmStatic @Throws(Exception::class) fun array(
             item: JSONObject,
             max: Int,
