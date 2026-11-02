@@ -28,8 +28,9 @@ niemals aus historischen APKs oder anderen Implementierungen.
 
 Geschäftsdaten und vollständige ZIP-Sicherungen werden nur lokal auf dem Pixel
 geschrieben. Es gibt keine verpflichtende Cloud- oder externe Sicherung für die
-Umstellung auf lokalen Betrieb. Die dafür notwendige Prüfung weiterer Schreiber,
-des aktuellen Geschäftsinventars und der Rechnungsoriginale/Nummern bleibt erhalten.
+Umstellung auf lokalen Betrieb. Historische Drive-Schreiber und versuchsweise importierte sevDesk-Rechnungen
+begründen keine Freigabe- oder Nachweispflicht für den übrigen App-Betrieb.
+Eine spätere eigene App-Rechnungsfunktion erfordert einen gesonderten Auftrag.
 Manuelles Kopieren von Sicherungen liegt außerhalb der App. Google Drive wird nur
 für die ausdrücklich freigegebene Verteilung originalsignierter Installations-APKs
 verwendet; keine automatische Übertragung von Geschäfts- oder Sicherungsdaten.
