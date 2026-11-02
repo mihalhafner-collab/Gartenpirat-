@@ -16,11 +16,6 @@ benötigen weiterhin einen eigenen Auftrag.
    [Originalsignierung](docs/entwicklung/SIGNIERUNG.md) oder
    [gültige Fachregeln](docs/fachregeln/APP.md)
 
-Das Projekt **Haus und Garten App Entwicklung** wird nach dem
-[kurzen Projektablauf](docs/entwicklung/PROJEKT.md) als Gesprächs- und Planungsraum
-eingebunden. Die Projektanweisungen sind laut Nutzer gespeichert. Eine automatische
-GitHub-Synchronisierung oder Übernahme der Bauumgebung wird nicht vorausgesetzt.
-
 | Pfad | Inhalt |
 |---|---|
 | `android/` | Kotlin-App, native Compose-Oberfläche und Android-Baukonfiguration |
