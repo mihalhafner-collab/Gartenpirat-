@@ -328,14 +328,12 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
             } else if(original==null) {
                 if(id.isNotEmpty()) throw IllegalArgumentException("Der ursprüngliche Beleg ist nicht lesbar. Es wird kein Ersatzbeleg angelegt.")
                 val settings=runCatching { controller.query("get_business_settings") }.getOrDefault(JSONObject()).let { it.optJSONObject("settings") ?: it }
-                form=JSONObject().put(if(section=="invoices") "invoice_date" else "issue_date",financeToday()).put("positions",JSONArray())
+                form=JSONObject().put("issue_date",financeToday()).put("positions",JSONArray())
                 if(settings.optString("tax_mode") in listOf("small_business","standard")) form.put("tax_mode",settings.getString("tax_mode"))
-                if(section=="invoices") form.put("payment_days",settings.optInt("default_payment_days",14))
                 if(section=="catalog") form.put("active",true).put("pricing_type","unit")
                 for (field in listOf("customer_id", "order_id")) if (controller.route.args.optString(field).isNotEmpty()) form.put(field, controller.route.args.getString(field))
-                if (section in listOf("invoices", "offers")) form.put("_source_context", JSONObject().apply {
-                    val fields = if (section == "invoices") listOf("work_customer_id", "order_id", "date_from", "date_to") else listOf("property_id", "inquiry_id")
-                    for (field in fields) if (controller.route.args.optString(field).isNotEmpty()) put(field, controller.route.args.getString(field))
+                if (section == "offers") form.put("_source_context", JSONObject().apply {
+                    for (field in listOf("property_id", "inquiry_id")) if (controller.route.args.optString(field).isNotEmpty()) put(field, controller.route.args.getString(field))
                 })
                 if (section == "offers") {
                     if (controller.route.args.optString("title").isNotBlank()) form.put("title", controller.route.args.getString("title"))
@@ -354,39 +352,34 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
             busy=true;error=""
             var attemptedWrite=false
             try {
-                val tool = pendingTool.ifEmpty { when(section) { "invoices" -> if(id.isEmpty()) "create_invoice_draft" else "update_invoice_draft"; "offers" -> if(id.isEmpty()) {if(validate) "create_and_validate_offer" else "create_offer_draft"} else "update_offer_draft"; else -> if(id.isEmpty()) "create_catalog_entry" else "update_catalog_entry" } }
+                val tool = pendingTool.ifEmpty { when(section) { "offers" -> if(id.isEmpty()) {if(validate) "create_and_validate_offer" else "create_offer_draft"} else "update_offer_draft"; else -> if(id.isEmpty()) "create_catalog_entry" else "update_catalog_entry" } }
                 val prior = pending
                 if (prior != null) {
                     val proof = financeInspect(controller, tool, prior)
-                    if (proof != null) { controller.removeDraft(key); onSaved(proof.optString("invoice_id", proof.optString("offer_id", proof.optString("entry_id", proof.optString("entity_id", id))))); return@launch }
+                    if (proof != null) { controller.removeDraft(key); onSaved(proof.optString("offer_id", proof.optString("entry_id", proof.optString("entity_id", id)))); return@launch }
                 }
                 if (restored) throw IllegalStateException("Wiederhergestellten Entwurf und aktuellen Bestand zuerst bewusst prüfen. Der ursprüngliche Auftrag wird nicht erneut ausgeführt.")
                 val args=pending ?: run {
                     if(!changed) { onClose();return@launch }
-                    val payload=financeFields(form,when(section) { "invoices" -> EntityContract.INVOICE_FIELDS; "offers" -> OfferRules.FIELDS; else -> arrayOf("title","description","unit","pricing_type","category","legal_notes","assumptions","exclusions","default_price","default_quantity","active","price_confirmed") })
+                    val payload=financeFields(form,when(section) { "offers" -> OfferRules.FIELDS; else -> arrayOf("title","description","unit","pricing_type","category","legal_notes","assumptions","exclusions","default_price","default_quantity","active","price_confirmed") })
                     val numeric=if(section=="catalog") listOf("default_price","default_quantity") else emptyList()
                     numeric.forEach { name -> if(payload.has(name)) payload.put(name,if(payload.optString(name).isBlank() || payload.isNull(name)) JSONObject.NULL else BigDecimal(payload.get(name).toString().replace(',','.'))) }
                     if(section!="catalog") {
                         val positions=JSONArray()
                         val raw=payload.optJSONArray("positions") ?: JSONArray()
                         for(i in 0 until raw.length()) {
-                            val line=financeFields(raw.getJSONObject(i),if(section=="offers") arrayOf("title","description","unit","catalog_entry_id","catalog_hash","price_source","price_basis","price_note","calculation","quantity","price","tax_rate") else arrayOf("title","description","unit","quantity","price","tax_rate","discount","worklog_id","source_type","source_id","source_quantity_decimal"))
+                            val line=financeFields(raw.getJSONObject(i),arrayOf("title","description","unit","catalog_entry_id","catalog_hash","price_source","price_basis","price_note","calculation","quantity","price","tax_rate"))
                             for(name in listOf("quantity","price","tax_rate","discount")) if(line.has(name)) {
                                 val text=if(line.isNull(name)) "" else line.get(name).toString().trim()
-                                if(text.isEmpty()) { if(section=="invoices" && name in listOf("quantity","price")) throw IllegalArgumentException("Position ${i+1}: Menge und Preis ausdrücklich angeben.");line.put(name,if(section=="offers") JSONObject.NULL else if(name=="tax_rate" && payload.optString("tax_mode")!="small_business") throw IllegalArgumentException("Position ${i+1}: Steuersatz ausdrücklich angeben.") else 0) }
+                                if(text.isEmpty()) line.put(name,JSONObject.NULL)
                                 else line.put(name,BigDecimal(text.replace(',','.')))
-                            }
-                            if(section=="invoices") {
-                                if(line.optString("title").isBlank()) throw IllegalArgumentException("Position ${i+1}: Bezeichnung fehlt.")
-                                if(!line.has("tax_rate")) {if(payload.optString("tax_mode")!="small_business") throw IllegalArgumentException("Position ${i+1}: Steuersatz ausdrücklich angeben.");line.put("tax_rate",0)}
                             }
                             line.optJSONObject("calculation")?.let {calculation -> for(name in listOf("base_price","factor","surcharge")) if(calculation.has(name) && !calculation.isNull(name)) calculation.put(name,BigDecimal(calculation.get(name).toString().replace(',','.')))}
                             positions.put(line)
                         }
                         payload.put("positions",positions)
-                        if(payload.has("payment_days")) payload.put("payment_days",payload.get("payment_days").toString().toInt())
                     }
-                    val args=if(id.isEmpty()) payload else JSONObject().put(if(section=="catalog") "entry_id" else if(section=="invoices") "invoice_id" else "offer_id",id).put("expected_record_hash",observedHash).put("updates",payload)
+                    val args=if(id.isEmpty()) payload else JSONObject().put(if(section=="catalog") "entry_id" else "offer_id",id).put("expected_record_hash",observedHash).put("updates",payload)
                     args.put("request_id",request)
                 }
                 pending=financeCopy(args)
@@ -396,9 +389,9 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
                 attemptedWrite=true
                 val result=financeData(controller.call(tool,args))
                 controller.removeDraft(key)
-                onSaved(result.optString(if(section=="catalog") "entry_id" else if(section=="offers") "offer_id" else "invoice_id",result.optString("entity_id",id)))
+                onSaved(result.optString(if(section=="catalog") "entry_id" else "offer_id",result.optString("entity_id",id)))
             } catch(cancelled:CancellationException){throw cancelled}catch(f:Exception) {
-                if (attemptedWrite && ((f as? NativeCallFailure)?.detail?.optString("commit_state") == "not_committed" || (f as? NativeCallFailure)?.detail?.optString("code") in setOf("INVALID_INPUT","WRITE_CONFLICT","INVOICE_SOURCE_QUANTITY_EXCEEDED","INVOICE_SOURCE_ALREADY_BILLED","INVOICE_SOURCE_UNIT_REVIEW_REQUIRED"))) {
+                if (attemptedWrite && ((f as? NativeCallFailure)?.detail?.optString("commit_state") == "not_committed" || (f as? NativeCallFailure)?.detail?.optString("code") in setOf("INVALID_INPUT","WRITE_CONFLICT"))) {
                     pending=null;pendingTool="";request=UUID.randomUUID().toString()
                     controller.saveDraft(key,JSONObject().put("record",form).put("record_hash",observedHash).put("request_id",request))
                 }
@@ -413,10 +406,10 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
         if (restored) Text("Dieser Entwurf stammt aus einem früheren Gerätestand. Aktuellen Beleg, Beziehungen und Eingaben vor einer neuen Aktion prüfen.")
         if (pending == null && (id.isNotEmpty() || restored)) {
             if (id.isNotEmpty()) TextButton(enabled=!busy,onClick={scope.launch {try {
-                val latest=controller.call(if(section=="invoices") "get_invoice" else if(section=="offers") "get_offer" else "get_offer_template",JSONObject().put(if(section=="invoices") "invoice_id" else if(section=="offers") "offer_id" else "entry_id",id))
+                val latest=controller.call(if(section=="offers") "get_offer" else "get_offer_template",JSONObject().put(if(section=="offers") "offer_id" else "entry_id",id))
                 val data=financeData(latest)
-                val current=if(section=="invoices") latest.optJSONObject("data") else data.optJSONObject(if(section=="offers") "offer" else "entry")
-                if(current==null || (section=="invoices" && IssuedInvoiceRules.isIssued(current)) || (section=="offers" && !OfferRules.editable(current))) throw IllegalArgumentException("Der aktuelle Beleg kann nicht als Entwurf bearbeitet werden.")
+                val current=data.optJSONObject(if(section=="offers") "offer" else "entry")
+                if(current==null || (section=="offers" && !OfferRules.editable(current))) throw IllegalArgumentException("Der aktuelle Beleg kann nicht als Entwurf bearbeitet werden.")
                 comparison=current;comparisonHash=latest.optString("record_hash",data.optString("record_hash"));reviewed=false
             }catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()}}}) {Text("Aktuellen Stand zum Vergleich lesen")}
             comparison?.let { current -> Text("Aktuell gespeicherter Stand",style=MaterialTheme.typography.titleMedium);FinanceDraftSummary(controller,current,section);Text("Ihre erhaltenen Eingaben stehen darunter und bleiben bestehen.") }
@@ -431,7 +424,7 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
         }
         if(pending!=null) {
             Text("Der ursprüngliche Speichervorgang und seine Eingaben bleiben erhalten. Vor einer geänderten Anfrage zuerst den gespeicherten Stand lesen.")
-            TextButton(onClick={scope.launch { try { if(id.isNotEmpty()) { val read=controller.call(if(section=="invoices") "get_invoice" else if(section=="offers") "get_offer" else "get_offer_template",JSONObject().put(if(section=="invoices") "invoice_id" else if(section=="offers") "offer_id" else "entry_id",id));controller.message("Aktueller Datensatz gelesen. Ihre Eingaben und der ursprüngliche Vergleichsstand bleiben erhalten."); if(read.optString("record_hash")==observedHash) controller.message("Der gespeicherte Vergleichsstand ist unverändert.") } else controller.message("Denselben Speichervorgang erneut prüfen; seine Kennung bleibt erhalten.") } catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()} }}) { Text("Gespeicherten Stand lesen") }
+            TextButton(onClick={scope.launch { try { if(id.isNotEmpty()) { val read=controller.call(if(section=="offers") "get_offer" else "get_offer_template",JSONObject().put(if(section=="offers") "offer_id" else "entry_id",id));controller.message("Aktueller Datensatz gelesen. Ihre Eingaben und der ursprüngliche Vergleichsstand bleiben erhalten."); if(read.optString("record_hash")==observedHash) controller.message("Der gespeicherte Vergleichsstand ist unverändert.") } else controller.message("Denselben Speichervorgang erneut prüfen; seine Kennung bleibt erhalten.") } catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()} }}) { Text("Gespeicherten Stand lesen") }
         }
         CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
             if(pending==null) {
