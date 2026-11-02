@@ -32,17 +32,6 @@ internal class PlanningApplicationService(private val repository: OwnerRepositor
             }
             return JSONObject().put("appointment_ids", ids).put("local_state", "local_saved").put("cloud_confirmed", false)
         }
-        val stored = repository.state(); val queue = stored.getJSONObject("sync_queue")
-        val local = LocalAuthorityRules.ENGINE == all.optString("processing_engine")
-        val backupOnly = queue.optString("mode") == DriveRolePolicy.role() && queue.optInt("contract_version") == DriveRolePolicy.contractVersion()
-        check(!local || backupOnly) { "LOCAL_STATE_CONTRACT_INVALID" }
-        val inventory = if (backupOnly) stored.optJSONObject("legacy_queue_inventory") else queue
-        val syncItems = inventory?.optJSONArray("items")
-        for (i in 0 until (syncItems?.length() ?: 0)) {
-            val item = syncItems!!.getJSONObject(i)
-            if (a.optString("appointment_id") == item.optString("entity_id") && item.optString("kind") == "appointment" && item.optString("state").contains("conflict"))
-                throw PixelMcpWriteTools.Rejected("SYNC_CONFLICT_PENDING", "Vorhandenen historischen Terminkonflikt zuerst anhand beider Versionen prüfen. Beide Varianten bleiben lokal erhalten; kein Drive-Geschäftsabgleich.")
-        }
         if (name == "update_appointment") {
             val updates = a.getJSONObject("updates"); val before = PixelMcpWriteTools.find(all.getJSONArray("appointments"), a.getString("appointment_id"))
             if (updates.has("location") && updates.optString("location") != before.optString("location") && !updates.has("latitude") && !updates.has("longitude")) updates.put("latitude", JSONObject.NULL).put("longitude", JSONObject.NULL)

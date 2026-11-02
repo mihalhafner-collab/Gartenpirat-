@@ -546,10 +546,6 @@ internal class DriveJournalRules {
                             .put("code", code)
                             .put("next_action", next)
                             .put("message", message)
-                    DrivePublication.evidence(
-                        item,
-                        JSONObject().put("master", snapshot).put("pending", JSONArray().put(action)),
-                    )
                     items.put(item)
                 }
             }

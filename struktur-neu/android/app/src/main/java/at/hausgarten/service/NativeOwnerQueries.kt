@@ -92,7 +92,7 @@ return WorklogArchiveBatch.preview(repository.effective(), args.getJSONArray("wo
 }
 "get_capabilities" -> {
 run {
-var data = JSONObject().put("build_fingerprint", BuildProvenance.describe()).put("mail_readback_configured", !(context.getSharedPreferences("haus_garten_mail", 0).getString("account", "")!!.isEmpty())).put("app_version_name", context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName).put("package_name", context.getPackageName()).put("database_version", PixelLocalStore.SCHEMA_VERSION).put("app_version_code", context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode).put("snapshot_available", !(store.snapshotText("").isEmpty())).put("drive_configured", !(context.getSharedPreferences("haus_garten", 0).getString("drive_tree_uri", "")!!.isEmpty())).put("installed_permission_gate", PixelTunnelConfig(context).writeEnabled())
+var data = JSONObject().put("build_fingerprint", BuildProvenance.describe()).put("mail_readback_configured", !(context.getSharedPreferences("haus_garten_mail", 0).getString("account", "")!!.isEmpty())).put("app_version_name", context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName).put("package_name", context.getPackageName()).put("database_version", PixelLocalStore.SCHEMA_VERSION).put("app_version_code", context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode).put("snapshot_available", !(store.snapshotText("").isEmpty())).put("installed_permission_gate", PixelTunnelConfig(context).writeEnabled())
 var current = repository.effective()
 var caps = current.optJSONObject("capabilities")
 withStorageContract(data)
@@ -101,7 +101,7 @@ data.put("capabilities", ((if (caps == null) JSONObject() else JSONObject(caps.t
 var backup = JSONObject()
 var target: Boolean = true
 data.put("local_workflows_contract", 1).put("backup_contract", JSONObject().put("format_version", 3).put("inventory_issues_block_backup", false).put("encrypted_streaming", false).put("daily_deferrable", false).put("setup_requires_device", true).put("remote_readback_sha256", false).put("mode", "PIXEL_PLAINTEXT_ZIP").put("automatic_enabled", false).put("key_required", false))
-data.put("planning", AppointmentRuntime.integration(context, store)).put("legacy_drive_connection_present", (!(context.getSharedPreferences("haus_garten", 0).getString("drive_account", "")!!.isEmpty()) || !(context.getSharedPreferences("haus_garten", 0).getString("drive_tree_uri", "")!!.isEmpty()))).put("drive_configured", false).put("drive_configuration_scope", "retired").put("backup_storage", "PIXEL_LOCAL").put("platform_limits", JSONArray().put("tunnel_account_and_organization_grants").put("backup_android_local_file_permission").put("foreground_and_battery_limits").put("sharing_requires_device_interaction").put("camera_location_and_os_settings_require_device"))
+data.put("planning", AppointmentRuntime.integration(context, store)).put("drive_configured", false).put("drive_configuration_scope", "retired").put("backup_storage", "PIXEL_LOCAL").put("platform_limits", JSONArray().put("tunnel_account_and_organization_grants").put("backup_android_local_file_permission").put("foreground_and_battery_limits").put("sharing_requires_device_interaction").put("camera_location_and_os_settings_require_device"))
 return data
 }
 }

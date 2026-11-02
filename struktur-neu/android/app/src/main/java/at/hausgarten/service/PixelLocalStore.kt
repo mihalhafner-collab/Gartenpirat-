@@ -560,34 +560,24 @@ master.put("processing_engine", LocalAuthorityRules.ENGINE).put("local_contract_
 }
 output.put("master", master)
 output.put("pending", DriveJournalRules.union(pendingActions(), output.getJSONObject("master").optJSONArray("drive_review_actions")))
-output.put("last_drive_sync", preferences.getString("last_drive_sync", ""))
 output.put("work_session", workSessions().current())
-output.put("sync_queue", DriveJournalRules.queueStatus(output.getJSONObject("master"), output.getJSONArray("pending")))
+output.put("sync_queue", JSONObject().put("mode", "local_only").put("contract_version", 3)
+    .put("total", 0).put("pending", 0).put("review", 0)
+    .put("locally_committed", output.getJSONArray("pending").length()))
+output.put("storage_contract_version", 3)
+output.put("processing_engine", LocalAuthorityRules.ENGINE)
+output.put("business_sync_allowed", false)
+output.put("local_authority", LocalAuthorityGuard(context).current())
 
 } catch (error: Exception) {
-throw IllegalStateException("LOCAL_STATE_BUILD_FAILED")
+throw IllegalStateException("LOCAL_STATE_BUILD_FAILED", error)
 }
 try {
-
-output.put("drive_sync_failed", preferences.getBoolean("drive_sync_failed", false)).put("last_sync_attempt", preferences.getString("last_sync_attempt", "")).put("cloud_confirmed", preferences.getBoolean("drive_cloud_confirmed", false) && output.getJSONObject("sync_queue").getInt("total") == 0).put("confirmation_scope", preferences.getString("drive_confirmation_scope", "local_only")).put("last_full_sync", preferences.getString("last_full_sync", ""))
-
-} catch (ignored: Exception) {
-
-}
-try {
-
-var old = output.getJSONObject("sync_queue")
-output.put("legacy_queue_inventory", old).put("sync_queue", JSONObject().put("contract_version", DriveRolePolicy.contractVersion()).put("mode", DriveRolePolicy.role()).put("total", 0).put("pending", 0).put("review", old.optInt("review")).put("locally_committed", output.getJSONArray("pending").length())).put("storage_contract_version", DriveRolePolicy.contractVersion()).put("drive_role", DriveRolePolicy.role()).put("processing_engine", LocalAuthorityRules.ENGINE).put("inventory_processing_engine", output.getJSONObject("master").optString("processing_engine")).put("business_sync_allowed", false).put("cloud_confirmed", false).put("drive_sync_failed", false).put("confirmation_scope", "local_only").put("local_authority", LocalAuthorityGuard(context).current())
-
-} catch (invalid: Exception) {
-throw IllegalStateException("LOCAL_STATE_CONTRACT_INVALID", invalid)
-}
-try {
-
 OfferDecisionProjection.apply(this, output.getJSONObject("master"))
 LocalBillingProjection.apply(this, output.getJSONObject("master"))
-output.put("sync_status", DriveSyncCoordinator.status(context, output.getJSONObject("sync_queue")))
-
+output.put("sync_status", JSONObject().put("state", "local_only")
+    .put("syncing", false).put("business_sync_allowed", false)
+    .put("cloud_confirmed", false))
 } catch (invalid: Exception) {
 throw IllegalStateException("LOCAL_STATE_METADATA_UNREADABLE", invalid)
 }

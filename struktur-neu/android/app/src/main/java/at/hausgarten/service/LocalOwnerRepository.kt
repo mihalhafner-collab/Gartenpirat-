@@ -495,10 +495,7 @@ a.put("kind", kind)
 a.put("payload", payload.toString())
 a.put("created_at", java.time.Instant.now().toString())
 store!!.getWritableDatabase().insertOrThrow("pending", null, a)
-var result = JSONObject().put("client_id", request).put("entity_type", payload.optString("entity", kind)).put("entity_id", payload.optString("id")).put("local_state", "local_saved").put("sync_state", (if (!(DriveRolePolicy.businessSyncAllowed()) || payload.optBoolean("_local_only")) "not_applicable" else "sync_pending")).put("test_local_only", payload.optBoolean("_local_only")).put("cloud_confirmed", false)
-if (!(DriveRolePolicy.businessSyncAllowed())) {
-result.put("drive_role", DriveRolePolicy.role()).put("storage_contract_version", DriveRolePolicy.contractVersion())
-}
+var result = JSONObject().put("client_id", request).put("entity_type", payload.optString("entity", kind)).put("entity_id", payload.optString("id")).put("local_state", "local_saved").put("sync_state", "not_applicable").put("test_local_only", payload.optBoolean("_local_only")).put("cloud_confirmed", false)
 db.setTransactionSuccessful()
 return result
 

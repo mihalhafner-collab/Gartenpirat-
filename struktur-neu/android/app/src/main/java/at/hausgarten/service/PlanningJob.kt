@@ -17,7 +17,7 @@ class PlanningJob : JobService() {
             try {
                 RevierApplication.awaitStartup(this)
                 if (params.jobId == ONCE) PlanningAccount.prefs(this).edit().remove("job_due_at").apply()
-                PixelLocalStore(this).use { store -> if (DriveSyncCoordinator.hasNetwork(this)) AppointmentRuntime.refresh(this, store) else retry.set(true) }
+                PixelLocalStore(this).use { store -> AppointmentRuntime.refresh(this, store) }
             }
             catch (unavailable: RuntimeException) { retry.set(true) }
             null
