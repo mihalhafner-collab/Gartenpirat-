@@ -244,8 +244,9 @@ Tagesstunden. Während einer Arbeit zeigt die Ansicht die persistente Nettozeit,
 Pause/Fortsetzen und Beenden. Beenden öffnet die vorhandene Zeitprüfung und erzeugt
 keine ungeprüfte Arbeitsaufzeichnung. Foto und Material verwenden die bestehende
 Erfassung mit dem tatsächlichen Kunden-/Auftrags-/Sitzungsbezug. Das unten geöffnete
-Erfassen-Menü bietet Foto, Material, manuelle Arbeit und den Arbeitseintrag mit
-vorangestelltem Notizfeld. Vorhandene Entwürfe bleiben vorrangig. Es gibt keine
+Erfassen-Menü bietet Foto, Material, manuelle Arbeit und die vorhandenen Kundennotizen. Der Notiz-Kurzzugriff
+öffnet beim zugeordneten Kunden das Notizfeld; ohne Zuordnung wird zuerst der
+Kunde gewählt. Die Notiz erzeugt keine Arbeitsaufzeichnung. Vorhandene Entwürfe bleiben vorrangig. Es gibt keine
 neue Menügeste; Android-Zurück schließt den Dialog. Hauptaktionen sind mindestens
 56 dp hoch, große Schrift bleibt ungekürzt. Gerätewartungen und offene lokale
 Hinweise erscheinen nur aus vorhandenen Daten. Die Ansicht behauptet keinen

@@ -58,13 +58,14 @@
       "Heute: Sicherungszeit in Wiener Ortszeit und leere Einsatz-Uhrzeiten nach terminierten Einsätzen; Quellprüfung sowie kompletter lokaler Kotlin/Java-/Release-/Android-Test-/Lint-Bau erfolgreich",
       "41519270807: Emulatorstart mit freiem Speicher erfolgreich; SQLite-/Backup-/Restore-/Provider-Suiten einschließlich Prozessneustart und Today-Timerfolge erfolgreich. Compose-Gesamtlauf wegen Archivieren ohne request_id sowie falschem Heute-Geometrieziel fehlgeschlagen; Folgefehler durch offenen Dialog.",
       "Archiv-/Papierkorbreparatur, entfernte Drive-Papierkorbfunktionen und korrigiertes Heute-Geometrieziel: Quellprüfung, acht JVM-Suiten, Kotlin/Java, Release-/Android-Testbau und lintRelease erfolgreich. Zusätzliche stale-delete-Assertions sind kompiliert; Android-Ausführung steht aus.",
-      "Suchprüfungen an die vom nächsten Einsatz übergebene Kundenzuordnung angepasst: sechs unveränderte Tastaturkombinationen und physischer Zurück-Gestentest prüfen die tatsächliche Vorbelegung. Ungebundene Angebots-Viewportfälle setzen Filter über die echte Oberfläche zurück. Quellprüfung und kompletter lokaler Kotlin/Java-/Release-/Android-Test-/Lint-Bau erfolgreich."
+      "Suchprüfungen an die vom nächsten Einsatz übergebene Kundenzuordnung angepasst: sechs unveränderte Tastaturkombinationen und physischer Zurück-Gestentest prüfen die tatsächliche Vorbelegung. Ungebundene Angebots-Viewportfälle setzen Filter über die echte Oberfläche zurück. Quellprüfung und kompletter lokaler Kotlin/Java-/Release-/Android-Test-/Lint-Bau erfolgreich.",
+      "Eigenständiger Kundennotiz-Kurzzugriff: vorhandener Editor/Schreibschutz wiederverwendet, Arbeitsnotizen unverändert erhalten. Quellprüfung, Kotlin/Java, Release-/Android-Testbau und lintRelease erfolgreich; UI-Speicherprüfung kompiliert, Emulatorausführung steht aus."
     ],
     "remaining": [
-      "Vollständigen CI-Lauf nach Archiv-/Papierkorbreparatur und Anpassung der Suchtests an tatsächlich vorbelegte Kundenzuordnungen ausführen",
+      "Gesamtlauf auf dem aktuellen Commit einschließlich Archiv-/Papierkorbreparatur, tatsächlicher Kundenvorbelegung und eigenständigem Kundennotiz-Speichern ausführen",
       "Originalsignierte 1.57.3 (122) vom endgültigen Commit prüfen und im bestehenden Drive-Installationsordner bereitstellen"
     ],
-    "today_view": "Bildvorlage umgesetzt: lokale Statusangabe, Tagesplanung, persistenter Timer, Pause/Beenden und Erfassen-Menü; vier Hauptbereiche und Android-Zurück bleiben erhalten."
+    "today_view": "Bildvorlage umgesetzt: lokale Statusangabe, Tagesplanung, persistenter Timer, Pause/Beenden und Erfassen-Menü. Kundennotizen werden über den vorhandenen Kundeneditor gespeichert; ohne Einsatzbezug wird zuerst der Kunde gewählt. Vier Hauptbereiche und Android-Zurück bleiben erhalten."
   },
   "open_checks": [
     "Pixel bleibt unverändert auf 1.57.2 (121); keine Installation, Migration, Wiederherstellung oder produktiven Tests.",

@@ -347,9 +347,14 @@ private fun NativeToday(controller: NativeAppController) {
     }
     fun capture(section: String, mode: String = "", note: Boolean = false) {
         capturing = false
+        if (note) {
+            val customer = context.optString("customer_id")
+            controller.navigate("customers", id = customer, mode = if (customer.isEmpty()) "list" else "edit", args = JSONObject().put("_note_first", true))
+            return
+        }
         val args = JSONObject(context.toString())
         if (section == "photos") args.put("_open_camera", true)
-        if (section == "worklogs") { args.remove("session_id"); if (note) args.put("_note_first", true) }
+        if (section == "worklogs") args.remove("session_id")
         controller.navigate(section, mode = mode, args = args)
     }
     fun timer(tool: String) {
@@ -479,8 +484,8 @@ private fun NativeToday(controller: NativeAppController) {
             Surface(Modifier.fillMaxWidth(), color = Color.White, shape = androidx.compose.foundation.shape.RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)) {
                 Column(Modifier.verticalScroll(rememberScrollState()).navigationBarsPadding().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Erfassen", style = MaterialTheme.typography.headlineSmall, color = ink)
-                    Text(if (contextName.isBlank()) "Zuordnung im Formular wählen" else "Für $contextName", color = ink)
-                    listOf(Triple("Foto aufnehmen", "photos", "import"), Triple("Material buchen", "materials", "movement"), Triple("Arbeit nachtragen", "worklogs", "new"), Triple("Notiz hinzufügen", "worklogs", "new")).forEach { (label, section, mode) ->
+                    Text(if (contextName.isBlank()) "Zuordnung auswählen" else "Für $contextName", color = ink)
+                    listOf(Triple("Foto aufnehmen", "photos", "import"), Triple("Material buchen", "materials", "movement"), Triple("Arbeit nachtragen", "worklogs", "new"), Triple("Notiz hinzufügen", "customers", "list")).forEach { (label, section, mode) ->
                         TextButton({ capture(section, mode, label == "Notiz hinzufügen") }, Modifier.fillMaxWidth().heightIn(min = 56.dp), contentPadding = PaddingValues(12.dp)) {
                             Text(label, Modifier.weight(1f), color = ink); Text("›", color = ink)
                         }
@@ -563,7 +568,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
             TextButton({ search = ""; status = ""; customer = ""; billing = ""; from = ""; to = ""; inactive = false; offset = 0 }) { Text("Filter zurücksetzen") }
         }
         items(page.rows, key = { it.id }) { row ->
-            OutlinedCard(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { controller.navigate(collection, row.id, args = JSONObject(controller.route.args.toString()).put("customer_id", customer).put("date_from", from).put("date_to", to)) }) {
+            OutlinedCard(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { controller.navigate(collection, row.id, mode = if (collection == "customers" && controller.route.args.optBoolean("_note_first")) "edit" else "list", args = JSONObject(controller.route.args.toString()).put("customer_id", customer).put("date_from", from).put("date_to", to)) }) {
                 Row(Modifier.padding(12.dp)) {
                     if (collection == "worklogs") Checkbox(row.id in selected, { check -> selected = if (check) selected + row.id else selected - row.id })
                     Column { Text(row.title, style = MaterialTheme.typography.titleMedium); if (row.subtitle.isNotBlank()) Text(nativeDisplayText(row.subtitle)); if (row.address.isNotBlank()) Text(row.address); if (row.status.isNotBlank()) NativeStatus(nativeValue(row.status)) }
@@ -800,9 +805,9 @@ private fun NativeEntityEditor(controller: NativeAppController, collection: Stri
         } else if (loaded) {
             val v = JSONObject(valueText)
             val textFields = when (kind) {
-                "customer" -> listOf("name", "company", "first_name", "last_name", "street", "postal_code", "city", "country", "phone", "email", "garden_area", "sevdesk_customer_number", "notes")
+                "customer" -> listOf("name", "company", "first_name", "last_name", "street", "postal_code", "city", "country", "phone", "email", "garden_area", "sevdesk_customer_number", "notes").let { fields -> if (controller.route.args.optBoolean("_note_first")) listOf("notes") + fields.filter { it != "notes" } else fields }
                 "order" -> listOf("title", "description", "location", "scheduled_date")
-                else -> (if (controller.route.args.optBoolean("_note_first")) listOf("notes") else emptyList()) + listOf("work_date", "start_time", "end_time", "break_minutes", "activity", "disposal_cost")
+                else -> listOf("work_date", "start_time", "end_time", "break_minutes", "activity", "disposal_cost")
             }
             if (kind != "customer") item { NativeRecordPicker(controller, "customers", "Kunde", v.optString("customer_id"), onValueChange = { change("customer_id", it) }) }
             items(textFields) { field ->
@@ -828,7 +833,7 @@ private fun NativeEntityEditor(controller: NativeAppController, collection: Stri
                 }
                 item {
                     NativeRecordPicker(controller, "orders", "Auftrag (optional)", v.optString("order_id"), customerId = v.optString("customer_id"), onValueChange = { change("order_id", it) })
-                    for (field in listOf("hours", "material", "material_cost", "kilometers", "location", "notes").filter { it != "notes" || !controller.route.args.optBoolean("_note_first") }) NativeField(if (field == "hours") "Arbeitsdauer in Stunden (nur ohne Beginn/Ende; netto)" else nativeLabel(field), v.opt(field)?.takeUnless { it == JSONObject.NULL }?.toString() ?: "", { entered ->
+                    for (field in listOf("hours", "material", "material_cost", "kilometers", "location", "notes")) NativeField(if (field == "hours") "Arbeitsdauer in Stunden (nur ohne Beginn/Ende; netto)" else nativeLabel(field), v.opt(field)?.takeUnless { it == JSONObject.NULL }?.toString() ?: "", { entered ->
                         change(field, if (field in listOf("hours", "material_cost", "kilometers")) entered.replace(',', '.').toDoubleOrNull() ?: entered else entered)
                     }, multiline = field in listOf("notes", "material"))
                 }

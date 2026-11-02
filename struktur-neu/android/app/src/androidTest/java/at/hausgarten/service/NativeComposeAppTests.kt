@@ -773,11 +773,18 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         back()
         shown("Einsatz starten")
         yes(PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) == before, "TODAY_CAPTURE_BACK_DOES_NOT_WRITE")
+        val noteCustomer = customers(fixturePrefix + "000").single()
+        val originalNotes = noteCustomer.optString("notes")
+        val workBeforeNote = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs"))
         click("+ Erfassen"); click("Notiz hinzufügen")
+        enter("Suchen", fixturePrefix + "000"); click(fixturePrefix + "000")
         shown("Notizen")
         yes(!keyboardVisible(), "TODAY_NOTE_HAS_NO_FORCED_IME")
-        click("‹ Zurück")
-        shown("Einsatz starten")
+        val note = listOf(originalNotes, "[TEST] QA Heute Kundennotiz").filter { it.isNotBlank() }.joinToString("\n")
+        enter("Notizen", note); click("Speichern")
+        waitUntil("TODAY_CUSTOMER_NOTE_SAVED") { customers(fixturePrefix + "000").single().optString("notes") == note }
+        yes(PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")) == workBeforeNote, "TODAY_NOTE_PRESERVES_WORK_RECORDS")
+        click("Heute"); shown("Einsatz starten")
         val oldFont = shell("settings get system font_scale")
         try {
             activity?.let { current -> test.runOnMainSync { current.finish() } }
