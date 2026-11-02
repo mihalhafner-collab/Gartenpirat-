@@ -24,12 +24,11 @@
   ],
   "current_task": {
     "name": "Radikale Bereinigung nach KISS/YAGNI; Rechnungen bleiben bei sevDesk",
-    "status": "RETIRED_DRIVE_STATUS_COMPONENTS_REMOVED; DEEP_JOURNAL_CLEANUP_PENDING; QA_PENDING",
+    "status": "FINANCIAL_MIGRATION_VALIDATORS_PRUNED; CODE_CLEANUP_AND_QA_PENDING",
     "remaining": [
-      "Historische Drive-Koordinator-, Rollen- und Veröffentlichungsdateien gelöscht; Geschäftsspeicherung verwendet lokale Statusangaben, Wetter-/Kalender-Job keinen Drive-Netzwerkhelfer.",
-      "Aufrufpfade und Prüfschemata für frühere Sync-/Rechnungsaktionen, unnötige Finanz- und Migrationsklassen sowie restliche native Compose-Rechnungsanzeige entfernen; Arbeitsstunden und Angebote erhalten.",
-      "Quellprüfung, Kotlin-Bau und native Regression für den endgültigen Quellstand in GitHub Actions nachweisen; aktuell nicht als bestanden ausgeben.",
-      "Pixel unverändert Build 121; keine Installation, kein produktiver Datenzugriff und keine neue APK."
+      "Alte Tabellenmigration, Rechnungsvalidierung, Original-Freigaben und sechs zugehörige Klassen entfernt; lokale Backup-Datei-/Hashprüfung mit reinen Hinweisen erhalten.",
+      "Alte Rechnungseditoren, Journal-Verteilungszustände und Start-/Migrationssperren noch entfernen.",
+      "Aktuellen Stand mit Kotlin-Bau, lokalen ZIP-/Restore-Tests und synthetischen Regressionen prüfen."
     ]
   },
   "open_checks": [

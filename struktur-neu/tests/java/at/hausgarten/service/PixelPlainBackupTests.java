@@ -48,25 +48,12 @@ public final class PixelPlainBackupTests {
         JSONObject retry=new JSONObject(success.toString());retry.getJSONObject("job").put("lastErrorCode","BACKUP_LOCAL_READBACK_FAILED").put("lastAttemptAt","2026-10-29T11:00:00Z");JSONObject retryStatus=status(new JSONArray().put(retry),new JSONObject());yes(retryStatus.getString("state").equals("FAILED")&&!retryStatus.getString("last_local_verified_at").isEmpty());yes(retry.getJSONObject("job").getString("phase").equals("PROVIDER_VERIFIED"));
         JSONObject utc=backup("qa_z_utc","2026-10-29T09:00:00Z","CAPTURE_PENDING"),offset=backup("qa_a_offset","2026-10-29T10:00:00+02:00","CAPTURE_PENDING");yes(status(new JSONArray().put(offset).put(utc),new JSONObject()).getJSONObject("latest_job").getString("backup_id").equals("qa_z_utc"));
     }
-    static void financialChecks()throws Exception {
-        JSONObject one=new JSONObject().put("id","qa_invoice_one").put("invoice_number","QA-2026-1").put("issued_at","2026-10-28T10:00:00Z").put("amount",10);
-        JSONObject two=new JSONObject(one.toString()).put("id","qa_invoice_two");JSONObject data=new JSONObject().put("invoices",new JSONArray().put(one).put(two));String unchanged=data.toString();
-        try{LocalFinancialValidation.inspect(data,new JSONObject());throw new AssertionError("duplicate invoice accepted");}catch(IOException expected){yes(expected.getMessage().equals("FINANCIAL_ISSUED_NUMBER_COLLISION"));}
-        yes(data.toString().equals(unchanged));two.put("invoice_number","QA-2026-2");yes(LocalFinancialValidation.inspect(data,new JSONObject()).getString("status").equals("PASS"));
-        JSONObject evidence=new JSONObject().put("formatVersion",1).put("external_writers_disabled",true).put("evidence_sha256","a".repeat(64)).put("evidence_reference","qa_review").put("checked_at","2026-10-28T10:00:00Z").put("last_number",2).put("reservations",new JSONArray()).put("issued",new JSONArray().put(new JSONObject().put("invoice_id","qa_external").put("invoice_number","QA-2026-1").put("pdf_sha256","c".repeat(64))));
-        JSONObject namespace=new JSONObject().put("local_invoice_external_evidence",evidence).put("local_invoice_counter",new JSONObject().put("last_number",2));
-        try{LocalFinancialValidation.inspect(data,namespace);throw new AssertionError("external collision accepted");}catch(IOException expected){yes(expected.getMessage().equals("FINANCIAL_EXTERNAL_NUMBER_COLLISION"));}
-        evidence.getJSONArray("issued").getJSONObject(0).put("invoice_id","qa_invoice_one");yes(LocalFinancialValidation.inspect(data,namespace).getString("status").equals("PASS"));
-        for(String code:new String[]{"FINANCIAL_ISSUED_NUMBER_COLLISION","FINANCIAL_RESERVATION_COUNTER_COLLISION","FINANCIAL_RESERVATION_INVOICE_COLLISION","FINANCIAL_EXTERNAL_NUMBER_COLLISION"}){yes(BackupScheduleRules.errorCode(BackupScheduleRules.captureFailure("INVENTORY",new IOException(code))).equals(code));yes(BackupStatusRules.failureMessage(code).contains("Rechnungen und Nummern wurden nicht verändert"));}
-    }
     static void conflictingRecordsRoundTrip(File root)throws Exception {
         JSONObject first=new JSONObject().put("id","qa_conflict_one").put("invoice_number","QA-2026-0042").put("issued_at","2026-10-28T10:00:00Z").put("amount","12.3400");
         JSONObject second=new JSONObject(first.toString()).put("id","qa_conflict_two");
         JSONObject data=new JSONObject().put("invoices",new JSONArray().put(first).put(second));
         JSONObject namespaces=new JSONObject().put("local_invoice_counter",new JSONObject().put("last_number",42));
         byte[] original=new JSONObject().put("effective",data).put("namespaces",namespaces).put("unknown_optional","Grün 🌿").toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
-        try{LocalFinancialValidation.inspect(data,namespaces);throw new AssertionError("financial fixture must have a number conflict");}
-        catch(IOException expected){yes(expected.getMessage().equals("FINANCIAL_ISSUED_NUMBER_COLLISION"));}
         File source=new File(root,"qa_conflicts.json"),archive=new File(root,"qa_conflicts.zip");Files.write(source.toPath(),original);
         try(OutputStream output=new FileOutputStream(archive)){
             EncryptedBackupArchive.writePlain(output,metadata(),Collections.singletonList(new EncryptedBackupArchive.Source("files/qa-financial-state.json",source)));
@@ -79,8 +66,6 @@ public final class PixelPlainBackupTests {
             yes(!invoices.getJSONObject(0).getString("id").equals(invoices.getJSONObject(1).getString("id")));
             yes(invoices.getJSONObject(0).getString("invoice_number").equals(invoices.getJSONObject(1).getString("invoice_number")));
             yes(saved.getJSONObject("namespaces").getJSONObject("local_invoice_counter").getInt("last_number")==42);
-            try{LocalFinancialValidation.inspect(saved.getJSONObject("effective"),saved.getJSONObject("namespaces"));throw new AssertionError("backup must not repair or authorize invoices");}
-            catch(IOException expected){yes(expected.getMessage().equals("FINANCIAL_ISSUED_NUMBER_COLLISION"));}
         }
         yes(Arrays.equals(original,Files.readAllBytes(source.toPath())));yes(!new File(root,"conflict_restore").exists());
     }
@@ -124,7 +109,7 @@ public final class PixelPlainBackupTests {
         }
     }
     public static void main(String[] args)throws Exception{
-        diagnosticChecks();statusChecks();financialChecks();
+        diagnosticChecks();statusChecks();
         File root=Files.createTempDirectory("qa_plain_backup_").toFile();try{
             conflictingRecordsRoundTrip(root);warningRoundTrip(root);interruptedRestore(root);
             File source=new File(root,"qa_database.sqlite"),zip=new File(root,"qa_backup.zip");byte[] bytes="QA local plaintext contents".getBytes("UTF-8");Files.write(source.toPath(),bytes);

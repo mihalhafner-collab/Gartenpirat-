@@ -64,6 +64,34 @@ object BackupInventory {
                 else "Dokumentoriginal fehlt oder ist nicht verifiziert; vorhandene Dateien bleiben enthalten."))
     }
 
+    /** Only verify local originals; missing files are backup notes, not authority gates. */
+    @JvmStatic
+    fun originalProblem(filesRoot: java.io.File, kind: String, row: JSONObject): String? {
+        val photo = kind == "photo"
+        val name = row.optString(if (photo) "storage_name" else "pdf_storage_name")
+        val sha = row.optString(if (photo) "content_sha256" else "pdf_sha256")
+        val bytes = row.optLong(if (photo) "byte_size" else "pdf_byte_size", -1)
+        val allowed = if (photo) Regex("[a-f0-9]{64}\\.[A-Za-z0-9]{1,8}")
+            else Regex("[a-f0-9]{64}\\.pdf")
+        if (!allowed.matches(name) || !Regex("[a-f0-9]{64}").matches(sha) || bytes < 0)
+            return "ORIGINAL_METADATA_INCOMPLETE"
+        val root = java.io.File(filesRoot, if (photo) "customer-photo-originals" else "business-documents")
+        val file = java.io.File(root, name)
+        if (!file.isFile || java.nio.file.Files.isSymbolicLink(file.toPath())) return "ORIGINAL_FILE_MISSING"
+        if (file.length() != bytes) return "ORIGINAL_FILE_SIZE_MISMATCH"
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        file.inputStream().buffered().use { input ->
+            val buffer = ByteArray(32768)
+            while (true) {
+                val n = input.read(buffer)
+                if (n < 0) break
+                digest.update(buffer, 0, n)
+            }
+        }
+        val hash = digest.digest().joinToString("") { "%02x".format(it.toInt() and 255) }
+        return if (hash == sha) null else "ORIGINAL_HASH_MISMATCH"
+    }
+
     @JvmStatic
     fun message(warnings: JSONArray?): String {
         val count = warnings?.length() ?: 0

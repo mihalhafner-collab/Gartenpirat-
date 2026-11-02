@@ -29,7 +29,7 @@ paths.update(native_source(name) for name in (
     'PixelOwnerAccess', 'LocalOwnerRepository', 'PixelLocalStore',
     'WorkSessionStore', 'BrowserDraftRepository', 'BackupSettingsRepository',
     'LocalBackupDataset', 'NativeOwnerQueries', 'PixelMcpOwnerTools',
-    'SyncArchiveApplicationService', 'LocalMigrationInventory',
+    'SyncArchiveApplicationService',
     'LocalAuthorityRules', 'LocalAuthorityGuard', 'RevierApplication',
     'PlanningConnectionActivity', 'PixelTunnelActivity', 'PixelTunnelService',
     'PixelTunnelBootReceiver', 'BackgroundWorkDispatch', 'PendingWorkPhotoStore',

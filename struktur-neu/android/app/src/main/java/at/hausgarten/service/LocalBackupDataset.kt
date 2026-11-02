@@ -85,10 +85,11 @@ internal object LocalBackupDataset {
                     // Diagnostic only. Raw SQLite and every readable file have already been captured.
                     try {
                         val state = BackupSnapshotState.read(snapshot, BackupPreferences.values(preferences, "haus_garten"), initial, catalog)
-                        val originals = LocalOriginalVerifier(filesRoot,
-                            { id -> BackupSnapshotState.photo(snapshot, id) },
-                            { id -> JSONObject(DatabaseBackupSnapshot.ownerValue(snapshot, "local_invoice_job:$id", "{}")!!) })
-                        report = BackupInventory.inspect(SnapshotProjection.effective(state)) { kind, row -> originals.problem(kind, row) }
+                        report = BackupInventory.inspect(SnapshotProjection.effective(state)) { kind, row ->
+                            val metadata = if (kind == "photo")
+                                BackupSnapshotState.photo(snapshot, row.optString("id")) ?: row else row
+                            BackupInventory.originalProblem(filesRoot, kind, metadata)
+                        }
                     } catch (unavailable: Exception) {
                         extra.put(JSONObject().put("kind", "inventory").put("reason", "INVENTORY_NOT_VERIFIABLE")
                             .put("message", "Bestandsübersicht nicht vollständig auswertbar; Datenbank und vorhandene Dateien sind unverändert enthalten."))
@@ -168,75 +169,6 @@ internal object LocalBackupDataset {
         while (keys.hasNext()) {
             if (storage.get(keys.next()) !is String) throw IOException("BACKUP_BROWSER_STORAGE_INVALID")
         }
-    }
-
-    /** Evidence for an explicitly invoked table transfer; never called by startup or restore.
-     * Verifies the actual selected archive on every step and compares captured/live business
-     * state, pending actions, relationships and originals. The staging directory must be fresh.
-     */
-    @JvmStatic
-    fun tableEvidence(store: PixelLocalStore, archive: File, recovery: String?, staging: File): BusinessTableStore.Evidence =
-        BusinessTableStore.Evidence { source ->
-            val digest = EncryptedBackupArchive.sha256(archive)
-            BufferedInputStream(FileInputStream(archive)).use { input ->
-                EncryptedBackupArchive.verifyArchive(input, recovery, staging, staging.parentFile!!.usableSpace, PixelLocalStore.SCHEMA_VERSION).use { verified ->
-                    val manifest = verified.manifest
-                    val identity = BackupDeviceGuard(store.appContext()).current()
-                    for (key in arrayOf("installationId", "restoreEpoch")) {
-                        if (identity.getString(key) != manifest.getString(key)) throw IOException("TABLE_BACKUP_DEVICE_CONTEXT_MISMATCH")
-                    }
-                    if (store.appContext().packageName != manifest.getString("applicationId")) throw IOException("TABLE_BACKUP_APPLICATION_MISMATCH")
-                    val directory = File(verified.directory, "data")
-                    inspectStaged(directory, manifest)
-                    var capturedInventory: JSONObject
-                    var capturedBusinessHash: String
-                    SQLiteDatabase.openDatabase(File(directory, "database.sqlite").absolutePath, null, SQLiteDatabase.OPEN_READONLY).use { captured ->
-                        val capturedState = BackupSnapshotState.read(captured,
-                            BackupPreferences.values(JSONObject(text(File(directory, "preferences.json"))), "haus_garten"),
-                            text(File(directory, "bootstrap/initial-data.json")), text(File(directory, "bootstrap/service-catalog.json")))
-                        capturedBusinessHash = businessHash(capturedState)
-                        capturedInventory = LocalMigrationInventory.inspect(capturedState, LocalOriginalVerifier(File(directory, "files"),
-                            { id -> BackupSnapshotState.photo(captured, id) },
-                            { id -> JSONObject(DatabaseBackupSnapshot.ownerValue(captured, "local_invoice_job:$id", "{}")!!) }))
-                        val prefs = BackupPreferences.values(JSONObject(text(File(directory, "preferences.json"))), "haus_garten")
-                        val capturedRaw = PixelLocalStore.businessTables(captured).snapshot(prefs.optString("drive_snapshot", text(File(directory, "bootstrap/initial-data.json"))))
-                        if (PixelMcpWriteTools.hash(source) != PixelMcpWriteTools.hash(capturedRaw)) throw IOException("TABLE_BACKUP_SOURCE_MISMATCH")
-                    }
-                    val live = store.getState().put("extended_business_fingerprint", BusinessStateFingerprint.read(store.readableDatabase))
-                    if (businessHash(live) != manifest.optString("business_snapshot_sha256", capturedBusinessHash)) {
-                        throw IOException("TABLE_BACKUP_BUSINESS_STATE_CHANGED")
-                    }
-                    val inventory = LocalMigrationInventory.inspect(live, LocalOriginalVerifier(store.appContext().filesDir,
-                        store::photoAttachment, { id -> JSONObject(store.ownerValue("local_invoice_job:$id", "{}")) }))
-                    if (!inventory.optBoolean("projection_applied") || inventory.getInt("duplicate_ids") != 0 ||
-                        inventory.getInt("orphan_relations") != 0 || inventory.getInt("missing_local_originals") != 0) {
-                        throw IOException("TABLE_SOURCE_INTEGRITY_REVIEW_REQUIRED")
-                    }
-                    for (key in arrayOf("counts", "id_set_sha256", "collection_sha256", "pending_sha256", "historical_hours_decimal", "historical_invoice_amounts_decimal")) {
-                        if (PixelMcpWriteTools.hash(inventory.get(key)) != PixelMcpWriteTools.hash(capturedInventory.get(key))) {
-                            throw IOException("TABLE_BACKUP_INVENTORY_MISMATCH")
-                        }
-                    }
-                    RevierApplicationService(RevierSnapshotRepository(store.readableDatabase, SnapshotProjection.effective(live), store.appContext().filesDir)).validateRelationships()
-                    LocalFinancialSnapshotValidation.inspect(store.readableDatabase, SnapshotProjection.effective(live))
-                    if (digest != EncryptedBackupArchive.sha256(archive)) throw IOException("TABLE_BACKUP_CHANGED")
-                    digest
-                }
-            }
-        }
-
-    /** Stable fingerprint retained only for the optional explicit table-transfer check. */
-    private fun businessHash(state: JSONObject): String {
-        val effective = SnapshotProjection.effective(state)
-        val selected = JSONObject()
-        for (name in arrayOf(
-            "customers", "orders", "worklogs", "photos", "offers", "invoices",
-            "appointments", "service_catalog", "business_settings", "owner_archive"
-        )) if (effective.has(name)) selected.put(name, effective.get(name))
-        if (state.has("extended_business_fingerprint")) {
-            selected.put("extended_business_fingerprint", state.get("extended_business_fingerprint"))
-        }
-        return PixelMcpWriteTools.hash(selected)
     }
 
     @Throws(Exception::class)

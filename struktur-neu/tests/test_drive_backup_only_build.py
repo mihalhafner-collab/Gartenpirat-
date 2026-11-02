@@ -121,21 +121,13 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         self.assertIn('DocumentsContract.Root.FLAG_LOCAL_ONLY', provider)
         self.assertRegex(code, r'\.put\("cloud_confirmed",\s*false\)')
 
-    def test_backup_does_not_require_financial_business_validity(self):
-        # The shared capture/staging boundary is used by save, restore and rollback.
-        # Explicit business-table transfer remains a separate validated operation.
+    def test_backup_has_no_migration_or_invoice_authority_gate(self):
         code = source('LocalBackupDataset')
-        boundary = re.search(r'(?:static\s+BusinessTableStore\.Evidence|fun)\s+tableEvidence\s*\(', code)
-        self.assertIsNotNone(boundary, 'Explicit table-transfer boundary must remain separate from backup capture')
-        backup, table_transfer = code[:boundary.start()], code[boundary.start():]
-        self.assertNotRegex(backup, r'LocalFinancial(?:Snapshot)?Validation\s*\.\s*inspect\(')
-        self.assertNotIn('.put("financial_inventory"', backup)
-        self.assertNotIn('LocalMigrationInventory', backup)
-        self.assertNotIn('BACKUP_LOCAL_ORIGINALS_INCOMPLETE', backup)
-        self.assertNotIn('LocalFinancialOriginals.inspect', backup)
-        self.assertNotIn('validateRelationships()', backup)
-        self.assertNotIn('recordSnapshotPhotoAttachments', backup)
-        self.assertIn('LocalFinancialSnapshotValidation.inspect(', table_transfer)
+        self.assertNotIn('tableEvidence(', code)
+        self.assertNotIn('LocalMigrationInventory', code)
+        self.assertNotIn('LocalFinancialValidation', code)
+        self.assertNotIn('LocalOriginalVerifier', code)
+        self.assertIn('BackupInventory.originalProblem(', code)
         service = source('PixelBackupService')
         self.assertIn('LocalBackupDataset.forStreaming(', service)
         self.assertIn('BackupDocumentTransfer.exportStream(', service)
