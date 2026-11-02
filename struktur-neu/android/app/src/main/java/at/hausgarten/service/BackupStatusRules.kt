@@ -126,7 +126,7 @@ object BackupStatusRules {
 
     @JvmStatic
     fun failureMessage(code: String): String {
-        if (code == "BACKUP_DOCUMENT_REQUIRED" || code == "BACKUP_PIXEL_FOLDER_REQUIRED") return "Bitte eine Datei über die Android-Dateiauswahl wählen. Drive und lokaler Speicher sind möglich."
+        if (code == "BACKUP_DOCUMENT_REQUIRED" || code == "BACKUP_PIXEL_FOLDER_REQUIRED") return "Bitte über die Android-Dateiauswahl eine lokale Sicherungsdatei auf dem Pixel wählen."
         if (code == "BACKUP_INTERRUPTED") return "Die letzte Sicherung wurde unterbrochen. Bitte die Sicherung erneut öffnen und speichern."
         if (code == "BACKUP_RUNNER_BUSY") return "Eine Sicherung läuft bereits. Bitte auf deren Ergebnis warten."
         if (code == "BACKUP_TARGET_ALREADY_VERIFIED") return "Diese Datei enthält bereits eine bestätigte Sicherung. Bitte einen neuen Dateinamen wählen."

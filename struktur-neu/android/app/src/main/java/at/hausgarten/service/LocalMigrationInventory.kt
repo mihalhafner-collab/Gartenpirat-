@@ -283,7 +283,6 @@ internal class LocalMigrationInventory {
             }
             blockers
                 .put("DATABASE_SETTINGS_AND_STAGED_FILES_INVENTORY_REQUIRED")
-                .put("FULL_EXTERNAL_BACKUP_REQUIRED")
                 .put("OLD_WRITER_RETIREMENT_PROOF_REQUIRED")
                 .put("CURRENT_INVOICE_NUMBER_RECONCILIATION_REQUIRED")
             var session = state.optJSONObject("work_session")

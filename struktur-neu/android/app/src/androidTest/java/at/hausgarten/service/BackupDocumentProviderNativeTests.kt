@@ -262,17 +262,39 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
         waitUntil("CLICK_$label") {
             val root = scope() ?: return@waitUntil false
             val matches: (AccessibilityNodeInfo) -> Boolean = {
-                it.text?.toString() == label || it.contentDescription?.toString() == label
+                it.text?.toString()?.trim() == label || it.contentDescription?.toString()?.trim() == label
             }
-            val match = find(root) { matches(it) && actionableAncestor(it, root) != null }
+            val match = find(root) { matches(it) && it.isVisibleToUser }
             if (match == null) {
                 find(root, matches)?.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id)
                 return@waitUntil false
             }
-            val target = actionableAncestor(match, root) ?: return@waitUntil false
-            // A drawer animation or a document-list refresh can invalidate a previously found node.
-            // Retry with a fresh accessibility tree instead of clicking a stale ancestor.
-            target.refresh() && target.isVisibleToUser && target.isEnabled && target.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+            val target = actionableAncestor(match, root)
+            if (target != null && target.refresh() && target.isVisibleToUser && target.isEnabled &&
+                target.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+                return@waitUntil true
+            }
+            // DocumentsUI occasionally exposes a visible root row without ACTION_CLICK
+            // on its accessible descendants. Use a real injected touch, not a fabricated URI.
+            if (!pickerVisible() || !match.isEnabled) return@waitUntil false
+            val bounds = android.graphics.Rect()
+            match.getBoundsInScreen(bounds)
+            if (bounds.isEmpty) return@waitUntil false
+            val downAt = SystemClock.uptimeMillis()
+            val down = android.view.MotionEvent.obtain(downAt, downAt,
+                android.view.MotionEvent.ACTION_DOWN, bounds.exactCenterX(), bounds.exactCenterY(), 0)
+            val up = android.view.MotionEvent.obtain(downAt, downAt + 80,
+                android.view.MotionEvent.ACTION_UP, bounds.exactCenterX(), bounds.exactCenterY(), 0)
+            down.source = InputDevice.SOURCE_TOUCHSCREEN
+            up.source = InputDevice.SOURCE_TOUCHSCREEN
+            try {
+                val pressed = automation.injectInputEvent(down, true)
+                val released = automation.injectInputEvent(up, true)
+                pressed && released
+            } finally {
+                down.recycle()
+                up.recycle()
+            }
         }
         checks++
     }

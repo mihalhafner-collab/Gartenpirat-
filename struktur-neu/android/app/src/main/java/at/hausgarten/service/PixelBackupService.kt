@@ -53,7 +53,7 @@ class PixelBackupService internal constructor(private val context: Context, priv
             return removed
         }
 
-        /** The explicit Android picker grants access to this document, including Drive documents. */
+        /** The explicit Android picker grants access to the selected local backup document. */
         @JvmStatic
         @Throws(IOException::class)
         fun requireDocument(uri: Uri?) {

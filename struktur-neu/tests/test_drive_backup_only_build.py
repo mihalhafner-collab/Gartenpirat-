@@ -45,7 +45,8 @@ def method_body(code, name):
 
 class DriveBackupOnlyBuildTests(unittest.TestCase):
     def test_business_transports_are_not_production_sources(self):
-        for name in ('DriveDirectFiles', 'DriveNumbering', 'DriveMediaBatch'):
+        for name in ('DriveDirectFiles', 'DriveNumbering', 'DriveMediaBatch',
+                     'SyncPolicy', 'SyncIoFailure', 'SyncFailureRules'):
             self.assertFalse(any((MAIN / (name + ext)).exists() for ext in ('.java', '.kt')), name)
         for name in ('LegacyDriveSyncFixture', 'LegacyDriveDirectFixture',
                      'LegacyDriveRestFixture', 'LegacyDriveAccountFixture',
@@ -158,6 +159,7 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         self.assertNotIn('externalBackupProof', finance)
         self.assertNotIn('requireBackup(', migration)
         self.assertNotIn('LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED', migration)
+        self.assertNotIn('FULL_EXTERNAL_BACKUP_REQUIRED', source('LocalMigrationInventory'))
         self.assertNotIn('requires_current_external_backup', migration)
         self.assertNotIn('selectedBackup', ui)
         self.assertNotIn('Arrays.asList("expected_preview_hash", "backup_id", "writer_evidence")', workflow)
