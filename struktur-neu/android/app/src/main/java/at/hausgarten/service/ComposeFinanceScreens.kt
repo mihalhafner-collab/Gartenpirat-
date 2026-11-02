@@ -429,9 +429,9 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
         CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
             if(pending==null) {
                 if(section!="catalog") {
-                    NativeRecordPicker(controller,"customers",if(section=="invoices") "Rechnungsempfänger" else "Einsatzkunde",form.optString("customer_id")) { field("customer_id",it) }
+                    NativeRecordPicker(controller,"customers","Einsatzkunde",form.optString("customer_id")) { field("customer_id",it) }
                     if(section=="offers") NativeRecordPicker(controller,"customers","Abweichender Rechnungsempfänger",form.optString("billing_customer_id")) { field("billing_customer_id",it) }
-                    NativeRecordPicker(controller,"orders","Zugeordneter Auftrag (optional)",form.optString("order_id"), customerId = if (section == "offers") form.optString("customer_id") else "") { field("order_id",it) }
+                    NativeRecordPicker(controller,"orders","Zugeordneter Auftrag (optional)",form.optString("order_id"), customerId = form.optString("customer_id")) { field("order_id",it) }
                     if(section=="offers") {
                         NativeContext(controller, form.optJSONObject("_source_context") ?: JSONObject())
                         NativeField("Titel",form.optString("title"),{field("title",it)},required=true)
@@ -450,59 +450,28 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
                         FinanceCheck("Leistungsumfang, Annahmen und Ausschlüsse geprüft",form.optBoolean("scope_confirmed")) {field("scope_confirmed",it)}
                         NativeField("Annahmen",form.optString("assumptions"),{field("assumptions",it)},multiline=true)
                         NativeField("Ausschlüsse",form.optString("exclusions"),{field("exclusions",it)},multiline=true)
-                    } else {
-                        NativeField("Rechnungsdatum",form.optString("invoice_date"),{field("invoice_date",it)},required=true)
-                        NativeField("Leistungsbeginn",form.optString("service_start"),{field("service_start",it)},required=true)
-                        NativeField("Leistungsende",form.optString("service_end"),{field("service_end",it)},required=true)
-                        NativeField("Zahlungsziel in Tagen",form.optString("payment_days"),{field("payment_days",it)})
-                        FinanceCheck("Gewöhnliche Inlandsleistung ausdrücklich geprüft",form.optBoolean("domestic_service_confirmed")) {field("domestic_service_confirmed",it)}
-                        FinanceChoice("Empfängertyp",form.optString("recipient_type"),listOf("" to "Noch nicht bestätigt","b2b" to "Unternehmen (B2B)","consumer" to "Verbraucher")) {field("recipient_type",it)}
-                        NativeField("UID des Empfängers",form.optString("recipient_vat_id"),{field("recipient_vat_id",it)})
                     }
                     FinanceChoice("Steuermodus",form.optString("tax_mode"),listOf("small_business" to "Kleinunternehmer","standard" to "Umsatzsteuer")) {field("tax_mode",it)}
                     Text("Der Steuermodus muss mit den zentral bestätigten Ausstellerdaten übereinstimmen.")
-                    if (section == "invoices") {
-                        val sourceContext = form.optJSONObject("_source_context") ?: JSONObject()
-                        NativeContext(controller, JSONObject(sourceContext.toString()).put("customer_id", sourceContext.optString("work_customer_id")), "Arbeitskunde")
-                        if (sourceContext.length() > 0) TextButton({ field("_source_context", JSONObject()) }) { Text("Alle offenen Arbeiten dieses Empfängers anzeigen") }
-                    }
-                    FinancePositions(form.optJSONArray("positions") ?: JSONArray(),section=="offers") {field("positions",it)}
-                    OutlinedButton(onClick={sourceVisible=!sourceVisible;sourceOffset=0},Modifier.fillMaxWidth()) {Text(if(section=="offers") "Leistungsbausteine auswählen" else "Offene Arbeiten mit Restmengen auswählen")}
+                    FinancePositions(form.optJSONArray("positions") ?: JSONArray(),true) {field("positions",it)}
+                    OutlinedButton(onClick={sourceVisible=!sourceVisible;sourceOffset=0},Modifier.fillMaxWidth()) {Text("Leistungsbausteine auswählen")}
                     if(sourceVisible) {
                         LaunchedEffect(section,sourceOffset,sourceSearch,form.optString("customer_id"),form.optJSONObject("_source_context")?.toString()) {
                             sourceRows=emptyList(); sourceLoading=true; sourceError=""
                             try {
-                                sourceRows=if(section=="offers") financeRows(controller.query("search_offer_templates",JSONObject().put("query",sourceSearch).put("offset",sourceOffset).put("limit",40)),"entries")
-                                else {
-                                    if(form.optString("customer_id").isEmpty()) throw IllegalArgumentException("Zuerst den Rechnungsempfänger auswählen.")
-                                    val sourceContext = form.optJSONObject("_source_context") ?: JSONObject()
-                                    financeRows(controller.query("list_work_records",JSONObject().put("billing_customer_id",form.getString("customer_id")).put("billed",false).put("offset",sourceOffset).put("limit",40).apply {
-                                        if (sourceContext.optString("work_customer_id").isNotEmpty()) put("customer_id", sourceContext.getString("work_customer_id"))
-                                        for (field in listOf("order_id", "date_from", "date_to")) if (sourceContext.optString(field).isNotEmpty()) put(field, sourceContext.getString(field))
-                                    }),"work_records")
-                                }
+                                sourceRows=financeRows(controller.query("search_offer_templates",JSONObject().put("query",sourceSearch).put("offset",sourceOffset).put("limit",40)),"entries")
                             } catch(cancelled:CancellationException){throw cancelled}catch(f:Exception) {sourceError=f.message.orEmpty()} finally {sourceLoading=false}
                         }
-                        NativeSearchDialog(if (section == "offers") "Leistungsbausteine" else "Offene Arbeiten", sourceSearch, { sourceSearch=it; sourceOffset=0 }, sourceRows.size,
-                            loading=sourceLoading, error=sourceError, pageCount=true, searchLabel="Bausteine suchen", searchEnabled=section=="offers", onDismiss={sourceVisible=false}) { close ->
+                        NativeSearchDialog("Leistungsbausteine", sourceSearch, { sourceSearch=it; sourceOffset=0 }, sourceRows.size,
+                            loading=sourceLoading, error=sourceError, pageCount=true, searchLabel="Bausteine suchen", searchEnabled=true, onDismiss={sourceVisible=false}) { close ->
                         items(sourceRows, key={it.getString("id")}) { source -> TextButton(onClick={scope.launch {try {
                             val lines=JSONArray((form.optJSONArray("positions") ?: JSONArray()).toString())
-                            if(section=="offers") {
-                                val selected=controller.query("get_offer_template",JSONObject().put("entry_id",source.getString("id")))
-                                val entry=selected.getJSONObject("entry")
-                                val line=JSONObject().put("title",entry.optString("title")).put("description",entry.optString("description")).put("unit",entry.optString("unit")).put("quantity",entry.opt("default_quantity") ?: JSONObject.NULL).put("price",if(entry.optBoolean("price_confirmed")) entry.opt("default_price") ?: JSONObject.NULL else JSONObject.NULL)
-                                if(entry.optBoolean("price_confirmed") && !entry.isNull("default_price")) line.put("catalog_entry_id",entry.getString("id")).put("catalog_hash",selected.getString("record_hash")).put("price_basis","catalog")
-                                lines.put(line)
-                            } else {
-                                val selected=controller.call("get_work_record",JSONObject().put("work_record_id",source.getString("id")))
-                                val work=selected.getJSONObject("data")
-                                val remaining=selected.optString("quantity_remaining_decimal")
-                                if(selected.optJSONObject("billing_quantity")?.optInt("formatVersion")!=1 || remaining.isEmpty()) throw IllegalArgumentException("Die exakte Restmenge fehlt. Den Arbeitseintrag zuerst prüfen.")
-                                if(BigDecimal(remaining).signum()<=0) throw IllegalArgumentException("Diese Arbeit hat keine offene Restmenge.")
-                                if((0 until lines.length()).any {lines.getJSONObject(it).optString("worklog_id")==work.optString("id")}) throw IllegalArgumentException("Diese Arbeit ist bereits ausgewählt.")
-                                lines.put(JSONObject().put("title",work.optString("activity",work.optString("description"))).put("description",work.optString("description")).put("unit","h").put("quantity",remaining).put("price",JSONObject.NULL).put("worklog_id",work.getString("id")).put("source_type","worklog").put("source_id",work.getString("id")).put("source_quantity_decimal",remaining))
-                            };field("positions",lines); close()
-                        }catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){sourceError=f.message.orEmpty()}}}) {Text(if(section=="offers") "${source.optString("title")} · ${financeMoney(source.opt("default_price"))}" else "${nativeDisplayDate(source.optString("work_date"))} · ${source.optString("activity")}")} }
+                            val selected=controller.query("get_offer_template",JSONObject().put("entry_id",source.getString("id")))
+                            val entry=selected.getJSONObject("entry")
+                            val line=JSONObject().put("title",entry.optString("title")).put("description",entry.optString("description")).put("unit",entry.optString("unit")).put("quantity",entry.opt("default_quantity") ?: JSONObject.NULL).put("price",if(entry.optBoolean("price_confirmed")) entry.opt("default_price") ?: JSONObject.NULL else JSONObject.NULL)
+                            if(entry.optBoolean("price_confirmed") && !entry.isNull("default_price")) line.put("catalog_entry_id",entry.getString("id")).put("catalog_hash",selected.getString("record_hash")).put("price_basis","catalog")
+                            lines.put(line);field("positions",lines); close()
+                        }catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){sourceError=f.message.orEmpty()}}}) {Text("${source.optString("title")} · ${financeMoney(source.opt("default_price"))}")} }
                         item { Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
                             TextButton(enabled=sourceOffset>0,onClick={sourceOffset=(sourceOffset-40).coerceAtLeast(0)}) {Text("Vorherige Quellen")}
                             TextButton(enabled=sourceRows.size==40,onClick={sourceOffset+=40}) {Text("Weitere Quellen")}
